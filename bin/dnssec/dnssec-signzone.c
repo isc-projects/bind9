@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.165 2002/12/03 05:01:34 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.166 2003/01/18 00:24:09 marka Exp $ */
 
 #include <config.h>
 
@@ -117,6 +117,7 @@ static isc_boolean_t shuttingdown = ISC_FALSE, finished = ISC_FALSE;
 static unsigned int assigned = 0, completed = 0;
 static isc_boolean_t nokeys = ISC_FALSE;
 static isc_boolean_t removefile = ISC_FALSE;
+static isc_boolean_t generateds = ISC_FALSE;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -756,16 +757,43 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	 */
 	if (isdelegation) {
 		dns_rdataset_t dsset;
+		dns_rdataset_t sigdsset;
 
 		dns_rdataset_init(&dsset);
-		result = loadds(name, &dsset);
+		dns_rdataset_init(&sigdsset);
+		result = dns_db_findrdataset(gdb, node, gversion,
+					     dns_rdatatype_ds,
+					     0, 0, &dsset, &sigdsset);
 		if (result == ISC_R_SUCCESS) {
-			result = dns_db_addrdataset(gdb, node, gversion, 0,
-						    &dsset, 0, NULL);
-			check_result(result, "dns_db_deleterdataset");
-			hasds = ISC_TRUE;
 			dns_rdataset_disassociate(&dsset);
+			if (generateds) {
+				result = dns_db_deleterdataset(gdb, node,
+							       gversion,
+							       dns_rdatatype_ds,
+							       0);
+				check_result(result, "dns_db_deleterdataset");
+			} else
+				hasds = ISC_TRUE;
 		}
+		if (generateds) {
+			result = loadds(name, &dsset);
+			if (result == ISC_R_SUCCESS) {
+				result = dns_db_addrdataset(gdb, node,
+							    gversion, 0,
+							    &dsset, 0, NULL);
+				check_result(result, "dns_db_addrdataset");
+				hasds = ISC_TRUE;
+				dns_rdataset_disassociate(&dsset);
+			} else if (dns_rdataset_isassociated(&sigdsset)) {
+				result = dns_db_deleterdataset(gdb, node,
+							       gversion,
+							       dns_rdatatype_sig,
+							       dns_rdatatype_ds);
+				check_result(result, "dns_db_deleterdataset");
+				dns_rdataset_disassociate(&sigdsset);
+			}
+		} else if (dns_rdataset_isassociated(&sigdsset))
+			dns_rdataset_disassociate(&sigdsset);
 	}
 
 	/*
@@ -807,6 +835,9 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 			if (hasds)
 				nxt_setbit(name, &rdataset, dns_rdatatype_ds,
 					   1);
+			else
+				nxt_setbit(name, &rdataset, dns_rdatatype_ds,
+					   0);
 		}
 
 		signset(&diff, node, name, &rdataset);
@@ -1385,6 +1416,8 @@ usage(void) {
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-d directory\n");
 	fprintf(stderr, "\t\tdirectory to find keyset files (.)\n");
+	fprintf(stderr, "\t-g:\t");
+	fprintf(stderr, "generate DS records from keyset files\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now - 1 hour)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
@@ -1479,7 +1512,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:s:e:i:v:o:f:ahpr:td:n:Sk:"))
+					   "ac:de:f:ghi:k:n:v:o:pr:s:St:"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
@@ -1492,6 +1525,10 @@ main(int argc, char *argv[]) {
 
 		case 'e':
 			endstr = isc_commandline_argument;
+			break;
+
+		case 'g':
+			generateds = ISC_TRUE;
 			break;
 
 		case 'i':

@@ -1,3 +1,6 @@
+1413.	[func]		Explictly request the (re-)generation of DS records from
+			keysets (dnssec-signzone -g).
+
 1412.	[func]		You can now specify servers to be tried if a nameserver
 			has IPv6 address and you only support IPv4 or the
 			reverse. See dual-stack-servers.

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.3 2002/11/04 00:16:05 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.4 2003/01/18 00:24:09 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -40,6 +40,7 @@
       <arg><option>-a</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-d <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg><option>-g</option></arg>
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
       <arg><option>-e <replaceable class="parameter">end-time</replaceable></option></arg>
       <arg><option>-f <replaceable class="parameter">output-file</replaceable></option></arg>
@@ -98,6 +99,16 @@
 	  <para>
 	       Look for <filename>signedkey</filename> files in
 	       <option>directory</option> as the directory 
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-g</term>
+	<listitem>
+	  <para>
+		Generate DS records for child zones from keyset files.
+		Existing DS records will be removed.
 	  </para>
 	</listitem>
       </varlistentry>
