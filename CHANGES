@@ -1,3 +1,6 @@
+ 952.	[bug]		The server required manual intervention to serve the
+			affected zones if it died between creating a journal
+			and committing the first change to it.
 
  951.	[bug]		CFLAGS was not passed to the linker when
 			linking some of the test programs under

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.76 2001/06/04 19:33:02 tale Exp $ */
+/* $Id: journal.c,v 1.77 2001/08/06 02:10:59 marka Exp $ */
 
 #include <config.h>
 
@@ -602,18 +602,6 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		FAIL(ISC_R_UNEXPECTED);
 	}
 	journal_header_decode(&rawheader, &j->header);
-
-	/*
-	 * When opening a journal for reading, it is not supposed to
-	 * be empty - if there are no transactions, the file should
-	 * not exist.
-	 */
-	if (! write && JOURNAL_EMPTY(&j->header)) {
-		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "%s: journal unexpectedly empty",
-			      j->filename);
-		FAIL(ISC_R_UNEXPECTED);
-	}
 
 	/*
 	 * If there is an index, read the raw index into a dynamically
@@ -1334,7 +1322,10 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	}
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = roll_forward(j, db);
+	if (JOURNAL_EMPTY(&j->header))
+		result = DNS_R_UPTODATE;
+	else
+		result = roll_forward(j, db);
 
 	dns_journal_destroy(&j);
 
