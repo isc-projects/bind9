@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.52 1999/05/07 02:47:35 tale Exp $ */
+/* $Id: rbt.c,v 1.53 1999/05/07 12:13:25 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1292,7 +1292,7 @@ join_nodes(dns_rbt_t *rbt,
 	 */
 	newlength = newname->length + newname->labels;
 	oldlength = NAMELEN(down) + OFFSETLEN(down);
-	if (newlength >= oldlength + PADBYTES(down))
+	if (newlength > oldlength + PADBYTES(down))
 		result = create_node(rbt->mctx, newname, &newnode);
 
 	else {
@@ -1301,6 +1301,8 @@ join_nodes(dns_rbt_t *rbt,
 		NAMELEN(down) = newname->length;
 		OFFSETLEN(down) = newname->labels;
 		memcpy(OFFSETS(down), newname->offsets, newname->labels);
+
+		ATTRS(down) = newname->attributes;
 
 		newnode = down;
 		result = DNS_R_SUCCESS;
@@ -1328,12 +1330,8 @@ join_nodes(dns_rbt_t *rbt,
 
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
-		if (newnode != down) {
+		if (newnode != down)
 			isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
-#if 0
-			isc_mem_put(rbt->mctx, r.base, r.length);
-#endif
-		}
 	}
 
 	return (result);
