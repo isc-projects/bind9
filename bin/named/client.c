@@ -1366,7 +1366,7 @@ ns_client_detach(ns_client_t **clientp) {
 
 isc_boolean_t
 ns_client_shuttingdown(ns_client_t *client) {
-	return (client->newstate == NS_CLIENTSTATE_FREED);
+	return (ISC_TF(client->newstate == NS_CLIENTSTATE_FREED));
 }
 
 isc_result_t
