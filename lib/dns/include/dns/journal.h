@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.23 2001/05/21 23:56:33 gson Exp $ */
+/* $Id: journal.h,v 1.24 2001/08/30 05:04:18 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -257,6 +257,14 @@ dns_db_diff(isc_mem_t *mctx,
  * entry to the journal file specified by 'journal_filename'.
  */
 
+isc_result_t
+dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
+                    isc_uint32_t target_size);
+/*
+ * Attempt to compact the journal if it is greater that 'target_size'.
+ * Changes from 'serial' onwards will be preserved.  If the journal
+ * exists and is non-empty 'serial' must exist in the journal.
+ */
 
 ISC_LANG_ENDDECLS
 
