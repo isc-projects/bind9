@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.150 $)
+AC_REVISION($Revision: 1.151 $)
 
 AC_PREREQ(2.13)
 
@@ -34,6 +34,11 @@ AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
 AC_SUBST(AR)
 AC_SUBST(ARFLAGS)
+
+# The POSIX ln(1) program.  Non-POSIX systems may substitute
+# "copy" or something.
+LN=ln
+AC_SUBST(LN)
 
 case "$AR" in
 	"")
