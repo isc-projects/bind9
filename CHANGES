@@ -1,6 +1,8 @@
 
 	--- 9.3.0 released ---
 
+1707.	[contrib]	sdb/ldap updated to version 1.0-beta.
+
 1701.	[doc]		A minimal named.conf man page.
 
 1700.	[func]		nslookup is no longer to be treated as deprecated.
