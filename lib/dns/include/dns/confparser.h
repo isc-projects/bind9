@@ -52,7 +52,7 @@
  ***/
 
 #include <config.h>
-#include <isc/log.h>
+#include <isc/types.h>
 
 #include <dns/confctx.h>
 

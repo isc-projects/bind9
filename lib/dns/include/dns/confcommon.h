@@ -65,11 +65,9 @@
 #include <isc/int.h>
 #include <isc/result.h>
 #include <isc/types.h>
-#include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/sockaddr.h>
 
-#include <dns/log.h>
 #include <dns/types.h>
 
 /* Constants used in the defintions of default logging channels and

@@ -18,6 +18,7 @@
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
 
+#include <isc/log.h>
 #include <isc/types.h>
 
 #include <dns/acl.h>

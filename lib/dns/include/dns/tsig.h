@@ -18,8 +18,9 @@
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
 
-#include <isc/mem.h>
+#include <isc/types.h>
 #include <isc/lang.h>
+#include <isc/log.h>
 
 #include <dns/types.h>
 #include <dns/name.h>

@@ -52,8 +52,7 @@
 
 #include <config.h>
 
-#include <isc/mem.h>
-#include <isc/log.h>
+#include <isc/types.h>
 
 
 /***

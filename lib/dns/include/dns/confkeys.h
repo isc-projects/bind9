@@ -53,12 +53,12 @@
  *** Imports
  ***/
 
+#include <stdio.h>
+
 #include <config.h>
 
-#include <isc/mem.h>
+#include <isc/types.h>
 #include <isc/list.h>
-
-#include <dns/log.h>
 
 
 #define DNS_C_TKEY_MAGIC		0x544b4559 /* TKEY */
