@@ -28,8 +28,9 @@
 #include <dns/confip.h>
 #include <dns/confzone.h>
 
-isc_result_t dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
-				dns_c_zone_t *czone, dns_zone_t *zone);
+isc_result_t dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
+				dns_c_zone_t *czone, dns_aclconfctx_t *ac,
+				dns_zone_t *zone);
 /*
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.

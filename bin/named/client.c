@@ -1023,7 +1023,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	    client->view->recursion == ISC_TRUE &&
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion",
-			       ns_g_server->recursionacl,
+			       client->view->recursionacl,
 			       ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 

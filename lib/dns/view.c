@@ -139,6 +139,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->recursion = ISC_TRUE;
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->transfer_format = dns_one_answer;
+	view->queryacl = NULL;
+	view->recursionacl = NULL;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
@@ -231,6 +233,10 @@ destroy(dns_view_t *view) {
 		dns_cache_detach(&view->cache);
 	if (view->matchclients != NULL)
 		dns_acl_detach(&view->matchclients);
+	if (view->queryacl != NULL)
+		dns_acl_detach(&view->queryacl);
+	if (view->recursionacl != NULL)
+		dns_acl_detach(&view->recursionacl);
 	dns_zt_detach(&view->zonetable);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);

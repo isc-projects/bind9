@@ -37,10 +37,11 @@
  * Convenience function for configuring a single zone ACL.
  */
 static isc_result_t
-configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
+configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		   dns_aclconfctx_t *aclconfctx, dns_zone_t *zone,
 		   isc_result_t (*getcacl)(dns_c_zone_t *, dns_c_ipmatchlist_t **),
-		   isc_result_t (*getdefaultcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
+		   isc_result_t (*getviewcacl)(dns_c_view_t *, dns_c_ipmatchlist_t **),
+		   isc_result_t (*getglobalcacl)(dns_c_ctx_t *, dns_c_ipmatchlist_t **),
 		   void (*setzacl)(dns_zone_t *, dns_acl_t *),
 		   void (*clearzacl)(dns_zone_t *))
 {
@@ -48,8 +49,11 @@ configure_zone_acl(dns_c_zone_t *czone, dns_c_ctx_t *cctx,
 	dns_c_ipmatchlist_t *cacl;
 	dns_acl_t *dacl = NULL;
 	result = (*getcacl)(czone, &cacl);
-	if (result == ISC_R_NOTFOUND && getdefaultcacl != NULL) {
-		result = (*getdefaultcacl)(cctx, &cacl);		
+	if (result == ISC_R_NOTFOUND && getviewcacl != NULL) {
+		result = (*getviewcacl)(cview, &cacl);
+	}
+	if (result == ISC_R_NOTFOUND && getglobalcacl != NULL) {
+		result = (*getglobalcacl)(cctx, &cacl);
 	}
 	if (result == ISC_R_SUCCESS) {
 		result = dns_acl_fromconfig(cacl, cctx, aclconfctx,
@@ -88,8 +92,9 @@ dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
 }
 
 isc_result_t
-dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
-		   dns_c_zone_t *czone, dns_zone_t *zone)
+dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview, 
+		   dns_c_zone_t *czone, dns_aclconfctx_t *ac, 
+		   dns_zone_t *zone)
 {
 	isc_result_t result;
 	isc_boolean_t boolean;
@@ -134,24 +139,26 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_fail);
 #endif
-		result = configure_zone_acl(czone, cctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, NULL, ac, zone,
 					    dns_c_zone_getallowupd,
-					    NULL,
+					    NULL, NULL,
 					    dns_zone_setupdateacl,
 					    dns_zone_clearupdateacl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		result = configure_zone_acl(czone, cctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, cview, ac, zone,
 					    dns_c_zone_getallowquery,
+					    dns_c_view_getallowquery,
 					    dns_c_ctx_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		result = configure_zone_acl(czone, cctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, cview, ac, zone,
 					    dns_c_zone_getallowtransfer,
+					    dns_c_view_gettransferacl,
 					    dns_c_ctx_getallowtransfer,
 					    dns_zone_setxfracl,
 					    dns_zone_clearxfracl);
@@ -234,8 +241,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
 #endif
-		result = configure_zone_acl(czone, cctx, ac, zone,
+		result = configure_zone_acl(czone, cctx, cview, ac, zone,
 					    dns_c_zone_getallowquery,
+					    dns_c_view_getallowquery,					    
 					    dns_c_ctx_getallowquery,					    
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);
@@ -326,8 +334,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_aclconfctx_t *ac,
 		else
 			dns_zone_setchecknames(zone, dns_c_severity_warn);
 #endif
-		result = configure_zone_acl(czone, cctx, ac, zone,
-       				    dns_c_zone_getallowquery,
+		result = configure_zone_acl(czone, cctx, cview, ac, zone,
+					    dns_c_zone_getallowquery,
+					    dns_c_view_getallowquery,
 					    dns_c_ctx_getallowquery,
 					    dns_zone_setqueryacl,
 					    dns_zone_clearqueryacl);

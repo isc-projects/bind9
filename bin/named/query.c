@@ -1928,7 +1928,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	if (is_zone)
 		queryacl = dns_zone_getqueryacl(zone);
 	if (queryacl == NULL)
-		queryacl = ns_g_server->queryacl;
+		queryacl = client->view->queryacl;
 	/*
 	 * Check the query against the "allow-query" AMLs.
 	 * XXX there should also be a per-view one.

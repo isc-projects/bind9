@@ -42,8 +42,6 @@ struct ns_server {
 	isc_rwlock_t		conflock;
 	
 	/* Configurable data. */
-	dns_acl_t *		queryacl;
-	dns_acl_t *		recursionacl;
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
