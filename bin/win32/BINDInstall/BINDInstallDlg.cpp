@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.15.18.2 2004/05/17 10:10:06 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.15.18.3 2004/05/17 10:12:40 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -138,8 +138,6 @@ const FileData installFiles[] =
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
-	{"dnssec-makekeyset.exe", FileData::BinDir, FileData::Normal, FALSE},
-	{"dnssec-signkey.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkconf.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"named-checkzone.exe", FileData::BinDir, FileData::Normal, FALSE},
