@@ -42,9 +42,6 @@ struct ns_server {
 	isc_rwlock_t		conflock;
 	
 	/* Configurable data. */
-	isc_boolean_t		recursion;
-	isc_boolean_t		auth_nxdomain;
-	dns_transfer_format_t	transfer_format;
 	dns_acl_t *		queryacl;
 	dns_acl_t *		recursionacl;
 	isc_quota_t		xfroutquota;
