@@ -392,3 +392,12 @@ the zone between views.
 			// allow-notify { ... };
 		};
 	};
+
+Q: I get a error message like "zone wireless.ietf56.ietf.org/IN: loading master
+file primaries/wireless.ietf56.ietf.org: no owner".
+
+A: This error is produced when a line in the master file contains leading
+white space (tab/space) but the is no current record owner name to inherit
+the name from.  Usually this is the result of putting white space before
+a comment.  Forgeting the "@" for the SOA record or indenting the master
+file.
