@@ -15,18 +15,18 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.2 2000/08/01 01:33:27 tale Exp $
+# $Id: kit.sh,v 1.3 2000/08/02 16:02:40 gson Exp $
 
 # Make a release kit
 #
-# Usage: sh makekit.sh tag tmpdir
+# Usage: sh kit.sh tag tmpdir
 #
-# (e.g., sh makekit.sh v9_0_0b5 /tmp/bindkit
+# (e.g., sh kit.sh v9_0_0b5 /tmp/bindkit
 #
 
 case $# in
     2) tag=$1; tmpdir=$2 ;;
-    *) echo "usage: sh makekit.sh tmpdir tag" >&2
+    *) echo "usage: sh kit.sh tmpdir tag" >&2
        exit 1
        ;;
 esac
