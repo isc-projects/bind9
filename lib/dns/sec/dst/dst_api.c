@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.3.2.15 2004/06/16 01:05:01 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3.2.16 2004/10/01 00:15:44 marka Exp $
  */
 
 #include <config.h>
@@ -396,7 +396,7 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	if (type == DST_TYPE_PUBLIC ||
+	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
 	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
 	{
 		result = computeid(pubkey);

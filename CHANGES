@@ -1,3 +1,6 @@
+1736.	[bug]		dst_key_fromnamedfile() could fail to read a
+			public key. [RT #12687]
+			
 1735.	[bug]		'dig +sigtrace' could die with a REQUIRE failure.
 			[RE #12688]
 
