@@ -96,6 +96,7 @@ options {
   [ tcp-clients number; ]				    Yes*
   [ tkey-domain ... ]					    Yes*
   [ tkey-dhkey ... ]					    Yes*
+  [ port number; ]					    Yes*
 };
 
 acl							    Yes@
