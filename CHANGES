@@ -363,6 +363,10 @@
 1609.	[func]		dig now has support to chase DNSSEC signature chains.
 			Requires -DDIG_SIGCHASE=1 to be set in STD_CDEFINES.
 
+			DNSSEC validation code in dig coded by Olivier Courtay
+			(olivier.courtay@irisa.fr) for the IDsA project
+			(http://idsa.irisa.fr).
+
 1608.	[func]		dig and host now accept -4/-6 to select IP transport
 			to use when making queries.
 
