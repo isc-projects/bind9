@@ -3670,7 +3670,7 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	dns_dbnode_t *node = source->private2;
 	dns_dbnode_t *cloned_node;
 
-	attachnode(db, &node, &cloned_node);
+	attachnode(db, node, &cloned_node);
 	*target = *source;
 
 	/*
