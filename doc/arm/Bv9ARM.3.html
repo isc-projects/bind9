@@ -1,22 +1,22 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <!--
  - Copyright (C) 2000  Internet Software Consortium.
- - 
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
- - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- - ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- - OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- - CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- - DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- - PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- - ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- - SOFTWARE.
+ -
+ - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+ - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+ - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ - INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+ - FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ - NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+ - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: Bv9ARM.3.html,v 1.5.2.4 2000/07/13 03:16:31 gson Exp $ -->
+<!-- $Id: Bv9ARM.3.html,v 1.5.2.5 2000/08/22 19:29:08 gson Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <HTML>
@@ -25,32 +25,32 @@
 <LINK REL="STYLESHEET" HREF="Bv9ARM.css">
 <TITLE> Section 3.	Nameserver Configuration</TITLE></HEAD>
 <BODY BGCOLOR="#ffffff">
-<OL>
+
 <H1 CLASS="1Level">
 <A NAME="pgfId=997350">
 </A>
 Section 3.	Nameserver Configuration</H1>
-</OL>
+
 <P CLASS="1LevelContinued">
 <A NAME="pgfId=997351">
 </A>
 In this section we provide some suggested configurations along with guidelines for their use. We also address the topic of reasonable option setting.</P>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997353">
 </A>
 3.1	<A NAME="30164">
 </A>
 Sample Configurations</H3>
-</OL>
+
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=1079232">
 </A>
 3.1.1	A Caching-only Nameserver</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=1079238">
 </A>
@@ -77,20 +77,16 @@ zone &quot;0.0.127.in-addr.arpa&quot; {
 </PRE>
 </DIV>
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=1079323">
 </A>
 3.1.2	An Authoritative-only Nameserver</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=1079327">
 </A>
-This sample configuration is for an authoritative-only server that is the master server for &quot;<EM CLASS="pathname">
-example.com</EM>
-&quot; and a slave for the subdomain &quot;<EM CLASS="pathname">
-eng.example.com</EM>
-&quot;.</P>
+This sample configuration is for an authoritative-only server that is the master server for &quot;<EM CLASS="pathname">example.com</EM>&quot; and a slave for the subdomain &quot;<EM CLASS="pathname">eng.example.com</EM>&quot;.</P>
 
 <PRE>
 <CODE><STRONG>options {
@@ -131,12 +127,12 @@ zone &quot;eng.example.com&quot; {
 </DIV>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997410">
 </A>
 3.2	Load Balancing</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997411">
 </A>
@@ -145,6 +141,7 @@ Primitive load balancing can be achieved in DNS using multiple A records for one
 <A NAME="pgfId=997412">
 </A>
 For example, if you have three WWW servers with network addresses of 10.0.0.1, 10.0.0.2 and 10.0.0.3, a set of records such as the following means that clients will connect to each machine one third of the time:</P>
+
 <PRE CLASS="2Level-fixed1"><A NAME="pgfId=997454"></A>
 &nbsp;</PRE>
 <TABLE>
@@ -321,56 +318,51 @@ options</CODE>
  statement under <A HREF="Bv9ARM.6.html#22766" CLASS="XRef">RRset Ordering</A>. This substatement is not supported in BIND&nbsp;9, and only the ordering scheme described above is available.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=997460">
 </A>
 3.3	<A NAME="35205">
 </A>
 Notify</H3>
-</OL>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=997461">
 </A>
-DNS Notify is a mechanism that allows master nameservers to notify their slave servers of changes to a zone's data. In response to a <CODE CLASS="Program-Process">
-NOTIFY</CODE>
- from a master server, the slave will check to see that its version of the zone is the current version and, if not, initiate a transfer.</P>
+DNS Notify is a mechanism that allows master nameservers to notify their slave servers of changes to a zone's data. In response to a <CODE CLASS="Program-Process">NOTIFY</CODE> from a master server, the slave will check to see that its version of the zone is the current version and, if not, initiate a transfer.</P>
+
 <P CLASS="2LevelContinued">
 <A NAME="pgfId=1078896">
 </A>
 DNS Notify is fully documented in RFC 1996. See also the description of the zone option <CODE CLASS="Program-Process">
 also-notify</CODE>
- under <A HREF="Bv9ARM.6.html#32057" CLASS="XRef">Zone Transfers</A>
-. More information about <CODE CLASS="Program-Process">
-notify</CODE>
- can be found under <A HREF="Bv9ARM.6.html#12205" CLASS="XRef">Boolean Options</A>
-.</P>
+ under <A HREF="Bv9ARM.6.html#32057" CLASS="XRef">Zone Transfers</A>. More information about <CODE CLASS="Program-Process">notify</CODE> can be found under <A HREF="Bv9ARM.6.html#12205" CLASS="XRef">Boolean Options</A>.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H3 CLASS="2Level">
 <A NAME="pgfId=1078903">
 </A>
 3.4	Nameserver Operations</H3>
-</OL>
+
 <DIV>
-<OL>
+
 <H4 CLASS="3Level">
 <A NAME="pgfId=997464">
 </A>
 3.4.1	Tools for Use With the Nameserver Daemon</H4>
-</OL>
+
 <P CLASS="3LevelContinued">
 <A NAME="pgfId=997465">
 </A>
 There are several indispensable diagnostic, administrative and monitoring tools available to the system administrator for controlling and debugging the nameserver daemon. We describe several in this section </P>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=997466">
 </A>
 3.4.1.1	Diagnostic Tools</H5>
-</OL>
+
 </DIV>
 <DIV>
 <H5 CLASS="Subhead4">
@@ -488,19 +480,15 @@ nslookup</CODE>
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=1079184">
 </A>
-Due to its arcane user interface and frequently inconsistent behavior, we do not recommend the use of <CODE CLASS="Program-Process">
-nslookup</CODE>
-, and it is not installed by default when installing BIND&nbsp;9. Use <CODE CLASS="Program-Process">
-dig</CODE>
- instead.</P>
+Due to its arcane user interface and frequently inconsistent behavior, we do not recommend the use of <CODE CLASS="Program-Process">nslookup</CODE>. Use <CODE CLASS="Program-Process">dig</CODE> instead.</P>
 </DIV>
 <DIV>
-<OL>
+
 <H5 CLASS="4Level">
 <A NAME="pgfId=1079185">
 </A>
 3.4.1.2	Administrative Tools</H5>
-</OL>
+
 <P CLASS="4LevelContinued">
 <A NAME="pgfId=997488">
 </A>
@@ -561,40 +549,18 @@ Usage</H5>
         <p>As noted above, "reload" is the only command available for BIND 9.0.0. 
           The other commands, and more, are planned to be implemented for future 
           releases.</p>
-        <p> A configuration file is required, since all communication with the 
-          server is authenticated with digital signatures that rely on a shared 
-          secret, and there is no way to provide that secret other than with a 
-          configuration file. The default location for the rndc configuration 
-          file is <EM>/etc/rndc.conf</EM>, but an alternate location can be specified with 
-          the "<CODE>-c</CODE>" option.</p>
-        <p>The format of the configuration file is similar to that of named.conf, 
-          but limited to only three statements, the <CODE>options{}</CODE>, <CODE>key{}</CODE> and <CODE>server{}</CODE> 
-          statements. These statements are what associate the secret keys to the 
-          servers with which they are meant to be shared. The order of statements 
-          is not significant.</p>
-        <p>The <CODE>options{}</CODE> statement has two clauses: <CODE>default-server</CODE> and default-key. 
-          <CODE>default-server</CODE> takes a host name or address argument and represents the server that will be contacted if 
-          no "<CODE>-s</CODE>" option is provided on the command line. default-key takes the 
-          name of the key as its argument, as defined by a <CODE>key{}</CODE> statement. In 
-          the future a default-port clause will be added to specify the port to 
-          which <CODE>rndc</CODE> should connect.</p>
-        <p>The <CODE>key{}</CODE> statement names a key with its string argument. The string 
-          is required by the server to be a valid domain name, though it need 
-          not actually be hierarchical; thus, a string like "rndc_key" is a valid 
-          name. The <CODE>key{}</CODE> statement has two clauses: <CODE>algorithm</CODE> and <CODE>secret</CODE>. While 
-          the configuration parser will accept any string as the argument to algorithm, 
-          currently only the string "hmac-md5" has any meaning. The secret is 
-          a base-64 encoded string, typically generated with either <CODE>dnssec-keygen</CODE> 
-          or <CODE>mmencode</CODE>.</p>
-        <p>The <CODE>server{}</CODE> statement uses the key clause to associate a <CODE>key{}</CODE>-defined 
-          key with a server. The argument to the <CODE>server{}</CODE> statement is a host 
-          name or address (addresses must be double quoted). The argument to the 
-          key clause is the name of key as defined by the <CODE>key{}</CODE> statement. A port 
-          clause will be added to a future release to specify the port to which 
-          rndc should connect on the given server.</p>
-        <p>A sample minimal configuration file is as follows:</p>
-        <PRE>
-<CODE><STRONG>key rndc_key {
+        <p> A configuration file is required, since all communication with the server is authenticated with digital signatures that rely on a shared secret, and there is no way to provide that secret other than with a configuration file. The default location for the rndc configuration file is <EM>/etc/rndc.conf</EM>, but an alternate location can be specified with the "<CODE>-c</CODE>" option.</p>
+
+<p>The format of the configuration file is similar to that of named.conf, but limited to only three statements, the <CODE>options{}</CODE>, <CODE>key{}</CODE> and <CODE>server{}</CODE> statements. These statements are what associate the secret keys to the servers with which they are meant to be shared. The order of statements is not significant.</p>
+
+<p>The <CODE>options{}</CODE> statement has two clauses: <CODE>default-server</CODE> and default-key. <CODE>default-server</CODE> takes a host name or address argument and represents the server that will be contacted if no "<CODE>-s</CODE>" option is provided on the command line. default-key takes the name of the key as its argument, as defined by a <CODE>key{}</CODE> statement. In the future a default-port clause will be added to specify the port to which <CODE>rndc</CODE> should connect.</p>
+
+<p>The <CODE>key{}</CODE> statement names a key with its string argument. The string is required by the server to be a valid domain name, though it need not actually be hierarchical; thus, a string like "rndc_key" is a valid name. The <CODE>key{}</CODE> statement has two clauses: <CODE>algorithm</CODE> and <CODE>secret</CODE>. While the configuration parser will accept any string as the argument to algorithm, currently only the string "hmac-md5" has any meaning. The secret is a base-64 encoded string, typically generated with either <CODE>dnssec-keygen</CODE>  or <CODE>mmencode</CODE>.</p>
+
+<p>The <CODE>server{}</CODE> statement uses the key clause to associate a <CODE>key{}</CODE>-defined key with a server. The argument to the <CODE>server{}</CODE> statement is a host name or address (addresses must be double quoted). The argument to the key clause is the name of key as defined by the <CODE>key{}</CODE> statement. A port clause will be added to a future release to specify the port to which rndc should connect on the given server.</p>
+
+<p>A sample minimal configuration file is as follows:</p>
+<PRE><CODE><STRONG>key rndc_key {
      algorithm "hmac-md5";
      secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };</STRONG></CODE>
@@ -603,18 +569,20 @@ Usage</H5>
      default-key rndc_key;
 };</STRONG></CODE>
 </PRE>
-        <p>This file, if installed as<EM> /etc/rndc.conf</EM>, would allow the command:</p>
-        <p> <strong><code>$ rndc reload</code></strong></p>
-        <p>to connect to 127.0.0.1 port 953 and cause the nameserver to reload, 
-          if a nameserver on the local machine were running with following controls 
-          statements:</p>
-        <PRE>
-<CODE><STRONG>controls {
+
+<p>This file, if installed as<EM> /etc/rndc.conf</EM>, would allow the command:</p>
+
+<p><strong><code>$ rndc reload</code></strong></p>
+
+<p>to connect to 127.0.0.1 port 953 and cause the nameserver to reload, if a nameserver on the local machine were running with following controls statements:</p>
+<PRE><CODE><STRONG>controls {
      inet 127.0.0.1 allow { localhost; } keys { rndc_key; };         
 };</STRONG></CODE>
 </PRE>
-        <p>and it had an identical key statement for <CODE>rndc_key</CODE>.</p>
-        <P CLASS="4LevelContinued">&nbsp;</P>
+
+<p>and it had an identical key statement for <CODE>rndc_key</CODE>.</p>
+
+<P CLASS="4LevelContinued">&nbsp;</P>
 </DIV>
 <H4 CLASS="3Level">
 <A NAME="pgfId=998650">
@@ -687,7 +655,6 @@ Causes the server to clean up and exit.</P>
 </DIV>
 <HR ALIGN="center">
 <p>Return to <A href="Bv9ARM.html">BIND 9 Administrator Reference Manual</A> table of contents.</p>
-
 
 
 </div></BODY></HTML>

@@ -1,3 +1,8 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+$Id: Bv9ARM.txt,v 1.3.2.6 2000/08/22 19:29:20 gson Exp $
+
 BIND 9 Administrator Reference Manual
 July 2000
 Copyright (c) 2000 Internet Software Consortium
@@ -94,17 +99,17 @@ Section 6 : BIND 9 Configuration Reference
 6.2.1 acl Statement Grammar
 6.2.2 acl Statement Definition and Usage
 6.2.3 controls Statement Grammar
-6.2.4 controls Statement Definition and Usage 
+6.2.4 controls Statement Definition and Usage
 6.2.5 include Statement Grammar
 6.2.6 include Statement Definition and Usage
 6.2.7 key Statement Grammar
 6.2.8 key Statement Definition and Usage
 6.2.9 logging Statement Grammar
-6.2.10 logging Statement Definition and Usage 
+6.2.10 logging Statement Definition and Usage
 6.2.10.1 The channel Phrase
 6.2.10.2 The category Phrase
 6.2.11 options Statement Grammar
-6.2.12 options Statement Definition and Usage 
+6.2.12 options Statement Definition and Usage
 6.2.12.1 Boolean Options
 6.2.12.2 Forwarding
 6.2.12.3 Name Checking
@@ -653,7 +658,7 @@ Usage
 nslookup [-option ...] [host-to-find | -[server]]
 
 Interactive mode is entered when no arguments are given (the default
-nameserver will be used) or when the first argument is a hyphen (`-') and
+nameserver will be used) or when the first argument is a hyphen ('-') and
 the second argument is the host name or Internet address of a nameserver.
 
 Non-interactive mode is used when the name or Internet address of the host
@@ -673,8 +678,7 @@ For more information and a list of available commands and options, see the
 nslookup man page.
 
 Due to its arcane user interface and frequently inconsistent behavior, we do
-not recommend the use of nslookup, and it is not installed by default when
-installing BIND 9. Use dig instead.
+not recommend the use of nslookup. Use dig instead.
 
      3.4.1.2 Administrative Tools
 
@@ -1209,14 +1213,14 @@ dnssec-keygen -a DSA -b 768 -n ZONE child.example.
 
 Two output files will be produced: Kchild.example.+003+12345.key and
 Kchild.example.+003+12345.private (where 12345 is an example of a key
-identifier). The key file names contain the key name ( child.example.),
-algorithm (3 is DSA, 1 is RSA, etc.), and the key identifier (12345 in this
+tag). The key file names contain the key name ( child.example.),
+algorithm (3 is DSA, 1 is RSA, etc.), and the key tag (12345 in this
 case). The private key (in the .private file) is used to generate
 signatures, and the public key (in the .key file) is used for signature
 verification.
 
 To generate another key with the same properties (but with a different key
-identifier), repeat the above command.
+tag), repeat the above command.
 
 The public keys should be inserted into the zone file with $INCLUDE
 statements, including the .key files.
@@ -2078,7 +2082,7 @@ options {
     [ directory path_name; ]
     [ named-xfer path_name; ]
     [ tkey-domain domainname; ]
-    [ tkey-dhkey keyname keyid; ]
+    [ tkey-dhkey key_name key_tag; ]
     [ dump-file path_name; ]
     [ memstatistics-file path_name; ]
     [ pid-file path_name; ]
@@ -2119,7 +2123,7 @@ options {
     [ transfer-source ip4_addr; ]
     [ transfer-source-v6 ip6_addr; ]
     [ also-notify { ip_addr; [ ip_addr; ... ] }; ]
-    [ max-ixfr-log-size number; ]  
+    [ max-ixfr-log-size number; ]
     [ coresize size_spec ; ]
     [ datasize size_spec ; ]
     [ files size_spec ; ]
@@ -2451,7 +2455,7 @@ the amount of load that transfers place on the system. The following options
 apply to zone transfers.
 
 
- 
+
  also-notify           Defines a global list of IP addresses that are also
                        sent NOTIFY messages whenever a fresh copy of the
                        zone is loaded. This helps to ensure that copies of
@@ -2606,7 +2610,7 @@ Resource limits are not yet implemented in BIND 9.
                      the cache every cleaning-interval minutes. The default
                      is 60 minutes. If set to 0, no periodic cleaning will
                      occur.
- 
+
  heartbeat-interval  The server will perform zone maintenance tasks for all
                      zones marked dialup yes whenever this interval
                      expires. The default is 60 minutes. Reasonable values
@@ -3693,7 +3697,7 @@ containing critical data such as the IP addresses of public web and mail
 servers need not allow dynamic update at all.
 
   ------------------------------------------------------------------------
-  
+
      Section 8. Troubleshooting
 
      8.1 Common Problems
