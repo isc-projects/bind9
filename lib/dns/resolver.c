@@ -2616,7 +2616,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * Do negative response validation.
 		 */
                 isc_task_t *task = res->buckets[fctx->bucketnum].task;
-                result = dns_validator_create(res->view, name, 0,
+                result = dns_validator_create(res->view, name, fctx->type,
 					      NULL, NULL,
                                               fctx->rmessage, 0, task,
                                               validated, fctx,
