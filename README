@@ -23,6 +23,7 @@ BIND 9.0.0b1
 	Some of the highlights are:
 
 		IPv6
+
 			Support for bitstring labels, DNAME, and A6 records.
 
 			IPv6-aware resolver (follows A6 chains, can use IPv6 to
@@ -31,11 +32,13 @@ BIND 9.0.0b1
 			The nameserver listens on an IPv6 socket.
 
 		DNSSEC
+
 			All new RR types supported.
 
 			The server generates DNSSEC responses for secure zones.
 
 		EDNS0
+
 			DNS messages using UDP have been limited to 512
 			bytes.  This is too small for DNSSEC replies, whose
 			signature and key records can be large.  EDNS0 allows
@@ -53,6 +56,8 @@ BIND 9.0.0b1
 			signatures.
 
 		Notify
+
+			Notify is not yet implemented.
 
 		Configuration File
 
