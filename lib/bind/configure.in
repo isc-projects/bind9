@@ -19,7 +19,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.53 $)
+AC_REVISION($Revision: 1.54 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1561,13 +1561,11 @@ AC_TRY_COMPILE([
 extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
-,
 AC_TRY_COMPILE([
 #include <netdb.h>
 extern int sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#define HOST_R_SET_RESULT 0"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN int"],
-,
 )
 )
 ,
