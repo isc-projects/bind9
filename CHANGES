@@ -1,3 +1,6 @@
+1119.	[func]		Added support in Win32 for NTFS file/directory ACL's
+			for access control.
+
 1118.	[bug]		On multithreaded servers, a race condition
 			could cause an assertion failure in resolver.c
 			during resolver shutdown. [RT #2029]
