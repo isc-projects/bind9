@@ -25,8 +25,10 @@
  *** Core Types.
  ***/
 
+typedef unsigned int			isc_result_t;
 typedef struct isc_mem			isc_mem_t;
 typedef struct isc_mempool		isc_mempool_t;
+typedef struct isc_msgcat		isc_msgcat_t;
 typedef unsigned int			isc_eventtype_t;
 typedef struct isc_event		isc_event_t;
 typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
