@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.h,v 1.13 2001/01/09 21:57:24 bwelling Exp $ */
+/* $Id: ratelimiter.h,v 1.14 2002/07/26 06:42:01 marka Exp $ */
 
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1
@@ -113,6 +113,18 @@ void
 isc_ratelimiter_detach(isc_ratelimiter_t **ratelimiterp);
 /*
  * Detach from a rate limiter.
+ */
+
+isc_result_t
+isc_ratelimiter_stall(isc_ratelimiter_t *rl);
+/*
+ * Stall event processing.
+ */
+
+isc_result_t
+isc_ratelimiter_release(isc_ratelimiter_t *rl);
+/*
+ * Release a stalled rate limiter.
  */
 
 ISC_LANG_ENDDECLS

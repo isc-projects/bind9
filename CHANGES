@@ -1,3 +1,5 @@
+1341.	[func]		Allow a rate limiter to be stalled.
+
 1340.	[bug]		Delay and spread out the startup refresh load.
 
 1339.	[func]		dig, host and nslookup now use IP6.ARPA for nibble
