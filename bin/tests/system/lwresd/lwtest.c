@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.18 2000/11/02 02:05:01 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.19 2000/12/20 03:42:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -597,17 +597,23 @@ test_getnameinfo(const char *address, int af, const char *name) {
 
 static void
 test_getrrsetbyname(const char *name, int rdclass, int rdtype,
-		    unsigned int nrdatas, unsigned int nsigs)
+		    unsigned int nrdatas, unsigned int nsigs,
+		    int should_pass)
 {
 	int ret;
 	struct rrsetinfo *rrinfo = NULL;
 	ret = getrrsetbyname(name, rdclass, rdtype, 0, &rrinfo);
-	if (ret != 0) {
-		printf("I:getrrsetbyname(%s, %d) returned %d, expected %d\n",
-			name, rdtype, ret, 0);
+	if (ret != 0 && should_pass == 1) {
+		printf("I:getrrsetbyname(%s, %d) failed\n", name, rdtype);
 		fails++;
 		return;
-	}
+	} else if (ret == 0 && should_pass == 0) {
+		printf("I:getrrsetbyname(%s, %d) unexpectedly succeeded\n",
+			name, rdtype);
+		fails++;
+		return;
+	} else if (ret != 0)
+		return;
 	if (rrinfo->rri_nrdatas != nrdatas) {
 		printf("I:getrrsetbyname(%s, %d): got %d rr, expected %d\n",
 			name, rdtype, rrinfo->rri_nrdatas, nrdatas);
@@ -743,9 +749,11 @@ main(void) {
 	test_getnameinfo("1122:3344:5566:7788:99aa:bbcc:ddee:ff00",
 			 AF_INET6, "dname.example1");
 
-	test_getrrsetbyname("a", 1, 1, 1, 0);
-	test_getrrsetbyname("a.example1.", 1, 1, 1, 0);
-	test_getrrsetbyname("e.example1.", 1, 1, 1, 1);
+	test_getrrsetbyname("a", 1, 1, 1, 0, 1);
+	test_getrrsetbyname("a.example1.", 1, 1, 1, 0, 1);
+	test_getrrsetbyname("e.example1.", 1, 1, 1, 1, 1);
+	test_getrrsetbyname("e.example1.", 1, 255, 1, 1, 0);
+	test_getrrsetbyname("e.example1.", 1, 24, 1, 0, 1);
 
 	if (fails == 0)
 		printf("I:ok\n");
