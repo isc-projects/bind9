@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.13 2000/03/17 19:35:25 gson Exp $ */
+/* $Id: nsap_22.c,v 1.14 2000/03/20 18:03:53 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -112,7 +112,9 @@ fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (region.length < 1)
 		return (DNS_R_UNEXPECTEDEND);
 
-	return (mem_tobuffer(target, region.base, region.length));
+	RETERR(mem_tobuffer(target, region.base, region.length));
+	isc_buffer_forward(source, region.length);
+	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
