@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.72 2002/10/24 03:52:31 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.73 2002/10/29 04:40:23 marka Exp $ */
 
 #include <config.h>
 
@@ -524,11 +524,13 @@ setup_locals(ns_interfacemgr_t *mgr, isc_interface_t *interface) {
 			      isc_result_totext(result));
 	} else {
 		elt.u.ip_prefix.prefixlen = prefixlen;
-		/* XXX suppress duplicates */
-		result = dns_acl_appendelement(mgr->aclenv.localnets,
-					       &elt);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		if (dns_acl_elementmatch(mgr->aclenv.localnets, &elt,
+					 NULL) == ISC_R_NOTFOUND) {
+			result = dns_acl_appendelement(mgr->aclenv.localnets,
+						       &elt);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -542,6 +544,7 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 	isc_boolean_t scan_ipv4 = ISC_FALSE;
 	isc_boolean_t scan_ipv6 = ISC_FALSE;
 	isc_boolean_t adjusting = ISC_FALSE;
+	isc_boolean_t ipv6only = ISC_TRUE;
 	isc_result_t result;
 	isc_netaddr_t zero_address, zero_address6;
 	ns_listenelt_t *le;
@@ -567,9 +570,25 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv4 interfaces found");
 
-	/* A special, but typical case; listen-on-v6 { any; } */
-	/* XXXJT fix when we probe for IPV6_V6ONLY */
-	if (scan_ipv6 == ISC_TRUE) {
+	/*
+	 * A special, but typical case; listen-on-v6 { any; }.
+	 * When we can make the socket IPv6-only, open a single wildcard
+	 * socket for IPv6 communication.  Otherwise, make separate socket
+	 * for each IPv6 address in order to avoid accepting IPv4 packets
+	 * as the form of mapped addresses unintentionally unless explicitly
+	 * allowed.
+	 */
+#ifndef ISC_ALLOW_MAPPED
+	if (scan_ipv6 == ISC_TRUE &&
+	    isc_net_probe_ipv6only() != ISC_R_SUCCESS) {
+		ipv6only = ISC_FALSE;
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
+			      "IPv6-only option is not available."
+			      "  use explicit binding");
+	}
+#endif
+	if (scan_ipv6 == ISC_TRUE && ipv6only) {
 		for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
 		    le != NULL;
 		    le = ISC_LIST_NEXT(le, link)) {
@@ -702,7 +721,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			 * The case of "any" IPv6 address will require
 			 * special considerations later, so remember it.
 			 */
-			if (family == AF_INET6 && listenon_is_ip6_any(le))
+			if (family == AF_INET6 && ipv6only &&
+			    listenon_is_ip6_any(le))
 				ipv6_wildcard = ISC_TRUE;
 
 			/*

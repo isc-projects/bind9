@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.23 2001/05/31 10:43:37 tale Exp $ */
+/* $Id: acl.c,v 1.24 2002/10/29 04:40:23 marka Exp $ */
 
 #include <config.h>
 
@@ -147,6 +147,29 @@ dns_acl_match(isc_netaddr_t *reqaddr,
 	/* No match. */
 	*match = 0;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_acl_elementmatch(dns_acl_t *acl,
+		     dns_aclelement_t *elt,
+		     dns_aclelement_t **matchelt)
+{
+	unsigned int i;
+
+	REQUIRE(elt != NULL);
+	REQUIRE(matchelt == NULL || *matchelt == NULL);
+	
+	for (i = 0; i < acl->length; i++) {
+		dns_aclelement_t *e = &acl->elements[i];
+
+		if (dns_aclelement_equal(e, elt) == ISC_TRUE) {
+			if (matchelt != NULL)
+				*matchelt = e;
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
 }
 
 isc_boolean_t
@@ -297,8 +320,9 @@ dns_aclelement_equal(dns_aclelement_t *ea, dns_aclelement_t *eb) {
 		if (ea->u.ip_prefix.prefixlen !=
 		    eb->u.ip_prefix.prefixlen)
 			return (ISC_FALSE);
-		return (isc_netaddr_equal(&ea->u.ip_prefix.address,
-					  &eb->u.ip_prefix.address));
+		return (isc_netaddr_eqprefix(&ea->u.ip_prefix.address,
+					     &eb->u.ip_prefix.address,
+					     ea->u.ip_prefix.prefixlen));
 	case dns_aclelementtype_keyname:
 		return (dns_name_equal(&ea->u.keyname, &eb->u.keyname));
 	case dns_aclelementtype_nestedacl:

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.17 2002/08/01 03:56:08 mayer Exp $ */
+/* $Id: net.h,v 1.18 2002/10/29 04:40:26 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -244,6 +244,18 @@ isc_net_probeipv6(void);
  *
  *	ISC_R_SUCCESS		IPv6 is supported.
  *	ISC_R_NOTFOUND		IPv6 is not supported.
+ *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_net_probe_ipv6only(void);
+/*
+ * Check if the system's kernel supports the IPV6_V6ONLY socket option.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		the option is supported for both TCP and UDP.
+ *	ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
  *	ISC_R_UNEXPECTED
  */
 
