@@ -1,4 +1,7 @@
 
+ 707.	[func]		The "filename" argument to named-checkzone is no
+			longer optional, to avoid reduce confusion. [RT #612]
+
  706.	[bug]		Zones with an explicit "allow-update { none; };"
 			were considered dynamic and therefore not reloaded
 			on SIGHUP or "rndc reload".

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.10 2001/01/11 18:29:53 gson Exp $ */
+/* $Id: named-checkzone.c,v 1.11 2001/01/24 00:56:55 gson Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ static const char *dbtype[] = { "rbt" };
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named-checkzone [-dq] [-c class] zone [filename]\n");
+		"usage: named-checkzone [-dq] [-c class] zonename filename\n");
 	exit(1);
 }
 
@@ -123,12 +123,10 @@ main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
 	char *filename = NULL;
-	char *classname;
 	isc_log_t *lctx = NULL;
 	isc_result_t result;
 	char classname_in[] = "IN";
-
-	classname = classname_in;
+	char *classname = classname_in;
 
 	while ((c = isc_commandline_parse(argc, argv, "c:dqs")) != EOF) {
 		switch (c) {
@@ -146,20 +144,16 @@ main(int argc, char **argv) {
 		}
 	}
 
-	if (argv[isc_commandline_index] == NULL)
+	if (isc_commandline_index + 2 > argc)
 		usage();
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	if (!quiet)
 		RUNTIME_CHECK(setup_logging(mctx, &lctx) == ISC_R_SUCCESS);
 
-	origin = argv[isc_commandline_index];
-	isc_commandline_index++;
-	if (argv[isc_commandline_index] != NULL)
-		filename = argv[isc_commandline_index];
-	else
-		filename = origin;
-	result = setup(origin, filename, (char *)classname);
+	origin = argv[isc_commandline_index++];
+	filename = argv[isc_commandline_index++];
+	result = setup(origin, filename, classname);
 	if (!quiet && result == ISC_R_SUCCESS)
 		fprintf(stdout, "OK\n");
 	destroy();

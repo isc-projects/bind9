@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: named-checkzone.8,v 1.3 2001/01/09 21:47:15 bwelling Exp $
+.\" $Id: named-checkzone.8,v 1.4 2001/01/24 00:56:56 gson Exp $
 
 .Dd Jun 13, 2000
 .Dt NAMED-CHECKZONE 1
@@ -26,14 +26,18 @@
 .Nm named-checkzone
 .Op Fl dq
 .Op Fl c Ar class
-.Ar zone
-.Op filename
+.Ar zonename
+.Ar filename
 .Sh DESCRIPTION
 .Pp
 .Nm named-checkzone
-is a tool for performing integrity checks on a zones contents.
-It uses the same integrity checks as
-.Nm named .
+checks the syntax and integrity of a zone file.
+It performs the same checks as
+.Nm named
+does when loading a zone.  This makes
+.Nm named-checkzone
+useful for checking zone files before
+configuring them into a name server.
 .Pp
 The options to
 .Nm named-checkzone
@@ -46,11 +50,10 @@ quiet mode - exit code only.
 .It Fl c Ar class
 specify the class of the zone.
 If not specified "IN" is assumed.
-.It Ar zone
-the name of the zone being loaded.
-.It Op filename
-the name of the file containing the zone.
-If not specified it defaults to the zone name.
+.It Ar zonename
+the domain name of the zone being checked.
+.It Ar filename
+the name of the zone file.
 .Sh RETURN VALUES
 .Pp
 .Nm named-checkzone
