@@ -15,22 +15,17 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.12 1999/07/05 05:50:52 gson Exp $ */
+ /* $Id: wks_11.c,v 1.13 1999/07/16 00:24:33 halley Exp $ */
 
 #ifndef RDATA_IN_1_WKS_11_C
 #define RDATA_IN_1_WKS_11_C
 
 #include <limits.h>
-#include <netdb.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <isc/inet.h>
+#include <isc/net.h>
+#include <isc/netdb.h>
 
 static dns_result_t
 fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -60,7 +55,7 @@ fromtext_in_wks(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	isc_buffer_available(target, &region);
-	if (isc_inet_aton(token.value.as_pointer, &addr) != 1)
+	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
 	if (region.length < 4)
 		return (DNS_R_NOSPACE);
@@ -128,8 +123,7 @@ totext_in_wks(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	tctx = tctx;
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_available(target, &tr);
-	if (isc_inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length)
-	    == NULL)
+	if (inet_ntop(AF_INET, sr.base, (char *)tr.base, tr.length) == NULL)
 		return (DNS_R_NOSPACE);
 	isc_buffer_add(target, strlen((char *)tr.base));
 	isc_region_consume(&sr, 4);

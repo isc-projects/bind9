@@ -15,20 +15,14 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.15 1999/06/08 10:35:21 gson Exp $ */
+ /* $Id: a_1.c,v 1.16 1999/07/16 00:24:32 halley Exp $ */
 
 #ifndef RDATA_IN_1_A_1_C
 #define RDATA_IN_1_A_1_C
 
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <isc/inet.h>
+#include <isc/net.h>
 
 static dns_result_t
 fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -47,7 +41,7 @@ fromtext_in_a(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
-	if (isc_inet_aton(token.value.as_pointer, &addr) != 1)
+	if (inet_aton(token.value.as_pointer, &addr) != 1)
 		return (DNS_R_BADDOTTEDQUAD);
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
@@ -70,7 +64,7 @@ totext_in_a(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	tctx = tctx;	/* unused */
 
 	isc_buffer_available(target, &region);
-	if (isc_inet_ntop(AF_INET, rdata->data,
+	if (inet_ntop(AF_INET, rdata->data,
 			  (char *)region.base, region.length) == NULL)
 		return (DNS_R_NOSPACE);
 

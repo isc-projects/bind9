@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.9 1999/06/08 10:35:21 gson Exp $ */
+ /* $Id: aaaa_28.c,v 1.10 1999/07/16 00:24:33 halley Exp $ */
 
  /* RFC 1886 */
 
@@ -24,13 +24,7 @@
 
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <isc/inet.h>
+#include <isc/net.h>
 
 static dns_result_t
 fromtext_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -49,7 +43,7 @@ fromtext_in_aaaa(dns_rdataclass_t class, dns_rdatatype_t type,
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
-	if (isc_inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
+	if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 		return (DNS_R_BADAAAA);
 	isc_buffer_available(target, &region);
 	if (region.length < 16)
@@ -72,8 +66,8 @@ totext_in_aaaa(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	tctx = tctx;	/* unused */
 
 	isc_buffer_available(target, &region);
-	if (isc_inet_ntop(AF_INET6, rdata->data,
-			  (char *)region.base, region.length) == NULL)
+	if (inet_ntop(AF_INET6, rdata->data,
+		      (char *)region.base, region.length) == NULL)
 		return (DNS_R_NOSPACE);
 
 	isc_buffer_add(target, strlen((char *)region.base));

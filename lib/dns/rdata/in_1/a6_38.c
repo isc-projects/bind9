@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.10 1999/06/08 10:35:21 gson Exp $ */
+ /* $Id: a6_38.c,v 1.11 1999/07/16 00:24:32 halley Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -24,13 +24,7 @@
 
 #include <string.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#include <isc/inet.h>
+#include <isc/net.h>
 
 #ifndef MAX
 #define MAX(A, B) ((A > B) ? (A) : (B))
@@ -67,7 +61,7 @@ fromtext_in_a6(dns_rdataclass_t class, dns_rdatatype_t type,
 		/* octets 0..15 */
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				ISC_FALSE));
-		if (isc_inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
+		if (inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 			return (DNS_R_BADAAAA);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
@@ -118,8 +112,8 @@ totext_in_a6(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
 		isc_buffer_available(target, &tr);
-		if (isc_inet_ntop(AF_INET6, addr,
-				  (char *)tr.base, tr.length) == NULL)
+		if (inet_ntop(AF_INET6, addr,
+			      (char *)tr.base, tr.length) == NULL)
 			return (DNS_R_NOSPACE);
 
 		isc_buffer_add(target, strlen((char *)tr.base));
