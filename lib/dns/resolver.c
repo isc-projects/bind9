@@ -41,6 +41,7 @@
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/rdatatype.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/log.h>
