@@ -120,29 +120,6 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 /*
- * Configure a single server ACL at '*aclp'.  Get its configuration by
- * calling 'getacl'.
- */
-static isc_result_t
-configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx,
-		     isc_mem_t *mctx,
-		     isc_result_t (*getcacl)
-		         (dns_c_ctx_t *, dns_c_ipmatchlist_t **),
-		     dns_acl_t **aclp)
-{
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_c_ipmatchlist_t *cacl = NULL;
-	if (*aclp != NULL)
-		dns_acl_detach(aclp);
-	(void) (*getcacl)(cctx, &cacl);
-	if (cacl != NULL) {
-		result = dns_acl_fromconfig(cacl, cctx, actx, mctx, aclp);
-		dns_c_ipmatchlist_detach(&cacl);
-	}
-	return (result);
-}
-
-/*
  * Configure a single view ACL at '*aclp'.  Get its configuration by
  * calling 'getvcacl' (for per-view configuration) and maybe 'getscacl'
  * (for a global default).
@@ -343,17 +320,31 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	/*
 	 * Configure other configurable data.
 	 */
-	view->recursion = ISC_TRUE;	
+	view->recursion = ISC_TRUE;
 	(void) dns_c_ctx_getrecursion(cctx, &view->recursion);
-	(void) dns_c_view_getrecursion(cview, &view->recursion);
+	if (cview != NULL)
+		(void) dns_c_view_getrecursion(cview, &view->recursion);
 
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	(void) dns_c_ctx_getauthnxdomain(cctx, &view->auth_nxdomain);
-	(void) dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
+	if (cview != NULL)
+		(void) dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
 
 	view->transfer_format = dns_one_answer;	
 	(void) dns_c_ctx_gettransferformat(cctx, &view->transfer_format);
-	(void) dns_c_view_gettransferformat(cview, &view->transfer_format);
+	if (cview != NULL)	
+		(void) dns_c_view_gettransferformat(cview, &view->transfer_format);
+
+	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
+				 dns_c_view_getallowquery,
+				 dns_c_ctx_getallowquery,
+				 &view->queryacl));
+	
+	CHECK(configure_view_acl(cview, cctx, actx, ns_g_mctx,
+				 dns_c_view_getrecursionacl,
+				 dns_c_ctx_getallowrecursion,
+				 &view->recursionacl));
+	
 	
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
@@ -682,7 +673,7 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Configure the zone.
 	 */
-	CHECK(dns_zone_configure(cctx, lctx->aclconf, czone, zone));
+	CHECK(dns_zone_configure(cctx, cview, czone, lctx->aclconf, zone));
 
 	/*
 	 * Add the zone to its view in the new view list.
@@ -919,7 +910,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
 	dns_c_ctx_t *configctx;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 	dns_view_t *view_next;
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
@@ -958,14 +949,6 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Configure various server options.
 	 */
-	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-				   dns_c_ctx_getallowquery,
-				   &server->queryacl));
-	
-	CHECK(configure_server_acl(configctx, &aclconfctx, ns_g_mctx,
-				   dns_c_ctx_getallowrecursion,
-				   &server->recursionacl));
-	
 	configure_server_quota(configctx, dns_c_ctx_gettransfersout,
 				     &server->xfroutquota, 10);
 	configure_server_quota(configctx, dns_c_ctx_gettcpclients,
@@ -1081,11 +1064,12 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECKM(dns_view_create(ns_g_mctx, dns_rdataclass_in, 
 				       "_default", &view),
 		       "creating default view");
-		ISC_LIST_APPEND(lctx.viewlist, view, link);
 		CHECK(configure_view(view, configctx, NULL,
 				     ns_g_mctx, &aclconfctx,
 				     dispatchv4, dispatchv6));
-		dns_view_detach(&view);
+		ISC_LIST_APPEND(lctx.viewlist, view, link);
+		dns_view_freeze(view);		
+		view = NULL; /* Ownership transferred to list. */
 	}
 
 	/*
@@ -1297,9 +1281,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	/* Initialize configuration data with default values. */
 
-	server->queryacl = NULL;
-	server->recursionacl = NULL;
-
 	result = isc_quota_init(&server->xfroutquota, 10);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	result = isc_quota_init(&server->tcpquota, 10);
@@ -1384,11 +1365,6 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	dns_db_detach(&server->in_roothints);
 	
-	if (server->queryacl != NULL)
-		dns_acl_detach(&server->queryacl);
-	if (server->recursionacl != NULL)
-		dns_acl_detach(&server->recursionacl);
-
 	dns_aclenv_destroy(&server->aclenv);
 
 	isc_quota_destroy(&server->recursionquota);
