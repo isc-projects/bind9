@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.22 2001/03/26 21:32:57 bwelling Exp $ */
+/* $Id: acl.c,v 1.23 2001/05/31 10:43:37 tale Exp $ */
 
 #include <config.h>
 
@@ -327,10 +327,6 @@ dns_acl_equal(dns_acl_t *a, dns_acl_t *b) {
 	}
 	return (ISC_TRUE);
 }
-
-#ifndef INADDR_LOOPBACK
-#define INADDR_LOOPBACK (unsigned long)0x7F000001UL
-#endif
 
 static isc_boolean_t
 is_loopback(dns_aclipprefix_t *p) {
