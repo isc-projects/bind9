@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.194 2002/03/11 00:46:35 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.195 2002/03/11 06:27:07 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4959,30 +4959,37 @@ data is type (and sometimes class) specific.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para>A</para></entry>
 <entry colname = "2"><para>a host address.  In the IN class, this is a
-32-bit IP address.</para></entry>
+32-bit IP address.  Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>A6</para></entry>
-<entry colname = "2"><para>an IPv6 address.  This can be a partial
+<entry colname = "2"><para>IPv6 address.  This can be a partial
 address (a suffix) and an indirection to the name where the rest of the
-address (the prefix) can be found.</para></entry>
+address (the prefix) can be found.  Experimental.  Described in RFC 2874.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>AAAA</para></entry>
-<entry colname = "2"><para>obsolete format of IPv6 address</para></entry>
+<entry colname = "2"><para>IPv6 address.  Described in RFC 1886.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>AFSDB</para></entry>
 <entry colname = "2"><para>location of AFS database servers.
-Experimental.</para></entry>
+Experimental.  Described in RFC 1183.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>APL</para></entry>
+<entry colname = "2"><para>address prefix list.  Experimental.
+Described in RFC 3123.<para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>CERT</para></entry>
-<entry colname = "2"><para>holds a digital certificate.</para></entry>
+<entry colname = "2"><para>holds a digital certificate.
+Described in RFC 2538.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>CNAME</para></entry>
-<entry colname = "2"><para>identifies the canonical name of an alias.</para></entry>
+<entry colname = "2"><para>identifies the canonical name of an alias.
+Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>DNAME</para></entry>
@@ -4990,34 +4997,35 @@ Experimental.</para></entry>
 another name to be looked up, effectively aliasing an entire
 subtree of the domain name space rather than a single record
 as in the case of the CNAME RR.  Used for delegation 
-of IPv6 reverse mappings. Described in RFC 2672.</para></entry>
+of IPv6 reverse mappings.  Described in RFC 2672.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>GPOS</para></entry>
-<entry colname = "2"><para>Specifies the global position. Superseded by LOC.</para></entry>
+<entry colname = "2"><para>Specifies the global position.  Superseded by LOC.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>HINFO</para></entry>
-<entry colname = "2"><para>identifies the CPU and OS used by a host.</para></entry>
+<entry colname = "2"><para>identifies the CPU and OS used by a host.
+Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>ISDN</para></entry>
 <entry colname = "2"><para>representation of ISDN addresses.
-Experimental.</para></entry>
+Experimental.  Described in RFC 1183.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>KEY</para></entry>
 <entry colname = "2"><para>stores a public key associated with a
-DNS name.</para></entry>
+DNS name.  Described in RFC 2535.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>KX</para></entry>
 <entry colname = "2"><para>identifies a key exchanger for this
-DNS name.</para></entry>
+DNS name.  Described in RFC 2230.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>LOC</para></entry>
-<entry colname = "2"><para>for storing GPS info. See RFC 1876.
+<entry colname = "2"><para>for storing GPS info.  Described in RFC 1876.
 Experimental.</para></entry>
 </row>
 <row rowsep = "0">
@@ -5025,65 +5033,68 @@ Experimental.</para></entry>
 <entry colname = "2"><para>identifies a mail exchange for the domain.
 a 16 bit preference value (lower is better)
 followed by the host name of the mail exchange.
- See RFC 974 for details.</para></entry>
+Described in RFC 974, RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NAPTR</para></entry>
-<entry colname = "2"><para>name authority pointer.</para></entry>
+<entry colname = "2"><para>name authority pointer.  Described in RFC 2915.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NSAP</para></entry>
-<entry colname = "2"><para>a network service access point.</para></entry>
+<entry colname = "2"><para>a network service access point.
+Described in RFC 1706.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NS</para></entry>
 <entry colname = "2"><para>the authoritative name server for the
-domain.</para></entry>
+domain.  Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NXT</para></entry>
 <entry colname = "2"><para>used in DNSSEC to securely indicate that
 RRs with an owner name in a certain name interval do not exist in
 a zone and indicate what RR types are present for an existing name.
-See RFC 2535 for details.</para></entry>
+Described in RFC 2535.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>PTR</para></entry>
 <entry colname = "2"><para>a pointer to another part of the domain
-name space.</para></entry>
+name space.  Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>PX</para></entry>
 <entry colname = "2"><para>provides mappings between RFC 822 and X.400
-addresses.</para></entry>
+addresses.  Described in RFC 2163.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RP</para></entry>
 <entry colname = "2"><para>information on persons responsible
-for the domain. Experimental.</para></entry>
+for the domain.  Experimental.  Described in RFC 1183.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RT</para></entry>
 <entry colname = "2"><para>route-through binding for hosts that
-do not have their own direct wide area network addresses. Experimental.</para></entry>
+do not have their own direct wide area network addresses.
+Experimental.  Described in RFC 1183.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>SIG</para></entry>
 <entry colname = "2"><para>("signature") contains data authenticated
-in the secure DNS. See RFC 2535 for details.</para></entry>
+in the secure DNS.  Described in RFC 2535.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>SOA</para></entry>
-<entry colname = "2"><para>identifies the start of a zone of authority.</para></entry>
+<entry colname = "2"><para>identifies the start of a zone of authority.
+Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>SRV</para></entry>
 <entry colname = "2"><para>information about well known network
-services (replaces WKS).</para></entry>
+services (replaces WKS).  Described in RFC 2782.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>TXT</para></entry>
-<entry colname = "2"><para>text records.</para></entry>
+<entry colname = "2"><para>text records.  Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>WKS</para></entry>
@@ -5093,7 +5104,8 @@ network services, such as SMTP, that a domain supports. Historical.
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>X25</para></entry>
-<entry colname = "2"><para>representation of X.25 network addresses. Experimental.</para></entry>
+<entry colname = "2"><para>representation of X.25 network addresses.
+Experimental.  Described in RFC 1183.</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
