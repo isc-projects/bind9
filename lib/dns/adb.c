@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.168 2001/01/30 05:56:58 gson Exp $ */
+/* $Id: adb.c,v 1.169 2001/02/05 19:47:01 bwelling Exp $ */
 
 /*
  * Implementation notes
@@ -2730,8 +2730,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
 	if (alias) {
 		if (target != NULL) {
-			result = dns_name_concatenate(&adbname->target, NULL,
-						      target, NULL);
+			result = dns_name_copy(&adbname->target, target, NULL);
 			if (result != ISC_R_SUCCESS)
 				goto out;
 		}

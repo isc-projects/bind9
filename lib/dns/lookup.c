@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.8 2001/01/09 21:51:00 bwelling Exp $ */
+/* $Id: lookup.c,v 1.9 2001/02/05 19:47:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -269,8 +269,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
-			result = dns_name_concatenate(&cname.cname, NULL, name,
-						      NULL);
+			result = dns_name_copy(&cname.cname, name, NULL);
 			dns_rdata_freestruct(&cname);
 			if (result == ISC_R_SUCCESS)
 				want_restart = ISC_TRUE;
@@ -417,8 +416,7 @@ dns_lookup_create(isc_mem_t *mctx, dns_name_t *name, dns_rdatatype_t type,
 
 	dns_fixedname_init(&lookup->name);
 
-	result = dns_name_concatenate(name, NULL,
-				      dns_fixedname_name(&lookup->name), NULL);
+	result = dns_name_copy(name, dns_fixedname_name(&lookup->name), NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 

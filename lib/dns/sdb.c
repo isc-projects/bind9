@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.24 2001/01/09 21:51:32 bwelling Exp $ */
+/* $Id: sdb.c,v 1.25 2001/02/05 19:47:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -836,7 +836,7 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	if (foundname != NULL) {
 		isc_result_t xresult;
 
-		xresult = dns_name_concatenate(xname, NULL, foundname, NULL);
+		xresult = dns_name_copy(xname, foundname, NULL);
 		if (xresult != ISC_R_SUCCESS) {
 			destroynode(node);
 			if (dns_rdataset_isassociated(rdataset))
@@ -1338,8 +1338,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	attachnode(iterator->db, sdbiter->current, nodep);
 	if (name != NULL)
-		return (dns_name_concatenate(sdbiter->current->name, NULL,
-					     name, NULL));
+		return (dns_name_copy(sdbiter->current->name, name, NULL));
 	return (ISC_R_SUCCESS);
 }
 
@@ -1352,7 +1351,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
-	return (dns_name_concatenate(dns_rootname, NULL, name, NULL));
+	return (dns_name_copy(dns_rootname, name, NULL));
 }
 
 /*

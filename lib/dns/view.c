@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.94 2001/02/01 21:29:38 marka Exp $ */
+/* $Id: view.c,v 1.95 2001/02/05 19:47:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -914,8 +914,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			 * We found an answer, but the cache may be better.
 			 */
 			zfname = dns_fixedname_name(&zfixedname);
-			result = dns_name_concatenate(fname, NULL, zfname,
-						      NULL);
+			result = dns_name_copy(fname, zfname, NULL);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 			dns_rdataset_clone(rdataset, &zrdataset);
@@ -971,7 +970,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		}
-		result = dns_name_concatenate(zfname, NULL, fname, NULL);
+		result = dns_name_copy(zfname, fname, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_rdataset_clone(&zrdataset, rdataset);
