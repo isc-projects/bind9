@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.54 2001/09/21 00:16:56 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.55 2001/09/25 22:47:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,17 +72,19 @@ usage(void) {
 	fprintf(stderr, "    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
-	fprintf(stderr, "    -c class (default: IN)\n");
+	fprintf(stderr, "    -c <class> (default: IN)\n");
 	fprintf(stderr, "    -e use large exponent (RSAMD5/RSASHA1 only)\n");
-	fprintf(stderr, "    -g use specified generator (DH only)\n");
-	fprintf(stderr, "    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
-	       "(default: AUTHCONF)\n");
-	fprintf(stderr, "    -p protocol value "
-	       "(default: 2 [email] for USER, 3 [dnssec] otherwise)\n");
-	fprintf(stderr, "    -s strength value this key signs DNS records "
-		"with (default: 0)\n");
-	fprintf(stderr, "    -r randomdev (a file containing random data)\n");
-	fprintf(stderr, "    -v verbose level\n");
+	fprintf(stderr, "    -g <generator> use specified generator "
+		"(DH only)\n");
+	fprintf(stderr, "    -t <type>: "
+		"AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
+		"(default: AUTHCONF)\n");
+	fprintf(stderr, "    -p <protocol>: "
+	       "default: 2 [email] for USER, 3 [dnssec] otherwise\n");
+	fprintf(stderr, "    -s <strength> strength value this key signs DNS "
+		"records with (default: 0)\n");
+	fprintf(stderr, "    -r <randomdev>: a file containing random data\n");
+	fprintf(stderr, "    -v <verbose level>\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<id>.key, "
 		"K<name>+<alg>+<id>.private\n");
