@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.4.2.3 2000/07/12 16:37:06 gson Exp $ */
+/* $Id: omapiconf.c,v 1.4.2.4 2000/07/28 04:23:14 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -199,7 +199,7 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 {
 	dns_c_kid_t *keyid;
 	dns_c_kdef_t *keydef;
-	const char secret[1024];
+	char secret[1024];
 	isc_buffer_t b;
 	isc_result_t result;
 
