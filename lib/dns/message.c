@@ -1661,8 +1661,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 
 	do {
 		name = ISC_LIST_HEAD(*section);
-		if (name == NULL)
+		if (name == NULL) {
+			msg->buffer->length += msg->reserved;
+			msg->counts[sectionid] += total;
 			return (ISC_R_SUCCESS);
+		}
 
 		while (name != NULL) {
 			next_name = ISC_LIST_NEXT(name, link);
@@ -1826,9 +1829,7 @@ dns_message_renderend(dns_message_t *msg) {
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
-	}
-
-	else if (msg->sig0key != NULL) {
+	} else if (msg->sig0key != NULL) {
 		dns_message_renderrelease(msg, msg->sig_reserved);
 		msg->sig_reserved = 0;
 		result = dns_dnssec_signmessage(msg, msg->sig0key);
