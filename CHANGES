@@ -1,3 +1,5 @@
+ 382.	[bug]		named -u failed on Debian Linux.
+
  381.	[bug]		Check for IPV6_RECVPKTINFO and use it instead of
 			IPV6_PKTINFO if found. [RT #229]
 
