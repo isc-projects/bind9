@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.17 2000/04/17 19:22:22 explorer Exp $ */
+/* $Id: cache.c,v 1.18 2000/04/25 19:35:39 tale Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mutex.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/cache.h>
