@@ -15,9 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.2 2000/06/22 21:58:33 tale Exp $ */
+/* $Id: errno2result.h,v 1.3 2000/06/23 03:03:57 tale Exp $ */
 
+#ifndef UNIX_ERRNO2RESULT_H
+#define UNIX_ERRNO2RESULT_H 1
+
+/* XXXDCL this should be moved to lib/isc/include/isc/errno2result.h. */
+
+#include <isc/lang.h>
 #include <isc/types.h>
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc__errno2result(int posixerrno);
+
+ISC_LANG_ENDDECLS
+
+#endif /* UNIX_ERRNO2RESULT_H */
