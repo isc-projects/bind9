@@ -85,6 +85,7 @@ struct dns_request {
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_CANCELED 0x0002
+#define DNS_REQUEST_F_TCP 0x0008		/* This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) \
@@ -587,7 +588,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 					    req_connected, request);
 		if (result != ISC_R_SUCCESS)
 			goto unlink;
-		request->flags |= DNS_REQUEST_F_CONNECTING;
+		request->flags |= DNS_REQUEST_F_CONNECTING|DNS_REQUEST_F_TCP;
 	} else {
 		result = req_send(request, task, address);
 		if (result != ISC_R_SUCCESS)
@@ -727,6 +728,13 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	dns_message_setquerytsig(message, request->tsig);
 	dns_message_settsigkey(message, request->tsigkey);
 	return (dns_message_parse(message, request->answer, preserve_order));
+}
+
+isc_boolean_t
+dns_request_usedtcp(dns_request_t *request) {
+	REQUIRE(VALID_REQUEST(request));
+
+	return (ISC_TF((request->flags & DNS_REQUEST_F_TCP) != 0));
 }
 
 void

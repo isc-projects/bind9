@@ -228,6 +228,21 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
  *	Any result that dns_message_parse() can return.
  */
 
+isc_boolean_t
+dns_request_usedtcp(dns_request_t *request);
+/*
+ * Return whether this query used TCP or not.  Setting DNS_REQUESTOPT_TCP
+ * in the call to dns_request_create() will cause the function to return
+ * ISC_TRUE, othewise the result is based on the query message size.
+ *
+ * Requires:
+ *	'request' is a valid request.
+ *
+ * Returns:
+ *	ISC_TRUE	if TCP was used.
+ *	ISC_FALSE	if UDP was used.
+ */
+
 void
 dns_request_destroy(dns_request_t **requestp);
 /*
