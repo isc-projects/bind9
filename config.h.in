@@ -15,6 +15,9 @@
 /* Define if you can safely include both <sys/time.h> and <time.h>.  */
 #undef TIME_WITH_SYS_TIME
 
+/* define on DEC OSF to enable 4.4BSD style sa_len support */
+#undef _SOCKADDR_LEN
+
 /* define if your system needs pthread_init() before using pthreads */
 #undef NEED_PTHREAD_INIT
 
@@ -29,6 +32,9 @@
 
 /* define if catgets() is available */
 #undef HAVE_CATGETS
+
+/* Define if you have the NET_RT_IFLIST sysctl variable. */
+#undef HAVE_IFLIST_SYSCTL
 
 /* Define if you have the <fcntl.h> header file.  */
 #undef HAVE_FCNTL_H
@@ -53,6 +59,3 @@
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
-
-/* Define if you have the NET_RT_IFLIST sysctl variable. */
-#undef HAVE_IFLIST_SYSCTL
