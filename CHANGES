@@ -1,3 +1,5 @@
+1456.	[contrib]	gen-data-queryperf.py from Stephane Bortzmeyer.
+
 1455.	[bug]		<netaddr> missing from server grammar in
 			doc/misc/options. [RT #5616]
 
