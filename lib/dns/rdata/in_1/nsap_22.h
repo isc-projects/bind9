@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.h,v 1.7 2000/02/03 23:43:18 halley Exp $ */
+/* $Id: nsap_22.h,v 1.8 2000/03/17 19:35:25 gson Exp $ */
 
- /* RFC 1706 */
+/* RFC 1706 */
 
 typedef struct dns_rdata_in_nsap {
 	dns_rdatacommon_t	common;

@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.12 2000/02/03 23:43:18 halley Exp $ */
+/* $Id: nsap_22.c,v 1.13 2000/03/17 19:35:25 gson Exp $ */
 
- /* RFC 1706 */
+/* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
+
+/* RFC 1706 */
 
 #ifndef RDATA_IN_1_NSAP_22_C
 #define RDATA_IN_1_NSAP_22_C
@@ -32,13 +34,13 @@ fromtext_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_textregion_t *sr;
 	int n;
 	int digits;
-	unsigned char c;
+	unsigned char c = 0;
 
 	REQUIRE(type == 22);
 	REQUIRE(rdclass == 1);
 
-	origin = origin;	/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(origin);
+	UNUSED(downcase);
 
 	/* 0x<hex.string.with.periods> */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
@@ -81,11 +83,11 @@ totext_in_nsap(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
-	tctx = tctx;	/* unused */
+	UNUSED(tctx);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(str_totext("0x", target));
-	while (region.length) {
+	while (region.length != 0) {
 		sprintf(buf, "%02x", region.base[0]);
 		isc_region_consume(&region, 1);
 		RETERR(str_totext(buf, target));
@@ -103,9 +105,8 @@ fromwire_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 22);
 	REQUIRE(rdclass == 1);
 
-	dctx = dctx;		/* unused */
-	downcase = downcase;	/* unused */
-
+	UNUSED(dctx);
+	UNUSED(downcase);
 
 	isc_buffer_active(source, &region);
 	if (region.length < 1)
@@ -120,7 +121,7 @@ towire_in_nsap(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
-	cctx = cctx;	/*unused*/
+	UNUSED(cctx);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -148,8 +149,8 @@ fromstruct_in_nsap(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 22);
 	REQUIRE(rdclass == 1);
 
-	source = source;
-	target = target;
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -160,8 +161,8 @@ tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -169,7 +170,7 @@ tostruct_in_nsap(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 static inline void
 freestruct_in_nsap(void *source) {
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	REQUIRE(ISC_FALSE);
 }
 
 static inline isc_result_t
@@ -179,8 +180,8 @@ additionaldata_in_nsap(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }
