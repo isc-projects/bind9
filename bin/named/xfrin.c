@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.15 1999/10/14 02:24:17 gson Exp $ */
+ /* $Id: xfrin.c,v 1.16 1999/10/25 12:18:43 marka Exp $ */
 
 #include <config.h>
 
@@ -497,9 +497,13 @@ ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master) {
 			   master, key, &xfr));
 
 	xfrin_start(xfr);
+	if (db != NULL)
+		dns_db_detach(&db);
 	return;
 	
  failure:
+	if (db != NULL)
+		dns_db_detach(&db);
 	printf("zone transfer setup failed\n");
 	return;
 }
@@ -567,7 +571,9 @@ xfrin_create(isc_mem_t *mctx,
 	/* tcpmsg */
 	xfr->tcpmsg_valid = ISC_FALSE;
 
-	xfr->db = db;
+	xfr->db = NULL;
+	if (db != NULL)
+		dns_db_attach(db, &xfr->db);
 	xfr->ver = NULL;
 	dns_diff_init(xfr->mctx, &xfr->diff);
 	xfr->difflen = 0;
