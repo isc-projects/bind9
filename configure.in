@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.155 $)
+AC_REVISION($Revision: 1.156 $)
 
 AC_PREREQ(2.13)
 
@@ -312,6 +312,8 @@ case "$host" in
         #
 	*-solaris*)
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+		AC_CHECK_FUNC(pthread_setconcurrency,
+			      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
 		;;
         #
         # UnixWare does things its own way.

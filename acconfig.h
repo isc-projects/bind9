@@ -65,6 +65,11 @@
 /* define is getaddrinfo() exists */
 #undef HAVE_GETADDRINFO
 
+/* define if pthread_setconcurrency() should be called to tell the
+ * OS how many threads we might want to run.
+ */
+#undef CALL_PTHREAD_SETCONCURRENCY
+
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX
 #ifdef SHUTUP_SPUTAUX

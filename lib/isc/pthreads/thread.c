@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/thread.h>
+#include <isc/util.h>
 
 #ifndef THREAD_MINSTACKSIZE
 #define THREAD_MINSTACKSIZE		(64 * 1024)
@@ -50,4 +51,13 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 	pthread_attr_destroy(&attr);
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+isc_thread_setconcurrency(unsigned int level) {
+#if defined(CALL_PTHREAD_SETCONCURRENCY)
+	(void)pthread_setconcurrency(level);
+#else
+	UNUSED(level);
+#endif
 }

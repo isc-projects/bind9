@@ -33,6 +33,9 @@ typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 isc_result_t
 isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
 
+void
+isc_thread_setconcurrency(unsigned int level);
+
 /* XXX We could do fancier error handling... */
 
 #define isc_thread_join(t, rp) \

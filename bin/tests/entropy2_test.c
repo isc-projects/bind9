@@ -76,11 +76,6 @@ stop(isc_entropysource_t *source, void *arg) {
 	printf("stop called\n");
 }
 
-/*
- * This function is by no way a good one to actually add entropy into
- * the system.  It is intended to fool the entropy system into beliving
- * there are actual bits from us.
- */
 static isc_result_t
 get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
@@ -90,11 +85,6 @@ get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	isc_uint32_t extra;
 	unsigned char c;
 
-	/*
-	 * Here, we should check to see if we are in blocking mode or not.
-	 * If we will block and the application asked us not to,
-	 * we should return an error instead, rather than block.
-	 */
 	if (!blocking)
 		return (ISC_R_NOENTROPY);
 
