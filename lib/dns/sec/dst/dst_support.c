@@ -19,43 +19,17 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_support.c,v 1.5 2000/05/15 21:02:34 bwelling Exp $
+ * $Id: dst_support.c,v 1.6 2000/06/02 23:36:09 bwelling Exp $
  */
 
 #include <config.h>
 
-#include <stdio.h>
-
-#include <isc/string.h>
+#include <stdlib.h>
 
 #include "dst_internal.h"
 
 /*
- * dst_s_calculate_bits
- *	Given a binary number represented by a u_char[], determine
- *	the number of significant bits used.
- * Parameters
- *	str		An input character string containing a binary number.
- *	max_bits	The maximum possible significant bits.
- * Return
- *	N		The number of significant bits in str.
- */
-
-int
-dst_s_calculate_bits(const unsigned char *str, const int max_bits) {
-	const unsigned char *p = str;
-	unsigned char i, j = 0x80;
-	int bits;
-	for (bits = max_bits; *p == 0x00 && bits > 0; p++)
-		bits -= 8;
-	for (i = *p; (i & j) != j; j >>= 1)
-		bits--;
-	return (bits);
-}
-
-
-/*
- * dst_s_id_calc
+ * dst__id_calc
  *	Calculates the checksum used by DNS as a key id.
  * Parameters
  *	key	The key in DNS format
@@ -64,7 +38,7 @@ dst_s_calculate_bits(const unsigned char *str, const int max_bits) {
  *	N	the 16 bit checksum.
  */
 isc_uint16_t
-dst_s_id_calc(const unsigned char *key, const int keysize) {
+dst__id_calc(const unsigned char *key, const int keysize) {
 	isc_uint32_t ac;
 	const unsigned char *kp = key;
 	int size = keysize;

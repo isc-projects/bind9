@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.20 2000/06/02 18:57:38 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.21 2000/06/02 23:36:03 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
@@ -519,7 +519,6 @@ dnssafersa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 static int
 dnssafersa_keysize(RSA_Key *key) {
-	int size;
 	A_PKCS_RSA_PRIVATE_KEY *private = NULL;
 
 	REQUIRE(key != NULL);
@@ -532,9 +531,7 @@ dnssafersa_keysize(RSA_Key *key) {
 		(void)B_GetKeyInfo((POINTER *)&private, key->rk_Public_Key,
 				   KI_RSAPublic);
 
-	size = dst_s_calculate_bits(private->modulus.data,
-				    private->modulus.len * 8);
-	return (size);
+	return (private->modulus.len * 8);
 }
 
 static isc_result_t
@@ -681,7 +678,7 @@ dnssafersa_tofile(const dst_key_t *key) {
 	priv.elements[cnt++].length = private->coefficient.len;
 
 	priv.nelements = cnt;
-	return (dst_s_write_private_key_file(key, &priv));
+	return (dst__privstruct_writefile(key, &priv));
 }
 
 static isc_result_t 
@@ -701,7 +698,7 @@ dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	/*
 	 * Read private key file.
 	 */
-	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	/*
@@ -801,12 +798,12 @@ dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 		memset(rkey, 0, sizeof(*rkey));
 		isc_mem_put(mctx, rkey, sizeof(*rkey));
 	}
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
 }
 
-static struct dst_func dnssafersa_functions = {
+static dst_func_t dnssafersa_functions = {
 	dnssafersa_createctx,
 	dnssafersa_destroyctx,
 	dnssafersa_adddata,
@@ -826,7 +823,7 @@ static struct dst_func dnssafersa_functions = {
 };
 
 void
-dst_s_dnssafersa_init(struct dst_func **funcp) {
+dst__dnssafersa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &dnssafersa_functions;
 }
@@ -837,12 +834,12 @@ dst_s_dnssafersa_init(struct dst_func **funcp) {
  */
 void
 T_free(POINTER block) {
-	dst_mem_free(block);
+	dst__mem_free(block);
 }
 
 POINTER
 T_malloc(unsigned int len) {
-	return (dst_mem_alloc(len));
+	return (dst__mem_alloc(len));
 }
 
 int
@@ -867,6 +864,6 @@ T_memset(POINTER output, int value, unsigned int len) {
 
 POINTER
 T_realloc(POINTER block, unsigned int len) {
-	return (dst_mem_realloc(block, len));
+	return (dst__mem_realloc(block, len));
 }
 #endif /* DNSSAFE */

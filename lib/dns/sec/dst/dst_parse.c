@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.18 2000/06/02 18:57:42 bwelling Exp $
+ * $Id: dst_parse.c,v 1.19 2000/06/02 23:36:07 bwelling Exp $
  */
 
 #include <config.h>
@@ -172,7 +172,7 @@ check_data(const dst_private_t *priv, const unsigned int alg) {
 }
 
 void
-dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx) {
+dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 	int i;
 
 	if (priv == NULL)
@@ -187,8 +187,8 @@ dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst_s_parse_private_key_file(dst_key_t *key, const isc_uint16_t id,
-			     dst_private_t *priv, isc_mem_t *mctx)
+dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
+			  dst_private_t *priv, isc_mem_t *mctx)
 {
 	char filename[ISC_DIR_NAMEMAX];
 	int n = 0, ret, major, minor;
@@ -318,12 +318,12 @@ fail:
 	}
 
 	priv->nelements = n;
-	dst_s_free_private_structure_fields(priv, mctx);
+	dst__privstruct_free(priv, mctx);
 	return (DST_R_INVALIDPRIVATEKEY);
 }
 
 int
-dst_s_write_private_key_file(const dst_key_t *key, const dst_private_t *priv) {
+dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv) {
 	FILE *fp;
 	int ret, i;
 	isc_result_t iret;

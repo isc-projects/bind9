@@ -43,7 +43,7 @@ ISC_LANG_BEGINDECLS
  *** Types
  ***/
 
-typedef struct dst_func dst_func;
+typedef struct dst_func dst_func_t;
 
 struct dst_key {
 	unsigned int	magic;
@@ -55,7 +55,7 @@ struct dst_key {
 	isc_uint16_t	key_id;		/* identifier of the key */
 	isc_mem_t	*mctx;		/* memory context */
 	void *		opaque;		/* pointer to key in crypto pkg fmt */
-	dst_func *	func;		/* crypto package specific functions */
+	dst_func_t *	func;		/* crypto package specific functions */
 };
 
 struct dst_context {
@@ -100,42 +100,35 @@ struct dst_func {
 #define DST_HASH_SIZE 20	/* RIPEMD160 & SHA-1 are 20 bytes, MD5 is 16 */
 #endif
 
+/*
+ * Initializers
+ */
 void
-dst_s_hmacmd5_init(struct dst_func **funcp);
+dst__hmacmd5_init(struct dst_func **funcp);
 void
-dst_s_dnssafersa_init(struct dst_func **funcp);
+dst__dnssafersa_init(struct dst_func **funcp);
 void
-dst_s_openssldsa_init(struct dst_func **funcp);
+dst__openssldsa_init(struct dst_func **funcp);
 void
-dst_s_openssldh_init(struct dst_func **funcp);
+dst__openssldh_init(struct dst_func **funcp);
 void
-dst_s_opensslmd5_init(struct dst_func **funcp);
+dst__opensslmd5_init(struct dst_func **funcp);
 
 /*
  * Support functions.
  */
-int
-dst_s_calculate_bits(const unsigned char *str, const int max_bits); 
-
 isc_uint16_t
-dst_s_id_calc(const unsigned char *key, const int keysize);
-
-/*
- * Digest functions.
- */
-isc_result_t
-dst_s_md5(const unsigned int mode, void **context, isc_region_t *data,
-	  isc_buffer_t *digest, isc_mem_t *mctx);
+dst__id_calc(const unsigned char *key, const int keysize);
 
 /*
  * Memory allocators using the DST memory pool.
  */
 void *
-dst_mem_alloc(size_t size);
+dst__mem_alloc(size_t size);
 void
-dst_mem_free(void *ptr);
+dst__mem_free(void *ptr);
 void *
-dst_mem_realloc(void *ptr, size_t size);
+dst__mem_realloc(void *ptr, size_t size);
 
 ISC_LANG_ENDDECLS
 

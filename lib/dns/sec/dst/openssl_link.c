@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.24 2000/06/02 18:57:46 bwelling Exp $
+ * $Id: openssl_link.c,v 1.25 2000/06/02 23:36:12 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -212,7 +212,7 @@ openssldsa_generate(dst_key_t *key, int unused) {
 		return (result);
 	}
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_s_id_calc(r.base, r.length);
+	key->key_id = dst__id_calc(r.base, r.length);
 
 	return (ISC_R_SUCCESS);
 }
@@ -309,8 +309,7 @@ openssldsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += p_bytes;
 
 	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst_s_id_calc(r.base,
-				    1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
+	key->key_id = dst__id_calc(r.base, 1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
 	key->key_size = p_bytes * 8;
 
 	isc_buffer_forward(data, 1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
@@ -364,7 +363,7 @@ openssldsa_tofile(const dst_key_t *key) {
 	cnt++;
 
 	priv.nelements = cnt;
-	return (dst_s_write_private_key_file(key, &priv));
+	return (dst__privstruct_writefile(key, &priv));
 }
 
 static isc_result_t 
@@ -380,7 +379,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -414,7 +413,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 				break;
                 }
 	}
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 
 	key->key_size = BN_num_bits(dsa->p);
 	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
@@ -422,7 +421,7 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_s_id_calc(r.base, r.length);
+	key->key_id = dst__id_calc(r.base, r.length);
 
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
@@ -431,12 +430,12 @@ openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id) {
 
  err:
 	openssldsa_destroy(key);
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
 }
 
-static struct dst_func openssldsa_functions = {
+static dst_func_t openssldsa_functions = {
 	openssldsa_createctx,
 	openssldsa_destroyctx,
 	openssldsa_adddata,
@@ -456,9 +455,10 @@ static struct dst_func openssldsa_functions = {
 };
 
 void
-dst_s_openssldsa_init(struct dst_func **funcp) {
+dst__openssldsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
-	CRYPTO_set_mem_functions(dst_mem_alloc, dst_mem_realloc, dst_mem_free);
+	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
+				 dst__mem_free);
 	*funcp = &openssldsa_functions;
 }
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.18 2000/06/02 18:57:47 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.19 2000/06/02 23:36:13 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -171,7 +171,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 		return (result);
 	}
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_s_id_calc(r.base, r.length);
+	key->key_id = dst__id_calc(r.base, r.length);
 
 	return (ISC_R_SUCCESS);
 }
@@ -369,7 +369,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	r.base += publen;
 
 	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst_s_id_calc(r.base, plen + glen + publen + 6);
+	key->key_id = dst__id_calc(r.base, plen + glen + publen + 6);
 	key->key_size = BN_num_bits(dh->p);
 
 	isc_buffer_forward(data, plen + glen + publen + 6);
@@ -416,7 +416,7 @@ openssldh_tofile(const dst_key_t *key) {
 	cnt++;
 
 	priv.nelements = cnt;
-	return (dst_s_write_private_key_file(key, &priv));
+	return (dst__privstruct_writefile(key, &priv));
 }
 
 static isc_result_t 
@@ -434,7 +434,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -465,7 +465,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
 				break;
                 }
 	}
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 
 	key->key_size = BN_num_bits(dh->p);
 
@@ -490,7 +490,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	if (ret != ISC_R_SUCCESS)
 		DST_RET(ret);
 	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_s_id_calc(r.base, r.length);
+	key->key_id = dst__id_calc(r.base, r.length);
 
 	if (key->key_id != id)
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
@@ -499,7 +499,7 @@ openssldh_fromfile(dst_key_t *key, const isc_uint16_t id) {
 
  err:
 	openssldh_destroy(key);
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (ret);
 }
@@ -530,7 +530,7 @@ BN_fromhex(BIGNUM *b, const char *str) {
 	RUNTIME_CHECK(out != NULL);
 }
 
-static struct dst_func openssldh_functions = {
+static dst_func_t openssldh_functions = {
 	NULL, /* createctx */
 	NULL, /* destroyctx */
 	NULL, /* adddata */
@@ -550,9 +550,10 @@ static struct dst_func openssldh_functions = {
 };
 
 void
-dst_s_openssldh_init(struct dst_func **funcp) {
+dst__openssldh_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
-	CRYPTO_set_mem_functions(dst_mem_alloc, dst_mem_realloc, dst_mem_free);
+	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
+				 dst__mem_free);
 	BN_init(&bn2);
 	BN_init(&bn768);
 	BN_init(&bn1024);

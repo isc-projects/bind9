@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.29 2000/06/02 18:57:45 bwelling Exp $
+ * $Id: hmac_link.c,v 1.30 2000/06/02 23:36:10 bwelling Exp $
  */
 
 #include <config.h>
@@ -294,7 +294,7 @@ hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		hkey->ipad[i] ^= HMAC_IPAD;
 		hkey->opad[i] ^= HMAC_OPAD;
 	}
-	key->key_id = dst_s_id_calc(r.base, r.length);
+	key->key_id = dst__id_calc(r.base, r.length);
 	key->key_size = keylen * 8;
 	key->opaque = hkey;
 
@@ -322,7 +322,7 @@ hmacmd5_tofile(const dst_key_t *key) {
 	priv.elements[cnt++].data = keydata;
 
 	priv.nelements = cnt;
-	return (dst_s_write_private_key_file(key, &priv));
+	return (dst__privstruct_writefile(key, &priv));
 }
 
 static isc_result_t 
@@ -333,18 +333,18 @@ hmacmd5_fromfile(dst_key_t *key, const isc_uint16_t id) {
 	isc_mem_t *mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
+	ret = dst__privstruct_parsefile(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
 	isc_buffer_init(&b, priv.elements[0].data, priv.elements[0].length);
 	isc_buffer_add(&b, priv.elements[0].length);
-	dst_s_free_private_structure_fields(&priv, mctx);
+	dst__privstruct_free(&priv, mctx);
 	memset(&priv, 0, sizeof(priv));
 	return (hmacmd5_fromdns(key, &b));
 }
 
-static struct dst_func hmacmd5_functions = {
+static dst_func_t hmacmd5_functions = {
 	hmacmd5_createctx,
 	hmacmd5_destroyctx,
 	hmacmd5_adddata,
@@ -364,7 +364,7 @@ static struct dst_func hmacmd5_functions = {
 };
 
 void
-dst_s_hmacmd5_init(struct dst_func **funcp) {
+dst__hmacmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &hmacmd5_functions;
 }

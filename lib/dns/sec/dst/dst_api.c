@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.43 2000/06/02 18:57:40 bwelling Exp $
+ * $Id: dst_api.c,v 1.44 2000/06/02 23:36:04 bwelling Exp $
  */
 
 #include <config.h>
@@ -56,7 +56,7 @@
 static dst_key_t md5key;
 dst_key_t *dst_key_md5 = NULL;
 
-static dst_func *dst_t_func[DST_MAX_ALGS];
+static dst_func_t *dst_t_func[DST_MAX_ALGS];
 static isc_mem_t *dst_memory_pool = NULL;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mutex_t random_lock;
@@ -94,6 +94,9 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx, dst_context_t **dctxp) {
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
+	if (key->func->createctx == NULL)
+		return (DST_R_UNSUPPORTEDALG);
+
 	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
 	if (dctx == NULL)
 		return (ISC_R_NOMEMORY);
@@ -116,6 +119,7 @@ dst_context_destroy(dst_context_t **dctxp) {
 	REQUIRE(dctxp != NULL && VALID_CTX(*dctxp));
 
 	dctx = *dctxp;
+	INSIST(dctx->key->func->destroyctx != NULL);
 	dctx->key->func->destroyctx(dctx);
 	dctx->magic = 0;
 	isc_mem_put(dctx->mctx, dctx, sizeof(dst_context_t));
@@ -126,6 +130,7 @@ isc_result_t
 dst_context_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	REQUIRE(VALID_CTX(dctx));
 	REQUIRE(data != NULL);
+	INSIST(dctx->key->func->adddata != NULL);
 
 	return (dctx->key->func->adddata(dctx, data));
 }
@@ -206,25 +211,28 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 
+	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
+		type &= ~TYPE_PRIVATE;
+
 	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
+		return (DST_R_UNSUPPORTEDALG);
+
+	if (key->func->tofile == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
 		return (DST_R_UNSUPPORTEDTYPE);
 
-	if (type & DST_TYPE_PUBLIC) 
-		if ((ret = write_public_key(key)) != ISC_R_SUCCESS)
-			return (ret);
-
-	if ((type & DST_TYPE_PRIVATE) &&
-	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
-	{
-		ret = key->func->tofile(key);
+	if (type & DST_TYPE_PUBLIC) {
+		ret = write_public_key(key);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
 
-	return (ret);
+	if (type & DST_TYPE_PRIVATE)
+		return (key->func->tofile(key));
+	else
+		return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -241,6 +249,9 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	if (dst_algorithm_supported(alg) == ISC_FALSE)
+		return (DST_R_UNSUPPORTEDALG);
+
+	if (key->func->fromfile == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
@@ -268,9 +279,6 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	/*
-	 * Fill in private key and some fields in the general key structure.
-	 */
 	ret = key->func->fromfile(key, id);
 	if (ret != ISC_R_SUCCESS) {
 		dst_key_free(&key);
@@ -283,8 +291,6 @@ dst_key_fromfile(dns_name_t *name, const isc_uint16_t id,
 
 isc_result_t
 dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
-	isc_region_t r;
-
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(target != NULL);
@@ -292,16 +298,17 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
 		return (DST_R_UNSUPPORTEDALG);
 
-	isc_buffer_availableregion(target, &r);
-	if (r.length < 4)
+	if (key->func->todns == NULL)
+		return (DST_R_UNSUPPORTEDALG);
+
+	if (isc_buffer_availablelength(target) < 4)
 		return (ISC_R_NOSPACE);
 	isc_buffer_putuint16(target, (isc_uint16_t)(key->key_flags & 0xffff));
 	isc_buffer_putuint8(target, (isc_uint8_t)key->key_proto);
 	isc_buffer_putuint8(target, (isc_uint8_t)key->key_alg);
 
 	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
-		isc_buffer_availableregion(target, &r);
-		if (r.length < 2)
+		if (isc_buffer_availablelength(target) < 2)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target,
 				     (isc_uint16_t)((key->key_flags >> 16)
@@ -318,11 +325,8 @@ isc_result_t
 dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 		dst_key_t **keyp)
 {
-	isc_region_t r;
 	isc_uint8_t alg, proto;
 	isc_uint32_t flags, extflags;
-	isc_result_t ret;
-	dst_key_t *key = NULL;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(dns_name_isabsolute(name));
@@ -330,8 +334,7 @@ dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
-	isc_buffer_remainingregion(source, &r);
-	if (r.length < 4) /* 2 bytes of flags, 1 proto, 1 alg */
+	if (isc_buffer_remaininglength(source) < 4)
 		return (DST_R_INVALIDPUBLICKEY);
 	flags = isc_buffer_getuint16(source);
 	proto = isc_buffer_getuint8(source);
@@ -341,25 +344,14 @@ dst_key_fromdns(dns_name_t *name, isc_buffer_t *source, isc_mem_t *mctx,
 		return (DST_R_UNSUPPORTEDALG);
 
 	if (flags & DNS_KEYFLAG_EXTENDED) {
-		isc_buffer_remainingregion(source, &r);
-		if (r.length < 2)
+		if (isc_buffer_remaininglength(source) < 2)
 			return (DST_R_INVALIDPUBLICKEY);
 		extflags = isc_buffer_getuint16(source);
 		flags |= (extflags << 16);
 	}
 
-	key = get_key_struct(name, alg, flags, proto, 0, mctx);
-	if (key == NULL)
-		return (ISC_R_NOMEMORY);
-
-	ret = key->func->fromdns(key, source);
-	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (ret);
-	}
-
-	*keyp = key;
-	return (ISC_R_SUCCESS);
+	return (dst_key_frombuffer(name, alg, flags, proto, source, mctx,
+				   keyp));
 }
 
 isc_result_t
@@ -380,9 +372,13 @@ dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
 		return (DST_R_UNSUPPORTEDALG);
 
 	key = get_key_struct(name, alg, flags, protocol, 0, mctx);
-
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
+
+	if (key->func->fromdns == NULL) {
+		dst_key_free(&key);
+		return (DST_R_UNSUPPORTEDALG);
+	}
 
 	ret = key->func->fromdns(key, source);
 	if (ret != ISC_R_SUCCESS) {
@@ -401,6 +397,9 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(target != NULL);
 
 	if (dst_algorithm_supported(key->key_alg) == ISC_FALSE)
+		return (DST_R_UNSUPPORTEDALG);
+
+	if (key->func->todns == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 
 	return (key->func->todns(key, target));
@@ -460,6 +459,7 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
 		return (ISC_FALSE);
 	if (key1->key_alg == key2->key_alg &&
 	    key1->key_id == key2->key_id &&
+	    key1->func->compare != NULL &&
 	    key1->func->compare(key1, key2) == ISC_TRUE)
 		return (ISC_TRUE);
 	else
@@ -494,6 +494,8 @@ dst_key_free(dst_key_t **keyp) {
 
 	key = *keyp;
 	mctx = key->mctx;
+
+	INSIST(key->func->destroy != NULL);
 
 	if (key->opaque != NULL)
 		key->func->destroy(key);
@@ -544,6 +546,7 @@ dst_key_id(const dst_key_t *key) {
 isc_boolean_t
 dst_key_isprivate(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
+	INSIST(key->func->isprivate != NULL);
 	return (key->func->isprivate(key));
 }
 
@@ -755,12 +758,7 @@ dst_random_get(const unsigned int wanted, isc_buffer_t *target) {
  ***/
 
 /*
- *  initialize
- *	This function initializes the Digital Signature Toolkit.
- *  Parameters
- *	none
- *  Returns
- *	none
+ * Initializes the Digital Signature Toolkit.
  */
 static void
 initialize(void) {
@@ -771,14 +769,14 @@ initialize(void) {
 
 	dst_result_register();
 
-	dst_s_hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
+	dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]);
 #ifdef DNSSAFE
-	dst_s_dnssafersa_init(&dst_t_func[DST_ALG_RSA]);
+	dst__dnssafersa_init(&dst_t_func[DST_ALG_RSA]);
 #endif
 #ifdef OPENSSL
-	dst_s_openssldsa_init(&dst_t_func[DST_ALG_DSA]);
-	dst_s_openssldh_init(&dst_t_func[DST_ALG_DH]);
-	dst_s_opensslmd5_init(&dst_t_func[DST_ALG_MD5]);
+	dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]);
+	dst__openssldh_init(&dst_t_func[DST_ALG_DH]);
+	dst__opensslmd5_init(&dst_t_func[DST_ALG_MD5]);
 
 	memset(&md5key, 0, sizeof(dst_key_t));
 	md5key.magic = KEY_MAGIC;
@@ -813,19 +811,7 @@ initialize(void) {
 }
 
 /* 
- * get_key_struct 
- *	This function allocates key structure and fills in some of the 
- *	fields of the structure. 
- * Parameters: 
- *	name		the name of the key 
- *	alg		the algorithm number 
- *	flags		the dns flags of the key
- *	protocol	the dns protocol of the key
- *	bits		the size of the key
- *	mctx		the memory context to allocate from
- * Returns:
- *	NULL		error
- *	valid pointer	otherwise
+ * Allocates a key structure and fills in some of the fields. 
  */
 static dst_key_t *
 get_key_struct(dns_name_t *name, const unsigned int alg,
@@ -867,19 +853,8 @@ get_key_struct(dns_name_t *name, const unsigned int alg,
 }
 
 /*
- *  read_public_key
- *	Read a public key from disk
- *  Parameters
- *	name		The name
- *	id		The id
- *	alg		The algorithm
- *	mctx		The memory context used to allocate the key
- *	keyp		Returns the new key
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
+ * Reads a public key from disk
  */
-
 static isc_result_t
 read_public_key(dns_name_t *name, const isc_uint16_t id, const unsigned int alg,
 		isc_mem_t *mctx, dst_key_t **keyp)
@@ -978,17 +953,9 @@ cleanup:
 	return (ret);
 }
 
-
 /*
- *  write_public_key
- *	Write a key to disk in DNS format.
- *  Parameters
- *	key		A DST key
- *  Returns
- *	ISC_R_SUCCESS	Success
- *	!ISC_R_SUCCESS	Failure
+ * Writes a public key to disk in DNS format.
  */
-
 static isc_result_t
 write_public_key(const dst_key_t *key) {
 	FILE *fp;
@@ -1047,30 +1014,30 @@ write_public_key(const dst_key_t *key) {
 }
 
 void *
-dst_mem_alloc(size_t size) {
+dst__mem_alloc(size_t size) {
 	INSIST(dst_memory_pool != NULL);
 	return (isc_mem_allocate(dst_memory_pool, size));
 }
 
 void
-dst_mem_free(void *ptr) {
+dst__mem_free(void *ptr) {
 	INSIST(dst_memory_pool != NULL);
 	if (ptr != NULL)
 		isc_mem_free(dst_memory_pool, ptr);
 }
 
 void *
-dst_mem_realloc(void *ptr, size_t size) {
+dst__mem_realloc(void *ptr, size_t size) {
 	void *p;
 
 	INSIST(dst_memory_pool != NULL);
 	p = NULL;
 	if (size > 0) {
-		p = dst_mem_alloc(size);
+		p = dst__mem_alloc(size);
 		if (p != NULL && ptr != NULL)
 			memcpy(p, ptr, size);
 	}
 	if (ptr != NULL)
-		dst_mem_free(ptr);
+		dst__mem_free(ptr);
 	return (p);
 }

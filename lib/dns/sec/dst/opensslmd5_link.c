@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslmd5_link.c,v 1.8 2000/06/02 18:57:48 bwelling Exp $
+ * $Id: opensslmd5_link.c,v 1.9 2000/06/02 23:36:14 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -76,7 +76,7 @@ opensslmd5_digest(dst_context_t *dctx, isc_buffer_t *digest) {
 	return (ISC_R_SUCCESS);
 }
 
-static struct dst_func opensslmd5_functions = {
+static dst_func_t opensslmd5_functions = {
 	opensslmd5_createctx,
 	opensslmd5_destroyctx,
 	opensslmd5_adddata,
@@ -96,7 +96,7 @@ static struct dst_func opensslmd5_functions = {
 };
 
 void
-dst_s_opensslmd5_init(struct dst_func **funcp) {
+dst__opensslmd5_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
 	*funcp = &opensslmd5_functions;
 }
