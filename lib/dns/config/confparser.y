@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.52 2000/03/20 22:03:13 gson Exp $ */
+/* $Id: confparser.y,v 1.53 2000/03/21 21:26:21 gson Exp $ */
 
 #include <config.h>
 
@@ -174,7 +174,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_END_INCLUDE
 
 %token		L_OPTIONS
-%token		L_DIRECTORY
 %token		L_DIRECTORY
 %token		L_PIDFILE
 %token		L_NAMED_XFER
