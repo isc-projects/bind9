@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.14.12.7 2004/03/08 09:04:56 marka Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.14.12.8 2005/03/15 00:09:14 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -251,7 +251,7 @@ internal_current(isc_interfaceiter_t *iter) {
 				 iter->current.name);
 
 		if (dst_sa != NULL &&
-		    (iter->current.flags & IFF_POINTOPOINT) != 0)
+		    (iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0)
 			get_addr(family, &iter->current.dstaddress, dst_sa,
 				 iter->current.name);
 

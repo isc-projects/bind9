@@ -1,3 +1,6 @@
+1823.	[bug]		Wrong macro used to check for point to point interface.
+			[RT#13418]
+
 1822.	[bug]		check-names test for RT was reversed. [RT #13382]
 
 			defined after being referenced.
