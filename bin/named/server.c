@@ -856,6 +856,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(configctx, dns_c_ctx_getrecursiveclients,
 				     &server->recursionquota, 100);
 
+	(void) dns_c_ctx_getprovideixfr(configctx, &server->provide_ixfr);
+	
+
 	/*
 	 * Configure the zone manager.
 	 */
@@ -1177,8 +1180,10 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 
+	server->provide_ixfr = ISC_TRUE;
+
 	result = dns_aclenv_init(mctx, &server->aclenv);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		
 	/* Initialize server data structures. */
 	server->zonemgr = NULL;

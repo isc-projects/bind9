@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.47 2000/03/17 17:41:50 gson Exp $ */
+/* $Id: xfrout.c,v 1.48 2000/03/20 21:06:27 gson Exp $ */
 
 #include <config.h>
 
@@ -795,6 +795,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	xfrout_ctx_t *xfr = NULL;
 	isc_quota_t *quota = NULL;
 	dns_transfer_format_t format = ns_g_server->transfer_format;
+	isc_netaddr_t na;
+	dns_peer_t *peer = NULL;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -917,15 +919,14 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		FAILC(DNS_R_FORMERR, "attempted AXFR over UDP");
 	}
 
+	/* Look up the requesting server in the peer table. */
+	isc_netaddr_fromsockaddr(&na, &client->peeraddr);
+	(void) dns_peerlist_peerbyaddr(client->view->peers,
+				       &na, &peer);
+	   
 	/* Decide on the transfer format (one-answer or many-answers). */
-	{
-		isc_netaddr_t na;
-		dns_peer_t *peer = NULL;
-		isc_netaddr_fromsockaddr(&na, &client->peeraddr);
-		if (dns_peerlist_peerbyaddr(client->view->peers,
-					    &na, &peer) == ISC_R_SUCCESS)
-			(void) dns_peer_gettransferformat(peer, &format);
-	}
+	if (peer != NULL)
+		(void) dns_peer_gettransferformat(peer, &format);
 	
 	/* Get a dynamically allocated copy of the current SOA. */
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
@@ -933,7 +934,18 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	
 	if (reqtype == dns_rdatatype_ixfr) {
 		isc_uint32_t begin_serial, current_serial;
-
+		isc_boolean_t provide_ixfr;
+		
+		/*
+		 * Outgoing IXFR may have been disabled for this peer
+		 * or globally.
+		 */
+		provide_ixfr = ns_g_server->provide_ixfr;
+		if (peer != NULL)
+			(void) dns_peer_getprovideixfr(peer, &provide_ixfr);
+		if (provide_ixfr == ISC_FALSE)
+			goto axfr_fallback;
+		
 		if (! have_soa)
 			FAILC(DNS_R_FORMERR,
 			      "IXFR request missing SOA");
