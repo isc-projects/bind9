@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.227 2001/10/29 19:02:45 gson Exp $ */
+/* $Id: resolver.c,v 1.228 2001/11/04 19:20:39 gson Exp $ */
 
 #include <config.h>
 
@@ -1652,7 +1652,7 @@ possibly_mark(fetchctx_t *fctx, dns_adbaddrinfo_t *addr)
 
 	if (aborted) {
 		addr->flags |= FCTX_ADDRINFO_MARK;
-		msg = "ignoring backholed / bogus server: ";
+		msg = "ignoring blackholed / bogus server: ";
 	} else if (isc_sockaddr_ismulticast(sa)) {
 		addr->flags |= FCTX_ADDRINFO_MARK;
 		msg = "ignoring multicast address: ";
