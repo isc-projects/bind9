@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.30 $)
+AC_REVISION($Revision: 1.31 $)
 
 AC_PREREQ(2.12)
 
@@ -259,13 +259,21 @@ case "$host" in
 esac
 
 dnl Look for a 4.4BSD-style sa_len member in struct sockaddr.
-dnl Be careful not to be fooled by the IRIX "sa_len2" member.
+dnl Note: the test used when cross-compiling usually works, but can
+dnl have false positives (which is why we AC_TRY_RUN).
 
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
-AC_EGREP_HEADER([sa_len[^a-z0-9_]], sys/socket.h,
+AC_TRY_RUN([
+#include <sys/types.h>
+#include <sys/socket.h>
+int main() { struct sockaddr sa; sa.sa_len = 0; return (0); }],
 	[AC_MSG_RESULT(yes)
 	AC_DEFINE(HAVE_SA_LEN)],
-	[AC_MSG_RESULT(no)])
+	AC_MSG_RESULT(no),
+	AC_EGREP_HEADER([sa_len[^a-z0-9_]], sys/socket.h,
+		[AC_MSG_RESULT(yes)
+		AC_DEFINE(HAVE_SA_LEN)],
+		[AC_MSG_RESULT(no)]))
 
 AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
