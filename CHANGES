@@ -1,3 +1,6 @@
+1396.	[func]		dnssec-signzone: adjust the default signing time by
+			1 hour to allow for clock skew.
+
 1394.	[func]		It is now possible to check if a particular element is
 			in a acl.  Remove duplicate entries from the localnets
 			acl.

@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2 2003/03/06 04:38:13 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.2.2.2.4.1 2003/08/22 06:40:04 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -113,7 +113,7 @@
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
 	       If no <option>start-time</option> is specified, the current
-	       time is used.
+	       time minus 1 hour (to allow for clock skew) is used.
 	  </para>
 	</listitem>
       </varlistentry>
