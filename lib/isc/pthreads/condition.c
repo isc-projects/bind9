@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.27 2001/01/04 23:38:36 neild Exp $ */
+/* $Id: condition.c,v 1.28 2001/01/05 02:17:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 
 	do {
 #if ISC_MUTEX_PROFILE
-		presult = pthread_cond_timedwait(c, m->mutex, &ts);
+		presult = pthread_cond_timedwait(c, &m->mutex, &ts);
 #else
 		presult = pthread_cond_timedwait(c, m, &ts);
 #endif
