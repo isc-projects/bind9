@@ -27,8 +27,10 @@ CINCLUDES =	-I${srcdir}/../../../lib/isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-LIBS =		../../../lib/dns/libdns.@A@ \
-		../../../lib/isc/libisc.@A@ \
+DEPLIBS = 	../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@
+
+LIBS =		${DEPLIBS} \
 		@LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
@@ -42,7 +44,7 @@ SRCS =		dst_test.c t_dst.c
 dst_test: dst_test.o
 	${LIBTOOL} ${CC} -o $@ dst_test.o ${LIBS}
 
-t_dst: t_dst.o ${LIBS} ${TLIB}
+t_dst: t_dst.o ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${CC} -o $@ t_dst.o ${LIBS} ${TLIB}
 
 test:
