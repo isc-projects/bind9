@@ -19,15 +19,18 @@
  * Definitions for the object management API and protocol.
  */
 
-#ifndef _OMAPI_OMAPIP_H_
-#define _OMAPI_OMAPIP_H_
+#ifndef _OMAPI_OMAPI_H_
+#define _OMAPI_OMAPI_H_
 
 #include <stdarg.h>
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
 #include <isc/time.h>
+#include <isc/region.h>
 #include <isc/result.h>
+
+#include <omapi/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -42,29 +45,6 @@ ISC_LANG_BEGINDECLS
 #define OMAPI_OP_NOTIFY		4
 #define OMAPI_OP_STATUS		5
 #define OMAPI_OP_DELETE		6
-
-/*****
- ***** Type definitions.
- *****/
-
-/*
- * These structures are all opaque; they are fully defined in private.h
- * for use only by the internal library.  If there is a need to get
- * at their internal data for some purpose, new APIs can be added for that.
- */
-typedef unsigned int			omapi_handle_t;
-typedef struct omapi_object		omapi_object_t;
-typedef struct omapi_objecttype 	omapi_objecttype_t;
-typedef struct omapi_data		omapi_data_t;
-typedef struct omapi_string		omapi_string_t;
-typedef struct omapi_value		omapi_value_t;
-
-typedef enum {
-	omapi_datatype_int,
-	omapi_datatype_string,
-	omapi_datatype_data,
-	omapi_datatype_object
-} omapi_datatype_t;
 
 /*
  * This preamble is common to all objects manipulated by libomapi.a,
@@ -88,8 +68,11 @@ struct omapi_object {
 
 /*
  * The port on which applications should listen for OMAPI connections.
+ * XXXDCL 7911 is being used by DHCP; putting this in general library header
+ * file seems to be a bit of a mistake if the API is to be used for more
+ * than one server.
  */
-#define OMAPI_PROTOCOL_PORT	7911
+#define OMAPI_PROTOCOL_PORT	7912
 
 /*
  * For use with omapi_connection_disconnect().
@@ -148,6 +131,9 @@ omapi_connection_puthandle(omapi_object_t *connection, omapi_object_t *object);
  */
 isc_result_t
 omapi_listener_listen(omapi_object_t *listener, int port, int backlog);
+
+void
+omapi_listener_shutdown(omapi_object_t *listener);
 
 /*
  * Public functions defined in message.c.
@@ -259,7 +245,6 @@ omapi_object_passstuffvalues(omapi_object_t *connection,
 /*
  * Public functions defined in data.c.
  */
-
 isc_result_t
 omapi_data_create(omapi_data_t **data, omapi_datatype_t type, ...);
 
@@ -272,6 +257,9 @@ omapi_data_dereference(omapi_data_t **reference);
 int
 omapi_data_strcmp(omapi_data_t *string_type, const char *string);
 
+int
+omapi_data_getint(omapi_data_t *data);
+
 /*
  * Public functions defined in string.c.
  */
@@ -279,14 +267,16 @@ isc_result_t
 omapi_string_create(omapi_string_t **string, unsigned int length);
 
 void
-omapi_string_reference(omapi_string_t **reference,
-			   omapi_string_t *string);
+omapi_string_reference(omapi_string_t **reference, omapi_string_t *string);
 
 void
 omapi_string_dereference(omapi_string_t **);
 
-char *
-omapi_string_totext(omapi_string_t *string);
+/*
+ * XXXDCL consider better API
+ */
+void
+omapi_string_totext(omapi_string_t *string, isc_region_t *region);
 
 int
 omapi_string_stringcmp(omapi_string_t *string1, omapi_string_t *string2);
@@ -332,8 +322,20 @@ omapi_value_storestr(omapi_value_t **valuep, omapi_string_t *name,
  * is more used to working with.
  */
 int
-omapi_value_asint(omapi_data_t *data_object);
+omapi_value_getint(omapi_value_t *value);
+
+/*
+ * WARNING: The region returned is (currently) only valid for as long
+ * as the value pointer is valid, which means "until it is completely
+ * dereferenced".  If you want to ensure it hangs around, you should
+ * use omapi_value_reference to add another reference to the value pointer,
+ * and then remember to use omapi_value_dereference to free it.
+ * XXXDCL yes, kind of lame.  the interface to the omapi_value_get* functions
+ * will probably change.
+ */
+void
+omapi_value_getregion(omapi_value_t *value, isc_region_t *region);
 
 ISC_LANG_ENDDECLS
 
-#endif /* _OMAPI_OMAPIP_H_ */
+#endif /* _OMAPI_OMAPI_H_ */
