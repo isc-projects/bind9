@@ -1,3 +1,6 @@
+
+	--- 9.2.1rc2 released ---
+
 1237.	[bug]		nslookup: "set q=type" failed.
 
 1236.	[bug]		dns_rdata{class,type}_fromtext() didn't handle non
