@@ -129,8 +129,10 @@ sub doHost {
 
 	$Nfbp = 0;
 	$Nobp = 0;
-	$Ntprobs = 0;
+	$Nftp = 0;
+	$Notp = 0;
 	$BadTest = 0;
+	$BadTestReason = "";
 
 	if ((-r "$DataDir/hosts/$hostid/$BuildFile") && (-s _ )) {
 		%buildprobs = &buildCheck("$hostid");
@@ -441,7 +443,7 @@ sub testCheck {
 				else {
 					$probs{"$funcname:$anum"} = $result;
 					++$Nftp;
-					s/(FAIL|UNITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
+					s/(FAIL|UNINITIATED)/<FONT COLOR=\"red\">$1<\/FONT>/;
 					s/(UNRESOLVED)/<FONT COLOR=\"yellow\">$1<\/FONT>/;
 
 				}
