@@ -77,9 +77,10 @@ create_name(char *s) {
 }
 
 static void
-delete_name(void *data) {
+delete_name(void *data, void *arg) {
 	dns_name_t *name;
 
+	(void)arg;
 	name = data;
 	isc_mem_put(mctx, data, sizeof(dns_name_t) + DNSNAMELEN);
 }
@@ -129,7 +130,7 @@ main (int argc, char **argv) {
 		exit(1);
 	}
 
-	result = dns_rbt_create(mctx, delete_name, &rbt);
+	result = dns_rbt_create(mctx, delete_name, NULL, &rbt);
 	if (result != DNS_R_SUCCESS) {
 		printf("dns_rbt_create: %s: exiting\n",
 		       dns_result_totext(result));
@@ -174,7 +175,7 @@ main (int argc, char **argv) {
 					result = dns_rbt_deletename(rbt, name,
 								    ISC_FALSE);
 					PRINTERR(result);
-					delete_name(name);
+					delete_name(name, NULL);
 				}
 
 			} else if (CMDCHECK("nuke")) {
@@ -184,7 +185,7 @@ main (int argc, char **argv) {
 					result = dns_rbt_deletename(rbt, name,
 								    ISC_TRUE);
 					PRINTERR(result);
-					delete_name(name);
+					delete_name(name, NULL);
 				}
 
 			} else if (CMDCHECK("search")) {
@@ -201,7 +202,7 @@ main (int argc, char **argv) {
 
 					} else
 						printf("NOT FOUND!\n");
-					delete_name(name);
+					delete_name(name, NULL);
 				}
 
 

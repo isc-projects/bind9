@@ -68,10 +68,10 @@ main(int argc, char *argv[]) {
 		}
 				
 		
-		result = dns_load_master(argv[1], &origin, &origin, 1,
+		result = dns_master_load(argv[1], &origin, &origin, 1,
 					 &soacount, &nscount,
 					 print_dataset, NULL, mctx);
-		fprintf(stdout, "dns_load_master: %s\n",
+		fprintf(stdout, "dns_master_load: %s\n",
 			dns_result_totext(result));
 		if (result == DNS_R_SUCCESS)
 			fprintf(stdout, "soacount = %d, nscount = %d\n",
