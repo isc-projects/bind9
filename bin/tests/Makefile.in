@@ -22,19 +22,19 @@ TARGETS =	name_test \
 
 @BIND9_MAKE_RULES@
 
-name_test: name_test.o
+name_test: name_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ name_test.o ${LIBS}
 
-rwlock_test: rwlock_test.o
+rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ rwlock_test.o ${LIBS}
 
-sock_test: sock_test.o
+sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ sock_test.o ${LIBS}
 
-task_test: task_test.o
+task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ task_test.o ${LIBS}
 
-timer_test: timer_test.o
+timer_test: timer_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ timer_test.o ${LIBS}
 
 clean::
