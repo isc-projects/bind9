@@ -1,3 +1,5 @@
+  95.   [cleanup]       <isc/mutexblock.h> does not need <isc/result.h>.
+
   94.   [cleanup]       Some installed header files did not compile as C++.
 
   93.   [cleanup]       <isc/msgcat.h> does not need <isc/result.h>.
