@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.5 2001/02/16 02:34:33 bwelling Exp $ */
+/* $Id: parser.c,v 1.6 2001/02/16 02:43:30 gson Exp $ */
 
 #include <config.h>
 
@@ -2071,10 +2071,15 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 
 	s = pctx->token.value.as_pointer;
 	if ((flags & WILDOK) != 0 && strcmp(s, "*") == 0) {
-		if ((flags & V4OK) != 0)
+		if ((flags & V4OK) != 0) {
 			isc_netaddr_any(na);
-		else if ((flags & V6OK) != 0)
+			return (ISC_R_SUCCESS);
+		} else if ((flags & V6OK) != 0) {
 			isc_netaddr_any6(na);
+			return (ISC_R_SUCCESS);
+		} else {
+			INSIST(0);
+		}
 	} else {
 		if ((flags & (V4OK | V4PREFIXOK)) != 0) {
 			if (inet_pton(AF_INET, s, &in4a) == 1) {
@@ -2176,13 +2181,15 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 			if (strcasecmp(pctx->token.value.as_pointer,
 				       "address") == 0)
 			{
-				CHECK(cfg_gettoken(pctx, 0));
+				/* read "address" */
+				CHECK(cfg_gettoken(pctx, 0)); 
 				CHECK(get_addr(pctx, flags|WILDOK, &netaddr));
 				have_address++;
 			} else if (strcasecmp(pctx->token.value.as_pointer,
 					      "port") == 0)
 			{
-				CHECK(cfg_gettoken(pctx, 0)); /* read "port" */
+				/* read "port" */
+				CHECK(cfg_gettoken(pctx, 0)); 
 				CHECK(get_port(pctx, WILDOK, &port));
 				have_port++;
 			} else {
@@ -2204,6 +2211,7 @@ parse_querysource(cfg_parser_t *pctx, int flags, cfg_obj_t **ret) {
 	return (ISC_R_SUCCESS);
 
  cleanup:
+	parser_error(pctx, LOG_NEAR, "invalid query source");
 	CLEANUP_OBJ(obj);
 	return (result);
 }
