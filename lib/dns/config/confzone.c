@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.49 2000/07/24 22:59:38 explorer Exp $ */
+/* $Id: confzone.c,v 1.50 2000/07/25 20:16:00 brister Exp $ */
 
 #include <config.h>
 
@@ -1670,7 +1670,7 @@ dns_c_zone_getalsonotify(dns_c_zone_t *zone, dns_c_iplist_t **retval) {
 	}
 
 	if (p != NULL) {
-		*retval = p;
+		dns_c_iplist_attach(p, retval);
 		res = ISC_R_SUCCESS;
 	} else {
 		res = ISC_R_NOTFOUND;
