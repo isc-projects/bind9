@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.12 2002/07/15 02:28:07 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.12.4.1 2003/02/17 01:15:43 marka Exp $ */
 
 #include <config.h>
 
@@ -646,7 +646,11 @@ fctx_addopt(dns_message_t *message) {
 	/*
 	 * Set EXTENDED-RCODE, VERSION, and Z to 0, and the DO bit to 1.
 	 */
+#ifdef ISC_RFC2535
 	rdatalist->ttl = DNS_MESSAGEEXTFLAG_DO;
+#else
+	rdatalist->ttl = 0;
+#endif
 
 	/*
 	 * No EDNS options.
@@ -3501,16 +3505,25 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 					 *
 					 * Only one set of NS RRs is allowed.
 					 */
-					if (ns_name != NULL && name != ns_name)
-						return (DNS_R_FORMERR);
-					ns_name = name;
+					if (rdataset->type ==
+					    dns_rdatatype_ns) {
+						if (ns_name != NULL &&
+						    name != ns_name)
+							return (DNS_R_FORMERR);
+						ns_name = name;
+					}
 					name->attributes |=
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
 					ns_rdataset = rdataset;
-				} else if (type == dns_rdatatype_soa ||
+				}
+			}
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if (type == dns_rdatatype_soa ||
 					   type == dns_rdatatype_nxt) {
 					/*
 					 * SOA, SIG SOA, NXT, or SIG NXT.
@@ -3524,11 +3537,18 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 							return (DNS_R_FORMERR);
 						soa_name = name;
 					}
-					negative_response = ISC_TRUE;
-					name->attributes |=
-						DNS_NAMEATTR_NCACHE;
-					rdataset->attributes |=
-						DNS_RDATASETATTR_NCACHE;
+					if (ns_name == NULL) {
+						negative_response = ISC_TRUE;
+						name->attributes |=
+							DNS_NAMEATTR_NCACHE;
+						rdataset->attributes |=
+							DNS_RDATASETATTR_NCACHE;
+					} else {
+						name->attributes |=
+							DNS_NAMEATTR_CACHE;
+						rdataset->attributes |=
+							DNS_RDATASETATTR_CACHE;
+					}
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;

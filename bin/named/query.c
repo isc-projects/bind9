@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.8 2002/08/02 04:17:21 marka Exp $ */
+/* $Id: query.c,v 1.198.2.8.4.1 2003/02/17 01:15:42 marka Exp $ */
 
 #include <config.h>
 
@@ -3300,9 +3300,11 @@ ns_query_start(ns_client_t *client) {
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
 	
+#ifdef ISC_RFC2535
 	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0 ||
 	    (message->flags & DNS_MESSAGEFLAG_AD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTDNSSEC;
+#endif
 	
 	if (client->view->minimalresponses)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.8 2002/07/10 04:27:23 marka Exp $ */
+/* $Id: server.c,v 1.339.2.8.4.1 2003/02/17 01:15:43 marka Exp $ */
 
 #include <config.h>
 
@@ -280,6 +280,7 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 
 	CHECK(dns_keytable_create(mctx, &keytable));
 
+#ifdef ISC_RFC2535
 	if (vconfig != NULL)
 		voptions = cfg_tuple_get(vconfig, "options");
 
@@ -303,7 +304,7 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 						       keytable, mctx));
 		}
 	}
-
+#endif
 	dns_keytable_detach(target);
 	*target = keytable; /* Transfer ownership. */
 	keytable = NULL;

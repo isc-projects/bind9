@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.14 2002/02/08 03:57:47 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.14.4.1 2003/02/17 01:15:44 marka Exp $ */
 
 #include <config.h>
 
@@ -799,7 +799,12 @@ namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
+#ifdef ISC_RFC2535
 	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+#else
+	{ "trusted-keys", &cfg_type_trustedkeys,
+		 CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_OBSOLETE },
+#endif
 	{ NULL, NULL, 0 }
 };
 
