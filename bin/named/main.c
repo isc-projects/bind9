@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.100 2000/12/29 18:25:33 bwelling Exp $ */
+/* $Id: main.c,v 1.101 2000/12/29 22:31:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/os.h>
+#include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -368,8 +369,12 @@ static isc_result_t
 create_managers(void) {
 	isc_result_t result;
 
+#ifdef ISC_PLATFORM_USETHREADS
 	if (ns_g_cpus == 0)
 		ns_g_cpus = isc_os_ncpus();
+#else
+	ns_g_cpus = 1;
+#endif
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "using %u CPU%s",
 		      ns_g_cpus, ns_g_cpus == 1 ? "" : "s");
