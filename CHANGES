@@ -19,7 +19,7 @@
 			ADB by calling the new function dns_adb_flushname().
 
 1136.	[bug]		CNAME records synthesized from DNAMEs did not
-			have a TTL of zero as required by RFC2672
+			have a TTL of zero as required by RFC2672.
 			[RT #2129]
 
 1135.	[func]		You can now override the default syslog() facility for
