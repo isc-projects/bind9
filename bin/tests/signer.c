@@ -39,7 +39,6 @@
 #include <dns/result.h>
 #include <dns/secalg.h>
 #include <dns/time.h>
-#include <dns/zone.h>
 
 #include <dst/result.h>
 
@@ -1142,7 +1141,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 }
 
 static void
-loadzone(char *file, char *origin, dns_zone_t **zone) {
+loadzone(char *file, char *origin, dns_db_t **db) {
 	isc_buffer_t b, b2;
 	unsigned char namedata[1024];
 	int len;
@@ -1161,37 +1160,21 @@ loadzone(char *file, char *origin, dns_zone_t **zone) {
 		fatal("failed converting name '%s' to dns format: %s",
 		      origin, isc_result_totext(result));
 
-	result = dns_zone_create(zone, mctx);
-	check_result(result, "dns_zone_create()");
+	result = dns_db_create(mctx, "rbt", &name, ISC_FALSE,
+			       dns_rdataclass_in, 0, NULL, db);
+	check_result(result, "dns_db_create()");
 
-	dns_zone_settype(*zone, dns_zone_master);
-
-	result = dns_zone_setdbtype(*zone, "rbt");
-	check_result(result, "dns_zone_setdbtype()");
-
-	result = dns_zone_setdatabase(*zone, file);
-	check_result(result, "dns_zone_setdatabase()");
-
-	result = dns_zone_setorigin(*zone, &name);
-	check_result(result, "dns_zone_origin()");
-
-	dns_zone_setclass(*zone, dns_rdataclass_in); /* XXX */
-
-	result = dns_zone_load(*zone);
+	result = dns_db_load(*db, file);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));
 }
 
 static void
-getdb(dns_zone_t *zone, dns_db_t **db, dns_dbversion_t **version) {
+getversion(dns_db_t *db, dns_dbversion_t **version) {
 	isc_result_t result;
 
-	*db = NULL;
-	result = dns_zone_getdb(zone, db);
-	check_result(result, "dns_zone_getdb()");
-
-	result = dns_db_newversion(*db, version);
+	result = dns_db_newversion(db, version);
 	check_result(result, "dns_db_newversion()");
 }
 
@@ -1235,23 +1218,6 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 		ISC_LIST_APPEND(keylist, key, link);
 	}
 	dns_db_detachnode(db, &node);
-}
-
-static void
-dumpzone(dns_zone_t *zone, char *filename) {
-	isc_result_t result;
-	FILE *fp;
-
-	fp = fopen(filename, "w");
-	if (fp == NULL) {
-		fprintf(stderr, "%s: failure opening %s\n", PROGRAM, filename);
-		exit(-1);
-	}
-	result = dns_zone_dumptostream(zone, fp);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to write new database to '%s': %s",
-		      filename, isc_result_totext(result));
-	fclose(fp);
 }
 
 static isc_stdtime_t
@@ -1355,7 +1321,6 @@ main(int argc, char *argv[]) {
 	char *startstr = NULL, *endstr = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *endp;
-	dns_zone_t *zone;
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	signer_key_t *key;
@@ -1492,12 +1457,11 @@ main(int argc, char *argv[]) {
 			strcat(origin, ".");
 	}
 
-	zone = NULL;
-	loadzone(file, origin, &zone);
-
 	db = NULL;
+	loadzone(file, origin, &db);
+
 	version = NULL;
-	getdb(zone, &db, &version);
+	getversion(db, &version);
 
 	ISC_LIST_INIT(keylist);
 	loadzonekeys(db, version);
@@ -1571,10 +1535,14 @@ main(int argc, char *argv[]) {
 	/*
 	 * Should we update the SOA serial?
 	 */
+
+	result = dns_db_dump(db, version, output);
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to write new database to '%s': %s",
+		      output, isc_result_totext(result));
 	dns_db_closeversion(db, &version, ISC_TRUE);
-	dumpzone(zone, output);
+
 	dns_db_detach(&db);
-	dns_zone_detach(&zone);
 
 	key = ISC_LIST_HEAD(keylist);
 	while (key != NULL) {
