@@ -77,31 +77,26 @@ typedef struct {
 /* XXX temporary kludge until TSIG/TKEY are objectified */
 static isc_boolean_t tsig_initialized = ISC_FALSE;
 
+/*
+ * Configure 'view' according to 'cctx'.
+ *
+ * XXX reconfiguration should preserve cache contents.
+ */
 static isc_result_t
-create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
-		    dns_rdataclass_t rdclass, dns_view_t **viewp)
+configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx)
 {
-	dns_view_t *view;
 	dns_cache_t *cache;
 	isc_result_t result;
 	isc_int32_t cleaning_interval;
 
-	REQUIRE(viewp != NULL && *viewp == NULL);
-
-	/*
-	 * View.
-	 */
-	view = NULL;
-	result = dns_view_create(mctx, rdclass, "_default", &view);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	REQUIRE(DNS_VIEW_VALID(view));
 
 	/*
 	 * Cache.
 	 */
 	cache = NULL;
-	result = dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr, rdclass,
-				  "rbt", 0, NULL, &cache);
+	result = dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
+				  view->rdclass, "rbt", 0, NULL, &cache);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	dns_view_setcache(view, cache);
@@ -138,16 +133,12 @@ create_default_view(dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	/*
 	 * We have default hints for class IN.
 	 */
-	if (rdclass == dns_rdataclass_in)
+	if (view->rdclass == dns_rdataclass_in)
 		dns_view_sethints(view, ns_g_server->roothints);
-
-	*viewp = view;
 
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	dns_view_detach(&view);
-
 	return (result);
 }
 
@@ -166,16 +157,22 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	dns_difftuple_t *tuple = NULL;
 	dns_diff_t diff;
 	dns_view_t *view = NULL;
-	dns_name_t *origin;
 	char *versiontext;
 	unsigned char buf[256];
 	isc_region_t r;
 	size_t len;
 	dns_rdata_t rdata;
+	static unsigned char origindata[] = "\007version\004bind";
+	dns_name_t origin;
 
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	dns_diff_init(ns_g_mctx, &diff);
+
+	dns_name_init(&origin, NULL);
+	r.base = origindata;
+	r.length = sizeof(origindata);
+	dns_name_fromregion(&origin, &r);
 
 	(void) dns_c_ctx_getversion(configctx, &versiontext);
 	if (versiontext == NULL)
@@ -193,12 +190,11 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	result = dns_zone_create(&zone, ns_g_mctx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = dns_zone_setorigin(zone, "version.bind.");
+	result = dns_zone_setorigin(zone, &origin);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	origin = dns_zone_getorigin(zone);
 
-	result = dns_db_create(ns_g_mctx, "rbt", origin, ISC_FALSE,
+	result = dns_db_create(ns_g_mctx, "rbt", &origin, ISC_FALSE,
 			       dns_rdataclass_ch, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -207,7 +203,7 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
 
-	dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, origin,
+	dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, &origin,
 			     0, &rdata, &tuple);
 	dns_diff_append(&diff, &tuple);
 	result = dns_diff_apply(&diff, db, dbver);
@@ -251,56 +247,87 @@ create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
 	return (result);
 }
 
+/*
+ * Configure or reconfigure a zone.  This callback function
+ * is called after parsing each "zone" statement in named.conf.
+ */
 static isc_result_t
-load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
+load_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	  void *uap)
 {
-	ns_load_t *lctx;
-	dns_view_t *view, *tview, *pview;
-	dns_zone_t *zone, *tzone;
-	dns_name_t *origin;
+	ns_load_t *lctx = (ns_load_t *) uap;
+	dns_view_t *view = NULL;	/* New view */
+	dns_view_t *pview = NULL;	/* Production view */
+	dns_zone_t *zone = NULL;	/* New or reused zone */
+	dns_zone_t *tzone = NULL;	/* Temporary zone */
+	char *viewname;
+	
 	isc_result_t result;
 
+	char *corigin;	
+	isc_buffer_t buffer;
+	dns_fixedname_t fixorigin;
+	dns_name_t *origin;
+	
 	/*
-	 * Load (or reload) a zone.
+	 * Get the zone origin as a dns_name_t.
 	 */
-
-	lctx = uap;
-
-	tzone = NULL;
-	zone = NULL;
-	pview = NULL;
-
+	corigin = NULL;
+	/* XXX casting away const */
+	result = dns_c_zone_getname(czone, (const char **) &corigin);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+	isc_buffer_init(&buffer, corigin, strlen(corigin), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&buffer, strlen(corigin));
+	dns_fixedname_init(&fixorigin);
+	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
+			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+	origin = dns_fixedname_name(&fixorigin);
+	
 	/*
-	 * Find the view.
+	 * Find or create the view in the new view list.
 	 */
 	view = NULL;
-	if (cview != NULL) {
-		result = dns_viewlist_find(&lctx->viewlist, cview->name,
-					   czone->zclass, &view);
+	if (cview != NULL)
+		viewname = cview->name;
+	else
+		viewname = "_default";
+	result = dns_viewlist_find(&lctx->viewlist, viewname,
+				   czone->zclass, &view);
+	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (view == NULL) {
+		dns_view_t *tview = NULL;
+		result = dns_view_create(ns_g_mctx, czone->zclass,
+					 viewname, &view);
 		if (result != ISC_R_SUCCESS)
-			return (result);
-	} else {
-		result = dns_viewlist_find(&lctx->viewlist, "_default",
-					   czone->zclass, &view);
-		if (result == ISC_R_NOTFOUND) {
-			/*
-			 * Create a default view.
-			 */
-			tview = NULL;
-			result = create_default_view(ctx, ns_g_mctx,
-						     czone->zclass,
-						     &tview);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			dns_view_attach(tview, &view);
-			ISC_LIST_APPEND(lctx->viewlist, view, link);
-		} else if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
+		dns_view_attach(view, &tview);
+		ISC_LIST_APPEND(lctx->viewlist, tview, link);
 	}
 
 	/*
-	 * Do we already have a production version of this view?
+	 * Check for duplicates in the new zone table.
+	 */
+	result = dns_view_findzone(view, origin, &tzone);
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * We already have this zone!
+		 */
+		result = ISC_R_EXISTS;
+		goto cleanup;
+	}
+
+	/*
+	 * See if we can reuse an existing zone.  This is
+	 * only possible if all of these are true:
+	 *   - The zone's view exists
+	 *   - A zone with the right name exists in the view
+	 *   - The zone is compatible with the config
+	 *     options (e.g., an existing master zone cannot 
+	 *     be reused if the options specify a slave zone)
 	 */
 	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	result = dns_viewlist_find(&ns_g_server->viewlist,
@@ -309,67 +336,53 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
      	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
+	if (pview != NULL)
+		result = dns_view_findzone(pview, origin, &zone);
+	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (zone != NULL) {
+		if (! dns_zone_reusable(zone, czone))
+			dns_zone_detach(&zone);
+	}
 
 	/*
-	 * Create a new zone structure and configure it.
+	 * If we cannot reuse an existing zone, we will have to
+	 * create a new one.
 	 */
-	result = dns_zone_create(&zone, lctx->mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	result = dns_zone_configure(ns_g_lctx, ctx, lctx->aclconf,
-				    czone, zone);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	if (dns_zone_gettype(zone) == dns_zone_hint) {
-		INSIST(0);
-	} else {
-		/*
-		 * Check for duplicates in the new zone table.
-		 */
-		origin = dns_zone_getorigin(zone);
-		result = dns_view_findzone(view, origin, &tzone);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We already have this zone!
-			 */
-			result = ISC_R_EXISTS;
+	if (zone == NULL) {
+		result = dns_zone_create(&zone, lctx->mctx);
+		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		}
-
-		/*
-		 * Do we have the zone in the production view?
-		 */
-		if (pview != NULL)
-			result = dns_view_findzone(pview, origin, &tzone);
-		else
-			result = ISC_R_NOTFOUND;
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * Yes.
-			 *
-			 * If the production zone's configuration is
-			 * the same as the new zone's, we can use the
-			 * production zone.
-			 */
-			if (dns_zone_equal(zone, tzone))
-				result = dns_view_addzone(view, tzone);
-			else
-				result = dns_view_addzone(view, zone);
-		} else if (result == ISC_R_NOTFOUND) {
-			/*
-			 * This is a new zone.
-			 */
-			result = dns_view_addzone(view, zone);
-			if (result != DNS_R_SUCCESS)
-				goto cleanup;
-
-			result = dns_zonemgr_managezone(ns_g_server->zonemgr,
-							zone);
-			if (result != DNS_R_SUCCESS)
-				goto cleanup;
-		}
+		result = dns_zone_setorigin(zone, origin);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		result = dns_zonemgr_managezone(ns_g_server->zonemgr,
+						zone);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		/* XXX Unmanage? */
 	}
+
+	/*
+	 * Configure the zone.
+	 */
+	result = dns_zone_configure(cctx, lctx->aclconf, czone, zone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	/*
+	 * XXX Why was this here?
+	 *
+	 * if (dns_zone_gettype(zone) == dns_zone_hint)
+	 *      INSIST(0);
+	 */
+
+	/*
+	 * Add the zone to its view in the new view list.
+	 */
+	result = dns_view_addzone(view, zone);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
  cleanup:
 	if (tzone != NULL)
@@ -439,6 +452,11 @@ load_configuration(const char *filename, ns_server_t *server) {
 		      ISC_LOG_INFO, "loading configuration from '%s'",
 		      filename);
 
+	/*
+	 * Parse the configuration file creating a parse tree.  Any
+	 * 'zone' statements are handled immediately by calling
+	 * load_zone() through 'callbacks'.
+	 */
 	configctx = NULL;
 	result = dns_c_parse_namedconf(filename, ns_g_mctx, &configctx,
 				       &callbacks);
@@ -509,30 +527,41 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 */
 	if (ISC_LIST_EMPTY(lctx.viewlist)) {
 		view = NULL;
-		result = create_default_view(configctx, ns_g_mctx,
-					      dns_rdataclass_in, &view);
-		if (result != ISC_R_SUCCESS)
-			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+		result = dns_view_create(ns_g_mctx, dns_rdataclass_in, 
+					 "_default", &view);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__, 
 					"could not create default view");
+			goto cleanup;
+		}
 		ISC_LIST_APPEND(lctx.viewlist, view, link);
 	}
 
 	/*
-	 * Freeze the views.
+	 * Configure and freeze the views.  Their zone tables have
+	 * already been filled in at parsing time, but other stuff
+	 * like the resolvers are still unconfigured.
 	 */
 	for (view = ISC_LIST_HEAD(lctx.viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
+	{
+		result = configure_view(view, configctx, ns_g_mctx);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		dns_view_freeze(view);
-
+	}
+	
 	/*
-	 * Create the version view.
+	 * Create (or recreate) the version view.
 	 */
 	view = NULL;
 	result = create_version_view(configctx, &view);
-	if (result != ISC_R_SUCCESS)
-		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				"could not create version view");
+		goto cleanup;
+	}
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
 	view = NULL;
 
@@ -623,6 +652,8 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_aclconfctx_destroy(&aclconfctx);	
 
 	dns_c_ctx_delete(&configctx);
+ cleanup:
+	; /* XXX */
 }
 
 static void
