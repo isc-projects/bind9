@@ -30,7 +30,7 @@
 1350.	[bug]		dns_name_fromtext() failed to handle too many labels
 			gracefully.
 
-1349.	[security]	Mimimum OpenSSL version now 0.9.6e (was 0.9.5a).
+1349.	[security]	Minimum OpenSSL version now 0.9.6e (was 0.9.5a).
 			http://www.cert.org/advisories/CA-2002-23.html
 
 1348.	[port]		Win32: Rewrote code to use I/O Completion Ports
