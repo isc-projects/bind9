@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33.2.1 2001/10/31 22:44:15 marka Exp $ */
+/* $Id: log.c,v 1.33.2.1.10.1 2003/08/15 02:21:02 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@ static isc_logcategory_t categories[] = {
 	{ "update",	 		0 },
 	{ "queries",	 		0 },
 	{ "unmatched",	 		0 },
+	{ "update-security",		0 },
 	{ NULL, 			0 }
 };
 

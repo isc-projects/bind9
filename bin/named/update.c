@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.7 2003/08/15 01:08:33 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.8 2003/08/15 02:21:02 marka Exp $ */
 
 #include <config.h>
 
@@ -215,6 +215,33 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
 		      level, "updating zone '%s/%s': %s",
 		      namebuf, classbuf, message);
+}
+
+static isc_result_t
+checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
+	       dns_name_t *zonename)
+{
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	int level = ISC_LOG_ERROR;
+	const char *msg = "denied";
+	isc_result_t result;
+
+	result = ns_client_checkaclsilent(client, acl, ISC_FALSE);
+
+	if (result == ISC_R_SUCCESS) {
+		level = ISC_LOG_DEBUG(3);
+		msg = "approved";
+	}
+
+	dns_name_format(zonename, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(client->view->rdclass, classbuf,
+			      sizeof(classbuf));
+
+	ns_client_log(client, NS_LOGCATEGORY_UPDATE_SECURITY,
+			      NS_LOGMODULE_UPDATE, level, "%s '%s/%s' %s",
+			      message, namebuf, classbuf, msg);
+	return (result);
 }
 
 /*
@@ -1999,9 +2026,8 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		CHECK(send_update_event(client, zone));
 		break;
 	case dns_zone_slave:
-		CHECK(ns_client_checkacl(client, "update forwarding",
-					 dns_zone_getforwardacl(zone),
-					 ISC_FALSE, ISC_LOG_ERROR));
+		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
+		      "update forwarding", zonename));
 		CHECK(send_forward_event(client, zone));
 		break;
 	default:
@@ -2172,25 +2198,15 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Check Requestor's Permissions.  It seems a bit silly to do this
 	 * only after prerequisite testing, but that is what RFC2136 says.
 	 */
+	result = ISC_R_SUCCESS;
+	if (ssutable == NULL)
+		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
+				     "update", zonename));
+	else if (client->signer == NULL)
+		CHECK(checkupdateacl(client, NULL, "update", zonename));
+	
 	if (dns_zone_getupdatedisabled(zone))
 		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled");
-	if (ssutable == NULL) {
-		char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
-			 + sizeof("update '/'")];
-		ns_client_aclmsg("update", zonename, client->view->rdclass,
-                                 msg, sizeof(msg));
-		CHECK(ns_client_checkacl(client, msg,
-					 dns_zone_getupdateacl(zone),
-					 ISC_FALSE, ISC_LOG_ERROR));
-	} else if (client->signer == NULL) {
-		/* This gets us a free log message. */
-		char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
-			 + sizeof("update '/'")];
-		ns_client_aclmsg("update", zonename, client->view->rdclass,
-                                 msg, sizeof(msg));
-		CHECK(ns_client_checkacl(client, msg, NULL, ISC_FALSE,
-					 ISC_LOG_ERROR));
-	}
 
 	/*
 	 * Perform the Update Section Prescan.

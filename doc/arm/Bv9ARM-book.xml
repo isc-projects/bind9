@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.11 2003/08/14 05:56:07 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.12 2003/08/15 02:21:03 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2556,6 +2556,10 @@ the <command>null</command> channel.</para></entry>
 <entry colname = "2"><para>Dynamic updates.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para><command>update-security</command></para></entry>
+<entry colname = "2"><para>Approval and denial of update requests.</para></entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para><command>queries</command></para></entry>
 <entry colname = "2"><para>Queries. Using the category <command>queries</command> will enable query logging.</para></entry>
 </row>
@@ -2653,6 +2657,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
     <optional> fake-iquery <replaceable>yes_or_no</replaceable>; </optional>
     <optional> fetch-glue <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> flush-zones-on-shutdown <replaceable>yes_or_no</replaceable>; </optional>
     <optional> has-old-clients <replaceable>yes_or_no</replaceable>; </optional>
     <optional> host-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> minimal-responses <replaceable>yes_or_no</replaceable>; </optional>
@@ -2934,6 +2939,12 @@ caused the server to attempt to fetch glue resource records it
 didn't have when constructing the additional
 data section of a response.  This is now considered a bad idea
 and BIND 9 never does it.</para></listitem></varlistentry>
+
+<varlistentry><term><command>flush-zones-on-shutdown</command></term>
+<listitem><para>When the nameserver exits due receiving SIGTERM,
+flush / do not flush any pending zone writes.  The default is
+<command>flush-zones-on-shutdown</command> <userinput>no</userinput>.
+</para></listitem></varlistentry>
 
 <varlistentry><term><command>has-old-clients</command></term>
 <listitem><para>This option was incorrectly implemented
