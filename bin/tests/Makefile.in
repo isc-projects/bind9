@@ -54,6 +54,7 @@ XTARGETS =	adb_test \
 		lfsr_test \
 		log_test \
 		lwres_test \
+		lwres_conftest \
 		master_test \
 		mempool_test \
 		name_test \
@@ -89,6 +90,7 @@ SRCS =		adb_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
+		lwres_conftest.c \
 		lwres_test.c \
 		master_test.c \
 		mempool_test.c \
@@ -257,6 +259,10 @@ tkey_test: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 inter_test: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ inter_test.@O@ \
 		${ISCLIBS} ${LIBS}
+
+lwres_conftest: lwres_conftest.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lwres_conftest.@O@ \
+		${LWRESLIBS} ${ISCLIBS} ${LIBS}
 
 lwres_test: lwres_test.@O@ ${ISCDEPLIBS} ${LWRESDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lwres_test.@O@ \
