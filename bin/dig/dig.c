@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.17 2004/06/03 04:20:23 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.18 2004/06/07 03:56:25 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -144,8 +144,8 @@ static void
 print_usage(FILE *fp) {
 	fputs(
 "Usage:  dig [@global-server] [domain] [q-type] [q-class] {q-opt}\n"
-"        {global-d-opt} host [@local-server] {local-d-opt}\n"
-"        [ host [@local-server] {local-d-opt} [...]]\n", fp);
+"            {global-d-opt} host [@local-server] {local-d-opt}\n"
+"            [ host [@local-server] {local-d-opt} [...]]\n", fp);
 }
 
 static void
@@ -165,7 +165,7 @@ static void
 help(void) {
 	print_usage(stdout);
 	fputs(
-"Where:  domain	  are in the Domain Name System\n"
+"Where:  domain	  is in the Domain Name System\n"
 "        q-class  is one of (in,hs,ch,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
 "                 (Use ixfr=version for type ixfr)\n"
@@ -1073,13 +1073,14 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 /*
  * ISC_TRUE returned if value was used
  */
+static const char *single_dash_opts = "46dhimnv";
+static const char *dash_opts = "46bcdfhikmnptvyx";
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
-	    isc_boolean_t *open_type_class,
-		isc_boolean_t *firstarg,
-		int argc, char **argv)
+	    isc_boolean_t *open_type_class, isc_boolean_t *firstarg,
+	    int argc, char **argv)
 {
-	char cmd, *value, *ptr;
+	char opt, *value, *ptr;
 	isc_result_t result;
 	isc_boolean_t value_from_next;
 	isc_textregion_t tr;
@@ -1089,9 +1090,68 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	struct in_addr in4;
 	struct in6_addr in6;
 	in_port_t srcport;
-	char *hash;
+	char *hash, *cmd;
 
-	cmd = option[0];
+	while (strpbrk(option, single_dash_opts) == &option[0]) {
+		/*
+		 * Since the -[46dhimnv] options do not take an argument,
+		 * account for them (in any number and/or combination)
+		 * if they appear as the first character(s) of a q-opt.
+		 */
+		opt = option[0];
+		switch (opt) {
+		case '4':
+			if (have_ipv4) {
+				isc_net_disableipv6();
+				have_ipv6 = ISC_FALSE;
+			} else {
+				fatal("can't find IPv4 networking");
+				return (ISC_FALSE);
+			}
+			break;
+		case '6':
+			if (have_ipv6) {
+				isc_net_disableipv4();
+				have_ipv4 = ISC_FALSE;
+			} else {
+				fatal("can't find IPv6 networking");
+				return (ISC_FALSE);
+			}
+			break;
+		case 'd':
+			ptr = strpbrk(&option[1], dash_opts);
+			if (ptr != &option[1]) {
+				cmd = option;
+				FULLCHECK("debug");
+				debugging = ISC_TRUE;
+				return (ISC_FALSE);
+			} else
+				debugging = ISC_TRUE;
+			break;
+		case 'h':
+			help();
+			exit(0);
+			break;
+		case 'i':
+			ip6_int = ISC_TRUE;
+			break;
+		case 'm': /* memdebug */
+			/* memdebug is handled in preparse_args() */
+			break;
+		case 'n':
+			/* deprecated */
+			break;
+		case 'v':
+			version();
+			exit(0);
+			break;
+		}
+		if (strlen(option) > 1U)
+			option = &option[1];
+		else
+			return (ISC_FALSE);
+	}
+	opt = option[0];
 	if (strlen(option) > 1U) {
 		value_from_next = ISC_FALSE;
 		value = &option[1];
@@ -1099,45 +1159,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		value_from_next = ISC_TRUE;
 		value = next;
 	}
-	switch (cmd) {
-	case 'd':
-		debugging = ISC_TRUE;
-		return (ISC_FALSE);
-	case 'h':
-		help();
-		exit(0);
-		break;
-	case 'i':
-		ip6_int = ISC_TRUE;
-		return (ISC_FALSE);
-	case 'm': /* memdebug */
-		/* memdebug is handled in preparse_args() */
-		return (ISC_FALSE);
-	case 'n':
-		/* deprecated */
-		return (ISC_FALSE);
-	case '4':
-		if (have_ipv4) {
-			isc_net_disableipv6();
-			have_ipv6 = ISC_FALSE;
-		} else
-			fatal("can't find IPv4 networking");
-		return (ISC_FALSE);
-	case '6':
-		if (have_ipv6) {
-			isc_net_disableipv4();
-			have_ipv4 = ISC_FALSE;
-		} else
-			fatal("can't find IPv6 networking");
-		return (ISC_FALSE);
-	case 'v':
-		version();
-		exit(0);
-		break;
-	}
 	if (value == NULL)
 		goto invalid_option;
-	switch (cmd) {
+	switch (opt) {
 	case 'b':
 		hash = strchr(value, '#');
 		if (hash != NULL) {
@@ -1289,19 +1313,25 @@ static void
 preparse_args(int argc, char **argv) {
 	int rc;
 	char **rv;
+	char *option;
 
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		if (strcmp(rv[0], "-m") == 0) {
-			memdebugging = ISC_TRUE;
-			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
-				ISC_MEM_DEBUGRECORD;
-			return;
+		if (rv[0][0] != '-')
+			continue;
+		option = &rv[0][1];
+		while (strpbrk(option, single_dash_opts) == &option[0]) {
+			if (option[0] == 'm') {
+				memdebugging = ISC_TRUE;
+				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
+					ISC_MEM_DEBUGRECORD;
+				return;
+			}
+			option = &option[1];
 		}
 	}
 }
-
 
 static void
 parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
@@ -1551,9 +1581,9 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 }
 
 /*
- * Callback from dighost.c to allow program-specific shutdown code.  Here,
- * Here, we're possibly reading from a batch file, then shutting down for
- * real if there's nothing in the batch file to read.
+ * Callback from dighost.c to allow program-specific shutdown code.
+ * Here, we're possibly reading from a batch file, then shutting down
+ * for real if there's nothing in the batch file to read.
  */
 void
 dighost_shutdown(void) {
@@ -1568,6 +1598,7 @@ dighost_shutdown(void) {
 		return;
 	}
 
+	fflush(stdout);
 	if (feof(batchfp)) {
 		batchname = NULL;
 		isc_app_shutdown();
