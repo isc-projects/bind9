@@ -30,9 +30,10 @@ CINCLUDES =	-I${srcdir}/../isc/unix/include \
 CDEFINES =
 CWARNINGS =
 
-OBJS =		name.o db.o dbiterator.o rbt.o rbtdb.o rbtdb64.o \
-		rdata.o rdatalist.o rdataset.o rdatasetiter.o \
-		rdataslab.o master.o callbacks.o compress.o \
+# Alphabetically
+OBJS =		callbacks.o compress.o db.o dbiterator.o dbtable.o \
+		master.o name.o rbt.o rbtdb.o rbtdb64.o \
+		rdata.o rdatalist.o rdataset.o rdatasetiter.o rdataslab.o \
 		result.o version.o
 
 SUBDIRS =	include
