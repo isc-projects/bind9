@@ -6,6 +6,9 @@
 1426.   [cleanup]	Disable RFC2535 style DNSSEC.  This is incompatible
 			with the forthcoming DS style DNSSEC.
 
+1425.	[port]		linux/libbind: define __USE_MISC when testing *_r()
+			function prototypes in netdb.h.  [RT #4921]
+
 1395.	[port]		OpenSSL 0.9.7 defines CRYPTO_LOCK_ENGINE but doesn't
 			have a working implementation.  [RT #4079]
 

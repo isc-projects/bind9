@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.2 $)
+AC_REVISION($Revision: 1.83.2.2.4.1 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1353,6 +1353,8 @@ AC_TRY_COMPILE(
 #undef _REENTRANT
 #define _REENTRANT
 #define _OSF_SOURCE
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 struct netent *
 getnetbyaddr_r(long net, int type, struct netent *result, char *buffer,
@@ -1375,6 +1377,8 @@ AC_TRY_COMPILE(
 #undef _REENTRANT
 #define _REENTRANT
 #define _OSF_SOURCE
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int getnetbyaddr_r (unsigned long int, int, struct netent *,
                     char *, size_t, struct netent **, int *);
@@ -1396,6 +1400,8 @@ AC_TRY_COMPILE(
 #undef _REENTRANT
 #define _REENTRANT
 #define _OSF_SOURCE
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern int getnetbyaddr_r(int, int, struct netent *, struct netent_data *);
 ],
@@ -1412,6 +1418,8 @@ GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T int"
 NETENT_DATA="#define NETENT_DATA 1"
 ],
 AC_TRY_COMPILE(
+#undef __USE_MISC
+#define __USE_MISC
 [#include <netdb.h>
 int getnetbyaddr_r (long, int, struct netent *, struct netent_data *);
 ],
@@ -1458,6 +1466,8 @@ AC_SUBST(NETENT_DATA)
 AC_CHECK_FUNC(setnetent_r,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void  setnetent_r (int);
 ] ,[return (0);],[
@@ -1468,6 +1478,8 @@ NET_R_SET_RETURN="#define NET_R_SET_RETURN void"
 AC_TRY_COMPILE(
 [
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern int setnetent_r(int, struct netent_data *);
 ] ,[return (0);],[
@@ -1491,6 +1503,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void  endnetent_r (void);
 ] ,[return (0);],[
@@ -1501,6 +1515,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern int endnetent_r(struct netent_data *);
 ] ,[return (0);],[
@@ -1511,6 +1527,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern void endnetent_r(struct netent_data *);
 ] ,[return (0);],[
@@ -1579,6 +1597,8 @@ AC_SUBST(GROUP_R_SET_RETURN)
 AC_CHECK_FUNC(gethostbyname_r,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 struct hostent  *gethostbyname_r
 (const char *name, struct hostent *hp, char *buf, int len, int *h_errnop) {}
@@ -1597,6 +1617,8 @@ HOSTENT_DATA="#undef HOSTENT_DATA"
 ]
 ,
 AC_TRY_COMPILE([
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int gethostbyname_r(const char *name,
                           struct hostent *result,
@@ -1613,6 +1635,7 @@ HOST_R_SETANSWER="#undef HOST_R_SETANSWER"
 HOSTENT_DATA="#define HOSTENT_DATA 1"
 ],
 AC_TRY_COMPILE([
+#undef __USE_MISC
 #define __USE_MISC
 #include <netdb.h>
 extern int gethostbyname_r (const char *,
@@ -1657,6 +1680,8 @@ AC_CHECK_FUNC(endhostent_r,
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int endhostent_r(struct hostent_data *buffer);
 ], ,
@@ -1667,6 +1692,8 @@ HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern void endhostent_r(struct hostent_data *ht_data);
 ],[],[
@@ -1677,6 +1704,8 @@ HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern void endhostent_r(void);
 ],[],[
@@ -1700,6 +1729,8 @@ AC_CHECK_FUNC(sethostent_r,
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
@@ -1707,6 +1738,8 @@ HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern int sethostent_r(int flag, struct hostent_data *ht_data);],[],
 [HOST_R_SET_RESULT="#define HOST_R_SET_RESULT 0"
@@ -1714,6 +1747,8 @@ HOST_R_SET_RETURN="#define HOST_R_SET_RETURN int"],
 AC_TRY_COMPILE([
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void            sethostent_r (int);],[],
 [HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT"
@@ -1769,6 +1804,8 @@ AC_SUBST(SETGRENT_VOID)
 AC_CHECK_FUNC(getnetgrent_r,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int getnetgrent_r(char **m, char **u, char **d, char *b, int l) {}
 ]
@@ -1785,6 +1822,8 @@ NGR_R_RETURN="#define NGR_R_RETURN int"
 ,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int getnetgrent_r(char **m, char **u, char **d, char *b, size_t l) {}
 ]
@@ -1801,6 +1840,8 @@ NGR_R_RETURN="#define NGR_R_RETURN int"
 ,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 extern int getnetgrent_r( char **, char **, char **, void **);
 ]
@@ -1874,6 +1915,8 @@ AC_CHECK_FUNC(innetgr_r,,AC_DEFINE(NEED_INNETGR_R))
 AC_CHECK_FUNC(getprotoent_r,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 struct protoent *getprotoent_r(struct protoent *result,
 		 char *buffer, int buflen) {}
@@ -1893,6 +1936,8 @@ PROTO_R_RETURN="#define PROTO_R_RETURN struct protoent *"
 ,
 AC_TRY_COMPILE(
 [
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int getprotoent_r (struct protoent *, char *, size_t, struct protoent **);
 
@@ -1934,6 +1979,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void endprotoent_r(void);
 ]
@@ -1959,6 +2006,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void               setprotoent_r __P((int));
 ],[],
@@ -2061,6 +2110,8 @@ AC_CHECK_FUNC(getpwuid_r,,AC_DEFINE(NEED_GETPWUID_R))
 
 AC_CHECK_FUNC(getservent_r,
 AC_TRY_COMPILE([
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 struct servent *
 getservent_r(struct servent *result, char *buffer, int buflen) {}
@@ -2076,6 +2127,8 @@ SERV_R_RETURN="#define SERV_R_RETURN struct servent *"
 ]
 ,
 AC_TRY_COMPILE([
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 int
 getservent_r (struct servent *, char *, size_t, struct servent **);
@@ -2114,6 +2167,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void endservent_r(void);
 ]
@@ -2140,6 +2195,8 @@ AC_TRY_COMPILE(
 [
 #undef _REENTRANT
 #define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
 #include <netdb.h>
 void            setservent_r(int);
 ]
