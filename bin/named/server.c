@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.19 2003/08/20 03:01:09 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.20 2003/08/20 06:05:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1442,6 +1442,132 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 	server->aclenv.match_mapped = match_mapped;
 }
 
+static isc_result_t
+add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr) {
+	ns_listenelt_t *lelt = NULL;
+	dns_acl_t *src_acl = NULL;
+	dns_aclelement_t aelt;
+	isc_result_t result;
+	isc_sockaddr_t any_sa6;
+
+	REQUIRE(isc_sockaddr_pf(addr) == AF_INET6);
+
+	isc_sockaddr_any6(&any_sa6);
+	if (!isc_sockaddr_equal(&any_sa6, addr)) {
+		aelt.type = dns_aclelementtype_ipprefix;
+		aelt.negative = ISC_FALSE;
+		aelt.u.ip_prefix.prefixlen = 128;
+		isc_netaddr_fromin6(&aelt.u.ip_prefix.address,
+				    &addr->type.sin6.sin6_addr);
+
+		result = dns_acl_create(mctx, 1, &src_acl);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = dns_acl_appendelement(src_acl, &aelt);
+		if (result != ISC_R_SUCCESS)
+			goto clean;
+
+		result = ns_listenelt_create(mctx, isc_sockaddr_getport(addr),
+					     src_acl, &lelt);
+		if (result != ISC_R_SUCCESS)
+			goto clean;
+		ISC_LIST_APPEND(list->elts, lelt, link);
+	}
+
+	return (ISC_R_SUCCESS);
+
+ clean:
+	INSIST(lelt == NULL);
+	if (src_acl != NULL)
+		dns_acl_detach(&src_acl);
+
+	return (result);
+}
+
+/*
+ * Make a list of xxx-source addresses and call ns_interfacemgr_adjust()
+ * to update the listening interfaces accordingly.
+ * We currently only consider IPv6, because this only affects IPv6 wildcard
+ * sockets.
+ */
+static void
+adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
+	isc_result_t result;
+	ns_listenlist_t *list = NULL;
+	dns_view_t *view;
+	dns_zone_t *zone, *next;
+	isc_sockaddr_t addr, *addrp;
+
+	result = ns_listenlist_create(mctx, &list);
+	if (result != ISC_R_SUCCESS)
+		return;
+
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		dns_dispatch_t *dispatch6;
+
+		dispatch6 = dns_resolver_dispatchv6(view->resolver);
+		INSIST(dispatch6 != NULL);
+		result = dns_dispatch_getlocaladdress(dispatch6, &addr);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+		result = add_listenelt(mctx, list, &addr);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	}
+
+	zone = NULL;
+	for (result = dns_zone_first(server->zonemgr, &zone);
+	     result == ISC_R_SUCCESS;
+	     next = NULL, result = dns_zone_next(zone, &next), zone = next) {
+		dns_view_t *zoneview;
+
+		/*
+		 * At this point the zone list may contain a stale zone
+		 * just removed from the configuration.  To see the validity,
+		 * check if the corresponding view is in our current view list.
+		 */
+		zoneview = dns_zone_getview(zone);
+		INSIST(zoneview != NULL);
+		for (view = ISC_LIST_HEAD(server->viewlist);
+		     view != NULL && view != zoneview;
+		     view = ISC_LIST_NEXT(view, link))
+			;
+		if (view == NULL)
+			continue;
+
+		addrp = dns_zone_getnotifysrc6(zone);
+		INSIST(addrp != NULL);
+		result = add_listenelt(mctx, list, addrp);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+
+		addrp = dns_zone_getxfrsource6(zone);
+		INSIST(addrp != NULL);
+		result = add_listenelt(mctx, list, addrp);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	}
+
+	ns_interfacemgr_adjust(server->interfacemgr, list, ISC_TRUE);
+	
+ clean:
+	ns_listenlist_detach(&list);
+	return;
+
+ fail:
+	/*
+	 * Even when we failed the procedure, most of other interfaces
+	 * should work correctly.  We therefore just warn it.
+	 */
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+		      "could not adjust the listen-on list; "
+		      "some interfaces may not work");
+	goto clean;
+}
+
 /*
  * This event callback is invoked to do periodic network
  * interface scanning.
@@ -2101,6 +2227,12 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_view_detach(&view);
 
 	}
+
+	/*
+	 * Adjust the listening interfaces in accordance with the source
+	 * addresses specified in views and zones.
+	 */
+	adjust_interfaces(server, ns_g_mctx);
 
 	if (dispatchv4 != NULL)
 		dns_dispatch_detach(&dispatchv4);

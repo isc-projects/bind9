@@ -1,8 +1,14 @@
+1371	[bug]		notify-source-v6, transfer-source-v6 and
+			query-source-v6 with explict addresses and using the
+			same ports as named was listening on could interfere
+			with nameds ability to answer queries sent to those
+			addresses.
+
 1368.	[func]		remove support for bitstring labels.
 
 1367.	[func]		Use response times to select forwarders.
 
-1365.	[func]		"localhost" and "localnet" acls now include IPv6
+1365.	[func]		"localhost" and "localnets" acls now include IPv6
 			addresses / prefixes.
 
 1364.	[func]		Log file name when unable to open memory statistics
