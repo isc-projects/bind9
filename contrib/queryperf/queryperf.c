@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.2 2001/09/26 22:35:06 gson Exp $
+ ***	Version $Id: queryperf.c,v 1.3 2002/03/11 19:00:01 gson Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -96,6 +96,7 @@ struct query_status {
 	int in_use;
 	unsigned short int id;
 	struct timeval sent_timestamp;
+	char *desc;
 };
 
 /*
@@ -119,6 +120,8 @@ unsigned int run_timelimit;				/* init 0 */
 
 int serverset = FALSE, portset = FALSE;
 int queriesset = FALSE, timeoutset = FALSE;
+
+int verbose = FALSE;
 
 /*
  * Other global stuff
@@ -164,7 +167,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.2 2001/09/26 22:35:06 gson Exp $\n"
+"Version: $Id: queryperf.c,v 1.3 2002/03/11 19:00:01 gson Exp $\n"
 "\n");
 }
 
@@ -187,6 +190,7 @@ show_usage(void) {
 "  -l specifies how a limit for how long to run tests in seconds (no default)\n"
 "  -1 run through input only once (default: multiple iff limit given)\n"
 "  -b set input/output buffer size in kilobytes (default: %d k)\n"
+"  -v verbose: report the RCODE of each response on stdout\n"
 "\n",
 	        DEF_SERVER_TO_QUERY, DEF_SERVER_PORT,
 	        DEF_MAX_QUERIES_OUTSTANDING, DEF_QUERY_TIMEOUT,
@@ -379,6 +383,7 @@ set_max_queries(unsigned int new_max) {
 			for (; count < new_max; count++) {
 				status[count].in_use = FALSE;
 				status[count].magic = QUERY_STATUS_MAGIC;
+				status[count].desc = NULL;
 			}
 
 			query_status_allocated = new_max;
@@ -402,7 +407,7 @@ parse_args(int argc, char **argv) {
 	int c;
 	unsigned int uint_arg_val;
 
-	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:")) != -1) {
+	while ((c = getopt(argc, argv, "q:t:nd:s:p:1l:b:v")) != -1) {
 		switch (c) {
 		case 'q':
 			if (is_uint(optarg, &uint_arg_val) == TRUE) {
@@ -488,6 +493,9 @@ parse_args(int argc, char **argv) {
 					c, optarg);
 				return (-1);
 			}
+			break;
+		case 'v':
+			verbose = 1;
 			break;
 
 		default:
@@ -849,15 +857,15 @@ update_config(char *config_change_desc) {
 
 	++config_change_desc;
 
-	if (*config_change_desc == '\n' || *config_change_desc == '\0') {
-		fprintf(stderr, "Invalid config: No directive present: %s",
+	if (*config_change_desc == '\0') {
+		fprintf(stderr, "Invalid config: No directive present: %s\n",
 		        conf_copy);
 		return;
 	}
 
 	if (index(WHITESPACE, *config_change_desc) != NULL) {
 		fprintf(stderr, "Invalid config: Space before directive or "
-		        "no directive present: %s", conf_copy);
+		        "no directive present: %s\n", conf_copy);
 		return;
 	}
 
@@ -866,20 +874,20 @@ update_config(char *config_change_desc) {
 	trailing_garbage = strtok(NULL, WHITESPACE);
 
 	if ((directive_number = identify_directive(directive)) == -1) {
-		fprintf(stderr, "Invalid config: Bad directive: %s",
+		fprintf(stderr, "Invalid config: Bad directive: %s\n",
 		        conf_copy);
 		return;
 	}
 
 	if (config_value == NULL) {
-		fprintf(stderr, "Invalid config: No value present: %s",
+		fprintf(stderr, "Invalid config: No value present: %s\n",
 		        conf_copy);
 		return;
 	}
 
 	if (trailing_garbage != NULL) {
 		fprintf(stderr, "Config warning: "
-		        "trailing garbage: %s", conf_copy);
+		        "trailing garbage: %s\n", conf_copy);
 	}
 
 	switch(directive_number) {
@@ -1066,12 +1074,12 @@ send_query(char *query_desc) {
 	use_query_id++;
 
 	if (parse_query(query_desc, domain, qname_len, &query_type) == -1) {
-		fprintf(stderr, "Error parsing query: %s", query_desc);
+		fprintf(stderr, "Error parsing query: %s\n", query_desc);
 		return;
 	}
 
 	if (dispatch_query(use_query_id, domain, query_type) == -1) {
-		fprintf(stderr, "Error sending query: %s", query_desc);
+		fprintf(stderr, "Error sending query: %s\n", query_desc);
 		return;
 	}
 
@@ -1094,6 +1102,8 @@ send_query(char *query_desc) {
 	/* Register the query in status[] */
 	status[count].in_use = TRUE;
 	status[count].id = use_query_id;
+	if (verbose)
+		status[count].desc = strdup(query_desc);
 	set_timenow(&status[count].sent_timestamp);
 
 	num_queries_sent++;
@@ -1141,7 +1151,7 @@ data_available(int fd, double wait) {
  *   status[] if any exists.
  */
 void
-register_response(unsigned short int id) {
+register_response(unsigned short int id, unsigned int rcode) {
 	unsigned int ct = 0;
 	int found = FALSE;
 
@@ -1150,6 +1160,10 @@ register_response(unsigned short int id) {
 			status[ct].in_use = FALSE;
 			num_queries_outstanding--;
 			found = TRUE;
+			if (status[ct].desc) {
+				printf("> %d %s\n", rcode, status[ct].desc);
+				free(status[ct].desc);
+			}
 		}
 	}
 
@@ -1169,6 +1183,7 @@ process_single_response(int sockfd) {
 	static struct sockaddr_in from_addr;
 	static unsigned char in_buf[MAX_BUFFER_LEN];
 	int numbytes, addr_len, resp_id;
+	int flags;
 
 	addr_len = sizeof(struct sockaddr);
 
@@ -1179,8 +1194,9 @@ process_single_response(int sockfd) {
 	}
 
 	resp_id = get_uint16(in_buf);
+	flags = get_uint16(in_buf + 2);
 
-	register_response(resp_id);
+	register_response(resp_id, flags & 0xF);
 }
 
 /*
@@ -1232,8 +1248,14 @@ retire_old_queries(void) {
 			status[count].in_use = FALSE;
 			num_queries_outstanding--;
 			num_queries_timed_out++;
-			printf("[Timeout] Query timed out: msg id %u\n",
-			       status[count].id);
+
+			if (status[count].desc) {
+				printf("> T %s\n", status[count].desc);
+				free(status[count].desc);
+			} else {
+				printf("[Timeout] Query timed out: msg id %u\n",
+				       status[count].id);
+			}
 		}
 	}
 }
@@ -1342,10 +1364,14 @@ main(int argc, char **argv) {
 	while (keep_sending(&got_eof) == TRUE || queries_outstanding() > 0) {
 		while (keep_sending(&got_eof) == TRUE
 		       && queries_outstanding() < max_queries_outstanding) {
-
-			if (next_input_line(input_line, input_length) == 0) {
+			int len = next_input_line(input_line, input_length);
+			if (len == 0) {
 				got_eof = TRUE;
 			} else {
+				/* Zap the trailing newline */
+				if (input_line[len - 1] == '\n')
+					input_line[len - 1] = '\0';
+
 				/*
 				 * TODO: Should test if we got a whole line
 				 * and flush to the next \n in input if not
