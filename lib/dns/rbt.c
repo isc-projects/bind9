@@ -37,10 +37,11 @@ struct dns_rbt {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	dns_rbtnode_t *		root;
-	void			(*data_deleter)(void *);
+	void			(*data_deleter)(void *, void *);
+	void *			deleter_arg;
 };
 
-struct node_chain {
+struct dns_rbtnodechain {
 	dns_rbtnode_t **	ancestors;
 	int			ancestor_count;
 	int			ancestor_maxitems;
@@ -63,8 +64,9 @@ struct node_chain {
 #define LEFT(node) 	((node)->left)
 #define RIGHT(node)	((node)->right)
 #define DOWN(node)	((node)->down)
-#define NAMELEN(node)	(*(unsigned char *)((node) + 1))
-#define NAME(node)	((void *)((char *)(node) + sizeof(*node) + 1))
+#define NAMELEN(node)	(((unsigned char *)((node) + 1))[0])
+#define OFFSETLEN(node)	(((unsigned char *)((node) + 1))[1])
+#define NAME(node)	(&((unsigned char *)((node) + 1))[3])
 #define DATA(node)	((node)->data)
 #define COLOR(node) 	((node)->color)
 #define DIRTY(node)	((node)->dirty)
@@ -76,7 +78,43 @@ struct node_chain {
 #define MAKE_RED(node)		((node)->color = RED)
 #define MAKE_BLACK(node)	((node)->color = BLACK)
 
-#define NODE_SIZE(node)	(sizeof(*node) + 1 + NAMELEN(node))
+#define NODE_SIZE(node)	(sizeof(*node) + 3 + NAMELEN(node) + OFFSETLEN(node))
+
+/*
+ * The following macros directly access normally private name variables.
+ * These macros are used to avoid a lot of function calls in the critical
+ * path of the tree traversal code.
+ */
+
+#define NODENAME(node, name) \
+do { \
+	unsigned char *__current; \
+	(name)->attributes = DNS_NAMEATTR_READONLY; \
+	__current = (unsigned char *)&(node)[1]; \
+	(name)->length = *__current++; \
+	(name)->labels = *__current++; \
+	if (*__current++ == 1) \
+		(name)->attributes |= DNS_NAMEATTR_ABSOLUTE; \
+	(name)->ndata = __current; \
+	__current += (name)->length; \
+	(name)->offsets = __current; \
+} while (0)
+
+#define FAST_GETLABEL(name, n, label) \
+do { \
+	(label)->base = &((name)->ndata[(name)->offsets[(n)]]); \
+	if ((unsigned int)(n) == (name)->labels - 1) \
+		(label)->length = (name)->length - (name)->offsets[(n)]; \
+	else \
+		(label)->length = (name)->offsets[(n) + 1] - \
+			(name)->offsets[(n)]; \
+} while (0)
+
+#define FAST_ISABSOLUTE(name) \
+	(((name)->attributes & DNS_NAMEATTR_ABSOLUTE) ? ISC_TRUE : ISC_FALSE)
+
+#define FAST_COUNTLABELS(name) \
+	((name)->labels)
 
 /*
  * For the return value of cmp_names_for_depth().
@@ -127,7 +165,7 @@ static dns_result_t join_nodes(dns_rbt_t *rbt,
 			       dns_rbtnode_t **rootp);
 
 static inline dns_result_t get_ancestor_mem(isc_mem_t *mctx,
-					    node_chain_t *chain);
+					    dns_rbtnodechain_t *chain);
 
 static int cmp_label(dns_label_t *a, dns_label_t *b);
 static inline int cmp_names_on_level(dns_name_t *a, dns_name_t *b);
@@ -141,22 +179,24 @@ static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
 static dns_result_t dns_rbt_addonlevel(dns_rbt_t *rbt,
 				       dns_rbtnode_t *node,
 				       dns_rbtnode_t **rootp,
-				       node_chain_t *chain);
+				       dns_rbtnodechain_t *chain);
 static void dns_rbt_deletefromlevel(dns_rbt_t *rbt,
 				    dns_rbtnode_t *delete,
-				    node_chain_t *chain);
+				    dns_rbtnodechain_t *chain);
 static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
 static dns_result_t zapnode_and_fixlevels(dns_rbt_t *rbt,
 					  dns_rbtnode_t *node,
 					  isc_boolean_t recurse,
-					  node_chain_t *chain);
+					  dns_rbtnodechain_t *chain);
 
 /*
  * Initialize a red/black tree of trees.
  */
 dns_result_t
-dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *), dns_rbt_t **rbtp) {
+dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *), void *arg,
+	       dns_rbt_t **rbtp)
+{
 	dns_rbt_t *rbt;
 
 	REQUIRE(mctx != NULL);
@@ -168,6 +208,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *), dns_rbt_t **rbtp) {
 
 	rbt->mctx = mctx;
 	rbt->data_deleter = deleter;
+	rbt->deleter_arg = arg;
 	rbt->root = NULL;
 	rbt->magic = RBT_MAGIC;
 
@@ -211,17 +252,21 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_name_t add_name, current_name, new_name, tmp_name;
 	int compared, add_labels, current_labels, keep_labels, start_label;
 	dns_result_t result;
-	node_chain_t chain;
+	dns_rbtnodechain_t chain;
+	dns_offsets_t o1, o2;
+	isc_region_t r;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(FAST_ISABSOLUTE(name));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	/*
 	 * Create a copy of the name so the original name structure is
 	 * not modified.
 	 */
-	memcpy(&add_name, name, sizeof(add_name));
+	dns_name_init(&add_name, o1);
+	dns_name_toregion(name, &r);
+	dns_name_fromregion(&add_name, &r);
 
 	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, &add_name, &new_node);
@@ -239,7 +284,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	do {
 		current = child;
 
-		dns_rbt_namefromnode(current, &current_name);
+		NODENAME(current, &current_name);
 		compared = cmp_names_for_depth(&add_name, &current_name);
 
 		if (compared == BOTH_ARE_EQUAL) {
@@ -268,8 +313,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			 * the non-common parts of these two names should
 			 * start a new tree.
 			 */
-			add_labels   = dns_name_countlabels(&add_name);
-			current_labels = dns_name_countlabels(&current_name);
+			add_labels   = FAST_COUNTLABELS(&add_name);
+			current_labels = FAST_COUNTLABELS(&current_name);
 
 			/*
 			 * When *root == rbt->root, the current tree level is
@@ -323,7 +368,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				start_label = current_labels - compared;
 				keep_labels = compared + (*root == rbt->root);
 
-				dns_name_init(&tmp_name, NULL);
+				dns_name_init(&tmp_name, o2);
 				dns_name_getlabelsequence(&current_name,
 							  start_label,
 							  keep_labels,
@@ -385,7 +430,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 				/*
 				 * Now that the old name in the existing
-				 * node has been disected into two new
+				 * node has been dissected into two new
 				 * nodes, the old node can be freed.
 				 */
 				isc_mem_put(rbt->mctx, current,
@@ -444,6 +489,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 		result = dns_rbt_addonlevel(rbt, new_node, root, &chain);
 	/* XXXRTH Free node if add fails? */
 	/* XXXRTH Is it true that result should never be DNS_R_EXISTS? */
+	INSIST(result != DNS_R_EXISTS);
 
 	if (chain.ancestor_maxitems > 0)
 		isc_mem_put(rbt->mctx, chain.ancestors,
@@ -461,7 +507,7 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 	dns_rbtnode_t *node;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(FAST_ISABSOLUTE(name));
 
 	node = NULL;
 
@@ -483,25 +529,30 @@ dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  * the down pointer for the found node.
  */
 dns_rbtnode_t *
-dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
+dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t *current;
 	dns_name_t *search_name, *new_search_name, *current_name;
-	dns_name_t holder1, holder2;
+	dns_name_t holder1, holder2, orig;
 	int compared, current_labels, keep_labels, dont_count_root_label;
+	dns_offsets_t o1, o2, o3, o4;
+	isc_region_t r;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(FAST_ISABSOLUTE(name));
 
 	/*
 	 * search_name is the name segment being sought in each tree level.
 	 */
-	search_name = name;
+	dns_name_init(&orig, o1);
+	dns_name_toregion(name, &r);
+	dns_name_fromregion(&orig, &r);
+	search_name = &orig;
 
 	current = rbt->root;
 	dont_count_root_label = 1;
 
-	dns_name_init(&holder1, NULL);
-	dns_name_init(&holder2, NULL);
+	dns_name_init(&holder1, o2);
+	dns_name_init(&holder2, o3);
 
 	current_name = &holder1;
 
@@ -517,7 +568,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
 	}
 		
 	while (current != NULL) {
-		dns_rbt_namefromnode(current, current_name);
+		NODENAME(current, current_name);
 		compared = cmp_names_for_depth(search_name, current_name);
 
 		if (compared == BOTH_ARE_EQUAL)
@@ -554,7 +605,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
 			 * the down pointer and search in the new tree.
 			 */
 
-			current_labels = dns_name_countlabels(current_name)
+			current_labels = FAST_COUNTLABELS(current_name)
 				- dont_count_root_label;
 
 			if (compared == current_labels) {
@@ -570,11 +621,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, node_chain_t *chain) {
 					current_name = &holder1;
 				}
 
-				keep_labels = dns_name_countlabels(search_name)
+				keep_labels = FAST_COUNTLABELS(search_name)
 					- dont_count_root_label
 					- compared;
 
-				dns_name_init(new_search_name, NULL);
+				dns_name_init(new_search_name, o4);
 				dns_name_getlabelsequence(search_name,
 							  0,
 							  keep_labels,
@@ -630,10 +681,10 @@ dns_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	dns_rbtnode_t *node;
 	dns_result_t result;
-	node_chain_t chain;
+	dns_rbtnodechain_t chain;
 
 	REQUIRE(VALID_RBT(rbt));
-	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(FAST_ISABSOLUTE(name));
 
 	/*
 	 * Find the node, building the ancestor chain.
@@ -668,7 +719,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 
 static dns_result_t
 zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
-		      isc_boolean_t recurse, node_chain_t *chain) {
+		      isc_boolean_t recurse, dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t *down, *parent, **rootp;
 	dns_result_t result;
 
@@ -687,7 +738,8 @@ zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 
 		} else {
 			if (rbt->data_deleter != NULL)
-				rbt->data_deleter(DATA(node));
+				rbt->data_deleter(DATA(node),
+						  rbt->deleter_arg);
 			DATA(node) = NULL;
 
 			if (LEFT(down) != NULL || RIGHT(down) != NULL)
@@ -725,7 +777,7 @@ zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 	dns_rbt_deletefromlevel(rbt, node, chain);
 
 	if (rbt->data_deleter != NULL)
-		rbt->data_deleter(DATA(node));
+		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 
 	/*
@@ -773,27 +825,37 @@ zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 
 void
 dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name) {
-	isc_region_t r;
 
-	r.length = NAMELEN(node);
-	r.base = NAME(node);
+	REQUIRE(name->offsets == NULL);
 
-	dns_name_fromregion(name, &r);
+	NODENAME(node, name);
 }
 
 static dns_result_t
 create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node;
 	isc_region_t region;
+	unsigned int labels;
+	unsigned char *current;
+	unsigned char absolute;
+
+	REQUIRE(name->offsets != NULL);	/* XXX direct access to name. */
 
 	dns_name_toregion(name, &region);
+	labels = FAST_COUNTLABELS(name);
+	if (FAST_ISABSOLUTE(name))
+		absolute = 1;
+	else
+		absolute = 0;
 
 	/* 
 	 * Allocate space for the node structure, plus the length byte,
 	 * plus the length of the name.
 	 */
 	node = (dns_rbtnode_t *)isc_mem_get(mctx,
-					    sizeof(*node) + 1 + region.length);
+					    sizeof(*node) + 3 +
+					    region.length + labels);
+					    
 	if (node == NULL)
 		return (DNS_R_NOMEMORY);
 
@@ -802,14 +864,31 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	DOWN(node) = NULL;
 	DATA(node) = NULL;
 
-	LOCK(node) = 0;		/* @@@ ? */
+	LOCK(node) = 0;
 	REFS(node) = 0;
 	DIRTY(node) = 0;
 
 	MAKE_BLACK(node);
 
-	NAMELEN(node) = region.length;
-	memcpy(NAME(node), region.base, region.length);
+	/*
+	 * To make reconstructing a name from the stored value in the node
+	 * easy, we store the length of the name, the number of labels,
+	 * whether the name is absolute or not, the name itself, and the
+	 * name's offsets table.
+	 *
+	 * XXX  Finding a way not to waste a byte on "absolute" would be
+	 *      a good thing, though it may be that we'll have to store
+	 *      other attributes someday.  The offsets table could be made
+	 *	smaller by eliminating the first offset, which is always 0.
+	 *	This requires changes to lib/dns/name.c.
+	 */
+	current = (unsigned char *)&node[1];
+	*current++ = region.length;
+	*current++ = labels;
+	*current++ = absolute;
+	memcpy(current, region.base, region.length);
+	current += region.length;
+	memcpy(current, name->offsets, labels);
 
 	*nodep = node;
 
@@ -824,6 +903,7 @@ join_nodes(dns_rbt_t *rbt,
 	dns_name_t newname;
 	isc_region_t r;
 	int newsize;
+	dns_offsets_t offsets;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(node != NULL);
@@ -844,13 +924,11 @@ join_nodes(dns_rbt_t *rbt,
 
 	r.length = newsize;
 
-	dns_name_init(&newname, NULL);
+	dns_name_init(&newname, offsets);
 	dns_name_fromregion(&newname, &r);
 
 	result = create_node(rbt->mctx, &newname, &newnode);
 	if (result == DNS_R_SUCCESS) {
-		isc_mem_put(rbt->mctx, r.base, r.length);
-
 		COLOR(newnode) = COLOR(node);
 		RIGHT(newnode) = RIGHT(node);
 		LEFT(newnode)  = LEFT(node);
@@ -873,12 +951,13 @@ join_nodes(dns_rbt_t *rbt,
 		isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 		isc_mem_put(rbt->mctx, down, NODE_SIZE(down));
 	}
+	isc_mem_put(rbt->mctx, r.base, r.length);
 
 	return (result);
 }
 
 static inline dns_result_t
-get_ancestor_mem(isc_mem_t *mctx, node_chain_t *chain) {
+get_ancestor_mem(isc_mem_t *mctx, dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t **ancestor_mem;
 	int oldsize, newsize;
 
@@ -955,7 +1034,7 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) 
  */
 static dns_result_t
 dns_rbt_addonlevel(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_rbtnode_t **rootp,
-		   node_chain_t *chain) {
+		   dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t *current, *child, *root, *tmp, *parent, *grandparent;
 	dns_name_t add_name, current_name;
 	dns_offsets_t offsets;
@@ -979,7 +1058,7 @@ dns_rbt_addonlevel(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_rbtnode_t **rootp,
 	child = root;
 
 	dns_name_init(&add_name, offsets);
-	dns_rbt_namefromnode(node, &add_name);
+	NODENAME(node, &add_name);
 
 	dns_name_init(&current_name, NULL);
 
@@ -991,7 +1070,7 @@ dns_rbt_addonlevel(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_rbtnode_t **rootp,
 
 		current = child;
 
-		dns_rbt_namefromnode(current, &current_name);
+		NODENAME(current, &current_name);
 
 		i = cmp_names_on_level(&add_name, &current_name);
 		if (i == 0)
@@ -1086,7 +1165,7 @@ dns_rbt_addonlevel(dns_rbt_t *rbt, dns_rbtnode_t *node, dns_rbtnode_t **rootp,
  */
 static void
 dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
-			node_chain_t *chain) {
+			dns_rbtnodechain_t *chain) {
 	dns_rbtnode_t *sibling, *parent, *grandparent, *child;
 	dns_rbtnode_t *successor, **rootp;
 	int depth;
@@ -1321,7 +1400,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
  *
  * If the function is ever intended to be used to delete something where
  * a pointer needs to be told that this tree no longer exists,
- * this function would need to adjusted accordinly.
+ * this function would need to adjusted accordingly.
  */
 static void
 dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
@@ -1339,7 +1418,7 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 		dns_rbt_deletetree(rbt, DOWN(node));
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
-		rbt->data_deleter(DATA(node));
+		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 }
@@ -1358,7 +1437,7 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
  * This whole file as yet does nothing special with bitstrings.
  */
 
-static int
+static inline int
 cmp_label(dns_label_t *a, dns_label_t *b) {
 	int i;
 
@@ -1392,21 +1471,25 @@ static inline int
 cmp_names_for_depth(dns_name_t *a, dns_name_t *b) {
 	dns_label_t alabel, blabel;
 	int aindex, bindex, compared, common;
+	isc_boolean_t aabs, babs;
 
-	aindex = dns_name_countlabels(a) - 1;
-	bindex = dns_name_countlabels(b) - 1;
+	aindex = FAST_COUNTLABELS(a) - 1;
+	bindex = FAST_COUNTLABELS(b) - 1;
+	aabs = FAST_ISABSOLUTE(a);
+	babs = FAST_ISABSOLUTE(b);
 
-	INSIST(( dns_name_isabsolute(a) &&  dns_name_isabsolute(b)) ||
-	       (!dns_name_isabsolute(a) && !dns_name_isabsolute(b)));
+	INSIST((aabs && babs) || (!aabs && !babs));
 
-	if (dns_name_isabsolute(a))
-		aindex--, bindex--;
+	if (aabs) {
+		aindex--;
+		bindex--;
+	}
 
 	common = 0;
 
 	for (; aindex >= 0 && bindex >= 0; aindex--, bindex--) {
-		dns_name_getlabel(a, aindex, &alabel);
-		dns_name_getlabel(b, bindex, &blabel);
+		FAST_GETLABEL(a, aindex, &alabel);
+		FAST_GETLABEL(b, bindex, &blabel);
 
 	        compared = cmp_label(&alabel, &blabel);
 		if (compared == 0)
@@ -1438,18 +1521,22 @@ static inline int
 cmp_names_on_level(dns_name_t *a, dns_name_t *b) {
 	dns_label_t alabel, blabel;
 	int a_last_label, b_last_label;
+	isc_boolean_t aabs, babs;
 
-	a_last_label = dns_name_countlabels(a) - 1;
-	b_last_label = dns_name_countlabels(b) - 1;
+	a_last_label = FAST_COUNTLABELS(a) - 1;
+	b_last_label = FAST_COUNTLABELS(b) - 1;
+	aabs = FAST_ISABSOLUTE(a);
+	babs = FAST_ISABSOLUTE(b);
 
-	INSIST(( dns_name_isabsolute(a) &&  dns_name_isabsolute(b)) ||
-	       (!dns_name_isabsolute(a) && !dns_name_isabsolute(b)));
+	INSIST((aabs && babs) || (!aabs && !babs));
 
-	if (dns_name_isabsolute(a))
-		a_last_label--, b_last_label--;
+	if (aabs) {
+		a_last_label--;
+		b_last_label--;
+	}
 
-	dns_name_getlabel(a, a_last_label, &alabel);
-	dns_name_getlabel(b, b_last_label, &blabel);
+	FAST_GETLABEL(a, a_last_label, &alabel);
+	FAST_GETLABEL(b, b_last_label, &blabel);
 
 	return cmp_label(&alabel, &blabel);
 }

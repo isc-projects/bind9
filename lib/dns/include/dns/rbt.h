@@ -24,14 +24,9 @@
 /*
  * This is the structure that is used for each node in the red/black
  * tree of trees.  NOTE WELL:  the implementation manages this as a variable
- * length structure, with the actual wire-format name being stored as
- * a sequence of "name_length" bytes appended to this structure.  Allocating
- * a contiguous block of memory for multiple dns_rbt_node structures is
- * pretty much guaranteed to be useless.
- *
- * Note that the name_length variable will indicate how long just the length
- * of the label(s) associated with this tree, not the length of the entire
- * name the node is part of.
+ * length structure, with the actual wire-format name and other data appended
+ * appended to this structure.  Allocating a contiguous block of memory for
+ * multiple dns_rbt_node structures will not work.
  */
 
 typedef struct dns_rbt dns_rbt_t;
@@ -52,7 +47,7 @@ typedef struct dns_rbt_node {
 	unsigned int references:DNS_RBT_REFLENGTH;
 } dns_rbtnode_t;
 
-typedef struct node_chain node_chain_t;
+typedef struct dns_rbtnodechain dns_rbtnodechain_t;
 
 dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
 /*
@@ -126,7 +121,7 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  */
 
 dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
-				node_chain_t *chain);
+				dns_rbtnodechain_t *chain);
 /*
  * Find the node for 'name'.
  *
@@ -149,6 +144,6 @@ void dns_rbt_printnodename(dns_rbtnode_t *node);
 void dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth);
 void dns_rbt_printall(dns_rbt_t *rbt);
 
-dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *),
-			    dns_rbt_t **rbtp);
+dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+			    void *arg, dns_rbt_t **rbtp);
 void dns_rbt_destroy(dns_rbt_t **rbtp);
