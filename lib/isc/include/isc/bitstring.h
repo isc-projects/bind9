@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: bitstring.h,v 1.3 2000/06/22 21:57:23 tale Exp $ */
+
 #ifndef ISC_BITSTRING_H
 #define ISC_BITSTRING_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: view.h,v 1.43 2000/06/22 21:56:23 tale Exp $ */
+
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: error.c,v 1.11 2000/06/22 21:56:53 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

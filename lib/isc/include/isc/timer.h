@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: timer.h,v 1.25 2000/06/22 21:58:10 tale Exp $ */
+
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
 

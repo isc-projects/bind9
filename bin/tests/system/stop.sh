@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: stop.sh,v 1.8 2000/06/22 21:51:30 tale Exp $
+
 #
 # Stop name servers.
 #

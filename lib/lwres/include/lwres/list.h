@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: list.h,v 1.4 2000/06/22 21:59:48 tale Exp $ */
+
 #ifndef LWRES_LIST_H
 #define LWRES_LIST_H 1
 

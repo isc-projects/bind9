@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: heap.h,v 1.13 2000/06/22 21:57:35 tale Exp $ */
+
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1
 

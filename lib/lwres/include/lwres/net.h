@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: net.h,v 1.5 2000/06/22 21:59:53 tale Exp $ */
+
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
 

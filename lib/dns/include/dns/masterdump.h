@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: masterdump.h,v 1.10 2000/06/22 21:55:47 tale Exp $ */
+
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
 

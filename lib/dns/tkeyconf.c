@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tkeyconf.c,v 1.11 2000/06/22 21:54:50 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/buffer.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: a6.h,v 1.8 2000/06/22 21:55:04 tale Exp $ */
+
 #ifndef DNS_A6_H
 #define DNS_A6_H 1
 

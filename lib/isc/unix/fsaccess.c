@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: fsaccess.c,v 1.3 2000/06/22 21:58:36 tale Exp $ */
+
 #include <sys/types.h>
 #include <sys/stat.h>
 

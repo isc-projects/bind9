@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: message.h,v 1.72 2000/06/22 21:55:48 tale Exp $ */
+
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
 

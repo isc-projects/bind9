@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: update.c,v 1.58 2000/06/22 21:49:37 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/string.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_api.c,v 1.39 2000/06/22 22:00:21 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

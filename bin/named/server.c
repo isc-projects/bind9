@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: server.c,v 1.199 2000/06/22 21:49:35 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: setup.sh,v 1.3 2000/06/22 21:52:44 tale Exp $
+
 
 cp ns2/example1.db ns2/example.db
 cp ns2/named1.conf ns2/named.conf

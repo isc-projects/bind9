@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: check-instincludes.sh,v 1.2 2000/06/22 22:00:33 tale Exp $
+
 #
 # Check the installed bind9 header files to make sure that no header
 # depends on another header having been included first, and that

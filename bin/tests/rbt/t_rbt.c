@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_rbt.c,v 1.19 2000/06/22 21:51:18 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

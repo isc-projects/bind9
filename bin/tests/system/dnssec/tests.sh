@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: tests.sh,v 1.15 2000/06/22 21:51:36 tale Exp $
+
 #
 # Perform tests
 #

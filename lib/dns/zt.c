@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: zt.c,v 1.22 2000/06/22 21:54:58 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/magic.h>

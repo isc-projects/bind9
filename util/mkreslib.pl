@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: mkreslib.pl,v 1.5 2000/06/22 22:00:39 tale Exp $
+
 # Build a res_* library distribution from the BIND 8 source
 
 #

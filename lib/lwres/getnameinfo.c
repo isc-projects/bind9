@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: getnameinfo.c,v 1.18 2000/06/22 21:59:29 tale Exp $ */
+
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
  * All rights reserved.

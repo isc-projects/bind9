@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: list.h,v 1.11 2000/06/22 21:57:43 tale Exp $ */
+
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
 #include <isc/boolean.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: net.h,v 1.20 2000/06/22 21:58:57 tale Exp $ */
+
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
 

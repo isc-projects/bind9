@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: b8t.mk,v 1.5 2000/06/22 21:50:06 tale Exp $
+
 #
 # bind 8 multi-host make
 # PLATFORM set in the environment by cron

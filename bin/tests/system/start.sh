@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: start.sh,v 1.17 2000/06/22 21:51:29 tale Exp $
+
 #
 # Start name servers for running system tests.
 #

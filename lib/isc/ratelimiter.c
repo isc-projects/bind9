@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ratelimiter.c,v 1.14 2000/06/22 21:57:09 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: t_api.pl,v 1.4 2000/06/22 21:50:54 tale Exp $
+
 require "getopts.pl";
 
 #

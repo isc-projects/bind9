@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: once.h,v 1.5 2000/06/22 21:58:26 tale Exp $ */
+
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: mem.h,v 1.36 2000/06/22 21:57:46 tale Exp $ */
+
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdataset.h,v 1.33 2000/06/22 21:56:01 tale Exp $ */
+
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
 

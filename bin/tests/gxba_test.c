@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: gxba_test.c,v 1.4 2000/06/22 21:50:20 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

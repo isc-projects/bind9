@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: print.h,v 1.7 2000/06/22 21:57:54 tale Exp $ */
+
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: symtab.h,v 1.12 2000/06/22 21:58:07 tale Exp $ */
+
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1
 

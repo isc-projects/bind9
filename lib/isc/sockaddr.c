@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: sockaddr.c,v 1.42 2000/06/22 21:57:12 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

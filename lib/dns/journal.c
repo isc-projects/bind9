@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: journal.c,v 1.55 2000/06/22 21:54:26 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

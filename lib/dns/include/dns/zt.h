@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: zt.h,v 1.19 2000/06/22 21:56:27 tale Exp $ */
+
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_mem.c,v 1.6 2000/06/22 21:51:11 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

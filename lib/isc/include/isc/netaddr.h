@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: netaddr.h,v 1.13 2000/06/22 21:57:49 tale Exp $ */
+
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rootns.h,v 1.5 2000/06/22 21:56:08 tale Exp $ */
+
 #ifndef DNS_ROOTNS_H
 #define DNS_ROOTNS_H 1
 

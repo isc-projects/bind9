@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.h,v 1.8 2000/06/22 21:59:56 tale Exp $ */
+
 #ifndef LWRES_RESULT_H
 #define LWRES_RESULT_H 1
 

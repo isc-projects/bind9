@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: cache.h,v 1.11 2000/06/22 21:55:11 tale Exp $ */
+
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
 

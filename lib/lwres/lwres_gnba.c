@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwres_gnba.c,v 1.16 2000/06/22 21:59:35 tale Exp $ */
+
 #include <config.h>
 
 #include <assert.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdataslab.h,v 1.12 2000/06/22 21:56:03 tale Exp $ */
+
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
 

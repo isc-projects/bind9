@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: master.h,v 1.20 2000/06/22 21:55:46 tale Exp $ */
+
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
 

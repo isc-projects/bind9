@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: main.c,v 1.43 2000/06/22 21:49:12 tale Exp $ */
+
 /*
  * Main program for the Lightweight Resolver Daemon.
  *

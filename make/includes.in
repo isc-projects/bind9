@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: includes.in,v 1.7 2000/06/22 22:00:29 tale Exp $
+
 # Search for machine-generated header files in the build tree, 
 # and for normal headers in the source tree (${top_srcdir}).
 # We only need to look in OS-specific subdirectories for the

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: listenlist.h,v 1.6 2000/06/22 21:49:41 tale Exp $ */
+
 #ifndef NAMED_LISTENLIST_H
 #define NAMED_LISTENLIST_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: os.h,v 1.2 2000/06/22 21:57:51 tale Exp $ */
+
 #ifndef ISC_OS_H
 #define ISC_OS_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: symtab.c,v 1.18 2000/06/22 21:57:15 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: md5.h,v 1.4 2000/06/22 21:57:45 tale Exp $ */
+
 /*
  * This is the header file for the MD5 message-digest algorithm.
  * The algorithm is due to Ron Rivest.  This code was

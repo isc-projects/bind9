@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: request.c,v 1.26 2000/06/22 21:54:44 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

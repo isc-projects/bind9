@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: zone.h,v 1.59 2000/06/22 21:56:25 tale Exp $ */
+
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
 

@@ -15,5 +15,7 @@
  * SOFTWARE.
  */
 
+/* $Id: rbtdb64.c,v 1.3 2000/06/22 21:54:39 tale Exp $ */
+
 #define DNS_RBTDB_VERSION64 1
 #include "rbtdb.c"

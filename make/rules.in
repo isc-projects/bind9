@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: rules.in,v 1.19 2000/06/22 22:00:30 tale Exp $
+
 ###
 ### Common Makefile rules for BIND 9.
 ###

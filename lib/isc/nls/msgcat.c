@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: msgcat.c,v 1.6 2000/06/22 21:58:15 tale Exp $ */
+
 /*
  * Principal Author: Bob Halley
  */

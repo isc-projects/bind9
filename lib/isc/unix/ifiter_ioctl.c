@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ifiter_ioctl.c,v 1.11 2000/06/22 21:58:37 tale Exp $ */
+
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tkey_test.c,v 1.26 2000/06/22 21:50:57 tale Exp $ */
+
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
  */

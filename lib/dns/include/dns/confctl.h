@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confctl.h,v 1.15 2000/06/22 21:55:19 tale Exp $ */
+
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
 

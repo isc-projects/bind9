@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: check-sources.pl,v 1.4 2000/06/22 22:00:34 tale Exp $
+
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it
 # bulletproof or foolproof.  Or pretty even.  Probably would

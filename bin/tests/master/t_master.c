@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_master.c,v 1.23 2000/06/22 21:51:09 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

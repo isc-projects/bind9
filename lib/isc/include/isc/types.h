@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: types.h,v 1.27 2000/06/22 21:58:11 tale Exp $ */
+
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
 

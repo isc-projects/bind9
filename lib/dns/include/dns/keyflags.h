@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keyflags.h,v 1.6 2000/06/22 21:55:41 tale Exp $ */
+
 #ifndef DNS_KEYFLAGS_H
 #define DNS_KEYFLAGS_H 1
 

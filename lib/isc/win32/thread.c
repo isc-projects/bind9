@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: thread.c,v 1.11 2000/06/22 21:59:07 tale Exp $ */
+
 #include <config.h>
 
 #include <process.h>

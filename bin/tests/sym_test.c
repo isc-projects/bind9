@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: sym_test.c,v 1.18 2000/06/22 21:50:53 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/commandline.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: private.h,v 1.17 2000/06/22 22:00:14 tale Exp $ */
+
 /*****
  ***** Private master include file for the OMAPI library.
  *****/

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatalist.c,v 1.20 2000/06/22 21:54:41 tale Exp $ */
+
 #include <config.h>
 
 #include <stddef.h>

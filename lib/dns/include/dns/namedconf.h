@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: namedconf.h,v 1.6 2000/06/22 21:55:50 tale Exp $ */
+
 #ifndef DNS_NAMEDCONF_H
 #define DNS_NAMEDCONF_H 1
 

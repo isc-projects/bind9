@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lib.c,v 1.5 2000/06/22 21:54:28 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/once.h>

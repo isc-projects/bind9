@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: timer_test.c,v 1.32 2000/06/22 21:50:56 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

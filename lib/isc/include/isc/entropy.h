@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: entropy.h,v 1.18 2000/06/22 21:57:27 tale Exp $ */
+
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
 

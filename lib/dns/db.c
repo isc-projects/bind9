@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: db.c,v 1.47 2000/06/22 21:54:21 tale Exp $ */
+
 /***
  *** Imports
  ***/

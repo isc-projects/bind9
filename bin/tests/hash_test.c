@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: hash_test.c,v 1.3 2000/06/22 21:50:22 tale Exp $ */
+
 #include <isc/md5.h>
 #include <isc/sha1.h>
 #include <isc/util.h>

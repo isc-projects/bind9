@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: globals.h,v 1.42 2000/06/22 21:49:39 tale Exp $ */
+
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
 

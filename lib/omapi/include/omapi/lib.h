@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lib.h,v 1.3 2000/06/22 22:00:11 tale Exp $ */
+
 #ifndef OMAPI_LIB_H
 #define OMAPI_LIB_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: util.h,v 1.13 2000/06/22 21:58:12 tale Exp $ */
+
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 

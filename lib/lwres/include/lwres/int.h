@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: int.h,v 1.3 2000/06/22 21:59:45 tale Exp $ */
+
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1
 

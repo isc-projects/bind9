@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: string.c,v 1.3 2000/06/22 21:57:13 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: message.c,v 1.129 2000/06/22 21:54:30 tale Exp $ */
+
 /***
  *** Imports
  ***/

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: conflsn.h,v 1.15 2000/06/22 21:55:24 tale Exp $ */
+
 #ifndef DNS_CONFLSN_H
 #define DNS_CONFLSN_H 1
 

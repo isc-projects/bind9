@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dnssectool.h,v 1.6 2000/06/22 21:49:07 tale Exp $ */
+
 #ifndef DNSSECTOOL_H
 #define DNSSECTOOL_H 1
 

@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: Makefile.PL,v 1.3 2000/06/22 21:53:32 tale Exp $
+
 use ExtUtils::MakeMaker;
 
 $ENV{CC} = "gcc";

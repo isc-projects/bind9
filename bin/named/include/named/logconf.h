@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: logconf.h,v 1.6 2000/06/22 21:49:44 tale Exp $ */
+
 #ifndef NAMED_LOGCONF_H
 #define NAMED_LOGCONF_H 1
 

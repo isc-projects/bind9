@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keytable.h,v 1.7 2000/06/22 21:55:42 tale Exp $ */
+
 #ifndef DNS_KEYTABLE_H
 #define DNS_KEYTABLE_H 1
 

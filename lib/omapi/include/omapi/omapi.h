@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: omapi.h,v 1.11 2000/06/22 22:00:12 tale Exp $ */
+
 /*
  * Definitions for the object management API and protocol.
  */

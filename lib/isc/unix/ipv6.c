@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ipv6.c,v 1.4 2000/06/22 21:58:41 tale Exp $ */
+
 #include <isc/ipv6.h>
 
 const struct in6_addr in6addr_any = IN6ADDR_ANY_INIT;

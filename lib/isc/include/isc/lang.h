@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lang.h,v 1.3 2000/06/22 21:57:38 tale Exp $ */
+
 #ifndef ISC_LANG_H
 #define ISC_LANG_H 1
 

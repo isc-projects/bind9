@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwresd.h,v 1.2 2000/06/22 21:49:46 tale Exp $ */
+
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tkeyconf.h,v 1.4 2000/06/22 21:56:16 tale Exp $ */
+
 #ifndef DNS_TKEYCONF_H
 #define DNS_TKEYCONF_H 1
 

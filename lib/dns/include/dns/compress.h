@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: compress.h,v 1.16 2000/06/22 21:55:14 tale Exp $ */
+
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
 

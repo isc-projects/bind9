@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: version.c,v 1.3 2000/06/22 22:00:04 tale Exp $ */
+
 char omapi_version[] = VERSION;
 
 unsigned int omapi_libinterface = LIBINTERFACE;

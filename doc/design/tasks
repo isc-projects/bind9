@@ -1,6 +1,8 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
+$Id: tasks,v 1.4 2000/06/22 21:53:59 tale Exp $
+
 Changes I made last week to the task code simplified the task shutdown
 and termination model.  Here's how things now work:
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: quota.c,v 1.6 2000/06/22 21:57:07 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/quota.h>

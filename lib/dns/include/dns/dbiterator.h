@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dbiterator.h,v 1.12 2000/06/22 21:55:34 tale Exp $ */
+
 #ifndef DNS_DBITERATOR_H
 #define DNS_DBITERATOR_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: xfrout.h,v 1.4 2000/06/22 21:49:55 tale Exp $ */
+
 #ifndef NAMED_XFROUT_H
 #define NAMED_XFROUT_H 1
 

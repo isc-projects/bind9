@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatasetiter.c,v 1.8 2000/06/22 21:54:43 tale Exp $ */
+
 #include <config.h>
 
 #include <stddef.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confview.h,v 1.30 2000/06/22 21:55:30 tale Exp $ */
+
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: msgcat.h,v 1.5 2000/06/22 21:57:47 tale Exp $ */
+
 #ifndef ISC_MSGCAT_H
 #define ISC_MSGCAT_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: interfacemgr.h,v 1.17 2000/06/22 21:49:40 tale Exp $ */
+
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
 

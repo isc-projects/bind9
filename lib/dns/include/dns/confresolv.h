@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confresolv.h,v 1.8 2000/06/22 21:55:28 tale Exp $ */
+
 #ifndef DNS_CONFRESOLV_H
 #define DNS_CONFRESOLV_H 1
 

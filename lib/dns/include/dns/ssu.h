@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ssu.h,v 1.8 2000/06/22 21:56:12 tale Exp $ */
+
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
 

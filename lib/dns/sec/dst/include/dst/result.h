@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.h,v 1.15 2000/06/22 21:56:43 tale Exp $ */
+
 #ifndef DST_RESULT_H
 #define DST_RESULT_H 1
 

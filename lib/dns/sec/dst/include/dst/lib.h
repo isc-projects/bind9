@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lib.h,v 1.3 2000/06/22 21:56:42 tale Exp $ */
+
 #ifndef DST_LIB_H
 #define DST_LIB_H 1
 

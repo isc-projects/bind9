@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: timer.c,v 1.52 2000/06/22 21:57:18 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/condition.h>

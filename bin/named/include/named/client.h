@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: client.h,v 1.37 2000/06/22 21:49:38 tale Exp $ */
+
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
 

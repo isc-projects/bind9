@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ifiter_sysctl.c,v 1.8 2000/06/22 21:58:38 tale Exp $ */
+
 /*
  * Obtain the list of network interfaces using sysctl.
  * See TCP/IP Illustrated Volume 2, sections 19.8, 19.14,

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: client.h,v 1.16 2000/06/22 21:49:10 tale Exp $ */
+
 #ifndef LWD_CLIENT_H
 #define LWD_CLIENT_H 1
 

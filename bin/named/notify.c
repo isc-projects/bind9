@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: notify.c,v 1.17 2000/06/22 21:49:33 tale Exp $ */
+
 #include <config.h>
 
 #include <dns/message.h>

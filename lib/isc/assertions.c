@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: assertions.c,v 1.10 2000/06/22 21:56:49 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: version.c,v 1.6 2000/06/22 21:54:55 tale Exp $ */
+
 char dns_version[] = VERSION;
 
 unsigned int dns_libinterface = LIBINTERFACE;

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: setup.pl,v 1.7 2000/06/22 21:53:13 tale Exp $
+
 #
 # Set up test data for zone transfer quota tests.
 #

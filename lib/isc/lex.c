@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lex.c,v 1.30 2000/06/22 21:56:57 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: resolver.h,v 1.27 2000/06/22 21:56:06 tale Exp $ */
+
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwdgabn.c,v 1.3 2000/06/22 21:49:26 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/socket.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: nxt.h,v 1.8 2000/06/22 21:55:52 tale Exp $ */
+
 #ifndef DNS_NXT_H
 #define DNS_NXT_H 1
 

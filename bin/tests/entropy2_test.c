@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: entropy2_test.c,v 1.4 2000/06/22 21:50:16 tale Exp $ */
+
 #include <isc/entropy.h>
 #include <isc/keyboard.h>
 #include <isc/mem.h>

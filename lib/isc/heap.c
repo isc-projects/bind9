@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: heap.c,v 1.24 2000/06/22 21:56:56 tale Exp $ */
+
 /*
  * Heap implementation of priority queues adapted from the following:
  *

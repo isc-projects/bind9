@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: log.h,v 1.13 2000/06/22 21:49:43 tale Exp $ */
+
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
 

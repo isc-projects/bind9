@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ncache.c,v 1.19 2000/06/22 21:54:33 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/buffer.h>

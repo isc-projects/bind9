@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwresconf_test.c,v 1.7 2000/06/22 21:50:29 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: nconf_test.c,v 1.17 2000/06/22 21:50:35 tale Exp $ */
+
 #include <config.h>
 
 #include <errno.h>

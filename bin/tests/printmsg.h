@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: printmsg.h,v 1.6 2000/06/22 21:50:42 tale Exp $ */
+
 #ifndef TEST_PRINTMSG_H
 #define TEST_PRINTMSG_H
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: interfaceiter.c,v 1.17 2000/06/22 21:58:39 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>

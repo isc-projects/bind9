@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: condition.c,v 1.12 2000/06/22 21:59:03 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/condition.h>

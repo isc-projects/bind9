@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: clean.sh,v 1.5 2000/06/22 21:51:33 tale Exp $
+
 rm -f */K* */.keyset */*.keyset */*.signedkey */*.signed */trusted.conf
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
 rm -f ns3/unsecure.example.db ns3/bogus.example.db

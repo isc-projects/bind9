@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: thread.c,v 1.5 2000/06/22 21:58:18 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/thread.h>

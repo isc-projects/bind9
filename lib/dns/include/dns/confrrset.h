@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confrrset.h,v 1.12 2000/06/22 21:55:29 tale Exp $ */
+
 #ifndef DNS_CONFRRSET_H
 #define DNS_CONFRRSET_H 1
 

@@ -1,6 +1,8 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
+$Id: omapi,v 1.4 2000/06/22 21:53:55 tale Exp $
+
 This file documents the protocol that the ISC DHCP server and ISC
 Object Management clients (clients that use the ISC Object Management
 API) speak between one another.

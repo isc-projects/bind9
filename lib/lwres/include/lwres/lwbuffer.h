@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwbuffer.h,v 1.12 2000/06/22 21:59:49 tale Exp $ */
+
 #ifndef LWRES_LWBUFFER_H
 #define LWRES_LWBUFFER_H 1
 

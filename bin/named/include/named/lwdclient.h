@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwdclient.h,v 1.2 2000/06/22 21:49:45 tale Exp $ */
+
 #ifndef NAMED_LWDCLIENT_H
 #define NAMED_LWDCLIENT_H 1
 

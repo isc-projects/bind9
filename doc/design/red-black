@@ -1,6 +1,8 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
+$Id: red-black,v 1.5 2000/06/22 21:53:57 tale Exp $
+
                  Red-Black Tree Implementation Notes
 
 OVERVIEW

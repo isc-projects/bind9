@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatastructsuf.h,v 1.4 2000/06/22 21:56:30 tale Exp $ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RDATASTRUCT_H */

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ipv6.h,v 1.3 2000/06/22 21:59:46 tale Exp $ */
+
 #ifndef LWRES_IPV6_H
 #define LWRES_IPV6_H 1
 

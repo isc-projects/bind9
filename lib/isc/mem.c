@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: mem.c,v 1.52 2000/06/22 21:57:01 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

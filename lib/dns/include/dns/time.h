@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: time.h,v 1.6 2000/06/22 21:56:14 tale Exp $ */
+
 #ifndef DNS_TIME_H
 #define DNS_TIME_H 1
 

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: nanny.pl,v 1.4 2000/06/22 21:53:36 tale Exp $
+
 # A simple nanny to make sure named stays running.
 
 $pid_file_location = '/var/run/named.pid';

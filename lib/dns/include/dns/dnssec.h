@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dnssec.h,v 1.15 2000/06/22 21:55:37 tale Exp $ */
+
 #ifndef DNS_DNSSEC_H
 #define DNS_DNSSEC_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwbuffer.c,v 1.6 2000/06/22 21:59:30 tale Exp $ */
+
 /* XXXMLG */
 #define REQUIRE(x)
 

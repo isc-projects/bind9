@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: b9status.pl,v 1.8 2000/06/22 21:50:08 tale Exp $
+
 #
 # aggregate reports from all bind9 build environments
 # write a summary of results in html format

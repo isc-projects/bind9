@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: socket.c,v 1.141 2000/06/22 21:58:46 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/param.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: mutexblock.h,v 1.7 2000/06/22 21:57:48 tale Exp $ */
+
 #ifndef ISC_MUTEXBLOCK_H
 #define ISC_MUTEXBLOCK_H 1
 

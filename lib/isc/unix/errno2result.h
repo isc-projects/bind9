@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: errno2result.h,v 1.2 2000/06/22 21:58:33 tale Exp $ */
+
 #include <isc/types.h>
 
 isc_result_t

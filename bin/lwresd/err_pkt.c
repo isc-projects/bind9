@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: err_pkt.c,v 1.5 2000/06/22 21:49:11 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/socket.h>

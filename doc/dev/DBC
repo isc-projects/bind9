@@ -1,6 +1,8 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
+$Id: DBC,v 1.3 2000/06/22 21:54:01 tale Exp $
+
 Design By Contract
 
 BIND 9 uses the "Design by Contract" idea for most function calls.

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: testsock.pl,v 1.2 2000/06/22 21:51:31 tale Exp $
+
 # Test whether the interfaces on 10.53.0.* are up.
 
 

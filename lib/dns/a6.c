@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: a6.c,v 1.14 2000/06/22 21:54:15 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/util.h>

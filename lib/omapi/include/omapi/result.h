@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.h,v 1.5 2000/06/22 22:00:16 tale Exp $ */
+
 #ifndef OMAPI_RESULT_H
 #define OMAPI_RESULT_H 1
 

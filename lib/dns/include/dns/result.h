@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.h,v 1.59 2000/06/22 21:56:07 tale Exp $ */
+
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
 

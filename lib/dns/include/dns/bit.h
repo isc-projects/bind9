@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: bit.h,v 1.4 2000/06/22 21:55:09 tale Exp $ */
+
 #ifndef DNS_BIT_H
 #define DNS_BIT_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rwlock.c,v 1.16 2000/06/22 21:57:11 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/magic.h>

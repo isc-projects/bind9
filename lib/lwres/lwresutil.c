@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwresutil.c,v 1.17 2000/06/22 21:59:38 tale Exp $ */
+
 #include <config.h>
 
 #include <assert.h>

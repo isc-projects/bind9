@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confacl.h,v 1.12 2000/06/22 21:55:15 tale Exp $ */
+
 #ifndef DNS_CONFACL_H
 #define DNS_CONFACL_H 1
 

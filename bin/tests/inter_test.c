@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: inter_test.c,v 1.5 2000/06/22 21:50:24 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

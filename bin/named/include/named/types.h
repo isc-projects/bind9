@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: types.h,v 1.13 2000/06/22 21:49:52 tale Exp $ */
+
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
 

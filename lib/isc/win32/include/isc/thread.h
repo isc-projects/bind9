@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: thread.h,v 1.10 2000/06/22 21:59:18 tale Exp $ */
+
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
 

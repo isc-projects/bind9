@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: condition.h,v 1.10 2000/06/22 21:59:13 tale Exp $ */
+
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: omapi.h,v 1.7 2000/06/22 21:49:49 tale Exp $ */
+
 #ifndef NAMED_OMAPI_H
 #define NAMED_OMAPI_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ratelimiter_test.c,v 1.11 2000/06/22 21:50:43 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/app.h>

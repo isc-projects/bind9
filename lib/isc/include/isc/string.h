@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: string.h,v 1.6 2000/06/22 21:58:06 tale Exp $ */
+
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
 

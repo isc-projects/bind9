@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: bitstring.c,v 1.5 2000/06/22 21:56:50 tale Exp $ */
+
 #include <config.h>
 
 #include <stddef.h>

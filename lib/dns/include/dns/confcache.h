@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confcache.h,v 1.8 2000/06/22 21:55:16 tale Exp $ */
+
 #ifndef DNS_CONFCACHE_H
 #define DNS_CONFCACHE_H 1
 

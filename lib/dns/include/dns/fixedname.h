@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: fixedname.h,v 1.8 2000/06/22 21:55:39 tale Exp $ */
+
 #ifndef DNS_FIXEDNAME_H
 #define DNS_FIXEDNAME_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwdclient.c,v 1.3 2000/06/22 21:49:24 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/socket.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rcode.h,v 1.9 2000/06/22 21:55:56 tale Exp $ */
+
 #ifndef DNS_RCODE_H
 #define DNS_RCODE_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keyboard.c,v 1.4 2000/06/22 21:58:42 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/param.h>

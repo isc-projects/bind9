@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tcpmsg.h,v 1.12 2000/06/22 21:56:13 tale Exp $ */
+
 #ifndef DNS_TCPMSG_H
 #define DNS_TCPMSG_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lex.h,v 1.19 2000/06/22 21:57:39 tale Exp $ */
+
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rename.h,v 1.8 2000/06/22 21:56:32 tale Exp $ */
+
 #ifndef SEC_RENAME_H
 #define SEC_RENAME_H 1
 

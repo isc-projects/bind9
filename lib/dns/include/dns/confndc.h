@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confndc.h,v 1.8 2000/06/22 21:55:26 tale Exp $ */
+
 #ifndef DNS_CONFNDC_H
 #define DNS_CONFNDC_H 1
 

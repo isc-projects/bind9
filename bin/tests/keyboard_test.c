@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keyboard_test.c,v 1.2 2000/06/22 21:50:25 tale Exp $ */
+
 #include <isc/keyboard.h>
 #include <isc/util.h>
 

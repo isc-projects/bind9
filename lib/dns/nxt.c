@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: nxt.c,v 1.18 2000/06/22 21:54:34 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/string.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dispatch.c,v 1.57 2000/06/22 21:54:23 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

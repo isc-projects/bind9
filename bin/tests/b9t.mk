@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: b9t.mk,v 1.7 2000/06/22 21:50:09 tale Exp $
+
 #
 # makefile to configure, build and test bind9
 # this is run by cron (user wpk) on aa, sol, irix, hp and aix

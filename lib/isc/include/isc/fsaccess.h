@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: fsaccess.h,v 1.3 2000/06/22 21:57:34 tale Exp $ */
+
 /*
  * The ISC filesystem access module encapsulates the setting of file
  * and directory access permissions into one API that is meant to be

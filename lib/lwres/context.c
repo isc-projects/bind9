@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: context.c,v 1.24 2000/06/22 21:59:23 tale Exp $ */
+
 #include <config.h>
 
 #include <fcntl.h>

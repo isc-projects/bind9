@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: fsaccess.c,v 1.3 2000/06/22 21:59:06 tale Exp $ */
+
 #include <windows.h>
 #include <winerror.h>
 #include <aclapi.h>

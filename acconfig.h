@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: acconfig.h,v 1.23 2000/06/22 21:48:56 tale Exp $ */
+
 /***
  *** This file is not to be included by any public header files, because
  *** it does not get installed.

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: validator.h,v 1.10 2000/06/22 21:56:21 tale Exp $ */
+
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
 

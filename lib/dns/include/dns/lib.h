@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lib.h,v 1.3 2000/06/22 21:55:45 tale Exp $ */
+
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
 

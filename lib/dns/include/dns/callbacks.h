@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: callbacks.h,v 1.12 2000/06/22 21:55:12 tale Exp $ */
+
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: byaddr.h,v 1.8 2000/06/22 21:55:10 tale Exp $ */
+
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
 

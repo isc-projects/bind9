@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: event.c,v 1.11 2000/06/22 21:56:54 tale Exp $ */
+
 /*
  * Principal Author: Bob Halley
  */

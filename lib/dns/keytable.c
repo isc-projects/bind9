@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keytable.c,v 1.19 2000/06/22 21:54:27 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

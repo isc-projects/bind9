@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: types.h,v 1.5 2000/06/22 22:00:17 tale Exp $ */
+
 #ifndef OMAPI_TYPES_H
 #define OMAPI_TYPES_H 1
 

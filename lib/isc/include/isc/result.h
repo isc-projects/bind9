@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.h,v 1.44 2000/06/22 21:57:59 tale Exp $ */
+
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
 

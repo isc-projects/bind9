@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ratelimiter.h,v 1.10 2000/06/22 21:57:57 tale Exp $ */
+
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1
 

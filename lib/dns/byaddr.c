@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: byaddr.c,v 1.16 2000/06/22 21:54:20 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

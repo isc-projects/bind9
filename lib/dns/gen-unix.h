@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: gen-unix.h,v 1.8 2000/06/22 21:54:25 tale Exp $ */
+
 /*
  * This file is responsible for defining two operations that are not
  * directly portable between Unix-like systems and Windows NT, option

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: os.c,v 1.3 2000/06/22 21:58:44 tale Exp $ */
+
 #include <config.h>
 
 #include <unistd.h>

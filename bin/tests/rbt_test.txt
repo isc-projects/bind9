@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: rbt_test.txt,v 1.9 2000/06/22 21:50:45 tale Exp $
+
 add a.vix.com
 add b.vix.com
 add c.vix.com

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dispatch.h,v 1.30 2000/06/22 21:55:36 tale Exp $ */
+
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
 

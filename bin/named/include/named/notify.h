@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: notify.h,v 1.6 2000/06/22 21:49:48 tale Exp $ */
+
 #ifndef NAMED_NOTIFY_H
 #define NAMED_NOTIFY_H 1
 

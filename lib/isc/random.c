@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: random.c,v 1.7 2000/06/22 21:57:08 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: xfrin.h,v 1.12 2000/06/22 21:56:24 tale Exp $ */
+
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
 

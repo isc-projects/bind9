@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_timers.c,v 1.11 2000/06/22 21:53:28 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

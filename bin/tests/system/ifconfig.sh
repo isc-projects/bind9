@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: ifconfig.sh,v 1.16 2000/06/22 21:51:26 tale Exp $
+
 #
 # Set up interface aliases for bind9 system tests.
 #

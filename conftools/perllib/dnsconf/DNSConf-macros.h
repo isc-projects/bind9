@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: DNSConf-macros.h,v 1.3 2000/06/22 21:53:29 tale Exp $ */
+
 #define CONCAT(a,b) a ## b
 #define DNSCONF_SET_STRING(FIELD)					\
 void CONCAT(DNSConf_set, FIELD)(DNSConf *cfg, const char *arg) {	\

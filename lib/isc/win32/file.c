@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: file.c,v 1.3 2000/06/22 21:59:04 tale Exp $ */
+
 #include <string.h>
 
 #undef TEMPLATE

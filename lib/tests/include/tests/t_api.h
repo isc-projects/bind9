@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_api.h,v 1.9 2000/06/22 22:00:26 tale Exp $ */
+
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1
 

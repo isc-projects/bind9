@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ondestroy.c,v 1.7 2000/06/22 21:57:05 tale Exp $ */
+
 #include <config.h>
 
 #include <stddef.h>

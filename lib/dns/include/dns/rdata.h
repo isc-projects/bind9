@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdata.h,v 1.38 2000/06/22 21:55:57 tale Exp $ */
+
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
 

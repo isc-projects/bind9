@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: result.c,v 1.44 2000/06/22 21:57:10 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lib.c,v 1.4 2000/06/22 21:56:59 tale Exp $ */
+
 #include <config.h>
 
 #include <stdio.h>

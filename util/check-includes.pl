@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: check-includes.pl,v 1.3 2000/06/22 22:00:32 tale Exp $
+
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it
 # bulletproof or foolproof.  Or pretty even.  Probably would

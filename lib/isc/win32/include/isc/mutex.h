@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: mutex.h,v 1.10 2000/06/22 21:59:15 tale Exp $ */
+
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
 

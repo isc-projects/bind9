@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: bufferlist.h,v 1.7 2000/06/22 21:57:26 tale Exp $ */
+
 #ifndef ISC_BUFFERLIST_H
 #define ISC_BUFFERLIST_H 1
 

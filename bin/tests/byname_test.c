@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: byname_test.c,v 1.18 2000/06/22 21:50:11 tale Exp $ */
+
 /*
  * Principal Author: Bob Halley
  */

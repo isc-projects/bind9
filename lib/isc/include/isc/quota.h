@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: quota.h,v 1.5 2000/06/22 21:57:55 tale Exp $ */
+
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
 

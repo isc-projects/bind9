@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: context.h,v 1.9 2000/06/22 21:59:44 tale Exp $ */
+
 #ifndef LWRES_CONTEXT_H
 #define LWRES_CONTEXT_H 1
 

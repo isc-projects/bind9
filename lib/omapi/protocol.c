@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: protocol.c,v 1.27 2000/06/22 22:00:02 tale Exp $ */
+
 /*
  * Functions supporting the object management protocol.
  */

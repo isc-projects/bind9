@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: random.h,v 1.5 2000/06/22 21:57:56 tale Exp $ */
+
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
 

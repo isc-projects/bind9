@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: error.h,v 1.10 2000/06/22 21:57:28 tale Exp $ */
+
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1
 

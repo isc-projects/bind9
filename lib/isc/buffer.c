@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: buffer.c,v 1.32 2000/06/22 21:56:51 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/buffer.h>

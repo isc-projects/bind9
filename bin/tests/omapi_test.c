@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: omapi_test.c,v 1.22 2000/06/22 21:50:39 tale Exp $ */
+
 /* 
  * Test code for OMAPI.
  */

@@ -17,6 +17,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: dst_internal.h,v 1.25 2000/06/22 21:56:36 tale Exp $ */
+
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
 

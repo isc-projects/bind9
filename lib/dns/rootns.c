@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rootns.c,v 1.13 2000/06/22 21:54:48 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/buffer.h>

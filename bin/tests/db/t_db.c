@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: t_db.c,v 1.22 2000/06/22 21:51:03 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

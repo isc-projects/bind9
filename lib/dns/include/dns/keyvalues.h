@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: keyvalues.h,v 1.7 2000/06/22 21:55:44 tale Exp $ */
+
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwres_noop.c,v 1.10 2000/06/22 21:59:37 tale Exp $ */
+
 #include <config.h>
 
 #include <assert.h>

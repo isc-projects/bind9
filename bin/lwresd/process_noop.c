@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: process_noop.c,v 1.7 2000/06/22 21:49:16 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/socket.h>

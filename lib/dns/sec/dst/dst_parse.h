@@ -17,6 +17,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: dst_parse.h,v 1.14 2000/06/22 21:56:37 tale Exp $ */
+
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1
 

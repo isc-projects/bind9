@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: stdtime.h,v 1.5 2000/06/22 21:58:59 tale Exp $ */
+
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1
 

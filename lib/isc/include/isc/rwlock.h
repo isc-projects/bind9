@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rwlock.h,v 1.11 2000/06/22 21:58:01 tale Exp $ */
+
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 

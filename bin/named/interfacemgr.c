@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: interfacemgr.c,v 1.44 2000/06/22 21:49:19 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/interfaceiter.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tsig.h,v 1.24 2000/06/22 21:56:17 tale Exp $ */
+
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confkeys.h,v 1.17 2000/06/22 21:55:22 tale Exp $ */
+
 #ifndef DNS_CONFKEYS_H
 #define DNS_CONFKEYS_H 1
 

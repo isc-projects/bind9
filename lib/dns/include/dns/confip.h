@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confip.h,v 1.21 2000/06/22 21:55:21 tale Exp $ */
+
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: types.h,v 1.87 2000/06/22 21:56:20 tale Exp $ */
+
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 

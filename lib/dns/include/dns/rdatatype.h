@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatatype.h,v 1.11 2000/06/22 21:56:04 tale Exp $ */
+
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
 

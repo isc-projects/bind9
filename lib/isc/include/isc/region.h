@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: region.h,v 1.12 2000/06/22 21:57:58 tale Exp $ */
+
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
 

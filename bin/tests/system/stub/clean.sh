@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: clean.sh,v 1.2 2000/06/22 21:52:32 tale Exp $
+
 #
 # Clean up after zone transfer tests.
 #

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: secproto.h,v 1.6 2000/06/22 21:56:10 tale Exp $ */
+
 #ifndef DNS_SECPROTO_H
 #define DNS_SECPROTO_H 1
 

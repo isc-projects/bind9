@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatalist.h,v 1.10 2000/06/22 21:55:59 tale Exp $ */
+
 #ifndef DNS_RDATALIST_H
 #define DNS_RDATALIST_H 1
 

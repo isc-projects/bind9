@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ondestroy.h,v 1.4 2000/06/22 21:57:50 tale Exp $ */
+
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1
 

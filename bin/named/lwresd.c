@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwresd.c,v 1.8 2000/06/22 21:49:30 tale Exp $ */
+
 /*
  * Main program for the Lightweight Resolver Daemon.
  *

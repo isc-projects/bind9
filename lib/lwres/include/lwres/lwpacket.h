@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwpacket.h,v 1.13 2000/06/22 21:59:50 tale Exp $ */
+
 #ifndef LWRES_LWPACKET_H
 #define LWRES_LWPACKET_H 1
 

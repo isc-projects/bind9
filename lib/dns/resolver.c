@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: resolver.c,v 1.137 2000/06/22 21:54:46 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/task.h>

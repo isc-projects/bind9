@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: adb.c,v 1.142 2000/06/22 21:54:19 tale Exp $ */
+
 /*
  * Implementation notes
  * --------------------

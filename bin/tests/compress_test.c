@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: compress_test.c,v 1.18 2000/06/22 21:50:12 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

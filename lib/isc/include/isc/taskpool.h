@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: taskpool.h,v 1.4 2000/06/22 21:58:09 tale Exp $ */
+
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: tsigconf.c,v 1.7 2000/06/22 21:54:51 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/base64.h>

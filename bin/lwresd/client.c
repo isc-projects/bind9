@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: client.c,v 1.28 2000/06/22 21:49:09 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/socket.h>

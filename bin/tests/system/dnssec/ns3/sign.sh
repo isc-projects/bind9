@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: sign.sh,v 1.8 2000/06/22 21:51:53 tale Exp $
+
 RANDFILE=../random.data
 
 zone=secure.example.

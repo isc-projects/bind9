@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: stdio.c,v 1.2 2000/06/22 21:58:47 tale Exp $ */
+
 #include <config.h>
 
 #include <errno.h>

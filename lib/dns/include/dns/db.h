@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: db.h,v 1.50 2000/06/22 21:55:33 tale Exp $ */
+
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
 

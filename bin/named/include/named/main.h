@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: main.h,v 1.4 2000/06/22 21:49:47 tale Exp $ */
+
 #ifndef NAMED_MAIN_H
 #define NAMED_MAIN_H 1
 

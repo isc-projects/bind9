@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: main.c,v 1.71 2000/06/22 21:49:31 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

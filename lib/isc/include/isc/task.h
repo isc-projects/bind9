@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: task.h,v 1.44 2000/06/22 21:58:08 tale Exp $ */
+
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
 

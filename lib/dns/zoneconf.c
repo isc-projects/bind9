@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: zoneconf.c,v 1.43 2000/06/22 21:54:57 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/string.h>		/* Required for HP/UX (and others?) */

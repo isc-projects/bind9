@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: setup.sh,v 1.6 2000/06/22 21:51:35 tale Exp $
+
 cd ns1 && sh sign.sh
 
 echo "a.bogus.example.	A	10.0.0.22" >>../ns3/bogus.example.db.signed

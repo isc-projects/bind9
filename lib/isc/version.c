@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: version.c,v 1.6 2000/06/22 21:57:19 tale Exp $ */
+
 char isc_version[] = VERSION;
 
 unsigned int isc_libinterface = LIBINTERFACE;

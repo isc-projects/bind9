@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: DNSConf.i,v 1.3 2000/06/22 21:53:31 tale Exp $ */
+
 %module DNSConf
 
 %{

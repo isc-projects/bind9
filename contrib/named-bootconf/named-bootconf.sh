@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: named-bootconf.sh,v 1.4 2000/06/22 21:53:35 tale Exp $
+
 # $NetBSD: named-bootconf.sh,v 1.5 1998/12/15 01:00:53 tron Exp $
 #
 # Copyright (c) 1995, 1998 The NetBSD Foundation, Inc.

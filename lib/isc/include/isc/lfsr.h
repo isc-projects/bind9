@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lfsr.h,v 1.6 2000/06/22 21:57:40 tale Exp $ */
+
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: stdio.h,v 1.2 2000/06/22 21:58:05 tale Exp $ */
+
 #include <stdio.h>
 
 #include <isc/result.h>

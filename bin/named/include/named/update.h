@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: update.h,v 1.4 2000/06/22 21:49:54 tale Exp $ */
+
 #ifndef NAMED_UPDATE_H
 #define NAMED_UPDATE_H 1
 

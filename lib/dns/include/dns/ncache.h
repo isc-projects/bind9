@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ncache.h,v 1.9 2000/06/22 21:55:51 tale Exp $ */
+
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
 

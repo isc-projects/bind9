@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: condition.c,v 1.22 2000/06/22 21:58:17 tale Exp $ */
+
 #include <config.h>
 
 #include <errno.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: request.h,v 1.11 2000/06/22 21:56:05 tale Exp $ */
+
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
 

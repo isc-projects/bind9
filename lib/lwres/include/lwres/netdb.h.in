@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: netdb.h.in,v 1.22 2000/06/22 21:59:54 tale Exp $ */
+
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 

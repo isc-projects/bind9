@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: file.h,v 1.7 2000/06/22 21:57:32 tale Exp $ */
+
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
 

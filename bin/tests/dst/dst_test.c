@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dst_test.c,v 1.28 2000/06/22 21:51:05 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

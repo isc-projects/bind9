@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: server.h,v 1.32 2000/06/22 21:49:51 tale Exp $ */
+
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
 

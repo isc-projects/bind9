@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: gethost.c,v 1.17 2000/06/22 21:59:27 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>

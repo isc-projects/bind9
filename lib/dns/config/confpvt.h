@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confpvt.h,v 1.8 2000/06/22 21:55:01 tale Exp $ */
+
 #ifndef CONFIG_CONFPVT_H
 #define CONFIG_CONFPVT_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: adb.h,v 1.57 2000/06/22 21:55:08 tale Exp $ */
+
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
 

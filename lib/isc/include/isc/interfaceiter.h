@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: interfaceiter.h,v 1.7 2000/06/22 21:57:36 tale Exp $ */
+
 #ifndef ISC_INTERFACEITER_H
 #define ISC_INTERFACEITER_H 1
 

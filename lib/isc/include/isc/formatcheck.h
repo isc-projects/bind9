@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: formatcheck.h,v 1.3 2000/06/22 21:57:33 tale Exp $ */
+
 #ifndef ISC_FORMATCHECK_H
 #define ISC_FORMATCHECK_H 1
 

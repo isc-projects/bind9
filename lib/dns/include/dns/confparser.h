@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confparser.h,v 1.10 2000/06/22 21:55:27 tale Exp $ */
+
 #ifndef DNS_CONFPARSER_H
 #define DNS_CONFPARSER_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: eventclass.h,v 1.9 2000/06/22 21:57:31 tale Exp $ */
+
 #ifndef ISC_EVENTCLASS_H
 #define ISC_EVENTCLASS_H 1
 

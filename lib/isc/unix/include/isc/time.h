@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: time.h,v 1.20 2000/06/22 21:59:01 tale Exp $ */
+
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: ttl.h,v 1.9 2000/06/22 21:56:19 tale Exp $ */
+
 #ifndef DNS_TTL_H
 #define DNS_TTL_H 1
 

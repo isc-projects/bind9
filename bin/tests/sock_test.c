@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: sock_test.c,v 1.43 2000/06/22 21:50:52 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

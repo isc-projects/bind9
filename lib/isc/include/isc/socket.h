@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: socket.h,v 1.47 2000/06/22 21:58:03 tale Exp $ */
+
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: version.c,v 1.3 2000/06/22 21:59:39 tale Exp $ */
+
 char lwres_version[] = VERSION;
 
 unsigned int lwres_libinterface = LIBINTERFACE;

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: compatibility.h,v 1.4 2000/06/22 22:00:09 tale Exp $ */
+
 #ifndef OMAPI_COMPATIBILITY_H
 #define OMAPI_COMPATIBILITY_H 1
 

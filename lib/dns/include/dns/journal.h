@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: journal.h,v 1.17 2000/06/22 21:55:40 tale Exp $ */
+
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
 

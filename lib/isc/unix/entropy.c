@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: entropy.c,v 1.42 2000/06/22 21:58:32 tale Exp $ */
+
 #include <config.h>
 
 #include <errno.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwres.h,v 1.37 2000/06/22 21:59:51 tale Exp $ */
+
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
 

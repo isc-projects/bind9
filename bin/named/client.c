@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: client.c,v 1.96 2000/06/22 21:49:18 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/print.h>

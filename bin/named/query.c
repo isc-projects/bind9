@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: query.c,v 1.109 2000/06/22 21:49:34 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

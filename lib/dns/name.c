@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: name.c,v 1.93 2000/06/22 21:54:32 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

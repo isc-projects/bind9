@@ -13,6 +13,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: b8status.pl,v 1.5 2000/06/22 21:50:05 tale Exp $
+
 #
 # aggregate reports from all bind8 build environments
 # write a summary of results in html format

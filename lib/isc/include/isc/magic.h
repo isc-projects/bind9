@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: magic.h,v 1.8 2000/06/22 21:57:44 tale Exp $ */
+
 #ifndef ISC_MAGIC_H
 #define ISC_MAGIC_H 1
 

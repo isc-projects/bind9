@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: query.h,v 1.17 2000/06/22 21:49:50 tale Exp $ */
+
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
 

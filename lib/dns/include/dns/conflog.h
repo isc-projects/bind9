@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: conflog.h,v 1.13 2000/06/22 21:55:23 tale Exp $ */
+
 #ifndef DNS_CONFLOG_H
 #define DNS_CONFLOG_H 1
 

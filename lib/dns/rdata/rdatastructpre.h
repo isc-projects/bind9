@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatastructpre.h,v 1.9 2000/06/22 21:56:29 tale Exp $ */
+
 #ifndef DNS_RDATASTRUCT_H
 #define DNS_RDATASTRUCT_H 1
 

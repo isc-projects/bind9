@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lwres_gabn.c,v 1.21 2000/06/22 21:59:34 tale Exp $ */
+
 #include <config.h>
 
 #include <assert.h>

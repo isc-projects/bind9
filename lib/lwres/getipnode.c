@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: getipnode.c,v 1.20 2000/06/22 21:59:28 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>

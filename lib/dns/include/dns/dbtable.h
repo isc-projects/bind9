@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dbtable.h,v 1.13 2000/06/22 21:55:35 tale Exp $ */
+
 #ifndef DNS_DBTABLE_H
 #define DNS_DBTABLE_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: resultclass.h,v 1.7 2000/06/22 21:58:00 tale Exp $ */
+
 #ifndef ISC_RESULTCLASS_H
 #define ISC_RESULTCLASS_H 1
 

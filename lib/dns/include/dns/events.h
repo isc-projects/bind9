@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: events.h,v 1.24 2000/06/22 21:55:38 tale Exp $ */
+
 #ifndef DNS_EVENTS_H
 #define DNS_EVENTS_H 1
 

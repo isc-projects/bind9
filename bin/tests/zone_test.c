@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: zone_test.c,v 1.20 2000/06/22 21:51:01 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

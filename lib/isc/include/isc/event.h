@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: event.h,v 1.20 2000/06/22 21:57:30 tale Exp $ */
+
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 

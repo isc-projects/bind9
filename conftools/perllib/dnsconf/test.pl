@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: test.pl,v 1.3 2000/06/22 21:53:34 tale Exp $
+
 push(@ARGV, "/etc/named.conf") if ! @ARGV;
 
 use DNSConf;

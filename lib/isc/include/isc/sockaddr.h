@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: sockaddr.h,v 1.30 2000/06/22 21:58:02 tale Exp $ */
+
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 

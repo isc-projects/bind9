@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: buffer.h,v 1.33 2000/06/22 21:57:25 tale Exp $ */
+
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
 

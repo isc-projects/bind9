@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: lfsr.c,v 1.8 2000/06/22 21:56:58 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

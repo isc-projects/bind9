@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: net.c,v 1.10 2000/06/22 21:58:43 tale Exp $ */
+
 #include <config.h>
 
 #include <errno.h>

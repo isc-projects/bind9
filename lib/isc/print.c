@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: print.c,v 1.11 2000/06/22 21:57:06 tale Exp $ */
+
 #include <config.h>
 
 #include <ctype.h>

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdatasetiter.h,v 1.10 2000/06/22 21:56:02 tale Exp $ */
+
 #ifndef DNS_RDATASETITER_H
 #define DNS_RDATASETITER_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: peer.h,v 1.10 2000/06/22 21:55:54 tale Exp $ */
+
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: confzone.h,v 1.35 2000/06/22 21:55:31 tale Exp $ */
+
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
 

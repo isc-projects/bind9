@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: netdb.h,v 1.3 2000/06/22 21:59:17 tale Exp $ */
+
 #ifndef ISC_NETDB_H
 #define ISC_NETDB_H 1
 

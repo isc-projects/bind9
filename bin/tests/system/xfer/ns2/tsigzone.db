@@ -13,6 +13,8 @@
 ; ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ; SOFTWARE.
 
+; $Id: tsigzone.db,v 1.3 2000/06/22 21:53:08 tale Exp $
+
 $ORIGIN .
 $TTL 300	; 5 minutes
 tsigzone			IN SOA	ns2.tsigzone. hostmaster.tsigzone. (

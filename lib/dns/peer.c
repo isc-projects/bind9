@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: peer.c,v 1.8 2000/06/22 21:54:35 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

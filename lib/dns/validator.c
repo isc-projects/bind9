@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: validator.c,v 1.63 2000/06/22 21:54:54 tale Exp $ */
+
 #include <config.h>
 
 #include <isc/mem.h>

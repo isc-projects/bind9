@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rdataclass.h,v 1.12 2000/06/22 21:55:58 tale Exp $ */
+
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
 

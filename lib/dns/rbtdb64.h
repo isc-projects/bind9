@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: rbtdb64.h,v 1.8 2000/06/22 21:54:40 tale Exp $ */
+
 #ifndef DNS_RBTDB64_H
 #define DNS_RBTDB64_H 1
 

@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: dnssectool.c,v 1.12 2000/06/22 21:49:05 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

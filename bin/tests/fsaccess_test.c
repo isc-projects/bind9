@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: fsaccess_test.c,v 1.3 2000/06/22 21:50:18 tale Exp $ */
+
 #include <stdio.h>
 
 #include <isc/fsaccess.h>

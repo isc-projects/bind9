@@ -15,6 +15,8 @@
  * SOFTWARE.
  */
 
+/* $Id: cert.h,v 1.9 2000/06/22 21:55:13 tale Exp $ */
+
 #ifndef DNS_CERT_H
 #define DNS_CERT_H 1
 

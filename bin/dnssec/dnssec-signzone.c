@@ -17,6 +17,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: dnssec-signzone.c,v 1.81 2000/06/22 21:49:04 tale Exp $ */
+
 #include <config.h>
 
 #include <stdlib.h>

@@ -15,6 +15,8 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
+# $Id: merge_copyrights,v 1.10 2000/06/22 22:00:38 tale Exp $
+
 %file_types = ();
 %file_years = ();
 
