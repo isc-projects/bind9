@@ -1,0 +1,579 @@
+
+
+  INTERNET-DRAFT                                             Eric A. Hall 
+  Document: draft-hall-dns-data-00.txt                           May 2003 
+  Expires: December, 2003                                                 
+  Category: Informational                                                 
+      
+                   Considerations for DNS Resource Records 
+      
+      
+     Status of this Memo 
+      
+     This document is an Internet-Draft and is in full conformance with 
+     all provisions of Section 10 of RFC 2026. 
+      
+     Internet-Drafts are working documents of the Internet Engineering 
+     Task Force (IETF), its areas, and its working groups. Note that 
+     other groups may also distribute working documents as Internet-
+     Drafts. 
+      
+     Internet-Drafts are draft documents valid for a maximum of six 
+     months and may be updated, replaced, or obsoleted by other 
+     documents at any time. It is inappropriate to use Internet-Drafts 
+     as reference material or to cite them other than as "work in 
+     progress." 
+      
+     The list of current Internet-Drafts can be accessed at 
+     http://www.ietf.org/ietf/1id-abstracts.txt 
+      
+     The list of Internet-Draft Shadow Directories can be accessed at 
+     http://www.ietf.org/shadow.html. 
+      
+      
+     Copyright Notice 
+      
+     Copyright (C) The Internet Society (2003).  All Rights Reserved. 
+      
+      
+     Abstract 
+      
+     This document discusses some common issues which should be taken 
+     into consideration whenever any new service proposes to extend the 
+     Domain Name Service. 
+      
+   
+   
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+      
+     Table of Contents 
+      
+     1.   Introduction...............................................2 
+     2.   Prerequisites and Terminology..............................3 
+     3.   DNS Architectural Principles...............................3 
+       3.1.  Resource Records........................................3 
+       3.2.  Hierarchical Partitioning...............................4 
+       3.3.  Minimalist Messages.....................................4 
+       3.4.  Built-In Record Caching.................................5 
+     4.   Inherent Design Limitations................................5 
+       4.1.  Domain Name Length......................................5 
+       4.2.  Ambiguity...............................................5 
+       4.3.  Incomplete Answer Sets..................................6 
+       4.4.  Lookups Only............................................6 
+       4.5.  UDP and TCP Restriction.................................7 
+       4.6.  Compression.............................................7 
+       4.7.  Cache Overflow..........................................8 
+       4.8.  Cache Lag...............................................8 
+       4.9.  World-Readable Data.....................................9 
+     5.   Design Conclusion.........................................10 
+     6.   Going Standards-Track.....................................10 
+     7.   Security Considerations...................................11 
+     8.   IANA Considerations.......................................11 
+     9.   Author's Address..........................................11 
+     10.  Normative References......................................11 
+     11.  Acknowledgments...........................................11 
+     12.  Full Copyright Statement..................................11 
+      
+  1.      Introduction 
+      
+     In terms of deployment, the Domain Name System (DNS) [STD13] is an 
+     extremely successful network service, having perhaps the widest 
+     installed base and usage of any Internet service. Unfortunately, 
+     this omnipresence makes DNS a favorite target for well-intentioned 
+     but often-misguided efforts to extend the service into roles it is 
+     unsuited for, particularly due to its specialized nature. This 
+     document attempts to itemize the issues which prevent this 
+     expansion so that future developers and planners can be made aware 
+     of the limitations early in the development cycles. 
+      
+     Note that this document does not define any formal rules or 
+     restrictions of any kind. Instead, the sole purpose of this 
+     document is to itemize the common reasons why various extension 
+     efforts have been rejected by the DNS community in the past, and 
+     why other efforts may be rejected in the future. It is entirely 
+   
+  Hall                  I-D Expires: December 2003             [page 2] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     possible for a usage model to be embraced by the DNS community 
+     even though all of the principles listed within this document are 
+     violated (although it is extremely unlikely), and as such, this 
+     document should not be considered as a governing device of any 
+     kind. Instead, this document should only be viewed as a planning 
+     aid for developers and planners to use when considering the 
+     creation of new uses for the DNS. 
+      
+  2.      Prerequisites and Terminology 
+      
+     Readers of this document are expected to be familiar with the 
+     following specifications: 
+      
+          [RFC1034]     Mockapetris, P. "Domain names - concepts and 
+                         facilities", STD 13, RFC 1034, November 1987. 
+      
+          [RFC1035]     Mockapetris, P. "Domain names - implementation 
+                         and specification", STD 13, RFC 1035, November 
+                         1987. 
+      
+          [RFC1123]     Braden, R. "Requirements for Internet Hosts - 
+                         Application and Support", STD 3, RFC 1123, 
+                         October 1989. 
+      
+          [RFC2181]     Elz, R., and Bush, R. "Clarifications to the 
+                         DNS Specification", RFC 2181, July 1997. 
+      
+     The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL 
+     NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" 
+     in this document are to be interpreted as described in RFC 2119. 
+      
+      
+  3.      DNS Architectural Principles 
+      
+     The current collection of DNS specifications define a lightweight 
+     lookup service which provides anonymous access to structured 
+     information about named entries from distributed database 
+     partitions ("zones"). The service is specifically optimized for 
+     "lookup by name" datagram transactions, distributed caches of 
+     previous lookup answer sets, and non-authenticated access. 
+      
+  3.1.    Resource Records 
+      
+     All data stored in DNS uses a common record format, consisting of 
+     six common fields (although one of these fields is a generic 
+     "data" field which varies in size and shape according to the type 
+     of data being provided). Four of these fields ("domain name", 
+   
+  Hall                  I-D Expires: December 2003             [page 3] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     "type", "class" and "data") provide attributes which collectively 
+     form a unique identifier for a piece of data. Any three of these 
+     four fields may be identical across multiple resource records; for 
+     example, multiple resource records may exist with the same domain 
+     name, type and class, but they must have different data values in 
+     order to represent unique records within the global DNS. 
+      
+     For the purposes of this document, the most important of these 
+     fields is the domain name field, which provides a non-unique 
+     identifier for every record in the database. All queries must 
+     explicitly identify the domain name of the entry they are looking 
+     for, and may optionally specify the desired type and/or class 
+     values. If a query results in multiple matches, then all of the 
+     matching records must be returned. 
+      
+  3.2.    Hierarchical Partitioning 
+      
+     From a high-level perspective, the DNS database is distributed 
+     across multiple partitions called "zones", each of which have 
+     ownership for a specific subset of domain names. Zones are linked 
+     in a hierarchical tree, with the top-level zones having zones 
+     directly beneath them, and with some of those having additional 
+     subordinate zones, and so forth. Although the zones are structured 
+     in a hierarchical tree, each zone acts as an independent entity, 
+     and is only concerned with the records that it controls directly. 
+      
+     The hierarchical partitioning structure is traversed whenever the 
+     DNS protocol needs to locate the zone which is authoritative for a 
+     named resource record. When a resolver asks for the resource 
+     records associated with a specific domain name, the zone hierarchy 
+     is followed until either an answer or an error is returned. In 
+     this regard, the domain name of a resource record provides a 
+     lookup key which is used by the protocol to navigate the zone 
+     structure itself. 
+      
+  3.3.    Minimalist Messages 
+      
+     The DNS protocol uses a binary message format which is designed 
+     specifically for lookup transactions. There are very few spurious 
+     bits or fields in the DNS message (there is no "version" field, 
+     for example). Among these optimizations are protocol-specific 
+     compression techniques which reduce message sizes, and the 
+     preferential use of UDP datagrams for the lookup transactions. 
+      
+   
+  Hall                  I-D Expires: December 2003             [page 4] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+      
+  3.4.    Built-In Record Caching 
+      
+     Further contributing to the lookup-centric design objective, DNS 
+     resolvers and servers are allowed to cache resource records that 
+     they have discovered, so that subsequent queries for duplicate 
+     data may be retrieved without having to reissue a complex query. 
+      
+  4.      Inherent Design Limitations 
+      
+     As a result of the highly-optimized lookup model, DNS has several 
+     critical built-in limitations. For example, DNS does not provide 
+     any functions to "search by value", nor does it provide any sort 
+     of mechanisms for cache-overrides, user authentication, access 
+     control services, nor most of the other mechanisms that are 
+     typically associated with richer (and slower) distributed 
+     directory or database services. 
+      
+     Although DNS could be extended to accommodate some of these 
+     usages, such an effort would require a significant amount of 
+     design effort, and would likely require a complete redeployment of 
+     the associated software agents. Furthermore, there is a 
+     significant danger of overloading DNS with excessive features and 
+     data such that the service itself would be incapable of performing 
+     lightweight lookups for named entries quickly and efficiently. 
+      
+  4.1.    Domain Name Length 
+      
+     Domain names are restricted to a maximum length of 255 characters. 
+     Since a domain name is the primary identifier for a resource 
+     record -- and since the domain name of a record also identifies 
+     the zone where a record is stored -- the length of a domain name 
+     is can be a significant restriction. 
+      
+     For example, a resource record in a zone that is nested several 
+     layers deep may have to be significantly shorter than a domain 
+     name for the same kind of resource record in a top-level hierarchy 
+     to comply with the length restriction. As a result, data models 
+     which require application-specific labels or sequences can be 
+     problematic for some users and should generally be avoided. 
+      
+  4.2.    Ambiguity 
+      
+     Although resource records provide six common fields, only three of 
+     these fields can be specified in a lookup query (domain name, 
+     record type, and network class). However, if multiple resource 
+   
+  Hall                  I-D Expires: December 2003             [page 5] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     records exist with identical values for these fields (but with 
+     different values in the data field), then all of those records 
+     will be returned. As such, it is not possible to explicitly 
+     request an exact resource record from among a set, unless only one 
+     instance of that record type exists at that domain name. 
+      
+     However, it is not possible to guarantee that a particular 
+     resource record type will only exist in the singular form at any 
+     given time. Although it is possible to demand that administrators 
+     "MUST NOT" enter a particular resource record more than once for 
+     any domain name, such demands are at the whims of the systems in 
+     the query path, and are generally unenforceable. 
+      
+     In short, it is not possible to guarantee that a newly-defined 
+     resource record will only exist in the singular form. Data models 
+     which depend on singular instances of a particular record should 
+     be designed with this issue in mind. 
+      
+  4.3.    Incomplete Answer Sets 
+      
+     Just as it is not possible to extract a single resource record 
+     from a set, it is not always possible to be sure that you will 
+     receive all of the resource records in a set. Specifically, the 
+     original DNS specifications allowed each resource record in a set 
+     to have different time-to-live values, and this allowed (in 
+     theory) each record in the set to be aged out of a cache at 
+     different times. Furthermore, there have been some bugs in some 
+     implementations which resulted in incomplete answer sets being 
+     sent and subsequently cached by other nodes. 
+      
+     Although these problems have mostly been addressed over time, it 
+     is still not possible to guarantee with absolute certainty that 
+     all of the records in a set will always be returned. Data models 
+     which depend on spreading answer data over multiple resource 
+     records in a set should be designed with this in mind. 
+      
+  4.4.    Lookups Only 
+      
+     DNS currently only provides a lookup query, using the domain name 
+     of the query as an index value. DNS does not provide any queries 
+     which would allow a resolver to search all of the resource records 
+     in the entire distributed database for a data value, but instead 
+     only provides lookup queries which match against the three 
+     qualifier fields. Although the original DNS specifications did 
+     provide a mechanism to search a specific server for matching data-
+   
+  Hall                  I-D Expires: December 2003             [page 6] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     values, this feature has never been widely deployed, and the 
+     capability has since been deprecated. 
+      
+     In theory, it would be possible to create a super-index of all 
+     zones in the entire distributed database and search against that 
+     index, although nobody has built such an index so as-of-yet. 
+      
+     Regardless, applications must be aware that all queries use the 
+     domain name as a lookup key, and it is not possible to search for 
+     resource records by their data-values. 
+      
+  4.5.    UDP and TCP Restriction 
+      
+     DNS messages which are sent over UDP have a maximum message size 
+     of 512 bytes. If a lookup results in an response message that 
+     exceeds this size, then the query process must be restarted using 
+     TCP. However, a DNS header restriction limits DNS message which 
+     are sent over TCP to a maximum message size of 65,535 bytes. 
+     Answer data that exceeds this threshold cannot be retrieved using 
+     DNS at all. In short, UDP overflows penalize performance, while 
+     TCP overflows cause the lookup process to fail entirely. 
+     Furthermore, not all servers support TCP, and in those cases, UDP 
+     messages which overflow the 512 byte limit will also be fatal. 
+      
+     In those cases where falling back to TCP works as expected, there 
+     can be additional penalties apart from the longer setup time. For 
+     example, TCP session management typically consumes more resources 
+     than UDP datagrams, significantly limiting the number of queries 
+     which a server can process at any given time. 
+      
+     For all of these reasons, planners and developers are strongly 
+     encouraged to limit resource record data to sizes that will not 
+     cause UDP overflow. In those cases where this is unavoidable, they 
+     should be prepared for a variety of problems, including 
+     performance issues and outright failure. 
+      
+  4.6.    Compression 
+      
+     The DNS specifications provide a compression mechanism which can 
+     be used to substitute label sequences with pointers to previous 
+     occurrences of those sequences. However, this mechanism only works 
+     with well-known resource records. New resource record types cannot 
+     make use of the pointer mechanism, since caches will not be aware 
+     of the resource record's data-structure, and therefore will not be 
+     able to tell that the data value is a domain name pointer which is 
+     supposed to reference some other sequence of labels. 
+   
+  Hall                  I-D Expires: December 2003             [page 7] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+      
+     This is an especially important consideration to keep in mind when 
+     considering large data structures; while it is tempting to believe 
+     that the domain name can be compressed, this simply is not true. 
+      
+  4.7.    Cache Overflow 
+      
+     Another issue related to data size is the amount of memory 
+     available to a particular cache. All caches have fixed amounts of 
+     available memory, and when that memory is consumed, some data will 
+     have to be expired from the cache. In these cases, the cache will 
+     have to query for the data again (causing performance penalties), 
+     and will then have to bump some other data from the memory pool in 
+     order to make room for the data again. In heavily loaded 
+     environments (such as a very busy ISP), this can result in a 
+     constant churning of the memory pool. 
+      
+     This is obviously a good reason to limit the size of the resource 
+     records in use, but it is also a good reason for limiting the 
+     total number of resource records in use with a particular 
+     application. Since each entry will have to consume memory in a 
+     cache somewhere, excess records or excessively large records will 
+     both contribute to the potential for cache churning. 
+      
+  4.8.    Cache Lag 
+      
+     Since DNS is optimized for lookups, the use of intermediary and 
+     end-node caches allows lookups to be held in memory at a location 
+     that is "closer" to the user, which generally improves performance 
+     over having to follow a complex delegation chain for every query. 
+     However, caching can be somewhat hostile towards general-purpose 
+     database models, particularly in light of the fact that DNS 
+     provides no mechanisms for forcing a system to flush its cache of 
+     previously discovered records. 
+      
+     In particular, caches prevent data from being validated against an 
+     authoritative source. While this is normally beneficial for lookup 
+     activities, it can be a devastating feature for data models that 
+     require data-integrity at all times. For example, a resource 
+     record which recorded the user who was currently logged on at a 
+     terminal might seem to be a useful feature, while cache lag would 
+     tend to make the data inaccurate more often than accurate, thereby 
+     making it useless for its intended purpose. 
+      
+     Although DNS servers can dictate the length of time that a 
+     resource record is to be held in a cache, this feature depends on 
+   
+  Hall                  I-D Expires: December 2003             [page 8] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     several additional requirements. Furthermore, data models which 
+     require the use of low time-to-live settings are generally frowned 
+     upon by the DNS community, as these resource records place a 
+     disproportionate burden on the lookup infrastructure. For these 
+     reasons, DNS is inappropriate for data models which require full-
+     time and instantaneous data integrity. 
+      
+  4.9.    World-Readable Data 
+      
+     DNS does not provide any mechanisms for authenticating users 
+     during the lookup process, nor does it provide any standardized 
+     mechanisms for linking access controls to a resource record. 
+     Without these features, DNS is unsuitable for queries which 
+     require authenticated access on a per-user basis. 
+      
+     For example, if an application wanted to store contact information 
+     for employees in DNS, access to the data would likely be 
+     restricted to certain people (perhaps allowing the general public 
+     to see some level of anonymous data, while allowing internal 
+     personnel to see greater levels of detail, while allowing the 
+     supervisor to see all of the data). However, this model requires 
+     user-specific authentication for each lookup process, and it also 
+     requires that each resource record have an attribute list that 
+     determined who was allowed to see the data. 
+      
+     However, DNS does not provide any mechanisms for providing 
+     authentication within the lookup process. Furthermore, such an 
+     effort would require a massive undertaking, which is not very 
+     likely given that there are many other protocols already in place 
+     which already provide similar mechanisms. Similarly, the DNS 
+     protocol does not provide any mechanisms for storing and 
+     exchanging access lists along with resource records. Adding this 
+     information to the standardized resource record structure is not a 
+     simple task, and would likely result in a substantial increase in 
+     message overflow. 
+      
+     Although some DNS servers currently provide mechanisms for 
+     restricting access based on qualifiers such as the IP address of 
+     the client, it is important to point out that once the resource 
+     records get into a cache outside of the protected scope, the 
+     information is only as secure as that cache. In this regard, a 
+     caching server that resides outside of a firewall can be just as 
+     informative as the DNS servers inside the firewall. In the end, 
+     there is no such thing as "private" information with DNS. All data 
+     which is stored in DNS should be treated as if it were public 
+     data, visible to all users. 
+   
+  Hall                  I-D Expires: December 2003             [page 9] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+      
+  5.      Design Conclusion 
+      
+     Due to the architectural tradeoffs inherent in the DNS lookup 
+     model, some usage models are better suited to DNS than others. In 
+     particular, DNS is highly efficient at lookups of compact, public 
+     and relatively stable data. Conversely, DNS is unsuitable for 
+     value-based queries or searches, restricted-access data, highly-
+     dynamic data, or large records and arrays. 
+      
+     For usage models which require access to those kinds of data, 
+     application protocols such as LDAP or HTTP would be more 
+     appropriate, and would provide greater rewards. 
+      
+  6.      Going Standards-Track 
+      
+     Generally speaking, planners and developers can usually define 
+     their own resource record types as part of another standards-track 
+     specification without interference from the DNS community as long 
+     as the functional scope is limited to defining data-structures for 
+     those resource record types. However, there are some cases where 
+     it may be useful or necessary for the DNS community to be involved 
+     with the standardization process. 
+      
+     In particular, if a DNS resource record type requires a server to 
+     perform some kind of extra processing beyond echoing resource 
+     record data from a database into a message, then the DNS community 
+     should be consulted. For example, requiring that servers provide 
+     additional data outside the answer section of the response message 
+     should be vented with the community. 
+      
+     Similarly, if a specification requires special structuring of the 
+     message for the benefit of a single service, then the DNS 
+     community should definitely be involved in the discussion, since 
+     any changes to the highly-optimized (binary) message format could 
+     be disastrous in non-obvious ways.  
+      
+     Requests to reserve portions of the namespace for the use of a 
+     single network service should also be brought to the DNS community 
+     for discussion. 
+      
+     Finally, if a resource record goes against more than two of the 
+     good-use guidelines put forth throughout this document, then it 
+     would probably be a good idea to consult with the DNS community 
+     over any alternatives which may be available. 
+      
+   
+  Hall                  I-D Expires: December 2003            [page 10] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     In all cases, IANA must be involved in delegating resource record 
+     type codes and mnemonics. 
+      
+  7.      Security Considerations 
+      
+     This document does not create any security considerations. 
+      
+  8.      IANA Considerations 
+      
+     This document does not create any IANA considerations. 
+      
+  9.      Author's Address 
+      
+     Eric A. Hall 
+     ehall@ehsco.com 
+      
+  10.     Normative References 
+      
+          [RFC1123]     Braden, R. "Requirements for Internet Hosts - 
+                         Application and Support", STD 3, RFC 1123, 
+                         October 1989. 
+      
+          [RFC2181]     Elz, R., and Bush, R. "Clarifications to the 
+                         DNS Specification", RFC 2181, July 1997. 
+      
+          [STD13]       Mockapetris, P. "Domain names - concepts and 
+                         facilities", STD 13, RFC 1034 and "Domain 
+                         names - implementation and specification", STD 
+                         13, RFC 1035, November 1987. 
+      
+  11.     Acknowledgments 
+      
+     Funding for the RFC editor function is currently provided by the 
+     Internet Society. 
+      
+     Edward Lewis provided valuable feedback during the development of 
+     this document. 
+      
+  12.     Full Copyright Statement 
+      
+     Copyright (C) The Internet Society (2003). All Rights Reserved. 
+      
+     This document and translations of it may be copied and furnished 
+     to others, and derivative works that comment on or otherwise 
+     explain it or assist in its implementation may be prepared, 
+     copied, published and distributed, in whole or in part, without 
+     restriction of any kind, provided that the above copyright notice 
+   
+  Hall                  I-D Expires: December 2003            [page 11] 
+  Internet Draft        draft-hall-dns-data-00.txt            May 2003 
+   
+   
+     and this paragraph are included on all such copies and derivative 
+     works. However, this document itself may not be modified in any 
+     way, such as by removing the copyright notice or references to the 
+     Internet Society or other Internet organizations, except as needed 
+     for the purpose of developing Internet standards in which case the 
+     procedures for copyrights defined in the Internet Standards 
+     process must be followed, or as required to translate it into 
+     languages other than English. 
+      
+     The limited permissions granted above are perpetual and will not 
+     be revoked by the Internet Society or its successors or assigns. 
+      
+     This document and the information contained herein is provided on 
+     an "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET 
+     ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR 
+     IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF 
+     THE INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED 
+     WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE. 
+      
+   
+  Hall                  I-D Expires: December 2003            [page 12] 
