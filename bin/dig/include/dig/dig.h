@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.28 2000/07/05 23:28:32 mws Exp $ */
+/* $Id: dig.h,v 1.29 2000/07/10 17:25:59 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -39,6 +39,12 @@
 #define COMMSIZE 0xffff
 #define RESOLVCONF "/etc/resolv.conf"
 #define OUTPUTBUF 32767
+
+/*
+ * Default timeout values
+ */
+#define TCP_TIMEOUT 60
+#define UDP_TIMEOUT 30
 
 #define LOOKUP_LIMIT 64
 /*

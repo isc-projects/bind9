@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.71 2000/07/07 21:53:47 mws Exp $ */
+/* $Id: dighost.c,v 1.72 2000/07/10 17:25:57 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -77,7 +77,7 @@ isc_boolean_t
 	is_dst_up = ISC_FALSE;
 
 in_port_t port = 53;
-unsigned int timeout = 5;
+unsigned int timeout = 0;
 isc_mem_t *mctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
@@ -1181,18 +1181,26 @@ void
 send_udp(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
+	unsigned int local_timeout;
 
 	debug("send_udp()");
 
 	if (timeout != INT_MAX) {
-		isc_interval_set(&lookup->interval, timeout, 0);
+		if (timeout == 0) {
+			if (lookup->tcp_mode)
+				local_timeout = TCP_TIMEOUT;
+			else
+				local_timeout = UDP_TIMEOUT;
+		} else
+			local_timeout = timeout;
+		isc_interval_set(&lookup->interval, local_timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,
 					  connect_timeout, lookup,
 					  &lookup->timer);
 		check_result(result, "isc_timer_create");
 	}
-	for (query = ISC_LIST_HEAD(lookup->q);
+for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		debug("working on lookup %p, query %p",
@@ -1249,7 +1257,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 				result = isc_sockaddr_totext(&q->sockaddr, b);
 				check_result(result, "isc_sockaddr_totext");
 				isc_buffer_usedregion(b, &r);
-				if (q->lookup->retries > 1)
+				if ((q->lookup->retries > 1) &&
+				    (!q->lookup->tcp_mode))
 					printf(";; Connection to server %.*s "
 					       "for %s timed out.  "
 					       "Retrying %d.\n",
@@ -1637,6 +1646,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *n;
 	isc_boolean_t docancel = ISC_FALSE;
 	isc_boolean_t result_bool;
+	unsigned int local_timeout;
 	
 	UNUSED(task);
 
@@ -1661,6 +1671,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;
 
+	if ((query->lookup->tcp_mode) &&
+	    (query->lookup->timer != NULL))
+		isc_timer_touch(query->lookup->timer);
 	if (!query->lookup->pending && !query->lookup->ns_search_only) {
 
 		debug("no longer pending.  Got %s",
@@ -1743,8 +1756,36 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			debug("querysig 3 is %p", query->lookup->querysig);
 		}
 		debug("after parse");
-		if (query->lookup->xfr_q == NULL)
+		if (query->lookup->xfr_q == NULL) {
 			query->lookup->xfr_q = query;
+			/*
+			 * Once we are in the XFR message, increase
+			 * the timeout to much longer, so brief network
+			 * outages won't cause the XFR to abort
+			 */
+			if (timeout != INT_MAX) {
+				if (timeout == 0) {
+					if (query->lookup->tcp_mode)
+						local_timeout = TCP_TIMEOUT;
+					else
+						local_timeout = UDP_TIMEOUT;
+				} else {
+					if (((long)timeout * 4) < 
+					    (long)INT_MAX)
+						local_timeout = timeout * 4;
+					else
+						local_timeout = INT_MAX;
+				}
+				isc_interval_set(&query->lookup->interval,
+						 local_timeout, 0);
+				result = isc_timer_reset(query->lookup->timer,
+						      isc_timertype_once,
+						      NULL,
+						      &query->lookup->interval,
+						      ISC_FALSE);
+				check_result(result, "isc_timer_create");
+			}
+		}
 		if (query->lookup->xfr_q == query) {
 			if ((query->lookup->trace)||
 			    (query->lookup->ns_search_only)) {
@@ -1900,14 +1941,25 @@ static void
 do_lookup_tcp(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_result_t result;
+	unsigned int local_timeout;
 
 	debug("do_lookup_tcp()");
 	lookup->pending = ISC_TRUE;
-	isc_interval_set(&lookup->interval, timeout, 0);
-	result = isc_timer_create(timermgr, isc_timertype_once, NULL,
-				  &lookup->interval, global_task,
-				  connect_timeout, lookup, &lookup->timer);
-	check_result(result, "isc_timer_create");
+	if (timeout != INT_MAX) {
+		if (timeout == 0) {
+			if (lookup->tcp_mode)
+				local_timeout = TCP_TIMEOUT;
+			else
+				local_timeout = UDP_TIMEOUT;
+		} else
+			local_timeout = timeout;
+		isc_interval_set(&lookup->interval, local_timeout, 0);
+		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
+					  &lookup->interval, global_task,
+					  connect_timeout, lookup,
+					  &lookup->timer);
+		check_result(result, "isc_timer_create");
+	}
 
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
