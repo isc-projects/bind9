@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.121 $)
+AC_REVISION($Revision: 1.122 $)
 
 AC_PREREQ(2.13)
 
@@ -771,6 +771,15 @@ AC_SUBST(ISC_PLATFORM_LONGLONGEQUALLONG)
 AC_CHECK_FUNC(chroot, AC_DEFINE(HAVE_CHROOT))
 AC_CHECK_HEADERS(linux/capability.h)
 AC_CHECK_HEADERS(linux/prctl.h)
+
+#
+# Random remaining OS-specific issues.
+#
+case "$host" in
+	*-bsdi3.1*|*-bsdi4.0*)
+		AC_DEFINE(SHUTUP_SPUTAUX)
+		;;
+esac
 
 #
 # Substitutions
