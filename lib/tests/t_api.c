@@ -31,6 +31,10 @@
 
 #include	"include/tests/t_api.h"
 
+#if !defined(__NetBSD__)
+#define T_API_USES_TIMEOUTS 1
+#endif
+
 static char *Usage =	"\t-a               : run all tests\n"
 			"\t-b <dir>         : chdir to dir before running tests"
 			"\t-c <config_file> : use specified config file\n"
@@ -215,7 +219,9 @@ main(int argc, char **argv)
 	sa.sa_flags = 0;
 	sigfillset(&sa.sa_mask);
 	sa.sa_handler = t_sighandler;
+#if defined(T_API_USES_TIMEOUTS)
 	(void)SIGACTION(SIGALRM, &sa, NULL);
+#endif
 	(void)SIGACTION(SIGINT,  &sa, NULL);
 
 	/* output start stanza to journal */
@@ -249,9 +255,11 @@ main(int argc, char **argv)
 				else if (T_pid > 0) {
 
 					T_int = 0;
+#if defined(T_API_USES_TIMEOUTS)
 					sa.sa_handler = t_sighandler;
 					(void)SIGACTION(SIGALRM, &sa, NULL);
 					alarm(T_timeout);
+#endif
 
 					deadpid = (pid_t) -1;
 					while (deadpid != T_pid) {
@@ -274,9 +282,11 @@ main(int argc, char **argv)
 							break;
 					}
 
+#if defined(T_API_USES_TIMEOUTS)
 					alarm(0);
 					sa.sa_handler = SIG_IGN;
 					(void)SIGACTION(SIGALRM, &sa, NULL);
+#endif
 				}
 				else {
 					t_info("fork failed, errno == %d\n", errno);
