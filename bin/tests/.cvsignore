@@ -18,6 +18,7 @@ gxbn_test
 headerdep_test.sh
 hash_test
 inter_test
+journalprint
 keyboard_test
 lex_test
 lfsr_test
