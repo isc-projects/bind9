@@ -1,3 +1,6 @@
+
+	--- 9.2.0rc7 released ---
+
 1053.	[bug]		Dig did not increase its timeout when receiving
 			AXFRs unless the +time option was used. [RT #1904]
 
