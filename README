@@ -93,7 +93,8 @@ BIND 9.0.0b4
 		More configuration options can be specified separately
 		for each view, including the "key" and "server" statements.
 
-		Numerous bug fixes and code cleanups.
+		Numerous bugs have been fixed and the code has been cleaned
+		up.
 
 	There are a few known bugs:
 
@@ -103,6 +104,15 @@ BIND 9.0.0b4
 
 		On some systems, IPv6 and IPv4 sockets interact in
 		unexpected ways.  For details, see doc/misc/ipv6.
+		If your system supports IPv6 but you do not wish to
+		use it, you can avoid these problems by specifying
+		"listen-on-v6 { none; };" in the named.conf
+		options statement to turn off listening on IPv6
+		sockets.
+
+		There are known problems with thread signal handling 
+		under SunOS 5.6.
+		
 
 	For a detailed list of user-visible changes since beta 3, see
 	the CHANGES file.	
