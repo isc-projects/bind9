@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.5 2000/06/19 22:09:46 mws Exp $ */
+/* $Id: nsupdate.c,v 1.6 2000/06/20 22:50:13 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -62,8 +62,9 @@
 
 extern isc_boolean_t isc_mem_debugging;
 
-isc_boolean_t busy= ISC_FALSE, debugging = ISC_TRUE, ddebugging = ISC_FALSE,
-	have_ipv6 = ISC_FALSE, valid_zonename = ISC_FALSE;
+isc_boolean_t busy= ISC_FALSE, debugging = ISC_FALSE, ddebugging = ISC_FALSE,
+	have_ipv6 = ISC_FALSE, valid_zonename = ISC_FALSE,
+	forced_master = ISC_FALSE;
 isc_mutex_t lock;
 isc_condition_t cond;
 
@@ -76,13 +77,17 @@ isc_socketmgr_t *socketmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
 dns_dispatch_t *dispatchv4 = NULL;
 dns_message_t *updatemsg = NULL, *findmsg = NULL;
-dns_name_t domainname;
-isc_buffer_t domainname_buf;
-char domainname_store[NAMEBUF];
-dns_name_t zonename, actualzone, master;
+dns_name_t zonename; /* From ZONE command */
+dns_name_t actualzone; /* From SOA query reply */
+dns_name_t resolvdomain; /* From resolv.conf's domain line, if exists */
+dns_name_t *current_zone; /* Points to one of above, or dns_rootname */
+isc_buffer_t resolvbuf;
+char resolvstore[MXNAME];
+dns_name_t master; /* Master nameserver, from SOA query */
 
 int exitcode = 0;
 char server[MXNAME];
+char userzone[MXNAME];
 char nameservername[3][MXNAME];
 int nameservers;
 int ns_inuse = 0;
@@ -94,6 +99,20 @@ char domain[MXNAME];
 #define STATUS_QUIT 2
 #define STATUS_FAIL 3
 #define STATUS_SYNTAX 4
+
+static int
+count_dots(char *string) {
+	char *s;
+	int i=0;
+
+	s = string;
+	while (*s != 0) {
+		if (*s == '.')
+			i++;
+		s++;
+	}
+	return (i);
+}
 
 static void
 fatal(const char *format, ...) {
@@ -211,12 +230,17 @@ reset_system() {
 		dns_name_free(&actualzone, mctx);
 	if (VALID_NAME(&master))
 		dns_name_free(&master, mctx);
+	if (domain[0] != 0) 
+		current_zone = &resolvdomain;
+	else
+		current_zone = dns_rootname;
 }
 
 static void
 setup_system(){
 	isc_result_t result;
 	isc_sockaddr_t bind_any;
+	isc_buffer_t buf;
 
 	ddebug("setup_system()");
 
@@ -275,39 +299,57 @@ setup_system(){
 				       dispatchv4, NULL, &requestmgr);
 	check_result(result, "dns_requestmgr_create");
 
-#if 0
 	if (domain[0] != 0) {
-		dns_name_init(&domainname, NULL);
-		isc_buffer_init(&domainname_buf, domainname_store, NAMEBUF);
-		dns_name_setbuffer(&domainname, &domainname_buf);
+		dns_name_init(&resolvdomain, NULL);
+		isc_buffer_init(&resolvbuf, resolvstore, NAMEBUF);
+		dns_name_setbuffer(&resolvdomain, &resolvbuf);
 		isc_buffer_init(&buf, domain, strlen(domain));
 		isc_buffer_add(&buf, strlen(domain));
-		result = dns_name_fromtext(&domainname, &buf, dns_rootname,
+		result = dns_name_fromtext(&resolvdomain, &buf, dns_rootname,
 					   ISC_FALSE, NULL);
 		check_result(result, "dns_name_fromtext");
+		current_zone = &resolvdomain;
 	}
 	else {
-#endif
-		dns_name_init(&domainname, NULL);
-		dns_name_clone(dns_rootname, &domainname);
-#if 0
+		current_zone = dns_rootname;
 	}
-#endif
 
 }
 	
 static void
-parse_args() {
+parse_args(int argc, char **argv) {
+	int rc;
+	char **rv;
+
+	rc = argc;
+	rv = argv;
+	for (rc--, rv++; rc > 0; rc--, rv++) {
+		if (strcasecmp(rv[0], "-d") == 0)
+			debugging = ISC_TRUE;
+		else if (strcasecmp(rv[0], "-dd") == 0) {
+			ddebugging = ISC_TRUE;
+		} else if (strcasecmp(rv[0], "-dm") == 0) {
+			ddebugging = ISC_TRUE;
+			isc_mem_debugging = ISC_TRUE;
+		} else if (strcasecmp(rv[0], "-v") == 0)
+			fputs ("Virtual Circuit mode not currently "
+			       "implemented.\n", stderr);
+		else if (strcasecmp(rv[0], "-k") == 0)
+			fputs ("TSIG not currently implemented.",
+			       stderr);
+	}
 }
 
 static void
 check_and_add_zone(dns_name_t *namein) {
 
 	ddebug ("check_and_add_zone()");
+
 	if (valid_zonename)
 		return;
 	dns_name_init(&zonename, NULL);
 	dns_name_dup(namein, mctx, &zonename);
+	current_zone = &zonename;
 	valid_zonename = ISC_TRUE;
 }
 
@@ -323,7 +365,8 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdatatype_t rdatatype;
 	dns_rdata_t *rdata = NULL;
-	
+	dns_name_t *rn = current_zone;
+
 	ddebug ("make_rrset_prereq()");
 	nameptr = strtok(NULL, " \t\r\n");
 	if (nameptr == NULL) {
@@ -346,7 +389,9 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	dns_message_takebuffer(updatemsg, &buf);
 	isc_buffer_init(&source, nameptr, strlen(nameptr));
 	isc_buffer_add(&source, strlen(nameptr));
-	result = dns_name_fromtext(name, &source, &domainname,
+	if (count_dots(nameptr) > ndots)
+		rn = dns_rootname;
+	result = dns_name_fromtext(name, &source, rn,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
 
@@ -376,7 +421,6 @@ make_rrset_prereq(dns_rdataclass_t rdclass) {
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);		
-
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
@@ -388,12 +432,13 @@ static isc_uint16_t
 make_domain_prereq(dns_rdataclass_t rdclass) {
 	isc_result_t result;
 	char *ptr;
-	dns_name_t *name;
-	isc_buffer_t *buf;
+	dns_name_t *name = NULL;
+	isc_buffer_t *buf = NULL;
 	isc_buffer_t source;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
+	dns_name_t *rn = current_zone;
 
 	ddebug ("make_domain_prereq()");
 	ptr = strtok(NULL, " \t\r\n");
@@ -411,7 +456,9 @@ make_domain_prereq(dns_rdataclass_t rdclass) {
 	dns_message_takebuffer(updatemsg, &buf);
 	isc_buffer_init(&source, ptr, strlen(ptr));
 	isc_buffer_add(&source, strlen(ptr));
-	result = dns_name_fromtext(name, &source, &domainname,
+	if (count_dots(ptr) > ndots)
+		rn = dns_rootname;
+	result = dns_name_fromtext(name, &source, rn,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
 
@@ -480,6 +527,38 @@ evaluate_server() {
 }
 
 static isc_uint16_t
+evaluate_zone() {
+	char *ptr;
+	dns_name_t name;
+	isc_buffer_t source, *buf = NULL;
+	isc_result_t result;
+
+	ddebug ("evaluate_zone()");
+	ptr = strtok(NULL, " \t\r\n");
+	if (ptr == NULL) {
+		puts ("failed to read zone name");
+		return STATUS_SYNTAX;
+	}
+	strncpy(userzone, ptr, MXNAME);
+
+	result = isc_buffer_allocate(mctx, &buf, NAMEBUF);
+	check_result(result, "isc_buffer_allocate");
+	dns_name_init(&name, NULL);
+	dns_name_setbuffer(&name, buf);
+	isc_buffer_init(&source, ptr, strlen(ptr));
+	isc_buffer_add(&source, strlen(ptr));
+	result = dns_name_fromtext(&name, &source, dns_rootname,
+				   ISC_FALSE, NULL);
+	check_result(result, "dns_name_fromtext");
+
+	check_and_add_zone(&name);
+
+	isc_buffer_free(&buf);
+
+	return STATUS_MORE;
+}
+
+static isc_uint16_t
 update_add() {
 	isc_result_t result;
 	isc_lex_t *lex = NULL;
@@ -495,6 +574,7 @@ update_add() {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t region;
+	dns_name_t *rn = current_zone;
 
 	ddebug ("update_add()");
 	ptr = strtok(NULL, " \t\r\n");
@@ -512,7 +592,9 @@ update_add() {
 	dns_message_takebuffer(updatemsg, &namebuf);
 	isc_buffer_init(&source, ptr, strlen(ptr));
 	isc_buffer_add(&source, strlen(ptr));
-	result = dns_name_fromtext(name, &source, &domainname,
+	if (count_dots(ptr) > ndots)
+		rn = dns_rootname;
+	result = dns_name_fromtext(name, &source, rn,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
 
@@ -559,7 +641,7 @@ update_add() {
 	check_result(result, "dns_message_gettemprdata");
 	dns_rdatacallbacks_init_stdio(&callbacks);
 	result = dns_rdata_fromtext(rdata, dns_rdataclass_in, rdatatype,
-				    lex, &domainname, ISC_FALSE, buf,
+				    lex, current_zone, ISC_FALSE, buf,
 				    &callbacks);
 	check_result(result, "dns_rdata_fromtext");
 	isc_lex_destroy(&lex);
@@ -583,9 +665,6 @@ update_add() {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
 	dns_message_takebuffer(updatemsg, &buf);
-#if 0
-	isc_buffer_free(&buf);
-#endif
 	return STATUS_MORE;
 }
 
@@ -605,6 +684,7 @@ update_delete() {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	isc_textregion_t typeregion;
+	dns_name_t *rn = current_zone;
 
 	ddebug ("update_delete()");
 	ptr = strtok(NULL, " \t\r\n");
@@ -622,7 +702,9 @@ update_delete() {
 	dns_message_takebuffer(updatemsg, &namebuf);
 	isc_buffer_init(&source, ptr, strlen(ptr));
 	isc_buffer_add(&source, strlen(ptr));
-	result = dns_name_fromtext(name, &source, &domainname,
+	if (count_dots(ptr) > ndots)
+		rn = dns_rootname;
+	result = dns_name_fromtext(name, &source, rn,
 				   ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext");
 
@@ -659,7 +741,7 @@ update_delete() {
 		check_result(result, "dns_message_gettemprdata");
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		result = dns_rdata_fromtext(rdata, dns_rdataclass_in,
-					    rdatatype, lex, &domainname,
+					    rdatatype, lex, current_zone,
 					    ISC_FALSE, buf, &callbacks);
 		check_result(result, "dns_rdata_fromtext");
 		isc_lex_destroy(&lex);
@@ -680,12 +762,6 @@ update_delete() {
 		isc_buffer_free(&buf);
 	}
 	else {
-#if 0
-		result = dns_message_gettemprdataset(updatemsg, &rdataset);
-		check_result(result, "dns_message_gettemprdataset");
-		dns_rdataset_makequestion(rdataset, dns_rdataclass_any,
-					  rdatatype);
-#endif
 		result = dns_message_gettemprdatalist(updatemsg, &rdatalist);
 		check_result(result, "dns_message_gettemprdatalist");
 		result = dns_message_gettemprdataset(updatemsg, &rdataset);
@@ -756,12 +832,11 @@ get_next_command() {
 	fputs ("> ", stderr);
 	fgets (cmdline, MAXCMD, stdin);
 	ptr = strtok(cmdline, " \t\r\n");
-	if (ptr == NULL) {
-		if (!feof(stdin))
-			return(STATUS_SEND);
-		else
-			return(STATUS_QUIT);
-	}
+
+	if (feof(stdin))
+		return(STATUS_QUIT);
+	if (ptr == NULL)
+		return(STATUS_SEND);
 	if (strcasecmp(ptr,"quit") == 0)
 		return(STATUS_QUIT);
 	if (strcasecmp(ptr,"prereq") == 0)
@@ -770,6 +845,8 @@ get_next_command() {
 		return(evaluate_update());
 	if (strcasecmp(ptr,"server") == 0)
 		return(evaluate_server());
+	if (strcasecmp(ptr,"zone") == 0)
+		return(evaluate_zone());
 	if (strcasecmp(ptr,"send") == 0)
 		return(STATUS_SEND);
 	if (strcasecmp(ptr,"show") == 0) {
@@ -926,11 +1003,9 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 			fatal ("Couldn't talk to any default nameserver.");
 		}
 		get_address(nameservername[ns_inuse], 53, &sockaddr);
-#if 1
 		ddebug("Destroying %lx[%lx]", &reqev->request, 
 		      reqev->request);
 		dns_request_destroy(&reqev->request);
-#endif
 		isc_event_free(&event);
 		result = dns_request_create(requestmgr, findmsg, &sockaddr,
 					    0, NULL,
@@ -949,7 +1024,8 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_init(&buf, bufstore, MSGTEXT);
 		result = dns_message_totext(rcvmsg, 0, &buf);
 		check_result(result, "dns_message_totext");
-		printf ("Reply from SOA query:\n%.*s\n", (int)isc_buffer_usedlength(&buf),
+		printf ("Reply from SOA query:\n%.*s\n",
+			(int)isc_buffer_usedlength(&buf),
 			(char*)isc_buffer_base(&buf));
 	}
 
@@ -1073,8 +1149,8 @@ free_lists() {
 		dns_name_free(&zonename, mctx);
 	}
 
-	ddebug("Invalidating domainname");
-	dns_name_invalidate(&domainname);
+	ddebug("Invalidating resolvdomain");
+	dns_name_invalidate(&resolvdomain);
 
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
@@ -1088,6 +1164,8 @@ free_lists() {
 
 	ddebug("Shutting down socket manager");
 	isc_socketmgr_destroy(&socketmgr);
+
+	sleep (1);
 
 	ddebug("Shutting down timer manager");
 	isc_timermgr_destroy(&timermgr);
@@ -1135,9 +1213,9 @@ main(int argc, char **argv) {
 
         puts ("");
         ddebug ("Fell through app_run");
-        free_lists(0);
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
+        free_lists(0);
 
         return (0);
 }
