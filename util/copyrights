@@ -496,6 +496,7 @@
 ./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000
 ./bin/tests/system/unknown/ns1/broken2.db	ZONE	2000
 ./bin/tests/system/unknown/ns1/broken3.db	ZONE	2000
+./bin/tests/system/unknown/ns1/broken4.db	ZONE	2000
 ./bin/tests/system/unknown/ns1/class10.hints	ZONE	2000
 ./bin/tests/system/unknown/ns1/example-class10.db	ZONE	2000
 ./bin/tests/system/unknown/ns1/example-in.db	ZONE	2000
