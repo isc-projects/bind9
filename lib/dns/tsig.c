@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.59 2000/05/19 00:20:54 bwelling Exp $
+ * $Id: tsig.c,v 1.60 2000/05/19 00:29:00 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -117,6 +117,8 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	isc_buffer_usedregion(&nameb, &r);
 	namestr[r.length] = '\0';
 
+	tkey->key = NULL;
+	tkey->ring = NULL;
 	if (length > 0) {
 		dns_tsigkey_t *tmp;
 
@@ -146,10 +148,6 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		ISC_LIST_APPEND(ring->keys, tkey, link);
 		isc_rwlock_unlock(&ring->lock, isc_rwlocktype_write);
 		tkey->ring = ring;
-	}
-	else {
-		tkey->key = NULL;
-		tkey->ring = NULL;
 	}
 
 	tkey->refs = 0;
