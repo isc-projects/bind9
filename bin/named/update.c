@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.4 2003/08/13 01:58:07 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.5 2003/08/13 02:00:19 marka Exp $ */
 
 #include <config.h>
 
@@ -179,6 +179,10 @@ static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
 static void forward_done(isc_task_t *task, isc_event_t *event);
 
 /**************************************************************************/
+
+static void
+update_log(ns_client_t *client, dns_zone_t *zone,
+	   int level, const char *fmt, ...) ISC_FORMAT_PRINTF(4, 5);
 
 static void
 update_log(ns_client_t *client, dns_zone_t *zone,
@@ -2403,7 +2407,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
 						   "delete all rrsets from "
-						   "name '%s'");
+						   "name '%s'", namestr);
 				}
 				if (dns_name_equal(name, zonename)) {
 					CHECK(delete_if(type_not_soa_nor_ns_p,
