@@ -52,8 +52,6 @@
 #include <isc/netaddr.h>
 
 #include <dns/types.h>
-#include <dns/name.h>
-#include <dns/fixedname.h>
 #include <dns/result.h>
 
 ISC_LANG_BEGINDECLS
@@ -62,17 +60,19 @@ typedef struct dns_byaddrevent {
 	ISC_EVENT_COMMON(struct dns_byaddrevent);
 	dns_byaddr_t *			byaddr;
 	isc_result_t			result;
-	dns_fixedname_t			name;
+	dns_namelist_t			names;
 } dns_byaddrevent_t;
 
 isc_result_t
-dns_byaddr_create(isc_netaddr_t *address, dns_view_t *view,
+dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 		  unsigned int options, isc_task_t *task,
 		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp);
 /*
  * Find the domain name of 'address'.
  *
  * Requires:
+ *
+ *	'mctx' is a valid mctx.
  *
  *	'address' is a valid IPv4 or IPv6 address.
  *
