@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.4 1999/04/14 02:37:08 halley Exp $
+ * $Id: dbtable.c,v 1.5 1999/04/14 12:29:39 tale Exp $
  */
 
 /*
@@ -152,15 +152,14 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 
 	result = dns_rbt_findname(dbtable->rbt, name, NULL,
 				  (void **)&stored_data);
-	if (result != DNS_R_SUCCESS)
-		goto remove_exit;
 
-        INSIST(stored_data == db);
-	dns_db_detach(&stored_data);
+	if (result == DNS_R_SUCCESS) {
+		INSIST(stored_data == db);
+		dns_db_detach(&stored_data);
 
-	dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
+		dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
+	}
 
- remove_exit:
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);
 }
 
