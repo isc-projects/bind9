@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.2 2002/02/08 03:56:58 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3 2002/07/11 05:44:10 marka Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,7 @@
 #include "check-tool.h"
 
 static int debug = 0;
+isc_boolean_t nomerge = ISC_TRUE;
 static int quiet = 0;
 static isc_mem_t *mctx = NULL;
 dns_zone_t *zone = NULL;
@@ -61,7 +62,7 @@ static const char *dbtype[] = { "rbt" };
 static void
 usage(void) {
 	fprintf(stderr,
-		"usage: named-checkzone [-dqv] [-c class] zonename filename \n");
+		"usage: named-checkzone [-djqv] [-c class] zonename filename \n");
 	exit(1);
 }
 
@@ -106,6 +107,7 @@ setup(char *zonename, char *filename, char *classname) {
 
 	dns_zone_setclass(zone, rdclass);
 	dns_zone_setoption(zone, DNS_ZONEOPT_MANYERRORS, ISC_TRUE);
+	dns_zone_setoption(zone, DNS_ZONEOPT_NOMERGE, nomerge);
 
 	result = dns_zone_load(zone);
 
@@ -128,13 +130,17 @@ main(int argc, char **argv) {
 	char classname_in[] = "IN";
 	char *classname = classname_in;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dqsv")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:djqsv")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
 			break;
 		case 'd':
 			debug++;
+			break;
+
+		case 'j':
+			nomerge = ISC_FALSE;
 			break;
 		case 'q':
 			quiet++;

@@ -128,6 +128,8 @@
 1245.	[bug]		Treat ENOBUFS, ENOMEM and ENFILE as soft errors for
 			accept().
 
+1242.	[bug]		named-checkzone failed if a journal existed. [RT #2657]
+
 1241.	[bug]		Drop received UDP messsages with a zero source port
 			as these are invariably forged. [RT #2621]
 

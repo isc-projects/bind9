@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.10 2002/06/13 07:32:54 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.11 2002/07/11 05:44:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1167,7 +1167,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	/*
 	 * Apply update log, if any.
 	 */
-	if (zone->journal != NULL) {
+	if (zone->journal != NULL &&
+	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOMERGE)) {
 		result = dns_journal_rollforward(zone->mctx, db,
 						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&
@@ -2148,7 +2149,8 @@ zone_needdump(dns_zone_t *zone, unsigned int delay) {
 	if (isc_time_isepoch(&zone->dumptime) ||
 	    isc_time_compare(&zone->dumptime, &dumptime) > 0)
 		zone->dumptime = dumptime;
-	zone_settimer(zone, &now);
+	if (zone->task != NULL)
+		zone_settimer(zone, &now);
 }
 
 static isc_result_t

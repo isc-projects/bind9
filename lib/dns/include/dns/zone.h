@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.4 2002/02/08 03:57:35 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.5 2002/07/11 05:44:08 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -44,6 +44,8 @@ typedef enum {
 #define DNS_ZONEOPT_CHILDREN	0x00000004U	/* perform child checks */
 #define DNS_ZONEOPT_NOTIFY	0x00000008U	/* perform NOTIFY */
 #define DNS_ZONEOPT_MANYERRORS	0x00000010U	/* return many errors on load */
+#define DNS_ZONEOPT_NOMERGE	0x00000040U	/* don't merge journal */
+
 #ifndef NOMINUM_PUBLIC
 /*
  * Nominum specific options build down.
