@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.24 2004/05/17 06:18:40 marka Exp $ */
+/* $Id: check.c,v 1.14.2.25 2004/07/29 00:08:17 marka Exp $ */
 
 #include <config.h>
 
@@ -660,8 +660,17 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
 					    "view '%s': already exists", key);
 				result = tresult;
-			} else if (result != ISC_R_SUCCESS)
+			} else if (result != ISC_R_SUCCESS) {
 				result = tresult;
+			} else if ((strcasecmp(key, "_bind") == 0 &&
+				    vclass == dns_rdataclass_ch) ||
+				   (strcasecmp(key, "_default") == 0 &&
+				    vclass == dns_rdataclass_in)) {
+				cfg_obj_log(view, logctx, ISC_LOG_ERROR,
+					    "attempt to redefine builtin view "
+					    "'%s'", key);
+				result = ISC_R_EXISTS;
+			}
 		}
 		if (check_viewconf(config, voptions, logctx, mctx)
 		    != ISC_R_SUCCESS)
