@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.11 2003/08/21 03:50:21 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.12 2003/08/22 01:49:59 marka Exp $ */
 
 #include <config.h>
 
@@ -37,6 +37,7 @@
 #include <dns/peer.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
@@ -1335,6 +1336,8 @@ static void
 add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	char classbuf[64];
+	char typebuf[64];
 	char code[64];
 	isc_buffer_t b;
 	isc_sockaddr_t *sa;
@@ -1376,12 +1379,14 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 		sep2 = "";
 	}
 	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+	dns_rdatatype_format(fctx->type, typebuf, sizeof(typebuf));
+	dns_rdataclass_format(fctx->res->rdclass, classbuf, sizeof(classbuf));
 	isc_sockaddr_format(address, addrbuf, sizeof(addrbuf));
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-		      "%s %s%s%sresolving '%s': %s",
+		      "%s %s%s%sresolving '%s/%s/%s': %s",
 		      dns_result_totext(reason), sep1, code, sep2,
-		      namebuf, addrbuf);
+		      namebuf, typebuf, classbuf, addrbuf);
 }
 
 static void
