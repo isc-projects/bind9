@@ -125,7 +125,7 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 
 	if (dbi->iscache)
 		dns_view_setcachedb(view, dbi->db);
-	else if (dns_view_addzone(view, dbi->db) != DNS_R_SUCCESS)
+	else if (dns_view_addzonedb(view, dbi->db) != DNS_R_SUCCESS)
 		goto db_detach;
 
 	return (DNS_R_SUCCESS);
@@ -207,7 +207,7 @@ load_version(void) {
 	if (result != ISC_R_SUCCESS)
 		goto db_detach;
 
-	if (dns_view_addzone(version_view, version_db) != DNS_R_SUCCESS)
+	if (dns_view_addzonedb(version_view, version_db) != DNS_R_SUCCESS)
 		goto db_detach;
 
 	return (DNS_R_SUCCESS);
