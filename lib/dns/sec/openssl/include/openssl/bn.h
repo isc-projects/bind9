@@ -77,8 +77,12 @@ extern "C" {
 #define BN_RECURSION
 #define RECP_MUL_MOD
 #define MONT_MUL_MOD
+#ifndef WIN32
 #define SIXTY_FOUR_BIT /* BEW */
 #define NO_ASM /* BEW */
+#else
+#define THIRTY_TWO_BIT /* DCL */
+#endif
 
 /* This next option uses the C libraries (2 word)/(1 word) function.
  * If it is not defined, I use my C version (which is slower).
