@@ -26,9 +26,11 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/commandline.h>
+#include <isc/entropy.h>
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/sockaddr.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
@@ -67,11 +69,12 @@ isc_socket_t *s;
 isc_sockaddr_t address;
 dns_message_t *query, *response, *query2, *response2;
 isc_mem_t *mctx;
+isc_entropy_t *ectx;
 dns_tsigkey_t *tsigkey;
 isc_log_t *log = NULL;
 isc_logconfig_t *logconfig = NULL;
 dns_tsig_keyring_t *ring = NULL;
-dns_tkey_ctx_t *tctx = NULL;
+dns_tkeyctx_t *tctx = NULL;
 isc_buffer_t *nonce = NULL;
 dns_view_t *view = NULL;
 char output[10 * 1024];
@@ -216,6 +219,7 @@ buildquery(void) {
 	isc_buffer_t namestr, keybuf, keybufin;
 	isc_lex_t *lex = NULL;
 	unsigned char keydata[3];
+	isc_sockaddr_t sa;
 
 	dns_fixedname_init(&keyname);
 	isc_buffer_init(&namestr, "tkeytest.", 9);
@@ -250,8 +254,10 @@ buildquery(void) {
 	result = isc_buffer_allocate(mctx, &nonce, 16);
 	CHECK("isc_buffer_allocate", result);
 
-	result = dst_random_get(16, nonce);
-	CHECK("dst_random_get", result);
+	result = isc_entropy_getdata(ectx, isc_buffer_base(nonce),
+				     isc_buffer_length(nonce), NULL,
+				     ISC_ENTROPY_BLOCKING);
+	CHECK("isc_entropy_getdata", result);
 	
 	query = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
@@ -285,6 +291,9 @@ buildquery(void) {
 	       (char *)isc_buffer_base(&outbuf));
 
 	isc_buffer_usedregion(&qbuffer, &r);
+	isc_sockaddr_any(&sa);
+	result = isc_socket_bind(s, &sa);
+	CHECK("isc_socket_bind", result);
 	result = isc_socket_sendto(s, &r, task1, senddone, NULL, &address,
 				   NULL);
 	CHECK("isc_socket_sendto", result);
@@ -350,6 +359,7 @@ main(int argc, char *argv[]) {
 	struct in_addr inaddr;
 	dns_fixedname_t fname;
 	dns_name_t *name;
+	isc_entropysource_t *devrandom;
 	isc_buffer_t b;
 	isc_result_t result;
 
@@ -359,6 +369,19 @@ main(int argc, char *argv[]) {
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+
+	ectx = NULL;
+	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
+
+	devrandom = NULL;
+	result = isc_entropy_createfilesource(ectx, "/dev/random", 0,
+					      &devrandom);
+	if (devrandom == NULL) {
+		fprintf(stderr,
+			"%s only runs when /dev/random is available.\n",
+			argv[0]);
+		exit(-1);
+	}
 
 	while ((ch = isc_commandline_parse(argc, argv, "vw:")) != -1) {
 		switch (ch) {
@@ -378,7 +401,10 @@ main(int argc, char *argv[]) {
 	}
 
 	dns_result_register();
-	dst_result_register();
+
+	RUNTIME_CHECK(dst_lib_init(mctx, ectx,
+				   ISC_ENTROPY_BLOCKING|ISC_ENTROPY_GOODONLY)
+		      == ISC_R_SUCCESS);
 
 	taskmgr = NULL;
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr) ==
@@ -394,7 +420,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
 	ring = NULL;
 	RUNTIME_CHECK(dns_tsigkeyring_create(mctx, &ring) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_tkeyctx_create(mctx, &tctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_tkeyctx_create(mctx, ectx, &tctx) == ISC_R_SUCCESS);
 
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
@@ -448,6 +474,10 @@ main(int argc, char *argv[]) {
 	dns_view_detach(&view);
 
 	isc_log_destroy(&log);
+
+	dst_lib_destroy();
+	isc_entropy_destroysource(&devrandom);
+	isc_entropy_detach(&ectx);
 
 	if (verbose)
 		isc_mem_stats(mctx, stdout);
