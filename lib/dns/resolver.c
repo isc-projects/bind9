@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.238 2002/02/19 00:48:21 marka Exp $ */
+/* $Id: resolver.c,v 1.239 2002/02/19 06:16:36 marka Exp $ */
 
 #include <config.h>
 
@@ -4313,9 +4313,10 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			/*
 			 * Remember that they don't like EDNS0.
 			 */
-			dns_adb_changeflags(fctx->adb, query->addrinfo,
-					    DNS_FETCHOPT_NOEDNS0,
-					    DNS_FETCHOPT_NOEDNS0);
+			if (message->rcode != dns_rcode_servfail)
+				dns_adb_changeflags(fctx->adb, query->addrinfo,
+						    DNS_FETCHOPT_NOEDNS0,
+						    DNS_FETCHOPT_NOEDNS0);
 		} else if (message->rcode == dns_rcode_formerr) {
 			if (ISFORWARDER(query->addrinfo)) {
 				/*
