@@ -1,5 +1,10 @@
+
  672.	[bug]		The wrong time was in the "time signed" field when
 			replying with BADTIME error.
+
+ 670.	[bug]		The lwres replacements for getaddrinfo and
+			getipnodebyname didn't properly check for the
+			existence of the sockaddr sa_len field.
 
  667.	[bug]		On Linux, running named with the -u option and a
 			non-world-readable configuration file didn't work.
