@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.3 2001/10/18 00:35:20 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.4 2001/11/13 01:15:33 gson Exp $ */
 
 #include <config.h>
 
@@ -482,7 +482,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	 */
 	if (ztype == dns_zone_master) {
 		dns_acl_t *updateacl;
-		RETERR(configure_zone_acl(zconfig, NULL, config,
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update", ac, zone,
 					  dns_zone_setupdateacl,
 					  dns_zone_clearupdateacl));
@@ -503,7 +503,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		dns_zone_setsigvalidityinterval(zone,
 						cfg_obj_asuint32(obj) * 86400);
 	} else if (ztype == dns_zone_slave) {
-		RETERR(configure_zone_acl(zconfig, NULL, config,
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,
 					  dns_zone_setforwardacl,
 					  dns_zone_clearforwardacl));
