@@ -27,6 +27,25 @@ release.
    checked in.  Look for any obvious broken links in the
    .html files.
 
+ - Update the copyrights.  According to tale:
+
+     Go to the root of the source tree.
+     The scripts need to be run from there; they reference the util
+     subdirectory internally.
+
+     $ make distclean
+     $ util/merge_copyrights
+     $ diff util/copyrights util/newcopyrights
+     ... examine output, particularly any files with the "?" type, and
+     ... then edit util/newcopyrights if necessary
+     $ mv util/newcopyrights util/copyrights
+     $ cvs ci -m'merge_copyrights' util/copyrights
+     $ util/update_copyrights < util/copyrights
+     $ cvs diff
+     ... examine output, edit as necessary.  mail me about anything that
+     ... the script should have been able to do itself. :-)
+     $ cvs ci -m'update_copyrights'
+
  - Announce a CVS pool freeze on bind-dev
 
  - Do basic tests on each build system:
