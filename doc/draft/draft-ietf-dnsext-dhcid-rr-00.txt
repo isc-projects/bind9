@@ -1,0 +1,336 @@
+Network Working Group                                      A. Gustafsson
+Internet-Draft                                                  T. Lemon
+Expires: January 12, 2001                                  Nominum, Inc.
+                                                                 M. Stapp
+                                                      Cisco Systems, Inc.
+                                                            July 14, 2000
+
+
+                  A DNS RR for encoding DHCP information
+                   <draft-ietf-dnsext-dhcid-rr-00.txt>
+
+Status of this Memo
+
+    This document is an Internet-Draft and is in full conformance with
+    all provisions of Section 10 of RFC2026.
+
+    Internet-Drafts are working documents of the Internet Engineering
+    Task Force (IETF), its areas, and its working groups. Note that
+    other groups may also distribute working documents as
+    Internet-Drafts.
+
+    Internet-Drafts are draft documents valid for a maximum of six
+    months and may be updated, replaced, or obsoleted by other documents
+    at any time. It is inappropriate to use Internet-Drafts as reference
+    material or to cite them other than as "work in progress."
+
+    The list of current Internet-Drafts can be accessed at
+    http://www.ietf.org/ietf/1id-abstracts.txt.
+
+    The list of Internet-Draft Shadow Directories can be accessed at
+    http://www.ietf.org/shadow.html.
+
+    This Internet-Draft will expire on January 12, 2001.
+
+Copyright Notice
+
+    Copyright (C) The Internet Society (2000). All Rights Reserved.
+
+Abstract
+
+    A situation can arise where multiple DHCP clients request the same
+    DNS name from their (possibly distinct) DHCP servers.  To resolve
+    such conflicts, 'Resolution of DNS Name Conflicts'[7] proposes
+    storing client identifiers in the DNS to unambiguously associate
+    domain names with the DHCP clients "owning" them. This memo defines
+    a distinct RR type for use by DHCP servers, the "DHCID" RR.
+
+
+
+
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 1]
+
+Internet-Draft    A DNS RR for encoding DHCP information       July 2000
+
+
+Table of Contents
+
+    1.  Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .  3
+    2.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+    3.  The DHCID RR . . . . . . . . . . . . . . . . . . . . . . . . .  3
+    4.  DHCID RDATA format . . . . . . . . . . . . . . . . . . . . . .  3
+    4.1 Example  . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+    5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  4
+    6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  4
+        References . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+        Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  5
+        Full Copyright Statement . . . . . . . . . . . . . . . . . . .  6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 2]
+
+Internet-Draft    A DNS RR for encoding DHCP information       July 2000
+
+
+1. Terminology
+
+    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+    document are to be interpreted as described in RFC 2119[1].
+
+2. Introduction
+
+    A set of procedures to allow DHCP [RFC2131] clients and servers to
+    automatically update the DNS (RFC1034[2], RFC1035[3]) is proposed in
+    Resolution of DNS Name Conflicts[7].
+
+    A situation can arise where multiple DHCP clients wish to use the
+    same DNS name. To resolve such conflicts, Resolution of DNS Name
+    Conflicts[7] proposes storing client identifiers in the DNS to
+    unambiguously associate domain names with the DHCP clients using
+    them. In the interest of clarity, it would be preferable for this
+    DHCP information to use a distinct RR type.
+
+    This memo defines a distinct RR type for this purpose for use by
+    DHCP clients or servers, the "DHCID" RR.
+
+3. The DHCID RR
+
+    The DHCP RR is defined with mnemonic DHCID and type code [TBD].
+
+4. DHCID RDATA format
+
+    The RDATA section of a DHCID RR in transmission contains RDLENGTH
+    bytes of binary data.  The format of this data and its
+    interpretation by DHCP servers and clients are described below.
+
+    DNS software should consider the RDATA section to be opaque.  In DNS
+    master files, the RDATA is represented as a hexadecimal string with
+    an optional "0x" or "0X" prefix.  Periods (".") may be inserted
+    anywhere after the "0x" for readability.  This format is identical
+    to that of the NSAP RR (RFC1706[4]). The number of hexadecimal
+    digits MUST be even.
+
+    DHCP clients or servers use the DHCID RR to associate a DHCP
+    client's identity with a DNS name, so that multiple DHCP clients and
+    servers may safely perform dynamic DNS updates to the same zone.
+    From the updater's perspective, the DHCID resource record consists
+    of a 16-bit identifier type, followed by one or more bytes
+    representing the actual identifier.  There are two possible forms
+    for a DHCID RR - one that is used when the DHCP server is using the
+    client's link-layer address to identify it, and one that is used
+    when the DHCP server is using some DHCP option that the DHCP client
+    sent to identify it. When the link-layer address is used as the
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 3]
+
+Internet-Draft    A DNS RR for encoding DHCP information       July 2000
+
+
+    identifier, the first two bytes of the RRDATA are set to 0. When a
+    DHCP option is used as the identifier, the first two bytes of the
+    RRDATA contain the option number, in network byte order. The two
+    bytes 0xffff are reserved. In both cases, the remainder of the
+    RRDATA is the result of performing a one-way hash across the
+    identifier.
+
+    The details of the method used to generate the data in the RR and
+    the use to which a DHCP client or server may put this association
+    are beyond the scope of this draft, and are discussed in the draft
+    that specifies the DNS update behavior, 'Resolution of DNS Name
+    Conflicts'[7]. This RR MUST NOT be used for any purpose other than
+    that detailed in the DHC document. Althought this RR contains data
+    that is opaque to DNS servers, the data is meaningful to DHCP
+    updaters. Therefore, new data formats may only be defined through
+    actions of the DHC Working Group.
+
+4.1 Example
+
+    A DHCP server allocating the IPv4 address 10.0.0.1 to a client
+    "client.org.nil" might use the client's link-layer address to
+    identify the client:
+
+      client.org.nil. A    10.0.0.1
+      client.org.nil. DHCID 
+00.00.18.29.11.17.22.0a.ad.c1.88.10.a3.dd.ff.c8.d9.49
+
+    A DHCP server allocating the IPv4 address 10.0.12.99 to a client
+    "chi.org.nil" might use the DHCP client identifier option to
+    identify the client:
+
+      chi.org.nil. A    10.0.12.99
+      chi.org.nil. DHCID 00.61.92.71.22.da.01.88.dd.3a.11.8c.1c.a0.ff.94.9d.81
+
+5. Security Considerations
+
+    The DHCID record as such does not introduce any new security
+    problems into the DNS.  In order to avoid exposing private
+    information about DHCP clients to public scrutiny, a one-way-hash is
+    used to obscure all client information.
+
+6. IANA Considerations
+
+    The IANA is requested to allocate an RR type number for the DHCP
+    record type.
+
+References
+
+    [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+         Levels", RFC 2119, March 1997.
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 4]
+
+Internet-Draft    A DNS RR for encoding DHCP information       July 2000
+
+
+    [2]  Mockapetris, P., "Domain names - Concepts and Facilities", RFC
+         1034, Nov 1987.
+
+    [3]  Mockapetris, P., "Domain names - Implementation and
+         Specification", RFC 1035, Nov 1987.
+
+    [4]  Manning, B. and R. Colella, "DNS NSAP Resource Records", RFC
+         1706, Oct 1994.
+
+    [5]  Droms, R., "Dynamic Host Configuration Protocol", RFC 2131, Mar
+         1997.
+
+    [6]  Alexander, S. and R. Droms, "DHCP Options and BOOTP Vendor
+         Extensions", RFC 2132, Mar 1997.
+
+    [7]  Stapp, M., "Resolution of DNS Name Conflicts Among DHCP Clients
+         (draft-ietf-dhc-dns-resolution-*)", July 2000.
+
+
+Authors' Addresses
+
+    Andreas Gustafsson
+    Nominum, Inc.
+    950 Charter St.
+    Redwood City, CA  94063
+    USA
+
+    EMail: gson@nominum.com
+
+
+    Ted Lemon
+    Nominum, Inc.
+    950 Charter St.
+    Redwood City, CA  94063
+    USA
+
+    EMail: mellon@nominum.com
+
+
+    Mark Stapp
+    Cisco Systems, Inc.
+    250 Apollo Dr.
+    Chelmsford, MA  01824
+    USA
+
+    Phone: 978.244.8498
+    EMail: mjs@cisco.com
+
+
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 5]
+
+Internet-Draft    A DNS RR for encoding DHCP information       July 2000
+
+
+Full Copyright Statement
+
+    Copyright (C) The Internet Society (2000). All Rights Reserved.
+
+    This document and translations of it may be copied and furnished to
+    others, and derivative works that comment on or otherwise explain it
+    or assist in its implementation may be prepared, copied, published
+    and distributed, in whole or in part, without restriction of any
+    kind, provided that the above copyright notice and this paragraph
+    are included on all such copies and derivative works. However, this
+    document itself may not be modified in any way, such as by removing
+    the copyright notice or references to the Internet Society or other
+    Internet organizations, except as needed for the purpose of
+    developing Internet standards in which case the procedures for
+    copyrights defined in the Internet Standards process must be
+    followed, or as required to translate it into languages other than
+    English.
+
+    The limited permissions granted above are perpetual and will not be
+    revoked by the Internet Society or its successors or assigns.
+
+    This document and the information contained herein is provided on an
+    "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+    Funding for the RFC editor function is currently provided by the
+    Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Gustafsson, et. al.     Expires January 12, 2001                [Page 6]
+
+
