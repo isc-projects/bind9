@@ -254,9 +254,11 @@ ns_os_changeuser(const char *username) {
 	if (username == NULL || getuid() != 0)
 		return;
 
+#ifdef HAVE_LINUXTHREADS
 	if (!non_root_caps)
 		ns_main_earlyfatal(
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
+#endif	
 
 	if (all_digits(username))
 		pw = getpwuid((uid_t)atoi(username));
