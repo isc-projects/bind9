@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.6 2004/12/06 04:47:21 marka Exp $
+# $Id: Makefile.in,v 1.7 2004/12/08 03:00:28 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -32,8 +32,10 @@ CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
+ISCCFGLIBS =    ../../lib/isccfg/libisccfg.@A
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
+ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
@@ -61,11 +63,11 @@ libbind9.@SA@: ${OBJS}
 	${AR} ${ARFLAGS} $@ ${OBJS}
 	${RANLIB} $@
 
-libbind9.la: ${OBJS} ${ISCDEPLIBS}
+libbind9.la: ${OBJS} ${ISCCFGDEPLIBS} ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} \
 		${CC} ${ALL_CFLAGS} ${LDFLAGS} -o libbind9.la -rpath ${libdir} \
 		-version-info ${LIBINTERFACE}:${LIBREVISION}:${LIBAGE} \
-		${OBJS} ${ISCLIBS} ${LIBS}
+		${OBJS} ${ISCCFGLIBS} ${ISCLIBS} ${LIBS}
 
 timestamp: libbind9.@A@
 	touch timestamp
