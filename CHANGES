@@ -1,4 +1,7 @@
 
+ 978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
+			condition.
+
  977.	[bug]		Improve "not at top of zone" error message.
 
  975.	[bug]		"max-cache-size default;" as a view option
