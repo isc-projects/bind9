@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.49 2001/01/23 01:59:03 gson Exp $ */
+/* $Id: request.c,v 1.50 2001/01/23 02:00:56 bwelling Exp $ */
 
 #include <config.h>
 
@@ -412,7 +412,7 @@ mgr_gethash(dns_requestmgr_t *requestmgr) {
 	 * Locked by caller.
 	 */
 	requestmgr->hash++;
-	return(requestmgr->hash % DNS_REQUEST_NLOCKS);
+	return (requestmgr->hash % DNS_REQUEST_NLOCKS);
 }
 
 static inline isc_result_t
@@ -732,9 +732,9 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   isc_taskaction_t action, void *arg,
 		   dns_request_t **requestp)
 {
-	return(dns_request_createvia(requestmgr, message, NULL, address,
-				     options, key, timeout, task, action,
-				     arg, requestp));
+	return (dns_request_createvia(requestmgr, message, NULL, address,
+				      options, key, timeout, task, action,
+				      arg, requestp));
 }
 
 isc_result_t
