@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.68 2000/11/11 01:05:43 gson Exp $ */
+/* $Id: zoneconf.c,v 1.69 2000/11/16 19:32:13 tale Exp $ */
 
 #include <config.h>
 
@@ -158,7 +158,6 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		   dns_zone_t *zone)
 {
 	isc_result_t result;
-	isc_boolean_t boolean;
 	const char *filename = NULL;
 	dns_notifytype_t notifytype;
 #ifdef notyet
@@ -275,6 +274,8 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	}
 
 	if (czone->ztype == dns_c_zone_slave) {
+		isc_boolean_t boolean;
+
 		result = dns_c_zone_getnotifyforward(czone, &boolean);
 		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getnotifyforward(cview, &boolean);
