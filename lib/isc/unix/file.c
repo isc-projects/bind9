@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.28 2001/01/09 21:58:17 bwelling Exp $ */
+/* $Id: file.c,v 1.29 2001/03/29 02:33:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -227,4 +227,9 @@ isc_file_rename(const char *oldname, const char *newname) {
 isc_boolean_t
 isc_file_isabsolute(const char *filename) {
 	return (ISC_TF(filename[0] == '/'));
+}
+
+isc_boolean_t
+isc_file_iscurrentdir(const char *filename) {
+	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
 }

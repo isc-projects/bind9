@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.14 2001/01/09 21:56:54 bwelling Exp $ */
+/* $Id: file.h,v 1.15 2001/03/29 02:33:47 bwelling Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -169,6 +169,12 @@ isc_boolean_t
 isc_file_isabsolute(const char *filename);
 /*
  * Return ISC_TRUE iff the given file name is absolute.
+ */
+
+isc_boolean_t
+isc_file_iscurrentdir(const char *filename);
+/*
+ * Return ISC_TRUE iff the given file name is the current directory (".").
  */
 
 isc_result_t

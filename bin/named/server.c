@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.313 2001/03/27 18:17:09 gson Exp $ */
+/* $Id: server.c,v 1.314 2001/03/29 02:33:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1396,11 +1396,18 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	 * Change directory.
 	 */
 	directory = cfg_obj_asstring(obj);
+
+	if (!isc_file_isabsolute(directory) &&
+	    !isc_file_iscurrentdir(directory))
+		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
+			    "directory '%s' contains a relative path",
+			    directory);
+
 	result = isc_dir_chdir(directory);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
-			      "change directory to '%s' failed: %s",
-			      directory, isc_result_totext(result));
+			    "change directory to '%s' failed: %s",
+			    directory, isc_result_totext(result));
 		return (result);
 	}
 

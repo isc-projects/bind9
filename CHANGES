@@ -1,3 +1,5 @@
+ 797.	[func]		Issue a warning if the 'directory' option contains
+ 			a relative path. [RT #269]
 
  796.	[func]		When a size limit is associated with a log file,
 			only roll it when the size is reached, not every
