@@ -1,3 +1,6 @@
+ 370.	[bug]		The error message for roll forward failures was
+			overly terse.
+
  369.	[func]		Support new named.conf options, view and zone 
 			statements: 
 
