@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.88.2.4 2001/01/16 17:43:55 gson Exp $ */
+/* $Id: master.c,v 1.88.2.5 2001/01/19 21:21:13 gson Exp $ */
 
 #include <config.h>
 
@@ -614,7 +614,7 @@ generate(dns_loadctx_t *ctx, char *range, char *lhs, char *gtype, char *rhs) {
 
 	ISC_LIST_INIT(rdatalist.rdata);
 	ISC_LINK_INIT(&rdatalist, link);
-	for (i = start; i < stop; i += step) {
+	for (i = start; i <= stop; i += step) {
 		result = genname(lhs, i, lhsbuf, DNS_MASTER_BUFSZ);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;

@@ -1,4 +1,7 @@
 
+ 694.	[bug]		$GENERATE did not produce the last entry.
+			[RT #682, #683]
+
  693.   [bug]           An empty lwres statement in named.conf caused
                         the server to crash while loading.
 
