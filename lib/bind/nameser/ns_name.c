@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.5 2004/03/09 09:17:37 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.6 2004/05/04 03:26:16 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -75,9 +75,11 @@ static int		dn_find(const u_char *, const u_char *,
 				const u_char * const *,
 				const u_char * const *);
 static int		encode_bitsring(const char **, const char *,
-					char **, char **, const char *);
+					unsigned char **, unsigned char **,
+					unsigned const char *);
 static int		labellen(const u_char *);
-static int		decode_bitstring(const char **, char *, const char *);
+static int		decode_bitstring(const unsigned char **,
+					 char *, const char *);
 
 /* Public. */
 
@@ -132,7 +134,7 @@ ns_name_ntop(const u_char *src, char *dst, size_t dstsiz)
 				errno = EINVAL;
 				return(-1);
 			}
-			if ((m = decode_bitstring((const char **)&cp, dn, eom)) < 0)
+			if ((m = decode_bitstring(&cp, dn, eom)) < 0)
 			{
 				errno = EMSGSIZE;
 				return(-1);
@@ -212,11 +214,8 @@ ns_name_pton(const char *src, u_char *dst, size_t dstsiz)
 					errno = EINVAL; /* ??? */
 					return(-1);
 				}
-				if ((e = encode_bitsring(&src,
-							 cp + 2,
-							 (char **)&label,
-							 (char **)&bp,
-							 (const char *)eom))
+				if ((e = encode_bitsring(&src, cp + 2,
+							 &label, &bp, eom))
 				    != 0) {
 					errno = e;
 					return(-1);
@@ -788,9 +787,9 @@ dn_find(const u_char *domain, const u_char *msg,
 }
 
 static int
-decode_bitstring(const char **cpp, char *dn, const char *eom)
+decode_bitstring(const unsigned char **cpp, char *dn, const char *eom)
 {
-	const char *cp = *cpp;
+	const unsigned char *cp = *cpp;
 	char *beg = dn, tc;
 	int b, blen, plen, i;
 
@@ -836,12 +835,13 @@ decode_bitstring(const char **cpp, char *dn, const char *eom)
 }
 
 static int
-encode_bitsring(const char **bp, const char *end, char **labelp,
-	        char ** dst, const char *eom)
+encode_bitsring(const char **bp, const char *end, unsigned char **labelp,
+	        unsigned char ** dst, unsigned const char *eom)
 {
 	int afterslash = 0;
 	const char *cp = *bp;
-	char *tp, c;
+	unsigned char *tp;
+	char c;
 	const char *beg_blen;
 	char *end_blen = NULL;
 	int value = 0, count = 0, tbcount = 0, blen = 0;
