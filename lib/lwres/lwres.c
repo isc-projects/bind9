@@ -31,11 +31,15 @@
 static void *lwres_malloc(void *, size_t);
 static void lwres_free(void *, size_t, void *);
 
+#define LWRES_DEFAULT_TIMEOUT	30	/* 30 seconds for a reply */
+
 /*
  * Not all the attributes here are actually settable by the application at
  * this time.
  */
 struct lwres_context {
+	unsigned int		timeout;	/* time to wait for reply */
+
 	/*
 	 * Function pointers for allocating memory.
 	 */
@@ -72,6 +76,8 @@ lwres_contextcreate(lwres_context_t **contextp, void *arg,
 	context->malloc = malloc_function;
 	context->free = free_function;
 	context->arg = arg;
+
+	context->timeout = LWRES_DEFAULT_TIMEOUT;
 
 	*contextp = context;
 	return (0);
