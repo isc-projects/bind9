@@ -1,3 +1,5 @@
+ 958.	[port]		ssize_t is not available on all platforms.  [RT #1607]
+
  957.	[bug]		sys/select.h inclusion was broken on older platforms.
 			[RT #1607]
 
