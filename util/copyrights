@@ -1,6 +1,6 @@
 ./.cvsignore					X	1999,2000,2001
 ./CHANGES					X	2000,2001
-./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004
+./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
 ./FAQ						X	2000,2001
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004
 ./README					X	1999,2000,2001
@@ -16,10 +16,10 @@
 ./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004
 ./bin/check/named-checkconf.docbook		SGML	2001,2002,2004
 ./bin/check/named-checkconf.html		HTML	2001,2002,2004
-./bin/check/named-checkzone.8			MAN	2000,2001,2002,2004
+./bin/check/named-checkzone.8			MAN	2000,2001,2002,2004,2005
 ./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005
 ./bin/check/named-checkzone.docbook		SGML	2001,2002,2004,2005
-./bin/check/named-checkzone.html		HTML	2001,2002,2004
+./bin/check/named-checkzone.html		HTML	2001,2002,2004,2005
 ./bin/check/win32/namedcheckconf.dsp		X	2001
 ./bin/check/win32/namedcheckconf.dsw		X	2001
 ./bin/check/win32/namedcheckconf.mak		X	2001
