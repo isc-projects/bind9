@@ -41,10 +41,12 @@
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/events.h>
-#include <dns/
+#include <dns/fixedname.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <dns/resolver.h>
+#include <dns/types.h>
 #include <dns/view.h>
 
 #include "../isc/util.h"
@@ -86,6 +88,8 @@ struct dns_adb {
 	isc_condition_t			shutdown_cond;
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
+	isc_timermgr_t		       *timermgr;
+	isc_taskmgr_t		       *taskmgr;
 
 	unsigned int			irefcnt;
 	unsigned int			erefcnt;
@@ -1000,7 +1004,8 @@ destroy(dns_adb_t *adb)
  */
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *taskmgr,
+	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb)
 {
 	dns_adb_t *adb;
 	isc_result_t result;
@@ -1090,6 +1095,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 	 */
 	adb->mctx = mem;
 	adb->view = view;
+	adb->timermgr = timermgr;
+	adb->taskmgr = taskmgr;
 	adb->magic = DNS_ADB_MAGIC;
 	*newadb = adb;
 	return (ISC_R_SUCCESS);

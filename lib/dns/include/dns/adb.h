@@ -185,7 +185,8 @@ struct dns_adbaddrinfo {
 
 
 isc_result_t
-dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb);
+dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
+	       dns_adb_t **newadb);
 /*
  * Create a new ADB.
  *
@@ -195,9 +196,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb);
  *	allocations will happen through (and so must remain valid at least
  *	until the new isc_addrtable_t is deleted)
  *
- *	'view' be a pointer to a valid viewif the database is to make
- *	queries to resolve names.  If it is used only as storage, this
- *	entry may be NULL.
+ *	'view' be a pointer to a valid view.
+ *
+ *	'tmgr' be a pointer to a valid timer manager.  If this is NULL,
+ *	no periodic cleaning will ever occur.
  *
  *	'newadb' != NULL && '*newadb' == NULL.
  *
