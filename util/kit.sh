@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.26 2004/03/05 05:14:16 marka Exp $
+# $Id: kit.sh,v 1.27 2004/03/15 06:58:33 marka Exp $
 
 # Make a release kit
 #
@@ -114,7 +114,7 @@ fi
 # we still delete them from releases just in case something 
 # gets accidentally resurrected.
 
-rm -rf TODO conftools util doc/design doc/dev doc/expired \
+rm -rf TODO EXCLUDED conftools util doc/design doc/dev doc/expired \
     doc/html doc/todo doc/private bin/lwresd doc/man \
     lib/lwres/man/resolver.5 \
     bin/tests/system/relay lib/cfg
