@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.232 2000/10/13 13:45:43 marka Exp $ */
+/* $Id: zone.c,v 1.233 2000/10/16 04:05:43 marka Exp $ */
 
 #include <config.h>
 
@@ -266,9 +266,7 @@ struct dns_notify {
 	ISC_LINK(dns_notify_t)	link;
 };
 
-#ifndef NOMINUM_PUBLIC
 #define DNS_NOTIFY_NOSOA	0x0001U
-#endif /* NOMINUM_PUBLIC */
 
 /*
  *	dns_stub holds state while performing a 'stub' transfer.
@@ -363,13 +361,10 @@ static int message_count(dns_message_t *msg, dns_section_t section,
 static void notify_cancel(dns_zone_t *zone);
 static void notify_find_address(dns_notify_t *notify);
 static void notify_send(dns_notify_t *notify);
-#ifdef NOMINUM_PUBLIC
-static isc_result_t notify_createmessage(dns_zone_t *zone,
-					 dns_message_t **messagep);
-#else /* NOMINUM_PUBLIC */
 static isc_result_t notify_createmessage(dns_zone_t *zone,
 					 unsigned int flags,
 					 dns_message_t **messagep);
+#ifndef NOMINUM_PUBLIC
 static void zone_notifyforward(dns_zone_t *zone);
 #endif /* NOMINUM_PUBLIC */
 static void notify_done(isc_task_t *task, isc_event_t *event);
@@ -2098,7 +2093,7 @@ notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 }
 
 static isc_result_t
-notify_create(isc_mem_t *mctx, dns_notify_t **notifyp) {
+notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	dns_notify_t *notify;
 
 	REQUIRE(notifyp != NULL && *notifyp == NULL);
@@ -2109,9 +2104,7 @@ notify_create(isc_mem_t *mctx, dns_notify_t **notifyp) {
 
 	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
-#ifndef NOMINUM_PUBLIC
-	notify->flags = 0;
-#endif /* NOMINUM_PUBLIC */
+	notify->flags = flags;
 	notify->zone = NULL;
 	notify->find = NULL;
 	notify->request = NULL;
@@ -2239,11 +2232,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-#ifdef NOMINUM_PUBLIC
-	result = notify_createmessage(notify->zone, &message);
-#else /* NOMINUM_PUBLIC */
 	result = notify_createmessage(notify->zone, notify->flags, &message);
-#endif /* NOMINUM_PUBLIC */
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -2289,7 +2278,9 @@ notify_send(dns_notify_t *notify) {
 		if (notify_isqueued(notify->zone, NULL, &dst))
 			continue;
 		new = NULL;
-		result = notify_create(notify->mctx, &new);
+		result = notify_create(notify->mctx,
+				       (notify->flags & DNS_NOTIFY_NOSOA),
+				       &new);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		dns_zone_iattach(notify->zone, &new->zone);
@@ -2332,13 +2323,12 @@ zone_notifyforward(dns_zone_t *zone) {
 		dst = zone->masters[i];
 		if (notify_isqueued(zone, NULL, &dst))
 			continue;
-		result = notify_create(zone->mctx, &notify);
+		result = notify_create(zone->mctx, DNS_NOTIFY_NOSOA, &notify);
 		if (result != ISC_R_SUCCESS) {
 			return;
 		}
 		dns_zone_iattach(zone, &notify->zone);
 		notify->dst = dst;
-		notify->flags |= DNS_NOTIFY_NOSOA;
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		result = notify_send_queue(notify);
 		if (result != ISC_R_SUCCESS) {
@@ -2367,6 +2357,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	isc_sockaddr_t dst;
 	isc_boolean_t isqueued;
 	dns_notifytype_t notifytype;
+	unsigned int flags = 0;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2386,6 +2377,13 @@ dns_zone_notify(dns_zone_t *zone) {
 	origin = &zone->origin;
 
 	/*
+	 * If the zone is dialup we are done as we don't want to send
+	 * the current soa so as to force a refresh query.
+	 */
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DIALUP))
+		flags |= DNS_NOTIFY_NOSOA;
+
+	/*
 	 * Enqueue notify requests for 'also-notify' servers.
 	 */
 	LOCK(&zone->lock);
@@ -2393,7 +2391,7 @@ dns_zone_notify(dns_zone_t *zone) {
 		dst = zone->notify[i];
 		if (notify_isqueued(zone, NULL, &dst))
 			continue;
-		result = notify_create(zone->mctx, &notify);
+		result = notify_create(zone->mctx, flags, &notify);
 		if (result != ISC_R_SUCCESS) {
 			UNLOCK(&zone->lock);
 			return;
@@ -2478,7 +2476,7 @@ dns_zone_notify(dns_zone_t *zone) {
 			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
-		result = notify_create(zone->mctx, &notify);
+		result = notify_create(zone->mctx, flags, &notify);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		dns_zone_iattach(zone, &notify->zone);
@@ -3495,12 +3493,8 @@ cancel_refresh(dns_zone_t *zone) {
 }
 
 static isc_result_t
-#ifdef NOMINUM_PUBLIC
-notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
-#else /* NOMINUM_PUBLIC */
 notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		     dns_message_t **messagep)
-#endif /* NOMINUM_PUBLIC */
 {
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
@@ -3551,15 +3545,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	tempname = NULL;
 	temprdataset = NULL;
 
-#ifndef NOMINUM_PUBLIC
 	if ((flags & DNS_NOTIFY_NOSOA) != 0)
-		goto done;
-#endif /* NOMINUM_PUBLIC */
-	/*
-	 * If the zone is dialup we are done as we don't want to send
-	 * the current soa so as to force a refresh query.
-	 */
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DIALUP))
 		goto done;
 
 	result = dns_message_gettempname(message, &tempname);
@@ -4194,11 +4180,17 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 		notify_log(notify->zone, ISC_LOG_INFO,
 			   "NOTIFY to %s failed: %s", addrbuf,
 			   dns_result_totext(result));
-	if (message != NULL)
-		dns_message_destroy(&message);
 
+	/*
+	 * Old bind's return formerr if they see a soa record.  Retry w/o
+	 * the soa if we see a formerr and had sent a SOA.
+	 */
 	isc_event_free(&event);
-	if (result == ISC_R_TIMEDOUT && notify->attempt < 3) {
+	if ((result == ISC_R_TIMEDOUT ||
+	     (message != NULL && message->rcode == dns_rcode_formerr &&
+	      (notify->flags & DNS_NOTIFY_NOSOA) == 0)) &&
+	     notify->attempt < 3) {
+		notify->flags |= DNS_NOTIFY_NOSOA;
 		notify->attempt++;
 		dns_request_destroy(&notify->request);
 		notify_send_queue(notify);
@@ -4208,6 +4200,8 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 				   "NOTIFY to %s: retries exceeded", addrbuf);
 		notify_destroy(notify, ISC_FALSE);
 	}
+	if (message != NULL)
+		dns_message_destroy(&message);
 }
 
 isc_result_t
