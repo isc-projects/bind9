@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.12 1999/11/03 16:53:56 bwelling Exp $
+ * $Id: tkey.c,v 1.13 1999/11/05 16:53:47 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -65,13 +65,16 @@
 
 static dst_key_t *tkey_dhkey = NULL;
 static dns_name_t *tkey_domain = NULL;
+static isc_mem_t *tkey_mctx = NULL;
 
 isc_result_t
 dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	isc_result_t result;
 	char *s;
 	int n;
-	isc_buffer_t b, *namebuf = NULL;
+	isc_buffer_t b, namebuf;
+	unsigned char data[1024];
+	dns_name_t domain;
 
 	RUNTIME_CHECK(tkey_domain == NULL);
 	RUNTIME_CHECK(tkey_dhkey == NULL);
@@ -91,16 +94,19 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 				mctx, &tkey_dhkey));
 	s = NULL;
 	RETERR(dns_c_ctx_gettkeydomain(lctx, cfg, &s));
+	dns_name_init(&domain, NULL);
 	tkey_domain = (dns_name_t *) isc_mem_get(mctx, sizeof(dns_name_t));
 	if (tkey_domain == NULL)
 		return (ISC_R_NOMEMORY);
 	dns_name_init(tkey_domain, NULL);
 	isc_buffer_init(&b, s, strlen(s), ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&b, strlen(s));
-	RETERR(isc_buffer_allocate(mctx, &namebuf, 1024,
-				   ISC_BUFFERTYPE_BINARY));
-	RETERR(dns_name_fromtext(tkey_domain, &b, dns_rootname, ISC_FALSE,
-				 namebuf));
+	isc_buffer_init(&namebuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+	RETERR(dns_name_fromtext(&domain, &b, dns_rootname, ISC_FALSE,
+				 &namebuf));
+	RETERR(dns_name_dup(&domain, mctx, tkey_domain));
+
+	tkey_mctx = mctx;
 
 	return (ISC_R_SUCCESS);
 
@@ -110,12 +116,21 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 		tkey_dhkey = NULL;
 	}
 	if (tkey_domain != NULL) {
+		dns_name_free(tkey_domain, mctx);
 		isc_mem_put(mctx, tkey_domain, sizeof(dns_name_t));
 		tkey_domain = NULL;
 	}
-	if (namebuf != NULL)
-		isc_buffer_free(&namebuf);
 	return (result);
+}
+
+void
+dns_tkey_destroy(void) {
+	REQUIRE(tkey_mctx != NULL);
+	if (tkey_dhkey != NULL)
+		dst_key_free(tkey_dhkey);
+	if (tkey_domain != NULL)
+		isc_mem_put(tkey_mctx, tkey_domain, sizeof(dns_name_t));
+	tkey_mctx = NULL;
 }
 
 static isc_result_t
@@ -415,7 +430,6 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 		 */
 		if (!dns_name_equal(&signer, name))
 			return (DNS_R_REFUSED);
-		result = ISC_R_SUCCESS;
 	}
 	else if (result != ISC_R_SUCCESS) {
 		return (DNS_R_REFUSED);
@@ -435,7 +449,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 	/* Release the reference */
 	dns_tsigkey_free(&tsigkey);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -498,11 +512,9 @@ dns_tkey_processquery(dns_message_t *msg) {
 	tkeyout.key = tkeyout.other = NULL;
 
 	/*
-	 * A delete operation must have a fully specified key name.  If not,
-	 * we do the following:
-	 * if qname is a subdomain of defaultdomain
-	 *	keyname = qname.
-	 * else if (qname != ".")
+	 * A delete operation must have a fully specified key name.  If this
+	 * is not a delete, we do the following:
+	 * if (qname != ".")
 	 *	keyname = qname + defaultdomain
 	 * else
 	 *	keyname = <random hex> + defaultdomain
@@ -652,8 +664,6 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 	REQUIRE(msg != NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(tkey != NULL);
-
-	msg->id = 10; /* XXX should use isc_random_get */
 
 	RETERR(dns_message_gettempname(msg, &qname));
 	RETERR(dns_message_gettempname(msg, &aname));
