@@ -71,16 +71,6 @@
 @ISC_NET_HAVESALEN@
 
 /*
- * If this system needs AF_INET6, ISC_NET_NEEDAFINET6 will be defined.
- */
-@ISC_NET_NEEDAFINET6@
-
-/*
- * If this system needs PF_INET6, ISC_NET_NEEDPFINET6 will be defined.
- */
-@ISC_NET_NEEDPFINET6@
-
-/*
  * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
  * will be defined.
  */
@@ -113,11 +103,11 @@
 
 #include <isc/result.h>
 
-#ifdef ISC_NET_NEEDAFINET6
+#ifndef AF_INET6
 #define AF_INET6 99
 #endif
 
-#ifdef ISC_NET_NEEDPFINET6
+#ifndef PF_INET6
 #define PF_INET6 AF_INET6
 #endif
 
