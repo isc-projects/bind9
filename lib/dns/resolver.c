@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.153 2000/07/25 22:03:25 bwelling Exp $ */
+/* $Id: resolver.c,v 1.154 2000/07/25 22:04:33 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2260,8 +2260,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t eresult = ISC_R_SUCCESS;
 	isc_stdtime_t now;
-        fetchctx_t *fctx;
-        dns_validatorevent_t *vevent;
+	fetchctx_t *fctx;
+	dns_validatorevent_t *vevent;
 	dns_fetchevent_t *hevent;
 	dns_rdataset_t *ardataset = NULL;
 	dns_rdataset_t *asigrdataset = NULL;
@@ -2269,14 +2269,14 @@ validated(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t negative;
 	isc_boolean_t sentresponse;
 
-        UNUSED(task); /* for now */
+	UNUSED(task); /* for now */
 
-        REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
-        fctx = event->ev_arg;
-        REQUIRE(VALID_FCTX(fctx));
-        REQUIRE(fctx->validating > 0);
+	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
+	fctx = event->ev_arg;
+	REQUIRE(VALID_FCTX(fctx));
+	REQUIRE(fctx->validating > 0);
 
-        vevent = (dns_validatorevent_t *)event;
+	vevent = (dns_validatorevent_t *)event;
 	
 	FCTXTRACE("received validation completion event");
 
@@ -2286,16 +2286,16 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	dns_validator_destroy(&vevent->validator);
 
-        fctx->validating--;
+	fctx->validating--;
 
 	negative = ISC_TF(vevent->rdataset == NULL);
 
 	sentresponse = ISC_TF((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
-        /*
-         * If shutting down, ignore the results.  Check to see if we're
-         * done waiting for validator completions and ADB pending events; if
-         * so, destroy the fctx.
+	/*
+	 * If shutting down, ignore the results.  Check to see if we're
+	 * done waiting for validator completions and ADB pending events; if
+	 * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse ) {
 		maybe_destroy(fctx);
@@ -2323,7 +2323,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-        if (vevent->result != ISC_R_SUCCESS) {
+	if (vevent->result != ISC_R_SUCCESS) {
 		FCTXTRACE("validation failed");
 		if (vevent->rdataset != NULL) {
 			result = dns_db_findnode(fctx->res->view->cachedb,
@@ -2413,7 +2413,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_event;
 	}
 
-        if (fctx->validating > 0) {
+	if (fctx->validating > 0) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
 		       fctx->type == dns_rdatatype_sig);
@@ -2876,15 +2876,15 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * Do negative response validation.
 		 */
 		dns_validator_t *validator = NULL;		
-                isc_task_t *task = res->buckets[fctx->bucketnum].task;
-                result = dns_validator_create(res->view, name, fctx->type,
+		isc_task_t *task = res->buckets[fctx->bucketnum].task;
+		result = dns_validator_create(res->view, name, fctx->type,
 					      NULL, NULL,
-                                              fctx->rmessage, 0, task,
-                                              validated, fctx,
-                                              &validator);
-                if (result != ISC_R_SUCCESS)
-                        return (result);
-                fctx->validating++;
+					      fctx->rmessage, 0, task,
+					      validated, fctx,
+					      &validator);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		fctx->validating++;
 		return (ISC_R_SUCCESS);
 	}
 
