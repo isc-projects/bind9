@@ -2136,32 +2136,6 @@ update_action(isc_task_t *task, isc_event_t *event)
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	
-	/*
-	 * Construct the response message.
-	 */
-	render_result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
-					   &response);
-	if (render_result != DNS_R_SUCCESS)
-		goto render_failure;
-
-	response->id = request->id;
-	response->rcode = response_rcode;
-	response->flags = request->flags;
-	response->flags |= DNS_MESSAGEFLAG_QR;
-
-	*responsep = response;
-
-	goto render_success;
-	
- render_failure:
-	if (response != NULL)
-		dns_message_destroy(&response);
-
- render_success:
-	/*
-	 * If we could send a response, we have succeded, even if it
-	 * was a failure response.
-	 */
 	uev->result = result;
 	uev->type = DNS_EVENT_UPDATEDONE;
 	uev->action = updatedone_action;
