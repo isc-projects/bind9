@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.81 2000/02/16 16:37:52 bwelling Exp $ */
+ /* $Id: zone.c,v 1.82 2000/02/24 21:40:51 gson Exp $ */
 
 #include <config.h>
 
@@ -167,6 +167,7 @@ struct dns_zone {
 	isc_boolean_t		diff_on_reload;
 	isc_event_t		ctlevent;
 	dns_ssutable_t		*ssutable;
+	dns_view_t		*view;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -344,6 +345,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
 	zone->ssutable = NULL;
+	zone->view = NULL;
 	zone->magic = ZONE_MAGIC;
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
@@ -468,6 +470,16 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 	UNLOCK(&zone->lock);
 	return (result);
 }
+
+void dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+	zone->view = view;
+}
+     
+
+dns_view_t *dns_zone_getview(dns_zone_t *zone) {
+	return (zone->view);
+}
+     
 
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {

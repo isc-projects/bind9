@@ -106,6 +106,22 @@ void dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
  *	'type' != dns_zone_none
  */
 
+void dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
+/*
+ *	Associate the zone with a view.
+ *
+ * Require:
+ *	'zone' to be a valid initalised zone.
+ */	
+
+dns_view_t *dns_zone_getview(dns_zone_t *zone);
+/*
+ *	Returns the zone's associated view.
+ *
+ * Requires:
+ *	'zone' to be a valid initalised zone.
+ */
+
 isc_result_t dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin);
 /*
  *	Sets the zones origin to 'origin'.

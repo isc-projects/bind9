@@ -410,6 +410,7 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	REQUIRE(!view->frozen);
 
 	result = dns_zt_mount(view->zonetable, zone);
+	dns_zone_setview(zone, view);
 
 	return (result);
 }
