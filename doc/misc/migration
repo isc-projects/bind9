@@ -60,6 +60,7 @@ query-source as in BIND 8.
 
 Multiple classes have to be put into explicit views for each class.
 
+
 2. Zone File Compatibility
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
@@ -116,6 +117,7 @@ line.
 
 $GENERATE: The "$$" construct for getting a literal $ into a domain
 name is deprecated.  Use \$ instead.
+
 
 3. Interoperability Impact of New Protocol Features
 
@@ -227,6 +229,7 @@ created with different file permissions than they did in BIND 8.  If
 necessary, the umask should be set explicitly in the script used to
 start the named process.
 
+
 8. Nsupdate Differences
 
 The BIND 8 implementation of nsupdate had an undocumented feature
@@ -238,4 +241,4 @@ updates in a single invocation of nsupdate by terminating each update
 with an empty line or a "send" command.
 
 
-$Id: migration,v 1.39 2001/09/21 17:33:48 gson Exp $
+$Id: migration,v 1.40 2001/09/21 17:34:37 gson Exp $
