@@ -57,6 +57,15 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * A dns_fetchevent_t is sent when a 'fetch' completes.  Any of 'db',
+ * 'node', 'rdataset', and 'sigrdataset' may be bound.  It is the
+ * receiver's responsibility to detach before freeing the event.
+ *
+ * 'rdataset' and 'sigrdataset' are the values that were supplied when
+ * dns_resolver_createfetch() was called.  They are returned to the
+ * caller so that they may be freed.
+ */
 typedef struct dns_fetchevent {
 	ISC_EVENT_COMMON(struct dns_fetchevent);
 	dns_fetch_t *			fetch;
@@ -69,10 +78,18 @@ typedef struct dns_fetchevent {
 	dns_fixedname_t			foundname;
 } dns_fetchevent_t;
 
-#define DNS_FETCHOPT_TCP		0x01
-#define DNS_FETCHOPT_UNSHARED		0x02
-#define DNS_FETCHOPT_RECURSIVE		0x04
-#define DNS_FETCHOPT_NOEDNS0		0x08
+/*
+ * Options that modify how a 'fetch' is done.
+ */
+#define DNS_FETCHOPT_TCP		0x01		/* Use TCP. */
+#define DNS_FETCHOPT_UNSHARED		0x02		/* See below. */
+#define DNS_FETCHOPT_RECURSIVE		0x04		/* Set RD? */
+#define DNS_FETCHOPT_NOEDNS0		0x08		/* Do not use EDNS. */
+
+/*
+ * XXXRTH  Should this API be made semi-private?  (I.e.
+ * _dns_resolver_create()).
+ */
 
 dns_result_t
 dns_resolver_create(dns_view_t *view,
@@ -80,13 +97,74 @@ dns_resolver_create(dns_view_t *view,
 		    isc_socketmgr_t *socketmgr,
 		    isc_timermgr_t *timermgr,
 		    dns_dispatch_t *dispatch, dns_resolver_t **resp);
+/*
+ * Create a resolver.
+ *
+ * Notes:
+ *
+ *	Generally, applications should not create a resolver directly, but
+ *	should instead call dns_view_createresolver().
+ *
+ * Requires:
+ *
+ *	'view' is a valid view.
+ *
+ *	'taskmgr' is a valid task manager.
+ *
+ *	'ntasks' > 0.
+ *
+ *	'socketmgr' is a valid socket manager.
+ *
+ *	'timermgr' is a valid timer manager.
+ *
+ *	'dispatch' is a valid dispatcher, or is NULL.
+ *
+ *	*resp != NULL && *resp == NULL.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS				On success.
+ *
+ *	Anything else				Failure.
+ */
 
 void
 dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 			  isc_event_t **eventp);
+/*
+ * Send '*eventp' to 'task' when 'res' has completed shutdown.
+ *
+ * Notes:
+ *
+ *	It is not safe to detach the last reference to 'res' until
+ *	shutdown is complete.
+ *
+ * Requires:
+ *
+ *	'res' is a valid resolver.
+ *
+ *	'task' is a valid task.
+ *
+ *	*eventp is a valid event.
+ *
+ * Ensures:
+ *
+ *	*eventp == NULL.
+ */
 
 void
 dns_resolver_shutdown(dns_resolver_t *res);
+/*
+ * Start the shutdown process for 'res'.
+ *
+ * Notes:
+ *
+ *	This call has no effect if the resolver is already shutting down.
+ *
+ * Requires:
+ *
+ *	'res' is a valid resolver.
+ */
 
 void
 dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp);
@@ -104,12 +182,81 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset, 
 			 dns_fetch_t **fetchp);
+/*
+ * Recurse to answer a question.
+ *
+ * Notes:
+ *
+ *	This call starts a query for 'name', type 'type'.
+ *
+ *	XXXRTH  Explain query domain and nameservers.
+ *		Also, we should make them optional and have the resolver
+ *		do dns_view_findzonecut().
+ *		'forwarders' is unimplmented, and subject to change when
+ *		we figure out how selective forwarding will work.
+ *
+ *	When the fetch completes (successfully or otherwise), a 
+ *	DNS_EVENT_FETCHDONE event with action 'action' and arg 'arg' will be
+ *	posted to 'task'.
+ *
+ *	The values of 'rdataset' and 'sigrdataset' will be returned in
+ *	the FETCHDONE event.
+ *
+ * Requires:
+ *
+ *	'res' is a valid resolver.
+ *
+ *	'name' is a valid name.
+ *
+ *	'type' is not a meta type other than ANY.
+ *
+ *	'domain' is a valid name.
+ *
+ *	'nameservers' is a valid NS rdataset (whose owner name is 'domain').
+ *
+ *	'forwarders' is NULL.
+ *
+ *	'options' contains valid options.
+ *
+ *	'rdataset' is a valid, disassociated rdataset.
+ *
+ *	'sigrdataset' is NULL, or is a valid, disassociated rdataset.
+ *
+ *	fetchp != NULL && *fetchp == NULL.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS					Success
+ *
+ *	Many other values are possible, all of which indicate failure.
+ */
+ 
 
 void
 dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch);
+/*
+ * Cancel 'fetch'.
+ *
+ * Notes:
+ *
+ *	If 'fetch' has not completed, post its FETCHDONE event with a
+ *	result code of ISC_R_CANCELED.
+ */
 
 void
 dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp);
+/*
+ * Destroy 'fetch'.
+ *
+ * Requires:
+ *
+ *	The caller has received the FETCHDONE event (either because the
+ *	fetch completed or because dns_resolver_cancelfetch() was called).
+ *
+ * Ensures:
+ *
+ *	*fetchp == NULL.
+ */
 
 ISC_LANG_ENDDECLS
 
