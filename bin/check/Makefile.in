@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15.2.3.8.1 2003/08/04 04:20:06 marka Exp $
+# $Id: Makefile.in,v 1.15.2.3.8.2 2003/08/25 05:40:23 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -44,7 +44,7 @@ LIBS =		@LIBS@
 SUBDIRS =
 
 # Alphabetically
-TARGETS =	named-checkconf named-checkzone
+TARGETS =	named-checkconf@EXEEXT@ named-checkzone@EXEEXT@
 
 # Alphabetically
 SRCS =		named-checkconf.c named-checkzone.c check-tool.c
@@ -65,12 +65,12 @@ named-checkzone.@O@: named-checkzone.c
 	${LIBTOOL} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
 		-c ${srcdir}/named-checkzone.c
 
-named-checkconf: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} \
+named-checkconf@EXEEXT@: named-checkconf.@O@ check-tool.@O@ ${ISCDEPLIBS} \
 		 ${ISCCFGDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkconf.@O@ \
 	check-tool.@O@ ${BIND9LIBS} ${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-named-checkzone: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+named-checkzone@EXEEXT@: named-checkzone.@O@ check-tool.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ named-checkzone.@O@ \
 	check-tool.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
@@ -83,9 +83,9 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install:: named-checkconf named-checkzone installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} named-checkconf ${DESTDIR}${sbindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} named-checkzone ${DESTDIR}${sbindir}
+install:: named-checkconf@EXEEXT@ named-checkzone@EXEEXT@ installdirs
+	${LIBTOOL} ${INSTALL_PROGRAM} named-checkconf@EXEEXT@ ${DESTDIR}${sbindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} named-checkzone@EXEEXT@ ${DESTDIR}${sbindir}
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done
 
 clean distclean::

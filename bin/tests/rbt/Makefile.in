@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.20.12.1 2003/08/04 04:20:14 marka Exp $
+# $Id: Makefile.in,v 1.20.12.2 2003/08/25 05:40:29 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,20 +39,20 @@ LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 TLIB =		../../../lib/tests/libt_api.@A@
 
-TARGETS =	t_rbt
+TARGETS =	t_rbt@EXEEXT@
 
 SRCS =		t_rbt.c
 
 @BIND9_MAKE_RULES@
 
-t_rbt: t_rbt.@O@ ${DEPLIBS} ${TLIB}
+t_rbt@EXEEXT@: t_rbt.@O@ ${DEPLIBS} ${TLIB}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ t_rbt.@O@ ${TLIB} ${LIBS}
 
-test: t_rbt
-	-@./t_rbt -c @top_srcdir@/t_config -b @srcdir@ -a
+test: t_rbt@EXEEXT@
+	-@./t_rbt@EXEEXT@ -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
-	@./t_rbt -h
+	@./t_rbt@EXEEXT@ -h
 
 clean distclean::
 	rm -f ${TARGETS}

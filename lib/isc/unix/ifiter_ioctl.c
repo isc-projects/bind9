@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5 2003/07/22 04:03:49 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.1 2003/08/25 05:40:31 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -291,8 +291,10 @@ internal_current(isc_interfaceiter_t *iter) {
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
+#ifdef IFF_POINTTOPOINT
 	if ((lifreq.lifr_flags & IFF_POINTOPOINT) != 0)
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
+#endif
 
 	if ((lifreq.lifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
@@ -300,6 +302,7 @@ internal_current(isc_interfaceiter_t *iter) {
 	/*
 	 * If the interface is point-to-point, get the destination address.
 	 */
+#ifdef IFF_POINTTOPOINT
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 		/*
 		 * Ignore the HP/UX warning about "interger overflow during
@@ -321,6 +324,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		get_addr(family, &iter->current.dstaddress,
 			 (struct sockaddr *)&lifreq.lifr_dstaddr);
 	}
+#endif
 
 	/*
 	 * Get the network mask.

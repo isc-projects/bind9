@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19.12.2 2003/08/25 04:41:17 marka Exp $
+# $Id: Makefile.in,v 1.19.12.3 2003/08/25 05:40:24 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,10 +39,10 @@ DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 # Alphabetically
-TARGETS =	dnssec-keygen \
-		dnssec-makekeyset \
-		dnssec-signkey \
-		dnssec-signzone
+TARGETS =	dnssec-keygen@EXEEXT@ \
+		dnssec-makekeyset@EXEEXT@ \
+		dnssec-signkey@EXEEXT@ \
+		dnssec-signzone@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
@@ -64,19 +64,19 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
+dnssec-keygen@EXEEXT@: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
 
-dnssec-makekeyset: dnssec-makekeyset.@O@ ${OBJS} ${DEPLIBS}
+dnssec-makekeyset@EXEEXT@: dnssec-makekeyset.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-makekeyset.@O@ ${OBJS} ${LIBS}
 
-dnssec-signkey: dnssec-signkey.@O@ ${OBJS} ${DEPLIBS}
+dnssec-signkey@EXEEXT@: dnssec-signkey.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signkey.@O@ ${OBJS} ${LIBS}
 
 dnssec-signzone.@O@: dnssec-signzone.c
 	${LIBTOOL} ${PURIFY} ${CC} ${ALL_CFLAGS} -c $<
 
-dnssec-signzone: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
+dnssec-signzone@EXEEXT@: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
