@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.10 2004/10/07 02:21:14 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.11 2004/10/21 01:44:34 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1867,6 +1867,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		query->userarg = serv->userarg;
 		query->rr_count = 0;
 		query->msg_count = 0;
+		query->byte_count = 0;
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_INIT(query->recvlist);
 		ISC_LIST_INIT(query->lengthlist);
@@ -2436,6 +2437,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 	 */
 
 	query->msg_count++;
+	query->byte_count += sevent->n;
 	result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
 	if (result != ISC_R_SUCCESS) {
 		puts("; Transfer failed.");
