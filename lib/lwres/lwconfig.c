@@ -65,6 +65,7 @@
 #define NS_IN6ADDRSZ	16
 #endif
 
+
 extern int lwres_net_pton(int af, const char *src, void *dst);
 extern const char *lwres_net_ntop(int af, const void *src, char *dst,
 				  size_t size);
@@ -89,6 +90,31 @@ lwres_resetaddr(lwres_addr_t *addr);
 
 static lwres_result_t
 lwres_create_addr(const char *buff, lwres_addr_t *addr);
+
+static int lwresaddr2af(int lwresaddrtype); 
+
+
+static int
+lwresaddr2af(int lwresaddrtype)
+{
+	int af;
+	
+	switch (lwresaddrtype) {
+	case LWRES_ADDRTYPE_V4:
+		af = AF_INET;
+		break;
+
+	case LWRES_ADDRTYPE_V6:
+		af = AF_INET6;
+		break;
+
+	default:
+		INSIST(0);
+		break;
+	}
+
+	return (af);
+}
 
 
 /*
@@ -552,6 +578,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 lwres_result_t
 lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	int i;
+	int af;
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
 	const char *p;
 	lwres_conf_t *confdata;
@@ -563,9 +590,10 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	REQUIRE(confdata->nsnext <= LWRES_CONFMAXNAMESERVERS);
 
 	for (i = 0 ; i < confdata->nsnext ; i++) {
-		p = lwres_net_ntop(confdata->nameservers[i].family,
-				     confdata->nameservers[i].address,
-				     tmp, sizeof(tmp));
+		af = lwresaddr2af(confdata->nameservers[i].family);
+
+		p = lwres_net_ntop(af, confdata->nameservers[i].address,
+				   tmp, sizeof(tmp));
 		if (p != tmp)
 			return (LWRES_R_FAILURE);
 
@@ -588,7 +616,9 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	if (confdata->sortlistnxt > 0) {
 		fputs("sortlist", fp);
 		for (i = 0 ; i < confdata->sortlistnxt ; i++) {
-			p = lwres_net_ntop(confdata->sortlist[i].addr.family,
+			af = lwresaddr2af(confdata->sortlist[i].addr.family);
+
+			p = lwres_net_ntop(af,
 					   confdata->sortlist[i].addr.address,
 					   tmp, sizeof(tmp));
 			if (p != tmp)
@@ -602,8 +632,10 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 			if (memcmp(&tmpaddr.address,
 				   confdata->sortlist[i].mask.address,
 				   confdata->sortlist[i].mask.length) != 0) {
+				af = lwresaddr2af(
+					    confdata->sortlist[i].mask.family);
 				p = lwres_net_ntop
-					(confdata->sortlist[i].mask.family,
+					(af,
 					 confdata->sortlist[i].mask.address,
 					 tmp, sizeof(tmp));
 				if (p != tmp)
