@@ -1,3 +1,6 @@
+1790.	[cleanup]	Move lib/dns/sec/dst up into lib/dns.  This should
+			allow parallel make to succeed.
+
 1789.	[bug]		Prerequisite test for tkey and dnssec could fail
 			with "configure --with-libtool".
 
