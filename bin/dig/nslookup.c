@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.56 2000/10/04 17:14:44 mws Exp $ */
+/* $Id: nslookup.c,v 1.57 2000/10/12 17:09:03 mws Exp $ */
 
 #include <config.h>
 
@@ -524,7 +524,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	}
 
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)
-		puts("Non-authorative answer:");
+		puts("Non-authoritative answer:");
 	if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_ANSWER]))
 		printsection(query, msg, headers, DNS_SECTION_ANSWER);
 	else
@@ -533,7 +533,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (query->lookup->rdtype != dns_rdatatype_a)) {
-		puts("\nAuthorative answers can be found from:");
+		puts("\nAuthoritative answers can be found from:");
 		printsection(query, msg, headers,
 			     DNS_SECTION_AUTHORITY);
 		printsection(query, msg, headers,
