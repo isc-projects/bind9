@@ -15,11 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.13 2000/08/01 01:30:22 tale Exp $ */
+/* $Id: list.h,v 1.14 2000/10/20 01:57:57 marka Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
 #include <isc/boolean.h>
+#include <isc/assertions.h>
+
+#if 0
+#define ISC_LINK_INSIST(x) ISC_INSIST(x)
+#else
+#define ISC_LINK_INSIST(x)
+#endif
 
 #define ISC_LIST(type) struct { type *head, *tail; }
 #define ISC_LIST_INIT(list) \
@@ -37,7 +44,7 @@
 #define ISC_LIST_TAIL(list) ((list).tail)
 #define ISC_LIST_EMPTY(list) ISC_TF((list).head == NULL)
 
-#define ISC_LIST_PREPEND(list, elt, link) \
+#define ISC_LIST_PREPENDUNSAFE(list, elt, link) \
 	do { \
 		if ((list).head != NULL) \
 			(list).head->link.prev = (elt); \
@@ -48,7 +55,13 @@
 		(list).head = (elt); \
 	} while (0)
 
-#define ISC_LIST_APPEND(list, elt, link) \
+#define ISC_LIST_PREPEND(list, elt, link) \
+	do { \
+		ISC_LINK_INSIST(!ISC_LINK_LINKED(elt, link)); \
+		ISC_LIST_PREPENDUNSAFE(list, elt, link); \
+	} while (0)
+
+#define ISC_LIST_APPENDUNSAFE(list, elt, link) \
 	do { \
 		if ((list).tail != NULL) \
 			(list).tail->link.next = (elt); \
@@ -59,7 +72,13 @@
 		(list).tail = (elt); \
 	} while (0)
 
-#define ISC_LIST_UNLINK(list, elt, link) \
+#define ISC_LIST_APPEND(list, elt, link) \
+	do { \
+		ISC_LINK_INSIST(!ISC_LINK_LINKED(elt, link)); \
+		ISC_LIST_APPENDUNSAFE(list, elt, link); \
+	} while (0)
+
+#define ISC_LIST_UNLINKUNSAFE(list, elt, link) \
 	do { \
 		if ((elt)->link.next != NULL) \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
@@ -73,10 +92,16 @@
 		(elt)->link.next = (void *)(-1); \
 	} while (0)
 
+#define ISC_LIST_UNLINK(list, elt, link) \
+	do { \
+		ISC_LINK_INSIST(ISC_LINK_LINKED(elt, link)); \
+		ISC_LIST_UNLINKUNSAFE(list, elt, link); \
+	} while (0)
+
 #define ISC_LIST_PREV(elt, link) ((elt)->link.prev)
 #define ISC_LIST_NEXT(elt, link) ((elt)->link.next)
 
-#define ISC_LIST_INSERTBEFORE(list, before, elt, link) \
+#define ISC_LIST_INSERTBEFOREUNSAFE(list, before, elt, link) \
 	do { \
 		if ((before)->link.prev == NULL) \
 			ISC_LIST_PREPEND(list, elt, link); \
@@ -88,7 +113,14 @@
 		} \
 	} while (0)
 
-#define ISC_LIST_INSERTAFTER(list, after, elt, link) \
+#define ISC_LIST_INSERTBEFORE(list, before, elt, link) \
+	do { \
+		ISC_LINK_INSIST(ISC_LINK_LINKED(before, link)); \
+		ISC_LINK_INSIST(!ISC_LINK_LINKED(elt, link)); \
+		ISC_LIST_INSERTBEFOREUNSAFE(list, before, elt, link); \
+	} while (0)
+
+#define ISC_LIST_INSERTAFTERUNSAFE(list, after, elt, link) \
 	do { \
 		if ((after)->link.next == NULL) \
 			ISC_LIST_APPEND(list, elt, link); \
@@ -98,6 +130,13 @@
 			(elt)->link.next->link.prev = (elt); \
 			(elt)->link.prev = (after); \
 		} \
+	} while (0)
+
+#define ISC_LIST_INSERTAFTER(list, after, elt, link) \
+	do { \
+		ISC_LINK_INSIST(ISC_LINK_LINKED(after, link)); \
+		ISC_LINK_INSIST(!ISC_LINK_LINKED(elt, link)); \
+		ISC_LIST_INSERTAFTERUNSAFE(list, after, elt, link); \
 	} while (0)
 
 #define ISC_LIST_APPENDLIST(list1, list2, link) \
@@ -114,6 +153,10 @@
 	} while (0)
 
 #define ISC_LIST_ENQUEUE(list, elt, link) ISC_LIST_APPEND(list, elt, link)
+#define ISC_LIST_ENQUEUEUNSAFE(list, elt, link) \
+	ISC_LIST_APPENDUNSAFE(list, elt, link)
 #define ISC_LIST_DEQUEUE(list, elt, link) ISC_LIST_UNLINK(list, elt, link)
+#define ISC_LIST_DEQUEUEUNSAFE(list, elt, link) \
+	ISC_LIST_UNLINKUNSAFE(list, elt, link)
 
 #endif /* ISC_LIST_H */
