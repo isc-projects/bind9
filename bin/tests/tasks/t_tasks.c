@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.22 2001/01/09 21:46:10 bwelling Exp $ */
+/* $Id: t_tasks.c,v 1.23 2001/02/13 18:55:19 gson Exp $ */
 
 #include <config.h>
 
@@ -2136,6 +2136,136 @@ t13(void) {
 	t_result(result);
 }
 
+#define T14_NTASKS 10
+#define T14_EXCLTASK 6
+
+int t14_error = 0;
+int t14_done = 0;
+
+int spin(int n);
+
+int t14_active[T14_NTASKS];
+
+static void
+t14_callback(isc_task_t *task, isc_event_t *event) {
+	int taskno = (int) event->ev_arg;
+
+	t_info("task enter %d\n", taskno);	
+	if (taskno == T14_EXCLTASK) {
+		int	i;
+		isc_task_beginexclusive(task);
+		t_info("task %d got exclusive access\n", taskno);			
+		for (i = 0; i < T14_NTASKS; i++) {
+   		        t_info("task %d state %d\n", i , t14_active[i]);
+			if (t14_active[i])
+				t14_error++;
+		}
+		isc_task_endexclusive(task);
+		t14_done = 1;
+	} else {
+		t14_active[taskno]++;
+		(void) spin(10000000);
+		t14_active[taskno]--;
+	}
+	t_info("task exit %d\n", taskno);
+	if (t14_done) {
+		isc_event_free(&event);
+	} else {
+		isc_task_send(task, &event);
+	}
+}
+
+int spin(int n) {
+	int i;
+	int r = 0;
+	for (i = 0; i < n; i++) {
+		r += i;
+		if (r > 10000000)
+			r = 0;
+	}
+	return (r);
+}
+
+static int
+t_tasks14(void) {
+	char			*p;
+	isc_mem_t		*mctx;
+	isc_taskmgr_t		*manager;
+	isc_task_t		*tasks[T14_NTASKS];
+	unsigned int		workers;
+	isc_result_t		isc_result;
+	int 			i;
+
+	manager = NULL;
+	mctx = NULL;
+
+	for (i = 0; i < T14_NTASKS; i++)
+		tasks[i] = NULL;
+
+	workers = 4;
+	p = t_getenv("ISC_TASK_WORKERS");
+	if (p != NULL)
+		workers = atoi(p);
+	if (workers < 1) {
+		t_info("Bad config value for ISC_TASK_WORKERS, %d\n", workers);
+		return(T_UNRESOLVED);
+	}
+
+	isc_result = isc_mem_create(0, 0, &mctx);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_mem_create failed %d\n", isc_result);
+		return(T_UNRESOLVED);
+	}
+
+	isc_result = isc_taskmgr_create(mctx, workers, 0, &manager);
+	if (isc_result != ISC_R_SUCCESS) {
+		t_info("isc_taskmgr_create failed %d\n", isc_result);
+		return(T_FAIL);
+	}
+
+	for (i = 0; i < T14_NTASKS; i++) {
+		isc_event_t *event;
+
+		isc_result = isc_task_create(manager, 0, &tasks[i]);
+		if (isc_result != ISC_R_SUCCESS) {
+			t_info("isc_task_create failed %d\n", isc_result);
+			return(T_FAIL);
+		}
+
+		event = isc_event_allocate(mctx, NULL, 1, t14_callback, (void *) i,
+					   sizeof *event);
+		if (event == NULL) {
+			t_info("isc_event_allocate failed\n");
+			return(T_UNRESOLVED);
+		}
+		isc_task_send(tasks[i], &event);
+	}
+
+	for (i = 0; i < T14_NTASKS; i++) {
+		isc_task_detach(&tasks[i]);
+	}
+
+	isc_taskmgr_destroy(&manager);
+
+	if (t14_error) {
+		t_info("mutual access occurred\n");
+		return(T_FAIL);
+	}
+
+	isc_mem_destroy(&mctx);
+	return(T_PASS);
+}
+
+static void
+t14(void) {
+	int	result;
+
+	t_assert("tasks", 14, T_REQUIRED, 
+                 "isc_task_beginexclusive() gets exclusive access");
+	result = t_tasks14();
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,	"basic task subsystem"	},
 	{	t2,	"maxtasks"		},
@@ -2146,5 +2276,6 @@ testspec_t	T_testlist[] = {
 	{	t11,	"isc_task_purgeevent"	},
 	{	t12,	"isc_task_purgeevent"	},
 	{	t13,	"isc_task_purgerange"	},
+	{	t14,	"isc_task_beginexclusive" },
 	{	NULL,	NULL			}
 };
