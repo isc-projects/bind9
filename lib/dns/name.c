@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.125 2001/04/24 00:56:17 gson Exp $ */
+/* $Id: name.c,v 1.126 2001/06/21 01:30:22 gson Exp $ */
 
 #include <config.h>
 
@@ -2839,7 +2839,7 @@ dns_name_split(dns_name_t *name,
 
 			if (prefix->length > prefix->buffer->length ) {
 				dns_name_invalidate(prefix);
-				return(ISC_R_NOSPACE);
+				return (ISC_R_NOSPACE);
 			}
 
 			/*
@@ -2990,7 +2990,7 @@ dns_name_split(dns_name_t *name,
 
 			/*
 			 * The byte that contains the end of the
-			 * bitstring has its pad bytes (if any) masked
+			 * bitstring has its pad bits (if any) masked
 			 * to zero.
 			 */
 			if (mod != 0)
