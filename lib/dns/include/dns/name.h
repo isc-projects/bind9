@@ -616,7 +616,7 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *
  *	'source' is a valid buffer of type ISC_BUFFERTYPE_BINARY, and the
  *	first byte of the active region should be the first byte of a DNS
- *	wire *	format message.
+ *	wire format domain name.
  *
  *	'target' is a valid buffer of type ISC_BUFFERTYPE_BINARY or 
  *	'target' is NULL and 'name' has a dedicated buffer.
