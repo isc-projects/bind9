@@ -71,6 +71,9 @@
 			the server was shutdown during a zone tranfer.
 			[RT #830]
 
+ 712.	[bug]		Sending a large signed update message caused an
+			assertion failure. [RT #718]
+
  669.	[bug]		dnssec-keygen now makes the public key file
 			non-world-readable for symmetric keys. [RT #403]
 

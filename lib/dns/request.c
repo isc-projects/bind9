@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.45.2.3 2001/01/09 22:44:10 bwelling Exp $ */
+/* $Id: request.c,v 1.45.2.4 2001/06/14 14:36:05 gson Exp $ */
 
 #include <config.h>
 
@@ -757,6 +757,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	isc_time_t expires;
 	unsigned int attrs;
 	dns_acl_t *blackhole = NULL;
+	isc_boolean_t setkey = ISC_TRUE;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -937,7 +938,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
-	dns_message_settsigkey(message, request->tsigkey);
+	if (setkey)
+		dns_message_settsigkey(message, request->tsigkey);
 	result = req_render(message, &request->query, options, mctx);
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
@@ -949,6 +951,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_dispatch_detach(&request->dispatch);
 		socket = NULL;
 		options |= DNS_REQUESTOPT_TCP;
+		setkey = ISC_FALSE;
 		goto use_tcp;
 	}
 	if (result != ISC_R_SUCCESS)

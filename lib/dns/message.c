@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.5 2001/04/19 18:54:26 gson Exp $ */
+/* $Id: message.c,v 1.164.2.6 2001/06/14 14:36:04 gson Exp $ */
 
 /***
  *** Imports
@@ -1976,6 +1976,16 @@ dns_message_renderreset(dns_message_t *msg) {
 				rds->attributes &= ~DNS_RDATASETATTR_RENDERED;
 			}
 		}
+	}
+	if (msg->tsigname != NULL)
+		dns_message_puttempname(msg, &msg->tsigname);
+	if (msg->tsig != NULL) {
+		dns_rdataset_disassociate(msg->tsig);
+		dns_message_puttemprdataset(msg, &msg->tsig);
+	}
+	if (msg->sig0 != NULL) {
+		dns_rdataset_disassociate(msg->sig0);
+		dns_message_puttemprdataset(msg, &msg->sig0);
 	}
 }
 
