@@ -1,0 +1,2573 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: library.html,v 1.1 2001/03/05 12:58:07 tale Exp $ -->
+<html>
+
+<head>
+<title>MDN libarary specification</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>MDN ライブラリ</h1>
+
+<ul>
+<li><a href="#func-overview">機能概要</a>
+<li><a href="#module-list">モジュール一覧</a>
+<li><a href="#module-desc">モジュール詳細</a>
+</ul>
+
+<hr>
+
+<h2><a name="func-overview">機能概要</a></h2>
+
+<p>MDN ライブラリ (libmdn) は多言語ドメイン名の変換に関わる各種の処理を
+実装するモジュールの集合です。このライブラリは以下のような機能を
+提供します。
+
+<ul>
+<li>エンコーディング (コードセット) 変換
+<li>文字列の正規化
+<li>DNS メッセージの解析、再組み立て
+<li>ZLD (Zero Level Domain) のマッチング、削除、追加
+<li>ローカルエンコーディングの判別
+<li>クライアント用設定ファイルの読み込み
+</ul>
+
+<br>
+
+<h3>エンコーディング (コードセット) 変換</h3>
+
+<p>文字列のエンコーディングを変換し、その結果を返します。
+MDN ライブラリの内部では、文字列はすべて UTF-8 エンコーディングであるとして
+取り扱われます。そこで、このモジュールは
+<ul>
+<li>あるエンコーディングから UTF-8 への変換
+<li>UTF-8 からあるエンコーディングへの変換
+</ul>
+をサポートします。
+
+<p>エンコーディングは大きく分けて、次の2種類があります。
+<ul>
+<li>アプリケーションが使用するエンコーディング (シフトJIS、EUC 等)
+<li>多言語ドメイン名で使用するためにデザインされた特別なエンコーディング
+(UTF-5、RACE 等)
+</ul>
+<p>このモジュールでは前者のエンコーディング変換のために
+<em>iconv()</em> ユーティリティを使用し、後者のエンコーディング変換のためには
+独自の変換関数を実装して使用しています。
+
+<p>
+
+<h3>文字列の正規化</h3>
+
+<p>与えられた文字列を正規化します。標準では次にあげる正規化をサポートします。
+<ul>
+<li>ASCII の小文字→大文字変換
+<li>ASCII の大文字→小文字変換
+<li>UnicodeData.txt に従った小文字→大文字変換
+<li>UnicodeData.txt に従った大文字→小文字変換
+<li>Unicode Normalization Form C
+<li>Unicode Normalization Form KC
+<li>日本語の半角かな→全角カタカナ変換
+<li>全角マイナス記号→半角ハイフン変換
+<li>句点(。)、全角ピリオド(．)→ピリオド(.)変換
+</ul>
+
+<br>
+
+<h3>DNS メッセージの解析、再組み立て</h3>
+
+<p>DNS プロキシサーバ (dnsproxy) では、クライアントから送られてきた DNS
+メッセージに含まれるドメイン名に対してエンコーディング変換や正規化を行い、
+その結果を DNS サーバに送ります。このために以下の機能を提供します。
+<ul>
+<li>DNSメッセージを解析し、ドメイン名を取り出す
+<li>変換したドメイン名を用いてDNSメッセージを再構成する
+</ul>
+
+<br>
+
+<h3>ZLD (Zero Level Domain) のマッチング、削除、追加</h3>
+
+<p>多言語ドメイン名を識別するために ZLD を必要とする方式のために、ZLD に
+関する以下の機能を提供します。
+<ul>
+<li>複数の ZLD の中から、ドメイン名にマッチするものを探す
+<li>ドメイン名から ZLD 部分を削除する
+<li>ドメイン名に ZLD を追加する
+</ul>
+
+<br>
+
+<h3>ローカルエンコーディングの判別</h3>
+
+<p>アプリケーションプログラムが使用しているローカルエンコーディング
+(コードセット) を自動判別します。判別は基本的にはアプリケーションのロケール
+情報を利用しますが、環境変数で指定することも可能になっています。
+
+<p>
+
+<h3>クライアント用設定ファイルの読み込み</h3>
+
+<p>アプリケーションにリンクされるリゾルバライブラリでエンコーディング
+変換や正規化を行う場合、使用するエンコーディングや正規化方式は
+設定ファイルに記述されます。このファイルを読み込む機能を提供します。
+
+<p>
+
+<hr>
+
+<h2><a name="module-list">モジュール一覧</a></h2>
+
+<p>MDN ライブラリは以下のモジュールから構成されます。
+
+<dl>
+<dt><a href="#brace">brace モジュール</a>
+  <dd>ドメイン名のエンコーディング方式の一つとして提案されている BRACE
+  エンコーディングの変換モジュール
+<dt><a href="#converter">converter モジュール</a>
+  <dd>文字列のエンコーディング(コードセット)の変換モジュール
+<dt><a href="#debug">debug モジュール</a>
+  <dd>デバッグ用出力のためのユーティリティモジュール
+<dt><a href="#dn">dn モジュール</a>
+  <dd>DNS メッセージ内のドメイン名の展開・圧縮を行うモジュール
+<dt><a href="#lace">lace モジュール</a>
+  <dd>ドメイン名のエンコーディング方式の一つとして提案されている LACE
+  エンコーディングの変換モジュール
+<dt><a href="#localencoding">localencoding モジュール</a>
+  <dd>アプリケーションの使用しているエンコーディングを推測するモジュール
+<dt><a href="#log">log モジュール</a>
+  <dd>MDN ライブラリのログの出力処理を制御するモジュール
+<dt><a href="#msgheader">msgheader モジュール</a>
+  <dd>DNS メッセージのヘッダの解析モジュール
+<dt><a href="#msgtrans">msgtrans モジュール</a>
+  <dd>DNS プロキシサーバでの DNS メッセージの変換を行うためのモジュール
+<dt><a href="#normalizer">normalizer モジュール</a>
+  <dd>文字列の正規化を行うモジュール
+<dt><a href="#race">race モジュール</a>
+  <dd>ドメイン名のエンコーディング方式の一つとして提案されている RACE
+  エンコーディングの変換モジュール
+<dt><a href="#res">res モジュール</a>
+  <dd>リゾルバライブラリ、あるいはアプリケーションでドメイン名の
+  エンコーディング変換や正規化を行うためのインタフェースを提供するモジュール
+<dt><a href="#resconf">resconf モジュール</a>
+  <dd>リゾルバライブラリ、あるいはアプリケーションでドメイン名の
+  エンコーディング変換や正規化を行う際の設定ファイルを読み込むためのモジュール
+<dt><a href="#result">result モジュール</a>
+  <dd>ライブラリの各関数が返すリザルトコードを扱うモジュール
+<dt><a href="#selectiveencode">selectiveencode モジュール</a>
+  <dd>テキストの中から非ASCII文字を含むドメイン名を探し出すモジュール
+<dt><a href="#strhash">strhash モジュール</a>
+  <dd>文字列をキーとするハッシュ表を実現するモジュール
+<dt><a href="#translator">translator モジュール</a>
+  <dd>与えられたパラメータに従ってドメイン名を変換するモジュール
+<dt><a href="#unicode">unicode モジュール</a>
+  <dd>Unicode の各種文字属性を取得するモジュール
+<dt><a href="#unormalize">unormalize モジュール</a>
+  <dd>Unicode で定義されている標準の正規化を行うモジュール
+<dt><a href="#utf5">utf5 モジュール</a>
+  <dd>ドメイン名のエンコーディング方式の一つとして提案されている UTF-5
+  の基本処理を行うモジュール
+<dt><a href="#utf8">utf8 モジュール</a>
+  <dd>UTF-8 エンコーディング文字列の基本処理を行うモジュール
+<dt><a href="#util">util モジュール</a>
+  <dd>他のモジュールで使われる共用関数を提供するモジュール
+<dt><a href="#zldrule">zldrule モジュール</a>
+  <dd>ドメイン名と ZLD とのマッチングを行うモジュール
+</dl>
+
+<p>以下にモジュールの呼び出し関係図を示します。ただしほとんどすべての
+モジュールから呼び出されている debug モジュールと log モジュール、また
+共用関数を納めた util モジュールは
+割愛してあります。
+
+<blockquote>
+<img src="img/libmdn_callgraph.jpg" alt="libmdn module graph">
+</blockquote>
+
+<hr>
+
+<h2><a name="module-desc">モジュール詳細</a></h2>
+
+<p>MDN ライブラリに含まれるすべてのモジュールについて、その仕様を記述
+します。
+まず各モジュールで共通に使用される、関数のリターン値について
+説明したあと、モジュール毎に詳細を解説します。
+
+<hr>
+
+<h3><a name="mdn_result_t">API関数のリターン値</a></h3>
+
+<p>MDNライブラリのほとんど全てのAPI関数は、リターン値として
+列挙型である<em>mdn_result_t</em> 型の値を返します。値の一覧とその意味を
+示します。
+<dl>
+<dt><tt>mdn_success</tt>
+  <dd>処理が成功したことを示します。
+<dt><tt>mdn_notfound</tt>
+  <dd>検索処理などにおいて、見つからなかったことを示します。
+<dt><tt>mdn_invalid_encoding</tt>
+  <dd>エンコーディング変換において、入力された文字列のエンコーディングが
+  間違っていることを示します。
+<dt><tt>mdn_invalid_syntax</tt>
+  <dd>ファイルなどの書式に間違いがあることを示します。
+<dt><tt>mdn_invalid_name</tt>
+  <dd>指定された名前が間違っていることを示します。
+<dt><tt>mdn_invalid_message</tt>
+  <dd>入力されたDNSメッセージが正しくないことを示します。
+<dt><tt>mdn_buffer_overflow</tt>
+  <dd>結果を格納するバッファの大きさが足りないことを示します。
+<dt><tt>mdn_noentry</tt>
+  <dd>指定された項目が存在しないことを示します。
+<dt><tt>mdn_nomemory</tt>
+  <dd>メモリのアロケーションに失敗したことを示します。
+<dt><tt>mdn_nofile</tt>
+  <dd>指定されたファイルが存在しないことを示します。
+<dt><tt>mdn_nomapping</tt>
+  <dd>文字列のエンコーディング(コードセット)を変換する際、
+  変換ターゲットの文字集合に含まれない文字があった (つまり
+  正しく変換できなかった) ことを示します。
+<dt><tt>mdn_context_required</tt>
+  <dd>文字の大文字小文字変換の際に、正しい変換を行うには文脈情報が
+  必要であることを示します。
+<dt><tt>mdn_failure</tt>
+  <dd>上記のいずれにも当てはまらないエラーが発生したことを示します。
+</dl>
+
+<hr>
+
+<h3><a name="brace">brace モジュール</a></h3>
+
+<p>brace モジュールは、多言語ドメイン名のエンコーディング方式の一つとして
+提案されている
+<a href="../../reference/draft/draft-ietf-idn-brace-00.txt">
+BRACE エンコーディング</a>
+とUTF-8との間の変換を行うモジュールです。このモジュールは
+<a href="#converter">converter モジュール</a>の
+下位モジュールとして実装されており、
+アプリケーションがこのモジュールを直接呼び出すことはありません。
+<a href="#converter">converter モジュール</a>に対して
+<tt>BRACE</tt> エンコーディング
+との変換を要求すると、このモジュールが間接的に呼び出されることになります。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__brace_open">mdn__brace_open</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__brace_open(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>BRACEエンコーディングとの変換をオープンします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__brace_close">mdn__brace_close</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__brace_close(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>BRACEエンコーディングとの変換をクローズします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__brace_convert">mdn__brace_convert</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__brace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
+	const char *from, char *to, size_t tolen)
+</pre>
+<p>BRACEエンコードされた文字列とUTF-8エンコードされた文字列の相互変換を
+行います。
+入力文字列 <var>from</var> を変換し、結果を <var>to</var> と
+<var>tolen</var> で指定される領域に書き込みます。
+<var>dir</var> が<tt>mdn_converter_l2u</tt>なら
+BRACEエンコーディングからUTF-8エンコーディングへ、<tt>mdn_converter_u2l</tt>
+ならUTF-8エンコーディングからBRACEエンコーディングへの変換となります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="converter">converter モジュール</a></h3>
+
+<p>converter モジュールは、文字列のエンコーディング(コードセット)を
+変換します。MDN ライブラリは内部処理に UTF-8 エンコーディングの文字列を
+使用するため、このモジュールはローカルエンコーディングと UTF-8 との
+間の相互変換を行います。
+
+<p>現在サポートされているエンコーディングは次の通りです。
+<ul>
+<li><em>iconv()</em> がサポートしているエンコーディング<br>
+    iconv() とは汎用的なコードセット変換機能を提供する関数で、
+    この関数がサポートするエンコーディングをサポートします。
+    iconv() がサポートするエンコーディングは実装依存なので、
+    具体的にどのエンコーディングが使用可能なのかは iconv() の
+    ドキュメントをご覧ください。
+<li><tt>UTF-5</tt><br>
+    多言語ドメイン名のエンコーディング方法として提案されているものです。
+    詳しくは
+    <a href="../../reference/draft/draft-jseng-utf5-01.txt">draft-jseng-utf5-01.txt</a>
+    をご覧ください。
+<li><tt>RACE</tt><br>
+    これも多言語ドメイン名のエンコーディング方法として提案されているものです。
+    詳しくは
+    <a href="../../reference/draft/draft-ietf-idn-race-02.txt">draft-ietf-idn-race-02.txt</a>
+    をご覧ください。
+<li><tt>BRACE</tt><br>
+    これも多言語ドメイン名のエンコーディング方法として提案されているものです。
+    詳しくは
+    <a href="../../reference/draft/draft-ietf-idn-brace-00.txt">draft-ietf-idn-brace-00.txt</a>
+    をご覧ください。
+<li><tt>LACE</tt><br>
+    これも多言語ドメイン名のエンコーディング方法として提案されているものです。
+    詳しくは
+    <a href="../../reference/draft/draft-ietf-idn-lace-00.txt">draft-ietf-idn-lace-00.txt</a>
+    をご覧ください。
+</ul>
+
+<p>また、converter モジュールはドメイン名のエンコーディング変換のために
+特別に設計されたもので、一般的なエンコーディング変換には必ずしも適しません。
+例えば UTF-5、RACE、BRACE、LACE エンコーディングはドメイン名の
+区切り文字であるピリオドを特別に扱います。
+
+<p>converter モジュールは「コード変換コンテキスト」という概念を用います。
+あるエンコーディングと UTF-8 との相互変換を行うには、まず
+そのエンコーディングのコード変換コンテキストを作成します。実際の
+コード変換にはエンコーディングを直接指定するのではなく、この
+コード変換コンテキストを指定します。コード変換コンテキストの型は
+<em>mdn_converter_t</em> 型であり、次のような opaque 型として定義されています。
+<blockquote>
+<pre>
+typedef struct mdn_converter *mdn_converter_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_converter_initialize">mdn_converter_initialize</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_initialize(void)
+</pre>
+<p>モジュールの初期化処理を行います。本モジュールの他のAPI関数を呼ぶ前に
+ 必ず呼び出してください。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_create">mdn_converter_create</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_create(const char *name, mdn_converter_t *ctxp,
+        int delayedopen)
+</pre>
+<p><var>name</var> で指定されるローカルエンコーディングと UTF-8 との間の
+コード変換コンテキストを作成、初期化し、<var>ctxp</var> の指す領域に
+格納します。
+<p>ローカルエンコーディングとして、現在のところ
+<tt>UTF-5</tt>、<tt>RACE</tt>、<tt>BRACE</tt>、<tt>LACE</tt>
+の変換機能が用意されています。
+これ以外のエンコーディングが指定された場合には、システムの提供する
+<em>iconv()</em> ユーティリティを用いて変換が行われます。
+この場合、この関数の呼び出し時に<em>iconv_open()</em> の
+呼び出しが行われますが、
+<var>delayedopen</var> が真ならば実際に文字列の変換が行われるまで
+<em>iconv_open()</em> の呼び出しが遅延されます。
+<p>また<a href="#mdn_converter_register"><em>mdn_converter_register</em></a>
+を用いて新たなローカルエンコーディングを追加することも可能です。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_nomemory</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_destroy">mdn_converter_destroy</a>
+<dd>
+<pre>
+void
+mdn_converter_destroy(mdn_converter_t ctx)
+</pre>
+<p><a href="#mdn_converter_create"><em>mdn_converter_create</em></a> で
+作成したコード変換コンテキストを削除し、確保したメモリを解放します。
+<p>
+
+<dt><a name="mdn_converter_convert">mdn_converter_convert</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_convert(mdn_converter_t ctx,
+	mdn_converter_dir_t dir, const char *from,
+	char *to, size_t tolen)
+</pre>
+<p><a href="#mdn_converter_create"><em>mdn_converter_create</em></a> で
+作成したコード変換コンテキストを用いて
+文字列 <var>from</var> をコード変換し、結果を <var>to</var> に格納します。
+<var>tolen</var> は <var>to</var> の長さです。
+<var>dir</var> は変換の方向の指定で、
+<ul>
+<li><tt>mdn_converter_l2u</tt>ならローカルエンコーディングから UTF-8 への変換
+<li><tt>mdn_converter_u2l</tt>なら UTF-8 からローカルエンコーディングへの変換
+</ul>
+となります。
+<p><tt>ISO-2022-JP</tt>のように状態をもつエンコーディングを使用した場合、
+<em>iconv()</em> と異なり、この関数の呼び出し間で状態は保存されません。
+変換は毎回初期状態から始まります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_nomemory</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_localencoding">mdn_converter_localencoding</a>
+<dd>
+<pre>
+char *
+mdn_converter_localencoding(mdn_converter_t ctx)
+</pre>
+<p>コード変換コンテキスト <var>ctx</var> のローカルエンコーディング名を
+返します。
+<p>
+
+<dt><a name="mdn_converter_isasciicompatible">mdn_converter_isasciicompatible</a>
+<dd>
+<pre>
+int
+mdn_converter_isasciicompatible(mdn_converter_t ctx)
+</pre>
+<p>コード変換コンテキスト <var>ctx</var> のローカルエンコーディングが
+ASCII互換エンコーディングかどうかを返します。ASCII互換エンコーディングなら
+0でない値が、そうでないなら1が返ります。
+<p><a name="ACE">ASCII互換エンコーディング</a>
+(<cite>ASCII-compatible Encoding</cite>) とは、
+そのエンコーディングでエンコードされたドメイン名が
+通常のASCIIのドメイン名と区別できない、つまり英数字および
+ハイフンのみで構成されるようなエンコーディングのことで、
+具体的には RACE などが相当します。
+これらのエンコーディングは
+一般にアプリケーションのローカルエンコーディングとして用いられることは
+ありませんが、DNS プロトコル上でドメイン名を表すためのエンコーディングとしては
+(従来の DNS サーバ等がなんの変更もなしに使えることもあって) 有力視されている
+ものです。
+<p>
+
+<dt><a name="mdn_converter_addalias">mdn_converter_addalias</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_addalias(const char *alias_name, const char *real_name)
+</pre>
+<p>エンコーディング名 <var>real_name</var> に対して、<var>alias_name</var>
+という別名を登録します。登録した別名は
+<a href="#mdn_converter_create"><em>mdn_converter_create</em></a> の
+<var>name</var> 引数に指定することができます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_aliasfile">mdn_converter_aliasfile</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_aliasfile(const char *path)
+</pre>
+<p>ファイル <var>path</var> で指定されるファイルを読み込み、その内容に
+従って別名を登録します。
+<p>ファイル <var>path</var> は次のような単純な形式の行からなる
+テキストファイルです。
+<pre>
+    別名    正式名
+</pre>
+<p>また <tt>#</tt>で始まる行はコメントとみなされます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nofile</tt>、
+<tt>mdn_invalid_syntax</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_resetalias">mdn_converter_resetalias</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_resetalias(void)
+</pre>
+<p><a href="#mdn_converter_addalias"><em>mdn_converter_addalias</em></a>
+や <a href="#mdn_converter_aliasfile"><em>mdn_converter_aliasfile</em></a>
+で登録した別名をリセットし、別名が全く登録されていない初期状態に
+戻します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_converter_register">mdn_converter_register</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_converter_register(const char *name,
+	mdn_converter_openproc_t open,
+	mdn_converter_closeproc_t close,
+	mdn_converter_convertproc_t convert,
+	int ascii_compatible)
+</pre>
+<p><var>name</var> という名前のローカルエンコーディングと UTF-8との
+間のエンコーディング変換機能を追加します。<var>open</var>、<var>close</var>、
+<var>convert</var> は変換等の処理関数へのポインタです。
+<var>ascii_compatible</var> にはこのローカルエンコーディングが
+ASCII互換エンコーディングなら1を、そうでなければ0を指定します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="debug">debug モジュール</a></h3>
+
+<p>debug モジュールはデバッグ用出力のためのユーティリティモジュールです。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+<dt><a name="mdn_debug_hexstring">mdn_debug_hexstring</a>
+<dd>
+<pre>
+char *
+mdn_debug_hexstring(const char *s, int maxbytes)
+</pre>
+<p>文字列 <var>s</var> を16進数表示した文字列を返します。
+<var>maxbytes</var> は表示する最大の長さで、<var>s</var>が これを超えた場合には
+最後に <code>...</code>が追加されます。
+<p>返される文字列のメモリ領域は本関数の保持するスタティック変数の
+もので、その内容は本関数の次の呼び出し時まで有効です。
+<p>
+
+<dt><a name="mdn_debug_xstring">mdn_debug_xstring</a>
+<dd>
+<pre>
+char *
+mdn_debug_xstring(const char *s, int maxbytes)
+</pre>
+<p>文字列 <var>s</var> の中で、コードが128以上のものを<tt>\x{HH}</tt>形式で
+表示した文字列を返します。
+<var>maxbytes</var> は表示する最大の長さで、<var>s</var> がこれを超えた場合には
+最後に <code>...</code>が追加されます。
+<p>返される文字列のメモリ領域は本関数の保持するスタティック変数の
+もので、その内容は本関数の次の呼び出し時まで有効です。
+<p>
+
+<dt><a name="mdn_debug_hexdata">mdn_debug_hexdata</a>
+<dd>
+<pre>
+char *
+mdn_debug_hexdata(const char *s, int length, int maxlength)
+</pre>
+<p>長さ <var>length</var> のバイト列 <var>s</var> を16進表示した文字列を
+返します。
+<var>maxbytes</var> は表示する最大のバイト長で、
+<var>length</var> がこれを超えた場合には最後に <code>...</code>が追加されます。
+<p>返される文字列のメモリ領域は本関数の保持するスタティック変数の
+もので、その内容は本関数の次の呼び出し時まで有効です。
+<p>
+
+<dt><a name="mdn_debug_hexdump">mdn_debug_hexdump</a>
+<dd>
+<pre>
+void
+mdn_debug_hexdump(const char *s, int length)
+</pre>
+<p>長さ <var>length</var> のバイト列 <var>s</var> の16進ダンプを
+標準エラー出力に表示します。
+
+</dl>
+
+<hr>
+
+<h3><a name="dn">dn モジュール</a></h3>
+
+<p>dn モジュールは、DNS メッセージ内のドメイン名の展開・圧縮を行うモジュール
+です。これはリゾルバライブラリの<em>res_comp</em> および<em>res_expand</em> に
+相当する機能を提供します。
+
+<p>このモジュールは本ライブラリの他のモジュールからのみ利用されることを想定して
+設計されています。
+
+<p>ドメイン名の圧縮の際は、次に示す<em>mdn__dn_t</em> 型のコンテキスト情報を
+使用します。
+<blockquote>
+<pre>
+#define MDN_DN_NPTRS	64
+typedef struct {
+	const unsigned char *msg;
+	int cur;
+	int offset[MDN_DN_NPTRS];
+} mdn__dn_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__dn_expand">mdn__dn_expand</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__dn_expand(const char *msg, size_t msglen,
+	const char *compressed, char *expanded,
+	size_t buflen, size_t *complenp)
+</pre>
+<p>長さ <var>msglen</var> のDNSメッセージ <var>msg</var> 中の
+圧縮されたドメイン名 <var>compressed</var> を展開し、
+<var>expanded</var> に結果を格納します。
+<var>buflen</var> は <var>expanded</var> の大きさです。
+また、<var>compressed</var> の長さが <var>*complenp</var> に格納されます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_message</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__dn_initcompress">mdn__dn_initcompress</a>
+<dd>
+<pre>
+void
+mdn__dn_initcompress(mdn__dn_t *ctx, const char *msg)
+</pre>
+<p>ドメイン名圧縮用のコンテキスト情報 <var>ctx</var> を初期化します。
+この関数は<a href="#mdn__dn_compress"><em>mdn__dn_compress</em></a> を呼び出す前に
+必ず呼び出す必要があります。
+<var>msg</var> は圧縮したドメイン名を格納するDNSメッセージの
+先頭アドレスです。
+<p>
+
+<dt><a name="mdn__dn_compress">mdn__dn_compress</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__dn_compress(const char *name, char *sptr, size_t length,
+	mdn__dn_t *ctx, size_t *complenp)
+</pre>
+<p><var>name</var> の指すドメイン名を圧縮して <var>sptr</var> の指す
+場所に格納します。<var>length</var> は <var>sptr</var> の空き領域の長さです。
+圧縮の際は、<var>ctx</var> に入っている以前に圧縮したドメイン名の情報が
+参照されます。
+圧縮したドメイン名の長さが <var>complenp</var> に入れられるとともに、
+圧縮に必要な情報が <var>ctx</var> に追加されます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_name</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="lace">lace モジュール</a></h3>
+
+<p>lace モジュールは、多言語ドメイン名のエンコーディング方式の一つとして
+提案されている
+<a href="../../reference/draft/draft-ietf-idn-lace-00.txt">
+LACE エンコーディング</a>
+とUTF-8との間の変換を行うモジュールです。このモジュールは
+<a href="#converter">converter モジュール</a>の
+下位モジュールとして実装されており、
+アプリケーションがこのモジュールを直接呼び出すことはありません。
+<a href="#converter">converter モジュール</a>に対して
+<tt>LACE</tt> エンコーディング
+との変換を要求すると、このモジュールが間接的に呼び出されることになります。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__lace_open">mdn__lace_open</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__lace_open(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>LACEエンコーディングとの変換をオープンします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__lace_close">mdn__lace_close</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__lace_close(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>LACEエンコーディングとの変換をクローズします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__lace_convert">mdn__lace_convert</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__lace_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
+	const char *from, char *to, size_t tolen)
+</pre>
+<p>LACEエンコードされた文字列とUTF-8エンコードされた文字列の相互変換を
+行います。
+入力文字列 <var>from</var> を変換し、結果を <var>to</var> と
+<var>tolen</var> で指定される領域に書き込みます。
+<var>dir</var> が<tt>mdn_converter_l2u</tt>なら
+LACEエンコーディングからUTF-8エンコーディングへ、<tt>mdn_converter_u2l</tt>
+ならUTF-8エンコーディングからLACEエンコーディングへの変換となります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="localencoding">localencoding モジュール</a></h3>
+
+<p>localencoding モジュールはロケール情報を利用して、
+アプリケーションの使用しているエンコーディングを推測するモジュールです。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_localencoding_name">mdn_localencoding_name</a>
+<dd>
+<pre>
+const char *
+mdn_localencoding_name(void)
+</pre>
+<p>現在のロケール情報を元に、アプリケーションの使用しているエンコーディング名
+(<em><a href="#mdn_converter_create">mdn_converter_create()</a></em> に渡す
+名前) を推測して返します。
+<p>推測は、システムが<em>nl_langinfo()</em> を備えていればそれを利用し、
+そうでなければ<em>setlocale()</em> や環境変数の情報から行われます。
+後者の場合には必ずしも正しいエンコーディング名が得られるとは限りません。
+<p>ロケール情報から正しい推測ができない場合、もしくはアプリケーションが
+ロケールと異なるエンコーディングを用いて動作している場合のために、
+もし環境変数 <var>MDN_LOCAL_CODESET</var> が定義されていれば、
+をアプリケーションのロケールに関わらず、その変数の値をエンコーディング名として
+返すようになっています。
+
+</dl>
+
+<hr>
+
+<h3><a name="log">log モジュール</a></h3>
+
+<p>log モジュールはMDN ライブラリのログの出力処理を制御するモジュールです。
+ログはデフォルトでは標準エラー出力に書き出されますが、ハンドラを登録する
+ことで、別の出力方法に変更することも可能です。
+<p>またログレベルを設定することも可能です。ログレベルは次の5段階が
+定義されています。
+<blockquote>
+<pre>
+enum {
+	mdn_log_level_fatal   = 0,
+	mdn_log_level_error   = 1,
+	mdn_log_level_warning = 2,
+	mdn_log_level_info    = 3,
+	mdn_log_level_trace   = 4,
+	mdn_log_level_dump    = 5
+};
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_log_fatal">mdn_log_fatal</a>
+<dd>
+<pre>
+void
+mdn_log_fatal(const char *fmt, ...)
+</pre>
+<p>fatal レベルのログを出力します。このレベルは、プログラムの実行が
+不可能であるような致命的なエラーの際に用いられます。
+引数は<em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_error">mdn_log_error</a>
+<dd>
+<pre>
+void
+mdn_log_error(const char *fmt, ...)
+</pre>
+<p>error レベルのログを出力します。このレベルは、
+致命的ではないエラーの際に用いられます。
+引数は<em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_warning">mdn_log_warning</a>
+<dd>
+<pre>
+void
+mdn_log_warning(const char *fmt, ...)
+</pre>
+<p>warning レベルのログを出力します。このレベルは警告メッセージを
+表示するために用いられます。
+引数は<em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_info">mdn_log_info</a>
+<dd>
+<pre>
+void
+mdn_log_info(const char *fmt, ...)
+</pre>
+<p>info レベルのログを出力します。このレベルはエラーではなく、
+有用と思われる情報を出力するのに用いられます。
+引数は<em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_trace">mdn_log_trace</a>
+<dd>
+<pre>
+void
+mdn_log_trace(const char *fmt, ...)
+</pre>
+<p>trace レベルのログを出力します。このレベルはAPI関数のトレース
+情報を出力するのに用いられます。一般にライブラリのデバッグ目的以外で
+このレベルのログを記録する必要はないでしょう。
+引数は<em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_dump">mdn_log_dump</a>
+<dd>
+<pre>
+void
+mdn_log_dump(const char *fmt, ...)
+</pre>
+<p>dump レベルのログを出力します。このレベルはさらにデバッグ用の
+パケットデータダンプなどを出力するのに用いられます。
+一般にライブラリのデバッグ目的以外でこのレベルのログを記録する
+必要はないでしょう。
+引数は <em>printf</em> と同じ形式で指定します。
+<p>
+
+<dt><a name="mdn_log_setlevel">mdn_log_setlevel</a>
+<dd>
+<pre>
+void
+mdn_log_setlevel(int level)
+</pre>
+<p>ログ出力のレベルを設定します。設定したレベルを超えるレベルの
+ログは出力されません。この関数でログレベルを設定しない場合、
+環境変数 <tt>MDN_LOG_LEVEL</tt> に設定された整数値が使用されます。
+<p>
+
+<dt><a name="mdn_log_getlevel">mdn_log_getlevel</a>
+<dd>
+<pre>
+int
+mdn_log_getlevel(void)
+</pre>
+<p>現在のログ出力のレベルを表す整数値を取得して返します。
+<p>
+
+<dt><a name="mdn_log_setproc">mdn_log_setproc</a>
+<dd>
+<pre>
+void
+mdn_log_setproc(mdn_log_proc_t proc)
+</pre>
+<p>ログの出力ハンドラを設定します。<var>proc</var> はハンドラ関数への
+ポインタです。もしハンドラを指定しない場合、あるいは <var>proc</var> に
+NULL を指定した場合には、ログは標準エラー出力に出力されます。
+<p>ハンドラの型 <tt>mdn_log_proc_t</tt> は次のように定義されています。
+<blockquote>
+<pre>
+typedef void  (*mdn_log_proc_t)(int level, const char *msg);
+</pre>
+</blockquote>
+<var>level</var> にはログのレベルが、また <var>msg</var> には表示すべき
+メッセージ文字列が渡されます。
+
+</dl>
+
+<hr>
+
+<h3><a name="msgheader">msgheader モジュール</a></h3>
+
+<p>msgheader モジュールはDNS メッセージのヘッダの解析、および組み立てを
+行うモジュールです。
+<p>解析されたヘッダ情報は、次に示す構造体に入ります。各フィールドは
+DNS メッセージヘッダのフィールドにそのまま対応しているので、説明は省略します。
+<blockquote>
+<pre>
+typedef struct mdn_msgheader {
+	unsigned int id;
+	int qr;
+	int opcode;
+	int flags;
+	int rcode;
+	unsigned int qdcount;
+	unsigned int ancount;
+	unsigned int nscount;
+	unsigned int arcount;
+} mdn_msgheader_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_msgheader_parse">mdn_msgheader_parse</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_msgheader_parse(const char *msg, size_t msglen,
+	mdn_msgheader_t *parsed)
+</pre>
+<p><var>msg</var> と <var>msglen</var> で示されるDNSメッセージのヘッダを
+解析し、<var>parsed</var> が示す構造体に格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_message</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_msgheader_unparse">mdn_msgheader_unparse</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_msgheader_unparse(mdn_msgheader_t *parsed,
+	char *msg, size_t msglen)
+</pre>
+<p>この関数は<em><a href="#mdn_msgheader_parse">mdn_msgheader_parse</a></em> の
+逆の処理を行います。つまり、<var>parsed</var> で指定された構造体のデータから
+DNSメッセージのヘッダを構成し、<var>msg</var> と <var>msglen</var> で
+示される領域に格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_msgheader_getid">mdn_msgheader_getid</a>
+<dd>
+<pre>
+unsigned int
+mdn_msgheader_getid(const char *msg)
+</pre>
+<p><var>msg</var> で指定されるDNSメッセージから ID を取り出して返します。
+この関数はヘッダ全体を解析せずにIDだけ取り出したいときに便利です。
+この関数は、<var>msg</var> の指すデータがDNSメッセージのヘッダ長以上ある
+ことを仮定していますので、必ず呼び出し側で確認してから呼び出すように
+してください。
+<p>
+
+<dt><a name="mdn_msgheader_setid">mdn_msgheader_setid</a>
+<dd>
+<pre>
+void
+mdn_msgheader_setid(char *msg, unsigned int id)
+</pre>
+<p><var>msg</var> で指定されるDNSメッセージに <var>id</var> で指定される
+ID を設定します。
+この関数も <var>msg</var> の指すデータがDNSメッセージのヘッダ長以上ある
+ことを仮定していますので、必ず呼び出し側で確認してから呼び出すように
+してください。
+
+</dl>
+
+<hr>
+
+<h3><a name="msgtrans">msgtrans モジュール</a></h3>
+
+<p>msgtrans モジュールはDNS プロキシサーバでの DNS メッセージの変換処理の
+大部分を提供するモジュールです。このモジュールは
+<a href="#converter">converter モジュール</a>や
+<a href="#normalizer">normalizer モジュール</a>など他の多くのモジュールを
+の上位モジュールとして実現されています。
+
+<p>DNSプロキシサーバにおけるメッセージ変換処理はおよそ次のようなものです。
+<p>まずクライアントからDNSサーバへのメッセージの変換の場合は次の
+ようになります。
+<ol>
+<li>クライアントから受信したリクエストメッセージを解析し、
+  クライアント側の ZLD およびエンコーディングを判定します。
+<li>判定結果を用いて、ドメイン名からZLDを除去し、エンコーディングをUTF-8に
+  変換します。
+<li>正規化処理を行います。
+<li>エンコーディングを UTF-8からDNSサーバ側で用いられるエンコーディングに
+  変換し、ZLDを付加します。
+<li>以上の処理をメッセージに含まれるすべてのドメイン名に対して行い、
+  変換結果を再び DNS メッセージ形式にまとめて DNS サーバに送信します。
+</ol>
+
+<p>次にDNSサーバからクライアントへのメッセージの変換の場合は次の
+ようになります。
+<ol>
+<li>DNSサーバから受信したリプライメッセージを解析し、
+  含まれているすべてのドメイン名に対して、ZLDの除去、UTF-8エンコーディング
+  への変換を行います。
+<li>さらにクライアント側エンコーディングに変換し、ZLDを付加します。
+<li>変換結果を再び DNS メッセージ形式にまとめてクライアントに送信します。
+</ol>
+
+<p>このように、DNSメッセージの変換に際しては、
+クライアント・サーバ側のZLD、エンコーディング等
+いろいろなパラメータが必要となります。API関数にこれらを指定する際、
+それぞれを別々の引数で指定するのは煩雑なので、次のような構造体を
+用いてまとめて渡すようにしてあります。
+<blockquote>
+<pre>
+typedef struct mdn_msgtrans_param {
+	int use_local_rule;
+	mdn_zldrule_t local_rule;
+	mdn_converter_t local_converter;
+	mdn_converter_t local_alt_converter;
+	char *local_zld;
+	mdn_converter_t target_converter;
+	mdn_converter_t target_alt_converter;
+	char *target_zld;
+	mdn_normalizer_t normalizer;
+} mdn_msgtrans_param_t;
+</pre>
+</blockquote>
+<p><tt>use_local_rule</tt>は、入力側のメッセージのZLDおよびエンコーディングの
+判定方法を指定します。
+<p>もし値が真ならば、これらは<tt>local_rule</tt>で
+指定されるZLDとエンコーディングの集合とメッセージに含まれるドメイン名の
+マッチング処理を行い、マッチしたものが使われます。
+これはクライアントからDNSサーバへのリクエストメッセージの変換の際に
+用いられます。
+この場合、判定結果が<tt>local_converter</tt>と<tt>local_zld</tt>に
+代入されます。
+<p>一方、<tt>local_rule</tt>が偽ならばZLDおよびエンコーディングは
+<tt>local_converter</tt>と<tt>local_zld</tt>で指定されるものがそのまま
+使用されます。
+これはDNSサーバからクライアントへのリクエストメッセージの変換の際に
+用いられます。
+この場合<tt>local_rule</tt>の値は使用されません。
+<tt>use_local_rule</tt> の値に関わらず、<tt>local_alt_converter</tt> は
+入力側メッセージの代替エンコーディングとして使用されます。
+代替エンコーディングがない場合には NULL を指定します。
+<p><tt>target_converter</tt>と<tt>target_zld</tt>で出力側の
+エンコーディングとZLDを指定します。
+<tt>target_alt_converter</tt>は、<tt>target_converter</tt>による
+出力側のエンコーディングへの変換が、変換しようとするドメイン名に
+出力側の文字集合にない文字が含まれていたために失敗した場合に、
+<tt>target_converter</tt>の代わりに使用されます。
+なお <tt>local_alt_converter</tt> と <tt>target_alt_converter</tt>
+に対応するエンコーディングはいずれも
+<a href="#ACE">ASCII 互換エンコーディング</a>でなければなりません。
+<p><tt>normalizer</tt>は正規化方式を指定します。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+<dt><a name="mdn_msgtrans_translate">mdn_msgtrans_translate</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_msgtrans_translate(mdn_msgtrans_param_t *param,
+	const char *msg, size_t msglen,
+	char *outbuf, size_t outbufsize,
+	size_t *outmsglenp)
+</pre>
+<p><var>msg</var> および <var>msglen</var> で指定されるDNSメッセージを
+変換パラメータ <var>param</var> にしたがって変換し、結果を
+<var>outbuf</var> および <var>outbufsize</var> で示される領域に格納します。
+<var>outmsglenp</var> には変換結果のメッセージ長が格納されます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_message</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_buffer_overflow</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="normalizer">normalizer モジュール</a></h3>
+
+<p>normalizer モジュールは文字列の正規化を行うモジュールです。
+正規化の方式としては現在次のものが用意されています。
+また別の新たな正規化方式を追加登録するためのAPIも用意されています。
+<ul>
+<li><tt>ascii-uppercase</tt><br>
+    ASCII の小文字から大文字への変換
+<li><tt>ascii-lowercase</tt><br>
+    ASCII の大文字から小文字への変換
+<li><tt>unicode-uppercase</tt><br>
+    Unicode の文字属性を規定した
+    <a href="http://www.unicode.org/unicode/reports/tr21"><cite>Case Mappings</cite></a>
+    に記述されている小文字大文字マッピングに従った小文字から大文字への変換
+<li><tt>unicode-lowercase</tt><br>
+    上記と同じ文書にしたがった大文字から小文字への変換
+<li><tt>unicode-form-c</tt><br>
+    Unicode の正規化方式を規定した
+    <a href="http://www.unicode.org/unicode/reports/tr15"><cite>Unicode Normalization Forms</cite></a>
+    に記述されている<em>Normaliztion form C</em> に従う正規化
+<li><tt>unicode-form-kc</tt><br>
+    同文書に記述されている <em>Unicode Normalization Form KC</em> に
+    従う正規化
+<li><tt>ja-kana-fullwidth</tt><br>
+    日本語の半角かなから全角カタカナへの変換
+<li><tt>ja-fullwidth</tt><br>
+    <tt>ja-kana-fullwidth</tt> と同じ。
+    これは以前のバージョンとの互換性のために残されているもので、
+    将来のバージョンではなくなる可能性があります。<tt>ja-kana-fullwidth</tt>
+    を使ってください。
+<li><tt>ja-alnum-halfwidth</tt><br>
+    日本語の全角英数字および全角マイナス記号を半角文字に変換
+<li><tt>ja-compose-voiced-sound</tt><br>
+    日本語の全角かなとそれに続く濁点(゛)半濁点(゜)を
+    濁点・半濁点つきのかな1文字に変換
+<li><tt>ja-minus-hack</tt><br>
+    日本語の全角マイナス記号(－)からハイフン(<tt>-</tt>)への変換
+<li><tt>ja-delimiter-hack</tt><br>
+    句点(。)および全角ピリオド(．)からピリオド(<tt>.</tt>)への変換
+</ul>
+<p>最後の<tt>ja-delimiter-hack</tt>は句点および全角ピリオドを
+ドメイン名のセパレータであるピリオドと見なすようにするもので、
+これは本来多言語ドメイン名のユーザ入力の際の手間および間違いを軽減するために
+用意されたものですが、ブラウザによってはピリオドのないドメイン名が
+ドメイン名ではなくキーワードと認識されてしまうなどの問題があり、
+またこれはドメイン名の正規化の範囲を逸脱しているとも考えられるので、
+できるだけこの正規化方式の使用は避けるべきです。
+
+<p>正規化方式は複数併用することも可能で、この場合指定した順に適用されます。
+
+<p>normalizer モジュールは「正規化コンテキスト」という概念を用います。
+正規化を行うに先立ってまず正規化コンテキストを作成し、使用する
+正規化方式をコンテキストに登録しておきます。
+実際の正規化処理の際には正規化方式ではなく、
+この正規化コンテキストを指定します。
+正規化コンテキストの型は
+<em>mdn_normalizer_t</em> 型であり、
+次のような opaque 型として定義されています。
+<blockquote>
+<pre>
+typedef struct mdn_normalizer *mdn_normalizer_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_normalizer_initialize">mdn_normalizer_initialize</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_normalizer_initialize(void)
+</pre>
+<p>モジュールの初期化処理を行います。本モジュールの他のAPI関数を呼ぶ前に
+ 必ず呼び出してください。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_normalizer_create">mdn_normalizer_create</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_normalizer_create(mdn_normalizer_t *ctxp)
+</pre>
+<p>正規化用の空のコンテキストを作成し、<var>ctxp</var> の指す領域に格納します。
+返されるコンテキストは空で、正規化方式は一つも含まれていません。
+正規化方式を追加するには
+<a href="#mdn_normalizer_add"><em>mdn_normalizer_add</em></a> を用います。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_normalizer_destroy">mdn_normalizer_destroy</a>
+<dd>
+<pre>
+void
+mdn_normalizer_destroy(mdn_normalizer_t ctx)
+</pre>
+<p><a href="#mdn_normalizer_create"><em>mdn_normalizer_create</em></a> で
+作成した正規化コンテキストを削除し、アロケートされたメモリを解放します。
+<p>
+
+<dt><a name="mdn_normalizer_add">mdn_normalizer_add</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_normalizer_add(mdn_normalizer_t ctx, const char *scheme_name)
+</pre>
+<p><a href="#mdn_normalizer_create"><em>mdn_normalizer_create</em></a> で
+作成した正規化コンテキストに、<var>scheme_name</var> で指定される
+正規化方式を追加します。一つのコンテキストに複数の正規化方式を
+追加することができます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_normalizer_normalize">mdn_normalizer_normalize</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_normalizer_normalize(mdn_normalizer_t ctx,
+	const char *from, char *to, size_t tolen)
+</pre>
+<p>UTF-8 でエンコードされた文字列 <var>from</var> に <var>ctx</var> で
+指定される正規化方式を適用し、その結果を <var>to</var> と <var>tolen</var> で
+指定される領域に書き込みます。
+<var>ctx</var> に複数の正規化方式が含まれている場合、それらが
+<a href="#mdn_normalizer_add"><em>mdn_normalizer_add</em></a> で追加した順番に
+適用されます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_normalizer_register">mdn_normalizer_register</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_normalizer_register(const char *scheme_name,
+	mdn_normalizer_proc_t proc)
+</pre>
+<p>新しい正規化方式を <var>scheme_name</var> という名前で登録します。
+<var>proc</var> はその正規化方式の処理関数へのポインタです。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="race">race モジュール</a></h3>
+
+<p>race モジュールは、多言語ドメイン名のエンコーディング方式の一つとして
+提案されている
+<a href="../../reference/draft/draft-ietf-idn-race-02.txt">RACE エンコーディング</a>
+とUTF-8との間の変換を行うモジュールです。このモジュールは
+<a href="#converter">converter モジュール</a>の下位モジュールとして実装されており、
+アプリケーションがこのモジュールを直接呼び出すことはありません。
+<a href="#converter">converter モジュール</a>に対して <tt>RACE</tt> エンコーディング
+との変換を要求すると、このモジュールが間接的に呼び出されることになります。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__race_open">mdn__race_open</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__race_open(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>RACEエンコーディングとの変換をオープンします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__race_close">mdn__race_close</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__race_close(mdn_converter_t ctx, mdn_converter_dir_t dir)
+</pre>
+<p>RACEエンコーディングとの変換をクローズします。実際には何もしません。
+<p>常に <tt>mdn_success</tt>を返します。
+<p>
+
+<dt><a name="mdn__race_convert">mdn__race_convert</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__race_convert(mdn_converter_t ctx, mdn_converter_dir_t dir,
+	const char *from, char *to, size_t tolen)
+</pre>
+<p>RACEエンコードされた文字列とUTF-8エンコードされた文字列の相互変換を
+行います。
+入力文字列 <var>from</var> を変換し、結果を <var>to</var> と
+<var>tolen</var> で指定される領域に書き込みます。
+<var>dir</var> が<tt>mdn_converter_l2u</tt>なら
+RACEエンコーディングからUTF-8エンコーディングへ、<tt>mdn_converter_u2l</tt>
+ならUTF-8エンコーディングからRACEエンコーディングへの変換となります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="res">res モジュール</a></h3>
+
+<p>res モジュールはクライアント側 (リゾルバライブラリやアプリケーション)
+で多言語ドメイン名の処理、つまりドメイン名のエンコーディング変換や
+正規化を行う際の高レベル API を提供します。
+このモジュールはあとで説明する <a href="#resconf">resconf モジュール</a>
+とともに用いることを前提に設計されています。
+
+<p>これらのモジュールの提供する API を使用すれば、
+<a href="#converter">converter モジュール</a>や
+<a href="#normalizer">normalizer モジュール</a>などの関数を直接
+呼び出す必要はありません。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+<dt><a name="mdn_res_localtoucs">mdn_res_localtoucs</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_res_localtoucs(mdn_resconf_t conf, const char *local_name,
+	char *ucs_name, size_t ucs_name_len)
+</pre>
+<p>アプリケーションの使用するローカルエンコーディングで表された
+ドメイン名文字列 <var>local_name</var> を UTF-8 に変換し、その結果を
+<var>ucs_name</var> に格納します。<var>ucs_name_len</var> で
+あらかじめ <var>ucs_name</var> に確保した領域の大きさを指定します。
+
+<p><var>conf</var> は <a href="#resconf">resconf モジュール</a> の返す
+クライアント設定コンテキストです。もし <var>conf</var> が NULL であれば
+変換は行われず、<var>local_name</var> の内容がそのまま <var>ucs_name</var>
+にコピーされます。
+
+<p>ドメイン名 <var>local_name</var> が従来の ASCII ドメイン名として
+正しく (つまり英数字およびハイフンとピリオドから構成される)、かつ
+クライアント設定コンテキスト <var>conf</var> に代替エンコーディング
+が設定されている場合、ローカルエンコーディングとしての変換を行う前に
+代替エンコーディングから UTF-8 の変換を試み、失敗した場合に
+ローカルエンコーディングから UTF-8 への変換を行います。これによって、
+<a href="#mdn_res_ucstolocal"><em>mdn_res_ucstolocal</em></a> が
+与えられたドメイン名をローカルエンコーディングに変換できず
+代替エンコーディングに変換した場合でも、それを本関数に与えれば
+正しい UTF-8 エンコーディングのドメイン名が得られます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+
+<p>
+
+<dt><a name="mdn_res_ucstolocal">mdn_res_ucstolocal</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_res_ucstolocal(mdn_resconf_t conf, const char *ucs_name,
+	char *local_name, size_t local_name_len)
+</pre>
+<p><a href="#mdn_res_localtoucs"><em>mdn_res_localtoucs</em></a> の
+逆の変換、つまり UTF-8 で表されたドメイン名文字列 <var>ucs_name</var>
+をアプリケーションの使用するローカルエンコーディングに変換し、その結果を
+<var>local_name</var> に格納します。<var>local_name_len</var> で
+あらかじめ <var>local_name</var> に確保した領域の大きさを指定します。
+
+<p><var>conf</var> は <a href="#resconf">resconf モジュール</a> の返す
+クライアント設定コンテキストです。もし <var>conf</var> が NULL であれば
+変換は行われず、<var>local_name</var> の内容がそのまま <var>ucs_name</var>
+にコピーされます。
+
+<p>もしドメイン名 <var>ucs_name</var> の中にローカルエンコーディングの
+文字集合にない文字があって変換に失敗した場合、クライアント設定コンテキスト
+<var>conf</var> に代替エンコーディングが設定されていれば、
+ローカルエンコーディングの代わりに代替エンコーディングへの変換が行われます。
+これにより、たとえ DNS サーバからローカルエンコーディングに含まれない文字を
+含むドメイン名が返された場合にもエラーとならずに変換が行われます。
+なお、代替エンコーディングに変換された文字列は
+<a href="#mdn_res_localtoucs"><em>mdn_res_localtoucs</em></a> によって
+UTF-8 文字列に戻すことが可能です。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+
+<p>
+
+<dt><a name="mdn_res_normalize">mdn_res_normalize</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_res_normalize(mdn_resconf_t conf, const char *name,
+                  char *normalized_name, size_t normalized_name_len)
+</pre>
+<p>クライアント設定コンテキスト <var>conf</var> にしたがって
+UTF-8 で表されたドメイン名 <var>name</var> に対して正規化を実行し、
+その結果を <var>normalized_name</var> に格納します。
+<var>normalized_name_len</var> であらかじめ <var>normalized_name</var> に
+確保した領域の大きさを指定します。
+
+<p>もし <var>conf</var> が NULL であれば正規化は行われず、
+<var>name</var> の内容がそのまま <var>normalized_name</var> にコピーされます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+<p>
+
+<dt><a name="mdn_res_ucstodns">mdn_res_ucstodns</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_res_ucstodns(mdn_resconf_t conf, const char *ucs_name, char *dns_name,
+	size_t dns_name_len)
+</pre>
+<p>クライアント設定コンテキスト <var>conf</var> にしたがって
+UTF-8 で表されたドメイン名 <var>ucs_name</var> を DNS プロトコル上で
+用いられるエンコーディングに変換し、その結果を <var>dns_name</var> に
+格納します。
+<var>dns_name_len</var> であらかじめ <var>dns_name_len</var> に
+確保した領域の大きさを指定します。
+
+<p>もし <var>conf</var> が NULL であれば変換は行われず、
+<var>ucs_name</var> の内容がそのまま <var>dns_name</var> にコピーされます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+
+<p>
+
+<dt><a name="mdn_res_dnstoucs">mdn_res_dnstoucs</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_res_dnstoucs(mdn_resconf_t conf, const char *dns_name, char *ucs_name,
+	size_t ucs_name_len)
+</pre>
+<p><a href="#mdn_res_ucstodns"><em>mdn_res_ucstodns</em></a> の逆変換、
+つまりクライアント設定コンテキスト <var>conf</var> にしたがって
+DNS プロトコル上のエンコーディングで表されたドメイン名 <var>dns_name</var>
+を UTF-8 に変換し、その結果を <var>ucs_name</var> に格納します。
+<var>ucs_name_len</var> であらかじめ <var>ucs_name_len</var> に
+確保した領域の大きさを指定します。
+
+<p>もし <var>conf</var> が NULL であれば変換は行われず、
+<var>dns_name</var> の内容がそのまま <var>ucs_name</var> にコピーされます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_failure</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="resconf">resconf モジュール</a></h3>
+
+<p>resconf モジュールはクライアント側 (リゾルバライブラリやアプリケーション)
+で多言語ドメイン名の処理を行う際に参照される
+<a href="clientconfig.html">クライアント設定ファイル</a>を読み込み、
+ファイルに記述された設定にしたがった初期化を実行します。また
+設定情報を取り出す機能を提供します。
+
+<p>resconf モジュールは「クライアント設定コンテキスト」という概念を用います。
+クライアント設定ファイルに記述された設定はこのクライアント設定コンテキストに
+格納され、このコンテキストを引数にして API 関数を呼び出すことによって
+設定された値を取り出すことができます。
+クライアント設定コンテキストの型は <em>mdn_resconf_t</em> 型であり、
+次のような opaque 型として定義されています。
+<blockquote>
+<pre>
+typedef struct mdn_resconf *mdn_resconf_t;
+</pre>
+</blockquote>
+
+<p>このモジュールは単体でも使用できますが、
+<a href="#res">res モジュール</a>と組み合わせることによって、
+クライアント側での多言語ドメイン名の処理を簡単に行うことができるように
+設計されています。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_resconf_initialize">mdn_resconf_initialize</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_resconf_initialize(void)
+</pre>
+<p>多言語ドメイン名の処理を行う際に必要な初期化を実行します。
+本モジュールの他のAPI関数を呼ぶ前に必ず呼び出してください。
+本モジュールが使用する他のモジュールの初期化もすべて行うので、これ以外の初期化
+関数を呼び出す必要はありません。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_resconf_create">mdn_resconf_create</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_resconf_create(mdn_resconf_t *ctxp)
+</pre>
+<p>クライアント設定コンテキストを作成、初期化し、<var>ctxp</var> の指す
+領域に格納します。
+初期状態では、まだクライアント設定ファイルの内容は読み込まれていません。
+読み込むためには <a href="#mdn_resconf_loadfile">
+<em>mdn_resconf_loadfile</em></a> を実行する必要があります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_resconf_destroy">mdn_resconf_destroy</a>
+<dd>
+<pre>
+void
+mdn_resconf_destroy(mdn_resconf_t ctx)
+</pre>
+<p><a href="mdn_resconf_create"><em>mdn_resconf_create</em></a> で
+作成されたクライアント設定コンテキストを削除し、確保したメモリを解放します。
+<p>
+
+<dt><a name="mdn_resconf_loadfile">mdn_resconf_loadfile</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_resconf_loadfile(mdn_resconf_t ctx, const char *file)
+</pre>
+<p><var>file</var> で指定される
+<a href="clientconfig.html">クライアント設定ファイル</a>の内容を読み込み、
+設定内容をクライアント設定コンテキスト <var>ctx</var> に格納します。
+<var>file</var> が NULL の場合にはデフォルトのクライアント設定ファイルの
+内容を読み込みます。
+<p>すでに設定ファイルが読み込まれているコンテキストに対して、
+別の設定ファイルの内容を読み込むこともできます。その場合には、
+クライアント設定コンテキストに格納されていた前の設定ファイルの内容は
+すべて消え、新たに読み込んだ設定ファイルの内容で置き換わります。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nofile</tt>、
+<tt>mdn_invalid_syntax</tt>、
+<tt>mdn_invalid_name</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_resconf_defaultfile">mdn_resconf_defaultfile</a>
+<dd>
+<pre>
+char *
+mdn_resconf_defaultfile(void)
+</pre>
+<p>デフォルトのクライアント設定ファイルのパス名を返します。
+これは mDNkit のコンパイル時の設定によって決まりますが、特に指定しなければ
+<blockquote>
+<pre>
+/usr/local/etc/mdnres.conf
+</pre>
+</blockquote>
+です。
+<p>
+
+<dt><a name="mdn_resconf_localconverter">mdn_resconf_localconverter</a>
+<dd>
+<pre>
+mdn_converter_t
+mdn_resconf_localconverter(mdn_resconf_t ctx)
+</pre>
+<p>クライアント設定コンテキスト <var>ctx</var> の情報を元に、
+ローカルエンコーディングと UTF-8 との間の文字コード変換を行うための
+コード変換コンテキストを返します。ローカルエンコーディングが判別できなかった
+場合には NULL を返します。
+<p>コード変換コンテキストについては
+<a href="#converter">converter モジュール</a> の項をご覧ください。
+<p>
+
+<dt><a name="mdn_resconf_alternateconverter">mdn_resconf_alternateconverter</a>
+<dd>
+<pre>
+mdn_converter_t
+mdn_resconf_alternateconverter(mdn_resconf_t ctx)
+</pre>
+<p>クライアント設定コンテキスト <var>ctx</var> の情報を元に、
+代替エンコーディングと UTF-8 との間の
+文字コード変換を行うためのコード変換コンテキストを返します。
+代替エンコーディングとはドメイン名をローカルエンコーディングに変換することが
+できなかった場合に、ローカルエンコーディングの代わりに用いられる
+エンコーディングのことです。
+クライアント設定ファイルがまだ読み込まれていなかったり、設定ファイルに
+エンコーディングの指定がなかった場合には NULL を返します。
+<p>コード変換コンテキストについては
+<a href="#converter">converter モジュール</a> の項をご覧ください。
+<p>
+
+<dt><a name="mdn_resconf_serverconverter">mdn_resconf_serverconverter</a>
+<dd>
+<pre>
+mdn_converter_t
+mdn_resconf_serverconverter(mdn_resconf_t ctx)
+</pre>
+<p>クライアント設定コンテキスト <var>ctx</var> の情報を元に、
+DNS プロトコル上で用いられるエンコーディングと UTF-8 との間の
+文字コード変換を行うためのコード変換コンテキストを返します。
+クライアント設定ファイルがまだ読み込まれていなかったり、設定ファイルに
+エンコーディングの指定がなかった場合には NULL を返します。
+<p>コード変換コンテキストについては
+<a href="#converter">converter モジュール</a> の項をご覧ください。
+<p>
+
+<dt><a name="mdn_resconf_zld">mdn_resconf_zld</a>
+<dd>
+<pre>
+const char *
+mdn_resconf_zld(mdn_resconf_t ctx)
+</pre>
+<p>クライアント設定コンテキスト <var>ctx</var> の情報を元に、
+多言語ドメイン名と従来のドメイン名とを区別するために一部の
+エンコーディングとともに用いられる ZLD の文字列を返します。
+ZLD を使用しない設定の場合には NULL を返します。
+<p>mDNkit はデフォルトの設定では ZLD をサポートせず、この関数は常に
+NULL を返します。mDNkit を ZLD をサポートするように設定する方法に
+ついては mDNkit のインストールガイドの
+<a href="../guide/install.html#configure"><tt>configure</tt> 実行</a>
+の項をご覧ください。
+<p>
+
+<dt><a name="mdn_resconf_normalizer">mdn_resconf_normalizer</a>
+<dd>
+<pre>
+mdn_normalizer_t
+mdn_resconf_normalizer(mdn_resconf_t ctx)
+</pre>
+<p>クライアント設定コンテキスト <var>ctx</var> の情報を元に、
+ドメイン名を正規化するための正規化コンテキストを返します。
+クライアント設定ファイルがまだ読み込まれていなかったり、設定ファイルに
+正規化方式の指定がなかった場合には NULL を返します。
+<p>正規化コンテキストについては
+<a href="#normalizer">normalizer モジュール</a> の項をご覧ください。
+
+</dl>
+
+<hr>
+
+<h3><a name="result">result モジュール</a></h3>
+
+<p>result モジュールはライブラリの各関数が返す
+<a href="#mdn_result_t"><tt>mdn_result_t</tt>型の値</a>を扱うモジュールで、
+値からそのコードに対応するメッセージへの変換を提供します。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt>
+<dd>
+<pre>
+char *
+mdn_result_tostring(mdn_result_t result)
+</pre>
+<p><tt>mdn_result_t</tt>型の値 <var>result</var> に対応する
+メッセージ文字列を返します。
+<p>未定義のコードに対しては <tt>unknown result code</tt> という文字列が
+返されます。
+
+</dl>
+
+<hr>
+
+<h3><a name="selectiveencode">selectiveencode モジュール</a></h3>
+
+<p>selectiveencode モジュールはゾーンマスタファイル等のテキストの中から
+非ASCII文字を含むドメイン名を探し出すモジュールです。
+もちろんテキストのどの部分がドメイン名なのかを判定することは一般的には
+不可能なので、実際には次のような大きな仮定を置くことによって
+近似的に実現しています。
+<ul>
+<li>非ASCII文字はドメイン名の中にのみ現れる
+</ul>
+<p>具体的には次のようなアルゴリズムを用いてドメイン名の領域検出を行います。
+<ol>
+<li>テキストを走査して、非ASCII文字を探す。
+<li>見つかった非ASCII文字の前後の文字を調べ、
+    その文字を含み、かつ他の非ASCII文字あるいは従来の(多言語化されていない)
+    ドメイン名として使用可能な文字だけからなる範囲を求める。
+<li>求めた範囲をドメイン名として返す。
+</ol>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_selectiveencode_findregion">mdn_selectiveencode_findregion</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_selectiveencode_findregion(const char *s,
+	char **startp, char **endp)
+</pre>
+<p>UTF-8でエンコードされた文字列 <var>s</var> を走査して、最初に出現する
+非ASCII文字を含むドメイン名の領域を求め、その先頭を指すポインタを
+<var>startp</var> に、領域の直後の文字を指すポインタを <var>endp</var> に
+それぞれ格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_notfound</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="strhash">strhash モジュール</a></h3>
+
+<p>strhash モジュールは文字列をキーとするハッシュ表を実現するモジュールです。
+ハッシュ表は
+<a href="converter">converter モジュール</a>や
+<a href="normalizer">normalizer モジュール</a>などライブラリの他のモジュールで
+使用されます。
+非常に一般的なハッシュ表の実装であり、特筆すべき点はありません…
+一つだけあります。登録はできますが削除の機能がありません。本ライブラリでは
+必要ないからです。
+
+<p>ハッシュ表のサイズは要素の総数が増えるに従って大きくなります。
+
+<p>ハッシュ表は次に示す <em>mdn_strhash_t</em> 型の opaque データとして
+表されます。
+<blockquote>
+<pre>
+typedef struct mdn_strhash *mdn_strhash_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_strhash_create">mdn_strhash_create</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_strhash_create(mdn_strhash_t *hashp)
+</pre>
+<p>空のハッシュ表を作成し、そのハンドルを <var>hashp</var> の指す領域に
+格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_strhash_destroy">mdn_strhash_destroy</a>
+<dd>
+<pre>
+void
+mdn_strhash_destroy(mdn_strhash_t hash)
+</pre>
+<p><a href="#mdn_strhash_create"><em>mdn_strhash_create</em></a> で作成した
+ハッシュ表を削除し、確保したメモリを解放します。
+<p>
+
+<dt><a name="mdn_strhash_put">mdn_strhash_put</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_strhash_put(mdn_strhash_t hash, const char *key,
+	void *value)
+</pre>
+<p><a href="#mdn_strhash_create"><em>mdn_strhash_create</em></a> で作成した
+ハッシュ表 <var>hash</var> にキー <var>key</var>、値 <var>value</var> の組を
+登録します。
+文字列 <var>key</var> はコピーされますので、この関数の呼び出し後
+<var>key</var> の指すメモリを解放しても、文字列の内容を書き換えても
+影響はありません。これに対して <var>value</var> の内容はコピーされないので
+注意してください (もちろんよく考えてみればコピーされないことは自明ですが)。
+<p>同じキーを使用して複数回登録した場合、最後に登録されたものだけが
+有効です。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_strhash_get">mdn_strhash_get</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_strhash_get(mdn_strhash_t hash,
+	const char *key, void **valuep)
+</pre>
+<p>ハッシュ表 <var>hash</var> からキー <var>key</var> を持つ要素を検索し、
+対応する要素があればその値を <var>valuep</var> に格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_noentry</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_strhash_exists">mdn_strhash_exists</a>
+<dd>
+<pre>
+int
+mdn_strhash_exists(mdn_strhash_t hash, const char *key)
+</pre>
+<p>ハッシュ表 <var>hash</var> にキー <var>key</var> を持つ要素があれば
+1を、なければ 0 を返します。
+
+</dl>
+
+<hr>
+
+<h3><a name="translator">translator モジュール</a></h3>
+
+<p>translator モジュールは、与えられたパラメータに従ってドメイン名を
+変換するモジュールです。パラメータとしては次にあげるデータを与えます。
+<ul>
+<li>入力として渡すドメイン名のエンコーディング (ローカルエンコーディング)
+<li>入力として渡すドメイン名の代替エンコーディング
+    (ローカル代替エンコーディング)
+<li>入力として渡すドメイン名のZLD (ローカル ZLD)
+<li>正規化方式
+<li>ドメイン名の変換後のエンコーディング (ターゲットエンコーディング)
+<li>ターゲットエンコーディングへの変換が失敗した時に用いるエンコーディング
+    (ターゲット代替エンコーディング)
+<li>ドメイン名の変換後のZLD (ターゲットZLD)
+</ul>
+
+<p>ドメイン名の変換の手続きはやや複雑です。これは次の理由によります。
+<ul>
+<li>ドメイン名として常に多言語ドメイン名が渡されるわけではなく、
+    従来のASCIIドメイン名も渡される可能性があり、
+    そのどちらであるかによって処理を変える必要があること
+<li>またこの2つを判別する処理がASCII互換エンコーディングの場合
+    簡単ではなく、ZLD等を参照する必要があること
+<li>さらにローカル代替エンコーディングでエンコードされたドメイン名も
+    渡される可能性があること
+<li>さらにターゲットエンコーディングへの変換が失敗した時には
+    代替エンコーディングを代わりに使用する必要があること
+</ul>
+
+<p>具体的には、次のようなアルゴリズムを使用して変換を行います。
+<ol>
+<li>ローカルZLDが定義されている (空でない) かどうかを調べる。
+<li>定義されていれば、渡されたドメイン名がそれにマッチするかどうか調べる。
+<li>マッチすれば多言語ドメイン名だと判断し、ドメイン名からZLDを除去し、
+    6のコード変換処理へと移る。<br>
+    マッチしなければ、従来のASCIIドメイン名だとしてそのまま
+    コピーし、処理を終了する。
+<li>ローカルZLDが定義されていなければ、ローカルエンコーディングが
+    ASCII互換エンコーディングであるかどうか、また渡されたドメイン名が
+    従来のASCIIドメイン名として正しいものであるかどうかを調べる。
+<li>もしASCII互換エンコーディングであるか、あるいは渡されたドメイン名に
+    従来のASCIIドメイン名として正しくない文字が混じっていれば
+    多言語ドメイン名であるとして6のコード変換処理へと移る。<br>
+    それ以外の場合には従来のASCIIドメイン名だとしてそのまま
+    コピーし、処理を終了する。
+<li>ローカル代替エンコーディングが定義されていれば、まず
+    ローカル代替エンコーディングから UTF-8 へとコード変換を実行する。
+    成功すれば8の正規化処理へと移る。
+<li>ローカルエンコーディングからUTF-8へとコード変換を実行する。
+<li>正規化処理を実行する。
+<li>UTF-8からターゲットエンコーディングへとコード変換を実行する。
+<li>もしドメイン名にターゲットエンコーディングの文字集合にない文字があって
+    変換に失敗した場合には、代わりに UTF-8 から代替エンコーディングへの
+    コード変換を実行する。
+<li>ターゲットZLDが定義されていればドメイン名に追加する。
+</ol>
+
+<p>以上の処理をフローチャートで表したのが次の図です。
+
+<blockquote>
+<img src="img/translator.jpg" alt="name translation flowchart">
+</blockquote>
+
+<p>本モジュールはエンコーディング変換に
+<a href="#converter">converter モジュール</a>を、また正規化に
+<a href="#normalizer">normalizer モジュール</a>をそれぞれ使用します。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_translator_translate">mdn_translator_translate</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_translator_translate(mdn_converter_t local_converter,
+	mdn_converter_t local_alternate_converter,
+	const char *local_zld,
+	mdn_normalizer_t normalizer,
+	mdn_converter_t target_converter,
+	mdn_converter_t target_alternate_converter,
+	const char *target_zld,
+	const char *from, char *to, size_t tolen)
+</pre>
+<p>与えられたパラメータにしたがってドメイン名 <var>from</var> を変換し、
+結果を <var>to</var> と <var>tolen</var> で指定される領域に格納します。
+<p>ローカルエンコーディング、ローカル代替エンコーディング、
+ターゲットエンコーディングおよびターゲット代替エンコーディングは
+エンコーディングの名称ではなく、
+対応する<a href="#converter">converter モジュール</a>の
+コード変換コンテキスト <var>local_converter</var>、
+<var>alternate_converter</var> および <var>target_converter</var> で
+指定します。
+<p>ターゲット代替エンコーディング <var>target_alternate_converter</var> は、
+<var>target_converter</var> によるターゲットエンコーディングへの変換が、
+ドメイン名がターゲットエンコーディングの文字集合にない文字を含んでいるために
+失敗した時に、ターゲットエンコーディングの代わりに使用されます。
+<p>正規化は<a href="#normalizer">normalizer モジュール</a>の正規化コンテキスト
+<var>normalizer</var> で指定します。
+<p>ローカルZLDおよびターゲットZLDは
+<a href="#mdn_translator_canonicalzld"><em>mdn_translator_canonicalzld</em></a>
+で標準形式に変換したものでなければなりません。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_translator_canonicalzld">mdn_translator_canonicalzld</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_translator_canonicalzld(const char *zld,
+	char **canonicalizedp)
+</pre>
+<p>ZLD <var>zld</var> を標準形式に変換し、そのポインタを
+<var>canonicalizedp</var> の指す領域に格納します。
+変換された文字列 (<var>*canonicalizedp</var>) の領域は
+<em>malloc()</em> されていますので、不要になったら <em>free()</em> で
+解放してください。
+<p>ここでいう ZLD の標準形式とは次のような形式のものを指します。
+<ul>
+<li>空のZLD ("" あるいは ".") の標準形式は NULL
+<li>先頭がピリオド (.) から始まっていればピリオドを除去
+<li>最後がピリオド (.) で終わっていなければピリオドを追加
+<li>小文字はすべて大文字に変換
+</ul>
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_translator_matchzld">mdn_translator_matchzld</a>
+<dd>
+<pre>
+int
+mdn_translator_matchzld(const char *domain,
+	const char *zld)
+</pre>
+<p>ドメイン名 <var>domain</var> と ZLD <var>zld</var> がマッチするかどうか
+を調べ、マッチすれば1を、しなければ0を返します。
+<p>ZLD は
+<a href="#mdn_translator_canonicalzld"><em>mdn_translator_canonicalzld</em></a>
+で標準形式に変換したものでなければなりません。
+
+</dl>
+
+<hr>
+
+<h3><a name="unicode">unicode モジュール</a></h3>
+
+<p>unicode モジュールは、
+<a href="ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.txt"><cite>UnicodeData.txt</cite></a>
+に記述されている、Unicode の各種文字属性を取得するモジュールです。なお、
+Unicode.txt に記述されているデータの意味、およびファイル形式については
+<a href="ftp://ftp.unicode.org/Public/UNIDATA/UnicodeData.html"><cite>UnicodeData File Format</cite></a>をご覧ください。
+
+<p>本ライブラリの多くのモジュールは Unicode のデータを UTF-8エンコードされた
+文字列形式で扱いますが、このモジュールは <em>unsigned long</em> 型の
+データとして扱います。含まれる値は UCS-4 です。
+
+<p><a name="mdn__unicode_context_t">
+このモジュールでは Unicode 文字の大文字小文字の相互変換機能も
+提供しています。</a> これは
+<a href="http://www.unicode.org/unicode/reports/tr21">
+<cite>Unicode Technical Report #21: Case Mappings</cite></a> で
+定義されているものです。
+Unicode 文字の中にはごく一部ですが大文字小文字の変換をする際に
+文脈情報を必要とするものがあり、これは次のような列挙型のデータで指定します。
+<blockquote>
+<pre>
+typedef enum {
+	mdn__unicode_context_unknown,
+	mdn__unicode_context_final,
+	mdn__unicode_context_nonfinal
+} mdn__unicode_context_t;
+</pre>
+</blockquote>
+文脈が FINAL の場合には <tt>mdn__unicode_context_final</tt> を、また
+NON_FINAL の場合には <tt>mdn__unicode_context_nonfinal</tt> を指定します。
+<tt>mdn__unicode_context_unknown</tt> は文脈情報がわからない (調べていない)
+ことを示します。
+文脈情報に関して詳しくは上記文献をご覧ください。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__unicode_canonicalclass">mdn__unicode_canonicalclass</a>
+<dd>
+<pre>
+int
+mdn__unicode_canonicalclass(unsigned long c);
+</pre>
+<p>Unicode 文字 <var>c</var> の <em>Canonical Combining Class</em> を求めます。
+Canonical Combining Class が定義されていない文字については 0 を返します。
+<p>
+
+<dt><a name="mdn__unicode_decompose">mdn__unicode_decompose</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unicode_decompose(int compat,
+	unsigned long *v, size_t vlen,
+	unsigned long c, int *decomp_lenp)
+</pre>
+<p>Unicode 文字 <var>c</var> を UnicodeData.txt の<em>Character
+Decomposition Mapping</em> にしたがって decompose し、その結果を
+<var>v</var> および <var>vlen</var> で指定される領域に書き込みます。
+<var>compat</var> の値が真なら <em>Compatibility Decomposition</em> を、
+偽なら<em>Canonical Decomposition</em> を行います。
+<p>decompose は再帰的に行われます。つまりCharacter Decomposition Mapping
+にしたがって分解した各文字についてさらに decompose 処理が行われます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_notfound</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unicode_compose">mdn__unicode_compose</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unicode_compose(unsigned long c1,
+	unsigned long c2, unsigned long *compp)
+</pre>
+<p><var>c1</var> と <var>c2</var> の2文字の Unicode 文字のシーケンスを
+UnicodeData.txt の<em>Character Decomposition Mapping</em> にしたがって
+compose し、その結果を <var>compp</var> の指す領域に書き込みます。
+必ず <em>Canonical Composition</em> が行われます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_notfound</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unicode_iscompositecandidate">mdn__unicode_iscompositecandidate</a>
+<dd>
+<pre>
+int
+mdn__unicode_iscompositecandidate(unsigned long c)
+</pre>
+<p>Unicode文字 <var>c</var> から始まる Canonical Composition が存在するか
+どうかを調べ、存在する可能性があれば 1 を可能性がなければ 0 を返します。
+これはヒント情報であり、1が返ってきたとしても実際には Composition が
+存在しないこともあり得ます。逆に 0 が返ってくれば確実に存在しません。
+<p>Unicode の全文字の中で Canonical Composition の先頭となる文字は数
+少ないので、<a href="#mdn__unicode_compose"><em>mdn__unicode_compose</em></a> の
+検索のオーバヘッドを減らすためにあらかじめデータをスクリーニングする目的に
+使用することができます。
+<p>
+
+<dt><a name="mdn__unicode_toupper">mdn__unicode_toupper</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unicode_toupper(unsigned long c, mdn__unicode_context_t ctx,
+	unsigned long *v, size_t vlen, int *convlenp)
+</pre>
+<p>Unicode文字 <var>c</var> を UnicodeData.txt の <em>Uppercase Mapping</em>
+情報および SpecialCasing.txtの情報にしたがって大文字に変換し、結果を
+<var>v</var> の指す領域に格納します。<var>vlen</var> はあらかじめ
+<var>v</var> に確保した領域の大きさです。変換結果の文字数は
+<var>*convlenp</var> に返されます。
+変換結果が複数の文字になることがあることに注意してください。
+またロケール依存の変換は行いません。
+
+<p><var>ctx</var> は文字 <var>c</var> の出現する
+<a href="#mdn__unicode_context_t">文脈情報</a>です。
+ほとんどの文字では変換の際に文脈情報は不要なため、
+通常は <tt>mdn__unicode_context_unknown</tt> を指定しておくことができます。
+もし文脈情報が必要な場合、本関数は戻り値として <tt>mdn_context_required</tt>
+を返すので、文脈情報を取得してから改めて呼び出すことが可能です。
+文脈情報の取得には <a href="#mdn__unicode_getcontext">
+<em>mdn__unicode_getcontext</em></a> を使用します。
+
+<p>もし対応する大文字が存在しない場合には <var>c</var> がそのまま
+<var>v</var> に格納されます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_context_required</tt>、
+<tt>mdn_buffer_overflow</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unicode_tolower">mdn__unicode_tolower</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
+	unsigned long *v, size_t vlen, int *convlenp)
+</pre>
+<p>Unicode文字 <var>c</var> を UnicodeData.txt の <em>Uppercase Mapping</em>
+情報および SpecialCasing.txtの情報にしたがって小文字に変換し、結果を
+<var>v</var> の指す領域に格納します。<var>vlen</var> はあらかじめ
+<var>v</var> に確保した領域の大きさです。変換結果の文字数は
+<var>*convlenp</var> に返されます。
+変換結果が複数の文字になることがあることに注意してください。
+またロケール依存の変換は行いません。
+
+<p><var>ctx</var> は文字 <var>c</var> の出現する
+<a href="#mdn__unicode_context_t">文脈情報</a>です。
+ほとんどの文字では変換の際に文脈情報は不要なため、
+通常は <tt>mdn__unicode_context_unknown</tt> を指定しておくことができます。
+もし文脈情報が必要な場合、本関数は戻り値として <tt>mdn_context_required</tt>
+を返すので、文脈情報を取得してから改めて呼び出すことが可能です。
+文脈情報の取得には <a href="#mdn__unicode_getcontext">
+<em>mdn__unicode_getcontext</em></a> を使用します。
+
+<p>もし対応する小文字が存在しない場合には <var>c</var> がそのまま
+<var>v</var> に格納されます。
+
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_context_required</tt>、
+<tt>mdn_buffer_overflow</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unicode_getcontext">mdn__unicode_getcontext</a>
+<dd>
+<pre>
+mdn__unicode_context_t
+mdn__unicode_getcontext(unsigned long c)
+</pre>
+<p>大文字小文字変換で用いられる文脈情報を返します。
+文脈情報を取得するには次のようにします。
+まず大文字小文字変換の対象文字に続く次の文字を取得し、この関数を
+呼び出します。もし返される値が <tt>mdn__unicode_context_final</tt>
+あるいは <tt>mdn__unicode_context_nonfinal</tt> のいずれかであれば
+それが求める文脈情報です。
+<tt>mdn__unicode_context_unknown</tt> の場合にはさらに続く文字を取得し、
+この関数を呼び出します。このようにして <tt>mdn__unicode_context_final</tt>
+か <tt>mdn__unicode_context_nonfinal</tt> かいずれかの値が得られるまで
+処理を繰り返します。もし文字列の最後まで来た場合には、文脈は
+<tt>mdn__unicode_context_final</tt> となります。
+
+<p>具体的にはこの関数は次のような処理を行います。
+Unicode 文字 <var>c</var> の "General Category" 属性を参照し、
+それが "Lu" "Ll" "Lt" のいずれかであれば
+<tt>mdn__unicode_context_nonfinal</tt> を、"Mn" であれば
+<tt>mdn__unicode_context_unknown</tt> を、それ以外であれば
+<tt>mdn__unicode_context_final</tt> を返します。
+
+</dl>
+
+<hr>
+
+<h3><a name="unormalize">unormalize モジュール</a></h3>
+
+<p>unormalize モジュールは、Unicode で定義されている標準の正規化を
+行うモジュールです。Unicode の正規化は
+<a href="http://www.unicode.org/unicode/reports/tr15"><cite>Unicode Technical Report #15: Unicode Normalization Forms</cite></a>
+で定義されています。本モジュールはこの文書にあげられた4つの正規化形式を
+実装しています。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn__unormalize_formc">mdn__unormalize_formc</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unormalize_formc(const char *from, char *to, size_t tolen)
+</pre>
+<p>UTF-8でエンコードされた文字列 <var>from</var> に対して
+正規化 <em>Unicode Normalization Form C</em> を適用し、その結果を
+<var>to</var> および <var>tolen</var> で指定される領域に書き込みます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unormalize_formd">mdn__unormalize_formd</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unormalize_formd(const char *from, char *to, size_t tolen)
+</pre>
+<p>UTF-8でエンコードされた文字列 <var>from</var> に対して
+正規化 <em>Unicode Normalization Form D</em> を適用し、その結果を
+<var>to</var> および <var>tolen</var> で指定される領域に書き込みます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unormalize_formkc">mdn__unormalize_formkc</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unormalize_formkc(const char *from, char *to, size_t tolen)
+</pre>
+<p>UTF-8でエンコードされた文字列 <var>from</var> に対して
+正規化 <em>Unicode Normalization Form KC</em> を適用し、その結果を
+<var>to</var> および <var>tolen</var> で指定される領域に書き込みます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn__unormalize_formkd">mdn__unormalize_formkd</a>
+<dd>
+<pre>
+mdn_result_t
+mdn__unormalize_formkd(const char *from, char *to, size_t tolen)
+</pre>
+<p>UTF-8でエンコードされた文字列 <var>from</var> に対して
+正規化 <em>Unicode Normalization Form KD</em> を適用し、その結果を
+<var>to</var> および <var>tolen</var> で指定される領域に書き込みます。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_invalid_encoding</tt>、
+<tt>mdn_buffer_overflow</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+
+</dl>
+
+<hr>
+
+<h3><a name="utf5">utf5 モジュール</a></h3>
+
+<p>utf5 モジュールはドメイン名のエンコーディング方式の一つとして
+提案されている
+<a href="../../reference/draft/draft-jseng-utf5-01.txt">UTF-5 エンコーディング</a> 
+の基本処理を行うモジュールです。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_utf5_getwc">mdn_utf5_getwc</a>
+<dd>
+<pre>
+int
+mdn_utf5_getwc(const char *s, size_t len,
+	unsigned long *vp)
+</pre>
+<p>UTF-5でエンコードされた長さ <var>len</var> バイトの文字列 <var>s</var> の
+先頭の文字を取り出し、UCS-4 に変換して <var>vp</var> の指す領域に格納すると
+ともに、文字の (UTF-5エンコードでの) バイト数を返します。
+もし <var>len</var> が短すぎて文字の途中で終わっていたり、エンコーディングが
+間違っている場合には 0 が返されます。
+<p>
+
+<dt><a name="mdn_utf5_putwc">mdn_utf5_putwc</a>
+<dd>
+<pre>
+int
+mdn_utf5_putwc(char *s, size_t len, unsigned long v)
+</pre>
+<p>UCS-4 文字 <var>v</var> をUTF-5エンコーディングに変換し、<var>s</var>
+および <var>len</var> で指定される領域に書き込むとともに、書き込んだバイト数を
+返します。ただし <var>len</var> が短すぎて書き込めない場合には0を返します。
+<p>書き込んだUTF-5文字列は <strong>NUL 文字で終端されていません</strong>。
+
+</dl>
+
+<hr>
+
+<h3><a name="utf8">utf8 モジュール</a></h3>
+
+<p>utf8 モジュールはUTF-8 でエンコードされた文字列の基本処理を行う
+モジュールです。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_utf8_mblen">mdn_utf8_mblen</a>
+<dd>
+<pre>
+int
+mdn_utf8_mblen(const char *s)
+</pre>
+<p>UTF-8 文字列 <var>s</var> の先頭文字の長さ(バイト数)を返します。
+もし <var>s</var> が指すバイトが UTF-8 の先頭バイトとして正しくないものである
+場合には 0 を返します。
+<p>この関数は <var>s</var> の先頭バイトのみを調べて長さを返します。したがって
+2バイト目以降に不正なバイトがある可能性が存在します。特に途中に NUL バイトが
+ある可能性もあるので、<var>s</var> が正当な UTF-8 文字列であることが確実では
+ない場合には気をつける必要があります。
+<p>
+
+<dt><a name="mdn_utf8_getmb">mdn_utf8_getmb</a>
+<dd>
+<pre>
+int
+mdn_utf8_getmb(const char *s, size_t len, char *buf)
+</pre>
+<p>長さ <var>len</var> バイトの UTF-8 文字列 <var>s</var> の先頭の1文字を
+<var>buf</var> にコピーし、コピーしたバイト数を返します。
+もし <var>len</var> が短すぎたり、<var>s</var> が指す文字が UTF-8 として
+正しくない場合にはコピーは行わず、0 を返します。
+<p><var>buf</var> は任意の UTF-8 エンコーディングの文字が保持できる大きさ
+でなければなりません。すなわち、6バイト以上の長さを持っている必要があります。
+<p>書き込んだUTF-8文字列は <strong>NUL 文字で終端されていません</strong>。
+<p>
+
+<dt><a name="mdn_utf8_getwc">mdn_utf8_getwc</a>
+<dd>
+<pre>
+int
+mdn_utf8_getwc(const char *s, size_t len,
+	unsigned long *vp)
+</pre>
+<p><a href="#mdn_utf8_getmb"><em>mdn_utf8_getmb</em></a> とほぼ同じですが、
+<var>s</var> から取り出した文字を
+UCS-4に変換して <var>vp</var> の指す領域に格納するところが異なります。
+<p>
+
+<dt><a name="mdn_utf8_putwc">mdn_utf8_putwc</a>
+<dd>
+<pre>
+int
+mdn_utf8_putwc(char *s, size_t len, unsigned long v)
+</pre>
+<p>UCS-4 文字 <var>v</var> を UTF-8 エンコーディングに変換して、
+<var>s</var> および <var>len</var> で指定される領域に書き込むとともに、
+書き込んだバイト数を返します。<var>v</var> の値が不正であったり
+<var>len</var> が短すぎた場合には 0 を返します。
+<p>書き込んだUTF-8文字列は <strong>NUL 文字で終端されていません</strong>。
+<p>
+
+<dt><a name="mdn_utf8_isvalidstring">mdn_utf8_isvalidstring</a>
+<dd>
+<pre>
+int
+mdn_utf8_isvalidstring(const char *s)
+</pre>
+<p>NUL 文字で終端された文字列 <var>s</var> が正しい UTF-8 エンコーディング
+であるかどうか調べ、正しければ 1 を、正しくなければ 0 を返します。
+<p>
+
+<dt><a name="mdn_utf8_findfirstbyte">mdn_utf8_findfirstbyte</a>
+<dd>
+<pre>
+char *
+mdn_utf8_findfirstbyte(const char *s,
+	const char *known_top)
+</pre>
+<p>文字列 <var>known_top</var> 中の <var>s</var> が指すバイトを含む
+UTF-8 文字の先頭バイトを調べて返します。その文字が正しい UTF-8 
+エンコーディングではない場合、<var>known_top</var> から <var>s</var> までの
+間に先頭バイトがなかった場合には NULL を返します。
+
+</dl>
+
+<hr>
+
+<h3><a name="util">util モジュール</a></h3>
+
+<p>util モジュールは他のモジュールで使われるユーティリティー的な
+機能を提供するモジュールです。
+現在のところは大文字小文字の区別をしない文字列照合の機能のみを
+提供しています。
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+<dt><a name="mdn_util_casematch">mdn_util_casematch</a>
+<dd>
+<pre>
+int
+mdn_util_casematch(const char *s1, const char *s2, size_t n)
+</pre>
+<p>文字列 <var>s1</var> と <var>s2</var> の先頭から最大 <var>n</var> バイトを
+比較し、同一かどうかを判定します。
+ASCII 文字の大文字と小文字 (つまり A から Z と a から z) は同一とみなします。
+同一であれば 1 を、違っていれば 0 を返します。
+これは多くのシステムで用意されている <em>strcasencmp</em> と返り値の仕様を
+除けばほぼ同様の機能を提供する関数です。
+</dl>
+<p>
+
+<hr>
+
+<h3><a name="zldrule">zldrule モジュール</a></h3>
+
+<p>zldrule モジュールはドメイン名と ZLD とのマッチングを行うモジュールです。
+ドメイン名に使用される可能性のある ZLD のリストとそれぞれの ZLD に対応した
+エンコーディングのリストを持ち、与えられたドメイン名とのマッチングを行って
+マッチした ZLD とエンコーディングを返します。
+
+<p>zldrule モジュールはマッチングのために「コンテキスト」という概念を用います。
+マッチングに先立ってまずコンテキストを作成し、それに対して
+ZLD とエンコーディングを登録していきます。
+そして実際にドメイン名とマッチングを行う際にはこのコンテキストを用いて
+マッチングに使用するZLD とエンコーディングのリストを指定します。
+コンテキストの型は
+<em>mdn_zldrule_t</em> 型であり、次のような opaque 型として定義されています。
+<blockquote>
+<pre>
+typedef struct mdn_zldrule *mdn_zldrule_t;
+</pre>
+</blockquote>
+
+<p>以下にモジュールの提供するAPI関数を示します。
+
+<dl>
+
+<dt><a name="mdn_zldrule_create">mdn_zldrule_create</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_zldrule_create(mdn_zldrule_t *ctxp)
+</pre>
+<p>ZLDのマッチングを行うためのコンテキストを作成し、
+<var>ctxp</var> の指す領域に格納します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_zldrule_destroy">mdn_zldrule_destroy</a>
+<dd>
+<pre>
+void
+mdn_zldrule_destroy(mdn_zldrule_t ctx)
+</pre>
+<p><a href="#mdn_zldrule_create"><em>mdn_zldrule_create</em></a> で作成した
+コンテキスト <var>ctx</var> を削除し、確保したメモリを解放します。
+<p>
+
+<dt><a name="mdn_zldrule_add">mdn_zldrule_add</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_zldrule_add(mdn_zldrule_t ctx, const char *zld,
+	const char **encodings, int nencodings)
+</pre>
+<p><a href="#mdn_zldrule_create"><em>mdn_zldrule_create</em></a> で作成した
+コンテキスト <var>ctx</var> に、ZLD <var>zld</var> と
+<var>encodings</var> および <var>nencodings</var> で指定される
+エンコーディングリストの組を登録します。
+<p>空の ZLD、つまり "" や "." は任意のドメイン名にマッチします。
+したがってZLDとして空の値を指定することによって、いずれの
+ZLD にもマッチしなかった場合のデフォルトのエンコーディングを指定することが
+可能です。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_nomemory</tt>
+のいずれかです。
+<p>
+
+<dt><a name="mdn_zldrule_select">mdn_zldrule_select</a>
+<dd>
+<pre>
+mdn_result_t
+mdn_zldrule_select(mdn_zldrule_t ctx, const char *domain,
+	char **zldp, mdn_converter_t *convctxp)
+</pre>
+<p>コンテキスト <var>ctx</var> に含まれている ZLD のリストと
+ドメイン名 <var>domain</var> とのマッチングを試みます。マッチングは
+ZLDが長い (ZLD を構成するラベルの数が多い) ものから順に行われます。
+<p>マッチするZLDがあった場合、<var>zldp</var> の指す領域に、マッチした
+ZLD へのポインタが格納されます。返されるポインタはすでに
+<a href="#mdn_translator_canonicalzld"><em>mdn_translator_canonicalzld</em></a>
+によって標準形式になっているので、そのまま
+<a href="#mdn_translator_translate"><em>mdn_translator_translate</em></a> への
+引数として渡すことができます。
+<p>マッチしたZLD に対応するエンコーディングが一つだけなら、そのエンコーディング
+に対応するコード変換コンテキストが <var>convctxp</var> の指す領域に
+格納されます。
+対応するエンコーディングが複数あれば、リストの先頭から順に
+<var>domain</var> がそのエンコーディングとして正しいかどうかを調べます。
+もし正しいものがあれば、最初に見つかったもののコード変換コンテキストが
+<var>convctxp</var> の指す領域に格納されます。正しいものがなければ
+<var>convctxp</var> には何も書き込まれず、<tt>mdn_invalid_encoding</tt>が
+返されます。
+<p>マッチする ZLD がなければ <tt>mdn_notfound</tt>を返して処理を終了します。
+<p>返される値は
+<tt>mdn_success</tt>、
+<tt>mdn_notfound</tt>、
+<tt>mdn_invalid_encoding</tt>
+のいずれかです。
+
+</dl>
+
+</body>
+</html>

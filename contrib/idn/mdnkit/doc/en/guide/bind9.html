@@ -1,0 +1,233 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: bind9.html,v 1.1 2001/03/05 12:58:01 tale Exp $ -->
+<html>
+
+<head>
+<title>bind9 patch</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>bind9 パッチ</h1>
+<h1>bind9 patch</h1>
+
+<ul>
+<li><a href="#overview">概要</a>
+<li><a href="#overview">Overview</a>
+<li><a href="#named">named</a>
+<li><a href="#named">named</a>
+<li><a href="#resolver">リゾルバ</a>
+<li><a href="#resolver">Resolver</a>
+<li><a href="#dig">dig/host/nslookup</a>
+<li><a href="#dig">dig/host/nslookup</a>
+</ul>
+
+<hr>
+<h2><a name="overview">概要</a></h2>
+<h2><a name="overview">Overview</a></h2>
+
+<p>
+mDNkit では bind9 用のパッチファイルを提供しています。
+このパッチを適用することにより、
+bind9 において多言語ドメイン名を扱うことが可能になります。
+<p>
+The mDNkit provides a patch file for bind9.
+This patch file enables bind9 to support multilingual domain names.
+
+<p>
+具体的には、このパッチは bind9 に次のような機能を追加します。
+<p>
+The patch adds the following functionality to bind9.
+<ul>
+<li>bind9 の DNS サーバ (named) において、ドメイン名をテキストに
+ 変換する際にUTF-8 文字がそのまま通るようになります。
+<li>When a domain name is converted to text in bind9 DNS servers (named), UTF-8 characters will be allowed to pass.
+<li>bind9 のリゾルバ (lightweight resolver) の提供する名前解決用の
+API 関数に、ホスト名としてローカルエンコーディングで表現されたホスト名を
+指定できるようになります。
+<li>It will enable the name resolving API function provided with the bind9 resolver
+(a lightweight resolver)  to denote host names in local encoding to be specified as host names.
+<li>同じく名前解決結果として、ローカルエンコーディングで表現された
+ホスト名が返されるようになります。
+<li>Host names denoted in local encoding can be returned as a result of name resolution. 
+<li>dig、host、nslookup コマンドがローカルエンコーディングのドメイン名を
+受け付け、また問い合わせ結果に含まれるドメイン名をローカルエンコーディングで
+表示するようになります。
+<li>The dig, host and nslookup commands will accept locally encoded domain names and display domain names included in the result of a query in local encoding.
+</ul>
+
+<p>bind9 へのパッチの適用方法は、パッチファイルの先頭に記載してあります。
+<a href="install.html">インストールガイド</a>の
+<a href="install.html#bind9">bind9 用パッチの適用とインストール</a>も
+ご覧ください。
+<p>Instructions for how to install this patch to bind9 are given at the beginning of the patch file.
+Refer also to <a href="install.html#bind9">the section "Adding and installing the bind9 patch"</a>in <a href="install.html">the Installation guide</a>.
+
+<p>
+
+<hr>
+<h2><a name="named">named</a></h2>
+<h2><a name="named">named</a></h2>
+
+<p>このパッチの適用により、DNS サーバである named に対して、
+UTF-8 文字の透過機能が追加されます。
+<p>A UTF-8 character pass function★(透過機能)★ will be added to the named DNS server by installing this patch.
+
+<p>bind9 の named ではドメイン名の処理はほとんど8ビットスルーになって
+いるのですが、named 内のドメイン名の内部表現からテキスト表現への
+変換部分は8ビットスルーになっておらず、ASCII 文字以外
+はバックスラッシュでクォートされ、<tt>\DDD</tt> という形式の表現に
+変換されてしまいます。
+<P>Although most domain name processing under bind9 named is 8-bit through, the conversion of the internal expression of domain names to text in named is not 8-bit through. Therefore, non-ASCII characters are quoted with backslashes as <TT>\DDD</TT>. 
+
+<p>これは DNS プロトコル上で用いられるエンコーディングとして UTF-8 を
+使用する場合に問題となります。
+<p>This makes it difficult to use UTF-8 for encoding DNS protocols.
+
+<p>本パッチでは、変換しようとする文字がUTF-8 文字の
+場合にはバックスラッシュによるクォートをせずそのまま透過させる機能を
+追加しました。
+この動作は named の設定ファイル (named.conf) で切り替えることができます。
+デフォルトは互換性のため透過しない設定になっています。
+もしDNS プロトコル上で用いるエンコーディングとして UTF-8 を用いる場合には、
+設定ファイルの options セクションの <tt>allow-utf8</tt> パラメータを
+次のように指定してください。
+<p>This patch contains a function that allow UTF-8 characters to pass through, so that they are not converted and quoted with backslashes.
+This function can be turned on or off in the named configuration file (named.conf).
+For the sake of compatibility, in the default setting UTF-8 characters are not let through.
+When UTF-8 characters are to be used as encoding in a DNS protocol, change the options section <tt>allow-utf8</tt> parameter in the configuration file as follows:
+
+<blockquote>
+<pre>
+options {
+    ...
+    allow-utf8 yes;
+    ...
+};
+</pre>
+</blockquote>
+
+<p>DNS プロトコル上で用いられるエンコーディングとして RACE 等の
+<a href="../spec/library.html#ACE">ASCII 互換エンコーディング</a>を
+使用する場合には、この設定は不要です。
+<p>This setting is not required when RACE or other <a href="../spec/library.html#ACE"> ASCII compatible encoding </a> is used as encoding in a DNS protocol.
+
+<hr>
+<h2><a name="resolver">リゾルバ</a></h2>
+<h2><a name="resolver">Resolver</a></h2>
+
+<p>bind9 のリゾルバは、bind8 までのものとは全く異なり、
+lightweight resolver ライブラリと呼ばれるアプリケーションに
+リンクされるライブラリと、lightweight resolver デーモンと呼ばれる
+サーバから構成されています。
+<p>The bind9 resolver differs greatly from any resolver up to bind8, in that it is comprised of a library, linked to an application referred to as a lightweight resolver library, and a server called a lightweight resolver daemon.
+
+<p>本パッチを適用することにより、このリゾルバに多言語ドメイン名の
+処理機能が加わります。具体的には次のような機能が追加されます。
+<p>The use of this patch enables the resolver to handle multilingual domain names. It specifically adds the following functions.
+
+<ul>
+<li>多言語ホスト名の指定<br>
+リゾルバライブラリが提供する名前解決用の API 関数に対して、
+ホスト名引数にローカルエンコーディングで表されたホスト名を指定することが
+できるようになります。
+ローカルエンコーディングで入力されたこれらのドメイン名は
+自動的に DNS プロトコル上で用いられるエンコーディングに変換され、
+DNS サーバへの問い合わせが行われます。エンコーディングの変換の際には
+同時に正規化も行われます。
+<li>Specifying Multilingual host name<br>
+It allows the name resolving API function provided by the resolver library to specify host names whose host name argument contains local encoding.
+Locally encoded domain names can automatically be converted to the encoding used in a DNS protocol and be used for querying DNS servers.
+The encoding is normalized when it is converted.<p>
+
+<li>多言語ドメイン名の返却<br>
+リゾルバライブラリが提供する名前解決用の API 関数が、
+名前解決結果のデータとしてローカルエンコーディングで表されたホスト名を
+返すことができるようになります。
+<li>Multilingual domain names returned<br>
+The name resolving API function provided by the resolver library can return host names denoted in local encoding as a result of the resolved data.
+</ul>
+
+<p>DNS プロトコル上で用いられるエンコーディングや使用する正規化方式の指定は
+あらかじめコンフィギュレーションファイルで設定しておきます。
+このファイルの設定方法については
+<a href="resolvconfig.html">mDNkit リゾルバのコンフィギュレーション</a>
+をご覧ください。
+<p>The encoding and the normalization scheme to be used in DNS protocol should first be set in the configuration file.
+Refer to the <a href="resolvconfig.html">mDNkit resolver configuration </a>
+for information on how to set up this file.
+
+<p>以下に、パッチによって多言語化される名前解決用 API 関数の一覧を示します。
+多言語化された API 関数は、従来の ASCII ドメイン名に加え、
+非 ASCII ドメイン名を扱うことができます。
+<p>Name-resolving API functions that the patch enables to handle multilingual domain names are listed below.
+Multilingual API functions can handle non-ASCII domain names in addition to traditional ASCII domain names.
+
+<ul>
+<li>lwres_getaddrinfo()
+<li>lwres_getnameinfo()
+<li>lwres_gethostbyname()
+<li>lwres_gethostbyname2()
+<li>lwres_gethostbyname_r()
+<li>lwres_gethostbyaddr()
+<li>lwres_gethostbyaddr_r()
+<li>lwres_getipnodebyname()
+<li>lwres_getipnodebyaddr()
+</ul>
+
+<p>引数の型や返り値の型に変更はありません。
+パッチを当てる前と同様の呼び出し方法で、従来の ASCII ドメイン名と、
+非 ASCII ドメイン名の両方を扱うことができます。
+<p>Argument types and returned value types do not change.
+Both regular ASCII domain names and non-ASCII domain names can be handled through the call up methods used prior to patch installation.
+
+<p>本パッチを適用した bind9 リゾルバは
+<a href="../spec/library.html">MDN ライブラリ</a> を利用してエンコーディング
+変換や正規化を行います。従って bind9 リゾルバを使用したクライアントを
+コンパイルする場合、MDN のライブラリ <em>libmdn</em> をリンクする必要が
+あります。もしあなたのシステムが <em>iconv()</em> をサポートしていない
+場合には、<em>iconv()</em> のライブラリも合わせてリンクする必要があります。
+<p>A bind9 resolver with this patch installed utilizes <a href="../spec/library.html">the MDN library</a> for encoding, conversion and normalization. Thus when compiling clients that use the bind9 resolver, the MDN library <em>libmdn</em> must be linked. If your system does not support <em>iconv()</em>, the <em>iconv()</em> library must also be linked.
+
+<p>
+
+<hr>
+<h2><a name="dig">dig/host/nslookup</a></h2>
+<h2><a name="dig">dig/host/nslookup</a></h2>
+
+<p>bind9 には DNS の問い合わせツールとして dig、host、nslookup という
+コマンドが付属します。bind9 パッチを適用することにより、これらはいずれも
+多言語ドメイン名が扱えるようになります。具体的には以下の機能が
+付加されます。
+<p>Included within bind9 are the dig, host and nslookup commands for querying DNS. These commands can support multilingual domain names when the bind9 patch is installed. 
+The following functions have been added.
+<ul>
+<li>多言語ドメイン名の入力<br>
+コマンド引数、あるいは標準入力で、ローカルエンコーディングで
+表現された非 ASCII のドメイン名を指定することができるようになります。
+ローカルエンコーディングで入力されたこれらのドメイン名は
+自動的に DNS プロトコル上で用いられるエンコーディングに変換され、
+DNS サーバへの問い合わせが行われます。エンコーディングの変換の際には
+同時に正規化も行われます。
+<li>Entry of multilingual domain names<br>
+Non-ASCII domain names in local encoding can be specified by command arguments and standard input.
+Locally encoded domain names are automatically converted to encoding used in a DNS protocol and are used for querying DNS servers. 
+The encoding is normalized as it is converted.<p>
+
+<li>多言語ドメイン名の表示<br>
+DNS サーバからの返答に含まれる多言語ドメイン名がローカルエンコーディングに
+変換され、表示されるようになります。
+<li>Display of multilingual domain names<br>
+Multilingual domain names that are part of a response from a DNS server are converted to local encoding before being displayed.
+</ul>
+
+<p>DNS プロトコル上で用いられるエンコーディングや使用する正規化方式の指定は
+あらかじめコンフィギュレーションファイルで設定しておきます。
+このファイルの設定方法については
+<a href="resolvconfig.html">mDNkit リゾルバのコンフィギュレーション</a>
+をご覧ください。
+<p>The encoding and the normalization scheme to be used in a DNS protocol shoud first be set in the configuration file.
+Refer to the <a href="resolvconfig.html">mDNkit resolver configuration </a> for information on how to configure this file.
+
+</body>
+</html>

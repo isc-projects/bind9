@@ -1,0 +1,403 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: bindconfig.html,v 1.1 2001/03/05 12:58:01 tale Exp $ -->
+<html>
+
+<head>
+<title>mDNkit BIND configuration guide</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+
+<h1>DNSサーバの設定</h1>
+<h1>DNS server setup</h1>
+
+<p>DNSサーバにて多言語ドメイン名を扱うための設定方法について
+解説します。とはいっても従来の ASCII ドメイン名の場合の設定方法と
+大きく変わるわけではありません。注意すべき点は次の2点だけです。
+<p>This document describes how to configure a DNS server to enable handling of multilingual domain names. This configuration procedure does not differ greatly from that used for configuring ASCII domain names. However, two points have to be borne in mind.
+<ul>
+<li>DNS サーバにパッチを当てなければならない場合があること
+<li>A patch may have to be installed in the DNS server
+<li>ゾーンマスタファイル等のエンコーディングを変換する必要があること
+<li>Zone master file and other encoding must be converted
+</ul>
+
+<p>DNSサーバの設定の手順は、およそ以下の通りです。
+<p>Configure a DNS server according to the following procedure.
+
+<ol>
+<li><a href="#encoding">エンコーディング・正規化方式を決める。</a>
+<br><a href="#encoding">Determine the encoding and normalization scheme.</a>
+<li><a href="#bind">DNS サーバを用意する。</a>
+<br><a href="#bind">Set a DNS server.</a>
+<li><a href="#file">named.conf、ゾーンマスタファイルを作成する。</a>
+<br><a href="#file">Create named.conf, a zone master file.</a>
+</ol>
+
+<p>最後のファイル作成に関しては、エンコーディングとして UTF-5 を
+使用したときに特有の問題があり、これを
+<br><p>When UTF-5 is used for encoding during file generation, the last item, specific problems occur. These problems are discussed in the following section.
+<ul>
+<li><a href="#utf5">UTF-5 特有の問題</a>
+<li><a href="#utf5">UTF-5 specific problems</a>
+</ul>
+としてまとめてあります。
+
+<p>設定で使用するエンコーディング変換ツール <b>mdnconv</b> の外部仕様
+および内部処理の詳細に関しては、
+<a href="../spec/mdnconv.html">mdnconv の仕様書</a>をご覧ください。
+<p>For information on external specifications and internal processing of <b>mdnconv</b>, the encoding conversion tool, used in the setup, refer to the <a href="../spec/mdnconv.html">mdnconv specifications</a>.
+
+<p>また、クライアントからこれらの DNS サーバにアクセスするためには、
+<a href="bind9.html">多言語ドメイン名用パッチを当てた bind9</a>、
+<a href="runmdn.html">runmdn コマンド</a>、
+<a href="wrapper.html">mDN Wrapper</a> などを使用してクライアント側で
+エンコーディング変換や正規化を行うか、あるいは
+エンコーディング変換を行うプロキシサーバである dnsproxy を通す必要があります。
+dnsproxy の設定については
+<a href="proxyconfig.html">DNS Proxy Server のコンフィギュレーション</a>で説明します。
+<p>To enable the client to access these DNS servers, encoding, conversion and normalization using <a href="bind9.html">bind9 with a multilingual domain name patch installed</a>、the <a href="runmdn.html">runmdn command</a>、the <a href="wrapper.html">mDN Wrapper</a> or similar tool must be used on the client side or access has to be made via dnsproxy, a proxy server that performs encoding and conversion.
+dnsproxy configuration is described in <a href="proxyconfig.html">DNS Proxy Server configuration</a>.
+
+<p>
+
+<hr>
+
+<h2><a name="encoding">エンコーディング・正規化方式の決定</a></h2>
+<h2><a name="encoding">Determining Encoding and Normalization Scheme</a></h2>
+
+<p>まず DNS の設定に先だって、DNS サーバで使用するドメイン名の
+エンコーディングおよび正規化方式を決める必要があります。
+<p>The encoding and normalization scheme to be used for a DNS server must be determined prior to DNS setup.
+
+<p>評価しようとする DNS の多言語化方式が決まっていれば、
+その方式に合わせることになります。
+現在提案されている方式の中から、使用するエンコーディング・正規化を
+いくつか紹介します。これ以外の方式も多数提案されています。詳しくは
+<a href="reference.html">参考文献</a>をご覧ください。
+<p>Encoding scheme should be selected to suit a DNS multilingual system to be assessed.
+The following are some of the currently proposed encoding and normalization schemes. Various other systems are also being proposed. For details, see 
+<a href="reference.html">reference document</a>.
+
+<ul>
+<li><a href="../../reference/draft/draft-ietf-idn-race-02.txt">RACE: Row-based ASCII Compatible Encoding for IDN</a><br>
+  エンコーディングは <tt>RACE</tt> です。このプロポーザルはエンコーディング
+  のみのプロポーザルなので正規化方式は規定していません。
+<br>
+  The encoding scheme is <tt>RACE</tt>. Since this is only an encoding proposal, it does not prescribe normalization.
+  <p>
+<li><a href="../../reference/draft/draft-skwan-utf8-dns-04.txt">Using the UTF-8 Character Set in the Domain Name System</a><br>
+  エンコーディングは <tt>UTF-8</tt> です。
+  正規化は ``locale-sensitive downcasing'' ですが、
+  この方式はロケール依存になるので mDNkit ではサポートされていません。
+  最も近いのはロケール非依存の大文字→小文字マッピングである
+  <tt>unicode-lowercase</tt> でしょう。
+<br>
+  The encoding scheme is <tt>UTF-8</tt> while the normalization scheme is``locale-sensitive downcasing'', which is locale dependent and is not supported by the mDNkit.
+  The closest resembling system is <tt>unicode-lowercase</tt>, a non-locale dependent uppercase-to-lowercase mapping scheme.
+  <p>
+<li><a href="../../reference/draft/draft-ietf-idn-udns-01.txt">Using the Universal Character Set in the Domain Name System (UDNS)</a><br>
+  エンコーディングは <tt>UTF-8</tt>、正規化は <tt>unicode-form-c</tt> および
+  <tt>unicode-lowercase</tt> です。
+<br>
+  The encoding scheme is <tt>UTF-8</tt> and normalization is <tt>unicode-form-c</tt> and  <tt>unicode-lowercase</tt>.
+  <p>
+<li><a href="../../reference/draft/draft-jseng-utf5-01.txt">UTF-5, a transformation format of Unicode and ISO 10646</a><br>
+  エンコーディングは <tt>UTF-5</tt> です。このプロポーザルもエンコーディング
+  のみのプロポーザルなので正規化方式は規定していません。
+<br>
+  The encoding scheme is <tt>UTF-5</tt>. Since this, also, is only an encoding proposal, it does not prescribe normalization.
+</ul>
+
+<p>エンコーディングとして <tt>UTF-5</tt> を採用した場合には、
+ZLD (zero level domain) を付けることで従来のドメイン名と区別する必要が
+あります。したがって ZLD を何にするかも決定する必要があります。
+<p>When <tt>UTF-5</tt> encoding is employed, it is essential to distinguish it from traditional domain names by adding ZLD (zero level domain). Consequently, it is necessary to determine which type of ZLD is to be used.★ZLD を何にするか★
+
+<p>その他 mDNkit がサポートしているエンコーディング・正規化方式については
+MDN ライブラリの仕様を参照してください。
+<p>Refer to the MDN library specifications for information on other encoding and normalization schemes supported by the mDNkit.
+<ul>
+<li>エンコーディングについては
+  <a href="../spec/library.html#converter">converter モジュール</a>
+<li>Refer to the <a href="../spec/library.html#converter">converter module</a> for information on encoding schemes
+<li>正規化方式については
+  <a href="../spec/library.html#normalizer">normalizer モジュール</a>
+<li>Refer to the <a href="../spec/library.html#normalizer">normalizer module</a> for information on normalization schemes.
+</ul>
+
+<p>もちろん、1台の DNS サーバに複数のエンコーディングを持たせることも可能
+です。この場合はゾーン毎に異なるエンコーディングを割り当てることになる
+でしょう。ただし mDNkit を用いて多言語ドメイン名の扱いを可能にした
+クライアントや dnsproxy は DNS サーバ側のエンコーディングが単一である
+ことを仮定しているので、例えば dnsproxy の場合にはエンコーディング毎に
+複数の dnsproxy を起動するなどのテクニックが必要です。
+<p>Of course, multiple types of encoding schemes can be employed for one DNS server.In such a case, a different type of encoding would be assigned to each zone. However, a client or dnsproxy enabled to support multilingual domain names through mDNkit assumes that a DNS server employs a single encoding scheme. Such techniques that start up multiple dnsproxies to handle all encodings would have to be used for dnsproxy.
+
+<p>
+
+<hr>
+
+<h2><a name="bind">DNS サーバの用意</a></h2>
+<h2><a name="bind">Setting up a DNS server</a></h2>
+
+<p>エンコーディングとして ASCII 互換エンコーディング (ACE: ASCII Compatible
+Encoding) である RACE、UTF-5 を用いる場合には、エンコード結果は従来の
+ホスト名として正当な文字列になるので、現在使用中の DNS サーバをそのまま
+使うことができます。しかし ASCII 互換エンコーディング以外のエンコーディング、
+特に UTF-8 を用いる場合には、多言語ドメイン処理を付加するパッチを当てた
+bind9 の DNS サーバ (named) を使用するか、
+8ビットスルーパッチを当てた bind8 の DNS サーバを用意する必要があります。
+<p>When ASCII compatible encoding (ACE: ASCII Compatible Encoding) such as RACE or UTF-5 is used, the encoding results legal characters in traditional host names and allow use of current DNS servers. 
+However, the other encoding schemes, especially UTF-8, requires the use of a bind9 DNS server (named) with a multilingual domain patch installed, or a bind8 DNS server with an 8-bit through patch installed.
+
+<p>それぞれのパッチの当て方およびインストールの方法については
+<a href="install.html#bind9">bind9 用パッチの適用とインストール</a> および
+<a href="install.html#bind">bind8 用パッチの適用とインストール</a> を
+ご覧ください。
+<p>For information on procedures for adding or installing these patches, refer to <a href="install.html#bind9">Adding and installing bind9 patch</a> and
+<a href="install.html#bind">Adding and installing bind8 patch</a>.
+
+<p>
+
+<hr>
+
+<h2><a name="file"><tt>named.conf</tt>、ゾーンマスタファイルの作成</a></h2>
+<h2>Creating <a name="file"><tt>named.conf</tt> and a zone master file</a></h2>
+
+<p><tt>named.conf</tt> やゾーンマスタファイル書き方自体は、
+多言語ドメイン名と従来のドメイン名で変わるところはありません。
+単にドメイン名に漢字などを含めることができるかどうかだけの違いです。
+<p>The writing of <tt>named.conf</tt> and zone master files for multilingual domain names does not differ from those of traditional domain names.
+The only difference is that the domain names contain kanji or other non-ASCII characters.
+
+<p>DNS サーバ自体にエンコーディング変換機能は備わっていないので、
+DNS の読み込む <tt>named.conf</tt> ファイルやゾーンマスタファイルの
+エンコーディングは<a href="#encoding">エンコーディング・正規化方式の決定</a>で
+決定したエンコーディングに合わせる必要があります。
+<b>mdnconv</b> はこのような目的のために設計されたコード変換ツールです。
+<p>Since the DNS server does not contain the encoding coversion function, the encoding of the <tt>named.conf</tt> file and zone master file read by DNS must be adjusted to encoding determined by the <a href="#encoding">encoding and normalization scheme</a>.
+<b>mdnconv</b> is the code conversion tool designed to solve this problem.
+
+<p>RACE や UTF-5 なら、ASCII 文字が編集できるエディタがあれば直接入力
+することも可能ですが、例えば「こんにちは.世界.」と入力する代わりに
+<tt>bq--gbjzg23bn4.bq--3bhbm5km.</tt>
+などといった暗号のような文字列を (しかも正確に) 入力しなければならず、
+変換ツールを使用するほうがはるかにに簡単です。
+<p>Although an ASCII character editor allows direct entries with RACE and UTF-5, you would be forced to accurately enter code strings such as <tt>bq--gbjzg23bn4.bq--3bhbm5km.</tt>  for 「こんにちは.世界.」. Thus the conversion tool radically simplifies the character entry task.
+
+<p>UTF-8 ならばエディタによっては直接編集可能なものがあるので、それを
+使うこともできます。しかしそのエディタも正規化までは多分してくれない
+でしょうから、やはりツールでエンコーディング変換することをお勧めします。
+<p>Editors that allow direct editing with UTF-8 can also be used.
+However, since such editors will probably not support normalization; encoding conversion is again the recommended procedure.
+
+<p>例えば次のようなコマンドを実行すると EUC-JP で書かれたゾーンマスタファイル
+<tt>db.somezone.euc</tt> を RACE エンコーディングの <tt>db.somezone.race</tt>
+に変換し、同時に Unicode Normalization Form C による正規化を適用する
+ことができます。
+<p>For example when the following command is executed, the <tt>db.somezone.euc</tt> zone master file is converted to <tt>db.somezone.race</tt> RACE encoding and is simultaneously normalized according to Unicode Normalization Form C.
+
+<blockquote>
+<pre>
+% mdnconv -noconf -in EUC-JP -out RACE -normalize unicode-form-c \
+	db.foo.euc &gt; db.foo.race
+</pre>
+</blockquote>
+
+<p><tt>-in</tt> オプションで入力テキストのエンコーディングを、
+<tt>-out</tt> で出力テキストのエンコーディングを、
+そして <tt>-normalize</tt> で正規化方式を指定します。
+オプションの一覧とどのような値が指定できるかについては、
+<a href="../spec/mdnconv.html">mdnconv の仕様書</a>をご覧ください。
+<p><tt>-in</tt> option specifies encoding of input text, <tt>-out</tt> specifies output text encoding and <tt>-normalize</tt> specifies the normalization scheme.Refer to <a href="../spec/mdnconv.html">mdnconv specifications</a> for a list of options and other values.
+
+<p>ではこの逆に RACE エンコーディングから EUC-JP への変換ができるかというと、
+RACE エンコーディングの場合には可能です。ただしこれは mdnconv が
+RACE エンコーディング専用の特別な処理を備えているためで、
+一般的には ASCII 互換エンコーディングからローカルエンコーディングへの変換は
+できないということを覚えておいてください。
+これは、入力された文字列の中で ASCII 互換エンコーディングを用いて
+表記されている個所とそうでない通常の ASCII 表記の場所を区別できないからです。
+これについては mdnconv の仕様書の
+<a href="../spec/mdnconv.html#detail">変換処理の詳細</a>を参照してください。
+<p>RACE encoding also allows you to do the opposite; to convert from RACE encoding to EUC-JP encoding. But note that this is only because mdnconv is provided with RACE encoding specific processing; normally, it is not possible to convert from ASCII compatible encoding to local encoding. The reason is that it is not possible to distinguish between characters denoted in ASCII compatible encoding and those that use normal ASCII encoding in entered character strings. 
+Refer to the <a href="../spec/mdnconv.html#detail"> conversion information</a>, the mdnconv specifications, for details.
+
+<p>以上のことから、ゾーンマスタファイル等 DNS サーバが読み込むファイル
+の作成と管理には次のような方法をとるのがよいと考えられます。
+まずローカルエンコーディングを用いて記述した版を用意して、これに対して
+編集やバージョン管理を行います。
+そして mdnconv を用いてエンコーディング変換と正規化を行い、
+DNS サーバの使用するエンコーディング版のファイルを生成して、これを
+DNS サーバが読み込むためのファイルとして使用します。
+<p>Consequently, the following procedure should be adhered to in creating and maintaining zone master files and other files that are to be read by a DNS server.First, create a file version in local encoding that is edited under version control. 
+Then use mdnconv to convert encoding and normalize the file to generate a file with the encoding employed by a DNS server and use it as the file the DNS server will read. 
+
+<p>とはいってもローカルエンコーディング版のファイルを改訂するたびに
+mdnconv を実行してサーバエンコーディング版のファイルを作るのは面倒です。
+この場合例えば make コマンドを使用すれば変換を自動化することができます。
+<p>However, executing mdnconv each time a locally encoded file has to be converted to a server encoded file is time-consuming. 
+In this situation, use the make command to automate conversion.
+
+<p>例えばローカルエンコーディング版のファイル名にサフィックス <tt>.lc</tt>、
+UTF-8 エンコーディング版にサフィックス <tt>.utf8</tt>、
+RACE エンコーディング版にサフィックス <tt>.race</tt> をつけるとします。
+すると次のような Makefile を書くことにより、ローカルエンコーディング版を
+更新したら make を実行するだけで変換を自動的に行うことができます。
+<p>For example, let's assume that a file in local encoding has the suffix <tt>.lc</tt>, a UTF-8 encoding file the suffix  <tt>.utf8</tt> and a RACE encoding version file the suffix tt>.race</tt>.
+Then the following type of Makefile could be written to allow automatic conversion using make when a file in local encoding is updated. 
+
+<blockquote>
+<pre>
+.SUFFIXES: .lc .utf8 .race
+
+.lc.utf8:
+	mdnconv -in $(LOCALCODE) -out UTF-8 $(NORMALIZE) $&lt; &gt; $@
+.lc.race:
+	mdnconv -in $(LOCALCODE) -out RACE $(NORMALIZE) $&lt; &gt; $@
+
+LOCALCODE = EUC-JP
+NORMALIZE = -normalize unicode-form-c -normalize unicode-lowercase
+
+TARGETS = db.foo.utf8 db.bar.race
+
+all: $(TARGETS)
+</pre>
+</blockquote>
+
+<p>1つの DNS サーバに異なるエンコーディングの複数のゾーンのマスタを
+させようとした場合、<tt>named.conf</tt> に複数のエンコーディングを
+混在させなくてはならない状況になることがあります。残念ながらこれは
+mdnconv では無理なので、<tt>include</tt> ディレクティブ等を使って
+ファイルを分割し、1つのファイルに複数のエンコーディングが
+混在しないようにしてください。
+<p>When multiple zone master files with different encoding schemes are attempted in a single DNS server, it may be necessary to include multiple encoding schemes in <tt>named.conf</tt>. Unfortunately, this cannot be handled with mdnconv so the <tt>include</tt> directive or similar command must be used to split the file so that each file does not contain multiple encoding schemes.
+
+<p>最後にもう1つ、UTF-5 特有の問題について説明します。
+<p>Finally, we will discuss UTF-5 specific problems.
+
+<p>
+
+<hr>
+
+<h2><a name="utf5">UTF-5 特有の問題</a></h2>
+<h2><a name="utf5">UTF-5 specific problems</a></h2>
+
+<p>DNS サーバで使用するドメイン名のエンコーディングを UTF-5 にした場合には
+いくつかの問題が生じます。
+<p>A number of problems occur when UTF-5 encoding is used as the domain name encoding of a DNS server. 
+
+<ul>
+<li><a href="#zld">ZLD の指定</a>
+<li><a href="#zld">ZLD specification</a>
+<li><a href="#asciilabel">単独で出現する ASCII ラベル</a>
+<li><a href="#asciilabel">ASCII labels that appear singly</a>
+</ul>
+
+<h3><a name="zld">ZLD の指定</a></h3>
+<h3><a name="zld">ZLD specification</a></h3>
+
+<p>UTF-5 は ASCII 互換エンコーディングの一つなので、UTF-5 でエンコードされた
+ドメイン名はそのままでは従来の ASCII のドメイン名と区別できません。
+同じく ASCII 互換エンコーディングの一つである RACE では、ドメイン名の
+各ラベルの先頭に特定のプリフィックス (<tt>bq--</tt>) をつけることによって
+従来のドメイン名と (一応) 識別できるのですが、
+UTF-5 にはこのような機構がないため、ZLD という概念を使用して従来のドメイン
+名との識別を可能にしています。
+<p>
+Since UTF-5 is an ASCII compatible encoding scheme, domain names encoded in UTF-5 cannot be distinguished from regular ASCII domain names.
+By contrast, RACE, another ASCII compatible encoding scheme, appends (<tt>bq--</tt>), a prefix,  to the beginning of each domain name label to allow differentiation from traditional domain names. But since UTF-5 does not have this feature a concept called ZLD is used to identify traditional domain names.
+
+<p>ZLD (zero level domain) とはドメイン名の最後につける
+トップレベルドメインのことで、例えば <tt>utf5.</tt> という
+トップレベルドメインを作り、
+UTF-5 エンコーディングのドメイン名はすべてこのドメインのサブドメインとする
+ことで、従来のドメイン名との区別を可能にします。実際には このトップレベル
+ドメインはローカルエンコーディングから UTF-5 エンコーディングへの変換を行う
+場所 (現在の mDNkit では dnsproxy) で自動的に付加され、また UTF-5 から
+ローカルエンコーディングに戻すときに自動的に除去されるので
+アプリケーションにはこのドメインは見えません。アプリケーションにとっての
+トップレベルドメインよりさらに上位ドメインに位置するので zero level domain
+なわけです。もちろん DNS サーバからは ZLD は隠されておらず、したがって
+DNS サーバの設定では ZLD を意識しなければなりません。
+<p>ZLD (zero level domain) is the top level domain appended at the end of a domain name. For example, when a <tt>utf5.</tt> top level domain is created, all UTF-5 encoded domain names can be made the subdomains of this top level domain making it possible to distinguish them from traditional domain names.
+Since this top level domain is automatically added to the area (dnsproxy in current mDNkit) where conversion from local encoding to UTF-5 encoding takes place and is automatically deleted when coding is returned from UTF-5 to local encoding, the application does not see this level.
+The top level domain to an application is at a still higher level, hence the name zero level domain. ZLD is of course visible to a DNS server, so DNS server settings must take ZLD into account. 
+
+<p>さて、このように UTF-5 エンコーディングでは ZLD が必須ですが、
+mdnconv によるローカルエンコーディングから UTF-5 エンコーディングへの変換
+の際には、ドメイン名の ZLD の部分とそうでない部分を明確に区別する
+必要があります。例えば <tt>www.ニック.日本.utf5.</tt> というドメイン名を
+UTF-5 に変換すると <tt>N7N7N7.J0CBJ0C3J0AF.M5E5M72C.utf5</tt> となります
+(ただし ZLD は <tt>utf5.</tt> だとします)。先頭の <tt>www</tt> は
+UTF-5 に変換しますが、ZLD 部分は変換しません。このため mdnconv は
+ZLD がなんであるかをあらかじめ知っておく必要があります。このために
+<a href="../spec/mdnconv.html#zld-opt">-zld</a> というオプションが用意されています。
+このオプションは、ゾーンマスタファイル等に書かれたドメイン名が
+指定された ZLD にマッチした時に、マッチした部分を出力エンコーディングへの
+変換対象から外すという働きをします。ただしドメイン名と ZLD がマッチするのは
+<p>Thus ZLD is required in UTF-5 encoding, whereas conversion from local encoding to UTF-5 encoding using mdncon requires that the ZLD part of the domain name is distinguished from other parts. 
+For example when the domain name <tt>www.ニック.日本.utf5.</tt> is converted to UTF-5, it beccomes <tt>N7N7N7.J0CBJ0C3J0AF.M5E5M72C.utf5</tt> (but ZLD is <tt>utf5.</tt>). 
+Thus mdnconv must know what ZLD is. The option <a href="../spec/mdnconv.html#zld-opt">-zld</a> is provided for this reason.
+When a domain name written in a zone master file or other file matches a specified ZLD, this option removes the matching portion from　conversion to output encoding.★マッチした部分を出力エンコーディングへの変換対象から外すという働きをします★ 
+The conditions for a domain name and ZLD match are as follows: 
+<ol>
+<li>ドメイン名の最後がピリオドで終わっていること
+<br>The domain name ends in a period
+<li>ZLD がドメイン名の最後の部分と一致していること
+<br>ZLD matches the last part of the domain name
+</ol>
+という条件を満たしているときだけです。例えば ZLD が <tt>utf5.</tt> だとすると
+ZLD とマッチするのは次に示す3つのドメイン名の中で最初のものだけです。
+<br>For example if ZLD is <tt>utf5.</tt>, only the first of the following three domain names matches ZLD.
+<blockquote>
+<pre>
+www.ニック.日本.utf5.
+www.ニック.日本
+utf5.ニック.日本.
+</pre>
+</blockquote>
+
+<p>さらに mdnconv の <a href="../spec/mdnconv.html#auto-opt">-auto</a> オプション
+を併用するとある程度 ZLD を自動付加させることができ、
+この場合ゾーンマスタファイルにいちいち ZLD を書く必要がなくなります。
+ただし確実に付加できるわけではないので、このオプションには頼らない方が
+よいでしょう。
+<p>Also, if used with the mdnconv option <a href="../spec/mdnconv.html#auto-opt">-auto</a>, ZLD is often automatically added in which case there is no need to write ZLD in each zone master file.
+However, as addition of this option is not guaranteed, it may be best not to rely on it.
+
+<p>
+
+<h3><a name="asciilabel">単独で出現する ASCII ラベル</a></h3>
+<h3><a name="asciilabel">Single ASCII labels</a></h3>
+
+<p>mdnconv は、デフォルトでは非 ASCII 文字を1文字以上含むドメイン名のみを
+出力エンコーディングに変換します。つまり ASCII のみからなるドメイン名は
+変換しません。これは従来の ASCII ドメイン名と多言語ドメイン名を混在させた
+時に、ASCII ドメイン名までが UTF-5 などに変換されてしまうのを防ぐための
+処置です。
+<p>By default, mdnconv converts to output encoding only domain names that contain two or more non-ASCII characters. Consequently, it does not convert domain names that are entirely made up of ASCII characters. This is to prevent ASCII domain names from being converted to UTF-5 when there are both ASCII domain names and multilingual domain names.
+
+<p>ところが多言語ドメイン名の中に ASCII 文字のみから構成されるラベルが
+ある場合、それが単独でゾーンマスタファイルに出現するとこの処置のために
+そのラベルが UTF-5 に変換されないという問題が生じます。
+例えばドメイン名 <tt>www.ニック.日本.utf5.</tt> の A レコードを
+ゾーンマスタファイルに記述するときに、次のように書いてしまうと
+<tt>www</tt> の部分が UTF-5 に変換されません。
+<p>However, this gives rise to the following problem. A label containing only ASCII characters in a multilingual domain name that occurs independently in the zone master file is not converted to UTF-5. For example when the A record of the domain name <tt>www.ニック.日本.utf5.</tt> is denoted in the zone master file as shown below the <tt>www</tt> part is not converted to UTF-5.
+<blockquote>
+<pre>
+$ORIGIN ニック.日本.utf5.
+...
+www	IN A 10.9.8.7
+</pre>
+</blockquote>
+
+<p>このような場合、FQDN で記述するなどして、非 ASCII 文字が含まれる
+ようにしてやる必要があります。
+<p>In this case, use FQDN, for example, to add non-ASCII characters.
+
+</body>
+</html>

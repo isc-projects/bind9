@@ -1,0 +1,158 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: dnsproxy.html,v 1.1 2001/03/05 12:58:01 tale Exp $ -->
+<html>
+
+<head>
+<title>dnsproxy</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>dnsproxy</h1>
+
+<ul>
+<li><a href="#overview">概要</a>
+<li><a href="#overview">Overview</a>
+<li><a href="#setup">設定</a>
+<li><a href="#setup">Setup</a>
+<li><a href="#usage">使用法</a>
+<li><a href="#usage">Usage</a>
+<li><a href="#limitation">制限事項</a>
+<li><a href="#limitation">Limitations</a>
+</ul>
+
+<hr>
+<h2><a name="overview">概要</a></h2>
+<h2><a name="overview">Overview</a></h2>
+
+<p><b>dnsproxy</b> は文字通り DNS のプロキシサーバとして動作する
+プログラムです。クライアントと本物の DNS サーバの間で両者の間の
+通信データ (DNS プロトコルメッセージ) の変換を行います。
+<p>As the name implies, <b>dnsproxy</b> is a program that operates as a DNS proxy server. It converts communications data (DNS protocol messages) between clients and real DNS servers.
+
+<p>クライアントからローカルエンコードされた多言語ドメイン名を含む
+DNS要求を受け取ると、DNSメッセージ中のドメイン名を
+多言語化対応したDNS サーバが受付けられる標準エンコーディングに変換し、
+DNS サーバに送出します。
+エンコーディングの変換と同時に正規化も行います。
+また逆に DNS サーバからの応答メッセージを受信すると、その中に
+含まれる多言語ドメイン名をクライアント側で認識できるローカル
+エンコーディングに変換し、クライアントに返します。
+<p>When DNS queries that contain multlingual domain names in local encoding are received from a client, it is converted to standard encoding that can be accepted by a DNS server that supports.
+Normalization is performed at the same time as the encoding is converted.
+On the other hand, when a response message from a DNS server is received, the multilingual domain names in the message are converted to local encoding that is understood by the client before it is returned to the client.
+
+<p>dnsproxy はこのようなメカニズムによって一般のクライアントが
+多言語ドメイン名を扱うことを可能にします。
+<p>dnsproxy uses this mechanism to enable regular clients to handle multilingual domain names.
+
+<p>具体的には、
+<p>Specifically,
+<ul>
+<li>日本語など、非 ASCII 文字の入ったホスト名を名前解決できるようになります。
+<li>It is possible to resolve host names that contain Japanese and other non-ASCII characters.
+<li>非 ASCII 文字の入ったホスト名を名前解決の結果として受け取れるように
+  なります。
+<li>Thus host names containing non-ASCII characters can be received as a result of name resoving. 
+</ul>
+
+<p>
+
+<hr>
+<h2><a name="setup">設定</a></h2>
+<h2><a name="setup">Setup</a></h2>
+
+<p>dnsproxy を使用するには、専用のコンフィギュレーションファイルで
+使用するエンコーディングや正規化の方法を設定しておく必要があります。
+このファイルの設定方法については
+<a href="proxyconfig.html">DNS Proxy Server のコンフィギュレーション</a>
+をご覧ください。
+<p>To use dnsproxy, the encoding and normalization method must be set up using a special configuration file.
+Refer to <a href="proxyconfig.html">DNS Proxy Server Configuration</a> for information on how to configure this file.
+
+<p>
+
+<hr>
+<h2><a name="usage">使用法</a></h2>
+<h2><a name="usage">Usage</a></h2>
+
+<p>dnsproxy を使用するためにはあらかじめ設定が必要です。
+<a href="proxyconfig.html">DNS Proxy Server のコンフィギュレーション</a>
+をご覧ください。
+<p>Use of dnsproxy requires prior setup.
+Refer to <a href="proxyconfig.html">DNS Proxy Server Configuration</a>.
+
+<p>dnsproxy は以下のコマンド行オプションを受け付けます。
+<p>dnsproxy accepts the following command line options.
+<dl>
+<dt><tt>-daemon</tt>
+  <dd>dnsproxy をデーモンとして起動します。
+  <dd>Starts up dnsproxy as a daemon.
+<dt><tt>-config </tt><em>config-file</em>
+  <dd><em>config-file</em> をコンフィギュレーションファイルとして使用します。
+  このオプションを指定しなかった場合にはデフォルトのコンフィギュレーション
+  ファイル (通常は <tt>/usr/local/etc/dnsproxy.conf</tt>) が使用されます。
+  <dd>Uses <em>config-file</em> as a configuration file.
+  When this option is not specified, the default configuration file (usually, <tt>/usr/local/etc/dnsproxy.conf</tt>) is used.
+<dt><tt>-logfile </tt><em>log-file</em>
+  <dd>ログをファイル <em>log-file</em> に出力します。このオプションが
+  指定されなかった場合にはコンフィギュレーションファイルで指定された
+  ログファイル、またはデフォルトのログファイルに出力されます。
+  <dd>Outputs the log to <em>log-file</em>. When this option is not specified, the log is output to the file specified by the configuration file or to the default log file.
+</dl>
+
+<hr>
+<h2><a name="limitation">制限事項</a></h2>
+<h2><a name="limitation">Limitations</a></h2>
+
+<p>dnsproxy は、エンコーディング変換や正規化の機能を持たない
+一般のクライアントが多言語ドメイン名を扱うことを可能にします。
+クライアントではローカルコードで記述されたドメイン名を、
+そのまま多言語ドメイン名として使うことができるようになります。
+<p>dnsproxy enables ordinary clients without encoding conversion and normalization functions to handle multilingual domain names.
+Clients can use domain names in local codes as multilingual domain names.
+
+<p>しかしそれにはクライアントがドメイン名に対して独自のチェックや変換を
+行なっていなければ、という前提条件があります。
+問題はこの点にあり、
+クライアントによっては、ドメイン名のシンタックスを厳密にチェックしていたり、
+独自の手法で部分的に多言語化していたりするものがあります。
+このようなクライアントであれば、dnsproxyを使っても
+多言語ドメイン名を使うことはできません。
+<p>However, this is on condition that the client does not check or convert the domain names.
+This is a problem since some clients make strict checks of domain name syntax or use proprietary methods to perform partial multilingual encoding.
+Multilingual domain names cannot be handled by such clients through dnsproxy. 
+
+<p>UNIXの場合は、DNSへの要求は通常リゾルバライブラリを経由して送られますが、
+既存のリゾルバはドメイン名のシンタックスをチェックしていて、
+ドメイン名にnon-ASCIIコードが含まれているとエラーとして
+はじかれてしまいます。
+この問題に対処するために、mDNkitには、bind8付属のリゾルバライブラリを
+8ビット透過にするためのパッチが付属しています。このパッチを適用した
+リゾルバライブラリを組み込めば、クライアントからのローカルコードによる
+多言語ドメイン名がdnsproxyに渡されて、多言語化DNSサーバと組み合わせて
+使用することができるようになります。
+Windowsの場合には、リゾルバ(WINSOCK)は8ビット透過になっていますので、
+この問題はありません。
+<p>UNIX usually sends DNS queries to the resolver library and current resolvers checks the syntax of domain names and rejects non-ASCII code as an error.
+To cope with this problem, the bind8 resolver library in mDNkit has been provided with an 8-bit through patch.
+By installing a resolver library with this patch the local encoding of multilingual domain names handled by clients is submitted to dnsproxy and can be used with multilingual DNS servers.
+The Windows resolver (WINSOCK) is already 8-bit through so this is not a problem.
+
+<p>残る問題は、アプリケーションでのチェックや変換ですが、
+これは対象となるクライアントが多数ありますし、また、
+ソースが公開されていないものについては手の出しようがありませんので、
+基本的には、mDNkitには含まれていません。しかし、
+DNSのチェックに多用される<b>nslookup(in bind8)</b>と、
+汎用のproxyとして使用されることの多い<b>squid</b>については、
+ドメイン名のチェックを外すためのパッチが含まれています。
+<p>The remaining problem, i.e. checks and conversions performed by the application, a problem that affects many clients and which little can be done about when sources are not made public. Functions are not provided in mDNkit to handle this issue. However, a patch that removes the check of domain names from <b>nslookup(in bind8)</b>, an often used DNS check tool, and <b>squid</b>, an often used as a general-purpose proxy, are included.
+
+<p>dnsproxy を使用してどのようなアプリケーションが多言語ドメイン名を
+扱えるようになるのかをまとめた
+<a href="clientconfig.html">文書</a>を用意してありますので、
+こちらをご覧ください。
+<p>Refer to <a href="clientconfig.html">document</a> for information on which applications dnsproxy can enable to handle multilingual domain names.
+
+</body>
+</html>

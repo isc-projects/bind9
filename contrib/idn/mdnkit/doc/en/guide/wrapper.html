@@ -1,0 +1,491 @@
+<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- $Id: wrapper.html,v 1.1 2001/03/05 12:58:01 tale Exp $ -->
+<html>
+
+<head>
+<title>mDN Wrapper - User's Guide</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>mDN Wrapper</h1>
+
+<ul>
+<li><a href="#overview">概要</a>
+<li><a href="#overview">Overview</a><p>
+
+<li><a href="#setup">セットアップ</a>
+<li><a href="#setup">Setup</a><p>
+<li><a href="#config">コンフィギュレーションプログラム</a>
+<li><a href="#config">Configuration program</a><p>
+
+<li><a href="#limitations">制限事項</a>
+<li><a href="#limitations">Limitations</a>
+<p>
+<li><a href="#upgrade">バージョンアップ時の注意</a>
+<li><a href="#upgrade">Version upgrade considerations</a>
+<p>
+</ul>
+<p>
+
+<hr>
+
+<h2><a name="overview">概要</a></h2>
+<h2><a name="overview">Overview</a></h2>
+
+<p>
+Windows で多言語ドメイン名を扱えるようにするためには、Windows 上のクライアントアプリケーションにおいて、解決しようとする名前のエンコーディングを、DNS サーバが受付ける形式のものに変換する必要があります。これは、Windows 上のアプリケーションが、きちんと多言語ドメイン名を扱えるようになっていなければならない、ということであり、本来はそれぞれのプログラムの作成者が行なうべきことです。
+<p>
+To enable Windows to support multilingual domain names, the name encoding that client applications resolve must be converted to a format that DNS servers can accept. This requires accurate handling of multilingual domain names by Windows applications, which is basically the responsibility of each program developer.
+<p>    
+しかし、標準が決まっていない現状では、プログラム作成者にこのような対応を期待するのは無理なので、既存のアプリケーションを多言語ドメイン名対応させるためのトリックが必要になります。mDNkitに含まれるdnsproxyサーバはそのための一つの方法です。
+ここでは、もう一つの方法、mDN Wrapper を提示します。
+<p>
+However, as no standard is yet in place, this is too much to expect of program developers at this time. Therefore, a trick is needed so that existing applications will be able to support multilingual domain names. The dnsproxy server supplied with the mDNkit is one such tool. In this draft, we will introduce another tool, the mDN Wrapper.
+<p>
+Windows において、多くの場合、ドメイン名解決の要求はWINSOCK DLLに渡されます。そこで、WINSOCK DLL を多言語ドメイン名対応のものに置き換えてやれば、既存のプログラムからでも多言語ドメイン名を使うことができるようになります。
+<p>
+Queries to resolve domain names in Windows are often passed to WINSOCK DLL. By replacing WINSOCK DLL with one that supports multilingual domain names, it will be possible for existing programs to support multilingual domain names.
+<p>
+
+<hr>
+
+<h2><a name="setup">セットアップ</a></h2>
+<h2><a name="setup">Setup</a></h2>
+
+<p>
+<b>*注意*</b>
+もし古いバージョンの mDN Wrapper がすでにインストールされているマシンに新しいバージョンをインストールする場合には、まず<a href="#upgrade">バージョンアップ時の注意</a>をご覧ください。
+<p>
+<p>
+<b>*Note:*</b>
+If an old version of mDN Wrapper is already installed, read the <a href="#upgrade">Precautions in Upgrading</a> before installing the new version.
+<p>
+mDN Wrapper をインストールするには"setup.exe" を実行します。セットアッププログラムは次のような処理を行います。
+<p>
+Use "setup.exe" to install mDN Wrapper. The setup program does the following.<p>
+<dl>
+<dt>ファイルのインストール
+<br>
+Installing files
+<dd>
+ディレクトリ「\Program Files\JPNIC\mDN Wrapper」セットアップで変更可能）以下に、mDN Wrapper を構成するファイルをコピーします。
+<p>
+Copy the file containing mDN Wrapper to the 「\Program Files\JPNIC\mDN Wrapper」（can be changed at setup) directory.
+<p>
+
+<dt>レジストリの設定
+<br>
+Registry Setup
+<p>
+<dd>
+HKEY_LOCAL_MACHINE\Software\JPNIC\MDN 以下に必要なレジストリキー、レジストリ値を作成、設定します。主なものは次の通りです。
+<p>
+Create the required registry key and registry values under HKEY_LOCAL_MACHINE\Software\JPNIC\MDN. The major items are as follows.
+<p>
+<dl>
+<dt>Encoding&nbsp;REG_SZ
+<dd>DNS サーバ側のエンコーディング名です。
+デフォルト値は <tt>"RACE"</tt> で、これは現時点での有力候補であるRACEエンコーディングの指定です。
+エンコーディング名は <a href="#config">コンフィギュレーションプログラム</a>で変更することができます。
+<p>
+An encoding name used on the DNS server side.
+The default value is <tt>"RACE"</tt>, which is currently the leading encoding scheme.
+The encoding name can be changed using the <a href="#config"> configuration program</a>.
+<p>
+
+<dt>Normalize&nbsp;REG_SZ
+<dd>	
+ドメイン名の正規化の方式です。使用する正規化の名称 (複数指定する場合にはスペースで区切る) を指定します。
+デフォルトは日本語ドメイン名の正規化として適当だと思われる値になっています。
+これも <a href="#config">コンフィギュレーションプログラム</a>で変更することができます。
+<p>
+A domain name normalization scheme used to specify normalization names (multiple names must be separated by spaces).
+It is set to a default value that is considered appropriate for normalization of Japanese domain names.
+This value can also be changed using <a href="#config">configuration program</a>.
+<p>
+
+<dt>PerProg&nbsp;キー
+<br>PerProg&nbsp;key
+<dd>	
+プログラム毎の設定値を格納するためのキーです。
+この下に、プログラムの実行モジュール名をキーとしてプログラム個別の設定が記録されます。設定される情報は以下の二つです。<p>
+A key used to store values set for each program. Program specific setting is stored with its executable module name used as a key. The following two types of infomration is set.<p>
+<table>
+<dd>	
+<table>
+<tr>
+<td>PerProg\&lt;progname&gt;\Where</td><td>REG_DWORD</td><td>変換位置<br>Conversion location</td>
+</tr>
+<tr>
+<td>PerProg\&lt;progname&gt;\Encoding</td><td>REG_SZ</td><td>エンコーディング名<br>Encoding name</td>
+</tr>
+</table>
+<p>
+エンコーディング名は通常コンフィギュレーションプログラムによって設定されます。
+変換位置の指定は、標準インストールでは不要です。
+システムディレクトリへのインストールを行なった場合には、レジストリエディタで環境に合わせて設定する必要があります。
+<p>
+The encoding name is normally specified by the configuration program.
+The conversion location is not required for a standard installation.
+When the program is installed in the system directory, the registry editor must be used to adjust the environment.
+</dl>
+<p>
+<dt>アイコンの作成
+<br>Creating Icons
+<p>
+<dd>
+コンフィギュレーションプログラムのアイコンを作成し、スタートメニューに登録します。これによってコンフィギュレーションプログラムを起動することができます。
+<p>
+Create a configuration program icon and place it in the Start menu.
+This icon allows you to start up the configuration program.
+</dl>
+<p>
+アンインストールするには、コントロールパネルの「アプリケーションの追加と削除」で、「mDN Wrapper」を選択して削除（「追加と削除」ボタン）します。
+<p>
+To uninstall the program, select "mDN Wrapper" in Add/Remove Programs in the Control Panel and click the Add/Remove button.
+<p>
+
+<hr>
+
+<h2><a name="config">コンフィギュレーションプログラム</a></h2>
+<p>
+<h2><a name="config">Configuration Program</a></h2>
+<p>
+
+コンフィギュレーションプログラムは、アプリケーションを特定して mDN Wrapper を適用したり、適用を解除するためのツールです。
+<p>
+The configuration program is a tool for specifying applications that are to be wrapped or unwrapped.
+<p>
+起動すると以下のような画面が表示されます。
+<p>
+<p>
+The screen shown below appears when the program is started.
+<p>
+
+<center>
+<img src="img/wrapper_config1.jpg" alt="Configuration Startup" align=top>
+</center>
+<p>
+リストボックスには、その時点で mDN Wrapper が適用されているプログラムが表示されます。最初に実行した場合には空になっています。右側のボタンを押すことにより、操作を行うことができます。
+
+<p>
+The list box shows programs that mDN Wrapper is currently wrapping.
+The box is blank when the program first starts. Press the buttons on the right to begin.
+
+
+<h3>mDN Wrapper の適用</h3>
+
+<h3>Using mDN Wrapper</h3>
+
+
+プログラムに mDN Wrapper を適用するには、"Wrap.."ボタンを押します。
+"Wrap.."ボタンを押すと以下のようなダイアログが表示されます。
+<p>
+Press the "Wrap.." button to wrap a program using mDN Wrapper.
+Pressing the "Wrap.." button displays the following dialog box.
+<p>
+<center>
+<img src="img/wrapper_config2.jpg" alt="Configuration Wrap" align=top>
+</center>
+<p>
+最初に、mDN Wrapper を適用したいプログラムの実行ファイル名を設定します。
+直接入力するか、ブラウズボタンでファイルを探してください。
+<p>
+<p>
+First set the filename of the program that mDN Wrapper is to wrap. Enter the name directly or use the Browse button to find the file.
+<p>
+<center>
+<img src="img/wrapper_config3.jpg" alt="Configuration Browse" align=top>
+</center>
+<p>
+次にそのプログラムのローカルエンコーディングを指定します。
+通常は「Default」 でかまいません。
+プログラムが国際化エンコーディングに従っている場合にのみ「UTF-8」 を指示します。
+<p>
+<p>
+Then, specify the local encoding of the program.
+Select "Default" for the standard setting.
+Select UTF-8 only if the program supports international encoding.
+<p>
+<center>
+<img src="img/wrapper_config4.jpg" alt="Configuration Encoding" align=top>
+</center>
+<p>
+最後に "Wrap" ボタンを押せば、そのプログラムに対して指定されたエンコーディングで mDN Wrapper が適用されます。
+適用されたプログラムは、最初のウィンドウのリストボックスに反映されます。
+<p>
+<p>
+Then press the Wrap button to use mDN Wrapper with the specified encoding for the selected program.
+The wrapped program is displayed in the list box in the first window.
+<p>
+
+<center>
+<img src="img/wrapper_config5.jpg" alt="Configuration Wrapped" align=top>
+</center>
+
+<h3>mDN Wrapper の解除</h3>
+<h3>Canceling use of mDN Wrapper</h3>
+
+プログラムに対する mDN Wrapper の適用を解除するには、リストボックスで解除するプログラムを選択して、"Unwrap.." ボタンを押します。
+以下の確認用のダイアログが表示されますので、間違いがなければ "Unwrap" ボタンを押してください。
+<p>
+To cancel the use of mDN Wrapper for a program, select the program in the list box and click the Unwrap button.
+The confirmation dialog box shown below is displayed. If this is correct, click the Unwrap button.
+<p>
+<center>
+<img src="img/wrapper_config6.jpg" alt="Configuration Unwrap" align=top>
+</center>
+<p>
+mDN Wrapper の適用が解除されると、そのプログラムは最初のウィンドウのリストボックスからも削除されます。
+<p>
+When use of mDN Wrapper is canceled for a program, that program is no longer displayed in the first window list box.
+<p>
+<center>
+<img src="img/wrapper_config7.jpg" alt="Configuration Unwrapped" align=top>
+</center>
+
+<p>
+"Unwrap All" ボタンを押すことによって、現在適用されているすべてのプログラムに対して mDN Wrapper の適用を解除することもできます。
+
+<p>
+Use the Unwrap All button to cancel use of mDN Wrapper for all currently selected programs.
+
+<h3>ログ設定</h3>
+<h3>Log setting</h3>
+
+"Log.." ボタンを押すことによってログレベルやログファイルを設定することができます。このボタンを押すと次のようなダイアログが現れます。
+<p>
+Click the "Log.." button to set a log level or log file. 
+The dialog box shown below is displayed when this button is clicked.
+<p>
+<center>
+<img src="img/wrapper_config8.jpg" alt="Configuration Log" align=top>
+</center>
+<p>
+ログレベルは次の中から選ぶことができます。
+<p>
+The following log levels can be selected.
+<dl>
+<dt>None<dd>ログを一切出力しません。これがデフォルトです。
+<dt>None<dd>Outputs no log at all. This is the default setting.
+<dt>Fatal<dd>致命的エラーのみ出力します。
+<dt>Fatal<dd>Outputs a log only when a fatal error occurs.
+<dt>Error<dd>致命的でないエラーも出力します。
+<dt>Error<dd>Outputs a log for non-fatal as well as fatal errors.
+<dt>Warning<dd>警告メッセージも出力します。
+<dt>Warning<dd>Also outputs warning messages.
+<dt>Info<dd>エラー以外の情報も出力します。
+<dt>Info<dd>Also outputs other information, in addition to errors.
+<dt>Trace<dd>プログラムのトレース情報も出力します。このレベルを選択すると大量のログが出力されるので気をつけてください。
+<dt>Trace<dd>Also outputs program trace information. Note that a large amount of information is output when this level is selected.
+</dl>
+なお、このログレベルは <a href="../spec/library.html">MDN ライブラリ</a> が出力するログに対するものです。mDN Wrapper 自体が出力するログについてはON/OFF 以外のレベルを指定することはできず、None を指定すればオフに、それ以外のレベルを指定すればオンになります。
+<p>
+These log levels are for logs output by the <a href="../spec/library.html">mDN library</a>. Because the mDN Wrapper log can only be set to "on" or "off," "None" turns off the log entirely (however, it is "on" in all other cases).
+<p>
+ログファイルを指定することも可能です。デフォルトでは mDN Wrapper をインストールしたディレクトリの "mdn_wrapper.log" になっています。
+"Browse.." ボタンを押せばブラウズ用のダイアログを利用して選択することができます。
+<p>
+A log file can also be specified. The default setting is mdn_wrapper log and is stored in the directory where mDN wrapper is installed.
+Click the Browse button to select the file from the Browse dialog box.
+<p>
+また、このダイアログではログファイルの内容を見ることと、ログファイルを削除することが可能です。それぞれ "View"、"Delete" ボタンを押してください。
+"View" ボタンを押すとメモ帳が起動して、ログファイルの内容を表示します。
+<p>
+This dialog box can also be used to view and delete the log file. Use the View or Delete buttons to do this.
+When the View button is clicked, NotePad opens displaying the contents of the log file.
+<p>
+"OK" ボタンを押すとダイアログの設定が有効になります。設定を変えたくない場合には "Cancel" ボタンを押してください。
+<p>
+Click the OK button to confirm the dialog settings. Click the Cancel button when none of the settings are to be changed.
+
+<h3>詳細パラメータ設定</h3>
+<h3>Detailed Parameters Settings</h3>
+
+"Advanced.." ボタンを押すことにより、次のようなダイアログが表示されます。
+これは上級ユーザのためのもので、適切なデフォルトが設定されているので通常ユーザが変更する必要のないような基本的なパラメータを変更することができます。
+<p>
+
+Click the "Advanced.." button to display the dialog box shown below.
+This is for experienced users; an appropriate default setting is provided for ordinary users to enable the change of basic parameters without the need for making detailed settings.
+<p>
+<center>
+<img src="img/wrapper_config9.jpg" alt="Configuration Advanced" align=top>
+</center>
+<p>
+ダイアログ最上部のパネルでプログラムに対する mDN Wrapper の適用モードを指定することができます。選択できる値とその意味は次の通りです。
+<p>
+The appropriate mDN Wrapper mode can be set in the panel at the top of the dialog box. Settings and their meanings are listed below.
+<dl>
+<dt>Wrap both WINSOCK 1.1 and WINSOCK 2.0
+<dd>WINSOCK 1.1 と 2.0 の両方の呼び出しについて mDN Wrapper を適用し、ドメイン名のエンコーディング変換や正規化を行います。通常はこのモードで使えば正しく動くはずです。
+<dd>Uses mDN Wrapper to convert and normalize domain name encoding for calls from both WINSOCK 1.1 and 2.0. Select this mode for normal operation.
+<dt>Wrap only WINSOCK 1.1
+<dd>WINSOCK 1.1 の呼び出しについては mDN Wrapper を適用しますが、WINSOCK 2.0 の呼び出しについては適用しません。
+<dd>Uses mDN Wrapper only for calls from WINSOCK 1.1 but not from WINSOCK 2.0.
+
+<dt>Wrap only WINSOCK 2.0
+<dd>WINSOCK 2.0 の呼び出しについては mDN Wrapper を適用しますが、WINSOCK 1.1 の呼び出しについては適用しません。
+<dd>Uses mDN Wrapper only for calls from WINSOCK 2.0, but not for WINSOCK 1.0.
+
+<dt>Wrap only WINSOCK 2.0 if it exists. Otherwise wrap only WINSOCK 1.1
+<dd>WINSOCK 2.0 が存在すれば WINSOCK 2.0 の呼び出しについてのみ mDN Wrapper を    適用します。存在しない場合には WINSOCK 1.1 の呼び出しについて適用します。WINSOCK のバージョンによってはデフォルトでは正しく動かず、このモードを指定しなければならないかもしれません。
+<dd>Uses mDN Wrapper only for calls from WINSOCK 2.0, if it exists. Otherwise, mDN Wrapper is used for calls from WINSOCK 1.1.
+    The default setting may not function properly with some versions of WINSOCK, in which case this mode must be used.
+</dl>
+
+<p>
+中段のパネルでは正規化の方式を設定することができます。左側のリストボックスに使用する正規化の名称が入っており、右側のリストボックスには使用可能な正規化の名称が入っています。右側のリストボックスから追加したい正規化を選択し、"Add" ボタンを押すと左側のリストボックスに追加されます。
+また、左側のリストボックスで削除したい正規化を選択して "Remove" ボタンを押せば削除することができます。"Clear" ボタンを押すとすべての正規化が削除され、また "Reset" ボタンによりデフォルトの設定に戻すことができます。
+<p>
+Normalization schemes can be set in the center panel. The left box lists the names of selected normalization schemes, while the box on the right lists the names of available normalization schemes. Select a normalization scheme from the right box; click the Add button to add it to the list in the left box.
+You can also delete normalization schemes from the left list box, by selecting it and clicking the Remove button. The Clear button removes all normalization schemes, and the Reset button reinstates the default settings.
+
+<p>
+3段目のパネルでは DNS サーバ側のエンコーディング名を指定することができます。
+デフォルトは "RACE" ですが、他のエンコーディングを使用したい場合には
+ここで指定してください。
+<p>
+The third panel is used to enter the encoding name of the DNS server.
+The default setting is RACE, but this panel allows you set the desired encoding.
+
+<p>
+以上の設定は "OK" ボタンを押すことにより有効になります。設定を変えずにダイアログを終了したい場合には "Cancel" ボタンを押してください。
+<p>
+The settings become effective by clicking the OK button. Click Cancel to close the dialog box without changing the settings.
+
+<p>
+
+<hr>
+
+<h2><a name="limitations">制限事項</a></h2>
+<h2><a name="limitations">Limitations</a></h2>
+<dl>
+<dt>DLL バージョン
+<dt>DLL Version
+<dd><p>
+ラッパーDLL は、元のWINSOCK のDLL のバージョンに強く依存します。
+これは、非公開のエントリも含めてすべてのエントリを提供する必要があるためです。
+このためWINSOCK DLL のバージョンが変わると、mDN Wrapper が動作しなくなる可能性があります。
+<p>
+Wrapper DLL is highly dependent on the original WINSOCK DLL version.
+This is because all entries including non-public entries must be supplied.
+As a result, mDN Wrapper may stop functioning when a different version of WINSOCK DLL is installed.
+<p>
+今回作成されたmDN Wrapper は、
+<p>
+It has been confirmed that the current version of mDN Wrapper operates with the following software.
+<blockquote>
+<table>    
+<tr><td>WinNT4.0 SP6a</td><td>(WINSOCK 1.1 + 2.0)</td></tr>
+<tr><td>Win98        </td><td>(WINSOCK 1.1 + 2.0)</td></tr>
+<tr><td>Win95 OSR2   </td><td>(WINSOCK 1.1)      </td></tr>
+</table>
+</blockquote>
+で動作を確認しています。ただ、将来にわたって動作する保証はありません。
+<p>
+There is no guarantee, however, that it will function in the future.
+<p>
+<dt>DNS, WINS, LMHOSTS
+<dd><p>
+Windows では、DNS だけではなく、WINSやLMHOSTS によってもドメイン名、ホスト名の解決が行なわれます。
+mDN Wrapper を使った場合には、ドメイン名の変換が、これらの方式へのディスパッチを行なう場所よりも上位層で行なわれるので、これらのすべての方式について、ドメイン名、ホスト名の変換が行なわれることになります。
+このため、Windows が、WINSやLMHOSTS を使っている場合には、予期しない問題が発生する可能性があります。
+これについては、mDN Wrapper を使う場合には、名前解決にDNS だけを使用することをお勧めします。
+<p>
+In Windows, not only DNS but also WINS and LMHOSTS resolve domain names and host names. When mDN Wrapper is used, domain name conversion are not dispatched to these schemes but are performed at a higher level.
+As a result, when Windows uses WINS or LMHOSTS, unexpected results may occur. Thus when you use mDN Wrapper, we recommend that only DNS is used for name resolving. 
+<p>
+<dt>ドメイン名以外の名前の解決
+<dd><p>
+WINSOCK 2.0 の名前解決API
+<dd><p>The following are WINSOCK 2.0 name resolving APIs 
+<blockquote>
+<table>
+<tr><td>WSALookupServiceBeginW</td></tr>
+<tr><td>WSALookupServiceNextW </td></tr>
+<tr><td>WSALookupServiceEnd   </td></tr>
+</table>
+</blockquote>
+は、ドメイン名以外でも使用できる汎用の名前解決用のAPI として定義されています。
+現時点では、これらはもっぱらドメイン名の解決で使用されていますが、他の名前(例えばサービス名)の解決にも使用できることになっています。
+<p>
+These are defined as a universal name resolving API that can be used for other than domain names. Currently, it is used only for resolving names, but it can also be used for resolving service names, for example.
+
+<p>
+mDN Wrapper は、名前の対象の如何にかかわらず、名前のエンコーディングを変換してしまうので、これらのAPI が、ドメイン名以外の解決に使われている場合には、問題を引き起こす可能性があります。
+<p>
+Because the mDN Wrapper converts encodings of any type of name, these APIs could cause problems if used for resolving names other than domain names.
+<p>
+<dt>名前解決API を使わないプログラム
+<p>
+Programs not using name resolving API
+<dd><p>
+アプリケーションによっては、ドメイン名の解決にこれらのAPI を使用しないものもあります。例えば、'nslookup'は、これらのAPI を使用しないで、直接DNS サーバと通信してしまいます。このようなアプリケーションについては、mDN Wrapper は役に立ちません。
+<p>
+Some applications do not use these APIs for resolving domain names.
+For example, nslookup does not; instead, it communicates directly with the DNS server. mDN Wrapper cannot be used for such applications.
+<p>
+<dt>特定WINSOCK DLL にバインドされたアプリケーション
+<p>
+Applications tied to specific WINSOCK DLLs
+<p>
+<dd><p>
+アプリケーションによっては、標準のDLL サーチパスに従わないで、
+特定のパスのDLL にバインドされているものがあります。
+よく使われるプログラムの中では、Netscape Communicator がそうなっています。
+このようなプログラムについては、標準のインストール／コンフィギュレーションでは mDN Wrapper を適用することはできません。
+<p>
+Some applications do not conform to standard DLL search paths, but are tied to a DLL of a specific path. An often used program, Netscape Communicator, is a case in point. mDN Wrapper cannot be added to such programs in a standard install or configuration.
+<p>
+このようなプログラムについて、どうしても mDN Wrapper を適用する必要があるなら、システムディレクトリへのインストールを行なうことができます。
+ただし、このインストールは大変危険で、場合によってはシステムを再起動不能にしてしまう可能性もあります。
+<p>
+If mDN Wrapper must be added to this type of program, it can be installed under the system directory. 
+However, such an installation is quite risky as it may sometimes make it impossible to restart.
+<p>
+<dt>代替手段としての'dnsproxy'
+<p>
+<dt>dnsproxy, an alternate solution
+<dd><p>
+これらの制限事項が問題になる場合には、代替手段として'dnsproxy'を使うこともできます。これは、DNS サーバとのトランザクションを中継するので、上で問題になったようなことを回避することができます。
+<p>    
+dnsproxy can be used as an alternate approach to avoid such limitations.
+The above problems are avoided since dnsproxy operates between the DNS server and the transaction.
+<p>    
+ただし、'dnsproxy'は、ラッパーよりも複雑な設定が必要ですし、また、呼び元のプログラムを特定することができませんので、プログラム固有のローカルエンコーディングを取り扱うことはできません。しかし、上記の制限事項が問題になるようなケースでは、ラッパーの代わりに使用するといいかもしれません。
+<p>    
+However, dnsproxy requires a more complex setup procedure than Wrapper and cannot identify a calling program so it cannot handle the local encoding of specific programs.
+It is perhaps best used as an alternative to Wrapper to avoid the above limitations.
+</dl>
+
+<hr>
+
+<h2><a name="upgrade">バージョンアップ時の注意</a></h2>
+<h2><a name="upgrade">Precautions when Upgrading</a></h2>
+
+<p>古いバージョンの mDN Wrapper がすでにインストールされているマシンに新しいバージョンをインストールする際には、次のことに気をつけてください。
+<p>Note the following when a new version of the software is to be installed in a machine containing an earlier version.
+
+<ol>
+<li>インストールする前に古いバージョンをアンインストールする<br>
+新しいバージョンをインストールする前に、古いバージョンをアンインストールしてください。そうしないと、新しいバージョンをインストールしてもいくつかのファイルが更新されず、古いまま残ってしまいます。
+アンインストールするには、コントロールパネルの「アプリケーションの追加と削除」を実行し、「mDN Wrapper」を選択して削除を実行してください。<br>もしアンインストールせずに新しいバージョンをインストールしてしまった場合には、
+一度それをアンインストールしてから再度インストールを行ってください。<p>
+Uninstall old version prior to installation.<br>
+Before the most recent version is installed, uninstall the old version. Otherwise, a number of files will not be updated and the old version will remain in effect even though the latest version has been installed.
+To delete, open the Control Panel and select mDN Wrapper in Add/Remove Applications.<br>If you made the mistake of installing the new version without first removing the old version, first uninstall, and then reinstall, the software.<p>
+
+<li>すべてのファイルを再度ラップする<br>
+mDN Wrapper はその動作原理上、mDN Wrapper を適用するプログラムが存在するディレクトリにDLL をコピーします。
+コピーされた DLL は新しいバージョンをインストールしても更新されないので、そのままでは新しいバージョンが使われません。このため、新しいバージョンをインストールしたら、一度 mDN Wrapper の適用をすべて解除し、改めて適用し直してください。すべてのプログラムに対する適用を解除するには、コンフィギュレーションプログラムの "Unwrap All" ボタンを使用するのが便利です。
+<p>
+Re-wrapping all files<br>
+mDN Wrapper copies a DLL file to the directory that contains programs that can be wrapped by mDN Wrapper.
+The copied DLL is not automatically updated to the latest version when a new version of the software is installed preventing use of the latest version. Therefore, after installation, unwrap all applications wrapped using mDN Wrapper and then wrap them again. The easiest way to do this is to click the Unwrap All button in the configuration program.
+</ol>
+
+</body>
+</html>
+

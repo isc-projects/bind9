@@ -1,0 +1,218 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: mdnconv.html,v 1.1 2001/03/05 12:58:07 tale Exp $ -->
+<html>
+
+<head>
+<title>mdnconv specification</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>mdnconv</h1>
+
+<p>&nbsp;<p>
+
+<h2><a name="overview">概要</a></h2>
+
+<p><b>mdnconv</b> はネームサーバの設定ファイル <tt>named.conf</tt> や
+ゾーンマスタファイルのためのコードセット (エンコーディング) 変換ツールです。
+<p><b>mdnconv</b> は引数で指定されたファイル、あるいは標準入力から
+テキストを入力し、オプションで指定されたコードセット変換および正規化を
+実行し、結果を標準出力に書き出します。
+
+<p>具体的な使い方に関しては利用者ガイドの
+<a href="../guide/bindconfig.html#file"><tt>named.conf</tt>、
+ゾーンマスタファイルの作成</a>の項をご覧ください。
+
+<p>
+
+<h2><a name="invoke">起動</a></h2>
+
+<blockquote>
+<pre>
+% mdnconv [<i>オプション...</i>]  [<i>ファイル...</i>]
+</pre>
+</blockquote>
+
+<h2><a name="options">オプション</a></h2>
+
+<dl>
+<dt><a name="in-opt">-in</a> <i>in-code</i>
+  <dd>入力テキストのコードセット名 <i>in-code</i> を指定します。
+      <i>in-code</i> に指定できるコードセット名は、次のいずれかです。
+      <ul>
+      <li><em>iconv_open()</em> が受け付けるコードセット名
+      <li><tt>UTF-5</tt>
+      <li><tt>RACE</tt>
+      <li><tt>BRACE</tt>
+      <li><tt>LACE</tt>
+      <li>上記のコードセット名の別名 (<a href="#alias-opt">-alias</a> オプション参照)
+      </ul>
+      <p>指定しなかった場合には現在のロケールからデフォルトのコードセットを
+      求めます。
+      <p>
+<dt>-out <i>out-code</i>
+  <dd>出力テキストのコードセット名 <i>out-code</i> を指定します。
+      <i>out-code</i> に指定できるコードセット名は
+      <a href="#in-opt">-in</a> オプションの <i>in-code</i> と同じです。
+      <p>指定しなかった場合には
+      <a href="clientconfig.html">クライアント設定ファイル</a>の
+      <a href="clientconfig.html#server-encoding">
+      サーバエンコーディングエントリ</a>
+      に設定されているコードセットが使用されます。
+      <p>
+<dt>-normalize <i>scheme</i>
+  <dd>正規化の方式を指定します。<i>scheme</i>に指定できる方式は
+      次のいずれかです。
+      <ul>
+      <li>ascii-uppercase
+      <li>ascii-lowercase
+      <li>unicode-uppercase
+      <li>unicode-lowercase
+      <li>unicode-form-c
+      <li>unicode-form-kc
+      <li>ja-kana-fullwidth
+      <li>ja-alnum-halfwidth
+      <li>ja-compose-voiced-sound
+      <li>ja-minus-hack
+      <li>ja-delimiter-hack
+      </ul>
+      個々の正規化方式については MDN ライブラリの
+      <a href="library.html#normalizer">normalizer モジュール</a>をご覧ください。
+      <p>このオプションは複数指定することが可能です。複数指定した場合には、
+      指定した順に正規化が行われます。
+
+      <p>このオプションを指定しなかった場合には
+      <a href="clientconfig.html">クライアント設定ファイル</a>の
+      <a href="clientconfig.html#normalization">正規化エントリ</a>に
+      指定されている正規化方式が使用されます。
+      <p>
+<dt><a name="zld-opt">-zld</a> <i>ZLD</i>
+  <dd>使用する ZLD を指定します。変換されるドメイン名が
+      ピリオドで終わる FQDN で、かつ最後が <i>ZLD</i> と
+      一致した場合には、一致した部分は変換対象から外されます。
+      これは UTF-5 など一部の ASCII互換エンコーディングにおいて、ZLD 部分が
+      変換されないようにするためにするために必要な処理です。
+      <p>このオプションを指定しなかった場合には
+      <a href="clientconfig.html">クライアント設定ファイル</a>の
+      <a href="clientconfig.html#server-zld">サーバ ZLD エントリ</a>に
+      指定されている値が使用されます。
+      <p>
+<dt><a name="auto-opt">-auto</a>
+  <dd><a href="#zld-opt">-zld</a> オプションと組み合わせて使用します。
+      もし変換対象である、非ASCII文字を含むドメイン名の最後が
+      ピリオドで終わっていた場合に、-zld オプションで指定した ZLD
+      がそのあとに自動的に付加されます。
+      これによってゾーンマスタファイル等に ZLD を明示的に書く必要が
+      少なくなりますが、この補完機能は完全ではないので、明示的に ZLD を
+      書かなければならない場合もあります。一般的にはこの機能に
+      頼らない方がよいでしょう。
+      <p>
+<dt>-whole
+  <dd>正規化とターゲットコードセットへの変換を
+      入力されたテキスト全体に対して行います。このオプションを指定しなければ
+      非ASCII文字を含むドメイン名だと判断された部分のみが変換対象と
+      なります。詳細は<a href="#detail">変換処理の詳細</a>をご覧ください。
+      <p>
+<dt>-alias <i>path</i>
+  <dd>コードセット名の別名を定義したファイル <i>path</i> を指定します。
+      このファイルはテキストファイル形式で、1行に一組ずつ
+      コードセット名の別名と正式名とを一つ以上のスペースで区切って書いた
+      ものです。例えば次の例は <tt>Shift_JIS</tt> と <tt>EUC-JP</tt> の
+      別名としてそれぞれ <tt>sjis</tt>、<tt>euc-jp</tt> を定義するものです。
+<blockquote>
+<pre>
+# "#" で始まる行はコメント
+sjis		Shift_JIS
+euc-jp		EUC-JP
+</pre>
+</blockquote>
+
+<dt>-noconf
+  <dd><a href="clientconfig.html">クライアント設定ファイル</a>を
+  読み込まないようにします。
+  <p>
+
+<dt>-flush
+  <dd>行ごとに出力をフラッシュします。mdnconv はファイルやパイプへの
+  出力の場合、通常は複数行のデータをまとめて書き出しますが、この
+  オプションを指定すると1行ごとに変換結果を書き出します。
+  通常はこのオプションを指定する必要はありませんが、
+  mdnconv をフィルタプログラムとして他のプログラムから利用する場合などに
+  便利なことがあります。
+</dl>
+
+<h2><a name="detail">変換処理の詳細</a></h2>
+
+<p><b>mdnconv</b> が行う変換処理をステップごとに記述します。
+
+<ol>
+<li>ファイルあるいは標準入力からテキストを1行読み込みます。
+  <p>
+<li>行末の改行コードを取り除きます。
+  これは -whole オプションをつけて <b>mdnconv</b> を実行し、かつ
+  出力エンコーディングが UTF-5 や RACE など ASCII 互換
+  エンコーディングの場合に、改行コードも UTF-5 や RACE で
+  エンコードされてしまい、改行がなくなってしまうのを避けるためです。
+  <p>
+<li>行を UTF-8 エンコーディングに変換します。変換には
+  MDN ライブラリの <a href="library.html#converter">converter モジュール</a>
+  を使用します。
+  <p>通常は行全体を UTF-8 に変換しますが、入力コードセットが
+  "RACE" の場合には、RACE エンコーディングを識別するプリフィックスを用いて
+  RACE エンコードされた部分のみを取り出して UTF-8 に変換します。
+  <p>
+<li>変換結果が UTF-8 として正しいエンコーディングであるかをチェックします。
+  これには MDN ライブラリの <a href="library.html#utf8">utf8 モジュール</a>
+  を使用します。本来この処理は不要なはずですが、コード変換の実装に
+  バグがあった場合に早い段階で検出できるよう、ここでチェックをするように
+  してあります。
+  <p>
+<li>-whole オプションが指定されていれば次の処理対象の取り出しを飛ばし、
+  行全体を処理対象として 7. に飛びます。
+  <p>
+<li>UTF-8に変換された行の中から多言語ドメイン名の部分を取り出します。
+  これには MDN ライブラリの
+  <a href="library.html#selectiveencode">selectiveencode モジュール</a>
+  を使用します。取り出されるのは次のような部分文字列です。
+  <ul>
+  <li>1文字以上の非ASCII文字を含むこと。
+  <li>従来のドメイン名に許される文字 (アルファベット、数字、ハイフン)、
+    非ASCII文字、ピリオドだけから構成されていること
+  </ul>
+  <p>取り出された部分のみを以降の正規化等の処理対象とします。
+  <p>
+<li>正規化を行います。
+  これには MDN ライブラリの
+  <a href="library.html#normalizer">normalizer モジュール</a>
+  を使用します。
+  <p>
+<li>再度変換結果が UTF-8 として正しいエンコーディングであるかをチェックします。
+  本来この処理は不要なはずですが、正規化の実装に
+  バグがあった場合を考えてチェックを入れてあります。
+  <p>
+<li>正規化された文字列の最後がピリオドで終わっており、かつ
+  -zld オプションで指定された ZLD と文字列がマッチすれば、ZLD の部分を
+  次のコードセット変換の対象から外します。これは ZLD の部分まで
+  (UTF-5 などに) 変換されてしまうのを防ぐためです。
+  <p>
+<li>UTF-8 エンコーディングから -out で指定された出力エンコーディングに
+  変換します。変換には
+  MDN ライブラリの <a href="library.html#converter">converter モジュール</a>
+  を使用します。
+  <p>
+<li>出力エンコーディングに変換する前の文字列がピリオドで終わっており、
+  かつ -auto オプションが指定されていれば、文字列の後に ZLD を付加します。
+  <p>
+<li>-whole オプションが指定されていた場合には変換された文字列をそのまま
+  標準出力に出力します。
+  指定されていなかった場合には、変換された文字列と 6. で処理対象と
+  ならなかった部分とをマージしてからやはり標準出力に出力します。
+  どちらの場合も最後に改行コードを出力します。
+  <p>
+<li>すべての入力行を処理し終われば終了します。そうでなければ 1. に
+  戻ります。
+</ol>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: spec.html,v 1.1 2001/03/05 12:58:07 tale Exp $ -->
+<html>
+
+<head>
+<title>mDNkit specification</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+
+<h1>mDNkit 仕様書</h1>
+
+<ul>
+<li><a href="#overview">全体構成</a>
+<li><a href="dnsproxy.html">dnsproxy</a>
+<li><a href="mdnconv.html">mdnconv</a>
+<li><a href="bind9.html">BIND-9 パッチ</a>
+<li><a href="runmdn.html">runmdn</a>
+<li><a href="wrapper.html">mDN Wrapper</a>
+<li><a href="library.html">MDN ライブラリ</a>
+<li><a href="clientconfig.html">クライアント設定ファイル</a>
+</ul>
+
+<hr>
+
+<h2><a name="overview">全体構成</a></h2>
+
+<h3><a name="components">キットを構成するコンポーネント</a></h3>
+
+<p>mDNkit は次のようなコンポーネントから構成されます。
+
+<ul>
+<li><a href="dnsproxy.html">dnsproxy</a><br>
+  DNS サーバのプロキシサーバとして動作し、クライアントからの DNS
+  メッセージを DNS サーバに中継し、また DNS サーバから返される
+  DNS メッセージをクライアントに中継します。<br>
+  クライアントから送られてきた DNS メッセージを中継する際には、
+  メッセージ中のドメイン名を、クライアントの使用する
+  ローカルエンコーディングから、多言語化された DNS サーバの使用する
+  DNS プロトコル上のエンコーディングに変換するとともに
+  正規化や ZLD の除去・付加を行います。<br>
+  また DNS サーバから返された DNS メッセージを中継する際には、
+  メッセージ中のドメイン名を、DNS プロトコル上のエンコーディングから
+  ローカルエンコーディングに変換し、同時に ZLD の除去・付加を行います。<br>
+  <p>
+<li><a href="mdnconv.html">mdnconv</a><br>
+  ゾーンマスタファイルや <tt>named.conf</tt> ファイルのエンコーディング
+  変換用ツールです。ローカルエンコーディングで記述されたこれらのファイルを、
+  多言語化された DNS サーバが使用するDNS プロトコル上のエンコーディングに
+  変換し、同時に正規化も行います。
+  <p>
+<li><a href="bind9.html">BIND-9 パッチ</a><br>
+  BIND-9 で多言語ドメイン名を扱えるようにするためのパッチです。
+  このパッチを適用することにより、BIND-9 のリゾルバに多言語ドメイン名の
+  エンコーディング変換や正規化の機能が付加されます。これにより
+  dnsproxy を使用することなく、多言語ドメイン名が扱えるようになります。
+  また dig 等のツールでも多言語ドメイン名を扱えるようになります。
+  <p>
+<li><a href="runmdn.html">runmdn</a><br>
+  BIND-4 あるいは BIND-8 ベースのアプリケーションを再コンパイルすることなしに
+  多言語ドメイン名を扱えるようにするためのコマンドです。
+  アプリケーションの実行時に MDN ライブラリを動的にリンクすることにより
+  アプリケーションにリンクされているリゾルバに多言語ドメイン名の
+  エンコーディング変換や正規化の機能が付加されます。これにより
+  dnsproxy を使用することなく、多言語ドメイン名が扱えるようになります。
+  <p>
+<li><a href="wrapper.html">mDN Wrapper</a><br>
+  Windows ベースのアプリケーションで多言語ドメイン名を扱えるようにするための、
+  WINSOCK に対するWrapper DLL です。
+  通常、WindowsアプリケーションはWINSOCK によってドメイン名を解決します。
+  mDN Wrapper は、WINSOCK の呼び出しをフックして、
+  多言語ドメイン名のエンコーディングの変換や正規化を行ないます。
+  同じようなことはdnsproxyでもできますが、
+  mDN Wrapper を使った場合には、
+  アプリケーション毎に異なったローカルエンコーディングを受付けることもできます。
+  <p>
+<li><a href="library.html">MDN ライブラリ</a><br>
+  上記のコンポーネントが使用するライブラリです。多言語ドメイン名の変換に
+  関わる
+  <ul>
+  <li>エンコーディング変換
+  <li>文字列の正規化
+  <li>DNS メッセージの解析と組み立て
+  <li>ZLD の削除、追加
+  </ul>
+  という機能を提供します。
+  <p>
+<li><a name="eightbitthru-patch">8ビットスルーパッチ</a><br>
+  dnsproxy を用いて多言語ドメイン名のエンコーディング変換や正規化等を
+  行う場合、DNS サーバやリゾルバライブラリにはこれらの機能は必要ありません。
+  ただし DNS プロトコル上のエンコーディングとして
+  UTF-8 等の 8 ビットコードを使用する場合、
+  従来の DNS サーバは使用することができず、8ビットコードをエラーにせずに
+  通すような改造が必要です。<br>
+  またローカルエンコーディングが SJIS 等の 8 ビットコードを使用する場合、
+  やはりリゾルバライブラリにも 8 ビットコードをそのまま通し、
+  エラーにしないようにするための改造が必要です。<br>
+  さらにアプリケーションの中には、独自にドメイン名の検査を行い、
+  8 ビットコードを通さないものがあります。<br>
+  このため、本キットでは
+  <ul>
+  <li>BIND-8 のネームサーバ、リゾルバを 8 ビットスルーにするためのパッチ
+  <li>Web のキャッシュサーバである Squid の URL 解析部分を 8 ビットスルー
+    にするためのパッチ
+  </ul>
+  を提供します。<br>
+  これらの 8 ビットスルーパッチに関しては特に仕様の記述は行いません。
+</ul>
+
+<h3><a name="comp-relation">コンポーネント構成図</a></h3>
+
+<p>各コンポーネントがどこでどのように使われるのかを示したのが次の2枚の図です。
+
+<p>1枚目は多言語ドメイン名の処理を dnsproxy を利用して行う場合の構成図です。
+<p>
+<blockquote>
+<img src="img/components.jpg" alt="mDNkit components #1">
+</blockquote>
+
+<p>2枚目は dnsproxy を使用せず、クライアント側のリゾルバで多言語ドメイン名の
+処理を行う場合の構成図です。
+<p>
+<blockquote>
+<img src="img/components2.jpg" alt="mDNkit components #2">
+</blockquote>
+
+<p>図中、イタリック体の部分が本キットに含まれるコンポーネントです。
+
+<p>図の上半分は SJIS など、ローカルエンコーディングが使用される
+世界で、下半分が UTF-8 など、多言語化された DNS が使用する
+DNS プロトコル上のエンコーディングが使用される世界です。
+本キットが提供するコンポーネントはこれらの世界をつなぐためのものです。
+
+</body>
+</html>

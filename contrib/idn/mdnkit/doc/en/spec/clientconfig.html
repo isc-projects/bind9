@@ -1,0 +1,401 @@
+<!doctype html public "-//IETF//DTD HTML 2.0//EN">
+<!-- $Id: clientconfig.html,v 1.1 2001/03/05 12:58:02 tale Exp $ -->
+<html>
+
+<head>
+<title>client configuration specification</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+
+<body>
+<h1>クライアント設定ファイル</h1>
+<h1>Client Configuration File</h1>
+
+<ul>
+<li><a href="#overview">概要</a>
+<li><a href="#overview">Overview</a>
+<li><a href="#server-encoding">サーバエンコーディングエントリ</a>
+<li><a href="#server-encoding">Server Encoding Entry</a>
+<li><a href="#server-zld">サーバ ZLD エントリ</a>
+<li><a href="#server-zld">Server ZLD Entry</a>
+<li><a href="#normalization">正規化エントリ</a>
+<li><a href="#normalization">Normalization Entry</a>
+<li><a href="#alternate-encoding">代替エンコーディングエントリ</a>
+<li><a href="#alternate-encoding">Alternate Encoding Entry</a>
+<li><a href="#alias-file">エンコーディングエイリアスエントリ</a>
+<li><a href="#alias-file">Encoding Alias Entries</a>
+<li><a href="#local-codeset">ローカルコードセット</a>
+<li><a href="#local-codeset">Local Code Set</a>
+<li><a href="#sample">コンフィギュレーションファイル記述例</a>
+<li><a href="#sample">Configuration File Description Example</a>
+</ul>
+
+<hr>
+
+<h2><a name="overview">概要</a></h2>
+<h2><a name="overview">Overview</a></h2>
+
+<p>
+クライアント設定ファイルは、多言語ドメイン名のための各種の設定が
+記述されているファイルで、mDNkit を使用して多言語化 (国際化)
+したクライアント側のリゾルバが読み込むファイルです。
+このファイルは MDN ライブラリの
+<a href="library.html#resconf">resconf モジュール</a> によって読み込まれ、
+多言語ドメインに関する以下のような設定ができます。
+<p>
+The client configuration file is the file in which various settings for multilingual domain names are described. This file is loaded by the resolver at the client side for which the mDNkit is used to make it multilingual (internationalized). The <a href="library.html#resconf">resconf module</a> of the MDN library is used to load this file and the following settings related to multilingual domains can be made. 
+
+<ul>
+<li>DNS プロトコル上のドメイン名のエンコーディング
+<li>Encoding of domain name for the DNS protocol
+<li>正規化形式
+<li>Normalization form
+<li>DNS の返答メッセージ中のドメイン名がローカルエンコーディングに
+    変換できなかった時に使用される、代替エンコーディング
+<li>Alternate encoding used when domain names in the return message from the DNS cannot be converted to local encoding
+<li>エンコーディング名のエイリアス
+<li>Alias for encoding name
+</ul>
+
+<p>
+このファイルは通常のテキストファイルで、ファイルの各行 (#
+で始まるコメント行と、空行を除いて) は、
+次のような単純なフォーマットで構成されます。
+<p>
+This file is a standard text file and each line of the file (except comment lines starting with # and blank lines) consists of following simple format.
+
+<blockquote>
+<pre>
+キーワード 値...
+</pre>
+</blockquote>
+<blockquote>
+<pre>
+Keyword  Value...
+</pre>
+</blockquote>
+
+<p>
+クライアント設定ファイルは、mDNkit をデフォルトの設定でコンパイルした
+場合には以下に配置されます。
+<p>
+The client configuration file is located as follows when the mDNkit is compilied using the default settings.
+
+<blockquote>
+<pre>
+/usr/local/etc/mdnres.conf
+</pre>
+</blockquote>
+
+<p>以降、各キーワードごとに設定内容を記述します。
+<p>The setting content is discussed below for each keyword.
+<p>
+
+<h2><a name="server-encoding">サーバエンコーディングエントリ</a></h2>
+<h2><a name="server-encoding">Server Encoding Entry</a></h2>
+
+<p>
+DNS プロトコル上の多言語ドメイン名のエンコーディングとして使用する
+エンコーディング (コードセット名) を指定します。
+<p>
+Specifies encoding (code set name) used as the encoding for multilingual domain name in the DNS protocol.
+
+<dl>
+<dt>[構文]
+  <dd><tt>server-encoding</tt> <em>encoding</em>
+</dl>
+<dl>
+<dt>[Syntax]
+  <dd><tt>server-encoding</tt> <em>encoding</em>
+</dl>
+
+<p><em>encoding</em> には、使用するエンコーディング名を記述し、
+次のものが指定できます。
+<p>The encoding name to be used is described in <em>encoding</em> and the following types can be specified.
+
+<ul>
+<li>UTF-8
+<li>RACE
+<li>BRACE
+<li>LACE
+<li>UTF-5
+<li>iconv_open() ライブラリ関数で許可されているコードセット名
+    (使用できるコードセット名については、iconv() のドキュメントを
+    御覧ください)
+<li>Refer to the document for iconv() for code set names permitted by the iconv_open() library function (code set names that can be used).
+<li>後述のエイリアスファイルで定義されたエイリアス名 
+    (<a href="#alias-file">「エンコーディングエイリアス」</a>
+    の項を御覧ください)
+<li>Alias name defined by the alias file is explained later. 
+    (Refer to the <a href="#alias-file">"Encoding Alias"</a>) section.
+</ul>
+<p>
+このエントリは必須エントリであり、必ず記述しなければなりません。
+<p>
+This entry is a prerequisite and must always be described.
+
+<h2><a name="server-zld">サーバ ZLD エントリ</a></h2>
+<h2><a name="server-zld">Server ZLD Entry</a></h2>
+
+<P>
+DNS プロトコル上で使用される多言語ドメイン名のエンコーディング
+(<a href="#server-encoding">server-encoding エントリ</a>で指定されたもの)
+の中には、多言語ドメイン名と従来の ASCII ドメイン名とを区別するために
+ZLD (zero-level domain) というドメインを必要とするものがあります。
+ZLD は通常のトップレベルドメインのさらに上位ドメインに相当します。
+ただしこれは DNS のシステム内部でのみ使われるドメインであり、
+一般ユーザやアプリケーションからは見えないようになっています。
+<P>
+Of the encoding types (specified by <a href="#server-encoding">server-encoding entry</a>) for multilingual domain names used by the DNS protocol, some require a domain called ZLD (zero-level domain) in order to distinguish multilingual domain names from conventional ASCII domain names.
+ZLD is equivalent to a higher level domain that is above the usual top level domain. Note, however, that this domain is only used inside the DNS system and ordinary users and application cannot see this domain.
+
+<dl>
+<dt>[構文]
+  <dd><tt>server-zld</tt> <em>ZLD</em>
+</dl>
+<dl>
+<dt>[Syntax]
+  <dd><tt>server-zld</tt> <em>ZLD</em>
+</dl>
+
+<p>mDNkit のデフォルトの設定では、ZLD は使用できないようになっており、
+設定ファイル中にこのエントリがあると警告メッセージが表示されます。
+このエントリの指定を有効にするには、mDNkit の configure 実行時に
+<tt>--enable-zld</tt> オプションによって ZLD サポートを有効にしておく
+必要があります。
+<p>ZLD cannot be used in the default settings of the mDNkit. When this entry exists in the configuration file, a warning message is displayed.
+To make this entry specification effective, it is necessary to use the <tt>--enable-zld</tt> option to make ZLD support effective when executing configuration of the mDNkit.
+<p>
+
+<h2><a name="normalization">正規化エントリ</a></h2>
+<h2><a name="normalization">Normalization Entry</a></h2>
+
+<p>
+正規化エントリでは、DNS サーバに送る前にドメイン名に適用すべき
+正規化の方式を指定します。
+<p>
+The normalization entry is used to specify the normalization scheme that should be applied to domain names before sending it to the DNS server.
+
+<dl>
+<dt>[構文]
+  <dd><tt>normalize</tt> <em>scheme [scheme..]</em>
+</dl>
+<dl>
+<dt>[Syntax]
+  <dd><tt>normalize</tt> <em>scheme [scheme..]</em>
+</dl>
+
+<p>
+<em>scheme</em> には、正規化形式を記述します。
+以下のものが記述できます。
+<p>
+The normalization form is described in <em>scheme</em>.
+The following formats can be described.
+
+
+<dl>
+<dt><tt>ascii-lowercase</tt>
+  <dd>ASCII 大文字を小文字に変換
+  <dd>Converts uppercase ASCII to lowercase ASCII
+<dt><tt>ascii-uppercase</tt>
+  <dd>ASCII 小文字を大文字に変換
+  <dd>Converts lowercase ASCII to uppercase ASCII
+<dt><tt>unicode-lowercase</tt>
+  <dd><a href="http://www.unicode.org/unicode/reports/tr21">
+    <cite>Unicode Technical Report #21: Case Mappings</cite></a>
+    に基づいて、Unicode 大文字を小文字に変換
+  <dd>Converts uppercase Unicode to lowercase Unicode based on <a href="http://www.unicode.org/unicode/reports/tr21">
+    <cite>Unicode Technical Report #21: Case Mappings</cite></a>
+<dt><tt>unicode-uppercase</tt>
+  <dd><a href="http://www.unicode.org/unicode/reports/tr21">
+    <cite>Unicode Technical Report #21: Case Mappings</cite></a>
+    に基づいて、Unicode 小文字を大文字に変換
+  <dd>Converts lowercase Unicode to uppercase Unicode based on<a href="http://www.unicode.org/unicode/reports/tr21">
+    <cite>Unicode Technical Report #21: Case Mappings</cite></a>
+<dt><tt>unicode-form-c</tt>
+  <dd><a href="http://www.unicode.org/unicode/reports/tr15">
+    <cite>Unicode Technical Report #15: Unicode Normalization Forms</cite></a>
+    の「Form C」による正規化
+  <dd>Performs normalization using "Form C" of <a href="http://www.unicode.org/unicode/reports/tr15">
+    <cite>Unicode Technical Report #15: Unicode Normalization Forms</cite></a>
+<dt><tt>unicode-form-kc</tt>
+  <dd><a href="http://www.unicode.org/unicode/reports/tr15">
+    <cite>Unicode Technical Report #15: Unicode Normalization Forms</cite></a>
+    の「Form KC」による正規化
+  <dd>Performs normalization using "Form KC" <a href="http://www.unicode.org/unicode/reports/tr15">
+    <cite>Unicode Technical Report #15: Unicode Normalization Forms</cite></a>
+<dt><tt>ja-kana-fullwidth</tt>
+  <dd>日本語半角カナを全角カナに変換
+  <dd>Converts single-byte Japanese katakana to double-byte Japanese katakana
+<dt><tt>ja-alnum-halfwidth</tt>
+  <dd>日本語の全角英数字および全角マイナス記号を半角文字に変換
+<dd>Converts double-byte Japanese alphanumeric characters and double-byte minus symbols to single-byte characters.
+<dt><tt>ja-compose-voiced-sound</tt>
+  <dd>日本語の全角かなとそれに続く濁点(゛)半濁点(゜)を
+  濁点・半濁点つきのかな1文字に変換
+<dd>Converts double-byte Japanese katakana and following voiced consonant marks (゛) and circles attached to certain katakana (゜) to one katakana character attached with a voiced consonant mark or circle.
+<dt><tt>ja-minus-hack</tt>
+  <dd>日本語の全角マイナス記号(－)をハイフン(<tt>-</tt>)に変換
+  <dd>Converts double-byte Japanese minus symbols (－) to hyphens (<tt>-</tt>).
+<dt><tt>ja-delimiter-hack</tt>
+  <dd>日本語の句点(。)および全角ピリオド(．)をピリオド(<tt>.</tt>)に変換
+  <dd>Converts Japanese delimiters (。) and double-byte periods (．) to periods (<tt>.</tt>).
+</dl>
+
+<p>
+正規化形式には複数の形式が指定可能です。複数の形式が指定された場合、
+順序通りに (左から右に) 適用されます。
+<p>
+More than one formats can be specified for the normalization method. When more than one method is specified, they are applied in the order indicated (from left to right).
+<p>
+
+<h2><a name="alternate-encoding">代替エンコーディングエントリ</a></h2>
+<h2><a name="alternate-encoding">Alternate Encoding Entry</a></h2>
+
+<p>
+mDNkit で多言語化されたリゾルバライブラリは、
+アプリケーションが使用しているローカルコードセットを自動的に決定し、
+DNS の応答メッセージ中のドメイン名を、そのコードセットに変換しようとします。
+しかし、ドメイン名に使用されているある文字がローカルコードセットに
+マップされていないために、変換に失敗することもあり得ます。
+例えば日本語コードセットを使用している日本語のアプリケーションが、
+日本語の文字セットに含まれていない中国語の文字を含んだ DNS
+応答を受信したような時にこのようなことが起こります。
+<p>
+Resolver library that was made multilingual by the mDNkit automatically determines the local code set used by the application, and tries to convert the domain name in the response message of DNS to that code set.
+However, conversion may fail because some characters used for the domain name are not mapped in the local code set.
+For example, this happens when a Japanese application using the Japanese code set receives a DNS response that includes Chinese characters that are not included in the Japanese character set.
+
+<p>
+代替エンコーディングエントリは、上記のような問題が生じた時に
+ローカルコードセットの代わりに使用するコードセットを指定します。
+<p>
+The alternate encoding entry specifies a code set to be used instead of the local code set when the above type of problem occurs.
+
+<dl>
+<dt>[構文]
+  <dd><tt>alternate-encoding</tt> <em>encoding</em>
+</dl>
+<dl>
+<dt>[Syntax]
+  <dd><tt>alternate-encoding</tt> <em>encoding</em>
+</dl>
+
+<p>
+<em>encoding</em> はコードセット名で、RACE のような
+<a href="library.html#ACE">ASCII 互換エンコーディング</a>
+を使用しなければなりません。
+<p>
+<em>encoding</em> is a code set name and <a href="library.html#ACE"> ASCII-conpatible encoding</a> such as RACE must be used.
+<p>
+
+<h2><a name="alias-file">エンコーディングエイリアスエントリ</a></h2>
+<h2><a name="alias-file">Encoding Alias Entries</a></h2>
+
+<p>
+エンコーディングエイリアスエントリでは、コードセット名のエイリアスを
+記述したファイルのパス名を記述します。
+<p>
+The encoding alias entry contains a description of the path to the file that describes the alias of the code set name.
+
+<dl>
+<dt>[構文]
+  <dd><tt>alias-file</tt> <em>pathname</em>
+</dl>
+<dl>
+<dt>[Syntax]
+  <dd><tt>alias-file</tt> <em>pathname</em>
+</dl>
+
+<p>
+<em>pathname</em> には、エイリアスファイルへのパス名を指定します。
+このエイリアスファイルは通常のテキストファイルで、
+以下のような形式の行から構成されます。
+<p>
+<em>pathname</em> specifies the path for the alias file. 
+This alias file is usually a text file and consists of lines in the following format.
+
+<blockquote>
+<pre>
+<em>alias-name</em> <em>name</em>
+</pre>
+</blockquote>
+
+<p>
+<em>alias-name</em> は定義されるエイリアス名で、<em>name</em> は
+実際のコードセット名か、定義済のエイリアス名です。
+<p>
+<em>alias-name</em> is the defined alias name and <em>name</em> is the actual code set name or previously defined alias name.
+<p>
+
+<h2><a name="local-codeset">ローカルコードセット</a></h2>
+<h2><a name="local-codeset">Local Code Set</a></h2>
+
+<p>
+クライアント設定ファイルにはローカルコードセットを指定するエントリは
+存在しません。
+ローカルコードセットはアプリケーションがそのときに使用している
+ロケールの情報から決定されるからです。
+ですから、それぞれのアプリケーションがそれぞれ異なるローカルコードセットを
+使用することができますし、同一アプリケーションが複数のローカルコードセットを
+切り替えながら使用することも可能です。
+<p>
+The client configuration file does not have an entry used to specify local code set.
+This is because the local code set is determined based on the locale information used by the application at that time. 
+Therefore, each application can use a different local code set and also a single application can use more than one local code sets by switching between them.
+
+<p>
+mDNkit はロケール情報からアプリケーションの使用しているローカルコードセットを
+推測しようとしますが、時には失敗することもあります。
+例えば、C ロケールで動作しているにも関わらず
+非 ASCII コードセットを使用しているアプリケーションではロケール情報から
+ローカルコードセットを判定することは不可能ですし、mDNkit が知らない
+ロケールで動作するアプリケーションの場合にも推測に失敗するでしょう。
+<p>
+mDNkit tries to guess the local code set used by the application based on locale information but it sometimes fails to do so. 
+For example, though an application may run in the C locale, if the application uses a non-ASCII code set it is impossible to determine the local code set from the locale information. Also, mDNkit will fail when it attempts to guess the local code set an application uses if it does not understand the locale information.
+
+<p>
+このような場合のために、環境変数 <tt>MDN_LOCAL_CODESET</tt> によって
+アプリケーションのローカルコードセットを強制指定することができるように
+なっています。
+この変数にコードセット名 (もしくはそのエイリアス名)
+を指定すると、mDNkit はロケールの設定に関わらず、指定したコードセットを
+ローカルコードセットとして動作します。
+<p>
+In such cases, the <tt>MDN_LOCAL_CODESET</tt> environmental variable can be used to forcefully specify the local code set used by the application.
+When the code set name (or its alias name) specifies this variable, mDNkit operates using the specified code set as the local code set regardless of the locale setting. 
+
+<p>
+
+<h2><a name="sample">コンフィギュレーションファイル記述例</a></h2>
+<h2><a name="sample">Configuration File Description Example</a></h2>
+
+<p>
+以下に、コンフィギュレーションファイルの記述例を示します。
+<p>
+Description examples of the configuration file are shown below.
+
+<blockquote>
+<pre>
+#
+# a sample configuration.
+#
+
+# DNS プロトコル上のエンコーディングとして RACE を使用する
+# Uses RACE as encoding for the DNS protocol
+server-encoding RACE
+
+# 正規化の手順として、小文字に変換した後、KC 正規化法を使用する
+# For the normalization procedure, converts to lowercase and then 
+# uses the KC normalization method 
+normalize unicode-lowercase unicode-form-kc
+
+# 代替エンコーディングとして RACE を使用する
+# Uses RACE for alternate encoding 
+alternate-encoding RACE
+</pre>
+</blockquote>
+
+</body>
+</html>

@@ -1,0 +1,389 @@
+<!doctype html public "-//W3C//DTD HTML 3.2 Final//EN">
+<!-- $Id: proxyconfig.html,v 1.1 2001/03/05 12:58:01 tale Exp $ -->
+<html>
+<head>
+<title>Configuring DNS Proxy Server</title>
+<meta http-equiv="Content-Type" content="text/html; charset=Shift_JIS">
+</head>
+<body>
+<h1><a name="proxyconfig">DNS Proxy Server のコンフィギュレーション</a></h1>
+<h1><a name="proxyconfig">Configuring DNS Proxy Server<a></h1>
+<p>
+DNS Proxy Server <b>dnsproxy</b>を使うには、いくつかの情報を設定する必要があります。ここでは、これらの情報の設定方法と意味とを説明します。
+<p>
+A number of data items have to be set up to allow use of <b>dnsproxy</b>, the DNS Proxy Server. This draft describes the procedure for setup, and its significance.
+<ul>
+<li><a href="#config-file">コンフィギュレーションファイル</a>
+<li><a href="#config-file">Configuration file</a>
+<li><a href="#config-data">コンフィギュレーションデータ</a>
+<li><a href="#config-data">Configuration data</a>
+<ul>
+    <ul>
+    <li><a href="#listen">listen</a>
+    <li><a href="#forward">forward</a>
+    <li><a href="#log-file">log-file</a>
+    <li><a href="#log-level">log-level</a>
+    <li><a href="#client-translation">client-translation</a>
+    <li><a href="#alternate-encoding">alternate-encoding</a>
+    <li><a href="#normalize">normalize</a>
+    <li><a href="#server-translation">server-translation</a>
+    <li><a href="#user-id">user-id</a>
+    <li><a href="#group-id">group-id</a>
+    <li><a href="#root-directory">root-directory</a>
+    </ul>
+</ul>
+
+<hr>
+<h2><a name="config-file">コンフィギュレーションファイル</a></h2>
+<h2><a name="config-file">Configuration File</a></h2>
+<hr>
+<p>
+設定情報はコンフィギュレーションファイルに記載されます。コンフィギュレーションファイルは、<b>dnsproxy</b>の起動時にコマンドラインで指示することができます。
+<p>
+The setup data can be found in the configuration file. The configuration file can be specified on the command line when <b>dnsproxy</b> starts up.
+<blockquote>
+<pre>
+% <kbd>dnsproxy -config &lt;config-file&gt;</kbd>
+</pre>
+</blockquote>
+コマンドラインで指示しなかった場合にはデフォルトのコンフィギュレーションファイルが使用されます。
+デフォルトのコンフィギュレーションファイルは、ディレクトリ
+When not specified on the command line, the default configuration file can be used. The default configuration file is found under the following directory.
+<pre>
+    /usr/local/etc
+</pre>
+の下の
+<pre>
+    dnsproxy.conf
+</pre>
+です。ディレクトリは、mDNkit作成時に
+<pre>
+    configure --sysconfdir=DIR
+</pre>
+This directory can be specified when the mDNkit is generated.
+<pre>
+    configure --sysconfdir=DIR
+</pre>
+で指示することもできます。
+詳しくは、インストールガイドの
+<a href="install.html#sysconfdir">configure 実行</a>の
+ところをご覧ください。
+</pre>
+For details, refer to the installation guide:
+<a href="install.html#sysconfdir">Configure and implement</a>
+
+<hr>
+<h2><a name="config-data">コンフィギュレーションデータ</a></h2>
+<p>
+<hr>
+<h2><a name="config-data">Configuration Data</a></h2>
+<p>
+コンフィギュレーションファイルはテキストファイルで、以下のコンフィギュレーションデータを指定します。
+<p>
+The configuration file is a text file and specifies the following configuration data.
+
+<dl>
+<dt><a name="listen">listen</a><dd>
+<p>
+dnsproxyがクライアントからの要求を受付けるネットワークアドレス、ポート番号を指定します。
+<p>
+Specifies the network address and port number dnsproxy needs in order to receive client queries.
+<pre>
+    listen &lt;address&gt;
+</pre>
+&lt;address&gt;は以下のいずれかの形式で指示します。<br>
+&lt;address&gt; specifies one of the following formats.
+<blockquote>
+<table>
+<tr><td>&lt;IP address&gt;:&lt;port number&gt;</td></tr>
+<tr><td>:&lt;port number&gt;</td></tr>
+<tr><td>&lt;IP address&gt;</td></tr>
+</table>
+</blockquote>
+省略された場合には
+<br>
+When these settings are omitted, the following settings are used.
+<blockquote>
+<table>
+<tr><td>IP address</td><td>0.0.0.0</td><td># INADDR_ANY</td></tr>
+<tr><td>port number</td><td>53</td></tr>
+</table>
+</blockquote>
+が使用されます。
+<br>
+
+<p>
+dnsproxy経由でDNSサーバを使用するクライアントは、ここで指示したアドレス、ポートをDNSサーバとして設定します。
+クライアント側ではポート番号を変更できないものが多いのでポート番号はデフォルトの53をそのまま使った方がよいでしょう。
+<p>
+<p>
+Clients that use a DNS server via dnsproxy will set up the address and port of the DNS server here.
+Because most clients cannot usually change the port number, it is best to use default port number 53.
+<p>
+
+<dt><a name="forward">forward</a><dd>
+<p>
+dnsproxyが、DNS要求を転送し、応答を受け取る本来のDNSサーバのネットワークアドレス、ポート番号を指定します。
+<p>
+dnsproxy transfers DNS queries and specifies the network address and port number of the DNS server that is to receive the response.
+
+<pre>
+    forward &lt;address&gt; [ bind4compat ]
+</pre>
+&lt;address&gt;の形式は上の<a href="#listen">listen</a>のものと同じです。
+&lt;address&gt;The address format is the same as that of <a href="#listen"> listen</a> above.
+<p>
+オプションの <b>bind4compat</b>が指示された場合には、UDPでリクエストを転送する時に、ソースアドレスとして、listenで指示されたアドレス/ポートを使用します。
+これはbind4にある機能で、UDPポートについてのアクセス制限下で運用することを想定したものです。このオプションが指示されなかった場合には、1024以上のソースポートが使用されます。
+<p>
+<p>
+When the option  <b>bind4compat</b> is specified, the address and port specified by listen is used as the source address when a request is transferred using UDP.
+This is a bind4 function and assumes that UDP port access is limited. A source port greater than 1024 is used when this option is not specified.
+<p>
+
+<dt><a name="log-file">log-file</a><dd>
+<p>
+dnsproxyが実行ログを出力するファイル名を指定します。
+<p>
+Specifies the name of the file that contains the execution log output by dnsproxy.
+<pre>
+    log-file &lt;path&gt;
+</pre>
+ログファイル名は、以下のコマンドラインオプションで指定することもできます。
+両方指定した場合にはコマンドラインオプションの指定のほうが優先されます。
+<pre>
+</pre>
+The log file name can also be specified using the following command line option.
+When both are entered, the command line option takes precedence.
+<pre>
+    dnsproxy -logfile &lt;address&gt;
+</pre>
+指定されなかった場合には、
+<pre>
+</pre>
+When not specified,
+<pre>
+    /tmp/dnsproxy.log
+</pre>
+に書き込まれます。
+<p>
+</pre>
+is written.
+<p>
+なお、実行ログは常に追記されていきますので、適当な時を見計らって消すことをお勧めします。
+<p>
+Note that the execution log is added to continuously and should be deleted from time to time.
+<p>
+また、dnsproxy にハングアップシグナル (SIGHUP) を送るといったんログファイルを閉じて、再度オープンするようになっています。ログファイルをアーカイブする場合に便利な機能です。
+<p>
+<p>
+When a hangup signal (SIGHUP) is sent to dnsproxy, it temporarily closes the log file and then reopens it. This is a convenient command when the log file is to be archived.
+<p>
+
+<dt><a name="log-level">log-level</a><dd>
+<p>
+ログのレベルを設定します。
+<p>
+Specifies the log level.
+<pre>
+    log-level &lt;level&gt;
+</pre>
+レベルとして指定できる値は次の通りです。
+<blockquote>
+</pre>
+The following log level values can be specified.
+<blockquote>
+<dl>
+<dt>none<dd>一切ログを記録しません。ログがないと不具合が生じた場合の
+原因解明が難しくなりますので、できればこのレベルは指定しないでください。
+<dt>none<dd> No log is recorded. The absence of a log file makes it very difficult to identify the cause of a problem. If possible do not use this level.
+<dt>fatal<dd>致命的なエラーが生じたときにのみログを出力します。
+<dt>fatal<dd>Outputs a log only when a fatal error occurs.
+<dt>warn<dd>警告メッセージにもログに記録します。これがログレベルを
+指定しなかったときのデフォルトです。
+<dt>warn<dd>Records warning messages in the log. This is the default used when  no log level is specified.
+<dt>trace<dd>実行トレースメッセージもログに出力します。
+このレベルを指定すると dnsproxy の動作がかなり詳細に記録されるので障害が発生した場合の原因究明には便利ですが、大量のログが出力されるので普段は指定しない方がよいでしょう。
+<dt>trace<dd>Outputs execution trace messages in the log.
+This level provides a detailed record of dnsproxy operation, which is helpful in determining the cause of a problem. As it records a large amount of data, it is best not used during normal operation.
+</dl>
+</blockquote>
+<p>
+
+<dt><a name="client-translation">client-translation</a><dd>
+<p>
+クライアント側でのドメイン名のエンコーディングを指示します。
+<br>
+Specifies the domain name encoding to be used on the client side.
+<pre>
+    client-translation &lt;ZLD&gt; &lt;Encoding&gt;
+</pre>
+多言語ドメイン名に対応していないクライアントの場合には、通常、クライアントのローカルエンコーディングになっています。そのような場合には
+<br>
+For clients that do not support multilingual domain names, the local encoding of the client is normally used. In such a case, the following format is used without &lt;ZLD&gt;.
+<pre>
+    client-translation . Shift_JIS
+</pre>
+という形で、&lt;ZLD&gt;無しで指示します。
+<p>
+
+<p>
+多言語ドメイン名の手法によっては、クライアント側で多言語ドメイン名を通常のDNSでも受付けられる形式にエンコードして、それを通常のドメイン名と区別するために ZLD (Zero Level Domain) を付加するものがあります。そのような場合には、付加されるZLDとその時のドメイン名のエンコーディング方法とを対応付けることにより、他の多言語ドメイン名手法のDNSサーバを利用することができるようになります。
+<p>
+Some multilingual domain name schemes encode multilingual domain names in the client into a format that normal DNS can accept, and adds ZLD (Zero Level Domain) to distinguish it from regular domain names. Since the added ZLD and the domain name encoding scheme are interrelated, they can also be used with DNS servers using a different multilingual domain name scheme.
+
+<pre>
+    client-translation .i-dns.net UTF-5
+</pre>
+
+クライアント側のドメイン名のエンコーディングは、ZLD が異なっていれば、複数指定することができます。
+<p>
+Multiple domain name encoding schemes can be used in a client if each scheme has its own unique \ZLDs.
+<p>
+なお、mDNkit のデフォルトの設定では ZLD の指定はできないようになっています。ZLD を使用するためには、mDNkit のコンパイルの際、<tt>configure</tt> コマンドに <a href="install.html#enable-zld"><tt>--enable-zld</tt></a>を指定する必要があります。この指定をせずに mDNkit をコンパイルした場合には、ZLD の指定はすべて無視されます。
+<p>
+Note that ZLD cannot be specified in the default setting of mDNkit. To use a ZLD,  <a href="install.html#enable-zld"><tt>--enable-zld</tt></a> must be specifed using the <tt>configure</tt> command when mDNkit is compiled.
+All ZLD settings are ignored unless this specification is made when mDNkit is compiled.
+<p>
+クライアントから送られてきたDNS要求のドメイン名は、ここで指示したエンコーディングから、内部的に使用されるUTF-8エンコーディングに変換されます。
+そして、後述の正規化、サーバ側エンコーディングへの変換が行なわれてDNSサーバに送出されます。また、DNSサーバからの応答は、逆に元のエンコデーィングに戻されてクライアントに返されます。
+<p>
+The encoding of domain names in the DNS query sent by the client is converted to UTF-8 encoding that is used internally.
+Then normalization (described below) and conversion to server side encoding are performed after which the data is sent to the DNS server. The response from the DNS server is converted back to the original encoding and returned to the client.
+<p>
+ここで指定可能なエンコーディング名は、mDNkit付属のlibmdnおよび使用するiconv ライブラリに依存します。
+iconv ライブラリによって、エンコーディング名が異なっていることがありますので、ライブラリのマニュアルをご覧になって使用可能なエンコーディング名を確認してください。
+<p>
+The encoding names that can be used here depend on libmdn and iconv, mDNkit libraries.
+Since the encoding name used differs with the iconv library that is employed, check the library manual to confirm the encoding names that can be used. In addition to the enconding provided by iconv, libdmn supports the following encoding schemes recommended for multilingual DNS.
+<blockquote>
+<table>
+<tr><td>UTF-5</td>
+    <td><a href="../../reference/draft/draft-jseng-utf5-01.txt">draft-jseng-utf5-01.txt</a></td>
+    </tr>
+<tr><td>RACE</td>
+    <td><a href="../../reference/draft/draft-ietf-idn-race-02.txt">draft-ietf-idn-race-02.txt</a></td>
+    </tr>
+<tr><td>BRACE</td>
+    <td><a href="../../reference/draft/draft-ietf-idn-brace-00.txt">draft-ietf-idn-brace-00.txt</a></td>
+    </tr>
+<tr><td>LACE</td>
+    <td><a href="../../reference/draft/draft-ietf-idn-lace-00.txt">draft-ietf-idn-lace-00.txt</a></td>
+    </tr>
+</table>
+</blockquote>
+をサポートしています。
+<p>
+
+<dt><a name="alternate-encoding">alternate-encoding</a>
+<dd>
+<p>DNS サーバから返されたドメイン名がクライアントのローカルエンコーディングに変換できない文字を含んでいた場合に、ローカルエンコーディングの代わりに使用するエンコーディングを指定します。
+<p>Specifies the encoding to be used in place of local encoding when the domain name returned by the DNS server contains characters that cannot be converted to the local encoding of the client.
+<pre>
+    alternate-encoding &lt;Encoding&gt;
+</pre>
+指定するエンコーディングは必ず「ASCII互換エンコーディング (ACE)」と呼ばれる、変換結果が従来のドメイン名として使用可能な文字 (英数字およびハイフン) だけからなるエンコーディングでなければなりません。たとえば ASCII 互換エンコーディングの一つである RACE を指定する場合には次のように指定します。
+<P>The specified encoding must be ASCII compatible encoding (ACE) so that the result of conversion is in an encoding that contains only characters that can be used in traditional domain names (alphanumerics and hyphens). For example, this is how to specify RACE, one of the ASCII compatible encoding schemes.
+<pre>
+    alternate-encoding RACE
+</pre>
+<p>
+
+<dt><a name="normalize">normalize</a><dd>
+<p>
+ドメイン名の正規化手法を指定します。
+<p>
+Specifies the normalization scheme to be used for domain names.
+<pre>
+    normalize &lt;scheme&gt; ...
+</pre>
+正規化手法は複数指定可能で、左側から順に適用されていきます。
+<p>
+A number of normalization schemes can be indicated, and they will be used in order from left to right.
+<p>
+クライアントから送られてきたDNS要求のドメイン名は、内部的に使用されるUTF-8エンコーディングに変換された上で、ここで指示した正規化が適用されます。
+使用可能な正規化手法はmDNkitに含まれるlibmdnに依存しています。
+どのような正規化手法があるかは、<a href="../spec/library.html">libmdnのマニュアル</a>の<a href="../spec/library.html#normalizer">normalizer モジュール</a>に記載されています。
+<p>
+When the domain name in the DNS query sent by the client has been converted to UTF-8 encoding for internal use, they are normalized according to the normalization scheme specified here.
+The normalization schemes that can be used depends on the libmdn in the mDNkit.
+Available normalization schemes are described in the <a href="../spec/library.html#normalizer">Normalizer Module</a> in <a href="../spec/library.html">the libmdn manual</a>.
+<p>
+
+<dt><a name="server-translation">server-translation</a><dd>
+<p>
+DNSサーバ側のドメイン名エンコーディング方法を指示します。
+<p>
+Specifies domain name encoding schemes to be used on the DNS server side.
+<pre>
+    server-translation &lt;ZLD&gt; &lt;Encoding&gt;
+</pre>
+<p>ZLDが不要なエンコーディングであれば、省略値として'.'を指示します。
+
+<p>Specifies '.' as the default when ZLD is not necessary.
+
+<pre>
+    server-translation . UTF-8
+</pre>
+ZLDを必要するエンコーディングでは、ZLDとエンコーディング名の両方を指定します。
+<pre>
+</pre>
+When ZLD is required, specify both ZLD and the encoding name.
+<pre>
+    server-translation .i-dns.net UTF-5
+</pre>
+指定可能なエンコーディングは、前出のclient-translationでのものと同じです。
+<p>
+</pre>
+The encoding that can be specified is the same as for client-translation above.
+<p>
+
+<dt><a name="user-id">user-id</a>
+<dd>
+<p>dnsproxy が動作するユーザを指定します。
+<p>Specifies user that uses dnsproxy.
+<pre>
+    user-id &lt;user&gt;
+</pre>
+<p>通常、dnsproxy は特権ポートを使用するためルート権限で起動させる必要がありますが、ルート権限のままで動作させるのはセキュリティ上好ましくありません。この指定により、dnsproxy は特権ポートを作成したあとサービスを開始する前に指定したユーザの権限で動くようになります。
+<p>Normally, dnsproxy must be started up with root permission to use a privileged port, but continued use of root permission is not recommended for security reasons. With this specification, dnsproxy runs under the user's control with a privileged port before start of service. 
+<p>&lt;user&gt; にはユーザ名あるいはユーザ ID 番号を指定することができます。
+<p>
+<p>&lt;user&gt; allows you to specify user name or user ID number.
+<p>
+<dt><a name="group-id">group-id</a>
+<dd>
+<p>dnsproxy が動作するグループを指定します。
+<pre>
+<p>Specifies group that uses dnsproxy.
+<pre>
+    group-id &lt;user&gt;
+</pre>
+<p>
+これは <tt>user-id</tt> エントリと似ていますが、ユーザの代わりにグループを指定する点が異なります。
+<p>
+This resembles the <tt>user-id</tt> entry, but differs from it in that it specifies a group in place of the user.
+
+<p>&lt;group&gt; にはグループ名あるいはグループ ID 番号を指定することができます。
+<p>&lt;group&gt; can be specified by a group name or group ID number.
+<p>
+<dt><a name="root-directory">root-directory</a>
+<dd>
+<p>dnsproxy が動作する際のルートディレクトリを指定します。
+<p>Specifies the root directory used with dnsproxy.
+<pre>
+    root-directory &lt;path&gt;
+</pre>
+<p>これもセキュリティ対策の一つです。dnsproxy が動作する際のルートディレクトリ
+を指定することで、そのディレクトリの外にはアクセスできないようにします。
+この指定により、dnsproxy はサービスを開始する前に、<em>chroot()</em>システムコールを用いて指定したディレクトリをルートディレクトリとして設定します。
+<p>This, also, is a security measure. By specifying the root directory used with dnsproxy access cannot be made outside of this directory.
+This specification causes dnsproxy to use <em>chroot()</em> system calls to set the specified directory as the root directory before starting service.
+
+<p>&lt;path&gt; にはルートとして設定したいディレクトリ名を指定します。
+<p>&lt;path&gt; specifies the name of the directory to be used as the root.
+
+</dl>
+
+</body>
+</html>
