@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.7 2000/06/22 21:54:51 tale Exp $ */
+/* $Id: tsigconf.c,v 1.7.2.1 2000/07/28 00:05:41 gson Exp $ */
 
 #include <config.h>
 
@@ -43,13 +43,12 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 	key = ISC_LIST_HEAD(list->keydefs);
 	while (key != NULL) {
 		dns_name_t keyname;
-		dns_name_t alg;
+		dns_name_t *alg, tempalg;
 		char keynamedata[1024], algdata[1024];
 		isc_buffer_t keynamesrc, keynamebuf, algsrc, algbuf;
 		isc_buffer_t secretsrc, secretbuf;
 
 		dns_name_init(&keyname, NULL);
-		dns_name_init(&alg, NULL);
 
 		/*
 		 * Create the key name.
@@ -66,16 +65,19 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		 * Create the algorithm.
 		 */
 		if (strcasecmp(key->algorithm, "hmac-md5") == 0)
-			alg = *dns_tsig_hmacmd5_name;
+			alg = dns_tsig_hmacmd5_name;
 		else {
+			dns_name_init(&tempalg, NULL);
 			isc_buffer_init(&algsrc, key->algorithm,
 					strlen(key->algorithm));
 			isc_buffer_add(&algsrc, strlen(key->algorithm));
 			isc_buffer_init(&algbuf, algdata, sizeof(algdata));
-			ret = dns_name_fromtext(&alg, &algsrc, dns_rootname,
+			ret = dns_name_fromtext(&tempalg, &algsrc,
+						dns_rootname,
 						ISC_TRUE, &algbuf);
 			if (ret != ISC_R_SUCCESS)
 				goto failure;
+			alg = &tempalg;
 		}
 
 		if (strlen(key->secret) % 4 != 0) {
@@ -105,7 +107,7 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		isc_lex_destroy(&lex);
 
 		isc_stdtime_get(&now);
-		ret = dns_tsigkey_create(&keyname, &alg, secret, secretlen,
+		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen,
 					 ISC_FALSE, NULL, now, now,
 					 mctx, ring, NULL);
 		isc_mem_put(mctx, secret, secretalloc);
