@@ -1,7 +1,7 @@
 
 INTERNET-DRAFT                                       Andreas Gustafsson
-draft-ietf-dnsext-unknown-rrs-05.txt                       Nominum Inc.
-                                                             March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                       Nominum Inc.
+                                                              June 2003
 
 Updates: RFC 1034, RFC 2163, RFC 2535
 
@@ -50,9 +50,9 @@ Abstract
 
 
 
-Expires September 2003                                          [Page 1]
+Expires December 2003                                           [Page 1]
 
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
 
 
    Because the deployment of new server software is slow and expensive,
@@ -106,9 +106,9 @@ draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 
 
-Expires September 2003                                          [Page 2]
+Expires December 2003                                           [Page 2]
 
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
 
 
    To avoid such corruption, servers MUST NOT compress domain names
@@ -162,9 +162,9 @@ draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 
 
-Expires September 2003                                          [Page 3]
+Expires December 2003                                           [Page 3]
 
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
 
 
       An unsigned decimal integer specifying the
@@ -218,9 +218,9 @@ draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 
 
-Expires September 2003                                          [Page 4]
+Expires December 2003                                           [Page 4]
 
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
 
 
    As a result, when a new RR type contains one or more embedded domain
@@ -274,9 +274,9 @@ draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 
 
-Expires September 2003                                          [Page 5]
+Expires December 2003                                           [Page 5]
 
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
 
 
 8. Additional Section Processing
@@ -288,10 +288,7 @@ draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 9. IANA Considerations
 
-   The IANA is hereby requested to verify that specifications for new RR
-   types requesting an RR type number comply with this specification.
-   In particular, the IANA MUST NOT assign numbers to new RR types whose
-   specification allows embedded domain names to be compressed.
+   This document does not require any IANA actions.
 
 10. Security Considerations
 
@@ -327,16 +324,16 @@ Non-normative References
    Name System, C. Davis, P. Vixie, T. Goodwin, I. Dickinson, January
    1996.
 
-
-
-
-Expires September 2003                                          [Page 6]
-
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
-
-
    [RFC2052] - A DNS RR for specifying the location of services (DNS
    SRV), A. Gulbrandsen, P. Vixie, October 1996.  Obsoleted by RFC2782.
+
+
+
+
+Expires December 2003                                           [Page 6]
+
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
+
 
    [RFC2136] - Dynamic Updates in the Domain Name System (DNS UPDATE),
    P. Vixie, Ed., S. Thomson, Y. Rekhter, J. Bound, April 1997.
@@ -359,7 +356,7 @@ Author's Address
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2001 - 2002).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001 - 2003).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -383,17 +380,16 @@ Full Copyright Statement
    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
-
-
-
-Expires September 2003                                          [Page 7]
-
-draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
-
-
    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
 
 Intellectual Property Statement
+
+
+
+Expires December 2003                                           [Page 7]
+
+draft-ietf-dnsext-unknown-rrs-06.txt                           June 2003
+
 
    The IETF takes no position regarding the validity or scope of any
    intellectual property or other rights that might be claimed to pertain
@@ -442,6 +438,8 @@ Intellectual Property Statement
 
 
 
-Expires September 2003                                          [Page 8]
-
 
+
+
+
+Expires December 2003                                           [Page 8]
