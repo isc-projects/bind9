@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.73 2000/11/15 19:04:41 gson Exp $ */
+/* $Id: update.c,v 1.74 2000/11/22 02:49:57 gson Exp $ */
 
 #include <config.h>
 
@@ -1073,8 +1073,8 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 		serial = 1;
 
 	dns_soa_setserial(serial, &addtuple->rdata);
-	CHECK(do_one_tuple(&addtuple, db, ver, diff));
 	CHECK(do_one_tuple(&deltuple, db, ver, diff));
+	CHECK(do_one_tuple(&addtuple, db, ver, diff));
 	result = ISC_R_SUCCESS;
 
  failure:
