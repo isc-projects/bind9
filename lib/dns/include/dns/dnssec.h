@@ -132,7 +132,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key);
  */
 
 isc_result_t
-dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key);
+dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
+			 dst_key_t *key);
 /*
  *	Verifies a message signed by a SIG(0) record.  This is not
  *	called implicitly by dns_message_parse().  If dns_message_signer()
@@ -142,6 +143,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key);
  *	the sig0status field otherwise.
  *
  *	Requires:
+ *		'source' is a valid buffer containing the unparsed message
  *		'msg' is a valid message
  *		'key' is a valid key
  *

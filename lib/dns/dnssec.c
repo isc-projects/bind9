@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.27 2000/04/11 18:04:35 bwelling Exp $
+ * $Id: dnssec.c,v 1.28 2000/04/19 20:57:54 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -654,12 +654,14 @@ failure:
 }
 
 isc_result_t
-dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
+dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
+			 dst_key_t *key)
+{
 	dns_rdata_generic_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata;
 	dns_name_t tname;
-	isc_region_t r, r2, sig_r, header_r;
+	isc_region_t r, r2, source_r, sig_r, header_r;
 	isc_stdtime_t now;
 	dst_context_t ctx;
 	isc_mem_t *mctx;
@@ -667,14 +669,18 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	isc_uint16_t addcount;
 	isc_boolean_t signeedsfree = ISC_FALSE;
 
+	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
-	REQUIRE(msg->saved != NULL);
 	REQUIRE(key != NULL);
 
 	if (is_response(msg))
 		REQUIRE(msg->query != NULL);
 
 	mctx = msg->mctx;
+
+	msg->verify_attempted = 1;
+
+	isc_buffer_used(source, &source_r);
 
 	RETERR(dns_rdataset_first(msg->sig0));
 	dns_rdataset_current(msg->sig0, &rdata);
@@ -699,7 +705,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 		goto failure;
 	}
 
-	/* ensure that sig.signer refers to this key :) */
+	/* XXXBEW ensure that sig.signer refers to this key */
 
 	RETERR(dst_verify(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
 
@@ -709,7 +715,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 				  NULL));
 
 	/* Extract the header */
-	memcpy(header, msg->saved->base, DNS_MESSAGE_HEADERLEN);
+	memcpy(header, source_r.base, DNS_MESSAGE_HEADERLEN);
 
 	/* Decrement the additional field counter */
 	memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
@@ -722,7 +728,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
 
 	/* Digest all non-SIG(0) records */
-	r.base = msg->saved->base + DNS_MESSAGE_HEADERLEN;
+	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
@@ -731,8 +737,8 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	 * the name and 10 bytes for class, type, ttl, length to get to
 	 * the start of the rdata.
 	 */
-	r.base = msg->saved->base + msg->sigstart;
-	r.length = msg->saved->length - msg->sigstart;
+	r.base = source_r.base + msg->sigstart;
+	r.length = source_r.length - msg->sigstart;
 	dns_name_init(&tname, NULL);
 	dns_name_fromregion(&tname, &r);
 	dns_name_toregion(&tname, &r2);
@@ -757,8 +763,6 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 failure:
 	if (signeedsfree)
 		dns_rdata_freestruct(&sig);
-
-	msg->verify_attempted = 1;
 
 	return (result);
 }
