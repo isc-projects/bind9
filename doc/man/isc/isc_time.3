@@ -14,14 +14,26 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: isc_time.3,v 1.1 2000/06/27 21:51:45 jim Exp $
+.\" $Id: isc_time.3,v 1.2 2000/06/28 02:38:47 jim Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt ISC_TIME 3
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
-.Nm time
+.Nm isc_interval_iszero ,
+.Nm isc_time_set ,
+.Nm isc_time_settoepoch ,
+.Nm isc_time_isepoch ,
+.Nm isc_time_now ,
+.Nm isc_time_nowplusinterval ,
+.Nm isc_time_compare ,
+.Nm isc_time_add ,
+.Nm isc_time_subtract ,
+.Nm isc_time_microdiff ,
+.Nm isc_time_seconds ,
+.Nm isc_time_secondsastimet ,
+.Nm isc_time_nanoseconds 
 .Nd time-related operations
 .Sh SYNOPSIS
 .Fd #include <config.h>
