@@ -2101,9 +2101,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(sock->bound);
-#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
@@ -2215,9 +2213,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(sock->bound);
-#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
 	if (dev == NULL) {
@@ -2328,9 +2324,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(sock->bound);
-#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDDONE, action, arg);
 	if (dev == NULL) {
@@ -2520,9 +2514,7 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(!sock->bound);
-#endif
 
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof on) < 0) {
@@ -2572,9 +2564,7 @@ isc_socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	LOCK(&sock->lock);
 
 	REQUIRE(!sock->listener);
-#if 0 /* XXXMLG */
 	REQUIRE(sock->bound);
-#endif
 	REQUIRE(sock->type == isc_sockettype_tcp);
 
 	if (backlog == 0)
@@ -3063,9 +3053,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(sock->bound);
-#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVMARK, action, arg);
 	if (dev == NULL) {
@@ -3120,9 +3108,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 
 	LOCK(&sock->lock);
 
-#if 0 /* XXXMLG */
 	INSIST(sock->bound);
-#endif
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_SENDMARK, action, arg);
 	if (dev == NULL) {
