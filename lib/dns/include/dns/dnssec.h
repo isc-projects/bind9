@@ -145,6 +145,13 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
  * 	XXX temporary - this should be handled in dns_zone_t.
  */
 
+isc_result_t
+dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key);
+
+isc_result_t
+dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
+                         dst_key_t *key);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DNSSEC_H */

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.11 1999/10/26 19:31:52 bwelling Exp $
+ * $Id: dnssec.c,v 1.12 1999/11/02 19:53:41 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -45,12 +45,22 @@
 #include <dns/rdatalist.h>
 #include <dns/rdatastruct.h>
 #include <dns/dnssec.h>
+#include <dns/tsig.h> /* for DNS_TSIG_FUDGE */
 
 #include <dst/dst.h>
 #include <dst/result.h>
 
 #define TRUSTED_KEY_MAGIC	0x54525354	/* TRST */
 #define VALID_TRUSTED_KEY(x)	((x) != NULL && (x)->magic == TRUSTED_KEY_MAGIC)
+
+#define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
+
+#define RETERR(x) do { \
+	result = (x); \
+	if (result != ISC_R_SUCCESS) \
+		goto failure; \
+	} while (0)
+
 
 typedef struct dns_trusted_key dns_trusted_key_t;
 
@@ -418,10 +428,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/* Digest the SIG rdata (not including the signature) */
 	dns_rdata_toregion(sigrdata, &r);
 	r.length -= sig.siglen;
-	if (r.length < 20) {
-		ret = DNS_R_RANGE;
-		goto cleanup_struct;
-	}
+	RUNTIME_CHECK(r.length >= 20);
 	
 	ret = dst_verify(DST_SIGMODE_INIT | DST_SIGMODE_UPDATE,
 			 key, &ctx, &r, NULL);
@@ -584,5 +591,262 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 	if (pubkey != NULL)
 		dst_key_free(pubkey);
 	*nkeys = count;
+	return (result);
+}
+
+isc_result_t
+dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
+	dns_rdata_generic_sig_t sig;
+	unsigned char data[512];
+	unsigned char header[DNS_MESSAGE_HEADERLEN];
+	isc_buffer_t headerbuf, databuf, sigbuf;
+	unsigned int sigsize;
+	isc_buffer_t *dynbuf;
+	dns_name_t *owner, signer;
+	dns_rdata_t *rdata;
+	dns_rdatalist_t *datalist;
+	dns_rdataset_t *dataset;
+	isc_region_t r;
+	isc_stdtime_t now;
+	dst_context_t ctx;
+	isc_mem_t *mctx;
+	isc_result_t result;
+	isc_boolean_t signeedsfree = ISC_TRUE;
+
+	REQUIRE(msg != NULL);
+	REQUIRE(key != NULL);
+
+	if (is_response(msg))
+		REQUIRE(msg->query != NULL);
+
+	mctx = msg->mctx;
+
+	memset(&sig, 0, sizeof(dns_rdata_generic_sig_t));
+
+	sig.mctx = mctx;
+	sig.common.rdclass = dns_rdataclass_in; /**/
+	sig.common.rdtype = dns_rdatatype_sig;
+	ISC_LINK_INIT(&sig.common, link);
+
+	sig.covered = 0;
+	sig.algorithm = dst_key_alg(key);
+	sig.labels = 1; /* the root name */
+	sig.originalttl = 0;
+
+	RETERR(isc_stdtime_get(&now));
+	sig.timesigned = now - DNS_TSIG_FUDGE;
+	sig.timeexpire = now + DNS_TSIG_FUDGE;
+
+	sig.keyid = dst_key_id(key);
+
+	dns_name_init(&signer, NULL);
+	RETERR(keyname_to_name(dst_key_name(key), mctx, &sig.signer));
+
+	sig.siglen = 0;
+	sig.signature = NULL;
+	
+	isc_buffer_init(&databuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
+
+	RETERR(dst_sign(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
+
+	if (is_response(msg))
+		RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
+				NULL));
+
+	/* Digest the header */
+	isc_buffer_init(&headerbuf, header, sizeof(header),
+			ISC_BUFFERTYPE_BINARY);
+	dns_message_renderheader(msg, &headerbuf);
+	isc_buffer_used(&headerbuf, &r);
+	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+
+	/* Digest the remainder of the message */
+	isc_buffer_used(msg->buffer, &r);
+	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
+	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+
+	/*
+	 * Digest the fields of the SIG - we can cheat and use
+	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
+	 * is identical to dns format with the last 2 bytes removed.
+	 */
+	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_in /**/,
+				    dns_rdatatype_sig, &sig, &databuf));
+	isc_buffer_used(&databuf, &r);
+	r.length -= 2;
+	RETERR(dst_sign(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+
+	RETERR(dst_sig_size(key, &sigsize));
+	sig.siglen = sigsize;
+	sig.signature = (unsigned char *) isc_mem_get(mctx, sig.siglen);
+	if (sig.signature == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
+	}
+
+	isc_buffer_init(&sigbuf, sig.signature, sig.siglen,
+			ISC_BUFFERTYPE_BINARY);
+	RETERR(dst_sign(DST_SIGMODE_FINAL, key, &ctx, NULL, &sigbuf));
+
+	rdata = NULL;
+	RETERR(dns_message_gettemprdata(msg, &rdata));
+	dynbuf = NULL;
+	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024,
+				   ISC_BUFFERTYPE_BINARY));
+	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_in /**/,
+				    dns_rdatatype_sig, &sig, dynbuf));
+
+	dns_rdata_freestruct(&sig);
+	signeedsfree = ISC_FALSE;
+
+	dns_message_takebuffer(msg, &dynbuf);
+
+	owner = NULL;
+	RETERR(dns_message_gettempname(msg, &owner));
+	dns_name_init(owner, NULL);
+	dns_name_clone(dns_rootname, owner);
+
+	datalist = NULL;
+	RETERR(dns_message_gettemprdatalist(msg, &datalist));
+	datalist->rdclass = dns_rdataclass_in /**/;
+	datalist->type = dns_rdatatype_sig;
+	datalist->covers = 0;
+	datalist->ttl = 0;
+	ISC_LIST_INIT(datalist->rdata);
+	ISC_LIST_APPEND(datalist->rdata, rdata, link);
+	dataset = NULL;
+	RETERR(dns_message_gettemprdataset(msg, &dataset));
+	dns_rdataset_init(dataset);
+	dns_rdatalist_tordataset(datalist, dataset);
+	ISC_LIST_APPEND(owner->list, dataset, link);
+	dns_message_addname(msg, owner, DNS_SECTION_SIG0);
+
+	return (ISC_R_SUCCESS);
+
+failure:
+	if (dynbuf != NULL)
+		isc_buffer_free(&dynbuf);
+	if (signeedsfree)
+		dns_rdata_freestruct(&sig);
+
+	return (result);
+}
+
+isc_result_t
+dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
+			 dst_key_t *key)
+{
+	dns_rdata_generic_sig_t sig;
+	unsigned char header[DNS_MESSAGE_HEADERLEN];
+	dns_rdata_t rdata;
+	dns_rdataset_t *dataset;
+	dns_name_t tname, *sig0name;
+	isc_region_t r, r2, sig_r, header_r;
+	isc_stdtime_t now;
+	dst_context_t ctx;
+	isc_mem_t *mctx;
+	isc_result_t result;
+	isc_uint16_t addcount;
+	isc_boolean_t signeedsfree = ISC_FALSE;
+
+	REQUIRE(source != NULL);
+	REQUIRE(msg != NULL);
+	REQUIRE(key != NULL);
+
+	if (is_response(msg))
+		REQUIRE(msg->query != NULL);
+
+	mctx = msg->mctx;
+
+	result = dns_message_firstname(msg, DNS_SECTION_SIG0);
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_NOTFOUND;
+		goto failure;
+	}
+	sig0name = NULL;
+	dns_message_currentname(msg, DNS_SECTION_SIG0, &sig0name);
+	dataset = NULL;
+	result = dns_message_findtype(sig0name, dns_rdatatype_sig, 0, &dataset);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
+
+	RETERR(dns_rdataset_first(dataset));
+	dns_rdataset_current(dataset, &rdata);
+
+	RETERR(dns_rdata_tostruct(&rdata, &sig, mctx));
+	signeedsfree = ISC_TRUE;
+
+	RETERR(isc_stdtime_get(&now));
+	if (sig.timesigned > now) {
+		result = DNS_R_SIGFUTURE;
+		msg->sig0status = dns_tsigerror_badtime;
+		goto failure;
+	}
+	else if (sig.timeexpire < now) {
+		result = DNS_R_SIGEXPIRED;
+		msg->sig0status = dns_tsigerror_badtime;
+		goto failure;
+	}
+
+	/* ensure that sig.signer refers to this key :) */
+
+	RETERR(dst_verify(DST_SIGMODE_INIT, key, &ctx, NULL, NULL));
+
+	/* if this is a response, digest the query */
+	if (is_response(msg))
+		RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, msg->query,
+				  NULL));
+
+	/* Extract the header */
+	isc_buffer_used(source, &r);
+	memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
+	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
+
+	/* Decrement the additional field counter */
+	memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
+	addcount = htons(ntohs(addcount) - 1);
+	memcpy(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
+
+	/* Digest the modified header */
+	header_r.base = (unsigned char *) header;
+	header_r.length = DNS_MESSAGE_HEADERLEN;
+	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
+
+	/* Digest all non-SIG(0) records */
+	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
+	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+
+	/*
+ 	 * Digest the SIG(0) record .  Find the start of the record, skip
+	 * the name and 10 bytes for class, type, ttl, length to get to
+	 * the start of the rdata.
+	 */
+	isc_buffer_used(source, &r);
+	isc_region_consume(&r, msg->sigstart);
+	dns_name_init(&tname, NULL);
+	dns_name_fromregion(&tname, &r);
+	dns_name_toregion(&tname, &r2);
+	isc_region_consume(&r, r2.length + 10);
+	r.length -= (sig.siglen + 2);
+	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
+
+	sig_r.base = sig.signature;
+	sig_r.length = sig.siglen;
+	result = dst_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &sig_r);
+	if (result != ISC_R_SUCCESS) {
+		msg->sig0status = dns_tsigerror_badsig;
+		goto failure;
+	}
+
+	msg->verified_sig0 = 1;
+
+	dns_rdata_freestruct(&sig);
+
+	return (ISC_R_SUCCESS);
+
+failure:
+	if (signeedsfree)
+		dns_rdata_freestruct(&sig);
+
 	return (result);
 }
