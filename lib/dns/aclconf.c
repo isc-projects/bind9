@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.21 2000/08/11 01:53:47 gson Exp $ */
+/* $Id: aclconf.c,v 1.22 2000/08/11 02:11:20 bwelling Exp $ */
 
 #include <config.h>
 
@@ -62,7 +62,7 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	{
 		if (strcmp(aclname, dacl->name) == 0) {
 			dns_acl_attach(dacl, target);
-			return ISC_R_SUCCESS;
+			return (ISC_R_SUCCESS);
 		}
 	}
 	/* Not yet converted.  Convert now. */
@@ -77,6 +77,8 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
+	if (dacl->name == NULL)
+		return (ISC_R_NOMEMORY);
 	ISC_LIST_APPEND(ctx->named_acl_cache, dacl, nextincache);
 	dns_acl_attach(dacl, target);
 	return (ISC_R_SUCCESS);
