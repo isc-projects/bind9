@@ -1,6 +1,3 @@
- 580.	[bug]		In lib/dns/resolver.c, an INSIST was triggered
-			in fctx_getaddresses() when restarting with
-			returnlame.
 
  579.	[bug]		nsupdate did not take a filename to read update from.
 			[RT #492]
