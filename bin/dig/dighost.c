@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.46 2000/06/08 18:36:53 mws Exp $ */
+/* $Id: dighost.c,v 1.47 2000/06/08 21:18:24 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -73,6 +73,7 @@ isc_task_t *global_task = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 isc_sockaddr_t bind_address;
+isc_sockaddr_t bind_any;
 char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
@@ -448,6 +449,8 @@ setup_system(void) {
 		}
 		fclose (fp);
 	}
+
+	isc_sockaddr_any(&bind_any);
 
 	if (ndots == -1)
 		ndots = 1;
@@ -1887,10 +1890,11 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_tcp, &query->sock) ;
 		check_result(result, "isc_socket_create");
-		if (specified_source) {
+		if (specified_source)
 			result = isc_socket_bind(query->sock, &bind_address);
-			check_result(result, "isc_socket_bind");
-		}
+		else
+			result = isc_socket_bind(query->sock, &bind_any);
+		check_result(result, "isc_socket_bind");
 		result = isc_socket_connect(query->sock, &query->sockaddr,
 					    global_task, connect_done, query);
 		check_result (result, "isc_socket_connect");
@@ -1920,10 +1924,11 @@ do_lookup_udp(dig_lookup_t *lookup) {
 					   isc_sockaddr_pf(&query->sockaddr),
 					   isc_sockettype_udp, &query->sock) ;
 		check_result(result, "isc_socket_create");
-		if (specified_source) {
+		if (specified_source)
 			result = isc_socket_bind(query->sock, &bind_address);
-			check_result(result, "isc_socket_bind");
-		}
+		else
+			result = isc_socket_bind(query->sock, &bind_any);
+		check_result(result, "isc_socket_bind");
 	}
 
 	send_udp(lookup);
