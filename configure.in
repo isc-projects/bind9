@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.11 $)
+AC_REVISION($Revision: 1.12 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -28,6 +28,11 @@ AC_CHECK_FUNC(inet_ntop, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.o"
 	       AC_SUBST(ISC_EXTRA_OBJS)
 	       AC_DEFINE(NEED_INET_NTOP)]
+)
+AC_CHECK_FUNC(inet_pton, ,
+	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.o"
+	       AC_SUBST(ISC_EXTRA_OBJS)
+	       AC_DEFINE(NEED_INET_PTON)]
 )
 AC_CHECK_FUNC(inet_aton, ,
 	      [ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.o"
@@ -64,6 +69,11 @@ else
 			;;
 	esac
 fi
+case "$host" in
+	*-sun-solaris*)
+		AC_DEFINE(NEED_AF_INET6)
+		;;
+esac
 
 AC_SUBST_FILE(BIND9_MAKE_RULES)
 BIND9_MAKE_RULES=make/rules
