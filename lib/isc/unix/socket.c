@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.206 2001/08/12 00:12:14 marka Exp $ */
+/* $Id: socket.c,v 1.207 2001/08/16 07:27:48 marka Exp $ */
 
 #include <config.h>
 
@@ -650,7 +650,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
-#ifdef USE_CMSG
+#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIPV6)
 	if ((sock->type == isc_sockettype_udp)
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
@@ -671,7 +671,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 		memcpy(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
 	}
-#endif /* USE_CMSG */
+#endif /* USE_CMSG && ISC_PLATFORM_HAVEIPV6 */
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
 	msg->msg_accrightslen = 0;

@@ -1,3 +1,6 @@
+ 961.	[bug]		Tried to use a IPV6 feature when ISC_PLATFORM_HAVEIPV6
+			was not defined.  [RT #1482]
+
  960.	[port]		liblwres failed to build on systems with support for
 			getrrsetbyname() in the OS.  [RT #1592]
 
