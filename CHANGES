@@ -1,4 +1,8 @@
 
+ 580.	[func]		Ignore trailing garbage on incoming DNS packets,
+			for interoperability with broken server
+			implementations. [RT #491]
+
  579.	[bug]		nsupdate did not take a filename to read update from.
 			[RT #492]
 
