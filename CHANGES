@@ -1,10 +1,9 @@
 1048.	[bug]		Servers built with -DISC_MEM_USE_INTERNAL_MALLOC=1
 			didn't work.
 
-1047.	[bug]		When a request was refused due to being signed with
-			a TSIG key derived from an unsigned TKEY negotiation,
-			the response could have an rcode of SUCCESS rather
-			than REFUSED. [RT #1886]
+1047.	[bug]		named was incorrectly refusing all requests signed
+			with a TSIG key derived from an unsigned TKEY
+			negotiation with a NOERROR response. [RT #1886]
 
 1046.	[bug]		The help message for the --with-openssl configure
 			option was inaccurate. [RT #1880]
