@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.1 2001/06/22 17:19:08 tale Exp $ */
+/* $Id: rndc-confgen.c,v 1.2 2001/06/29 23:32:09 gson Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,7 @@
 #define DEFAULT_SERVER		"127.0.0.1"
 #define DEFAULT_PORT		953
 
-unsigned char progname[256];
+char progname[256];
 isc_boolean_t verbose = ISC_FALSE;
 
 static void
