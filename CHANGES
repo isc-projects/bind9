@@ -60,10 +60,11 @@
 			down while a client start event was pending
 			delivery. [RT #2061]
 
-1125.	[bug]		rndc: -k missing from usage. [RT #2057]
+1125.	[bug]		rndc: -k option was missing from usage message.
+			[RT #2057]
 
 1124.	[doc]		dig: +[no]dnssec, +[no]besteffort and +[no]fail
-			now documented. [RT #2052]
+			are now documented. [RT #2052]
 
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
