@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.16 2001/03/04 21:21:39 bwelling Exp $ */
+/* $Id: zoneconf.h,v 1.16.2.2 2002/08/05 06:57:03 marka Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
@@ -40,11 +40,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
  * at zone creation time.
  *
  * Require:
- *	'lctx' to be initalised or NULL.
- *	'cctx' to be initalised or NULL.
+ *	'lctx' to be initialized or NULL.
+ *	'cctx' to be initialized or NULL.
  *	'ac' to point to an initialized ns_aclconfctx_t.
- *	'czone' to be initalised.
- *	'zone' to be initalised.
+ *	'czone' to be initialized.
+ *	'zone' to be initialized.
  */
 
 isc_boolean_t

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339 2001/08/07 01:58:56 marka Exp $ */
+/* $Id: server.c,v 1.339.2.8 2002/07/10 04:27:23 marka Exp $ */
 
 #include <config.h>
 
@@ -649,8 +649,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "lame-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	lame_ttl = cfg_obj_asuint32(obj);
-	if (lame_ttl > 18000)
-		lame_ttl = 18000;
+	if (lame_ttl > 1800)
+		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
 	
 	/*
@@ -900,6 +900,7 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	static unsigned char origindata[] = "\007version\004bind";
 	dns_name_t origin;
 	cfg_obj_t *obj = NULL;
+	dns_acl_t *acl = NULL;
 
 	dns_diff_init(ns_g_mctx, &diff);
 
@@ -925,6 +926,10 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	CHECK(dns_zone_setorigin(zone, &origin));
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, dns_rdataclass_ch);
+	/* Transfers don't work so deny them. */
+	CHECK(dns_acl_none(ns_g_mctx, &acl));
+	dns_zone_setxfracl(zone, acl);
+	dns_acl_detach(&acl);
 	dns_zone_setview(zone, view);
 
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
@@ -994,6 +999,7 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 		NULL,
 	};
 	cfg_obj_t *obj = NULL;
+	dns_acl_t *acl = NULL;
 
 	/*
 	 * If a version string is specified, disable the authors.bind zone.
@@ -1013,6 +1019,10 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	CHECK(dns_zone_setorigin(zone, &origin));
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, dns_rdataclass_ch);
+	/* Transfers don't work so deny them. */
+	CHECK(dns_acl_none(ns_g_mctx, &acl));
+	dns_zone_setxfracl(zone, acl);
+	dns_acl_detach(&acl);
 	dns_zone_setview(zone, view);
 
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
@@ -1088,7 +1098,10 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
-	CHECKM(ns_config_getport(config, &port), "port");
+	if (ns_g_lwresdonly && ns_g_port != 0)
+		port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &port), "port");
 
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
@@ -1727,7 +1740,10 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Determine which port to use for listening for incoming connections.
 	 */
-	CHECKM(ns_config_getport(config, &listen_port), "port");
+	if (ns_g_port != 0)
+		listen_port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &listen_port), "port");
 
 	/*
 	 * Configure the interface manager according to the "listen-on"
@@ -1885,6 +1901,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Create (or recreate) the internal _bind view.
 	 */
 	CHECK(create_bind_view(&view));
+	CHECK(configure_view_acl(NULL, config, "allow-query",
+				 &aclconfctx, ns_g_mctx, &view->queryacl));
 	ISC_LIST_APPEND(viewlist, view, link);
 	CHECK(create_version_zone(maps, server->zonemgr, view));
 	CHECK(create_authors_zone(options, server->zonemgr, view));
@@ -2033,11 +2051,11 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	obj = NULL;
 	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		ns_os_writepidfile(cfg_obj_asstring(obj));
+		ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
 	else if (ns_g_lwresdonly)
-		ns_os_writepidfile(lwresd_g_defaultpidfile);
+		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
 	else
-		ns_os_writepidfile(ns_g_defaultpidfile);
+		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
 
 	obj = NULL;
 	result = ns_config_get(maps, "statistics-file", &obj);
@@ -2381,6 +2399,7 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	server->magic = 0;
 	isc_mem_put(server->mctx, server, sizeof(*server));
+	*serverp = NULL;
 }
 
 static void
@@ -2504,10 +2523,8 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 
 	/* Look for the zone name. */
 	zonetxt = next_token(&input, " \t");
-	if (zonetxt == NULL) {
-		*zonep = NULL;
+	if (zonetxt == NULL)
 		return (ISC_R_SUCCESS);
-	}
 
 	/* Look for the optional class name. */
 	classtxt = next_token(&input, " \t");
@@ -2544,9 +2561,9 @@ zone_from_args(ns_server_t *server, char *args, dns_zone_t **zonep) {
 	
 	result = dns_zt_find(view->zonetable, dns_fixedname_name(&name),
 			     0, NULL, zonep);
-	if (result != ISC_R_SUCCESS)
-		goto fail2;
- fail2:
+	/* Partial match? */
+	if (result != ISC_R_SUCCESS && *zonep != NULL)
+		dns_zone_detach(zonep);
 	dns_view_detach(&view);
  fail1:
 	return (result);
@@ -2671,9 +2688,13 @@ ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
 
 	portobj = cfg_tuple_get(listener, "port");
 	if (!cfg_obj_isuint32(portobj)) {
-		result = ns_config_getport(config, &port);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		if (ns_g_port != 0) {
+			port = ns_g_port;
+		} else {
+			result = ns_config_getport(config, &port);
+			if (result != ISC_R_SUCCESS)
+				return (result);
+		}
 	} else {
 		if (cfg_obj_asuint32(portobj) >= ISC_UINT16_MAX) {
 			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
@@ -2851,7 +2872,7 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	int zonecount, xferrunning, xferdeferred, soaqueries;
-	int n;
+	unsigned int n;
 
 	zonecount = dns_zonemgr_getcount(server->zonemgr, DNS_ZONESTATE_ANY);
 	xferrunning = dns_zonemgr_getcount(server->zonemgr,
@@ -2871,7 +2892,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "server is up and running",
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF");
-	if (n < 0)
+	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);
 	return (ISC_R_SUCCESS);

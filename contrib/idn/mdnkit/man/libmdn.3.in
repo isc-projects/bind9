@@ -1,4 +1,4 @@
-.\" $Id: libmdn.3.in,v 1.1 2001/06/09 00:30:33 tale Exp $
+.\" $Id: libmdn.3.in,v 1.1.2.1 2002/02/08 12:14:42 marka Exp $
 .\"
 .\" Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
 .\"  
@@ -8,8 +8,8 @@
 .\" 
 .\" The following License Terms and Conditions apply, unless a different
 .\" license is obtained from Japan Network Information Center ("JPNIC"),
-.\" a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-.\" Tokyo, Japan.
+.\" a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+.\" Chiyoda-ku, Tokyo 101-0047, Japan.
 .\" 
 .\" 1. Use, Modification and Redistribution (including distribution of any
 .\"    modified or derived work) in source and/or binary forms is permitted
@@ -150,7 +150,7 @@ the encoding process are to be employed.
 .nf
 .ft CW
 #define MDN_LOCALCONV 0x0001 /* Local encoding <-> UTF-8 conversion */
-#define MDN_IDNCONV   0x0002 /* UTF-8 <-> IDN encoding conversion */
+#define MDN_IDNCONV   0x0002 /* UTF-8 <-> ACE conversion */
 #define MDN_NAMEPREP  0x0004 /* NAMEPREP */
 #define MDN_UNASCHECK 0x0008 /* Unassigned code point check */
 #define MDN_DELIMMAP  0x0100 /* Delimiter mapping */
@@ -184,14 +184,15 @@ whose length is specified by
 .I actions
 specifies which subprocesses in decoding process take place, as in
 .BR mdn_encodename ,
-except that only \f(CWMDN_IDNCONV\fP and \f(CWMDN_LOCALCONV\fP are allowed.
+except that only \f(CWMDN_IDNCONV\fP, \f(CWMDN_NAMEPREP\fP and
+\f(CWMDN_LOCALCONV\fP are allowed.
 Details of this decoding process can be found in the section ``NAME DECODING''.
 .PP
 For ordinary application, the following macro is provided for the convenience.
 .RS 2
 .nf
 .ft CW
-#define MDN_DECODE_APP    (MDN_IDNCONV|MDN_LOCALCONV)
+#define MDN_DECODE_APP    (MDN_IDNCONV|MDN_NAMEPREP|MDN_LOCALCONV)
 .ft R
 .fi
 .RE
@@ -220,11 +221,11 @@ The source encoding must be one of the two encodings below:
 .IP \- 2
 The application's local encoding (codeset).
 .IP \- 2
-The alternate encoding specified by the configuration file.
+ACE specified by the configuration file.
 .RE
 The latter is suppored because name decoding process may produce
-strings in the alternate encoding when its attempt to convert to the
-local encoding fails.  See the section ``NAME DECODING'' for details.
+ACE strings when its attempt to convert to the local encoding fails.
+See the section ``NAME DECODING'' for details.
 .IP "(2) Local mapping"
 Apply any locale/language-specific mapping.  This process is
 further divided into two subprocesses:
@@ -259,12 +260,12 @@ UTF-8 format.
 .SH "NAME DECODING"
 Name decoding is a reverse process of the name encoding.
 It transforms the specified
-multilingual domain name in a special encoding  suitable for name
+multilingual domain name in a special encoding suitable for name
 resolution to the normal name string in the application's current codeset.
 However, name encoding and name decoding are not symmetric.
-Name encoding involves NAMEPREP and local mapping in order for the names
-to be normalized, but name decoding presumes the name is already
-in normalized form, so these subprocesses are not in the decoding process.
+Name decoding doesn't perform local mapping.
+Both name encoding and decoding do NAMEPREP, but decoding does
+it to verfiy a name, while encoding does it to normalize a name.
 .PP
 .BR libmdn 's
 name decoding process consists of the following steps.
@@ -272,7 +273,14 @@ name decoding process consists of the following steps.
 Convert the encoding of the given domain name
 from a special one designed for representing
 multilingual domain names (ACE) to Unicode/ISO10646 UTF-8.
-.IP "(2) Encoding conversion (UCS to local codeset)"
+.IP "(2) NAMEPREP check"
+Perform name preparation (NAMEPREP) as also done in name encoding,
+and compare the result of NAMEPREP and the given UCS name.
+If the NAMEPREP is failed or the names are different, the given
+name is considered as invalid domain name.
+It contains a character which is never seen in a NAMEPREPed domain
+name.
+.IP "(3) Encoding conversion (UCS to local codeset)"
 Convert the encoding of the name from UTF-8 to
 the application's local codeset.
 The local codeset is determined by the application's locale.
@@ -280,9 +288,8 @@ The local codeset is determined by the application's locale.
 However, it is possible that the conversion to the application's
 local codeset fails because the name includes some characters
 which don't have mappings to the local codeset.
-In this case, libmdn tries instead to convert to an encoding
-called ``alternate encoding,'' which is specified by the
-configuration file.  
+In this case, libmdn tries instead to convert to ACE specified by
+the configuration file.  
 .PP
 The configuration parameters for this process,
 are also read from the configuration file

@@ -363,7 +363,6 @@ isc_thread_setconcurrency
 isc_interval_set
 isc_time_subtract
 isc_interval_iszero
-isc_time_set
 isc_time_settoepoch
 isc_time_isepoch
 isc_time_now
@@ -372,8 +371,6 @@ isc_time_compare
 isc_time_add
 isc_time_subtract
 isc_time_microdiff
-isc_time_seconds
-isc_time_secondsastimet
 isc_time_nanoseconds
 isc_keyboard_open
 isc_keyboard_close

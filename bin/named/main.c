@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119 2001/08/08 22:54:20 gson Exp $ */
+/* $Id: main.c,v 1.119.2.2 2002/08/05 06:57:01 marka Exp $ */
 
 #include <config.h>
 
@@ -67,6 +67,24 @@ static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char    		saved_command_line[512];
+
+void
+ns_main_earlywarning(const char *format, ...) {
+	va_list args;
+
+	va_start(args, format);
+	if (ns_g_lctx != NULL) {
+		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+			       format, args);
+	} else {
+		fprintf(stderr, "%s: ", program_name);
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+	}
+	va_end(args);
+}
 
 void
 ns_main_earlyfatal(const char *format, ...) {

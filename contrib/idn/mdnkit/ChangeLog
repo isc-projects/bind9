@@ -1,3 +1,421 @@
+2001-12-06
+	* 2.2.3 release.
+
+	* lib/uticode.c: fix a bug in mdn__unicode_decompose() that assumes
+	sizeof(size_t) equals to sizeof(int).
+	* lib/converter.c: always include <mdn/utf5.h>.
+
+2001-12-03
+	* DISTFILES: add patch/bind9/bind-9.2.0.patch.
+
+	* lib/checker.c, lib/mapper.c, lib/nameprep.c, lib/nameprepdata.c,
+	lib/normalizer.c: recognize "nameprep-06".
+	* lib/mdn.conf.sample.in, man/mdn.conf.5.in, tools/mdnconv/mdnconv.1:
+	add description about "nameprep-06".
+
+2001-11-28
+
+	* lib/Makefile.in, tools/runmdn/Makefile.in: Change LIB_REVISION 
+	from 2 to 3.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2.3".
+
+2001-11-21
+	* tools/runmdn/stub.c: fix type mismatch bug of `fp'.
+	* lib/converter.c: always include <mdn/debug.h>.
+
+2001-10-31
+	* 2.2.2 release.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2.3".
+
+	* configure.in: on NetBSD, use `:' as a separator of LD_PRELOAD
+	if /usr/bin/grep is ELF binary, use ` ' otherwise.
+	* wsock/config/mdnconf.tcl: update version number to 2.2.2.
+
+	* README, README.ja: update the list of supported systems.
+
+2001-10-30
+	* wsock/config/mdnconf.tcl: update version number to 2.2.1.
+	
+2001-10-29
+	* 2.2.1 release.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2.1".
+
+	* lib/Makefile.in, tools/runmdn/Makefile.in: Change LIB_REVISION 
+	from 1 to 2.
+
+2001-10-17
+	* lib/checker.c (mdn_checker_lookup): Fix a serious bug that the
+	function overlooks a prohibited character.
+
+2001-09-19
+	* 2.2 release.
+
+2001-09-17
+	* NEWS: add description about deletion of `allow-utf8' to "Major
+	changes in version 2.1".
+
+	* README, README.ja: add some platforms to the list of supported
+	systems.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2".
+
+2001-09-14
+	* lib/amcacez.c, include/mdn/amcacez.h: update draft version.
+
+2001-09-12
+	* wsock/config/mdnconf.tcl: update version number.
+
+2001-09-11
+	* INSTALL.ja: The title is fixed.
+
+2001-09-10
+	* Makefile.in: add dummy target 'force' to work around a problem
+	in cygwin, where the existance of "INSTALL" file disturbs
+	"make install".
+	* lib/make.wnt: add rules for amcace[vwz].o and mace.o.
+	* util/SparseMap.pm, util/generate_nameprep_data.pl,
+	util/generate_normalize_data.pl: add 'const' qualification to
+	the generated (large) constant tables, for better data sharing.
+	* lib/nameprepdata.c, lib/unicodedata_301.c, lib/unicodedata_310.c:
+	regenerated using above scripts.
+	* lib/nameprep.c, lib/nameprep_template.c, lib/unicode.c,
+	lib/unicode_template.c: accommodate declarations to the above
+	changes.
+
+2001-08-28
+	* 2.2rc1 release.
+
+	* DISTFILES: delete patch/bind9/bind-9.1.2-patch.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to 2.2rc1.
+
+2001-08-27
+	* include/mdn/amcacez.h, lib/amcacez.c: update to conform to
+	version 0.3.0 (draft-ietf-idn-amc-ace-z-00.txt).
+
+	* configure.in, lib/amcacez.c, INSTALL, INSTALL.ja: define "zq--"
+	as new default ACE prefix for AMC-ACE-Z.
+
+2001-08-21
+	* lib/mdn.conf.sample.in, man/mdn.conf.5.in, tools/mdnconv/mdnconv.1:
+	undocument unicode-form-{c,d,kd}, unicode-{upper,lower,fold}case,
+	ascii-{upper,lower}case and nameprep-{02,04}.
+
+2001-08-20
+	* tools/runmdn/runmdn.1: Use the term "codeset" rather than
+	"encoding".
+
+2001-08-17
+	* INSTALL: fix typo.
+
+2001-08-15
+	* README, README.ja: show a list of supported systems as a table.
+
+	* tools/runmdn/runmdn.in: parse command line options, and recognize
+	option `-e' which sets local encoding.
+	* tools/runmdn/runmdn.1: add description about `-e' option.
+	* tools/runmdn/Makefile.in: update `runmdn' if it is older than
+	`runmdn.in'.
+
+	* INSTALL and INSTALL.ja: new files.
+	* README, README.ja: `Compilation and Intallation' section is moved
+	to INSTALL and INSTALL.ja.
+	* DISTFILES: add INSTALL and INSTALL.ja.
+
+	* lib/converter.c, README, README.ja: unless --enable-extra-ace
+	option to configure is specified, support only three ACEs:
+	AMC-ACE-Z, RACE and DUDE.
+
+	* lib/namrprep.c, lib/converter.c, lib/checker.c, lib/mapper.c:
+	delete `nameprep-02' and `nameprep-04' supports.
+
+	* lib/mdn.conf.sample.in, man/mdn.conf.5.in, tools/mdnconv/mdnconv.1:
+	delete description about `nameprep-02', `nameprep-04' and extra ACEs.
+
+2001-08-14
+	* README, README.ja: update information about compilation problem
+	of libiconv-1.6.1 on NetBSD.
+
+2001-08-13
+	* README, README.ja: revise description of compilation and
+	installation process.
+	* tools/mdnconv/mdnconv.c: revise error messages displayed
+	when default input/output codeset is wrong.
+
+2001-08-06
+	* 2.2beta3 release.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2beta3".
+ 
+	* README, README.ja: describe CPU architure of FreeBSD on which
+	we have tested.
+
+2001-08-01
+	* util/generate_nameprep_data.pl: add pragma 'use bytes;' to
+	avoid outputing incorrect map data when perl 5.6.1 is used.
+	* lib/nameprepdata.c: add data for nameprep-04 and -05.
+	* lib/nameprep.c: add support for 'nameprep-04' and 'nameprep-05'.
+	current version is now nameprep-05.
+	* lib/checker.c, lib/mapper.c: add 'nameprep-04' and 'nameprep-05'.
+	* lib/unicodedata.c: removed.
+	* lib/unicodedata_301.c, lib/unicodedata_310.c: created.
+	both contains various Unicode table of version 3.0.1 and 3.1.0.
+	* lib/unicode_template.c: created. contains helper functions for
+	each Unicode versions.
+	* include/mdn/unicode.h, lib/unicode.c: add new interface
+	functions 'mdn__unicode_create' and 'mdn__unicode_destroy'.
+	now all existing functions take an extra argument which specifies
+	the version of Unicode standard.
+	* include/mdn/unicode.h, lib/unicode.c
+	* include/mdn/unormalize.h, lib/unormalize.c: change interface
+	so that the version of Unicode standard can be specified.
+	* lib/normalizer.c: add bunch of normalization schemes,
+	unicode-from-{c,d,kc,kd}/{3.0.1,3.1.0}, nameprep-{04,05}.
+	use new unormalize module interface.
+	* DISTFILES, lib/Makefile.in: add unicode_template.c,
+	unicodedata_301.c and unicodedata_310.c.  remove unicodedata.c.
+	* util/generate_normalize_data.pl: add -prefix option.
+	* man/mdn.conf.5.in, tools/mdnconv/mdnconv.1: add description of
+	newly added schemes.
+	* lib/mdn.conf.sample.in: likewise.
+
+2001-07-31
+	* include/mdn/res.h, lib/res.c: add new functions and macros
+	mdn_res_nameprep() and mdn_res_nameprepcheck().
+	* include/mdn/api.h: add new macro mdn_nameprepcheck().
+
+2001-07-27
+	* README, README.ja: describe `--with-utf-6-prefix'.
+
+2001-07-26
+	* tools/mdnconv/mdnconv.1: add a description on the nameprep check
+	performed in reverse conversion mode.
+	* tools/mdnconv/util.c: fix typo in comment.
+
+	* tools/mdnconv/mdnconv.c: don't perform selective-decode or
+	selective-decode if both `-whole' and `-reverse' options are specified.
+	* tools/mdnconv/mdnconv.c: perform NAMEPREP unassigned check if both
+	`-reverse' and `-unassigncheck' options are specified
+
+	* tools/mdnconv/mdnslookup.in: add missing quotation.
+
+	* DISTFILES: add patch/bind9/bind-9.1.3-patch.
+
+2001-07-25
+	* tools/mdnconv/mdnslookup.in: new file.
+	* tools/mdnconv/Makefile.in: `all' target also depends on `mdnslookup'.
+	generate `mdnslookup' from `mdnslookup.in'.
+	* README, README.ja: add the ``Check your configuration'' section.
+	* DISTFILES: add tools/mdnconv/mdnslookup.in.
+
+	* tools/mdnconv/Makefile.in: honor LDFLAGS.
+	* lib/amcacez.c: do some optimization.
+
+2001-07-24
+	* README, README.ja: add TOC, ``Supported systems'' section and
+	``Other configure options'' subsection.
+
+2001-07-23
+	* tools/mdnconv/mdnconv.1, tools/runmdn/runmdn.1: add the ``LOCAL
+	CODESET'' section.
+
+2001-07-18
+	* 2.2beta2 release.
+
+	* README, README.ja: update version number in the title.
+
+2001-07-17
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2beta2".
+
+	* configure.in: fix result messages of cheking gethostbyaddr()
+	and getnameinfo() flavors.  display "none" if the function is
+	not found.
+
+2001-07-16
+	* include/mdn/amcacez.h, lib/amcacez.c: update to conform to
+	version 0.2.1, which is the version of -00 draft.
+
+2001-07-12
+	* README, README.ja: explain `--enable-debug' option.
+
+2001-07-11
+	* configure.in: add `--enable-debug' option.
+	if this option is specified, add "-DDEBUG" to CFLAGS.
+
+2001-07-10
+	* configure.in: check flavor of getnameinfo().
+	* configure.in: test program for checking flavor of gethostbyaddr()
+	includes <sys/types.h> and <sys/socket.h>, since some system defines
+	`socklen_t' in either file.
+	* configure.in: define GNI_SALEN_T, GNI_HOSTLEN_T, GNI_SERVLEN_T
+	and GNI_FLAGS_T.
+	* tools/runmdn/resolver.c, tools/runmdn/stub.c, tools/runmdn/stub.h:
+	use GNI_SALEN_T, GNI_HOSTLEN_T, GNI_SERVLEN_T and GNI_FLAGS_T to
+	represent types of arguments to getnameinfo().
+
+	* include/mdn/logmacro.h: enable trace-level log even if compiled
+	without DEBUG option.
+	* lib/log.c: slightly optimize mdn_log_getlevel(), as it is called
+	number of times from everywhere.
+
+2001-07-09
+	* lib/res.c: in mdn_res_nameconv(), procedures of insn `!m', `!n'
+	and `!N' converted an input string into a result of NAMEPREP, but
+	it must do NAMEPREP check only.  fixed.
+
+2001-07-06
+	* lib/msgtrans.c: perform NAMEPREP check at decoding a name.
+	* lib/api.c, include/mdn/api.h: mdn_decodename() accepts
+	MDN_UNASCHECK action.
+
+	* mdnsproxy/translate.c: fix typo in a warning message.
+
+	* include/mdn/res.h, lib/mdn/res.c: conversion to alternate encoding
+	is no longer supported.
+	* include/mdn/resconf.h, lib/resconf.c: no longer support 
+	alternate encoding, though functions related to alternate encoding
+	such as mdn_resconf_setalternateconverter() are still remained.
+	ignore `alternate-encoding' entry in a configuration file.
+	* lib/mdn.conf.sample.in: delete `alternate-encoding' entry.
+	* man/mdn.conf.5.in: delete "ALTERNATE-ENCODING ENTRY" section.
+	delete `alternate-encoding' entry in the sample configuration.
+	* man/libmdn.3.in: delete description about alternate encoding.
+
+	* lib/res.c: mdn_res_nameconv() doesn't support insn `a' or `A'
+	any longer.  nameconv_A() and nameconv_a() are removed.
+
+2001-07-05
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2snap0705".
+
+2001-07-04
+	* include/mdn/amcacez.h, lib/amcacez.c: created.
+	* include/mdn/Makefile.in, lib/Makefile.in, tools/runmdn/Makefile.in:
+	add above new files.
+	* DISTFILES: add above new files.
+	* lib/converter.c: add AMC-ACE-Z.
+	* configure.in: add prefix configuration option
+	(--with-amc-ace-z-prefix) for this ACE.
+	* configure: rebuilt.
+	* lib/amcacew.c: correct a bug in input range check.
+
+	* include/mdn/api.h: add MDN_NAMEPREP to MDN_DECODE_APP.
+	* lib/mdn/api.c: mdn_decodename() recognizes MDN_NAMEPREP action.
+
+	* include/mdn/converter.h: define encoding types: MDN_NONACE,
+	MDN_ACE_STRICTCASE and MDN_ACE_LOOSECASE.
+	* include/mdn/converter.h, lib/converter.c: add new function
+	mdn_converter_encodingtype().
+	* include/mdn/converter.h, lib/converter.c: 3rd argument of
+	mdn_converter_register() is now `encoding_type'.
+
+	* include/mdn/res.h, lib/mdn/res.c: add new insn `!m', `!n', `!p',
+	`!N' and `!u' to mdn_res_nameconv().
+	* include/mdn/res.h, lib/mdn/res.c: mdn_res_dnstoucs(...) is
+	equivalent to mdn_res_nameconv("i!N", ...).
+
+	* lib/checker.c, lib/mapper.c: fix a bug that allocated memory is
+	not disposed if input name is too long.
+
+	* lib/checker.c: mdn_checker_lookup() returns `mdn_success' if
+	registered character is found in an input string.
+	
+2001-07-03
+	* configure.in: check if the codeset name for UTF-8 encoding (`UTF-8',
+	which is default, or the one specified with --with-utf8 option) is
+	valid, and give a warning message if it doesn't seem so.
+	* configure: rebuilt.
+
+2001-07-02
+	* configure.in: check if `iconv.h' exists in the directory specified
+	by --with-iconv-include=DIR, or in the `PREFIX/include' directory
+	specified by --with-libiconv=PREFIX.
+	* configure.in: check if C compiler can find `iconv.h'.
+
+2001-06-25
+	* 2.2beta1 release.
+
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2beta1", and set
+	MDNKIT_MINOR_VERSION to 2.
+	* lib/Makefile.in, tools/runmdn/Makefile.in: Set library version
+	(LIB_CURRENT:LIB_REVISION:LIB_AGE) to 7:1:0.
+
+2001-06-19
+	* configure.in: add missing double quotation mark (") in
+	AC_OUTPUT_COMMANDS.
+	* include/mdn/dude.h, lib/dude.c: update to conform to -02 spec.
+	* include/mdn/amcacev.h, lib/amcacev.c: created.
+	* include/mdn/amcacew.h, lib/amcacew.c: created.
+	* include/mdn/mace.h, lib/mace.c: created.
+	* include/mdn/Makefile.in, lib/Makefile.in, tools/runmdn/Makefile.in:
+	add above new files.
+	* DISTFILES: add above new files.
+	* lib/converter.c: add AMC-ACE-V, AMC-ACE-W and MACE.
+	* configure.in: add prefix configuration options (--with-*-prefix)
+	for these new ACEs.
+	* configure: rebuilt.
+	* include/mdn/version.h: set MDNKIT_VERSION to "2.2snap0619".
+
+	* configure.in: add `--with-iconv-include' and `--with-libiconv'
+	options.
+	* lib/Makefile.in, mdnsproxy/Makefile.in, tools/mdnconv/Makefile.in,
+	tools/runmnd/Makefile.in: define ICONVINC and append its value to
+	INCS.
+
+2001-06-18
+	* mdnsproxy/logging.c: fix a bug that whether libmdn message is
+	logged or not is determined by `log-level', not `libmdn-log-level'.
+
+	* configure.in: also check glib-2.2 flavor of gethostbyaddr().
+	* configure.in, include/config.h: define GHBA_ADDR_T which is
+	type of 1st argument to gethostbyaddr() and gethostbyaddr_r().
+	* configure.in, tools/Makefile.in: if parameter type list of
+	gethostbyaddr() is unknown, nothing will be built in `tools/runmdn'
+	directory.
+	* tools/runmdn/resolver.c, tools/runmdn/stub.c, tools/runmdn/stub.h:
+	use GHBA_ADD_T as type of 1st parameter to gethostbyaddr() and
+	gethostbyaddr_r().
+	* acconfig.h: delete GETHOST_R_GLIBC_FLAVOR and GHBA_ADDRLEN_T.
+
+2001-06-14
+	* mdnsproxy/logging.c: shorten a program. use vfprintf() rather
+	than vsprintf()+fputs(). 
+
+2001-06-12
+	* lib/converter.c: output warning message if iconv() or iconv_open()
+	fails.
+	* lib/api.c, lib/res.c: output 256 characters maximum, when they
+	output a string to be translated and its result as trace message.
+	* lib/msgtrans.c: log a string to be translated and its result with
+	the priority INFO.
+
+	* lib/res.c, include/mdn/res.h: use the term `insn' rather than
+	`action', for the 2nd argument to mdn_res_nameconv().
+
+2001-06-07
+	* include/mdn/amcacer.h, lib/amcacer.c: update to meet -01 spec.
+
+2001-06-04
+	* mdnsproxy/mdnsproxy.h: define LOGMODE_STDERR.
+	* mdnsproxy/logging.c: output messages to standard error if the
+	configuration entry `log-file' is set to `stderr'.
+	* mdsproxy/logging.c: merge libmdn_logproc_syslog() and 
+	libmdn_logproc_file() into libmdn_logproc().
+	* mdsproxy/logging.c: insert date string to log messages if
+	mdnsproxy logs events to regular file.
+	* mdnsproxy/logging.c: fix a bug that mdnsproxy doesn't turn over
+	a log file correctly.
+	* mdnsproxy/unxmain.c: do not close file descriptor 2.
+
+	* lib/resconf.c: 2nd arguemnt to the following functions can be NULL:
+	mdn_resconf_setalternateconverter(), mdn_resconf_setdelimitermap(),
+	mdn_resconf_setidnconverter(), mdn_resconf_setlocalconverter(),
+	mdn_resconf_setlocalmapselector(), mdn_resconf_setmapper(),
+	mdn_resconf_setnormalizer(), mdn_resconf_setprohibitchecker(),
+	mdn_resconf_setunassignedchecker().
+
 2001-06-01
 	* 2.1 release.
 

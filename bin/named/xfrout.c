@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101 2001/08/08 22:54:22 gson Exp $ */
+/* $Id: xfrout.c,v 1.101.2.3 2001/10/30 01:28:29 marka Exp $ */
 
 #include <config.h>
 
@@ -82,6 +82,20 @@
 			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
 			   "bad zone transfer request: %s (%s)", \
 		      	   msg, isc_result_totext(code));	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
+	} while (0)
+
+#define FAILQ(code, msg, question, rdclass) \
+	do {							\
+		char _buf1[DNS_NAME_FORMATSIZE];		\
+		char _buf2[DNS_RDATACLASS_FORMATSIZE]; 		\
+		result = (code);				\
+		dns_name_format(question, _buf1, sizeof(_buf1));  \
+		dns_rdataclass_format(rdclass, _buf2, sizeof(_buf2)); \
+		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, \
+			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
+			   "bad zone transfer request: '%s/%s': %s (%s)", \
+		      	   _buf1, _buf2, msg, isc_result_totext(code));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
@@ -875,6 +889,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	char *journalfile;
 	char msg[DNS_RDATACLASS_FORMATSIZE + DNS_NAME_FORMATSIZE
 		 + sizeof("zone transfer '/'")];
+	isc_boolean_t is_poll = ISC_FALSE;
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -926,13 +941,15 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
 			     &zone);
 	if (result != ISC_R_SUCCESS)
-		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
+		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+		      question_name, question_class);
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		break;	/* Master and slave zones are OK for transfer. */
 	default:
-		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
+		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+		      question_name, question_class);
 	}
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);
@@ -1058,6 +1075,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 		{
 			CHECK(soa_rrstream_create(mctx, db, ver, &stream));
+			is_poll = ISC_TRUE;
 			goto have_stream;
 		}
 		journalfile = dns_zone_getjournal(zone);
@@ -1075,6 +1093,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				    ISC_LOG_DEBUG(4),
 				    "IXFR version not in journal, "
 				    "falling back to AXFR");
+			mnemonic = "AXFR-style IXFR";
 			goto axfr_fallback;
 		}
 		CHECK(result);
@@ -1115,8 +1134,12 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
 
-	xfrout_log1(client, question_name, question_class, ISC_LOG_INFO,
-		    "%s started", mnemonic);
+	if (is_poll)
+		xfrout_log1(client, question_name, question_class,
+			    ISC_LOG_DEBUG(1), "IXFR poll up to date");
+	else
+		xfrout_log1(client, question_name, question_class,
+			    ISC_LOG_INFO, "%s started", mnemonic);
 
 	/*
 	 * Hand the context over to sendstream().  Set xfr to NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.51 2001/04/30 18:09:30 gson Exp $ */
+/* $Id: rdata.h,v 1.51.2.2 2002/02/20 02:17:25 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -161,7 +161,7 @@ dns_rdata_reset(dns_rdata_t *rdata);
  * Make 'rdata' empty.
  *
  * Requires:
- *	'rdata' is a previously initaliased rdata and is not linked.
+ *	'rdata' is a previously initialized rdata and is not linked.
  */
 
 void
@@ -319,6 +319,9 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	'target' is a valid region.
  *
  *	'origin' if non NULL it must be absolute.
+ *	
+ *	'callbacks' to be NULL or callbacks->warn and callbacks->error be
+ *	initialized.
  *
  * Ensures:
  *	If result is success:

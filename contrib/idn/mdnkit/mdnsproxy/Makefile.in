@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.1 2001/06/09 00:30:35 tale Exp $
+# $Id: Makefile.in,v 1.1.2.1 2002/02/08 12:14:47 marka Exp $
 # Makefile for mDNS Proxy Server
 #
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
@@ -9,8 +9,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is permitted
@@ -80,14 +80,15 @@ MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL   = @SHELL@
 LIBTOOL = @LIBTOOL@
 
+ICONVINC = @ICONVINC@
+ICONVLIB = @ICONVLIB@
+MDNLIB  = ../lib/libmdn.la
+
 OPTS    =
-INCS    = -I$(srcdir)/../include -I../include
+INCS    = -I$(srcdir)/../include -I../include $(ICONVINC)
 DEFS    = -DUNIX -DCONFIG_PATH="\"$(sysconfdir)\"" -DLOGDIR="\"$(logdir)\""
 CFLAGS  = $(OPTS) $(INCS) $(DEFS) @CFLAGS@
 LDFLAGS = $(OPTS) @LDFLAGS@
-
-MDNLIB  = ../lib/libmdn.la
-ICONVLIB = @ICONVLIB@
 LIBS   = @LIBS@
 
 #

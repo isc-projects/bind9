@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.5 2001/04/26 23:45:55 gson Exp $ */
+/* $Id: msgs.h,v 1.5.2.2 2002/08/05 06:57:15 marka Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -144,6 +144,7 @@
 #define ISC_MSG_BOUND	       1417 /* "bound" */
 #define ISC_MSG_ACCEPTRETURNED 1418 /* accept() returned %d/%s */
 #define ISC_MSG_TOOMANYFDS     1419 /* %s: too many open file descriptors */
+#define ISC_MSG_ZEROPORT       1420 /* dropping source port zero packet */
 
 #define ISC_MSG_AWAKE	       1502 /* "awake" */
 #define ISC_MSG_WORKING	       1503 /* "working" */

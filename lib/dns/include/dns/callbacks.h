@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.15 2001/01/09 21:52:21 bwelling Exp $ */
+/* $Id: callbacks.h,v 1.15.2.2 2002/08/05 06:57:13 marka Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
@@ -62,11 +62,11 @@ struct dns_rdatacallbacks {
 void
 dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
 /*
- * Initalise 'callbacks'.
+ * Initialize 'callbacks'.
  * 	'error' and 'warn' are set to default callbacks that print the
  *	error message through the DNS library log context.
  *
- *	All other elements are initalised to NULL.
+ *	All other elements are initialized to NULL.
  *
  * Requires:
  *      'callbacks' is a valid dns_rdatacallbacks_t,

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.43 2001/05/04 17:08:43 gson Exp $
+# $Id: Makefile.in,v 1.43.2.1 2001/11/09 23:17:17 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,7 +30,7 @@ HEADERS =	a6.h acl.h adb.h byaddr.h cache.h callbacks.h \
 		nxt.h peer.h rbt.h rcode.h \
 		rdata.h rdataclass.h rdatalist.h rdataset.h rdatasetiter.h \
 		rdataslab.h rdatatype.h request.h resolver.h result.h \
-		rootns.h sdb.h secalg.h secproto.h ssu.h \
+		rootns.h sdb.h secalg.h secproto.h soa.h ssu.h \
 		tcpmsg.h time.h tkey.h \
 		tsig.h ttl.h types.h validator.h view.h xfrin.h \
 		zone.h zonekey.h zt.h

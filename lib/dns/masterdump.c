@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.55 2001/07/16 17:15:08 gson Exp $ */
+/* $Id: masterdump.c,v 1.56.2.2 2001/10/30 01:53:24 marka Exp $ */
 
 #include <config.h>
 
@@ -689,11 +689,11 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 		if (result != ISC_R_NOSPACE)
 			break;
 
-		isc_mem_put(mctx, buffer->base, buffer->length);
 		newlength = buffer->length * 2;
 		newmem = isc_mem_get(mctx, newlength);
 		if (newmem == NULL)
 			return (ISC_R_NOMEMORY);
+		isc_mem_put(mctx, buffer->base, buffer->length);
 		isc_buffer_init(buffer, newmem, newlength);
 	}
 	if (result != ISC_R_SUCCESS)
@@ -767,7 +767,7 @@ dump_order_compare(const void *a, const void *b) {
 
 #define MAXSORT 64
 
-const char *trustnames[] = {
+static const char *trustnames[] = {
 	"none",
 	"pending",
 	"additional",
@@ -1004,6 +1004,17 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		goto cleanup;
 	}
 
+	result = isc_stdio_sync(f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: fsync: %s",
+			      tempname, isc_result_totext(result));
+		(void)isc_stdio_close(f);
+		(void)isc_file_remove(tempname);
+		goto cleanup;
+	}
+
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -1012,7 +1023,6 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 			      tempname, isc_result_totext(result));
 		(void)isc_file_remove(tempname);
 		goto cleanup;
-		
 	}
 
 	result = isc_file_rename(tempname, filename);

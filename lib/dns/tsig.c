@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112 2001/08/08 22:54:44 gson Exp $
+ * $Id: tsig.c,v 1.112.2.3 2002/03/26 00:55:01 marka Exp $
  */
 
 #include <config.h>
@@ -148,13 +148,25 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 		goto cleanup_key;
 	dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
-	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME))
+	if (dns_name_equal(algorithm, DNS_TSIG_HMACMD5_NAME)) {
 		tkey->algorithm = DNS_TSIG_HMACMD5_NAME;
-	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME))
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_HMACMD5) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPI_NAME)) {
 		tkey->algorithm = DNS_TSIG_GSSAPI_NAME;
-	else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME))
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_GSSAPI) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else if (dns_name_equal(algorithm, DNS_TSIG_GSSAPIMS_NAME)) {
 		tkey->algorithm = DNS_TSIG_GSSAPIMS_NAME;
-	else {
+		if (dstkey != NULL && dst_key_alg(dstkey) != DST_ALG_GSSAPI) {
+			ret = DNS_R_BADALG;
+			goto cleanup_name;
+		}
+	} else {
 		if (key != NULL) {
 			ret = DNS_R_BADALG;
 			goto cleanup_name;
@@ -898,8 +910,10 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(msg != NULL);
 	REQUIRE(dns_message_gettsigkey(msg) != NULL);
 	REQUIRE(msg->tcp_continuation == 1);
-	REQUIRE(is_response(msg));
 	REQUIRE(msg->querytsig != NULL);
+
+	if (!is_response(msg))
+		return (DNS_R_EXPECTEDRESPONSE);
 
 	mctx = msg->mctx;
 

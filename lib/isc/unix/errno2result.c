@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.8 2001/06/15 22:07:49 gson Exp $ */
+/* $Id: errno2result.c,v 1.8.2.4 2002/07/10 04:49:58 marka Exp $ */
 
 #include <config.h>
 
 #include <isc/result.h>
+#include <isc/strerror.h>
+#include <isc/util.h>
 
 #include "errno2result.h"
 
@@ -31,6 +33,8 @@
  */
 isc_result_t
 isc__errno2result(int posixerrno) {
+	char strbuf[ISC_STRERRORSIZE];
+
 	switch (posixerrno) {
 	case ENOTDIR:
 	case ELOOP:
@@ -96,7 +100,16 @@ isc__errno2result(int posixerrno) {
 	case EADDRINUSE:
 		return (ISC_R_ADDRINUSE);
 #endif
+	case EADDRNOTAVAIL:
+		return (ISC_R_ADDRNOTAVAIL);
+	case ECONNREFUSED:
+		return (ISC_R_CONNREFUSED);
 	default:
+		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "unable to convert errno "
+				 "to isc_result: %d: %s",
+				 posixerrno, strbuf);
 		/*
 		 * XXXDCL would be nice if perhaps this function could
 		 * return the system's error string, so the caller

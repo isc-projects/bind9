@@ -1,5 +1,5 @@
 #! /usr/local/bin/perl -w
-# $Id: generate_nameprep_data.pl,v 1.1 2001/06/09 00:30:51 tale Exp $
+# $Id: generate_nameprep_data.pl,v 1.1.2.1 2002/02/08 12:15:46 marka Exp $
 #
 # Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
 #  
@@ -9,8 +9,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is under this
@@ -59,13 +59,14 @@
 #
 
 use v5.6.0;		# for pack('U')
+use bytes;
 
 use lib qw(.);
 
 use SparseMap;
 use Getopt::Long;
 
-(my $myid = '$Id: generate_nameprep_data.pl,v 1.1 2001/06/09 00:30:51 tale Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
+(my $myid = '$Id: generate_nameprep_data.pl,v 1.1.2.1 2002/02/08 12:15:46 marka Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
 
 my @map_bits = (9, 7, 5);
 my @proh_bits = (7, 7, 7);
@@ -229,7 +230,7 @@ sub generate_map {
     $map->fix();
 
     print $map->cprog(NAME => "nameprep_${version}_map");
-    print "\nstatic unsigned char nameprep_${version}_map_data[] = \{\n";
+    print "\nstatic const unsigned char nameprep_${version}_map_data[] = \{\n";
     print_uchararray($$bufref);
     print "};\n\n";
 }

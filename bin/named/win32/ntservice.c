@@ -15,13 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntservice.c,v 1.3 2001/07/26 03:15:08 mayer Exp $ */
+/* $Id: ntservice.c,v 1.3.2.1 2001/09/04 19:40:20 gson Exp $ */
 
 #include <config.h>
 #include <stdio.h>
+
+#include <isc/app.h>
 #include <isc/log.h>
+
+#include <named/globals.h>
 #include <named/ntservice.h>
 #include <named/main.h>
+#include <named/server.h>
 
 /* Handle to SCM for updating service status */
 static SERVICE_STATUS_HANDLE hServiceStatus = 0;
@@ -120,7 +125,7 @@ ntservice_shutdown() {
 
 /* 
  * ServiceControl(): Handles requests from the SCM and passes them on
- * to named via signals.
+ * to named.
  */
 void
 ServiceControl(DWORD dwCtrlCode) {
@@ -131,6 +136,8 @@ ServiceControl(DWORD dwCtrlCode) {
 		break;
 
         case SERVICE_CONTROL_STOP:
+		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		isc_app_shutdown();
 		UpdateSCM(SERVICE_STOPPED);
 		break;
         default:

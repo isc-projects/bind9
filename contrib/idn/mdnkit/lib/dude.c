@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: dude.c,v 1.1 2001/06/09 00:30:15 tale Exp $";
+static char *rcsid = "$Id: dude.c,v 1.1.2.1 2002/02/08 12:13:55 marka Exp $";
 #endif
 
 /*
@@ -12,8 +12,8 @@ static char *rcsid = "$Id: dude.c,v 1.1 2001/06/09 00:30:15 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -77,17 +77,20 @@ static char *rcsid = "$Id: dude.c,v 1.1 2001/06/09 00:30:15 tale Exp $";
 #include <mdn/ace.h>
 #include <mdn/util.h>
 
-#ifndef MDN_DUDE_PREFIX
+/*
+ * The following prefix is recommended by IETF IDN wg for test purposes.
+ */
+#if !defined(MDN_DUDE_PREFIX) && !defined(MDN_DUDE_SUFFIX)
 #define MDN_DUDE_PREFIX		"dq--"
 #endif
 
-static unsigned long nibble_mask[] = {
-	0,		/* dummy: this element is never referenced. */
-	0xf,
-	0xff,
-	0xfff,
-	0xffff,
-	0xfffff,
+static const char *base32encode = "abcdefghijkmnpqrstuvwxyz23456789";
+static const int base32decode_ascii[26] = {
+	0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, -1, 11, 12, -1, 13, 14, 15,
+	16, 17, 18, 19, 20, 21, 22, 23,
+};
+static const int base32decode_digit[10] = {
+	-1, -1, 24, 25, 26, 27, 28, 29, 30, 31,
 };
 
 static mdn_result_t	dude_decode(const char *from, size_t fromlen,
@@ -97,31 +100,40 @@ static mdn_result_t	dude_encode(const char *from, size_t fromlen,
 static int		get_nibblelength(unsigned long v);
 static int		dude_getwc(const char *s, size_t len,
 				   unsigned long *vp);
-static int		dude_putwc(char *s, size_t len, unsigned long v,
-				   int w);
+static int		dude_putwc(char *s, size_t len, unsigned long v);
 
 static mdn__ace_t dude_ctx = {
+#ifdef MDN_DUDE_PREFIX
 	mdn__ace_prefix,
 	MDN_DUDE_PREFIX,
+#else
+	mdn__ace_suffix,
+	MDN_DUDE_SUFFIX,
+#endif
 	dude_encode,
 	dude_decode,
 };
 
 /* ARGSUSED */
 mdn_result_t
-mdn__dude_open(mdn_converter_t ctx, mdn_converter_dir_t dir, void **privdata) {
+mdn__dude_open(mdn_converter_t ctx, mdn_converter_dir_t dir,
+		  void **privdata)
+{
 	return (mdn_success);
 }
 
 /* ARGSUSED */
 mdn_result_t
-mdn__dude_close(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir) {
+mdn__dude_close(mdn_converter_t ctx, void *privdata,
+		   mdn_converter_dir_t dir)
+{
 	return (mdn_success);
 }
 
 mdn_result_t
-mdn__dude_convert(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir,
-		  const char *from, char *to, size_t tolen)
+mdn__dude_convert(mdn_converter_t ctx, void *privdata,
+		     mdn_converter_dir_t dir,
+		     const char *from, char *to, size_t tolen)
 {
 	mdn_result_t r;
 
@@ -144,9 +156,9 @@ mdn__dude_convert(mdn_converter_t ctx, void *privdata, mdn_converter_dir_t dir,
 static mdn_result_t
 dude_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	size_t len;
-	unsigned long prev, v, mask;
+	unsigned long prev, v;
 
-	prev = 0;
+	prev = 96;
 	while (fromlen > 0) {
 		if (from[0] == '-') {
 			v = '-';
@@ -158,14 +170,16 @@ dude_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 				return (mdn_invalid_encoding);
 			from += len;
 			fromlen -= len;
-			mask = nibble_mask[len];
-			v = (prev & ~mask) | v;
+			v = prev ^ v;
 
 			/*
-			 * Perform extra sanity checks.
+			 * Since round-trip check is performed later
+			 * by mdn__ace_convert(), we don't need the
+			 * following sanity checking.
+			 *
+			 * if (v == '-' || get_nibblelength(v) != len)
+			 * 	return (mdn_invalid_encoding);
 			 */
-			if (v == '-' || get_nibblelength(prev ^ v) != len)
-				return (mdn_invalid_encoding);
 
 			prev = v;
 		}
@@ -189,14 +203,14 @@ dude_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 static mdn_result_t
 dude_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	size_t len;
-	unsigned long prev, c, v, mask;
+	unsigned long prev, c;
 
-	prev = 0;
+	prev = 96;
 	while (fromlen > 0) {
 		len = mdn_utf8_getwc(from, fromlen, &c);
 		from += len;
 		fromlen -= len;
-		if (len == 0 || c >= 0x100000)
+		if (len == 0)
 			return (mdn_invalid_encoding);
 		if (c == '-') {
 			/*
@@ -207,13 +221,10 @@ dude_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 			*to++ = '-';
 			tolen--;
 		} else {
-			int nlen = get_nibblelength(prev ^ c);
-			mask = nibble_mask[nlen];
-			v = c & mask;
-			prev = c;
-			len = dude_putwc(to, tolen, v, nlen);
+			len = dude_putwc(to, tolen, prev ^ c);
 			if (len == 0)
 				return (mdn_buffer_overflow);
+			prev = c;
 			to += len;
 			tolen -= len;
 		}
@@ -232,82 +243,63 @@ dude_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 
 static int
 get_nibblelength(unsigned long v) {
-	assert(v < 0x100000);
+	assert(v <= 0x7fffffff);
 
-	if (v <= 0xf)
-		return 1;
-	else if (v <= 0xff)
-		return 2;
-	else if (v <= 0xfff)
-		return 3;
-	else if (v <= 0xffff)
-		return 4;
-	else
-		return 5;
+	if (v < (1<<16)) {			/* v <= 16bit */
+		if (v < (1<<8))			/* v <= 8bit */
+			return ((v < (1<<4)) ? 1 : 2);
+		else				/* 8bit < v <= 16bit */
+			return ((v < (1<<12)) ? 3 : 4);
+	} else {				/* 16bit < c */
+		if (v < (1<<24))		/* 16bit < c <= 24bit */
+			return ((v < (1<<20)) ? 5 : 6);
+		else				/* 24bit < c <= 31bit */
+			return ((v < (1<<28)) ? 7 : 8);
+	}
 }
 
 static int
 dude_getwc(const char *s, size_t len, unsigned long *vp) {
 	size_t orglen = len;
 	unsigned long v = 0;
-	int c;
-
-	if (len < 1)
-		return (0);
-
-	c = *s++;
-	len--;
-
-	if ('G' <= c && c <= 'V')
-		v = c - 'G';
-	else if ('g' <= c && c <= 'v')
-		v = c - 'g';
-	else	/* invalid character */
-		return (0);
 
 	while (len > 0) {
-		c = *s++;
-		if ('0' <= c && c <= '9')
-			c = c - '0';
-		else if ('A' <= c && c <= 'F')
-			c = c - 'A' + 10;
-		else if ('a' <= c && c <= 'f')
-			c = c - 'a' + 10;
+		int c = *s++;
+
+		if ('a' <= c && c <= 'z')
+			c = base32decode_ascii[c - 'a'];
+		else if ('A' <= c && c <= 'Z')
+			c = base32decode_ascii[c - 'A'];
+		else if ('0' <= c && c <= '9')
+			c = base32decode_digit[c - '0'];
 		else
-			break;
-		v = (v << 4) + c;
+			c = -1;
+
+		if (c < 0)
+			return (0);	/* invalid character */
+
+		v = (v << 4) + (c & 0xf);
+
 		len--;
+		if ((c & 0x10) == 0) {
+			*vp = v;
+			return (orglen - len);
+		}
 	}
-	len = orglen - len;
-
-	if (len > 5)
-		return (0);
-
-	*vp = v;
-	return (len);
+	return (0);	/* final character missing */
 }
 
 static int
-dude_putwc(char *s, size_t len, unsigned long v, int w) {
-	int i;
+dude_putwc(char *s, size_t len, unsigned long v) {
+	int i, w, shift;
 
-	assert(v < 0x100000);
-	assert(w > 0 && w < 6 && v <= nibble_mask[w]);
-
-	if (len < w)
+	if ((w = get_nibblelength(v)) > len)
 		return (0);
 
-	for (i = w - 1; i >= 0; i--) {
-		int x = v & 0xf;
-
-		if (i == 0)
-			s[i] = 'g' + x;
-		else if (x < 10)
-			s[i] = '0' + x;
-		else
-			s[i] = 'a' + x - 10;
+	for (shift = 0, i = w - 1; i >= 0; i--) {
+		s[i] = base32encode[(v & 0xf) + shift];
 		v >>= 4;
+		shift = 16;
 	}
-
 	return (w);
 }

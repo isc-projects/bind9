@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2001  Internet Software Consortium.
+ * Copyright (C) 1997-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98 2001/07/17 10:02:46 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.6 2002/07/10 06:10:45 marka Exp $ */
 
 #include <config.h>
 
@@ -475,6 +475,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 		 * don't own.
 		 */
 		new_size = size;
+		goto done;
 	}
 
 	/*
@@ -663,6 +664,8 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
+	if (size == 0)
+		size = 1;
 	return (malloc(size));
 }
 
@@ -998,7 +1001,8 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 		ctx->maxinuse = ctx->inuse;
 		if (ctx->hi_water != 0 && ctx->inuse > ctx->hi_water &&
 		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
-			fprintf(stderr, "maxinuse = %d\n", ctx->inuse);
+			fprintf(stderr, "maxinuse = %lu\n",
+				(unsigned long)ctx->inuse);
 	}
 	UNLOCK(&ctx->lock);
 
@@ -1223,7 +1227,7 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	mem_putstats(ctx, si, size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
-	DELETE_TRACE(ctx, ptr, si->u.size, file, line);
+	DELETE_TRACE(ctx, ptr, size, file, line);
 
 	UNLOCK(&ctx->lock);
 }
@@ -1556,7 +1560,11 @@ isc__mempool_put(isc_mempool_t *mpctx, void *mem FLARG) {
 	INSIST(mpctx->allocated > 0);
 	mpctx->allocated--;
 
+#if ISC_MEM_TRACKLINES
+	LOCK(&mctx->lock);
 	DELETE_TRACE(mctx, mem, mpctx->size, file, line);
+	UNLOCK(&mctx->lock);
+#endif /* ISC_MEM_TRACKLINES */
 
 	/*
 	 * If our free list is full, return this to the mctx directly.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.27 2001/05/14 19:06:47 bwelling Exp $ */
+/* $Id: zt.h,v 1.27.2.2 2002/08/05 06:57:13 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -34,7 +34,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
  * Creates a new zone table.
  *
  * Requires:
- * 	'mctx' to be initalised.
+ * 	'mctx' to be initialized.
  *
  * Returns:
  *	ISC_R_SUCCESS on success.
@@ -86,7 +86,7 @@ dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
  * Requires:
  *	'zt' to be valid
  *	'name' to be valid
- *	'foundname' to be initalised and associated with a fixedname or NULL
+ *	'foundname' to be initialized and associated with a fixedname or NULL
  *	'zone' to be non NULL and '*zone' to be NULL
  *
  * Returns:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122 2001/08/28 03:58:05 marka Exp $ */
+/* $Id: master.c,v 1.122.2.5 2002/03/20 19:15:13 marka Exp $ */
 
 #include <config.h>
 
@@ -242,11 +242,22 @@ loadctx_destroy(dns_loadctx_t *lctx);
 #define MANYERRS(lctx, result) \
 		((result != ISC_R_SUCCESS) && \
 		((lctx)->options & DNS_MASTER_MANYERRORS) != 0)
+
 #define SETRESULT(lctx, r) \
 		do { \
 			if ((lctx)->result == ISC_R_SUCCESS) \
 				(lctx)->result = r; \
 		} while (0)
+
+#define LOGITFILE(result, filename) \
+	if (result == ISC_R_INVALIDFILE || result == ISC_R_FILENOTFOUND || \
+	    result == ISC_R_IOERROR || result == ISC_R_TOOMANYOPENFILES || \
+	    result == ISC_R_NOPERM) \
+		(*callbacks->error)(callbacks, "%s: %s:%lu: %s: %s", \
+				    "dns_master_load", source, line, \
+				    filename, dns_result_totext(result)); \
+	else LOGIT(result)
+
 #define LOGIT(result) \
 	if (result == ISC_R_NOMEMORY) \
 		(*callbacks->error)(callbacks, "dns_master_load: %s", \
@@ -359,7 +370,7 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 		incctx_destroy(lctx->mctx, lctx->inc);
 
 	if (lctx->lex != NULL) {
-		isc_lex_close(lctx->lex);
+		/* isc_lex_destroy() will close all open streams */
 		isc_lex_destroy(&lctx->lex);
 	}
 	if (lctx->task != NULL)
@@ -944,10 +955,12 @@ load(dns_loadctx_t *lctx) {
 							  ictx->origin, lctx);
 					if (MANYERRS(lctx, result)) {
 						SETRESULT(lctx, result);
-						LOGIT(result);
+						LOGITFILE(result, include_file);
 						continue;
-					} else if (result != ISC_R_SUCCESS)
-						goto log_and_cleanup;
+					} else if (result != ISC_R_SUCCESS) {
+						LOGITFILE(result, include_file);
+						goto insist_and_cleanup;
+					}
 					ictx = lctx->inc;
 					line = isc_lex_getsourceline(lctx->lex);
 					source =
@@ -1097,10 +1110,11 @@ load(dns_loadctx_t *lctx) {
 					  ictx->origin, ISC_FALSE, NULL);
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
+				LOGITFILE(result, include_file);
 				read_till_eol = ISC_TRUE;
 				continue;
 			} else if (result != ISC_R_SUCCESS)
-				goto insist_and_cleanup;
+				goto log_and_cleanup;
 
 			/*
 			 * Finish $ORIGIN / $INCLUDE processing if required.
@@ -1121,10 +1135,12 @@ load(dns_loadctx_t *lctx) {
 				result = pushfile(include_file, new_name, lctx);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
-					LOGIT(result);
+					LOGITFILE(result, include_file);
 					continue;
-				} else if (result != ISC_R_SUCCESS)
-					goto log_and_cleanup;
+				} else if (result != ISC_R_SUCCESS) {
+					LOGITFILE(result, include_file);
+					goto insist_and_cleanup;
+				}
 				ictx = lctx->inc;
 				line = isc_lex_getsourceline(lctx->lex);
 				source = isc_lex_getsourcename(lctx->lex);
@@ -1395,6 +1411,27 @@ load(dns_loadctx_t *lctx) {
 			target = target_ft;
 			continue;
 		}
+
+		if (type == dns_rdatatype_soa &&
+		    (lctx->options & DNS_MASTER_ZONE) != 0 &&
+		    dns_name_compare(ictx->current, lctx->top) != 0) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(ictx->current, namebuf,
+					sizeof(namebuf));
+			(*callbacks->error)(callbacks,
+				            "dns_master_load: %s:%lu: SOA "
+			                    "record not at top of zone (%s)",
+				            source, line, namebuf);
+			result = DNS_R_NOTZONETOP;
+			if (MANYERRS(lctx, result)) {
+				SETRESULT(lctx, result);
+				read_till_eol = ISC_TRUE;
+				target = target_ft;
+				continue;
+			} else if (result != ISC_R_SUCCESS)
+				goto insist_and_cleanup;
+		}
+
 
 		if (type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);

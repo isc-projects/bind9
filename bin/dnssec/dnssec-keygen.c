@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.48 2001/07/10 18:53:09 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.48.2.1 2001/10/05 00:21:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -40,7 +40,6 @@
 #include <dns/secalg.h>
 
 #include <dst/dst.h>
-#include <dst/result.h>
 
 #include "dnssectool.h"
 
@@ -342,7 +341,7 @@ main(int argc, char **argv) {
 			dns_name_format(name, namestr, sizeof namestr);
 			alg_format(alg, algstr, sizeof algstr);
 			fatal("failed to generate key %s/%s: %s\n",
-			      namestr, algstr, dst_result_totext(ret));
+			      namestr, algstr, isc_result_totext(ret));
 			exit(-1);
 		}
 

@@ -1,5 +1,5 @@
 #! /usr/local/bin/perl -w
-# $Id: generate_normalize_data.pl,v 1.5 2001/02/13 07:34:02 ishisone Exp $
+# $Id: generate_normalize_data.pl,v 1.1 2002/01/02 02:47:06 marka Exp $
 #
 # Copyright (c) 2000,2001 Japan Network Information Center.
 # All rights reserved.
@@ -10,8 +10,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is under this
@@ -84,7 +84,7 @@ my $CASEMAP_LAST_BIT = 0x10;
 my $LETTER_BIT = 1;
 my $NSPMARK_BIT = 2;
 
-(my $myid = '$Id: generate_normalize_data.pl,v 1.5 2001/02/13 07:34:02 ishisone Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
+(my $myid = '$Id: generate_normalize_data.pl,v 1.1 2002/01/02 02:47:06 marka Exp $') =~ s/\$([^\$]+)\$/\$-$1-\$/;
 
 my @default_bits = (9, 7, 5);
 #my @default_bits = (7, 7, 7);
@@ -95,9 +95,10 @@ my @folding_bits = @default_bits;
 my @casemap_bits = @default_bits;
 my @casemap_ctx_bits = @default_bits;
 
+my $prefix = '';
 my $dir = '.';
 my $unicodedatafile = 'UnicodeData.txt';
-my $exclusionfile = 'CompositionExclusions-1.txt';
+my $exclusionfile = 'CompositionExclusions.txt';
 my $specialcasefile = 'SpecialCasing.txt';
 my $casefoldingfile = 'CaseFolding.txt';
 my $verbose;
@@ -107,6 +108,7 @@ GetOptions('dir|d=s' => \$dir,
 	   'exclude|e=s' => \$exclusionfile,	
 	   'specialcase|s=s' => \$specialcasefile,
 	   'casefold|c=s' => \$casefoldingfile,
+	   'prefix|p=s' => \$prefix,
 	   'verbose|v' => \$verbose,
 ) or usage();
 
@@ -415,7 +417,7 @@ sub print_canon_class {
 END
     print_bits("CANON_CLASS", @canon_class_bits);
     print "\n";
-    print $canon_class->cprog(NAME => "canon_class");
+    print $canon_class->cprog(NAME => "${prefix}canon_class");
 }
 
 #
@@ -434,13 +436,10 @@ sub print_composition {
 END
     print_bits("CANON_COMPOSE", @comp_bits);
     print "\n";
-    print $comp->cprog(NAME => "compose");
+    print $comp->cprog(NAME => "${prefix}compose");
     print <<"END";
 
-static struct composition {
-	unsigned long c2;	/* 2nd character */
-	unsigned long comp;	/* composed character */
-} compose_seq[] = {
+static const struct composition ${prefix}compose_seq[] = {
 END
     my $i = 0;
     foreach my $r (@comp_data) {
@@ -472,9 +471,9 @@ END
     print_bits("DECOMP", @decomp_bits);
     print "#define DECOMP_COMPAT\t$DECOMP_COMPAT_BIT\n\n";
 
-    print $decomp->cprog(NAME => "decompose");
+    print $decomp->cprog(NAME => "${prefix}decompose");
 
-    print "static unsigned long decompose_seq[] = {\n";
+    print "static const unsigned long ${prefix}decompose_seq[] = {\n";
     print_ulseq(@decomp_data);
     print "};\n\n";
 }
@@ -505,14 +504,14 @@ sub print_casemap {
 END
     print_bits("CASEMAP", @casemap_bits);
     print "\n";
-    print $upper->cprog(NAME => "toupper");
-    print $lower->cprog(NAME => "tolower");
+    print $upper->cprog(NAME => "${prefix}toupper");
+    print $lower->cprog(NAME => "${prefix}tolower");
 
-    print "static unsigned long toupper_seq[] = {\n";
+    print "static const unsigned long ${prefix}toupper_seq[] = {\n";
     print_ulseq(@toupper_data);
     print "};\n\n";
 
-    print "static unsigned long tolower_seq[] = {\n";
+    print "static const unsigned long ${prefix}tolower_seq[] = {\n";
     print_ulseq(@tolower_data);
     print "};\n\n";
 }
@@ -533,9 +532,9 @@ sub print_casefolding {
 END
     print_bits("CASE_FOLDING", @folding_bits);
     print "\n";
-    print $folding->cprog(NAME => "case_folding");
+    print $folding->cprog(NAME => "${prefix}case_folding");
 
-    print "static unsigned long case_folding_seq[] = {\n";
+    print "static const unsigned long ${prefix}case_folding_seq[] = {\n";
     print_ulseq(@folding_data);
     print "};\n\n";
 }
@@ -563,7 +562,7 @@ END
 #define CTX_NSM		$NSPMARK_BIT
 
 END
-    print $casemap_ctx->cprog(NAME => "casemap_ctx");
+    print $casemap_ctx->cprog(NAME => "${prefix}casemap_ctx");
 }
 
 sub sprint_composition_hash {

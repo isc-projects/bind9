@@ -748,15 +748,17 @@ fi
 
 
 
+
+
 echo $ac_n "checking for library containing res_mkquery""... $ac_c" 1>&6
-echo "configure:753: checking for library containing res_mkquery" >&5
+echo "configure:755: checking for library containing res_mkquery" >&5
 if eval "test \"`echo '$''{'ac_cv_search_res_mkquery'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
   ac_func_search_save_LIBS="$LIBS"
 ac_cv_search_res_mkquery="no"
 cat > conftest.$ac_ext <<EOF
-#line 760 "configure"
+#line 762 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -767,7 +769,7 @@ int main() {
 res_mkquery()
 ; return 0; }
 EOF
-if { (eval echo configure:771: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:773: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   ac_cv_search_res_mkquery="none required"
 else
@@ -778,7 +780,7 @@ rm -f conftest*
 test "$ac_cv_search_res_mkquery" = "no" && for i in resolv bind; do
 LIBS="-l$i  $ac_func_search_save_LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 782 "configure"
+#line 784 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -789,7 +791,7 @@ int main() {
 res_mkquery()
 ; return 0; }
 EOF
-if { (eval echo configure:793: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:795: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   ac_cv_search_res_mkquery="-l$i"
 break
@@ -810,7 +812,7 @@ else :
   
 fi;
 echo $ac_n "checking for socket in -lsocket""... $ac_c" 1>&6
-echo "configure:814: checking for socket in -lsocket" >&5
+echo "configure:816: checking for socket in -lsocket" >&5
 ac_lib_var=`echo socket'_'socket | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -818,7 +820,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lsocket  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 822 "configure"
+#line 824 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -829,7 +831,7 @@ int main() {
 socket()
 ; return 0; }
 EOF
-if { (eval echo configure:833: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:835: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -857,7 +859,7 @@ else
 fi
 
 echo $ac_n "checking for inet_ntoa in -lnsl""... $ac_c" 1>&6
-echo "configure:861: checking for inet_ntoa in -lnsl" >&5
+echo "configure:863: checking for inet_ntoa in -lnsl" >&5
 ac_lib_var=`echo nsl'_'inet_ntoa | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -865,7 +867,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lnsl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 869 "configure"
+#line 871 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -876,7 +878,7 @@ int main() {
 inet_ntoa()
 ; return 0; }
 EOF
-if { (eval echo configure:880: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
+if { (eval echo configure:882: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -902,6 +904,42 @@ EOF
 else
   echo "$ac_t""no" 1>&6
 fi
+
+echo $ac_n "checking for socklen_t""... $ac_c" 1>&6
+echo "configure:910: checking for socklen_t" >&5
+if eval "test \"`echo '$''{'ac_cv_type_socklen_t'+set}'`\" = set"; then
+  echo $ac_n "(cached) $ac_c" 1>&6
+else
+  
+  cat > conftest.$ac_ext <<EOF
+#line 916 "configure"
+#include "confdefs.h"
+#include <sys/types.h>
+   #include <sys/socket.h>
+int main() {
+socklen_t len = 42; return len;
+; return 0; }
+EOF
+if { (eval echo configure:924: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
+  rm -rf conftest*
+  ac_cv_type_socklen_t=yes
+else
+  echo "configure: failed program was:" >&5
+  cat conftest.$ac_ext >&5
+  rm -rf conftest*
+  ac_cv_type_socklen_t=no
+fi
+rm -f conftest*
+
+fi
+
+echo "$ac_t""$ac_cv_type_socklen_t" 1>&6
+  if test $ac_cv_type_socklen_t != yes; then
+    cat >> confdefs.h <<\EOF
+#define socklen_t int
+EOF
+
+  fi
 
 
 trap '' 1 2 15

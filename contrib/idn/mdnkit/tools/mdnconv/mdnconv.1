@@ -1,4 +1,4 @@
-.\" $Id: mdnconv.1,v 1.17 2001/05/18 04:16:27 ishisone Exp $
+.\" $Id: mdnconv.1,v 1.1 2002/01/02 02:47:01 marka Exp $
 .\"
 .\" Copyright (c) 2000,2001 Japan Network Information Center.
 .\" All rights reserved.
@@ -9,8 +9,8 @@
 .\" 
 .\" The following License Terms and Conditions apply, unless a different
 .\" license is obtained from Japan Network Information Center ("JPNIC"),
-.\" a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-.\" Tokyo, Japan.
+.\" a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+.\" Chiyoda-ku, Tokyo 101-0047, Japan.
 .\" 
 .\" 1. Use, Modification and Redistribution (including distribution of any
 .\"    modified or derived work) in source and/or binary forms is permitted
@@ -104,10 +104,13 @@ standard domain name preperation (NAMEPREP)
 Furthermore, delimiter mapping is also performed in case \-delimitermap
 command line option is specified.
 .PP
-The other mode is a reverse convertion, from IDN-encoded domain name to
+The other mode is a reverse conversion, from IDN-encoded domain name to
 local-encoded domain names.
-Since IDN-ecoded names are usually already normalized by local mapping and
-NAMEPREP process, only codeset conversion is performed in this mode.
+In this mode, local mapping and NAMEPREP are not performed since
+IDN-encoded names should already be normalized.
+Instead, a check is done in order to make sure the IDN-encoded domain name
+is properly NAMEPREP'ed.  If it is not, the name will be output in
+IDN encoding, not in the local encoding.
 .\"
 .SH OPTIONS
 Normally
@@ -124,25 +127,13 @@ Any of the following codeset names can be specified.
 .IP "\(bu" 2
 Any codeset names which \fIiconv_open()\fP library function accepts
 .IP "\(bu" 2
+\f(CWAMC-ACE-Z\fR
+.IP "\(bu" 2
 \f(CWRACE\fR
-.IP "\(bu" 2
-\f(CWBRACE\fR
-.IP "\(bu" 2
-\f(CWLACE\fR
 .IP "\(bu" 2
 \f(CWDUDE\fR
 .IP "\(bu" 2
-\f(CWUTF-5\fR
-.IP "\(bu" 2
-\f(CWUTF-6\fR
-.IP "\(bu" 2
-\f(CWAltDUDE\fR
-.IP "\(bu" 2
-\f(CWAMC-ACE-O\fR
-.IP "\(bu" 2
-\f(CWAMC-ACE-M\fR
-.IP "\(bu" 2
-\f(CWAMC-ACE-R\fR
+\f(CWUTF-8\fR
 .IP "\(bu" 2
 Any alias names for the above, defined by the codeset alias file.
 .RE
@@ -182,12 +173,15 @@ Specify the version of NAMEPREP.
 The following is a list of currently available
 .IR version s.
 .RS 4
-.IP \f(CWnameprep-02\fR 4
-Perform NAMEPREP according to the Internet Draft
-``draft-ietf-idn-nameprep-02.txt'' (NAMEPREP-02).
 .IP \f(CWnameprep-03\fR 4
 Perform NAMEPREP according to the Internet Draft
 ``draft-ietf-idn-nameprep-03.txt'' (NAMEPREP-03).
+.IP \f(CWnameprep-05\fR 4
+Perform NAMEPREP according to the Internet Draft
+``draft-ietf-idn-nameprep-05.txt'' (NAMEPREP-05).
+.IP \f(CWnameprep-06\fR 4
+Perform NAMEPREP according to the Internet Draft
+``draft-ietf-idn-nameprep-06.txt'' (NAMEPREP-06).
 .RE
 .IP "" 4
 This option is a shorthand for specifying the 4 options below.
@@ -207,13 +201,10 @@ This option is a shorthand for specifying the 4 options below.
 .I version
 .ft R
 .RE
-.IP "" 4
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-nonameprep\fR, \fB\-N\fR
-Specify to skip NAMEPREP process in the normal conversion mode.
-.br
-This option is only meaningful in the normal conversion mode.
+Specify to skip NAMEPREP process (or NAMEPREP verification process
+in the reverse conversion mode).
 .TP 4
 \fB\-map\fR \fImap\fR
 Specify the name of the mapping rule for NAMEPREP mapping process.
@@ -221,10 +212,12 @@ Currently, following
 .IR map s
 are available.
 .RS 4
-.IP \f(CWnameprep-02\fR 4
-Use the list of mappings specified by NAMEPREP-02 draft.
 .IP \f(CWnameprep-03\fR 4
 Use the list of mappings specified by NAMEPREP-03 draft.
+.IP \f(CWnameprep-05\fR 4
+Use the list of mappings specified by NAMEPREP-05 draft.
+.IP \f(CWnameprep-06\fR 4
+Use the list of mappings specified by NAMEPREP-06 draft.
 .IP \f(CWfilemap:\fR\fIpath\fR 4
 Use list of mappings specified by mapfile
 .IR path .
@@ -238,37 +231,25 @@ specification.
 If neither this option nor ``\-nameprep'' are specified,
 the schemes specified in the configuration file (``nameprep-map'' entry)
 are used.
-.br
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-normalize\fP \fIscheme\fP
 Specify the normalization scheme for NAMEPREP normalization process.
 Currently, following \fIscheme\fPs are available:
 .RS 4
-.IP \f(CWascii-uppercase\fR
-ASCII lowercase to uppercase mapping.
-.IP \f(CWascii-lowercase\fR
-ASCII uppercase to lowercase mapping.
-.IP \f(CWunicode-uppercase\fR
-Unicode lowercase to uppercase mapping, which is described in
-``Unicode Technical Report #21: Case Mappings'',
-available from unicode.org.
-.IP \f(CWunicode-lowercase\fR
-Unicode uppercase to lowercase mapping, according ``Case Mappings''.
-.IP \f(CWunicode-foldcase\fR
-Unicode case-folding for case-less string matching,
-also described in the above document.
-.IP \f(CWunicode-form-c\fR
-Unicode Normlization Form C, which is described in
-``Unicode Technical Report #15: Unicode Normalization Forms'',
-also available from unicode.org.
 .IP \f(CWunicode-form-kc\fR
-Unicode Normlization Form KC, also described in the above
-document.
-.IP \f(CWnameprep-02\fR
-Synonim for ``unicode-form-kc''.
+Unicode Normlization Form KC, also described in
+``Unicode Technical Report #15: Unicode Normalization Forms'',
+available from unicode.org.
+.IP \f(CWunicode-form-kc/3.0.1\fR
+Unicode Normlization Form KC, version 3.0.1
+.IP \f(CWunicode-form-kc/3.1.0\fR
+Unicode Normlization Form KC, version 3.1.0
 .IP \f(CWnameprep-03\fR
-Synonim for ``unicode-form-kc''.
+Synonim for ``unicode-form-kc/3.0.1''.
+.IP \f(CWnameprep-05\fR
+Synonim for ``unicode-form-kc/3.1.0''.
+.IP \f(CWnameprep-06\fR
+Synonim for ``unicode-form-kc/3.1.0''.
 .RE
 .IP "" 4
 This option can be specified more than once.
@@ -278,8 +259,6 @@ specification.
 If neither this option nor ``\-nameprep'' are specified,
 the schemes specified in the configuration file (``nameprep-normalize'' entry)
 are used.
-.br
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-prohibit\fR \fIset\fR
 Specify the set of prohibited characters.
@@ -287,10 +266,12 @@ Currently, following
 .IR set s
 are available.
 .RS 4
-.IP \f(CWnameprep-02\fR 4
-Use list of prohibit characters specified by NAMEPREP-02 draft.
 .IP \f(CWnameprep-03\fR 4
 Use list of prohibit characters specified by NAMEPREP-03 draft.
+.IP \f(CWnameprep-05\fR 4
+Use list of prohibit characters specified by NAMEPREP-05 draft.
+.IP \f(CWnameprep-06\fR 4
+Use list of prohibit characters specified by NAMEPREP-06 draft.
 .IP \f(CWfileset:\fR\fIpath\fR 4
 Use list of characters specified by setfile
 .IR path .
@@ -303,8 +284,6 @@ prohibited characters is the union of the specified sets.
 If neither this option nor ``\-nameprep'' is specified,
 list of characters specified by the configuration file
 (``nameprep-prohibit'' entry) is used.
-.br
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-unassigned\fR \fIset\fR
 Specify the set of unassigned codepoints.
@@ -312,10 +291,12 @@ Currently, following
 .IR set s
 are available.
 .RS 4
-.IP \f(CWnameprep-02\fR 4
-Use the list of unassigned characters specified by NAMEPREP-02 draft.
 .IP \f(CWnameprep-03\fR 4
 Use the list of unassigned characters specified by NAMEPREP-03 draft.
+.IP \f(CWnameprep-05\fR 4
+Use the list of unassigned characters specified by NAMEPREP-05 draft.
+.IP \f(CWnameprep-06\fR 4
+Use the list of unassigned characters specified by NAMEPREP-06 draft.
 .IP \f(CWfileset:\fR\fIpath\fR 4
 Use list of characters specified by setfile
 .IR path .
@@ -331,14 +312,10 @@ prohibited characters is the union of the specified sets.
 If neither this option nor ``\-nameprep'' is specified,
 list of characters specified by the configuration file
 (``nameprep-unassigned'' entry) is used.
-.br
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-unassigncheck\fR, \fB\-u\fR
 Specify unassigned codepoint check should be performed.
 Unassigned codepoint check is disabled by default.
-.br
-This option is only meaningful in the normal conversion mode.
 .TP 4
 \fB\-delimiter\fR \fIcodepoint\fP
 Specify the character to be mapped to domain name delimiter (period).
@@ -383,6 +360,10 @@ Force line-buffering mode.
 .TP 4
 \fB\-version\fP, \fB\-v\fP
 Print version information and quit.
+.\"
+.SH LOCAL CODESET
+mdnconv guesses local codeset from locale and environment variables.
+See the ``LOCAL CODESET'' section in mdn.conf(5) for more details.
 .\"
 .SH CONVERSION MECHANISM
 Here is a brief step-by-step description of how
@@ -464,6 +445,14 @@ Perform name preparation (NAMEPREP).  This is a following 3-step process.
 3) Prohibited/unassigned character checking
 .fi
 .RE
+.IP "" 4
+When
+.B mdnconv
+operates in the reverse conversion mode, this process checks that the
+given domain name is properly NAMEPREP'ed.  If it is not properly
+NAMEPREP'ed and the input codeset is an ACE, the domain name is
+converted back to the input codeset in the following process, instead
+of the output codeset.
 .IP "6. output-side conversion" 4
 Finally,
 .B mdnconv
@@ -472,7 +461,7 @@ And it writes them to stdout together with the rest of the line.
 .PP
 If
 .B mdnconv
-operates in the reverse conversion mode, step 3, 4 and 5 above are skipped.
+operates in the reverse conversion mode, step 3 and 4 above are skipped.
 .\"
 .SH FILE MANAGEMENT
 Maybe the best way to manage named.conf or zone master files that contains

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.43 2001/07/09 21:05:57 gson Exp $ */
+/* $Id: app.c,v 1.43.2.3 2002/08/05 06:57:16 marka Exp $ */
 
 #include <config.h>
 
+#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 
 #include <stddef.h>
@@ -35,6 +36,7 @@
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
+#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
@@ -97,17 +99,19 @@ reload_action(int arg) {
 static isc_result_t
 handle_signal(int sig, void (*handler)(int)) {
 	struct sigaction sa;
+	char strbuf[ISC_STRERRORSIZE];
 
 	memset(&sa, 0, sizeof sa);
 	sa.sa_handler = handler;
 
 	if (sigfillset(&sa.sa_mask) != 0 ||
 	    sigaction(sig, &sa, NULL) < 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_APP,
 					       ISC_MSG_SIGNALSETUP,
 					       "handle_signal() %d setup: %s"),
-				 sig, strerror(errno));
+				 sig, strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
@@ -119,6 +123,7 @@ isc_app_start(void) {
 	isc_result_t result;
 	int presult;
 	sigset_t sset;
+	char strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * Start an ISC library application.
@@ -130,9 +135,9 @@ isc_app_start(void) {
 	 */
 	presult = pthread_init();
 	if (presult != 0) {
+		isc__strerror(presult, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_start() pthread_init: %s",
-				 strerror(presult));
+				 "isc_app_start() pthread_init: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 #endif
@@ -204,16 +209,17 @@ isc_app_start(void) {
 	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_start() sigsetops: %s",
-				 strerror(errno));
+				 "isc_app_start() sigsetops: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	presult = pthread_sigmask(SIG_BLOCK, &sset, NULL);
 	if (presult != 0) {
+		isc__strerror(presult, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() pthread_sigmask: %s",
-				 strerror(presult));
+				 strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 #else /* ISC_PLATFORM_USETHREADS */
@@ -228,16 +234,16 @@ isc_app_start(void) {
 	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_start() sigsetops: %s",
-				 strerror(errno));
+				 "isc_app_start() sigsetops: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 	presult = sigprocmask(SIG_UNBLOCK, &sset, NULL);
 	if (presult != 0) {
+		isc__strerror(presult, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_start() sigprocmask: %s",
-				 strerror(presult));
+				 "isc_app_start() sigprocmask: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -405,6 +411,7 @@ isc_app_run(void) {
 	isc_task_t *task;
 #ifdef ISC_PLATFORM_USETHREADS
 	sigset_t sset;
+	char strbuf[ISC_STRERRORSIZE];
 #endif /* ISC_PLATFORM_USETHREADS */
 #ifdef HAVE_SIGWAIT
 	int sig;
@@ -464,9 +471,9 @@ isc_app_run(void) {
 		    sigaddset(&sset, SIGHUP) != 0 ||
 		    sigaddset(&sset, SIGINT) != 0 ||
 		    sigaddset(&sset, SIGTERM) != 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_run() sigsetops: %s",
-					 strerror(errno));
+					 "isc_app_run() sigsetops: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 
@@ -496,9 +503,9 @@ isc_app_run(void) {
 		 * Listen for all signals.
 		 */
 		if (sigemptyset(&sset) != 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_run() sigsetops: %s",
-					 strerror(errno));
+					 "isc_app_run() sigsetops: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 		result = sigsuspend(&sset);
@@ -532,6 +539,7 @@ isc_app_run(void) {
 isc_result_t
 isc_app_shutdown(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
+	char strbuf[ISC_STRERRORSIZE];
 
 	LOCK(&lock);
 
@@ -550,16 +558,17 @@ isc_app_shutdown(void) {
 
 		result = pthread_kill(main_thread, SIGTERM);
 		if (result != 0) {
+			isc__strerror(result, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_app_shutdown() pthread_kill: %s",
-					 strerror(result));
+					 strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 #else
 		if (kill(getpid(), SIGTERM) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_shutdown() kill: %s",
-					 strerror(errno));
+					 "isc_app_shutdown() kill: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 #endif
@@ -571,6 +580,7 @@ isc_app_shutdown(void) {
 isc_result_t
 isc_app_reload(void) {
 	isc_boolean_t want_kill = ISC_TRUE;
+	char strbuf[ISC_STRERRORSIZE];
 
 	LOCK(&lock);
 
@@ -590,16 +600,17 @@ isc_app_reload(void) {
 
 		result = pthread_kill(main_thread, SIGHUP);
 		if (result != 0) {
+			isc__strerror(result, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_app_reload() pthread_kill: %s",
-					 strerror(result));
+					 strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 #else
 		if (kill(getpid(), SIGHUP) < 0) {
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_app_reload() kill: %s",
-					 strerror(errno));
+					 "isc_app_reload() kill: %s", strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
 #endif
@@ -651,4 +662,3 @@ isc_app_unblock(void) {
 	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
 #endif /* ISC_PLATFORM_USETHREADS */
 }
-

@@ -1,4 +1,4 @@
-/* $Id: version.h,v 1.1 2001/06/09 00:30:09 tale Exp $ */
+/* $Id: version.h,v 1.1.2.1 2002/02/08 12:13:34 marka Exp $ */
 /*
  * Copyright (c) 2001 Japan Network Information Center.  All rights reserved.
  *  
@@ -8,8 +8,8 @@
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -63,9 +63,9 @@
 /*
  * Version number of this package.
  */
-#define MDNKIT_VERSION		"2.1"
+#define MDNKIT_VERSION		"2.2.3"
 #define MDNKIT_MAJOR_VERSION	2
-#define MDNKIT_MINOR_VERSION	1
+#define MDNKIT_MINOR_VERSION	2
 
 /*
  * Get the version of the library (libmdn).

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.32 2001/01/09 21:42:02 bwelling Exp $ */
+/* $Id: t_names.c,v 1.32.2.2 2002/08/05 06:57:06 marka Exp $ */
 
 #include <config.h>
 
@@ -157,15 +157,15 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
 		if (cnt == exp_data_len)
 			result = 0;
 		else {
-			t_info("bad data at position %d, "
+			t_info("bad data at position %lu, "
 			       "got 0x%.2x, expected 0x%.2x\n",
-			       cnt, *p, *q);
+			       (unsigned long)cnt, *p, *q);
 			result = cnt + 1;
 		}
 		(void)free(data);
 	} else {
-		t_info("data length error, expected %d, got %d\n",
-			exp_data_len, buflen);
+		t_info("data length error, expected %lu, got %lu\n",
+			(unsigned long)exp_data_len, (unsigned long)buflen);
 		result = exp_data_len - buflen;
 	}
 	return (result);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.31 2001/07/22 06:09:42 mayer Exp $ */
+/* $Id: dnssectool.c,v 1.31.2.2 2001/11/27 22:41:49 gson Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,6 @@
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
-#include <isc/keyboard.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -66,11 +65,8 @@ setfatalcallback(fatalcallback_t *callback) {
 
 void
 check_result(isc_result_t result, const char *message) {
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s: %s\n", program, message,
-			isc_result_totext(result));
-		exit(1);
-	}
+	if (result != ISC_R_SUCCESS)
+		fatal("%s: %s", message, isc_result_totext(result));
 }
 
 void
@@ -202,13 +198,23 @@ cleanup_logging(isc_log_t **logp) {
 void
 setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	isc_result_t result;
+	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 
-	result = isc_entropy_create(mctx, ectx);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not create entropy object");
+	REQUIRE(ectx != NULL);
+	
+	if (*ectx == NULL) {
+		result = isc_entropy_create(mctx, ectx);
+		if (result != ISC_R_SUCCESS)
+			fatal("could not create entropy object");
+	}
+
+	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
+		usekeyboard = ISC_ENTROPY_KEYBOARDYES;
+		randomfile = NULL;
+	}
 
 	result = isc_entropy_usebestsource(*ectx, &source, randomfile,
-					   ISC_ENTROPY_KEYBOARDMAYBE);
+					   usekeyboard);
 
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize entropy source: %s",

@@ -1,11 +1,23 @@
 
 				mDNkit
 		-- multilingual domain name toolkit --
-			     version 2.1
+			    version 2.2.3
 	       Japan Network Information Center (JPNIC)
 
 
-* Overview
+Table of contents of this file:
+
+  1. Overview
+  2. Directory structure of this distribution
+  3. Applying patches
+  4. Supported systems
+  5. Contact information
+
+See the file INSTALL for compilation and installation instructions.
+See the file NEWS for a list of major changes in the current release.
+
+
+1. Overview
 
 mDNkit is a toolkit for handling multilingualized/internationalized 
 domain names.  To handle such names, the following features are required:
@@ -147,13 +159,16 @@ using above components.
    |application|             +---------+---------+           +----------+
    +-----------+
 
-* Directory structure of this distribution
+
+2. Directory structure of this distribution
 
 Below is a directory structure of this distribution with some 
 important files and their brief description.
 
     +README		this file
     +README.ja		.. in Japanese
+    +INSTALL		compilation and installation instructions.
+    +INSTALL.ja		.. in Japanese
     +DISTFILES		list of files in this distribution
     +NEWS		what's new in this version
     +ChangeLog		list of changes
@@ -176,168 +191,9 @@ important files and their brief description.
     +wsock/		source directory for mDN wrapper
 
 
-* Compilation and installation
+3. Applying patches
 
-0. Prerequisite
-
-If your system's library does not have iconv() function, which is a
-general codeset conversion utility, install it as an external library.
-You also need external library if the system's implementation cannot
-handle UTF-8 encoding, or it doesn't support some encodings which your
-client applications uses.
-
-You can get a free version of iconv() implementation (under LGPL
-license), from:
-
-	http://clisp.cons.org/~haible/packages-libiconv.html
-
-*Note*
-  The current version of the above implementation (libiconv-1.6.1) is
-  known to have a compilation problem on NetBSD 1.5.  There is a patch
-  file for the bug under patch/libiconv directory.  If you are a
-  NetBSD 1.5 user and found a problem in compiling libiconv, apply the
-  patch and try again.  The patch file contains brief instructions on
-  how to apply it at the beginning.
-
-1. Running configure script
-
-Run `configure' script in the top directory.  This checks various
-characteristics of your system and it will create Makefiles and
-config.h appropriate for your system.
-
-	% ./configure
-
-`configure' accepts many options.  Here is a list of some important
-options.
-
-    --with-iconv=LIB
-	If your libc doesn't contain iconv(), specify the library
-	that contains iconv().  For example, if iconv() is libiconv
-	in /usr/local/lib, you should specify:
-
-	    --with-iconv="-L/usr/local/lib -liconv"
-
-	Note that if the library is a shared one, you might also want to
-	specify -R option, like:
-
-	    --with-iconv="-L/usr/local/lib -R/usr/local/lib -liconv"
-
-	If the header file "iconv.h" has installed in a non-standard
-	directory like /usr/local/include, you should specify CFLAGS
-	environment variable.  See below.
-
-    --with-iconv-sofile=PATH
-	``runmdn'' command in this kit needs to know the pathname of
-	shared library file that contains iconv(), if iconv() is not
-	part of libc.  mDNkit tries to find out the pathname from the
-	informaiton provided by ``--with-iconv'' option described
-	above.  But when it fails, you have to specify it with this
-	option, like:
-
-	    --with-iconv-sofile=/usr/local/lib/libiconv.so.2.0
-
-    --with-utf8=NAME
-	If your iconv() (precisely, iconv_open()) does not accept
-	"UTF-8" as the name of UTF-8 encoding, specify the name for
-	it.  For example if your iconv() uses "utf8" instead, you
-	should specify:
-
-	    --with-utf8=utf8
-
-    --with-preference=PREFERENCE
-	This option sets the preference for the sample mDNkit
-	configuration file (mdn.conf.sample).  Also this option
-	enables to install default configuration file (mdn.conf)
-	if the file didn't exist.
-	The only preference supported by this version is "jp".
-
-    --with-race-prefix=PREFIX
-    --with-brace-suffix=SUFFIX
-    --with-lace-prefix=PREFIX
-    --with-dude-prefix=PREFIX
-	RACE (Row-based ASCII-Compatible Encoding), BRACE (Bi-mode
-	Row-based ASCII-Compatible Encoding), LACE (Length-based ASCII
-	Compatible Encoding) and DUDE (Differential Unicode Domain
-	Encoding) are proposed encodings for multilingual domain name
-	in DNS protocol data.  They uses a fixed prefix (or suffix)
-	string to distinguish names encoded by them from normal ASCII
-	domain names.  These prefix/suffix are defined by the current
-	Internet Drafts and mDNkit uses them by default, but later
-	version of the drafts may change them.  In that case you can
-	specify the prefix/suffix with these options.
-
-    --with-altdude-prefix=PREFIX
-    --with-altdude-suffix=SUFFIX
-    --with-amc-ace-m-prefix=PREFIX
-    --with-amc-ace-m-suffix=SUFFIX
-    --with-amc-ace-o-prefix=PREFIX
-    --with-amc-ace-o-suffix=SUFFIX
-    --with-amc-ace-r-prefix=PREFIX
-	AltDUDE, AMC-ACE-M, AMC-ACE-O and AMC-ACE-R are also proposed
-	encodings for multilingual domain names.  Unlike encodings
-	mentioned above, the Internet Drafts for these do not define
-	specific prefixes nor suffixes.  mDNkit provides default for
-	them, but you can override them with these options.
-	You can specify either prefix or suffix for AltDUDE, AMC-ACE-M
-	and AMC-ACE-O.  In case both are specified, prefix is
-	preferred.
-
-    --sbindir=DIR
-	Specifies the install directory for mdnsproxy.  Default is
-	/usr/local/sbin.
-
-    --bindir=DIR
-	Specifies the install directory for mdnconv and runmdn.
-	Default is /usr/local/bin.
-
-    --sysconfdir=DIR
-	Specifies the install directory for sample files of mdnsproxy
-	configuration and mDNkit's resolver configuration.  Default is
-	/usr/local/etc.
-
-    --mandir=DIR
-	Specifies the base install directory for online manuals.
-	Default is /usr/local/man.
-
-`configure' has many more options.  To see the list of available
-options, you should run it with --help option.
-
-	% ./configure --help
-
-If you want to specify extra compiler options, like adding non-standard
-directory to include file search path, use environment variable CFLAGS.
-
-	% CFLAGS="-I/usr/local/include -O2" ./configure	... 	    (for sh)
-	% setenv CFLAGS "-I/usr/local/include -g"; ./configure ...  (for csh)
-
-2. Compiling
-
-Run `make' for compilation.
-
-	% make
-
-3. Installation
-
-Run `make install' to install binaries and manuals.  Don't forget to
-become a super-user before the installation.
-
-	% su
-	# make install
-
-4. Configuration and usage
-
-Please consult online manuals for configuration and usage of `mdnsproxy'
-`mdnconv', and `runmdn'.  Also for `mdnconv' and `runmdn', please refer
-the manual of mDNkit's resolver configuration file `mdn.conf'.
-
-	% man mdnsproxy
-	% man mdnconv
-	% man mdn.conf
-
-
-* Applying patches
-
-This distribution also contains patches for BIND 9.1.1, BIND 8.2.3 and
+This distribution also contains patches for BIND 9.1.3, BIND 8.2.3 and
 Squid 2.4.STABLE1.  The top of these patch files describe how to apply
 the patch and (re)install.
 
@@ -347,13 +203,60 @@ version of the command (http://www.gnu.org/software/patch/) and use
 it.
 
 
-* Contact information
+4. Supported systems
 
-Please see http://www.nic.ad.jp/jp/research/idn/ for the latest news
-about this kit.
+We've had successful builds on the following systems:
 
+    -------------------------------------------------------------------
+    OS                      iconv library      configure options
+    ===================================================================
+    FreeBSD 4.4-RELEASE     GNU libiconv       --with-libiconv
+    for Intel               1.6.1
+    -------------------------------------------------------------------
+    FreeBSD 3.5.1-RELEASE   GNU libiconv       --with-libiconv
+    for Intel               1.7
+    -------------------------------------------------------------------
+    NetBSD 1.5.2            GNU libiconv       --with-libiconv
+    for Intel               1.7
+    -------------------------------------------------------------------
+    Red Hat Linux 7.1       standard library   none
+    for Intel               (glibc)
+    -------------------------------------------------------------------
+    Red Hat Linux 7.0       standard library   none
+    for Intel               (glibc)
+    -------------------------------------------------------------------
+    Debian/GNU Linux 2.2r3  standard library   none
+    for Intel               (glibc)
+    -------------------------------------------------------------------
+    Solaris 2.6             standard library   none
+    for Sparc               (libc)
+    -------------------------------------------------------------------
+    Windows2000             GNU libiconv       --with-libiconv
+    (cygwin-1.3.2) *1       1.7
+    -------------------------------------------------------------------
+
+    *1: Only mdnconv can work on that system.
+
+The latest information about supported/unsupported systems will be
+found at the mDNkit FAQ page linked from:
+
+	http://www.nic.ad.jp/jp/research/idn/
+
+
+5. Contact information
+
+Please see
+
+	http://www.nic.ad.jp/jp/research/idn/
+
+for the latest news about this kit.
 Bug reports and comments on this kit should be sent to
-mdnkit-bugs@nic.ad.jp and idn-cmt@nic.ad.jp, respectively.
+
+	mdnkit-bugs@nic.ad.jp
+and
+	idn-cmt@nic.ad.jp
+
+respectively.
 
 
-; $Id: README,v 1.29 2001/06/01 01:13:46 ishisone Exp $
+; $Id: README,v 1.1 2002/01/02 02:46:21 marka Exp $

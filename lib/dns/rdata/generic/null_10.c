@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.35 2001/07/16 03:06:22 marka Exp $ */
+/* $Id: null_10.c,v 1.35.2.1 2001/09/11 01:09:06 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -80,7 +80,7 @@ compare_null(ARGS_COMPARE) {
 	isc_region_t r1;
 	isc_region_t r2;
 
-	REQUIRE(rdata1->type == rdata1->type);
+	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 10);
 

@@ -1,6 +1,6 @@
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)strerror.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: strerror.c,v 1.3 2001/06/21 08:25:59 marka Exp $";
+static const char rcsid[] = "$Id: strerror.c,v 1.3.2.1 2001/11/02 17:45:31 gson Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -49,6 +49,11 @@ static const char rcsid[] = "$Id: strerror.c,v 1.3 2001/06/21 08:25:59 marka Exp
 int __strerror_unneeded__;
 #else
 
+#ifdef USE_SYSERROR_LIST
+extern int sys_nerr;
+extern char *sys_errlist[];
+#endif
+
 const char *
 isc_strerror(int num) {
 #define	UPREFIX	"Unknown error: "
@@ -58,12 +63,17 @@ isc_strerror(int num) {
 	const char *ret;
 	char tmp[40];
 
+	errnum = num;				/* convert to unsigned */
+#ifdef USE_SYSERROR_LIST
+	if (errnum < sys_nerr)
+		return (sys_errlist[errnum]);
+#else
 #undef strerror
 	ret = strerror(num);			/* call strerror() in libc */
 	if (ret != NULL)
 		return(ret);
- 
-	errnum = num;				/* convert to unsigned */
+#endif
+
 	/* Do this by hand, so we don't include stdio(3). */
 	t = tmp;
 	do {

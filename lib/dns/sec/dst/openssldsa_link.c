@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.4 2001/07/10 04:01:17 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.4.2.1 2001/12/19 01:29:35 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -203,7 +203,7 @@ openssldsa_generate(dst_key_t *key, int unused) {
 static isc_boolean_t
 openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = (DSA *) key->opaque;
-        return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
+	return (ISC_TF(dsa != NULL && dsa->priv_key != NULL));
 }
 
 static isc_boolean_t
@@ -397,7 +397,7 @@ openssldsa_fromfile(dst_key_t *key, const char *filename) {
 			case TAG_DSA_PUBLIC:
 				dsa->pub_key = bn;
 				break;
-                }
+		}
 	}
 	dst__privstruct_free(&priv, mctx);
 

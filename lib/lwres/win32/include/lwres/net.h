@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.2 2001/07/18 02:37:14 mayer Exp $ */
+/* $Id: net.h,v 1.2.2.2 2002/08/08 21:27:47 marka Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1

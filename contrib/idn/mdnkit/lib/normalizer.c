@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: normalizer.c,v 1.25 2001/05/31 05:21:37 ishisone Exp $";
+static char *rcsid = "$Id: normalizer.c,v 1.1 2002/01/02 02:46:46 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: normalizer.c,v 1.25 2001/05/31 05:21:37 ishisone Exp 
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -86,7 +86,8 @@ typedef struct {
 	mdn_normalizer_proc_t proc;
 } normalize_scheme_t;
 
-typedef mdn_result_t (*caseconv_proc_t)(unsigned long, mdn__unicode_context_t,
+typedef mdn_result_t (*caseconv_proc_t)(mdn__unicode_version_t,
+					unsigned long, mdn__unicode_context_t,
 					unsigned long *, size_t, int *);
 
 struct mdn_normalizer {
@@ -98,6 +99,16 @@ struct mdn_normalizer {
 };
 
 static mdn_strhash_t scheme_hash;
+
+static mdn__unicode_version_t vcur = NULL;
+static mdn__unicode_version_t v301 = NULL;
+static mdn__unicode_version_t v310 = NULL;
+#define INIT_VERSION(version, var) \
+	if (var == NULL) { \
+		mdn_result_t r = mdn__unicode_create(version, &var); \
+		if (r != mdn_success) \
+			return (r); \
+	}
 
 static mdn_result_t	expand_schemes(mdn_normalizer_t ctx);
 static mdn_result_t	register_standard_normalizers(void);
@@ -112,10 +123,35 @@ static mdn_result_t	normalizer_unicode_uppercase(const char *from,
 static mdn_result_t	normalizer_unicode_caseconv(caseconv_proc_t caseconv,
 						    const char *from,
 						    char *to, size_t tolen);
-static mdn__unicode_context_t	get_casemap_context(const char *from,
+static mdn__unicode_context_t	get_casemap_context(mdn__unicode_version_t ver,
+						    const char *from,
 						    size_t fromlen);
 static mdn_result_t	normalizer_unicode_casefold(const char *from,
 						    char *to, size_t tolen);
+static mdn_result_t	normalizer_formc(const char *from,
+					 char *to, size_t tolen);
+static mdn_result_t	normalizer_formd(const char *from,
+					 char *to, size_t tolen);
+static mdn_result_t	normalizer_formkc(const char *from,
+					  char *to, size_t tolen);
+static mdn_result_t	normalizer_formkd(const char *from,
+					  char *to, size_t tolen);
+static mdn_result_t	normalizer_formc_v301(const char *from,
+					      char *to, size_t tolen);
+static mdn_result_t	normalizer_formd_v301(const char *from,
+					      char *to, size_t tolen);
+static mdn_result_t	normalizer_formkc_v301(const char *from,
+					       char *to, size_t tolen);
+static mdn_result_t	normalizer_formkd_v301(const char *from,
+					       char *to, size_t tolen);
+static mdn_result_t	normalizer_formc_v310(const char *from,
+					      char *to, size_t tolen);
+static mdn_result_t	normalizer_formd_v310(const char *from,
+					      char *to, size_t tolen);
+static mdn_result_t	normalizer_formkc_v310(const char *from,
+					       char *to, size_t tolen);
+static mdn_result_t	normalizer_formkd_v310(const char *from,
+					       char *to, size_t tolen);
 
 static struct standard_normalizer {
 	char *name;
@@ -126,12 +162,21 @@ static struct standard_normalizer {
 	{ "unicode-lowercase", normalizer_unicode_lowercase },
 	{ "unicode-uppercase", normalizer_unicode_uppercase },
 	{ "unicode-foldcase", normalizer_unicode_casefold },
-	{ "unicode-form-c", mdn__unormalize_formc },
-	{ "unicode-form-d", mdn__unormalize_formd },
-	{ "unicode-form-kc", mdn__unormalize_formkc },
-	{ "unicode-form-kd", mdn__unormalize_formkd },
-	{ "nameprep-02", mdn__unormalize_formkc },
-	{ "nameprep-03", mdn__unormalize_formkc },
+	{ "unicode-form-c", normalizer_formc },
+	{ "unicode-form-d", normalizer_formd },
+	{ "unicode-form-kc", normalizer_formkc },
+	{ "unicode-form-kd", normalizer_formkd },
+	{ "unicode-form-c/3.0.1", normalizer_formc_v301 },
+	{ "unicode-form-d/3.0.1", normalizer_formd_v301 },
+	{ "unicode-form-kc/3.0.1", normalizer_formkc_v301 },
+	{ "unicode-form-kd/3.0.1", normalizer_formkd_v301 },
+	{ "unicode-form-c/3.1.0", normalizer_formc_v310 },
+	{ "unicode-form-d/3.1.0", normalizer_formd_v310 },
+	{ "unicode-form-kc/3.1.0", normalizer_formkc_v310 },
+	{ "unicode-form-kd/3.1.0", normalizer_formkd_v310 },
+	{ "nameprep-03", normalizer_formkc_v301 },
+	{ "nameprep-05", normalizer_formkc_v310 },
+	{ "nameprep-06", normalizer_formkc_v310 },
 	{ NULL, NULL },
 };
 
@@ -525,6 +570,8 @@ normalizer_unicode_caseconv(caseconv_proc_t caseconv,
 {
 	size_t fromlen = strlen(from);
 
+	INIT_VERSION(NULL, vcur);
+
 	while (fromlen > 0 && tolen > 0) {
 #define CASEMAPBUFSZ	4
 		unsigned long c;
@@ -541,12 +588,12 @@ normalizer_unicode_caseconv(caseconv_proc_t caseconv,
 		fromlen -= w;
 
 	redo:
-		r = (*caseconv)(c, ctx, v, CASEMAPBUFSZ, &vlen);
+		r = (*caseconv)(vcur, c, ctx, v, CASEMAPBUFSZ, &vlen);
 		switch (r) {
 		case mdn_success:
 			break;
 		case mdn_context_required:
-			ctx = get_casemap_context(from, fromlen);
+			ctx = get_casemap_context(vcur, from, fromlen);
 			goto redo;
 		case mdn_buffer_overflow:
 			FATAL(("mdn_normalizer_normalize: "
@@ -571,7 +618,8 @@ normalizer_unicode_caseconv(caseconv_proc_t caseconv,
 }
 
 static mdn__unicode_context_t
-get_casemap_context(const char *from, size_t fromlen) {
+get_casemap_context(mdn__unicode_version_t ver,
+		    const char *from, size_t fromlen) {
 	while (fromlen > 0) {
 		unsigned long v;
 		mdn__unicode_context_t ctx;
@@ -581,7 +629,7 @@ get_casemap_context(const char *from, size_t fromlen) {
 			return (mdn_invalid_encoding);
 		from += w;
 		fromlen -= w;
-		ctx = mdn__unicode_getcontext(v);
+		ctx = mdn__unicode_getcontext(ver, v);
 		if (ctx == mdn__unicode_context_nonfinal ||
 		    ctx == mdn__unicode_context_final)
 			return (ctx);
@@ -592,6 +640,8 @@ get_casemap_context(const char *from, size_t fromlen) {
 static mdn_result_t
 normalizer_unicode_casefold(const char *from, char *to, size_t tolen) {
 	size_t fromlen = strlen(from);
+
+	INIT_VERSION(NULL, vcur);
 
 	while (fromlen > 0 && tolen > 0) {
 #define CASEFOLDBUFSZ	4
@@ -607,7 +657,7 @@ normalizer_unicode_casefold(const char *from, char *to, size_t tolen) {
 		from += w;
 		fromlen -= w;
 
-		r = mdn__unicode_casefold(c, v, CASEFOLDBUFSZ, &vlen);
+		r = mdn__unicode_casefold(vcur, c, v, CASEFOLDBUFSZ, &vlen);
 		switch (r) {
 		case mdn_success:
 			break;
@@ -631,5 +681,89 @@ normalizer_unicode_casefold(const char *from, char *to, size_t tolen) {
 
 	*to = '\0';
 	return (mdn_success);
+}
+
+/*
+ * Unicode Normalization Forms -- latest version
+ */
+
+static mdn_result_t
+normalizer_formc(const char *from, char *to, size_t tolen) {
+	INIT_VERSION(NULL, vcur);
+	return (mdn__unormalize_formc(vcur, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formd(const char *from, char *to, size_t tolen) {
+	INIT_VERSION(NULL, vcur);
+	return (mdn__unormalize_formd(vcur, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkc(const char *from, char *to, size_t tolen) {
+	INIT_VERSION(NULL, vcur);
+	return (mdn__unormalize_formkc(vcur, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkd(const char *from, char *to, size_t tolen) {
+	INIT_VERSION(NULL, vcur);
+	return (mdn__unormalize_formkd(vcur, from, to, tolen));
+}
+
+/*
+ * Unicode Normalization Forms -- version 3.0.1
+ */
+
+static mdn_result_t
+normalizer_formc_v301(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.0.1", v301);
+	return (mdn__unormalize_formc(v301, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formd_v301(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.0.1", v301);
+	return (mdn__unormalize_formd(v301, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkc_v301(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.0.1", v301);
+	return (mdn__unormalize_formkc(v301, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkd_v301(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.0.1", v301);
+	return (mdn__unormalize_formkd(v301, from, to, tolen));
+}
+
+/*
+ * Unicode Normalization Forms -- version 3.1.0
+ */
+
+static mdn_result_t
+normalizer_formc_v310(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.1.0", v310);
+	return (mdn__unormalize_formc(v310, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formd_v310(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.1.0", v310);
+	return (mdn__unormalize_formd(v310, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkc_v310(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.1.0", v310);
+	return (mdn__unormalize_formkc(v310, from, to, tolen));
+}
+
+static mdn_result_t
+normalizer_formkd_v310(const char *from, char *to, size_t tolen) {
+	INIT_VERSION("3.1.0", v310);
+	return (mdn__unormalize_formkd(v310, from, to, tolen));
 }
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.31 2001/05/31 00:38:07 bwelling Exp $
+ * $Id: dst_parse.c,v 1.31.2.1 2001/09/15 00:37:18 gson Exp $
  */
 
 #include <config.h>
@@ -306,8 +306,10 @@ dst__privstruct_parsefile(dst_key_t *key, const char *filename,
 
 		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
 		tag = find_value(token.value.as_pointer, dst_key_alg(key));
-		if (tag < 0 || TAG_ALG(tag) != dst_key_alg(key))
+		if (tag < 0 || TAG_ALG(tag) != dst_key_alg(key)) {
+			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
+		}
 		priv->elements[n].tag = tag;
 
 		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);

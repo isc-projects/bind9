@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: unicode.c,v 1.13 2001/02/14 02:16:15 ishisone Exp $";
+static char *rcsid = "$Id: unicode.c,v 1.1 2002/01/02 02:46:48 marka Exp $";
 #endif
 
 /*
@@ -12,8 +12,8 @@ static char *rcsid = "$Id: unicode.c,v 1.13 2001/02/14 02:16:15 ishisone Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -65,11 +65,14 @@ static char *rcsid = "$Id: unicode.c,v 1.13 2001/02/14 02:16:15 ishisone Exp $";
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <mdn/result.h>
 #include <mdn/logmacro.h>
 #include <mdn/assert.h>
 #include <mdn/unicode.h>
+
+#define UNICODE_CURRENT	"3.1.0"
 
 #define UCS_MAX		0x10ffff
 #define END_BIT		0x80000000
@@ -86,62 +89,117 @@ static char *rcsid = "$Id: unicode.c,v 1.13 2001/02/14 02:16:15 ishisone Exp $";
 #define TCount		28
 #define SLast		(SBase + LCount * VCount * TCount)
 
-#include "unicodedata.c"
-
 /*
- * Macro for multi-level index table.
+ * Symbol composition macro.
  */
-#define LOOKUPTBL(vprefix, mprefix, v) \
-	DMAP(vprefix)[\
-		IMAP(vprefix)[\
-			IMAP(vprefix)[IDX0(mprefix, v)] + IDX1(mprefix, v)\
-		]\
-	].tbl[IDX2(mprefix, v)]
+#define compose_sym(a, b)		compose_symX(a, b)
+#define compose_symX(a, b)		a ## b
 
-#define IDX0(mprefix, v) IDX_0(v, BITS1(mprefix), BITS2(mprefix))
-#define IDX1(mprefix, v) IDX_1(v, BITS1(mprefix), BITS2(mprefix))
-#define IDX2(mprefix, v) IDX_2(v, BITS1(mprefix), BITS2(mprefix))
+struct composition {
+	unsigned long c2;	/* 2nd character */
+	unsigned long comp;	/* composed character */
+};
 
-#define IDX_0(v, bits1, bits2)	((v) >> ((bits1) + (bits2)))
-#define IDX_1(v, bits1, bits2)	(((v) >> (bits2)) & ((1 << (bits1)) - 1))
-#define IDX_2(v, bits1, bits2)	((v) & ((1 << (bits2)) - 1))
+#include "unicodedata_301.c"
+#define VERSION v301
+#include "unicode_template.c"
+#undef VERSION
 
-#define BITS1(mprefix)	mprefix ## _BITS_1
-#define BITS2(mprefix)	mprefix ## _BITS_2
+#include "unicodedata_310.c"
+#define VERSION v310
+#include "unicode_template.c"
+#undef VERSION
 
-#define IMAP(vprefix)	vprefix ## _imap
-#define DMAP(vprefix)	vprefix ## _table
+typedef int	(*unicode_canonclassproc)(unsigned long v);
+typedef int	(*unicode_decomposeproc)(unsigned long c,
+					 const unsigned long **seqp);
+typedef int	(*unicode_composeproc)(unsigned long c,
+				       const struct composition **compp);
+typedef int	(*unicode_toupperproc)(unsigned long c,
+				       const unsigned long **seqp);
+typedef int	(*unicode_tolowerproc)(unsigned long c,
+				       const unsigned long **seqp);
+typedef int	(*unicode_casectxproc)(unsigned long c);
+typedef int	(*unicode_casefoldingproc)(unsigned long c,
+					   const unsigned long **seqp);
 
-static mdn_result_t	casemap(unsigned long c, mdn__unicode_context_t ctx,
+static struct mdn__unicode_ops {
+	char *version;
+	unicode_canonclassproc canonclass_proc;
+	unicode_decomposeproc decompose_proc;
+	unicode_composeproc compose_proc;
+	unicode_toupperproc toupper_proc;
+	unicode_tolowerproc tolower_proc;
+	unicode_casectxproc casectx_proc;
+	unicode_casefoldingproc casefolding_proc;
+} unicode_versions[] = {
+#define MAKE_UNICODE_HANDLE(version, suffix) \
+	{ version, \
+	  compose_sym(canonclass_, suffix), \
+	  compose_sym(decompose_, suffix), \
+	  compose_sym(compose_, suffix), \
+	  compose_sym(toupper_, suffix), \
+	  compose_sym(tolower_, suffix), \
+	  compose_sym(casemapctx_, suffix), \
+	  compose_sym(casefolding_, suffix) }
+	MAKE_UNICODE_HANDLE("3.0.1", v301),
+	MAKE_UNICODE_HANDLE("3.1.0", v310),
+	{ NULL },
+#undef MAKE_UNICODE_HANDLE
+};
+	
+static mdn_result_t	casemap(mdn__unicode_version_t version,
+				unsigned long c, mdn__unicode_context_t ctx,
 				unsigned long *v, size_t vlen, int *convlenp,
 				int do_uppercase);
 
-int
-mdn__unicode_canonicalclass(unsigned long c) {
-#if 0
-	TRACE(("mdn__unicode_canonicalclass(c=%lx)\n", c));
-#endif
+mdn_result_t
+mdn__unicode_create(const char *version,
+		    mdn__unicode_version_t *versionp)
+{
+	mdn__unicode_version_t v;
 
+	assert(versionp != NULL);
+	TRACE(("mdn__unicode_create(version=%-.50s)\n",
+	       version == NULL ? "<NULL>" : version));
+
+	if (version == NULL)
+		version = UNICODE_CURRENT;
+
+	for (v = unicode_versions; v->version != NULL; v++) {
+		if (strcmp(v->version, version) == 0) {
+			*versionp = v;
+			return (mdn_success);
+		}
+	}
+	return (mdn_notfound);
+}
+
+void
+mdn__unicode_destroy(mdn__unicode_version_t version) {
+	assert(version != NULL);
+	TRACE(("mdn__unicode_destroy()\n"));
+	/* Nothing to do */
+}
+
+int
+mdn__unicode_canonicalclass(mdn__unicode_version_t version, unsigned long c) {
 	if (c > UCS_MAX)
 		return (0);
 
-	return (LOOKUPTBL(canon_class, CANON_CLASS, c));
+	return (*version->canonclass_proc)(c);
 }
 
 mdn_result_t
-mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
+mdn__unicode_decompose(mdn__unicode_version_t version,
+		       int compat, unsigned long *v, size_t vlen,
 		       unsigned long c, int *decomp_lenp)
 {
 	unsigned long *vorg = v;
 	int seqidx;
-	unsigned long *seq;
+	const unsigned long *seq;
 
 	assert(v != NULL && vlen >= 0 && decomp_lenp != NULL);
-
-#if 0
-	TRACE(("mdn__unicode_decompose(compat=%d,vlen=%d,c=%lx)\n",
-	      compat, vlen, c));
-#endif
 
 	if (c > UCS_MAX)
 		return (mdn_notfound);
@@ -172,7 +230,7 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 	 * or if it is a compatibility decomosition when canonical
 	 * decomposition requested, return 'mdn_notfound'.
 	 */
-	seqidx = LOOKUPTBL(decompose, DECOMP, c);
+	seqidx = (*version->decompose_proc)(c, &seq);
 	if (seqidx == 0 || (compat == 0 && (seqidx & DECOMP_COMPAT) != 0))
 		return (mdn_notfound);
 	
@@ -180,16 +238,15 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 	 * Copy the decomposed sequence.  The end of the sequence are
 	 * marked with END_BIT.
 	 */
-	seq = &decompose_seq[seqidx & ~DECOMP_COMPAT];
 	do {
 		unsigned long c;
-		size_t dlen;
+		int dlen;
 		mdn_result_t r;
 
 		c = *seq & ~END_BIT;
 
 		/* Decompose recursively. */
-		r = mdn__unicode_decompose(compat, v, vlen, c, &dlen);
+		r = mdn__unicode_decompose(version, compat, v, vlen, c, &dlen);
 		if (r == mdn_success) {
 			v += dlen;
 			vlen -= dlen;
@@ -210,10 +267,10 @@ mdn__unicode_decompose(int compat, unsigned long *v, size_t vlen,
 }
 
 int
-mdn__unicode_iscompositecandidate(unsigned long c) {
-#if 0
-	TRACE(("mdn__unicode_iscompositecandidate(c=%lx)\n", c));
-#endif
+mdn__unicode_iscompositecandidate(mdn__unicode_version_t version,
+				  unsigned long c)
+{
+	const struct composition *dummy;
 
 	if (c > UCS_MAX)
 		return (0);
@@ -227,24 +284,21 @@ mdn__unicode_iscompositecandidate(unsigned long c) {
 	 * that begins with the given character, it is not a
 	 * composition candidate.
 	 */
-	if (LOOKUPTBL(compose, CANON_COMPOSE, c) == 0)
+	if ((*version->compose_proc)(c, &dummy) == 0)
 		return (0);
 	else
 		return (1);
 }
 
 mdn_result_t
-mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
+mdn__unicode_compose(mdn__unicode_version_t version,
+		     unsigned long c1, unsigned long c2, unsigned long *compp)
 {
-	unsigned long x;
 	int n;
-	int seqidx, lo, hi;
+	int lo, hi;
+	const struct composition *cseq;
 
 	assert(compp != NULL);
-
-#if 0
-	TRACE(("mdn__unicode_compose(c1=%lx,c2=%lx)\n", c1, c2));
-#endif
 
 	if (c1 > UCS_MAX || c2 > UCS_MAX)
 		return (mdn_notfound);
@@ -276,26 +330,24 @@ mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
 	 * the number of composition that begins with 'c1', and the lower
 	 * 16bits is the offset in 'compose_seq'.
 	 */
-	if ((x = LOOKUPTBL(compose, CANON_COMPOSE, c1)) == 0)
+	if ((n = (*version->compose_proc)(c1, &cseq)) == 0)
 		return (mdn_notfound);
-	n = x >> 16;
-	seqidx = x & 0xffff;
 
 	/*
 	 * The composite sequences are sorted by the 2nd character 'c2'.
 	 * So we can use binary search.
 	 */
-	lo = seqidx;
-	hi = seqidx + n - 1;
+	lo = 0;
+	hi = n - 1;
 	while (lo <= hi) {
 		int mid = (lo + hi) / 2;
 
-		if (compose_seq[mid].c2 < c2) {
+		if (cseq[mid].c2 < c2) {
 			lo = mid + 1;
-		} else if (compose_seq[mid].c2 > c2) {
+		} else if (cseq[mid].c2 > c2) {
 			hi = mid - 1;
 		} else {
-			*compp = compose_seq[mid].comp;
+			*compp = cseq[mid].comp;
 			return (mdn_success);
 		}
 	}
@@ -303,30 +355,27 @@ mdn__unicode_compose(unsigned long c1, unsigned long c2, unsigned long *compp)
 }
 
 mdn_result_t
-mdn__unicode_toupper(unsigned long c, mdn__unicode_context_t ctx,
+mdn__unicode_toupper(mdn__unicode_version_t version,
+		     unsigned long c, mdn__unicode_context_t ctx,
 		     unsigned long *v, size_t vlen, int *convlenp)
 {
-#if 0
-	TRACE(("mdn__unicode_toupper(c=%lx)\n", c));
-#endif
-	return (casemap(c, ctx, v, vlen, convlenp, 1));
+	return (casemap(version, c, ctx, v, vlen, convlenp, 1));
 }
 
 mdn_result_t
-mdn__unicode_tolower(unsigned long c, mdn__unicode_context_t ctx,
+mdn__unicode_tolower(mdn__unicode_version_t version,
+		     unsigned long c, mdn__unicode_context_t ctx,
 		     unsigned long *v, size_t vlen, int *convlenp)
 {
-#if 0
-	TRACE(("mdn__unicode_tolower(c=%lx)\n", c));
-#endif
-	return (casemap(c, ctx, v, vlen, convlenp, 0));
+	return (casemap(version, c, ctx, v, vlen, convlenp, 0));
 }
 
 static mdn_result_t
-casemap(unsigned long c, mdn__unicode_context_t ctx,
+casemap(mdn__unicode_version_t version,
+	unsigned long c, mdn__unicode_context_t ctx,
 	unsigned long *v, size_t vlen, int *convlenp, int do_uppercase)
 {
-	unsigned long *seq;
+	const unsigned long *seq;
 	int seqidx;
 
 	if (vlen < 1)
@@ -338,13 +387,10 @@ casemap(unsigned long c, mdn__unicode_context_t ctx,
 	/*
 	 * Look up toupper/tolower mapping table.
 	 */
-	if (do_uppercase) {
-		seq = toupper_seq;
-		seqidx = LOOKUPTBL(toupper, CASEMAP, c);
-	} else {
-		seq = tolower_seq;
-		seqidx = LOOKUPTBL(tolower, CASEMAP, c);
-	}
+	if (do_uppercase)
+		seqidx = (*version->toupper_proc)(c, &seq);
+	else
+		seqidx = (*version->tolower_proc)(c, &seq);
 
 	/* Zero means there are no mapping. */
 	if (seqidx == 0)
@@ -356,7 +402,6 @@ casemap(unsigned long c, mdn__unicode_context_t ctx,
 	 * are defined for a single character, so we have to loop
 	 * through all the mappings.
 	 */
-	seq += seqidx;
 	for (;;) {
 		int found = 0;
 		unsigned long flags = *seq++;
@@ -425,7 +470,9 @@ casemap(unsigned long c, mdn__unicode_context_t ctx,
 }
 
 mdn__unicode_context_t
-mdn__unicode_getcontext(unsigned long c) {
+mdn__unicode_getcontext(mdn__unicode_version_t version,
+			unsigned long c)
+{
 #if 0
 	TRACE(("mdn__unicode_getcontext(c=%lx)\n", c));
 #endif
@@ -433,7 +480,7 @@ mdn__unicode_getcontext(unsigned long c) {
 	if (c > UCS_MAX)
 		return (mdn__unicode_context_final);
 
-	switch (LOOKUPTBL(casemap_ctx, CASEMAP_CTX, c)) {
+	switch ((*version->casectx_proc)(c)) {
 	case CTX_CASED:
 		return (mdn__unicode_context_nonfinal);
 	case CTX_NSM:
@@ -444,12 +491,13 @@ mdn__unicode_getcontext(unsigned long c) {
 }
 
 mdn_result_t
-mdn__unicode_casefold(unsigned long c, unsigned long *v, size_t vlen,
+mdn__unicode_casefold(mdn__unicode_version_t version,
+		      unsigned long c, unsigned long *v, size_t vlen,
 		      int *foldlenp)
 {
 	unsigned long *vorg = v;
 	int seqidx;
-	unsigned long *seq;
+	const unsigned long *seq;
 
 	assert(v != NULL && vlen >= 0 && foldlenp != NULL);
 
@@ -462,10 +510,9 @@ mdn__unicode_casefold(unsigned long c, unsigned long *v, size_t vlen,
 		goto nomap;
 
 	/* Look up case folding table. */
-	if ((seqidx = LOOKUPTBL(case_folding, CASE_FOLDING, c)) == 0)
+	if ((seqidx = (*version->casefolding_proc)(c, &seq)) == 0)
 		goto nomap;
 	
-	seq = &case_folding_seq[seqidx];
 	do {
 		if (vlen-- < 1)
 			return (mdn_buffer_overflow);

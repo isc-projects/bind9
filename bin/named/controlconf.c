@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28 2001/08/06 11:28:21 gson Exp $ */
+/* $Id: controlconf.c,v 1.28.2.7 2001/11/27 22:38:14 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/file.h>
 #include <isc/fsaccess.h>
 #include <isc/mem.h>
+#include <isc/net.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -105,6 +106,7 @@ struct controllistener {
 struct ns_controls {
 	ns_server_t			*server;
 	controllistenerlist_t 		listeners;
+	isc_boolean_t			shuttingdown;
 };
 
 static void control_newconn(isc_task_t *task, isc_event_t *event);
@@ -177,10 +179,13 @@ maybe_free_connection(controlconnection_t *conn) {
 
 static void
 shutdown_listener(controllistener_t *listener) {
-	isc_boolean_t destroy = ISC_TRUE;
+	controlconnection_t *conn;
+	controlconnection_t *next;
 
 	if (!listener->exiting) {
 		char socktext[ISC_SOCKADDR_FORMATSIZE];
+
+		ISC_LIST_UNLINK(listener->controls->listeners, listener, link);
 
 		isc_sockaddr_format(&listener->address, socktext,
 				    sizeof(socktext));
@@ -190,23 +195,19 @@ shutdown_listener(controllistener_t *listener) {
 		listener->exiting = ISC_TRUE;
 	}
 
-	if (!ISC_LIST_EMPTY(listener->connections)) {
-		controlconnection_t *conn;
-		for (conn = ISC_LIST_HEAD(listener->connections);
-		     conn != NULL;
-		     conn = ISC_LIST_NEXT(conn, link))
-			maybe_free_connection(conn);
-		destroy = ISC_FALSE;
+	for (conn = ISC_LIST_HEAD(listener->connections);
+	     conn != NULL;
+	     conn = next)
+	{
+		next = ISC_LIST_NEXT(conn, link);
+		maybe_free_connection(conn);
 	}
 
-	if (listener->sock != NULL) {
+	if (listener->listening)
 		isc_socket_cancel(listener->sock, listener->task,
 				  ISC_SOCKCANCEL_ACCEPT);
-		destroy = ISC_FALSE;
-	}
 
-	if (destroy)
-		free_listener(listener);
+	maybe_free_listener(listener);
 }
 
 static isc_boolean_t
@@ -332,6 +333,10 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	conn = event->ev_arg;
 	listener = conn->listener;
 	secret.rstart = NULL;
+
+        /* Is the server shutting down? */
+        if (listener->controls->shuttingdown)
+                goto cleanup;
 
 	if (conn->ccmsg.result != ISC_R_SUCCESS) {
 		if (conn->ccmsg.result != ISC_R_CANCELED &&
@@ -515,10 +520,10 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
+	listener->listening = ISC_FALSE;
+
 	if (nevent->result != ISC_R_SUCCESS) {
 		if (nevent->result == ISC_R_CANCELED) {
-			isc_socket_detach(&listener->sock);
-			listener->listening = ISC_FALSE;
 			shutdown_listener(listener);
 			goto cleanup;
 		}
@@ -534,6 +539,7 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "rejected command channel message from %s",
 			      socktext);
+		isc_socket_detach(&sock);
 		goto restart;
 	}
 
@@ -545,6 +551,7 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
 			      "dropped command channel from %s: %s",
 			      socktext, isc_result_totext(result));
+		isc_socket_detach(&sock);
 		goto restart;
 	}
 
@@ -554,8 +561,8 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-void
-ns_controls_shutdown(ns_controls_t *controls) {
+static void
+controls_shutdown(ns_controls_t *controls) {
 	controllistener_t *listener;
 	controllistener_t *next;
 
@@ -568,9 +575,14 @@ ns_controls_shutdown(ns_controls_t *controls) {
 		 * call their callbacks.
 		 */
 		next = ISC_LIST_NEXT(listener, link);
-		ISC_LIST_UNLINK(controls->listeners, listener, link);
 		shutdown_listener(listener);
 	}
+}
+
+void
+ns_controls_shutdown(ns_controls_t *controls) {
+	controls_shutdown(controls);
+	controls->shuttingdown = ISC_TRUE;
 }
 
 static isc_result_t
@@ -1159,13 +1171,17 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 			isc_sockaddr_t addr;
 
 			if (i == 0) {
+				struct in_addr localhost;
+
 				if (isc_net_probeipv4() != ISC_R_SUCCESS)
 					continue;
-				isc_sockaddr_any(&addr);
+				localhost.s_addr = htonl(INADDR_LOOPBACK);
+				isc_sockaddr_fromin(&addr, &localhost, 0);
 			} else {
 				if (isc_net_probeipv6() != ISC_R_SUCCESS)
 					continue;
-				isc_sockaddr_any6(&addr);
+				isc_sockaddr_fromin6(&addr,
+						     &in6addr_loopback, 0);
 			}
 			isc_sockaddr_setport(&addr, NS_CONTROL_PORT);
 
@@ -1200,7 +1216,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 	 * were in the previous configuration (if any) that do not
 	 * remain in the current configuration.
 	 */
-	ns_controls_shutdown(cp);
+	controls_shutdown(cp);
 
 	/*
 	 * Put all of the valid listeners on the listeners list.
@@ -1219,6 +1235,7 @@ ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
 		return (ISC_R_NOMEMORY);
 	controls->server = server;
 	ISC_LIST_INIT(controls->listeners);
+	controls->shuttingdown = ISC_FALSE;
 	*ctrlsp = controls;
 	return (ISC_R_SUCCESS);
 }

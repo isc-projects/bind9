@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.16 2001/08/28 03:58:20 marka Exp $ */
+/* $Id: peer.h,v 1.16.2.1 2001/11/13 18:57:12 gson Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -66,7 +66,7 @@ struct dns_peer {
 	isc_netaddr_t		address;
 	isc_boolean_t		bogus;
 	dns_transfer_format_t	transfer_format;
-	int			transfers;
+	isc_uint32_t		transfers;
 	isc_boolean_t		support_ixfr;
 	isc_boolean_t		provide_ixfr;
 	isc_boolean_t		request_ixfr;
@@ -145,10 +145,10 @@ isc_result_t
 dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
-dns_peer_settransfers(dns_peer_t *peer, isc_int32_t newval);
+dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval);
 
 isc_result_t
-dns_peer_gettransfers(dns_peer_t *peer, isc_int32_t *retval);
+dns_peer_gettransfers(dns_peer_t *peer, isc_uint32_t *retval);
 
 isc_result_t
 dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval);

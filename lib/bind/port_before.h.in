@@ -128,4 +128,11 @@ struct timezone;        /* silence warning */
 @SOLARIS_BITTYPES@
 @ISC_SOCKLEN_T@
 
+#ifdef __GNUC__
+#define ISC_FORMAT_PRINTF(fmt, args) \
+	__attribute__((__format__(__printf__, fmt, args)))
+#else
+#define ISC_FORMAT_PRINTF(fmt, args)
+#endif
+
 #endif

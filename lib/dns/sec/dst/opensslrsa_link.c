@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12 2001/07/10 04:01:19 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.3 2001/12/19 01:29:31 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -226,7 +226,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 static isc_boolean_t
 opensslrsa_isprivate(const dst_key_t *key) {
 	RSA *rsa = (RSA *) key->opaque;
-        return (ISC_TF(rsa != NULL && rsa->d != NULL));
+	return (ISC_TF(rsa != NULL && rsa->d != NULL));
 }
 
 static isc_boolean_t
@@ -297,21 +297,27 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		return (ISC_R_NOMEMORY);
 	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
-	if (r.length < 1)
+	if (r.length < 1) {
+		RSA_free(rsa);
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 	e_bytes = *r.base++;
 	r.length--;
 
 	if (e_bytes == 0) {
-		if (r.length < 2)
+		if (r.length < 2) {
+			RSA_free(rsa);
 			return (DST_R_INVALIDPUBLICKEY);
+		}
 		e_bytes = ((*r.base++) << 8);
 		e_bytes += *r.base++;
 		r.length -= 2;
 	}
 
-	if (r.length < e_bytes)
+	if (r.length < e_bytes) {
+		RSA_free(rsa);
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 	rsa->e = BN_bin2bn(r.base, e_bytes, NULL);
 	r.base += e_bytes;
 	r.length -= e_bytes;
@@ -402,9 +408,11 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	priv.nelements = i;
 	result =  dst__privstruct_writefile(key, &priv, directory);
  fail:
-	for (i = 0; i < 8; i++)
-		if (bufs[i] != NULL)
-			isc_mem_put(key->mctx, bufs[i], BN_num_bytes(rsa->n));
+	for (i = 0; i < 8; i++) {
+		if (bufs[i] == NULL)
+			break;
+		isc_mem_put(key->mctx, bufs[i], BN_num_bytes(rsa->n));
+	}
 	return (result);
 }
 
@@ -460,7 +468,7 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 			case TAG_RSA_COEFFICIENT:
 				rsa->iqmp = bn;
 				break;
-                }
+		}
 	}
 	dst__privstruct_free(&priv, mctx);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60 2001/07/18 01:31:13 gson Exp $ */
+/* $Id: entropy.c,v 1.60.2.3 2002/08/05 06:57:16 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -23,12 +23,14 @@
 
 #include <config.h>
 
+#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 #include <sys/time.h>
 
 #include <unistd.h>
 
 #include <isc/platform.h>
+#include <isc/strerror.h>
 
 #ifdef ISC_PLATFORM_NEEDSYSSELECTH
 #include <sys/select.h>
@@ -267,15 +269,17 @@ static isc_result_t
 make_nonblock(int fd) {
 	int ret;
 	int flags;
+	char strbuf[ISC_STRERRORSIZE];
 
 	flags = fcntl(fd, F_GETFL, 0);
 	flags |= O_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
 
 	if (ret == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "fcntl(%d, F_SETFL, %d): %s",
-				 fd, flags, strerror(errno));
+				 fd, flags, strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}

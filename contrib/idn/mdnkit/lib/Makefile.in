@@ -1,4 +1,4 @@
-# $Id: Makefile.in,v 1.48 2001/05/22 03:00:23 m-kasahr Exp $
+# $Id: Makefile.in,v 1.1 2002/01/02 02:46:37 marka Exp $
 # Copyright (c) 2000 Japan Network Information Center.  All rights reserved.
 #  
 # By using this file, you agree to the terms and conditions set forth bellow.
@@ -7,8 +7,8 @@
 # 
 # The following License Terms and Conditions apply, unless a different
 # license is obtained from Japan Network Information Center ("JPNIC"),
-# a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-# Tokyo, Japan.
+# a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+# Chiyoda-ku, Tokyo 101-0047, Japan.
 # 
 # 1. Use, Modification and Redistribution (including distribution of any
 #    modified or derived work) in source and/or binary forms is permitted
@@ -56,7 +56,7 @@
 #    jurisdiction and venue of Tokyo District Court of Japan.
 
 LIB_CURRENT = 7
-LIB_REVISION = 0
+LIB_REVISION = 3
 LIB_AGE = 0
 
 .SUFFIXES: .lo
@@ -85,14 +85,15 @@ MKINSTALLDIRS = @top_srcdir@/mkinstalldirs
 SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
+ICONVINC = @ICONVINC@
+ICONVLIB = @ICONVLIB@
+
 OPTS =
-INCS = -I$(srcdir)/../include -I../include
+INCS = -I$(srcdir)/../include -I../include $(ICONVINC)
 DEFS = -DMDN_RESCONF_DIR="\"$(sysconfdir)\""
 
 CFLAGS = $(OPTS) $(INCS) $(DEFS) @CFLAGS@
 LDFLAGS = @LDFLAGS@
-
-ICONVLIB = @ICONVLIB@
 
 SRCS =  \
 	ace.c \
@@ -100,6 +101,9 @@ SRCS =  \
 	amcacem.c \
 	amcaceo.c \
 	amcacer.c \
+	amcacev.c \
+	amcacew.c \
+	amcacez.c \
 	api.c \
 	brace.c \
 	checker.c \
@@ -113,6 +117,7 @@ SRCS =  \
 	lace.c \
 	localencoding.c \
 	log.c \
+	mace.c \
 	mapper.c \
 	mapselector.c \
 	msgheader.c \
@@ -130,7 +135,9 @@ SRCS =  \
 	ucsmap.c \
 	ucsset.c \
 	unicode.c \
-	unicodedata.c \
+	unicode_template.c \
+	unicodedata_301.c \
+	unicodedata_310.c \
 	unormalize.c \
 	utf5.c \
 	utf6.c \
@@ -144,6 +151,9 @@ OBJS =  \
 	amcacem.lo \
 	amcaceo.lo \
 	amcacer.lo \
+	amcacev.lo \
+	amcacew.lo \
+	amcacez.lo \
 	api.lo \
 	brace.lo \
 	checker.lo \
@@ -157,6 +167,7 @@ OBJS =  \
 	lace.lo \
 	localencoding.lo \
 	log.lo \
+	mace.lo \
 	mapper.lo \
 	mapselector.lo \
 	msgheader.lo \

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88 2001/07/10 21:27:59 bwelling Exp $
+ * $Id: dst_api.c,v 1.88.2.2 2001/12/19 01:09:56 marka Exp $
  */
 
 #include <config.h>
@@ -900,7 +900,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	isc_region_t r;
 	char filename[ISC_DIR_NAMEMAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
-	char text_array[DST_KEY_MAXSIZE];
+	char text_array[DST_KEY_MAXTEXTSIZE];
 	char class_array[10];
 	isc_result_t ret;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -1014,10 +1014,8 @@ computeid(dst_key_t *key) {
 
 	isc_buffer_init(&dnsbuf, dns_array, sizeof(dns_array));
 	ret = dst_key_todns(key, &dnsbuf);
-	if (ret != ISC_R_SUCCESS) {
-		dst_key_free(&key);
+	if (ret != ISC_R_SUCCESS)
 		return (ret);
-	}
 
 	isc_buffer_usedregion(&dnsbuf, &r);
 	key->key_id = dst_region_computeid(&r, key->key_alg);

@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: checker.c,v 1.1 2001/06/09 00:30:14 tale Exp $";
+static char *rcsid = "$Id: checker.c,v 1.1.2.1 2002/02/08 12:13:48 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: checker.c,v 1.1 2001/06/09 00:30:14 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -88,24 +88,6 @@ typedef struct {
 /*
  * Standard checking schemes.
  */
-static const check_scheme_t nameprep_02_prohibit_scheme = {
-	"prohibit#nameprep-02",
-	"nameprep-02",
-	mdn__nameprep_createproc,
-	mdn__nameprep_destroyproc,
-	mdn__nameprep_prohibitproc,
-	NULL,
-};
-
-static const check_scheme_t nameprep_02_unasigned_scheme = {
-	"unassigned#nameprep-02",
-	"nameprep-02",
-	mdn__nameprep_createproc,
-	mdn__nameprep_destroyproc,
-	mdn__nameprep_unassignedproc,
-	NULL,
-};
-
 static const check_scheme_t nameprep_03_prohibit_scheme = {
 	"prohibit#nameprep-03",
 	"nameprep-03",
@@ -118,6 +100,42 @@ static const check_scheme_t nameprep_03_prohibit_scheme = {
 static const check_scheme_t nameprep_03_unasigned_scheme = {
 	"unassigned#nameprep-03",
 	"nameprep-03",
+	mdn__nameprep_createproc,
+	mdn__nameprep_destroyproc,
+	mdn__nameprep_unassignedproc,
+	NULL,
+};
+
+static const check_scheme_t nameprep_05_prohibit_scheme = {
+	"prohibit#nameprep-05",
+	"nameprep-05",
+	mdn__nameprep_createproc,
+	mdn__nameprep_destroyproc,
+	mdn__nameprep_prohibitproc,
+	NULL,
+};
+
+static const check_scheme_t nameprep_05_unasigned_scheme = {
+	"unassigned#nameprep-05",
+	"nameprep-05",
+	mdn__nameprep_createproc,
+	mdn__nameprep_destroyproc,
+	mdn__nameprep_unassignedproc,
+	NULL,
+};
+
+static const check_scheme_t nameprep_06_prohibit_scheme = {
+	"prohibit#nameprep-06",
+	"nameprep-06",
+	mdn__nameprep_createproc,
+	mdn__nameprep_destroyproc,
+	mdn__nameprep_prohibitproc,
+	NULL,
+};
+
+static const check_scheme_t nameprep_06_unasigned_scheme = {
+	"unassigned#nameprep-06",
+	"nameprep-06",
 	mdn__nameprep_createproc,
 	mdn__nameprep_destroyproc,
 	mdn__nameprep_unassignedproc,
@@ -143,10 +161,12 @@ static const check_scheme_t filecheck_unassigned_scheme = {
 };
 
 static const check_scheme_t *standard_check_schemes[] = {
-	&nameprep_02_unasigned_scheme,
-	&nameprep_02_prohibit_scheme,
 	&nameprep_03_unasigned_scheme,
 	&nameprep_03_prohibit_scheme,
+	&nameprep_05_unasigned_scheme,
+	&nameprep_05_prohibit_scheme,
+	&nameprep_06_unasigned_scheme,
+	&nameprep_06_prohibit_scheme,
 	&filecheck_prohibit_scheme,
 	&filecheck_unassigned_scheme,
 	NULL,
@@ -357,6 +377,9 @@ mdn_checker_add(mdn_checker_t ctx, const char *scheme_name) {
 	ctx->schemes[ctx->nschemes].context = scheme_context;
 	ctx->nschemes++;
 
+	if (buffer != static_buffer)
+		free(buffer);
+
 	return (mdn_success);
 
 failure:
@@ -390,6 +413,7 @@ mdn_checker_addall(mdn_checker_t ctx, const char **scheme_names,
 mdn_result_t
 mdn_checker_lookup(mdn_checker_t ctx, const char *utf8, const char **found) {
 	mdn_result_t r;
+	const char *p;
 	int i;
 
 	assert(scheme_hash != NULL);
@@ -402,15 +426,16 @@ mdn_checker_lookup(mdn_checker_t ctx, const char *utf8, const char **found) {
 	 * Lookup.
 	 */
 	for (i = 0; i < ctx->nschemes; i++) {
-		r = (ctx->schemes[i].lookup)(ctx->schemes[i].context, utf8,
-			found);
-		if (r != mdn_success)
-			return (r);
-		else if (*found == NULL)
-			return (mdn_success);
-		else if (**found != '.')
-			return (mdn_prohibited);
-		utf8 = *found + 1;
+		for (p = utf8; *p != '\0'; p = *found + 1) {
+			r = (ctx->schemes[i].lookup)(ctx->schemes[i].context,
+						     p, found);
+			if (r != mdn_success)
+				return (r);
+			else if (*found == NULL)
+				break;
+			else if (**found != '.')
+				return (mdn_success);
+		}
 	}
 
 	*found = NULL;

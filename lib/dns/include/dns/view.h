@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73 2001/08/28 03:58:23 marka Exp $ */
+/* $Id: view.h,v 1.73.2.2 2002/08/05 06:57:13 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -117,6 +117,7 @@ struct dns_view {
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
+	isc_boolean_t			flush;
 
 	/*
 	 * Configurable data for server use only,

@@ -1,10 +1,18 @@
 /*
- * Copyright (C) 2001 Stig Venaas
+ * ldapdb.c version 0.9
+ *
+ * Copyright (C) 2002 Stig Venaas
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  */
+
+/*
+ * If you are using an old LDAP API uncomment the define below. Only do this
+ * if you know what you're doing or get compilation errors on ldap_memfree().
+ */
+/* #define RFC1823API */
 
 #include <config.h>
 
@@ -22,13 +30,17 @@
 #include <dns/sdb.h>
 
 #include <named/globals.h>
+#include <named/log.h>
 
 #include <ldap.h>
 #include "ldapdb.h"
 
 /*
- * A simple database driver for LDAP. Not production quality yet
+ * A simple database driver for LDAP
  */ 
+
+/* enough for name with 8 labels of max length */
+#define MAXNAMELEN 519
 
 static dns_sdbimplementation_t *ldapdb = NULL;
 
@@ -38,6 +50,11 @@ struct ldapdb_data {
 	int portno;
 	char *base;
 	int defaultttl;
+	char *filterall;
+	int filteralllen;
+	char *filterone;
+	int filteronelen;
+	char *filtername;
 };
 
 /* used by ldapdb_getconn */
@@ -153,16 +170,232 @@ ldapdb_getconn(struct ldapdb_data *data)
 	return (LDAP **)&conndata->data;
 }
 
+static void
+ldapdb_bind(struct ldapdb_data *data, LDAP **ldp)
+{
+	if (*ldp != NULL)
+		ldap_unbind(*ldp);
+	*ldp = ldap_open(data->hostname, data->portno);
+	if (*ldp == NULL)
+		return;
+	if (ldap_simple_bind_s(*ldp, NULL, NULL) != LDAP_SUCCESS) {
+		ldap_unbind(*ldp);
+		*ldp = NULL;
+	}
+}
+
+static isc_result_t
+ldapdb_search(const char *zone, const char *name, void *dbdata, void *retdata)
+{
+	struct ldapdb_data *data = dbdata;
+	isc_result_t result = ISC_R_NOTFOUND;
+	LDAP **ldp;
+	LDAPMessage *res, *e;
+	char *fltr, *a, **vals, **names;
+	char type[64];
+#ifdef RFC1823API
+	void *ptr;
+#else
+	BerElement *ptr;
+#endif
+	int i, j, errno, msgid;
+
+	ldp = ldapdb_getconn(data);
+	if (ldp == NULL)
+		return (ISC_R_FAILURE);
+	if (*ldp == NULL) {
+		ldapdb_bind(data, ldp);
+		if (*ldp == NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+				      "LDAP sdb zone '%s': bind failed", zone);
+			return (ISC_R_FAILURE);
+		}
+	}
+
+	if (name == NULL) {
+		fltr = data->filterall;
+	} else {
+		if (strlen(name) > MAXNAMELEN) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+                                      "LDAP sdb zone '%s': name %s too long", zone, name);
+			return (ISC_R_FAILURE);
+		}
+		sprintf(data->filtername, "%s))", name);
+		fltr = data->filterone;
+	}
+
+	msgid = ldap_search(*ldp, data->base, LDAP_SCOPE_SUBTREE, fltr, NULL, 0);
+	if (msgid == -1) {
+		ldapdb_bind(data, ldp);
+		if (*ldp != NULL)
+			msgid = ldap_search(*ldp, data->base, LDAP_SCOPE_SUBTREE, fltr, NULL, 0);
+	}
+
+	if (*ldp == NULL || msgid == -1) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+			      "LDAP sdb zone '%s': search failed, filter %s", zone, fltr);
+		return (ISC_R_FAILURE);
+	}
+
+	/* Get the records one by one as they arrive and return them to bind */
+	while ((errno = ldap_result(*ldp, msgid, 0, NULL, &res)) != LDAP_RES_SEARCH_RESULT ) {
+		LDAP *ld = *ldp;
+		int ttl = data->defaultttl;
+
+		/* not supporting continuation references at present */
+		if (errno != LDAP_RES_SEARCH_ENTRY) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+				      "LDAP sdb zone '%s': ldap_result returned %d", zone, errno);
+			ldap_msgfree(res);
+			return (ISC_R_FAILURE);
+                }
+
+		/* only one entry per result message */
+		e = ldap_first_entry(ld, res);
+		if (e == NULL) {
+			ldap_msgfree(res);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+				      "LDAP sdb zone '%s': ldap_first_entry failed", zone);
+			return (ISC_R_FAILURE);
+                }
+
+		if (name == NULL) {
+			names = ldap_get_values(ld, e, "relativeDomainName");
+			if (names == NULL)
+				continue;
+		}
+
+		vals = ldap_get_values(ld, e, "dNSTTL");
+		if (vals != NULL) {
+			ttl = atoi(vals[0]);
+			ldap_value_free(vals);
+		}
+
+		for (a = ldap_first_attribute(ld, e, &ptr); a != NULL; a = ldap_next_attribute(ld, e, ptr)) {
+			char *s;
+
+			for (s = a; *s; s++)
+				*s = toupper(*s);
+			s = strstr(a, "RECORD");
+			if ((s == NULL) || (s == a) || (s - a >= (signed int)sizeof(type))) {
+#ifndef RFC1823API
+				ldap_memfree(a);
+#endif
+				continue;
+			}
+
+			strncpy(type, a, s - a);
+			type[s - a] = '\0';
+			vals = ldap_get_values(ld, e, a);
+			if (vals != NULL) {
+				for (i = 0; vals[i] != NULL; i++) {
+					if (name != NULL) {
+						result = dns_sdb_putrr(retdata, type, ttl, vals[i]);
+					} else {
+						for (j = 0; names[j] != NULL; j++) {
+							result = dns_sdb_putnamedrr(retdata, names[j], type, ttl, vals[i]);
+							if (result != ISC_R_SUCCESS)
+								break;
+						}
+					}
+;					if (result != ISC_R_SUCCESS) {
+						isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+							      "LDAP sdb zone '%s': dns_sdb_put... failed for %s", zone, vals[i]);
+						ldap_value_free(vals);
+#ifndef RFC1823API
+						ldap_memfree(a);
+						if (ptr != NULL)
+							ber_free(ptr, 0);
+#endif
+						if (name == NULL)
+							ldap_value_free(names);
+						ldap_msgfree(res);
+						return (ISC_R_FAILURE);
+					}
+				}
+				ldap_value_free(vals);
+			}
+#ifndef RFC1823API
+			ldap_memfree(a);
+#endif
+		}
+#ifndef RFC1823API
+		if (ptr != NULL)
+			ber_free(ptr, 0);
+#endif
+		if (name == NULL)
+			ldap_value_free(names);
+
+		/* cleanup this result */
+		ldap_msgfree(res);
+	}
+
+        return (result);
+}
+
+
 /* callback routines */
+static isc_result_t
+ldapdb_lookup(const char *zone, const char *name, void *dbdata,
+	      dns_sdblookup_t *lookup)
+{
+	return ldapdb_search(zone, name, dbdata, lookup);
+}
+
+static isc_result_t
+ldapdb_allnodes(const char *zone, void *dbdata,
+		dns_sdballnodes_t *allnodes)
+{
+	return ldapdb_search(zone, NULL, dbdata, allnodes);
+}
+
+static char *
+unhex(char *in)
+{
+	static const char hexdigits[] = "0123456789abcdef";
+	char *p, *s = in;
+	int d1, d2;
+
+	while ((s = strchr(s, '%'))) {
+		if (!(s[1] && s[2]))
+			return NULL;
+		if ((p = strchr(hexdigits, tolower(s[1]))) == NULL)
+			return NULL;
+		d1 = p - hexdigits;
+		if ((p = strchr(hexdigits, tolower(s[2]))) == NULL)
+			return NULL;
+		d2 = p - hexdigits;
+		*s++ = d1 << 4 | d2;
+		memmove(s, s + 2, strlen(s) - 1);
+	}
+	return in;
+}
+
+
+
+static void
+free_data(struct ldapdb_data *data)
+{
+	if (data->hostport != NULL)
+		isc_mem_free(ns_g_mctx, data->hostport);
+	if (data->hostname != NULL)
+		isc_mem_free(ns_g_mctx, data->hostname);
+	if (data->filterall != NULL)
+		isc_mem_put(ns_g_mctx, data->filterall, data->filteralllen);
+	if (data->filterone != NULL)
+		isc_mem_put(ns_g_mctx, data->filterone, data->filteronelen);
+        isc_mem_put(ns_g_mctx, data, sizeof(struct ldapdb_data));
+}
+
+
 static isc_result_t
 ldapdb_create(const char *zone, int argc, char **argv,
 	      void *driverdata, void **dbdata)
 {
 	struct ldapdb_data *data;
-	char *s;
+	char *s, *filter = NULL;
 	int defaultttl;
 
-	UNUSED(zone);
 	UNUSED(driverdata);
 
 	/* we assume that only one thread will call create at a time */
@@ -175,24 +408,89 @@ ldapdb_create(const char *zone, int argc, char **argv,
         data = isc_mem_get(ns_g_mctx, sizeof(struct ldapdb_data));
         if (data == NULL)
                 return (ISC_R_NOMEMORY);
+
+	memset(data, 0, sizeof(struct ldapdb_data));
 	data->hostport = isc_mem_strdup(ns_g_mctx, argv[0] + strlen("ldap://"));
 	if (data->hostport == NULL) {
-		isc_mem_put(ns_g_mctx, data, sizeof(struct ldapdb_data));
+		free_data(data);
 		return (ISC_R_NOMEMORY);
 	}
+
 	data->defaultttl = defaultttl;
+
 	s = strchr(data->hostport, '/');
 	if (s != NULL) {
 		*s++ = '\0';
-		data->base = *s != '\0' ? s : NULL;
+		data->base = s;
+		/* attrs, scope, filter etc? */
+		s = strchr(s, '?');
+		if (s != NULL) {
+			*s++ = '\0';
+			/* ignore attributes */
+			s = strchr(s, '?');
+			if (s != NULL) {
+				*s++ = '\0';
+				/* ignore scope */
+				s = strchr(s, '?');
+				if (s != NULL) {
+					*s++ = '\0';
+					/* filter */
+					filter = s;
+					s = strchr(s, '?');
+					if (s != NULL) {
+						*s++ = '\0';
+					}
+					if (*filter == '\0') {
+						filter = NULL;
+					}
+				}
+			}
+		}
+		if (*data->base == '\0') {
+			data->base = NULL;
+		}
+
+		if ((data->base != NULL && unhex(data->base) == NULL) || (filter != NULL && unhex(filter) == NULL)) {
+			free_data(data);
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER, ISC_LOG_ERROR,	
+				      "LDAP sdb zone '%s': bad hex values", zone);
+			return (ISC_R_FAILURE);
+		}
 	}
 
+	/* compute filterall and filterone once and for all */
+	if (filter == NULL) {
+		data->filteralllen = strlen(zone) + strlen("(zoneName=)") + 1;
+		data->filteronelen = strlen(zone) + strlen("(&(zoneName=)(relativeDomainName=))") + MAXNAMELEN + 1;
+	} else {
+		data->filteralllen = strlen(filter) + strlen(zone) + strlen("(&(zoneName=))") + 1;
+		data->filteronelen = strlen(filter) + strlen(zone) + strlen("(&(zoneName=)(relativeDomainName=))") + MAXNAMELEN + 1;
+	}
+
+	data->filterall = isc_mem_get(ns_g_mctx, data->filteralllen);
+	if (data->filterall == NULL) {
+		free_data(data);
+		return (ISC_R_NOMEMORY);
+	}
+	data->filterone = isc_mem_get(ns_g_mctx, data->filteronelen);
+	if (data->filterone == NULL) {
+		free_data(data);
+		return (ISC_R_NOMEMORY);
+	}
+
+	if (filter == NULL) {
+		sprintf(data->filterall, "(zoneName=%s)", zone);
+		sprintf(data->filterone, "(&(zoneName=%s)(relativeDomainName=", zone); 
+	} else {
+		sprintf(data->filterall, "(&%s(zoneName=%s))", filter, zone);
+		sprintf(data->filterone, "(&%s(zoneName=%s)(relativeDomainName=", filter, zone);
+	}
+	data->filtername = data->filterone + strlen(data->filterone);
+
 	/* support URLs with literal IPv6 addresses */
-	data->hostname = isc_mem_strdup(ns_g_mctx, data->hostport +
-					(*data->hostport == '[' ? 1 : 0));
+	data->hostname = isc_mem_strdup(ns_g_mctx, data->hostport + (*data->hostport == '[' ? 1 : 0));
 	if (data->hostname == NULL) {
-		isc_mem_free(ns_g_mctx, data->hostport);
-		isc_mem_put(ns_g_mctx, data, sizeof(struct ldapdb_data));
+		free_data(data);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -219,219 +517,7 @@ ldapdb_destroy(const char *zone, void *driverdata, void **dbdata) {
         UNUSED(zone);
         UNUSED(driverdata);
 
-	if (data->hostport != NULL)
-		isc_mem_free(ns_g_mctx, data->hostport);
-	if (data->hostname != NULL)
-		isc_mem_free(ns_g_mctx, data->hostname);
-        isc_mem_put(ns_g_mctx, data, sizeof(struct ldapdb_data));
-}
-
-static void
-ldapdb_bind(struct ldapdb_data *data, LDAP **ldp)
-{
-	if (*ldp != NULL)
-		ldap_unbind(*ldp);
-	*ldp = ldap_open(data->hostname, data->portno);
-	if (*ldp == NULL)
-		return;
-	if (ldap_simple_bind_s(*ldp, NULL, NULL) != LDAP_SUCCESS) {
-		ldap_unbind(*ldp);
-		*ldp = NULL;
-	}
-}
-
-static isc_result_t
-ldapdb_lookup(const char *zone, const char *name, void *dbdata,
-	      dns_sdblookup_t *lookup)
-{
-        isc_result_t result = ISC_R_NOTFOUND;
-	struct ldapdb_data *data = dbdata;
-	LDAP **ldp;
-	LDAPMessage *res, *e;
-	char *fltr, *a, **vals;
-	char type[64];
-	BerElement *ptr;
-	int i;
-
-	ldp = ldapdb_getconn(data);
-	if (ldp == NULL)
-		return (ISC_R_FAILURE);
-	if (*ldp == NULL) {
-		ldapdb_bind(data, ldp);
-		if (*ldp == NULL)
-			return (ISC_R_FAILURE);
-	}
-	fltr = isc_mem_get(ns_g_mctx, strlen(zone) + strlen(name) +
-			   strlen("(&(zoneName=)(relativeDomainName=))") + 1);
-        if (fltr == NULL)
-                return (ISC_R_NOMEMORY);
-
-	strcpy(fltr, "(&(zoneName=");
-	strcat(fltr, zone);
-	strcat(fltr, ")(relativeDomainName=");
-	strcat(fltr, name);
-	strcat(fltr, "))");
-
-	if (ldap_search_s(*ldp, data->base, LDAP_SCOPE_SUBTREE, fltr, NULL, 0,
-			  &res) != LDAP_SUCCESS) {
-		ldapdb_bind(data, ldp);
-		if (*ldp != NULL)
-			ldap_search_s(*ldp, data->base, LDAP_SCOPE_SUBTREE,
-				      fltr, NULL, 0, &res);
-	}
-
-	isc_mem_put(ns_g_mctx, fltr, strlen(fltr) + 1);
-
-	if (*ldp == NULL)
-		goto exit;
-	
-	for (e = ldap_first_entry(*ldp, res); e != NULL;
-	     e = ldap_next_entry(*ldp, e)) {
-		LDAP *ld = *ldp;
-		int ttl = data->defaultttl;
-		
-		for (a = ldap_first_attribute(ld, e, &ptr); a != NULL;
-		     a = ldap_next_attribute(ld, e, ptr)) {
-			if (!strcmp(a, "dNSTTL")) {
-				vals = ldap_get_values(ld, e, a);
-				ttl = atoi(vals[0]);
-				ldap_value_free(vals);
-				ldap_memfree(a);
-				break;
-			}
-			ldap_memfree(a);
-		}
-		for (a = ldap_first_attribute(ld, e, &ptr); a != NULL;
-		     a = ldap_next_attribute(ld, e, ptr)) {
-			char *s;
-			
-			for (s = a; *s; s++)
-				*s = toupper(*s);
-			s = strstr(a, "RECORD");
-			if ((s == NULL) || (s == a)
-			    || (s - a >= (signed int)sizeof(type))) {
-				ldap_memfree(a);
-				continue;
-			}
-			strncpy(type, a, s - a);
-			type[s - a] = '\0';
-			vals = ldap_get_values(ld, e, a);
-			for (i=0; vals[i] != NULL; i++) {
-				result = dns_sdb_putrr(lookup, type, ttl,
-						       vals[i]);
-				if (result != ISC_R_SUCCESS) {
-					ldap_value_free(vals);
-					ldap_memfree(a);
-					result = ISC_R_FAILURE;
-					goto exit;
-				}
-			}
-			ldap_value_free(vals);
-			ldap_memfree(a);
-		}
-	}
- exit:
-	ldap_msgfree(res);
-	return (result);
-}
-
-static isc_result_t
-ldapdb_allnodes(const char *zone, void *dbdata,
-		dns_sdballnodes_t *allnodes) {
-        isc_result_t result = ISC_R_NOTFOUND;
-	struct ldapdb_data *data = dbdata;
-	LDAP **ldp;
-	LDAPMessage     *res, *e;
-	char type[64];
-	char *fltr, *a, **vals;
-	BerElement *ptr;
-	int i;
-
-	ldp = ldapdb_getconn(data);
-	if (ldp == NULL)
-		return (ISC_R_FAILURE);
-	if (*ldp == NULL) {
-		ldapdb_bind(data, ldp);
-		if (*ldp == NULL)
-			return (ISC_R_FAILURE);
-	}
-
-	fltr = isc_mem_get(ns_g_mctx, strlen(zone) + strlen("(zoneName=)") + 1);
-        if (fltr == NULL)
-                return (ISC_R_NOMEMORY);
-
-	strcpy(fltr, "(zoneName=");
-	strcat(fltr, zone);
-	strcat(fltr, ")");
-
-	if (ldap_search_s(*ldp, data->base, LDAP_SCOPE_SUBTREE, fltr, NULL, 0,
-			  &res) != LDAP_SUCCESS) {
-		ldapdb_bind(data, ldp);
-		if (*ldp != NULL)
-			ldap_search_s(*ldp, data->base, LDAP_SCOPE_SUBTREE,
-				      fltr, NULL, 0, &res);
-	}
-
-	isc_mem_put(ns_g_mctx, fltr, strlen(fltr) + 1);
-
-	for (e = ldap_first_entry(*ldp, res); e != NULL;
-	     e = ldap_next_entry(*ldp, e)) {
-		LDAP *ld = *ldp;
-		char *name = NULL;
-		int ttl = data->defaultttl;
-		
-		for (a = ldap_first_attribute(ld, e, &ptr); a != NULL;
-		     a = ldap_next_attribute(ld, e, ptr)) {
-			if (!strcmp(a, "dNSTTL")) {
-				vals = ldap_get_values(ld, e, a);
-				ttl = atoi(vals[0]);
-				ldap_value_free(vals);
-			} else if (!strcmp(a, "relativeDomainName")) {
-				vals = ldap_get_values(ld, e, a);
-				name = isc_mem_strdup(ns_g_mctx, vals[0]);
-				ldap_value_free(vals);
-			}
-			ldap_memfree(a);
-		}
-		
-		if (name == NULL)
-			continue;
-		
-		for (a = ldap_first_attribute(ld, e, &ptr); a != NULL;
-		     a = ldap_next_attribute(ld, e, ptr)) {
-			char *s;
-
-			for (s = a; *s; s++)
-				*s = toupper(*s);
-			s = strstr(a, "RECORD");
-			if ((s == NULL) || (s == a)
-			    || (s - a >= (signed int)sizeof(type))) {
-				ldap_memfree(a);
-				continue;
-			}
-			strncpy(type, a, s - a);
-			type[s - a] = '\0';
-			vals = ldap_get_values(ld, e, a);
-			for (i=0; vals[i] != NULL; i++) {
-				result = dns_sdb_putnamedrr(allnodes, name,
-							    type, ttl, vals[i]);
-				if (result != ISC_R_SUCCESS) {
-					ldap_value_free(vals);
-					ldap_memfree(a);
-					isc_mem_free(ns_g_mctx, name);
-					result = ISC_R_FAILURE;
-					goto exit;
-				}
-			}
-			ldap_value_free(vals);
-			ldap_memfree(a);
-		}
-		isc_mem_free(ns_g_mctx, name);
-	}
-
- exit:
-	ldap_msgfree(res);
-	return (result);
+	free_data(data);
 }
 
 static dns_sdbmethods_t ldapdb_methods = {

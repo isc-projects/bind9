@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66 2001/08/28 03:58:12 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.3 2002/08/05 06:57:13 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -254,7 +254,7 @@ dns_adb_attach(dns_adb_t *adb, dns_adb_t **adbp);
  *
  * Requires:
  *	'adb' to be a valid dns_adb_t, created via dns_adb_create().
- *	'adbp' to be a valid pointer to a *dns_adb_t which is initalized
+ *	'adbp' to be a valid pointer to a *dns_adb_t which is initialized
  *		to NULL.
  */
 
@@ -483,6 +483,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  */
 #define DNS_ADB_RTTADJDEFAULT		7	/* default scale */
 #define DNS_ADB_RTTADJREPLACE		0	/* replace with our rtt */
+#define DNS_ADB_RTTADJAGE		10	/* age this rtt */
 
 void
 dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,

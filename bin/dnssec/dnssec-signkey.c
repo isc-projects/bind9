@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.50 2001/05/10 06:04:57 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50.2.1 2001/10/05 00:21:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -247,7 +247,8 @@ main(int argc, char *argv[]) {
 		eflags |= ISC_ENTROPY_GOODONLY;
 	result = dst_lib_init(mctx, ectx, eflags);
 	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize dst");
+		fatal("could not initialize dst: %s", 
+		      isc_result_totext(result));
 
 	isc_stdtime_get(&now);
 

@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_name.c,v 1.3 2001/05/07 06:07:44 marka Exp $";
+static const char rcsid[] = "$Id: ns_name.c,v 1.3.2.2 2002/07/10 06:32:48 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -34,6 +34,12 @@ static const char rcsid[] = "$Id: ns_name.c,v 1.3 2001/05/07 06:07:44 marka Exp 
 #include <limits.h>
 
 #include "port_after.h"
+
+#ifdef SPRINTF_CHAR
+# define SPRINTF(x) strlen(sprintf/**/x)
+#else
+# define SPRINTF(x) ((size_t)sprintf x)
+#endif
 
 #define NS_TYPE_ELT			0x40 /* EDNS0 extended label type */
 #define DNS_LABELTYPE_BITSTRING		0x41
@@ -675,6 +681,8 @@ special(int ch) {
 	case 0x2E: /* '.' */
 	case 0x3B: /* ';' */
 	case 0x5C: /* '\\' */
+	case 0x28: /* '(' */
+	case 0x29: /* ')' */
 	/* Special modifiers in zone files. */
 	case 0x40: /* '@' */
 	case 0x24: /* '$' */
@@ -790,17 +798,18 @@ decode_bitstring(const char **cpp, char *dn, const char *eom)
 		return(-1);
 
 	cp++;
-	dn += sprintf(dn, "\\[x");
+	dn += SPRINTF((dn, "\\[x"));
 	for (b = blen; b > 7; b -= 8, cp++)
-		dn += sprintf(dn, "%02x", *cp & 0xff);
+		dn += SPRINTF((dn, "%02x", *cp & 0xff));
 	if (b > 4) {
 		tc = *cp++;
-		dn += sprintf(dn, "%02x", tc & (0xff << (8 - b)));
+		dn += SPRINTF((dn, "%02x", tc & (0xff << (8 - b))));
 	} else if (b > 0) {
 		tc = *cp++;
-		dn += sprintf(dn, "%1x", ((tc >> 4) & 0x0f) & (0x0f << (4 - b))); 
+		dn += SPRINTF((dn, "%1x",
+			       ((tc >> 4) & 0x0f) & (0x0f << (4 - b)))); 
 	}
-	dn += sprintf(dn, "/%d]", blen);
+	dn += SPRINTF((dn, "/%d]", blen));
 
 	*cpp = cp;
 	return(dn - beg);

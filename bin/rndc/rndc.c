@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77 2001/08/06 11:40:46 gson Exp $ */
+/* $Id: rndc.c,v 1.77.2.2 2001/11/28 23:37:50 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -84,11 +84,13 @@ static int sends, recvs, connects;
 static char *command;
 static char *args;
 static char program[256];
+static isc_socket_t *sock = NULL;
 
 static void
 usage(int status) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-y key] [-V] command\n\
+Usage: %s [-c config] [-s server] [-p port]\n\
+        [-k key-file ] [-y key] [-V] command\n\
 \n\
 command is one of the following:\n\
 \n\
@@ -189,7 +191,6 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 
 static void
 rndc_recvdone(isc_task_t *task, isc_event_t *event) {
-	isc_socket_t *sock = ccmsg.sock;
 	isccc_sexpr_t *response = NULL;
 	isccc_sexpr_t *data;
 	isccc_region_t source;
@@ -244,7 +245,6 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 static void
 rndc_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	isc_socket_t *sock = event->ev_sender;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *data;
 	isccc_time_t now;
@@ -293,7 +293,6 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 static void
 rndc_start(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t addr;
-	isc_socket_t *sock = NULL;
 	isc_result_t result;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
@@ -597,7 +596,7 @@ main(int argc, char **argv) {
 	isc_app_run();
 
 	if (connects > 0 || sends > 0 || recvs > 0)
-		isc_socket_cancel(ccmsg.sock, task, ISC_SOCKCANCEL_ALL);
+		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);
 
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);

@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: amcacer.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
+static char *rcsid = "$Id: amcacer.c,v 1.1.2.1 2002/02/08 12:13:41 marka Exp $";
 #endif
 
 /*
@@ -12,8 +12,8 @@ static char *rcsid = "$Id: amcacer.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -78,7 +78,7 @@ static char *rcsid = "$Id: amcacer.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
 #include <mdn/util.h>
 
 /*
- * Although draft-ietf-idn-amc-ace-r-00.txt doesn't specify the ACE
+ * Although draft-ietf-idn-amc-ace-r-01.txt doesn't specify the ACE
  * signature, we have to choose one.  In order to prevent the converted
  * name from beginning with a hyphen, we should choose a prefix rather
  * than a suffix.
@@ -87,14 +87,16 @@ static char *rcsid = "$Id: amcacer.c,v 1.1 2001/06/09 00:30:12 tale Exp $";
 #define MDN_AMCACER_PREFIX	"amc3-"
 #endif
 
-#define UCSBUF_LOCAL_SIZE	40
+#define MAX_UCS		0x10FFFF
+#define AMCACER_BUFSIZE	64
 
-typedef struct ucsbuf {
-	unsigned long *ucs;
-	size_t size;
-	size_t len;
-	unsigned long local[UCSBUF_LOCAL_SIZE];
-} ucsbuf_t;
+typedef struct {
+	unsigned long *history;
+	unsigned long local_buf[AMCACER_BUFSIZE];
+	int history_len;
+	unsigned long refpoint[6];
+	int updated;
+} amcacer_encode_ctx;
 
 static const char *base32encode = "abcdefghijkmnpqrstuvwxyz23456789";
 static const int base32decode_ascii[26] = {
@@ -109,21 +111,14 @@ static mdn_result_t	amcacer_decode(const char *from, size_t fromlen,
 				    char *to, size_t tolen);
 static mdn_result_t	amcacer_encode(const char *from, size_t fromlen,
 				    char *to, size_t tolen);
-static void		amcacer_update_refpoints(unsigned long *refpoint,
-						 unsigned long *history,
-						 int n);
+static mdn_result_t	amcacer_init_ctx(amcacer_encode_ctx *ctx, size_t len);
+static void		amcacer_free_ctx(amcacer_encode_ctx *ctx);
+static void		amcacer_update_refpoints(amcacer_encode_ctx *ctx,
+						 unsigned long c);
 static int		amcacer_getwc(const char *s, size_t len,
 				      unsigned long *vp);
 static int		amcacer_putwc(char *s, size_t len,
 				      unsigned long v, int w);
-
-static mdn_result_t	utf8_to_ucs4(const char *utf8, size_t fromlen,
-				     ucsbuf_t *b);
-static mdn_result_t	ucs4_to_utf8(ucsbuf_t *b, char *utf8, size_t ulen);
-static void		ucsbuf_init(ucsbuf_t *b);
-static mdn_result_t	ucsbuf_grow(ucsbuf_t *b);
-static mdn_result_t	ucsbuf_append(ucsbuf_t *b, unsigned long v);
-static void		ucsbuf_free(ucsbuf_t *b);
 static int		is_ldh(unsigned long v);
 
 static mdn__ace_t amcacer_ctx = {
@@ -139,7 +134,7 @@ static mdn__ace_t amcacer_ctx = {
 };
 
 static const unsigned long amcacer_refpoint_initial[6] = {
-	0, 0x60, 0, 0, 0, 0x10000,
+	0, 0xe0, 0xa0, 0, 0, 0x10000,
 };
 
 
@@ -184,17 +179,18 @@ mdn__amcacer_convert(mdn_converter_t ctx, void *privdata,
 
 static mdn_result_t
 amcacer_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
-	size_t len;
-	unsigned long refpoint[6], v;
-	ucsbuf_t ucsb;
 	int literal_mode = 0;
+	amcacer_encode_ctx ctx;
 	mdn_result_t r;
 
-	(void)memcpy(refpoint, amcacer_refpoint_initial, sizeof(refpoint));
-
-	ucsbuf_init(&ucsb);
+	/* Initialize context. */
+	if ((r = amcacer_init_ctx(&ctx, fromlen)) != mdn_success)
+		return (r);
 
 	while (fromlen > 0) {
+		size_t len;
+		unsigned long v;
+
 		if (from[0] == '-') {
 			if (fromlen > 1 && from[1] == '-') {
 				v = '-';
@@ -218,58 +214,66 @@ amcacer_decode(const char *from, size_t fromlen, char *to, size_t tolen) {
 			}
 			from += len;
 			fromlen -= len;
-			v = refpoint[len] + v;
+			v = ctx.refpoint[len] + v;
+			amcacer_update_refpoints(&ctx, v);
 		}
-		if ((r = ucsbuf_append(&ucsb, v)) != mdn_success)
-			goto finish;
-		amcacer_update_refpoints(refpoint, ucsb.ucs, ucsb.len - 1);
+		len = mdn_utf8_putwc(to, tolen, v);
+		if (len == 0)
+			goto overflow;
+		to += len;
+		tolen -= len;
 	}
 
-	r = ucs4_to_utf8(&ucsb, to, tolen);
- finish:
-	ucsbuf_free(&ucsb);
+	/*
+	 * Terminate with NUL.
+	 */
+	if (tolen <= 0)
+		goto overflow;
+	*to = '\0';
 
+ finish:
+	amcacer_free_ctx(&ctx);
 	return (r);
+
+ overflow:
+	r = mdn_buffer_overflow;
+	goto finish;
 }
 
 static mdn_result_t
 amcacer_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
-	ucsbuf_t ucsb;
-	unsigned long *buf;
-	size_t len;
 	int literal_mode = 0;
-	unsigned long refpoint[6];
+	amcacer_encode_ctx ctx;
 	mdn_result_t r;
-	int i;
 
-	/* Initialize refpoints. */
-	(void)memcpy(refpoint, amcacer_refpoint_initial, sizeof(refpoint));
-
-	/*
-	 * Convert input string to UCS-4.
-	 */
-	ucsbuf_init(&ucsb);
-	if ((r = utf8_to_ucs4(from, fromlen, &ucsb)) != mdn_success)
+	/* Initialize context. */
+	if ((r = amcacer_init_ctx(&ctx, fromlen)) != mdn_success)
 		return (r);
 
-	buf = ucsb.ucs;
-	len = ucsb.len;
+	while (fromlen > 0) {
+		unsigned long c;
+		size_t len;
 
-	/*
-	 * Now 'buf' contains UCS-4 string consisting of 'len' characters.
-	 */
+		len = mdn_utf8_getwc(from, fromlen, &c);
+		from += len;
+		fromlen -= len;
 
-	for (i = 0; i < len; i++) {
-		if (buf[i] == '-') {
+		if (len == 0 || c >= MAX_UCS) {
+			/*
+			 * Invalid Unicode code point.
+			 */
+			r = mdn_invalid_encoding;
+			goto ret;
+		} else if (c == '-') {
 			/*
 			 * Convert "-" to "--".
 			 */
 			if (tolen < 2)
-				return (mdn_buffer_overflow);
+				goto overflow;
 			to[0] = to[1] = '-';
 			to += 2;
 			tolen -= 2;
-		} else if (is_ldh(buf[i])) {
+		} else if (is_ldh(c)) {
 			/*
 			 * LDH characters.
 			 */
@@ -285,12 +289,13 @@ amcacer_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 			}
 			if (tolen < 1)
 				goto overflow;
-			*to++ = buf[i];
+			*to++ = c;
 			tolen--;
 		} else {
 			/*
 			 * Non-LDH characters.
 			 */
+			unsigned long *refpoint = ctx.refpoint;
 			int k;
 
 			if (literal_mode != 0) {
@@ -304,17 +309,16 @@ amcacer_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 				literal_mode = 0;
 			}
 			for (k = 1; k < 6; k++) {
-				if (buf[i] >= refpoint[k] &&
-				    buf[i] - refpoint[k] < (1 << (4 * k)))
+				if (c >= refpoint[k] &&
+				    c - refpoint[k] < (1 << (4 * k)))
 					break;
 			}
-			k = amcacer_putwc(to, tolen, buf[i] - refpoint[k],
-					    k);
+			k = amcacer_putwc(to, tolen, c - refpoint[k], k);
 			if (k == 0)
 				goto overflow;
 			to += k;
 			tolen -= k;
-			amcacer_update_refpoints(refpoint, buf, i);
+			amcacer_update_refpoints(&ctx, c);
 		}
 	}
 
@@ -322,30 +326,56 @@ amcacer_encode(const char *from, size_t fromlen, char *to, size_t tolen) {
 	 * Terminate with NUL.
 	 */
 	if (tolen <= 0)
-		return (mdn_buffer_overflow);
+		goto overflow;
 
 	*to = '\0';
-
-	ucsbuf_free(&ucsb);
-	return (mdn_success);
+	r = mdn_success;
+ ret:
+	amcacer_free_ctx(&ctx);
+	return (r);
 
  overflow:
-	ucsbuf_free(&ucsb);
-	return (mdn_buffer_overflow);
+	r = mdn_buffer_overflow;
+	goto ret;
+}
+
+static mdn_result_t
+amcacer_init_ctx(amcacer_encode_ctx *ctx, size_t len) {
+	if (len > AMCACER_BUFSIZE) {
+		ctx->history = malloc(sizeof(ctx->history[0]) * len);
+		if (ctx->history == NULL)
+			return (mdn_nomemory);
+	} else {
+		ctx->history = ctx->local_buf;
+	}
+	ctx->history_len = 0;
+	(void)memcpy(ctx->refpoint, amcacer_refpoint_initial,
+		     sizeof(ctx->refpoint));
+	ctx->updated = 0;
+	return (mdn_success);
 }
 
 static void
-amcacer_update_refpoints(unsigned long *refpoint,
-			 unsigned long *history, int n)
-{
+amcacer_free_ctx(amcacer_encode_ctx *ctx) {
+	if (ctx->history != ctx->local_buf)
+		free(ctx->history);
+	ctx->history = NULL;
+}
+
+static void
+amcacer_update_refpoints(amcacer_encode_ctx *ctx, unsigned long c) {
+	unsigned long *refpoint = ctx->refpoint;
+	unsigned long *history = ctx->history;
 	int k;
-	unsigned long lastchar = history[n];
+
+	history[ctx->history_len++] = c;
 
 #define MAX_K(k)	(1 << (4 * (k)))
 #define ROUND_K(v, k)	(((v) >> (4 * (k))) << (4 * (k)))
-	if (n == 0) {
+	if (!ctx->updated) {
 		for (k = 1; k < 4; k++)
-			refpoint[k] = ROUND_K(lastchar, k);
+			refpoint[k] = ROUND_K(c, k);
+		ctx->updated = 1;
 		return;
 	}
 
@@ -353,13 +383,11 @@ amcacer_update_refpoints(unsigned long *refpoint,
 		unsigned long max = MAX_K(k);
 		int i;
 
-		for (i = n - 1; i >= 0; i--) {
-			if (is_ldh(history[i]))
-				continue;
+		for (i = ctx->history_len - 2; i >= 0; i--) {
 			if ((refpoint[k] ^ history[i]) < max)
 				break;
-			if ((lastchar ^ history[i]) < max) {
-				refpoint[k] = ROUND_K(lastchar, k);
+			if ((c ^ history[i]) < max) {
+				refpoint[k] = ROUND_K(c, k);
 				return;
 			}
 		}
@@ -409,88 +437,6 @@ amcacer_putwc(char *s, size_t len, unsigned long v, int w) {
 		shift = 16;
 	}
 	return (w);
-}
-
-/*
- * Common Utility Functions.
- */
-
-static mdn_result_t
-utf8_to_ucs4(const char *utf8, size_t fromlen, ucsbuf_t *b) {
-	mdn_result_t r;
-
-	while (fromlen > 0) {
-		unsigned long c;
-		int w;
-
-		if ((w = mdn_utf8_getwc(utf8, fromlen, &c)) == 0)
-			return (mdn_invalid_encoding);
-		utf8 += w;
-		fromlen -= w;
-
-		if ((r = ucsbuf_append(b, c)) != mdn_success)
-			return (r);
-	}
-	return (mdn_success);
-}
-
-static mdn_result_t
-ucs4_to_utf8(ucsbuf_t *b, char *utf8, size_t ulen) {
-	unsigned long *s = b->ucs;
-	size_t len = b->len;
-	int i;
-
-	for (i = 0; i < len; i++) {
-		int w = mdn_utf8_putwc(utf8, ulen, s[i]);
-
-		if (w == 0)
-			return (mdn_buffer_overflow);
-		utf8 += w;
-		ulen -= w;
-	}
-	if (ulen < 1)
-		return (mdn_buffer_overflow);
-	*utf8 = '\0';
-	return (mdn_success);
-}
-
-static void
-ucsbuf_init(ucsbuf_t *b) {
-	b->ucs = b->local;
-	b->size = UCSBUF_LOCAL_SIZE;
-	b->len = 0;
-}
-
-static mdn_result_t
-ucsbuf_grow(ucsbuf_t *b) {
-	if (b->ucs == b->local)
-		b->ucs = NULL;
-	b->size *= 2;
-	b->ucs = realloc(b->ucs, sizeof(unsigned long) * b->size);
-	if (b->ucs == NULL)
-		return (mdn_nomemory);
-	return (mdn_success);
-}
-
-static mdn_result_t
-ucsbuf_append(ucsbuf_t *b, unsigned long v) {
-	mdn_result_t r;
-
-	if (b->len + 1 > b->size) {
-		r = ucsbuf_grow(b);
-		if (r != mdn_success)
-			return (r);
-	}
-	b->ucs[b->len++] = v;
-	return (mdn_success);
-}
-
-static void
-ucsbuf_free(ucsbuf_t *b) {
-	if (b->ucs != b->local) {
-		free(b->ucs);
-		b->ucs = b->local;
-	}
 }
 
 static int

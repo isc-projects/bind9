@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69 2001/06/08 22:48:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.69.2.3 2002/08/02 05:08:49 marka Exp $
  */
 
 
@@ -274,6 +274,12 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_region_t lenr;
 
 		/*
+		 * Skip duplicates.
+		 */
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i-1]) == 0)
+		    continue;
+
+		/*
 		 * Digest the envelope.
 		 */
 		ret = dst_context_adddata(ctx, &r);
@@ -431,6 +437,12 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_region_t lenr;
 
 		/*
+		 * Skip duplicates.
+		 */
+		if (i > 0 && dns_rdata_compare(&rdatas[i], &rdatas[i-1]) == 0)
+		    continue;
+
+		/*
 		 * Digest the envelope.
 		 */
 		ret = dst_context_adddata(ctx, &r);
@@ -505,7 +517,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  NULL,
 					  mctx, &keys[count]);
-		if (result == DST_R_INVALIDPRIVATEKEY)
+		if (result == ISC_R_FILENOTFOUND)
 			goto next;
 		if (result != ISC_R_SUCCESS)
 			goto failure;

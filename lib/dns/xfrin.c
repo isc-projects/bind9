@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124 2001/08/08 22:54:46 gson Exp $ */
+/* $Id: xfrin.c,v 1.124.2.2 2001/09/12 20:44:04 gson Exp $ */
 
 #include <config.h>
 
@@ -647,8 +647,10 @@ xfrin_reset(dns_xfrin_ctx_t *xfr) {
 	if (xfr->ixfr.journal != NULL)
 		dns_journal_destroy(&xfr->ixfr.journal);
 
-	if (xfr->axfr.add_private != NULL)
+	if (xfr->axfr.add_private != NULL) {
 		(void)dns_db_endload(xfr->db, &xfr->axfr.add_private);
+		xfr->axfr.add_func = NULL;
+	}
 
 	if (xfr->tcpmsg_valid) {
 		dns_tcpmsg_invalidate(&xfr->tcpmsg);
@@ -1153,7 +1155,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (result != ISC_R_SUCCESS) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "TSIG check failed: %s",
 		       isc_result_totext(result));
-		return;
+		FAIL(result);
 	}
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);

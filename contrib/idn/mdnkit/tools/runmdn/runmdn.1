@@ -1,4 +1,4 @@
-.\" $Id: runmdn.1,v 1.7 2001/04/23 05:56:27 ishisone Exp $
+.\" $Id: runmdn.1,v 1.1 2002/01/02 02:47:04 marka Exp $
 .\"
 .\" Copyright (c) 2000,2001 Japan Network Information Center.
 .\" All rights reserved.
@@ -9,8 +9,8 @@
 .\" 
 .\" The following License Terms and Conditions apply, unless a different
 .\" license is obtained from Japan Network Information Center ("JPNIC"),
-.\" a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
-.\" Tokyo, Japan.
+.\" a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+.\" Chiyoda-ku, Tokyo 101-0047, Japan.
 .\" 
 .\" 1. Use, Modification and Redistribution (including distribution of any
 .\"    modified or derived work) in source and/or binary forms is permitted
@@ -63,7 +63,7 @@
 runmdn \- A script to allow applications to use multilingual domain names.
 .\"
 .SH SYNOPSIS
-\fBrunmdn\fP \fIprogram-name\fP [\fIargs..\fP]
+\fBrunmdn\fP [\fB-e\fP \fIlocal-codeset\fP] \fIprogram-name\fP [\fIargs..\fP]
 .\"
 .SH DESCRIPTION
 .B runmdn
@@ -81,6 +81,16 @@ Before using runmdn, you should set up properties related to
 multilingual DNS by configuring mDNkit's configuration file
 \fBmdn.conf\fP.
 See mdn.conf(5) which describes the configuration.
+.\"
+.SH OPTION
+The following option is available:
+.TP 4
+\fB\-e\fP \fIlocal-codeset\fP
+Specify the application's local codeset.
+If the option is not specified,
+.B runmdn
+guesses the codeset from the current locale.
+See the ``NOTE'' section for more details about local codeset.
 .\"
 .SH IMPLEMENTATION
 .B runmdn
@@ -135,10 +145,13 @@ configuration file (
 ).  See mdn.conf(5) for details.
 .\"
 .SH NOTE
-By default,
+Unless
+\fB\-e\fP
+option is specified,
 .B runmdn
 tries to guess the application's local codeset from the application's current
-locale.  However, sometimes it cannot guess the codeset correctly, for example
+locale.
+However, sometimes it cannot guess the codeset correctly, for example
 if the application does not set the locale appropriately
 by calling `setlocale()'.
 In that case, you can explicitly specify the local codeset by setting an

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.85 2001/06/04 19:33:28 tale Exp $ */
+/* $Id: task.c,v 1.85.2.3 2002/08/06 02:20:39 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -111,7 +111,7 @@ struct isc_taskmgr {
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
 	LIST(isc_task_t)		tasks;
-	LIST(isc_task_t)		ready_tasks;
+	isc_tasklist_t			ready_tasks;
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_condition_t			work_available;
 	isc_condition_t			exclusive_granted;
@@ -726,6 +726,7 @@ dispatch(isc_taskmgr_t *manager) {
 	isc_task_t *task;
 #ifndef ISC_PLATFORM_USETHREADS
 	unsigned int total_dispatch_count = 0;
+	isc_tasklist_t ready_tasks;
 #endif /* ISC_PLATFORM_USETHREADS */
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -780,6 +781,9 @@ dispatch(isc_taskmgr_t *manager) {
 	 * unlocks.  The while expression is always protected by the lock.
 	 */
 
+#ifndef ISC_PLATFORM_USETHREADS
+	ISC_LIST_INIT(ready_tasks);
+#endif
 	LOCK(&manager->lock);
 	while (!FINISHED(manager)) {
 #ifdef ISC_PLATFORM_USETHREADS
@@ -965,11 +969,18 @@ dispatch(isc_taskmgr_t *manager) {
 				 * were usually nonempty, the 'optimization'
 				 * might even hurt rather than help.
 				 */
+#ifdef ISC_PLATFORM_USETHREADS
 				ENQUEUE(manager->ready_tasks, task,
 					ready_link);
+#else
+				ENQUEUE(ready_tasks, task, ready_link);
+#endif
 			}
 		}
 	}
+#ifndef ISC_PLATFORM_USETHREADS
+	ISC_LIST_APPENDLIST(manager->ready_tasks, ready_tasks, ready_link);
+#endif
 	UNLOCK(&manager->lock);
 }
 
@@ -1211,6 +1222,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
+	INSIST(ISC_LIST_EMPTY(manager->tasks));
 #endif /* ISC_PLATFORM_USETHREADS */
 
 	manager_free(manager);

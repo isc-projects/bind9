@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103 2001/08/27 17:20:10 gson Exp $ */
+/* $Id: view.c,v 1.103.2.2 2002/08/05 06:57:12 marka Exp $ */
 
 #include <config.h>
 
@@ -158,6 +158,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
 	view->dstport = 53;
+	view->flush = ISC_FALSE;
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
 	if (result != ISC_R_SUCCESS)
@@ -300,6 +301,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	view = *viewp;
 	REQUIRE(DNS_VIEW_VALID(view));
 
+	if (flush)
+		view->flush = ISC_TRUE;
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
 		LOCK(&view->lock);
@@ -309,7 +312,7 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-		if (flush)
+		if (view->flush)
 			dns_zt_flushanddetach(&view->zonetable);
 		else
 			dns_zt_detach(&view->zonetable);

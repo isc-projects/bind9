@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.69 2001/07/24 05:23:38 mayer Exp $ */
+/* $Id: db.c,v 1.69.2.1 2001/09/04 23:09:33 gson Exp $ */
 
 /***
  *** Imports
@@ -389,7 +389,7 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(source != NULL);
-	REQUIRE(targetp != NULL && *targetp != NULL);
+	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	(db->methods->attachversion)(db, source, targetp);
 

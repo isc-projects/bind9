@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.26 2001/07/06 20:34:11 gson Exp $ */
+/* $Id: lex.h,v 1.26.2.2 2002/02/08 03:57:40 marka Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -190,7 +190,7 @@ isc_lex_setcomments(isc_lex_t *lex, unsigned int comments);
  * Requires:
  *	'lex' is a valid lexer.
  *
- *	'options' has meaningful values.
+ *	'comments' has meaningful values.
  */
 
 void
@@ -367,7 +367,7 @@ isc_lex_getsourcename(isc_lex_t *lex);
 unsigned long
 isc_lex_getsourceline(isc_lex_t *lex);
 /*
- * Return the input source name.
+ * Return the input source line number.
  *
  * Requires:
  *	'lex' is a valid lexer.

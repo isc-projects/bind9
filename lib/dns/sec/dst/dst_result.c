@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.18 2001/07/10 19:08:28 bwelling Exp $
+ * $Id: dst_result.c,v 1.18.2.1 2001/12/19 01:29:29 marka Exp $
  */
 
 #include <config.h>
@@ -41,7 +41,7 @@ static const char *text[DST_R_NRESULTS] = {
 	"UNUSED9",				/*  9 */
 	"UNUSED10",				/* 10 */
 	"sign failure",				/* 11 */
-        "UNUSED12",				/* 12 */
+	"UNUSED12",				/* 12 */
 	"UNUSED13",				/* 13 */
 	"verify failure",			/* 14 */
 	"not a public key",			/* 15 */

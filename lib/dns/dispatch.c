@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101 2001/08/08 22:54:38 gson Exp $ */
+/* $Id: dispatch.c,v 1.101.2.3 2002/05/08 06:38:14 marka Exp $ */
 
 #include <config.h>
 
@@ -1104,7 +1104,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	DESTROYLOCK(&mgr->lock);
  deallocate:
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
-	isc_mem_detach(&mgr->mctx);
+	isc_mem_detach(&mctx);
 
 	return (result);
 }
@@ -1212,16 +1212,11 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 
 static isc_boolean_t
 local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
-	in_port_t port;
 
 	if (addr == NULL)
 		return (ISC_TRUE);
 
-	port = isc_sockaddr_getport(addr);
-	if (port == 0)
-		return (isc_sockaddr_eqaddr(&disp->local, addr));
-	else
-		return (isc_sockaddr_equal(&disp->local, addr));
+	return (isc_sockaddr_equal(&disp->local, addr));
 }
 
 /*

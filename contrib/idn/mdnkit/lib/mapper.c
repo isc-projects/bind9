@@ -1,5 +1,5 @@
 #ifndef lint
-static char *rcsid = "$Id: mapper.c,v 1.1 2001/06/09 00:30:17 tale Exp $";
+static char *rcsid = "$Id: mapper.c,v 1.1.2.1 2002/02/08 12:14:04 marka Exp $";
 #endif
 
 /*
@@ -11,8 +11,8 @@ static char *rcsid = "$Id: mapper.c,v 1.1 2001/06/09 00:30:17 tale Exp $";
  * 
  * The following License Terms and Conditions apply, unless a different
  * license is obtained from Japan Network Information Center ("JPNIC"),
- * a Japanese association, Fuundo Bldg., 1-2 Kanda Ogawamachi, Chiyoda-ku,
- * Tokyo, Japan.
+ * a Japanese association, Kokusai-Kougyou-Kanda Bldg 6F, 2-3-4 Uchi-Kanda,
+ * Chiyoda-ku, Tokyo 101-0047, Japan.
  * 
  * 1. Use, Modification and Redistribution (including distribution of any
  *    modified or derived work) in source and/or binary forms is permitted
@@ -88,18 +88,27 @@ typedef struct {
 /*
  * Standard mapping schemes.
  */
-static const map_scheme_t nameprep_02_scheme = {
-	"nameprep-02",
-	"nameprep-02",
+static const map_scheme_t nameprep_03_scheme = {
+	"nameprep-03",
+	"nameprep-03",
 	mdn__nameprep_createproc,
 	mdn__nameprep_destroyproc,
 	mdn__nameprep_mapproc,
 	NULL,
 };
 
-static const map_scheme_t nameprep_03_scheme = {
-	"nameprep-03",
-	"nameprep-03",
+static const map_scheme_t nameprep_05_scheme = {
+	"nameprep-05",
+	"nameprep-05",
+	mdn__nameprep_createproc,
+	mdn__nameprep_destroyproc,
+	mdn__nameprep_mapproc,
+	NULL,
+};
+
+static const map_scheme_t nameprep_06_scheme = {
+	"nameprep-06",
+	"nameprep-06",
 	mdn__nameprep_createproc,
 	mdn__nameprep_destroyproc,
 	mdn__nameprep_mapproc,
@@ -116,8 +125,9 @@ static const map_scheme_t filemap_scheme = {
 };
 
 static const map_scheme_t *standard_map_schemes[] = {
-	&nameprep_02_scheme,
 	&nameprep_03_scheme,
+	&nameprep_05_scheme,
+	&nameprep_06_scheme,
 	&filemap_scheme,
 	NULL,
 };
@@ -327,6 +337,9 @@ mdn_mapper_add(mdn_mapper_t ctx, const char *scheme_name) {
 	ctx->schemes[ctx->nschemes].context = scheme_context;
 	ctx->nschemes++;
 
+	if (buffer != static_buffer)
+		free(buffer);
+
 	return (mdn_success);
 
 failure:
@@ -465,6 +478,8 @@ mdn_mapper_map(mdn_mapper_t ctx, const char *from, char *to, size_t tolen) {
 		i++;
 	}
 
+	free(dynamic_buffers[0]);
+	free(dynamic_buffers[1]);
 	return (mdn_success);
 
 failure:

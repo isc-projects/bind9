@@ -99,6 +99,16 @@ SOURCE=.\bindevt.mc
 
 !IF  "$(CFG)" == "bindevt - Win32 Release"
 
+# Begin Custom Build
+TargetName=bindevt
+InputPath=.\bindevt.mc
+InputName=bindevt
+
+"$(TargetName).rc" : $(SOURCE) "$(INTDIR)" "$(OUTDIR)"
+	mc $(InputName).mc
+
+# End Custom Build
+
 !ELSEIF  "$(CFG)" == "bindevt - Win32 Debug"
 
 # Begin Custom Build
@@ -113,6 +123,10 @@ InputName=bindevt
 
 !ENDIF 
 
+# End Source File
+# Begin Source File
+
+SOURCE=.\bindevt.rc
 # End Source File
 # End Target
 # End Project
