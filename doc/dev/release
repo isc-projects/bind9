@@ -40,6 +40,11 @@ release.
       recursive query
       exit cleanly with no leaks
 
+ - On a system with gcc, run
+
+      util/check-includes.pl
+      util/check-instincludes.sh
+
  - On selected platforms, do more detailed tests:
 
     Using bind9 as a caching server during web surfing
