@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.60 2004/05/15 03:37:33 jinmei Exp $ */
+/* $Id: sockaddr.c,v 1.61 2004/11/22 23:29:10 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,21 @@
 
 isc_boolean_t
 isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
+	return (isc_sockaddr_compare(a, b, ISC_SOCKADDR_CMPADDR|
+					   ISC_SOCKADDR_CMPPORT|
+					   ISC_SOCKADDR_CMPSCOPE));
+}
+
+isc_boolean_t
+isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
+	return (isc_sockaddr_compare(a, b, ISC_SOCKADDR_CMPADDR|
+					   ISC_SOCKADDR_CMPSCOPE));
+}
+
+isc_boolean_t
+isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
+		     unsigned int flags)
+{
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->length != b->length)
@@ -47,53 +62,34 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 		return (ISC_FALSE);
 	switch (a->type.sa.sa_family) {
 	case AF_INET:
-		if (memcmp(&a->type.sin.sin_addr, &b->type.sin.sin_addr,
+		if ((flags & ISC_SOCKADDR_CMPADDR) != 0 &&
+		    memcmp(&a->type.sin.sin_addr, &b->type.sin.sin_addr,
 			   sizeof(a->type.sin.sin_addr)) != 0)
 			return (ISC_FALSE);
-		if (a->type.sin.sin_port != b->type.sin.sin_port)
+		if ((flags & ISC_SOCKADDR_CMPPORT) != 0 &&
+		    a->type.sin.sin_port != b->type.sin.sin_port)
 			return (ISC_FALSE);
 		break;
 	case AF_INET6:
-		if (memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
+		if ((flags & ISC_SOCKADDR_CMPADDR) != 0 &&
+		    memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
 			   sizeof(a->type.sin6.sin6_addr)) != 0)
 			return (ISC_FALSE);
 #ifdef ISC_PLATFORM_HAVESCOPEID
-		if (a->type.sin6.sin6_scope_id != b->type.sin6.sin6_scope_id)
+		/*
+		 * If ISC_SOCKADDR_CMPSCOPEZERO is set then don't return
+		 * ISC_FALSE if one of the scopes in zero.
+		 */
+		if ((flags & ISC_SOCKADDR_CMPSCOPE) != 0 &&
+		    a->type.sin6.sin6_scope_id != b->type.sin6.sin6_scope_id &&
+		    ((flags & ISC_SOCKADDR_CMPSCOPEZERO) == 0 ||
+		      (a->type.sin6.sin6_scope_id != 0 &&
+		       b->type.sin6.sin6_scope_id != 0)))
 			return (ISC_FALSE);
 #endif
-		if (a->type.sin6.sin6_port != b->type.sin6.sin6_port)
+		if ((flags & ISC_SOCKADDR_CMPPORT) != 0 &&
+		    a->type.sin6.sin6_port != b->type.sin6.sin6_port)
 			return (ISC_FALSE);
-		break;
-	default:
-		if (memcmp(&a->type, &b->type, a->length) != 0)
-			return (ISC_FALSE);
-	}
-	return (ISC_TRUE);
-}
-
-isc_boolean_t
-isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
-	REQUIRE(a != NULL && b != NULL);
-
-	if (a->length != b->length)
-		return (ISC_FALSE);
-
-	if (a->type.sa.sa_family != b->type.sa.sa_family)
-		return (ISC_FALSE);
-	switch (a->type.sa.sa_family) {
-	case AF_INET:
-		if (memcmp(&a->type.sin.sin_addr, &b->type.sin.sin_addr,
-			   sizeof(a->type.sin.sin_addr)) != 0)
-			return (ISC_FALSE);
-		break;
-	case AF_INET6:
-		if (memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
-			   sizeof(a->type.sin6.sin6_addr)) != 0)
-			return (ISC_FALSE);
-#ifdef ISC_PLATFORM_HAVESCOPEID
-		if (a->type.sin6.sin6_scope_id != b->type.sin6.sin6_scope_id)
-			return (ISC_FALSE);
-#endif
 		break;
 	default:
 		if (memcmp(&a->type, &b->type, a->length) != 0)
