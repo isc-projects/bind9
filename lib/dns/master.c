@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.110 2001/02/21 03:53:11 marka Exp $ */
+/* $Id: master.c,v 1.111 2001/03/06 13:32:42 marka Exp $ */
 
 #include <config.h>
 
@@ -1400,7 +1400,6 @@ load(dns_loadctx_t *lctx) {
 					    callbacks);
 		if (MANYERRS(lctx, result)) {
 			SETRESULT(lctx, result);
-			read_till_eol = ISC_TRUE;
 			continue;
 		} else if (result != ISC_R_SUCCESS)
 			goto insist_and_cleanup;
