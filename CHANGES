@@ -1,5 +1,5 @@
-1054.	[bug]		winnt: cfg_categories and cfg_modules need to be
-			visible outside of the libisccfg DLL.
+1054.	[bug]		On Win32, cfg_categories and cfg_modules need to be
+			exported from the libisccfg DLL.
 
 	--- 9.2.0rc7 released ---
 
@@ -8,7 +8,7 @@
 
 1052.	[bug]		Journals were not being created in binary mode
 			resulting in "journal format not recognized" error
-			under Windows NT/2000. [RT #1889]
+			under Win32. [RT #1889]
 
 1051.	[bug]		Do not ignore a network interface completely just
 			because it has a noncontiguous netmask.	 Instead,
