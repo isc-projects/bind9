@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.64 2000/07/07 00:44:01 bwelling Exp $ */
+/* $Id: validator.c,v 1.65 2000/07/13 23:52:04 bwelling Exp $ */
 
 #include <config.h>
 
@@ -72,6 +72,7 @@ struct dns_validator {
 
 #define VALATTR_SHUTDOWN		0x01
 #define VALATTR_FOUNDNONEXISTENCE	0x02
+#define VALATTR_TRIEDVERIFY		0x04
 #define SHUTDOWN(v)		(((v)->attributes & VALATTR_SHUTDOWN) != 0)
 
 static void
@@ -922,6 +923,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		}
 
 		do {
+			val->attributes |= VALATTR_TRIEDVERIFY;
 			result = dns_dnssec_verify(event->name,
 						   event->rdataset,
 						   val->key, ISC_FALSE,
@@ -1278,6 +1280,13 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			      "attempting positive response validation");
 	
 		result = validate(val, ISC_FALSE);
+		if (result == DNS_R_NOVALIDSIG &&
+		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
+		{
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "falling back to insecurity proof");
+			result = proveunsecure(val, ISC_FALSE);
+		}
 	} else if (val->event->rdataset != NULL) {
 		/*
 		 * This is either an unsecure subdomain or a response from
