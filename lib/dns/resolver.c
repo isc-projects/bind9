@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.259 2003/01/16 03:59:25 marka Exp $ */
+/* $Id: resolver.c,v 1.260 2003/01/18 03:18:30 marka Exp $ */
 
 #include <config.h>
 
@@ -308,6 +308,8 @@ struct dns_resolver {
 					 == 0)
 #define ISFORWARDER(a)			(((a)->flags & \
 					 FCTX_ADDRINFO_FORWARDER) != 0)
+
+#define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
@@ -3337,8 +3339,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					 * a negative cache entry, so we
 					 * must set eresult appropriately.
 					 */
-					 if (ardataset->covers ==
-					     dns_rdatatype_any)
+					 if (NXDOMAIN(ardataset))
 						 eresult =
 							 DNS_R_NCACHENXDOMAIN;
 					 else
@@ -3445,7 +3446,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			 * The cache data is also a negative cache
 			 * entry.
 			 */
-			if (ardataset->covers == dns_rdatatype_any)
+			if (NXDOMAIN(ardataset))
 				*eresultp = DNS_R_NCACHENXDOMAIN;
 			else
 				*eresultp = DNS_R_NCACHENXRRSET;
@@ -3464,7 +3465,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			result = ISC_R_SUCCESS;
 		}
 	} else if (result == ISC_R_SUCCESS) {
-		if (covers == dns_rdatatype_any)
+		if (NXDOMAIN(ardataset))
 			*eresultp = DNS_R_NCACHENXDOMAIN;
 		else
 			*eresultp = DNS_R_NCACHENXRRSET;

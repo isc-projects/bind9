@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.105 2003/01/14 00:28:49 marka Exp $ */
+/* $Id: result.c,v 1.106 2003/01/18 03:18:30 marka Exp $ */
 
 #include <config.h>
 
@@ -139,7 +139,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"unexpected RCODE",		       /* 89 DNS_R_UNEXPECTEDRCODE   */
 
 	"unexpected OPCODE",		       /* 90 DNS_R_UNEXPECTEDOPCODE  */
-	"chase DS servers"		       /* 91 DNS_R_CHASEDSSERVERS    */
+	"chase DS servers",		       /* 91 DNS_R_CHASEDSSERVERS    */
+	"empty name"			       /* 92 DNS_R_EMPTYNAME	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

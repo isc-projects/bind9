@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.110 2002/07/22 03:00:49 marka Exp $ */
+/* $Id: validator.c,v 1.111 2003/01/18 03:18:30 marka Exp $ */
 
 #include <config.h>
 
@@ -440,6 +440,8 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_boolean_t isnxdomain;
 	isc_result_t result;
+	dns_namereln_t relation;
+	unsigned int labels, bits;
 
 	INSIST(DNS_MESSAGE_VALID(val->event->message));
 
@@ -486,9 +488,23 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		 * The NXT owner name is less than the nonexistent name.
 		 */
 		if (!isnxdomain) {
+			/*
+			 * Is this a empty node?
+			 */
+			result = dns_rdata_tostruct(&rdata, &nxt, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			relation = dns_name_fullcompare(&nxt.next,
+						        val->event->name,
+							&order, &labels, &bits);
+			dns_rdata_freestruct(&nxt);
+			if (order <= 0 || relation != dns_namereln_subdomain) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "missing NXT record at name");
+				return (ISC_FALSE);
+			}
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "missing NXT record at name");
-			return (ISC_FALSE);
+				      "nxt proves empty node, ok");
+			return (ISC_TRUE);
 		}
 		if (dns_name_issubdomain(val->event->name, nxtname) &&
 		    dns_nxt_typepresent(&rdata, dns_rdatatype_ns) &&
@@ -507,8 +523,9 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		if (result != ISC_R_SUCCESS)
 			return (ISC_FALSE);
 		dns_rdata_reset(&rdata);
-		order = dns_name_compare(val->event->name, &nxt.next);
-		if (order >= 0) {
+		relation = dns_name_fullcompare(&nxt.next, val->event->name,
+						&order, &labels, &bits);
+		if (order <= 0) {
 			/*
 			 * The NXT next name is less than the nonexistent
 			 * name.  This is only ok if the next name is the zone
@@ -522,6 +539,11 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "nxt points to zone apex, ok");
+		} else if (relation == dns_namereln_subdomain) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "nxt proves empty node, bad");
+			dns_rdata_freestruct(&nxt);
+			return (ISC_FALSE);
 		}
 		dns_rdata_freestruct(&nxt);
 		validator_log(val, ISC_LOG_DEBUG(3), "nxt range ok");

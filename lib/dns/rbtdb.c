@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.183 2003/01/14 00:38:07 marka Exp $ */
+/* $Id: rbtdb.c,v 1.184 2003/01/18 03:18:30 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -91,7 +91,7 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_cname)
 #define RBTDB_RDATATYPE_SIGDNAME \
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_dname)
-#define RBTDB_RDATATYPE_NXDOMAIN \
+#define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
 typedef struct rdatasetheader {
@@ -128,6 +128,7 @@ typedef struct rdatasetheader {
 #define RDATASET_ATTR_STALE		0x0002
 #define RDATASET_ATTR_IGNORE		0x0004
 #define RDATASET_ATTR_RETAIN		0x0008
+#define RDATASET_ATTR_NXDOMAIN		0x0010
 
 /*
  * XXX
@@ -147,6 +148,8 @@ typedef struct rdatasetheader {
 	(((header)->attributes & RDATASET_ATTR_IGNORE) != 0)
 #define RETAIN(header) \
 	(((header)->attributes & RDATASET_ATTR_RETAIN) != 0)
+#define NXDOMAIN(header) \
+	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
@@ -1307,6 +1310,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rdataset->covers = RBTDB_RDATATYPE_EXT(header->type);
 	rdataset->ttl = header->ttl - now;
 	rdataset->trust = header->trust;
+	if (NXDOMAIN(header))
+		rdataset->attributes |= DNS_RDATASETATTR_NXDOMAIN;
 	rdataset->private1 = rbtdb;
 	rdataset->private2 = node;
 	raw = (unsigned char *)header + sizeof(*header);
@@ -1841,6 +1846,12 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *header, *header_next, *found, *nxtheader;
 	rdatasetheader_t *foundsig, *cnamesig, *nxtsig;
 	rbtdb_rdatatype_t sigtype;
+	dns_fixedname_t fnext;
+	dns_fixedname_t forigin;
+	dns_name_t nname, *next, *origin;
+	isc_boolean_t active;
+	dns_rbtnodechain_t chain;
+
 
 	search.rbtdb = (dns_rbtdb_t *)db;
 
@@ -1915,6 +1926,45 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		}
 
 		/*
+		 * Find if this is a active empty node (next active node is
+		 * subdomain if 'name').  This is a simpler test than is
+		 * required for activeemptynode() where name is not as
+		 * constained.
+		 */
+		active = ISC_FALSE;
+		dns_fixedname_init(&fnext);
+		next = dns_fixedname_name(&fnext);
+		dns_fixedname_init(&forigin);
+		origin = dns_fixedname_name(&forigin);
+		dns_name_init(&nname, NULL);
+		chain = search.chain;
+		result = dns_rbtnodechain_next(&chain, NULL, NULL);
+		while (result == ISC_R_SUCCESS || result == DNS_R_NEWORIGIN) {
+			node = NULL;
+			result = dns_rbtnodechain_current(&chain, &nname,
+							  origin, &node);
+			if (result != ISC_R_SUCCESS)
+				break;
+			LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+			for (header = node->data;
+			     header != NULL;
+			     header = header->next) {
+				if (header->serial <= search.serial &&
+				    !IGNORE(header) && EXISTS(header))
+					break;
+			}
+			UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+			if (header != NULL) {
+				result = dns_name_concatenate(&nname, origin,
+							      next, NULL);
+				if (result == ISC_R_SUCCESS &&
+				    dns_name_issubdomain(next, name))
+					active = ISC_TRUE;
+				break;
+			}
+			result = dns_rbtnodechain_next(&chain, NULL, NULL);
+		}
+		/*
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
@@ -1925,9 +1975,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 						  rdataset, sigrdataset,
 						  search.rbtdb->secure);
 			if (result == ISC_R_SUCCESS)
-				result = DNS_R_NXDOMAIN;
+				result = active ? DNS_R_EMPTYNAME :
+						  DNS_R_NXDOMAIN;
 		} else
-			result = DNS_R_NXDOMAIN;
+			result = active ? DNS_R_EMPTYNAME : DNS_R_NXDOMAIN;
 		goto tree_exit;
 	} else if (result != ISC_R_SUCCESS)
 		goto tree_exit;
@@ -2668,7 +2719,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 * target type.  Remember it.
 				 */
 				foundsig = header;
-			} else if (header->type == RBTDB_RDATATYPE_NXDOMAIN ||
+			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
 				   header->type == nxtype) {
 				/*
 				 * We've found a negative cache entry.
@@ -2756,7 +2807,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		/*
 		 * We found a negative cache entry.
 		 */
-		if (found->type == RBTDB_RDATATYPE_NXDOMAIN)
+		if (NXDOMAIN(found))
 			result = DNS_R_NCACHENXDOMAIN;
 		else
 			result = DNS_R_NCACHENXRRSET;
@@ -2776,7 +2827,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		result = ISC_R_SUCCESS;
 	}
 
-	if (type != dns_rdatatype_any || result == DNS_R_NCACHENXDOMAIN) {
+	if (type != dns_rdatatype_any || result == DNS_R_NCACHENXDOMAIN ||
+	    result == DNS_R_NCACHENXRRSET) {
 		bind_rdataset(search.rbtdb, node, found, search.now,
 			      rdataset);
 		if (foundsig != NULL)
@@ -3298,7 +3350,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			   0) {
 			if (header->type == matchtype)
 				found = header;
-			else if (header->type == RBTDB_RDATATYPE_NXDOMAIN ||
+			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
 				 header->type == nxtype)
 				found = header;
 			else if (header->type == sigmatchtype)
@@ -3321,7 +3373,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		/*
 		 * We found a negative cache entry.
 		 */
-		if (found->type == RBTDB_RDATATYPE_NXDOMAIN)
+		if (NXDOMAIN(found))
 			result = DNS_R_NCACHENXDOMAIN;
 		else
 			result = DNS_R_NCACHENXRRSET;
@@ -3549,8 +3601,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			for (topheader = rbtnode->data;
 			     topheader != NULL;
 			     topheader = topheader->next) {
-				if (topheader->type ==
-				    RBTDB_RDATATYPE_NXDOMAIN)
+				if (NXDOMAIN(topheader))
 					break;
 			}
 			if (topheader != NULL && EXISTS(topheader) &&
@@ -3857,6 +3908,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	} else {
 		newheader->serial = 1;
 		newheader->trust = rdataset->trust;
+		if ((rdataset->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
+			newheader->attributes |= RDATASET_ATTR_NXDOMAIN;
 	}
 
 	/*

@@ -1,3 +1,6 @@
+1416.	[bug]		Empty node should return NOERROR NODATA, not NXDOMAIN.
+			[RT #4715]
+
 1415.	[func]		DS TTL now derived from NS ttl.  NXT TTL now derived
 			from SOA MINIMUM.
 

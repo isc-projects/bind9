@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.70 2002/08/06 01:50:28 marka Exp $ */
+/* $Id: db.h,v 1.71 2003/01/18 03:18:31 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -766,6 +766,9 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						cache node with the desired
  *						name, and 'rdataset' contains
  *						the negative caching proof.
+ *
+ *		DNS_R_EMPTYNAME			The name exists but there is
+ *						no data at the name. 
  *
  *	Error results:
  *
