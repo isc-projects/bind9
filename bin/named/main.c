@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119 2001/08/08 22:54:20 gson Exp $ */
+/* $Id: main.c,v 1.120 2001/09/06 02:13:48 marka Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/resource.h>
+#include <isc/stdio.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -532,6 +533,7 @@ cleanup(void) {
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+	static const char *memstats;
 
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
@@ -589,6 +591,16 @@ main(int argc, char *argv[]) {
 	if (want_stats) {
 		isc_mem_stats(ns_g_mctx, stdout);
 		isc_mutex_stats(stdout);
+	}
+	memstats = ns_os_getmemstats();
+	if (memstats) {
+		FILE *fp = NULL;
+		result = isc_stdio_open(memstats, "w", &fp);
+		if (result == ISC_R_SUCCESS) {
+			isc_mem_stats(ns_g_mctx, fp);
+			isc_mutex_stats(fp);
+			isc_stdio_close(fp);
+		}
 	}
 	isc_mem_destroy(&ns_g_mctx);
 

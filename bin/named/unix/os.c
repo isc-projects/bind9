@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.47 2001/08/31 05:57:45 marka Exp $ */
+/* $Id: os.c,v 1.48 2001/09/06 02:13:51 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -43,6 +43,7 @@
 #include <named/os.h>
 
 static char *pidfile = NULL;
+static char *memstats = NULL;
 
 /*
  * If there's no <linux/capability.h>, we don't care about <sys/prctl.h>
@@ -515,8 +516,32 @@ ns_os_writepidfile(const char *filename) {
 	(void)fclose(lockfile);
 }
 
+static inline void
+cleanup_memstats(void) {
+	if (memstats != NULL)
+		free(memstats);
+	memstats = NULL;
+}
+
+void
+ns_os_setmemstats(const char *filename) {
+
+	cleanup_memstats();
+	if (filename == NULL)
+		return;
+	memstats = malloc(strlen(filename) + 1);
+	if (memstats)
+		strcpy(memstats, filename);
+}
+
+const char *
+ns_os_getmemstats(void) {
+	return (memstats);
+}
+
 void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
+	cleanup_memstats();
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.340 2001/08/30 05:52:12 marka Exp $ */
+/* $Id: server.c,v 1.341 2001/09/06 02:13:50 marka Exp $ */
 
 #include <config.h>
 
@@ -2043,6 +2043,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		ns_os_writepidfile(lwresd_g_defaultpidfile);
 	else
 		ns_os_writepidfile(ns_g_defaultpidfile);
+	
+	obj = NULL;
+	if (options != NULL &&
+	    cfg_map_get(options, "memstatistics-file", &obj) == ISC_R_SUCCESS)
+		ns_os_setmemstats(cfg_obj_asstring(obj));
+	else
+		ns_os_setmemstats(NULL);
 
 	obj = NULL;
 	result = ns_config_get(maps, "statistics-file", &obj);

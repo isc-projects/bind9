@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.1 2001/07/18 03:43:18 mayer Exp $ */
+/* $Id: os.h,v 1.2 2001/09/06 02:13:55 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -42,6 +42,12 @@ ns_os_minprivs(void);
 
 void
 ns_os_writepidfile(const char *filename);
+
+void
+ns_os_setmemstats(const char *filename);
+
+const char *
+ns_os_getmemstats(void);
 
 void
 ns_os_shutdown(void);
