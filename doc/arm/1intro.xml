@@ -203,7 +203,7 @@ There there will be some number of <emphasis>slave</emphasis> (also
 called <emphasis>secondary) </emphasis>servers, which load the zone
 contents using the <acronym>DNS</acronym> protocol (that is, the secondary servers
 will contact the primary and fetch the zone data using TCP). This
-set of servers-the primary and all of its secondaries-should be
+set of servers &mdash; the primary and all of its secondaries &mdash; should be
 listed in the NS records in the parent zone and will constitute a <emphasis>delegation</emphasis>.
 This set of servers must also be listed in the zone file itself,
 usually under the <command>@</command> name which indicates the <emphasis>top
@@ -218,8 +218,8 @@ configured to answer questions for that zone with authority, which
 it does by setting the "authoritative answer" (AA) bit in reply
 packets. A server may be authoritative for more than one zone. The
 authoritative data for a zone is composed of all of the Resource
-Records (RRs)-the data associated with names in a tree-structured
-name space-attached to all of the nodes from the top node of the
+Records (RRs) &mdash; the data associated with names in a tree-structured
+name space &mdash; attached to all of the nodes from the top node of the
 zone down to leaf nodes or nodes above cuts around the bottom edge
 of the zone.</para>
 <para>Adding a zone as a type master or type slave will tell the

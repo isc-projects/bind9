@@ -2540,10 +2540,10 @@ controls the order in which email delivery is attempted, with the
 lowest number first. If two priorities are the same, a server is
 chosen randomly. If no servers at a given priority are responding,
 the mail transport agent will fall back to the next largest priority.
-Priority numbers do not have any absolute meaning - they are relevant
+Priority numbers do not have any absolute meaning &mdash; they are relevant
 only respective to other MX records for that domain name. The domain
 name given is the machine to which the mail will be delivered. It <emphasis>must</emphasis> have
-an associated A record-a CNAME is not sufficient.</para>
+an associated A record &mdash; CNAME is not sufficient.</para>
 <para>For a given domain, if there is both a CNAME record and an
 MX record, the MX record is in error, and will be ignored. Instead,
 the mail will be delivered to the server specified in the MX record
