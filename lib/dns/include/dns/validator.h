@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.19 2001/09/13 07:23:39 marka Exp $ */
+/* $Id: validator.h,v 1.20 2001/09/14 20:53:33 gson Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -73,8 +73,6 @@ typedef struct dns_validatorevent {
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
 	dns_message_t *			message;
-	dns_rdataset_t			nsrdataset;
-	dns_rdataset_t			nssigrdataset;
 } dns_validatorevent_t;
 
 

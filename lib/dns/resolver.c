@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.219 2001/09/13 07:23:35 marka Exp $ */
+/* $Id: resolver.c,v 1.220 2001/09/14 20:53:30 gson Exp $ */
 
 #include <config.h>
 
@@ -2698,10 +2698,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 	fctx_done(fctx, result);
 
  cleanup_event:
-        if (dns_rdataset_isassociated(&vevent->nssigrdataset))
-                dns_rdataset_disassociate(&vevent->nssigrdataset);
-        if (dns_rdataset_isassociated(&vevent->nsrdataset))
-                dns_rdataset_disassociate(&vevent->nsrdataset);
 	isc_event_free(&event);
 }
 
