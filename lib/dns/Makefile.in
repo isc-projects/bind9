@@ -21,13 +21,14 @@ top_srcdir =	@top_srcdir@
 
 @LIBDNS_API@
 
-CINCLUDES =	-I${srcdir}/../isc/unix/include \
+CINCLUDES =	-I../isc/unix/include \
+		-I${srcdir}/../isc/unix/include \
 		-I${srcdir}/../isc/pthreads/include \
 		-I${srcdir}/../isc/include \
-		-I${srcdir}/include \
-		-I${srcdir} \
 		-I./include \
-		-I.
+		-I. \
+		-I${srcdir}/include \
+		-I${srcdir}
 
 CDEFINES =
 CWARNINGS =
@@ -124,14 +125,6 @@ SUBDIRS =	include sec
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 		include/dns/rdatastruct.h timestamp
 
-#
-# These two dependencies need to be before BIND9_MAKE_RULES.
-# 
-depend:: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h code.h
-sec:: include/dns/enumtype.h include/dns/enumclass.h \
-	include/dns/rdatastruct.h code.h
-
 @BIND9_MAKE_RULES@
 
 version.@O@: version.c
@@ -176,9 +169,12 @@ include/dns/enumtype.h: gen
 include/dns/enumclass.h: gen
 	./gen -s ${srcdir} -c > $@
 
-include/dns/rdatastruct.h: gen rdata/rdatastructpre.h rdata/rdatastructsuf.h
+include/dns/rdatastruct.h: gen \
+		${srcdir}/rdata/rdatastructpre.h \
+		${srcdir}/rdata/rdatastructsuf.h
 	./gen -s ${srcdir} -i \
-		-P rdata/rdatastructpre.h -S rdata/rdatastructsuf.h > $@
+		-P ${srcdir}/rdata/rdatastructpre.h \
+		-S ${srcdir}/rdata/rdatastructsuf.h > $@
 
 code.h:	gen
 	./gen -s ${srcdir} > code.h
@@ -187,3 +183,8 @@ gen: gen.c
 	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBS}
 
 rbtdb64.@O@: rbtdb.c
+
+depend: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h code.h
+sec: include/dns/enumtype.h include/dns/enumclass.h \
+	include/dns/rdatastruct.h code.h
