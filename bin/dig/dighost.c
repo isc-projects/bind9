@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.45 2000/06/07 00:13:56 mws Exp $ */
+/* $Id: dighost.c,v 1.46 2000/06/08 18:36:53 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -537,7 +537,6 @@ setup_system(void) {
 void
 setup_libs(void) {
 	isc_result_t result;
-	isc_buffer_t b;
 
 	debug ("setup_libs()");
 
@@ -572,8 +571,6 @@ setup_libs(void) {
 
 	result = isc_socketmgr_create (mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
-	isc_buffer_init(&b, ".", 1);
-	isc_buffer_add(&b, 1);
 }
 
 static void
