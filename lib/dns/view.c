@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.103.2.5.2.8 2003/09/19 12:44:37 marka Exp $ */
+/* $Id: view.c,v 1.103.2.5.2.9 2003/09/19 13:20:05 marka Exp $ */
 
 #include <config.h>
 
@@ -145,6 +145,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->peers = NULL;
 	view->order = NULL;
 	view->delonly = NULL;
+	view->rootdelonly = ISC_FALSE;
+	view->rootexclude = NULL;
 
 	/*
 	 * Initialize configuration data with default values.
@@ -284,6 +286,24 @@ destroy(dns_view_t *view) {
 		isc_mem_put(view->mctx, view->delonly, sizeof(dns_namelist_t) *
 			    DNS_VIEW_DELONLYHASH);
 		view->delonly = NULL;
+	}
+	if (view->rootexclude != NULL) {
+		dns_name_t *name;
+		int i;
+
+		for (i = 0; i < DNS_VIEW_DELONLYHASH; i++) {
+			name = ISC_LIST_HEAD(view->rootexclude[i]);
+			while (name != NULL) {
+				ISC_LIST_UNLINK(view->rootexclude[i],
+					 	name, link);
+				dns_name_free(name, view->mctx);
+				isc_mem_put(view->mctx, name, sizeof(*name));
+				name = ISC_LIST_HEAD(view->rootexclude[i]);
+			}
+		}
+		isc_mem_put(view->mctx, view->rootexclude,
+			    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
+		view->rootexclude = NULL;
 	}
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
@@ -1232,17 +1252,17 @@ dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
-	if (view->rootexlude == NULL) {
-		view->rootexlude = isc_mem_get(view->mctx,
+	if (view->rootexclude == NULL) {
+		view->rootexclude = isc_mem_get(view->mctx,
 					    sizeof(dns_namelist_t) *
 					    DNS_VIEW_DELONLYHASH);
-		if (view->rootexlude == NULL)
+		if (view->rootexclude == NULL)
 			return (ISC_R_NOMEMORY);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->delonly[hash]);
 	}
 	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
-	new = ISC_LIST_HEAD(view->rootexlude[hash]);
+	new = ISC_LIST_HEAD(view->rootexclude[hash]);
 	while (new != NULL && !dns_name_equal(new, name))
 		new = ISC_LIST_NEXT(new, link);
 	if (new != NULL)
@@ -1253,7 +1273,7 @@ dns_view_excludedelegationonly(dns_view_t *view, dns_name_t *name) {
 	dns_name_init(new, NULL);
 	result = dns_name_dup(name, view->mctx, new);
 	if (result == ISC_R_SUCCESS)
-		ISC_LIST_APPEND(view->rootexlude[hash], new, link);
+		ISC_LIST_APPEND(view->rootexclude[hash], new, link);
 	else
 		isc_mem_put(view->mctx, new, sizeof(*new));
 	return (result);
@@ -1271,9 +1291,9 @@ dns_view_isdelegationonly(dns_view_t *view, dns_name_t *name) {
 
 	hash = dns_name_hash(name, ISC_FALSE) % DNS_VIEW_DELONLYHASH;
 	if (view->rootdelonly && dns_name_countlabels(name) <= 2) {
-		if (view->rootexlude == NULL)
+		if (view->rootexclude == NULL)
 			return (ISC_TRUE);
-		new = ISC_LIST_HEAD(view->rootexlude[hash]);
+		new = ISC_LIST_HEAD(view->rootexclude[hash]);
 		while (new != NULL && !dns_name_equal(new, name))
 			new = ISC_LIST_NEXT(new, link);
 		if (new == NULL)

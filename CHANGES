@@ -2,7 +2,7 @@
 			delegation-only check to all TLDs and root.
 			Note there are some TLDs that are NOT delegation
 			only (e.g. DE and MUSEUM) these can be excluded
-			from the checks buy using exclude.
+			from the checks by using exclude.
 
 			root-delegation-only exclude { "DE"; "MUSEUM"; };
 
