@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.21 2000/05/04 22:19:34 gson Exp $ */
+/* $Id: srv_33.c,v 1.22 2000/05/05 23:20:09 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -197,22 +197,46 @@ fromstruct_in_srv(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_in_srv(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	REQUIRE(rdata->type == 33);
+	isc_region_t region;
+	dns_rdata_in_srv_t *srv = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->type == 33);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	srv->common.rdclass = rdata->rdclass;
+	srv->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&srv->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	srv->priority = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	srv->weight = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	srv->port = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&srv->target, NULL);
+	RETERR(name_duporclone(&name, mctx, &srv->target));
+	srv->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_in_srv(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_in_srv_t *srv = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(srv->common.rdclass == 1);
+	REQUIRE(srv->common.rdtype == 33);
+
+	if (srv->mctx == NULL)
+		return;
+
+	dns_name_free(&srv->target, srv->mctx);
+	srv->mctx = NULL;
 }
 
 static inline isc_result_t

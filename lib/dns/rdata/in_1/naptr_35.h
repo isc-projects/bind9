@@ -18,7 +18,7 @@
 #ifndef IN_1_NAPTR_35_H
 #define IN_1_NAPTR_35_H 1
 
-/* $Id: naptr_35.h,v 1.13 2000/04/29 02:01:56 tale Exp $ */
+/* $Id: naptr_35.h,v 1.14 2000/05/05 23:20:04 marka Exp $ */
 
 /* RFC 2168 */
 
@@ -28,11 +28,11 @@ typedef struct dns_rdata_in_naptr {
 	isc_uint16_t		order;
 	isc_uint16_t		preference;
 	char			*flags;
-	isc_uint16_t		flags_len;
+	isc_uint8_t		flags_len;
 	char			*service;
-	isc_uint16_t		service_len;
+	isc_uint8_t		service_len;
 	char			*regexp;
-	isc_uint16_t		regexp_len;
+	isc_uint8_t		regexp_len;
 	dns_name_t		replacement;
 } dns_rdata_in_naptr_t;
 

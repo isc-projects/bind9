@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.19 2000/05/04 22:19:32 gson Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.20 2000/05/05 23:20:06 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -143,23 +143,40 @@ fromstruct_in_nsap_ptr(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	
+	isc_region_t region;
+	dns_rdata_in_nsap_ptr_t *nsap_ptr = target;
+	dns_name_t name;
+
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	nsap_ptr->common.rdclass = rdata->rdclass;
+	nsap_ptr->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&nsap_ptr->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_name_init(&name, NULL);
+	dns_rdata_toregion(rdata, &region);
+	dns_name_fromregion(&name, &region);
+	dns_name_init(&nsap_ptr->owner, NULL);
+	RETERR(name_duporclone(&name, mctx, &nsap_ptr->owner));
+	nsap_ptr->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_in_nsap_ptr(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);
+	dns_rdata_in_nsap_ptr_t *nsap_ptr = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(nsap_ptr->common.rdclass == 1);
+	REQUIRE(nsap_ptr->common.rdtype == 23);
+
+	if (nsap_ptr->mctx == NULL)
+		return;
+
+	dns_name_free(&nsap_ptr->owner, nsap_ptr->mctx);
+	nsap_ptr->mctx = NULL;
 }
 
 static inline isc_result_t

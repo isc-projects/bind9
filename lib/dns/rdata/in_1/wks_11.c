@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.26 2000/04/28 01:24:17 gson Exp $ */
+/* $Id: wks_11.c,v 1.27 2000/05/05 23:20:10 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -234,23 +234,49 @@ fromstruct_in_wks(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_in_wks(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	dns_rdata_in_wks_t *wks = target;
+	isc_uint32_t n;
+	isc_region_t region;
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	wks->common.rdclass = rdata->rdclass;
+	wks->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&wks->common, link);
+
+	dns_rdata_toregion(rdata, &region);
+	n = uint32_fromregion(&region);
+	wks->in_addr.s_addr = htonl(n);
+	isc_region_consume(&region, 4);
+	wks->protocol = uint16_fromregion(&region);
+	isc_region_consume(&region, 2);
+	wks->map_len = region.length;
+	if (wks->map_len > 0) {
+		wks->map = mem_maybedup(mctx, region.base, region.length);
+		if (wks->map == NULL)
+			return (ISC_R_NOMEMORY);
+	} else
+		wks->map = NULL;
+	wks->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_in_wks(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_in_wks_t *wks = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(wks->common.rdtype == 11);
+	REQUIRE(wks->common.rdclass == 1);
+
+	if (wks->mctx == NULL)
+		return;
+
+	if (wks->map != NULL)
+		isc_mem_free(wks->mctx, wks->map);
+	wks->mctx = NULL;
 }
 
 static inline isc_result_t

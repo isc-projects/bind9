@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.23 2000/05/04 22:19:30 gson Exp $ */
+/* $Id: kx_36.c,v 1.24 2000/05/05 23:20:02 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -178,12 +178,10 @@ tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	isc_region_t region;
 	dns_rdata_in_kx_t *kx = target;
 	dns_name_t name;
-	isc_result_t result;
 
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
-	REQUIRE(mctx != NULL);
 
 	kx->common.rdclass = rdata->rdclass;
 	kx->common.rdtype = rdata->type;
@@ -196,12 +194,10 @@ tostruct_in_kx(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 	isc_region_consume(&region, 2);
 
 	dns_name_fromregion(&name, &region);
-	kx->mctx = mctx;
 	dns_name_init(&kx->exchange, NULL);
-	result = dns_name_dup(&name, kx->mctx, &kx->exchange);
-	if (result != ISC_R_SUCCESS)
-		kx->mctx = NULL;
-	return (result);
+	RETERR(name_duporclone(&name, mctx, &kx->exchange));
+	kx->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -210,6 +206,11 @@ freestruct_in_kx(void *source)
 	dns_rdata_in_kx_t *kx = source;
 
 	REQUIRE(source != NULL);
+	REQUIRE(kx->common.rdclass == 1);
+	REQUIRE(kx->common.rdtype == 36);
+
+	if (kx->mctx == NULL)
+		return;
 
 	dns_name_free(&kx->exchange, kx->mctx);
 	kx->mctx = NULL;

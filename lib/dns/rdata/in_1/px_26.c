@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.20 2000/05/04 22:19:33 gson Exp $ */
+/* $Id: px_26.c,v 1.21 2000/05/05 23:20:08 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -214,16 +214,14 @@ fromstruct_in_px(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 static inline isc_result_t
 tostruct_in_px(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	isc_region_t region;
-	isc_region_t nr;
 	dns_rdata_in_px_t *px = target;
 	dns_name_t name;
+	isc_region_t region;
 	isc_result_t result;
 
 	REQUIRE(rdata->type == 26);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
-	REQUIRE(mctx != NULL);
 
 	px->common.rdclass = rdata->rdclass;
 	px->common.rdtype = rdata->type;
@@ -236,23 +234,22 @@ tostruct_in_px(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_region_consume(&region, 2);
 
 	dns_name_fromregion(&name, &region);
-	dns_name_toregion(&name, &nr);
-	isc_region_consume(&region, nr.length);
-	px->mctx = mctx;
+
 	dns_name_init(&px->map822, NULL);
-	result = dns_name_dup(&name, px->mctx, &px->map822);
-	if (result != ISC_R_SUCCESS) {
-		px->mctx = NULL;
-		return (result);
-	}
+	RETERR(name_duporclone(&name, mctx, &px->map822));
+	isc_region_consume(&region, name_length(&px->map822));
 
 	dns_name_init(&px->mapx400, NULL);
-	result = dns_name_dup(&name, px->mctx, &px->map822);
-	if (result != ISC_R_SUCCESS) {
-		dns_name_free(&px->map822, px->mctx);
-		px->mctx = NULL;
-	}
+	result = name_duporclone(&name, mctx, &px->mapx400);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	px->mctx = mctx;
 	return (result);
+
+ cleanup:
+	dns_name_free(&px->map822, mctx);
+	return (ISC_R_NOMEMORY);
 }
 
 static inline void
@@ -260,6 +257,11 @@ freestruct_in_px(void *source) {
 	dns_rdata_in_px_t *px = source;
 
 	REQUIRE(source != NULL);
+	REQUIRE(px->common.rdclass == 1);
+	REQUIRE(px->common.rdtype == 26);
+
+	if (px->mctx == NULL)
+		return;
 
 	dns_name_free(&px->map822, px->mctx);
 	dns_name_free(&px->mapx400, px->mctx);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.21 2000/04/28 01:24:14 gson Exp $ */
+/* $Id: aaaa_28.c,v 1.22 2000/05/05 23:20:01 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -152,22 +152,33 @@ fromstruct_in_aaaa(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 static inline isc_result_t
 tostruct_in_aaaa(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+	dns_rdata_in_aaaa_t *aaaa = target;
+	isc_region_t r;
+
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
 	UNUSED(mctx);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	aaaa->common.rdclass = rdata->rdclass;
+	aaaa->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&aaaa->common, link);
+
+	dns_rdata_toregion(rdata, &r);
+	INSIST(r.length == 16);
+	memcpy(aaaa->in6_addr.s6_addr, r.base, 16);
+
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_in_aaaa(void *source) {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_in_aaaa_t *aaaa = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(aaaa->common.rdclass == 1);
+	REQUIRE(aaaa->common.rdtype == 28);
 }
 
 static inline isc_result_t

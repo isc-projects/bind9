@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.27 2000/05/04 22:19:29 gson Exp $ */
+ /* $Id: a6_38.c,v 1.28 2000/05/05 23:19:58 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -284,24 +284,59 @@ fromstruct_in_a6(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 static inline isc_result_t
 tostruct_in_a6(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 {
+	dns_rdata_in_a6_t *a6 = target;
+	unsigned char octets;
+	dns_name_t name;
+	isc_region_t r;
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(target != NULL);
 
-	UNUSED(rdata);
-	UNUSED(target);
-	UNUSED(mctx);
+	a6->common.rdclass = rdata->rdclass;
+	a6->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&a6->common, link);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	dns_rdata_toregion(rdata, &r);
+
+	a6->prefixlen = uint8_fromregion(&r);
+	isc_region_consume(&r, 1);
+	memset(a6->in6_addr.s6_addr, 0, sizeof(a6->in6_addr.s6_addr));
+
+	/* suffix */
+	if (a6->prefixlen != 128) {
+		octets = 16 - a6->prefixlen / 8;
+		INSIST(r.length >= octets);
+		memcpy(a6->in6_addr.s6_addr + 16 - octets, r.base, octets);
+		isc_region_consume(&r, octets);
+	}
+
+	/* prefix */
+	dns_name_init(&a6->prefix, NULL);
+	if (a6->prefixlen != 0) {
+		dns_name_init(&name, NULL);
+		dns_name_fromregion(&name, &r);
+		RETERR(name_duporclone(&name, mctx, &a6->prefix));
+	}
+	a6->mctx = mctx;
+	return (ISC_R_SUCCESS);
 }
 
 static inline void
 freestruct_in_a6(void *source)
 {
-	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
+	dns_rdata_in_a6_t *a6 = source;
 
-	UNUSED(source);
+	REQUIRE(source != NULL);
+	REQUIRE(a6->common.rdclass == 1);
+	REQUIRE(a6->common.rdtype == 38);
+
+	if (a6->mctx == NULL)
+		return;
+
+	if (dns_name_dynamic(&a6->prefix))
+		dns_name_free(&a6->prefix, a6->mctx);
+	a6->mctx = NULL;
 }
 
 static inline isc_result_t
