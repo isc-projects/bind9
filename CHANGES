@@ -1,3 +1,5 @@
+1360.	[func]		Listen-on-v6 now supports specific addresses.
+
 1359.	[bug]		remove IF_RUNNING test when scanning interfaces.
 
 1358.	[func]		log the reason for rejecting a server when resolving
