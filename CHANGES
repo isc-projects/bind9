@@ -1,3 +1,7 @@
+
+ 805.	[bug]		When using "forward only", missing root hints should
+			not cause queries to fail. [RT #1143]
+
  804.	[bug]		Attempting to obtain entropy could fail in some
  			situations.  This would be most common on systems
 			with user-space threads. [RT #1131]

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.192 2001/04/04 18:47:06 bwelling Exp $ */
+/* $Id: query.c,v 1.193 2001/04/09 21:16:47 gson Exp $ */
 
 #include <config.h>
 
@@ -2590,12 +2590,32 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 		if (result != ISC_R_SUCCESS) {
 			/*
-			 * We can't even find the hints for the root
-			 * nameservers!
+			 * We don't have any root server hints, but
+			 * we may have working forwarders, so try to
+			 * recurse anyway.
 			 */
-			count_query(zone, is_zone, dns_statscounter_failure);
-			QUERY_ERROR(DNS_R_SERVFAIL);
-			goto cleanup;
+			if (RECURSIONOK(client)) {
+				count_query(zone, is_zone,
+					    dns_statscounter_recursion);
+				result = query_recurse(client, qtype,
+						       NULL, NULL);
+				if (result == ISC_R_SUCCESS)
+					client->query.attributes |=
+						NS_QUERYATTR_RECURSING;
+				else {
+					/* Unable to recurse. */
+					count_query(zone, is_zone,
+						    dns_statscounter_failure);
+					QUERY_ERROR(DNS_R_SERVFAIL);
+				}
+				goto cleanup;
+			} else {
+				/* Unable to give root server referral. */
+				count_query(zone, is_zone,
+					    dns_statscounter_failure);
+				QUERY_ERROR(DNS_R_SERVFAIL);
+				goto cleanup;
+			}
 		}
 		/*
 		 * XXXRTH  We should trigger root server priming here.
