@@ -1,6 +1,6 @@
  738.	[bug]		If a non-threadsafe sdb driver supported AXFR and
 			received an AXFR request, it would deadlock or die
-			with an assertion failure.
+			with an assertion failure. [RT #852]
 
  737.	[port]		stdtime failed to compile on certain platforms.
 
