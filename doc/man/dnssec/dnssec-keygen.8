@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-keygen.8,v 1.3 2000/06/28 23:40:58 jim Exp $
+.\" $Id: dnssec-keygen.8,v 1.4 2000/07/26 00:47:13 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-KEYGEN 8
@@ -25,12 +25,12 @@
 .Nd key generation tool for DNSSEC
 .Sh SYNOPSIS
 .Nm dnssec-keygen
-.Op Fl a Ar algorithm
-.Op Fl b Ar keysize
+.Fl a Ar algorithm
+.Fl b Ar keysize
 .Op Fl e
 .Op Fl g Ar generator
 .Op Fl h
-.Op Fl n Ar nametype
+.Fl n Ar nametype
 .Op Fl p Ar protocol-value
 .Op Fl r Ar randomdev
 .Op Fl s Ar strength-value
@@ -42,11 +42,13 @@
 generates keys for DNSSEC, Secure DNS, as defined in RFC2535.
 It also generates keys for use in Transaction Signatures, TSIG, which
 is defined in RFC2845.
+.Pp
 A short summary of the options and arguments to
 .Nm dnssec-keygen
 is printed by the
 .Fl h
 (help) option.
+.Pp
 The
 .Fl a ,
 .Fl b ,
@@ -62,7 +64,7 @@ option to
 .Nm dnssec-keygen .
 .Ar algorithm
 must be one of
-.Dv RSAMD5
+.Dv RSAMD5 ,
 .Dv DH ,
 .Dv DSA
 or
@@ -71,8 +73,7 @@ to indicate that an RSA, Diffie-Hellman, Digital Signature
 Algorithm or HMAC-MD5 key is required.
 An argument of
 .Dv RSA
-can also be given.
-It is equivalent to
+can also be given, which is equivalent to
 .Dv RSAMD5 .
 The argument identifying the encryption algorithm is case-insensitive.
 DNSSEC specifies DSA as a mandatory algorithm and RSA as a recommended one.
@@ -85,7 +86,7 @@ argument following the
 option.
 The choice of key size depends on the algorithm that is used.
 RSA keys must be between 512 and 2048 bits.
-Diffie-Hellman keys have to be between 128 and 4096 bits.
+Diffie-Hellman keys must be between 128 and 4096 bits.
 For DSA, the key size must be between 512 and 1024 bits and a multiple
 of 64.
 The length of an HMAC-MD5 key can be between 1 and 512 bits.
@@ -124,7 +125,7 @@ that is to be used.
 The only supported values value of
 .Ar generator
 are 2 and 5.
-If no Diffie-Hellman generator is supplied a known prime 
+If no Diffie-Hellman generator is supplied, a known prime 
 from RFC2539 will be used if possible; otherwise 2 will be used as the
 generator.
 .Pp
@@ -141,12 +142,12 @@ successors.
 .Nm dnssec-keygen
 uses random numbers to seed the process
 of generating keys.
-If the system does not have a pseudo-device like
+If the system does not have a
 .Pa /dev/random
-for generating random numbers,
+device that can be used for generating random numbers,
 .Nm dnssec-keygen
-will prompt for some keyboard input and use the time intervals between
-keystrokes to provide some randomness.
+will prompt for keyboard input and use the time intervals between
+keystrokes to provide randomness.
 The
 .Fl r
 option overrides this behaviour, making 
@@ -259,10 +260,12 @@ The private part of the key is used by
 .Xr dnssec-signzone 8
 to generate signatures and the public part is used to verify the
 signatures.
-A 
+Both 
+.Ar .key
+and
 .Ar .private
-key file is generated for a symmetric encryption algorithm such as
-HDMAC-MD5, even though it has no private key.
+key files are generated for symmetric encryption algorithm such as
+HMAC-MD5, even though the public and private key are equivalent.
 .Sh EXAMPLE
 To generate a 768-bit DSA key for the domain
 .Dv example.com ,

@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-makekeyset.8,v 1.3 2000/06/28 23:40:59 jim Exp $
+.\" $Id: dnssec-makekeyset.8,v 1.4 2000/07/26 00:47:14 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
@@ -30,7 +30,7 @@
 .Op Fl e Ar end-time
 .Op Fl t Ar TTL
 .Op Fl r Ar randomdev
-.Op Fl v level
+.Op Fl v Ar level
 .Ar keyfile ....
 .Sh DESCRIPTION
 .Nm dnssec-makekeyset
@@ -125,8 +125,7 @@ If no
 .Fl t
 option is provided,
 .Nm dnssec-makekeyset
-prints a warning and assumes that a default TTL of
-3600 seconds was required.
+prints a warning and uses a default TTL of 3600 seconds.
 .Pp
 The
 .Fl v
@@ -139,9 +138,10 @@ increases,
 .Nm dnssec-makekeyset
 generates increasingly detailed reports about what it is doing.
 The default level is zero. 
-An option of
+.Pp
+The
 .Fl h
-gets
+option makes
 .Nm dnssec-makekeyset
 to print a short summary of its options and arguments.
 .Pp
@@ -178,7 +178,7 @@ will create a file called
 .Pa example.com.keyset
 containing a SIG and KEY record for
 .Dv example.com.
-These records will have a TTL of 1 day: 86400 seconds.
+These records will have a TTL of 86400 seconds (1 day).
 The SIG record becomes valid at noon UTC on July 1st 2000 and expires
 30 days (2592000 seconds) later.
 .Pp

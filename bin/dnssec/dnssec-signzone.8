@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.3 2000/06/28 23:41:01 jim Exp $
+.\" $Id: dnssec-signzone.8,v 1.4 2000/07/26 00:47:17 bwelling Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -46,8 +46,8 @@ files for the zone to be signed should be present in the current
 directory, along with the keys that will be used to sign the zone.
 If no
 .Ar keyfile
-arguments are supplied, the default behaviour is to use all the zone's
-keys.
+arguments are supplied, the default behaviour is to use all of the zone's
+keys that are present in the current directory.
 Providing specific
 .Ar keyfile
 arguments constrains
@@ -182,29 +182,30 @@ determine when fresh SIG records should be generated.
 The
 .Fl p
 option instructs
-.Nm dnssec-signzone
-to use pseudo-random data when signing the zone's resource records.
-This is faster but less secure than using genuinely random data for signing.
-This option may be useful when the zone has many resource records to be
-signed and the entropy source is limited.
+.Nm dnssec-signkey
+to use pseudo-random data when signing the keys.  This is faster, but
+less secure, than using genuinely random data for signing.
+This option may be useful when there are many child zone keysets to
+sign or if the entropy source is limited.
 It could also be used for short-lived keys and signatures that don't
-require strengthening against cryptanalysis: for instance when the signatures
-will be discarded long before the signed data could be compromised.
+require as much protection against cryptanalysis, such as when the key
+will be discarded long before it could be compromised.
 .Pp
-An alternate source of random data can be specified with the
-.Fl r
-option.
-.Ar randomdev
-is the name of the file to use to obtain random data.
-By default
-.Pa /dev/random
-is used if this device is available.
-If it is not provided by the operating system and no
-.Fl r
-option is used,
 .Nm dnssec-signzone
-will prompt the user for input from the keyboard and use the time
-between keystrokes to derive some random data.
+may need random numbers in the process of signing the zone.
+If the system does not have a
+.Pa /dev/random
+device that can be used for generating random numbers,
+.Nm dnssec-signzone
+will prompt for keyboard input and use the time intervals between
+keystrokes to provide randomness.
+The
+.Fl r
+option overrides this behaviour, making
+.Nm dnssec-signzone
+use
+.Ar randomdev
+as a source of random data.
 .Pp
 An option of
 .Fl h
