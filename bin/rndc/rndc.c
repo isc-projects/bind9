@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.7 2000/03/18 00:53:11 tale Exp $ */
+/* $Id: rndc.c,v 1.8 2000/04/13 06:37:12 marka Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -238,8 +238,8 @@ Where command is one of the following for named:\n\
 
 int
 main(int argc, char **argv) {
-	isc_socketmgr_t *socketmgr;
-	isc_taskmgr_t *taskmgr;
+	isc_socketmgr_t *socketmgr = NULL;
+	isc_taskmgr_t *taskmgr = NULL;
 	omapi_object_t *omapimgr = NULL;
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;

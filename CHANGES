@@ -1,3 +1,6 @@
+  52.	[bug]		rndc: taskmgr and socketmgr were not initaliased
+			to NULL.
+
   51.   [cleanup]       dns/compress.h and dns/zt.h did not need to include
                         dns/rbt.h; it was needed only by compress.c and zt.c.
 
