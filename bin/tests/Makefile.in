@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.102 2000/08/22 01:11:52 bwelling Exp $
+# $Id: Makefile.in,v 1.103 2000/10/02 20:13:47 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -58,6 +58,7 @@ XTARGETS =	adb_test \
 		hash_test \
 		fsaccess_test \
 		inter_test \
+		journalprint \
 		keyboard_test \
 		lex_test \
 		lfsr_test \
@@ -100,6 +101,7 @@ SRCS =		adb_test.c \
 		hash_test.c \
 		fsaccess_test.c \
 		inter_test.c \
+		journalprint.c \
 		keyboard_test.c \
 		lex_test.c \
 		lfsr_test.c \
@@ -298,6 +300,10 @@ gxba_test: gxba_test.@O@ ${LWRESDEPLIBS}
 
 sig0_test: sig0_test.@O@ ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sig0_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+journalprint: journalprint.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ journalprint.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 distclean::
