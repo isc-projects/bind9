@@ -1,3 +1,5 @@
+	--- 9.0.0b3 released ---
+
  200.	[bug]		Failures in sending query responses to clients
 			(e.g., running out of network buffers) were
 			not logged.
