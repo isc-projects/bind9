@@ -34,6 +34,6 @@
 
 /* XXX for testing only */
 
-void xfrin_test(dns_view_t *view);
+void xfrin_test(void);
 
 #endif /* NS_XFRIN_H */
