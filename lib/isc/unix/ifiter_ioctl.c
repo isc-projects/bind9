@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.38 2003/05/01 00:35:33 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.39 2003/05/11 02:24:11 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -887,7 +887,8 @@ static void
 internal_destroy(isc_interfaceiter_t *iter) {
 	(void) close(iter->socket);
 #ifdef __linux
-	fclose(iter->proc);
+	if (iter->proc != NULL)
+		fclose(iter->proc);
 #endif
 }
 
