@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.48 2000/11/25 02:43:55 marka Exp $ */
+/* $Id: confzone.h,v 1.49 2000/11/28 22:42:37 gson Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -215,12 +215,6 @@ struct dns_c_forward_zone {
 	dns_severity_t	check_names;
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
-
-	isc_uint32_t		min_retry_time;
-	isc_uint32_t		max_retry_time;
-	isc_uint32_t		min_refresh_time;
-	isc_uint32_t		max_refresh_time;
-	isc_boolean_t		statistics;
 
 	dns_c_setbits_t		setflags;
 };
