@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.13 2005/04/05 01:29:08 marka Exp $ */
+/* $Id: main.c,v 1.119.2.14 2005/04/05 02:11:54 marka Exp $ */
 
 #include <config.h>
 
@@ -500,7 +500,7 @@ setup(void) {
 	else
 		ns_smf_got_instance = 0;
 	if (instance != NULL)
-		isc_mem_free(instance);
+		isc_mem_free(ns_g_mctx, instance);
 #endif /* HAVE_LIBSCF */
 
 	ns_os_chroot(ns_g_chrootdir);
