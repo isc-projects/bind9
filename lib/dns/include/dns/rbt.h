@@ -37,9 +37,9 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_rbt dns_rbt_t;
 
-/* These should add up to 31 */
+/* These should add up to 30 */
 
-#define DNS_RBT_LOCKLENGTH			11
+#define DNS_RBT_LOCKLENGTH			10
 #define DNS_RBT_REFLENGTH			20
 
 typedef struct dns_rbtnode {
@@ -70,6 +70,7 @@ typedef struct dns_rbtnode {
 	 */
 	void *data;
 	unsigned int dirty:1;
+	unsigned int wild:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 	unsigned int references:DNS_RBT_REFLENGTH;
 } dns_rbtnode_t;

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.53 1999/05/07 12:13:25 tale Exp $ */
+/* $Id: rbt.c,v 1.54 1999/08/12 07:47:21 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -72,6 +72,7 @@ struct dns_rbt {
  * used as part of the rbt.c algorithms.
  */
 #define DIRTY(node)	((node)->dirty)
+#define WILD(node)	((node)->wild)
 #define LOCK(node)	((node)->locknum)
 #define REFS(node)	((node)->references)
 
@@ -1225,6 +1226,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	LOCK(node) = 0;
 	REFS(node) = 0;
 	DIRTY(node) = 0;
+	WILD(node) = 0;
 
 	MAKE_BLACK(node);
 	CALLBACK(node) = 0;
