@@ -20,6 +20,9 @@
 
 1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
 
+1253.	[contrib]	queryperf now reports a summary of returned
+		        rcodes (-c), rcodes are printed in mnemonic form (-v).
+			
 1199.	[doc]		ARM reference to RFC 2157 should have been RFC 1918.
 			[RT #2436]
 
