@@ -1,4 +1,7 @@
 
+ 524.	[func]		The 'forward' and 'forwarders' statement in
+			non-forward zones should work now.
+
  523.	[doc]		The source to the Administrator Reference Manual is
 			now an XML file using the DocBook DTD, and is included
 			in the distribution.  The plain text version of the

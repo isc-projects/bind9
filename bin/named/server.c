@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.230 2000/10/17 07:22:23 marka Exp $ */
+/* $Id: server.c,v 1.231 2000/10/18 22:13:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1028,6 +1028,8 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
 	dns_zone_t *dupzone = NULL;
+	dns_c_iplist_t *forwarders = NULL;
+	dns_c_forw_t tfwd;
 
 	isc_result_t result;
 
@@ -1165,6 +1167,15 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 		dns_zone_setview(zone, view);
 		CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
 	}
+
+	/*
+	 * If the zone contains 'forward' or 'forwarders' statements,
+	 * configure selective forwarding.
+	 */
+	if (dns_c_zone_getforwarders(czone, &forwarders) == ISC_R_SUCCESS ||
+	    dns_c_zone_getforward(czone, &tfwd) == ISC_R_SUCCESS)
+		CHECK(configure_forward(cctx, czone, cview, view,
+					origin, forwarders));
 
 	/*
 	 * Configure the zone.
