@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.41 2000/11/03 02:45:46 bwelling Exp $ */
+/* $Id: request.c,v 1.42 2000/11/03 08:54:18 marka Exp $ */
 
 #include <config.h>
 
@@ -481,7 +481,6 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		}
 	}
 
-	request = isc_mem_get(mctx, sizeof(*request));
 	request = isc_mem_get(mctx, sizeof(*request));
 	if (request == NULL) {
 		return (ISC_R_NOMEMORY);
