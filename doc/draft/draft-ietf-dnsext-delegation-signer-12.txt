@@ -4,9 +4,10 @@
 
 
 
+
   DNSEXT Working Group                                Olafur Gudmundsson
-  INTERNET-DRAFT                                            October 2002
-  <draft-ietf-dnsext-delegation-signer-11.txt>
+  INTERNET-DRAFT                                           December 2002
+  <draft-ietf-dnsext-delegation-signer-12.txt>
 
   Updates: RFC 1035, RFC 2535, RFC 3008, RFC 3090.
 
@@ -38,7 +39,7 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on April 30, 2003.
+   This draft expires on June 4, 2003.
 
    Copyright Notice
 
@@ -56,9 +57,9 @@ Abstract
 
 
 
-Gudmundsson                Expires April 2003                   [Page 1]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                   [Page 1]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    operational considerations. The intent is to use this resource record
@@ -113,9 +114,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 2]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                   [Page 2]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    Another complication of the DNSSEC key model is that the KEY record
@@ -170,9 +171,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 3]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                   [Page 3]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    to sign only its apex KEY RRset and other keys to sign the other
@@ -227,9 +228,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 4]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                   [Page 4]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    unsecure (from the parents point of view).  DS RRsets MUST NOT appear
@@ -284,9 +285,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                   [Page 5]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                   [Page 5]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    When the server is authoritative for the child zone at a delegation
@@ -311,6 +312,25 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    MUST not be set in the response.
 
 
+2.2.1.2 Special processing when child and an ancestor share server
+
+   When a child zone and a ancestor other than parent share an
+   authorative server, a DS aware server MUST answer with information
+   from child zone, as specified in section 2.2.1.1. This is to prevent
+   the server to be marked as lame for child.
+
+   This answer can cause problem for a DS aware resolver that is
+   traversing this branch of the DNS tree for the first time. The
+   resolver is expecting to get back either DS record or a delegation
+   information. The SOA with same name as QNAME informs the resolver
+   that the answer orignated from the zone below the one where the DS
+   resides. At this point the resolver has no information on how to get
+   from the ancestor to the parent. In this case the resolver SHOULD
+   attempt to fetch the delegation information by issuing a query with a
+   QNAME one label shorter and type NS. This will yield the NS set for
+   the parent, allowing the resolver to query for the DS record.
+
+
 2.2.2 Signer's Name (replaces RFC3008 section 2.7)
 
    The signer's name field of a SIG RR MUST contain the name of the zone
@@ -318,6 +338,14 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    name, key tag, and algorithm MUST identify a zone key if the SIG is
    to be considered material.  This document defines a standard policy
    for DNSSEC validation; local policy may override the standard policy.
+
+
+
+
+Gudmundsson                 Expires June 2003                   [Page 6]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
+
 
    There are no restrictions on the signer field of a SIG(0) record.
    The combination of signer's name, key tag, and algorithm MUST
@@ -337,13 +365,6 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    paragraphs discuss the confusion in sections of RFC 2535 that are
    replaced in section 2.2.1 above. Therefore, these paragraphs are now
    obsolete.
-
-
-
-
-Gudmundsson                Expires April 2003                   [Page 6]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 2.2.3.2 RFC3090 section 2.1: Globally Secured
@@ -376,6 +397,13 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    a delegation at this name.  Something more explicit is needed and the
    DS record addresses this need for secure delegations.
 
+
+
+Gudmundsson                 Expires June 2003                   [Page 7]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
+
+
    The DS record is a major change to DNS: it is the first resource
    record that can appear only on the upper side of a delegation. Adding
    it will cause interoperabilty problems and requires a flag day for
@@ -384,24 +412,6 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    for zones with DS records but will not add the NXT or DS records to
    the authority section.  The same is true for caching servers; in
    fact, some may even refuse to pass on the DS or NXT records.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Gudmundsson                Expires April 2003                   [Page 7]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
 
 2.4 Wire Format of the DS record
 
@@ -442,6 +452,15 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    only reason to reserve additional digest types is to increase
    security.
 
+
+
+
+
+Gudmundsson                 Expires June 2003                   [Page 8]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
+
+
    DS records MUST point to zone KEY records that are allowed to
    authenticate DNS data.  The indicated KEY record's protocol field
    MUST be set to 3; flag field bits 0 and 6 MUST be set to 0; bit 7
@@ -450,15 +469,6 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
    The size of the DS RDATA for type 1 (SHA-1) is 24 bytes, regardless
    of key size, new digest types probably will have larger digests.
-
-
-
-
-
-Gudmundsson                Expires April 2003                   [Page 8]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
 
 2.4.1 Justifications for Fields
 
@@ -500,6 +510,14 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    preferable.  Thus the only option for early adopters is to upgrade to
    DS as soon as possible.
 
+
+
+
+Gudmundsson                 Expires June 2003                   [Page 9]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
+
+
 2.6.1 Backwards compatibility with RFC2535 and RFC1035
 
    This section documents how a resolver determines the type of
@@ -509,13 +527,6 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    RFC1035           NS
 
    RFC2535 adds the following two cases:
-
-
-
-Gudmundsson                Expires April 2003                   [Page 9]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
-
 
    Secure RFC2535:   NS + NXT + SIG(NXT)
                      NXT bit map contains: NS SIG NXT
@@ -559,19 +570,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
+Gudmundsson                 Expires June 2003                  [Page 10]
 
-
-
-
-
-
-
-
-
-
-Gudmundsson                Expires April 2003                  [Page 10]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
 3 Resolver
@@ -626,9 +627,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                  [Page 11]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                  [Page 11]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    The resolver determines the security status of "unsecure.example." by
@@ -683,9 +684,9 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
 
 
 
-Gudmundsson                Expires April 2003                  [Page 12]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                  [Page 12]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
    set up secure delegations. Implementations that do not understand the
@@ -713,8 +714,8 @@ INTERNET-DRAFT          Delegation Signer Record            October 2002
    Rose, Edward Lewis, Lars-Johan Liman, Matt Larson, Mark Kosters, Dan
    Massey, Olaf Kolman, Phillip Hallam-Baker, Miek Gieben, Havard
    Eidnes, Donald Eastlake 3rd., Randy Bush, David Blacka, Steve
-   Bellovin, Rob Austein, Derek Atkins, Roy Arends, Harald Alvestrand,
-   and others have provided useful comments.
+   Bellovin, Rob Austein, Derek Atkins, Roy Arends, Mark Andrews, Harald
+   Alvestrand, and others have provided useful comments.
 
 Normative References:
 
@@ -740,9 +741,9 @@ Normative References:
 
 
 
-Gudmundsson                Expires April 2003                  [Page 13]
-
-INTERNET-DRAFT          Delegation Signer Record            October 2002
+Gudmundsson                 Expires June 2003                  [Page 13]
+
+INTERNET-DRAFT          Delegation Signer Record           December 2002
 
 
 [RFC3226]  O. Gudmundsson, ``DNSSEC and IPv6 A6 aware server/resolver
@@ -797,4 +798,5 @@ Full Copyright Statement
 
 
 
-Gudmundsson                Expires April 2003                  [Page 14]
+Gudmundsson                 Expires June 2003                  [Page 14]
+
