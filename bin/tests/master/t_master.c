@@ -39,9 +39,6 @@
 static isc_result_t
 t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset);
 
-static void
-t1(void);
-
 isc_mem_t	*T1_mctx;
 char		*Tokens[T_MAXTOKS + 1];
 
@@ -186,7 +183,7 @@ test_master_x(char *filename) {
 static char *a1 =	"dns_master_loadfile loads a valid master file and "
 			"returns ISC_R_SUCCESS";
 static void
-t1() {
+t1(void) {
 	int	result;
 	t_assert("dns_master_loadfile", 1, T_REQUIRED, a1);
 	result = test_master_x("dns_master_load_1_data");
@@ -197,7 +194,7 @@ static char *a2 = "dns_master_loadfile returns ISC_R_UNEXPECTEDEND when the "
 		  "masterfile input ends unexpectedly";
 
 static void
-t2() {
+t2(void) {
 	int	result;
 	t_assert("dns_master_loadfile", 2, T_REQUIRED, a2);
 	result = test_master_x("dns_master_load_2_data");

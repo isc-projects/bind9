@@ -29,26 +29,6 @@
 
 #include <tests/t_api.h>
 
-void	t1(void);
-void	t2(void);
-void	t3(void);
-void	t4(void);
-void	t7(void);
-void	t10(void);
-void	t11(void);
-void	t12(void);
-void	t13(void);
-
-static int	t_tasks1(void);
-static int	t_tasks2(void);
-static int	t_tasks3(void);
-static int	t_tasks4(void);
-static int	t_tasks7(void);
-static int	t_tasks10(void);
-static int	t_tasks11(int purgable);
-static int	t_tasks12(void);
-static int	t_tasks13(void);
-
 isc_mem_t *mctx = NULL;
 
 static void
@@ -85,7 +65,7 @@ my_tick(isc_task_t *task, isc_event_t *event) {
  */
 
 static int
-t_tasks1() {
+t_tasks1(void) {
 	char			*p;
 	isc_taskmgr_t		*manager;
 	isc_task_t		*task1;
@@ -370,8 +350,8 @@ t_tasks1() {
 
 static char	*a1 =	"The task subsystem can create and manage tasks";
 
-void
-t1() {
+static void
+t1(void) {
 	int	result;
 
 	t_assert("tasks", 1, T_REQUIRED, a1);
@@ -568,8 +548,8 @@ t_tasks2(void) {
 
 static char	*a2 = "The task subsystem can create ISC_TASKS_MIN tasks";
 
-void
-t2() {
+static void
+t2(void) {
 	int	result;
 
 	t_assert("tasks", 2, T_REQUIRED, a2);
@@ -656,7 +636,7 @@ t3_event2(isc_task_t *task, isc_event_t *event) {
 }
 
 static int
-t_tasks3() {
+t_tasks3(void) {
 	int		cnt;
 	int		result;
 	char		*p;
@@ -826,7 +806,7 @@ static char	*a3 =	"When isc_task_shutdown() is called, any shutdown "
 			"events that have been requested via prior "
 			"isc_task_onshutdown() calls are posted in "
 			"LIFO order.";
-void
+static void
 t3(void) {
 	int	result;
 
@@ -878,7 +858,7 @@ t4_sde(isc_task_t *task, isc_event_t *event) {
 }
 
 static int
-t_tasks4() {
+t_tasks4(void) {
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -1016,8 +996,8 @@ t_tasks4() {
 static char *a4 = "After isc_task_shutdown() has been called, any call to "
 		  "isc_task_onshutdown() will return ISC_R_SHUTTINGDOWN.";
 
-void
-t4() {
+static void
+t4(void) {
 	int	result;
 
 	t_assert("tasks", 4, T_REQUIRED, a4);
@@ -1074,7 +1054,7 @@ t7_sde(isc_task_t *task, isc_event_t *event) {
 }
 
 static int
-t_tasks7() {
+t_tasks7(void) {
 	int		result;
 	char		*p;
 	isc_mem_t	*mctx;
@@ -1238,7 +1218,7 @@ t_tasks7() {
 static char	*a7 =	"A call to isc_task_create() creates a task that can "
 			"receive events.";
 
-void
+static void
 t7(void) {
 	int	result;
 
@@ -1650,7 +1630,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 }
 
 static int
-t_tasks10() {
+t_tasks10(void) {
 	int	result;
 
 	T10_nprobs = 0;
@@ -1704,7 +1684,7 @@ static char	*a10 =	"A call to isc_task_purge(task, sender, type, tag) "
 			"not marked as unpurgable from sender from the task's "
 			"queue and returns the number of events purged.";
 
-void
+static void
 t10(void) {
 	int	result;
 
@@ -1980,7 +1960,7 @@ static char *a11 = "When the event is marked as purgable, a call to "
 		   "isc_task_purgeevent(task, event) purges the event 'event' "
 		   "from the task's queue and returns ISC_TRUE.";
 			
-void
+static void
 t11(void) {
 	int	result;
 	t_assert("tasks", 11, T_REQUIRED, a11);
@@ -1994,11 +1974,11 @@ static char	*a12 =	"When the event is not marked as purgable, a call to "
 			"ISC_FALSE.";
 
 static int
-t_tasks12() {
+t_tasks12(void) {
 	return(t_tasks11(0));
 }
 
-void
+static void
 t12(void) {
 	int	result;
 	t_assert("tasks", 12, T_REQUIRED, a12);
@@ -2017,7 +1997,7 @@ static char	*a13 =	"A call to "
 			"returns the number of tasks purged.";
 			
 static int
-t_tasks13() {
+t_tasks13(void) {
 	int	result;
 
 	T13_nfails = 0;
@@ -2104,7 +2084,7 @@ t_tasks13() {
 	return (result);
 }
 
-void
+static void
 t13(void) {
 	int	result;
 
