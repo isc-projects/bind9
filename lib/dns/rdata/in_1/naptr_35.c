@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.26 2000/05/15 21:14:33 tale Exp $ */
+/* $Id: naptr_35.c,v 1.27 2000/05/19 02:06:00 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -342,6 +342,7 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	naptr->flags_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	if (naptr->flags_len != 0) {
+		INSIST(naptr->flags_len <= r.length);
 		naptr->flags = mem_maybedup(mctx, r.base, naptr->flags_len);
 		if (naptr->flags == NULL)
 			goto cleanup;
@@ -351,6 +352,7 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	naptr->service_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	if (naptr->service_len != 0) {
+		INSIST(naptr->service_len <= r.length);
 		naptr->service = mem_maybedup(mctx, r.base,
 					       naptr->service_len);
 		if (naptr->service == NULL)
@@ -361,12 +363,16 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	naptr->regexp_len = uint8_fromregion(&r);
 	isc_region_consume(&r, 1);
 	if (naptr->regexp_len != 0) {
+		INSIST(naptr->regexp_len <= r.length);
 		naptr->regexp = mem_maybedup(mctx, r.base, naptr->regexp_len);
 		if (naptr->regexp == NULL)
 			goto cleanup;
 		isc_region_consume(&r, naptr->regexp_len);
 	}
 
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+	dns_name_init(&naptr->replacement, NULL);
 	result = name_duporclone(&name, mctx, &naptr->replacement);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
