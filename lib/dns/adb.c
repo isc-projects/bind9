@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.196 2002/05/27 06:30:22 marka Exp $ */
+/* $Id: adb.c,v 1.197 2002/09/10 02:01:15 marka Exp $ */
 
 /*
  * Implementation notes
@@ -298,7 +298,8 @@ static void dump_adb(dns_adb_t *, FILE *, isc_boolean_t debug);
 static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, const char *legend,
 				dns_adbnamehooklist_t *list,
-				isc_boolean_t debug);
+				isc_boolean_t debug,
+				isc_stdtime_t now);
 static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void dec_adb_irefcnt(dns_adb_t *);
@@ -414,11 +415,11 @@ static void water(void *arg, int mark);
 #define STARTATROOT_MATCHES(nf, o) (((nf)->flags & NAME_STARTATROOT) == \
 				    ((o) & DNS_ADBFIND_STARTATROOT))
 
-#define ENTER_LEVEL		50
+#define ENTER_LEVEL		ISC_LOG_DEBUG(50)
 #define EXIT_LEVEL		ENTER_LEVEL
-#define CLEAN_LEVEL		100
-#define DEF_LEVEL		5
-#define NCACHE_LEVEL		20
+#define CLEAN_LEVEL		ISC_LOG_DEBUG(100)
+#define DEF_LEVEL		ISC_LOG_DEBUG(5)
+#define NCACHE_LEVEL		ISC_LOG_DEBUG(20)
 
 #define NCACHE_RESULT(r)	((r) == DNS_R_NCACHENXDOMAIN || \
 				 (r) == DNS_R_NCACHENXRRSET)
@@ -475,7 +476,7 @@ DP(int level, const char *format, ...) {
 	va_start(args, format);
 	isc_log_vwrite(dns_lctx,
 		       DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ADB,
-		       ISC_LOG_DEBUG(level), format, args);
+		       level, format, args);
 	va_end(args);
 }
 
@@ -1123,14 +1124,14 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 		switch (evtype) {
 		case DNS_EVENT_ADBMOREADDRESSES:
-			DP(3, "DNS_EVENT_ADBMOREADDRESSES");
+			DP(ISC_LOG_DEBUG(3), "DNS_EVENT_ADBMOREADDRESSES");
 			if ((notify) != 0) {
 				find->flags &= ~addrs;
 				process = ISC_TRUE;
 			}
 			break;
 		case DNS_EVENT_ADBNOMOREADDRESSES:
-			DP(3, "DNS_EVENT_ADBNOMOREADDRESSES");
+			DP(ISC_LOG_DEBUG(3), "DNS_EVENT_ADBNOMOREADDRESSES");
 			find->flags &= ~addrs;
 			wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
 			if (wanted == 0)
@@ -2280,7 +2281,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
 
-	DP(5, "cleaning interval for adb: "
+	DP(ISC_LOG_DEBUG(5), "cleaning interval for adb: "
 	   "%u buckets every %u seconds, %u buckets in system, %u cl.interval",
 	   CLEAN_BUCKETS, CLEAN_SECONDS, NBUCKETS, CLEAN_PERIOD);
 
@@ -2969,8 +2970,8 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 
 			fprintf(f, "\n");
 
-			print_namehook_list(f, "v4", &name->v4, debug);
-			print_namehook_list(f, "v6", &name->v6, debug);
+			print_namehook_list(f, "v4", &name->v4, debug, now);
+			print_namehook_list(f, "v6", &name->v6, debug, now);
 
 			if (debug)
 				print_fetch_list(f, name);
@@ -2990,20 +2991,29 @@ dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 }
 
 static void
-dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug)
+dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
+	   isc_stdtime_t now)
 {
 	char addrbuf[ISC_NETADDR_FORMATSIZE];
 	isc_netaddr_t netaddr;
+	dns_adbzoneinfo_t *zi;
 
 	isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
 	isc_netaddr_format(&netaddr, addrbuf, sizeof(addrbuf));
 
 	if (debug)
-		fprintf(f, ";\t%p: refcnt %u flags %08x \n",
-			entry, entry->refcnt, entry->flags);
+		fprintf(f, ";\t%p: refcnt %u\n", entry, entry->refcnt);
 			
-	fprintf(f, ";\t%s [srtt %u]", addrbuf, entry->srtt);
+	fprintf(f, ";\t%s [srtt %u] [flags %08x]",
+		addrbuf, entry->srtt, entry->flags);
 	fprintf(f, "\n");
+	for (zi = ISC_LIST_HEAD(entry->zoneinfo); 
+	     zi != NULL;
+	     zi = ISC_LIST_NEXT(zi, plink)) {
+		fprintf(f, ";\t\t");
+		print_dns_name(f, &zi->zone);
+		fprintf(f, "[lame TTL %d]\n", zi->lame_timer - now);
+	}
 }
 
 void
@@ -3070,7 +3080,7 @@ print_dns_name(FILE *f, dns_name_t *name) {
 
 static void
 print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
-		    isc_boolean_t debug)
+		    isc_boolean_t debug, isc_stdtime_t now)
 {
 	dns_adbnamehook_t *nh;
 
@@ -3080,7 +3090,7 @@ print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
 	{
 		if (debug)
 			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
-		dump_entry(f, nh->entry, debug);
+		dump_entry(f, nh->entry, debug, now);
 	}
 }
 
@@ -3493,6 +3503,12 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 * sitting out there, tell all the finds about it.
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
+		char buf[DNS_NAME_FORMATSIZE];
+         
+		dns_name_format(&name->name, buf, sizeof(buf));
+		DP(DEF_LEVEL, "adb: fetch of '%s' %s failed: %s",
+		   buf, address_type == DNS_ADBFIND_INET ? "A" : "AAAA",
+		   dns_result_totext(dev->result));
 		/* XXXMLG Don't pound on bad servers. */
 		if (address_type == DNS_ADBFIND_INET) {
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
@@ -3751,7 +3767,8 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 
 	options = 0;
 	if (start_at_root) {
-		DP(50, "fetch_name_v4: starting at DNS root for name %p",
+		DP(ENTER_LEVEL,
+		   "fetch_name_v4: starting at DNS root for name %p",
 		   adbname);
 		name = dns_rootname;
 		result = dns_view_simplefind(adb->view, name, dns_rdatatype_ns,
@@ -3853,7 +3870,8 @@ fetch_name_a6(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 
 	options = 0;
 	if (start_at_root) {
-		DP(50, "fetch_name_a6: starting at DNS root for name %p",
+		DP(ENTER_LEVEL,
+		   "fetch_name_a6: starting at DNS root for name %p",
 		   adbname);
 		name = dns_rootname;
 		result = dns_view_simplefind(adb->view, name, dns_rdatatype_ns,
@@ -4002,9 +4020,9 @@ dns_adb_findaddrinfo(dns_adb_t *adb, isc_sockaddr_t *sa,
 		}
 		entry->sockaddr = *sa;
 		link_entry(adb, bucket, entry);
-		DP(50, "findaddrinfo: new entry %p", entry);
+		DP(ENTER_LEVEL, "findaddrinfo: new entry %p", entry);
 	} else
-		DP(50, "findaddrinfo: found entry %p", entry);
+		DP(ENTER_LEVEL, "findaddrinfo: found entry %p", entry);
 
 	port = isc_sockaddr_getport(sa);
 	addr = new_adbaddrinfo(adb, entry, port);
@@ -4114,7 +4132,8 @@ water(void *arg, int mark) {
         
         REQUIRE(DNS_ADB_VALID(adb));
 
-	DP(1, "adb reached %s water mark", overmem ? "high" : "low");
+	DP(ISC_LOG_DEBUG(1),
+	   "adb reached %s water mark", overmem ? "high" : "low");
 
 	adb->overmem = overmem;
 	if (overmem) {

@@ -1,3 +1,6 @@
+1374.	[func]		dns_adb_dump() now logs the lame zones associated
+			with each server.
+
 1373.	[bug]		Recovery from expired glue failed under certian
 			circumstances.
 
