@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.217 2000/09/26 05:08:03 marka Exp $ */
+/* $Id: zone.c,v 1.218 2000/09/26 16:32:39 gson Exp $ */
 
 #include <config.h>
 
@@ -3337,9 +3337,11 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	case dns_zone_master:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = now;
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
-		    (zone->dumptime < next || next == 0))
-			next = zone->dumptime;
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
+			INSIST(zone->dumptime != 0);
+			if (zone->dumptime < next || next == 0)
+				next = zone->dumptime;
+		}
 		break;
 	case dns_zone_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
@@ -3347,10 +3349,13 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 		/*FALLTHROUGH*/
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
-		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS) &&
-		    (zone->refreshtime < next || next == 0))
-			next = zone->refreshtime;
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS)) {
+			INSIST(zone->refreshtime != 0);
+			if (zone->refreshtime < next || next == 0)
+				next = zone->refreshtime;
+		}
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+			INSIST(zone->expiretime != 0);			
 		    	if (zone->expiretime < next || next == 0)
 				next = zone->expiretime;
 		}
