@@ -76,8 +76,9 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_TIMEDOUT			(ISC_RESULTCLASS_DNS + 47)
 #define DNS_R_CANCELED			(ISC_RESULTCLASS_DNS + 48)
 #define DNS_R_UNEXPECTED		(ISC_RESULTCLASS_DNS + 49)
+#define DNS_R_MOREDATA			(ISC_RESULTCLASS_DNS + 50)
 
-#define DNS_R_NRESULTS			50	/* Number of results */
+#define DNS_R_NRESULTS			51	/* Number of results */
 
 char *					dns_result_totext(dns_result_t);
 void					dns_result_register(void);

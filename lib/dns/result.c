@@ -77,6 +77,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"timed out",				/* 47 */
 	"canceled",				/* 48 */
 	"unexpected error",			/* 49 */
+	"more data",				/* 50 */
 };
 
 #define DNS_RESULT_RESULTSET			2
