@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.137.2.9 2000/07/28 22:45:52 gson Exp $ */
+/* $Id: resolver.c,v 1.137.2.10 2000/10/13 21:53:17 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3077,16 +3077,15 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 	isc_result_t result;
 	dns_rdata_t rdata;
 	isc_region_t r;
-	dns_name_t *dname, tname;
+	dns_name_t tname;
 	unsigned int nlabels, nbits;
 	int order;
 	dns_namereln_t namereln;
+	dns_fixedname_t prefix;
 
 	/*
 	 * Get the target name of the DNAME.
 	 */
-	dns_fixedname_init(fixeddname);
-	dname = dns_fixedname_name(fixeddname);
 
 	result = dns_rdataset_first(rdataset);
 	if (result != ISC_R_SUCCESS)
@@ -3103,11 +3102,14 @@ dname_target(dns_rdataset_t *rdataset, dns_name_t *qname, dns_name_t *oname,
 					&nbits);
 	if (namereln != dns_namereln_subdomain)
 		return (DNS_R_FORMERR);
-	result = dns_name_split(qname, nlabels, nbits, dname, NULL);
+	dns_fixedname_init(&prefix);
+	result = dns_name_split(qname, nlabels, nbits, 
+				dns_fixedname_name(&prefix), NULL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-
-	return (dns_name_concatenate(dname, &tname, dname, NULL));
+	dns_fixedname_init(fixeddname);
+	return (dns_name_concatenate(dns_fixedname_name(&prefix), &tname,
+				     dns_fixedname_name(fixeddname), NULL));
 }
 
 static isc_result_t
@@ -3344,7 +3346,7 @@ answer_response(fetchctx_t *fctx) {
 	isc_boolean_t have_answer, found_cname, found_type;
 	unsigned int aflag;
 	dns_rdatatype_t type;
-	dns_fixedname_t dname;
+	dns_fixedname_t dname, fqname;
 
 	FCTXTRACE("answer_response");
 
@@ -3568,6 +3570,9 @@ answer_response(fetchctx_t *fctx) {
 						 * we're not chaining.
 						 */
 						INSIST(!external);
+						if (aflag ==
+						    DNS_RDATASETATTR_ANSWER)
+							have_answer = ISC_TRUE;
 						name->attributes |=
 							DNS_NAMEATTR_ANSWER;
 						rdataset->attributes |= aflag;
@@ -3583,11 +3588,30 @@ answer_response(fetchctx_t *fctx) {
 					 * DNAME chaining.
 					 */
 					if (want_chaining) {
+						/*
+						 * Copy the the dname into the
+						 * qname fixed name.
+						 *
+						 * Although we check for
+						 * failure of the concatenate
+						 * operation, in practice it
+						 * should never fail since
+						 * we already know that the
+						 * result fits in a fixedname.
+						 */
+						dns_fixedname_init(&fqname);
+						result = dns_name_concatenate(
+						  dns_fixedname_name(&dname),
+						  NULL,
+						  dns_fixedname_name(&fqname),
+						  NULL);
+						if (result != ISC_R_SUCCESS)
+							return (result);
 						chaining = ISC_TRUE;
 						rdataset->attributes |=
 						    DNS_RDATASETATTR_CHAINING;
 						qname = dns_fixedname_name(
-								   &dname);
+								   &fqname);
 					}
 				}
 			}

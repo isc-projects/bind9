@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.108.2.3 2000/09/12 19:16:00 gson Exp $ */
+/* $Id: rbtdb.c,v 1.108.2.4 2000/10/13 21:53:15 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2492,7 +2492,20 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  tree_exit:
 	RWUNLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
 
-	INSIST(!search.need_cleanup);
+	/*
+	 * If we found a zonecut but aren't going to use it, we have to
+	 * let go of it.
+	 */
+	if (search.need_cleanup) {
+		node = search.zonecut;
+
+		LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+		INSIST(node->references > 0);
+		node->references--;
+		if (node->references == 0)
+			no_references(search.rbtdb, node, 0);
+		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
+	}
 
 	dns_rbtnodechain_reset(&search.chain);
 
