@@ -66,5 +66,5 @@ installdirs:
 		mkdir ${DESTDIR}${sbindir}; \
 	fi
 
-install:: dig installdirs
+install:: dig host installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${sbindir}
