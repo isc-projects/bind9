@@ -408,14 +408,14 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				}
 			}
 			else if (!expired) {
-				vbprintf(2, "sig by %s/%s/%d retained\n",
+				vbprintf(2, "\tsig by %s/%s/%d retained\n",
 					 nametostr(&sig.signer),
 					 algtostr(sig.algorithm),
 					 sig.keyid);
 				keep = ISC_TRUE;
 			}
 			else {
-				vbprintf(2, "sig by %s/%s/%d expired\n",
+				vbprintf(2, "\tsig by %s/%s/%d expired\n",
 					 nametostr(&sig.signer),
 					 algtostr(sig.algorithm),
 					 sig.keyid);
@@ -541,17 +541,13 @@ hasnullkey(dns_rdataset_t rdataset) {
 
 static void
 signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	 dns_name_t *name)
+	 dns_name_t *name, isc_boolean_t atorigin)
 {
 	isc_result_t result;
-	dns_name_t *origin;
 	dns_rdata_t rdata;
 	dns_rdataset_t rdataset, nsset;
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t atorigin = ISC_FALSE, isdelegation = ISC_FALSE;
-
-	origin = dns_db_origin(db);
-	atorigin = ISC_TF(dns_name_compare(name, origin) == 0);
+	isc_boolean_t isdelegation = ISC_FALSE;
 
 	if (!atorigin) {
 		dns_rdataset_init(&nsset);
@@ -696,16 +692,17 @@ static void
 signzone(dns_db_t *db, dns_dbversion_t *version) {
 	isc_result_t result, nxtresult;
 	dns_dbnode_t *node, *nextnode, *curnode;
-	dns_fixedname_t fname, fnextname;
-	dns_name_t *name, *nextname, *target, curname;
+	dns_fixedname_t fname, fnextname, fcurname;
+	dns_name_t *name, *nextname, *target, *curname;
 	dns_dbiterator_t *dbiter;
-	unsigned char curdata[1024];
-	isc_buffer_t curbuf;
+	isc_boolean_t atorigin = ISC_TRUE;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	dns_fixedname_init(&fnextname);
 	nextname = dns_fixedname_name(&fnextname);
+	dns_fixedname_init(&fcurname);
+	curname = dns_fixedname_name(&fcurname);
 
 	dbiter = NULL;
 	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
@@ -717,11 +714,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	while (result == ISC_R_SUCCESS) {
 		nextnode = NULL;
 		curnode = NULL;
-		dns_name_init(&curname, NULL);
-		isc_buffer_init(&curbuf, curdata, sizeof(curdata),
-				ISC_BUFFERTYPE_BINARY);
-		dns_name_setbuffer(&curname, &curbuf);
-		dns_dbiterator_current(dbiter, &curnode, &curname);
+		dns_dbiterator_current(dbiter, &curnode, curname);
 		result = dns_dbiterator_next(dbiter);
 		if (result == ISC_R_SUCCESS)
 			result = next_active(db, version, dbiter, nextname,
@@ -736,8 +729,7 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		}
 		nxtresult = dns_buildnxt(db, version, node, target);
 		check_result(nxtresult, "dns_buildnxt()");
-		signname(db, version, node, &curname);
-		dns_name_invalidate(&curname);
+		signname(db, version, node, curname, atorigin);
 		dns_db_detachnode(db, &node);
 		dns_db_detachnode(db, &curnode);
 		node = nextnode;
@@ -921,8 +913,8 @@ main(int argc, char *argv[]) {
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create()");
 
-	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h"))
-	       != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:h")) != -1)
+	{
 		switch (ch) {
 		case 's':
 			startstr = isc_mem_strdup(mctx,
