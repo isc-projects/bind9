@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.5 2000/07/24 22:53:35 mws Exp $
+# $Id: tests.sh,v 1.6 2000/07/24 23:54:57 mws Exp $
 
 #
 # Perform tests
@@ -63,6 +63,17 @@ then
 else
     echo "I:The second part of this test requires the Net::DNS library." >&2
 fi
+
+echo "I:fetching first copy of test zone"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
+	@10.53.0.1 axfr -p 5300 > dig.out.ns1 || status=1
+
+echo "I:fetching second copy of test zone"
+$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
+	@10.53.0.1 axfr -p 5300 > dig.out.ns2 || status=1
+
+echo "I:comparing zones"
+$PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 echo "I:exit status: $status"
 exit $status
