@@ -1,4 +1,9 @@
 
+ 907.	[func]		The ability to get entropy from either the
+			random device, a user-provided file or from
+			the keyboard was migrated from the DNSSEC tools
+			to libisc as isc_entropy_usebestsource().
+
  906.	[port]		Separated the system independent portion of
 			lib/isc/unix/entropy.c into lib/isc/entropy.c
 			and added lib/isc/win32/entropy.c.

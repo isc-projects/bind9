@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.1 2001/06/21 14:19:18 tale Exp $ */
+/* $Id: entropy.c,v 1.2 2001/06/22 17:05:52 tale Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -29,6 +29,7 @@
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
+#include <isc/keyboard.h>
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -141,6 +142,8 @@ struct isc_entropysource {
 	ISC_LINK(isc_entropysource_t)	link;
 	char		name[32];
 	isc_boolean_t	bad;
+	isc_boolean_t	warn_keyboard;
+	isc_keyboard_t	kbd;
 	union {
 		isc_entropysamplesource_t	sample;
 		isc_entropyfilesource_t		file;
@@ -1118,4 +1121,126 @@ isc_entropy_detach(isc_entropy_t **entp) {
 
 	if (killit)
 		destroy(&ent);
+}
+
+static isc_result_t
+kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+	/*
+	 * The intent of "first" is to provide a warning message only once
+	 * during the run of a program that might try to gather keyboard
+	 * entropy multiple times.
+	 */
+	static isc_boolean_t first = ISC_TRUE;
+
+	UNUSED(arg);
+
+	if (! blocking)
+		return (ISC_R_NOENTROPY);
+
+	if (first) {
+		if (source->warn_keyboard)
+			fprintf(stderr, "You must use the keyboard to create "
+				"entropy, since your system is lacking\n"
+				"/dev/random (or equivalent)\n\n");
+		first = ISC_FALSE;
+	}
+	fprintf(stderr, "start typing:\n");
+
+	return (isc_keyboard_open(&source->kbd));
+}
+
+static void
+kbdstop(isc_entropysource_t *source, void *arg) {
+
+	UNUSED(arg);
+
+	if (! isc_keyboard_canceled(&source->kbd))
+		fprintf(stderr, "stop typing.\r\n");
+
+	(void)isc_keyboard_close(&source->kbd, 3);
+}
+
+static isc_result_t
+kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+	isc_result_t result;
+	isc_time_t t;
+	isc_uint32_t sample;
+	isc_uint32_t extra;
+	unsigned char c;
+
+	UNUSED(arg);
+
+	if (!blocking)
+		return (ISC_R_NOTBLOCKING);
+
+	result = isc_keyboard_getchar(&source->kbd, &c);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = isc_time_now(&t);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	sample = isc_time_nanoseconds(&t);
+	extra = c;
+
+	result = isc_entropy_addcallbacksample(source, sample, extra);
+	if (result != ISC_R_SUCCESS) {
+		fprintf(stderr, "\r\n");
+		return (result);
+	}
+
+	fprintf(stderr, ".");
+	fflush(stderr);
+
+	return (result);
+}
+
+isc_result_t
+isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
+			  const char *randomfile, int use_keyboard)
+{
+	isc_result_t result;
+	isc_result_t final_result = ISC_R_NOENTROPY;
+
+	REQUIRE(VALID_ENTROPY(ectx));
+	REQUIRE(source != NULL && *source == NULL);
+	REQUIRE(use_keyboard == ISC_ENTROPY_KEYBOARDYES ||
+		use_keyboard == ISC_ENTROPY_KEYBOARDNO  ||
+		use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE);
+
+#ifdef PATH_RANDOMDEV
+	if (randomfile == NULL)
+		randomfile = PATH_RANDOMDEV;
+#endif
+
+	if (randomfile != NULL) {
+		result = isc_entropy_createfilesource(ectx, randomfile);
+		if (result == ISC_R_SUCCESS &&
+		    use_keyboard == ISC_ENTROPY_KEYBOARDMAYBE)
+			use_keyboard = ISC_ENTROPY_KEYBOARDNO;
+
+		final_result = result;
+	}
+
+	if (use_keyboard != ISC_ENTROPY_KEYBOARDNO) {
+		result = isc_entropy_createcallbacksource(ectx, kbdstart,
+							  kbdget, kbdstop,
+							  NULL, source);
+		if (result == ISC_R_SUCCESS)
+			(*source)->warn_keyboard =
+				ISC_TF(use_keyboard ==
+				       ISC_ENTROPY_KEYBOARDMAYBE);
+
+		if (final_result != ISC_R_SUCCESS)
+			final_result = result;
+	}	
+
+	/*
+	 * final_result is ISC_R_SUCCESS if at least one source of entropy
+	 * could be started, otherwise it is the error from the most recently
+	 * failed operation (or ISC_R_NOENTROPY if PATH_RANDOMDEV is not
+	 * defined and use_keyboard is ISC_ENTROPY_KEYBOARDNO).
+	 */
+	return (final_result);
 }

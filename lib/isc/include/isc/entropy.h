@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.22 2001/01/09 21:56:50 bwelling Exp $ */
+/* $Id: entropy.h,v 1.23 2001/06/22 17:05:53 tale Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -63,8 +63,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-ISC_LANG_BEGINDECLS
-
 /*
  * Entropy callback function.
  */
@@ -109,6 +107,23 @@ typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
  *	will be assumed.  This flag only makes sense on sample sources.
  */
 #define ISC_ENTROPYSOURCE_ESTIMATE	0x00000001U
+
+/*
+ * For use with isc_entropy_usebestsource().
+ *
+ * _KEYBOARDYES
+ *	Always use the keyboard as an entropy source.
+ * _KEYBOARDNO
+ *	Never use the keyboard as an entropy source.
+ * _KEYBOARDMAYBE
+ *	Use the keyboard as an entropy source only if opening the
+ *	random device or supplied filename fails.
+ */
+#define ISC_ENTROPY_KEYBOARDYES		1
+#define ISC_ENTROPY_KEYBOARDNO		2
+#define ISC_ENTROPY_KEYBOARDMAYBE	3
+
+ISC_LANG_BEGINDECLS
 
 /***
  *** Functions
@@ -231,6 +246,41 @@ void
 isc_entropy_stats(isc_entropy_t *ent, FILE *out);
 /*
  * Dump some (trivial) stats to the stdio stream "out".
+ */
+
+isc_result_t
+isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
+			  const char *randomfile, int use_keyboard);
+/*
+ * Use whatever source of entropy is best.
+ *
+ * Notes:
+ *	If "randomfile" is not NULL, open it with
+ *	isc_entropy_createfilesource(). 
+ *
+ *	If "randomfile" is NULL and the system's random device was detected
+ *	when the program was configured and built, open that device with
+ *	isc_entropy_createfilesource(). 
+ *
+ *	If "use_keyboard" is ISC_ENTROPY_KEYBOARDYES, then always open
+ *	the keyboard as an entropy source (possibly in addition to
+ *	"randomfile" or the random device).
+ *
+ *	If "use_keyboard" is ISC_ENTROPY_KEYBOARDMAYBE, open the keyboard only
+ *	if opening the random file/device fails.  A message will be
+ *	printed describing the need for keyboard input.
+ *
+ *	If "use_keyboard" is ISC_ENTROPY_KEYBOARDNO, the keyboard will
+ *	never be opened.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS if at least one source of entropy could be started.
+ *
+ *	ISC_R_NOENTROPY if use_keyboard is ISC_ENTROPY_KEYBOARDNO and
+ *	there is no random device pathname compiled into the program.
+ *
+ *	A return code from isc_entropy_createfilesource() or
+ *	isc_entropy_createcallbacksource().
  */
 
 ISC_LANG_ENDDECLS
