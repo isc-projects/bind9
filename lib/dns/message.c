@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.193 2001/06/28 21:21:39 gson Exp $ */
+/* $Id: message.c,v 1.194 2001/07/10 20:09:24 gson Exp $ */
 
 /***
  *** Imports
@@ -1440,8 +1440,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
 			ercode = (dns_rcode_t)
-				 (msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
-				 >> 20;
+				((msg->opt->ttl & DNS_MESSAGE_EDNSRCODE_MASK)
+				 >> 20);
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
 			free_name = ISC_FALSE;
