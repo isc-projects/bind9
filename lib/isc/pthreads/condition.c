@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include <isc/assertions.h>
 #include <isc/condition.h>
 #include <isc/error.h>
 
@@ -28,6 +29,8 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
 {
 	int presult;
 	struct timespec ts;
+
+	REQUIRE(c != NULL && m != NULL && t != NULL);
 
 	ts.tv_sec = t->seconds;
 	ts.tv_nsec = t->nanoseconds;
