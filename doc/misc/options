@@ -115,6 +115,8 @@ zone domain_name [ ( in | hs | hesiod | chaos ) ] {
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ dialup yes_or_no; ]					    No
+  [ max-transfer-time-out number; ]			    Yes*
+  [ max-transfer-idle-out number; ]			    Yes*
   [ notify yes_or_no; ]					    No
   [ also-notify { ip_addr; [ ip_addr; ... ] };		    No
   [ ixfr-base  path_name; ]				    Obsolete
@@ -133,9 +135,9 @@ zone domain_name [ ( in | hs | hesiod | chaos ) ] {
   [ forward ( only | first ); ]				    No
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
   [ check-names ( warn | fail | ignore ); ]		    No
-  [ allow-update { address_match_list }; ]		    Yes+
-  [ allow-query { address_match_list }; ]		    Yes+
-  [ allow-transfer { address_match_list }; ]		    Yes+
+  [ allow-update { address_match_list }; ]		    Yes@
+  [ allow-query { address_match_list }; ]		    Yes@
+  [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ip_addr; ]				    Yes
   [ transfer-source-v6 ip_addr; ]			    Yes*
   [ dialup yes_or_no; ]					    No
