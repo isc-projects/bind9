@@ -1,5 +1,5 @@
 /*
- * $Id: ssu.c,v 1.2 2000/02/14 21:09:16 bwelling Exp $
+ * $Id: ssu.c,v 1.3 2000/02/15 21:54:59 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -24,9 +24,9 @@ typedef struct dns_ssurule dns_ssurule_t;
 
 struct dns_ssurule {
 	isc_boolean_t grant;	/* is this a grant or a deny? */
-	isc_boolean_t self;	/* lets a key modify its own name */
-	dns_name_t *identity;	/* the identity to match - NULL for any */
-	dns_name_t *name;	/* the name being updated - NULL for any */
+	isc_boolean_t matchtype;/* which type of pattern match? */
+	dns_name_t *identity;	/* the identity to match */
+	dns_name_t *name;	/* the name being updated */
 	unsigned int ntypes;	/* number of data types covered */
 	dns_rdatatype_t *types;	/* the data types.  Can include ANY, */
 				/* defaults to all but SIG,SOA,NS if NULL*/
@@ -85,18 +85,20 @@ dns_ssutable_destroy(dns_ssutable_t **table) {
 
 isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
-		     dns_name_t *identity, dns_name_t *name, isc_boolean_t self,
-		     unsigned int ntypes, dns_rdatatype_t *types)
+		     dns_name_t *identity, unsigned int matchtype,
+		     dns_name_t *name, unsigned int ntypes,
+		     dns_rdatatype_t *types)
 {
 	dns_ssurule_t *rule;
 	isc_mem_t *mctx;
 	isc_result_t result;
 
 	REQUIRE(VALID_SSUTABLE(table));
-	REQUIRE(identity == NULL || dns_name_isabsolute(identity));
-	REQUIRE(name == NULL || dns_name_isabsolute(name));
-	if (self == ISC_TRUE)
-		REQUIRE(name == NULL);
+	REQUIRE(dns_name_isabsolute(identity));
+	REQUIRE(dns_name_isabsolute(name));
+	REQUIRE(matchtype <= DNS_SSUMATCHTYPE_SELF);
+	if (matchtype == DNS_SSUMATCHTYPE_WILDCARD)
+		REQUIRE(dns_name_iswildcard(name));
 	if (ntypes > 0)
 		REQUIRE(types != NULL);
 
@@ -111,35 +113,27 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 
 	rule->grant = grant;
 
-	if (identity != NULL) {
-		rule->identity = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (rule->identity == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
-		dns_name_init(rule->identity, NULL);
-		result = dns_name_dup(identity, mctx, rule->identity);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+	rule->identity = isc_mem_get(mctx, sizeof(dns_name_t));
+	if (rule->identity == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
 	}
-	else
-		rule->identity = NULL;
+	dns_name_init(rule->identity, NULL);
+	result = dns_name_dup(identity, mctx, rule->identity);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
 
-	if (name != NULL) {
-		rule->name = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (rule->name == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
-		dns_name_init(rule->name, NULL);
-		result = dns_name_dup(name, mctx, rule->name);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+	rule->name = isc_mem_get(mctx, sizeof(dns_name_t));
+	if (rule->name == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto failure;
 	}
-	else
-		rule->name = NULL;
+	dns_name_init(rule->name, NULL);
+	result = dns_name_dup(name, mctx, rule->name);
+	if (result != ISC_R_SUCCESS)
+		goto failure;
 
-	rule->self = self;
+	rule->matchtype = matchtype;
 
 	rule->ntypes = ntypes;
 	if (ntypes > 0) {
@@ -203,29 +197,33 @@ dns_ssutable_checkrules(dns_ssutable_t *table, dns_name_t *signer,
 	     rule != NULL;
 	     rule = ISC_LIST_NEXT(rule, link))
 	{
-		if (rule->self && !dns_name_equal(signer, name))
-			continue;
-		if (rule->identity != NULL) {
-			if (dns_name_iswildcard(rule->identity)) {
-				if (!dns_name_matcheswildcard(signer,
-							      rule->identity))
-					continue;
-			}
-			else {
-				if (!dns_name_equal(signer, rule->identity))
-					continue;
-			}
+		if (dns_name_iswildcard(rule->identity)) {
+			if (!dns_name_matcheswildcard(signer, rule->identity))
+				continue;
 		}
-		if (rule->name != NULL) {
-			if (dns_name_iswildcard(rule->name)) {
-				if (!dns_name_matcheswildcard(name, rule->name))
-					continue;
-			}
-			else {
-				if (!dns_name_equal(name, rule->name))
-					continue;
-			}
+		else {
+			if (!dns_name_equal(signer, rule->identity))
+				continue;
 		}
+
+		if (rule->matchtype == DNS_SSUMATCHTYPE_NAME) {
+			if (!dns_name_equal(name, rule->name))
+				continue;
+		}
+		else if (rule->matchtype == DNS_SSUMATCHTYPE_SUBDOMAIN) {
+			if (!dns_name_issubdomain(name, rule->name))
+				continue;
+		}
+		else if (rule->matchtype == DNS_SSUMATCHTYPE_WILDCARD) {
+			if (!dns_name_matcheswildcard(name, rule->name))
+				continue;
+			
+		}
+		else if (rule->matchtype == DNS_SSUMATCHTYPE_SELF) {
+			if (!dns_name_equal(signer, name))
+				continue;
+		}
+
 		if (rule->ntypes == 0) {
 			if (!isusertype(type))
 				continue;
