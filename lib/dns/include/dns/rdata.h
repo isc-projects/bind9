@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.52 2002/02/12 03:45:54 marka Exp $ */
+/* $Id: rdata.h,v 1.53 2002/02/19 22:58:29 gson Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -321,7 +321,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *	'origin' if non NULL it must be absolute.
  *	
  *	'callbacks' to be NULL or callbacks->warn and callbacks->error be
- *	initalised.
+ *	initialized.
  *
  * Ensures:
  *	If result is success:
