@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.42.18.3 2005/02/24 00:32:21 marka Exp $ */
+/* $Id: sockaddr.h,v 1.42.18.4 2005/03/16 23:51:27 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -33,7 +33,7 @@ struct isc_sockaddr {
 		struct sockaddr_in	sin;
 		struct sockaddr_in6	sin6;
 #ifdef ISC_PLATFORM_HAVESYSUNH
-		struct sockaddr_un	sun;
+		struct sockaddr_un	sunix;
 #endif
 	}				type;
 	unsigned int			length;		/* XXXRTH beginning? */
