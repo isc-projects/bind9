@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.45 2000/05/08 14:34:36 tale Exp $ */
+/* $Id: gen.c,v 1.46 2000/05/09 22:22:11 tale Exp $ */
 
 #include <config.h>
 
@@ -34,31 +34,38 @@
 #include "gen-unix.h"
 #endif
 
-#define FROMTEXTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, isc_lex_t *lexer, dns_name_t *origin, isc_boolean_t downcase, isc_buffer_t *target"
+#define FROMTEXTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
+			"isc_lex_t *lexer, dns_name_t *origin, " \
+			"isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target"
 #define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "use_default = ISC_TRUE"
 
-#define TOTEXTDECL "dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, isc_buffer_t *target"
+#define TOTEXTDECL "dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, " \
+			"isc_buffer_t *target"
 #define TOTEXTARGS "rdata, tctx, target"
 #define TOTEXTCLASS "rdata->rdclass"
 #define TOTEXTTYPE "rdata->type"
 #define TOTEXTDEF "use_default = ISC_TRUE"
 
-#define FROMWIREDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, isc_buffer_t *source, dns_decompress_t *dctx, isc_boolean_t downcase, isc_buffer_t *target"
+#define FROMWIREDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
+			"isc_buffer_t *source, dns_decompress_t *dctx, " \
+			"isc_boolean_t downcase, isc_buffer_t *target"
 #define FROMWIREARGS "rdclass, type, source, dctx, downcase, target"
 #define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE "type"
 #define FROMWIREDEF "use_default = ISC_TRUE"
 
-#define TOWIREDECL "dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target"
+#define TOWIREDECL "dns_rdata_t *rdata, dns_compress_t *cctx, " \
+			"isc_buffer_t *target"
 #define TOWIREARGS "rdata, cctx, target"
 #define TOWIRECLASS "rdata->rdclass"
 #define TOWIRETYPE "rdata->type"
 #define TOWIREDEF "use_default = ISC_TRUE"
 
-#define FROMSTRUCTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source, isc_buffer_t *target"
+#define FROMSTRUCTDECL "dns_rdataclass_t rdclass, dns_rdatatype_t type, " \
+			"void *source, isc_buffer_t *target"
 #define FROMSTRUCTARGS "rdclass, type, source, target"
 #define FROMSTRUCTCLASS "rdclass"
 #define FROMSTRUCTTYPE "type"
@@ -104,14 +111,14 @@ char copyright[] =
 " * purpose with or without fee is hereby granted, provided that the above\n"
 " * copyright notice and this permission notice appear in all copies.\n"
 " *\n"
-" * THE SOFTWARE IS PROVIDED \"AS IS\" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS\n"
-" * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES\n"
-" * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE\n"
-" * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL\n"
-" * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR\n"
-" * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS\n"
-" * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS\n"
-" * SOFTWARE.\n"
+" * THE SOFTWARE IS PROVIDED \"AS IS\" AND INTERNET SOFTWARE CONSORTIUM\n"
+" * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL\n"
+" * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL\n"
+" * INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,\n"
+" * INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING\n"
+" * FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,\n"
+" * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION\n"
+" * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.\n"
 " */\n"
 "\n"
 "/***************\n"
@@ -372,8 +379,9 @@ add(int rdclass, char *classname, int type, char *typename, char *dirname) {
 	else
 		types = newtt;
 
-	/* do a class switch for this type */
-	 
+	/*
+	 * Do a class switch for this type.
+	 */
 	if (rdclass == 0)
 		return;
 
@@ -585,8 +593,10 @@ main(int argc, char **argv) {
 
 #define PRINT_COMMA(x) (x == 255 ? "" : ",")
 
-#define METANOTQUESTION  "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION"
-#define METAQUESTIONONLY "DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_QUESTIONONLY"
+#define METANOTQUESTION  "DNS_RDATATYPEATTR_META | " \
+			 "DNS_RDATATYPEATTR_NOTQUESTION"
+#define METAQUESTIONONLY "DNS_RDATATYPEATTR_META | " \
+			 "DNS_RDATATYPEATTR_QUESTIONONLY"
 #define RESERVED "DNS_RDATATYPEATTR_RESERVED"
 
 		/*
@@ -649,14 +659,16 @@ main(int argc, char **argv) {
 		printf("#define RDATATYPE_COMPARE(_s, _d, _tn, _tp) \\\n");
 		printf("\tdo { \\\n");
 		printf("\t\tif (strcasecmp(_s,(_tn)) == 0) { \\\n");
-		printf("\t\t\tif ((typeattr[_d].flags & DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
+		printf("\t\t\tif ((typeattr[_d].flags & "
+		       		  "DNS_RDATATYPEATTR_RESERVED) != 0) \\\n");
 		printf("\t\t\t\treturn (ISC_R_NOTIMPLEMENTED); \\\n");
 		printf("\t\t\t*(_tp) = _d; \\\n");
 		printf("\t\t\treturn (ISC_R_SUCCESS); \\\n");
 		printf("\t\t} \\\n");
 		printf("\t} while (0)\n\n");
 
-		printf("#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) \\\n");
+		printf("#define RDATATYPE_FROMTEXT_SW(_hash,_typename,_typep) "
+		       "\\\n");
 		printf("\tswitch (_hash) { \\\n");
 		for (i = 0 ; i <= 255 ; i++) {
 			ttn = &typenames[i];
@@ -679,7 +691,9 @@ main(int argc, char **argv) {
 				if (ttn2->sorted != 0)
 					continue;
 				if (hash == HASH(ttn2->typename)) {
-					printf("\t\t\tRDATATYPE_COMPARE(\"%s\", %u, _typename, _typep); \\\n",
+					printf("\t\t\tRDATATYPE_COMPARE"
+					       "(\"%s\", %u, "
+					       "_typename, _typep); \\\n",
 					       ttn2->typename, j);
 					ttn2->sorted = 1;
 				}
@@ -713,7 +727,8 @@ main(int argc, char **argv) {
 		lasttype = 0;
 		for (tt = types; tt != NULL ; tt = tt->next)
 			if (tt->type != lasttype)
-				fprintf(stdout, "\t dns_rdatatype_%s = %d,%s\n",
+				fprintf(stdout,
+					"\t dns_rdatatype_%s = %d,%s\n",
 					funname(tt->typename, buf1),
 					lasttype = tt->type,
 					tt->next != NULL ? " \\" : "");

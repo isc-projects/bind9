@@ -96,8 +96,7 @@ lwres_create_addr(const char *buff, lwres_addr_t *addr);
  * that caused the reading to stop.
  */
 static int
-getword(FILE *fp, char *buffer, size_t size)
-{
+getword(FILE *fp, char *buffer, size_t size) {
 	int ch;
 	char *p = buffer;
 
@@ -107,7 +106,7 @@ getword(FILE *fp, char *buffer, size_t size)
 	*p = '\0';
 
 	ch = fgetc(fp);
-	while (ch != '\n' && isspace(ch))
+	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch))
 		ch = fgetc(fp);
 
 	if (ch == EOF)
@@ -116,10 +115,10 @@ getword(FILE *fp, char *buffer, size_t size)
 	do {
 		*p = '\0';
 
-		if (ch == EOF || isspace(ch))
+		if (ch == EOF || isspace((unsigned char)ch))
 			break;
 		else if ((size_t) (p - buffer) == size - 1)
-			return (EOF);	/* not enough space */
+			return (EOF);	/* Not enough space. */
 
 		*p++ = (char)ch;
 		ch = fgetc(fp);
@@ -129,8 +128,7 @@ getword(FILE *fp, char *buffer, size_t size)
 }
 
 static void
-lwres_resetaddr(lwres_addr_t *addr)
-{
+lwres_resetaddr(lwres_addr_t *addr) {
 	REQUIRE(addr != NULL);
 
 	memset(addr->address, 0, LWRES_ADDR_MAXLEN);
@@ -139,8 +137,7 @@ lwres_resetaddr(lwres_addr_t *addr)
 }
 
 static char *
-lwres_strdup(lwres_context_t *ctx, const char *str)
-{
+lwres_strdup(lwres_context_t *ctx, const char *str) {
 	char *p;
 
 	REQUIRE(str != NULL);
@@ -154,8 +151,7 @@ lwres_strdup(lwres_context_t *ctx, const char *str)
 }
 
 void
-lwres_conf_init(lwres_context_t *ctx)
-{
+lwres_conf_init(lwres_context_t *ctx) {
 	int i;
 	lwres_conf_t *confdata;
 
@@ -183,8 +179,7 @@ lwres_conf_init(lwres_context_t *ctx)
 }
 
 void
-lwres_conf_clear(lwres_context_t *ctx)
-{
+lwres_conf_clear(lwres_context_t *ctx) {
 	int i;
 	lwres_conf_t *confdata;
 
@@ -223,8 +218,7 @@ lwres_conf_clear(lwres_context_t *ctx)
 }
 
 static lwres_result_t
-lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp)
-{
+lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	char word[LWRES_CONFMAXLINELEN];
 	int res;
 	lwres_conf_t *confdata;
@@ -236,9 +230,9 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp)
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
-		return (LWRES_R_FAILURE); /* nothing on line */
+		return (LWRES_R_FAILURE); /* Nothing on line. */
 	else if (res != EOF && res != '\n')
-		return (LWRES_R_FAILURE); /* extra junk on line */
+		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word,
 				&confdata->nameservers[confdata->nsnext++]);
@@ -249,8 +243,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp)
 }
 
 static lwres_result_t
-lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp)
-{
+lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp) {
 	char word[LWRES_CONFMAXLINELEN];
 	int res, i;
 	lwres_conf_t *confdata;
@@ -259,15 +252,17 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp)
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
-		return (LWRES_R_FAILURE); /* nothing else on line */
+		return (LWRES_R_FAILURE); /* Nothing else on line. */
 	else if (res != EOF && res != '\n')
-		return (LWRES_R_FAILURE); /* extra junk on line */
+		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	if (confdata->domainname != NULL)
 		CTXFREE(confdata->domainname,
 			strlen(confdata->domainname) + 1); /*  */
 
-	/* search and domain are mutually exclusive */
+	/*
+	 * Search and domain are mutually exclusive.
+	 */
 	for (i = 0 ; i < LWRES_CONFMAXSEARCH ; i++) {
 		if (confdata->search[i] != NULL) {
 			CTXFREE(confdata->search[i],
@@ -286,8 +281,7 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp)
 }
 
 static lwres_result_t
-lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
-{
+lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 	int idx, delim;
 	char word[LWRES_CONFMAXLINELEN];
 	lwres_conf_t *confdata;
@@ -295,13 +289,17 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
 	confdata = &ctx->confdata;
 
 	if (confdata->domainname != NULL) {
-		/* search and domain are mutually exclusive */
+		/*
+		 * Search and domain are mutually exclusive.
+		 */
 		CTXFREE(confdata->domainname,
 			strlen(confdata->domainname) + 1);
 		confdata->domainname = NULL;
 	}
 
-	/* remove any previous search definitions. */
+	/*
+	 * Remove any previous search definitions.
+	 */
 	for (idx = 0 ; idx < LWRES_CONFMAXSEARCH ; idx++) {
 		if (confdata->search[idx] != NULL) {
 			CTXFREE(confdata->search[idx],
@@ -313,12 +311,12 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
-		return (LWRES_R_FAILURE); /* nothing else on line */
+		return (LWRES_R_FAILURE); /* Nothing else on line. */
 
 	idx = 0;
 	while (strlen(word) > 0) {
 		if (confdata->searchnxt == LWRES_CONFMAXSEARCH)
-			return (LWRES_R_FAILURE); /* too many domains */
+			return (LWRES_R_FAILURE); /* Too many domains. */
 
 		confdata->search[idx] = lwres_strdup(ctx, word);
 		if (confdata->search[idx] == NULL)
@@ -336,8 +334,7 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
 }
 
 static lwres_result_t
-lwres_create_addr(const char *buffer, lwres_addr_t *addr)
-{
+lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
 	unsigned int len;
 
@@ -352,7 +349,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr)
 		len = 16;
 #endif
 	} else {
-		return (LWRES_R_FAILURE); /* unrecongnised format */
+		return (LWRES_R_FAILURE); /* Unrecongnised format. */
 	}
 
 	memcpy((void *)addr->address, addrbuff, len);
@@ -361,8 +358,7 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr)
 }
 
 static lwres_result_t
-lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp)
-{
+lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp) {
 	int delim, res, idx;
 	char word[LWRES_CONFMAXLINELEN];
 	char *p;
@@ -372,11 +368,11 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp)
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
-		return (LWRES_R_FAILURE); /* empty line after keyword */
+		return (LWRES_R_FAILURE); /* Empty line after keyword. */
 
 	while (strlen(word) > 0) {
 		if (confdata->sortlistnxt == LWRES_CONFMAXSORTLIST)
-			return (LWRES_R_FAILURE); /* too many values. */
+			return (LWRES_R_FAILURE); /* Too many values. */
 
 		p = strchr(word, '/');
 		if (p != NULL)
@@ -393,7 +389,9 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp)
 			if (res != LWRES_R_SUCCESS)
 				return (res);
 		} else {
-			/* Make up a mask. */
+			/*
+			 * Make up a mask.
+			 */
 			confdata->sortlist[idx].mask =
 				confdata->sortlist[idx].addr;
 
@@ -426,7 +424,7 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
-		return (LWRES_R_FAILURE); /* empty line after keyword */
+		return (LWRES_R_FAILURE); /* Empty line after keyword. */
 
 	while (strlen(word) > 0) {
 		if (strcmp("debug", word) == 0) {
@@ -435,7 +433,7 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
 			confdata->no_tld_query = 1;
 		} else if (strncmp("ndots:", word, 6) == 0) {
 			ndots = strtol(word + 6, &p, 10);
-			if (*p != '\0') /* bad string */
+			if (*p != '\0') /* Bad string. */
 				return (LWRES_R_FAILURE);
 			confdata->ndots = ndots;
 		}
@@ -450,8 +448,7 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
 }
 
 lwres_result_t
-lwres_conf_parse(lwres_context_t *ctx, const char *filename)
-{
+lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	FILE *fp = NULL;
 	char word[256];
 	int delim;
@@ -495,8 +492,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename)
 }
 
 lwres_result_t
-lwres_conf_print(lwres_context_t *ctx, FILE *fp)
-{
+lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	int i;
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
 	const char *p;
@@ -568,8 +564,7 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp)
 }
 
 lwres_conf_t *
-lwres_conf_get(lwres_context_t *ctx)
-{
+lwres_conf_get(lwres_context_t *ctx) {
 	REQUIRE(ctx != NULL);
 
 	return (&ctx->confdata);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.87 2000/05/09 12:07:32 tale Exp $ */
+/* $Id: rdata.c,v 1.88 2000/05/09 22:22:12 tale Exp $ */
 
 #include <config.h>
 
@@ -812,8 +812,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	if (n == 0)
 		return (DNS_R_UNKNOWN);
 
-	a = tolower(source->base[0]);
-	b = tolower(source->base[n - 1]);
+	a = tolower((unsigned char)source->base[0]);
+	b = tolower((unsigned char)source->base[n - 1]);
 
 	hash = ((a + n) * b) % 256;
 
@@ -1308,10 +1308,14 @@ compare_region(isc_region_t *r1, isc_region_t *r2) {
 static int
 hexvalue(char value) {
 	char *s;
-	if (!isascii(value & 0xff))
+	unsigned char c;
+
+	c = (unsigned char)value;
+
+	if (!isascii(c))
 		return (-1);
-	if (isupper(value & 0xff))
-		value = tolower(value);
+	if (isupper(c))
+		c = tolower(c);
 	if ((s = strchr(hexdigits, value)) == NULL)
 		return (-1);
 	return (s - hexdigits);
@@ -1320,7 +1324,12 @@ hexvalue(char value) {
 static int
 decvalue(char value) {
 	char *s;
-	if (!isascii(value&0xff))
+
+	/*
+	 * isascii() is valid for full range of int values, no need to
+	 * mask or cast.
+	 */
+	if (!isascii(value))
 		return (-1);
 	if ((s = strchr(decdigits, value)) == NULL)
 		return (-1);
@@ -1328,7 +1337,8 @@ decvalue(char value) {
 }
 
 static const char atob_digits[86] =
-"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+	"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`" \
+	"abcdefghijklmnopqrstu";
 /*
  * Subroutines to convert between 8 bit binary bytes and printable ASCII.
  * Computes the number of bytes, and three kinds of simple checksums.

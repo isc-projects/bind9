@@ -725,7 +725,7 @@ t_eval(char *filename, int (*func)(char **), int nargs) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, tokens);

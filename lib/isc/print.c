@@ -97,7 +97,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		}
 		format++;
 
-		/* reset flags */
+		/*
+		 * Reset flags.
+		 */
 		dot = neg = space = plus = left = zero = alt = h = l = q = 0;
 		width = precision = 0;
 		head = "";
@@ -127,24 +129,28 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				break;
 		} while (1);
 
-		/* width */
+		/*
+		 * Width.
+		 */
 		if (*format == '*') {
 			width = va_arg(ap, int);
 			format++;
-		} else if (isdigit(*format)) {
+		} else if (isdigit((unsigned char)*format)) {
 			char *e;
 			width = strtoul(format, &e, 10);
 			format = e;
 		} 
 
-		/* precision */
+		/*
+		 * Precision.
+		 */
 		if (*format == '.') {
 			format++;
 			dot = 1;
 			if (*format == '*') {
 				precision = va_arg(ap, int);
 				format++;
-			} else if (isdigit(*format)) {
+			} else if (isdigit((unsigned char)*format)) {
 				char *e;
 				precision = strtoul(format, &e, 10);
 				format = e;
@@ -346,7 +352,9 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			REQUIRE(cp != NULL);
 
 			if (precision != 0) {
-				/* cp need not be NULL terminated */
+				/*
+				 * cp need not be NULL terminated.
+				 */
 				char *tp;
 				unsigned long n;
 

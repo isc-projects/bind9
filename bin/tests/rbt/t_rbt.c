@@ -435,7 +435,7 @@ test_dns_rbt_x(char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			/*
@@ -919,8 +919,10 @@ test_dns_rbtnodechain_init(char *filename) {
 
 			++line;
 
-			/* skip comment lines */
-			if ((isspace((int)*p)) || (*p == '#'))
+			/*
+			 * Skip comment lines.
+			 */
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, Tokens);
@@ -1082,7 +1084,7 @@ test_dns_rbtnodechain_first(char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, Tokens);
@@ -1247,7 +1249,7 @@ test_dns_rbtnodechain_last(char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, Tokens);
@@ -1428,7 +1430,7 @@ test_dns_rbtnodechain_next(char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, Tokens);
@@ -1607,7 +1609,7 @@ test_dns_rbtnodechain_prev(char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((int)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, Tokens);

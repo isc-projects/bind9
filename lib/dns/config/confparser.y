@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.76 2000/05/09 16:49:50 brister Exp $ */
+/* $Id: confparser.y,v 1.77 2000/05/09 22:22:15 tale Exp $ */
 
 #include <config.h>
 
@@ -5496,7 +5496,7 @@ unit_to_uint32(char *in, isc_uint32_t *out) {
 	for (; (c = *in) != '\0'; in++) {
 		if (units_done)
 			return (ISC_FALSE);
-		if (isdigit(c)) {
+		if (isdigit((unsigned char)c)) {
 			result *= 10;
 			result += (c - '0');
 		} else {

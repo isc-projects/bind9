@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.8 1999/10/29 04:25:11 marka Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.9 2000/05/09 22:22:18 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -88,8 +88,7 @@ static char rcsid[] = "$Id: inet_aton.c,v 1.8 1999/10/29 04:25:11 marka Exp $";
  * cannot distinguish between failure and a local broadcast address.
  */
 int
-isc_net_aton(const char *cp, struct in_addr *addr)
-{
+isc_net_aton(const char *cp, struct in_addr *addr) {
 	unsigned long val;
 	int base, n;
 	char c;
@@ -117,16 +116,21 @@ isc_net_aton(const char *cp, struct in_addr *addr)
 			}
 		}
 		for (;;) {
-			if (isascii(c & 0xff) && isdigit(c & 0xff)) {
+			/*
+			 * isascii() is valid for all integer values, and
+			 * when it is true, c is known to be in scope
+			 * for isdigit().  No cast necessary.  Similar
+			 * comment applies for later ctype uses.
+			 */
+			if (isascii(c) && isdigit(c)) {
 				if (base == 8 && (c == '8' || c == '9'))
 					return (0);
 				val = (val * base) + (c - '0');
 				c = *++cp;
 				digit = 1;
-			} else if (base == 16 && isascii(c & 0xff) &&
-						 isxdigit(c & 0xff)) {
+			} else if (base == 16 && isascii(c) && isxdigit(c)) {
 				val = (val << 4) |
-					(c + 10 - (islower(c & 0xff) ? 'a' : 'A'));
+					(c + 10 - (islower(c) ? 'a' : 'A'));
 				c = *++cp;
 				digit = 1;
 			} else
@@ -149,7 +153,7 @@ isc_net_aton(const char *cp, struct in_addr *addr)
 	/*
 	 * Check for trailing characters.
 	 */
-	if (c != '\0' && (!isascii(c & 0xff) || !isspace(c & 0xff)))
+	if (c != '\0' && (!isascii(c) || !isspace(c)))
 		return (0);
 	/*
 	 * Did we get a valid digit?

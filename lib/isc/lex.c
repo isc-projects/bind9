@@ -489,7 +489,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				tokenp->type = isc_tokentype_special;
 				tokenp->value.as_char = c;
 				done = ISC_TRUE;
-			} else if (isdigit(c) &&
+			} else if (isdigit((unsigned char)c) &&
 				   (options & ISC_LEXOPT_NUMBER) != 0) {
 				lex->last_was_eol = ISC_FALSE;
 				state = lexstate_number;
@@ -508,7 +508,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			lex->last_was_eol = ISC_TRUE;
 			break;
 		case lexstate_number:
-			if (!isdigit(c)) {
+			if (c == EOF || !isdigit((unsigned char)c)) {
 				if (c == ' ' || c == '\t' || c == '\r' ||
 				    c == '\n' || c == EOF ||
 				    lex->specials[c]) {

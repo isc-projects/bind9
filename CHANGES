@@ -1,3 +1,5 @@
+ 162.   [bug]           Ensure proper range for arguments to ctype.h functions.
+
  161.	[cleanup]	error in yyparse prototype that only HPUX caught.
 
  160.	[cleanup]	getnet*() are not going to be implemented at this

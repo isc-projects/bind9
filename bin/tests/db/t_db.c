@@ -337,8 +337,10 @@ test_dns_db_zc_x(char *filename, isc_boolean_t cache,
 
 			++line;
 
-			/* skip comment lines */
-			if ((isspace((int)*p)) || (*p == '#'))
+			/*
+			 * Skip comment lines.
+			 */
+			if ((isspace((unsigned char)*p)) || (*p == '#'))
 				continue;
 
 			cnt = t_bustline(p, tokens);

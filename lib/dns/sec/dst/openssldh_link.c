@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.12 2000/05/08 14:37:09 tale Exp $
+ * $Id: openssldh_link.c,v 1.13 2000/05/09 22:22:16 tale Exp $
  */
 
 #if defined(OPENSSL)
@@ -687,11 +687,11 @@ BN_fromhex(BIGNUM *b, const char *str) {
 		char *s;
 		unsigned int high, low;
 
-		s = strchr(hexdigits, tolower(str[i]));
+		s = strchr(hexdigits, tolower((unsigned char)str[i]));
 		RUNTIME_CHECK(s != NULL);
 		high = s - hexdigits;
 
-		s = strchr(hexdigits, tolower(str[i + 1]));
+		s = strchr(hexdigits, tolower((unsigned char)str[i + 1]));
 		RUNTIME_CHECK(s != NULL);
 		low = s - hexdigits;
 
