@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.13 2000/02/04 06:17:22 halley Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.14 2000/03/10 23:11:27 explorer Exp $
  */
 
 
@@ -353,11 +353,12 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 	struct addrinfo *ai;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gabnresponse_t *by = NULL;
-	int i;
+	lwres_addr_t *addr;
+	lwres_result_t lwres;
 	int result = 0;
 
-	i = lwres_context_create(&lwrctx, NULL, NULL, NULL);
-	if (i != 0)
+	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	if (lwres != 0)
 		ERR(EAI_FAIL);
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET)) == NULL) {
@@ -371,7 +372,8 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 		memcpy(&SIN(ai->ai_addr)->sin_addr, v4_loop, 4);
 	} else if (lwres_getaddrsbyname(lwrctx, hostname,
 					LWRES_ADDRTYPE_V4, &by) == 0) {
-		for (i = 0; i < by->naddrs; i++) {
+		addr = LWRES_LIST_HEAD(by->addrs);
+		while (addr != NULL) {
 			ai = ai_clone(*aip, AF_INET);
 			if (ai == NULL) {
 				lwres_freeaddrinfo(*aip);
@@ -381,9 +383,10 @@ add_ipv4(const char *hostname, int flags, struct addrinfo **aip,
 			ai->ai_socktype = socktype;
 			SIN(ai->ai_addr)->sin_port = port;
 			memcpy(&SIN(ai->ai_addr)->sin_addr,
-			       by->addrs[i].address, 4);
+			       addr->address, 4);
 			if (flags & AI_CANONNAME)
 				ai->ai_canonname = strdup(by->realname);
+			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
  cleanup:
@@ -403,12 +406,14 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 	struct addrinfo *ai;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gabnresponse_t *by = NULL;
-	int i;
+	lwres_addr_t *addr;
+	lwres_result_t lwres;
 	int result = 0;
 
-	i = lwres_context_create(&lwrctx, NULL, NULL, NULL);
-	if (i != 0)
+	lwres = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	if (lwres != 0)
 		ERR(EAI_FAIL);
+
 	if (hostname == NULL && (flags & AI_PASSIVE) == 0) {
 		if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
 			lwres_freeaddrinfo(*aip);
@@ -421,7 +426,8 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 		memcpy(&SIN6(ai->ai_addr)->sin6_addr, v6_loop, 16);
 	} else if (lwres_getaddrsbyname(lwrctx, hostname,
 					LWRES_ADDRTYPE_V6, &by) == 0) {
-		for (i = 0; i < by->naddrs; i++) {
+		addr = LWRES_LIST_HEAD(by->addrs);
+		while (addr != NULL) {
 			if ((ai = ai_clone(*aip, AF_INET6)) == NULL) {
 				lwres_freeaddrinfo(*aip);
 				ERR(EAI_MEMORY);
@@ -430,9 +436,10 @@ add_ipv6(const char *hostname, int flags, struct addrinfo **aip,
 			ai->ai_socktype = socktype;
 			SIN6(ai->ai_addr)->sin6_port = port;
 			memcpy(&SIN6(ai->ai_addr)->sin6_addr,
-			       by->addrs[i].address, 16);
+			       addr->address, 16);
 			if (flags & AI_CANONNAME)
 				ai->ai_canonname = strdup(by->realname);
+			addr = LWRES_LIST_NEXT(addr, link);
 		}
 	}
  cleanup:

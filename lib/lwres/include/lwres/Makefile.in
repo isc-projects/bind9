@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 # Only list headers that are to be installed!
 #
 HEADERS =	context.h lwbuffer.h lwpacket.h lwres.h netdb.h result.h \
-		int.h lang.h net.h ipv6.h platform.h
+		int.h lang.h list.h net.h ipv6.h platform.h
 
 SUBDIRS =
 TARGETS =

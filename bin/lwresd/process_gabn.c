@@ -110,6 +110,8 @@ setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at)
 		   addr->address, addr->family, addr->length);
 
 		client->gabn.naddrs++;
+		REQUIRE(!LWRES_LINK_LINKED(addr, link));
+		LWRES_LIST_APPEND(client->gabn.addrs, addr, link);
 
 	next:
 		ai = ISC_LIST_NEXT(ai, publink);
@@ -151,6 +153,7 @@ generate_reply(client_t *client)
 	 * Run through the finds we have and wire them up to the gabn
 	 * structure.
 	 */
+	LWRES_LIST_INIT(client->gabn.addrs);
 	if (client->v4find != NULL)
 		setup_addresses(client, client->v4find, DNS_ADBFIND_INET);
 	if (client->v6find != NULL)

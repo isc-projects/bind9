@@ -70,23 +70,19 @@ extern const char *lwres_net_ntop(int af, const void *src, char *dst,
 				  size_t size);
 
 static lwres_result_t
-lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
-			   lwres_conf_t *confdata);
+lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp);
 
 static lwres_result_t
-lwres_conf_parsedomain(lwres_context_t *ctx, FILE *fp, lwres_conf_t *confdata);
+lwres_conf_parsedomain(lwres_context_t *ctx, FILE *fp);
 
 static lwres_result_t
-lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
-		       lwres_conf_t *confdata);
+lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp);
 
 static lwres_result_t
-lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
-			 lwres_conf_t *confdata);
+lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp);
 
 static lwres_result_t
-lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
-		       lwres_conf_t *confdata);
+lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp);
 
 static void
 lwres_resetaddr(lwres_context_t *ctx, lwres_addr_t *addr, int freeit);
@@ -162,20 +158,20 @@ lwres_strdup(lwres_context_t *ctx, const char *str)
 }
 
 void
-lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata)
+lwres_conf_init(lwres_context_t *ctx)
 {
 	int i;
+	lwres_conf_t *confdata;
 
 	REQUIRE(ctx != NULL);
-	REQUIRE(confdata != NULL);
+	confdata = &ctx->confdata;
 
-	confdata->lwctx = ctx;
 	confdata->nsnext = 0;
 	confdata->domainname = NULL;
 	confdata->searchnxt = 0;
 	confdata->sortlistnxt = 0;
 	confdata->resdebug = 0;
-	confdata->ndots = 0;
+	confdata->ndots = 1;
 	confdata->no_tld_query = 0;
 
 	for (i = 0 ; i < LWRES_CONFMAXNAMESERVERS ; i++)
@@ -191,12 +187,13 @@ lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata)
 }
 
 void
-lwres_conf_clear(lwres_conf_t *confdata)
+lwres_conf_clear(lwres_context_t *ctx)
 {
 	int i;
-	lwres_context_t *ctx;
+	lwres_conf_t *confdata;
 
-	ctx = confdata->lwctx;
+	REQUIRE(ctx != NULL);
+	confdata = &ctx->confdata;
 
 	for (i = 0 ; i < confdata->nsnext ; i++)
 		lwres_resetaddr(ctx, &confdata->nameservers[i], 1);
@@ -225,16 +222,18 @@ lwres_conf_clear(lwres_conf_t *confdata)
 	confdata->searchnxt = 0;
 	confdata->sortlistnxt = 0;
 	confdata->resdebug = 0;
-	confdata->ndots = 0;
+	confdata->ndots = 1;
 	confdata->no_tld_query = 0;
 }
 
 static lwres_result_t
-lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
-			   lwres_conf_t *confdata)
+lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp)
 {
 	char word[LWRES_CONFMAXLINELEN];
 	int res;
+	lwres_conf_t *confdata;
+
+	confdata = &ctx->confdata;
 
 	if (confdata->nsnext == LWRES_CONFMAXNAMESERVERS)
 		return (LWRES_R_FAILURE);
@@ -254,10 +253,13 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp,
 }
 
 static lwres_result_t
-lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp, lwres_conf_t *confdata)
+lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp)
 {
 	char word[LWRES_CONFMAXLINELEN];
 	int res, i;
+	lwres_conf_t *confdata;
+
+	confdata = &ctx->confdata;
 
 	res = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
@@ -288,11 +290,13 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp, lwres_conf_t *confdata)
 }
 
 static lwres_result_t
-lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp,
-		       lwres_conf_t *confdata)
+lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp)
 {
 	int idx, delim;
 	char word[LWRES_CONFMAXLINELEN];
+	lwres_conf_t *confdata;
+
+	confdata = &ctx->confdata;
 
 	if (confdata->domainname != NULL) {
 		/* search and domain are mutually exclusive */
@@ -360,12 +364,14 @@ lwres_create_addr(lwres_context_t *ctx, const char *buffer, lwres_addr_t *addr)
 }
 
 static lwres_result_t
-lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
-			 lwres_conf_t *confdata)
+lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp)
 {
 	int delim, res, idx;
 	char word[LWRES_CONFMAXLINELEN];
 	char *p;
+	lwres_conf_t *confdata;
+
+	confdata = &ctx->confdata;
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
@@ -404,17 +410,16 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp,
 }
 
 static lwres_result_t
-lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
-		       lwres_conf_t *confdata)
+lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp)
 {
 	int delim;
 	long ndots;
 	char *p;
 	char word[LWRES_CONFMAXLINELEN];
+	lwres_conf_t *confdata;
 
-	UNUSED(ctx);
-
-	REQUIRE(confdata != NULL);
+	REQUIRE(ctx != NULL);
+	confdata = &ctx->confdata;
 
 	delim = getword(fp, word, sizeof(word));
 	if (strlen(word) == 0)
@@ -442,19 +447,20 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp,
 }
 
 lwres_result_t
-lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
+lwres_conf_parse(lwres_context_t *ctx, const char *filename)
 {
 	FILE *fp = NULL;
 	char word[256];
 	int delim;
 	lwres_result_t rval;
-	lwres_context_t *ctx;
+	lwres_conf_t *confdata;
+
+	REQUIRE(ctx != NULL);
+	confdata = &ctx->confdata;
 
 	REQUIRE(filename != NULL);
 	REQUIRE(strlen(filename) > 0);
 	REQUIRE(confdata != NULL);
-
-	ctx = confdata->lwctx;
 
 	rval = LWRES_R_FAILURE;		/* Make compiler happy. */
 	errno = 0;
@@ -469,15 +475,15 @@ lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
 		}
 
 		if (strcmp(word, "nameserver") == 0)
-			rval = lwres_conf_parsenameserver(ctx, fp, confdata);
+			rval = lwres_conf_parsenameserver(ctx, fp);
 		else if (strcmp(word, "domain") == 0)
-			rval = lwres_conf_parsedomain(ctx, fp, confdata);
+			rval = lwres_conf_parsedomain(ctx, fp);
 		else if (strcmp(word, "search") == 0)
-			rval = lwres_conf_parsesearch(ctx, fp, confdata);
+			rval = lwres_conf_parsesearch(ctx, fp);
 		else if (strcmp(word, "sortlist") == 0)
-			rval = lwres_conf_parsesortlist(ctx, fp, confdata);
+			rval = lwres_conf_parsesortlist(ctx, fp);
 		else if (strcmp(word, "option") == 0)
-			rval = lwres_conf_parseoption(ctx, fp, confdata);
+			rval = lwres_conf_parseoption(ctx, fp);
 	} while (rval == LWRES_R_SUCCESS);
 
 	fclose(fp);
@@ -486,11 +492,15 @@ lwres_conf_parse(const char *filename, lwres_conf_t *confdata)
 }
 
 lwres_result_t
-lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
+lwres_conf_print(lwres_context_t *ctx, FILE *fp)
 {
 	int i;
 	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
 	const char *p;
+	lwres_conf_t *confdata;
+
+	REQUIRE(ctx != NULL);
+	confdata = &ctx->confdata;
 
 	REQUIRE(confdata->nsnext <= LWRES_CONFMAXNAMESERVERS);
 
@@ -552,4 +562,12 @@ lwres_conf_print(FILE *fp, lwres_conf_t *confdata)
 		fprintf(fp, "options no_tld_query\n");
 
 	return (LWRES_R_SUCCESS);
+}
+
+lwres_conf_t *
+lwres_conf_get(lwres_context_t *ctx)
+{
+	REQUIRE(ctx != NULL);
+
+	return (&ctx->confdata);
 }

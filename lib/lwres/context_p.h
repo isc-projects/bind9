@@ -46,6 +46,11 @@ struct lwres_context {
 	lwres_malloc_t		malloc;
 	lwres_free_t		free;
 	void		       *arg;
+
+	/*
+	 * resolv.conf-like data
+	 */
+	lwres_conf_t		confdata;
 };
 
 #endif /* LWRES_CONTEXT_P_H */

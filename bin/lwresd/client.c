@@ -351,6 +351,7 @@ client_init_aliases(client_t *client)
 		client->addrs[i].family = 0;
 		client->addrs[i].length = 0;
 		client->addrs[i].address = NULL;
+		LWRES_LINK_INIT(&client->addrs[i], link);
 	}
 }
 
@@ -368,7 +369,7 @@ client_init_gabn(client_t *client)
 	client->gabn.aliases = client->aliases;
 	client->gabn.realnamelen = 0;
 	client->gabn.aliaslen = client->aliaslen;
-	client->gabn.addrs = client->addrs;
+	LWRES_LIST_INIT(client->gabn.addrs);
 	client->gabn.base = NULL;
 	client->gabn.baselen = 0;
 

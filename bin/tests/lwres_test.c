@@ -158,6 +158,7 @@ static void
 test_gabn(char *target)
 {
 	lwres_gabnresponse_t *res;
+	lwres_addr_t *addr;
 	int ret;
 	unsigned int i;
 	char outbuf[64];
@@ -180,15 +181,19 @@ test_gabn(char *target)
 	for (i = 0 ; i < res->naliases ; i++)
 		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
 	printf("%u addresses:\n", res->naddrs);
+	addr = LWRES_LIST_HEAD(res->addrs);
 	for (i = 0 ; i < res->naddrs ; i++) {
-		if (res->addrs[i].family == LWRES_ADDRTYPE_V4)
-			(void)inet_ntop(AF_INET, res->addrs[i].address,
+		INSIST(addr != NULL);
+
+		if (addr->family == LWRES_ADDRTYPE_V4)
+			(void)inet_ntop(AF_INET, addr->address,
 					outbuf, sizeof(outbuf));
 		else
-			(void)inet_ntop(AF_INET6, res->addrs[i].address,
+			(void)inet_ntop(AF_INET6, addr->address,
 					outbuf, sizeof(outbuf));
 		printf("\tAddr len %u family %08x %s\n",
-		       res->addrs[i].length, res->addrs[i].family, outbuf);
+		       addr->length, addr->family, outbuf);
+		addr = LWRES_LIST_NEXT(addr, link);
 	}
 
 	lwres_gabnresponse_free(ctx, &res);

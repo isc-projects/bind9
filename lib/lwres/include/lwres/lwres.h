@@ -24,6 +24,7 @@
 #include <lwres/context.h>
 #include <lwres/int.h>
 #include <lwres/lang.h>
+#include <lwres/list.h>
 #include <lwres/lwpacket.h>
 #include <lwres/result.h>
 
@@ -102,14 +103,14 @@
 
 typedef struct {
 	/* public */
-	lwres_uint16_t		datalength;
-	unsigned char	       *data;
+	lwres_uint16_t			datalength;
+	unsigned char		       *data;
 } lwres_nooprequest_t;
 
 typedef struct {
 	/* public */
-	lwres_uint16_t		datalength;
-	unsigned char	       *data;
+	lwres_uint16_t			datalength;
+	unsigned char		       *data;
 } lwres_noopresponse_t;
 
 /*
@@ -117,31 +118,35 @@ typedef struct {
  */
 #define LWRES_OPCODE_GETADDRSBYNAME	0x00010001U
 
-typedef struct {
-	lwres_uint32_t		family;
-	lwres_uint16_t		length;
-	const unsigned char	*address;
-} lwres_addr_t;
+typedef struct lwres_addr lwres_addr_t;
+typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
+
+struct lwres_addr {
+	lwres_uint32_t			family;
+	lwres_uint16_t			length;
+	const unsigned char	       *address;
+	LWRES_LINK(lwres_addr_t)	link;
+};
 
 typedef struct {
 	/* public */
-	lwres_uint32_t		addrtypes;
-	lwres_uint16_t		namelen;
-	char		       *name;
+	lwres_uint32_t			addrtypes;
+	lwres_uint16_t			namelen;
+	char			       *name;
 } lwres_gabnrequest_t;
 
 typedef struct {
 	/* public */
-	lwres_uint16_t		naliases;
-	lwres_uint16_t		naddrs;
-	char		       *realname;
-	char		      **aliases;
-	lwres_uint16_t		realnamelen;
-	lwres_uint16_t	       *aliaslen;
-	lwres_addr_t	       *addrs;
+	lwres_uint16_t			naliases;
+	lwres_uint16_t			naddrs;
+	char			       *realname;
+	char			      **aliases;
+	lwres_uint16_t			realnamelen;
+	lwres_uint16_t		       *aliaslen;
+	lwres_addrlist_t		addrs;
 	/* if base != NULL, it will be freed when this structure is freed. */
-	void		       *base;
-	size_t			baselen;
+	void			       *base;
+	size_t				baselen;
 } lwres_gabnresponse_t;
 
 /*
@@ -150,19 +155,19 @@ typedef struct {
 #define LWRES_OPCODE_GETNAMEBYADDR	0x00010002U
 typedef struct {
 	/* public */
-	lwres_addr_t		addr;
+	lwres_addr_t			addr;
 } lwres_gnbarequest_t;
 
 typedef struct {
 	/* public */
-	lwres_uint16_t		naliases;
-	char		       *realname;
-	char		      **aliases;
-	lwres_uint16_t		realnamelen;
-	lwres_uint16_t	       *aliaslen;
+	lwres_uint16_t			naliases;
+	char			       *realname;
+	char			      **aliases;
+	lwres_uint16_t			realnamelen;
+	lwres_uint16_t		       *aliaslen;
 	/* if base != NULL, it will be freed when this structure is freed. */
-	void		       *base;
-	size_t			baselen;
+	void			       *base;
+	size_t				baselen;
 } lwres_gnbaresponse_t;
 
 
@@ -195,8 +200,6 @@ typedef struct {
 	lwres_uint8_t	ndots;		/* set to n in 'options ndots:n' */
 	lwres_uint8_t	no_tld_query;	/* non-zero if 'options no_tld_query' */
 } lwres_conf_t;
-
-	
 	
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
 #define LWRES_ADDRTYPE_V6		0x00000002U	/* ipv6 */
@@ -386,7 +389,7 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
  */
 
 lwres_result_t
-lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
+lwres_conf_parse(lwres_context_t *ctx, const char *filename);
 /*
  * parses a resolv.conf-format file and puts the results into *confdata;
  *
@@ -400,7 +403,7 @@ lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
  */
 
 void
-lwres_conf_free(lwres_conf_t *confdata);
+lwres_conf_free(lwres_context_t *ctx);
 /*
  * Returns the data in confdata to the system.
  *
@@ -410,25 +413,32 @@ lwres_conf_free(lwres_conf_t *confdata);
  */
 
 lwres_result_t
-lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
+lwres_conf_print(lwres_context_t *ctx, FILE *fp);
 /*
  * Prints a resolv.conf-format of confdata output to fp.
  */
 
 void
-lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata);
+lwres_conf_init(lwres_context_t *ctx);
 /*
  * sets all internal fields to a default state. Used to initialize a new
  * lwres_conf_t structure (not reset a used on).
  */
 
-
 void
-lwres_conf_clear(lwres_conf_t *confdata);
+lwres_conf_clear(lwres_context_t *ctx);
 /*
  * frees all internally allocated memory in confdata. Uses the memory 
  * routines supplies by ctx (so that should probably be the same value as
  * given to lwres_conf_parse()).
+ */
+
+lwres_conf_t *
+lwres_conf_get(lwres_context_t *ctx);
+/*
+ * returns a pointer to the current config structure.
+ * Be extremely cautions in modifying the contents of this structure; it
+ * needs an API to return the various bits of data, walk lists, etc.
  */
 
 /*
@@ -449,9 +459,6 @@ lwres_result_t
 lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 		    lwres_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);
-
-
-
 
 LWRES_LANG_ENDDECLS
 

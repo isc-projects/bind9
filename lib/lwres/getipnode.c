@@ -680,9 +680,11 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 }
 
 static struct hostent *
-hostfromname(lwres_gabnresponse_t *name, int af) {
+hostfromname(lwres_gabnresponse_t *name, int af)
+{
 	struct hostent *he;
 	int i;
+	lwres_addr_t *addr;
 
 	he = malloc(sizeof *he);
 	if (he == NULL)
@@ -718,11 +720,15 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 
 	/* copy addresses */
 	he->h_addr_list = malloc(sizeof(char *) * (name->naddrs + 1));
-	for (i = 0 ; i < name->naddrs; i++) {
+	addr = LWRES_LIST_HEAD(name->addrs);
+	i = 0;
+	while (addr != NULL) {
 		he->h_addr_list[i] = malloc(he->h_length);
 		if (he->h_addr_list[i] == NULL)
 			goto cleanup;
-		memcpy(he->h_addr_list[i], name->addrs[i].address, he->h_length);
+		memcpy(he->h_addr_list[i], addr->address, he->h_length);
+		addr = LWRES_LIST_NEXT(addr, link);
+		i++;
 	}
 	he->h_addr_list[i] = NULL;
 	return (he);

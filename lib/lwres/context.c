@@ -77,6 +77,11 @@ lwres_context_create(lwres_context_t **contextp, void *arg,
 
 	(void)context_connect(ctx); /* XXXMLG */
 
+	/*
+	 * Init resolv.conf bits.
+	 */
+	lwres_conf_init(ctx);
+
 	*contextp = ctx;
 	return (LWRES_R_SUCCESS);
 }

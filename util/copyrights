@@ -742,6 +742,7 @@
 ./lib/lwres/include/lwres/Makefile.in		MAKE	2000
 ./lib/lwres/include/lwres/context.h		C	2000
 ./lib/lwres/include/lwres/ipv6.h		C	2000
+./lib/lwres/include/lwres/list.h		C	1999,2000
 ./lib/lwres/include/lwres/lwbuffer.h		C	2000
 ./lib/lwres/include/lwres/lwpacket.h		C	1999,2000
 ./lib/lwres/include/lwres/lwres.h		C	2000
