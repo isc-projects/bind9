@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.146 2001/02/10 02:00:08 bwelling Exp $ */
+/* $Id: client.c,v 1.147 2001/02/12 20:26:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1799,7 +1799,7 @@ client_udprecv(ns_client_t *client) {
 				 "isc_socket_recv() failed: %s",
 				 isc_result_totext(result));
 		/*
-		 * XXXBEW  What should we do?  We're trying to accept but
+		 * XXXBEW  What should we do?  We're trying to receive but
 		 *         it didn't work.  If we just give up, then UDP
 		 *	   service may eventually stop.
 		 *
