@@ -1,4 +1,6 @@
 
+ 415.	[bug]		The logging code leaked file descriptors.
+
  413.	[bug]		Notify could attempt to use the zone database after
 			it had been unloaded. [RT#267]
 

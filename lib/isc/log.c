@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.38.2.2 2000/08/25 01:13:33 bwelling Exp $ */
+/* $Id: log.c,v 1.38.2.3 2000/08/31 23:45:21 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1067,6 +1067,7 @@ greatest_version(isc_logchannel_t *channel) {
 				greatest = version;
 		}
 	}
+	isc_dir_close(&dir);
 
 	if (basename != FILE_NAME(channel))
 		*--basename = '/';
