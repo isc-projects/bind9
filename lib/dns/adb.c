@@ -1389,6 +1389,7 @@ new_adbentry(dns_adb_t *adb)
 	e->lock_bucket = DNS_ADB_INVALIDBUCKET;
 	e->refcnt = 0;
 	e->flags = 0;
+	e->edns_level = -1;
 	e->goodness = 0;
 	isc_random_get(&adb->rand, &r);
 	e->srtt = (r & 0x1f) + 1;
