@@ -21,7 +21,7 @@
  *
  * In finds, if task == NULL, no events will be generated, and no events
  * have been sent.  If task != NULL but taskaction == NULL, an event has been
- * posted but not yet freed.  If neigher are NULL, no event was posted.
+ * posted but not yet freed.  If neither are NULL, no event was posted.
  *
  */
 
@@ -76,11 +76,17 @@
 #define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
 /*
- * The number of buckets needs to be a prime.
+ * The number of buckets needs to be a prime (for good hashing).
+ *
+ * XXXRTH  How many buckets do we need?
+ *
+ * This value must be coordinated with CLEAN_SECONDS (below).
  */
 #define NBUCKETS	       101	/* how many buckets for names/addrs */
 
-/* clean this many seconds initially */
+/*
+ * Clean one bucket every CLEAN_SECONDS.
+ */
 #define CLEAN_SECONDS		(300 / NBUCKETS)
 
 #define FREE_ITEMS		16	/* free count for memory pools */
@@ -128,6 +134,8 @@ struct dns_adb {
 
 	/*
 	 * Bucketized locks and lists for names.
+	 *
+	 * XXXRTH  Have a per-bucket structure that contains all of these?
 	 */
 	dns_adbnamelist_t		names[NBUCKETS];
 	isc_mutex_t			namelocks[NBUCKETS];
@@ -136,6 +144,8 @@ struct dns_adb {
 
 	/*
 	 * Bucketized locks for entries.
+	 *
+	 * XXXRTH  Have a per-bucket structure that contains all of these?
 	 */
 	dns_adbentrylist_t		entries[NBUCKETS];
 	isc_mutex_t			entrylocks[NBUCKETS];
@@ -145,6 +155,10 @@ struct dns_adb {
 	isc_boolean_t			shutting_down;
 	isc_eventlist_t			whenshutdown;
 };
+
+/*
+ * XXXMLG  Document these structures.
+ */
 
 struct dns_adbname {
 	unsigned int			magic;
@@ -500,7 +514,6 @@ import_a6(dns_a6context_t *a6ctx)
 	dns_adb_t *adb;
 	dns_adbnamehook_t *nh;
 	dns_adbentry_t *foundentry;  /* NO CLEAN UP! */
-	isc_boolean_t address_added;
 	int addr_bucket;
 	isc_sockaddr_t sockaddr;
 
@@ -510,7 +523,6 @@ import_a6(dns_a6context_t *a6ctx)
 	INSIST(DNS_ADB_VALID(adb));
 
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
-	address_added = ISC_FALSE;
 
 	DP(ENTER_LEVEL, "ENTER: import_a6() name %p", name);
 	
@@ -541,9 +553,14 @@ import_a6(dns_a6context_t *a6ctx)
 		nh->entry = foundentry;
 	}
 
-	address_added = ISC_TRUE;
 	ISC_LIST_APPEND(name->v6, nh, plink);
 	nh = NULL;
+
+	DP(1, "expire_v6 set to MIN(%u,%u) in import_v6",
+	   name->expire_v6, a6ctx->expiration);
+	name->expire_v6 = ISC_MIN(name->expire_v6, a6ctx->expiration);
+
+	name->flags |= NAME_NEEDS_POKE;
 
  fail:
 	if (nh != NULL)
@@ -551,13 +568,6 @@ import_a6(dns_a6context_t *a6ctx)
 
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
-
-	DP(1, "expire_v6 set to MIN(%u,%u) in import_v6",
-	   name->expire_v6, a6ctx->expiration);
-	name->expire_v6 = ISC_MIN(name->expire_v6, a6ctx->expiration);
-
-	if (address_added)
-		name->flags |= NAME_NEEDS_POKE;
 }
 
 /*
@@ -2138,6 +2148,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 
 	/*
+	 * XXXMLG  Move this comment somewhere else!
+	 *
 	 * Look up the name in our internal database.
 	 *
 	 * Possibilities:  Note that these are not always exclusive.
@@ -2155,6 +2167,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	 *	list and remember to tell the caller that there will be
 	 *	more info coming later.
 	 */
+
 	find = new_adbfind(adb);
 	if (find == NULL)
 		return (ISC_R_NOMEMORY);
@@ -2264,13 +2277,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			   adbname);
 			goto copy;
 		}
-
-		/*
-		 * If all those fail, should we then try AAAA?  Note that in
-		 * this case failure means "could not start query" or
-		 * some sort of database error, not "no such name" in most
-		 * cases.
-		 */
 	}
 
 	/*
@@ -2288,8 +2294,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	/*
 	 * Attach to the name's query list if there are queries
 	 * already running, and we have been asked to.
-	 *
-	 * This is complicated in that the "flags" bits must be right.
 	 */
 	want_event = ISC_TRUE;
 	if (!FIND_WANTEVENT(find))
@@ -2385,7 +2389,7 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host)
 
 /* XXXMLG needs v6 support */
 isc_result_t
-dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
+_dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 	       dns_ttl_t ttl, isc_stdtime_t now)
 {
 	dns_adbname_t *name;
@@ -2886,15 +2890,6 @@ print_find_list(FILE *f, dns_adbname_t *name)
 	}
 }
 
-/*
- * On entry, "bucket" refers to a locked name bucket, "find" is not NULL,
- * and "name" is the name we are looking for.  We will allocate an adbname
- * and return a pointer to it in *adbnamep.
- *
- * If we return ISC_R_SUCCESS, the new name will have been allocated, and
- * perhaps some namehooks will have been filled in with valid entries, and
- * perhaps some fetches have been started.
- */
 static isc_result_t
 dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	    isc_boolean_t use_hints, dns_rdatatype_t rdtype)
@@ -2907,8 +2902,6 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
-
-	result = ISC_R_UNEXPECTED;
 
 	dns_rdataset_init(&rdataset);
 
@@ -3038,10 +3031,6 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 		fetch = name->fetch_aaaa;
 		name->fetch_aaaa = NULL;
 	}
-	if (address_type == 0) {
-		DP(3, "fetch %p, _a %p, _aaaa %p, name %p",
-		   dev->fetch, name->fetch_a, name->fetch_aaaa, name);
-	}
 	INSIST(address_type != 0);
 
 	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
@@ -3100,6 +3089,13 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 		}
 		goto out;
 	}
+
+	/*
+	 * XXXRTH  CNAME/DNAME?  We don't need to do this for targets
+	 *                       of NS records, but what about other names?
+	 *
+	 *	                 Need to do this for A6 too!
+	 */
 
 	/*
 	 * Did we get back junk?  If so, and there are no more fetches
