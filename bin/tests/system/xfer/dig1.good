@@ -50,7 +50,7 @@ nsap02.example.		3600	IN	NSAP	0x47000580005a0000000001e133ffffff00016100
 nsec01.example.		3600	IN	NSEC	a.secure.nil. NS SOA MX LOC RRSIG NSEC DNSKEY
 nsec02.example.		3600	IN	NSEC	. NSAP-PTR NSEC
 nsec03.example.		3600	IN	NSEC	. A
-nsec04.example.		3600	IN	NSEC	. 127
+nsec04.example.		3600	IN	NSEC	. TYPE127
 ptr01.example.		3600	IN	PTR	example.
 px01.example.		3600	IN	PX	65535 foo. bar.
 px02.example.		3600	IN	PX	65535 . .

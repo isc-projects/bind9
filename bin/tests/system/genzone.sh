@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: genzone.sh,v 1.4 2003/09/30 05:56:06 marka Exp $
+# $Id: genzone.sh,v 1.5 2004/01/27 04:39:29 marka Exp $
 
 #
 # Set up a test zone
@@ -229,8 +229,8 @@ rrsig01			RRSIG	NSEC 1 3 ( 3600 20000102030405
 ; type 47
 nsec01			NSEC	a.secure.nil. ( NS SOA MX RRSIG DNSKEY LOC NSEC )
 nsec02			NSEC	. NSEC NSAP-PTR
-nsec03			NSEC	. 1
-nsec04			NSEC	. 127
+nsec03			NSEC	. TYPE1
+nsec04			NSEC	. TYPE127
 
 ; type 48
 dnskey01		DNSKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
