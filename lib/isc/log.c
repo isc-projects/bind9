@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.43 2000/08/24 18:21:40 gson Exp $ */
+/* $Id: log.c,v 1.44 2000/08/24 23:22:40 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <time.h>
 
 #include <sys/stat.h>
 
