@@ -135,23 +135,6 @@ typedef isc_event_t intev_t;
  */
 #define TOTAL_SPACE	(PKTINFO_SPACE + TIMESTAMP_SPACE)
 
-/*
- * At this point, it is possible to have USE_CMSG defined, but the OS
- * doesn't provide the CMSG_ macros we need.  Rather than toy around with
- * things, don't use the CMSG stuff if the macros we need aren't defined.
- */
-#ifdef USE_CMSG
-#if !defined(CMSG_SPACE) || !defined(CMSG_NXTHDR) || !defined(CMSG_FIRSTHDR) \
-	|| !defined(CMSG_LEN) || !defined(CMSG_DATA)
-#warning Not using ipv6 pktinfo or timestamp because of partial CMSG_ implementation.
-#undef USE_CMSG
-#endif
-#if !defined(ISC_NET_BSD44MSGHDR)
-#warning Not using ipv6 pktinfo or timestamp because of lack of BSD44 msghdr
-#undef USE_CMSG
-#endif
-#endif
-
 struct isc_socket {
 	/* Not locked. */
 	unsigned int			magic;
@@ -330,9 +313,8 @@ make_nonblock(int fd)
 static void
 process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 {
-
 #ifdef USE_CMSG
-	struct cmsghdr *cmsgp, cmsg;
+	struct cmsghdr *cmsgp;
 #ifdef ISC_PLATFORM_HAVEIPV6
 	struct in6_pktinfo *pktinfop;
 #endif
@@ -369,28 +351,25 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
 
 	cmsgp = CMSG_FIRSTHDR(msg);
 	while (cmsgp != NULL) {
-		cmsg = *cmsgp;
 		XTRACE(TRACE_RECV, ("Processing cmsg %p\n", cmsgp));
 
 #ifdef ISC_PLATFORM_HAVEIPV6
-		if (cmsg.cmsg_level == IPPROTO_IPV6
-		    && cmsg.cmsg_type == IPV6_PKTINFO) {
+		if (cmsgp->cmsg_level == IPPROTO_IPV6
+		    && cmsgp->cmsg_type == IPV6_PKTINFO) {
 			pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 			dev->pktinfo = *pktinfop;
 			dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
-			fprintf(stderr, "Found IPv6 PKTINFO\n");
 			goto next;
 		}
 #endif
 
 #ifdef SO_TIMESTAMP
-		if (cmsg.cmsg_level == SOL_SOCKET
-		    && cmsg.cmsg_type == SCM_TIMESTAMP) {
+		if (cmsgp->cmsg_level == SOL_SOCKET
+		    && cmsgp->cmsg_type == SCM_TIMESTAMP) {
 			timevalp = (struct timeval *)CMSG_DATA(cmsgp);
 			dev->timestamp.seconds = timevalp->tv_sec;
 			dev->timestamp.nanoseconds = timevalp->tv_usec * 1000;
 			dev->attributes |= ISC_SOCKEVENTATTR_TIMESTAMP;
-			fprintf(stderr, "Found UDP timestamp\n");
 			goto next;
 		}
 #endif
@@ -1045,6 +1024,9 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 {
 	isc_socket_t *sock = NULL;
 	isc_result_t ret;
+#if defined(USE_CMSG)
+	int on = 1;
+#endif
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -1084,15 +1066,30 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		return (ISC_R_UNEXPECTED);
 	}
 
-#ifdef SO_TIMESTAMP
-	if (type == isc_sockettype_udp
-	    && setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
-			  (void *)&on, sizeof on) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
-				 sock->fd);
-		/* Press on... */
+#if defined(USE_CMSG)
+	if (type == isc_sockettype_udp) {
+
+#if defined(SO_TIMESTAMP)
+		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
+			       (void *)&on, sizeof on) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d) failed", sock->fd);
+			/* Press on... */
+		}
+#endif /* SO_TIMESTAMP */
+
+#if defined(ISC_PLATFORM_HAVEIPV6)
+		if ((pf == AF_INET6)
+		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
+				   (void *)&on, sizeof (on)) < 0)) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d) failed: %s",
+					 sock->fd, strerror(errno));
+		}
+#endif /* ISC_PLATFORM_HAVEIPV6 */
+
 	}
-#endif
+#endif /* USE_CMSG */
 
 	sock->references = 1;
 	*socketp = sock;
