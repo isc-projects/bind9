@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.21 1999/10/29 11:10:04 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.22 1999/10/29 15:44:06 halley Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -308,7 +308,7 @@ static void             yyerror(const char *);
 
 %type <severity>        check_names_opt;
 
-%type <text>		optional_string
+/* %type <text>		optional_string */
 %type <text>            algorithm_id
 %type <text>            any_string
 %type <text>            channel_name
