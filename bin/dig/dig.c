@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.51.2.3 2000/07/12 00:21:56 gson Exp $ */
+/* $Id: dig.c,v 1.51.2.4 2000/07/12 17:56:23 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -160,6 +160,8 @@ show_usage(void) {
 "                 +[no]defname        (Set whether to use default domaon)\n"
 "                 +[no]recursive      (Recursive mode)\n"
 "                 +[no]aaonly         (Set AA flag in query)\n"
+"                 +[no]adflag         (Set AD flag in query)\n"
+"                 +[no]cdflag         (Set CD flag in query)\n"
 "                 +[no]details        (Show details of all requests)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
@@ -169,6 +171,7 @@ show_usage(void) {
 "                 +[no]additional     (Control display of additional)\n"
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
+"                 +[no]all            (Set or clear all display flags)\n"
 "                 +qr                 (Print question before sending)\n"
 "                 +[no]cdflag         (Set or clear CD flag in query)\n"
 "                 +[no]adflag         (Set or clear AD flag in query)\n"
