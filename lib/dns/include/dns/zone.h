@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.7 2003/08/20 06:37:17 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.8 2003/08/21 05:19:21 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -232,6 +232,9 @@ dns_zone_loadnew(dns_zone_t *zone);
  * Returns:
  *	ISC_R_UNEXPECTED
  *	ISC_R_SUCCESS
+ *	DNS_R_CONTINUE	  Incremental load has been queued.
+ *	DNS_R_UPTODATE	  The zone has already been loaded based on
+ *			  file system timestamps.
  *	DNS_R_BADZONE
  *	Any result value from dns_db_load().
  */
@@ -1355,6 +1358,14 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
 void
 dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
 	ISC_FORMAT_PRINTF(3, 4);
+/*
+ * Log the message 'msg...' at 'level', including text that identifies
+ * the message as applying to 'zone'.
+ */
+
+void
+dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category, int level,
+	      const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
 /*
  * Log the message 'msg...' at 'level', including text that identifies
  * the message as applying to 'zone'.

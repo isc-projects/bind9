@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.19 2003/08/21 02:50:34 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.20 2003/08/21 05:19:20 marka Exp $ */
 
 #include <config.h>
 
@@ -961,7 +961,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file older "
 					     "than last load");
-				result = ISC_R_SUCCESS;
+				result = DNS_R_UPTODATE;
 				goto cleanup;
 			}
 		}
@@ -1027,7 +1027,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 
 	if (result == DNS_R_CONTINUE) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADING);
-		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 

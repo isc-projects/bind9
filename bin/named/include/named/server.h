@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58.2.1.10.5 2003/08/15 02:24:28 marka Exp $ */
+/* $Id: server.h,v 1.58.2.1.10.6 2003/08/21 05:19:20 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -120,7 +120,7 @@ ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
  */
 
 isc_result_t
-ns_server_reloadcommand(ns_server_t *server, char *args);
+ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text);
 /*
  * Act on a "reload" command from the command channel.
  */
@@ -132,7 +132,7 @@ ns_server_reconfigcommand(ns_server_t *server, char *args);
  */
 
 isc_result_t
-ns_server_refreshcommand(ns_server_t *server, char *args);
+ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text);
 /*
  * Act on a "refresh" command from the command channel.
  */
