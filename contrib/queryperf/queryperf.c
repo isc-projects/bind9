@@ -18,7 +18,7 @@
 /***
  ***	DNS Query Performance Testing Tool  (queryperf.c)
  ***
- ***	Version $Id: queryperf.c,v 1.1.1.2 2001/07/18 23:33:04 gson Exp $
+ ***	Version $Id: queryperf.c,v 1.1.1.2.2.1 2001/09/27 00:44:26 marka Exp $
  ***
  ***	Stephen Jacob <sj@nominum.com>
  ***/
@@ -164,7 +164,7 @@ void
 show_startup_info(void) {
 	printf("\n"
 "DNS Query Performance Testing Tool\n"
-"Version: $Id: queryperf.c,v 1.1.1.2 2001/07/18 23:33:04 gson Exp $\n"
+"Version: $Id: queryperf.c,v 1.1.1.2.2.1 2001/09/27 00:44:26 marka Exp $\n"
 "\n");
 }
 
@@ -582,12 +582,12 @@ open_socket(void) {
 	bufsize = 1024 * socket_bufsize;
 
 	ret = setsockopt(sock, SOL_SOCKET, SO_RCVBUF,
-			 &bufsize, sizeof(bufsize));
+			 (char *) &bufsize, sizeof(bufsize));
 	if (ret < 0)
 		fprintf(stderr, "Warning:  setsockbuf(SO_RCVBUF) failed\n");
 
 	ret = setsockopt(sock, SOL_SOCKET, SO_SNDBUF,
-			 &bufsize, sizeof(bufsize));
+			 (char *) &bufsize, sizeof(bufsize));
 	if (ret < 0)
 		fprintf(stderr, "Warning:  setsockbuf(SO_SNDBUF) failed\n");
 
