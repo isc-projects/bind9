@@ -213,11 +213,12 @@ void dns_name_init(dns_name_t *name, unsigned char *offsets);
  *	name operations if the name is used more than once.
  *
  * Requires:
- *	'name' is a valid name (i.e. not NULL, points to a struct dns_name)
+ *	'name' is not NULL and points to a struct dns_name.
  *
  *	offsets == NULL or offsets is a dns_offsets_t.
  *
  * Ensures:
+ *	'name' is a valid name.
  *	dns_name_countlabels(name) == 0
  */
 
