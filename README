@@ -125,6 +125,7 @@ Building
 	of the following systems:
 
 		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
+		OpenBSD 2.6, 2.8
 
 	To build, just
 
