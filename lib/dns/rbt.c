@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -24,8 +24,10 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/mem.h>
+#include <isc/result.h>
 
-#include <dns/redblack.h>
+#include <dns/rbt.h>
+#include <dns/result.h>
 
 #define RBT_MAGIC		0x5242542BU /* RBT+. */
 #define VALID_RBT(rbt)		((rbt) != NULL && (rbt)->magic == RBT_MAGIC)
@@ -33,8 +35,12 @@
 struct dns_rbt {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
-	dns_rbt_node_t *	root;
+	dns_rbtnode_t *	root;
 };
+
+#ifndef MIN
+#define	MIN(a,b) (((a)<(b))?(a):(b))
+#endif
 
 #define PARENT(node)	((node)->parent)
 #define LEFT(node) 	((node)->left)
@@ -67,9 +73,9 @@ struct dns_rbt {
 /*
  * A little something to help out in GDB.
  */
-isc_region_t Name(dns_rbt_node_t *node);
+isc_region_t Name(dns_rbtnode_t *node);
 isc_region_t 
-Name(dns_rbt_node_t *node) {
+Name(dns_rbtnode_t *node) {
 	isc_region_t r;
 
 	r.length = NAMELEN(node);
@@ -80,37 +86,35 @@ Name(dns_rbt_node_t *node) {
 #else
 #endif
 
-#if 0
-dns_rbt_node_t *Root;			/* The Root of All Ev... er, DNS. */
-#endif
-
 /*
  * Forward declarations.
  */
-static isc_result_t create_node(isc_mem_t *mctx,
-				dns_name_t *name, dns_rbt_node_t **nodep);
+static dns_result_t create_node(isc_mem_t *mctx,
+				dns_name_t *name, dns_rbtnode_t **nodep);
 
 static int cmp_label(dns_label_t *a, dns_label_t *b);
 static inline int cmp_names_on_level(dns_name_t *a, dns_name_t *b);
 static inline int cmp_names_for_depth(dns_name_t *a, dns_name_t *b);
 
-static inline void rotate_left(dns_rbt_node_t *node, dns_rbt_node_t **rootp);
-static inline void rotate_right(dns_rbt_node_t *node, dns_rbt_node_t **rootp);
+static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent,
+			       dns_rbtnode_t **rootp);
+static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
+				dns_rbtnode_t **rootp);
 
-static isc_result_t dns_rbt_add_node(dns_rbt_node_t *node,
-				     dns_rbt_node_t **rootp);
-static isc_result_t dns_rbt_delete_workhorse(dns_rbt_node_t *delete,
-					     dns_rbt_node_t **rootp);
-static void dns_rbt_delete_node(isc_mem_t *mctx,
-				dns_rbt_node_t *node, dns_rbt_node_t **root);
-static void dns_rbt_delete_tree(isc_mem_t *mctx,
-				dns_rbt_node_t *node, dns_rbt_node_t **root);
+static dns_result_t dns_rbt_add_node(dns_rbtnode_t *node,
+				     dns_rbtnode_t **rootp);
+static dns_result_t dns_rbt_delete_workhorse(dns_rbtnode_t *delete,
+					     dns_rbtnode_t **rootp);
+static void dns_rbt_deletenode(isc_mem_t *mctx,
+				dns_rbtnode_t *node, dns_rbtnode_t **root);
+static void dns_rbt_deletetree(isc_mem_t *mctx,
+				dns_rbtnode_t *node, dns_rbtnode_t **root);
 
 
 /*
  * Initialize a red/black tree of trees.
  */
-isc_result_t
+dns_result_t
 dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp) {
 	dns_rbt_t *rbt;
 
@@ -119,7 +123,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp) {
 
 	rbt = (dns_rbt_t *)isc_mem_get(mctx, sizeof(*rbt));
 	if (rbt == NULL)
-		return (ISC_R_NOMEMORY);
+		return (DNS_R_NOMEMORY);
 
 	rbt->mctx = mctx;
 	rbt->root = NULL;
@@ -127,7 +131,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp) {
 
 	*rbtp = rbt;
 
-	return (ISC_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 /*
@@ -141,7 +145,9 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 
 	rbt = *rbtp;
 
-	dns_rbt_delete_tree(rbt->mctx, rbt->root, &rbt->root);
+	dns_rbt_deletetree(rbt->mctx, rbt->root, &rbt->root);
+
+	rbt->magic = 0;
 
 	isc_mem_put(rbt->mctx, rbt, sizeof(*rbt));
 
@@ -152,12 +158,12 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
  * Add 'name' to tree, initializing its data pointer with 'data'.
  */
 
-isc_result_t
+dns_result_t
 dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
-	dns_rbt_node_t **root, *current, *child, *new_node, *new_current;
+	dns_rbtnode_t **root, *current, *child, *new_node, *new_current, *parent;
 	dns_name_t add_name, current_name, new_name, tmp_name;
 	int compared, add_labels, current_labels, keep_labels, start_label;
-	isc_result_t result;
+	dns_result_t result;
 
 	REQUIRE(dns_name_isabsolute(name));
 
@@ -175,13 +181,12 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 
 	if (rbt->root == NULL) {
 		result = create_node(rbt->mctx, &add_name, &new_node);
-		if (result == ISC_R_SUCCESS)
-			result = dns_rbt_add_node(new_node, &rbt->root);
-
+		rbt->root = new_node;
 		return (result);
 	}
 
 	root = &rbt->root;
+	parent = NULL;
 	child = *root;
 	dns_name_init(&current_name, NULL);
 	do {
@@ -192,18 +197,20 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 
 		if (compared == BOTH_ARE_EQUAL)
 			if (DATA(current) != NULL)
-				return(ISC_R_EXISTS);
+				return(DNS_R_EXISTS); /* @@@ DNS_R_DISALLOWED */
 			else {
-				DATA(current) = data; /* @@@ ? */
-				return(ISC_R_SUCCESS);
+				DATA(current) = data;
+				return(DNS_R_SUCCESS);
 			}
 
-		else if (compared == FIRST_IS_LESS)
+		else if (compared == FIRST_IS_LESS) {
+			parent = current;
 			child = LEFT(current);
-		else if (compared == FIRST_IS_MORE)
+		} else if (compared == FIRST_IS_MORE) {
+			parent = current;
 			child = RIGHT(current);
 
-		else {
+		} else {
 			/*
 			 * This name has some suffix in common with the
 			 * name at the current node.  If the name at
@@ -247,8 +254,9 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 				/*
 				 * Follow the down pointer (possibly NULL).
 				 */
-				child = DOWN(current);
 				root = &DOWN(current);
+				parent = NULL;
+				child = DOWN(current);
 
 			} else {
 				/*
@@ -277,7 +285,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 
 				result = create_node(rbt->mctx,
 						     &tmp_name, &new_current);
-				if (result != ISC_R_SUCCESS)
+				if (result != DNS_R_SUCCESS)
 					return (result);
 
 				/* 
@@ -290,13 +298,11 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 				/*
 				 * Fix pointers that were to the current node.
 				 */
-				if (PARENT(current) != NULL)
-					if (LEFT(PARENT(current)) == current)
-						SET_LEFT(PARENT(current),
-							 new_current);
+				if (parent != NULL)
+					if (LEFT(parent) == current)
+						SET_LEFT(parent, new_current);
 					else
-						SET_RIGHT(PARENT(current),
-							  new_current);
+						SET_RIGHT(parent, new_current);
 				if (*root == current)
 					*root = new_current;
 
@@ -320,7 +326,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 
 				result = create_node(rbt->mctx,
 						     &new_name, &new_node);
-				if (result != ISC_R_SUCCESS)
+				if (result != DNS_R_SUCCESS)
 					return (result);
 
 				DATA(new_node) = DATA(new_current);
@@ -337,17 +343,10 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 				current = new_current;
 
 				/*
-				 * Set up the new root of the next level
-				 * and start the next tree.
+				 * Set up the new root of the next level.
 				 */
-				DOWN(current) = NULL;
+				DOWN(current) = new_node;
 				root = &DOWN(current);
-				result = dns_rbt_add_node(new_node, root);
-				/*
-				 * This should never happen, eh?
-				 */
-				if (result != ISC_R_SUCCESS)
-					return(result);
 
 				if (compared == add_labels) {
 					/*
@@ -361,7 +360,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 					 * Since the new name has had its
 					 * data placed, the job is done!
 					 */
-					return(ISC_R_SUCCESS);
+					return(DNS_R_SUCCESS);
 				} else {
 					/*
 					 * The current node has no name data,
@@ -382,6 +381,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 								  &add_name);
 
 					current = new_node;
+					parent = NULL; /* @@@ ? only necessary if used outside loop */
 					child = NULL;
 				}
 
@@ -393,7 +393,7 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
 
 	result = create_node(rbt->mctx,
 			     &add_name, &new_node);
-	if (result == ISC_R_SUCCESS) {
+	if (result == DNS_R_SUCCESS) {
 		DATA(new_node) = data;
 		result = dns_rbt_add_node(new_node, root);
 	}
@@ -406,9 +406,9 @@ dns_rbt_add_name(dns_rbt_t *rbt, dns_name_t *name, void *data) {
  * If second argument "up" is non-NULL, set it to the node that has
  * the down pointer for the found node.
  */
-dns_rbt_node_t *
-dns_rbt_find_node(dns_rbt_t *rbt, dns_name_t *name, dns_rbt_node_t **up) {
-	dns_rbt_node_t *current;
+dns_rbtnode_t *
+dns_rbt_find_node(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **up) {
+	dns_rbtnode_t *current;
 	dns_name_t *search_name, *new_search_name, *current_name;
 	dns_name_t holder1, holder2;
 	int compared, current_labels, keep_labels, dont_count_root_label;
@@ -512,7 +512,7 @@ dns_rbt_find_node(dns_rbt_t *rbt, dns_name_t *name, dns_rbt_node_t **up) {
 
 void *
 dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name) {
-	dns_rbt_node_t *node;
+	dns_rbtnode_t *node;
 
 	node = dns_rbt_find_node(rbt, name, NULL);
 
@@ -522,6 +522,7 @@ dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name) {
 		return(NULL);
 }
 
+#if 0
 /* @@@ WHEN DELETING, IF A TREE IS LEFT WITH NO RIGHT OR LEFT NODES
    THEN IT SHOULD HAVE ITS NAME GLOMMED INTO THE NAME ABOVE IT.  THIS
    COULD STAND A dns_name_prefix_name FUNCTION OR SOME SUCH. */
@@ -532,9 +533,22 @@ dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name) {
  * This will remove all subnames of the name, too.
  * @@@ (Should it?  If not, what should happen to those subnames?)
  */
-isc_result_t
-dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name) {
-	dns_rbt_node_t *node, *up, **root;
+dns_result_t
+dns_rbt_deletename(isc_mem_t *mctx, dns_name_t *name) {
+dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name) {
+	/*
+	 * find the node, building the ancestor chain.
+	 * when searching, the name might not have an exact match:
+	 *    consider a.b.a.com, b.b.a.com and c.b.a.com as the only
+	 *    elements of a tree, which would make layer 1 a single
+	 *    node tree of "b.a.com" and layer 2 a three node tree of
+	 *    a, b, and c.  deleting a.com would find only a partial depth
+	 *    match in the first layer.
+	 * deletes ALL subnames of the name.
+	 * delete all ancestors that have no data???
+	 * if so, will also need chain of UP pointers
+	 */
+	dns_rbtnode_t *node, *up, **root;
 
 	REQUIRE(dns_name_isabsolute(name));
 
@@ -542,7 +556,7 @@ dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name) {
 
 	if (node != NULL) {
 		if (DOWN(node))
-			dns_rbt_delete_tree(rbt->mctx,
+			dns_rbt_deletetree(rbt->mctx,
 					    DOWN(node), &DOWN(node));
 
 		if (up != NULL)
@@ -550,16 +564,17 @@ dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name) {
 		else
 			root = &rbt->root;
 
-		dns_rbt_delete_node(rbt->mctx, node, root);
+		dns_rbt_deletenode(rbt->mctx, node, root);
 
-		return(ISC_R_SUCCESS);
+		return(DNS_R_SUCCESS);
 	} else
-		return(ISC_R_NOTFOUND);
+		return(DNS_R_NOTFOUND); /* @@@ DNS_R_RANGE?  */
 
 }
+#endif
 
 void
-dns_rbt_namefromnode(dns_rbt_node_t *node, dns_name_t *name) {
+dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name) {
 	isc_region_t r;
 
 	r.length = NAMELEN(node);
@@ -568,34 +583,35 @@ dns_rbt_namefromnode(dns_rbt_node_t *node, dns_name_t *name) {
 	dns_name_fromregion(name, &r);
 }
 
-static isc_result_t
-create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbt_node_t **nodep) {
-	dns_rbt_node_t *node;
+static dns_result_t
+create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
+	dns_rbtnode_t *node;
 	isc_region_t region;
 
 	dns_name_toregion(name, &region);
 
-	node = (dns_rbt_node_t *)isc_mem_get(mctx,
-					     sizeof(*node) + region.length);
+	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) + region.length);
 	if (node == NULL)
-		return (ISC_R_NOMEMORY);
+		return (DNS_R_NOMEMORY);
 
-	PARENT(node) = NULL;
+	/*	PARENT(node) = NULL; */
 	LEFT(node) = NULL;
 	RIGHT(node) = NULL;
 	DOWN(node) = NULL;
+
+	MAKE_BLACK(node);
 
 	NAMELEN(node) = region.length;
 	memcpy(NAME(node), region.base, region.length);
 
 	*nodep = node;
 
-	return (ISC_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 static inline void
-rotate_left(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
-	dns_rbt_node_t *child;
+rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) {
+	dns_rbtnode_t *child;
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
@@ -604,26 +620,21 @@ rotate_left(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 	REQUIRE(child != NULL);
 
 	SET_RIGHT(node, LEFT(child));
-	if (LEFT(child) != NULL)
-		SET_PARENT(LEFT(child), node);
-
 	SET_LEFT(child, node);
-	SET_PARENT(child, PARENT(node));
-	if (PARENT(node) != NULL) {
-		if (LEFT(PARENT(node)) == node)
-			SET_LEFT(PARENT(node), child);
+
+	if (parent != NULL) {
+		if (LEFT(parent) == node)
+			SET_LEFT(parent, child);
 		else {
-			SET_RIGHT(PARENT(node), child);
+			SET_RIGHT(parent, child);
 		}
 	} else
 		*rootp = child;
-
-	SET_PARENT(node, child);
 }
 
 static inline void
-rotate_right(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
-	dns_rbt_node_t *child;
+rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp) {
+	dns_rbtnode_t *child;
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
@@ -632,28 +643,24 @@ rotate_right(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 	REQUIRE(child != NULL);
 
 	SET_LEFT(node, RIGHT(child));
-	if (RIGHT(child) != NULL)
-		SET_PARENT(RIGHT(child), node);
-
 	SET_RIGHT(child, node);
-	SET_PARENT(child, PARENT(node));
-	if (PARENT(node) != NULL) {
-		if (LEFT(PARENT(node)) == node)
-			SET_LEFT(PARENT(node), child);
+
+	if (parent != NULL) {
+		if (LEFT(parent) == node)
+			SET_LEFT(parent, child);
 		else
-			SET_RIGHT(PARENT(node), child);
+			SET_RIGHT(parent, child);
 	} else
 		*rootp = child;
-
-	SET_PARENT(node, child);
 }
 
-static isc_result_t
-dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
-	dns_rbt_node_t *current, *child, *root, *parent, *grandparent;
+static dns_result_t
+dns_rbt_add_node(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
+	dns_rbtnode_t *current, *child, *root, *tmp;
+	dns_rbtnode_t *ancestors[64], *parent, *grandparent; /* @@@ dynamic 64 */
 	dns_name_t add_name, current_name;
 	dns_offsets_t offsets;
-	int i;
+	int i, depth;
 
 	REQUIRE(rootp != NULL);
 	REQUIRE(LEFT(node) == NULL && RIGHT(node) == NULL);
@@ -662,11 +669,12 @@ dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 	if (root == NULL) {
 		MAKE_BLACK(node);
 		*rootp = node;
-		return (ISC_R_SUCCESS);
+		return (DNS_R_SUCCESS);
 	}
 
 	current = NULL;
 	child = root;
+	depth = 0;
 
 	dns_name_init(&add_name, offsets);
 	dns_rbt_namefromnode(node, &add_name);
@@ -674,29 +682,32 @@ dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 	dns_name_init(&current_name, NULL);
 
 	do {
+		ancestors[depth++] = current;
 		current = child;
 
 		dns_rbt_namefromnode(current, &current_name);
 
 		i = cmp_names_on_level(&add_name, &current_name);
 		if (i == 0)
-			return (ISC_R_EXISTS);
+			return (DNS_R_EXISTS); /* @@@ DNS_R_DISALLOWED? */
 		if (i < 0)
 			child = LEFT(current);
 		else
 			child = RIGHT(current);
 	} while (child != NULL);
 
+	/* insist depth < space available */
+	ancestors[depth] = current;
+
 	if (i < 0)
 		SET_LEFT(current, node);
 	else
 		SET_RIGHT(current, node);
 	MAKE_RED(node);
-	SET_PARENT(node, current);
 
-	while (node != root && IS_RED(PARENT(node))) {
-		parent = PARENT(node);
-		grandparent = PARENT(PARENT(node));
+	while (node != root && IS_RED(ancestors[depth])) {
+		parent = ancestors[depth];
+		grandparent = ancestors[depth - 1];
 
 		if (parent == LEFT(grandparent)) {
 			child = RIGHT(grandparent);
@@ -705,16 +716,19 @@ dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 				MAKE_BLACK(child);
 				MAKE_RED(grandparent);
 				node = grandparent;
+				depth -= 2;
 			} else {
 				if (node == RIGHT(parent)) {
+					rotate_left(parent, grandparent, &root);
+					tmp = node;
 					node = parent;
-					rotate_left(node, &root);
-					parent = PARENT(node);
-					grandparent = PARENT(PARENT(node));
+					parent = tmp;
+					ancestors[depth] = parent;
 				}
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
-				rotate_right(grandparent, &root);
+				rotate_right(grandparent, ancestors[depth - 2],
+					     &root);
 			}
 		} else {
 			child = LEFT(grandparent);
@@ -723,16 +737,19 @@ dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 				MAKE_BLACK(child);
 				MAKE_RED(grandparent);
 				node = grandparent;
+				depth -= 2;
 			} else {
 				if (node == LEFT(parent)) {
+					rotate_right(parent, grandparent, &root);
+					tmp = node;
 					node = parent;
-					rotate_right(node, &root);
-					parent = PARENT(node);
-					grandparent = PARENT(PARENT(node));
+					parent = tmp;
+					ancestors[depth] = parent;
 				}
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
-				rotate_left(grandparent, &root);
+				rotate_left(grandparent, ancestors[depth - 2],
+					    &root);
 			}
 		}
 	}
@@ -740,12 +757,12 @@ dns_rbt_add_node(dns_rbt_node_t *node, dns_rbt_node_t **rootp) {
 	MAKE_BLACK(root);
 	*rootp = root;
 
-	return (ISC_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
-static isc_result_t
-dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
-	dns_rbt_node_t *successor, *sibling, *child = NULL;
+static dns_result_t
+dns_rbt_delete_workhorse(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
+	dns_rbtnode_t *successor, *sibling, *child = NULL;
 
 	REQUIRE(rootp != NULL);
 	REQUIRE(delete);
@@ -755,7 +772,7 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 			if (*rootp == delete) {
 				/* this is the only item in the tree */
 				*rootp = NULL;
-				return(ISC_R_SUCCESS);
+				return(DNS_R_SUCCESS);
 			}
 		} else
 			/* this node has one child, on the right */
@@ -766,7 +783,7 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 		child = LEFT(delete);
 
 	else {
-		dns_rbt_node_t holder, *tmp = &holder;
+		dns_rbtnode_t holder, *tmp = &holder;
 
 		/* this node has two children, so it cannot be directly
 		   deleted.  find its immediate in-order successor and
@@ -792,7 +809,7 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 		/* first, put the successor in the tree location of the
 		   node to be deleted */
 
-		memcpy(tmp, successor, sizeof(dns_rbt_node_t));
+		memcpy(tmp, successor, sizeof(dns_rbtnode_t));
 
 		if (LEFT(PARENT(delete)) == delete)
 			SET_LEFT(PARENT(delete), successor);
@@ -854,18 +871,19 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 
 	/* fix color violations */
 	if (IS_BLACK(delete)) {
-		dns_rbt_node_t *parent;
+		dns_rbtnode_t *parent;
 		parent = PARENT(delete);
 
 		while (child != *rootp && IS_BLACK(child)) {
-			/* parent = PARENT(parent_pointer); */
 
 			if (LEFT(parent) == child) {
 				sibling = RIGHT(parent);
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
+#if 0 /* @@@ */
 					rotate_left(parent, rootp);
+#endif
 					sibling = RIGHT(parent);
 				}
 				if (IS_BLACK(LEFT(sibling)) &&
@@ -876,13 +894,17 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 					if (IS_BLACK(RIGHT(sibling))) {
 						MAKE_BLACK(LEFT(sibling));
 						MAKE_RED(sibling);
+#if 0 /* @@@ */
 						rotate_right(sibling, rootp);
+#endif
 						sibling = RIGHT(parent);
 					}
 					SET_COLOR(sibling, COLOR(parent));
 					MAKE_BLACK(parent);
 					MAKE_BLACK(RIGHT(sibling));
+#if 0 /* @@@ */
 					rotate_left(parent, rootp);
+#endif
 					child = *rootp;
 				}
 			} else {
@@ -890,7 +912,9 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
+#if 0 /* @@@ */
 					rotate_right(parent, rootp);
+#endif
 					sibling = LEFT(parent);
 				}
 				if (IS_BLACK(LEFT(sibling)) &&
@@ -901,13 +925,17 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 					if (IS_BLACK(LEFT(sibling))) {
 						MAKE_BLACK(RIGHT(sibling));
 						MAKE_RED(sibling);
+#if 0 /* @@@ */
 						rotate_left(sibling, rootp);
+#endif
 						sibling = LEFT(parent);
 					}
 					SET_COLOR(sibling, COLOR(parent));
 					MAKE_BLACK(parent);
 					MAKE_BLACK(LEFT(sibling));
+#if 0 /* @@@ */
 					rotate_right(parent, rootp);
+#endif
 					child = *rootp;
 				}
 			}
@@ -919,13 +947,12 @@ dns_rbt_delete_workhorse(dns_rbt_node_t *delete, dns_rbt_node_t **rootp) {
 			MAKE_BLACK(child);
 	}
 
-	return(ISC_R_SUCCESS);
+	return(DNS_R_SUCCESS);
 }
 
-
 static void
-dns_rbt_delete_node(isc_mem_t *mctx,
-		    dns_rbt_node_t *node, dns_rbt_node_t **root) {
+dns_rbt_deletenode(isc_mem_t *mctx,
+		    dns_rbtnode_t *node, dns_rbtnode_t **root) {
 
 	dns_rbt_delete_workhorse(node, root);
 
@@ -933,17 +960,17 @@ dns_rbt_delete_node(isc_mem_t *mctx,
 }
 
 static void
-dns_rbt_delete_tree(isc_mem_t *mctx,
-		    dns_rbt_node_t *node, dns_rbt_node_t **root) {
+dns_rbt_deletetree(isc_mem_t *mctx,
+		    dns_rbtnode_t *node, dns_rbtnode_t **root) {
 
 	if (LEFT(node) != NULL)
-		dns_rbt_delete_tree(mctx, LEFT(node), root);
+		dns_rbt_deletetree(mctx, LEFT(node), root);
 	if (RIGHT(node) != NULL)
-		dns_rbt_delete_tree(mctx, RIGHT(node), root);
+		dns_rbt_deletetree(mctx, RIGHT(node), root);
 	if (DOWN(node) != NULL)
-		dns_rbt_delete_tree(mctx, DOWN(node), &DOWN(node));
+		dns_rbt_deletetree(mctx, DOWN(node), &DOWN(node));
 
-	dns_rbt_delete_node(mctx, node, root);
+	dns_rbt_deletenode(mctx, node, root);
 }
 
 /**
@@ -1056,50 +1083,18 @@ cmp_names_on_level(dns_name_t *a, dns_name_t *b) {
 }
 
 
-#ifdef WANT_REDBLACK_MAIN
-char *name_strings[] = {
-	"a.vix.com",
-	"b.vix.com",
-	"c.vix.com",
-	"a.b.c.d.e.f.vix.com",
-	"b.b.c.d.e.f.vix.com",
-	"c.b.c.d.e.f.vix.com",
-	"a.d.e.f.vix.com",
-	"q.d.e.f.vix.com",
-	"d.e.f.vix.com",
-	"g.h.vix.com",
-#if 0
-	"rc.vix.com",
-	"pa.vix.com",
-	"lh.vix.com",
-	"dd.org",
-	"gro.dd.org",
-	"mmuuf.org",
-	"vmba.org",
-	"isc.org",
-	"ftp.isc.org",
-	"ftp.uu.net",
-	"fugue.com",
-	"uunet.uu.net",
-	"a1.vix.com",
-	"a2.vix.com",
-	"a3.vix.com",
-#endif
-	NULL
-};
-
 isc_mem_t *mctx;
 
-static inline void
-print_indent(int depth) {
+void
+dns_rbt_indent(int depth) {
 	int i;
 
 	for (i = 0; i < depth; i++)
 		putchar('\t');
 }
 
-static void
-print_node_name(dns_rbt_node_t *node) {
+void
+dns_rbt_printnodename(dns_rbtnode_t *node) {
 	char *buffer[255];
 	isc_buffer_t target;
 	isc_region_t r;
@@ -1118,131 +1113,47 @@ print_node_name(dns_rbt_node_t *node) {
 }
 
 
-static void
-print_tree(dns_rbt_node_t *root, int depth) {
-	print_indent(depth);
+void
+dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth) {
+	dns_rbt_indent(depth);
+
 	if (root != NULL) {
-		print_node_name(root);
+		dns_rbt_printnodename(root);
 		printf(" (%s", IS_RED(root) ? "RED" : "black");
-		if (PARENT(root)) {
+		if (parent) {
 			printf(" from ");
-			print_node_name(PARENT(root));
+			dns_rbt_printnodename(parent);
 		}
 		printf(")\n");
 		depth++;
 
 		if (DOWN(root)) {
-			print_indent(depth);
+			dns_rbt_indent(depth);
 			printf("++ BEG down from ");
-			print_node_name(root);
+			dns_rbt_printnodename(root);
 			printf("\n");
-			print_tree(DOWN(root), depth);
-			print_indent(depth);
+			dns_rbt_printtree(DOWN(root), NULL, depth);
+			dns_rbt_indent(depth);
 			printf("-- END down from ");
-			print_node_name(root);
+			dns_rbt_printnodename(root);
 			printf("\n");
 		}
 
 		if (IS_RED(root) && IS_RED(LEFT(root)))
 		    printf("** Red/Red color violation on left\n");
-		print_tree(LEFT(root), depth);
+		dns_rbt_printtree(LEFT(root), root, depth);
 
 		if (IS_RED(root) && IS_RED(RIGHT(root)))
 		    printf("** Red/Red color violation on right\n");
-		print_tree(RIGHT(root), depth);
+		dns_rbt_printtree(RIGHT(root), root, depth);
 
 	} else
 		printf("NULL\n");
 }
 
-static dns_name_t *
-create_name(char *s) {
-	int len;
-	void *buffer;
-	isc_result_t result;
-	isc_buffer_t source, target;
-	dns_name_t *name;
-
-	len = strlen(s);
-	isc_buffer_init(&source, s, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&source, len);
-
-#define LEN 255
-	/* NOTE: allocated pointer not tracked */
-	buffer = malloc(LEN);
-	isc_buffer_init(&target, buffer, LEN, ISC_BUFFERTYPE_BINARY);
-#undef LEN
-
-	/* NOTE: allocated pointer not tracked */
-	name = malloc(sizeof(dns_name_t));
-	dns_name_init(name, NULL);
-
-	result = dns_name_fromtext(name, &source, dns_rootname, 0,
-				         &target);
-
-	if (result != 0) {
-		printf("dns_name_fromtext(%s) failed: %s\n",
-		       s, isc_result_totext(result));
-		exit(1);
-	}
-
-	return name;
+void
+dns_rbt_printall(dns_rbt_t *rbt) {
+	dns_rbt_printtree(rbt->root, NULL, 0);
 }
 
-
-void main () {
-	char **p;
-	dns_name_t *name;
-	dns_rbt_t *rbt;
-	dns_rbt_node_t *node;
-	isc_result_t result;
-
-	setbuf(stdout, NULL);
-
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-
-	result = dns_rbt_create(mctx, &rbt);
-	if (result != ISC_R_SUCCESS)
-		printf("dns_rbt_create: %s: exiting\n",
-		      isc_result_totext(result));
-
-	for (p = name_strings; *p; p++) {
-		printf("adding name %s\n", *p);
-
-		name = create_name(*p);
-		result = dns_rbt_add_name(rbt, name, name);
-		if (result == ISC_R_SUCCESS)
-			print_tree(rbt->root, 0);
-		else
-			printf("... %s\n", isc_result_totext(result));
-	}
-
-	*p = "q.d.e.f.vix.com";
-	name = create_name(*p);
-	printf("searching for name %s ... ", *p);
-	node = dns_rbt_find_node(rbt, name, NULL);
-	if (node != NULL) {
-		printf("found it.\n");
-	} else
-		printf("NOT FOUND!\n");
-
-	*p = "does.not.exist";
-	name = create_name(*p);
-	printf("searching for name %s ... ", *p);
-	node = dns_rbt_find_node(rbt, name, NULL);
-	if (node != NULL) {
-		printf("found it.\n");
-	} else
-		printf("NOT FOUND!\n");
-
-	*p = "d.e.f.vix.com";
-	name = create_name(*p);
-	printf("deleting name %s\n", *p);
-	dns_rbt_delete_name(rbt, name);
-	print_tree(rbt->root, 0);
-
-	dns_rbt_destroy(&rbt);
-
-	exit(0);
-}
-#endif /* WANT_REDBLACK_MAIN */
+/* DCL */

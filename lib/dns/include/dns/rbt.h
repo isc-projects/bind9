@@ -1,5 +1,22 @@
+/*
+ * Copyright (C) 1999  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
 #include <isc/result.h>
-#include <isc/region.h>
+#include <isc/mem.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
@@ -26,8 +43,8 @@ typedef struct dns_rbt_node {
 	struct dns_rbt_node *down;
 	enum { red, black } color;
 	void *data;
-	int name_length;
-} dns_rbt_node_t;
+	unsigned int name_length;
+} dns_rbtnode_t;
 
 isc_result_t dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp);
 void dns_rbt_destroy(dns_rbt_t **rbtp);
@@ -87,7 +104,7 @@ isc_result_t dns_rbt_delete_name(dns_rbt_t *rbt, dns_name_t *name);
  *	will likely cause grief.
  *
  */
-void dns_rbt_namefromnode(dns_rbt_node_t *node, dns_name_t *name);
+void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
 
 /*
  * Find the node for 'name'.
@@ -102,8 +119,8 @@ void dns_rbt_namefromnode(dns_rbt_node_t *node, dns_name_t *name);
  *	It is _not_ required that the node associated with 'name'
  *	has a non-NULL data pointer.
  */
-dns_rbt_node_t *dns_rbt_find_node(dns_rbt_t *rbt,
-				  dns_name_t *name, dns_rbt_node_t **up);
+dns_rbtnode_t *dns_rbt_find_node(dns_rbt_t *rbt,
+				  dns_name_t *name, dns_rbtnode_t **up);
 
 /*
  * Return the data pointer associated with 'name'.
@@ -113,3 +130,8 @@ dns_rbt_node_t *dns_rbt_find_node(dns_rbt_t *rbt,
  *	if the name is found but has a NULL data pointer.
  */
 void *dns_rbt_find_name(dns_rbt_t *rbt, dns_name_t *name);
+
+void dns_rbt_indent(int depth);
+void dns_rbt_printnodename(dns_rbtnode_t *node);
+void dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth);
+void dns_rbt_printall(dns_rbt_t *rbt);
