@@ -828,7 +828,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		/*
 		 * We have a signature.  Add it to the response.
 		 */
-		ISC_LIST_APPEND(mname->list, rdataset, link);
+		ISC_LIST_APPEND(mname->list, sigrdataset, link);
 		*sigrdatasetp = NULL;
 	}
 }
