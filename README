@@ -68,57 +68,57 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b2
+BIND 9.0.0b3
 
-	BIND 9.0.0b2 is the second public release of BIND 9 code.  It will
+	BIND 9.0.0b3 is the third public release of BIND 9 code.  It will
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
-	BIND 9.0.0b2 is not functionally complete, and is not a release
+	BIND 9.0.0b3 is not functionally complete, and is not a release
 	candidate for BIND 9.0.0.  ISC anticipates a number of additional
-	beta releases between now and May, when BIND 9.0.0 is scheduled to
+	beta releases between now and June, when BIND 9.0.0 is scheduled to
 	be released.
 
-	ISC does not recommend using BIND 9.0.0b2 for "production"
+	ISC does not recommend using BIND 9.0.0b3 for "production"
 	services.
 
-	We hope users of BIND 9.0.0b2 will provide feedback, bug fixes, and
+	We hope users of BIND 9.0.0b3 will provide feedback, bug fixes, and
 	enhancements.  If you are not in a position to do so, it would
 	probably be better to wait until subsequent releases.
 
-	There have been many changes since beta 1; the highlights are:
+	There have been many changes since beta 2; the highlights are:
 
-		Many more config file options are now implemented.  See
-		doc/misc/options for a summary of the current implementation
-		status.
+		The server now supports "views", a mechanism for answering
+		DNS queries differently to different requestors.  This
+		will make split DNS setups much easier to build.
 
-		Portability improvements.  In particular, this beta should work
-		much better than beta 1 on FreeBSD 3.4.
+		Basic support for validation of DNSSEC signatures is
+		has been implemented.  This functionality should 
+		be considered experimental at this point.
 
-		Bug fixes.  Almost all bugs reported against beta 1 have been
+		NOTIFY (RFC1996) has been implemented.
+
+		The "dig" and "host" tools have been completely rewritten
+		and are included in the base distribution.
+
+		Bug fixes.  Most bugs reported against beta 2 have been
 		fixed.
+
+	For a detailed list of user-visible changes since beta 2, see
+	the CHANGES file.	
 
 	Some of the more significant items that will be implemented or
 	enhanced in a future beta are
 
-		DNSSEC validation
-
-			The server does not currently validate DNSSEC
-			signatures.
-
-		Notify
-
-			Notify is not yet implemented.
 
 		Selective Forwarding
+
+		Stub zones
 
 		Documentation
 
 			Future releases will contain a lot more documentation,
 			but a preliminary version of the Administrator's
 			Reference Manual is in the doc/arm subdirectory.
-
-			A detailed CHANGES file like that in BIND 4 and BIND 8
-			will be provided in future betas.
 
 
 Building
@@ -133,7 +133,7 @@ Building
 		FreeBSD 3.4-STABLE
 		HP-UX 11
 		IRIX64 6.5
-		NetBSD current (with "unproven" pthreads)
+		NetBSD-current (with "unproven" pthreads)
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8 (beta)
 
