@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.h,v 1.11 2000/08/01 01:32:33 tale Exp $ */
+/* $Id: context.h,v 1.12 2000/08/10 22:44:00 gson Exp $ */
 
 #ifndef LWRES_CONTEXT_H
 #define LWRES_CONTEXT_H 1
@@ -39,7 +39,7 @@ typedef void (*lwres_free_t)(void *arg, void *mem, size_t length);
 /*
  * XXXMLG
  *
- * Make the server reload /etc/resolv.conf periodlically.
+ * Make the server reload /etc/resolv.conf periodically.
  *
  * Make the server do sortlist/searchlist.
  *
