@@ -2,6 +2,7 @@
 #define ISC_REFERENCE_H 1
 
 #include <isc/lang.h>
+#include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 #include <isc/util.h>
