@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.130 $)
+AC_REVISION($Revision: 1.131 $)
 
 AC_PREREQ(2.13)
 
@@ -578,7 +578,7 @@ found_rt_iflist
 # GNU libtool support
 #
 AC_ARG_WITH(libtool,
-	    [  --with-libtool	use GNU libtool],
+	    [  --with-libtool	use GNU libtool (following indented options supported)],
 	    use_libtool="$withval", use_libtool="no")
 
 case $use_libtool in

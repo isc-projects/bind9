@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.130 
+# From configure.in Revision: 1.131 
 
 
 
@@ -116,17 +116,17 @@ ac_help="$ac_help
 ac_help="$ac_help
   --with-ptl2		use the ptl2 thread library"
 ac_help="$ac_help
-  --with-libtool	use GNU libtool"
+  --with-libtool	use GNU libtool (following indented options supported)"
 ac_help="$ac_help
-  --enable-shared[=PKGS]  build shared libraries [default=yes]"
+    --enable-shared[=PKGS]  build shared libraries [default=yes]"
 ac_help="$ac_help
-  --enable-static[=PKGS]  build static libraries [default=yes]"
+    --enable-static[=PKGS]  build static libraries [default=yes]"
 ac_help="$ac_help
-  --enable-fast-install[=PKGS]  optimize for fast installation [default=yes]"
+    --enable-fast-install[=PKGS]  optimize for fast installation [default=yes]"
 ac_help="$ac_help
-  --with-gnu-ld           assume the C compiler uses GNU ld [default=no]"
+    --with-gnu-ld           assume the C compiler uses GNU ld [default=no]"
 ac_help="$ac_help
-  --disable-libtool-lock  avoid locking (might break parallel builds)"
+    --disable-libtool-lock  avoid locking (might break parallel builds)"
 ac_help="$ac_help
   --enable-ipv6		use IPv6 [default=autodetect]"
 ac_help="$ac_help
