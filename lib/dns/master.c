@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.4 2002/02/08 03:57:27 marka Exp $ */
+/* $Id: master.c,v 1.122.2.5 2002/03/20 19:15:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1110,10 +1110,11 @@ load(dns_loadctx_t *lctx) {
 					  ictx->origin, ISC_FALSE, NULL);
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
+				LOGITFILE(result, include_file);
 				read_till_eol = ISC_TRUE;
 				continue;
 			} else if (result != ISC_R_SUCCESS)
-				goto insist_and_cleanup;
+				goto log_and_cleanup;
 
 			/*
 			 * Finish $ORIGIN / $INCLUDE processing if required.
