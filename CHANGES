@@ -1,3 +1,6 @@
+ 335.	[bug]		named would occasionally attempt recursion when
+			it was disallowed or undesired.
+
  334.	[func]		Added hmac-md5 to libisc.
 
  333.	[bug]		The resolver incorrectly accepted referrals to
