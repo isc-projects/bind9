@@ -1,3 +1,8 @@
+
+ 778.	[bug]		When starting cache cleaning, cleaning_timer_action()
+			returned without first pausing the iterator, which
+			could cause deadlock. [RT #998]
+
  777.	[placeholder]
 
  776.	[func]		Improved error reporting in denied messages. [RT #252]
