@@ -308,6 +308,13 @@ dns_view_findinlist(dns_viewlist_t *list, const char *name,
  * XXX
  */
 
+isc_result_t
+dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone);
+/*
+ * XXX
+ */
+
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_VIEW_H */
