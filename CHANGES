@@ -1,3 +1,6 @@
+ 442.	[bug]		TSIG signed messages that did not match any view
+			crashed the server. [RT #290]
+
  441.	[bug]		Nodes obscured by a DNAME were inaccessible even
 			when DNS_DBFIND_GLUEOK was set.
 
