@@ -1,3 +1,7 @@
+ 722.	[func]		Allow incrememtal loads to be canceled.
+
+ 721.	[cleanup]	Load manager and dns_master_loadfilequota() are no
+			more.
 
  720.	[bug]		Server could enter infinite loop in
 			dispatch.c:do_cancel(). [RT #733]

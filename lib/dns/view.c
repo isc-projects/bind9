@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.93 2001/01/30 02:50:46 bwelling Exp $ */
+/* $Id: view.c,v 1.94 2001/02/01 21:29:38 marka Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->hints = NULL;
 	view->resolver = NULL;
 	view->adb = NULL;
-	view->loadmgr = NULL;
 	view->requestmgr = NULL;
 	view->mctx = mctx;
 	view->rdclass = rdclass;
@@ -233,8 +232,6 @@ destroy(dns_view_t *view) {
 		dns_adb_detach(&view->adb);
 	if (view->resolver != NULL)
 		dns_resolver_detach(&view->resolver);
-	if (view->loadmgr != NULL)
-		dns_loadmgr_detach(&view->loadmgr);
 	if (view->requestmgr != NULL)
 		dns_requestmgr_detach(&view->requestmgr);
 	if (view->task != NULL)
@@ -554,15 +551,6 @@ void
 dns_view_setdstport(dns_view_t *view, in_port_t dstport) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	view->dstport = dstport;
-}
-
-void
-dns_view_setloadmgr(dns_view_t *view, dns_loadmgr_t *loadmgr) {
-	REQUIRE(DNS_VIEW_VALID(view));
-
-	if (view->loadmgr != NULL)
-		dns_loadmgr_detach(&view->loadmgr);
-	dns_loadmgr_attach(loadmgr, &view->loadmgr);
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.302 2001/01/31 05:22:55 marka Exp $ */
+/* $Id: zone.c,v 1.303 2001/02/01 21:29:37 marka Exp $ */
 
 #include <config.h>
 
@@ -187,6 +187,7 @@ struct dns_zone {
 	dns_severity_t		check_names;
 	ISC_LIST(dns_notify_t)	notifies;
 	dns_request_t		*request;
+	dns_loadctx_t		*lctx;
 	dns_io_t		*readio;
 	isc_uint32_t		maxxfrin;
 	isc_uint32_t		maxxfrout;
@@ -505,6 +506,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->xfr_acl = NULL;
 	zone->check_names = dns_severity_ignore;
 	zone->request = NULL;
+	zone->lctx = NULL;
 	zone->readio = NULL;
 	zone->timer = NULL;
 	zone->idlein = DNS_DEFAULT_IDLEIN;
@@ -1010,7 +1012,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 					dns_db_origin(load->db),
 					load->zone->rdclass, 0,
 					&load->callbacks, task,
-					zone_loaddone, load, load->zone->mctx);
+					zone_loaddone, load,
+					&load->zone->lctx, load->zone->mctx);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 		goto fail;
@@ -3642,6 +3645,9 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	if (zone->readio != NULL)
 		zonemgr_cancelio(zone->readio);
 
+	if (zone->lctx != NULL)
+		dns_loadctx_cancel(zone->lctx);
+
 	notify_cancel(zone);
 
 	if (zone->timer != NULL) {
@@ -4787,6 +4793,8 @@ zone_loaddone(void *arg, isc_result_t result) {
 
 	load->magic = 0;
 	dns_db_detach(&load->db);
+	if (load->zone->lctx != NULL)
+		dns_loadctx_detach(&load->zone->lctx);
 	dns_zone_idetach(&load->zone);
 	isc_mem_putanddetach(&load->mctx, load, sizeof (*load));
 }

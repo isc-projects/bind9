@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.287 2001/01/29 17:25:12 halley Exp $ */
+/* $Id: server.c,v 1.288 2001/02/01 21:29:41 marka Exp $ */
 
 #include <config.h>
 
@@ -433,11 +433,6 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (result != ISC_R_SUCCESS)
 		port = 53;
 	dns_view_setdstport(view, port);
-
-	/*
-	 * Attach load manager to view.
-	 */
-	dns_view_setloadmgr(view, ns_g_server->loadmgr);
 
 	/*
 	 * Configure the view's cache.  Try to reuse an existing
@@ -1494,8 +1489,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
 					     server->blackholeacl);
 
-	/* dns_loadmgr_setlimit(server->loadmgr, 20); XXXMPA */
-
 	/*
 	 * Configure the zone manager.
 	 */
@@ -2026,7 +2019,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/* Initialize server data structures. */
-	server->loadmgr = NULL;
 	server->zonemgr = NULL;
 	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
@@ -2078,8 +2070,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),
 		   "dns_zonemgr_create");
-	CHECKFATAL(dns_loadmgr_create(ns_g_mctx, &server->loadmgr),
-		   "dns_loadmgr_create");
 
 	server->statsfile = isc_mem_strdup(server->mctx, "named.stats");
 	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
@@ -2109,7 +2099,6 @@ ns_server_destroy(ns_server_t **serverp) {
 
 	isc_mem_free(server->mctx, server->dumpfile);
 
-	dns_loadmgr_detach(&server->loadmgr);
 	dns_zonemgr_detach(&server->zonemgr);
 
 	if (server->tkeyctx != NULL)
