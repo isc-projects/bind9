@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.35 2002/02/21 00:45:11 bwelling Exp $ */
+/* $Id: master.h,v 1.36 2002/07/19 02:34:56 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -39,6 +39,10 @@
 #define DNS_MASTER_ZONE 	0x00000008	/* Loading a zone master file. */
 #define DNS_MASTER_HINT 	0x00000010	/* Loading a hint master file. */
 #define DNS_MASTER_SLAVE 	0x00000020	/* Loading a slave master file. */
+#define DNS_MASTER_CHECKNS 	0x00000040	/* Check NS records to see if
+						 * they are an address */
+#define DNS_MASTER_FATALNS 	0x00000080	/* Treat DNS_MASTER_CHECKNS
+						 * matches as fatal */
 
 ISC_LANG_BEGINDECLS
 

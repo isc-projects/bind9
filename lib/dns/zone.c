@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.371 2002/06/19 06:47:22 marka Exp $ */
+/* $Id: zone.c,v 1.372 2002/07/19 02:34:56 marka Exp $ */
 
 #include <config.h>
 
@@ -1078,6 +1078,10 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 	options = DNS_MASTER_ZONE;
 	if (load->zone->type == dns_zone_slave)
 		options |= DNS_MASTER_SLAVE;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNS))
+		options |= DNS_MASTER_CHECKNS;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_FATALNS))
+		options |= DNS_MASTER_FATALNS;
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
@@ -1133,6 +1137,17 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	dns_load_t *load;
 	isc_result_t result;
 	isc_result_t tresult;
+	unsigned int options;
+
+	options = DNS_MASTER_ZONE;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
+		options |= DNS_MASTER_MANYERRORS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNS))
+		options |= DNS_MASTER_CHECKNS;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_FATALNS))
+		options |= DNS_MASTER_FATALNS;
+	if (zone->type == dns_zone_slave)
+		options |= DNS_MASTER_SLAVE;
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
@@ -1164,26 +1179,20 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			goto cleanup;
 		} else
 			result = DNS_R_CONTINUE;
-	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS)) {
-		dns_rdatacallbacks_t    callbacks;
-		unsigned int options;
+	} else {
+		dns_rdatacallbacks_t callbacks;
 
 		dns_rdatacallbacks_init(&callbacks);
 		result = dns_db_beginload(db, &callbacks.add,
 					  &callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		options = DNS_MASTER_MANYERRORS|DNS_MASTER_ZONE;
-		if (zone->type == dns_zone_slave)
-			options |= DNS_MASTER_SLAVE;
 		result = dns_master_loadfile(zone->masterfile, &zone->origin,
 					     &zone->origin, zone->rdclass,
 					     options, &callbacks, zone->mctx);
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
-	} else {
-		result = dns_db_load(db, zone->masterfile);
 	}
 
 	return (result);
