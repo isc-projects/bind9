@@ -1,3 +1,7 @@
+1198.	[bug]		OPT printing style was not consistant with the way the
+			header fields are printed.  "do" was not reported if
+			set.  Report is any of the MBZ bits are set.
+
 1197.	[bug]		Attempts to define the same acl multiple times were not
 			detected.
 
