@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.38 2000/08/01 01:12:25 tale Exp $ */
+/* $Id: nsupdate.c,v 1.39 2000/08/01 14:02:41 tale Exp $ */
 
 #include <config.h>
 
@@ -110,13 +110,14 @@ typedef struct nsu_requestinfo {
 	isc_sockaddr_t *addr;
 } nsu_requestinfo_t;
 
-static void sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
-			dns_request_t **request);
+static void
+sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
+	    dns_request_t **request);
 
-#define STATUS_MORE 0
-#define STATUS_SEND 1
-#define STATUS_QUIT 2
-#define STATUS_SYNTAX 3
+#define STATUS_MORE	(isc_uint16_t)0
+#define STATUS_SEND	(isc_uint16_t)1
+#define STATUS_QUIT	(isc_uint16_t)2
+#define STATUS_SYNTAX	(isc_uint16_t)3
 
 static void
 fatal(const char *format, ...) {
@@ -234,7 +235,7 @@ reset_system(void) {
 }
 
 static void
-setup_key() {
+setup_key(void) {
 	unsigned char *secret = NULL;
 	int secretlen;
 	isc_buffer_t secretbuf;
@@ -710,7 +711,7 @@ evaluate_prereq(char *cmdline) {
 static isc_uint16_t
 evaluate_server(char *cmdline) {
 	char *word, *server;
-	in_port_t port;
+	long port;
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
@@ -728,6 +729,10 @@ evaluate_server(char *cmdline) {
 		if (*endp != 0) {
 			fprintf(stderr, "port '%s' is not numeric\n", word);
 			return (STATUS_SYNTAX);
+		} else if (port < 1 || port > 65535) {
+			fprintf(stderr, "port '%s' is out of range "
+				"(1 to 65535)\n", word);
+			return (STATUS_SYNTAX);
 		}
 	}
 
@@ -737,7 +742,7 @@ evaluate_server(char *cmdline) {
 			fatal("out of memory");
 	}
 
-	get_address(server, port, userserver);
+	get_address(server, (in_port_t)port, userserver);
 
 	return (STATUS_MORE);
 }
@@ -772,7 +777,7 @@ static isc_uint16_t
 update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
-	isc_uint16_t ttl;
+	long ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -801,7 +806,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdata->length = 0;
 
 	/*
-	 * If this is an add, read the TTL and verify that it's numeric.
+	 * If this is an add, read the TTL and verify that it's in range.
 	 */
 	if (!isdelete) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
@@ -812,6 +817,10 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		ttl = strtol(word, &endp, 0);
 		if (*endp != 0) {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
+			goto failure;
+		} else if (ttl < 1 || ttl > 65535) {
+			fprintf(stderr, "ttl '%s' is out of range "
+				"(1 to 65535)\n", word);
 			goto failure;
 		}
 	} else
@@ -886,7 +895,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
-	rdatalist->ttl = ttl;
+	rdatalist->ttl = (isc_uint16_t)ttl;
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
