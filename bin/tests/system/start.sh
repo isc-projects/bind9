@@ -55,7 +55,11 @@ status=0
 for d in ns*
 do
 	n=`echo $d | sed 's/ns//'`
-	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
+	# Until all scripts have been converted to use port 5300,
+	# tests for port 53, too.
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 5300 \
+		version.bind. chaos txt @10.53.0.$n soa > dig.out ||
+	$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p 53 \
 		version.bind. chaos txt @10.53.0.$n soa > dig.out
 	status=`expr $status + $?`
 	grep ";" dig.out
