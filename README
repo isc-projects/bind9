@@ -1,54 +1,58 @@
 
-Code Drop 3 Status Update
+BIND 9.0.0 alpha 1
 
-Work since the last code drop has focused on both the libraries and
-the server.  Some of the highlights are:
 
-	Libraries
-		IPv6 sockets.
+Status
 
-		DNSSEC security core, TSIG.
+Most of the core technology planned for BIND 9 is in this release.  Some
+of the highlights are:
 
-		Shared libraries can now be generated.
+	IPv6
 
-		Internationalization message catalog support.  (Much of the
-		code has yet to be converted to use catalogs.)
+		Support for bitstring labels, DNAME, and A6 records.
 
-	Server
-		Most of the temporary code in the server has been replaced
-		with the real thing.  One exception is config file processing,
-		which has not yet been integrated.
+		IPv6-aware resolver (follows A6 chains, can use IPv6 to
+		talk to other nameservers).
 
-		Basic AXFR, IXFR, and dynamic update support.
-		
-		The server now listens on IPv6 sockets, if the system
-		supports them.
+		The nameserver listens on an IPv6 socket.
 
-		The IPv6 reverse lookup scheme (bitstring labels and DNAME)
-		is supported by the server.  A6 chain following remains
-		to be implemented.
+	DNSSEC
 
-		DNSSEC NXT records are returned in negative responses
-		for secure zones.
+		All new RR types supported.
 
-	Resolver
-		The skeleton of the resolver is in the kit.  This
-		shows how the resolver is going to work, but the
-		resolver is not yet functional.  This will be the
-		prime focus of work in the near future.
+		The server generates DNSSEC responses for secure zones.
+
+	EDNS0 (server only), IXFR, AXFR, dynamic update
+
+
+With the exception of the DNSSEC validator, all the major new
+functionality is done.  We expect to finish the DNSSEC validator by
+Dec. 1.
+
+This release is alpha quality.  There are still a number of unfinished
+areas, for example: most config file options, sanity checking,
+performance tuning, high-volume client support, garbage collection,
+however, none of these areas are especially difficult.
+
+We've used BIND 9 as the nameserver while web surfing and doing other
+ordinary tasks, and it has worked.  We've successfully answered
+queries sent over IPv6 sockets, and have used IPv6 to query other
+nameservers (also running BIND 9 of course!).
 
 
 Building
 
 We've had successful builds and tests on the following systems
 
-	BSDI 3.1
-	Digital UNIX 4.0D
+	AIX 4.3
+	BSDI 3.1, 4.0.1
+	COMPAQ Tru64 UNIX 4.0D, 5.0
+	FreeBSD 3.3
 	HP-UX 11
-	NetBSD
-	Red Hat Linux 6.0
-	SGI IRIX 6.5
-	Solaris 2.6
+	IRIX64 6.5
+	NetBSD 1.4.1
+	Red Hat Linux 6.0, 6.1
+	Solaris 2.6, 7
 
 To build, just
 
@@ -62,12 +66,15 @@ Building with gcc is not supported, unless gcc is the vendor's usual
 compiler (e.g. the various BSD systems, Linux).
 
 
-bin/named Note
+bin/named notes
 
-The configuration code in bin/named does not represent the final
-architecture.  The config file processing code in lib/dns/config will be
-used by the server in the future.  The server is still running on port
-5544.
+The server now uses the BIND 8 config file format.  All options are parsed,
+but most do not have any effect as yet.
+
+The server now runs on port 53 by default.  Use "-p" if you want to run
+on a different port.
+
+The server does not yet "daemonize".
 
 
 API Note
