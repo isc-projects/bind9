@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.80 2001/01/09 21:50:48 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.81 2001/01/13 01:33:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -119,12 +119,11 @@ struct dns_dispatch {
 	unsigned int		attributes;
 	unsigned int		refcount;	/* number of users */
 	dns_dispatchevent_t    *failsafe_ev;	/* failsafe cancel event */
-	unsigned int		recvs;		/* recv() calls outstanding */
-	unsigned int		recvs_wanted;	/* recv() calls wanted */
 	unsigned int		shutting_down : 1,
 				shutdown_out : 1,
 				connected : 1,
-				tcpmsg_valid : 1;
+				tcpmsg_valid : 1,
+				recv_pending : 1; /* is a recv() pending? */
 	isc_result_t		shutdown_why;
 	unsigned int		requests;	/* how many requests we have */
 	unsigned int		tcpbuffers;	/* allocated buffers */
@@ -353,7 +352,7 @@ destroy_disp_ok(dns_dispatch_t *disp)
 	if (disp->refcount != 0)
 		return (ISC_FALSE);
 
-	if (disp->recvs > 0)
+	if (disp->recv_pending != 0)
 		return (ISC_FALSE);
 
 	if (disp->shutting_down == 0)
@@ -525,10 +524,10 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	dispatch_log(disp, LVL(90),
 		     "got packet: requests %d, buffers %d, recvs %d",
-		     disp->requests, disp->mgr->buffers, disp->recvs);
+		     disp->requests, disp->mgr->buffers, disp->recv_pending);
 
-	INSIST(disp->recvs > 0);
-	disp->recvs--;
+	INSIST(disp->recv_pending != 0);
+	disp->recv_pending = 0;
 
 	if (disp->shutting_down) {
 		/*
@@ -740,12 +739,12 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	dispatch_log(disp, LVL(90),
 		     "got TCP packet: requests %d, buffers %d, recvs %d",
-		     disp->requests, disp->tcpbuffers, disp->recvs);
+		     disp->requests, disp->tcpbuffers, disp->recv_pending);
 
 	LOCK(&disp->lock);
 
-	INSIST(disp->recvs > 0);
-	disp->recvs--;
+	INSIST(disp->recv_pending != 0);
+	disp->recv_pending = 0;
 
 	if (disp->refcount == 0) {
 		/*
@@ -907,55 +906,47 @@ static void
 startrecv(dns_dispatch_t *disp) {
 	isc_result_t res;
 	isc_region_t region;
-	unsigned int wanted;
 
 	if (disp->shutting_down == 1)
 		return;
 
-	wanted = ISC_MIN(disp->recvs_wanted, disp->requests + 2);
-	if (wanted == 0)
-		return;
-
-	if (disp->recvs >= wanted)
+	if (disp->recv_pending != 0)
 		return;
 
 	if (disp->mgr->buffers >= disp->mgr->maxbuffers)
 		return;
 
-	while (disp->recvs < wanted) {
-		switch (disp->socktype) {
-			/*
-			 * UDP reads are always maximal.
-			 */
-		case isc_sockettype_udp:
-			region.length = disp->mgr->buffersize;
-			region.base = allocate_udp_buffer(disp);
-			if (region.base == NULL)
-				return;
-			res = isc_socket_recv(disp->socket, &region, 1,
-					      disp->task, udp_recv, disp);
-			if (res != ISC_R_SUCCESS) {
-				disp->shutdown_why = res;
-				disp->shutting_down = 1;
-				do_cancel(disp, NULL);
-				return;
-			}
-			disp->recvs++;
-			break;
-
-		case isc_sockettype_tcp:
-			res = dns_tcpmsg_readmessage(&disp->tcpmsg,
-						     disp->task, tcp_recv,
-						     disp);
-			if (res != ISC_R_SUCCESS) {
-				disp->shutdown_why = res;
-				disp->shutting_down = 1;
-				do_cancel(disp, NULL);
-				return;
-			}
-			disp->recvs++;
-			break;
+	switch (disp->socktype) {
+		/*
+		 * UDP reads are always maximal.
+		 */
+	case isc_sockettype_udp:
+		region.length = disp->mgr->buffersize;
+		region.base = allocate_udp_buffer(disp);
+		if (region.base == NULL)
+			return;
+		res = isc_socket_recv(disp->socket, &region, 1,
+				      disp->task, udp_recv, disp);
+		if (res != ISC_R_SUCCESS) {
+			disp->shutdown_why = res;
+			disp->shutting_down = 1;
+			do_cancel(disp, NULL);
+			return;
 		}
+		disp->recv_pending = 1;
+		break;
+
+	case isc_sockettype_tcp:
+		res = dns_tcpmsg_readmessage(&disp->tcpmsg, disp->task,
+					     tcp_recv, disp);
+		if (res != ISC_R_SUCCESS) {
+			disp->shutdown_why = res;
+			disp->shutting_down = 1;
+			do_cancel(disp, NULL);
+			return;
+		}
+		disp->recv_pending = 1;
+		break;
 	}
 }
 
@@ -1420,7 +1411,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	disp->attributes = 0;
 	ISC_LINK_INIT(disp, link);
 	disp->refcount = 1;
-	disp->recvs = 0;
+	disp->recv_pending = 0;
 	memset(&disp->local, 0, sizeof disp->local);
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
@@ -1501,7 +1492,7 @@ dispatch_free(dns_dispatch_t **dispp)
 
 	INSIST(disp->tcpbuffers == 0);
 	INSIST(disp->requests == 0);
-	INSIST(disp->recvs == 0);
+	INSIST(disp->recv_pending == 0);
 
 	isc_mempool_put(mgr->epool, disp->failsafe_ev);
 	disp->failsafe_ev = NULL;
@@ -1556,8 +1547,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 	disp->socktype = isc_sockettype_tcp;
 	disp->socket = NULL;
 	isc_socket_attach(sock, &disp->socket);
-
-	disp->recvs_wanted = 1;
 
 	disp->task = NULL;
 	result = isc_task_create(taskmgr, 0, &disp->task);
@@ -1692,8 +1681,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	disp->socket = sock;
 	disp->local = *localaddr;
 
-	disp->recvs_wanted = 4; /* XXXMLG config option */
-
 	disp->task = NULL;
 	result = isc_task_create(taskmgr, 0, &disp->task);
 	if (result != ISC_R_SUCCESS)
@@ -1767,7 +1754,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp) {
 	disp->refcount--;
 	killit = ISC_FALSE;
 	if (disp->refcount == 0) {
-		if (disp->recvs > 0)
+		if (disp->recv_pending > 0)
 			isc_socket_cancel(disp->socket, NULL,
 					  ISC_SOCKCANCEL_RECV);
 		disp->shutting_down = 1;
@@ -1936,7 +1923,7 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 	disp->refcount--;
 	killit = ISC_FALSE;
 	if (disp->refcount == 0) {
-		if (disp->recvs > 0)
+		if (disp->recv_pending > 0)
 			isc_socket_cancel(disp->socket, NULL,
 					  ISC_SOCKCANCEL_RECV);
 		disp->shutting_down = 1;
@@ -2101,7 +2088,7 @@ dns_dispatch_removerequest(dns_dispentry_t **resp,
 	disp->refcount--;
 	killit = ISC_FALSE;
 	if (disp->refcount == 0) {
-		if (disp->recvs > 0)
+		if (disp->recv_pending > 0)
 			isc_socket_cancel(disp->socket, NULL,
 					  ISC_SOCKCANCEL_RECV);
 		disp->shutting_down = 1;
