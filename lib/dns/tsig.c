@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.72.2.5 2000/07/28 00:13:40 gson Exp $
+ * $Id: tsig.c,v 1.72.2.6 2000/07/28 19:41:14 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -30,6 +30,7 @@
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rbt.h>
 #include <dns/rdata.h>
@@ -782,14 +783,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->tsigstatus = dns_rcode_noerror;
 
-	if (tsig.error != dns_rcode_noerror) {
-		if (is_response(msg)) {
-			/* XXXBEW Log a message */
-			return (ISC_R_SUCCESS);
-		}
-		else
-			return (DNS_R_TSIGERRORSET);
-	}
+	if (tsig.error != dns_rcode_noerror)
+		return (DNS_R_TSIGERRORSET);
 
 	msg->verified_sig = 1;
 
