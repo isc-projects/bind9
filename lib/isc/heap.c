@@ -26,6 +26,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <isc/assertions.h>
 #include <isc/heap.h>
