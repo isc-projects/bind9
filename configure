@@ -30,7 +30,7 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
 # OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.318 
+# From configure.in Revision: 1.319 
 
 # libtool.m4 - Configure libtool for the host system. -*-Shell-script-*-
 ## Copyright 1996, 1997, 1998, 1999, 2000, 2001
@@ -9672,7 +9672,8 @@ test -n "$PDFJADETEX" || PDFJADETEX="pdfjadetex"
 catalogpath=""
 for d in $sgmltrees 
 do
-	for s in docbook docbook/dsssl-stylesheets
+	catalogpath="$catalogpath $d"
+	for s in docbook/dsssl-stylesheets
 	do
 		catalogpath="$catalogpath $d/$s"
 	done
@@ -9680,7 +9681,7 @@ done
 
 SGMLCATALOG=""
 echo $ac_n "checking for catalog""... $ac_c" 1>&6
-echo "configure:9684: checking for catalog" >&5
+echo "configure:9685: checking for catalog" >&5
 for d in $catalogpath
 do
 	f=$d/catalog
@@ -9723,7 +9724,7 @@ done
 
 HTMLSTYLE=""
 echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9727: checking for html/docbook.dsl" >&5
+echo "configure:9728: checking for html/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/html/docbook.dsl
@@ -9744,7 +9745,7 @@ fi
 
 PRINTSTYLE=""
 echo $ac_n "checking for print/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9748: checking for print/docbook.dsl" >&5
+echo "configure:9749: checking for print/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/print/docbook.dsl
@@ -9784,7 +9785,7 @@ done
 
 XMLDCL=""
 echo $ac_n "checking for dtds/decls/xml.dcl""... $ac_c" 1>&6
-echo "configure:9788: checking for dtds/decls/xml.dcl" >&5
+echo "configure:9789: checking for dtds/decls/xml.dcl" >&5
 for d in $xmlpath
 do
 	f=$d/dtds/decls/xml.dcl
@@ -9810,7 +9811,7 @@ fi
 
 DOCBOOK2MANSPEC=""
 echo $ac_n "checking for docbook2X/docbook2man-spec.pl""... $ac_c" 1>&6
-echo "configure:9814: checking for docbook2X/docbook2man-spec.pl" >&5
+echo "configure:9815: checking for docbook2X/docbook2man-spec.pl" >&5
 for d in $sgmltrees
 do
 	f=$d/docbook2X/docbook2man-spec.pl
