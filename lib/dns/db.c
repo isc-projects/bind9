@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.51 2000/08/08 18:41:42 gson Exp $ */
+/* $Id: db.c,v 1.52 2000/08/10 18:38:10 gson Exp $ */
 
 /***
  *** Imports
@@ -28,6 +28,7 @@
 #include <isc/util.h>
 
 #include <dns/callbacks.h>
+#include <dns/log.h>
 #include <dns/master.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
@@ -86,6 +87,10 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
 		if (strcasecmp(db_type, impinfo->name) == 0)
 			return ((impinfo->create)(mctx, origin, type, rdclass,
 						  argc, argv, dbp));
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+		      DNS_LOGMODULE_DB, ISC_LOG_ERROR,
+		      "unsupported database type '%s'", db_type);
 
 	return (ISC_R_NOTFOUND);
 }
