@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sym_test.c,v 1.22.12.3 2004/03/08 04:04:27 marka Exp $ */
+/* $Id: sym_test.c,v 1.22.12.4 2005/03/16 23:23:36 marka Exp $ */
 
 #include <config.h>
 
@@ -73,7 +73,7 @@ main(int argc, char *argv[]) {
 
 	while (fgets(s, sizeof(s), stdin) != NULL) {
 		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
+		if (len > 0U && s[len - 1] == '\n') {
 			s[len - 1] = '\0';
 			len--;
 		}
