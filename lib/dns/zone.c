@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.53 1999/12/23 00:08:34 explorer Exp $ */
+ /* $Id: zone.c,v 1.54 1999/12/31 00:20:47 marka Exp $ */
 
 #include <config.h>
 
@@ -2910,6 +2910,7 @@ static void
 xfrdone(dns_zone_t *zone, isc_result_t result) {
 	const char me[] = "xfrdone";
 	isc_stdtime_t now;
+	isc_boolean_t again = ISC_FALSE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2934,11 +2935,15 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 		zone->curmaster++;
 		if (zone->curmaster >= zone->masterscnt)
 			zone->curmaster = 0;
-		else
-			xfrin_start_temporary_kludge(zone);
+		else {
+			zone->flags |= DNS_ZONE_F_REFRESH;
+			again = ISC_TRUE;
+		}
 		break;
 	}
 	UNLOCK(&zone->lock);
+	if (again)
+		xfrin_start_temporary_kludge(zone);
 }
 
 /***
