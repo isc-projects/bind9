@@ -20,6 +20,8 @@
 
 1370.	[bug]		dig '+[no]recurse' was incorrectly documented.
 
+1263.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
+
 1253.	[contrib]	queryperf now reports a summary of returned
 		        rcodes (-c), rcodes are printed in mnemonic form (-v).
 			
