@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.48 2000/11/17 00:34:37 bwelling Exp $ */
+/* $Id: lex.c,v 1.49 2000/11/18 00:54:19 bwelling Exp $ */
 
 #include <config.h>
 
@@ -355,6 +355,8 @@ pushandgrow(isc_lex_t *lex, inputsource *source, int c, unsigned int options) {
 	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
 	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && c == '(')
 		source->pushback_parens++;
+	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && c == ')')
+		source->pushback_parens--;
 	return (ISC_R_SUCCESS);
 }
 	
