@@ -27,6 +27,7 @@
 #include <isc/util.h>
 
 #include <dns/types.h>
+#include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/dbtable.h>
@@ -128,6 +129,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN);
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
+	view->matchclients = NULL;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_trustedkeys;
@@ -221,6 +223,8 @@ destroy(dns_view_t *view) {
 		dns_db_detach(&view->cachedb);
 	if (view->cache != NULL)
 		dns_cache_detach(&view->cache);
+	if (view->matchclients != NULL)
+		dns_acl_detach(&view->matchclients);
 	dns_zt_detach(&view->zonetable);
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
