@@ -88,7 +88,6 @@ create_view(isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_db_t *rootdb;
 	unsigned int attrs;
-	isc_sockaddr_t any4, any6;
 	dns_dispatch_t *disp4 = NULL;
 	dns_dispatch_t *disp6 = NULL;		
 	
@@ -118,28 +117,40 @@ create_view(isc_mem_t *mctx) {
 	 * XXXMLG hardwired number of tasks.
 	 */
 
-	isc_sockaddr_any(&any4);
-	isc_sockaddr_any6(&any6);
-	
-	attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, sockmgr,
-				     taskmgr, &any4, 512, 6, 1024,
-				     17, 19, attrs, attrs, &disp4);
-	if (result != ISC_R_SUCCESS)
-		goto out;
-	
-	attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
-	result = dns_dispatch_getudp(dispatchmgr, sockmgr,
-				     taskmgr, &any6, 512, 6, 1024,
-				     17, 19, attrs, attrs, &disp6);
-	if (result != ISC_R_SUCCESS)
-		goto out;
+	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
+		isc_sockaddr_t any4;
+		
+		isc_sockaddr_any(&any4);
+		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
+		result = dns_dispatch_getudp(dispatchmgr, sockmgr,
+					     taskmgr, &any4, 512, 6, 1024,
+					     17, 19, attrs, attrs, &disp4);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+	}
+
+	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
+		isc_sockaddr_t any6;
+		
+		isc_sockaddr_any6(&any6);
+		
+		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
+		result = dns_dispatch_getudp(dispatchmgr, sockmgr,
+					     taskmgr, &any6, 512, 6, 1024,
+					     17, 19, attrs, attrs, &disp6);
+		if (result != ISC_R_SUCCESS)
+			goto out;
+	}
 	
 	result = dns_view_createresolver(view, taskmgr, 16, sockmgr,
 					 timermgr, 0, dispatchmgr,
 					 disp4, disp6);
-	dns_dispatch_detach(&disp4);
-	dns_dispatch_detach(&disp6);
+
+	if (disp4 != NULL)
+		dns_dispatch_detach(&disp4);
+	if (disp6 != NULL)
+		dns_dispatch_detach(&disp6);
+	
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
