@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.84 2001/01/03 20:42:10 bwelling Exp $ */
+/* $Id: message.h,v 1.85 2001/01/04 01:25:08 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -381,7 +381,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * If DNS_MESSAGEPARSE_PRESERVEORDER is set, or if the opcode of the message
  * is UPDATE, a separate dns_name_t object will be created for each RR in the
  * message.  Each such dns_name_t will have a single rdataset containing the
- * single RR, * and the order of the RRs in the message is preserved.
+ * single RR, and the order of the RRs in the message is preserved.
  * Otherwise, only one dns_name_t object will be created for each unique
  * owner name in the section, and each such dns_name_t will have a list
  * of rdatasets.  To access the names and their data, use
@@ -410,7 +410,6 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  *	ISC_R_NOMEMORY		-- no memory
  *	DNS_R_RECOVERABLE	-- the message parsed properly, but contained
  *				   errors.
- *	DNS_R_???		-- bad signature (XXXMLG need more of these)
  *	Many other errors possible XXXMLG
  */
 
