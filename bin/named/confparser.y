@@ -1,6 +1,6 @@
 %{
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.1 1999/02/24 00:16:04 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.2 1999/04/23 05:08:44 gson Exp $";
 #endif /* not lint */
 
 /*
@@ -57,6 +57,8 @@ static char rcsid[] = "$Id: confparser.y,v 1.1 1999/02/24 00:16:04 brister Exp $
  */
  
 #include <config.h>
+
+#include <sys/types.h>
 
 #include <stdarg.h>
 #include <stdio.h>
