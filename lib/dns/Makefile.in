@@ -16,7 +16,7 @@ OBJS =		name.o rbt.o rdata.o rdatalist.o rdataset.o \
 		result.o version.o rdataslab.o master.o
 
 SUBDIRS =	include
-TARGETS =	timestamp
+TARGETS =	include/dns/enumtype.h include/dns/enumclass.h timestamp
 
 @BIND9_MAKE_RULES@
 
@@ -40,8 +40,15 @@ install:: timestamp installdirs
 
 clean distclean::
 	rm -f libdns.a timestamp
+	rm -f code.h include/dns/enumtype.h include/dns/enumclass.h
 
 rdata.o: code.h
+
+include/dns/enumtype.h: gen
+	./gen -t > $@
+
+include/dns/enumclass.h: gen
+	./gen -c > $@
 
 code.h:	gen
 	./gen > code.h
