@@ -15,18 +15,16 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.15 2000/04/04 20:08:23 gson Exp $ */
+/* $Id: log.h,v 1.16 2000/04/25 23:44:20 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
 
-#include <syslog.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include <sys/types.h>
+#include <syslog.h> /* XXXDCL NT */
 
 #include <isc/lang.h>
-#include <isc/result.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -183,11 +181,11 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp);
  *
  *	Four default channels are established:
  *	    	default_syslog
- *		 - log to syslog's daemon facility LOG_INFO or higher
+ *		 - log to syslog's daemon facility ISC_LOG_INFO or higher
  *		default_stderr
- *		 - log to stderr LOG_INFO or higher
+ *		 - log to stderr ISC_LOG_INFO or higher
  *		default_debug
- *		 - log to stderr LOG_DEBUG dynamically
+ *		 - log to stderr ISC_LOG_DEBUG dynamically
  *		null
  *		 - log nothing
  *

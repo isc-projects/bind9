@@ -1,3 +1,6 @@
+  91.   [cleanup]       <isc/log.h> does not need <sys/types.h> or
+                        <isc/result.h>.
+
   90.	[cleanup]	Removed unneeded ISC_LANG_BEGINDECLS/ISC_LANG_ENDDECLS
 			from <named/listenlist.h>.
 
