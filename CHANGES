@@ -5,6 +5,10 @@
 
 1114.	[port]		Ignore more accept() errors. [RT #2021]
 
+1111.	[bug]		Multithreaded servers could deadlock processing
+			recursive queries due to a locking hieararchy
+			violation in adb.c. [RT #2017]
+
 
 	--- 9.2.0rc9 released ---
 
