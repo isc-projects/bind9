@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,24 +15,21 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.4 2001/07/17 20:29:30 gson Exp $ */
+/* $Id: os.c,v 1.5 2002/08/01 03:41:49 mayer Exp $ */
 
 #include <windows.h>
 
+#include <isc/os.h>
+
 static BOOL bInit = FALSE;
 static SYSTEM_INFO SystemInfo;
-static OSVERSIONINFO osVer;
 
 static void
 initialize_action(void) {
-	BOOL bSuccess;
-
 	if (bInit)
 		return;
 	
 	GetSystemInfo(&SystemInfo);
-	osVer.dwOSVersionInfoSize = sizeof(osVer);
-	bSuccess = GetVersionEx(&osVer);
 	bInit = TRUE;
 }
 
@@ -45,16 +42,4 @@ isc_os_ncpus(void) {
 		ncpus = 1;
 
 	return ((unsigned int)ncpus);
-}
-
-unsigned int
-isc_os_majorversion(void) {
-	initialize_action();
-	return ((unsigned int)osVer.dwMajorVersion);
-}
-
-unsigned int
-isc_os_minorversion(void) {
-	initialize_action();
-	return ((unsigned int)osVer.dwMinorVersion);
 }
