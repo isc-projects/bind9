@@ -6584,7 +6584,7 @@ CLASS="command"
 then a default one of:
 <PRE
 CLASS="programlisting"
->rrset-order { class ANY type ANY name "*"; order cyclic ; };
+>rrset-order { class ANY type ANY name "*" order cyclic ; };
 </PRE
 >
 is used.</P
@@ -8281,7 +8281,7 @@ VALIGN="MIDDLE"
 specified using a "hint zone". When the server starts up, it uses
 the root hints to find a root nameserver and get the most recent
 list of root nameservers. If no hint zone is specified for class
-IN, the server users a compiled-in default set of root servers hints.
+IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</P
 ></TD
 ></TR
@@ -11093,7 +11093,7 @@ CLASS="replaceable"
 > <TT
 CLASS="replaceable"
 ><I
->hs</I
+>lhs</I
 ></TT
 > <TT
 CLASS="replaceable"
@@ -11291,7 +11291,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >At present the only supported types are
-PTR, CNAME and NS.</P
+PTR, CNAME, DNAME, A, AAAA and NS.</P
 ></TD
 ></TR
 ><TR
