@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.41 2004/03/06 08:13:48 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.42 2004/03/17 05:29:54 marka Exp $ */
 
 #include <config.h>
 
@@ -6729,7 +6729,7 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char namebuf2[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
-	unsigned int level = ISC_LOG_WARNING;
+	int level = ISC_LOG_WARNING;
 	dns_name_t bad;
 
 	REQUIRE(DNS_ZONE_VALID(zone));

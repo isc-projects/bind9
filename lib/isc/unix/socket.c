@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.8 2004/03/16 05:50:25 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.9 2004/03/17 05:25:21 marka Exp $ */
 
 #include <config.h>
 
@@ -488,7 +488,7 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
 
 	cmsgp = CMSG_NXTHDR(&msg, cmsgp);
 	if (cmsgp != NULL)
-		return ((void *)cmsgp - (void *)msg.msg_control);
+		return ((char *)cmsgp - (char *)msg.msg_control);
 	else
 		return (0);
 #endif	
