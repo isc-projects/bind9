@@ -39,8 +39,11 @@ typedef void					dns_dbversion_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
+typedef isc_uint8_t				dns_secalg_t;
 typedef isc_uint16_t				dns_rdataclass_t;
 typedef isc_uint16_t				dns_rdatatype_t;
+typedef isc_uint16_t				dns_rcode_t;
+typedef isc_uint16_t				dns_cert_t;
 typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_rdata			dns_rdata_t;
 typedef struct dns_rdatalist			dns_rdatalist_t;
@@ -78,7 +81,7 @@ enum {
 	/* dns_rdataclass_any = 255  TSIG is class ANY specific */
 } ;
 
-typedef enum {
+enum {
 	/* standard rcodes */
 	dns_rcode_noerror = 0,
 	dns_rcode_formerr = 1,
@@ -96,6 +99,6 @@ typedef enum {
 	dns_rcode_badkey = 17,
 	dns_rcode_badtime = 18,
 	dns_rcode_badmode = 19
-} dns_rcode_t;
+};
 
 #endif /* DNS_TYPES_H */

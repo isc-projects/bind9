@@ -15,17 +15,18 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_RCODE_H
-#define DNS_RCODE_H 1
+#ifndef DNS_SECALG_H
+#define DNS_SECALG_H 1
 
 #include <dns/types.h>
 
-dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
+dns_result_t dns_secalg_fromtext(dns_secalg_t *secalgp,
+				 isc_textregion_t *source);
 /*
- * Convert the text 'source' refers to into a DNS error value.
+ * Convert the text 'source' refers to into a DNSSEC security algorithm value.
  *
  * Requires:
- *	'rcodep' is a valid pointer.
+ *	'secalgp' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
@@ -34,12 +35,13 @@ dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
  *	DNS_R_UNKNOWN			type is unknown
  */
 
-dns_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
+dns_result_t dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
 /*
- * Put a textual representation of error 'rcode' into 'target'.
+ * Put a textual representation of the DNSSEC security algorithm 'secalg'
+ * into 'target'.
  *
  * Requires:
- *	'rcode' is a valid rcode.
+ *	'secalg' is a valid secalg.
  *
  *	'target' is a valid text buffer.
  *
@@ -52,4 +54,4 @@ dns_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
  *	DNS_R_NOSPACE			target buffer is too small
  */
 
-#endif /* DNS_RCODE_H */
+#endif /* DNS_SECALG_H */

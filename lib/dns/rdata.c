@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.25 1999/02/04 06:38:42 marka Exp $ */
+ /* $Id: rdata.c,v 1.26 1999/02/05 00:05:44 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,8 @@
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/rcode.h>
+#include <dns/cert.h>
+#include <dns/secalg.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
@@ -127,13 +129,33 @@ static const char octdigits[] = "01234567";
 	{ dns_rcode_badmode, "BADMODE", 0}, \
 	{ 0, NULL, 0 }
 
+#define CERTNAMES \
+	{ 1, "SKIX", 0}, \
+	{ 2, "SPKI", 0}, \
+	{ 3, "PGP", 0}, \
+	{ 253, "URI", 0}, \
+	{ 254, "OID", 0}, \
+	{ 0, NULL, 0}
+
+#define SECALGNAMES \
+	{ 1, "RSA/MD5", 0}, \
+	{ 2, "Diffie-Hellman", 0}, \
+	{ 3, "DSA", 0}, \
+	{ 4, "Ellyptic-Curve", 0}, \
+	{ 253, "Private/Domain", 0}, \
+	{ 254, "Private/OID", 0}, \
+	{ 0, NULL, 0}
+
+
 struct tbl {
 	unsigned int	value;
 	char	*name;
 	int	flags;
 } types[] = { TYPENAMES METATYPES {0, NULL, 0} },
 classes[] = { CLASSNAMES METACLASSES { 0, NULL, 0} },
-rcodes[] = { RCODENAMES };
+rcodes[] = { RCODENAMES },
+certs[] = { CERTNAMES },
+secalgs[] = { SECALGNAMES };
 
 /***
  *** Initialization
@@ -466,6 +488,70 @@ dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
 		i++;
 	}
 	sprintf(buf, "%u", rcode);
+	return (str_totext(buf, target));
+}
+
+dns_result_t
+dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
+	int i = 0;
+	unsigned int n;
+
+	while (certs[i].name != NULL) {
+		n = strlen(certs[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, certs[i].name, n) == 0) {
+			*certp = certs[i].value;
+			return (DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
+	int i = 0;
+	char buf[sizeof "65000"];
+
+	while (certs[i].name != NULL) {
+		if (certs[i].value == cert) {
+			return (str_totext(certs[i].name, target));
+		}
+		i++;
+	}
+	sprintf(buf, "%u", cert);
+	return (str_totext(buf, target));
+}
+
+dns_result_t
+dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source) {
+	int i = 0;
+	unsigned int n;
+
+	while (secalgs[i].name != NULL) {
+		n = strlen(secalgs[i].name);
+		if (n == source->length &&
+		    strncasecmp(source->base, secalgs[i].name, n) == 0) {
+			*secalgp = secalgs[i].value;
+			return (DNS_R_SUCCESS);
+		}
+		i++;
+	}
+	return (DNS_R_UNKNOWN);
+}
+
+dns_result_t
+dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target) {
+	int i = 0;
+	char buf[sizeof "65000"];
+
+	while (secalgs[i].name != NULL) {
+		if (secalgs[i].value == secalg) {
+			return (str_totext(secalgs[i].name, target));
+		}
+		i++;
+	}
+	sprintf(buf, "%u", secalg);
 	return (str_totext(buf, target));
 }
 

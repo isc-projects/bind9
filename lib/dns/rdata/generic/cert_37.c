@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.3 1999/02/04 00:03:29 marka Exp $ */
+ /* $Id: cert_37.c,v 1.4 1999/02/05 00:05:46 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -29,8 +29,9 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 {
 	isc_token_t token;
 	long n;
-	unsigned char c;
+	dns_secalg_t secalg;
 	char *e;
+	dns_cert_t cert;
 
 	REQUIRE(type == 37);
 
@@ -42,13 +43,13 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	n = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0) {
-		return (DNS_R_NOTIMPLEMENTED);
+		RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	} else {
 		if (n < 0 || n > 0xffff)
 			return (DNS_R_RANGE);
-		c = n;
+		cert = n;
 	}
-	RETERR(uint16_tobuffer(n, target));
+	RETERR(uint16_tobuffer(cert, target));
 	
 	/* key tag */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -60,13 +61,13 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	n = strtol(token.value.as_pointer, &e, 10);
 	if (*e != 0) {
-		return (DNS_R_NOTIMPLEMENTED);
+		RETERR(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
 	} else {
 		if (n < 0 || n > 0xff)
 			return (DNS_R_RANGE);
-		c = n;
+		secalg = n;
 	}
-	RETERR(mem_tobuffer(target, &c, 1));
+	RETERR(mem_tobuffer(target, &secalg, 1));
 
 	return (base64_tobuffer(lexer, target, -1));
 }
@@ -86,8 +87,7 @@ totext_cert(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	/* type */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u", n);
-	RETERR(str_totext(buf, target));
+	RETERR(dns_cert_totext(n, target));
 	RETERR(str_totext(" ", target));
 
 	/* key tag */
@@ -98,10 +98,9 @@ totext_cert(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 	RETERR(str_totext(" ", target));
 
 	/* algorithm */
-	sprintf(buf, "%u", sr.base[0]);
-	isc_region_consume(&sr, 1);
-	RETERR(str_totext(buf, target));
+	RETERR(dns_secalg_totext(sr.base[0], target));
 	RETERR(str_totext(" ", target));
+	isc_region_consume(&sr, 1);
 
 	/* cert */
 	return (base64_totext(&sr, target));

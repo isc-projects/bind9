@@ -15,17 +15,17 @@
  * SOFTWARE.
  */
 
-#ifndef DNS_RCODE_H
-#define DNS_RCODE_H 1
+#ifndef DNS_CERT_H
+#define DNS_CERT_H 1
 
 #include <dns/types.h>
 
-dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
+dns_result_t dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
 /*
- * Convert the text 'source' refers to into a DNS error value.
+ * Convert the text 'source' refers to into a certificate type.
  *
  * Requires:
- *	'rcodep' is a valid pointer.
+ *	'certp' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
@@ -34,12 +34,12 @@ dns_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
  *	DNS_R_UNKNOWN			type is unknown
  */
 
-dns_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
+dns_result_t dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
 /*
- * Put a textual representation of error 'rcode' into 'target'.
+ * Put a textual representation of certificate type 'cert' into 'target'.
  *
  * Requires:
- *	'rcode' is a valid rcode.
+ *	'cert' is a valid cert.
  *
  *	'target' is a valid text buffer.
  *
@@ -52,4 +52,4 @@ dns_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
  *	DNS_R_NOSPACE			target buffer is too small
  */
 
-#endif /* DNS_RCODE_H */
+#endif /* DNS_CERT_H */
