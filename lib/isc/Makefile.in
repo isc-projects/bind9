@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.64 2000/08/01 01:29:12 tale Exp $
+# $Id: Makefile.in,v 1.65 2000/08/29 18:23:58 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -24,7 +24,7 @@ top_srcdir =	@top_srcdir@
 @LIBISC_API@
 
 CINCLUDES =	-I${srcdir}/unix/include \
-		-I${srcdir}/pthreads/include \
+		-I${srcdir}/@ISC_THREAD_DIR@/include \
 		-I./include \
 		-I${srcdir}/include
 CDEFINES =
@@ -41,7 +41,7 @@ UNIXOBJS =	@ISC_ISCIPV6_O@ \
 
 NLSOBJS =	nls/msgcat.@O@
 
-PTHREADOBJS =	pthreads/condition.@O@ pthreads/thread.@O@
+THREADOBJS =	@ISC_THREAD_DIR@/condition.@O@ @ISC_THREAD_DIR@/thread.@O@
 
 WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 		win32/fsaccess.@O@ win32/once.@O@ win32/stdtime.@O@ \
@@ -58,7 +58,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		ratelimiter.@O@ result.@O@ rwlock.@O@ \
 		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ symtab.@O@ \
 		task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
-		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
+		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ \
@@ -74,7 +74,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 
 LIBS =		@LIBS@
 
-SUBDIRS =	include unix nls pthreads
+SUBDIRS =	include unix nls @ISC_THREAD_DIR@
 TARGETS =	timestamp
 
 @BIND9_MAKE_RULES@

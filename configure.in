@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.182 $)
+AC_REVISION($Revision: 1.183 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -479,11 +479,16 @@ Please install the devel/unproven-pthreads package and rerun configure.
 			;;
 		esac
 	fi
-
+	thread_dir=pthreads
+else
+	thread_dir=nothreads
 fi
 # 
 # End of pthreads stuff.
 #
+
+ISC_THREAD_DIR=$thread_dir
+AC_SUBST(ISC_THREAD_DIR)
 
 #
 # NLS
@@ -1137,9 +1142,9 @@ AC_OUTPUT(
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
 	lib/isc/nls/Makefile
-	lib/isc/pthreads/Makefile
-	lib/isc/pthreads/include/Makefile
-	lib/isc/pthreads/include/isc/Makefile
+	lib/isc/$thread_dir/Makefile
+	lib/isc/$thread_dir/include/Makefile
+	lib/isc/$thread_dir/include/isc/Makefile
 	lib/dns/Makefile
 	lib/dns/include/Makefile
 	lib/dns/include/dns/Makefile
