@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.9 2000/06/27 21:59:44 mws Exp $ */
+/* $Id: nsupdate.c,v 1.10 2000/06/27 22:04:06 mws Exp $ */
 
 #include <config.h>
 #include <netdb.h>
@@ -1296,9 +1296,6 @@ free_lists() {
 		isc_entropy_detach(&entp);
 	}
 		
-	ddebug("Invalidating resolvdomain");
-	dns_name_invalidate(&resolvdomain);
-
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
 	dns_requestmgr_detach(&requestmgr);
