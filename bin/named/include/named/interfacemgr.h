@@ -54,6 +54,8 @@
 
 #include <dns/result.h>
 
+#include <named/types.h>
+
 /***
  *** Types
  ***/
