@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.4 2000/07/10 22:04:08 tale Exp $ */
+/* $Id: omapiconf.c,v 1.5 2000/07/11 22:03:09 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -23,11 +23,15 @@
 
 #include <config.h>
 
+#include <isc/base64.h>
+#include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/string.h>
 #include <isc/util.h>
+
+#include <dst/result.h>
 
 #include <named/log.h>
 #include <named/omapi.h>
@@ -195,6 +199,8 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 {
 	dns_c_kid_t *keyid;
 	dns_c_kdef_t *keydef;
+	const char secret[1024];
+	isc_buffer_t b;
 	isc_result_t result;
 
 	/*
@@ -221,9 +227,9 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 		      * the keys statement.
 		      */
 		     keydef = NULL;
-		     (void)dns_c_kdeflist_find(keydeflist, keyid->keyid,
-					       &keydef);
-		     if (keydef == NULL)
+		     result = dns_c_kdeflist_find(keydeflist, keyid->keyid,
+						  &keydef);
+		     if (result != ISC_R_SUCCESS)
 			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
 					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
 					   "couldn't find key %s for"
@@ -237,13 +243,31 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 					   "command channel %s",
 					   keydef->algorithm, keydef->keyid,
 					   socktext);
-			     keydef = NULL;
+			     result = DST_R_UNSUPPORTEDALG;
+			     keydef = NULL; /* Prevent more error messages. */
 		     }
 
-		     if (keydef != NULL)
+		     if (result == ISC_R_SUCCESS) {
+			     isc_buffer_init(&b, secret, sizeof(secret));
+			     result = isc_base64_decodestring(ns_g_mctx,
+							      keydef->secret,
+							      &b);
+		     }
+
+		     if (keydef != NULL && result != ISC_R_SUCCESS) {
+			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
+					   NS_LOGMODULE_OMAPI, ISC_LOG_WARNING,
+					   "can't use secret for key %s on "
+					   "command channel %s: %s",
+					   keydef->keyid, socktext,
+					   isc_result_totext(result));
+			     keydef = NULL; /* Prevent more error messages. */
+
+		     } else if (result == ISC_R_SUCCESS)
 			     result = omapi_auth_register(keydef->keyid,
-							  keydef->secret,
-							  OMAPI_AUTH_HMACMD5);
+						    OMAPI_AUTH_HMACMD5,
+						    isc_buffer_base(&b),
+						    isc_buffer_usedlength(&b));
 
 		     if (keydef != NULL && result != ISC_R_SUCCESS)
 			     isc_log_write(ns_g_lctx, ISC_LOGCATEGORY_GENERAL,
