@@ -43,11 +43,6 @@
 #include <dns/ttl.h>
 #include <dns/masterdump.h>
 
-/* XXX */
-dns_result_t
-__dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-		   isc_buffer_t *target);
-
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \
 	if (__r != DNS_R_SUCCESS) \
@@ -121,9 +116,10 @@ struct dns_master_style {
  */
 typedef struct dns_totext_ctx {
 	dns_master_style_t	style;
-	dns_rdata_textctx_t	rdata_ctx;
 	isc_boolean_t 		class_printed;
-	char 			linebreak[DNS_TOTEXT_LINEBREAK_MAXLEN];
+	char *			linebreak;
+	char 			linebreak_buf[DNS_TOTEXT_LINEBREAK_MAXLEN];
+	dns_name_t *		origin;
 	dns_fixedname_t		origin_fixname;
 	isc_uint32_t 		current_ttl;
 	isc_boolean_t 		current_ttl_valid;
@@ -237,13 +233,13 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 	REQUIRE(style->tab_width != 0);
 	dns_fixedname_init(&ctx->origin_fixname);
 
-	/* Set up the line break string. */
+	/* Set up the line break string if needed. */
 	if ((ctx->style.flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		isc_buffer_t buf;
 		isc_region_t r;
 		int col = 0;
 
-		isc_buffer_init(&buf, ctx->linebreak, sizeof(ctx->linebreak),
+		isc_buffer_init(&buf, ctx->linebreak_buf, sizeof(ctx->linebreak_buf),
 				ISC_BUFFERTYPE_TEXT);
 		
 		isc_buffer_available(&buf, &r);
@@ -257,7 +253,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 		/*
 		 * Do not return DNS_R_NOSPACE if the line break string
 		 * buffer is too small, because that would just make 
-		 * dump_rdataset() retry  indenfinitely with ever 
+		 * dump_rdataset() retry indenfinitely with ever 
 		 * bigger target buffers.  That's a different buffer,
 		 * so it won't help.  Use DNS_R_TEXTTOLONG as a substitute.
 		 */
@@ -271,22 +267,13 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx)
 			return (DNS_R_TEXTTOLONG);
 		r.base[0] = '\0';
 		isc_buffer_add(&buf, 1);
+		ctx->linebreak = ctx->linebreak_buf;
 	} else {
-		/*
-		 * Single-line output.  Use a single space where
-		 * a line break would otherwise be used.
-		 */
-		INSIST(sizeof(ctx->linebreak) >= 2);
-		ctx->linebreak[0] = ' ';
-		ctx->linebreak[1] = '\0';
+		ctx->linebreak = NULL;
 	}
 
 	ctx->class_printed = ISC_FALSE;
-
-	ctx->rdata_ctx.origin = NULL;
-	ctx->rdata_ctx.width = ctx->style.line_length - ctx->style.rdata_column;
-	ctx->rdata_ctx.linebreak = ctx->linebreak;
-	ctx->rdata_ctx.flags = ctx->style.flags;
+	ctx->origin = NULL;
 	
 	return (DNS_R_SUCCESS);
 }
@@ -403,7 +390,13 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			INDENT_TO(rdata_column);
 			dns_rdataset_current(rdataset, &rdata);
 
-			RETERR(__dns_rdata_totext(&rdata, &ctx->rdata_ctx, target));
+			RETERR(dns_rdata_tofmttext(&rdata,
+						   ctx->origin,
+						   ctx->style.flags,
+						   ctx->style.line_length -
+						       ctx->style.rdata_column,
+						   ctx->linebreak,
+						   target));
 
 			isc_buffer_available(target, &r);
 			if (r.length < 1)
@@ -724,8 +717,8 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			isc_buffer_used(&buffer, &r);
 			fprintf(f, "$ORIGIN %.*s\n", (int) r.length,
 				(char *) r.base);
-			if (ctx.style.flags & DNS_STYLEFLAG_REL_DATA)
-				ctx.rdata_ctx.origin = origin;
+			if ((ctx.style.flags & DNS_STYLEFLAG_REL_DATA) != 0)
+				ctx.origin = origin;
 		}
 		result = dns_db_allrdatasets(db, node, version, now, &rdsiter);
 		if (result != DNS_R_SUCCESS) {

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.49 1999/06/08 20:46:43 gson Exp $ */
+ /* $Id: rdata.c,v 1.50 1999/06/09 07:12:50 gson Exp $ */
 
 #include <config.h>
 
@@ -47,6 +47,18 @@
 	if (__r != DNS_R_SUCCESS) \
 		return (__r); \
 	} while (0)
+
+/*
+ * Context structure for the totext_ functions.  
+ * Contains formatting options for rdata-to-text
+ * conversion.
+ */
+typedef struct dns_rdata_textctx {
+	dns_name_t *origin;	/* Current origin, or NULL. */
+	unsigned int flags;	/* DNS_STYLEFLAG_* */
+	unsigned int width;	/* Width of rdata column. */
+  	char *linebreak;	/* Line break string. */
+} dns_rdata_textctx_t;
 
 static dns_result_t	txt_totext(isc_region_t *source, isc_buffer_t *target);
 static dns_result_t	txt_fromtext(isc_textregion_t *source,
@@ -88,9 +100,9 @@ static void		fromtext_error(void (*callback)(dns_rdatacallbacks_t *,
 				       isc_token_t *token,
 				       dns_result_t result);
 
-/* XXX */
-dns_result_t __dns_rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
-				isc_buffer_t *target);
+static dns_result_t	 __dns_rdata_totext(dns_rdata_t *rdata,
+					    dns_rdata_textctx_t *tctx,
+					    isc_buffer_t *target);
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
@@ -334,7 +346,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t class,
 	isc_boolean_t use_default = ISC_FALSE;
 	isc_token_t token;
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE;
+			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	char *name;
 	int line;
 	void (*callback)(dns_rdatacallbacks_t *, char *, ...);
@@ -446,6 +458,25 @@ dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 	tctx.flags = 0;
 	tctx.width = 60;
 	tctx.linebreak = " ";
+	return (__dns_rdata_totext(rdata, &tctx, target));
+}
+
+dns_result_t
+dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
+		    unsigned int flags, unsigned int width,
+		    char *linebreak, isc_buffer_t *target)
+{
+	/* Set up formatting options for formatted output. */
+	dns_rdata_textctx_t tctx;
+	tctx.origin = origin;
+	tctx.flags = flags;
+	if ((flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+		tctx.width = width;
+		tctx.linebreak = linebreak;
+	} else {
+		tctx.width = 60; /* Used for base64 word length only. */
+		tctx.linebreak = " ";
+	}
 	return (__dns_rdata_totext(rdata, &tctx, target));
 }
 
@@ -913,7 +944,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	 isc_boolean_t eol)
 {
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
-			       ISC_LEXOPT_DNSMULTILINE;
+			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	isc_result_t result;
 	
 	if (expect == isc_tokentype_qstring)

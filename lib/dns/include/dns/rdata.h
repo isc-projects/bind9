@@ -127,20 +127,9 @@ struct dns_rdata {
 };
 
 /*
- * Context structure for the totext_ functions.  Defines
- * the way the rdata part of a master file line is
- * formatted.
- */
-typedef struct dns_rdata_textctx {
-	dns_name_t *origin;	/* Current origin, or NULL. */
-	unsigned int flags;	/* DNS_STYLEFLAG_* */
-	unsigned int width;	/* Width of rdata column. */
-  	char *linebreak;	/* Line break string. */
-} dns_rdata_textctx_t;
-
-/*
  * Flags affecting rdata formatting style.  Flags 0xFFFF0000
  * are used by masterfile-level formatting and defined elsewhere.
+ * See additional comments at dns_rdata_tofmttext().
  */
 
 /* Split the rdata into multiple lines to try to keep it
@@ -327,7 +316,9 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
 			      isc_buffer_t *target);
 /*
  * Convert 'rdata' into text format, storing the result in 'target'.
- *	
+ * The text will consist of a single line, with fields separated by
+ * single spaces.
+ *
  * Notes:
  *	If 'origin' is not NULL, then any names in the rdata that are
  *	subdomains of 'origin' will be made relative it.
@@ -352,6 +343,32 @@ dns_result_t dns_rdata_totext(dns_rdata_t *rdata, dns_name_t *origin,
  *	Success
  *	<Any non-success status from dns_name_totext()>
  *	Resource Limit: Not enough space
+ */
+
+dns_result_t dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin,
+				 unsigned int flags, unsigned int width,
+				 char *linebreak, isc_buffer_t *target);
+/*
+ * Like dns_rdata_totext, but do formatted output suitable for 
+ * database dumps.  This is intended for use by dns_db_dump();
+ * library users are discouraged from calling it directly.
+ *
+ * If (flags & DNS_STYLEFLAG_MULTILINE) != 0, attempt to stay
+ * within 'width' by breaking the text into multiple lines.
+ * The string 'linebreak' is inserted between lines, and parentheses
+ * are added when necessary.  Because RRs contain unbreakable elements
+ * such as domain names whose length is variable, unpredictable, and
+ * potentially large, there is no guarantee that the lines will
+ * not exceed 'width' anyway.  
+ *
+ * If (flags & DNS_STYLEFLAG_MULTILINE) == 0, the rdata is always
+ * printed as a single line, and no parentheses are used.
+ * The 'width' and 'linebreak' arguments are ignored.
+ *
+ * If (flags & DNS_STYLEFLAG_COMMENT) != 0, output explanatory
+ * comments next to things like the SOA timer fields.  Some 
+ * comments (e.g., the SOA ones) are only printed when multiline
+ * output is selected. 
  */
 
 dns_result_t dns_rdata_fromstruct(dns_rdata_t *rdata,
