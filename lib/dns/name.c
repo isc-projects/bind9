@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.137 2002/08/27 04:53:42 marka Exp $ */
+/* $Id: name.c,v 1.138 2003/01/08 04:42:22 marka Exp $ */
 
 #include <config.h>
 
@@ -1855,7 +1855,6 @@ dns_name_split(dns_name_t *name,
 	dns_offsets_t name_odata;
 	unsigned char *offsets;
 	unsigned int splitlabel;
-	unsigned char *p;
 
 	REQUIRE(nbits == 0);	/* no bitstring support */
 	REQUIRE(VALID_NAME(name));
@@ -1874,13 +1873,6 @@ dns_name_split(dns_name_t *name,
 	SETUP_OFFSETS(name, offsets, name_odata);
 
 	splitlabel = name->labels - suffixlabels;
-
-	/*
-	 * Make p point at the count byte of the bitstring label,
-	 * if there is one (p will not be used if we are not
-	 * splitting bits).
-	 */
-	p = &name->ndata[offsets[splitlabel] + 1];
 
 	if (prefix != NULL)
 		dns_name_getlabelsequence(name, 0, splitlabel, prefix);
