@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.73 2000/08/29 22:55:57 bwelling Exp $ */
+/* $Id: task.c,v 1.74 2000/08/30 23:47:14 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -121,6 +121,7 @@ struct isc_taskmgr {
 #endif
 };
 
+#define DEFAULT_TASKMGR_QUANTUM		10
 #define DEFAULT_DEFAULT_QUANTUM		5
 #define FINISHED(m)			((m)->exiting && EMPTY((m)->tasks))
 
@@ -717,6 +718,9 @@ isc_task_gettag(isc_task_t *task) {
 static void
 dispatch(isc_taskmgr_t *manager) {
 	isc_task_t *task;
+#ifndef ISC_PLATFORM_USETHREADS
+	unsigned int total_dispatch_count = 0;
+#endif
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -771,10 +775,8 @@ dispatch(isc_taskmgr_t *manager) {
 	 */
 
 	LOCK(&manager->lock);
-#ifndef ISC_PLATFORM_USETHREADS
-	while (!EMPTY(manager->ready_tasks) && !FINISHED(manager)) {
-#else
 	while (!FINISHED(manager)) {
+#ifdef ISC_PLATFORM_USETHREADS
 		/*
 		 * For reasons similar to those given in the comment in
 		 * isc_task_send() above, it is safe for us to dequeue
@@ -787,6 +789,10 @@ dispatch(isc_taskmgr_t *manager) {
 			WAIT(&manager->work_available, &manager->lock);
 			XTHREADTRACE("awake");
 		}
+#else
+		if (total_dispatch_count >= DEFAULT_TASKMGR_QUANTUM ||
+		    EMPTY(manager->ready_tasks))
+			break;
 #endif
 		XTHREADTRACE("working");
 
@@ -827,6 +833,9 @@ dispatch(isc_taskmgr_t *manager) {
 						LOCK(&task->lock);
 					}
 					dispatch_count++;
+#ifndef ISC_PLATFORM_USETHREADS
+					total_dispatch_count++;
+#endif
 				}
 
 				if (task->references == 0 &&
@@ -1136,7 +1145,8 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 * Dispatch the shutdown events.
 	 */
 	UNLOCK(&manager->lock);
-	isc__taskmgr_dispatch();
+	while (isc__taskmgr_ready())
+		(void)isc__taskmgr_dispatch();
 #endif
 
 	manager_free(manager);
@@ -1145,6 +1155,13 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 }
 
 #ifndef ISC_PLATFORM_USETHREADS
+isc_boolean_t
+isc__taskmgr_ready(void) {
+	if (taskmgr == NULL)
+		return (ISC_FALSE);
+	return (ISC_TF(!ISC_LIST_EMPTY(taskmgr->ready_tasks)));
+}
+
 isc_result_t
 isc__taskmgr_dispatch(void) {
 	isc_taskmgr_t *manager = taskmgr;

@@ -15,10 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_p.h,v 1.2 2000/08/29 22:53:59 bwelling Exp $ */
+/* $Id: task_p.h,v 1.3 2000/08/30 23:47:15 bwelling Exp $ */
 
 #ifndef ISC_TASK_P_H
 #define ISC_TASK_P_H
+
+isc_boolean_t
+isc__taskmgr_ready(void);
 
 isc_result_t
 isc__taskmgr_dispatch(void);

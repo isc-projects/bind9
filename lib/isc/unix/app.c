@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.27 2000/08/30 01:43:59 bwelling Exp $ */
+/* $Id: app.c,v 1.28 2000/08/30 23:47:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -380,29 +380,37 @@ isc_app_run(void) {
 		int n;
 		isc_time_t when, now;
 		struct timeval tv, *tvp;
-		isc_uint64_t us;
 		fd_set readfds, writefds;
 		int maxfd;
+		isc_boolean_t readytasks;
 
-		result = isc__timermgr_nextevent(&when);
-		if (result != ISC_R_SUCCESS)
-			tvp = NULL;
-		else {
-			(void)isc_time_now(&now);
-			us = isc_time_microdiff(&when, &now);
-			tv.tv_sec = us / 1000000;
-			tv.tv_usec = us % 1000000;
+		readytasks = isc__taskmgr_ready();
+		if (readytasks) {
+			tv.tv_sec = 0;
+			tv.tv_usec = 0;
 			tvp = &tv;
+		} else {
+			result = isc__timermgr_nextevent(&when);
+			if (result != ISC_R_SUCCESS)
+				tvp = NULL;
+			else {
+				isc_uint64_t us;
+
+				(void)isc_time_now(&now);
+				us = isc_time_microdiff(&when, &now);
+				tv.tv_sec = us / 1000000;
+				tv.tv_usec = us % 1000000;
+				tvp = &tv;
+			}
 		}
 
 		isc__socketmgr_getfdsets(&readfds, &writefds, &maxfd);
 		n = select(maxfd, &readfds, &writefds, NULL, tvp);
 
-		if (n == 0)
-			isc__timermgr_dispatch();
-		else if (maxfd > 0)
-			isc__socketmgr_dispatch(&readfds, &writefds, maxfd);
-
+		(void)isc__timermgr_dispatch();
+		if (n > 0)
+			(void)isc__socketmgr_dispatch(&readfds, &writefds,
+						      maxfd);
 		(void)isc__taskmgr_dispatch();
 
 		if (want_reload) {
@@ -410,6 +418,8 @@ isc_app_run(void) {
 			return (ISC_R_RELOAD);
 		}
 	}
+	while (isc__taskmgr_ready())
+		(void)isc__taskmgr_dispatch();
 
 #endif /* ISC_PLATFORM_USETHREADS */
 
