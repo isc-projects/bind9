@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.179 2001/02/18 23:46:26 bwelling Exp $ */
+/* $Id: message.c,v 1.180 2001/02/19 20:14:23 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1151,6 +1151,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_namelist_t *section;
 	isc_boolean_t free_name, free_rdataset;
 	isc_boolean_t preserve_order, best_effort, seen_problem;
+	isc_boolean_t issigzero;
 
 	preserve_order = ISC_TF(options & DNS_MESSAGEPARSE_PRESERVEORDER);
 	best_effort = ISC_TF(options & DNS_MESSAGEPARSE_BESTEFFORT);
@@ -1229,16 +1230,12 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (rdtype == dns_rdatatype_tsig) {
 			/*
 			 * If it is a tsig, verify that it is in the
-			 * additional data section, and switch sections for
-			 * the rest of this rdata.
+			 * additional data section.
 			 */
-			if ((sectionid != DNS_SECTION_ADDITIONAL)
-			    || (rdclass != dns_rdataclass_any))
+			if (sectionid != DNS_SECTION_ADDITIONAL ||
+			    rdclass != dns_rdataclass_any ||
+			    count != msg->counts[sectionid]  - 1)
 				DO_FORMERR;
-			if (msg->tsig != NULL) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
 			msg->sigstart = recstart;
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
@@ -1251,10 +1248,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			if (!dns_name_equal(dns_rootname, name) ||
 			    msg->opt != NULL)
 				DO_FORMERR;
-			if (msg->opt != NULL) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
 			skip_name_search = ISC_TRUE;
 			skip_type_search = ISC_TRUE;
 		} else if (rdtype == dns_rdatatype_tkey) {
@@ -1326,32 +1319,31 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;
+		issigzero = ISC_FALSE;
 		if (rdtype == dns_rdatatype_sig && rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
-			if (covers == 0 &&
-				 sectionid == DNS_SECTION_ADDITIONAL)
-			{
-				if (msg->sig0 != NULL) {
-					result = DNS_R_FORMERR;
-					goto cleanup;
-				}
+			if (covers == 0) {
+				if (sectionid != DNS_SECTION_ADDITIONAL ||
+				    count != msg->counts[sectionid]  - 1)
+					DO_FORMERR;
 				msg->sigstart = recstart;
 				skip_name_search = ISC_TRUE;
 				skip_type_search = ISC_TRUE;
+				issigzero = ISC_TRUE;
 			}
 		} else
 			covers = 0;
 
 		/*
-		 * If we are doing a dynamic update don't bother searching
-		 * for a name, just append this one to the end of the message.
+		 * If we are doing a dynamic update or this is a meta-type,
+		 * don't bother searching for a name, just append this one
+		 * to the end of the message.
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_name_search) {
 			if (rdtype != dns_rdatatype_opt &&
 			    rdtype != dns_rdatatype_tsig &&
-			    !(rdtype == dns_rdatatype_sig && covers == 0 &&
-			      sectionid == DNS_SECTION_ADDITIONAL))
+			    !issigzero)
 			{
 				ISC_LIST_APPEND(*section, name, link);
 				free_name = ISC_FALSE;
@@ -1379,7 +1371,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 		/*
 		 * Search name for the particular type and class.
-		 * Skip this stage if in update mode, or this is a TSIG.
+		 * Skip this stage if in update mode or this is a meta-type.
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_type_search)
@@ -1389,10 +1381,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 * If this is a type that can only occur in
 			 * the question section, fail.
 			 */
-			if (dns_rdatatype_questiononly(rdtype)) {
-				result = DNS_R_FORMERR;
-				goto cleanup;
-			}
+			if (dns_rdatatype_questiononly(rdtype))
+				DO_FORMERR;
 
 			rdataset = NULL;
 			result = dns_message_findtype(name, rdtype, covers,
@@ -1438,7 +1428,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			dns_rdataset_init(rdataset);
 			dns_rdatalist_tordataset(rdatalist, rdataset);
 
-			if (rdtype != dns_rdatatype_opt) {
+			if (rdtype != dns_rdatatype_opt && 
+			    rdtype != dns_rdatatype_tsig &&
+			    !issigzero)
+			{
 				ISC_LIST_APPEND(name->list, rdataset, link);
 				free_rdataset = ISC_FALSE;
 			}
@@ -1470,9 +1463,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 		/*
 		 * If this is an OPT record, remember it.  Also, set
-		 * the extended rcode.
+		 * the extended rcode.  Note that msg->opt will only be set
+		 * if best-effort parsing is enabled.
 		 */
-		if (rdtype == dns_rdatatype_opt) {
+		if (rdtype == dns_rdatatype_opt && msg->opt == NULL) {
 			dns_rcode_t ercode;
 
 			msg->opt = rdataset;
@@ -1487,18 +1481,18 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/*
-		 * If this is an SIG(0) or TSIG record, remember it.
+		 * If this is an SIG(0) or TSIG record, remember it.  Note
+		 * that msg->sig0 or msg->tsig will only be set if best-effort
+		 * parsing is enabled.
 		 */
-		if (rdtype == dns_rdatatype_sig && covers == 0 &&
-		    sectionid == DNS_SECTION_ADDITIONAL)
-		{
+		if (issigzero && msg->sig0 == NULL) {
 			msg->sig0 = rdataset;
 			msg->sig0name = name;
 			rdataset = NULL;
 			free_rdataset = ISC_FALSE;
 			free_name = ISC_FALSE;
 		}
-		else if (rdtype == dns_rdatatype_tsig) {
+		else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
 			msg->tsig = rdataset;
 			msg->tsigname = name;
 			rdataset = NULL;
