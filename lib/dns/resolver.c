@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.38 2004/06/07 03:24:57 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.39 2004/06/25 04:41:24 marka Exp $ */
 
 #include <config.h>
 
@@ -2102,23 +2102,25 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	 * Find the first unmarked addrinfo.
 	 */
 	addrinfo = NULL;
-	while (find != fctx->find) {
-		for (addrinfo = ISC_LIST_HEAD(find->list);
-		     addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
-			if (!UNMARKED(addrinfo))
-				continue;
-			possibly_mark(fctx, addrinfo);
-			if (UNMARKED(addrinfo)) {
-				addrinfo->flags |= FCTX_ADDRINFO_MARK;
-				break;
+	if (find != NULL) {
+		do {
+			for (addrinfo = ISC_LIST_HEAD(find->list);
+			     addrinfo != NULL;
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+				if (!UNMARKED(addrinfo))
+					continue;
+				possibly_mark(fctx, addrinfo);
+				if (UNMARKED(addrinfo)) {
+					addrinfo->flags |= FCTX_ADDRINFO_MARK;
+					break;
+				}
 			}
-		}
-		if (addrinfo != NULL)
-			break;
-		find = ISC_LIST_NEXT(find, publink);
-		if (find != fctx->find && find == NULL)
-			find = ISC_LIST_HEAD(fctx->finds);
+			if (addrinfo != NULL)
+				break;
+			find = ISC_LIST_NEXT(find, publink);
+			if (find != fctx->find && find == NULL)
+				find = ISC_LIST_HEAD(fctx->finds);
+		} while (find != fctx->find);
 	}
 
 	fctx->find = find;
@@ -2144,23 +2146,25 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	 * Find the first unmarked addrinfo.
 	 */
 	addrinfo = NULL;
-	while (find != fctx->altfind) {
-		for (addrinfo = ISC_LIST_HEAD(find->list);
-		     addrinfo != NULL;
-		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
-			if (!UNMARKED(addrinfo))
-				continue;
-			possibly_mark(fctx, addrinfo);
-			if (UNMARKED(addrinfo)) {
-				addrinfo->flags |= FCTX_ADDRINFO_MARK;
-				break;
+	if (find != NULL) {
+		do {
+			for (addrinfo = ISC_LIST_HEAD(find->list);
+			     addrinfo != NULL;
+			     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+				if (!UNMARKED(addrinfo))
+					continue;
+				possibly_mark(fctx, addrinfo);
+				if (UNMARKED(addrinfo)) {
+					addrinfo->flags |= FCTX_ADDRINFO_MARK;
+					break;
+				}
 			}
-		}
-		if (addrinfo != NULL)
-			break;
-		find = ISC_LIST_NEXT(find, publink);
-		if (find != fctx->altfind && find == NULL)
-			find = ISC_LIST_HEAD(fctx->altfinds);
+			if (addrinfo != NULL)
+				break;
+			find = ISC_LIST_NEXT(find, publink);
+			if (find != fctx->altfind && find == NULL)
+				find = ISC_LIST_HEAD(fctx->altfinds);
+		} while (find != fctx->altfind);
 	}
 
 	faddrinfo = addrinfo;
