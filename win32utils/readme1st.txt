@@ -1,19 +1,13 @@
-Copyright (C) 2001  Internet Software Consortium.
+Copyright (C) 2001, 2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: readme1st.txt,v 1.7.2.2 2003/02/07 02:39:06 marka Exp $
+$Id: readme1st.txt,v 1.7.2.3 2003/03/06 04:38:29 marka Exp $
 
-	   Release of BIND 9.2.0 for Window NT/2000
+	   Release of BIND 9.2.2 for Window NT/2000
 
-Date: 10-Aug-2001.
-
-  This is the first release of BIND 9.2.0 for Windows NT/2000. As such
-it should be fully tested on a test system before installing on a
-production system or anywhere that is considered critical for Internet
-access.  The release has not been thoroughly tested.  While IPv6
-addresses should work, there is no support yet for a BIND server using
-an IPv6 stack. Only IPv4 stacks are supported on the box running this
-version of BIND. IPv6 stacks will be supported in a future release.
+This is a maintenance release of BIND 9.2 for Window NT/2000.  Only
+IPv4 stacks are supported on the box running this version of BIND.
+IPv6 stacks will be supported in a future release.
   
 	Kit Installation Information
 
@@ -74,6 +68,11 @@ started and stopped in the same way as any other service and
 automatically starts whenever the system is booted. Signals are
 not supported and are in fact ignored.
 
+Note: Unlike most Windows applications, named does not, change its
+working directory when started as a service.  If you wish to use
+relative files in named.conf you will need to specify a working
+directory.
+
 	Documentation
 
 This kit includes Documentation in HTML format.  The documentation is not
@@ -108,6 +107,8 @@ file on the system where you are running these tools unless you have
 BIND running on that system.
 
 This will be fixed in a future release.
+
+Messages are logged to the Application log in the EventViewer.
 
 	Problems
 

@@ -31,12 +31,12 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001
 ./bin/dig/dig.1					X	2000,2001
 ./bin/dig/dig.c					C	2000,2001,2002
-./bin/dig/dig.docbook				SGML	2000,2001
+./bin/dig/dig.docbook				SGML	2000,2001,2003
 ./bin/dig/dig.html				X	2001
 ./bin/dig/dighost.c				C	2000,2001,2002
 ./bin/dig/host.1				X	2000,2001
 ./bin/dig/host.c				C	2000,2001,2002
-./bin/dig/host.docbook				SGML	2000,2001
+./bin/dig/host.docbook				SGML	2000,2001,2003
 ./bin/dig/host.html				X	2001
 ./bin/dig/include/dig/dig.h			C	2000,2001
 ./bin/dig/nslookup.c				C	2000,2001,2002
@@ -57,15 +57,15 @@
 ./bin/dnssec/dnssec-keygen.html			X	2001
 ./bin/dnssec/dnssec-makekeyset.8		X	2000,2001
 ./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000,2001
-./bin/dnssec/dnssec-makekeyset.docbook		SGML	2001
+./bin/dnssec/dnssec-makekeyset.docbook		SGML	2001,2003
 ./bin/dnssec/dnssec-makekeyset.html		X	2001
 ./bin/dnssec/dnssec-signkey.8			X	2000,2001
 ./bin/dnssec/dnssec-signkey.c			C.NAI	2000,2001
-./bin/dnssec/dnssec-signkey.docbook		SGML	2001
+./bin/dnssec/dnssec-signkey.docbook		SGML	2001,2003
 ./bin/dnssec/dnssec-signkey.html		X	2001
 ./bin/dnssec/dnssec-signzone.8			X	2000,2001
-./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001
-./bin/dnssec/dnssec-signzone.docbook		SGML	2001
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2003
+./bin/dnssec/dnssec-signzone.docbook		SGML	2001,2003
 ./bin/dnssec/dnssec-signzone.html		X	2001
 ./bin/dnssec/dnssectool.c			C	2000,2001
 ./bin/dnssec/dnssectool.h			C	2000,2001
@@ -86,7 +86,7 @@
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001
 ./bin/named/aclconf.c				C	1999,2000,2001
-./bin/named/client.c				C	1999,2000,2001,2002
+./bin/named/client.c				C	1999,2000,2001,2002,2003
 ./bin/named/config.c				C	2001,2002
 ./bin/named/control.c				C	2001
 ./bin/named/controlconf.c			C	2001
@@ -135,8 +135,8 @@
 ./bin/named/named.docbook			SGML	2000,2001
 ./bin/named/named.html				X	2000,2001
 ./bin/named/notify.c				C	1999,2000,2001
-./bin/named/query.c				C	1999,2000,2001,2002
-./bin/named/server.c				C	1999,2000,2001,2002
+./bin/named/query.c				C	1999,2000,2001,2002,2003
+./bin/named/server.c				C	1999,2000,2001,2002,2003
 ./bin/named/sortlist.c				C	2000,2001
 ./bin/named/tkeyconf.c				C	1999,2000,2001
 ./bin/named/tsigconf.c				C	1999,2000,2001
@@ -166,10 +166,10 @@
 ./bin/rndc/.cvsignore				X	2000,2001
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002
 ./bin/rndc/include/rndc/os.h			C	2001
-./bin/rndc/rndc-confgen.8			MAN	2001,2002
+./bin/rndc/rndc-confgen.8			MAN	2001,2002,2003
 ./bin/rndc/rndc-confgen.c			C	2001
 ./bin/rndc/rndc-confgen.docbook			X	2001
-./bin/rndc/rndc-confgen.html			HTML	2001,2002
+./bin/rndc/rndc-confgen.html			HTML	2001,2002,2003
 ./bin/rndc/rndc.8				X	2000,2001
 ./bin/rndc/rndc.c				C	2000,2001
 ./bin/rndc/rndc.conf				CONF-C	2000,2001
@@ -429,7 +429,7 @@
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001
 ./bin/tests/system/common/root.hint		ZONE	2000,2001
-./bin/tests/system/conf.sh.in			SH	2000,2001
+./bin/tests/system/conf.sh.in			SH	2000,2001,2003
 ./bin/tests/system/dialup/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dialup/ns1/example.db	ZONE	2000,2001
 ./bin/tests/system/dialup/ns1/named.conf	CONF-C	2000,2001
@@ -766,7 +766,7 @@
 ./config.h.win32				X	1999,2000,2001
 ./config.sub					X	1999,2000,2001
 ./configure					X	1998,1999,2000,2001
-./configure.in					SH	1998,1999,2000,2001,2002
+./configure.in					SH	1998,1999,2000,2001,2002,2003
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001
 ./conftools/perllib/dnsconf/DNSConf.i		C	2000,2001
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001
@@ -1144,7 +1144,7 @@
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001
 ./doc/misc/.cvsignore				X	2002
 ./doc/misc/Makefile.in				MAKE	2001
-./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002
+./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2003
 ./doc/misc/format-options.pl			PERL	2001
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001
 ./doc/misc/migration				TXT.BRIEF	2000,2001
@@ -1578,7 +1578,7 @@
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001
 ./lib/dns/a6.c					C	1999,2000,2001
 ./lib/dns/acl.c					C	1999,2000,2001
-./lib/dns/adb.c					C	1999,2000,2001,2002
+./lib/dns/adb.c					C	1999,2000,2001,2002,2003
 ./lib/dns/api					X	1999,2000,2001
 ./lib/dns/byaddr.c				C	2000,2001
 ./lib/dns/cache.c				C	1999,2000,2001,2002
@@ -1611,7 +1611,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001
 ./lib/dns/include/dns/diff.h			C	2000,2001
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2003
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001
 ./lib/dns/include/dns/events.h			C	1999,2000,2001
 ./lib/dns/include/dns/fixedname.h		C	1999,2000,2001
@@ -1659,7 +1659,7 @@
 ./lib/dns/include/dns/validator.h		C	2000,2001
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001
-./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002
+./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003
 ./lib/dns/include/dns/zonekey.h			C	2001
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002
 ./lib/dns/journal.c				C	1999,2000,2001
@@ -1772,7 +1772,7 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001
 ./lib/dns/rdataslab.c				C	1999,2000,2001
 ./lib/dns/request.c				C	2000,2001
-./lib/dns/resolver.c				C	1999,2000,2001,2002
+./lib/dns/resolver.c				C	1999,2000,2001,2002,2003
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002
 ./lib/dns/rootns.c				C	1999,2000,2001
 ./lib/dns/sdb.c					C	2000,2001
@@ -1824,7 +1824,7 @@
 ./lib/dns/win32/libdns.mak			X	2001
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001
 ./lib/dns/xfrin.c				C	1999,2000,2001
-./lib/dns/zone.c				C	1999,2000,2001,2002
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003
 ./lib/dns/zonekey.c				C	2001
 ./lib/dns/zt.c					C	1999,2000,2001
 ./lib/isc/.cvsignore				X	1999,2000,2001
@@ -2044,7 +2044,7 @@
 ./lib/isc/win32/libisc.dsp			X	2001
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001
-./lib/isc/win32/net.c				C	1999,2000,2001
+./lib/isc/win32/net.c				C	1999,2000,2001,2003
 ./lib/isc/win32/netdb.h				C	2000,2001
 ./lib/isc/win32/ntfile.c			C	2001
 ./lib/isc/win32/ntpaths.c			C	2001
@@ -2106,7 +2106,7 @@
 ./lib/isccfg/include/isccfg/check.h		C	2001
 ./lib/isccfg/include/isccfg/log.h		C	2001
 ./lib/isccfg/log.c				C	2001
-./lib/isccfg/parser.c				C	2000,2001,2002
+./lib/isccfg/parser.c				C	2000,2001,2002,2003
 ./lib/isccfg/version.c				C	1998,1999,2000,2001
 ./lib/isccfg/win32/DLLMain.c			C	2001
 ./lib/isccfg/win32/libisccfg.def		X	2001
@@ -2180,7 +2180,7 @@
 ./lib/lwres/man/lwres_gethostent.docbook	SGML	2001
 ./lib/lwres/man/lwres_gethostent.html		X	2001
 ./lib/lwres/man/lwres_getipnode.3		X	2000,2001
-./lib/lwres/man/lwres_getipnode.docbook		SGML	2001
+./lib/lwres/man/lwres_getipnode.docbook		SGML	2001,2003
 ./lib/lwres/man/lwres_getipnode.html		X	2001
 ./lib/lwres/man/lwres_getnameinfo.3		X	2000,2001
 ./lib/lwres/man/lwres_getnameinfo.docbook	SGML	2001
@@ -2250,7 +2250,7 @@
 ./make/Makefile.in				MAKE	1998,1999,2000,2001
 ./make/includes.in				MAKE	1999,2000,2001
 ./make/mkdep.in					X	1999,2000,2001
-./make/rules.in					MAKE	1998,1999,2000,2001,2002
+./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003
 ./mkinstalldirs					X	1996
 ./util/.cvsignore				X	2000,2001
 ./util/COPYRIGHT				X	1996,1997,1998,1999,2000,2001
@@ -2285,5 +2285,5 @@
 ./win32utils/dnsheadergen.bat			BAT	2001
 ./win32utils/makedefs.pl			PERL	2001
 ./win32utils/makeversion.pl			PERL	2001
-./win32utils/readme1st.txt			TXT.BRIEF	2001
+./win32utils/readme1st.txt			TXT.BRIEF	2001,2003
 ./win32utils/win32-build.txt			TXT.BRIEF	2001

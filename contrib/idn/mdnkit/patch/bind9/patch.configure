@@ -1,10 +1,10 @@
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/isc/bind9/configure,v
-retrieving revision 1.284.2.12
-diff -u -u -2 -r1.284.2.12 configure
---- configure	8 Aug 2002 06:45:45 -0000	1.284.2.12
-+++ configure	8 Aug 2002 06:56:09 -0000
+retrieving revision 1.284.2.13.4.2
+diff -u -u -2 -r1.284.2.13.4.2 configure
+--- configure	18 Feb 2003 04:16:23 -0000	1.284.2.13.4.2
++++ configure	18 Feb 2003 04:24:24 -0000
 @@ -1008,4 +1008,8 @@
      --with-pic              try to use only PIC/non-PIC objects default=use both
    --with-kame=PATH	use Kame IPv6 default path /usr/local/v6
@@ -14,35 +14,35 @@ diff -u -u -2 -r1.284.2.12 configure
 +  --with-mdnlib=ARG    specify libmdn
  
  Some influential environment variables:
-@@ -7228,5 +7232,5 @@
+@@ -7372,5 +7376,5 @@
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 7230 "configure"' > conftest.$ac_ext
-+  echo '#line 7234 "configure"' > conftest.$ac_ext
+-  echo '#line 7374 "configure"' > conftest.$ac_ext
++  echo '#line 7378 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
-@@ -7771,5 +7775,5 @@
+@@ -7915,5 +7919,5 @@
  CFLAGS="$CFLAGS -o out/conftest2.$ac_objext"
  compiler_c_o=no
--if { (eval echo configure:7773: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
-+if { (eval echo configure:7777: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
+-if { (eval echo configure:7917: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
++if { (eval echo configure:7921: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>out/conftest.err; } && test -s out/conftest2.$ac_objext; then
    # The compiler can only warn and ignore the option if not recognized
    # So say no if there are warnings
-@@ -9420,5 +9424,5 @@
+@@ -9600,5 +9604,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 9422 "configure"
-+#line 9426 "configure"
+-#line 9602 "configure"
++#line 9606 "configure"
  #include "confdefs.h"
  
-@@ -9518,5 +9522,5 @@
+@@ -9698,5 +9702,5 @@
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 9520 "configure"
-+#line 9524 "configure"
+-#line 9700 "configure"
++#line 9704 "configure"
  #include "confdefs.h"
  
-@@ -12957,4 +12961,289 @@
+@@ -13263,4 +13267,307 @@
  fi
  
 +
@@ -267,17 +267,43 @@ diff -u -u -2 -r1.284.2.12 configure
 +  cat >conftest.$ac_ext <<_ACEOF
 +#line $LINENO "configure"
 +#include "confdefs.h"
++/* From autoconf 2.57 */
++/* Define $ac_func to an innocuous variant, in case <limits.h> declares $ac_func.
++   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
++#define $ac_func innocuous_$ac_func
++
 +/* System header to define __stub macros and hopefully few prototypes,
-+    which can conflict with char $ac_func (); below.  */
-+#include <assert.h>
++    which can conflict with char $ac_func (); below.
++    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
++    <limits.h> exists even on freestanding compilers.  */
++
++#ifdef __STDC__
++# include <limits.h>
++#else
++# include <assert.h>
++#endif
++
++#undef $ac_func
++
 +/* Override any gcc2 internal prototype to avoid an error.  */
 +#ifdef __cplusplus
 +extern "C"
++{
 +#endif
 +/* We use char because int might match the return type of a gcc2
 +   builtin and then its argument prototype would still apply.  */
 +char $ac_func ();
-+char (*f) ();
++/* The GNU C library defines this for functions which it implements
++    to always fail with ENOSYS.  Some functions are actually named
++    something starting with __ and the normal name is an alias.  */
++#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
++choke me
++#else
++char (*f) () = $ac_func;
++#endif
++#ifdef __cplusplus
++}
++#endif
 +
 +#ifdef F77_DUMMY_MAIN
 +#  ifdef __cplusplus
@@ -288,15 +314,7 @@ diff -u -u -2 -r1.284.2.12 configure
 +int
 +main ()
 +{
-+/* The GNU C library defines this for functions which it implements
-+    to always fail with ENOSYS.  Some functions are actually named
-+    something starting with __ and the normal name is an alias.  */
-+#if defined (__stub_$ac_func) || defined (__stub___$ac_func)
-+choke me
-+#else
-+f = $ac_func;
-+#endif
-+
++return f != $ac_func;
 +  ;
 +  return 0;
 +}
