@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.104 2001/11/27 00:55:51 gson Exp $ */
+/* $Id: dispatch.c,v 1.105 2001/11/29 13:14:33 marka Exp $ */
 
 #include <config.h>
 
@@ -1000,6 +1000,9 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
+#ifndef ISC_ALLOW_MAPPED
+	isc_socket_ipv6only(sock, ISC_TRUE);
+#endif
 	result = isc_socket_bind(sock, local);
 	if (result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);

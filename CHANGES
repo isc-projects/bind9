@@ -1,3 +1,11 @@
+1147.	[func]		Set IPV6_IPV6ONLY on IPv6 sockets if supported by
+			the OS.  listen-on-v6 { any; }; should no longer
+			result in IPv4 queries be accepted.  Similarly
+			control { inet :: ... }; should no longer result
+			in IPv4 connections being accepted.  This can be
+			overridden at compile time by defining
+			ISC_ALLOW_MAPPED=1.
+
 1146.	[func]		Allow IPV6_IPV6ONLY to be set/cleared on a socket if
 			supported by the OS by a new function
 			isc_socket_ipv6only().

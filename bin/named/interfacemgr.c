@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.65 2001/10/25 00:12:07 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.66 2001/11/29 13:14:32 marka Exp $ */
 
 #include <config.h>
 
@@ -294,6 +294,9 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 				 isc_result_totext(result));
 		goto tcp_socket_failure;
 	}
+#ifndef ISC_ALLOW_MAPPED
+	isc_socket_ipv6only(ifp->tcpsocket, ISC_TRUE);
+#endif
 	result = isc_socket_bind(ifp->tcpsocket, &ifp->addr);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
