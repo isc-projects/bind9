@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.137 2000/12/19 04:46:36 marka Exp $ */
+/* $Id: rdata.c,v 1.138 2001/01/02 04:24:52 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1317,7 +1317,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 	*tp++ = '"';
 	tl--;
 	while (n--) {
-		if (*sp < 0x20 || *sp > 0x7f) {
+		if (*sp < 0x20 || *sp >= 0x7f) {
 			if (tl < 4)
 				return (ISC_R_NOSPACE);
 			sprintf(tp, "\\%03u", *sp++);
