@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.5 2004/12/21 10:58:56 jinmei Exp $ */
+/* $Id: config.c,v 1.47.18.6 2005/01/10 00:05:28 marka Exp $ */
 
 #include <config.h>
 
@@ -158,6 +158,7 @@ options {\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
+	check-wildcard yes;\n\
 };\n\
 "
 

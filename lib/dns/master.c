@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.148.18.1 2004/05/05 01:32:36 marka Exp $ */
+/* $Id: master.c,v 1.148.18.2 2005/01/10 00:05:30 marka Exp $ */
 
 #include <config.h>
 
@@ -862,6 +862,23 @@ check_ns(dns_loadctx_t *lctx, isc_token_t *token, const char *source,
 	return (result);
 }
 
+static void
+check_wildcard(dns_incctx_t *ictx, const char *source, unsigned long line,
+	       dns_rdatacallbacks_t *callbacks)
+{
+	dns_name_t *name;
+
+	name = (ictx->glue != NULL) ? ictx->glue : ictx->current;
+	if (dns_name_internalwildcard(name)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		(*callbacks->warn)(callbacks, "%s:%lu: warning: ownername "
+				   "'%s' contains an non-terminal wildcard",
+				   source, line, namebuf);
+	}
+}
+
 static isc_result_t
 load(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
@@ -1346,6 +1363,14 @@ load(dns_loadctx_t *lctx) {
 					isc_buffer_init(&target, target_mem,
 							target_size);
 				}
+				/*
+				 * Check for internal wildcards.
+				 */
+				if ((lctx->options & DNS_MASTER_CHECKWILDCARD)
+						 != 0)
+					check_wildcard(ictx, source, line,
+						       callbacks);
+
 			}
 			if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
 			    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
@@ -1571,7 +1596,7 @@ load(dns_loadctx_t *lctx) {
 			isc_boolean_t ok;
 			dns_name_t *name;
 
-			name = (ictx->glue != NULL) ? ictx-> glue :
+			name = (ictx->glue != NULL) ? ictx->glue :
 						      ictx->current;
 			ok = dns_rdata_checkowner(name, lctx->zclass, type,
 						  ISC_TRUE);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.12 2004/12/21 10:59:02 jinmei Exp $ */
+/* $Id: namedconf.c,v 1.30.18.13 2005/01/10 00:05:32 marka Exp $ */
 
 #include <config.h>
 
@@ -788,6 +788,7 @@ zone_clauses[] = {
 	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
+	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.18 2004/12/21 10:58:57 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.19 2005/01/10 00:05:29 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2733,6 +2733,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-cache { <replaceable>address_match_list</replaceable> }; </optional>
@@ -3381,6 +3382,16 @@ MX records.  It also applies to the domain names in the RDATA of NS, SOA and MX
 records.  It also applies to the RDATA of PTR records where the owner name
 indicated that it is a reverse lookup of a hostname (the owner name ends in
 IN-ADDR.ARPA, IP6.ARPA, IP6.INT).
+</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>check-wildcard</command></term>
+<listitem><para>
+This option is used to check for non-terminal wildcards.
+The use of non-terminal wildcards is almost always as a result of a failure
+to understand the wildcard matching algorithm (RFC 1034).  This option
+affects master zones.  The default (<command>yes</command>) is to check
+for non-terminal wildcards and issue a warning.
 </para>
 </listitem></varlistentry>
 
@@ -4686,6 +4697,7 @@ Statement Grammar</title>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
+    <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -4906,6 +4918,11 @@ certain domain names in master files and/or DNS responses received from the
 network.  The default varies according to zone type.  For <command>master</command> zones the default is <command>fail</command>.  For <command>slave</command>
 zones the default is <command>warn</command>.
 </para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>check-wildcard</command></term>
+<listitem><para>See the description of
+<command>check-wildcard</command> in <xref linkend="boolean_options"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>database</command></term>

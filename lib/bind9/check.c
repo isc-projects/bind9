@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.7 2004/11/22 05:02:24 marka Exp $ */
+/* $Id: check.c,v 1.44.18.8 2005/01/10 00:05:30 marka Exp $ */
 
 #include <config.h>
 
@@ -741,6 +741,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	{ "update-policy", MASTERZONE },
 	{ "database", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "key-directory", MASTERZONE },
+	{ "check-wildcard", MASTERZONE },
 	};
 
 	static optionstable dialups[] = {

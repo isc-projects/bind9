@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.2 2004/10/25 01:32:23 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.3 2005/01/10 00:05:27 marka Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqvD] [-c class] [-o output] "
 		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
-		"[-n (ignore|warn|fail)] zonename filename\n");
+		"[-n (ignore|warn|fail)] [-W (ignore|warn)] zonename filename\n");
 	exit(1);
 }
 
@@ -88,7 +88,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dijk:n:qst:o:vw:D")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dijk:n:qst:o:vw:DW:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -163,6 +163,13 @@ main(int argc, char **argv) {
 
 		case 'D':
 			dumpzone++;
+			break;
+
+		case 'W':
+			if (!strcmp(isc_commandline_argument, "warn"))
+				zone_options |= DNS_ZONEOPT_CHECKWILDCARD;
+			else if (!strcmp(isc_commandline_argument, "ignore"))
+				zone_options &= ~DNS_ZONEOPT_CHECKWILDCARD;
 			break;
 
 		default:

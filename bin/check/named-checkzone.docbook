@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.1 2004/06/03 02:24:29 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.2 2005/01/10 00:05:27 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -48,6 +48,7 @@
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-w <replaceable class="parameter">directory</replaceable></option></arg>
       <arg><option>-D</option></arg>
+      <arg><option>-W <replaceable class="parameter">mode</replaceable></option></arg>
       <arg choice="req">zonename</arg>
       <arg choice="req">filename</arg>
     </cmdsynopsis>
@@ -174,6 +175,19 @@
 	<listitem>
 	  <para>
 	      Dump zone file in canonical format.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-W <replaceable class="parameter">mode</replaceable></term>
+	<listitem>
+	  <para>
+	      Specify whether to check for non-terminal wildcards.
+	      Non-terminal wildcards are almost always the result of a
+	      failure to understand the wildcard matching algorithm (RFC 1034).
+	      Possible modes are <command>"warn"</command> (default) and
+	      <command>"ignore"</command>.
 	  </para>
 	</listitem>
       </varlistentry>

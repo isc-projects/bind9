@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.9 2004/10/21 01:34:16 marka Exp $ */
+/* $Id: update.c,v 1.109.18.10 2005/01/10 00:05:28 marka Exp $ */
 
 #include <config.h>
 
@@ -2149,6 +2149,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ssutable_t *ssutable = NULL;
 	dns_fixedname_t tmpnamefixed;
 	dns_name_t *tmpname = NULL;
+	unsigned int options;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -2382,6 +2383,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	 * Process the Update Section.
 	 */
 
+	options = dns_zone_getoptions(zone);
 	for (result = dns_message_firstname(request, DNS_SECTION_UPDATE);
 	     result == ISC_R_SUCCESS;
 	     result = dns_message_nextname(request, DNS_SECTION_UPDATE))
@@ -2467,6 +2469,15 @@ update_action(isc_task_t *task, isc_event_t *event) {
 					continue;
 				}
 				soa_serial_changed = ISC_TRUE;
+			}
+			if ((options & DNS_ZONEOPT_CHECKWILDCARD) != 0 &&
+			    dns_name_internalwildcard(name)) {
+				char namestr[DNS_NAME_FORMATSIZE];
+				dns_name_format(name, namestr,
+						sizeof(namestr));
+				update_log(client, zone, LOGLEVEL_PROTOCOL,
+					   "warning: ownername '%s' contains "
+					   "a non-terminal wildcard", namestr);
 			}
 
 			if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {

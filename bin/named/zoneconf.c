@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.4 2004/10/14 00:51:32 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.5 2005/01/10 00:05:28 marka Exp $ */
 
 #include <config.h>
 
@@ -602,7 +602,13 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			}
 			RETERR(dns_zone_setkeydirectory(zone, filename));
 		}
-
+		obj = NULL;
+		result = ns_config_get(maps, "check-wildcard", &obj);
+		if (result == ISC_R_SUCCESS)
+			check = cfg_obj_asboolean(obj);
+		else
+			check = ISC_FALSE;
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKWILDCARD, check);
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,

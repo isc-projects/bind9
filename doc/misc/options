@@ -126,6 +126,7 @@ options {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        check-wildcard <boolean>;
 };
 
 controls {
@@ -218,6 +219,7 @@ view <string> <optional_class> {
                 use-alt-transfer-source <boolean>;
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
+                check-wildcard <boolean>;
         };
         server ( <ipv4_address> | <ipv6_address> ) {
                 bogus <boolean>;
@@ -312,6 +314,7 @@ view <string> <optional_class> {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        check-wildcard <boolean>;
 };
 
 lwres {
@@ -378,6 +381,7 @@ zone <string> <optional_class> {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        check-wildcard <boolean>;
 };
 
 server ( <ipv4_address> | <ipv6_address> ) {

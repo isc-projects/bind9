@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.15 2004/12/21 10:59:00 jinmei Exp $ */
+/* $Id: zone.c,v 1.410.18.16 2005/01/10 00:05:31 marka Exp $ */
 
 #include <config.h>
 
@@ -1148,6 +1148,8 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 		options |= DNS_MASTER_CHECKNAMES;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNAMESFAIL))
 		options |= DNS_MASTER_CHECKNAMESFAIL;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKWILDCARD))
+		options |= DNS_MASTER_CHECKWILDCARD;
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
@@ -1218,6 +1220,8 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		options |= DNS_MASTER_CHECKNAMES;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL))
 		options |= DNS_MASTER_CHECKNAMESFAIL;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
+		options |= DNS_MASTER_CHECKWILDCARD;
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
