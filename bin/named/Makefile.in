@@ -44,7 +44,7 @@ LIBS =		${LWRESLIBS} ${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
 SUBDIRS =	unix
 
-TARGETS =	named
+TARGETS =	named lwresd
 
 OBJS =		client.@O@ interfacemgr.@O@ listenlist.@O@ \
 		log.@O@ logconf.@O@ main.@O@ notify.@O@ omapi.@O@ \
@@ -70,6 +70,9 @@ main.@O@: main.c
 named: ${OBJS} ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
+lwresd: named
+	@LN@ named lwresd
+
 clean distclean::
 	rm -f ${TARGETS}
 
@@ -78,5 +81,6 @@ installdirs:
 		mkdir ${DESTDIR}${sbindir}; \
 	fi
 
-install:: named installdirs
+install:: named lwresd installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} named ${DESTDIR}${sbindir}
+	(cd ${DESTDIR}${sbindir}; @LN@ named lwresd)
