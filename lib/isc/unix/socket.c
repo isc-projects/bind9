@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.8 2005/02/24 00:32:22 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.9 2005/03/15 01:39:35 marka Exp $ */
 
 #include <config.h>
 
@@ -284,7 +284,7 @@ socket_log(isc_socket_t *sock, isc_sockaddr_t *address,
 	   const char *fmt, ...)
 {
 	char msgbuf[2048];
-	char peerbuf[256];
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	va_list ap;
 
 	if (! isc_log_wouldlog(isc_lctx, level))
@@ -3294,6 +3294,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 			ERROR_MATCH(ENOBUFS, ISC_R_NORESOURCES);
 			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
 			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
+			ERROR_MATCH(ECONNRESET, ISC_R_CONNECTIONRESET);
 #undef ERROR_MATCH
 		}
 
@@ -3363,6 +3364,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 	int cc;
 	ISC_SOCKADDR_LEN_T optlen;
 	char strbuf[ISC_STRERRORSIZE];
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
 	UNUSED(me);
 	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
@@ -3439,13 +3441,16 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
 			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
 			ERROR_MATCH(ETIMEDOUT, ISC_R_TIMEDOUT);
+		        ERROR_MATCH(ECONNRESET, ISC_R_CONNECTIONRESET);
 #undef ERROR_MATCH
 		default:
 			dev->result = ISC_R_UNEXPECTED;
+			isc_sockaddr_format(&sock->address, peerbuf,
+					    sizeof(peerbuf));
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "internal_connect: connect() %s",
-					 strbuf);
+					 "internal_connect: connect(%s) %s",
+					 peerbuf, strbuf);
 		}
 	} else {
 		dev->result = ISC_R_SUCCESS;
