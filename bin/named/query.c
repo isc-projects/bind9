@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.153 2000/11/20 17:53:35 halley Exp $ */
+/* $Id: query.c,v 1.154 2000/11/23 01:18:34 gson Exp $ */
 
 #include <config.h>
 
@@ -3239,49 +3239,22 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 static inline void
 log_query(ns_client_t *client) {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char peerbuf[ISC_NETADDR_FORMATSIZE];
-	char text[256];
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_netaddr_t netaddr;
+	char typename[DNS_RDATATYPE_FORMATSIZE];
+	char classname[DNS_RDATACLASS_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	int level = ISC_LOG_DEBUG(1);
 
 	if (! isc_log_wouldlog(ns_g_lctx, level))
 		return;
 
-	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-
-	if (client->peeraddr_valid) {
-		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-		isc_netaddr_format(&netaddr, peerbuf, sizeof(peerbuf));
-	} else 
-		strcpy (peerbuf, "(invalid)");
-
-	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
 	rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	INSIST(rdataset != NULL);
+	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
+	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 
-	while (rdataset != NULL) {
-		if (dns_rdatatype_totext(rdataset->type, &b) != ISC_R_SUCCESS)
-			break;
-
-		isc_buffer_putstr(&b, "/");
-
-		if (dns_rdataclass_totext(rdataset->rdclass, &b) !=
-		    ISC_R_SUCCESS)
-			break;
-
-		rdataset = ISC_LIST_NEXT(rdataset, link);
-		if (rdataset != NULL)
-			isc_buffer_putstr(&b, "/");
-	}
-
-	isc_buffer_usedregion(&b, &r);
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      ISC_LOG_INFO, "XX%c/%s/%s/%s/%.*s",
-		      client->message->flags & DNS_MESSAGEFLAG_RD ?
-		      '+' : ' ', client->view->name, peerbuf,
-		      namebuf, (int)r.length, (char *)r.base);
+	ns_client_log(client, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      level, "query: %s %s %s", namebuf, classname, typename);
 }
 
 void
