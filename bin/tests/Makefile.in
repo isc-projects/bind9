@@ -17,13 +17,9 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-CINCLUDES =	-I../../lib/isc/unix/include \
-		-I${srcdir}/../../lib/isc/unix/include \
-		-I${srcdir}/../../lib/isc/pthreads/include \
-		-I${srcdir}/../../lib/isc/include \
-		-I../../lib/dns/include \
-		-I${srcdir}/../../lib/dns/include \
-		-I${srcdir}/../../lib/dns/sec/dst/include
+@BIND9_INCLUDES@
+
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =

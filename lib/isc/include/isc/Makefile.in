@@ -23,7 +23,7 @@ HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
 		error.h event.h \
 		eventclass.h heap.h int.h interfaceiter.h lang.h lex.h lib.h \
 		list.h magic.h mem.h msgcat.h mutexblock.h netaddr.h \
-		rbtgen.h region.h result.h \
+		print.h rbtgen.h region.h result.h \
 		resultclass.h rwlock.h serial.h sockaddr.h socket.h str.h \
 		symtab.h task.h timer.h types.h
 
@@ -42,8 +42,9 @@ installdirs:
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} $(srcdir)/$$i ${includedir}/isc ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${includedir}/isc ; \
 	done
+	${INSTALL_DATA} platform.h ${includedir}/isc
 
 distclean::
-	rm -f print.h
+	rm -f platform.h

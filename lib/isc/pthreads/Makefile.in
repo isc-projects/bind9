@@ -19,7 +19,10 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../unix/include \
-		-I${srcdir}/../include
+		-I../include \
+		-I${srcdir}/../include \
+		-I${srcdir}/..
+
 CDEFINES =
 CWARNINGS =
 

@@ -21,9 +21,9 @@ top_srcdir =	@top_srcdir@
 
 @LIBISC_API@
 
-CINCLUDES =	-I./unix/include \
-		-I${srcdir}/unix/include \
+CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/pthreads/include \
+		-I./include \
 		-I${srcdir}/include
 CDEFINES =
 CWARNINGS =

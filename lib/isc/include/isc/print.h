@@ -19,16 +19,6 @@
 #define ISC_PRINT_H
 
 /***
- *** Defines
- ***/
-
-/*
- * Define if the OS does not supply a {v}snprintf() implementation.
- */
-
-@ISC_PRINT_NEEDVSNPRINTF@
-
-/***
  *** Imports
  ***/
 
@@ -37,6 +27,7 @@
 #include <stdarg.h>
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 
 /***
  *** Functions
@@ -44,7 +35,7 @@
 
 ISC_LANG_BEGINDECLS
 
-#ifdef ISC_PRINT_NEEDVSNPRINTF
+#ifdef ISC_PLATFORM_NEEDVSNPRINTF
 int
 isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap);
 #define vsnprintf isc_print_vsnprintf
@@ -56,4 +47,4 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...);
 
 ISC_LANG_ENDDECLS
 
-#endif
+#endif /* ISC_PRINT_H */

@@ -62,42 +62,6 @@
  */
 
 /***
- *** Defines.
- ***/
-
-/*
- * If sockaddrs on this system have an sa_len field, ISC_NET_HAVESALEN will
- * be defined.
- */
-@ISC_NET_HAVESALEN@
-
-/*
- * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
- * will be defined.
- */
-@ISC_NET_HAVEIPV6@
-
-/*
- * If this system needs inet_ntop(), ISC_NET_NEEDNTOP will be defined.
- */
-@ISC_NET_NEEDNTOP@
-
-/*
- * If this system needs inet_pton(), ISC_NET_NEEDPTON will be defined.
- */
-@ISC_NET_NEEDPTON@
-
-/*
- * If this system needs inet_aton(), ISC_NET_NEEDATON will be defined.
- */
-@ISC_NET_NEEDATON@
-
-/*
- * If this system needs in_port_t, ISC_NET_NEEDPORTT will be defined.
- */
-@ISC_NET_NEEDPORTT@
-
-/***
  *** Imports.
  ***/
 
@@ -107,6 +71,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <isc/platform.h>
 #include <isc/result.h>
 
 #ifndef AF_INET6
@@ -117,19 +82,14 @@
 #define PF_INET6 AF_INET6
 #endif
 
-#ifndef ISC_NET_HAVEIPV6
+#ifndef ISC_PLATFORM_HAVEIPV6
 #include <isc/ipv6.h>
 #endif
 
 /*
- * Define either ISC_NET_BSD44MSGHDR or ISC_NET_BSD43MSGHDR
- */
-@ISC_NET_MSGHDRFLAVOR@
-
-/*
  * Ensure type in_port_t is defined.
  */
-#ifdef ISC_NET_NEEDPORTT
+#ifdef ISC_PLATFORM_NEEDPORTT
 #include <isc/int.h>
 
 typedef isc_uint16_t in_port_t;
@@ -137,11 +97,11 @@ typedef isc_uint16_t in_port_t;
 
 /*
  * If this system does not have MSG_TRUNC (as returned from recvmsg())
- * ISC_NET_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
+ * ISC_PLATFORM_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
  * faking code in socket.c.
  */
 #ifndef MSG_TRUNC
-#define ISC_NET_RECVOVERFLOW
+#define ISC_PLATFORM_RECVOVERFLOW
 #endif
 
 /***
@@ -172,22 +132,20 @@ isc_net_probeipv6(void);
  *	ISC_R_UNEXPECTED
  */
 
-#ifdef ISC_NET_NEEDNTOP
+#ifdef ISC_PLATFORM_NEEDNTOP
 const char *isc_net_ntop(int af, const void *src, char *dst, size_t size);
 #define inet_ntop isc_net_ntop
 #endif
 
-#ifdef ISC_NET_NEEDPTON
+#ifdef ISC_PLATFORM_NEEDPTON
 int isc_net_pton(int af, const char *src, void *dst);
 #define inet_pton isc_net_pton
 #endif
 
-#ifdef ISC_NET_NEEDATON
+#ifdef ISC_PLATFORM_NEEDATON
 int isc_net_aton(const char *cp, struct in_addr *addr);
 #define inet_aton isc_net_aton
 #endif
-
-#endif /* ISC_NET_H */
 
 /*
  * Tell emacs to use C mode for this file.
@@ -196,3 +154,5 @@ int isc_net_aton(const char *cp, struct in_addr *addr);
  * mode: c
  * End:
  */
+
+#endif /* ISC_NET_H */

@@ -1,0 +1,12 @@
+ISC_INCLUDES = @BIND9_ISC_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/isc \
+	-I${top_srcdir}/lib/isc/include \
+	-I${top_srcdir}/lib/isc/unix/include \
+	-I${top_srcdir}/lib/isc/pthreads/include
+
+DNS_INCLUDES = @BIND9_DNS_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/dns/include \
+	-I${top_srcdir}/lib/dns/sec/dst/include
+
+TEST_INCLUDES = \
+	-I${top_srcdir}/lib/tests/include

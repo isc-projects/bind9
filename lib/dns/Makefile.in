@@ -21,16 +21,9 @@ top_srcdir =	@top_srcdir@
 
 @LIBDNS_API@
 
-CINCLUDES =	-I../isc/unix/include \
-		-I${srcdir}/../isc/unix/include \
-		-I${srcdir}/../isc/pthreads/include \
-		-I${srcdir}/../isc/include \
-		-I../isc/include \
-		-I./include \
-		-I. \
-		-I${srcdir}/include \
-		-I${srcdir}/sec/dst/include \
-		-I${srcdir}
+@BIND9_INCLUDES@
+
+CINCLUDES =	-I. ${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =

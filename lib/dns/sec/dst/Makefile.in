@@ -17,22 +17,12 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-@BIND9_VERSION@
+@BIND9_INCLUDES@
 
-@LIBDNS_API@
-
-CINCLUDES =	-I../../../isc/unix/include \
-		-I${srcdir}/../../../isc/unix/include \
-		-I${srcdir}/../../../isc/pthreads/include \
-		-I${srcdir}/../../../isc/include \
-		-I../../../dns/include \
-		-I${srcdir}/../../../dns/include \
-		-I${srcdir}/include \
-		-I${srcdir} \
+CINCLUDES =	-I${srcdir} \
 		-I${srcdir}/../dnssafe \
 		-I${srcdir}/../openssl/include \
-		-I./include \
-		-I.
+		${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =	-DUSE_MD5 -DDNSSAFE -DOPENSSL
 CWARNINGS =

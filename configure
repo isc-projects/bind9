@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.58 
+# From configure.in Revision: 1.60 
 
 
 
@@ -2118,13 +2118,13 @@ EOF
 if { (eval echo configure:2119: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
-	ISC_NET_HAVESALEN="#define ISC_NET_HAVESALEN 1"
+	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   echo "$ac_t""no" 1>&6
-	ISC_NET_HAVESALEN="#undef ISC_NET_HAVESALEN"
+	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
 fi
 rm -f conftest*
 
@@ -2145,13 +2145,13 @@ EOF
 if { (eval echo configure:2146: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""4.4BSD" 1>&6
-	ISC_NET_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   echo "$ac_t""4.3BSD" 1>&6
-	ISC_NET_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
+	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
 fi
 rm -f conftest*
 
@@ -2170,13 +2170,13 @@ EOF
 if { (eval echo configure:2171: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
-	ISC_NET_NEEDPORTT="#undef ISC_NET_NEEDPORTT"
+	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   echo "$ac_t""no" 1>&6
-	ISC_NET_NEEDPORTT="#define ISC_NET_NEEDPORTT 1"
+	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"
 fi
 rm -f conftest*
 
@@ -2645,13 +2645,13 @@ EOF
 if { (eval echo configure:2646: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>&5; }; then
   rm -rf conftest*
   echo "$ac_t""yes" 1>&6
-	ISC_NET_HAVEIPV6="#define ISC_NET_HAVEIPV6 1"
+	ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1"
 else
   echo "configure: failed program was:" >&5
   cat conftest.$ac_ext >&5
   rm -rf conftest*
   echo "$ac_t""no" 1>&6
-	ISC_NET_HAVEIPV6="#undef ISC_NET_HAVEIPV6"
+	ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
 	ISC_IPV6_H="ipv6.h"
 	ISC_IPV6_O="ipv6.$O"
 	ISC_ISCIPV6_O="unix/ipv6.$O"
@@ -2707,12 +2707,12 @@ fi
 
 if eval "test \"`echo '$ac_cv_func_'inet_ntop`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  ISC_NET_NEEDNTOP="#undef ISC_NET_NEEDNTOP"
+  ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
 else
   echo "$ac_t""no" 1>&6
 ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	       ISC_NET_NEEDNTOP="#define ISC_NET_NEEDNTOP 1"
+	       ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
 
 fi
 
@@ -2759,12 +2759,12 @@ fi
 
 if eval "test \"`echo '$ac_cv_func_'inet_pton`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  ISC_NET_NEEDPTON="#undef ISC_NET_NEEDPTON"
+  ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
 else
   echo "$ac_t""no" 1>&6
 ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	       ISC_NET_NEEDPTON="#define ISC_NET_NEEDPTON 1"
+	       ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
 
 fi
 
@@ -2811,12 +2811,12 @@ fi
 
 if eval "test \"`echo '$ac_cv_func_'inet_aton`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  ISC_NET_NEEDATON="#undef ISC_NET_NEEDATON"
+  ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"
 else
   echo "$ac_t""no" 1>&6
 ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
 	       ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-	       ISC_NET_NEEDATON="#define ISC_NET_NEEDATON 1"
+	       ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"
 
 fi
 
@@ -2863,12 +2863,12 @@ fi
 
 if eval "test \"`echo '$ac_cv_func_'vsnprintf`\" = yes"; then
   echo "$ac_t""yes" 1>&6
-  ISC_PRINT_NEEDVSNPRINTF="#undef ISC_PRINT_NEEDVSNPRINTF"
+  ISC_PLATFORM_NEEDVSNPRINTF="#undef ISC_PLATFORM_NEEDVSNPRINTF"
 else
   echo "$ac_t""no" 1>&6
 ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS print.$O"
 	 ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS print.c"
-	 ISC_PRINT_NEEDVSNPRINTF="#define ISC_PRINT_NEEDVSNPRINTF 1"
+	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"
 fi
 
 
@@ -2880,6 +2880,19 @@ fi
 
 
 BIND9_TOP_BUILDDIR=`pwd`
+
+
+
+if test "X$srcdir" != "X"; then
+	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
+	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
+else
+	BIND9_ISC_BUILDINCLUDE=""
+	BIND9_DNS_BUILDINCLUDE=""
+fi
+
+
+BIND9_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
 
 
 BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
@@ -2995,6 +3008,7 @@ ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
 trap 'rm -fr `echo "make/rules
+	make/includes
 	Makefile
 	make/Makefile
 	make/mkdep
@@ -3002,11 +3016,10 @@ trap 'rm -fr `echo "make/rules
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
-	lib/isc/include/isc/print.h
+	lib/isc/include/isc/platform.h
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
-	lib/isc/unix/include/isc/net.h
 	lib/isc/nls/Makefile
 	lib/isc/pthreads/Makefile
 	lib/isc/pthreads/include/Makefile
@@ -3090,9 +3103,9 @@ s%@CPP@%$CPP%g
 s%@MKDEPCC@%$MKDEPCC%g
 s%@MKDEPCFLAGS@%$MKDEPCFLAGS%g
 s%@MKDEPPROG@%$MKDEPPROG%g
-s%@ISC_NET_HAVESALEN@%$ISC_NET_HAVESALEN%g
-s%@ISC_NET_MSGHDRFLAVOR@%$ISC_NET_MSGHDRFLAVOR%g
-s%@ISC_NET_NEEDPORTT@%$ISC_NET_NEEDPORTT%g
+s%@ISC_PLATFORM_HAVESALEN@%$ISC_PLATFORM_HAVESALEN%g
+s%@ISC_PLATFORM_MSGHDRFLAVOR@%$ISC_PLATFORM_MSGHDRFLAVOR%g
+s%@ISC_PLATFORM_NEEDPORTT@%$ISC_PLATFORM_NEEDPORTT%g
 s%@build@%$build%g
 s%@build_alias@%$build_alias%g
 s%@build_cpu@%$build_cpu%g
@@ -3104,18 +3117,22 @@ s%@LN_S@%$LN_S%g
 s%@LIBTOOL@%$LIBTOOL%g
 s%@O@%$O%g
 s%@A@%$A%g
-s%@ISC_NET_HAVEIPV6@%$ISC_NET_HAVEIPV6%g
+s%@ISC_PLATFORM_HAVEIPV6@%$ISC_PLATFORM_HAVEIPV6%g
 s%@ISC_IPV6_H@%$ISC_IPV6_H%g
 s%@ISC_IPV6_O@%$ISC_IPV6_O%g
 s%@ISC_ISCIPV6_O@%$ISC_ISCIPV6_O%g
 s%@ISC_IPV6_C@%$ISC_IPV6_C%g
-s%@ISC_NET_NEEDNTOP@%$ISC_NET_NEEDNTOP%g
-s%@ISC_NET_NEEDPTON@%$ISC_NET_NEEDPTON%g
-s%@ISC_NET_NEEDATON@%$ISC_NET_NEEDATON%g
-s%@ISC_PRINT_NEEDVSNPRINTF@%$ISC_PRINT_NEEDVSNPRINTF%g
+s%@ISC_PLATFORM_NEEDNTOP@%$ISC_PLATFORM_NEEDNTOP%g
+s%@ISC_PLATFORM_NEEDPTON@%$ISC_PLATFORM_NEEDPTON%g
+s%@ISC_PLATFORM_NEEDATON@%$ISC_PLATFORM_NEEDATON%g
+s%@ISC_PLATFORM_NEEDVSNPRINTF@%$ISC_PLATFORM_NEEDVSNPRINTF%g
 s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
+s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
+s%@BIND9_DNS_BUILDINCLUDE@%$BIND9_DNS_BUILDINCLUDE%g
+/@BIND9_INCLUDES@/r $BIND9_INCLUDES
+s%@BIND9_INCLUDES@%%g
 /@BIND9_MAKE_RULES@/r $BIND9_MAKE_RULES
 s%@BIND9_MAKE_RULES@%%g
 /@BIND9_VERSION@/r $BIND9_VERSION
@@ -3166,6 +3183,7 @@ EOF
 cat >> $CONFIG_STATUS <<EOF
 
 CONFIG_FILES=\${CONFIG_FILES-"make/rules
+	make/includes
 	Makefile
 	make/Makefile
 	make/mkdep
@@ -3173,11 +3191,10 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
-	lib/isc/include/isc/print.h
+	lib/isc/include/isc/platform.h
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
-	lib/isc/unix/include/isc/net.h
 	lib/isc/nls/Makefile
 	lib/isc/pthreads/Makefile
 	lib/isc/pthreads/include/Makefile

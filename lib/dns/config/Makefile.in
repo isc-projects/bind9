@@ -19,14 +19,9 @@ top_srcdir	= @top_srcdir@
 
 @BIND9_VERSION@
 
-CINCLUDES	= -I${srcdir}/../../isc/unix/include \
-		  -I${srcdir}/../../isc/pthreads/include \
-		  -I${srcdir}/../../isc/include \
-		  -I${srcdir}/../include \
-		  -I${srcdir}/.. \
-		  -I. \
-		  -I../include \
-		  -I../../isc/unix/include
+@BIND9_INCLUDES@
+
+CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES	=
 CWARNINGS	=
