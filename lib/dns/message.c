@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.164.2.6 2001/06/14 14:36:04 gson Exp $ */
+/* $Id: message.c,v 1.164.2.7 2001/06/15 17:02:18 gson Exp $ */
 
 /***
  *** Imports
@@ -962,11 +962,10 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * need this name pointer.
 		 */
 		if (result != ISC_R_SUCCESS) {
-			if (ISC_LIST_EMPTY(*section)) {
-				ISC_LIST_APPEND(*section, name, link);
-				free_name = ISC_FALSE;
-			} else
+			if (!ISC_LIST_EMPTY(*section))
 				DO_FORMERR;
+			ISC_LIST_APPEND(*section, name, link);
+			free_name = ISC_FALSE;
 		} else {
 			isc_mempool_put(msg->namepool, name);
 			name = name2;
