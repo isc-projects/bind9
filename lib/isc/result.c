@@ -77,6 +77,9 @@ static char *text[ISC_R_NRESULTS] = {
 	"unexpected error",			/* 34 */
 };
 
+#define ISC_RESULT_RESULTSET			2
+#define ISC_RESULT_UNAVAILABLESET		3
+
 static isc_once_t 				once = ISC_ONCE_INIT;
 static isc_msgcat_t *				isc_msgcat = NULL;
 static ISC_LIST(resulttable)			tables;
@@ -124,7 +127,7 @@ initialize_action(void) {
 
 	isc_msgcat_open("libisc.cat", &isc_msgcat);
 	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS, text,
-				isc_msgcat, 2);
+				isc_msgcat, ISC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "register_table() failed: %u", result);
@@ -145,7 +148,7 @@ isc_result_totext(isc_result_t result) {
 
 	LOCK(&lock);
 
-	text = "(result code text not available)";
+	text = NULL;
 	for (table = ISC_LIST_HEAD(tables);
 	     table != NULL;
 	     table = ISC_LIST_NEXT(table, link)) {
@@ -162,6 +165,9 @@ isc_result_totext(isc_result_t result) {
 			break;
 		}
 	}
+	if (text == NULL)
+		text = isc_msgcat_get(isc_msgcat, ISC_RESULT_UNAVAILABLESET,
+				      1, "(result code text not available)");
 
 	UNLOCK(&lock);
 
