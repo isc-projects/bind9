@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.34.2.5 2001/10/22 23:28:26 gson Exp $ */
+/* $Id: time.c,v 1.34.2.6 2003/07/23 06:57:54 marka Exp $ */
 
 #include <config.h>
 
@@ -173,7 +173,7 @@ isc_time_now(isc_time_t *t) {
 	 * Ensure the tv_sec value fits in t->seconds.
 	 */
 	if (sizeof(tv.tv_sec) > sizeof(t->seconds) &&
-	    ((tv.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0)
+	    ((tv.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0U)
 		return (ISC_R_RANGE);
 
 	t->seconds = tv.tv_sec;
@@ -366,7 +366,7 @@ isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
 	    (time_t)0.5 != 0.5 &&	       /* Not a floating point type. */
 	    (i = (time_t)-1) != 4294967295u &&		       /* Is signed. */
 	    (seconds &
-	     (1U << (sizeof(time_t) * CHAR_BIT - 1))) != 0) {   /* Negative. */
+	     (1U << (sizeof(time_t) * CHAR_BIT - 1))) != 0U) {   /* Negative. */
 		/*
 		 * This UNUSED() is here to shut up the IRIX compiler:
 		 *	variable "i" was set but never used

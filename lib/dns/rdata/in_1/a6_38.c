@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.46 2001/07/26 21:34:00 gson Exp $ */
+/* $Id: a6_38.c,v 1.46.2.1 2003/07/23 06:57:51 marka Exp $ */
 
 /* RFC2874 */
 
@@ -48,7 +48,7 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 128)
+	if (token.value.as_ulong > 128U)
 		RETTOK(ISC_R_RANGE);
 
 	prefixlen = (unsigned char)token.value.as_ulong;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.13 2003/07/17 07:30:20 marka Exp $ */
+/* $Id: server.c,v 1.339.2.14 2003/07/23 06:57:58 marka Exp $ */
 
 #include <config.h>
 
@@ -936,7 +936,7 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	INSIST(result == ISC_R_SUCCESS);
 	versiontext = cfg_obj_asstring(obj);
 	len = strlen(versiontext);
-	if (len > 255)
+	if (len > 255U)
 		len = 255; /* Silently truncate. */
 	buf[0] = len;
 	memcpy(buf + 1, versiontext, len);

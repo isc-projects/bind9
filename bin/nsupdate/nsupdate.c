@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.13 2003/07/22 04:03:36 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.14 2003/07/23 06:57:59 marka Exp $ */
 
 #include <config.h>
 
@@ -88,7 +88,7 @@ extern int h_errno;
 #define INITTEXT (2 * 1024)
 #define MAXTEXT (128 * 1024)
 #define FIND_TIMEOUT 5
-#define TTL_MAX 2147483647	/* Maximum signed 32 bit integer. */
+#define TTL_MAX 2147483647U	/* Maximum signed 32 bit integer. */
 
 #define DNSDEFAULTPORT 53
 
@@ -1172,7 +1172,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	if (isdelete)
 		ttl = 0;
 	else if (ttl > TTL_MAX) {
-		fprintf(stderr, "ttl '%s' is out of range (0 to %d)\n",
+		fprintf(stderr, "ttl '%s' is out of range (0 to %u)\n",
 			word, TTL_MAX);
 		goto failure;
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.5 2002/08/02 00:33:05 marka Exp $ */
+/* $Id: name.c,v 1.127.2.6 2003/07/23 06:57:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1807,7 +1807,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				count = 256;
 			nlen--;
 			len = sprintf(num, "%u", count);	/* XXX */
-			INSIST(len <= 4);
+			INSIST(len <= 4U);
 			bytes = count / 8;
 			if (count % 8 != 0)
 				bytes++;
@@ -1960,7 +1960,7 @@ dns_name_tofilenametext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				count = 256;
 			nlen--;
 			len = sprintf(num, "%u", count);	/* XXX */
-			INSIST(len <= 4);
+			INSIST(len <= 4U);
 			bytes = count / 8;
 			if (count % 8 != 0)
 				bytes++;

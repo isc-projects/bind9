@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.21 2003/07/21 05:55:03 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.22 2003/07/23 06:57:48 marka Exp $ */
 
 #include <config.h>
 
@@ -4417,7 +4417,7 @@ zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	isc_buffer_t buffer;
 
 	REQUIRE(buf != NULL);
-	REQUIRE(length > 1);
+	REQUIRE(length > 1U);
 
 	/*
 	 * Leave space for terminating '\0'.

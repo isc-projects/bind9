@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.88.2.2 2001/12/19 01:09:56 marka Exp $
+ * $Id: dst_api.c,v 1.88.2.3 2003/07/23 06:57:53 marka Exp $
  */
 
 #include <config.h>
@@ -987,7 +987,7 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 		if (isc_buffer_availablelength(out) < strlen(directory))
 			return (ISC_R_NOSPACE);
 		isc_buffer_putstr(out, directory);
-		if (strlen(directory) > 0 &&
+		if (strlen(directory) > 0U &&
 		    directory[strlen(directory) - 1] != '/')
 			isc_buffer_putstr(out, "/");
 	}
@@ -1106,7 +1106,7 @@ dst__mem_realloc(void *ptr, size_t size) {
 
 	INSIST(dst_memory_pool != NULL);
 	p = NULL;
-	if (size > 0) {
+	if (size > 0U) {
 		p = dst__mem_alloc(size);
 		if (p != NULL && ptr != NULL)
 			memcpy(p, ptr, size);

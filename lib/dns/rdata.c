@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.9 2003/07/22 04:03:43 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.10 2003/07/23 06:57:48 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -620,7 +620,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 					ISC_FALSE);
-	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535)
+	if (result == ISC_R_SUCCESS && token.value.as_ulong > 65535U)
 		return (ISC_R_RANGE);
 	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
@@ -1817,7 +1817,7 @@ atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
-	if ((token.value.as_ulong % 4) != 0)
+	if ((token.value.as_ulong % 4) != 0U)
 		isc_buffer_subtract(target,  4 - (token.value.as_ulong % 4));
 
 	/*

@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: lwinetaton.c,v 1.10 2001/01/09 21:59:25 bwelling Exp $";
+static char rcsid[] = "$Id: lwinetaton.c,v 1.10.2.1 2003/07/23 06:57:57 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -152,7 +152,7 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 			 *	a.b.c	(with c treated as 16 bits)
 			 *	a.b	(with b treated as 24 bits)
 			 */
-			if (pp >= parts + 3 || val > 0xff)
+			if (pp >= parts + 3 || val > 0xffU)
 				return (0);
 			*pp++ = (lwres_uint8_t)val;
 			c = *++cp;
@@ -179,19 +179,19 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 		break;
 
 	case 2:				/* a.b -- 8.24 bits */
-		if (val > 0xffffff)
+		if (val > 0xffffffU)
 			return (0);
 		val |= parts[0] << 24;
 		break;
 
 	case 3:				/* a.b.c -- 8.8.16 bits */
-		if (val > 0xffff)
+		if (val > 0xffffU)
 			return (0);
 		val |= (parts[0] << 24) | (parts[1] << 16);
 		break;
 
 	case 4:				/* a.b.c.d -- 8.8.8.8 bits */
-		if (val > 0xff)
+		if (val > 0xffU)
 			return (0);
 		val |= (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8);
 		break;

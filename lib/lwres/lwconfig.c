@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33 2001/07/10 18:25:45 gson Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.1 2003/07/23 06:57:57 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -156,7 +156,7 @@ getword(FILE *fp, char *buffer, size_t size) {
 	char *p = buffer;
 
 	REQUIRE(buffer != NULL);
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 
 	*p = '\0';
 
@@ -194,7 +194,7 @@ lwres_strdup(lwres_context_t *ctx, const char *str) {
 	char *p;
 
 	REQUIRE(str != NULL);
-	REQUIRE(strlen(str) > 0);
+	REQUIRE(strlen(str) > 0U);
 
 	p = CTXMALLOC(strlen(str) + 1);
 	if (p != NULL)
@@ -284,7 +284,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_SUCCESS);
 
 	res = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Nothing on line. */
 	else if (res == ' ' || res == '\t')
 		res = eatwhite(fp);
@@ -312,7 +312,7 @@ lwres_conf_parselwserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_SUCCESS);
 
 	res = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Nothing on line. */
 	else if (res == ' ' || res == '\t')
 		res = eatwhite(fp);
@@ -337,7 +337,7 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp) {
 	confdata = &ctx->confdata;
 
 	res = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Nothing else on line. */
 	else if (res == ' ' || res == '\t')
 		res = eatwhite(fp);
@@ -399,11 +399,11 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 	confdata->searchnxt = 0;
 
 	delim = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Nothing else on line. */
 
 	idx = 0;
-	while (strlen(word) > 0) {
+	while (strlen(word) > 0U) {
 		if (confdata->searchnxt == LWRES_CONFMAXSEARCH)
 			goto ignore; /* Too many domains. */
 
@@ -460,10 +460,10 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp) {
 	confdata = &ctx->confdata;
 
 	delim = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Empty line after keyword. */
 
-	while (strlen(word) > 0) {
+	while (strlen(word) > 0U) {
 		if (confdata->sortlistnxt == LWRES_CONFMAXSORTLIST)
 			return (LWRES_R_FAILURE); /* Too many values. */
 
@@ -516,10 +516,10 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp) {
 	confdata = &ctx->confdata;
 
 	delim = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0)
+	if (strlen(word) == 0U)
 		return (LWRES_R_FAILURE); /* Empty line after keyword. */
 
-	while (strlen(word) > 0) {
+	while (strlen(word) > 0U) {
 		if (strcmp("debug", word) == 0) {
 			confdata->resdebug = 1;
 		} else if (strcmp("no_tld_query", word) == 0) {
@@ -554,7 +554,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	confdata = &ctx->confdata;
 
 	REQUIRE(filename != NULL);
-	REQUIRE(strlen(filename) > 0);
+	REQUIRE(strlen(filename) > 0U);
 	REQUIRE(confdata != NULL);
 
 	errno = 0;
@@ -569,7 +569,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 			break;
 		}
 
-		if (strlen(word) == 0)
+		if (strlen(word) == 0U)
 			rval = LWRES_R_SUCCESS;
 		else if (strcmp(word, "nameserver") == 0)
 			rval = lwres_conf_parsenameserver(ctx, fp);

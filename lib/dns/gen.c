@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.4 2003/07/22 04:03:41 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.5 2003/07/23 06:57:48 marka Exp $ */
 
 #include <config.h>
 
@@ -772,7 +772,7 @@ main(int argc, char **argv) {
 					"#define dns_rdatatype_%s\t%s"
 					"((dns_rdatatype_t)dns_rdatatype_%s)"
 					"\n",
-					s, strlen(s) < 2 ? "\t" : "", s);
+					s, strlen(s) < 2U ? "\t" : "", s);
 				lasttype = tt->type;
 			}
 

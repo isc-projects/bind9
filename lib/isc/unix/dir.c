@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.18 2001/06/08 23:50:31 tale Exp $ */
+/* $Id: dir.c,v 1.18.2.1 2003/07/23 06:57:54 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -164,7 +164,7 @@ isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep) {
 	 * XXXDCL Could automatically allocate memory if dirname == NULL.
 	 */
 	REQUIRE(dirname != NULL);
-	REQUIRE(length > 0);
+	REQUIRE(length > 0U);
 
 	cwd = getcwd(dirname, length);
 

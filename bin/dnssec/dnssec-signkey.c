@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.50.2.1 2001/10/05 00:21:46 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50.2.2 2003/07/23 06:57:58 marka Exp $ */
 
 #include <config.h>
 
@@ -258,7 +258,7 @@ main(int argc, char *argv[]) {
 
 	setup_logging(verbose, mctx, &log);
 
-	if (strlen(argv[0]) < 8 || strncmp(argv[0], "keyset-", 7) != 0)
+	if (strlen(argv[0]) < 8U || strncmp(argv[0], "keyset-", 7) != 0)
 		fatal("keyset file '%s' must start with keyset-", argv[0]);
 
 	db = NULL;
