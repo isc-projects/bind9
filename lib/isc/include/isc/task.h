@@ -25,7 +25,11 @@
 /*
  * Task System
  *
- * XXX <TBS> XXX
+ * The task system provides a lightweight execution context, which is
+ * basically an event queue.  When a task's event queue is non-empty, the
+ * task is runnable.  A small work crew of threads, typically one per CPU,
+ * execute runnable tasks by dispatching the events on the tasks' event
+ * queues.  Context switching between tasks is fast.
  *
  * MP:
  *	The module ensures appropriate synchronization of data structures it
@@ -68,31 +72,306 @@ ISC_LANG_BEGINDECLS
  ***** Tasks.
  *****/
 
-isc_result_t				isc_task_create(isc_taskmgr_t *,
-							isc_mem_t *,
-							unsigned int,
-							isc_task_t **);
-void					isc_task_attach(isc_task_t *,
-							isc_task_t **);
-void					isc_task_detach(isc_task_t **);
-isc_mem_t *				isc_task_mem(isc_task_t *);
-isc_result_t				isc_task_send(isc_task_t *, 
-						      isc_event_t **);
-unsigned int				isc_task_purge(isc_task_t *, void *,
-						       isc_eventtype_t);
-unsigned int				isc_task_purgerange(isc_task_t *,
-							    void *,
-							    isc_eventtype_t,
-							    isc_eventtype_t);
-isc_result_t				isc_task_allowsend(isc_task_t *,
-							   isc_boolean_t);
-isc_result_t				isc_task_allowdone(isc_task_t *,
-							   isc_boolean_t);
-isc_result_t				isc_task_onshutdown(isc_task_t *,
-							    isc_taskaction_t,
-							    void *);
-void					isc_task_shutdown(isc_task_t *);
-void					isc_task_destroy(isc_task_t **);
+isc_result_t
+isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx,
+		unsigned int quantum, isc_task_t **taskp);
+/*
+ * Create a task running.
+ *
+ * Notes:
+ *
+ *	If 'quantum' is non-zero, then only that many events can be dispatched
+ *	before the task must yield to other tasks waiting to execute.  If
+ *	quantum is zero, then the default quantum of the task manager will
+ *	be used.
+ *
+ *	The 'quantum' option may be removed from isc_task_create() in the
+ *	future.  If this happens, isc_task_getquantum() and
+ *	isc_task_setquantum() will be provided.
+ *
+ * Requires:
+ *
+ *	'manager' is a valid task manager.
+ *
+ *	'mctx' is a valid memory context.
+ *
+ *	taskp != NULL && *taskp == NULL
+ *
+ * Ensures:
+ *
+ *	On success, '*taskp' is bound to the new task.
+ *
+ * Returns:
+ *
+ *     	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_UNEXPECTED
+ */
+
+void
+isc_task_attach(isc_task_t *source, isc_task_t **targetp);
+/*
+ * Attach *targetp to source.
+ *
+ * Requires:
+ *
+ *	'source' is a valid task.
+ *
+ *	'targetp' points to a NULL isc_task_t *.
+ *
+ * Ensures:
+ *
+ *	*targetp is attached to source.
+ */
+
+void
+isc_task_detach(isc_task_t **taskp);
+/*
+ * Detach *taskp from its task.
+ *
+ * Requires:
+ *
+ *	'*taskp' is a valid task.
+ *
+ * Ensures:
+ *
+ *	*taskp is NULL.
+ *
+ *	If '*taskp' is the last reference to the task and
+ *	the task has been shutdown,
+ *
+ *		All resources used by the task will be freed.
+ */
+
+isc_mem_t *
+isc_task_mem(isc_task_t *task);
+/*
+ * Get the task's memory context.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Returns:
+ *
+ *	The memory context specified when the task was created.
+ */
+
+isc_result_t
+isc_task_send(isc_task_t *task, isc_event_t **eventp);
+/*
+ * Send '*event' to 'task'.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Ensures
+ *
+ *	On success, *eventp == NULL
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_TASKDONE			The task is done.
+ *	ISC_R_TASKNOSEND		Sending events to the task is not
+ *					currently allowed.
+ */
+
+unsigned int
+isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
+		    isc_eventtype_t last);
+/*
+ * Purge events from a task's event queue.
+ *
+ * Notes:
+ *	Events whose sender is 'sender', and whose type is >= first and
+ *	<= last will be purged.  A sender of NULL will match any sender.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ *	last >= first
+ *
+ * Returns:
+ *
+ *	The number of events purged.
+ */
+
+unsigned int
+isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type);
+/*
+ * Purge events from a task's event queue.
+ *
+ * Notes:
+ *	Events whose sender is 'sender', and whose type is 'type'
+ *	will be purged.  A sender of NULL will match any sender.
+ *
+ *	This function is equivalent to
+ *
+ *		isc_task_purgerange(task, sender, type, type);
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ *	last >= first
+ *
+ * Returns:
+ *
+ *	The number of events purged.
+ */
+
+
+isc_result_t
+isc_task_allowsend(isc_task_t *task, isc_boolean_t allow);
+/*
+ * Allow or disallow sending events to 'task'.
+ *
+ * Notes:
+ *
+ *	Sending events is allowed when a task is created.
+ *
+ *	This functionality will always be available, but the interface
+ *	may change in the future.  In particular, it may be unified with
+ *	isc_task_allowdone() in an isc_task_getoptions()/isc_task_setoptions()
+ *	block.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Ensures:
+ *
+ *	On success,
+ *
+ *		If 'allow' is ISC_TRUE, then events may be send to the task.
+ *		Otherwise, any attempt to send an event to the task will be
+ *		disallowed and return ISC_R_TASKNOSEND.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_TASKDONE			The task is done.
+ */
+
+isc_result_t
+isc_task_allowdone(isc_task_t *task, isc_boolean_t allow);
+/*
+ * Allow or disallow automatic termination of 'task'.
+ *
+ * Notes:
+ *
+ *	Automatic task termination is allowed when a task is created.
+ *
+ *	This functionality will always be available, but the interface
+ *	may change in the future.  In particular, it may be unified with
+ *	isc_task_allowsend() in an isc_task_getoptions()/isc_task_setoptions()
+ *	block.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Ensures:
+ *
+ *	On success,
+ *
+ *		If 'allow' is ISC_TRUE, then when a task has been shutdown
+ *		and its event queue becomes empty, the task will enter the
+ *		done state.  Otherwise, a task that is shutting down will not
+ *		exit, even if its event queue becomes empty.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_TASKDONE			The task is done.
+ */
+
+isc_result_t
+isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg);
+/*
+ * Send a shutdown event with action 'action' and argument 'arg' when
+ * 'task' is shutdown.
+ *
+ * Notes:
+ *
+ *	Shutdown events are posted in LIFO order.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ *	'action' is a valid task action.
+ *
+ * Ensures:
+ *
+ *	When the task is shutdown, shutdown events requested with
+ *	isc_task_onshutdown() will be appended to the task's event queue.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ *	ISC_R_TASKSHUTTINGDOWN			Task is shutting down.
+ *	ISC_R_TASKSHUTDOWN			Task is shut down.
+ */
+
+void
+isc_task_shutdown(isc_task_t *task);
+/*
+ * Shutdown 'task'.
+ *
+ * Notes:
+ *
+ *	Shutting down a task causes any shutdown events requested with
+ *	isc_task_onshutdown() to be posted (in LIFO order).  The task
+ *	moves into a "shutting down" mode which prevents further calls
+ *	to isc_task_onshutdown().  If automatic task termination is allowed,
+ *	the task will enter the done state (i.e. terminate) when the event
+ *	queue becomes empty.
+ *
+ *	Trying to shutdown a task that has already been shutdown has no
+ *	effect.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ * Ensures:
+ *
+ *	Any shutdown events requested with isc_task_onshutdown() have been
+ *	posted (in LIFO order).
+ */
+
+void
+isc_task_destroy(isc_task_t **taskp);
+/*
+ * Destroy '*taskp'.
+ *
+ * Notes:
+ *
+ *	This call is equivalent to:
+ *
+ *		isc_task_shutodown(*taskp);
+ *		isc_task_detach(taskp);
+ *
+ * Requires:
+ *
+ *	'*taskp' is a valid task.
+ *
+ * Ensures:
+ *
+ *	Any shutdown events requested with isc_task_onshutdown() have been
+ *	posted (in LIFO order).
+ *
+ *	*taskp == NULL
+ *
+ *	If '*taskp' is the last reference to the task,
+ *
+ *		All resources used by the task will be freed.
+ */
 
 
 /*****
@@ -112,6 +391,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *	The 'workers' value is advisory only.  An attempt will be made to
  *	create 'workers' threads, but if at least one thread creation
  *	succeeds, isc_taskmgr_create() may return ISC_R_SUCCESS.
+ *
+ *	If 'default_quantum' is non-zero, then it will be used as the default
+ *	quantum value when tasks are created.  If zero, then an implementation
+ *	defined default quantum will be used.
  *
  * Requires:
  *
@@ -134,7 +417,39 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *	ISC_R_UNEXPECTED		An unexpected error occurred.
  */
 
-void					isc_taskmgr_destroy(isc_taskmgr_t **);
+void
+isc_taskmgr_destroy(isc_taskmgr_t **managerp);
+/*
+ * Destroy '*managerp'.
+ *
+ * Notes:
+ *
+ *	Calling isc_taskmgr_destroy() will shutdown all tasks managed by
+ *	*managerp that haven't already been shutdown.  The call will block
+ *	until all tasks have entered the done state.
+ *
+ *	isc_taskmgr_destroy() must not be called by a task event action,
+ *	because it would block forever waiting for the event action to
+ *	complete.  An event action that wants to cause task manager shutdown
+ *	should request some non-event action thread of execution to do the
+ *	shutdown, e.g. by signalling a condition variable or using
+ *	isc_app_shutdown().
+ *
+ *	Task manager references are not reference counted, so the caller
+ *	must ensure that no attempt will be made to use the manager after
+ *	isc_taskmgr_destroy() returns.
+ *
+ * Requires:
+ *
+ *	'*managerp' is a valid task manager.
+ *
+ *	isc_taskmgr_destroy() has not be called previously on '*managerp'.
+ *
+ * Ensures:
+ *
+ *	All resources used by the task manager, and any tasks it managed,
+ *	have been freed.
+ */
 
 ISC_LANG_ENDDECLS
 
