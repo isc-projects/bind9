@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.4 2001/08/09 17:21:06 gson Exp $ */
+/* $Id: config.h,v 1.5 2002/03/07 13:46:41 marka Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
@@ -37,6 +37,10 @@ ns_config_listcount(cfg_obj_t *list);
 isc_result_t
 ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		   dns_rdataclass_t *classp);
+
+isc_result_t
+ns_config_gettype(cfg_obj_t *typeobj, dns_rdatatype_t deftype,
+		  dns_rdatatype_t *typep);
 
 dns_zonetype_t
 ns_config_getzonetype(cfg_obj_t *zonetypeobj);

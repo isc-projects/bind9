@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.61 2002/02/20 03:34:18 marka Exp $ */
+/* $Id: rdataset.c,v 1.62 2002/03/07 13:46:31 marka Exp $ */
 
 #include <config.h>
 
@@ -256,6 +256,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 
 #define MAX_SHUFFLE	32
 #define WANT_FIXED(r)	(((r)->attributes & DNS_RDATASETATTR_FIXEDORDER) != 0)
+#define WANT_RANDOM(r)	(((r)->attributes & DNS_RDATASETATTR_RANDOMIZE) != 0)
 
 struct towire_sort {
 	int key;
@@ -279,7 +280,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_result_t result;
-	unsigned int i, count, added;
+	unsigned int i, count, added, choice;
 	isc_buffer_t savedbuffer, rdlen, rrbuffer;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
@@ -330,7 +331,7 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 	 */
 	if (!question &&
 	    count > 1 &&
-	    !WANT_FIXED(rdataset) &&
+	    (!WANT_FIXED(rdataset) || order != NULL) &&
 	    count <= MAX_SHUFFLE &&
 	    rdataset->type != dns_rdatatype_sig)
 	{
@@ -349,33 +350,61 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 		if (result != ISC_R_NOMORE)
 			return (result);
 		INSIST(i == count);
+
 		/*
 		 * Now we shuffle.
 		 */
-		if (order != NULL) {
+		if (WANT_FIXED(rdataset)) {
 			/*
-			 * Sorted order.
+			 * 'Fixed' order.
 			 */
+			INSIST(order != NULL);
 			for (i = 0; i < count; i++) {
 				sorted[i].key = (*order)(&shuffled[i],
 							 order_arg);
 				sorted[i].rdata = &shuffled[i];
 			}
-			qsort(sorted, count, sizeof(sorted[0]),
-			      towire_compare);
+		} else if (WANT_RANDOM(rdataset)) {
+			/*
+			 * 'Random' order.
+			 */
+			for (i = 0; i < count; i++) {
+				dns_rdata_t rdata;
+				choice = i + (((u_int)rand()>>3) % (count - i));
+				rdata = shuffled[i];
+				shuffled[i] = shuffled[choice];
+				shuffled[choice] = rdata;
+				if (order != NULL)
+					sorted[i].key = (*order)(&shuffled[i],
+								 order_arg);
+				else
+					sorted[i].key = 0; /* Unused */
+				sorted[i].rdata = &shuffled[i];
+			}
 		} else {
 			/*
 			 * "Cyclic" order.
 			 */
 			unsigned int j = (((unsigned int)rand()) >> 3) % count;
 			for (i = 0; i < count; i++) {
-				sorted[j].key = 0; /* Unused */
+				if (order != NULL)
+					sorted[i].key = (*order)(&shuffled[i],
+								 order_arg);
+				else
+					sorted[j].key = 0; /* Unused */
 				sorted[j].rdata = &shuffled[i];
 				j++;
 				if (j == count)
 					j = 0; /* Wrap around. */
 			}
 		}
+
+		/*
+		 * Sorted order.
+		 */
+		if (order != NULL)
+			qsort(sorted, count, sizeof(sorted[0]),
+			      towire_compare);
 	}
 
 	savedbuffer = *target;

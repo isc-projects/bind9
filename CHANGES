@@ -1,3 +1,9 @@
+1234.	[bug]		'rrset-order' and 'sortlist' should be additive
+			not exclusive.
+
+1223.	[func]		'rrset-order' partially works 'cyclic' and 'random'
+			are supported.
+
 1222.	[bug]		Specifying 'port *' did not always result in a system
 			selected (non-reserved) port being used. [RT #2537]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.c,v 1.2 2002/03/07 07:48:46 bwelling Exp $ */
+/* $Id: order.c,v 1.3 2002/03/07 13:46:30 marka Exp $ */
 
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -63,6 +63,7 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	order->mctx = NULL;
 	isc_mem_attach(mctx, &order->mctx);
 	order->magic = DNS_ORDER_MAGIC;
+	*orderp = order;
 	return (ISC_R_SUCCESS);
 }
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.76 2001/11/27 04:06:15 marka Exp $ */
+/* $Id: view.h,v 1.77 2002/03/07 13:46:34 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -100,6 +100,7 @@ struct dns_view {
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
 	dns_peerlist_t *		peers;
+	dns_order_t *			order;
 	dns_fwdtable_t *		fwdtable;
 	isc_boolean_t			recursion;
 	isc_boolean_t			auth_nxdomain;
