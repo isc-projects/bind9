@@ -15,17 +15,19 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.22 2000/11/20 17:53:41 gson Exp $
+# $Id: tests.sh,v 1.23 2000/12/18 22:39:17 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
+
 status=0
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
+$DIG $DIGOPTS example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-$DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example. \
+$DIG $DIGOPTS example. \
 	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
 grep ";" dig.out.ns3
 
@@ -33,13 +35,13 @@ $PERL ../digcomp.pl knowngood.dig.out dig.out.ns2 || status=1
 
 $PERL ../digcomp.pl knowngood.dig.out dig.out.ns3 || status=1
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	tsigzone. @10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
+$DIG $DIGOPTS tsigzone. \
+    	@10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
 	> dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
-../../../dig/dig +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \
-	tsigzone. @10.53.0.3 axfr -y tsigzone.:1234abcd8765 -p 5300 \
+$DIG $DIGOPTS tsigzone. \
+    	@10.53.0.3 axfr -y tsigzone.:1234abcd8765 -p 5300 \
 	> dig.out.ns3 || status=1
 grep ";" dig.out.ns3
 
