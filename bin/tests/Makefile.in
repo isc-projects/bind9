@@ -14,26 +14,24 @@ LIBS =		../../lib/dns/libdns.a \
 		../../lib/isc/libisc.a \
 		@LIBS@
 
-TARGETS =	name_test \
-		rwlock_test \
+TARGETS =	lex_test \
+		name_test \
 		sock_test \
 		sym_test \
-		lex_test \
 		task_test \
 		timer_test \
-		wire_test \
-		rdata_test
+		rbt_test \
+		rdata_test \
+		rwlock_test \
+		wire_test
 
 @BIND9_MAKE_RULES@
 
+lex_test: lex_test.o ../../lib/isc/libisc.a
+	${CC} -o $@ lex_test.o ${LIBS}
+
 name_test: name_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ name_test.o ${LIBS}
-
-wire_test: wire_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ wire_test.o ${LIBS}
-
-rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
-	${CC} -o $@ rwlock_test.o ${LIBS}
 
 sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ sock_test.o ${LIBS}
@@ -41,17 +39,23 @@ sock_test: sock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 sym_test: sym_test.o ../../lib/isc/libisc.a
 	${CC} -o $@ sym_test.o ${LIBS}
 
-lex_test: lex_test.o ../../lib/isc/libisc.a
-	${CC} -o $@ lex_test.o ${LIBS}
-
 task_test: task_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ task_test.o ${LIBS}
 
 timer_test: timer_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ timer_test.o ${LIBS}
 
+rbt_test: rbt_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ rbt_test.o ${LIBS}
+
 rdata_test: rdata_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ rdata_test.o ${LIBS}
+
+rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ rwlock_test.o ${LIBS}
+
+wire_test: wire_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ wire_test.o ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
