@@ -114,7 +114,7 @@ address_to_ptr_name(dns_byaddr_t *byaddr, isc_netaddr_t *address) {
 				*cp++ = hex_digits[(bytes[i+1] >> 4) & 0x0f];
 				*cp++ = hex_digits[bytes[i+1] & 0x0f];
 			}
-			strcpy(cp, "].ip6.int.");
+			strcpy(cp, "].ip6.arpa.");
 		}
 	} else
 		return (ISC_R_NOTIMPLEMENTED);
