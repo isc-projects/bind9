@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.45 $)
+AC_REVISION($Revision: 1.46 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -924,10 +924,10 @@ $isc_netinet6in6_hack
 ],
 		[struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);],
 			[AC_MSG_RESULT(yes)
-			 result="#define LWRES_HAVE_SIN6_SCOPE_ID 1"],
+			 result="#define HAVE_SIN6_SCOPE_ID 1"],
 			[AC_MSG_RESULT(no)
-			 result="#undef LWRES_HAVE_SIN6_SCOPE_ID"])
-		LWRES_HAVE_SIN6_SCOPE_ID="$result"
+			 result="#undef HAVE_SIN6_SCOPE_ID"])
+		HAVE_SIN6_SCOPE_ID="$result"
 
 		AC_MSG_CHECKING(for in6_pktinfo)
 		AC_TRY_COMPILE([
@@ -947,7 +947,7 @@ $isc_netinet6in6_hack
 		HAS_INET6_STRUCTS="#undef HAS_INET6_STRUCTS"
 		NEED_IN6ADDR_ANY="#undef NEED_IN6ADDR_ANY"
 		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
-		LWRES_HAVE_SIN6_SCOPE_ID="#define LWRES_HAVE_SIN6_SCOPE_ID 1"
+		HAVE_SIN6_SCOPE_ID="#define HAVE_SIN6_SCOPE_ID 1"
 		ISC_IPV6_H="ipv6.h"
 		ISC_IPV6_O="ipv6.$O"
 		ISC_ISCIPV6_O="unix/ipv6.$O"
@@ -968,7 +968,7 @@ AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
-AC_SUBST(LWRES_HAVE_SIN6_SCOPE_ID)
+AC_SUBST(HAVE_SIN6_SCOPE_ID)
 
 #
 # Check for network functions that are often missing.  We do this
@@ -1534,7 +1534,7 @@ extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 )
 ,
-HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
+host_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
 HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"
 )
 AC_SUBST(HOST_R_SET_RESULT)

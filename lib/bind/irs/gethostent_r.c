@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gethostent_r.c,v 1.1 2001/03/29 06:31:45 marka Exp $";
+static const char rcsid[] = "$Id: gethostent_r.c,v 1.2 2001/05/10 07:29:54 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -97,7 +97,7 @@ HOST_R_END_RETURN
 #ifdef HOST_R_ENT_ARGS
 endhostent_r(HOST_R_ENT_ARGS)
 #else
-endhostent_r()
+endhostent_r(void)
 #endif
 {
 	endhostent();
