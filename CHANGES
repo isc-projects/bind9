@@ -5,11 +5,14 @@
 
 1655.	[placeholder]	rt11446
 
-1654.	[placeholder]	rt11541
+1654.	[bug]		isc_result_totext() contained array bounds read
+			error.
 
-1653.	[placeholder]	rt11541
+1653.	[func]		Add key type checking to dst_key_fromfilename(),
+			DST_TYPE_KEY should be used to read TSIG, TKEY and
+			SIG(0) keys.
 
-1652.	[placeholder]	rt11541
+1652.	[bug]		TKEY still uses KEY.
 
 1651.	[bug]		dig: process multiple dash options.
 

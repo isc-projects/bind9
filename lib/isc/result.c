@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.63 2004/05/15 03:37:33 jinmei Exp $ */
+/* $Id: result.c,v 1.64 2004/06/11 00:27:02 marka Exp $ */
 
 #include <config.h>
 
@@ -125,7 +125,7 @@ register_table(unsigned int base, unsigned int nresults, const char **text,
 	if (table == NULL)
 		return (ISC_R_NOMEMORY);
 	table->base = base;
-	table->last = base + nresults;
+	table->last = base + nresults - 1;
 	table->text = text;
 	table->msgcat = msgcat;
 	table->set = set;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.6 2004/03/05 05:03:12 marka Exp $ */
+/* $Id: keydelete.c,v 1.7 2004/06/11 00:27:06 marka Exp $ */
 
 #include <config.h>
 
@@ -154,6 +154,7 @@ main(int argc, char **argv) {
 	isc_logconfig_t *logconfig;
 	isc_task_t *task;
 	isc_result_t result;
+	int type;
 
 	RUNCHECK(isc_app_start());
 
@@ -222,9 +223,8 @@ main(int argc, char **argv) {
 	RUNCHECK(isc_app_onrun(mctx, task, sendquery, NULL));
 
 	dstkey = NULL;
-	result = dst_key_fromnamedfile(keyname,
-				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-				       mctx, &dstkey);
+	type = DST_TYPE_PUBLIC | DST_TYPE_PRIVATE | DST_TYPE_KEY;
+	result = dst_key_fromnamedfile(keyname, type, mctx, &dstkey);
 	CHECK("dst_key_fromnamedfile", result);
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,

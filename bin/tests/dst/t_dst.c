@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_dst.c,v 1.48 2004/03/05 04:58:46 marka Exp $ */
+/* $Id: t_dst.c,v 1.49 2004/06/11 00:27:05 marka Exp $ */
 
 #include <config.h>
 
@@ -168,7 +168,7 @@ dh(dns_name_t *name1, int id1, dns_name_t *name2, int id2, isc_mem_t *mctx,
 	char		tmp[PATH_MAX + 1];
 	char		*p;
 	int		alg = DST_ALG_DH;
-	int		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+	int		type = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_KEY;
 	unsigned char	array1[1024], array2[1024];
 	isc_buffer_t	b1, b2;
 	isc_region_t	r1, r2;

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.81 2004/03/05 05:09:19 marka Exp $
+ * $Id: dnssec.c,v 1.82 2004/06/11 00:26:59 marka Exp $
  */
 
 
@@ -134,6 +134,8 @@ dns_dnssec_keyfromrdata(dns_name_t *name, dns_rdata_t *rdata, isc_mem_t *mctx,
 	INSIST(mctx != NULL);
 	INSIST(key != NULL);
 	INSIST(*key == NULL);
+	REQUIRE(rdata->type == dns_rdatatype_key ||
+		rdata->type == dns_rdatatype_dnskey);
 
 	dns_rdata_toregion(rdata, &r);
 	isc_buffer_init(&b, r.base, r.length);
