@@ -1,4 +1,4 @@
-1513.	[doc]		Add "US" to root-delgation-only exclude list.
+1513.	[doc]		Add "US" and "ORG" to root-delgation-only exclude list.
 
 1512.	[bug]		Extend the delegation-only logging to return query
 			type, class and responding nameserver.
