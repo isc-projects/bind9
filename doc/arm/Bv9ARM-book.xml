@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.20 2003/08/26 03:24:08 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.21 2003/08/26 04:34:16 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2657,6 +2657,7 @@ statement in the <filename>named.conf</filename> file:</para>
 <programlisting>options {
     <optional> version <replaceable>version_string</replaceable>; </optional>
     <optional> hostname <replaceable>hostname_string</replaceable>; </optional>
+    <optional> server-id <replaceable>server_id_string</replaceable>; </optional>
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
@@ -2781,6 +2782,20 @@ found by gethostname().  The primary purpose of such queries is to
 identify which of a group of anycast servers is actually
 answering your queries.  Specifying <command>hostname none;</command>
 disables processing of the queries.</para>
+</listitem></varlistentry>
+
+<varlistentry><term><command>server-id</command></term>
+<listitem><para>The ID of the server should report via a query of
+the name <filename>ID.SERVER</filename>
+with type <command>TXT</command>, class <command>CHAOS</command>.
+The primary purpose of such queries is to
+identify which of a group of anycast servers is actually
+answering your queries.  Specifying <command>server-id none;</command>
+disables processing of the queries.
+Specifying <command>server-id hostname;</command> will cause named to
+use the hostname as found by gethostname().
+The default <command>server-id</command> is <command>none</command>.
+</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>directory</command></term>

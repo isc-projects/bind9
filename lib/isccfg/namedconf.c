@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.10 2003/08/26 03:24:14 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.11 2003/08/26 04:34:17 marka Exp $ */
 
 #include <config.h>
 
@@ -443,6 +443,52 @@ static cfg_type_t cfg_type_qstringornone = {
 	"qstringornone", parse_qstringornone, NULL, doc_qstringornone, NULL, NULL };
 
 /*
+ * keyword hostname
+ */
+
+static void
+print_hostname(cfg_printer_t *pctx, cfg_obj_t *obj) {
+	UNUSED(obj);
+	cfg_print_chars(pctx, "hostname", 4);
+}
+
+static cfg_type_t cfg_type_hostname = {
+	"hostname", NULL, print_hostname, NULL, &cfg_rep_boolean, NULL
+};
+
+/*
+ * "server-id" arguement.
+ */
+
+static isc_result_t
+parse_serverid(cfg_parser_t *pctx, const cfg_type_t *type,
+		    cfg_obj_t **ret)
+{
+	isc_result_t result;
+	CHECK(cfg_gettoken(pctx, CFG_LEXOPT_QSTRING));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "none") == 0)
+		return (cfg_create_obj(pctx, &cfg_type_none, ret));
+	if (pctx->token.type == isc_tokentype_string &&
+	    strcasecmp(TOKEN_STRING(pctx), "hostname") == 0) {
+		return (cfg_create_obj(pctx, &cfg_type_hostname, ret));
+	}
+	cfg_ungettoken(pctx);
+	return (cfg_parse_qstring(pctx, type, ret));
+ cleanup:
+	return (result);
+}
+
+static void
+doc_serverid(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+	cfg_print_chars(pctx, "( <quoted_string> | none | hostname )", 26);
+}
+
+static cfg_type_t cfg_type_serverid = {
+	"serverid", parse_serverid, NULL, doc_serverid, NULL, NULL };
+
+/*
  * Clauses that can be found within the top level of the named.conf
  * file only.
  */
@@ -507,6 +553,7 @@ options_clauses[] = {
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
+	{ "server-id", &cfg_type_serverid, 0 },
 	{ "stacksize", &cfg_type_size, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_NYI },

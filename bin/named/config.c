@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.11 2003/08/25 04:16:16 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.12 2003/08/26 04:34:14 marka Exp $ */
 
 #include <config.h>
 
@@ -76,6 +76,7 @@ options {\n\
 	rrset-order {order cyclic;};\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
+	server-id none;\n\
 	stacksize default;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 60;\n\
@@ -148,26 +149,30 @@ options {\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
-};
-
-view \"_bind\" chaos {
-	recursion no;
-
-	zone \"version.bind\" chaos {
-		type master;
-		database \"_builtin version\";
-	};
-
-	zone \"hostname.bind\" chaos {
-		type master;
-		database \"_builtin hostname\";
-	};
-
-	zone \"authors.bind\" chaos {
-		type master;
-		database \"_builtin authors\";
-	};
-};
+};\n\
+\n\
+view \"_bind\" chaos {\n\
+	recursion no;\n\
+\n\
+	zone \"version.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin version\";\n\
+	};\n\
+\n\
+	zone \"hostname.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin hostname\";\n\
+	};\n\
+\n\
+	zone \"authors.bind\" chaos {\n\
+		type master;\n\
+		database \"_builtin authors\";\n\
+	};\n\
+	zone \"id.server\" chaos {\n\
+		type master;\n\
+		database \"_builtin id\";\n\
+	};\n\
+};\n\
 ";
 
 isc_result_t

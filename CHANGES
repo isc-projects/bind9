@@ -6,6 +6,9 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1417.	[func]		ID.SERVER/CHAOS is now a built in zone.
+			See "server-id" for how to configure.
+
 1412.	[func]		You can now specify servers to be tried if a nameserver
 			has IPv6 address and you only support IPv4 or the
 			reverse. See dual-stack-servers.
