@@ -23,5 +23,8 @@ DNS_INCLUDES = @BIND9_DNS_BUILDINCLUDE@ \
 	-I${top_srcdir}/lib/dns/include \
 	-I${top_srcdir}/lib/dns/sec/dst/include
 
+OMAPI_INCLUDES = @BIND9_OMAPI_BUILDINCLUDE@ \
+	-I${top_srcdir}/lib/omapi/include
+
 TEST_INCLUDES = \
 	-I${top_srcdir}/lib/tests/include
