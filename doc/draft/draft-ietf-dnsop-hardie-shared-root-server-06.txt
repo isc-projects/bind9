@@ -1,8 +1,9 @@
+
 IETF DNSOPS working group				     T. Hardie
-Internet draft						  Equinix, Inc
-Category: Work-in-progress	                         January, 2001
+Internet draft						  Nominum, Inc
+Category: Work-in-progress	                        November, 2001
                                                   
-draft-ietf-dnsop-hardie-shared-root-server-03.txt
+draft-ietf-dnsop-hardie-shared-root-server-06.txt
 
 
   Distributing Authoritative Name Servers via Shared Unicast Addresses
@@ -46,28 +47,36 @@ Abstract
   in those areas.  This document presumes a one-to-one mapping between
   named authoritative servers and administrative entities (operators).
   This document contains no guidelines or recommendations for caching
-  name servers.
-
+  name servers.  The shared unicast system described here is specific
+  to IPv4; IPv6 uses anycast differently from IPv4 and those
+  differences prevent this system from being used in IPv6
+  environments.  It should also be noted that the system described
+  here is related to that describe in [ANYCAST], but it does not
+  require dedicated address space, routing changes, or the other
+  elements of a full anycast infrastructure which that document
+  describes.
+  
 
 1. Architecture
 
 1.1 Server Requirements
 
-  Operators of authoritative name servers may wish to refer to [1] and
-  [2] for general guidance on appropriate practice for authoritative
-  name servers.  In addition to proper configuration as a standard
-  authoritative name server, each of the hosts participating in a
-  shared-unicast system should be configured with two network
-  interfaces.  These interfaces may be either two physical interfaces
-  or one physical interface mapped to two logical interfaces.  One of
-  the network interfaces should use the shared unicast address
-  associated with the authoritative name server.  The other interface,
-  referred to as the administrative interface below, should use a
-  distinct address specific to that host.  The host should respond to
-  DNS queries only on the shared-unicast interface.  In order to
-  provide the most consistent set of responses from the mesh of
-  anycast hosts, it is good practice to limit responses on that
-  interface to zones for which the host is authoritative.
+  Operators of authoritative name servers may wish to refer to
+  [SECONDARY] and [ROOT] for general guidance on appropriate practice
+  for authoritative name servers.  In addition to proper configuration
+  as a standard authoritative name server, each of the hosts
+  participating in a shared-unicast system should be configured with
+  two network interfaces.  These interfaces may be either two physical
+  interfaces or one physical interface mapped to two logical
+  interfaces.  One of the network interfaces should use the IPv4
+  shared unicast address associated with the authoritative name
+  server.  The other interface, referred to as the administrative
+  interface below, should use a distinct IPv4 address specific to that
+  host.  The host should respond to DNS queries only on the
+  shared-unicast interface.  In order to provide the most consistent
+  set of responses from the mesh of anycast hosts, it is good practice
+  to limit responses on that interface to zones for which the host is
+  authoritative.
 
     
 1.2 Zone file delivery
@@ -108,6 +117,19 @@ Abstract
   Depending on the size of the mesh, the distribution host may also be
   a participant; for authoritative servers, it may also be the host on
   which zones are generated.
+
+  This document presumes that the usual DNS failover methods are the
+  only ones used to ensure reachability of the data for clients.  It
+  does not advise that the routes be withdrawn in the case of failure;
+  it advises instead the the DNS process shutdown so that servers on
+  other addresses are queried.  This recommendation reflects a choice
+  between performance and operational complexity.  While it would be
+  possible to have some process withdraw the route for a specific
+  server instance when it is not available, there is considerable
+  operational complexity involved in ensuring that this occurs
+  reliably.  Given the existing DNS failover methods, the marginal
+  improvement in performance will not be sufficient to justify 
+  the additional complexity for most uses.  
 
 
 1.4 Server Placement
@@ -292,28 +314,31 @@ Abstract
 
    Masataka Ohta, Bill Manning, Randy Bush, Chris Yarnell, Ray Plzak,
    Mark Andrews, Robert Elz, Geoff Houston, Bill Norton, Akira Kato,
-   Suzanne Woolf, Scott Tucker, and Gunnar Lindberg all provided input
-   and commentary on this work.
+   Suzanne Woolf, Scott Tucker, Bernard Aboba, Casey Ajalat and Gunnar
+   Lindberg all provided input and commentary on this work.
 
 
 6. References
 
-[1] "Selection and Operation of Secondary Name Servers".  R. Elz, R. Bush,
-S Bradner, M. Patton, BCP0016.
+[SECONDARY] "Selection and Operation of Secondary Name Servers".
+R. Elz, R. Bush, S Bradner, M. Patton, BCP0016.
 
-[2] "Root Name Server Operational Requirements". R. Bush,
+[ROOT] "Root Name Server Operational Requirements". R. Bush,
 D. Karrenberg, M. Kosters, R. Plzak, BCP0040.
+
+[ANYCAST] "Host Anycasting Service".  C. Patridge, T. Mendez, W. Milliken,
+RFC1546.
 
 
 7. Editor's address
 
    Ted Hardie					   
-   Equinix, Inc.
-   2450 Bayshore Parkway
-   Mountain View, CA 94043-1107
-   hardie@equinix.com
-   Tel: 1.650.316.6226
-   Fax: 1.650.315.6903
+   Nominum, Inc.
+   950 Charter St.
+   Redwood City, CA 94063
+   Ted.Hardie@nominum.com
+   Tel: 1.650.381.6226
+
 
 
 
@@ -394,3 +419,8 @@ etc    |		|--|Router7|---|----|--------------|Router8|---WAN-|
 
 
 
+
+
+
+
+			
