@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.19 2000/09/01 19:59:35 gson Exp $ */
+/* $Id: rdataslab.c,v 1.20 2000/09/23 01:05:03 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,13 +36,7 @@ static int
 compare_rdata(const void *p1, const void *p2) {
 	const dns_rdata_t *rdata1 = p1;
 	const dns_rdata_t *rdata2 = p2;
-	int len = ISC_MIN(rdata1->length, rdata2->length);
-	int n;
-
-	n = memcmp(rdata1->data, rdata2->data, len);
-	if (n != 0)
-		return (n);
-	return (rdata1->length - rdata2->length);
+	return (dns_rdata_compare(rdata1, rdata2));
 }
 
 isc_result_t
