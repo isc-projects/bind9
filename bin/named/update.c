@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.111 2004/05/05 01:32:56 marka Exp $ */
+/* $Id: update.c,v 1.112 2004/05/12 06:38:37 marka Exp $ */
 
 #include <config.h>
 
@@ -239,7 +239,7 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 
 static isc_result_t
 checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
-	       dns_name_t *zonename)
+	       dns_name_t *zonename, isc_boolean_t slave)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
@@ -247,6 +247,8 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 	const char *msg = "denied";
 	isc_result_t result;
 
+	if (slave && acl == NULL)
+		return (DNS_R_NOTIMP);
 	result = ns_client_checkaclsilent(client, acl, ISC_FALSE);
 
 	if (result == ISC_R_SUCCESS) {
@@ -2048,7 +2050,7 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		break;
 	case dns_zone_slave:
 		CHECK(checkupdateacl(client, dns_zone_getforwardacl(zone),
-		      "update forwarding", zonename));
+				     "update forwarding", zonename, ISC_TRUE));
 		CHECK(send_forward_event(client, zone));
 		break;
 	default:
@@ -2257,9 +2259,10 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	result = ISC_R_SUCCESS;
 	if (ssutable == NULL)
 		CHECK(checkupdateacl(client, dns_zone_getupdateacl(zone),
-				     "update", zonename));
+				     "update", zonename, ISC_FALSE));
 	else if (client->signer == NULL)
-		CHECK(checkupdateacl(client, NULL, "update", zonename));
+		CHECK(checkupdateacl(client, NULL, "update", zonename,
+				     ISC_FALSE));
 	
 	if (dns_zone_getupdatedisabled(zone))
 		FAILC(DNS_R_REFUSED, "dynamic update temporarily disabled");
