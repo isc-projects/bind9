@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.143 2000/07/06 02:33:42 bwelling Exp $ */
+/* $Id: resolver.c,v 1.144 2000/07/07 19:43:14 tale Exp $ */
 
 #include <config.h>
 
@@ -555,20 +555,18 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 	query->sends--;
 
-	if (sevent->result != ISC_R_SUCCESS) {
-		if (RESQUERY_CANCELED(query)) {
-			if (query->sends == 0) {
-				/*
-				 * This query was canceled while the
-				 * isc_socket_sendto() was in progress.
-				 */
-				if (query->tcpsocket != NULL)
-					isc_socket_detach(&query->tcpsocket);
-				resquery_destroy(&query);
-			}
-		} else
-			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
-	}
+	if (RESQUERY_CANCELED(query)) {
+		if (query->sends == 0) {
+			/*
+			 * This query was canceled while the
+			 * isc_socket_sendto() was in progress.
+			 */
+			if (query->tcpsocket != NULL)
+				isc_socket_detach(&query->tcpsocket);
+			resquery_destroy(&query);
+		}
+	} else if (sevent->result != ISC_R_SUCCESS)
+		fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 
 	isc_event_free(&event);
 }
