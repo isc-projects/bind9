@@ -114,27 +114,12 @@ BIND 9.2
 
 		--with-libtool does not work on AIX.
 
+	A bug in the Windows 2000 DNS server can cause zone transfers
+	from a BIND 9 server to a W2K server to fail.  For details,
+	see the "Zone Transfers" section in doc/misc/migration.
+
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
-
-Interoperability
-
-	BIND 4:
-		Zone transfers may fail due to named-xfer not
-	understanding the "transfer-format many-answers;".  All such
-	version of BIND 4 have known security flaws and we do not
-	recommend that you run such versions.  If you can't upgrade
-	the server you can set "transfer-format one-answer;" for this
-	server.
-
-	Microsoft Windows 2000 DNS:
-		Zone transfers sometimes fail to Windows 2000 DNS
-	servers due to a bug in the Windows 2000 DNS server where DNS
-	messages larger than 16K are not handled properly.  There will
-	be a hot fix available from Microsoft to address this issue.  In
-	the meantime set "transfer-format one-answer;" for this server.
-	[As of May 4 2001 the hotfix was still being prepared]
-
 
 Building
 
