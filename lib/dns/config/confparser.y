@@ -15,16 +15,9 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
-#if 0
-/*
-	TODO:
-		use log context for yyerror if appropriate.
-		handle the L_VIEW options
-*/
-#endif
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.12 1999/10/23 00:02:07 halley Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.13 1999/10/25 10:00:38 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -153,6 +146,8 @@ static int              debug_lexer;
 %token          L_DIRECTORY
 %token          L_PIDFILE
 %token          L_NAMED_XFER
+%token		L_TKEY_DOMAIN
+%token		L_TKEY_DHKEY
 %token          L_DUMP_FILE
 %token          L_STATS_FILE
 %token          L_MEMSTATS_FILE
@@ -434,6 +429,35 @@ option: /* Empty */
                         parser_error(ISC_FALSE, "Redefining named-xfer");
                 } else if (tmpres != ISC_R_SUCCESS) {
                         parser_error(ISC_FALSE, "set named-xfer error: %s: %s",
+                                     isc_result_totext(tmpres), $2);
+                        YYABORT;
+                }
+                
+                isc_mem_free(memctx, $2);
+        }
+        | L_TKEY_DOMAIN L_QSTRING
+        {
+                tmpres = dns_c_ctx_settkeydomain(logcontext, currcfg, $2);
+                
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining tkey-domain");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+				     "set tkey-domain error: %s: %s",
+                                     isc_result_totext(tmpres), $2);
+                        YYABORT;
+                }
+                
+                isc_mem_free(memctx, $2);
+        }
+        | L_TKEY_DHKEY L_QSTRING
+        {
+                tmpres = dns_c_ctx_settkeydhkey(logcontext, currcfg, $2);
+                
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining tkey-dhkey");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE, "set tkey-dhkey error: %s: %s",
                                      isc_result_totext(tmpres), $2);
                         YYABORT;
                 }
@@ -1937,6 +1961,47 @@ server_info: L_BOGUS yea_or_nay
                         }
                 }
         } key_list L_RBRACE
+	| L_TKEY_DOMAIN L_QSTRING
+        {
+		dns_c_srv_t *server;
+
+		INSIST(currcfg->servers != NULL);
+		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		INSIST(server != NULL);
+
+		tmpres = dns_c_srv_settkeydomain(logcontext, server, $2);
+		
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining tkey-domain");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE,
+				     "set tkey-domain error: %s: %s",
+                                     isc_result_totext(tmpres), $2);
+                        YYABORT;
+                }
+                
+                isc_mem_free(memctx, $2);
+        }
+        | L_TKEY_DHKEY L_QSTRING
+        {
+		dns_c_srv_t *server;
+
+		INSIST(currcfg->servers != NULL);
+		server = ISC_LIST_TAIL(currcfg->servers->elements);
+		INSIST(server != NULL);
+
+		tmpres = dns_c_srv_settkeydhkey(logcontext, server, $2);
+		
+                if (tmpres == ISC_R_EXISTS) {
+                        parser_error(ISC_FALSE, "Redefining tkey-dhkey");
+                } else if (tmpres != ISC_R_SUCCESS) {
+                        parser_error(ISC_FALSE, "set tkey-dhkey error: %s: %s",
+                                     isc_result_totext(tmpres), $2);
+                        YYABORT;
+                }
+                
+                isc_mem_free(memctx, $2);
+        }
         ;
 
 /*
@@ -3355,6 +3420,8 @@ static struct token keyword_tokens [] = {
         { "stub",                       L_STUB },
         { "support-ixfr",               L_SUPPORT_IXFR },
         { "syslog",                     L_SYSLOG },
+	{ "tkey-domain", 		L_TKEY_DOMAIN },
+	{ "tkey-dhkey",			L_TKEY_DHKEY },
         { "topology",                   L_TOPOLOGY },
         { "transfer-format",            L_TRANSFER_FORMAT },
         { "transfer-source",            L_TRANSFER_SOURCE },
