@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.68 2000/10/20 13:29:29 marka Exp $ */
+/* $Id: update.c,v 1.69 2000/10/20 22:34:50 gson Exp $ */
 
 #include <config.h>
 
@@ -928,6 +928,9 @@ rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 /*
  * Return true iff 'update_rr' should replace 'db_rr' according
  * to the special RFC2136 rules for CNAME, SOA, and WKS records.
+ *
+ * RFC2136 does not mention NXT or DNAME, but multiple NXTs or DNAMEs
+ * make little sense, so we replace those, too.
  */
 static isc_boolean_t
 replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
@@ -935,12 +938,10 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		return (ISC_FALSE);
 	if (db_rr->type == dns_rdatatype_cname)
 		return (ISC_TRUE);
+	if (db_rr->type == dns_rdatatype_dname)
+		return (ISC_TRUE);
 	if (db_rr->type == dns_rdatatype_soa)
 		return (ISC_TRUE);
-	/*
-	 * RFC2136 does not mention NXT, but multiple NXTs make little
-	 * sense, so we replace those, too.
-	 */
 	if (db_rr->type == dns_rdatatype_nxt)
 		return (ISC_TRUE);
 	if (db_rr->type == dns_rdatatype_wks) {
