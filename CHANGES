@@ -1,3 +1,5 @@
+ 442.	[bug]		TSIG signed messages that did not match any view
+			crashed the server. [RT #290]
 
  436.	[bug]		If recvmsg() returned EHOSTUNREACH or ENETUNREACH,
 			which sometimes happens on Linux, named would enter
