@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confndc.c,v 1.19 2000/07/04 01:29:48 tale Exp $ */
+/* $Id: confndc.c,v 1.20 2000/07/10 11:27:11 tale Exp $ */
 
 /*
 **	options {
@@ -53,7 +53,9 @@
 #include <dns/confndc.h>
 #include <dns/log.h>
  
-/* Type keys for symtab lookup */
+/*
+ * Type keys for symtab lookup.
+ */
 #define KEYWORD_SYM_TYPE 0x1
 #define CLASS_SYM_TYPE 0x2
 #define ACL_SYM_TYPE 0x3
@@ -214,7 +216,7 @@ dns_c_ndcctx_new(isc_mem_t *mem, dns_c_ndcctx_t **ctx) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx) {
 	dns_c_ndcctx_t *ctx;
 	isc_mem_t *mem;
@@ -241,8 +243,6 @@ dns_c_ndcctx_destroy(dns_c_ndcctx_t **ndcctx) {
 	isc_mem_put(mem, ctx, sizeof *ctx);
 
 	*ndcctx = NULL;
-
-	return (ISC_R_SUCCESS);
 }
 
 
@@ -802,7 +802,7 @@ dns_c_ndcparseconf(const char *filename, isc_mem_t *mem,
 {
 	ndcpcontext pctx;
 	isc_result_t result;
-	dns_c_ndcctx_t *aConfig;
+	dns_c_ndcctx_t *aConfig = NULL;
 	
 	result = parser_setup(&pctx, mem, filename);
 	if (result != ISC_R_SUCCESS)
