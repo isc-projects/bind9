@@ -23,8 +23,9 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <dns/zt.h>
+#include <dns/rbt.h>
 #include <dns/zone.h>
+#include <dns/zt.h>
 
 struct dns_zt {
 	/* Unlocked. */
