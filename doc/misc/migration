@@ -134,7 +134,7 @@ transmitted as a single UDP datagram which is subject to fragmentation
 at the IP level.  If a firewall incorrectly drops IP fragments, it can
 cause resolution to slow down dramatically or fail.
 
-3.2. Zone transfers
+3.2. Zone Transfers
 
 Outgoing zone transfers now use the "many-answers" format by default.
 This format is not understood by certain old versions of BIND 4.  
@@ -208,4 +208,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.31 2001/05/19 01:18:12 gson Exp $
+$Id: migration,v 1.32 2001/05/19 01:29:12 gson Exp $
