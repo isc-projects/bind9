@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.207 2001/10/24 18:55:04 gson Exp $ */
+/* $Id: query.c,v 1.208 2001/10/25 00:13:37 gson Exp $ */
 
 #include <config.h>
 
@@ -2120,7 +2120,9 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * amount of time.  If this client is currently responsible
 	 * for handling incoming queries, set up a new client
 	 * object to handle them while we are waiting for a
-	 * response.
+	 * response.  There is no need to replace TCP clients
+	 * because those have already been replaced when the
+	 * connection was accepted (if allowed by the TCP quota).
 	 */
 	if (! client->mortal) {
 		isc_boolean_t killoldest = ISC_FALSE;
@@ -2132,8 +2134,10 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				      "killing oldest recursive client: %s",
 				      isc_result_totext(result));
 			killoldest = ISC_TRUE;
+			result = ISC_R_SUCCESS;
 		}
-		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA)
+		if (result == ISC_R_SUCCESS &&
+		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,

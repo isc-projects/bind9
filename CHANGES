@@ -1,3 +1,6 @@
+1072.	[bug]		The TCP client quota could be exceeded when
+			recursion occurred. [RT #1937]
+
 1071.	[bug]		Sockets listening for TCP DNS connections
 			specified an excessive listen backlog. [RT #1937]
 
