@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.2 1999/02/02 13:31:44 marka Exp $ */
+ /* $Id: cert_37.c,v 1.3 1999/02/04 00:03:29 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -68,7 +68,7 @@ fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
 	}
 	RETERR(mem_tobuffer(target, &c, 1));
 
-	return (base64_tobuffer(lexer, target));
+	return (base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t

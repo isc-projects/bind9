@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.23 1999/02/03 06:01:31 marka Exp $ */
+ /* $Id: rdata.c,v 1.24 1999/02/04 00:03:28 marka Exp $ */
 
 #include <config.h>
 
@@ -68,7 +68,8 @@ static int		decvalue(char value);
 static dns_result_t	base64_totext(isc_region_t *source,
 				      isc_buffer_t *target);
 static dns_result_t	base64_tobuffer(isc_lex_t *lexer,
-					isc_buffer_t *target);
+					isc_buffer_t *target,
+					int length);
 static dns_result_t	time_totext(unsigned long value,
 				    isc_buffer_t *target);
 static dns_result_t	time_tobuffer(char *source, isc_buffer_t *target);
@@ -675,7 +676,8 @@ compare_region(isc_region_t *r1, isc_region_t *r2) {
 	if ((result = memcmp(r1->base, r2->base, l)) != 0)
 		return ((result < 0) ? -1 : 1);
 	else
-		return ((r1->length < r2->length) ? -1 : 1);
+		return ((r1->length == r2->length) ? 0 :
+			(r1->length < r2->length) ? -1 : 1);
 }
 
 static int
@@ -742,7 +744,7 @@ base64_totext(isc_region_t *source, isc_buffer_t *target) {
 }
 
 static dns_result_t
-base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
+base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
 	int digits = 0;
 	isc_textregion_t *tr;
 	int val[4];
@@ -754,8 +756,13 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 	int n;
 
 	
-	while (1) {
-		RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_TRUE));
+	while (!seen_end && (length != 0)) {
+		if (length > 0)
+			RETERR(gettoken(lexer, &token, isc_tokentype_string,
+					ISC_FALSE));
+		else
+			RETERR(gettoken(lexer, &token, isc_tokentype_string,
+					ISC_TRUE));
 		if (token.type != isc_tokentype_string)
 			break;
 		tr = &token.value.as_textregion;
@@ -766,7 +773,7 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 				return (DNS_R_SYNTAX);
 			val[digits++] = s - base64;
 			if (digits == 4) {
-				if (val[1] == 64 || val[2] == 64)
+				if (val[0] == 64 || val[1] == 64)
 					return (DNS_R_SYNTAX);
 				if (val[2] == 64 && val[3] != 64)
 					return (DNS_R_SYNTAX);
@@ -783,11 +790,19 @@ base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
 				buf[1] = (val[1]<<4)|(val[2]>>2);
 				buf[2] = (val[2]<<6)|(val[3]);
 				RETERR(mem_tobuffer(target, buf, n));
+				if (length >= 0)
+					if (n > length)
+						return (DNS_R_SYNTAX);
+					else
+						length -= n;
 				digits = 0;
 			}
 		}
 	}
-	isc_lex_ungettoken(lexer, &token);
+	if (length < 0 && !seen_end)
+		isc_lex_ungettoken(lexer, &token);
+	if (length > 0)
+		return (DNS_R_UNEXPECTEDEND);
 	if (digits)
 		return (DNS_R_SYNTAX);
 	return (DNS_R_SUCCESS);

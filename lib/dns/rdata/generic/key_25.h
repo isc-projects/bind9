@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.h,v 1.1 1999/01/27 13:38:20 marka Exp $ */
+ /* $Id: key_25.h,v 1.2 1999/02/04 00:03:29 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -58,7 +58,7 @@ fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
 	if ((flags & 0xc000) == 0xc000)
 		return (DNS_R_SUCCESS);
 
-	return (base64_tobuffer(lexer, target));
+	return (base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t

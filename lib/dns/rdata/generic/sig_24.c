@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.4 1999/02/02 13:31:45 marka Exp $ */
+ /* $Id: sig_24.c,v 1.5 1999/02/04 00:03:29 marka Exp $ */
 
  /* RFC 2065 */
 
@@ -91,7 +91,7 @@ fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
 	/* sig */
-	return (base64_tobuffer(lexer, target));
+	return (base64_tobuffer(lexer, target, -1));
 }
 
 static dns_result_t
