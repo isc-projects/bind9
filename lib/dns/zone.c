@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.424 2004/11/22 23:52:25 marka Exp $ */
+/* $Id: zone.c,v 1.425 2004/11/23 05:23:46 marka Exp $ */
 
 #include <config.h>
 
@@ -428,10 +428,11 @@ static void zonemgr_putio(dns_io_t **iop);
 static void zonemgr_cancelio(dns_io_t *io);
 
 static isc_result_t
-zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
+zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		 unsigned int *soacount, isc_uint32_t *serial,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
-		 isc_uint32_t *expire, isc_uint32_t *minimum);
+		 isc_uint32_t *expire, isc_uint32_t *minimum,
+		 unsigned int *cnames);
 
 static void zone_freedbargs(dns_zone_t *zone);
 static void forward_callback(isc_task_t *task, isc_event_t *event);
@@ -1247,6 +1248,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 {
 	unsigned int soacount = 0;
 	unsigned int nscount = 0;
+	unsigned int cnames = 0;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_time_t now;
 	isc_boolean_t needdump = ISC_FALSE;
@@ -1321,14 +1323,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	}
 
 	/*
-	 * Obtain ns and soa counts for top of zone.
+	 * Obtain ns, soa and cname counts for top of zone.
 	 */
-	nscount = 0;
-	soacount = 0;
 	INSIST(db != NULL);
-	result = zone_get_from_db(db, &zone->origin, &nscount,
-				  &soacount, &serial, &refresh, &retry,
-				  &expire, &minimum);
+	result = zone_get_from_db(zone, db, &nscount, &soacount, &serial,
+				  &refresh, &retry, &expire, &minimum,
+				  &cnames);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "could not find NS and/or SOA records");
@@ -1355,6 +1355,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		if (zone->type == dns_zone_master && cnames != 0) {
+			result = DNS_R_BADZONE;
+			goto cleanup;
+		}
 		if (zone->db != NULL) {
 			if (!isc_serial_ge(serial, zone->serial)) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -1401,7 +1405,6 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
-
 
 #if 0
 	/* destroy notification example. */
@@ -1471,36 +1474,104 @@ exit_check(dns_zone_t *zone) {
 	return (ISC_FALSE);
 }
 
+static isc_boolean_t
+zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
+	isc_result_t result;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char altbuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *foundname;
+	int level;
+	
+	if (zone->type == dns_zone_master)
+		level = ISC_LOG_ERROR;
+	else
+		level = ISC_LOG_WARNING;
+
+	dns_fixedname_init(&fixed);
+	foundname = dns_fixedname_name(&fixed);
+
+	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+			     0, 0, NULL, foundname, NULL, NULL);
+	if (result == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	if (result == DNS_R_NXRRSET) {
+		result = dns_db_find(db, name, NULL, dns_rdatatype_aaaa,
+				     0, 0, NULL, foundname, NULL, NULL);
+		if (result == ISC_R_SUCCESS)
+			return (ISC_TRUE);
+	}
+
+	dns_name_format(name, namebuf, sizeof namebuf);
+	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN) {
+		dns_zone_log(zone, level,
+			     "NS '%s' has no address records (A or AAAA)",
+			     namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_CNAME) {
+		dns_zone_log(zone, level, "NS '%s' is a CNAME (illegal)",
+			     namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_DNAME) {
+		dns_name_format(foundname, altbuf, sizeof altbuf);
+		dns_zone_log(zone, level,
+			     "NS '%s' is below a DNAME '%s' (illegal)",
+			     namebuf, altbuf);
+		return (ISC_FALSE);
+	}
+
+	return (ISC_TRUE);
+}
+
 static isc_result_t
-zone_count_ns_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		 unsigned int *nscount)
+zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
+		 dns_dbversion_t *version, unsigned int *nscount,
+		 unsigned int *cnames)
 {
 	isc_result_t result;
-	unsigned int count;
+	unsigned int count = 0;
+	unsigned int ccount = 0;
 	dns_rdataset_t rdataset;
-
-	REQUIRE(nscount != NULL);
+	dns_rdata_t rdata;
+	dns_rdata_ns_t ns;
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_ns,
 				     dns_rdatatype_none, 0, &rdataset, NULL);
-	if (result == ISC_R_NOTFOUND) {
-		*nscount = 0;
-		result = ISC_R_SUCCESS;
-		goto invalidate_rdataset;
-	}
+	if (result == ISC_R_NOTFOUND)
+		goto success;
 	if (result != ISC_R_SUCCESS)
 		goto invalidate_rdataset;
 
-	count = 0;
 	result = dns_rdataset_first(&rdataset);
 	while (result == ISC_R_SUCCESS) {
+		if (cnames != NULL && zone->rdclass == dns_rdataclass_in &&
+		    (zone->type == dns_zone_master ||
+		     zone->type == dns_zone_slave)) {
+			dns_rdata_init(&rdata);
+			dns_rdataset_current(&rdataset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &ns, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			if (dns_name_issubdomain(&ns.name, &zone->origin) &&
+			    !zone_check_ns(zone, db, &ns.name))
+				ccount++;
+		}
 		count++;
 		result = dns_rdataset_next(&rdataset);
 	}
 	dns_rdataset_disassociate(&rdataset);
 
-	*nscount = count;
+ success:
+	if (nscount != NULL)
+		*nscount = count;
+	if (cnames != NULL)
+		*cnames = ccount;
+
 	result = ISC_R_SUCCESS;
 
  invalidate_rdataset:
@@ -1588,10 +1659,11 @@ zone_load_soa_rr(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  * zone must be locked.
  */
 static isc_result_t
-zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
+zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		 unsigned int *soacount, isc_uint32_t *serial,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
-		 isc_uint32_t *expire, isc_uint32_t *minimum)
+		 isc_uint32_t *expire, isc_uint32_t *minimum,
+		 unsigned int *cnames)
 {
 	dns_dbversion_t *version;
 	isc_result_t result;
@@ -1599,20 +1671,21 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 	dns_dbnode_t *node;
 
 	REQUIRE(db != NULL);
-	REQUIRE(origin != NULL);
+	REQUIRE(zone != NULL);
 
 	version = NULL;
 	dns_db_currentversion(db, &version);
 
 	node = NULL;
-	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
+	result = dns_db_findnode(db, &zone->origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS) {
 		answer = result;
 		goto closeversion;
 	}
 
-	if (nscount != NULL) {
-		result = zone_count_ns_rr(db, node, version, nscount);
+	if (nscount != NULL || cnames != NULL) {
+		result = zone_count_ns_rr(zone, db, node, version,
+					  nscount, cnames);
 		if (result != ISC_R_SUCCESS)
 			answer = result;
 	}
@@ -5243,8 +5316,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
 
-	result = zone_get_from_db(db, &zone->origin, &nscount, &soacount,
-				  NULL, NULL, NULL, NULL, NULL);
+	result = zone_get_from_db(zone, db, &nscount, &soacount,
+				  NULL, NULL, NULL, NULL, NULL, NULL);
 	if (result == ISC_R_SUCCESS) {
 		if (soacount != 1) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
@@ -5404,9 +5477,9 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		nscount = 0;
 		soacount = 0;
 		INSIST(zone->db != NULL);
-		result = zone_get_from_db(zone->db, &zone->origin, &nscount,
+		result = zone_get_from_db(zone, zone->db, &nscount,
 					  &soacount, &serial, &refresh,
-					  &retry, &expire, &minimum);
+					  &retry, &expire, &minimum, NULL);
 		if (result == ISC_R_SUCCESS) {
 			if (soacount != 1)
 				dns_zone_log(zone, ISC_LOG_ERROR,

@@ -23,7 +23,8 @@
 			if there was no SOA record in the replacment db.
 			[RT #13016]
 
-1763.	[placeholder]	rt13002
+1763.	[func]		Perform sanity checks on NS records which refer to
+			'in zone' names. [RT #13002]
 
 1762.	[bug]		isc_interfaceiter_create() could return ISC_R_SUCCESS
 			even when it failed. [RT #12995]
