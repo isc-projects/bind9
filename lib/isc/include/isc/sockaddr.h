@@ -37,6 +37,9 @@ typedef struct isc_sockaddr {
 isc_boolean_t
 isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b);
 
+isc_boolean_t
+isc_sockaddr_eqaddr(isc_sockaddr_t *a, isc_sockaddr_t *b);
+
 unsigned int
 isc_sockaddr_hash(isc_sockaddr_t *sockaddr, isc_boolean_t address_only);
 
