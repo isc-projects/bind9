@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy2_test.c,v 1.5 2000/06/23 16:18:53 tale Exp $ */
+/* $Id: entropy2_test.c,v 1.6 2000/07/26 22:44:47 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isc/entropy.h>
 #include <isc/keyboard.h>

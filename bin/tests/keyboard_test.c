@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard_test.c,v 1.4 2000/06/28 16:19:57 explorer Exp $ */
+/* $Id: keyboard_test.c,v 1.5 2000/07/26 22:44:51 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isc/keyboard.h>
 #include <isc/util.h>

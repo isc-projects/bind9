@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: entropy_test.c,v 1.12 2000/06/23 16:18:54 tale Exp $ */
+/* $Id: entropy_test.c,v 1.13 2000/07/26 22:44:49 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <isc/entropy.h>
 #include <isc/mem.h>
