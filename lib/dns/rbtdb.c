@@ -403,6 +403,26 @@ newversion(dns_db_t *db, dns_dbversion_t **versionp) {
 	return (DNS_R_SUCCESS);
 }
 
+static void
+attachversion(dns_db_t *db, dns_dbversion_t *source,
+	      dns_dbversion_t **targetp)
+{
+	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	rbtdb_version_t *rbtversion = source;
+
+	REQUIRE(VALID_RBTDB(rbtdb));
+
+	LOCK(&rbtdb->lock);
+
+	INSIST(rbtversion->references > 0);
+	rbtversion->references++;
+	INSIST(rbtversion->references != 0);
+
+	UNLOCK(&rbtdb->lock);
+
+	*targetp = rbtversion;
+}
+
 static rbtdb_changed_t *
 add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	    dns_rbtnode_t *node)
@@ -549,7 +569,9 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 				break;
 			if (dcurrent->serial == dparent->serial ||
 			    IGNORE(dcurrent)) {
-				dparent->down = dcurrent->down;
+				if (down_next != NULL)
+					down_next->next = dparent;
+				dparent->down = down_next;
 				free_rdataset(mctx, dcurrent);
 			} else
 				dparent = dcurrent;
@@ -725,7 +747,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	dns_rbtnode_t *rbtnode;
 	
 	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(versionp != NULL && *versionp != NULL);
 	version = (rbtdb_version_t *)*versionp;
 
 	cleanup_version = NULL;
@@ -2238,7 +2259,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			free_rdataset(rbtdb->common.mctx, header);
 		} else {
 			newheader->down = header;
-			header->next = NULL;
+			header->next = newheader;
 			rbtnode->dirty = 1;
 			if (changed != NULL)
 				changed->dirty = ISC_TRUE;
@@ -2509,6 +2530,7 @@ static dns_dbmethods_t zone_methods = {
 	load,
 	currentversion,
 	newversion,
+	attachversion,
 	closeversion,
 	findnode,
 	zone_find,
@@ -2528,6 +2550,7 @@ static dns_dbmethods_t cache_methods = {
 	load,
 	currentversion,
 	newversion,
+	attachversion,
 	closeversion,
 	findnode,
 	cache_find,
@@ -2821,6 +2844,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	rdatasetheader_t *header, *top_next;
 	rbtdb_serial_t serial;
 	isc_stdtime_t now;
+	dns_rdatatype_t type;
 
 	header = rbtiterator->current;
 	if (header == NULL)
@@ -2836,32 +2860,28 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	/*
-	 * XXX FIX ME!!!!  Someone might have added a new record of
-	 * this type above us, and our next pointer won't be valid.
-	 * What we should do is have our next pointer point up to our
-	 * parent, and we should just skip any records whose type is the
-	 * same as ours.
-	 */
-
+	type = header->type;
 	for (header = header->next; header != NULL; header = top_next) {
 		top_next = header->next;
-		do {
-			if (header->serial <= serial && !IGNORE(header)) {
-				/*
-				 * Is this a "this rdataset doesn't
-				 * exist" record?
-				 */
-				if ((header->attributes &
-				     RDATASET_ATTR_NONEXISTENT) != 0 ||
-				    (now != 0 && now >= header->ttl))
-					header = NULL;
+		if (header->type != type) {
+			do {
+				if (header->serial <= serial &&
+				    !IGNORE(header)) {
+					/*
+					 * Is this a "this rdataset doesn't
+					 * exist" record?
+					 */
+					if ((header->attributes &
+					     RDATASET_ATTR_NONEXISTENT) != 0 ||
+					    (now != 0 && now >= header->ttl))
+						header = NULL;
+					break;
+				} else
+					header = header->down;
+			} while (header != NULL);
+			if (header != NULL)
 				break;
-			} else
-				header = header->down;
-		} while (header != NULL);
-		if (header != NULL)
-			break;
+		}
 	}
 
 	UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
