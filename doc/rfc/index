@@ -64,3 +64,4 @@
 3008:   Domain Name System Security (DNSSEC) Signing Authority
 3090:	DNS Security Extension Clarification on Zone Status
 3110:	RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)
+3225:	Indicating Resolver Support of DNSSEC

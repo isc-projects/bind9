@@ -4,42 +4,34 @@
 
 
 
-INTERNET-DRAFT                                            David Conrad
-draft-ietf-dnsext-dnssec-okbit-03.txt                    Nominum, Inc.
-                                                         October, 2001
+Network Working Group                                          D. Conrad
+Request for Comments: 3225                                 Nominum, Inc.
+Category: Standards Track                                  December 2001
+
 
                  Indicating Resolver Support of DNSSEC
 
 Status of this Memo
 
+   This document specifies an Internet standards track protocol for the
+   Internet community, and requests discussion and suggestions for
+   improvements.  Please refer to the current edition of the "Internet
+   Official Protocol Standards" (STD 1) for the standardization state
+   and status of this protocol.  Distribution of this memo is unlimited.
 
-   This document is an Internet-Draft and is in full conformance with
-   all provisions of Section 10 of RFC2026.
+Copyright Notice
 
-   Internet-Drafts are working documents of the Internet Engineering
-   Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as Internet-
-   Drafts.
-
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
-
-   The list of current Internet-Drafts can be accessed at
-   http://www.ietf.org/ietf/1id-abstracts.txt
-
-   The list of Internet-Draft Shadow Directories can be accessed at
-   http://www.ietf.org/shadow.html.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
 Abstract
 
-   In order to deploy DNSSEC operationally, DNSSEC aware servers should
-   only perform automatic inclusion of DNSSEC RRs when there is an
-   explicit indication that the resolver can understand those RRs. This
-   document proposes the use of a bit in the EDNS0 header to provide
-   that explicit indication and describes the necessary protocol changes
-   to implement that notification.
+   In order to deploy DNSSEC (Domain Name System Security Extensions)
+   operationally, DNSSEC aware servers should only perform automatic
+   inclusion of DNSSEC RRs when there is an explicit indication that the
+   resolver can understand those RRs.  This document proposes the use of
+   a bit in the EDNS0 header to provide that explicit indication and
+   describes the necessary protocol changes to implement that
+   notification.
 
 1. Introduction
 
@@ -53,13 +45,6 @@ Abstract
    such responses can have significant negative operational impacts for
    the DNS infrastructure.
 
-
-
-Expires April, 2002                                             [Page 1]
-
-draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
-
-
    This document discusses a method to avoid these negative impacts,
    namely DNSSEC-aware servers should only respond with SIG, KEY, and/or
    NXT RRs when there is an explicit indication from the resolver that
@@ -67,6 +52,13 @@ draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
    For the purposes of this document, "DNSSEC security RRs" are
    considered RRs of type SIG, KEY, or NXT.
+
+
+
+Conrad                      Standards Track                     [Page 1]
+
+RFC 3225         Indicating Resolver Support of DNSSEC     December 2001
+
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -108,14 +100,6 @@ draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
    indicate client-side DNSSEC support.  As effective use of DNSSEC
    implies the need of EDNS0 [RFC2671], bits in the "classic" (non-EDNS
    enhanced DNS header) are scarce, and there may be situations in which
-
-
-
-Expires April, 2002                                             [Page 2]
-
-draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
-
-
    non-compliant caching or forwarding servers inappropriately copy data
    from classic headers as queries are passed on to authoritative
    servers, the use of a bit from the EDNS0 header is proposed.
@@ -124,6 +108,13 @@ draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
    header as an implicit indication of client-side support of DNSSEC.
    This approach was not chosen as there may be applications in which
    EDNS0 is supported but in which the use of DNSSEC is inappropriate.
+
+
+
+Conrad                      Standards Track                     [Page 2]
+
+RFC 3225         Indicating Resolver Support of DNSSEC     December 2001
+
 
 3. Protocol Changes
 
@@ -151,10 +142,10 @@ draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
    More explicitly, DNSSEC-aware nameservers MUST NOT insert SIG, KEY,
    or NXT RRs to authenticate a response as specified in [RFC2535]
-   unless the DO bit was set on the request. Security records that match
-   an explicit SIG, KEY, NXT, or ANY query, or are part of the zone data
-   for an AXFR or IXFR query, are included whether or not the DO bit was
-   set.
+   unless the DO bit was set on the request.  Security records that
+   match an explicit SIG, KEY, NXT, or ANY query, or are part of the
+   zone data for an AXFR or IXFR query, are included whether or not the
+   DO bit was set.
 
    A recursive DNSSEC-aware server MUST set the DO bit on recursive
    requests, regardless of the status of the DO bit on the initiating
@@ -164,17 +155,22 @@ draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
    data MUST NOT be modified.
 
    In the event a server returns a NOTIMP, FORMERR or SERVFAIL response
-
-
-
-Expires April, 2002                                             [Page 3]
-
-draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
-
-
    to a query that has the DO bit set, the resolver SHOULD NOT expect
    DNSSEC security RRs and SHOULD retry the query without EDNS0 in
    accordance with section 5.3 of [RFC2671].
+
+
+
+
+
+
+
+
+
+Conrad                      Standards Track                     [Page 3]
+
+RFC 3225         Indicating Resolver Support of DNSSEC     December 2001
+
 
 Security Considerations
 
@@ -183,14 +179,14 @@ Security Considerations
    that zone as the response may be forged or a non-forged response of
    an altered (DO bit cleared) query.
 
-IANA considerations:
+IANA Considerations
 
-   EDNS0[RFC2671] defines 16 bits as extended flags in the OPT record,
+   EDNS0 [RFC2671] defines 16 bits as extended flags in the OPT record,
    these bits are encoded into the TTL field of the OPT record (RFC2671
    section 4.6).
 
-   This document reserves one of these bits as the OK bit. It is
-   requested that the left most bit be allocated. Thus the USE of the
+   This document reserves one of these bits as the OK bit.  It is
+   requested that the left most bit be allocated.  Thus the USE of the
    OPT record TTL field would look like
 
                 +0 (MSB)                +1 (LSB)
@@ -209,27 +205,28 @@ Acknowledgements
 References
 
    [RFC1034] Mockapetris, P., "Domain Names - Concepts and Facilities",
-   RFC 1034, November 1987.
+             STD 13, RFC 1034, November 1987.
 
    [RFC1035] Mockapetris, P., "Domain Names - Implementation and
-   Specifications", RFC 1035, November 1987.
+             Specifications", STD 13, RFC 1035, November 1987.
 
    [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
-   Requirement Levels", BCP 14, RFC 2119, March 1997.
+             Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [RFC2535] Eastlake, D., "Domain Name System Security Extensions", RFC
-   2535, March 1999.
+             2535, March 1999.
+
+   [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
+             2671, August 1999.
 
 
 
 
-Expires April, 2002                                             [Page 4]
+
+Conrad                      Standards Track                     [Page 4]
 
-draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
+RFC 3225         Indicating Resolver Support of DNSSEC     December 2001
 
-
-   [RFC2671] Vixie, P., Extension Mechanisms for DNS (EDNS0)", RFC 2671,
-   August 1999
 
 Author's Address
 
@@ -240,19 +237,62 @@ Author's Address
    USA
 
    Phone: +1 650 381 6003
+   EMail: david.conrad@nominum.com
 
-   Email: david.conrad@nominum.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conrad                      Standards Track                     [Page 5]
+
+RFC 3225         Indicating Resolver Support of DNSSEC     December 2001
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
-   or assist in its implementation may be prepared, copied, published and
-   distributed, in whole or in part, without restriction of any kind,
-   provided that the above copyright notice and this paragraph are
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
    included on all such copies and derivative works.  However, this
    document itself may not be modified in any way, such as by removing
    the copyright notice or references to the Internet Society or other
@@ -270,7 +310,12 @@ Full Copyright Statement
    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
-   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
 
 
 
@@ -279,5 +324,16 @@ Full Copyright Statement
 
 
 
-Expires April, 2002                                             [Page 5]
+
+
+
+
+
+
+
+
+
+
+
+Conrad                      Standards Track                     [Page 6]
 
