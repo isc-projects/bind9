@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.15 2000/12/19 01:36:50 bwelling Exp $ */
+/* $Id: net.c,v 1.16 2000/12/19 19:29:13 gson Exp $ */
 
 #include <config.h>
 
@@ -77,8 +77,8 @@ try_proto(int domain) {
 		/*
 		 * Check to see if IPv6 is broken, as is common on Linux.
 		 */
-		len = sizeof(struct sockaddr_in6);
-		if (getsockname(s, &sin6, (void *)&len) < 0) {
+		len = sizeof(sin6);
+		if (getsockname(s, (struct sockaddr *)&sin6, (void *)&len) < 0) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "Retrieving the address of an IPv6 "
