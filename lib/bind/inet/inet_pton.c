@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_pton.c,v 1.1 2001/03/29 06:31:41 marka Exp $";
+static const char rcsid[] = "$Id: inet_pton.c,v 1.2 2001/07/16 03:31:45 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -95,10 +95,12 @@ inet_pton4(src, dst)
 		if ((pch = strchr(digits, ch)) != NULL) {
 			u_int new = *tp * 10 + (pch - digits);
 
+			if (saw_digit && *tp == 0)
+				return (0);
 			if (new > 255)
 				return (0);
 			*tp = new;
-			if (! saw_digit) {
+			if (!saw_digit) {
 				if (++octets > 4)
 					return (0);
 				saw_digit = 1;
