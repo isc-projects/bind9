@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.159 2000/12/15 21:06:00 gson Exp $ */
+/* $Id: adb.c,v 1.160 2000/12/18 20:03:33 gson Exp $ */
 
 /*
  * Implementation notes
@@ -39,6 +39,7 @@
 #include <limits.h>
 
 #include <isc/mutexblock.h>
+#include <isc/netaddr.h>
 #include <isc/random.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/task.h>
@@ -293,9 +294,11 @@ static inline dns_adbname_t *find_name_and_lock(dns_adb_t *, dns_name_t *,
 						unsigned int, int *);
 static inline dns_adbentry_t *find_entry_and_lock(dns_adb_t *,
 						  isc_sockaddr_t *, int *);
-static void dump_adb(dns_adb_t *, FILE *);
+static void dump_adb(dns_adb_t *, FILE *, isc_boolean_t debug);
 static void print_dns_name(FILE *, dns_name_t *);
-static void print_namehook_list(FILE *, dns_adbname_t *);
+static void print_namehook_list(FILE *, const char *legend,
+				dns_adbnamehooklist_t *list,
+				isc_stdtime_t now, isc_boolean_t debug);
 static void print_find_list(FILE *, dns_adbname_t *);
 static void print_fetch_list(FILE *, dns_adbname_t *);
 static inline void dec_adb_irefcnt(dns_adb_t *);
@@ -2104,7 +2107,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 		if (adb->next_cleanbucket >= NBUCKETS) {
 			adb->next_cleanbucket = 0;
 #ifdef DUMP_ADB_AFTER_CLEANING
-			dump_adb(adb, stdout);
+			dump_adb(adb, stdout, ISC_TRUE);
 #endif
 		}
 	}
@@ -2905,26 +2908,30 @@ dns_adb_dump(dns_adb_t *adb, FILE *f) {
 	 */
 
 	LOCK(&adb->lock);
-	dump_adb(adb, f);
+	dump_adb(adb, f, ISC_TRUE);
 	UNLOCK(&adb->lock);
 }
 
 static void
-dump_adb(dns_adb_t *adb, FILE *f) {
+dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
+	if (value == INT_MAX)
+		return;
+	fprintf(f, " [%s TTL %d]", legend, value - now);
+}
+
+static void
+dump_adb(dns_adb_t *adb, FILE *f, isc_boolean_t debug) {
 	int i;
-	isc_sockaddr_t *sa;
 	dns_adbname_t *name;
-	dns_adbentry_t *entry;
-	char tmp[512];
-	const char *tmpp;
 	isc_stdtime_t now;
 
 	isc_stdtime_get(&now);
 
-	fprintf(f, "ADB %p DUMP:\n", adb);
-	fprintf(f, "erefcnt %u, irefcnt %u, finds out %u\n",
-		adb->erefcnt, adb->irefcnt,
-		isc_mempool_getallocated(adb->nhmp));
+	fprintf(f, ";\n; Address database dump\n;\n");
+	if (debug)
+		fprintf(f, "; addr %p, erefcnt %u, irefcnt %u, finds out %u\n",
+			adb, adb->erefcnt, adb->irefcnt,
+			isc_mempool_getallocated(adb->nhmp));
 
 	for (i = 0 ; i < NBUCKETS ; i++)
 		LOCK(&adb->namelocks[i]);
@@ -2934,89 +2941,42 @@ dump_adb(dns_adb_t *adb, FILE *f) {
 	/*
 	 * Dump the names
 	 */
-	fprintf(f, "Names:\n");
 	for (i = 0 ; i < NBUCKETS ; i++) {
 		name = ISC_LIST_HEAD(adb->names[i]);
 		if (name == NULL)
 			continue;
-		fprintf(f, "Name bucket %d:\n", i);
-		while (name != NULL) {
-			fprintf(f, "name %p (flags %08x)\n",
-				name, name->flags);
-			if (!DNS_ADBNAME_VALID(name))
-				fprintf(f, "\tMAGIC %08x\n", name->magic);
-			fprintf(f, "\texpiry [");
-			if (name->expire_v4 == INT_MAX)
-				fprintf(f, "inf ");
-			else
-				fprintf(f, "%d ", name->expire_v4 - now);
-			if (name->expire_v6 == INT_MAX)
-				fprintf(f, "inf ");
-			else
-				fprintf(f, "%d ", name->expire_v6 - now);
-			if (name->expire_target == INT_MAX)
-				fprintf(f, "inf] ");
-			else
-				fprintf(f, "%d] ", name->expire_target - now);
+		if (debug)
+			fprintf(f, "; bucket %d\n", i);
+		for (;
+		     name != NULL;
+		     name = ISC_LIST_NEXT(name, plink))
+		{
+			if (debug)
+				fprintf(f, "; name %p (flags %08x)\n",
+					name, name->flags);
+
+			fprintf(f, "; ");
 			print_dns_name(f, &name->name);
 			if (dns_name_countlabels(&name->target) > 0) {
-				fprintf(f, "\t\t alias for ");
+				fprintf(f, " alias ");
 				print_dns_name(f, &name->target);
 			}
-			fprintf(f, "\n");
-			fprintf(f, "\terr4: %u err6: %u\n",
+
+			dump_ttl(f, "v4", name->expire_v4, now);
+			dump_ttl(f, "v6", name->expire_v6, now);
+			dump_ttl(f, "target", name->expire_target, now);
+
+			fprintf(f, " [err4 %u] [err6 %u]\n",
 				name->fetch_err, name->fetch6_err);
-			print_namehook_list(f, name);
-			print_fetch_list(f, name);
-			print_find_list(f, name);
-			fprintf(f, "\n");
 
-			name = ISC_LIST_NEXT(name, plink);
-		}
-	}
+			print_namehook_list(f, "v4", &name->v4, now, debug);
+			print_namehook_list(f, "v6", &name->v6, now, debug);
 
-	/*
-	 * Dump the entries
-	 */
-	fprintf(f, "Entries:\n");
-	for (i = 0 ; i < NBUCKETS ; i++) {
-		entry = ISC_LIST_HEAD(adb->entries[i]);
-		if (entry == NULL)
-			continue;
-		fprintf(f, "Entry bucket %d:\n", i);
-		while (entry != NULL) {
-			if (!DNS_ADBENTRY_VALID(entry))
-				fprintf(f, "\tMAGIC %08x\n", entry->magic);
-			if (entry->lock_bucket != i)
-				fprintf(f, "\tWRONG BUCKET!  lock_bucket %d\n",
-					entry->lock_bucket);
+			if (debug)
+				print_fetch_list(f, name);
+			if (debug)
+				print_find_list(f, name);
 
-			sa = &entry->sockaddr;
-			switch (sa->type.sa.sa_family) {
-			case AF_INET:
-				tmpp = inet_ntop(AF_INET,
-						 &sa->type.sin.sin_addr,
-						 tmp, sizeof tmp);
-				break;
-			case AF_INET6:
-				tmpp = inet_ntop(AF_INET6,
-						 &sa->type.sin6.sin6_addr,
-						 tmp, sizeof tmp);
-				break;
-			default:
-				tmpp = "UnkFamily";
-			}
-
-			if (tmpp == NULL)
-				tmpp = "BadAddress";
-
-			fprintf(f, "\t%p: refcnt %u flags %08x goodness %d"
-				" srtt %u addr %s, avoid_bitstring %u\n",
-				entry, entry->refcnt, entry->flags,
-				entry->goodness, entry->srtt, tmpp,
-				entry->avoid_bitstring);
-
-			entry = ISC_LIST_NEXT(entry, plink);
 		}
 	}
 
@@ -3027,6 +2987,28 @@ dump_adb(dns_adb_t *adb, FILE *f) {
 		UNLOCK(&adb->entrylocks[i]);
 	for (i = 0 ; i < NBUCKETS ; i++)
 		UNLOCK(&adb->namelocks[i]);
+}
+
+static void
+dump_entry(FILE *f, dns_adbentry_t *entry, isc_stdtime_t now, isc_boolean_t debug)
+{
+	char addrbuf[ISC_NETADDR_FORMATSIZE];
+	isc_netaddr_t netaddr;
+
+	isc_netaddr_fromsockaddr(&netaddr, &entry->sockaddr);
+	isc_netaddr_format(&netaddr, addrbuf, sizeof addrbuf);
+
+	if (debug)
+		fprintf(f, ";\t%p: refcnt %u flags %08x goodness %d\n",
+			entry, entry->refcnt, entry->flags,
+			entry->goodness);
+			
+	fprintf(f, ";\t%s [srtt %u]", addrbuf, entry->srtt);
+
+	if (entry->avoid_bitstring != 0)
+		fprintf(f, " [avoid_bitstring %d]",
+			entry->avoid_bitstring - now);
+	fprintf(f, "\n");
 }
 
 void
@@ -3043,11 +3025,11 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f) {
 
 	LOCK(&find->lock);
 
-	fprintf(f, "Find %p\n", find);
-	fprintf(f, "\tqpending %08x partial %08x options %08x flags %08x\n",
+	fprintf(f, ";Find %p\n", find);
+	fprintf(f, ";\tqpending %08x partial %08x options %08x flags %08x\n",
 		find->query_pending, find->partial_result,
 		find->options, find->flags);
-	fprintf(f, "\tname_bucket %d, name %p, event sender %p\n",
+	fprintf(f, ";\tname_bucket %d, name %p, event sender %p\n",
 		find->name_bucket, find->adbname, find->event.ev_sender);
 
 	ai = ISC_LIST_HEAD(find->list);
@@ -3093,18 +3075,18 @@ print_dns_name(FILE *f, dns_name_t *name) {
 }
 
 static void
-print_namehook_list(FILE *f, dns_adbname_t *n) {
+print_namehook_list(FILE *f, const char *legend, dns_adbnamehooklist_t *list,
+		    isc_stdtime_t now, isc_boolean_t debug)
+{
 	dns_adbnamehook_t *nh;
 
-	nh = ISC_LIST_HEAD(n->v4);
-	while (nh != NULL) {
-		fprintf(f, "\t\tHook(V4) %p -> entry %p\n", nh, nh->entry);
-		nh = ISC_LIST_NEXT(nh, plink);
-	}
-	nh = ISC_LIST_HEAD(n->v6);
-	while (nh != NULL) {
-		fprintf(f, "\t\tHook(V6) %p -> entry %p\n", nh, nh->entry);
-		nh = ISC_LIST_NEXT(nh, plink);
+	for (nh = ISC_LIST_HEAD(*list);
+	     nh != NULL;
+	     nh = ISC_LIST_NEXT(nh, plink))
+	{
+		if (debug)
+			fprintf(f, ";\tHook(%s) %p\n", legend, nh);
+		dump_entry(f, nh->entry, now, debug);
 	}
 }
 
