@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.191 2002/01/30 02:23:11 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.192 2002/01/30 06:33:37 bwelling Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1406,11 +1406,11 @@ allow-update { key host1-host2. ;};
   <sect1>
     <title>SIG(0)</title>
 
-    <para><acronym>BIND</acronym> 9 partially supports DNSSEC SIG(0) transaction
-    signatures as specified in RFC 2535.  SIG(0) uses public/private
-    keys to authenticate messages.  Access control is performed in the
-    same manner as TSIG keys; privileges can be granted or denied
-    based on the key name.</para>
+    <para><acronym>BIND</acronym> 9 partially supports DNSSEC SIG(0)
+    transaction signatures as specified in RFC 2535 and RFC2931.  SIG(0)
+    uses public/private keys to authenticate messages.  Access control
+    is performed in the same manner as TSIG keys; privileges can be
+    granted or denied based on the key name.</para>
 
     <para>When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
@@ -1419,8 +1419,8 @@ allow-update { key host1-host2. ;};
     <para>SIG(0) signing of multiple-message TCP streams is not
     supported.</para>
 
-    <para><acronym>BIND</acronym> 9 does not ship with any tools that generate SIG(0)
-    signed messages.</para>
+    <para>The only tool shipped with <acronym>BIND</acronym> 9 that
+    generates SIG(0) signed messages is <command>nsupdate</command>.</para>
 
   </sect1>
   <sect1 id="DNSSEC">
@@ -1435,9 +1435,10 @@ allow-update { key host1-host2. ;};
     of steps which must be followed.  <acronym>BIND</acronym> 9 ships
     with several tools
     that are used in this process, which are explained in more detail
-    below.  In all cases, the "<option>-h</option>" option prints a
+    below.  In all cases, the <option>-h</option> option prints a
     full list of parameters.  Note that the DNSSEC tools require the
-    keyset and signedkey files to be in the working directory, and
+    keyset and signedkey files to be in the working directory or the
+    directory specified by the <option>-h</option> option, and
     that the tools shipped with BIND 9.0.x are not fully compatible
     with the current ones.</para>
 
