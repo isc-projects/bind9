@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.47 2000/03/02 03:57:32 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.48 2000/03/02 20:41:21 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -46,10 +46,12 @@ static char rcsid[] = "$Id: confparser.y,v 1.47 2000/03/02 03:57:32 brister Exp 
 #include <dns/confparser.h>
 #include <dns/confctx.h>
 #include <dns/log.h>
+#include <dns/name.h> 
  
 #include <dns/result.h>
 #include <dns/rdatatype.h>
 #include <dns/rdataclass.h>
+#include <dns/ssu.h> 
 
 #include <dns/types.h>
 
@@ -63,6 +65,22 @@ static char rcsid[] = "$Id: confparser.y,v 1.47 2000/03/02 03:57:32 brister Exp 
 
  
 static isc_mutex_t yacc_mutex;
+
+/* used for holding a list of dns_rdatatype_t on the stack */
+struct confrdtype_s {
+	dns_rdatatype_t types[256];
+	isc_uint32_t idx;
+};
+ 
+/* used for holding ssu data on the stack */
+struct confssu_s {
+	isc_boolean_t grant;
+	dns_name_t *ident;
+	unsigned int matchtype;
+	dns_name_t *name;
+	struct confrdtype_s rdatatypes;
+};
+
 
 /* All these statics are protected by the above yacc_mutex */
 static dns_c_ctx_t	       *currcfg;
@@ -111,9 +129,13 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	struct in6_addr		ip6_addr;
 	isc_sockaddr_t		ipaddress;
 
+	struct confssu_s	ssu;
+	struct confrdtype_s	rdatatypelist;
+	dns_rdatatype_t		rdatatype;
+	
 	isc_boolean_t		boolean;
 	dns_rdataclass_t	rrclass;
-	dns_severity_t	      severity;
+	dns_severity_t	      	severity;
 	dns_c_trans_t		transport;
 	dns_transfer_format_t	tformat;
 	
@@ -275,6 +297,18 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_VIEW
 %token		L_RFC2308_TYPE1
 
+%token		L_GRANT
+%token		L_DENY
+%token		L_SUBDOMAIN
+%token		L_DOMAIN
+%token		L_SELF
+%token		L_WILDCARD
+
+%type <ssu>		grant_stmt
+%type <ul_int>		grant_match_type
+%type <rdatatypelist>	rdatatype_list
+%type <rdatatype>	rdatatype
+%type <boolean>		grantp
 %type <boolean>		yea_or_nay
 
 %type <forward>		forward_opt
@@ -2810,7 +2844,202 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         | zone_stmt
 	;
 
-/* XXX other view statements need to go in here???. */
+
+zone_ssu_stmt: grant_stmt {
+		dns_ssutable_t *ssutable = NULL;
+		isc_boolean_t ok = ISC_TRUE;
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		REQUIRE(zone != NULL);
+
+		switch(zone->ztype) {
+		case dns_c_zone_hint:
+			parser_error(ISC_FALSE,
+				     "hint zones do not have grant/deny "
+				     "statements.");
+			ok = ISC_FALSE;
+			break;
+			
+		case dns_c_zone_forward:
+			parser_error(ISC_FALSE,
+				     "forward zones do not have grant/deny "
+				     "statements.");
+			ok = ISC_FALSE;
+			break;
+
+		default:
+			/* nothing */
+			break;
+		}
+
+		if (ok) {
+			tmpres = dns_c_zone_getssuauth(zone, &ssutable);
+			if (tmpres == ISC_R_NOTFOUND) {
+				REQUIRE(ssutable == NULL);
+
+				tmpres = dns_ssutable_create(currcfg->mem,
+						     &ssutable);
+				if (tmpres != ISC_R_SUCCESS) {
+					parser_error(ISC_FALSE,
+						     "failed to create "
+						     "ssutable");
+					ok = ISC_FALSE;
+				}
+			}
+
+			if (ok) {
+				dns_c_zone_setssuauth(zone, ssutable);
+			}
+		}
+
+		tmpres = dns_ssutable_addrule(ssutable, $1.grant,
+					      $1.ident, $1.matchtype,
+					      $1.name,
+					      $1.rdatatypes.idx,
+					      &$1.rdatatypes.types[0]);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error creating ssu "
+				     "identity value");
+			ok = ISC_FALSE;
+		}
+		
+		dns_name_free($1.ident, memctx);
+		dns_name_free($1.name, memctx);
+
+		isc_mem_put(memctx, $1.ident, sizeof (*$1.ident));
+		isc_mem_put(memctx, $1.name, sizeof (*$1.name));
+
+		if (!ok) {
+			YYABORT;
+		}
+	};
+
+grant_stmt: grantp any_string grant_match_type any_string rdatatype_list
+	{
+		dns_name_t *name = NULL;
+		dns_name_t *identity = NULL;
+		isc_boolean_t ok = ISC_TRUE;
+		
+		tmpres = dns_c_charptoname(memctx, $4, &name);
+		if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "error creating ssu name value");
+			ok = ISC_FALSE;
+		}
+
+		if (ok) {
+			tmpres = dns_c_charptoname(memctx, $2, &identity);
+			if (tmpres != ISC_R_SUCCESS) {
+				parser_error(ISC_FALSE,
+					     "error creating ssu "
+					     "identity value");
+				ok = ISC_FALSE;
+			}
+		}
+
+		if (ok) {
+			if (!dns_name_isabsolute(identity)) {
+				parser_error(ISC_FALSE,
+					     "identity (%s) must be an "
+					     "absolute (not relative) name.",
+					     $2);
+				ok = ISC_FALSE;
+			}
+
+			if (!dns_name_isabsolute(name)) {
+				parser_error(ISC_FALSE,
+					     "name (%s) must be an "
+					     "absolute (not relative) name.",
+					     $4);
+				ok = ISC_FALSE;
+			}
+
+			if ($3 == DNS_SSUMATCHTYPE_WILDCARD &&
+			    !dns_name_iswildcard(name)) {
+				parser_error(ISC_FALSE,
+					     "name (%s) has no wildcard "
+					     "character ",
+					     $4);
+				ok = ISC_FALSE;
+			}
+		}
+
+		isc_mem_free(memctx, $2);
+		isc_mem_free(memctx, $4);
+
+		if (ok) {
+			$$.grant = $1;
+			$$.ident = identity;
+			$$.matchtype = $3;
+			$$.name = name;
+			$$.rdatatypes = $5;
+		} else {
+			if (identity != NULL) {
+				dns_name_free(identity, memctx);
+				isc_mem_put(memctx, identity,
+					    sizeof *identity);
+			}
+
+			if (name != NULL) {
+				dns_name_free(name, memctx);
+				isc_mem_put(memctx, name, sizeof *name);
+			}
+
+			YYABORT;
+		}
+	};
+
+grantp: L_GRANT {
+		$$ = ISC_TRUE;
+	}
+	| L_DENY {
+		$$ = ISC_FALSE;
+	};
+
+grant_match_type: L_NAME {
+		$$ = DNS_SSUMATCHTYPE_NAME;
+	}
+	| L_SUBDOMAIN {
+		$$ = DNS_SSUMATCHTYPE_SUBDOMAIN;
+	}
+	| L_WILDCARD {
+		$$ = DNS_SSUMATCHTYPE_WILDCARD;
+	}
+	| L_SELF {
+		$$ = DNS_SSUMATCHTYPE_SELF;
+	};
+
+rdatatype_list: /* nothing */
+	{
+		$$.idx = 0;
+	}
+	| rdatatype_list rdatatype {
+		$1.types[$1.idx++] = $2;
+		$$ = $1;
+	};
+
+rdatatype: any_string {
+		isc_textregion_t reg;
+		dns_rdatatype_t ty;
+
+		reg.base = $1;
+		reg.length = strlen($1);
+		
+		tmpres = dns_rdatatype_fromtext(&ty, &reg);
+		if (tmpres != DNS_R_SUCCESS) {
+			parser_error(ISC_TRUE, "unknown rdatatype.");
+			YYABORT;
+		}
+		
+		isc_mem_free(memctx, $1);
+		$$ = ty;
+	};
+
+	       
+	
+
+	
 
 
 /*
@@ -3021,11 +3250,15 @@ zone_option_list: zone_option L_EOS
 	;
 
 
+/*
+ * This rule is used in enforcing the requirement that zone_type must be
+ * the first element in a zone statement
+ */
 zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_TRANSFER_SOURCE | L_CHECK_NAMES | L_ALLOW_UPDATE |
 	L_ALLOW_UPDATE_FORWARDING | L_ALLOW_QUERY |
 	L_ALLOW_TRANSFER | L_FORWARD | L_FORWARDERS | L_MAX_TRANSFER_TIME_IN |
-	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS |
+	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS | L_GRANT | L_DENY |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP
@@ -3479,6 +3712,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
+	| zone_ssu_stmt
 	;
 
 
@@ -3744,6 +3978,12 @@ static struct token keyword_tokens [] = {
 	{ "first",			L_FIRST },
 	{ "forward",			L_FORWARD },
 	{ "forwarders",			L_FORWARDERS },
+	{ "grant", 			L_GRANT },
+	{ "deny", 			L_DENY },
+	{ "subdomain", 			L_SUBDOMAIN },
+	{ "domain", 			L_DOMAIN },
+	{ "self", 			L_SELF },
+	{ "wildcard", 			L_WILDCARD },
 	{ "group",			L_GROUP },
 	{ "has-old-clients",		L_HAS_OLD_CLIENTS },
 	{ "heartbeat-interval",		L_HEARTBEAT },
