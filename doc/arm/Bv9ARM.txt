@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: Bv9ARM.txt,v 1.3.2.6 2000/08/22 19:29:20 gson Exp $
+$Id: Bv9ARM.txt,v 1.3.2.7 2000/09/18 17:02:13 gson Exp $
 
 BIND 9 Administrator Reference Manual
 July 2000
@@ -3687,7 +3687,7 @@ and/or group id) on files to which you want BIND to write.
 
 Access to the dynamic update facility should be strictly limited. In earlier
 versions of BIND the only way to do this was based on the IP address of the
-host requesting the update. BIND 9BIND 9 also supports authenticating
+host requesting the update. BIND 9 also supports authenticating
 updates cryptographically by means of transaction signatures (TSIG). The use
 of TSIG is strongly recommended.
 
