@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.26 2003/09/02 01:14:27 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.27 2003/09/02 01:19:45 marka Exp $ */
 
 #include <config.h>
 
@@ -3923,7 +3923,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	zone->curmaster++;
 	if (zone->curmaster < zone->masterscnt)
 		goto again;
-	zone->masterscnt = 0;
+	zone->curmaster = 0;
 	goto cleanup;
 }
 
