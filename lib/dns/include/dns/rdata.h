@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.48 2000/11/09 23:55:01 bwelling Exp $ */
+/* $Id: rdata.h,v 1.49 2000/12/19 19:20:15 gson Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -170,8 +170,8 @@ dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target);
  * Clone 'target' from 'src'.
  *
  * Requires:
- *	'src' to be initalised.
- *	'target' to be initalised.
+ *	'src' to be initialized.
+ *	'target' to be initialized.
  */
 
 /***
