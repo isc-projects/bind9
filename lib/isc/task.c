@@ -27,6 +27,7 @@
 #include <isc/mutex.h>
 #include <isc/condition.h>
 #include <isc/error.h>
+#include <isc/event.h>
 #include <isc/task.h>
 
 #include "util.h"
@@ -34,8 +35,11 @@
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		printf("%s task %p thread %lu\n", (m), \
 				       task, isc_thread_self())
+#define XTHREADTRACE(m)		printf("%s thread %lu\n", (m), \
+				       isc_thread_self())
 #else
 #define XTRACE(m)
+#define XTHREADTRACE(m)
 #endif
 
 
@@ -45,7 +49,7 @@
 
 typedef enum {
 	task_state_idle, task_state_ready, task_state_running,
-	task_state_shutdown
+	task_state_done
 } task_state_t;
 
 #define TASK_MAGIC			0x5441534BU	/* TASK. */
@@ -64,12 +68,19 @@ struct isc_task {
 	isc_eventlist_t			events;
 	isc_eventlist_t			on_shutdown;
 	unsigned int			quantum;
-	isc_boolean_t			enqueue_allowed;
-	isc_boolean_t			shutting_down;
+	unsigned int			flags;
 	/* Locked by task manager lock. */
 	LINK(isc_task_t)		link;
 	LINK(isc_task_t)		ready_link;
 };
+
+#define TASK_F_DONEOK			0x01
+#define TASK_F_SENDOK			0x02
+#define TASK_F_SHUTTINGDOWN		0x04
+
+#define DONE_FLAGS			(TASK_F_DONEOK|TASK_F_SHUTTINGDOWN)
+#define TASK_DONE(t)			(((t)->flags & DONE_FLAGS) == \
+					 DONE_FLAGS)
 
 #define TASK_MANAGER_MAGIC		0x54534B4DU	/* TSKM. */
 #define VALID_MANAGER(m)		((m) != NULL && \
@@ -93,60 +104,6 @@ struct isc_taskmgr {
 #define DEFAULT_DEFAULT_QUANTUM		5
 #define FINISHED(m)			((m)->exiting && EMPTY((m)->tasks))
 
-
-/***
- *** Events.
- ***/
-
-static inline isc_event_t *
-event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-	       isc_taskaction_t action, void *arg, size_t size)
-{
-	isc_event_t *event;
-
-	event = isc_mem_get(mctx, size);
-	if (event == NULL)
-		return (NULL);
-	event->mctx = mctx;
-	event->size = size;
-	event->sender = sender;
-	event->type = type;
-	event->action = action;
-	event->arg = arg;
-	event->destroy = NULL;
-	INIT_LINK(event, link);
-
-	return (event);
-}
-
-isc_event_t *
-isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
-		   isc_taskaction_t action, void *arg, size_t size)
-{
-	if (size < sizeof (struct isc_event))
-		return (NULL);
-	if (type < 0)
-		return (NULL);
-	if (action == NULL)
-		return (NULL);
-
-	return (event_allocate(mctx, sender, type, action, arg, size));
-}
-
-void
-isc_event_free(isc_event_t **eventp) {
-	isc_event_t *event;
-	
-	REQUIRE(eventp != NULL);
-	event = *eventp;
-	REQUIRE(event != NULL);
-
-	if (event->destroy != NULL)
-		(event->destroy)(event);
-	isc_mem_put(event->mctx, event, event->size);
-
-	*eventp = NULL;
-}
 
 /***
  *** Tasks.
@@ -204,8 +161,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
 	task->quantum = quantum;
-	task->enqueue_allowed = ISC_TRUE;
-	task->shutting_down = ISC_FALSE;
+	task->flags = (TASK_F_DONEOK|TASK_F_SENDOK);
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
@@ -240,16 +196,16 @@ isc_task_detach(isc_task_t **taskp) {
 	isc_boolean_t free_task = ISC_FALSE;
 	isc_task_t *task;
 
-	XTRACE("isc_task_detach");
-
 	REQUIRE(taskp != NULL);
 	task = *taskp;
 	REQUIRE(VALID_TASK(task));
 
+	XTRACE("isc_task_detach");
+
 	LOCK(&task->lock);
 	REQUIRE(task->references > 0);
 	task->references--;
-	if (task->state == task_state_shutdown && task->references == 0)
+	if (task->state == task_state_done && task->references == 0)
 		free_task = ISC_TRUE;
 	UNLOCK(&task->lock);
 
@@ -289,10 +245,10 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 	 */
 	LOCK(&task->lock);
 	/*
-	 * Note: we require that task->shutting_down implies
-	 * !task->enqueue_allowed.
+	 * Note: we require that task->state == task_state_done implies
+	 * (task->flags & TASK_F_SENDOK) == 0.
 	 */
-	if (task->enqueue_allowed) {
+	if ((task->flags & TASK_F_SENDOK) != 0) {
 		if (task->state == task_state_idle) {
 			was_idle = ISC_TRUE;
 			INSIST(EMPTY(task->events));
@@ -303,10 +259,8 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 		ENQUEUE(task->events, event, link);
 	} else {
 		disallowed = ISC_TRUE;
-		if (task->state == task_state_shutdown)
-			result = ISC_R_TASKSHUTDOWN;
-		else if (task->shutting_down)
-			result = ISC_R_TASKSHUTTINGDOWN;
+		if (task->state == task_state_done)
+			result = ISC_R_TASKDONE;
 		else
 			result = ISC_R_TASKNOSEND;
 	}
@@ -326,16 +280,12 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 		 * block while holding the task lock.
 		 *
 		 * We've changed the state to ready, so no one else will
-		 * be trying to add this task to the ready queue.  It
-		 * thus doesn't matter if more events have been added to
-		 * the queue after we gave up the task lock.
-		 *
-		 * Shutting down a task requires posting a shutdown event
-		 * to the task's queue and then executing it, so there's
-		 * no way the task can disappear.  A task is always on the
-		 * task manager's 'tasks' list, so the task manager can
-		 * always post a shutdown event to all tasks if it is
-		 * requested to shutdown.
+		 * be trying to add this task to the ready queue.  The
+		 * only way to leave the ready state is by executing the
+		 * task.  It thus doesn't matter if events are added,
+		 * removed, or shutting_down is started in the interval
+		 * between the time we released the task lock, and the time
+		 * we add the task to the ready queue.
 		 */
 		manager = task->manager;
 		INSIST(VALID_MANAGER(manager));
@@ -354,17 +304,22 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp) {
 
 unsigned int
 isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
+	return (isc_task_purgerange(task, sender, type, type));
+}
+
+unsigned int
+isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
+		    isc_eventtype_t last)
+{
 	isc_event_t *event, *next_event;
 	isc_eventlist_t purgeable;
 	unsigned int purge_count;
 
 	REQUIRE(VALID_TASK(task));
-	REQUIRE(type >= 0);
 
 	/*
-	 * Purge events matching 'sender' and 'type'.  sender == NULL means
-	 * "any sender".  type == NULL means any type.  Task manager events
-	 * cannot be purged.
+	 * Purge events matching 'sender' and whose type is >= first and
+	 * <= last.  sender == NULL means "any sender".
 	 *
 	 * Purging never changes the state of the task.
 	 */
@@ -378,7 +333,7 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
 	     event = next_event) {
 		next_event = NEXT(event, link);
 		if ((sender == NULL || event->sender == sender) &&
-		    ((type == 0 && event->type > 0) || event->type == type)) {
+		    event->type >= first && event->type <= last) {
 			DEQUEUE(task->events, event, link);
 			ENQUEUE(purgeable, event, link);
 		}
@@ -397,18 +352,45 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type) {
 }
 
 isc_result_t
-isc_task_allowsend(isc_task_t *task, isc_boolean_t enqueue_allowed) {
+isc_task_allowsend(isc_task_t *task, isc_boolean_t allowed) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_TASK(task));
 
 	LOCK(&task->lock);
-	if (task->state == task_state_shutdown)
-		result = ISC_R_TASKSHUTDOWN;
-	else if (task->shutting_down)
-		result = ISC_R_TASKSHUTTINGDOWN;
-	else
-		task->enqueue_allowed = enqueue_allowed;
+	if (task->state == task_state_done)
+		result = ISC_R_TASKDONE;
+	else {
+		if (allowed)
+			task->flags |= TASK_F_SENDOK;
+		else
+			task->flags &= ~TASK_F_SENDOK;
+	}
+	UNLOCK(&task->lock);
+
+	return (result);
+}
+
+isc_result_t
+isc_task_allowdone(isc_task_t *task, isc_boolean_t allowed) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(VALID_TASK(task));
+
+	LOCK(&task->lock);
+	if (task->state == task_state_done)
+		result = ISC_R_TASKDONE;
+	else if (allowed &&
+		 (task->flags & TASK_F_SHUTTINGDOWN) != 0 &&
+		 task->state == task_state_idle) {
+		task->flags &= ~TASK_F_SENDOK;
+		task->state = task_state_done;
+	} else {
+		if (allowed)
+			task->flags |= TASK_F_DONEOK;
+		else
+			task->flags &= ~TASK_F_DONEOK;
+	}
 	UNLOCK(&task->lock);
 
 	return (result);
@@ -422,20 +404,20 @@ isc_task_onshutdown(isc_task_t *task, isc_taskaction_t action, void *arg) {
 
 	REQUIRE(VALID_TASK(task));
 
-	event = event_allocate(task->mctx,
-			       NULL,
-			       ISC_TASKEVENT_SHUTDOWN,
-			       action,
-			       arg,
-			       sizeof *event);
+	event = isc_event_allocate(task->mctx,
+				   NULL,
+				   ISC_TASKEVENT_SHUTDOWN,
+				   action,
+				   arg,
+				   sizeof *event);
 	if (event == NULL)
 		return (ISC_R_NOMEMORY);
 
 	LOCK(&task->lock);
-	if (task->state == task_state_shutdown) {
+	if (task->state == task_state_done) {
 		disallowed = ISC_TRUE;
-		result = ISC_R_TASKSHUTDOWN;
-	} else if (task->shutting_down) {
+		result = ISC_R_TASKDONE;
+	} else if ((task->flags & TASK_F_SHUTTINGDOWN) != 0) {
 		disallowed = ISC_TRUE;
 		result = ISC_R_TASKSHUTTINGDOWN;
 	} else
@@ -461,27 +443,34 @@ isc_task_shutdown(isc_task_t *task) {
 	 */
 
 	LOCK(&task->lock);
-	if (!task->shutting_down) {
+	if ((task->flags & TASK_F_SHUTTINGDOWN) == 0) {
+		XTRACE("shutting down");
+		task->flags |= TASK_F_SHUTTINGDOWN;
 		if (task->state == task_state_idle) {
 			was_idle = ISC_TRUE;
 			INSIST(EMPTY(task->events));
-			task->state = task_state_ready;
+			if (EMPTY(task->on_shutdown) && TASK_DONE(task)) {
+				task->flags &= ~TASK_F_SENDOK;
+				task->state = task_state_done;
+			} else
+				task->state = task_state_ready;
 		}
 		INSIST(task->state == task_state_ready ||
-		       task->state == task_state_running);
-		/*
-		 * Note that we post shutdown events LIFO.
-		 */
-		for (event = TAIL(task->on_shutdown);
-		     event != NULL;
-		     event = prev) {
-			prev = PREV(event, link);
-			DEQUEUE(task->on_shutdown, event, link);
-			ENQUEUE(task->events, event, link);
-			queued_something = ISC_TRUE;
+		       task->state == task_state_running ||
+		       task->state == task_state_done);
+		if (task->state != task_state_done) {
+			/*
+			 * Note that we post shutdown events LIFO.
+			 */
+			for (event = TAIL(task->on_shutdown);
+			     event != NULL;
+			     event = prev) {
+				prev = PREV(event, link);
+				DEQUEUE(task->on_shutdown, event, link);
+				ENQUEUE(task->events, event, link);
+				queued_something = ISC_TRUE;
+			}
 		}
-		task->enqueue_allowed = ISC_FALSE;
-		task->shutting_down = ISC_TRUE;
 	}
 	UNLOCK(&task->lock);
 
@@ -520,7 +509,7 @@ run(void *uap) {
 	isc_taskmgr_t *manager = uap;
 	isc_task_t *task;
 
-	XTRACE("start");
+	XTHREADTRACE("start");
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -584,11 +573,11 @@ run(void *uap) {
 		 * task lock.
 		 */
 		while (EMPTY(manager->ready_tasks) && !FINISHED(manager)) {
-			XTRACE("wait");
+			XTHREADTRACE("wait");
 			WAIT(&manager->work_available, &manager->lock);
-			XTRACE("awake");
+			XTHREADTRACE("awake");
 		}
-		XTRACE("working");
+		XTHREADTRACE("working");
 		
 		task = HEAD(manager->ready_tasks);
 		if (task != NULL) {
@@ -645,12 +634,13 @@ run(void *uap) {
 					 * put it to sleep.
 					 */
 					XTRACE("empty");
-					if (task->shutting_down) {
-						XTRACE("shutdown");
+					if (TASK_DONE(task)) {
+						XTRACE("done");
 						if (task->references == 0)
 							free_task = ISC_TRUE;
-						task->state =
-							task_state_shutdown;
+						task->flags &=
+							~TASK_F_SENDOK;
+						task->state = task_state_done;
 					} else
 						task->state = task_state_idle;
 					done = ISC_TRUE;
@@ -704,7 +694,7 @@ run(void *uap) {
 	}
 	UNLOCK(&manager->lock);
 
-	XTRACE("exit");
+	XTHREADTRACE("exit");
 
 	return ((isc_threadresult_t)0);
 }
@@ -800,7 +790,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	manager = *managerp;
 	REQUIRE(VALID_MANAGER(manager));
 
-	XTRACE("isc_taskmgr_destroy");
+	XTHREADTRACE("isc_taskmgr_destroy");
 	/*
 	 * Only one non-worker thread may ever call this routine.
 	 * If a worker thread wants to initiate shutdown of the
@@ -827,33 +817,43 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	manager->exiting = ISC_TRUE;
 
 	/*
-	 * Post the shutdown event to every task (if it hasn't already been
+	 * Post shutdown event(s) to every task (if they haven't already been
 	 * posted).
 	 */
 	for (task = HEAD(manager->tasks);
 	     task != NULL;
 	     task = NEXT(task, link)) {
 		LOCK(&task->lock);
-		if (!task->shutting_down) {
-			/*
-			 * Note that we post shutdown events LIFO.
-			 */
-			for (event = TAIL(task->on_shutdown);
-			     event != NULL;
-			     event = prev) {
-				prev = PREV(event, link);
-				DEQUEUE(task->on_shutdown, event, link);
-				ENQUEUE(task->events, event, link);
-			}
+		if ((task->flags & TASK_F_SHUTTINGDOWN) == 0) {
+			task->flags |= TASK_F_SHUTTINGDOWN;
 			if (task->state == task_state_idle) {
-				task->state = task_state_ready;
-				ENQUEUE(manager->ready_tasks, task,
-					ready_link);
+				INSIST(EMPTY(task->events));
+				if (EMPTY(task->on_shutdown) &&
+				    TASK_DONE(task)) {
+					task->flags &= ~TASK_F_SENDOK;
+					task->state = task_state_done;
+				} else {
+					task->state = task_state_ready;
+					ENQUEUE(manager->ready_tasks, task,
+						ready_link);
+				}
 			}
 			INSIST(task->state == task_state_ready ||
-			       task->state == task_state_running);
-			task->enqueue_allowed = ISC_FALSE;
-			task->shutting_down = ISC_TRUE;
+			       task->state == task_state_running ||
+			       task->state == task_state_done);
+			if (task->state != task_state_done) {
+				/*
+				 * Note that we post shutdown events LIFO.
+				 */
+				for (event = TAIL(task->on_shutdown);
+				     event != NULL;
+				     event = prev) {
+					prev = PREV(event, link);
+					DEQUEUE(task->on_shutdown, event,
+						link);
+					ENQUEUE(task->events, event, link);
+				}
+			}
 		}
 		UNLOCK(&task->lock);
 	}

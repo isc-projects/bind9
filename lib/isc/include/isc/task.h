@@ -52,66 +52,17 @@
  *** Imports.
  ***/
 
-#include <stddef.h>
-
 #include <isc/lang.h>
-#include <isc/list.h>
+#include <isc/types.h>
+#include <isc/eventclass.h>
 #include <isc/mem.h>
 #include <isc/result.h>
 
 ISC_LANG_BEGINDECLS
 
-/***
- *** Core Types.
- ***/
-
-typedef struct isc_event		isc_event_t;
-typedef struct isc_task			isc_task_t;
-typedef struct isc_taskmgr		isc_taskmgr_t;
-
-
-/*****
- ***** Events.
- *****/
-
-/*
- * Negative event types are reserved for use by the task manager.
- *
- * Type 0 means "any type".
- */
-typedef int				isc_eventtype_t;
-
-typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
-typedef void (*isc_eventdestructor_t)(isc_event_t *);
-
-/*
- * This structure is public because "subclassing" it may be useful when
- * defining new event types.
- */ 
-struct isc_event {
-	isc_mem_t *			mctx;
-	size_t				size;
-	void *				sender;
-	isc_eventtype_t			type;
-	isc_taskaction_t		action;
-	void *				arg;
-	isc_eventdestructor_t		destroy;
-	ISC_LINK(struct isc_event)	link;
-};
-
-#define ISC_TASKEVENT_ANYEVENT		0
-#define ISC_TASKEVENT_SHUTDOWN		(-1)
-
-typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
-
-isc_event_t *				isc_event_allocate(isc_mem_t *,
-							   void *,
-							   isc_eventtype_t,
-							   isc_taskaction_t,
-							   void *arg,
-							   size_t);
-void					isc_event_free(isc_event_t **);
-
+#define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
+#define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
+#define ISC_TASKEVENT_LASTEVENT		(ISC_EVENTCLASS_TASK + 65535)
 
 /*****
  ***** Tasks.
@@ -129,7 +80,13 @@ isc_result_t				isc_task_send(isc_task_t *,
 						      isc_event_t **);
 unsigned int				isc_task_purge(isc_task_t *, void *,
 						       isc_eventtype_t);
+unsigned int				isc_task_purgerange(isc_task_t *,
+							    void *,
+							    isc_eventtype_t,
+							    isc_eventtype_t);
 isc_result_t				isc_task_allowsend(isc_task_t *,
+							   isc_boolean_t);
+isc_result_t				isc_task_allowdone(isc_task_t *,
 							   isc_boolean_t);
 isc_result_t				isc_task_onshutdown(isc_task_t *,
 							    isc_taskaction_t,
