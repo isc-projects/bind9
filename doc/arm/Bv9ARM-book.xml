@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.8 2001/11/06 01:40:06 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.9 2001/11/06 01:57:19 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1899,9 +1899,9 @@ separated by semicolons and ending with a semicolon.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>number</varname></para></entry>
-<entry colname = "2"><para>A non-negative integer with an entire
-range limited by the range of a C language signed integer (2,147,483,647
-on a machine with 32 bit integers). Its acceptable value might further
+<entry colname = "2"><para>A non-negative 32 bit unsigned integer
+(i.e., a number between 0 and 4294967295, inclusive).
+Its acceptable value might further
 be limited by the context in which it is used.</para></entry>
 </row>
 <row rowsep = "0">
@@ -1912,18 +1912,17 @@ a pathname, such as <filename>zones/master/my.test.domain</filename>.</para></en
 <row rowsep = "0">
 <entry colname = "1"><para><varname>size_spec</varname></para></entry>
 <entry colname = "2"><para>A number, the word <userinput>unlimited</userinput>,
-or the word <userinput>default</userinput>.</para><para>The maximum
-value of <varname>size_spec</varname> is that of unsigned long integers
-on the machine. An <varname>unlimited</varname> <varname>size_spec</varname> requests unlimited
+or the word <userinput>default</userinput>.</para><para>
+An <varname>unlimited</varname> <varname>size_spec</varname> requests unlimited
 use, or the maximum available amount. A <varname>default size_spec</varname> uses
 the limit that was in force when the server was started.</para><para>A <varname>number</varname> can
 optionally be followed by a scaling factor: <userinput>K</userinput> or <userinput>k</userinput> for
 kilobytes, <userinput>M</userinput> or <userinput>m</userinput> for
 megabytes, and <userinput>G</userinput> or <userinput>g</userinput> for gigabytes,
-which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.</para><para>Integer
-storage overflow is currently silently ignored during conversion
-of scaled values, resulting in values less than intended, possibly
-even negative. Using <varname>unlimited</varname> is the best way
+which scale by 1024, 1024*1024, and 1024*1024*1024 respectively.</para>
+<para>The value must be representable as a 64-bit unsigned integer
+(0 to 18446744073709551615, inclusive).
+ Using <varname>unlimited</varname> is the best way
 to safely set a really large number.</para></entry>
 </row>
 <row rowsep = "0">
@@ -2923,11 +2922,7 @@ receiving and sending DNS protocol traffic.
 The default is 53.  This option is mainly intended for server testing;
 a server using a port other than 53 will not be able to communicate with
 the global DNS.
-The <command>port</command> option should be placed at
-the beginning of the options block, before
-any other options that take port numbers or IP addresses,
-to ensure that the port value takes effect for all addresses
-used by the server.</para>
+</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>random-device</command></term>
