@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,29 +15,8 @@
  * SOFTWARE.
  */
 
-#ifndef OMAPI_ALLOC_H
-#define OMAPI_ALLOC_H 1
+char omapi_version[] = VERSION;
 
-/*****
- ***** Definitions for the object management API protocol memory allocation.
- *****/
-
-#include <isc/lang.h>
-
-#include <omapi/omapip.h>
-
-ISC_LANG_BEGINDECLS
-
-isc_result_t
-omapi_buffer_new(omapi_buffer_t **buffer, const char *name);
-
-void
-omapi_buffer_reference(omapi_buffer_t **bufferp, omapi_buffer_t *buffer,
-		       const char *);
-
-void
-omapi_buffer_dereference(omapi_buffer_t **bufferp, const char *name);
-
-ISC_LANG_ENDDECLS
-
-#endif /* OMAPI_ALLOC_H */
+unsigned int omapi_libinterface = LIBINTERFACE;
+unsigned int omapi_librevision = LIBREVISION;
+unsigned int omapi_libage = LIBAGE;

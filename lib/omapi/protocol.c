@@ -1,817 +1,900 @@
-/* protocol.c
-
-   Functions supporting the object management protocol... */
-
 /*
- * Copyright (c) 1996-1999 Internet Software Consortium.
- * Use is subject to license terms which appear in the file named
- * ISC-LICENSE that should have accompanied this file when you
- * received it.   If a file named ISC-LICENSE did not accompany this
- * file, or you are not sure the one you have is correct, you may
- * obtain an applicable copy of the license at:
- *
- *             http://www.isc.org/isc-license-1.0.html. 
- *
- * This file is part of the ISC DHCP distribution.   The documentation
- * associated with this file is listed in the file DOCUMENTATION,
- * included in the top-level directory of this release.
- *
- * Support and other services are available for ISC products - see
- * http://www.isc.org for more information.
+ * Copyright (C) 1996, 1997, 1998, 1999  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
  */
 
-#include <omapip/omapip_p.h>
+/*
+ * Functions supporting the object management protocol.
+ */
+#include <stddef.h>		/* NULL */
+#include <stdlib.h>		/* malloc, free */
+#include <string.h>		/* memset */
 
-isc_result_t omapi_protocol_connect (omapi_object_t *h,
-				     const char *server_name,
-				     int port,
-				     omapi_object_t *authinfo)
+#include <isc/assertions.h>
+#include <isc/error.h>
+
+#include <omapi/omapip_p.h>
+
+typedef enum {
+	omapi_protocol_intro_wait,
+	omapi_protocol_header_wait,
+	omapi_protocol_signature_wait,
+	omapi_protocol_name_wait,
+	omapi_protocol_name_length_wait,
+	omapi_protocol_value_wait,
+	omapi_protocol_value_length_wait
+} omapi_protocol_state_t;
+
+typedef struct {
+	OMAPI_OBJECT_PREAMBLE;
+} omapi_protocol_listener_object_t;
+
+typedef struct {
+	OMAPI_OBJECT_PREAMBLE;
+	unsigned int			header_size;		
+	unsigned int			protocol_version;
+	isc_uint32_t			next_xid;
+	omapi_object_t *		authinfo; /* Default authinfo. */
+
+	omapi_protocol_state_t		state;	/* Input state. */
+	/* XXXDCL make isc_boolean_t */
+	/*
+	 * True when reading message-specific values.
+	 */
+	int				reading_message_values;
+	omapi_message_object_t *	message;	/* Incoming message. */
+	omapi_data_string_t *		name;		/* Incoming name. */
+	omapi_typed_data_t *		value;		/* Incoming value. */
+} omapi_protocol_object_t;
+
+/*
+ * OMAPI protocol header, version 1.00
+ */
+typedef struct {
+	unsigned int authlen;  /* Length of authenticator. */
+	unsigned int authid;   /* Authenticator object ID. */
+	unsigned int op;       /* Opcode. */
+	omapi_handle_t handle; /* Handle of object being operated on, or 0. */
+	unsigned int id;	/* Transaction ID. */
+	unsigned int rid;       /* ID of transaction responding to. */
+} omapi_protocol_header_t;
+
+isc_result_t
+omapi_protocol_connect(omapi_object_t *h, const char *server_name,
+		       int port, omapi_object_t *authinfo)
 {
-	isc_result_t status;
+	isc_result_t result;
 	omapi_protocol_object_t *obj;
 
-	obj = (omapi_protocol_object_t *)malloc (sizeof *obj);
-	if (!obj)
-		return ISC_R_NOMEMORY;
-	memset (obj, 0, sizeof *obj);
-	obj -> refcnt = 1;
-	obj -> type = omapi_type_protocol;
+	obj = (omapi_protocol_object_t *)malloc(sizeof(*obj));
+	if (obj == NULL)
+		return (ISC_R_NOMEMORY);
+	memset(obj, 0, sizeof(*obj));
+	obj->refcnt = 1;
+	obj->type = omapi_type_protocol;
 
-	status = omapi_connect ((omapi_object_t *)obj, server_name, port);
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_connect");
-		return status;
-	}
-	status = omapi_object_reference (&h -> outer, (omapi_object_t *)obj,
+	result = omapi_connect((omapi_object_t *)obj, server_name, port);
+	if (result != ISC_R_SUCCESS) {
+		omapi_object_dereference((omapi_object_t **)&obj,
 					 "omapi_protocol_connect");
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_connect");
-		return status;
+		return (result);
 	}
-	status = omapi_object_reference (&obj -> inner, h,
-					 "omapi_protocol_connect");
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_connect");
-		return status;
-	}
+	omapi_object_reference(&h->outer, (omapi_object_t *)obj,
+			       "omapi_protocol_connect");
+	omapi_object_reference(&obj->inner, h, "omapi_protocol_connect");
 
-	/* Send the introductory message. */
-	status = omapi_protocol_send_intro ((omapi_object_t *)obj,
-					    OMAPI_PROTOCOL_VERSION,
-					    sizeof (omapi_protocol_header_t));
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_connect");
-		return status;
+	/*
+	 * Send the introductory message.
+	 */
+	result = omapi_protocol_send_intro((omapi_object_t *)obj,
+					   OMAPI_PROTOCOL_VERSION,
+					   sizeof(omapi_protocol_header_t));
+	if (result != ISC_R_SUCCESS) {
+		omapi_object_dereference((omapi_object_t **)&obj,
+					 "omapi_protocol_connect");
+		return (result);
 	}
 
 	if (authinfo)
-		omapi_object_reference (&obj -> authinfo, authinfo,
-					"omapi_protocol_connect");
-	omapi_object_dereference ((omapi_object_t **)&obj,
-				  "omapi_protocol_accept");
-	return ISC_R_SUCCESS;
+		omapi_object_reference(&obj->authinfo, authinfo,
+				       "omapi_protocol_connect");
+	omapi_object_dereference((omapi_object_t **)&obj,
+				 "omapi_protocol_accept");
+	return (ISC_R_SUCCESS);
 }
 
-/* Send the protocol introduction message. */
-isc_result_t omapi_protocol_send_intro (omapi_object_t *h,
-					unsigned ver,
-					unsigned hsize)
+/*
+ * Send the protocol introduction message.
+ */
+isc_result_t
+omapi_protocol_send_intro(omapi_object_t *h, unsigned int ver,
+			  unsigned int hsize)
 {
-	isc_result_t status;
+	isc_result_t result;
 	omapi_protocol_object_t *p;
 
-	if (h -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
+
 	p = (omapi_protocol_object_t *)h;
 
-	if (!h -> outer || h -> outer -> type != omapi_type_connection)
-		return ISC_R_NOTCONNECTED;
+	if (h->outer == NULL || h->outer->type != omapi_type_connection)
+		return (ISC_R_NOTCONNECTED);
 
-	status = omapi_connection_put_uint32 (h -> outer, ver);
-	if (status != ISC_R_SUCCESS)
-		return status;
+	result = omapi_connection_put_uint32(h->outer, ver);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-	status = omapi_connection_put_uint32 (h -> outer, hsize);
+	result = omapi_connection_put_uint32(h->outer, hsize);
 
-	if (status != ISC_R_SUCCESS)
-		return status;
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-	/* Require the other end to send an intro - this kicks off the
-	   protocol input state machine. */
-	p -> state = omapi_protocol_intro_wait;
-	status = omapi_connection_require (h -> outer, 8);
-	if (status != ISC_R_SUCCESS && status != ISC_R_NOTYET)
-		return status;
+	/*
+	 * Require the other end to send an intro - this kicks off the
+	 * protocol input state machine.
+	 */
+	p->state = omapi_protocol_intro_wait;
+	result = omapi_connection_require(h->outer, 8);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOTYET)
+		return (result);
 
-	/* Make up an initial transaction ID for this connection. */
-	p -> next_xid = random ();
-	return ISC_R_SUCCESS;
+	/*
+	 * Make up an initial transaction ID for this connection.
+	 * XXXDCL better generator than random()?
+	 */
+	p->next_xid = random();
+	return (ISC_R_SUCCESS);
 }
 
-isc_result_t omapi_protocol_send_message (omapi_object_t *po,
-					  omapi_object_t *id,
-					  omapi_object_t *mo,
-					  omapi_object_t *omo)
+isc_result_t
+omapi_protocol_send_message(omapi_object_t *po, omapi_object_t *id,
+			    omapi_object_t *mo, omapi_object_t *omo)
 {
 	omapi_protocol_object_t *p;
 	omapi_object_t *c;
 	omapi_message_object_t *m;
 	omapi_message_object_t *om;
-	isc_result_t status;
-	u_int32_t foo;
+	isc_result_t result;
 
-	if (po -> type != omapi_type_protocol ||
-	    !po -> outer || po -> outer -> type != omapi_type_connection ||
-	    mo -> type != omapi_type_message)
-		return ISC_R_INVALIDARG;
-	if (omo && omo -> type != omapi_type_message)
-		return ISC_R_INVALIDARG;
+	REQUIRE(po != NULL && po->type == omapi_type_protocol &&
+		po->outer != NULL && po->outer->type == omapi_type_connection);
+	REQUIRE(mo != NULL && mo->type == omapi_type_message);
+	REQUIRE(omo == NULL || omo->type == omapi_type_message);
+
 	p = (omapi_protocol_object_t *)po;
-	c = (omapi_object_t *)(po -> outer);
+	c = (omapi_object_t *)(po->outer);
 	m = (omapi_message_object_t *)mo;
 	om = (omapi_message_object_t *)omo;
 
-	/* XXX Write the authenticator length */
-	status = omapi_connection_put_uint32 (c, 0);
-	if (status != ISC_R_SUCCESS)
-		return status;
-	/* XXX Write the ID of the authentication key we're using. */
-	status = omapi_connection_put_uint32 (c, 0);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/* XXXTL Write the authenticator length */
+	result = omapi_connection_put_uint32(c, 0);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/* XXXTL Write the ID of the authentication key we're using. */
+	result = omapi_connection_put_uint32(c, 0);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Write the opcode. */
-	status = omapi_connection_put_uint32 (c, m -> op);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Write the opcode.
+	 */
+	result = omapi_connection_put_uint32(c, m->op);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Write the handle.  If we've been given an explicit handle, use
-	   that.   Otherwise, use the handle of the object we're sending.
-	   The caller is responsible for arranging for one of these handles
-	   to be set (or not). */
-	status = omapi_connection_put_uint32 (c, (m -> h
-						  ? m -> h
-						  : (m -> object
-						     ? m -> object -> handle
-						     : 0)));
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Write the handle.  If we've been given an explicit handle, use
+	 * that.   Otherwise, use the handle of the object we're sending.
+	 * The caller is responsible for arranging for one of these handles
+	 * to be set (or not).
+	 */
+	result = omapi_connection_put_uint32(c, (m->h ? m->h
+						 : (m->object ?
+						    m->object->handle
+						    : 0)));
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Set and write the transaction ID. */
-	m -> id = p -> next_xid++;
-	status = omapi_connection_put_uint32 (c, m -> id);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Set and write the transaction ID.
+	 */
+	m->id = p->next_xid++;
+	result = omapi_connection_put_uint32(c, m->id);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Write the transaction ID of the message to which this is a
-	   response, if there is such a message. */
-	status = omapi_connection_put_uint32 (c, om ? om -> id : m -> rid);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Write the transaction ID of the message to which this is a
+	 * response, if there is such a message.
+	 */
+	result = omapi_connection_put_uint32(c, om ? om->id : m->rid);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Stuff out the name/value pairs specific to this message. */
-	status = omapi_stuff_values (c, id, (omapi_object_t *)m);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Stuff out the name/value pairs specific to this message.
+	 */
+	result = omapi_stuff_values(c, id, (omapi_object_t *)m);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Write the zero-length name that terminates the list of name/value
-	   pairs specific to the message. */
-	status = omapi_connection_put_uint16 (c, 0);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Write the zero-length name that terminates the list of name/value
+	 * pairs specific to the message.
+	 */
+	result = omapi_connection_put_uint16(c, 0);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* Stuff out all the published name/value pairs in the object that's
-	   being sent in the message, if there is one. */
-	if (m -> object) {
-		status = omapi_stuff_values (c, id, m -> object);
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return status;
+	/*
+	 * Stuff out all the published name/value pairs in the object that's
+	 * being sent in the message, if there is one.
+	 */
+	if (m->object != NULL) {
+		result = omapi_stuff_values(c, id, m->object);
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
 	}
 
-	/* Write the zero-length name that terminates the list of name/value
-	   pairs for the associated object. */
-	status = omapi_connection_put_uint16 (c, 0);
-	if (status != ISC_R_SUCCESS) {
-		omapi_disconnect (c, 1);
-		return status;
+	/*
+	 * Write the zero-length name that terminates the list of name/value
+	 * pairs for the associated object.
+	 */
+	result = omapi_connection_put_uint16(c, 0);
+	if (result != ISC_R_SUCCESS) {
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+		return (result);
 	}
 
-	/* XXX Write the authenticator... */
+	/* XXXTL Write the authenticator... */
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 					  
-
-isc_result_t omapi_protocol_signal_handler (omapi_object_t *h,
-					    const char *name, va_list ap)
+isc_result_t
+omapi_protocol_signal_handler(omapi_object_t *h, const char *name, va_list ap)
 {
-	isc_result_t status;
+	isc_result_t result;
 	omapi_protocol_object_t *p;
 	omapi_object_t *c;
-	u_int16_t nlen;
-	u_int32_t vlen;
+	isc_uint16_t nlen;
+	isc_uint32_t vlen;
 
-	if (h -> type != omapi_type_protocol) {
-		/* XXX shouldn't happen.   Put an assert here? */
-		return ISC_R_UNEXPECTED;
-	}
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
+
 	p = (omapi_protocol_object_t *)h;
 
-	/* Not a signal we recognize? */
-	if (strcmp (name, "ready")) {
-		if (p -> inner && p -> inner -> type -> signal_handler)
-			return (*(p -> inner -> type -> signal_handler)) (h,
-									  name,
-									  ap);
-		return ISC_R_NOTFOUND;
+	/*
+	 * Not a signal we recognize?
+	 */
+	if (strcmp(name, "ready") != 0) {
+		if (p->inner != NULL && p->inner->type->signal_handler != NULL)
+			return (*(p->inner->type->signal_handler))(h, name,
+								   ap);
+		return (ISC_R_NOTFOUND);
 	}
 
-	if (!p -> outer || p -> outer -> type != omapi_type_connection)
-		return ISC_R_INVALIDARG;
-	c = p -> outer;
+	INSIST(p->outer != NULL && p->outer->type == omapi_type_connection);
 
-	/* We get here because we requested that we be woken up after
-           some number of bytes were read, and that number of bytes
-           has in fact been read. */
-	switch (p -> state) {
-	      case omapi_protocol_intro_wait:
-		/* Get protocol version and header size in network
-		   byte order. */
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> protocol_version);
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> header_size);
+	c = p->outer;
+
+	/*
+	 * We get here because we requested that we be woken up after
+	 * some number of bytes were read, and that number of bytes
+	 * has in fact been read.
+	 */
+	switch (p->state) {
+	case omapi_protocol_intro_wait:
+		/*
+		 * Get protocol version and header size in network
+		 * byte order.
+		 */
+		omapi_connection_get_uint32(c,
+					    (isc_uint32_t *)
+					    &p->protocol_version);
+		omapi_connection_get_uint32(c,
+					    (isc_uint32_t *)&p->header_size);
 	
-		/* We currently only support the current protocol version. */
-		if (p -> protocol_version != OMAPI_PROTOCOL_VERSION) {
-			omapi_disconnect (c, 1);
-			return ISC_R_VERSIONMISMATCH;
+		/*
+		 * We currently only support the current protocol version.
+		 */
+		if (p->protocol_version != OMAPI_PROTOCOL_VERSION) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (ISC_R_VERSIONMISMATCH);
 		}
 
-		if (p -> header_size < sizeof (omapi_protocol_header_t)) {
-			omapi_disconnect (c, 1);
-			return ISC_R_PROTOCOLERROR;
+		if (p->header_size < sizeof(omapi_protocol_header_t)) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (ISC_R_PROTOCOLERROR);
 		}
 
-		status = omapi_signal_in (h -> inner, "ready");
+		result = omapi_signal_in(h->inner, "ready");
+		if (result != NULL) {
+			/* XXXDCL disconnect? */
+			return (result);
+		}
 
-	      to_header_wait:
-		/* The next thing we're expecting is a message header. */
-		p -> state = omapi_protocol_header_wait;
+	to_header_wait:
+		/*
+		 * The next thing we're expecting is a message header.
+		 */
+		p->state = omapi_protocol_header_wait;
 
-		/* Register a need for the number of bytes in a
-		   header, and if we already have that many, process
-		   them immediately. */
-		if ((omapi_connection_require
-		     (c, p -> header_size)) != ISC_R_SUCCESS)
+		/*
+		 * Register a need for the number of bytes in a
+		 * header, and if we already have that many, process
+		 * them immediately.
+		 */
+		if ((omapi_connection_require(c, p->header_size))
+		    != ISC_R_SUCCESS)
 			break;
-		/* If we already have the data, fall through. */
+		/*
+		 * If we already have the data, fall through.
+		 */
 
-	      case omapi_protocol_header_wait:
-		status = omapi_message_new ((omapi_object_t **)&p -> message,
-					    "omapi_protocol_signal_handler");
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return status;
+	case omapi_protocol_header_wait:
+		result = omapi_message_new((omapi_object_t **)&p->message,
+					   "omapi_protocol_signal_handler");
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
 
-		/* Swap in the header... */
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> authid);
+		/*
+		 * Swap in the header.
+		 */
+		omapi_connection_get_uint32(c,
+					  (isc_uint32_t *)&p->message->authid);
 
-		/* XXX bind the authenticator here! */
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> authlen);
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> op);
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> handle);
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> id);
-		omapi_connection_get_uint32
-			(c, (u_int32_t *)&p -> message -> rid);
+		/* XXXTL bind the authenticator here! */
+		omapi_connection_get_uint32(c,
+					 (isc_uint32_t *)&p->message->authlen);
+		omapi_connection_get_uint32(c,
+					    (isc_uint32_t *)&p->message->op);
+		omapi_connection_get_uint32(c,
+					  (isc_uint32_t *)&p->message->handle);
+		omapi_connection_get_uint32(c,
+					    (isc_uint32_t *)&p->message->id);
+		omapi_connection_get_uint32(c,
+					    (isc_uint32_t *)&p->message->rid);
 
-		/* If there was any extra header data, skip over it. */
-		if (p -> header_size > sizeof (omapi_protocol_header_t)) {
-			omapi_connection_copyout
-				(0, c, (p -> header_size -
-					sizeof (omapi_protocol_header_t)));
+		/*
+		 * If there was any extra header data, skip over it.
+		 */
+		if (p->header_size > sizeof(omapi_protocol_header_t)) {
+			omapi_connection_copyout(0, c, (p->header_size -
+					     sizeof(omapi_protocol_header_t)));
 		}
 						     
-		/* XXX must compute partial signature across the
-                   XXX preceding bytes.    Also, if authenticator
-		   specifies encryption as well as signing, we may
-		   have to decrypt the data on the way in. */
+		/*
+		 * XXXTL must compute partial signature across the preceding
+		 * bytes.  Also, if authenticator specifies encryption as well
+		 * as signing, we may have to decrypt the data on the way in.
+		 */
 
-		/* First we read in message-specific values, then object
-		   values. */
-		p -> reading_message_values = 1;
+		/*
+		 * First we read in message-specific values, then object
+		 * values.
+		 */
+		p->reading_message_values = 1;
 
-	      need_name_length:
-		/* The next thing we're expecting is length of the
-		   first name. */
-		p -> state = omapi_protocol_name_length_wait;
+	need_name_length:
+		/*
+		 * The next thing we're expecting is length of the
+		 * first name.
+		 */
+		p->state = omapi_protocol_name_length_wait;
 
-		/* Wait for a 16-bit length. */
-		if ((omapi_connection_require (c, 2)) != ISC_R_SUCCESS)
+		/*
+		 * Wait for a 16-bit length.
+		 */
+		if (omapi_connection_require(c, 2) != ISC_R_SUCCESS)
 			break;
-		/* If it's already here, fall through. */
+		/*
+		 * If it's already here, fall through.
+		 */
 
-	      case omapi_protocol_name_length_wait:
-		omapi_connection_get_uint16 (c, &nlen);
-		/* A zero-length name means that we're done reading name+value
-		   pairs. */
+	case omapi_protocol_name_length_wait:
+		result = omapi_connection_get_uint16(c, &nlen);
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
+		}
+
+		/*
+		 * A zero-length name means that we're done reading name+value
+		 * pairs.
+		 */
 		if (nlen == 0) {
-			/* If we've already read in the object, we are
-			   done reading the message, but if we've just
-			   finished reading in the values associated
-			   with the message, we need to read the
-			   object. */
-			if (p -> reading_message_values) {
-				p -> reading_message_values = 0;
+			/*
+			 * If we've already read in the object, we are
+			 * done reading the message, but if we've just
+			 * finished reading in the values associated
+			 * with the message, we need to read the
+			 * object.
+			 */
+			if (p->reading_message_values) {
+				p->reading_message_values = 0;
 				goto need_name_length;
 			}
 
-			/* If the authenticator length is zero, there's no
-			   signature to read in, so go straight to processing
-			   the message. */
-			if (p -> message -> authlen == 0)
+			/*
+			 * If the authenticator length is zero, there's no
+			 * signature to read in, so go straight to processing
+			 * the message.
+			 */
+			if (p->message->authlen == 0)
 				goto message_done;
 
-			/* The next thing we're expecting is the
-                           message signature. */
-			p -> state = omapi_protocol_signature_wait;
+			/*
+			 * The next thing we're expecting is the
+			 * message signature.
+			 */
+			p->state = omapi_protocol_signature_wait;
 
-			/* Wait for the number of bytes specified for
-			   the authenticator.  If we already have it,
-			   go read it in. */
-			if (omapi_connection_require
-			    (c, p -> message -> authlen) == ISC_R_SUCCESS)
+			/*
+			 * Wait for the number of bytes specified for
+			 * the authenticator.  If we already have it,
+			 * go read it in.
+			 */
+			if (omapi_connection_require(c, p->message->authlen)
+			    == ISC_R_SUCCESS)
 				goto signature_wait;
 			break;
 		}
 
-		/* Allocate a buffer for the name. */
-		status = (omapi_data_string_new
-			  (&p -> name, nlen, "omapi_protocol_signal_handler"));
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return ISC_R_NOMEMORY;
+		/*
+		 * Allocate a buffer for the name.
+		 */
+		result = omapi_data_string_new(&p->name, nlen,
+					      "omapi_protocol_signal_handler");
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
-		p -> state = omapi_protocol_name_wait;
-		if (omapi_connection_require (c, nlen) != ISC_R_SUCCESS)
+		p->state = omapi_protocol_name_wait;
+		if (omapi_connection_require(c, nlen) != ISC_R_SUCCESS)
 			break;
-		/* If it's already here, fall through. */
+
+		/*
+		 * If it's already here, fall through.
+		 * */
 					     
-	      case omapi_protocol_name_wait:
-		omapi_connection_copyout (p -> name -> value, c,
-					  p -> name -> len);
-		/* Wait for a 32-bit length. */
-		p -> state = omapi_protocol_value_length_wait;
-		if ((omapi_connection_require (c, 4)) != ISC_R_SUCCESS)
+	case omapi_protocol_name_wait:
+		result = omapi_connection_copyout(p->name->value, c,
+						  p->name->len);
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
+		}
+
+		/*
+		 * Wait for a 32-bit length.
+		 */
+		p->state = omapi_protocol_value_length_wait;
+		if (omapi_connection_require(c, 4) != ISC_R_SUCCESS)
 			break;
-		/* If it's already here, fall through. */
 
-	      case omapi_protocol_value_length_wait:
-		omapi_connection_get_uint32 (c, &vlen);
+		/*
+		 * If it's already here, fall through.
+		 */
 
-		/* Zero-length values are allowed - if we get one, we
-		   don't have to read any data for the value - just
-		   get the next one, if there is a next one. */
-		if (!vlen)
+	case omapi_protocol_value_length_wait:
+		omapi_connection_get_uint32(c, &vlen);
+
+		/*
+		 * Zero-length values are allowed - if we get one, we
+		 * don't have to read any data for the value - just
+		 * get the next one, if there is a next one.
+		 */
+		if (vlen == 0)
 			goto insert_new_value;
 
-		status = (omapi_typed_data_new
-			  (&p -> value, omapi_datatype_data, vlen,
-			   "omapi_protocol_signal_handler"));
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return ISC_R_NOMEMORY;
+		result = omapi_typed_data_new(&p->value,
+					      omapi_datatype_data, vlen,
+					      "omapi_protocol_signal_handler");
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
 
-		p -> state = omapi_protocol_value_wait;
-		if (omapi_connection_require (c, vlen) != ISC_R_SUCCESS)
+		p->state = omapi_protocol_value_wait;
+		if (omapi_connection_require(c, vlen) != ISC_R_SUCCESS)
 			break;
-		/* If it's already here, fall through. */
+		/*
+		 * If it's already here, fall through.
+		 */
 					     
-	      case omapi_protocol_value_wait:
-		omapi_connection_copyout (p -> value -> u.buffer.value, c,
-					  p -> value -> u.buffer.len);
+	case omapi_protocol_value_wait:
+		result = omapi_connection_copyout(p->value->u.buffer.value, c,
+						  p->value->u.buffer.len);
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
+		}
 
-	      insert_new_value:
-		if (p -> reading_message_values) {
-			status = (omapi_set_value
-				  ((omapi_object_t *)p -> message,
-				   p -> message -> id_object,
-				   p -> name, p -> value));
+	insert_new_value:
+		if (p->reading_message_values != 0) {
+			result = omapi_set_value((omapi_object_t *)p->message,
+						 p->message->id_object,
+						 p->name, p->value);
 		} else {
-			if (!p -> message -> object) {
-				/* We need a generic object to hang off of the
-				   incoming message. */
-				status = (omapi_generic_new
-					  (&p -> message -> object,
-					   "omapi_protocol_signal_handler"));
-				if (status != ISC_R_SUCCESS) {
-					omapi_disconnect (c, 1);
-					return status;
+			if (p->message->object == NULL) {
+				/*
+				 * We need a generic object to hang off of the
+				 * incoming message.
+				 */
+				result = omapi_generic_new(&p->message->object,
+					      "omapi_protocol_signal_handler");
+				if (result != ISC_R_SUCCESS) {
+					omapi_disconnect(c,
+						       OMAPI_FORCE_DISCONNECT);
+					return (result);
 				}
 			}
-			status = (omapi_set_value
-				  ((omapi_object_t *)p -> message -> object,
-				   p -> message -> id_object,
-				   p -> name, p -> value));
+			result = (omapi_set_value
+				  ((omapi_object_t *)p->message->object,
+				   p->message->id_object,
+				   p->name, p->value));
 		}
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return status;
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
-		omapi_data_string_dereference
-			(&p -> name, "omapi_protocol_signal_handler");
-		omapi_typed_data_dereference (&p -> value,
+		omapi_data_string_dereference(&p->name,
 					      "omapi_protocol_signal_handler");
+		omapi_typed_data_dereference(&p->value,
+					     "omapi_protocol_signal_handler");
 		goto need_name_length;
 
-	      signature_wait:
-	      case omapi_protocol_signature_wait:
-		status = omapi_typed_data_new (&p -> message -> authenticator,
-					       omapi_datatype_data,
-					       p -> message -> authlen);
+	signature_wait:
+	case omapi_protocol_signature_wait:
+		result = omapi_typed_data_new(&p->message->authenticator,
+					      omapi_datatype_data,
+					      p->message->authlen);
 			
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return ISC_R_NOMEMORY;
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
-		omapi_connection_copyout
-			(p -> message -> authenticator -> u.buffer.value, c,
-			 p -> message -> authlen);
-		/* XXX now do something to verify the signature. */
-
-		/* Process the message. */
-	      message_done:
-		status = omapi_message_process ((omapi_object_t *)p -> message,
-						h);
-		if (status != ISC_R_SUCCESS) {
-			omapi_disconnect (c, 1);
-			return ISC_R_NOMEMORY;
+		result = (omapi_connection_copyout
+			  (p->message->authenticator->u.buffer.value, c,
+			   p->message->authlen));
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
 		}
 
-		/* XXX unbind the authenticator. */
-	      auth_unbind:
-		omapi_object_dereference ((omapi_object_t **)&p -> message,
-					  "omapi_protocol_signal_handler");
+		/* XXXTL now do something to verify the signature. */
 
-		/* Now wait for the next message. */
+		/*
+		 * Process the message.
+		 */
+	message_done:
+		result = omapi_message_process((omapi_object_t *)p->message,
+					       h);
+		if (result != ISC_R_SUCCESS) {
+			omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+			return (result);
+		}
+
+		/* XXXTL unbind the authenticator. */
+		omapi_object_dereference((omapi_object_t **)&p->message,
+					 "omapi_protocol_signal_handler");
+
+		/*
+		 * Now wait for the next message.
+		 */
 		goto to_header_wait;		
 
-	      default:
-		/* XXX should never get here.   Assertion? */
+	default:
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "unknown state in "
+				 "omapi_protocol_signal_handler: %d\n",
+				 p->state);
+
 		break;
 	}
-	return ISC_R_SUCCESS;
+
+	return (ISC_R_SUCCESS);
 }
 
-isc_result_t omapi_protocol_set_value (omapi_object_t *h,
-				       omapi_object_t *id,
-				       omapi_data_string_t *name,
-				       omapi_typed_data_t *value)
+isc_result_t
+omapi_protocol_set_value(omapi_object_t *h, omapi_object_t *id,
+			 omapi_data_string_t *name, omapi_typed_data_t *value)
 {
-	if (h -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
-	if (h -> inner && h -> inner -> type -> set_value)
-		return (*(h -> inner -> type -> set_value))
-			(h -> inner, id, name, value);
-	return ISC_R_NOTFOUND;
+	if (h->inner != NULL && h->inner->type->set_value != NULL)
+		return (*(h->inner->type->set_value))(h->inner, id,
+						      name, value);
+	return (ISC_R_NOTFOUND);
 }
 
-isc_result_t omapi_protocol_get_value (omapi_object_t *h,
-				       omapi_object_t *id,
-				       omapi_data_string_t *name,
-				       omapi_value_t **value)
+isc_result_t
+omapi_protocol_get_value(omapi_object_t *h, omapi_object_t *id,
+			 omapi_data_string_t *name,
+			 omapi_value_t **value)
 {
-	if (h -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 	
-	if (h -> inner && h -> inner -> type -> get_value)
-		return (*(h -> inner -> type -> get_value))
-			(h -> inner, id, name, value);
-	return ISC_R_NOTFOUND;
+	if (h->inner != NULL && h->inner->type->get_value != NULL)
+		return (*(h->inner->type->get_value))(h->inner, id,
+						      name, value);
+	return (ISC_R_NOTFOUND);
 }
 
-isc_result_t omapi_protocol_destroy (omapi_object_t *h, const char *name)
-{
+void
+omapi_protocol_destroy(omapi_object_t *h, const char *name) {
 	omapi_protocol_object_t *p;
-	if (h -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
+
 	p = (omapi_protocol_object_t *)h;
-	if (p -> message)
-		omapi_object_dereference ((omapi_object_t **)&p -> message,
-					  name);
-	if (p -> authinfo)
-		return omapi_object_dereference (&p -> authinfo, name);
-	return ISC_R_SUCCESS;
+
+	if (p->message != NULL)
+		omapi_object_dereference((omapi_object_t **)&p->message, name);
+
+	if (p->authinfo != NULL)
+		omapi_object_dereference(&p->authinfo, name);
 }
 
-/* Write all the published values associated with the object through the
-   specified connection. */
+/*
+ * Write all the published values associated with the object through the
+ * specified connection.
+ */
 
-isc_result_t omapi_protocol_stuff_values (omapi_object_t *c,
-					  omapi_object_t *id,
-					  omapi_object_t *p)
+isc_result_t
+omapi_protocol_stuff_values(omapi_object_t *c, omapi_object_t *id,
+			    omapi_object_t *h)
 {
-	int i;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol);
 
-	if (p -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
-
-	if (p -> inner && p -> inner -> type -> stuff_values)
-		return (*(p -> inner -> type -> stuff_values)) (c, id,
-								p -> inner);
-	return ISC_R_SUCCESS;
+	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
+		return (*(h->inner->type->stuff_values))(c, id, h->inner);
+	return (ISC_R_SUCCESS);
 }
 
-/* Set up a listener for the omapi protocol.    The handle stored points to
-   a listener object, not a protocol object. */
+/*
+ * Set up a listener for the omapi protocol.    The handle stored points to
+ * a listener object, not a protocol object.
+ */
 
-isc_result_t omapi_protocol_listen (omapi_object_t *h,
-				    int port,
-				    int max)
-{
-	isc_result_t status;
+isc_result_t
+omapi_protocol_listen(omapi_object_t *h, int port, int max) {
+	isc_result_t result;
 	omapi_protocol_listener_object_t *obj;
 
-	obj = (omapi_protocol_listener_object_t *)malloc (sizeof *obj);
-	if (!obj)
-		return ISC_R_NOMEMORY;
-	memset (obj, 0, sizeof *obj);
-	obj -> refcnt = 1;
-	obj -> type = omapi_type_protocol_listener;
+	obj = (omapi_protocol_listener_object_t *)malloc(sizeof(*obj));
+	if (obj == NULL)
+		return (ISC_R_NOMEMORY);
+	memset(obj, 0, sizeof(*obj));
+	obj->refcnt = 1;
+	obj->type = omapi_type_protocol_listener;
 
-	status = omapi_object_reference (&h -> outer, (omapi_object_t *)obj,
-					 "omapi_protocol_listen");
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_listen");
-		return status;
-	}
-	status = omapi_object_reference (&obj -> inner, h,
-					 "omapi_protocol_listen");
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_listen");
-		return status;
-	}
+	omapi_object_reference(&h->outer, (omapi_object_t *)obj,
+					"omapi_protocol_listen");
+	omapi_object_reference(&obj->inner, h, "omapi_protocol_listen");
 
-	status = omapi_listen ((omapi_object_t *)obj, port, max);
-	omapi_object_dereference ((omapi_object_t **)&obj,
-				  "omapi_protocol_listen");
-	return status;
+	result = omapi_listen((omapi_object_t *)obj, port, max);
+
+	omapi_object_dereference((omapi_object_t **)&obj,
+				 "omapi_protocol_listen");
+	return (result);
 }
 
-/* Signal handler for protocol listener - if we get a connect signal,
-   create a new protocol connection, otherwise pass the signal down. */
+/*
+ * Signal handler for protocol listener - if we get a connect signal,
+ * create a new protocol connection, otherwise pass the signal down.
+ */
 
-isc_result_t omapi_protocol_listener_signal (omapi_object_t *o,
-					     const char *name, va_list ap)
+isc_result_t
+omapi_protocol_listener_signal(omapi_object_t *h, const char *name, va_list ap)
 {
-	isc_result_t status;
+	isc_result_t result;
 	omapi_object_t *c;
 	omapi_protocol_object_t *obj;
 	omapi_protocol_listener_object_t *p;
 
-	if (!o || o -> type != omapi_type_protocol_listener)
-		return ISC_R_INVALIDARG;
-	p = (omapi_protocol_listener_object_t *)o;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
 
-	/* Not a signal we recognize? */
-	if (strcmp (name, "connect")) {
-		if (p -> inner && p -> inner -> type -> signal_handler)
-			return (*(p -> inner -> type -> signal_handler))
-				(p -> inner, name, ap);
-		return ISC_R_NOTFOUND;
+	p = (omapi_protocol_listener_object_t *)h;
+
+	/*
+	 * Not a signal we recognize?
+	 */
+	if (strcmp(name, "connect") != 0) {
+		if (p->inner != NULL && p->inner->type->signal_handler != NULL)
+			return (*(p->inner->type->signal_handler))(p->inner,
+								   name, ap);
+		return (ISC_R_NOTFOUND);
 	}
 
-	c = va_arg (ap, omapi_object_t *);
-	if (!c || c -> type != omapi_type_connection)
-		return ISC_R_INVALIDARG;
+	c = va_arg(ap, omapi_object_t *);
 
-	obj = (omapi_protocol_object_t *)malloc (sizeof *obj);
-	if (!obj)
-		return ISC_R_NOMEMORY;
-	memset (obj, 0, sizeof *obj);
-	obj -> refcnt = 1;
-	obj -> type = omapi_type_protocol;
+	INSIST(c != NULL && c->type == omapi_type_connection);
 
-	status = omapi_object_reference (&obj -> outer, c,
-					 "omapi_protocol_accept");
-	if (status != ISC_R_SUCCESS) {
-	      lose:
-		omapi_object_dereference ((omapi_object_t **)&obj,
-					  "omapi_protocol_accept");
-		omapi_disconnect (c, 1);
-		return status;
-	}
+	obj = (omapi_protocol_object_t *)malloc(sizeof(*obj));
+	if (obj == NULL)
+		return (ISC_R_NOMEMORY);
 
-	status = omapi_object_reference (&c -> inner, (omapi_object_t *)obj,
-					 "omapi_protocol_accept");
-	if (status != ISC_R_SUCCESS)
-		goto lose;
+	memset(obj, 0, sizeof(*obj));
+	obj->refcnt = 1;
+	obj->type = omapi_type_protocol;
 
-	/* Send the introductory message. */
-	status = omapi_protocol_send_intro ((omapi_object_t *)obj,
-					    OMAPI_PROTOCOL_VERSION,
-					    sizeof (omapi_protocol_header_t));
-	if (status != ISC_R_SUCCESS)
-		goto lose;
+	omapi_object_reference(&obj->outer, c, "omapi_protocol_accept");
+	omapi_object_reference(&c->inner, (omapi_object_t *)obj,
+			       "omapi_protocol_accept");
 
-	omapi_object_dereference ((omapi_object_t **)&obj,
-				  "omapi_protocol_accept");
-	return status;
+	/*
+	 * Send the introductory message.
+	 */
+	result = omapi_protocol_send_intro((omapi_object_t *)obj,
+					   OMAPI_PROTOCOL_VERSION,
+					   sizeof(omapi_protocol_header_t));
+
+	if (result != ISC_R_SUCCESS)
+		omapi_disconnect(c, OMAPI_FORCE_DISCONNECT);
+
+	omapi_object_dereference((omapi_object_t **)&obj,
+				 "omapi_protocol_accept");
+	return (result);
 }
 
-isc_result_t omapi_protocol_listener_set_value (omapi_object_t *h,
-						omapi_object_t *id,
-						omapi_data_string_t *name,
-						omapi_typed_data_t *value)
+isc_result_t
+omapi_protocol_listener_set_value(omapi_object_t *h, omapi_object_t *id,
+				  omapi_data_string_t *name,
+				  omapi_typed_data_t *value)
 {
-	if (h -> type != omapi_type_protocol_listener)
-		return ISC_R_INVALIDARG;
-	
-	if (h -> inner && h -> inner -> type -> set_value)
-		return (*(h -> inner -> type -> set_value))
-			(h -> inner, id, name, value);
-	return ISC_R_NOTFOUND;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
+
+	if (h->inner != NULL && h->inner->type->set_value != NULL)
+		return (*(h->inner->type->set_value))(h->inner, id,
+						      name, value);
+	return (ISC_R_NOTFOUND);
 }
 
-isc_result_t omapi_protocol_listener_get_value (omapi_object_t *h,
-						omapi_object_t *id,
-						omapi_data_string_t *name,
-						omapi_value_t **value)
+isc_result_t
+omapi_protocol_listener_get_value(omapi_object_t *h, omapi_object_t *id,
+				  omapi_data_string_t *name,
+				  omapi_value_t **value)
 {
-	if (h -> type != omapi_type_protocol_listener)
-		return ISC_R_INVALIDARG;
-	
-	if (h -> inner && h -> inner -> type -> get_value)
-		return (*(h -> inner -> type -> get_value))
-			(h -> inner, id, name, value);
-	return ISC_R_NOTFOUND;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
+
+	if (h->inner != NULL && h->inner->type->get_value != NULL)
+		return (*(h->inner->type->get_value))(h->inner, id,
+						      name, value);
+	return (ISC_R_NOTFOUND);
 }
 
-isc_result_t omapi_protocol_listener_destroy (omapi_object_t *h,
-					      const char *name)
-{
-	if (h -> type != omapi_type_protocol_listener)
-		return ISC_R_INVALIDARG;
-	return ISC_R_SUCCESS;
+void
+omapi_protocol_listener_destroy(omapi_object_t *h, const char *name) {
+	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
+
+	(void)name;		/* Unused. */
 }
 
-/* Write all the published values associated with the object through the
-   specified connection. */
+/*
+ * Write all the published values associated with the object through the
+ * specified connection.
+ */
 
-isc_result_t omapi_protocol_listener_stuff (omapi_object_t *c,
-					    omapi_object_t *id,
-					    omapi_object_t *p)
+isc_result_t
+omapi_protocol_listener_stuff(omapi_object_t *c, omapi_object_t *id,
+			      omapi_object_t *h)
 {
-	int i;
 
-	if (p -> type != omapi_type_protocol_listener)
-		return ISC_R_INVALIDARG;
+	REQUIRE(h != NULL && h->type == omapi_type_protocol_listener);
 
-	if (p -> inner && p -> inner -> type -> stuff_values)
-		return (*(p -> inner -> type -> stuff_values)) (c, id,
-								p -> inner);
-	return ISC_R_SUCCESS;
+	if (h->inner != NULL && h->inner->type->stuff_values != NULL)
+		return (*(h->inner->type->stuff_values)) (c, id, h->inner);
+	return (ISC_R_SUCCESS);
 }
 
-isc_result_t omapi_protocol_send_status (omapi_object_t *po,
-					 omapi_object_t *id,
-					 isc_result_t waitstatus,
-					 unsigned rid, const char *msg)
+isc_result_t
+omapi_protocol_send_status(omapi_object_t *po, omapi_object_t *id,
+			   isc_result_t waitstatus,
+			   unsigned int rid, const char *msg)
 {
-	isc_result_t status;
-	omapi_object_t *message = (omapi_object_t *)0;
+	isc_result_t result;
+	omapi_object_t *message = NULL;
 
-	if (po -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+	REQUIRE(po != NULL && po->type == omapi_type_protocol);
 
-	status = omapi_message_new (&message, "omapi_protocol_send_status");
-	if (status != ISC_R_SUCCESS)
-		return status;
+	result = omapi_message_new(&message, "omapi_protocol_send_status");
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-	status = omapi_set_int_value (message, (omapi_object_t *)0,
-				      "op", OMAPI_OP_STATUS);
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference (&message,
-					  "omapi_protocol_send_status");
-		return status;
-	}
+	result = omapi_set_int_value(message, NULL, "op", OMAPI_OP_STATUS);
 
-	status = omapi_set_int_value (message, (omapi_object_t *)0,
-				      "rid", (int)rid);
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference (&message,
-					  "omapi_protocol_send_status");
-		return status;
-	}
+	if (result == ISC_R_SUCCESS)
+		result = omapi_set_int_value(message, NULL, "rid", (int)rid);
 
-	status = omapi_set_int_value (message, (omapi_object_t *)0,
-				      "result", (int)waitstatus);
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference (&message,
-					  "omapi_protocol_send_status");
-		return status;
-	}
+	if (result == ISC_R_SUCCESS)
+		result = omapi_set_int_value(message, NULL, "result",
+					     (int)waitstatus);
 
-	/* If a message has been provided, send it. */
-	if (msg) {
-		status = omapi_set_string_value (message, (omapi_object_t *)0,
+	/*
+	 * If a message has been provided, send it.
+	 */
+	if (result == ISC_R_SUCCESS && msg != NULL)
+		result = omapi_set_string_value (message, NULL,
 						 "message", msg);
-		if (status != ISC_R_SUCCESS) {
-			omapi_object_dereference
-				(&message, "omapi_protocol_send_status");
-			return status;
-		}
+
+	if (result != ISC_R_SUCCESS) {
+		omapi_object_dereference(&message,
+					 "omapi_protocol_send_status");
+		return (result);
 	}
 
-	return omapi_protocol_send_message (po,
-					    id, message, (omapi_object_t *)0);
+	return (omapi_protocol_send_message(po, id, message, NULL));
 }
 
-isc_result_t omapi_protocol_send_update (omapi_object_t *po,
-					 omapi_object_t *id,
-					 unsigned rid,
-					 omapi_object_t *object)
+isc_result_t
+omapi_protocol_send_update(omapi_object_t *po, omapi_object_t *id,
+			   unsigned int rid, omapi_object_t *object)
 {
-	isc_result_t status;
-	omapi_object_t *message = (omapi_object_t *)0;
+	isc_result_t result;
+	omapi_object_t *message = NULL;
 
-	if (po -> type != omapi_type_protocol)
-		return ISC_R_INVALIDARG;
+	REQUIRE(po != NULL && po->type == omapi_type_protocol);
 
-	status = omapi_message_new (&message, "omapi_protocol_send_update");
-	if (status != ISC_R_SUCCESS)
-		return status;
+	result = omapi_message_new(&message, "omapi_protocol_send_update");
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-	status = omapi_set_int_value (message, (omapi_object_t *)0,
-				      "op", OMAPI_OP_UPDATE);
-	if (status != ISC_R_SUCCESS) {
-		omapi_object_dereference (&message,
-					  "omapi_protocol_send_update");
-		return status;
-	}
+	result = omapi_set_int_value (message, NULL, "op", OMAPI_OP_UPDATE);
 
-	if (rid) {
+	if (result == ISC_R_SUCCESS && rid != 0) {
 		omapi_handle_t handle;
-		status = omapi_set_int_value (message, (omapi_object_t *)0,
-					      "rid", (int)rid);
-		if (status != ISC_R_SUCCESS) {
-			omapi_object_dereference
-				(&message, "omapi_protocol_send_update");
-			return status;
-		}
 
-		status = omapi_object_handle (&handle, object);
-		if (status != ISC_R_SUCCESS) {
-			omapi_object_dereference
-				(&message, "omapi_protocol_send_update");
-			return status;
-		}
-		status = omapi_set_int_value (message, (omapi_object_t *)0,
-					      "handle", (int)handle);
-		if (status != ISC_R_SUCCESS) {
-			omapi_object_dereference
-				(&message, "omapi_protocol_send_update");
-			return status;
-		}
+		result = omapi_set_int_value(message, NULL, "rid", (int)rid);
+
+		if (result == ISC_R_SUCCESS)
+			result = omapi_object_handle(&handle, object);
+
+		if (result == ISC_R_SUCCESS)
+			result = omapi_set_int_value(message, NULL,
+						     "handle", (int)handle);
 	}		
 		
-	status = omapi_set_object_value (message, (omapi_object_t *)0,
-					 "object", object);
-	if (status != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS)
+		result = omapi_set_object_value(message, NULL,
+						"object", object);
+
+	if (result != ISC_R_SUCCESS) {
 		omapi_object_dereference (&message, "dhcpctl_open_object");
-		return status;
+		return (result);
 	}
 
-	return omapi_protocol_send_message (po,
-					    id, message, (omapi_object_t *)0);
+	return (omapi_protocol_send_message(po, id, message, NULL));
 }
