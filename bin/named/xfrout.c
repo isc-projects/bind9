@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.12 1999/10/08 18:37:24 bwelling Exp $ */
+ /* $Id: xfrout.c,v 1.13 1999/10/14 00:06:11 gson Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,8 @@
 #include <dns/rdatasetiter.h>
 #include <dns/db.h>
 #include <dns/dbiterator.h>
-#include <dns/dbtable.h>
+#include <dns/zone.h>
+#include <dns/zt.h>
 #include <dns/message.h>
 #include <dns/journal.h>
 #include <dns/view.h>
@@ -297,13 +298,12 @@ static rrstream_methods_t ixfr_rrstream_methods;
  * may return.
  */
 
-/* XXX ultimately, this should have a "zone" argument */
-
 static dns_result_t
 ixfr_rrstream_create(isc_mem_t *mctx,
-		      isc_uint32_t begin_serial,
-		      isc_uint32_t end_serial,
-		      rrstream_t **sp)
+		     const char *journal_filename,
+		     isc_uint32_t begin_serial,
+		     isc_uint32_t end_serial,
+		     rrstream_t **sp)
 {
 	ixfr_rrstream_t *s;
 	dns_result_t result;
@@ -317,7 +317,7 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	s->common.methods = &ixfr_rrstream_methods;
 	s->journal = NULL;
 	
-	CHECK(dns_journal_open(mctx, "journal" /* XXX */,
+	CHECK(dns_journal_open(mctx, journal_filename,
 			       ISC_FALSE, &s->journal));
 	CHECK(dns_journal_iter_init(s->journal, begin_serial, end_serial));
 
@@ -389,7 +389,6 @@ typedef struct axfr_rrstream {
 static void axfr_rrstream_destroy(rrstream_t **rsp);
 static rrstream_methods_t axfr_rrstream_methods;
 
-/* XXX ultimately, this should have a "zone" argument */
 static dns_result_t
 axfr_rrstream_create(isc_mem_t *mctx,
 		      dns_db_t *db,
@@ -741,6 +740,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	dns_result_t result;
 	dns_name_t *question_name;
 	dns_rdataset_t *question_rdataset;
+	dns_zone_t *zone = NULL;
 	dns_db_t *db = NULL;
 	dns_dbversion_t *ver = NULL;
 	dns_rdataclass_t question_class;
@@ -794,12 +794,19 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		FAILMSG(DNS_R_FORMERR,
 			"multiple questions in AXFR/IXFR request");
 
-	/* Master and slave zones are both OK here. */
-	result = dns_dbtable_find(client->view->dbtable, question_name, &db);
+	result = dns_zt_find(client->view->zonetable, question_name, NULL, &zone);
 	if (result != DNS_R_SUCCESS)
 		FAILMSG(DNS_R_NOTAUTH,
 			"AXFR/IXFR requested for non-authoritative zone");
-
+	switch(dns_zone_gettype(zone)) {
+	case dns_zone_master:
+	case dns_zone_slave:
+		break;	/* Master and slave zones are OK for transfer. */
+	default:
+		FAILMSG(DNS_R_NOTAUTH,
+			"AXFR/IXFR requested for non-authoritative zone"); 
+	}
+	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);
 
 	printf("%s question checked out OK\n", mnemonic);
@@ -884,6 +891,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 			goto have_stream;
 		}
 		result = ixfr_rrstream_create(mctx,
+					      dns_zone_getdatabase(zone),
 					      begin_serial,
 					      current_serial,
 					      &data_stream);
