@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.26 2001/01/09 21:59:34 bwelling Exp $ */
+/* $Id: lwresutil.c,v 1.27 2001/02/05 20:48:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -199,6 +199,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	/*
 	 * Set up our request and render it to a buffer.
 	 */
+	request.flags = 0;
 	request.addrtypes = addrtypes;
 	request.name = target_name;
 	request.namelen = target_length;
@@ -307,6 +308,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	/*
 	 * Set up our request and render it to a buffer.
 	 */
+	request.flags = 0;
 	request.addr.family = addrtype;
 	request.addr.length = addrlen;
 	memcpy(request.addr.address, addr, addrlen);
