@@ -381,6 +381,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 		}
 
+		if (c == '\n') {
+			source->line++;
+		}
+		
 		if (lex->comment_ok && !no_comments) {
 			if (!escaped && c == ';' &&
 			    ((lex->comments & ISC_LEXCOMMENT_DNSMASTERFILE)
@@ -434,7 +438,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					tokenp->type = isc_tokentype_eol;
 					done = ISC_TRUE;
 				}
-				source->line++;
 				lex->last_was_eol = ISC_TRUE;
 			} else if (c == '\r') {
 				if ((options & ISC_LEXOPT_EOL) != 0)
@@ -493,7 +496,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					INSIST(source->char_count < 2);
 					source->chars[source->char_count++] =
 						c;
-					ulong = strtoul(lex->data, &e, 10);
+					ulong = strtoul(lex->data, &e, 0);
 					if (*e == 0) {
 						tokenp->type =
 							isc_tokentype_number;
@@ -513,8 +516,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					}
 					done = ISC_TRUE;
 					continue;
-				} else
+				} else if (!(options & ISC_LEXOPT_CNUMBER) ||
+					   ((c != 'x' && c != 'X') ||
+					   (curr != &lex->data[1]) ||
+					   (lex->data[0] != '0'))) {
+					/* Above test supports hex numbers */
 					state = lexstate_string;
+				}
 			}
 			if (remaining > 0) {
 				*curr++ = c;
