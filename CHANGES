@@ -1,3 +1,6 @@
+1290.	[func]		"dig axfr" now reports the number of messages
+			as well as the number of records.
+
 1285.	[func]		lwres: probe the system to see what address families
 			are currently in use.
 

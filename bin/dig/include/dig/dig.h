@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.6 2003/07/25 04:36:44 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.6.2.1 2003/08/15 02:00:33 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -156,6 +156,7 @@ struct dig_query {
 		warn_id;
 	isc_uint32_t first_rr_serial;
 	isc_uint32_t second_rr_serial;
+	isc_uint32_t msg_count;
 	isc_uint32_t rr_count;
 	char *servname;
 	isc_bufferlist_t sendlist,
