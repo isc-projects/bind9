@@ -92,4 +92,8 @@ case "$1" in
 		esac
 	done
 	;;
+
+	*)
+		echo "Usage: $0 {start|stop}"
+		exit 1
 esac
