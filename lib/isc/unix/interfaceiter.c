@@ -59,7 +59,12 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		       &((struct sockaddr_in *) src)->sin_addr,
 		       sizeof(struct in_addr));
 		break;
-	/* XXX IPv6 */
+	case	AF_INET6:
+		memcpy(&dst->type.in6,
+		       &((struct sockaddr_in6 *) src)->sin6_addr,
+		       sizeof(struct in6_addr));
+		break;
+		break;
 	default:
 		INSIST(0);
 		break;
