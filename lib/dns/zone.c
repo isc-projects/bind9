@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.54 1999/12/31 00:20:47 marka Exp $ */
+ /* $Id: zone.c,v 1.55 2000/01/06 23:33:20 halley Exp $ */
 
 #include <config.h>
 
@@ -2198,20 +2198,18 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	default:
 		break;
 	}
-	zone_log(zone, me, ISC_LOG_INFO, "settimer %d %d = %d seconds",
-		 next, now, next - now);
 
 	if (next == 0) {
+		zone_log(zone, me, ISC_LOG_INFO, "settimer inactive");
 		iresult = isc_timer_reset(zone->timer, isc_timertype_inactive,
 					  NULL, NULL, ISC_TRUE);
 	} else {
-		isc_time_settoepoch(&expires);
-
 		if (next <= now)
-			isc_interval_set(&interval, 0, 1);
-		else 
-			isc_interval_set(&interval, next - now, 0);
-
+			next = now + 1;
+		zone_log(zone, me, ISC_LOG_INFO, "settimer %d %d = %d seconds",
+			 next, now, next - now);
+		isc_time_settoepoch(&expires);
+		isc_interval_set(&interval, next - now, 0);
 		iresult = isc_timer_reset(zone->timer, isc_timertype_once,
 					  &expires, &interval, ISC_TRUE);
 	}
