@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.h,v 1.8 2000/09/06 02:40:00 explorer Exp $ */
+/* $Id: random.h,v 1.9 2000/09/06 16:25:35 gson Exp $ */
 
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
@@ -27,8 +27,8 @@
  * Implements a random state pool which will let the caller return a
  * series of possibly non-reproducable random values.  Note that the
  * strength of these numbers is not all that high, and should not be
- * used in cryptography functions.  It is useful to jitter values a bit
- * here and there, such as timeouts, etc.
+ * used in cryptography functions.  It is useful for jittering values
+ * a bit here and there, such as timeouts, etc.
  */
 
 ISC_LANG_BEGINDECLS
