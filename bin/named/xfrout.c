@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101 2001/08/08 22:54:22 gson Exp $ */
+/* $Id: xfrout.c,v 1.102 2001/08/30 23:51:45 marka Exp $ */
 
 #include <config.h>
 
@@ -82,6 +82,20 @@
 			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
 			   "bad zone transfer request: %s (%s)", \
 		      	   msg, isc_result_totext(code));	\
+		if (result != ISC_R_SUCCESS) goto failure;	\
+	} while (0)
+
+#define FAILQ(code, msg, question, rdclass) \
+	do {							\
+		char _buf1[DNS_NAME_FORMATSIZE];		\
+		char _buf2[DNS_RDATACLASS_FORMATSIZE]; 		\
+		result = (code);				\
+		dns_name_format(question, _buf1, sizeof(_buf1));  \
+		dns_rdataclass_format(rdclass, _buf2, sizeof(_buf2)); \
+		ns_client_log(client, DNS_LOGCATEGORY_XFER_OUT, \
+			   NS_LOGMODULE_XFER_OUT, ISC_LOG_INFO, \
+			   "bad zone transfer request: '%s/%s' %s (%s)", \
+		      	   _buf1, _buf2, msg, isc_result_totext(code));	\
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
@@ -926,13 +940,15 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
 			     &zone);
 	if (result != ISC_R_SUCCESS)
-		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
+		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+		      question_name, question_class);
 	switch(dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 		break;	/* Master and slave zones are OK for transfer. */
 	default:
-		FAILC(DNS_R_NOTAUTH, "non-authoritative zone");
+		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+		      question_name, question_class);
 	}
 	CHECK(dns_zone_getdb(zone, &db));
 	dns_db_currentversion(db, &ver);

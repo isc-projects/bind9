@@ -1,3 +1,7 @@
+ 973.	[bug]		Failed to log the question name when logging:
+			"bad zone transfer request: non-authoritative zone
+			(NOTAUTH)".
+
  972.	[bug]		The file modification time code in zone.c was using the
 			wrong epoch.  [RT #1667]
 
