@@ -476,7 +476,7 @@ isc_result_t dns_zone_callback(dns_c_ctx_t *ctx, dns_c_zone_t *zone, void *uap);
  */
 
 void
-dns_zone_setxfrtime(dns_zone_t *zone, u_int32_t xfrtime);
+dns_zone_setxfrtime(dns_zone_t *zone, isc_uint32_t xfrtime);
 /*
  * Set the maximum time (in seconds) that a zone transfer (AXFR/IXFR)
  * in of this zone will use before being aborted.
@@ -486,7 +486,7 @@ dns_zone_setxfrtime(dns_zone_t *zone, u_int32_t xfrtime);
  *	'xfrtime' to be non zero.
  */
 
-u_int32_t dns_zone_getxfrtime(dns_zone_t *zone);
+isc_uint32_t dns_zone_getxfrtime(dns_zone_t *zone);
 /*
  * Returns the maximum transfer time for this zone.  This will be
  * either the value set by the last call to dns_zone_setxfrtime() or

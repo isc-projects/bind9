@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.4 1999/09/08 01:09:48 halley Exp $ */
+ /* $Id: zone.c,v 1.5 1999/09/09 23:25:51 marka Exp $ */
 
 #include <config.h>
 
@@ -139,7 +139,7 @@ struct dns_zone {
 	dns_fetch_t		*fetch;
 	dns_resolver_t		*res;
 	isc_socketmgr_t		*socketmgr;
-	u_int32_t		xfrtime;
+	isc_uint32_t		xfrtime;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -2648,13 +2648,13 @@ dns_zone_setresolver(dns_zone_t *zone, dns_resolver_t *resolver) {
 }
 
 void
-dns_zone_setxfrtime(dns_zone_t *zone, u_int32_t xfrtime) {
+dns_zone_setxfrtime(dns_zone_t *zone, isc_uint32_t xfrtime) {
 	REQUIRE(VALID_ZONE(zone));
 	REQUIRE(xfrtime != 0);
 	zone->xfrtime = xfrtime;
 }
 
-u_int32_t
+isc_uint32_t
 dns_zone_getxfrtime(dns_zone_t *zone) {
 	REQUIRE(VALID_ZONE(zone));
 
