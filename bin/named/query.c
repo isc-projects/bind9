@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.234 2002/08/27 04:53:38 marka Exp $ */
+/* $Id: query.c,v 1.235 2002/09/06 03:47:56 marka Exp $ */
 
 #include <config.h>
 
@@ -2136,6 +2136,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	dns_dbnode_t *node;
 	unsigned int options;
 	unsigned int odepth, ndepth, i;
+	isc_boolean_t done;
 	isc_result_t result;
 
 	CTRACE("query_addwildcardproof");
@@ -2177,8 +2178,9 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 
 	odepth = dns_name_depth(dns_db_origin(db));
 	ndepth = dns_name_depth(name);
+	done = ISC_FALSE;
 
-	for (i = ndepth - 1; i >= odepth; i--) {
+	for (i = ndepth - 1; i >= odepth && !done; i--) {
 		/*
 		 * We'll need some resources...
 		 */
@@ -2212,9 +2214,13 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		 */
 		if (result == ISC_R_SUCCESS && ispositive)
 			break;
-		if (result == DNS_R_NXDOMAIN)
+		if (result == DNS_R_NXDOMAIN) {
+			if (!ispositive &&
+			    dns_name_issubdomain(name, fname))
+				done = ISC_TRUE;
 			query_addrrset(client, &fname, &rdataset, &sigrdataset,
 				       dbuf, DNS_SECTION_AUTHORITY);
+		}
 		if (rdataset != NULL)
 			query_putrdataset(client, &rdataset);
 		if (sigrdataset != NULL)
