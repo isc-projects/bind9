@@ -5,8 +5,8 @@
 
 
 INTERNET-DRAFT                                            David Conrad
-draft-ietf-dnsext-dnssec-okbit-02.txt                     Nominum Inc.
-                                                             May, 2001
+draft-ietf-dnsext-dnssec-okbit-03.txt                    Nominum, Inc.
+                                                         October, 2001
 
                  Indicating Resolver Support of DNSSEC
 
@@ -38,8 +38,8 @@ Abstract
    only perform automatic inclusion of DNSSEC RRs when there is an
    explicit indication that the resolver can understand those RRs. This
    document proposes the use of a bit in the EDNS0 header to provide
-   that explicit indication and the necessary protocol changes to
-   implement that notification.
+   that explicit indication and describes the necessary protocol changes
+   to implement that notification.
 
 1. Introduction
 
@@ -55,9 +55,9 @@ Abstract
 
 
 
-Expires October, 2001                                           [Page 1]
+Expires April, 2002                                             [Page 1]
 
-draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
+draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
 
    This document discusses a method to avoid these negative impacts,
@@ -111,16 +111,16 @@ draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
 
 
 
-Expires October, 2001                                           [Page 2]
+Expires April, 2002                                             [Page 2]
 
-draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
+draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
 
    non-compliant caching or forwarding servers inappropriately copy data
    from classic headers as queries are passed on to authoritative
    servers, the use of a bit from the EDNS0 header is proposed.
 
-   An alternative approach would be to use the existance of an EDNS0
+   An alternative approach would be to use the existence of an EDNS0
    header as an implicit indication of client-side support of DNSSEC.
    This approach was not chosen as there may be applications in which
    EDNS0 is supported but in which the use of DNSSEC is inappropriate.
@@ -132,8 +132,8 @@ draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
    the most significant bit of the Z field on the EDNS0 OPT header in
    the query.  This bit is referred to as the "DNSSEC OK" (DO) bit.  In
    the context of the EDNS0 OPT meta-RR, the DO bit is the first bit of
-   the the third and fourth bytes of the "extended RCODE and flags"
-   portion of the EDNS0 OPT meta-RR, structured as follows:
+   the third and fourth bytes of the "extended RCODE and flags" portion
+   of the EDNS0 OPT meta-RR, structured as follows:
 
                 +0 (MSB)                +1 (LSB)
          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -146,7 +146,8 @@ draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
    resolver is able to accept DNSSEC security RRs.  The DO bit cleared
    (set to zero) indicates the resolver is unprepared to handle DNSSEC
    security RRs and those RRs MUST NOT be returned in the response
-   (unless DNSSEC security RRs are explicitly queried for).
+   (unless DNSSEC security RRs are explicitly queried for).  The DO bit
+   of the query MUST be copied in the response.
 
    More explicitly, DNSSEC-aware nameservers MUST NOT insert SIG, KEY,
    or NXT RRs to authenticate a response as specified in [RFC2535]
@@ -163,16 +164,16 @@ draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
    data MUST NOT be modified.
 
    In the event a server returns a NOTIMP, FORMERR or SERVFAIL response
-   to a query that has the DO bit set, the resolver SHOULD NOT expect
 
 
 
-Expires October, 2001                                           [Page 3]
+Expires April, 2002                                             [Page 3]
 
-draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
+draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
 
-   DNSSEC security RRs and SHOULD retry the query without the EDNS0 in
+   to a query that has the DO bit set, the resolver SHOULD NOT expect
+   DNSSEC security RRs and SHOULD retry the query without EDNS0 in
    accordance with section 5.3 of [RFC2671].
 
 Security Considerations
@@ -184,8 +185,8 @@ Security Considerations
 
 IANA considerations:
 
-   EDNS0[RFC2761] defines 16 bits as extened flags in the OPT record,
-   these bits are encoded into the TTL field of the OPT record (RFC2761
+   EDNS0[RFC2671] defines 16 bits as extended flags in the OPT record,
+   these bits are encoded into the TTL field of the OPT record (RFC2671
    section 4.6).
 
    This document reserves one of these bits as the OK bit. It is
@@ -219,15 +220,15 @@ References
    [RFC2535] Eastlake, D., "Domain Name System Security Extensions", RFC
    2535, March 1999.
 
-   [RFC2671] Vixie, P., Extension Mechanisms for DNS (EDNS0)", RFC 2671,
 
 
 
-Expires October, 2001                                           [Page 4]
+Expires April, 2002                                             [Page 4]
 
-draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
+draft-ietf-dnsext-dnssec-okbit-03.txt                      October, 2001
 
 
+   [RFC2671] Vixie, P., Extension Mechanisms for DNS (EDNS0)", RFC 2671,
    August 1999
 
 Author's Address
@@ -238,7 +239,7 @@ Author's Address
    Redwood City, CA 94063
    USA
 
-   Phone: +1 650 779 6003
+   Phone: +1 650 381 6003
 
    Email: david.conrad@nominum.com
 
@@ -249,7 +250,7 @@ Full Copyright Statement
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
-   or assist in its implmentation may be prepared, copied, published and
+   or assist in its implementation may be prepared, copied, published and
    distributed, in whole or in part, without restriction of any kind,
    provided that the above copyright notice and this paragraph are
    included on all such copies and derivative works.  However, this
@@ -278,6 +279,5 @@ Full Copyright Statement
 
 
 
-
-Expires October, 2001                                           [Page 5]
+Expires April, 2002                                             [Page 5]
 
