@@ -1,3 +1,6 @@
+1045.	[bug]		It was possible to skip saving glue for a nameserver
+			for a stub zone.
+
 1044.	[bug]		Specifying allow-transfer, notify-source, or
 			notify-source-v6 in a stub zone was not treated
 			as an error.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.2 2001/09/05 00:38:01 gson Exp $ */
+/* $Id: zone.c,v 1.333.2.3 2001/10/11 17:20:40 gson Exp $ */
 
 #include <config.h>
 
@@ -2816,10 +2816,8 @@ save_nsrrset(dns_message_t *message, dns_name_t *name,
 		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		dns_rdata_reset(&rdata);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		if (!dns_name_issubdomain(&ns.name, name)) {
-			result = dns_rdataset_next(nsrdataset);
+		if (!dns_name_issubdomain(&ns.name, name))
 			continue;
-		}
 		rdataset = NULL;
 		result = dns_message_findname(message, DNS_SECTION_ADDITIONAL,
 					      &ns.name, dns_rdatatype_a6,
