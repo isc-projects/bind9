@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.21 2000/06/23 21:22:20 tale Exp $
+# $Id: Makefile.in,v 1.22 2000/06/26 18:14:04 explorer Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -37,8 +37,6 @@ distclean::
 	rm -f config.cache config.h config.log config.status TAGS
 	rm -f libtool isc-config.sh
 	rm -f util/conf.sh
-
-cleandir: distclean
 
 install:: isc-config.sh
 	${INSTALL_PROGRAM} isc-config.sh ${DESTDIR}${bindir}

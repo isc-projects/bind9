@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: rules.in,v 1.19 2000/06/22 22:00:30 tale Exp $
+# $Id: rules.in,v 1.20 2000/06/26 18:14:05 explorer Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -118,6 +118,8 @@ SHELL = @SHELL@
 LIBTOOL = @LIBTOOL@
 
 MKDEP = ${SHELL} ${top_builddir}/make/mkdep
+
+cleandir: distclean
 
 clean distclean::
 	rm -f *.@O@ *.lo *.la core *.core
