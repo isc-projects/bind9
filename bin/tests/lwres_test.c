@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_test.c,v 1.25.2.1 2004/03/09 06:09:32 marka Exp $ */
+/* $Id: lwres_test.c,v 1.25.2.2 2005/03/16 23:24:30 marka Exp $ */
 
 #include <config.h>
 
@@ -47,7 +47,7 @@ hexdump(const char *msg, void *base, size_t len) {
 	p = base;
 	cnt = 0;
 
-	printf("*** %s (%u bytes @ %p)\n", msg, len, base);
+	printf("*** %s (%lu bytes @ %p)\n", msg, (unsigned long)len, base);
 
 	while (cnt < len) {
 		if (cnt % 16 == 0)

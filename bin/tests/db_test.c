@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.56.2.1 2004/03/09 06:09:30 marka Exp $ */
+/* $Id: db_test.c,v 1.56.2.2 2005/03/16 23:24:30 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -76,8 +76,8 @@ print_result(const char *message, isc_result_t result) {
 		message = "";
 	}
 	len = strlen(message);
-	printf("%s%sresult %08x: %s\n", message, (len == 0) ? "" : " ", result,
-	       isc_result_totext(result));
+	printf("%s%sresult %08x: %s\n", message, (len == 0U) ? "" : " ",
+	       result, isc_result_totext(result));
 }
 
 static void
@@ -477,7 +477,7 @@ main(int argc, char *argv[]) {
 			continue;
 		}
 		len = strlen(s);
-		if (len > 0 && s[len - 1] == '\n') {
+		if (len > 0U && s[len - 1] == '\n') {
 			s[len - 1] = '\0';
 			len--;
 		}

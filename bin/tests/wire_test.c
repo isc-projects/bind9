@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wire_test.c,v 1.60.2.1 2004/03/09 06:09:35 marka Exp $ */
+/* $Id: wire_test.c,v 1.60.2.2 2005/03/16 23:24:31 marka Exp $ */
 
 #include <config.h>
 
@@ -139,10 +139,10 @@ main(int argc, char *argv[]) {
 			}
 			rp++;
 		}
-		if (len == 0)
+		if (len == 0U)
 			break;
-		if (len % 2 != 0) {
-			printf("bad input format: %d\n", len);
+		if (len % 2 != 0U) {
+			printf("bad input format: %lu\n", (unsigned long)len);
 			exit(1);
 		}
 		if (len > (sizeof b) * 2) {
