@@ -168,6 +168,11 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	b_out.base = NULL;
 	b_out.length = 0;
 
+	if (pkt.result != LWRES_R_SUCCESS) {
+		ret = pkt.result;
+		goto out;
+	}
+
 	/*
 	 * Parse the response.
 	 */
@@ -269,6 +274,11 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 	CTXFREE(b_out.base, b_out.length);
 	b_out.base = NULL;
 	b_out.length = 0;
+
+	if (pkt.result != LWRES_R_SUCCESS) {
+		ret = pkt.result;
+		goto out;
+	}
 
 	/*
 	 * Parse the response.

@@ -265,6 +265,7 @@ client_send(isc_task_t *task, isc_event_t *ev)
 		lwres_context_freemem(cm->lwctx, client->sendbuf,
 				      client->sendlength);
 	client->sendbuf = NULL;
+	client->sendlength = 0;
 
 	client_state_idle(client);
 

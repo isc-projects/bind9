@@ -67,16 +67,104 @@ cleanup_gabn(client_t *client)
 }
 
 static void
+setup_addresses(client_t *client, dns_adbfind_t *find, unsigned int at)
+{
+	dns_adbaddrinfo_t *ai;
+	lwres_addr_t *addr;
+	int af;
+	const struct sockaddr *sa;
+	const struct sockaddr_in *sin;
+	const struct sockaddr_in6 *sin6;
+
+	if (at == DNS_ADBFIND_INET)
+		af = AF_INET;
+	else
+		af = AF_INET6;
+
+	ai = ISC_LIST_HEAD(find->list);
+	while (ai != NULL && client->gabn.naddrs < LWRES_MAX_ADDRS) {
+		sa = &ai->sockaddr->type.sa;
+		if (sa->sa_family != at)
+			goto next;
+
+		addr = &client->addrs[client->gabn.naddrs];
+		addr->length = ai->sockaddr->length;
+		switch (sa->sa_family) {
+		case AF_INET:
+			sin = &ai->sockaddr->type.sin;
+			addr->family = LWRES_ADDRTYPE_V4;
+			addr->address = (unsigned char *)&sin->sin_addr;
+			break;
+		case AF_INET6:
+			addr->family = LWRES_ADDRTYPE_V6;
+			sin6 = &ai->sockaddr->type.sin6;
+			addr->address = (unsigned char *)&sin6->sin6_addr;
+			break;
+		}
+
+		client->gabn.naddrs++;
+
+	next:
+		ai = ISC_LIST_NEXT(ai, publink);
+	}
+}
+
+static void
 generate_reply(client_t *client)
 {
-	DP(50, "Generating gabn reply for client %p");
+	isc_result_t result;
+	int lwres;
+	isc_region_t r;
+	lwres_buffer_t b;
+	clientmgr_t *cm;
+
+	cm = client->clientmgr;
+
+	DP(50, "Generating gabn reply for client %p", client);
 
 	/*
 	 * Run through the finds we have and wire them up to the gabn
 	 * structure.
 	 */
+	if (client->v4find != NULL)
+		setup_addresses(client, client->v4find, DNS_ADBFIND_INET);
+	if (client->v6find != NULL)
+		setup_addresses(client, client->v6find, DNS_ADBFIND_INET6);
 
- go_idle:
+	/*
+	 * Render the packet.
+	 */
+	client->pkt.length = LWRES_LWPACKET_LENGTH;
+	client->pkt.flags |= LWRES_LWPACKETFLAG_RESPONSE;
+	client->pkt.recvlength = LWRES_RECVLENGTH;
+	client->pkt.authtype = 0; /* XXXMLG */
+	client->pkt.authlength = 0;
+	client->pkt.result = LWRES_R_SUCCESS;
+
+	lwres_buffer_init(&b, client->buffer, LWRES_RECVLENGTH);
+	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
+					  &client->pkt, &b);
+	if (lwres != LWRES_R_SUCCESS)
+		goto out;
+
+	r.base = b.base;
+	r.length = b.used;
+	client->sendbuf = r.base;
+	client->sendlength = r.length;
+	result = isc_socket_sendto(cm->sock, &r, cm->task, client_send, client,
+				   &client->address, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
+	CLIENT_SETSEND(client);
+
+	/*
+	 * All done!
+	 */
+	cleanup_gabn(client);
+	return;
+
+ out:
 	cleanup_gabn(client);
 	error_pkt_send(client, LWRES_R_FAILURE);
 }
@@ -114,6 +202,31 @@ add_alias(client_t *client)
 		client->gabn.aliaslen[naliases] = client->gabn.realnamelen;
 		client->gabn.naliases++;
 	}
+
+	/*
+	 * Save this name away as the current real name.
+	 */
+	client->gabn.realname = b.base + b.used;
+	client->gabn.realnamelen = client->recv_buffer.used - b.used;
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+store_realname(client_t *client)
+{
+	isc_buffer_t b;
+	isc_result_t result;
+
+	b = client->recv_buffer;
+
+	/*
+	 * Render the new name to the buffer.
+	 */
+	result = dns_name_totext(dns_fixedname_name(&client->target_name),
+				 ISC_TRUE, &client->recv_buffer);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	/*
 	 * Save this name away as the current real name.
@@ -222,6 +335,7 @@ start_find(client_t *client)
 	 * Did we get an error?
 	 */
 	if (result != ISC_R_SUCCESS && result != DNS_R_ALIAS) {
+		cleanup_gabn(client);
 		error_pkt_send(client, LWRES_R_FAILURE);
 		return;
 	}
@@ -328,11 +442,6 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 	client->find_wanted = req->addrtypes;
 
 	/*
-	 * Start the find.
-	 */
-	start_find(client);
-
-	/*
 	 * We no longer need to keep this around.
 	 */
 	lwres_gabnrequest_free(client->clientmgr->lwctx, &req);
@@ -343,11 +452,14 @@ process_gabn(client_t *client, lwres_buffer_t *b)
 	 */
 	client_init_gabn(client);
 
+	result = store_realname(client);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
 	/*
-	 * Do we have all the bits we need to generate a reply?
+	 * Start the find.
 	 */
-	if (client->find == NULL) { /* XXXMLG */
-	}
+	start_find(client);
 
 	return;
 
