@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.11 2000/05/08 16:12:26 tale Exp $ */
+/* $Id: a_1.c,v 1.12 2000/05/19 13:27:45 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -180,9 +180,6 @@ freestruct_hs_a(void *source)
 	UNUSED(source);
 
 	REQUIRE(source != NULL);
-	REQUIRE(ISC_FALSE);	/*XXX*/
-
-
 }
 
 static inline isc_result_t
