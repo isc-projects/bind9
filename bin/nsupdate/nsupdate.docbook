@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.3 2001/04/10 21:50:48 bwelling Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.4 2001/04/13 00:48:57 bwelling Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -484,7 +484,7 @@ base-64 encoding of HMAC-MD5 key created by
 <refentrytitle>RFC2136</refentrytitle>
 </citerefentry>,
 <citerefentry>
-<refentrytitle>RFC2137</refentrytitle>
+<refentrytitle>RFC3007</refentrytitle>
 </citerefentry>,
 <citerefentry>
 <refentrytitle>RFC2104</refentrytitle>
