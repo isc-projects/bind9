@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.9 1999/10/29 13:56:55 bwelling Exp $
+ * $Id: tkey.c,v 1.10 1999/11/02 00:46:36 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -71,7 +71,7 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	isc_result_t result;
 	char *s;
 	int n;
-	isc_buffer_t b, *namebuf;
+	isc_buffer_t b, *namebuf = NULL;
 
 	RUNTIME_CHECK(tkey_domain == NULL);
 	RUNTIME_CHECK(tkey_dhkey == NULL);
@@ -85,7 +85,7 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	s = NULL;
 	result = dns_c_ctx_gettkeydhkey(lctx, cfg, &s, &n);
 	if (result == ISC_R_NOTFOUND)
-		return ISC_R_SUCCESS;
+		return (ISC_R_SUCCESS);
 	RETERR(dst_key_fromfile(s, n, DNS_KEYALG_DH, DST_TYPE_PRIVATE,
 				mctx, &tkey_dhkey));
 	s = NULL;
@@ -96,7 +96,6 @@ dns_tkey_init(isc_log_t *lctx, dns_c_ctx_t *cfg, isc_mem_t *mctx) {
 	dns_name_init(tkey_domain, NULL);
 	isc_buffer_init(&b, s, strlen(s), ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&b, strlen(s));
-	namebuf = NULL;
 	RETERR(isc_buffer_allocate(mctx, &namebuf, 1024,
 				   ISC_BUFFERTYPE_BINARY));
 	RETERR(dns_name_fromtext(tkey_domain, &b, dns_rootname, ISC_FALSE,
