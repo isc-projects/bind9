@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.18 1999/02/01 07:59:43 marka Exp $ */
+ /* $Id: rdata.c,v 1.19 1999/02/01 21:34:51 marka Exp $ */
 
 #include <config.h>
 
@@ -85,6 +85,8 @@ static const char octdigits[] = "01234567";
 #define METATYPES \
 	{ 0, "NONE", META }, \
 	{ 23, "NSAP-PTR", RESERVED }, \
+	{ 31, "EID", RESERVED }, \
+	{ 32, "NIMLOC", RESERVED }, \
 	{ 100, "UINFO", RESERVED }, \
 	{ 101, "UID", RESERVED }, \
 	{ 102, "GID", RESERVED }, \
