@@ -1,3 +1,6 @@
+   8.   [bug]		Shutdown of incoming zone transfer accessed
+			freed memory.
+
    7.   [cleanup]	removed 'listen-on' from view statement.
 
    6.   [bug]		quote RR names when generating config file to 
