@@ -1,3 +1,6 @@
+1271.	[port]		win32: a make file contained absolute version specific
+			references.
+
 1178.	[bug]		Follow and cache (if appropriate) A6 and other
 			data chains to completion in the additional section.
 
