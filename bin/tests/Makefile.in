@@ -51,77 +51,82 @@ TARGETS =	res_test \
 		db_test \
 		compress_test \
 		mempool_test \
-		dispatch_test
+		dispatch_test \
+		dispatch_tcp_test
 
 @BIND9_MAKE_RULES@
 
 res_test: res_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 lex_test: lex_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ lex_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 name_test: name_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ name_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sock_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 sym_test: sym_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sym_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 task_test: task_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ task_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 shutdown_test: shutdown_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ shutdown_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 timer_test: timer_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ timer_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 rbt_test: rbt_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rbt_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 rdata_test: rdata_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rdata_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 rwlock_test: rwlock_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ rwlock_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 wire_test: wire_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ wire_test.o printmsg.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 master_test: master_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ master_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 db_test: db_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ db_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 compress_test: compress_test.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ compress_test.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 mempool_test: mempool_test.o ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ mempool_test.o \
-	${ISCLIBS} ${LIBS}
+		${ISCLIBS} ${LIBS}
 
 dispatch_test: dispatch_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_test.o printmsg.o \
-	${DNSLIBS} ${ISCLIBS} ${LIBS}
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+dispatch_tcp_test: dispatch_tcp_test.o printmsg.o ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ dispatch_tcp_test.o printmsg.o \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}
