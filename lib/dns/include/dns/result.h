@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.81.2.7.2.7 2004/02/27 21:45:25 marka Exp $ */
+/* $Id: result.h,v 1.81.2.7.2.8 2004/03/02 02:36:54 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -137,8 +137,9 @@
 #define DNS_R_FROMWILDCARD		(ISC_RESULTCLASS_DNS + 95)
 #define DNS_R_BADOWNERNAME		(ISC_RESULTCLASS_DNS + 96)
 #define DNS_R_BADNAME			(ISC_RESULTCLASS_DNS + 97)
+#define DNS_R_DYNAMIC			(ISC_RESULTCLASS_DNS + 98)
 
-#define DNS_R_NRESULTS			98	/* Number of results */
+#define DNS_R_NRESULTS			99	/* Number of results */
 
 /*
  * DNS wire format rcodes.

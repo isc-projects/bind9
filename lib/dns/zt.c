@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.33.12.2 2003/09/11 00:18:08 marka Exp $ */
+/* $Id: zt.c,v 1.33.12.3 2004/03/02 02:36:54 marka Exp $ */
 
 #include <config.h>
 
@@ -259,7 +259,8 @@ loadnew(dns_zone_t *zone, void *uap) {
 	isc_result_t result;
 	UNUSED(uap);
 	result = dns_zone_loadnew(zone);
-	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE)
+	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE ||
+	    result == DNS_R_DYNAMIC)
 		result = ISC_R_SUCCESS;
 	return (result);
 }
