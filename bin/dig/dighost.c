@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.23 2004/09/16 02:19:37 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.24 2004/09/16 05:00:38 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1068,6 +1068,13 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 		name = NULL;
 		dns_message_currentname(msg, section, &name);
 
+		if (section == DNS_SECTION_AUTHORITY) {
+			rdataset = NULL;
+			result = dns_message_findtype(name, dns_rdatatype_soa,
+						      0, &rdataset);
+			if (result == ISC_R_SUCCESS)
+				return (0);
+		}
 		rdataset = NULL;
 		result = dns_message_findtype(name, dns_rdatatype_ns, 0,
 					      &rdataset);

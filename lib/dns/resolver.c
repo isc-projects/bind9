@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.34 2004/07/03 00:56:55 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.35 2004/09/16 05:00:39 marka Exp $ */
 
 #include <config.h>
 
@@ -3577,6 +3577,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
+			/*
+			 * Look for NS/SOA RRset first.
+			 */
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -3603,17 +3606,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 					rdataset->trust = dns_trust_glue;
 					ns_rdataset = rdataset;
 				}
-			}
-			for (rdataset = ISC_LIST_HEAD(name->list);
-			     rdataset != NULL;
-			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-				type = rdataset->type;
-				if (type == dns_rdatatype_sig)
-					type = rdataset->covers;
-				if (type == dns_rdatatype_soa ||
-					   type == dns_rdatatype_nxt) {
+				if (type == dns_rdatatype_soa) {
 					/*
-					 * SOA, SIG SOA, NXT, or SIG NXT.
+					 * SOA or SIG SOA.
 					 *
 					 * Only one SOA is allowed.
 					 */
@@ -3624,29 +3619,55 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname) {
 							return (DNS_R_FORMERR);
 						soa_name = name;
 					}
-					if (ns_name == NULL) {
-						negative_response = ISC_TRUE;
-						name->attributes |=
-							DNS_NAMEATTR_NCACHE;
-						rdataset->attributes |=
-							DNS_RDATASETATTR_NCACHE;
-					} else {
-						name->attributes |=
-							DNS_NAMEATTR_CACHE;
-						rdataset->attributes |=
-							DNS_RDATASETATTR_CACHE;
-					}
+					name->attributes |=
+						DNS_NAMEATTR_NCACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_NCACHE;
 					if (aa)
 						rdataset->trust =
 						    dns_trust_authauthority;
 					else
 						rdataset->trust =
 							dns_trust_additional;
-					/*
-					 * No additional data needs to be
-					 * marked.
-					 */
 				}
+			}
+			/*
+			 * A negative response has a SOA record (Type 2) 
+			 * and a optional NS RRset (Type 1) or it has neither
+			 * a SOA or a NS RRset (Type 3) or rcode is NXDOMAIN
+			 * (handled above) in which case the NS RRset is
+			 * allowed (Type 4).
+			 */
+			if (soa_name != NULL || ns_name == NULL)
+				negative_response = ISC_TRUE;
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
+				if (type != dns_rdatatype_nxt)
+					continue;
+				/*
+				 * NXT or SIG NXT.
+				 */
+
+				if (negative_response) {
+					name->attributes |=
+						DNS_NAMEATTR_NCACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_NCACHE;
+				} else {
+					name->attributes |=
+						DNS_NAMEATTR_CACHE;
+					rdataset->attributes |=
+						DNS_RDATASETATTR_CACHE;
+				}
+				if (aa)
+					rdataset->trust =
+					    dns_trust_authauthority;
+				else
+					rdataset->trust = dns_trust_additional;
 			}
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);

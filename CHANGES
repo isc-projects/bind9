@@ -4,6 +4,16 @@
 1721.	[bug]		Error message from the journal processing were not
 			always identifing the relevent journal. [RT #12519]
 
+1720.	[bug]		'dig +chase' did not terminate on a RFC 2308 Type 1
+			negative response. [RT #12506]
+
+1719.	[bug]		named was not correctly caching a RFC 2308 Type 1
+			negative response. [RT #12506]
+
+1718.	[bug]		nsupdate was not handling RFC 2308 Type 3 negative
+			responses when looking for the zone / master server.
+			[RT #12506]
+
 1717.	[port]		solaris: ifconfig.sh did not support Solaris 10.
 			"ifconfig.sh down" didn't work for Solaris 9.
 
