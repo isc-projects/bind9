@@ -1,3 +1,5 @@
+#include <dns/rootns.h>
+
 /*
  * Copyright (C) 1999  Internet Software Consortium.
  * 

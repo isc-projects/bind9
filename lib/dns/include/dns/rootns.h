@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999,2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,9 +18,8 @@
 #ifndef NS_ROOTNS_H
 #define NS_ROOTNS_H 1
 
-#include <isc/types.h>
-#include <dns/db.h>
+#include <dns/types.h>
 
-isc_result_t ns_rootns_create(isc_mem_t *mctx, dns_db_t **target);
+isc_result_t dns_rootns_create(isc_mem_t *mctx, dns_db_t **target);
 
 #endif /* NS_ROOTNS_H */

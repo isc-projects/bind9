@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999  Internet Software Consortium.
+ * Copyright (C) 1999,2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -26,8 +26,7 @@
 #include <dns/types.h>
 #include <dns/db.h>
 #include <dns/master.h>
-
-#include <named/rootns.h>
+#include <dns/rootns.h>
 
 static char root_ns[] =
 ";\n"
@@ -64,7 +63,7 @@ static char root_ns[] =
 "G.ROOT-SERVERS.NET.     3600000 IN      A       192.112.36.4\n";
 
 isc_result_t
-ns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
+dns_rootns_create(isc_mem_t *mctx, dns_db_t **target) {
 	isc_result_t result, eresult;
 	isc_buffer_t source;
 	size_t len;

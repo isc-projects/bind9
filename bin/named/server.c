@@ -46,6 +46,7 @@
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/result.h>
+#include <dns/rootns.h>
 #include <dns/tkey.h>
 #include <dns/tsig.h>
 #include <dns/types.h>
@@ -58,7 +59,6 @@
 #include <named/interfacemgr.h>
 #include <named/listenlist.h>
 #include <named/log.h>
-#include <named/rootns.h>
 #include <named/server.h>
 #include <named/types.h>
 
@@ -715,7 +715,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
 	server->roothints = NULL;
 		
-	CHECKFATAL(ns_rootns_create(mctx, &server->roothints),
+	CHECKFATAL(dns_rootns_create(mctx, &server->roothints),
 		   "setting up root hints");
 	
 	/*
