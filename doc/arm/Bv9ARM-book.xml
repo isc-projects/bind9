@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.8 2001/02/01 21:55:34 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.9 2001/02/06 16:51:24 gson Exp $ -->
 
 <book>
 
@@ -3228,8 +3228,8 @@ connections that the server will accept. The default is <literal>100</literal>.<
 </row>
 </tbody>
 </tgroup></informaltable>
-        <note>
-<para>Resource limits are not yet implemented in <acronym>BIND</acronym> 9.</para></note></sect3>
+</sect3>
+
 <sect3><title>Periodic Task Intervals</title>
 <informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
     colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
