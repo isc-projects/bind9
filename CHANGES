@@ -1,3 +1,6 @@
+ 799.	[bug]		The ADB didn't find AAAA glue in a zone unless A6
+			glue was also present.
+
  798.	[bug]		nsupdate should be able to reject bad input lines
 			and continue. [RT #1130]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.171 2001/02/28 20:51:22 gson Exp $ */
+/* $Id: adb.c,v 1.172 2001/03/30 17:27:29 halley Exp $ */
 
 /*
  * Implementation notes
@@ -2578,22 +2578,10 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 
 		/*
 		 * If the name doesn't exist at all, jump to the fetch
-		 * code.
-		 *
-		 * If the name exists but the A6 doesn't, try starting
-		 * an aaaa database search.
-		 *
-		 * If neither of these are true, say we want an A6 fetch
-		 * and perhaps we'll get lucky.
+		 * code.  Otherwise, we'll try AAAA.
 		 */
 		if (NXDOMAIN_RESULT(result))
 			goto fetch;
-		else if (NXRRSET_RESULT(result))
-			goto aaaa;
-		else {
-			wanted_fetches |= DNS_ADBFIND_INET6;
-			goto fetch;
-		}
 
 	    aaaa:
 		result = dbfind_name(adbname, now, dns_rdatatype_aaaa);
