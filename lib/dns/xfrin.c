@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.30 1999/12/02 22:33:15 gson Exp $ */
+ /* $Id: xfrin.c,v 1.31 1999/12/06 18:00:31 gson Exp $ */
 
 #include <config.h>
 
@@ -883,13 +883,14 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	tcpmsg = ev->sender;
 	isc_event_free(&ev);
 	
-	xfrin_log(xfr, ISC_LOG_DEBUG(7), "received %u bytes",
-		  tcpmsg->buffer.used);
 	xfr->recvs--;
 	if (maybe_free(xfr))
 		return;
 
 	CHECK(tcpmsg->result);
+
+	xfrin_log(xfr, ISC_LOG_DEBUG(7), "received %u bytes",
+		  tcpmsg->buffer.used);
 
 	/*
 	 * If we wanted to do idle timeouts, this would be the place
