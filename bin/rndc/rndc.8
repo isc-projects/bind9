@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.8,v 1.5 2000/07/12 13:49:07 jim Exp $
+.\" $Id: rndc.8,v 1.6 2000/07/12 16:48:19 gson Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC 8
@@ -45,8 +45,8 @@ prints a short summary of the supported commands and the available
 options and their arguments.
 .Pp
 .Nm rndc
-uses a secure channel with digital signatures to communicate 
-with the name server.
+communicates with the name server over a TCP connection, 
+sending commands authenticated with digital signatures. 
 In the current versions of
 .Nm rndc
 and 
@@ -63,11 +63,9 @@ reads its default configuration file,
 .Pa /etc/rndc.conf
 to determine how to contact the name server and decide what algorithm
 and keys is should use.
-.Ar config-file
-is the pathname for an alternate configuration file which can be supplied
-with the
+The
 .Fl c
-option.
+option can be used to specify an alternate configuration file.
 .Pp
 .Ar server
 is the name or address of the server which matches a
@@ -84,7 +82,7 @@ statement of the configuration file will be used.
 .Pp
 The
 .Fl p
-option is used to make
+option can be used to make
 .Nm rndc
 send commands to TCP port number
 .Ar port#
@@ -158,7 +156,7 @@ For example, trying to connect
 from an address that is not in the list of acceptable addresses
 configured into
 .Xr named
-will result in the error message "end of file" when the server just
+will result in the error message "end of file" when the server
 unceremoniously closes the connection.
 .Sh SEE ALSO
 .Xr rndc.conf 5 ,
