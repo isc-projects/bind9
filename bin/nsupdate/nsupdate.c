@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.107 2001/10/04 23:29:41 gson Exp $ */
+/* $Id: nsupdate.c,v 1.108 2001/10/15 20:23:47 bwelling Exp $ */
 
 #include <config.h>
 
@@ -658,7 +658,8 @@ parse_args(int argc, char **argv) {
 			fprintf(stderr, "%s: invalid argument -%c\n",
 				argv[0], ch);
 			fprintf(stderr, "usage: nsupdate [-d] "
-				"[-y keyname:secret | -k keyfile] [-v]\n");
+				"[-y keyname:secret | -k keyfile] [-v] "
+				"[filename]\n");
 			exit(1);
 		}
 	}
