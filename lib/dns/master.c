@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.36 2000/01/22 01:41:17 gson Exp $ */
+ /* $Id: master.c,v 1.37 2000/02/02 00:36:34 gson Exp $ */
 
 #include <config.h>
 
@@ -60,7 +60,7 @@
 
 /*
  * Target buffer size and minimum target size.
- * MINTSIZ must be big enougth to hold the largest rdata record.
+ * MINTSIZ must be big enough to hold the largest rdata record.
  * 
  * TSIZ >= MINTSIZ
  */
@@ -665,7 +665,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 
 		/*
 		 * Find type in rdatalist.
-		 * If it does not exit create new one and prepend to list
+		 * If it does not exist create new one and prepend to list
 		 * as this will mimimise list traversal.
 		 */
 		if (in_glue)

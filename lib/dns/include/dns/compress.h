@@ -173,7 +173,7 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  *		'workspace' to be initalised.
  *
  *	Ensures:
- *		'prefix', 'suffix' and 'offset' are valid is ISC_TRUE is
+ *		'prefix', 'suffix' and 'offset' are valid if ISC_TRUE is
  *		returned.
  *
  *	Returns:
@@ -195,7 +195,7 @@ dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
  *		'name' to be a absolute name.
  *		'prefix' to be initalised.
  *		'suffix' to be initalised.
- *		'offset' to point it a isc_uint16_t.
+ *		'offset' to point to a isc_uint16_t.
  *		'workspace' to be initalised.
  *
  *	Ensures:
