@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.43 2000/08/22 22:07:13 bwelling Exp $ */
+/* $Id: soa_6.c,v 1.44 2000/08/24 21:41:43 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -74,13 +74,12 @@ totext_soa(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 	int i;
 	isc_boolean_t multiline;
+	isc_boolean_t comment;
 
 	REQUIRE(rdata->type == 6);
 
-	multiline = ISC_TF((tctx->flags & (DNS_STYLEFLAG_MULTILINE |
-					   DNS_STYLEFLAG_COMMENT)) ==
-					  (DNS_STYLEFLAG_MULTILINE |
-					   DNS_STYLEFLAG_COMMENT));
+	multiline = ISC_TF((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
+	comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
 
 	dns_name_init(&mname, NULL);
 	dns_name_init(&rname, NULL);
@@ -115,7 +114,7 @@ totext_soa(ARGS_TOTEXT) {
 		numlen = sprintf(buf, "%lu", num);
 		INSIST(numlen > 0 && numlen < sizeof "2147483647");
 		RETERR(str_totext(buf, target));
-		if (multiline) {
+		if (multiline && comment) {
 			RETERR(str_totext("           ; " + numlen, target));
 			RETERR(str_totext(soa_fieldnames[i], target));
 			/* Print times in week/day/hour/minute/second form */
@@ -126,12 +125,12 @@ totext_soa(ARGS_TOTEXT) {
 			}
 			RETERR(str_totext(tctx->linebreak, target));
 		} else if (i < 4) {
-			RETERR(str_totext(" ", target));
+			RETERR(str_totext(tctx->linebreak, target));			
 		}
 	}
 
 	if (multiline)
-		RETERR(str_totext(" )", target));
+		RETERR(str_totext(")", target));
 
 	return (ISC_R_SUCCESS);
 }

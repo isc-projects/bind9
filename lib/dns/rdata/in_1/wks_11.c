@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.34 2000/08/01 01:26:36 tale Exp $ */
+/* $Id: wks_11.c,v 1.35 2000/08/24 21:41:44 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -156,7 +156,6 @@ totext_in_wks(ARGS_TOTEXT) {
 	RETERR(str_totext(" ", target));
 	RETERR(str_totext(buf, target));
 	isc_region_consume(&sr, 1);
-	RETERR(str_totext(" (", target));
 
 	for (i = 0 ; i < sr.length ; i++) {
 		if (sr.base[i] != 0)
@@ -168,7 +167,6 @@ totext_in_wks(ARGS_TOTEXT) {
 				}
 	}
 
-	RETERR(str_totext(" )", target));
 	return (ISC_R_SUCCESS);
 }
 

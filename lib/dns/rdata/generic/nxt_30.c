@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.38 2000/08/01 01:25:46 tale Exp $ */
+/* $Id: nxt_30.c,v 1.39 2000/08/24 21:41:42 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -102,13 +102,12 @@ totext_nxt(ARGS_TOTEXT) {
 	sub = name_prefix(&name, tctx->origin, &prefix);
 	RETERR(dns_name_totext(&prefix, sub, target));
 
-	RETERR(str_totext(" ( ", target));
-
 	for (i = 0 ; i < sr.length ; i++) {
 		if (sr.base[i] != 0)
 			for (j = 0; j < 8; j++)
 				if ((sr.base[i] & (0x80 >> j)) != 0) {
 					dns_rdatatype_t t = i * 8 + j;
+					RETERR(str_totext(" ", target));
 					if (dns_rdatatype_isknown(t)) {
 						RETERR(dns_rdatatype_totext(t,
 								      target));
@@ -118,10 +117,9 @@ totext_nxt(ARGS_TOTEXT) {
 						RETERR(str_totext(buf,
 								  target));
 					}
-					RETERR(str_totext(" ", target));
 				}
 	}
-	return (str_totext(")", target));
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
