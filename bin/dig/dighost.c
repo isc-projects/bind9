@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.139 2000/09/30 00:06:08 gson Exp $ */
+/* $Id: dighost.c,v 1.140 2000/10/02 16:43:25 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -75,7 +75,8 @@ isc_boolean_t
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
 	have_domain = ISC_FALSE,
-	is_blocking =ISC_FALSE;
+	is_blocking =ISC_FALSE,
+	show_packets = ISC_TRUE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -2093,6 +2094,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(!free_now);
 
+	if (show_packets)
+		puts(";; begin of DNS packet");
 	debug("recv_done()");
 
 	LOCK_LOOKUP;

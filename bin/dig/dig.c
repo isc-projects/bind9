@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.108 2000/10/02 16:16:50 mws Exp $ */
+/* $Id: dig.c,v 1.109 2000/10/02 16:43:24 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -78,7 +78,7 @@ dig_lookup_t *default_lookup = NULL;
 extern isc_uint32_t name_limit;
 extern isc_uint32_t rr_limit;
 
-extern isc_boolean_t debugging;
+extern isc_boolean_t debugging, show_packets;
 char *batchname = NULL;
 FILE *batchfp = NULL;
 char *argv0;
@@ -882,6 +882,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (ISC_FALSE);
 	case 'n':
 		nibble = ISC_TRUE;
+		return (ISC_FALSE);
+	case 'p': 
+		show_packets = ISC_TRUE;
 		return (ISC_FALSE);
 	}
 	if (value == NULL)
