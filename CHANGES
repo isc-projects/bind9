@@ -1,3 +1,5 @@
+ 438.	[func]		New function dns_message_getrawmessage().
+
  437.	[func]		Log NOTIFY activity to the notify channel.
 
  436.	[bug]		If recvmsg() returned EHOSTUNREACH or ENETUNREACH,

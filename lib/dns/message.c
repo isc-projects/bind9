@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.144 2000/09/09 10:46:58 bwelling Exp $ */
+/* $Id: message.c,v 1.145 2000/09/11 05:55:23 marka Exp $ */
 
 /***
  *** Imports
@@ -1488,21 +1488,19 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		}
 	}
 
-	if (msg->tsig != NULL || msg->tsigkey != NULL || msg->sig0 != NULL) {
-		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
-		if (msg->saved == NULL)
-			return (ISC_R_NOMEMORY);
-		isc_buffer_usedregion(&origsource, &r);
-		msg->saved->length = r.length;
-		msg->saved->base = isc_mem_get(msg->mctx, msg->saved->length);
-		if (msg->saved->base == NULL) {
-			isc_mem_put(msg->mctx, msg->saved,
-				    sizeof(isc_region_t));
-			msg->saved = NULL;
-			return (ISC_R_NOMEMORY);
-		}
-		memcpy(msg->saved->base, r.base, msg->saved->length);
+	msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
+	if (msg->saved == NULL)
+		return (ISC_R_NOMEMORY);
+	isc_buffer_usedregion(&origsource, &r);
+	msg->saved->length = r.length;
+	msg->saved->base = isc_mem_get(msg->mctx, msg->saved->length);
+	if (msg->saved->base == NULL) {
+		isc_mem_put(msg->mctx, msg->saved,
+			    sizeof(isc_region_t));
+		msg->saved = NULL;
+		return (ISC_R_NOMEMORY);
 	}
+	memcpy(msg->saved->base, r.base, msg->saved->length);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2893,4 +2891,10 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 		return (result);
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_region_t *
+dns_message_getrawmessage(dns_message_t *msg) {
+	REQUIRE(DNS_MESSAGE_VALID(msg));
+	return (msg->saved);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.75 2000/08/01 01:24:21 tale Exp $ */
+/* $Id: message.h,v 1.76 2000/09/11 05:55:27 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -211,6 +211,7 @@ struct dns_message {
 	dns_rcode_t			sig0status;
 	isc_region_t		       *query;
 	isc_region_t		       *saved;
+	isc_buffer_t		       *rawmessge;
 };
 
 /***
@@ -1153,6 +1154,9 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  *	DNS_R_UNEXPECTEDTSIG	- A TSIG was seen but not expected
  *	DNS_R_TSIGVERIFYFAILURE - The TSIG failed to verify
  */
+
+isc_region_t *
+dns_message_getrawmessage(dns_message_t *msg);
 
 ISC_LANG_ENDDECLS
 
