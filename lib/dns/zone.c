@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.247 2000/11/07 23:49:28 mws Exp $ */
+/* $Id: zone.c,v 1.248 2000/11/09 02:35:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1008,12 +1008,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					 "no database file");
 			else
 				zone_log(zone, me, ISC_LOG_ERROR,
-					 "database %s: dns_db_load failed: %s",
+					 "loading master file %s: %s",
 					 zone->dbname,
 					 dns_result_totext(result));
 		} else
 			zone_log(zone, me, ISC_LOG_ERROR,
-				 "database %s: dns_db_load failed: %s",
+				 "loading master file %s: %s",
 				 zone->dbname, dns_result_totext(result));
 		goto cleanup;
 	}
