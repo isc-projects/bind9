@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.176 2001/01/23 01:50:25 bwelling Exp $ */
+/* $Id: query.c,v 1.177 2001/01/26 23:40:44 gson Exp $ */
 
 #include <config.h>
 
@@ -3403,6 +3403,7 @@ ns_query_start(ns_client_t *client) {
 	 * Synthesize IPv6 responses if appropriate.
 	 */
 	if (RECURSIONOK(client) &&
+	    (qtype == dns_rdatatype_aaaa || qtype == dns_rdatatype_ptr) &&
 	    client->message->rdclass == dns_rdataclass_in &&
 	    ns_client_checkacl(client, "v6 synthesis",
 			       client->view->v6synthesisacl,
@@ -3413,14 +3414,16 @@ ns_query_start(ns_client_t *client) {
 			ns_client_attach(client, &qclient);
 			synth_fwd_start(qclient);
 			return;
-		} else if (qtype == dns_rdatatype_ptr &&
+		} else {
+			INSIST(qtype == dns_rdatatype_ptr);
 			 /* Must be 32 nibbles + "ip6" + "int" + root */
-			 dns_name_countlabels(client->query.qname) == 32 + 3 &&
-			 dns_name_issubdomain(client->query.qname, &ip6int_name)) {
-			qclient = NULL;
-			ns_client_attach(client, &qclient);
-			synth_rev_start(qclient);
-			return;
+			if (dns_name_countlabels(client->query.qname) == 32 + 3 &&
+			    dns_name_issubdomain(client->query.qname, &ip6int_name)) {
+				qclient = NULL;
+				ns_client_attach(client, &qclient);
+				synth_rev_start(qclient);
+				return;
+			}
 		}
 	}
 
