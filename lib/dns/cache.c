@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.31.2.1 2001/01/09 22:43:25 bwelling Exp $ */
+/* $Id: cache.c,v 1.31.2.2 2001/03/13 23:43:03 gson Exp $ */
 
 #include <config.h>
 
@@ -455,6 +455,14 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 				 "failed: %s", dns_result_totext(result));
 		goto destroyiter;
 	}
+
+	/*
+	 * Pause the iterator to make sure its tree lock is
+	 * released before we return from the current event
+	 * handler.
+	 */
+	result = dns_dbiterator_pause(cleaner->iterator);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 		      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
