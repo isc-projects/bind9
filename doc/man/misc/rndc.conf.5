@@ -13,7 +13,7 @@
 .\" ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 .\" SOFTWARE.
 .\" 
-.\" $Id: rndc.conf.5,v 1.1 2000/06/29 06:14:18 jim Exp $
+.\" $Id: rndc.conf.5,v 1.2 2000/07/11 00:23:38 tale Exp $
 .\" 
 .Dd Jun 30, 2000
 .Dt RDNC.CONF 5
@@ -58,11 +58,8 @@ statement contains two clauses.
 The
 .Dv default-server
 clause
-is followed by the name of a name server.
-This must be identified by a
-.Dv server{}
-statement elsewhere in the file.
-This server will
+is followed by the name or address of a name server.
+This host will
 be used when no name server is given as an argument to
 .Nm rndc .
 The
@@ -71,52 +68,76 @@ clause
 is followed by the name of a key which is identified by a 
 .Dv key{}
 statement.
-If no other suitable key can be found in the file, this default key
-will be used to authenticate commands sent to the name
-server and its responses.
-The key name is enclosed in double quotes.
+If no 
+.Fl k 
+option is provided on the
+.Xr rndc 
+command line, and no
+.Dv key
+clause is found in a a matching
+.Dv server{}
+statement, this default key will be used to authenticate the server's
+commands and responses.
 .Pp
 After the keyword
 .Dv server ,
 the 
 .Dv server{}
-statement is followed by a string which is the hostname for the
+statement is followed by a string which is the hostname or address for a
 name server.
-The statement has a single clause:
+The statement has a single clause,
 .Dv key .
-This contains the name of a key which is enclosed in double quotes.
 The key name must match the name of a
 .Dv key{}
 statement in the file.
 .Pp
 The
 .Dv key{}
-statement begins with an identifying string - the name of the key.
+statement begins with an identifying string, the name of the key.
 The statement has two clauses.
 .Dv algorithm
 identifies the encryption algorithm for
 .Nm rndc
-to use.
-Currently only HMAC-MD5 is supported.
+to use; currently only HMAC-MD5 is supported.
 This is followed by a 
 .Dv secret
 clause which contains the base-64 encoding of the
 algorithm's encryption key.
 The base-64 string is enclosed in double quotes.
+.Pp
+There are two common ways to generate the base-64 string for the
+.Dv secret .
+The BIND 9 program
+.Xr dnssec-keygen 8
+can be used to generate a random key, or the
+.Xr mmencode 1
+program, also known as
+.Xr mimencode 1 ,
+can be used to generate a base-64 string from known input.
+.Xr mmencode
+does not ship with BIND 9 but is available on many systems.
+See the
+.Sx EXAMPLES
+section for sample command lines for each.
+.Pp
+Normally it is not necessary to double quote host or key names, but
+host addresses must always be double quoted and both host and key
+names must be double quoted when they match another keyword, such as
+having a key named "key".
 .Sh EXAMPLE
 .Bd -literal indent
 options {
-        default-server  localhost;
-        default-key     "samplekey";
+    default-server  localhost;
+    default-key     samplekey;
 };
 
 server localhost {
-        key     "samplekey";
+    key     samplekey;
 };
 
-key "samplekey" {
-        algorithm       hmac-md5;
-        secret          "strong enough for a man, but made for a woman";
+key samplekey {
+    algorithm hmac-md5;
+    secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
 };
 .Ed
 .Pp
@@ -135,6 +156,49 @@ uses the HMAC-MD5 algorithm and its
 .Dv secret
 clause contains the base-64 encoding of the HMAC-MD5 secret enclosed
 in double quotes.
+.Pp
+To generate a random secret with
+.Xr dnssec-keygen :
+.Bd -literal indent
+$ dnssec-keygen -a hmac-md5 -b 128 -n user rndc
+.Ed
+.Pp
+The base-64 string will appear in two files, 
+.Pa Krndc.+157.+{random}.key
+and 
+.Pa Krndc.+157.+{random}.private .
+After extracting the key to be
+placed in the
+.Nm rndc.conf
+and
+.Xr named.conf
+.Dv key{}
+statements, the
+.Pa .key
+and
+.Pa .private
+files can be removed.
+.Pp
+To generate a secret from known input with
+.Xr mmenode :
+.Bd -literal indent
+$ echo "known plaintext for a secret" | mmencode
+.Ed
+.Sh LIMITATIONS
+There is currently no way to specify the port for
+.Xr rndc
+to use.  This will be remedied in future releases by allowing a
+.Dv port
+clause to the
+.Dv server{}
+statement and a
+.Dv default-port
+clause to the
+.Dv options{}
+statement.
 .Sh SEE ALSO
 .Xr rndc 8 ,
-"BIND9 Administrators Manual"
+.Xr named.conf 8 ,
+.Xr dnssec-keygen 8 ,
+.Xr mmencode 1 ,
+"BIND9 Administrators Manual".
