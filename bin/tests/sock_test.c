@@ -102,12 +102,12 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	if (strcmp(event->arg, "so2")) {
 		region = dev->region;
 		strcpy(buf, "\r\nReceived: ");
-		strncat(buf, region.base, region.length);
+		strncat(buf, (char *)region.base, region.length);
 		buf[32] = 0;  /* ensure termination */
 		strcat(buf, "\r\n\r\n");
 		region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
-		strcpy(region.base, buf);  /* strcpy is safe */
+		strcpy((char *)region.base, buf);  /* strcpy is safe */
 		isc_socket_send(sock, &region, task, my_send, event->arg);
 	} else {
 		region = dev->region;
@@ -187,7 +187,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	strcpy(buf, "GET / HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
 	region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
 	region.length = strlen(buf) + 1;
-	strcpy(region.base, buf);  /* strcpy is safe */
+	strcpy((char *)region.base, buf);  /* strcpy is safe */
 
 	isc_socket_send(sock, &region, task, my_http_get, event->arg);
 

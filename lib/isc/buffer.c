@@ -27,7 +27,7 @@
 #define BUFFER_MAGIC			0x42756621U	/* Buf!. */
 
 void
-isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length,
+isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 		unsigned int type) {
 	/*
 	 * Make 'b' refer to the 'length'-byte region starting at base.
@@ -105,7 +105,7 @@ isc_buffer_available(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(VALID_BUFFER(b));
 	REQUIRE(r != NULL);
 
-	r->base = b->base + b->used;
+	r->base = (unsigned char *)b->base + b->used;
 	r->length = b->length - b->used;
 }
 

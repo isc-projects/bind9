@@ -110,7 +110,7 @@ typedef struct isc_buffer {
 
 
 void
-isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length,
+isc_buffer_init(isc_buffer_t *b, void *base, unsigned int length,
 		unsigned int type);
 /*
  * Make 'b' refer to the 'length'-byte region starting at base.
