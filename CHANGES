@@ -1,6 +1,10 @@
 
 	--- 9.2.0b1 released ---
 
+ 939.	[port]		Add the --disable-linux-caps option to configure for
+ 			systems that manage capabilities outside of named.
+			[RT #1503]
+
  938.	[placeholder]
 
  937.	[bug]		A race when shutting down a zone could trigger a
