@@ -34,6 +34,6 @@
 
 /* XXX for testing only */
 
-void xfrin_test(dns_dbtable_t *dbtable);
+void xfrin_test(dns_view_t *view);
 
 #endif /* NS_XFRIN_H */
