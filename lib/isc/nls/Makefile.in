@@ -19,8 +19,6 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I../unix/include \
 		-I${srcdir}/../unix/include \
-		-I./include \
-		-I${srcdir}/include \
 		-I../include \
 		-I${srcdir}/../include
 
