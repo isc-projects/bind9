@@ -57,11 +57,17 @@ ISC_LANG_BEGINDECLS
 struct in6_addr {
         union {
 		isc_uint8_t	_S6_u8[16];
+		isc_uint16_t	_S6_u16[8];
 		isc_uint32_t	_S6_u32[4];
+#if 0 /* Is this really part of the standard? */
 		isc_uint64_t	_S6_u64[2];
+#endif
         } _S6_un;
 };
-#define s6_addr _S6_un._S6_u8
+#define s6_addr		_S6_un._S6_u8
+#define s6_addr8	_S6_un._S6_u8
+#define s6_addr16	_S6_un._S6_u16
+#define s6_addr32	_S6_un._S6_u32
 
 #define IN6ADDR_ANY_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}}
 #define IN6ADDR_LOOPBACK_INIT 	{{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1 }}}
