@@ -1,3 +1,4 @@
+ 836.	[func]		Upgraded libtool to 1.4.
 
  835.	[bug]		The dispatcher could enter a busy loop if
 			it got an I/O error receiving on a UDP socket.

@@ -839,7 +839,6 @@
 ./contrib/idn/mdnkit/lib/util.c			X	2000,2001
 ./contrib/idn/mdnkit/lib/zldrule.c		X	2000,2001
 ./contrib/idn/mdnkit/libtool			X	2000,2001
-./contrib/idn/mdnkit/ltconfig			X	2000,2001
 ./contrib/idn/mdnkit/ltmain.sh			X	2000,2001
 ./contrib/idn/mdnkit/man/Makefile.in		X	2000,2001
 ./contrib/idn/mdnkit/man/mdnres.conf.5.in	X	2000,2001
