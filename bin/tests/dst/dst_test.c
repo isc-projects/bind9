@@ -36,7 +36,7 @@
 char *current, *tmp = "/tmp";
 
 static void
-use(dst_key_t *key, isc_mem_t *mctx) {
+use(dst_key_t *key) {
 	dst_result_t ret;
 	char *data = "This is some data";
 	unsigned char sig[512];
@@ -51,13 +51,13 @@ use(dst_key_t *key, isc_mem_t *mctx) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_used(&databuf, &datareg);
 
-	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf, mctx);
+	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf);
 	printf("sign(%d) returned: %s\n", dst_key_alg(key),
 	       dst_result_totext(ret));
 
 	isc_buffer_forward(&sigbuf, 1);
 	isc_buffer_remaining(&sigbuf, &sigreg);
-	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg, mctx);
+	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg);
 	printf("verify(%d) returned: %s\n", dst_key_alg(key),
 	       dst_result_totext(ret));
 }
@@ -77,8 +77,8 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx) {
 	printf("write(%d) returned: %s\n", alg, dst_result_totext(ret));
 	if (ret != 0)
 		return;
-	use(key, mctx);
-	dst_key_free(key, mctx);
+	use(key);
+	dst_key_free(key);
 }
 
 static void
@@ -89,9 +89,9 @@ generate(int alg, isc_mem_t *mctx) {
 	ret = dst_key_generate("test.", alg, 512, 0, 0, 0, mctx, &key);
 	printf("generate(%d) returned: %s\n", alg, dst_result_totext(ret));
 
-	use(key, mctx);
+	use(key);
 
-	dst_key_free(key, mctx);
+	dst_key_free(key);
 }
 
 static void

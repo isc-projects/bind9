@@ -79,7 +79,7 @@ cleandir(char *path) {
 
 
 static void
-use(dst_key_t *key, isc_mem_t *mctx, dst_result_t exp_result, int *nfails) {
+use(dst_key_t *key, dst_result_t exp_result, int *nfails) {
 
 	dst_result_t ret;
 	char *data = "This is some data";
@@ -92,7 +92,7 @@ use(dst_key_t *key, isc_mem_t *mctx, dst_result_t exp_result, int *nfails) {
 	isc_buffer_add(&databuf, strlen(data));
 	isc_buffer_used(&databuf, &datareg);
 
-	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf, mctx);
+	ret = dst_sign(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigbuf);
 	if (ret != exp_result) {
 		t_info("dst_sign(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),
@@ -103,7 +103,7 @@ use(dst_key_t *key, isc_mem_t *mctx, dst_result_t exp_result, int *nfails) {
 
 
 	isc_buffer_remaining(&sigbuf, &sigreg);
-	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg, mctx);
+	ret = dst_verify(DST_SIG_MODE_ALL, key, NULL, &datareg, &sigreg);
 	if (ret != exp_result) {
 		t_info("dst_verify(%d) returned (%s) expected (%s)\n",
 				dst_key_alg(key), dst_result_totext(ret),
@@ -165,7 +165,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 		return;
 	}
 
-	use(key, mctx, exp_result, nfails);
+	use(key, exp_result, nfails);
 
 	if (chdir(current)) {
 		t_info("chdir failed %d\n", errno);
@@ -175,7 +175,7 @@ io(char *name, int id, int alg, int type, isc_mem_t *mctx, dst_result_t exp_resu
 
 	cleandir(tmp);
 
-	dst_key_free(key, mctx);
+	dst_key_free(key);
 }
 
 static void
@@ -190,8 +190,8 @@ generate(int alg, isc_mem_t *mctx, int *nfails) {
 		return;
 	}
 
-	use(key, mctx, DST_R_SUCCESS, nfails);
-	dst_key_free(key, mctx);
+	use(key, DST_R_SUCCESS, nfails);
+	dst_key_free(key);
 }
 
 #define	DBUFSIZ	25
