@@ -223,7 +223,7 @@
 			[RT #388]
 
  513.	[func]		New functionality added to rdnc and server to allow
-			individual zones to be refreshed ore reloaded.
+			individual zones to be refreshed or reloaded.
 
  512.	[bug]		The zone transfer code could throw an execption with
 			an invalid IXFR stream.
