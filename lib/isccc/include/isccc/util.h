@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.2 2001/03/27 20:08:15 bwelling Exp $ */
+/* $Id: util.h,v 1.3 2001/05/03 18:38:17 bwelling Exp $ */
 
 #ifndef ISCCC_UTIL_H
 #define ISCCC_UTIL_H 1
@@ -182,16 +182,6 @@
 		memcpy(w, s, c); \
 		w += c; \
 	} while (0)
-
-/*
- * Byte swapping
- */
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
-#define N2HO(v)				ntohl(v)
-#define H2NO(v)				htonl(v)
 
 /*
  * Regions.
