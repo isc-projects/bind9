@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94.18.1 2004/04/13 01:30:33 marka Exp $ */
+/* $Id: host.c,v 1.94.18.2 2004/04/13 03:01:27 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -209,8 +209,18 @@ say_message(dns_name_t *name, const char *msg, dns_rdata_t *rdata,
 	printf("\n");
 	isc_buffer_free(&b);
 }
-
-
+#ifdef DIG_SIGCHASE
+/* Just for compatibility : not use in host program */
+isc_result_t
+printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
+	      isc_buffer_t *target)
+{
+  UNUSED(owner_name);
+  UNUSED(rdataset);
+  UNUSED(target);
+  return(ISC_FALSE);
+}
+#endif
 static isc_result_t
 printsection(dns_message_t *msg, dns_section_t sectionid,
 	     const char *section_name, isc_boolean_t headers,
@@ -698,8 +708,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup->pending = ISC_FALSE;
 	if (get_reverse(store, sizeof(store), hostname,
-			lookup->ip6_int, ISC_TRUE) == ISC_R_SUCCESS) 
-	{
+			lookup->ip6_int, ISC_TRUE) == ISC_R_SUCCESS) {
 		strncpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->textname[sizeof(lookup->textname)-1] = 0;
 		lookup->rdtype = dns_rdatatype_ptr;

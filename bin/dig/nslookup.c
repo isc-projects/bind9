@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101 2004/03/05 04:57:30 marka Exp $ */
+/* $Id: nslookup.c,v 1.101.18.1 2004/04/13 03:01:27 marka Exp $ */
 
 #include <config.h>
 
@@ -41,6 +41,15 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/byaddr.h>
+
+#ifdef DIG_SIGCHASE
+#ifndef DIG_SIGCHASE_BU
+#define DIG_SIGCHASE_BU 1
+#endif
+#ifndef DIG_SIGCHASE_TD
+#define DIG_SIGCHASE_TD 1
+#endif
+#endif
 
 #include <dig/dig.h>
 
@@ -189,7 +198,18 @@ printa(dns_rdata_t *rdata) {
 	printf("Address: %.*s\n", (int)isc_buffer_usedlength(&b),
 	       (char *)isc_buffer_base(&b));
 }
-
+#ifdef DIG_SIGCHASE
+/* Just for compatibility : not use in host program */
+isc_result_t
+printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
+	      isc_buffer_t *target)
+{
+	UNUSED(owner_name);
+	UNUSED(rdataset);
+	UNUSED(target);
+	return(ISC_FALSE);
+}
+#endif
 static void
 printrdata(dns_rdata_t *rdata) {
 	isc_result_t result;
@@ -520,7 +540,8 @@ safecpy(char *dest, char *src, int size) {
 }
 
 static isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max, const char *desc) {
+parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+	   const char *desc) {
 	isc_uint32_t n;
 	isc_result_t result = isc_parse_uint32(&n, value, 10);
 	if (result == ISC_R_SUCCESS && n > max)
@@ -663,8 +684,7 @@ addlookup(char *opt) {
 	}
 	lookup = make_empty_lookup();
 	if (get_reverse(store, sizeof(store), opt, lookup->ip6_int, ISC_TRUE)
-	    == ISC_R_SUCCESS)
-	{
+	    == ISC_R_SUCCESS) {
 		safecpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->rdtype = dns_rdatatype_ptr;
 		lookup->rdtypeset = ISC_TRUE;
@@ -732,15 +752,13 @@ get_next_command(void) {
 		in_use = ISC_FALSE;
 		goto cleanup;
 	} else if (strcasecmp(ptr, "help") == 0 ||
-		   strcasecmp(ptr, "?") == 0)
-	{
+		   strcasecmp(ptr, "?") == 0) {
 		printf("The '%s' command is not yet implemented.\n", ptr);
 		goto cleanup;
 	} else if (strcasecmp(ptr, "finger") == 0 ||
 		   strcasecmp(ptr, "root") == 0 ||
 		   strcasecmp(ptr, "ls") == 0 ||
-		   strcasecmp(ptr, "view") == 0)
-	{
+		   strcasecmp(ptr, "view") == 0) {
 		printf("The '%s' command is not implemented.\n", ptr);
 		goto cleanup;
 	} else
