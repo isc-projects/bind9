@@ -2390,7 +2390,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 			result = DNS_R_KEYUNAUTHORIZED;
 
  freesig:
-		dns_rdataset_disassociate(&keyset);
+		if (dns_rdataset_isassociated(&keyset))
+			dns_rdataset_disassociate(&keyset);
 		dns_rdata_freestruct(&sig);
 		return (result);
 	}
@@ -2404,10 +2405,16 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	dns_name_t *name, empty_name;
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
+	isc_boolean_t no_rdata;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_SECTION(section));
+
+	if (section == DNS_SECTION_QUESTION)
+		no_rdata = ISC_TRUE;
+	else
+		no_rdata = ISC_FALSE;
 
 	if (comments) {
 		ADD_STRING(target, ";; ");
@@ -2418,7 +2425,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	dns_name_init(&empty_name, NULL);
 	result = dns_message_firstname(msg, section);
 	if (result != ISC_R_SUCCESS) {
-		return(result);
+		return (result);
 	}
 	do {
 		name = NULL;
@@ -2426,23 +2433,20 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			result = dns_rdataset_first(rdataset);
-			if (result != ISC_R_NOMORE) {
-				if (result != ISC_R_SUCCESS)
-					return(result);
-				result = dns_rdataset_totext(rdataset, name,
-							     omit_final_dot,
-							     ISC_FALSE,
-							     target);
-				if (result != ISC_R_SUCCESS)
-					return(result);
-			}
+			if (no_rdata)
+				ADD_STRING(target, ";");
+			result = dns_rdataset_totext(rdataset, name,
+						     omit_final_dot,
+						     no_rdata,
+						     target);
+			if (result != ISC_R_SUCCESS)
+				return (result);
 		}
 		result = dns_message_nextname(msg, section);
 	} while (result == ISC_R_SUCCESS);
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	return(result);
+	return (result);
 }
 
 isc_result_t
@@ -2548,5 +2552,5 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	return(ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
