@@ -1,6 +1,9 @@
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
-1566.	[placeholder]	rt10221
+1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.
+			This also solved the problem that match-destinations
+			for IPv6 addresses did not work on these systems.
+			[RT #10221]
 
 1565.	[bug]		CD flag should be copied to outgoing queries unless
 			the query is under a secure entry point in which case
