@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.37 $)
+AC_REVISION($Revision: 1.294.2.23.2.38 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1079,6 +1079,10 @@ case $use_libtool in
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
+		case "$host" in
+		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
+		*) LIBTOOL_IN_MAIN= ;;
+		esac;
 		;;
 	*)
 		O=o
@@ -1090,6 +1094,7 @@ case $use_libtool in
 		LIBTOOL_MODE_INSTALL=
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_ALLOW_UNDEFINED=
+		LIBTOOL_IN_MAIN=
 		;;
 esac
 
@@ -1107,6 +1112,7 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
+AC_SUBST(LIBTOOL_IN_MAIN)
 
 #
 # build libbind?
