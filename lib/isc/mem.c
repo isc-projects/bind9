@@ -74,6 +74,9 @@ struct stats {
 struct isc_mem {
 	unsigned int		magic;
 	isc_mutex_t		lock;
+	isc_memalloc_t		memalloc;
+	isc_memfree_t		memfree;
+	void *			arg;
 	size_t			max_size;
 	size_t			mem_target;
 	element **		freelists;
@@ -137,17 +140,34 @@ quantize(size_t size) {
 	return (temp - temp % ALIGNMENT_SIZE); 
 }
 
+/* Private. */
+
+static void *
+default_memalloc(void *arg, size_t size) {
+	(void)arg;
+	return (malloc(size));
+}
+
+static void
+default_memfree(void *arg, void *ptr) {
+	(void)arg;
+	return (free(ptr));
+}
+
 /* Public. */
 
 isc_result_t
-isc_mem_create(size_t init_max_size, size_t target_size,
-	       isc_mem_t **ctxp)
+isc_mem_createx(size_t init_max_size, size_t target_size,
+		isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
+		isc_mem_t **ctxp)
 {
 	isc_mem_t *ctx;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
+	REQUIRE(memalloc != NULL);
+	REQUIRE(memfree != NULL);
 
-	ctx = malloc(sizeof *ctx);
+	ctx = (memalloc)(arg, sizeof *ctx);
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -159,17 +179,21 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 		ctx->mem_target = DEF_MEM_TARGET;
 	else
 		ctx->mem_target = target_size;
-	ctx->freelists = malloc(ctx->max_size * sizeof (element *));
+	ctx->memalloc = memalloc;
+	ctx->memfree = memfree;
+	ctx->arg = arg;
+	ctx->freelists = (memalloc)(arg, ctx->max_size * sizeof (element *));
 	if (ctx->freelists == NULL) {
-		free(ctx);
+		(memfree)(arg, ctx);
 		return (ISC_R_NOMEMORY);
 	}
 	memset(ctx->freelists, 0,
 	       ctx->max_size * sizeof (element *));
-	ctx->stats = malloc((ctx->max_size+1) * sizeof (struct stats));
+	ctx->stats = (memalloc)(arg,
+				(ctx->max_size+1) * sizeof (struct stats));
 	if (ctx->stats == NULL) {
-		free(ctx->freelists);
-		free(ctx);
+		(memfree)(arg, ctx->freelists);
+		(memfree)(arg, ctx);
 		return (ISC_R_NOMEMORY);
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof (struct stats));
@@ -180,9 +204,9 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
 	if (isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
-		free(ctx->stats);
-		free(ctx->freelists);
-		free(ctx);
+		(memfree)(arg, ctx->stats);
+		(memfree)(arg, ctx->freelists);
+		(memfree)(arg, ctx);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		return (ISC_R_UNEXPECTED);
@@ -194,6 +218,15 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_mem_create(size_t init_max_size, size_t target_size,
+	       isc_mem_t **ctxp)
+{
+	return (isc_mem_createx(init_max_size, target_size,
+				default_memalloc, default_memfree, NULL,
+				ctxp));
 }
 
 void
@@ -213,14 +246,25 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 		INSIST(ctx->stats[i].gets == 0);
 
 	for (i = 0; i < ctx->basic_table_count; i++)
-		free(ctx->basic_table[i]);
-	free(ctx->freelists);
-	free(ctx->stats);
-	free(ctx->basic_table);
+		(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
+	(ctx->memfree)(ctx->arg, ctx->freelists);
+	(ctx->memfree)(ctx->arg, ctx->stats);
+	(ctx->memfree)(ctx->arg, ctx->basic_table);
 	(void)isc_mutex_destroy(&ctx->lock);
-	free(ctx);
+	(ctx->memfree)(ctx->arg, ctx);
 
 	*ctxp = NULL;
+}
+
+isc_result_t
+isc_mem_restore(isc_mem_t *ctx) {
+	isc_result_t result;
+
+	result = isc_mutex_init(&ctx->lock); 
+	if (result != ISC_R_SUCCESS)
+		ctx->magic = 0;
+
+	return (result);
 }
 
 static void
@@ -245,20 +289,21 @@ more_basic_blocks(isc_mem_t *ctx) {
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
 	if (ctx->basic_table_count == ctx->basic_table_size) {
 		table_size = ctx->basic_table_size + TABLE_INCREMENT;
-		table = malloc(table_size * sizeof (unsigned char *));
+		table = (ctx->memalloc)(ctx->arg,
+					table_size * sizeof (unsigned char *));
 		if (table == NULL)
 			return;
 		if (ctx->basic_table_size != 0) {
 			memcpy(table, ctx->basic_table,
 			       ctx->basic_table_size *
 			       sizeof (unsigned char *));
-			free(ctx->basic_table);
+			(ctx->memfree)(ctx->arg, ctx->basic_table);
 		}
 		ctx->basic_table = table;
 		ctx->basic_table_size = table_size;
 	}
 
-	new = malloc(NUM_BASIC_BLOCKS * ctx->mem_target);
+	new = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
 	if (new == NULL)
 		return;
 	ctx->total += increment;
@@ -313,7 +358,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size)
 			ret = NULL;
 			goto done;
 		}
-		ret = malloc(size);
+		ret = (ctx->memalloc)(ctx->arg, size);
 		if (ret != NULL) {
 			ctx->total += size;
 			ctx->stats[ctx->max_size].gets++;
@@ -405,7 +450,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size)
 
 	if (size == ctx->max_size || new_size >= ctx->max_size) {
 		/* memput() called on something beyond our upper limit */
-		free(mem);
+		(ctx->memfree)(ctx->arg, mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0);
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->total);

@@ -28,6 +28,9 @@
 
 ISC_LANG_BEGINDECLS
 
+typedef void * (*isc_memalloc_t)(void *, size_t);
+typedef void (*isc_memfree_t)(void *, void *);
+
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
@@ -56,6 +59,12 @@ void				isc_mem_free(isc_mem_t *, void *);
 char *				isc_mem_strdup(isc_mem_t *, const char *);
 void				isc_mem_setquota(isc_mem_t *, size_t);
 size_t				isc_mem_getquota(isc_mem_t *);
+
+isc_result_t			isc_mem_createx(size_t, size_t,
+						isc_memalloc_t memalloc,
+						isc_memfree_t memfree,
+						void *arg, isc_mem_t **);
+isc_result_t			isc_mem_restore(isc_mem_t *);
 
 #ifdef ISC_MEMCLUSTER_LEGACY
 
