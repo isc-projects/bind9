@@ -219,7 +219,7 @@ tcp_recv_len(isc_task_t *task, isc_event_t *event)
 	region.base = ctx->buf;
 	region.length = ctx->buflen;
 
-	isc_socket_recv(sock, &region, ISC_FALSE,
+	isc_socket_recv(sock, &region, 0,
 			task, tcp_recv_req, event->arg);
 
 	isc_event_free(&event);
@@ -349,7 +349,7 @@ tcp_accept(isc_task_t *task, isc_event_t *event)
 	region.length = 2;
 	region.base = (unsigned char *)&ctx->buflen;
 
-	RUNTIME_CHECK(isc_socket_recv(ctx->csock, &region, ISC_FALSE, task,
+	RUNTIME_CHECK(isc_socket_recv(ctx->csock, &region, 0, task,
 				      tcp_recv_len, ctx)
 		      == ISC_R_SUCCESS);
 
@@ -399,7 +399,7 @@ tcp_send(isc_task_t *task, isc_event_t *event)
 	 */
 	region.base = (unsigned char *)&ctx->buflen;
 	region.length = 2;
-	isc_socket_recv(sock, &region, ISC_FALSE, task, tcp_recv_len, ctx);
+	isc_socket_recv(sock, &region, 0, task, tcp_recv_len, ctx);
 
 	isc_event_free(&event);
 }

@@ -359,7 +359,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
 		       NULL, sock, sock, NULL, NULL);
 	ISC_EVENT_INIT(&sock->writable_ev, sizeof(intev_t),
-		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
+		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTW,
 		       NULL, sock, sock, NULL, NULL);
 
 	sock->magic = SOCKET_MAGIC;
@@ -835,6 +835,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 
 	(void)me;
 
+	INSIST(ev->type == ISC_SOCKEVENT_INTR);
+
 	sock = ev->sender;
 	REQUIRE(VALID_SOCKET(sock));
 
@@ -965,7 +967,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 			 * was read with a success result, and continue
 			 * the loop.
 			 */
-			if (dev->partial) {
+			if (dev->minimum >= dev->n) {
 				send_recvdone_event(sock, &task, &dev,
 						    ISC_R_SUCCESS, 1);
 				goto next;
@@ -1009,6 +1011,8 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	size_t write_count;
 
 	(void)me;
+
+	INSIST(ev->type == ISC_SOCKEVENT_INTW);
 
 	/*
 	 * Find out what socket this is and lock it.
@@ -1544,9 +1548,8 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp)
 }
 
 isc_result_t
-isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
-		isc_boolean_t partial, isc_task_t *task,
-		isc_taskaction_t action, void *arg)
+isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
+		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
 	isc_socketevent_t *dev;
 	isc_socketmgr_t *manager;
@@ -1557,6 +1560,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(region->length >= minimum);
 
 	LOCK(&sock->lock);
 
@@ -1574,12 +1578,17 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	 * UDP sockets are always partial read
 	 */
 	if (sock->type == isc_sockettype_udp)
-		partial = ISC_TRUE;
+		dev->minimum = 1;
+	else {
+		if (minimum == 0)
+			dev->minimum = region->length;
+		else
+			dev->minimum = minimum;
+	}
 
 	dev->region = *region;
 	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
-	dev->partial = partial;
 
 	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
@@ -1666,7 +1675,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 	/*
 	 * Partial reads need to be queued
 	 */
-	if ((size_t)cc != dev->region.length && !partial)
+	if (((size_t)cc != dev->region.length) && (dev->n < dev->minimum))
 		goto queue;
 
 	/*
@@ -1742,7 +1751,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	dev->region = *region;
 	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
-	dev->partial = ISC_FALSE; /* doesn't matter */
+	dev->minimum = region->length;
 
 	was_empty = ISC_LIST_EMPTY(sock->send_list);
 
@@ -2424,7 +2433,7 @@ isc_socket_recvmark(isc_socket_t *sock,
 	isc_task_attach(task, &ntask);
 
 	dev->result = ISC_R_SUCCESS;
-	dev->partial = ISC_FALSE; /* doesn't matter */
+	dev->minimum = 0;
 	dev->sender = ntask;
 
 	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
@@ -2481,7 +2490,7 @@ isc_socket_sendmark(isc_socket_t *sock,
 	isc_task_attach(task, &ntask);
 
 	dev->result = ISC_R_SUCCESS;
-	dev->partial = ISC_FALSE; /* doesn't matter */
+	dev->minimum = 0;
 	dev->sender = ntask;
 
 	ISC_LIST_ENQUEUE(sock->send_list, dev, link);

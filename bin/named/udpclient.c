@@ -177,7 +177,7 @@ udp_recv(isc_task_t *task, isc_event_t *event)
 				  &dev->address);
 	} else {
 		/* Send no reply, just wait for the next request. */
-		isc_socket_recv(sock, &region, ISC_FALSE, task, udp_recv, ctx);
+		isc_socket_recv(sock, &region, 0, task, udp_recv, ctx);
 	}
 
 	isc_event_free(&event);
@@ -218,7 +218,7 @@ udp_send(isc_task_t *task, isc_event_t *event)
 
 	region.base = ctx->buf;
 	region.length = UDP_INPUT_BUFFER_SIZE;
-	isc_socket_recv(sock, &region, ISC_FALSE, task, udp_recv, ctx);
+	isc_socket_recv(sock, &region, 0, task, udp_recv, ctx);
 
 	isc_event_free(&event);
 }
@@ -309,7 +309,7 @@ udp_listener_start(udp_listener_t *l,
 		region.base = l->ctxs[i]->buf;
 
 		RUNTIME_CHECK(isc_socket_recv(sock, &region,
-					      ISC_FALSE, l->tasks[i],
+					      0, l->tasks[i],
 					      udp_recv, l->ctxs[i])
 			      == ISC_R_SUCCESS);
 

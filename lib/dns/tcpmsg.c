@@ -81,7 +81,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in)
 
 	isc_buffer_init(&tcpmsg->buffer, region.base, region.length,
 			ISC_BUFFERTYPE_BINARY);
-	result = isc_socket_recv(tcpmsg->sock, &region, ISC_FALSE,
+	result = isc_socket_recv(tcpmsg->sock, &region, 0,
 				 task, recv_message, tcpmsg);
 	if (result != ISC_R_SUCCESS) {
 		tcpmsg->result = result;
@@ -188,7 +188,7 @@ dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
 
 	region.base = (unsigned char *)&tcpmsg->size;
 	region.length = 2;  /* isc_uint16_t */
-	result = isc_socket_recv(tcpmsg->sock, &region, ISC_FALSE,
+	result = isc_socket_recv(tcpmsg->sock, &region, 0,
 				 tcpmsg->task, recv_length, tcpmsg);
 
 	if (result != ISC_R_SUCCESS)

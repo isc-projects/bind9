@@ -761,7 +761,7 @@ startrecv(dns_dispatch_t *disp)
 				return;
 			XDEBUG(("Recv into %p, length %d\n", region.base,
 				region.length));
-			res = isc_socket_recv(disp->socket, &region, ISC_TRUE,
+			res = isc_socket_recv(disp->socket, &region, 1,
 					      disp->task, udp_recv, disp);
 			if (res != ISC_R_SUCCESS) {
 				disp->shutdown_why = res;

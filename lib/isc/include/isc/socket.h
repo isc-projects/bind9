@@ -82,7 +82,7 @@ typedef struct isc_socketevent  isc_socketevent_t;
 struct isc_socketevent {
 	ISC_EVENT_COMMON(isc_socketevent_t);
 	isc_result_t		result;		/* OK, EOF, whatever else */
-	isc_boolean_t		partial;	/* partial i/o ok */
+	unsigned int		minimum;	/* minimum i/o for event */
 	unsigned int		n;		/* bytes read or written */
 	isc_region_t		region;		/* the region info */
 	isc_sockaddr_t		address;	/* source address */
@@ -113,12 +113,8 @@ struct isc_socket_connev {
 /*
  * Internal events.
  */
-#define ISC_SOCKEVENT_INTRECV	(ISC_EVENTCLASS_SOCKET + 257)
-#define ISC_SOCKEVENT_INTSEND	(ISC_EVENTCLASS_SOCKET + 258)
-#define ISC_SOCKEVENT_INTACCEPT	(ISC_EVENTCLASS_SOCKET + 259)
-#define ISC_SOCKEVENT_INTCONN	(ISC_EVENTCLASS_SOCKET + 260)
-#define ISC_SOCKEVENT_INTR	(ISC_EVENTCLASS_SOCKET + 261)
-#define ISC_SOCKEVENT_INTW	(ISC_EVENTCLASS_SOCKET + 262)
+#define ISC_SOCKEVENT_INTR	(ISC_EVENTCLASS_SOCKET + 256)
+#define ISC_SOCKEVENT_INTW	(ISC_EVENTCLASS_SOCKET + 257)
 
 typedef enum {
 	isc_sockettype_udp = 1,
@@ -413,7 +409,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp);
 
 isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
-		isc_boolean_t partial,
+		unsigned int minimum,
 		isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Receive from 'socket', storing the results in region.
@@ -422,16 +418,16 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
  *
  *	Let 'length' refer to the length of 'region'.
  *
- *	If 'partial' is true, then at most 'length' bytes will be read.
- *	Otherwise the read will not complete until exactly 'length' bytes
- *	have been read.
+ *	If 'minimum' is non-zero and at least that many bytes are read,
+ *	the completion event will be posted to the task 'task.'  If minimum
+ *	is zero, the exact number of bytes requested in the region must
+ * 	be read for an event to be posted.  This only makes sense for TCP
+ *	connections, and is always set to the full buffer for UDP.
  *
  *	The read will complete when the desired number of bytes have been
  *	read, if end-of-input occurs, or if an error occurs.  A read done
  *	event with the given 'action' and 'arg' will be posted to the
  *	event queue of 'task'.
- *
- *	Partial reads are always turned on for UDP.
  *
  *	The caller may neither read from nor write to 'region' until it
  *	has received the read completion event.

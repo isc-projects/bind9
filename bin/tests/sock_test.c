@@ -84,7 +84,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	if (strcmp(event->arg, "so2") != 0) {
 		region = dev->region;
 		sprintf(buf, "\r\nReceived: %.*s\r\n\r\n",
-			(int)region.length, (char *)region.base);
+			(int)dev->n, (char *)region.base);
 		region.base = isc_mem_get(mctx, strlen(buf) + 1);
 		region.length = strlen(buf) + 1;
 		strcpy((char *)region.base, buf);  /* strcpy is safe */
@@ -92,11 +92,10 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	} else {
 		region = dev->region;
 		printf("\r\nReceived: %.*s\r\n\r\n",
-		       (int)region.length, (char *)region.base);
+		       (int)dev->n, (char *)region.base);
 	}
 
-	isc_socket_recv(sock, &dev->region, ISC_FALSE,
-			task, my_recv, event->arg);
+	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->arg);
 
 	isc_event_free(&event);
 }
@@ -146,8 +145,7 @@ my_http_get(isc_task_t *task, isc_event_t *event)
 		return;
 	}
 
-	isc_socket_recv(sock, &dev->region, ISC_FALSE, task, my_recv,
-			event->arg);
+	isc_socket_recv(sock, &dev->region, 1, task, my_recv, event->arg);
 
 	isc_event_free(&event);
 }
@@ -218,7 +216,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		newtask = NULL;
 		RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &newtask)
 			      == ISC_R_SUCCESS);
-		isc_socket_recv(dev->newsocket, &region, ISC_FALSE,
+		isc_socket_recv(dev->newsocket, &region, 1,
 				newtask, my_recv, event->arg);
 		isc_task_detach(&newtask);
 	} else {
