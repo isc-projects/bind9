@@ -1,4 +1,5 @@
 1120.	[bug]		dig only accept valid abbreviations of +options.
+			[RT #2003]
 
 1109.	[bug]		nsupdate accepted illegal ttl values.
 
