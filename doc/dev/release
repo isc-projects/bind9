@@ -2,7 +2,7 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.60 2004/03/18 02:57:55 marka Exp $
+$Id: release,v 1.61 2004/06/11 02:55:01 marka Exp $
 
 Preparing a bind9 release
 
@@ -165,7 +165,7 @@ release.
    $ new_patch=bind-9.x.z-patch
    $ files=`awk '/^Index:/ && NF == 2 {print $2}' $patchd/$old_patch`
    $ missing=`cvs log -R $files 2>&1 >/dev/null | \
-              awk '/^cvs log: nothing known about/ {print $6}'`
+              awk '/^cvs (log|server): nothing known about/ {print $6}'`
    $ for i in $missing; \
        do echo Index: $i; diff -u /dev/null $i; done >$patchd/$new_patch
    $ cvs -f diff -U 2 -N $files >>$patchd/$new_patch
