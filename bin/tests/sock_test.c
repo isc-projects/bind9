@@ -39,20 +39,10 @@
 #include <arpa/inet.h>
 
 isc_mem_t *mctx = NULL;
-int sockets_active = 0;
+isc_taskmgr_t *manager = NULL;
 
 static void my_send(isc_task_t *task, isc_event_t *event);
 static void my_recv(isc_task_t *task, isc_event_t *event);
-
-static void
-my_callback(isc_task_t *task, isc_event_t *event)
-{
-	char *name = event->arg;
-
-	printf("task %s (%p)\n", name, task);
-	fflush(stdout);
-	isc_event_free(&event);
-}
 
 static void
 my_shutdown(isc_task_t *task, isc_event_t *event)
@@ -90,9 +80,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 			    dev->region.length);
 		isc_event_free(&event);
 
-		sockets_active--;
-		if (sockets_active == 0)
-			isc_task_shutdown(task);
+		isc_task_shutdown(task);
 		return;
 	}
 
@@ -182,7 +170,7 @@ my_connect(isc_task_t *task, isc_event_t *event)
 	 * Send a GET string, and set up to receive (and just display)
 	 * the result.
 	 */
-	strcpy(buf, "GET / HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
+	strcpy(buf, "GET /foo HTTP/1.1\r\nHost: www.flame.org\r\nConnection: Close\r\n\r\n");
 	region.base = isc_mem_get(event->mctx, strlen(buf) + 1);
 	region.length = strlen(buf) + 1;
 	strcpy((char *)region.base, buf);  /* strcpy is safe */
@@ -199,6 +187,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 	isc_socket_newconnev_t *dev;
 	isc_region_t region;
 	isc_socket_t *oldsock;
+	isc_task_t *newtask;
 
 	dev = (isc_socket_newconnev_t *)event;
 
@@ -216,18 +205,21 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		region.length = 20;
 
 		/*
-		 * queue up a read on this socket
+		 * Create a new task for this socket, and queue up a
+		 * recv on it.
 		 */
+		newtask = NULL;
+		RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &newtask)
+			      == ISC_R_SUCCESS);
 		isc_socket_recv(dev->newsocket, &region, ISC_FALSE,
-				task, my_recv, event->arg);
-		sockets_active++;
+				newtask, my_recv, event->arg);
+		isc_task_detach(&newtask);
 	} else {
 		printf("detaching from socket %p\n", event->sender);
 		oldsock = event->sender;
 
 		isc_socket_detach(&oldsock);
 
-		sockets_active--;
 		isc_event_free(&event);
 		isc_task_shutdown(task);
 		return;
@@ -251,7 +243,6 @@ timeout(isc_task_t *task, isc_event_t *event)
 int
 main(int argc, char *argv[])
 {
-	isc_taskmgr_t *manager = NULL;
 	isc_task_t *t1 = NULL, *t2 = NULL;
 	isc_timermgr_t *timgr = NULL;
 	isc_time_t expires, now;
@@ -301,7 +292,6 @@ main(int argc, char *argv[])
 	/*
 	 * open up a listener socket
 	 */
-	sockets_active++;
 	so1 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_family = AF_INET;
@@ -328,35 +318,29 @@ main(int argc, char *argv[])
 	 * open up a socket that will connect to www.flame.org, port 80.
 	 * Why not.  :)
 	 */
-	sockets_active++;
 	so2 = NULL;
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(80);
 	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.184.97");
+	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.186.39");
 	addrlen = sizeof(struct sockaddr_in);
 	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_socket_tcp,
 					&so2) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, (int)addrlen, t1,
 					 my_connect, "so2") == ISC_R_SUCCESS);
 
-	sleep(1);
-
-	while (sockets_active > 0) {
-		printf("Sockets active: %d\n", sockets_active);
-		sleep (5);
-	}
-
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
-	printf("Destroying socket manager\n");
+	sleep(10);
+
+	fprintf(stderr, "Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
 
-	printf("Destroying timer manager\n");
+	fprintf(stderr, "Destroying timer manager\n");
 	isc_timermgr_destroy(&timgr);
 
-	printf("Destroying task manager\n");
+	fprintf(stderr, "Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);
 
 	isc_mem_stats(mctx, stdout);
