@@ -56,6 +56,12 @@
 /* define if chroot() is available */
 #undef HAVE_CHROOT
 
+/* define if struct addrinfo exists */
+#undef HAVE_ADDRINFO
+
+/* define is getaddrinfo() exists */
+#undef HAVE_GETADDRINFO
+
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX
 #ifdef SHUTUP_SPUTAUX

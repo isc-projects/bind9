@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.148 $)
+AC_REVISION($Revision: 1.149 $)
 
 AC_PREREQ(2.13)
 
@@ -715,6 +715,7 @@ case "$found_ipv6" in
 	yes)
 		ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1"
 		LWRES_PLATFORM_HAVEIPV6="#define LWRES_PLATFORM_HAVEIPV6 1"
+
 		AC_MSG_CHECKING(for in6addr_any)
 		AC_TRY_LINK([
 #include <sys/types.h>
@@ -728,6 +729,22 @@ $isc_netinetin6_hack],
 			[AC_MSG_RESULT(no)
 			 ISC_PLATFORM_NEEDIN6ADDRANY="#define ISC_PLATFORM_NEEDIN6ADDRANY 1"
 			 LWRES_PLATFORM_NEEDIN6ADDRANY="#define LWRES_PLATFORM_NEEDIN6ADDRANY 1"])
+
+		AC_MSG_CHECKING(for sin6_scope_id in struct sockaddr_in6)
+		AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+$isc_netinetin6_hack
+$isc_netinet6in6_hack
+],
+		[struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);],
+			[AC_MSG_RESULT(yes)
+			 result="#define LWRES_HAVE_SIN6_SCOPE_ID 1"],
+			[AC_MSG_RESULT(no)
+			 result="#undef LWRES_HAVE_SIN6_SCOPE_ID"])
+		LWRES_HAVE_SIN6_SCOPE_ID="$result"
+
 		AC_MSG_CHECKING(for in6_pktinfo)
 		AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -748,6 +765,7 @@ $isc_netinet6in6_hack
 		ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
 		LWRES_PLATFORM_NEEDIN6ADDRANY="#undef LWRES_PLATFORM_NEEDIN6ADDRANY"
 		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
+		LWRES_HAVE_SIN6_SCOPE_ID="#define LWRES_HAVE_SIN6_SCOPE_ID 1"
 		ISC_IPV6_H="ipv6.h"
 		ISC_IPV6_O="ipv6.$O"
 		ISC_ISCIPV6_O="unix/ipv6.$O"
@@ -768,7 +786,7 @@ AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
 AC_SUBST(ISC_ISCIPV6_O)
 AC_SUBST(ISC_IPV6_C)
-
+AC_SUBST(LWRES_HAVE_SIN6_SCOPE_ID)
 #
 # Check for network functions that are often missing.  We do this
 # after the libtool checking, so we can put the right suffix on

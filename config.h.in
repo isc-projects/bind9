@@ -67,6 +67,12 @@
 /* define if chroot() is available */
 #undef HAVE_CHROOT
 
+/* define if struct addrinfo exists */
+#undef HAVE_ADDRINFO
+
+/* define is getaddrinfo() exists */
+#undef HAVE_GETADDRINFO
+
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX
 #ifdef SHUTUP_SPUTAUX
@@ -124,9 +130,3 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if you have the socket library (-lsocket).  */
 #undef HAVE_LIBSOCKET
-
-/* Define if you have the addrinfo struct */
-#undef HAVE_ADDRINFO
-
-/* Define if you have the getaddrinfo function */
-#undef HAVE_GETADDRINFO
