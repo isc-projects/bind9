@@ -33,7 +33,7 @@ case "$1" in
 	for ns in 1 2 3 4 5
 	do
 		case "$sys" in 
-		    sparc-sun-solaris2.[6-8])
+		    sparc-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns up
 			;;
 		    *-pc-linux-gnu)
