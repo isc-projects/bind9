@@ -51,7 +51,6 @@
 #include <isc/lang.h>
 
 #include <dns/types.h>
-#include <dns/rdataset.h>
 
 ISC_LANG_BEGINDECLS
 
