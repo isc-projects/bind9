@@ -17,18 +17,20 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
+@BIND9_VERSION@
+
 CINCLUDES =	-I../../lib/isc/unix/include \
 		-I${srcdir}/../../lib/isc/unix/include \
 		-I${srcdir}/../../lib/isc/pthreads/include \
 		-I${srcdir}/../../lib/isc/include \
 		-I../../lib/dns/include \
 		-I${srcdir}/../../lib/dns/include \
-		-I${srcdir}/../.. \
-		-I${srcdir}
+		-I${srcdir}/../../lib/dns/sec/dst/include \
+		-I${srcdir}/include \
+		-I${srcdir}/../..
 
 CDEFINES =	
 CWARNINGS =
-
 
 DEPLIBS =	../../lib/dns/libdns.@A@ \
 		../../lib/isc/libisc.@A@
@@ -38,13 +40,14 @@ LIBS =		${DEPLIBS} \
 
 TARGETS =	named
 
-OBJS =		server.o udpclient.o tcpclient.o printmsg.o \
-		interfacemgr.o
+OBJS =		client.o interfacemgr.o main.o server.o
 
-SRCS =		server.c udpclient.c tcpclient.c \
-		interfacemgr.c
+SRCS =		client.c interfacemgr.c main.c server.c
 
 @BIND9_MAKE_RULES@
+
+main.o: main.c
+	${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" -c $<
 
 printmsg.o: ${srcdir}/../tests/printmsg.c
 	${CC} -c -o printmsg.o ${ALL_CFLAGS} -I${srcdir}/../tests \

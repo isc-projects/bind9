@@ -47,8 +47,10 @@
  *** Imports
  ***/
 
+#include <isc/types.h>
 #include <isc/result.h>
 #include <isc/mem.h>
+#include <isc/socket.h>
 
 #include <dns/result.h>
 
@@ -56,23 +58,18 @@
  *** Types
  ***/
 
-/* XXX this declaration should be somewhere else, where? */
-typedef dns_result_t
-ns_dispatch_func(isc_mem_t *, isc_region_t *, unsigned int);
-
 typedef struct ns_interfacemgr ns_interfacemgr_t;
 
 /***
  *** Functions
  ***/
 
-dns_result_t
+isc_result_t
 ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		       isc_socketmgr_t *socketmgr,
-		       ns_dispatch_func *dispatch,
+		       isc_socketmgr_t *socketmgr, ns_clientmgr_t *clientmgr,
 		       ns_interfacemgr_t **mgrp);
 
-dns_result_t
+void
 ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
 /*
  * Scan the operatings system's list of network interfaces
