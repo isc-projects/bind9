@@ -1,3 +1,5 @@
+1511.	[bug]		delegation-only was generating false positives
+			on negative answers from subzones.
 
 	--- 9.2.2-P2 released ---
 
