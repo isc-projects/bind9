@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.3 2003/03/06 04:38:24 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.4 2003/05/15 06:39:59 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -133,7 +133,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			goto alloc_failure;
 		}
 
-		memset(&iter->ifc.lifc_len, 0, sizeof(iter->ifc.lifc_len));
+		memset(&iter->ifc, 0, sizeof(iter->ifc));
 #ifdef ISC_HAVE_LIFC_FAMILY
 		iter->ifc.lifc_family = AF_UNSPEC;
 #endif
