@@ -867,7 +867,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (exit_check(client))
 		goto cleanup_serverlock;
-	client->state = NS_CLIENTSTATE_WORKING;
+	client->state = client->newstate = NS_CLIENTSTATE_WORKING;
 
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;

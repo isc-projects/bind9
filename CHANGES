@@ -1,3 +1,9 @@
+ 272.	[bug]		The sending of large TCP responses was canceled
+			in mid-transmission due to a race condition
+			caused by the failure to set the client object's
+			"newstate" variable correctly when transitioning
+			to the "working" state.
+
  271.	[func]		Attempt to probe the number of cpus in named
 			if unspecified rather than defaulting to 1.
 
