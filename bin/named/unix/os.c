@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.38 2001/01/09 21:40:38 bwelling Exp $ */
+/* $Id: os.c,v 1.39 2001/02/24 23:05:09 bwelling Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -45,14 +45,14 @@ static char *pidfile = NULL;
  * If there's no <linux/capability.h>, we don't care about <linux/prctl.h>
  */
 #ifndef HAVE_LINUX_CAPABILITY_H
-#undef HAVE_LINUX_PRCTL_H
+#undef HAVE_SYS_PRCTL_H
 #endif
 
 /*
  * Linux defines:
  * 	(T) HAVE_LINUXTHREADS
  * 	(C) HAVE_LINUX_CAPABILITY_H
- * 	(P) HAVE_LINUX_PRCTL_H
+ * 	(P) HAVE_SYS_PRCTL_H
  * The possible cases are:
  * 	none:	setuid() normally
  * 	T:	no setuid()
@@ -108,7 +108,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 #include <sys/syscall.h>	/* Required for syscall(). */
 #include <linux/capability.h>	/* Required for _LINUX_CAPABILITY_VERSION. */
 
-#ifdef HAVE_LINUX_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>		/* Required for prctl(). */
 
 /*
@@ -121,7 +121,7 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
 #define PR_SET_KEEPCAPS 8
 #endif
 
-#endif /* HAVE_LINUX_PRCTL_H */
+#endif /* HAVE_SYS_PRCTL_H */
 
 #ifndef SYS_capset
 #define SYS_capset __NR_capset
@@ -168,7 +168,7 @@ linux_initialprivs(void) {
 	 */
 	caps |= (1 << CAP_SYS_CHROOT);
 
-#if defined(HAVE_LINUX_PRCTL_H) || !defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_PRCTL_H) || !defined(HAVE_LINUXTHREADS)
 	/*
 	 * We can setuid() only if either the kernel supports keeping
 	 * capabilities after setuid() (which we don't know until we've
@@ -228,7 +228,7 @@ linux_minprivs(void) {
 	linux_setcaps(caps);
 }
 
-#ifdef HAVE_LINUX_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 static void
 linux_keepcaps(void) {
 	/*
@@ -393,7 +393,7 @@ ns_os_changeuser(void) {
 
 void
 ns_os_minprivs(void) {
-#ifdef HAVE_LINUX_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 	linux_keepcaps();
 #endif
 
