@@ -113,21 +113,20 @@ const FileData installFiles[] =
 	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libdns.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"liblwres.dll", FileData::WinSystem, FileData::Critical, FALSE},
+	{"libeay32.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},
-//	{"BINDCtrl.exe", FileData::BinDir, FileData::Normal, FALSE},
-//	{"BINDCmd.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"BINDInstall.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"rndc.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dig.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"host.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"nslookup.exe", FileData::BinDir, FileData::Normal, FALSE},
+	{"rndc-confgen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-keygen.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-makekeyset.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signkey.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"dnssec-signzone.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"readme1st.txt", FileData::BinDir, FileData::Trivial, FALSE},
-//	{"nslookup.help", FileData::WinSystem, FileData::Trivial, FALSE},
 	{NULL, -1, -1}
 };
 
