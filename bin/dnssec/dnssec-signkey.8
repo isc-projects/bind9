@@ -14,7 +14,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signkey.8,v 1.5 2000/07/26 19:13:18 gson Exp $
+.\" $Id: dnssec-signkey.8,v 1.5.2.1 2000/08/02 22:10:12 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNKEY 8
@@ -61,17 +61,6 @@ option makes
 print a short summary of its command line options
 and arguments.
 .Pp
-The
-.Fl p
-option instructs
-.Nm dnssec-signkey
-to use pseudo-random data when signing the keys.  This is faster, but
-less secure, than using genuinely random data for signing.
-This option may be useful when there are many child zone keysets to
-sign or if the entropy source is limited.
-It could also be used for short-lived keys and signatures that don't
-require as much protection against cryptanalysis, such as when the key
-will be discarded long before it could be compromised.
 .Nm dnssec-signkey
 may need random numbers in the process of generating keys.
 If the system does not have a
@@ -87,6 +76,18 @@ option overrides this behaviour, making
 use
 .Ar randomdev
 as a source of random data.
+.Pp
+The
+.Fl p
+option instructs
+.Nm dnssec-signkey
+to use pseudo-random data when signing the keys.  This is faster, but
+less secure, than using genuinely random data for signing.
+This option may be useful when there are many child zone keysets to
+sign or if the entropy source is limited.
+It could also be used for short-lived keys and signatures that don't
+require as much protection against cryptanalysis, such as when the key
+will be discarded long before it could be compromised.
 .Pp
 The
 .Fl v
