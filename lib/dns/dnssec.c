@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.3 2002/08/02 05:08:49 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.4 2003/05/12 05:52:08 marka Exp $
  */
 
 
@@ -26,6 +26,7 @@
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
+#include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -360,15 +361,18 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
+	if (isc_serial_lt(sig.timesigned, sig.timeexpire))
+		return (DNS_R_SIGINVALID);
+
 	if (!ignoretime) {
 		isc_stdtime_get(&now);
 
 		/*
 		 * Is SIG temporally valid?
 		 */
-		if (sig.timesigned > now)
+		if (isc_serial_lt((isc_uint32_t)now, sig.timesigned))
 			return (DNS_R_SIGFUTURE);
-		else if (sig.timeexpire < now)
+		else if (isc_serial_lt(sig.timeexpire, (isc_uint32_t)now))
 			return (DNS_R_SIGEXPIRED);
 	}
 
@@ -723,13 +727,19 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 		goto failure;
 	}
 
+	if (isc_serial_lt(sig.timeexpire, sig.timesigned)) {
+		result = DNS_R_SIGINVALID;
+		msg->sig0status = dns_tsigerror_badtime;
+		goto failure;
+	}
+
 	isc_stdtime_get(&now);
-	if (sig.timesigned > now) {
+	if (isc_serial_lt((isc_uint32_t)now, sig.timesigned)) {
 		result = DNS_R_SIGFUTURE;
 		msg->sig0status = dns_tsigerror_badtime;
 		goto failure;
 	}
-	else if (sig.timeexpire < now) {
+	else if (isc_serial_lt(sig.timeexpire, (isc_uint32_t)now)) {
 		result = DNS_R_SIGEXPIRED;
 		msg->sig0status = dns_tsigerror_badtime;
 		goto failure;

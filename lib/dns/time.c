@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18 2001/05/15 22:05:35 gson Exp $ */
+/* $Id: time.c,v 1.18.2.1 2003/05/12 05:52:09 marka Exp $ */
 
 #include <config.h>
 
@@ -161,15 +161,11 @@ dns_time64_fromtext(char *source, isc_int64_t *target) {
 isc_result_t
 dns_time32_fromtext(char *source, isc_uint32_t *target) {
 	isc_int64_t value64;
-	isc_int32_t value32;
 	isc_result_t result;
 	result = dns_time64_fromtext(source, &value64);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	value32 = (isc_uint32_t)value64;
-	if (value32 != value64)
-		return (ISC_R_RANGE);
-	*target = value32;
+	*target = value64;
 
 	return (ISC_R_SUCCESS);
 }

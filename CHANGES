@@ -4,6 +4,9 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1399.	[bug]		Use serial number arithmetic when testing SIG
+			timestamps. [RT #4268]
+
 1397.	[bug]		J.ROOT-SERVERS.NET is now 192.58.128.30.
 
 1389.	[bug]		named could fail to rotate long log files.  [RT #3666]
