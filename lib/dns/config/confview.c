@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.27 2000/05/08 19:23:29 tale Exp $ */
+/* $Id: confview.c,v 1.28 2000/05/15 12:36:26 brister Exp $ */
 
 #include <config.h>
 
@@ -376,6 +376,12 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 				      "view 'max-ncache-ttl' is not yet "
 				      "implemented.");
 
+		if (dns_c_view_getmaxcachettl(elem, &bival) != ISC_R_NOTFOUND)
+			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      "view 'max-cache-ttl' is not yet "
+				      "implemented.");
+
 		if (dns_c_view_getlamettl(elem, &bival) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -474,7 +480,9 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->min_roots = NULL;
 	view->lamettl = NULL;
 	view->max_ncache_ttl = NULL;
+	view->max_cache_ttl = NULL;
 
+	view->additional_data = NULL;
 	view->transfer_format = NULL;
 	view->keydefs = NULL;
 	view->peerlist = NULL;
@@ -636,7 +644,14 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(min_roots, "min-roots");
 	PRINT_INT32(lamettl, "lame-ttl");
 	PRINT_INT32(max_ncache_ttl, "max-ncache-ttl");
+	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
 
+	if (view->additional_data != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "additional-data %s;\n",
+			dns_c_addata2string(*view->additional_data, ISC_TRUE));
+	}
+	
 	if (view->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "transfer-format %s;\n",
@@ -750,7 +765,9 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(min_roots);
 	FREEFIELD(lamettl);
 	FREEFIELD(max_ncache_ttl);
+	FREEFIELD(max_cache_ttl);
 
+	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
 
 	dns_c_view_unsetkeydefs(view);
@@ -1308,6 +1325,14 @@ SETINT32(maxncachettl, max_ncache_ttl)
 GETINT32(maxncachettl, max_ncache_ttl)
 UNSETINT32(maxncachettl, max_ncache_ttl)
 
+SETINT32(maxcachettl, max_cache_ttl)
+GETINT32(maxcachettl, max_cache_ttl)
+UNSETINT32(maxcachettl, max_cache_ttl)
+
+
+GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
+SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
+UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 
 GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)

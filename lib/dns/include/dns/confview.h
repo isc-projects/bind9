@@ -132,7 +132,9 @@ struct dns_c_view {
 	isc_int32_t	       *min_roots;
 	isc_int32_t	       *lamettl;
 	isc_int32_t	       *max_ncache_ttl;
+	isc_int32_t	       *max_cache_ttl;
 
+	dns_c_addata_t	       *additional_data;
 	dns_transfer_format_t  *transfer_format;
 
 	dns_c_kdeflist_t       *keydefs;
@@ -478,6 +480,7 @@ dns_c_view_setlamettl(dns_c_view_t *view, isc_int32_t newval);
 isc_result_t
 dns_c_view_unsetlamettl(dns_c_view_t *view);
 
+
 isc_result_t
 dns_c_view_getmaxncachettl(dns_c_view_t *view, isc_int32_t *retval);
 
@@ -486,6 +489,29 @@ dns_c_view_setmaxncachettl(dns_c_view_t *view, isc_int32_t newval);
 
 isc_result_t
 dns_c_view_unsetmaxncachettl(dns_c_view_t *view);
+
+
+isc_result_t
+dns_c_view_getmaxcachettl(dns_c_view_t *view, isc_int32_t *retval);
+
+isc_result_t
+dns_c_view_setmaxcachettl(dns_c_view_t *view, isc_int32_t newval);
+
+isc_result_t
+dns_c_view_unsetmaxcachettl(dns_c_view_t *view);
+
+
+
+isc_result_t
+dns_c_view_setadditionaldata(dns_c_view_t *view, dns_c_addata_t newval);
+
+isc_result_t
+dns_c_view_getadditionaldata(dns_c_view_t *view, dns_c_addata_t *retval);
+
+isc_result_t
+dns_c_view_unsetadditionaldata(dns_c_view_t *cfg);
+
+
 
 isc_result_t
 dns_c_view_settransferformat(dns_c_view_t *view,

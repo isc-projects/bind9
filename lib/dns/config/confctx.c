@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.56 2000/05/08 19:23:27 tale Exp $ */
+/* $Id: confctx.c,v 1.57 2000/05/15 12:36:20 brister Exp $ */
 
 #include <config.h>
 
@@ -368,6 +368,14 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 	
 
+	if (dns_c_ctx_getmaxcachettl(cfg, &uintval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "option 'max-cache-ttl' is not yet "
+			      "implemented.");
+	}
+	
+
 	if (dns_c_ctx_getminroots(cfg, &intval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -472,8 +480,12 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (cfg->zlist != NULL)
-		result = dns_c_zonelist_checkzones(cfg->zlist);
+	if (cfg->zlist != NULL) {
+		tmpres = dns_c_zonelist_checkzones(cfg->zlist);
+		if (tmpres != ISC_R_SUCCESS) {
+			result = tmpres;
+		}
+	}
 
 	if (cfg->views != NULL) {
 		tmpres = dns_c_viewtable_checkviews(cfg->views);
@@ -927,6 +939,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_SIZE_CLAUSE(files, "files");
 
 	PRINT_INTEGER(max_ncache_ttl, "max-ncache-ttl");
+	PRINT_INTEGER(max_cache_ttl, "max-cache-ttl");
 
 	PRINT_AS_BOOLEAN(expert_mode, "expert-mode");
 	PRINT_AS_BOOLEAN(fake_iquery, "fake-iquery");
@@ -954,13 +967,19 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 						 ISC_TRUE));
 	}
 	
-
 	PRINT_IP(transfer_source, "transfer-source");
 	PRINT_IP(transfer_source_v6, "transfer-source-v6");
 	
 	PRINT_IPANDPORT(query_source, "query-source");
 	PRINT_IPANDPORT(query_source_v6, "query-source-v6");
 
+	if (options->additional_data != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "additional_data %s;\n",
+			dns_c_addata2string(*options->additional_data,
+					    ISC_TRUE));
+	}
+		
 	PRINT_CHECKNAME(dns_trans_primary);
 	PRINT_CHECKNAME(dns_trans_secondary);
 	PRINT_CHECKNAME(dns_trans_response);
@@ -1397,6 +1416,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->core_size = NULL;
 	opts->files = NULL;
 	opts->max_ncache_ttl = NULL;
+	opts->max_cache_ttl = NULL;
 	
 	opts->expert_mode = NULL;
 	opts->fake_iquery = NULL;
@@ -1421,7 +1441,8 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->transfer_source_v6 = NULL;
 	opts->query_source = NULL;
 	opts->query_source_v6 = NULL;
-	
+
+	opts->additional_data = NULL;
 	opts->forward = NULL;
 
 	opts->tkeydhkeycp = NULL;
@@ -1543,12 +1564,14 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(core_size);
 	FREEFIELD(files);
 	FREEFIELD(max_ncache_ttl);
+	FREEFIELD(max_cache_ttl);
 
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
 	FREEFIELD(query_source);
 	FREEFIELD(query_source_v6);
 
+	FREEFIELD(additional_data);
 	FREEFIELD(forward);
 	
 	FREESTRING(tkeydomain);
@@ -1714,6 +1737,10 @@ GETUINT32(maxncachettl, max_ncache_ttl)
 SETUINT32(maxncachettl, max_ncache_ttl)
 UNSETUINT32(maxncachettl, max_ncache_ttl)
 
+GETUINT32(maxcachettl, max_cache_ttl)
+SETUINT32(maxcachettl, max_cache_ttl)
+UNSETUINT32(maxcachettl, max_cache_ttl)
+
 GETINT32(transfersin, transfers_in)
 SETINT32(transfersin, transfers_in)
 UNSETINT32(transfersin, transfers_in)
@@ -1821,6 +1848,10 @@ UNSETBYTYPE(dns_c_forw_t, forward, forward)
 GETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 SETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
 UNSETBYTYPE(dns_transfer_format_t, transferformat, transfer_format)
+
+GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
+SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
+UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 
 
 

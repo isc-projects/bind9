@@ -140,6 +140,7 @@ struct dns_c_options {
 	isc_uint32_t	       *core_size;
 	isc_uint32_t	       *files;
 	isc_uint32_t	       *max_ncache_ttl;
+	isc_uint32_t	       *max_cache_ttl;
 
 	isc_boolean_t	       *expert_mode;
 	isc_boolean_t	       *fake_iquery;
@@ -165,6 +166,8 @@ struct dns_c_options {
 	isc_sockaddr_t	       *query_source;
 	isc_sockaddr_t	       *query_source_v6;
 
+	dns_c_addata_t	       *additional_data;
+	
 	dns_c_forw_t	       *forward;
 
 	char 		       *tkeydhkeycp;
@@ -544,6 +547,7 @@ dns_c_ctx_getstacksize(dns_c_ctx_t *cfg,
 isc_result_t
 dns_c_ctx_unsetstacksize(dns_c_ctx_t *cfg);
 
+
 isc_result_t
 dns_c_ctx_setcoresize(dns_c_ctx_t *cfg, isc_uint32_t newval);
 
@@ -552,6 +556,7 @@ dns_c_ctx_getcoresize(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 
 isc_result_t
 dns_c_ctx_unsetcoresize(dns_c_ctx_t *cfg);
+
 
 isc_result_t
 dns_c_ctx_setfiles(dns_c_ctx_t *cfg, isc_uint32_t newval);
@@ -562,6 +567,7 @@ dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 isc_result_t
 dns_c_ctx_unsetfiles(dns_c_ctx_t *cfg);
 
+
 isc_result_t
 dns_c_ctx_setmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
 
@@ -570,6 +576,17 @@ dns_c_ctx_getmaxncachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval);
 
 isc_result_t
 dns_c_ctx_unsetmaxncachettl(dns_c_ctx_t *cfg);
+
+
+isc_result_t
+dns_c_ctx_setmaxcachettl(dns_c_ctx_t *cfg, isc_uint32_t newval);
+
+isc_result_t
+dns_c_ctx_getmaxcachettl(dns_c_ctx_t *cfg, isc_uint32_t *retval);
+
+isc_result_t
+dns_c_ctx_unsetmaxcachettl(dns_c_ctx_t *cfg);
+
 
 isc_result_t
 dns_c_ctx_setexpertmode(dns_c_ctx_t *cfg, isc_boolean_t newval);
@@ -762,6 +779,7 @@ dns_c_ctx_getquerysource(dns_c_ctx_t *ctx, isc_sockaddr_t *query_source);
 isc_result_t
 dns_c_ctx_unsetquerysource(dns_c_ctx_t *ctx);
 
+
 isc_result_t
 dns_c_ctx_setquerysourcev6(dns_c_ctx_t *ctx, isc_sockaddr_t query_source_v6);
 
@@ -770,6 +788,18 @@ dns_c_ctx_getquerysourcev6(dns_c_ctx_t *ctx, isc_sockaddr_t *query_source_v6);
 
 isc_result_t
 dns_c_ctx_unsetquerysourcev6(dns_c_ctx_t *ctx);
+
+
+isc_result_t
+dns_c_ctx_setadditionaldata(dns_c_ctx_t *ctx, dns_c_addata_t addata);
+
+isc_result_t
+dns_c_ctx_getadditionaldata(dns_c_ctx_t *ctx, dns_c_addata_t *addata);
+
+isc_result_t
+dns_c_ctx_unsetadditionaldata(dns_c_ctx_t *ctx);
+
+
 
 isc_result_t
 dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forward);

@@ -109,15 +109,6 @@ typedef enum {
 	dns_c_forw_nodomain
 } dns_c_forw_t;
 
-/* value of a 'check-names' method  */
-#if 0
-typedef enum {
-	dns_c_severity_ignore,
-	dns_c_severity_warn,
-	dns_c_severity_fail
-} dns_c_severity_t;
-#endif
-
 /* Value of a 'check-names' type. */
 typedef enum {
 	dns_trans_primary,
@@ -141,13 +132,6 @@ typedef enum {
 	dns_c_ordering_cyclic
 } dns_c_ordering_t;
 
-
-
-#if 0
-typedef enum {
-	dns_one_answer, dns_many_answers
-} dns_c_transferformat_t;
-#endif
 
 /* Possible zone types */
 typedef enum {
@@ -193,35 +177,13 @@ typedef enum {
 } dns_c_logseverity_t;
 
 
-#if 0					/* XXXJAB remove this */
-/* Possible logging categories. */
+/* Type of additional-data field */
 typedef enum {
-	dns_c_cat_default,
-	dns_c_cat_config,
-	dns_c_cat_parser,
-	dns_c_cat_queries,  
-	dns_c_cat_lameservers,
-	dns_c_cat_statistics,
-	dns_c_cat_panic, 
-	dns_c_cat_update,
-	dns_c_cat_ncache,
-	dns_c_cat_xferin,
-	dns_c_cat_xferout,  
-	dns_c_cat_db,
-	dns_c_cat_eventlib,
-	dns_c_cat_packet,
-	dns_c_cat_notify, 
-	dns_c_cat_cname,
-	dns_c_cat_security,
-	dns_c_cat_os,
-	dns_c_cat_insist, 
-	dns_c_cat_maint,
-	dns_c_cat_load,
-	dns_c_cat_respchecks,
-	dns_c_cat_control, 
-	dns_c_cat_none
-} dns_c_category_t;
-#endif
+	dns_c_ad_minimal,
+	dns_c_ad_maximal,
+	dns_c_ad_internal
+} dns_c_addata_t;
+
 
 /* Type of the bit sets used in various structures. Macros in confpvt.h
  * depending on this being an integer type, and some structures need more
@@ -281,6 +243,9 @@ dns_c_nameseverity2string(dns_severity_t severity, isc_boolean_t printable);
 
 const char *
 dns_c_forward2string(dns_c_forw_t forw, isc_boolean_t printable);
+
+const char *
+dns_c_addata2string(dns_c_addata_t addata, isc_boolean_t printable);
 
 /*
  * The following dns_c_string2xxx() functions will look up the string

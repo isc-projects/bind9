@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.80 2000/05/11 02:18:16 gson Exp $ */
+/* $Id: confparser.y,v 1.81 2000/05/15 12:36:23 brister Exp $ */
 
 #include <config.h>
 
@@ -114,7 +114,6 @@ static isc_lexspecials_t	specials;
 
 
 static isc_result_t	tmpres;
-static isc_boolean_t	disabled;	/* if "disabled" keyword was in zone */
 static int		debug_lexer;
 
 int			yyparse(void);
@@ -200,6 +199,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	struct confssu_s	ssu;
 	struct confrdtype_s	rdatatypelist;
 	dns_rdatatype_t		rdatatype;
+	dns_c_addata_t		addata;
 
 	isc_boolean_t		boolean;
 	dns_rdataclass_t	rrclass;
@@ -227,6 +227,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token <ip6_addr>	L_IP6ADDR
 
 %token		L_ACL
+%token		L_ADDITIONAL_DATA
 %token		L_ADDRESS
 %token		L_ALGID
 %token		L_ALLOW
@@ -255,9 +256,9 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_DENY
 %token		L_DIALUP
 %token		L_DIRECTORY
-%token		L_DISABLED
 %token		L_DUMP_FILE
 %token		L_DYNAMIC
+%token		L_ENABLE_ZONE
 %token		L_END_INCLUDE
 %token		L_EOS
 %token		L_EXPERT_MODE
@@ -283,6 +284,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_INCLUDE
 %token		L_INET
 %token		L_INTERFACE_INTERVAL
+%token		L_INTERNAL
 %token		L_IXFR_TMP
 %token		L_KEYS
 %token		L_LAME_TTL
@@ -295,13 +297,16 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_MASTERS
 %token		L_MATCH_CLIENTS
 %token		L_MAX_LOG_SIZE_IXFR
+%token		L_MAX_CACHE_TTL
 %token		L_MAX_NCACHE_TTL
 %token		L_MAX_TRANSFER_IDLE_IN
 %token		L_MAX_TRANSFER_IDLE_OUT
 %token		L_MAX_TRANSFER_TIME_IN
 %token		L_MAX_TRANSFER_TIME_OUT
+%token		L_MAXIMAL
 %token		L_MEMSTATS_FILE
 %token		L_MIN_ROOTS
+%token		L_MINIMAL
 %token		L_MULTIPLE_CNAMES
 %token		L_NAME
 %token		L_NAMED_XFER
@@ -376,6 +381,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_ZONE
 
 
+%type <addata>		additional_data
 %type <boolean>		grantp
 %type <boolean>		yea_or_nay
 %type <forward>		forward_opt
@@ -472,6 +478,13 @@ options_stmt: L_OPTIONS
 	{
 		dns_c_options_t *options;
 
+		if (currcfg->zlist != NULL || currcfg->views != NULL) {
+			parser_error(ISC_FALSE,
+				     "options must come before all "
+				     "zones and views");
+			YYABORT;
+		}
+		
 		tmpres = dns_c_ctx_getoptions(currcfg, &options);
 		if (tmpres == ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "cannot redefine options");
@@ -1240,6 +1253,19 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
+	| L_MAX_CACHE_TTL L_INTEGER
+	{
+		tmpres = dns_c_ctx_setmaxcachettl(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine max-cache-ttl.");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set max-cache-ttl.");
+			YYABORT;
+		}
+	}
 	| L_HEARTBEAT L_INTEGER
 	{
 		if ( int_too_big($2, 60) ) {
@@ -1309,6 +1335,19 @@ option: /* Empty */
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
 				     "failed to set allow-update-forwarding.");
+			YYABORT;
+		}
+	}
+	| L_ADDITIONAL_DATA additional_data
+	{
+		tmpres = dns_c_ctx_setadditionaldata(currcfg, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine additional-data.");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set additional-data.");
 			YYABORT;
 		}
 	}
@@ -1687,6 +1726,19 @@ maybe_zero_port : /* nothing */
 		$$ = $2;
 	}
 	;
+
+additional_data: L_INTERNAL
+	{
+		$$ = dns_c_ad_internal;
+	}
+	| L_MINIMAL
+	{
+		$$ = dns_c_ad_minimal;
+	}
+	| L_MAXIMAL
+	{
+		$$ = dns_c_ad_maximal;
+	};
 
 yea_or_nay: L_YES
 	{
@@ -3563,6 +3615,40 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
+	| L_MAX_CACHE_TTL L_INTEGER
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setmaxcachettl(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view max-cache-ttl.");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view max-cache-ttl.");
+			YYABORT;
+		}
+	}
+	| L_ADDITIONAL_DATA additional_data
+	{
+		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
+
+		INSIST(view != NULL);
+
+		tmpres = dns_c_view_setadditionaldata(view, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine view additional-data.");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set view additional-data.");
+			YYABORT;
+		}
+	}
 	| L_TRANSFER_FORMAT transfer_format
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
@@ -3837,8 +3923,6 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	{
 		dns_c_zone_t *zone;
 
-		disabled = ISC_FALSE;
-
 		if (currcfg->zlist == NULL) {
 			tmpres = dns_c_zonelist_new(currcfg->mem,
 						    &currcfg->zlist);
@@ -3887,19 +3971,10 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 		zone = dns_c_ctx_getcurrzone(currcfg);
 		view = dns_c_ctx_getcurrview(currcfg);
 
-		if (disabled) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG,
-				      ISC_LOG_WARNING, "zone '%s' is disabled",
-				      zone->name);
-			dns_c_zonelist_rmzone(currcfg->zlist, zone);
-			zone = NULL;
-		} else {
-			zone->view = view;
+		zone->view = view;
 
-			if (view != NULL) {
-				dns_c_view_addzone(view, zone);
-			}
+		if (view != NULL) {
+			dns_c_view_addzone(view, zone);
 		}
 
 		dns_c_ctx_setcurrzone(currcfg, NULL);
@@ -4031,7 +4106,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
-	L_DISABLED | L_DATABASE
+	L_ENABLE_ZONE | L_DATABASE
 	;
 
 
@@ -4491,9 +4566,22 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-	| L_DISABLED
+	| L_ENABLE_ZONE yea_or_nay
 	{
-		disabled = ISC_TRUE;
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setenabled(zone, $2);
+		if (tmpres == ISC_R_EXISTS) {
+			parser_error(ISC_FALSE,
+				     "cannot redefine enable-zone.");
+			YYABORT;
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set enable-zone.");
+			YYABORT;
+		}
 	}
 	| L_DATABASE L_QSTRING
 	{
@@ -4738,6 +4826,7 @@ static struct token keyword_tokens [] = {
 	{ "!",				L_BANG },
 
 	{ "acl",			L_ACL },
+	{ "additional-data",		L_ADDITIONAL_DATA },
 	{ "address",			L_ADDRESS },
 	{ "algorithm",			L_ALGID },
 	{ "allow",			L_ALLOW },
@@ -4764,9 +4853,9 @@ static struct token keyword_tokens [] = {
 	{ "default",			L_DEFAULT },
 	{ "dialup",			L_DIALUP },
 	{ "directory",			L_DIRECTORY },
-	{ "disabled",			L_DISABLED },
 	{ "dump-file",			L_DUMP_FILE },
 	{ "dynamic",			L_DYNAMIC },
+	{ "enable-zone",		L_ENABLE_ZONE },
 	{ "expert-mode",		L_EXPERT_MODE },
 	{ "fail",			L_FAIL },
 	{ "fake-iquery",		L_FAKE_IQUERY },
@@ -4793,6 +4882,7 @@ static struct token keyword_tokens [] = {
 	{ "include",			L_INCLUDE },
 	{ "inet",			L_INET },
 	{ "interface-interval",		L_INTERFACE_INTERVAL },
+	{ "internal",			L_INTERNAL },
 	{ "ixfr-base",			L_FILE_IXFR },
 	{ "ixfr-tmp-file",		L_IXFR_TMP },
 	{ "key",			L_SEC_KEY },
@@ -4806,14 +4896,17 @@ static struct token keyword_tokens [] = {
 	{ "masters",			L_MASTERS },
 	{ "match-clients",		L_MATCH_CLIENTS },
 	{ "max-ixfr-log-size",		L_MAX_LOG_SIZE_IXFR },
+	{ "max-cache-ttl",		L_MAX_CACHE_TTL },
 	{ "max-ncache-ttl",		L_MAX_NCACHE_TTL },
 	{ "max-transfer-time-in",	L_MAX_TRANSFER_TIME_IN },
 	{ "max-transfer-time-out",	L_MAX_TRANSFER_TIME_OUT },
 	{ "max-transfer-idle-in",	L_MAX_TRANSFER_IDLE_IN },
 	{ "max-transfer-idle-out",	L_MAX_TRANSFER_IDLE_OUT },
+	{ "maximal",			L_MAXIMAL },
 	{ "memstatistics-file",		L_MEMSTATS_FILE },
 	{ "multiple-cnames",		L_MULTIPLE_CNAMES },
 	{ "min-roots",			L_MIN_ROOTS },
+	{ "minimal",			L_MINIMAL },
 	{ "name",			L_NAME },
 	{ "named-xfer",			L_NAMED_XFER },
 	{ "no",				L_NO },

@@ -200,6 +200,7 @@ struct dns_c_zone {
 	char			       *database;
 	dns_rdataclass_t		zclass; 
 	dns_c_view_t		       *view;
+	isc_boolean_t		       *enabled;
 	
 	dns_c_zonetype_t		ztype;
 	union 
@@ -455,6 +456,18 @@ dns_c_zone_getdatabase(dns_c_zone_t *zone, char **retval);
 
 isc_result_t
 dns_c_zone_unsetdatabase(dns_c_zone_t *zone);
+
+
+isc_result_t
+dns_c_zone_setenabled(dns_c_zone_t *zone, isc_boolean_t enabled);
+
+isc_result_t
+dns_c_zone_getenabled(dns_c_zone_t *zone, isc_boolean_t *retval);
+
+isc_result_t
+dns_c_zone_unsetenabled(dns_c_zone_t *zone);
+
+
 
 
 ISC_LANG_ENDDECLS

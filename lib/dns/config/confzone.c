@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.41 2000/05/13 19:46:26 tale Exp $ */
+/* $Id: confzone.c,v 1.42 2000/05/15 12:36:28 brister Exp $ */
 
 #include <config.h>
 
@@ -195,11 +195,16 @@ dns_c_zonelist_delete(dns_c_zonelist_t **zlist) {
 isc_result_t
 dns_c_zonelist_checkzones(dns_c_zonelist_t *list) {
 	dns_c_zone_t *zone;
-	dns_c_ipmatchlist_t *ipmlist = NULL;
+	dns_c_ipmatchlist_t *ipmlist;
+	dns_c_iplist_t *iplist;
 	dns_ssutable_t *ssutable = NULL;
-	isc_result_t result;
-	const char *autherr = "zone `%s': allow-update is ignored when "
-		"update-policy is also used.";
+	isc_result_t tmpres;
+	isc_result_t result = ISC_R_SUCCESS;
+	const char *autherr = "zone '%s': allow-update is ignored when "
+		"update-policy is also used";
+	const char *nomasterserr = "zone '%s': missing 'masters' entry";
+	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
+	
 
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 
@@ -214,11 +219,12 @@ dns_c_zonelist_checkzones(dns_c_zonelist_t *list) {
 		 * Check for allow-update and update-policty together
 		 */
 		if (zone->ztype == dns_c_zone_master) {
-			result = dns_c_zone_getallowupd(zone, &ipmlist);
-			if (result == ISC_R_SUCCESS) {
-				result = dns_c_zone_getssuauth(zone,
+			ipmlist = NULL;
+			tmpres = dns_c_zone_getallowupd(zone, &ipmlist);
+			if (tmpres == ISC_R_SUCCESS) {
+				tmpres = dns_c_zone_getssuauth(zone,
 							       &ssutable);
-				if (result == ISC_R_SUCCESS) {
+				if (tmpres == ISC_R_SUCCESS) {
 					isc_log_write(dns_lctx,
 						      DNS_LOGCATEGORY_CONFIG,
 						      DNS_LOGMODULE_CONFIG,
@@ -228,11 +234,28 @@ dns_c_zonelist_checkzones(dns_c_zonelist_t *list) {
 				}
 				dns_c_ipmatchlist_detach(&ipmlist);
 			}
+		} else if (zone->ztype == dns_c_zone_slave) {
+			iplist = NULL;
+			tmpres = dns_c_zone_getmasterips(zone, &iplist);
+			if (tmpres != ISC_R_SUCCESS) {
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_WARNING, nomasterserr,
+					      zone->name);
+				result = ISC_R_FAILURE;
+			} else if (iplist->nextidx == 0) {
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_CONFIG,
+					      DNS_LOGMODULE_CONFIG,
+					      ISC_LOG_WARNING, emptymasterserr,
+					      zone->name);
+				result = ISC_R_FAILURE;
+			}
 		}
-		
 	}
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 isc_result_t
@@ -464,6 +487,7 @@ dns_c_zone_new(isc_mem_t *mem,
 	newzone->ztype = ztype;
 	newzone->zclass = zclass;
 	newzone->view = NULL;
+	newzone->enabled = NULL;
 	newzone->afteropts = ISC_FALSE;
 	newzone->name = isc_mem_strdup(mem, name);
 	newzone->internalname = (internalname == NULL ?
@@ -576,9 +600,14 @@ dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone) {
 	}
 
 	if (zone->database != NULL) {
-		fprintf(fp, "\n");
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "database \"%s\";\n", zone->database);
+	}
+
+	if (zone->enabled != NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "enable-zone %s;\n",
+			(*zone->enabled ? "true" : "false"));
 	}
 	
 	dns_c_printtabs(fp, indent);
@@ -3673,6 +3702,11 @@ zone_delete(dns_c_zone_t **zone) {
 		isc_mem_free(z->mem, z->database);
 		z->database = NULL;
 	}
+
+	if (z->enabled != NULL) {
+		isc_mem_put(z->mem, z->enabled, sizeof (z->enabled));
+		z->enabled = NULL;
+	}
 	
 	switch(z->ztype) {
 	case dns_c_zone_master:
@@ -3975,4 +4009,64 @@ dns_c_zone_unsetdatabase(dns_c_zone_t *zone)
 		return (ISC_R_SUCCESS);
 	}
 }
+
+
+
+
+
+isc_result_t
+dns_c_zone_setenabled(dns_c_zone_t *zone, isc_boolean_t enabled)
+{
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	if (zone->enabled != NULL) {
+		existed = ISC_TRUE;
+	} else {
+		zone->enabled = isc_mem_get(zone->mem, sizeof (zone->enabled));
+	}
+	
+	*zone->enabled = enabled;
+
+	if (existed) {
+		return (ISC_R_EXISTS);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+
+isc_result_t
+dns_c_zone_getenabled(dns_c_zone_t *zone, isc_boolean_t *retval)
+{
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	if (zone->enabled == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		*retval = *zone->enabled;
+		return (ISC_R_SUCCESS);
+	}
+}
+
+	
+
+isc_result_t
+dns_c_zone_unsetenabled(dns_c_zone_t *zone)
+{
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	if (zone->enabled == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		isc_mem_put(zone->mem, zone->enabled, sizeof (zone->enabled));
+		zone->enabled = NULL;
+		return (ISC_R_SUCCESS);
+	}
+}
+	
+
+
 
