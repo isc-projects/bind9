@@ -149,7 +149,7 @@ Building
 		HP-UX 11
 		IRIX64 6.5
 		NetBSD-current (with unproven-pthreads-0.17)
-		Red Hat Linux 6.0, 6.1, 6.2
+		Red Hat Linux 6.0, 6.1, 6.2, 7.0
 		Solaris 2.6, 7, 8
 
 	Additionally, we have unverified reports of success building
