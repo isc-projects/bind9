@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.64 2000/05/26 00:16:41 bwelling Exp $
+ * $Id: tsig.c,v 1.65 2000/05/27 00:24:07 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -652,16 +652,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			ret = dns_tsigkey_create(keyname, &tsig->algorithm,
 						 NULL, 0, ISC_FALSE, NULL,
 						 now, now,
-						 mctx, dring, &tsigkey);
+						 mctx, dring, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_struct;
-			dns_message_settsigkey(msg, tsigkey);
-			dns_tsigkey_detach(&tsigkey);
 			return (DNS_R_TSIGVERIFYFAILURE);
 		}
-		dns_message_settsigkey(msg, tsigkey);
-		dns_tsigkey_detach(&tsigkey);
-		tsigkey = dns_message_gettsigkey(msg);
+		msg->tsigkey = tsigkey;
 	}
 
 	key = tsigkey->key;
