@@ -48,6 +48,7 @@
 #include <dns/tsig.h>
 #include <dns/tkey.h>
 #include <dns/keyvalues.h>
+#include <dns/view.h>
 
 #define CHECK(str, x) { \
 	if ((x) != ISC_R_SUCCESS) { \
@@ -76,6 +77,7 @@ isc_log_t *log = NULL;
 dns_tsig_keyring_t *ring = NULL;
 dns_tkey_ctx_t *tctx = NULL;
 isc_buffer_t *nonce = NULL;
+dns_view_t *view = NULL;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -167,6 +169,11 @@ recvdone2(isc_task_t *task, isc_event_t *event) {
 	CHECK("dns_message_create", result);
 	result = dns_message_parse(response2, &source, ISC_FALSE);
 	CHECK("dns_message_parse", result);
+	result = dns_view_create(mctx, 0, "_test", &view);
+	CHECK("dns_view_create", result);
+	dns_view_setkeyring(view, ring);
+	result = dns_message_checksig(response2, view);
+	CHECK("dns_message_checksig", result);
 
 	result = dns_tkey_processdeleteresponse(query2, response2, ring);
 	CHECK("dns_tkey_processdeleteresponse", result);
