@@ -122,7 +122,7 @@ struct dns_adbhandle {
 	unsigned int			query_pending;	/* RO: partial list */
 	unsigned int			partial_result;	/* RO: addrs missing */
 	unsigned int			options;	/* RO: options */
-	ISC_LINK(dns_adbhandle_t)	plink;		/* RW: client use */
+	ISC_LINK(dns_adbhandle_t)	publink;	/* RW: client use */
 
 	/* Private */
 	isc_mutex_t			lock;		/* locks all below */
@@ -130,7 +130,7 @@ struct dns_adbhandle {
 	dns_adbname_t		       *adbname;
 	dns_adb_t		       *adb;
 	isc_event_t			event;
-	ISC_LINK(dns_adbhandle_t)	link;
+	ISC_LINK(dns_adbhandle_t)	plink;
 };
 
 #define DNS_ADBFIND_INET		0x00000001
@@ -152,7 +152,7 @@ struct dns_adbaddrinfo {
 	unsigned int			srtt;		/* microseconds */
 	unsigned int			flags;
 	dns_adbentry_t		       *entry;		/* private */
-	ISC_LINK(dns_adbaddrinfo_t)	link;
+	ISC_LINK(dns_adbaddrinfo_t)	publink;
 };
 
 /*
