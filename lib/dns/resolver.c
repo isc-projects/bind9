@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.235 2002/01/17 00:16:25 marka Exp $ */
+/* $Id: resolver.c,v 1.236 2002/02/05 01:15:21 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3544,15 +3544,19 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 *
 					 * Only one set of NS RRs is allowed.
 					 */
-					if (ns_name != NULL && name != ns_name)
-						return (DNS_R_FORMERR);
-					ns_name = name;
+					if (rdataset->type ==
+					    dns_rdatatype_ns) {
+						if (ns_name != NULL &&
+						    name != ns_name)
+							return (DNS_R_FORMERR);
+						ns_name = name;
+						ns_rdataset = rdataset;
+					}
 					name->attributes |=
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
-					ns_rdataset = rdataset;
 				} else if (type == dns_rdatatype_soa ||
 					   type == dns_rdatatype_nxt) {
 					/*
