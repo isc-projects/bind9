@@ -7,6 +7,14 @@
 			not logged at a high enough logging level to be
 			useful in diagnosing this situation. [RT #275]
 
+ 435. [bug]		dns_zone_dump() overwrote existing zone files 
+			rather than writing to a temporary file and
+			renaming.  This could lead to empty or partial
+			zone files being left around in certain error
+			conditions involving the initial transfer of a
+			slave zone, interfering with subsequent server
+			startup. [RT #282]
+
  429.	[bug]		The space reserved for a TSIG record in a response
 			was 2 bytes too short, leading to message
 			generation failures.

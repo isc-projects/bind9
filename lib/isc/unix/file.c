@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: file.c,v 1.17 2000/06/22 21:58:35 tale Exp $ */
+/* $Id: file.c,v 1.17.2.1 2000/09/11 19:27:52 explorer Exp $ */
 
 #include <config.h>
 
@@ -177,6 +177,17 @@ isc_file_remove(const char *filename) {
 	int r;
 	
 	r = unlink(filename);
+	if (r == 0)
+		return (ISC_R_SUCCESS);
+	else
+		return (isc__errno2result(errno));
+}
+
+isc_result_t
+isc_file_rename(const char *oldname, const char *newname) {
+	int r;
+
+	r = rename(oldname, newname);
 	if (r == 0)
 		return (ISC_R_SUCCESS);
 	else

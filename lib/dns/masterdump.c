@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.27.2.1 2000/08/15 00:29:48 gson Exp $ */
+/* $Id: masterdump.c,v 1.27.2.2 2000/09/11 19:27:47 explorer Exp $ */
 
 #include <config.h>
 
@@ -859,26 +859,67 @@ dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 {
 	FILE *f = NULL;
 	isc_result_t result;
+	char *tempname;
+	int tempnamelen;
 
-	result = isc_stdio_open(filename, "w", &f);
+	tempnamelen = strlen(filename) + 20;
+	tempname = isc_mem_get(mctx, tempnamelen);
+	if (tempname == NULL)
+		return (ISC_R_NOMEMORY);
+
+	result = isc_file_mktemplate(filename, tempname, tempnamelen);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = isc_file_openunique(tempname, &f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
-			      "dumping master file: %s: open: %s", filename,
-			      isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+			      "dumping master file: %s: open: %s",
+			      tempname, isc_result_totext(result));
+		goto cleanup;
 	}
 
 	result = dns_master_dumptostream(mctx, db, version, style, f);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: %s",
+			      tempname, isc_result_totext(result));
+		(void)isc_stdio_close(f);
+		(void)isc_file_remove(tempname);
+		goto cleanup;
+	}
 
 	result = isc_stdio_close(f);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
-			      "dumping master file: %s: close: %s", filename,
-			      isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+			      "dumping master file: %s: close: %s",
+			      tempname, isc_result_totext(result));
+		(void)isc_file_remove(tempname);
+		goto cleanup;
+		
 	}
 
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: %s: close: %s",
+			      tempname, isc_result_totext(result));
+		goto cleanup;
+	}
+
+	result = isc_file_rename(tempname, filename);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_ERROR,
+			      "dumping master file: rename: %s: %s",
+			      filename, isc_result_totext(result));
+		goto cleanup;		
+	}
+
+ cleanup:
+	isc_mem_put(mctx, tempname, tempnamelen);
 	return (result);
 }
