@@ -15,12 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.1 2002/03/06 07:41:25 marka Exp $ */
+/* $Id: apl_42.c,v 1.2 2002/03/06 18:33:13 bwelling Exp $ */
 
 /* RFC 3123 */
 
-#ifndef RDATA_IN_1_ALP_42_C
-#define RDATA_IN_1_ALP_42_C
+#ifndef RDATA_IN_1_APL_42_C
+#define RDATA_IN_1_APL_42_C
 
 #define RRTYPE_APL_ATTRIBUTES (0)
 
@@ -366,4 +366,4 @@ digest_in_apl(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-#endif	/* RDATA_IN_1_ALP_42_C */
+#endif	/* RDATA_IN_1_APL_42_C */
