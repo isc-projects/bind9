@@ -34,12 +34,12 @@ LIBS		= @LIBS@
 
 OBJS		= confparser.@O@ confcommon.@O@ confacl.@O@ confcache.@O@ \
 		  confctl.@O@ confctx.@O@ confip.@O@ confkeys.@O@ conflog.@O@ \
-		  conflsn.@O@ confresolv.@O@ confrrset.@O@ \
+		  conflsn.@O@ confndc.@O@ confresolv.@O@ confrrset.@O@ \
 		  confview.@O@ confzone.@O@
 
 SRCS		= confparser.c confcommon.c confacl.c confcache.c \
 		  confctl.c confctx.c confip.c confkeys.c conflog.c \
-		  conflsn.c confresolv.c confrrset.c \
+		  conflsn.c confndc.c confresolv.c confrrset.c \
 		  confview.c confzone.c
 
 SUBDIRS		=	
