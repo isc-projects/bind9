@@ -24,7 +24,8 @@
 #include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/lex.h>
-#include <isc/list.h>
+
+#include "util.h"
 
 typedef struct inputsource {
 	isc_result_t			result;

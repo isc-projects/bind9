@@ -56,4 +56,28 @@
 #define RWUNLOCK(lp, t) \
 	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS)
 
+/*
+ * List Macros.
+ *
+ * These are provided as a temporary measure to ease the transition
+ * to the renamed list macros in <isc/list.h>.
+ */
+
+#include <isc/list.h>
+
+#define LIST(type)			ISC_LIST(type)
+#define INIT_LIST(type)			ISC_LIST_INIT(type)
+#define LINK(type)			ISC_LINK(type)
+#define INIT_LINK(elt, link)		ISC_LINK_INIT(elt, link)
+#define HEAD(list)			ISC_LIST_HEAD(list)
+#define TAIL(list)			ISC_LIST_TAIL(list)
+#define EMPTY(list)			ISC_LIST_EMPTY(list)
+#define PREV(elt, link)			ISC_LIST_PREV(elt, link)
+#define NEXT(elt, link)			ISC_LIST_NEXT(elt, link)
+#define APPEND(list, elt, link)		ISC_LIST_APPEND(list, elt, link)
+#define PREPEND(list, elt, link)	ISC_LIST_UNLINK(list, elt, link)
+#define UNLINK(list, elt, link)		ISC_LIST_UNLINK(list, elt, link)
+#define ENQUEUE(list, elt, link)	ISC_LIST_APPEND(list, elt, link)
+#define DEQUEUE(list, elt, link)	ISC_LIST_UNLINK(list, elt, link)
+
 #endif /* ISC_UTIL_H */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997  Internet Software Consortium.
+ * Copyright (C) 1997, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,26 +15,26 @@
  * SOFTWARE.
  */
 
-#ifndef LIST_H
-#define LIST_H 1
+#ifndef ISC_LIST_H
+#define ISC_LIST_H 1
 
-#define LIST(type) struct { type *head, *tail; }
-#define INIT_LIST(list) \
+#define ISC_LIST(type) struct { type *head, *tail; }
+#define ISC_LIST_INIT(list) \
 	do { (list).head = NULL; (list).tail = NULL; } while (0)
 
-#define LINK(type) struct { type *prev, *next; }
-#define INIT_LINK(elt, link) \
+#define ISC_LINK(type) struct { type *prev, *next; }
+#define ISC_LINK_INIT(elt, link) \
 	do { \
 		(elt)->link.prev = (void *)(-1); \
 		(elt)->link.next = (void *)(-1); \
 	} while (0)
-#define LINKED(elt, link) ((elt)->link.prev != (void *)(-1))
+#define ISC_LINK_LINKED(elt, link) ((elt)->link.prev != (void *)(-1))
 
-#define HEAD(list) ((list).head)
-#define TAIL(list) ((list).tail)
-#define EMPTY(list) ((list).head == NULL)
+#define ISC_LIST_HEAD(list) ((list).head)
+#define ISC_LIST_TAIL(list) ((list).tail)
+#define ISC_LIST_EMPTY(list) ((list).head == NULL)
 
-#define PREPEND(list, elt, link) \
+#define ISC_LIST_PREPEND(list, elt, link) \
 	do { \
 		if ((list).head != NULL) \
 			(list).head->link.prev = (elt); \
@@ -45,7 +45,7 @@
 		(list).head = (elt); \
 	} while (0)
 
-#define APPEND(list, elt, link) \
+#define ISC_LIST_APPEND(list, elt, link) \
 	do { \
 		if ((list).tail != NULL) \
 			(list).tail->link.next = (elt); \
@@ -56,7 +56,7 @@
 		(list).tail = (elt); \
 	} while (0)
 
-#define UNLINK(list, elt, link) \
+#define ISC_LIST_UNLINK(list, elt, link) \
 	do { \
 		if ((elt)->link.next != NULL) \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
@@ -68,13 +68,13 @@
 			(list).head = (elt)->link.next; \
 	} while (0)
 
-#define PREV(elt, link) ((elt)->link.prev)
-#define NEXT(elt, link) ((elt)->link.next)
+#define ISC_LIST_PREV(elt, link) ((elt)->link.prev)
+#define ISC_LIST_NEXT(elt, link) ((elt)->link.next)
 
-#define INSERT_BEFORE(list, before, elt, link) \
+#define ISC_LIST_INSERTBEFORE(list, before, elt, link) \
 	do { \
 		if ((before)->link.prev == NULL) \
-			PREPEND(list, elt, link); \
+			ISC_LIST_PREPEND(list, elt, link); \
 		else { \
 			(elt)->link.prev = (before)->link.prev; \
 			(before)->link.prev = (elt); \
@@ -83,10 +83,10 @@
 		} \
 	} while (0)
 
-#define INSERT_AFTER(list, after, elt, link) \
+#define ISC_LIST_INSERTAFTER(list, after, elt, link) \
 	do { \
 		if ((after)->link.next == NULL) \
-			APPEND(list, elt, link); \
+			ISC_LIST_APPEND(list, elt, link); \
 		else { \
 			(elt)->link.next = (after)->link.next; \
 			(after)->link.next = (elt); \
@@ -95,7 +95,7 @@
 		} \
 	} while (0)
 
-#define ENQUEUE(list, elt, link) APPEND(list, elt, link)
-#define DEQUEUE(list, elt, link) UNLINK(list, elt, link)
+#define ISC_LIST_ENQUEUE(list, elt, link) ISC_LIST_APPEND(list, elt, link)
+#define ISC_LIST_DEQUEUE(list, elt, link) ISC_LIST_UNLINK(list, elt, link)
 
-#endif /* LIST_H */
+#endif /* ISC_LIST_H */

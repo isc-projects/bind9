@@ -61,13 +61,13 @@ struct isc_event {
 	isc_taskaction_t		action;
 	void *				arg;
 	isc_eventdestructor_t		destroy;
-	LINK(struct isc_event)		link;
+	ISC_LINK(struct isc_event)	link;
 };
 
 #define ISC_TASKEVENT_ANYEVENT		0
 #define ISC_TASKEVENT_SHUTDOWN		(-1)
 
-typedef LIST(struct isc_event)		isc_eventlist_t;
+typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
 
 isc_event_t *				isc_event_allocate(isc_mem_t *,
 							   void *,
