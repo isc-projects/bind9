@@ -70,12 +70,13 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.9 2000/05/09 22:22:18 tale Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.10 2000/05/25 01:08:06 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
 
 #include <ctype.h>
+#include <stddef.h>		/* Required for NULL. */
 
 #include <isc/types.h>
 #include <isc/net.h>
@@ -91,7 +92,7 @@ int
 isc_net_aton(const char *cp, struct in_addr *addr) {
 	unsigned long val;
 	int base, n;
-	char c;
+	unsigned char c;
 	isc_uint8_t parts[4];
 	isc_uint8_t *pp = parts;
 	int digit;
