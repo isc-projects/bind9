@@ -6,12 +6,22 @@ Preparing a bind9 release
 Here's a rough outline of the steps to follow in preparing a new bind9
 release.
 
-
  - Update the README file
 
- - Verify that VERSION contains the correct version
+ - Update doc/misc/options
+
+ - Verify that the file "version" contains the correct version
    number (it should have been incremented after the
    previous release)
+
+ - If this is a final release (not a beta), update the
+   lib/*/api files as needed.  See the libtool info file
+   for information about what the various numbers mean.
+
+ - Check that http://status.isc.org/bind9/bind9.html shows 
+   a clean build and test status for all supported systems.
+
+ - Check that "make all_tests" does not produce compile errors.
 
  - Announce a CVS pool freeze on bind-dev
 
@@ -32,18 +42,20 @@ release.
     Resolving IPv6 addresses
     Doing queries over IPv6
 
- - Add a marker line like "--- 8.2.3-T4B (RC2) released ---" to
-   the CHANGES file.
+ - Add a marker line like "	--- 9.0.0b3 released ---"
+   to the CHANGES file.
 
- - Tag the CVS source tree with the final tag
+ - Tag the CVS source tree with the final tag, as in
+   "cvs rtag v9_0_0b3 bind9".
 
  - Export the source tree in to a fresh directory by
-   running "cvs export"
+   running "cvs export", as in "cvs export -rv9_0_0b3 bind9"
 
- - Run "make kit"
+ - Run "make kit" (actually, "sh configure && make kit").
 
  - Take the resulting distribution files to a secure system 
-   and sign them with the ISC signing PGP key
+   and sign them with the ISC signing PGP key:
+   "pgp -sba bind-9.0.0b3.tar.gz -u 0x51BAB2ED"
 
  - Change file permissions on the signature file to make sure
    it is not writable
@@ -55,7 +67,8 @@ release.
 
  - Prepare new web site information
 
- - Verify the PGP signature
+ - Verify the PGP signature:
+   pgp bind-9.0.0b3.tar.gz.asc bind-9.0.0b3.tar.gz
 
  - Copy the distribution and PGP signature files to the FTP site
 
@@ -63,7 +76,7 @@ release.
 
  - Announce the release
 
- - Increment VERSION
+ - Increment the version in the file "version"
 
  - Announce end of CVS pool freeze on bind-dev
 
