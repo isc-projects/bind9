@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.105 2000/09/28 23:02:25 mws Exp $ */
+/* $Id: dig.c,v 1.106 2000/09/29 23:42:12 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -165,6 +165,7 @@ show_usage(void) {
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
+"                 +[no]cmd            (Control display of command line)\n"
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
 "                 +[no]answer         (Control display of answer)\n"
@@ -335,6 +336,10 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
 
+	if (query->lookup->cmdline[0] != 0) {
+		fputs(query->lookup->cmdline, stdout);
+		query->lookup->cmdline[0]=0;
+	}
 	debug("printmessage(%s)", headers ? "headers" : "noheaders");
 
 	flags = 0;
@@ -352,6 +357,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	if (query->lookup->comments && !short_form) {
 		if (!query->lookup->doing_xfr) {
+			if (query->lookup->cmdline[0] != 0)
+				printf ("; %s\n",query->lookup->cmdline);
 			if (msg == query->lookup->sendmsg)
 				printf(";; Sending:\n");
 			else
@@ -505,19 +512,31 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
  * print the greeting message when the program first starts up.
  */
 static void
-printgreeting(int argc, char **argv) {
-	int i = 1;
+printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
+	int i;
+	static isc_boolean_t first = ISC_TRUE;
+	char append[MXNAME];
 
 	if (printcmd) {
-		puts("");
-		printf("; <<>> DiG 9.0 <<>>");
+		snprintf(lookup->cmdline, sizeof(lookup->cmdline),
+			 "%s; <<>> DiG " VERSION " <<>>",
+			 first?"\n":"");
+		i = 1;
 		while (i < argc) {
-			printf(" %s", argv[i++]);
+			snprintf(append, sizeof(append), " %s", argv[i++]);
+			strncat(lookup->cmdline, append,
+				sizeof (lookup->cmdline));
 		}
-		puts("");
-		printf(";; global options: %s %s\n",
-		       short_form ? "short_form" : "",
-		       printcmd ? "printcmd" : "");
+		strncat(lookup->cmdline, "\n", sizeof (lookup->cmdline));
+		if (first) {
+			snprintf(append, sizeof (append), 
+				 ";; global options: %s %s\n",
+			       short_form ? "short_form" : "",
+			       printcmd ? "printcmd" : "");
+			first = ISC_FALSE;
+			strncat(lookup->cmdline, append,
+				sizeof (lookup->cmdline));
+		}
 	}
 }
 
@@ -989,6 +1008,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	   int argc, char **argv) {
 	isc_result_t result;
 	isc_textregion_t tr;
+	isc_boolean_t firstarg = ISC_TRUE;
 	dig_server_t *srv = NULL;
 	dig_lookup_t *lookup = NULL;
 	dns_rdatatype_t rdtype;
@@ -1003,6 +1023,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	char rcfile[132];
 #endif
 	char *input;
+	int i;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -1112,6 +1133,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			if (!config_only) {
 				lookup = clone_lookup(default_lookup,
 						      ISC_TRUE);
+				if (firstarg) {
+					printgreeting(argc, argv, lookup);
+					firstarg = ISC_FALSE;
+				}
 				strncpy(lookup->textname, rv[0], MXNAME-1);
 				lookup->trace_root = ISC_TF(lookup->trace  ||
 						     lookup->ns_search_only);
@@ -1139,9 +1164,13 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			fatal("Couldn't open specified batch file");
 		}
 		/* XXX Remove code dup from shutdown code */
+	next_line:
 		if (fgets(batchline, sizeof(batchline), batchfp) != 0) {
-			debug("batch line %s", batchline);
 			bargc = 1;
+			debug("batch line %s", batchline);
+			if (batchline[0] == '\r' || batchline[0] == '\n'
+			    || batchline[0] == '#' || batchline[0] == ';')
+				goto next_line;
 			input = batchline;
 			bargv[bargc] = next_token(&input, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14)) {
@@ -1168,8 +1197,6 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		lookup->rdtype = dns_rdatatype_ns;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
-	if (!config_only)
-		printgreeting(argc, argv);
 }
 
 /*

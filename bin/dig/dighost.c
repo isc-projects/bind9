@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.137 2000/09/28 23:02:26 mws Exp $ */
+/* $Id: dighost.c,v 1.138 2000/09/29 23:42:14 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -279,6 +279,7 @@ make_empty_lookup(void) {
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
 	looknew->textname[0]=0;
+	looknew->cmdline[0]=0; /* Not copied in clone_lookup! */
 	looknew->rdtype=dns_rdatatype_a;
 	looknew->rdclass=dns_rdataclass_in;
 	looknew->sendspace = NULL;
