@@ -1,3 +1,7 @@
+1180.	[func]		dnssec-keygen should always generate keys with
+			protocol 3 (DNSSEC), since it's less confusing
+			that way.
+
 1179.	[func]		Add SIG(0) support to nsupdate.
 
 1177.	[func]		Report view when loading zones if it is not a
