@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.8 1999/09/02 15:56:32 bwelling Exp $
+ * $Id: tsig.c,v 1.9 1999/09/10 02:42:12 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -185,6 +185,8 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (is_response(msg))
 		REQUIRE(msg->querytsig != NULL);
 
+	dynbuf = NULL;
+
 	mctx = msg->mctx;
 	key = msg->tsigkey;
 
@@ -348,34 +350,21 @@ dns_tsig_sign(dns_message_t *msg) {
 		tsig->signature = NULL;
 	}
 
-	/* There should be a better way of accessing msg->scratchpad */
 	rdata = NULL;
 	ret = dns_message_gettemprdata(msg, &rdata);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
 	tries = 0;
-	dynbuf = ISC_LIST_TAIL(msg->scratchpad);
-	INSIST(dynbuf != NULL);
-	rdatabuf = *dynbuf;
-	while (tries < 2) {
-		ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
-					   dns_rdatatype_tsig, tsig, &rdatabuf);
-		if (ret == ISC_R_SUCCESS)
-			break;
-		else if (ret == ISC_R_NOSPACE) {
-			if (++tries == 2)
-				return (ISC_R_NOMEMORY);
-			ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
-						  ISC_BUFFERTYPE_BINARY);
-			if (ret != ISC_R_SUCCESS)
-				goto cleanup_signature;
-			ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
-			rdatabuf = *dynbuf;
-		}
-		else
-			goto cleanup_signature;
+	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512,
+				  ISC_BUFFERTYPE_BINARY);
+	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
+				   dns_rdatatype_tsig, tsig, dynbuf);
+	if (ret != ISC_R_SUCCESS) {
+		isc_buffer_free(&dynbuf);
+		goto cleanup_signature;
 	}
 
+	dns_message_takebuffer(msg, &dynbuf);
 	msg->tsig = tsig;
 
 	owner = NULL;
