@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.34 2000/12/01 23:27:40 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.35 2000/12/01 23:29:54 marka Exp $ */
 
 #include <config.h>
 
@@ -3679,6 +3679,7 @@ view_stmt: L_VIEW any_string optional_class L_LBRACE
 			tmpres = dns_c_viewtable_new(currcfg->mem,
 						     &currcfg->views);
 			if (tmpres != ISC_R_SUCCESS) {
+				isc_mem_free(memctx, $2);
 				parser_error(ISC_FALSE,
 					     "failed to create viewtable");
 				YYABORT;
@@ -3687,6 +3688,7 @@ view_stmt: L_VIEW any_string optional_class L_LBRACE
 
 		tmpres = dns_c_view_new(currcfg->mem, $2, $3, &view);
 		if (tmpres != ISC_R_SUCCESS) {
+			isc_mem_free(memctx, $2);
 			parser_error(ISC_FALSE,
 				     "failed to create view %s", $2);
 			YYABORT;
@@ -3695,6 +3697,7 @@ view_stmt: L_VIEW any_string optional_class L_LBRACE
 		tmpres = dns_c_viewtable_addview(currcfg->views, view);
 		if (tmpres != ISC_R_SUCCESS) {
 			dns_c_view_delete(&view);
+			isc_mem_free(memctx, $2);
 			parser_error(ISC_FALSE,
 				     "view '%s' already exists", $2);
 			YYABORT;
