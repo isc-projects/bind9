@@ -1,3 +1,5 @@
+1701.	[doc]		A minimal named.conf man page.
+
 1700.	[func]		nslookup is no longer to be treated as deprecated.
 			Remove "deprecated" warning message.  Add man page.
 
