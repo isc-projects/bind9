@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.10 2002/11/12 23:38:12 explorer Exp $ */
+/* $Id: namedconf.c,v 1.11 2002/11/27 09:52:58 marka Exp $ */
 
 #include <config.h>
 
@@ -524,7 +524,8 @@ options_clauses[] = {
 static cfg_clausedef_t
 view_clauses[] = {
 	{ "allow-recursion", &cfg_type_bracketed_aml, 0 },
-	{ "allow-v6-synthesis", &cfg_type_bracketed_aml, 0 },
+	{ "allow-v6-synthesis", &cfg_type_bracketed_aml,
+	  CFG_CLAUSEFLAG_OBSOLETE },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_NOTIMP },
 	{ "auth-nxdomain", &cfg_type_boolean, CFG_CLAUSEFLAG_NEWDEFAULT },

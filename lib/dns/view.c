@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.113 2002/09/10 02:06:49 marka Exp $ */
+/* $Id: view.c,v 1.114 2002/11/27 09:52:55 marka Exp $ */
 
 #include <config.h>
 
@@ -153,7 +153,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
 	view->recursionacl = NULL;
-	view->v6synthesisacl = NULL;
 	view->sortlist = NULL;
 	view->requestixfr = ISC_TRUE;
 	view->provideixfr = ISC_TRUE;
@@ -263,8 +262,6 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->queryacl);
 	if (view->recursionacl != NULL)
 		dns_acl_detach(&view->recursionacl);
-	if (view->v6synthesisacl != NULL)
-		dns_acl_detach(&view->v6synthesisacl);
 	if (view->sortlist != NULL)
 		dns_acl_detach(&view->sortlist);
 	dns_keytable_detach(&view->trustedkeys);

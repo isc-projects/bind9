@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.237 2002/09/11 06:36:17 marka Exp $ */
+/* $Id: query.c,v 1.238 2002/11/27 09:52:45 marka Exp $ */
 
 #include <config.h>
 
@@ -89,71 +89,8 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 
-static unsigned char ip6int_ndata[] = "\003ip6\003int";
-static unsigned char ip6int_offsets[] = { 0, 4, 8 };
-
-static dns_name_t ip6int_name = {
-	DNS_NAME_MAGIC,
-	ip6int_ndata, 9, 3,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	ip6int_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
-static unsigned char ip6arpa_ndata[] = "\003ip6\004arpa";
-static unsigned char ip6arpa_offsets[] = { 0, 4, 9 };
-
-static dns_name_t ip6arpa_name = {
-	DNS_NAME_MAGIC,
-	ip6arpa_ndata, 10, 3,
-	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
-	ip6arpa_offsets, NULL,
-	{(void *)-1, (void *)-1},
-	{NULL, NULL}
-};
-
-static isc_result_t
-query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
-		 isc_stdtime_t now,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
-
-static inline void
-query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
-		      dns_rdataset_t *sigrdataset);
-
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
-
-static void
-synth_fwd_start(ns_client_t *client);
-
-static void
-synth_fwd_startfind(ns_client_t *client);
-
-static void
-synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find);
-
-static void
-synth_fwd_finddone(isc_task_t *task, isc_event_t *ev);
-
-static void
-synth_finish(ns_client_t *client, isc_result_t result);
-
-static void
-synth_rev_start(ns_client_t *client);
-
-static void
-synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event);
-
-static void
-synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event);
-
-static void
-synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
-
-static isc_result_t
-nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na);
 
 /*
  * Increment query statistics counters.
@@ -161,7 +98,7 @@ nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na);
 static inline void
 inc_stats(ns_client_t *client, dns_statscounter_t counter) {
 	dns_zone_t *zone = client->query.authzone;
-	
+
 	REQUIRE(counter < DNS_STATS_NCOUNTERS);
 
 	ns_g_server->querystats[counter]++;
@@ -551,8 +488,6 @@ ns_query_init(ns_client_t *client) {
 		DESTROYLOCK(&client->query.fetchlock);
 		return (result);
 	}
-	dns_a6_init(&client->query.a6ctx, query_simplefind, query_adda6rrset,
-		    NULL, NULL, client);
 	result = query_newnamebuf(client);
 	if (result != ISC_R_SUCCESS)
 		query_freefreeversions(client, ISC_TRUE);
@@ -864,139 +799,6 @@ query_getdb(ns_client_t *client, dns_name_t *name, unsigned int options,
 	return (result);
 }
 
-static isc_result_t
-query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
-		 isc_stdtime_t now,
-		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
-{
-	ns_client_t *client = arg;
-	isc_result_t result;
-	dns_fixedname_t foundname;
-	dns_db_t *db;
-	dns_dbversion_t *version;
-	unsigned int dboptions;
-	isc_boolean_t is_zone;
-	dns_rdataset_t zrdataset, zsigrdataset;
-	dns_zone_t *zone;
-
-	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(rdataset != NULL);
-
-	dns_rdataset_init(&zrdataset);
-	if (sigrdataset != NULL)
-		dns_rdataset_init(&zsigrdataset);
-
-	/*
-	 * Find a database to answer the query.
-	 */
-	zone = NULL;
-	db = NULL;
-	version = NULL;
-	result = query_getdb(client, name, 0, &zone, &db, &version, &is_zone);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
- db_find:
-	/*
-	 * Now look for an answer in the database.
-	 */
-	dns_fixedname_init(&foundname);
-	dboptions = client->query.dboptions;
-	if (db == client->query.gluedb || (!is_zone && CACHEGLUEOK(client)))
-		dboptions |= DNS_DBFIND_GLUEOK;
-	result = dns_db_find(db, name, version, type, dboptions,
-			     now, NULL, dns_fixedname_name(&foundname),
-			     rdataset, sigrdataset);
-	if (result == DNS_R_DELEGATION ||
-	    result == ISC_R_NOTFOUND) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		if (is_zone) {
-			if (USECACHE(client)) {
-				/*
-				 * Either the answer is in the cache, or we
-				 * don't know it.
-				 */
-				is_zone = ISC_FALSE;
-				version = NULL;
-				dns_db_detach(&db);
-				dns_db_attach(client->view->cachedb, &db);
-				goto db_find;
-			}
-		} else {
-			/*
-			 * We don't have the data in the cache.  If we've got
-			 * glue from the zone, use it.
-			 */
-			if (dns_rdataset_isassociated(&zrdataset)) {
-				dns_rdataset_clone(&zrdataset, rdataset);
-				if (sigrdataset != NULL &&
-				    dns_rdataset_isassociated(&zsigrdataset))
-					dns_rdataset_clone(&zsigrdataset,
-							   sigrdataset);
-				result = ISC_R_SUCCESS;
-				goto cleanup;
-			}
-		}
-		/*
-		 * We don't know the answer.
-		 */
-		result = ISC_R_NOTFOUND;
-	} else if (result == DNS_R_GLUE) {
-		if (USECACHE(client) && RECURSIONOK(client)) {
-			/*
-			 * We found an answer, but the cache may be better.
-			 * Remember what we've got and go look in the cache.
-			 */
-			is_zone = ISC_FALSE;
-			version = NULL;
-			dns_rdataset_clone(rdataset, &zrdataset);
-			dns_rdataset_disassociate(rdataset);
-			if (sigrdataset != NULL &&
-			    dns_rdataset_isassociated(sigrdataset))
-			{
-				dns_rdataset_clone(sigrdataset, &zsigrdataset);
-				dns_rdataset_disassociate(sigrdataset);
-			}
-			dns_db_detach(&db);
-			dns_db_attach(client->view->cachedb, &db);
-			goto db_find;
-		}
-		/*
-		 * Otherwise, the glue is the best answer.
-		 */
-		result = ISC_R_SUCCESS;
-	} else if (result != ISC_R_SUCCESS) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		result = ISC_R_NOTFOUND;
-	}
-	/*
-	 * If we get here, the result is ISC_R_SUCCESS, and we found the
-	 * answer we were looking for in the zone.
-	 */
-
- cleanup:
-	if (dns_rdataset_isassociated(&zrdataset)) {
-		dns_rdataset_disassociate(&zrdataset);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(&zsigrdataset))
-			dns_rdataset_disassociate(&zsigrdataset);
-	}
-	if (db != NULL)
-		dns_db_detach(&db);
-	if (zone != NULL)
-		dns_zone_detach(&zone);
-
-	return (result);
-}
-
 static inline isc_boolean_t
 query_isduplicate(ns_client_t *client, dns_name_t *name,
 		  dns_rdatatype_t type, dns_name_t **mnamep)
@@ -1049,7 +851,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	dns_dbnode_t *node;
 	dns_db_t *db;
 	dns_name_t *fname, *mname;
-	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset, *trdataset;
+	dns_rdataset_t *rdataset, *sigrdataset, *trdataset;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
 	dns_dbversion_t *version;
@@ -1072,7 +874,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	fname = NULL;
 	rdataset = NULL;
 	sigrdataset = NULL;
-	a6rdataset = NULL;
 	trdataset = NULL;
 	db = NULL;
 	version = NULL;
@@ -1233,7 +1034,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 
 	if (qtype == dns_rdatatype_a) {
 		/*
-		 * We now go looking for A, A6, and AAAA records, along with
+		 * We now go looking for A and AAAA records, along with
 		 * their signatures.
 		 *
 		 * XXXRTH  This code could be more efficient.
@@ -1277,49 +1078,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 					fname = mname;
 				} else
 					need_addname = ISC_TRUE;
-				ISC_LIST_APPEND(fname->list, rdataset, link);
-				added_something = ISC_TRUE;
-				if (sigrdataset != NULL &&
-				    dns_rdataset_isassociated(sigrdataset))
-				{
-					ISC_LIST_APPEND(fname->list,
-							sigrdataset, link);
-					sigrdataset =
-						query_newrdataset(client);
-				}
-				rdataset = query_newrdataset(client);
-				if (rdataset == NULL)
-					goto addname;
-				if (WANTDNSSEC(client) && sigrdataset == NULL)
-					goto addname;
-			} else {
-				dns_rdataset_disassociate(rdataset);
-				if (sigrdataset != NULL &&
-				    dns_rdataset_isassociated(sigrdataset))
-					dns_rdataset_disassociate(sigrdataset);
-			}
-		}
-		result = dns_db_findrdataset(db, node, version,
-					     dns_rdatatype_a6, 0,
-					     client->now, rdataset,
-					     sigrdataset);
-		if (result == DNS_R_NCACHENXDOMAIN)
-			goto addname;
-		if (result == DNS_R_NCACHENXRRSET) {
-			dns_rdataset_disassociate(rdataset);
-			INSIST(sigrdataset == NULL ||
-			       ! dns_rdataset_isassociated(sigrdataset));
-		}
-		if (result == ISC_R_SUCCESS) {
-			mname = NULL;
-			if (!query_isduplicate(client, fname,
-					       dns_rdatatype_a6, &mname)) {
-				if (mname != NULL) {
-					query_releasename(client, &fname);
-					fname = mname;
-				} else
-					need_addname = ISC_TRUE;
-				a6rdataset = rdataset;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
 				if (sigrdataset != NULL &&
@@ -1409,10 +1167,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		/*
 		 * RFC 2535 section 3.5 says that when A or AAAA records are
 		 * retrieved as additional data, any KEY RRs for the owner name
-		 * should be added to the additional data section.  Note: we
-		 * do NOT include A6 in the list of types with such treatment
-		 * in additional data because we'd have to do it for each A6
-		 * in the A6 chain.
+		 * should be added to the additional data section.
 		 *
 		 * XXXRTH  We should lower the priority here.  Alternatively,
 		 * we could raise the priority of glue records.
@@ -1427,16 +1182,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		eresult = dns_rdataset_additionaldata(trdataset,
 						      query_addadditional,
 						      client);
-	}
-
-	/*
-	 * If we added an A6 rdataset, we should also add everything we
-	 * know about the A6 chains.  We wait until now to do this so that
-	 * they'll come after any additional data added above.
-	 */
-	if (a6rdataset != NULL) {
-		dns_a6_reset(&client->query.a6ctx);
-		(void)dns_a6_foreach(&client->query.a6ctx, a6rdataset, client->now);
 	}
 
  cleanup:
@@ -1455,86 +1200,6 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 
 	CTRACE("query_addadditional: done");
 	return (eresult);
-}
-
-static void
-query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
-		      dns_rdataset_t *sigrdataset)
-{
-	ns_client_t *client = arg;
-	dns_rdataset_t *crdataset, *csigrdataset;
-	isc_buffer_t b, *dbuf;
-	dns_name_t *fname, *mname;
-
-	/*
-	 * Add an rrset to the additional data section.
-	 */
-
-	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(rdataset->type == dns_rdatatype_a6);
-
-	/*
-	 * Get some resources...
-	 */
-	fname = NULL;
-	crdataset = NULL;
-	csigrdataset = NULL;
-	dbuf = query_getnamebuf(client);
-	if (dbuf == NULL)
-		goto cleanup;
-	fname = query_newname(client, dbuf, &b);
-	crdataset = query_newrdataset(client);
-	if (fname == NULL || crdataset == NULL)
-		goto cleanup;
-	if (sigrdataset != NULL) {
-		csigrdataset = query_newrdataset(client);
-		if (csigrdataset == NULL)
-			goto cleanup;
-	}
-
-	if (dns_name_copy(name, fname, NULL) != ISC_R_SUCCESS)
-		goto cleanup;
-	dns_rdataset_clone(rdataset, crdataset);
-	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset))
-		dns_rdataset_clone(sigrdataset, csigrdataset);
-
-	mname = NULL;
-	if (query_isduplicate(client, fname, crdataset->type, &mname))
-		goto cleanup;
-	if (mname != NULL) {
-		query_releasename(client, &fname);
-		fname = mname;
-	} else {
-		query_keepname(client, fname, dbuf);
-		dns_message_addname(client->message, fname,
-				    DNS_SECTION_ADDITIONAL);
-	}
-
-	ISC_LIST_APPEND(fname->list, crdataset, link);
-	crdataset = NULL;
-	/*
-	 * Note: we only add SIGs if we've added the type they cover, so
-	 * we do not need to check if the SIG rdataset is already in the
-	 * response.
-	 */
-	if (sigrdataset != NULL && dns_rdataset_isassociated(csigrdataset)) {
-		ISC_LIST_APPEND(fname->list, csigrdataset, link);
-		csigrdataset = NULL;
-	}
-
-	fname = NULL;
-
-	/*
-	 * In spite of RFC 2535 section 3.5, we don't currently try to add
-	 * KEY RRs for the A6 records.  It's just too much work.
-	 */
-
- cleanup:
-	query_putrdataset(client, &crdataset);
-	if (sigrdataset != NULL)
-		query_putrdataset(client, &csigrdataset);
-	if (fname != NULL)
-		query_releasename(client, &fname);
 }
 
 static inline void
@@ -1562,16 +1227,10 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	/*
 	 * Add additional data.
 	 *
-	 * We don't care if dns_a6_foreach or dns_rdataset_additionaldata()
-	 * fail.
+	 * We don't care if dns_rdataset_additionaldata() fails.
 	 */
-	if (type == dns_rdatatype_a6) {
-		dns_a6_reset(&client->query.a6ctx);
-		(void)dns_a6_foreach(&client->query.a6ctx, rdataset,
-				     client->now);
-	} else
-		(void)dns_rdataset_additionaldata(rdataset,
-						  query_addadditional, client);
+	(void)dns_rdataset_additionaldata(rdataset,
+					  query_addadditional, client);
 	/*
 	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
 	 * are retrieved, any KEY RRs for the owner name should be added
@@ -3631,428 +3290,7 @@ ns_query_start(ns_client_t *client) {
 	if (WANTDNSSEC(client))
 		message->flags |= DNS_MESSAGEFLAG_AD;
 
-	/*
-	 * Synthesize IPv6 responses if appropriate.
-	 */
-	if (RECURSIONOK(client) &&
-	    (qtype == dns_rdatatype_aaaa || qtype == dns_rdatatype_ptr) &&
-	    client->message->rdclass == dns_rdataclass_in &&
-	    ns_client_checkacl(client, "v6 synthesis",
-			       client->view->v6synthesisacl,
-			       ISC_FALSE, ISC_LOG_DEBUG(9)) == ISC_R_SUCCESS)
-	{
-		if (qtype == dns_rdatatype_aaaa) {
-			qclient = NULL;
-			ns_client_attach(client, &qclient);
-			synth_fwd_start(qclient);
-			return;
-		} else {
-			INSIST(qtype == dns_rdatatype_ptr);
-			 /* Must be 32 nibbles + "ip6" + "int" + root */
-			if (dns_name_countlabels(client->query.qname) == 35 &&
-			    (dns_name_issubdomain(client->query.qname,
-					          &ip6int_name) ||
-			     dns_name_issubdomain(client->query.qname,
-					          &ip6arpa_name)) &&
-			    nibbles2netaddr(client->query.qname,
-				   &client->query.synth.na) == ISC_R_SUCCESS) {
-				qclient = NULL;
-				ns_client_attach(client, &qclient);
-				synth_rev_start(qclient);
-				return;
-			}
-		}
-	}
-
 	qclient = NULL;
 	ns_client_attach(client, &qclient);
 	query_find(qclient, NULL, qtype);
-}
-
-/*
- * Generate a synthetic IPv6 forward mapping response for the current
- * query of 'client'.
- */
-static void
-synth_fwd_start(ns_client_t *client) {
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(5), "generating synthetic AAAA response");
-
-	synth_fwd_startfind(client);
-}
-
-/*
- * Start an ADB find to get addresses, or more addresses, for 
- * a synthetic IPv6 forward mapping response.
- */
-static void
-synth_fwd_startfind(ns_client_t *client) {
-	dns_adbfind_t *find = NULL;
-	isc_result_t result;
-	dns_fixedname_t target_fixed;
-	dns_name_t *target;
-
-	dns_fixedname_init(&target_fixed);
-	target = dns_fixedname_name(&target_fixed);
-
- find_again:
-	result = dns_adb_createfind(client->view->adb, client->task,
-			    synth_fwd_finddone, client, client->query.qname,
-			    dns_rootname, 
-			    DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_RETURNLAME |
-			    DNS_ADBFIND_INET6, client->now,
-			    target, 0, &find);
-
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(5), "find returned %s",
-		      isc_result_totext(result));
-
-	if (result == DNS_R_ALIAS) {
-		dns_name_t *ptarget = NULL;
-		dns_name_t *tname = NULL;
-		isc_buffer_t *dbuf;
-		isc_buffer_t b;
-
-		/*
-		 * Make a persistent copy of the 'target' name data in 'ptarget';
-		 * it will become the new query name.
-		 */
-		dbuf = query_getnamebuf(client);
-		if (dbuf == NULL)
-			goto fail;
-		ptarget = query_newname(client, dbuf, &b);
-		if (ptarget == NULL)
-			goto fail;
-		RUNTIME_CHECK(dns_name_copy(target, ptarget, NULL) == ISC_R_SUCCESS);
-		
-		dns_adb_destroyfind(&find);
-
-		/*
-		 * Get another temporary name 'tname' for insertion into the
-		 * response message.
-		 */
-		result = dns_message_gettempname(client->message, &tname);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-		dns_name_init(tname, NULL);
-		result = query_addcnamelike(client, client->query.qname,
-					    ptarget, 0 /* XXX ttl */, &tname,
-					    dns_rdatatype_cname);
-		if (tname != NULL)
-			dns_message_puttempname(client->message, &tname);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-
-		query_maybeputqname(client);
-		client->query.qname = ptarget;
-		query_keepname(client, ptarget, dbuf);
-		ptarget = NULL;
-		if (client->query.restarts < MAX_RESTARTS) {
-			client->query.restarts++;
-			goto find_again;
-		} else {
-			/*
-			 * Probably a CNAME loop.  Reply with partial
-			 * CNAME chain.
-			 */
-			result = ISC_R_SUCCESS;
-			goto done;
-		}
-	} else if (result != ISC_R_SUCCESS) {
-		if (find != NULL)
-			dns_adb_destroyfind(&find);
-		goto fail;
-	}
-
-	if ((find->options & DNS_ADBFIND_WANTEVENT) != 0) {
-		ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-			      ISC_LOG_DEBUG(5), "find will send event");
-	} else {
-		synth_fwd_respond(client, find);
-		dns_adb_destroyfind(&find);
-	}
-	return;
-
- fail:
-	result = DNS_R_SERVFAIL;
- done:
-	synth_finish(client, result);
-}
-
-/*
- * Handle an ADB finddone event generated as part of synthetic IPv6
- * forward mapping processing.
- */
-static void
-synth_fwd_finddone(isc_task_t *task, isc_event_t *ev) {
-	ns_client_t *client = ev->ev_arg;
-	dns_adbfind_t *find = ev->ev_sender;
-	isc_eventtype_t evtype = ev->ev_type;
-
-	UNUSED(task);
-
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(5), "got find event");
-
-	if (evtype == DNS_EVENT_ADBNOMOREADDRESSES)
-		synth_fwd_respond(client, find);
-	else if (evtype == DNS_EVENT_ADBMOREADDRESSES)
-		synth_fwd_startfind(client);
-	else
-		synth_finish(client, DNS_R_SERVFAIL);
-
-	isc_event_free(&ev);
-	dns_adb_destroyfind(&find);
-	
-}
-
-/*
- * Generate a synthetic IPv6 forward mapping response based on
- * a completed ADB lookup.
- */
-static void
-synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find) {
-	dns_adbaddrinfo_t *ai;
-	dns_name_t *tname = NULL;
-	dns_rdataset_t *rdataset = NULL;
-	dns_rdatalist_t *rdatalist = NULL;
-	isc_result_t result;
-
-	result = dns_message_gettempname(client->message, &tname);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	dns_name_init(tname, NULL);
-		
-	result = dns_message_gettemprdatalist(client->message, &rdatalist);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	
-	result = dns_message_gettemprdataset(client->message, &rdataset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	dns_rdataset_init(rdataset);
-
-	ISC_LIST_INIT(rdatalist->rdata);
-
-	rdatalist->type = dns_rdatatype_aaaa;
-	rdatalist->covers = 0;
-	rdatalist->rdclass = client->message->rdclass;
-	rdatalist->ttl = 0;
-
-	dns_name_clone(client->query.qname, tname);
-	
-	for (ai = ISC_LIST_HEAD(find->list);
-	     ai != NULL;
-	     ai = ISC_LIST_NEXT(ai, publink)) {
-		dns_rdata_t *rdata = NULL;
-		
-		struct sockaddr_in6 *sin6 = &ai->sockaddr.type.sin6;
-		/*
-		 * Could it be useful to return IPv4 addresses as A records?
-		 */
-		if (sin6->sin6_family != AF_INET6)
-			continue;
-
-		result = dns_message_gettemprdata(client->message, &rdata);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-
-		rdata->data = (unsigned char *) &sin6->sin6_addr;
-		rdata->length = 16;
-		rdata->rdclass = client->message->rdclass;
-		rdata->type = dns_rdatatype_aaaa;
-		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	}
-
-	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
-		      == ISC_R_SUCCESS);
-
-	query_addrrset(client, &tname, &rdataset, NULL, NULL,
-		       DNS_SECTION_ANSWER);
-
- cleanup:
-	if (tname != NULL)
-		dns_message_puttempname(client->message, &tname);
-
-	if (rdataset != NULL) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		dns_message_puttemprdataset(client->message, &rdataset);
-	}
-
-	synth_finish(client, result);
-}
-
-/*
- * Finish synthetic IPv6 forward mapping processing.
- */
-static void
-synth_finish(ns_client_t *client, isc_result_t result) {
-	if (result == ISC_R_SUCCESS)
-		query_send(client);
-	else
-		query_error(client, result);
-	ns_client_detach(&client);	
-}
-
-static signed char ascii2hex[256] = {
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
-	-1, 10, 11, 12, 13, 14, 15, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, 10, 11, 12, 13, 14, 15, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1
-};
-
-/*
- * Convert label 'i' of 'name' into its hexadecimal value, storing it
- * in '*hexp'.  If the label is not a valid hex nibble, return ISC_R_FAILURE.
- */
-static isc_result_t
-label2hex(dns_name_t *name, int i, int *hexp) {
-	isc_region_t label;
-	int hexval;
-	dns_name_getlabel(name, i, &label);
-	if (label.length != 2 || label.base[0] != '\001')
-		return (ISC_R_FAILURE);
-	hexval = ascii2hex[label.base[1]];
-	if (hexval == -1)
-		return (ISC_R_FAILURE);
-	*hexp = hexval;
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * Convert the ip6.int name 'name' into the corresponding IPv6 address
- * in 'na'. 
- */
-static isc_result_t
-nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na) {
-	isc_result_t result;
-	struct in6_addr ina6;
-	unsigned char *addrdata = (unsigned char *) &ina6;
-	int i;
-
-	for (i = 0; i < 16; i++) {
-		int hex0, hex1;
-		result = label2hex(name, 2 * i, &hex0);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = label2hex(name, 2 * i + 1, &hex1);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		addrdata[15-i] = (hex1 << 4) | hex0;
-	}
-	isc_netaddr_fromin6(na, &ina6);
-	return (ISC_R_SUCCESS);
-}
-
-/*
- * Generate a synthetic IPv6 reverse mapping response for the current
- * query of 'client'.
- */
-static void
-synth_rev_start(ns_client_t *client) {
-	isc_result_t result;
-	dns_byaddr_t *byaddr_dummy = NULL;
-	
-	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
-		      ISC_LOG_DEBUG(5), "generating synthetic PTR response");
-
-	/* Try IP6.ARPA first. */
-	result = dns_byaddr_create(client->mctx,
-				   &client->query.synth.na,
-				   client->view, 0, client->task,
-				   synth_rev_byaddrdone_arpa,
-				   client, &byaddr_dummy);
-	if (result == ISC_R_SUCCESS)
-		return; /* Wait for completion event. */
-	synth_finish(client, result);
-}
-
-static void
-synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result;
-	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
-	ns_client_t *client = event->ev_arg;
-	dns_byaddr_t *byaddr = event->ev_sender;
-	dns_byaddr_t *byaddr_dummy = NULL;	
-
-	UNUSED(task);
-
-	if (bevent->result == ISC_R_SUCCESS) {
-		synth_rev_respond(client, bevent);
-	} else {
-		/* Try IP6.INT next. */
-		result = dns_byaddr_create(client->mctx,
-					   &client->query.synth.na,
-					   client->view,
-					   DNS_BYADDROPT_IPV6INT,
-					   client->task,
-					   synth_rev_byaddrdone_int,
-					   client, &byaddr_dummy);
-		if (result != ISC_R_SUCCESS)
-			synth_finish(client, result);
-	}
-	dns_byaddr_destroy(&byaddr);
-	isc_event_free(&event);
-}
-
-static void
-synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
-	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
-	ns_client_t *client = event->ev_arg;
-	dns_byaddr_t *byaddr = event->ev_sender;
-
-	UNUSED(task);
-
-	if (bevent->result == ISC_R_SUCCESS)
-		synth_rev_respond(client, bevent);
-	else
-		synth_finish(client, bevent->result);
-
-	dns_byaddr_destroy(&byaddr);
-	isc_event_free(&event);
-}
-
-static void
-synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent) {
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_name_t *name;
-
-	for (name = ISC_LIST_HEAD(bevent->names);
-	     name != NULL;
-	     name = ISC_LIST_NEXT(name, link))
-	{
-		dns_name_t *tname = NULL;
-		
-		/*
-		 * Get a temporary name 'tname' for insertion into the
-		 * response message.
-		 */
-		result = dns_message_gettempname(client->message, &tname);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-		dns_name_init(tname, NULL);
-
-		result = query_addcnamelike(client, client->query.qname,
-					    name, 0 /* XXX ttl */,
-					    &tname, dns_rdatatype_ptr);
-		if (tname != NULL)
-			dns_message_puttempname(client->message, &tname);
-		if (result != ISC_R_SUCCESS)
-			goto fail;
-	}
- fail:
-	synth_finish(client, result);		
 }

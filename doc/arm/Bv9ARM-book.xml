@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.209 2002/11/12 23:38:11 explorer Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.210 2002/11/27 09:52:50 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1604,27 +1604,27 @@ statement, as described later in this document. </para>
     IPv6 addresses to make queries when running on an IPv6 capable
     system.</para>
 
-    <para>For forward lookups, <acronym>BIND</acronym> 9 supports both A6 and AAAA
-    records.  The use of AAAA records is deprecated, but it is still
-    useful for hosts to have both AAAA and A6 records to maintain
-    backward compatibility with installations where AAAA records are
-    still used.  In fact, the stub resolvers currently shipped with
-    most operating system support only AAAA lookups, because following
-    A6 chains is much harder than doing A or AAAA lookups.</para>
+    <para>For forward lookups, <acronym>BIND</acronym> 9 supports only AAAA
+    records.  The use of A6 records is deprecated by RFC 3363, and the
+    support for forward lookups in <acronym>BIND</acronym> 9 is
+    removed accordingly.
+    However, authoritative <acronym>BIND</acronym> 9 name servers still
+    load zone files containing A6 records correctly, answer queries
+    for A6 records, and accept zone transfer for a zone containing A6
+    records.</para>
 
-    <para>For IPv6 reverse lookups, <acronym>BIND</acronym> 9 supports the new
-    "binary label" (also known as "bitstring")
-    format used in the <emphasis>ip6.arpa</emphasis>
-    domain, as well as the older, deprecated "nibble" format used in
-    the <emphasis>ip6.int</emphasis> domain.</para>
-
-    <para><acronym>BIND</acronym> 9 includes a new lightweight resolver library and
-    resolver daemon which new applications may choose to use to avoid
-    the complexities of A6 chain following and binary labels, see <xref
-    linkend="ch05"/>.  Alternatively, applications can link with a stub
-    resolver that supports A and AAAA records only and rely on the server to
-    synthesize AAAA recorsd from A6 chains (<xref linkend="synthesis"/>).
-    </para>
+    <para>For IPv6 reverse lookups, <acronym>BIND</acronym> 9 supports
+    the traditional "nibble" format used in the
+    <emphasis>ip6.arpa</emphasis> domain, as well as the older, deprecated
+    <emphasis>ip6.int</emphasis> domain.
+    <acronym>BIND</acronym> 9 formerly
+    supported the "binary label" (also known as "bitstring") format.
+    The support of binary labels, however, is now completely removed
+    according to the changes in RFC 3363.
+    Any applications in <acronym>BIND</acronym> 9 do not understand
+    the format any more, and will return an error if given.
+    In particular, an authoritative <acronym>BIND</acronym> 9 name
+    server rejects to load a zone file containing binary labels.</para>
 
     <para>For an overview of the format and structure of IPv6 addresses,
     see <xref linkend="ipv6addresses"/>.</para>
@@ -1638,175 +1638,27 @@ statement, as described later in this document. </para>
 
 <programlisting>
 $ORIGIN example.com.
-host            3600    IN      AAAA    3ffe:8050:201:1860:42::1
-</programlisting>
-
-      <para>While their use is deprecated, they are useful to support
-      older IPv6 applications.  They should not be added where they
-      are not absolutely necessary.</para>
-
-    </sect2>
-    <sect2>
-      <title>Address Lookups Using A6 Records</title>
-
-      <para>The A6 record is more flexible than the AAAA record, and
-      is therefore more complicated.  The A6 record can be used to
-      form a chain of A6 records, each specifying part of the IPv6
-      address. It can also be used to specify the entire record as
-      well.  For example, this record supplies the same data as the
-      AAAA record in the previous example:</para>
-
-<programlisting>
-$ORIGIN example.com.
-host            3600    IN      A6      0 3ffe:8050:201:1860:42::1
-</programlisting>
-      <sect3>
-        <title>A6 Chains</title>
-
-        <para>A6 records are designed to allow network
-        renumbering. This works when an A6 record only specifies the
-        part of the address space the domain owner controls.  For
-        example, a host may be at a company named "company."  It has
-        two ISPs which provide IPv6 address space for it.  These two
-        ISPs fully specify the IPv6 prefix they supply.</para>
-
-        <para>In the company's address space:</para>
-
-<programlisting>
-$ORIGIN example.com.
-host            3600    IN      A6      64 0:0:0:0:42::1 company.example1.net.
-host            3600    IN      A6      64 0:0:0:0:42::1 company.example2.net.
-</programlisting>
-
-        <para>ISP1 will use:</para>
-
-<programlisting>
-$ORIGIN example1.net.
-company         3600    IN      A6      0 3ffe:8050:201:1860::
-</programlisting>
-
-<para>ISP2 will use:</para>
-
-<programlisting>
-$ORIGIN example2.net.
-company         3600    IN      A6      0 1234:5678:90ab:fffa::
-</programlisting>
-
-        <para>When <literal
-       >host.example.com</literal> is looked up,
-        the resolver (in the resolver daemon or caching name server)
-        will find two partial A6 records, and will use the additional
-        name to find the remainder of the data.</para>
-
-      </sect3>
-      <sect3>
-        <title>A6 Records for DNS Servers</title>
-
-        <para>When an A6 record specifies the address of a name
-        server, it should use the full address rather than specifying
-        a partial address.  For example:</para>
-
-<programlisting>
-$ORIGIN example.com.
-@               14400           IN      NS              ns0
-                14400           IN      NS              ns1
-ns0             14400           IN      A6              0 3ffe:8050:201:1860:42::1
-ns1             14400           IN      A               192.168.42.1
+host            3600    IN      AAAA    2001:4f8:201:1860:42::1
 </programlisting>
 
         <para>It is recommended that IPv4-in-IPv6 mapped addresses not
         be used.  If a host has an IPv4 address, use an A record, not
-        an A6, with <literal>::ffff:192.168.42.1</literal> as the
+        a AAAA, with <literal>::ffff:192.168.42.1</literal> as the
         address.</para>
-
-      </sect3>
     </sect2>
     <sect2>
       <title>Address to Name Lookups Using Nibble Format</title>
 
-      <para>While the use of nibble format to look up names is
-      deprecated, it is supported for backwards compatibility with
-      existing IPv6 applications.</para>
-
       <para>When looking up an address in nibble format, the address
       components are simply reversed, just as in IPv4, and
-      <literal>ip6.int.</literal> is appended to the resulting name.
+      <literal>ip6.arpa.</literal> is appended to the resulting name.
       For example, the following would provide reverse name lookup for
       a host with address
-      <literal>3ffe:8050:201:1860:42::1</literal>.</para>
+      <literal>2001:4f8:201:1860:42::1</literal>.</para>
 
 <programlisting>
-$ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
+$ORIGIN 0.6.8.1.1.0.2.0.8.f.4.0.1.0.0.2.ip6.arpa.
 1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0   14400 IN      PTR     host.example.com.
-</programlisting>
-    </sect2>
-    <sect2>
-      <title>Address to Name Lookups Using Binary Label Format</title>
-
-      <para>Binary labels can start and end on any bit boundary,
-      rather than on a multiple of 4 bits as in the nibble
-      format. They also use <emphasis>ip6.arpa</emphasis> rather than
-      <emphasis>ip6.int</emphasis>.</para>
-
-      <para>To replicate the previous example using binary labels:</para>
-
-<programlisting>
-$ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64]         14400   IN      PTR     host.example.com.
-</programlisting>
-    </sect2>
-    <sect2>
-      <title>Using DNAME for Delegation of IPv6 Reverse Addresses</title>
-
-      <para>In IPv6, the same host may have many addresses from many
-      network providers.  Since the trailing portion of the address
-      usually remains constant, <command>DNAME</command> can help
-      reduce the number of zone files used for reverse mapping that
-      need to be maintained.</para>
-
-      <para>For example, consider a host which has two providers
-      (<literal>example.net</literal> and
-      <literal>example2.net</literal>) and
-      therefore two IPv6 addresses.  Since the host chooses its own 64
-      bit host address portion, the provider address is the only part
-      that changes:</para>
-
-<programlisting>
-$ORIGIN example.com.
-host                    IN      A6      64      ::1234:5678:1212:5675 cust1.example.net.
-                        IN      A6      64      ::1234:5678:1212:5675 subnet5.example2.net.
-$ORIGIN example.net.
-cust1                   IN      A6      48      0:0:0:dddd:: ipv6net.example.net.
-ipv6net                 IN      A6      0       aa:bb:cccc::
-$ORIGIN example2.net.
-subnet5                 IN      A6      48      0:0:0:1:: ipv6net2.example2.net.
-ipv6net2                IN      A6      0       6666:5555:4::
-</programlisting>
-
-<para>This sets up forward lookups.  To handle the reverse lookups,
-the provider <literal>example.net</literal>
-would have:</para>
-
-<programlisting>
-$ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]             IN      DNAME           ipv6-rev.example.com.
-</programlisting>
-
-      <para>and <literal
-     >example2.net</literal> would have:</para>
-
-<programlisting>
-$ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]             IN      DNAME           ipv6-rev.example.com.
-</programlisting>
-
-      <para><literal>example.com</literal>
-      needs only one zone file to handle both of these reverse
-      mappings:</para>
-
-<programlisting>
-$ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64] IN      PTR             host.example.com. 
 </programlisting>
     </sect2>
   </sect1>
@@ -1817,9 +1669,10 @@ $ORIGIN ipv6-rev.example.com.
 <para>Traditionally applications have been linked with a stub resolver
 library that sends recursive DNS queries to a local caching name
 server.</para>
-<para>IPv6 introduces new complexity into the resolution process,
+<para>IPv6 once introduced new complexity into the resolution process,
 such as following A6 chains and DNAME records, and simultaneous
-lookup of IPv4 and IPv6 addresses.  These are hard or impossible
+lookup of IPv4 and IPv6 addresses.  Though most of the complexity was
+then removed, these are hard or impossible
 to implement in a traditional stub resolver.</para>
 <para>Instead, <acronym>BIND</acronym> 9 provides resolution services to local clients
 using a combination of a lightweight resolver library and a resolver
@@ -3334,7 +3187,7 @@ otherwise be provided in the additional section.
 <para>
 For example, if a query asks for an MX record for host <literal>foo.example.com</literal>,
 and the record found is "<literal>MX 10 mail.example.net</literal>", normally the address
-records (A, A6, and AAAA) for <literal>mail.example.net</literal> will be provided as well,
+records (A and AAAA) for <literal>mail.example.net</literal> will be provided as well,
 if known, even though they are not in the example.com zone.
 Setting these options to <command>no</command> disables this behavior and makes
 the server only search for additional data in the zone it answers from.
@@ -3505,9 +3358,11 @@ for more details.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-v6-synthesis</command></term>
-<listitem><para>Specifies which hosts are to receive
-synthetic responses to IPv6 queries as described in
-<xref linkend="synthesis"/>.
+<listitem><para>This option was introduced for the smooth transition from AAAA
+to A6 and from "nibble labels" to binary labels.
+However, since both A6 and binary labels were then deprecated,
+this option was also deprecated.
+It is now ignored with some warning messages.
 </para>
 </listitem></varlistentry>
 
@@ -4073,42 +3928,6 @@ they are not combined &mdash; the last one applies.</para>
 is not yet fully implemented in <acronym>BIND</acronym> 9.
 BIND 9 currently does not support "fixed" ordering.
 </simpara></note>
-</sect3>
-
-<sect3 id="synthesis"><title>Synthetic IPv6 responses</title>
-
-<para>Many existing stub resolvers support IPv6 DNS lookups as defined in
-RFC1886, using AAAA records for forward lookups and "nibble labels" in
-the <literal>ip6.int</literal> domain for reverse lookups, but do not support
-RFC2874-style lookups (using A6 records and binary labels in the
-<literal>ip6.arpa</literal> domain).</para>
-
-<para>For those who wish to continue to use such stub resolvers rather than
-switching to the BIND 9 lightweight resolver, BIND 9 provides a way
-to automatically convert RFC1886-style lookups into
-RFC2874-style lookups and return the results as "synthetic" AAAA and
-PTR records.</para>
-
-<para>This feature is disabled by default and can be enabled on a per-client
-basis by adding a
-<command>allow-v6-synthesis { <replaceable>address_match_list</replaceable> }</command>
-clause to the <command>options</command> or <command>view</command> statement.
- When it is enabled, recursive
-AAAA queries cause the server to first try an A6 lookup and if that
-fails, an AAAA lookups.  No matter which one succeeds, the results are
-returned as a set of synthetic AAAA records.  Similarly, recursive PTR
-queries in <literal>ip6.int</literal> will cause a
-lookup in <literal>ip6.arpa</literal> using binary
-labels, and if that fails, another lookup in <literal>ip6.int</literal>.
-The results are returned as a synthetic PTR record in
-<literal>ip6.int</literal>.</para>
-
-<para>The synthetic records have a TTL of zero.  DNSSEC validation of
-synthetic responses is not currently supported; therefore responses
-containing synthetic RRs will not have the AD flag set.</para>
-
-<note><para><command>allow-v6-synthesis</command> is only performed for
-clients that are supplied recursive service.</para></note>
 </sect3>
 
 <sect3 id="tuning"><title>Tuning</title>
@@ -5025,14 +4844,14 @@ data is type (and sometimes class) specific.</para></entry>
 32-bit IP address.  Described in RFC 1035.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para>AAAA</para></entry>
+<entry colname = "2"><para>IPv6 address.  Described in RFC 1886.</para></entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para>A6</para></entry>
 <entry colname = "2"><para>IPv6 address.  This can be a partial
 address (a suffix) and an indirection to the name where the rest of the
 address (the prefix) can be found.  Experimental.  Described in RFC 2874.</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1"><para>AAAA</para></entry>
-<entry colname = "2"><para>IPv6 address.  Described in RFC 1886.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>AFSDB</para></entry>
@@ -5059,8 +4878,8 @@ Described in RFC 1035.</para></entry>
 <entry colname = "2"><para>Replaces the domain name specified with
 another name to be looked up, effectively aliasing an entire
 subtree of the domain name space rather than a single record
-as in the case of the CNAME RR.  Used for delegation 
-of IPv6 reverse mappings.  Described in RFC 2672.</para></entry>
+as in the case of the CNAME RR.
+Described in RFC 2672.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>GPOS</para></entry>
@@ -5812,7 +5631,7 @@ individuals.</para>
 
 <title>General <acronym>DNS</acronym> Reference Information</title>
     <sect2 id="ipv6addresses">
-      <title>IPv6 addresses (A6)</title>
+      <title>IPv6 addresses (AAAA)</title>
       <para>IPv6 addresses are 128-bit identifiers for interfaces and
 sets of interfaces which were introduced in the <acronym>DNS</acronym> to facilitate
 scalable Internet routing. There are three types of addresses: <emphasis>Unicast</emphasis>,
@@ -5919,41 +5738,6 @@ IPv6, addresses belong to interfaces rather than machines.)</para>
       <para>The subnetting capability of IPv6 is much more flexible than
 that of IPv4: subnetting can now be carried out on bit boundaries,
 in much the same way as Classless InterDomain Routing (CIDR).</para>
-<para>The internal structure of the Public Topology for an A6 global
-unicast address consists of:</para>
-<informaltable colsep = "0"  rowsep = "0"><tgroup cols = "4"
-    colsep = "0" rowsep = "0" tgroupstyle = "2Level-table">
-<colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.506in"/>
-<colspec colname = "2" colnum = "2" colsep = "0" colwidth = "0.662in"/>
-<colspec colname = "3" colnum = "3" colsep = "0" colwidth = "0.556in"/>
-<colspec colname = "4" colnum = "4" colsep = "0" colwidth = "0.825in"/>
-<tbody>
-<row rowsep = "0">
-<entry colname = "1" colsep = "1" rowsep = "1"><para>3</para></entry>
-<entry colname = "2" colsep = "1" rowsep = "1"><para>13</para></entry>
-<entry colname = "3" colsep = "1" rowsep = "1"><para>8</para></entry>
-<entry colname = "4" rowsep = "1"><para>24</para></entry>
-</row>
-<row rowsep = "0">
-<entry colname = "1" colsep = "1"><para>FP</para></entry>
-<entry colname = "2" colsep = "1"><para>TLA ID</para></entry>
-<entry colname = "3" colsep = "1"><para>RES</para></entry>
-<entry colname = "4"><para>NLA ID</para></entry>
-</row>
-</tbody>
-</tgroup></informaltable>
-<para>A 3 bit FP (Format Prefix) of 001 indicates this is a global
-Unicast address. FP lengths for other types of addresses may vary.</para>
-<para>13 TLA (Top Level Aggregator) bits give the prefix of your
-top-level IP backbone carrier.</para>
-<para>8 Reserved bits</para>
-<para>24 bits for Next Level Aggregators. This allows organizations
-with a TLA to hand out portions of their IP space to client organizations,
-so that the client can then split up the network further by filling
-in more NLA bits, and hand out IPv6 prefixes to their clients, and
-so forth.</para>
-<para>There is no particular structure for the Site topology section.
-Organizations can allocate these bits in any way they desire.</para>
 <para>The Interface Identifier must be unique on that network. On
 ethernet networks, one way to ensure this is to set the address
 to the first three bytes of the hardware address, "FFFE", then the
@@ -5961,7 +5745,7 @@ last three bytes of the hardware address. The lowest significant
 bit of the first byte should then be complemented. Addresses are
 written as 32-bit blocks separated with a colon, and leading zeros
 of a block may be omitted, for example:</para>
-<para><command>3ffe:8050:201:9:a00:20ff:fe81:2b32</command></para>
+<para><command>2001:4f8:201:9:a00:20ff:fe81:2b32</command></para>
 <para>IPv6 address specifications are likely to contain long strings
 of zeros, so the architects have included a shorthand for specifying
 them. The double colon (`::') indicates the longest possible string

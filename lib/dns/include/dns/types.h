@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.106 2002/08/27 04:53:43 marka Exp $ */
+/* $Id: types.h,v 1.107 2002/11/27 09:52:56 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -30,7 +30,6 @@
 
 #include <isc/types.h>
 
-typedef struct dns_a6context			dns_a6context_t;
 typedef struct dns_acl 				dns_acl_t;
 typedef struct dns_aclelement 			dns_aclelement_t;
 typedef struct dns_aclenv			dns_aclenv_t;

@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example3.db,v 1.3 2001/12/12 06:24:05 marka Exp $
+; $Id: example3.db,v 1.4 2002/11/27 09:52:49 marka Exp $
 
 $ORIGIN .
 $TTL 300	; 5 minutes
@@ -34,10 +34,7 @@ a			A	10.0.0.3
 $TTL 3600	; 1 hour
 a01			A	0.0.0.0
 a02			A	255.255.255.255
-a601			A6	0 ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-			A6	64 ::ffff:ffff:ffff:ffff foo.
-			A6	127 ::1 foo.
-			A6	128  .
+a601			AAAA	ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 afsdb01			AFSDB	0 hostname
 afsdb02			AFSDB	65535 .
 $TTL 300	; 5 minutes

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.254 2002/10/15 03:15:28 marka Exp $ */
+/* $Id: resolver.c,v 1.255 2002/11/27 09:52:55 marka Exp $ */
 
 #include <config.h>
 
@@ -3384,8 +3384,7 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 				else
 					rtype = rdataset->type;
 				if (rtype == dns_rdatatype_a ||
-				    rtype == dns_rdatatype_aaaa ||
-				    rtype == dns_rdatatype_a6)
+				    rtype == dns_rdatatype_aaaa)
 					mark_related(name, rdataset, external,
 						     gluing);
 			}
@@ -4596,7 +4595,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * Follow A6 and other additional section data chains.
+	 * Follow additional section data chains.
 	 */
 	chase_additional(fctx);
 

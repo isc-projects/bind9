@@ -1,3 +1,6 @@
+1402.	[cleanup]	A6 has been moved to experimental and is no longer
+			fully supported.
+
 1401.	[bug]		adb wasn't clearing state when the timer expired.
 
 1400.	[bug]		Block the addition of wildcard NS records by IXFR
