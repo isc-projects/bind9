@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.11 2000/01/22 00:17:47 tale Exp $ */
+/* $Id: connection.c,v 1.12 2000/01/24 05:05:43 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -123,13 +123,19 @@ free_connection(omapi_connection_t *connection) {
 	 */
 	object_signal((omapi_object_t *)connection, "disconnect", connection);
 
-#if 0
 	/*
-	 * Free the inner generic object via the protocol object.
-	 * XXXDCL wildass stab in the dark
+	 * Break the link between the protocol object and its parent
+	 * (usually a generic object); this is done so the client's
+	 * reference to its managing object does not prevent the connection
+	 * object and protocol object from being destroyed.
 	 */
-	OBJECT_DEREF(&connection->inner->inner);
-#endif
+	if (connection->is_client) {
+		INSIST(connection->inner->type == omapi_type_protocol &&
+		       connection->inner->inner != NULL);
+		OBJECT_DEREF(&connection->inner->inner->outer);
+		OBJECT_DEREF(&connection->inner->inner);
+	} else
+		INSIST(connection->inner->inner == NULL);
 
 	/*
 	 * Finally, free the object itself.
@@ -615,8 +621,8 @@ connect_toserver(omapi_object_t *protocol, const char *server_name, int port) {
 	return (ISC_R_SUCCESS);
 
 free_object:
-	OBJECT_DEREF(&connection);
 	OBJECT_DEREF(&protocol->outer);
+	OBJECT_DEREF(&connection);
 	return (result);
 
 free_obuffer:
