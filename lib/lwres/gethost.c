@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.19 2000/06/27 00:24:12 bwelling Exp $ */
+/* $Id: gethost.c,v 1.20 2000/06/27 23:13:26 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,8 @@
 #include <string.h>
 
 #include <lwres/netdb.h>
+
+#include "assert_p.h"
 
 #define LWRES_ALIGNBYTES (sizeof(char *) - 1)
 #define LWRES_ALIGN(p) \
