@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.28 2000/07/27 09:48:32 tale Exp $ */
+/* $Id: tsig.h,v 1.29 2000/07/27 23:56:41 bwelling Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -129,7 +129,7 @@ void
 dns_tsigkey_setdeleted(dns_tsigkey_t *key);
 /*
  *	Prevents this key from being used again.  It will be deleted when
- *	no references *	exist.
+ *	no references exist.
  *
  *	Requires:
  *		'key' is a valid TSIG key on a keyring
