@@ -158,11 +158,11 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		case dns_c_ipmatch_localhost:
 			de->type = dns_aclelementtype_localhost;
 			break;
-#ifdef notyet
+
 		case dns_c_ipmatch_any:
 			de->type = dns_aclelementtype_any;
 			break;
-#endif
+
 		case dns_c_ipmatch_localnets:
 			de->type = dns_aclelementtype_localnets;			
 			break;
