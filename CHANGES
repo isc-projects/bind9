@@ -10,6 +10,9 @@
  680.	[bug]		dns_rdata_fromstruct() mishandled options bigger
 			than 255 octets.
 
+ 650.	[bug]		SIG(0) records were being generated and verified
+			incorrectly. [RT #606]
+
 	--- 9.1.0rc1 released ---
 
  679.	[bug]		$INCLUDE could leak memory and file descriptors on

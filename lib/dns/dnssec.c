@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.56.2.1 2001/01/09 22:43:35 bwelling Exp $
+ * $Id: dnssec.c,v 1.56.2.2 2001/01/16 22:38:42 gson Exp $
  */
 
 
@@ -559,6 +559,19 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	RETERR(dst_context_create(key, mctx, &ctx));
 
+	/*
+	 * Digest the fields of the SIG - we can cheat and use
+	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
+	 * is identical to dns format.
+	 */
+	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
+				    dns_rdatatype_sig, &sig, &databuf));
+	isc_buffer_usedregion(&databuf, &r);
+	RETERR(dst_context_adddata(ctx, &r));
+
+	/*
+	 * If this is a response, digest the query.
+	 */
 	if (is_response(msg))
 		RETERR(dst_context_adddata(ctx, msg->query));
 
@@ -575,16 +588,6 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	 */
 	isc_buffer_usedregion(msg->buffer, &r);
 	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
-	RETERR(dst_context_adddata(ctx, &r));
-
-	/*
-	 * Digest the fields of the SIG - we can cheat and use
-	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
-	 * is identical to dns format.
-	 */
-	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
-				    dns_rdatatype_sig, &sig, &databuf));
-	isc_buffer_usedregion(&databuf, &r);
 	RETERR(dst_context_adddata(ctx, &r));
 
 	RETERR(dst_key_sigsize(key, &sigsize));
@@ -698,6 +701,13 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	RETERR(dst_context_create(key, mctx, &ctx));
 
 	/*
+ 	 * Digest the SIG(0) record, except for the signature.
+	 */
+	dns_rdata_toregion(&rdata, &r);
+	r.length -= sig.siglen;
+	RETERR(dst_context_adddata(ctx, &r));
+
+	/*
 	 * If this is a response, digest the query.
 	 */
 	if (is_response(msg))
@@ -727,15 +737,6 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 */
 	r.base = source_r.base + DNS_MESSAGE_HEADERLEN;
 	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
-	RETERR(dst_context_adddata(ctx, &r));
-
-	/*
- 	 * Digest the SIG(0) record .  Find the start of the record, skip
-	 * the name and 10 bytes for class, type, ttl, length to get to
-	 * the start of the rdata.
-	 */
-	dns_rdata_toregion(&rdata, &r);
-	r.length -= sig.siglen;
 	RETERR(dst_context_adddata(ctx, &r));
 
 	sig_r.base = sig.signature;
