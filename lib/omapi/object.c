@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.7 2000/01/22 00:17:53 tale Exp $ */
+/* $Id: object.c,v 1.8 2000/01/24 05:33:59 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -99,7 +99,7 @@ omapi_object_dereference(omapi_object_t **h) {
 	int inner_reference = 0;
 	int handle_reference = 0;
 	int extra_references;
-	omapi_object_t *p;
+	omapi_object_t *p = NULL;
 
 	REQUIRE(h != NULL && *h != NULL);
 	REQUIRE((*h)->refcnt > 0);
@@ -135,7 +135,9 @@ omapi_object_dereference(omapi_object_t **h) {
 	 * reference is stored and compare against that, and we don't
 	 * want to do that if we can avoid it.
 	 */
-	if ((*h)->handle != 0)
+	if ((*h)->handle != 0 &&
+	    handle_lookup(&p, (*h)->handle) == ISC_R_SUCCESS &&
+	    *h == p)
 		handle_reference = 1;
 
 	/*
@@ -146,11 +148,17 @@ omapi_object_dereference(omapi_object_t **h) {
 	 * non-handle-table references.  If not, we need to free the
 	 * entire chain of objects.
 	 */
-	if ((*h)->refcnt-- ==
+	INSIST((*h)->refcnt >=
+	       inner_reference + outer_reference + handle_reference + 1);
+
+	if ((*h)->refcnt ==
 	    inner_reference + outer_reference + handle_reference + 1) {
-		if (inner_reference  != 0 ||
-		    outer_reference  != 0 ||
-		    handle_reference != 0) {
+		/*
+		 * If refcnt is 1, then inner_reference + outer_reference +
+		 * handle_reference is > 0, so there are list references to
+		 * chase.
+		 */
+		if ((*h)->refcnt > 1) {
 			/*
 			 * XXXTL we could check for a reference from the
                          * handle table here.
@@ -181,14 +189,18 @@ omapi_object_dereference(omapi_object_t **h) {
 
 		if (extra_references == 0) {
 			if (inner_reference != 0)
-				OBJECT_DEREF(&(*h)->inner->outer);
+				OBJECT_DEREF(&(*h)->inner);
 			if (outer_reference != 0)
-				OBJECT_DEREF(&(*h)->outer->inner);
+				OBJECT_DEREF(&(*h)->outer);
 			if ((*h)->type->destroy != NULL)
 				(*((*h)->type->destroy))(*h);
+			(*h)->refcnt = 0;
 			isc_mem_put(omapi_mctx, *h, (*h)->object_size);
-		}
-	}
+		} else
+			(*h)->refcnt--;
+			
+	} else
+		(*h)->refcnt--;
 
 	*h = NULL;
 }
