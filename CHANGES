@@ -1,4 +1,11 @@
 
+ 324.	[func]		In the resolver, turn EDNS0 off if there is no
+			response after a number of retransmissions.
+			This is to allow queries some chance of succeeding
+			even if all the authoritative servers of a zone
+			silently discard EDNS0 requests instead of 
+			sending an error response like they ought to.
+
  323.	[bug]		dns_rbt_findname() did not ignore empty rbt nodes.
 			Because of this, servers authoritative for a parent 
 			and grandchild zone but not authoritative for the
