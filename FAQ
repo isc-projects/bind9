@@ -253,3 +253,15 @@ use those to make sure you reach the correct view on the other machine.
 
 	You put the external address on the alias so that all the other
 	dns clients on these boxes see the internal view by default.
+
+
+Q: When I try to use rndc, I get the error message "network
+unreachable" or "connection refused", even though I know named is
+running.
+
+A: You probably have "default-server localhost" in /etc/rndc.conf,
+your /etc/hosts or DNS maps "localhost" to both the IPv4 loopback
+address 127.0.0.1 and the IPv6 loopback address ::1, and you do not
+have IPv6 fully operational.  Change the "default-server localhost" to
+"default-server 127.0.0.1" to make sure rdnc does not try to contact
+the name server using IPv6.
