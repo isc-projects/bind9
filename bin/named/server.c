@@ -1554,6 +1554,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
 
+	server->entropy = NULL;
 	CHECKFATAL(isc_entropy_create(ns_g_mctx, &server->entropy),
 		   "initializing entropy pool");
 
