@@ -162,16 +162,14 @@ Building
                 Any additional preprocessor symbols you want defined.
                 Defaults to empty string.
 
-        
-        The configure script can be called with a --help switch to list
-        the many options it supports.  Especially noteworthy is the
-        "--enable and --with options recognized" section at the end
-        of the help text.  In particular, shared libraries will be built
-        if "--with-libtool" is added to the "configure" command, and you
-        might also wish to use the --with-mit-pthreads, --with-ptl2, or
-        --with-kame flags depending on how threads and IPv6 is supported
-        on your system.  (These last three are primarily relevant to
-        NetBSD and FreeBSD.)
+        To build shared libraries, specify "--with-libtool" on the
+	configure command line.
+
+	To compile with KAME IPv6, use"--with-kame[=PATH]".  This should
+ 	only be necessary if KAME was installed separately, not if it
+	is integrated into your operating system.
+	
+        To see additional configure options, run "configure --help".
 
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
