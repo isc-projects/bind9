@@ -1,4 +1,8 @@
 
+ 389.	[bug]		Attempting to send a reqeust over IPv6 using 
+			dns_request_create() on a system without IPv6
+			support caused an assertion failure [RT #235].
+
  388.	[func]		host can now do reverse ipv6 lookups.
 
  387.	[func]		Add dns_byaddr_createptrname(), which converts
