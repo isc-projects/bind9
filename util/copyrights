@@ -1681,7 +1681,7 @@
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004
 ./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004
-./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004
+./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/sdb.h			C	2000,2001,2004
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004
@@ -1842,7 +1842,7 @@
 ./lib/dns/request.c				C	2000,2001,2002,2004
 ./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004
-./lib/dns/rootns.c				C	1999,2000,2001,2002,2004
+./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/sdb.c					C	2000,2001,2003,2004
 ./lib/dns/soa.c					C	2000,2001,2004
 ./lib/dns/ssu.c					C	2000,2001,2003,2004
