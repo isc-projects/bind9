@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/mutex.h>
 
 #include <dns/address.h>
 
@@ -38,7 +39,11 @@
 #define DNS_ADBADDRINFO_MAGIC		0x61644149	/* adAI. */
 #define DNS_ADBADDRINFO_VALID(x)	VCHECK(x, DNS_ADBADDRINFO_MAGIC)
 
+#define DNS_ADBNAMELIST_LENGTH	16
+#define DNS_ADBENTRYLOCK_LENGTH	16
+
 typedef struct dns_adbname dns_adbname_t;
+typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
 typedef struct dns_adbzoneinfo dns_adbzoneinfo_t;
 
@@ -55,7 +60,22 @@ struct dns_adb {
 	isc_mempool_t		       *ahmp;	/* dns_adbhandle_t */
 	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
 
-	ISC_LIST(dns_adbname_t)		names;
+	/*
+	 * Bucketized locks and lists for names.
+	 */
+	dns_adbnamelist_t		names[DNS_ADBNAMELIST_LENGTH];
+	isc_mutex_t			namelocks[DNS_ADBNAMELIST_LENGTH];
+
+	/*
+	 * Bucketized locks for entries.
+	 */
+	isc_mutex_t			entrylocks[DNS_ADBENTRYLOCK_LENGTH];
+
+	/*
+	 * List of running and idle handles.
+	 */
+	ISC_LIST(dns_adbhandle_t)	running_handles;
+	ISC_LIST(dns_adbhandle_t)	idle_handles;
 };
 
 struct dns_adbname {
@@ -109,8 +129,6 @@ struct dns_adbentry {
 	isc_sockaddr_t			sockaddr;
 
 	ISC_LIST(dns_adbzoneinfo_t)	zoneinfo;
-
-	ISC_LINK(dns_adbentry_t)	link;
 };
 
 /*
@@ -130,8 +148,7 @@ struct dns_adbhandle {
 	void			       *arg;
 	dns_name_t		       *zone;
 
-	dns_adbaddrlist_t		addrlist;
-
+	ISC_LIST(dns_adbaddrinfo_t)	list;
 	ISC_LINK(dns_adbhandle_t)	link;
 };
 

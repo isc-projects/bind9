@@ -86,6 +86,7 @@
 #include <isc/mem.h>
 #include <isc/task.h>
 #include <isc/lang.h>
+#include <isc/list.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
 
@@ -117,7 +118,6 @@ typedef struct dns_adbentry dns_adbentry_t;
  * The answers to queries come back as a list of these.
  */
 typedef struct dns_adbaddrinfo dns_adbaddrinfo_t;
-typedef ISC_LIST(dns_adbaddrinfo_t) dns_adbaddrlist_t;
 struct dns_adbaddrinfo {
 	unsigned int			magic;		/* private */
 
@@ -126,7 +126,7 @@ struct dns_adbaddrinfo {
 	unsigned int			srtt;		/* microseconds */
 	unsigned int			flags;
 	dns_adbentry_t		       *entry;		/* private */
-	dns_adbaddrlist_t		link;
+	ISC_LINK(dns_adbaddrinfo_t)	link;
 };
 
 /*
