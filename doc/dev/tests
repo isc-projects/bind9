@@ -7,9 +7,7 @@ document how they work.
 
 The scripts driving the build system are in ~wpk/b9t.  They are not
 under CVS control.  The builds are driven by cron jobs separately
-installed on each build system, running as user wpk.  Here is a
-relevant extract from wpk's crontab on bb.rc.vix.com (reformatted to
-fit in 80 columns):
+installed on each build system, running as user wpk. 
 
 The sources are checked out, and the web reports are generated,
 on bb, as driven by the following cron jobs:
@@ -46,6 +44,28 @@ template (?) ~wpk/b9t/b9t.cron.  Although they have the same name,
 they are not related.  The shell script b9t.cron then calls make,
 using the makefile b9t.mk in the same location.  This makefile moves
 the old status files out of the way and runs through the tests.
+
+The current test schedule is as follows:
+
+  :50             CVS tree extracted, tarball built and distributed (was
+		  :45)
+  :00             Most tests begin
+  :45             Status report generator runs (was :30)
+
+  aix:            I can't seem to access that machine; it appears to be down.
+  bb:             Build starts at top of hour, 0300 to 2200
+  durango:        Build starts at top of hour, 0300 to 2200
+  trantor:        Build starts at top of hour, 0300 to 2100, odd-numbered hours
+		  only
+  hp:             Build starts at top of hour, 0300 to 2200
+  irix:           Build starts at top of hour, 0300 to 2200
+  netbsd:         Build starts at top of hour, 0300 to 2200 (was :45)
+  aa:             Build starts at top of hour, 0300 to 2200
+  rc:             Build starts at top of hour, 0300 to 2200
+  mirepoix:       Build starts at top of hour, 0300 to 2200
+  sol:            Build starts at top of hour, 0300 to 2200
+  truffle:        Build starts at top of hour, 0300 to 2200
+  anthrax:        Build starts at top of hour, 0300 to 2200
 
 The actual builds take place in a directory whose location differs
 among systems.  On most of them, it's on a local disk, under /build.
