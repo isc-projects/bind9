@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.94 2000/06/09 08:48:39 brister Exp $ */
+/* $Id: confparser.y,v 1.95 2000/06/09 15:03:24 brister Exp $ */
 
 #include <config.h>
 
@@ -242,7 +242,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_BANG
 %token		L_BLACKHOLE
 %token		L_BOGUS
-%token		L_CACHE_SIZE
+%token		L_MAX_CACHE_SIZE
 %token		L_CATEGORY
 %token		L_CHANNEL
 %token		L_CHECK_NAMES
@@ -1919,14 +1919,16 @@ size_clause: L_DATASIZE size_spec
 			YYABORT;
 		}
 	}
-	| L_CACHE_SIZE size_spec
+	| L_MAX_CACHE_SIZE L_INTEGER
 	{
-		tmpres = dns_c_ctx_setcachesize(currcfg, $2);
+		tmpres = dns_c_ctx_setmaxcachesize(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
-			parser_error(ISC_FALSE, "cannot redefine cache-size");
+			parser_error(ISC_FALSE,
+				     "cannot redefine max-cache-size");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
-			parser_error(ISC_FALSE, "failed to set cache-size");
+			parser_error(ISC_FALSE,
+				     "failed to set max-cache-size");
 			YYABORT;
 		}
 	}
@@ -3782,20 +3784,20 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_CACHE_SIZE size_spec
+	| L_MAX_CACHE_SIZE L_INTEGER
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
-		tmpres = dns_c_view_setcachesize(view, $2);
+		tmpres = dns_c_view_setmaxcachesize(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
-				     "cannot redefine view cache-size");
+				     "cannot redefine view max-cache-size");
 			YYABORT;
 		} else if (tmpres != ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE,
-				     "failed to set view cache-size");
+				     "failed to set view max-cache-size");
 			YYABORT;
 		}
 	}
@@ -5018,7 +5020,7 @@ static struct token keyword_tokens [] = {
 	{ "auth-nxdomain",		L_AUTH_NXDOMAIN },
 	{ "blackhole",			L_BLACKHOLE },
 	{ "bogus",			L_BOGUS },
-	{ "cache-size",			L_CACHE_SIZE },
+	{ "max-cache-size",		L_MAX_CACHE_SIZE },
 	{ "category",			L_CATEGORY },
 	{ "class",			L_CLASS },
 	{ "channel",			L_CHANNEL },

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.34 2000/06/09 08:48:41 brister Exp $ */
+/* $Id: confview.c,v 1.35 2000/06/09 15:03:25 brister Exp $ */
 
 #include <config.h>
 
@@ -483,7 +483,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->max_ncache_ttl = NULL;
 	view->max_cache_ttl = NULL;
 	view->sig_valid_interval = NULL;
-	view->cache_size = NULL;
+	view->max_cache_size = NULL;
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -678,7 +678,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
 	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
 
-	PRINT_AS_SIZE_CLAUSE(cache_size, "cache-size");
+	PRINT_INT32(max_cache_size, "max-cache-size");
 
 	if (view->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
@@ -811,7 +811,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	FREEFIELD(max_ncache_ttl);
 	FREEFIELD(max_cache_ttl);
 	FREEFIELD(sig_valid_interval);
-	FREEFIELD(cache_size);
+	FREEFIELD(max_cache_size);
 
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
@@ -1514,9 +1514,9 @@ GETUINT32(sigvalidityinterval, sig_valid_interval)
 UNSETUINT32(sigvalidityinterval, sig_valid_interval)
 
 	
-GETUINT32(cachesize, cache_size)
-SETUINT32(cachesize, cache_size)
-UNSETUINT32(cachesize, cache_size)
+GETUINT32(maxcachesize, max_cache_size)
+SETUINT32(maxcachesize, max_cache_size)
+UNSETUINT32(maxcachesize, max_cache_size)
 
 	
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)

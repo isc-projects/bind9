@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.65 2000/06/09 08:48:38 brister Exp $ */
+/* $Id: confctx.c,v 1.66 2000/06/09 15:03:22 brister Exp $ */
 
 #include <config.h>
 
@@ -424,14 +424,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 	
-	if (dns_c_ctx_getcachesize(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'cachesize' is not yet "
-			      "implemented");
-	}
-	
-
 	if (dns_c_ctx_getstacksize(cfg, &uintval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -955,13 +947,12 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(min_roots, "min-roots");
 	PRINT_INTEGER(serial_queries, "serial-queries");
 	PRINT_INTEGER(sig_valid_interval, "sig-validity-interval");
-
+	PRINT_INTEGER(max_cache_size, "max-cache-size");	
 	
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");	
 	PRINT_AS_SIZE_CLAUSE(stack_size, "stacksize");	
 	PRINT_AS_SIZE_CLAUSE(core_size, "coresize");	
 	PRINT_AS_SIZE_CLAUSE(files, "files");
-	PRINT_AS_SIZE_CLAUSE(cache_size, "cache-size");	
 
 	PRINT_INTEGER(max_ncache_ttl, "max-ncache-ttl");
 	PRINT_INTEGER(max_cache_ttl, "max-cache-ttl");
@@ -1450,7 +1441,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->stack_size = NULL;
 	opts->core_size = NULL;
 	opts->files = NULL;
-	opts->cache_size = NULL;
+	opts->max_cache_size = NULL;
 	opts->max_ncache_ttl = NULL;
 	opts->max_cache_ttl = NULL;
 	
@@ -1604,7 +1595,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 	FREEFIELD(stack_size);
 	FREEFIELD(core_size);
 	FREEFIELD(files);
-	FREEFIELD(cache_size);
+	FREEFIELD(max_cache_size);
 	FREEFIELD(max_ncache_ttl);
 	FREEFIELD(max_cache_ttl);
 
@@ -1828,9 +1819,9 @@ SETUINT32(files, files)
 UNSETUINT32(files, files)
 
 
-GETUINT32(cachesize, cache_size)
-SETUINT32(cachesize, cache_size)
-UNSETUINT32(cachesize, cache_size)
+GETUINT32(maxcachesize, max_cache_size)
+SETUINT32(maxcachesize, max_cache_size)
+UNSETUINT32(maxcachesize, max_cache_size)
 
 
 GETUINT32(maxncachettl, max_ncache_ttl)

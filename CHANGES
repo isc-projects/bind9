@@ -1,5 +1,7 @@
+ 247.	[cleanup]	Rename cache-size config option to max-cache-size.
+
  246.	[func]		Rename global option cachesize to cache-size and
-			add corresponding option  to view statement.
+			add corresponding option to view statement.
 
  245.	[bug]		If an uncompressed name will take more than 255
 			characters and the buffer is sufficiently long,
