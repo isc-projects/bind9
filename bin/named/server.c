@@ -92,9 +92,9 @@ static dns_result_t
 resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	dns_message_t *message;
 	dns_result_t result, dbresult;
-	dns_name_t *qname, *fname;
-	dns_fixedname_t foundname;
-	dns_rdataset_t *rds, *rdataset, rdatasets[MAX_RDATASETS];
+	dns_name_t *qname, *fname, *rqname;
+	dns_fixedname_t foundname, frqname;
+	dns_rdataset_t *rds, *rdataset, rqrds, rdatasets[MAX_RDATASETS];
 	unsigned int nrdatasets = 0;
 	dns_dbnode_t *node;
 	dns_db_t *db;
@@ -111,24 +111,25 @@ resolve_packet(isc_mem_t *mctx, dns_message_t *query, isc_buffer_t *target) {
 	message->flags = query->flags;
 	message->flags |= DNS_MESSAGEFLAG_QR;
 
-	/*
-	 * XXX This is a total and disgusting hack.  We need a way to add
-	 * a copy of a rdataset and a name to the new message, but for now
-	 * I'll just steal the one from the existing query message, and
-	 * make certain the query is not destroyed before our message is.
-	 */
 	result = dns_message_firstname(query, DNS_SECTION_QUESTION);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 	qname = NULL;
+	dns_fixedname_init(&frqname);
+	rqname = dns_fixedname_name(&frqname);
 	dns_message_currentname(query, DNS_SECTION_QUESTION, &qname);
+	result = dns_name_concatenate(qname, NULL, rqname, NULL);
+	if (result != DNS_R_SUCCESS)
+		return (DNS_R_UNEXPECTED);
 	rds = ISC_LIST_HEAD(qname->list);
 	if (rds == NULL)
 		return (DNS_R_UNEXPECTED);
 	type = rds->type;
+	dns_rdataset_init(&rqrds);
+	dns_rdataset_makequestion(&rqrds, rds->rdclass, rds->type);
+	ISC_LIST_APPEND(rqname->list, &rqrds, link);
 
-	ISC_LIST_UNLINK(query->sections[DNS_SECTION_QUESTION], qname, link);
-	dns_message_addname(message, qname, DNS_SECTION_QUESTION);
+	dns_message_addname(message, rqname, DNS_SECTION_QUESTION);
 
 	result = printmessage(message);
 	INSIST(result == DNS_R_SUCCESS);  /* XXX not in a real server */
