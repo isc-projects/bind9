@@ -29,7 +29,7 @@ BIND 9
 
 
 	BIND version 9 development has been underwritten by the following
-	organizations:
+	organisations:
 
 		Sun Microsystems, Inc.
 		Hewlett Packard
@@ -43,6 +43,13 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 		Nominum, Inc.
 
+
+BIND 9.2.3
+	
+	BIND 9.2.3 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.1 but no new features.
+
+	libbind: corresponds to that from BIND 8.4.0.
 
 BIND 9.2.2
 
@@ -177,9 +184,6 @@ Building
 		Solaris 2.6, 7, 8
 		Windows NT/W2K
 
-	HP-UX 11.11 is not yet supported due to its incompatible
-	SIOCGLIFCONF ioctl.
-
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
 
@@ -289,7 +293,6 @@ Building
 	on your system, and some require Perl; see bin/tests/system/README
 	for details.
 
-
 Documentation
 
 	The BIND 9 Administrator Reference Manual is included with the
@@ -314,6 +317,10 @@ Bug Reports and Mailing Lists
 	Bugs reports should be sent to
 
 		bind9-bugs@isc.org
+
+	Configuration questions should be sent to the BIND 9 Users
+	mailing list.  Compilation questions should be sent to the
+	BIND 9 Users mailing list.
 
 	To join the BIND 9 Users mailing list, send mail to
 
