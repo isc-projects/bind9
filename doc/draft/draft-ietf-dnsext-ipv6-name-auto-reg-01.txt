@@ -5,11 +5,11 @@
 
 
 INTERNET-DRAFT                                             H. Kitamura
-<draft-ietf-dnsext-ipv6-name-auto-reg-00.txt>          NEC Corporation
-Expires in six months                                  2 December 2002
+<draft-ietf-dnsext-ipv6-name-auto-reg-01.txt>          NEC Corporation
+Expires in six months                                     23 July 2003
 
         Domain Name Auto-Registration for Plugged-in IPv6 Nodes
-             <draft-ietf-dnsext-ipv6-name-auto-reg-00.txt>
+             <draft-ietf-dnsext-ipv6-name-auto-reg-01.txt>
 
 Status of this Memo
 
@@ -57,7 +57,7 @@ Abstract
 
 H. Kitamura                                                     [Page 1]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    The Domain Name Auto-Registration mechanism, in addition to its main
@@ -113,7 +113,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 2]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    Basic target situations for the mechanism are plug and play
@@ -169,7 +169,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 3]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    a problem that it is not easy to collect IP address information to
@@ -225,7 +225,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 4]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
       When a DNS server receives Dynamic Updates messages that are
@@ -281,7 +281,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 5]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    2. To make Detector easy to implement
@@ -337,7 +337,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 6]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
                                          +------------+
@@ -393,7 +393,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 7]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    Since a Detector must be placed where appearances of new plugged-in
@@ -449,7 +449,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 8]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    In order to prepare appropriate domain name information, the
@@ -505,7 +505,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                     [Page 9]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    We can assume there will be complex cases in which standard and
@@ -561,7 +561,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 10]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
 3.4.2 Detecting Appearance of "Active" Plugged-in Nodes
@@ -617,7 +617,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 11]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    By using this verification mechanism, the Registrar does not have to
@@ -673,7 +673,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 12]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    2. Predefined Names
@@ -729,7 +729,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 13]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
       In order to achieve the "active" indication method, new protocols
@@ -785,7 +785,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 14]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    The Detector watches (a) and (b), and detects the appearance of new
@@ -841,7 +841,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 15]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    By following the defined naming rule algorithm, the plugged-in node's
@@ -897,7 +897,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 16]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    The other view is domain names for temporary addresses should be
@@ -953,7 +953,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 17]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
 6. Security Considerations
@@ -1009,7 +1009,7 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 
 H. Kitamura                                                    [Page 18]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
 Appendix A. HTTP-based simple protocol between Detector and Registrar
@@ -1065,7 +1065,7 @@ Appendix A. HTTP-based simple protocol between Detector and Registrar
 
 H. Kitamura                                                    [Page 19]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
 References
@@ -1111,8 +1111,8 @@ References
    [TLS-HTTP] R. Khare, S. Lawrence, "Upgrading to TLS Within HTTP/1.1"
         RFC2817, May 2000
 
-
-
+   [DEF-ADDR] R. Draves, "Default Address Selection for Internet
+        Protocol version 6 (IPv6)," RFC3484, February 2003
 
 
 
@@ -1121,20 +1121,17 @@ References
 
 H. Kitamura                                                    [Page 20]
 
-INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
-
-
-   [DNS-DISC] A. Durand, J. Hagino, D. Thaler, "Well known site local
-        unicast addresses for DNS resolver,"
-        <draft-ietf-ipv6-dns-discovery-07.txt>, October 2002
-
-   [DEF-ADDR] R. Draves, "Default Address Selection for IPv6,"
-        <draft-ietf-ipngwg-default-addr-select-09.txt>, August 2002
+INTERNET-DRAFT        Domain Name Auto-Registration            July 2003
 
 
    [NIQ] M. Crawford, "IPv6 Node Information Queries,"
-        <draft-ietf-ipngwg-icmp-name-lookups-09.txt>, May 2002
+        <draft-ietf-ipngwg-icmp-name-lookups-10.txt>, June 2003
+        "work in progress"
 
+   [DNS-DISC] A. Durand, J. Hagino, D. Thaler, "Well known site local
+        unicast addresses to communicate with recursive DNS servers,"
+        <draft-ietf-ipv6-dns-discovery-07.txt>, October 2002
+        "work in progress"
 
 
 
@@ -1143,14 +1140,17 @@ INTERNET-DRAFT        Domain Name Auto-Registration        December 2002
 Author's Address:
 
    Hiroshi Kitamura
-   NEC Corporation
-   Development Laboratories
+   Network Development Laboratories, NEC Corporation
    (Igarashi Building 4F) 11-5, Shibaura 2-Chome,
    Minato-Ku, Tokyo 108-8557, JAPAN
 
    Phone: +81 (3) 5476-1071
    Fax:   +81 (3) 5476-1005
    Email: kitamura@da.jp.nec.com
+
+
+
+
 
 
 
