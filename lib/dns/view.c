@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.111 2002/04/26 00:40:32 marka Exp $ */
+/* $Id: view.c,v 1.112 2002/06/19 07:14:46 marka Exp $ */
 
 #include <config.h>
 
@@ -161,6 +161,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxncachettl = 3 * 3600;
 	view->dstport = 53;
 	view->preferred_glue = 0;
+	view->flush = ISC_FALSE;
 
 	result = dns_order_create(view->mctx, &view->order);
 	if (result != ISC_R_SUCCESS)
@@ -312,6 +313,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	view = *viewp;
 	REQUIRE(DNS_VIEW_VALID(view));
 
+	if (flush)
+		view->flush = ISC_TRUE;
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
 		LOCK(&view->lock);
@@ -321,7 +324,7 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 			dns_adb_shutdown(view->adb);
 		if (!REQSHUTDOWN(view))
 			dns_requestmgr_shutdown(view->requestmgr);
-		if (flush)
+		if (view->flush)
 			dns_zt_flushanddetach(&view->zonetable);
 		else
 			dns_zt_detach(&view->zonetable);

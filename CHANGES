@@ -1,3 +1,6 @@
+1330.	[bug]		'rndc stop' failed to cause zones to be flushed
+			sometimes. [RT #3157]
+
 1329.	[func]		Log that a zone transfer was covered by a TSIG.
  
 1328.	[func]		DS (delegation signer) support.
