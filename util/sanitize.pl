@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.7 2000/09/27 17:15:59 mws Exp $
+# $Id: sanitize.pl,v 1.8 2000/09/27 18:00:38 mws Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -98,12 +98,13 @@ sub runfile($) {
 		}
 		$masterstate = 0;
 		for ($i = 0 ; $i < $curkeys; $i++) {
-			if (/NOMINUM_$key[$i]_DELETE/) {
+			if ((/NOMINUM_$key[$i]_DELETE/) &&
+			    ($showon[$i] == 1)) {
 				close(INFILE);
 				close(OUTFILE);
 				unlink($_[1]);
 				$deletefile = 1;
-				break;
+				goto bailout;
 			}
 			elsif (/\#ifdef.+NOMINUM_$key[$i]/) {
 				if ($state[$i] != 0) {
@@ -116,6 +117,7 @@ sub runfile($) {
 					unlink($_[1]);
 					goto bailout;
 				}
+				$masterstate++;
 				$state[$i] = 1;
 				goto doneline;
 			}
@@ -130,6 +132,7 @@ sub runfile($) {
 					unlink($_[1]);
 					break;
 				}
+				$masterstate++;
 				$state[$i] = 2;
 				goto doneline;
 
@@ -145,8 +148,7 @@ sub runfile($) {
 					unlink($_[1]);
 					break;
 				}
-				$masterstate++
-					if ($state[$i]!=$showon[$i]);
+				$masterstate++;
 				if ($state[$i] == 1) {
 					$state[$i] = 2;
 				} else {
@@ -165,8 +167,7 @@ sub runfile($) {
 					unlink($_[1]);
 					break;
 				}
-				$masterstate++
-					if ($state[$i]!=$showon[$i]);
+				$masterstate++;
 				$state[$i] = 0;
 				goto doneline;
 			}
