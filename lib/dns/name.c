@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.102 2000/08/16 22:18:20 gson Exp $ */
+/* $Id: name.c,v 1.103 2000/08/22 00:46:54 gson Exp $ */
 
 #include <config.h>
 
@@ -977,6 +977,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 {
 	unsigned char *offsets;
 	dns_offsets_t odata;
+	unsigned int firstoffset, endoffset;
 
 	/*
 	 * Make 'target' refer to the 'n' labels including and following
@@ -985,25 +986,31 @@ dns_name_getlabelsequence(const dns_name_t *source,
 
 	REQUIRE(VALID_NAME(source));
 	REQUIRE(VALID_NAME(target));
-	REQUIRE(source->labels > 0);
-	REQUIRE(n > 0);
-	REQUIRE(first < source->labels);
+	REQUIRE(first <= source->labels);
 	REQUIRE(first + n <= source->labels);
 	REQUIRE(BINDABLE(target));
 
 	SETUP_OFFSETS(source, offsets, odata);
 
-	target->ndata = &source->ndata[offsets[first]];
-	if (first + n == source->labels) {
-		target->length = source->length - offsets[first];
-		if ((source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
-			target->attributes |= DNS_NAMEATTR_ABSOLUTE;
-		else
-			target->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-	} else {
-		target->length = offsets[first + n] - offsets[first];
+	if (first == source->labels)
+		firstoffset = source->length;
+	else
+		firstoffset = offsets[first];
+
+	if (first + n == source->labels)
+		endoffset = source->length;
+	else
+		endoffset = offsets[first + n];
+
+	target->ndata = &source->ndata[firstoffset];
+	target->length = endoffset - firstoffset;
+	
+	if (first + n == source->labels && n > 0 &&
+	    (source->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
+		target->attributes |= DNS_NAMEATTR_ABSOLUTE;
+	else
 		target->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
-	}
+
 	target->labels = n;
 
 	/*
