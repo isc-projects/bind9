@@ -22,10 +22,15 @@
 #include <isc/result.h>
 #include <isc/resultclass.h>
 
+#include <dns/types.h>
+
 ISC_LANG_BEGINDECLS
 
 typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 
+/*
+ * XXXRTH  Legacy result codes, to be eliminated before public release.
+ */
 #define DNS_R_SUCCESS			ISC_R_SUCCESS
 #define DNS_R_NOMEMORY			ISC_R_NOMEMORY
 #define DNS_R_NOSPACE			ISC_R_NOSPACE
@@ -37,7 +42,11 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_TIMEDOUT			ISC_R_TIMEDOUT
 #define DNS_R_CANCELED			ISC_R_CANCELED
 #define DNS_R_UNEXPECTED		ISC_R_UNEXPECTED
+#define DNS_R_NXRDATASET		DNS_R_NXRRSET
 
+/*
+ * DNS library result codes
+ */
 #define DNS_R_LABELTOOLONG		(ISC_RESULTCLASS_DNS + 0)
 #define DNS_R_BADESCAPE			(ISC_RESULTCLASS_DNS + 1)
 #define DNS_R_BADBITSTRING		(ISC_RESULTCLASS_DNS + 2)
@@ -52,7 +61,7 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_DISALLOWED		(ISC_RESULTCLASS_DNS + 11)
 #define DNS_R_EXTRATOKEN		(ISC_RESULTCLASS_DNS + 12)
 #define DNS_R_EXTRADATA			(ISC_RESULTCLASS_DNS + 13)
-#define DNS_R_TEXTTOLONG		(ISC_RESULTCLASS_DNS + 14)
+#define DNS_R_TEXTTOOLONG		(ISC_RESULTCLASS_DNS + 14)
 #define DNS_R_RANGE			(ISC_RESULTCLASS_DNS + 15)
 #define DNS_R_SYNTAX			(ISC_RESULTCLASS_DNS + 16)
 #define DNS_R_BADCKSUM			(ISC_RESULTCLASS_DNS + 17)
@@ -71,18 +80,40 @@ typedef isc_result_t dns_result_t;	/* XXXRTH for legacy use only */
 #define DNS_R_GLUE			(ISC_RESULTCLASS_DNS + 30)
 #define DNS_R_DNAME			(ISC_RESULTCLASS_DNS + 31)
 #define DNS_R_CNAME			(ISC_RESULTCLASS_DNS + 32)
-#define DNS_R_NXDOMAIN			(ISC_RESULTCLASS_DNS + 33)
-#define DNS_R_NXRDATASET		(ISC_RESULTCLASS_DNS + 34)
-#define DNS_R_BADDB			(ISC_RESULTCLASS_DNS + 35)
-#define DNS_R_ZONECUT			(ISC_RESULTCLASS_DNS + 36)
-#define DNS_R_FORMERR			(ISC_RESULTCLASS_DNS + 37)
-#define DNS_R_BADZONE			(ISC_RESULTCLASS_DNS + 38) /* XXX MPA*/
-#define DNS_R_MOREDATA			(ISC_RESULTCLASS_DNS + 39)
+#define DNS_R_BADDB			(ISC_RESULTCLASS_DNS + 33)
+#define DNS_R_ZONECUT			(ISC_RESULTCLASS_DNS + 34)
+#define DNS_R_BADZONE			(ISC_RESULTCLASS_DNS + 35) /* XXX MPA*/
+#define DNS_R_MOREDATA			(ISC_RESULTCLASS_DNS + 36)
 
-#define DNS_R_NRESULTS			40	/* Number of results */
+#define DNS_R_NRESULTS			37	/* Number of results */
 
-char *					dns_result_totext(dns_result_t);
-void					dns_result_register(void);
+/*
+ * DNS wire format rcodes
+ *
+ * By making these their own class we can easily convert them into the
+ * wire-format rcode value simply by masking off the resultclass 
+ */
+#define DNS_R_NOERROR			(ISC_RESULTCLASS_DNSRCODE + 0)
+#define DNS_R_FORMERR			(ISC_RESULTCLASS_DNSRCODE + 1)
+#define DNS_R_SERVFAIL			(ISC_RESULTCLASS_DNSRCODE + 2)
+#define DNS_R_NXDOMAIN			(ISC_RESULTCLASS_DNSRCODE + 3)
+#define DNS_R_NOTIMP			(ISC_RESULTCLASS_DNSRCODE + 4)
+#define DNS_R_REFUSED			(ISC_RESULTCLASS_DNSRCODE + 5)
+#define DNS_R_YXDOMAIN			(ISC_RESULTCLASS_DNSRCODE + 6)
+#define DNS_R_YXRRSET			(ISC_RESULTCLASS_DNSRCODE + 7)
+#define DNS_R_NXRRSET			(ISC_RESULTCLASS_DNSRCODE + 8)
+#define DNS_R_NOTAUTH			(ISC_RESULTCLASS_DNSRCODE + 9)
+#define DNS_R_NOTZONE			(ISC_RESULTCLASS_DNSRCODE + 10)
+#define DNS_R_BADVERS			(ISC_RESULTCLASS_DNSRCODE + 16)
+
+#define DNS_R_NRCODERESULTS		17	/* Number of rcode results */
+
+#define DNS_RESULT_ISRCODE(result) \
+	(ISC_RESULTCLASS_INCLASS(ISC_RESULTCLASS_DNSRCODE, (result)))
+
+char *				dns_result_totext(isc_result_t);
+void				dns_result_register(void);
+dns_rcode_t			dns_result_torcode(isc_result_t result);
 
 ISC_LANG_ENDDECLS
 

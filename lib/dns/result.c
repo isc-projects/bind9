@@ -60,16 +60,34 @@ static char *text[DNS_R_NRESULTS] = {
 	"glue",					/* 30 */
 	"dname",				/* 31 */
 	"cname",				/* 32 */
-	"nxdomain",				/* 33 */
-	"nxrdataset",				/* 34 */
-	"bad database",				/* 35 */
-	"zonecut",				/* 36 */
-	"format error in packet",		/* 37 */
-	"bad zone",				/* 38 */
-	"more data",				/* 39 */
+	"bad database",				/* 33 */
+	"zonecut",				/* 34 */
+	"bad zone",				/* 35 */
+	"more data",				/* 36 */
+};
+
+static char *rcode_text[DNS_R_NRCODERESULTS] = {
+	"NOERROR",				/* 0 */
+	"FORMERR",				/* 1 */
+	"SERVFAIL",				/* 2 */
+	"NXDOMAIN",				/* 3 */
+	"NOTIMP",				/* 4 */
+	"REFUSED",				/* 5 */
+	"YXDOMAIN",				/* 6 */
+	"YXRRSET",				/* 7 */
+	"NXRRSET",				/* 8 */
+	"NOTAUTH",				/* 9 */
+	"NOTZONE",				/* 10 */
+	"<rcode 11>",				/* 11 */
+	"<rcode 12>",				/* 12 */
+	"<rcode 13>",				/* 13 */
+	"<rcode 14>",				/* 14 */
+	"<rcode 15>",				/* 15 */
+	"BADVERS",				/* 16 */
 };
 
 #define DNS_RESULT_RESULTSET			2
+#define DNS_RESULT_RCODERESULTSET		3
 
 static isc_once_t		once = ISC_ONCE_INIT;
 
@@ -79,6 +97,11 @@ initialize_action(void) {
 
 	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
 				     text, dns_msgcat, DNS_RESULT_RESULTSET);
+	if (result == ISC_R_SUCCESS)
+		result = isc_result_register(ISC_RESULTCLASS_DNSRCODE,
+					     DNS_R_NRCODERESULTS,
+					     rcode_text, dns_msgcat,
+					     DNS_RESULT_RCODERESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
@@ -91,7 +114,7 @@ initialize(void) {
 }
 
 char *
-dns_result_totext(dns_result_t result) {
+dns_result_totext(isc_result_t result) {
 	initialize();
 
 	return (isc_result_totext(result));
@@ -100,4 +123,50 @@ dns_result_totext(dns_result_t result) {
 void
 dns_result_register(void) {
 	initialize();
+}
+
+dns_rcode_t
+dns_result_torcode(isc_result_t result) {
+	dns_rcode_t rcode = DNS_R_SERVFAIL;
+
+	if (DNS_RESULT_ISRCODE(result)) {
+		/*
+		 * Rcodes can't be bigger than 12 bits, which is why we
+		 * AND with 0xFFF instead of 0xFFFF.
+		 */
+		return ((dns_rcode_t)((result) & 0xFFF));
+	}
+	/*
+	 * Try to supply an appropriate rcode.
+	 */
+	switch (result) {
+	case ISC_R_NOSPACE:
+	case ISC_R_UNEXPECTEDEND:
+	case ISC_R_BADBASE64:
+	case DNS_R_LABELTOOLONG:
+	case DNS_R_BADBITSTRING:
+	case DNS_R_BITSTRINGTOOLONG:
+	case DNS_R_UNEXPECTEDEND:
+	case DNS_R_UNKNOWN:
+	case DNS_R_BADLABELTYPE:
+	case DNS_R_BADPOINTER:
+	case DNS_R_TOOMANYHOPS:
+	case DNS_R_EXTRADATA:
+	case DNS_R_TEXTTOOLONG:
+	case DNS_R_RANGE:
+	case DNS_R_SYNTAX:
+	case DNS_R_BADCKSUM:
+	case DNS_R_BADAAAA:
+	case DNS_R_BADCLASS:
+	case DNS_R_BADTTL:
+	case DNS_R_NOREDATA:
+	case DNS_R_BADZONE:
+		rcode = dns_rcode_formerr;
+	case DNS_R_DISALLOWED:
+		rcode = dns_rcode_refused;
+	default:
+		rcode = dns_rcode_servfail;
+	}
+
+	return (rcode);
 }
