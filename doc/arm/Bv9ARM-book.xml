@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.15 2002/01/22 06:16:25 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.16 2002/01/23 01:41:17 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4699,6 +4699,10 @@ or historical (h) and no longer in general use):</para>
 Experimental.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para>CERT</para></entry>
+<entry colname = "2"><para>holds a digital certificate.</para></entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para>CNAME</para></entry>
 <entry colname = "2"><para>identifies the canonical name of an alias.</para></entry>
 </row>
@@ -4707,6 +4711,10 @@ Experimental.</para></entry>
 <entry colname = "2"><para>for delegation of reverse addresses.
 Replaces the domain name specified with another name to be looked
 up. Described in RFC 2672.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>GPOS</para></entry>
+<entry colname = "2"><para>Specifies the global position. Superseded by LOC.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>HINFO</para></entry>
@@ -4723,6 +4731,11 @@ Experimental.</para></entry>
 DNS name.</para></entry>
 </row>
 <row rowsep = "0">
+<entry colname = "1"><para>KX</para></entry>
+<entry colname = "2"><para>identifies a key exchanger for this
+DNS name.</para></entry>
+</row>
+<row rowsep = "0">
 <entry colname = "1"><para>LOC</para></entry>
 <entry colname = "2"><para>(x) for storing GPS info. See RFC 1876.
 Experimental.</para></entry>
@@ -4731,6 +4744,14 @@ Experimental.</para></entry>
 <entry colname = "1"><para>MX</para></entry>
 <entry colname = "2"><para>identifies a mail exchange for the domain.
  See RFC 974 for details.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>NAPTR</para></entry>
+<entry colname = "2"><para>name authority pointer.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>NSAP</para></entry>
+<entry colname = "2"><para>a network service access point.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>NS</para></entry>
@@ -4748,6 +4769,11 @@ See RFC 2535 for details.</para></entry>
 <entry colname = "1"><para>PTR</para></entry>
 <entry colname = "2"><para>a pointer to another part of the domain
 name space.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>PX</para></entry>
+<entry colname = "2"><para>provides mappings between RFC 822 and X.400
+addresses.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>RP</para></entry>
@@ -4772,6 +4798,10 @@ in the secure DNS. See RFC 2535 for details.</para></entry>
 <entry colname = "1"><para>SRV</para></entry>
 <entry colname = "2"><para>information about well known network
 services (replaces WKS).</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para>TXT</para></entry>
+<entry colname = "2"><para>text records.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>WKS</para></entry>
