@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.132 2000/11/20 21:58:01 gson Exp $ */
+/* $Id: rdata.c,v 1.133 2000/12/06 22:33:39 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -575,7 +575,8 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	
-	result = isc_hex_tobuffer(lexer, buf, token.value.as_ulong);
+	result = isc_hex_tobuffer(lexer, buf,
+				  (unsigned int)token.value.as_ulong);
 	if (result != ISC_R_SUCCESS)
 	       goto failure;
 	if (isc_buffer_usedlength(buf) != token.value.as_ulong) {
