@@ -307,9 +307,9 @@ Bug Reports and Mailing Lists
 		http://www.isc.org/ml-archives/
 
 	If you're planning on making changes to the BIND 9 source
-	code, you might want to join the BIND 9 Workers mailing list.
+	code, you might want to join the BIND Workers mailing list.
 	Send mail to
 
-		bind9-workers-request@isc.org
+		bind-workers-request@isc.org
 
 
