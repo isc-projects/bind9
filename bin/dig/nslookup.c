@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.73 2001/01/16 18:52:14 gson Exp $ */
+/* $Id: nslookup.c,v 1.74 2001/01/16 19:13:10 gson Exp $ */
 
 #include <config.h>
 
@@ -148,6 +148,7 @@ static const char *rtypetext[] = {
 	"rtype_40 = ",			/* 40 */
 	"optional = "};			/* 41 */
 
+#define N_KNOWN_RRTYPES (sizeof(rtypetext) / sizeof(rtypetext[0]))
 
 static void flush_lookup_list(void);
 static void getinput(isc_task_t *task, isc_event_t *event);
@@ -261,7 +262,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 				def_short_section:
 					dns_name_format(name, namebuf,
 							sizeof(namebuf));
-					if (rdata.type <= 41)
+					if (rdata.type < N_KNOWN_RRTYPES)
 						printf("%s\t%s", namebuf,
 						rtypetext[rdata.type]);
 					else
@@ -382,7 +383,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 					printf("\tminimum = %u\n", soa.minimum);
 					break;
 				default:
-					if (rdata.type <= 41)
+					if (rdata.type < N_KNOWN_RRTYPES)
 						printf("\t%s",
 						rtypetext[rdata.type]);
 					else
