@@ -283,7 +283,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
 }
 
-static void
+static inline void
 maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 	isc_boolean_t want_free = ISC_TRUE;
 	unsigned int i;
@@ -426,7 +426,7 @@ free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	isc_mem_put(mctx, rdataset, size);
 }
 
-static void
+static inline void
 rollback_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rbtdb_serial_t serial) {
 	rdatasetheader_t *header, *header_next;
 
@@ -573,7 +573,7 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	INSIST(node->references != 0);
 }
 
-static inline void
+static void
 no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	      rbtdb_serial_t least_serial)
 {
@@ -1261,7 +1261,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		result = DNS_R_SUCCESS;
 	}
 
-	if (type != dns_rdatatype_any)
+	if (rdataset != NULL && type != dns_rdatatype_any)
 		bind_rdataset(search.rbtdb, node, header, rdataset);
 
  node_exit:
@@ -1428,7 +1428,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rbtdb_search_t search;
 	isc_boolean_t cname_ok = ISC_TRUE;
 	isc_boolean_t empty_node;
-	rdatasetheader_t *header, *nxtheader;
+	rdatasetheader_t *header, *nsheader, *nxtheader;
 
 	/*
 	 * XXXRTH Currently this code has no support for negative caching,
@@ -1496,6 +1496,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 	
+	nsheader = NULL;
 	nxtheader = NULL;
 	empty_node = ISC_TRUE;
 	for (header = node->data; header != NULL; header = header->next) {
@@ -1514,6 +1515,13 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			    (cname_ok &&  header->type ==
 			     dns_rdatatype_cname)) {
 				break;
+			} else if (header->type == dns_rdatatype_ns) {
+				/*
+				 * Remember a NS rdataset even if we're
+				 * not specifically looking for it, because
+				 * we might need it later.
+				 */
+				nsheader = header;
 			} else if (header->type == dns_rdatatype_nxt) {
 				/*
 				 * Remember a NXT rdataset even if we're
@@ -1545,6 +1553,22 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * yet try to use the NXT that way, but this is the place to
 		 * do it.
 		 */
+
+		/*
+		 * If there is an NS rdataset at this node, then this is the
+		 * deepest zone cut.
+		 */
+		if (nsheader != NULL) {
+			new_reference(search.rbtdb, node);
+			*nodep = node;
+			bind_rdataset(search.rbtdb, node, nsheader, rdataset);
+			result = DNS_R_DELEGATION;
+			goto node_exit;
+		}
+
+		/*
+		 * Go find the deepest zone cut.
+		 */
 		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		goto find_ns;
 	}
@@ -1574,9 +1598,10 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		result = DNS_R_SUCCESS;
 	}
 
-	if (type != dns_rdatatype_any)
+	if (rdataset != NULL && type != dns_rdatatype_any)
 		bind_rdataset(search.rbtdb, node, header, rdataset);
 
+ node_exit:
 	UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 	
  tree_exit:
@@ -1787,7 +1812,7 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (DNS_R_SUCCESS);
 }
 
-static inline dns_result_t
+static dns_result_t
 add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
     rdatasetheader_t *newheader, isc_boolean_t merge, isc_boolean_t loading)
 {
@@ -2496,7 +2521,7 @@ rdatasetiter_current(dns_rdatasetiter_t *iterator, dns_rdataset_t *rdataset) {
  * Database Iterator Methods
  */
 
-static dns_result_t
+static inline dns_result_t
 resume_iteration(rbtdb_dbiterator_t *rbtiterator) {
 	return (DNS_R_NOTIMPLEMENTED);
 }
