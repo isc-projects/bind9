@@ -1,3 +1,13 @@
+
+  84.	[func]		allow-query ACL checks now apply to all data
+			added to a response.
+
+  83.	[func]		If the server is authoritative for both a
+			delegating zone and its (nonsecure) delegatee, and
+			a query is made for a KEY RR at the top of the
+			delegatee, then the server will look for a KEY
+			in the delegator if it is not found in the delegatee.
+
   82.   [cleanup]       <isc/buffer.h> does not need <isc/list.h>.
 
   81.   [cleanup]       <isc/int.h> and <isc/boolean.h> do not need
