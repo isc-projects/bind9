@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.11 2000/05/08 14:33:19 tale Exp $ */
+/* $Id: rndc.c,v 1.12 2000/06/01 19:16:20 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -36,8 +36,8 @@
 
 #include <named/omapi.h>
 
-char *progname;
-char *conffile = "/etc/rndc.conf";
+static const char *progname;
+static const char *conffile = "/etc/rndc.conf";
 isc_mem_t *mctx;
 
 typedef struct ndc_object {
