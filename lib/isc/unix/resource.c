@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.8 2001/01/23 03:14:28 marka Exp $ */
+/* $Id: resource.c,v 1.9 2001/01/23 05:13:25 marka Exp $ */
 
 #include <config.h>
 
@@ -30,11 +30,7 @@
 #include "errno2result.h"
 
 #ifndef HAVE_RLIM_T
-/*
- * quad_t is right for BSD/OS, the only system for which the lack of rlim_t
- * has been observed so far.
- */
-typedef quad_t rlim_t;
+typedef ISC_PLATFORM_RLIMITTYPE rlim_t;
 #endif
 
 static isc_result_t

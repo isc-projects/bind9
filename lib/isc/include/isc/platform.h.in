@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.19 2001/01/23 04:47:55 marka Exp $ */
+/* $Id: platform.h.in,v 1.20 2001/01/23 05:13:24 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -136,6 +136,11 @@
  * Defined if unistd.h does not cause fd_set to be delared.
  */
 @ISC_PLATFORM_NEEDSYSSELECTH@
+
+/*
+ * Type used for resource limits.
+ */
+@ISC_PLATFORM_RLIMITTYPE@
 
 /*
  * Tell emacs to use C mode for this file.
