@@ -1,3 +1,6 @@
+1697.	[bug]		xxx-source{,-v6} was not effective when it
+			specified one of listening addresses and a
+			different port than the listening port. [RT #12257]
 
 	--- 9.3.0rc3 released ---
 

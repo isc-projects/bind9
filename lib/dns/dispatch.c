@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.8 2004/07/21 00:49:28 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.9 2004/08/15 04:40:08 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1296,7 +1296,7 @@ local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
 	if (result != ISC_R_SUCCESS)
 		return (ISC_FALSE);
 
-	return (isc_sockaddr_equal(&disp->local, &sockaddr));
+	return (isc_sockaddr_equal(&sockaddr, addr));
 }
 
 /*
