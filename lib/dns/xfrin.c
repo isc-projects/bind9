@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.31 1999/12/06 18:00:31 gson Exp $ */
+ /* $Id: xfrin.c,v 1.32 1999/12/13 03:01:53 marka Exp $ */
 
 #include <config.h>
 
@@ -74,6 +74,8 @@ typedef struct xfrin_ctx xfrin_ctx_t;
  * when the first two (2) response RRs have already been received.
  */
 typedef enum {
+	XFRST_SOAQUERY,
+	XFRST_GOTSOA,
 	XFRST_INITIALSOA,
 	XFRST_FIRSTDATA,
 	XFRST_IXFR_DELSOA,
@@ -137,6 +139,7 @@ struct xfrin_ctx {
 	dns_rdata_any_tsig_t	*lasttsig;	/* The last TSIG */
 	void			*tsigctx;	/* TSIG verification context */
 	unsigned int		sincetsig;	/* recvd since the last TSIG */
+	dns_xfrindone_t		done;
 
 	/*
 	 * AXFR- and IXFR-specific data.  Only one is used at a time
@@ -169,6 +172,7 @@ xfrin_create(isc_mem_t *mctx,
 	     isc_task_t *task,
 	     isc_timermgr_t *timermgr,
 	     isc_socketmgr_t *socketmgr,
+	     dns_xfrindone_t done,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -288,6 +292,8 @@ axfr_commit(xfrin_ctx_t *xfr) {
 	CHECK(dns_zone_replacedb(xfr->zone, xfr->db, ISC_TRUE));
 
 	result = ISC_R_SUCCESS;
+	if (xfr->done != NULL)
+		(xfr->done)(xfr->zone, result);
  failure:
 	return (result);
 }
@@ -373,6 +379,23 @@ xfr_rr(xfrin_ctx_t *xfr,
 	dns_result_t result;
  redo:
 	switch (xfr->state) {
+	case XFRST_SOAQUERY:
+		xfr->end_serial = dns_soa_getserial(rdata);
+		if (!DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial)) {
+			xfrin_log(xfr, ISC_LOG_INFO, "requested serial %u, "
+				  "master has %u, not updating",
+				  xfr->ixfr.request_serial, xfr->end_serial);
+			FAIL(DNS_R_UPTODATE);
+		}
+		xfr->state = XFRST_GOTSOA;
+		break;
+
+	case XFRST_GOTSOA:
+		/*
+		 * skip other records in the answer section
+		 */
+		break;
+
 	case XFRST_INITIALSOA:
 		INSIST(rdata->type == dns_rdatatype_soa);
 		/*
@@ -469,7 +492,8 @@ xfr_rr(xfrin_ctx_t *xfr,
 void
 dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr)
+		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		dns_xfrindone_t done)
 {
 	dns_name_t *zonename;
 	isc_task_t *task;
@@ -510,13 +534,19 @@ dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master,
 			   task,
 			   timermgr,
 			   socketmgr,
+			   done,
 			   zonename,
-			   dns_rdataclass_in, xfrtype,
+			   dns_zone_getclass(zone), xfrtype,
 			   master, key, &xfr));
 
 	xfrin_start(xfr);
-	
+	goto cleanup;
+
  failure:
+	if (done != NULL)
+		(done)(zone, result);
+
+ cleanup:
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (result != DNS_R_SUCCESS)
@@ -541,6 +571,8 @@ xfrin_fail(xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 		isc_socket_cancel(xfr->socket, xfr->task,
 				  ISC_SOCKCANCEL_SEND);
 	}
+	if (xfr->done != NULL)
+		(xfr->done)(xfr->zone, result);
 	maybe_free(xfr);
 }
 
@@ -551,6 +583,7 @@ xfrin_create(isc_mem_t *mctx,
 	     isc_task_t *task,
 	     isc_timermgr_t *timermgr,
 	     isc_socketmgr_t *socketmgr,
+	     dns_xfrindone_t done,
 	     dns_name_t *zonename,
 	     dns_rdataclass_t rdclass,
 	     dns_rdatatype_t reqtype,
@@ -571,6 +604,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->task = task;
 	xfr->timer = NULL;
 	xfr->socketmgr = socketmgr;
+	xfr->done = done;
 
 	xfr->connects = 0;
 	xfr->sends = 0;
@@ -905,16 +939,19 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (xfr->nmsg > 0)
 		msg->tcp_continuation = 1;
 
-	CHECK(dns_message_parse(msg, &tcpmsg->buffer, ISC_TRUE));
+	result = dns_message_parse(msg, &tcpmsg->buffer, ISC_TRUE);
 
-	if (msg->rcode != dns_rcode_noerror) {
-		result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /* XXX */
-		if (xfr->reqtype == dns_rdatatype_axfr)
+	if (result != DNS_R_SUCCESS || msg->rcode != dns_rcode_noerror) {
+		if (result == DNS_R_SUCCESS)
+			result = ISC_RESULTCLASS_DNSRCODE + msg->rcode; /*XXX*/
+		if (xfr->reqtype == dns_rdatatype_axfr ||
+		    xfr->reqtype == dns_rdatatype_soa)
 			FAIL(result);
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "got %s, retrying with AXFR",
 		       isc_result_totext(result));
 		dns_message_destroy(&msg);
-		xfr->reqtype = dns_rdatatype_axfr;
+		xfr->reqtype = dns_rdatatype_soa;
+		xfr->state = XFRST_SOAQUERY;
 		CHECK(xfrin_send_request(xfr));
 		return;
 	}
@@ -981,7 +1018,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	dns_message_destroy(&msg);
 
-	if (xfr->state == XFRST_END) {
+	if (xfr->state == XFRST_GOTSOA) {
+		xfr->reqtype = dns_rdatatype_axfr;
+		xfr->state = XFRST_INITIALSOA;
+		CHECK(xfrin_send_request(xfr));
+	} else if (xfr->state == XFRST_END) {
 		xfr->shuttingdown = ISC_TRUE;
 		/*
 		 * We should have no outstanding events at this
@@ -1002,7 +1043,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		dns_message_destroy(&msg);
 	}
 	if (result != DNS_R_SUCCESS)
-	xfrin_fail(xfr, result, "receving responses");
+		xfrin_fail(xfr, result, "receiving responses");
 }
 
 static void

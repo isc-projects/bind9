@@ -34,6 +34,7 @@
 
 void dns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master, 
 		isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr);
+		isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
+		dns_xfrindone_t done);
 
 #endif /* DNS_XFRIN_H */
