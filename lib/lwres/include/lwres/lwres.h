@@ -175,6 +175,7 @@ typedef struct {
 #define LWRES_CONFMAXLINELEN 256	/* max size of a line */
 #define LWRES_CONFMAXSORTLIST 10
 typedef struct {
+	lwres_context_t *lwctx;
 	lwres_addr_t    nameservers[LWRES_CONFMAXNAMESERVERS];
 	lwres_uint8_t	nsnext;		/* index for next free slot */
 
@@ -386,8 +387,7 @@ lwres_noopresponse_free(lwres_context_t *ctx, lwres_noopresponse_t **structp);
 
 
 
-int lwres_conf_parse(lwres_context_t *ctx, const char *filename,
-		     lwres_conf_t *confdata);
+int lwres_conf_parse(const char *filename, lwres_conf_t *confdata);
 /*
  * parses a resolv.conf-format file and puts the results into *confdata;
  *
@@ -414,14 +414,14 @@ int lwres_conf_print(FILE *fp, lwres_conf_t *confdata);
  * Prints a resolv.conf-format of confdata output to fp.
  */
 
-void lwres_conf_init(lwres_conf_t *confdata);
+void lwres_conf_init(lwres_context_t *ctx, lwres_conf_t *confdata);
 /*
  * sets all internal fields to a default state. Used to initialize a new
  * lwres_conf_t structure (not reset a used on).
  */
 
 
-void lwres_conf_clear(lwres_context_t *ctx, lwres_conf_t *confdata);
+void lwres_conf_clear(lwres_conf_t *confdata);
 /*
  * frees all internally allocated memory in confdata. Uses the memory 
  * routines supplies by ctx (so that should probably be the same value as
