@@ -1385,6 +1385,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 					isc_event_free (&event);
 					dns_message_destroy (&msg);
 					return;
+					launch_next_query(query, ISC_FALSE);
 				}
 				else {
 					query->first_soa_rcvd = ISC_TRUE;

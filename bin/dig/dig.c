@@ -379,35 +379,35 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			}
 			if ((msg->flags & DNS_MESSAGEFLAG_AA) != 0) {
 				printf("%saa", did_flag ? " " : "");
+				did_flag = ISC_TRUE; }
+			if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
+				printf("%stc", did_flag ? " " : "");
 				did_flag = ISC_TRUE;
-				if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
-					printf("%stc", did_flag ? " " : "");
-					did_flag = ISC_TRUE;
-				}	
-				if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
-					printf("%srd", did_flag ? " " : "");
-					did_flag = ISC_TRUE;
-				}
-				if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
-					printf("%sra", did_flag ? " " : "");
-					did_flag = ISC_TRUE;
-				}
-				if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
-					printf("%sad", did_flag ? " " : "");
-					did_flag = ISC_TRUE;
-				}
-				if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
-					printf("%scd", did_flag ? " " : "");
-					did_flag = ISC_TRUE;
-				}
-			
-				printf("; QUERY: %u, ANSWER: %u, "
-				       "AUTHORITY: %u, ADDITIONAL: %u\n",
-				       msg->counts[DNS_SECTION_QUESTION],
-				       msg->counts[DNS_SECTION_ANSWER],
-				       msg->counts[DNS_SECTION_AUTHORITY],
-				       msg->counts[DNS_SECTION_ADDITIONAL]);
+			}	
+			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
+				printf("%srd", did_flag ? " " : "");
+				did_flag = ISC_TRUE;
 			}
+			if ((msg->flags & DNS_MESSAGEFLAG_RA) != 0) {
+				printf("%sra", did_flag ? " " : "");
+				did_flag = ISC_TRUE;
+			}
+			if ((msg->flags & DNS_MESSAGEFLAG_AD) != 0) {
+				printf("%sad", did_flag ? " " : "");
+				did_flag = ISC_TRUE;
+			}
+			if ((msg->flags & DNS_MESSAGEFLAG_CD) != 0) {
+				printf("%scd", did_flag ? " " : "");
+				did_flag = ISC_TRUE;
+			}
+			
+			printf("; QUERY: %u, ANSWER: %u, "
+			       "AUTHORITY: %u, ADDITIONAL: %u\n",
+			       msg->counts[DNS_SECTION_QUESTION],
+			       msg->counts[DNS_SECTION_ANSWER],
+			       msg->counts[DNS_SECTION_AUTHORITY],
+			       msg->counts[DNS_SECTION_ADDITIONAL]);
+
 			opt = dns_message_getopt(msg);
 			if (opt != NULL)
 				printf(";; EDNS: version: %u, udp=%u\n",
