@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: dnssec-signzone.8,v 1.15 2000/11/18 02:57:38 bwelling Exp $
+.\" $Id: dnssec-signzone.8,v 1.16 2000/12/07 02:20:07 bwelling Exp $
 
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
@@ -36,6 +36,7 @@
 .Op Fl r Ar randomdev
 .Op Fl t
 .Op Fl v Ar level
+.Op Fl n Ar nthreads
 .Ar zonefile
 .Op keyfile ....
 .Sh DESCRIPTION
@@ -227,6 +228,15 @@ increases,
 .Nm dnssec-signzone
 generates increasingly detailed reports about what it is doing.
 The default level is zero.
+.Pp
+The
+.Fl n
+option can be used to change the threading behavior.  By default,
+.Nm dnssec-signzone
+attempts to determine the number of CPUs present, and create one thread
+per CPU.  The
+.Fl n
+option causes a different number of threads to be created.
 .Sh EXAMPLE
 The example below shows how
 .Nm dnssec-signzone
