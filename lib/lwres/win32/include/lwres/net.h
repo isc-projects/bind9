@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.2 2001/07/18 02:37:14 mayer Exp $ */
+/* $Id: net.h,v 1.2.2.1 2002/08/08 19:13:36 mayer Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -147,6 +147,16 @@
 #define EDQUOT                  WSAEDQUOT
 #define ESTALE                  WSAESTALE
 #define EREMOTE                 WSAEREMOTE
+
+#ifndef inet_ntop
+#define inet_ntop lwres_net_ntop
+#endif
+#ifndef inet_pton
+#define inet_pton lwres_net_pton
+#endif
+#ifndef inet_aton
+#define inet_aton lwres_net_aton
+#endif
 
 LWRES_LANG_BEGINDECLS
 
