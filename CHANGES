@@ -1,4 +1,7 @@
- 807.	[bug]		xfrin was not ignoring the transfer-source port.
+
+ 807.	[bug]		When setting up TCP connections for incoming zone
+			transfers, the transfer-source port was not
+			ignored like it should be.
 
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
 			the calling stack to the zone maintence level.
