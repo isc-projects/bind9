@@ -1,9 +1,10 @@
-1164.	[bug]		"Not Implemented" should be reported as NOTIMP.
+1164.	[bug]		"Not Implemented" should be reported as NOTIMP,
+			not NOTIMPL. [RT #2281]
 
 1165.	[bug]		We were rejecting notify-source{-v6} in zone clauses.
 
 1164.	[bug]		Empty masters clauses in slave / stub zones were not
-			handled gracefully.  [RT #2262]
+			handled gracefully. [RT #2262]
 
 1163.	[func]		isc_time_formattimestamp() now includes the year.
 
