@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.47 2004/03/05 05:10:58 marka Exp $ */
+/* $Id: log.h,v 1.48 2004/04/10 04:33:36 marka Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -96,6 +96,8 @@ struct isc_logmodule {
  * channel the name, versions and maximum_size should be set before calling
  * isc_log_createchannel().  To define an ISC_LOG_TOFILEDESC channel set only
  * the stream before the call.
+ * 
+ * Setting maximum_size to zero implies no maximum.
  */
 typedef struct isc_logfile {
 	FILE *stream;		/* Initialized to NULL for ISC_LOG_TOFILE. */
