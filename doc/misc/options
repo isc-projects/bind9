@@ -133,7 +133,8 @@ options {
 controls {
         inet ( <ipv4_address> | <ipv6_address> | * ) [ port ( <integer> | *
             ) ] allow { <address_match_element>; ... } [ keys { <string>; ... } ];
-        unix <unsupported>; // not implemented
+        unix <quoted_string> perm <integer> owner <integer> group <integer>
+            [ keys { <string>; ... } ];
 };
 
 acl <string> { <address_match_element>; ... };
