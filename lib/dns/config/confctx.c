@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.80 2000/08/02 20:44:19 brister Exp $ */
+/* $Id: confctx.c,v 1.81 2000/08/11 21:50:58 gson Exp $ */
 
 #include <config.h>
 
@@ -1068,7 +1068,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 
 #ifndef	NOMINUM_PUBLIC
 	PRINT_INTEGER(max_names, "max-names");
-#endif	
+#endif /* NOMINMUM_PUBLIC */
 	
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -1606,7 +1606,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 
 #ifndef NOMINUM_PUBLIC
 	opts->max_names = NULL;
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	opts->expert_mode = NULL;
 	opts->fake_iquery = NULL;
@@ -1774,7 +1774,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	FREEFIELD(transfer_source);
 	FREEFIELD(transfer_source_v6);
@@ -1889,7 +1889,7 @@ UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
 #ifndef NOMINUM_PUBLIC
 UINT32_FUNCS(maxnames, max_names)
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 BOOL_FUNCS(expertmode, expert_mode)
 BOOL_FUNCS(fakeiquery, fake_iquery)

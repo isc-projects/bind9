@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.92 2000/08/10 20:26:08 gson Exp $ */
+/* $Id: xfrin.c,v 1.93 2000/08/11 21:50:56 gson Exp $ */
 
 #include <config.h>
 
@@ -1097,7 +1097,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 			goto failure;
 		}
 	}
-#endif
+#endif /* NOMINUM_PUBLIC */
 	
 	/*
 	 * Update the number of messages received.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.43 2000/08/02 20:44:22 brister Exp $ */
+/* $Id: confview.c,v 1.44 2000/08/11 21:51:00 gson Exp $ */
 
 #include <config.h>
 
@@ -529,7 +529,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 
 #ifndef NOMINUM_PUBLIC
 	view->max_names = NULL;
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	view->additional_data = NULL;
 	view->transfer_format = NULL;
@@ -747,7 +747,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 #ifndef NOMINUM_PUBLIC
 	PRINT_INT32(max_names, "max-names");
-#endif	
+#endif /* NOMINMUM_PUBLIC */
 
 	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
@@ -893,7 +893,7 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 
 #ifndef NOMINUM_PUBLIC
 	FREEFIELD(max_names);
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	FREEFIELD(additional_data);
 	FREEFIELD(transfer_format);
@@ -1531,7 +1531,7 @@ UINT32_FUNCS(maxrefreshtime, max_refresh_time)
 
 #ifndef NOMINUM_PUBLIC	
 UINT32_FUNCS(maxnames, max_names)
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 BYTYPE_FUNCS(dns_c_addata_t, additionaldata, additional_data)
 BYTYPE_FUNCS(dns_transfer_format_t, transferformat, transfer_format)

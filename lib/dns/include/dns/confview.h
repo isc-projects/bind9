@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.37 2000/08/02 20:44:26 brister Exp $ */
+/* $Id: confview.h,v 1.38 2000/08/11 21:51:02 gson Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -147,7 +147,7 @@ struct dns_c_view {
 
 #ifndef NOMINUM_PUBLIC
 	isc_uint32_t	       *max_names;
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	dns_c_addata_t	       *additional_data;
 	dns_transfer_format_t  *transfer_format;

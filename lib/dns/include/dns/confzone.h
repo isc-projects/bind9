@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.40 2000/08/02 20:44:27 brister Exp $ */
+/* $Id: confzone.h,v 1.41 2000/08/11 21:51:04 gson Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -117,7 +117,7 @@ struct dns_c_master_zone {
 
 #ifndef NOMINUM_PUBLIC
 	isc_uint32_t		max_names;
-#endif
+#endif /* NOMINMUM_PUBLIC */
 	
 	isc_uint32_t		min_retry_time;
 	isc_uint32_t		max_retry_time;
@@ -157,7 +157,7 @@ struct dns_c_slave_zone {
 
 #ifndef NOMINUM_PUBLIC
 	isc_uint32_t		max_names;
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 	isc_uint32_t		min_retry_time;
 	isc_uint32_t		max_retry_time;

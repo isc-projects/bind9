@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.53 2000/08/02 20:44:23 brister Exp $ */
+/* $Id: confzone.c,v 1.54 2000/08/11 21:51:01 gson Exp $ */
 
 #include <config.h>
 
@@ -44,7 +44,7 @@
 #define MZ_SIG_VALID_INTERVAL_BIT	8
 #ifndef NOMINUM_PUBLIC
 #define MZ_MAX_NAMES_BIT		9
-#endif
+#endif /* NOMINMUM_PUBLIC */
 #define MZ_MIN_RETRY_TIME_BIT		10
 #define MZ_MAX_RETRY_TIME_BIT		11
 #define MZ_MIN_REFRESH_TIME_BIT		12
@@ -69,7 +69,7 @@
 #define SZ_FORWARD_BIT                          12
 #ifndef NOMINUM_PUBLIC
 #define SZ_MAX_NAMES_BIT			13
-#endif
+#endif /* NOMINMUM_PUBLIC */
 #define SZ_MIN_RETRY_TIME_BIT			14
 #define SZ_MAX_RETRY_TIME_BIT			15
 #define SZ_MIN_REFRESH_TIME_BIT			16
@@ -3654,7 +3654,7 @@ dns_c_zone_getmaxnames(dns_c_zone_t *zone, isc_uint32_t *retval) {
 
 	return (res);
 }
-#endif
+#endif /* NOMINMUM_PUBLIC */
 
 
 /*
