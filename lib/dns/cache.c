@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.25 2000/07/27 09:45:54 tale Exp $ */
+/* $Id: cache.c,v 1.26 2000/08/01 01:22:12 tale Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@
 
 /*
  * A cache_cleaner_t encapsulsates the state of the periodic
- * cache cleaning. 
+ * cache cleaning.
  */
 
 typedef struct cache_cleaner cache_cleaner_t;
@@ -67,17 +67,17 @@ struct cache_cleaner {
 	unsigned int	cleaning_interval; /* The cleaning-interval from
 					      named.conf, in seconds. */
 	isc_timer_t 	*cleaning_timer;
-	isc_event_t	*resched_event;	/* Sent by cleaner task to 
+	isc_event_t	*resched_event;	/* Sent by cleaner task to
 					   itself to reschedule */
 
 	dns_dbiterator_t *iterator;
-	int 		 increment;	/* Number of names to 
+	int 		 increment;	/* Number of names to
 					   clean in one increment */
 	cleaner_state_t  state;		/* Idle/Busy. */
 };
 
 /*
- * The actual cache object. 
+ * The actual cache object.
  */
 
 struct dns_cache {
@@ -89,12 +89,12 @@ struct dns_cache {
 
 	/* Locked by 'lock'. */
 	int			references;
-	int			live_tasks;	
+	int			live_tasks;
 	dns_rdataclass_t	rdclass;
 	dns_db_t		*db;
 	cache_cleaner_t		cleaner;
 
-	/* Locked by 'filelock'. */	
+	/* Locked by 'filelock'. */
 	char *			filename;
 	/* Access to the on-disk cache file is also locked by 'filelock'. */
 };
@@ -117,7 +117,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
 
-isc_result_t 
+isc_result_t
 dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *db_type, unsigned int db_argc, char **db_argv,
@@ -157,8 +157,8 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutex;
 
-	cache->filename = NULL;	
-	
+	cache->filename = NULL;
+
 	cache->magic = CACHE_MAGIC;
 
 	result = cache_cleaner_init(cache, taskmgr, timermgr,
@@ -179,7 +179,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	return (result);
 }
 
-static void 
+static void
 cache_free(dns_cache_t *cache) {
 	isc_mem_t *mctx;
 
@@ -204,11 +204,11 @@ cache_free(dns_cache_t *cache) {
 		dns_db_detach(&cache->db);
 
 	isc_mutex_destroy(&cache->lock);
-	cache->magic = 0;	
+	cache->magic = 0;
 	mctx = cache->mctx;
-	isc_mem_put(cache->mctx, cache, sizeof *cache);	
+	isc_mem_put(cache->mctx, cache, sizeof *cache);
 	isc_mem_detach(&mctx);
-}	
+}
 
 
 void
@@ -267,11 +267,11 @@ dns_cache_setfilename(dns_cache_t *cahce, char *filename) {
 	char *newname = isc_mem_strdup(filename);
 	if (newname == NULL)
 		return (ISC_R_NOMEMORY);
-	LOCK(&cache->filelock);	
+	LOCK(&cache->filelock);
 	if (cache->filename)
 		isc_mem_free(cache->mctx, cache->filename);
 	cache->filename = newname;
-	UNLOCK(&cache->filelock);	
+	UNLOCK(&cache->filelock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -283,7 +283,7 @@ dns_cache_load(dns_cache_t *cache) {
 	LOCK(&cache->filelock);
 	/* XXX handle TTLs in a way appropriate for the cache */
 	result = dns_db_load(cache->db, cache->filename);
-	UNLOCK(&cache->filelock);	
+	UNLOCK(&cache->filelock);
 	return (result);
 }
 
@@ -310,16 +310,16 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 				isc_timertype_ticker,
 				NULL, &interval, ISC_FALSE);
 	}
-	UNLOCK(&cache->lock);	
+	UNLOCK(&cache->lock);
 }
 
 /*
- * Initialize the cache cleaner object at *cleaner.  
+ * Initialize the cache cleaner object at *cleaner.
  * Space for the object must be allocated by the caller.
  */
 
 static isc_result_t
-cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr, 
+cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner)
 {
         isc_result_t result;
@@ -328,11 +328,11 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
 	cleaner->iterator = NULL;
-	
+
 	cleaner->task = NULL;
 	cleaner->cleaning_timer = NULL;
 	cleaner->resched_event = NULL;
-	
+
 	if (taskmgr != NULL && timermgr != NULL) {
 		result = isc_task_create(taskmgr, 1, &cleaner->task);
 		if (result != ISC_R_SUCCESS) {
@@ -354,7 +354,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					 dns_result_totext(result));
 			goto cleanup;
 		}
-			
+
 		cleaner->cleaning_interval = 0; /* Initially turned off. */
 		result = isc_timer_create(timermgr, isc_timertype_inactive,
 					   NULL, NULL,
@@ -368,7 +368,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-		
+
 		cleaner->resched_event =
 			isc_event_allocate(cache->mctx, cleaner,
 					   DNS_EVENT_CACHECLEAN,
@@ -379,9 +379,9 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			goto cleanup;
 		}
 	}
-		
+
 	return (ISC_R_SUCCESS);
-	
+
  cleanup:
 	if (cleaner->cleaning_timer != NULL)
 		isc_timer_detach(&cleaner->cleaning_timer);
@@ -430,7 +430,7 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 	return;
 
  destroyiter:
-	dns_dbiterator_destroy(&cleaner->iterator);	
+	dns_dbiterator_destroy(&cleaner->iterator);
  idle:
 	ENSURE(CLEANER_IDLE(cleaner));
 	return;
@@ -516,9 +516,9 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 		/*
 		 * This is where the actual freeing takes place.
-		 */ 
+		 */
 		dns_db_detachnode(cleaner->cache->db, &node);
-		
+
 		/*
 		 * Step to the next node.
 		 */
@@ -562,12 +562,12 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	 * No longer busy; save the event for later use.
 	 */
 	end_cleaning(cleaner, event);
-	INSIST(CLEANER_IDLE(cleaner));	
+	INSIST(CLEANER_IDLE(cleaner));
 	return;
 }
 
 /*
- * Do immediate cleaning. 
+ * Do immediate cleaning.
  */
 isc_result_t
 dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
@@ -577,7 +577,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 	result = dns_db_createiterator(cache->db, ISC_FALSE, &iterator);
 	if (result != ISC_R_SUCCESS)
 		return result;
-	
+
 	result = dns_dbiterator_first(iterator);
 
 	while (result == ISC_R_SUCCESS) {
@@ -603,7 +603,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 
 		/*
 		 * This is where the actual freeing takes place.
-		 */ 
+		 */
 		dns_db_detachnode(cache->db, &node);
 
 		result = dns_dbiterator_next(iterator);
@@ -613,7 +613,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	
+
 	return result;
 }
 
@@ -623,7 +623,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->ev_arg;
-	isc_boolean_t should_free = ISC_FALSE;	
+	isc_boolean_t should_free = ISC_FALSE;
 
 	UNUSED(task);
 
@@ -631,12 +631,12 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
 	isc_event_free(&event);
-	
+
 	cache->live_tasks--;
 	INSIST(cache->live_tasks == 0);
 
 	if (cache->references == 0)
-		should_free = ISC_TRUE;		
+		should_free = ISC_TRUE;
 
 	/*
 	 * By detaching the timer in the context of its task,
@@ -648,7 +648,7 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 
 	/* Make sure we don't reschedule anymore. */
 	isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
-	
+
 	UNLOCK(&cache->lock);
 
 	if (should_free)

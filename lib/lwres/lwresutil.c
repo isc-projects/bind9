@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresutil.c,v 1.22 2000/07/27 09:53:53 tale Exp $ */
+/* $Id: lwresutil.c,v 1.23 2000/08/01 01:32:29 tale Exp $ */
 
 #include <config.h>
 
@@ -162,7 +162,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		exact_first = 1;
 	else
 		exact_first = 0;
-	
+
 	current_suffix = 0;
 	tried_exact = 0;
 	tried_search = 0;

@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_getaddrinfo.3,v 1.2 2000/07/27 09:44:50 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_getaddrinfo.3,v 1.3 2000/08/01 01:21:13 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETADDRINFO 3
 .Os BIND9 9
@@ -25,7 +25,7 @@
 .Nd socket address structure to host and service name
 .Sh SYNOPSIS
 .Fd #include <lwres/lwres.h>
-.Fd 
+.Fd
 .Ft int
 .Fo lwres_getaddrinfo
 .Fa "const char *hostname"
@@ -88,14 +88,14 @@ The caller can supply the following structure elements in
 the protocol family that should be used.
 When
 .Li ai_family
-is set to 
+is set to
 .Dv PF_UNSPEC ,
 it means the caller will accept any protocol family supported by the
 operating system.
 .It Dv ai_socktype
 denotes the type of socket -
 .Dv SOCK_STREAM ,
-.Dv SOCK_DGRAM 
+.Dv SOCK_DGRAM
 or
 .Dv SOCK_RAW
 - that is wanted.
@@ -139,9 +139,9 @@ does not set the
 .Dv AI_PASSIVE
 bit, the returned socket address structure will be ready
 for use in a call to
-.Xr connect 2 
+.Xr connect 2
 for a connection-oriented protocol or
-.Xr connect 2 , 
+.Xr connect 2 ,
 .Xr sendto 2 ,
 or
 .Xr sendmsg 2
@@ -153,7 +153,7 @@ is a
 .Dv NULL
 pointer and
 .Dv AI_PASSIVE
-is not set in 
+is not set in
 .Li ai_flags .
 .Pp
 If
@@ -161,7 +161,7 @@ If
 is set to
 .Dv AI_NUMERICHOST
 it indicates that
-the 
+the
 .Dv non-NuLL
 .Fa hostname
 should be treated as a numeric string defining an IPv4 or IPv6 address.
@@ -177,7 +177,7 @@ passed via
 .Fa arg
 must be zero.
 .Pp
-If 
+If
 .Fa arg
 is not supplied, a
 .Dv NULL
@@ -200,7 +200,7 @@ the
 .Li ai_next
 pointer, until a
 .Dv NULL
-pointer is encountered. 
+pointer is encountered.
 The three members
 .Li ai_family ,
 ai_socktype,
@@ -237,7 +237,7 @@ is a pointer to a
 returns zero on success or one of the error codes listed in
 .Xr gai_strerror 3
 if an error occurs.
-If both 
+If both
 .Fa hostname
 and
 .Fa servname
@@ -253,8 +253,8 @@ returns
 .Xr RFC2133 ,
 .Xr getservbyname 3 ,
 .Xr bind 2
-.Xr connect 2 
-.Xr connect 2 , 
+.Xr connect 2
+.Xr connect 2 ,
 .Xr sendto 2 ,
 .Xr sendmsg 2 ,
 .Xr socket 2 .

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.28 2000/07/27 09:37:30 tale Exp $ */
+/* $Id: os.c,v 1.29 2000/08/01 01:12:21 tale Exp $ */
 
 #include <config.h>
 
@@ -298,7 +298,7 @@ ns_os_changeuser(void) {
 	if (!non_root_caps)
 		ns_main_earlyfatal(
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
-#endif	
+#endif
 
 	if (setgid(runas_pw->pw_gid) < 0)
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));

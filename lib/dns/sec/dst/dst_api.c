@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.57 2000/07/31 19:44:14 bwelling Exp $
+ * $Id: dst_api.c,v 1.58 2000/08/01 01:27:45 tale Exp $
  */
 
 #include <config.h>
@@ -76,7 +76,7 @@ static isc_result_t	read_public_key(const char *filename,
 static isc_result_t	write_public_key(const dst_key_t *key,
 					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
-				      const unsigned int id, 
+				      const unsigned int id,
 				      const unsigned int alg,
 				      const unsigned int type,
 				      const char *directory,
@@ -235,7 +235,7 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 
 isc_result_t
 dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
-		  isc_buffer_t *secret) 
+		  isc_buffer_t *secret)
 {
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
@@ -259,7 +259,7 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 	return (pub->func->computesecret(pub, priv, secret));
 }
 
-isc_result_t 
+isc_result_t
 dst_key_tofile(const dst_key_t *key, const int type, const char *directory) {
 	isc_result_t ret = ISC_R_SUCCESS;
 
@@ -353,7 +353,7 @@ dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
 		*keyp = pubkey;
 		return (ISC_R_SUCCESS);
 	}
-	
+
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
 			     pubkey->key_flags, pubkey->key_proto, 0, mctx);
 	id = pubkey->key_id;
@@ -478,7 +478,7 @@ dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t 
+isc_result_t
 dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(key));
@@ -641,7 +641,7 @@ dst_key_isprivate(const dst_key_t *key) {
 isc_boolean_t
 dst_key_iszonekey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-      
+
 	if ((key->key_flags & DNS_KEYTYPE_NOAUTH) != 0)
 		return (ISC_FALSE);
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
@@ -655,7 +655,7 @@ dst_key_iszonekey(const dst_key_t *key) {
 isc_boolean_t
 dst_key_isnullkey(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
-      
+
 	if ((key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 		return (ISC_FALSE);
 	if ((key->key_flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
@@ -748,15 +748,15 @@ dst_region_computeid(const isc_region_t *source) {
  *** Static methods
  ***/
 
-/* 
- * Allocates a key structure and fills in some of the fields. 
+/*
+ * Allocates a key structure and fills in some of the fields.
  */
 static dst_key_t *
 get_key_struct(dns_name_t *name, const unsigned int alg,
 	       const unsigned int flags, const unsigned int protocol,
 	       const unsigned int bits, isc_mem_t *mctx)
 {
-	dst_key_t *key; 
+	dst_key_t *key;
 	isc_result_t result;
 
 	REQUIRE(dst_algorithm_supported(alg) != ISC_FALSE);
@@ -859,26 +859,26 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 				ISC_FALSE, NULL);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
-	
+
 	/* Read the next word: either TTL, 'IN', or 'KEY' */
 	NEXTTOKEN(lex, opt, &token);
 
 	/* If it's a TTL, read the next one */
 	if (token.type == isc_tokentype_number)
 		NEXTTOKEN(lex, opt, &token);
-	
+
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 
 	if (strcasecmp(token.value.as_pointer, "IN") == 0)
 		NEXTTOKEN(lex, opt, &token);
-	
+
 	if (token.type != isc_tokentype_string)
 		BADTOKEN();
 
 	if (strcasecmp(token.value.as_pointer, "KEY") != 0)
 		BADTOKEN();
-	
+
 	isc_buffer_init(&b, rdatabuf, sizeof(rdatabuf));
 	ret = dns_rdata_fromtext(&rdata, dns_rdataclass_in, dns_rdatatype_key,
 				 lex, NULL, ISC_FALSE, &b, NULL);
@@ -931,7 +931,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 		return (DST_R_INVALIDPUBLICKEY);
 
 	isc_buffer_usedregion(&textb, &r);
-	
+
 	/*
 	 * Make the filename.
 	 */
@@ -958,7 +958,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-buildfilename(dns_name_t *name, const unsigned int id, 
+buildfilename(dns_name_t *name, const unsigned int id,
 	      const unsigned int alg, const unsigned int type,
 	      const char *directory, isc_buffer_t *out)
 {

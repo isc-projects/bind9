@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.h,v 1.10 2000/07/27 09:48:34 tale Exp $ */
+/* $Id: ttl.h,v 1.11 2000/08/01 01:24:52 tale Exp $ */
 
 #ifndef DNS_TTL_H
 #define DNS_TTL_H 1
@@ -43,7 +43,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
  *
  * If 'verbose' is ISC_FALSE, use the terse BIND 8 style, like "1w2d3h4m5s".
  *
- * If 'verbose' is ISC_TRUE, use a verbose style like the SOA comments 
+ * If 'verbose' is ISC_TRUE, use a verbose style like the SOA comments
  * in "dig", like "1 week 2 days 3 hours 4 minutes 5 seconds".
  *
  * Returns:

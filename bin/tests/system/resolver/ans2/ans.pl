@@ -8,7 +8,7 @@ use IO::Socket;
 use Net::DNS;
 use Net::DNS::Packet;
 
-my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.2", 
+my $sock = IO::Socket::INET->new(LocalAddr => "10.53.0.2",
    LocalPort => 5300, Proto => "udp") or die "$!";
 
 my $pidf = new IO::File "ans.pid", "w" or die "cannot write pid file: $!";
@@ -53,5 +53,5 @@ for (;;) {
 
 	print "RESPONSE:\n";
 	$packet->print;
-	print "\n";	
+	print "\n";
 }

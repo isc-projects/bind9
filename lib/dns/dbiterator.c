@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator.c,v 1.10 2000/07/27 09:45:59 tale Exp $ */
+/* $Id: dbiterator.c,v 1.11 2000/08/01 01:22:16 tale Exp $ */
 
 #include <config.h>
 
@@ -129,6 +129,6 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 	REQUIRE(iterator->relative_names);
 	REQUIRE(dns_name_hasbuffer(name));
-	
+
 	return (iterator->methods->origin(iterator, name));
 }

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.43 2000/07/27 09:51:13 tale Exp $ */
+/* $Id: sockaddr.c,v 1.44 2000/08/01 01:29:48 tale Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 
 	/*
 	 * Do the port first, giving us the opportunity to check for
-	 * unsupported address families before calling 
+	 * unsupported address families before calling
 	 * isc_netaddr_fromsockaddr().
 	 */
 	switch (sockaddr->type.sa.sa_family) {
@@ -135,18 +135,18 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	default:
 		return (ISC_R_FAILURE);
 	}
-	
+
 	plen = strlen(pbuf);
 	INSIST(plen < sizeof(pbuf));
-	
+
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 	result = isc_netaddr_totext(&netaddr, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	if (1 + plen + 1 > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
-	    
+
 	isc_buffer_putmem(target, (const unsigned char *)"#", 1);
 	isc_buffer_putmem(target, (const unsigned char *)pbuf, plen);
 
@@ -181,7 +181,7 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 	const unsigned char *s;
 	unsigned int h = 0;
 	unsigned int g;
-	
+
 	/*
 	 * Provide a hash value for 'sockaddr'.
 	 */
@@ -336,7 +336,7 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 		sockaddr->type.sin.sin_port = htons(port);
 		break;
 	case AF_INET6:
-		sockaddr->length = sizeof sockaddr->type.sin6;		
+		sockaddr->length = sizeof sockaddr->type.sin6;
 #ifdef ISC_PLATFORM_HAVESALEN
 		sockaddr->type.sin6.sin6_len = sizeof sockaddr->type.sin6;
 #endif

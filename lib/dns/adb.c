@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.143 2000/07/27 09:45:52 tale Exp $ */
+/* $Id: adb.c,v 1.144 2000/08/01 01:22:09 tale Exp $ */
 
 /*
  * Implementation notes
@@ -578,7 +578,7 @@ import_a6(dns_a6context_t *a6ctx) {
 	addr_bucket = DNS_ADB_INVALIDBUCKET;
 
 	DP(ENTER_LEVEL, "ENTER: import_a6() name %p", name);
-	
+
 	nh = new_adbnamehook(adb, NULL);
 	if (nh == NULL) {
 		name->partial_result |= DNS_ADBFIND_INET6; /* clear for AAAA */
@@ -873,11 +873,11 @@ cancel_fetches_at_name(dns_adbname_t *name) {
 
 	if (NAME_FETCH_A(name))
 	    dns_resolver_cancelfetch(name->fetch_a->fetch);
-				     
+
 
 	if (NAME_FETCH_AAAA(name))
 	    dns_resolver_cancelfetch(name->fetch_aaaa->fetch);
-				     
+
 
 	fetch6 = ISC_LIST_HEAD(name->fetches_a6);
 	while (fetch6 != NULL) {
@@ -1522,7 +1522,7 @@ a6find(void *arg, dns_name_t *a6name, dns_rdatatype_t type, isc_stdtime_t now,
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
-	
+
 	return (dns_view_simplefind(adb->view, a6name, type, now,
 				    DNS_DBFIND_GLUEOK, ISC_FALSE,
 				    rdataset, sigrdataset));
@@ -1537,7 +1537,7 @@ a6missing(dns_a6context_t *a6ctx, dns_name_t *a6name) {
 	dns_adb_t *adb;
 	dns_adbfetch6_t *fetch;
 	isc_result_t result;
-	
+
 	name = a6ctx->arg;
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
@@ -1803,7 +1803,7 @@ entry_is_bad_for_zone(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *zone,
 
 		zi = next_zi;
 	}
-	
+
 	return (is_bad);
 }
 
@@ -1964,7 +1964,7 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 		return;
 	if (entry->expires == 0 || entry->expires > now)
 		return;
-	
+
 	/*
 	 * The entry is not in use.  Delete it.
 	 */
@@ -2238,7 +2238,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	isc_task_setname(adb->task, "ADB", adb);
 	/*
 	 * XXXMLG When this is changed to be a config file option,
-	 */ 
+	 */
 	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
 	result = isc_timer_create(adb->timermgr, isc_timertype_once,
 				  NULL, &adb->tick_interval, adb->task,
@@ -2351,7 +2351,7 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 	else
 		zeroirefcnt = ISC_FALSE;
 	UNLOCK(&adb->ilock);
-	
+
 	if (adb->shutting_down && zeroirefcnt &&
 	    isc_mempool_getallocated(adb->ahmp) == 0) {
 		/*
@@ -2365,7 +2365,7 @@ dns_adb_whenshutdown(dns_adb_t *adb, isc_task_t *task, isc_event_t **eventp) {
 		event->ev_sender = clone;
 		ISC_LIST_APPEND(adb->whenshutdown, event, ev_link);
 	}
-	
+
 	UNLOCK(&adb->lock);
 }
 
@@ -3441,7 +3441,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev) {
 	ISC_LIST_UNLINK(name->fetches_a6, fetch, plink);
 
 	DP(ENTER_LEVEL, "ENTER: fetch_callback_a6() name %p", name);
-	
+
 	dns_resolver_destroyfetch(&fetch->fetch);
 	dev->fetch = NULL;
 
@@ -3615,7 +3615,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_boolean_t start_at_root) {
 	name = NULL;
 	nameservers = NULL;
 	dns_rdataset_init(&rdataset);
-	
+
 	if (start_at_root) {
 		DP(50, "fetch_name_v4: starting at DNS root for name %p",
 		   adbname);
@@ -3952,7 +3952,7 @@ dns_adb_freeaddrinfo(dns_adb_t *adb, dns_adbaddrinfo_t **addrp) {
 	isc_stdtime_get(&now);
 
 	*addrp = NULL;
-	
+
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 

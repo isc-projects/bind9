@@ -77,12 +77,12 @@ unsigned int partInLen;
 A_SURRENDER_CTX *surrenderContext;
 {
   int status;
-  
+
   if ((status = (*((A_DIGEST_ALGA *)handler->algaChoice._alga)->Update)
        (handler->algaChoice.context.z.context, partIn, partInLen,
         surrenderContext)) != 0)
     return (ConvertAlgaeError (status));
-  return (0);    
+  return (0);
 }
 
 int AHChooseDigestFinal
@@ -94,12 +94,12 @@ unsigned int maxPartOutLen;
 A_SURRENDER_CTX *surrenderContext;
 {
   int status;
-  
+
   if ((status = (*((A_DIGEST_ALGA *)handler->algaChoice._alga)->Final)
        (handler->algaChoice.context.z.context, partOut, partOutLen,
         maxPartOutLen, surrenderContext)) != 0)
     return (ConvertAlgaeError (status));
-  return (0);    
+  return (0);
 }
 
 static int InitDigestAlga

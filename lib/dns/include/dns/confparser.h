@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.h,v 1.11 2000/07/27 09:47:41 tale Exp $ */
+/* $Id: confparser.h,v 1.12 2000/08/01 01:23:58 tale Exp $ */
 
 #ifndef DNS_CONFPARSER_H
 #define DNS_CONFPARSER_H 1
@@ -42,7 +42,7 @@
  *
  * Resources:
  * 	Long-term memory allocation done with memory allocator supplied by
- * 	caller. 
+ * 	caller.
  *
  * Security:
  * 	<TBS>
@@ -62,11 +62,11 @@
 #include <dns/confctx.h>
 
 /*
- * Typedefs for the callbacks done while parsing. If the callback functions 
+ * Typedefs for the callbacks done while parsing. If the callback functions
  * return anything other than ISC_R_SUCCESS, then the parse routine
  * terminates with an error.
  */
- 
+
 typedef isc_result_t (*dns_c_zonecbk_t)(dns_c_ctx_t *ctx,
 					dns_c_zone_t *zone,
 					dns_c_view_t *view,

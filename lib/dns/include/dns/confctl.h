@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.20 2000/07/27 09:47:32 tale Exp $ */
+/* $Id: confctl.h,v 1.21 2000/08/01 01:23:50 tale Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -29,7 +29,7 @@
  */
 
 /*
- * 
+ *
  * MP:
  *
  *	Caller must do necessary locking.
@@ -49,7 +49,7 @@
  * Standards:
  *
  *	N/A.
- *      
+ *
  */
 
 
@@ -96,7 +96,7 @@ struct dns_c_ctrl {
 		} unix_v; /* when control_type == dns_c_unix_control  */
 	} u;
 	dns_c_kidlist_t *keyidlist;
-	
+
 	ISC_LINK(dns_c_ctrl_t) next;
 };
 
@@ -146,7 +146,7 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control, const char *path,
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- insufficient memory available
- *	
+ *
  */
 
 isc_result_t

@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres.3,v 1.2 2000/07/27 09:44:02 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres.3,v 1.3 2000/08/01 01:20:24 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES 3
 .Os BIND9 9
@@ -42,9 +42,9 @@ Clients use the functions provided by the lightweight resolver library
 to encode requests and decode responses.
 The server for the lightweight resolver is
 .Nm lwresd .
-In reality this is implemented by the name server, 
+In reality this is implemented by the name server,
 .Nm named ,
-though when operating as the lightweight resolver server, 
+though when operating as the lightweight resolver server,
 .Nm lwresd
 is functionally and logically distinct from the actual name server.
 The protocol consists of a number of opcodes, each of which has a
@@ -97,7 +97,7 @@ character.
 This simplifies structure handling and parsing for both the server
 receiving a request and the client receiving a reply.
 It also eliminates data copying by enabling a mapping structure to
-directly point at data in the actual receive buffer. 
+directly point at data in the actual receive buffer.
 .Sh OPCODES
 .Pp
 Every lightweight resolver operation uses a unique opcode.
@@ -105,12 +105,12 @@ Each opcode is assigned a number.
 Opcodes in the range 0x00000000 and 0x03ffffff are reserved for use by
 the lightweight resolver library.
 Opcodes between 0x04000000 and 0xffffffff have been set aside for use by
-applications. 
+applications.
 .Pp
 Three opcodes are currently defined:
 .Bl -tag -width LWRES_OPCODE_GETADDRSBYNAME
 .It Li LWRES_OPCODE_NOOP
-The no-op opcode is essentially an echo operation, comparable to 
+The no-op opcode is essentially an echo operation, comparable to
 .Xr ping 1 .
 The server simply returns the entire data region that had been sent by
 the client.
@@ -165,24 +165,24 @@ function translates from the canonical form to the op-code specific
 structure.
 Memory allocated to the opcode's request or reply structures is
 discarded using the
-.Ar free 
+.Ar free
 function.
 Clients will typically use the op-code specific
 .Ar xxx_request_render ,
-.Ar xxx_response_parse 
+.Ar xxx_response_parse
 and
 .Ar xxx_response_free
 functions.
 The name server will use the
 .Ar xxx_request_parse ,
 .Ar xxx_response_render
-and 
+and
 .Ar xxx_request_free
 functions.
 .Pp
 For example, the no-op opcode -
 .Dv LWRES_OPCODE_NOOP
-- uses 
+- uses
 .Dv lwres_nooprequest_t
 and
 .Dv lwres_noopresponse_t
@@ -214,7 +214,7 @@ releases the memory allocated to the
 and
 .Dv lwres_noopresponse_t
 structures respectively.
-.\" 
+.\"
 .\"	XXXJR
 .\"	NOT YET.
 .\"	This is just a placeholder to indicate where the section on the
@@ -251,9 +251,9 @@ primitives on that context structure or else create a context for each
 thread.
 See
 .Xr lwres_context 3 .
-Once the context has been created, 
+Once the context has been created,
 .Fn lwres_conf_init
-is called to read 
+is called to read
 .Pa /etc/resolv.conf
 so that various options such as sort lists, search lists and so on can
 be applied.
@@ -285,6 +285,6 @@ described above.
 .Xr lwres_context 3 ,
 .Xr lwres_config 3 ,
 .Xr resolver 5 ,
-.Xr lwres_getipnode 3 
+.Xr lwres_getipnode 3
 .Xr lwresd 8 ,
 .Xr named 8 .

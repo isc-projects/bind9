@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.137 2000/07/27 09:46:15 tale Exp $ */
+/* $Id: message.c,v 1.138 2000/08/01 01:22:32 tale Exp $ */
 
 /***
  *** Imports
@@ -843,7 +843,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * the const attribute of a string, for compilers that
 		 * would warn about such things.
 		 */
-		rdata->data = (unsigned char *)1; 
+		rdata->data = (unsigned char *)1;
 		rdata->length = 0;
 		rdata->rdclass = rdclass;
 		rdata->type = rdtype;
@@ -1116,7 +1116,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * established a class.  Do so now.
 		 */
 		if (msg->state == DNS_SECTION_ANY) {
-			if ((msg->opcode != dns_opcode_update) && 
+			if ((msg->opcode != dns_opcode_update) &&
 			    (rdclass == 0 || rdclass == dns_rdataclass_any)) {
 				result = DNS_R_FORMERR;
 				goto cleanup;
@@ -1124,7 +1124,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->rdclass = rdclass;
 			msg->state = DNS_SECTION_QUESTION;
 		}
-		   
+
 		/*
 		 * If this class is different than the one in the question
 		 * section, bail.
@@ -1192,7 +1192,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				goto cleanup;
 			}
 		}
-		
+
 		/*
 		 * ... now get ttl and rdatalen, and check buffer.
 		 */
@@ -1205,7 +1205,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/*
-		 * Read the rdata from the wire format.  Interpret the 
+		 * Read the rdata from the wire format.  Interpret the
 		 * rdata according to its actual class, even if it had a
 		 * DynDNS meta-class in the packet (unless this is a TSIG).
 		 * Then put the meta-class back into the finished rdata.
@@ -1408,7 +1408,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		INSIST(free_name == ISC_FALSE);
 		INSIST(free_rdataset == ISC_FALSE);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -1942,7 +1942,7 @@ dns_message_nextname(dns_message_t *msg, dns_section_t section) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(VALID_NAMED_SECTION(section));
 	REQUIRE(msg->cursors[section] != NULL);
-	
+
 	msg->cursors[section] = ISC_LIST_NEXT(msg->cursors[section], link);
 
 	if (msg->cursors[section] == NULL)
@@ -2226,7 +2226,7 @@ dns_message_getopt(dns_message_t *msg) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	
+
 	return (msg->opt);
 }
 
@@ -2349,7 +2349,7 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 	result = dns_message_gettemprdata(msg, &rdata);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	
+
 	result = dns_message_gettemprdatalist(msg, &list);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -2546,7 +2546,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		
+
 		if (msg->verified_sig && msg->sig0status == dns_rcode_noerror)
 			result = ISC_R_SUCCESS;
 		else

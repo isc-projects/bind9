@@ -15,7 +15,7 @@ static unsigned int Log2 PROTO_LIST ((unsigned int));
      modding out integers which are < b**2.
      -- assumes a has n+2 words, b has n words.
      -- assumes b is a positive integer.
- */              
+ */
 void BigInv (a, b, n)
 UINT2 *a, *b;
 unsigned int n;
@@ -30,18 +30,18 @@ unsigned int n;
   /* 2** (bl-1) <= b < 2 ** bl */
   bl = BigLen (b, n);
   u = BigU (2 * bl);
-  
+
   /* uw and sw are in words */
   uw = u/16;
   sw = (bl - 2) / 16;
-  
+
   /* since a = floor ((2**u)/b),  2**(u-bl) < a <= 2**(u-bl+1) */
 
   /* Initialize a to 1+2**(u-bl) -- we will converge from below.
    */
   Big2Exp (a, u - bl, n + 2);
   BigInc (a, n + 2);
-  
+
   /* Copy b to local register.
    */
   BigZero (t1, n + 3);
@@ -52,7 +52,7 @@ unsigned int n;
   for (i = 1 + Log2 (u - bl + 1); i > 0; i--) {
     /* use fast squaring routine to compute p = a**2
        2**(2 * (u-bl)) < p <= 2**(2 * (u-bl+1)) */
-    BigPsq (p, a, n + 2); 
+    BigPsq (p, a, n + 2);
 
     /* compute q = b * floor (p/ (2**s))
        2**(2 * (u-bl)-s+bl-1) <= q <= 2**(2 * (u-bl+1)-s+bl

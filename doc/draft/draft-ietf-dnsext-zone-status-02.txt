@@ -36,10 +36,10 @@ Copyright (C) The Internet Society (1999, 2000).  All rights reserved.
 
 Abstract
 
-The definition of a secured zone is presented, updating RFC 2535. 
+The definition of a secured zone is presented, updating RFC 2535.
 After discussion on the mailing list and other working group
 consideration, removed from earlier editions of this draft are a new
-interpretation of the NXT record and a proposal to obsolete NULL 
+interpretation of the NXT record and a proposal to obsolete NULL
 keys.  Deprecation of "experimentally secure" remains.
 
 1 Introduction
@@ -93,9 +93,9 @@ secured.
 1.2 Islands of Security
 
 The goal of DNSSEC is to have each zone secured, from the root zone
-and the top-level domains down the hierarchy to the leaf zones. 
+and the top-level domains down the hierarchy to the leaf zones.
 Transitioning from an unsecured DNS, as we have now, to a fully
-secured - or "as much as will be secured" - tree will take some time. 
+secured - or "as much as will be secured" - tree will take some time.
 During this time, DNSSEC will be applied in various locations in the
 tree, not necessarily "top down."
 
@@ -313,7 +313,7 @@ migration from an unsecured zone to a secured zone.  This distinction
 is dropped.
 
 The objective of facilitating the migration can be achieved without a
-special designation of an experimentally secure status. 
+special designation of an experimentally secure status.
 Experimentally secured is a special case of privately secured.  A zone
 administrator can achieve this by publishing a zone with signatures
 and configuring a set of test resolvers with the corresponding public

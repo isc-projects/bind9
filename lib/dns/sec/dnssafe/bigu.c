@@ -17,5 +17,5 @@
 unsigned int BigU (t)
 unsigned int t;
 {
-  return (16 * (((t+1) + 15)/16)); 
+  return (16 * (((t+1) + 15)/16));
 }

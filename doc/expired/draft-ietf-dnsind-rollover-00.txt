@@ -30,7 +30,7 @@ Status of This Document
    other documents at any time.  It is not appropriate to use Internet-
    Drafts as reference material or to cite them other than as a
    ``working draft'' or ``work in progress.''
-   
+
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/ietf/1id-abstracts.txt
 

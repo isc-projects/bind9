@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_resutil.3,v 1.2 2000/07/27 09:45:39 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_resutil.3,v 1.3 2000/08/01 01:21:57 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_RESUTIL 3
 .Os BIND9 9
@@ -27,7 +27,7 @@
 .Nd lightweight resolver utility functions
 .Sh SYNOPSIS
 .Fd #include <lwres/lwres.h>
-.Fd 
+.Fd
 .Ft lwres_result_t
 .Fo lwres_string_parse
 .Fa "lwres_buffer_t *b"
@@ -68,7 +68,7 @@ and the length of that string is given by
 .Fa *len .
 The buffer's current pointer is advanced to point at the character
 following the string length, the encoded string, and the trailing
-.Dv NULL 
+.Dv NULL
 character.
 .Fn lwres_string_parse
 has an assertion check that
@@ -117,7 +117,7 @@ typedef struct {
 .Ed
 The contents of this structure are not manipulated directly but
 they are controlled through the
-.Xr lwres_gabn 3 
+.Xr lwres_gabn 3
 functions.
 .Pp
 The lightweight resolver uses
@@ -139,7 +139,7 @@ Results of the lookup are returned in
 .Fa *structp .
 .Fn lwres_getaddrsbyname
 checks that its pointer arguments are not
-.Dv NULL 
+.Dv NULL
 and that
 .Fa addrtypes
 is non-zero.
@@ -165,8 +165,8 @@ Like
 .Fn lwres_getaddrsbyname ,
 .Fn lwres_getnamebyaddr
 uses assertion checking to ensure its pointer arguments are not
-.Dv NULL 
-and 
+.Dv NULL
+and
 .Fa addrtype
 is not zero.
 .Fn lwres_getaddrsbyname

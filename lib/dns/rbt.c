@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.89 2000/07/31 23:27:24 tale Exp $ */
+/* $Id: rbt.c,v 1.90 2000/08/01 01:22:38 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -137,7 +137,7 @@ do { \
  * A little something to help out in GDB.
  */
 dns_name_t Name(dns_rbtnode_t *node);
-dns_name_t 
+dns_name_t
 Name(dns_rbtnode_t *node) {
 	dns_name_t name;
 
@@ -392,7 +392,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	do {
 		current = child;
 
-		INSIST((IS_ROOT(current) && 
+		INSIST((IS_ROOT(current) &&
 			chain.ancestors[chain.ancestor_count - 1] == NULL) ||
 		       (! IS_ROOT(current) &&
 			chain.ancestors[chain.ancestor_count - 1] ==
@@ -440,7 +440,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				/*
 				 * All of the existing labels are in common,
 				 * so the new name is in a subtree.
-				 * Whack off the common labels for the 
+				 * Whack off the common labels for the
 				 * not-in-common part to be searched for
 				 * in the next level.
 				 */
@@ -451,7 +451,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 				if (result != ISC_R_SUCCESS)
 					break;
-				
+
 				/*
 				 * Follow the down pointer (possibly NULL).
 				 */
@@ -486,7 +486,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * XXX DCL need a better error result?
 				 */
 				if (chain.level_count ==
-				    (sizeof(chain.levels) / 
+				    (sizeof(chain.levels) /
 				     sizeof(*chain.levels))) {
 					result = ISC_R_NOSPACE;
 					break;
@@ -510,7 +510,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				if (result != ISC_R_SUCCESS)
 					break;
 
-				/* 
+				/*
 				 * Reproduce the tree attributes of the
 				 * current node.
 				 */
@@ -648,13 +648,13 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * result != ISC_R_SUCCESS, which
 					 * is tested after the loop ends).
 					 */
-					result = dns_name_split(add_name, 
+					result = dns_name_split(add_name,
 								common_labels,
 								common_bits,
 								add_name,
 								NULL);
 
-				
+
 					break;
 				}
 
@@ -731,7 +731,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	REQUIRE((options & (DNS_RBTFIND_NOEXACT | DNS_RBTFIND_NOPREDECESSOR))
 		!=         (DNS_RBTFIND_NOEXACT | DNS_RBTFIND_NOPREDECESSOR));
 
-	/* 
+	/*
 	 * If there is a chain it needs to appear to be in a sane state,
 	 * otherwise a chain is still needed to generate foundname and
 	 * callback_name.
@@ -1097,7 +1097,7 @@ dns_rbt_findname(dns_rbt_t *rbt, dns_name_t *name, unsigned int options,
 		*data = DATA(node);
 	else
 		result = ISC_R_NOTFOUND;
-		
+
 	return (result);
 }
 
@@ -1185,7 +1185,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 		}
 	}
 
-	/* 
+	/*
 	 * Note the node that points to the level of the node that is being
 	 * deleted.  If the deleted node is the top level, parent will be set
 	 * to NULL.
@@ -1244,12 +1244,12 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	labels = dns_name_countlabels(name);
 	ENSURE(labels > 0);
 
-	/* 
+	/*
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) +
 					    region.length + labels);
-					    
+
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -1504,7 +1504,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 	MAKE_RED(node);
 
 	depth = chain->ancestor_count - 1;
-	
+
 	while (node != root && IS_RED(chain->ancestors[depth])) {
 		INSIST(depth > 0);
 
@@ -1578,7 +1578,7 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 	 * Verify that the parent history is (apparently) correct.
 	 */
 	INSIST((IS_ROOT(delete) && *rootp == delete) ||
-	       (! IS_ROOT(delete) && 
+	       (! IS_ROOT(delete) &&
 		(LEFT(PARENT(delete)) == delete ||
 		 RIGHT(PARENT(delete)) == delete)));
 
@@ -1709,7 +1709,7 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 		*rootp = child;
 		IS_ROOT(child) = ISC_TRUE;
 		PARENT(child) = PARENT(delete);
-	} 
+	}
 
 	/*
 	 * Fix color violations.
@@ -2026,7 +2026,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 				break;
 			}
 		}
-	}	
+	}
 
 	if (predecessor != NULL) {
 		if (DOWN(predecessor) != NULL) {

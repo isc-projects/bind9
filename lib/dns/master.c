@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.60 2000/07/30 20:28:07 bwelling Exp $ */
+/* $Id: master.c,v 1.61 2000/08/01 01:22:30 tale Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@
  *
  * RDLSZ reflects the number of different types with the same name expected.
  * RDSZ reflects the number of rdata expected at a give name that can fit into
- * 64k. 
+ * 64k.
  */
 
 #define RDLSZ 32
@@ -55,7 +55,7 @@
 /*
  * Target buffer size and minimum target size.
  * MINTSIZ must be big enough to hold the largest rdata record.
- * 
+ *
  * TSIZ >= MINTSIZ
  */
 #define TSIZ (128*1024)
@@ -63,10 +63,10 @@
  * max message size - header - root - type - class - ttl - rdlen
  */
 #define MINTSIZ (65535 - 12 - 1 - 2 - 2 - 4 - 2)
-/* 
- * Size for tokens in the presentation format, 
+/*
+ * Size for tokens in the presentation format,
  * The largest tokens are the base64 blocks in KEY and CERT records,
- * Largest key allowed is about 1372 bytes but 
+ * Largest key allowed is about 1372 bytes but
  * there is no fixed upper bound on CERT records.
  * 2K is too small for some X.509s, 8K is overkill.
  */
@@ -78,7 +78,7 @@ typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
  * Master file loading state that persists across $INCLUDEs.
  */
 typedef struct {
-	isc_boolean_t 	ttl_known; 
+	isc_boolean_t 	ttl_known;
 	isc_boolean_t 	default_ttl_known;
 	isc_uint32_t 	ttl;
 	isc_uint32_t 	default_ttl;
@@ -177,7 +177,7 @@ loadctx_init(loadctx_t *ctx) {
 	ctx->default_ttl = 0;
 	ctx->warn_1035 = ISC_TRUE;	/* XXX Argument? */
 }
-	     
+
 static isc_result_t
 load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
      dns_rdataclass_t zclass, isc_boolean_t age_ttl,
@@ -200,7 +200,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	isc_boolean_t initialws;
 	char *include_file = NULL;
 	isc_token_t token;
-	isc_result_t result = ISC_R_UNEXPECTED; 
+	isc_result_t result = ISC_R_UNEXPECTED;
 	rdatalist_head_t glue_list;
 	rdatalist_head_t current_list;
 	dns_rdatalist_t *this;
@@ -331,7 +331,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				if (ttl_offset != 0) {
 					(callbacks->error)(callbacks,
 					   "%s: %s:%lu: $INCLUDE "
-					   "may not be used with $DATE", 
+					   "may not be used with $DATE",
 					   "dns_master_load",
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex));
@@ -408,10 +408,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				ttl_offset = current_time - dump_time;
 				read_till_eol = ISC_TRUE;
 				continue;
-			} else if (strncasecmp(token.value.as_pointer, 
+			} else if (strncasecmp(token.value.as_pointer,
 					       "$", 1) == 0) {
-				(callbacks->error)(callbacks, 
-						   "%s: %s:%lu: " 
+				(callbacks->error)(callbacks,
+						   "%s: %s:%lu: "
 						   "unknown $ directive '%s'",
 						   "dns_master_load",
 						   isc_lex_getsourcename(lex),
@@ -622,7 +622,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 					   isc_lex_getsourcename(lex),
 					   isc_lex_getsourceline(lex));
 			ctx->warn_1035 = ISC_FALSE;
-		} 
+		}
 
 		if (token.type != isc_tokentype_string) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -630,7 +630,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-			
+
 		if (rdclass == 0 &&
 		    dns_rdataclass_fromtext(&rdclass,
 					    &token.value.as_textregion)
@@ -700,7 +700,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			/*
 			 * Adjust the TTL for $DATE.  If the RR has already
 			 * expired, ignore it without even parsing the rdata
-			 * part (good for performance, bad for catching 
+			 * part (good for performance, bad for catching
 			 * syntax errors).
 			 */
 			if (ctx->ttl < ttl_offset) {
@@ -850,9 +850,9 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 	}
-	while ((this = ISC_LIST_HEAD(current_list)) != NULL) 
+	while ((this = ISC_LIST_HEAD(current_list)) != NULL)
 		ISC_LIST_UNLINK(current_list, this, link);
-	while ((this = ISC_LIST_HEAD(glue_list)) != NULL) 
+	while ((this = ISC_LIST_HEAD(glue_list)) != NULL)
 		ISC_LIST_UNLINK(glue_list, this, link);
 	if (rdatalist != NULL)
 		isc_mem_put(mctx, rdatalist,
@@ -943,7 +943,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 	REQUIRE(buffer != NULL);
 
 	loadctx_init(&ctx);
-	
+
 	result = isc_lex_create(mctx, TOKENSIZ, &lex);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -1046,7 +1046,7 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 		}
 		this = ISC_LIST_NEXT(this, link);
 	}
-	
+
 	/*
 	 * Copy glue relinking.
 	 */

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.11 2000/07/27 09:53:38 tale Exp $ */
+/* $Id: gai_strerror.c,v 1.12 2000/08/01 01:32:12 tale Exp $ */
 
 #include <lwres/netdb.h>
 
@@ -40,7 +40,7 @@ lwres_gai_strerror(int ecode) {
 		const char *const_ptr;
 		char *deconst_ptr;
 	} ptr;
-		       
+
 	if ((ecode < 0) || (ecode > EAI_MAX))
 		ptr.const_ptr = "invalid error code";
 	else

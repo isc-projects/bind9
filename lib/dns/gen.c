@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.53 2000/07/27 09:46:07 tale Exp $ */
+/* $Id: gen.c,v 1.54 2000/08/01 01:22:24 tale Exp $ */
 
 #include <config.h>
 
@@ -226,7 +226,7 @@ doswitch(const char *name, const char *function, const char *args,
 		else
 			fprintf(stdout,
 			        "\t\tcase %d:%s %s_%s_%s(%s); break;",
-				tt->rdclass, result, function, 
+				tt->rdclass, result, function,
 				funname(tt->classname, buf1),
 				funname(tt->typename, buf2), args);
 		fputs(" \\\n", stdout);
@@ -235,7 +235,7 @@ doswitch(const char *name, const char *function, const char *args,
 	if (subswitch) {
 		if (res == NULL)
 			fprintf(stdout, "\t\tdefault: break; \\\n");
-		else 
+		else
 			fprintf(stdout, "\t\tdefault: %s; break; \\\n", res);
 		fputs(/*{*/ "\t\t} \\\n", stdout);
 		fputs("\t\tbreak; \\\n", stdout);
@@ -270,7 +270,7 @@ dodecl(char *type, char *function, char *args) {
 		else
 			fprintf(stdout,
 				"static inline %s %s_%s(%s);\n",
-				type, function, 
+				type, function,
 				funname(tt->typename, buf1), args);
 }
 
@@ -380,7 +380,7 @@ add(int rdclass, const char *classname, int type, const char *typename,
 	strcpy(newcc->classname, classname);
 	cc = classes;
 	oldcc = NULL;
-	
+
 	while ((cc != NULL) && (cc->rdclass < rdclass)) {
 		oldcc = cc;
 		cc = cc->next;
@@ -771,7 +771,7 @@ main(int argc, char **argv) {
 			"((dns_rdatatype_t)dns_rdatatype_maila)\n");
 		fprintf(stdout, "#define dns_rdatatype_any\t"
 			"((dns_rdatatype_t)dns_rdatatype_any)\n");
-		
+
 		fprintf(stdout, "\n#endif /* DNS_ENUMTYPE_H */\n");
 
 	} else if (class_enum) {

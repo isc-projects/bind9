@@ -77,12 +77,12 @@ unsigned int inputLen;
 A_SURRENDER_CTX *surrenderContext;
 {
   int status;
-  
+
   if ((status = (*((A_RANDOM_ALGA *)handler->algaChoice._alga)->Update)
        (handler->algaChoice.context.z.context, input, inputLen,
         surrenderContext)) != 0)
     return (ConvertAlgaeError (status));
-  return (0);    
+  return (0);
 }
 
 int AHChooseRandomGenerateBytes (handler, output, outputLen, surrenderContext)
@@ -92,12 +92,12 @@ unsigned int outputLen;
 A_SURRENDER_CTX *surrenderContext;
 {
   int status;
-  
+
   if ((status = (*((A_RANDOM_ALGA *)handler->algaChoice._alga)->Generate)
        (handler->algaChoice.context.z.context, output, outputLen,
         surrenderContext)) != 0)
     return (ConvertAlgaeError (status));
-  return (0);    
+  return (0);
 }
 
 static int InitRandomAlga

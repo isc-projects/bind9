@@ -73,7 +73,7 @@ BIND 9.1.0a1
 	This is an unreleased alpha version of BIND 9.1.0.
 
 	For a detailed list of user-visible changes from
-	previous releases, see the CHANGES file.	
+	previous releases, see the CHANGES file.
 
 
 Building
@@ -124,7 +124,7 @@ Building
 	If your operating system has integrated support for IPv6, it
 	will be used automatically.  If you have installed KAME IPv6
 	separately, use "--with-kame[=PATH]" to specify its location.
-	
+
         To see additional configure options, run "configure --help".
 
 	"make install" will install "named" and the various BIND 9 libraries.
@@ -171,7 +171,7 @@ Bug Reports and Mailing Lists
 					to stderr, ignoring any "logging"
 					statement in in the config file.
 
-	-n <number_of_cpus>		
+	-n <number_of_cpus>
 
 	-t <directory>			Chroot to <directory> before running.
 

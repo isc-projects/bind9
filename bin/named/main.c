@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.75 2000/07/27 09:37:00 tale Exp $ */
+/* $Id: main.c,v 1.76 2000/08/01 01:11:51 tale Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,7 @@
  * Defining NS_MAIN provides storage declaratons (rather than extern)
  * for variables in named/globals.h.
  */
-#define NS_MAIN 1		
+#define NS_MAIN 1
 
 #include <named/globals.h>	/* Explicit, though named/log.h includes it. */
 #include <named/interfacemgr.h>
@@ -185,7 +185,7 @@ usage(void) {
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n");
 }
 
-static void 
+static void
 parse_lwresd_command_line(int argc, char *argv[]) {
 	int ch;
 	unsigned int port;
@@ -259,7 +259,7 @@ parse_lwresd_command_line(int argc, char *argv[]) {
 	}
 }
 
-static void 
+static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
 	unsigned int port;
@@ -508,7 +508,7 @@ main(int argc, char *argv[]) {
 	 */
 	do {
 		result = isc_app_run();
-		
+
 		if (result == ISC_R_RELOAD) {
 			ns_server_reloadwanted(ns_g_server);
 		} else if (result != ISC_R_SUCCESS) {

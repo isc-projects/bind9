@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.18 2000/07/27 09:52:46 tale Exp $ */
+/* $Id: interfaceiter.c,v 1.19 2000/08/01 01:31:21 tale Exp $ */
 
 #include <config.h>
 
@@ -44,14 +44,14 @@
 
 /*
  * Extract the network address part from a "struct sockaddr".
- * 
+ *
  * The address family is given explicity
  * instead of using src->sa_family, because the latter does not work
  * for copying a network mask obtained by SIOCGIFNETMASK (it does
  * not have a valid address family).
  */
 
-static void 
+static void
 get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 	dst->family = family;
 	switch (family) {
@@ -98,12 +98,12 @@ isc_result_t
 isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 	isc_result_t result;
 
-	REQUIRE(VALID_IFITER(iter));	
+	REQUIRE(VALID_IFITER(iter));
 
 	iter->pos = 0;
 	for (;;) {
 		result = internal_current(iter);
-		if (result != ISC_R_IGNORE) 
+		if (result != ISC_R_IGNORE)
 			break;
 		result = internal_next(iter);
 		if (result != ISC_R_SUCCESS)
@@ -116,7 +116,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter) {
 isc_result_t
 isc_interfaceiter_next(isc_interfaceiter_t *iter) {
 	isc_result_t result;
-		
+
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.28 2000/07/27 23:52:30 bwelling Exp $ */
+/* $Id: nslookup.c,v 1.29 2000/08/01 01:11:17 tale Exp $ */
 
 #include <config.h>
 
@@ -109,7 +109,7 @@ static const char *rtypetext[] = {
 	"mf = ",			/* 4 */
 	"canonical name = ",		/* 5 */
 	"soa = ",		       	/* 6 */
-	"mb = ",		       	/* 7 */	
+	"mb = ",		       	/* 7 */
 	"mg = ",		       	/* 8 */
 	"mr = ",		       	/* 9 */
 	"rtype_10 = ",		       	/* 10 */
@@ -151,7 +151,7 @@ show_usage(void) {
 	fputs (
 "Usage:\n"
 , stderr);
-}				
+}
 
 void
 dighost_shutdown(void) {
@@ -213,7 +213,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	check_result(result, "isc_buffer_allocate");
 	for (;;) {
 		name = NULL;
-		dns_message_currentname(msg, section, 
+		dns_message_currentname(msg, section,
 					&name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
@@ -319,14 +319,14 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						(char*)isc_buffer_base(b),
 						 rdata.type);
 					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata, 
+					result = dns_rdata_totext(&rdata,
 								  NULL, b);
 					check_result(result,
 						     "dns_rdata_totext");
 					printf("%.*s\n",
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
-				}	
+				}
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -390,7 +390,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	check_result(result, "isc_buffer_allocate");
 	for (;;) {
 		name = NULL;
-		dns_message_currentname(msg, section, 
+		dns_message_currentname(msg, section,
 					&name);
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
@@ -465,14 +465,14 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						printf ("\trdata_%d = ",
 						 rdata.type);
 					isc_buffer_clear(b);
-					result = dns_rdata_totext(&rdata, 
+					result = dns_rdata_totext(&rdata,
 								  NULL, b);
 					check_result(result,
 						     "dns_rdata_totext");
 					printf("%.*s\n",
 					       (int)isc_buffer_usedlength(b),
 					       (char*)isc_buffer_base(b));
-				}	
+				}
 				loopresult = dns_rdataset_next(rdataset);
 			}
 		}
@@ -529,11 +529,11 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		detailsection(query, msg, headers, DNS_SECTION_ADDITIONAL);
 		puts ("------------");
 	}
-	
+
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0)
 		puts ("Non-authorative answer:");
 	printsection(query, msg, headers, DNS_SECTION_ANSWER);
-	
+
 	if (((msg->flags & DNS_MESSAGEFLAG_AA) == 0) &&
 	    (query->lookup->rdtype != dns_rdatatype_a)) {
 		puts ("\nAuthorative answers can be found from:");
@@ -551,7 +551,7 @@ show_settings(isc_boolean_t full) {
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *b = NULL;
 	isc_result_t result;
-	
+
 	srv = ISC_LIST_HEAD(server_list);
 
 	while (srv != NULL) {
@@ -726,7 +726,7 @@ flush_server_list(void) {
 
 }
 
-/* 
+/*
  * This works on the global server list, instead of on a per-lookup
  * server list, since the change is persistent.
  */
@@ -764,9 +764,9 @@ get_next_command(void) {
 		setoption(arg);
 	else if ((strcasecmp(ptr, "server") == 0) ||
 		 (strcasecmp(ptr, "lserver") == 0)) {
-		printf("Server:\t%s\n", arg); 
+		printf("Server:\t%s\n", arg);
 		setsrv(arg);
-	} else 
+	} else
 		addlookup(ptr);
 }
 
@@ -830,7 +830,7 @@ flush_lookup_list(void) {
 			s = ISC_LIST_NEXT(s, link);
 			ISC_LIST_DEQUEUE(l->my_server_list, sp, link);
 			isc_mem_free(mctx, sp);
-			
+
 		}
 		if (l->sendmsg != NULL)
 			dns_message_destroy(&l->sendmsg);
@@ -841,7 +841,7 @@ flush_lookup_list(void) {
 		ISC_LIST_DEQUEUE(lookup_list, lp, link);
 		isc_mem_free(mctx, lp);
 	}
-}	
+}
 
 int
 main(int argc, char **argv) {
@@ -911,8 +911,8 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stderr);
 	isc_app_finish();
 	if (mctx != NULL)
-		isc_mem_destroy(&mctx);	
-	
+		isc_mem_destroy(&mctx);
+
 	return (0);
 }
 

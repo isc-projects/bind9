@@ -17,7 +17,7 @@ unsigned int n;
 {
   register unsigned int i;
   unsigned int cLen;
-  
+
   BigZero (a, 2*n);
   cLen = BigLenw (c, n);
   for (i = 0; i < n; i++)

@@ -3,7 +3,7 @@ See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 			Name Compression
 
-	$Id: compression,v 1.5 2000/06/21 23:43:29 tale Exp $
+	$Id: compression,v 1.6 2000/08/01 01:18:07 tale Exp $
 
 Overview.
 
@@ -28,7 +28,7 @@ Overview.
 	   across a message.
 
 	BIND 4.x and BIND 8.x used a table of existing 14 bit compression
-	targets. 
+	targets.
 
 	The implicit assumption is that we will use compression whenever
 	possible and when ever there are multiple alternatives available
@@ -128,7 +128,7 @@ Functions:
 	dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 			       dns_name_t *prefix, dns_name_t *suffix,
 			       isc_uint16_t *offset, isc_buffer_t *workspace);
-	
+
 	Find the best best match in the global / local RBT.  Returns prefix,
 	suffix and offset of the bestmatch.  Findglobal(), findlocal()
 	requires as workspace as it may be neccessary to spit a bit stream

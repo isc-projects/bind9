@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.24 2000/07/27 09:53:40 tale Exp $ */
+/* $Id: getipnode.c,v 1.25 2000/08/01 01:32:15 tale Exp $ */
 
 #include <config.h>
 
@@ -169,7 +169,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	(void) lwres_conf_parse(lwrctx, "/etc/resolv.conf");
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
-		
+
 		n = lwres_getaddrsbyname(lwrctx, name, LWRES_ADDRTYPE_V6, &by);
 		if (n == 0) {
 			he1 = hostfromname(by, AF_INET6);
@@ -201,7 +201,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 			else
 				*error_num = NO_RECOVERY;
 			goto cleanup;
-		} 
+		}
 	} else
 		*error_num = tmp_err;
 
@@ -237,7 +237,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		*error_num = NO_RECOVERY;
 		return (NULL);
 	}
-		
+
 	switch (af) {
 	case AF_INET:
 		if (len != INADDRSZ) {
@@ -428,7 +428,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 			/*
 			 * Some OS's just return what will fit rather
 			 * than set EINVAL if the buffer is too small
-			 * to fit all the interfaces in.  If 
+			 * to fit all the interfaces in.  If
 			 * ifc.ifc_len is too near to the end of the
 			 * buffer we will grow it just in case and
 			 * retry.
@@ -491,7 +491,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 				if ((ifreq.ifr_flags & IFF_UP) == 0)
 					break;
 				*have_v4 = 1;
-			} 
+			}
 			break;
 		case AF_INET6:
 			if (*have_v6 == 0) {

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ndcconf_test.c,v 1.9 2000/07/27 09:38:15 tale Exp $ */
+/* $Id: ndcconf_test.c,v 1.10 2000/08/01 01:13:06 tale Exp $ */
 
 #include <config.h>
 
@@ -44,15 +44,15 @@ main(int argc, char **argv) {
 	} else {
 		program++;
 	}
-	
+
 	argc--;
 	argv++;
-	
+
 	if (argc == 0) {
 		fprintf(stderr, "usage: %s file\n", program);
 		exit (1);
 	}
-	
+
 	conffile = argv[0];
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mem) == ISC_R_SUCCESS);
@@ -60,7 +60,7 @@ main(int argc, char **argv) {
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
-	
+
 	RUNTIME_CHECK(isc_log_usechannel(logcfg, "default_stderr", NULL, NULL)
 		      == ISC_R_SUCCESS);
 
@@ -72,15 +72,15 @@ main(int argc, char **argv) {
 	} else {
 		dns_c_ndcctx_print(stderr, ndcctx);
 	}
-	
+
 
 	dns_c_ndcctx_destroy(&ndcctx);
 
 	dns_lctx = NULL;
 	isc_log_destroy(&log);
-	
+
 	isc_mem_destroy(&mem);
 
 	return (0);
 }
-     
+

@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: dnssec-signzone.8,v 1.10 2000/07/31 19:39:42 bwelling Exp $
-.\" 
+.\"
+.\" $Id: dnssec-signzone.8,v 1.11 2000/08/01 01:18:52 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-SIGNZONE 8
 .Os BIND9 9
@@ -77,7 +77,7 @@ If there is a
 .Ar signedkey
 file from the zone's parent, the parent's signatures will be
 incorporated into the generated signed zone file.
-The security status of delegations from the the signed zone 
+The security status of delegations from the the signed zone
 - i.e. whether the child zones are DNSSEC-aware or not - is
 set according to the presence or absence of a
 .Ar signedkey
@@ -112,7 +112,7 @@ A relative start time is supplied when
 .Ar start-time
 is given as +N: N seconds from the current time.
 If no
-.Fl s 
+.Fl s
 option is supplied, the current date and time is used for the start
 time of the SIG records.
 .Pp
@@ -152,9 +152,9 @@ Otherwise, it is considered to be expiring soon, and
 will remove it and generate a new SIG record to replace it.
 .Pp
 The default cycle period is one quarter of the difference between the
-specified signature end and start dates.  So if the 
+specified signature end and start dates.  So if the
 .Fl e
-and 
+and
 .Fl s
 options are not specified,
 .Nm dnssec-signzone
@@ -223,12 +223,12 @@ which is the same as the origin, so there is no need to use the
 .Fl o
 option to set the origin.
 The zone's keys were either appended to the zone file or
-incorporated using a 
-.Dv $INCLUDE 
+incorporated using a
+.Dv $INCLUDE
 statement.
 If there was a
 .Ar signedkey
-file from the parent zone - i.e. 
+file from the parent zone - i.e.
 .Dv signedkey-example.com.
 - it should be present in the current directory.
 This allows the parent zone's signature to be included in the signed

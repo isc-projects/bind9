@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_buffer.3,v 1.2 2000/07/27 09:44:04 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_buffer.3,v 1.3 2000/08/01 01:20:26 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_BUFFER 3
 .Os BIND9 9
@@ -39,7 +39,7 @@
 .Nd lightweight resolver buffer management
 .Sh SYNOPSIS
 .Fd #include <lwres/lwbuffer.h>
-.Fd 
+.Fd
 .Ft void
 .Fo lwres_buffer_init
 .Fa "lwres_buffer_t *b"
@@ -132,7 +132,7 @@ struct lwres_buffer {
 	unsigned int 		active;
 };
 .Ed
-The main reason for making the buffer structure public is so that 
+The main reason for making the buffer structure public is so that
 buffer operations can be implemented using macros.
 Applications should not manipulate this structure directly.
 They should use the functions listed below.
@@ -166,7 +166,7 @@ It extends from the current offset to an offset in the
 remaining region.
 Initially, the active region is empty.
 If the current offset advances beyond the chosen offset,
-the active region will also be empty.   
+the active region will also be empty.
 .Pp
 Except for
 .Fn lwres_buffer_init ,
@@ -193,7 +193,7 @@ The
 .Fa *b
 is invalidated by
 .Fn lwres_buffer_invalidate .
-.Fa *b 
+.Fa *b
 must be a valid lightweight resolver buffer.
 .Pp
 The functions
@@ -206,7 +206,7 @@ buffer
 by
 .Fa n
 bytes.
-.Fa *b 
+.Fa *b
 .Fn lwres_buffer_add
 checks for buffer overflow and
 .Fn lwres_buffer_subtract
@@ -219,9 +219,9 @@ A lightweight resolver buffer is re-initialised by
 .Fn lwres_buffer_clear .
 The function sets
 .Li b->used ,
-.Li b->current 
+.Li b->current
 and
-.Li b->active 
+.Li b->active
 to zero.
 .Pp
 .Fn lwres_buffer_first
@@ -289,11 +289,11 @@ respectively.
 .Fn lwres_buffer_putmem
 copies
 .Fa length
-bytes of memory at 
+bytes of memory at
 .Fa base
 to
 .Fa b.
-Conversely, 
+Conversely,
 .Fn lwres_buffer_getmem
 copies
 .Fa length

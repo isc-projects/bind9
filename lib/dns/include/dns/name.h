@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.77 2000/07/31 23:09:47 tale Exp $ */
+/* $Id: name.h,v 1.78 2000/08/01 01:24:22 tale Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -250,7 +250,7 @@ dns_name_reset(dns_name_t *name);
  *
  *	+ If any buffer is associated with 'name' (via dns_name_setbuffer()
  *	  or by being part of a dns_fixedname_t) the link to the buffer
- *	  is retained but the buffer itself is cleared.  
+ *	  is retained but the buffer itself is cleared.
  *
  *	+ Of the attributes associated with 'name', all are retained except
  *	  DNS_NAMEATTR_ABSOLUTE.
@@ -603,7 +603,7 @@ dns_name_depth(const dns_name_t *name);
 /***
  *** Labels
  ***/
-	
+
 unsigned int
 dns_name_countlabels(const dns_name_t *name);
 /*
@@ -676,7 +676,7 @@ dns_name_clone(dns_name_t *source, dns_name_t *target);
  *
  *	This call is functionally equivalent to:
  *
- *		dns_name_getlabelsequence(source, 0, 
+ *		dns_name_getlabelsequence(source, 0,
  *					  dns_label_countlabels(source),
  *					  target);
  *
@@ -786,7 +786,7 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target);
 /*
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
- *	
+ *
  * Notes:
  *	If the compression context allows global compression, then the
  *	global compression table may be updated.
@@ -872,7 +872,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target);
 /*
  * Convert 'name' into text format, storing the result in 'target'.
- *	
+ *
  * Notes:
  *	If 'omit_final_dot' is true, then the final '.' in absolute
  *	names other than the root name will be omitted.
@@ -1070,9 +1070,9 @@ dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target);
  * Requires:
  *
  *	'source' is a valid non-empty name.
- *	
+ *
  *	'target' is a valid name that is not read-only.
- *	
+ *
  *	'mctx' is a valid memory context.
  */
 
@@ -1086,11 +1086,11 @@ dns_name_dupwithoffsets(dns_name_t *source, isc_mem_t *mctx,
  * Requires:
  *
  *	'source' is a valid non-empty name.
- *	
+ *
  *	'target' is a valid name that is not read-only.
  *
  *	'target' has no offsets table.
- *	
+ *
  *	'mctx' is a valid memory context.
  */
 
@@ -1135,7 +1135,7 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
  *	ISC_R_SUCCESS
  *
  *	Many other results are possible if not successful.
- *	
+ *
  */
 
 isc_boolean_t
@@ -1179,7 +1179,7 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size);
  * 'size' bytes.  The resulting string is guaranteed to be
  * null terminated.
  *
- * The formatted name will have a terminating dot only if it is 
+ * The formatted name will have a terminating dot only if it is
  * the root.
  *
  * This function cannot fail, instead any errors are indicated

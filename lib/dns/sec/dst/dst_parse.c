@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.22 2000/06/20 04:13:40 tale Exp $
+ * $Id: dst_parse.c,v 1.23 2000/08/01 01:27:49 tale Exp $
  */
 
 #include <config.h>
@@ -243,7 +243,7 @@ dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
 	if (token.type != isc_tokentype_string ||
 	    strcmp(token.value.as_pointer, PRIVATE_KEY_STR) != 0)
 		goto fail;
-	
+
 	NEXTTOKEN(lex, opt, &token);
 	if (token.type != isc_tokentype_string ||
 	    ((char *)token.value.as_pointer)[0] != 'v')
@@ -280,7 +280,7 @@ dst__privstruct_parsefile(dst_key_t *key, const isc_uint16_t id,
 		unsigned char *data;
 		isc_region_t r;
 
-		iret = isc_lex_gettoken(lex, opt, &token); 
+		iret = isc_lex_gettoken(lex, opt, &token);
 		if (iret == ISC_R_EOF)
 			break;
 		if (iret != ISC_R_SUCCESS)
@@ -397,7 +397,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		fwrite(r.base, 1, r.length, fp);
 		fprintf(fp, "\n");
 	}
-	
+
 	fclose(fp);
 	return (ISC_R_SUCCESS);
 }

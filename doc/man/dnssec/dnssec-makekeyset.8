@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: dnssec-makekeyset.8,v 1.7 2000/07/31 19:39:38 bwelling Exp $
-.\" 
+.\"
+.\" $Id: dnssec-makekeyset.8,v 1.8 2000/08/01 01:18:50 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-MAKEKEYSET 8
 .Os BIND9 9
@@ -70,7 +70,7 @@ A relative start time is supplied when
 .Ar start-time
 is given as +N: N seconds from the current time.
 If no
-.Fl s 
+.Fl s
 option is supplied, the current date and time is used for the start
 time of the SIG records.
 .Pp
@@ -145,7 +145,7 @@ As the debugging/tracing level
 increases,
 .Nm dnssec-makekeyset
 generates increasingly detailed reports about what it is doing.
-The default level is zero. 
+The default level is zero.
 .Pp
 The
 .Fl h
@@ -177,7 +177,7 @@ The backslash is for typographic reasons and would not be provided on
 the command line when running
 .Nm dnssec-makekeyset .
 .nf
-.Dl # dnssec-makekeyset -t 86400 -s 20000701120000 \e\p 
+.Dl # dnssec-makekeyset -t 86400 -s 20000701120000 \e\p
 .Dl -e +2592000 Kexample.com.+003+26160
 .fi
 .Pp
@@ -198,7 +198,7 @@ to the DNS administrator for
 .Dv .com
 so that they could sign the resource records in the file.
 This assumes that the
-.Dv .com 
+.Dv .com
 zone is DNSSEC-aware and the administrators of the two zones have some
 mechanism for authenticating each other and exchanging the keys and
 signatures securely.

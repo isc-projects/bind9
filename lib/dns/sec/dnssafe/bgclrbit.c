@@ -14,8 +14,8 @@
 void BigClrbit (a, v)
 UINT2 *a;
 unsigned int v;
-{ 
-  a[v/16] &= ~ (1 << (v % 16)); 
+{
+  a[v/16] &= ~ (1 << (v % 16));
 }
 
 /* BigSetbit (a, v) -- sets v-th bit of a, where v is nonnegative.
@@ -23,6 +23,6 @@ unsigned int v;
 void BigSetbit (a, v)
 UINT2 *a;
 unsigned int v;
-{ 
-  a[v/16] |= (1 << (v % 16)); 
+{
+  a[v/16] |= (1 << (v % 16));
 }

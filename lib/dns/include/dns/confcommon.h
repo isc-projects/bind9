@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.h,v 1.28 2000/07/27 09:47:31 tale Exp $ */
+/* $Id: confcommon.h,v 1.29 2000/08/01 01:23:49 tale Exp $ */
 
 #ifndef DNS_CONFCOMMON_H
 #define DNS_CONFCOMMON_H 1
@@ -73,7 +73,7 @@
 #define DNS_C_STDERR_PATH " <stderr> "	/* not really a path */
 
 /*
- * The value we use in config files if the user doesn't specify the port or 
+ * The value we use in config files if the user doesn't specify the port or
  * in some statements.
  */
 #define DNS_C_DEFAULTPORT	53	/* XXX this should be imported */
@@ -94,7 +94,7 @@
 #define DNS_C_UNLIM_VERSIONS	DNS_C_SIZE_SPEC_UNLIM
 
 /*
- * The default ordering given to rrset-order statements when the type given 
+ * The default ordering given to rrset-order statements when the type given
  * is illegal (so parsing can continue).
  */
 #define DNS_DEFAULT_ORDERING 	dns_c_ordering_fixed
@@ -145,7 +145,7 @@ typedef enum {
 } dns_c_zonetype_t;
 
 
-/* Possible address-match-element types */ 
+/* Possible address-match-element types */
 typedef enum {
 	dns_c_ipmatch_pattern,
 	dns_c_ipmatch_indirect,
@@ -205,7 +205,7 @@ typedef struct dns_c_zone_list		dns_c_zonelist_t;
  * Set this variable to a true value to get output by the wrapper
  * functions (if the memory debugging hack is compiled in--it isn't by
  * default
- */ 
+ */
 
 extern isc_boolean_t debug_mem_print;
 extern FILE *debug_mem_print_stream;	/* NULL means stderr */
@@ -216,12 +216,12 @@ extern FILE *debug_mem_print_stream;	/* NULL means stderr */
 
 ISC_LANG_BEGINDECLS
 
-/* The following dns_c_xxx2string() functions convert the first argument into 
+/* The following dns_c_xxx2string() functions convert the first argument into
  * a string value and returns that value. If the first argument is not a
- * legal value, then NULL is returned, unless PRINTABLE is true, in which 
+ * legal value, then NULL is returned, unless PRINTABLE is true, in which
  * case an ugly, but safe-to-pass-to-printf string is returned.
  *
- * e.g. dns_c_ordering2string(dns_c_ordering_cyclic,ISC_FALSE) returns the 
+ * e.g. dns_c_ordering2string(dns_c_ordering_cyclic,ISC_FALSE) returns the
  * string "cyclic", but
  * dns_c_ordering2string((dns_c_ordering_t)0xffff,ISC_TRUE) returns the
  * value "UNKNOWN_ORDERING"
@@ -252,7 +252,7 @@ dns_c_addata2string(dns_c_addata_t addata, isc_boolean_t printable);
 
 /*
  * The following dns_c_string2xxx() functions will look up the string
- * argument in a table of values and will return the appropriate enum/integer 
+ * argument in a table of values and will return the appropriate enum/integer
  * through the second argument and ISC_R_SUCCESS is returned. If the string
  * doesn't match a valid value then ISC_R_FAILURE is returned.
  */
@@ -275,7 +275,7 @@ isc_boolean_t
 dns_c_need_quote(const char *string);
 
 void
-dns_c_printtabs(FILE *fp, int count); 
+dns_c_printtabs(FILE *fp, int count);
 
 void
 dns_c_printinunits(FILE *fp, isc_uint32_t val);

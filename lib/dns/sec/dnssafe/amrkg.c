@@ -45,7 +45,7 @@ POINTER params;
       (THE_GEN_PARAMS->modulusBits < MIN_RSA_MODULUS_BITS))
     /* Can't support a keypair of this size. */
     return (AE_MODULUS_LEN);
-  
+
   *contextLen = sizeof (A_RSA_KEY_GEN_CTX);
   *secondContextLen = 0;
   *randomBlockLen =

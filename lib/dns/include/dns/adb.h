@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.58 2000/07/27 09:47:22 tale Exp $ */
+/* $Id: adb.h,v 1.59 2000/08/01 01:23:39 tale Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
 
-/***** 
- ***** Module Info 
- *****/ 
+/*****
+ ***** Module Info
+ *****/
 
 /*
  * DNS Address Database
@@ -58,7 +58,7 @@
  *
  * MP:
  *
- *	The ADB takes care of all necessary locking. 
+ *	The ADB takes care of all necessary locking.
  *
  *	Only the task which initiated the name lookup can cancel the lookup.
  *

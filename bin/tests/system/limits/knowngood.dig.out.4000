@@ -1,5 +1,5 @@
 
-; <<>> DiG 8.2 <<>> 4000.example. @10.53.0.1 a -p 
+; <<>> DiG 8.2 <<>> 4000.example. @10.53.0.1 a -p
 ; (1 server found)
 ;; res options: init recurs defnam dnsrch
 ;; got answer:

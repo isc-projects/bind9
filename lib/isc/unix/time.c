@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.27 2000/07/27 09:52:56 tale Exp $ */
+/* $Id: time.c,v 1.28 2000/08/01 01:31:30 tale Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,7 @@
 #define US_PER_S	1000000		/* Microseconds per second. */
 
 /*
- * All of the INSIST()s checks of nanoseconds < NS_PER_S are for 
+ * All of the INSIST()s checks of nanoseconds < NS_PER_S are for
  * consistency checking of the type. In lieu of magic numbers, it
  * is the best we've got.  The check is only performed on functions which
  * need an initialized type.
@@ -137,9 +137,9 @@ isc_time_now(isc_time_t *t) {
 	/*
 	 * Set *t to the current absolute time.
 	 */
-	
+
 	REQUIRE(t != NULL);
-	
+
 	if (gettimeofday(&tv, NULL) == -1) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
 		return (ISC_R_UNEXPECTED);
@@ -156,7 +156,7 @@ isc_time_now(isc_time_t *t) {
 		return (ISC_R_UNEXPECTED);
 
 	/*
-	 * Ensure the tv_sec value fits in t->seconds. 
+	 * Ensure the tv_sec value fits in t->seconds.
 	 */
 	if (sizeof(tv.tv_sec) > sizeof(t->seconds) &&
 	    ((tv.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0)
@@ -175,7 +175,7 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	/*
 	 * Set *t to the current absolute time + i.
 	 */
-	
+
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
@@ -342,7 +342,7 @@ isc_time_secondsastimet(isc_time_t *t, time_t *secondsp) {
 	 * about "signed versus unsigned" while trying to determine if the
 	 * the unsigned int t->seconds is out range for tv_sec, which is
 	 * pretty much only true if time_t is a signed integer of the same
-	 * size as the return value of isc_time_seconds. 
+	 * size as the return value of isc_time_seconds.
 	 *
 	 * The use of the 64 bit integer ``i'' takes advantage of C's
 	 * conversion rules to either zero fill or sign extend the widened

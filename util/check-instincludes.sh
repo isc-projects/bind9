@@ -1,11 +1,11 @@
 #!/bin/sh
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.5 2000/07/27 09:54:50 tale Exp $
+# $Id: check-instincludes.sh,v 1.6 2000/08/01 01:33:25 tale Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header
@@ -23,7 +23,7 @@
 # they all compile as C++.
 #
 
-case $# in 
+case $# in
   1) ;;
   *) echo "usage: sh util/check-instincludes.sh <prefix>" >&2;
      exit 1;
@@ -57,7 +57,7 @@ do
 EOF
 
     # Compile the test program.
-    if 
+    if
        gcc  -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings \
            -I/usr/pkg/pthreads/include -I$prefix/include -c test.cc 2>&1
     then

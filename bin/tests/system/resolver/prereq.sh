@@ -1,11 +1,11 @@
 #!/bin/sh
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,12 +15,12 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.2 2000/07/27 09:40:39 tale Exp $
+# $Id: prereq.sh,v 1.3 2000/08/01 01:16:22 tale Exp $
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
     :
 else
-    echo "I:This test requires the Net::DNS library." >&2    
+    echo "I:This test requires the Net::DNS library." >&2
     exit 1
 fi

@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_config.3,v 1.2 2000/07/27 09:44:28 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_config.3,v 1.3 2000/08/01 01:20:51 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_CONFIG 3
 .Os BIND9 9
@@ -59,7 +59,7 @@ structure for lightweight resolver context
 .Fa ctx .
 .Pp
 .Fn lwres_conf_clear
-frees up all the internal memory used by 
+frees up all the internal memory used by
 that
 .Dv lwres_conf_t
 structure in resolver context
@@ -83,7 +83,7 @@ to the
 .Fa fp.
 .Sh RETURN VALUES
 .Fn lwres_conf_parse
-returns 
+returns
 .Er LWRES_R_SUCCESS
 if it successfully read and parsed
 .Fa filename .
@@ -91,7 +91,7 @@ It returns
 .Er LWRES_R_FAILURE
 if
 .Fa filename
-could not be opened or contained incorrect 
+could not be opened or contained incorrect
 resolver statements.
 .Pp
 .Fn lwres_conf_print

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.48 2000/07/27 09:45:57 tale Exp $ */
+/* $Id: db.c,v 1.49 2000/08/01 01:22:15 tale Exp $ */
 
 /***
  *** Imports
@@ -37,7 +37,7 @@
  ***/
 
 typedef struct {
-	const char *		name;	
+	const char *		name;
 	isc_result_t		(*create)(isc_mem_t *mctx, dns_name_t *name,
 					  dns_dbtype_t type,
 					  dns_rdataclass_t rdclass,
@@ -135,7 +135,7 @@ dns_db_iscache(dns_db_t *db) {
 	/*
 	 * Does 'db' have cache semantics?
 	 */
-	
+
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_CACHE) != 0)
@@ -150,7 +150,7 @@ dns_db_iszone(dns_db_t *db) {
 	/*
 	 * Does 'db' have zone semantics?
 	 */
-	
+
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & (DNS_DBATTR_CACHE|DNS_DBATTR_STUB)) == 0)
@@ -165,7 +165,7 @@ dns_db_isstub(dns_db_t *db) {
 	/*
 	 * Does 'db' have stub semantics?
 	 */
-	
+
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_STUB) != 0)
@@ -180,7 +180,7 @@ dns_db_issecure(dns_db_t *db) {
 	/*
 	 * Is 'db' secure?
 	 */
-	
+
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 
@@ -287,11 +287,11 @@ dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 
 void
 dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
-	
+
 	/*
 	 * Open the current version for reading.
 	 */
-	
+
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) == 0);
 	REQUIRE(versionp != NULL && *versionp == NULL);
@@ -301,7 +301,7 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 isc_result_t
 dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp) {
-	
+
 	/*
 	 * Open a new version for reading and writing.
 	 */
@@ -329,13 +329,13 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 	(db->methods->attachversion)(db, source, targetp);
 
 	ENSURE(*targetp != NULL);
-}	
+}
 
 void
 dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 		    isc_boolean_t commit)
 {
-	
+
 	/*
 	 * Close version '*versionp'.
 	 */
@@ -615,7 +615,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 	isc_buffer_t buffer;
 
 	REQUIRE(dns_db_iszone(db) || dns_db_isstub(db));
-		
+
 	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -625,7 +625,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 				     (isc_stdtime_t)0, &rdataset, NULL);
  	if (result != ISC_R_SUCCESS)
 		goto freenode;
-	
+
 	result = dns_rdataset_first(&rdataset);
  	if (result != ISC_R_SUCCESS)
 		goto freerdataset;
@@ -641,7 +641,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
 
  freerdataset:
 	dns_rdataset_disassociate(&rdataset);
-	
+
  freenode:
 	dns_db_detachnode(db, &node);
 	return (result);

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,12 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.12 2000/07/27 09:52:44 tale Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.13 2000/08/01 01:31:19 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
  * See netintro(4).
- */ 
+ */
 #ifndef SIOCGLIFCONF
 #define SIOCGLIFCONF SIOCGIFCONF
 #define lifc_len ifc_len
@@ -45,7 +45,7 @@
 #endif
 
 
-#define IFITER_MAGIC		0x49464954U	/* IFIT. */	
+#define IFITER_MAGIC		0x49464954U	/* IFIT. */
 #define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
 
 struct isc_interfaceiter {
@@ -77,7 +77,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
-	
+
 	iter = isc_mem_get(mctx, sizeof(*iter));
 	if (iter == NULL)
 		return (ISC_R_NOMEMORY);
@@ -95,7 +95,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		result = ISC_R_UNEXPECTED;
 		goto socket_failure;
 	}
-	
+
 	/*
 	 * Get the interface configuration, allocating more memory if
 	 * necessary.
@@ -108,7 +108,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			result = ISC_R_NOMEMORY;
 			goto alloc_failure;
 		}
-		
+
 		memset(&iter->ifc.lifc_len, 0, sizeof(iter->ifc.lifc_len));
 #ifdef ISC_HAVE_LIFC_FAMILY
 		iter->ifc.lifc_family = AF_UNSPEC;
@@ -146,18 +146,18 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			 * retry.
 			 */
 			if (iter->ifc.lifc_len + 2 * sizeof(struct lifreq)
-			    < iter->bufsize) 
+			    < iter->bufsize)
 				break;
 		}
 		if (iter->bufsize >= IFCONF_BUFSIZE_MAX) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__, 
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "get interface configuration: "
 					 "maximum buffer size exceeded");
 			result = ISC_R_UNEXPECTED;
 			goto ioctl_failure;
 		}
 		isc_mem_put(mctx, iter->buf, iter->bufsize);
-		
+
 		iter->bufsize *= 2;
 	}
 
@@ -167,7 +167,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 	iter->pos = (unsigned int) -1;
 	iter->result = ISC_R_FAILURE;
-	
+
 	iter->magic = IFITER_MAGIC;
 	*iterp = iter;
 	return (ISC_R_SUCCESS);
@@ -177,7 +177,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
  alloc_failure:
 	(void) close(iter->socket);
-	
+
  socket_failure:
 	isc_mem_put(mctx, iter, sizeof *iter);
 	return (result);
@@ -196,25 +196,25 @@ internal_current(isc_interfaceiter_t *iter) {
 	struct lifreq *ifrp;
 	struct lifreq lifreq;
 	int family;
-	
+
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
-	
+
 	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
-	
+
 	memset(&lifreq, 0, sizeof lifreq);
 	memcpy(&lifreq, ifrp, sizeof lifreq);
 
 	family = lifreq.lifr_addr.ss_family;
 	if (family != AF_INET)
-		return (ISC_R_IGNORE); 
-	
+		return (ISC_R_IGNORE);
+
 	memset(&iter->current, 0, sizeof(iter->current));
 	iter->current.af = family;
-	
+
 	INSIST(sizeof(lifreq.lifr_name) <= sizeof(iter->current.name));
 	memcpy(iter->current.name, lifreq.lifr_name, sizeof(lifreq.lifr_name));
-	
+
 	get_addr(family, &iter->current.address,
 		 (struct sockaddr *)&lifreq.lifr_addr);
 
@@ -223,20 +223,20 @@ internal_current(isc_interfaceiter_t *iter) {
 	 */
 
 	iter->current.flags = 0;
-	
+
 	/*
 	 * Ignore the HP/UX warning about "interger overflow during
 	 * conversion.  It comes from its own macro definition,
 	 * and is really hard to shut up.
 	 */
 	if (ioctl(iter->socket, SIOCGLIFFLAGS, (char *) &lifreq) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, 
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "%s: getting interface flags: %s",
 				 lifreq.lifr_name,
 				 strerror(errno));
 		return (ISC_R_IGNORE);
 	}
-	
+
 	if ((lifreq.lifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
@@ -257,7 +257,7 @@ internal_current(isc_interfaceiter_t *iter) {
 		 */
 		if (ioctl(iter->socket, SIOCGLIFDSTADDR, (char *)&lifreq)
 		    < 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__, 
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "%s: getting destination address: %s",
 					 lifreq.lifr_name,
 					 strerror(errno));
@@ -269,7 +269,7 @@ internal_current(isc_interfaceiter_t *iter) {
 
 	/*
 	 * Get the network mask.
-	 */ 
+	 */
 	memset(&lifreq, 0, sizeof lifreq);
 	memcpy(&lifreq, ifrp, sizeof lifreq);
 	switch (family) {
@@ -288,7 +288,7 @@ internal_current(isc_interfaceiter_t *iter) {
 			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.netmask,
-			 (struct sockaddr *)&lifreq.lifr_addr);		
+			 (struct sockaddr *)&lifreq.lifr_addr);
 		break;
 	case AF_INET6: {
 #ifdef lifr_addrlen
@@ -308,12 +308,12 @@ internal_current(isc_interfaceiter_t *iter) {
 		break;
 	}
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 
 /*
- * Step the iterator to the next interface.  Unlike 
+ * Step the iterator to the next interface.  Unlike
  * isc_interfaceiter_next(), this may leave the iterator
  * positioned on an interface that will ultimately
  * be ignored.  Return ISC_R_NOMORE if there are no more
@@ -324,9 +324,9 @@ internal_next(isc_interfaceiter_t *iter) {
 	struct lifreq *ifrp;
 
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.lifc_len);
-	
+
 	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
-		
+
 #ifdef ISC_PLATFORM_HAVESALEN
 	if (ifrp->lifr_addr.sa_len > sizeof(struct sockaddr))
 		iter->pos += sizeof(ifrp->lifr_name) + ifrp->lifr_addr.sa_len;
@@ -336,7 +336,7 @@ internal_next(isc_interfaceiter_t *iter) {
 
 	if (iter->pos >= (unsigned int) iter->ifc.lifc_len)
 		return (ISC_R_NOMORE);
-	
+
 	return (ISC_R_SUCCESS);
 }
 

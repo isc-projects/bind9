@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.50 2000/07/31 19:36:48 explorer Exp $ */
+/* $Id: zoneconf.c,v 1.51 2000/08/01 01:23:10 tale Exp $ */
 
 #include <config.h>
 
@@ -199,7 +199,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
-		
+
 		RETERR(configure_zone_acl(czone, cctx, cview, ac, zone,
 					  dns_c_zone_getallowtransfer,
 					  dns_c_view_gettransferacl,
@@ -219,10 +219,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setmaxxfrout(zone, uintval);
 
 		result = dns_c_zone_getmaxtransidleout(czone, &uintval);
-		if (result != ISC_R_SUCCESS && cview != NULL) 
+		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getmaxtransferidleout(cview,
 								  &uintval);
-		if (result != ISC_R_SUCCESS) 
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransferidleout(cctx,
 								 &uintval);
 		if (result != ISC_R_SUCCESS)
@@ -280,13 +280,13 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 #else /* NOMINUM_PUBLIC */
 			result = dns_zone_setmasters(zone, iplist->ips,
 						     iplist->nextidx);
-#endif /* NOMINUM_PUBLIC */		    
+#endif /* NOMINUM_PUBLIC */
 		else
 			result = dns_zone_setmasters(zone, NULL, 0);
 		RETERR(result);
 
 		result = dns_c_zone_getmaxtranstimein(czone, &uintval);
-		if (result != ISC_R_SUCCESS) 
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransfertimein(cctx,
 								&uintval);
 		if (result != ISC_R_SUCCESS)
@@ -294,7 +294,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setmaxxfrin(zone, uintval);
 
 		result = dns_c_zone_getmaxtransidlein(czone, &uintval);
-		if (result != ISC_R_SUCCESS) 
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getmaxtransferidlein(cctx,
 								&uintval);
 		if (result != ISC_R_SUCCESS)
@@ -312,10 +312,10 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setxfrsource4(zone, &sockaddr);
 
 		result = dns_c_zone_gettransfersourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL) 
+		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_gettransfersourcev6(cview,
 								&sockaddr);
-		if (result != ISC_R_SUCCESS) 
+		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_gettransfersourcev6(cctx,
 							       &sockaddr);
 		if (result != ISC_R_SUCCESS)
@@ -323,7 +323,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		dns_zone_setxfrsource6(zone, &sockaddr);
 
 		break;
-		
+
 	default:
 		break;
 	}
@@ -348,12 +348,12 @@ dns_zone_reusable(dns_zone_t *zone, dns_c_zone_t *czone) {
 
 	return (ISC_TRUE);
 }
-	
+
 isc_result_t
 dns_zonemgr_configure(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr) {
 	isc_uint32_t val;
 	isc_result_t result;
-	
+
 	result = dns_c_ctx_gettransfersin(cctx, &val);
 	if (result != ISC_R_SUCCESS)
 		val = 10;

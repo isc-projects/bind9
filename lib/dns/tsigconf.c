@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.10 2000/07/27 09:46:44 tale Exp $ */
+/* $Id: tsigconf.c,v 1.11 2000/08/01 01:23:02 tale Exp $ */
 
 #include <config.h>
 
@@ -135,7 +135,7 @@ dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
 		goto failure;
 
 	if (confview != NULL) {
-		keylist = NULL;	
+		keylist = NULL;
 		result = dns_c_view_getkeydefs(confview, &keylist);
 		if (result == ISC_R_SUCCESS)
 			result = add_initial_keys(keylist, ring, mctx);

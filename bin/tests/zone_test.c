@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.21 2000/07/27 09:38:40 tale Exp $ */
+/* $Id: zone_test.c,v 1.22 2000/08/01 01:13:33 tale Exp $ */
 
 #include <config.h>
 
@@ -97,7 +97,7 @@ setup(char *zonename, char *filename, char *classname) {
 			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
 	ERRRET(result, "dns_name_fromtext");
 	origin = dns_fixedname_name(&fixorigin);
-	
+
 	result = dns_zone_setorigin(zone, origin);
 	ERRRET(result, "dns_zone_setorigin");
 
@@ -109,7 +109,7 @@ setup(char *zonename, char *filename, char *classname) {
 
 	region.base = classname;
 	region.length = strlen(classname);
-	result = dns_rdataclass_fromtext(&rdclass, &region); 
+	result = dns_rdataclass_fromtext(&rdclass, &region);
 	ERRRET(result, "dns_rdataclass_fromtext");
 
 	dns_zone_setclass(zone, rdclass);
@@ -167,7 +167,7 @@ query(void) {
 	dns_rdataset_init(&sigset);
 
 	do {
-		
+
 		fprintf(stdout, "zone_test ");
 		fflush(stdout);
 		FD_ZERO(&rfdset);
@@ -178,7 +178,7 @@ query(void) {
 			break;
 		}
 		buf[sizeof(buf) - 1] = '\0';
-		
+
 		s = strchr(buf, '\n');
 		if (s != NULL)
 			*s = '\0';
@@ -197,7 +197,7 @@ query(void) {
 		result = dns_name_fromtext(dns_fixedname_name(&name),
 				  &buffer, dns_rootname, ISC_FALSE, NULL);
 		ERRCONT(result, "dns_name_fromtext");
-		
+
 		result = dns_db_find(db, dns_fixedname_name(&name),
 				     NULL /*vesion*/,
 				     dns_rdatatype_a,

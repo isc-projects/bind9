@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.74 2000/07/27 09:48:03 tale Exp $ */
+/* $Id: message.h,v 1.75 2000/08/01 01:24:21 tale Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -221,7 +221,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
-		   
+
 /*
  * Create msg structure.
  *
@@ -289,7 +289,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_messagetextflag_t flags,
 				isc_buffer_t *target);
 /*
- * Convert section 'section' or 'pseudosection' of message 'msg' to 
+ * Convert section 'section' or 'pseudosection' of message 'msg' to
  * a cleartext representation
  *
  * Notes:
@@ -317,7 +317,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
  *	ISC_R_NOSPACE
  *	ISC_R_NOMORE
  *
- *	Note: On error return, *target may be partially filled with data. 
+ *	Note: On error return, *target may be partially filled with data.
 */
 
 isc_result_t
@@ -373,8 +373,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
  * and the order of the RRs in the message is preserved.
  * Otherwise, only one dns_name_t object will be created for each unique
  * owner name in the section, and each such dns_name_t will have a list
- * of rdatasets.  To access the names and their data, use 
- * dns_message_firstname() and dns_message_nextname(). 
+ * of rdatasets.  To access the names and their data, use
+ * dns_message_firstname() and dns_message_nextname().
  *
  * OPT and TSIG records are always handled specially, regardless of the
  * 'preserve_order' setting.
@@ -542,7 +542,7 @@ dns_message_renderend(dns_message_t *msg);
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  */
-		      
+
 void
 dns_message_renderreset(dns_message_t *msg);
 /*
@@ -564,7 +564,7 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  * Set internal per-section name pointer to the beginning of the section.
  *
  * The functions dns_message_firstname() and dns_message_nextname() may
- * be used for iterating over the owner names in a section. 
+ * be used for iterating over the owner names in a section.
  *
  * Requires:
  *
@@ -877,7 +877,7 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  * Requires:
  *
  *	'msg' is a valid message with parsing intent, and contains a query.
- * 
+ *
  * Ensures:
  *
  *	The message will have a rendering intent.  If 'want_question_section'

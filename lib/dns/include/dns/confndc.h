@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confndc.h,v 1.10 2000/07/27 09:47:40 tale Exp $ */
+/* $Id: confndc.h,v 1.11 2000/08/01 01:23:57 tale Exp $ */
 
 #ifndef DNS_CONFNDC_H
 #define DNS_CONFNDC_H 1
@@ -47,7 +47,7 @@ typedef struct dns_c_ndckey		dnc_c_ndckey_t;
 struct  dns_c_ndcctx {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
-	
+
 	dns_c_ndcopts_t	       *opts;
 	dns_c_ndcserverlist_t  *servers;
 	dns_c_kdeflist_t       *keys;
@@ -67,7 +67,7 @@ struct dns_c_ndcserverlist {
 
 	ISC_LIST(dns_c_ndcserver_t)	list;
 };
-	
+
 struct dns_c_ndcserver {
 	isc_uint32_t			magic;
 	isc_mem_t		       *mem;

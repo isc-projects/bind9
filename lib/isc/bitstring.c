@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bitstring.c,v 1.6 2000/07/27 09:50:41 tale Exp $ */
+/* $Id: bitstring.c,v 1.7 2000/08/01 01:29:15 tale Exp $ */
 
 #include <config.h>
 
@@ -102,7 +102,7 @@ isc_bitstring_copy(isc_bitstring_t *source, unsigned int sbitpos,
 		tbitpos = PADDED(target->size) - tbitpos - 1;
 		REQUIRE(tbitpos >= n - 1);
 		tbitpos -= n - 1;
-	} else		
+	} else
 		REQUIRE(tlast<= target->size);
 
 	if (tlast > target->length)

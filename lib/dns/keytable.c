@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.20 2000/07/27 09:46:09 tale Exp $ */
+/* $Id: keytable.c,v 1.21 2000/08/01 01:22:26 tale Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,7 @@ struct dns_keytable {
 	isc_uint32_t		active_nodes;
 	/* Locked by rwlock. */
 	isc_uint32_t		references;
-	dns_rbt_t		*table; 
+	dns_rbt_t		*table;
 };
 
 #define KEYTABLE_MAGIC			0x4b54626cU	/* KTbl */
@@ -160,7 +160,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 	keytable = *keytablep;
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_write);
-	
+
 	INSIST(keytable->references > 0);
 	keytable->references--;
 	LOCK(&keytable->lock);

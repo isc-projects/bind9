@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.5 2000/07/27 09:48:33 tale Exp $ */
+/* $Id: tsigconf.h,v 1.6 2000/08/01 01:24:51 tale Exp $ */
 
 #ifndef DNS_TSIGCONF_H
 #define DNS_TSIGCONF_H 1
@@ -43,7 +43,7 @@ dns_tsigkeyring_fromconfig(dns_c_view_t *confview, dns_c_ctx_t *confctx,
  *		ISC_R_SUCCESS
  *		ISC_R_NOMEMORY
  */
- 
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_TSIGCONF_H */

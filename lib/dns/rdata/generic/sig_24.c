@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.44 2000/07/27 09:49:42 tale Exp $ */
+/* $Id: sig_24.c,v 1.45 2000/08/01 01:26:00 tale Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -29,7 +29,7 @@
 static inline isc_result_t
 fromtext_sig(ARGS_FROMTEXT) {
 	isc_token_t token;
-	unsigned char c; 
+	unsigned char c;
 	long i;
 	dns_rdatatype_t covered;
 	char *e;
@@ -98,7 +98,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
-	
+
 	/*
 	 * Signer.
 	 */
@@ -170,7 +170,7 @@ totext_sig(ARGS_TOTEXT) {
 	 */
 	ttl = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
-	sprintf(buf, "%lu", ttl); 
+	sprintf(buf, "%lu", ttl);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
@@ -198,7 +198,7 @@ totext_sig(ARGS_TOTEXT) {
 	 */
 	foot = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%lu", foot); 
+	sprintf(buf, "%lu", foot);
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 
@@ -220,7 +220,7 @@ totext_sig(ARGS_TOTEXT) {
 				    tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" )", target));
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -232,7 +232,7 @@ fromwire_sig(ARGS_FROMWIRE) {
 	REQUIRE(type == 24);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
-	
+
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sr);
@@ -291,7 +291,7 @@ towire_sig(ARGS_TOWIRE) {
 	 */
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &sr);
-	isc_region_consume(&sr, name_length(&name));        
+	isc_region_consume(&sr, name_length(&name));
 	RETERR(dns_name_towire(&name, cctx, target));
 
 	/*
@@ -351,7 +351,7 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 	REQUIRE(sig->common.rdclass == rdclass);
 	REQUIRE((sig->signature != NULL && sig->siglen != 0) ||
 		(sig->signature == NULL && sig->siglen == 0));
-	
+
 	/*
 	 * Type covered.
 	 */
@@ -406,7 +406,7 @@ tostruct_sig(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 24);
 	REQUIRE(target != NULL);
-	
+
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;
 	ISC_LINK_INIT(&sig->common, link);

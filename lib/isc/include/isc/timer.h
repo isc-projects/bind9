@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.26 2000/07/27 09:52:19 tale Exp $ */
+/* $Id: timer.h,v 1.27 2000/08/01 01:30:53 tale Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -41,7 +41,7 @@
  *	'inactive' timers generate no events.
  *
  * Timers can change type.  It is typical to create a timer as
- * an 'inactive' timer and then change it into a 'ticker' or 
+ * an 'inactive' timer and then change it into a 'ticker' or
  * 'once' timer.
  *
  * MP:
@@ -245,7 +245,7 @@ isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp);
  *	*timerp is attached to timer.
  */
 
-void 
+void
 isc_timer_detach(isc_timer_t **timerp);
 /*
  * Detach *timerp from its timer.
@@ -305,7 +305,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
  * Destroy a timer manager.
  *
  * Notes:
- *	
+ *
  *	This routine blocks until there are no timers left in the manager,
  *	so if the caller holds any timer references using the manager, it
  *	must detach them before calling isc_timermgr_destroy() or it will

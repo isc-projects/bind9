@@ -32,7 +32,7 @@ A_SURRENDER_CTX *surrenderContext;
   char sieve[1000];
   int status = 0;
   unsigned int i, r, s, testResult;
-  
+
   do {
     /* Create a starting point for the prime from the random block */
     for (i = 0; i < primeWords; i++) {
@@ -42,13 +42,13 @@ A_SURRENDER_CTX *surrenderContext;
 
     /* set high order two bits */
     BigSetbit (prime, primeSizeBits-2);
-    BigSetbit (prime, primeSizeBits-1);   
-    for (i = primeSizeBits; i < (unsigned int)(16 * primeWords); i++) 
+    BigSetbit (prime, primeSizeBits-1);
+    for (i = primeSizeBits; i < (unsigned int)(16 * primeWords); i++)
       BigClrbit (prime, i);
 
     /* force p to be even */
     BigClrbit (prime, 0);
-  
+
     /* clear sieve and mark even positions */
     for (i = 0; i < 1000; i += 2) {
       sieve[i] = 1;
@@ -72,7 +72,7 @@ A_SURRENDER_CTX *surrenderContext;
       for (i = s - r; i < 1000; i += s)
         sieve[i] = 1;
     }
-  
+
     /* t1 = 1 */
     BigConst (t1, 1, modulusWords);
 
@@ -105,7 +105,7 @@ A_SURRENDER_CTX *surrenderContext;
     }
     if (status)
       break;
-    
+
     if (!testResult)
       /* Couldn't find a prime with the supplied random block, so ask
            caller to generate another random block and try again. */
@@ -123,7 +123,7 @@ A_SURRENDER_CTX *surrenderContext;
       If pseudo prime, *testResult = 1, else *testResult = 0.
    Returns 0, AE_CANCEL.
  */
-int PseudoPrime (testResult, prime, primeWords, surrenderContext) 
+int PseudoPrime (testResult, prime, primeWords, surrenderContext)
 unsigned int *testResult;
 UINT2 *prime;
 unsigned int primeWords;
@@ -135,10 +135,10 @@ A_SURRENDER_CTX *surrenderContext;
 
   /* Default testResult to false. */
   *testResult = 0;
-  
+
   /* Prepare for setting base vector to the small prime. */
   T_memset ((POINTER)base, 0, sizeof (base));
-  
+
   for (i = 0; i < 4; i++) {
     /* check to see if target is multiple of SMALL_PRIME */
     if (BigSmod (prime, (unsigned int)SMALL_PRIME[i], primeWords) == 0)

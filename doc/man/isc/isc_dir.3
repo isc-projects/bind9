@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,31 +12,31 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: isc_dir.3,v 1.2 2000/07/27 09:42:45 tale Exp $
-.\" 
+.\"
+.\" $Id: isc_dir.3,v 1.3 2000/08/01 01:19:03 tale Exp $
+.\"
 .Dd Jun 30, 2000
-.Dt ISC_DIR 3 
+.Dt ISC_DIR 3
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
 .Nm isc_dir_init ,
 .Nm isc_dir_open ,
 .Nm isc_dir_read ,
-.Nm isc_dir_close , 
+.Nm isc_dir_close ,
 .Nm isc_dir_reset ,
-.Nm isc_dir_chdir 
+.Nm isc_dir_chdir
 .Nd file system directory operations
 .Sh SYNOPSIS
 .Fd #include <config.h>
 .Fd #include <errno.h>
 .Fd #include <unistd.h>
- 
+
 .Fd #include <isc/dir.h>
 .Fd #include <isc/magic.h>
 .Fd #include <isc/string.h>
 .Fd #include <isc/util.h>
- 
+
 .Fd #include \*qerrno2result.h\*q
 .Ft void
 .Fo isc_dir_init
@@ -65,11 +65,11 @@ directories by the name server.
 They are intended to isolate BIND9 from the semantics of the underlying
 directory access routines provided by the operating system,
 BIND9 uses an internal structure of type
-.Fa isc_dir_t 
+.Fa isc_dir_t
 to reference a directory.
 The contents of this structure are OS-specific.
 .Fn isc_dir_init
-initialises the directory structure pointed at 
+initialises the directory structure pointed at
 .Fa dir .
 All functions taking a
 .Fa dir
@@ -79,11 +79,11 @@ this parameter points at a valid
 structure.
 .Pp
 .Fn isc_dir_open
-opens the directory named by 
+opens the directory named by
 .Fa dirname .
 .Pp
 .Fn isc_dir_read
-retrieves the next entry from the file descriptor associated with directory 
+retrieves the next entry from the file descriptor associated with directory
 .Fa dir .
 The name of that entry and the length of its name are copied to
 .Fa dir .
@@ -101,21 +101,21 @@ closes the file descriptor associated with
 .Fa dir .
 .Pp
 .Fn isc_dir_reset
-repositions 
+repositions
 .Fa dir
 to the start of the directory.
 .Pp
 The name server's current directory is changed to
 .Fa dirname
 by
-.Fn isc_dir_chdir . 
+.Fn isc_dir_chdir .
 .Pp
 .Sh RETURN VALUES
 Successful calls to
 .Fn isc_dir_open ,
 .Fn isc_dir_read ,
 .Fn isc_dir_reset ,
-.Fn isc_dir_read 
+.Fn isc_dir_read
 and
 .Fn isc_dir_chdir
 return
@@ -129,18 +129,18 @@ is returned if the name of the next directory entry is too big
 to fit in the
 .Fa isc_dir_t
 structure.
-If 
+If
 .Fn isc_dir_chdir
-fails, 
+fails,
 .Er ISC_R_INVALIDFILE
 is returned if
 .Fa dirname
-is not a directory, or 
+is not a directory, or
 .Er ISC_R_NOPERM
 if access permission is denied or
 .Er ISC_R_IOERROR
 if an I/O error occurs.
-The WinNT version of 
+The WinNT version of
 .Fn isc_dir_chdir
 returns
 .Er ISC_R_NOTIMPLEMENTED
@@ -156,8 +156,8 @@ can be returned in the WinNT versions of
 and
 .Fn isc_dir_reset .
 .Sh SEE ALSO
-.Xr opendir 3 , 
+.Xr opendir 3 ,
 .Xr readdir 3 ,
-.Xr closedir 3 , 
+.Xr closedir 3 ,
 .Xr rewinddir 3 ,
 .Xr chdir 2

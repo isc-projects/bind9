@@ -16,7 +16,7 @@ typedef struct {
 
   /* For now we don't need to worry about a reserved field.
   struct {
-    POINTER reserved;  
+    POINTER reserved;
   } z;
    */
 } B_Key;

@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <!--
  - Copyright (C) 1999, 2000  Internet Software Consortium.
- - 
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
+ -
  - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rdata.html,v 1.10 2000/07/27 09:42:07 tale Exp $ -->
+<!-- $Id: rdata.html,v 1.11 2000/08/01 01:18:23 tale Exp $ -->
 
 <HTML>
 <HEAD>
@@ -27,7 +27,7 @@
 The dns rdata routines (<CODE>dns_rdata_fromtext()</CODE>,
 <CODE>dns_rdata_totext()</CODE>, <CODE>dns_rdata_fromwire()</CODE>,
 <CODE>dns_rdata_towire()</CODE> <CODE>dns_rdata_fromstruct()</CODE>,
-<CODE>dns_rdata_tostruct()</CODE> and <CODE>dns_rdata_compare()</CODE>) 
+<CODE>dns_rdata_tostruct()</CODE> and <CODE>dns_rdata_compare()</CODE>)
 are designed to provide a single set of routines
 for encoding, decoding and comparing dns data preventing the problems that
 occurred in BIND 8.x and earlier where there were multiple places in the
@@ -245,7 +245,7 @@ decompression methods if there is a domain name in the rdata.
 else
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);</CODE>
 </PRE>
-	
+
 <DL>
 <DT><CODE>class</CODE></DT>
 <DD>
@@ -264,7 +264,7 @@ containing a RR record in wire format.
 <DD>
 This is the decompression context and is passed to
 <CODE>dns_name_fromwire()</CODE>,
-along with <CODE>downcase</CODE>, to enable a compressed domain name 
+along with <CODE>downcase</CODE>, to enable a compressed domain name
 to be extracted from the source.
 <DT><CODE>downcase</CODE></DT>
 <DD>
@@ -279,7 +279,7 @@ RR record is written.
 as it reads external data and should take extreme care to ensure that
 the input data matches its description.
 <P>
-If the <CODE>active</CODE> buffer is not empty at completion and 
+If the <CODE>active</CODE> buffer is not empty at completion and
 <CODE>fromwire_<I>typename</I>()</CODE> was otherwise successful
 <CODE>dns_rdata_fromwire()</CODE> will return <CODE>DNS_R_EXTRADATA</CODE>.
 <H2>Convert from internal format to wire format</H2>
@@ -295,7 +295,7 @@ towire_<I>classname_typename</I>(dns_rdata_t *rdata, dns_compress_t *cctx,
 </PRE>
 <P>
 <CODE>towire_<I>classname_typename</I>()</CODE> is required to set the
-allowed name compression methods based on EDNS version if there is a 
+allowed name compression methods based on EDNS version if there is a
 domain name in the rdata.
 <PRE>
 <CODE>if (dns_compress_getedns(cctx) >= #)

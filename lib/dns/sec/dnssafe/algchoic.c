@@ -61,7 +61,7 @@ unsigned int contextSize;
     resizeContext->z.contextSize = 0;
     return (BE_ALLOC);
   }
-    
+
   resizeContext->z.contextSize = contextSize;
   return (0);
 }
@@ -93,7 +93,7 @@ A_SURRENDER_CTX *surrenderContext;
            (key, &keyInfo, (*chooser)->keyInfoType)) != 0) {
         if (IS_FATAL_BSAFE_ERROR (status))
           return (status);
-      
+
         /* Update the overall status with this more specific error. */
         overallStatus = status;
         continue;
@@ -154,7 +154,7 @@ int type;
     return (BE_OUTPUT_LEN);
   case AE_PARAMS:
     return (BE_ALGORITHM_INFO);
-    
+
 #if USE_ALLOCED_FRAME
   case AE_ALLOC:
     return (BE_ALLOC);

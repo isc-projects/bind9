@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.47 2000/07/27 09:46:29 tale Exp $ */
+/* $Id: rdataset.c,v 1.48 2000/08/01 01:22:46 tale Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods == NULL);
-	
+
 	rdataset->magic = 0;
 	ISC_LINK_INIT(rdataset, link);
 	rdataset->rdclass = 0;
@@ -111,7 +111,7 @@ dns_rdataset_isassociated(dns_rdataset_t *rdataset) {
 	/*
 	 * Is 'rdataset' associated?
 	 */
-	
+
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	if (rdataset->methods != NULL)
@@ -209,7 +209,7 @@ dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	REQUIRE(source->methods != NULL);
 	REQUIRE(DNS_RDATASET_VALID(target));
 	REQUIRE(target->methods == NULL);
-	
+
 	(source->methods->clone)(source, target);
 }
 
@@ -255,7 +255,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 #define MAX_SHUFFLE	32
 #define WANT_FIXED(r)	(((r)->attributes & DNS_RDATASETATTR_FIXEDORDER) != 0)
 #define WANT_RANDOM(r)	(((r)->attributes & DNS_RDATASETATTR_RANDOMIZE) != 0)
-			 
+
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,

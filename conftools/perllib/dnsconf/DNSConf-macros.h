@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DNSConf-macros.h,v 1.4 2000/07/27 09:41:42 tale Exp $ */
+/* $Id: DNSConf-macros.h,v 1.5 2000/08/01 01:17:38 tale Exp $ */
 
 #define CONCAT(a,b) a ## b
 #define DNSCONF_SET_STRING(FIELD)					\
@@ -34,7 +34,7 @@ void CONCAT(DNSConf_set, FIELD)(DNSConf *cfg, const char *arg) {	\
 		CONCAT(dns_c_ctx_unset, FIELD)(cfg->confctx);		\
 	} else								\
 		CONCAT(dns_c_ctx_set, FIELD)(cfg->confctx, arg);	\
-}	
+}
 
 #define DNSCONF_GET_STRING(FIELD)					\
 char * CONCAT(DNSConf_get, FIELD)(DNSConf *cfg) {			\

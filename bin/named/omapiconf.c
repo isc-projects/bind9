@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapiconf.c,v 1.9 2000/07/27 09:37:05 tale Exp $ */
+/* $Id: omapiconf.c,v 1.10 2000/08/01 01:11:56 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -277,7 +277,7 @@ register_keys(dns_c_ctrl_t *control, dns_c_kdeflist_t *keydeflist,
 					   keydef->keyid, socktext,
 					   isc_result_totext(result));
 	}
-}		     			 
+}
 
 static void
 update_listener(ns_omapilistener_t **listenerp, dns_c_ctrl_t *control,
@@ -427,7 +427,7 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 	/*
 	 * Run through the new control channel list, noting sockets that
 	 * are already being listened on and moving them to the new list.
-	 *			
+	 *
 	 * Identifying duplicates addr/port combinations is left to either
 	 * the underlying config code, or to the bind attempt getting an
 	 * address-in-use error.
@@ -481,7 +481,7 @@ ns_omapi_configure(isc_mem_t *mctx, dns_c_ctx_t *cctx,
 				 */
 				add_listener(mctx, &listener, control, cctx,
 					     aclconfctx, socktext);
-				
+
 			if (listener != NULL)
 				ISC_LIST_APPEND(new_listeners, listener, link);
 

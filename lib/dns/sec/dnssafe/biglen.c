@@ -21,8 +21,8 @@ unsigned int n;
   if (i == -1)
     return (1);  /* len of 0 or -1 */
 
-  for (j = 16, k = 0x8000; 
-       j >= 0 && 0 == (k & (signWord ^ a[i])); 
+  for (j = 16, k = 0x8000;
+       j >= 0 && 0 == (k & (signWord ^ a[i]));
        j--, k >>= 1);
   return (16 * i + j);
 }

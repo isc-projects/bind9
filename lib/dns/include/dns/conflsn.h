@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflsn.h,v 1.16 2000/07/27 09:47:38 tale Exp $ */
+/* $Id: conflsn.h,v 1.17 2000/08/01 01:23:56 tale Exp $ */
 
 #ifndef DNS_CONFLSN_H
 #define DNS_CONFLSN_H 1
@@ -28,7 +28,7 @@
  * Data structures to hold information related to ``listen-on'' statements
  * in the named.conf file.
  */
- 
+
 /*
  *
  * MP:
@@ -50,7 +50,7 @@
  * Standards:
  *
  *	N/A
- *	
+ *
  */
 
 /***
@@ -81,7 +81,7 @@ typedef struct dns_c_lstn_list		dns_c_lstnlist_t;
 struct dns_c_lstn_on {
 	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
-	
+
 	in_port_t			port;
 	dns_c_ipmatchlist_t	       *iml;
 
@@ -127,7 +127,7 @@ dns_c_lstnlist_delete(dns_c_lstnlist_t **llist);
  * Sets *LLIST to NULL when done.
  *
  * Requires:
- * 
+ *
  * Returns:
  *
  *	ISC_R_SUCCESS on success.

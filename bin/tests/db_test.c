@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db_test.c,v 1.52 2000/07/27 09:37:49 tale Exp $ */
+/* $Id: db_test.c,v 1.53 2000/08/01 01:12:40 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -173,7 +173,7 @@ list(dbinfo *dbi, char *seektext) {
 			else
 				dns_db_currentversion(dbi->db, &dbi->iversion);
 		}
-		
+
 		result = dns_db_createiterator(dbi->db, ISC_FALSE,
 					       &dbi->dbiterator);
 		if (result == ISC_R_SUCCESS) {
@@ -262,7 +262,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 	dbi->iversion = NULL;
 	dbi->pause_every = pause_every;
 	dbi->ascending = ascending;
-	
+
 	len = strlen(origintext);
 	isc_buffer_init(&source, origintext, len);
 	isc_buffer_add(&source, len);
@@ -310,7 +310,7 @@ load(const char *filename, const char *origintext, isc_boolean_t cache) {
 static void
 unload_all(void) {
 	dbinfo *dbi, *dbi_next;
-	
+
 	for (dbi = ISC_LIST_HEAD(dbs); dbi != NULL; dbi = dbi_next) {
 		dbi_next = ISC_LIST_NEXT(dbi, link);
 		if (dns_db_iszone(dbi->db))
@@ -331,7 +331,7 @@ if ((dbi) == NULL) { \
 	printf("You must first select a database with !DB\n"); \
 	continue; \
 }
- 
+
 int
 main(int argc, char *argv[]) {
 	dns_db_t *db;

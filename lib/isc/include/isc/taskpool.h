@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.h,v 1.5 2000/07/27 09:52:18 tale Exp $ */
+/* $Id: taskpool.h,v 1.6 2000/08/01 01:30:52 tale Exp $ */
 
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
@@ -27,14 +27,14 @@
 /*
  * Task Pool
  *
- * A task pool is a mechanism for sharing a small number of tasks 
+ * A task pool is a mechanism for sharing a small number of tasks
  * among a large number of objects such that each object is
  * assigned a unique task, but each task may be shared by several
  * objects.
  *
- * Task pools are used to let objects that can exist in large 
+ * Task pools are used to let objects that can exist in large
  * numbers (e.g., zones) use tasks for synchronization without
- * the memory overhead and unfair scheduling competition that 
+ * the memory overhead and unfair scheduling competition that
  * could result from creating a separate task for each object.
  */
 
@@ -65,7 +65,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 /*
  * Create a task pool of "ntasks" tasks, each with quantum
  * "quantum".
- * 
+ *
  * Requires:
  *
  *	'tmgr' is a valid task manager.

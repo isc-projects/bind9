@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.42 2000/07/27 09:54:06 tale Exp $ */
+/* $Id: lwres.h,v 1.43 2000/08/01 01:32:41 tale Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -210,7 +210,7 @@ typedef struct {
 	struct {
 		lwres_addr_t addr;
 		/* mask has a non-zero 'family' and 'length' if set */
-		lwres_addr_t mask;	
+		lwres_addr_t mask;
 	} sortlist[LWRES_CONFMAXSORTLIST];
 	lwres_uint8_t	sortlistnxt;
 
@@ -218,7 +218,7 @@ typedef struct {
 	lwres_uint8_t	ndots;	       /* set to n in 'options ndots:n' */
 	lwres_uint8_t	no_tld_query;  /* non-zero if 'options no_tld_query' */
 } lwres_conf_t;
-	
+
 #define LWRES_ADDRTYPE_V4		0x00000001U	/* ipv4 */
 #define LWRES_ADDRTYPE_V6		0x00000002U	/* ipv6 */
 
@@ -449,7 +449,7 @@ lwres_conf_init(lwres_context_t *ctx);
 void
 lwres_conf_clear(lwres_context_t *ctx);
 /*
- * frees all internally allocated memory in confdata. Uses the memory 
+ * frees all internally allocated memory in confdata. Uses the memory
  * routines supplied by ctx.
  *
  * Requires:

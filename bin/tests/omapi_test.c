@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi_test.c,v 1.26 2000/07/27 09:38:17 tale Exp $ */
+/* $Id: omapi_test.c,v 1.27 2000/08/01 01:13:09 tale Exp $ */
 
-/* 
+/*
  * Test code for OMAPI.
  */
 #include <config.h>
@@ -598,7 +598,7 @@ do_listen(int port) {
 	master_data.refcnt = 1;
 	master_data.value = 2;
 	master_data.target_reached = ISC_FALSE;
- 
+
 	LOCK(&mutex);
 
 	/*
@@ -667,10 +667,10 @@ main(int argc, char **argv) {
 
 			else if (ARG_IS("badsig"))
 				error_badsig = ISC_TRUE;
-				    
+
 			else if (ARG_IS("unknownsig"))
 				error_unknownsig = ISC_TRUE;
-				    
+
 			else if (ARG_IS("denyall"))
 				error_denyall = ISC_TRUE;
 			else {

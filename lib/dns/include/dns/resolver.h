@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.30 2000/07/27 09:48:21 tale Exp $ */
+/* $Id: resolver.h,v 1.31 2000/08/01 01:24:39 tale Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -265,7 +265,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 unsigned int options, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset,
-			 dns_rdataset_t *sigrdataset, 
+			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp);
 /*
  * Recurse to answer a question.
@@ -276,13 +276,13 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *	The 'domain' is a parent domain of 'name' for which
  *	a set of name servers 'nameservers' is known.  If no
- *	such name server information is available, set 
+ *	such name server information is available, set
  * 	'domain' and 'nameservers' to NULL.
  *
  *	'forwarders' is unimplemented, and subject to change when
  *	we figure out how selective forwarding will work.
  *
- *	When the fetch completes (successfully or otherwise), a 
+ *	When the fetch completes (successfully or otherwise), a
  *	DNS_EVENT_FETCHDONE event with action 'action' and arg 'arg' will be
  *	posted to 'task'.
  *

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.39 2000/07/27 09:37:11 tale Exp $ */
+/* $Id: client.h,v 1.40 2000/08/01 01:12:03 tale Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -35,21 +35,21 @@
  * Each ns_client_t object can handle only one TCP connection or UDP
  * request at a time.  Therefore, several ns_client_t objects are
  * typically created to serve each network interface, e.g., one
- * for handling TCP requests and a few (one per CPU) for handling 
+ * for handling TCP requests and a few (one per CPU) for handling
  * UDP requests.
  *
  * Incoming requests are classified as queries, zone transfer
- * requests, update requests, notify requests, etc, and handed off 
+ * requests, update requests, notify requests, etc, and handed off
  * to the appropriate request handler.  When the request has been
- * fully handled (which can be much later), the ns_client_t must be 
- * notified of this by calling one of the following functions 
+ * fully handled (which can be much later), the ns_client_t must be
+ * notified of this by calling one of the following functions
  * exactly once in the context of its task:
  *
  *   ns_client_send()	(sending a non-error response)
  *   ns_client_error()	(sending an error response)
  *   ns_client_next()	(sending no response)
  *
- * This will release any resources used by the request and 
+ * This will release any resources used by the request and
  * and allow the ns_client_t to listen for the next request.
  *
  * A ns_clientmgr_t manages a number of ns_client_t objects.
@@ -165,7 +165,7 @@ ns_client_error(ns_client_t *client, isc_result_t result);
 void
 ns_client_next(ns_client_t *client, isc_result_t result);
 /*
- * Finish processing the current client request, 
+ * Finish processing the current client request,
  * return no response to the client.
  */
 
@@ -239,7 +239,7 @@ ns_client_checkacl(ns_client_t  *client,
  * Log messages will refer to the request as an 'opname' request.
  *
  * Notes:
- *	This is appropriate for checking allow-update, 
+ *	This is appropriate for checking allow-update,
  * 	allow-query, allow-transfer, etc.  It is not appropriate
  * 	for checking the blackhole list because we treat positive
  * 	matches as "allow" and negative matches as "deny"; in

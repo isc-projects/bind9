@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.30 2000/07/27 09:46:32 tale Exp $ */
+/* $Id: request.c,v 1.31 2000/08/01 01:22:50 tale Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,7 @@ dns_requestmgr_shutdown(dns_requestmgr_t *requestmgr) {
 	UNLOCK(&requestmgr->lock);
 }
 
-static void 
+static void
 mgr_shutdown(dns_requestmgr_t *requestmgr) {
 	dns_request_t *request;
 
@@ -495,7 +495,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	request->event->result = ISC_R_FAILURE;
 	if (key != NULL)
 		dns_tsigkey_attach(key, &request->tsigkey);
-	
+
  use_tcp:
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
 		result = isc_socket_create(requestmgr->socketmgr,
@@ -631,7 +631,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	if (request->mctx != NULL)
 		isc_mem_detach(&request->mctx);
 	isc_mem_put(mctx, request, sizeof *request);
-	req_log(ISC_LOG_DEBUG(3), "dns_request_create: failed %s", 
+	req_log(ISC_LOG_DEBUG(3), "dns_request_create: failed %s",
 		dns_result_totext(result));
 	return (result);
 }
@@ -764,7 +764,7 @@ void
 dns_request_destroy(dns_request_t **requestp) {
 	dns_request_t *request;
 	isc_boolean_t need_destroy = ISC_FALSE;
-	
+
 	REQUIRE(requestp != NULL && VALID_REQUEST(*requestp));
 
 	request = *requestp;
@@ -810,7 +810,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 		result = sevent->result;
 		if (result == ISC_R_SUCCESS)
 			result = req_send(request, task, NULL);
-			
+
 		if (sevent->result != ISC_R_SUCCESS)
 			dns_request_cancel(request);
 	}
@@ -846,7 +846,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == DNS_EVENT_DISPATCH);
 
 	UNUSED(task);
-	
+
 	req_log(ISC_LOG_DEBUG(3), "req_response: request %p: %s", request,
 		dns_result_totext(devent->result));
 
@@ -882,7 +882,7 @@ req_response(isc_task_t *task, isc_event_t *event) {
 static void
 req_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
-	
+
 	REQUIRE(VALID_REQUEST(request));
 
 	req_log(ISC_LOG_DEBUG(3), "req_timeout: request %p", request);

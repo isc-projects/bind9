@@ -670,29 +670,29 @@ compiler."
       # starting and closing comments
 # /* impgen.c starts here */
 # /*   Copyright (C) 1999 Free Software Foundation, Inc.
-# 
+#
 #  This file is part of GNU libtool.
-# 
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
 #  (at your option) any later version.
-# 
+#
 #  This program is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #  */
-# 
+#
 #  #include <stdio.h>		/* for printf() */
 #  #include <unistd.h>		/* for open(), lseek(), read() */
 #  #include <fcntl.h>		/* for O_RDONLY, O_BINARY */
 #  #include <string.h>		/* for strdup() */
-# 
+#
 #  static unsigned int
 #  pe_get16 (fd, offset)
 #       int fd;
@@ -703,7 +703,7 @@ compiler."
 #    read (fd, b, 2);
 #    return b[0] + (b[1]<<8);
 #  }
-# 
+#
 #  static unsigned int
 #  pe_get32 (fd, offset)
 #      int fd;
@@ -714,7 +714,7 @@ compiler."
 #    read (fd, b, 4);
 #    return b[0] + (b[1]<<8) + (b[2]<<16) + (b[3]<<24);
 #  }
-# 
+#
 #  static unsigned int
 #  pe_as32 (ptr)
 #       void *ptr;
@@ -722,7 +722,7 @@ compiler."
 #    unsigned char *b = ptr;
 #    return b[0] + (b[1]<<8) + (b[2]<<16) + (b[3]<<24);
 #  }
-# 
+#
 #  int
 #  main (argc, argv)
 #      int argc;
@@ -734,32 +734,32 @@ compiler."
 #      unsigned long name_rvas, nexp;
 #      unsigned char *expdata, *erva;
 #      char *filename, *dll_name;
-# 
+#
 #      filename = argv[1];
-# 
+#
 #      dll = open(filename, O_RDONLY|O_BINARY);
 #      if (!dll)
 #  	return 1;
-# 
+#
 #      dll_name = filename;
-#    
+#
 #      for (i=0; filename[i]; i++)
 #  	if (filename[i] == '/' || filename[i] == '\\'  || filename[i] == ':')
 #  	    dll_name = filename + i +1;
-# 
+#
 #      pe_header_offset = pe_get32 (dll, 0x3c);
 #      opthdr_ofs = pe_header_offset + 4 + 20;
 #      num_entries = pe_get32 (dll, opthdr_ofs + 92);
-# 
+#
 #      if (num_entries < 1) /* no exports */
 #  	return 1;
-# 
+#
 #      export_rva = pe_get32 (dll, opthdr_ofs + 96);
 #      export_size = pe_get32 (dll, opthdr_ofs + 100);
 #      nsections = pe_get16 (dll, pe_header_offset + 4 +2);
 #      secptr = (pe_header_offset + 4 + 20 +
 #  	      pe_get16 (dll, pe_header_offset + 4 + 16));
-# 
+#
 #      expptr = 0;
 #      for (i = 0; i < nsections; i++)
 #      {
@@ -778,22 +778,22 @@ compiler."
 #  	    break;
 #  	}
 #      }
-# 
+#
 #      expdata = (unsigned char*)malloc(export_size);
 #      lseek (dll, expptr, SEEK_SET);
 #      read (dll, expdata, export_size);
 #      erva = expdata - export_rva;
-# 
+#
 #      nexp = pe_as32 (expdata+24);
 #      name_rvas = pe_as32 (expdata+32);
-# 
+#
 #      printf ("EXPORTS\n");
 #      for (i = 0; i<nexp; i++)
 #      {
 #  	unsigned long name_rva = pe_as32 (erva+name_rvas+i*4);
 #  	printf ("\t%s @ %ld ;\n", erva+name_rva, 1+ i);
 #      }
-# 
+#
 #      return 0;
 #  }
 # /* impgen.c ends here */
@@ -823,7 +823,7 @@ compiler."
     # now prepend the system-specific ones
     eval lib_search_path=\"$sys_lib_search_path_spec\$lib_search_path\"
     eval sys_lib_dlsearch_path=\"$sys_lib_dlsearch_path_spec\"
-    
+
     avoid_version=no
     dlfiles=
     dlprefiles=
@@ -1325,7 +1325,7 @@ compiler."
 	    fi
 	    ;;
 	  esac
-	  
+
 	  # This is the magic to use -rpath.
 	  # Skip directories that are in the system default run-time
 	  # search path, unless they have been requested with -R.
@@ -1334,7 +1334,7 @@ compiler."
 	  *)
 	    case "$compile_rpath " in
 	    *" $absdir "*) ;;
-	    *) compile_rpath="$compile_rpath $absdir" 
+	    *) compile_rpath="$compile_rpath $absdir"
 	    esac
 	    ;;
 	  esac
@@ -1771,7 +1771,7 @@ compiler."
 	  versuffix=
 	  verstring=""
 	fi
-	
+
 	# Check to see if the archive will have undefined symbols.
 	if test "$allow_undefined" = yes; then
 	  if test "$allow_undefined_flag" = unsupported; then
@@ -1930,7 +1930,7 @@ EOF
 		      # Follow soft links.
 		      if ls -lLd "$potent_lib" 2>/dev/null \
 			 | grep " -> " >/dev/null; then
-			continue 
+			continue
 		      fi
 		      # The statement above tries to avoid entering an
 		      # endless loop below, in case of cyclic links.
@@ -2025,7 +2025,7 @@ EOF
       library_names=
       old_library=
       dlname=
-      
+
       # Test again, we may have decided not to build it any more
       if test "$build_libtool_libs" = yes; then
 	# Get the real and link names of the library.
@@ -2217,7 +2217,7 @@ EOF
       gentop=
       # reload_cmds runs $LD directly, so let us get rid of
       # -Wl from whole_archive_flag_spec
-      wl= 
+      wl=
 
       if test -n "$convenience"; then
 	if test -n "$whole_archive_flag_spec"; then
@@ -2337,9 +2337,9 @@ EOF
 	if test "$dlopen" = unknown && test "$dlopen_self" = unknown &&
 	   test "$dlopen_self_static" = unknown; then
 	  $echo "$modename: warning: \`AC_LIBTOOL_DLOPEN' not used. Assuming no dlopen support."
-	fi 
+	fi
       fi
-    
+
       if test -n "$rpath$xrpath"; then
 	# If the user specified any rpath flags, then add them.
 	for libdir in $rpath $xrpath; do
@@ -2503,7 +2503,7 @@ extern \"C\" {
 	      $run eval 'egrep -v " ($exclude_expsyms)$" "$nlist" > "$nlist"T'
 	      $run eval '$mv "$nlist"T "$nlist"'
 	    fi
-	    
+
 	    if test -n "$export_symbols_regex"; then
 	      $run eval 'egrep -e "$export_symbols_regex" "$nlist" > "$nlist"T'
 	      $run eval '$mv "$nlist"T "$nlist"'
@@ -2641,7 +2641,7 @@ static const void *lt_preloaded_setup() {
 	$show "$link_command"
 	$run eval "$link_command"
 	status=$?
-	
+
 	# Delete the generated files.
 	if test -n "$dlsyms"; then
 	  $show "$rm $output_objdir/${outputname}S.${objext}"
@@ -2701,7 +2701,7 @@ static const void *lt_preloaded_setup() {
 	# Fast installation is not supported
 	link_command="$compile_var$compile_command$compile_rpath"
 	relink_command="$finalize_var$finalize_command$finalize_rpath"
-	
+
 	$echo "$modename: warning: this platform does not like uninstalled shared libraries" 1>&2
 	$echo "$modename: \`$output' will be relinked during installation" 1>&2
       else
@@ -2721,7 +2721,7 @@ static const void *lt_preloaded_setup() {
 
       # Replace the output file specification.
       link_command=`$echo "X$link_command" | $Xsed -e 's%@OUTPUT@%'"$output_objdir/$outputname"'%g'`
-      
+
       # Delete the old output files.
       $run $rm $output $output_objdir/$outputname $output_objdir/lt-$outputname
 
@@ -2834,7 +2834,7 @@ else
 	  echo >> $output "\
   program=lt-'$outputname'
   progdir=\"\$thisdir/$objdir\"
-  
+
   if test ! -f \"\$progdir/\$program\" || \\
      { file=\`ls -1dt \"\$progdir/\$program\" \"\$progdir/../\$program\" 2>/dev/null | sed 1q\`; \\
        test \"X\$file\" != \"X\$progdir/\$program\"; }; then
@@ -2965,7 +2965,7 @@ fi\
 	  exit $status
 	fi
 	generated="$generated $gentop"
-	  
+
 	# Add in members from convenience archives.
 	for xlib in $addlibs; do
 	  # Extract the objects.

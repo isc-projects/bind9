@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.32 2000/06/22 21:19:13 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.33 2000/08/01 01:27:44 tale Exp $
  */
 
 #if defined(DNSSAFE)
@@ -120,7 +120,7 @@ dnssafersa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_buffer_availableregion(sig, &sig_region);
 	if (sig_region.length * 8 < (unsigned int) key->key_size)
 		return (ISC_R_NOSPACE);
-		
+
 	if (!dnssafersa_isprivate(key))
 		return (DST_R_NOTPRIVATEKEY);
 
@@ -250,16 +250,16 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	rkey1 = (RSA_Key *) key1->opaque;
 	rkey2 = (RSA_Key *) key2->opaque;
 
-	if (rkey1 == NULL && rkey2 == NULL) 
+	if (rkey1 == NULL && rkey2 == NULL)
 		return (ISC_TRUE);
 	else if (rkey1 == NULL || rkey2 == NULL)
 		return (ISC_FALSE);
 
-	if (rkey1->rk_Public_Key) 
-		(void)B_GetKeyInfo((POINTER *) &public1, rkey1->rk_Public_Key, 
+	if (rkey1->rk_Public_Key)
+		(void)B_GetKeyInfo((POINTER *) &public1, rkey1->rk_Public_Key,
 				   KI_RSAPublic);
-	if (rkey2->rk_Public_Key) 
-		(void)B_GetKeyInfo((POINTER *) &public2, rkey2->rk_Public_Key, 
+	if (rkey2->rk_Public_Key)
+		(void)B_GetKeyInfo((POINTER *) &public2, rkey2->rk_Public_Key,
 				   KI_RSAPublic);
 	if (public1 == NULL && public2 == NULL)
 		return (ISC_TRUE);
@@ -269,7 +269,7 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	status = itemcmp(public1->modulus, public2->modulus) ||
 		 itemcmp(public1->exponent, public2->exponent);
 
-	if (status == ISC_FALSE) 
+	if (status == ISC_FALSE)
 		return (ISC_FALSE);
 
 	if (rkey1->rk_Private_Key != NULL || rkey2->rk_Private_Key != NULL) {
@@ -281,7 +281,7 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 				   KI_PKCS_RSAPrivate);
 		(void)B_GetKeyInfo((POINTER *)&p2, rkey2->rk_Private_Key,
 				   KI_PKCS_RSAPrivate);
-		if (p1 == NULL || p2 == NULL) 
+		if (p1 == NULL || p2 == NULL)
 			return (ISC_FALSE);
 
 		status = itemcmp(p1->modulus, p2->modulus) &&
@@ -549,7 +549,7 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	if (bytes == 0)  /* special case for long exponents */
 		bytes = isc_buffer_getuint16(data);
 
-	if (bytes > MAX_RSA_MODULUS_LEN) { 
+	if (bytes > MAX_RSA_MODULUS_LEN) {
 		dnssafersa_destroy(key);
 		return (DST_R_INVALIDPUBLICKEY);
 	}
@@ -575,7 +575,7 @@ dnssafersa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	isc_buffer_remainingregion(data, &r);
 
-	if (r.length > MAX_RSA_MODULUS_LEN) { 
+	if (r.length > MAX_RSA_MODULUS_LEN) {
 		dnssafersa_destroy(key);
 		memset(public->exponent.data, 0, bytes);
 		isc_mem_put(mctx, public->exponent.data, bytes);
@@ -664,7 +664,7 @@ dnssafersa_tofile(const dst_key_t *key, const char *directory) {
 	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
-static isc_result_t 
+static isc_result_t
 dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id,
 		    const char *filename) {
 	dst_private_t priv;
@@ -695,7 +695,7 @@ dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id,
 	memset(private, 0, sizeof(*private));
 
 	public = (A_RSA_KEY *) isc_mem_get(mctx, sizeof(A_RSA_KEY));
-	if (public == NULL) 
+	if (public == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(public, 0, sizeof(*public));
 
@@ -750,7 +750,7 @@ dnssafersa_fromfile(dst_key_t *key, const isc_uint16_t id,
 		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	rkey = (RSA_Key *) isc_mem_get(mctx, sizeof(RSA_Key));
-	if (rkey == NULL) 
+	if (rkey == NULL)
 		DST_RET(ISC_R_NOMEMORY);
 	memset(rkey, 0, sizeof(*rkey));
 	if (B_CreateKeyObject(&(rkey->rk_Public_Key)) != 0)
@@ -816,7 +816,7 @@ void
 dst__dnssafersa_destroy(void) {
 }
 
-/* 
+/*
  * define memory functions for dnssafe that use the isc_mem functions and a
  * static context.
  */

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.37 2000/07/31 22:11:13 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.38 2000/08/01 01:12:25 tale Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,7 @@ static void
 fatal(const char *format, ...) {
 	va_list args;
 
-	va_start(args, format);	
+	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
@@ -134,7 +134,7 @@ debug(const char *format, ...) {
 	va_list args;
 
 	if (debugging) {
-		va_start(args, format);	
+		va_start(args, format);
 		vfprintf(stderr, format, args);
 		va_end(args);
 		fprintf(stderr, "\n");
@@ -146,7 +146,7 @@ ddebug(const char *format, ...) {
 	va_list args;
 
 	if (ddebugging) {
-		va_start(args, format);	
+		va_start(args, format);
 		vfprintf(stderr, format, args);
 		va_end(args);
 		fprintf(stderr, "\n");
@@ -303,7 +303,7 @@ setup_key() {
 		}
 		keyname = dst_key_name(dstkey);
 	}
-		
+
 	debug("keycreate");
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacmd5_name,
 				    secret, secretlen, ISC_TRUE, NULL, 0, 0,
@@ -554,7 +554,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 
 	if (*cmdline != 0) {
 		result = isc_lex_create(mctx, WORDLEN, &lex);
-		check_result(result, "isc_lex_create");	
+		check_result(result, "isc_lex_create");
 
 		isc_buffer_init(&source, cmdline, strlen(cmdline));
 		isc_buffer_add(&source, strlen(cmdline));
@@ -670,7 +670,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdataset_init(rdataset);
-	dns_rdatalist_tordataset(rdatalist, rdataset);		
+	dns_rdatalist_tordataset(rdatalist, rdataset);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
@@ -943,7 +943,7 @@ show_message(void) {
 	       (int)isc_buffer_usedlength(&buf),
 	       (char*)isc_buffer_base(&buf));
 }
-	
+
 
 static isc_uint16_t
 get_next_command(void) {
@@ -1011,7 +1011,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t buf;
 	dns_message_t *rcvmsg = NULL;
 	char bufstore[MSGTEXT];
-	
+
 	UNUSED(task);
 
 	ddebug("updated_completed()");
@@ -1108,7 +1108,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 
 	if (eresult != ISC_R_SUCCESS) {
 		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
-	
+
 		isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
 		fprintf(stderr, "; Communication with %s failed: %s\n",
 		       addrbuf, isc_result_totext(eresult));
@@ -1329,7 +1329,7 @@ cleanup(void) {
 	lwres_context_destroy(&lwctx);
 
 	isc_mem_put(mctx, servers, ns_total * sizeof(isc_sockaddr_t));
-		
+
 	ddebug("Shutting down request manager");
 	dns_requestmgr_shutdown(requestmgr);
 	dns_requestmgr_detach(&requestmgr);

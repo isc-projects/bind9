@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.21 2000/07/27 09:48:01 tale Exp $ */
+/* $Id: master.h,v 1.22 2000/08/01 01:24:19 tale Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -72,7 +72,7 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
  *
  * If 'age_ttl' is ISC_TRUE and the master file contains one or more
  * $DATE directives, the TTLs of the data will be aged accordingly.
- * 
+ *
  * 'callbacks->commit' is assumed to call 'callbacks->error' or
  * 'callbacks->warn' to generate any error messages required.
  *

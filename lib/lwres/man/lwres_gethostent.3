@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_gethostent.3,v 1.2 2000/07/27 09:44:58 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_gethostent.3,v 1.3 2000/08/01 01:21:21 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_GETHOSTENT 3
 .Os BIND9 9
@@ -34,7 +34,7 @@
 .Nd lightweight resolver get network host entry
 .Sh SYNOPSIS
 .Fd #include <lwres/netdb.h>
-.Fd 
+.Fd
 .Ft struct hostent *
 .Fo lwres_gethostbyname
 .Fa "const char *name"
@@ -100,7 +100,7 @@ These functions define the interface to the lightweight resolver
 daemon \fPNOT IF IT IS GOING AWAY\fP
 for looking up hostnames and addresses. They are similar to the
 standard
-.Xr gethostent 3 
+.Xr gethostent 3
 functions provided by as part of the standard system software.
 They use a
 .Dv "struct hostent"
@@ -125,7 +125,7 @@ The official (canonical) name of the host.
 A NULL-terminated array of alternate names (nicknames) for the host.
 .It Li h_addrtype
 The type of address being returned -
-.Dv PF_INET 
+.Dv PF_INET
 or
 .Dv PF_INET6 .
 .It Li h_length
@@ -137,7 +137,7 @@ terminated array of network addresses for the host.
 Host addresses are returned in network byte order.
 .El
 .Pp
-For backward compatibility with very old software, 
+For backward compatibility with very old software,
 .Li h_addr
 is the first address in
 .Li h_addr_list.
@@ -168,10 +168,10 @@ always looks for an IPv4 address while
 .Fn lwres_gethostbyname2
 looks for an address of protocol family
 .Fa af :
-either 
+either
 .Dv PF_INET
 or
-.Dv PF_INET6 
+.Dv PF_INET6
 - IPv4 or IPV6 addresses respectively.
 Both functions call
 .Fn lwres_getipnodebyname
@@ -206,15 +206,15 @@ It also calls
 .Fn lwres_getipnodebyname
 to lookup the hostname
 .Fa name .
-If 
+If
 .Fn lwres_getipnodebyname
 encounters an error, the error code is returned in
-.Fa *error . 
+.Fa *error .
 .Fa resbuf
 is a pointer to a
 .Dv "struct hostent"
 which is initialised by a successful call to
-.Fn lwres_gethostbyname_r . 
+.Fn lwres_gethostbyname_r .
 .Fa buf
 is a buffer of length
 .Fa len
@@ -259,7 +259,7 @@ The other function parameters are identical to those in
 is a pointer to a
 .Dv "struct hostent"
 which is initialised by a successful call to
-.Fn lwres_gethostbyaddr_r . 
+.Fn lwres_gethostbyaddr_r .
 .Fa buf
 is a buffer of length
 .Fa len
@@ -281,11 +281,11 @@ which is a pointer to the
 it created.
 .Sh RETURN VALUES
 .Pp
-The functions 
+The functions
 .Fn lwres_gethostbyname ,
 .Fn lwres_gethostbyname2 ,
 .Fn lwres_gethostbyaddr ,
-and 
+and
 .Fn lwres_gethostent
 are not thread-safe because they free any memory that had been allocated
 in a previous call to those functions before they perform a lookup.
@@ -348,7 +348,7 @@ and
 .Li h_addr_list
 elements of the
 .Dv "struct hostent" .
-If 
+If
 .Fa buf
 was too small, both
 .Fn lwres_gethostbyname_r
@@ -366,7 +366,7 @@ to
 Although
 .Fn lwres_gethostbyname ,
 .Fn lwres_gethostbyname2 ,
-.Fn lwres_gethostbyaddr 
+.Fn lwres_gethostbyaddr
 and
 .Fn lwres_endhostent
 call thread-safe functions to perform lookups, these 3 functions
@@ -386,7 +386,7 @@ calls to those routines.
 Thread-safe versions for name and address lookup are provided by
 .Fn lwres_gethostbyname_r ,
 and
-.Fn lwres_gethostbyaddr_r 
+.Fn lwres_gethostbyaddr_r
 respectively.
 .Pp
 Although the above functions can be considered as drop-in replacements
@@ -400,6 +400,6 @@ or in
 .Dv NIS/YP
 or
 .Dv NIS+
-maps which could be supported by the operating system's 
+maps which could be supported by the operating system's
 .Xr gethostent 3
 functions.

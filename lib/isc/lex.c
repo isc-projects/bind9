@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.34 2000/07/27 09:50:54 tale Exp $ */
+/* $Id: lex.c,v 1.35 2000/08/01 01:29:29 tale Exp $ */
 
 #include <config.h>
 
@@ -90,7 +90,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	/*
 	 * Create a lexer.
 	 */
-	
+
 	REQUIRE(lexp != NULL && *lexp == NULL);
 	REQUIRE(max_token > 0);
 
@@ -111,7 +111,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	memset(lex->specials, 0, 256);
 	INIT_LIST(lex->sources);
 	lex->magic = LEX_MAGIC;
-	
+
 	*lexp = lex;
 
 	return (ISC_R_SUCCESS);
@@ -229,7 +229,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 		return (result);
 
 	flockfile(stream);
-	
+
 	return (new_source(lex, ISC_TRUE, ISC_TRUE, stream, filename));
 }
 
@@ -279,7 +279,7 @@ isc_lex_close(isc_lex_t *lex) {
 	source = HEAD(lex->sources);
 	if (source == NULL)
 		return (ISC_R_NOMORE);
-	
+
 	UNLINK(lex->sources, source, link);
 	if (source->is_file) {
 		funlockfile((FILE *)(source->input));
@@ -306,7 +306,7 @@ typedef enum {
 
 #define IWSEOL (ISC_LEXOPT_INITIALWS | ISC_LEXOPT_EOL)
 
-static void 
+static void
 pushback(inputsource *source, int c) {
 	INSIST(source->char_count < 2);
 	source->chars[source->char_count++] = c;
@@ -404,7 +404,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 
 		if (c == '\n')
 			source->line++;
-		
+
 		if (lex->comment_ok && !no_comments) {
 			if (!escaped && c == ';' &&
 			    ((lex->comments & ISC_LEXCOMMENT_DNSMASTERFILE)
@@ -534,7 +534,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						v = &(tokenp->value);
 						v->as_textregion.base =
 							lex->data;
-						v->as_textregion.length = 
+						v->as_textregion.length =
 							lex->max_token -
 							remaining;
 					}
@@ -566,7 +566,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				pushback(source, c);
 				tokenp->type = isc_tokentype_string;
 				tokenp->value.as_textregion.base = lex->data;
-				tokenp->value.as_textregion.length = 
+				tokenp->value.as_textregion.length =
 					lex->max_token - remaining;
 				done = ISC_TRUE;
 				continue;
@@ -647,7 +647,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					tokenp->type = isc_tokentype_qstring;
 					tokenp->value.as_textregion.base =
 						lex->data;
-					tokenp->value.as_textregion.length = 
+					tokenp->value.as_textregion.length =
 						lex->max_token - remaining;
 					no_comments = ISC_FALSE;
 					done = ISC_TRUE;
@@ -693,7 +693,7 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	REQUIRE(source != NULL);
 	REQUIRE(!source->have_token);
 	REQUIRE(tokenp != NULL);
-	
+
 	source->token = *tokenp;
 	source->have_token = ISC_TRUE;
 }

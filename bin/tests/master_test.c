@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master_test.c,v 1.23 2000/07/27 09:38:08 tale Exp $ */
+/* $Id: master_test.c,v 1.24 2000/08/01 01:13:00 tale Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,7 @@ print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[64*1024];
 	isc_buffer_t target;
 	isc_result_t result;
-	
+
 	UNUSED(arg);
 
 	isc_buffer_init(&target, buf, 64*1024);
@@ -47,7 +47,7 @@ print_dataset(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	if (result == ISC_R_SUCCESS)
 		fprintf(stdout, "%.*s\n", (int)target.used,
 					  (char*)target.base);
-	else 
+	else
 		fprintf(stdout, "dns_rdataset_totext: %s\n",
 			dns_result_totext(result));
 
@@ -80,10 +80,10 @@ main(int argc, char *argv[]) {
 				dns_result_totext(result));
 			exit(1);
 		}
-				
+
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		callbacks.add = print_dataset;
-		
+
 		result = dns_master_loadfile(argv[1], &origin, &origin, 1,
 					     ISC_FALSE,
 					     &callbacks, mctx);

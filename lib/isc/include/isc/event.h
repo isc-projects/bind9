@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.21 2000/07/27 09:51:34 tale Exp $ */
+/* $Id: event.h,v 1.22 2000/08/01 01:30:08 tale Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
@@ -52,7 +52,7 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  * The ISC_EVENTATTR_CANCELED attribute is intended to indicate
  * that an event is delivered as a result of a canceled operation
  * rather than successful completion, by mutual agreement
- * between the sender and receiver.  It is not set or used by 
+ * between the sender and receiver.  It is not set or used by
  * the task system.
  */
 #define ISC_EVENTATTR_CANCELED		0x00000002
@@ -70,11 +70,11 @@ do { \
 	(event)->ev_destroy_arg = (da); \
 	ISC_LINK_INIT((event), ev_link); \
 } while (0)
-	
+
 /*
  * This structure is public because "subclassing" it may be useful when
  * defining new event types.
- */ 
+ */
 struct isc_event {
 	ISC_EVENT_COMMON(struct isc_event);
 };

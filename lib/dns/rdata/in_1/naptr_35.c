@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.32 2000/07/27 09:50:07 tale Exp $ */
+/* $Id: naptr_35.c,v 1.33 2000/08/01 01:26:25 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -149,7 +149,7 @@ fromwire_in_naptr(ARGS_FROMWIRE) {
 	REQUIRE(rdclass == 1);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
-        
+
         dns_name_init(&name, NULL);
 
 	/*
@@ -197,7 +197,7 @@ towire_in_naptr(ARGS_TOWIRE) {
 	dns_rdata_toregion(rdata, &sr);
 	RETERR(mem_tobuffer(target, sr.base, 4));
 	isc_region_consume(&sr, 4);
-	
+
 	/*
 	 * Flags.
 	 */
@@ -400,7 +400,7 @@ tostruct_in_naptr(ARGS_TOSTRUCT) {
 static inline void
 freestruct_in_naptr(ARGS_FREESTRUCT) {
 	dns_rdata_in_naptr_t *naptr = source;
-	
+
 	REQUIRE(source != NULL);
 	REQUIRE(naptr->common.rdclass == 1);
 	REQUIRE(naptr->common.rdtype == 35);
@@ -434,7 +434,7 @@ additionaldata_in_naptr(ARGS_ADDLDATA) {
 	 */
 	dns_rdata_toregion(rdata, &sr);
 	isc_region_consume(&sr, 4);
-	
+
 	/*
 	 * Flags.
 	 */
@@ -530,7 +530,7 @@ digest_in_naptr(ARGS_DIGEST) {
 
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
-	
+
 	return (dns_name_digest(&name, digest, arg));
 }
 

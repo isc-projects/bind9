@@ -31,7 +31,7 @@ B_MemoryPool *memoryPool;
   ITEM sourceItem, *destinationItem;
   int status;
   unsigned int i, offset;
-  
+
   for (i = 0; i < itemCount; i++) {
     offset = (unsigned int)((char *)staticItems[i] - (char *)staticStruct);
     sourceItem = *(ITEM *)((char *)source + offset);
@@ -41,14 +41,14 @@ B_MemoryPool *memoryPool;
       sourceItem.len--;
       sourceItem.data++;
     }
-    
+
     if ((status = B_MemoryPoolAllocAndCopy
          (memoryPool, (POINTER *)&destinationItem->data,
           (POINTER)sourceItem.data, destinationItem->len = sourceItem.len))
         != 0)
       return (status);
   }
-  
+
   return (0);
 }
 

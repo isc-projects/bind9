@@ -1,11 +1,11 @@
 #!/usr/local/bin/perl -w
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update-drafts.pl,v 1.2 2000/07/27 09:55:02 tale Exp $
+# $Id: update-drafts.pl,v 1.3 2000/08/01 01:33:37 tale Exp $
 
 #
 # Replace internet drafts with updated versions, if any.
@@ -37,7 +37,7 @@ foreach (@ARGV) {
 	    if ($? == 0) {
 		unlink($ofile);
 		system "cvs remove $ofile";
-		system "cvs add $nfile";		
+		system "cvs add $nfile";
 	    }
     }
 }

@@ -1,9 +1,9 @@
 # Copyright (C) 1998-2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.16 2000/07/27 09:46:55 tale Exp $
+# $Id: Makefile.in,v 1.17 2000/08/01 01:23:13 tale Exp $
 
 srcdir		= @srcdir@
 VPATH		= @srcdir@
@@ -45,7 +45,7 @@ SRCS		= confparser.c confcommon.c confacl.c confcache.c \
 		  conflsn.c confndc.c confresolv.c confrrset.c \
 		  confview.c confzone.c
 
-SUBDIRS		=	
+SUBDIRS		=
 TARGETS		= ${OBJS}
 
 @BIND9_MAKE_RULES@
@@ -56,7 +56,7 @@ TARGETS		= ${OBJS}
 ##	mv y.tab.c confparser.c
 ##	mv y.tab.h confparser_p.h
 
-## This rule is here during development to help debugging. 
+## This rule is here during development to help debugging.
 ## Remove and uncomment the rule above before release.
 confparser.c: confparser.y
 	${YACC} -d ${srcdir}/confparser.y

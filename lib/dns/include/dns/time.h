@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.7 2000/07/27 09:48:29 tale Exp $ */
+/* $Id: time.h,v 1.8 2000/08/01 01:24:46 tale Exp $ */
 
 #ifndef DNS_TIME_H
 #define DNS_TIME_H 1
@@ -37,9 +37,9 @@ isc_result_t
 dns_time64_fromtext(char *source, isc_int64_t *target);
 /*
  * Convert a date and time in YYYYMMDDHHMMSS text format at 'source'
- * into to a 64-bit count of seconds since Jan 1 1970 0:00 GMT.  
+ * into to a 64-bit count of seconds since Jan 1 1970 0:00 GMT.
  * Store the count at 'target'.
- */ 
+ */
 
 isc_result_t
 dns_time32_fromtext(char *source, isc_uint32_t *target);
@@ -47,12 +47,12 @@ dns_time32_fromtext(char *source, isc_uint32_t *target);
  * Like dns_time64_fromtext, but returns the second count modulo 2^32
  * as per RFC2535.
  */
-	
+
 
 isc_result_t
 dns_time64_totext(isc_int64_t value, isc_buffer_t *target);
 /*
- * Convert a 64-bit count of seconds since Jan 1 1970 0:00 GMT into 
+ * Convert a 64-bit count of seconds since Jan 1 1970 0:00 GMT into
  * a YYYYMMDDHHMMSS text representation and append it to 'target'.
  */
 
@@ -63,7 +63,7 @@ dns_time32_totext(isc_uint32_t value, isc_buffer_t *target);
  * Of those dates whose counts of seconds since Jan 1 1970 0:00 GMT
  * are congruent with 'value' modulo 2^32, the one closest to the
  * current date is chosen.
- */ 
+ */
 
 ISC_LANG_ENDDECLS
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.99 2000/07/31 23:09:49 tale Exp $ */
+/* $Id: name.c,v 1.100 2000/08/01 01:22:33 tale Exp $ */
 
 #include <config.h>
 
@@ -177,7 +177,7 @@ static struct dns_constname root = {
 	{
 		DNS_NAME_MAGIC,
 		root.const_ndata, 1, 1,
-		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, 
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
 		root.const_offsets, NULL,
 		{(void *)-1, (void *)-1},
 		{NULL, NULL}
@@ -220,7 +220,7 @@ compact(dns_name_t *name, unsigned char *offsets);
 static inline unsigned int
 get_bit(unsigned char *array, unsigned int idx) {
 	unsigned int byte, shift;
-	
+
 	byte = array[idx / 8];
 	shift = 7 - (idx % 8);
 
@@ -230,7 +230,7 @@ get_bit(unsigned char *array, unsigned int idx) {
 static inline void
 set_bit(unsigned char *array, unsigned int idx, unsigned int bit) {
 	unsigned int shift, mask;
-	
+
 	shift = 7 - (idx % 8);
 	mask = 1 << shift;
 
@@ -250,7 +250,7 @@ dns_label_type(dns_label_t *label) {
 	REQUIRE(label->length > 0);
 	REQUIRE(label->base[0] <= 63 ||
 		label->base[0] == DNS_LABELTYPE_BITSTRING);
-     
+
 	if (label->base[0] <= 63)
 		return (dns_labeltype_ordinary);
 	else
@@ -272,7 +272,7 @@ dns_label_countbits(dns_label_t *label) {
 	count = label->base[1];
 	if (count == 0)
 		count = 256;
-	
+
 	return (count);
 }
 
@@ -308,7 +308,7 @@ dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	/*
 	 * Initialize 'name'.
 	 */
-	 
+
 	name->magic = DNS_NAME_MAGIC;
 	name->ndata = NULL;
 	name->length = 0;
@@ -694,7 +694,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 	 * compared the caller must ensure that they are both relative to the
 	 * same domain.
 	 */
-	
+
 	(void)dns_name_fullcompare(name1, name2, &order, &nlabels, &nbits);
 
 	return (order);
@@ -958,12 +958,12 @@ dns_name_getlabel(const dns_name_t *name, unsigned int n, dns_label_t *label) {
 	/*
 	 * Make 'label' refer to the 'n'th least significant label of 'name'.
 	 */
-	
+
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(name->labels > 0);
 	REQUIRE(n < name->labels);
 	REQUIRE(label != NULL);
-	
+
 	SETUP_OFFSETS(name, offsets, odata);
 
 	label->base = &name->ndata[offsets[n]];
@@ -1139,7 +1139,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	}
 
 	REQUIRE(BINDABLE(name));
-	
+
 	INIT_OFFSETS(name, offsets, odata);
 	offsets[0] = 0;
 
@@ -1156,7 +1156,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	tbcount = 0;
 	bitlength = 0;
 	maxlength = 0;
-	kind = ft_init;	
+	kind = ft_init;
 
 	/*
 	 * Make 'name' empty in case of failure.
@@ -1204,7 +1204,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				state = ft_at;
 				break;
 			}
-				
+
 			/* FALLTHROUGH */
 		case ft_start:
 			label = ndata;
@@ -1670,7 +1670,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			if ((origin->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 				name->attributes |= DNS_NAMEATTR_ABSOLUTE;
-		}		
+		}
 	} else
 		name->attributes |= DNS_NAMEATTR_ABSOLUTE;
 
@@ -1855,7 +1855,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				    "Unexpected label type %02x", count);
 			/* NOTREACHED */
 		}
-					 
+
 		/*
 		 * The following assumes names are absolute.  If not, we
 		 * fix things up later.  Note that this means that in some
@@ -1884,7 +1884,7 @@ dns_name_downcase(dns_name_t *source, dns_name_t *name, isc_buffer_t *target) {
 	unsigned char *sndata, *ndata;
 	unsigned int nlen, count, bytes, labels;
 	isc_buffer_t buffer;
- 
+
 	/*
 	 * Downcase 'source'.
 	 */
@@ -2216,10 +2216,10 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	hops = 0;
 	saw_bitstring = ISC_FALSE;
 	done = ISC_FALSE;
-	
+
 	ndata = isc_buffer_used(target);
 	nused = 0;
-	
+
 	/*
 	 * Find the maximum number of uncompressed target name
 	 * bytes we are willing to generate.  This is the smaller
@@ -2229,10 +2229,10 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	nmax = isc_buffer_availablelength(target);
 	if (nmax > 255)
 		nmax = 255;
-	
+
 	cdata = isc_buffer_current(source);
 	cused = 0;
-	
+
 	current = source->current;
 	biggest_pointer = current;
 
@@ -2363,7 +2363,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 
 	isc_buffer_forward(source, cused);
 	isc_buffer_add(target, name->length);
-	
+
 	return (ISC_R_SUCCESS);
 
  full:
@@ -2379,7 +2379,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		 * big enough buffer.
 		 */
 		return (ISC_R_NOSPACE);
-		
+
 }
 
 isc_result_t
@@ -3063,13 +3063,13 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg) {
 
 	dns_name_init(&downname, NULL);
 	isc_buffer_init(&buffer, data, sizeof(data));
-	
+
 	result = dns_name_downcase(name, &downname, &buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	isc_buffer_usedregion(&buffer, &r);
-	
+
 	return ((digest)(arg, &r));
 }
 
@@ -3114,7 +3114,7 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size) {
 	isc_buffer_t buf;
 
 	REQUIRE(size > 0);
-	
+
 	/*
 	 * Leave room for null termination after buffer.
 	 */

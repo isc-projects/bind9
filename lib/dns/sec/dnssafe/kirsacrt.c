@@ -46,7 +46,7 @@ POINTER info;
 {
   A_RSA_CRT_KEY *newValue;
   int status;
-  
+
   /* Allocate memory for A_RSA_CRT_KEY struct and copy integers
        from supplied value.
      */
@@ -94,7 +94,7 @@ B_Key *key;
   if ((status = B_MemoryPoolAlloc
        (&key->infoCache.memoryPool, info, sizeof (A_RSA_CRT_KEY))) != 0)
     return (status);
-    
+
   **(A_RSA_CRT_KEY **)info = keyValue;
   return (0);
 }

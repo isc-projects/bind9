@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,9 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.21 2000/07/27 23:27:37 bwelling Exp $ */
+/* $Id: rndc.c,v 1.22 2000/08/01 01:12:28 tale Exp $ */
 
-/* 
+/*
  * Principal Author: DCL
  */
 
@@ -462,7 +462,7 @@ main(int argc, char **argv) {
 
 		if (strcmp(command, "dumpdb") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
-			
+
 		} else if (strcmp(command, "notrace") == 0) {
 			result = ISC_R_NOTIMPLEMENTED;
 

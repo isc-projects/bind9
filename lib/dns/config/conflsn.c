@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflsn.c,v 1.17 2000/07/27 09:47:06 tale Exp $ */
+/* $Id: conflsn.c,v 1.18 2000/08/01 01:23:24 tale Exp $ */
 
 #include <config.h>
 
@@ -35,7 +35,7 @@ dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen) {
 	REQUIRE(listen != NULL);
 
 	*listen = NULL;
-	
+
 	ll = isc_mem_get(mem, sizeof *ll);
 	ll->mem = mem;
 	ll->port = 0;
@@ -46,11 +46,11 @@ dns_c_lstnon_new(isc_mem_t *mem, dns_c_lstnon_t **listen) {
 		isc_mem_put(mem, ll, sizeof *ll);
 		return (result);
 	}
-	
+
 	ISC_LINK_INIT(ll, next);
 
 	*listen = ll;
-		
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -74,7 +74,7 @@ dns_c_lstnon_delete(dns_c_lstnon_t **listen) {
 	isc_mem_put(lo->mem, lo, sizeof *lo);
 
 	*listen = NULL;
-	
+
 	return (r);
 }
 
@@ -95,7 +95,7 @@ dns_c_lstnon_setiml(dns_c_lstnon_t *listen,
 	} else {
 		result = ISC_R_SUCCESS;
 	}
-	
+
 
 	if (deepcopy) {
 		result = dns_c_ipmatchlist_copy(listen->mem,
@@ -114,7 +114,7 @@ dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist) {
 	REQUIRE(llist != NULL);
 
 	*llist = NULL;
-	
+
 	ll = isc_mem_get(mem, sizeof *ll);
 	if (ll == NULL) {
 		/* XXXJAB logwrite */
@@ -126,7 +126,7 @@ dns_c_lstnlist_new(isc_mem_t *mem, dns_c_lstnlist_t **llist) {
 	ISC_LIST_INIT(ll->elements);
 
 	*llist = ll;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -157,7 +157,7 @@ dns_c_lstnlist_delete(dns_c_lstnlist_t **llist) {
 	isc_mem_put(ll->mem, ll, sizeof *ll);
 
 	*llist = NULL;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -204,7 +204,7 @@ dns_c_lstnon_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
 		   in_port_t default_port) {
 	REQUIRE(lo != NULL);
 	REQUIRE(DNS_C_LISTEN_VALID(lo));
-	
+
 	fprintf(fp, "listen-on ");
 	if (lo->port != default_port) {
 		fprintf(fp, "port %d ", lo->port);
@@ -222,7 +222,7 @@ dns_c_lstnonv6_print(FILE *fp, int indent, dns_c_lstnon_t *lo,
 		   in_port_t default_port) {
 	REQUIRE(lo != NULL);
 	REQUIRE(DNS_C_LISTEN_VALID(lo));
-	
+
 	fprintf(fp, "listen-on-v6 ");
 	if (lo->port != default_port) {
 		fprintf(fp, "port %d ", lo->port);
@@ -254,7 +254,7 @@ checklisten_element(dns_c_ipmatchelement_t *element)
 	case dns_c_ipmatch_localnets:
 		ok = ISC_FALSE;
 		break;
-		
+
 	case dns_c_ipmatch_any:
 	case dns_c_ipmatch_none:
 		ok = ISC_TRUE;
@@ -263,7 +263,7 @@ checklisten_element(dns_c_ipmatchelement_t *element)
 	case dns_c_ipmatch_indirect:
 		/* XXX shouldn't be reached */
 		break;
-		
+
 	case dns_c_ipmatch_acl:
 		/* XXX handle this. */
 		break;
@@ -277,11 +277,11 @@ checkv6listen_element(dns_c_ipmatchelement_t *element)
 {
 	int pf;
 	isc_boolean_t ok = ISC_FALSE;
-	
+
 	switch (element->type) {
 	case dns_c_ipmatch_pattern:
 		pf = isc_sockaddr_pf(&element->u.direct.address);
-		
+
 		ok = ISC_TF(pf == AF_INET6);
 		break;
 
@@ -290,7 +290,7 @@ checkv6listen_element(dns_c_ipmatchelement_t *element)
 	case dns_c_ipmatch_localnets:
 		ok = ISC_FALSE;
 		break;
-		
+
 	case dns_c_ipmatch_any:
 	case dns_c_ipmatch_none:
 		ok = ISC_TRUE;
@@ -299,7 +299,7 @@ checkv6listen_element(dns_c_ipmatchelement_t *element)
 	case dns_c_ipmatch_indirect:
 		/* XXX shouldn't be reached */
 		break;
-		
+
 	case dns_c_ipmatch_acl:
 		/* XXX handle this. */
 		break;
@@ -317,7 +317,7 @@ isc_result_t
 dns_c_lstnlist_validate(dns_c_lstnlist_t *ll)
 {
 #if 0
-	
+
 	dns_c_lstnon_t *lo;
 	isc_boolean_t checkval;
 
@@ -334,18 +334,18 @@ dns_c_lstnlist_validate(dns_c_lstnlist_t *ll)
 				      "addresses only.");
 			return (ISC_R_FAILURE);
 		}
-		
+
 		lo = ISC_LIST_NEXT(lo, next);
 	}
 
 	return (ISC_R_SUCCESS);
 
-#else	
+#else
 
 	UNUSED(ll);
 	return (ISC_R_SUCCESS);
 
-#endif	
+#endif
 }
 
 
@@ -370,18 +370,18 @@ dns_c_lstnlistv6_validate(dns_c_lstnlist_t *ll)
 				      "addresses only.");
 			return (ISC_R_FAILURE);
 		}
-		
+
 		lo = ISC_LIST_NEXT(lo, next);
 	}
 
 	return (ISC_R_SUCCESS);
 
 #else
-	
+
 	UNUSED(ll);
 	return (ISC_R_SUCCESS);
-	
-#endif	
+
+#endif
 }
 
 

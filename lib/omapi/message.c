@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.27 2000/07/27 09:54:20 tale Exp $ */
+/* $Id: message.c,v 1.28 2000/08/01 01:32:56 tale Exp $ */
 
 /*
  * Subroutines for dealing with message objects.
@@ -72,7 +72,7 @@ omapi_message_register(omapi_object_t *h) {
 	REQUIRE(h != NULL && h->type == omapi_type_message);
 
 	m = (omapi_message_t *)h;
-	
+
 	/*
 	 * Already registered?
 	 */
@@ -96,7 +96,7 @@ omapi_message_unregister(omapi_object_t *h) {
 	REQUIRE(h != NULL && h->type == omapi_type_message);
 
 	m = (omapi_message_t *)h;
-	
+
 	/*
 	 * Not registered?
 	 */
@@ -276,7 +276,7 @@ omapi_message_send(omapi_object_t *message, omapi_object_t *protocol) {
 		c->bytes_needed = p->header_size;
 
 		result = connection_send(c);
-		
+
 		/*
 		 * The client waited for the result; the server did not.
 		 * The server's result will always be ISC_R_SUCCESS.
@@ -499,7 +499,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 					    isc_result_totext(result)));
 
 		/*
-		 * All messages except for the first attempt to set 
+		 * All messages except for the first attempt to set
 		 * the dst key used by the protocol must be signed.
 		 */
 #ifdef notyet /* not for 9.0.0 */
@@ -531,7 +531,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		 * under the current design of OMAPI, there just isn't
 		 * a good way to set the authentication values.  The
 		 * connection object and protocol object are the only
-		 * things that hold state on the server throughout the life 
+		 * things that hold state on the server throughout the life
 		 * of a particular connection, and the original design
 		 * for lookup methods does not provide a way to identify
 		 * the current protocol or connection object.
@@ -566,7 +566,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 		if (result == ISC_R_NOTFOUND && create == 0) {
 			return (send_status(po, ISC_R_NOTFOUND, message->id,
 					   "no object matches specification"));
-		}			
+		}
 
 		/*
 		 * If we found an object, we're supposed to be creating an
@@ -601,7 +601,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 						    "can't update object"));
 			}
 		}
-		
+
 		/*
 		 * Now send the new contents of the object back in response.
 		 */
@@ -623,7 +623,7 @@ message_process(omapi_object_t *mo, omapi_object_t *po) {
 			return (send_status(po, result, message->id,
 					    "no matching handle"));
 
-	send:		
+	send:
 		result = send_update(po, message->id, object);
 		OBJECT_DEREF(&object);
 		return (result);
@@ -905,7 +905,7 @@ message_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	REQUIRE(handle != NULL && handle->type == omapi_type_message);
 
 	message = (omapi_message_t *)handle;
-	
+
 	/*
 	 * XXXDCL It would make the client side a bit cleaner if when "status"
 	 * is signalled, it sets both "waitresult" and "waittext" (or some

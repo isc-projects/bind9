@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer_test.c,v 1.33 2000/07/27 09:38:34 tale Exp $ */
+/* $Id: timer_test.c,v 1.34 2000/08/01 01:13:26 tale Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ timeout(isc_task_t *task, isc_event_t *event) {
 	char *name = event->ev_arg;
 	const char *type;
 
-	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE || 
+	INSIST(event->ev_type == ISC_TIMEREVENT_IDLE ||
 	       event->ev_type == ISC_TIMEREVENT_LIFE);
 
 	if (event->ev_type == ISC_TIMEREVENT_IDLE)
@@ -140,7 +140,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_timer_create(timgr, isc_timertype_ticker, NULL,
 				       &interval, t1, tick, "1", &ti1) ==
 		      ISC_R_SUCCESS);
-				       
+
 	isc_interval_set(&interval, 10, 0);
 	RUNTIME_CHECK(isc_time_add(&now, &interval, &expires) ==
 		      ISC_R_SUCCESS);
@@ -162,7 +162,7 @@ main(int argc, char *argv[]) {
 	isc_timermgr_destroy(&timgr);
 	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");
-	
+
 	printf("Statistics for mctx1:\n");
 	isc_mem_stats(mctx1, stdout);
 	isc_mem_destroy(&mctx1);

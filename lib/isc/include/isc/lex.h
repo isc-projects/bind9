@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.21 2000/07/27 09:51:45 tale Exp $ */
+/* $Id: lex.h,v 1.22 2000/08/01 01:30:19 tale Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -209,7 +209,7 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials);
  * whitespace, they delimit strings and numbers.
  *
  * Note:
- *	Comment processing takes precedence over special character	
+ *	Comment processing takes precedence over special character
  *	recognition.
  *
  * Requires:

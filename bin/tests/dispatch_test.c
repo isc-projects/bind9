@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch_test.c,v 1.45 2000/07/27 09:37:52 tale Exp $ */
+/* $Id: dispatch_test.c,v 1.46 2000/08/01 01:12:43 tale Exp $ */
 
 #include <config.h>
 
@@ -349,7 +349,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in) {
 		start_response(&clients[4], "vix.com", task);
 		start_response(&clients[5], "isc.org", task);
 		break;
-		
+
 	case 2:
 		printf("--- removing request\n");
 		dns_dispatch_removerequest(&cli->resp, &ev);
@@ -394,7 +394,7 @@ main(int argc, char *argv[]) {
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
-	
+
 	destination.file.stream = stderr;
 	destination.file.name = NULL;
 	destination.file.versions = ISC_LOG_ROLLNEVER;
@@ -435,7 +435,7 @@ main(int argc, char *argv[]) {
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_IPV4;
 	attrs |= DNS_DISPATCHATTR_UDP;
-	
+
 	disp = NULL;
 	RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr, socketmgr,
 					  taskmgr, &sa, 512, 6, 1024,

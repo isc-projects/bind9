@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.5 2000/07/27 09:36:53 tale Exp $ */
+/* $Id: lwdclient.c,v 1.6 2000/08/01 01:11:45 tale Exp $ */
 
 #include <config.h>
 
@@ -250,7 +250,7 @@ ns_lwdclient_send(isc_task_t *task, isc_event_t *ev) {
 
 	UNUSED(task);
 	UNUSED(dev);
-	
+
 	INSIST(NS_LWDCLIENT_ISSEND(client));
 	INSIST(client->sendbuf == dev->region.base);
 

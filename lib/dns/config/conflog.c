@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflog.c,v 1.17 2000/07/27 09:47:05 tale Exp $ */
+/* $Id: conflog.c,v 1.18 2000/08/01 01:23:22 tale Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ dns_c_logginglist_delete(dns_c_logginglist_t **list) {
 
 	REQUIRE(list != NULL);
 	REQUIRE(DNS_C_LOGLIST_VALID(*list));
-	
+
 	l = *list;
 
 	chan = ISC_LIST_HEAD(l->channels);
@@ -180,10 +180,10 @@ logginglist_empty(dns_c_logginglist_t *ll) {
 		if (!logchan->predefined) {
 			return ISC_FALSE;
 		}
-		
+
 		logchan = ISC_LIST_NEXT(logchan, next);
 	}
-	
+
 	logcat = ISC_LIST_HEAD(ll->categories);
 	while (logcat != NULL) {
 		if (!logcat->predefined) {
@@ -195,7 +195,7 @@ logginglist_empty(dns_c_logginglist_t *ll) {
 	return ISC_TRUE;
 }
 
-	
+
 void
 dns_c_logginglist_print(FILE *fp, int indent, dns_c_logginglist_t *ll,
 			isc_boolean_t if_predef_too)
@@ -212,21 +212,21 @@ dns_c_logginglist_print(FILE *fp, int indent, dns_c_logginglist_t *ll,
 
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "logging {\n");
-	
+
 	logchan = ISC_LIST_HEAD(ll->channels);
 	while (logchan != NULL) {
 		dns_c_logchan_print(fp, indent + 1, logchan,
 				    if_predef_too);
 		logchan = ISC_LIST_NEXT(logchan, next);
 	}
-	
+
 	logcat = ISC_LIST_HEAD(ll->categories);
 	while (logcat != NULL) {
 		dns_c_logcat_print(fp, indent + 1, logcat,
 				   if_predef_too);
 		logcat = ISC_LIST_NEXT(logcat, next);
 	}
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "};\n");
 }
@@ -253,7 +253,7 @@ dns_c_logginglist_addchannel(dns_c_logginglist_t *list,
 	} else {
 		newc = newchan;
 	}
-		
+
 	tmpchan = ISC_LIST_HEAD(list->channels);
 	while (tmpchan != NULL) {
 		if (strcmp(newchan->name, tmpchan->name) == 0) {
@@ -293,7 +293,7 @@ dns_c_logginglist_addcategory(dns_c_logginglist_t *list,
 
 	REQUIRE(DNS_C_LOGLIST_VALID(list));
 	REQUIRE(DNS_C_LOGCAT_VALID(newcat));
-	
+
 
 	if (deepcopy) {
 		res = dns_c_logcat_copy(list->mem, &newc, newcat);
@@ -310,7 +310,7 @@ dns_c_logginglist_addcategory(dns_c_logginglist_t *list,
 		if (strcmp(newcat->catname,tmpcat->catname) == 0) {
 			existed = ISC_TRUE;
 			predefined = tmpcat->predefined;
-			
+
 			ISC_LIST_UNLINK(list->categories, tmpcat, next);
 			res = dns_c_logcat_delete(&tmpcat);
 			if (res != ISC_R_SUCCESS) {
@@ -501,13 +501,13 @@ dns_c_logchan_new(isc_mem_t *mem, const char *name,
 	memset(&newc->setflags, 0x0, sizeof newc->setflags);
 
 	ISC_LINK_INIT(newc, next);
-	
+
 	newc->name = isc_mem_strdup(mem, name);
 	if (newc->name == NULL) {
 		isc_mem_put(mem, newc, sizeof *newc);
 		return (ISC_R_NOMEMORY);
 	}
-	
+
 	switch (ctype) {
 	case dns_c_logchan_file:
 		newc->u.filec.path = NULL;
@@ -518,7 +518,7 @@ dns_c_logchan_new(isc_mem_t *mem, const char *name,
 	case dns_c_logchan_stderr:
 		break;
 	}
-	
+
 	*newchan = newc;
 
 	return (ISC_R_SUCCESS);
@@ -579,7 +579,7 @@ dns_c_logchan_copy(isc_mem_t *mem, dns_c_logchan_t **dest,
 	logc->print_severity = src->print_severity;
 	logc->print_time = src->print_time;
 	logc->setflags = src->setflags;
-	
+
 	switch (logc->ctype) {
 	case dns_c_logchan_file:
 		logc->u.filec.path = isc_mem_strdup(mem, src->u.filec.path);
@@ -597,7 +597,7 @@ dns_c_logchan_copy(isc_mem_t *mem, dns_c_logchan_t **dest,
 	}
 
 	*dest = logc;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -612,7 +612,7 @@ dns_c_logchan_print(FILE *fp, int indent, dns_c_logchan_t *logchan,
 	if (logchan->predefined && !if_predef_too) {
 		return;
 	}
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "channel %s {\n", logchan->name) ;
 
@@ -669,13 +669,13 @@ dns_c_logchan_print(FILE *fp, int indent, dns_c_logchan_t *logchan,
 		fprintf(fp, "print-severity %s;\n",
 			(logchan->print_severity ? "true" : "false"));
 	}
-	
+
 	if (DNS_C_CHECKBIT(CHAN_PCAT_BIT, &logchan->setflags)) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "print-category %s;\n",
 			(logchan->print_category ? "true" : "false"));
 	}
-	
+
 	if (DNS_C_CHECKBIT(CHAN_PTIME_BIT, &logchan->setflags)) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "print-time %s;\n",
@@ -777,7 +777,7 @@ dns_c_logchan_setfacility(dns_c_logchan_t *channel, int facility) {
 		return (ISC_R_FAILURE);
 	}
 
-	
+
 	if (dns_c_facility2string(facility, ISC_FALSE) == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -785,7 +785,7 @@ dns_c_logchan_setfacility(dns_c_logchan_t *channel, int facility) {
 			      facility);
 		return (ISC_R_FAILURE);
 	}
-	
+
 
 	existed = DNS_C_CHECKBIT(CHAN_FACILITY_BIT, &channel->setflags);
 
@@ -822,10 +822,10 @@ dns_c_logchan_setdebuglevel(dns_c_logchan_t *channel, isc_int32_t level) {
 	if (channel->severity == dns_c_log_debug) {
 		existed = DNS_C_CHECKBIT(CHAN_DEBUG_LEVEL_BIT,
 					 &channel->setflags);
-		
+
 		DNS_C_SETBIT(CHAN_DEBUG_LEVEL_BIT, &channel->setflags);
 		channel->debug_level = level;
-		
+
 		return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 	} else {
 		return (ISC_R_FAILURE);
@@ -1181,14 +1181,14 @@ dns_c_logcat_print(FILE *fp, int indent, dns_c_logcat_t *logcat,
 		   isc_boolean_t if_predef_too)
 {
 	unsigned int i;
-	
+
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_LOGCAT_VALID(logcat));
 
 	if (logcat->predefined && !if_predef_too) {
 		return;
 	}
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "category %s {\n", logcat->catname);
 
@@ -1308,7 +1308,7 @@ dns_c_logcat_getpredef(dns_c_logcat_t *logcat, isc_boolean_t *retval) {
 static void
 print_log_facility(FILE *fp, int value) {
 	REQUIRE(fp != NULL);
-	
+
 	fputs(dns_c_facility2string(value, ISC_TRUE), fp);
 }
 
@@ -1316,7 +1316,7 @@ print_log_facility(FILE *fp, int value) {
 static void
 print_log_severity(FILE *fp, dns_c_logseverity_t severity) {
 	REQUIRE(fp != NULL);
-	
+
 	fputs(dns_c_logseverity2string(severity, ISC_TRUE), fp);
 }
 

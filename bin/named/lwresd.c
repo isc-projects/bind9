@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,12 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.12 2000/07/27 09:36:59 tale Exp $ */
+/* $Id: lwresd.c,v 1.13 2000/08/01 01:11:50 tale Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
  *
- * To paraphrase the old saying about X11, "It's not a lightweight deamon 
+ * To paraphrase the old saying about X11, "It's not a lightweight deamon
  * for resolvers, it's a deamon for lightweight resolvers".
  */
 
@@ -180,7 +180,7 @@ ns_lwresd_createview(ns_lwresd_t *lwresd, dns_view_t **viewp) {
 	unsigned int attrs;
 	isc_sockaddr_t any4, any6;
 	dns_dispatch_t *disp4 = NULL;
-	dns_dispatch_t *disp6 = NULL;		
+	dns_dispatch_t *disp6 = NULL;
 	isc_sockaddrlist_t forwarders;
 	dns_view_t *view;
 
@@ -240,7 +240,7 @@ ns_lwresd_createview(ns_lwresd_t *lwresd, dns_view_t **viewp) {
 	}
 	if (disp4 == NULL && disp6 == NULL)
 		fatal("not listening on IPv4 or IPv6", ISC_R_FAILURE);
-	
+
 	result = dns_view_createresolver(view, ns_g_taskmgr, 16,
 					 ns_g_socketmgr, ns_g_timermgr, 0,
 					 lwresd->dispmgr, disp4, disp6);

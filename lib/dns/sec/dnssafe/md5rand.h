@@ -18,7 +18,7 @@ extern "C" {
 
 typedef struct A_MD5_RANDOM_CTX {
   A_DigestRandom digestRandom;                               /* "base class" */
-  
+
   unsigned char state[3 * A_MD5_DIGEST_LEN];
   A_MD5_CTX md5Context;
 } A_MD5_RANDOM_CTX;

@@ -1,13 +1,13 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * This code is derived from software contributed to Internet Software
  * Consortium by Berkeley Software Design, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * BERKELEY SOFTWARE DESIGN, INC DISCLAIM ALL WARRANTIES WITH REGARD TO
  * THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,8 +19,8 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.29 2000/07/07 19:43:08 bwelling Exp $ */
-  
+/* $Id: getaddrinfo.c,v 1.30 2000/08/01 01:32:13 tale Exp $ */
+
 #include <config.h>
 
 #include <sys/types.h>

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: printmsg.c,v 1.22 2000/07/27 09:38:18 tale Exp $ */
+/* $Id: printmsg.c,v 1.23 2000/08/01 01:13:10 tale Exp $ */
 
 #include <config.h>
 
@@ -79,7 +79,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	char t[4096];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
-	
+
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
 	else
@@ -129,7 +129,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		else if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 

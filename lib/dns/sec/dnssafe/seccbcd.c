@@ -49,7 +49,7 @@ unsigned int inputLen;
     ((POINTER)remainder + *remainderLen, (POINTER)input,
      partialLen = 16 - *remainderLen);
   input += partialLen;
-  inputLen -= partialLen;    
+  inputLen -= partialLen;
 
   /* remainder is full and inputLen is at least 1.  Compute outputLen
        as the size needed to keep remainder as full as possible.
@@ -60,7 +60,7 @@ unsigned int inputLen;
   SecretCBCDecryptBlock
     (context, xorBlock, SecretDecrypt, output, remainder);
   output += 8;
-  
+
   if (inputLen <= 8) {
     /* Shift remaining input bytes into remainder */
     T_memmove ((POINTER)remainder, (POINTER)(remainder + 8), 8);
@@ -109,7 +109,7 @@ unsigned int maxOutputLen;
   if ((*outputLen = remainderLen) == 0)
     /* There was never any data. */
     return (0);
-  
+
   if (remainderLen != 8 && remainderLen != 16)
     return (AE_INPUT_LEN);
 
@@ -134,13 +134,13 @@ unsigned char *in;
 {
   unsigned char tempBuffer[8];
   unsigned int i;
-  
+
   /* Save input to be copied to the xor block. */
   T_memcpy ((POINTER)tempBuffer, (POINTER)in, 8);
   (*SecretDecrypt) (context, out, in);
   for (i = 0; i < 8; i++)
-    out[i] ^= xorBlock[i];  
+    out[i] ^= xorBlock[i];
   T_memcpy ((POINTER)xorBlock, (POINTER)tempBuffer, 8);
-  
+
   T_memset ((POINTER)tempBuffer, 0, sizeof (tempBuffer));
 }

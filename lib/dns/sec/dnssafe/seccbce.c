@@ -35,29 +35,29 @@ unsigned int inputLen;
    */
   if ((*outputLen = 8 * (totalLen / 8)) > maxOutputLen)
     return (AE_OUTPUT_LEN);
-  
+
   if (totalLen < 8) {
     /* Not enough to encrypt, just accumulate into remainder.
      */
     T_memcpy
       ((POINTER)remainder + *remainderLen, (POINTER)input, inputLen);
     *remainderLen = totalLen;
-    
+
     return (0);
   }
-  
+
   /* Accumulate enough bytes from input into remainder to encrypt the
        remainder.
    */
   T_memcpy
     ((POINTER)remainder + *remainderLen, (POINTER)input,
      partialLen = 8 - *remainderLen);
-    
+
   for (i = 0; i < 8; i++)
     output[i] = remainder[i] ^ xorBlock[i];
   /* Encrypt in place */
   (*SecretEncrypt) (context, output, output);
-  
+
   T_memcpy ((POINTER)xorBlock, (POINTER)output, 8);
   input += partialLen;
   inputLen -= partialLen;
@@ -79,7 +79,7 @@ unsigned int inputLen;
    */
   T_memcpy ((POINTER)remainder, (POINTER)input, inputLen);
   *remainderLen = inputLen;
-   
+
   return (0);
 }
 
@@ -92,6 +92,6 @@ unsigned int remainderLen;
 {
   if (remainderLen != 0)
     return (AE_INPUT_LEN);
-  
+
   return (0);
 }

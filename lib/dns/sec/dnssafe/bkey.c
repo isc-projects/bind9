@@ -33,7 +33,7 @@ POINTER *info;
 B_KeyInfoType *keyInfoType;
 {
   int status;
-  
+
   if (key == (B_Key *)NULL_PTR)
     return (BE_KEY_OBJ);
 
@@ -44,7 +44,7 @@ B_KeyInfoType *keyInfoType;
    */
   if (B_InfoCacheFindInfo (&key->infoCache, info, (POINTER)keyInfoType) == 0)
     return (0);
-  
+
   /* Info is not in the cache, go ahead and encode.
    */
   if ((status = (*keyInfoType->MakeInfo) (info, key)) != 0)
@@ -64,15 +64,15 @@ unsigned int len;
 {
   ITEM *newInfo;
   int status;
-  
+
   if ((status = B_MemoryPoolAlloc
        (&key->infoCache.memoryPool, (POINTER *)&newInfo, sizeof (*newInfo)))
       != 0)
     return (status);
-  
+
   newInfo->data = data;
   newInfo->len = len;
-  
+
   return (B_InfoCacheAddInfo
           (&key->infoCache, (POINTER)&KITItem, (POINTER)newInfo));
 }
@@ -86,14 +86,14 @@ unsigned int integerLen;
 {
   unsigned char mask, byte;
   unsigned int bytes, bits;
-  
+
   for (bytes = 0; bytes < integerLen && integer[bytes] == 0; bytes++);
   if (bytes == integerLen)
     return (0);
-  
+
   /* Get byte to test and increment byte count for final calculation */
   byte = integer[bytes++];
-  
+
   /* Get number of bits in most significant byte */
   for (bits = 8, mask = 0x80; (byte & mask) == 0; bits--, mask >>= 1);
   return (8 * (integerLen - bytes) + bits);

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.48 2000/07/27 09:52:12 tale Exp $ */
+/* $Id: socket.h,v 1.49 2000/08/01 01:30:47 tale Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -238,7 +238,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
  *	Cancel pending isc_socket_connect() call.
  */
 
-void 
+void
 isc_socket_shutdown(isc_socket_t *sock, unsigned int how);
 /*
  * Shutdown 'socket' according to 'how'.
@@ -278,7 +278,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp);
  *	*socketp is attached to socket.
  */
 
-void 
+void
 isc_socket_detach(isc_socket_t **socketp);
 /*
  * Detach *socketp from its socket.
@@ -630,7 +630,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp);
  * Destroy a socket manager.
  *
  * Notes:
- *	
+ *
  *	This routine blocks until there are no sockets left in the manager,
  *	so if the caller holds any socket references using the manager, it
  *	must detach them before calling isc_socketmgr_destroy() or it will

@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.32 2000/07/31 19:44:19 bwelling Exp $
+ * $Id: openssl_link.c,v 1.33 2000/08/01 01:27:53 tale Exp $
  */
 #if defined(OPENSSL)
 
@@ -73,7 +73,7 @@ openssldsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	isc_sha1_update(sha1ctx, data->base, data->length);
 	return (ISC_R_SUCCESS);
 }
-	
+
 static int
 BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
 	int bytes = size - BN_num_bytes(bn);
@@ -81,7 +81,7 @@ BN_bn2bin_fixed(BIGNUM *bn, unsigned char *buf, int size) {
 		*buf++ = 0;
 	BN_bn2bin(bn, buf);
 	return (size);
-}	
+}
 
 static isc_result_t
 openssldsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
@@ -151,7 +151,7 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dsa1 = (DSA *) key1->opaque;
 	dsa2 = (DSA *) key2->opaque;
 
-	if (dsa1 == NULL && dsa2 == NULL) 
+	if (dsa1 == NULL && dsa2 == NULL)
 		return (ISC_TRUE);
 	else if (dsa1 == NULL || dsa2 == NULL)
 		return (ISC_FALSE);
@@ -364,7 +364,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
-static isc_result_t 
+static isc_result_t
 openssldsa_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 {
 	dst_private_t priv;

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.46 2000/07/31 20:53:56 tale Exp $
+ * $Id: dnssec.c,v 1.47 2000/08/01 01:22:20 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -238,7 +238,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	isc_buffer_putuint16(&envbuf, set->type);
 	isc_buffer_putuint16(&envbuf, set->rdclass);
 	isc_buffer_putuint32(&envbuf, set->ttl);
-	
+
 	ret = rdataset_to_sortedarray(set, mctx, &rdatas, &nrdatas);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_context;
@@ -248,7 +248,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_uint16_t len;
 		isc_buffer_t lenbuf;
 		isc_region_t lenr;
-		
+
 		/*
 		 * Digest the envelope.
 		 */
@@ -274,7 +274,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_array;
 	}
-		
+
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	ret = dst_context_sign(ctx, &sigbuf);
 	if (ret != ISC_R_SUCCESS)
@@ -354,7 +354,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	dns_rdata_toregion(sigrdata, &r);
 	r.length -= sig.siglen;
 	RUNTIME_CHECK(r.length >= 19);
-	
+
 	ret = dst_context_create(key, mctx, &ctx);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
@@ -556,7 +556,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	sig.siglen = 0;
 	sig.signature = NULL;
-	
+
 	isc_buffer_init(&databuf, data, sizeof(data));
 
 	RETERR(dst_context_create(key, mctx, &ctx));

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_mem.c,v 1.7 2000/07/27 09:38:51 tale Exp $ */
+/* $Id: t_mem.c,v 1.8 2000/08/01 01:13:47 tale Exp $ */
 
 #include <config.h>
 
@@ -128,7 +128,7 @@ memtest(void) {
 				rval, MP1_MAXALLOC - 11);
 		++nfails;
 	}
-		
+
 	if (T_debug)
 		isc_mem_stats(mctx, stderr);
 
@@ -166,7 +166,7 @@ memtest(void) {
 		isc_mempool_put(mp1, items1[i]);
 		items1[i] = NULL;
 	}
-		
+
 	isc_mempool_destroy(&mp1);
 
 	if (T_debug)
@@ -200,7 +200,7 @@ t1(void) {
 		result = T_FAIL;
 	t_result(result);
 }
-		
+
 testspec_t	T_testlist[] = {
 	{	t1,	"basic memory subsystem"	},
 	{	NULL,	NULL				}

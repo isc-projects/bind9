@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.12 2000/07/27 09:47:19 tale Exp $ */
+/* $Id: acl.h,v 1.13 2000/08/01 01:23:37 tale Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -78,7 +78,7 @@ struct dns_acl {
 
 struct dns_aclenv {
 	dns_acl_t *localhost;
-	dns_acl_t *localnets;	
+	dns_acl_t *localnets;
 };
 
 #define DNS_ACL_MAGIC		0x4461636c	/* Dacl */
@@ -132,7 +132,7 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);
 
 void
 dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s);
-	
+
 void
 dns_aclenv_destroy(dns_aclenv_t *env);
 
@@ -157,7 +157,7 @@ dns_acl_match(isc_netaddr_t *reqaddr,
  * whose absoluate value indicates the distance from the beginning of
  * the list.
  *
- * If there is a match (either positive or negative) and 'matchelt' is  
+ * If there is a match (either positive or negative) and 'matchelt' is
  * non-NULL, *matchelt will be attached to the primitive
  * (non-indirect) address match list element that matched.
  *

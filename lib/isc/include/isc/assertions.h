@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1997-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.12 2000/07/27 09:51:24 tale Exp $
+ * $Id: assertions.h,v 1.13 2000/08/01 01:29:58 tale Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H

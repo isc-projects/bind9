@@ -23,9 +23,9 @@ unsigned int n;
     return (1);
   if (aSign < bSign)
     return (-1);
-  
+
   for (i = n-1; i >= 0 && a[i] == b[i]; i--);
-  
+
   if (i == -1)
     return (0);
   if (a[i] > b[i])

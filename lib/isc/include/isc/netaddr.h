@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.14 2000/07/27 09:51:56 tale Exp $ */
+/* $Id: netaddr.h,v 1.15 2000/08/01 01:30:30 tale Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -63,7 +63,7 @@ isc_result_t
 isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target);
 /*
  * Append a text representation of 'sockaddr' to the buffer 'target'.
- * The text is NOT null terminated.  Handles IPv4 and IPv6 addresses.  
+ * The text is NOT null terminated.  Handles IPv4 and IPv6 addresses.
  *
  * Returns:
  *	ISC_R_SUCCESS

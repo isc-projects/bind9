@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.11 2000/07/27 09:51:02 tale Exp $ */
+/* $Id: netaddr.c,v 1.12 2000/08/01 01:29:37 tale Exp $ */
 
 #include <config.h>
 
@@ -59,12 +59,12 @@ isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 	unsigned int ipabytes; /* Length of whole IP address in bytes */
 	unsigned int nbytes;   /* Number of significant whole bytes */
 	unsigned int nbits;    /* Number of significant leftover bits */
-	
+
 	REQUIRE(a != NULL && b != NULL);
 
 	if (a->family != b->family)
 		return (ISC_FALSE);
-	
+
 	switch (a->family) {
 	case AF_INET:
 		pa = (const unsigned char *) &a->type.in;
@@ -125,7 +125,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 
 	if (alen > isc_buffer_availablelength(target))
 		return (ISC_R_NOSPACE);
-	    
+
 	isc_buffer_putmem(target, (unsigned char *)abuf, alen);
 
 	return (ISC_R_SUCCESS);
@@ -148,7 +148,7 @@ isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size) {
 		else
 			result = ISC_R_NOSPACE;
 	}
-		
+
 	if (result != ISC_R_SUCCESS) {
 		snprintf(array, size,
 			 "<unknown address, family %u>",
@@ -161,7 +161,7 @@ isc_result_t
 isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp) {
 	unsigned int nbits, nbytes, ipbytes, i;
 	const unsigned char *p;
-	
+
 	switch (s->family) {
 	case AF_INET:
 		p = (const unsigned char *) &s->type.in;

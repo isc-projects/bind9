@@ -3,10 +3,10 @@ See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
 			Zones
 
-	$Id: zone,v 1.6 2000/06/21 23:43:46 tale Exp $
+	$Id: zone,v 1.7 2000/08/01 01:18:19 tale Exp $
 
 Overview
-	 
+
 	Zones are the unit of delegation in the DNS and may go from holding
 	RR's only at the zone top to holding the complete hierachy (private
 	roots zones).  Zones have an associated database which is the
@@ -35,7 +35,7 @@ Overview
 	* primary master name (required to auto generate our masters)
 	* master file name
 	* database name
-	* database type 
+	* database type
 		* initially only master_file (BIND 4 & 8)
 		* expanded axfr + ixfr
 	* transaction logs
@@ -82,7 +82,7 @@ Overview
 	* updated (UPDATE / IXFR)
 	* copied out in full (AXFR) or as partial deltas (IXFR)
 	* read from
-	* validated 
+	* validated
 	* generate a delta between two given versions.
 	* signed / resigned
 	* maintenance
@@ -161,7 +161,7 @@ Functions:
 
     void
     dns_zone_invalidate(dns_zone_t *zone);
-	
+
     void
     dns_ixfr_init(dns_ixfr_t *ixfr, unsigned long serial, time_t expire);
 
@@ -209,10 +209,10 @@ Functions:
     dns_zone_checkchildren(dns_zone_t *);
 
 	check that the child zones NS lists agree with the NS lists in this
-	zone, check glue records.  Warn if not identical. 
+	zone, check glue records.  Warn if not identical.
 
     dns_zone_checkservers(dns_zone_t *);
-	
+
 	check that all the listed servers for the zone agree on NS list and
 	serial number. NOTE only errors which continue over several refresh
 	periods to be reported.
@@ -229,7 +229,7 @@ Functions:
 
     dns_zone_addmaster(dns_zone_t *zone, isc_sockaddr_t *addr);
 
-	Add addr to the set of masters for the zone. 
+	Add addr to the set of masters for the zone.
 
     dns_zone_clearmasters(dns_zone_t *zone);
 
@@ -246,5 +246,5 @@ Functions:
     dns_zone_load(dns_zone_t *);
 
     dns_zone_consolidate(dns_zone_t *);
-	
+
 	Consolidate on disk copy of zone.

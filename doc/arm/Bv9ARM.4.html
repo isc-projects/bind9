@@ -1,11 +1,11 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <!--
  - Copyright (C) 2000  Internet Software Consortium.
- - 
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
+ -
  - THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  - DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  - IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: Bv9ARM.4.html,v 1.9 2000/07/27 09:41:54 tale Exp $ -->
+<!-- $Id: Bv9ARM.4.html,v 1.10 2000/08/01 01:17:52 tale Exp $ -->
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML EXPERIMENTAL 970324//EN">
 <HTML>
@@ -340,7 +340,7 @@ External (bastion host) DNS server config:
 
 <PRE>
 <CODE><STRONG>acl internals { 172.16.72.0/24; 192.168.1.0/24; };
-acl externals { 
+acl externals {
 bastion-ips-go-here; };
 options {
   ...
@@ -800,7 +800,7 @@ dnssec-makekeyset</CODE>
 The following command generates a key set containing the above key and another key similarly generated, with a TTL of 3600 and a signature validity period of 10 days starting from now.</P>
 
 <PRE>
-<CODE><STRONG>dnssec-makekeyset -t 3600 -e +864000 Kchild.example.+003+12345 
+<CODE><STRONG>dnssec-makekeyset -t 3600 -e +864000 Kchild.example.+003+12345
 Kchild.example.+003+23456</STRONG></CODE>
 </PRE>
 
@@ -840,7 +840,7 @@ child.example</EM>
 The following command signs the child's key set with the zone keys:</P>
 
 <PRE>
-<CODE><STRONG>dnssec-signkey grand.child.example.keyset Kchild.example.+003+12345 
+<CODE><STRONG>dnssec-signkey grand.child.example.keyset Kchild.example.+003+12345
 Kchild.example.+003+23456</STRONG></CODE>
 </PRE>
 

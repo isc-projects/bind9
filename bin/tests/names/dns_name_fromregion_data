@@ -3,7 +3,7 @@
 # format:
 #	<test_name>
 # where: exp_order may be one of: -1, 0, 1
-#		
+#
 # and where: exp_nlabels and exp_nbits are not tested if < 0
 #
 #c.d.\[x31].abc.\[b110011]

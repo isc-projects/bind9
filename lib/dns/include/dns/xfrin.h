@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.15 2000/07/27 09:48:39 tale Exp $ */
+/* $Id: xfrin.h,v 1.16 2000/08/01 01:24:56 tale Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -59,7 +59,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp);
 /*
  * Attempt to start an incoming zone transfer of 'zone'
- * from 'masteraddr', creating a dns_xfrin_ctx_t object to 
+ * from 'masteraddr', creating a dns_xfrin_ctx_t object to
  * manage it.  Attach '*xfrp' to the newly created object.
  *
  * Iff ISC_R_SUCCESS is returned, '*done' is guaranteed to be
@@ -84,9 +84,9 @@ dns_xfrin_shutdown(dns_xfrin_ctx_t *xfr);
 void
 dns_xfrin_detach(dns_xfrin_ctx_t **xfrp);
 /*
- * Detach a reference to a zone transfer object.  
+ * Detach a reference to a zone transfer object.
  *
- * (Because there is no attach() method, there can currently 
+ * (Because there is no attach() method, there can currently
  * only be one reference).
  */
 

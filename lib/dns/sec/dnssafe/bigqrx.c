@@ -30,16 +30,16 @@ unsigned int n;
   /* 2**(cl-1) <= c < 2**cl
      2**(u-cl) <= cInv <= 2**(u-cl+1) */
   cl = BigLen (c, n);
-                 
+
   /* u is in bits, uw is in words */
   u = BigU (2 * cl);
   uw = u/16;
-  
+
   /* sw is in words, s is is bits */
   sw = (cl - 2) / 16;
-  
+
   uwsw3 = uw - sw - 3;
-  
+
   if (uwsw3 < 0)
     uwsw3 = 0;
 
@@ -76,7 +76,7 @@ unsigned int n;
     BigSub (r, r, c, n);
     BigInc (q, n);
   }
-  
+
   T_memset ((POINTER)qc, 0, sizeof (qc));
   T_memset ((POINTER)qsc, 0, sizeof (qsc));
   T_memset ((POINTER)t1, 0, sizeof (t1));

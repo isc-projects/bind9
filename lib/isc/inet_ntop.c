@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_ntop.c,v 1.8 2000/07/27 09:50:52 tale Exp $";
+	"$Id: inet_ntop.c,v 1.9 2000/08/01 01:29:26 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -38,7 +38,7 @@ static char rcsid[] =
 
 static const char *inet_ntop4(const unsigned char *src, char *dst,
 			      size_t size);
-				  
+
 #ifdef AF_INET6
 static const char *inet_ntop6(const unsigned char *src, char *dst,
 			      size_t size);
@@ -175,7 +175,7 @@ inet_ntop6(const unsigned char *src, char *dst, size_t size)
 		tp += sprintf(tp, "%x", words[i]);
 	}
 	/* Was it a trailing run of 0x00's? */
-	if (best.base != -1 && (best.base + best.len) == 
+	if (best.base != -1 && (best.base + best.len) ==
 	    (NS_IN6ADDRSZ / NS_INT16SZ))
 		*tp++ = ':';
 	*tp++ = '\0';

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.5 2000/07/27 09:36:55 tale Exp $ */
+/* $Id: lwdgabn.c,v 1.6 2000/08/01 01:11:47 tale Exp $ */
 
 #include <config.h>
 
@@ -297,7 +297,7 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 				client->find = NULL;
 			else
 				dns_adb_destroyfind(&client->find);
-				
+
 		}
 		generate_reply(client);
 		return;
@@ -453,14 +453,14 @@ start_find(ns_lwdclient_t *client) {
 }
 
 
-static void            
+static void
 init_gabn(ns_lwdclient_t *client) {
 	int i;
 
 	/*
 	 * Initialize the real name and alias arrays in the reply we're
 	 * going to build up.
-	 */     
+	 */
 	for (i = 0 ; i < LWRES_MAX_ALIASES ; i++) {
 		client->aliases[i] = NULL;
 		client->aliaslen[i] = 0;

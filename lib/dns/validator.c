@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.70 2000/07/27 18:42:06 bwelling Exp $ */
+/* $Id: validator.c,v 1.71 2000/08/01 01:23:04 tale Exp $ */
 
 #include <config.h>
 
@@ -114,7 +114,7 @@ validator_done(dns_validator_t *val, isc_result_t result) {
 	val->event->ev_action = val->action;
 	val->event->ev_arg = val->arg;
 	isc_task_sendanddetach(&task, (isc_event_t **)&val->event);
-	
+
 }
 
 static void
@@ -324,7 +324,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			goto out;
 		}
 	} else {
-		validator_log(val, ISC_LOG_DEBUG(3), 
+		validator_log(val, ISC_LOG_DEBUG(3),
 			      "keyvalidated: got %s",
 			      dns_result_totext(eresult));
 		validator_done(val, eresult);
@@ -438,7 +438,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
 	LOCK(&val->lock);
 	if (eresult != ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3), 
+		validator_log(val, ISC_LOG_DEBUG(3),
 			      "authvalidated: got %s",
 			      dns_result_totext(eresult));
 		result = nxtvalidate(val, ISC_TRUE);
@@ -486,7 +486,7 @@ negauthvalidated(isc_task_t *task, isc_event_t *event) {
 		auth_nonpending(val->event->message);
 		validator_done(val, ISC_R_SUCCESS);
 	} else {
-		validator_log(val, ISC_LOG_DEBUG(3), 
+		validator_log(val, ISC_LOG_DEBUG(3),
 			      "negauthvalidated: got %s",
 			      dns_result_totext(eresult));
 		validator_done(val, eresult);
@@ -547,7 +547,7 @@ nullkeyvalidated(isc_task_t *task, isc_event_t *event) {
  * Try to find a null zone key among those in 'rdataset'.  If found, build
  * a dst_key_t for it and point val->key at it.
  */
-static inline isc_boolean_t 
+static inline isc_boolean_t
 containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	dst_key_t *key = NULL;
@@ -586,7 +586,7 @@ containsnullkey(dns_validator_t *val, dns_rdataset_t *rdataset) {
  *
  * If val->key is non-NULL, this returns the next matching key.
  */
-static inline isc_result_t 
+static inline isc_result_t
 get_dst_key(dns_validator_t *val, dns_rdata_sig_t *siginfo,
 	    dns_rdataset_t *rdataset)
 {
@@ -923,13 +923,13 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		if (val->siginfo == NULL)
 			return (ISC_R_NOMEMORY);
 		dns_rdata_tostruct(&rdata, val->siginfo, NULL);
-		
+
 		/*
 		 * At this point we could check that the signature algorithm
 		 * was known and "sufficiently good".  For now, any algorithm
 		 * is acceptable.
 		 */
-		
+
 		if (!resume) {
 			result = get_key(val, val->siginfo);
 			if (result == DNS_R_CONTINUE)
@@ -1089,7 +1089,7 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 			return (DNS_R_WAIT);
-						      
+
 		}
 	}
 	if (result == ISC_R_NOMORE)
@@ -1204,7 +1204,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				      "found keyset, looking for null key");
 			if (!containsnullkey(val, &val->frdataset))
 				continue;
-		
+
 			if (val->frdataset.trust >= dns_trust_secure) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					      "insecurity proof succeeded");
@@ -1286,7 +1286,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	val = vevent->validator;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "starting");
-	
+
 	LOCK(&val->lock);
 
 	if (val->event->rdataset != NULL && val->event->sigrdataset != NULL) {
@@ -1299,7 +1299,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		 */
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "attempting positive response validation");
-	
+
 		result = validate(val, ISC_FALSE);
 		if (result == DNS_R_NOVALIDSIG &&
 		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
@@ -1318,7 +1318,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		 */
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "attempting insecurity proof");
-	
+
 		result = proveunsecure(val, ISC_FALSE);
 	} else if (val->event->rdataset == NULL &&
 		 val->event->sigrdataset == NULL)
@@ -1328,7 +1328,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		 */
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "attempting negative response validation");
-	
+
 		result = nxtvalidate(val, ISC_FALSE);
 	} else {
 		/*
@@ -1423,7 +1423,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  cleanup_val:
 	dns_view_detach(&val->view);
 	isc_mem_put(view->mctx, val, sizeof *val);
-	
+
 	return (result);
 }
 
@@ -1519,7 +1519,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 		char typebuf[256];
 		isc_buffer_t b;
 		isc_region_t r;
-		
+
 		dns_name_format(val->event->name, namebuf, sizeof(namebuf));
 
 		isc_buffer_init(&b, (unsigned char *)typebuf, sizeof(typebuf));
@@ -1536,7 +1536,7 @@ validator_logv(dns_validator_t *val, isc_logcategory_t *category,
 	} else {
 		isc_log_write(dns_lctx, category, module, level,
 			      "validator @%p: %s", val, msgbuf);
-		
+
 	}
 }
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.40 2000/08/01 00:53:20 mws Exp $ */
+/* $Id: dig.h,v 1.41 2000/08/01 01:11:19 tale Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -212,7 +212,7 @@ dig_server_t *
 make_server(const char *servname);
 
 void
-clone_server_list(dig_serverlist_t src, 
+clone_server_list(dig_serverlist_t src,
 		  dig_serverlist_t *dest);
 
 void

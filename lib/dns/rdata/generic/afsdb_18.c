@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.30 2000/07/27 09:48:48 tale Exp $ */
+/* $Id: afsdb_18.c,v 1.31 2000/08/01 01:25:06 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -43,7 +43,7 @@ fromtext_afsdb(ARGS_FROMTEXT) {
 	if (token.value.as_ulong > 0xffff)
 		return (ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
-	
+
 	/*
 	 * Hostname.
 	 */
@@ -87,7 +87,7 @@ fromwire_afsdb(ARGS_FROMWIRE) {
 	UNUSED(rdclass);
 
 	REQUIRE(type == 18);
-	
+
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
@@ -167,7 +167,7 @@ fromstruct_afsdb(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(afsdb->common.rdclass == rdclass);
 	REQUIRE(afsdb->common.rdtype == type);
-	
+
 	RETERR(uint16_tobuffer(afsdb->subtype, target));
 	dns_name_toregion(&afsdb->server, &region);
 	return (isc_buffer_copyregion(target, &region));

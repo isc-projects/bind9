@@ -28,7 +28,7 @@ B_KEY_OBJ *keyObject;
 
   /* First construct base class */
   B_KEY_Constructor (&keyWrap->key);
-  
+
   keyWrap->typeTag = &KEY_TYPE_TAG;
   keyWrap->selfCheck = keyWrap;
   return (0);
@@ -43,7 +43,7 @@ B_KEY_OBJ *keyObject;
    */
   if (*keyObject == NULL_PTR)
     return;
-  
+
   if (KeyWrapCheck (keyWrap) == 0) {
     /* zeroize self check to invalidate memory. */
     keyWrap->selfCheck = (KeyWrap *)NULL_PTR;
@@ -64,7 +64,7 @@ POINTER info;
 {
   B_KeyInfoType *keyInfoType;
   int status;
-  
+
   if ((status = KeyWrapCheck (THE_KEY_WRAP)) != 0)
     return (status);
 
@@ -73,7 +73,7 @@ POINTER info;
    */
   if ((*infoType) ((POINTER *)&keyInfoType) == 0)
     return (BE_ALG_OPERATION_UNKNOWN);
-  
+
   return (B_KeySetInfo (&THE_KEY_WRAP->key, keyInfoType, info));
 }
 
@@ -84,7 +84,7 @@ B_INFO_TYPE infoType;
 {
   B_KeyInfoType *keyInfoType;
   int status;
-  
+
   if ((status = KeyWrapCheck (THE_KEY_WRAP)) != 0)
     return (status);
 
@@ -93,7 +93,7 @@ B_INFO_TYPE infoType;
    */
   if ((*infoType) ((POINTER *)&keyInfoType) == 0)
     return (BE_ALG_OPERATION_UNKNOWN);
-  
+
   return (B_KeyGetInfo (&THE_KEY_WRAP->key, info, keyInfoType));
 }
 

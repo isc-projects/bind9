@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.68 2000/07/27 22:24:54 bwelling Exp $ */
+/* $Id: task.c,v 1.69 2000/08/01 01:29:51 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -224,7 +224,7 @@ static inline isc_boolean_t
 task_shutdown(isc_task_t *task) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_event_t *event, *prev;
-	
+
 	/*
 	 * Caller must be holding the task's lock.
 	 */
@@ -331,7 +331,7 @@ static inline isc_boolean_t
 task_send(isc_task_t *task, isc_event_t **eventp) {
 	isc_boolean_t was_idle = ISC_FALSE;
 	isc_event_t *event;
-	
+
 	/*
 	 * Caller must be holding the task lock.
 	 */
@@ -355,7 +355,7 @@ task_send(isc_task_t *task, isc_event_t **eventp) {
 	*eventp = NULL;
 
 	return (was_idle);
-}	
+}
 
 void
 isc_task_send(isc_task_t *task, isc_event_t **eventp) {
@@ -710,7 +710,7 @@ run(void *uap) {
 	/*
 	 * Again we're trying to hold the lock for as short a time as possible
 	 * and to do as little locking and unlocking as possible.
-	 * 
+	 *
 	 * In both while loops, the appropriate lock must be held before the
 	 * while body starts.  Code which acquired the lock at the top of
 	 * the loop would be more readable, but would result in a lot of
@@ -738,7 +738,7 @@ run(void *uap) {
 	 * unlocks.  Also note that the lock is not held when the while
 	 * condition is tested, which may or may not be important, depending
 	 * on the expression.
-	 * 
+	 *
 	 * As written:
 	 *
 	 *	LOCK();
@@ -772,7 +772,7 @@ run(void *uap) {
 			XTHREADTRACE("awake");
 		}
 		XTHREADTRACE("working");
-		
+
 		task = HEAD(manager->ready_tasks);
 		if (task != NULL) {
 			unsigned int dispatch_count = 0;
@@ -785,7 +785,7 @@ run(void *uap) {
 
 			/*
 			 * Note we only unlock the manager lock if we actually
-			 * have a task to do.  We must reacquire the manager 
+			 * have a task to do.  We must reacquire the manager
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
 			DEQUEUE(manager->ready_tasks, task, ready_link);
@@ -816,7 +816,7 @@ run(void *uap) {
 				    EMPTY(task->events) &&
 				    !TASK_SHUTTINGDOWN(task)) {
 					isc_boolean_t was_idle;
-					
+
 					/*
 					 * There are no references and no
 					 * pending events for this task,
@@ -930,7 +930,7 @@ manager_free(isc_taskmgr_t *manager) {
 }
 
 isc_result_t
-isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers, 
+isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		   unsigned int default_quantum, isc_taskmgr_t **managerp)
 {
 	unsigned int i, started = 0;
@@ -987,7 +987,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	 */
 	for (i = 0; i < workers; i++) {
 		if (isc_thread_create(run, manager,
-				      &manager->threads[manager->workers]) == 
+				      &manager->threads[manager->workers]) ==
 		    ISC_R_SUCCESS) {
 			manager->workers++;
 			started++;
@@ -998,7 +998,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	if (started == 0) {
 		manager_free(manager);
 		return (ISC_R_NOTHREADS);
-	}		
+	}
 
 	*managerp = manager;
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.53 2000/07/27 09:51:19 tale Exp $ */
+/* $Id: timer.c,v 1.54 2000/08/01 01:29:53 tale Exp $ */
 
 #include <config.h>
 
@@ -92,7 +92,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	isc_time_t due;
 	int cmp;
 
-	/* 
+	/*
 	 * Note: the caller must ensure locking.
 	 */
 
@@ -115,7 +115,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		else
 			due = timer->expires;
 	}
-	
+
 	/*
 	 * Schedule the timer.
 	 */
@@ -168,7 +168,7 @@ deschedule(isc_timer_t *timer) {
 	isc_boolean_t need_wakeup = ISC_FALSE;
 	isc_timermgr_t *manager;
 
-	/* 
+	/*
 	 * The caller must ensure locking.
 	 */
 
@@ -317,7 +317,7 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		result = ISC_R_SUCCESS;
 	if (result == ISC_R_SUCCESS)
 		APPEND(manager->timers, timer, link);
-	
+
 	UNLOCK(&manager->lock);
 
 	if (result != ISC_R_SUCCESS) {
@@ -461,11 +461,11 @@ isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
 	LOCK(&timer->lock);
 	timer->references++;
 	UNLOCK(&timer->lock);
-	
+
 	*timerp = timer;
 }
 
-void 
+void
 isc_timer_detach(isc_timer_t **timerp) {
 	isc_timer_t *timer;
 	isc_boolean_t free_timer = ISC_FALSE;
@@ -484,7 +484,7 @@ isc_timer_detach(isc_timer_t **timerp) {
 	if (timer->references == 0)
 		free_timer = ISC_TRUE;
 	UNLOCK(&timer->lock);
-	
+
 	if (free_timer)
 		destroy(timer);
 
@@ -550,7 +550,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "couldn't allocate event");
 			}
-					
+
 			timer->index = 0;
 			isc_heap_delete(manager->heap, 1);
 			manager->nscheduled--;
@@ -566,7 +566,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 			manager->due = timer->due;
 			done = ISC_TRUE;
 		}
-	} 
+	}
 }
 
 static isc_threadresult_t
@@ -641,7 +641,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	manager->magic = TIMER_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	manager->done = ISC_FALSE;

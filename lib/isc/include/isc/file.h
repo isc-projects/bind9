@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.8 2000/07/27 09:51:36 tale Exp $ */
+/* $Id: file.h,v 1.9 2000/08/01 01:30:10 tale Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -60,7 +60,7 @@ isc_file_getmodtime(const char *file, isc_time_t *time);
  *		Hardware error interacting with the filesystem.
  *	ISC_R_UNEXPECTED
  *		Something totally unexpected happened.
- *	
+ *
  */
 
 isc_result_t
@@ -100,7 +100,7 @@ isc_result_t
 isc_file_openunique(char *templet, FILE **fp);
 /*
  * Create and open a file with a unique name based on 'templet'.
- * 
+ *
  * Notes:
  *	'template' is a reserved work in C++.  If you want to complain
  *	about the spelling of 'templet', first look it up in the

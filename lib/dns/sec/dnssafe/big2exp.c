@@ -9,7 +9,7 @@
 #include "global.h"
 #include "bigmath.h"
 
-/* Big2Exp (a, v, n) -- a = 2**v, where v is nonnegative int.  
+/* Big2Exp (a, v, n) -- a = 2**v, where v is nonnegative int.
    Sets a to be 2**v.
  */
 void Big2Exp (a, v, n)

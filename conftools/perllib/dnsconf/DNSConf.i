@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DNSConf.i,v 1.4 2000/07/27 09:41:43 tale Exp $ */
+/* $Id: DNSConf.i,v 1.5 2000/08/01 01:17:40 tale Exp $ */
 
 %module DNSConf
 
@@ -35,7 +35,7 @@
 #else
 #define DBGPRINT ((void) 0)
 #endif
-	
+
 static struct {
 	isc_mem_t *mem;
 	isc_log_t *log;
@@ -60,7 +60,7 @@ int xprintf(const char *fmt, ...) {
 
 int ctx_init(void) {
 	int returnval = 0;
-	
+
 	DBGPRINT("Starting ctx_init()\n");
 
 	if (ctx.mem != NULL) {
@@ -73,11 +73,11 @@ int ctx_init(void) {
 
 	if (isc_log_create(ctx.mem, &ctx.log, &ctx.logcfg) != ISC_R_SUCCESS)
 		goto done;
-	
+
 	isc_log_setcontext(ctx.log);
 	dns_log_init(ctx.log);
 	dns_log_setcontext(ctx.log);
-	
+
 	if (isc_log_usechannel(ctx.logcfg, "default_stderr", NULL, NULL) !=
 	    ISC_R_SUCCESS)
 		goto done;
@@ -92,7 +92,7 @@ done:
 	DBGPRINT("Finished ctx_init()\n");
 
 	return (returnval);
-}	
+}
 
 void *ctx_destroy(void) {
 	DBGPRINT("starting ctx_destroy()\n");
@@ -108,7 +108,7 @@ void *ctx_destroy(void) {
 	}
 
 	DBGPRINT("destroying ctx\n");
-	
+
 	dns_lctx = NULL;
 	isc_log_destroy(&ctx.log);
 	isc_mem_destroy(&ctx.mem);
@@ -145,15 +145,15 @@ void delete_DNSConf(DNSConf *ctx) {
 }
 
 int DNSConf_parse(DNSConf *conf, const char *filename) {
-	
+
 	DBGPRINT("inside parse\n");
-	
+
 	if (!ctx_init())
 		return;
 
 	clear_DNSConf(conf);
 
-	if (dns_c_parse_namedconf(filename, ctx.mem, &conf->confctx, NULL) 
+	if (dns_c_parse_namedconf(filename, ctx.mem, &conf->confctx, NULL)
 	    == ISC_R_SUCCESS) {
 		ctx.count++;
 
@@ -166,13 +166,13 @@ int DNSConf_parse(DNSConf *conf, const char *filename) {
 }
 
 int DNSConf_initctx(DNSConf *cfg) {
-	if (cfg == NULL) 
+	if (cfg == NULL)
 		return 0;
 
-	if (cfg->confctx != NULL) 
+	if (cfg->confctx != NULL)
 		return 1;
-	
-	if (!ctx_init()) 
+
+	if (!ctx_init())
 		return 0;
 
 	if (dns_c_ctx_new(ctx.mem, &cfg->confctx) != ISC_R_SUCCESS)
@@ -185,12 +185,12 @@ int DNSConf_initctx(DNSConf *cfg) {
 	return 1;
 }
 
-		
+
 
 void DNSConf_print(DNSConf *ptr, FILE *outfile) {
 
 	DBGPRINT("inside print\n");
-	
+
 	if (ptr == NULL || ptr->confctx == NULL)
 		return;
 
@@ -199,12 +199,12 @@ void DNSConf_print(DNSConf *ptr, FILE *outfile) {
 
 
 #if 0
- 
+
 void DNSConf_setdirectory(DNSConf *cfg, const char *directory) {
 
 	DBGPRINT("inside DNSConf_setdirectory\n");
 
-	if (!DNSConf_initctx(cfg)) 
+	if (!DNSConf_initctx(cfg))
 		return;
 
 	if (directory == NULL) {
@@ -213,9 +213,9 @@ void DNSConf_setdirectory(DNSConf *cfg, const char *directory) {
 	} else if (*directory == '\0') {
 		DBGPRINT("empty string\n");
 		dns_c_ctx_unsetdirectory(cfg->confctx);
-	} else	
+	} else
 		dns_c_ctx_setdirectory(cfg->confctx, directory);
-}	
+}
 
 char *DNSConf_getdirectory(DNSConf *cfg) {
 	char *dir = NULL;
@@ -225,7 +225,7 @@ char *DNSConf_getdirectory(DNSConf *cfg) {
 		return NULL;
 
 	tmpres = dns_c_ctx_getdirectory(cfg->confctx, &dir);
-	if (tmpres == ISC_R_NOTFOUND) 
+	if (tmpres == ISC_R_NOTFOUND)
 		return NULL;
 
 	return dir;
@@ -247,15 +247,15 @@ void DNSConf_settransfersin(DNSConf *cfg, unsigned int *transfersin) {
 
 	DBGPRINT("inside DNSConf_settransfersin %p\n", transfersin);
 
-	if (!DNSConf_initctx(cfg)) 
+	if (!DNSConf_initctx(cfg))
 		return;
 
 	if (transfersin == NULL) {
 		DBGPRINT("null pointer\n");
 		dns_c_ctx_unsettransfersin(cfg->confctx);
-	} else	
+	} else
 		dns_c_ctx_settransfersin(cfg->confctx, transfersin);
-}	
+}
 
 unsigned int DNSConf_gettransfersin(DNSConf *cfg) {
 	unsigned int result;
@@ -265,7 +265,7 @@ unsigned int DNSConf_gettransfersin(DNSConf *cfg) {
 		return NULL;
 
 	tmpres = dns_c_ctx_gettransfersin(cfg->confctx, &result);
-	if (tmpres == ISC_R_NOTFOUND) 
+	if (tmpres == ISC_R_NOTFOUND)
 		return NULL;
 
 	return result;
@@ -300,8 +300,8 @@ INT_FIELD_DEFS(maxncachettl)
 INT_FIELD_DEFS(maxcachettl)
 
 
-#endif	
-	
+#endif
+
 %}
 
 
@@ -347,4 +347,4 @@ struct DNSConf {
 };
 
 
-	
+

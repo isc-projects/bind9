@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.13 2000/07/27 09:47:26 tale Exp $ */
+/* $Id: callbacks.h,v 1.14 2000/08/01 01:23:44 tale Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
@@ -29,7 +29,7 @@
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
- 
+
 /***
  ***	Types
  ***/
@@ -65,7 +65,7 @@ dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
  * Initalise 'callbacks'.
  * 	'error' and 'warn' are set to default callbacks that print the
  *	error message through the DNS library log context.
- * 
+ *
  *	All other elements are initalised to NULL.
  *
  * Requires:

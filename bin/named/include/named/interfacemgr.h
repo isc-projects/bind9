@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.18 2000/07/27 09:37:13 tale Exp $ */
+/* $Id: interfacemgr.h,v 1.19 2000/08/01 01:12:05 tale Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -27,8 +27,8 @@
 /*
  * Interface manager
  *
- * The interface manager monitors the operating system's list 
- * of network interfaces, creating and destroying listeners 
+ * The interface manager monitors the operating system's list
+ * of network interfaces, creating and destroying listeners
  * as needed.
  *
  * Reliability:
@@ -62,7 +62,7 @@
  *** Types
  ***/
 
-#define IFACE_MAGIC		0x493A2D29U	/* I:-). */	
+#define IFACE_MAGIC		0x493A2D29U	/* I:-). */
 #define NS_INTERFACE_VALID(t)	ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
 struct ns_interface {
@@ -103,7 +103,7 @@ ns_interfacemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 void
 ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target);
 
-void 
+void
 ns_interfacemgr_detach(ns_interfacemgr_t **targetp);
 
 void
@@ -149,7 +149,7 @@ ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr);
 void
 ns_interface_attach(ns_interface_t *source, ns_interface_t **target);
 
-void 
+void
 ns_interface_detach(ns_interface_t **targetp);
 
 #endif /* NAMED_INTERFACEMGR_H */

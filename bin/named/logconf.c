@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.23 2000/07/27 09:36:52 tale Exp $ */
+/* $Id: logconf.c,v 1.24 2000/08/01 01:11:44 tale Exp $ */
 
 #include <config.h>
 
@@ -95,14 +95,14 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 	unsigned int type;
 	unsigned int flags = 0;
 	int level;
-	
+
 	type = ISC_LOG_TONULL;
 	switch (cchan->ctype) {
 	case dns_c_logchan_file:
 		type = ISC_LOG_TOFILE;
 		{
 			const char *path = NULL;
-			isc_int32_t versions = ISC_LOG_ROLLNEVER; 
+			isc_int32_t versions = ISC_LOG_ROLLNEVER;
 			/*
 			 * XXXDCL should be isc_offset_t, but that
 			 * is incompatible with dns_c_logchan_getsize.
@@ -171,10 +171,10 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 			flags |= ISC_LOG_PRINTLEVEL;
 		/* XXX ISC_LOG_PRINTMODULE */
 	}
-	
+
 	level = ISC_LOG_INFO;
 	(void)dns_c_logchan_getdebuglevel(cchan, &level);
-	
+
 	result = isc_log_createchannel(lctx, cchan->name,
 				       type, level, &dest, flags);
 	return (result);
@@ -188,7 +188,7 @@ ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog) {
 	isc_boolean_t default_set = ISC_FALSE;
 
 	CHECK(ns_log_setdefaultchannels(lcctx));
-		
+
 	for (cchan = ISC_LIST_HEAD(clog->channels);
 	     cchan != NULL;
 	     cchan = ISC_LIST_NEXT(cchan, next)) {

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.34 2000/07/27 09:47:50 tale Exp $ */
+/* $Id: dispatch.h,v 1.35 2000/08/01 01:24:08 tale Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -278,7 +278,7 @@ dns_dispatch_detach(dns_dispatch_t **dispp);
  *	< mumble >
  */
 
-void    
+void
 dns_dispatch_starttcp(dns_dispatch_t *disp);
 /*
  * Start processing of a TCP dispatch once the socket connects.

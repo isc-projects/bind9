@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter_test.c,v 1.13 2000/07/27 09:38:21 tale Exp $ */
+/* $Id: ratelimiter_test.c,v 1.14 2000/08/01 01:13:12 tale Exp $ */
 
 #include <config.h>
 
@@ -82,7 +82,7 @@ static void
 shutdown_rl(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	UNUSED(event);
-	printf("shutdown ratelimiter\n");	
+	printf("shutdown ratelimiter\n");
 	isc_ratelimiter_shutdown(rlim);
 }
 
@@ -109,7 +109,7 @@ main(int argc, char *argv[]) {
 
 	isc_app_start();
 	isc_interval_set(&linterval, 1, 0);
-	
+
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, 3, 0, &taskmgr) ==
 		      ISC_R_SUCCESS);
@@ -118,7 +118,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &g_task) ==
 		      ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, g_task, 
+	RUNTIME_CHECK(isc_ratelimiter_create(mctx, timermgr, g_task,
 					     &rlim) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_ratelimiter_setinterval(rlim, &linterval) ==
@@ -142,12 +142,12 @@ main(int argc, char *argv[]) {
 	isc_task_destroy(&g_task);
 
 	isc_ratelimiter_detach(&rlim);
-	
+
 	isc_timermgr_destroy(&timermgr);
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_mem_stats(mctx, stdout);
-	
+
 	isc_app_finish();
 	return (0);
 }

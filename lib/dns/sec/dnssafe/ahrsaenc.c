@@ -109,7 +109,7 @@ UNUSED_ARG (maxPartOutLen)
 UNUSED_ARG (randomAlgorithm)
 UNUSED_ARG (surrenderContext)
   *partOutLen = 0;
-    
+
   if (handler->_inputLen + partInLen > handler->_maxInputLen)
     return (BE_INPUT_LEN);
   T_memcpy
@@ -131,7 +131,7 @@ A_SURRENDER_CTX *surrenderContext;
 {
   int status;
   unsigned int dummyPartOutLen;
-  
+
   /* Encode methodContext in place. */
   if ((status = (*handler->vTable->EncodeBlock)
        (handler, randomAlgorithm, surrenderContext)) != 0)
@@ -148,7 +148,7 @@ A_SURRENDER_CTX *surrenderContext;
        (handler, (unsigned char *)NULL_PTR, &dummyPartOutLen, 0,
         (B_Algorithm *)NULL_PTR, surrenderContext)) != 0)
     return (status);
-    
+
   /* Restart the handle for new input. */
   handler->_inputLen = 0;
   return (0);
@@ -167,7 +167,7 @@ A_SURRENDER_CTX *surrenderContext;
   ITEM output;
   int status;
   unsigned int decryptedLen, dummyPartOutLen;
-  
+
 UNUSED_ARG (randomAlgorithm)
   /* Decrypt block in place.  The block lenghts are already within limits.
    */
@@ -181,23 +181,23 @@ UNUSED_ARG (randomAlgorithm)
        (handler, (unsigned char *)NULL_PTR, &dummyPartOutLen, 0,
         (B_Algorithm *)NULL_PTR, surrenderContext)) != 0)
     return (status);
-    
+
   /* Restart the handle for new input. */
   handler->_inputLen = 0;
-      
+
   /* Now decode the block and copy the result to the partOut.
    */
   if ((status = (*handler->vTable->DecodeBlock)
        (handler, &output, decryptedLen)) != 0)
     return (status);
-      
+
   if (output.len > handler->z.blockLen - 11)
     /* This implies that the block was encrypted with less than
        8 bytes of padding */
     return (BE_INPUT_DATA);
-      
+
   if ((*partOutLen = output.len) > maxPartOutLen)
-    return (BE_OUTPUT_LEN);      
+    return (BE_OUTPUT_LEN);
   T_memcpy ((POINTER)partOut, (POINTER)output.data, output.len);
 
   return (0);
@@ -224,7 +224,7 @@ int encryptFlag;
   handler->_maxInputLen = encryptFlag ? (newBlockLen - 11) : newBlockLen;
 
   handler->_inputLen = 0;
-  
+
   /* Zeroize old block and realloc to new size.
    */
   T_memset ((POINTER)handler->z.block, 0, handler->z.blockLen);
@@ -234,7 +234,7 @@ int encryptFlag;
     handler->z.blockLen = 0;
     return (BE_ALLOC);
   }
-  
+
   handler->z.blockLen = newBlockLen;
   return (0);
 }

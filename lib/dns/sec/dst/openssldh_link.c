@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.26 2000/07/31 19:44:20 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.27 2000/08/01 01:27:54 tale Exp $
  */
 
 #if defined(OPENSSL)
@@ -85,7 +85,7 @@ openssldh_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh1 = (DH *) key1->opaque;
 	dh2 = (DH *) key2->opaque;
 
-	if (dh1 == NULL && dh2 == NULL) 
+	if (dh1 == NULL && dh2 == NULL)
 		return (ISC_TRUE);
 	else if (dh1 == NULL || dh2 == NULL)
 		return (ISC_FALSE);
@@ -114,7 +114,7 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 	dh1 = (DH *) key1->opaque;
 	dh2 = (DH *) key2->opaque;
 
-	if (dh1 == NULL && dh2 == NULL) 
+	if (dh1 == NULL && dh2 == NULL)
 		return (ISC_TRUE);
 	else if (dh1 == NULL || dh2 == NULL)
 		return (ISC_FALSE);
@@ -419,7 +419,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 	return (dst__privstruct_writefile(key, &priv, directory));
 }
 
-static isc_result_t 
+static isc_result_t
 openssldh_fromfile(dst_key_t *key, const isc_uint16_t id, const char *filename)
 {
 	dst_private_t priv;

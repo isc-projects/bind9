@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.84 2000/07/31 23:11:21 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.85 2000/08/01 01:11:25 tale Exp $ */
 
 #include <config.h>
 
@@ -565,7 +565,7 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
-	if (result != ISC_R_NOMORE) 
+	if (result != ISC_R_NOMORE)
 		goto failure;
 
 	vbprintf(2, "found the parent's signature of our zone key\n");
@@ -808,7 +808,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 					 nametostr(name));
 				dns_rdatalist_init(&keyrdatalist);
 				dstkey = NULL;
-				
+
 				result = dst_key_generate(name, DNS_KEYALG_DSA,
 							  0, 0,
 							  DNS_KEYTYPE_NOKEY |
@@ -824,7 +824,7 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 				dns_rdata_fromregion(&keyrdata,
 						     rdataset.rdclass,
 						     dns_rdatatype_key, &r);
-				
+
 				ISC_LIST_APPEND(keyrdatalist.rdata, &keyrdata,
 						link);
 				keyrdatalist.rdclass = rdataset.rdclass;
@@ -1325,7 +1325,7 @@ main(int argc, char *argv[]) {
 		cycle = (endtime - starttime) / 4;
 
 	setup_logging(verbose, mctx, &log);
-	
+
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 

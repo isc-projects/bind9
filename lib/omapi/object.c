@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: object.c,v 1.21 2000/07/27 22:25:58 bwelling Exp $ */
+/* $Id: object.c,v 1.22 2000/08/01 01:32:57 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -32,7 +32,7 @@
 struct omapi_objecttype {
 	const char *		name;
 	omapi_objecttype_t *	next;
-	
+
 	isc_result_t		(*set_value)(omapi_object_t *object,
 					     omapi_string_t *name,
 					     omapi_data_t *value);
@@ -216,7 +216,7 @@ omapi_object_dereference(omapi_object_t **h) {
 
 		} else
 			(*h)->refcnt--;
-			
+
 	} else
 		(*h)->refcnt--;
 
@@ -460,7 +460,7 @@ omapi_object_setstring(omapi_object_t *h, const char *name, const char *value)
 }
 
 isc_result_t
-omapi_object_getvalue(omapi_object_t *h, const char *name, 
+omapi_object_getvalue(omapi_object_t *h, const char *name,
 		      omapi_value_t **value)
 {
 	omapi_object_t *outer;

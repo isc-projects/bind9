@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.14 2000/07/27 09:37:16 tale Exp $ */
+/* $Id: log.h,v 1.15 2000/08/01 01:12:07 tale Exp $ */
 
 #ifndef NAMED_LOG_H
 #define NAMED_LOG_H 1
@@ -55,7 +55,7 @@ ns_log_init(isc_boolean_t safe);
  * Initialize the logging system and set up an initial default
  * logging default configuration that will be used until the
  * config file has been read.
- * 
+ *
  * If 'safe' is true, use a default configuration that refrains
  * from opening files.  This is to avoid creating log files
  * as root.

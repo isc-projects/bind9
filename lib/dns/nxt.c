@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.19 2000/07/27 09:46:18 tale Exp $ */
+/* $Id: nxt.c,v 1.20 2000/08/01 01:22:36 tale Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ dns_buildnxtrdata(dns_db_t *db, dns_dbversion_t *version,
 
 	r.length += ((max_type + 7) / 8);
 	INSIST(r.length <= DNS_NXT_BUFFERSIZE);
-	dns_rdata_fromregion(rdata, 
+	dns_rdata_fromregion(rdata,
 			     dns_db_class(db),
 			     dns_rdatatype_nxt,
 			     &r);
@@ -141,13 +141,13 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	unsigned char data[DNS_NXT_BUFFERSIZE];
 	dns_rdatalist_t rdatalist;
 	dns_rdataset_t rdataset;
-	
+
 	dns_rdataset_init(&rdataset);
 
 	result = dns_buildnxtrdata(db, version, node,
 					  target, data, &rdata);
 	check_result(result, "dns_buildnxtrdata");
-	
+
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = dns_rdatatype_nxt;
 	rdatalist.covers = 0;

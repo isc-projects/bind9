@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwpacket.h,v 1.15 2000/07/27 09:54:04 tale Exp $ */
+/* $Id: lwpacket.h,v 1.16 2000/08/01 01:32:40 tale Exp $ */
 
 #ifndef LWRES_LWPACKET_H
 #define LWRES_LWPACKET_H 1
@@ -57,7 +57,7 @@ struct lwres_lwpacket {
  * is a request or a response.
  *
  * "serial" is set by the requestor and is returned in all replies.  If two
- * packets from the same source have the same serial number and are from 
+ * packets from the same source have the same serial number and are from
  * the same source, they are assumed to be duplicates and the latter ones
  * may be dropped.  (The library does not do this by default on replies, but
  * does so on requests.)

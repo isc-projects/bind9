@@ -44,7 +44,7 @@ POINTER info;
 {
   A_PKCS_RSA_PRIVATE_KEY *newValue;
   int status;
-  
+
   /* Allocate memory for A_PKCS_RSA_PRIVATE_KEY struct and copy integers
        from supplied value.
    */
@@ -54,11 +54,11 @@ POINTER info;
     return (status);
   if ((status = AllocAndCopyIntegerItems
        ((POINTER)newValue, info, (POINTER)&STATIC_PKCS_RSA_PRIVATE_KEY,
-        PKCS_RSA_PRIVATE_KEY_ITEMS, sizeof (PKCS_RSA_PRIVATE_KEY_ITEMS) / 
+        PKCS_RSA_PRIVATE_KEY_ITEMS, sizeof (PKCS_RSA_PRIVATE_KEY_ITEMS) /
         sizeof (PKCS_RSA_PRIVATE_KEY_ITEMS[0]), &key->infoCache.memoryPool))
       != 0)
     return (status);
-    
+
   /* Cache the full private key info.
    */
   if ((status = CacheFullPrivateKey
@@ -93,7 +93,7 @@ B_Key *key;
        (&key->infoCache.memoryPool, info, sizeof (A_PKCS_RSA_PRIVATE_KEY)))
       != 0)
     return (status);
-    
+
   **(A_PKCS_RSA_PRIVATE_KEY **)info = keyValue;
   return (0);
 }

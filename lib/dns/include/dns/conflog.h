@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflog.h,v 1.14 2000/07/27 09:47:37 tale Exp $ */
+/* $Id: conflog.h,v 1.15 2000/08/01 01:23:55 tale Exp $ */
 
 #ifndef DNS_CONFLOG_H
 #define DNS_CONFLOG_H 1
@@ -33,7 +33,7 @@
  * MP:
  *
  *	Caller must do appropriate locking
- *	
+ *
  * Reliability:
  *
  *	No impact.
@@ -41,7 +41,7 @@
  * Resources:
  *
  *	Caller supplies memory allocators
- *	
+ *
  * Security:
  *
  *	No impact.
@@ -49,7 +49,7 @@
  * Standards:
  *
  *	N/A
- *	
+ *
  */
 
 /***
@@ -85,7 +85,7 @@ typedef struct dns_c_logging_list	dns_c_logginglist_t;
 struct dns_c_logging_list {
 	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
-	
+
 	ISC_LIST(dns_c_logchan_t)	channels;
 	ISC_LIST(dns_c_logcat_t)	categories;
 };
@@ -99,7 +99,7 @@ struct dns_c_logchan
 
 	char			       *name;
 
-	dns_c_logchantype_t		ctype; 
+	dns_c_logchantype_t		ctype;
 	union {
 		struct
 		{			/* when ctype == dns_c_logchan_file */
@@ -124,8 +124,8 @@ struct dns_c_logchan
 	 * Some channels are predefined e.g. default_syslog, in which case
 	 * this is true.
 	 */
-	isc_boolean_t			predefined; 
-	
+	isc_boolean_t			predefined;
+
 	ISC_LINK(dns_c_logchan_t)	next;
 	dns_c_setbits_t			setflags;
 };
@@ -140,12 +140,12 @@ struct dns_c_logcat {
 	char			       *catname;
 
 	char			      **channel_names;
-	size_t				cnames_len; /* size, in elements of 
+	size_t				cnames_len; /* size, in elements of
 						     channel_names */
 	size_t				nextcname; /* index in
-						      channel_names of next 
+						      channel_names of next
 						      free spot. */
-	
+
 	isc_boolean_t			predefined;
 
 	ISC_LINK(dns_c_logcat_t)	next;

@@ -777,7 +777,7 @@ if test -n "$pic_flag"; then
   if { (eval echo $progname:777: \"$ac_compile\") 1>&5; (eval $ac_compile) 2>conftest.err; } && test -s conftest.$objext; then
     # Append any warnings to the config.log.
     cat conftest.err 1>&5
-    
+
     case "$host_os" in
     hpux9* | hpux10* | hpux11*)
       # On HP-UX, both CC and GCC only warn that PIC is supported... then they
@@ -937,7 +937,7 @@ if test "$with_gcc" = yes; then
   else
     no_builtin_flag=' -fno-builtin'
   fi
-  
+
 fi
 
 # Check for any special shared library compilation flags.
@@ -1183,7 +1183,7 @@ EOF
       $DLLTOOL --as=$AS --dllname $soname --exclude-symbols DllMain@12,_cygwin_dll_entry@12,_cygwin_noncygwin_dll_entry@12 --def $objdir/$soname-def --base-file $objdir/$soname-base --output-exp $objdir/$soname-exp~
       $CC $objdir/$soname-exp -Wl,--dll -nostartfiles -Wl,-e,__cygwin_dll_entry@12 -o $lib $objdir/$soname-ltdll.$objext $libobjs $deplibs $linkopts'
 
-      old_archive_from_new_cmds='$DLLTOOL --as=$AS --dllname $soname --def $objdir/$soname-def --output-lib $objdir/$libname.a' 
+      old_archive_from_new_cmds='$DLLTOOL --as=$AS --dllname $soname --def $objdir/$soname-def --output-lib $objdir/$libname.a'
     ;;
 
   netbsd*)
@@ -1215,7 +1215,7 @@ EOF
     else
       ld_shlibs=no
     fi
-    ;;      
+    ;;
 
   sunos4*)
     archive_cmds='$LD -assert pure-text -Bshareable -o $lib $libobjs $deplibs $linkopts'
@@ -1452,8 +1452,8 @@ else
     archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linkopts'
     runpath_var='LD_RUN_PATH'
     hardcode_shlibpath_var=no
-    hardcode_direct=no #Motorola manual says yes, but my tests say they lie 
-    ;;  
+    hardcode_direct=no #Motorola manual says yes, but my tests say they lie
+    ;;
 
   sysv4.3*)
     archive_cmds='$LD -G -h $soname -o $lib $libobjs $deplibs $linkopts'
@@ -1822,7 +1822,7 @@ cygwin* | mingw*)
 freebsd1*)
   dynamic_linker=no
   ;;
-  
+
 freebsd*)
   objformat=`test -x /usr/bin/objformat && /usr/bin/objformat || echo aout`
   version_type=freebsd-$objformat
@@ -2372,10 +2372,10 @@ fi
 
 fi
 
-    
+
 fi
 
-  
+
 fi
 
 
@@ -2481,7 +2481,7 @@ else
 fnord() { int i=42;}
 main() { void *self, *ptr1, *ptr2; self=dlopen(0,LTDL_GLOBAL|LTDL_LAZY_OR_NOW);
     if(self) { ptr1=dlsym(self,"fnord"); ptr2=dlsym(self,"_fnord");
-	       if(ptr1 || ptr2) { dlclose(self); exit(0); } } exit(1); } 
+	       if(ptr1 || ptr2) { dlclose(self); exit(0); } } exit(1); }
 
 EOF
 if { (eval echo $progname:2487: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null
@@ -2554,7 +2554,7 @@ else
 fnord() { int i=42;}
 main() { void *self, *ptr1, *ptr2; self=dlopen(0,LTDL_GLOBAL|LTDL_LAZY_OR_NOW);
     if(self) { ptr1=dlsym(self,"fnord"); ptr2=dlsym(self,"_fnord");
-    if(ptr1 || ptr2) { dlclose(self); exit(0); } } exit(1); } 
+    if(ptr1 || ptr2) { dlclose(self); exit(0); } } exit(1); }
 
 EOF
 if { (eval echo $progname:2560: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest && (./conftest; exit) 2>/dev/null

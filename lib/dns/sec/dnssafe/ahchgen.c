@@ -95,8 +95,8 @@ B_Algorithm *randomAlgorithm;
 A_SURRENDER_CTX *surrenderContext;
 {
   POINTER result;
-  int status;  
-  
+  int status;
+
   if ((status = GenerateResult
        (&handler->generateAlgaChoice, &result, randomAlgorithm,
         surrenderContext)) != 0)
@@ -116,8 +116,8 @@ B_Algorithm *randomAlgorithm;
 A_SURRENDER_CTX *surrenderContext;
 {
   POINTER result;
-  int status;  
-  
+  int status;
+
   if ((status = GenerateResult
        (&handler->generateAlgaChoice, &result, randomAlgorithm,
         surrenderContext)) != 0)
@@ -205,7 +205,7 @@ A_SURRENDER_CTX *surrenderContext;
           surrenderContext)) != 0) {
       if (status != AE_NEED_RANDOM)
         return (ConvertAlgaeError (status));
-      
+
       /* Else continue and try again */
     }
     else

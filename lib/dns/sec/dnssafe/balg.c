@@ -69,7 +69,7 @@ B_AlgorithmInfoType *algorithmInfoType;
 POINTER info;
 {
   int status;
-  
+
   if (algorithm->infoCache.z.infoCount > 0)
     return (BE_ALGORITHM_ALREADY_SET);
 
@@ -93,7 +93,7 @@ POINTER *info;
 B_AlgorithmInfoType *algorithmInfoType;
 {
   int status;
-  
+
   if (algorithm->infoCache.z.infoCount == 0)
     return (BE_ALGORITHM_NOT_SET);
 
@@ -102,7 +102,7 @@ B_AlgorithmInfoType *algorithmInfoType;
   if (B_InfoCacheFindInfo
       (&algorithm->infoCache, info, (POINTER)algorithmInfoType) == 0)
     return (0);
-  
+
   /* Info is not in the cache, go ahead and encode.
    */
   if ((status = (*algorithmInfoType->vTable->MakeInfo)

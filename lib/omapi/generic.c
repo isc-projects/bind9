@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.16 2000/07/27 09:54:16 tale Exp $ */
+/* $Id: generic.c,v 1.17 2000/08/01 01:32:51 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -84,7 +84,7 @@ generic_setvalue(omapi_object_t *h, omapi_string_t *name, omapi_data_t *value)
 
 			return (ISC_R_SUCCESS);
 		}
-	}			
+	}
 
 	/*
 	 * If the name isn't already attached to this object, see if an
@@ -146,7 +146,7 @@ generic_getvalue(omapi_object_t *h, omapi_string_t *name,
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
 	g = (omapi_generic_t *)h;
-	
+
 	/*
 	 * Look up the specified name in our list of objects.
 	 */
@@ -165,7 +165,7 @@ generic_getvalue(omapi_object_t *h, omapi_string_t *name,
 			omapi_value_reference(value, g->values[i]);
 			return (ISC_R_SUCCESS);
 		}
-	}			
+	}
 
 	return (omapi_object_passgetvalue(h, name, value));
 }
@@ -178,7 +178,7 @@ generic_destroy(omapi_object_t *h) {
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
 	g = (omapi_generic_t *)h;
-	
+
 	if (g->values != NULL) {
 		for (i = 0; i < g->nvalues; i++)
 			if (g->values[i] != NULL)
@@ -220,7 +220,7 @@ generic_stuffvalues(omapi_object_t *connection, omapi_object_t *h) {
 	REQUIRE(h != NULL && h->type == omapi_type_generic);
 
 	src = (omapi_generic_t *)h;
-	
+
 	for (i = 0; i < src->nvalues; i++) {
 		if (src->values[i] != NULL &&
 		    src->values[i]->name->len != 0) {
@@ -239,7 +239,7 @@ generic_stuffvalues(omapi_object_t *connection, omapi_object_t *h) {
 			if (result != ISC_R_SUCCESS)
 				return (result);
 		}
-	}			
+	}
 
 	return (omapi_object_passstuffvalues(connection, h));
 }

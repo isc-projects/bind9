@@ -40,7 +40,7 @@ AH_RSAEncryptionPublic *handler;
 
   /* Construct base class */
   AH_RSAEncryptionConstructor1 (handler, &AIT_RSAPublic);
-  
+
   handler->vTable = &ENCRYPTION_V_TABLE;
   return (handler);
 }
@@ -76,10 +76,10 @@ A_SURRENDER_CTX *surrenderContext;
            (randomAlgorithm, &randomByte, 1, surrenderContext)) != 0)
         return (status);
     } while (randomByte == 0);
-    
+
     handler->z.block[i] = randomByte;
   }
-  
+
   handler->z.block[2 + padLen] = 0;
   return (0);
 }
@@ -90,17 +90,17 @@ ITEM *output;
 unsigned int block1Len;
 {
   unsigned int i;
-  
+
   /* Locate the digestInfo within the PKCS block 1.
    */
   if (handler->z.block[0] != 0 || handler->z.block[1] != 1)
     return (BE_INPUT_DATA);
-    
+
   /* Should be able to find the data after the first zero byte following
        the 0xff. */
   for (i = 2; i < block1Len && handler->z.block[i] == 0xff; i++);
   i++;
-    
+
   if (i > block1Len || handler->z.block[i - 1] != 0)
     /* The data is not zero terminated, or a byte other than 0xff. */
     return (BE_INPUT_DATA);

@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: isc_netif.3,v 1.2 2000/07/27 09:43:11 tale Exp $
-.\" 
+.\"
+.\" $Id: isc_netif.3,v 1.3 2000/08/01 01:19:30 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt ISC_NETIF 3
 .Os BIND9 9
@@ -32,18 +32,18 @@
 .Nd network interface management
 .Sh SYNOPSIS
 .Fd #include <config.h>
- 
+
 .Fd #include <sys/types.h>
 .Fd #include <sys/ioctl.h>
 .Fd #ifdef HAVE_SYS_SOCKIO_H
 .Fd #include <sys/sockio.h>         /* Required for ifiter_ioctl.c. */
 .Fd #endif
- 
+
 .Fd #include <stdio.h>
 .Fd #include <stdlib.h>
 .Fd #include <unistd.h>
 .Fd #include <errno.h>
- 
+
 .Fd #include <isc/mem.h>
 .Fd #include <isc/net.h>
 .Fd #include <isc/result.h>
@@ -51,7 +51,7 @@
 .Fd #include <isc/types.h>
 .Fd #include <isc/interfaceiter.h>
 .Fd #include <isc/util.h>
- 
+
 .Fd #include <net/if.h>            /* Must follow <isc/net.h>. */
 
 .Ft isc_result_t
@@ -69,7 +69,7 @@
 .\" .Fo internal_destroy
 .\" .Fc
 .\" .Ft static void
-.\" .Fo get_addr 
+.\" .Fo get_addr
 .\" .Fa "unsigned int family"
 .\" .Fa "isc_netaddr_t *dst"
 .\" .Fa "struct sockaddr *src"
@@ -94,14 +94,14 @@
 Details of the system's network interfaces can be retrieved with
 .Fn isc_interfaceiter_create .
 It uses
-.Xr sysctl 3 
+.Xr sysctl 3
 or an
 .Dv SIOCGLIFCONF
 .Xr ioctl 2
 to get the information from the kernel.
 Configuration details of the system's network interfaces - IP addresses, network
 mask, status, MAC address, etc. - is stored in a buffer which is
-accessed through 
+accessed through
 .Fa iterp .
 Memory is allocated from the memory context
 .Fa mctx
@@ -126,7 +126,7 @@ Information from the
 .Dv isc_interfaceiter_t
 can be accessed using
 .Fn isc_interfaceiter_current ,
-.Fn isc_interfaceiter_first 
+.Fn isc_interfaceiter_first
 and
 .Fn isc_interfaceiter_next .
 .\" which use the internal functions
@@ -136,7 +136,7 @@ and
 .\" .Pp
 .\" .Fn internal_current
 .\" gets information for the current network interface from
-.\" .Fa iter .  
+.\" .Fa iter .
 .\" .Fn internal_current
 .\" sets
 .\" .Dv iter->current
@@ -159,7 +159,7 @@ and
 .\" .Xr isc_interfaceiter_destroy 3 .
 .\" .Pp
 .\" .Fn get_addr
-.\" extracts the network address part of the 
+.\" extracts the network address part of the
 .\" .Dv sockaddr
 .\" struct referenced by
 .\" .Fa src
@@ -168,7 +168,7 @@ and
 .\" .Fa family
 .\" indicates the address family \*-
 .\" .Dv AF_INET
-.\" or 
+.\" or
 .\" .Dv AF_INET6 .
 .\" The address family is given explicitly because the network address might
 .\" contain a netmask obtained by an
@@ -178,7 +178,7 @@ and
 .\" .Dv src->sa_family .
 .Pp
 .Fn isc_interfaceiter_current
-copies the configuration details of 
+copies the configuration details of
 .Fa iter 's
 current network interface to
 .Fa ifdata .
@@ -190,7 +190,7 @@ which has an address in a supported address family: i.e. an IPv4 or
 IPv6 address.
 .Fn isc_interfaceiter_next
 find the next network interface in the list referenced by
-.Fa iter 
+.Fa iter
 that has an IPv4 or IPv6 address.
 .Pp
 The
@@ -199,7 +199,7 @@ structure referenced by
 .Fa iterp
 is discarded by calling
 .Fn isc_interfaceiter_destroy .
-Any memory associated with 
+Any memory associated with
 .Fa iterp is freed.
 .Sh RETURN VALUES
 Successful calls to
@@ -236,9 +236,9 @@ if  it was not possible to obtain a list of network interfaces.
 .Fn isc_interfaceiter_current
 always returns
 .Er ISC_R_SUCCESS
-if 
+if
 .Fa iter
-points to a valid 
+points to a valid
 .Dv isc_interfaceiter_t
 structure.
 .Pp

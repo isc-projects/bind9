@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.33 2000/07/27 09:50:42 tale Exp $ */
+/* $Id: buffer.c,v 1.34 2000/08/01 01:29:16 tale Exp $ */
 
 #include <config.h>
 
@@ -46,7 +46,7 @@ isc__buffer_invalidate(isc_buffer_t *b) {
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(!ISC_LINK_LINKED(b, link));
 	REQUIRE(b->mctx == NULL);
-	
+
 	ISC__BUFFER_INVALIDATE(b);
 }
 
@@ -355,7 +355,7 @@ isc_buffer_copyregion(isc_buffer_t *b, isc_region_t *r) {
 	REQUIRE(r != NULL);
 
 	/*
-	 * XXXDCL 
+	 * XXXDCL
 	 */
 	base = isc_buffer_used(b);
 	available = isc_buffer_availablelength(b);

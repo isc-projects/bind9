@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: nanny.pl,v 1.5 2000/07/27 09:54:57 tale Exp $
+# $Id: nanny.pl,v 1.6 2000/08/01 01:33:33 tale Exp $
 
 # A simple nanny to make sure named stays running.
 
@@ -32,7 +32,7 @@ for (;;) {
   $pid = <FILE>;
   close(FILE);
   chomp($pid);
-  
+
   $ps_command = "ps -axw | grep named | grep $pid | grep -v grep |";
   # ps_command MUST end in a pipe (|) character!
 

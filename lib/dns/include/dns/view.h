@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.46 2000/07/31 21:07:07 explorer Exp $ */
+/* $Id: view.h,v 1.47 2000/08/01 01:24:55 tale Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -116,7 +116,7 @@ struct dns_view {
 	 * locked by server configuration lock.
 	 */
 	dns_acl_t *			matchclients;
-	
+
 	/* Locked by lock. */
 	unsigned int			references;
 	unsigned int			weakrefs;
@@ -390,7 +390,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *	'type' is a valid dns_rdatatype_t, and is not a meta query type
  *	(e.g. dns_rdatatype_any), or dns_rdatatype_sig.
  *
- *	'foundname' is 
+ *	'foundname' is
  *
  *	'rdataset' is a valid, disassociated rdataset.
  *
@@ -488,7 +488,7 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
  *	covers 'type', then 'sigrdataset' will be bound to it.
  *
  *	If the DNS_DBFIND_NOEXACT option is set, then the zonecut returned
- *	(if any) will be the deepest known ancestor of 'name'. 
+ *	(if any) will be the deepest known ancestor of 'name'.
  *
  * Requires:
  *
@@ -525,7 +525,7 @@ dns_view_load(dns_view_t *view, isc_boolean_t stop);
 /*
  * Load all zones attached to this view.  If 'stop' is ISC_TRUE,
  * stop on the first error and return it.  If 'stop'
- * is ISC_FALSE, ignore errors. 
+ * is ISC_FALSE, ignore errors.
  *
  * Requires:
  *

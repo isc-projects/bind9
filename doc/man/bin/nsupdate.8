@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: nsupdate.8,v 1.3 2000/07/27 09:42:30 tale Exp $
-.\" 
+.\"
+.\" $Id: nsupdate.8,v 1.4 2000/08/01 01:18:45 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt NSUPDATE 8
 .Os BIND9 9
@@ -67,7 +67,7 @@ These use the TSIG resource record type described in RFC2845.
 The signatures rely on a shared secret that should only be known to
 .Nm nsupdate
 and the name server.
-Currently, the only supported encryption algorithm for TSIG is 
+Currently, the only supported encryption algorithm for TSIG is
 HMAC-MD5, which is defined in RFC 2104.
 Once other algorithms are defined for TSIG, applications will need to
 ensure they select the appropriate algorithm as well as the key when
@@ -141,7 +141,7 @@ Updates will be rejected if the tests for the prerequisite conditions fail.
 Every update request consists of zero or more prerequisites
 and one or more updates.
 This allows a suitably authenticated update request to proceed if some
-specified resource records are present or missing from the zone. 
+specified resource records are present or missing from the zone.
 A blank input line causes the accumulated commands to be sent as one Dynamic
 DNS update request to the name server.
 .Pp
@@ -259,7 +259,7 @@ could be used to insert and delete resource records from the
 zone.
 Notice that the input in each example contains a trailing blank line so that
 a group of commands are sent as one dynamic update request to the
-master name server for 
+master name server for
 .Dv example.com .
 .Bd -literal -offset indent
 # nsupdate
@@ -272,10 +272,10 @@ Any A records for
 .Dv oldhost.example.com
 are deleted.
 and an A record for
-.Dv newhost.example.com 
+.Dv newhost.example.com
 it IP address 172.16.1.1 is added.
 The newly-added record has a 1 day TTL (86400 seconds)
-.Bd -literal -offset indent 
+.Bd -literal -offset indent
 # nsupdate
 > prereq nxdomain nickname.example.com
 > update add nickname.example.com CNAME somehost.example.com
@@ -312,7 +312,7 @@ name server configuration file
 .It Pa K{name}.+157.+{random}.key
 base-64 encoding of HMAC-MD5 key created by
 .Xr dnssec-keygen 8 .
-.It Pa K{name}.+157.+{random}.private 
+.It Pa K{name}.+157.+{random}.private
 base-64 encoding of HMAC-MD5 key created by
 .Xr dnssec-keygen 8 .
 .El
@@ -325,7 +325,7 @@ base-64 encoding of HMAC-MD5 key created by
 .Xr RFC2535 ,
 .Xr named 8 ,
 .Xr dnssec-keygen 8 .
-.Sh BUGS 
+.Sh BUGS
 The
 .Fl D
 and
@@ -333,4 +333,4 @@ and
 options are not documented apart from this self-referential paragraph.
 They provide additional debugging information which is primarily of interest
 to the BIND9 developers.
-These options might be changed or removed in future releases. 
+These options might be changed or removed in future releases.

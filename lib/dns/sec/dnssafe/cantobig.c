@@ -23,13 +23,13 @@ unsigned char *bytePointer;
 unsigned int numBytes;
 {
   unsigned int copyCount;
-  
+
   if (A_IntegerBits (bytePointer, numBytes) / 16 + 1 > wordCount)
     return (AE_DATA);
 
   /* start at end of byte vector */
   bytePointer += numBytes-1;
-  
+
   /* copy as much as possible */
   copyCount = (wordCount < numBytes / 2) ? wordCount : numBytes / 2;
   wordCount -= copyCount;
@@ -39,18 +39,18 @@ unsigned int numBytes;
     *wordPointer++ = (UINT2)*bytePointer + (*(bytePointer - 1) << 8);
     bytePointer -= 2;
   }
-  
+
   if (wordCount && numBytes & 1) {
     /* If the number of input bytes was odd.  Copy one last byte.*/
     *wordPointer++ = (UINT2)*bytePointer--;
     wordCount--;
     numBytes--;
   }
-  
+
   /* zero fill remainder of word vector */
   while (wordCount--)
     *wordPointer++ = 0;
-  
+
   return (0);
 }
 

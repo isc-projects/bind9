@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.34 2000/07/27 09:37:25 tale Exp $ */
+/* $Id: server.h,v 1.35 2000/08/01 01:12:16 tale Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -43,7 +43,7 @@ struct ns_server {
 
 	/* Common rwlock for the server's configurable data. */
 	isc_rwlock_t		conflock;
-	
+
 	/* Configurable data. */
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
@@ -60,7 +60,7 @@ struct ns_server {
 	dns_db_t *		in_roothints;
 	dns_tkeyctx_t *		tkeyctx;
 	isc_timer_t *		interface_timer;
-	
+
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
 };

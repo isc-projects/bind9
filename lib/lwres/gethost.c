@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.22 2000/07/27 09:53:39 tale Exp $ */
+/* $Id: gethost.c,v 1.23 2000/08/01 01:32:14 tale Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,7 @@ struct hostent *
 lwres_gethostbyaddr(const char *addr, int len, int type) {
 	int error;
 
-	if (he != NULL) 
+	if (he != NULL)
 		lwres_freehostent(he);
 
 	he = lwres_getipnodebyaddr(addr, len, type, &error);
@@ -180,7 +180,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
         }
         len += strlen(he->h_name) + 1;
         len += nptr * sizeof(char*);
-        
+
         if (len > buflen) {
                 return (-1);
         }

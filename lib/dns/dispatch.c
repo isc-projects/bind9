@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.61 2000/07/27 09:46:01 tale Exp $ */
+/* $Id: dispatch.c,v 1.62 2000/08/01 01:22:19 tale Exp $ */
 
 #include <config.h>
 
@@ -194,7 +194,7 @@ dispatch_log(dns_dispatch_t *disp, int level, const char *fmt, ...) {
 
 	if (! isc_log_wouldlog(dns_lctx, level))
 		return;
-	
+
 	va_start(ap, fmt);
 	vsnprintf(msgbuf, sizeof(msgbuf), fmt, ap);
 	va_end(ap);
@@ -710,7 +710,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	case ISC_R_CANCELED:
 		/*
-		 * The event is statically allocated in the tcpmsg	
+		 * The event is statically allocated in the tcpmsg
 		 * structure, and destroy_disp() frees the tcpmsg, so we must
 		 * free the event *before* calling destroy_disp().
 		 */
@@ -1088,7 +1088,7 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 	UNLOCK(&mgr->lock);
 
 	mgr_log(mgr, LVL(90), "destroy: killit=%d", killit);
-	
+
 	if (killit)
 		destroy_mgr(&mgr);
 }
@@ -1701,7 +1701,7 @@ void
 dns_dispatch_starttcp(dns_dispatch_t *disp) {
 
 	REQUIRE(VALID_DISPATCH(disp));
-	
+
 	dispatch_log(disp, LVL(90), "starttcp %p", disp->task);
 
 	LOCK(&disp->lock);

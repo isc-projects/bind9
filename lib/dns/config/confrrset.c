@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confrrset.c,v 1.15 2000/07/27 09:47:12 tale Exp $ */
+/* $Id: confrrset.c,v 1.16 2000/08/01 01:23:29 tale Exp $ */
 
 #include <config.h>
 
@@ -27,7 +27,7 @@
 isc_result_t
 dns_c_rrsolist_clear(dns_c_rrsolist_t *olist) {
 	dns_c_rrso_t *elem;
-	
+
 	REQUIRE(DNS_C_RRSOLIST_VALID(olist));
 
 	elem = ISC_LIST_HEAD(olist->elements);
@@ -71,13 +71,13 @@ dns_c_rrsolist_new(isc_mem_t *mem, dns_c_rrsolist_t **rval) {
 	if (ro == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
-	
+
 	ISC_LIST_INIT(ro->elements);
 	ro->mem = mem;
 	ro->magic = DNS_C_RRSOLIST_MAGIC;
 
 	*rval = ro;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -90,11 +90,11 @@ dns_c_rrso_new(isc_mem_t *mem, dns_c_rrso_t **res, dns_rdataclass_t oclass,
 
 	REQUIRE(mem != NULL);
 	REQUIRE(res != NULL);
-	
+
 	if (name == NULL) {
 		name = "*";
 	}
-	
+
 	newo = isc_mem_get(mem, sizeof *newo);
 	if (newo == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -138,7 +138,7 @@ dns_c_rrsolist_delete(dns_c_rrsolist_t **list) {
 		if (r != ISC_R_SUCCESS) {
 			return (r);
 		}
-		
+
 		elem = q;
 	}
 
@@ -166,7 +166,7 @@ dns_c_rrso_delete(dns_c_rrso_t **order) {
 	isc_mem_put(oldo->mem, oldo, sizeof *oldo);
 
 	*order = NULL;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -186,7 +186,7 @@ dns_c_rrso_copy(isc_mem_t *mem, dns_c_rrso_t **dest, dns_c_rrso_t *source) {
 	} else {
 		*dest = NULL;
 	}
-	
+
 	return (res);
 }
 
@@ -202,12 +202,12 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 
 	REQUIRE(DNS_C_RRSOLIST_VALID(source));
 	REQUIRE(dest != NULL);
-	
+
 	res = dns_c_rrsolist_new(mem, &nlist);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-	
+
 	elem = ISC_LIST_HEAD(source->elements);
 	while (elem != NULL) {
 		res = dns_c_rrso_copy(mem, &newe, elem);
@@ -217,7 +217,7 @@ dns_c_rrsolist_copy(isc_mem_t *mem, dns_c_rrsolist_t **dest,
 		}
 
 		ISC_LIST_APPEND(nlist->elements, newe, next);
-		
+
 		elem = ISC_LIST_NEXT(elem, next);
 	}
 
@@ -231,11 +231,11 @@ dns_c_rrsolist_print(FILE *fp, int indent, dns_c_rrsolist_t *rrlist) {
 	dns_c_rrso_t *or;
 
 	REQUIRE(DNS_C_RRSOLIST_VALID(rrlist));
-	
+
 	if (ISC_LIST_EMPTY(rrlist->elements)) {
 		return;
 	}
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "rrset-order {\n");
 
@@ -247,22 +247,22 @@ dns_c_rrsolist_print(FILE *fp, int indent, dns_c_rrsolist_t *rrlist) {
 
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "};\n");
-	
+
 }
 
 void
 dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order) {
 	REQUIRE(DNS_C_RRSO_VALID(order));
-	
+
 	dns_c_printtabs(fp, indent);
-	
+
 	fputs("class ", fp);
 	if (order->oclass == dns_rdataclass_any) {
 		fputc('*', fp);
 	} else {
 		dns_c_dataclass_tostream(fp, order->oclass);
 	}
-	
+
 
 	fputs(" type ", fp);
 	if (order->otype == dns_rdatatype_any) {
@@ -275,6 +275,6 @@ dns_c_rrso_print(FILE *fp, int indent, dns_c_rrso_t *order) {
 
 	fprintf(fp, " order %s",
 		dns_c_ordering2string(order->ordering, ISC_TRUE));
-	
+
 	fputs(";\n", fp);
 }

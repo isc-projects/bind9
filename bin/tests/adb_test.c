@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.56 2000/07/27 09:37:40 tale Exp $ */
+/* $Id: adb_test.c,v 1.57 2000/08/01 01:12:31 tale Exp $ */
 
 #include <config.h>
 
@@ -67,7 +67,7 @@ check_result(isc_result_t result, const char *format, ...) {
 	if (result == ISC_R_SUCCESS)
 		return;
 
-	va_start(args, format);	
+	va_start(args, format);
 	vfprintf(stderr, format, args);
 	va_end(args);
 	fprintf(stderr, "\n");
@@ -182,7 +182,7 @@ create_view(void) {
 		unsigned int attrs;
 		isc_sockaddr_t any4, any6;
 		dns_dispatch_t *disp4 = NULL;
-		dns_dispatch_t *disp6 = NULL;		
+		dns_dispatch_t *disp6 = NULL;
 
 		isc_sockaddr_any(&any4);
 		isc_sockaddr_any6(&any6);

@@ -18,14 +18,14 @@ unsigned int integerLen;
 {
   unsigned char mask, byte;
   unsigned int bytes, bits;
-  
+
   for (bytes = 0; bytes < integerLen && integer[bytes] == 0; bytes++);
   if (bytes == integerLen)
     return (0);
-  
+
   /* Get byte to test and increment byte count for final calculation */
   byte = integer[bytes++];
-  
+
   /* Get number of bits in most significant byte */
   for (bits = 8, mask = 0x80; (byte & mask) == 0; bits--, mask >>= 1);
   return (8 * (integerLen - bytes) + bits);

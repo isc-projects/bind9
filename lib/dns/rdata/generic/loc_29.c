@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.22 2000/07/27 09:49:06 tale Exp $ */
+/* $Id: loc_29.c,v 1.23 2000/08/01 01:25:24 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -55,7 +55,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	UNUSED(downcase);
 
 	REQUIRE(type == 29);
-	
+
 	/*
 	 * Defaults.
 	 */
@@ -154,7 +154,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		return (ISC_R_RANGE);
 	if (d2 == 180 && m2 != 0)
 		return (ISC_R_RANGE);
-		
+
 	/*
 	 * Seconds.
 	 */
@@ -265,7 +265,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for ( ; i < 2 ; i++)
 			cm *= 10;
-	} 
+	}
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
@@ -367,7 +367,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 		}
 		for ( ; i < 2 ; i++)
 			cm *= 10;
-	} 
+	}
 	if (*e == 'm')
 		e++;
 	if (*e != 0)
@@ -519,7 +519,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	UNUSED(downcase);
 
 	REQUIRE(type == 29);
-	
+
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1)
 		return (ISC_R_UNEXPECTEDEND);
@@ -549,7 +549,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	 */
 	c = sr.base[3];
 	if (c != 0)
-		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+		if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 			return (ISC_R_RANGE);
 	isc_region_consume(&sr, 4);
 
@@ -585,7 +585,7 @@ towire_loc(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 29);
-	
+
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
@@ -612,23 +612,23 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(loc->common.rdtype == type);
 	REQUIRE(loc->common.rdclass == rdclass);
-	
+
 	if (loc->v.v0.version != 0)
 		return (ISC_R_NOTIMPLEMENTED);
 	RETERR(uint8_tobuffer(loc->v.v0.version, target));
 
 	c = loc->v.v0.size;
-	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 		return (ISC_R_RANGE);
 	RETERR(uint8_tobuffer(loc->v.v0.size, target));
 
 	c = loc->v.v0.horizontal;
-	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 		return (ISC_R_RANGE);
 	RETERR(uint8_tobuffer(loc->v.v0.horizontal, target));
 
 	c = loc->v.v0.vertical;
-	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0) 
+	if ((c&0xf) > 9 || ((c>>4)&0xf) > 9 || ((c>>4)&0xf) == 0)
 		return (ISC_R_RANGE);
 	RETERR(uint8_tobuffer(loc->v.v0.vertical, target));
 

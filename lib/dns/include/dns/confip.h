@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.h,v 1.26 2000/07/27 09:47:35 tale Exp $ */
+/* $Id: confip.h,v 1.27 2000/08/01 01:23:53 tale Exp $ */
 
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1
@@ -91,7 +91,7 @@ typedef struct dns_c_ipmatch_list	dns_c_ipmatchlist_t;
  */
 struct dns_c_iplist {
 	isc_uint32_t		magic;
-	
+
 	isc_mem_t	       *mem;
 	int			refcount;
 	isc_sockaddr_t	       *ips;
@@ -104,7 +104,7 @@ struct dns_c_iplist {
 
 struct dns_c_ipmatch_direct {
 	isc_uint32_t	magic;
-	
+
 	isc_sockaddr_t	address;
 	isc_uint32_t	mask;
 };
@@ -113,14 +113,14 @@ struct dns_c_ipmatch_direct {
 
 struct dns_c_ipmatch_indirect {
 	isc_uint32_t	magic;
-	
+
 	isc_textregion_t refname;	/* For acls, mostly. */
 	dns_c_ipmatchlist_t *list;
 };
 
 struct dns_c_ipmatch_element {
 	isc_uint32_t	magic;
-	
+
 	dns_c_ipmatch_type_t type;
 	u_int flags;
 	union {
@@ -136,7 +136,7 @@ struct dns_c_ipmatch_element {
 
 struct dns_c_ipmatch_list {
 	isc_uint32_t	magic;
-	
+
 	isc_mem_t *mem;
 	int refcount;
 
@@ -182,13 +182,13 @@ isc_result_t dns_c_ipmatchkey_new(isc_mem_t *mem,
 				  const char *key);
 
 isc_result_t dns_c_ipmatchany_new(isc_mem_t *mem,
-				  dns_c_ipmatchelement_t **result); 
+				  dns_c_ipmatchelement_t **result);
 
 isc_result_t dns_c_ipmatchlocalhost_new(isc_mem_t *mem,
-					dns_c_ipmatchelement_t **result); 
+					dns_c_ipmatchelement_t **result);
 
 isc_result_t dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
-					dns_c_ipmatchelement_t **result); 
+					dns_c_ipmatchelement_t **result);
 
 isc_result_t dns_c_ipmatchpattern_new(isc_mem_t *mem,
 				      dns_c_ipmatchelement_t **result,
@@ -263,7 +263,7 @@ isc_boolean_t dns_c_ipmatchlist_equal(dns_c_ipmatchlist_t *l1,
 typedef isc_boolean_t (*dns_c_ipmlwalker)(dns_c_ipmatchelement_t *element);
 
 /*
- * Recursively decends the list and returns the boolean AND of the return 
+ * Recursively decends the list and returns the boolean AND of the return
  * values of func.
  */
 isc_boolean_t

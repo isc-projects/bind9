@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.33 2000/07/27 09:46:59 tale Exp $ */
+/* $Id: confcommon.c,v 1.34 2000/08/01 01:23:16 tale Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,7 @@
 /***
  *** TYPES
  ***/
- 
+
 #define ordering_nametable_size \
 	(sizeof (ordering_nametable) / sizeof (struct dns_c_pvt_ont))
 static struct dns_c_pvt_ont {
@@ -66,7 +66,7 @@ static struct dns_c_pvt_lsnt {
 	{ dns_c_log_dynamic,		"dynamic" }
 };
 
-	
+
 static struct dsn_c_pvt_sfnt {
 	int val;
 	const char *strval;
@@ -93,14 +93,14 @@ static struct dsn_c_pvt_sfnt {
 #ifdef LOG_FTP
 	{ LOG_FTP,			"ftp" },
 #endif
-	{ LOG_LOCAL0,			"local0"}, 
-	{ LOG_LOCAL1,			"local1"}, 
-	{ LOG_LOCAL2,			"local2"}, 
-	{ LOG_LOCAL3,			"local3"}, 
-	{ LOG_LOCAL4,			"local4"}, 
-	{ LOG_LOCAL5,			"local5"}, 
-	{ LOG_LOCAL6,			"local6"}, 
-	{ LOG_LOCAL7,			"local7"}, 
+	{ LOG_LOCAL0,			"local0"},
+	{ LOG_LOCAL1,			"local1"},
+	{ LOG_LOCAL2,			"local2"},
+	{ LOG_LOCAL3,			"local3"},
+	{ LOG_LOCAL4,			"local4"},
+	{ LOG_LOCAL5,			"local5"},
+	{ LOG_LOCAL6,			"local6"},
+	{ LOG_LOCAL7,			"local7"},
 	{ 0,				NULL }
 };
 
@@ -148,7 +148,7 @@ static const char *category_nametable[] = {
 	"xfer-in",
 	"xfer-out",
 #endif
-	
+
 	NULL
 };
 
@@ -179,7 +179,7 @@ dns_c_printinunits(FILE *fp, isc_uint32_t val) {
 	/* XXXJAB These format strings may break if isc_offset_t is a large
 	   enough type and val has a value greater than MAX_ULONG. I know
 	   of no portablt solution to this. */
-	
+
 	if (val == DNS_C_SIZE_SPEC_DEFAULT)
 		fprintf(fp, "default");
 	else if (val == 0)
@@ -203,7 +203,7 @@ dns_c_dataclass_tostream(FILE *fp, dns_rdataclass_t rclass) {
 	isc_buffer_t sourceb;
 
 	isc_buffer_init(&sourceb, buffer, sizeof(buffer));
-	
+
 	if (dns_rdataclass_totext(rclass, &sourceb) == ISC_R_SUCCESS) {
 		INSIST(sourceb.used + 1 < sizeof(buffer));
 		buffer[sourceb.used] = '\0';
@@ -254,7 +254,7 @@ dns_c_string2ordering(char *name, dns_c_ordering_t *ordering) {
 			break;
 		}
 	}
-	
+
 	return (rval);
 }
 
@@ -303,7 +303,7 @@ dns_c_string2logseverity(const char *string,
 	isc_result_t rval = ISC_R_FAILURE;
 
 	REQUIRE(result != NULL);
-	
+
 	for (i = 0 ; i < log_severity_nametable_size ; i++) {
 		if (strcmp(log_severity_nametable[i].strval, string) == 0) {
 			*result = log_severity_nametable[i].val;
@@ -344,7 +344,7 @@ dns_c_string2category(const char *string,
 	isc_result_t rval = ISC_R_FAILURE;
 
 	REQUIRE (category != NULL);
-	
+
 	for (i = 0 ; i < category_nametable_size ; i++) {
 		if (strcmp(category_nametable[i].strval, string) == 0) {
 			*category = category_nametable[i].val;
@@ -370,7 +370,7 @@ dns_c_facility2string(int facility, isc_boolean_t printable) {
 			break;
 		}
 	}
-	
+
 	return (rval == NULL && printable ? "UNKNOWN_FACILITY" : rval);
 }
 
@@ -424,7 +424,7 @@ dns_c_transport2string(dns_c_trans_t transport,
 	case dns_trans_primary:
 		rval = "master";
 		break;
-		
+
 	case dns_trans_secondary:
 		rval = "slave";
 		break;
@@ -533,9 +533,9 @@ dns_c_isanyaddr(isc_sockaddr_t *inaddr) {
 
 	return (result);
 }
-	
 
-	
+
+
 void
 dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr) {
 	const char *p;
@@ -553,7 +553,7 @@ dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr) {
 		addr = (family == AF_INET ?
 			(void *)&inaddr->type.sin.sin_addr :
 			(void *)&inaddr->type.sin6.sin6_addr);
-		
+
 		p = inet_ntop(family, addr, tmpaddrstr, sizeof tmpaddrstr);
 		if (p == NULL) {
 			fprintf(fp, "BAD-IP-ADDRESS");
@@ -567,7 +567,7 @@ dns_c_print_ipaddr(FILE *fp, isc_sockaddr_t *inaddr) {
 isc_boolean_t
 dns_c_netaddrisanyaddr(isc_netaddr_t *inaddr) {
 	isc_boolean_t result = ISC_FALSE;
-	
+
 	if (inaddr->family == AF_INET) {
 		if (inaddr->type.in.s_addr == htonl(INADDR_ANY)) {
 			result = ISC_TRUE;
@@ -602,7 +602,7 @@ dns_c_netaddrprint(FILE *fp, isc_netaddr_t *inaddr) {
 		addr = (family == AF_INET ?
 			(void *)&inaddr->type.in :
 			(void *)&inaddr->type.in6);
-		
+
 		p = inet_ntop(family, addr, tmpaddrstr, sizeof tmpaddrstr);
 		if (p == NULL) {
 			fprintf(fp, "BAD-IP-ADDRESS");
@@ -630,16 +630,16 @@ dns_c_need_quote(const char *string) {
 }
 
 
-		
+
 void
 dns_c_peerlist_print(FILE *fp, int indent,
 		     dns_peerlist_t *servers)
 {
 	dns_peer_t *server;
-	
+
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_PEERLIST_VALID(servers));
-	
+
 	server = ISC_LIST_HEAD(servers->elements);
 	while (server != NULL) {
 		dns_c_peer_print(fp, indent, server);
@@ -648,7 +648,7 @@ dns_c_peerlist_print(FILE *fp, int indent,
 			fprintf(fp, "\n");
 		}
 	}
-	
+
 	return;
 }
 
@@ -660,15 +660,15 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer) {
 	dns_transfer_format_t tval;
 	isc_int32_t ival;
 	dns_name_t *name = NULL;
-	
+
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(fp != NULL);
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "server ");
 	dns_c_netaddrprint(fp, &peer->address);
 	fprintf(fp, " {\n");
-	
+
 	res = dns_peer_getbogus(peer, &bval);
 	if (res == ISC_R_SUCCESS) {
 		dns_c_printtabs(fp, indent + 1);
@@ -708,7 +708,7 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer) {
 		dns_name_print(peer->key, fp);
 		fprintf(fp, "\"; };\n");
 	}
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "};\n");
 }
@@ -729,16 +729,16 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name) {
 	REQUIRE(name != NULL);
 
 	len = strlen(keyval);
-	
+
 	dns_name_init(&newkey, NULL);
 	res = isc_buffer_allocate(mem, &b1, len + 2);
 	REQUIRE(res == ISC_R_SUCCESS);
-	
+
 	dns_name_setbuffer(&newkey, b1);
-	
+
 	isc_buffer_init(&b2, keyval, len);
 	isc_buffer_add(&b2, len);
-	
+
 	res = dns_name_fromtext(&newkey, &b2, dns_rootname, ISC_FALSE, NULL);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
@@ -747,7 +747,7 @@ dns_c_charptoname(isc_mem_t *mem, const char *keyval, dns_name_t **name) {
 	*name = isc_mem_get(mem, sizeof (dns_name_t));
 	REQUIRE(*name != NULL);
 	dns_name_init(*name, NULL);
-	
+
 	dns_name_dup(&newkey, mem, *name);
 	dns_name_invalidate(&newkey);
 	isc_buffer_free(&b1);
@@ -763,7 +763,7 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable) {
 	dns_rdatatype_t *types;
 	unsigned int i;
 	unsigned int tcount;
-	
+
 	res = dns_ssutable_firstrule(ssutable, &rule);
 	if (res != ISC_R_SUCCESS) {
 		return;
@@ -772,13 +772,13 @@ dns_c_ssutable_print(FILE *fp, int indent, dns_ssutable_t *ssutable) {
 	fputc('\n', fp);
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "update-policy {\n");
-	
+
 	do {
 		dns_c_printtabs(fp, indent + 1);
 
 		fputs ((dns_ssurule_isgrant(rule) ? "grant" : "deny"), fp);
 		fputc(' ', fp);
-		
+
 		dns_name_print(dns_ssurule_identity(rule), fp);
 		fputc(' ', fp);
 
@@ -845,4 +845,4 @@ dns_c_checkcategory(const char *name) {
 
 	return (ISC_R_FAILURE);
 }
-	
+

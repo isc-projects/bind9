@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt_test.c,v 1.38 2000/07/31 23:27:22 tale Exp $ */
+/* $Id: rbt_test.c,v 1.39 2000/08/01 01:13:14 tale Exp $ */
 
 #include <config.h>
 
@@ -210,7 +210,7 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 	if (forward) {
 		printf("iterating forward\n" );
 		move = dns_rbtnodechain_next;
-		
+
 		result = dns_rbtnodechain_first(&chain, rbt, &foundname,
 						origin);
 
@@ -447,7 +447,7 @@ main(int argc, char **argv) {
 
 			}
 		}
-			
+
 	}
 
 	dns_rbt_destroy(&rbt);

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.44 2000/07/27 09:36:29 tale Exp $ */
+/* $Id: host.c,v 1.45 2000/08/01 01:11:16 tale Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -59,7 +59,7 @@ extern isc_taskmgr_t *taskmgr;
 extern char *progname;
 extern isc_task_t *global_task;
 
-isc_boolean_t 
+isc_boolean_t
 short_form = ISC_TRUE;
 
 static const char *opcodetext[] = {
@@ -109,7 +109,7 @@ static const char *rtypetext[] = {
 	"MF",				/* 4 */
 	"is an alias for",		/* 5 */
 	"SOA",				/* 6 */
-	"MB",				/* 7 */	
+	"MB",				/* 7 */
 	"MG",				/* 8 */
 	"MR",				/* 9 */
 	"NULL",				/* 10 */
@@ -226,7 +226,7 @@ show_usage(void) {
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n", stderr);
 	exit(exitcode);
-}				
+}
 
 void
 dighost_shutdown(void) {
@@ -301,7 +301,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
 	const char *rtt;
-	
+
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
 	else
@@ -345,7 +345,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 #else
 				UNUSED(first); /* Shut up compiler. */
 #endif
-			} else { 
+			} else {
 				loopresult = dns_rdataset_first(rdataset);
 				while (loopresult == ISC_R_SUCCESS) {
 					dns_rdataset_current(rdataset, &rdata);
@@ -372,14 +372,14 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 			else
 				printf("%.*s", (int)r.length, (char *)r.base);
 		}
-		
+
 		result = dns_message_nextname(msg, sectionid);
 		if (result == ISC_R_NOMORE)
 			break;
 		else if (result != ISC_R_SUCCESS)
 			return (result);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -393,7 +393,7 @@ printrdata(dns_message_t *msg, dns_rdataset_t *rdataset, dns_name_t *owner,
 	char t[4096];
 
 	UNUSED(msg);
-	if (headers) 
+	if (headers)
 		printf(";; %s SECTION:\n", set_name);
 
 	isc_buffer_init(&target, t, sizeof(t));
@@ -569,7 +569,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			tr.length = strlen(isc_commandline_argument);
 			result = dns_rdatatype_fromtext(&rdtype,
 						   (isc_textregion_t *)&tr);
-			
+
 			if (result != ISC_R_SUCCESS)
 				fprintf (stderr,"Warning: invalid type: %s\n",
 					 isc_commandline_argument);
@@ -581,7 +581,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			tr.length = strlen(isc_commandline_argument);
 			result = dns_rdataclass_fromtext(&rdclass,
 						   (isc_textregion_t *)&tr);
-			
+
 			if (result != ISC_R_SUCCESS)
 				fprintf (stderr,"Warning: invalid class: %s\n",
 					 isc_commandline_argument);
@@ -621,7 +621,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			show_details = ISC_TRUE;
 			break;
 		case 'N':
-			debug("setting NDOTS to %s", 
+			debug("setting NDOTS to %s",
 			      isc_commandline_argument);
 			ndots = atoi(isc_commandline_argument);
 			break;
@@ -639,9 +639,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		debug("server is %s", srv->servername);
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
-	
+
 	lookup->pending = ISC_FALSE;
-	/* 
+	/*
 	 * XXXMWS Add IPv6 translation here, probably using inet_pton
 	 * to extract the formatted text.
 	 */

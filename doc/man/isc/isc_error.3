@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: isc_error.3,v 1.2 2000/07/27 09:42:53 tale Exp $
-.\" 
+.\"
+.\" $Id: isc_error.3,v 1.3 2000/08/01 01:19:11 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt error 3
 .Os BIND9 9
@@ -24,11 +24,11 @@
 .Nd map POSIX error codes to BIND9 error codes
 .Sh SYNOPSIS
 .Fd #include <config.h>
- 
+
 .Fd #include <errno.h>
- 
+
 .Fd #include <isc/result.h>
- 
+
 .Fd #include "errno2result.h"
 .Ft isc_result_t
 .Fo isc__errno2result
@@ -45,8 +45,8 @@ The function is documented here to indicate how POSIX error codes
 are mapped to their ISC equivalents.
 .Pp
 .Sh RETURN VALUES
-When 
-.Fa posixerrno 
+When
+.Fa posixerrno
 is set to the POSIX error codes
 .Er ENOTDIR ,
 .Er ELOOP ,
@@ -54,12 +54,12 @@ is set to the POSIX error codes
 .Er ENAMETOOLONG ,
 and
 .Er EBADF ,
-.Fn isc__errno2result 
+.Fn isc__errno2result
 returns
 .Er ISC_R_INVALIDFILE .
 .Er ISC_R_FILENOTFOUND
 is returned when
-.Fa posixerrno 
+.Fa posixerrno
 is set to
 .Er ENOENT .
 A retun value of
@@ -72,19 +72,19 @@ is set to
 .Er EIO
 .Fn isc__errno2result
 returns
-.Er ISC_R_IOERROR 
+.Er ISC_R_IOERROR
 and if the error code is
 .Er ENOMEM ,
-.Er ISC_R_NOMEMORY 
+.Er ISC_R_NOMEMORY
 is returned.
 For all other values of
 .Fa posixerrno ,
 .Fn isc__errno2result
-returns 
+returns
 .Er ISC_R_UNEXPECTED .
 .Sh SEE ALSO
 .Xr errno 2 ,
-.Xr perror 3 
+.Xr perror 3
 .Sh BUGS
 Returning
 .Er ISC_R_UNEXPECTED

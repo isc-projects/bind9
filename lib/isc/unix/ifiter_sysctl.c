@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,13 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.9 2000/07/27 09:52:45 tale Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.10 2000/08/01 01:31:20 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
  * See TCP/IP Illustrated Volume 2, sections 19.8, 19.14,
  * and 19.16.
- */ 
+ */
 
 #include <sys/param.h>
 #include <sys/sysctl.h>
@@ -39,7 +39,7 @@
                     : sizeof(long))
 #endif
 
-#define IFITER_MAGIC		0x49464953U	/* IFIS. */	
+#define IFITER_MAGIC		0x49464953U	/* IFIS. */
 #define VALID_IFITER(t)		((t) != NULL && (t)->magic == IFITER_MAGIC)
 
 struct isc_interfaceiter {
@@ -56,23 +56,23 @@ struct isc_interfaceiter {
 
 static int mib[6] = {
 	CTL_NET,
-	PF_ROUTE, 
-        0, 
+	PF_ROUTE,
+        0,
 	0, 			/* Any address family. */
-        NET_RT_IFLIST, 
+        NET_RT_IFLIST,
 	0 			/* Flags. */
 };
-	
+
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_interfaceiter_t *iter;
 	isc_result_t result;
 	size_t bufsize;
-	size_t bufused;	
+	size_t bufused;
 	REQUIRE(mctx != NULL);
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
-	
+
 	iter = isc_mem_get(mctx, sizeof(*iter));
 	if (iter == NULL)
 		return (ISC_R_NOMEMORY);
@@ -85,7 +85,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 	bufsize = 0;
 	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, 
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "getting interface list size: sysctl: %s",
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
@@ -101,7 +101,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	bufused = bufsize;
 	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t) 0) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, 
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "getting interface list: sysctl: %s",
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
@@ -116,7 +116,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 */
 	iter->pos = (unsigned int) -1;
 	iter->result = ISC_R_FAILURE;
-	
+
 	iter->magic = IFITER_MAGIC;
 	*iterp = iter;
 	return (ISC_R_SUCCESS);
@@ -139,34 +139,34 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 static isc_result_t
 internal_current(isc_interfaceiter_t *iter) {
 	struct ifa_msghdr *ifam, *ifam_end;
-	
+
 	REQUIRE(VALID_IFITER(iter));
 	REQUIRE (iter->pos < (unsigned int) iter->bufused);
 
 	ifam = (struct ifa_msghdr *) ((char *) iter->buf + iter->pos);
 	ifam_end = (struct ifa_msghdr *) ((char *) iter->buf + iter->bufused);
-	
+
 	if (ifam->ifam_type == RTM_IFINFO) {
 		struct if_msghdr *ifm = (struct if_msghdr *) ifam;
 		struct sockaddr_dl *sdl = (struct sockaddr_dl *) (ifm + 1);
 		unsigned int namelen;
 
 		memset(&iter->current, 0, sizeof(iter->current));
-		
+
 		namelen = sdl->sdl_nlen;
 		if (namelen > sizeof(iter->current.name) - 1)
 			namelen = sizeof(iter->current.name) - 1;
-		    
+
 		memcpy(iter->current.name, sdl->sdl_data, namelen);
 
 		iter->current.flags = 0;
 
 		if ((ifam->ifam_flags & IFF_UP) != 0)
 			iter->current.flags |= INTERFACE_F_UP;
-		
+
 		if ((ifam->ifam_flags & IFF_POINTOPOINT) != 0)
 			iter->current.flags |= INTERFACE_F_POINTTOPOINT;
-		
+
 		if ((ifam->ifam_flags & IFF_LOOPBACK) != 0)
 			iter->current.flags |= INTERFACE_F_LOOPBACK;
 
@@ -191,7 +191,7 @@ internal_current(isc_interfaceiter_t *iter) {
 				continue;
 
 			INSIST(sa < (struct sockaddr *) ifam_end);
-			
+
 			switch (i) {
 			case RTAX_NETMASK: /* Netmask */
 				mask_sa = sa;
@@ -223,18 +223,18 @@ internal_current(isc_interfaceiter_t *iter) {
 
 		if (addr_sa == NULL)
 			return (ISC_R_IGNORE);
-		
+
 		family = addr_sa->sa_family;
 		if (family != AF_INET) /* XXX IP6 */
 			return (ISC_R_IGNORE);
 
 		iter->current.af = family;
-		
+
 		get_addr(family, &iter->current.address, addr_sa);
 
 		if (mask_sa != NULL)
 			get_addr(family, &iter->current.netmask, mask_sa);
-		
+
 		if (dst_sa != NULL &&
 		    (iter->current.flags & IFF_POINTOPOINT) != 0)
 			get_addr(family, &iter->current.dstaddress, dst_sa);
@@ -247,7 +247,7 @@ internal_current(isc_interfaceiter_t *iter) {
 }
 
 /*
- * Step the iterator to the next interface.  Unlike 
+ * Step the iterator to the next interface.  Unlike
  * isc_interfaceiter_next(), this may leave the iterator
  * positioned on an interface that will ultimately
  * be ignored.  Return ISC_R_NOMORE if there are no more
@@ -257,14 +257,14 @@ static isc_result_t
 internal_next(isc_interfaceiter_t *iter) {
 	struct ifa_msghdr *ifam;
 	REQUIRE (iter->pos < (unsigned int) iter->bufused);
-	
+
 	ifam = (struct ifa_msghdr *) ((char *) iter->buf + iter->pos);
 
 	iter->pos += ifam->ifam_msglen;
 
 	if (iter->pos >= iter->bufused)
 		return (ISC_R_NOMORE);
-	
+
 	return (ISC_R_SUCCESS);
 }
 

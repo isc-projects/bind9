@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.23 2000/07/27 09:53:44 tale Exp $ */
+/* $Id: lwconfig.c,v 1.24 2000/08/01 01:32:20 tale Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -94,14 +94,14 @@ lwres_resetaddr(lwres_addr_t *addr);
 static lwres_result_t
 lwres_create_addr(const char *buff, lwres_addr_t *addr);
 
-static int lwresaddr2af(int lwresaddrtype); 
+static int lwresaddr2af(int lwresaddrtype);
 
 
 static int
 lwresaddr2af(int lwresaddrtype)
 {
 	int af = 0;
-	
+
 	switch (lwresaddrtype) {
 	case LWRES_ADDRTYPE_V4:
 		af = AF_INET;
@@ -171,7 +171,7 @@ getword(FILE *fp, char *buffer, size_t size) {
 
 	if (ch == EOF)
 		return (EOF);
-	
+
 	do {
 		*p = '\0';
 
@@ -293,8 +293,8 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_FAILURE); /* Nothing on line. */
 	else if (res == ' ' || res == '\t')
 		res = eatwhite(fp);
-	
-	if (res != EOF && res != '\n') 
+
+	if (res != EOF && res != '\n')
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word,
@@ -318,7 +318,7 @@ lwres_conf_parsedomain(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_FAILURE); /* Nothing else on line. */
 	else if (res == ' ' || res == '\t')
 		res = eatwhite(fp);
-		
+
 	if (res != EOF && res != '\n')
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
@@ -622,7 +622,7 @@ lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 
 			tmpaddr = confdata->sortlist[i].mask;
 			memset(&tmpaddr.address, 0xff, tmpaddr.length);
-			
+
 			if (memcmp(&tmpaddr.address,
 				   confdata->sortlist[i].mask.address,
 				   confdata->sortlist[i].mask.length) != 0) {

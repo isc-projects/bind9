@@ -15,7 +15,7 @@
 class AHEncryptDecrypt : public B_TypeCheck {
   AHEncryptDecrypt ();
   virtual ~AHEncryptDecrypt () = 0;
-  
+
   virtual int getBlockLen (unsigned int *) = 0;
   virtual int encryptInit
     (B_Key *, B_ALGORITHM_CHOOSER, A_SURRENDER_CTX *) = 0;

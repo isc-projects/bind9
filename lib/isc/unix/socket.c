@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.152 2000/07/27 09:52:52 tale Exp $ */
+/* $Id: socket.c,v 1.153 2000/08/01 01:31:27 tale Exp $ */
 
 #include <config.h>
 
@@ -1256,7 +1256,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 	LOCK(&sock->lock);
 	sock->references++;
 	UNLOCK(&sock->lock);
-	
+
 	*socketp = sock;
 }
 
@@ -1264,7 +1264,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
  * Dereference a socket.  If this is the last reference to it, clean things
  * up by destroying the socket.
  */
-void 
+void
 isc_socket_detach(isc_socket_t **socketp) {
 	isc_socket_t *sock;
 	isc_boolean_t kill_socket = ISC_FALSE;
@@ -1279,7 +1279,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 	if (sock->references == 0)
 		kill_socket = ISC_TRUE;
 	UNLOCK(&sock->lock);
-	
+
 	if (kill_socket)
 		destroy(&sock);
 
@@ -1810,7 +1810,7 @@ watcher(void *uap) {
 				}
 			}
 #endif
-					
+
 			UNLOCK(&manager->lock);
 
 			cc = select(maxfd, &readfds, &writefds, NULL, NULL);
@@ -1931,9 +1931,9 @@ watcher(void *uap) {
 				manager->fdstate[i] = CLOSED;
 				FD_CLR(i, &manager->read_fds);
 				FD_CLR(i, &manager->write_fds);
-				
+
 				close(i);
-				
+
 				continue;
 			}
 
@@ -1995,7 +1995,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	manager = isc_mem_get(mctx, sizeof *manager);
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	memset(manager->fds, 0, sizeof(manager->fds));

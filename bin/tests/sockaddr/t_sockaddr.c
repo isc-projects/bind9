@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_sockaddr.c,v 1.9 2000/07/27 09:39:05 tale Exp $ */
+/* $Id: t_sockaddr.c,v 1.10 2000/08/01 01:14:17 tale Exp $ */
 
 #include <config.h>
 
@@ -29,11 +29,11 @@ static int
 test_isc_sockaddr_eqaddrprefix(void) {
 	struct in_addr ina_a;
 	struct in_addr ina_b;
-	struct in_addr ina_c;	
+	struct in_addr ina_c;
 	isc_sockaddr_t isa_a;
 	isc_sockaddr_t isa_b;
 	isc_sockaddr_t isa_c;
-		
+
 	if (inet_pton(AF_INET, "194.100.32.87", &ina_a) < 0)
 		return T_FAIL;
 	if (inet_pton(AF_INET, "194.100.32.80", &ina_b) < 0)
@@ -76,13 +76,13 @@ test_isc_netaddr_masktoprefixlen(void) {
 	struct in_addr na_a;
 	struct in_addr na_b;
 	struct in_addr na_c;
-	struct in_addr na_d;		
+	struct in_addr na_d;
 	isc_netaddr_t ina_a;
 	isc_netaddr_t ina_b;
 	isc_netaddr_t ina_c;
-	isc_netaddr_t ina_d;	
+	isc_netaddr_t ina_d;
 	unsigned int plen;
-		
+
 	if (inet_pton(AF_INET, "0.0.0.0", &na_a) < 0)
 		return T_FAIL;
 	if (inet_pton(AF_INET, "255.255.255.254", &na_b) < 0)
@@ -128,7 +128,7 @@ t2(void) {
 	result = test_isc_netaddr_masktoprefixlen();
 	t_result(result);
 }
-		
+
 testspec_t	T_testlist[] = {
 	{	t1,	"isc_sockaddr_eqaddrprefix"	},
 	{	t2,	"isc_netaddr_masktoprefixlen"	},

@@ -27,16 +27,16 @@ POINTER infoType;
 POINTER info;
 {
   int status;
-  
+
   if ((status = B_MemoryPoolRealloc
        (&infoCache->memoryPool, (POINTER *)&infoCache->z.infos,
         (infoCache->z.infoCount + 1) * sizeof (infoCache->z.infos[0]))) != 0)
     return (status);
-    
+
   infoCache->z.infos[infoCache->z.infoCount].infoType = infoType;
   infoCache->z.infos[infoCache->z.infoCount].info = info;
-  infoCache->z.infoCount++;        
-  
+  infoCache->z.infoCount++;
+
   return (0);
 }
 
@@ -49,7 +49,7 @@ POINTER *info;
 POINTER infoType;
 {
   unsigned int i;
-  
+
   for (i = 0; i < infoCache->z.infoCount; ++i) {
     if (infoCache->z.infos[i].infoType == infoType) {
       /* The info has already been constructed. */
@@ -57,7 +57,7 @@ POINTER infoType;
       return (0);
     }
   }
-  
+
   return (BE_NOT_SUPPORTED);
 }
 

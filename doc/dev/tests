@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: tests,v 1.6 2000/06/28 19:01:52 gson Exp $
+$Id: tests,v 1.7 2000/08/01 01:18:26 tale Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.
@@ -11,7 +11,7 @@ document how they work.
 
 The scripts driving the build system are in ~wpk/b9t.  They are not
 under CVS control.  The builds are driven by cron jobs separately
-installed on each build system, running as user wpk. 
+installed on each build system, running as user wpk.
 
 The sources are checked out, and the web reports are generated,
 on bb, as driven by the following cron jobs:
@@ -78,7 +78,7 @@ On some, it's on NFS; in this case the location is defined in
 The output from the make process is in
 ~wpk/b9t/hosts/$PLATFORM/b9t-status, and the output from
 The output from the later stages of the process is under
-/proj/build-reports/bind9/hosts/$PLATFORM.  To make the files 
+/proj/build-reports/bind9/hosts/$PLATFORM.  To make the files
 harder to find (?), they have names starting with a period:
 
   .populate

@@ -1,11 +1,11 @@
 /*
  * Portions Copyright (C) 2000  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
  * NETWORK ASSOCIATES DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
  * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.36 2000/06/22 02:48:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.37 2000/08/01 01:11:21 tale Exp $ */
 
 #include <config.h>
 
@@ -185,7 +185,7 @@ main(int argc, char **argv) {
 			fprintf(stderr, "%s: invalid argument -%c\n",
 				program, ch);
 			usage();
-		} 
+		}
 	}
 
 	setup_entropy(mctx, randomfile, &ectx);
@@ -319,8 +319,8 @@ main(int argc, char **argv) {
 
 	isc_buffer_init(&buf, filename, sizeof(filename) - 1);
 
-	do { 
-		conflict = ISC_FALSE; 
+	do {
+		conflict = ISC_FALSE;
 		oldkey = NULL;
 
 		/* generate the key */
@@ -334,14 +334,14 @@ main(int argc, char **argv) {
 			      dst_result_totext(ret));
 			exit(-1);
 		}
-		
+
 		/*
 		 * Try to read a key with the same name, alg and id from disk.
-		 * If there is one we must continue generating a new one 
+		 * If there is one we must continue generating a new one
 		 * unless we were asked to generate a null key, in which
 		 * case we return failure.
 		 */
-		ret = dst_key_fromfile(name, dst_key_id(key), alg, 
+		ret = dst_key_fromfile(name, dst_key_id(key), alg,
 				       DST_TYPE_PRIVATE, NULL, mctx, &oldkey);
 		/* do not overwrite an existing key  */
 		if (ret == ISC_R_SUCCESS) {

@@ -28,7 +28,7 @@ B_ALGORITHM_OBJ *algorithmObject;
 
   /* First construct base class */
   B_AlgorithmConstructor (&algorithmWrap->algorithm);
-  
+
   algorithmWrap->typeTag = &ALGORITHM_TYPE_TAG;
   algorithmWrap->selfCheck = algorithmWrap;
   return (0);
@@ -59,7 +59,7 @@ POINTER info;
 {
   B_AlgorithmInfoType *algorithmInfoType;
   int status;
-  
+
   if ((status = AlgorithmWrapCheck (THE_ALG_WRAP)) != 0)
     return (status);
 
@@ -68,7 +68,7 @@ POINTER info;
    */
   if ((*infoType) ((POINTER *)&algorithmInfoType) != 0)
     return (BE_KEY_OPERATION_UNKNOWN);
-  
+
   return (B_AlgorithmSetInfo
           (&THE_ALG_WRAP->algorithm, algorithmInfoType, info));
 }
@@ -80,7 +80,7 @@ B_INFO_TYPE infoType;
 {
   B_AlgorithmInfoType *algorithmInfoType;
   int status;
-  
+
   if ((status = AlgorithmWrapCheck (THE_ALG_WRAP)) != 0)
     return (status);
 
@@ -89,7 +89,7 @@ B_INFO_TYPE infoType;
    */
   if ((*infoType) ((POINTER *)&algorithmInfoType) != 0)
     return (BE_KEY_OPERATION_UNKNOWN);
-  
+
   return (B_AlgorithmGetInfo
           (&THE_ALG_WRAP->algorithm, info, algorithmInfoType));
 }

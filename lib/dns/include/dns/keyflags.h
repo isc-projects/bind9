@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyflags.h,v 1.7 2000/07/27 09:47:55 tale Exp $ */
+/* $Id: keyflags.h,v 1.8 2000/08/01 01:24:13 tale Exp $ */
 
 #ifndef DNS_KEYFLAGS_H
 #define DNS_KEYFLAGS_H 1
@@ -32,7 +32,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source);
  * Convert the text 'source' refers to into a DNSSEC KEY flags value.
  * The text may contain either a set of flag mnemonics separated by
  * vertical bars or a decimal flags value.  For compatibility with
- * older versions of BIND and the DNSSEC signer, octal values 
+ * older versions of BIND and the DNSSEC signer, octal values
  * prefixed with a zero and hexadecimal values prefixed with "0x"
  * are also accepted.
  *

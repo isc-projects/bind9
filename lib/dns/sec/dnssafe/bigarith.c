@@ -14,7 +14,7 @@ UINT2 *a;
 unsigned int n;
 {
   register unsigned int i;
-  
+
   for (i = 0; i < n; i++)
     a[i] = 0;
 }
@@ -61,7 +61,7 @@ unsigned int n;
     if (a[i])
       carry = 0;
   }
-  
+
   a[i] = ~b[i] + carry;
 }
 
@@ -77,7 +77,7 @@ unsigned int n;
     if (a[i])
       carry = 0;
   }
-  
+
   if (carry)
     a[i]++;
 }
@@ -94,7 +94,7 @@ unsigned int n;
     if (a[i] != 0xFFFF)
       borrow = 0;
   }
-  
+
   if (borrow)
     a[i]--;
 }
@@ -104,7 +104,7 @@ UINT2 *a;
 unsigned int n;
 {
   register int i;
-  
+
   if (a[n-1] & 0x8000)
     return (-1);
   for (i = n-1; i >= 0; i--)
@@ -118,7 +118,7 @@ UINT2 *a, *b;
 unsigned int n;
 {
   register unsigned int i;
-  
+
   for (i = 0; i < n; i++)
     a[i] = b[i];
 }
@@ -130,7 +130,7 @@ UINT2 *a;
 unsigned int n;
 {
   register int i;
-  
+
   for (i = n-1; i >= 0; i--)
     if (a[i])
       return (i+1);

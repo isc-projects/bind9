@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: dnssec-keygen.8,v 1.6 2000/07/27 09:42:32 tale Exp $
-.\" 
+.\"
+.\" $Id: dnssec-keygen.8,v 1.7 2000/08/01 01:18:49 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt DNSSEC-KEYGEN 8
 .Os BIND9 9
@@ -96,7 +96,7 @@ option specifies how the generated key will be used.
 .Ar nametype
 can be either
 .Dv ZONE ,
-.Dv HOST , 
+.Dv HOST ,
 .Dv ENTITY ,
 or
 .Dv USER
@@ -124,7 +124,7 @@ that is to be used.
 The only supported values value of
 .Ar generator
 are 2 and 5.
-If no Diffie-Hellman generator is supplied, a known prime 
+If no Diffie-Hellman generator is supplied, a known prime
 from RFC2539 will be used if possible; otherwise 2 will be used as the
 generator.
 .Pp
@@ -133,7 +133,7 @@ The
 option sets the protocol value for the generated key to
 .Ar protocol-value .
 The default is 2 (email) for keys of type
-.Dv USER 
+.Dv USER
 and 3 (DNSSEC) for all other key types.
 Other possible values for this argument are listed in RFC2535 and its
 successors.
@@ -149,7 +149,7 @@ will prompt for keyboard input and use the time intervals between
 keystrokes to provide randomness.
 The
 .Fl r
-option overrides this behaviour, making 
+option overrides this behaviour, making
 .Nm dnssec-keygen
 use
 .Ar randomdev
@@ -173,16 +173,16 @@ confidentiality.
 can be one of
 .Dv AUTHCONF ,
 .Dv NOAUTHCONF ,
-.Dv NOAUTH 
+.Dv NOAUTH
 or
 .Dv NOCONF .
 The default is
 .Dv AUTHCONF .
 If type is
-.Dv AUTHCONF 
+.Dv AUTHCONF
 the key can be used for authentication and confidentialty.
 Setting
-.Ar type 
+.Ar type
 to
 .Dv NOAUTHCONF
 indicates that the key cannot be used for authentication or confidentialty.
@@ -195,14 +195,14 @@ Similarly,
 defines that the key cannot be used for confidentiality though it can
 be used for authentication.
 .Pp
-The 
+The
 .Fl v
 option can be used to make
 .Nm dnssec-keygen
 more verbose.
 As the debugging/tracing level
 .Ar level
-increases, 
+increases,
 .Nm dnssec-keygen
 generates increasingly detailed reports about what it is doing.
 The default level is zero.
@@ -245,7 +245,7 @@ key(s) for generating or validating signatures.
 The
 .Ar .key
 file contains a KEY resource record that can be inserted into a zone file
-with a 
+with a
 .Dv $INCLUDE
 statement.
 The private part of the key is in the
@@ -259,7 +259,7 @@ The private part of the key is used by
 .Xr dnssec-signzone 8
 to generate signatures and the public part is used to verify the
 signatures.
-Both 
+Both
 .Ar .key
 and
 .Ar .private
@@ -278,13 +278,13 @@ has printed the key identification string
 .Dv Kexample.com.+003+26160 ,
 indicating a DSA key with identifier 26160.
 It will also have created the files
-.Pa Kexample.com.+003+26160.key 
+.Pa Kexample.com.+003+26160.key
 and
 .Pa Kexample.com.+003+26160.private
 containing respectively the public and private keys for the generated
 DSA key.
 .Sh FILES
-.Pa /dev/random 
+.Pa /dev/random
 .Sh SEE ALSO
 .Xr RFC2535,
 .Xr RFC2845,
@@ -296,7 +296,7 @@ DSA key.
 The naming convention for the public and private key files is a little
 clumsy.
 It won't work for domain names that are longer than 236 characters
-because of the 
+because of the
 .Ar .+aaa+iiiii.private
 suffix results in filenames that are too long for most
 .Ux

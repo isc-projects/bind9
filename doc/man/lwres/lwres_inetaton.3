@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: lwres_inetaton.3,v 1.2 2000/07/27 09:45:18 tale Exp $
-.\" 
+.\"
+.\" $Id: lwres_inetaton.3,v 1.3 2000/08/01 01:21:39 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt LWRES_INETATON 3
 .Os BIND9 9
@@ -25,7 +25,7 @@
 .Sh SYNOPSIS
 .Fd #include <lwres/int.h>
 .Fd #include <lwres/net.h>
-.Fd 
+.Fd
 .Ft int
 .Fo lwres_net_aton
 .Fa "const char *cp"
@@ -65,8 +65,8 @@ a leading 0x or 0X implies hex; a decimal number is assumed otherwise.
 .Pp
 If a one-part address is given, its value is placed in the network
 address without any byte rearrangement.
-When a two-part address - 
-.Li a.b - 
+When a two-part address -
+.Li a.b -
 is supplied, the last part is considered a 24-bit quantity and placed
 in the bottom 3 bytes of
 .Li addr->s_addr .

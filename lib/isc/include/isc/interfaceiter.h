@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.h,v 1.8 2000/07/27 09:51:42 tale Exp $ */
+/* $Id: interfaceiter.h,v 1.9 2000/08/01 01:30:16 tale Exp $ */
 
 #ifndef ISC_INTERFACEITER_H
 #define ISC_INTERFACEITER_H 1
@@ -52,7 +52,7 @@
 
 struct isc_interface {
 	char name[32];			/* Interface name, null-terminated. */
-	unsigned int af;		/* Address family. */ 
+	unsigned int af;		/* Address family. */
 	isc_netaddr_t address;		/* Local address. */
 	isc_netaddr_t netmask;		/* Network mask. */
 	isc_netaddr_t dstaddress; 	/* Destination address
@@ -93,7 +93,7 @@ isc_interfaceiter_first(isc_interfaceiter_t *iter);
  *	ISC_R_SUCCESS		Success.
  *	ISC_R_NOMORE		There are no interfaces.
  */
-     
+
 isc_result_t
 isc_interfaceiter_current(isc_interfaceiter_t *iter,
 			  isc_interface_t *ifdata);
@@ -108,7 +108,7 @@ isc_interfaceiter_current(isc_interfaceiter_t *iter,
  * Returns:
  *	ISC_R_SUCCESS		Success.
  */
-     
+
 isc_result_t
 isc_interfaceiter_next(isc_interfaceiter_t *iter);
 /*

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1997-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.25 2000/07/27 09:50:49 tale Exp $ */
+/* $Id: heap.c,v 1.26 2000/08/01 01:29:23 tale Exp $ */
 
 /*
  * Heap implementation of priority queues adapted from the following:
@@ -94,7 +94,7 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	heap->index = index;
 
 	*heapp = heap;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -128,7 +128,7 @@ resize(isc_heap_t *heap) {
 		return (ISC_FALSE);
 	if (heap->array != NULL) {
 		memcpy(new_array, heap->array, heap->size * sizeof (void *));
-		isc_mem_put(heap->mctx, heap->array, 
+		isc_mem_put(heap->mctx, heap->array,
 			    heap->size * sizeof (void *));
 	}
 	heap->size = new_size;
@@ -141,7 +141,7 @@ static void
 float_up(isc_heap_t *heap, unsigned int i, void *elt) {
 	unsigned int p;
 
-	for (p = heap_parent(i); 
+	for (p = heap_parent(i);
 	     i > 1 && heap->compare(elt, heap->array[p]);
 	     i = p, p = heap_parent(i)) {
 		heap->array[i] = heap->array[p];
@@ -189,7 +189,7 @@ isc_heap_insert(isc_heap_t *heap, void *elt) {
 	i = ++heap->last;
 	if (heap->last >= heap->size && !resize(heap))
 		return (ISC_R_NOMEMORY);
-	
+
 	float_up(heap, i, elt);
 
 	return (ISC_R_SUCCESS);
@@ -220,7 +220,7 @@ void
 isc_heap_increased(isc_heap_t *heap, unsigned int i) {
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
-	
+
 	float_up(heap, i, heap->array[i]);
 }
 
@@ -228,7 +228,7 @@ void
 isc_heap_decreased(isc_heap_t *heap, unsigned int i) {
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
-	
+
 	sink_down(heap, i, heap->array[i]);
 }
 

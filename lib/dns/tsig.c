@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.81 2000/07/31 21:07:11 tale Exp $
+ * $Id: tsig.c,v 1.82 2000/08/01 01:23:00 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -167,7 +167,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 				 isc_result_totext(ret));
 		return (ISC_R_UNEXPECTED);
 	}
-	
+
 	tkey->magic = TSIG_MAGIC;
 
 	if (key != NULL)
@@ -310,7 +310,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_putuint32(&otherbuf,
 				     (isc_uint32_t)(tsig.timesigned &
 						    0xFFFFFFFF));
-		
+
 	}
 	if (!dns_tsigkey_empty(key) && tsig.error != dns_tsigerror_badsig) {
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
@@ -606,7 +606,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
-	
+
 	/*
 	 * Do the key name and algorithm match that of the query?
 	 */
@@ -630,7 +630,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		ret = ISC_R_NOTFOUND;
 		if (ring1 != NULL)
 			ret = dns_tsigkey_find(&tsigkey, keyname,
-					       &tsig.algorithm, ring1); 
+					       &tsig.algorithm, ring1);
 		if (ret == ISC_R_NOTFOUND && ring2 != NULL)
 			ret = dns_tsigkey_find(&tsigkey, keyname,
 					       &tsig.algorithm, ring2);
@@ -855,7 +855,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
-	
+
 		/*
 		 * Do the key name and algorithm match that of the query?
 		 */
@@ -1067,7 +1067,7 @@ isc_result_t
 dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	isc_result_t result;
 	dns_tsig_keyring_t *ring;
-	
+
 	REQUIRE(mctx != NULL);
 	REQUIRE(ringp != NULL);
 	REQUIRE(*ringp == NULL);
@@ -1075,7 +1075,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
 	if (ring == NULL)
 		return (ISC_R_NOMEMORY);
-		
+
 	result = isc_rwlock_init(&ring->lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1083,7 +1083,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	
+
 	ring->keys = NULL;
 	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);
 	if (result != ISC_R_SUCCESS) {

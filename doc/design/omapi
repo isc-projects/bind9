@@ -1,7 +1,7 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: omapi,v 1.4 2000/06/22 21:53:55 tale Exp $
+$Id: omapi,v 1.5 2000/08/01 01:18:13 tale Exp $
 
 This file documents the protocol that the ISC DHCP server and ISC
 Object Management clients (clients that use the ISC Object Management
@@ -166,7 +166,7 @@ Message types:
 	invalid handle - the handle does not refer to a known object
 	permisson denied - the handle refers to an object that the
 			   requestor does not have permission to
-			   examine. 
+			   examine.
 
 3: update
 
@@ -253,7 +253,7 @@ dhcpctl_status dhcpctl_connect (dhcpctl_handle *connection,
 	synchronous
 	returns nonzero status code if it didn't connect, zero otherwise
 	stores connection handle through connection, which can be used
-	for subsequent access to the specified server. 
+	for subsequent access to the specified server.
 	server_name is the name of the server, and port is the TCP
 	port on which it is listening.
 	authinfo is the handle to an object containing authentication
@@ -270,7 +270,7 @@ dhcpctl_status dhcpctl_open_object (dhcpctl_handle h,
 	flags include:
 	   DHCPCTL_CREATE - if the object doesn't exist, create it
 	   DHCPCTL_UPDATE - update the object on the server using the
-			    attached parameters 
+			    attached parameters
 	   DHCPCTL_EXCL - error if the object exists and DHCPCTL_CREATE
 			  was also specified
 
@@ -296,7 +296,7 @@ dhcpctl_status dhcpctl_set_callback (dhcpctl_handle h, void *data,
 	status code is returned otherwise.
 	Upon completion of whatever task is in process, the callback
 	will be passed the handle to the object, a status code
-	indicating what happened, and the anonymous pointer passed to 
+	indicating what happened, and the anonymous pointer passed to
 
 dhcpctl_status dhcpctl_wait_for_completion (dhcpctl_handle h,
 					    dhcpctl_status *s)
@@ -315,7 +315,7 @@ dhcpctl_status dhcpctl_get_value (data_string *result,
 				  dhcpctl_handle h, char *value_name)
 	synchronous
 	returns zero if the call succeeded, a nonzero status code if
-	it didn't. 
+	it didn't.
 	result is the address of an empty data string (initialized
 	with bzero or cleared with data_string_forget).   On
 	successful completion, the addressed data string will contain

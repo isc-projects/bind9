@@ -26,7 +26,7 @@ Status of this Memo
     The list of Internet-Draft Shadow Directories can be accessed at
     http://www.ietf.org/shadow.html.
 
-   
+
 
 1.  Introduction and Terminology
 

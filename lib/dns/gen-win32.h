@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.5 2000/07/27 09:46:05 tale Exp $ */
+/* $Id: gen-win32.h,v 1.6 2000/08/01 01:22:22 tale Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -66,7 +66,7 @@
  * directly portable between Unix-like systems and Windows NT, option
  * parsing and directory scanning.  It is here because it was decided
  * that the "gen" build utility was not to depend on libisc.a, so
- * the functions delcared in isc/commandline.h and isc/dir.h could not 
+ * the functions delcared in isc/commandline.h and isc/dir.h could not
  * be used.
  *
  * The commandline stuff is pretty much a straight copy from the initial
@@ -247,7 +247,7 @@ start_directory(char *path, isc_dir_t *dir) {
 		*p++ = '\\';
 	*p++ = '*';
 	*p++ = '\0';
- 
+
 	dir->first_file = ISC_TRUE;
 
 	dir->handle = FindFirstFile(pattern, &dir->find_data);

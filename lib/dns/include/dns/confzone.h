@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.38 2000/07/27 09:47:45 tale Exp $ */
+/* $Id: confzone.h,v 1.39 2000/08/01 01:24:03 tale Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -25,7 +25,7 @@
  *****/
 
 /*
- * Zones as seen by the config file parser. The data structures here define 
+ * Zones as seen by the config file parser. The data structures here define
  * the zone data as it is in the config file. The data structures here do
  * *not* define the things like red-black trees for named's internal data
  * structures.
@@ -36,7 +36,7 @@
  *
  * MP:
  *	Client must do necessary locking.
- *	
+ *
  * Reliability:
  *
  *	No problems.
@@ -48,7 +48,7 @@
  * Security:
  *
  *	N/A
- *	
+ *
  */
 
 /***
@@ -162,8 +162,8 @@ struct dns_c_stub_zone {
 	dns_c_pklist_t	       *pubkeylist;
 	in_port_t		master_port;
 	dns_c_iplist_t	       *master_ips;
-	isc_sockaddr_t		transfer_source; 
-	isc_sockaddr_t		transfer_source_v6; 
+	isc_sockaddr_t		transfer_source;
+	isc_sockaddr_t		transfer_source_v6;
 	isc_uint32_t		max_trans_time_in;
 	isc_uint32_t		max_trans_idle_in;
 
@@ -191,19 +191,19 @@ struct dns_c_hint_zone {
 
 struct dns_c_zone {
 	isc_int32_t			magic;
-	
+
 	isc_mem_t		       *mem;
 	isc_uint8_t			refcount;
-	
+
 	char			       *name; /* e.g. "foo.com" */
 	char			       *internalname; /* e.g. "foo.com.ext" */
 	char			       *database;
-	dns_rdataclass_t		zclass; 
+	dns_rdataclass_t		zclass;
 	dns_c_view_t		       *view;
 	isc_boolean_t		       *enabled;
-	
+
 	dns_c_zonetype_t		ztype;
-	union 
+	union
 	{
 		dns_c_masterzone_t	mzone;
 		dns_c_slavezone_t	szone;

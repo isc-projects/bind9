@@ -1,11 +1,11 @@
 #!/bin/sh
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,11 +15,11 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.1 2000/07/28 01:47:16 gson Exp $
+# $Id: kit.sh,v 1.2 2000/08/01 01:33:27 tale Exp $
 
 # Make a release kit
 #
-# Usage: sh makekit.sh tag tmpdir 
+# Usage: sh makekit.sh tag tmpdir
 #
 # (e.g., sh makekit.sh v9_0_0b5 /tmp/bindkit
 #

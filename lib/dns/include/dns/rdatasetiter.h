@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatasetiter.h,v 1.11 2000/07/27 09:48:17 tale Exp $ */
+/* $Id: rdatasetiter.h,v 1.12 2000/08/01 01:24:34 tale Exp $ */
 
 #ifndef DNS_RDATASETITER_H
 #define DNS_RDATASETITER_H 1
@@ -34,7 +34,7 @@
  * it, an implementation of the class is required.  This implementation is
  * supplied by the database.
  *
- * It is the client's responsibility to call dns_rdataset_disassociate() 
+ * It is the client's responsibility to call dns_rdataset_disassociate()
  * on all rdatasets returned.
  *
  * XXX <more> XXX
@@ -42,7 +42,7 @@
  * MP:
  *	The iterator itself is not locked.  The caller must ensure
  *	synchronization.
- *	
+ *
  *	The iterator methods ensure appropriate database locking.
  *
  * Reliability:

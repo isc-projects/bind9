@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mg_8.c,v 1.30 2000/07/27 09:49:15 tale Exp $ */
+/* $Id: mg_8.c,v 1.31 2000/08/01 01:25:33 tale Exp $ */
 
 /* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
@@ -33,7 +33,7 @@ fromtext_mg(ARGS_FROMTEXT) {
 	REQUIRE(type == 8);
 
 	UNUSED(rdclass);
-	
+
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
 	dns_name_init(&name, NULL);
@@ -71,7 +71,7 @@ fromwire_mg(ARGS_FROMWIRE) {
 	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-        
+
         dns_name_init(&name, NULL);
         return (dns_name_fromwire(&name, source, dctx, downcase, target));
 }
@@ -157,7 +157,7 @@ freestruct_mg(ARGS_FREESTRUCT) {
 
 	REQUIRE(source != NULL);
 	REQUIRE(mg->common.rdtype == 8);
-	
+
 	if (mg->mctx == NULL)
 		return;
 	dns_name_free(&mg->mg, mg->mctx);

@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -25,8 +25,8 @@
 # The server defaults to 127.0.0.1.
 # The port defaults to 53.
 #
-# The "Special NS rules" tests will only work correctly if the 
-# has no NS records to begin with, or alternatively has a 
+# The "Special NS rules" tests will only work correctly if the
+# has no NS records to begin with, or alternatively has a
 # single NS record pointing at the name "ns1" (relative to
 # the zone name).
 #
@@ -37,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.3 2000/07/27 09:40:32 tale Exp $
+# $Id: update_test.pl,v 1.4 2000/08/01 01:16:14 tale Exp $
 #
 
 use Getopt::Std;
@@ -74,11 +74,11 @@ sub test {
     my ($expected, @records) = @_;
 
     my $update = new Net::DNS::Update("$zone");
-    
+
     foreach $rec (@records) {
 	$update->push(@$rec);
     }
-    
+
     $reply = $res->send($update);
 
     # Did it work?
@@ -166,7 +166,7 @@ test("NOERROR", ["update",
 		 rr_add("e.$zone 300 A 73.80.65.50")]);
 test("NOERROR", ["update",
 		 rr_add("e.$zone 300 A 73.80.65.52"),
-		 rr_add("f.$zone 300 A 73.80.65.52"),		 
+		 rr_add("f.$zone 300 A 73.80.65.52"),
 		 rr_add("e.$zone 300 A 73.80.65.51")]);
 test("NOERROR", ["update",
 		 rr_add("e.$zone 300 TXT 'three'"),

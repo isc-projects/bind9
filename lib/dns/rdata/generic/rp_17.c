@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.26 2000/07/27 09:49:38 tale Exp $ */
+/* $Id: rp_17.c,v 1.27 2000/08/01 01:25:55 tale Exp $ */
 
 /* RFC 1183 */
 
@@ -85,7 +85,7 @@ fromwire_rp(ARGS_FROMWIRE) {
         dns_name_t email;
 
 	UNUSED(rdclass);
-        
+
 	REQUIRE(type == 17);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);

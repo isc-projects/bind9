@@ -1,11 +1,11 @@
 #!/usr/bin/gawk -f
 #
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-#	$Id: ctoman,v 1.4 2000/07/27 09:42:25 tale Exp $
+#	$Id: ctoman,v 1.5 2000/08/01 01:18:40 tale Exp $
 #
 #	ctoman - an awk program that makes a passable job of
 #		 converting ISC BIND9 C files into template
@@ -67,7 +67,7 @@ END {
 	print ".Nd XXX"
 	print ".Sh SYNOPSIS"
 	for (i = 1; i < inc; i++)
-		print ".Fd", inclist[i] 
+		print ".Fd", inclist[i]
 	for (i = 1; i < fnc; i++ ) {
 		print ".Ft", functypes[i]
 		print ".Fo", funclist[i]

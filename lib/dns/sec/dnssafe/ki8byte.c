@@ -36,7 +36,7 @@ POINTER info;
 {
   POINTER newData;
   int status;
-  
+
   /* Copy the 8 byte key. */
   if ((status = B_MemoryPoolAllocAndCopy
        (&key->infoCache.memoryPool, &newData, info, 8)) != 0)
@@ -55,7 +55,7 @@ B_Key *key;
 {
   ITEM *item;
   int status;
-  
+
   /* Try to make one from a KI_Item.  Since KI_Item doesn't
        call KI_8Byte, this should not cause an endless loop.
    */

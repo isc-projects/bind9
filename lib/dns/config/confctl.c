@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.28 2000/07/27 09:47:00 tale Exp $ */
+/* $Id: confctl.c,v 1.29 2000/08/01 01:23:17 tale Exp $ */
 
 #include <config.h>
 
@@ -28,7 +28,7 @@
 isc_result_t
 dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist) {
 	dns_c_ctrllist_t *newl;
-	
+
 	REQUIRE(mem != NULL);
 	REQUIRE (newlist != NULL);
 
@@ -40,7 +40,7 @@ dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist) {
 
 	newl->mem = mem;
 	newl->magic = DNS_C_CONFCTLLIST_MAGIC;
-	
+
 	ISC_LIST_INIT(newl->elements);
 
 	*newlist = newl;
@@ -80,7 +80,7 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl) {
 	}
 
 	REQUIRE(DNS_C_CONFCTLLIST_VALID(cl));
-	
+
 	fprintf(fp, "controls {\n");
 
 	ctl = dns_c_ctrllist_head(cl);
@@ -94,7 +94,7 @@ dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl) {
 			ctl = dns_c_ctrl_next(ctl);
 		}
 	}
-		
+
 	fprintf(fp, "};\n");
 }
 
@@ -106,11 +106,11 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list) {
 
 	REQUIRE(list != NULL);
 	REQUIRE(*list != NULL);
-	
+
 	clist = *list;
 
 	REQUIRE(DNS_C_CONFCTLLIST_VALID(clist));
-	
+
 	ctrl = ISC_LIST_HEAD(clist->elements);
 	while (ctrl != NULL) {
 		tmpctrl = ISC_LIST_NEXT(ctrl, next);
@@ -131,7 +131,7 @@ isc_result_t
 dns_c_ctrl_validate(dns_c_ctrl_t *ctrl)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	
+
 	REQUIRE(DNS_C_CONFCTL_VALID(ctrl));
 
 	if (ctrl->control_type == dns_c_unix_control) {
@@ -154,7 +154,7 @@ dns_c_ctrl_validate(dns_c_ctrl_t *ctrl)
 	return (result);
 }
 
-		
+
 
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
@@ -164,7 +164,7 @@ dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 {
 	dns_c_ctrl_t  *ctrl;
 	isc_result_t	res;
-	
+
 	REQUIRE(mem != NULL);
 	REQUIRE(control != NULL);
 
@@ -200,7 +200,7 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 		   const char *path, int perm, uid_t uid, gid_t gid)
 {
 	dns_c_ctrl_t  *ctrl;
-	
+
 	REQUIRE(mem != NULL);
 	REQUIRE(control != NULL);
 
@@ -218,13 +218,13 @@ dns_c_ctrlunix_new(isc_mem_t *mem, dns_c_ctrl_t **control,
 					/* XXXJAB logwrite */
 		return (ISC_R_NOMEMORY);
 	}
-	
+
 	ctrl->u.unix_v.perm = perm;
 	ctrl->u.unix_v.owner = uid;
 	ctrl->u.unix_v.group = gid;
 
 	ctrl->keyidlist = NULL;
-	
+
 	*control = ctrl;
 
 	return (ISC_R_SUCCESS);
@@ -235,7 +235,7 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 	isc_result_t res = ISC_R_SUCCESS;
 	isc_mem_t *mem;
 	dns_c_ctrl_t *ctrl;
-	
+
 	REQUIRE(control != NULL);
 	REQUIRE(*control != NULL);
 
@@ -266,7 +266,7 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control) {
 	}
 
 	ctrl->magic = 0;
-	
+
 	isc_mem_put(mem, ctrl, sizeof *ctrl);
 
 	*control = NULL;
@@ -280,22 +280,22 @@ dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl) {
 	dns_c_ipmatchlist_t *iml;
 
 	REQUIRE(DNS_C_CONFCTL_VALID(ctl));
-		
+
 	(void) indent;
-	
+
 	if (ctl->control_type == dns_c_inet_control) {
 		port = isc_sockaddr_getport(&ctl->u.inet_v.addr);
 		iml = ctl->u.inet_v.matchlist;
-		
+
 		fprintf(fp, "inet ");
 		dns_c_print_ipaddr(fp,  &ctl->u.inet_v.addr);
-		
+
 		if (port == 0) {
 			fprintf(fp, " port *\n");
 		} else {
 			fprintf(fp, " port %d\n", port);
 		}
-		
+
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "allow ");
 		dns_c_ipmatchlist_print(fp, indent + 2, iml);
@@ -326,7 +326,7 @@ dns_c_ctrllist_head (dns_c_ctrllist_t *list)
 	return(ISC_LIST_HEAD(list->elements));
 }
 
-	
+
 dns_c_ctrl_t *
 dns_c_ctrl_next(dns_c_ctrl_t *ctl)
 {
@@ -334,5 +334,5 @@ dns_c_ctrl_next(dns_c_ctrl_t *ctl)
 
 	return (ISC_LIST_NEXT(ctl, next));
 }
-		
-	
+
+

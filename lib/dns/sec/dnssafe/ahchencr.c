@@ -124,7 +124,7 @@ int AHChooseEncryptDecrypt::encryptUpdate
         partIn, partInLen, surrenderContext)) != 0)
     return (ConvertAlgaeError (status));
   return (0);
-}  
+}
  */
 int AHChooseEncryptEncryptUpdate
   (handler, partOut, partOutLen, maxPartOutLen, partIn, partInLen,

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.34 2000/07/27 09:48:16 tale Exp $ */
+/* $Id: rdataset.h,v 1.35 2000/08/01 01:24:33 tale Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -223,7 +223,7 @@ dns_rdataset_count(dns_rdataset_t *rdataset);
  *	'rdataset' is a valid, associated rdataset.
  *
  * Returns:
- *	The number of records in 'rdataset'.	
+ *	The number of records in 'rdataset'.
  */
 
 isc_result_t

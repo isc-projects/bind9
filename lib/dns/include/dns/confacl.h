@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confacl.h,v 1.13 2000/07/27 09:47:29 tale Exp $ */
+/* $Id: confacl.h,v 1.14 2000/08/01 01:23:47 tale Exp $ */
 
 #ifndef DNS_CONFACL_H
 #define DNS_CONFACL_H 1
@@ -35,7 +35,7 @@
 /*
  * MP:
  *	Caller must do necessary locking.
- *      
+ *
  * Reliability:
  *
  *	No known problems.
@@ -51,7 +51,7 @@
  * Standards:
  *
  *	N/A.
- *      
+ *
  */
 
 /***
@@ -84,7 +84,7 @@ struct dns_c_acl {
 	isc_uint32_t		magic;
 
 	dns_c_acltable_t       *mytable;
-	
+
 	char		       *name;
 	dns_c_ipmatchlist_t    *ipml;
 	isc_boolean_t		is_special;
@@ -94,9 +94,9 @@ struct dns_c_acl {
 
 struct dns_c_acl_table {
 	isc_uint32_t		magic;
-	
+
 	isc_mem_t	       *mem;
-	
+
 	ISC_LIST(dns_c_acl_t)	acl_list;
 };
 
@@ -116,11 +116,11 @@ dns_c_acltable_new(isc_mem_t *mem, dns_c_acltable_t **newtable);
  *	mem is a valid memory pool
  *	newtable is a valid non-NULL pointer.
  *	mem remain a valuid memory pool until the table is destroyed.
- * 	
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  *	ISC_R_NOMEMORY		-- not enough memory.
- * 
+ *
  */
 
 
@@ -133,10 +133,10 @@ dns_c_acltable_delete(dns_c_acltable_t **table);
  * Requires:
  *	table is a valid pointer.
  *	The memory pool used at creation time still be valid.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS
- * 
+ *
  */
 
 
@@ -149,11 +149,11 @@ dns_c_acltable_getacl(dns_c_acltable_t *table, const char *aclname,
  *
  * Requires:
  *	TABLE be a value ACL table.
- * 	
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOTFOUND		-- acl was not found
- * 
+ *
  */
 
 isc_result_t
@@ -164,11 +164,11 @@ dns_c_acltable_removeacl(dns_c_acltable_t *table, const char *aclname);
  * Requires:
  *	table be a valid pointer to an acl table
  *	aclname be a valid pointer to string of positive length.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOTFOUND		-- acl was not in the table.
- * 
+ *
  */
 
 void
@@ -182,7 +182,7 @@ dns_c_acltable_print(FILE *fp, int indent, dns_c_acltable_t *table);
  *	fp be a valid stdio stream
  *	indent be a non-negative number
  *	table be a valid acl table.
- * 	
+ *
  */
 
 isc_result_t
@@ -192,17 +192,17 @@ dns_c_acltable_clear(dns_c_acltable_t *table);
  *
  * Requires:
  *	table must point to a valid ACL table.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS
- * 
+ *
  */
 
 isc_result_t
 dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
 	      isc_boolean_t isspecial, dns_c_acl_t **newacl);
 /*
- * Creates a new ACL. The acl is placed in the given table. If isspecial is 
+ * Creates a new ACL. The acl is placed in the given table. If isspecial is
  * true then the acl is not printed by dns_c_acl_print. The new acl is
  * returned via the newacl parameter
  *
@@ -210,25 +210,25 @@ dns_c_acl_new(dns_c_acltable_t *table, const char *aclname,
  *	table be a pointer to a valid acl table.
  *	aclname be a pointer to a valid string of positive length
  *	newacl be a valid non-NULL pointer.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- out of memory
- * 
+ *
  */
 
 
 void
 dns_c_acl_print(FILE *fp, int indent, dns_c_acl_t *acl);
 /*
- * Prints out the acl to the stdio stream. The outupt is indented by INDENT 
+ * Prints out the acl to the stdio stream. The outupt is indented by INDENT
  * tabs.
  *
  * Requires:
  *	fp be a pointer to a valid stdio stream
  *	indent be non-negative,
  *	acl be a pointer to a valid acl.
- * 
+ *
  */
 
 isc_result_t
@@ -236,21 +236,21 @@ dns_c_acl_setipml(dns_c_acl_t *acl, dns_c_ipmatchlist_t *ipml,
 		  isc_boolean_t deepcopy);
 /*
  * Sets the ipmatch list of the ACL to the IPML. If DEEPCOPY is true, then
- * a full copy of IPML is made using the MEM memory pool. In which case the 
- * caller still is the owner the memory IPML points to. If DEEPCOPY is 
- * false, then the acl takes ownership of the memory IPML points to. If the 
+ * a full copy of IPML is made using the MEM memory pool. In which case the
+ * caller still is the owner the memory IPML points to. If DEEPCOPY is
+ * false, then the acl takes ownership of the memory IPML points to. If the
  * acl already has an ipmatch list, then it is deleted before the new one
  * is added.
  *
  * Requires:
  *	mem be a pointer to a valid memory manager
  *	ipml be a valid dns_c_ipmatchlist_t
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- memory could not be allocated for the
  *				   deepcopy  .
- * 
+ *
  */
 
 isc_result_t
@@ -267,12 +267,12 @@ dns_c_acl_getipmlexpanded(isc_mem_t *mem, dns_c_acl_t *acl,
  *	mem be a pointer to a valid memory manager
  *	acl be a pointer to a valid acl.
  *	retval be a valid non-NULL pointer.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- not enough memory to make copy.
  *	ISC_R_FAILURE		-- an acl reference couldn't be expanded.
- * 
+ *
  */
 
 isc_result_t

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.11 2000/07/27 09:48:37 tale Exp $ */
+/* $Id: validator.h,v 1.12 2000/08/01 01:24:54 tale Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -92,13 +92,13 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  * The complete response message may be given in 'message',
  * to make available any authority section NXTs that may be
- * needed for validation of a response resulting from a 
- * wildcard expansion (though no such wildcard validation 
+ * needed for validation of a response resulting from a
+ * wildcard expansion (though no such wildcard validation
  * is implemented yet).  If the complete response message
  * is not available, 'message' is NULL.
  *
  * To validate a negative response, the complete negative response
- * message is given in 'message'.  The 'rdataset', and 
+ * message is given in 'message'.  The 'rdataset', and
  * 'sigrdataset' arguments must be NULL, but the 'name' and 'type'
  * arguments must be provided.
  *
@@ -118,7 +118,7 @@ dns_validator_cancel(dns_validator_t *validator);
  * Cancel a DNSSEC validation in progress.
  *
  * Requires:
- *	'validator' points to a valid DNSSEC validator, which 
+ *	'validator' points to a valid DNSSEC validator, which
  *	may or may not already have completed.
  *
  * Ensures:

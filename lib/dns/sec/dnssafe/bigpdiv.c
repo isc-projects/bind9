@@ -16,7 +16,7 @@
      qi assumed to be ll cells
      ri assumed to be kk cells
      restriction uu>=0, vv>0
-       
+
      input  uu in reg of ll cells
      input  vv in reg of kk cells
      output qi assumed to be ll cells
@@ -31,7 +31,7 @@ void BigPdiv (qi, ri, uu, vv, ll, kk)
 UINT2 *qi, *ri, *uu, *vv;
 unsigned int ll, kk;
 {
-  UINT2 u[2 * MAX_RSA_PRIME_WORDS + 2], us[2 * MAX_RSA_PRIME_WORDS + 2], 
+  UINT2 u[2 * MAX_RSA_PRIME_WORDS + 2], us[2 * MAX_RSA_PRIME_WORDS + 2],
     v[2 * MAX_RSA_PRIME_WORDS + 2], vs[2 * MAX_RSA_PRIME_WORDS + 2],
     q[2 * MAX_RSA_PRIME_WORDS + 2], r[2 * MAX_RSA_PRIME_WORDS + 2],
     t1[2 * MAX_RSA_PRIME_WORDS + 2], t2[2 * MAX_RSA_PRIME_WORDS + 2],
@@ -43,7 +43,7 @@ unsigned int ll, kk;
     l = ll + 2;
   else
     l = kk + 2;
-  
+
   mk[0] = 0x00FF;
   mk[1] = 0xFF00;
   b = 0x0100;
@@ -75,7 +75,7 @@ unsigned int ll, kk;
   BigConst (t1, d, l);
   BigPmpyl (t2, t1, v, l);
   BigCopy (v, t2, l);
-  
+
   /* vh=high order digit of normalized v */
   vh = VN;
   if (n % 2 == 1)
@@ -90,7 +90,7 @@ unsigned int ll, kk;
       continue;
     break;
   }
-  
+
   /* calc t = n + m */
   m = t - n;
 
@@ -133,7 +133,7 @@ unsigned int ll, kk;
     BigPmpyl (t1, q, t2, l);
     BigAdd (q, t3, t1, l);
   }
-  
+
   /* Check result.
    */
 
@@ -146,7 +146,7 @@ unsigned int ll, kk;
   /* transfer results to input registers  */
   BigCopy (qi, q, ll);
   BigCopy (ri, t2, kk);
-  
+
   T_memset ((POINTER)u, 0, sizeof (u));
   T_memset ((POINTER)us, 0, sizeof (us));
   T_memset ((POINTER)v, 0, sizeof (v));

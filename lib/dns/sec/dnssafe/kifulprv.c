@@ -50,7 +50,7 @@ ITEM *coefficient;
        (&key->infoCache.memoryPool, (POINTER *)&fullKey,
         sizeof (FULL_PRIVATE_KEY))) != 0)
     return (status);
-  
+
   /* Pre-zeroize and only copy in values that are not NULL.
    */
   T_memset ((POINTER)fullKey, 0, sizeof (*fullKey));
@@ -70,7 +70,7 @@ ITEM *coefficient;
   }
   if (coefficient != (ITEM *)NULL_PTR)
     fullKey->coefficient = *coefficient;
-  
+
   return (B_InfoCacheAddInfo
           (&key->infoCache, (POINTER)&KITFullPrivate, (POINTER)fullKey));
 }
@@ -94,7 +94,7 @@ B_Key *key;
 {
   FULL_PRIVATE_KEY *fullKey;
   int status;
-  
+
   if ((status = B_KeyGetInfo
        (key, (POINTER *)&fullKey, &KITFullPrivate)) != 0)
     return (status);
@@ -133,7 +133,7 @@ B_Key *key;
       return (BE_WRONG_KEY_INFO);
     *coefficient = fullKey->coefficient;
   }
-  
+
   return (0);
 }
 

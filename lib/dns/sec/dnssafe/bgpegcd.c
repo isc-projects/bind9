@@ -26,7 +26,7 @@ void BigPegcd (u3, u1, u2, u, v, k)
 UINT2 *u3, *u2, *u1, *u, *v;
 unsigned int k;
 {
-  UINT2 v1[2 * MAX_RSA_PRIME_WORDS], v2[2 * MAX_RSA_PRIME_WORDS], 
+  UINT2 v1[2 * MAX_RSA_PRIME_WORDS], v2[2 * MAX_RSA_PRIME_WORDS],
     v3[2 * MAX_RSA_PRIME_WORDS], q[2 * MAX_RSA_PRIME_WORDS],
     r[2 * MAX_RSA_PRIME_WORDS], t1[2 * MAX_RSA_PRIME_WORDS],
     t2[2 * MAX_RSA_PRIME_WORDS], t3[2 * MAX_RSA_PRIME_WORDS];

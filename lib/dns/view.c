@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.73 2000/07/31 21:06:59 explorer Exp $ */
+/* $Id: view.c,v 1.74 2000/08/01 01:23:06 tale Exp $ */
 
 #include <config.h>
 
@@ -136,7 +136,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
 	/*
 	 * Initialize configuration data with default values.
-	 */	
+	 */
 	view->recursion = ISC_TRUE;
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	view->additionalfromcache = ISC_TRUE;
@@ -164,20 +164,20 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		       DNS_EVENT_VIEWREQSHUTDOWN, req_shutdown,
 		       view, NULL, NULL, NULL);
 	view->magic = DNS_VIEW_MAGIC;
-	
+
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
 
  cleanup_dynkeys:
-	dns_tsigkeyring_destroy(&view->dynamickeys);	
+	dns_tsigkeyring_destroy(&view->dynamickeys);
 
  cleanup_trustedkeys:
 	dns_keytable_detach(&view->trustedkeys);
 
  cleanup_secroots:
 	dns_keytable_detach(&view->secroots);
-	
+
  cleanup_zt:
 	dns_zt_detach(&view->zonetable);
 
@@ -207,9 +207,9 @@ destroy(dns_view_t *view) {
 
 	if (view->peers != NULL)
 		dns_peerlist_detach(&view->peers);
-	if (view->dynamickeys != NULL)	
+	if (view->dynamickeys != NULL)
 		dns_tsigkeyring_destroy(&view->dynamickeys);
-	if (view->statickeys != NULL)	
+	if (view->statickeys != NULL)
 		dns_tsigkeyring_destroy(&view->statickeys);
 	if (view->adb != NULL)
 		dns_adb_detach(&view->adb);
@@ -339,13 +339,13 @@ static void
 resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 	isc_boolean_t done;
-	
+
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
 	UNUSED(task);
-	
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
@@ -363,13 +363,13 @@ static void
 adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 	isc_boolean_t done;
-	
+
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWADBSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
 	UNUSED(task);
-	
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
@@ -387,13 +387,13 @@ static void
 req_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
 	isc_boolean_t done;
-	
+
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->task == task);
 
 	UNUSED(task);
-	
+
 	LOCK(&view->lock);
 
 	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;
@@ -543,7 +543,7 @@ dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 
 void
 dns_view_freeze(dns_view_t *view) {
-	
+
 	/*
 	 * Freeze view.
 	 */

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.27 2000/07/27 09:51:49 tale Exp $ */
+/* $Id: log.h,v 1.28 2000/08/01 01:30:23 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -157,7 +157,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp);
  * Ensures:
  *	*lctxp will point to a valid logging context if all of the necessary
  *	memory was allocated, or NULL otherwise.
- *	*lcfgp will point to a valid logging configuration if all of the 
+ *	*lcfgp will point to a valid logging configuration if all of the
  *	necessary memory was allocated, or NULL otherwise.
  *	On failure, no additional memory is allocated.
  *
@@ -470,7 +470,7 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  *
  * Requires:
  *	lcfg is a valid logging configuration.
- *	
+ *
  *	category is NULL or has an id that is in the range of known ids.
  *
  *	module is NULL or has an id that is in the range of known ids.
@@ -622,7 +622,7 @@ isc_log_getdebuglevel(isc_log_t *lctx);
  *
  * Requires:
  *	lctx is a valid logging context.
- *	
+ *
  * Ensures:
  *	The current logging debugging level is returned.
  */
@@ -784,7 +784,7 @@ isc_logcategory_t *
 isc_log_categorybyname(isc_log_t *lctx, const char *name);
 /*
  * Find a category by its name.
- * 
+ *
  * Notes:
  *	The string name of a category is not required to be unique.
  *
@@ -802,7 +802,7 @@ isc_logmodule_t *
 isc_log_modulebyname(isc_log_t *lctx, const char *name);
 /*
  * Find a module by its name.
- * 
+ *
  * Notes:
  *	The string name of a module is not required to be unique.
  *

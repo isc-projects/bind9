@@ -48,7 +48,7 @@ typedef int (*KIT_MAKE_INFO) PROTO_LIST ((POINTER *, B_Key *));
 
 
    There is one global instance which is used by B_Key::setInfo, etc.:
-   
+
  KITItem KITItem;
  */
 

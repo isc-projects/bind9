@@ -109,15 +109,15 @@ unsigned int inputLen;                              /* length of input block */
   if (inputLen >= partLen) {
     T_memcpy ((POINTER)&context->buffer[index], (POINTER)input, partLen);
     MD5Transform (context->state, context->buffer);
-  
+
     for (i = partLen; i + 63 < inputLen; i += 64)
       MD5Transform (context->state, &input[i]);
-    
+
     index = 0;
   }
   else
     i = 0;
-  
+
   /* Buffer remaining input */
   T_memcpy ((POINTER)&context->buffer[index], (POINTER)&input[i], inputLen-i);
 }
@@ -240,7 +240,7 @@ unsigned char block[64];
   state[1] += b;
   state[2] += c;
   state[3] += d;
-  
+
   /* Zeroize sensitive information.
    */
   T_memset ((POINTER)x, 0, sizeof (x));

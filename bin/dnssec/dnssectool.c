@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.14 2000/07/31 20:38:27 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.15 2000/08/01 01:11:26 tale Exp $ */
 
 #include <config.h>
 
@@ -143,7 +143,7 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 		level = ISC_LOG_DEBUG(verbose - 2 + 1);
 		break;
 	}
-	
+
 	RUNTIME_CHECK(isc_log_create(mctx, &log, &logconfig) == ISC_R_SUCCESS);
 	isc_log_setcontext(log);
 	dns_log_init(log);
@@ -167,7 +167,7 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 				       &destination,
 				       ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL);
 	check_result(result, "isc_log_createchannel()");
-	
+
 	RUNTIME_CHECK(isc_log_usechannel(logconfig, "stderr",
 					 NULL, NULL) == ISC_R_SUCCESS);
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.63 2000/07/27 09:48:40 tale Exp $ */
+/* $Id: zone.h,v 1.64 2000/08/01 01:24:58 tale Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -79,7 +79,7 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
  *	dns_zone_setclass() not to have been called since the zone was
  *	created.
  *	'rdclass' != dns_rdataclass_none.
- */	
+ */
 
 dns_rdataclass_t
 dns_zone_getclass(dns_zone_t *zone);
@@ -110,7 +110,7 @@ dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
  *
  * Require:
  *	'zone' to be a valid zone.
- */	
+ */
 
 dns_view_t *
 dns_zone_getview(dns_zone_t *zone);
@@ -147,7 +147,7 @@ dns_zone_getorigin(dns_zone_t *zone);
 isc_result_t
 dns_zone_setdatabase(dns_zone_t *zone, const char *database);
 /*
- *	Sets the name of the database to be loaded. 
+ *	Sets the name of the database to be loaded.
  *	For databases loaded from MASTER files this corresponds to the
  *	file name of the MASTER file.
  *
@@ -202,7 +202,7 @@ dns_zone_detach(dns_zone_t **zonep);
 void
 dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
 /*
- *	Attach '*target' to 'source' incrementing its internal 
+ *	Attach '*target' to 'source' incrementing its internal
  * 	reference count.  This is intended for use by operations
  * 	such as zone transfers that need to prevent the zone
  * 	object from being freed but not from shutting down.
@@ -212,7 +212,7 @@ dns_zone_iattach(dns_zone_t *source, dns_zone_t **target);
  *	'zone' to be a valid zone.
  *	'target' to be non NULL and '*target' to be NULL.
  */
- 
+
 void
 dns_zone_idetach(dns_zone_t **zonep);
 /*
@@ -221,7 +221,7 @@ dns_zone_idetach(dns_zone_t **zonep);
  * 	zone, it will be freed.
  *
  * Require:
- *	The caller is running in the context of the zone's task. 
+ *	The caller is running in the context of the zone's task.
  *	'zonep' to point to a valid zone.
  */
 
@@ -278,7 +278,7 @@ isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone, const char *db_type);
 /*
  *	Sets the database type. Current database types are: "rbt", "rbt64".
- *	'db_type' is not checked to see if it is a valid database type. 
+ *	'db_type' is not checked to see if it is a valid database type.
  *
  * Require:
  *	'zone' to be a valid zone.
@@ -289,7 +289,7 @@ dns_zone_setdbtype(dns_zone_t *zone, const char *db_type);
  *	ISC_R_SUCCESS
  */
 
-void 
+void
 dns_zone_markdirty(dns_zone_t *zone);
 /*
  *	Mark a zone as 'dirty'.
@@ -705,7 +705,7 @@ dns_zone_setjournal(dns_zone_t *zone, const char *journal);
  *
  * Returns:
  *	ISC_R_SUCCESS
- *	ISC_R_NOMEMORY 
+ *	ISC_R_NOMEMORY
  */
 
 char *
@@ -882,7 +882,7 @@ dns_zone_getmgr(dns_zone_t *zone);
  * Requires:
  *	'zone' to be a valid zone.
  */
-  
+
 void
 dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
 /*
@@ -959,7 +959,7 @@ dns_zonemgr_attach(dns_zonemgr_t *source, dns_zonemgr_t **target);
  *	'zone' to be a valid zone.
  *	'target' to be non NULL and '*target' to be NULL.
  */
-	
+
 void
 dns_zonemgr_detach(dns_zonemgr_t **zmgrp);
 /*

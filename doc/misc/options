@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: options,v 1.31 2000/07/12 15:55:10 gson Exp $
+$Id: options,v 1.32 2000/08/01 01:22:02 tale Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -12,7 +12,7 @@ Legend:
 
   No	    Not implemented, may be implemented in a later release.
 
-  Obsolete  Obsolete, not applicable to BIND 9, or just evil.  
+  Obsolete  Obsolete, not applicable to BIND 9, or just evil.
 	    Will not be implemented.
 
   *	    New in BIND 9.
@@ -24,9 +24,9 @@ Legend:
   %	    The default value has changed since BIND 8.
 
   @	    Semantics of certain pathological address match lists, in
-	    particular those involving double negation, have changed.  
+	    particular those involving double negation, have changed.
 	    The new semantics are generally safer.  IPv6 addresses
-	    are supported, but the predefined ACLs "localhost" and 
+	    are supported, but the predefined ACLs "localhost" and
 	    "localnets" match IPv4 addresses only.
 
   #	    BIND 9 accepts both LF and CRLF as end-of-line markers.
@@ -128,7 +128,7 @@ server ip_addr {
 
 trusted-keys						    Yes
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] { 
+zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type master;						    Yes
   file path_name;					    Yes
   [ forward ( only | first ); ]				    No
@@ -146,11 +146,11 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ pubkey number number number string; ]		    No
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
+zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type stub;						    No
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
+zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type slave;						    Yes
   [ file path_name; ]					    Yes
   [ ixfr-base  path_name; ]				    Obsolete
@@ -174,11 +174,11 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ pubkey number number number string; ]		    No
 };
 
-zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
+zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   type forward;						    No
 };
 
-zone "." [ ( in | hs | hesiod | chaos ) ] {		    
+zone "." [ ( in | hs | hesiod | chaos ) ] {
   type hint;						    Yes
   file path_name;					    Yes
   [ check-names ( warn | fail | ignore ); ]		    No

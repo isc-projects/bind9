@@ -1,5 +1,5 @@
 
-; <<>> DiG 8.2 <<>> -p @10.53.0.3 data.child.example txt 
+; <<>> DiG 8.2 <<>> -p @10.53.0.3 data.child.example txt
 ; (1 server found)
 ;; res options: init recurs defnam dnsrch
 ;; got answer:

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.12 2000/07/27 09:51:05 tale Exp $ */
+/* $Id: print.c,v 1.13 2000/08/01 01:29:39 tale Exp $ */
 
 #include <config.h>
 
@@ -83,7 +83,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	long double ldbl;
 #endif
 	char fmt[32];
-	
+
 	INSIST(str != NULL);
 	INSIST(format != NULL);
 
@@ -141,7 +141,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			char *e;
 			width = strtoul(format, &e, 10);
 			format = e;
-		} 
+		}
 
 		/*
 		 * Precision.
@@ -380,7 +380,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					size--;
 					pad--;
 				}
-			if (precision != 0) 
+			if (precision != 0)
 				while (precision > 0 && *cp != '\0' &&
 				       size > 1) {
 					*str++ = *cp++;
@@ -406,7 +406,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				if (left) {
 					*str++ = c;
 					size--;
-				} 
+				}
 				while (width-- > 0 && size > 1) {
 					*str++ = ' ';
 					size--;
@@ -497,7 +497,7 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			 *
 			 * precisions > 324 don't make much sence.
 			 * if we cap the precision at 512 we will not
-			 * overflow buf. 
+			 * overflow buf.
 			 */
 			if (precision > 512)
 				precision = 512;

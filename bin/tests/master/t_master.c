@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.27 2000/07/27 09:38:48 tale Exp $ */
+/* $Id: t_master.c,v 1.28 2000/08/01 01:13:45 tale Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ t1_add_callback(void *arg, dns_name_t *owner, dns_rdataset_t *dataset) {
 	char buf[BIGBUFLEN];
 	isc_buffer_t target;
 	isc_result_t result;
-	
+
 	UNUSED(arg);
 
 	isc_buffer_init(&target, buf, BIGBUFLEN);
@@ -103,7 +103,7 @@ test_master(char *testfile, char *origin, char *class, isc_result_t exp_result)
 
 	dns_rdatacallbacks_init_stdio(&callbacks);
 	callbacks.add = t1_add_callback;
-	
+
 	textregion.base = class;
 	textregion.length = strlen(class);
 

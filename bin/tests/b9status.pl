@@ -1,9 +1,9 @@
 # Copyright (C) 1999, 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: b9status.pl,v 1.9 2000/07/27 09:37:43 tale Exp $
+# $Id: b9status.pl,v 1.10 2000/08/01 01:12:35 tale Exp $
 
 #
 # aggregate reports from all bind9 build environments
@@ -147,7 +147,7 @@ sub doHost {
 		close(XXX);
 		@junk = split(/\s/, $junk);
 		$hostname = $junk[1];
-		$hostname =~ s/\..*//; 
+		$hostname =~ s/\..*//;
 	}
 
 	print DEBUG "Host: $hostid, Hostname: $hostname\n" if ($Debug);

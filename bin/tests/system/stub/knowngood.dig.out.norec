@@ -1,5 +1,5 @@
 
-; <<>> DiG 8.2 <<>> -p @10.53.0.3 +norec data.child.example txt 
+; <<>> DiG 8.2 <<>> -p @10.53.0.3 +norec data.child.example txt
 ; (1 server found)
 ;; res options: init defnam dnsrch
 ;; got answer:

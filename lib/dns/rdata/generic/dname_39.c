@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.24 2000/07/27 09:48:55 tale Exp $ */
+/* $Id: dname_39.c,v 1.25 2000/08/01 01:25:13 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -35,9 +35,9 @@ fromtext_dname(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 
 	REQUIRE(type == 39);
-	
+
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	
+
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
@@ -158,7 +158,7 @@ freestruct_dname(ARGS_FREESTRUCT) {
 
 	REQUIRE(source != NULL);
 	REQUIRE(dname->common.rdtype == 39);
-	
+
 	if (dname->mctx == NULL)
 		return;
 

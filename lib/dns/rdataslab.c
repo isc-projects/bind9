@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.14 2000/07/27 09:46:31 tale Exp $ */
+/* $Id: rdataslab.c,v 1.15 2000/08/01 01:22:49 tale Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen) {
 		length += *current++;
 		current += length;
 	}
-	
+
 	return ((unsigned int)(current - slab));
 }
 
@@ -142,7 +142,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 	 * XXX  Need parameter to allow "delete rdatasets in nslab" merge,
 	 * or perhaps another merge routine for this purpose.
 	 */
-	   
+
 	REQUIRE(tslabp != NULL && *tslabp == NULL);
 	REQUIRE(oslab != NULL && nslab != NULL);
 
@@ -218,7 +218,7 @@ dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		return (ISC_R_NOMEMORY);
 	memcpy(tstart, nslab, reservelen);
 	tcurrent = tstart + reservelen;
-	
+
 	/*
 	 * Write the new count.
 	 */
@@ -360,7 +360,7 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		return (ISC_R_NOMEMORY);
 	memcpy(tstart, mslab, reservelen);
 	tcurrent = tstart + reservelen;
-	
+
 	/*
 	 * Write the new count.
 	 */

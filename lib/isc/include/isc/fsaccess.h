@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.h,v 1.5 2000/07/27 09:51:38 tale Exp $ */
+/* $Id: fsaccess.h,v 1.6 2000/08/01 01:30:12 tale Exp $ */
 
 #ifndef ISC_FSACCESS_H
 #define ISC_FSACCESS_H 1
@@ -38,7 +38,7 @@
  * in BIND9, and so resolving how to handle the various incompatibilities has
  * been a purely theoretical exercise with no operational experience to
  * indicate how flawed the thinking may be.
- * 
+ *
  * Some of the more notable dumbing down of NT for this API includes:
  *
  *   o Each of FILE_READ_DATA and FILE_READ_EA are set with ISC_FSACCESS_READ.
@@ -92,7 +92,7 @@
  *
  * The Windows standard access right "DELETE" doesn't have a direct
  * equivalent in the Unix world, so it isn't clear what should be done
- * with it. 
+ * with it.
  *
  * The Unix sticky bit is not supported.  While NT does have a concept
  * of allowing users to create files in a directory but not delete or

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.15 2000/07/27 09:38:28 tale Exp $ */
+/* $Id: shutdown_test.c,v 1.16 2000/08/01 01:13:20 tale Exp $ */
 
 #include <config.h>
 
@@ -51,7 +51,7 @@ static isc_timermgr_t *		timer_manager;
 static void
 t1_shutdown(isc_task_t *task, isc_event_t *event) {
 	t_info *info = event->ev_arg;
-	
+
 	printf("task %s (%p) t1_shutdown\n", info->name, task);
 	isc_task_detach(&info->task);
 	isc_event_free(&event);
@@ -217,7 +217,7 @@ main(int argc, char *argv[]) {
 
 	isc_taskmgr_destroy(&task_manager);
 	isc_timermgr_destroy(&timer_manager);
-	
+
 	printf("Statistics for mctx:\n");
 	isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

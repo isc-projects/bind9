@@ -26,7 +26,7 @@ unsigned int pSize;                                 /* length of p in words */
 A_SURRENDER_CTX *surrenderContext;
 {
   struct BigUnexpFrame {
-    UINT2 t1[2 * MAX_RSA_PRIME_WORDS], t2[2 * MAX_RSA_PRIME_WORDS], 
+    UINT2 t1[2 * MAX_RSA_PRIME_WORDS], t2[2 * MAX_RSA_PRIME_WORDS],
       t3[2 * MAX_RSA_PRIME_WORDS], u1[2 * MAX_RSA_PRIME_WORDS],
       u2[2 * MAX_RSA_PRIME_WORDS], u3[2 * MAX_RSA_PRIME_WORDS];
   } *frame = (struct BigUnexpFrame *)NULL_PTR;
@@ -46,10 +46,10 @@ A_SURRENDER_CTX *surrenderContext;
     /* Just use the buffers allocated on the stack. */
     frame = &stackFrame;
 #endif
-    
+
     BigConst (frame->t1, 0, 2 * pSize);
     BigConst (frame->t2, 0, 2 * pSize);
-  
+
     /* u2=c mod p */
     BigPdiv (frame->u1, frame->u2, c, pp, 2 * pSize, pSize);
     if ((status = CheckSurrender (surrenderContext)) != 0)
@@ -87,7 +87,7 @@ A_SURRENDER_CTX *surrenderContext;
 
     BigAdd (m, m, frame->t2, 2 * pSize);
   } while (0);
-  
+
   if (frame != (struct BigUnexpFrame *)NULL_PTR) {
     T_memset ((POINTER)frame, 0, sizeof (*frame));
 #if USE_ALLOCED_FRAME

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.28 2000/07/31 19:47:21 bwelling Exp $ */
+/* $Id: key_25.c,v 1.29 2000/08/01 01:25:22 tale Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -53,11 +53,11 @@ fromtext_key(ARGS_FROMTEXT) {
 	RETERR(dns_secproto_fromtext(&proto, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &proto, 1));
 
-	/* algorithm */	
+	/* algorithm */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	RETERR(dns_secalg_fromtext(&alg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &alg, 1));
-	
+
 	/* No Key? */
 	if ((flags & 0xc000) == 0xc000)
 		return (ISC_R_SUCCESS);

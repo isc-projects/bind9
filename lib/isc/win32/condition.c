@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.13 2000/07/27 09:53:10 tale Exp $ */
+/* $Id: condition.c,v 1.14 2000/08/01 01:31:45 tale Exp $ */
 
 #include <config.h>
 
@@ -28,7 +28,7 @@
 isc_result_t
 isc_condition_init(isc_condition_t *cond) {
 	HANDLE h;
-	
+
 	REQUIRE(cond != NULL);
 
 	cond->waiters = 0;
@@ -51,7 +51,7 @@ isc_condition_init(isc_condition_t *cond) {
 
 isc_result_t
 isc_condition_signal(isc_condition_t *cond) {
-	
+
 	/*
 	 * Unlike pthreads, the caller MUST hold the lock associated with
 	 * the condition variable when calling us.
@@ -69,7 +69,7 @@ isc_condition_signal(isc_condition_t *cond) {
 
 isc_result_t
 isc_condition_broadcast(isc_condition_t *cond) {
-		
+
 	/*
 	 * Unlike pthreads, the caller MUST hold the lock associated with
 	 * the condition variable when calling us.
@@ -87,7 +87,7 @@ isc_condition_broadcast(isc_condition_t *cond) {
 
 isc_result_t
 isc_condition_destroy(isc_condition_t *cond) {
-		
+
 	REQUIRE(cond != NULL);
 
 	(void)CloseHandle(cond->events[SIGNAL]);

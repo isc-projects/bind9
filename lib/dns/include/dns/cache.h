@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.12 2000/07/27 09:47:25 tale Exp $ */
+/* $Id: cache.h,v 1.13 2000/08/01 01:23:43 tale Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -27,7 +27,7 @@
 /*
  * cache
  *
- * Defines dns_cache_t, the cache object.  
+ * Defines dns_cache_t, the cache object.
  *
  * Notes:
  * 	A cache object contains DNS data of a single class.
@@ -61,13 +61,13 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-isc_result_t 
+isc_result_t
 dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *db_type, unsigned int db_argc, char **db_argv,
 		 dns_cache_t **cachep);
 /*
- * Create a new DNS cache.  
+ * Create a new DNS cache.
  *
  * Requires:
  *
@@ -133,9 +133,9 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
  *	This may be used to get a reference to the database for
  *	the purpose of cache lookups (XXX currently it is also
  * 	the way to add data to the cache, but having a
- * 	separate dns_cache_add() interface instead would allow 
+ * 	separate dns_cache_add() interface instead would allow
  * 	more control over memory usage).
- *	The caller should call dns_db_detach() on the reference 
+ *	The caller should call dns_db_detach() on the reference
  *	when it is no longer needed.
  *
  * Requires:
@@ -172,10 +172,10 @@ dns_cache_load(dns_cache_t *cache);
  * If no file name has been set, do nothing and return success.
  *
  * MT:
- *	Multiple simultaneous attempts to load or dump the cache 
+ *	Multiple simultaneous attempts to load or dump the cache
  * 	will be serialized with respect to one another, but
  *	the cache may be read and updated while the dump is
- *	in progress.  Updates performed during loading 
+ *	in progress.  Updates performed during loading
  *	may or may not be preserved, and reads may return
  * 	either the old or the newly loaded data.
  *
@@ -193,12 +193,12 @@ dns_cache_dump(dns_cache_t *cache);
  * do nothing and return success.
  *
  * MT:
- *	Multiple simultaneous attempts to load or dump the cache 
+ *	Multiple simultaneous attempts to load or dump the cache
  * 	will be serialized with respect to one another, but
  *	the cache may be read and updated while the dump is
  *	in progress.  Updates performed during the dump may
  * 	or may not be reflected in the dumped file.
- * 
+ *
  * Returns:
  *
  *	ISC_R_SUCCESS
@@ -217,7 +217,7 @@ void
 dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
 /*
  * Set the periodic cache cleaning interval to 'interval' seconds.
- */ 
+ */
 
 ISC_LANG_ENDDECLS
 

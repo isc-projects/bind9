@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.8 2000/07/27 09:52:55 tale Exp $ */
+/* $Id: stdtime.c,v 1.9 2000/08/01 01:31:29 tale Exp $ */
 
 #include <config.h>
 
@@ -32,9 +32,9 @@ isc_stdtime_get(isc_stdtime_t *t) {
 	 * Set 't' to the number of seconds since 00:00:00 UTC, January 1,
 	 * 1970.
 	 */
-	
+
 	REQUIRE(t != NULL);
-	
+
 	RUNTIME_CHECK(gettimeofday(&tv, NULL) != -1);
 
 	INSIST(tv.tv_usec >= 0 && tv.tv_usec < 1000000);

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,12 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.44 2000/07/27 09:36:41 tale Exp $ */
+/* $Id: main.c,v 1.45 2000/08/01 01:11:33 tale Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
  *
- * To paraphrase the old saying about X11, "It's not a lightweight deamon 
+ * To paraphrase the old saying about X11, "It's not a lightweight deamon
  * for resolvers, it's a deamon for lightweight resolvers".
  */
 
@@ -82,7 +82,7 @@ static isc_logcategory_t logcategories[] = {
 };
 
 #define LWRES_LOGCATEGORY_NETWORK	(&logcategories[0])
-	
+
 
 static isc_result_t
 create_view(isc_mem_t *mctx) {
@@ -91,8 +91,8 @@ create_view(isc_mem_t *mctx) {
 	dns_db_t *rootdb;
 	unsigned int attrs;
 	dns_dispatch_t *disp4 = NULL;
-	dns_dispatch_t *disp6 = NULL;		
-	
+	dns_dispatch_t *disp6 = NULL;
+
 	view = NULL;
 	cache = NULL;
 
@@ -121,7 +121,7 @@ create_view(isc_mem_t *mctx) {
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 		isc_sockaddr_t any4;
-		
+
 		isc_sockaddr_any(&any4);
 		attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 		result = dns_dispatch_getudp(dispatchmgr, sockmgr,
@@ -133,9 +133,9 @@ create_view(isc_mem_t *mctx) {
 
 	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 		isc_sockaddr_t any6;
-		
+
 		isc_sockaddr_any6(&any6);
-		
+
 		attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
 		result = dns_dispatch_getudp(dispatchmgr, sockmgr,
 					     taskmgr, &any6, 512, 6, 1024,
@@ -143,7 +143,7 @@ create_view(isc_mem_t *mctx) {
 		if (result != ISC_R_SUCCESS)
 			goto out;
 	}
-	
+
 	result = dns_view_createresolver(view, taskmgr, 16, sockmgr,
 					 timermgr, 0, dispatchmgr,
 					 disp4, disp6);
@@ -152,7 +152,7 @@ create_view(isc_mem_t *mctx) {
 		dns_dispatch_detach(&disp4);
 	if (disp6 != NULL)
 		dns_dispatch_detach(&disp6);
-	
+
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -177,7 +177,7 @@ create_view(isc_mem_t *mctx) {
 			isc_mem_put(mctx, sa, sizeof (*sa));
 			sa = ISC_LIST_HEAD(forwarders);
 		}
-			
+
 	}
 
 	dns_view_freeze(view);
@@ -379,7 +379,7 @@ main(int argc, char **argv) {
 			      isc_result_totext(result));
 		exit(1);
 	}
-			      
+
 	INSIST(result == ISC_R_SUCCESS);
 
 	cmgr = isc_mem_get(mem, sizeof(clientmgr_t) * NTASKS);
@@ -495,7 +495,7 @@ main(int argc, char **argv) {
 	cmgr = NULL;
 
 	dns_dispatchmgr_destroy(&dispatchmgr);
-	
+
 	isc_log_destroy(&lctx);
 
 	/*

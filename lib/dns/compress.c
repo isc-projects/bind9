@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.34 2000/07/27 09:45:56 tale Exp $ */
+/* $Id: compress.c,v 1.35 2000/08/01 01:22:14 tale Exp $ */
 
 #define DNS_NAME_USEINLINE 1
 
@@ -230,7 +230,7 @@ unsigned int
 dns_decompress_getmethods(dns_decompress_t *dctx) {
 
 	REQUIRE(VALID_DCTX(dctx));
-	
+
 	return (dctx->allowed);
 }
 
@@ -238,7 +238,7 @@ int
 dns_decompress_edns(dns_decompress_t *dctx) {
 
 	REQUIRE(VALID_DCTX(dctx));
-	
+
 	return (dctx->edns);
 }
 

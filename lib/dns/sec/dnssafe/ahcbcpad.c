@@ -80,7 +80,7 @@ A_SURRENDER_CTX *surrenderContext;
 {
   /* For encryption, we need to track the input length */
   handler->_inputRemainder = (handler->_inputRemainder + partInLen) % 8;
-  
+
   return (AHChooseEncryptEncryptUpdate
           (handler, partOut, partOutLen, maxPartOutLen, partIn, partInLen,
            randomAlgorithm, surrenderContext));
@@ -136,7 +136,7 @@ A_SURRENDER_CTX *surrenderContext;
   int status;
   unsigned char finalBuffer[16], *padBuffer;
   unsigned int padLen, localPartOutLen, i;
-  
+
   do {
     /* For now, the DecrypyFinal operations is set to output 16 bytes.
      */

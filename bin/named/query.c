@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.119 2000/07/31 21:06:55 explorer Exp $ */
+/* $Id: query.c,v 1.120 2000/08/01 01:11:57 tale Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	 */
 	if (client->query.fetch != NULL) {
 		dns_resolver_cancelfetch(client->query.fetch);
-					 
+
 		client->query.fetch = NULL;
 	}
 
@@ -385,7 +385,7 @@ query_getdbversion(ns_client_t *client) {
 	dbversion = ISC_LIST_HEAD(client->query.freeversions);
 	INSIST(dbversion != NULL);
 	ISC_LIST_UNLINK(client->query.freeversions, dbversion, link);
-	
+
 	return (dbversion);
 }
 
@@ -443,7 +443,7 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 		*newzonep = ISC_TRUE;
 	} else
 		*newzonep = ISC_FALSE;
-	
+
 	return (dbversion);
 }
 
@@ -593,7 +593,7 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 	if (!USECACHE(client))
 		return (DNS_R_REFUSED);
 	dns_db_attach(client->view->cachedb, dbp);
-	
+
 	if ((client->query.attributes &
 	     NS_QUERYATTR_QUERYOKVALID) != 0) {
 		/*
@@ -612,7 +612,7 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		 */
 		check_acl = ISC_TRUE;
 	}
-	
+
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		result = ns_client_checkacl(client, "query", client->view->queryacl,
@@ -631,7 +631,7 @@ query_getcachedb(ns_client_t *client, dns_db_t **dbp, unsigned int options)
 		 * the NS_QUERYATTR_QUERYOK attribute is now valid.
 		 */
 		client->query.attributes |= NS_QUERYATTR_QUERYOKVALID;
-		
+
 	} else
 		result = ISC_R_SUCCESS;
 
@@ -926,7 +926,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		/*
 		 * Most likely the client isn't allowed to query the cache.
 		 */
-		goto try_glue; 
+		goto try_glue;
 
 	result = dns_db_find(db, name, version, type,  client->query.dboptions,
 			     client->now, &node, fname, rdataset,
@@ -1019,7 +1019,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			rdataset = query_newrdataset(client);
 			if (rdataset == NULL)
 				goto addname;
-		}	
+		}
 		if (sigrdataset != NULL) {
 			if (dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
@@ -1027,7 +1027,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			sigrdataset = query_newrdataset(client);
 			if (sigrdataset == NULL)
 				goto addname;
-		}	
+		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_a, 0,
 					     client->now, rdataset,
@@ -1294,10 +1294,10 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	dns_rdatatype_t type = rdataset->type;
 
 	/*
-	 * Add 'rdataset' and any pertinent additional data to 
+	 * Add 'rdataset' and any pertinent additional data to
 	 * 'fname', a name in the response message for 'client'.
 	 */
-	
+
 	CTRACE("query_addrdataset");
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
@@ -1744,7 +1744,7 @@ query_addbestns(ns_client_t *client) {
 
 static inline isc_result_t
 query_checktype(dns_rdatatype_t type) {
-	
+
 	/*
 	 * XXXRTH  OPT still needs to be added.
 	 *	   Should get help with this from rdata.c
@@ -1833,9 +1833,9 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		RWLOCK(&client->lockview->conflock, isc_rwlocktype_read);
 
 		query_find(client, devent);
-		
+
 		RWUNLOCK(&client->lockview->conflock, isc_rwlocktype_read);
-		dns_view_detach(&client->lockview);		
+		dns_view_detach(&client->lockview);
 		dns_zonemgr_unlockconf(ns_g_server->zonemgr,
 				       isc_rwlocktype_read);
 		RWUNLOCK(&ns_g_server->conflock, isc_rwlocktype_read);
@@ -1853,12 +1853,12 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * We are about to recurse, which means that this client will
 	 * be unavailable for serving new requests for an indeterminate
 	 * amount of time.  If this client is currently responsible
-	 * for handling incoming queries, set up a new client 
+	 * for handling incoming queries, set up a new client
 	 * object to handle them while we are waiting for a
 	 * response.
 	 */
 	if (! client->mortal) {
-		result = isc_quota_attach(&ns_g_server->recursionquota, 
+		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
 		if (result == ISC_R_SUCCESS)
 			result = ns_client_replace(client);
@@ -1867,7 +1867,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "no more recursive clients: %s",
 				      isc_result_totext(result));
-			return (result); 
+			return (result);
 		}
 	}
 
@@ -1905,7 +1905,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		query_putrdataset(client, &rdataset);
 		query_putrdataset(client, &sigrdataset);
 	}
-	
+
 	return (result);
 }
 
@@ -1949,7 +1949,7 @@ query_findparentkey(ns_client_t *client, dns_name_t *name,
 		result = ISC_R_FAILURE;
 		goto cleanup;
 	}
-		
+
 	result = dns_db_find(pdb, name, pversion, dns_rdatatype_key,
 			     client->query.dboptions,
 			     client->now, &pnode,
@@ -2025,7 +2025,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 	CTRACE("query_find");
 
-	/*	
+	/*
 	 * One-time initialization.
 	 *
 	 * It's especially important to initialize anything that the cleanup
@@ -2597,7 +2597,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		result = dns_name_split(client->query.qname, nlabels, nbits,
 					prefix, NULL);
 		if (result != ISC_R_SUCCESS)
-			goto cleanup;	
+			goto cleanup;
 		INSIST(fname == NULL);
 		dbuf = query_getnamebuf(client);
 		if (dbuf == NULL)
@@ -2837,9 +2837,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (client->message->rcode == dns_rcode_nxdomain &&
 		    client->view->auth_nxdomain == ISC_TRUE)
 			client->message->flags |= DNS_MESSAGEFLAG_AA;
-		
+
 		ns_client_send(client);
-		ns_client_detach(&client);		
+		ns_client_detach(&client);
 	}
 	CTRACE("query_find: done");
 }
@@ -2855,7 +2855,7 @@ log_query(ns_client_t *client) {
 	/* XXXRTH  Allow this to be turned off! */
 
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-	
+
 	isc_buffer_init(&b, (unsigned char *)text, sizeof(text));
 	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	     rdataset != NULL;
@@ -2880,7 +2880,7 @@ ns_query_start(ns_client_t *client) {
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	ns_client_t *qclient;
-	
+
 	CTRACE("ns_query_start");
 
 	/*
@@ -2901,7 +2901,7 @@ ns_query_start(ns_client_t *client) {
 		/*
 		 * If the client isn't allowed to recurse (due to
 		 * "recursion no", the allow-recursion ACL, or the
-		 * lack of a resolver in this view), or if it 
+		 * lack of a resolver in this view), or if it
 		 * doesn't want recursion, turn recursion off.
 		 */
 		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
@@ -2951,7 +2951,7 @@ ns_query_start(ns_client_t *client) {
 			}
 		}
 	}
-	
+
 	/*
 	 * Check for meta-queries like IXFR and AXFR.
 	 */

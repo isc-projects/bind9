@@ -29,12 +29,12 @@ A_RSA_KEY_GEN_CTX *context;
 A_RSA_KEY_GEN_PARAMS *params;
 {
   context->modulusBits = params->modulusBits;
-  
+
   /* Prezeroize big public exponent vector. */
   T_memset
     ((POINTER)context->bigPublicExponent, 0,
      sizeof (context->bigPublicExponent));
-    
+
   /* Copy public exponent into big vector */
   if (CanonicalToBig
       (context->bigPublicExponent, MAX_RSA_MODULUS_WORDS,
@@ -88,7 +88,7 @@ A_SURRENDER_CTX *surrenderContext;
   modulusWords = BITS_TO_WORDS (context->modulusBits);
   primeSizeBits = RSA_PRIME_BITS (context->modulusBits);
   primeWords = BITS_TO_WORDS (RSA_PRIME_BITS (context->modulusBits));
-    
+
   /* Fish for bigPrime1 and bigPrime2 that are compatible with supplied
        publicExponent.
      The randomBlock holds random bytes for two primes.
@@ -117,25 +117,25 @@ A_SURRENDER_CTX *surrenderContext;
   }
 
   /* Calculate the rest of the key components */
-  if ((status = RSAParameters 
+  if ((status = RSAParameters
        (context->bigModulus, context->bigCoefficient,
         context->bigExponentP, context->bigExponentQ,
         context->bigPrivateExponent, context->bigPublicExponent,
         bigPrimeP, bigPrimeQ, primeWords, modulusWords, surrenderContext)) != 0)
     return (status);
-    
+
   /* Copy key components into canonical buffers which are at the
        end of the context. */
   *result = &context->result;
   SetRSAKeyGenResult (*result, context, bigPrimeP, bigPrimeQ);
-  
+
   return (0);
 }
 
 /* Assumes ee, pp, qq are given, calculates other parameters.
    Returns 0, AE_CANCEL.
  */
-static int RSAParameters 
+static int RSAParameters
   (nn, cr, dp, dq, dd, ee, pp, qq, primeWords, modulusWords, surrenderContext)
 UINT2 *nn, *cr, *dp, *dq, *dd, *ee, *pp, *qq;
 unsigned int primeWords, modulusWords;
@@ -143,25 +143,25 @@ A_SURRENDER_CTX *surrenderContext;
 {
   UINT2 t1[2 * MAX_RSA_PRIME_WORDS], t2[MAX_RSA_PRIME_WORDS],
     t3[MAX_RSA_MODULUS_WORDS], u1[MAX_RSA_MODULUS_WORDS],
-    u3[MAX_RSA_MODULUS_WORDS], pm1[MAX_RSA_PRIME_WORDS], 
+    u3[MAX_RSA_MODULUS_WORDS], pm1[MAX_RSA_PRIME_WORDS],
     qm1[MAX_RSA_PRIME_WORDS];
   int status;
-  
+
   do {
     /* N=P*Q */
     BigMpy (t1, pp, qq, primeWords);
     if ((status = CheckSurrender (surrenderContext)) != 0)
       break;
     BigCopy (nn, t1, modulusWords);
-  
+
     /*  qm1=q-1 & pm1=p-1 */
     BigConst (t1, 1, primeWords);
     BigSub (qm1, qq, t1, primeWords);
     BigSub (pm1, pp, t1, primeWords);
-    
+
     /* t3=1 */
     BigConst (t3, 1, modulusWords);
-  
+
     /*t1=phi (N) */
     BigMpy (t1, pm1, qm1, primeWords);
     if ((status = CheckSurrender (surrenderContext)) != 0)
@@ -179,11 +179,11 @@ A_SURRENDER_CTX *surrenderContext;
     BigPdiv (t1, dq, dd, qm1, modulusWords, primeWords);
     if ((status = CheckSurrender (surrenderContext)) != 0)
       break;
-  
+
     /* calc CR = (inv (Q)[modP]) */
     BigPegcd (t1, t2, cr, pp, qq, primeWords);
   } while (0);
-  
+
   T_memset ((POINTER)t1, 0, sizeof (t1));
   T_memset ((POINTER)t2, 0, sizeof (t2));
   T_memset ((POINTER)t3, 0, sizeof (t3));
@@ -204,10 +204,10 @@ UINT2 *bigPrimeQ;
 
   modulusLen = result->modulus.len = result->publicExponent.len =
     result->privateExponent.len = BITS_TO_LEN (context->modulusBits);
-  primeLen = result->prime[0].len = result->prime[1].len = 
+  primeLen = result->prime[0].len = result->prime[1].len =
     result->primeExponent[0].len = result->primeExponent[1].len =
     result->coefficient.len = RSA_PRIME_LEN (context->modulusBits);
-  
+
   result->modulus.data = context->resultBuffer;
   result->publicExponent.data = result->modulus.data + modulusLen;
   result->privateExponent.data = result->publicExponent.data + modulusLen;
@@ -226,11 +226,11 @@ UINT2 *bigPrimeQ;
   BigToCanonical
     (result->privateExponent.data, modulusLen,
      context->bigPrivateExponent, MAX_RSA_MODULUS_WORDS);
-  BigToCanonical 
+  BigToCanonical
     (result->prime[0].data, primeLen, bigPrimeP, MAX_RSA_PRIME_WORDS);
-  BigToCanonical 
+  BigToCanonical
     (result->prime[1].data, primeLen, bigPrimeQ, MAX_RSA_PRIME_WORDS);
-  BigToCanonical 
+  BigToCanonical
     (result->primeExponent[0].data, primeLen, context->bigExponentP,
      MAX_RSA_PRIME_WORDS);
   BigToCanonical

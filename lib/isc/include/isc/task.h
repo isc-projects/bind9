@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.46 2000/07/27 09:52:17 tale Exp $ */
+/* $Id: task.h,v 1.47 2000/08/01 01:30:51 tale Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -230,7 +230,7 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *	Events in the event queue of 'task' whose sender is 'sender', whose
  *	type is >= first and <= last, and whose tag is 'tag' will be purged,
  *	unless they are marked as unpurgable.
- *	
+ *
  *	A sender of NULL will match any sender.  A NULL tag matches any
  *	tag.
  *
@@ -320,7 +320,7 @@ isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *	Events in the event queue of 'task' whose sender is 'sender', whose
  *	type is >= first and <= last, and whose tag is 'tag' will be dequeued
  *	and appended to *events.
- *	
+ *
  *	A sender of NULL will match any sender.  A NULL tag matches any
  *	tag.
  *

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.28 2000/07/27 09:54:19 tale Exp $ */
+/* $Id: listener.c,v 1.29 2000/08/01 01:32:55 tale Exp $ */
 
 /*
  * Subroutines that support the generic listener object.
@@ -149,7 +149,7 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (result != ISC_R_SUCCESS)
 		return;
-	
+
 	/*
 	 * Is the connection from a valid host?
 	 */
@@ -361,7 +361,7 @@ omapi_listener_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
 
 	} else {
 		/*
-		 * Failed to set up the listener.  
+		 * Failed to set up the listener.
 		 */
 		listener->listening = ISC_FALSE;
 		OBJECT_DEREF(&listener);
@@ -417,7 +417,7 @@ listener_getvalue(omapi_object_t *listener, omapi_string_t *name,
 	 * continue the call through the object chain.
 	 */
 	REQUIRE(listener != NULL && listener->type == omapi_type_listener);
-	
+
 	return (omapi_object_passgetvalue(listener, name, value));
 }
 

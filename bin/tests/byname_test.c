@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.20 2000/07/27 09:37:47 tale Exp $ */
+/* $Id: byname_test.c,v 1.21 2000/08/01 01:12:38 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -260,12 +260,12 @@ main(int argc, char *argv[]) {
 	{
 		unsigned int attrs;
 		dns_dispatch_t *disp4 = NULL;
-		dns_dispatch_t *disp6 = NULL;		
+		dns_dispatch_t *disp6 = NULL;
 
 		if (isc_net_probeipv4() == ISC_R_SUCCESS) {
 			isc_sockaddr_t any4;
 			isc_sockaddr_any(&any4);
-			
+
 			attrs = DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_UDP;
 			RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr,
 							  socketmgr,
@@ -279,9 +279,9 @@ main(int argc, char *argv[]) {
 
 		if (isc_net_probeipv6() == ISC_R_SUCCESS) {
 			isc_sockaddr_t any6;
-			
+
 			isc_sockaddr_any6(&any6);
-			
+
 			attrs = DNS_DISPATCHATTR_IPV6 | DNS_DISPATCHATTR_UDP;
 			RUNTIME_CHECK(dns_dispatch_getudp(dispatchmgr,
 							  socketmgr,
@@ -292,7 +292,7 @@ main(int argc, char *argv[]) {
 				      == ISC_R_SUCCESS);
 			INSIST(disp6 != NULL);
 		}
-		
+
 		RUNTIME_CHECK(dns_view_createresolver(view, taskmgr, 10,
 						      socketmgr,
 						      timermgr, 0,
@@ -302,8 +302,8 @@ main(int argc, char *argv[]) {
 
 		if (disp4 != NULL)
 			dns_dispatch_detach(&disp4);
-		if (disp6 != NULL)		
-			dns_dispatch_detach(&disp6);		
+		if (disp6 != NULL)
+			dns_dispatch_detach(&disp6);
 	}
 
 	{
@@ -344,12 +344,12 @@ main(int argc, char *argv[]) {
 	isc_task_detach(&task);
 
 	dns_dispatchmgr_destroy(&dispatchmgr);
-	
+
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_timermgr_destroy(&timermgr);
-	
+
 	isc_log_destroy(&lctx);
 
 	if (verbose)

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confkeys.h,v 1.19 2000/07/27 09:47:36 tale Exp $ */
+/* $Id: confkeys.h,v 1.20 2000/08/01 01:23:54 tale Exp $ */
 
 #ifndef DNS_CONFKEYS_H
 #define DNS_CONFKEYS_H 1
@@ -29,7 +29,7 @@
  */
 
 /*
- * 
+ *
  * MP:
  *
  *	Caller must to all necessary locking.
@@ -43,11 +43,11 @@
  *	Memory allocators supplied by caller
  *
  * Security:
- *	
+ *
  *	Not applicable.
  *
  * Standards:
- *	
+ *
  *	Not applicable.
  */
 
@@ -99,7 +99,7 @@ typedef struct dns_c_kid_list		dns_c_kidlist_t;
 struct dns_c_tkey {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
-	
+
 	char		       *domain;
 	dns_c_pubkey_t	       *pubkey;
 
@@ -115,8 +115,8 @@ struct dns_c_tkey_list {
 
 	ISC_LIST(dns_c_tkey_t)	tkeylist;
 };
-	
-	
+
+
 /*
  * A public key value.
  */
@@ -234,7 +234,7 @@ isc_result_t dns_c_kidlist_delete(dns_c_kidlist_t **list);
 
 isc_uint32_t dns_c_kidlist_keycount(dns_c_kidlist_t *list);
 
-			   
+
 isc_result_t dns_c_kidlist_undef(dns_c_kidlist_t *list, const char *keyid);
 
 isc_result_t dns_c_kidlist_find(dns_c_kidlist_t *list, const char *keyid,
@@ -257,7 +257,7 @@ isc_result_t dns_c_kdeflist_copy(isc_mem_t *mem, dns_c_kdeflist_t **dest,
 isc_result_t dns_c_kdeflist_append(dns_c_kdeflist_t *list, dns_c_kdef_t *key,
 				   isc_boolean_t copy);
 
-isc_result_t dns_c_kdeflist_undef(dns_c_kdeflist_t *list, const char *keyid); 
+isc_result_t dns_c_kdeflist_undef(dns_c_kdeflist_t *list, const char *keyid);
 
 isc_result_t dns_c_kdeflist_find(dns_c_kdeflist_t *list, const char *keyid,
 				 dns_c_kdef_t **retval);

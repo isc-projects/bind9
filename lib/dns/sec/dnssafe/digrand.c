@@ -36,7 +36,7 @@ unsigned char *input;
 unsigned int inputLen;
 {
   unsigned int i, j, x;
-  
+
   (*digestRandom->vTable->DigestUpdate) (digestRandom, input, inputLen);
   (*digestRandom->vTable->DigestFinal) (digestRandom, digestRandom->_digest);
 
@@ -56,7 +56,7 @@ unsigned char *output;
 unsigned int outputLen;
 {
   unsigned int available, i;
-  
+
   available = digestRandom->_outputAvailable;
 
   while (outputLen > available) {
@@ -79,7 +79,7 @@ unsigned int outputLen;
         break;
   }
 
-  T_memcpy 
+  T_memcpy
     ((POINTER)output,
      (POINTER)&digestRandom->_output[digestRandom->_digestLen-available],
      outputLen);

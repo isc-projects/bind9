@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.28 2000/07/27 09:46:13 tale Exp $ */
+/* $Id: masterdump.c,v 1.29 2000/08/01 01:22:31 tale Exp $ */
 
 #include <config.h>
 
@@ -59,23 +59,23 @@ struct dns_master_style {
  * define the formatting of the rdata part and are defined in
  * rdata.h.
  */
- 
+
 /* Omit the owner name when possible. */
 #define DNS_STYLEFLAG_OMIT_OWNER	0x00010000U
 
 /*
- * Omit the TTL when possible.  If DNS_STYLEFLAG_TTL is 
+ * Omit the TTL when possible.  If DNS_STYLEFLAG_TTL is
  * also set, this means no TTLs are ever printed
  * because $TTL directives are generated before every
- * change in the TTL.  In this case, no columns need to 
+ * change in the TTL.  In this case, no columns need to
  * be reserved for the TTL.  Master files generated with
  * these options will be rejected by BIND 4.x because it
  * does not recognize the $TTL directive.
  *
- * If DNS_STYLEFLAG_TTL is not also set, the TTL will be 
+ * If DNS_STYLEFLAG_TTL is not also set, the TTL will be
  * omitted when it is equal to the previous TTL.
- * This is correct according to RFC1035, but the 
- * TTLs may be silently misinterpreted by older 
+ * This is correct according to RFC1035, but the
+ * TTLs may be silently misinterpreted by older
  * versions of BIND which use the SOA MINTTL as a
  * default TTL value.
  */
@@ -93,14 +93,14 @@ struct dns_master_style {
  */
 #define DNS_STYLEFLAG_REL_OWNER		0x00100000U
 
-/* Print domain names in RR data in relative form when possible. 
+/* Print domain names in RR data in relative form when possible.
    For this to take effect, DNS_STYLEFLAG_REL_OWNER must also be set. */
 #define DNS_STYLEFLAG_REL_DATA		0x00200000U
 
 
 /*
  * The maximum length of the newline+indentation that is output
- * when inserting a line break in an RR.  This effectively puts an 
+ * when inserting a line break in an RR.  This effectively puts an
  * upper limits on the value of "rdata_column", because if it is
  * very large, the tabs and spaces needed to reach it will not fit.
  */
@@ -126,7 +126,7 @@ typedef struct dns_totext_ctx {
  * Because the TTL is always omitted, and the class is almost always
  * omitted, neither is allocated any columns.
  */
-const dns_master_style_t 
+const dns_master_style_t
 dns_master_style_default = {
 	DNS_STYLEFLAG_OMIT_OWNER |
 	DNS_STYLEFLAG_OMIT_CLASS |
@@ -136,13 +136,13 @@ dns_master_style_default = {
 	DNS_STYLEFLAG_TTL |
 	DNS_STYLEFLAG_COMMENT |
 	DNS_STYLEFLAG_MULTILINE,
-	24, 24, 24, 32, 80, 8 
+	24, 24, 24, 32, 80, 8
 };
 
 /*
  * A style suitable for dns_rdataset_totext().
  */
-dns_master_style_t 
+dns_master_style_t
 dns_masterfile_style_debug = {
         DNS_STYLEFLAG_REL_OWNER,
 	24, 32, 40, 48, 80, 8
@@ -158,7 +158,7 @@ static char tabs[N_TABS+1] = "\t\t\t\t\t\t\t\t\t\t";
 
 
 /*
- * Output tabs and spaces to go from column '*current' to 
+ * Output tabs and spaces to go from column '*current' to
  * column 'to', and update '*current' to reflect the new
  * current column.
  */
@@ -177,7 +177,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		to = from + 1;
 
 	ntabs = to / tabwidth - from / tabwidth;
-	if (ntabs < 0) 
+	if (ntabs < 0)
 		ntabs = 0;
 
 	if (ntabs > 0) {
@@ -185,7 +185,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		if (r.length < (unsigned) ntabs)
 			return (ISC_R_NOSPACE);
 		p = r.base;
-	
+
 		t = ntabs;
 		while (t) {
 			int n = t;
@@ -207,7 +207,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		return (ISC_R_NOSPACE);
 	p = r.base;
 
-	t = nspaces;	
+	t = nspaces;
 	while (t) {
 		int n = t;
 		if (n > N_SPACES)
@@ -216,7 +216,7 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 		p += n;
 		t -= n;
 	}
-	isc_buffer_add(target, nspaces);	
+	isc_buffer_add(target, nspaces);
 
 	*current = to;
 	return (ISC_R_SUCCESS);
@@ -225,12 +225,12 @@ indent(unsigned int *current, unsigned int to, int tabwidth,
 static isc_result_t
 totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	isc_result_t result;
-	
+
 	REQUIRE(style->tab_width != 0);
 
 	ctx->style = *style;
 	ctx->class_printed = ISC_FALSE;
-	
+
 	dns_fixedname_init(&ctx->origin_fixname);
 
 	/*
@@ -243,19 +243,19 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 
 		isc_buffer_init(&buf, ctx->linebreak_buf,
 				sizeof(ctx->linebreak_buf));
-		
+
 		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1)
 			return (DNS_R_TEXTTOOLONG);
 		r.base[0] = '\n';
 		isc_buffer_add(&buf, 1);
 
-		result = indent(&col, ctx->style.rdata_column, 
+		result = indent(&col, ctx->style.rdata_column,
 				ctx->style.tab_width, &buf);
 		/*
 		 * Do not return ISC_R_NOSPACE if the line break string
-		 * buffer is too small, because that would just make 
-		 * dump_rdataset() retry indenfinitely with ever 
+		 * buffer is too small, because that would just make
+		 * dump_rdataset() retry indenfinitely with ever
 		 * bigger target buffers.  That's a different buffer,
 		 * so it won't help.  Use DNS_R_TEXTTOOLONG as a substitute.
 		 */
@@ -263,7 +263,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 			return (DNS_R_TEXTTOOLONG);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		
+
 		isc_buffer_availableregion(&buf, &r);
 		if (r.length < 1)
 			return (DNS_R_TEXTTOOLONG);
@@ -277,7 +277,7 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	ctx->origin = NULL;
 	ctx->current_ttl = 0;
 	ctx->current_ttl_valid = ISC_FALSE;
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -309,9 +309,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 	isc_boolean_t first = ISC_TRUE;
 	isc_uint32_t current_ttl;
 	isc_boolean_t current_ttl_valid;
-	
+
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
-	
+
 	result = dns_rdataset_first(rdataset);
 	REQUIRE(result == ISC_R_SUCCESS);
 
@@ -320,7 +320,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	do {
 		column = 0;
-		
+
 		/*
 		 * Owner name.
 		 */
@@ -357,7 +357,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			column += length;
 
 			/*
-			 * If the $TTL directive is not in use, the TTL we 
+			 * If the $TTL directive is not in use, the TTL we
 			 * just printed becomes the default for subsequent RRs.
 			 */
 			if ((ctx->style.flags & DNS_STYLEFLAG_TTL) == 0) {
@@ -397,7 +397,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 		/*
 		 * Rdata.
-		 */ 
+		 */
 		{
 			dns_rdata_t rdata;
 			isc_region_t r;
@@ -429,10 +429,10 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	/*
 	 * Update the ctx state to reflect what we just printed.
-	 * This is done last, only when we are sure we will return 
-	 * success, because this function may be called multiple 
+	 * This is done last, only when we are sure we will return
+	 * success, because this function may be called multiple
 	 * times with increasing buffer sizes until it succeeds,
-	 * and failed attempts must not update the state prematurely. 
+	 * and failed attempts must not update the state prematurely.
 	 */
 	ctx->class_printed = ISC_TRUE;
 	ctx->current_ttl= current_ttl;
@@ -505,7 +505,7 @@ question_totext(dns_rdataset_t *rdataset,
 
 /*
  * Provide a backwards compatible interface for printing a
- * single rdataset or question section.  This is now used 
+ * single rdataset or question section.  This is now used
  * only by wire_test.c.
  */
 isc_result_t
@@ -532,36 +532,36 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	 */
 	if (dns_name_countlabels(owner_name) == 0)
 		owner_name = NULL;
-	
+
 	if (no_rdata_or_ttl)
-		return (question_totext(rdataset, owner_name, &ctx, 
+		return (question_totext(rdataset, owner_name, &ctx,
 					omit_final_dot, target));
 	else
-		return (rdataset_totext(rdataset, owner_name, &ctx, 
+		return (rdataset_totext(rdataset, owner_name, &ctx,
 					omit_final_dot, target));
 }
 
 /*
  * Print an rdataset.  'buffer' is a scratch buffer, which must have been
- * dynamically allocated by the caller.  It must be large enough to 
+ * dynamically allocated by the caller.  It must be large enough to
  * hold the result from dns_ttl_totext().  If more than that is needed,
  * the buffer will be grown automatically.
  */
 
 static isc_result_t
 dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
-	      dns_totext_ctx_t *ctx, 
+	      dns_totext_ctx_t *ctx,
 	      isc_buffer_t *buffer, FILE *f)
 {
 	isc_region_t r;
 	isc_result_t result;
-	
+
 	REQUIRE(buffer->length > 0);
 
 	/*
 	 * Output a $TTL directive if needed.
 	 */
-	
+
 	if ((ctx->style.flags & DNS_STYLEFLAG_TTL) != 0) {
 		if (ctx->current_ttl_valid == ISC_FALSE ||
 		    ctx->current_ttl != rdataset->ttl)
@@ -582,13 +582,13 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 			ctx->current_ttl_valid = ISC_TRUE;
 		}
 	}
-	
+
 	isc_buffer_clear(buffer);
 
 	/*
 	 * Generate the text representation of the rdataset into
 	 * the buffer.  If the buffer is too small, grow it.
-	 */ 
+	 */
 	for (;;) {
 		int newlength;
 		void *newmem;
@@ -619,7 +619,7 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 				 isc_result_totext(result));
 		return (result);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -627,13 +627,13 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
  * Dump all the rdatasets of a domain name to a master file.
  */
 static isc_result_t
-dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter, 
+dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 	       dns_totext_ctx_t *ctx,
 	       isc_buffer_t *buffer, FILE *f)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
-	
+
 	dns_rdataset_init(&rdataset);
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
@@ -664,12 +664,12 @@ dump_rdatasets(isc_mem_t *mctx, dns_name_t *name, dns_rdatasetiter_t *rdsiter,
 
 /*
  * Initial size of text conversion buffer.  The buffer is used
- * for several purposes: converting origin names, rdatasets, 
+ * for several purposes: converting origin names, rdatasets,
  * $DATE timestamps, and comment strings for $TTL directives.
  *
  * When converting rdatasets, it is dynamically resized, but
- * when converting origins, timestamps, etc it is not.  Therefore, 
- * the  initial size must large enough to hold the longest possible 
+ * when converting origins, timestamps, etc it is not.  Therefore,
+ * the  initial size must large enough to hold the longest possible
  * text representation of any domain name (for $ORIGIN).
  */
 static const int initial_buffer_length = 1200;
@@ -708,13 +708,13 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	bufmem = isc_mem_get(mctx, initial_buffer_length);
 	if (bufmem == NULL)
 		return (ISC_R_NOMEMORY);
-	
+
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
 	/*
 	 * If the database has cache semantics, output an RFC2540
 	 * $DATE directive so that the TTLs can be adjusted when
-	 * it is reloaded.  For zones it is not really needed, and 
+	 * it is reloaded.  For zones it is not really needed, and
 	 * it would make the file incompatible with pre-RFC2540
 	 * software, so we omit it in the zone case.
 	 */
@@ -726,7 +726,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	}
 
 	result = dns_db_createiterator(db,
-		       ((ctx.style.flags & DNS_STYLEFLAG_REL_OWNER) != 0) ? 
+		       ((ctx.style.flags & DNS_STYLEFLAG_REL_OWNER) != 0) ?
 		           ISC_TRUE : ISC_FALSE,
 		       &dbiter);
 	if (result != ISC_R_SUCCESS)
@@ -773,10 +773,10 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 		goto iter_failure;
 
 	result = ISC_R_SUCCESS;
-	
+
  iter_failure:
 	dns_dbiterator_destroy(&dbiter);
-	
+
  create_iter_failure:
 	isc_mem_put(mctx, buffer.base, buffer.length);
 	return (result);

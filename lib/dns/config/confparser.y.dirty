@@ -1,11 +1,11 @@
 %{
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.5 2000/07/31 21:07:02 explorer Exp $ */
+/* $Id: confparser.y.dirty,v 1.6 2000/08/01 01:23:26 tale Exp $ */
 
 #include <config.h>
 
@@ -97,9 +97,9 @@ static isc_lexspecials_t	specials;
  * XXXJAB The #define for the default OMAPI port is not available
  * to us, so we make our own.
  */
- 
+
 #define OMAPI_DEFAULT_PORT 953
- 
+
 #define CONF_MAX_IDENT 1024
 
 /* This should be sufficient to permit multiple parsers and lexers if needed */
@@ -513,7 +513,7 @@ options_stmt: L_OPTIONS
 				     "zones and views");
 			YYABORT;
 		}
-		
+
 		tmpres = dns_c_ctx_getoptions(currcfg, &options);
 		if (tmpres == ISC_R_SUCCESS) {
 			parser_error(ISC_FALSE, "cannot redefine options");
@@ -1561,8 +1561,8 @@ control_keys: /* nothing */
 		$$ = $3;
 	};
 
-		
-			
+
+
 control_port: /* nothing */
 	{
 		$$ = OMAPI_DEFAULT_PORT;
@@ -1816,7 +1816,7 @@ ip_and_port_list: ip_and_port_element L_EOS
 			isc_mem_free(memctx, $2);
 		}
 #endif /* NOMINUM_PUBLIC */
-		
+
 		$$ = list;
 	}
 #ifndef NOMINUM_PUBLIC
@@ -1966,7 +1966,7 @@ notify_setting: yea_or_nay
 			$$ = dns_notifytype_yes;
 		else
 			$$ = dns_notifytype_no;
-			
+
 	}
 	| L_EXPLICIT
 	{
@@ -2074,7 +2074,7 @@ size_clause: L_DATASIZE size_spec
 				     "'max-cache-size'");
 			YYABORT;
 		}
-		
+
 		tmpres = dns_c_ctx_setmaxcachesize(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -2112,7 +2112,7 @@ size_spec: any_string
 				       isc_result_totext(tmpres));
 			$$ = DNS_C_SIZE_SPEC_DEFAULT;
 		}
-			
+
 		isc_mem_free(memctx, $1);
 	}
 	| L_INTEGER
@@ -2973,11 +2973,11 @@ keyid_list: /* nothing */
 		}
 
 		isc_mem_free(memctx, $2);
-			
+
 		dns_c_kidlist_append($$, kid);
 	};
 
-	
+
 /*
  * Address Matching
  */
@@ -4041,7 +4041,7 @@ view_option: L_FORWARD zone_forward_opt
 				     "'max-cache-size'");
 			YYABORT;
 		}
-		
+
 		tmpres = dns_c_view_setmaxcachesize(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -4369,7 +4369,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 			if (tmpres != ISC_R_SUCCESS) {
 				YYABORT;
 			}
-			
+
 			tmpres = callbacks->zonecbk(currcfg,
 						    zone,
 						    view,
@@ -5121,7 +5121,7 @@ trusted_keys_stmt: L_TRUSTED_KEYS
 		} else {
 			tmpres = dns_c_view_gettrustedkeys(view, &newlist);
 		}
-		
+
 		if (tmpres == ISC_R_NOTFOUND) {
 			tmpres = dns_c_tkeylist_new(currcfg->mem, &newlist);
 			if (tmpres != ISC_R_SUCCESS) {
@@ -5142,7 +5142,7 @@ trusted_keys_stmt: L_TRUSTED_KEYS
 								   newlist,
 								   ISC_FALSE);
 			}
-			
+
 			if (tmpres != ISC_R_SUCCESS) {
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 					      DNS_LOGMODULE_CONFIG,
@@ -5173,7 +5173,7 @@ trusted_key: any_string L_INTEGER L_INTEGER L_INTEGER L_QSTRING
 			tmpres = dns_c_view_gettrustedkeys(view, &list);
 			mem = view->mem;
 		}
-		
+
 		if (tmpres != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,

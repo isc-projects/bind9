@@ -128,7 +128,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    and PTR. The A RR contains mapping from a FQDN to an IP address; the
    PTR RR contains mapping from an IP address to a FQDN.  The Dynamic
    DNS Updates specification (RFC2136[5]) describes a mechanism that
-   enables DNS information to be updated over a network. 
+   enables DNS information to be updated over a network.
 
    DHCP RFC2131[3] provides a mechanism by which a host (a DHCP client)
    can acquire certain configuration information, along with its IP
@@ -180,7 +180,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    The only difference between these two cases is whether the FQDN to
    IP address mapping is updated by a DHCP client or by a DHCP server.
    The IP address to FQDN mapping is updated by a DHCP server in both
-   cases. 
+   cases.
 
    The reason these two are important, while others are unlikely, has
    to do with authority over the respective DNS domain names. A DHCP
@@ -202,13 +202,13 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    to modify its own domain name. Compliant implementations MAY support
    some or all of these possibilities. Furthermore, this specification
    applies only to DHCP client and server processes: it does not apply
-   to other processes which initiate dynamic DNS updates. 
+   to other processes which initiate dynamic DNS updates.
 
    This document describes a new DHCP option which a client can use to
    convey all or part of its domain name to a DHCP server.
    Site-specific policy determines whether DHCP servers use the names
    that clients offer or not, and what DHCP servers may do in cases
-   where clients do not supply domain names. 
+   where clients do not supply domain names.
 
 4. Issues with DDNS in DHCP Environments
 
@@ -245,7 +245,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    would have its original A RR replaced by the new record. Either of
    these effects may be considered undesirable by some sites. Different
    authority and credential models have different levels of exposure to
-   name collisions. 
+   name collisions.
 
    1.  Client updates A RR, uses Secure DNS Update with credentials
        that are associated with the client's FQDN, and exclusive to the
@@ -356,7 +356,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    is used when the client's link-layer address is being used to
    identify it, and one that is used when some DHCP option that the
    DHCP client has sent is being used to identify it.
-      
+
 
       DISCUSSION:
       Implementors should note that the actual identifying data is
@@ -444,7 +444,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    allow the client to convey its FQDN to the server this document
    defines a new DHCP option, called "Client FQDN". The FQDN Option
    also contains Flags and RCode fields which DHCP servers can use to
-   convey information about DNS updates to clients. 
+   convey information about DNS updates to clients.
 
    Clients MAY send the FQDN option, setting appropriate Flags values,
    in both their DISCOVER and REQUEST messages. If a client sends the
@@ -456,7 +456,7 @@ Stapp & Rekhter          Expires September 2000                 [Page 8]
 Internet-Draft      Interaction between DHCP and DNS          March 2000
 
 
-   subsequent REQUEST messages. 
+   subsequent REQUEST messages.
 
    The code for this option is 81. Its minimum length is 4.
 
@@ -481,12 +481,12 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    indicate that it will not perform any Dynamic DNS updates, and that
    it expects the DHCP server to perform any FQDN-to-IP (the A RR) DNS
    update on its behalf. If this bit is clear, the client indicates
-   that it intends to maintain its own FQDN-to-IP mapping update. 
+   that it intends to maintain its own FQDN-to-IP mapping update.
 
    If a DHCP server intends to take responsibility for the A RR update
    whether or not the client sending the FQDN option has set the "S"
    bit, it sets both the "O" bit and the "S" bit, and sends the FQDN
-   option in its DHCPOFFER and/or DHCPACK messages. 
+   option in its DHCPOFFER and/or DHCPACK messages.
 
    The data in the Domain Name field may appear in one of two formats:
    ASCII, or DNS-style binary encoding (without compression, of
@@ -497,12 +497,12 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    reply, it MUST use the same encoding that the client used. The DNS
    encoding is recommended. The use of ASCII-encoded domain-names is
    fragile, and the use of ASCII encoding in this option should be
-   considered deprecated. 
+   considered deprecated.
 
    The remaining bits in the Flags field are reserved for future
    assignment. DHCP clients and servers which send the FQDN option MUST
    set the MBZ bits to 0, and they MUST ignore values in the part of
-   the field labelled "MBZ". 
+   the field labelled "MBZ".
 
 
 
@@ -670,7 +670,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
    described in Section 8. The server MAY originate the update before
    the server sends the DHCPACK message to the client. In this case the
    RCODE from the update [RFC2136] MUST be carried to the client in the
-   RCODE2 field of the Client FQDN option in the DHCPACK message. 
+   RCODE2 field of the Client FQDN option in the DHCPACK message.
    Alternatively the server MAY send the DHCPACK message to the client
    without waiting for the update to be completed. In this case the
 
@@ -794,7 +794,7 @@ Internet-Draft      Interaction between DHCP and DNS          March 2000
 
    existing A RR and the existing DHCID RR, adding A and DHCID RRs that
    represent the IP address and client-identity of the new client.
-      
+
 
       DISCUSSION:
       The updating entity may be configured to allow the existing DNS

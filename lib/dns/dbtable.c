@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.19 2000/07/27 09:46:00 tale Exp $
+ * $Id: dbtable.c,v 1.20 2000/08/01 01:22:17 tale Exp $
  */
 
 /*
@@ -147,7 +147,7 @@ void
 dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
 	REQUIRE(VALID_DBTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
-	
+
 	LOCK(&source->lock);
 
 	INSIST(source->references > 0);
@@ -167,7 +167,7 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 	REQUIRE(dbtablep != NULL);
 	dbtable = *dbtablep;
 	REQUIRE(VALID_DBTABLE(dbtable));
-	
+
 	LOCK(&dbtable->lock);
 
 	INSIST(dbtable->references > 0);
@@ -208,7 +208,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	dns_name_t *name;
 
 	REQUIRE(VALID_DBTABLE(dbtable));
-	
+
 	name = dns_db_origin(db);
 
 	/*

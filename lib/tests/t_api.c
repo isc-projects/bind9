@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.41 2000/07/27 09:54:39 tale Exp $ */
+/* $Id: t_api.c,v 1.42 2000/08/01 01:33:14 tale Exp $ */
 
 #include <config.h>
 
@@ -649,7 +649,7 @@ struct dc_method_map {
 	unsigned int	dc_method;
 	const char 	*text;
 } dc_method_map[] = {
-	
+
 	{	DNS_COMPRESS_NONE,	"DNS_COMPRESS_NONE"	},
 	{	DNS_COMPRESS_GLOBAL14,	"DNS_COMPRESS_GLOBAL14"	},
 	{	DNS_COMPRESS_GLOBAL16,	"DNS_COMPRESS_GLOBAL16"	},

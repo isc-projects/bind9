@@ -1,9 +1,9 @@
 # Copyright (C) 1998-2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.170 $)
+AC_REVISION($Revision: 1.171 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -217,7 +217,7 @@ AC_SUBST(DNS_OPENSSL_LIBS)
 
 #
 # NetBSD has multiple pthreads implementations.  The recommended
-# one to use is "unproven-pthreads".  The older "mit-pthreads" 
+# one to use is "unproven-pthreads".  The older "mit-pthreads"
 # may also work on some NetBSD versions.  The PTL2 thread
 # library does not currently work with bind9, but can be
 # chosen with the --with-ptl2 option for those who wish to
@@ -940,7 +940,7 @@ case "$hack_shutup_sigwait" in
 	yes)
 		#
 		# Shut up a -Wmissing-prototypes warning for sigwait().
-		# 
+		#
 		AC_DEFINE(SHUTUP_SIGWAIT)
 		;;
 esac

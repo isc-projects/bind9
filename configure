@@ -1,11 +1,11 @@
 #! /bin/sh
 
 # Copyright (C) 1996-2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
 # ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
 # OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# From configure.in Revision: 1.169 
+# From configure.in Revision: 1.169
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999 Free Software Foundation, Inc.
@@ -114,7 +114,7 @@
 
 
 # Guess values for system-dependent variables and create Makefiles.
-# Generated automatically using autoconf version 2.13 
+# Generated automatically using autoconf version 2.13
 # Copyright (C) 1992, 93, 94, 95, 96 Free Software Foundation, Inc.
 #
 # This configure script is free software; the Free Software Foundation
@@ -841,13 +841,13 @@ else
   /*)
   ac_cv_path_AR="$AR" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_AR="$AR" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_AR="$ac_dir/$ac_word"
@@ -876,7 +876,7 @@ LN=ln
 
 case "$AR" in
 	"")
-		{ echo "configure: error: 
+		{ echo "configure: error:
 ar program not found.  Please fix your PATH to include the directory in
 which ar resides, or set AR in the environment with the full path to ar.
 " 1>&2; exit 1; }
@@ -897,13 +897,13 @@ else
   /*)
   ac_cv_path_ETAGS="$ETAGS" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_ETAGS="$ETAGS" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_ETAGS="$ac_dir/$ac_word"
@@ -942,13 +942,13 @@ else
   /*)
   ac_cv_path_PERL="$PERL" # Let the user override the test with a path.
   ;;
-  ?:/*)			 
+  ?:/*)
   ac_cv_path_PERL="$PERL" # Let the user override the test with a dos path.
   ;;
   *)
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
-  for ac_dir in $ac_dummy; do 
+  for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
       ac_cv_path_PERL="$ac_dir/$ac_word"
@@ -1021,9 +1021,9 @@ case "$INSTALL" in
                 #
                 # Not all systems have dirname.
                 #
-                
+
                 ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
-                
+
 
                 ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
                 test "$ac_dir" = "$ac_prog" && ac_dir=.
@@ -1213,7 +1213,7 @@ DNS_OPENSSL_LIBS=""
 
 #
 # NetBSD has multiple pthreads implementations.  The recommended
-# one to use is "unproven-pthreads".  The older "mit-pthreads" 
+# one to use is "unproven-pthreads".  The older "mit-pthreads"
 # may also work on some NetBSD versions.  The PTL2 thread
 # library does not currently work with bind9, but can be
 # chosen with the --with-ptl2 option for those who wish to
@@ -1740,7 +1740,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -1817,7 +1817,7 @@ fi
 echo "$ac_t""$ac_cv_c_const" 1>&6
 if test $ac_cv_c_const = no; then
   cat >> confdefs.h <<\EOF
-#define const 
+#define const
 EOF
 
 fi
@@ -1853,7 +1853,7 @@ echo "$ac_t""$ac_cv_c_inline" 1>&6
 case "$ac_cv_c_inline" in
   inline | yes) ;;
   no) cat >> confdefs.h <<\EOF
-#define inline 
+#define inline
 EOF
  ;;
   *)  cat >> confdefs.h <<EOF
@@ -3060,7 +3060,7 @@ exec 5>>./config.log
 		O=o
 		A=a
 		LIBTOOL=
-		
+
 		;;
 esac
 
@@ -4145,7 +4145,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -4185,7 +4185,7 @@ if eval "test \"`echo '$ac_cv_header_'$ac_safe`\" = yes"; then
   cat >> confdefs.h <<EOF
 #define $ac_tr_hdr 1
 EOF
- 
+
 else
   echo "$ac_t""no" 1>&6
 fi
@@ -4228,7 +4228,7 @@ case "$hack_shutup_sigwait" in
 	yes)
 		#
 		# Shut up a -Wmissing-prototypes warning for sigwait().
-		# 
+		#
 		cat >> confdefs.h <<\EOF
 #define SHUTUP_SIGWAIT 1
 EOF

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compatibility.h,v 1.5 2000/07/27 09:54:31 tale Exp $ */
+/* $Id: compatibility.h,v 1.6 2000/08/01 01:33:07 tale Exp $ */
 
 #ifndef OMAPI_COMPATIBILITY_H
 #define OMAPI_COMPATIBILITY_H 1
@@ -56,7 +56,7 @@
  * The get_value, set_value and stuff_values methods all had their id
  * parameter removed, so those functions for special client/server objects
  * need to have their definitions adjusted.
- * 
+ *
  */
 #define omapi_set_value(h, id, name, value) \
 	omapi_object_set(h, name, value)

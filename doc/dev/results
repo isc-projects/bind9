@@ -1,7 +1,7 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: results,v 1.3 2000/06/22 21:54:07 tale Exp $
+$Id: results,v 1.4 2000/08/01 01:18:25 tale Exp $
 
 Result Codes
 
@@ -19,7 +19,7 @@ seems more promising, e.g.
 
 If 's' is shared however this approach doesn't work unless the locking is
 done by the caller, e.g.
-	
+
 	sometype_lock();
 	sometype_dosomething(s, buffer);
 	if (sometype_error(s)) {

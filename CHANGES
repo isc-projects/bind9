@@ -58,7 +58,7 @@
 			* Shorten timeouts to match v8's behavior
 
  344.	[bug]		When shutting down, lwresd sometimes tried
-			to shut down its client tasks twice, 
+			to shut down its client tasks twice,
 			triggering an assertion.
 
  343.	[bug]		Although zone maintenance SOA queries and
@@ -70,10 +70,10 @@
 			dns_name_dup() when generating a TSIG
 			key using TKEY.
 
- 341.	[func]		Support 'key' clause in named.conf zone masters 
+ 341.	[func]		Support 'key' clause in named.conf zone masters
 			statement:
 
-				masters { 
+				masters {
 					10.0.0.1 port 666 key "foo";
 					10.0.0.2 ;
 				};
@@ -130,16 +130,16 @@
 			response after a number of retransmissions.
 			This is to allow queries some chance of succeeding
 			even if all the authoritative servers of a zone
-			silently discard EDNS0 requests instead of 
+			silently discard EDNS0 requests instead of
 			sending an error response like they ought to.
 
  323.	[bug]		dns_rbt_findname() did not ignore empty rbt nodes.
-			Because of this, servers authoritative for a parent 
+			Because of this, servers authoritative for a parent
 			and grandchild zone but not authoritative for the
 			intervening child zone did not correctly issue
 			referrals to the servers of the child zone.
 
- 322.	[bug]		Queries for KEY RRs are now sent to the parent 
+ 322.	[bug]		Queries for KEY RRs are now sent to the parent
 			server before the authoritative one, making
 			DNSSEC insecurity proofs work in many cases
 			where they previously didn't.
@@ -169,7 +169,7 @@
 
  315.	[bug]		Handle non-empty blanks lines. (RT #163)
 
- 314.	[func]		The named.conf controls statement can now have 
+ 314.	[func]		The named.conf controls statement can now have
 			more than one key specified for the inet clause.
 
  313.	[bug]		When parsing resolv.conf, don't terminate on an
@@ -197,7 +197,7 @@
 			  - allow "port xxx" to be left out of statement,
 			    in which case it defaults to omapi's default port
 			    of 953.
- 
+
  309.	[bug]		When sending a referral, the server did not look
 			for name server addresses as glue in the zone
 			holding the NS RRset in the case where this zone
@@ -217,7 +217,7 @@
 
  306.	[bug]		Reading HMAC-MD5 private key files didn't work.
 
- 305.	[bug]		When reloading the server with a config file 
+ 305.	[bug]		When reloading the server with a config file
 			containing a syntax error, it could catch an
 			assertion failure trying to perform zone
 			maintenance on tentatively created zones whose
@@ -231,7 +231,7 @@
  303.	[bug]		Add additional sanity checks to differentiate a AXFR
 			response vs a IXFR response. (RT #157)
 
- 302.	[bug]		In dig, host, and nslookup, MXNAME should be large 
+ 302.	[bug]		In dig, host, and nslookup, MXNAME should be large
 			enough to hold any legal domain name in presentation
 			format + terminating NULL.
 
@@ -300,7 +300,7 @@
 			disabled until named supports the "controls" statement,
 			post-9.0.0.
 
- 286.	[bug]		On Solaris 2, when named inherited a signal state 
+ 286.	[bug]		On Solaris 2, when named inherited a signal state
 			where SIGHUP had the SIG_IGN action, SIGHUP would
 			be ignored rather than causing the server to reload
 			its configuration.
@@ -315,7 +315,7 @@
 
  283.	[cleanup]	The 'lwresd' program is now a link to 'named'.
 
- 282.	[bug]		The lexer now returns ISC_R_RANGE if parsed integer is 
+ 282.	[bug]		The lexer now returns ISC_R_RANGE if parsed integer is
 			too big for an unsigned long.
 
  281.	[bug]		Fixed list of recognized config file category names.
@@ -342,7 +342,7 @@
 
  276.	[bug]		dig now supports maximum sized TCP messages.
 
- 275.	[bug]		The definition of lwres_gai_strerror() was missing 
+ 275.	[bug]		The definition of lwres_gai_strerror() was missing
 			the lwres_ prefix.
 
  274.	[bug]		TSIG AXFR verify failed when talking to a BIND 8
@@ -368,7 +368,7 @@
 			failure by causing clone_results() to be called with
 			with hevent->node == NULL.
 
- 268.	[doc]		A plain text version of the Administrator 
+ 268.	[doc]		A plain text version of the Administrator
 			Reference Manual is now included in the distribution,
 			as doc/arm/Bv9ARM.txt.
 
@@ -478,14 +478,14 @@
 
  237.	[bug]		If connect() returned ENOBUFS when the resolver was
 			initiating a TCP query, the socket didn't get
-			destroyed, and the server did not shut down cleanly. 
+			destroyed, and the server did not shut down cleanly.
 
  236.	[func]		Added new listen-on-v6 config file statement.
 
- 235.	[func]		Consider it a config file error if a listen-on 
-			statement has an IPv6 address in it, or a 
+ 235.	[func]		Consider it a config file error if a listen-on
+			statement has an IPv6 address in it, or a
 			listen-on-v6 statement has an IPv4 address in it.
-			
+
  234.	[bug]		Allow a trusted-key's first field (domain-name) be
 			either a quoted or an unquoted string, instead of
 			requiring a quoted string.
@@ -502,11 +502,11 @@
 
  230.	[func]		Replace the dst sign/verify API with a cleaner one.
 
- 229.	[func]		Support config file sig-validity-interval statement 
-			in options, views and zone statements (master 
+ 229.	[func]		Support config file sig-validity-interval statement
+			in options, views and zone statements (master
 			zones only).
 
- 228.	[cleanup]	Logging messages in config module stripped of 
+ 228.	[cleanup]	Logging messages in config module stripped of
 			trailing period.
 
  227.	[cleanup]	The enumerated identifiers dns_rdataclass_*,
@@ -552,7 +552,7 @@
  217.	[func]		Also-notify and trusted-keys can now be used in
 			the 'view' statement.
 
- 216.	[func]		The 'max-cache-ttl' and 'max-ncache-ttl' options 
+ 216.	[func]		The 'max-cache-ttl' and 'max-ncache-ttl' options
 			now work.
 
  215.	[bug]		Failures at certain points in request processing
@@ -639,14 +639,14 @@
 
  193.	[func]		changed dst_key_free() prototype.
 
- 192.	[bug]		Zone configuration validation is now done at end 
+ 192.	[bug]		Zone configuration validation is now done at end
 			of config file parsing, and before loading
 			callbacks.
 
  191.	[func]		Patched to compile on UnixWare 7.x.  This platform
 			is not directly supported by the ISC.
 
- 190.	[cleanup]	The DNSSEC tools have been moved to a separate 
+ 190.	[cleanup]	The DNSSEC tools have been moved to a separate
 			directory dnssec/ and given the following new,
 			more descriptive names:
 
@@ -714,7 +714,7 @@
 			to comment out the entire zone statement.
 
  176.	[func]		New global and per-view option:
-				
+
 				max-cache-ttl number
 
  175.	[func]		New global and per-view option:
@@ -728,7 +728,7 @@
 			quota so that a new transfer can be dispatched
 			immediately whenever quota becomes available.
 
- 172.	[bug]		$TTL directive was sometimes missing from dumped 
+ 172.	[bug]		$TTL directive was sometimes missing from dumped
 			master files because totext_ctx_init() failed to
 			initialize ctx->current_ttl_valid.
 
@@ -800,7 +800,7 @@
  153.	[func]		dns_rdata_tostruct() 'mctx' is now optional.  If 'mctx'
 			is NULL then you need to preserve the 'rdata' until
 			you have finished using the structure as there may be
-			references to the associated memory.  If 'mctx' is 
+			references to the associated memory.  If 'mctx' is
 			non-NULL it is guaranteed that there are no references
 			to memory associated with 'rdata'.
 
@@ -815,7 +815,7 @@
 			come after the 'type' clause.
 
  150.	[func]		Support optional ports in masters and also-notify
-			statements: 
+			statements:
 
 				masters [ port xxx ] { y.y.y.y [ port zzz ] ; }
 
@@ -936,7 +936,7 @@
 			are replaced by dns_zone_setnotifyalso().
 			dns_zone_clearmasters() and dns_zone_addmaster()
 			are replaced by dns_zone_setmasters().
-			
+
  116.	[func]		Added <isc/offset.h> for isc_offset_t (aka off_t
 			on Unix systems).
 
@@ -1018,7 +1018,7 @@
 			<isc/mutex.h>.	isc_random_t moved to <isc/types.h>.
 
   99.	[cleanup]	Rate limiter now has separate shutdown() and
-			destroy() functions, and it guarantees that all 
+			destroy() functions, and it guarantees that all
 			queued events are delivered even in the shutdown case.
 
   98.	[cleanup]	<isc/print.h> does not need <stdarg.h> or <stddef.h>
@@ -1082,7 +1082,7 @@
 			consistency with other *_test programs.
 
   77.	[cleanup]	typedef of isc_time_t and isc_interval_t moved from
-			<isc/time.h> to <isc/types.h>.	
+			<isc/time.h> to <isc/types.h>.
 
   76.	[cleanup]	Rewrote keygen.
 
@@ -1200,12 +1200,12 @@
   40.	[func]		Introduced new logging category "dnssec" and
 			logging module "dns/validator".
 
-  39.	[cleanup]	Moved the typedefs for isc_region_t, isc_textregion_t, 
+  39.	[cleanup]	Moved the typedefs for isc_region_t, isc_textregion_t,
 			and isc_lex_t to <isc/types.h>.
 
   38.	[bug]		TSIG signed incoming zone transfers work now.
 
-  37.	[bug]		If the first RR in an incoming zone transfer was 
+  37.	[bug]		If the first RR in an incoming zone transfer was
 			not an SOA, the server died with an assertion failure
 			instead of just reporting an error.
 
@@ -1224,7 +1224,7 @@
 
   31.	[bug]		Use ${LIBTOOL} to compile bin/named/main.@O@.
 
-  30.	[func]		config file grammer change to support optional 
+  30.	[func]		config file grammer change to support optional
 			class type for a view.
 
   29.	[func]		support new config file view options:
@@ -1237,9 +1237,9 @@
 				fetch-glue notify rfc2308-type1 lame-ttl
 				max-ncache-ttl min-roots
 
-  28.	[func]		support lame-ttl, min-roots and serial-queries 
+  28.	[func]		support lame-ttl, min-roots and serial-queries
 			config global options.
-			
+
   27.	[bug]		Only include <netinet6/in6.h> on BSD/OS 4.[01]*.
 			Including it on other platforms (eg, NetBSD) can
 			cause a forced #error from the C preprocessor.
@@ -1276,7 +1276,7 @@
 
   17.	[func]		Do configuration file post-load validation of zones.
 
-  16.	[bug]		put quotes around key names on config file 
+  16.	[bug]		put quotes around key names on config file
 			output to avoid possible keyword clashes.
 
   15.	[func]		Add dns_name_dupwithoffsets().	This function is
@@ -1306,11 +1306,11 @@
 
    7.	[cleanup]	removed 'listen-on' from view statement.
 
-   6.	[bug]		quote RR names when generating config file to 
-			prevent possible clash with config file keywords 
+   6.	[bug]		quote RR names when generating config file to
+			prevent possible clash with config file keywords
 			(such as 'key').
 
-   5.	[func]		syntax change to named.conf file: new ssu grant/deny 
+   5.	[func]		syntax change to named.conf file: new ssu grant/deny
 			statements must now be enclosed by an 'update-policy'
 			block.
 

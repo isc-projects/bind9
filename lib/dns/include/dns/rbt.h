@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.45 2000/07/31 23:27:25 tale Exp $ */
+/* $Id: rbt.h,v 1.46 2000/08/01 01:24:28 tale Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -211,7 +211,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
  *	responsible for cleaning up any memory associated with the data
  *	pointer of a node when the node is deleted.  It is passed the
  *	deleted node's data pointer as its first argument and deleter_arg
- *	as its second argument.  
+ *	as its second argument.
  *
  * Requires:
  * 	mctx is a pointer to a valid memory context.
@@ -361,7 +361,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *
  *	If the chain parameter is non-NULL, then the path through the tree
  *	to the DNSSEC predecessor of the searched for name is maintained,
- *	unless the DNS_RBTFIND_NOPREDECESSOR or DNS_RBTFIND_NOEXACT option 
+ *	unless the DNS_RBTFIND_NOPREDECESSOR or DNS_RBTFIND_NOEXACT option
  *	is used. (For more details on those options, see below.)
  *
  *	If there is no predecessor, then the chain will point to nowhere, as
@@ -408,7 +408,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
  *	will not point to the DNSSEC predecessor, but will instead point
  *	to the exact match, if there was any.  Thus the preceding paragraphs
  *	should have "exact match" substituted for "predecessor" to describe
- *	how the various elements of the chain are set.  This was done to 
+ *	how the various elements of the chain are set.  This was done to
  * 	ensure that the chain's state was sane, and to prevent problems that
  *	occurred when running the predecessor location code under conditions
  *	it was not designed for.  It is not clear *where* the chain should
@@ -592,7 +592,7 @@ dns_rbt_printall(dns_rbt_t *rbt);
  *
  * Notes:
  *	The name stored at each node, along with the node's color, is printed.
- *	Then the down pointer, left and right pointers are displayed 
+ *	Then the down pointer, left and right pointers are displayed
  *	recursively in turn.  NULL down pointers are silently omitted;
  *	NULL left and right pointers are printed.
  */
@@ -677,7 +677,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
  *	'origin', if non-NULL, is the sequence of labels in the levels
  *	above the terminal level, such as "isc.org." in the above example.
  *	'origin' is always "." for the root node.
- *	
+ *
  *
  * Returns:
  *	ISC_R_SUCCESS		name, origin & node were successfully set.

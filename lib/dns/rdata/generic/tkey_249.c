@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.37 2000/07/27 09:49:47 tale Exp $ */
+/* $Id: tkey_249.c,v 1.38 2000/08/01 01:26:04 tale Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -117,7 +117,7 @@ fromtext_tkey(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_tkey(ARGS_TOTEXT) {
 	isc_region_t sr, dr;
-	char buf[sizeof "4294967295 "];	
+	char buf[sizeof "4294967295 "];
 	unsigned long n;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -196,7 +196,7 @@ totext_tkey(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" ) ", target));
 	else
-		RETERR(str_totext(" ", target));		
+		RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, n);
 
 	/*
@@ -236,7 +236,7 @@ fromwire_tkey(ARGS_FROMWIRE) {
 	REQUIRE(type == 249);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
-	
+
 	/*
 	 * Algorithm.
 	 */
@@ -311,7 +311,7 @@ compare_tkey(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 249);
-	
+
 	/*
 	 * Algorithm.
 	 */

@@ -8,7 +8,7 @@
 /* I've done some timing with different table sizes.
  * The main hassle is that even with bits set at 3, this requires
  * 63 BIGNUMs to store the pre-calculated values.
- *          512   1024 
+ *          512   1024
  * bits=1  75.4%  79.4%
  * bits=2  61.2%  62.4%
  * bits=3  61.3%  59.3%
@@ -173,7 +173,7 @@ int BN_mod_exp2_mont(BIGNUM *rr, BIGNUM *a1, BIGNUM *p1, BIGNUM *a2,
 				if (!BN_mod_mul_montgomery(r,r,r,mont,ctx))
 					goto err;
 				}
-		
+
 		/* wvalue will be an odd number < 2^window */
 		if (xvalue || yvalue)
 			{

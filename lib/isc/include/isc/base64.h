@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.11 2000/07/27 09:51:25 tale Exp $ */
+/* $Id: base64.h,v 1.12 2000/08/01 01:29:59 tale Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
@@ -36,7 +36,7 @@ isc_base64_totext(isc_region_t *source, int wordlength,
  * Convert data into base64 encoded text.
  *
  * Notes:
- *	The base64 encoded text in 'target' will be divided into 
+ *	The base64 encoded text in 'target' will be divided into
  *	words of at most 'wordlength' characters, separated by
  * 	the 'wordbreak' string.  No parentheses will surround
  *	the text.
@@ -85,7 +85,7 @@ isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length);
  *	'length' is an integer
  *
  * Ensures:
- *	target will contain the data represented by the base64 encoded 
+ *	target will contain the data represented by the base64 encoded
  *	string parsed by the lexer.  No more than length bytes will be read,
  *	if length is positive.  The 'used' pointer in target will be
  *	advanced as necessary.

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.27 2000/07/27 09:38:53 tale Exp $ */
+/* $Id: t_names.c,v 1.28 2000/08/01 01:14:06 tale Exp $ */
 
 #include <config.h>
 
@@ -113,7 +113,7 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
 			t_info("malloc failed unexpectedly\n");
 			return (-1);
 		}
-	
+
 		/*
 		 * First convert exp_data from hex format.
 		 */
@@ -934,7 +934,7 @@ test_dns_name_fullcompare(char *name1, char *name2,
 		if (dns_result == ISC_R_SUCCESS) {
 			dns_reln = dns_name_fullcompare(&dns_name1, &dns_name2,
 					&order, &nlabels, &nbits);
-			
+
 			if (dns_reln != exp_dns_reln) {
 				++nfails;
 				t_info("expected relationship of %s, got %s\n",
@@ -1277,7 +1277,7 @@ test_dns_name_issubdomain(char *name1, char *name2, isc_boolean_t exp_rval) {
 		dns_result = dname_from_tname(name2, &dns_name2);
 		if (dns_result == ISC_R_SUCCESS) {
 			rval = dns_name_issubdomain(&dns_name1, &dns_name2);
-			
+
 			if (rval != exp_rval) {
 				t_info("expected return value of %s, got %s\n",
 				       exp_rval == ISC_TRUE ? "true" : "false",
@@ -1364,7 +1364,7 @@ test_dns_name_countlabels(char *test_name, unsigned int exp_nlabels) {
 	dns_result = dname_from_tname(test_name, &dns_name);
 	if (dns_result == ISC_R_SUCCESS) {
 		nlabels = dns_name_countlabels(&dns_name);
-			
+
 		if (nlabels != exp_nlabels) {
 			t_info("expected %d, got %d\n", exp_nlabels, nlabels);
 			result = T_FAIL;
@@ -2076,7 +2076,7 @@ static const char *a42 =
 		"converts the possibly compressed DNS name 'name' in wire "
 		"format to canonicalized form at target, performing upper to "
 		"lower case conversion if downcase is true, and returns "
-		"ISC_R_SUCCESS"; 
+		"ISC_R_SUCCESS";
 
 #if 0
 	/*
@@ -2163,7 +2163,7 @@ test_dns_name_fromwire(char *datafile_name, int testname_offset, int downcase,
 							    &nbits);
 			if (dns_namereln != dns_namereln_equal) {
 				t_info("dns_name_fullcompare  returned %s\n",
-				       dns_namereln_to_text(dns_namereln)); 
+				       dns_namereln_to_text(dns_namereln));
 				result = T_FAIL;
 			} else {
 				result = T_PASS;

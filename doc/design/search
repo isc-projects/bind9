@@ -1,7 +1,7 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: search,v 1.6 2000/06/22 21:53:58 tale Exp $
+$Id: search,v 1.7 2000/08/01 01:18:16 tale Exp $
 
 What follows is pseudocode for the zone and cache lookup algorithms, as they
 will work in the RBT DB.
@@ -39,7 +39,7 @@ rdataset, or a node (including the zone top) with an active DNAME
 rdataset.
 
 
-Zone Search Algorithm			
+Zone Search Algorithm
 
 	Inputs:
 		Search name
@@ -239,7 +239,7 @@ Cache Search Algorithm:
 
 	Go down as far as possible remembering every parent node.
 	Remember the predecessor too.
-	
+
 	If some rdataset for name exists
 
 		Look for desired type or CNAME
@@ -280,7 +280,7 @@ Cache Search Algorithm:
 				Return NO_KNOWN_AUTHORITY
 				(this will cause priming of root servers or,
 				 perhaps, forwarding)
-	
+
 		If we have a zone DKZC and it's better than the one we found
 		in the cache
 			Return it (node and name).

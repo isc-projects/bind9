@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.8 2000/07/27 09:51:18 tale Exp $ */
+/* $Id: taskpool.c,v 1.9 2000/08/01 01:29:52 tale Exp $ */
 
 #include <config.h>
 
@@ -28,7 +28,7 @@
  ***/
 
 struct isc_taskpool {
-	isc_mem_t *			mctx;		
+	isc_mem_t *			mctx;
 	unsigned int			ntasks;
 	isc_task_t **			tasks;
 };
@@ -44,7 +44,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	unsigned int i;
 	isc_taskpool_t *pool;
 	isc_result_t result;
-	
+
 	INSIST(ntasks > 0);
 	pool = isc_mem_get(mctx, sizeof *pool);
 	if (pool == NULL)
@@ -52,7 +52,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	pool->mctx = mctx;
 	pool->ntasks = ntasks;
 	pool->tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-	for (i = 0; i < ntasks; i++) 
+	for (i = 0; i < ntasks; i++)
 		pool->tasks[i] = NULL;
 	for (i = 0; i < ntasks; i++) {
 		result = isc_task_create(tmgr, quantum, &pool->tasks[i]);

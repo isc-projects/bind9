@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6.c,v 1.15 2000/07/27 09:45:48 tale Exp $ */
+/* $Id: a6.c,v 1.16 2000/08/01 01:22:06 tale Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 	expiration = a6ctx->now + parent->ttl;
 	if (expiration < a6ctx->expiration || a6ctx->expiration == 0)
 		a6ctx->expiration = expiration;
-	
+
 	depth++;
 	result = dns_rdataset_first(parent);
 	while (result == ISC_R_SUCCESS) {

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nconf_test.c,v 1.18 2000/07/27 09:38:13 tale Exp $ */
+/* $Id: nconf_test.c,v 1.19 2000/08/01 01:13:04 tale Exp $ */
 
 #include <config.h>
 
@@ -36,7 +36,7 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap) {
 
 	UNUSED(ctx);
 	UNUSED(uap);
-	
+
 	dns_c_zone_getname(zone, &zname);
 
 #if 0
@@ -48,7 +48,7 @@ zonecbk(dns_c_ctx_t *ctx, dns_c_zone_t *zone, dns_c_view_t *view, void *uap) {
 #else
 	UNUSED(view);
 	vname = "foo";
-#endif	
+#endif
 
 	fprintf(stderr, "handling zone %s, view %s\n", zname, vname);
 
@@ -59,7 +59,7 @@ static isc_result_t
 optscbk(dns_c_ctx_t *ctx, void *uap) {
 	UNUSED(ctx);
 	UNUSED(uap);
-	
+
 	fprintf(stderr, "Processing options in callback.\n");
 	return (ISC_R_SUCCESS);
 }
@@ -76,7 +76,7 @@ main (int argc, char **argv) {
 	dns_c_cbks_t callbacks;
 	isc_log_t *log = NULL;
 	isc_logconfig_t *logcfg = NULL;
-	
+
 	callbacks.zonecbk = zonecbk;
 	callbacks.optscbk = optscbk;
 	callbacks.zonecbkuap = NULL;
@@ -86,14 +86,14 @@ main (int argc, char **argv) {
 	callbacks.zonecbk = NULL;
 	callbacks.optscbk = NULL;
 #endif
-	
+
 	if (argc > 1 && strcmp(argv[1],"-d") == 0) {
 		argv++;
 		argc--;
 		/* debug_mem_print = ISC_TRUE; */
 		dns__yydebug = 1;
 	}
-	
+
 	conffile = getenv("NAMED_CONF");
 	if (argc > 1)
 		conffile = argv[1];
@@ -106,12 +106,12 @@ main (int argc, char **argv) {
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
-	
+
 	RUNTIME_CHECK(isc_log_usechannel(logcfg, "default_stderr", NULL, NULL)
 		      == ISC_R_SUCCESS);
 
 	dns_lctx = log;
-	
+
 	if (dns_c_parse_namedconf(conffile, mem, &configctx, &callbacks) !=
 	    ISC_R_SUCCESS) {
 		fprintf(stderr, "parse_configuration failed.\n");
@@ -132,7 +132,7 @@ main (int argc, char **argv) {
 			outfp = stderr;
 		}
 	}
-	
+
 	dns_c_ctx_print(outfp, 0, configctx);
 
 #if 0
@@ -146,7 +146,7 @@ main (int argc, char **argv) {
 		dns_ipmatch_list_print(outfp, 0, list);
 	}
 #endif
-	
+
 	if (outfp != stderr) {
 		fclose(outfp);
 	}
@@ -155,7 +155,7 @@ main (int argc, char **argv) {
 
 	dns_lctx = NULL;
 	isc_log_destroy(&log);
-	
+
 	isc_mem_destroy(&mem);
 
 	return (0);

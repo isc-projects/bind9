@@ -4,7 +4,7 @@
 # This directory was configured as follows,
 # on host gro.dd.org:
 #
-# ./configure 
+# ./configure
 #
 # Compiler output produced by configure, useful for debugging
 # configure, is in ./config.log if it exists.
@@ -30,7 +30,7 @@ case $# in
 0)
     dstdir=g:/work/bind9-nt
     ;;
-1)  
+1)
     dstdir=$1
     ;;
 *)

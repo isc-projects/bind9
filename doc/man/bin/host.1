@@ -1,9 +1,9 @@
 .\" Copyright (C) 2000  Internet Software Consortium.
-.\" 
+.\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
 .\" copyright notice and this permission notice appear in all copies.
-.\" 
+.\"
 .\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 .\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 .\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -12,9 +12,9 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-.\" 
-.\" $Id: host.1,v 1.2 2000/07/27 09:42:26 tale Exp $
-.\" 
+.\"
+.\" $Id: host.1,v 1.3 2000/08/01 01:18:42 tale Exp $
+.\"
 .Dd Jun 30, 2000
 .Dt HOST 1
 .Os BIND9 9
@@ -42,7 +42,7 @@ prints a short summary of its command line arguments and options.
 .Pp
 .Ar name
 is the domain name that is to be looked up.
-It can also be a dotted-decimal string representing an IPv4 address, 
+It can also be a dotted-decimal string representing an IPv4 address,
 in which case
 .Nm host
 will by default perform a reverse lookup for that address.
@@ -57,7 +57,7 @@ The
 .Fl a
 (all) option is equivalent to setting the
 .Fl v
-option and asking 
+option and asking
 .Nm host
 to make a query of type ANY.
 .Pp
@@ -96,7 +96,7 @@ enabled verbose output.
 List mode is selected by the
 .Fl l
 option.
-This makes 
+This makes
 .Nm host
 perform a zone transfer for zone
 .Ar name .
@@ -115,7 +115,7 @@ the BIND9 implementation does not append domain names from the
 .Dv domain
 or
 .Dv search
-directives in 
+directives in
 .Pa /etc/resolv.conf .
 Therefore
 .Ar name
@@ -166,7 +166,7 @@ The
 option is used to select the query type.
 .Ar type
 can be any recognised query type: CNAME, NS, SOA, SIG, KEY, AXFR, etc.
-When no query type is specified, 
+When no query type is specified,
 .Nm host
 automatically selects an appropriate query type.
 By default it looks for A records unless the
@@ -187,7 +187,7 @@ The
 .Fl W
 option makes
 .Nm host
-wait for 
+wait for
 .Ar wait
 seconds.
 If

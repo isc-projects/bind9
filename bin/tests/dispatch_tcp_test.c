@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch_tcp_test.c,v 1.34 2000/07/27 09:37:50 tale Exp $ */
+/* $Id: dispatch_tcp_test.c,v 1.35 2000/08/01 01:12:42 tale Exp $ */
 
 #include <config.h>
 
@@ -174,7 +174,7 @@ got_request(isc_task_t *task, isc_event_t *ev_in) {
 		dns_dispatch_detach(&disp);
 		isc_app_shutdown();
 		break;
-		
+
 	case 3:
 		printf("--- removing request\n");
 		dns_dispatch_removerequest(&resp, &ev);

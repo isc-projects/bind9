@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.37 2000/07/27 09:49:29 tale Exp $ */
+/* $Id: nxt_30.c,v 1.38 2000/08/01 01:25:46 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -45,7 +45,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	REQUIRE(type == 30);
 
 	UNUSED(rdclass);
-	
+
 	/*
 	 * Next domain.
 	 */
@@ -64,7 +64,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 		n = strtol(token.value.as_pointer, &e, 10);
 		if (e != (char *)token.value.as_pointer && *e == '\0') {
 			covered = (dns_rdatatype_t)n;
-		} else if (dns_rdatatype_fromtext(&covered, 
+		} else if (dns_rdatatype_fromtext(&covered,
 				&token.value.as_textregion) == DNS_R_UNKNOWN)
 			return (DNS_R_UNKNOWN);
 		/*
@@ -78,7 +78,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 		bm[covered/8] |= (0x80>>(covered%8));
 	} while (1);
 	isc_lex_ungettoken(lexer, &token);
-	if (first) 
+	if (first)
 		return (ISC_R_SUCCESS);
 	n = (maxcovered + 8) / 8;
 	return (mem_tobuffer(target, bm, n));
@@ -137,7 +137,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
-	
+
 	isc_buffer_activeregion(source, &sr);
 	/* XXXRTH  Enforce RFC 2535 length rules if bit 0 is not set. */
 	if (sr.length > 8 * 1024)

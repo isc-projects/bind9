@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.18 2000/07/27 09:53:18 tale Exp $ */
+/* $Id: time.c,v 1.19 2000/08/01 01:31:52 tale Exp $ */
 
 #include <config.h>
 
@@ -139,7 +139,7 @@ isc_time_now(isc_time_t *t) {
 	/*
 	 * Set *t to the current absolute time.
 	 */
-	
+
 	REQUIRE(t != NULL);
 
 	GetSystemTimeAsFileTime(&t->absolute);
@@ -154,10 +154,10 @@ isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
 	/*
 	 * Set *t to the current absolute time + i.
 	 */
-	
+
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
-	
+
 	GetSystemTimeAsFileTime(&t->absolute);
 
 	i1.LowPart = t->absolute.dwLowDateTime;

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.12 2000/07/27 09:53:17 tale Exp $ */
+/* $Id: thread.c,v 1.13 2000/08/01 01:31:51 tale Exp $ */
 
 #include <config.h>
 
@@ -24,7 +24,7 @@
 #include <isc/thread.h>
 
 isc_result_t
-isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg, 
+isc_thread_create(isc_threadfunc_t start, isc_threadarg_t arg,
 		  isc_thread_t *threadp)
 {
 	isc_thread_t thread;

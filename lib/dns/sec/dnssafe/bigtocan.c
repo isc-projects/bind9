@@ -24,14 +24,14 @@ UINT2 *wordPointer;
 unsigned int wordCount;
 {
   unsigned int copyCount;
-  
+
   if (BigSign (wordPointer, wordCount) < 0 ||
       (BigLen (wordPointer, wordCount) + 7) / 8 > numBytes)
     return (AE_DATA);
 
   /* start at end of byte vector */
   bytePointer += numBytes-1;
-  
+
   /* copy as much as possible */
   copyCount = (wordCount < numBytes / 2) ? wordCount : numBytes / 2;
   wordCount -= copyCount;
@@ -42,18 +42,18 @@ unsigned int wordCount;
     *bytePointer-- = (unsigned char)(*wordPointer >> 8);
     wordPointer++;
   }
-  
+
   if (wordCount && numBytes & 1) {
     /* The number of output bytes was odd. Copy one last byte */
     *bytePointer-- = (unsigned char)*wordPointer++;
     wordCount--;
     numBytes--;
   }
-  
+
   /* zero fill remainder of byte vector */
   while (numBytes--)
     *bytePointer-- = 0;
-  
+
   return (0);
 }
 

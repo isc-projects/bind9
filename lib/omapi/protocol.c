@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: protocol.c,v 1.30 2000/07/27 09:54:23 tale Exp $ */
+/* $Id: protocol.c,v 1.31 2000/08/01 01:32:58 tale Exp $ */
 
 /*
  * Functions supporting the object management protocol.
@@ -273,8 +273,8 @@ send_update(omapi_object_t *po, unsigned int rid, omapi_object_t *object) {
 		if (result == ISC_R_SUCCESS)
 			result = omapi_object_setinteger(message, "handle",
 							 (int)handle);
-	}		
-		
+	}
+
 	if (result == ISC_R_SUCCESS)
 		result = omapi_object_setobject(message, "object", object);
 
@@ -312,7 +312,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 		 */
 		connection_getuint32(connection, &protocol->protocol_version);
 		connection_getuint32(connection, &protocol->header_size);
-	
+
 		/*
 		 * Currently only the current protocol version is supported.
 		 */
@@ -762,7 +762,7 @@ protocol_getvalue(omapi_object_t *h, omapi_string_t *name,
 		  omapi_value_t **value)
 {
 	REQUIRE(h != NULL && h->type == omapi_type_protocol);
-	
+
 	return (omapi_object_passgetvalue(h, name, value));
 }
 

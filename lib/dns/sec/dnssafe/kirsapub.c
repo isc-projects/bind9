@@ -36,7 +36,7 @@ POINTER info;
 {
   POINTER newValue;
   int status;
-  
+
   /* Allocate memory for A_RSA_KEY struct and copy integers
        from supplied value.
      */
@@ -48,7 +48,7 @@ POINTER info;
         sizeof (RSA_KEY_ITEMS) / sizeof (RSA_KEY_ITEMS[0]),
         &key->infoCache.memoryPool)) != 0)
     return (status);
-    
+
   return (B_InfoCacheAddInfo
           (&key->infoCache, (POINTER)&KIT_RSAPublic, newValue));
 }
@@ -59,7 +59,7 @@ B_Key *key;
 {
   A_RSA_KEY keyValue;
   int status;
-  
+
   /* If not already found in the cache, try to get values from
        a full private key info, setting unneeded entries to NULL.
    */
@@ -74,7 +74,7 @@ B_Key *key;
   if ((status = B_MemoryPoolAlloc
        (&key->infoCache.memoryPool, info, sizeof (A_RSA_KEY))) != 0)
     return (status);
-    
+
   **(A_RSA_KEY **)info = keyValue;
   return (0);
 }

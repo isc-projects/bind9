@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.41 2000/07/31 21:07:03 explorer Exp $ */
+/* $Id: confview.c,v 1.42 2000/08/01 01:23:30 tale Exp $ */
 
 #include <config.h>
 
@@ -152,7 +152,7 @@ PVT_CONCAT(dns_c_view_unset, FUNCNAME)(dns_c_view_t *view) {	\
 		return (ISC_R_NOTFOUND);			\
 	}							\
 }
-	
+
 
 #define GETIPMLIST(FUNCNAME, FIELDNAME)					\
 isc_result_t								\
@@ -175,7 +175,7 @@ PVT_CONCAT(dns_c_view_get, FUNCNAME)(dns_c_view_t *view,		\
 isc_result_t
 dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
 	dns_c_viewtable_t *table;
-	
+
 	REQUIRE(viewtable != NULL);
 
 	table = isc_mem_get(mem, sizeof *table);
@@ -200,13 +200,13 @@ dns_c_viewtable_new(isc_mem_t *mem, dns_c_viewtable_t **viewtable) {
 isc_result_t
 dns_c_viewtable_delete(dns_c_viewtable_t **viewtable) {
 	dns_c_viewtable_t *table;
-	
+
 	REQUIRE(viewtable != NULL);
 	REQUIRE(DNS_C_VIEWTABLE_VALID(*viewtable));
 
 	table = *viewtable;
 	*viewtable = NULL;
-	
+
 	dns_c_viewtable_clear(table);
 
 	table->magic = 0;
@@ -241,7 +241,7 @@ void
 dns_c_viewtable_addview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(DNS_C_VIEW_VALID(view));
-	
+
 	ISC_LIST_APPEND(viewtable->views, view, next);
 }
 
@@ -251,7 +251,7 @@ void
 dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view) {
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 	REQUIRE(DNS_C_VIEW_VALID(view));
-	
+
 	ISC_LIST_UNLINK(viewtable->views, view, next);
 }
 
@@ -262,14 +262,14 @@ dns_c_viewtable_clear(dns_c_viewtable_t *table) {
 	dns_c_view_t *elem;
 	dns_c_view_t *tmpelem;
 	isc_result_t r;
-	
+
 	REQUIRE(DNS_C_VIEWTABLE_VALID(table));
-	
+
 	elem = ISC_LIST_HEAD(table->views);
 	while (elem != NULL) {
 		tmpelem = ISC_LIST_NEXT(elem, next);
 		ISC_LIST_UNLINK(table->views, elem, next);
-		
+
 		r = dns_c_view_delete(&elem);
 		if (r != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
@@ -307,7 +307,7 @@ dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
 
 		elem = ISC_LIST_NEXT(elem, next);
 	}
-	
+
 	if (elem != NULL) {
 		*retval = elem;
 	}
@@ -325,7 +325,7 @@ dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
 	isc_result_t res;
 
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
-	
+
 	res = dns_c_viewtable_viewbyname(viewtable, name, &view);
 	if (res == ISC_R_SUCCESS) {
 		ISC_LIST_UNLINK(viewtable->views, view, next);
@@ -335,7 +335,7 @@ dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
 	return (res);
 }
 
-	
+
 isc_result_t
 dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	dns_c_view_t *elem;
@@ -344,7 +344,7 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	isc_uint32_t buival;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_rrsolist_t *boval;
-	
+
 	REQUIRE(DNS_C_VIEWTABLE_VALID(viewtable));
 
 	elem = ISC_LIST_HEAD(viewtable->views);
@@ -405,11 +405,11 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'rrset-order' is not yet "
 				      "implemented");
-		
+
 
 		elem = ISC_LIST_NEXT(elem, next);
 	}
-	
+
 	return (result);
 }
 
@@ -476,7 +476,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->rfc2308_type1 = NULL;
 	view->additional_from_cache = NULL;
 	view->additional_from_auth = NULL;
-	
+
 	view->transfer_source = NULL;
 	view->transfer_source_v6 = NULL;
 	view->query_source = NULL;
@@ -498,7 +498,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 	view->peerlist = NULL;
 
 	view->trusted_keys = NULL;
-	
+
 #if 0
 	view->max_transfer_time_in = NULL;
 	view->max_transfer_idle_in = NULL;
@@ -507,7 +507,7 @@ dns_c_view_new(isc_mem_t *mem, const char *name, dns_rdataclass_t viewclass,
 #endif
 
 	ISC_LINK_INIT(view, next);
-	
+
 	*newview = view;
 
 	return (ISC_R_SUCCESS);
@@ -520,7 +520,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	in_port_t port;
 
 	REQUIRE(DNS_C_VIEW_VALID(view));
-	
+
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "view \"%s\"", view->name);
 
@@ -578,7 +578,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		dns_c_printtabs(fp, indent + 1);		\
 		fprintf(fp, "%s %d;\n",NAME,(int)*view->FIELD);	\
 	}
-		
+
 #define PRINT_AS_MINUTES(FIELD, NAME)				\
 	if (view->FIELD != NULL) {				\
 		dns_c_printtabs(fp, indent + 1);		\
@@ -598,7 +598,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		fprintf(fp, ";\n");					\
 	}
 
-	
+
 	if (view->forward != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "forward %s;\n",
@@ -642,7 +642,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			dns_c_transport2string(dns_trans_primary, ISC_TRUE),
 			dns_c_nameseverity2string(nameseverity, ISC_TRUE));
 	}
-		
+
 	if (view->check_names[dns_trans_secondary] != NULL) {
 		nameseverity = *view->check_names[dns_trans_secondary];
 		dns_c_printtabs(fp, indent + 1);
@@ -650,7 +650,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			dns_c_transport2string(dns_trans_secondary, ISC_TRUE),
 			dns_c_nameseverity2string(nameseverity, ISC_TRUE));
 	}
-		
+
 	if (view->check_names[dns_trans_response] != NULL) {
 		nameseverity = *view->check_names[dns_trans_response];
 		dns_c_printtabs(fp, indent + 1);
@@ -673,7 +673,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 
 	PRINT_IP(transfer_source, "transfer-source");
 	PRINT_IP(transfer_source_v6, "transfer-source-v6");
-	
+
 	PRINT_IPANDPORT(query_source, "query-source");
 	PRINT_IPANDPORT(query_source_v6, "query-source-v6");
 
@@ -694,14 +694,14 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		fprintf(fp, "additional-data %s;\n",
 			dns_c_addata2string(*view->additional_data, ISC_TRUE));
 	}
-	
+
 	if (view->transfer_format != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "transfer-format %s;\n",
 			dns_c_transformat2string(*view->transfer_format,
 						 ISC_TRUE));
 	}
-	
+
 
 	if (view->keydefs != NULL) {
 		dns_c_kdeflist_print(fp, indent + 1, view->keydefs);
@@ -718,13 +718,13 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	}
 
 
-#if 0	
+#if 0
 	PRINT_INT32(max_transfer_time_in, "max-transfer-time-in");
 	PRINT_INT32(max_transfer_idle_in, "max-transfer-idle-in");
 	PRINT_INT32(transfers_per_ns, "transfers-per-ns");
 	PRINT_INT32(serialqueries, "serial-queries");
 #endif
-	
+
 	fprintf(fp, "\n");
 
 	if (view->zonelist != NULL) {
@@ -739,7 +739,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 #undef PRINT_INT32
 #undef PRINT_IP
 #undef PRINT_IPANDPORT
-	
+
 }
 
 
@@ -760,14 +760,14 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 		isc_mem_put(view->mem, view->FIELD, sizeof (*view->FIELD)); \
 		view->FIELD = NULL;					   \
 	} } while (0)
-	
+
 	REQUIRE(viewptr != NULL);
 	REQUIRE(DNS_C_VIEW_VALID(*viewptr));
 
 	view = *viewptr;
 
 	isc_mem_free(view->mem, view->name);
-	
+
 	if (view->zonelist != NULL) {
 		dns_c_zonelist_delete(&view->zonelist);
 	}
@@ -777,11 +777,11 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	if (view->forwarders != NULL) {
 		dns_c_iplist_detach(&view->forwarders);
 	}
-		
+
 	if (view->also_notify != NULL) {
 		dns_c_iplist_detach(&view->also_notify);
 	}
-		
+
 	FREEIPMLIST(allowquery);
 	FREEIPMLIST(allowupdateforwarding);
 	FREEIPMLIST(transferacl);
@@ -831,18 +831,18 @@ dns_c_view_delete(dns_c_view_t **viewptr) {
 	dns_c_view_unsetpeerlist(view);
 
 	dns_c_view_unsettrustedkeys(view);
-	
-#if 0	
+
+#if 0
 	FREEFIELD(max_transfer_time_in);
 	FREEFIELD(max_transfer_idle_in);
 	FREEFIELD(transfers_per_ns);
 	FREEFIELD(serial_queries);
 #endif
-	
-	
+
+
 	view->magic = 0;
 	isc_mem_put(view->mem, view, sizeof *view);
-	
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -856,7 +856,7 @@ dns_c_view_keydefinedp(dns_c_view_t *view, const char *keyname) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(keyname != NULL);
 	REQUIRE(*keyname != '\0');
-	
+
 	if (view->keydefs != NULL) {
 		res = dns_c_kdeflist_find(view->keydefs, keyname, &keyid);
 		if (res == ISC_R_SUCCESS) {
@@ -899,19 +899,19 @@ isc_result_t
 dns_c_view_addzone(dns_c_view_t *view, dns_c_zone_t *zone) {
 	isc_result_t res;
 	dns_c_zone_t *attached;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 
 	dns_c_zone_attach(zone, &attached);
-	
+
 	if (view->zonelist == NULL) {
 		res = dns_c_zonelist_new(view->mem, &view->zonelist);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
 	}
-	
+
 	return (dns_c_zonelist_addzone(view->zonelist, attached));
 }
 
@@ -922,7 +922,7 @@ dns_c_view_getzonelist(dns_c_view_t *view, dns_c_zonelist_t **zonelist) {
 	REQUIRE(zonelist != NULL);
 
 	*zonelist = view->zonelist;
-	
+
 	if (view->zonelist == NULL) {
 		return (ISC_R_NOTFOUND);
 	} else {
@@ -953,7 +953,7 @@ SETBYTYPE(dns_c_forw_t, forward, forward)
 UNSETBYTYPE(dns_c_forw_t, forward, forward)
 GETBYTYPE(dns_c_forw_t, forward, forward)
 
-	
+
 /*
 **
 */
@@ -965,7 +965,7 @@ dns_c_view_setforwarders(dns_c_view_t *view,
 {
 	isc_boolean_t existed = ISC_FALSE;
 	isc_result_t res;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_IPLIST_VALID(ipl));
 
@@ -987,7 +987,7 @@ dns_c_view_setforwarders(dns_c_view_t *view,
 		return (res);
 	}
 }
-		
+
 
 
 isc_result_t
@@ -1001,8 +1001,8 @@ dns_c_view_unsetforwarders(dns_c_view_t *view) {
 		return (ISC_R_NOTFOUND);
 	}
 }
-		
-	
+
+
 
 isc_result_t
 dns_c_view_getforwarders(dns_c_view_t *view,
@@ -1010,7 +1010,7 @@ dns_c_view_getforwarders(dns_c_view_t *view,
 {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(ipl != NULL);
-	
+
 	*ipl = view->forwarders;
 
 	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
@@ -1027,7 +1027,7 @@ dns_c_view_setalsonotify(dns_c_view_t *view,
 			 dns_c_iplist_t *ipl)
 {
 	isc_boolean_t existed = ISC_FALSE;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(DNS_C_IPLIST_VALID(ipl));
 
@@ -1040,7 +1040,7 @@ dns_c_view_setalsonotify(dns_c_view_t *view,
 
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
-		
+
 
 
 isc_result_t
@@ -1054,8 +1054,8 @@ dns_c_view_unsetalsonotify(dns_c_view_t *view) {
 		return (ISC_R_NOTFOUND);
 	}
 }
-		
-	
+
+
 
 isc_result_t
 dns_c_view_getalsonotify(dns_c_view_t *view,
@@ -1098,13 +1098,13 @@ dns_c_view_setordering(dns_c_view_t *view,
 		} else {
 			dns_c_rrsolist_clear(view->ordering);
 		}
-		
+
 		res = dns_c_rrsolist_append(view->ordering, olist);
 	} else {
 		if (view->ordering != NULL) {
 			dns_c_rrsolist_delete(&view->ordering);
 		}
-		
+
 		view->ordering = olist;
 		res = ISC_R_SUCCESS;
 	}
@@ -1112,11 +1112,11 @@ dns_c_view_setordering(dns_c_view_t *view,
 	if (res == ISC_R_SUCCESS && existed) {
 		res = ISC_R_EXISTS;
 	}
-	
+
 	return (res);
 }
 
-					  
+
 
 
 isc_result_t
@@ -1159,7 +1159,7 @@ dns_c_view_setchecknames(dns_c_view_t *view,
 {
 	isc_boolean_t existed = ISC_FALSE;
 	dns_severity_t **ptr = NULL;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	switch(transtype) {
@@ -1182,7 +1182,7 @@ dns_c_view_setchecknames(dns_c_view_t *view,
 	}
 
 	**ptr = newval;
-	
+
 	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
 }
 
@@ -1193,7 +1193,7 @@ dns_c_view_getchecknames(dns_c_view_t *view,
 			dns_severity_t *retval)
 {
 	isc_result_t result;
-	dns_severity_t **ptr = NULL;	
+	dns_severity_t **ptr = NULL;
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	switch (transtype) {
@@ -1202,7 +1202,7 @@ dns_c_view_getchecknames(dns_c_view_t *view,
 	case dns_trans_response:
 		ptr = &view->check_names[transtype];
 		break;
-		
+
 	default:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -1226,7 +1226,7 @@ dns_c_view_unsetchecknames(dns_c_view_t *view,
 			  dns_c_trans_t transtype)
 {
 	dns_severity_t **ptr = NULL;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	switch(transtype) {
@@ -1246,7 +1246,7 @@ dns_c_view_unsetchecknames(dns_c_view_t *view,
 	if (*ptr == NULL) {
 		return (ISC_R_NOTFOUND);
 	}
-	
+
 	isc_mem_put(view->mem, *ptr, sizeof (**ptr));
 
 	return (ISC_R_SUCCESS);
@@ -1259,7 +1259,7 @@ dns_c_view_getkeydefs(dns_c_view_t *view, dns_c_kdeflist_t **retval) {
 	REQUIRE(retval != NULL);
 
 	*retval = view->keydefs;
-	
+
 	if (view->keydefs == NULL) {
 		return (ISC_R_NOTFOUND);
 	} else {
@@ -1305,7 +1305,7 @@ isc_result_t
 dns_c_view_getpeerlist(dns_c_view_t *view, dns_peerlist_t **retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
-	
+
 	if (view->peerlist == NULL) {
 		*retval = NULL;
 		return (ISC_R_NOTFOUND);
@@ -1327,7 +1327,7 @@ dns_c_view_unsetpeerlist(dns_c_view_t *view) {
 		return (ISC_R_FAILURE);
 	}
 }
-	
+
 
 isc_result_t
 dns_c_view_setpeerlist(dns_c_view_t *view, dns_peerlist_t *newval) {
@@ -1351,7 +1351,7 @@ isc_result_t
 dns_c_view_gettrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t **retval) {
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(retval != NULL);
-	
+
 	if (view->trusted_keys == NULL) {
 		*retval = NULL;
 		return (ISC_R_NOTFOUND);
@@ -1379,7 +1379,7 @@ dns_c_view_unsettrustedkeys(dns_c_view_t *view) {
 		return (ISC_R_FAILURE);
 	}
 }
-	
+
 
 isc_result_t
 dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
@@ -1388,11 +1388,11 @@ dns_c_view_settrustedkeys(dns_c_view_t *view, dns_c_tkeylist_t *newval,
 	isc_boolean_t existed;
 	dns_c_tkeylist_t *newl;
 	isc_result_t res;
-	
+
 	REQUIRE(DNS_C_VIEW_VALID(view));
 
 	existed = ISC_TF(view->trusted_keys != NULL);
-	
+
 	if (view->trusted_keys != NULL) {
 		dns_c_view_unsettrustedkeys(view);
 	}
@@ -1534,12 +1534,12 @@ SETUINT32(sigvalidityinterval, sig_valid_interval)
 GETUINT32(sigvalidityinterval, sig_valid_interval)
 UNSETUINT32(sigvalidityinterval, sig_valid_interval)
 
-	
+
 GETUINT32(maxcachesize, max_cache_size)
 SETUINT32(maxcachesize, max_cache_size)
 UNSETUINT32(maxcachesize, max_cache_size)
 
-	
+
 GETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 SETBYTYPE(dns_c_addata_t, additionaldata, additional_data)
 UNSETBYTYPE(dns_c_addata_t, additionaldata, additional_data)

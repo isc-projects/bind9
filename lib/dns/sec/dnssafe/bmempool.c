@@ -18,7 +18,7 @@ void B_MemoryPoolConstructor (memoryPool)
 B_MemoryPool *memoryPool;
 {
   T_memset ((POINTER)&memoryPool->z, 0, sizeof (memoryPool->z));
-} 
+}
 
 void B_MemoryPoolDestructor (memoryPool)
 B_MemoryPool *memoryPool;
@@ -84,10 +84,10 @@ POINTER data;
 unsigned int size;
 {
   int status;
-  
+
   if ((status = B_MemoryPoolAlloc (memoryPool, newData, size)) != 0)
     return (status);
-  
+
   T_memcpy (*newData, data, size);
   return (0);
 }
@@ -101,17 +101,17 @@ unsigned int size;
      to NULL_PTR.
    This routine should be used with caution - it is meant be called
      immediately after an alloc.
-   No check is made as to whether the data is already on the memory pool's 
+   No check is made as to whether the data is already on the memory pool's
      alloced list (which would be a problem since it will get freed twice).
    Returns 0 if successful or BE_ALLOC if cannot expand the alloced list.
- */       
+ */
 int B_MemoryPoolAdoptData (memoryPool, data, size)
 B_MemoryPool *memoryPool;
 POINTER *data;
 unsigned int size;
 {
   int status;
-  
+
   if ((status = B_MemoryPoolAdoptHelper
        (memoryPool, *data, size, (B_MEMORY_POOL_DELETE_FUNCTION)NULL))
       != 0) {
@@ -132,10 +132,10 @@ unsigned int size;
    The object is not passed by reference.  If there is an error,
      the calling routine should clean up the object, such as zeroizing
      and freeing.
-   No check is made as to whether the object is already on the memory pool's 
+   No check is made as to whether the object is already on the memory pool's
      alloced list (which would be a problem since it will get freed twice).
    Returns 0 if successful or BE_ALLOC if cannot expand the alloced list.
- */       
+ */
 int B_MemoryPoolAdoptHelper (memoryPool, object, size, DeleteFunction)
 B_MemoryPool *memoryPool;
 POINTER object;
@@ -153,7 +153,7 @@ B_MEMORY_POOL_DELETE_FUNCTION DeleteFunction;
         == NULL_PTR)
       /* alloc errorm so caller should clean up the object it passed. */
       return (BE_ALLOC);
-    
+
     /* move in new list and free old list */
     T_memcpy
       (newList, (POINTER)memoryPool->z.allocedList,
@@ -162,7 +162,7 @@ B_MEMORY_POOL_DELETE_FUNCTION DeleteFunction;
     memoryPool->z.allocedList = (B_ALLOCED_DATA *)newList;
     memoryPool->z.maxAllocedCount = newMaxCount;
   }
-  
+
   /* Put object on alloced list and increment count.
    */
   memoryPool->z.allocedList[memoryPool->z.allocedCount].object = object;
@@ -202,14 +202,14 @@ unsigned int size;
 
     return (BE_ALLOC);
   }
-  
+
   /* Realloc was successful.
    */
   if (allocedData == (B_ALLOCED_DATA *)NULL_PTR)
     /* The data was not in the memory pool to start with, so adopt it.
        Note that this also happens when the data is initially NULL_PTR. */
     return (B_MemoryPoolAdoptData (memoryPool, data, size));
-  
+
   /* Replace the entry on the alloced list with the new memory.
    */
   allocedData->object = *data;
@@ -230,7 +230,7 @@ B_MemoryPool *memoryPool;
 POINTER *object;
 {
   B_ALLOCED_DATA *allocedData;
-  
+
   if ((allocedData = B_MemoryPoolFindAllocedObject (memoryPool, *object))
       != (B_ALLOCED_DATA *)NULL_PTR) {
     if (allocedData->DeleteFunction !=
@@ -245,7 +245,7 @@ POINTER *object;
     /* Set this entry to NULL_PTR so that reset will not process it. */
     allocedData->object = NULL_PTR;
   }
-  
+
   *object = NULL_PTR;
 }
 
@@ -259,10 +259,10 @@ POINTER object;
 {
   B_ALLOCED_DATA *allocedData;
   unsigned int i;
-  
+
   if (object == NULL_PTR)
     return ((B_ALLOCED_DATA *)NULL_PTR);
-  
+
   for (i = memoryPool->z.allocedCount,
        allocedData = memoryPool->z.allocedList;
        i-- > 0;

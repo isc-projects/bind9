@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1996-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.15 2000/07/27 09:54:17 tale Exp $ */
+/* $Id: handle.c,v 1.16 2000/08/01 01:32:52 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -50,7 +50,7 @@
  * next handle should go, and if necessary create additional nodes in
  * the tree to contain the new handle.  The pointer to the object is
  * then stored in the correct position.
- * 
+ *
  * XXXTL
  * Theoretically, we could have some code here to free up handle
  * tables as they go out of use, but by and large handle tables won't
@@ -138,7 +138,7 @@ handle_store(omapi_handle_t h, omapi_handletable_t *table, omapi_object_t *o) {
 
 	if (table->first > h || table->limit <= h)
 		return (ISC_R_NOSPACE);
-	
+
 	/*
 	 * If this is a leaf table, just stash the object in the
 	 * appropriate place.
@@ -228,7 +228,7 @@ object_gethandle(omapi_handle_t *h, omapi_object_t *o) {
 		 */
 		while (next_handle >= toptable->limit) {
 			omapi_handletable_t *new;
-		
+
 			new = isc_mem_get(omapi_mctx, sizeof(*new));
 			if (new != NULL) {
 				memset(new, 0, sizeof(*new));

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.35 2000/07/31 21:07:06 explorer Exp $ */
+/* $Id: confview.h,v 1.36 2000/08/01 01:24:02 tale Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -25,7 +25,7 @@
  *****/
 
 /*
- * Zones as seen by the config file parser. The data structures here define 
+ * Zones as seen by the config file parser. The data structures here define
  * the zone data as it is in the config file. The data structures here do
  * *not* define the things like red-black trees for named's internal data
  * structures.
@@ -36,7 +36,7 @@
  *
  * MP:
  *      Client must do necessary locking.
- *      
+ *
  * Reliability:
  *
  *      No problems.
@@ -48,7 +48,7 @@
  * Security:
  *
  *      N/A
- *      
+ *
  */
 
 /***
@@ -81,7 +81,7 @@ typedef struct dns_c_viewtable          dns_c_viewtable_t;
 
 struct dns_c_viewtable {
         isc_uint32_t            magic;
-        
+
         isc_mem_t              *mem;
 
         ISC_LIST(dns_c_view_t)  views;
@@ -90,11 +90,11 @@ struct dns_c_viewtable {
 struct dns_c_view {
         isc_uint32_t            magic;
         isc_mem_t              *mem;
-        
+
         char                   *name;
 
         dns_rdataclass_t        viewclass;
-        
+
         dns_c_zonelist_t       *zonelist;
 
         dns_c_forw_t           *forward;
@@ -111,9 +111,9 @@ struct dns_c_view {
         dns_c_ipmatchlist_t    *matchclients;
 
         dns_c_rrsolist_t       *ordering; /* XXX not parsed yet */
-        
+
         dns_severity_t         *check_names[DNS_C_TRANSCOUNT];
-        
+
         /*
          * XXX to implement now.
          */
@@ -150,7 +150,7 @@ struct dns_c_view {
 
         dns_c_tkeylist_t       *trusted_keys;
 
-#if 0   
+#if 0
         /*
          * To implement later.
          */

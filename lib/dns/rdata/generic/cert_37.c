@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.31 2000/07/27 09:48:51 tale Exp $ */
+/* $Id: cert_37.c,v 1.32 2000/08/01 01:25:08 tale Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -44,7 +44,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	RETERR(dns_cert_fromtext(&cert, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(cert, target));
-	
+
 	/*
 	 * Key tag.
 	 */
@@ -115,7 +115,7 @@ fromwire_cert(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(type == 37);
-	
+
 	UNUSED(rdclass);
 	UNUSED(dctx);
 	UNUSED(downcase);
@@ -162,7 +162,7 @@ fromstruct_cert(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(cert->common.rdtype == type);
 	REQUIRE(cert->common.rdclass == rdclass);
-	
+
 	RETERR(uint16_tobuffer(cert->type, target));
 	RETERR(uint16_tobuffer(cert->key_tag, target));
 	RETERR(uint8_tobuffer(cert->algorithm, target));

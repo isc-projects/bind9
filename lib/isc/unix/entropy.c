@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.46 2000/07/27 09:52:39 tale Exp $ */
+/* $Id: entropy.c,v 1.47 2000/08/01 01:31:13 tale Exp $ */
 
 #include <config.h>
 
@@ -708,7 +708,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		isc_sha1_update(&hash, (void *)(ent->pool.pool),
 				RND_POOLWORDS * 4);
 		isc_sha1_final(&hash, digest);
-    
+
 		/*
 		 * Stir the extracted data (all of it) back into the pool.
 		 */

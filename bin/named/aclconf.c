@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.19 2000/07/27 09:45:50 tale Exp $ */
+/* $Id: aclconf.c,v 1.20 2000/08/01 01:22:08 tale Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,7 @@ dns_aclconfctx_init(dns_aclconfctx_t *ctx) {
 
 void
 dns_aclconfctx_destroy(dns_aclconfctx_t *ctx) {
-     	dns_acl_t *dacl, *next;	
+     	dns_acl_t *dacl, *next;
 	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache);
 	     dacl != NULL;
 	     dacl = next)
@@ -103,7 +103,7 @@ convert_keyname(char *txtname, isc_mem_t *mctx, dns_name_t *dnsname) {
 	}
 	return (dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname));
 }
-	       
+
 isc_result_t
 dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 		   dns_c_ctx_t *cctx,
@@ -118,7 +118,7 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 	dns_c_ipmatchelement_t *ce;
 
 	REQUIRE(target != NULL && *target == NULL);
-	
+
 	count = 0;
 	for (ce = ISC_LIST_HEAD(caml->elements);
 	     ce != NULL;
@@ -128,7 +128,7 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 	result = dns_acl_create(mctx, count, &dacl);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	de = dacl->elements;
 	for (ce = ISC_LIST_HEAD(caml->elements);
 	     ce != NULL;
@@ -192,7 +192,7 @@ dns_acl_fromconfig(dns_c_ipmatchlist_t *caml,
 
 	*target = dacl;
 	return (ISC_R_SUCCESS);
-	
+
  cleanup:
 	dns_acl_detach(&dacl);
 	return (result);

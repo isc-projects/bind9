@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ondestroy.h,v 1.5 2000/07/27 09:51:57 tale Exp $ */
+/* $Id: ondestroy.h,v 1.6 2000/08/01 01:30:31 tale Exp $ */
 
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1
@@ -30,7 +30,7 @@ ISC_LANG_BEGINDECLS
  *
  * Any class ``X'' of objects that wants to send out notifications
  * on its destruction should declare a field of type isc_ondestroy_t
- * (call it 'ondest'). 
+ * (call it 'ondest').
  *
  * 	typedef struct {
  * 		...
@@ -41,14 +41,14 @@ ISC_LANG_BEGINDECLS
  * When an object ``A'' of type X is created
  * it must initialize the field ondest with a call to
  *
- * 	isc_ondestroy_init(&A->ondest). 
+ * 	isc_ondestroy_init(&A->ondest).
  *
  * X should also provide a registration function for third-party
  * objects to call to register their interest in being told about
  * the destruction of a particular instance of X.
  *
  *	isc_result_t
- * 	X_ondestroy(X *instance, isc_task_t *task, 
+ * 	X_ondestroy(X *instance, isc_task_t *task,
  * 		     isc_event_t **eventp) {
  * 		return(isc_ondestroy_register(&instance->ondest, task,eventp));
  * 	}

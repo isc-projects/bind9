@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.23 2000/07/27 09:46:54 tale Exp $ */
+/* $Id: zt.c,v 1.24 2000/08/01 01:23:12 tale Exp $ */
 
 #include <config.h>
 
@@ -181,7 +181,7 @@ dns_zt_detach(dns_zt_t **ztp) {
 	zt = *ztp;
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
-	
+
 	INSIST(zt->references > 0);
 	zt->references--;
 	if (zt->references == 0)
@@ -260,7 +260,7 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
 		/*
 		 * The tree is empty.
 		 */
-		result = ISC_R_NOMORE; 
+		result = ISC_R_NOMORE;
 	}
 	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
 		result = dns_rbtnodechain_current(&chain, NULL, NULL,
@@ -292,6 +292,6 @@ auto_detach(void *data, void *arg) {
 	dns_zone_t *zone = data;
 
 	UNUSED(arg);
-	
+
 	dns_zone_detach(&zone);
 }

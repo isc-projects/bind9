@@ -17,17 +17,17 @@ void BigMpy (a, b, c, n)
 UINT2 *a, *b, *c;
 unsigned int n;
 {
-  UINT2 prod[2 * MAX_RSA_PRIME_WORDS], absb[MAX_RSA_PRIME_WORDS], 
+  UINT2 prod[2 * MAX_RSA_PRIME_WORDS], absb[MAX_RSA_PRIME_WORDS],
     absc[MAX_RSA_PRIME_WORDS];
   int bSign = BigSign (b, n), cSign = BigSign (c, n);
-  
+
   BigAbs (absb, b, n);
   BigAbs (absc, c, n);
   BigPmpy (prod, absb, absc, n);
 
   if (bSign * cSign >= 0)
     BigCopy (a, prod, 2 * n);
-  else 
+  else
     BigNeg (a, prod, 2 * n);
 
   T_memset ((POINTER)prod, 0, sizeof (prod));

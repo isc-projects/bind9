@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone2_test.c,v 1.19 2000/07/27 09:38:39 tale Exp $ */
+/* $Id: zone2_test.c,v 1.20 2000/08/01 01:13:32 tale Exp $ */
 
 #include <config.h>
 
@@ -205,7 +205,7 @@ query(dns_view_t *view) {
 	dns_rdataset_init(&sigset);
 
 	do {
-		
+
 		fprintf(stdout, "zone_test ");
 		fflush(stdout);
 		FD_ZERO(&rfdset);
@@ -216,7 +216,7 @@ query(dns_view_t *view) {
 			break;
 		}
 		buf[sizeof(buf) - 1] = '\0';
-		
+
 		s = strchr(buf, '\n');
 		if (s != NULL)
 			*s = '\0';
@@ -247,7 +247,7 @@ query(dns_view_t *view) {
 		result = dns_name_fromtext(dns_fixedname_name(&name),
 				  &buffer, dns_rootname, ISC_FALSE, NULL);
 		ERRCONT(result, "dns_name_fromtext");
-		
+
 		if (reload) {
 			dns_zone_t *zone = NULL;
 			result = dns_zt_find(view->zonetable,
@@ -274,7 +274,7 @@ query(dns_view_t *view) {
 				dns_result_totext(result));
 			switch (result) {
 			case ISC_R_SUCCESS:
-				print_rdataset(dns_fixedname_name(&name), 
+				print_rdataset(dns_fixedname_name(&name),
 					       &rdataset);
 				break;
 			default:

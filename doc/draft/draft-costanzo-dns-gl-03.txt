@@ -69,10 +69,10 @@ EXPIRES IN SIX MONTHS                                             June 2000
    to local domain administrators.
 
    This document resolves the problem of relating host information within
-   the DNS to geographical locations. This definition has been designed to 
-   be easy for the person who administrates DNS for a domain. The author 
-   hopes that the lack of requiring longitude, latitude and elevation 
-   information and merely being able to enter address information, as you 
+   the DNS to geographical locations. This definition has been designed to
+   be easy for the person who administrates DNS for a domain. The author
+   hopes that the lack of requiring longitude, latitude and elevation
+   information and merely being able to enter address information, as you
    would address a postal letter, will mean broad acceptance and use of the
    GL resource record.
 
@@ -86,7 +86,7 @@ EXPIRES IN SIX MONTHS                                             June 2000
 
    Although several other attempts by various authors have attempted to
    created resource records that would allow location information on host to
-   be stored and distributed, none, to the authors knowledge, have either 
+   be stored and distributed, none, to the authors knowledge, have either
    gained acceptance on a wide scale or made allowance for location information
    that is not within the confines of the planet Earth.
 
@@ -104,7 +104,7 @@ EXPIRES IN SIX MONTHS                                             June 2000
    <string> <string>
 
    The format of the RDATA field is two varying length strings separated by
-   a space character. The first, the hierarchical locator, then an address 
+   a space character. The first, the hierarchical locator, then an address
    string. Each is quoted (like all strings) only when it has spaces in it,
    which will never be true for the first string, and almost always for the
    second.
@@ -128,7 +128,7 @@ by a period "."):
 
   Astronomical Location -                          (Required)
            A coded field defining the heavenly body within
-           the known Universe, where the machine resides.  The most common 
+           the known Universe, where the machine resides.  The most common
            entry, "S3" is the planet Earth and is the only currently
            defined location.
 
@@ -141,10 +141,10 @@ by a period "."):
   Country Code -                                    (Required)
 
           The country code specifies the country the host computer resides
-          in. The code is a two character fixed length string and may only 
+          in. The code is a two character fixed length string and may only
           be included within the Astronimical Location 'S3'.  These codes
           are defined in document ISO 3166-1 and are listed in Appendix A
-          for easy reference. 
+          for easy reference.
 
    Postal Zone -                                    (Optional)
 
@@ -156,8 +156,8 @@ by a period "."):
           This field may be omitted only if the country in which the host
           machine resides does not use a postal coding system.
 
-          When all three Hierarchical Locator components exist for an DNS 
-          entry, the position being defined is considered to be a "precise 
+          When all three Hierarchical Locator components exist for an DNS
+          entry, the position being defined is considered to be a "precise
           position".
 
 
@@ -263,9 +263,9 @@ Parimaribo"
 
    New Astronomical Locations (ALs)  MUST be registered with the Internet
    Assigned Numbers Authority (IANA).  IANA acts as a central registry for
-   these values. IANA may reject or modify the Astronomical Location 
-   registration request if it does not meet the criteria as specified in 
-   section 4.1.1.  
+   these values. IANA may reject or modify the Astronomical Location
+   registration request if it does not meet the criteria as specified in
+   section 4.1.1.
 
    Registration requests should be sent via electronic mail to IANA as
    follows:
@@ -273,7 +273,7 @@ Parimaribo"
              To:  IANA@iana.org
              Subject:  Registration of a new Astronomical Location
 
-   The mail message must specify the proposed AL. Documentation defining 
+   The mail message must specify the proposed AL. Documentation defining
    the AL and its proposed purpose must be included.  The documentation must
    either reference an external non-Internet standards document or an existing
    or soon to be RFC.  If applicable, the documentation should contain a
@@ -281,8 +281,8 @@ Parimaribo"
    RFC according to the normal procedure within a reasonable amount of
    time after the AL registration has been approved.
 
-   IANA will not register a new Astronmical Location until an actual 
-   computer requiring GL data in the DNS resides or will soon reside on a 
+   IANA will not register a new Astronmical Location until an actual
+   computer requiring GL data in the DNS resides or will soon reside on a
    heavenly body other than Earth.
 
 
@@ -305,8 +305,8 @@ EXPIRES IN SIX MONTHS                                              May 2000
 7.1 Defining New Astronimical Locations
 
   The astronomical location 'S3' is intended to be Sol-Three (i.e. the Earth).
-  The Earth is the 3rd large planet in the solar system. The Sun would be S0 
-  (not that we'd have a computer there), but a solar observatory in orbit might 
+  The Earth is the 3rd large planet in the solar system. The Sun would be S0
+  (not that we'd have a computer there), but a solar observatory in orbit might
   be S0-001. Our moon would be S3-1. Other letters and such for catalogued
   objects. Additionally, the ISS and Mir space stations could use S3-001 (Mir),
   S3-002 (ISS) now,   if they get connected on IP.
@@ -318,12 +318,12 @@ EXPIRES IN SIX MONTHS                                              May 2000
 7.2 Other possible uses for GL
 
   The use of postal codes also is exactly what is needed for credit card address
-  authentication. Sites could (quietly) compare GL info provided on entries from 
+  authentication. Sites could (quietly) compare GL info provided on entries from
   ISPs to what someone enters for additional verification purposes.
 
 
 
-  
+
 
 
 

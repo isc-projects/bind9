@@ -41,7 +41,7 @@ POINTER info;
 {
   A_RSA_KEY_GEN_PARAMS *newInfo;
   int status;
-  
+
   if ((status = B_MemoryPoolAlloc
        (&algorithm->infoCache.memoryPool, (POINTER *)&newInfo,
         sizeof (A_RSA_KEY_GEN_PARAMS))) != 0)

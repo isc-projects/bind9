@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.17 2000/07/27 09:45:53 tale Exp $ */
+/* $Id: byaddr.c,v 1.18 2000/08/01 01:22:11 tale Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,7 @@ struct dns_byaddr {
 static void byaddr_find(dns_byaddr_t *byaddr, dns_fetchevent_t *event);
 
 static char hex_digits[] = {
-	'0', '1', '2', '3', '4', '5', '6', '7', 
+	'0', '1', '2', '3', '4', '5', '6', '7',
 	'8', '9', 'a', 'b', 'c', 'd', 'e', 'f'
 };
 
@@ -139,7 +139,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 	/*
 	 * The caller must be holding the byaddr's lock.
 	 */
-	
+
 	result = dns_rdataset_first(&byaddr->rdataset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&byaddr->rdataset, &rdata);
@@ -161,7 +161,7 @@ copy_ptr_targets(dns_byaddr_t *byaddr) {
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	
+
 	return (result);
 }
 
@@ -420,7 +420,7 @@ dns_byaddr_create(isc_mem_t *mctx, isc_netaddr_t *address, dns_view_t *view,
 	byaddr->canceled = ISC_FALSE;
 	dns_rdataset_init(&byaddr->rdataset);
 	byaddr->magic = BYADDR_MAGIC;
-	
+
 	*byaddrp = byaddr;
 
 	byaddr_find(byaddr, NULL);

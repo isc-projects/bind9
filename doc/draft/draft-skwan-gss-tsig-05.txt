@@ -576,7 +576,7 @@ The procedure for sending a signature-protected message is specified
 in [TSIG].  The data to be passed to the signature routine includes
 the whole DNS message with specific TSIG variables appended.  For the
 exact format, see [TSIG].  For this protocol, use the following
-TSIG variable values: 
+TSIG variable values:
 
    TSIG Record
      NAME = key_name that identifies this context

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.104 2000/07/27 09:46:27 tale Exp $ */
+/* $Id: rdata.c,v 1.105 2000/08/01 01:22:44 tale Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -76,7 +76,7 @@
 #define ARGS_DIGEST	dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg
 
 /*
- * Context structure for the totext_ functions.  
+ * Context structure for the totext_ functions.
  * Contains formatting options for rdata-to-text
  * conversion.
  */
@@ -307,7 +307,7 @@ static struct keyflag {
 	{ "SIG13",  0x000D, 0x000F },
 	{ "SIG14",  0x000E, 0x000F },
 	{ "SIG15",  0x000F, 0x000F },
-	{ NULL,     0, 0 } 
+	{ NULL,     0, 0 }
 };
 
 /***
@@ -368,7 +368,7 @@ void
 dns_rdata_fromregion(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, isc_region_t *r)
 {
-			  
+
 	REQUIRE(rdata != NULL);
 	REQUIRE(r != NULL);
 
@@ -444,10 +444,10 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 	st = *target;
 
 	TOWIRESWITCH
-	
+
 	if (use_default) {
 		isc_buffer_availableregion(target, &tr);
-		if (tr.length < rdata->length) 
+		if (tr.length < rdata->length)
 			return (ISC_R_NOSPACE);
 		memcpy(tr.base, rdata->data, rdata->length);
 		isc_buffer_add(target, rdata->length);
@@ -562,7 +562,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
-	
+
 	REQUIRE(rdata != NULL);
 	REQUIRE(tctx->origin == NULL ||
 		dns_name_isabsolute(tctx->origin) == ISC_TRUE);
@@ -720,7 +720,7 @@ dns_rdatatype_attributes(dns_rdatatype_t type)
 	return (typeattr[type].flags);
 }
 
-#define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */ 
+#define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
 
 static isc_result_t
 dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
@@ -740,7 +740,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		 */
 		strncpy(buffer, source->base, NUMBERSIZE);
 		INSIST(buffer[source->length] == '\0');
-		
+
 		n = strtoul(buffer, &e, 10);
 		if (*e == 0) {
 			if (n > max)
@@ -752,9 +752,9 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 		 * It was not a number after all; fall through.
 		 */
 	}
-	
+
 	for (i = 0; table[i].name != NULL; i++) {
-		unsigned int n;		
+		unsigned int n;
 		n = strlen(table[i].name);
 		if (n == source->length &&
 		    strncasecmp(source->base, table[i].name, n) == 0) {
@@ -906,7 +906,7 @@ dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(rcode, target, rcodes));	
+	return (dns_mnemonic_totext(rcode, target, rcodes));
 }
 
 isc_result_t
@@ -919,7 +919,7 @@ dns_tsigrcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
 
 isc_result_t
 dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(rcode, target, tsigrcodes));	
+	return (dns_mnemonic_totext(rcode, target, tsigrcodes));
 }
 
 isc_result_t
@@ -928,11 +928,11 @@ dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source) {
 	RETERR(dns_mnemonic_fromtext(&value, source, certs, 0xffff));
 	*certp = value;
 	return (ISC_R_SUCCESS);
-}	
+}
 
 isc_result_t
 dns_cert_totext(dns_cert_t cert, isc_buffer_t *target) {
-	return (dns_mnemonic_totext(cert, target, certs));	
+	return (dns_mnemonic_totext(cert, target, certs));
 }
 
 isc_result_t
@@ -979,7 +979,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 		 */
 		strncpy(buffer, source->base, NUMBERSIZE);
 		INSIST(buffer[source->length] == '\0');
-		
+
 		n = strtoul(buffer, &e, 0); /* Allow hex/octal. */
 		if (*e == 0) {
 			if (n > 0xffff)
@@ -990,10 +990,10 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 		/* It was not a number after all; fall through. */
 	}
 
-	text = source->base;	
+	text = source->base;
 	end = source->base + source->length;
 	value = mask = 0;
-	
+
 	while (text < end) {
 		struct keyflag *p;
 		unsigned int len;
@@ -1013,7 +1013,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 		if ((mask & p->mask) != 0)
 			warn("overlapping key flags");
 #endif
-		mask |= p->mask;		
+		mask |= p->mask;
 		text += len;
 		if (delim != NULL)
 			text++;	/* Skip "|" */
@@ -1134,7 +1134,7 @@ txt_fromtext(isc_textregion_t *source, isc_buffer_t *target) {
 			continue;
 		}
 		escape = ISC_FALSE;
-		if (nrem == 0) 
+		if (nrem == 0)
 			return (ISC_R_NOSPACE);
 		*t++ = c;
 		nrem--;
@@ -1158,7 +1158,7 @@ txt_fromwire(isc_buffer_t *source, isc_buffer_t *target) {
 	n = *sregion.base + 1;
 	if (n > sregion.length)
 		return (ISC_R_UNEXPECTEDEND);
-	
+
 	isc_buffer_availableregion(target, &tregion);
 	if (n > tregion.length)
 		return (ISC_R_NOSPACE);
@@ -1184,7 +1184,7 @@ name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target) {
 
 	l1 = dns_name_countlabels(name);
 	l2 = dns_name_countlabels(origin);
-	
+
 	if (l1 == l2)
 		goto return_false;
 
@@ -1271,7 +1271,7 @@ name_tobuffer(dns_name_t *name, isc_buffer_t *target) {
 static isc_uint32_t
 uint32_fromregion(isc_region_t *region) {
 	unsigned long value;
-	
+
 	REQUIRE(region->length >= 4);
 	value = region->base[0] << 24;
 	value |= region->base[1] << 16;
@@ -1282,7 +1282,7 @@ uint32_fromregion(isc_region_t *region) {
 
 static isc_uint16_t
 uint16_fromregion(isc_region_t *region) {
-	
+
 	REQUIRE(region->length >= 2);
 
 	return ((region->base[0] << 8) | region->base[1]);
@@ -1290,7 +1290,7 @@ uint16_fromregion(isc_region_t *region) {
 
 static isc_uint8_t
 uint8_fromregion(isc_region_t *region) {
-	
+
 	REQUIRE(region->length >= 1);
 
 	return (region->base[0]);
@@ -1303,7 +1303,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	isc_result_t result;
-	
+
 	if (expect == isc_tokentype_qstring)
 		options |= ISC_LEXOPT_QSTRING;
 	else if (expect == isc_tokentype_number)
@@ -1322,7 +1322,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 				 isc_result_totext(result));
                 return (ISC_R_UNEXPECTED);
 	}
-	if (eol && ((token->type == isc_tokentype_eol) || 
+	if (eol && ((token->type == isc_tokentype_eol) ||
 		    (token->type == isc_tokentype_eof)))
 		return (ISC_R_SUCCESS);
 	if (token->type == isc_tokentype_string &&
@@ -1435,7 +1435,7 @@ static isc_result_t	putbyte(int c, isc_buffer_t *, struct state *state);
 static isc_result_t	byte_btoa(int c, isc_buffer_t *, struct state *state);
 
 /*
- * Decode ASCII-encoded byte c into binary representation and 
+ * Decode ASCII-encoded byte c into binary representation and
  * place into *bufp, advancing bufp.
  */
 static isc_result_t
@@ -1597,8 +1597,8 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 		} else {
 		    register int tmp = 0;
 		    register isc_int32_t tmpword = word;
-			
-		    if (tmpword < 0) {	
+
+		    if (tmpword < 0) {
 			   /*
 			    * Because some don't support u_long.
 			    */
@@ -1645,10 +1645,10 @@ btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	Ceor = Csum = Crot = word = bcount = 0;
 	for (inc = 0; inc < inbuflen; inbuf++, inc++)
 		RETERR(byte_btoa(*inbuf, target, state));
-	
+
 	while (bcount != 0)
 		RETERR(byte_btoa(0, target, state));
-	
+
 	/*
 	 * Put byte count and checksum information at end of buffer,
 	 * delimited by 'x'

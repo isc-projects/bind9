@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.19 2000/07/27 09:52:42 tale Exp $ */
+/* $Id: file.c,v 1.20 2000/08/01 01:31:16 tale Exp $ */
 
 #include <config.h>
 
@@ -45,10 +45,10 @@
 static isc_result_t
 file_stats(const char *file, struct stat *stats) {
 	isc_result_t result = ISC_R_SUCCESS;
-	
+
 	if (stat(file, stats) != 0)
 		result = isc__errno2result(errno);
-		
+
 	return (result);
 }
 
@@ -126,20 +126,20 @@ isc_file_mktemplate(const char *path, char *buf, size_t buflen) {
 	if (s != NULL) {
 		if ((s - path + 1 + sizeof(TEMPLATE)) > buflen)
 			return (ISC_R_NOSPACE);
-		
+
 		strncpy(buf, path, s - path + 1);
 		buf[s - path + 1] = '\0';
 		strcat(buf, TEMPLATE);
 	} else {
 		if (sizeof(TEMPLATE) > buflen)
 			return (ISC_R_NOSPACE);
-		
+
 		strcpy(buf, TEMPLATE);
 	}
-	
+
 	return (ISC_R_SUCCESS);
 }
- 
+
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
 	int fd;
@@ -173,7 +173,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 isc_result_t
 isc_file_remove(const char *filename) {
 	int r;
-	
+
 	r = unlink(filename);
 	if (r == 0)
 		return (ISC_R_SUCCESS);

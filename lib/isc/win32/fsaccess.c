@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.4 2000/07/27 09:53:14 tale Exp $ */
+/* $Id: fsaccess.c,v 1.5 2000/08/01 01:31:48 tale Exp $ */
 
 #include <windows.h>
 #include <winerror.h>
@@ -56,7 +56,7 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 	result = check_bad_bits(access, is_dir);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	
+
 	winerror = GetNamedSecurityInfo(path, SE_FILE_OBJECT,
 					OWNER_SECURITY_INFORMATION |
 					GROUP_SECURITY_INFORMATION,
@@ -123,7 +123,7 @@ isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
 			/*
 			 * Setting world.
 			 */
-			SID_IDENTIFIER_AUTHORITY authworld = 
+			SID_IDENTIFIER_AUTHORITY authworld =
 				SECURITY_WORLD_SID_AUTHORITY;
 
 			if (AllocateAndInitializeSid(&authworld, 1,

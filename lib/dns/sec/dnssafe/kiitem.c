@@ -33,12 +33,12 @@ POINTER info;
 {
   unsigned char *newData;
   int status;
-  
+
   if ((status = B_MemoryPoolAllocAndCopy
        (&key->infoCache.memoryPool, (POINTER *)&newData,
         (POINTER)((ITEM *)info)->data, ((ITEM *)info)->len)) != 0)
     return (status);
-    
+
   return (B_KeyAddItemInfo (key, newData, ((ITEM *)info)->len));
 }
 

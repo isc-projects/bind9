@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name_test.c,v 1.30 2000/07/27 09:38:10 tale Exp $ */
+/* $Id: name_test.c,v 1.31 2000/08/01 01:13:02 tale Exp $ */
 
 #include <config.h>
 
@@ -31,7 +31,7 @@
 static void
 print_wirename(isc_region_t *name) {
 	unsigned char *ccurr, *cend;
-		
+
 	if (name->length == 0) {
 		printf("<empty wire name>\n");
 		return;
@@ -194,7 +194,7 @@ main(int argc, char *argv[]) {
 				dns_fixedname_init(&wname2);
 			continue;
 		}
-			
+
 		if (check_absolute && dns_name_countlabels(name) > 0) {
 			if (dns_name_isabsolute(name))
 				printf("absolute\n");
@@ -354,6 +354,6 @@ main(int argc, char *argv[]) {
 				name = &wname.name;
 		}
 	}
-	
+
 	return (0);
 }

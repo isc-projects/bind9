@@ -1,9 +1,9 @@
 # Copyright (C) 2000  Internet Software Consortium.
-# 
+#
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
 # copyright notice and this permission notice appear in all copies.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
 # DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.5 2000/07/27 09:37:33 tale Exp $
+# $Id: Makefile.in,v 1.6 2000/08/01 01:12:24 tale Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -25,7 +25,7 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/include ${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
 
-CDEFINES =	
+CDEFINES =
 CWARNINGS =
 
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
@@ -40,13 +40,13 @@ DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@
 
-SUBDIRS =	
+SUBDIRS =
 
 TARGETS =	nsupdate
 
 OBJS =		nsupdate.@O@
 
-UOBJS =		
+UOBJS =
 
 SRCS =		nsupdate.c
 

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.47 2000/07/31 21:07:04 explorer Exp $ */
+/* $Id: confctx.h,v 1.48 2000/08/01 01:23:52 tale Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -25,26 +25,26 @@
  *****/
 
 /*
- * Defines the structures and accessor/modifier functions for the top level 
+ * Defines the structures and accessor/modifier functions for the top level
  * structures created by the config file parsing routines.
  */
 
 /*
  *
  * MP:
- *	
+ *
  *
  * Reliability:
- *	
+ *
  *
  * Resources:
- *	
+ *
  *
  * Security:
- *	
+ *
  *
  * Standards:
- *	
+ *
  */
 
 /***
@@ -85,7 +85,7 @@ struct dns_c_ctx {
 
 	int			warnings; /* semantic warning count */
 	int			errors;	/* semantic error count */
-	
+
 	dns_c_options_t	       *options;
 	dns_c_cache_t	       *cache;
 	dns_c_resolv_t	       *resolver;
@@ -109,7 +109,7 @@ struct dns_c_ctx {
 struct dns_c_options {
 	isc_uint32_t		magic;
 	isc_mem_t	       *mem;
-	
+
 	char		       *directory;
 	char		       *version;
 	char		       *dump_filename;
@@ -122,9 +122,9 @@ struct dns_c_options {
 
 	in_port_t 	       *port;
 
-	isc_uint32_t	       *transfers_in; 
+	isc_uint32_t	       *transfers_in;
 	isc_uint32_t	       *transfers_per_ns;
-	isc_uint32_t	       *transfers_out; 
+	isc_uint32_t	       *transfers_out;
 	isc_uint32_t	       *max_log_size_ixfr;
 	isc_uint32_t	       *clean_interval;
 	isc_uint32_t	       *interface_interval;
@@ -141,7 +141,7 @@ struct dns_c_options {
 	isc_uint32_t	       *min_roots;
 	isc_uint32_t	       *serial_queries;
 	isc_uint32_t	       *sig_valid_interval;
-	
+
 	isc_uint32_t	       *data_size;
 	isc_uint32_t	       *stack_size;
 	isc_uint32_t	       *core_size;
@@ -169,20 +169,20 @@ struct dns_c_options {
 	isc_boolean_t	       *treat_cr_as_space;
 	isc_boolean_t	       *additional_from_cache;
 	isc_boolean_t	       *additional_from_auth;
-	
+
 	isc_sockaddr_t	       *transfer_source;
 	isc_sockaddr_t	       *transfer_source_v6;
 	isc_sockaddr_t	       *query_source;
 	isc_sockaddr_t	       *query_source_v6;
 
 	dns_c_addata_t	       *additional_data;
-	
+
 	dns_c_forw_t	       *forward;
 
 	char 		       *tkeydhkeycp;
 	isc_uint32_t		tkeydhkeyi;
 	char 		       *tkeydomain;
-	
+
 	dns_notifytype_t       *notify;
 	dns_c_iplist_t	       *also_notify;
 
@@ -200,7 +200,7 @@ struct dns_c_options {
 
 	dns_c_lstnlist_t       *listens;
 	dns_c_lstnlist_t       *v6listens;
-	
+
 	dns_c_rrsolist_t       *ordering;
 
 	dns_c_iplist_t	       *forwarders;

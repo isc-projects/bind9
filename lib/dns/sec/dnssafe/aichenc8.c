@@ -22,11 +22,11 @@ POINTER info;
 {
   POINTER newInfo;
   int status;
-  
+
   if ((status = B_MemoryPoolAllocAndCopy
        (&algorithm->infoCache.memoryPool, &newInfo, info, 8)) != 0)
     return (status);
-  
+
   return (B_InfoCacheAddInfo
           (&algorithm->infoCache, (POINTER)infoType, newInfo));
 }

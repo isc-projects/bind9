@@ -16,7 +16,7 @@ UINT2 *a, *b;
 unsigned int n;
 {
   if (BigSign (b, n) >= 0)
-    BigCopy (a, b, n); 
+    BigCopy (a, b, n);
   else
     BigNeg (a, b, n);
 }

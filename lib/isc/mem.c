@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1997-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.57 2000/07/27 23:31:20 explorer Exp $ */
+/* $Id: mem.c,v 1.58 2000/08/01 01:29:34 tale Exp $ */
 
 #include <config.h>
 
@@ -424,7 +424,7 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 			 * hit the quota for this context.
 			 */
 			/*
-			 * XXXRTH  "At quota" notification here. 
+			 * XXXRTH  "At quota" notification here.
 			 */
 			/*
 			 * Maybe we can split one of our existing
@@ -490,7 +490,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 		goto done;
 	}
 
-	/* 
+	/*
 	 * If there are no blocks in the free list for this size, get a chunk
 	 * of memory and then break it up into "new_size"-sized blocks, adding
 	 * them to the free list.
@@ -504,7 +504,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 	ret = ctx->freelists[new_size];
 	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
 
-	/* 
+	/*
 	 * The stats[] uses the _actual_ "size" requested by the
 	 * caller, with the caveat (in the code above) that "size" >= the
 	 * max. size (max_size) ends up getting recorded as a call to
@@ -558,7 +558,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 	((element *)mem)->next = ctx->freelists[new_size];
 	ctx->freelists[new_size] = (element *)mem;
 
-	/* 
+	/*
 	 * The stats[] uses the _actual_ "size" requested by the
 	 * caller, with the caveat (in the code above) that "size" >= the
 	 * max. size (max_size) ends up getting recorded as a call to
@@ -694,7 +694,7 @@ destroy(isc_mem_t *ctx) {
 		memset(ctx->basic_table[i], 0x0,
 		       NUM_BASIC_BLOCKS * ctx->mem_target);
 #endif
-	
+
 
 	for (i = 0; i < ctx->basic_table_count; i++)
 		(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
@@ -774,7 +774,7 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 isc_result_t
 isc_mem_ondestroy(isc_mem_t *ctx, isc_task_t *task, isc_event_t **event) {
 	isc_result_t res;
-	
+
 	LOCK(&ctx->lock);
 	res = isc_ondestroy_register(&ctx->ondestroy, task, event);
 	UNLOCK(&ctx->lock);
@@ -787,7 +787,7 @@ isc_result_t
 isc_mem_restore(isc_mem_t *ctx) {
 	isc_result_t result;
 
-	result = isc_mutex_init(&ctx->lock); 
+	result = isc_mutex_init(&ctx->lock);
 	if (result != ISC_R_SUCCESS)
 		ctx->magic = 0;
 
@@ -852,7 +852,7 @@ isc_mem_preallocate(isc_mem_t *ctx) {
 		}
 		mem_putunlocked(ctx, ptr, i);
 	}
-		
+
 	UNLOCK(&ctx->lock);
 
 	return (result);
@@ -1015,7 +1015,7 @@ isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
 
 	if (ns != NULL)
 		strncpy(ns, s, len + 1);
-	
+
 	return (ns);
 }
 
@@ -1246,7 +1246,7 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	 * Remove our linked list entry from the memory context.
 	 */
 	ISC_LIST_UNLINK(mctx->pools, mpctx, link);
-	
+
 	mpctx->magic = 0;
 
 	mem_putunlocked(mpctx->mctx, mpctx, sizeof(isc_mempool_t));

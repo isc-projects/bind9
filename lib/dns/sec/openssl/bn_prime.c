@@ -5,21 +5,21 @@
  * This package is an SSL implementation written
  * by Eric Young (eay@cryptsoft.com).
  * The implementation was written so as to conform with Netscapes SSL.
- * 
+ *
  * This library is free for commercial and non-commercial use as long as
  * the following conditions are aheared to.  The following conditions
  * apply to all code found in this distribution, be it the RC4, RSA,
  * lhash, DES, etc., code; not just the SSL code.  The SSL documentation
  * included with this distribution is covered by the same copyright terms
  * except that the holder is Tim Hudson (tjh@cryptsoft.com).
- * 
+ *
  * Copyright remains Eric Young's, and as such any Copyright notices in
  * the code are not to be removed.
  * If this package is used in a product, Eric Young should be given attribution
  * as the author of the parts of the library used.
  * This can be in the form of a textual message at program startup or
  * in documentation (online or textual) provided with the package.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -34,10 +34,10 @@
  *     Eric Young (eay@cryptsoft.com)"
  *    The word 'cryptographic' can be left out if the rouines from the library
  *    being used are not cryptographic related :-).
- * 4. If you include any Windows specific code (or a derivative thereof) from 
+ * 4. If you include any Windows specific code (or a derivative thereof) from
  *    the apps directory (application code) you must include an acknowledgement:
  *    "This product includes software written by Tim Hudson (tjh@cryptsoft.com)"
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY ERIC YOUNG ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -49,7 +49,7 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- * 
+ *
  * The licence and distribution terms for any publically available version or
  * derivative of this code cannot be changed.  i.e. this code cannot simply be
  * copied and put under another distribution licence
@@ -63,7 +63,7 @@
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -151,7 +151,7 @@ BIGNUM *BN_generate_prime(BIGNUM *ret, int bits, int safe, BIGNUM *add,
 	else
 		rnd=ret;
 	BN_init(&t);
-loop: 
+loop:
 	/* make a random number and set the top and bottom bits */
 	if (add == NULL)
 		{
@@ -237,7 +237,7 @@ int BN_is_prime_fasttest(const BIGNUM *a, int checks,
 	if (do_trial_division)
 		{
 		for (i = 1; i < NUMPRIMES; i++)
-			if (BN_mod_word(a, primes[i]) == 0) 
+			if (BN_mod_word(a, primes[i]) == 0)
 				return 0;
 		if (callback != NULL) callback(1, -1, cb_arg);
 		}
@@ -289,7 +289,7 @@ int BN_is_prime_fasttest(const BIGNUM *a, int checks,
 		goto err;
 	if (!BN_MONT_CTX_set(mont, A, ctx))
 		goto err;
-	
+
 	for (i = 0; i < checks; i++)
 		{
 		if (!BN_pseudo_rand(check, BN_num_bits(A1), 0, 0))
@@ -430,7 +430,7 @@ static int probable_prime_dh_safe(BIGNUM *p, int bits, BIGNUM *padd,
 	if (qadd == NULL) goto err;
 
 	if (!BN_rshift1(qadd,padd)) goto err;
-		
+
 	if (!BN_rand(q,bits,0,1)) goto err;
 
 	/* we need ((rnd-rem) % add) == 0 */

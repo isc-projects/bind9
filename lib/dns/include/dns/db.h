@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.52 2000/07/27 09:47:46 tale Exp $ */
+/* $Id: db.h,v 1.53 2000/08/01 01:24:04 tale Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -75,7 +75,7 @@ typedef struct dns_dbmethods {
 	isc_result_t	(*beginload)(dns_db_t *db, dns_addrdatasetfunc_t *addp,
 				     dns_dbload_t **dbloadp);
 	isc_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
-	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
+	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version,
 				const char *filename);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
@@ -498,7 +498,7 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  * Ensures:
  *
  *	On success, '*versionp' is attached to the current version.
- * 
+ *
  * Returns:
  *
  *	ISC_R_SUCCESS
@@ -943,7 +943,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	ISC_R_SUCCESS
  *	ISC_R_NOTFOUND
- *	
+ *
  *	Other results are possible, depending upon the database
  *	implementation used.
  */
@@ -981,7 +981,7 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	ISC_R_SUCCESS
  *	ISC_R_NOTFOUND
- *	
+ *
  *	Other results are possible, depending upon the database
  *	implementation used.
  */
@@ -1036,7 +1036,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	ISC_R_SUCCESS
  *	DNS_R_UNCHANGED			The operation did not change anything.
  *	ISC_R_NOMEMORY
- *	
+ *
  *	Other results are possible, depending upon the database
  *	implementation used.
  */
@@ -1052,7 +1052,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  * Notes:
  *
  *	If 'newrdataset' is not NULL, then it will be attached to the
- *	resulting new rdataset in the database, unless the rdataset has 
+ *	resulting new rdataset in the database, unless the rdataset has
  *	become nonexistent.
  *
  * Requires:
@@ -1075,7 +1075,7 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *	DNS_R_UNCHANGED			The operation did not change anything.
  *	DNS_R_NXRRSET			All rdata of the same type as those
  *					in 'rdataset' have been deleted.
- *	
+ *
  *	Other results are possible, depending upon the database
  *	implementation used.
  */
@@ -1114,7 +1114,7 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *	ISC_R_SUCCESS
  *	DNS_R_UNCHANGED			No rdatasets of 'type' existed before
  *					the operation was attempted.
- *	
+ *
  *	Other results are possible, depending upon the database
  *	implementation used.
  */

@@ -40,7 +40,7 @@ AH_RSAEncryptionPrivate *handler;
 
   /* Construct base class */
   AH_RSAEncryptionConstructor1 (handler, &AIT_RSAPrivate);
-  
+
   handler->vTable = &ENCRYPTION_V_TABLE;
   return (handler);
 }
@@ -79,19 +79,19 @@ ITEM *output;
 unsigned int block2Len;
 {
   unsigned int i;
-  
+
   if ((handler->z.block[0] != 0) || (handler->z.block[1] != 2))
     return (BE_INPUT_DATA);
-    
+
   /* Should be able to find the data after the first zero byte following
        the random bytes. */
   for (i = 2; i < block2Len && handler->z.block[i] != 0; i++);
   i++;
-    
+
   if (i > block2Len)
     /* The data is not zero terminated. */
     return (BE_INPUT_DATA);
-    
+
   output->len = block2Len - i;
   output->data = handler->z.block + i;
   return (0);

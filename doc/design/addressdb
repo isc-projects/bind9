@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: addressdb,v 1.2 2000/06/21 23:43:28 tale Exp $
+$Id: addressdb,v 1.3 2000/08/01 01:18:06 tale Exp $
 
 You are lost in a maze of twisty little pointers, all alike...
 
@@ -12,7 +12,7 @@ ADB                          |-> 0         |-> handle ---> handle ---> 0
  |			     namehook      namehook
  |                             |  |          |  |
  |                             |  0          0  -> fetch
- |			       |         
+ |			       |
  |                             V
  |-lists of elements -----> element ----> element ----> element ---> 0
  |                            |             |             |

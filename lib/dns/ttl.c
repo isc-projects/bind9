@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.19 2000/07/27 09:46:45 tale Exp $ */
+/* $Id: ttl.c,v 1.20 2000/08/01 01:23:03 tale Exp $ */
 
 #include <config.h>
 
@@ -114,7 +114,7 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 	if (x == 1 && !verbose) {
 		isc_region_t region;
 		/*
-		 * The unit letter is the last character in the 
+		 * The unit letter is the last character in the
 		 * used region of the buffer.
 		 *
 		 * toupper() does not need its argument to be masked of cast

@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcache.h,v 1.9 2000/07/27 09:47:30 tale Exp $ */
+/* $Id: confcache.h,v 1.10 2000/08/01 01:23:48 tale Exp $ */
 
 #ifndef DNS_CONFCACHE_H
 #define DNS_CONFCACHE_H 1
@@ -33,7 +33,7 @@
  *
  * MP:
  *	Client must do necessary locking.
- *      
+ *
  * Reliability:
  *
  *	No problems.
@@ -45,7 +45,7 @@
  * Security:
  *
  *	N/A
- *      
+ *
  */
 
 /***
@@ -83,11 +83,11 @@ dns_c_cache_new(isc_mem_t *mem, dns_c_cache_t **cfgres);
  * Requires:
  *	mem be a pointer to a valid memory manager.
  *	newres be a valid non-NULL pointer.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
  *	ISC_R_NOMEMORY		-- out of memory
- * 
+ *
  */
 
 isc_result_t
@@ -98,10 +98,10 @@ dns_c_cache_delete(dns_c_cache_t **cfgres);
  * Requires:
  *	cfgres be a valid non-NULL pointer. The pointer it points to
  *	can be NULL or must be a valid dns_c_cache_t object.
- * 
+ *
  * Returns:
  *	ISC_R_SUCCESS		-- all is well
- * 
+ *
  */
 
 ISC_LANG_ENDDECLS

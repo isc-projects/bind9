@@ -44,11 +44,11 @@ A_RSA_CRT_KEY *key;
       (context->primeP, MAX_RSA_PRIME_WORDS, key->prime[0].data,
        key->prime[0].len))
     return (AE_KEY_INFO);
-    
+
   /* compute significant length of first prime */
   context->primeWords = BITS_TO_WORDS
     (BigLen (context->primeP, MAX_RSA_PRIME_WORDS));
-    
+
   /* convert other private key parameters to bignum format */
   if (CanonicalToBig
       (context->primeQ, context->primeWords, key->prime[1].data,
@@ -99,7 +99,7 @@ A_SURRENDER_CTX *surrenderContext;
     context->inputLen += partInLen;
     return (0);
   }
-  
+
   if (context->inputLen > 0) {
     /* Need to accumulate the rest of the block bytes into the input and
          encrypt from there (otherwise it's OK to encrypt straight from
@@ -111,7 +111,7 @@ A_SURRENDER_CTX *surrenderContext;
        partialLen);
     partIn += partialLen;
     partInLen -= partialLen;
-    
+
     if ((status = RSA_CRT2
          (context, partOut, &localPartOutLen, maxPartOutLen, context->input,
           surrenderContext)) != 0)
@@ -128,14 +128,14 @@ A_SURRENDER_CTX *surrenderContext;
          (context, partOut, &localPartOutLen, maxPartOutLen, partIn,
           surrenderContext)) != 0)
       return (status);
-    
+
     partIn += context->blockLen;
     partInLen -= context->blockLen;
     (*partOutLen) += localPartOutLen;
     partOut += localPartOutLen;
     maxPartOutLen -= localPartOutLen;
   }
-  
+
   /* Copy remaining input bytes to the context's input buffer.
    */
   T_memcpy
@@ -149,7 +149,7 @@ A_RSA_CRT2_CTX *context;
 {
   if (context->inputLen != 0)
     return (AE_INPUT_LEN);
-  
+
   /* Restart context to accumulate a new block.
    */
   context->inputLen = 0;
@@ -180,7 +180,7 @@ A_SURRENDER_CTX *surrenderContext;
   do {
     if ((*outputLen = context->blockLen) > maxOutputLen)
       return (AE_OUTPUT_LEN);
-    
+
 #if USE_ALLOCED_FRAME
     if ((frame = (struct ModExpCRTFrame *)T_malloc (sizeof (*frame)))
         == (struct ModExpCRTFrame *)NULL_PTR) {
@@ -202,7 +202,7 @@ A_SURRENDER_CTX *surrenderContext;
     if (BigCmp
         (frame->bigInBuf, context->modulus, 2 * context->primeWords) >= 0)
       GENERATE_BREAK (AE_INPUT_DATA);
-    
+
     /* Chinese remainder exponentiation. */
     if ((status = BigUnexp
          (frame->bigOutBuf, frame->bigInBuf, context->primeP, context->primeQ,
@@ -216,7 +216,7 @@ A_SURRENDER_CTX *surrenderContext;
     BigToCanonical
       (output, *outputLen, frame->bigOutBuf, 2 * context->primeWords);
   } while (0);
-  
+
   if (frame != (struct ModExpCRTFrame *)NULL_PTR) {
     T_memset ((POINTER)frame, 0, sizeof (*frame));
 #if USE_ALLOCED_FRAME

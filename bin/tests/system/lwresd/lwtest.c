@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.12 2000/07/28 03:31:25 tale Exp $ */
+/* $Id: lwtest.c,v 1.13 2000/08/01 01:15:37 tale Exp $ */
 
 #include <config.h>
 
@@ -237,7 +237,7 @@ test_gethostbyname(const char *name, const char *address) {
 		if (address == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyname(%s) failed: %s\n", 
+			printf("I:gethostbyname(%s) failed: %s\n",
 			       name, hstrerror(h_errno));
 			fails++;
 			return;
@@ -272,7 +272,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 		if (address == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyname(%s) failed: %s\n", 
+			printf("I:gethostbyname(%s) failed: %s\n",
 			       name, hstrerror(h_errno));
 			fails++;
 			return;
@@ -328,7 +328,7 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 		if (name == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyaddr(%s) failed: %s\n", 
+			printf("I:gethostbyaddr(%s) failed: %s\n",
 			       address, hstrerror(h_errno));
 			fails++;
 			return;
@@ -372,7 +372,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 		if (address == NULL && ret == EAI_NODATA)
 			return;
 		else if (ret != EAI_NODATA) {
-			printf("I:getaddrinfo(%s,%d,%d) failed: %s\n", 
+			printf("I:getaddrinfo(%s,%d,%d) failed: %s\n",
 			       name, v4ok, v6ok, gai_strerror(ret));
 			fails++;
 			return;
@@ -470,7 +470,7 @@ test_getnameinfo(const char *address, int af, const char *name) {
 		if (name == NULL && ret == ENI_NOHOSTNAME)
 			return;
 		else if (ret != ENI_NOHOSTNAME) {
-			printf("I:getnameinfo(%s) failed: %d\n", 
+			printf("I:getnameinfo(%s) failed: %d\n",
 			       address, ret);
 			fails++;
 			return;

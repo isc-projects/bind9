@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1998-2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.39 2000/07/27 09:48:12 tale Exp $ */
+/* $Id: rdata.h,v 1.40 2000/08/01 01:24:30 tale Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -244,7 +244,7 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 /*
  * Convert 'rdata' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
- *	
+ *
  * Notes:
  *	If the compression context allows global compression, then the
  *	global compression table may be updated.
@@ -348,7 +348,7 @@ isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
 		    unsigned int width, char *linebreak, isc_buffer_t *target);
 /*
- * Like dns_rdata_totext, but do formatted output suitable for 
+ * Like dns_rdata_totext, but do formatted output suitable for
  * database dumps.  This is intended for use by dns_db_dump();
  * library users are discouraged from calling it directly.
  *
@@ -358,16 +358,16 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, dns_name_t *origin, unsigned int flags,
  * are added when necessary.  Because RRs contain unbreakable elements
  * such as domain names whose length is variable, unpredictable, and
  * potentially large, there is no guarantee that the lines will
- * not exceed 'width' anyway.  
+ * not exceed 'width' anyway.
  *
  * If (flags & DNS_STYLEFLAG_MULTILINE) == 0, the rdata is always
  * printed as a single line, and no parentheses are used.
  * The 'width' and 'linebreak' arguments are ignored.
  *
  * If (flags & DNS_STYLEFLAG_COMMENT) != 0, output explanatory
- * comments next to things like the SOA timer fields.  Some 
+ * comments next to things like the SOA timer fields.  Some
  * comments (e.g., the SOA ones) are only printed when multiline
- * output is selected. 
+ * output is selected.
  */
 
 isc_result_t
@@ -406,7 +406,7 @@ isc_result_t
 dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx);
 /*
  * Convert an rdata into its C structure representation.
- *	
+ *
  * If 'mctx' is NULL then 'rdata' must persist while 'target' is being used.
  *
  * If 'mctx' is non NULL then memory will be allocated if required.

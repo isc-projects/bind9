@@ -14,13 +14,13 @@
    Assumes a, b, c, d of length n.
    Returns 0, AE_CANCEL.
  */
-int BigModExp (a, b, c, d, n, surrenderContext) 
+int BigModExp (a, b, c, d, n, surrenderContext)
 UINT2 *a, *b, *c, *d;
 unsigned int n;
 A_SURRENDER_CTX *surrenderContext;
 {
   struct BigModExpFrame {
-    UINT2 dInv[MAX_RSA_MODULUS_WORDS + 2], result[MAX_RSA_MODULUS_WORDS], 
+    UINT2 dInv[MAX_RSA_MODULUS_WORDS + 2], result[MAX_RSA_MODULUS_WORDS],
       tab[16][MAX_RSA_MODULUS_WORDS];
   } *frame = (struct BigModExpFrame *)NULL_PTR;
 #if !USE_ALLOCED_FRAME
@@ -47,7 +47,7 @@ A_SURRENDER_CTX *surrenderContext;
     BigInv (frame->dInv, d, n);
     if ((status = CheckSurrender (surrenderContext)) != 0)
       break;
-    
+
     /* precompute small (size 2**w) table of powers of b */
     cLen = BigLen (c, n);
     if (cLen < 4)
@@ -57,7 +57,7 @@ A_SURRENDER_CTX *surrenderContext;
     else if (cLen < 64)
       w = 3;
     else
-      w = 4; 
+      w = 4;
 
     /* zeroth power is one */
     BigConst (frame->tab[0], 1, n);
@@ -111,7 +111,7 @@ A_SURRENDER_CTX *surrenderContext;
         }
         else
           BigCopy (frame->result, frame->tab[power], n);
-      
+
         power = 0;
         didAMultiply = 1;
       }

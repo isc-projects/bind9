@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.42 2000/07/27 09:48:46 tale Exp $ */
+/* $Id: tsig_250.c,v 1.43 2000/08/01 01:25:04 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -122,7 +122,7 @@ static inline isc_result_t
 totext_any_tsig(ARGS_TOTEXT) {
 	isc_region_t sr;
 	isc_region_t sigr;
-	char buf[sizeof "281474976710655 "];	
+	char buf[sizeof "281474976710655 "];
 	char *bufp;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -185,15 +185,15 @@ totext_any_tsig(ARGS_TOTEXT) {
 	REQUIRE(n <= sr.length);
 	sigr = sr;
 	sigr.length = n;
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)	
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" (", target));
 	RETERR(str_totext(tctx->linebreak, target));
-	RETERR(isc_base64_totext(&sigr, tctx->width - 2, 
+	RETERR(isc_base64_totext(&sigr, tctx->width - 2,
 				 tctx->linebreak, target));
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
 		RETERR(str_totext(" ) ", target));
 	else
-		RETERR(str_totext(" ", target));		
+		RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, n);
 
 	/*
@@ -238,7 +238,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
-	
+
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	/*
@@ -319,7 +319,7 @@ compare_any_tsig(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 250);
 	REQUIRE(rdata1->rdclass == 255);
-	
+
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
 	dns_name_init(&name1, NULL);
@@ -410,7 +410,7 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
-	
+
 	tsig = (dns_rdata_any_tsig_t *) target;
 	tsig->common.rdclass = rdata->rdclass;
 	tsig->common.rdtype = rdata->type;
@@ -425,7 +425,7 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tsig->algorithm, NULL);
 	RETERR(name_duporclone(&alg, mctx, &tsig->algorithm));
-	
+
 	isc_region_consume(&sr, name_length(&tsig->algorithm));
 
 	/*
@@ -496,7 +496,7 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 
  cleanup:
 	if (mctx != NULL)
-		dns_name_free(&tsig->algorithm, tsig->mctx);	
+		dns_name_free(&tsig->algorithm, tsig->mctx);
 	if (mctx != NULL && tsig->signature != NULL)
 		isc_mem_free(mctx, tsig->signature);
 	return (ISC_R_NOMEMORY);
@@ -513,7 +513,7 @@ freestruct_any_tsig(ARGS_FREESTRUCT) {
 	if (tsig->mctx == NULL)
 		return;
 
-	dns_name_free(&tsig->algorithm, tsig->mctx);	
+	dns_name_free(&tsig->algorithm, tsig->mctx);
 	if (tsig->signature != NULL)
 		isc_mem_free(tsig->mctx, tsig->signature);
 	if (tsig->other != NULL)

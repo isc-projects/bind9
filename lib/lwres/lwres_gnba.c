@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.18 2000/07/27 09:53:51 tale Exp $ */
+/* $Id: lwres_gnba.c,v 1.19 2000/08/01 01:32:26 tale Exp $ */
 
 #include <config.h>
 
@@ -80,7 +80,7 @@ lwres_gnbarequest_render(lwres_context_t *ctx, lwres_gnbarequest_t *req,
 	lwres_buffer_putuint32(b, req->flags);
 	lwres_buffer_putuint32(b, req->addr.family);
 	lwres_buffer_putuint16(b, req->addr.length);
-	lwres_buffer_putmem(b, (unsigned char *)req->addr.address, 
+	lwres_buffer_putmem(b, (unsigned char *)req->addr.address,
 			    req->addr.length);
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);

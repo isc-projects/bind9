@@ -1,10 +1,10 @@
 /*
  * Copyright (C) 1999, 2000  Internet Software Consortium.
- * 
+ *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
  * DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.19 2000/07/27 09:37:48 tale Exp $ */
+/* $Id: compress_test.c,v 1.20 2000/08/01 01:12:39 tale Exp $ */
 
 #include <config.h>
 
@@ -145,7 +145,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 	RUNTIME_CHECK(dns_name_towire(name1, &cctx, &source) == ISC_R_SUCCESS);
 
 	/*
-	RUNTIME_CHECK(dns_compress_localinit(&cctx, name1, &source) == 
+	RUNTIME_CHECK(dns_compress_localinit(&cctx, name1, &source) ==
 		      ISC_R_SUCCESS);
 	*/
 	dns_compress_setmethods(&cctx, allowed);

@@ -1,7 +1,7 @@
 Copyright (C) 1999, 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://www.isc.org/copyright for terms.
 
-$Id: logging,v 1.6 2000/06/22 21:53:52 tale Exp $
+$Id: logging,v 1.7 2000/08/01 01:18:11 tale Exp $
 
 OVERVIEW
 
@@ -354,7 +354,7 @@ Providing a NULL argument for the category means "associate the
 channel with the indicated module in all known categories" ---
 including ISC_CATEGORY_DEFAULT.  Providing a NULL argument for the
 module means "associate the channel with all modules that use this
-category."  
+category."
 
 6) If you are sending any messages to syslog, call
 isc_log_opensyslog().  Currently the arguments to this function are
@@ -435,7 +435,7 @@ logging system internally.
   };
   isc_logmodule_t dns_modules[] = {
           { "db", 	0 },
-          { "rbtdb", 	0 }, 
+          { "rbtdb", 	0 },
           { NULL, 	0 }
   };
 
