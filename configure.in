@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.70 $)
+AC_REVISION($Revision: 1.71 $)
 
 AC_PREREQ(2.13)
 
@@ -361,9 +361,9 @@ case "$enable_ipv6" in
 	yes|''|autodetect)
 		AC_MSG_CHECKING(for IPv6 structures)
 		AC_TRY_COMPILE([
-		#include <sys/types.h>
-		#include <sys/socket.h>
-		#include <netinet/in.h>],
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>],
 		[struct sockaddr_in6 sin6; return (0);],
 			[AC_MSG_RESULT(yes)
 			 found_ipv6=yes],

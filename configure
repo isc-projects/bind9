@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.69 
+# From configure.in Revision: 1.71 
 
 
 
@@ -127,7 +127,7 @@ ac_help="$ac_help
 ac_help="$ac_help
   --disable-libtool-lock  avoid locking (might break parallel builds)"
 ac_help="$ac_help
-  --enable-ipv6		use IPv6 [default: autodetect]"
+  --enable-ipv6		use IPv6 [default=autodetect]"
 ac_help="$ac_help
   --with-kame[=PATH]	use Kame IPv6 [default path /usr/local/v6]"
 
@@ -2657,16 +2657,16 @@ fi
 
 
 case "$enable_ipv6" in
-	yes|'')
+	yes|''|autodetect)
 		echo $ac_n "checking for IPv6 structures""... $ac_c" 1>&6
 echo "configure:2663: checking for IPv6 structures" >&5
 		cat > conftest.$ac_ext <<EOF
 #line 2665 "configure"
 #include "confdefs.h"
 
-		#include <sys/types.h>
-		#include <sys/socket.h>
-		#include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 int main() {
 struct sockaddr_in6 sin6; return (0);
 ; return 0; }
