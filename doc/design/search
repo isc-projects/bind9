@@ -1,7 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 1999-2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: search,v 1.9 2001/01/09 21:46:53 bwelling Exp $
+$Id: search,v 1.10 2004/03/05 05:04:47 marka Exp $
 
 What follows is pseudocode for the zone and cache lookup algorithms, as they
 will work in the RBT DB.

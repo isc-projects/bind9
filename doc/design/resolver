@@ -1,7 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 1999-2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: resolver,v 1.5 2001/01/09 21:46:52 bwelling Exp $
+$Id: resolver,v 1.6 2004/03/05 05:04:47 marka Exp $
 
 Multi-target Resolver
 =====================

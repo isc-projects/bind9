@@ -1,7 +1,8 @@
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: tests,v 1.14 2001/01/22 22:32:43 gson Exp $
+$Id: tests,v 1.15 2004/03/05 05:04:50 marka Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.

@@ -1,7 +1,8 @@
-Copyright (C) 1999-2001  Internet Software Consortium.
+Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 1999-2002  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: magic_numbers,v 1.6 2002/07/12 00:10:26 marka Exp $
+$Id: magic_numbers,v 1.7 2004/03/05 05:04:50 marka Exp $
 
 Magic Numbers
 
