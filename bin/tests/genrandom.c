@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.4 2000/08/09 00:57:48 bwelling Exp $ */
+/* $Id: genrandom.c,v 1.5 2000/08/09 01:37:33 bwelling Exp $ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -49,12 +49,12 @@ main(int argc, char **argv) {
 	while (bytes > 0) {
 		unsigned short int x = (rand() & 0xFFFF);
 		unsigned char c = x & 0xFF;
-		if (fwrite(&c, 1, 1, fp) != 1) {
+		if (putc(c, fp) == EOF) {
 			printf("error writing to file\n");
 			exit(1);
 		}
 		c = x >> 8;
-		if (fwrite(&c, 1, 1, fp) != 1) {
+		if (putc(c, fp) == EOF) {
 			printf("error writing to file\n");
 			exit(1);
 		}
