@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.15 2000/07/10 11:38:37 tale Exp $ */
+/* $Id: rndc.c,v 1.16 2000/07/11 00:37:56 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -227,7 +227,7 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-c config] [-s server] [-p port] [-k key] command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-y key] command [command ...]\n\
 \n\
 command is one of the following for named:\n\
 \n\
@@ -285,14 +285,10 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "c:k:Mmp:s:v")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:vy:")) != -1) {
 		switch (ch) {
 		case 'c':
 			conffile = isc_commandline_argument;
-			break;
-
-		case 'k':
-			keyname = isc_commandline_argument;
 			break;
 
 		case 'M':
@@ -321,6 +317,10 @@ main(int argc, char **argv) {
 			 * Undocumented, for testing.
 			 */
 			verbose = ISC_TRUE;
+			break;
+
+		case 'y':
+			keyname = isc_commandline_argument;
 			break;
 
 		case '?':
