@@ -1259,6 +1259,7 @@
 ./lib/isc/nothreads/include/isc/mutex.h		C	2000
 ./lib/isc/nothreads/include/isc/once.h		C	2000
 ./lib/isc/nothreads/include/isc/thread.h	C	2000
+./lib/isc/nothreads/mutex.c			C	2000
 ./lib/isc/nothreads/thread.c			C	2000
 ./lib/isc/ondestroy.c				C	2000
 ./lib/isc/print.c				C	1999,2000
@@ -1273,6 +1274,7 @@
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999,2000
 ./lib/isc/pthreads/include/isc/once.h		C	1999,2000
 ./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000
+./lib/isc/pthreads/mutex.c			C	2000
 ./lib/isc/pthreads/thread.c			C	2000
 ./lib/isc/quota.c				C	2000
 ./lib/isc/random.c				C	1999,2000

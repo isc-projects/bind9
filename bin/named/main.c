@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.97 2000/12/12 23:05:54 bwelling Exp $ */
+/* $Id: main.c,v 1.98 2000/12/29 01:29:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -572,8 +572,10 @@ main(int argc, char *argv[]) {
 
 	cleanup();
 
-	if (want_stats)
+	if (want_stats) {
 		isc_mem_stats(ns_g_mctx, stdout);
+		isc_mutex_stats(stdout);
+	}
 	isc_mem_destroy(&ns_g_mctx);
 
 	isc_app_finish();
