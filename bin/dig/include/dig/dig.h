@@ -33,7 +33,7 @@
 #define MXNAME 256
 #define MXRD 32
 #define BUFSIZE 512
-#define COMMSIZE 65536
+#define COMMSIZE 32767
 #define RESOLVCONF "/etc/resolv.conf"
 #define LOOKUP_LIMIT 64
 /* Lookup_limit is just a limiter, keeping too many lookups from being
@@ -62,8 +62,10 @@ struct dig_lookup {
 		use_my_server_list,
 		identify,
 		recurse,
+		aaonly,
 		trace,
-		trace_root;
+		trace_root,
+		defname;
 	char textname[MXNAME]; /* Name we're going to be looking up */
 	char rttext[MXRD]; /* rdata type text */
 	char rctext[MXRD]; /* rdata class text */
@@ -85,7 +87,9 @@ struct dig_lookup {
 	dig_query_t *xfr_q;
 	int retries;
 	int nsfound;
+	isc_uint16_t udpsize;
 	isc_boolean_t comments,
+		stats,
 		section_question,
 		section_answer,
 		section_authority,

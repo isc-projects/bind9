@@ -53,6 +53,7 @@ extern int sendcount;
 extern int ndots;
 extern int tries;
 extern int lookup_counter;
+extern int exitcode;
 
 isc_boolean_t short_form=ISC_TRUE,
 	filter=ISC_FALSE,
@@ -202,7 +203,7 @@ show_usage() {
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
 "       -W specifies how long to wait for a reply\n", stderr);
-	exit (0);
+	exit (exitcode);
 }				
 
 void
@@ -391,6 +392,14 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	UNUSED (headers);
 
+	/*
+	 * Exitcode 9 means we timed out, but if we're printing a message,
+	 * we much have recovered.  Go ahead and reset it to code 0, and
+	 * call this a success.
+	 */
+	if (exitcode == 9)
+		exitcode = 0;
+
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
 		check_result (result, "isc_buffer_allocate");
@@ -509,7 +518,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char queryclass[32]="";
 	dig_server_t *srv;
 	dig_lookup_t *lookup;
-	int c;
+	int i, c, n, adrs[4];
+	char store[MXNAME];
 
 	UNUSED(is_batchfile);
 
@@ -588,11 +598,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
-	if (querytype[0] == 0)
-		strcpy (querytype, "a");
-	if (queryclass[0] == 0)
-		strcpy (queryclass, "in");
-
 	lookup_counter++;
 	if (lookup_counter > LOOKUP_LIMIT)
 		fatal ("Too many lookups.");
@@ -601,7 +606,32 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (lookup == NULL)	
 		fatal ("Memory allocation failure.");
 	lookup->pending = ISC_FALSE;
-	strncpy (lookup->textname, hostname, MXNAME);
+	/* 
+	 * XXXMWS Add IPv6 translation here, probably using inet_pton
+	 * to extract the formatted text.
+	 */
+	if (strcspn(hostname, "0123456789.") != strlen(hostname)) {
+		lookup->textname[0]=0;
+		n = sscanf(hostname, "%d.%d.%d.%d", &adrs[0], &adrs[1],
+				   &adrs[2], &adrs[3]);
+		if (n==0) {
+			show_usage();
+			exit (exitcode);
+		}
+		for (i = n - 1; i >= 0; i--) {
+			snprintf(store, MXNAME/8, "%d.",
+				 adrs[i]);
+			strncat(lookup->textname, store, MXNAME);
+		}
+		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
+		if (querytype[0] == 0)
+			strcpy (querytype, "ptr");
+	} else
+		strncpy (lookup->textname, hostname, MXNAME);
+	if (querytype[0] == 0)
+		strcpy (querytype, "a");
+	if (queryclass[0] == 0)
+		strcpy (queryclass, "in");
 	strncpy (lookup->rttext, querytype, 32);
 	strncpy (lookup->rctext, queryclass, 32);
 	lookup->namespace[0]=0;
@@ -613,6 +643,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
 	lookup->doing_xfr = ISC_FALSE;
+	lookup->defname = ISC_FALSE;
 	lookup->identify = ISC_FALSE;
 	lookup->recurse = recursion;
 	lookup->ns_search_only = showallsoa;

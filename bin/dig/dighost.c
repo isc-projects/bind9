@@ -15,6 +15,15 @@
  * SOFTWARE.
  */
 
+/*
+ * Notice to programmers:  Do not use this code as an example of how to
+ * use the ISC library to perform DNS lookups.  Dig and Host both operate
+ * on the request level, since they allow fine-tuning of output and are
+ * intended as debugging tools.  As a result, they perform many of the
+ * functions which could be better handled using the dns_resolver
+ * functions in most applications.
+ */
+
 #include <config.h>
 
 #include <stdlib.h>
@@ -34,6 +43,7 @@ extern int h_errno;
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
+#include <dns/rdatalist.h>
 #include <dns/result.h>
 
 #include <dig/dig.h>
@@ -43,7 +53,8 @@ ISC_LIST(dig_server_t) server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t tcp_mode = ISC_FALSE, have_ipv6 = ISC_FALSE,
-	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE;
+	free_now = ISC_FALSE, show_details = ISC_FALSE, usesearch=ISC_TRUE,
+	qr = ISC_FALSE;
 #ifdef TWIDDLE
 isc_boolean_t twiddle = ISC_FALSE;
 #endif
@@ -54,7 +65,6 @@ isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *task = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
-dns_messageid_t id;
 char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
@@ -62,6 +72,7 @@ int ndots = -1;
 int tries = 3;
 int lookup_counter = 0;
 char fixeddomain[MXNAME]="";
+int exitcode = 9;
 
 static void
 free_lists(void);
@@ -116,7 +127,7 @@ fatal(char *format, ...) {
 		isc_mem_destroy(&mctx);
 	}
 #endif
-	exit(1);
+	exit(exitcode);
 }
 
 #ifdef DEBUG
@@ -140,8 +151,10 @@ debug(char *format, ...) {
 
 void
 check_result(isc_result_t result, char *msg) {
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		exitcode = 1;
 		fatal("%s: %s", msg, isc_result_totext(result));
+	}
 }
 
 isc_boolean_t
@@ -235,7 +248,12 @@ setup_system(void) {
 	}
 
 	debug ("setup_system()");
-	id = getpid() << 8;
+	/*
+	 * Warning: This is not particularly good randomness.  We'll
+	 * just use random() now for getting id values, but doing so
+	 * does NOT insure that id's cann't be guessed.
+	 */
+	srandom (getpid() + (int)&setup_system);
 	get_servers = (server_list.head == NULL);
 	fp = fopen (RESOLVCONF, "r");
 	if (fp != NULL) {
@@ -381,6 +399,34 @@ setup_libs(void) {
 }
 
 static void
+add_opt (dns_message_t *msg, isc_uint16_t udpsize) {
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdata_t *rdata = NULL;
+	isc_result_t result;
+
+	result = dns_message_gettemprdataset(msg, &rdataset);
+	check_result (result, "dns_message_gettemprdataset");
+	dns_rdataset_init (rdataset);
+	result = dns_message_gettemprdatalist(msg, &rdatalist);
+	check_result (result, "dns_message_gettemprdatalist");
+	result = dns_message_gettemprdata(msg, &rdata);
+	check_result (result, "dns_message_gettemprdata");
+
+	rdatalist->type = dns_rdatatype_opt;
+	rdatalist->covers = 0;
+	rdatalist->rdclass = udpsize;
+	rdatalist->ttl = 0;
+	rdata->data = NULL;
+	rdata->length = 0;
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_message_setopt(msg, rdataset);
+	check_result (result, "dns_message_setopt");
+}
+
+static void
 add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 	 dns_rdatatype_t rdtype)
 {
@@ -492,11 +538,17 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						lookup->xfr_q = NULL;
 						lookup->origin = NULL;
 						lookup->doing_xfr = ISC_FALSE;
+						lookup->defname = ISC_FALSE;
 						lookup->identify = 
 		       				      query->lookup->identify;
+						lookup->udpsize = 
+		       				      query->lookup->udpsize;
 						lookup->recurse =
 							query->lookup->
 							recurse;
+						lookup->aaonly =
+							query->lookup->
+							aaonly;
 						lookup->ns_search_only = 
 							query->lookup->
 							ns_search_only;
@@ -516,6 +568,9 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 						lookup->comments =
 							query->lookup->
 							comments;
+						lookup->stats =
+							query->lookup->
+							stats;
 						lookup->section_question =
 							query->lookup->
 							section_question;
@@ -620,16 +675,20 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	lookup->timer = NULL;
 	lookup->xfr_q = NULL;
 	lookup->doing_xfr = ISC_FALSE;
+	lookup->defname = ISC_FALSE;
 	lookup->trace = query->lookup->trace;
 	lookup->trace_root = query->lookup->trace_root;
 	lookup->identify = query->lookup->identify;
+	lookup->udpsize = query->lookup->udpsize;
 	lookup->recurse = query->lookup->recurse;
+	lookup->aaonly = query->lookup->aaonly;
 	lookup->ns_search_only = query->lookup->ns_search_only;
 	lookup->use_my_server_list = query->lookup->use_my_server_list;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
 	lookup->retries = tries;
 	lookup->nsfound = 0;
 	lookup->comments = query->lookup->comments;
+	lookup->stats = query->lookup->stats;
 	lookup->section_question = query->lookup->section_question;
 	lookup->section_answer = query->lookup->section_answer;
 	lookup->section_authority = query->lookup->section_authority;
@@ -700,7 +759,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->namebuf, lookup->namespace, BUFSIZE);
 	isc_buffer_init(&lookup->onamebuf, lookup->onamespace, BUFSIZE);
 
-	if (count_dots(lookup->textname) >= ndots)
+	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
 		lookup->origin = NULL; /* Force root lookup */
 	debug ("lookup->origin = %lx", (long int)lookup->origin);
 	if (lookup->origin != NULL) {
@@ -792,13 +851,18 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->rttext[0] == 0)
 		strcpy(lookup->rttext, "A");
 
-	lookup->sendmsg->id = id++;
+	lookup->sendmsg->id = random();
 	lookup->sendmsg->opcode = dns_opcode_query;
 	/* If this is a trace request, completely disallow recursion, since
 	 * it's meaningless for traces */
 	if (lookup->recurse && !lookup->trace) {
 		debug ("Recursive query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_RD;
+	}
+
+	if (lookup->aaonly) {
+		debug ("AA query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AA;
 	}
 
 	dns_message_addname(lookup->sendmsg, lookup->name,
@@ -836,6 +900,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	debug ("Starting to render the message");
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
+	if (lookup->udpsize > 0) {
+		add_opt(lookup->sendmsg, lookup->udpsize);
+	}
 	result = dns_message_rendersection(lookup->sendmsg,
 					   DNS_SECTION_QUESTION, 0);
 	check_result(result, "dns_message_rendersection");
@@ -870,6 +937,10 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&query->slbuf, query->slspace, 2);
 
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
+	}
+	if (!ISC_LIST_EMPTY(lookup->q) && qr) {
+		printmessage (ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
+			      ISC_TRUE);
 	}
 }	
 
@@ -977,12 +1048,13 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 					       (int)r.length, r.base,
 					       q->lookup->textname,
 					       q->lookup->retries-1);
-				else
+				else {
 					printf(";; Connection to server %.*s "
 					       "for %s timed out.  "
 					       "Giving up.\n",
 					       (int)r.length, r.base,
 					       q->lookup->textname);
+				}
 			}
 			isc_socket_cancel(q->sock, task,
 					  ISC_SOCKCANCEL_ALL);
@@ -1135,6 +1207,8 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		printf(";; Connection to server %.*s for %s failed: %s.\n",
 		       (int)r.length, r.base, query->lookup->textname,
 		       isc_result_totext(sevent->result));
+		if (exitcode < 9)
+			exitcode = 9;
 		isc_buffer_free(&b);
 		query->working = ISC_FALSE;
 		query->waiting_connect = ISC_FALSE;
@@ -1502,7 +1576,7 @@ free_lists(void) {
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
 
-	exit(0);
+	exit(exitcode);
 }
 
 int
@@ -1544,5 +1618,5 @@ main(int argc, char **argv) {
 	/*
 	 * Should never get here.
 	 */
-	return (1);
+	return (2);
 }
