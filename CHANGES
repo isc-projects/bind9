@@ -1,3 +1,6 @@
+1291.	[bug]		"recursion available: {denied,approved}" was too
+			confusing.
+
 1290.	[bug]		Check that system inet_pton() and inet_ntop() support
 			AF_INET6.
 
