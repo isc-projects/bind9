@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4165"
+HREF="Bv9ARM.ch06.html#AEN4167"
 >Zone File</A
 ></DT
 ></DL
@@ -7812,7 +7812,10 @@ CLASS="command"
 CLASS="programlisting"
 >server <VAR
 CLASS="replaceable"
->ip_addr</VAR
+>ip_addr[<SPAN
+CLASS="optional"
+>/prefixlen</SPAN
+>]</VAR
 > {
     [<SPAN
 CLASS="optional"
@@ -7920,7 +7923,13 @@ CLASS="command"
 CLASS="command"
 >server</B
 > statement defines characteristics
-to be associated with a remote name server.</P
+to be associated with a remote name server.  If a prefix length is
+specified then a range of servers is covered.  Only the most specific
+server clause applies regardless of the order in
+<TT
+CLASS="filename"
+>named.conf</TT
+>.</P
 ><P
 >&#13;The <B
 CLASS="command"
@@ -8141,7 +8150,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3527"
+NAME="AEN3529"
 >6.2.19. <B
 CLASS="command"
 >trusted-keys</B
@@ -8196,7 +8205,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3543"
+NAME="AEN3545"
 >6.2.20. <B
 CLASS="command"
 >trusted-keys</B
@@ -8284,7 +8293,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3565"
+NAME="AEN3567"
 >6.2.22. <B
 CLASS="command"
 >view</B
@@ -8935,7 +8944,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3744"
+NAME="AEN3746"
 >6.2.24. <B
 CLASS="command"
 >zone</B
@@ -8946,7 +8955,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3747"
+NAME="AEN3749"
 >6.2.24.1. Zone Types</A
 ></H3
 ><DIV
@@ -8954,7 +8963,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN3749"
+NAME="AEN3751"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -9186,7 +9195,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3812"
+NAME="AEN3814"
 >6.2.24.2. Class</A
 ></H3
 ><P
@@ -9224,7 +9233,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3822"
+NAME="AEN3824"
 >6.2.24.3. Zone Options</A
 ></H3
 ><P
@@ -10009,7 +10018,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4124"
+NAME="AEN4126"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10134,7 +10143,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN4165"
+NAME="AEN4167"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -10155,7 +10164,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4170"
+NAME="AEN4172"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -10180,7 +10189,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4176"
+NAME="AEN4178"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10261,7 +10270,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4208"
+NAME="AEN4210"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10612,7 +10621,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4360"
+NAME="AEN4362"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10694,7 +10703,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4384"
+NAME="AEN4386"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10726,7 +10735,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4391"
+NAME="AEN4393"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10881,7 +10890,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4457"
+NAME="AEN4459"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -10952,7 +10961,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4485"
+NAME="AEN4487"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10990,7 +10999,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4491"
+NAME="AEN4493"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11211,7 +11220,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4583"
+NAME="AEN4585"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11274,7 +11283,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4606"
+NAME="AEN4608"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -11303,7 +11312,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4611"
+NAME="AEN4613"
 ></A
 ><TABLE
 CELLPADDING="3"
@@ -11369,7 +11378,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4633"
+NAME="AEN4635"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11394,7 +11403,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4640"
+NAME="AEN4642"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11460,7 +11469,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4660"
+NAME="AEN4662"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11536,7 +11545,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4680"
+NAME="AEN4682"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11572,7 +11581,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4691"
+NAME="AEN4693"
 >6.3.6. <ACRONYM
 CLASS="acronym"
 >BIND</ACRONYM
@@ -11655,7 +11664,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><A
-NAME="AEN4715"
+NAME="AEN4717"
 ></A
 ><TABLE
 CELLPADDING="3"

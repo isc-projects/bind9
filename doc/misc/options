@@ -223,7 +223,7 @@ view <string> <optional_class> {
                 key-directory <quoted_string>;
                 check-wildcard <boolean>;
         };
-        server ( <ipv4_address> | <ipv6_address> ) {
+        server <netprefix> {
                 bogus <boolean>;
                 provide-ixfr <boolean>;
                 request-ixfr <boolean>;
@@ -388,7 +388,7 @@ zone <string> <optional_class> {
         check-wildcard <boolean>;
 };
 
-server ( <ipv4_address> | <ipv6_address> ) {
+server <netprefix> {
         bogus <boolean>;
         provide-ixfr <boolean>;
         request-ixfr <boolean>;
