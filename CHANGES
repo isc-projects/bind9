@@ -1,3 +1,6 @@
+1846.	[contrib]	query-loc-0.3.0 from Stephane Bortzmeyer
+			<bortzmeyer@nic.fr>.
+
 1844.	[bug]		inet_pton() accepted more that 4 hexadecimal digits
 			for each 16 bit piece of the IPv6 address.  The text
 			representation of a IPv6 address has been tighted
