@@ -1,8 +1,12 @@
 
 
+
+
+
+
 DNSEXT Working Group                                    Brian Wellington
 INTERNET-DRAFT                                        Olafur Gudmundsson
-<draft-ietf-dnsext-ad-is-secure-04.txt>                    February 2002
+<draft-ietf-dnsext-ad-is-secure-05.txt>                       March 2002
 
 Updates: RFC 2535
 
@@ -33,7 +37,7 @@ Status of this Memo
    Comments should be sent to the authors or the DNSEXT WG mailing list
    namedroppers@ops.ietf.org
 
-   This draft expires on July  10, 2002.
+   This draft expires on September 25, 2002.
 
    Copyright Notice
 
@@ -53,9 +57,9 @@ Abstract
 
 
 
-Expires August 2002                                             [Page 1]
+Expires September 2002                                          [Page 1]
 
-INTERNET-DRAFT        AD bit set on secure answers         February 2002
+INTERNET-DRAFT        AD bit set on secure answers            March 2002
 
 
 1 - Introduction
@@ -66,10 +70,9 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
    As specified in RFC 2535 (section 6.1), the AD bit indicates in a
    response that all data included in the answer and authority sections
    of the response have been authenticated by the server according to
-   the policies of that server.  This is not especially to the policies
-   of that server. This is not especially useful in practice, since a
-   conformant server should never reply with data that failed its
-   security policy.
+   the policies of that server.  This is not especially useful in
+   practice, since a conformant server should never reply with data that
+   failed its security policy.
 
    This draft proposes to redefine the AD bit such that it is only set
    if all data in the response has been cryptographically verified or
@@ -111,9 +114,10 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
 
 
 
-Expires August 2002                                             [Page 2]
 
-INTERNET-DRAFT        AD bit set on secure answers         February 2002
+Expires September 2002                                          [Page 2]
+
+INTERNET-DRAFT        AD bit set on secure answers            March 2002
 
 
    "The AD bit MUST NOT be set on a response unless all of the RRsets in
@@ -127,9 +131,9 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
    only set the AD bit when it has cryptographically verified the data
    in the answer.
 
-2.2 - Setting of AD bit by authorative servers
+2.2 - Setting of AD bit by authoritative servers
 
-   A primary server for a secure zone the data MAY have a policy of
+   Primary server for a secure zone the data, MAY have the policy of
    treating authoritative secure zones as Authenticated.  Secondary
    servers MAY have the same policy, but SHOULD NOT consider zone data
    Authenticated unless the zone was transfered securely and/or the data
@@ -142,11 +146,11 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
    The setting of the AD bit by authoritative servers affects only a
    small set of resolvers that are configured to directly query and
    trust authoritative servers.  This only affects servers that function
-   as both recursive and authorative.  All recursive resolvers SHOULD
+   as both recursive and authoritative.  All recursive resolvers SHOULD
    ignore the AD bit.
 
    The cost of verifying all signatures on load by an authoritative
-   server can be high and increases the delay before it can answer begin
+   server can be high and increases the delay before it can begin
    answering queries.  Verifying signatures at query time is also
    expensive and could lead to resolvers timing out on many queries
    after the server reloads zones.
@@ -169,9 +173,9 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
 
 
 
-Expires August 2002                                             [Page 3]
+Expires September 2002                                          [Page 3]
 
-INTERNET-DRAFT        AD bit set on secure answers         February 2002
+INTERNET-DRAFT        AD bit set on secure answers            March 2002
 
 
    configured to trust the server.
@@ -190,11 +194,11 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
    servers that act both as authoritative servers and recursive
    resolver.
 
-   Authorative servers that set the AD bit on answers without doing
+   Authoritative servers that set the AD bit on answers without doing
    cryptographic checks must only do so on explicit zone by zone
    enablement. This only affects resolvers that trust the server and
    this functionality should only be used on servers that act both as
-   authorative servers and recursive resolver.
+   authoritative servers and recursive resolver.
 
    Resolvers (full or stub) that blindly trust the AD bit without
    knowing the security policy of the server generating the answer can
@@ -202,7 +206,7 @@ INTERNET-DRAFT        AD bit set on secure answers         February 2002
 
 5 - IANA Considerations:
 
-   None
+   None.
 
 6 - Internationalization Considerations:
 
@@ -227,9 +231,9 @@ References:
 
 
 
-Expires August 2002                                             [Page 4]
+Expires September 2002                                          [Page 4]
 
-INTERNET-DRAFT        AD bit set on secure answers         February 2002
+INTERNET-DRAFT        AD bit set on secure answers            March 2002
 
 
            2845, May 2000.
@@ -254,7 +258,7 @@ Authors Addresses
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+   Copyright (C) The Internet Society (2002>.  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -285,5 +289,5 @@ Full Copyright Statement
 
 
 
-Expires August 2002                                             [Page 5]
+Expires September 2002                                          [Page 5]
 
