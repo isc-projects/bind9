@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.111 2003/04/07 02:29:46 marka Exp $ */
+/* $Id: xfrout.c,v 1.112 2003/04/17 05:40:44 marka Exp $ */
 
 #include <config.h>
 
@@ -168,26 +168,37 @@ db_rr_iterator_init(db_rr_iterator_t *it, dns_db_t *db, dns_dbversion_t *ver,
 static isc_result_t
 db_rr_iterator_first(db_rr_iterator_t *it) {
 	it->result = dns_dbiterator_first(it->dbit);
-	if (it->result != ISC_R_SUCCESS)
-		return (it->result);
-	it->result = dns_dbiterator_current(it->dbit, &it->node,
+	/*
+	 * The top node may be empty when out of zone glue exists.
+	 * Walk the tree to find the first node with data.
+	 */
+	while (it->result == ISC_R_SUCCESS) {
+		it->result = dns_dbiterator_current(it->dbit, &it->node,
 				    dns_fixedname_name(&it->fixedname));
-	if (it->result != ISC_R_SUCCESS)
+		if (it->result != ISC_R_SUCCESS)
+			return (it->result);
+
+		it->result = dns_db_allrdatasets(it->db, it->node,
+						 it->ver, it->now,
+						 &it->rdatasetit);
+		if (it->result != ISC_R_SUCCESS)
+			return (it->result);
+
+		it->result = dns_rdatasetiter_first(it->rdatasetit);
+		if (it->result != ISC_R_SUCCESS) {
+			/*
+			 * This node is empty. Try next node.
+			 */
+			dns_rdatasetiter_destroy(&it->rdatasetit);
+			dns_db_detachnode(it->db, &it->node);
+			it->result = dns_dbiterator_next(it->dbit);
+			continue;
+		}
+		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
+
+		it->result = dns_rdataset_first(&it->rdataset);
 		return (it->result);
-
-	it->result = dns_db_allrdatasets(it->db, it->node,
-					 it->ver, it->now,
-					 &it->rdatasetit);
-	if (it->result != ISC_R_SUCCESS)
-		return (it->result);
-
-	it->result = dns_rdatasetiter_first(it->rdatasetit);
-	if (it->result != ISC_R_SUCCESS)
-		return (it->result);
-
-	dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
-
-	it->result = dns_rdataset_first(&it->rdataset);
+	}
 	return (it->result);
 }
 

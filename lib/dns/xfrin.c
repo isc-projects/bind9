@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.132 2003/02/26 23:28:59 marka Exp $ */
+/* $Id: xfrin.c,v 1.133 2003/04/17 05:40:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1183,11 +1183,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
-		if (!dns_name_issubdomain(name, &xfr->name)) {
-			xfrin_log(xfr, ISC_LOG_WARNING,
-				  "ignoring out-of-zone data");
-			continue;
-		}
 		for (rds = ISC_LIST_HEAD(name->list);
 		     rds != NULL;
 		     rds = ISC_LIST_NEXT(rds, link))
