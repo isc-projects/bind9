@@ -100,5 +100,5 @@ main(int argc, char *argv[]) {
 			fprintf(stdout, "soacount = %d, nscount = %d\n",
 				soacount, nscount);
 	}
-	exit(0);
+	return (0);
 }
