@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.148 2004/03/05 05:09:21 marka Exp $ */
+/* $Id: master.c,v 1.149 2004/05/05 01:32:58 marka Exp $ */
 
 #include <config.h>
 
@@ -1645,7 +1645,8 @@ load(dns_loadctx_t *lctx) {
 		}
 
 
-		if (type == dns_rdatatype_rrsig)
+		if (type == dns_rdatatype_rrsig ||
+		    type == dns_rdatatype_sig)
 			covers = dns_rdata_covers(&rdata[rdcount]);
 		else
 			covers = 0;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.110 2004/04/15 01:58:23 marka Exp $ */
+/* $Id: update.c,v 1.111 2004/05/05 01:32:56 marka Exp $ */
 
 #include <config.h>
 
@@ -850,7 +850,8 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 						this name and type */
 
 			*typep = type = t->rdata.type;
-			if (type == dns_rdatatype_rrsig)
+			if (type == dns_rdatatype_rrsig ||
+			    type == dns_rdatatype_sig)
 				covers = dns_rdata_covers(&t->rdata);
 			else
 				covers = 0;
@@ -2467,8 +2468,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 				ctx.ignore_add = ISC_FALSE;
 				dns_diff_init(mctx, &ctx.del_diff);
 				dns_diff_init(mctx, &ctx.add_diff);
-				CHECK(foreach_rr(db, ver, name, rdata.type, covers,
-						 add_rr_prepare_action, &ctx));
+				CHECK(foreach_rr(db, ver, name, rdata.type,
+						 covers, add_rr_prepare_action,
+						 &ctx));
 
 				if (ctx.ignore_add) {
 					dns_diff_clear(&ctx.del_diff);

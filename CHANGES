@@ -3,7 +3,8 @@
 
 1626.	[bug]		--enable-getifaddrs was broken. [RT#11259]
 
-1625.   [placeholder]	rt11237
+1625.	[bug]		named failed to load/transfer RFC2535 signed zones
+			which contained CNAMES. [RT# 11237]
 
 1624.	[bug]		zonemgr_putio() call should be locked. [RT# 11163]
 
