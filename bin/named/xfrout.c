@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.13 1999/10/14 00:06:11 gson Exp $ */
+ /* $Id: xfrout.c,v 1.14 1999/10/14 01:36:59 halley Exp $ */
 
 #include <config.h>
 
@@ -942,6 +942,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		dns_db_closeversion(db, &ver, ISC_FALSE);
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	
 	/* XXX kludge */
 	if (xfr != NULL) {

@@ -27,25 +27,26 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 
-#include <dns/types.h>
-#include <dns/result.h>
-#include <dns/name.h>
+#include <dns/db.h>
+#include <dns/dbiterator.h>
+#include <dns/dbtable.h>
+#include <dns/dnssec.h>
+#include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/journal.h>
+#include <dns/message.h>
+#include <dns/name.h>
+#include <dns/nxt.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
-#include <dns/db.h>
-#include <dns/dbiterator.h>
+#include <dns/rdatastruct.h>
+#include <dns/result.h>
+#include <dns/types.h>
+#include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
-#include <dns/message.h>
-#include <dns/rdatastruct.h>
-#include <dns/journal.h>
-#include <dns/view.h>
-#include <dns/dnssec.h>
-#include <dns/nxt.h>
-#include <dns/events.h>
 
 #include <named/globals.h>
 #include <named/client.h>
@@ -2131,7 +2132,32 @@ update_action(isc_task_t *task, isc_event_t *event)
 	
 	if (db != NULL)
 		dns_db_detach(&db);
+
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	
+	/*
+	 * Construct the response message.
+	 */
+	render_result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
+					   &response);
+	if (render_result != DNS_R_SUCCESS)
+		goto render_failure;
+
+	response->id = request->id;
+	response->rcode = response_rcode;
+	response->flags = request->flags;
+	response->flags |= DNS_MESSAGEFLAG_QR;
+
+	*responsep = response;
+
+	goto render_success;
+	
+ render_failure:
+	if (response != NULL)
+		dns_message_destroy(&response);
+
+ render_success:
 	/*
 	 * If we could send a response, we have succeded, even if it
 	 * was a failure response.

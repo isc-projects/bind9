@@ -109,43 +109,60 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 	if (result != DNS_R_SUCCESS)
 		goto view_detach;
 
-	result = dns_db_create(ns_g_mctx, "rbt", origin, dbi->iscache,
+	if (dbi->iscache) {
+		result = dns_db_create(ns_g_mctx, "rbt", origin, dbi->iscache,
 			       view->rdclass, 0, NULL, &dbi->db);
-	if (result != DNS_R_SUCCESS)
-		goto view_detach;
-
-	printf("loading %s (%s)\n", dbi->path, dbi->origin);
-	result = dns_db_load(dbi->db, dbi->path);
-
-	if (result != DNS_R_SUCCESS) {
-		if (dbi->isslave) {
-			/* Ignore the error, just leave dbi->db == NULL. */
-			dns_db_detach(&dbi->db);
-			return (DNS_R_SUCCESS);
-		} else {
+		if (result != DNS_R_SUCCESS)
+			goto view_detach;
+		printf("loading cache %s (%s)\n", dbi->path, dbi->origin);
+		result = dns_db_load(dbi->db, dbi->path);
+		if (result != DNS_R_SUCCESS)
 			goto db_detach;
-		}
-	}
-
-	printf("loaded\n");
-	printf("journal rollforward\n");
-	result = dns_journal_rollforward(ns_g_mctx, dbi->db, "journal");
-	if (result != DNS_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_rollforward(): %s",
-				 dns_result_totext(result));
-		/* Continue anyway... */
-	}
-
-	if (dbi->iscache)
 		dns_view_setcachedb(view, dbi->db);
-	else if (dns_view_addzonedb(view, dbi->db) != DNS_R_SUCCESS)
-		goto db_detach;
+	} else {
+		result = dns_zone_create(&dbi->zone, ns_g_mctx);
+
+		printf("loading %s (%s)\n", dbi->path, dbi->origin);
+		result = dns_zone_setdatabase(dbi->zone, dbi->path);
+		if (result != DNS_R_SUCCESS)
+			goto zone_detach;
+		result = dns_zone_load(dbi->zone);
+
+		if (result != DNS_R_SUCCESS) {
+			if (dbi->isslave) {
+				/*
+				 * Ignore the error.
+				 */
+				return (DNS_R_SUCCESS);
+			} else {
+				goto zone_detach;
+			}
+		}
+
+		printf("loaded\n");
+		printf("journal rollforward\n");
+		result = dns_journal_rollforward(ns_g_mctx, dbi->db, "journal");
+		if (result != DNS_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "ns_rollforward(): %s",
+					 dns_result_totext(result));
+			/* Continue anyway... */
+		}
+
+		result = dns_view_addzone(view, dbi->zone);
+		if (result != DNS_R_SUCCESS)
+			goto zone_detach;
+	}
 
 	return (DNS_R_SUCCESS);
 
+ zone_detach:
+	if (dbi->zone != NULL)
+		dns_zone_detach(&dbi->zone);
+
  db_detach:
-	dns_db_detach(&dbi->db);
+	if (dbi->db != NULL)
+		dns_db_detach(&dbi->db);
 
  view_detach:
 	dns_view_detach(&dbi->view);
@@ -162,8 +179,10 @@ load_version(void) {
 	size_t len;
 	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
-	dns_view_t *view;
+	dns_view_t *view = NULL;
 	char version_text[1024];
+	dns_zone_t *version_zone = NULL;
+	dns_db_t *version_db = NULL;
 
 	sprintf(version_text, "version 0 CHAOS TXT \"%s\"\n", ns_g_version);
 
@@ -175,7 +194,6 @@ load_version(void) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
 		if (strcasecmp(view->name, "default/CHAOS") == 0) {
-			version_view = NULL;
 			dns_view_attach(view, &version_view);
 			break;
 		}
@@ -192,13 +210,18 @@ load_version(void) {
 	result = dns_name_fromtext(origin, &source, dns_rootname, ISC_FALSE,
 				   NULL);
 	if (result != DNS_R_SUCCESS)
-		goto view_detach;
+		goto cleanup;
+
+	version_zone = NULL;
+	result = dns_zone_create(&version_zone, ns_g_mctx);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
 
 	version_db = NULL;
 	result = dns_db_create(ns_g_mctx, "rbt", origin, ISC_FALSE,
 			       view->rdclass, 0, NULL, &version_db);
 	if (result != DNS_R_SUCCESS)
-		goto view_detach;
+		goto cleanup;
 
 	dns_rdatacallbacks_init(&callbacks);
 
@@ -219,18 +242,24 @@ load_version(void) {
 	if (result == ISC_R_SUCCESS)
 		result = eresult;
 	if (result != ISC_R_SUCCESS)
-		goto db_detach;
+		goto cleanup;
 
-	if (dns_view_addzonedb(version_view, version_db) != DNS_R_SUCCESS)
-		goto db_detach;
+	dns_zone_replacedb(version_zone, version_db, ISC_FALSE);
+
+	result = dns_view_addzone(version_view, version_zone);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
 
 	return (DNS_R_SUCCESS);
 
- db_detach:
-	dns_db_detach(&version_db);
 
- view_detach:
-	dns_view_detach(&version_view);
+ cleanup:
+	if (version_zone != NULL)
+		dns_zone_detach(&version_zone);
+	if (version_db != NULL)
+		dns_db_detach(&version_db);
+	if (version_view != NULL)
+		dns_view_detach(&version_view);
 
 	return (result);
 }

@@ -39,6 +39,8 @@
 #include <dns/rdatasetiter.h>
 #include <dns/resolver.h>
 #include <dns/view.h>
+#include <dns/zone.h>
+#include <dns/zt.h>
 
 #include <named/client.h>
 #include <named/globals.h>
@@ -404,6 +406,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	unsigned int dboptions;
 	isc_boolean_t is_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
+	dns_zone_t *zone;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -413,11 +416,15 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Find a database to answer the query.
 	 */
+	zone = NULL;
 	db = NULL;
-	result = dns_dbtable_find(client->view->dbtable, name, &db);
+	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	else if (result != DNS_R_SUCCESS)
 		goto cleanup;
 
 	/*
@@ -514,6 +521,8 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 	}
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 
 	return (result);
 }
@@ -573,6 +582,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	dns_dbversion_t *version, *zversion;
 	unsigned int dboptions;
 	isc_boolean_t is_zone, nxglue, added_something, need_addname;
+	dns_zone_t *zone;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(type != dns_rdatatype_any);
@@ -598,14 +608,18 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	nxglue = ISC_FALSE;
 	added_something = ISC_FALSE;
 	need_addname = ISC_FALSE;
+	zone = NULL;
 
 	/*
 	 * Find a database to answer the query.
 	 */
-	result = dns_dbtable_find(client->view->dbtable, name, &db);
+	result = dns_zt_find(client->view->zonetable, name, NULL, &zone);
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	else if (result != DNS_R_SUCCESS)
 		goto cleanup;
 
 	/*
@@ -914,6 +928,8 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	if (zdb != NULL) {
 		if (zfname != NULL)
 			query_releasename(client, &zfname);
@@ -1409,6 +1425,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
 	dns_dbversion_t *version;
+	dns_zone_t *zone;
 
 	/*	
 	 * One-time initialization.
@@ -1428,6 +1445,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	db = NULL;
 	zdb = NULL;
 	version = NULL;
+	zone = NULL;
 	qcount = 0;
 
 	if (event != NULL) {
@@ -1487,8 +1505,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	/*
 	 * First we must find the right database.
 	 */
-	result = dns_dbtable_find(client->view->dbtable,
-				  client->query.qname, &db);
+	result = dns_zt_find(client->view->zonetable, client->query.qname,
+			     NULL, &zone);
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH)
+		result = dns_zone_getdb(zone, &db);
+
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * We're not directly authoritative for this query name, nor
@@ -1507,7 +1528,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		}
 		INSIST(client->view->cachedb != NULL);
 		dns_db_attach(client->view->cachedb, &db);
-	} else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH) {
+	} else if (result != ISC_R_SUCCESS) {
 		/*
 		 * Something is broken.
 		 */
@@ -2109,6 +2130,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		dns_db_detachnode(db, &node);
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	if (zdb != NULL) {
 		query_putrdataset(client, &zrdataset);
 		query_putrdataset(client, &zsigrdataset);

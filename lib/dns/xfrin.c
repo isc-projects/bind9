@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.12 1999/10/14 00:05:02 gson Exp $ */
+ /* $Id: xfrin.c,v 1.13 1999/10/14 01:36:59 halley Exp $ */
 
 #include <config.h>
 
@@ -51,6 +51,8 @@
 #include <dns/journal.h>
 #include <dns/view.h>
 #include <dns/tsig.h>
+#include <dns/zone.h>
+#include <dns/zt.h>
 
 #include <named/globals.h>
 #include <named/xfrin.h>
@@ -123,7 +125,6 @@ struct xfrin_ctx {
 	isc_boolean_t		tcpmsg_valid;
 
 	dns_db_t 		*db;
-	dns_db_t 		*olddb;
 	dns_dbversion_t 	*ver;
 	dns_diff_t 		diff;		/* Pending database changes */
 	int 			difflen;	/* Number of pending tuples */
@@ -219,11 +220,9 @@ axfr_init(xfrin_ctx_t *xfr) {
 	dns_result_t result;
  	xfr->is_ixfr = ISC_FALSE;
 
-	if (xfr->db != NULL) {
-		xfr->olddb = xfr->db;
-		xfr->db = NULL;
-	}
-	
+	if (xfr->db != NULL)
+		dns_db_detach(&xfr->db);
+
 	CHECK(axfr_makedb(xfr, &xfr->db));
 	CHECK(dns_db_beginload(xfr->db, &xfr->axfr.add_func,
 			       &xfr->axfr.add_private));
@@ -577,7 +576,6 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->tcpmsg_valid = ISC_FALSE;
 
 	xfr->db = db;
-	xfr->olddb = NULL;
 	xfr->ver = NULL;
 	dns_diff_init(xfr->mctx, &xfr->diff);
 	xfr->difflen = 0;
@@ -990,10 +988,7 @@ maybe_free(xfrin_ctx_t *xfr) {
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_FALSE);
 
 	if (xfr->db != NULL) 
-		dns_db_detach(&xfr->db); /* XXX ??? */
-
-	if (xfr->olddb != NULL)
-		dns_db_detach(&xfr->olddb);
+		dns_db_detach(&xfr->db);
 
 	if (xfr->zone != NULL)
 		dns_zone_detach(&xfr->zone);
