@@ -172,6 +172,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			else
 				return (ISC_R_SUCCESS);
 		}
+		isc_buffer_available(&dbuf->buffer, &r);
 		isc_buffer_init(&b, r.base, r.length, ISC_BUFFERTYPE_BINARY);
 		fname = NULL;
 		result = dns_message_gettempname(client->message, &fname);
@@ -286,6 +287,7 @@ find(ns_client_t *client, dns_rdatatype_t type) {
 			while (result == ISC_R_SUCCESS) {
 				dns_rdatasetiter_current(rdsiter, rdataset);
 				ISC_LIST_APPEND(fname->list, rdataset, link);
+				rdataset = NULL;
 				result = dns_message_gettemprdataset(
 						client->message,
 						&rdataset);
