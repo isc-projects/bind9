@@ -762,7 +762,7 @@ dns_c_ctx_addnullchannel(dns_c_ctx_t *cfg, const char *name,
 
 
 isc_result_t
-dns_c_ctx_addcategory(dns_c_ctx_t *cfg, dns_c_category_t category,
+dns_c_ctx_addcategory(dns_c_ctx_t *cfg, const char *catname,
 		      dns_c_logcat_t **newcat)
 {
 	dns_c_logcat_t *newc;
@@ -772,7 +772,7 @@ dns_c_ctx_addcategory(dns_c_ctx_t *cfg, dns_c_category_t category,
 	REQUIRE(newcat != NULL);
 	REQUIRE(cfg->logging != NULL);
 
-	res = dns_c_logcat_new(cfg->mem, category, &newc);
+	res = dns_c_logcat_new(cfg->mem, catname, &newc);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -4312,6 +4312,7 @@ logging_init (dns_c_ctx_t *cfg)
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
+
 #if 0
 	/* default_syslog channel */
 	chan = NULL;
@@ -4356,7 +4357,7 @@ logging_init (dns_c_ctx_t *cfg)
 
 	/* default category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_default, &cat);
+	res = dns_c_ctx_addcategory(cfg, "default", &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -4367,7 +4368,7 @@ logging_init (dns_c_ctx_t *cfg)
 
 	/* panic category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_panic, &cat);
+	res = dns_c_ctx_addcategory(cfg, "panic", &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -4378,7 +4379,7 @@ logging_init (dns_c_ctx_t *cfg)
 	
 	/* eventlib category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_eventlib, &cat);
+	res = dns_c_ctx_addcategory(cfg, "eventlib", &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
@@ -4388,7 +4389,7 @@ logging_init (dns_c_ctx_t *cfg)
 
 	/* packet category */
 	cat = NULL;
-	res = dns_c_ctx_addcategory(cfg, dns_c_cat_packet, &cat);
+	res = dns_c_ctx_addcategory(cfg, "packet", &cat);
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
