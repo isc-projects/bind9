@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gethostent_r.c,v 1.4.206.1 2004/03/09 08:33:35 marka Exp $";
+static const char rcsid[] = "$Id: gethostent_r.c,v 1.4.206.2 2004/04/22 03:32:06 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -214,8 +214,8 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 
 	/* copy up to first 35 addresses */
 	i = 0;
-	cp = hdptr->hostaddr;
-	eob = hdptr->hostaddr + sizeof(hdptr->hostaddr);
+	cp = hdptr->hostbuf;
+	eob = hdptr->hostbuf + sizeof(hdptr->hostbuf);
 	hptr->h_addr_list = hdptr->h_addr_ptrs;
 	while (he->h_addr_list[i] && i < (_MAXADDRS)) {
 		if (n < (eob - cp)) {
@@ -230,8 +230,6 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	hptr->h_addr_list[i] = NULL;
 
 	/* copy official name */
-	cp = hdptr->hostbuf;
-	eob = hdptr->hostbuf + sizeof(hdptr->hostbuf);
 	if ((n = strlen(he->h_name) + 1) < (eob - cp)) {
 		strcpy(cp, he->h_name);
 		hptr->h_name = cp;
