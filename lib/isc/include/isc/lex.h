@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.28 2002/02/20 03:35:33 marka Exp $ */
+/* $Id: lex.h,v 1.29 2002/02/21 00:44:16 bwelling Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -374,6 +374,21 @@ isc_lex_getsourceline(isc_lex_t *lex);
  *
  * Returns:
  * 	Current line number or 0 if no current source.
+ */
+
+isc_result_t
+isc_lex_setsourcename(isc_lex_t *lex, const char *name);
+/*
+ * Assigns a new name to the input source.
+ *
+ * Requires:
+ *
+ * 	'lex' is a valid lexer.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	ISC_R_NOMEMORY
+ * 	ISC_R_NOTFOUND - there are no sources.
  */
 
 isc_boolean_t
