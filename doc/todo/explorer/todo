@@ -1,4 +1,4 @@
-$Id: todo,v 1.10 2000/09/06 22:55:08 explorer Exp $
+$Id: todo,v 1.11 2000/09/07 21:56:00 explorer Exp $
 
 Document {min,max}-{refresh,retry}-time
 
@@ -17,17 +17,6 @@ max-retry-time
 	refresh and retry time either per-zone, per-view, or per-server.
 	These options are valid for slave and stub zones, and clamp the SOA
 	refresh and retry times to the specified values.
-
-----------------------------------------------------------------------
-
-Limit the number of retries on socket errors (send and receive)
-
-	-- Log when we get more than 10 of the same error in a row.
-	-- Also catch "no route to host" and "write error on pipe"
-
-----------------------------------------------------------------------
-
-Make lwresd shut down its fetches properly
 
 ----------------------------------------------------------------------
 
