@@ -131,20 +131,6 @@ typedef isc_event_t intev_t;
 #undef USE_CMSG
 #endif
 
-/*
- * Total cmsg space needed for all of the above bits.
- *
- * XXXMLG
- * This is just a guess at how much space we'll need.  Some systems (KAME
- * based ipv6 implementations) don't have CMSG_SPACE() as a constant, but
- * a function call, so we cannot use an exact-sized buffer.  This should
- * be large enough for our current uses -- timestamp and a pktinfo structure
- * for v6 datagrams.
- */
-#ifdef USE_CMSG
-#define TOTAL_SPACE	512
-#endif
-
 struct isc_socket {
 	/* Not locked. */
 	unsigned int			magic;
@@ -184,7 +170,8 @@ struct isc_socket {
 	unsigned char			overflow; /* used for MSG_TRUNC fake */
 #endif
 #ifdef USE_CMSG
-	unsigned char			cmsg[TOTAL_SPACE];
+	unsigned char		       *cmsg;
+	unsigned int			cmsglen;
 #endif
 };
 
@@ -244,7 +231,6 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
-#define SELECT_POKE_RESCAN		(-3) /* XXX implement */
 
 #define SOCK_DEAD(s)			((s)->references == 0)
 
@@ -612,8 +598,8 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_flags = 0;
 #if defined(USE_CMSG)
 	if (sock->type == isc_sockettype_udp) {
-		msg->msg_control = (void *)&sock->cmsg[0];
-		msg->msg_controllen = sizeof(sock->cmsg);
+		msg->msg_control = (void *)sock->cmsg;
+		msg->msg_controllen = sock->cmsglen;
 	}
 #endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
@@ -951,6 +937,21 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	if (sock == NULL)
 		return (ISC_R_NOMEMORY);
 
+#if USE_CMSG  /* Let's hope the OSs are sane, and pad correctly XXXMLG */
+	sock->cmsglen = 0;
+#ifdef ISC_PLATFORM_HAVEIPV6
+	sock->cmsglen += CMSG_SPACE(sizeof(struct in6_pktinfo));
+#endif
+#ifdef SO_TIMESTAMP
+	sock->cmsglen += CMSG_SPACE(sizeof(struct timeval));
+#endif
+	sock->cmsg = isc_mem_get(manager->mctx, sock->cmsglen);
+	if (sock->cmsg == NULL) {
+		ret = ISC_R_NOMEMORY;
+		goto err1;
+	}
+#endif
+
 	ret = ISC_R_UNEXPECTED;
 
 	sock->magic = 0;
@@ -985,7 +986,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed");
 		ret = ISC_R_UNEXPECTED;
-		goto err1;
+		goto err2;
 	}
 
 	/*
@@ -1003,6 +1004,12 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	return (ISC_R_SUCCESS);
 
+ err2: /* cmsg allocated */
+#ifdef USE_CMSG
+	isc_mem_put(manager->mctx, sock->cmsg, sock->cmsglen);
+	sock->cmsglen = 0;
+	sock->cmsg = NULL;
+#endif
  err1: /* socket allocated */
 	isc_mem_put(manager->mctx, sock, sizeof *sock);
 
@@ -1035,6 +1042,9 @@ free_socket(isc_socket_t **socketp)
 
 	(void)isc_mutex_destroy(&sock->lock);
 
+#ifdef USE_CMSG
+	isc_mem_put(sock->manager->mctx, sock->cmsg, sock->cmsglen);
+#endif
 	isc_mem_put(sock->manager->mctx, sock, sizeof *sock);
 
 	*socketp = NULL;
