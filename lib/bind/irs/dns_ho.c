@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.14.18.1 2004/05/17 07:50:32 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.14.18.2 2004/08/24 00:32:57 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -444,8 +444,8 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 					abort();
 				qp += i;
 			}
-			if ((qp - q->qname) + strlen(nibsuff2) + 1 >
-			    sizeof q->qname){
+			if (strlen(q2->qname) + strlen(nibsuff2) + 1 >
+			    sizeof q2->qname) {
 				errno = ENAMETOOLONG;
 				RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
 				hp = NULL;
