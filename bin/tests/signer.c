@@ -1202,6 +1202,8 @@ main(int argc, char *argv[]) {
 	isc_mem_free(mctx, file);
 	isc_mem_free(mctx, output);
 
+	if (log != NULL)
+		isc_log_destroy(&log);
 /*	isc_mem_stats(mctx, stdout);*/
 	isc_mem_destroy(&mctx);
 
