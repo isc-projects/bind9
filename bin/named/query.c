@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.223 2002/07/11 05:45:33 marka Exp $ */
+/* $Id: query.c,v 1.224 2002/07/17 06:09:41 marka Exp $ */
 
 #include <config.h>
 
@@ -2749,8 +2749,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				client->query.gluedb = NULL;
 				client->query.attributes &=
 					~NS_QUERYATTR_CACHEGLUEOK;
-				if (WANTDNSSEC(client) &&
-				    !dns_rdataset_isassociated(sigrdataset))
+				if (WANTDNSSEC(client))
 					query_addds(client, db, node);
 			}
 		}
