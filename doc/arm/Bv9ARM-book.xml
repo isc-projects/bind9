@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.120 2001/03/28 20:04:21 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.121 2001/03/30 18:15:45 halley Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2099,8 +2099,8 @@ the system has an interface.</para></entry>
     <sect2>
       <title><command>controls</command> Statement Grammar</title>
 <programlisting><command>controls</command> {
-   inet ( ip_addr | * ) <optional> port ip_port </optional> allow <replaceable> address_match_list </replaceable>
-                keys <replaceable> key_list </replaceable>;
+   inet ( ip_addr | * ) <optional> port ip_port </optional> allow { <replaceable> address_match_list </replaceable> }
+                keys { <replaceable> key_list </replaceable> };
    <optional> inet ...; </optional>
 };
 </programlisting>
