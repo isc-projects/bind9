@@ -21,7 +21,8 @@ top_srcdir =	@top_srcdir@
 
 @LIBDNS_API@
 
-CINCLUDES =	-I${srcdir}/../../../isc/unix/include \
+CINCLUDES =	-I../../../isc/unix/include \
+		-I${srcdir}/../../../isc/unix/include \
 		-I${srcdir}/../../../isc/pthreads/include \
 		-I${srcdir}/../../../isc/include \
 		-I${srcdir}/include \
