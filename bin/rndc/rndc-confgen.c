@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.14 2001/11/29 23:17:21 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.15 2001/11/30 01:09:11 gson Exp $ */
 
 #include <config.h>
 
@@ -66,7 +66,7 @@ Usage:\n\
 [-s addr] [-t chrootdir] [-u user]\n\
   -a:		generate just the key clause and write it to keyfile (%s)\n\
   -b bits:	from 1 through 512, default %d; total length of the secret\n\
-  -c keyfile:	specify a alterate keyfile (requires -a)\n\
+  -c keyfile:	specify an alternate key file (requires -a)\n\
   -k keyname:	the name as it will be used  in named.conf and rndc.conf\n\
   -p port:	the port named will listen on and rndc will connect to\n\
   -r randomfile: a file containing random data\n\
@@ -115,7 +115,7 @@ write_key_file(const char *keyfile, const char *user,
 		fprintf(stderr, "fclose(%s) failed\n", keyfile);
 		return;
 	}
-	fprintf(stderr, "keyfile \"%s\" written\n", keyfile);
+	fprintf(stderr, "wrote key file \"%s\"\n", keyfile);
 }
 
 int
