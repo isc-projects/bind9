@@ -431,11 +431,21 @@ void dns_rdata_freestruct(void *source);
 
 isc_boolean_t dns_rdatatype_ismeta(dns_rdatatype_t type);
 /*
- * Find out whether the rdata type 'type' is a meta type
+ * Find out whether the rdata type 'type' is a meta-type
  * like ANY or AXFR.
  *
  * Requires:
  * 	'type' is a valid rdata type.
+ *
+ */
+
+isc_boolean_t dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
+/*
+ * Find out whether the rdata class 'rdclass' is a meta-class
+ * like ANY or NONE.
+ *
+ * Requires:
+ * 	'rdclass' is a valid rdata class.
  *
  */
 
