@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.8 2003/04/13 08:04:36 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.9 2003/04/13 10:11:31 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -2090,7 +2090,6 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 	int i;
 	isc_socket_t *sock;
 	isc_boolean_t unlock_sock;
-	BOOL conn_check = FALSE;
 
 	REQUIRE(maxfd <= FD_SETSIZE);
 
@@ -2128,29 +2127,13 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 			FD_CLR(i, &manager->read_fds);
 		}
 	check_write:
+		/*
+		 * We only want to call dispatch_connect() once
+		 * if both write and execption bits are set.
+		 */
 		if (FD_ISSET(i, writefds)) {
 			if (sock == NULL) {
 				FD_CLR(i, &manager->write_fds);
-				goto check_except;
-			}
-			if (!unlock_sock) {
-				unlock_sock = ISC_TRUE;
-				LOCK(&sock->lock);
-			}
-			if (!SOCK_DEAD(sock)) {
-				if (sock->connecting) {
-					dispatch_connect(sock);
-					conn_check = TRUE;
-				}
-				else
-					dispatch_send(sock);
-			}
-			FD_CLR(i, &manager->write_fds);
-			FD_CLR(i, &manager->except_fds);
-		}
-	check_except:
-		if (FD_ISSET(i, exceptfds)) {
-			if (sock == NULL) {
 				FD_CLR(i, &manager->except_fds);
 				continue;
 			}
@@ -2159,11 +2142,25 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 				LOCK(&sock->lock);
 			}
 			if (!SOCK_DEAD(sock)) {
-				if (sock->connecting) {
+				if (sock->connecting)
 					dispatch_connect(sock);
-					conn_check = TRUE;
-				}
+				else
+					dispatch_send(sock);
 			}
+			FD_CLR(i, &manager->write_fds);
+			FD_CLR(i, &manager->except_fds);
+		} else if (FD_ISSET(i, exceptfds)) {
+			if (sock == NULL) {
+				FD_CLR(i, &manager->write_fds);
+				FD_CLR(i, &manager->except_fds);
+				continue;
+			}
+			if (!unlock_sock) {
+				unlock_sock = ISC_TRUE;
+				LOCK(&sock->lock);
+			}
+			if (!SOCK_DEAD(sock))
+				dispatch_connect(sock);
 			FD_CLR(i, &manager->write_fds);
 			FD_CLR(i, &manager->except_fds);
 		}
