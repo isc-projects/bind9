@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.6 2001/02/16 02:43:30 gson Exp $ */
+/* $Id: parser.c,v 1.7 2001/02/16 02:57:40 gson Exp $ */
 
 #include <config.h>
 
@@ -654,8 +654,8 @@ static cfg_type_t cfg_type_bracketed_sockaddrlist = {
 };
 
 static cfg_type_t cfg_type_rrsetorder = {
-	"rrsetorder", parse_list, print_list, &cfg_rep_list,
-	&cfg_type_rrsetorderingelement
+	"rrsetorder", parse_bracketed_list, print_bracketed_list,
+	&cfg_rep_list, &cfg_type_rrsetorderingelement
 };
 
 static keyword_type_t port_kw = { "port", &cfg_type_uint32 };
