@@ -1,3 +1,5 @@
+1218.	[port]		Compaq Trucluster support.
+
 1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
 			via getaddrinfo() (affects dig, host, nslookup, rndc
 			and nsupdate).

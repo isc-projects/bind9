@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.324 $)
+AC_REVISION($Revision: 1.325 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1563,6 +1563,20 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[AC_MSG_ERROR(cannot determine type of rlim_cur when cross compiling - define rlim_t)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
+
+#
+# Compaq TruCluster requires more code for handling cluster IP aliases
+#
+case "$host" in
+	*-dec-osf*)
+		AC_CHECK_LIB(clua, clua_getaliasaddress, LIBS="-lclua $LIBS")
+		AC_CHECK_FUNC(clua_getaliasaddress,
+				AC_DEFINE(HAVE_TRUCLUSTER, 1,
+					[Define if running under Compaq TruCluster]))
+		;;
+	*)
+		;;
+esac
 
 #
 # Microsoft has their own way of handling shared libraries that requires

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.28 2002/06/04 23:26:16 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.29 2002/06/07 00:03:50 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -60,11 +60,19 @@ struct isc_interfaceiter {
 #endif
 	void			*buf;		/* Buffer for sysctl data. */
 	unsigned int		bufsize;	/* Bytes allocated. */
+#ifdef HAVE_TRUCLUSTER
+	int			clua_context;	/* Cluster alias context */
+#endif
 	unsigned int		pos;		/* Current offset in
 						   SIOCGLIFCONF data */
 	isc_interface_t		current;	/* Current interface data. */
 	isc_result_t		result;		/* Last result code. */
 };
+
+#ifdef HAVE_TRUCLUSTER
+#include <clua/clua.h>
+#include <sys/socket.h>
+#endif
 
 
 /*
@@ -144,6 +152,9 @@ getbuf4(isc_interfaceiter_t *iter) {
  unexpected:
 	isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 	iter->buf = NULL;
+#ifdef HAVE_TRUCLUSTER
+	iter->clua_context = 0;
+#endif
 	return (ISC_R_UNEXPECTED);
 }
 
@@ -299,6 +310,33 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
+
+#ifdef HAVE_TRUCLUSTER
+static void
+get_inaddr(isc_netaddr_t *dst, struct in_addr *src) {
+	dst->family = AF_INET;
+	memcpy(&dst->type.in, src, sizeof(struct in_addr));
+}
+
+static isc_result_t
+internal_current_clusteralias(isc_interfaceiter_t *iter) {
+	struct sockaddr sa;
+	struct clua_info ci;
+	while (clua_getaliasaddress(&sa, &iter->clua_context) == CLUA_SUCCESS) {
+		if (clua_getaliasinfo(&sa, &ci) != CLUA_SUCCESS)
+			continue;
+		memset(&iter->current, 0, sizeof(iter->current));
+		iter->current.af = sa.sa_family;
+		memset(iter->current.name, 0, sizeof(iter->current.name));
+		sprintf(iter->current.name, "clua%d", ci.aliasid);
+		iter->current.flags = INTERFACE_F_UP;
+		get_inaddr(&iter->current.address, &ci.addr);
+		get_inaddr(&iter->current.netmask, &ci.netmask);
+		return (ISC_R_SUCCESS);
+	}
+	return (ISC_R_NOMORE);
+}
+#endif
 
 /*
  * Get information about the current interface to iter->current.
@@ -658,6 +696,10 @@ internal_next4(isc_interfaceiter_t *iter) {
 
 	REQUIRE (iter->pos < (unsigned int) iter->ifc.ifc_len);
 
+#ifdef HAVE_TRUCLUSTER
+	if (internal_current_clusteralias(iter) == ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+#endif
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 
 #ifdef ISC_PLATFORM_HAVESALEN

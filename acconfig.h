@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.36 2001/10/22 22:52:16 gson Exp $ */
+/* $Id: acconfig.h,v 1.37 2002/06/07 00:03:46 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -129,3 +129,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if you have strerror in the C library. */
 #undef HAVE_STRERROR
+
+/* Define if you are running under Compaq TruCluster..  */
+#undef HAVE_TRUCLUSTER
