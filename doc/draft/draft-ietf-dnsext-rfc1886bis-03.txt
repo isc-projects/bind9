@@ -1,14 +1,14 @@
 Internet Engineering Task Force                        S. Thomson, Cisco
 INTERNET-DRAFT                                     C. Huitema, Microsoft
-February 28, 2003                                      V. Ksinant, 6WIND
-Expires August 28, 2003                                M. Souissi, AFNIC
+May 12, 2003                                           V. Ksinant, 6WIND
+Expires November 12, 2003                              M. Souissi, AFNIC
 
 
 
 
 
                 DNS Extensions to support IP version 6
-                <draft-ietf-dnsext-rfc1886bis-02.txt>
+                <draft-ietf-dnsext-rfc1886bis-03.txt>
 
 
 Status of this Memo
@@ -30,7 +30,7 @@ Status of this Memo
    To view the list Internet-Draft Shadow Directories, see
    http://www.ietf.org/shadow.html.
 
-   This Internet Draft expires August 28, 2003.
+   This Internet Draft expires November 12, 2003.
 
 
 
@@ -54,9 +54,9 @@ Abstract
 
 
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 1]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 1]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 
 Table of Contents
@@ -109,9 +109,9 @@ Table of Contents
    that has more than one IPv6 address must have more than one such
    record.
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 2]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 2]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 2.1 AAAA record type
 
@@ -165,9 +165,9 @@ INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
 b.a.9.8.7.6.5.0.4.0.0.0.3.0.0.0.2.0.0.0.1.0.0.0.0.0.0.0.1.2.3.4.IP6.
                                                                ARPA.
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 3]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 3]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 3. MODIFICATIONS TO EXISTING QUERY TYPES
 
@@ -204,7 +204,7 @@ APPENDIX A: Changes from RFC 1886
         EXISTING QUERY TYPES"
       - Added security considerations.
       - Updated references :
-        * From RFC 1884 to RFC 2373 (IP Version 6 Addressing 
+        * From RFC 1884 to RFC 3513 (IP Version 6 Addressing 
           Architecture).
         * From "work in progress" to RFC 2893 (Transition Mechanisms for
           IPv6 Hosts and Routers).
@@ -219,9 +219,9 @@ APPENDIX A: Changes from RFC 1886
 
 
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 4]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 4]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 Acknowledgements
 
@@ -244,15 +244,12 @@ Normative References
         tion", STD 13, RFC 1035, USC/Information Sciences Institute,
         November 1987.
 
-   [3]  Hinden, R., and S. Deering, "IP Version 6 Addressing 
-        Architecture", RFC 2373, Nokia, Cisco, July 1998.
-        This RFC is being updated. The current draft is
-        "draft-ietf-ipngwg-addr-arch-v3-11.txt", Hinden, R., and 
-        S. Deering, October 25, 2002
-
 
 
 Informative References
+
+   [3]  Hinden, R., and S. Deering, "Internet Protocol Version 6 (IPv6)
+        Addressing Architecture", RFC 3513, Nokia, Cisco, April 2003.
 
    [4]  Gilligan, R., and E. Nordmark, "Transition Mechanisms for IPv6
         Hosts and Routers", RFC 2893, FreeGate Corp., Sun Microsystems
@@ -275,9 +272,12 @@ Informative References
         RFC 2845, ISC, NAI Labs, Motorola, Nominum, May 2000.
 
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 5]
+
+
+
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 5]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 
 Authors' Addresses
@@ -329,9 +329,9 @@ Authors' Addresses
 
 
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 6]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 6]
 
-INTERNET-DRAFT    DNS Extensions to support IP version 6   February 2003
+INTERNET-DRAFT    DNS Extensions to support IP version 6        May 2003
 
 Full Copyright Statement
 
@@ -387,4 +387,4 @@ Full Copyright Statement
          information to the IETF Executive Director.
 
 
-draft-ietf-dnsext-rfc1886bis-02.txt                             [Page 7]
+draft-ietf-dnsext-rfc1886bis-03.txt                             [Page 7]

@@ -1,12 +1,9 @@
-
-
-
 INTERNET-DRAFT                                             Samuel Weiler
-Expires: November 2003                                      May 12, 2003
+Expires: November 2003                                      May 22, 2003
 
 
 	 Legacy Resolver Compatibility for Delegation Signer
-	 draft-ietf-dnsext-dnssec-2535typecode-change-00.txt
+	 draft-ietf-dnsext-dnssec-2535typecode-change-01.txt
 
 Status of this Memo
 
@@ -202,11 +199,14 @@ Abstract
    NOT receive special treatment.  As an example, if a SIG is included
    in a signed zone, there MUST be an RRSIG for it.
 
-   As a clarification to previous documents, NSEC can appear in the
-   authority section of an answer at any time, not just in negative
-   answers.  The mere presence of an NSEC record in the answer or
-   authority section of an answer with RCODE=NOERROR, MUST NOT be
-   interpreted as a negative answer.  The NSEC must be validated.
+   As a clarification to previous documents, many positive responses,
+   including wildcard proofs and insecure referrals, will contain NSEC
+   RRs.  As a result, resolvers MUST NOT treat answers with NSEC RRs
+   as negative answers merely because they contain an NSEC.  A
+   resolver SHOULD either ignore the NSEC, as a DNSSEC-unaware (or
+   2535-aware) resolver would, or validate the NSEC and check its
+   applicability and interpretation as described in [RFC2535] and
+   [DS].
    
 4. IANA Considerations
 
@@ -282,8 +282,5 @@ Abstract
    Rockville, MD  20850
    USA
    weiler@tislabs.com
-
-
-
 
 
