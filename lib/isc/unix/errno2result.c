@@ -15,6 +15,10 @@
  * SOFTWARE.
  */
 
+/* $Id: errno2result.c,v 1.2 2000/05/16 03:00:53 tale Exp $ */
+
+#include <config.h>
+
 #include <errno.h>
 
 #include <isc/result.h>
