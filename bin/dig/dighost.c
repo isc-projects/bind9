@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.142 2000/10/11 17:44:01 mws Exp $ */
+/* $Id: dighost.c,v 1.143 2000/10/12 01:16:12 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -184,7 +184,7 @@ hex_dump(isc_buffer_t *b) {
 	printf("%d bytes\n", r.length);
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
-		if (len != 0 && len % 16 == 0)
+		if (len != 0 && len % 16 == 15)
 			printf("\n");
 	}
 	if (len % 16 != 0)
@@ -2238,7 +2238,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			l->msgcounter++;
 		}
 		debug("before parse starts");
-		result = dns_message_parse(msg, b, ISC_TRUE);
+		result = dns_message_parse(msg, b,
+					   DNS_MESSAGEPARSE_PRESERVEORDER);
 		if (result != ISC_R_SUCCESS) {
 			printf(";; Got bad packet: %s\n",
 			       dns_result_totext(result));
