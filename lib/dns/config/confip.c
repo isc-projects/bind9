@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.32 2000/08/01 01:23:20 tale Exp $ */
+/* $Id: confip.c,v 1.33 2000/08/01 13:53:38 explorer Exp $ */
 
 #include <config.h>
 
@@ -839,15 +839,18 @@ dns_c_iplist_detach(dns_c_iplist_t **list) {
 
 	if (l->refcount == 0) {
 #ifndef NOMINUM_PUBLIC
-		for (i = 0 ; i < l->size ; i++) {
-			if (l->keys[i] != NULL) {
-				dns_name_free(l->keys[i], l->mem);
-				isc_mem_put(l->mem, l->keys[i],
-					    sizeof (dns_name_t));
-				l->keys[i] = NULL;
+		if (l->keys != NULL) {
+			for (i = 0 ; i < l->size ; i++) {
+				if (l->keys[i] != NULL) {
+					dns_name_free(l->keys[i], l->mem);
+					isc_mem_put(l->mem, l->keys[i],
+						    sizeof (dns_name_t));
+					l->keys[i] = NULL;
+				}
 			}
+			isc_mem_put(l->mem, l->keys,
+				    sizeof(dns_name_t *) * l->size);
 		}
-		isc_mem_put(l->mem, l->keys, sizeof (dns_name_t *) * l->size);
 #endif /* NOMINUM_PUBLIC */
 		isc_mem_put(l->mem, l->ips, sizeof (isc_sockaddr_t) * l->size);
 		isc_mem_put(l->mem, l, sizeof *l);
