@@ -1,4 +1,4 @@
-/
+/*
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.148 2001/06/30 04:29:25 mayer Exp $ */
+/* $Id: dig.c,v 1.149 2001/07/01 23:47:49 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
