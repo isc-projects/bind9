@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.66 2001/05/15 05:35:27 halley Exp $ */
+/* $Id: db.h,v 1.67 2001/08/28 03:58:13 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -152,7 +152,7 @@ typedef isc_result_t
 		      unsigned int argc, char *argv[], void *driverarg,
 		      dns_db_t **dbp);
 					
-#define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
+#define DNS_DB_MAGIC		ISC_MAGIC('D','N','S','D')
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.40 2001/06/05 09:02:16 marka Exp $ */
+/* $Id: rdataset.h,v 1.41 2001/08/28 03:58:21 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -70,7 +70,7 @@ typedef struct dns_rdatasetmethods {
 	unsigned int		(*count)(dns_rdataset_t *rdataset);
 } dns_rdatasetmethods_t;
 
-#define DNS_RDATASET_MAGIC	       0x444E5352U	/* DNSR. */
+#define DNS_RDATASET_MAGIC	       ISC_MAGIC('D','N','S','R')
 #define DNS_RDATASET_VALID(set)	       ISC_MAGIC_VALID(set, DNS_RDATASET_MAGIC)
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.332 2001/08/08 22:54:48 gson Exp $ */
+/* $Id: zone.c,v 1.333 2001/08/28 03:58:10 marka Exp $ */
 
 #include <config.h>
 
@@ -294,7 +294,7 @@ struct dns_zonemgr {
  * Hold notify state.
  */
 struct dns_notify {
-	isc_int32_t		magic;
+	unsigned int		magic;
 	unsigned int		flags;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
@@ -315,7 +315,7 @@ struct dns_notify {
  */
 
 struct dns_stub {
-	isc_int32_t		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_db_t		*db;
@@ -326,7 +326,7 @@ struct dns_stub {
  *	Hold load state.
  */
 struct dns_load {
-	isc_int32_t		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	dns_db_t		*db;
@@ -338,7 +338,7 @@ struct dns_load {
  *	Hold forward state.
  */
 struct dns_forward {
-	isc_int32_t		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 	isc_buffer_t		*msgbuf;
@@ -353,7 +353,7 @@ struct dns_forward {
  *	Hold IO request state.
  */
 struct dns_io {
-	isc_int32_t	magic;
+	unsigned int	magic;
 	dns_zonemgr_t	*zmgr;
 	isc_boolean_t	high;
 	isc_task_t	*task;

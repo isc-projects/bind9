@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.72 2001/07/26 20:42:45 bwelling Exp $ */
+/* $Id: view.h,v 1.73 2001/08/28 03:58:23 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -136,7 +136,7 @@ struct dns_view {
 	ISC_LINK(struct dns_view)	link;
 };
 
-#define DNS_VIEW_MAGIC			0x56696577	/* View. */
+#define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')
 #define DNS_VIEW_VALID(view)		ISC_MAGIC_VALID(view, DNS_VIEW_MAGIC)
 
 #define DNS_VIEWATTR_RESSHUTDOWN	0x01

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.14 2001/06/08 23:50:32 tale Exp $ */
+/* $Id: dir.h,v 1.15 2001/08/28 03:58:27 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -43,7 +43,7 @@ typedef struct isc_direntry {
 } isc_direntry_t;
 
 typedef struct isc_dir {
-	int		magic;
+	unsigned int	magic;
 	/*
 	 * As with isc_direntry_t->name, making this "right" for all systems
 	 * is slightly problematic because AIX does not define PATH_MAX.

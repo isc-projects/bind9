@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.h,v 1.19 2001/03/26 21:33:02 bwelling Exp $ */
+/* $Id: acl.h,v 1.20 2001/08/28 03:58:11 marka Exp $ */
 
 #ifndef DNS_ACL_H
 #define DNS_ACL_H 1
@@ -71,7 +71,7 @@ struct dns_aclelement {
 };
 
 struct dns_acl {
-	isc_uint32_t		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_refcount_t		refcount;
 	dns_aclelement_t	*elements;
@@ -87,7 +87,7 @@ struct dns_aclenv {
 	isc_boolean_t match_mapped;
 };
 
-#define DNS_ACL_MAGIC		0x4461636c	/* Dacl */
+#define DNS_ACL_MAGIC		ISC_MAGIC('D','a','c','l')
 #define DNS_ACL_VALID(a)	ISC_MAGIC_VALID(a, DNS_ACL_MAGIC)
 
 /***

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.11 2001/03/04 21:21:34 bwelling Exp $ */
+/* $Id: lwresd.h,v 1.12 2001/08/28 03:58:02 marka Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -28,7 +28,7 @@
 #include <dns/types.h>
 
 struct ns_lwresd {
-	isc_uint32_t magic;
+	unsigned int magic;
 
 	isc_mutex_t lock;
 	dns_view_t *view;
@@ -40,7 +40,7 @@ struct ns_lwresd {
 };
 
 struct ns_lwreslistener {
-	isc_uint32_t magic;
+	unsigned int magic;
 
 	isc_mutex_t lock;
 	isc_mem_t *mctx;

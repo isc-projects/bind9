@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator.h,v 1.17 2001/03/08 01:16:06 tale Exp $ */
+/* $Id: dbiterator.h,v 1.18 2001/08/28 03:58:15 marka Exp $ */
 
 #ifndef DNS_DBITERATOR_H
 #define DNS_DBITERATOR_H 1
@@ -87,7 +87,7 @@ typedef struct dns_dbiteratormethods {
 				  dns_name_t *name);
 } dns_dbiteratormethods_t;
 
-#define DNS_DBITERATOR_MAGIC	     0x444E5349U		/* DNSI. */
+#define DNS_DBITERATOR_MAGIC	     ISC_MAGIC('D','N','S','I')
 #define DNS_DBITERATOR_VALID(dbi)    ISC_MAGIC_VALID(dbi, DNS_DBITERATOR_MAGIC)
 /*
  * This structure is actually just the common prefix of a DNS db

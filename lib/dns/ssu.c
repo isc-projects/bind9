@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.21 2001/06/04 19:33:11 tale Exp $
+ * $Id: ssu.c,v 1.22 2001/08/28 03:58:08 marka Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -37,7 +37,7 @@
 #define VALID_SSURULE(table)	ISC_MAGIC_VALID(table, SSURULEMAGIC)
 
 struct dns_ssurule {
-	isc_uint32_t magic;
+	unsigned int magic;
 	isc_boolean_t grant;	/* is this a grant or a deny? */
 	unsigned int matchtype;	/* which type of pattern match? */
 	dns_name_t *identity;	/* the identity to match */
@@ -49,7 +49,7 @@ struct dns_ssurule {
 };
 
 struct dns_ssutable {
-	isc_uint32_t magic;
+	unsigned int magic;
 	isc_mem_t *mctx;
 	unsigned int references;
 	isc_mutex_t lock;

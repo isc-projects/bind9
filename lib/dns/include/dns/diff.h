@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.3 2001/01/09 21:52:46 bwelling Exp $ */
+/* $Id: diff.h,v 1.4 2001/08/28 03:58:16 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -68,7 +68,7 @@ typedef enum {
 
 typedef struct dns_difftuple dns_difftuple_t;
 
-#define DNS_DIFFTUPLE_MAGIC	0x44494654U	/* DIFT. */
+#define DNS_DIFFTUPLE_MAGIC	ISC_MAGIC('D','I','F','T')
 #define DNS_DIFFTUPLE_VALID(t)	ISC_MAGIC_VALID(t, DNS_DIFFTUPLE_MAGIC)
 
 struct dns_difftuple {
@@ -89,7 +89,7 @@ struct dns_difftuple {
  */
 typedef struct dns_diff dns_diff_t;
 
-#define DNS_DIFF_MAGIC		0x44494646U	/* DIFF. */
+#define DNS_DIFF_MAGIC		ISC_MAGIC('D','I','F','F')
 #define DNS_DIFF_VALID(t)	ISC_MAGIC_VALID(t, DNS_DIFF_MAGIC)
 
 struct dns_diff {

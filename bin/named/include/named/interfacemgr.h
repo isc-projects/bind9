@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.22 2001/01/09 21:40:14 bwelling Exp $ */
+/* $Id: interfacemgr.h,v 1.23 2001/08/28 03:58:00 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -62,7 +62,7 @@
  *** Types
  ***/
 
-#define IFACE_MAGIC		0x493A2D29U	/* I:-). */
+#define IFACE_MAGIC		ISC_MAGIC('I',':','-',')')
 #define NS_INTERFACE_VALID(t)	ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
 struct ns_interface {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.h,v 1.10 2001/07/08 05:09:24 mayer Exp $ */
+/* $Id: dir.h,v 1.11 2001/08/28 03:58:29 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -39,7 +39,7 @@ typedef struct {
 } isc_direntry_t;
 
 typedef struct {
-	int		magic;
+	unsigned int	magic;
 	char		dirname[ISC_DIR_PATHMAX];
 	isc_direntry_t	entry;
 	isc_boolean_t	entry_filled;

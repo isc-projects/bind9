@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.65 2001/04/11 20:37:48 bwelling Exp $ */
+/* $Id: adb.h,v 1.66 2001/08/28 03:58:12 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -88,9 +88,9 @@ ISC_LANG_BEGINDECLS
  *** Magic number checks
  ***/
 
-#define DNS_ADBFIND_MAGIC	  0x61646248	/* adbH. */
+#define DNS_ADBFIND_MAGIC	  ISC_MAGIC('a','d','b','H')
 #define DNS_ADBFIND_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFIND_MAGIC)
-#define DNS_ADBADDRINFO_MAGIC	  0x61644149	/* adAI. */
+#define DNS_ADBADDRINFO_MAGIC	  ISC_MAGIC('a','d','A','I')
 #define DNS_ADBADDRINFO_VALID(x)  ISC_MAGIC_VALID(x, DNS_ADBADDRINFO_MAGIC)
 
 

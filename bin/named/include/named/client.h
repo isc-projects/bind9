@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.59 2001/08/08 22:54:23 gson Exp $ */
+/* $Id: client.h,v 1.60 2001/08/28 03:57:59 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -64,6 +64,7 @@
  ***/
 
 #include <isc/buffer.h>
+#include <isc/magic.h>
 #include <isc/stdtime.h>
 #include <isc/quota.h>
 
@@ -159,7 +160,7 @@ struct ns_client {
 #define CLIENT_NUMATTRS 2
 #endif /* DNS_OPT_NEWCODES */
 
-#define NS_CLIENT_MAGIC			0x4E534363U	/* NSCc */
+#define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01

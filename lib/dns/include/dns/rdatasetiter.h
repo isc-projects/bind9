@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatasetiter.h,v 1.13 2001/01/09 21:53:18 bwelling Exp $ */
+/* $Id: rdatasetiter.h,v 1.14 2001/08/28 03:58:22 marka Exp $ */
 
 #ifndef DNS_RDATASETITER_H
 #define DNS_RDATASETITER_H 1
@@ -82,7 +82,7 @@ typedef struct dns_rdatasetitermethods {
 				   dns_rdataset_t *rdataset);
 } dns_rdatasetitermethods_t;
 
-#define DNS_RDATASETITER_MAGIC	     0x444E5369U		/* DNSi. */
+#define DNS_RDATASETITER_MAGIC	     ISC_MAGIC('D','N','S','i')
 #define DNS_RDATASETITER_VALID(i)    ISC_MAGIC_VALID(i, DNS_RDATASETITER_MAGIC)
 
 /*

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.99 2001/06/14 18:38:48 gson Exp $ */
+/* $Id: message.h,v 1.100 2001/08/28 03:58:17 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -103,7 +103,7 @@
 
 #define DNS_MESSAGE_HEADERLEN		12 /* 6 isc_uint16_t's */
 
-#define DNS_MESSAGE_MAGIC		0x4d534740U	/* MSG@ */
+#define DNS_MESSAGE_MAGIC		ISC_MAGIC('M','S','G','@')
 #define DNS_MESSAGE_VALID(msg)		ISC_MAGIC_VALID(msg, DNS_MESSAGE_MAGIC)
 
 /*

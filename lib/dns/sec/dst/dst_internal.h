@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.37 2001/07/10 21:38:01 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.38 2001/08/28 03:58:25 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -25,14 +25,15 @@
 #include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/int.h>
+#include <isc/magic.h>
 #include <isc/region.h>
 
 #include <dst/dst.h>
 
 ISC_LANG_BEGINDECLS
 
-#define KEY_MAGIC       0x4453544BU     /* DSTK */
-#define CTX_MAGIC       0x44535443U     /* DSTC */
+#define KEY_MAGIC       ISC_MAGIC('D','S','T','K')
+#define CTX_MAGIC       ISC_MAGIC('D','S','T','C')
 
 #define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
 #define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)

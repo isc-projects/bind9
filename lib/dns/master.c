@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.121 2001/08/01 17:58:45 gson Exp $ */
+/* $Id: master.c,v 1.122 2001/08/28 03:58:05 marka Exp $ */
 
 #include <config.h>
 
@@ -91,7 +91,7 @@ typedef struct dns_incctx dns_incctx_t;
  */
 
 struct dns_loadctx {
-	isc_uint32_t		magic;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_lex_t		*lex;
 	dns_rdatacallbacks_t	*callbacks;
