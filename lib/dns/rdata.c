@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.96 2000/05/24 15:07:56 tale Exp $ */
+/* $Id: rdata.c,v 1.97 2000/05/25 00:46:28 bwelling Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -180,9 +180,21 @@ static const char decdigits[] = "0123456789";
 	{ dns_rcode_yxrrset, "YXRRSET", 0}, \
 	{ dns_rcode_nxrrset, "NXRRSET", 0}, \
 	{ dns_rcode_notauth, "NOTAUTH", 0}, \
-	{ dns_rcode_notzone, "NOTZONE", 0}, \
+	{ dns_rcode_notzone, "NOTZONE", 0},
+
+#define ERCODENAMES \
 	/* extended rcodes */ \
 	{ dns_rcode_badvers, "BADVERS", 0}, \
+	{ 0, NULL, 0 }
+
+#define TSIGRCODENAMES \
+	/* extended rcodes */ \
+	{ dns_tsigerror_badsig, "BADSIG", 0}, \
+	{ dns_tsigerror_badkey, "BADKEY", 0}, \
+	{ dns_tsigerror_badtime, "BADTIME", 0}, \
+	{ dns_tsigerror_badmode, "BADMODE", 0}, \
+	{ dns_tsigerror_badname, "BADNAME", 0}, \
+	{ dns_tsigerror_badalg, "BADALG", 0}, \
 	{ 0, NULL, 0 }
 
 #define CERTNAMES \
@@ -222,7 +234,8 @@ struct tbl {
 	int	flags;
 };
 
-static struct tbl rcodes[] = { RCODENAMES };
+static struct tbl rcodes[] = { RCODENAMES ERCODENAMES };
+static struct tbl tsigrcodes[] = { RCODENAMES TSIGRCODENAMES };
 static struct tbl certs[] = { CERTNAMES };
 static struct tbl secalgs[] = { SECALGNAMES };
 static struct tbl secprotos[] = { SECPROTONAMES };
@@ -851,24 +864,28 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 
 isc_result_t
 dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
-	int i = 0;
-	unsigned int n;
-
-	while (rcodes[i].name != NULL) {
-		n = strlen(rcodes[i].name);
-		if (n == source->length &&
-		    strncasecmp(source->base, rcodes[i].name, n) == 0) {
-			*rcodep = rcodes[i].value;
-			return (ISC_R_SUCCESS);
-		}
-		i++;
-	}
-	return (DNS_R_UNKNOWN);
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, rcodes, 0xffff));
+	*rcodep = value;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
 	return (dns_mnemonic_totext(rcode, target, rcodes));	
+}
+
+isc_result_t
+dns_tsigrcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
+	unsigned int value;
+	RETERR(dns_mnemonic_fromtext(&value, source, tsigrcodes, 0xffff));
+	*rcodep = value;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target) {
+	return (dns_mnemonic_totext(rcode, target, tsigrcodes));	
 }
 
 isc_result_t

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.34 2000/05/22 12:37:59 marka Exp $ */
+/* $Id: tkey_249.c,v 1.35 2000/05/25 00:46:32 bwelling Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -78,8 +78,9 @@ fromtext_tkey(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	 * Error.
 	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
-	if (dns_rcode_fromtext(&rcode, &token.value.as_textregion)
-				!= ISC_R_SUCCESS) {
+	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
+				!= ISC_R_SUCCESS)
+	{
 		i = strtol(token.value.as_pointer, &e, 10);
 		if (*e != 0)
 			return (DNS_R_UNKNOWN);
@@ -171,7 +172,7 @@ totext_tkey(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	if (dns_rcode_totext((dns_rcode_t)n, target) == ISC_R_SUCCESS)
+	if (dns_tsigrcode_totext((dns_rcode_t)n, target) == ISC_R_SUCCESS)
 		RETERR(str_totext(" ", target));
 	else {
 		sprintf(buf, "%lu ", n);

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.38 2000/05/22 12:37:28 marka Exp $ */
+/* $Id: tsig_250.c,v 1.39 2000/05/25 00:46:31 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -36,6 +36,8 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_uint64_t sigtime;
 	isc_buffer_t buffer;
+	dns_rcode_t rcode;
+	long i;
 	char *e;
 
 	REQUIRE(type == 250);
@@ -94,10 +96,18 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	/*
 	 * Error.
 	 */
-	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
-		return (ISC_R_RANGE);
-	RETERR(uint16_tobuffer(token.value.as_ulong, target));
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	if (dns_tsigrcode_fromtext(&rcode, &token.value.as_textregion)
+				!= ISC_R_SUCCESS)
+	{
+		i = strtol(token.value.as_pointer, &e, 10);
+		if (*e != 0)
+			return (DNS_R_UNKNOWN);
+		if (i < 0 || i > 0xffff)
+			return (ISC_R_RANGE);
+		rcode = (dns_rcode_t)i;
+	}
+	RETERR(uint16_tobuffer(rcode, target));
 
 	/*
 	 * Other Len.
@@ -206,8 +216,12 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	sprintf(buf, "%u ", n);
-	RETERR(str_totext(buf, target));
+	if (dns_tsigrcode_totext((dns_rcode_t)n, target) == ISC_R_SUCCESS)
+		RETERR(str_totext(" ", target));
+	else {
+		sprintf(buf, "%u ", n);
+		RETERR(str_totext(buf, target));
+	}
 
 	/*
 	 * Other Size.
