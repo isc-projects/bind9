@@ -23,7 +23,6 @@
 #include <isc/list.h>
 #include <isc/mem.h>
 
-#include <isc/boolean.h>
 #include <isc/result.h>
 
 
@@ -47,7 +46,7 @@ typedef struct isc_taskmgr		isc_taskmgr_t;
  */
 typedef int				isc_eventtype_t;
 
-typedef isc_boolean_t (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
+typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 /*
@@ -84,8 +83,6 @@ void					isc_event_free(isc_event_t **);
  ***/
 
 isc_result_t				isc_task_create(isc_taskmgr_t *,
-							isc_taskaction_t,
-							void *,
 							unsigned int,
 							isc_task_t **);
 void					isc_task_attach(isc_task_t *,
@@ -94,7 +91,12 @@ void					isc_task_detach(isc_task_t **);
 isc_result_t				isc_task_send(isc_task_t *, 
 						      isc_event_t **);
 unsigned int				isc_task_purge(isc_task_t *, void *,
-						   isc_eventtype_t);
+						       isc_eventtype_t);
+isc_result_t				isc_task_allowsend(isc_task_t *,
+							   isc_boolean_t);
+isc_result_t				isc_task_onshutdown(isc_task_t *,
+							    isc_taskaction_t,
+							    void *);
 void					isc_task_shutdown(isc_task_t *);
 void					isc_task_destroy(isc_task_t **);
 
