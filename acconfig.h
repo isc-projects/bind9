@@ -32,3 +32,6 @@
 
 /* define if catgets() is available */
 #undef HAVE_CATGETS
+
+/* Define if you have the NET_RT_IFLIST sysctl variable. */
+#undef HAVE_IFLIST_SYSCTL
