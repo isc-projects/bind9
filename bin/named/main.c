@@ -26,8 +26,8 @@
 #include <isc/util.h>
 
 #include <dns/dispatch.h>
-
 #include <dst/result.h>
+#include <dns/view.h>
 
 /*
  * Defining NS_MAIN provides storage declaratons (rather than extern)
