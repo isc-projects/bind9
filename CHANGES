@@ -1,3 +1,6 @@
+ 802.	[bug]		DNSSEC key tags were computed incorrectly in almost
+ 			all cases. [RT #1146]
+
  801.	[bug]		nsupdate should treat lines beginning with ';' as
  			comments. [RT #1139]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.4 2001/03/04 18:38:13 bwelling Exp $ */
+/* $Id: key.c,v 1.5 2001/04/04 02:02:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -37,9 +37,7 @@ dst_region_computeid(const isc_region_t *source, const unsigned int alg) {
 	int size;
 
 	REQUIRE(source != NULL);
-
-	if (source->length < 4)
-		return (0);
+	REQUIRE(source->length >= 4);
 
 	p = source->base;
 	size = source->length;

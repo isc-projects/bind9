@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.9 2001/01/24 02:23:01 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.10 2001/04/04 02:02:58 bwelling Exp $
  */
 #if defined(OPENSSL)
 
@@ -205,10 +205,6 @@ static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp) {
 	RSA *rsa;
 	unsigned long e;
-	unsigned char dns_array[DST_KEY_MAXSIZE];
-	isc_buffer_t dns;
-	isc_result_t result;
-	isc_region_t r;
 
 	if (exp == 0)
 		e = RSA_3;
@@ -223,15 +219,6 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
 	key->opaque = rsa;
-
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	result = opensslrsa_todns(key, &dns);
-	if (result != ISC_R_SUCCESS) {
-		RSA_free(rsa);
-		return (result);
-	}
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 
 	return (ISC_R_SUCCESS);
 }
@@ -331,8 +318,6 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	rsa->n = BN_bin2bn(r.base, r.length, NULL);
 
-	isc_buffer_remainingregion(data, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 	key->key_size = BN_num_bits(rsa->n);
 
 	isc_buffer_forward(data, r.length);
@@ -429,9 +414,6 @@ opensslrsa_fromfile(dst_key_t *key, const dns_keytag_t id,
 {
 	dst_private_t priv;
 	isc_result_t ret;
-	isc_buffer_t dns;
-	isc_region_t r;
-	unsigned char dns_array[1024];
 	int i;
 	RSA *rsa = NULL;
 	isc_mem_t *mctx = key->mctx;
@@ -485,15 +467,6 @@ opensslrsa_fromfile(dst_key_t *key, const dns_keytag_t id,
 	dst__privstruct_free(&priv, mctx);
 
 	key->key_size = BN_num_bits(rsa->n);
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	ret = opensslrsa_todns(key, &dns);
-	if (ret != ISC_R_SUCCESS)
-		DST_RET(ret);
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
-
-	if (key->key_id != id)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	return (ISC_R_SUCCESS);
 

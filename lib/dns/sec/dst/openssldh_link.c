@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.35 2001/01/24 02:22:59 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.36 2001/04/04 02:02:56 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -130,10 +130,6 @@ openssldh_paramcompare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 openssldh_generate(dst_key_t *key, int generator) {
 	DH *dh = NULL;
-	unsigned char dns_array[DST_KEY_MAXSIZE];
-	isc_buffer_t dns;
-	isc_region_t r;
-	isc_result_t result;
 
 	if (generator == 0) {
 		if (key->key_size == 768 || key->key_size == 1024) {
@@ -164,15 +160,6 @@ openssldh_generate(dst_key_t *key, int generator) {
 	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 
 	key->opaque = dh;
-
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	result = openssldh_todns(key, &dns);
-	if (result != ISC_R_SUCCESS) {
-		DH_free(dh);
-		return (result);
-	}
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 
 	return (ISC_R_SUCCESS);
 }
@@ -376,9 +363,6 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	dh->pub_key = BN_bin2bn(r.base, publen, NULL);
 	r.base += publen;
 
-	isc_buffer_remainingregion(data, &r);
-	r.length = plen + glen + publen + 6;
-	key->key_id = dst_region_computeid(&r, key->key_alg);
 	key->key_size = BN_num_bits(dh->p);
 
 	isc_buffer_forward(data, plen + glen + publen + 6);
@@ -433,9 +417,6 @@ openssldh_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 {
 	dst_private_t priv;
 	isc_result_t ret;
-	isc_buffer_t dns;
-	isc_region_t r;
-	unsigned char dns_array[1024];
 	int i;
 	DH *dh = NULL;
 	isc_mem_t *mctx;
@@ -454,7 +435,7 @@ openssldh_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 	key->opaque = dh;
 
-	for (i=0; i < priv.nelements; i++) {
+	for (i = 0; i < priv.nelements; i++) {
 		BIGNUM *bn;
 		bn = BN_bin2bn(priv.elements[i].data,
 			       priv.elements[i].length, NULL);
@@ -496,15 +477,6 @@ openssldh_fromfile(dst_key_t *key, const dns_keytag_t id, const char *filename)
 			dh->g = &bn2;
 		}
 	}
-	isc_buffer_init(&dns, dns_array, sizeof(dns_array));
-	ret = openssldh_todns(key, &dns);
-	if (ret != ISC_R_SUCCESS)
-		DST_RET(ret);
-	isc_buffer_usedregion(&dns, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
-
-	if (key->key_id != id)
-		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	return (ISC_R_SUCCESS);
 
