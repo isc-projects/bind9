@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.1 2001/03/01 23:46:48 bwelling Exp $ */
+/* $Id: check.c,v 1.2 2001/03/02 01:30:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 #include <isc/result.h>
 
 #include <isccfg/cfg.h>
+#include <isccfg/check.h>
 
 #define MASTERZONE	1
 #define SLAVEZONE	2
@@ -88,10 +89,12 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 	{ "passive", SLAVEZONE | STUBZONE },
 	};
 
-	zname = cfg_obj_asstring(cfg_map_getname(zconfig));
+	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
+
+	zoptions = cfg_tuple_get(zconfig, "options");
 
 	obj = NULL;
-	(void)cfg_map_get(zconfig, "type", &obj);
+	(void)cfg_map_get(zoptions, "type", &obj);
 	if (obj == NULL) {
 		cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
 			    "zone '%s': type not present", zname);
@@ -115,8 +118,6 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 			    zname, typestr);
 		return (ISC_R_FAILURE);
 	}
-
-	zoptions = cfg_tuple_get(zconfig, "options");
 
 	for (i = 0; i < sizeof(options) / sizeof(options[0]); i++) {
 		obj = NULL;
