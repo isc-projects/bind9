@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.47.2.3 2000/10/18 19:10:27 gson Exp $ */
+/* $Id: confzone.c,v 1.47.2.4 2000/11/04 02:45:07 gson Exp $ */
 
 #include <config.h>
 
@@ -638,15 +638,17 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 		}
 	}
 
-	if (dns_c_zone_getforward(zone, &tmpfwd) == ISC_R_SUCCESS)
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      forwarderr, zone->name);
+	if (zone->ztype != dns_c_zone_hint) {
+		if (dns_c_zone_getforward(zone, &tmpfwd) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      forwarderr, zone->name);
 
-	if (dns_c_zone_getforwarders(zone, &iplist) == ISC_R_SUCCESS)
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      forwarderserr, zone->name);
+		if (dns_c_zone_getforwarders(zone, &iplist) == ISC_R_SUCCESS)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+				      forwarderserr, zone->name);
+	}
 
 	return (result);
 }

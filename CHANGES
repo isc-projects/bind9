@@ -1,4 +1,9 @@
 
+ 527.	[bug]		When a hint zone was configured, the spurious warning
+			messages "Hint zones do not have a forward field" and
+			"Hint zones do not have a forwarders field" were
+			printed. [RT #439]
+
 	--- 9.0.1rc1 released ---
 
  526.	[bug]		nsupdate incorrectly refused to add RRs with a TTL
