@@ -42,6 +42,7 @@ main(int argc, char *argv[]) {
 	mem_context_t mctx = NULL;
 	task_manager_t manager = NULL;
 	task_t t1 = NULL, t2 = NULL;
+	task_t t3 = NULL, t4 = NULL;
 	generic_event_t event;
 	unsigned int workers;
 
@@ -57,27 +58,45 @@ main(int argc, char *argv[]) {
 
 	INSIST(task_create(manager, "1", my_shutdown, 0, &t1));
 	INSIST(task_create(manager, "2", my_shutdown, 0, &t2));
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t1, event);
-	event = event_get(mctx, 1, my_callback, sizeof *event);
-	task_send_event(t2, event);
+	INSIST(task_create(manager, "3", my_shutdown, 0, &t3));
+	INSIST(task_create(manager, "4", my_shutdown, 0, &t4));
 
-	task_shutdown(t1);
-	task_shutdown(t2);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t2, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t3, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t4, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t2, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t3, event);
+	event = event_get(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t4, event);
+
 	task_detach(&t1);
 	task_detach(&t2);
+	task_detach(&t3);
+	task_detach(&t4);
+
 	printf("destroy\n");
 	task_manager_destroy(&manager);
 	printf("destroyed\n");

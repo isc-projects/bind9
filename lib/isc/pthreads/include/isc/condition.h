@@ -22,7 +22,7 @@ typedef pthread_cond_t			os_condition_t;
 
 #else
 
-Error!  Condition variables are not meaningful for a non-threaded program.
+#error Condition variables are not meaningful for a non-threaded program.
 
 #endif
 

@@ -11,6 +11,11 @@
 #define VALID_TASK(t)		((t) != NULL && \
 				 (t)->magic == TASK_MAGIC)
 
+/*
+ * We use macros instead of calling the os_ routines
+ * directly because the capital letters make the
+ * locking stand out.
+ */
 #define LOCK(lp)		os_mutex_lock((lp))
 #define UNLOCK(lp)		os_mutex_unlock((lp))
 #define WAIT(cvp, lp)		os_condition_wait((cvp), (lp))
