@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.361 2002/01/23 02:03:04 gson Exp $ */
+/* $Id: zone.c,v 1.362 2002/01/24 13:45:36 marka Exp $ */
 
 #include <config.h>
 
@@ -2162,7 +2162,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_flush(dns_zone_t *zone) {
-	isc_result_t result = ISC_R_ALREADYRUNNING;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t dumping;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2170,9 +2170,10 @@ dns_zone_flush(dns_zone_t *zone) {
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FLUSH);
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP) &&
-	    zone->masterfile != NULL)
+	    zone->masterfile != NULL) {
+		result = ISC_R_ALREADYRUNNING;
 		dumping = was_dumping(zone);
-	else
+	} else
 		dumping = ISC_TRUE;
 	UNLOCK_ZONE(zone);
 	if (!dumping)
@@ -2231,6 +2232,7 @@ dump_done(void *arg, isc_result_t result) {
 	dns_zone_t *zone = arg;
 	dns_db_t *db;
 	dns_dbversion_t *version;
+	isc_boolean_t again = ISC_FALSE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2282,9 +2284,14 @@ dump_done(void *arg, isc_result_t result) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DUMPING);
 		isc_time_settoepoch(&zone->dumptime);
-	}
+		again = ISC_TRUE;
+	} else if (result == ISC_R_SUCCESS)
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FLUSH);
+		
 	dns_dumpctx_detach(&zone->dctx);
 	UNLOCK_ZONE(zone);
+	if (again)
+		(void)zone_dump(zone, ISC_FALSE);
 	zonemgr_putio(&zone->writeio);
 	dns_zone_idetach(&zone);
 }
@@ -2366,7 +2373,8 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_DUMPING);
 		isc_time_settoepoch(&zone->dumptime);
 		again = ISC_TRUE;
-	}
+	} else 
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_FLUSH);
 	UNLOCK_ZONE(zone);
 	if (again)
 		goto redo;
