@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.3 2001/02/15 18:55:03 gson Exp $ */
+/* $Id: cfg_test.c,v 1.4 2001/02/15 19:02:18 gson Exp $ */
 
 #include <config.h>
 
@@ -143,9 +143,10 @@ main(int argc, char **argv) {
 				cfg_obj_t *secret = NULL;
 				result = cfg_map_get(key, "secret", &secret);
 				if (result == ISC_R_SUCCESS) {
-					fprintf(stderr, "(key \"%s\" secret is \"%s\")\n",
-						cfg_obj_asstring(cfg_map_getname(key)),
-						cfg_obj_asstring(secret));
+					fprintf(stderr, "(key \"%s\" secret "
+						"is \"%s\")\n",
+					cfg_obj_asstring(cfg_map_getname(key)),
+					cfg_obj_asstring(secret));
 				}
 			}
 		}
