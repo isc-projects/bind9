@@ -183,7 +183,7 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ notify yes_or_no; ]					    Yes
   [ recursion yes_or_no; ]				    Yes
   [ rfc2308-type1 yes_or_no; ]				    No
-  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    No
+  [ also-notify { ip_addr; [ ip_addr; ... ] }; ]	    Yes
   [ forward ( only | first ); ]				    Yes
   [ forwarders { [ in_addr ; [ in_addr ; ... ] ] }; ]	    Yes
   [ check-names ... ]					    No
@@ -209,5 +209,5 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
   [ key ... ]						    Yes
   [ server ... ]					    Yes
-  [ trusted-keys ... ]					    No
+  [ trusted-keys ... ]					    Yes
 };
