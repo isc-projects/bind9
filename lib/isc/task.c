@@ -28,6 +28,8 @@
 	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
 #define BROADCAST(cvp) \
 	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
+#define SIGNAL(cvp) \
+	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
 #define WAIT(cvp, lp) \
 	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
 #define WAITUNTIL(cvp, lp, tp, bp) \
@@ -303,7 +305,6 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 	}
 
 	if (was_idle) {
-		isc_boolean_t need_wakeup = ISC_FALSE;
 		isc_taskmgr_t manager;
 
 		/*
@@ -328,18 +329,9 @@ isc_task_send(isc_task_t task, isc_event_t *eventp) {
 		manager = task->manager;
 		INSIST(VALID_MANAGER(manager));
 		LOCK(&manager->lock);
-		if (EMPTY(manager->ready_tasks))
-			need_wakeup = ISC_TRUE;
 		ENQUEUE(manager->ready_tasks, task, ready_link);
+		SIGNAL(&manager->work_available);
 		UNLOCK(&manager->lock);
-
-		/*
-		 * If the runnable queue is empty, the worker threads could
-		 * either be executing tasks or waiting for something to do.
-		 * We wakeup anyone who is sleeping.
-		 */
-		if (need_wakeup)
-			BROADCAST(&manager->work_available);
 	}
 
 	*eventp = NULL;
@@ -416,19 +408,14 @@ isc_task_shutdown(isc_task_t task) {
 		return;
 
 	if (was_idle) {
-		isc_boolean_t need_wakeup = ISC_FALSE;
 		isc_taskmgr_t manager;
 
 		manager = task->manager;
 		INSIST(VALID_MANAGER(manager));
 		LOCK(&manager->lock);
-		if (EMPTY(manager->ready_tasks))
-			need_wakeup = ISC_TRUE;
 		ENQUEUE(manager->ready_tasks, task, ready_link);
+		SIGNAL(&manager->work_available);
 		UNLOCK(&manager->lock);
-
-		if (need_wakeup)
-			BROADCAST(&manager->work_available);
 	}
 }
 

@@ -26,6 +26,8 @@
 	INSIST(isc_mutex_unlock((lp)) == ISC_R_SUCCESS);
 #define BROADCAST(cvp) \
 	INSIST(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS);
+#define SIGNAL(cvp) \
+	INSIST(isc_condition_signal((cvp)) == ISC_R_SUCCESS);
 #define WAIT(cvp, lp) \
 	INSIST(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS);
 #define WAITUNTIL(cvp, lp, tp) \
@@ -91,7 +93,7 @@ struct isc_timermgr {
 };
 
 static inline isc_result
-schedule(isc_timer_t timer, isc_time_t now, isc_boolean_t broadcast_ok) {
+schedule(isc_timer_t timer, isc_time_t now, isc_boolean_t signal_ok) {
 	isc_result result;
 	isc_timermgr_t manager;
 	struct isc_time due;
@@ -156,9 +158,9 @@ schedule(isc_timer_t timer, isc_time_t now, isc_boolean_t broadcast_ok) {
 	 * due time than the one the run thread is sleeping on, and we don't
 	 * want it to oversleep.
 	 */
-	if (timer->index == 1 && broadcast_ok) {
-		XTRACE("broadcast (schedule)");
-		BROADCAST(&manager->wakeup);
+	if (timer->index == 1 && signal_ok) {
+		XTRACE("signal (schedule)");
+		SIGNAL(&manager->wakeup);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -182,8 +184,8 @@ deschedule(isc_timer_t timer) {
 		INSIST(manager->nscheduled > 0);
 		manager->nscheduled--;
 		if (need_wakeup) {
-			XTRACE("broadcast (deschedule)");
-			BROADCAST(&manager->wakeup);
+			XTRACE("signal (deschedule)");
+			SIGNAL(&manager->wakeup);
 		}
 	}
 }
@@ -620,8 +622,8 @@ isc_timermgr_destroy(isc_timermgr_t *managerp) {
 
 	UNLOCK(&manager->lock);
 
-	XTRACE("broadcast (destroy)");
-	BROADCAST(&manager->wakeup);
+	XTRACE("signal (destroy)");
+	SIGNAL(&manager->wakeup);
 
 	/*
 	 * Wait for thread to exit.
