@@ -315,8 +315,10 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
 		INSIST(data != NULL);
 		*wantdnssecp = ISC_TRUE;
+		result = ISC_R_SUCCESS;
 	} else if (result == ISC_R_NOTFOUND) {
 		*wantdnssecp = ISC_FALSE;
+		result = ISC_R_SUCCESS;
 	}
 
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_read);
