@@ -142,10 +142,12 @@ You can work around this problem using the option "transfer-format
 one-answer;", but since these old versions all have known security
 problems, the correct fix is to upgrade the slave servers.
 
-Some BIND 9 users have reported interoperability problems with zone
-transfers to Microsoft DNS servers that were solved by specifying
-"transfer-format one-answer;", but we are still lacking detailed
-information about this issue.
+Zone transfers to Windows 2000 DNS servers sometimes fail due to a bug
+in the Windows 2000 DNS server where DNS messages larger than 16K are
+not handled properly.  There will be a hot fix available from
+Microsoft to address this issue.  In the meantime, the problem can
+be worked around by setting "transfer-format one-answer;".
+[As of May 4 2001 the hotfix was still being prepared]
 
 
 4. Unrestricted Character Set
@@ -206,4 +208,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.30 2001/05/08 21:46:11 gson Exp $
+$Id: migration,v 1.31 2001/05/19 01:18:12 gson Exp $
