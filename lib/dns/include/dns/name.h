@@ -441,7 +441,7 @@ dns_result_t dns_name_towire(dns_name_t *name,
  */
 
 dns_result_t dns_name_fromtext(dns_name_t *name,
-			       dns_region_t *source,
+			       dns_textregion_t *source,
 			       dns_name_t *origin,
 			       dns_boolean_t downcase,
 			       dns_region_t *target);
@@ -459,7 +459,10 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *
  * Requires:
  *
- *	'source' and 'target' are valid regions.
+ *	'source' is a valid text region.
+ *
+ *	'target' is a valid region.
+ *
  *	'name' is a valid name.
  *
  * Ensures:
@@ -486,7 +489,7 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
 
 dns_result_t dns_name_totext(dns_name_t *name,
 			     dns_boolean_t omit_final_dot,
-			     dns_region_t *target, unsigned int *bytesp);
+			     dns_textregion_t *target, unsigned int *bytesp);
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	
@@ -497,7 +500,7 @@ dns_result_t dns_name_totext(dns_name_t *name,
  * Requires:
  *	'name' is a valid name
  *
- *	'target' is a valid buffer
+ *	'target' is a valid text region
  *
  *	dns_name_countlabels(name) > 0
  *

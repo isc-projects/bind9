@@ -21,14 +21,14 @@
 #include <dns/types.h>
 
 dns_result_t dns_rdatatype_fromtext(dns_rdatatype_t *type,
-				    dns_region_t *source);
+				    dns_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS rdata type.
  *
  * Requires:
  *	'type' is a valid pointer.
  *
- *	'region' is a valid region.
+ *	'source' is a valid text region.
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
@@ -36,7 +36,8 @@ dns_result_t dns_rdatatype_fromtext(dns_rdatatype_t *type,
  *	DNS_R_NOTIMPLEMENTED		type is known, but not implemented
  */
 
-dns_result_t dns_rdatatype_totext(dns_rdatatype_t type, dns_region_t *target,
+dns_result_t dns_rdatatype_totext(dns_rdatatype_t type,
+				  dns_textregion_t *target,
 				  unsigned int *bytesp);
 /*
  * Put a textual representation of type 'type' into 'target'.
@@ -44,7 +45,7 @@ dns_result_t dns_rdatatype_totext(dns_rdatatype_t type, dns_region_t *target,
  * Requires:
  *	'type' is a valid pointer.
  *
- *	'region' is a valid region.
+ *	'target' is a valid text region.
  *
  * Ensures:
  *	If the result is success:

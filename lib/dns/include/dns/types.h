@@ -34,6 +34,7 @@
 
 typedef isc_boolean_t				dns_boolean_t;
 typedef isc_region_t				dns_region_t;
+typedef isc_textregion_t			dns_textregion_t;
 typedef dns_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef struct dns_lex				dns_lex_t;

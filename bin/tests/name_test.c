@@ -50,7 +50,8 @@ main(int argc, char *argv[]) {
 	unsigned int tbytes;
 	dns_result_t result;
 	dns_name_t name, oname, compname;
-	isc_region_t source, target, r;
+	dns_textregion_t source, ttarget;
+	dns_region_t target, r;
 	dns_name_t *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 
@@ -61,7 +62,7 @@ main(int argc, char *argv[]) {
 		if (strcasecmp("none", argv[0]) == 0)
 			origin = NULL;
 		else {
-			source.base = (unsigned char *)argv[0];
+			source.base = argv[0];
 			source.length = strlen(argv[0]);
 			target.base = o;
 			target.length = 255;
@@ -83,7 +84,7 @@ main(int argc, char *argv[]) {
 		if (strcasecmp("none", argv[0]) == 0)
 			comp = NULL;
 		else {
-			source.base = (unsigned char *)argv[1];
+			source.base = argv[1];
 			source.length = strlen(argv[1]);
 			target.base = c;
 			target.length = 255;
@@ -102,7 +103,7 @@ main(int argc, char *argv[]) {
 		comp = NULL;
 
 	while (gets(s) != NULL) {
-		source.base = (unsigned char *)s;
+		source.base = s;
 		source.length = strlen(s);
 		target.base = b;
 		target.length = 255;
@@ -120,9 +121,9 @@ main(int argc, char *argv[]) {
 			printf("%s\n", dns_result_totext(result));
 
 		if (result == 0) {
-			target.base = (unsigned char *)s;
-			target.length = 1000;
-			result = dns_name_totext(&name, 0, &target, &tbytes);
+			ttarget.base = s;
+			ttarget.length = sizeof s;
+			result = dns_name_totext(&name, 0, &ttarget, &tbytes);
 			if (result == DNS_R_SUCCESS) {
 				printf("%.*s\n", (int)tbytes, s);
 #ifndef QUIET

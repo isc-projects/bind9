@@ -21,14 +21,14 @@
 #include <dns/types.h>
 
 dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *class,
-				     dns_region_t *source);
+				     dns_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS class.
  *
  * Requires:
  *	'class' is a valid pointer.
  *
- *	'region' is a valid region.
+ *	'source' is a valid text region.
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
@@ -37,14 +37,15 @@ dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *class,
  */
 
 dns_result_t dns_rdataclass_totext(dns_rdataclass_t class,
-				   dns_region_t *target, unsigned int *bytesp);
+				   dns_textregion_t *target,
+				   unsigned int *bytesp);
 /*
  * Put a textual representation of class 'class' into 'target'.
  *
  * Requires:
  *	'class' is a valid pointer.
  *
- *	'region' is a valid region.
+ *	'target' is a valid text region.
  *
  * Ensures:
  *	If the result is success:

@@ -504,7 +504,7 @@ dns_name_toregion(dns_name_t *name, dns_region_t *r) {
 
 
 dns_result_t
-dns_name_fromtext(dns_name_t *name, dns_region_t *source,
+dns_name_fromtext(dns_name_t *name, dns_textregion_t *source,
 		  dns_name_t *origin, dns_boolean_t downcase,
 		  dns_region_t *target)
 {
@@ -956,7 +956,7 @@ dns_name_fromtext(dns_name_t *name, dns_region_t *source,
 
 dns_result_t
 dns_name_totext(dns_name_t *name, dns_boolean_t omit_final_dot,
-		dns_region_t *target, unsigned int *bytesp)
+		dns_textregion_t *target, unsigned int *bytesp)
 {
 	unsigned char *ndata;
 	char *tdata;
