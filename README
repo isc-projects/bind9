@@ -256,7 +256,9 @@ Bug Reports and Mailing Lists
 	to bind() to privileged ports.
 
 	On systems with more than one CPU, the "-n" option should be used
-	to indicate how many CPUs there are.
+	to indicate how many CPUs there are.  If the "-n" option is not
+	provided, named will attempt to determine the number of available
+	CPUs and use all of them.
 
 
 Note to Programmers
