@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.7.2.8 2002/07/14 04:31:42 marka Exp $
+ *	$Id: resolv.h,v 1.7.2.9 2002/08/02 03:16:25 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -276,7 +276,8 @@ union res_sockaddr_union {
 #define RES_PRF_QUERY	0x00001000
 #define RES_PRF_REPLY	0x00002000
 #define RES_PRF_INIT	0x00004000
-/*			0x00008000	*/
+#define RES_PRF_TRUNC	0x00008000
+/*			0x00010000	*/
 
 /* Things involving an internal (static) resolver context. */
 #ifdef _REENTRANT
