@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.85 2000/07/13 22:53:49 mws Exp $ */
+/* $Id: dighost.c,v 1.86 2000/07/14 16:35:26 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -64,7 +64,7 @@ extern int h_errno;
 #include <dig/dig.h>
 
 ISC_LIST(dig_lookup_t) lookup_list;
-ISC_LIST(dig_server_t) server_list;
+dig_serverlist_t server_list;
 ISC_LIST(dig_searchlist_t) search_list;
 
 isc_boolean_t
@@ -230,6 +230,36 @@ istype(char *text) {
 	return (ISC_FALSE);
 }
 
+dig_server_t *
+make_server(const char *servname) {
+	dig_server_t *srv;
+
+	REQUIRE(servname != NULL);
+
+	debug("make_server(%s)",servname);
+	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
+	if (srv == NULL)
+		fatal("Memory allocation failure in %s:%d",
+		      __FILE__, __LINE__);
+	strncpy(srv->servername, servname, MXNAME);
+	return (srv);
+}
+
+void
+clone_server_list(dig_serverlist_t src, 
+		  dig_serverlist_t *dest)
+{
+	dig_server_t *srv, *newsrv;
+
+	debug("clone_server_list()");
+	srv = ISC_LIST_HEAD(src);
+	while (srv != NULL) {
+		newsrv = make_server(srv->servername);
+		ISC_LIST_ENQUEUE(*dest, newsrv, link);
+		srv = ISC_LIST_NEXT(srv, link);
+	}
+}
+
 dig_lookup_t *
 make_empty_lookup(void) {
 	dig_lookup_t *looknew;
@@ -276,16 +306,18 @@ make_empty_lookup(void) {
 	looknew->section_authority = ISC_TRUE;
 	looknew->section_additional = ISC_TRUE;
 	looknew->new_search = ISC_FALSE;
-	ISC_LIST_INIT(looknew->my_server_list);
 	ISC_LIST_INIT(looknew->q);
-	looknew->use_my_server_list = ISC_FALSE;
+	ISC_LIST_INIT(looknew->my_server_list);
 	return (looknew);
 }
 
+/*
+ * Caution: If you don't clone the servers, you MUST clone the server
+ * list seperately from somewhere else, or construct it by hand.
+ */
 dig_lookup_t *
 clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	dig_lookup_t *looknew;
-	dig_server_t *s, *srv;
 
 	debug("clone_lookup()");
 
@@ -316,24 +348,9 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
 
-	if (servers) {
-		looknew->use_my_server_list = lookold->use_my_server_list;
-		if (looknew->use_my_server_list) {
-			s = ISC_LIST_HEAD(lookold->my_server_list);
-			while (s != NULL) {
-				srv = isc_mem_allocate(mctx,
-						sizeof(struct dig_server));
-				if (srv == NULL)
-					fatal("Memory allocation failure "
-					      "in %s:%d", __FILE__, __LINE__);
-				strncpy(srv->servername, s->servername,
-					MXNAME);
-				ISC_LIST_ENQUEUE(looknew->my_server_list, srv,
-						 link);
-				s = ISC_LIST_NEXT(s, link);
-			}
-		}
-	}
+	if (servers)
+		clone_server_list(lookold->my_server_list,
+				  &looknew->my_server_list);
 	return (looknew);
 }
 
@@ -401,22 +418,10 @@ setup_system(void) {
 					debug("got a nameserver line");
 					ptr = strtok(NULL, " \t\r\n");
 					if (ptr != NULL) {
-						srv = isc_mem_allocate(mctx,
-						   sizeof(struct dig_server));
-						if (srv == NULL)
-							fatal("Memory "
-							      "allocation "
-							      "failure in "
-							      "%s:%d",
-							      __FILE__,
-							      __LINE__);
-							strncpy((char *)srv->
-								servername,
-								ptr,
-								MXNAME - 1);
-							ISC_LIST_APPEND
-								(server_list,
-								 srv, link);
+						srv = make_server(ptr);
+						ISC_LIST_APPEND
+							(server_list,
+							 srv, link);
 					}
 				} else if (strcasecmp(ptr, "options") == 0) {
 					ptr = strtok(NULL, " \t\r\n");
@@ -485,10 +490,7 @@ setup_system(void) {
 		ndots = 1;
 
 	if (server_list.head == NULL) {
-		srv = isc_mem_allocate(mctx, sizeof(dig_server_t));
-		if (srv == NULL)
-			fatal("Memory allocation failure");
-		strcpy(srv->servername, "127.0.0.1");
+		srv = make_server("127.0.0.1");
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
 
@@ -743,17 +745,15 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	 * At this point, we know there are no queries on the lookup,
 	 * so can make it go away also.
 	 */
-	if (lookup->use_my_server_list) {
-		s = ISC_LIST_HEAD(lookup->my_server_list);
-		while (s != NULL) {
-			debug("freeing server %p belonging to %p",
-			      s, lookup);
-			ptr = s;
-			s = ISC_LIST_NEXT(s, link);
-			ISC_LIST_DEQUEUE(lookup->my_server_list, 
-					(dig_server_t *)ptr, link);
-			isc_mem_free(mctx, ptr);
-		}
+	s = ISC_LIST_HEAD(lookup->my_server_list);
+	while (s != NULL) {
+		debug("freeing server %p belonging to %p",
+		      s, lookup);
+		ptr = s;
+		s = ISC_LIST_NEXT(s, link);
+		ISC_LIST_DEQUEUE(lookup->my_server_list, 
+				 (dig_server_t *)ptr, link);
+		isc_mem_free(mctx, ptr);
 	}
 	if (lookup->sendmsg != NULL)
 		dns_message_destroy(&lookup->sendmsg);
@@ -891,8 +891,6 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 							 ISC_FALSE);
 						lookup->doing_xfr = ISC_FALSE;
 						lookup->defname = ISC_FALSE;
-						lookup->use_my_server_list = 
-							ISC_TRUE;
 						if (section ==
 						    DNS_SECTION_ANSWER) {
 						      lookup->trace =
@@ -909,19 +907,10 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 							lookup->ns_search_only;
 						}
 						lookup->trace_root = ISC_FALSE;
-						ISC_LIST_INIT(lookup->
-							      my_server_list);
 					}
-					srv = isc_mem_allocate(mctx,
-						  sizeof(struct dig_server));
-					if (srv == NULL)
-						fatal("Memory allocation "
-						      "failure in %s:%d",
-						      __FILE__, __LINE__);
-					strncpy(srv->servername, 
-						(char *)r.base, len);
-					srv->servername[len] = 0;
-					debug("adding1 server %s",
+					r.base[len]=0;
+					srv = make_server(r.base);
+					debug("adding server %s",
 					       srv->servername);
 					ISC_LIST_APPEND
 						(lookup->my_server_list,
@@ -1057,6 +1046,10 @@ setup_lookup(dig_lookup_t *lookup) {
 		lookup_counter = 0;
 	}
 
+	if (ISC_LIST_EMPTY(lookup->my_server_list)) {
+		debug("cloning server list");
+		clone_server_list(server_list, &lookup->my_server_list);
+	}
 	result = dns_message_gettempname(lookup->sendmsg, &lookup->name);
 	check_result(result, "dns_message_gettempname");
 	dns_name_init(lookup->name, NULL);
@@ -1237,10 +1230,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	lookup->pending = ISC_FALSE;
 
-	if (lookup->use_my_server_list)
-		serv = ISC_LIST_HEAD(lookup->my_server_list);
-	else
-		serv = ISC_LIST_HEAD(server_list);
+	serv = ISC_LIST_HEAD(lookup->my_server_list);
 	for (; serv != NULL;
 	     serv = ISC_LIST_NEXT(serv, link)) {
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
@@ -1360,7 +1350,7 @@ send_udp(dig_lookup_t *lookup) {
 					  &lookup->timer);
 		check_result(result, "isc_timer_create");
 	}
-for (query = ISC_LIST_HEAD(lookup->q);
+	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		debug("working on lookup %p, query %p",

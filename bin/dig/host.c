@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.39 2000/07/13 21:01:00 mws Exp $ */
+/* $Id: host.c,v 1.40 2000/07/14 16:35:27 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -618,11 +618,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 	strncpy(hostname, argv[isc_commandline_index], MXNAME);
 	if (argc > isc_commandline_index + 1) {
-		srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-		if (srv == NULL)
-			fatal("Memory allocation failure.");
-		strncpy(srv->servername,
-			argv[isc_commandline_index+1], MXNAME-1);
+		srv = make_server(argv[isc_commandline_index+1]);
 		debug("server is %s", srv->servername);
 		ISC_LIST_APPEND(server_list, srv, link);
 	}

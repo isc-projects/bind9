@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.33 2000/07/13 22:53:51 mws Exp $ */
+/* $Id: dig.h,v 1.34 2000/07/14 16:35:30 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -66,6 +66,7 @@ ISC_LANG_BEGINDECLS
 typedef struct dig_lookup dig_lookup_t;
 typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
+typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
 struct dig_lookup {
@@ -74,7 +75,6 @@ struct dig_lookup {
 		waiting_connect,
 		doing_xfr,
 		ns_search_only,
-		use_my_server_list,
 		identify,
 		recurse,
 		aaonly,
@@ -107,7 +107,7 @@ struct dig_lookup {
 	dns_name_t *oname;
 	ISC_LINK(dig_lookup_t) link;
 	ISC_LIST(dig_query_t) q;
-	ISC_LIST(dig_server_t) my_server_list;
+	dig_serverlist_t my_server_list;
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
 	int retries;
@@ -215,6 +215,12 @@ make_empty_lookup(void);
 dig_lookup_t *
 clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
 
+dig_server_t *
+make_server(const char *servname);
+
+void
+clone_server_list(dig_serverlist_t src, 
+		  dig_serverlist_t *dest);
 
 /*
  * Routines needed in dig.c and host.c.

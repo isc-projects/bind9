@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.24 2000/07/13 01:22:36 mws Exp $ */
+/* $Id: nslookup.c,v 1.25 2000/07/14 16:35:29 mws Exp $ */
 
 #include <config.h>
 
@@ -659,7 +659,6 @@ addlookup(char *opt) {
 	lookup->xfr_q = NULL;
 	lookup->origin = NULL;
 	lookup->querysig = NULL;
-	lookup->use_my_server_list = ISC_FALSE;
 	lookup->doing_xfr = ISC_FALSE;
 	lookup->ixfr_serial = 0;
 	lookup->defname = ISC_FALSE;
@@ -802,15 +801,13 @@ flush_lookup_list(void) {
 			ISC_LIST_DEQUEUE(l->q, qp, link);
 			isc_mem_free(mctx, qp);
 		}
-		if (l->use_my_server_list) {
-			s = ISC_LIST_HEAD(l->my_server_list);
-			while (s != NULL) {
-				sp = s;
-				s = ISC_LIST_NEXT(s, link);
-				ISC_LIST_DEQUEUE(l->my_server_list, sp, link);
-				isc_mem_free(mctx, sp);
-
-			}
+		s = ISC_LIST_HEAD(l->my_server_list);
+		while (s != NULL) {
+			sp = s;
+			s = ISC_LIST_NEXT(s, link);
+			ISC_LIST_DEQUEUE(l->my_server_list, sp, link);
+			isc_mem_free(mctx, sp);
+			
 		}
 		if (l->sendmsg != NULL)
 			dns_message_destroy(&l->sendmsg);

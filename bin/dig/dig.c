@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.65 2000/07/13 21:12:20 mws Exp $ */
+/* $Id: dig.c,v 1.66 2000/07/14 16:35:25 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -34,7 +34,7 @@
 #include <dig/dig.h>
 
 extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
+extern dig_serverlist_t server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 #define ADD_STRING(b, s) { 				\
@@ -73,22 +73,7 @@ extern isc_boolean_t isc_mem_debugging;
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
 isc_uint16_t bufsize = 0;
-isc_boolean_t
-	identify = ISC_FALSE,
-	trace = ISC_FALSE,
-	ns_search_only = ISC_FALSE,
-	forcecomment = ISC_FALSE,
-	stats = ISC_TRUE,
-	comments = ISC_TRUE,
-	section_question = ISC_TRUE,
-	section_answer = ISC_TRUE,
-	section_authority = ISC_TRUE,
-	section_additional = ISC_TRUE,
-	recurse = ISC_TRUE,
-	defname = ISC_TRUE,
-	tcpmode = ISC_FALSE,
-	adflag = ISC_FALSE,
-	cdflag = ISC_FALSE;
+isc_boolean_t forcecomment = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -201,7 +186,8 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	if (query->lookup->stats) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Query time: %ld msec\n", (long int)diff/1000);
-		printf(";; SERVER: %.*s\n", frmsize, frm);
+		printf(";; SERVER: %.*s(%s)\n", frmsize, frm,
+		       query->servname);
 		time(&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
 		printf(";; MSG SIZE  rcvd: %d\n", bytes);
@@ -591,17 +577,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		if (strncmp(rv[0], "%", 1) == 0) 
 			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
-			srv = isc_mem_allocate(mctx,
-					       sizeof(struct dig_server));
-			if (srv == NULL)
-				fatal("Memory allocation failure");
-			strncpy(srv->servername, &rv[0][1], MXNAME-1);
-			if (!lookup->use_my_server_list) {
-				ISC_LIST_INIT(lookup->
-					      my_server_list);
-				lookup->use_my_server_list =
-					ISC_TRUE;
-			}
+			srv = make_server(&rv[0][1]);
 			ISC_LIST_APPEND(lookup->my_server_list,
 					srv, link);
 		} else if ((strcmp(rv[0], "+vc") == 0)
@@ -688,6 +664,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->section_additional = ISC_FALSE;
 			lookup->section_authority = ISC_FALSE;
 			lookup->section_question = ISC_FALSE;
+			strcpy(lookup->rttext, "soa");
+			short_form = ISC_TRUE;
 		} else if (strncmp(rv[0], "+nons", 6) == 0) {
 			lookup->ns_search_only = ISC_FALSE;
 		} else if (strncmp(rv[0], "+tr", 3) == 0) {
@@ -912,7 +890,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 						    lookup->ns_search_only);
 			lookup->new_search = ISC_TRUE;
 			ISC_LIST_APPEND(lookup_list, lookup, link);
-			ISC_LIST_INIT(lookup->my_server_list);
 			have_host = ISC_TRUE;
 			debug("looking up %s", lookup->textname);
 		}
