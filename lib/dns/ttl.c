@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <isc/assertions.h>
@@ -54,7 +55,8 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 			       t, s,
 			       t == 1 ? "" : "s");
 	else
-		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);		
+		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);
+
 	INSIST(len + 1 <= sizeof tmp);
 	isc_buffer_available(target, &region);
 	if (len > region.length)
@@ -67,9 +69,7 @@ ttlfmt(unsigned int t, char *s, isc_boolean_t verbose,
 /* Derived from bind8 ns_format_ttl(). */
 
 isc_result_t
-dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
-	       isc_buffer_t *target)
-{
+dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose, isc_buffer_t *target) {
 	unsigned secs, mins, hours, days, weeks, x;
 
 	secs = src % 60;   src /= 60;

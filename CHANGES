@@ -1,3 +1,5 @@
+  80.   [cleanup]       <isc/print.h> does not need <stdio.h> or <stdlib.h>.
+
   79.   [cleanup]       <dns/callbacks.h> does not need <stdio.h>.
 
   78.   [cleanup]       lwres_conftest renamed to lwresconf_test for
