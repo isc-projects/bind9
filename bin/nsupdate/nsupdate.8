@@ -12,9 +12,6 @@
 .\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
-
-.\" $Id: nsupdate.8,v 1.15 2001/04/10 21:50:47 bwelling Exp $
-
 .TH "NSUPDATE" "8" "Jun 30, 2000" "BIND9" ""
 .SH NAME
 nsupdate \- Dynamic DNS update utility
@@ -144,7 +141,7 @@ DNS update request to the name server.
 .PP
 The command formats and their meaning are as follows:
 .TP
-\fB.sp\fR
+\fBserver servername [ port ]\fR
 Sends all dynamic update requests to the name server
 \fIservername\fR.
 When no server statement is provided,
@@ -159,7 +156,7 @@ where the dynamic update requests get sent.
 If no port number is specified, the default DNS port number of 53 is
 used.
 .TP
-\fB.sp\fR
+\fBlocal address [ port ]\fR
 Sends all dynamic update requests using the local
 \fIaddress\fR.
 When no local statement is provided,
@@ -169,7 +166,7 @@ will send updates using an address and port choosen by the system.
 can additionally be used to make requests come from a specific port.
 If no port number is specified, the system will assign one.
 .TP
-\fB.sp\fR
+\fBzone zonename\fR
 Specifies that all updates are to be made to the zone
 \fIzonename\fR.
 If no
@@ -178,16 +175,16 @@ statement is provided,
 \fBnsupdate\fR
 will attempt determine the correct zone to update based on the rest of the input.
 .TP
-\fB.sp\fR
+\fBprereq nxdomain domain-name\fR
 Requires that no resource record of any type exists with name
 \fIdomain-name\fR.
 .TP
-\fB.sp\fR
+\fBprereq yxdomain domain-name\fR
 Requires that
 \fIdomain-name\fR
 exists (has as at least one resource record, of any type).
 .TP
-\fB.sp\fR
+\fBprereq nxrrset domain-name [ class ]  type\fR
 Requires that no resource record exists of the specified
 \fItype\fR,
 \fIclass\fR
@@ -197,7 +194,7 @@ If
 \fIclass\fR
 is omitted, IN (internet) is assumed.
 .TP
-\fB.sp\fR
+\fBprereq yxrrset domain-name [ class ]  type\fR
 This requires that a resource record of the specified
 \fItype\fR,
 \fIclass\fR
@@ -208,7 +205,7 @@ If
 \fIclass\fR
 is omitted, IN (internet) is assumed.
 .TP
-\fB.sp\fR
+\fBprereq yxrrset domain-name [ class ]  type data\fI...\fB\fR
 The
 \fIdata\fR
 from each set of prerequisites of this form
@@ -229,7 +226,7 @@ The
 are written in the standard text representation of the resource record's
 RDATA.
 .TP
-\fB.sp\fR
+\fBupdate delete domain-name [ ttl ]  [ class ]  [ type  [ data\fI...\fB ]  ]\fR
 Deletes any resource records named
 \fIdomain-name\fR.
 If
@@ -243,7 +240,7 @@ is not supplied. The
 \fIttl\fR
 is ignored, and is only allowed for compatibility.
 .TP
-\fB.sp\fR
+\fBupdate add domain-name ttl [ class ]  type data\fI...\fB\fR
 Adds a new resource record with the specified
 \fIttl\fR,
 \fIclass\fR
@@ -312,7 +309,7 @@ base-64 encoding of HMAC-MD5 key created by
 .SH "SEE ALSO"
 .PP
 \fBRFC2136\fR,
-\fBRFC2137\fR,
+\fBRFC3007\fR,
 \fBRFC2104\fR,
 \fBRFC2845\fR,
 \fBRFC1034\fR,
