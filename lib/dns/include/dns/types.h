@@ -32,6 +32,7 @@
 
 typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
+typedef ISC_LIST(dns_name_t)			dns_namelist_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
@@ -39,9 +40,11 @@ typedef isc_uint16_t				dns_rdataclass_t;
 typedef isc_uint16_t				dns_rdatatype_t;
 typedef isc_uint32_t				dns_ttl_t;
 typedef struct dns_rdata			dns_rdata_t;
+typedef struct dns_rdatalist			dns_rdatalist_t;
 typedef struct dns_signature			dns_signature_t;
 typedef struct dns_rdataset			dns_rdataset_t;
-typedef ISC_LIST(dns_name_t)			dns_namelist_t;
+typedef ISC_LIST(dns_rdataset_t)		dns_rdatasetlist_t;
+typedef struct dns_rdataiterator		dns_rdataiterator_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,
