@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.22 2000/06/23 17:59:08 tale Exp $ */
+/* $Id: logconf.c,v 1.22.2.1 2000/11/29 20:18:57 gson Exp $ */
 
 #include <config.h>
 
@@ -95,6 +95,7 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 	unsigned int type;
 	unsigned int flags = 0;
 	int level;
+	dns_c_logseverity_t severity;
 	
 	type = ISC_LOG_TONULL;
 	switch (cchan->ctype) {
@@ -173,7 +174,34 @@ channel_fromconf(dns_c_logchan_t *cchan, isc_logconfig_t *lctx) {
 	}
 	
 	level = ISC_LOG_INFO;
-	(void)dns_c_logchan_getdebuglevel(cchan, &level);
+	if (dns_c_logchan_getseverity(cchan, &severity) == ISC_R_SUCCESS) {
+		switch (severity) {
+		case dns_c_log_critical:
+			level = ISC_LOG_CRITICAL;
+			break;
+		case dns_c_log_error:
+			level = ISC_LOG_ERROR;
+			break;
+		case dns_c_log_warn:
+			level = ISC_LOG_WARNING;
+			break;
+		case dns_c_log_notice:
+			level = ISC_LOG_NOTICE;
+			break;
+		case dns_c_log_info:
+			level = ISC_LOG_INFO;
+			break;
+		case dns_c_log_debug:
+			(void)dns_c_logchan_getdebuglevel(cchan, &level);
+			break;
+		case dns_c_log_dynamic:
+			level = ISC_LOG_DYNAMIC;
+			break;
+		default:
+			level = ISC_LOG_INFO;
+			break;
+		}
+	}
 	
 	result = isc_log_createchannel(lctx, cchan->name,
 				       type, level, &dest, flags);
