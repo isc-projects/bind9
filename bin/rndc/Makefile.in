@@ -21,7 +21,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	-I../named/include \
+CINCLUDES =	-I${top_srcdir}/bin/named/include \
 		${ISC_INCLUDES} ${OMAPI_INCLUDES}
 
 CDEFINES =	
