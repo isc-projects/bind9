@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.50 2000/09/21 23:02:33 mws Exp $ */
+/* $Id: nslookup.c,v 1.51 2000/09/21 23:10:15 gson Exp $ */
 
 #include <config.h>
 
@@ -585,7 +585,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 		recurse?"recurse":"norecurse");
 	printf("\t  timeout = %d\t\tretry = %d\tport = %d\n",
 		timeout, tries, port);
-	printf("\t  querytype = %-8s\tclass = %s\n",deftype, defclass);
+	printf("\t  querytype = %-8s\tclass = %s\n", deftype, defclass);
 #if 0
 	printf("\t  domain = %s\n", fixeddomain);
 #endif
@@ -629,7 +629,7 @@ testclass(char *typetext) {
 
 static void
 setoption(char *opt) {
-	if (strncasecmp(opt,"all",4) == 0) {
+	if (strncasecmp(opt, "all", 4) == 0) {
 		show_settings(ISC_TRUE, ISC_FALSE);
 	} else if (strncasecmp(opt, "class=", 6) == 0) {
 		if (testclass(&opt[6]))
@@ -690,7 +690,7 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	} else {
-		printf ("*** Invalid option: %s\n",opt);	
+		printf ("*** Invalid option: %s\n", opt);	
 	}
 }
 
@@ -707,14 +707,14 @@ addlookup(char *opt) {
 	tr.length = strlen(deftype);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
 	if (result != ISC_R_SUCCESS) {
-		printf("unknown query type: %s\n",deftype);
+		printf("unknown query type: %s\n", deftype);
 		rdclass = dns_rdatatype_a;
 	}
 	tr.base = defclass;
 	tr.length = strlen(defclass);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
 	if (result != ISC_R_SUCCESS) {
-		printf("unknown query class: %s\n",defclass);
+		printf("unknown query class: %s\n", defclass);
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
