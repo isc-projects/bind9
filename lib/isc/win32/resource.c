@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.c,v 1.3 2001/10/26 01:25:29 mayer Exp $ */
+/* $Id: resource.c,v 1.4 2001/10/26 02:29:43 mayer Exp $ */
 
 #include <config.h>
 
@@ -40,7 +40,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 	int wresult;
 
 	if (resource != isc_resource_openfiles)
-	return (ISC_R_NOTIMPLEMENTED);
+		return (ISC_R_NOTIMPLEMENTED);
 
 
 	if (value == ISC_RESOURCE_UNLIMITED)
@@ -60,7 +60,7 @@ isc_result_t
 isc_resource_getlimit(isc_resource_t resource, isc_resourcevalue_t *value) {
 
 	if (resource != isc_resource_openfiles)
-	return (ISC_R_NOTIMPLEMENTED);
+		return (ISC_R_NOTIMPLEMENTED);
 
 	*value = RLIMIT_NOFILE;
 	return (ISC_R_SUCCESS);
