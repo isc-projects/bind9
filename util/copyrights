@@ -1769,6 +1769,8 @@
 ./lib/dns/rdata/in_1/a_1.h			C	1998,1999,2000,2001
 ./lib/dns/rdata/in_1/aaaa_28.c			C	1999,2000,2001,2002
 ./lib/dns/rdata/in_1/aaaa_28.h			C	1999,2000,2001
+./lib/dns/rdata/in_1/apl_42.c			C	2002
+./lib/dns/rdata/in_1/apl_42.h			C	2002
 ./lib/dns/rdata/in_1/kx_36.c			C	1999,2000,2001
 ./lib/dns/rdata/in_1/kx_36.h			C	1999,2000,2001
 ./lib/dns/rdata/in_1/naptr_35.c			C	1999,2000,2001
