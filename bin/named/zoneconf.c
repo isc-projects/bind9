@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110 2004/03/05 04:57:49 marka Exp $ */
+/* $Id: zoneconf.c,v 1.111 2004/03/30 02:13:43 marka Exp $ */
 
 #include <config.h>
 
@@ -472,6 +472,8 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			char *notifystr = cfg_obj_asstring(obj);
 			if (strcasecmp(notifystr, "explicit") == 0)
 				notifytype = dns_notifytype_explicit;
+			else if (strcasecmp(notifystr, "master-only") == 0)
+				notifytype = dns_notifytype_masteronly;
 			else
 				INSIST(0);
 		}

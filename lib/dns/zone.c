@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410 2004/03/18 02:58:03 marka Exp $ */
+/* $Id: zone.c,v 1.411 2004/03/30 02:13:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2915,6 +2915,10 @@ zone_notify(dns_zone_t *zone) {
 		return;
 
 	if (notifytype == dns_notifytype_no)
+		return;
+
+	if (notifytype == dns_notifytype_masteronly &&
+	    zone->type != dns_zone_master)
 		return;
 
 	origin = &zone->origin;

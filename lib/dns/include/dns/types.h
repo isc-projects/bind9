@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109 2004/03/05 05:09:47 marka Exp $ */
+/* $Id: types.h,v 1.110 2004/03/30 02:13:44 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -136,7 +136,8 @@ typedef enum {
 typedef enum {
 	dns_notifytype_no = 0,
 	dns_notifytype_yes = 1,
-	dns_notifytype_explicit = 2
+	dns_notifytype_explicit = 2,
+	dns_notifytype_masteronly = 3
 } dns_notifytype_t;
 
 typedef enum {
