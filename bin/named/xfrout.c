@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.38 2000/01/18 22:21:57 gson Exp $ */
+ /* $Id: xfrout.c,v 1.39 2000/01/27 00:56:10 gson Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
 #include <dns/db.h>
@@ -561,13 +562,13 @@ soa_rrstream_create(isc_mem_t *mctx,
 
 static isc_result_t
 soa_rrstream_first(rrstream_t *rs) {
-	rs = rs; /* Unused */
+	UNUSED(rs);
 	return (DNS_R_SUCCESS);
 }
 
 static isc_result_t
 soa_rrstream_next(rrstream_t *rs) {
-	rs = rs; /* Unused */
+	UNUSED(rs);
 	return (DNS_R_NOMORE);
 }
 
@@ -1407,7 +1408,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sev = (isc_socketevent_t *) event;	
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
 	isc_result_t evresult = sev->result;
-	task = task; /* Unused */
+	UNUSED(task);
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
 	isc_event_free(&event);
 	xfr->sends--;
@@ -1430,7 +1431,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 static void
 xfrout_timeout(isc_task_t *task, isc_event_t *event) {
 	xfrout_ctx_t *xfr = (xfrout_ctx_t *) event->arg;
-	task = task; /* Unused */
+	UNUSED(task);
 	/* This will log "giving up: timeout". */
 	xfrout_fail(xfr, ISC_R_TIMEDOUT, "giving up");
 	isc_event_free(&event);
