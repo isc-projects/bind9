@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.13 1999/08/12 01:32:31 halley Exp $ */
+ /* $Id: nxt_30.c,v 1.14 1999/08/28 01:48:48 halley Exp $ */
 
  /* RFC 2065 */
 
@@ -139,6 +139,7 @@ fromwire_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 	
 	isc_buffer_active(source, &sr);
+	/* XXXRTH  Enforce RFC 2535 length rules if bit 0 is not set. */
 	if (sr.length > 8 * 1024)
 		return (DNS_R_EXTRADATA);
 	RETERR(mem_tobuffer(target, sr.base, sr.length));
