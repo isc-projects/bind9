@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.68 2000/04/28 01:10:36 halley Exp $ */
+/* $Id: confparser.y,v 1.69 2000/04/28 02:05:07 halley Exp $ */
 
 #include <config.h>
 
@@ -97,7 +97,7 @@ static isc_lexspecials_t	specials;
 #define CONF_MAX_IDENT 1024
 
 /* This should be sufficient to permit multiple parsers and lexers if needed */
-#define yyparse dns_yyparse
+#define yyparse dns__yyparse
 
 #define YYDEBUG 1 
 
@@ -137,7 +137,51 @@ static isc_boolean_t	keydefinedinscope(dns_c_ctx_t *cfg,
 
 /* returns true if (base * mult) would be too big.*/
 static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
- 
+
+/*
+ * #define global symbols that various versions of YACC export into our
+ * namespace.  This won't work for all versions, but we hope to cover
+ * the popular ones.
+ */
+
+/*
+ * All YACCs
+ */
+#define yychar		dns__yychar
+#define yydebug		dns__yydebug
+#define yylval		dns__yylval
+#define yynerrs		dns__yynerrs
+/*
+ * BYACC
+ */
+#define yyerrflag	dns__yyerrflag
+#define yyss		dns__yyss
+#define yyssp		dns__yyssp
+#define yyval		dns__yyval
+#define yyvs		dns__yyvs
+#define yyvsp		dns__yyvsp
+/*
+ * AIX
+ */
+#define yyps		dns__yyps
+#define yypv		dns__yypv
+#define yypvt		dns__yypvt
+#define yys		dns__yys
+#define yystate		dns__yystate
+#define yytmp		dns__yytmp
+#define yyv		dns__yyv
+#define yyval		dns__yyval
+#define yyact		dns__yyact
+#define yychk		dns__yychk
+#define yydef		dns__yydef
+#define yyexca		dns__yyexca
+#define yypact		dns__yypact
+#define yypgo		dns__yypgo
+#define yyr1		dns__yyr1
+#define yyr2		dns__yyr2
+#define yyreds		dns__yyreds
+#define yytoks		dns__yytoks
+
 %}
 
 %union {
