@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.30 2000/08/02 17:58:07 mws Exp $ */
+/* $Id: nslookup.c,v 1.31 2000/08/02 19:53:33 tale Exp $ */
 
 #include <config.h>
 
@@ -594,7 +594,7 @@ testtype(char *typetext) {
 	tr.base = typetext;
 	tr.length = strlen(typetext);
 	result = dns_rdatatype_fromtext(&rdtype, &tr);
-	return (result == ISC_R_SUCCESS);
+	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
 static isc_boolean_t
@@ -606,7 +606,7 @@ testclass(char *typetext) {
 	tr.base = typetext;
 	tr.length = strlen(typetext);
 	result = dns_rdataclass_fromtext(&rdclass, &tr);
-	return (result == ISC_R_SUCCESS);
+	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
 
