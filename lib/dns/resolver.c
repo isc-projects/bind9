@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.138 2000/06/26 21:07:36 explorer Exp $ */
+/* $Id: resolver.c,v 1.139 2000/06/26 21:46:25 explorer Exp $ */
 
 #include <config.h>
 
@@ -95,7 +95,7 @@
  * This defines the maximum number of restarts we will permit before we
  * disable EDNS0 on the query.
  */
-#define NOEDNS0_RESTARTS		3
+#define NOEDNS0_RESTARTS		4
 
 typedef struct fetchctx fetchctx_t;
 
