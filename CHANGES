@@ -1,4 +1,7 @@
 
+  20.	[func]		Configuration file post-load validation of zones
+			failed if there were no zones.
+
   19.	[bug]		dns_zone_notifyreceive() failed to unlock the zone
 			lock in certain error cases.
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.41 2000/03/30 17:23:37 brister Exp $ */
+/* $Id: confctx.c,v 1.42 2000/04/04 20:19:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -363,8 +363,8 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "rfc2308-type-1 is not yet implemented.");
 	}
 
-	
-	rval = dns_c_zonelist_checkzones(cfg->zlist);
+	if (cfg->zlist != NULL)
+		rval = dns_c_zonelist_checkzones(cfg->zlist);
 	if (rval != ISC_R_SUCCESS) {
 		result = ISC_R_FAILURE;
 	}
