@@ -8,7 +8,6 @@ byname_test
 cfg_test
 compress_test
 db_test
-dispatch_test
 entropy_test
 entropy2_test
 fsaccess_test

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.109 2001/02/16 01:07:34 bwelling Exp $
+# $Id: Makefile.in,v 1.110 2001/02/16 01:12:08 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,7 +52,6 @@ XTARGETS =	adb_test \
 		cfg_test \
 		compress_test \
 		db_test \
-		dispatch_test \
 		entropy_test \
 		entropy2_test \
 		gxba_test \
@@ -93,7 +92,6 @@ SRCS =		adb_test.c \
 		byname_test.c \
 		compress_test.c \
 		db_test.c \
-		dispatch_test.c \
 		entropy_test.c \
 		entropy2_test.c \
 		gxba_test.c \
@@ -246,10 +244,6 @@ serial_test: serial_test.@O@ ${ISCDEPLIBS}
 
 zone_test: zone_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ zone_test.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-dispatch_test: dispatch_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dispatch_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 nconf_test: nconf_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
