@@ -942,6 +942,81 @@ CLASS="replaceable"
 ><TT
 CLASS="userinput"
 ><B
+>freeze <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+>
+       [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>class</I
+></TT
+>
+           [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>view</I
+></TT
+></SPAN
+>]</SPAN
+>]</B
+></TT
+></DT
+><DD
+><P
+>Suspend updates to a dynamic zone.  This allows manual
+    edits to be made to a zone normally updated by dynamic update.  It
+    also causes changes in the journal file to be synced into the master
+    and the journal file to be removed.  All dynamic update attempts will
+    be refused while the zone is frozen.</P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
+>unfreeze <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+>
+       [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>class</I
+></TT
+>
+           [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>view</I
+></TT
+></SPAN
+>]</SPAN
+>]</B
+></TT
+></DT
+><DD
+><P
+>Enable updates to a frozen dynamic zone.  This causes
+    the server to reload the zone from disk, and re-enables dynamic updates
+    after the load has completed.  After a zone is unfrozen, dynamic updates
+    will no longer be refused.</P
+></DD
+><DT
+><TT
+CLASS="userinput"
+><B
 >reconfig</B
 ></TT
 ></DT
@@ -1419,7 +1494,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN655"
+NAME="AEN675"
 >3.3.2. Signals</A
 ></H2
 ><P
@@ -1432,7 +1507,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN659"
+NAME="AEN679"
 ></A
 ><P
 ></P

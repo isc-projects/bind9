@@ -93,7 +93,7 @@ HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
 ></DT
 ><DT
 >4.4. <A
-HREF="Bv9ARM.ch04.html#AEN734"
+HREF="Bv9ARM.ch04.html#AEN753"
 >Split DNS</A
 ></DT
 ><DT
@@ -103,12 +103,12 @@ HREF="Bv9ARM.ch04.html#tsig"
 ></DT
 ><DT
 >4.6. <A
-HREF="Bv9ARM.ch04.html#AEN894"
+HREF="Bv9ARM.ch04.html#AEN913"
 >TKEY</A
 ></DT
 ><DT
 >4.7. <A
-HREF="Bv9ARM.ch04.html#AEN909"
+HREF="Bv9ARM.ch04.html#AEN928"
 >SIG(0)</A
 ></DT
 ><DT
@@ -118,7 +118,7 @@ HREF="Bv9ARM.ch04.html#DNSSEC"
 ></DT
 ><DT
 >4.9. <A
-HREF="Bv9ARM.ch04.html#AEN994"
+HREF="Bv9ARM.ch04.html#AEN1013"
 >IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -254,34 +254,32 @@ CLASS="command"
 >.</P
 ><P
 >If you have to make changes to a dynamic zone
-    manually, the following procedure will work: Shut down
-    the server using <B
+    manually, the following procedure will work: Disable dynamic updates
+    to the zone using
+    <B
 CLASS="command"
->rndc stop</B
-> (sending a signal
-    or using <B
-CLASS="command"
->rndc halt</B
-> is <I
-CLASS="emphasis"
->not</I
->
-    sufficient). Wait for the server to exit,
-    then <I
-CLASS="emphasis"
->remove</I
-> the zone's 
-    <TT
+>rndc freeze <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+></B
+>.
+    This will also remove the zone's <TT
 CLASS="filename"
 >.jnl</TT
-> file, edit the zone file,
-    and restart the server.  Removing the <TT
-CLASS="filename"
->.jnl</TT
+> file
+    and update the master file.  Edit the zone file.  Run
+    <B
+CLASS="command"
+>rndc unfreeze <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+></B
 >
-    file is necessary because the manual edits will not be
-    present in the journal, rendering it inconsistent with the
-    contents of the zone file.</P
+    to reload the changed zone and re-enable dynamic updates.</P
 ></DIV
 ></DIV
 ><DIV
@@ -343,7 +341,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN734"
+NAME="AEN753"
 >4.4. Split DNS</A
 ></H1
 ><P
@@ -743,7 +741,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN825"
+NAME="AEN844"
 >4.5.1. Generate Shared Keys for Each Pair of Hosts</A
 ></H2
 ><P
@@ -761,7 +759,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN830"
+NAME="AEN849"
 >4.5.1.1. Automatic Generation</A
 ></H3
 ><P
@@ -803,7 +801,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN841"
+NAME="AEN860"
 >4.5.1.2. Manual Generation</A
 ></H3
 ><P
@@ -824,7 +822,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN846"
+NAME="AEN865"
 >4.5.2. Copying the Shared Secret to Both Machines</A
 ></H2
 ><P
@@ -836,7 +834,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN849"
+NAME="AEN868"
 >4.5.3. Informing the Servers of the Key's Existence</A
 ></H2
 ><P
@@ -884,7 +882,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN861"
+NAME="AEN880"
 >4.5.4. Instructing the Server to Use the Key</A
 ></H2
 ><P
@@ -944,7 +942,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN877"
+NAME="AEN896"
 >4.5.5. TSIG Key Based Access Control</A
 ></H2
 ><P
@@ -990,7 +988,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN890"
+NAME="AEN909"
 >4.5.6. Errors</A
 ></H2
 ><P
@@ -1019,7 +1017,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN894"
+NAME="AEN913"
 >4.6. TKEY</A
 ></H1
 ><P
@@ -1086,7 +1084,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN909"
+NAME="AEN928"
 >4.7. SIG(0)</A
 ></H1
 ><P
@@ -1158,7 +1156,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN926"
+NAME="AEN945"
 >4.8.1. Generating Keys</A
 ></H2
 ><P
@@ -1238,7 +1236,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN946"
+NAME="AEN965"
 >4.8.2. Creating a Keyset</A
 ></H2
 ><P
@@ -1291,7 +1289,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN958"
+NAME="AEN977"
 >4.8.3. Signing the Child's Keyset</A
 ></H2
 ><P
@@ -1341,7 +1339,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN971"
+NAME="AEN990"
 >4.8.4. Signing the Zone</A
 ></H2
 ><P
@@ -1403,7 +1401,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN987"
+NAME="AEN1006"
 >4.8.5. Configuring Servers</A
 ></H2
 ><P
@@ -1431,7 +1429,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN994"
+NAME="AEN1013"
 >4.9. IPv6 Support in <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -1498,7 +1496,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1011"
+NAME="AEN1030"
 >4.9.1. Address Lookups Using AAAA Records</A
 ></H2
 ><P
@@ -1520,7 +1518,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1016"
+NAME="AEN1035"
 >4.9.2. Address Lookups Using A6 Records</A
 ></H2
 ><P
@@ -1540,7 +1538,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1020"
+NAME="AEN1039"
 >4.9.2.1. A6 Chains</A
 ></H3
 ><P
@@ -1586,7 +1584,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1031"
+NAME="AEN1050"
 >4.9.2.2. A6 Records for DNS Servers</A
 ></H3
 ><P
@@ -1616,7 +1614,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1037"
+NAME="AEN1056"
 >4.9.3. Address to Name Lookups Using Nibble Format</A
 ></H2
 ><P
@@ -1647,7 +1645,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1044"
+NAME="AEN1063"
 >4.9.4. Address to Name Lookups Using Binary Label Format</A
 ></H2
 ><P
@@ -1674,7 +1672,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1051"
+NAME="AEN1070"
 >4.9.5. Using DNAME for Delegation of IPv6 Reverse Addresses</A
 ></H2
 ><P
