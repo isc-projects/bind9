@@ -962,6 +962,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * The fetch is waiting for a name to be found.
 		 */
+		INSIST(!SHUTTINGDOWN(fctx));
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 		if (event->type == DNS_EVENT_ADBMOREADDRESSES)
 			want_try = ISC_TRUE;
@@ -1491,6 +1492,11 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("doshutdown");
 
 	fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
+
+	/*
+	 * An fctx that is shutting down is no longer in ADDRWAIT mode.
+	 */
+	fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
 
 	LOCK(&res->buckets[bucketnum].lock);
 	
