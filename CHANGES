@@ -1,4 +1,8 @@
 
+ 661.	[bug]		UDP IXFR requests with EDNS options caused 
+			an assertion failure (mpctx->allocated == 0).
+			[RT #623]
+
  660.	[port]		Detect multiple CPUs on HP-UX and IRIX.
 
  659.	[performance]	Rewrite the name compression code to be much faster.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.87 2000/12/22 18:32:06 gson Exp $ */
+/* $Id: xfrout.c,v 1.88 2001/01/06 02:54:42 gson Exp $ */
 
 #include <config.h>
 
@@ -1238,7 +1238,8 @@ failure:
  */
 static void
 sendstream(xfrout_ctx_t *xfr) {
-	dns_message_t *msg = NULL;
+	dns_message_t *tcpmsg = NULL;
+	dns_message_t *msg = NULL; /* Client message if UDP, tcpmsg if TCP */
 	isc_result_t result;
 	isc_region_t used;
 	isc_region_t region;
@@ -1254,67 +1255,78 @@ sendstream(xfrout_ctx_t *xfr) {
 	isc_buffer_clear(&xfr->txlenbuf);
 	isc_buffer_clear(&xfr->txbuf);
 
-	/*
-	 * Build a response dns_message_t, temporarily storing the raw,
-	 * uncompressed owner names and RR data contiguously in xfr->buf.
-	 * We know that if the uncompressed data fits in xfr->buf,
-	 * the compressed data will surely fit in a TCP message.
-	 */
+	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) == 0) {
+		/*
+		 * In the UDP case, we put the response data directly into
+		 * the client message.
+		 */
+		msg = xfr->client->message;
+		CHECK(dns_message_reply(msg, ISC_TRUE));
+	} else {
+		/*
+		 * TCP. Build a response dns_message_t, temporarily storing
+		 * the raw, uncompressed owner names and RR data contiguously
+		 * in xfr->buf.  We know that if the uncompressed data fits
+		 * in xfr->buf, the compressed data will surely fit in a TCP
+		 * message.
+		 */
 
-	msg = NULL;
-	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
+		CHECK(dns_message_create(xfr->mctx,
+					 DNS_MESSAGE_INTENTRENDER, &tcpmsg));
+		msg = tcpmsg;
 
-	msg->id = xfr->id;
-	msg->rcode = dns_rcode_noerror;
-	msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
-	if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
-		msg->flags |= DNS_MESSAGEFLAG_RA;
-	dns_message_settsigkey(msg, xfr->tsigkey);
-	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
-	if (xfr->lasttsig != NULL)
-		isc_buffer_free(&xfr->lasttsig);
-
-	/*
-	 * Include a question section in the first message only.
-	 * BIND 8.2.1 will not recognize an IXFR if it does not have a
-	 * question section.
-	 */
-	if (xfr->nmsg == 0) {
-		dns_name_t *qname = NULL;
-		isc_region_t r;
+		msg->id = xfr->id;
+		msg->rcode = dns_rcode_noerror;
+		msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
+		if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
+			msg->flags |= DNS_MESSAGEFLAG_RA;
+		dns_message_settsigkey(msg, xfr->tsigkey);
+		CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));
+		if (xfr->lasttsig != NULL)
+			isc_buffer_free(&xfr->lasttsig);
 
 		/*
-		 * Reserve space for the 12-byte message header
-		 * and 4 bytes of question.
+		 * Include a question section in the first message only.
+		 * BIND 8.2.1 will not recognize an IXFR if it does not
+		 * have a question section.
 		 */
-		isc_buffer_add(&xfr->buf, 12 + 4);
+		if (xfr->nmsg == 0) {
+			dns_name_t *qname = NULL;
+			isc_region_t r;
 
-		qrdataset = NULL;
-		result = dns_message_gettemprdataset(msg, &qrdataset);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
-		dns_rdataset_init(qrdataset);
-		dns_rdataset_makequestion(qrdataset,
-					  xfr->client->message->rdclass,
-					  xfr->qtype);
+			/*
+			 * Reserve space for the 12-byte message header
+			 * and 4 bytes of question.
+			 */
+			isc_buffer_add(&xfr->buf, 12 + 4);
 
-		result = dns_message_gettempname(msg, &qname);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
-		dns_name_init(qname, NULL);
-		isc_buffer_availableregion(&xfr->buf, &r);
-		INSIST(r.length >= xfr->qname->length);
-		r.length = xfr->qname->length;
-		isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
-				  xfr->qname->length);
-		dns_name_fromregion(qname, &r);
-		ISC_LIST_INIT(qname->list);
-		ISC_LIST_APPEND(qname->list, qrdataset, link);
+			qrdataset = NULL;
+			result = dns_message_gettemprdataset(msg, &qrdataset);
+			if (result != ISC_R_SUCCESS)
+				goto failure;
+			dns_rdataset_init(qrdataset);
+			dns_rdataset_makequestion(qrdataset,
+					xfr->client->message->rdclass,
+					xfr->qtype);
 
-		dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
+			result = dns_message_gettempname(msg, &qname);
+			if (result != ISC_R_SUCCESS)
+				goto failure;
+			dns_name_init(qname, NULL);
+			isc_buffer_availableregion(&xfr->buf, &r);
+			INSIST(r.length >= xfr->qname->length);
+			r.length = xfr->qname->length;
+			isc_buffer_putmem(&xfr->buf, xfr->qname->ndata,
+					  xfr->qname->length);
+			dns_name_fromregion(qname, &r);
+			ISC_LIST_INIT(qname->list);
+			ISC_LIST_APPEND(qname->list, qrdataset, link);
+
+			dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
+		}
+		else
+			msg->tcp_continuation = 1;
 	}
-	else
-		msg->tcp_continuation = 1;
 
 	/*
 	 * Try to fit in as many RRs as possible, unless "one-answer"
@@ -1439,16 +1451,8 @@ sendstream(xfrout_ctx_t *xfr) {
 				      xfr));
 		xfr->sends++;
 	} else {
-		xfrout_log(xfr, ISC_LOG_DEBUG(8),
-			   "sending IXFR UDP response");
-		/* XXX kludge */
-		dns_message_destroy(&xfr->client->message);
-		xfr->client->message = msg;
-		msg = NULL;
+		xfrout_log(xfr, ISC_LOG_DEBUG(8), "sending IXFR UDP response");
 		ns_client_send(xfr->client);
-		xfr->stream->methods->pause(xfr->stream);
-		xfrout_ctx_destroy(&xfr);
-		return;
 	}
 
 	/* Advance lasttsig to be the last TSIG generated */
@@ -1457,26 +1461,23 @@ sendstream(xfrout_ctx_t *xfr) {
 	xfr->nmsg++;
 
  failure:
-	/*
-	 * XXXRTH  need to cleanup qname and qrdataset...
-	 */
-	if (msg != NULL) {
-		if (msgname != NULL) {
-			if (msgrds != NULL) {
-				if (dns_rdataset_isassociated(msgrds))
-					dns_rdataset_disassociate(msgrds);
-				dns_message_puttemprdataset(msg, &msgrds);
-			}
-			if (msgrdl != NULL) {
-				ISC_LIST_UNLINK(msgrdl->rdata, msgrdata, link);
-				dns_message_puttemprdatalist(msg, &msgrdl);
-			}
-			if (msgrdata != NULL)
-				dns_message_puttemprdata(msg, &msgrdata);
-			dns_message_puttempname(msg, &msgname);
+	if (msgname != NULL) {
+		if (msgrds != NULL) {
+			if (dns_rdataset_isassociated(msgrds))
+				dns_rdataset_disassociate(msgrds);
+			dns_message_puttemprdataset(msg, &msgrds);
 		}
-		dns_message_destroy(&msg);
+		if (msgrdl != NULL) {
+			ISC_LIST_UNLINK(msgrdl->rdata, msgrdata, link);
+			dns_message_puttemprdatalist(msg, &msgrdl);
+		}
+		if (msgrdata != NULL)
+			dns_message_puttemprdata(msg, &msgrdata);
+		dns_message_puttempname(msg, &msgname);
 	}
+
+	if (tcpmsg != NULL)
+		dns_message_destroy(&tcpmsg);
 
 	/*
 	 * Make sure to release any locks held by database
