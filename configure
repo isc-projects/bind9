@@ -5446,8 +5446,6 @@ trap 'rm -fr `echo "make/rules
 	bin/Makefile
 	bin/check/Makefile
 	bin/named/Makefile
-	bin/named/named.8
-	bin/named/named.html
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
 	bin/dig/Makefile
@@ -5716,8 +5714,6 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	bin/Makefile
 	bin/check/Makefile
 	bin/named/Makefile
-	bin/named/named.8
-	bin/named/named.html
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
 	bin/dig/Makefile
