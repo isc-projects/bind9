@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.1 2000/06/16 22:17:11 explorer Exp $ */
+/* $Id: driver.c,v 1.2 2000/06/16 23:38:42 explorer Exp $ */
 
 #include <isc/string.h>
 #include <isc/util.h>
@@ -55,10 +55,10 @@ test_result_totext(test_result_t result) {
 	const char *s;
 	switch (result) {
 	case PASSED:
-		s = "PASSED";
+		s = "PASS";
 		break;
 	case FAILED:
-		s = "FAILED";
+		s = "FAIL";
 		break;
 	case UNTESTED:
 		s = "UNTESTED";
