@@ -2038,7 +2038,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		INSIST(!is_zone);
 		INSIST(client->view->hints != NULL);
-		dns_db_detach(&db);
+		if (db != NULL)
+			dns_db_detach(&db);
 		dns_db_attach(client->view->hints, &db);
 		result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns,
 				     0, client->now, &node, fname,
