@@ -567,6 +567,7 @@
 ./lib/isc/include/isc/netaddr.h			C	1998,1999
 ./lib/isc/include/isc/platform.h.in		C	1999
 ./lib/isc/include/isc/print.h			C	1999
+./lib/isc/include/isc/quota.h			C	2000
 ./lib/isc/include/isc/random.h			C	1999
 ./lib/isc/include/isc/ratelimiter.h		C	1999
 ./lib/isc/include/isc/rbtgen.h			C	1998,1999
@@ -607,6 +608,7 @@
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999
 ./lib/isc/pthreads/include/isc/once.h		C	1999
 ./lib/isc/pthreads/include/isc/thread.h		C	1998,1999
+./lib/isc/quota.c				C	2000
 ./lib/isc/random.c				C	1999
 ./lib/isc/ratelimiter.c				C	1999
 ./lib/isc/rbtgen.c				C	1998,1999

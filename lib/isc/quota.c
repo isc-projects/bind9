@@ -1,0 +1,58 @@
+/*
+ * Copyright (C) 2000  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#include <isc/assertions.h>
+#include <isc/quota.h>
+#include <isc/util.h>
+
+isc_result_t
+isc_quota_init(isc_quota_t *quota, int max) {
+	quota->max = max;
+	quota->used = 0;
+	return (isc_mutex_init(&quota->lock));
+}
+
+void
+isc_quota_destroy(isc_quota_t *quota) {
+	quota->max = -1;
+	quota->used = -1;
+	RUNTIME_CHECK(isc_mutex_destroy(&quota->lock) == ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_quota_reserve(isc_quota_t *quota) {
+	isc_result_t result;
+	LOCK(&quota->lock);
+	if (quota->used < quota->max) {
+		quota->used++;
+		result = ISC_R_SUCCESS;
+	} else {
+		result = ISC_R_QUOTA;
+	}
+	UNLOCK(&quota->lock);
+	return (result);
+}
+
+void
+isc_quota_release(isc_quota_t *quota) {
+	LOCK(&quota->lock);
+	INSIST(quota->used > 0);
+	quota->used--;
+	UNLOCK(&quota->lock);	
+}
+
+
