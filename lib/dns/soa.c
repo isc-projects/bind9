@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.2 2001/05/30 20:31:06 bwelling Exp $ */
+/* $Id: soa.c,v 1.3 2001/06/03 19:03:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -89,21 +89,21 @@ soa_set(dns_rdata_t *rdata, isc_uint32_t val, int offset) {
 
 void
 dns_soa_setserial(isc_uint32_t val, dns_rdata_t *rdata) {
-	return soa_set(rdata, val, 0);
+	soa_set(rdata, val, 0);
 }
 void
 dns_soa_setrefresh(isc_uint32_t val, dns_rdata_t *rdata) {
-	return soa_set(rdata, val, 4);
+	soa_set(rdata, val, 4);
 }
 void
 dns_soa_setretry(isc_uint32_t val, dns_rdata_t *rdata) {
-	return soa_set(rdata, val, 8);
+	soa_set(rdata, val, 8);
 }
 void
 dns_soa_setexpire(isc_uint32_t val, dns_rdata_t *rdata) {
-	return soa_set(rdata, val, 12);
+	soa_set(rdata, val, 12);
 }
 void
 dns_soa_setminimum(isc_uint32_t val, dns_rdata_t *rdata) {
-	return soa_set(rdata, val, 16);
+	soa_set(rdata, val, 16);
 }
