@@ -1,4 +1,8 @@
 
+ 676.	[bug]		Log messages about lame servers to category
+			'lame-servers' rather than 'resolver', so as not
+			to be gratuitously incompatible with BIND 8.
+
  675.	[func]		TKEY queries could cause the server to leak
 			memory.
 
