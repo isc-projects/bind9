@@ -76,19 +76,17 @@ typedef struct rdatasetheader {
 	isc_uint16_t			attributes;
 	/*
 	 * We don't use the LIST macros, because the LIST structure has
-	 * both head and tail pointers.  We only have a head pointer in
-	 * the node to save space.
-	 *
-	 * XXXRTH we could probably do away with 'prev' with a little effort.
-	 * The effort would be worth it for the memory savings.
+	 * both head and tail pointers, and is doubly linked.
 	 */
-	struct rdatasetheader		*prev;
 	struct rdatasetheader		*next;
 	struct rdatasetheader		*down;
 } rdatasetheader_t;
 
 #define RDATASET_ATTR_NONEXISTENT	0x01
 #define RDATASET_ATTR_STALE		0x02
+#define RDATASET_ATTR_IGNORE		0x04
+
+#define IGNORE(header)	(((header)->attributes & RDATASET_ATTR_IGNORE) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
 
@@ -439,49 +437,40 @@ free_rdataset(isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 }
 
 static inline void
-rollback_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node, rbtdb_serial_t serial) {
-	rdatasetheader_t *header, *header_next;
+rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
+	rdatasetheader_t *header, *dcurrent;
 
 	/*
 	 * Caller must hold the node lock.
 	 */
 
-	REQUIRE(node->references == 0);
-
-	for (header = node->data; header != NULL; header = header_next) {
-		header_next = header->next;
-		if (header->serial == serial) {
-			if (header->down != NULL) {
-				header->down->prev = header->prev;
-				if (header->prev != NULL)
-					header->prev->next = header->down;
-				else
-					node->data = header->down;
-				header->down->next = header->next;
-				if (header->next != NULL)
-					header->next->prev = header->down;
-			} else {
-				if (header->prev != NULL)
-					header->prev->next = header->next;
-				else
-					node->data = header->next;
-				if (header->next != NULL)
-					header->next->prev = header->prev;
-			}
-			free_rdataset(rbtdb->common.mctx, header);
+	/*
+	 * We set the IGNORE attribute on rdatasets with serial number
+	 * 'serial'.  When the reference count goes to zero, these rdatasets
+	 * will be cleaned up; until that time, they will be ignored.
+	 */
+	for (header = node->data; header != NULL; header = header->next) {
+		if (header->serial == serial)
+			header->attributes |= RDATASET_ATTR_IGNORE;
+		for (dcurrent = header->down;
+		     dcurrent != NULL;
+		     dcurrent = dcurrent->down) {
+			if (dcurrent->serial == serial)
+				dcurrent->attributes |= RDATASET_ATTR_IGNORE;
 		}
 	}
 }
 
 static inline void
 clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
-	rdatasetheader_t *current, *dcurrent, *top_next, *down_next;
+	rdatasetheader_t *current, *dcurrent, *top_prev, *top_next, *down_next;
 	isc_mem_t *mctx = rbtdb->common.mctx;
 
 	/*
 	 * Caller must be holding the node lock.
 	 */
 
+	top_prev = NULL;
 	for (current = node->data; current != NULL; current = top_next) {
 		top_next = current->next;
 		dcurrent = current->down;
@@ -498,14 +487,13 @@ clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		 */
 		if ((current->attributes &
 		     (RDATASET_ATTR_NONEXISTENT|RDATASET_ATTR_STALE)) != 0) {
-			if (current->prev != NULL)
-				current->prev->next = current->next;
+			if (top_prev != NULL)
+				top_prev->next = current->next;
 			else
 				node->data = current->next;
-			if (current->next != NULL)
-				current->next->prev = current->prev;
 			free_rdataset(mctx, current);
-		}
+		} else
+			top_prev = current;
 	}
 	node->dirty = 0;
 }
@@ -514,7 +502,8 @@ static inline void
 clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		rbtdb_serial_t least_serial)
 {
-	rdatasetheader_t *current, *dcurrent, *top_next, *down_next, *dparent;
+	rdatasetheader_t *current, *dcurrent, *down_next, *dparent;
+	rdatasetheader_t *top_prev, *top_next;
 	isc_mem_t *mctx = rbtdb->common.mctx;
 	isc_boolean_t still_dirty = ISC_FALSE;
 
@@ -523,12 +512,15 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 */
 	REQUIRE(least_serial != 0);
 
+	top_prev = NULL;
 	for (current = node->data; current != NULL; current = top_next) {
 		top_next = current->next;
+
 		/*
 		 * Find the first rdataset less than the least serial, if
 		 * any.  On the way down, clean up any instances of multiple
-		 * rdatasets with the same serial number.
+		 * rdatasets with the same serial number, or that have the
+		 * IGNORE attribute.
 		 */
 		dparent = current;
 		for (dcurrent = current->down;
@@ -538,14 +530,14 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			INSIST(dcurrent->serial <= dparent->serial);
 			if (dcurrent->serial < least_serial)
 				break;
-			if (dcurrent->serial == dparent->serial) {
-				if (dcurrent->down != NULL)
-					dcurrent->down->prev = dparent;
+			if (dcurrent->serial == dparent->serial ||
+			    IGNORE(dcurrent)) {
 				dparent->down = dcurrent->down;
 				free_rdataset(mctx, dcurrent);
 			} else
 				dparent = dcurrent;
 		}
+
 		/*
 		 * If there is a such an rdataset, delete it and any older
 		 * versions.
@@ -559,28 +551,61 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			} while (dcurrent != NULL);
 			dparent->down = NULL;
 		}
+
+		/*
+		 * We've eliminated all IGNORE datasets with the possible
+		 * exception of current, which we now check.
+		 */
+		if (IGNORE(current)) {
+			down_next = current->down;
+			if (down_next == NULL) {
+				if (top_prev != NULL)
+					top_prev->next = current->next;
+				else
+					node->data = current->next;
+				free_rdataset(mctx, current);
+				/*
+				 * current no longer exists, so we can
+				 * just continue with the loop.
+				 */
+				continue;
+			} else {
+				/*
+				 * Pull up current->down, making it the new
+				 * current.
+				 */
+				if (top_prev != NULL)
+					top_prev->next = down_next;
+				else
+					node->data = down_next;
+				down_next->next = top_next;
+				free_rdataset(mctx, current);
+				current = down_next;
+			}
+		}
+
 		/*
 		 * Note.  The serial number of 'current' might be less than
 		 * least_serial too, but we cannot delete it because it is
 		 * the most recent version, unless it is a NONEXISTENT
-		 * rdataset.
+		 * rdataset or is IGNOREd.
 		 */
-		if (current->down != NULL)
+		if (current->down != NULL) {
 			still_dirty = ISC_TRUE;
-		else {
+			top_prev = current;
+		} else {
 			/*
 			 * If this is a NONEXISTENT rdataset, we can delete it.
 			 */
 			if ((current->attributes & RDATASET_ATTR_NONEXISTENT)
 			    != 0) {
-				if (current->prev != NULL)
-					current->prev->next = current->next;
+				if (top_prev != NULL)
+					top_prev->next = current->next;
 				else
 					node->data = current->next;
-				if (current->next != NULL)
-					current->next->prev = current->prev;
 				free_rdataset(mctx, current);
-			}
+			} else
+				top_prev = current;
 		}
 	}
 	if (!still_dirty)
@@ -745,7 +770,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 				cleanup_version = version;
 				rbtdb->future_version = NULL;
 			}
-			/* XXX wake up waiting updates */
 		} else {
 			if (version != rbtdb->current_version) {
 				/*
@@ -805,7 +829,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 			INSIST(rbtnode->references > 0);
 			rbtnode->references--;
 			if (rollback)
-				rollback_node(rbtdb, rbtnode, serial);
+				rollback_node(rbtnode, serial);
 
 			if (rbtnode->references == 0)
 				no_references(rbtdb, rbtnode, least_serial);
@@ -904,7 +928,8 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 		if (header->type == dns_rdatatype_ns ||
 		    header->type == dns_rdatatype_dname) {
 			do {
-				if (header->serial <= search->serial) {
+				if (header->serial <= search->serial &&
+				    !IGNORE(header)) {
 					/*
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
@@ -1258,7 +1283,8 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * Look for an active, extant rdataset.
 		 */
 		do {
-			if (header->serial <= search.serial) {
+			if (header->serial <= search.serial &&
+			    !IGNORE(header)) {
 				/*
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
@@ -1609,7 +1635,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rbtdb_search_t search;
 	isc_boolean_t cname_ok = ISC_TRUE;
 	isc_boolean_t empty_node;
-	rdatasetheader_t *header, *header_next, *found, *nsheader, *nxtheader;
+	rdatasetheader_t *header, *header_prev, *header_next;
+	rdatasetheader_t *found, *nsheader, *nxtheader;
 
 	/*
 	 * XXXRTH Currently this code has no support for negative caching.
@@ -1687,6 +1714,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	nsheader = NULL;
 	nxtheader = NULL;
 	empty_node = ISC_TRUE;
+	header_prev = NULL;
 	for (header = node->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (header->ttl <= now) {
@@ -1698,17 +1726,16 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 */
 			if (node->references == 0) {
 				INSIST(header->down == NULL);
-				if (header->prev != NULL)
-					header->prev->next = header->next;
+				if (header_prev != NULL)
+					header_prev->next = header->next;
 				else
 					node->data = header->next;
-				if (header->next != NULL)
-					header->next->prev = header->prev;
 				free_rdataset(search.rbtdb->common.mctx,
 					      header);
 			} else {
 				header->attributes |= RDATASET_ATTR_STALE;
 				node->dirty = 1;
+				header_prev = header;
 			}
 		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT)
 			   == 0) {
@@ -1741,7 +1768,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 */
 				nxtheader = header;
 			}
-		}
+			header_prev = header;
+		} else
+			header_prev = header;
 	}
 
 	if (empty_node) {
@@ -1945,7 +1974,8 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = rbtnode->data; header != NULL; header = header->next) {
 		if (header->type == type) {
 			do {
-				if (header->serial <= serial) {
+				if (header->serial <= serial &&
+				    !IGNORE(header)) {
 					/*
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
@@ -2085,7 +2115,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
     rdatasetheader_t *newheader, isc_boolean_t merge, isc_boolean_t loading)
 {
 	rbtdb_changed_t *changed = NULL;
-	rdatasetheader_t *header;
+	rdatasetheader_t *header, *header_prev;
 	unsigned char *merged;
 	dns_result_t result;
 
@@ -2103,9 +2133,11 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			return (DNS_R_NOMEMORY);
 	}
 
+	header_prev = NULL;
 	for (header = rbtnode->data; header != NULL; header = header->next) {
 		if (header->type == newheader->type)
 			break;
+		header_prev = header;
 	}
 	if (header != NULL) {
 		/*
@@ -2150,14 +2182,11 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 		INSIST(rbtversion == NULL ||
 		       rbtversion->serial >= header->serial);
-		newheader->prev = header->prev;
-		if (header->prev != NULL)
-			header->prev->next = newheader;
+		if (header_prev != NULL)
+			header_prev->next = newheader;
 		else
 			rbtnode->data = newheader;
 		newheader->next = header->next;
-		if (header->next != NULL)
-			header->next->prev = newheader;
 		if (loading) {
 			/*
 			 * There are no other references to 'header' when
@@ -2169,7 +2198,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			free_rdataset(rbtdb->common.mctx, header);
 		} else {
 			newheader->down = header;
-			header->prev = newheader;
 			header->next = NULL;
 			rbtnode->dirty = 1;
 			if (changed != NULL)
@@ -2179,10 +2207,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		/*
 		 * The rdataset type doesn't exist at this node.
 		 */
-		newheader->prev = NULL;
 		newheader->next = rbtnode->data;
-		if (newheader->next != NULL)
-			newheader->next->prev = newheader;
 		newheader->down = NULL;
 		rbtnode->data = newheader;
 	}
@@ -2720,7 +2745,7 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 	for (header = rbtnode->data; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			if (header->serial <= serial) {
+			if (header->serial <= serial && !IGNORE(header)) {
 				/*
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
@@ -2774,7 +2799,7 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	for (header = header->next; header != NULL; header = top_next) {
 		top_next = header->next;
 		do {
-			if (header->serial <= serial) {
+			if (header->serial <= serial && !IGNORE(header)) {
 				/*
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
