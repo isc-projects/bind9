@@ -1,3 +1,5 @@
+ 539.	[func]		Support the blackhole option.
+
  538.	[bug]		fix buffer overruns by 1 in lwres_getnameinfo().
 
  537.	[func]		Use transfer-source{-v6} when notify messages.

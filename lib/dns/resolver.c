@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.175 2000/10/31 03:21:59 marka Exp $ */
+/* $Id: resolver.c,v 1.176 2000/11/03 02:45:48 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/adb.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
@@ -806,10 +807,11 @@ resquery_send(resquery_t *query) {
 	isc_task_t *task;
 	isc_socket_t *socket;
 	isc_buffer_t tcpbuffer;
-	isc_sockaddr_t *address;
+	isc_sockaddr_t *address, taddress;
 	isc_buffer_t *buffer;
 	isc_netaddr_t ipaddr;
 	dns_tsigkey_t *tsigkey = NULL;
+	dns_acl_t *blackhole = NULL;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -991,7 +993,32 @@ resquery_send(resquery_t *query) {
 	 */
 	if ((query->options & DNS_FETCHOPT_TCP) == 0)
 		address = &query->addrinfo->sockaddr;
+	else {
+		result = isc_socket_getpeername(socket, &taddress);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_message;
+		address = &taddress;
+	}
 	isc_buffer_usedregion(buffer, &r);
+
+	(void)dns_dispatchmgr_getblackhole(query->dispatchmgr, &blackhole);
+	if (blackhole != NULL) {
+		isc_netaddr_t netaddr;
+		int match;
+		isc_boolean_t drop = ISC_FALSE;
+
+		isc_netaddr_fromsockaddr(&netaddr, address);
+		if (dns_acl_match(&netaddr, NULL, blackhole,
+				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			drop = ISC_TRUE;
+		dns_acl_detach(&blackhole);
+		if (drop) {
+			result = DNS_R_BLACKHOLED;
+			goto cleanup_message;
+		}
+	}
+
 	/*
 	 * XXXRTH  Make sure we don't send to ourselves!  We should probably
 	 *         prune out these addresses when we get them from the ADB.

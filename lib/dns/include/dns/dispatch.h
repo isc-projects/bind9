@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.36 2000/09/01 07:16:06 explorer Exp $ */
+/* $Id: dispatch.h,v 1.37 2000/11/03 02:45:52 bwelling Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -153,6 +153,29 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp);
  *	mgrp != NULL && *mgrp is a valid dispatchmgr.
  */
 
+
+void
+dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole);
+/*
+ * Sets the list of addresses that will be blackholed (ignored)
+ * by all dispatchers created by the dispatchmgr.
+ *
+ * Requires:
+ * 	mgrp is a valid dispatchmgr
+ * 	blackhole is a valid acl
+ */
+
+
+isc_result_t
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr, dns_acl_t **blackholep);
+/*
+ * Gets the list of addresses that will be blackholed (ignored)
+ * by all dispatchers created by the dispatchmgr.
+ *
+ * Requires:
+ * 	mgr is a valid dispatchmgr
+ * 	blackholep != NULL && *blackholep == NULL
+ */
 
 isc_result_t
 dns_dispatchmgr_find(dns_dispatchmgr_t *mgr,

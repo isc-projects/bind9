@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.76 2000/10/18 23:53:26 marka Exp $ */
+/* $Id: result.c,v 1.77 2000/11/03 02:45:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -106,7 +106,8 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"unexpected message id",	       /* 65 DNS_R_UNEXPECTEDID      */
 	"seen include file",		       /* 66 DNS_R_SEENINCLUDE       */
-	"not exact"		       	       /* 67 DNS_R_NOTEXACT	     */
+	"not exact",		       	       /* 67 DNS_R_NOTEXACT	     */
+	"address blackholed"	       	       /* 68 DNS_R_BLACKHOLED	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

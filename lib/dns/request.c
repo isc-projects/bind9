@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.40 2000/10/31 01:17:15 marka Exp $ */
+/* $Id: request.c,v 1.41 2000/11/03 02:45:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/log.h>
@@ -441,6 +442,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	unsigned int attrs;
 	isc_boolean_t tcp = ISC_FALSE;
 	isc_region_t r;
+	dns_acl_t *blackhole = NULL;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(msgbuf != NULL);
@@ -456,6 +458,30 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_createraw");
 
+	(void)dns_dispatchmgr_getblackhole(requestmgr->dispatchmgr,
+					   &blackhole);
+	if (blackhole != NULL) {
+		isc_netaddr_t netaddr;
+		int match;
+		isc_boolean_t drop = ISC_FALSE;
+
+		isc_netaddr_fromsockaddr(&netaddr, destaddr);
+		if (dns_acl_match(&netaddr, NULL, blackhole,
+				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			drop = ISC_TRUE;
+		dns_acl_detach(&blackhole);
+		if (drop) {
+			char netaddrstr[ISC_NETADDR_FORMATSIZE];
+			isc_netaddr_format(&netaddr, netaddrstr,
+					   sizeof(netaddrstr));
+			req_log(ISC_LOG_DEBUG(10), "blackholed address %s",
+				netaddrstr);
+			return (DNS_R_BLACKHOLED);
+		}
+	}
+
+	request = isc_mem_get(mctx, sizeof(*request));
 	request = isc_mem_get(mctx, sizeof(*request));
 	if (request == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -720,6 +746,7 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	dns_messageid_t	id;
 	isc_time_t expires;
 	unsigned int attrs;
+	dns_acl_t *blackhole = NULL;
 
 	REQUIRE(VALID_REQUESTMGR(requestmgr));
 	REQUIRE(message != NULL);
@@ -734,6 +761,29 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 	mctx = requestmgr->mctx;
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_create");
+
+	(void)dns_dispatchmgr_getblackhole(requestmgr->dispatchmgr,
+					   &blackhole);
+	if (blackhole != NULL) {
+		isc_netaddr_t netaddr;
+		int match;
+		isc_boolean_t drop = ISC_FALSE;
+
+		isc_netaddr_fromsockaddr(&netaddr, destaddr);
+		if (dns_acl_match(&netaddr, NULL, blackhole,
+				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			drop = ISC_TRUE;
+		dns_acl_detach(&blackhole);
+		if (drop) {
+			char netaddrstr[ISC_NETADDR_FORMATSIZE];
+			isc_netaddr_format(&netaddr, netaddrstr,
+					   sizeof(netaddrstr));
+			req_log(ISC_LOG_DEBUG(10), "blackholed address %s",
+				netaddrstr);
+			return (DNS_R_BLACKHOLED);
+		}
+	}
 
 	request = isc_mem_get(mctx, sizeof(*request));
 	if (request == NULL) {

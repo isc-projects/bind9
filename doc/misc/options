@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.37 2000/10/18 22:16:06 bwelling Exp $
+$Id: options,v 1.38 2000/11/03 02:45:42 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -60,7 +60,7 @@ options {
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ allow-recursion { address_match_list }; ]		    Yes@
-  [ blackhole { address_match_list }; ]			    No
+  [ blackhole { address_match_list }; ]			    Yes
   [ listen-on [ port ip_port ] { address_match_list }; ]    Yes@
   [ listen-on-v6 [ port ip_port ] { address_match_list }; ] Yes*
   [ query-source ... ]					    Yes

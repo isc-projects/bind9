@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.234 2000/11/01 20:59:20 bwelling Exp $ */
+/* $Id: server.c,v 1.235 2000/11/03 02:45:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1335,6 +1335,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(cctx, dns_c_ctx_getrecursiveclients,
 				     &server->recursionquota, 1000);
 
+	CHECK(configure_view_acl(NULL, cctx, &aclconfctx, ns_g_mctx, NULL,
+				 dns_c_ctx_getblackhole,
+				 &server->blackholeacl));
+	if (server->blackholeacl != NULL)
+		dns_dispatchmgr_setblackhole(ns_g_dispatchmgr,
+					     server->blackholeacl);
+
 	/* dns_loadmgr_setlimit(server->loadmgr, 20); XXXMPA */
 
 	/*
@@ -1739,6 +1746,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_zonemgr_shutdown(server->zonemgr);
 
+	if (server->blackholeacl != NULL)
+		dns_acl_detach(&server->blackholeacl);
+
 	isc_task_detach(&server->task);
 
 	isc_event_free(&event);
@@ -1778,6 +1788,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
 	server->in_roothints = NULL;
+	server->blackholeacl = NULL;
 
 	CHECKFATAL(dns_rootns_create(mctx, dns_rdataclass_in, NULL,
 				     &server->in_roothints),

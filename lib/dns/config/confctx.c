@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.94 2000/10/31 04:20:50 marka Exp $ */
+/* $Id: confctx.c,v 1.95 2000/11/03 02:45:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -448,13 +448,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'check-names' is not yet implemented");
-	}
-
-	if (dns_c_ctx_getblackhole(cfg, &ipml) != ISC_R_NOTFOUND) {
-		dns_c_ipmatchlist_detach(&ipml);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'blackhole' is not yet implemented");
 	}
 
 	if (dns_c_ctx_getlamettl(cfg, &uintval) != ISC_R_NOTFOUND) {

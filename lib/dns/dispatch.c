@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.72 2000/10/20 02:21:43 marka Exp $ */
+/* $Id: dispatch.c,v 1.73 2000/11/03 02:45:45 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/acl.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/log.h>
@@ -54,6 +55,7 @@ struct dns_dispatchmgr {
 	/* Unlocked. */
 	unsigned int			magic;
 	isc_mem_t		       *mctx;
+	dns_acl_t		       *blackhole;
 
 	/* Locked by "lock". */
 	isc_mutex_t			lock;
@@ -106,6 +108,7 @@ struct dns_dispatch {
 	isc_socket_t	       *socket;		/* isc socket attached to */
 	isc_sockaddr_t		local;		/* local address */
 	unsigned int		maxrequests;	/* max requests */
+	dns_acl_t	       *blackhole;
 
 	/* Locked by mgr->lock. */
 	ISC_LINK(dns_dispatch_t) link;
@@ -508,6 +511,8 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 	isc_boolean_t queue_response;
 	dns_dispatchmgr_t *mgr;
 	dns_qid_t *qid;
+	isc_netaddr_t netaddr;
+	int match;
 
 	UNUSED(task);
 
@@ -566,6 +571,27 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			     "odd socket result in udp_recv(): %s",
 			     isc_result_totext(ev->result));
 
+		goto restart;
+	}
+
+	/*
+	 * If this is from a blackholed address, drop it.
+	 */
+	isc_netaddr_fromsockaddr(&netaddr, &ev->address);
+	if (disp->blackhole != NULL &&
+	    dns_acl_match(&netaddr, NULL, disp->blackhole,
+		    	  NULL, &match, NULL) == ISC_R_SUCCESS &&
+	    match > 0)
+	{
+		if (isc_log_wouldlog(dns_lctx, LVL(10))) {
+			char netaddrstr[ISC_NETADDR_FORMATSIZE];
+			isc_netaddr_format(&netaddr, netaddrstr,
+					   sizeof(netaddrstr));
+			dispatch_log(disp, LVL(10),
+				     "blackholed packet from %s",
+				     netaddrstr);
+		}
+		free_buffer(disp, ev->region.base, ev->region.length);
 		goto restart;
 	}
 
@@ -989,6 +1015,9 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 	DESTROYLOCK(&mgr->buffer_lock);
 
+	if (mgr->blackhole != NULL)
+		dns_acl_detach(&mgr->blackhole);
+
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 }
@@ -1036,6 +1065,8 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 
 	mgr->mctx = NULL;
 	isc_mem_attach(mctx, &mgr->mctx);
+
+	mgr->blackhole = NULL;
 
 	result = isc_mutex_init(&mgr->lock);
 	if (result != ISC_R_SUCCESS)
@@ -1117,6 +1148,24 @@ dns_dispatchmgr_create(isc_mem_t *mctx, isc_entropy_t *entropy,
 	isc_mem_detach(&mgr->mctx);
 
 	return (result);
+}
+
+void
+dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(mgr->blackhole == NULL);
+	dns_acl_attach(blackhole, &mgr->blackhole);
+}
+
+isc_result_t
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr, dns_acl_t **blackholep) {
+	REQUIRE(VALID_DISPATCHMGR(mgr));
+	REQUIRE(blackholep != NULL && *blackholep == NULL);
+
+	if (mgr->blackhole == NULL)
+		return (ISC_R_NOTFOUND);
+	dns_acl_attach(mgr->blackhole, blackholep);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -1393,6 +1442,10 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 		goto kill_lock;
 	}
 
+	disp->blackhole = NULL;
+	if (mgr->blackhole != NULL)
+		dns_acl_attach(mgr->blackhole, &disp->blackhole);
+
 	disp->magic = DISPATCH_MAGIC;
 
 	*dispp = disp;
@@ -1454,6 +1507,8 @@ dispatch_free(dns_dispatch_t **dispp)
 		qid_destroy(mgr->mctx, &disp->qid);
 	disp->mgr = NULL;
 	DESTROYLOCK(&disp->lock);
+	if (disp->blackhole != NULL)
+		dns_acl_detach(&disp->blackhole);
 	disp->magic = 0;
 	isc_mempool_put(mgr->dpool, disp);
 }

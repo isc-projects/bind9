@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.40 2000/10/12 21:51:50 mws Exp $ */
+/* $Id: server.h,v 1.41 2000/11/03 02:45:41 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -48,6 +48,7 @@ struct ns_server {
 	isc_quota_t		xfroutquota;
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
+	dns_acl_t		*blackholeacl;
 
 	/* Not really configurable, but covered by conflock. */
 	dns_aclenv_t		aclenv;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.123 2000/10/25 04:26:19 marka Exp $ */
+/* $Id: client.c,v 1.124 2000/11/03 02:45:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -708,6 +708,8 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_region_t r;
 	isc_sockaddr_t *address;
 	isc_socket_t *socket;
+	isc_netaddr_t netaddr;
+	int match;
 
 	if (TCP_CLIENT(client)) {
 		socket = client->tcpsocket;
@@ -715,6 +717,14 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	} else {
 		socket = dns_dispatch_getsocket(client->dispatch);
 		address = &client->dispevent->addr;
+
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+		if (ns_g_server->blackholeacl != NULL &&
+		    dns_acl_match(&netaddr, NULL,
+			    	  ns_g_server->blackholeacl,
+				  NULL, &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+			return (DNS_R_BLACKHOLED);
 	}
 
 	if ((client->attributes & NS_CLIENTATTR_PKTINFO) != 0)
@@ -725,6 +735,7 @@ client_sendpkg(ns_client_t *client, isc_buffer_t *buffer) {
 	isc_buffer_usedregion(buffer, &r);
 
 	CTRACE("sendto");
+	
 	result = isc_socket_sendto(socket, &r, client->task, client_senddone,
 				   client, address, pktinfo);
 	if (result == ISC_R_SUCCESS) {
@@ -1654,6 +1665,9 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		goto freeevent;
 
 	if (nevent->result == ISC_R_SUCCESS) {
+		int match;
+		isc_netaddr_t netaddr;
+
 		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
@@ -1662,7 +1676,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Let a new client take our place immediately, before
 		 * we wait for a request packet.  If we don't,
-		 * telnetting to port 35 (once per CPU) will
+		 * telnetting to port 53 (once per CPU) will
 		 * deny service to legititmate TCP clients.
 		 */
 		result = isc_quota_attach(&ns_g_server->tcpquota,
@@ -1675,6 +1689,22 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 				      "no more TCP clients: %s",
 				      isc_result_totext(result));
 		}
+
+		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+		if (ns_g_server->blackholeacl != NULL &&
+		    dns_acl_match(&netaddr, NULL,
+			    	  ns_g_server->blackholeacl,
+				  &ns_g_server->aclenv,
+				  &match, NULL) == ISC_R_SUCCESS &&
+		    match > 0)
+		{
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+				      "blackholed connection attempt");
+			goto freeevent;
+		}
+
 		client_read(client);
 	}
 
