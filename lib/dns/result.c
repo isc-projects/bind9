@@ -64,6 +64,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"zonecut",				/* 34 */
 	"bad zone",				/* 35 */
 	"more data",				/* 36 */
+	"up to date",				/* 37 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
