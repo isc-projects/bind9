@@ -1,15 +1,8 @@
-Support "include" inside view statements?
-
 Provide sample configuration files (root.hint, localhost.rev...)
-
-Disable journalling for persistent databases (disable initial load,
-journalling, etc)
 
 Review man pages
 
 write named.conf(5) man page
-
-Complete OMAPI security review
 
 Complete server input code path security review
      message.c, tcpmsg.c + places where tcpmsg.c functionality is duplicated,
@@ -17,14 +10,9 @@ Complete server input code path security review
 
 Review lwres input code path for buffer overflows
 
-Document function REQUIREs in omapi and parser
-
-Make the configure script detect systems with insufficient threads support
-
 Implement statistics similar to those in BIND 8
 
-Write libdns overview document (even if it only says "don't use
-libdns")
+Write libdns overview document (even if it only says "don't use libdns")
 
 Improve these error messages:
   rndc: operation failed: verify failure (failed to verify signature)
@@ -78,20 +66,14 @@ it; make that the recommended way of exporting zone data.
 
 Support general time specifiers like "4d10m" in named.conf
 
-Implement "additional data max/min/internal" 
-(whatever that means)
-
 Stomp error memory leaks
 
-Check for things still being logged with printf
- 
 Avoid ADB negative caching if an ADB-originated fetch fails due to a local
 resource problem (e.g. ISC_R_NOMEMORY or ISC_R_QUOTA).
 
 Write a paper on the flaws of DNSSEC
 
-Improve logging infrastructure to simplify providing context
-information
+Improve logging infrastructure to simplify providing context information
 
 Decide on one set of CHECK()/RETERR() macros and put it in a common
 header file
@@ -110,6 +92,8 @@ Support $DATE fully
 Look at all the XXXes in the code
 
 Persistent cache option
+
+Make the ARM recommend separate auth/caching servers
 
 From the old TODO file at the top of the source tree:
 
