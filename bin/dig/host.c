@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.52 2000/09/13 00:12:49 gson Exp $ */
+/* $Id: host.c,v 1.53 2000/09/13 00:27:24 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -415,6 +415,20 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 	UNUSED(headers);
 
+	if (listed_server) {
+		printf("Using domain server:\n");
+		printf("Name: %s\n", query->servname);
+		result = isc_buffer_allocate(mctx, &b, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		result = isc_sockaddr_totext(&query->sockaddr, b);
+		check_result(result, "isc_sockaddr_totext");
+		printf("Address: %.*s\n",
+		       (int)isc_buffer_usedlength(b),
+		       (char*)isc_buffer_base(b));
+		isc_buffer_free(&b);
+		printf("Aliases: \n\n");
+	}
+
 	if (msg->rcode != 0) {
 		result = isc_buffer_allocate(mctx, &b, MXNAME);
 		check_result(result, "isc_buffer_allocate");
@@ -492,20 +506,6 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				      ISC_TF(!short_form), query);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-	} else {
-		if (short_form && listed_server) {
-			printf("Using domain server:\n");
-			printf("Name: %s\n", query->servname);
-			result = isc_buffer_allocate(mctx, &b, MXNAME);
-			check_result(result, "isc_buffer_allocate");
-			result = isc_sockaddr_totext(&query->sockaddr, b);
-			check_result(result, "isc_sockaddr_totext");
-			printf("Address: %.*s\n",
-			       (int)isc_buffer_usedlength(b),
-			       (char*)isc_buffer_base(b));
-			isc_buffer_free(&b);
-			printf("Aliases: \n\n");
-		}
 	}
 
 	if (! ISC_LIST_EMPTY(msg->sections[DNS_SECTION_AUTHORITY]) &&

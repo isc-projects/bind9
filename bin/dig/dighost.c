@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.123 2000/09/13 00:13:54 gson Exp $ */
+/* $Id: dighost.c,v 1.124 2000/09/13 00:27:23 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2208,7 +2208,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
  * routines, since they may be using a non-DNS system for these lookups.
  */
 void
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
+get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr,
+	    isc_boolean_t running) {
 	struct in_addr in4;
 	struct in6_addr in6;
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
@@ -2227,9 +2228,11 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 	else {
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
 		debug ("before getaddrinfo()");
-		isc_app_block();
+		if (running)
+			isc_app_block();
 		result = getaddrinfo(host, NULL, NULL, &res);
-		isc_app_unblock();
+		if (running) 
+			isc_app_unblock();
 		if (result != 0) {
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
@@ -2240,9 +2243,11 @@ get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		freeaddrinfo(res);
 #else
 		debug ("before gethostbyname()");
-		isc_app_block();
+		if (running)
+			isc_app_block();
 		he = gethostbyname(host);
-		isc_app_unblock();
+		if (running)
+			isc_app_unblock();
 		if (he == NULL)
 		     fatal("Couldn't find server '%s' (h_errno=%d)",
 			   host, h_errno);
@@ -2283,15 +2288,16 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		query->waiting_connect = ISC_TRUE;
-		get_address(query->servname, port, &query->sockaddr);
+		get_address(query->servname, port, &query->sockaddr,
+			    ISC_TRUE);
 
 		if (specified_source &&
 		    (isc_sockaddr_pf(&query->sockaddr) !=
 		     isc_sockaddr_pf(&bind_address))) {
 			printf(";; Skipping server %s, incompatible "
 			       "address family\n", query->servname);
-			continue;
 			query->waiting_connect = ISC_FALSE;
+			continue;
 		}
 		INSIST(query->sock == NULL);
 		result = isc_socket_create(socketmgr,
@@ -2333,7 +2339,8 @@ do_lookup_udp(dig_lookup_t *lookup) {
 	     query = ISC_LIST_NEXT(query, link)) {
 		/* XXX Check the sense of this, need assertion? */
 		query->waiting_connect = ISC_FALSE;
-		get_address(query->servname, port, &query->sockaddr);
+		get_address(query->servname, port, &query->sockaddr,
+			    ISC_TRUE);
 
 		result = isc_socket_create(socketmgr,
 					   isc_sockaddr_pf(&query->sockaddr),
