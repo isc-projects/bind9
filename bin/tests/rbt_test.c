@@ -51,9 +51,9 @@ create_name(char *s) {
 	/*
 	 * It isn't really necessary in this program to create individual
 	 * memory spaces for each name structure and its associate character
-	 * string.  It is done in this program to provide a relatively
-	 * easy way to test the callback from dns_rbt_deletename that is
-	 * supposed to free the data associated with a node.
+	 * string.  It is done here to provide a relatively easy way to test
+	 * the callback from dns_rbt_deletename that is supposed to free the
+	 * data associated with a node.
 	 *
 	 * The buffer for the actual name will immediately follow the
 	 * name structure.
@@ -104,6 +104,86 @@ print_name(dns_name_t *name) {
 }
 
 static void
+detail(dns_rbt_t *rbt, dns_name_t *name) {
+	dns_name_t *foundname, *origin, *fullname;
+	dns_fixedname_t fixedfoundname, fixedorigin, fixedfullname;
+	dns_rbtnode_t *node1, *node2;
+	dns_rbtnodechain_t chain;
+	dns_result_t result;
+	isc_boolean_t nodes_should_match = ISC_FALSE;
+
+	dns_rbtnodechain_init(&chain, mctx);
+
+	dns_fixedname_init(&fixedorigin);
+	dns_fixedname_init(&fixedfullname);
+	dns_fixedname_init(&fixedfoundname);
+
+	origin = dns_fixedname_name(&fixedorigin);
+	fullname = dns_fixedname_name(&fixedfullname);
+	foundname = dns_fixedname_name(&fixedfoundname);
+
+	node1 = node2 = NULL;
+
+	printf("checking chain information for ");
+	print_name(name);
+	printf("\n");
+
+	result = dns_rbt_findnode(rbt, name, foundname, &node1, &chain,
+				  ISC_TRUE, NULL, NULL);
+
+	switch (result) {
+	case DNS_R_SUCCESS:
+		printf("  found exact.");
+		nodes_should_match = ISC_TRUE;
+		break;
+	case DNS_R_PARTIALMATCH:
+		printf("  found parent.");
+		break;
+	case DNS_R_NOTFOUND:
+		printf("  name not found.");
+		break;
+	default:
+		printf("  unexpected result: %s\n", dns_result_totext(result));
+		return;
+	}
+
+	if (node1 != NULL && node1->data != NULL) {
+		printf("  data at node: ");
+		print_name(node1->data);
+	} else
+		printf("  no data at node.");
+
+	if (result == DNS_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		printf("\n  name from dns_rbt_findnode: ");
+		print_name(foundname);
+	}
+
+	result = dns_rbtnodechain_current(&chain, foundname, origin, &node2);
+
+	if (result == DNS_R_SUCCESS) {
+		printf("\n  name from dns_rbtnodechain_current: ");
+		result = dns_name_concatenate(foundname, origin,
+					      fullname, NULL);
+		if (result == DNS_R_SUCCESS)
+			print_name(fullname);
+		else
+			printf("%s\n", dns_result_totext(result));
+		printf("\n      (foundname = ");
+		print_name(foundname);
+		printf(", origin = ");
+		print_name(origin);
+		printf(")\n");
+		if (nodes_should_match && node1 != node2)
+			printf("  nodes returned from each function "
+			       "DO NOT match!\n");
+
+	} else
+		printf("\n  result from dns_rbtnodechain_current: %s\n",
+		       dns_result_totext(result));
+
+}
+
+static void
 iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 	dns_name_t foundname, *origin;
 	dns_rbtnodechain_t chain;
@@ -122,14 +202,15 @@ iterate(dns_rbt_t *rbt, isc_boolean_t forward) {
 		printf("iterating forward\n" );
 		move = dns_rbtnodechain_next;
 		
-		result = dns_rbtnodechain_first(&chain, rbt, &foundname, origin);
+		result = dns_rbtnodechain_first(&chain, rbt, &foundname,
+						origin);
 
 	} else {
 		printf("iterating backward\n" );
 		move = dns_rbtnodechain_prev;
 
-		result = dns_rbtnodechain_last(&chain, rbt, &foundname, origin);
-
+		result = dns_rbtnodechain_last(&chain, rbt, &foundname,
+					       origin);
 	}
 
 	if (result != DNS_R_SUCCESS && result != DNS_R_NEWORIGIN)
@@ -228,6 +309,10 @@ main (int argc, char **argv) {
 		buffer[length - 1] = '\0';
 
 		command = buffer + strspn(buffer, whitespace);
+
+		if (*command == '#')
+			continue;
+
 		arg = strpbrk(command, whitespace);
 		if (arg != NULL) {
 			*arg++ = '\0';
@@ -291,7 +376,6 @@ main (int argc, char **argv) {
 						printf("\n\t(foundname: ");
 						print_name(foundname);
 						printf(")\n");
-
 						break;
 					case DNS_R_NOTFOUND:
 						printf("NOT FOUND!\n");
@@ -302,6 +386,24 @@ main (int argc, char **argv) {
 					default:
 						printf("UNEXPECTED RESULT\n");
 					}
+
+					delete_name(name, NULL);
+				}
+
+			} else if (CMDCHECK("check")) {
+				/*
+				 * Or "chain".  I know, I know.  Lame name.
+				 * I was having a hard time thinking of a
+				 * name (especially one that did not have
+				 * a conflicting first letter with another
+				 * command) that would differentiate this
+				 * from the search command.
+				 *
+				 * But it is just a test program, eh?
+				 */
+				name = create_name(arg);
+				if (name != NULL) {
+					detail(rbt, name);
 
 					delete_name(name, NULL);
 				}
