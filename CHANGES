@@ -13,6 +13,13 @@
 
 1282.	[bug]		ns_server_destroy() failed to set *serverp to NULL.
 
+1275.	[bug]		When verifying that an NXT proves nonexistence, check
+			the rcode of the message and only do the matching NXT
+			check.  That is, for NXDOMAIN responses, check that
+			the name is in the range between the NXT owner and
+			next name, and for NOERROR NODATA responses, check
+			that the type is not present in the NXT bitmap.
+
 1273.	[bug]		The dnssec system test failed to remove the correct
 			files.
 

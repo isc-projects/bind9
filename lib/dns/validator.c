@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.1 2001/09/19 21:51:40 bwelling Exp $ */
+/* $Id: validator.c,v 1.91.2.2 2002/07/02 04:02:23 marka Exp $ */
 
 #include <config.h>
 
@@ -362,7 +362,15 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 {
 	int order;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_boolean_t isnxdomain;
 	isc_result_t result;
+
+	INSIST(DNS_MESSAGE_VALID(val->event->message));
+
+	if (val->event->message->rcode == dns_rcode_nxdomain)
+		isnxdomain = ISC_TRUE;
+	else
+		isnxdomain = ISC_FALSE;
 
 	result = dns_rdataset_first(nxtset);
 	if (result != ISC_R_SUCCESS) {
@@ -377,8 +385,13 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 	order = dns_name_compare(val->event->name, nxtname);
 	if (order == 0) {
 		/*
-		 * The names are the same, so look for the type present bit.
+		 * The names are the same.  Look for the type present bit.
 		 */
+		if (isnxdomain) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "NXT record seen at nonexistent name");
+			return (ISC_FALSE);
+		}
 		if (val->event->type >= 128) {
 			validator_log(val, ISC_LOG_DEBUG(3), "invalid type %d",
 				      val->event->type);
@@ -397,6 +410,11 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 		/*
 		 * The NXT owner name is less than the nonexistent name.
 		 */
+		if (!isnxdomain) {
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "missing NXT record at name");
+			return (ISC_FALSE);
+		}
 		result = dns_rdata_tostruct(&rdata, &nxt, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_FALSE);
