@@ -178,8 +178,12 @@ dns_view_createresolver(dns_view_t *view, isc_taskmgr_t *taskmgr,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 	
+#ifdef notyet
 	return (dns_resolver_create(view, taskmgr, ntasks, timermgr, dispatch,
 				    &view->resolver));
+#else
+	return (DNS_R_NOTIMPLEMENTED);
+#endif
 }
 
 void
