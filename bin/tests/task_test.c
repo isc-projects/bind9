@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "memcluster.h"
-#include "task.h"
+#include <isc/memcluster.h>
+#include <isc/task.h>
 
 /*ARGSUSED*/
 static boolean_t

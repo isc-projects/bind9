@@ -24,12 +24,11 @@
 #include "attribute.h"
 #include <isc/assertions.h>
 
-#include "thread.h"
-#include "mutex.h"
-#include "memcluster.h"
+#include <isc/mutex.h>
+#include <isc/memcluster.h>
 
 #if !defined(LINT) && !defined(CODECENTER)
-static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.2 1998/08/18 00:29:53 halley Exp $";
+static char rcsid[] __attribute__((unused)) = "$Id: mem.c,v 1.3 1998/08/18 00:47:51 halley Exp $";
 #endif /* not lint */
 
 /*

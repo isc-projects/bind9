@@ -5,11 +5,11 @@
 #include <stddef.h>
 
 #include <isc/list.h>
-#include "memcluster.h"
+#include <isc/memcluster.h>
 
-#include "mutex.h"
-#include "condition.h"
-#include "boolean.h"
+#include <isc/mutex.h>
+#include <isc/condition.h>
+#include <isc/boolean.h>
 
 
 /***

@@ -3,8 +3,8 @@
 
 #include <isc/assertions.h>
 
-#include "task.h"
-#include "thread.h"
+#include <isc/thread.h>
+#include <isc/task.h>
 
 #define VALID_MANAGER(m)	((m) != NULL && \
 				 (m)->magic == TASK_MANAGER_MAGIC)
