@@ -13,6 +13,8 @@
 1345.	[port]		Use a explicit -Wformat with gcc.  Not all versions
 			include it in -Wall.
 
+1342.	[port]		darwin: ifconfig.sh now supports darwin.
+
 1327.	[bug]		The validator would incorrectly mark data as insecure
 			when seeing a bogus signature before a correct
 			signature.
