@@ -85,6 +85,10 @@ add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
 
+	if (rdtype == dns_rdatatype_axfr)
+		fatal("sdig does not support AXFR yet");
+	if (rdtype == dns_rdatatype_ixfr)
+		fatal("sdig does not support IXFR yet");
 	rdataset = NULL;
 	result = dns_message_gettemprdataset(message, &rdataset);
 	check_result(result, "dns_message_gettemprdataset()");
