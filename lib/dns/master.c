@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.125 2001/09/11 04:56:06 marka Exp $ */
+/* $Id: master.c,v 1.126 2001/09/11 05:09:41 marka Exp $ */
 
 #include <config.h>
 
@@ -1136,7 +1136,7 @@ load(dns_loadctx_t *lctx) {
 				result = pushfile(include_file, new_name, lctx);
 				if (MANYERRS(lctx, result)) {
 					SETRESULT(lctx, result);
-					LOGIT(result);
+					LOGITFILE(result, include_file);
 					continue;
 				} else if (result != ISC_R_SUCCESS) {
 					LOGITFILE(result, include_file);
