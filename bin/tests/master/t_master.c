@@ -238,7 +238,8 @@ t5() {
 	t_result(result);
 }
 
-static char *a6 =	"dns_master_loadfile understands KEY RR specifications";
+static char *a6 =	"dns_master_loadfile understands KEY RR specifications "
+			"containing key material";
 
 static void
 t6() {
@@ -250,13 +251,27 @@ t6() {
 	t_result(result);
 }
 
+static char *a7 =	"dns_master_loadfile understands KEY RR specifications "
+			"containing no key material";
+
+static void
+t7() {
+	int	result;
+
+	t_assert("dns_master_loadfile", 7, T_REQUIRED, a7);
+	result = test_master_x("dns_master_load_7_data");
+
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,	"DNS_R_SUCCESS"		},
 	{	t2,	"DNS_R_UNEXPECTEDEND"	},
 	{	t3,	"DNS_NOOWNER"		},
 	{	t4,	"DNS_NOTTL"		},
 	{	t5,	"DNS_BADCLASS"		},
-	{	t6,	"ag.test"		},
+	{	t6,	"KEY RR 1"		},
+	{	t7,	"KEY RR 2"		},
 	{	NULL,	NULL			}
 };
 
