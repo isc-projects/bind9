@@ -708,7 +708,8 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 		INSIST(val->key != NULL);
 
 		result = dns_dnssec_verify(event->name, event->rdataset,
-					   val->key, val->view->mctx, &rdata);
+					   val->key, ISC_FALSE, val->view->mctx,
+					   &rdata);
 		if (val->keynode != NULL)
 			dns_keytable_detachkeynode(val->keytable,
 						   &val->keynode);
@@ -819,7 +820,23 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			dns_name_fromregion(&nextname, &r);
 			order = dns_name_compare(val->queryname, &nextname);
 			if (order >= 0) {
-				INSIST(val->siginfo != NULL);
+				if (val->siginfo == NULL) {
+					dns_rdataset_t *sigset;
+					dns_rdata_t sigrdata;
+
+					sigset = val->event->sigrdataset;
+					result = dns_rdataset_first(sigset);
+					INSIST(result == ISC_R_SUCCESS);
+					dns_rdata_init(&sigrdata);
+					dns_rdataset_current(sigset, &sigrdata);
+					val->siginfo = isc_mem_get(
+							  val->view->mctx,
+							  sizeof *val->siginfo);
+					if (val->siginfo == NULL)
+						return (ISC_R_NOMEMORY);
+					rdata_to_siginfo(&sigrdata,
+							 val->siginfo);
+				}
 				if (!dns_name_equal(&val->siginfo->signer,
 						    &nextname))
 				{
@@ -827,6 +844,8 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 						"next name is not greater");
 					continue;
 				}
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "nxt points to zone apex, ok");
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "nxt range ok");
