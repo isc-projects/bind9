@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.7 2001/05/02 17:41:24 gson Exp $ */
+/* $Id: cfg_test.c,v 1.8 2001/05/02 17:43:42 gson Exp $ */
 
 #include <config.h>
 
@@ -113,59 +113,6 @@ main(int argc, char **argv) {
 		exit(1);
 
 	cfg_print(cfg, output, NULL);
-
-#if 1
-	/* Example of how to extract stuff from a configuration. */
-
-	if (type == &cfg_type_namedconf) {
-		cfg_obj_t *options = NULL;
-		cfg_obj_t *version = NULL;
-		cfg_obj_t *zones = NULL;
-		
-		result = cfg_map_get(cfg, "options", &options);
-		if (result == ISC_R_SUCCESS) {
-			result = cfg_map_get(options, "version", &version);
-			if (result == ISC_R_SUCCESS) {
-				fprintf(stderr, "(server version is \"%s\")\n",
-					cfg_obj_asstring(version));
-				
-			}
-		}
-		result = cfg_map_get(cfg, "zone", &zones);
-		if (result == ISC_R_SUCCESS) {
-			cfg_listelt_t *elt;
-			for (elt = cfg_list_first(zones);
-			     elt != NULL;
-			     elt = cfg_list_next(elt)) {
-				cfg_obj_t *zone = cfg_listelt_value(elt);
-				fprintf(stderr, "(zone name is \"%s\")\n",
-					cfg_obj_asstring(cfg_tuple_get(zone,
-							       "name")));
-			}
-		}
-		
-	} else	if (type == &cfg_type_rndcconf) {
-		cfg_obj_t *keys = NULL;
-		result = cfg_map_get(cfg, "key", &keys);
-		if (result == ISC_R_SUCCESS) {
-			cfg_listelt_t *elt;
-			for (elt = cfg_list_first(keys);
-			     elt != NULL;
-			     elt = cfg_list_next(elt)) {
-				cfg_obj_t *key = cfg_listelt_value(elt);
-				cfg_obj_t *secret = NULL;
-				result = cfg_map_get(key, "secret", &secret);
-				if (result == ISC_R_SUCCESS) {
-					fprintf(stderr, "(key \"%s\" secret "
-						"is \"%s\")\n",
-					cfg_obj_asstring(cfg_map_getname(key)),
-					cfg_obj_asstring(secret));
-				}
-			}
-		}
-
-	}
-#endif
 
 	cfg_obj_destroy(pctx, &cfg);
 
