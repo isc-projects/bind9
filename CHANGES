@@ -1,3 +1,6 @@
+1158.	[func]		Report the client's address when logging notify
+			messages.
+
 1157.	[func]		match-clients and match-destinations now accept
 			keys. [RT #2045]
 

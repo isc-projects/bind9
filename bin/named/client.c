@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.3 2003/08/11 05:58:16 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.4 2003/08/12 04:54:58 marka Exp $ */
 
 #include <config.h>
 
@@ -2121,12 +2121,7 @@ ns_client_name(ns_client_t *client, char *peerbuf, size_t len) {
 		snprintf(peerbuf, len, "@%p", client);
 }
 
-static void
-ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
-	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
-     ISC_FORMAT_PRINTF(5, 0);
-
-static void
+void
 ns_client_logv(ns_client_t *client, isc_logcategory_t *category,
 	   isc_logmodule_t *module, int level, const char *fmt, va_list ap)
 {
