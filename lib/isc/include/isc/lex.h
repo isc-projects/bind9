@@ -311,6 +311,30 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp);
  *	There is no ungotten token already.
  */
 
-/* XXX need a way to get the filename and linenumber of the current source. */
+char *
+isc_lex_getsourcename(isc_lex_t *lex);
+/*
+ * Return the input source name.
+ *
+ * Requires:
+ *	'lex' is a valid lexer.
+ *
+ * Returns:
+ * 	source name or NULL if no current source.
+ *	result valid while current input source exists.
+ */
+
+
+int
+isc_lex_getsourceline(isc_lex_t *lex);
+/*
+ * Return the input source name.
+ *
+ * Requires:
+ *	'lex' is a valid lexer.
+ *
+ * Returns:
+ * 	Current line number or 0 if no current source.
+ */
 
 #endif /* ISC_LEX_H */

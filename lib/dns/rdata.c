@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.27 1999/02/05 04:57:19 marka Exp $ */
+ /* $Id: rdata.c,v 1.28 1999/02/05 06:41:20 marka Exp $ */
 
 #include <config.h>
 
@@ -714,11 +714,7 @@ uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_buffer_available(target, &region);
 	if (region.length < 4)
 		return (DNS_R_NOSPACE);
-	region.base[0] = (value >> 24) & 0xff;
-	region.base[1] = (value >> 16) & 0xff;
-	region.base[2] = (value >> 8) & 0xff;
-	region.base[3] = value & 0xff;
-	isc_buffer_add(target, 4);
+	isc_buffer_putuint32(target, value);
 	return (DNS_R_SUCCESS);
 }
 
@@ -731,9 +727,7 @@ uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target) {
 	isc_buffer_available(target, &region);
 	if (region.length < 2)
 		return (DNS_R_NOSPACE);
-	region.base[0] = (value >> 8) & 0xff;
-	region.base[1] = value & 0xff;
-	isc_buffer_add(target, 2);
+	isc_buffer_putuint16(target, value);
 	return (DNS_R_SUCCESS);
 }
 

@@ -18,7 +18,9 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <limits.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 
@@ -302,7 +304,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	char *curr, *prev;
 	size_t remaining;
 	unsigned long ulong;
-	unsigned int i, saved_options;
+	unsigned int saved_options;
+	char *e;
 
 	/*
 	 * Get the next token.
@@ -427,6 +430,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					tokenp->type = isc_tokentype_eol;
 					done = ISC_TRUE;
 				}
+				source->line++;
 				lex->last_was_eol = ISC_TRUE;
 			} else if (c == '\r') {
 				if ((options & ISC_LEXOPT_EOL) != 0)
@@ -485,16 +489,24 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					INSIST(source->char_count < 2);
 					source->chars[source->char_count++] =
 						c;
-					tokenp->type =
-						isc_tokentype_number;
-					ulong = 0;
-					for (i = 0;
-					     i < lex->max_token - remaining;
-					     i++) {
-						ulong *= 10;
-						ulong += lex->data[i] - '0';
+					ulong = strtoul(lex->data, &e, 10);
+					if (*e == 0) {
+						tokenp->type =
+							isc_tokentype_number;
+						tokenp->value.as_ulong =
+							ulong;
+					} else {
+						isc_tokenvalue_t *v;
+
+						tokenp->type =
+							isc_tokentype_string;
+						v = &(tokenp->value);
+						v->as_textregion.base =
+							lex->data;
+						v->as_textregion.length = 
+							lex->max_token -
+							remaining;
 					}
-					tokenp->value.as_ulong = ulong;
 					done = ISC_TRUE;
 					continue;
 				} else
@@ -634,4 +646,30 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	
 	source->token = *tokenp;
 	source->have_token = ISC_TRUE;
+}
+
+char *
+isc_lex_getsourcename(isc_lex_t *lex) {
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return(NULL);
+
+	return (source->name);
+}
+
+int
+isc_lex_getsourceline(isc_lex_t *lex) {
+	inputsource *source;
+
+	REQUIRE(VALID_LEX(lex));
+	source = HEAD(lex->sources);
+
+	if (source == NULL)
+		return(0);
+
+	return (source->line);
 }

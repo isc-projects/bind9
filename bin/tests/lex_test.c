@@ -137,8 +137,11 @@ main(int argc, char *argv[]) {
 	while ((result = isc_lex_gettoken(lex, options, &token)) ==
 	       ISC_R_SUCCESS && !done) {
 		if (!quiet) {
+			char *name = isc_lex_getsourcename(lex);
 			print_token(&token, stdout);
-			printf("\n");
+			printf(" line = %d file = %s\n",
+				isc_lex_getsourceline(lex),
+				(name == NULL) ? "<none>" : name);
 		}
 		if (token.type == isc_tokentype_eof)
 			isc_lex_close(lex);
