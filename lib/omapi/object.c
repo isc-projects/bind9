@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.10 2000/01/31 14:52:33 tale Exp $ */
+/* $Id: object.c,v 1.11 2000/01/31 20:24:43 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -274,6 +274,8 @@ object_destroytypes(void) {
 		next_type = type->next;
 		isc_mem_put(omapi_mctx, type, sizeof(*type));
 	}
+
+	omapi_object_types = NULL;
 }
 
 /*
