@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.34 2000/05/18 22:38:49 tale Exp $ */
+/* $Id: log.c,v 1.35 2000/05/24 02:33:16 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -67,7 +67,7 @@ struct isc_logchannel {
 };
 
 /*
- * The logchannelist structure associates categories and modules with
+ * The logchannellist structure associates categories and modules with
  * channels.  First the appropriate channellist is found based on the
  * category, and then each structure in the linked list is checked for
  * a matching module.  It is expected that the number of channels
@@ -280,6 +280,9 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 	} else
 		result = ISC_R_NOMEMORY;
+
+	if (result == ISC_R_SUCCESS)
+		result = sync_channellist(lcfg);
 
 	if (result == ISC_R_SUCCESS) {
 		lctx->logconfig = lcfg;
@@ -505,9 +508,10 @@ isc_logconfig_destroy(isc_logconfig_t **lcfgp) {
 			isc_mem_put(mctx, item, sizeof(*item));
 		}
 
-	isc_mem_put(mctx, lcfg->channellists,
-		    lcfg->channellist_count *
-		    sizeof(ISC_LIST(isc_logchannellist_t)));
+	if (lcfg->channellist_count > 0)
+		isc_mem_put(mctx, lcfg->channellists,
+			    lcfg->channellist_count *
+			    sizeof(ISC_LIST(isc_logchannellist_t)));
 
 	lcfg->dynamic = ISC_FALSE;
 	lcfg->tag = NULL;
@@ -934,6 +938,10 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * This would ideally be part of isc_log_registercategories(), except then
+ * that function would have to return isc_result_t instead of void.
+ */
 static isc_result_t
 sync_channellist(isc_logconfig_t *lcfg) {
 	int bytes;
