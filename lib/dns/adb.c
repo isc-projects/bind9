@@ -338,8 +338,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define NAME_GLUE_OK		DNS_ADBFIND_GLUEOK
 #define NAME_DEAD(n)		(((n)->flags & NAME_IS_DEAD) != 0)
 #define NAME_NEEDSPOKE(n)	(((n)->flags & NAME_NEEDS_POKE) != 0)
-#define NAME_HINTOK(n)		(((n)->flags & NAME_HINT_OK) != 0)
 #define NAME_GLUEOK(n)		(((n)->flags & NAME_GLUE_OK) != 0)
+#define NAME_HINTOK(n)		(((n)->flags & NAME_HINT_OK) != 0)
 
 /*
  * To the name, address classes are all that really exist.  If it has a
@@ -2039,7 +2039,6 @@ cleanup_entries(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 static void
 timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 	dns_adb_t *adb;
-	isc_result_t result;
 	isc_stdtime_t now;
 	unsigned int i;
 
@@ -2073,9 +2072,12 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 
 	/*
 	 * Reset the timer.
+	 * XXXDCL isc_timer_reset might return ISC_R_UNEXPECTED or
+	 * ISC_R_NOMEMORY, but it isn't clear what could be done here
+	 * if either one of those things happened.
 	 */
-	result = isc_timer_reset(adb->timer, isc_timertype_once, NULL,
-				 &adb->tick_interval, ISC_FALSE);
+	(void)isc_timer_reset(adb->timer, isc_timertype_once, NULL,
+			      &adb->tick_interval, ISC_FALSE);
 
 	UNLOCK(&adb->lock);
 
@@ -3079,7 +3081,8 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	dns_rdataset_init(&rdataset);
 
 	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       NAME_GLUEOK(adbname), NAME_HINTOK(adbname),
+			       NAME_GLUEOK(adbname),
+			       ISC_TF(NAME_HINTOK(adbname)),
 			       fname, &rdataset, NULL);
 
 	switch (result) {
@@ -3184,7 +3187,8 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now) {
 	dns_rdataset_init(&rdataset);
 
 	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
-			       now, NAME_GLUEOK(adbname), NAME_HINTOK(adbname),
+			       now, NAME_GLUEOK(adbname),
+			       ISC_TF(NAME_HINTOK(adbname)),
 			       fname, &rdataset, NULL);
 
 	switch (result) {
