@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.7 2000/06/28 00:34:35 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.8 2000/06/28 21:56:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,17 @@
 
 #include <lwres/lwres.h>
 #include <lwres/netdb.h>
+
+/*
+ * XXX getnameinfo errors, which don't appear to be standard.
+ */
+#define ENI_NOSERVNAME  1
+#define ENI_NOHOSTNAME  2
+#define ENI_MEMORY      3
+#define ENI_SYSTEM      4
+#define ENI_FAMILY      5
+#define ENI_SALEN       6
+#define ENI_NOSOCKET    7
 
 static int fails = 0;
 
@@ -286,7 +297,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 		    memcmp(hp->h_addr_list[0], addrbuf, hp->h_length) != 0)
 		{
 			char outbuf[16];
-			(void)inet_ntop(AF_INET, hp->h_addr_list[0],
+			(void)inet_ntop(af, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
 			printf("I:gethostbyname(%s) returned %s, expected %s\n",
 			       name, outbuf, address);
@@ -329,6 +340,144 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 		if (strcmp(hp->h_name, name) != 0) {
 			printf("I:gethostbyname(%s) returned %s, expected %s\n",
 			       address, hp->h_name, name);
+			fails++;
+			return;
+		}
+	}
+}
+
+static void
+test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
+		   const char *address)
+{
+	int len, ret;
+	struct addrinfo *ai;
+	struct addrinfo hint;
+	unsigned char addrbuf[16];
+
+	if (v4ok == 1 && v6ok== 1) {
+		ret = getaddrinfo(name, NULL, NULL, &ai);
+	} else {
+		memset(&hint, 0, sizeof(hint));
+		if (v4ok)
+			hint.ai_family = AF_INET;
+		else
+			hint.ai_family = AF_INET6;
+		ret = getaddrinfo(name, NULL, &hint, &ai);
+	}
+	if (ret != 0) {
+		if (address == NULL && ret == EAI_NODATA)
+			return;
+		else if (ret != EAI_NODATA) {
+			printf("I:getaddrinfo(%s,%d,%d) failed: %s\n", 
+			       name, v4ok, v6ok, gai_strerror(ret));
+			fails++;
+			return;
+		} else {
+			printf("I:getaddrinfo(%s,%d,%d) returned not found\n",
+			       name, v4ok, v6ok);
+			fails++;
+			return;
+		}
+	} else {
+		if (af == AF_INET)
+			len = sizeof(struct sockaddr_in);
+		else
+			len = sizeof(struct sockaddr_in6);
+		ret = inet_pton(af, address, addrbuf);
+		assert(ret == 1);
+		if (ai->ai_family != af) {
+			printf("I:getaddrinfo(%s) returned wrong family\n",
+			       name);
+			fails++;
+			return;
+		}
+		if (len != ai->ai_addrlen) {
+			char outbuf[16];
+			(void)inet_ntop(af, ai->ai_addr,
+					outbuf, sizeof(outbuf));
+			printf("I:getaddrinfo(%s) returned %db, expected %db\n",
+			       name, ai->ai_addrlen, len);
+			fails++;
+			return;
+		} else if (af == AF_INET) {
+			struct sockaddr_in *sin;
+			sin = (struct sockaddr_in *) ai->ai_addr;
+			if (memcmp(&sin->sin_addr.s_addr, addrbuf, 4) != 0) {
+				char outbuf[16];
+				(void)inet_ntop(af, &sin->sin_addr.s_addr,
+						outbuf, sizeof(outbuf));
+				printf("I:getaddrinfo(%s) returned %s, "
+				       "expected %s\n", name, outbuf, address);
+				fails++;
+				return;
+			}
+		} else {
+			struct sockaddr_in6 *sin6;
+			sin6 = (struct sockaddr_in6 *) ai->ai_addr;
+			if (memcmp(sin6->sin6_addr.s6_addr, addrbuf, 16) != 0)
+			{
+				char outbuf[16];
+				(void)inet_ntop(af, &sin6->sin6_addr.s6_addr,
+						outbuf, sizeof(outbuf));
+				printf("I:getaddrinfo(%s) returned %s, "
+				       "expected %s\n", name, outbuf, address);
+				fails++;
+				return;
+			}
+		}
+	}
+}
+
+static void
+test_getnameinfo(const char *address, int af, const char *name) {
+	int ret;
+	struct sockaddr_in sin;
+	struct sockaddr_in6 sin6;
+	struct sockaddr *sa;
+	int salen;
+	char host[1025];
+
+	if (af == AF_INET) {
+		memset(&sin, 0, sizeof(sin));
+		ret = inet_pton(AF_INET, address, &sin.sin_addr.s_addr);
+		assert(ret == 1);
+		sa = (struct sockaddr *) &sin;
+		salen = sizeof(sin);
+	} else {
+		memset(&sin6, 0, sizeof(sin6));
+		ret = inet_pton(AF_INET6, address, sin6.sin6_addr.s6_addr);
+		assert(ret == 1);
+		sa = (struct sockaddr *) &sin6;
+		salen = sizeof(sin6);
+	}
+	sa->sa_family = af;
+
+	ret = getnameinfo(sa, salen, host, sizeof(host), NULL, 0, NI_NAMEREQD);
+
+	if (ret != 0) {
+		if (name == NULL && ret == ENI_NOHOSTNAME)
+			return;
+		else if (ret != ENI_NOHOSTNAME) {
+			printf("I:getnameinfo(%s) failed: %d\n", 
+			       address, ret);
+			fails++;
+			return;
+		} else {
+			printf("I:getnameinfo(%s) returned not found\n",
+			       address);
+			fails++;
+			return;
+		}
+	} else {
+		if (name == NULL) {
+			printf("I:getaddrinfo(%s) returned %s, expected NULL\n",
+			       address, host);
+			fails++;
+			return;
+		} else if (strcmp(host, name) != 0) {
+			printf("I:getaddrinfo(%s) returned %s, expected %s\n",
+			       address, host, name);
 			fails++;
 			return;
 		}
@@ -412,6 +561,22 @@ main(void) {
 			   AF_INET6, "nibble.example");
 	test_gethostbyaddr("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
 			   AF_INET6, "bitstring.example");
+
+	test_getaddrinfo("a.example1.", AF_INET, 1, 1, "10.0.1.1");
+	test_getaddrinfo("a.example1.", AF_INET, 1, 0, "10.0.1.1");
+	test_getaddrinfo("a.example1.", AF_INET, 0, 1, NULL);
+	test_getaddrinfo("b.example1.", AF_INET6, 1, 1,
+			 "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff");
+	test_getaddrinfo("b.example1.", AF_INET6, 1, 0, NULL);
+	test_getaddrinfo("b.example1.", AF_INET6, 0, 1,
+			 "eeee:eeee:eeee:eeee:ffff:ffff:ffff:ffff");
+
+	test_getnameinfo("10.10.10.1", AF_INET, "ipv4.example");
+	test_getnameinfo("10.10.10.17", AF_INET, NULL);
+	test_getnameinfo("0123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			 AF_INET6, "nibble.example");
+	test_getnameinfo("1123:4567:89ab:cdef:0123:4567:89ab:cdef",
+			 AF_INET6, "bitstring.example");
 
 	return (fails);
 }
