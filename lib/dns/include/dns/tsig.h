@@ -23,6 +23,7 @@
 
 #include <dns/types.h>
 #include <dns/name.h>
+#include <dns/confctx.h>
 
 #include <dst/dst.h>
 
@@ -60,7 +61,8 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
 		   dst_key_t *creator, isc_mem_t *mctx, dns_tsigkey_t **key);
 /*
- *	Creates a tsig key structure pointed to by 'key'.
+ *	Creates and saves a tsig key structure.  If key is not NULL, *key
+ *	will contain a copy of the key.
  *
  *	Requires:
  *		'name' is a valid dns_name_t
@@ -68,8 +70,7 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
  *		'secret' is a valid pointer
  *		'length' is an integer greater than 0
  *		'mctx' is a valid memory context
- *		'key' must not be NULL
- *		'*key' must be NULL
+ *		'key' or '*key' must be NULL
  *
  *	Returns:
  *		ISC_R_SUCCESS
@@ -174,9 +175,10 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 
 
 isc_result_t
-dns_tsig_init(isc_mem_t *mctx);
+dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx);
 /*
- *	Initializes the TSIG subsystem
+ *	Initializes the TSIG subsystem.  If confctx is not NULL, any
+ *	specified keys are loaded.
  *
  *	Returns:
  *		ISC_R_SUCCESS

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.5 1999/10/27 17:50:58 bwelling Exp $
+ * $Id: tkey.c,v 1.6 1999/10/27 19:59:34 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -854,11 +854,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	tsigkey = NULL;
 	result = dns_tsigkey_create(tkeyname, &rtkey.algorithm,
 				    r.base, r.length, ISC_TRUE,
-				    NULL, rmsg->mctx, &tsigkey);
+				    NULL, rmsg->mctx, outkey);
 	isc_buffer_free(&secret);
-	if (outkey != NULL)
-		RETERR(dns_tsigkey_find(outkey, tkeyname, &rtkey.algorithm));
-
 	return (result);
 
  failure:
