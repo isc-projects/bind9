@@ -1,3 +1,5 @@
+ 492.	[bug]		attempting to reload a zone caused the server fail
+			to shutdown cleanly. [RT #360]
 
  491.	[bug]		nsupdate would segfault when sending certain
 			prerequisites with empty RDATA. [RT #356]

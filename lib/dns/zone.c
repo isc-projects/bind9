@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.222 2000/09/26 18:17:09 gson Exp $ */
+/* $Id: zone.c,v 1.223 2000/09/27 13:05:04 marka Exp $ */
 
 #include <config.h>
 
@@ -918,8 +918,9 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					  &load->callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		zonemgr_getio(zone->zmgr, ISC_TRUE, zone->task, 
-			      zone_gotreadhandle, load, &zone->readio);
+		result = zonemgr_getio(zone->zmgr, ISC_TRUE, zone->task, 
+				       zone_gotreadhandle, load,
+				       &zone->readio);
 		if (result != ISC_R_SUCCESS) {
 			tresult = dns_db_endload(load->db,
 						 &load->callbacks.add_private);
@@ -5203,7 +5204,7 @@ zonemgr_getio(dns_zonemgr_t *zmgr, isc_boolean_t high,
 	if (io == NULL)
 		return (ISC_R_NOMEMORY);
 	io->event = isc_event_allocate(zmgr->mctx, task, DNS_EVENT_IOREADY,
-				       action, arg, sizeof(io->event));
+				       action, arg, sizeof(*io->event));
 	if (io->event == NULL) {
 		isc_mem_put(zmgr->mctx, io, sizeof(*io));
 		return (ISC_R_NOMEMORY);
