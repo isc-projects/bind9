@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.64 1999/10/25 16:58:21 marka Exp $ */
+ /* $Id: rdata.c,v 1.65 1999/10/25 21:41:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1540,6 +1540,9 @@ static isc_boolean_t
 ismeta(unsigned int code, struct tbl *table) {
 	struct tbl *t;
 	REQUIRE(code < 65536);
+	/* XXXBEW Yes, this is a hack.  But otherwise TKEY will not work */
+	if (code == dns_rdatatype_tsig || code == dns_rdatatype_tkey)
+		return (ISC_TRUE);
 	for (t = table; t->name != NULL; t++) {
 		if (code == t->value)
 			return ((t->flags & META) ? ISC_TRUE : ISC_FALSE);
