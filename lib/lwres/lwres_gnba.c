@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gnba.c,v 1.20.2.1 2002/07/10 06:05:07 marka Exp $ */
+/* $Id: lwres_gnba.c,v 1.20.2.2 2002/08/05 06:57:16 marka Exp $ */
 
 #include <config.h>
 
