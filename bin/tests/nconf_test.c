@@ -80,6 +80,7 @@ int main (int argc, char **argv) {
 	FILE *outfp;
 	isc_mem_t *mem = NULL;
 	dns_c_cbks_t callbacks;
+	isc_log_t *log = NULL;
 
 #if 1
 	callbacks.zonecbk = NULL;
@@ -107,6 +108,14 @@ int main (int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mem) == ISC_R_SUCCESS);
 
+	RUNTIME_CHECK(isc_log_create(mem, &log) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(dns_log_init(log) == ISC_R_SUCCESS);
+	
+	RUNTIME_CHECK(isc_log_usechannel(log, "default_stderr", NULL, NULL)
+		      == ISC_R_SUCCESS);
+
+	dns_lctx = log;
+	
 	if (dns_c_parse_namedconf(conffile, mem, &configctx, &callbacks) !=
 	    ISC_R_SUCCESS) {
 		fprintf(stderr, "parse_configuration failed.\n");
@@ -147,6 +156,10 @@ int main (int argc, char **argv) {
 	}
 
 	dns_c_ctx_delete(&configctx);
+
+	dns_lctx = NULL;
+	isc_log_destroy(&log);
+	
 	isc_mem_destroy(&mem);
 
 	return (0);
