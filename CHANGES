@@ -1,3 +1,6 @@
+1553.	[bug]		The windows socket code could stop accepting
+			connections.
+
 1552.	[placeholder]	rt10049
 
 1551.	[port]		Open "/dev/null" before calling chroot().
