@@ -65,6 +65,25 @@ void got_response(isc_task_t *, isc_event_t *);
 void start_response(void);
 static inline void CHECKRESULT(dns_result_t, char *);
 void send_done(isc_task_t *, isc_event_t *);
+void hex_dump(isc_buffer_t *);
+
+void
+hex_dump(isc_buffer_t *b)
+{
+	unsigned int len;
+	isc_region_t r;
+
+	isc_buffer_remaining(b, &r);
+
+	printf("Buffer %p:  used region base %p, length %d",
+	       b, r.base, r.length);
+	for (len = 0 ; len < r.length ; len++) {
+		if (len % 16 == 0)
+			printf("\n");
+		printf("%02x ", r.base[len]);
+	}
+	printf("\n");
+}
 
 static inline void
 CHECKRESULT(dns_result_t result, char *msg)
@@ -249,6 +268,8 @@ got_request(isc_task_t *task, isc_event_t *ev_in)
 		isc_app_shutdown();
 		return;
 	}
+
+	hex_dump(&ev->buffer);
 
 	msg = NULL;
 	result = dns_message_create(mctx, &msg, DNS_MESSAGE_INTENTPARSE);
