@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.12.2.1 2000/06/28 05:40:07 tale Exp $ */
+/* $Id: rndc.c,v 1.12.2.2 2000/06/28 16:13:46 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -524,14 +524,16 @@ main(int argc, char **argv) {
 		omapi_object_dereference(&omapimgr);
 	}
 
-	isc_socketmgr_destroy(&socketmgr);
-	isc_taskmgr_destroy(&taskmgr);
-
 	omapi_lib_destroy();
+
+
 #ifdef notyet /* XXXDCL no authentication in 9.0.0. */
 	dst_lib_destroy();
 	isc_entropy_detach(&entropy);
 #endif /* notyet */
+
+	isc_socketmgr_destroy(&socketmgr);
+	isc_taskmgr_destroy(&taskmgr);
 
 	if (mctx != NULL) {
 		if (show_final_mem)
