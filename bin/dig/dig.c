@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.100 2000/09/22 23:58:32 mws Exp $ */
+/* $Id: dig.c,v 1.101 2000/09/25 16:14:20 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -569,16 +569,17 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	    dig_lookup_t *lookup)
 {
 	char option_store[256];
-	char *cmd, *value;
+	char *cmd, *value, *ptr;
 	isc_boolean_t state = ISC_TRUE;
 
 	strncpy(option_store, option, sizeof(option_store));
-	cmd=next_token(&option,"=");
+	ptr = option_store;
+	cmd=next_token(&ptr,"=");
 	if (cmd == NULL) {
 		printf (";; Invalid option %s\n",option_store);
 		return;
 	}
-	value=option;
+	value=ptr;
 	if (strncasecmp(cmd,"no",2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;
@@ -824,7 +825,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	invalid_option:
 	need_value:
 		fprintf(stderr, "Invalid option: +%s\n",
-			 option_store);
+			 option);
 		show_usage();
 		exit(1);
 	}
