@@ -304,10 +304,11 @@ static void check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
 static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				isc_boolean_t, dns_rdatatype_t);
-static isc_result_t fetch_name_v4(dns_adbname_t *, isc_stdtime_t);
+static isc_result_t fetch_name_v4(dns_adbname_t *, isc_stdtime_t,
+				  isc_boolean_t);
 static isc_result_t fetch_name_aaaa(dns_adbname_t *, isc_stdtime_t);
 static isc_result_t fetch_name_a6(dns_adbname_t *, isc_stdtime_t,
-				  isc_boolean_t);
+				  isc_boolean_t, isc_boolean_t);
 static inline void check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
@@ -367,6 +368,8 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 #define FIND_WANTEVENT(fn)	(((fn)->options & DNS_ADBFIND_WANTEVENT) != 0)
 #define FIND_WANTEMPTYEVENT(fn)	(((fn)->options & DNS_ADBFIND_EMPTYEVENT) != 0)
 #define FIND_AVOIDFETCHES(fn)	(((fn)->options & DNS_ADBFIND_AVOIDFETCHES) \
+				 != 0)
+#define FIND_STARTATROOT(fn)	(((fn)->options & DNS_ADBFIND_STARTATROOT) \
 				 != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
 
@@ -2150,9 +2153,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
-	isc_boolean_t use_hints;
+	isc_boolean_t use_hints, want_event, start_at_root;
 	isc_result_t result;
-	isc_boolean_t want_event;
 	unsigned int wanted_addresses;
 	unsigned int wanted_fetches;
 	unsigned int query_pending;
@@ -2172,6 +2174,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	wanted_fetches = 0;
 	query_pending = 0;
 	want_event = ISC_FALSE;
+	start_at_root = ISC_FALSE;
 
 	if (now == 0)
 		isc_stdtime_get(&now);
@@ -2300,11 +2303,15 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * be acceptable so we have to launch fetches.
 		 */
 
+		if (FIND_STARTATROOT(find))
+			start_at_root = ISC_TRUE;
+
 		/*
 		 * Start V4.
 		 */
 		if (WANT_INET(wanted_fetches) &&
-		    fetch_name_v4(adbname, now) == ISC_R_SUCCESS) {
+		    fetch_name_v4(adbname, now, start_at_root) ==
+		    ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Started A fetch for name %p",
 			   adbname);
@@ -2314,7 +2321,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 * Start V6.
 		 */
 		if (WANT_INET6(wanted_fetches) &&
-		    fetch_name_a6(adbname, now, use_hints) == ISC_R_SUCCESS) {
+		    fetch_name_a6(adbname, now, use_hints, start_at_root) ==
+		    ISC_R_SUCCESS) {
 			DP(DEF_LEVEL,
 			   "dns_adb_createfind: Started A6 fetch for name %p",
 			   adbname);
@@ -3343,7 +3351,8 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 }
 
 static isc_result_t
-fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
+fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now,
+	      isc_boolean_t start_at_root)
 {
 	isc_result_t result;
 	dns_adbfetch_t *fetch;
@@ -3352,6 +3361,7 @@ fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
 	isc_buffer_t buffer;
 	unsigned char ndata[256];
 	dns_adb_t *adb;
+	dns_name_t *name;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3366,7 +3376,13 @@ fetch_name_v4(dns_adbname_t *adbname, isc_stdtime_t now)
 	dns_name_setbuffer(&fname, &buffer);
 	dns_rdataset_init(&nameservers);
 
-	result = dns_view_findzonecut(adb->view, &adbname->name, &fname, now,
+	if (start_at_root) {
+		DP(50, "fetch_name_v4: starting at DNS root for name %p",
+		   adbname);
+		name = dns_rootname;
+	} else
+		name = &adbname->name;
+	result = dns_view_findzonecut(adb->view, name, &fname, now,
 				      0, ISC_TRUE, &nameservers, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -3458,7 +3474,7 @@ fetch_name_aaaa(dns_adbname_t *adbname, isc_stdtime_t now)
 
 static isc_result_t
 fetch_name_a6(dns_adbname_t *adbname, isc_stdtime_t now,
-	      isc_boolean_t use_hints)
+	      isc_boolean_t use_hints, isc_boolean_t start_at_root)
 {
 	isc_result_t result;
 	dns_adbfetch6_t *fetch;
@@ -3467,6 +3483,7 @@ fetch_name_a6(dns_adbname_t *adbname, isc_stdtime_t now,
 	isc_buffer_t buffer;
 	unsigned char ndata[256];
 	dns_adb_t *adb;
+	dns_name_t *name;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3481,7 +3498,13 @@ fetch_name_a6(dns_adbname_t *adbname, isc_stdtime_t now,
 	dns_name_setbuffer(&fname, &buffer);
 	dns_rdataset_init(&nameservers);
 
-	result = dns_view_findzonecut(adb->view, &adbname->name, &fname, now,
+	if (start_at_root) {
+		DP(50, "fetch_name_a6: starting at DNS root for name %p",
+		   adbname);
+		name = dns_rootname;
+	} else
+		name = &adbname->name;
+	result = dns_view_findzonecut(adb->view, name, &fname, now,
 				      0, ISC_TRUE, &nameservers, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
