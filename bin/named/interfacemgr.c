@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.6 2004/03/09 06:09:18 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.7 2004/08/10 04:58:00 jinmei Exp $ */
 
 #include <config.h>
 
@@ -348,9 +348,9 @@ ns_interface_setup(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * XXXRTH We don't currently have a way to easily stop dispatch
-		 * service, so we return currently return ISC_R_SUCCESS (the
-		 * UDP stuff will work even if TCP creation failed).  This will
-		 * be fixed later.
+		 * service, so we currently return ISC_R_SUCCESS (the UDP stuff
+		 * will work even if TCP creation failed).  This will be fixed
+		 * later.
 		 */
 		result = ISC_R_SUCCESS;
 	}
