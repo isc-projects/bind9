@@ -1165,8 +1165,10 @@
 ./lib/isc/string.c				C	1999,2000
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000
 ./lib/isc/task.c				C	1998,1999,2000
+./lib/isc/task_p.h				C	2000
 ./lib/isc/taskpool.c				C	1999,2000
 ./lib/isc/timer.c				C	1998,1999,2000
+./lib/isc/timer_p.h				C	2000
 ./lib/isc/unix/.cvsignore			X	1999,2000
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000
 ./lib/isc/unix/app.c				C	1999,2000
@@ -1197,6 +1199,7 @@
 ./lib/isc/unix/net.c				C	1999,2000
 ./lib/isc/unix/os.c				C	2000
 ./lib/isc/unix/socket.c				C	1998,1999,2000
+./lib/isc/unix/socket_p.h			C	2000
 ./lib/isc/unix/stdio.c				C	2000
 ./lib/isc/unix/stdtime.c			C	1999,2000
 ./lib/isc/unix/time.c				C	1998,1999,2000
