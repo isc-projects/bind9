@@ -193,7 +193,6 @@ static void send_recvdone_event(isc_socket_t *, isc_task_t **, rwintev_t **,
 				isc_socketevent_t **, isc_result_t);
 static void send_senddone_event(isc_socket_t *, isc_task_t **, rwintev_t **,
 				isc_socketevent_t **, isc_result_t);
-static void done_event_destroy(isc_event_t *);
 static void free_socket(isc_socket_t **);
 static isc_result_t allocate_socket(isc_socketmgr_t *, isc_sockettype_t,
 				    isc_socket_t **);
@@ -320,34 +319,6 @@ socket_dump(isc_socket_t *sock)
 	printf("--------\n");
 }
 #endif
-
-/*
- * Handle freeing a done event when needed.
- */
-static void
-done_event_destroy(isc_event_t *ev)
-{
-	isc_socket_t *sock = ev->sender;
-	isc_boolean_t kill_socket = ISC_FALSE;
-
-	/*
-	 * detach from the socket.  We would have already detached from the
-	 * task when we actually queue this event up.
-	 */
-	LOCK(&sock->lock);
-		
-	REQUIRE(sock->references > 0);
-	sock->references--;
-	XTRACE(TRACE_MANAGER, ("done_event_destroy: sock %p, ref cnt == %d\n",
-			       sock, sock->references));
-
-	if (sock->references == 0)
-		kill_socket = ISC_TRUE;
-	UNLOCK(&sock->lock);
-	
-	if (kill_socket)
-		destroy(&sock);
-}
 
 /*
  * Kill.
@@ -787,7 +758,6 @@ send_ncdone_event(ncintev_t **iev,
 	REQUIRE(*dev != NULL);
 
 	(*dev)->result = resultcode;
-	(*dev)->common.destroy = done_event_destroy;
 	ISC_TASK_SEND((*iev)->task, (isc_event_t **)dev);
 	isc_task_detach(&(*iev)->task);
 	(*iev)->done_ev = NULL;
@@ -922,6 +892,7 @@ internal_accept(isc_task_t *task, isc_event_t *ev)
 		if (manager->maxfd < fd)
 			manager->maxfd = fd;
 		manager->nsockets++;
+		XTRACE(TRACE_MANAGER, ("nsockets == %d\n", manager->nsockets));
 		UNLOCK(&manager->lock);
 
 		XTRACE(TRACE_LISTEN, ("internal_accept: newsock %p, fd %d\n",
@@ -1730,13 +1701,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		iev = NULL;  /* just in case */
 	}
 
-	sock->references++;  /* attach to socket in cheap way */
-
-	/*
-	 * Remember that we need to detach on event free
-	 */
-	dev->common.destroy = done_event_destroy;
-
 	/*
 	 * UDP sockets are always partial read
 	 */
@@ -1932,13 +1896,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		sock->wiev = iev;
 		iev = NULL;  /* just in case */
 	}
-
-	sock->references++;  /* attach to socket in cheap way */
-
-	/*
-	 * Remember that we need to detach on event free
-	 */
-	dev->common.destroy = done_event_destroy;
 
 	dev->region = *region;
 	dev->n = 0;
@@ -2219,7 +2176,6 @@ isc_socket_accept(isc_socket_t *sock,
 	 * Attach to socket and to task
 	 */
 	isc_task_attach(task, &ntask);
-	sock->references++;
 	nsock->references++;
 
 	sock->listener = ISC_TRUE;
@@ -2227,7 +2183,6 @@ isc_socket_accept(isc_socket_t *sock,
 	iev->task = ntask;
 	iev->done_ev = dev;
 	iev->canceled = ISC_FALSE;
-	dev->common.destroy = done_event_destroy;
 	dev->newsocket = nsock;
 
 	/*
@@ -2302,6 +2257,15 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS)
 			goto queue;
 
+		switch (errno) {
+		case ECONNREFUSED:
+			dev->result = ISC_R_CONNREFUSED;
+			goto err_exit;
+		case ENETUNREACH:
+			dev->result = ISC_R_NETUNREACH;
+			goto err_exit;
+		}
+
 		sock->connected = ISC_FALSE;
 
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -2309,13 +2273,14 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr, int addrlen,
 
 		UNLOCK(&sock->lock);
 		return (ISC_R_UNEXPECTED);
-	}
 
-	/*
-	 * attach to socket
-	 */
-	sock->references++;
-	dev->common.destroy = done_event_destroy;
+	err_exit:
+		sock->connected = ISC_FALSE;
+		ISC_TASK_SEND(task, (isc_event_t **)&dev);
+		UNLOCK(&sock->lock);
+
+		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * If connect completed, fire off the done event
@@ -2772,9 +2737,6 @@ isc_socket_recvmark(isc_socket_t *sock,
 	if (EMPTY(sock->recv_list)) {
 		dev->result = sock->recv_result;
 
-		dev->common.destroy = done_event_destroy;
-		sock->references++;
-
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
@@ -2802,8 +2764,6 @@ isc_socket_recvmark(isc_socket_t *sock,
 	ISC_LINK_INIT(iev, link);
 	iev->posted = ISC_FALSE;
 
-	sock->references++;
-	dev->common.destroy = done_event_destroy;
 	dev->result = ISC_R_SUCCESS;
 
 	isc_task_attach(task, &ntask);
@@ -2850,9 +2810,6 @@ isc_socket_sendmark(isc_socket_t *sock,
 	if (EMPTY(sock->send_list)) {
 		dev->result = sock->send_result;
 
-		dev->common.destroy = done_event_destroy;
-		sock->references++;
-
 		ISC_TASK_SEND(task, (isc_event_t **)&dev);
 
 		UNLOCK(&sock->lock);
@@ -2880,8 +2837,6 @@ isc_socket_sendmark(isc_socket_t *sock,
 	ISC_LINK_INIT(iev, link);
 	iev->posted = ISC_FALSE;
 
-	sock->references++;
-	dev->common.destroy = done_event_destroy;
 	dev->result = ISC_R_SUCCESS;
 
 	isc_task_attach(task, &ntask);
