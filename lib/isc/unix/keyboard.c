@@ -70,8 +70,11 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 }
 
 isc_result_t
-isc_keyboard_close(isc_keyboard_t *keyboard) {
+isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
 	REQUIRE(keyboard != NULL);
+
+	if (sleeptime > 0)
+		(void)sleep(sleeptime);
 
 	(void)tcsetattr(keyboard->fd, TCSAFLUSH, &keyboard->saved_mode);
 	close(keyboard->fd);

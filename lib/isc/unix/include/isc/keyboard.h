@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: keyboard.h,v 1.1 2000/06/21 01:45:21 explorer Exp $ */
+/* $Id: keyboard.h,v 1.2 2000/06/22 00:25:33 explorer Exp $ */
 
 #ifndef ISC_KEYBOARD_H
 #define ISC_KEYBOARD_H 1
@@ -36,7 +36,7 @@ isc_result_t
 isc_keyboard_open(isc_keyboard_t *keyboard);
 
 isc_result_t
-isc_keyboard_close(isc_keyboard_t *keyboard);
+isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleepseconds);
 
 isc_result_t
 isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp);
