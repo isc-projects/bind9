@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.53 2000/12/15 00:31:27 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.54 2000/12/15 01:07:52 gson Exp $ */
 
 #include <config.h>
 
@@ -252,10 +252,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 				     4096, 1000, 32768, 8219, 8237,
 				     attrs, attrmask, &ifp->udpdispatch);
 	if (result != ISC_R_SUCCESS) {
-		char sabuf[ISC_SOCKADDR_FORMATSIZE];
-		isc_sockaddr_format(&listen_sockaddr, sabuf, sizeof(sabuf));
 		isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_ERROR,
-			      "could not listen on UDP socket %s: %s",
+			      "could not listen on UDP socket: %s",
 			      isc_result_totext(result));
 		goto udp_dispatch_failure;
 	}
