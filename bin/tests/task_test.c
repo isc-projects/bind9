@@ -6,18 +6,26 @@
 #include "memcluster.h"
 #include "task.h"
 
+/*ARGSUSED*/
 boolean_t
-my_callback(generic_event_t event) {
-	int i;
+my_callback(task_t task, void *arg, generic_event_t event) {
+	int i, j;
+	char *name = arg;
 
-	printf("my callback, event type %d\n", event->type);
-	for (i = 0; i < 1000000; i++);
+	j = 0;
+	for (i = 0; i < 100000000; i++)
+		j += 100;
+	printf("task %s: %d\n", name, j);
+	
 	return (FALSE);
 }
 
+/*ARGSUSED*/
 boolean_t
-my_shutdown(generic_event_t event) {
-	printf("shutdown\n");
+my_shutdown(task_t task, void *arg, generic_event_t event) {
+	char *name = arg;
+
+	printf("shutdown %s\n", name);
 	return (TRUE);
 }
 
@@ -32,6 +40,7 @@ event_allocate(mem_context_t mctx, event_type_t type, event_action_t action,
 	if (event == NULL)
 		return (NULL);
 	event->mctx = mctx;
+	event->size = size;
 	event->type = type;
 	event->action = action;
 
@@ -39,33 +48,49 @@ event_allocate(mem_context_t mctx, event_type_t type, event_action_t action,
 }
 
 void
-main(void) {
+main(int argc, char *argv[]) {
 	mem_context_t mctx = NULL;
 	task_manager_t manager = NULL;
-	task_t task = NULL;
+	task_t t1 = NULL, t2 = NULL;
 	generic_event_t event;
+	unsigned int workers;
+
+	if (argc > 1)
+		workers = atoi(argv[1]);
+	else
+		workers = 2;
+	printf("%d workers\n", workers);
 
 	INSIST(mem_context_create(0, 0, &mctx) == 0);
 
-	INSIST(task_manager_create(mctx, 2, 0, &manager) == 2);
-	INSIST(task_allocate(manager, my_shutdown, 0, &task));
+	INSIST(task_manager_create(mctx, workers, 0, &manager) == workers);
 
+	INSIST(task_allocate(manager, "1", my_shutdown, 0, &t1));
+	INSIST(task_allocate(manager, "2", my_shutdown, 0, &t2));
 	event = event_allocate(mctx, 1, my_callback, sizeof *event);
-	task_send_event(task, event);
+	task_send_event(t1, event);
 	event = event_allocate(mctx, 1, my_callback, sizeof *event);
-	task_send_event(task, event);
+	task_send_event(t2, event);
 	event = event_allocate(mctx, 1, my_callback, sizeof *event);
-	task_send_event(task, event);
+	task_send_event(t1, event);
 	event = event_allocate(mctx, 1, my_callback, sizeof *event);
-	task_send_event(task, event);
+	task_send_event(t2, event);
+	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t2, event);
+	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t1, event);
+	event = event_allocate(mctx, 1, my_callback, sizeof *event);
+	task_send_event(t2, event);
 
-	printf("presleep\n");
-	sleep(4);
-	printf("postsleep\n");
-
-	task_shutdown(task);
-	task_detach(&task);
+	task_shutdown(t1);
+	task_shutdown(t2);
+	task_detach(&t1);
+	task_detach(&t2);
+	printf("destroy\n");
 	task_manager_destroy(&manager);
+	printf("destroyed\n");
 	
 	mem_stats(mctx, stdout);
 }
