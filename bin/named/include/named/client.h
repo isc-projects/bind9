@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.69.18.1 2004/07/23 02:57:24 marka Exp $ */
+/* $Id: client.h,v 1.69.18.2 2005/02/10 05:50:50 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -332,6 +332,14 @@ void
 ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager);
 /*
  * Dump the outstanding recursive queries to 'f'.
+ */
+
+isc_boolean_t
+ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
+                 isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
+                 dns_rdataclass_t rdclass, void *arg);
+/*
+ * Isself callback.
  */
 
 #endif /* NAMED_CLIENT_H */

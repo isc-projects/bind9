@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.5 2005/01/11 23:10:40 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.6 2005/02/10 05:50:52 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1462,6 +1462,20 @@ dns_zone_getnotifydelay(dns_zone_t *zone);
  *
  * Requires:
  *	'zone' to be valid.
+ */
+
+void
+dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
+/*
+ * Set the isself callback function and arguement.
+ *
+ * isc_boolean_t
+ * isself(dns_view_t *myview, dns_tsigkey_t *mykey, isc_netaddr_t *srcaddr,
+ *	  isc_netaddr_t *destaddr, dns_rdataclass_t rdclass, void *arg);
+ *
+ * 'isself' returns ISC_TRUE if a non-recursive query from 'srcaddr' to
+ * 'destaddr' with optional key 'mykey' for class 'rdclass' would be
+ * delivered to 'myview'.
  */
 
 ISC_LANG_ENDDECLS

@@ -119,6 +119,8 @@
 1759.	[bug]		Named failed to startup if the OS supported IPv6
 			but had no IPv6 interfaces configured. [RT #12942]
 
+1758.	[func]		Don't send notify messages to self. [RT #12933]
+
 1757.	[func]		host now can turn on memory debugging flags with '-m'.
 
 1756.	[func]		named-checkconf now checks the logging configuration.

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.19 2005/02/03 05:20:30 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.20 2005/02/10 05:50:51 marka Exp $ */
 
 #include <config.h>
 
@@ -223,6 +223,8 @@ struct dns_zone {
 	 */
 	isc_uint64_t	    	*counters;
 	isc_uint32_t		notifydelay;
+	dns_isselffunc_t	isself;
+	void			*isselfarg;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -586,6 +588,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->statelist = NULL;
 	zone->counters = NULL;
 	zone->notifydelay = 5;
+	zone->isself = NULL;
+	zone->isselfarg = NULL;
 
 	zone->magic = ZONE_MAGIC;
 
@@ -2741,6 +2745,46 @@ notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
 	return (ISC_FALSE);
 }
 
+static isc_boolean_t
+notify_isself(dns_zone_t *zone, isc_sockaddr_t *dst) {
+	dns_tsigkey_t *key = NULL;
+	isc_sockaddr_t src;
+	isc_sockaddr_t any;
+	isc_boolean_t isself;
+	isc_netaddr_t dstaddr;
+
+	if (zone->view == NULL || zone->isself == NULL)
+		return (ISC_FALSE);
+
+	switch (isc_sockaddr_pf(dst)) {
+	case PF_INET:
+		src = zone->notifysrc4;
+		isc_sockaddr_any(&any);
+		break;
+	case PF_INET6:
+		src = zone->notifysrc6;
+		isc_sockaddr_any6(&any);
+		break;
+	default:
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * When sending from any the kernel will assign a source address
+	 * that matches the destination address.
+	 */
+	if (isc_sockaddr_eqaddr(&any, &src))
+		src = *dst;
+
+	isc_netaddr_fromsockaddr(&dstaddr, dst);
+	(void)dns_view_getpeertsig(zone->view, &dstaddr, &key);
+	isself = (zone->isself)(zone->view, key, &src, dst, zone->rdclass,
+				zone->isselfarg);
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
+	return (isself);
+}
+
 static void
 notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 	isc_mem_t *mctx;
@@ -2987,6 +3031,8 @@ notify_send(dns_notify_t *notify) {
 	     ai = ISC_LIST_NEXT(ai, publink)) {
 		dst = ai->sockaddr;
 		if (notify_isqueued(notify->zone, NULL, &dst))
+			continue;
+		if (notify_isself(notify->zone, &dst))
 			continue;
 		new = NULL;
 		result = notify_create(notify->mctx,
@@ -7011,6 +7057,16 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->isself = isself;
+	zone->isselfarg = arg;
+	UNLOCK_ZONE(zone);
 }
 
 void
