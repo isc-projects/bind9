@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.73 2001/09/01 01:13:41 gson Exp $ */
+/* $Id: parser.c,v 1.74 2001/09/01 01:24:29 gson Exp $ */
 
 #include <config.h>
 
@@ -822,6 +822,7 @@ options_clauses[] = {
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "match-mapped-addresses", &cfg_type_boolean, 0 },
+	{ "max-journal-size", &cfg_type_size, 0 },
 	{ "memstatistics-file", &cfg_type_qstring, 0 },
 	{ "multiple-cnames", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "named-xfer", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
@@ -950,7 +951,6 @@ zone_only_clauses[] = {
 	{ "file", &cfg_type_qstring, 0 },
 	{ "ixfr-base", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "ixfr-tmp-file", &cfg_type_qstring, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "max-journal-size", &cfg_type_size, 0},
 	{ "masters", &cfg_type_sockaddrkeylist, 0 },
 	{ "pubkey", &cfg_type_pubkey,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
