@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.5 2001/10/29 20:18:48 gson Exp $ */
+/* $Id: check.c,v 1.14.2.6 2001/11/13 18:36:04 gson Exp $ */
 
 #include <config.h>
 
@@ -447,8 +447,9 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	(void)cfg_map_get(config, "options", &options);
 
-	if (options != NULL)
-		check_options(options, logctx);
+	if (options != NULL &&
+	    check_options(options, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);
 

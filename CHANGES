@@ -1,3 +1,5 @@
+1120.	[bug]		Errors in options were not fatal. [RT #2002]
+
 1118.	[bug]		On multithreaded servers, a race condition
 			could cause an assertion failure in resolver.c
 			during resolver shutdown. [RT #2029]
