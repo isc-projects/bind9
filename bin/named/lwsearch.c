@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.5 2000/12/11 19:19:10 bwelling Exp $ */
+/* $Id: lwsearch.c,v 1.6 2000/12/23 22:02:47 tale Exp $ */
+
+#include <config.h>
 
 #include <isc/magic.h>
 #include <isc/mem.h>

@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.6 2000/08/14 03:32:53 gson Exp $ */
+/* $Id: genrandom.c,v 1.7 2000/12/23 22:02:48 tale Exp $ */
+
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
