@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.26 2002/10/29 04:40:25 marka Exp $ */
+/* $Id: net.c,v 1.27 2002/12/24 05:12:50 marka Exp $ */
 
 #include <config.h>
 
@@ -148,14 +148,14 @@ isc_net_probeipv4(void) {
 	return (ipv4_result);
 }
 
-#ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 isc_result_t
 isc_net_probeipv6(void) {
 	initialize();
 	return (ipv6_result);
 }
 
+#ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef WANT_IPV6
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
