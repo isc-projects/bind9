@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.81 2000/04/29 01:48:11 gson Exp $ */
+/* $Id: rdata.c,v 1.82 2000/05/02 05:19:47 marka Exp $ */
 
 #include <config.h>
 
@@ -109,6 +109,28 @@ static void		fromtext_error(void (*callback)(dns_rdatacallbacks_t *,
 static isc_result_t	 rdata_totext(dns_rdata_t *rdata,
 				      dns_rdata_textctx_t *tctx,
 				      isc_buffer_t *target);
+
+static inline isc_result_t
+name_duporclone(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
+
+	if (mctx != NULL)
+                return (dns_name_dup(source, mctx, target));
+	dns_name_clone(source, target);
+	return (ISC_R_SUCCESS);
+}
+
+static inline void *
+mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
+	void *new;
+
+	if (mctx == NULL)
+		return (source);
+	new = isc_mem_allocate(mctx, length);
+	if (new != NULL)
+		memcpy(new, source, length);
+		
+	return (new);
+}
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
