@@ -1275,8 +1275,8 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	 * Check for offset wraparound.
 	 */
 	if (xhdr.size + sizeof(journal_rawxhdr_t) > ISC_OFFSET_MAXIMUM ||
-	    (isc_offset_t)(ISC_OFFSET_MAXIMUM - xhdr.size -
-			   sizeof(journal_rawxhdr_t) < pos->offset)) {
+           ISC_OFFSET_MAXIMUM - xhdr.size - sizeof(journal_rawxhdr_t)
+           < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: offset too large", j->filename);
 		return (ISC_R_UNEXPECTED);		
