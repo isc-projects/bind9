@@ -89,7 +89,7 @@ extern const struct in6_addr in6addr_any;
 	(((a)->s6_addr[0] == 0xfe) && (((a)->s6_addr[1] & 0xc0) == 0xc0))
 #endif
 
-#ifndef
+#ifndef IN6_IS_ADDR_MULTICAST
 #define IN6_IS_ADDR_MULTICAST(a)        ((a)->s6_addr[0] == 0xff)
 #endif
 
