@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.111 2001/04/12 21:18:14 tale Exp $ */
+/* $Id: rbt.c,v 1.112 2001/05/31 11:03:33 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -858,6 +858,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			unsigned int nlabels;
 			unsigned int tlabels = 1;
 			unsigned int hash;
+			isc_boolean_t has_bitstring = ISC_FALSE;
 
 			if (rbt->hashtable == NULL)
 				goto nohash;
@@ -916,24 +917,37 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				}
 			}
 
-			if (tlabels++ < nlabels)
+			if (tlabels++ < nlabels) {
+				/*
+				 * XXXDCL Bitstring labels complicate things,
+				 * as usual.  Checking for the situation could
+				 * be done up by the dns_name_getlabelsequence
+				 * so that they could still use the hashing
+				 * code, but it would be messy to repeatedly
+				 * try various bitstring lengths.  Instead
+				 * just notice when a bitstring label is
+				 * involved and then punt to the traditional
+				 * binary search if no hash node is found
+				 * after all of the labels are tried.
+				 */
+				if (has_bitstring == ISC_FALSE &&
+				    hash_name.ndata[0] ==
+				    DNS_LABELTYPE_BITSTRING)
+					has_bitstring = ISC_TRUE;
+
 				goto hashagain;
+			}
 
 			/*
-			 * XXXDCL Bitstring labels complicate things, as usual.
-			 * Checking for the situation could be done up by
-			 * the dns_name_getlabelsequence so that they could
-			 * still use the hashing code, but it would be messy
-			 * to repeatedly try various bitstring lengths.
-			 * Best to keep the issue out of the way down here for
-			 * now by punting to the traditional binary search.
-			 *
-			 * Yes, accessing the name structure data directly
-			 * is evil.  This function gets used to much to slow
-			 * it down with the name.h function call APIs.
+			 * All of the labels have been tried against the hash
+			 * table.  If there wasn't a bitstring label involved,
+			 * the name isn't in the table.  If there was, fall
+			 * through to the traditional search algorithm.
 			 */
-			if (search_name->ndata[search_name->offsets[nlabels-1]]
-			    != DNS_LABELTYPE_BITSTRING) {
+			if (! has_bitstring) {
+				/*
+				 * Done with the search.
+				 */
 				current = NULL;
 				continue;
 			}
@@ -1323,13 +1337,13 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	result = dns_rbt_findnode(rbt, name, NULL, &node, NULL,
 				  DNS_RBTFIND_NOOPTIONS, NULL, NULL);
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		if (DATA(node) != NULL)
 			result = dns_rbt_deletenode(rbt, node, recurse);
 		else
 			result = ISC_R_NOTFOUND;
 
-	else if (result == DNS_R_PARTIALMATCH)
+	} else if (result == DNS_R_PARTIALMATCH)
 		result = ISC_R_NOTFOUND;
 
 	return (result);
@@ -1357,20 +1371,19 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
  * "b.c" is left hanging around without data or children.  This condition
  * is actually pretty easy to detect, but ... should it really be removed?
  * Is a chain pointing to it?  An iterator?  Who knows!  (Note that the
- * references structure member because it is private to rbtdb.)  This is
- * ugly and makes me unhappy, but after hours of trying to make it more
- * aesthetically proper and getting nowhere, this is the way it is going
- * to stay until such time as it proves to be a *real* problem.
+ * references structure member cannot be looked at because it is private to
+ * rbtdb.)  This is ugly and makes me unhappy, but after hours of trying to
+ * make it more aesthetically proper and getting nowhere, this is the way it
+ * is going to stay until such time as it proves to be a *real* problem.
  *
  * Finally, for reference, note that the original routine that did node
  * joining was called join_nodes().  It has been excised, living now only
- * in the CVS histroy, but comments have been left behind that point to it just
+ * in the CVS history, but comments have been left behind that point to it just
  * in case someone wants to muck with this some more.
  *
  * The one positive aspect of all of this is that joining used to have a
  * case where it might fail.  Without trying to join, now this function always
- * succeeds. It still returns isc_result_t, though, so the API wouldn't change.
- */
+ * succeeds. It still returns isc_result_t, though, so the API wouldn't change.  */
 isc_result_t
 dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 {
