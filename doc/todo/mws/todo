@@ -1,3 +1,8 @@
 Inspect dig and nsupdate (with Andreas)
 
-Remove unnecessary delays from system tests
+Remove unnecessary delays from system tests	[COMPLETED]
+
+-- Low priority:
+
+Serialize dig's transmissions to servers
+
