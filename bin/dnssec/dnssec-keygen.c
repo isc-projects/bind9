@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.36 2000/06/22 02:48:12 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.36.2.1 2000/09/21 18:27:15 gson Exp $ */
 
 #include <config.h>
 
@@ -56,7 +56,7 @@ dsa_size_ok(int size) {
 static void
 usage(void) {
 	printf("Usage:\n");
-	printf("    %s [options] name\n\n", program);
+	printf("    %s -a alg -b bits -n type [options] name\n\n", program);
 	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
@@ -69,15 +69,13 @@ usage(void) {
 	printf("Other options:\n");
 	printf("    -e use large exponent (RSA only)\n");
 	printf("    -g use specified generator (DH only)\n");
-	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF\n");
-	printf("        default: AUTHCONF\n");
-	printf("    -p protocol value\n");
-	printf("        default: 2 (email) for User keys, "
-	       			"3 (dnssec) for all others\n");
-	printf("    -s strength value this key signs DNS records with\n");
-	printf("        default: 0\n");
-	printf("    -r randomdev\n");
-        printf("        a file containing random data\n");
+ 	printf("    -t type: AUTHCONF | NOAUTHCONF | NOAUTH | NOCONF "
+ 	       "(default: AUTHCONF)\n");
+ 	printf("    -p protocol value "
+ 	       "(default: 2 [email] for USER, 3 [dnssec] otherwise)\n");
+ 	printf("    -s strength value this key signs DNS records with "
+ 	       "(default: 0)\n");
+ 	printf("    -r randomdev (a file containing random data)\n");
 	printf("    -v verbose level\n");
 
 	exit (-1);
