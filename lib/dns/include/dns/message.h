@@ -42,11 +42,11 @@
  * TSIG checking is also done at this layer, and any DNSSEC information should
  * also be performed at this time.
  *
- * If dns_msg_fromwire() returns DNS_RESULT_MOREDATA additional
+ * If dns_msg_fromwire() returns DNS_R_MOREDATA additional
  * message packets are required.  This implies an EDNS message.
  *
  * When going from structure to wire, dns_msg_towire() will return
- * DNS_RESULT_MOREDATA if there is more data left in the output buffer that
+ * DNS_R_MOREDATA if there is more data left in the output buffer that
  * could not be rendered into the exisiting buffer.
  *
  * XXX Needed:  ways to handle TSIG and DNSSEC, supply TSIG and DNSSEC
