@@ -23,7 +23,8 @@ TARGETS =	lex_test \
 		rbt_test \
 		rdata_test \
 		rwlock_test \
-		wire_test
+		wire_test \
+		master_test
 
 @BIND9_MAKE_RULES@
 
@@ -56,6 +57,9 @@ rwlock_test: rwlock_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 
 wire_test: wire_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
 	${CC} -o $@ wire_test.o ${LIBS}
+
+master_test: master_test.o ../../lib/isc/libisc.a ../../lib/dns/libdns.a
+	${CC} -o $@ master_test.o ${LIBS}
 
 clean distclean::
 	rm -f ${TARGETS}

@@ -68,7 +68,14 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	int rdcount_save = 0;
 	int rdata_size = 0;
 	unsigned char *target_mem = NULL;
-	int target_size = 64*1024;
+	int target_size = 128*1024;
+	unsigned char name_buf[5][255];
+	isc_boolean_t name_in_use[5];
+	int glue_in_use = -1;
+	int current_in_use = -1;
+	int new_in_use;
+	isc_buffer_t name;
+	isc_lexspecials_t specials;
 
 	dns_name_init(&current_name, NULL);
 	dns_name_init(&glue_name, NULL);
@@ -79,8 +86,16 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	if (isc_lex_create(mctx, 256, &lex) != ISC_R_SUCCESS)
 		goto cleanup;
 
+	memset(specials, 0, sizeof specials);
+	specials['('] = 1;
+	specials[')'] = 1;
+	specials['"'] = 1;
+	isc_lex_setspecials(lex, specials);
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
 	if (isc_lex_openfile(lex, master_file) != ISC_R_SUCCESS)
 		goto cleanup;
+
 
 	target_mem = isc_mem_get(mctx, target_size);
 	if (target_mem == NULL) {
@@ -90,6 +105,7 @@ dns_load_master(char *master_file, dns_name_t *origin,
 	isc_buffer_init(&target, target_mem, target_size,
 			ISC_BUFFERTYPE_BINARY);
 	target_save = target;
+	memset(name_in_use, 0, 5 * sizeof(isc_boolean_t));
 	do {
 		options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
 			  ISC_LEXOPT_INITIALWS | ISC_LEXOPT_DNSMULTILINE;
@@ -117,6 +133,12 @@ dns_load_master(char *master_file, dns_name_t *origin,
 
 			/* XXX "$" Support */
 
+			for (new_in_use = 0; new_in_use < 5 ; new_in_use++)
+				if (!name_in_use[new_in_use])
+					break;
+			INSIST(new_in_use < 5);
+			isc_buffer_init(&name, &name_buf[new_in_use][0], 255,
+					ISC_BUFFERTYPE_BINARY);
 			dns_name_init(&new_name, NULL);
 			isc_buffer_init(&buffer, token.value.as_region.base,
 					token.value.as_region.length,
@@ -124,9 +146,8 @@ dns_load_master(char *master_file, dns_name_t *origin,
 			isc_buffer_add(&buffer, token.value.as_region.length);
 			isc_buffer_setactive(&buffer,
 					     token.value.as_region.length);
-			/* XXX name memory */
 			result = dns_name_fromtext(&new_name, &buffer,
-					  origin, ISC_FALSE, &target);
+					  origin, ISC_FALSE, &name);
 
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
@@ -139,6 +160,8 @@ dns_load_master(char *master_file, dns_name_t *origin,
 						&glue_name, callback);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
+				if (glue_in_use != -1)
+					name_in_use[glue_in_use] = ISC_FALSE;
 				dns_name_invalidate(&glue_name);
 				in_glue = ISC_FALSE;
 				rdcount = rdcount_save;
@@ -155,6 +178,8 @@ dns_load_master(char *master_file, dns_name_t *origin,
 					rdlcount_save = rdlcount;
 					target_save = target;
 					glue_name = new_name;
+					glue_in_use = new_in_use;
+					name_in_use[glue_in_use] = ISC_TRUE;
 				} else {
 					result = commit(&current_list,
 							&current_name,
@@ -163,9 +188,17 @@ dns_load_master(char *master_file, dns_name_t *origin,
 						goto cleanup;
 					rdcount = 0;
 					rdlcount = 0;
+					if (current_in_use != -1)
+						name_in_use[current_in_use]
+							= ISC_FALSE;
+					current_in_use = new_in_use;
+					name_in_use[current_in_use] = ISC_TRUE;
 					current_name = new_name;
 					current_known = ISC_TRUE;
 					current_has_delegation = ISC_FALSE;
+					isc_buffer_init(&target, target_mem,
+							target_size,
+							ISC_BUFFERTYPE_BINARY);
 				}
 			}
 		} else {
@@ -234,7 +267,7 @@ dns_load_master(char *master_file, dns_name_t *origin,
 		else
 			this = ISC_LIST_HEAD(current_list);
 
-		while ((this = ISC_LIST_HEAD(current_list)) != NULL) {
+		while (this != NULL) {
 			if (this->type == type)
 				break;
 			this = ISC_LIST_NEXT(this, link);
@@ -283,6 +316,21 @@ dns_load_master(char *master_file, dns_name_t *origin,
 			goto cleanup;
 		ISC_LIST_PREPEND(this->rdata, &rdata[rdcount], link);
 		rdcount++;
+		/* We must have at least 64k as rdlen is 61 bits. */
+		if (target.used > (64*1024)) {
+			result = commit(&current_list, &current_name, callback);
+			if (result != DNS_R_SUCCESS)
+				goto cleanup;
+			result = commit(&glue_list, &glue_name, callback);
+			if (result != DNS_R_SUCCESS)
+				goto cleanup;
+			rdcount = 0;
+			rdlcount = 0;
+			in_glue = ISC_FALSE;
+			current_has_delegation = ISC_FALSE;
+			isc_buffer_init(&target, target_mem, target_size,
+					ISC_BUFFERTYPE_BINARY);
+		}
 	} while (!done);
 	result = commit(&current_list, &current_name, callback);
 	if (result != DNS_R_SUCCESS)
@@ -452,6 +500,7 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		dns_name_fromregion(&name, &region);
 		if (dns_name_compare(&name, owner) == 0)
 			return (ISC_TRUE);
+		rdata = ISC_LIST_NEXT(rdata, link);
 	}
 	return (ISC_FALSE);
 }

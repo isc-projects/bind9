@@ -9,3 +9,5 @@ task_test
 timer_test
 wire_test
 rdata_test
+master_test
+rbt_test
