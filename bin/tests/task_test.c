@@ -171,7 +171,10 @@ main(int argc, char *argv[]) {
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "4",
 				   sizeof *event);
 	isc_task_send(t4, &event);
-	isc_task_purge(t3, NULL, 0);
+	isc_task_purgerange(t3,
+			    NULL,
+			    ISC_EVENTTYPE_FIRSTEVENT,
+			    ISC_EVENTTYPE_LASTEVENT);
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
