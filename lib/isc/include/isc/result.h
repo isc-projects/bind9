@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -47,7 +47,8 @@ typedef unsigned int isc_result_t;
 #define ISC_R_UNEXPECTEDEND		24	/* unexpected end of input */
 #define ISC_R_FAILURE			25	/* generic failure */
 #define ISC_R_IOERROR			26
-#define ISC_R_LASTENTRY			26	/* last entry in the list */
+#define ISC_R_NOTIMPLEMENTED		27
+#define ISC_R_LASTENTRY			27	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 

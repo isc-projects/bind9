@@ -47,6 +47,7 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"unexpected end of input",		/* 24 */
 	"failure",				/* 25 */
 	"I/O error",				/* 26 */
+	"not implemented",			/* 27 */
 };
 
 char *
