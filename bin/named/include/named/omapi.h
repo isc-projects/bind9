@@ -29,5 +29,5 @@
 #define NS_OMAPI_COMMAND_RELOADZONES	"reload-zones"
 
 isc_result_t
-ns_omapi_listen(isc_mem_t *mctx, omapi_object_t **managerp);
+ns_omapi_listen(omapi_object_t **managerp);
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.2 2000/02/01 15:18:28 tale Exp $ */
+/* $Id: omapi.c,v 1.3 2000/02/02 02:16:59 halley Exp $ */
 
 /*
  * Principal Author: DCL
@@ -139,7 +139,7 @@ control_stuffvalues(omapi_object_t *connection, omapi_object_t *handle) {
 }
 
 isc_result_t
-ns_omapi_listen(isc_mem_t *mctx, omapi_object_t **managerp) {
+ns_omapi_listen(omapi_object_t **managerp) {
 	omapi_object_t *manager = NULL;
 	isc_result_t result;
 	isc_sockaddr_t sockaddr;
@@ -154,23 +154,20 @@ ns_omapi_listen(isc_mem_t *mctx, omapi_object_t **managerp) {
 	inaddr4.s_addr = htonl(0x7F000001);
 	isc_sockaddr_fromin(&sockaddr, &inaddr4, NS_OMAPI_PORT);
 
-	result = omapi_lib_init(mctx);
-
 	/*
 	 * Register the control_object.  NS_OMAPI_CONTROL is what a client
 	 * would need to specify as a value for the value of "type" in
 	 * a message when contacting the server to perform a control function.
 	 */
-	if (result == ISC_R_SUCCESS)
-		result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
-					       control_setvalue,
-					       NULL, 	/* getvalue */
-					       NULL,	/* destroy */
-					       NULL,	/* signalhandler */
-					       control_stuffvalues,
-					       control_lookup,
-					       NULL,	/* create */
-					       NULL);	/* remove */
+	result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
+				       control_setvalue,
+				       NULL, 	/* getvalue */
+				       NULL,	/* destroy */
+				       NULL,	/* signalhandler */
+				       control_stuffvalues,
+				       control_lookup,
+				       NULL,	/* create */
+				       NULL);	/* remove */
 
 	if (result == ISC_R_SUCCESS) {
 		/*
@@ -198,7 +195,6 @@ ns_omapi_listen(isc_mem_t *mctx, omapi_object_t **managerp) {
 	else {
 		if (manager != NULL)
 			omapi_object_dereference(&manager);
-		omapi_lib_destroy();
 	}
 
 	return (result);

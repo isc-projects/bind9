@@ -288,7 +288,12 @@ setup() {
 
 	ns_server_create(ns_g_mctx, &ns_g_server);
 
-	result = ns_omapi_listen(ns_g_mctx, &ns_g_omapimgr);
+	result = omapi_lib_init(ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("omapi_lib_init() failed: %s",
+				   isc_result_totext(result));
+
+	result = ns_omapi_listen(&ns_g_omapimgr);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(3),
