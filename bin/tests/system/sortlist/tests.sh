@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.4 2001/01/13 00:02:55 gson Exp $
+# $Id: tests.sh,v 1.5 2001/10/30 20:19:33 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -38,8 +38,8 @@ $DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd a.example. \
 # result RRs is significant.
 diff test1.dig test1.good || status=1
 
-echo "I:test 1-element sortlist statement"
-for n in 2 3
+echo "I:test 1-element sortlist statement and undocumented BIND 8 features"
+for n in 2 3 4 5
 do
 	cat <<EOF >test2.good
 b.example.		300	IN	A	10.53.0.$n

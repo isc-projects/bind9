@@ -1,3 +1,7 @@
+1080.	[bug]		BIND 8 compatibility: accept bare IP prefixes
+			as the second element of a two-element top level
+			sort list statement. [RT #1964]
+
 1079.	[bug]		BIND 8 compatibility: accept bare elements at top
 			level of sort list treating them as if they were
 			a single element list.  [RT #1963]
