@@ -188,11 +188,11 @@ send_intro(omapi_object_t *h, unsigned int ver) {
  */
 isc_result_t
 omapi_protocol_listen(omapi_object_t *manager, isc_sockaddr_t *addr,
-		      dns_acl_t *acl, int max, void (*callback)(void *),
-		      void *callback_arg)
+		      dns_acl_t *acl, int max,
+		      isc_taskaction_t destroy_action, void *destroy_arg)
 {
 	return (omapi_listener_listen((omapi_object_t *)manager, addr,
-				      acl, max, callback, callback_arg));
+				      acl, max, destroy_action, destroy_arg));
 }
 
 isc_result_t
