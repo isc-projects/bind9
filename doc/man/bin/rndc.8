@@ -13,14 +13,14 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-.\" $Id: rndc.8,v 1.11.4.1 2001/01/09 22:39:59 bwelling Exp $
+.\" $Id: rndc.8,v 1.11.4.2 2001/01/24 17:33:18 bwelling Exp $
 
 .Dd Jun 30, 2000
 .Dt RDNC 8
 .Os BIND9 9
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
-.Nm rdnc
+.Nm rndc
 .Nd name server control utility
 .Sh SYNOPSIS
 .Nm rndc
@@ -115,7 +115,7 @@ clause of the
 .Dv options
 statement.
 Note that the configuration file for
-.Nm rdnc
+.Nm rndc
 contains shared secrets which are used to send authenticated
 control commands to name servers.
 It should therefore not have general read or write access.
