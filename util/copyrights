@@ -750,7 +750,7 @@
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001
 ./bin/win32/BINDInstall/BINDInstall.mak		X	2001
 ./bin/win32/BINDInstall/BINDInstall.rc		X	2001
-./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001
+./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2002
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001
@@ -864,6 +864,9 @@
 ./contrib/idn/mdnkit/include/mdn/amcacem.h	X	2001
 ./contrib/idn/mdnkit/include/mdn/amcaceo.h	X	2001
 ./contrib/idn/mdnkit/include/mdn/amcacer.h	X	2001
+./contrib/idn/mdnkit/include/mdn/amcacev.h	X	2002
+./contrib/idn/mdnkit/include/mdn/amcacew.h	X	2002
+./contrib/idn/mdnkit/include/mdn/amcacez.h	X	2002
 ./contrib/idn/mdnkit/include/mdn/api.h		X	2001
 ./contrib/idn/mdnkit/include/mdn/assert.h	X	2000,2001
 ./contrib/idn/mdnkit/include/mdn/brace.h	X	2000,2001
@@ -879,6 +882,7 @@
 ./contrib/idn/mdnkit/include/mdn/localencoding.h	X	2000,2001
 ./contrib/idn/mdnkit/include/mdn/log.h		X	2000,2001
 ./contrib/idn/mdnkit/include/mdn/logmacro.h	X	2000,2001
+./contrib/idn/mdnkit/include/mdn/mace.h		X	2002
 ./contrib/idn/mdnkit/include/mdn/mapper.h	X	2001
 ./contrib/idn/mdnkit/include/mdn/mapselector.h	X	2001
 ./contrib/idn/mdnkit/include/mdn/msgheader.h	X	2000,2001
@@ -907,6 +911,9 @@
 ./contrib/idn/mdnkit/lib/amcacem.c		X	2001
 ./contrib/idn/mdnkit/lib/amcaceo.c		X	2001
 ./contrib/idn/mdnkit/lib/amcacer.c		X	2001
+./contrib/idn/mdnkit/lib/amcacev.c		X	2002
+./contrib/idn/mdnkit/lib/amcacew.c		X	2002
+./contrib/idn/mdnkit/lib/amcacez.c		X	2002
 ./contrib/idn/mdnkit/lib/api.c			X	2001
 ./contrib/idn/mdnkit/lib/brace.c		X	2000,2001
 ./contrib/idn/mdnkit/lib/checker.c		X	2001
@@ -920,6 +927,7 @@
 ./contrib/idn/mdnkit/lib/lace.c			X	2000,2001
 ./contrib/idn/mdnkit/lib/localencoding.c	X	2000,2001
 ./contrib/idn/mdnkit/lib/log.c			X	2000,2001
+./contrib/idn/mdnkit/lib/mace.c			X	2002
 ./contrib/idn/mdnkit/lib/make.wnt		X	2001
 ./contrib/idn/mdnkit/lib/mapper.c		X	2001
 ./contrib/idn/mdnkit/lib/mapselector.c		X	2001
@@ -939,6 +947,7 @@
 ./contrib/idn/mdnkit/lib/ucsmap.c		X	2001
 ./contrib/idn/mdnkit/lib/ucsset.c		X	2001
 ./contrib/idn/mdnkit/lib/unicode.c		X	2000,2001
+./contrib/idn/mdnkit/lib/unicode_template.c	X	2002
 ./contrib/idn/mdnkit/lib/unicodedata_301.c	X	2002
 ./contrib/idn/mdnkit/lib/unicodedata_310.c	X	2002
 ./contrib/idn/mdnkit/lib/unormalize.c		X	2000,2001
