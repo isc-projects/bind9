@@ -51,6 +51,7 @@
 
 #include <lwres/lwbuffer.h>
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 #include <lwres/result.h>
 
 #include "assert_p.h"
@@ -97,7 +98,7 @@ static int lwresaddr2af(int lwresaddrtype);
 static int
 lwresaddr2af(int lwresaddrtype)
 {
-	int af;
+	int af = 0;
 	
 	switch (lwresaddrtype) {
 	case LWRES_ADDRTYPE_V4:
@@ -106,10 +107,6 @@ lwresaddr2af(int lwresaddrtype)
 
 	case LWRES_ADDRTYPE_V6:
 		af = AF_INET6;
-		break;
-
-	default:
-		INSIST(0);
 		break;
 	}
 
@@ -413,7 +410,6 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 #endif
 		addr->length = NS_INADDRSZ;
 		len = 4;
-#if defined(AF_INET6)
 	} else if (lwres_net_pton(AF_INET6, buffer, &addrbuff) == 1) {
 #if 1 /* XXX BRISTER. Set to 0 for testing with lwresconf_test */
 		addr->family = LWRES_ADDRTYPE_V6;
@@ -422,7 +418,6 @@ lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
 #endif	
 		addr->length = NS_IN6ADDRSZ;
 		len = 16;
-#endif
 	} else {
 		return (LWRES_R_FAILURE); /* Unrecongnised format. */
 	}
