@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.23 2000/05/08 14:37:07 tale Exp $
+ * $Id: hmac_link.c,v 1.24 2000/05/13 19:31:35 tale Exp $
  */
 
 #include <config.h>
@@ -89,7 +89,7 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx);
  * Sets up function pointers for HMAC-MD5 related functions 
  */
 void
-dst_s_hmacmd5_init() {
+dst_s_hmacmd5_init(void) {
 	REQUIRE(dst_t_func[DST_ALG_HMACMD5] == NULL);
 	dst_t_func[DST_ALG_HMACMD5] = &hmacmd5_functions;
 	memset(&hmacmd5_functions, 0, sizeof(struct dst_func));
