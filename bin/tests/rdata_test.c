@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.35 2001/01/09 21:41:34 bwelling Exp $ */
+/* $Id: rdata_test.c,v 1.35.12.1 2003/08/14 00:52:55 marka Exp $ */
 
 #include <config.h>
 
@@ -89,6 +89,19 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	}
 	case dns_rdatatype_any: {
 		result = ISC_R_NOTIMPLEMENTED;
+		break;
+	}
+	case dns_rdatatype_apl: {
+		switch (rdata->rdclass) {
+		case dns_rdataclass_in: {
+			dns_rdata_in_apl_t in_apl;
+			result = dns_rdata_tostruct(rdata, sp = &in_apl, NULL);
+			break;
+		}
+		default:
+			result = ISC_R_NOTIMPLEMENTED;
+			break;
+		}
 		break;
 	}
 	case dns_rdatatype_cert: {
@@ -318,6 +331,19 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	}
 	case dns_rdatatype_any: {
 		result = ISC_R_NOTIMPLEMENTED;
+		break;
+	}
+	case dns_rdatatype_apl: {
+		switch (rdata->rdclass) {
+		case dns_rdataclass_in: {
+			dns_rdata_in_apl_t in_apl;
+			result = dns_rdata_tostruct(rdata, sp = &in_apl, mctx);
+			break;
+		}
+		default:
+			result = ISC_R_NOTIMPLEMENTED;
+			break;
+		}
 		break;
 	}
 	case dns_rdatatype_cert: {
@@ -576,6 +602,19 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	}
 	case dns_rdatatype_any: {
 		result = ISC_R_NOTIMPLEMENTED;
+		break;
+	}
+	case dns_rdatatype_apl: {
+		switch (rdata->rdclass) {
+		case dns_rdataclass_in: {
+			dns_rdata_in_apl_t in_apl;
+			result = dns_rdata_fromstruct(rdata, rdc, rdt, &in_apl,							      b);
+			break;
+		}
+		default:
+			result = ISC_R_NOTIMPLEMENTED;
+			break;
+		}
 		break;
 	}
 	case dns_rdatatype_cert: {

@@ -1,3 +1,5 @@
+1220.	[func]		Support for APL rdata type.
+
 1219.	[func]		Named now reports the TSIG extended error code when
 			signature verification fails. [RT #1651]
 
