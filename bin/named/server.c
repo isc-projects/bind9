@@ -56,7 +56,7 @@ isc_mem_t *mctx = NULL;
 isc_boolean_t want_stats = ISC_FALSE;
 dns_db_t *db;
 
-static inline isc_boolean_t
+static ISC_inline isc_boolean_t
 CHECKRESULT(dns_result_t result, char *msg)
 {
 	if ((result) != DNS_R_SUCCESS) {
@@ -107,13 +107,16 @@ resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
 {
 	dns_message_t *message;
 	dns_result_t result;
-	dns_name_t *name;
+	dns_name_t *name, name2;
+	dns_rdataset_t *rds, rdataset;
+	dns_dbnode_t *node;
+
 
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENT_RENDER);
 	CHECKRESULT(result, "dns_message_create failed");
 
 	message->id = query->id;
-	message->rcode = dns_rcode_servfail;
+	message->rcode = dns_rcode_noerror;
 	message->flags = query->flags;
 	message->flags |= DNS_MESSAGEFLAG_QR;
 
@@ -123,18 +126,64 @@ resolve_packet(isc_mem_t *mctx, dns_db_t *db, dns_message_t *query,
 	 * I'll just steal the one from the existing query message, and
 	 * make certain the query is not destroyed before our message is.
 	 */
-
 	result = dns_message_firstname(query, DNS_SECTION_QUESTION);
 	if (result != DNS_R_SUCCESS)
 		return (result);
 
+	name = NULL;
 	dns_message_currentname(query, DNS_SECTION_QUESTION, &name);
+	rds = ISC_LIST_HEAD(name->list);
+	if (rds == NULL)
+		return (DNS_R_UNEXPECTED);
 
 	dns_message_addname(message, name, DNS_SECTION_QUESTION);
 
 	result = printmessage(message);
 	INSIST(result == DNS_R_SUCCESS);  /* XXX not in a real server */
-	
+
+	/*
+	 * Pull the name out of the database.
+	 */
+        if (!dns_name_issubdomain(name, dns_db_origin(db))) {
+                message->rcode = dns_rcode_nxdomain;
+                goto render;
+        }
+
+	dns_name_init(&name2, NULL);
+	dns_name_clone(name, &name2);
+        node = NULL;
+        result = dns_db_findnode(db, &name2, ISC_FALSE, &node);
+        if (result == DNS_R_NOTFOUND) {
+		message->flags |= DNS_MESSAGEFLAG_AA;
+                message->rcode = dns_rcode_nxdomain;
+                goto render;
+        }
+        if (result != DNS_R_SUCCESS) {
+                message->rcode = dns_rcode_servfail;
+		printf("Foo\n");
+                goto render;
+        }
+
+        dns_rdataset_init(&rdataset);
+        result = dns_db_findrdataset(db, node, NULL, rds->type, 0, &rdataset);
+        dns_db_detachnode(db, &node);
+        if (result == DNS_R_NOTFOUND) {
+		message->flags |= DNS_MESSAGEFLAG_AA;
+                message->rcode = dns_rcode_nxdomain;
+                goto render;
+        }
+        if (result != DNS_R_SUCCESS) {
+                message->rcode = dns_rcode_servfail;
+		printf("Foo2\n");
+                goto render;
+        }
+
+	ISC_LIST_APPEND(name2.list, &rdataset, link);
+	dns_message_addname(message, &name2, DNS_SECTION_ANSWER);
+	message->flags |= DNS_MESSAGEFLAG_AA;
+
+ render:
+
 	result = dns_message_renderbegin(message, target);
 	if (result != DNS_R_SUCCESS)
 		return (result);
