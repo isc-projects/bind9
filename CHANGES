@@ -1,3 +1,6 @@
+ 982.	[func]		If "memstatistics-file" is set in options the memory
+			statistics will be written to it.
+
  981.	[func]		The dnssec tools can now take multiple '-r randomfile'
  			arguments.
 
