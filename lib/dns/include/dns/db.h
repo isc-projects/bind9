@@ -119,7 +119,12 @@ typedef struct dns_dbmethods {
 				       dns_dbversion_t *version,
 				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset,
+				       isc_boolean_t merge,
 				       dns_rdataset_t *addedrdataset);
+	dns_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
+					    dns_dbversion_t *version,
+					    dns_rdataset_t *rdataset,
+					    dns_rdataset_t *newrdataset);
 	dns_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type);
@@ -794,11 +799,17 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 dns_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   dns_rdataset_t *addedrdataset);
+		   isc_boolean_t merge, dns_rdataset_t *addedrdataset);
 /*
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
  *
  * Notes:
+ *
+ *	If the database has zone semantics, 'merge' is ISC_TRUE, and an
+ *	rdataset of the same type as 'rdataset' already exists at 'node',
+ *	then the contents of 'rdataset' will be merged with the existing
+ *	rdataset.  If merge is ISC_FALSE, then rdataset will replace any
+ *	existing rdataset of the same type.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than
@@ -822,13 +833,52 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	read-write version, or the database has cache semantics
  *	and version is NULL.
  *
+ *	If the database has cache semantics, 'merge' must be ISC_FALSE.
+ *
  * Returns:
  *
  *	DNS_R_SUCCESS
+ *	DNS_R_UNCHANGED			The operation did not change anything.
  *	DNS_R_NOMEMORY
- *	DNS_R_EXISTS			An rdataset with the specified
- *					rdataset's type and version's serial
- *					number already exists.
+ *	
+ *	Other results are possible, depending upon the database
+ *	implementation used.
+ */
+
+dns_result_t
+dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
+			dns_dbversion_t *version, dns_rdataset_t *rdataset,
+			dns_rdataset_t *newrdataset);
+/*
+ * Remove any rdata in 'rdataset' from 'node' in version 'version' of
+ * 'db'.
+ *
+ * Notes:
+ *
+ *	If 'newrdataset' is not NULL, then it will be attached to the
+ *	rdataset added to the database, unless the rdataset has become
+ *	nonexistent.
+ *
+ * Requires:
+ *
+ *	'db' is a valid database.
+ *
+ *	'node' is a valid node.
+ *
+ *	'rdataset' is a valid, associated rdataset with the same class
+ *	as 'db'.
+ *
+ *	'newrdataset' is NULL, or a valid, unassociated rdataset.
+ *
+ *	The database has zone semantics and 'version' is a valid
+ *	read-write version.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS
+ *	DNS_R_UNCHANGED			The operation did not change anything.
+ *	DNS_R_NXRDATASET		All rdata of the same type as those
+ *					in 'rdataset' have been deleted.
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.
@@ -867,7 +917,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  * Returns:
  *
  *	DNS_R_SUCCESS
- *	DNS_R_NOTFOUND
+ *	DNS_R_UNCHANGED			No rdatasets of 'type' existed before
+ *					the operation was attempted.
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.

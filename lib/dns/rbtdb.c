@@ -2274,6 +2274,9 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	rdatasetheader_t *header, *header_prev;
 	unsigned char *merged;
 	dns_result_t result;
+	isc_boolean_t force = ISC_FALSE;
+	isc_boolean_t header_nx;
+	isc_boolean_t newheader_nx;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -2284,10 +2287,18 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	 */
 
 	if (rbtversion != NULL && !loading) {
+		/*
+		 * We always add a changed record, even if no changes end up
+		 * being made to this node, because it's harmless and
+		 * simplifies the code.
+		 */
 		changed = add_changed(rbtdb, rbtversion, rbtnode);
 		if (changed == NULL)
 			return (DNS_R_NOMEMORY);
 	}
+
+	newheader_nx = ((newheader->attributes & RDATASET_ATTR_NONEXISTENT)
+			!= 0 ? ISC_TRUE : ISC_FALSE);
 
 	header_prev = NULL;
 	for (header = rbtnode->data; header != NULL; header = header->next) {
@@ -2296,13 +2307,28 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		header_prev = header;
 	}
 	if (header != NULL) {
+		header_nx = ((header->attributes & RDATASET_ATTR_NONEXISTENT)
+			     != 0 ? ISC_TRUE : ISC_FALSE);
+
+		/*
+		 * Deleting an already non-existent rdataset has no effect.
+		 */
+		if (header_nx && newheader_nx) {
+			free_rdataset(rbtdb->common.mctx, newheader);
+			return (DNS_R_UNCHANGED);
+		}
+			
 		/*
 		 * Don't merge if a nonexistent rdataset is involved.
 		 */
-		if (merge &&
-		    ((newheader->attributes & RDATASET_ATTR_NONEXISTENT) != 0
-		     || (header->attributes & RDATASET_ATTR_NONEXISTENT) != 0))
+		if (merge && (header_nx || newheader_nx))
 			merge = ISC_FALSE;
+
+		/*
+		 * XXXRTH  We should turn off merging for rdata types that
+		 * cannot be merged, e.g. SOA, CNAME, WKS.
+		 */
+
 		/*
 		 * If 'merge' is ISC_TRUE, we'll try to create a new rdataset
 		 * that is the union of 'newheader' and 'header'.
@@ -2310,6 +2336,12 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		if (merge) {
 			INSIST(rbtversion->serial >= header->serial);
 			merged = NULL;
+			if (newheader->ttl != header->ttl)
+				force = ISC_TRUE;
+			/*
+			 * XXXRTH we're going to have to deal with signatures
+			 * somehow here...
+			 */
 			result = dns_rdataslab_merge(
 					     (unsigned char *)header,
 					     (unsigned char *)newheader,
@@ -2317,6 +2349,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					     rbtdb->common.mctx,
 					     rbtdb->common.rdclass,
 					     header->type,
+					     force,
 					     &merged);
 			if (result == DNS_R_SUCCESS) {
 				/*
@@ -2331,13 +2364,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				newheader = (rdatasetheader_t *)merged;
 			} else {
 				free_rdataset(rbtdb->common.mctx, newheader);
-				if (result == DNS_R_UNCHANGED) {
-					if (addedrdataset != NULL)
-						bind_rdataset(rbtdb, rbtnode,
-							      header, now,
-							      addedrdataset);
-					return (DNS_R_SUCCESS);
-				}
 				return (result);
 			}
 		}
@@ -2368,6 +2394,15 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		/*
 		 * The rdataset type doesn't exist at this node.
 		 */
+
+		/*
+		 * If we're trying to delete it, don't bother.
+		 */
+		if (newheader_nx) {
+			free_rdataset(rbtdb->common.mctx, newheader);
+			return (DNS_R_UNCHANGED);
+		}
+	
 		newheader->next = rbtnode->data;
 		newheader->down = NULL;
 		rbtnode->data = newheader;
@@ -2394,7 +2429,7 @@ delegating_type(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 static dns_result_t
 addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-	    isc_stdtime_t now, dns_rdataset_t *rdataset,
+	    isc_stdtime_t now, dns_rdataset_t *rdataset, isc_boolean_t merge,
 	    dns_rdataset_t *addedrdataset)
 {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -2403,7 +2438,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_region_t region;
 	rdatasetheader_t *newheader;
 	dns_result_t result;
-	isc_boolean_t merge, delegating;
+	isc_boolean_t delegating;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -2457,6 +2492,18 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
 	return (result);
+}
+
+static dns_result_t
+subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
+		 dns_rdataset_t *rdataset, dns_rdataset_t *newrdataset) {
+	(void)db;
+	(void)node;
+	(void)version;
+	(void)rdataset;
+	(void)newrdataset;
+
+	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static dns_result_t
@@ -2659,6 +2706,7 @@ static dns_dbmethods_t zone_methods = {
 	zone_findrdataset,
 	allrdatasets,
 	addrdataset,
+	subtractrdataset,
 	deleterdataset
 };
 
@@ -2681,6 +2729,7 @@ static dns_dbmethods_t cache_methods = {
 	cache_findrdataset,
 	allrdatasets,
 	addrdataset,
+	subtractrdataset,
 	deleterdataset
 };
 
