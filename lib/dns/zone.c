@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.16 2001/07/19 17:11:33 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.17 2001/07/24 02:57:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1505,7 +1505,7 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
-	INSIST(source->irefs + isc_refcount_current(&source->erefs) > 0);
+	INSIST(source->irefs + source->erefs > 0);
 	source->irefs++;
 	INSIST(source->irefs != 0);
 	*target = source;
