@@ -1,3 +1,5 @@
+1202.	[func]		New functions: cfg_obj_line() and cfg_obj_file().
+
 1201.	[bug]		Require that if 'callbacks' is passed to
 			dns_rdata_fromtext(), callbacks->error and 
 			callbacks->warn are initalised.
