@@ -47,7 +47,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
 		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ heap.@O@ \
 		lex.@O@ lib.@O@ log.@O@ \
-		mem.@O@ mutexblock.@O@ result.@O@ rwlock.@O@ \
+		mem.@O@ mutexblock.@O@ random.@O@ result.@O@ rwlock.@O@ \
 		serial.@O@ sockaddr.@O@ str.@O@ symtab.@O@ task.@O@ timer.@O@ \
 		version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${PTHREADOBJS}
@@ -57,7 +57,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		assertions.c base64.c bitstring.c buffer.c \
 		bufferlist.c commandline.c error.c event.c heap.c \
 		lex.c lib.c log.c \
-		mem.c mutexblock.c result.c rwlock.c \
+		mem.c mutexblock.c random.c result.c rwlock.c \
 		serial.c sockaddr.c str.c symtab.c task.c timer.c \
 		version.c
 
