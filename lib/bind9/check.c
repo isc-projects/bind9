@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.21 2002/02/12 13:17:23 marka Exp $ */
+/* $Id: check.c,v 1.22 2002/02/13 03:43:09 marka Exp $ */
 
 #include <config.h>
 
@@ -630,11 +630,18 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				name = cfg_obj_asstring(cfg_tuple_get(acl2,
 								      "name"));
 				if (strcasecmp(aclname, name) == 0) {
+					const char *file = cfg_obj_file(acl);
+					unsigned int line = cfg_obj_line(acl);
+
+					if (file == NULL)
+						file = "<unknown file>";
+
 					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "
-						    "acl '%s'", name);
+						    "acl '%s' previous "
+						    "definition: %s:%u",
+						     name, file, line);
 					result = ISC_R_FAILURE;
-					break;
 				}
 			}
 		}
