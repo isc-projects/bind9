@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176 2001/08/08 22:54:18 gson Exp $ */
+/* $Id: client.c,v 1.177 2001/09/19 00:02:26 gson Exp $ */
 
 #include <config.h>
 
@@ -1369,6 +1369,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, result);
 		goto cleanup;
 	}
+
+	client->message->rcode = dns_rcode_noerror;
 
 	/*
 	 * Deal with EDNS.
