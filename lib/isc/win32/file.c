@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.11 2001/07/09 21:06:06 gson Exp $ */
+/* $Id: file.c,v 1.12 2001/07/10 06:24:15 mayer Exp $ */
 
 #include <config.h>
 
@@ -124,6 +124,9 @@ static isc_result_t
 file_stats(const char *file, struct stat *stats) {
 	isc_result_t result = ISC_R_SUCCESS;
 
+	REQUIRE(file != NULL);
+	REQUIRE(stats != NULL);
+
 	if (stat(file, stats) != 0)
 		result = isc__errno2result(errno);
 
@@ -200,7 +203,8 @@ isc_file_getmodtime(const char *file, isc_time_t *time) {
 	isc_result_t result;
 	struct stat stats;
 
-	REQUIRE(file != NULL && time != NULL);
+	REQUIRE(file != NULL);
+	REQUIRE(time != NULL);
 
 	result = file_stats(file, &stats);
 
@@ -259,6 +263,8 @@ isc_file_template(const char *path, const char *templet, char *buf,
 			size_t buflen) {
 	char *s;
 
+	REQUIRE(path != NULL);
+	REQUIRE(templet != NULL);
 	REQUIRE(buf != NULL);
 
 	s = strrchr(templet, '\\');
@@ -289,6 +295,9 @@ isc_file_renameunique(const char *file, char *templet) {
 	int fd = -1;
 	int res = 0;
 	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(file != NULL);
+	REQUIRE(templet != NULL);
 
 	fd = mkstemp(templet);
 	if (fd == -1)
@@ -339,6 +348,8 @@ isc_result_t
 isc_file_remove(const char *filename) {
 	int r;
 
+	REQUIRE(filename != NULL);
+
 	r = unlink(filename);
 	if (r == 0)
 		return (ISC_R_SUCCESS);
@@ -349,6 +360,9 @@ isc_file_remove(const char *filename) {
 isc_result_t
 isc_file_rename(const char *oldname, const char *newname) {
 	int r;
+
+	REQUIRE(oldname != NULL);
+	REQUIRE(newname != NULL);
 
 	r = isc_file_safemovefile(oldname, newname);
 	if (r == 0)
@@ -361,30 +375,42 @@ isc_boolean_t
 isc_file_exists(const char *pathname) {
 	struct stat stats;
 
+	REQUIRE(pathname != NULL);
+
 	return (ISC_TF(file_stats(pathname, &stats) == ISC_R_SUCCESS));
 }
 
 isc_boolean_t
 isc_file_isabsolute(const char *filename) {
 
+	REQUIRE(filename != NULL);
 	/*
 	 * Look for c:\path\... style or \\computer\shar\path...
 	 * UNC style file specs
 	 */
-	return ((ISC_TF(filename[1] == ':') &&
-		 ISC_TF(filename[2] == '\\')) || 
-		    (ISC_TF(filename[0] == '\\') &&
-		     ISC_TF(filename[1] == '\\')));
+	if ((filename[0] == '\\') && (filename[1] == '\\'))
+		return (ISC_TRUE);
+	else if (strlen(filename) >= 3) {
+		return ((ISC_TF(filename[1] == ':') && 
+			 ISC_TF(filename[2] == '\\')));
+	}
+	else
+		return(ISC_FALSE);
+
+	}
 }
 
 isc_boolean_t
 isc_file_iscurrentdir(const char *filename) {
+	REQUIRE(filename != NULL);
 	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
 }
 
 const char *
 isc_file_basename(const char *filename) {
 	char *s;
+
+	REQUIRE(filename != NULL);
 
 	s = strrchr(filename, '\\');
 	if (s == NULL)
@@ -399,6 +425,8 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	size_t len;
 
 	REQUIRE(filename != NULL);
+	REQUIRE(progname != NULL);
+
 	/*
 	 * Strip the path from the name
 	 */
