@@ -101,9 +101,9 @@ BIND 9.2
 		FreeBSD prior to 4.2 and OpenBSD prior to 2.8 log
 		messages like "fcntl(8, F_SETFL, 4): Inappropriate
 		ioctl for device".  This is due to a bug in
-		"/dev/random" and impacts on the servers DNSSEC
+		"/dev/random" and impacts the server's DNSSEC
 		support.
-		
+
 		--with-libtool does not work on AIX.
 
 	For a detailed list of user-visible changes from
