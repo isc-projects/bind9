@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.3 2003/08/15 01:16:05 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.4 2003/08/20 02:59:06 marka Exp $ */
 
 #include <config.h>
 
@@ -478,13 +478,75 @@ clearacl(isc_mem_t *mctx, dns_acl_t **aclp) {
 	return (ISC_R_SUCCESS);
 }
 
+static isc_boolean_t
+listenon_is_ip6_any(ns_listenelt_t *elt) {
+	if (elt->acl->length != 1)
+		return (ISC_FALSE);
+	if (elt->acl->elements[0].negative == ISC_FALSE &&
+	    elt->acl->elements[0].type == dns_aclelementtype_any)
+		return (ISC_TRUE);  /* listen-on-v6 { any; } */
+	return (ISC_FALSE); /* All others */
+}
+
 static isc_result_t
-do_ipv4(ns_interfacemgr_t *mgr) {
+do_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 	isc_interfaceiter_t *iter = NULL;
+	isc_boolean_t scan_ipv4 = ISC_FALSE;
+	isc_boolean_t scan_ipv6 = ISC_FALSE;
+	isc_boolean_t setup_ipv6 = ISC_TRUE;
 	isc_result_t result;
-	isc_netaddr_t zero_address;
+	isc_netaddr_t zero_address, zero_address6;
+	ns_listenelt_t *le;
+	isc_sockaddr_t listen_addr;
+	ns_interface_t *ifp;
+
+	if (isc_net_probeipv6() == ISC_R_SUCCESS)
+		scan_ipv6 = ISC_TRUE;
+#ifdef WANT_IPV6
+	else
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
+			      "no IPv6 interfaces found");
+#endif
+
+	if (isc_net_probeipv4() == ISC_R_SUCCESS)
+		scan_ipv4 = ISC_TRUE;
+	else
+		isc_log_write(IFMGR_COMMON_LOGARGS,
+			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
+			      "no IPv4 interfaces found");
+
+	/* A special, but typical case; listen-on-v6 { any; } */
+	/* XXXJT fix when we probe for IPV6_V6ONLY */
+	if (scan_ipv6 == ISC_TRUE &&
+	    (le = ISC_LIST_HEAD(mgr->listenon6->elts)) != NULL &&
+	    listenon_is_ip6_any(le)) {
+		struct in6_addr in6a;
+
+		in6a = in6addr_any;
+		isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
+
+		ifp = find_matching_interface(mgr, &listen_addr);
+		if (ifp != NULL) {
+			ifp->generation = mgr->generation;
+		} else {
+			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
+				      "listening on IPv6 interfaces, port %u",
+				      le->port);
+			result = ns_interface_setup(mgr, &listen_addr,
+						    "<any>", &ifp);
+			if (result == ISC_R_SUCCESS)
+				setup_ipv6 = ISC_FALSE;
+			else
+				isc_log_write(IFMGR_COMMON_LOGARGS,
+					      ISC_LOG_ERROR,
+					      "listening on all IPv6 "
+					      "interfaces failed");
+		}
+	}
 
 	isc_netaddr_any(&zero_address);
+	isc_netaddr_any6(&zero_address6);
 
 	result = isc_interfaceiter_create(mgr->mctx, &iter);
 	if (result != ISC_R_SUCCESS)
@@ -501,17 +563,22 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	     result == ISC_R_SUCCESS;
 	     result = isc_interfaceiter_next(iter))
 	{
-		ns_interface_t *ifp;
 		isc_interface_t interface;
-		ns_listenelt_t *le;
+		ns_listenlist_t *ll;
 		dns_aclelement_t elt;
 		unsigned int prefixlen;
+		unsigned int family; 
 
 		result = isc_interfaceiter_current(iter, &interface);
 		if (result != ISC_R_SUCCESS)
 			break;
 
-		if (interface.address.family != AF_INET)
+		family = interface.address.family;
+		if (family != AF_INET && family != AF_INET6)
+			continue;
+		if (scan_ipv4 == ISC_FALSE && family == AF_INET)
+			continue;
+		if (scan_ipv6 == ISC_FALSE && family == AF_INET6)
 			continue;
 
 		/*
@@ -521,19 +588,30 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		 * the interface for an entire rescan interval due to
 		 * a temporary media glitch at rescan time.
 		 */
-		if (isc_netaddr_equal(&interface.address, &zero_address))
+		if (family == AF_INET &&
+		    isc_netaddr_equal(&interface.address, &zero_address)) {
 			continue;
+		}
+		if (family == AF_INET6 &&
+		    isc_netaddr_equal(&interface.address, &zero_address6)) {
+			continue;
+		}
 
 		elt.type = dns_aclelementtype_ipprefix;
 		elt.negative = ISC_FALSE;
 		elt.u.ip_prefix.address = interface.address;
-		elt.u.ip_prefix.prefixlen = 32;
+		elt.u.ip_prefix.prefixlen = (family == AF_INET) ? 32 : 128;
 		result = dns_acl_appendelement(mgr->aclenv.localhost, &elt);
 		if (result != ISC_R_SUCCESS)
 			goto ignore_interface;
 
 		result = isc_netaddr_masktoprefixlen(&interface.netmask,
 						     &prefixlen);
+
+		/* Non contigious netmasks not allowed by IPv6 arch. */
+		if (result != ISC_R_SUCCESS && family == AF_INET6)
+			goto ignore_interface;
+
 		if (result != ISC_R_SUCCESS) {
 			isc_log_write(IFMGR_COMMON_LOGARGS,
 				      ISC_LOG_WARNING,
@@ -550,7 +628,15 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 				goto ignore_interface;
 		}
 
-		for (le = ISC_LIST_HEAD(mgr->listenon4->elts);
+		/*
+		 * If we've made a wildcard AF_INET6 socket, silently skip all
+		 * IPv6 addresses to bind.
+		 */
+		if (family == AF_INET6 && setup_ipv6 == ISC_FALSE)
+			continue;
+
+		ll = (family == AF_INET) ? mgr->listenon4 : mgr->listenon6;
+		for (le = ISC_LIST_HEAD(ll->elts);
 		     le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
 		{
@@ -562,8 +648,13 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 			 * Construct a socket address for this IP/port
 			 * combination.
 			 */
-			isc_netaddr_fromin(&listen_netaddr,
-					   &interface.address.type.in);
+			if (family == AF_INET) {
+				isc_netaddr_fromin(&listen_netaddr,
+						   &interface.address.type.in);
+			} else {
+				isc_netaddr_fromin6(&listen_netaddr,
+						    &interface.address.type.in6);
+			}
 			isc_sockaddr_fromnetaddr(&listen_sockaddr,
 						 &listen_netaddr,
 						 le->port);
@@ -587,8 +678,11 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 						    sabuf, sizeof(sabuf));
 				isc_log_write(IFMGR_COMMON_LOGARGS,
 					      ISC_LOG_INFO,
-					      "listening on IPv4 interface "
-					      "%s, %s", interface.name, sabuf);
+					      "listening on %s interface "
+					      "%s, %s",
+					      (family == AF_INET) ?
+					      "IPv4" : "IPv6",
+					      interface.name, sabuf);
 
 				result = ns_interface_setup(mgr,
 							    &listen_sockaddr,
@@ -596,10 +690,13 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 							    &ifp);
 				if (result != ISC_R_SUCCESS) {
 					isc_log_write(IFMGR_COMMON_LOGARGS,
-						 ISC_LOG_ERROR,
-						 "creating IPv4 interface %s "
-						 "failed; interface ignored",
-						 interface.name);
+						      ISC_LOG_ERROR,
+						      "creating %s interface "
+						      "%s failed; interface "
+						      "ignored",
+						      (family == AF_INET) ?
+						      "IPv4" : "IPv6",
+						      interface.name);
 				}
 				/* Continue. */
 			}
@@ -610,87 +707,20 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 	ignore_interface:
 		isc_log_write(IFMGR_COMMON_LOGARGS,
 			      ISC_LOG_ERROR,
-			      "ignoring IPv4 interface %s: %s",
+			      "ignoring %s interface %s: %s",
+			      (family == AF_INET) ? "IPv4" : "IPv6",
 			      interface.name, isc_result_totext(result));
 		continue;
 	}
 	if (result != ISC_R_NOMORE)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "IPv4: interface iteration failed: %s",
+				 "interface iteration failed: %s",
 				 isc_result_totext(result));
 	else 
 		result = ISC_R_SUCCESS;
  cleanup_iter:
 	isc_interfaceiter_destroy(&iter);
 	return (result);
-}
-
-static isc_boolean_t
-listenon_is_ip6_none(ns_listenelt_t *elt) {
-	if (elt->acl->length == 0)
-		return (ISC_TRUE); /* listen-on-v6 { } */
-	if (elt->acl->length > 1)
-		return (ISC_FALSE);  /* listen-on-v6 { ...; ...; } */
-	if (elt->acl->elements[0].negative == ISC_TRUE &&
-	    elt->acl->elements[0].type == dns_aclelementtype_any)
-		return (ISC_TRUE);  /* listen-on-v6 { none; } */
-	return (ISC_FALSE); /* All others */
-}
-
-static isc_boolean_t
-listenon_is_ip6_any(ns_listenelt_t *elt) {
-	if (elt->acl->length != 1)
-		return (ISC_FALSE);
-	if (elt->acl->elements[0].negative == ISC_FALSE &&
-	    elt->acl->elements[0].type == dns_aclelementtype_any)
-		return (ISC_TRUE);  /* listen-on-v6 { any; } */
-	return (ISC_FALSE); /* All others */
-}
-
-static isc_result_t
-do_ipv6(ns_interfacemgr_t *mgr) {
-	isc_result_t result;
-	ns_interface_t *ifp;
-	isc_sockaddr_t listen_addr;
-	struct in6_addr in6a;
-	ns_listenelt_t *le;
-
-	for (le = ISC_LIST_HEAD(mgr->listenon6->elts);
-	     le != NULL;
-	     le = ISC_LIST_NEXT(le, link))
-	{
-		if (listenon_is_ip6_none(le))
-			continue;
-		if (! listenon_is_ip6_any(le)) {
-			isc_log_write(IFMGR_COMMON_LOGARGS,
-				      ISC_LOG_ERROR,
-				      "bad IPv6 listen-on list: "
-				      "must be 'any' or 'none'");
-			return (ISC_R_FAILURE);
-		}
-
-		in6a = in6addr_any;
-		isc_sockaddr_fromin6(&listen_addr, &in6a, le->port);
-
-		ifp = find_matching_interface(mgr, &listen_addr);
-		if (ifp != NULL) {
-			ifp->generation = mgr->generation;
-		} else {
-			isc_log_write(IFMGR_COMMON_LOGARGS, ISC_LOG_INFO,
-				      "listening on IPv6 interfaces, port %u",
-				      le->port);
-			result = ns_interface_setup(mgr, &listen_addr,
-						    "<any>", &ifp);
-			if (result != ISC_R_SUCCESS) {
-				isc_log_write(IFMGR_COMMON_LOGARGS,
-					      ISC_LOG_ERROR,
-					      "listening on IPv6 interfaces "
-					      "failed");
-				/* Continue. */
-			}
-		}
-	}
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -701,24 +731,8 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr, isc_boolean_t verbose) {
 
 	mgr->generation++;	/* Increment the generation count. */
 
-	if (isc_net_probeipv6() == ISC_R_SUCCESS) {
-		if (do_ipv6(mgr) != ISC_R_SUCCESS)
-			purge = ISC_FALSE;
-	}
-#ifdef WANT_IPV6
-	else
-		isc_log_write(IFMGR_COMMON_LOGARGS,
-			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
-			      "no IPv6 interfaces found");
-#endif
-
-	if (isc_net_probeipv4() == ISC_R_SUCCESS) {
-		if (do_ipv4(mgr) != ISC_R_SUCCESS)
-			purge = ISC_FALSE;
-	} else
-		isc_log_write(IFMGR_COMMON_LOGARGS,
-			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
-			      "no IPv4 interfaces found");
+	if (do_scan(mgr, verbose) != ISC_R_SUCCESS)
+		purge = ISC_FALSE;
 
 	/*
 	 * Now go through the interface list and delete anything that

@@ -1,3 +1,5 @@
+1363.	[func]		Listen-on-v6 now supports specific addresses.
+
 1361.	[func]		log the reason for rejecting a server when resolving
 			queries.
 
