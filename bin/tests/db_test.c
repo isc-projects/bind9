@@ -133,6 +133,7 @@ main(int argc, char *argv[]) {
 	isc_boolean_t printnode = ISC_FALSE;
 	isc_boolean_t addmode = ISC_FALSE;
 	isc_boolean_t delmode = ISC_FALSE;
+	isc_boolean_t holdmode = ISC_FALSE;
 	isc_boolean_t verbose = ISC_FALSE;
 	isc_boolean_t done = ISC_FALSE;
 	isc_boolean_t cache = ISC_FALSE;
@@ -152,6 +153,8 @@ main(int argc, char *argv[]) {
 	dns_name_t *fname;
 	unsigned int options = 0;
 	struct timeval start, finish;
+	int hold_count = 0;
+	dns_dbnode_t *hold_node[100];
 
 	strcpy(basetext, "");
 	strcpy(dbtype, "rbt");
@@ -327,6 +330,24 @@ main(int argc, char *argv[]) {
 				delmode = ISC_TRUE;
 			printf("delmode = %s\n", delmode ? "TRUE" : "FALSE");
 			continue;
+		} else if (strcmp(s, "!H") == 0) {
+			if (holdmode)
+				holdmode = ISC_FALSE;
+			else
+				holdmode = ISC_TRUE;
+			printf("holdmode = %s\n", holdmode ? "TRUE" : "FALSE");
+			continue;
+		} else if (strcmp(s, "!HR") == 0) {
+			for (i = 0; i < hold_count; i++)
+				dns_db_detachnode(db, &hold_node[i]);
+			hold_count = 0;
+			holdmode = ISC_FALSE;
+			printf("held nodes have been detached\n");
+			continue;
+		} else if (strcmp(s, "!VC") == 0) {
+			printf("switching to current version\n");
+			version = NULL;
+			continue;
 		} else if (strstr(s, "!V") == s) {
 			v = atoi(&s[2]);
 			if (v >= rcount) {
@@ -391,7 +412,12 @@ main(int argc, char *argv[]) {
 			found_as = ISC_TRUE;
 			break;
 		case DNS_R_NXRDATASET:
-			dns_db_detachnode(db, &node);
+			if (holdmode) {
+				RUNTIME_CHECK(hold_count < 100);
+				hold_node[hold_count++] = node;
+				node = NULL;
+			} else
+				dns_db_detachnode(db, &node);
 			continue;
 		default:
 			if (quiet)
@@ -457,7 +483,12 @@ main(int argc, char *argv[]) {
 			dns_rdataset_disassociate(&rdataset);
 		}
 
-		dns_db_detachnode(db, &node);
+		if (holdmode) {
+			RUNTIME_CHECK(hold_count < 100);
+			hold_node[hold_count++] = node;
+			node = NULL;
+		} else
+			dns_db_detachnode(db, &node);
 	}
 
 	if (time_lookups) {
