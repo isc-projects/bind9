@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.62 2001/01/11 19:09:46 bwelling Exp $
+ * $Id: tkey.c,v 1.63 2001/01/12 00:56:44 bwelling Exp $
  */
 
 #include <config.h>
@@ -252,7 +252,6 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dst_key_t *pubkey = NULL;
 	isc_buffer_t ourkeybuf, *shared = NULL;
 	isc_region_t r, r2, ourkeyr;
-	isc_uint32_t ourttl;
 	unsigned char keydata[DST_KEY_MAXSIZE];
 	unsigned int sharedsize;
 	isc_buffer_t secret;
@@ -335,30 +334,11 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 
 	dns_name_init(&ourname, NULL);
 	dns_name_clone(dst_key_name(tctx->dhkey), &ourname);
-	ourttl = 0;
-#if 0
-	/*
-	 * Not sure how to do this without a view...
-	 */
-	db = NULL;
-	result = dns_dbtable_find(client->view->dbtable, &ourname, 0, &db);
-	if (result == ISC_R_SUCCESS) {
-		dns_rdataset_t set;
-		dns_fixedname_t foundname;
 
-		dns_rdataset_init(&set);
-		dns_fixedname_init(&foundname);
-		result = dns_db_find(db, &ourname, NULL, dns_rdatatype_key,
-				     DNS_DBFIND_NOWILD, 0, NULL,
-				     dns_fixedname_name(&foundname),
-				     &set, NULL);
-		if (result == ISC_R_SUCCESS) {
-			ourttl = set.ttl;
-			dns_rdataset_disassociate(&set);
-		}
-	}
-#endif
-	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, ourttl,
+	/*
+	 * XXXBEW The TTL should be obtained from the database, if it exists.
+	 */
+	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, 0,
 				 namelist));
 
 	RETERR(dst_key_secretsize(tctx->dhkey, &sharedsize));
