@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.63 2001/11/19 03:08:10 mayer Exp $ */
+/* $Id: masterdump.c,v 1.64 2001/11/19 21:34:31 gson Exp $ */
 
 #include <config.h>
 
@@ -170,8 +170,8 @@ dns_master_style_cache = {
 	24, 32, 32, 40, 80, 8
 };
 
-const dns_master_style_t
-LIBDNS_EXTERNAL_DATA dns_master_style_simple = {
+LIBDNS_EXTERNAL_DATA const dns_master_style_t
+dns_master_style_simple = {
 	0,
 	24, 32, 32, 40, 80, 8
 };
