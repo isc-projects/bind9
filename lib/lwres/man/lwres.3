@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres.3,v 1.5 2000/09/06 21:56:20 explorer Exp $
+.\" $Id: lwres.3,v 1.6 2000/09/07 16:36:29 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt LWRES 3
@@ -21,273 +21,74 @@
 .ds vT BIND9 Programmer's Manual
 .Sh NAME
 .Nm lwres
-.Nd introduction to the lightweight resolver
+.Nd introduction to the lightweight resolver library
 .Sh SYNOPSIS
 .Fd #include <lwres/lwres.h>
 .Sh DESCRIPTION
-The lightweight resolver provides a simple way for clients to perform
-forward and reverse lookups.
-Instead of looking up the names or addresses directly, clients can send
-requests to the lightweight resolver daemon
+The BIND 9 lightweight resolver library is a simple, name service
+independent stub resolver library.  It provides hostname-to-address
+and address-to-hostname lookup services to applications by
+transmitting lookup requests to a resolver daemon
 .Nm lwresd
-which does hard work of performing the lookups for them.
-Clients can just use the lightweight resolver library to format a
-request to get a hostname for an IP address or vice versa, send it to
-.Nm lwresd
-and wait for a response.
+running on the local host.  The resover daemon performs the
+lookup using the DNS or possibly other name service protocols,
+and returns the results to the application through the library.  
+The library and resolver daemon communicate using a simple
+UDP-based protocol.
 .Pp
-The lightweight resolver in BIND 9 consists of three components:
-a client, a server and a protocol.
-Clients use the functions provided by the lightweight resolver library
-to encode requests and decode responses.
-The server for the lightweight resolver is
-.Nm lwresd .
-In reality this is implemented by the name server,
-.Nm named ,
-though when operating as the lightweight resolver server,
-.Nm lwresd
-is functionally and logically distinct from the actual name server.
-The protocol consists of a number of opcodes, each of which has a
-request and response structure associated with it.
-The lightweight resolver library contains functions to convert these
-structures to and from the canonical format whenver they are sent to
-.Nm lwresd .
-.Sh RATIONALE
-.Pp
-Conventional DNS lookups of hostnames and IPv4 addresses are usually
-simple and straightforward.
-A client can issue queries to map a hostname to an IPv4 address or
-from an IPv4 address to a hostname.
-Many DNS queries can be needed to lookup IPv6 addresses.
-It may be necessary to resolve potentially variable-length partial
-IPv6 addresses: aggregation and site-level identifiers for instance.
-Keeping track of all of these queries and assembling the answers to
-return the hostname or IPv6 address is very hard work and error-prone.
-Further complexity can be caused by DNAME chains.
-If the answers are signed using DNSSEC, additional queries may be needed
-to verify the signatures.
-The consequence of this is that clients can be overwhelmed with the
-amount of work needed to resolve IPv6 addresses.
-BIND9 provides a lightweight resolver to eliminate these problems if
-applications had to resolve IPv6 addresses for themselves.
-.Pp
-Instead of looking up the hostnames or IPv6 addresses directly, clients
-can use the lightweight resolver to get the name server to do the work.
-Clients construct simple questions like \*qwhat is the hostname for
-the following address?\*q or \*qwhat are the addresses of hostname
-.Dv host.example.com?\*q
-The lightweight resolver functions take these questions and format
-them into queries which are sent to
-.Nm lwresd .
-Replies from the lightweight resolver server are then decoded to return
-an answer to the client which made the original request.
-.Sh CANONICAL FORMAT
-.Pp
-The lightweight resolver's canonical data format has been arranged for
-efficiency.
-All integer values are in network byte order.
-Addresses are also in network byte order.
-This means that, at least for IPv4 and IPv6 addresses, they can be
-used directly in network system calls without needing to be byte
-swapped.
-Character strings get prefixed by a length and are always terminated
-with a
-.Dv NUL
-character.
-This simplifies structure handling and parsing for both the server
-receiving a request and the client receiving a reply.
-It also eliminates data copying by enabling a mapping structure to
-directly point at data in the actual receive buffer.
-.Sh OPCODES
-.Pp
-Every lightweight resolver operation uses a unique opcode.
-Each opcode is assigned a number.
-Opcodes in the range 0x00000000 and 0x03ffffff are reserved for use by
-the lightweight resolver library.
-Opcodes between 0x04000000 and 0xffffffff have been set aside for use by
-applications.
-.Pp
-Three opcodes are currently defined:
-.Bl -tag -width LWRES_OPCODE_GETADDRSBYNAME
-.It Li LWRES_OPCODE_NOOP
-The no-op opcode is essentially an echo operation, comparable to
-.Xr ping 1 .
-The server simply returns the entire data region that had been sent by
-the client.
-Therefore clients can use this opcode to determine if the server is
-operational or not.
-It can also be used by clients to check the version number and any
-parameters of the lightweight resolver protocol that are supported by the
-server.
-.It Li LWRES_OPCODE_GETADDRSBYNAME
-This opcode is used to get all the known addresses for a hostname.
-In principle, this could also return information from NIS/YP or
-.Pa /etc/hosts ,
-though this is not implemented yet.
-Flags can be set in the request structure that is used for this opcode
-to indicate whether IPv4 or IPv6 addresses or both should be returned.
-.It Li LWRES_OPCODE_GETNAMEBYADDR
-This provides the complementary operation to
-.Dv LWRES_OPCODE_GETADDRSBYNAME .
-It returns the hostname for the address that was supplied in the
-request structure.
-.El
-.\"
-.\"	XXXJR
-.\"	We don't need this section, at least not yet. 23/6/00
-.\"
-.\" .Sh OPCODE REPLIES
-.\" .Pp
-.\" Replies to lightweight resolver operations contain return codes.
-.\" Results between 0x04000000 and 0xffffffff are application defined.
-.\" The lightweight resolver library reserves result codes between
-.\" 0x00000000 and 0x03ffffff.
-.\" These occupy the same reserved range used for ISC return values that
-.\" are defined in
-.\" .Pa isc/resultclass.h .
-.\" This means that, if appropriate, it would be trivial to map those ISC
-.\" return values to lightweight resolver packet result codes.
-.Sh STRUCTURE AND PACKET ENCODING/DECODING
-Each opcode has two structures: one for the request and one for the
-response.
-Clients use the lightweight resolver functions to construct the
-request structure and send it to the name server.
-The name server decodes the request, carries out the operation and
-fills in an opcode-specific response structure which is returned to
-the client.
-.Pp
-For every opcode, three functions operate on these structures.
-A
-.Ar render
-function converts the structure to canonical form and a
-.Ar parse
-function translates from the canonical form to the op-code specific
-structure.
-Memory allocated to the opcode's request or reply structures is
-discarded using the
-.Ar free
-function.
-Clients will typically use the op-code specific
-.Ar xxx_request_render ,
-.Ar xxx_response_parse
+.Sh OVERVIEW
+The lwresd library implements multiple name service APIs.
+The standard
+.Fn gethostbyname ,
+.Fn gethostbyaddr ,
+.Fn gethostbyname_r ,
+.Fn gethostbyaddr_r ,
+.Fn getaddrinfo ,
+.Fn getipnodebyname ,
 and
-.Ar xxx_response_free
-functions.
-The name server will use the
-.Ar xxx_request_parse ,
-.Ar xxx_response_render
-and
-.Ar xxx_request_free
-functions.
+.Fn getipnodebyaddr
+functions are all supported.  To allow the lwres library to coexist
+with system libraries that define functions of the same name, 
+the library defines these functions with names prefixed by
+.Va lwres_ .
+To define the standard names, applications must include the
+header file
+.Fd <lwres/netdb.h>
+which contains macro definitions mapping the standard function names
+into
+.Va lwres_
+prefixed ones.  Operating system vendors who integrate the lwres
+library into their base distributions should rename the functions
+in the library proper so that the renaming macros are not needed.
 .Pp
-For example, the no-op opcode -
-.Dv LWRES_OPCODE_NOOP
-- uses
-.Dv lwres_nooprequest_t
-and
-.Dv lwres_noopresponse_t
-structures for the requests and responses used in the no-op operation.
-.Fn lwres_nooprequest_render
-takes a
-.Dv lwres_nooprequest_t
-structure and converts into a packet in lightweight resolver canonical
-format.
-Similarly
-.Fn lwres_noopresponse_render
-converts a
-.Dv lwres_noopresponse_t
-structure into a packet in lightweight resolver canonical format.
-.Fn lwres_nooprequest_parse
-takes a packet in canonical format and fills in a corresponding
-.Dv lwres_nooprequest_t
-structure.
-A
-.Dv lwres_noopresponse_t
-structure is set up by\p
-passing a response packet in canonical format to
-.Fn lwres_noopresponse_render .
-.Fn lwres_nooprequest_free
-and
-.Fn lwres_noopresponse_free
-releases the memory allocated to the
-.Dv lwres_nooprequest_t
-and
-.Dv lwres_noopresponse_t
-structures respectively.
-.\"
-.\"	XXXJR
-.\"	NOT YET.
-.\"	This is just a placeholder to indicate where the section on the
-.\"	lwres security API should be documented once this is implemented.
-.\"	There's no point in documenting vapourware, especially if the
-.\"	API is likely to change between now and then. 23/6/00
-.\" .Sh SECURITY
-.\" The lightweight resolver provides hooks for requesting the use of
-.\" DNSSEC for authenticating requests and responses.
-.\" This interface is not currently implemented and is likely to
-.\" change.
-.\" It is mentioned here to indicate the capabilities that can be expected
-.\" in future releases of the lightweight resolver.
-.\" .Pp
-.\" The following flag bits have been allocated.
-.\" .Bl -tag -width LWRES_FLAG_TRUSTNOTREQUIRED
-.\" .It Li LWRES_FLAG_TRUSTDEFAULT
-.\" Let the server decide whether to use DNSSEC or not.
-.\" .It Li LWRES_FLAG_TRUSTNOTREQUIRED
-.\" DNSSEC authentication of the DNS queries and replies is not required
-.\" .It Li LWRES_FLAG_TRUSTREQUIRED
-.\" Any DNSSEC data found when resolving the query must validate and the
-.\" server must be DNSSEC-aware.
-.\" .It Li LWRES_FLAG_TRUSTRESERVED
-.\" Reserved for future use.
-.\" .El
-.Sh CLIENT SETUP
-Every client that uses the lightweight resolver needs to create and
-maintain its own state.
-Library calls are provided to manage that data structure, a resolver
-context.
-If the client uses threads, it either has to provide its own locking
-primitives on that context structure or else create a context for each
-thread.
-See
-.Xr lwres_context 3 .
-Once the context has been created,
-.Fn lwres_conf_init
-is called to read
-.Pa /etc/resolv.conf
-so that various options such as sort lists, search lists and so on can
-be applied.
-.Sh CLIENT INTERFACE
-The simplest interface to the lightweight resolver is provided by
+The library also provides a native API consisting of the functions
 .Fn lwres_getaddrsbyname
 and
 .Fn lwres_getnamebyaddr .
-These functions are blocking calls.
-A client will wait after sending a request until either a response is
-returned or else a timeout interval occurs.
-If non-blocking operations are required, the client will need to
-call the opcode-specific
-.Ar request_render
-and
-.Ar response_parse
-directly.
-.Sh SERVER INTERFACE
-Service for the lightweight resolver is provided by the lightweight
-resolver daemon,
-.Nm lwresd .
-It listens on port number 921 of the loopback interface and expects to
-receive packets in the lightweight resolver's canonical format
-described above.
-.Sh LIBRARY FLOW
-A typical client-side call flow consists of:
+These may be called by applications that require more detailed
+control over the lookup process than the standard functions
+provide.
+Finally, there is a low-level API for converting lookup
+requests and responses to and from raw lwres protocol packets.  
+This API can be used by clients requiring nonblocking operation, 
+and is also used when implementing the server side of the lwres
+protocol, for example in the
+.Nm lwresd
+resolver daemon.  The use of this low-level API in clients
+and servers is outlined in the following sections.
+.P
+.Sh CLIENT-SIDE LOW-LEVEL API CALL FLOW
+When a client program wishes to make an lwres request using the
+native low-level API, it typically performs the following 
+sequence of actions.
 .Pp
 (1) Allocate or use an existing lwres_packet_t, called "pkt" below.
 .Pp
-(2) Set the recvlength to the maximum length we will accept.  This is done
-so the receiver of our packets knows how large our receive buffer is.  The
-"default" is a constant in lwres.h:  LWRES_RECVLENGTH = 4096.
+(2) Set pkt.recvlength to the maximum length we will accept.  
+This is done so the receiver of our packets knows how large our receive 
+buffer is.  The "default" is a constant in lwres.h: LWRES_RECVLENGTH = 4096.
 .Pp
-(3) Set the pkt.serial to the next serial number.  This value is echoed
+(3) Set the pkt.serial to a unique serial number.  This value is echoed
 back to the application by the remote server.
 .Pp
 (4) Set pkt.pktflags.  Usually this is set to 0.
@@ -303,8 +104,12 @@ such as lwres_packet_render() and storing the packet data.
 .Pp
 (9) Verify that the opcode and serial match a request, and process the
 packet specific information contained in the body.
+.Sh SERVER-SIDE LOW-LEVEL API CALL FLOW
+When implementing the server side of the lightweight resolver
+protocol using the lwres library, a sequence of actions like the
+following is typically involved in processing each request packet.
 .Pp
-A typical server flow follows.  Note that the same lwres_packet_t is used
+Note that the same lwres_packet_t is used
 in both the _parse() and _render() calls, with only a few modifications made
 to the packet header's contents between uses.  This method is recommended
 as it keeps the serial, opcode, and other fields correct.
@@ -327,12 +132,13 @@ lwres_gabnresponse_render().
 (5) Send the resulting packet to the client.
 .Pp
 .Sh SEE ALSO
+.Xr lwres_gethostent 3 ,
+.Xr lwres_getipnode 3 ,
+.Xr lwres_getnameinfo 3 ,
 .Xr lwres_noop 3 ,
 .Xr lwres_gabn 3 ,
 .Xr lwres_gnba 3 ,
 .Xr lwres_context 3 ,
 .Xr lwres_config 3 ,
 .Xr resolver 5 ,
-.Xr lwres_getipnode 3
-.Xr lwresd 8 ,
-.Xr named 8 .
+.Xr lwresd 8 .
