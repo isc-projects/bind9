@@ -21,12 +21,14 @@
 #include <isc/boolean.h>
 #include <isc/error.h>
 #include <isc/result.h>
+#include <isc/types.h>
 #include <isc/timer.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/task.h>
 #include <isc/stdtime.h>
 #include <isc/util.h>
+#include <isc/netaddr.h>
 
 #include <dns/types.h>
 #include <dns/adb.h>
@@ -46,6 +48,7 @@
 #include <dns/view.h>
 #include <dns/log.h>
 #include <dst/dst.h>
+#include <dns/peer.h>
 
 #define DNS_RESOLVER_TRACE
 #ifdef DNS_RESOLVER_TRACE
@@ -372,8 +375,11 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
 					    deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
-	if (query->tsig != NULL)
+	if (query->tsig != NULL) {
 		dns_rdata_freestruct(query->tsig);
+		isc_mem_put(query->fctx->res->mctx, query->tsig,
+			    sizeof(*query->tsig));
+	}
 	if (RESQUERY_CONNECTING(query)) {
 		/*
 		 * Cancel the connect.
@@ -736,6 +742,9 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t tcpbuffer;
 	isc_sockaddr_t *address;
 	isc_buffer_t *buffer;
+	dns_peer_t *peer = NULL;
+	dns_name_t *keyname = NULL;
+	isc_netaddr_t ipaddr;
 
 	fctx = query->fctx;
 	QTRACE("send");
@@ -863,8 +872,25 @@ resquery_send(resquery_t *query) {
 			(DNS_MESSAGEFLAG_AD|DNS_MESSAGEFLAG_CD);
 
 	/*
-	 * XXXRTH  Add TSIG record tailored to the current recipient?
+	 * Add TSIG record tailored to the current recipient.
 	 */
+	isc_netaddr_fromsockaddr(&ipaddr, query->addrinfo->sockaddr);
+	result = dns_peerlist_peerbyaddr(fctx->res->view->peers,
+					 &ipaddr, &peer);
+
+	if (result == ISC_R_SUCCESS &&
+	    dns_peer_getkey(peer, &keyname) == ISC_R_SUCCESS)
+	{
+		result = dns_tsigkey_find(&fctx->qmessage->tsigkey,
+					  keyname, NULL,
+					  fctx->res->view->statickeys);
+		if (result == ISC_R_NOTFOUND)
+			result = dns_tsigkey_find(&fctx->qmessage->tsigkey,
+						  keyname, NULL,
+						  fctx->res->view->dynamickeys);
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+			goto cleanup_message;
+	}
 
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_ADDITIONAL, 0);
@@ -879,6 +905,7 @@ resquery_send(resquery_t *query) {
 		query->tsigkey = fctx->qmessage->tsigkey;
 		query->tsig = fctx->qmessage->tsig;
 		fctx->qmessage->tsig = NULL;
+		fctx->qmessage->tsigkey = NULL;
 	}
 
 	/*
@@ -3239,8 +3266,12 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	message = fctx->rmessage;
+
+	/* BEW - clean this up at some point */
 	message->querytsig = query->tsig;
 	message->tsigkey = query->tsigkey;
+	query->tsig = NULL;
+
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
@@ -3316,6 +3347,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 */
 			goto done;
 		}
+	}
+
+	/*
+	 * If the message is signed, check the signature.  If not, this
+	 * returns success anyway.
+	 */
+	result = dns_message_checksig(message, fctx->res->view);
+	if (result != ISC_R_SUCCESS)
+		goto done;
+	if (message->tsig != NULL && message->tsig->error != dns_rcode_noerror)
+	{
+		result = DNS_R_FORMERR; /* BEW - good enough for now */
+		goto done;
 	}
 
 	/*
@@ -3474,11 +3518,6 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		keep_trying = ISC_TRUE;
 		goto done;
 	}
-
-	/*
-	 * XXXRTH  Explain this.
-	 */
-	query->tsig = NULL;
 
 	/*
 	 * Cache the cacheable parts of the message.  This may also cause
