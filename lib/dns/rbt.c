@@ -15,14 +15,14 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.79 2000/05/08 19:23:13 tale Exp $ */
+/* $Id: rbt.c,v 1.80 2000/05/19 04:42:08 tale Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
 #include <isc/mem.h>
-#include <isc/string.h>		/* Required for HP/UX (and others?) */
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <dns/rbt.h>
@@ -159,29 +159,31 @@ static void dns_rbt_printnodename(dns_rbtnode_t *node);
 /*
  * Forward declarations.
  */
-static isc_result_t create_node(isc_mem_t *mctx,
-				dns_name_t *name, dns_rbtnode_t **nodep);
+static isc_result_t
+create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep);
+static isc_result_t
+join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
-static isc_result_t join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node);
+static inline isc_result_t
+get_ancestor_mem(dns_rbtnodechain_t *chain);
+static inline void
+put_ancestor_mem(dns_rbtnodechain_t *chain);
 
-static inline isc_result_t get_ancestor_mem(dns_rbtnodechain_t *chain);
-static inline void put_ancestor_mem(dns_rbtnodechain_t *chain);
+static inline void
+rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
+static inline void
+rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp);
 
-/*
- * XXXDCL could ditch parent and root arguments to rotate_*, since
- * now with parent pointers they could figure out the needed pointers
- * themselves.  this would slightly simplify dns_rbt_{addon,deletefrom}level.
- */
-static inline void rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent,
-			       dns_rbtnode_t **rootp);
-static inline void rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent,
-				dns_rbtnode_t **rootp);
+static void
+dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
+		   dns_rbtnode_t **rootp, dns_rbtnodechain_t *chain);
 
-static void dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current,
-			       int order, dns_rbtnode_t **rootp,
-			       dns_rbtnodechain_t *chain);
-static void dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete);
-static void dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
+static void
+dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
+			dns_rbtnode_t **rootp);
+
+static void
+dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
 
 /*
  * Initialize a red/black tree of trees.
@@ -1193,7 +1195,8 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	 * have one to start, or because it was recursively removed).
 	 * So now the node needs to be removed from this level.
 	 */
-	dns_rbt_deletefromlevel(rbt, node);
+	dns_rbt_deletefromlevel(rbt, node,
+				parent == NULL ? &rbt->root : &DOWN(parent));
 
 	if (rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
@@ -1375,17 +1378,11 @@ join_nodes(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 }
 
 static inline void
-rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
-{
+rotate_left(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child;
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
-	REQUIRE(IS_ROOT(node) ||
-		RIGHT(parent) == node || LEFT(parent) == node);
-
-	INSIST((! IS_ROOT(node) && PARENT(node) == parent) ||
-	       (  IS_ROOT(node) && parent == NULL));
 
 	child = RIGHT(node);
 	INSIST(child != NULL);
@@ -1404,27 +1401,21 @@ rotate_left(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 		IS_ROOT(node) = ISC_FALSE;
 
 	} else {
-		if (LEFT(parent) == node)
-			LEFT(parent) = child;
+		if (LEFT(PARENT(node)) == node)
+			LEFT(PARENT(node)) = child;
 		else
-			RIGHT(parent) = child;
+			RIGHT(PARENT(node)) = child;
 	}
 
 	PARENT(node) = child;
 }
 
 static inline void
-rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
-{
+rotate_right(dns_rbtnode_t *node, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child;
 
 	REQUIRE(node != NULL);
 	REQUIRE(rootp != NULL);
-	REQUIRE(IS_ROOT(node) ||
-		RIGHT(parent) == node || LEFT(parent) == node);
-
-	INSIST((! IS_ROOT(node) && PARENT(node) == parent) ||
-	       (  IS_ROOT(node) && parent == NULL));
 
 	child = LEFT(node);
 	INSIST(child != NULL);
@@ -1443,10 +1434,10 @@ rotate_right(dns_rbtnode_t *node, dns_rbtnode_t *parent, dns_rbtnode_t **rootp)
 		IS_ROOT(node) = ISC_FALSE;
 
 	} else {
-		if (LEFT(parent) == node)
-			LEFT(parent) = child;
+		if (LEFT(PARENT(node)) == node)
+			LEFT(PARENT(node)) = child;
 		else
-			RIGHT(parent) = child;
+			RIGHT(PARENT(node)) = child;
 	}
 
 	PARENT(node) = child;
@@ -1521,8 +1512,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 				depth -= 2;
 			} else {
 				if (node == RIGHT(parent)) {
-					rotate_left(parent, grandparent,
-						    &root);
+					rotate_left(parent, &root);
 					tmp = node;
 					node = parent;
 					parent = tmp;
@@ -1531,9 +1521,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
 				INSIST(depth > 1);
-				rotate_right(grandparent,
-					     chain->ancestors[depth - 2],
-					     &root);
+				rotate_right(grandparent, &root);
 			}
 		} else {
 			child = LEFT(grandparent);
@@ -1545,8 +1533,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 				depth -= 2;
 			} else {
 				if (node == LEFT(parent)) {
-					rotate_right(parent, grandparent,
-						     &root);
+					rotate_right(parent, &root);
 					tmp = node;
 					node = parent;
 					parent = tmp;
@@ -1555,9 +1542,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
 				MAKE_BLACK(parent);
 				MAKE_RED(grandparent);
 				INSIST(depth > 1);
-				rotate_left(grandparent,
-					    chain->ancestors[depth - 2],
-					    &root);
+				rotate_left(grandparent, &root);
 			}
 		}
 	}
@@ -1574,20 +1559,14 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
  * true red/black tree on a single level.
  */
 static void
-dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
-	dns_rbtnode_t *child, *sibling, *parent, *grandparent;
-	dns_rbtnode_t *successor, *root, **rootp;
+dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
+			dns_rbtnode_t **rootp)
+{
+	dns_rbtnode_t *child, *sibling, *parent;
+	dns_rbtnode_t *successor;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(delete != NULL);
-
-	for (root = delete; ! IS_ROOT(root); root = PARENT(root))
-		;		/* Nothing. */
-
-	if (PARENT(root) != NULL)
-		rootp = &DOWN(PARENT(root));
-	else
-		rootp = &rbt->root;
 
 	/*
 	 * Verify that the parent history is (apparently) correct.
@@ -1708,17 +1687,13 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
 	 * Remove the node by removing the links from its parent.
 	 */
 	if (! IS_ROOT(delete)) {
-		if (LEFT(PARENT(delete)) == delete) {
+		if (LEFT(PARENT(delete)) == delete)
 			LEFT(PARENT(delete)) = child;
-			sibling = RIGHT(PARENT(delete));
-		} else {
+		else
 			RIGHT(PARENT(delete)) = child;
-			sibling = LEFT(PARENT(delete));
-		}
+
 		if (child != NULL)
 			PARENT(child) = PARENT(delete);
-		if (sibling != NULL)
-			PARENT(sibling) = PARENT(delete);
 
 	} else {
 		/*
@@ -1739,23 +1714,13 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
 		while (child != *rootp && IS_BLACK(child)) {
 			INSIST(child == NULL || ! IS_ROOT(child));
 
-			grandparent = parent->parent;
-
 			if (LEFT(parent) == child) {
 				sibling = RIGHT(parent);
 
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
-					rotate_left(parent, grandparent,
-						    rootp);
-					/*
-					 * Parent was reparented by the
-					 * rotation, so the new grandparent
-					 * needs to be noted.  Grandpa is dead,
-					 * long live grandpa.
-					 */
-					grandparent = sibling;
+					rotate_left(parent, rootp);
 					sibling = RIGHT(parent);
 				}
 
@@ -1769,16 +1734,14 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
 					if (IS_BLACK(RIGHT(sibling))) {
 						MAKE_BLACK(LEFT(sibling));
 						MAKE_RED(sibling);
-						rotate_right(sibling, parent,
-							     rootp);
+						rotate_right(sibling, rootp);
 						sibling = RIGHT(parent);
 					}
 
 					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(RIGHT(sibling));
-					rotate_left(parent, grandparent,
-						    rootp);
+					rotate_left(parent, rootp);
 					child = *rootp;
 				}
 
@@ -1793,15 +1756,7 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
 				if (IS_RED(sibling)) {
 					MAKE_BLACK(sibling);
 					MAKE_RED(parent);
-					rotate_right(parent, grandparent,
-						     rootp);
-					/*
-					 * Parent was reparented by the
-					 * rotation, so the new grandparent
-					 * needs to be noted.  Grandma is dead,
-					 * long live grandma.
-					 */
-					grandparent = sibling;
+					rotate_right(parent, rootp);
 					sibling = LEFT(parent);
 				}
 
@@ -1814,21 +1769,19 @@ dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete) {
 					if (IS_BLACK(LEFT(sibling))) {
 						MAKE_BLACK(RIGHT(sibling));
 						MAKE_RED(sibling);
-						rotate_left(sibling, parent,
-							    rootp);
+						rotate_left(sibling, rootp);
 						sibling = LEFT(parent);
 					}
 
 					COLOR(sibling) = COLOR(parent);
 					MAKE_BLACK(parent);
 					MAKE_BLACK(LEFT(sibling));
-					rotate_right(parent, grandparent,
-						     rootp);
+					rotate_right(parent, rootp);
 					child = *rootp;
 				}
 			}
 
-			parent = child->parent;
+			parent = PARENT(child);
 		}
 
 		if (IS_RED(child))
