@@ -12,8 +12,9 @@
  303.	[bug]		add additional sanity checks to differentiate a AXFR
 			response vs a IXFR response. (RT #157)
 
- 302.	[bug]		MXNAME should be large enough to hold any legal domain
-			name in presentation format + terminating NULL.
+ 302.	[bug]		In dig, host, and nslookup, MXNAME should be large 
+			enough to hold any legal domain name in presentation
+			format + terminating NULL.
 
  301.	[bug]		Uninitalised pointer in host:printmessage(). (RT #159)
 
