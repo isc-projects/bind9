@@ -19,7 +19,7 @@
 
 #include <errno.h>
 #include <stdlib.h>
-#include <unistd.h>
+#include <unistd.h>		/* Required for mkstemp on NetBSD. */
 
 #include <sys/stat.h>
 
