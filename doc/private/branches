@@ -1,6 +1,5 @@
 Name		Status		Whom
 ------------------------------------
-ipv6-improvements review	marka	(for RT #4764)
 rt4463		review		marka?
 rt4398		review		marka
 rt4425		review		marka
@@ -12,6 +11,7 @@ v6source
 rt4663		review		explorer
 rt4687		review		explorer
 
+ipv6-improvements closed
 blabel-cleanup	closed
 rt3445		closed
 rt3536(ixfr)	closed
