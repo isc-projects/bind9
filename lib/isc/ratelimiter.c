@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.c,v 1.18 2001/01/09 21:56:23 bwelling Exp $ */
+/* $Id: ratelimiter.c,v 1.18.14.1 2003/08/19 02:49:00 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/util.h>
 
 typedef enum {
+	isc_ratelimiter_stalled,
 	isc_ratelimiter_ratelimited,
 	isc_ratelimiter_worklimited,
 	isc_ratelimiter_shuttingdown
@@ -139,7 +140,8 @@ isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
 	REQUIRE(ev->ev_sender == NULL);
 
 	LOCK(&rl->lock);
-        if (rl->state == isc_ratelimiter_ratelimited) {
+        if (rl->state == isc_ratelimiter_ratelimited ||
+	    rl->state == isc_ratelimiter_stalled) {
 		isc_event_t *ev = *eventp;
 		ev->ev_sender = task;
                 ISC_LIST_APPEND(rl->pending, ev, ev_link);
@@ -274,3 +276,51 @@ isc_ratelimiter_detach(isc_ratelimiter_t **rlp) {
 	*rlp = NULL;
 }
 
+isc_result_t
+isc_ratelimiter_stall(isc_ratelimiter_t *rl) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	LOCK(&rl->lock);
+	switch (rl->state) {
+	case isc_ratelimiter_shuttingdown:
+		result = ISC_R_SHUTTINGDOWN;
+		break;
+	case isc_ratelimiter_ratelimited:
+		result = isc_timer_reset(rl->timer, isc_timertype_inactive,
+				 	 NULL, NULL, ISC_FALSE);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	case isc_ratelimiter_worklimited:
+	case isc_ratelimiter_stalled:
+		rl->state = isc_ratelimiter_stalled;
+		break;
+	}
+	UNLOCK(&rl->lock);
+	return (result);
+}
+
+isc_result_t
+isc_ratelimiter_release(isc_ratelimiter_t *rl) {
+	isc_result_t result = ISC_R_SUCCESS;
+
+	LOCK(&rl->lock);
+	switch (rl->state) {
+	case isc_ratelimiter_shuttingdown:
+		result = ISC_R_SHUTTINGDOWN;
+		break;
+	case isc_ratelimiter_stalled:
+		if (!ISC_LIST_EMPTY(rl->pending)) {
+			result = isc_timer_reset(rl->timer,
+						 isc_timertype_ticker, NULL,
+						 &rl->interval, ISC_FALSE);
+			if (result == ISC_R_SUCCESS)
+				rl->state = isc_ratelimiter_ratelimited;
+		} else 
+			rl->state = isc_ratelimiter_worklimited;
+		break;
+	case isc_ratelimiter_ratelimited:
+	case isc_ratelimiter_worklimited:
+		break;
+	}
+	UNLOCK(&rl->lock);
+	return (result);
+}
