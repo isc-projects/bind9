@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.22 2000/08/01 01:22:45 tale Exp $ */
+/* $Id: rdatalist.c,v 1.23 2000/08/21 22:17:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -27,20 +27,15 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 
-static void rdatalist_disassociate(dns_rdataset_t *rdatasetp);
-static isc_result_t rdatalist_first(dns_rdataset_t *rdataset);
-static isc_result_t rdatalist_next(dns_rdataset_t *rdataset);
-static void rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
-static void rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target);
-static unsigned int rdatalist_count(dns_rdataset_t *rdataset);
+#include "rdatalist_p.h"
 
 static dns_rdatasetmethods_t methods = {
-	rdatalist_disassociate,
-	rdatalist_first,
-	rdatalist_next,
-	rdatalist_current,
-	rdatalist_clone,
-	rdatalist_count
+	isc__rdatalist_disassociate,
+	isc__rdatalist_first,
+	isc__rdatalist_next,
+	isc__rdatalist_current,
+	isc__rdatalist_clone,
+	isc__rdatalist_count
 };
 
 void
@@ -85,13 +80,13 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 	return (ISC_R_SUCCESS);
 }
 
-static void
-rdatalist_disassociate(dns_rdataset_t *rdataset) {
+void
+isc__rdatalist_disassociate(dns_rdataset_t *rdataset) {
 	UNUSED(rdataset);
 }
 
-static isc_result_t
-rdatalist_first(dns_rdataset_t *rdataset) {
+isc_result_t
+isc__rdatalist_first(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdatalist;
 
 	rdatalist = rdataset->private1;
@@ -103,8 +98,8 @@ rdatalist_first(dns_rdataset_t *rdataset) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-rdatalist_next(dns_rdataset_t *rdataset) {
+isc_result_t
+isc__rdatalist_next(dns_rdataset_t *rdataset) {
 	dns_rdata_t *rdata;
 
 	rdata = rdataset->private2;
@@ -119,8 +114,8 @@ rdatalist_next(dns_rdataset_t *rdataset) {
 	return (ISC_R_SUCCESS);
 }
 
-static void
-rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+void
+isc__rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	dns_rdata_t *list_rdata;
 
 	list_rdata = rdataset->private2;
@@ -130,8 +125,8 @@ rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	ISC_LINK_INIT(rdata, link);
 }
 
-static void
-rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+void
+isc__rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	*target = *source;
 
 	/*
@@ -140,8 +135,8 @@ rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	target->private2 = NULL;
 }
 
-static unsigned int
-rdatalist_count(dns_rdataset_t *rdataset) {
+unsigned int
+isc__rdatalist_count(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
 	unsigned int count;
