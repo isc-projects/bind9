@@ -89,7 +89,7 @@ delete_name(void *data, void *arg) {
 }
 
 static void
-print_data(void *data) {
+print_name(dns_name_t *name) {
 	isc_buffer_t target;
 	char *buffer[256];
 
@@ -98,10 +98,68 @@ print_data(void *data) {
 	/*
 	 * ISC_FALSE means absolute names have the final dot added.
 	 */
-	dns_name_totext(data, ISC_FALSE, &target);
+	dns_name_totext(name, ISC_FALSE, &target);
 
 	printf("%.*s", (int)target.used, (char *)target.base);
 }
+
+static void
+iterate(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t forward) {
+	dns_name_t *foundname, *origin;
+	dns_rbtnode_t *node = NULL;
+	dns_rbtnodechain_t chain;
+	dns_fixedname_t fixedfoundname, fixedorigin;
+	dns_result_t result;
+	dns_result_t (*move)(dns_rbtnodechain_t *chain, dns_name_t *name,
+			     dns_name_t *origin);
+
+	if (forward) {
+		printf("iterating forward\n" );
+		move = dns_rbtnodechain_next;
+		
+	} else {
+		printf("iterating backward\n" );
+		move = dns_rbtnodechain_prev;
+	}
+
+	dns_rbtnodechain_init(&chain, mctx);
+
+	result = dns_rbt_findnode(rbt, name, NULL, &node, &chain,
+				  ISC_FALSE, NULL, NULL);
+	if (result != DNS_R_SUCCESS)
+		printf("start not found!\n");
+
+	else {
+		dns_fixedname_init(&fixedfoundname);
+		dns_fixedname_init(&fixedorigin);
+		foundname = dns_fixedname_name(&fixedfoundname);
+		origin    = dns_fixedname_name(&fixedorigin);
+
+		while (1) {
+			result = move(&chain, foundname, origin);
+			if (result == DNS_R_NEWORIGIN) {
+				printf("  new origin: ");
+				print_name(origin);
+				printf("\n");
+				dns_fixedname_init(&fixedorigin);
+			}
+
+			if (result == DNS_R_SUCCESS ||
+			    result == DNS_R_NEWORIGIN) {
+				print_name(foundname);
+				printf("\n");
+
+			} else {
+				if (result != DNS_R_NOMORE)
+				       printf("UNEXEPCTED ITERATION ERROR: %s",
+					      dns_result_totext(result));
+				break;
+			}
+			dns_fixedname_init(&fixedfoundname);
+		}
+	}
+}
+
 
 #define CMDCHECK(s)	(strncasecmp(command, (s), length) == 0)
 #define PRINTERR(r)	if (r != DNS_R_SUCCESS) \
@@ -115,7 +173,6 @@ main (int argc, char **argv) {
 	dns_rbt_t *rbt;
 	int length, ch;
 	isc_boolean_t show_final_mem = ISC_FALSE;
-	isc_buffer_t textname;
 	isc_result_t result;
 	void *data;
 
@@ -225,22 +282,15 @@ main (int argc, char **argv) {
 					switch (result) {
 					case DNS_R_SUCCESS:
 						printf("found exact: ");
-						print_data(data);
+						print_name(data);
 						putchar('\n');
 						break;
 					case DNS_R_PARTIALMATCH:
 						printf("found parent: ");
-						print_data(data);
-
-						isc_buffer_init(&textname,
-							buffer, 255,
-							ISC_BUFFERTYPE_TEXT);
-						dns_name_totext(foundname,
-								ISC_FALSE,
-								&textname);
-						printf("\n\t(foundname: %.*s)\n",
-						       (int)textname.used,
-						       (char *)textname.base);
+						print_name(data);
+						printf("\n\t(foundname: ");
+						print_name(foundname);
+						printf(")\n");
 
 						break;
 					case DNS_R_NOTFOUND:
@@ -256,6 +306,21 @@ main (int argc, char **argv) {
 					delete_name(name, NULL);
 				}
 
+			} else if (CMDCHECK("forward")) {
+				name = create_name(arg);
+				if (name != NULL) {
+					iterate(rbt, name, ISC_TRUE);
+
+					delete_name(name, NULL);
+				}
+
+			} else if (CMDCHECK("backward")) {
+				name = create_name(arg);
+				if (name != NULL) {
+					iterate(rbt, name, ISC_FALSE);
+
+					delete_name(name, NULL);
+				}
 
 			} else if (CMDCHECK("print")) {
 				if (arg == NULL || *arg == '\0')
