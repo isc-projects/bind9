@@ -307,7 +307,7 @@ static void clean_target(dns_adb_t *, dns_name_t *);
 static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t,
 				unsigned int);
 static void check_expire_namehooks(dns_adbname_t *, isc_stdtime_t);
-static void cancel_fetches_at_name(dns_adb_t *, dns_adbname_t *);
+static void cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				isc_boolean_t, dns_rdatatype_t);
 static isc_result_t fetch_name_v4(dns_adbname_t *, isc_boolean_t);
@@ -659,7 +659,7 @@ kill_name(dns_adbname_t **n, isc_eventtype_t ev)
 		free_adbname(adb, &name);
 	} else {
 		name->flags |= NAME_IS_DEAD;
-		cancel_fetches_at_name(adb, name);
+		cancel_fetches_at_name(name);
 	}
 }
 
@@ -868,21 +868,21 @@ shutdown_entries(dns_adb_t *adb)
  * Name bucket must be locked
  */
 static void
-cancel_fetches_at_name(dns_adb_t *adb, dns_adbname_t *name)
+cancel_fetches_at_name(dns_adbname_t *name)
 {
 	dns_adbfetch6_t *fetch6;
 
 	if (NAME_FETCH_A(name))
-	    dns_resolver_cancelfetch(adb->view->resolver,
-				     name->fetch_a->fetch);
+	    dns_resolver_cancelfetch(name->fetch_a->fetch);
+				     
 
 	if (NAME_FETCH_AAAA(name))
-	    dns_resolver_cancelfetch(adb->view->resolver,
-				     name->fetch_aaaa->fetch);
+	    dns_resolver_cancelfetch(name->fetch_aaaa->fetch);
+				     
 
 	fetch6 = ISC_LIST_HEAD(name->fetches_a6);
 	while (fetch6 != NULL) {
-		dns_resolver_cancelfetch(adb->view->resolver, fetch6->fetch);
+		dns_resolver_cancelfetch(fetch6->fetch);
 		fetch6 = ISC_LIST_NEXT(fetch6, plink);
 	}
 }
@@ -954,6 +954,8 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 	dns_name_t tname;
 	dns_fixedname_t fixed1, fixed2;
 	dns_name_t *prefix, *new_target;
+
+	REQUIRE(dns_name_countlabels(target) == 0);
 
 	if (rdataset->type == dns_rdatatype_cname) {
 		/*
@@ -1226,7 +1228,8 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock)
 	entry->refcnt--;
 
 	destroy_entry = ISC_FALSE;
-	if (entry->refcnt == 0 && entry->expires == 0) {
+	if (entry->refcnt == 0 &&
+	    (adb->entry_sd[bucket] || entry->expires == 0)) {
 		destroy_entry = ISC_TRUE;
 		unlink_entry(adb, entry);
 	}
@@ -2361,13 +2364,13 @@ dns_adb_shutdown(dns_adb_t *adb) {
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
-		   unsigned int options, isc_stdtime_t now,
+		   unsigned int options, isc_stdtime_t now, dns_name_t *target,
 		   dns_adbfind_t **findp)
 {
 	dns_adbfind_t *find;
 	dns_adbname_t *adbname;
 	int bucket;
-	isc_boolean_t use_hints, want_event, start_at_root;
+	isc_boolean_t use_hints, want_event, start_at_root, alias;
 	isc_result_t result;
 	unsigned int wanted_addresses;
 	unsigned int wanted_fetches;
@@ -2380,6 +2383,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	REQUIRE(name != NULL);
 	REQUIRE(zone != NULL);
 	REQUIRE(findp != NULL && *findp == NULL);
+	REQUIRE(target == NULL || dns_name_hasbuffer(target));
 
 	REQUIRE((options & DNS_ADBFIND_ADDRESSMASK) != 0);
 
@@ -2389,6 +2393,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	query_pending = 0;
 	want_event = ISC_FALSE;
 	start_at_root = ISC_FALSE;
+	alias = ISC_FALSE;
 
 	if (now == 0)
 		isc_stdtime_get(&now);
@@ -2461,6 +2466,20 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	use_hints = dns_name_equal(zone, dns_rootname);
 
 	/*
+	 * Do we know that the name is an alias?
+	 */
+	if (!EXPIRE_OK(adbname->expire_target, now)) {
+		/*
+		 * Yes, it is.
+		 */
+		DP(DEF_LEVEL,
+		   "dns_adb_createfind: name %p is an alias (cached)",
+		   adbname);
+		alias = ISC_TRUE;
+		goto post_copy;
+	}
+
+	/*
 	 * Try to populate the name from the database and/or
 	 * start fetches.
 	 */
@@ -2473,6 +2492,17 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			   "dns_adb_createfind: Found A for name %p in db",
 			   adbname);
 			goto v6;
+		}
+
+		/*
+		 * Did we get a CNAME or DNAME?
+		 */
+		if (result == DNS_R_CNAME || result == DNS_R_DNAME) {
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind: name %p is an alias",
+			   adbname);
+			alias = ISC_TRUE;
+			goto post_copy;
 		}
 
 		/*
@@ -2495,6 +2525,17 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			   "dns_adb_createfind: Found A6 for name %p",
 			   adbname);
 			goto fetch;
+		}
+
+		/*
+		 * Did we get a CNAME or DNAME?
+		 */
+		if (result == DNS_R_CNAME || result == DNS_R_DNAME) {
+			DP(DEF_LEVEL,
+			   "dns_adb_createfind: name %p is an alias",
+			   adbname);
+			alias = ISC_TRUE;
+			goto post_copy;
 		}
 
 		/*
@@ -2554,6 +2595,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (NAME_FETCH_V6(adbname))
 		query_pending |= DNS_ADBFIND_INET6;
 
+ post_copy:
 	/*
 	 * Attach to the name's query list if there are queries
 	 * already running, and we have been asked to.
@@ -2564,6 +2606,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (FIND_WANTEMPTYEVENT(find) && FIND_HAS_ADDRS(find))
 		want_event = ISC_FALSE;
 	if ((wanted_addresses & query_pending) == 0)
+		want_event = ISC_FALSE;
+	if (alias)
 		want_event = ISC_FALSE;
 	if (want_event) {
 		find->adbname = adbname;
@@ -2587,7 +2631,16 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	}
 
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
-	result = ISC_R_SUCCESS;
+	if (alias) {
+		if (target != NULL) {
+			result = dns_name_concatenate(&adbname->target, NULL,
+						      target, NULL);
+			if (result != ISC_R_SUCCESS)
+				goto out;
+		}
+		result = DNS_R_ALIAS;
+	} else
+		result = ISC_R_SUCCESS;
 
  out:
 	if (find != NULL) {
@@ -2970,8 +3023,11 @@ dump_adb(dns_adb_t *adb, FILE *f)
 			else
 				fprintf(f, "%d] ", name->expire_target - now);
 			print_dns_name(f, &name->name);
+			if (dns_name_countlabels(&name->target) > 0) {
+				fprintf(f, "\t\t alias for ");
+				print_dns_name(f, &name->target);
+			}
 			fprintf(f, "\n");
-			/* XXXRTH  print alias target, if it is valid. */
 			print_namehook_list(f, name);
 			print_fetch_list(f, name);
 			print_find_list(f, name);
@@ -3090,16 +3146,18 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f)
 static void
 print_dns_name(FILE *f, dns_name_t *name)
 {
-	char buf[257];
+	char buf[1024];
 	isc_buffer_t b;
+	isc_region_t r;
 
 	INSIST(f != NULL);
 
-	memset(buf, 0, sizeof (buf));
-	isc_buffer_init(&b, buf, sizeof (buf) - 1, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, buf, sizeof buf, ISC_BUFFERTYPE_TEXT);
 
-	dns_name_totext(name, ISC_FALSE, &b);
-	fprintf(f, buf); /* safe, since names < 256 chars, and we memset */
+	if (dns_name_totext(name, ISC_FALSE, &b) == ISC_R_SUCCESS) {
+		isc_buffer_used(&b, &r);
+		fprintf(f, "%.*s", (int)r.length, r.base);
+	}
 }
 
 static void
@@ -3169,17 +3227,21 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_adb_t *adb;
+	dns_fixedname_t foundname;
+	dns_name_t *fname;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
 	INSIST(DNS_ADB_VALID(adb));
 	INSIST(rdtype == dns_rdatatype_a || rdtype == dns_rdatatype_aaaa);
 
+	dns_fixedname_init(&foundname);
+	fname =	dns_fixedname_name(&foundname);
 	dns_rdataset_init(&rdataset);
 
-	result = dns_view_simplefind(adb->view, &adbname->name, rdtype,
-				     now, DNS_DBFIND_GLUEOK, use_hints,
-				     &rdataset, NULL);
+	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
+			       DNS_DBFIND_GLUEOK, use_hints, fname,
+			       &rdataset, NULL);
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3232,6 +3294,20 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 			adbname->expire_v6 = rdataset.ttl + now;
 		}
 		break;
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
+		clean_target(adb, &adbname->target);
+		adbname->expire_target = INT_MAX;
+		result = set_target(adb, &adbname->name, fname, &rdataset,
+				    &adbname->target);
+		if (result == ISC_R_SUCCESS) {
+			DP(NCACHE_LEVEL,
+			   "adb name %p: caching alias target",
+			   adbname);
+			adbname->expire_target = rdataset.ttl + now;
+		}
+		break;
 	}
 
 	if (dns_rdataset_isassociated(&rdataset))
@@ -3247,6 +3323,8 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 	dns_rdataset_t rdataset;
 	dns_adb_t *adb;
 	dns_a6context_t a6ctx;
+	dns_fixedname_t foundname;
+	dns_name_t *fname;
 
 	INSIST(DNS_ADBNAME_VALID(adbname));
 	adb = adbname->adb;
@@ -3255,11 +3333,13 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 
 	result = ISC_R_UNEXPECTED;
 
+	dns_fixedname_init(&foundname);
+	fname =	dns_fixedname_name(&foundname);
 	dns_rdataset_init(&rdataset);
 
-	result = dns_view_simplefind(adb->view, &adbname->name,
-				     dns_rdatatype_a6, now, DNS_DBFIND_GLUEOK,
-				     use_hints, &rdataset, NULL);
+	result = dns_view_find(adb->view, &adbname->name, dns_rdatatype_a6,
+			       now, DNS_DBFIND_GLUEOK, use_hints, fname,
+			       &rdataset, NULL);
 	switch (result) {
 	case DNS_R_GLUE:
 	case DNS_R_HINT:
@@ -3300,6 +3380,21 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		   adbname, rdataset.ttl);
 		adbname->expire_v6 = ISC_MIN(rdataset.ttl + now,
 					     adbname->expire_v6);
+		break;
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+		rdataset.ttl = ISC_MAX(rdataset.ttl, ADB_CACHE_MINIMUM);
+		clean_target(adb, &adbname->target);
+		adbname->expire_target = INT_MAX;
+		result = set_target(adb, &adbname->name, fname, &rdataset,
+				    &adbname->target);
+		if (result == ISC_R_SUCCESS) {
+			DP(NCACHE_LEVEL,
+			   "adb name %p: caching alias target",
+			   adbname);
+			adbname->expire_target = rdataset.ttl + now;
+		}
+		break;
 	}
 
 	if (dns_rdataset_isassociated(&rdataset))
@@ -3348,7 +3443,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	}
 	INSIST(address_type != 0);
 
-	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
+	dns_resolver_destroyfetch(&fetch->fetch);
 	dev->fetch = NULL;
 
 	ev_status = DNS_EVENT_ADBNOMOREADDRESSES;
@@ -3389,6 +3484,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 		return;
 	}
 
+	isc_stdtime_get(&now);
+
 	/*
 	 * If we got a negative cache response, remember it.
 	 */
@@ -3412,11 +3509,25 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	}
 
 	/*
-	 * XXXRTH  CNAME/DNAME?  We don't need to do this for targets
-	 *                       of NS records, but what about other names?
-	 *
-	 *	                 Need to do this for A6 too!
+	 * Handle CNAME/DNAME.
 	 */
+	if (dev->result == DNS_R_CNAME || dev->result == DNS_R_DNAME) {
+		dev->rdataset->ttl = ISC_MAX(dev->rdataset->ttl,
+					     ADB_CACHE_MINIMUM);
+		clean_target(adb, &name->target);
+		name->expire_target = INT_MAX;
+		result = set_target(adb, &name->name,
+				    dns_fixedname_name(&dev->foundname),
+				    dev->rdataset,
+				    &name->target);
+		if (result == ISC_R_SUCCESS) {
+			DP(NCACHE_LEVEL,
+			   "adb fetch name %p: caching alias target",
+			   name);
+			name->expire_target = dev->rdataset->ttl + now;
+		}
+		goto check_result;
+	}
 
 	/*
 	 * Did we get back junk?  If so, and there are no more fetches
@@ -3437,8 +3548,9 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	/*
 	 * We got something potentially useful.
 	 */
-	isc_stdtime_get(&now);
 	result = import_rdataset(name, &fetch->rdataset, now);
+
+ check_result:
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
 
@@ -3449,9 +3561,6 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	clean_finds_at_name(name, ev_status, address_type);
 
 	UNLOCK(&adb->namelocks[bucket]);
-
-	return;
-
 }
 
 static void
@@ -3490,7 +3599,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 
 	DP(ENTER_LEVEL, "ENTER: fetch_callback_a6() name %p", name);
 	
-	dns_resolver_destroyfetch(adb->view->resolver, &fetch->fetch);
+	dns_resolver_destroyfetch(&fetch->fetch);
 	dev->fetch = NULL;
 
 	/*
@@ -3554,6 +3663,10 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
 		}
+
+		/*
+		 * XXXRTH  Handle CNAME/DNAME.
+		 */
 
 		if (FETCH_USEHINTS(fetch))
 			use_hints = ISC_TRUE;

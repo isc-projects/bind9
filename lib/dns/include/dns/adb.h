@@ -258,7 +258,7 @@ dns_adb_shutdown(dns_adb_t *adb);
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
-		   unsigned int options, isc_stdtime_t now,
+		   unsigned int options, isc_stdtime_t now, dns_name_t *target,
 		   dns_adbfind_t **find);
 /*
  * Main interface for clients. The adb will look up the name given in
@@ -283,6 +283,10 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * the running database.  If specified as zero, the current time will
  * be retrieved and used.
  *
+ * If 'target' is not NULL and 'name' is an alias (i.e. the name is
+ * CNAME'd or DNAME'd to another name), then 'target' will be updated with
+ * the domain name that 'name' is aliased to.
+ *
  * XXXMLG  Document options, especially the flags which control how
  *         events are sent.
  *
@@ -297,6 +301,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  *	zone != NULL and *zone be a valid dns_name_t.
  *
+ *	target == NULL or target is a valid name with a buffer.
+ *
  *	find != NULL && *find == NULL.
  *
  * Returns:
@@ -307,6 +313,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *			will ever be posted for this context.  This is only
  *			returned if task != NULL.
  *	ISC_R_NOMEMORY	insufficient resources
+ *	DNS_R_ALIAS	'name' is an alias for another name.
  *
  * Calls, and returns error codes from:
  *
