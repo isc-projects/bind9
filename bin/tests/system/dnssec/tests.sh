@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.31 2001/02/21 06:47:45 bwelling Exp $
+# $Id: tests.sh,v 1.32 2001/02/23 06:14:44 bwelling Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -242,6 +242,22 @@ $PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
 grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 # the CNAME & its sig, the TXT and its SIG
 grep "ANSWER: 4" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that validation of a query returning a DNAME works ($n)"
+ret=0
+$DIG $DIGOPTS +noauth foo.dname1.example. txt @10.53.0.2 \
+	> dig.out.ns2.test$n || ret=1
+$DIG $DIGOPTS +noauth foo.dname1.example. txt @10.53.0.4 \
+	> dig.out.ns4.test$n || ret=1
+$PERL ../digcomp.pl dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
+grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
+# The DNAME & its sig, the TXT and its SIG, and the synthesized CNAME.
+# It would be nice to test that the CNAME is being synthesized by the
+# recursive server and not cached, but I don't know how.
+grep "ANSWER: 5" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
