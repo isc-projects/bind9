@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.1 2001/11/08 00:15:23 gson Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.2 2001/11/28 23:35:02 gson Exp $ -->
 
 <refentry>
 
@@ -414,7 +414,7 @@ An attempt to set <parameter>T</parameter> to less than 1 will result
 in a query timeout of 1 second being applied.
 </para></listitem></varlistentry>
 
-<varlistentry><term><option>+tries=A</option></term>
+<varlistentry><term><option>+tries=T</option></term>
 <listitem><para>
 Sets the number of times to retry UDP queries to server to
 <parameter>T</parameter> instead of the default, 3.  If
@@ -451,6 +451,27 @@ each record on a single line, to facilitate machine parsing
 of the <command>dig</command> output.
 </para>
 </listitem></varlistentry>
+
+<varlistentry><term><option>+[no]fail</option></term>
+<listitem><para>
+Do not try the next server if you receive a SERVFAIL.  The default is
+to not try the next server which is the reverse of normal stub resolver
+behaviour.
+</para>
+
+</listitem></varlistentry>
+<varlistentry><term><option>+[no]besteffort</option></term>
+<listitem><para>
+Attempt to display the contents of messages which are malformed.
+The default is to not display malformed answers.
+</para>
+
+</listitem></varlistentry>
+<varlistentry><term><option>+[no]dnssec</option></term>
+<listitem><para>
+Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
+in the the OPT record in the additional section of the query.
+</para>
 
 </variablelist>
 

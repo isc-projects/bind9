@@ -15,6 +15,9 @@
 			have a TTL of zero as required by RFC2672.
 			[RT #2129]
 
+1124.	[doc]		dig: +[no]dnssec, +[no]besteffort and +[no]fail
+			are now documented. [RT #2052]
+
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
 
