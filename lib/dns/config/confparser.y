@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.78 2000/05/10 00:16:09 gson Exp $ */
+/* $Id: confparser.y,v 1.79 2000/05/10 00:37:28 gson Exp $ */
 
 #include <config.h>
 
@@ -4997,12 +4997,12 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 				      ISC_LEXCOMMENT_CPLUSPLUS |
 				      ISC_LEXCOMMENT_SHELL));
 
-	res = isc_lex_openfile(mylexer, (char *)filename) ; /* remove const */
+	res = isc_lex_openfile(mylexer, (char *)filename); /* remove const */
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "%s: Error opening file %s.",
-			      funcname, filename);
+			      "%s: open: %s", filename,
+			      isc_result_totext(res));
 		goto done;
 	}
 
