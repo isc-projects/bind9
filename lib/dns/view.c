@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.79 2000/09/05 03:35:18 marka Exp $ */
+/* $Id: view.c,v 1.80 2000/09/25 17:46:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -250,6 +250,7 @@ destroy(dns_view_t *view) {
 	dns_keytable_detach(&view->trustedkeys);
 	dns_keytable_detach(&view->secroots);
 	dns_fwdtable_destroy(&view->fwdtable);
+	isc_rwlock_destroy(&view->conflock);
 	DESTROYLOCK(&view->lock);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);

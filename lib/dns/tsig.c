@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.90 2000/09/21 21:29:16 bwelling Exp $
+ * $Id: tsig.c,v 1.91 2000/09/25 17:46:38 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -275,6 +275,7 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
+	DESTROYLOCK(&key->lock);
 	isc_mem_put(key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
