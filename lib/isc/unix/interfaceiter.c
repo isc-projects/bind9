@@ -64,7 +64,6 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
 		       &((struct sockaddr_in6 *) src)->sin6_addr,
 		       sizeof(struct in6_addr));
 		break;
-		break;
 	default:
 		INSIST(0);
 		break;
