@@ -1847,6 +1847,29 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 */
 		client->message->rcode = dns_rcode_nxdomain;
 		goto cleanup;
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		INSIST(!is_zone);
+		authoritative = ISC_FALSE;
+		/*
+		 * Set message rcode, if required.
+		 */
+		if (result == DNS_R_NCACHENXDOMAIN)
+			client->message->rcode = dns_rcode_nxdomain;
+		/*
+		 * We don't call query_addrrset() because we don't need any
+		 * of its extra features (and things would probably break!).
+		 */
+		query_keepname(client, fname, dbuf);
+		dns_message_addname(client->message, fname,
+				    DNS_SECTION_AUTHORITY);
+		ISC_LIST_APPEND(fname->list, rdataset, link);
+		fname = NULL;
+		rdataset = NULL;
+		/*
+		 * XXXRTH  Deal with AD bit.
+		 */
+		goto cleanup;
 	case DNS_R_CNAME:
 		/*
 		 * Keep a copy of the rdataset.  We have to do this because
@@ -2320,11 +2343,13 @@ ns_query_start(ns_client_t *client) {
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AA;
 
+#ifdef notyet
 	/*
 	 * Assume authenticated response until it is known to be
 	 * otherwise.
 	 */
 	message->flags |= DNS_MESSAGEFLAG_AD;
+#endif
 
 	query_find(client, NULL);
 }
