@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.90 2001/04/13 00:45:19 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.91 2001/04/13 01:32:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -129,6 +129,7 @@ static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
 static const dns_master_style_t *style = &dns_master_style_debug;
+static int requests = 0;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -357,14 +358,8 @@ setup_key(void) {
 }
 
 static void
-shutdown_program(isc_task_t *task, isc_event_t *event) {
-	REQUIRE(task == global_task);
-	UNUSED(task);
-
-	ddebug("shutdown_program()");
-	isc_event_free(&event);
+doshutdown(void) {
 	isc_task_detach(&global_task);
-	shuttingdown = ISC_TRUE;
 
 	if (userserver != NULL)
 		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
@@ -396,8 +391,7 @@ shutdown_program(isc_task_t *task, isc_event_t *event) {
 
 	isc_mem_put(mctx, servers, ns_total * sizeof(isc_sockaddr_t));
 
-	ddebug("Shutting down request manager");
-	dns_requestmgr_shutdown(requestmgr);
+	ddebug("Destroying request manager");
 	dns_requestmgr_detach(&requestmgr);
 
 	ddebug("Freeing the dispatchers");
@@ -409,6 +403,29 @@ shutdown_program(isc_task_t *task, isc_event_t *event) {
 	ddebug("Shutting down dispatch manager");
 	dns_dispatchmgr_destroy(&dispatchmgr);
 
+}
+
+static void
+maybeshutdown(void) {
+	ddebug("Shutting down request manager");
+	dns_requestmgr_shutdown(requestmgr);
+
+	if (requests != 0)
+		return;
+
+	doshutdown();
+}
+
+static void
+shutdown_program(isc_task_t *task, isc_event_t *event) {
+	REQUIRE(task == global_task);
+	UNUSED(task);
+
+	ddebug("shutdown_program()");
+	isc_event_free(&event);
+
+	shuttingdown = ISC_TRUE;
+	maybeshutdown();
 }
 
 static void
@@ -1312,6 +1329,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 
 	ddebug("update_completed()");
 
+	requests--;
+
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -1319,6 +1338,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	if (shuttingdown) {
 		dns_request_destroy(&request);
 		isc_event_free(&event);
+		maybeshutdown();
 		return;
 	}
 
@@ -1398,6 +1418,7 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 				       FIND_TIMEOUT, global_task,
 				       update_completed, NULL, &request);
 	check_result(result, "dns_request_createvia");
+	requests++;
 }
 
 static void
@@ -1423,6 +1444,9 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	ddebug("recvsoa()");
+
+	requests--;
+	
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
@@ -1436,6 +1460,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_destroy(&soaquery);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		isc_event_free(&event);
+		maybeshutdown();
 		return;
 	}
 
@@ -1633,6 +1658,7 @@ sendrequest(isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
 				       0, NULL, FIND_TIMEOUT, global_task,
 				       recvsoa, reqinfo, request);
 	check_result(result, "dns_request_createvia");
+	requests++;
 }
 
 static void
@@ -1717,16 +1743,14 @@ getinput(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	if (shuttingdown)
+	if (shuttingdown) {
+		maybeshutdown();
 		return;
+	}
 
 	if (global_event == NULL)
 		global_event = event;
 
-	if (shuttingdown) {
-		isc_app_shutdown();
-		return;
-	}
 	reset_system();
 	more = user_interaction();
 	if (!more) {
