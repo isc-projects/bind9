@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.7 2000/03/06 20:06:00 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.8 2000/03/07 19:27:50 bwelling Exp $
  */
 
 #include <config.h>
@@ -251,8 +251,6 @@ dst_openssldh_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	if (dh == NULL)
 		return (ISC_R_NOMEMORY);
 
-	memset(dh, 0, sizeof(DH));
-
 	/*
 	 * Read the prime length.  1 & 2 are table entries, > 16 means a
 	 * prime follows, otherwise an error.
@@ -437,7 +435,6 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) 
 	dh = DH_new();
 	if (dh == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memset(dh, 0, sizeof(DH));
 	key->opaque = dh;
 
 	for (i=0; i < priv.nelements; i++) {

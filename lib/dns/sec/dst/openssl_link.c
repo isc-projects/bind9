@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.13 2000/03/06 20:06:00 bwelling Exp $
+ * $Id: openssl_link.c,v 1.14 2000/03/07 19:27:50 bwelling Exp $
  */
 
 #include <config.h>
@@ -331,8 +331,6 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	if (dsa == NULL)
 		return (ISC_R_NOMEMORY);
 
-	memset(dsa, 0, sizeof(DSA));
-
 	t = (unsigned int) *r.base++;
 	if (t > 8) {
 		DSA_free(dsa);
@@ -459,7 +457,6 @@ dst_openssl_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	dsa = DSA_new();
 	if (dsa == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	memset(dsa, 0, sizeof(DSA));
 	key->opaque = dsa;
 
 	for (i=0; i < priv.nelements; i++) {
