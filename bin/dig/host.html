@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.html,v 1.7.18.5 2004/11/11 01:55:56 marka Exp $ -->
+<!-- $Id: host.html,v 1.7.18.6 2005/04/03 03:32:00 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >host</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -56,51 +56,63 @@ NAME="AEN11"
 ><B
 CLASS="COMMAND"
 >host</B
->  [<VAR
+>  [<CODE
 CLASS="OPTION"
->-aCdlnrTwv</VAR
->] [<VAR
+>-aCdlnrTwv</CODE
+>] [<CODE
 CLASS="OPTION"
->-c <VAR
+>-c <TT
 CLASS="REPLACEABLE"
->class</VAR
-></VAR
->] [<VAR
+><I
+>class</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-N <VAR
+>-N <TT
 CLASS="REPLACEABLE"
->ndots</VAR
-></VAR
->] [<VAR
+><I
+>ndots</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-R <VAR
+>-R <TT
 CLASS="REPLACEABLE"
->number</VAR
-></VAR
->] [<VAR
+><I
+>number</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-t <VAR
+>-t <TT
 CLASS="REPLACEABLE"
->type</VAR
-></VAR
->] [<VAR
+><I
+>type</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-W <VAR
+>-W <TT
 CLASS="REPLACEABLE"
->wait</VAR
-></VAR
->] [<VAR
+><I
+>wait</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-m <VAR
+>-m <TT
 CLASS="REPLACEABLE"
->flag</VAR
-></VAR
->] [<VAR
+><I
+>flag</I
+></TT
+></CODE
+>] [<CODE
 CLASS="OPTION"
->-4</VAR
->] [<VAR
+>-4</CODE
+>] [<CODE
 CLASS="OPTION"
->-6</VAR
+>-6</CODE
 >] {name} [server]</P
 ></DIV
 ><DIV
@@ -124,9 +136,9 @@ CLASS="COMMAND"
 >
 prints a short summary of its command line arguments and options.</P
 ><P
-><VAR
+><CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 > is the domain name that is to be looked
 up.  It can also be a dotted-decimal IPv4 address or a colon-delimited
 IPv6 address, in which case <B
@@ -134,9 +146,9 @@ CLASS="COMMAND"
 >host</B
 > will by default
 perform a reverse lookup for that address.
-<VAR
+<CODE
 CLASS="PARAMETER"
->server</VAR
+>server</CODE
 > is an optional argument which is either
 the name or IP address of the name server that <B
 CLASS="COMMAND"
@@ -148,41 +160,41 @@ CLASS="FILENAME"
 >/etc/resolv.conf</TT
 >.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-a</VAR
+>-a</CODE
 > (all) option is equivalent to setting the
-<VAR
+<CODE
 CLASS="OPTION"
->-v</VAR
+>-v</CODE
 > option and asking <B
 CLASS="COMMAND"
 >host</B
 > to make
 a query of type ANY.</P
 ><P
->When the <VAR
+>When the <CODE
 CLASS="OPTION"
->-C</VAR
+>-C</CODE
 > option is used, <B
 CLASS="COMMAND"
 >host</B
 >
 will attempt to display the SOA records for zone
-<VAR
+<CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 > from all the listed authoritative name
 servers for that zone.  The list of name servers is defined by the NS
 records that are found for the zone.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-c</VAR
+>-c</CODE
 > option instructs to make a DNS query of class
-<VAR
+<CODE
 CLASS="PARAMETER"
->class</VAR
+>class</CODE
 >.  This can be used to lookup Hesiod or
 Chaosnet class resource records.  The default class is IN (Internet).</P
 ><P
@@ -190,57 +202,57 @@ Chaosnet class resource records.  The default class is IN (Internet).</P
 CLASS="COMMAND"
 >host</B
 > when the
-<VAR
+<CODE
 CLASS="OPTION"
->-d</VAR
-> or <VAR
+>-d</CODE
+> or <CODE
 CLASS="OPTION"
->-v</VAR
+>-v</CODE
 > option is used.  The two
 options are equivalent.  They have been provided for backwards
-compatibility.  In previous versions, the <VAR
+compatibility.  In previous versions, the <CODE
 CLASS="OPTION"
->-d</VAR
+>-d</CODE
 > option
-switched on debugging traces and <VAR
+switched on debugging traces and <CODE
 CLASS="OPTION"
->-v</VAR
+>-v</CODE
 > enabled verbose
 output.</P
 ><P
->List mode is selected by the <VAR
+>List mode is selected by the <CODE
 CLASS="OPTION"
->-l</VAR
+>-l</CODE
 > option.  This makes
 <B
 CLASS="COMMAND"
 >host</B
 > perform a zone transfer for zone
-<VAR
+<CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 >.  Transfer the zone printing out the NS, PTR
-and address records (A/AAAA).  If combined with <VAR
+and address records (A/AAAA).  If combined with <CODE
 CLASS="OPTION"
->-a</VAR
+>-a</CODE
 >
 all records will be printed.  </P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-i</VAR
+>-i</CODE
 >
 option specifies that reverse lookups of IPv6 addresses should
 use the IP6.INT domain as defined in RFC1886.
 The default is to use IP6.ARPA.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-N</VAR
+>-N</CODE
 > option sets the number of dots that have to be
-in <VAR
+in <CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 > for it to be considered absolute.  The
 default value is that defined using the ndots statement in
 <TT
@@ -262,27 +274,27 @@ CLASS="FILENAME"
 >.</P
 ><P
 >The number of UDP retries for a lookup can be changed with the
-<VAR
+<CODE
 CLASS="OPTION"
->-R</VAR
-> option.  <VAR
+>-R</CODE
+> option.  <CODE
 CLASS="PARAMETER"
->number</VAR
+>number</CODE
 > indicates
 how many times <B
 CLASS="COMMAND"
 >host</B
 > will repeat a query that does
 not get answered.  The default number of retries is 1.  If
-<VAR
+<CODE
 CLASS="PARAMETER"
->number</VAR
+>number</CODE
 > is negative or zero, the number of
 retries will default to 1.</P
 ><P
->Non-recursive queries can be made via the <VAR
+>Non-recursive queries can be made via the <CODE
 CLASS="OPTION"
->-r</VAR
+>-r</CODE
 > option.
 Setting this option clears the <SPAN
 CLASS="TYPE"
@@ -293,13 +305,13 @@ CLASS="COMMAND"
 >host</B
 > makes.
 This should mean that the name server receiving the query will not
-attempt to resolve <VAR
+attempt to resolve <CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 >.  The
-<VAR
+<CODE
 CLASS="OPTION"
->-r</VAR
+>-r</CODE
 > option enables <B
 CLASS="COMMAND"
 >host</B
@@ -312,36 +324,36 @@ referrals to other name servers.</P
 CLASS="COMMAND"
 >host</B
 > uses UDP when making queries.  The
-<VAR
+<CODE
 CLASS="OPTION"
->-T</VAR
+>-T</CODE
 > option makes it use a TCP connection when querying
 the name server.  TCP will be automatically selected for queries that
 require it, such as zone transfer (AXFR) requests.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-4</VAR
+>-4</CODE
 > option forces <B
 CLASS="COMMAND"
 >host</B
 > to only
-use IPv4 query transport.  The <VAR
+use IPv4 query transport.  The <CODE
 CLASS="OPTION"
->-6</VAR
+>-6</CODE
 > option forces
 <B
 CLASS="COMMAND"
 >host</B
 > to only use IPv6 query transport.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-t</VAR
+>-t</CODE
 > option is used to select the query type.
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 > can be any recognised query type: CNAME,
 NS, SOA, SIG, KEY, AXFR, etc.  When no query type is specified,
 <B
@@ -349,13 +361,13 @@ CLASS="COMMAND"
 >host</B
 > automatically selects an appropriate query
 type.  By default it looks for A records, but if the
-<VAR
+<CODE
 CLASS="OPTION"
->-C</VAR
+>-C</CODE
 > option was given, queries will be made for SOA
-records, and if <VAR
+records, and if <CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 > is a dotted-decimal IPv4
 address or colon-delimited IPv6 address, <B
 CLASS="COMMAND"
@@ -366,31 +378,31 @@ serial number can be specified by appending an equal followed by the
 starting serial number (e.g. -t IXFR=12345678).</P
 ><P
 >The time to wait for a reply can be controlled through the
-<VAR
+<CODE
 CLASS="OPTION"
->-W</VAR
-> and <VAR
+>-W</CODE
+> and <CODE
 CLASS="OPTION"
->-w</VAR
+>-w</CODE
 > options.  The
-<VAR
+<CODE
 CLASS="OPTION"
->-W</VAR
+>-W</CODE
 > option makes <B
 CLASS="COMMAND"
 >host</B
 > wait for
-<VAR
+<CODE
 CLASS="PARAMETER"
->wait</VAR
-> seconds.  If <VAR
+>wait</CODE
+> seconds.  If <CODE
 CLASS="PARAMETER"
->wait</VAR
+>wait</CODE
 >
 is less than one, the wait interval is set to one second.  When the
-<VAR
+<CODE
 CLASS="OPTION"
->-w</VAR
+>-w</CODE
 > option is used, <B
 CLASS="COMMAND"
 >host</B
@@ -399,20 +411,20 @@ effectively wait forever for a reply.  The time to wait for a response
 will be set to the number of seconds given by the hardware's maximum
 value for an integer quantity.</P
 ><P
->The <VAR
+>The <CODE
 CLASS="OPTION"
->-m</VAR
+>-m</CODE
 > can be used to set the memory usage debugging flags
-<VAR
+<CODE
 CLASS="PARAMETER"
->record</VAR
->, <VAR
+>record</CODE
+>, <CODE
 CLASS="PARAMETER"
->usage</VAR
+>usage</CODE
 > and
-<VAR
+<CODE
 CLASS="PARAMETER"
->trace</VAR
+>trace</CODE
 >. </P
 ></DIV
 ><DIV

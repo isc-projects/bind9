@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getipnode.html,v 1.9.18.3 2004/08/22 23:53:36 marka Exp $ -->
+<!-- $Id: lwres_getipnode.html,v 1.9.18.4 2005/04/03 03:32:06 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_getipnode</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -199,21 +199,21 @@ CLASS="FUNCTION"
 >lwres_getipnodebyname()</CODE
 >
 looks up addresses of protocol family
-<VAR
+<CODE
 CLASS="PARAMETER"
->af</VAR
+>af</CODE
 >
 
 for the hostname
-<VAR
+<CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 >.
 
 The
-<VAR
+<CODE
 CLASS="PARAMETER"
->flags</VAR
+>flags</CODE
 >
 parameter contains ORed flag bits to 
 specify the types of addresses that are searched
@@ -232,9 +232,9 @@ CLASS="CONSTANT"
 ><DD
 ><P
 >This is used with an
-<VAR
+<CODE
 CLASS="PARAMETER"
->af</VAR
+>af</CODE
 >
 of AF_INET6, and causes IPv4 addresses to be returned as IPv4-mapped
 IPv6 addresses.</P
@@ -247,9 +247,9 @@ CLASS="CONSTANT"
 ><DD
 ><P
 >This is used with an
-<VAR
+<CODE
 CLASS="PARAMETER"
->af</VAR
+>af</CODE
 >
 of AF_INET6, and causes all known addresses (IPv6 and IPv4) to be returned.
 If AI_V4MAPPED is also set, the IPv4 addresses are return as mapped
@@ -295,19 +295,19 @@ CLASS="FUNCTION"
 >
 performs a reverse lookup
 of address
-<VAR
+<CODE
 CLASS="PARAMETER"
->src</VAR
+>src</CODE
 >
 which is
-<VAR
+<CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 >
 bytes long.
-<VAR
+<CODE
 CLASS="PARAMETER"
->af</VAR
+>af</CODE
 >
 denotes the protocol family, typically
 <SPAN
@@ -331,9 +331,9 @@ CLASS="TYPE"
 >struct hostent</SPAN
 >
 pointer
-<VAR
+<CODE
 CLASS="PARAMETER"
->he</VAR
+>he</CODE
 >.
 
 Any memory allocated for the
@@ -377,9 +377,9 @@ CLASS="FUNCTION"
 >lwres_getipnodebyaddr()</CODE
 >
 set
-<VAR
+<CODE
 CLASS="PARAMETER"
->*error_num</VAR
+>*error_num</CODE
 >
 to an appropriate error code and the function returns a
 <SPAN

@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getnameinfo.html,v 1.6.18.3 2004/08/22 23:53:37 marka Exp $ -->
+<!-- $Id: lwres_getnameinfo.html,v 1.6.18.4 2005/04/03 03:32:06 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_getnameinfo</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -96,21 +96,21 @@ CLASS="FUNCTION"
 <SPAN
 CLASS="TYPE"
 >struct sockaddr</SPAN
-> <VAR
+> <CODE
 CLASS="PARAMETER"
->sa</VAR
+>sa</CODE
 > which is
-<VAR
+<CODE
 CLASS="PARAMETER"
->salen</VAR
+>salen</CODE
 > bytes long.  The hostname is of length
-<VAR
+<CODE
 CLASS="PARAMETER"
->hostlen</VAR
+>hostlen</CODE
 > and is returned via
-<VAR
+<CODE
 CLASS="PARAMETER"
->*host.</VAR
+>*host.</CODE
 > The maximum length of the hostname is
 1025 bytes: <CODE
 CLASS="CONSTANT"
@@ -118,25 +118,25 @@ CLASS="CONSTANT"
 >.</P
 ><P
 > The name of the service associated with the port number in
-<VAR
+<CODE
 CLASS="PARAMETER"
->sa</VAR
-> is returned in <VAR
+>sa</CODE
+> is returned in <CODE
 CLASS="PARAMETER"
->*serv.</VAR
+>*serv.</CODE
 >
-It is <VAR
+It is <CODE
 CLASS="PARAMETER"
->servlen</VAR
+>servlen</CODE
 > bytes long.  The maximum length
 of the service name is <CODE
 CLASS="CONSTANT"
 >NI_MAXSERV</CODE
 > - 32 bytes.</P
 ><P
-> The <VAR
+> The <CODE
 CLASS="PARAMETER"
->flags</VAR
+>flags</CODE
 > argument sets the following
 bits:
 <P
