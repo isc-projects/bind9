@@ -34,6 +34,8 @@ typedef isc_region_t				dns_label_t;
 typedef struct dns_name				dns_name_t;
 typedef ISC_LIST(dns_name_t)			dns_namelist_t;
 typedef struct dns_db				dns_db_t;
+typedef void					dns_dbnode_t;
+typedef void					dns_dbversion_t;
 typedef unsigned char				dns_offsets_t[128];
 typedef struct dns_compress			dns_compress_t;
 typedef struct dns_decompress			dns_decompress_t;
@@ -57,12 +59,18 @@ typedef enum {
 	dns_bitlabel_1 = 1
 } dns_bitlabel_t;
 
+typedef enum {
+	dns_addmode_replace = 0,
+	dns_addmode_merge = 1
+} dns_addmode_t;
+
 #include <dns/enumtype.h>
 enum {
 	ns_t_none = 0,
 	TYPEENUM
 	ns_t_any = 255
 } ns_type_t;
+
 #include <dns/enumclass.h>
 enum {
 	ns_c_none = 0,
