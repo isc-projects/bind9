@@ -1,4 +1,6 @@
 
+ 401.	[func]		Added simple database API.
+
  400.	[bug]		SIG(0) signing and verifying was done incorrectly.
 			[RT #249]
 
