@@ -383,7 +383,7 @@ dns_c_ctx_setlogging(isc_log_t *lctx,
 	
 	REQUIRE(DNS_CONFCTX_VALID(cfg));
 
-	existed = (cfg->logging != NULL);
+	existed = ISC_TF(cfg->logging != NULL);
 	
 	if (deepcopy) {
 		res = dns_c_logginglist_copy(lctx, cfg->mem, &ll, newval);
@@ -589,7 +589,7 @@ dns_c_ctx_channeldefinedp(isc_log_t *lctx,
 
 	res = dns_c_logginglist_chanbyname(lctx, cfg->logging, name, &chan);
 
-	return (res == ISC_R_SUCCESS);
+	return (ISC_TF(res == ISC_R_SUCCESS));
 }
 
 
