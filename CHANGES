@@ -40,6 +40,9 @@
 			next name, and for NOERROR NODATA responses, check
 			that the type is not present in the NXT bitmap.
 
+1277.	[bug]		Failure to write pid-file should not be fatal on
+			reload. [RT #2861]
+
 1273.	[bug]		The dnssec system test failed to remove the correct
 			files.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.7 2002/07/02 02:46:43 marka Exp $ */
+/* $Id: server.c,v 1.339.2.8 2002/07/10 04:27:23 marka Exp $ */
 
 #include <config.h>
 
@@ -2051,11 +2051,11 @@ load_configuration(const char *filename, ns_server_t *server,
 
 	obj = NULL;
 	if (ns_config_get(maps, "pid-file", &obj) == ISC_R_SUCCESS)
-		ns_os_writepidfile(cfg_obj_asstring(obj));
+		ns_os_writepidfile(cfg_obj_asstring(obj), first_time);
 	else if (ns_g_lwresdonly)
-		ns_os_writepidfile(lwresd_g_defaultpidfile);
+		ns_os_writepidfile(lwresd_g_defaultpidfile, first_time);
 	else
-		ns_os_writepidfile(ns_g_defaultpidfile);
+		ns_os_writepidfile(ns_g_defaultpidfile, first_time);
 
 	obj = NULL;
 	result = ns_config_get(maps, "statistics-file", &obj);
