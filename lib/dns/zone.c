@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.151 2000/06/20 23:54:11 marka Exp $ */
+/* $Id: zone.c,v 1.152 2000/06/23 17:26:38 marka Exp $ */
 
 #include <config.h>
 
@@ -2967,6 +2967,7 @@ notify_createmessage(dns_zone_t *zone, dns_message_t **messagep)
 		goto fail;
 
 	message->opcode = dns_opcode_notify;
+	message->flags |= DNS_MESSAGEFLAG_AA;
 	message->rdclass = zone->rdclass;
 
 	result = dns_message_gettempname(message, &tempname);
