@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.16.6.1 2003/09/17 05:40:40 explorer Exp $ */
+/* $Id: check.c,v 1.14.2.16.6.2 2003/09/19 06:30:01 marka Exp $ */
 
 #include <config.h>
 
@@ -131,7 +131,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx,
 	{ "notify", MASTERZONE | SLAVEZONE },
 	{ "also-notify", MASTERZONE | SLAVEZONE },
 	{ "dialup", MASTERZONE | SLAVEZONE | STUBZONE },
-	{ "delegation-only", STUBZONE | FORWARDZONE},
+	{ "delegation-only", HINTZONE | STUBZONE },
 	{ "forward", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
 	{ "forwarders", MASTERZONE | SLAVEZONE | STUBZONE | FORWARDZONE},
 	{ "maintain-ixfr-base", MASTERZONE | SLAVEZONE },
