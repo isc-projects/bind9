@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.1 1999/07/12 20:08:29 bwelling Exp $
+ * $Id: dst_result.c,v 1.2 1999/09/23 20:54:35 bwelling Exp $
  */
 
 #include <config.h>
@@ -47,6 +47,8 @@ static char *text[DST_R_NRESULTS] = {
         "verify init failure",			/* 12 */
 	"verify update failure",		/* 13 */
 	"verify final failure",			/* 14 */
+	"not a public key",			/* 15 */
+	"not a private key",			/* 16 */
 };
 
 #define DST_RESULT_RESULTSET			2

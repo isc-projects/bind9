@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.6 1999/09/06 16:55:58 bwelling Exp $
+ * $Id: openssl_link.c,v 1.7 1999/09/23 20:54:36 bwelling Exp $
  */
 
 #include <config.h>
@@ -57,6 +57,7 @@ static isc_boolean_t	dst_openssl_compare(const dst_key_t *key1,
 					    const dst_key_t *key2);
 static dst_result_t	dst_openssl_generate(dst_key_t *key, int exp,
 					     isc_mem_t *mctx);
+static isc_boolean_t	dst_openssl_isprivate(const dst_key_t *key);
 static void		dst_openssl_destroy(void *key, isc_mem_t *mctx);
 static dst_result_t	dst_openssl_to_dns(const dst_key_t *in_key,
 					   isc_buffer_t *data);
@@ -84,6 +85,7 @@ dst_s_openssl_init()
 	openssl_functions.verify = dst_openssl_verify;
 	openssl_functions.compare = dst_openssl_compare;
 	openssl_functions.generate = dst_openssl_generate;
+	openssl_functions.isprivate = dst_openssl_isprivate;
 	openssl_functions.destroy = dst_openssl_destroy;
 	openssl_functions.to_dns = dst_openssl_to_dns;
 	openssl_functions.from_dns = dst_openssl_from_dns;
@@ -233,6 +235,22 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 		*context = ctx;
 
 	return (DST_R_SUCCESS);
+}
+
+
+/*
+ * dst_openssl_isprivate
+ *	Is this a private key?
+ * Parameters
+ *	key		DST KEY structure
+ * Returns
+ *	ISC_TRUE
+ *	ISC_FALSE
+ */
+isc_boolean_t
+dst_openssl_isprivate(const dst_key_t *key) {
+	DSA *dsa = (DSA *) key->opaque;
+        return (dsa != NULL && dsa->priv_key != NULL);
 }
 
 

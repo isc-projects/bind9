@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.4 1999/09/01 18:56:19 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.5 1999/09/23 20:54:34 bwelling Exp $
  */
 
 #include <config.h>
@@ -100,6 +100,7 @@ static isc_boolean_t	dst_bsafe_compare(const dst_key_t *key1,
 					  const dst_key_t *key2);
 static dst_result_t	dst_bsafe_generate(dst_key_t *key, int exp,
 					   isc_mem_t *mctx);
+static isc_boolean_t	dst_bsafe_isprivate(const dst_key_t *key);
 static void		dst_bsafe_destroy(void *key, isc_mem_t *mctx);
 static dst_result_t	dst_bsafe_to_dns(const dst_key_t *in_key,
 					 isc_buffer_t *data);
@@ -123,6 +124,7 @@ dst_s_bsafe_init()
 	bsafe_functions.verify = dst_bsafe_verify;
 	bsafe_functions.compare = dst_bsafe_compare;
 	bsafe_functions.generate = dst_bsafe_generate;
+	bsafe_functions.isprivate = dst_bsafe_isprivate;
 	bsafe_functions.destroy = dst_bsafe_destroy;
 	bsafe_functions.to_dns = dst_bsafe_to_dns;
 	bsafe_functions.from_dns = dst_bsafe_from_dns;
@@ -195,8 +197,10 @@ dst_bsafe_sign(const unsigned int mode, dst_key_t *key, void **context,
 			return (DST_R_NOSPACE);
 		
 		rkey = (RSA_Key *) key->opaque;
-		if (rkey == NULL || rkey->rk_Private_Key == NULL)
+		if (rkey == NULL)
 			return (DST_R_NULLKEY);
+		if (rkey->rk_Private_Key == NULL)
+			return (DST_R_NOTPRIVATEKEY);
 
 		if ((status = B_CreateAlgorithmObject(&rsaEncryptor)) != 0)
 			return (DST_R_NOMEMORY);
@@ -320,8 +324,10 @@ dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 		isc_buffer_available(&work, &work_region);
 
 		rkey = (RSA_Key *) key->opaque;
-		if (rkey == NULL || rkey->rk_Public_Key == NULL)
+		if (rkey == NULL)
 			return (DST_R_NULLKEY);
+		if (rkey->rk_Public_Key == NULL)
+			return (DST_R_NOTPUBLICKEY);
 		if ((status = B_CreateAlgorithmObject(&rsaEncryptor)) != 0)
 			return (DST_R_NOMEMORY);
 		if ((status = B_SetAlgorithmInfo(rsaEncryptor,
@@ -370,6 +376,22 @@ dst_bsafe_verify(const unsigned int mode, dst_key_t *key, void **context,
 		*context = md5_ctx;
 
 	return (DST_R_SUCCESS);
+}
+
+
+/*
+ * dst_bsafe_isprivate
+ *	Is this a private key?
+ * Parameters
+ *	key		DST KEY structure
+ * Returns
+ *	ISC_TRUE
+ *	ISC_FALSE
+ */
+isc_boolean_t
+dst_bsafe_isprivate(const dst_key_t *key) {
+	RSA_Key *rkey = (RSA_Key *) key->opaque;
+	return (rkey != NULL && rkey->rk_Private_Key != NULL);
 }
 
 

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.6 1999/09/02 15:56:33 bwelling Exp $
+ * $Id: hmac_link.c,v 1.7 1999/09/23 20:54:35 bwelling Exp $
  */
 
 #include <config.h>
@@ -65,6 +65,7 @@ static isc_boolean_t	dst_hmacmd5_compare(const dst_key_t *key1,
 					    const dst_key_t *key2);
 static dst_result_t	dst_hmacmd5_generate(dst_key_t *key, int exp,
 					     isc_mem_t *mctx);
+static isc_boolean_t	dst_hmacmd5_isprivate(const dst_key_t *key);
 static void		dst_hmacmd5_destroy(void *key, isc_mem_t *mctx);
 static dst_result_t	dst_hmacmd5_to_dns(const dst_key_t *in_key,
 					   isc_buffer_t *data);
@@ -88,6 +89,7 @@ dst_s_hmacmd5_init()
 	hmacmd5_functions.verify = dst_hmacmd5_verify;
 	hmacmd5_functions.compare = dst_hmacmd5_compare;
 	hmacmd5_functions.generate = dst_hmacmd5_generate;
+	hmacmd5_functions.isprivate = dst_hmacmd5_isprivate;
 	hmacmd5_functions.destroy = dst_hmacmd5_destroy;
 	hmacmd5_functions.to_dns = dst_hmacmd5_to_dns;
 	hmacmd5_functions.from_dns = dst_hmacmd5_from_dns;
@@ -229,6 +231,19 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		*context = ctx;
 
 	return (DST_R_SUCCESS);
+}
+
+/*
+ * dst_hmacmd5_isprivate
+ *	Is this a private key?  Yes
+ * Parameters
+ *	key		DST KEY structure
+ * Returns
+ *	ISC_TRUE
+ */
+isc_boolean_t
+dst_hmacmd5_isprivate(const dst_key_t *key) {
+        return (ISC_TRUE);
 }
 
 

@@ -65,6 +65,7 @@ struct dst_func {
 			       isc_region_t *sig, isc_mem_t *mctx);
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	dst_result_t (*generate)(dst_key_t *key, int parms, isc_mem_t *mctx);
+	isc_boolean_t (*isprivate)(const dst_key_t *key);
 	void (*destroy)(void *key, isc_mem_t *mctx);
 	/* conversion functions */
 	dst_result_t (*to_dns)(const dst_key_t *key, isc_buffer_t *data);

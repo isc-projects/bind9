@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.9 1999/09/02 15:56:32 bwelling Exp $
+ * $Id: dst_api.c,v 1.10 1999/09/23 20:54:35 bwelling Exp $
  */
 
 #include <config.h>
@@ -578,6 +578,12 @@ isc_uint16_t
 dst_key_id(const dst_key_t *key) {
 	REQUIRE(VALID_KEY(key));
 	return key->key_id;
+}
+
+isc_boolean_t
+dst_key_isprivate(const dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
+	return (key->func->isprivate(key));
 }
 
 /*
