@@ -41,7 +41,7 @@
 #define VALID_REQUEST(request) ((request) != NULL && \
 				(request)->magic == REQUEST_MAGIC)
 
-#if 1
+#if 0
 #define TRACE(x) printf(x)
 #else
 #define TRACE(x)
