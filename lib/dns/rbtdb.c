@@ -2413,8 +2413,10 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * deepest zone cut.
 		 */
 		if (nsheader != NULL) {
-			new_reference(search.rbtdb, node);
-			*nodep = node;
+			if (nodep != NULL) {
+				new_reference(search.rbtdb, node);
+				*nodep = node;
+			}
 			bind_rdataset(search.rbtdb, node, nsheader, search.now,
 				      rdataset);
 			if (nssig != NULL)
