@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.81 2001/05/10 19:07:10 bwelling Exp $
+ * $Id: dst_api.c,v 1.82 2001/05/21 22:10:22 bwelling Exp $
  */
 
 #include <config.h>
@@ -62,11 +62,11 @@ static isc_boolean_t dst_initialized = ISC_FALSE;
  * Static functions.
  */
 static dst_key_t *	get_key_struct(dns_name_t *name,
-				       const unsigned int alg,
-				       const unsigned int flags,
-				       const unsigned int protocol,
-				       const unsigned int bits,
-				       const dns_rdataclass_t rdclass,
+				       unsigned int alg,
+				       unsigned int flags,
+				       unsigned int protocol,
+				       unsigned int bits,
+				       dns_rdataclass_t rdclass,
 				       isc_mem_t *mctx);
 static isc_result_t	read_public_key(const char *filename,
 					isc_mem_t *mctx,
@@ -74,16 +74,16 @@ static isc_result_t	read_public_key(const char *filename,
 static isc_result_t	write_public_key(const dst_key_t *key,
 					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
-				      const dns_keytag_t id,
-				      const unsigned int alg,
-				      const unsigned int type,
+				      dns_keytag_t id,
+				      unsigned int alg,
+				      unsigned int type,
 				      const char *directory,
 				      isc_buffer_t *out);
 static isc_result_t	computeid(dst_key_t *key);
 static isc_result_t	frombuffer(dns_name_t *name,
-				   const unsigned int alg,
-				   const unsigned int flags,
-				   const unsigned int protocol,
+				   unsigned int alg,
+				   unsigned int flags,
+				   unsigned int protocol,
 				   dns_rdataclass_t rdclass,
 				   isc_buffer_t *source,
 				   isc_mem_t *mctx,
@@ -163,7 +163,7 @@ dst_lib_destroy(void) {
 }
 
 isc_boolean_t
-dst_algorithm_supported(const unsigned int alg) {
+dst_algorithm_supported(unsigned int alg) {
 	REQUIRE(dst_initialized == ISC_TRUE);
 
 	if (alg >= DST_MAX_ALGS || dst_t_func[alg] == NULL)
@@ -256,7 +256,7 @@ dst_context_verify(dst_context_t *dctx, isc_region_t *sig) {
 
 isc_result_t
 dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
-		  isc_buffer_t *secret)
+		      isc_buffer_t *secret)
 {
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(pub) && VALID_KEY(priv));
@@ -281,7 +281,7 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
 }
 
 isc_result_t
-dst_key_tofile(const dst_key_t *key, const int type, const char *directory) {
+dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 	isc_result_t ret = ISC_R_SUCCESS;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
@@ -308,8 +308,8 @@ dst_key_tofile(const dst_key_t *key, const int type, const char *directory) {
 }
 
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
-		 const unsigned int alg, const int type, const char *directory,
+dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
+		 unsigned int alg, int type, const char *directory,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
 	char filename[ISC_DIR_NAMEMAX];
@@ -356,7 +356,7 @@ dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
 }
 
 isc_result_t
-dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
+dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 		      dst_key_t **keyp)
 {
 	isc_result_t result;
@@ -497,8 +497,8 @@ dst_key_fromdns(dns_name_t *name, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
-		   const unsigned int flags, const unsigned int protocol,
+dst_key_frombuffer(dns_name_t *name, unsigned int alg,
+		   unsigned int flags, unsigned int protocol,
 		   dns_rdataclass_t rdclass,
 		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {
@@ -559,10 +559,10 @@ dst_key_fromgssapi(dns_name_t *name, void *opaque, isc_mem_t *mctx,
 }
 
 isc_result_t
-dst_key_generate(dns_name_t *name, const unsigned int alg,
-		 const unsigned int bits, const unsigned int param,
-		 const unsigned int flags, const unsigned int protocol,
-		 const dns_rdataclass_t rdclass,
+dst_key_generate(dns_name_t *name, unsigned int alg,
+		 unsigned int bits, unsigned int param,
+		 unsigned int flags, unsigned int protocol,
+		 dns_rdataclass_t rdclass,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key;
@@ -675,7 +675,7 @@ dst_key_isprivate(const dst_key_t *key) {
 }
 
 isc_result_t
-dst_key_buildfilename(const dst_key_t *key, const int type,
+dst_key_buildfilename(const dst_key_t *key, int type,
 		      const char *directory, isc_buffer_t *out) {
 
 	REQUIRE(VALID_KEY(key));
@@ -739,9 +739,9 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
  * Allocates a key structure and fills in some of the fields.
  */
 static dst_key_t *
-get_key_struct(dns_name_t *name, const unsigned int alg,
-	       const unsigned int flags, const unsigned int protocol,
-	       const unsigned int bits, const dns_rdataclass_t rdclass,
+get_key_struct(dns_name_t *name, unsigned int alg,
+	       unsigned int flags, unsigned int protocol,
+	       unsigned int bits, dns_rdataclass_t rdclass,
 	       isc_mem_t *mctx)
 {
 	dst_key_t *key;
@@ -967,8 +967,8 @@ write_public_key(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-buildfilename(dns_name_t *name, const dns_keytag_t id,
-	      const unsigned int alg, const unsigned int type,
+buildfilename(dns_name_t *name, dns_keytag_t id,
+	      unsigned int alg, unsigned int type,
 	      const char *directory, isc_buffer_t *out)
 {
 	const char *suffix = "";
@@ -1022,8 +1022,8 @@ computeid(dst_key_t *key) {
 }
 
 static isc_result_t
-frombuffer(dns_name_t *name, const unsigned int alg, const unsigned int flags,
-	   const unsigned int protocol, dns_rdataclass_t rdclass,
+frombuffer(dns_name_t *name, unsigned int alg, unsigned int flags,
+	   unsigned int protocol, dns_rdataclass_t rdclass,
 	   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp)
 {
 	dst_key_t *key;

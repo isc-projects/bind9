@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.40 2001/01/24 02:23:02 bwelling Exp $ */
+/* $Id: dst.h,v 1.41 2001/05/21 22:10:23 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -86,7 +86,7 @@ dst_lib_destroy(void);
  */
 
 isc_boolean_t
-dst_algorithm_supported(const unsigned int alg);
+dst_algorithm_supported(unsigned int alg);
 /*
  * Checks that a given algorithm is supported by DST.
  *
@@ -196,8 +196,7 @@ dst_key_computesecret(const dst_key_t *pub, const dst_key_t *priv,
  */
 
 isc_result_t
-dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
-		 const unsigned int alg, const int type,
+dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
 		 const char *directory, isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.  The key can either be a public or
@@ -222,7 +221,7 @@ dst_key_fromfile(dns_name_t *name, const dns_keytag_t id,
  */
 
 isc_result_t
-dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
+dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 		      dst_key_t **keyp);
 /*
  * Reads a key from permanent storage.  The key can either be a public or
@@ -244,7 +243,7 @@ dst_key_fromnamedfile(const char *filename, const int type, isc_mem_t *mctx,
  */
 
 isc_result_t
-dst_key_tofile(const dst_key_t *key, const int type, const char *directory);
+dst_key_tofile(const dst_key_t *key, int type, const char *directory);
 /*
  * Writes a key to permanent storage.  The key can either be a public or
  * private key.  Public keys are written in DNS format and private keys
@@ -299,8 +298,8 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target);
  */
 
 isc_result_t
-dst_key_frombuffer(dns_name_t *name, const unsigned int alg,
-		   const unsigned int flags, const unsigned int protocol,
+dst_key_frombuffer(dns_name_t *name, unsigned int alg,
+		   unsigned int flags, unsigned int protocol,
 		   dns_rdataclass_t rdclass,
 		   isc_buffer_t *source, isc_mem_t *mctx, dst_key_t **keyp);
 /*
@@ -361,10 +360,10 @@ dst_key_fromgssapi(dns_name_t *name, void *opaque, isc_mem_t *mctx,
  */
 
 isc_result_t
-dst_key_generate(dns_name_t *name, const unsigned int alg,
-		 const unsigned int bits, const unsigned int param,
-		 const unsigned int flags, const unsigned int protocol,
-		 const dns_rdataclass_t rdclass,
+dst_key_generate(dns_name_t *name, unsigned int alg,
+		 unsigned int bits, unsigned int param,
+		 unsigned int flags, unsigned int protocol,
+		 dns_rdataclass_t rdclass,
 		 isc_mem_t *mctx, dst_key_t **keyp);
 /*
  * Generate a DST key (or keypair) with the supplied parameters.  The
@@ -470,7 +469,7 @@ isc_boolean_t
 dst_key_isnullkey(const dst_key_t *key);
 
 isc_result_t
-dst_key_buildfilename(const dst_key_t *key, const int type,
+dst_key_buildfilename(const dst_key_t *key, int type,
 		      const char *directory, isc_buffer_t *out);
 /*
  * Generates the filename used by dst to store the specified key.
@@ -521,7 +520,7 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  */
 
 isc_uint16_t
-dst_region_computeid(const isc_region_t *source, const unsigned int alg);
+dst_region_computeid(const isc_region_t *source, unsigned int alg);
 /*
  * Computes the key id of the key stored in the provided region with the
  * given algorithm.
