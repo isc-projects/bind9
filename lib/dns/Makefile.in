@@ -197,7 +197,7 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} -o $@ $? ${LIBS}
+	${CC} ${ALL_CFLAGS} -o $@ gen.c ${LIBS}
 
 rbtdb64.@O@: rbtdb.c
 
