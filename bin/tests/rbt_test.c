@@ -108,11 +108,11 @@ print_data(void *data) {
 void
 main (int argc, char **argv) {
 	char *command, *arg, *whitespace, buffer[1024];
-	int length;
 	dns_name_t *name;
 	dns_rbt_t *rbt;
-	dns_rbtnode_t *node;
+	int length;
 	isc_result_t result;
+	void *data;
 
 	progname = strrchr(*argv, '/');
 	if (progname != NULL)
@@ -197,15 +197,30 @@ main (int argc, char **argv) {
 				if (name != NULL) {
 					printf("searching for name %s ... ",
 					       arg);
-					node = dns_rbt_findnode(rbt, name,
-								NULL);
-					if (node != NULL) {
-						printf("found it: ");
-						print_data(node->data);
+					data = NULL;
+					result = dns_rbt_findname(rbt, name,
+								  &data);
+					switch (result) {
+					case DNS_R_SUCCESS:
+						printf("found exact: ");
+						print_data(data);
 						putchar('\n');
-
-					} else
+						break;
+					case DNS_R_PARTIALMATCH:
+						printf("found parent: ");
+						print_data(data);
+						putchar('\n');
+						break;
+					case DNS_R_NOTFOUND:
 						printf("NOT FOUND!\n");
+						break;
+					case DNS_R_NOMEMORY:
+						printf("OUT OF MEMORY!\n");
+						break;
+					default:
+						printf("UNEXPECTED RESULT\n");
+					}
+
 					delete_name(name, NULL);
 				}
 
@@ -223,7 +238,7 @@ main (int argc, char **argv) {
 					printf("usage: quit\n");
 			} else {
 				printf("a(dd) NAME, d(elete) NAME, "
-				       "s(earch) NAME, print, or quit\n");
+				       "s(earch) NAME, p(rint), or q(uit)\n");
 
 			}
 		}
