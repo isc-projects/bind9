@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.10 2001/10/05 05:45:52 mayer Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.11 2001/11/21 05:04:13 mayer Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -114,6 +114,7 @@ const FileData installFiles[] =
 #  endif
 #endif
 	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
+	{"libbind9.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libisccfg.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
