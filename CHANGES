@@ -4,6 +4,9 @@
 
 1452.	[bug]		Bad #ifdef, ISC_RFC2335 -> ISC_RFC2535.
 
+1449.	[bug]		query_addbestns() didn't handle running out of memory
+			gracefully.
+
 1448.	[bug]		Handle empty wildcards labels.
 
 1439.	[bug]		Named could return NOERROR with certain NOTIFY
@@ -87,7 +90,7 @@
 1333.	[contrib]	queryperf now reports a summary of returned
 			rcodes (-c), rcodes are printed in mnemonic form (-v).
 
-1219.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
+1299.	[bug]		Set AI_ADDRCONFIG when looking up addresses 
 			via getaddrinfo() (affects dig, host, nslookup, rndc
 			and nsupdate).
 
