@@ -75,7 +75,6 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
 /*
  * Current config information
  */
-EXTERN dns_c_ctx_t *		ns_g_confctx	INIT(NULL);
 EXTERN const char *		ns_g_conffile	INIT("/etc/named.conf");
 
 /*

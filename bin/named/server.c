@@ -522,9 +522,6 @@ load_configuration(const char *filename, ns_server_t *server) {
 	oviewlist = ns_g_viewlist;
 	ns_g_viewlist = lctx.viewlist;
 
-	oconfigctx = ns_g_confctx;
-	ns_g_confctx = configctx;
-
 	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
 
 	/*
@@ -539,13 +536,10 @@ load_configuration(const char *filename, ns_server_t *server) {
 		dns_view_detach(&view);
 	}
 
-	if (oconfigctx != NULL)
-		dns_c_ctx_delete(&oconfigctx);
-
 	/*
 	 * Load the TSIG information from the configuration
 	 */
-        result = dns_tsig_init(ns_g_lctx, ns_g_confctx, ns_g_mctx);
+        result = dns_tsig_init(ns_g_lctx, configctx, ns_g_mctx);
         if (result != ISC_R_SUCCESS)
                 ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"dns_tsig_init() failed: %s",
@@ -554,7 +548,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	/*
 	 * Load the TKEY information from the configuration
 	 */
-	result = dns_tkey_init(ns_g_lctx, ns_g_confctx, ns_g_mctx);
+	result = dns_tkey_init(ns_g_lctx, configctx, ns_g_mctx);
 	if (result != ISC_R_SUCCESS) {
 		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 				"dns_tkey_init() failed: %s",
@@ -562,6 +556,10 @@ load_configuration(const char *filename, ns_server_t *server) {
 	}
 
 	dns_aclconfctx_destroy(&aclconfctx);	
+
+	dns_c_ctx_delete(&configctx);
+
+
 }
 
 static void
@@ -598,11 +596,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 		ISC_LIST_UNLINK(ns_g_viewlist, view, link);
 		dns_view_detach(&view);
 	}
-
-	/*
-	 * XXXRTH  Is this the right place to do this?
-	 */
-	dns_c_ctx_delete(&ns_g_confctx);
 
 	dns_tkey_destroy();
 	dns_tsig_destroy();
