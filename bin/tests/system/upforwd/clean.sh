@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.3 2000/11/16 00:20:22 bwelling Exp $
+# $Id: clean.sh,v 1.3.4.1 2001/01/09 22:37:56 bwelling Exp $
 
 #
 # Clean up after zone transfer tests.

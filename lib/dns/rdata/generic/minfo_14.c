@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.35 2000/12/01 01:40:30 gson Exp $ */
+/* $Id: minfo_14.c,v 1.35.4.1 2001/01/09 22:47:08 bwelling Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 

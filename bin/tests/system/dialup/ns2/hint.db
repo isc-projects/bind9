@@ -1,4 +1,4 @@
-; Copyright (C) 2000  Internet Software Consortium.
+; Copyright (C) 2000, 2001  Internet Software Consortium.
 ;
 ; Permission to use, copy, modify, and distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: hint.db,v 1.2 2000/11/18 02:57:13 bwelling Exp $
+; $Id: hint.db,v 1.2.4.1 2001/01/09 22:34:54 bwelling Exp $
 
 .	1200	NS	ns1.example
 ns1.example	A	10.53.0.1

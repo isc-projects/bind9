@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.29 2000/11/08 01:55:54 bwelling Exp $ */
+/* $Id: proforma.c,v 1.29.4.1 2001/01/09 22:47:25 bwelling Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C

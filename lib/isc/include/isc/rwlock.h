@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.16 2000/09/08 21:25:21 gson Exp $ */
+/* $Id: rwlock.h,v 1.16.4.1 2001/01/09 22:50:26 bwelling Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1

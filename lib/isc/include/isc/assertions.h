@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2000  Internet Software Consortium.
+ * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.13 2000/08/01 01:29:58 tale Exp $
+ * $Id: assertions.h,v 1.13.4.1 2001/01/09 22:49:34 bwelling Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H

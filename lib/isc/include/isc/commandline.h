@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: commandline.h,v 1.6 2000/08/01 01:30:05 tale Exp $ */
+/* $Id: commandline.h,v 1.6.4.1 2001/01/09 22:49:41 bwelling Exp $ */
 
 #ifndef ISC_COMMANDLINE_H
 #define ISC_COMMANDLINE_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: lwinetpton.c,v 1.5 2000/08/01 01:32:23 tale Exp $";
+static char rcsid[] = "$Id: lwinetpton.c,v 1.5.4.1 2001/01/09 22:52:25 bwelling Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

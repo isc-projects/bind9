@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listener.c,v 1.31 2000/10/20 13:29:37 marka Exp $ */
+/* $Id: listener.c,v 1.31.4.1 2001/01/09 22:52:59 bwelling Exp $ */
 
 /*
  * Subroutines that support the generic listener object.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_OPT_41_H
 #define GENERIC_OPT_41_H 1
 
-/* $Id: opt_41.h,v 1.12 2000/08/01 01:25:50 tale Exp $ */
+/* $Id: opt_41.h,v 1.12.4.1 2001/01/09 22:47:24 bwelling Exp $ */
 
 /* RFC 2671 */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.23 2000/09/27 22:53:33 marka Exp $ */
+/* $Id: event.h,v 1.23.4.1 2001/01/09 22:49:45 bwelling Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1

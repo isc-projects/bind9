@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.h,v 1.7 2000/08/01 01:31:07 tale Exp $ */
+/* $Id: once.h,v 1.7.4.1 2001/01/09 22:51:03 bwelling Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1

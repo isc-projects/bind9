@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confip.h,v 1.28 2000/12/13 00:15:31 tale Exp $ */
+/* $Id: confip.h,v 1.28.2.1 2001/01/09 22:45:16 bwelling Exp $ */
 
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.39 2000/12/01 01:40:49 gson Exp $ */
+/* $Id: a6_38.c,v 1.39.4.1 2001/01/09 22:47:51 bwelling Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 

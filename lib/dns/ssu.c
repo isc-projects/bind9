@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.19 2000/12/09 02:14:53 brister Exp $
+ * $Id: ssu.c,v 1.19.4.1 2001/01/09 22:44:17 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 

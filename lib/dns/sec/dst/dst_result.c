@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_result.c,v 1.15 2000/08/10 22:28:32 bwelling Exp $
+ * $Id: dst_result.c,v 1.15.4.1 2001/01/09 22:48:24 bwelling Exp $
  */
 
 #include <config.h>

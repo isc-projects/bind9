@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.32 2000/12/01 01:40:44 gson Exp $ */
+/* $Id: txt_16.c,v 1.32.4.1 2001/01/09 22:47:41 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 

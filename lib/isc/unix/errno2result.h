@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.6 2000/11/14 23:37:10 tale Exp $ */
+/* $Id: errno2result.h,v 1.6.4.1 2001/01/09 22:51:12 bwelling Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1

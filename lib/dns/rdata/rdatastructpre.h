@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatastructpre.h,v 1.12 2000/08/01 01:25:01 tale Exp $ */
+/* $Id: rdatastructpre.h,v 1.12.4.1 2001/01/09 22:46:33 bwelling Exp $ */
 
 #ifndef DNS_RDATASTRUCT_H
 #define DNS_RDATASTRUCT_H 1

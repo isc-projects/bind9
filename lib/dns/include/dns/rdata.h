@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.49 2000/12/19 19:20:15 gson Exp $ */
+/* $Id: rdata.h,v 1.49.2.1 2001/01/09 22:46:01 bwelling Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1

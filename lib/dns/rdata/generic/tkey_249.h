@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_TKEY_249_H
 #define GENERIC_TKEY_249_H 1
 
-/* $Id: tkey_249.h,v 1.17 2000/08/01 01:26:06 tale Exp $ */
+/* $Id: tkey_249.h,v 1.17.4.1 2001/01/09 22:47:40 bwelling Exp $ */
 
 /* draft-ietf-dnsind-tkey-00.txt */
 

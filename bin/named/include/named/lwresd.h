@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.9 2000/10/31 22:39:29 bwelling Exp $ */
+/* $Id: lwresd.h,v 1.9.4.1 2001/01/09 22:32:33 bwelling Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1

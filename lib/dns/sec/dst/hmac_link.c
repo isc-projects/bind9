@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.45 2000/09/08 14:23:47 bwelling Exp $
+ * $Id: hmac_link.c,v 1.45.4.1 2001/01/09 22:48:27 bwelling Exp $
  */
 
 #include <config.h>

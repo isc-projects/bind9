@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.21 2000/11/18 01:25:27 gson Exp $
+# $Id: update_copyrights,v 1.21.4.1 2001/01/09 22:53:46 bwelling Exp $
 
 require 5.002;
 

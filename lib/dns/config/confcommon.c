@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.35 2000/12/07 01:45:52 brister Exp $ */
+/* $Id: confcommon.c,v 1.35.4.1 2001/01/09 22:44:38 bwelling Exp $ */
 
 #include <config.h>
 

@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl
 #
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 1999-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: t_api.pl,v 1.6 2000/08/01 01:13:24 tale Exp $
+# $Id: t_api.pl,v 1.6.4.1 2001/01/09 22:33:58 bwelling Exp $
 
 require "getopts.pl";
 

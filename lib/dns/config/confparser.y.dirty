@@ -1,6 +1,6 @@
 %{
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.44.2.1 2001/01/05 23:44:56 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.44.2.2 2001/01/09 22:44:49 bwelling Exp $ */
 
 #include <config.h>
 

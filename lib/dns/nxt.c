@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt.c,v 1.25 2000/10/28 01:25:14 bwelling Exp $ */
+/* $Id: nxt.c,v 1.25.4.1 2001/01/09 22:43:53 bwelling Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.45.2.1 2001/01/06 00:11:23 gson Exp $ */
+/* $Id: t_api.c,v 1.45.2.2 2001/01/09 22:53:19 bwelling Exp $ */
 
 #include <config.h>
 

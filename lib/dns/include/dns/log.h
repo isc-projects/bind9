@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.26 2000/12/09 02:17:11 bwelling Exp $ */
+/* $Id: log.h,v 1.26.4.1 2001/01/09 22:45:46 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2000  Internet Software Consortium.
+ * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.26 2000/08/01 01:29:23 tale Exp $ */
+/* $Id: heap.c,v 1.26.4.1 2001/01/09 22:48:54 bwelling Exp $ */
 
 /*
  * Heap implementation of priority queues adapted from the following:

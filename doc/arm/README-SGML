@@ -1,9 +1,9 @@
-Copyright (C) 2000  Internet Software Consortium.
+Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.12 2000/11/18 02:57:24 bwelling Exp $
+Version: $Id: README-SGML,v 1.12.4.1 2001/01/09 22:39:14 bwelling Exp $
 
 The entire ARM is in the single file:
 

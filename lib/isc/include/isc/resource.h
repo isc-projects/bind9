@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.3 2000/11/15 02:11:48 tale Exp $ */
+/* $Id: resource.h,v 1.3.4.1 2001/01/09 22:50:23 bwelling Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_SIG_24_H
 #define GENERIC_SIG_24_H 1
 
-/* $Id: sig_24.h,v 1.20 2000/08/01 01:26:01 tale Exp $ */
+/* $Id: sig_24.h,v 1.20.4.1 2001/01/09 22:47:35 bwelling Exp $ */
 
 /* RFC 2535 */
 

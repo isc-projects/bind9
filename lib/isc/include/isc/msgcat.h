@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.h,v 1.7 2000/08/01 01:30:28 tale Exp $ */
+/* $Id: msgcat.h,v 1.7.4.1 2001/01/09 22:50:09 bwelling Exp $ */
 
 #ifndef ISC_MSGCAT_H
 #define ISC_MSGCAT_H 1

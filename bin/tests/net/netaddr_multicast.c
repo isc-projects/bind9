@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.7 2000/08/01 01:14:10 tale Exp $ */
+/* $Id: netaddr_multicast.c,v 1.7.4.1 2001/01/09 22:34:23 bwelling Exp $ */
 
 #include <config.h>
 

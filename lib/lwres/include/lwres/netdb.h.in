@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.30 2000/12/21 00:27:56 bwelling Exp $ */
+/* $Id: netdb.h.in,v 1.30.2.1 2001/01/09 22:52:47 bwelling Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1

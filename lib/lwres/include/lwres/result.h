@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.12 2000/11/02 01:52:32 bwelling Exp $ */
+/* $Id: result.h,v 1.12.4.1 2001/01/09 22:52:49 bwelling Exp $ */
 
 #ifndef LWRES_RESULT_H
 #define LWRES_RESULT_H 1

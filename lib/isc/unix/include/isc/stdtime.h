@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.h,v 1.7 2000/08/01 01:31:41 tale Exp $ */
+/* $Id: stdtime.h,v 1.7.4.1 2001/01/09 22:51:41 bwelling Exp $ */
 
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.31 2000/12/23 02:45:41 tale Exp $ */
+/* $Id: acconfig.h,v 1.31.2.1 2001/01/09 22:31:06 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.1 2000/11/17 19:45:36 gson Exp $ */
+/* $Id: timer.h,v 1.1.4.1 2001/01/09 22:46:22 bwelling Exp $ */
 
 #ifndef DNS_TIMER_H
 #define DNS_TIMER_H 1

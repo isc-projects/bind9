@@ -1,4 +1,4 @@
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 1999-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: b9status.pl,v 1.10 2000/08/01 01:12:35 tale Exp $
+# $Id: b9status.pl,v 1.10.4.1 2001/01/09 22:33:03 bwelling Exp $
 
 #
 # aggregate reports from all bind9 build environments

@@ -1,7 +1,7 @@
-Copyright (C) 2000  Internet Software Consortium.
+Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: lwres,v 1.4 2000/08/09 04:37:19 tale Exp $
+$Id: lwres,v 1.4.4.1 2001/01/09 22:39:26 bwelling Exp $
 
 This document describes the bind v9 lightweight resolver.
 

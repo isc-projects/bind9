@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.h,v 1.2 2000/11/29 01:27:09 gson Exp $ */
+/* $Id: condition.h,v 1.2.4.1 2001/01/09 22:50:51 bwelling Exp $ */
 
 /*
  * This provides a limited subset of the isc_condition_t

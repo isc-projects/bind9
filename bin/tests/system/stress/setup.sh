@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.1 2000/12/22 17:03:01 gson Exp $
+# $Id: setup.sh,v 1.1.2.1 2001/01/09 22:37:21 bwelling Exp $
 
 #
 # Set up test data for zone transfer quota tests.

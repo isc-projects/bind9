@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.15 2000/08/01 01:30:30 tale Exp $ */
+/* $Id: netaddr.h,v 1.15.4.1 2001/01/09 22:50:13 bwelling Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1

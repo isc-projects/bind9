@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: secproto.h,v 1.8 2000/08/01 01:24:43 tale Exp $ */
+/* $Id: secproto.h,v 1.8.4.1 2001/01/09 22:46:16 bwelling Exp $ */
 
 #ifndef DNS_SECPROTO_H
 #define DNS_SECPROTO_H 1

@@ -1,4 +1,4 @@
-; Copyright (C) 2000  Internet Software Consortium.
+; Copyright (C) 2000, 2001  Internet Software Consortium.
 ;
 ; Permission to use, copy, modify, and distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example1.db,v 1.9 2000/11/02 02:04:15 bwelling Exp $
+; $Id: example1.db,v 1.9.4.1 2001/01/09 22:36:13 bwelling Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (

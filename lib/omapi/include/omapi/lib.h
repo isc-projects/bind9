@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.5 2000/08/01 01:33:08 tale Exp $ */
+/* $Id: lib.h,v 1.5.4.1 2001/01/09 22:53:12 bwelling Exp $ */
 
 #ifndef OMAPI_LIB_H
 #define OMAPI_LIB_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_KEY_25_H
 #define GENERIC_KEY_25_H 1
 
-/* $Id: key_25.h,v 1.13 2000/08/01 01:25:23 tale Exp $ */
+/* $Id: key_25.h,v 1.13.4.1 2001/01/09 22:46:56 bwelling Exp $ */
 
 /* RFC 2535 */
 

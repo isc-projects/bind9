@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.8 2000/12/22 20:50:05 bwelling Exp $ */
+/* $Id: thread.c,v 1.8.2.1 2001/01/09 22:50:58 bwelling Exp $ */
 
 #include <config.h>
 

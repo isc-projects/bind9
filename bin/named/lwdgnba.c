@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgnba.c,v 1.8 2000/10/17 18:34:52 bwelling Exp $ */
+/* $Id: lwdgnba.c,v 1.8.4.1 2001/01/09 22:32:01 bwelling Exp $ */
 
 #include <config.h>
 

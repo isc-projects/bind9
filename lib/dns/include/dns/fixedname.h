@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fixedname.h,v 1.11 2000/10/11 17:44:16 mws Exp $ */
+/* $Id: fixedname.h,v 1.11.4.1 2001/01/09 22:45:38 bwelling Exp $ */
 
 #ifndef DNS_FIXEDNAME_H
 #define DNS_FIXEDNAME_H 1

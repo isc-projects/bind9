@@ -1,6 +1,6 @@
 #! /usr/bin/perl -ws
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-includes.pl,v 1.6 2000/08/01 01:33:24 tale Exp $
+# $Id: check-includes.pl,v 1.6.4.1 2001/01/09 22:53:29 bwelling Exp $
 
 # Rudimentary, primarily for use by the developers.
 # This just evolved with no serious attempt at making it

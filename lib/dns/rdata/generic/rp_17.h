@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_RP_17_H
 #define GENERIC_RP_17_H 1
 
-/* $Id: rp_17.h,v 1.15 2000/08/01 01:25:56 tale Exp $ */
+/* $Id: rp_17.h,v 1.15.4.1 2001/01/09 22:47:31 bwelling Exp $ */
 
 /* RFC 1183 */
 

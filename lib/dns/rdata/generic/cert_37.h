@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.h,v 1.14 2000/08/01 01:25:09 tale Exp $ */
+/* $Id: cert_37.h,v 1.14.4.1 2001/01/09 22:46:42 bwelling Exp $ */
 
 /* RFC 2538 */
 #ifndef GENERIC_CERT_37_H

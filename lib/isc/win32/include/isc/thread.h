@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.12 2000/08/01 01:32:05 tale Exp $ */
+/* $Id: thread.h,v 1.12.4.1 2001/01/09 22:52:05 bwelling Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1

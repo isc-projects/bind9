@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cname_5.h,v 1.22 2000/08/01 01:25:11 tale Exp $ */
+/* $Id: cname_5.h,v 1.22.4.1 2001/01/09 22:46:44 bwelling Exp $ */
 
 #ifndef GENERIC_CNAME_5_H
 #define GENERIC_CNAME_5_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2000  Internet Software Consortium.
+ * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.h,v 1.15 2000/08/01 01:30:14 tale Exp $ */
+/* $Id: heap.h,v 1.15.4.1 2001/01/09 22:49:51 bwelling Exp $ */
 
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1

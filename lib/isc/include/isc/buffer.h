@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.37 2000/12/26 20:51:14 tale Exp $ */
+/* $Id: buffer.h,v 1.37.2.1 2001/01/09 22:49:39 bwelling Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1

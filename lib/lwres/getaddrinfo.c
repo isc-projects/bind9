@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * This code is derived from software contributed to Internet Software
  * Consortium by Berkeley Software Design, Inc.
@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.34 2000/12/06 00:35:44 tale Exp $ */
+/* $Id: getaddrinfo.c,v 1.34.4.1 2001/01/09 22:52:13 bwelling Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef IN_1_NSAP_22_H
 #define IN_1_NSAP_22_H 1
 
-/* $Id: nsap_22.h,v 1.12 2000/08/01 01:26:30 tale Exp $ */
+/* $Id: nsap_22.h,v 1.12.4.1 2001/01/09 22:48:06 bwelling Exp $ */
 
 /* RFC 1706 */
 

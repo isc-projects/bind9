@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_RT_21_H
 #define GENERIC_RT_21_H 1
 
-/* $Id: rt_21.h,v 1.15 2000/08/01 01:25:59 tale Exp $ */
+/* $Id: rt_21.h,v 1.15.4.1 2001/01/09 22:47:33 bwelling Exp $ */
 
 /* RFC 1183 */
 

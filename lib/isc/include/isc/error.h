@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.h,v 1.12 2000/08/01 01:30:07 tale Exp $ */
+/* $Id: error.h,v 1.12.4.1 2001/01/09 22:49:44 bwelling Exp $ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1

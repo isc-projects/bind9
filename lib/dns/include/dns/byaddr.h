@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.11 2000/08/14 19:09:56 bwelling Exp $ */
+/* $Id: byaddr.h,v 1.11.4.1 2001/01/09 22:45:04 bwelling Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.16 2000/11/15 19:11:36 gson Exp $ */
+/* $Id: rdatatype.h,v 1.16.4.1 2001/01/09 22:46:08 bwelling Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1

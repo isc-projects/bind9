@@ -1,4 +1,4 @@
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 1999-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: b9t.mk,v 1.9 2000/08/01 01:12:36 tale Exp $
+# $Id: b9t.mk,v 1.9.4.1 2001/01/09 22:33:04 bwelling Exp $
 
 #
 # makefile to configure, build and test bind9

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.16 2000/08/01 01:24:56 tale Exp $ */
+/* $Id: xfrin.h,v 1.16.4.1 2001/01/09 22:46:30 bwelling Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1

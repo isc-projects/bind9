@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: omapi_test.c,v 1.27 2000/08/01 01:13:09 tale Exp $ */
+/* $Id: omapi_test.c,v 1.27.4.1 2001/01/09 22:33:40 bwelling Exp $ */
 
 /*
  * Test code for OMAPI.

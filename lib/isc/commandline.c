@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.11 2000/12/06 00:29:56 tale Exp $ */
+/* $Id: commandline.c,v 1.11.4.1 2001/01/09 22:48:50 bwelling Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.27 2000/08/01 01:30:53 tale Exp $ */
+/* $Id: timer.h,v 1.27.4.1 2001/01/09 22:50:38 bwelling Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1

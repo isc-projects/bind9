@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: events.h,v 1.33 2000/10/17 10:59:47 marka Exp $ */
+/* $Id: events.h,v 1.33.4.1 2001/01/09 22:45:37 bwelling Exp $ */
 
 #ifndef DNS_EVENTS_H
 #define DNS_EVENTS_H 1

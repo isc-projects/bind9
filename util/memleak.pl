@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 1999, 2000  Internet Software Consortium.
+# Copyright (C) 1999-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: memleak.pl,v 1.10 2000/09/13 01:58:02 marka Exp $
+# $Id: memleak.pl,v 1.10.4.1 2001/01/09 22:53:36 bwelling Exp $
 
 # Massage the output from ISC_MEM_DEBUG to extract mem_get() calls
 # with no corresponding mem_put().

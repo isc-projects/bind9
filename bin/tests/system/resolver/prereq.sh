@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: prereq.sh,v 1.3 2000/08/01 01:16:22 tale Exp $
+# $Id: prereq.sh,v 1.3.4.1 2001/01/09 22:37:05 bwelling Exp $
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then

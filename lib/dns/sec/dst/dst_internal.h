@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2000  Internet Software Consortium.
+ * Portions Copyright (C) 2000, 2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.30 2000/09/16 01:12:20 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.30.4.1 2001/01/09 22:48:19 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.h,v 1.8 2000/08/01 01:30:20 tale Exp $ */
+/* $Id: lfsr.h,v 1.8.4.1 2001/01/09 22:50:00 bwelling Exp $ */
 
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1

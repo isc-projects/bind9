@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.8 2000/08/01 01:23:05 tale Exp $ */
+/* $Id: version.c,v 1.8.4.1 2001/01/09 22:44:27 bwelling Exp $ */
 
 char dns_version[] = VERSION;
 

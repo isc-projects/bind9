@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,6 +15,6 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.1 2000/08/29 18:19:29 bwelling Exp $ */
+/* $Id: condition.c,v 1.1.4.1 2001/01/09 22:50:46 bwelling Exp $ */
 
 /* This file intentionally left blank. */

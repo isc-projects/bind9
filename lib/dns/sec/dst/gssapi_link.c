@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.4 2000/11/28 04:46:00 marka Exp $
+ * $Id: gssapi_link.c,v 1.4.4.1 2001/01/09 22:48:25 bwelling Exp $
  */
 
 #ifdef GSSAPI

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.22 2000/08/26 01:36:48 bwelling Exp $
+ * $Id: dbtable.c,v 1.22.4.1 2001/01/09 22:43:31 bwelling Exp $
  */
 
 /*

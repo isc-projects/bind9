@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.27 2000/11/20 10:20:10 marka Exp $ */
+/* $Id: byaddr.c,v 1.27.4.1 2001/01/09 22:43:24 bwelling Exp $ */
 
 #include <config.h>
 

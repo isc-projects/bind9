@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.18 2000/08/10 22:28:36 bwelling Exp $ */
+/* $Id: result.h,v 1.18.4.1 2001/01/09 22:48:38 bwelling Exp $ */
 
 #ifndef DST_RESULT_H
 #define DST_RESULT_H 1

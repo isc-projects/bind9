@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listenlist.h,v 1.9 2000/08/01 01:12:06 tale Exp $ */
+/* $Id: listenlist.h,v 1.9.4.1 2001/01/09 22:32:27 bwelling Exp $ */
 
 #ifndef NAMED_LISTENLIST_H
 #define NAMED_LISTENLIST_H 1

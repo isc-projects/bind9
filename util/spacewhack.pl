@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: spacewhack.pl,v 1.2 2000/08/01 15:25:07 tale Exp $
+# $Id: spacewhack.pl,v 1.2.4.1 2001/01/09 22:53:44 bwelling Exp $
 
 $0 =~ s%.*/%%;
 

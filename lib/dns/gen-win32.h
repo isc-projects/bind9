@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.6 2000/08/01 01:22:22 tale Exp $ */
+/* $Id: gen-win32.h,v 1.6.4.1 2001/01/09 22:43:38 bwelling Exp $ */
 
 /*
  * Principal Authors: Computer Systems Research Group at UC Berkeley

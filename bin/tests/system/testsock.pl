@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: testsock.pl,v 1.9 2000/08/01 01:14:30 tale Exp $
+# $Id: testsock.pl,v 1.9.4.1 2001/01/09 22:34:43 bwelling Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2000  Internet Software Consortium.
+ * Portions Copyright (C) 2000, 2001  Internet Software Consortium.
  * Portions Copyright (C) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.16 2000/09/02 01:15:23 bwelling Exp $ */
+/* $Id: dst_parse.h,v 1.16.4.1 2001/01/09 22:48:22 bwelling Exp $ */
 
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.34 2000/10/06 23:12:07 bwelling Exp $ */
+/* $Id: tkey_test.c,v 1.34.4.1 2001/01/09 22:34:02 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)

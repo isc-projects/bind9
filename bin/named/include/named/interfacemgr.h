@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.21 2000/09/26 18:26:20 gson Exp $ */
+/* $Id: interfacemgr.h,v 1.21.4.1 2001/01/09 22:32:26 bwelling Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1

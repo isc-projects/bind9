@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.25 2000/12/15 08:28:45 gson Exp $
+# $Id: rules.in,v 1.25.2.1 2001/01/09 22:53:27 bwelling Exp $
 
 ###
 ### Common Makefile rules for BIND 9.

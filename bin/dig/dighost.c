@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174.2.2 2001/01/08 23:43:01 bwelling Exp $ */
+/* $Id: dighost.c,v 1.174.2.3 2001/01/09 22:31:22 bwelling Exp $ */
+
+/* $Id: dighost.c,v 1.174.2.3 2001/01/09 22:31:22 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to

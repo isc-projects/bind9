@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.6 2000/12/10 07:47:43 gson Exp $ */
+/* $Id: tcldb.c,v 1.6.4.1 2001/01/09 22:39:07 bwelling Exp $ */
 
 /*
  * A simple database driver that calls a Tcl procedure to define

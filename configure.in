@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.205.2.2 $)
+AC_REVISION($Revision: 1.205.2.3 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)

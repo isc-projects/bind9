@@ -1,7 +1,7 @@
-Copyright (C) 2000  Internet Software Consortium.
+Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: tests,v 1.12 2000/12/05 00:41:38 gson Exp $
+$Id: tests,v 1.12.4.1 2001/01/09 22:39:47 bwelling Exp $
 
 We do hourly test builds of the bind9 tree.  This is an attempt to
 document how they work.

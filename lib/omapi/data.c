@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996-2000  Internet Software Consortium.
+ * Copyright (C) 1996-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: data.c,v 1.18 2000/10/11 21:19:00 marka Exp $ */
+/* $Id: data.c,v 1.18.4.1 2001/01/09 22:52:54 bwelling Exp $ */
 
 /* Principal Author: Ted Lemon */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.24 2000/11/27 19:42:20 gson Exp $ */
+/* $Id: aclconf.c,v 1.24.4.1 2001/01/09 22:31:49 bwelling Exp $ */
 
 #include <config.h>
 

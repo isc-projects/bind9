@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch_test.c,v 1.47 2000/10/06 18:58:11 bwelling Exp $ */
+/* $Id: dispatch_test.c,v 1.47.4.1 2001/01/09 22:33:12 bwelling Exp $ */
 
 #include <config.h>
 

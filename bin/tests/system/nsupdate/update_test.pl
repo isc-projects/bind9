@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -37,7 +37,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.5 2000/12/16 00:58:03 gson Exp $
+# $Id: update_test.pl,v 1.5.2.1 2001/01/09 22:36:39 bwelling Exp $
 #
 
 use Getopt::Std;

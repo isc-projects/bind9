@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.32 2000/12/01 01:40:52 gson Exp $ */
+/* $Id: kx_36.c,v 1.32.4.1 2001/01/09 22:47:58 bwelling Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 

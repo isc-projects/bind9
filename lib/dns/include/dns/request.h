@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.16 2000/10/31 01:17:19 marka Exp $ */
+/* $Id: request.h,v 1.16.4.1 2001/01/09 22:46:09 bwelling Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1

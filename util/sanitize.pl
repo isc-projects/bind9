@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.14 2000/12/02 04:13:34 gson Exp $
+# $Id: sanitize.pl,v 1.14.4.1 2001/01/09 22:53:42 bwelling Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 

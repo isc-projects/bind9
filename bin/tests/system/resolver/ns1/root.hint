@@ -1,4 +1,4 @@
-; Copyright (C) 2000  Internet Software Consortium.
+; Copyright (C) 2000, 2001  Internet Software Consortium.
 ;
 ; Permission to use, copy, modify, and distribute this software for any
 ; purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: root.hint,v 1.3 2000/08/01 01:16:28 tale Exp $
+; $Id: root.hint,v 1.3.4.1 2001/01/09 22:37:11 bwelling Exp $
 
 $TTL 999999
 .			 IN NS	a.root-servers.nil.

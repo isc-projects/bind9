@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confresolv.h,v 1.10 2000/08/01 01:24:00 tale Exp $ */
+/* $Id: confresolv.h,v 1.10.4.1 2001/01/09 22:45:24 bwelling Exp $ */
 
 #ifndef DNS_CONFRESOLV_H
 #define DNS_CONFRESOLV_H 1

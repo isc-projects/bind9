@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.h,v 1.8 2000/08/01 01:12:12 tale Exp $ */
+/* $Id: notify.h,v 1.8.4.1 2001/01/09 22:32:36 bwelling Exp $ */
 
 #ifndef NAMED_NOTIFY_H
 #define NAMED_NOTIFY_H 1

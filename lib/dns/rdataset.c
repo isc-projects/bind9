@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.54 2000/12/14 22:10:37 marka Exp $ */
+/* $Id: rdataset.c,v 1.54.2.1 2001/01/09 22:44:06 bwelling Exp $ */
 
 #include <config.h>
 

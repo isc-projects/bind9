@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_NXT_30_H
 #define GENERIC_NXT_30_H 1
 
-/* $Id: nxt_30.h,v 1.17 2000/10/06 22:41:16 bwelling Exp $ */
+/* $Id: nxt_30.h,v 1.17.4.1 2001/01/09 22:47:21 bwelling Exp $ */
 
 /* RFC 2065 */
 

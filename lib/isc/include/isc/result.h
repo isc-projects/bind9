@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.53 2000/12/27 00:11:25 bwelling Exp $ */
+/* $Id: result.h,v 1.53.2.1 2001/01/09 22:50:24 bwelling Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1

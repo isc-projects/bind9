@@ -1,4 +1,4 @@
-# Copyright (C) 1998-2000  Internet Software Consortium.
+# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.21 2000/12/19 01:42:15 bwelling Exp $
+# $Id: Makefile.in,v 1.21.2.1 2001/01/09 22:31:11 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@

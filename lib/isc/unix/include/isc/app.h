@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.h,v 1.9 2000/09/01 21:31:53 bwelling Exp $ */
+/* $Id: app.h,v 1.9.4.1 2001/01/09 22:51:33 bwelling Exp $ */
 
 #ifndef ISC_APP_H
 #define ISC_APP_H 1

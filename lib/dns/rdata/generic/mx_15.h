@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998-2000  Internet Software Consortium.
+ * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_MX_15_H
 #define GENERIC_MX_15_H 1
 
-/* $Id: mx_15.h,v 1.23 2000/08/01 01:25:41 tale Exp $ */
+/* $Id: mx_15.h,v 1.23.4.1 2001/01/09 22:47:14 bwelling Exp $ */
 
 typedef struct dns_rdata_mx {
 	dns_rdatacommon_t	common;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_DNAME_39_H
 #define GENERIC_DNAME_39_H 1
 
-/* $Id: dname_39.h,v 1.14 2000/08/01 01:25:14 tale Exp $ */
+/* $Id: dname_39.h,v 1.14.4.1 2001/01/09 22:46:46 bwelling Exp $ */
 
 /* draft-ietf-dnsind-dname-02.txt */
 

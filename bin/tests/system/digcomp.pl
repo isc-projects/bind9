@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2000  Internet Software Consortium.
+# Copyright (C) 2000, 2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: digcomp.pl,v 1.10 2000/08/01 01:14:22 tale Exp $
+# $Id: digcomp.pl,v 1.10.4.1 2001/01/09 22:34:35 bwelling Exp $
 
 # Compare two files, each with the output from dig, for differences.
 # Ignore "unimportant" differences, like ordering of NS lines, TTL's,

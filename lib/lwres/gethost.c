@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.25 2000/08/26 01:51:05 gson Exp $ */
+/* $Id: gethost.c,v 1.25.4.1 2001/01/09 22:52:14 bwelling Exp $ */
 
 #include <config.h>
 

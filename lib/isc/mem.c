@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997-2000  Internet Software Consortium.
+ * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.75 2000/12/22 18:30:26 gson Exp $ */
+/* $Id: mem.c,v 1.75.2.1 2001/01/09 22:49:07 bwelling Exp $ */
 
 #include <config.h>
 

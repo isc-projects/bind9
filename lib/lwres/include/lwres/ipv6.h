@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000  Internet Software Consortium.
+ * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.7 2000/08/01 01:32:36 tale Exp $ */
+/* $Id: ipv6.h,v 1.7.4.1 2001/01/09 22:52:39 bwelling Exp $ */
 
 #ifndef LWRES_IPV6_H
 #define LWRES_IPV6_H 1

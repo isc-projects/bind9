@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.20.2.1 2001/01/06 01:33:34 gson Exp $ */
+/* $Id: compress.h,v 1.20.2.2 2001/01/09 22:45:09 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1

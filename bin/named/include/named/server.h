@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.48 2000/12/12 21:33:11 bwelling Exp $ */
+/* $Id: server.h,v 1.48.2.1 2001/01/09 22:32:39 bwelling Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1

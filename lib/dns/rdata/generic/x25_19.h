@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -18,7 +18,7 @@
 #ifndef GENERIC_X25_19_H
 #define GENERIC_X25_19_H 1
 
-/* $Id: x25_19.h,v 1.12 2000/08/01 01:26:12 tale Exp $ */
+/* $Id: x25_19.h,v 1.12.4.1 2001/01/09 22:47:47 bwelling Exp $ */
 
 /* RFC 1183 */
 
