@@ -1984,7 +1984,9 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
 	}
 
 	RUNTIME_CHECK(make_nonblock(manager->pipe_fds[0]) == ISC_R_SUCCESS);
+#if 0
 	RUNTIME_CHECK(make_nonblock(manager->pipe_fds[1]) == ISC_R_SUCCESS);
+#endif
 
 	/*
 	 * Set up initial state for the select loop
