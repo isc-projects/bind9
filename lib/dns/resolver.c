@@ -38,6 +38,7 @@
 #include <dns/dispatch.h>
 #include <dns/resolver.h>
 #include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
@@ -84,6 +85,7 @@
 #define QTRACE(m)
 #endif
 
+#define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
 
 typedef struct fetchctx fetchctx_t;
 
@@ -94,13 +96,13 @@ typedef struct query {
 	dns_dispatch_t *		dispatch;
 	dns_adbaddrinfo_t *		addrinfo;
 	isc_time_t			start;
-	/* Locked by fctx lock. */
 	dns_messageid_t			id;
 	dns_dispentry_t *		dispentry;	/* XXX name */
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
 	dns_rdata_any_tsig_t		*tsig;
 	dns_tsigkey_t			*tsigkey;
+	unsigned int			options;
 	unsigned char			data[512];
 } resquery_t;
 
@@ -212,7 +214,9 @@ struct dns_resolver {
 
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
+static isc_result_t resquery_send(resquery_t *query);
 static void resquery_response(isc_task_t *task, isc_event_t *event);
+static void resquery_connected(isc_task_t *task, isc_event_t *event);
 static void fctx_try(fetchctx_t *fctx);
 static isc_boolean_t fctx_destroy(fetchctx_t *fctx);
 
@@ -249,14 +253,13 @@ fctx_stoptimer(fetchctx_t *fctx) {
 	}
 }
 
-static inline void
+static void
 fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		 isc_time_t *finish)
 {
 	fetchctx_t *fctx;
 	resquery_t *query;
 	unsigned int rtt;
-	isc_time_t now;
 	unsigned int factor;
 
 	query = *queryp;
@@ -285,12 +288,14 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 	dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt, factor);
 
 
-	dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
-				    deventp);
+	if (query->dispentry != NULL)
+		dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
+					    deventp);
 	ISC_LIST_UNLINK(fctx->queries, query, link);
 	query->magic = 0;
 	if (query->tsig != NULL)
 		dns_rdata_freestruct(query->tsig);
+	dns_dispatch_detach(&query->dispatch);
 	isc_mem_put(fctx->res->mctx, query, sizeof *query);
 	*queryp = NULL;
 }
@@ -383,6 +388,8 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(event->type == ISC_SOCKEVENT_SENDDONE);
 
+	QTRACE("senddone");
+
 	/*
 	 * XXXRTH
 	 *
@@ -399,17 +406,64 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-static isc_result_t
-fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
-	resquery_t *query;
+static inline isc_result_t
+fctx_addopt(dns_message_t *message) {
+	dns_rdataset_t *rdataset;
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
 	isc_result_t result;
-	dns_rdataset_t *qrdataset;
-	dns_name_t *qname;
-	isc_region_t r;
+
+	rdatalist = NULL;
+	result = dns_message_gettemprdatalist(message, &rdatalist);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	rdata = NULL;
+	result = dns_message_gettemprdata(message, &rdata);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_init(rdataset);
+
+	rdatalist->type = dns_rdatatype_opt;
+	rdatalist->covers = 0;
+
+	/*
+	 * Set Maximum UDP buffer size.
+	 */
+	rdatalist->rdclass = SEND_BUFFER_SIZE;
+
+	/*
+	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
+	 */
+	rdatalist->ttl = 0;
+
+	/*
+	 * No ENDS options.
+	 */
+	rdata->data = NULL;
+	rdata->length = 0;
+
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
+
+	return (dns_message_setopt(message, rdataset));
+}
+
+static isc_result_t
+fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
+	   unsigned int options)
+{
 	dns_resolver_t *res;
 	isc_task_t *task;
+	isc_result_t result;
+	resquery_t *query;
+	isc_socket_t *socket;
 
-	FCTXTRACE("sendquery");
+	FCTXTRACE("query");
 
 	res = fctx->res;
 	task = res->buckets[fctx->bucketnum].task;
@@ -420,22 +474,12 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 
 	dns_message_reset(fctx->rmessage, DNS_MESSAGE_INTENTPARSE);
 
-	qname = NULL;
-	result = dns_message_gettempname(fctx->qmessage, &qname);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_temps;
-	qrdataset = NULL;
-	result = dns_message_gettemprdataset(fctx->qmessage, &qrdataset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_temps;
-
 	query = isc_mem_get(res->mctx, sizeof *query);
 	if (query == NULL) {
 		result = ISC_R_NOMEMORY; 
-		goto cleanup_temps;
+		goto stop_timer;
 	}
-	isc_buffer_init(&query->buffer, query->data, sizeof query->data,
-			ISC_BUFFERTYPE_BINARY);
+	query->options = options;
 	/*
 	 * Note that the caller MUST guarantee that 'addrinfo' will remain
 	 * valid until this query is canceled.
@@ -448,25 +492,37 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	/*
 	 * If this is a TCP query, then we need to make a socket and
 	 * a dispatch for it here.  Otherwise we use the resolver's
-	 * shared dispatch.  We do not attach to the resolver's shared
-	 * dispatch if we use it, so the resolver MUST ensure that no
-	 * fetches are running before changing the shared dispatch.
+	 * shared dispatch.
 	 */
-	if ((fctx->options & DNS_FETCHOPT_TCP) != 0) {
-		/* XXXRTH */
-		result = DNS_R_NOTIMPLEMENTED;
-		goto cleanup_query;
+	query->dispatch = NULL;
+	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		socket = NULL;
+		result = isc_socket_create(res->socketmgr,
+					   isc_sockaddr_pf(addrinfo->sockaddr),
+					   isc_sockettype_tcp,
+					   &socket);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_query;
+		result = dns_dispatch_create(res->mctx, socket, task,
+					     4096, 2, 1, 1, &query->dispatch);
+		/*
+		 * Regardless of whether dns_dispatch_create() succeeded or
+		 * not, we don't need our reference to the socket anymore.
+		 */
+		isc_socket_detach(&socket);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_dispatch;
 	} else {
 		switch (isc_sockaddr_pf(addrinfo->sockaddr)) {
-		case AF_INET:
-			query->dispatch = res->dispatch4;
+		case PF_INET:
+			dns_dispatch_attach(res->dispatch4, &query->dispatch);
 			break;
-		case AF_INET6:
-			query->dispatch = res->dispatch6;
+		case PF_INET6:
+			dns_dispatch_attach(res->dispatch6, &query->dispatch);
 			break;
 		default:
 			result = DNS_R_NOTIMPLEMENTED;
-			goto cleanup_query;
+			goto cleanup_dispatch;
 		}
 		/*
 		 * We should always have a valid dispatcher here.  If we
@@ -477,24 +533,104 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 		 */
 		INSIST(query->dispatch != NULL);
 	}
-	
+
+	query->dispentry = NULL;
+	query->fctx = fctx;
+	query->tsig = NULL;
+	query->tsigkey = NULL;
+	query->magic = QUERY_MAGIC;
+
+	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		/*
+		 * Connect to the remote server.
+		 *
+		 * XXXRTH  Should we attach to the socket?
+		 */
+		socket = dns_dispatch_getsocket(query->dispatch);
+		result = isc_socket_connect(socket, addrinfo->sockaddr,
+					    task, resquery_connected, query);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_dispatch;
+		QTRACE("connecting via TCP");
+	} else {
+		result = resquery_send(query);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_dispatch;
+	}
+
+	return (ISC_R_SUCCESS);
+
+ cleanup_dispatch:
+	dns_dispatch_detach(&query->dispatch);
+
+ cleanup_query:
+	query->magic = 0;
+	isc_mem_put(res->mctx, query, sizeof *query);
+
+ stop_timer:
+	fctx_stoptimer(fctx);
+
+	return (result);
+}
+
+static isc_result_t
+resquery_send(resquery_t *query) {
+	fetchctx_t *fctx;
+	isc_result_t result;
+	dns_rdataset_t *qrdataset, *trdataset;
+	dns_name_t *qname;
+	isc_region_t r;
+	dns_resolver_t *res;
+	isc_task_t *task;
+	isc_socket_t *socket;
+	isc_buffer_t tcpbuffer;
+	isc_sockaddr_t *address;
+	isc_buffer_t *buffer;
+
+	fctx = query->fctx;
+	QTRACE("send");
+
+	res = fctx->res;
+	task = res->buckets[fctx->bucketnum].task;
+	address = NULL;
+
+	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		/*
+		 * Reserve space for the TCP message length.
+		 */
+		isc_buffer_init(&tcpbuffer, query->data,
+				sizeof query->data, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&query->buffer, query->data + 2,
+				sizeof query->data - 2,
+				ISC_BUFFERTYPE_BINARY);
+		buffer = &tcpbuffer;
+	} else {
+		isc_buffer_init(&query->buffer, query->data,
+				sizeof query->data, ISC_BUFFERTYPE_BINARY);
+		buffer = &query->buffer;
+	}
+
+	qname = NULL;
+	result = dns_message_gettempname(fctx->qmessage, &qname);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_temps;
+	qrdataset = NULL;
+	result = dns_message_gettemprdataset(fctx->qmessage, &qrdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_temps;
+
 	/*
 	 * Get a query id from the dispatch.
 	 */
-	query->dispentry = NULL;
 	result = dns_dispatch_addresponse(query->dispatch,
-					  addrinfo->sockaddr,
+					  query->addrinfo->sockaddr,
 					  task,
 					  resquery_response,
 					  query,
 					  &query->id,
 					  &query->dispentry);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_query;
-	query->fctx = fctx;
-	query->tsig = NULL;
-	query->tsigkey = NULL;
-	query->magic = QUERY_MAGIC;
+		goto cleanup_temps;
 
 	fctx->qmessage->opcode = dns_opcode_query;
 
@@ -507,16 +643,12 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
-	if ((fctx->options & DNS_FETCHOPT_RECURSIVE) != 0)
+	if ((query->options & DNS_FETCHOPT_RECURSIVE) != 0)
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_RD;
 	/*
 	 * We don't have to set opcode because it defaults to query.
 	 */
 	fctx->qmessage->id = query->id;
-	/*
-	 * XXXRTH  Add TSIG and/or ENDS0 OPT record tailored to the current
-	 *         recipient.
-	 */
 
 	/*
 	 * Convert the question to wire format.
@@ -524,14 +656,47 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	result = dns_message_renderbegin(fctx->qmessage, &query->buffer);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_QUESTION, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+
+	/*
+	 * Use EDNS0, unless the caller doesn't want it, or we know that
+	 * the remote server doesn't like it.
+	 */
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
+			trdataset = NULL;
+			result = fctx_addopt(fctx->qmessage);
+			if (result != ISC_R_SUCCESS) {
+				/*
+				 * We couldn't add the OPT, but we'll press on.
+				 * We're not using EDNS0, so set the NOEDNS0
+				 * bit.
+				 */
+				query->options |= DNS_FETCHOPT_NOEDNS0;
+			}
+		} else {
+			/*
+			 * We know this server doesn't like EDNS0, so we
+			 * won't use it.  Set the NOEDNS0 bit since we're
+			 * not using EDNS0.
+			 */
+			query->options |= DNS_FETCHOPT_NOEDNS0;
+		}
+	}
+
+	/*
+	 * XXXRTH  Add TSIG record tailored to the current recipient?
+	 */
+
 	result = dns_message_rendersection(fctx->qmessage,
 					   DNS_SECTION_ADDITIONAL, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+
 	result = dns_message_renderend(fctx->qmessage);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
@@ -543,26 +708,38 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 	}
 
 	/*
+	 * If using TCP, write the length of the message at the beginning
+	 * of the buffer.
+	 */
+	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		isc_buffer_used(&query->buffer, &r);
+		isc_buffer_putuint16(&tcpbuffer, (isc_uint16_t)r.length);
+		isc_buffer_add(&tcpbuffer, r.length);
+	}
+
+	/*
 	 * We're now done with the query message.
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
+	socket = dns_dispatch_getsocket(query->dispatch);
 	/*
 	 * Send the query!
 	 */
-	isc_buffer_used(&query->buffer, &r);
-	result = isc_socket_sendto(dns_dispatch_getsocket(query->dispatch),
-				   &r, task, resquery_senddone,
-				   query, addrinfo->sockaddr);
+	if ((query->options & DNS_FETCHOPT_TCP) == 0)
+		address = query->addrinfo->sockaddr;
+	isc_buffer_used(buffer, &r);
+	result = isc_socket_sendto(socket, &r, task, resquery_senddone,
+				   query, address);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_message;
+	QTRACE("sent");
 
 	/*
-	 * Finally, we've got everything going!
+	 * Finally, we've got everything going!		XXXRTH  move to
+	 *						fctx_query()!
 	 */
 	ISC_LIST_APPEND(fctx->queries, query, link);
-
-	QTRACE("sent");
 
 	return (ISC_R_SUCCESS);
 
@@ -576,24 +753,43 @@ fctx_sendquery(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
 				    &query->dispentry,
 				    NULL);
 
-	/* 
-	 * XXXRTH will need to cleanup a nonshared dispatch and TCP socket
-	 * here.
-	 */
-
- cleanup_query:
-	query->magic = 0;
-	isc_mem_put(res->mctx, query, sizeof *query);
-
  cleanup_temps:
 	if (qname != NULL)
 		dns_message_puttempname(fctx->qmessage, &qname);
 	if (qrdataset != NULL)
 		dns_message_puttemprdataset(fctx->qmessage, &qrdataset);
 
-	fctx_stoptimer(fctx);
-
 	return (result);
+}
+
+static void
+resquery_connected(isc_task_t *task, isc_event_t *event) {
+	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	resquery_t *query = event->arg;
+	isc_result_t result;
+
+	REQUIRE(event->type == ISC_SOCKEVENT_CONNECT);
+
+	QTRACE("connected");
+
+	(void)task;
+
+	/*
+	 * XXXRTH
+	 *
+	 * Currently we don't wait for the connect event before retrying
+	 * a query.  This means that if we get really behind, we may end
+	 * up doing extra work!
+	 */
+
+	if (sevent->result == ISC_R_SUCCESS) {
+		result = resquery_send(query);
+		if (result != ISC_R_SUCCESS)
+			fctx_cancelquery(&query, NULL, NULL);
+	} else
+		fctx_cancelquery(&query, NULL, NULL);
+				 
+	isc_event_free(&event);
 }
 
 static void
@@ -874,6 +1070,7 @@ static void
 fctx_try(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_adbaddrinfo_t *addrinfo;
+	unsigned int options;
 
 	FCTXTRACE("try");
 
@@ -920,7 +1117,11 @@ fctx_try(fetchctx_t *fctx) {
 	 *	   just send a single query.
 	 */
 
-	result = fctx_sendquery(fctx, addrinfo);
+	options = fctx->options;
+	/*
+	 * XXXRTH  If the addrinfo doesn't understand EDNS, turn it off.
+	 */
+	result = fctx_query(fctx, addrinfo, options);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
 }
@@ -2353,7 +2554,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	resquery_t *query = event->arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
-	isc_boolean_t keep_trying, broken_server, get_nameservers;
+	isc_boolean_t keep_trying, broken_server, get_nameservers, resend;
+	isc_boolean_t truncated;
 	dns_message_t *message;
 	fetchctx_t *fctx;
 	dns_rdatatype_t covers;
@@ -2362,9 +2564,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_stdtime_t now;
 	isc_time_t tnow, *finish;
 	dns_adbaddrinfo_t *addrinfo;
+	unsigned int options;
 
 	REQUIRE(VALID_QUERY(query));
 	fctx = query->fctx;
+	options = query->options;
 	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(event->type == DNS_EVENT_DISPATCH);
 
@@ -2376,6 +2580,8 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	keep_trying = ISC_FALSE;
 	broken_server = ISC_FALSE;
 	get_nameservers = ISC_FALSE;
+	resend = ISC_FALSE;
+	truncated = ISC_FALSE;
 	covers = 0;
 	finish = NULL;
 
@@ -2392,25 +2598,48 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
-
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;
 	message->tsigkey = query->tsigkey;
 	result = dns_message_parse(message, &devent->buffer, ISC_FALSE);
 	if (result != ISC_R_SUCCESS) {
 		switch (result) {
-		case DNS_R_FORMERR:
 		case DNS_R_UNEXPECTEDEND:
+			if (!message->question_ok ||
+			    (message->flags & DNS_MESSAGEFLAG_TC) == 0 ||
+			    (options & DNS_FETCHOPT_TCP) != 0) {
+				/*
+				 * Either the message ended prematurely,
+				 * and/or wasn't marked as being truncated,
+				 * and/or this is a response to a query we
+				 * sent over TCP.  In all of these cases,
+				 * something is wrong with the remote
+				 * server and we don't want to retry using
+				 * TCP.
+				 */
+				broken_server = ISC_TRUE;
+				keep_trying = ISC_TRUE;
+				goto done;
+			}
+			/*
+			 * We defer retrying via TCP for a bit so we can
+			 * check out this message further.
+			 */
+			truncated = ISC_TRUE;
+			break;
+		case DNS_R_FORMERR:
 			broken_server = ISC_TRUE;
 			keep_trying = ISC_TRUE;
-			break;
+			goto done;
 		case DNS_R_MOREDATA:
 			result = DNS_R_NOTIMPLEMENTED;
-			break;
+			goto done;
 		}
-		goto done;
 	}
 
+	/*
+	 * The dispatcher should ensure we only get responses with QR set.
+	 */
 	INSIST((message->flags & DNS_MESSAGEFLAG_QR) != 0);
 	/*
 	 * INSIST() that the message comes from the place we sent it to,
@@ -2419,6 +2648,16 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * INSIST() that the message id is correct (this should also be	
 	 * ensured by the dispatch code).
 	 */
+
+
+	/*
+	 * Deal with truncated responses by retrying using TCP.
+	 */
+	if (truncated) {
+		options |= DNS_FETCHOPT_TCP;
+		resend = ISC_TRUE;
+		goto done;
+	}
 
 	/*
 	 * Is it a query response?
@@ -2435,14 +2674,27 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		broken_server = ISC_TRUE;
-		keep_trying = ISC_TRUE;
-		/*
-		 * XXXRTH If we want to catch a FORMERR caused by an EDNS0
-		 *        OPT RR, this is the place to do it.
-		 *
-		 * XXXRTH Need to deal with YXDOMAIN code.
-		 */
+		if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
+		    message->rcode == dns_rcode_formerr) {
+			/*
+			 * It's very likely they don't like EDNS0.
+			 */
+			options |= DNS_FETCHOPT_NOEDNS0;
+			resend = ISC_TRUE;
+			/*
+			 * Remember that they don't like EDNS0.
+			 */
+			dns_adb_changeflags(fctx->res->view->adb,
+					    query->addrinfo,
+					    DNS_FETCHOPT_NOEDNS0,
+					    DNS_FETCHOPT_NOEDNS0);
+		} else {
+			broken_server = ISC_TRUE;
+			keep_trying = ISC_TRUE;
+			/*
+			 * XXXRTH Need to deal with YXDOMAIN code.
+			 */
+		}
 		goto done;
 	}
 
@@ -2609,6 +2861,14 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 		 * Try again.
 		 */
 		fctx_try(fctx);
+	} else if (resend) {
+		/*
+		 * Resend (probably with changed options).
+		 */
+		FCTXTRACE("resend");
+		result = fctx_query(fctx, addrinfo, options);
+		if (result != ISC_R_SUCCESS)
+			fctx_done(fctx, result);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
 		 * All has gone well so far, but we are waiting for the
@@ -2917,7 +3177,7 @@ log_fetch(dns_name_t *name, dns_rdatatype_t type) {
 
 	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
 			ISC_BUFFERTYPE_TEXT);
-	if (dns_name_totext(name, ISC_TRUE, &b) !=
+	if (dns_name_totext(name, ISC_FALSE, &b) !=
 	    ISC_R_SUCCESS)
 		return;
 	isc_buffer_available(&b, &r);
@@ -2965,10 +3225,6 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	REQUIRE(fetchp != NULL && *fetchp == NULL);
 
 	log_fetch(name, type);
-
-	/* XXXRTH */
-	if ((options & DNS_FETCHOPT_TCP) != 0)
-		return (DNS_R_NOTIMPLEMENTED);
 
 	/*
 	 * XXXRTH  use a mempool?
