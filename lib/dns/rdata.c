@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.12 2004/03/09 06:11:05 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.13 2005/03/18 04:57:18 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1593,7 +1593,7 @@ name_tobuffer(dns_name_t *name, isc_buffer_t *target) {
 
 static isc_uint32_t
 uint32_fromregion(isc_region_t *region) {
-	unsigned long value;
+	isc_uint32_t value;
 
 	REQUIRE(region->length >= 4);
 	value = region->base[0] << 24;
