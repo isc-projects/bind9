@@ -396,8 +396,8 @@ getaddrinfo(hostname, servname, hints, res)
 		ERR(EAI_BADFLAGS);
 #else
 		pai->ai_flags &= ~(AI_ALL | AI_V4MAPPED);
-#endif
 		break;
+#endif
 	}
 
 	/*
