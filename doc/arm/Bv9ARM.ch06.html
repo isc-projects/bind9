@@ -8008,42 +8008,55 @@ VALIGN="MIDDLE"
 >A stub zone is similar to a slave zone,
 except that it replicates only the NS records of a master zone instead
 of the entire zone. Stub zones are not a standard part of the DNS;
-they are a peculiarity of <SPAN
+they are a feature specific to the <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 4 and <SPAN
+> implementation.
+</P
+>
+
+<P
+>Stub zones can be used to eliminate the need for glue NS record
+in a parent zone at the expense of maintaining a stub zone entry and
+a set of name server addresses in <TT
+CLASS="filename"
+>named.conf</TT
+>.
+This usage is not recommended for new configurations, and BIND 9
+supports it only in a limited way.
+In <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 8 that relies heavily
-on the particular way the zone data is structured in those servers.
-<SPAN
+> 4/8, zone transfers of a parent zone
+included the NS records from stub children of that zone. This meant
+that, in some cases, users could get away with configuring child stubs
+only in the master server for the parent zone. <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9 attempts to emulate the <SPAN
+>
+9 never mixes together zone data from different zones in this
+way. Therefore, if a <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 4/8 stub zone feature for backwards compatibility,
-but we do not recommend its use in new configurations.</P
-><P
->In
-<SPAN
-CLASS="acronym"
->BIND</SPAN
-> 4/8, zone transfers of a parent zone included the NS records
-from stub children of that zone. This meant that, in some cases,
-users could get away with configuring child stubs only in the master
-server for the parent zone. <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9 never mixes together zone data
-from different zones in this way. Therefore, if a <SPAN
-CLASS="acronym"
->BIND</SPAN
-> 9 master
-serving a parent zone has child stub zones configured, all the slave
-servers for the parent zone also need to have the same child stub
-zones configured..</P
-></TD
+> 9 master serving a parent
+zone has child stub zones configured, all the slave servers for the
+parent zone also need to have the same child stub zones
+configured.</P
+>
+
+<P
+>Stub zones can also be used as a way of forcing the resolution
+of a given domain to use a particular set of authoritative servers.
+For example, the caching name servers on a private network using
+RFC2157 addressing may be configured with stub zones for
+<TT
+CLASS="literal"
+>10.in-addr.arpa</TT
+>
+to use a set of internal name servers as the authoritative
+servers for that domain.</P
+>
+</TD
 ></TR
 ><TR
 ><TD
@@ -9096,7 +9109,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Matches when the updated name is a subdomain
-of the name in the name field.</P
+of the name in the name field (which includes the name itself).</P
 ></TD
 ></TR
 ><TR
