@@ -1,3 +1,5 @@
+1251.	[func]		Generate DNSSEC wildcard proofs.
+
 1250.	[bug]		When processing events (non-threaded) only allow
 			the task one chance to use to use its quantum.
 

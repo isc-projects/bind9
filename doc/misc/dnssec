@@ -37,14 +37,6 @@ When acting as an authoritative name server, BIND9 includes KEY, SIG
 and NXT records in responses as specified in RFC2535 when the request
 has the DO flag set in the query.
 
-Response generation for wildcard records in secure zones is not fully
-supported.  Responses indicating the nonexistence of a name include a
-NXT record proving the nonexistence of the name itself, but do not
-include any NXT records to prove the nonexistence of a matching
-wildcard record.  Positive responses resulting from wildcard expansion
-do not include the NXT records to prove the nonexistence of a
-non-wildcard match or a more specific wildcard match.
-
 
 Secure Resolution
 
@@ -88,4 +80,4 @@ future as we consider them inferior to the use of TSIG or SIG(0) to
 ensure the integrity of zone transfers.
 
 
-$Id: dnssec,v 1.16 2001/11/20 23:32:09 gson Exp $
+$Id: dnssec,v 1.17 2002/07/19 03:50:42 marka Exp $

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.68 2001/12/08 00:37:07 bwelling Exp $ */
+/* $Id: db.h,v 1.69 2002/07/19 03:50:42 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -187,6 +187,7 @@ struct dns_db {
 #define DNS_DBFIND_PENDINGOK		0x08
 #define DNS_DBFIND_NOEXACT		0x10
 #define DNS_DBFIND_FORCENXT		0x20
+#define DNS_DBFIND_INDICATEWILD		0x40
 
 /*
  * Options that can be specified for dns_db_addrdataset().
@@ -689,6 +690,14 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *		ISC_R_SUCCESS			The desired node and type were
  *						found.
+ *
+ *		DNS_R_WILDCARD			The desired node and type were
+ *						found after performing
+ *						wildcard matching.  This is
+ *						only returned if the
+ *						DNS_DBFIND_INDICATEWILD
+ *						option is set; otherwise
+ *						ISC_R_SUCCESS is returned.
  *
  *		DNS_R_GLUE			The desired node and type were
  *						found, but are glue.  This
