@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.47 2000/11/23 02:10:30 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.48 2000/11/25 00:26:17 mws Exp $ -->
 
 <book>
 
@@ -2442,7 +2442,7 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
     <optional> statistics-file <replaceable>path_name</replaceable>; </optional>
-    <optional> statistics <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> zone-statistics <replaceable>yes_or_no</replaceable>; </optional>
     <optional> auth-nxdomain <replaceable>yes_or_no</replaceable>; </optional>
     <optional> deallocate-on-exit <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable>; </optional>
@@ -2757,7 +2757,7 @@ answers. The default is <userinput>no</userinput>.</para>
  <acronym>BIND</acronym> 9 always allocates query IDs from a pool.</para></entry>
 </row>
 <row rowsep = "0">
-<entry colname = "1"><para><command>statistics</command></para></entry>
+<entry colname = "1"><para><command>zone-statistics</command></para></entry>
 <entry colname = "2"><para>If <userinput>yes</userinput>, the server will, by default, collect
 statistical data on all zones in the server.  These statistics may be accessed
 using <command>rndc stats</command>, which will dump them to the file listed
@@ -3515,7 +3515,7 @@ key data.</para></sect2>
 <programlisting>view <replaceable>view_name</replaceable> <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
-      <optional> statistics <replaceable>yes_or_no</replaceable> ; </optional>
+      <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
 };
 </programlisting></sect2>
@@ -3606,7 +3606,7 @@ Statement Grammar</title>
     <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
-    <optional> statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
 }</optional>;
@@ -3835,9 +3835,9 @@ zones when they are loaded from disk. <acronym>BIND</acronym> 9 does not verify 
 on loading and ignores the option.</para></entry>
 </row>
 <row rowsep = "0">
-<entry colname = "1"><para><command>statistics</command></para></entry>
+<entry colname = "1"><para><command>zone-statistics</command></para></entry>
 <entry colname = "2"><para>If <userinput>yes</userinput>, the server will keep statistical
-information for all zones in the view, which can be dumped to the
+information for this zone, which can be dumped to the
 <command>statistics-file</command> defined in the server options.</para></entry>
 </row>
 <row rowsep = "0">
