@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.96 2001/01/29 03:23:13 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.97 2001/02/01 21:54:17 gson Exp $ -->
 
 <book>
 
@@ -3457,8 +3457,6 @@ to other queries will not be sorted.</para>
            { localnets; };
 };
 </programlisting>
-<note><simpara>The <command>sortlist</command> option
-is not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 </sect3>
 <sect3 id="rrset_ordering"><title id="rrset_ordering_title">RRset Ordering</title>
 <para>When multiple records are returned in an answer it may be
