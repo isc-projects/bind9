@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.22 2000/11/20 17:53:40 gson Exp $
+# $Id: tests.sh,v 1.23 2000/11/22 19:00:46 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -72,11 +72,10 @@ $PERL ../digcomp.pl dig.out.ns3.1 dig.out.ns3.2 || status=1
 echo "I:comparing ns2's initial a.example to one from reconfigured 10.53.0.4"
 $PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns4.2 || status=1
 
-echo "I:differences should be found in the following lines, with"
-echo "I:intmail.example in ns3.2 and mail.example in ns2.1, when"
 echo "I:comparing ns2's initial a.example to one from reconfigured 10.53.0.3"
-$PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2
-if [ $? = 0 ]; then
+echo "I:(should be different)"
+if $PERL ../digcomp.pl dig.out.ns2.1 dig.out.ns3.2 >/dev/null
+then
 	echo "I:no differences found.  something's wrong."
 	status=1
 fi
