@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.59 2000/11/10 05:34:07 bwelling Exp $ */
+/* $Id: adb_test.c,v 1.60 2000/12/21 02:50:43 gson Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@
 typedef struct client client_t;
 struct client {
 	dns_name_t		name;
-	char		       *target;
+	const char	       *target;
 	ISC_LINK(client_t)	link;
 	dns_adbfind_t	       *find;
 };
