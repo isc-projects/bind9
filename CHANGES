@@ -1,6 +1,9 @@
 
 	--- 9.2.2rc1 released ---
 
+1355.	[bug]		It was possible to trigger a INSIST when debugging
+			large dynamic updates. [RT #3390]
+
 1354.	[bug]		nsupdate was extremely wasteful of memory.
 
 1355.	[tuning]	Reduce the number of events / quantum for zone tasks.
