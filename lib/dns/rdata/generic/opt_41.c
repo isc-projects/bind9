@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.12 2000/05/13 22:33:29 tale Exp $ */
+/* $Id: opt_41.c,v 1.13 2000/05/17 03:39:29 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -52,17 +52,44 @@ static inline isc_result_t
 totext_opt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	   isc_buffer_t *target) 
 {
+	isc_region_t r;
+	isc_region_t or;
+	isc_uint16_t option;
+	isc_uint16_t length;
+	char buf[sizeof("64000 64000")];
+
 	/*
 	 * OPT records do not have a text format.
 	 */
 
 	REQUIRE(rdata->type == 41);
 
-	UNUSED(rdata);
-	UNUSED(tctx);
-	UNUSED(target);
+	dns_rdata_toregion(rdata, &r);
+	while (r.length > 0) {
+		option = uint16_fromregion(&r);
+		isc_region_consume(&r, 2);
+		length = uint16_fromregion(&r);
+		isc_region_consume(&r, 2);
+		sprintf(buf, "%u %u", option, length);
+		RETERR(str_totext(buf, target));
+		INSIST(r.length >= length);
+		if (length > 0) {
+			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+				RETERR(str_totext(" (", target));
+			RETERR(str_totext(tctx->linebreak, target));
+			or = r;
+			or.length = length;
+			RETERR(isc_base64_totext(&or, tctx->width - 2,
+						 tctx->linebreak, target));
+			isc_region_consume(&r, length);
+			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+				RETERR(str_totext(" )", target));
+		}
+		if (r.length > 0)
+			RETERR(str_totext(" ", target));
+	}
 
-	return (ISC_R_NOTIMPLEMENTED);
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
