@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.7 2003/04/10 04:46:27 marka Exp $ */
+/* $Id: string.c,v 1.8 2003/11/17 01:19:52 marka Exp $ */
 
 #include <config.h>
 
@@ -111,7 +111,7 @@ isc_string_separate(char **stringp, const char *delim) {
 }
 
 size_t
-strlcpy(char *dst, const char *src, size_t size)
+isc_string_strlcpy(char *dst, const char *src, size_t size)
 {
 	char *d = dst;
 	const char *s = src;
@@ -137,7 +137,7 @@ strlcpy(char *dst, const char *src, size_t size)
 }
 
 size_t
-strlcat(char *dst, const char *src, size_t size)
+isc_string_strlcat(char *dst, const char *src, size_t size)
 {
 	char *d = dst;
 	const char *s = src;
