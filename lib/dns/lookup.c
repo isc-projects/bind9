@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.6 2000/12/20 03:38:42 bwelling Exp $ */
+/* $Id: lookup.c,v 1.7 2000/12/20 20:42:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -311,12 +311,12 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			send_event = ISC_TRUE;
 		}
 
-	done:
 		if (dns_rdataset_isassociated(&lookup->rdataset))
 			dns_rdataset_disassociate(&lookup->rdataset);
 		if (dns_rdataset_isassociated(&lookup->sigrdataset))
 			dns_rdataset_disassociate(&lookup->sigrdataset);
 
+	done:
 		if (event != NULL) {
 			if (event->node != NULL)
 				dns_db_detachnode(event->db, &event->node);
