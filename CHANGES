@@ -1,3 +1,9 @@
+1844.	[bug]		inet_pton() accepted more that 4 hexadecimal digits
+			for each 16 bit piece of the IPv6 address.  The text
+			representation of a IPv6 address has been tighted
+			to disallow this (draft-ietf-ipv6-addr-arch-v4-02.txt).
+			[RT #5662]
+
 1843.	[cleanup]	CINCLUDES takes precedence over CFLAGS.  This helps
 			when CFLAGS contains "-I /usr/local/include"
 			resulting in old header files being used.
