@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.23 2001/10/22 04:01:31 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.24 2001/10/22 18:18:34 gson Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -37,7 +37,7 @@
 #ifdef ISC_PLATFORM_HAVEIF_LADDRREQ
 #define lifr_addr iflr_addr
 #define lifr_name iflr_name
-#define	lifr_dstaddr iflr_dstaddr
+#define lifr_dstaddr iflr_dstaddr
 #define lifr_flags iflr_flags
 #define ss_family sa_family
 #define LIFREQ if_laddrreq
@@ -551,11 +551,11 @@ internal_current6(isc_interfaceiter_t *iter) {
 		 * Netmask already zeroed.
 		 */
 		iter->current.netmask.family = family;
-		for (i = 0 ; i < lifreq.lifr_addrlen; i += 8) {
+		for (i = 0; i < lifreq.lifr_addrlen; i += 8) {
 			bits = lifreq.lifr_addrlen - i;
-			bits = (bits < 8 ) ? (8-bits) : 0;
-			iter->current.netmask.type.in6.s6_addr[i/8] =
-				 (~0 << bits) &0xff;
+			bits = (bits < 8) ? (8 - bits) : 0;
+			iter->current.netmask.type.in6.s6_addr[i / 8] =
+				(~0 << bits) & 0xff;
 		}
 #endif
 		break;
