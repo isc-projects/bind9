@@ -44,7 +44,6 @@ options {
         use-ixfr <boolean>;
         version <quoted_string>;
         allow-notify { <address_match_element>; ... };
-        allow-update-forwarding { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... };
         sortlist { <address_match_element>; ... };
@@ -73,6 +72,7 @@ options {
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
         notify <notifytype>;
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
@@ -129,7 +129,6 @@ view <string> <optional_class> {
         zone <string> <optional_class> {
                 type ( master | slave | stub | hint | forward );
                 allow-update { <address_match_element>; ... };
-                allow-update-forwarding { <address_match_element>; ... };
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
@@ -143,6 +142,7 @@ view <string> <optional_class> {
                 check-names <string>; // not implemented
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
+                allow-update-forwarding { <address_match_element>; ... };
                 notify <notifytype>;
                 also-notify [ port <integer> ] { ( <ipv4_address> |
                     <ipv6_address> ) [ port <integer> ]; ... };
@@ -180,7 +180,6 @@ view <string> <optional_class> {
         trusted-keys { <string> <integer> <integer> <integer>
             <quoted_string>; ... };
         allow-notify { <address_match_element>; ... };
-        allow-update-forwarding { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... };
         sortlist { <address_match_element>; ... };
@@ -209,6 +208,7 @@ view <string> <optional_class> {
         cache-file <quoted_string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
         notify <notifytype>;
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
@@ -248,7 +248,6 @@ key <string> {
 zone <string> <optional_class> {
         type ( master | slave | stub | hint | forward );
         allow-update { <address_match_element>; ... };
-        allow-update-forwarding { <address_match_element>; ... };
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
@@ -261,6 +260,7 @@ zone <string> <optional_class> {
         check-names <string>; // not implemented
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
+        allow-update-forwarding { <address_match_element>; ... };
         notify <notifytype>;
         also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
             ) [ port <integer> ]; ... };
