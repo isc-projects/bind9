@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.7 2004/04/13 01:26:25 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.8 2004/04/13 03:00:05 marka Exp $ -->
 
 <refentry>
 
@@ -483,29 +483,46 @@ Print records like the SOA records in a verbose multi-line
 format with human-readable comments.  The default is to print
 each record on a single line, to facilitate machine parsing 
 of the <command>dig</command> output.
-</para>
-</listitem></varlistentry>
+</para></listitem></varlistentry>
 
 <varlistentry><term><option>+[no]fail</option></term>
 <listitem><para>
 Do not try the next server if you receive a SERVFAIL.  The default is
 to not try the next server which is the reverse of normal stub resolver
 behaviour.
-</para>
+</para></listitem></varlistentry>
 
-</listitem></varlistentry>
 <varlistentry><term><option>+[no]besteffort</option></term>
 <listitem><para>
 Attempt to display the contents of messages which are malformed.
 The default is to not display malformed answers.
-</para>
+</para></listitem></varlistentry>
 
-</listitem></varlistentry>
 <varlistentry><term><option>+[no]dnssec</option></term>
 <listitem><para>
 Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
 in the OPT record in the additional section of the query.
-</para>
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+[no]sigchase</option></term>
+<listitem><para>
+Chase DNSSEC signature chains.  Requires dig be compiled with
+-DDIG_SIGCHASE.
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+trusted-key=####</option></term>
+<listitem><para>
+Specify a trusted key to be used with <option>+sigchase</option>.
+Requires dig be compiled with -DDIG_SIGCHASE.
+</para></listitem></varlistentry>
+
+<varlistentry><term><option>+[no]topdown</option></term>
+<listitem><para>
+When chasing DNSSEC signature chains perform a top down validation.
+Requires dig be compiled with -DDIG_SIGCHASE.
+</para></listitem></varlistentry>
+
+
 
 </variablelist>
 

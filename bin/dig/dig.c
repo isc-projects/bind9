@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.14 2004/04/13 01:26:25 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.15 2004/04/13 03:00:05 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -40,6 +40,15 @@
 #include <dns/rdatatype.h>
 #include <dns/rdataclass.h>
 #include <dns/result.h>
+
+#ifdef DIG_SIGCHASE
+#ifndef DIG_SIGCHASE_BU
+#define DIG_SIGCHASE_BU 1
+#endif
+#ifndef DIG_SIGCHASE_TD
+#define DIG_SIGCHASE_TD 1
+#endif
+#endif
 
 #include <dig/dig.h>
 
@@ -69,6 +78,9 @@ extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
 extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
+#ifdef DIG_SIGCHASE
+extern char trustedkey[MXNAME];
+#endif
 extern dns_tsigkey_t *key;
 extern isc_boolean_t validated;
 extern isc_taskmgr_t *taskmgr;
@@ -205,6 +217,13 @@ help(void) {
 "                 +[no]identify       (ID responders in short answers)\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
+#ifdef DIG_SIGCHASE
+"                 +[no]sigchase       (Chase DNSSEC signatures)\n"
+"                 +trusted-key=####   (Trusted Key when chasing DNSSEC sigs)\n"
+#if DIG_SIGCHASE_TD
+"                 +[no]topdown        (Do DNSSEC validation top down mode)\n"
+#endif
+#endif
 "                 +[no]multiline      (Print records in an expanded format)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
@@ -350,6 +369,51 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 
 	return (ISC_R_SUCCESS);
 }
+#ifdef DIG_SIGCHASE
+isc_result_t
+printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
+	      isc_buffer_t *target)
+{
+	isc_result_t result;
+	dns_master_style_t *style = NULL;
+	unsigned int styleflags = 0;
+
+	if (rdataset == NULL || owner_name == NULL || target == NULL)
+		return(ISC_FALSE);
+
+	styleflags |= DNS_STYLEFLAG_REL_OWNER;
+	if (nottl)
+		styleflags |= DNS_STYLEFLAG_NO_TTL;
+	if (noclass)
+		styleflags |= DNS_STYLEFLAG_NO_CLASS;
+	if (multiline) {
+		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
+		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
+		styleflags |= DNS_STYLEFLAG_REL_DATA;
+		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
+		styleflags |= DNS_STYLEFLAG_TTL;
+		styleflags |= DNS_STYLEFLAG_MULTILINE;
+		styleflags |= DNS_STYLEFLAG_COMMENT;
+	}
+	if (multiline || (nottl && noclass))
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 24, 32, 80, 8, mctx);
+	else if (nottl || noclass)
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 24, 32, 40, 80, 8, mctx);
+	else 
+		result = dns_master_stylecreate(&style, styleflags,
+						24, 32, 40, 48, 80, 8, mctx);
+	check_result(result, "dns_master_stylecreate");
+
+	result = dns_master_rdatasettotext(owner_name, rdataset, style, target);
+
+	if (style != NULL)
+		dns_master_styledestroy(&style, mctx);
+  
+	return(result);
+}
+#endif
 
 /*
  * Callback from dighost.c to print the reply from a server
@@ -450,8 +514,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 repopulate_buffer:
 
-	if (query->lookup->comments && headers && !short_form)
-	{
+	if (query->lookup->comments && headers && !short_form) {
 		result = dns_message_pseudosectiontotext(msg,
 			 DNS_PSEUDOSECTION_OPT,
 			 style, flags, buf);
@@ -649,17 +712,20 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	char option_store[256];
 	char *cmd, *value, *ptr;
 	isc_boolean_t state = ISC_TRUE;
+#ifdef DIG_SIGCHASE
+	size_t n;
+#endif
 
 	strncpy(option_store, option, sizeof(option_store));
 	option_store[sizeof(option_store)-1]=0;
 	ptr = option_store;
 	cmd = next_token(&ptr,"=");
 	if (cmd == NULL) {
-		printf(";; Invalid option %s\n",option_store);
+		printf(";; Invalid option %s\n", option_store);
 		return;
 	}
 	value = ptr;
-	if (strncasecmp(cmd,"no",2)==0) {
+	if (strncasecmp(cmd, "no", 2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;
 	}
@@ -899,6 +965,14 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				lookup->stats = ISC_FALSE;
 			}
 			break;
+#ifdef DIG_SIGCHASE
+		case 'i': /* sigchase */
+		        FULLCHECK("sigchase");
+			lookup->sigchase = state;
+			if (lookup->sigchase)
+				lookup->dnssec = ISC_TRUE;
+			break;	
+#endif
 		case 't': /* stats */
 			FULLCHECK("stats");
 			lookup->stats = state;
@@ -924,6 +998,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			if (timeout == 0)
 				timeout = 1;
 			break;
+#if DIG_SIGCHASE_TD
+		case 'o': /* topdown */	
+			FULLCHECK("topdown");
+			lookup->do_topdown = state;
+			break;
+#endif
 		case 'r':
 			switch (cmd[2]) {
 			case 'a': /* trace */
@@ -937,7 +1017,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 					lookup->stats = ISC_FALSE;
 					lookup->section_additional = ISC_FALSE;
 					lookup->section_authority = ISC_TRUE;
-					lookup->section_question = ISC_FALSE;
+				lookup->section_question = ISC_FALSE;
 				}
 				break;
 			case 'i': /* tries */
@@ -947,10 +1027,22 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				if (!state)
 					goto invalid_option;
 				lookup->retries = parse_uint(value, "tries",
-						       MAXTRIES);
+							     MAXTRIES);
 				if (lookup->retries == 0)
 					lookup->retries = 1;
 				break;
+#ifdef DIG_SIGCHASE
+			case 'u': /* trusted-key */
+			  	if (value == NULL) 
+					goto need_value;
+				if (!state)
+					goto invalid_option;
+				n = strlcpy(trustedkey, ptr,
+					    sizeof(trustedkey));
+				if (n >= sizeof(trustedkey))
+					fatal("trusted key too large");
+				break;
+#endif
 			default:
 				goto invalid_option;
 			}
@@ -1049,8 +1141,9 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'b':
 		hash = strchr(value, '#');
 		if (hash != NULL) {
-			srcport = (in_port_t) parse_uint(hash + 1,
-						         "port number", MAXPORT);
+			srcport = (in_port_t)
+			  	parse_uint(hash + 1,
+					   "port number", MAXPORT);
 			*hash = '\0';
 		} else
 			srcport = 0;
@@ -1105,8 +1198,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			result = dns_rdatatype_fromtext(&rdtype,
 						(isc_textregion_t *)&tr);
 			if (result == ISC_R_SUCCESS &&
-			    rdtype == dns_rdatatype_ixfr)
-			{
+			    rdtype == dns_rdatatype_ixfr) {
 				result = DNS_R_UNKNOWN;
 			}
 		}
@@ -1153,8 +1245,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	case 'x':
 		*lookup = clone_lookup(default_lookup, ISC_TRUE);
 		if (get_reverse(textname, sizeof(textname), value,
-				ip6_int, ISC_FALSE) == ISC_R_SUCCESS)
-		{
+				ip6_int, ISC_FALSE) == ISC_R_SUCCESS) {
 			strncpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);
@@ -1166,8 +1257,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			if (!(*lookup)->rdclassset)
 				(*lookup)->rdclass = dns_rdataclass_in;
 			(*lookup)->new_search = ISC_TRUE;
-			if (*lookup && *firstarg)
-			{
+			if (*lookup && *firstarg) {
 				printgreeting(argc, argv, *lookup);
 				*firstarg = ISC_FALSE;
 			}
@@ -1333,8 +1423,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 					result = dns_rdatatype_fromtext(&rdtype,
 					     	(isc_textregion_t *)&tr);
 					if (result == ISC_R_SUCCESS &&
-					    rdtype == dns_rdatatype_ixfr)
-					{
+					    rdtype == dns_rdatatype_ixfr) {
 						result = DNS_R_UNKNOWN;
 						fprintf(stderr, ";; Warning, "
 							"ixfr requires a "
@@ -1548,6 +1637,9 @@ main(int argc, char **argv) {
 			fclose(batchfp);
 		batchname = NULL;
 	}
+#ifdef DIG_SIGCHASE
+	clean_trustedkey();
+#endif
 	cancel_all();
 	destroy_libs();
 	isc_app_finish();

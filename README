@@ -237,7 +237,10 @@ Building
 
 		Possible settings:
 		Change the default syslog facility of named/lwresd.
-		e.g. -DISC_FACILITY=LOG_LOCAL0	
+		  -DISC_FACILITY=LOG_LOCAL0	
+		Enable DNSSEC signature chasing support in dig.
+		  -DDIG_SIGCHASE=1 (sets -DDIG_SIGCHASE_TD=1 and
+				    -DDIG_SIGCHASE_BU=1)
 
 	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
