@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.23 2000/07/04 02:33:29 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.24 2000/07/05 23:24:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -62,12 +62,15 @@
 #include <unistd.h>
 
 #define MXNAME 256
+#define MAXPNAME 1025
 #define MAXCMD 1024
 #define NAMEBUF 512
 #define WORDLEN 512
 #define PACKETSIZE 2048
 #define MSGTEXT 4096
 #define FIND_TIMEOUT 5
+
+#define DNSDEFAULTPORT 53
 
 #define RESOLV_CONF "/etc/resolv.conf"
 
@@ -88,16 +91,26 @@ static isc_timermgr_t *timermgr = NULL;
 static dns_dispatch_t *dispatchv4 = NULL;
 static dns_message_t *updatemsg = NULL;
 static dns_fixedname_t resolvdomain; /* from resolv.conf's domain line */
-static dns_name_t *default_zone; /* Points to one of above, or dns_rootname */
+static dns_name_t *origin; /* Points to one of above, or dns_rootname */
+static dns_fixedname_t fuserzone;
+static dns_name_t *userzone = NULL;
 static dns_tsigkey_t *key = NULL;
 static dns_tsig_keyring_t *keyring = NULL;
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
+static isc_sockaddr_t *servers;
 static int ns_inuse = 0;
+static int ns_total = 0;
+static isc_sockaddr_t *userserver = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
 
-static void sendrequest(int whichns, dns_message_t *msg,
+typedef struct nsu_requestinfo {
+	dns_message_t *msg;
+	isc_sockaddr_t *addr;
+} nsu_requestinfo_t;
+
+static void sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
 			dns_request_t **request);
 
 #define STATUS_MORE 0
@@ -336,6 +349,7 @@ setup_system(void) {
 	isc_sockaddr_t bind_any;
 	isc_buffer_t buf;
 	lwres_result_t lwresult;
+	int i;
 
 	ddebug("setup_system()");
 
@@ -346,7 +360,7 @@ setup_system(void) {
 	 *
 	 * XXX Shouldn't random() be called somewhere if this is here?
 	 */
-	srandom (getpid() + (int)&setup_system);
+	srandom(getpid() + (int)&setup_system);
 
 	result = isc_net_probeipv4();
 	check_result(result, "isc_net_probeipv4");
@@ -369,6 +383,24 @@ setup_system(void) {
 
 	lwconf = lwres_conf_get(lwctx);
 
+	ns_total = lwconf->nsnext;
+	if (ns_total <= 0)
+		fatal("no valid servers found");
+	servers = isc_mem_get(mctx, ns_total * sizeof(isc_sockaddr_t));
+	if (servers == NULL)
+		fatal("out of memory");
+	for (i = 0; i < ns_total; i++) {
+		if (lwconf->nameservers[i].family == LWRES_ADDRTYPE_V4) {
+			struct in_addr in4;
+			memcpy(&in4, lwconf->nameservers[i].address, 4);
+			isc_sockaddr_fromin(&servers[i], &in4, DNSDEFAULTPORT);
+		} else {
+			struct in6_addr in6;
+			memcpy(&in6, lwconf->nameservers[i].address, 16);
+			isc_sockaddr_fromin6(&servers[i], &in6, DNSDEFAULTPORT);
+		}
+	}
+
 	result = dns_dispatchmgr_create(mctx, NULL, &dispatchmgr);
 	check_result(result, "dns_dispatchmgr_create");
 
@@ -378,16 +410,16 @@ setup_system(void) {
 	result = isc_timermgr_create(mctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
 
-	result = isc_taskmgr_create (mctx, 1, 0, &taskmgr);
+	result = isc_taskmgr_create(mctx, 1, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
-	result = isc_task_create (taskmgr, 0, &global_task);
+	result = isc_task_create(taskmgr, 0, &global_task);
 	check_result(result, "isc_task_create");
 
-	result = isc_entropy_create (mctx, &entp);
+	result = isc_entropy_create(mctx, &entp);
 	check_result(result, "isc_entropy_create");
 
-	result = dst_lib_init (mctx, entp, 0);
+	result = dst_lib_init(mctx, entp, 0);
 	check_result(result, "dst_lib_init");
 	is_dst_up = ISC_TRUE;
 
@@ -414,13 +446,36 @@ setup_system(void) {
 		result = dns_name_fromtext(dns_fixedname_name(&resolvdomain),
 					   &buf, dns_rootname, ISC_FALSE, NULL);
 		check_result(result, "dns_name_fromtext");
-		default_zone = dns_fixedname_name(&resolvdomain);
+		origin = dns_fixedname_name(&resolvdomain);
 	}
 	else
-		default_zone = dns_rootname;
+		origin = dns_rootname;
 
 	if (keystr != NULL || keyfile != NULL)
 		setup_key();
+}
+
+static void
+get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
+        struct in_addr in4;
+        struct in6_addr in6;
+        struct hostent *he;
+
+        ddebug("get_address()");
+        if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
+                isc_sockaddr_fromin6(sockaddr, &in6, port);
+        else if (inet_pton(AF_INET, host, &in4) == 1)
+                isc_sockaddr_fromin(sockaddr, &in4, port);
+        else {
+                he = gethostbyname(host);
+                if (he == NULL)
+                     fatal("Couldn't look up your server host %s.  errno=%d",
+                              host, h_errno);
+                INSIST(he->h_addrtype == AF_INET);
+                isc_sockaddr_fromin(sockaddr,
+                                    (struct in_addr *)(he->h_addr_list[0]),
+                                    port);
+        }
 }
 
 static void
@@ -454,6 +509,8 @@ parse_args(int argc, char **argv) {
 		default:
 			fprintf(stderr, "%s: invalid argument -%c\n",
 				argv[0], ch);
+			fprintf(stderr, "usage: nsupdate [-d] "
+				"[-y keyname:secret | -k keyfile] [-v]\n");
 			exit(1);
 		}
 	}
@@ -471,7 +528,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 	isc_buffer_t source;
 	unsigned int dots;
 	isc_boolean_t last;
-	dns_name_t *rn = default_zone;
+	dns_name_t *rn = origin;
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
@@ -524,7 +581,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		check_result(result, "isc_buffer_allocate");
 		dns_rdatacallbacks_init_stdio(&callbacks);
 		result = dns_rdata_fromtext(*rdatap, rdataclass, rdatatype, lex,
-					    default_zone, ISC_FALSE,
+					    origin, ISC_FALSE,
 					    buf, &callbacks);
 		dns_message_takebuffer(msg, &buf);
 		isc_lex_destroy(&lex);
@@ -548,7 +605,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	dns_rdata_t *rdata = NULL;
 	isc_uint16_t retval;
 
-	ddebug ("make_prereq()");
+	ddebug("make_prereq()");
 
 	/*
 	 * Read the owner name
@@ -637,7 +694,7 @@ evaluate_prereq(char *cmdline) {
 	char *word;
 	isc_boolean_t ispositive, isrrset;
 
-	ddebug ("evaluate_prereq()");
+	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
 		puts ("failed to read operation code");
@@ -664,15 +721,61 @@ evaluate_prereq(char *cmdline) {
 
 static isc_uint16_t
 evaluate_server(char *cmdline) {
-	UNUSED(cmdline);
-	printf("The server statement is not currently implemented.\n");
+	char *word, *server;
+	in_port_t port;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		puts ("failed to read server name");
+		return (STATUS_SYNTAX);
+	}
+	server = word;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0)
+		port = DNSDEFAULTPORT;
+	else {
+		char *endp;
+		port = strtol(word, &endp, 10);
+		if (*endp != 0) {
+			printf("port '%s' is not numeric\n", word);
+			return (STATUS_SYNTAX);
+		}
+	}
+
+	if (userserver == NULL) {
+		userserver = isc_mem_get(mctx, sizeof(isc_sockaddr_t));
+		if (userserver == NULL)
+			fatal("out of memory");
+	}
+
+	get_address(server, port, userserver);
+
 	return (STATUS_MORE);
 }
 
 static isc_uint16_t
 evaluate_zone(char *cmdline) {
-	UNUSED(cmdline);
-	printf("The zone statement is not currently implemented.\n");
+	char *word;
+	isc_buffer_t b;
+	isc_result_t result;
+
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		puts("failed to read zone name");
+		return (STATUS_SYNTAX);
+	}
+
+	dns_fixedname_init(&fuserzone);
+	userzone = dns_fixedname_name(&fuserzone);
+	isc_buffer_init(&b, word, strlen(word));
+	isc_buffer_add(&b, strlen(word));
+	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE, NULL);
+	if (result != ISC_R_SUCCESS) {
+		puts("failed to parse zone name");
+		return (STATUS_SYNTAX);
+	}
+
 	return (STATUS_MORE);
 }
 
@@ -817,10 +920,10 @@ evaluate_update(char *cmdline) {
 	char *word;
 	isc_boolean_t isdelete;
 
-	ddebug ("evaluate_update()");
+	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		puts ("failed to read operation code");
+		puts("failed to read operation code");
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "delete") == 0)
@@ -828,7 +931,7 @@ evaluate_update(char *cmdline) {
 	else if (strcasecmp(word, "add") == 0)
 		isdelete = ISC_FALSE;
 	else {
-		printf ("incorrect operation code: %s\n", word);
+		printf("incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
 	}
 	return (update_addordelete(cmdline, isdelete));
@@ -903,26 +1006,13 @@ user_interaction(void) {
 }
 
 static void
-get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
-        struct in_addr in4;
-        struct in6_addr in6;
-        struct hostent *he;
-
-        ddebug("get_address()");
-        if (have_ipv6 && inet_pton(AF_INET6, host, &in6) == 1)
-                isc_sockaddr_fromin6(sockaddr, &in6, port);
-        else if (inet_pton(AF_INET, host, &in4) == 1)
-                isc_sockaddr_fromin(sockaddr, &in4, port);
-        else {
-                he = gethostbyname(host);
-                if (he == NULL)
-                     fatal("Couldn't look up your server host %s.  errno=%d",
-                              host, h_errno);
-                INSIST(he->h_addrtype == AF_INET);
-                isc_sockaddr_fromin(sockaddr,
-                                    (struct in_addr *)(he->h_addr_list[0]),
-                                    port);
-        }
+done_update(isc_boolean_t acquirelock) {
+	if (acquirelock)
+		LOCK(&lock);
+	busy = ISC_FALSE;
+	SIGNAL(&cond);
+	if (acquirelock)
+		UNLOCK(&lock);
 }
 
 static void
@@ -960,24 +1050,18 @@ update_completed(isc_task_t *task, isc_event_t *event) {
  done:
 	dns_request_destroy(&reqev->request);
 	isc_event_free(&event);
-	LOCK(&lock);
-	busy = ISC_FALSE;
-	SIGNAL(&cond);
-	UNLOCK(&lock);
+	done_update(ISC_TRUE);
 }
 
 static void
-send_update(dns_name_t *zonename, dns_name_t *master) {
+send_update(dns_name_t *zonename, isc_sockaddr_t *master) {
 	isc_result_t result;
-	isc_sockaddr_t sockaddr;
 	dns_request_t *request = NULL;
-	char servername[MXNAME];
-	isc_buffer_t buf;
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	unsigned int options = 0;
 
-	ddebug ("send_update()");
+	ddebug("send_update()");
 
 	result = dns_message_gettempname(updatemsg, &name);
 	check_result(result, "dns_message_gettempname");
@@ -991,65 +1075,66 @@ send_update(dns_name_t *zonename, dns_name_t *master) {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_ZONE);
 
-	isc_buffer_init(&buf, servername, MXNAME);
-	result = dns_name_totext(master, ISC_TRUE, &buf);
-	check_result(result, "dns_name_totext");
-
-	servername[isc_buffer_usedlength(&buf)] = 0;	
-	get_address(servername, 53, &sockaddr);
 	if (usevc)
 		options |= DNS_REQUESTOPT_TCP;
-	result = dns_request_create(requestmgr, updatemsg, &sockaddr,
+	result = dns_request_create(requestmgr, updatemsg, master,
 				    options, key,
 				    FIND_TIMEOUT, global_task,
 				    update_completed, NULL, &request);
 	check_result(result, "dns_request_create");
-}	
-	
+}
 
 static void
-find_completed(isc_task_t *task, isc_event_t *event) {
+recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_requestevent_t *reqev = NULL;
 	dns_request_t *request = NULL;
 	isc_result_t result, eresult;
 	dns_message_t *rcvmsg = NULL;
-	dns_message_t *soaquery = NULL;
 	dns_section_t section;
 	dns_name_t *name = NULL;
 	dns_rdataset_t *soaset = NULL;
 	dns_rdata_soa_t soa;
 	dns_rdata_t soarr;
 	int pass = 0;
-	dns_name_t zonename, master;
+	dns_name_t master;
+	isc_sockaddr_t *serveraddr, tempaddr;
+	dns_name_t *zonename;
+	nsu_requestinfo_t *reqinfo;
+	dns_message_t *soaquery = NULL;
+	isc_sockaddr_t *addr;
 
 	UNUSED(task);
 
-	ddebug ("find_completed()");
+	ddebug ("recvsoa()");
 	REQUIRE(event->ev_type == DNS_EVENT_REQUESTDONE);
 	reqev = (dns_requestevent_t *)event;
 	request = reqev->request;
 	eresult = reqev->result;
-	soaquery = reqev->ev_arg;
+	reqinfo = reqev->ev_arg;
+	soaquery = reqinfo->msg;
+	addr = reqinfo->addr;
 
 	isc_event_free(&event);
 	reqev = NULL;
 
 	if (eresult != ISC_R_SUCCESS) {
-		char addrbuf[64];
-		lwres_net_ntop(lwconf->nameservers[ns_inuse].family,
-			       lwconf->nameservers[ns_inuse].address,
-			       addrbuf, sizeof(addrbuf));
-		printf ("; Communication with %s failed: %s\n",
-			addrbuf, isc_result_totext(eresult));
-		ns_inuse++;
-		if (ns_inuse >= lwconf->nsnext)
-			fatal ("Couldn't talk to any default nameserver.");
+		char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	
+		isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
+		printf("; Communication with %s failed: %s\n",
+		       addrbuf, isc_result_totext(eresult));
+		if (userserver != NULL)
+			fatal("Couldn't talk to specified nameserver.");
+		else if (ns_inuse++ >= lwconf->nsnext)
+			fatal("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
-		sendrequest(ns_inuse, soaquery, &request);
+		sendrequest(&servers[ns_inuse], soaquery, &request);
+		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		return;
 	}
 	dns_message_destroy(&soaquery);
+	isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 
 	ddebug ("About to create rcvmsg");
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
@@ -1104,9 +1189,9 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (debugging) {
-		char namestr[1025];
+		char namestr[MAXPNAME];
 		dns_name_format(name, namestr, sizeof(namestr));
-		printf ("Found zone name: %s\n", namestr);
+		printf("Found zone name: %s\n", namestr);
 	}
 
 	result = dns_rdataset_first(soaset);
@@ -1120,40 +1205,54 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 	dns_name_init(&master, NULL);
 	dns_name_clone(&soa.origin, &master);
 
-	dns_name_init(&zonename, NULL);
-	dns_name_clone(name, &zonename);
+	if (userzone != NULL)
+		zonename = userzone;
+	else
+		zonename = name;
 
 	if (debugging) {
-		char namestr[1025];
+		char namestr[MAXPNAME];
 		dns_name_format(&master, namestr, sizeof(namestr));
-		printf ("The master is: %s\n", namestr);
+		printf("The master is: %s\n", namestr);
 	}
 
-	send_update(&zonename, &master);
+	if (userserver != NULL)
+		serveraddr = userserver;
+	else {
+		char serverstr[MXNAME];
+		isc_buffer_t buf;
+
+		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
+		result = dns_name_totext(&master, ISC_TRUE, &buf);
+		check_result(result, "dns_name_totext");
+		serverstr[isc_buffer_usedlength(&buf)] = 0;
+		get_address(serverstr, DNSDEFAULTPORT, &tempaddr);
+		serveraddr = &tempaddr;
+	}
+
+	send_update(zonename, serveraddr);
 
 	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&rcvmsg);
 	dns_request_destroy(&request);
-	ddebug ("Out of find_completed");
+	ddebug("Out of recvsoa");
 }
 
 static void
-sendrequest(int whichns, dns_message_t *msg, dns_request_t **request) {
-	isc_sockaddr_t sockaddr;
+sendrequest(isc_sockaddr_t *address, dns_message_t *msg,
+	    dns_request_t **request)
+{
 	isc_result_t result;
+	nsu_requestinfo_t *reqinfo;
 
-	if (lwconf->nameservers[whichns].family == LWRES_ADDRTYPE_V4) {
-		struct in_addr in4;
-		memcpy(&in4, lwconf->nameservers[whichns].address, 4);
-		isc_sockaddr_fromin(&sockaddr, &in4, 53);
-	} else {
-		struct in6_addr in6;
-		memcpy(&in6, lwconf->nameservers[whichns].address, 16);
-		isc_sockaddr_fromin6(&sockaddr, &in6, 53);
-	}
-	result = dns_request_create(requestmgr, msg, &sockaddr,
+	reqinfo = isc_mem_get(mctx, sizeof(nsu_requestinfo_t));
+	if (reqinfo == NULL)
+		fatal("out of memory");
+	reqinfo->msg = msg;
+	reqinfo->addr = address;
+	result = dns_request_create(requestmgr, msg, address,
 				    0, NULL, FIND_TIMEOUT, global_task,
-				    find_completed, msg, request);
+				    recvsoa, reqinfo, request);
 	check_result(result, "dns_request_create");
 }
 
@@ -1166,11 +1265,16 @@ start_update(void) {
 	dns_message_t *soaquery = NULL;
 	dns_name_t *firstname;
 
-	ddebug ("start_update()");
+	ddebug("start_update()");
+
+	if (userzone != NULL && userserver != NULL) {
+		send_update(userzone, userserver);
+		return;
+	}
 
 	result = dns_message_firstname(updatemsg, DNS_SECTION_UPDATE);
 	if (result != ISC_R_SUCCESS) {
-		busy = ISC_FALSE;
+		done_update(ISC_FALSE);
 		return;
 	}
 
@@ -1198,23 +1302,29 @@ start_update(void) {
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(soaquery, name, DNS_SECTION_QUESTION);
 
-	ns_inuse = 0;
-	sendrequest(ns_inuse, soaquery, &request);
+	if (userserver != NULL)
+		sendrequest(userserver, soaquery, &request);
+	else {
+		ns_inuse = 0;
+		sendrequest(&servers[ns_inuse], soaquery, &request);
+	}
 }
-
 
 static void
 cleanup(void) {
 	ddebug ("cleanup()");
 
+	if (userserver != NULL)
+		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
+
 	if (key != NULL) {
-		ddebug("Freeing key");
+		debug("Freeing key");
 		dns_tsigkey_setdeleted(key);
 		dns_tsigkey_detach(&key);
 	}
 
 	if (keyring != NULL) {
-		debug ("Freeing keyring %lx", keyring);
+		debug("Freeing keyring %lx", keyring);
 		dns_tsigkeyring_destroy(&keyring);
 	}
 
@@ -1222,14 +1332,16 @@ cleanup(void) {
 		dns_message_destroy(&updatemsg);
 
 	if (is_dst_up) {
-		debug ("Destroy DST lib");
+		debug("Destroy DST lib");
 		dst_lib_destroy();
 		is_dst_up = ISC_FALSE;
 	}
+
 	if (entp != NULL) {
-		debug ("Detach from entropy");
+		debug("Detach from entropy");
 		isc_entropy_detach(&entp);
 	}
+
 	lwres_conf_clear(lwctx);
 	lwres_context_destroy(&lwctx);
 		
@@ -1284,7 +1396,7 @@ main(int argc, char **argv) {
 			WAIT(&cond, &lock);
         }
 
-        puts ("");
+        puts("");
         isc_mutex_destroy(&lock);
         isc_condition_destroy(&cond);
         cleanup();
