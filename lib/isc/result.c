@@ -17,9 +17,26 @@
 
 #include <config.h>
 
-#include <isc/result.h>
+#include <stddef.h>
+#include <stdlib.h>
 
-static char *text_table[ISC_R_LASTENTRY + 1] = {
+#include <isc/result.h>
+#include <isc/resultclass.h>
+#include <isc/assertions.h>
+#include <isc/error.h>
+#include <isc/mutex.h>
+#include <isc/once.h>
+
+#include "util.h"
+
+typedef struct resulttable {
+	unsigned int				base;
+	unsigned int				last;
+	char **					text;
+	ISC_LINK(struct resulttable)		link;
+} resulttable;
+
+static char *text[ISC_R_NRESULTS] = {
 	"success",				/*  0 */
 	"out of memory",			/*  1 */
 	"timed out",				/*  2 */
@@ -53,13 +70,88 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"invalid file",				/* 30 */
 	"bad base64 encoding",			/* 31 */
 	"unexpected token",			/* 32 */
+	"quota reached",			/* 33 */
+	"unexpected error",			/* 34 */
 };
+
+static isc_once_t 				once = ISC_ONCE_INIT;
+static ISC_LIST(resulttable)			tables;
+static isc_mutex_t				lock;
+
+static isc_result_t
+register_table(unsigned int base, unsigned int nresults, char **text) {
+	resulttable *table;
+
+	REQUIRE(base % ISC_RESULTCLASS_SIZE == 0);
+	REQUIRE(nresults <= ISC_RESULTCLASS_SIZE);
+	REQUIRE(text != NULL);
+
+	/*
+	 * We use malloc() here because we we want to be able to use
+	 * isc_result_totext() even if there is no memory context.
+	 */
+	table = malloc(sizeof *table);
+	if (table == NULL)
+		return (ISC_R_NOMEMORY);
+	table->base = base;
+	table->last = base + nresults;
+	table->text = text;
+	ISC_LINK_INIT(table, link);
+
+	LOCK(&lock);
+
+	ISC_LIST_APPEND(tables, table, link);
+
+	UNLOCK(&lock);
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+initialize_action(void) {
+	isc_result_t result;
+
+	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	ISC_LIST_INIT(tables);
+
+	result = register_table(ISC_RESULTCLASS_ISC, ISC_R_NRESULTS, text);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "register_table() failed: %u", result);
+}
+
+static void
+initialize(void) {
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+}
 
 char *
 isc_result_totext(isc_result_t result) {
-	if (result == ISC_R_UNEXPECTED)
-		return ("unexpected error");
-	if (result > ISC_R_LASTENTRY)
-		return ("unknown result code");
-	return (text_table[result]);
+	resulttable *table;
+	char *text;
+
+	initialize();
+
+	LOCK(&lock);
+
+	text = "(result code text not available)";
+	for (table = ISC_LIST_HEAD(tables);
+	     table != NULL;
+	     table = ISC_LIST_NEXT(table, link)) {
+		if (result >= table->base && result <= table->last) {
+			text = table->text[result - table->base];
+			break;
+		}
+	}
+
+	UNLOCK(&lock);
+
+	return (text);
+}
+
+isc_result_t
+isc_result_register(unsigned int base, unsigned int nresults, char **text) {
+	initialize();
+
+	return (register_table(base, nresults, text));
 }

@@ -17,9 +17,14 @@
 
 #include <config.h>
 
+#include <stddef.h>
+
+#include <isc/resultclass.h>
+#include <isc/once.h>
+#include <isc/error.h>
 #include <dns/result.h>
 
-static char *text_table[DNS_R_LASTENTRY + 1] = {
+static char *text[DNS_R_NRESULTS] = {
 	"success",				/*  0 */
 	"out of memory",			/*  1 */
 	"ran out of space",			/*  2 */
@@ -69,13 +74,35 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"bad zone",				/* 46 */
 	"timed out",				/* 47 */
 	"canceled",				/* 48 */
+	"unexpected error",			/* 49 */
 };
+
+static isc_once_t once = ISC_ONCE_INIT;
+
+static void
+initialize_action(void) {
+	isc_result_t result;
+
+	result = isc_result_register(ISC_RESULTCLASS_DNS, DNS_R_NRESULTS,
+				     text);
+	if (result != ISC_R_SUCCESS)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_result_register() failed: %u", result);
+}
+
+static void
+initialize(void) {
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+}
 
 char *
 dns_result_totext(dns_result_t result) {
-	if (result == DNS_R_UNEXPECTED)
-		return ("unexpected error");
-	if (result > DNS_R_LASTENTRY)
-		return ("unknown result code");
-	return (text_table[result]);
+	initialize();
+
+	return (isc_result_totext(result));
+}
+
+void
+dns_result_register(void) {
+	initialize();
 }

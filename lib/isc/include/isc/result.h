@@ -18,7 +18,9 @@
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
 
+#include <isc/boolean.h>
 #include <isc/lang.h>
+#include <isc/list.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -57,11 +59,15 @@ typedef unsigned int isc_result_t;
 #define ISC_R_INVALIDFILE		30
 #define ISC_R_BADBASE64			31
 #define ISC_R_UNEXPECTEDTOKEN		32
-#define ISC_R_LASTENTRY			32	/* last entry in the list */
+#define ISC_R_QUOTA			33
+#define ISC_R_UNEXPECTED		34
 
-#define ISC_R_UNEXPECTED		0xFFFFFFFFL
+#define ISC_R_NRESULTS 			35	/* Number of results */
 
-char *					isc_result_totext(isc_result_t);
+char *			isc_result_totext(isc_result_t);
+isc_result_t		isc_result_register(unsigned int base,
+					    unsigned int nresults,
+					    char **text);
 
 ISC_LANG_ENDDECLS
 

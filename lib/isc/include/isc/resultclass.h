@@ -1,0 +1,51 @@
+/*
+ * Copyright (C) 1999  Internet Software Consortium.
+ * 
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
+ * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
+ * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
+ * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
+ * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
+ * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ * SOFTWARE.
+ */
+
+#ifndef ISC_RESULTCLASS_H
+#define ISC_RESULTCLASS_H 1
+
+#include <isc/lang.h>
+
+ISC_LANG_BEGINDECLS
+
+/*****
+ ***** Registry of Predefined Result Type Classes
+ *****/
+
+/*
+ * A result class is an unsigned 16 bit number.  Each class may contain up
+ * to 65536 results.  A result is formed by adding the result number
+ * within the class to the class number.
+ */
+
+#define ISC_RESULTCLASS(rclass)		((rclass) << 16)
+#define ISC_RESULTCLASS_SIZE		65536
+
+/*
+ * Classes < 1024 are reserved for ISC use.
+ */
+
+#define	ISC_RESULTCLASS_ISC		ISC_RESULTCLASS(0)
+#define	ISC_RESULTCLASS_DNS		ISC_RESULTCLASS(1)
+
+/*
+ * Result classes >= 1024 and <= 65535 are reserved for application use.
+ */
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_RESULTCLASS_H */
