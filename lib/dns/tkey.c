@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.2 1999/10/26 17:25:07 halley Exp $
+ * $Id: tkey.c,v 1.3 1999/10/26 19:32:37 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -193,6 +193,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	unsigned char keydata[DST_KEY_MAXSIZE];
 	unsigned char namedata[1024];
 	dns_tsigkey_t *tsigkey;
+	unsigned int secretsize;
 
 	/* Look for a DH KEY record that will work with ours */
 	result = dns_message_firstname(msg, DNS_SECTION_ADDITIONAL);
@@ -282,8 +283,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	RETERR(add_rdata_to_list(msg, &ourname, &ourkeyrdata, ourttl,
 				 namelist));
 
-	RETERR(isc_buffer_allocate(msg->mctx, &secret,
-				   dst_secret_size(tkey_dhkey),
+	RETERR(dst_secret_size(tkey_dhkey, &secretsize));
+	RETERR(isc_buffer_allocate(msg->mctx, &secret, secretsize,
 				   ISC_BUFFERTYPE_BINARY));
 
 	result = dst_computesecret(pubkey, tkey_dhkey, secret);
@@ -595,18 +596,20 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 
 	RETERR(dns_message_gettemprdataset(msg, &question));
 	dns_rdataset_init(question);
-	dns_rdataset_makequestion(question, 0, dns_rdatatype_tkey);
+	dns_rdataset_makequestion(question, dns_rdataclass_in /**/,
+				  dns_rdatatype_tkey);
 
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 512,
 				   ISC_BUFFERTYPE_BINARY));
 	RETERR(dns_message_gettemprdata(msg, &rdata));
-	RETERR(dns_rdata_fromstruct(rdata, 0, dns_rdatatype_tkey,
-				    tkey, dynbuf));
+	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_in /**/,
+				    dns_rdatatype_tkey, tkey, dynbuf));
 	dns_message_takebuffer(msg, &dynbuf);
 
 	RETERR(dns_message_gettemprdatalist(msg, &tkeylist));
-	tkeylist->rdclass = 0;
+	tkeylist->rdclass = dns_rdataclass_in /**/;
 	tkeylist->type = dns_rdatatype_tkey;
+	tkeylist->covers = 0;
 	tkeylist->ttl = 0;
 	ISC_LIST_INIT(tkeylist->rdata);
 	ISC_LIST_APPEND(tkeylist->rdata, rdata, link);
@@ -662,7 +665,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 
 	nonce = nonce; /* until the new spec is done */
 
-	tkey.common.rdclass = 0;
+	tkey.common.rdclass = dns_rdataclass_in /**/;
 	tkey.common.rdtype = dns_rdatatype_tkey;
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = msg->mctx;
@@ -715,7 +718,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key) {
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
 
-	tkey.common.rdclass = 0;
+	tkey.common.rdclass = dns_rdataclass_in /**/;
 	tkey.common.rdtype = dns_rdatatype_tkey;
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = msg->mctx;
@@ -768,6 +771,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	dns_tsigkey_t *tsigkey;
 	dns_rdata_generic_tkey_t qtkey, rtkey;
 	unsigned char keydata[1024];
+	unsigned int secretsize;
 	isc_buffer_t keysrc, keybuf, *secret = NULL;
 	isc_region_t r;
 	isc_result_t result;
@@ -789,7 +793,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	    rtkey.mode != qtkey.mode ||
 	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm))
 	{
-		result = ISC_R_NOTFOUND;
+		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&rtkey);
 		goto failure;
 	}
@@ -837,8 +841,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	RETERR(dns_dnssec_keyfromrdata(theirkeyname, &theirkeyrdata,
 				       rmsg->mctx, &theirkey));
 
-	RETERR(isc_buffer_allocate(rmsg->mctx, &secret,
-				   dst_secret_size(key),
+	RETERR(dst_secret_size(key, &secretsize));
+	RETERR(isc_buffer_allocate(rmsg->mctx, &secret, secretsize,
 				   ISC_BUFFERTYPE_BINARY));
 
 	result = dst_computesecret(theirkey, key, secret);
@@ -883,7 +887,7 @@ dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg) {
 	    rtkey.mode != qtkey.mode ||
 	    !dns_name_equal(&rtkey.algorithm, &qtkey.algorithm))
 	{
-		result = ISC_R_NOTFOUND;
+		result = DNS_R_INVALIDTKEY;
 		dns_rdata_freestruct(&rtkey);
 		goto failure;
 	}
