@@ -7,8 +7,8 @@
 DNSEXT Working Group                                        Levon Esibov
 INTERNET-DRAFT                                             Bernard Aboba
 Category: Standards Track                                    Dave Thaler
-<draft-ietf-dnsext-mdns-11.txt>                                Microsoft
-20 July 2002
+<draft-ietf-dnsext-mdns-12.txt>                                Microsoft
+21 August 2002
 
 
               Linklocal Multicast Name Resolution (LLMNR)
@@ -61,7 +61,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 1]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 Table of Contents
@@ -77,22 +77,22 @@ Table of Contents
    2.5       No/multiple responses ...........................    7
 3.     Usage model ...........................................    8
    3.1       LLMNR configuration .............................    8
-4.     Sequence of events ....................................    9
+4.     Sequence of events ....................................   10
 5.     Conflict resolution ...................................   10
-   5.1       Considerations for multiple interfaces ..........   11
-   5.2       API issues ......................................   13
-6.     Security considerations ...............................   13
-   6.1       Scope restriction ...............................   14
-   6.2       Usage restriction ...............................   14
-   6.3       Cache and port separation .......................   15
-   6.4       Authentication ..................................   15
-7.     IANA considerations ...................................   15
-8.     Normative References ..................................   16
-9.     Informative References ................................   16
-Acknowledgments ..............................................   17
-Authors' Addresses ...........................................   17
-Intellectual Property Statement ..............................   18
-Full Copyright Statement .....................................   18
+   5.1       Considerations for multiple interfaces ..........   12
+   5.2       API issues ......................................   14
+6.     Security considerations ...............................   14
+   6.1       Scope restriction ...............................   15
+   6.2       Usage restriction ...............................   15
+   6.3       Cache and port separation .......................   16
+   6.4       Authentication ..................................   16
+7.     IANA considerations ...................................   16
+8.     Normative References ..................................   17
+9.     Informative References ................................   17
+Acknowledgments ..............................................   18
+Authors' Addresses ...........................................   18
+Intellectual Property Statement ..............................   19
+Full Copyright Statement .....................................   19
 
 
 
@@ -121,7 +121,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 2]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 1.  Introduction
@@ -181,7 +181,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 3]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 for IPv4 and the "solicited name" LINKLOCAL multicast addresses for
@@ -241,7 +241,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 4]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 The IPv6 LINKLOCAL address a given responder  listens to, and to which a
@@ -301,7 +301,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 5]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 For example the host "host.example.com." is not authoritative for the
@@ -361,7 +361,7 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 6]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 In composing an LLMNR response, the responder MUST set the Hop Limit
@@ -399,19 +399,19 @@ and class for the specified name exist (NXRRSET).
 
 Since the responder MUST NOT respond to queries for names it is not
 authoritative for, a responder MUST NOT respond to an A, A6 or AAAA RR
-query with an NXRRSET. However, for other queries, such a response is
-possible; for example, if the host has a AAAA RR, but no MX RR, and an
-MX RR query is received.
+query with an NXRRSET. However, if the host has a AAAA RR, but no MX RR,
+and an MX RR query is received, the host would respond as follows:
+
+      RCODE: NOERROR
+      Answer: <empty>
+      Authority: SOA for zone.
+      Additional: Empty.
 
 The sender MUST anticipate receiving multiple replies to the same LLMNR
 query, in the event that several LLMNR enabled computers receive the
 query and respond with valid answers. When this occurs, the responses
 MAY first be concatenated, and then treated in the same manner that
 multiple RRs received from the same DNS server would, ordinarily.
-However, after receiving an initial response, the sender is not required
-to wait for LLMNR_TIMEOUT for additional responses.
-
-
 
 
 
@@ -421,8 +421,11 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 7]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
+
+However, after receiving an initial response, the sender is not required
+to wait for LLMNR_TIMEOUT for additional responses.
 
 3.  Usage model
 
@@ -470,9 +473,6 @@ where no manual or automatic DNS configuration has been performed for a
 given protocol (IPv4 or IPv6), LLMNR SHOULD be enabled for that
 protocol.
 
-For IPv6, the stateless DNS discovery mechanisms described in "IPv6
-Stateless DNS Discovery" [DNSDisc] or "Using DHCPv6 for DNS
-
 
 
 Esibov, Aboba & Thaler       Standards Track                    [Page 8]
@@ -481,9 +481,11 @@ Esibov, Aboba & Thaler       Standards Track                    [Page 8]
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
+For IPv6, the stateless DNS discovery mechanisms described in "IPv6
+Stateless DNS Discovery" [DNSDisc] or "Using DHCPv6 for DNS
 Configuration in Hosts" [DHCPv6DNS] can be used to discover whether
 LLMNR should be enabled or disabled on a per-interface basis.
 
@@ -500,14 +502,71 @@ the same time it is disabled for IPv4, and vice versa. For example, a
 home gateway may implement a DNS proxy and DHCPv4, but not DHCPv6 for
 DNS configuration [DHCPv6DNS] or stateless DNS discovery [DNSDisc].  In
 such a circumstance, IPv6 hosts will not be configured with a DNS
-server. Where DHCPv6 is not supported, it will not be possible for the
-DNS proxy within the home gateway to dynamically register names learned
-via DHCPv6. As a result, unless the DNS proxy supports client update, it
-will not be able to respond to AAAA RR queries for local names sent over
-IPv4 or IPv6, preventing IPv6 hosts from resolving the names of other
-IPv6 hosts on the local link. In this situation, LLMNR enables
-resolution of dynamic names, and it will be enabled for use with IPv6,
-even though it is disabled for use with IPv4.
+server. Where DHCPv6 is not supported, the DNS proxy within the home
+gateway will not be able to dynamically register names learned via
+DHCPv6.  As a result, unless the DNS proxy supports client dynamic
+update, it will not be able to respond to AAAA RR queries for local
+names sent over IPv4 or IPv6, preventing IPv6 hosts from resolving the
+names of other IPv6 hosts on the local link. In this situation, LLMNR
+enables resolution of dynamic names, and it will be enabled for use with
+IPv6, even though it is disabled for use with IPv4.
+
+3.1.1.  Consistency of configuration
+
+It is possible that DNS servers and/or DNS configuration mechanisms will
+go in and out of service. In these circumstances, it is possible for
+hosts within an administrative domain to be inconsistent in their DNS
+configuration.
+
+For example, where DHCP is used for configuring DNS servers, one or more
+DHCP servers can go down. As a result, hosts configured prior to the
+outage will be configured with a DNS server, while hosts configured
+after the outage will use LLMNR. When the DHCP server comes back online,
+it is desirable that unconfigured hosts obtain their configuration from
+it.
+
+Alternatively, it is possible for the DNS configuration mechanism to
+continue functioning while the configured DNS servers fail. In this
+circumstance, it may be desirable for administrators to be able to
+reconfigure hosts to utilize alternative DNS servers.
+
+In order to minimize inconsistencies, the following practices are
+recommended:
+
+
+
+Esibov, Aboba & Thaler       Standards Track                    [Page 9]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                   21 August 2002
+
+
+Periodic retry
+     Unless unconfigured hosts periodically retry configuration, an
+     outage in the DNS configuration mechanism will result in hosts
+     continuing to use LLMNR even once the outage is repaired.  Since
+     LLMNR only enables linklocal name resolution, this represents an
+     unnecessary degradation in capabilities.  As a result, it is
+     recommended that hosts without a configured DNS server periodically
+     attempt to obtain DNS configuration. The recommended default retry
+     interval is 30 seconds.
+
+DNS failover
+     For security reasons, by default LLMNR is not enabled for the
+     resolution of FQDNs where a DNS server has been configured.  This
+     implies that where a DNS server has been configured, LLMNR will not
+     be used by default for resolution of FQDNs, even in the event that
+     all configured DNS servers fail. In this circumstance, it may
+     desirable for hosts to retry DNS configuration, so as to discover
+     alternative DNS servers, if they are available. If the
+     configuration mechanism does not respond, hosts MAY enable LLMNR.
+     However, if the configuration mechanism merely configures non-
+     functioning DNS servers, this is not sufficient reason to enable
+     default LLMNR usage, without an explicit indication that LLMNR
+     usage is desired.
 
 4.  Sequence of events
 
@@ -529,25 +588,22 @@ The sequence of events for LLMNR usage is as follows:
    response. If not, then the sender ignores the response and continues
    waiting for the response.
 
-
-
-
-
-
-
-Esibov, Aboba & Thaler       Standards Track                    [Page 9]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     20 July 2002
-
-
 5.  Conflict resolution
 
 There are some scenarios when multiple responders MAY respond to the
 same query. There are other scenarios when only one responder may
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 10]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                   21 August 2002
+
+
 respond to a query. Resource records for which the latter queries are
 submitted are referred as UNIQUE throughout this document. The
 uniqueness of a resource record depends on a nature of the name in the
@@ -592,22 +648,22 @@ Zone section
      The zone name in the zone section MUST be set to the name of the
      UNIQUE record. The zone type in the zone section MUST be set to
      SOA. The zone class in the zone section MUST be set to the class of
-
-
-
-Esibov, Aboba & Thaler       Standards Track                   [Page 10]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     20 July 2002
-
-
      the UNIQUE record.
 
 Prerequisite section
      This section MUST contain a record set whose semantics are
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 11]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                   21 August 2002
+
+
      described in [RFC2136], Section 2.4.3 "RRset Does Not Exist",
      requesting that RRs with the NAME and TYPE of the UNIQUE record do
      not exist.
@@ -652,22 +708,21 @@ active interfaces. In many situations this will be adequate.  However,
 should a host wish to configure LLMNR on more than one of its active
 interfaces, there are some additional precautions it MUST take.
 Implementers who are not planning to support LLMNR on multiple
-
-
-
-Esibov, Aboba & Thaler       Standards Track                   [Page 11]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     20 July 2002
-
-
 interfaces simultaneously may skip this section.
 
 A multi-homed host checks the uniqueness of UNIQUE records as described
 in Section 5. The situation is illustrated in figure 1 below:
+
+
+
+Esibov, Aboba & Thaler       Standards Track                   [Page 12]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                   21 August 2002
+
 
      ----------  ----------
       |      |    |      |
@@ -715,13 +770,18 @@ name.
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 12]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+Esibov, Aboba & Thaler       Standards Track                   [Page 13]
+
+
+
+
+
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 Indeed, host myhost cannot distinguish between the situation shown in
@@ -775,13 +835,13 @@ mechanisms are contemplated:
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 13]
+Esibov, Aboba & Thaler       Standards Track                   [Page 14]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 [1]  Scope restrictions.
@@ -835,13 +895,13 @@ that address.
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 14]
+Esibov, Aboba & Thaler       Standards Track                   [Page 15]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 Violation of this guideline can significantly increases security
@@ -895,13 +955,13 @@ administration.  Since it uses a port (5353) and link scope multicast
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 15]
+Esibov, Aboba & Thaler       Standards Track                   [Page 16]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 IPv4 address (224.0.0.251) previously allocated for use with LLMNR, no
@@ -955,13 +1015,13 @@ additional IANA allocations are required.
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 16]
+Esibov, Aboba & Thaler       Standards Track                   [Page 17]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
                October 1998.
@@ -1015,13 +1075,13 @@ Phone: +1 425 706 6605
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 17]
+Esibov, Aboba & Thaler       Standards Track                   [Page 18]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 EMail: bernarda@microsoft.com
@@ -1075,13 +1135,13 @@ perpetual and will not be revoked by the Internet Society or its
 
 
 
-Esibov, Aboba & Thaler       Standards Track                   [Page 18]
+Esibov, Aboba & Thaler       Standards Track                   [Page 19]
 
 
 
 
 
-INTERNET-DRAFT                    LLMNR                     20 July 2002
+INTERNET-DRAFT                    LLMNR                   21 August 2002
 
 
 successors or assigns.  This document and the information contained
@@ -1091,70 +1151,10 @@ IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
 INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
 WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Esibov, Aboba & Thaler       Standards Track                   [Page 19]
-
-
-
-
-
-INTERNET-DRAFT                    LLMNR                     20 July 2002
-
-
 Expiration Date
 
-This memo is filed as <draft-ietf-dnsext-mdns-11.txt>,  and  expires
+This memo is filed as <draft-ietf-dnsext-mdns-12.txt>,  and  expires
 February 22, 2003.
-
-
-
-
-
-
-
 
 
 
