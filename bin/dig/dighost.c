@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.20 2004/03/09 06:09:12 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.21 2004/04/08 01:25:23 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -54,6 +54,7 @@
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -718,13 +719,6 @@ setup_libs(void) {
 
 	debug("setup_libs()");
 
-	/*
-	 * Warning: This is not particularly good randomness.  We'll
-	 * just use random() now for getting id values, but doing so
-	 * does NOT ensure that id's can't be guessed.
-	 */
-	srandom(getpid());
-
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS)
 		have_ipv4 = ISC_TRUE;
@@ -1196,6 +1190,7 @@ insert_soa(dig_lookup_t *lookup) {
 void
 setup_lookup(dig_lookup_t *lookup) {
 	isc_result_t result;
+	isc_uint32_t id;
 	int len;
 	dig_server_t *serv;
 	dig_query_t *query;
@@ -1309,7 +1304,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	trying(store, lookup);
 	INSIST(dns_name_isabsolute(lookup->name));
 
-	lookup->sendmsg->id = (unsigned short)(random() & 0xFFFF);
+	isc_random_get(&id);
+	lookup->sendmsg->id = (unsigned short)id & 0xFFFF;
 	lookup->sendmsg->opcode = dns_opcode_query;
 	lookup->msgcounter = 0;
 	/*
