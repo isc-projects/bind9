@@ -79,16 +79,20 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 /*
  * Start a DNSSEC validation.
  *
- * To validate a positive response, the data to validate is
- * given by 'name', 'rdataset', and 'sigrdataset'.  If
- * 'sigrdataset' is NULL, the data is presumed insecure
- * and an attempt is made to validate its insecurity by
- * finding the appropriate null key.
+ * This validates a response to the question given by
+ * 'name' and 'type'.
+ *
+ * To validate a positive response, the response data is
+ * given by 'rdataset' and 'sigrdataset'.  If 'sigrdataset'
+ * is NULL, the data is presumed insecure and an attempt
+ * is made to prove its insecurity by finding the appropriate
+ * null key.
  *
  * The complete response message may be given in 'message',
  * to make available any authority section NXTs that may be
  * needed for validation of a response resulting from a 
- * wildcard expansion.  When complete response message
+ * wildcard expansion (though no such wildcard validation 
+ * is implemented yet).  If the complete response message
  * is not available, 'message' is NULL.
  *
  * To validate a negative response, the complete negative response
