@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.256 $)
+AC_REVISION($Revision: 1.257 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1446,7 +1446,7 @@ do
 		break
 	fi
 done
-if test "X$1" = "X"
+if test "X[$]$1" = "X"
 then
 	AC_MSG_RESULT("not found");
 	$1=$2
