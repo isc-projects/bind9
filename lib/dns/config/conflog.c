@@ -267,7 +267,7 @@ isc_result_t
 dns_c_logginglist_addcategory(isc_log_t *lctx,
 			      dns_c_logginglist_t *list,
 			      dns_c_logcat_t *newcat,
-			      isc_boolean_t *deepcopy)
+			      isc_boolean_t deepcopy)
 {
 	dns_c_logcat_t *newc, *tmpcat;
 	isc_result_t res;
