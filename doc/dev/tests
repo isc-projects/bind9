@@ -47,8 +47,7 @@ the old status files out of the way and runs through the tests.
 
 The current test schedule is as follows:
 
-  :50             CVS tree extracted, tarball built and distributed (was
-		  :45)
+  :45             CVS tree extracted, tarball built and distributed
   :00             Most tests begin
   :45             Status report generator runs (was :30)
 
