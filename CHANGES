@@ -1,3 +1,6 @@
+  40.	[feature]	Introduced new logging category "dnssec" and
+			logging module "dns/validator".
+
   39.	[cleanup]	Moved the typedefs for isc_region_t, isc_textregion_t, 
 			and isc_lex_t to <isc/types.h>.
 
