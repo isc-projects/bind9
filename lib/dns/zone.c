@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.31 2004/03/09 06:11:11 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.32 2004/04/28 04:23:34 marka Exp $ */
 
 #include <config.h>
 
@@ -2643,7 +2643,7 @@ zone_notify(dns_zone_t *zone) {
 	dns_name_t master;
 	dns_rdata_ns_t ns;
 	dns_rdata_soa_t soa;
-	isc_uint32_t serial = 0;
+	isc_uint32_t serial;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t nsrdset;
 	dns_rdataset_t soardset;
@@ -2679,44 +2679,8 @@ zone_notify(dns_zone_t *zone) {
 		flags |= DNS_NOTIFY_NOSOA;
 
 	/*
-	 * Enqueue notify requests for 'also-notify' servers.
+	 * Get SOA RRset.
 	 */
-	LOCK_ZONE(zone);
-	for (i = 0; i < zone->notifycnt; i++) {
-		dst = zone->notify[i];
-		if (notify_isqueued(zone, NULL, &dst))
-			continue;
-		result = notify_create(zone->mctx, flags, &notify);
-		if (result != ISC_R_SUCCESS) {
-			UNLOCK_ZONE(zone);
-			return;
-		}
-		zone_iattach(zone, &notify->zone);
-		notify->dst = dst;
-		ISC_LIST_APPEND(zone->notifies, notify, link);
-		result = notify_send_queue(notify);
-		if (result != ISC_R_SUCCESS) {
-			notify_destroy(notify, ISC_TRUE);
-			UNLOCK_ZONE(zone);
-			return;
-		}
-		if (!loggednotify) {
-			notify_log(zone, ISC_LOG_INFO,
-				   "sending notifies (serial %u)",
-				   serial);
-			loggednotify = ISC_TRUE;
-		}
-		notify = NULL;
-	}
-	UNLOCK_ZONE(zone);
-
-	if (notifytype == dns_notifytype_explicit)
-		return;
-
-	/*
-	 * Process NS RRset to generate notifies.
-	 */
-
 	dns_db_currentversion(zone->db, &version);
 	result = dns_db_findnode(zone->db, origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
@@ -2730,23 +2694,55 @@ zone_notify(dns_zone_t *zone) {
 		goto cleanup2;
 
 	/*
-	 * Find master server's name.
+	 * Find serial and master server's name.
 	 */
 	dns_name_init(&master, NULL);
 	result = dns_rdataset_first(&soardset);
-	if (result == ISC_R_SUCCESS) {
-		dns_rdataset_current(&soardset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, NULL);
-		dns_rdata_reset(&rdata);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_name_dup(&soa.origin, zone->mctx,
-					      &master);
-			serial = soa.serial;
-		}
-		dns_rdataset_disassociate(&soardset);
-	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup3;
+	dns_rdataset_current(&soardset, &rdata);
+	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	dns_rdata_reset(&rdata);
+	result = dns_name_dup(&soa.origin, zone->mctx, &master);
+	serial = soa.serial;
+	dns_rdataset_disassociate(&soardset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup3;
+
+	/*
+	 * Enqueue notify requests for 'also-notify' servers.
+	 */
+	LOCK_ZONE(zone);
+	for (i = 0; i < zone->notifycnt; i++) {
+		dst = zone->notify[i];
+		if (notify_isqueued(zone, NULL, &dst))
+			continue;
+		result = notify_create(zone->mctx, flags, &notify);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		zone_iattach(zone, &notify->zone);
+		notify->dst = dst;
+		ISC_LIST_APPEND(zone->notifies, notify, link);
+		result = notify_send_queue(notify);
+		if (result != ISC_R_SUCCESS)
+			notify_destroy(notify, ISC_TRUE);
+		if (!loggednotify) {
+			notify_log(zone, ISC_LOG_INFO,
+				   "sending notifies (serial %u)",
+				   serial);
+			loggednotify = ISC_TRUE;
+		}
+		notify = NULL;
+	}
+	UNLOCK_ZONE(zone);
+
+	if (notifytype == dns_notifytype_explicit)
+		goto cleanup3;
+  
+	/*
+	 * Process NS RRset to generate notifies.
+	 */
 
 	dns_rdataset_init(&nsrdset);
 	result = dns_db_findrdataset(zone->db, node, version,
