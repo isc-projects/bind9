@@ -926,7 +926,7 @@ journal_seek(dns_journal_t *j, isc_uint32_t offset) {
 	int seek_result;
 	seek_result = fseek(j->fp, (long) offset, SEEK_SET);
 	if (seek_result != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: seek: %s",
 				 j->filename, strerror(errno));
 		return (DNS_R_UNEXPECTED);
@@ -944,7 +944,7 @@ journal_read(dns_journal_t *j, void *mem, size_t nbytes) {
 	if (nread != nbytes) {
 		if (feof(j->fp))
 			return (DNS_R_NOMORE);
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: read: %s",
 				 j->filename, strerror(errno));
 		return (DNS_R_UNEXPECTED);
@@ -960,7 +960,7 @@ journal_write(dns_journal_t *j, void *mem, size_t nbytes) {
 	clearerr(j->fp);	
 	nwritten = fwrite(mem, 1, nbytes, j->fp);
 	if (nwritten != nbytes) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: write: %s",
 				 j->filename, strerror(errno));
 		return (DNS_R_UNEXPECTED);
@@ -974,7 +974,7 @@ journal_fsync(dns_journal_t *j) {
 	int r;
 	r = fflush(j->fp);
 	if (r < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: fflush: %s",
 				 j->filename,
 				 strerror(errno));
@@ -982,7 +982,7 @@ journal_fsync(dns_journal_t *j) {
 	}
 	r = fsync(fileno(j->fp));
 	if (r < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: fsync: %s",
 				 j->filename,
 				 strerror(errno));
@@ -1046,7 +1046,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 	       
 	fp = fopen(filename, "w");
 	if (fp == 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: create: %s",
 				 filename, strerror(errno));
 		return (DNS_R_UNEXPECTED);
@@ -1070,7 +1070,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 
 	nwritten = fwrite(mem, 1, (size_t) size, fp);
 	if (nwritten != (size_t) size) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: write: %s",
 				 filename, strerror(errno));
 		(void) fclose(fp);
@@ -1082,7 +1082,7 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 	
 	r = fclose(fp);
 	if (r != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,		
 				 "%s: close: %s",
 				 filename, strerror(errno));
 		(void) unlink(filename);
@@ -1129,9 +1129,9 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 		}
 	}
 	if (fp == 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "%s: open: %s",
-				 j->filename, strerror(errno));
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: open: %s",
+			      j->filename, strerror(errno));
 		FAIL(DNS_R_UNEXPECTED);
 	}
 
@@ -1145,7 +1145,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 
 	if (memcmp(rawheader.h.format, initial_journal_header.format,
 		   sizeof(initial_journal_header.format)) != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 				 "%s: journal format not recognized",
 				 j->filename);
 		FAIL(DNS_R_UNEXPECTED);
@@ -1158,9 +1158,9 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	 * not exist.
 	 */
 	if (! write && JOURNAL_EMPTY(&j->header)) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "%s: journal unexpectedly empty",
-				 j->filename);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal unexpectedly empty",
+			      j->filename);
 		FAIL(DNS_R_UNEXPECTED);
 	}
 	
@@ -1288,8 +1288,8 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 
 	/* Check serial number consistency. */
 	if (xhdr.serial0 != pos->serial) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "%s: journal corrupt: "
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+				 "%s: journal file corrupt: "
 				 "expected serial %u, got %u",
 				 j->filename,
 				 pos->serial, xhdr.serial0);
@@ -1298,7 +1298,7 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 
 	/* Check for offset wraparound. */
 	if (pos->offset + xhdr.size < pos->offset) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,		
 				 "%s: offset too large",
 				 j->filename);
 		return (DNS_R_UNEXPECTED);		
@@ -1562,23 +1562,23 @@ dns_journal_commit(dns_journal_t *j) {
 	
 	/* Perform some basic consistency checks. */
 	if (j->x.n_soa != 2) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "malformed transaction: %d SOAs",
-				 j->x.n_soa);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "malformed transaction: %d SOAs",
+			      j->x.n_soa);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (! (DNS_SERIAL_GT(j->x.pos[1].serial, j->x.pos[0].serial) ||
 	       (bind8_compat &&
 		j->x.pos[1].serial == j->x.pos[0].serial)))
 	{
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "malformed transaction: serial number "
-				 "would decrease"); 
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "malformed transaction: serial number "
+			      "would decrease"); 
 		return (ISC_R_UNEXPECTED);
 	}
 	if (! JOURNAL_EMPTY(&j->header)) {
 		if (j->x.pos[0].serial != j->header.end.serial) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 					 "malformed transaction: "
 					 "%s last serial %u != "
 					 "transaction first serial %u",
@@ -1767,10 +1767,10 @@ roll_forward(dns_journal_t *j, dns_db_t *db) {
 		if (n_soa == 3)
 			n_soa = 1;
 		if (n_soa == 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "journal corrupt: missing "
-					 "initial SOA");
-			FAIL (DNS_R_UNEXPECTED);
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,			
+					 "%s: journal file corrupt: missing "
+					 "initial SOA", j->filename);
+			FAIL(DNS_R_UNEXPECTED);
 		}
 		CHECK(dns_difftuple_create(diff.mctx, n_soa == 1 ?
 					   DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
@@ -1898,10 +1898,10 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 		if (n_soa == 3)
 			n_soa = 1;
 		if (n_soa == 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "journal corrupt: missing "
-					 "initial SOA");
-			FAIL (DNS_R_UNEXPECTED);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+					 "%s: journal file corrupt: missing "
+					 "initial SOA", j->filename);
+			FAIL(DNS_R_UNEXPECTED);
 		}
 		CHECK(dns_difftuple_create(diff.mctx, n_soa == 1 ?
 					   DNS_DIFFOP_DEL : DNS_DIFFOP_ADD,
@@ -1928,7 +1928,7 @@ dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file) {
 	
  failure:
 	isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-		      "journal corrupt");
+		      "%s: cannot print: journal file corrupt", j->filename);
 
  cleanup:
 	if (source.base != NULL)
@@ -2059,13 +2059,13 @@ read_one_rr(dns_journal_t *j) {
 		 */
 		CHECK(journal_read_xhdr(j, &xhdr));
 		if (xhdr.size == 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "journal corrupt: empty transaction");
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+				      "journal corrupt: empty transaction");
 			FAIL(DNS_R_UNEXPECTED);
 		}
 		if (xhdr.serial0 != j->it.current_serial) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "%s: journal corrupt: "
+			isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+					 "%s: journal file corrupt: "
 					 "expected serial %u, got %u",
 					 j->filename,
 					 j->it.current_serial, xhdr.serial0);
@@ -2084,9 +2084,9 @@ read_one_rr(dns_journal_t *j) {
 	 * size owner name, well below 70 k total.
 	 */
 	if (rrhdr.size < 1+10 || rrhdr.size > 70000) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "journal corrupt: impossible RR size "
-				 "(%d bytes)", rrhdr.size);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+				 "%s: journal corrupt: impossible RR size "
+				 "(%d bytes)", j->filename, rrhdr.size);
 		FAIL(DNS_R_UNEXPECTED);
 	}
 	
