@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.3 2001/01/09 21:44:38 bwelling Exp $
+# $Id: tests.sh,v 1.4 2001/01/13 00:02:55 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -46,7 +46,7 @@ b.example.		300	IN	A	10.53.0.$n
 EOF
 	$DIG +tcp +noadd +nosea +nostat +noquest +noauth +nocomm +nocmd \
 		b.example. \
-		@10.53.0.1 -b 10.53.0.$n -p 5300 | head -1 >test2.dig
+		@10.53.0.1 -b 10.53.0.$n -p 5300 | sed 1q >test2.dig
 	diff test2.dig test2.good || status=1
 done		
 
