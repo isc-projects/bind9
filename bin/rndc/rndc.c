@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.51 2001/03/31 18:19:06 bwelling Exp $ */
+/* $Id: rndc.c,v 1.52 2001/04/10 22:00:41 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -223,8 +223,8 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 		fprintf(stderr,
 			"This may indicate that the remote server is using "
 			"an older version of the\n"
-			"command protocol or this host is not authorized "
-			"to connect.\n");
+			"command protocol, this host is not authorized "
+			"to connect, or the key is invalid.\n");
 		exit(1);
 	}
 
@@ -288,6 +288,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	r.base = databuf;
 
 	isccc_ccmsg_init(mctx, sock, &ccmsg);
+	isccc_ccmsg_setmaxsize(&ccmsg, 1024);
 
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
 						    rndc_recvdone, NULL));
