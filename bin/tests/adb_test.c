@@ -64,9 +64,10 @@ main(int argc, char **argv)
 	isc_sockaddr_t sockaddr;
 	struct in_addr ina;
 	isc_result_t result;
-	dns_name_t name;
+	dns_name_t name1, name2;
 	isc_buffer_t t, namebuf;
-	unsigned char namestorage[512];
+	unsigned char namestorage1[512];
+	unsigned char namestorage2[512];
 	dns_view_t *view;
 	dns_adb_t *adb;
 
@@ -110,49 +111,69 @@ main(int argc, char **argv)
 	check_result(result, "dns_adb_create");
 
 #define NAME1 "nonexistant.flame.org."
+#define NAME2 "badname.isc.org."
 
 	isc_buffer_init(&t, NAME1, sizeof NAME1 - 1, ISC_BUFFERTYPE_TEXT);
 	isc_buffer_add(&t, strlen(NAME1));
-	isc_buffer_init(&namebuf, namestorage, sizeof namestorage,
+	isc_buffer_init(&namebuf, namestorage1, sizeof namestorage1,
 			ISC_BUFFERTYPE_BINARY);
-	dns_name_init(&name, NULL);
-	result = dns_name_fromtext(&name, &t, dns_rootname, ISC_FALSE,
+	dns_name_init(&name1, NULL);
+	result = dns_name_fromtext(&name1, &t, dns_rootname, ISC_FALSE,
 				   &namebuf);
-	check_result(result, "dns_name_fromtext");
+	check_result(result, "dns_name_fromtext NAME1");
+
+	isc_buffer_init(&t, NAME2, sizeof NAME2 - 1, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&t, strlen(NAME2));
+	isc_buffer_init(&namebuf, namestorage2, sizeof namestorage2,
+			ISC_BUFFERTYPE_BINARY);
+	dns_name_init(&name2, NULL);
+	result = dns_name_fromtext(&name2, &t, dns_rootname, ISC_FALSE,
+				   &namebuf);
+	check_result(result, "dns_name_fromtext NAME2");
 
 	/*
 	 * Store this address for this name.
 	 */
 	ina.s_addr = inet_addr("1.2.3.4");
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name, &sockaddr);
+	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.4");
 	printf("Added 1.2.3.4\n");
 
 	ina.s_addr = inet_addr("1.2.3.5");
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name, &sockaddr);
+	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.5");
 	printf("Added 1.2.3.5\n");
 
 	ina.s_addr = inet_addr("1.2.3.6");
 	isc_sockaddr_fromin(&sockaddr, &ina, 53);
-	result = dns_adb_insert(adb, &name, &sockaddr);
+	result = dns_adb_insert(adb, &name1, &sockaddr);
 	check_result(result, "dns_adb_insert 1.2.3.6");
 	printf("Added 1.2.3.6\n");
+
+	ina.s_addr = inet_addr("1.2.3.5");
+	isc_sockaddr_fromin(&sockaddr, &ina, 53);
+	result = dns_adb_insert(adb, &name2, &sockaddr);
+	check_result(result, "dns_adb_insert 1.2.3.5");
+	printf("Added 1.2.3.5\n");
 
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
 	dns_adb_dump(adb, stderr);
 
-	result = dns_adb_deletename(adb, &name);
-	check_result(result, "dns_adb_deletename");
+	result = dns_adb_deletename(adb, &name1);
+	check_result(result, "dns_adb_deletename name1");
+	result = dns_adb_deletename(adb, &name2);
+	check_result(result, "dns_adb_deletename name2");
 
 	dns_adb_dump(adb, stderr);
 
 	isc_mem_stats(mctx, stdout);
 	dns_adb_destroy(&adb);
+
+	dns_view_detach(&view);
 
 	fprintf(stderr, "Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);

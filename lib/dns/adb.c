@@ -1197,13 +1197,26 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 					entry->lock_bucket);
 
 			sa = &entry->sockaddr;
-			tmpp = inet_ntop(sa->type.sa.sa_family, &sa->type.sa,
-					 tmp, sizeof tmp);
+			switch (sa->type.sa.sa_family) {
+			case AF_INET:
+				tmpp = inet_ntop(AF_INET,
+						 &sa->type.sin.sin_addr,
+						 tmp, sizeof tmp);
+				break;
+			case AF_INET6:
+				tmpp = inet_ntop(AF_INET6,
+						 &sa->type.sin6.sin6_addr,
+						 tmp, sizeof tmp);
+				break;
+			default:
+				tmpp = "UnkFamily";
+			}
+
 			if (tmpp == NULL)
 				tmpp = "CANNOT TRANSLATE ADDRESS!";
 
 			fprintf(f, "\trefcnt %u flags %08x goodness %d"
-				" srtt %u host %s\n",
+				" srtt %u addr %s\n",
 				entry->refcnt, entry->flags, entry->goodness,
 				entry->srtt, tmpp);
 
