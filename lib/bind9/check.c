@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.6 2001/10/29 06:09:05 marka Exp $ */
+/* $Id: check.c,v 1.7 2001/11/09 03:34:53 marka Exp $ */
 
 #include <config.h>
 
@@ -53,6 +53,7 @@ check_forward(cfg_obj_t *options, isc_log_t *logctx) {
 typedef struct {
 	const char *name;
 	unsigned int scale;
+	unsigned int max;
 } intervaltable;
 
 static isc_result_t
@@ -61,15 +62,15 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	unsigned int i;
 
 	static intervaltable intervals[] = {
-	{ "cleaning-interval", 60 },
-	{ "heartbeat-interval", 60 },
-	{ "interface-interval", 60 },
-	{ "max-transfer-idle-in", 60 },
-	{ "max-transfer-idle-out", 60 },
-	{ "max-transfer-time-in", 60 },
-	{ "max-transfer-time-out", 60 },
-	{ "sig-validity-interval", 86400},
-	{ "statistics-interval", 60 },
+	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "heartbeat-interval", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "interface-interval", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "max-transfer-idle-in", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "max-transfer-idle-out", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "max-transfer-time-in", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "max-transfer-time-out", 60, 28 * 24 * 60 },	/* 28 days */
+	{ "sig-validity-interval", 86400, 10 * 366 },	/* 10 years */
+	{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
 	};
 
 	/*
@@ -83,7 +84,13 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 		if (obj == NULL)
 			continue;
 		val = cfg_obj_asuint32(obj);
-		if (val > (ISC_UINT32_MAX / intervals[i].scale)) {
+		if (val > intervals[i].max) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "%s '%u' is out of range (0..%u)",
+				    intervals[i].name, val,
+				    intervals[i].max);
+			result = ISC_R_RANGE;
+		} else if (val > (ISC_UINT32_MAX / intervals[i].scale)) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%d' is out of range",
 				    intervals[i].name, val);

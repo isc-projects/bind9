@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.177 2001/11/09 00:22:36 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.178 2001/11/09 03:34:55 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3541,25 +3541,25 @@ list (no global notification list).</para>
 <varlistentry><term><command>max-transfer-time-in</command></term>
 <listitem><para>Inbound zone transfers running longer than
 this many minutes will be terminated. The default is 120 minutes
-(2 hours).</para>
+(2 hours).  The maximum value is 28 days (40320 minutes).</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>max-transfer-idle-in</command></term>
 <listitem><para>Inbound zone transfers making no progress
 in this many minutes will be terminated. The default is 60 minutes
-(1 hour).</para>
+(1 hour).  The maximum value is 28 days (40320 minutes).</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>max-transfer-time-out</command></term>
 <listitem><para>Outbound zone transfers running longer than
 this many minutes will be terminated. The default is 120 minutes
-(2 hours).</para>
+(2 hours).  The maximum value is 28 days (40320 minutes).</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>max-transfer-idle-out</command></term>
 <listitem><para>Outbound zone transfers making no progress
 in this many minutes will be terminated.  The default is 60 minutes (1
-hour).</para>
+hour).  The maximum value is 28 days (40320 minutes).</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>serial-query-rate</command></term>
@@ -3792,7 +3792,7 @@ records are purged from the cache only when their TTLs expire.
 <varlistentry><term><command>cleaning-interval</command></term>
 <listitem><para>The server will remove expired resource records
 from the cache every <command>cleaning-interval</command> minutes.
-The default is 60 minutes.
+The default is 60 minutes.  The maximum value is 28 days (40320 minutes).
 If set to 0, no  periodic cleaning will occur.</para>
 </listitem></varlistentry>
 
@@ -3800,13 +3800,15 @@ If set to 0, no  periodic cleaning will occur.</para>
 <listitem><para>The server will perform zone maintenance tasks
 for all zones marked as <command>dialup</command> whenever this
 interval expires. The default is 60 minutes. Reasonable values are up
-to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</para>
+to 1 day (1440 minutes).  The maximum value is 28 days (40320 minutes).
+If set to 0, no zone maintenance for these zones will occur.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>interface-interval</command></term>
 <listitem><para>The server will scan the network interface list
 every <command>interface-interval</command> minutes. The default
-is 60 minutes. If set to 0, interface scanning will only occur when
+is 60 minutes. The maximum value is 28 days (40320 minutes).
+If set to 0, interface scanning will only occur when
 the configuration file is  loaded. After the scan, the server will
 begin listening for queries on any newly discovered
 interfaces (provided they are allowed by the
@@ -3817,7 +3819,8 @@ stop listening on interfaces that have gone away.</para>
 <varlistentry><term><command>statistics-interval</command></term>
 <listitem><para>Name server statistics will be logged
 every <command>statistics-interval</command> minutes. The default is 
-60. If set to 0, no statistics will be logged.</para><note>
+60. The maximum value is 28 days (40320 minutes).
+If set to 0, no statistics will be logged.</para><note>
 <simpara>Not yet implemented in <acronym>BIND</acronym>9.</simpara></note>
 </listitem></varlistentry>
 
@@ -4068,7 +4071,8 @@ is <userinput>2</userinput>.</para>
 <listitem><para>Specifies the number of days into the
 future when DNSSEC signatures automatically generated as a result
 of dynamic updates (<xref linkend="dynamic_update"/>)
-will expire. The default is <literal>30</literal> days. The signature
+will expire. The default is <literal>30</literal> days.
+The maximum value is 10 years (3660 days). The signature
 inception time is unconditionally set to one hour before the current time
 to allow for a limited amount of clock skew.</para>
 </listitem></varlistentry>
