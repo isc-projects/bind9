@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.37.2.1 2001/01/09 22:49:39 bwelling Exp $ */
+/* $Id: buffer.h,v 1.37.2.2 2001/02/07 02:32:16 gson Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -610,7 +610,7 @@ ISC_LANG_ENDDECLS
 		(_b)->current = 0; \
 		(_b)->active = 0; \
 		(_b)->mctx = NULL; \
-		ISC_LINK_INIT(b, link); \
+		ISC_LINK_INIT(_b, link); \
 		(_b)->magic = ISC_BUFFER_MAGIC; \
 	} while (0)
 
