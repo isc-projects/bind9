@@ -1,3 +1,7 @@
+1482.	[bug]		Named could fail to start if the kernel supports
+			IPv6 but no interfaces are configured.  Similarly
+			for IPv4. [RT #6229]
+			
 1481.	[bug]		Refresh and stub queries failed to use masters keys
 			if specified. [RT #7391]
 
