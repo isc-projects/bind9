@@ -1,6 +1,5 @@
 Name		Status		Whom
 ------------------------------------
-rt4463		review		marka?
 a6_remove	review		marka
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
@@ -32,4 +31,5 @@ rt4268		closed
 rt4319		closed		explorer
 rt4398		closed
 rt4425		closed
+rt4463		closed
 rt4802		closed
