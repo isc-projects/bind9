@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.73 2000/08/15 00:21:02 bwelling Exp $ */
+/* $Id: validator.c,v 1.74 2000/08/15 00:52:49 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1465,8 +1465,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 void
 dns_validator_cancel(dns_validator_t *validator) {
-	isc_task_t *task;
-
 	REQUIRE(VALID_VALIDATOR(validator));
 
 	LOCK(&validator->lock);
