@@ -1,4 +1,4 @@
-1341.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>.
+1341.	[port]		linux: Slackware 4.0 needs <asm/unistd.h>. [RT #3205]
 
 1342.	[bug]		dnssec-signzone usage message was misleading.
 
