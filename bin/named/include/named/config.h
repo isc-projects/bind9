@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.3 2001/08/07 01:58:59 marka Exp $ */
-
-/* $Id: config.h,v 1.3 2001/08/07 01:58:59 marka Exp $ */
+/* $Id: config.h,v 1.4 2001/08/09 17:21:06 gson Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
