@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.221 $)
+AC_REVISION($Revision: 1.222 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -188,6 +188,57 @@ if test "X$CC" = "X" ; then
 	esac
 fi
 
+AC_PROG_CC
+AC_PROG_YACC
+
+AC_HEADER_STDC
+
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h)
+
+AC_C_CONST
+AC_C_INLINE
+AC_TYPE_SIZE_T
+AC_HEADER_TIME
+
+#
+# check if we need to #include sys/select.h explicitly
+#
+case $ac_cv_header_unistd_h in
+yes)
+AC_MSG_CHECKING(if unistd.h defines fd_set)
+AC_TRY_COMPILE([
+#include <unistd.h>],
+[fd_set read_set; return (0);],
+	[AC_MSG_RESULT(yes)
+	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
+	 LWRES_PLATFORM_NEEDSYSSELECTH="#undef LWRES_PLATFORM_NEEDSYSSELECTH"],
+	[AC_MSG_RESULT(no)
+	case ac_cv_header_sys_select_h in
+	yes)
+         ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
+	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
+		;;
+	no)
+		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
+		;;
+	esac
+	])
+	;;
+no)
+	case ac_cv_header_sys_select_h in
+	yes)
+             ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
+	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
+		;;
+	no)
+		AC_MSG_ERROR([need either unistd.h or sys/select.h])
+		;;
+	esac
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_NEEDSYSSELECTH)
+AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
+
 #
 # Find the machine's endian flavor.
 #
@@ -313,56 +364,6 @@ case "$use_randomdev" in
 		;;
 esac
 
-AC_PROG_CC
-AC_PROG_YACC
-
-AC_HEADER_STDC
-
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h sys/select.h)
-
-AC_C_CONST
-AC_C_INLINE
-AC_TYPE_SIZE_T
-AC_HEADER_TIME
-
-#
-# check if we need to #include sys/select.h explicitly
-#
-case $ac_cv_header_unistd_h in
-yes)
-AC_MSG_CHECKING(if unistd.h defines fd_set)
-AC_TRY_COMPILE([
-#include <unistd.h>],
-[fd_set read_set; return (0);],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
-	 LWRES_PLATFORM_NEEDSYSSELECTH="#undef LWRES_PLATFORM_NEEDSYSSELECTH"],
-	[AC_MSG_RESULT(no)
-	case ac_cv_header_sys_select_h in
-	yes)
-         ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
-		;;
-	esac
-	])
-	;;
-no)
-	case ac_cv_header_sys_select_h in
-	yes)
-             ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either unistd.h or sys/select.h])
-		;;
-	esac
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_NEEDSYSSELECTH)
-AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
 #
 # Begin pthreads checking.
 #
