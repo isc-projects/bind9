@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "/usr/local/share/xml/dtd/docbook/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.5 2000/09/11 17:09:46 scanner Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.6 2000/09/11 17:39:25 gson Exp $ -->
 
 <book>
 
@@ -949,32 +949,34 @@ internal clients will now be able to:</para>
 
 <para>Internal DNS server config:</para>
 <programlisting>
-acl internals { 172.16.72.0/24; 192.168.1.0/24;
-};
+
+acl internals { 172.16.72.0/24; 192.168.1.0/24; };
+
 acl externals { <varname>bastion-ips-go-here</varname>; };
+
 options {
     ...
     ...
     forward only;
-    forwarders { <varname>bastion-ips-go-here</varname>; }; // forward to external
-servers
-    allow-transfer { none; };															// sample allow-transfer
-(no one)
-    allow-query { internals; externals; };															// restrict
-query access
-    allow-recursion { internals; };															// restrict recursion
+    forwarders { 				// forward to external servers
+    	<varname>bastion-ips-go-here</varname>; 
+    };
+    allow-transfer { none; };			// sample allow-transfer (no one)
+    allow-query { internals; externals; };	// restrict query access
+    allow-recursion { internals; };		// restrict recursion
     ...
     ...
 };
-zone "site1.example.com" { 															//
-sample slave zone
+
+zone "site1.example.com" { 			// sample slave zone
   type master;
   file "m/site1.example.com";
-  forwarders { }; 															// do normal iterative
-															// resolution (do not forward)
+  forwarders { }; 				// do normal iterative
+						// resolution (do not forward)
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
+
 zone "site2.example.com" {
   type slave;
   file "s/site2.example.com";
@@ -983,6 +985,7 @@ zone "site2.example.com" {
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
+
 zone "site1.internal" {
   type master;
   file "m/site1.internal";
@@ -990,6 +993,7 @@ zone "site1.internal" {
   allow-query { internals; };
   allow-transfer { internals; }
 };
+
 zone "site2.internal" {
   type slave;
   file "s/site2.internal";
@@ -1001,28 +1005,27 @@ zone "site2.internal" {
 </programlisting>
     <para>External (bastion host) DNS server config:</para>
 <programlisting>
-acl internals { 172.16.72.0/24; 192.168.1.0/24;
-};
+acl internals { 172.16.72.0/24; 192.168.1.0/24; };
+
 acl externals { bastion-ips-go-here; };
+
 options {
   ...
   ...
-  allow-transfer { none; };															// sample allow-transfer
-(no one)
-  allow-query { internals; externals; };															// restrict
-query access
-  allow-recursion { internals; externals; };															// restrict
-recursion
+  allow-transfer { none; };			// sample allow-transfer (no one)
+  allow-query { internals; externals; };	// restrict query access
+  allow-recursion { internals; externals; };	// restrict recursion
   ...
   ...
 };
-zone "site1.example.com" {															//
-sample slave zone
+
+zone "site1.example.com" {			// sample slave zone
   type master;
   file "m/site1.foo.com";
   allow-query { any; };
   allow-transfer { internals; externals; };
 };
+
 zone "site2.example.com" {
   type slave;
   file "s/site2.foo.com";
@@ -1408,7 +1411,7 @@ allow-update { key host1-host2. ;};
 
 <programlisting>
 $ORIGIN example.com.
-host					1h		IN	AAAA	3ffe:8050:201:1860:42::1
+host		3600	IN	AAAA	3ffe:8050:201:1860:42::1
 </programlisting>
 
       <para>While their use is deprecated, they are useful to support
@@ -1428,7 +1431,7 @@ host					1h		IN	AAAA	3ffe:8050:201:1860:42::1
 
 <programlisting>
 $ORIGIN example.com.
-host					1h		IN	A6	0	3ffe:8050:201:1860:42::1
+host		3600	IN	A6	0 3ffe:8050:201:1860:42::1
 </programlisting>
       <sect3>
         <title>A6 Chains</title>
@@ -1444,22 +1447,22 @@ host					1h		IN	A6	0	3ffe:8050:201:1860:42::1
 
 <programlisting>
 $ORIGIN	example.com.
-host			1h	IN	A6	64	0:0:0:0:42::1											company.example1.net.
-host			1h	IN	A6	64	0:0:0:0:42::1					company.example2.net.
+host		3600	IN	A6	64 0:0:0:0:42::1 company.example1.net.
+host		3600	IN	A6	64 0:0:0:0:42::1 company.example2.net.
 </programlisting>
 
         <para>ISP1 will use:</para>
 
 <programlisting>
 $ORIGIN example1.net.
-company				1h		IN		A6	0	3ffe:8050:201:1860::
+company		3600	IN	A6	0 3ffe:8050:201:1860::
 </programlisting>
 
 <para>ISP2 will use:</para>
 
 <programlisting>
 $ORIGIN example2.net.
-company				1h		IN		A6	0	1234:5678:90ab:fffa::
+company		3600	IN	A6	0 1234:5678:90ab:fffa::
 </programlisting>
 
         <para>When <systemitem
@@ -1478,10 +1481,10 @@ company				1h		IN		A6	0	1234:5678:90ab:fffa::
 
 <programlisting>
 $ORIGIN example.com.
-@			4h		IN		NS		ns0
-			4h		IN		NS		ns1
-ns0			4h		IN		A6		0						3ffe:8050:201:1860:42::1
-ns1			4h		IN		A		192.168.42.1
+@		14400		IN	NS		ns0
+		14400		IN	NS		ns1
+ns0		14400		IN	A6		0 3ffe:8050:201:1860:42::1
+ns1		14400		IN	A		192.168.42.1
 </programlisting>
 
         <para>It is recommended that IPv4-in-IPv6 mapped addresses not
@@ -1507,7 +1510,7 @@ ns1			4h		IN		A		192.168.42.1
 
 <programlisting>
 $ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0				4h										IN		PTR		host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0	  14400 IN 	PTR	host.example.com.
 </programlisting>
     </sect2>
     <sect2>
@@ -1522,7 +1525,7 @@ $ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
 
 <programlisting>
 $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64]									4h			IN			PTR			host.example.com.
+\[x0042000000000001/64] 	14400 	IN 	PTR	host.example.com.
 </programlisting>
     </sect2>
     <sect2>
@@ -1543,14 +1546,14 @@ $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
 
 <programlisting>
 $ORIGIN example.com.
-host						A6		64		::1234:5678:1212:5675 cust1.example.net.
-						A6		64		::1234:5678:1212:5675 subnet5.example2.net.
+host			A6	64	::1234:5678:1212:5675 cust1.example.net.
+			A6	64	::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1						A6		48		0:0:0:dddd:: ipv6net.example.net.
-ipv6net						A6		0		aa:bb:cccc::
+cust1			A6	48	0:0:0:dddd:: ipv6net.example.net.
+ipv6net			A6	0	aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5						A6		48		0:0:0:1:: ipv6net2.example2.net.
-ipv6net2						A6		0		6666:5555:4::
+subnet5			A6	48	0:0:0:1:: ipv6net2.example2.net.
+ipv6net2		A6	0	6666:5555:4::
 </programlisting>
 
 <para>This sets up forward lookups.  To handle the reverse lookups,
@@ -1559,7 +1562,7 @@ would have:</para>
 
 <programlisting>
 $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]								DNAME		ipv6-rev.example.com.
+\[xdddd/16]		DNAME		ipv6-rev.example.com.
 </programlisting>
 
       <para>and <systemitem
@@ -1567,7 +1570,7 @@ $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]								DNAME		ipv6-rev.example.com.
+\[x0001/16]		DNAME		ipv6-rev.example.com.
 </programlisting>
 
       <para><systemitem class="systemname">example.com</systemitem>
@@ -1576,7 +1579,7 @@ $ORIGIN \[x666655550004/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]								PTR				host.example.com. 
+\[x1234567812125675/64]	PTR		host.example.com. 
 </programlisting>
     </sect2>
   </sect1>
