@@ -32,8 +32,6 @@
  *** Functions
  ***/
 
-/* XXX for testing only */
-
-void xfrin_test(void);
+void ns_xfrin_start(dns_zone_t *zone, isc_sockaddr_t *master);
 
 #endif /* NS_XFRIN_H */
