@@ -17,10 +17,12 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_lib.c,v 1.6 2000/08/01 01:27:48 tale Exp $
+ * $Id: dst_lib.c,v 1.7 2000/08/30 01:24:20 bwelling Exp $
  */
 
 #include <config.h>
+
+#include <stddef.h>
 
 #include <isc/once.h>
 #include <isc/msgcat.h>
