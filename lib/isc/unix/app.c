@@ -191,6 +191,9 @@ isc_app_run(void) {
 	 * Wait for SIGINT or SIGTERM.
 	 */
 	if (sigemptyset(&sset) != 0 ||
+#ifdef HAVE_LINUXTHREADS
+	    sigaddset(&sset, SIGABRT) != 0 ||
+#endif
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
