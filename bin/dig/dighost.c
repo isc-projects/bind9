@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.53 2000/06/16 18:00:00 mws Exp $ */
+/* $Id: dighost.c,v 1.54 2000/06/21 01:40:40 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -358,7 +358,10 @@ setup_system(void) {
 	isc_lex_t *lex = NULL;
 	isc_stdtime_t now;
 	
+	debug ("setup_system()");
+
 	if (fixeddomain[0]!=0) {
+		debug("Using fixed domain %s", fixeddomain);
 		search = isc_mem_allocate( mctx, sizeof(struct dig_server));
 		if (search == NULL)
 			fatal("Memory allocation failure in %s:%d",
@@ -366,8 +369,6 @@ setup_system(void) {
 		strncpy(search->origin, fixeddomain, MXNAME - 1);
 		ISC_LIST_PREPEND(search_list, search, link);
 	}
-
-	debug ("setup_system()");
 
 	free_now = ISC_FALSE;
 	get_servers = ISC_TF(server_list.head == NULL);

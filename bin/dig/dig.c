@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.45 2000/06/19 19:00:49 mws Exp $ */
+/* $Id: dig.c,v 1.46 2000/06/21 01:40:38 mws Exp $ */
 
 #include <config.h>
 
@@ -540,6 +540,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
 		debug ("Main parsing %s", rv[0]);
+		if (strncmp(rv[0], "%", 1) == 0) 
+			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
 			srv = isc_mem_allocate(mctx,
 					       sizeof(struct dig_server));
@@ -694,6 +696,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->recurse = ISC_FALSE;
 				lookup->identify = ISC_TRUE;
 				lookup->trace = ISC_TRUE;
+				lookup->stats = ISC_FALSE;
 				if (!forcecomment)
 					lookup->comments = ISC_FALSE;
 				lookup->section_additional = ISC_FALSE;
@@ -703,6 +706,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				ns_search_only = ISC_TRUE;
 				recurse = ISC_FALSE;
 				identify = ISC_TRUE;
+				stats = ISC_FALSE;
 				if (!forcecomment)
 					comments = ISC_FALSE;
 				section_additional = ISC_FALSE;

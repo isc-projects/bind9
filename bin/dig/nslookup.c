@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.18 2000/06/20 00:21:15 tale Exp $ */
+/* $Id: nslookup.c,v 1.19 2000/06/21 01:40:42 mws Exp $ */
 
 #include <config.h>
 
@@ -45,7 +45,7 @@ extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
 extern isc_boolean_t have_ipv6, show_details,
-	usesearch, trace, qr;
+	usesearch, trace, qr, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -213,8 +213,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
-				dns_rdataset_current(rdataset, &rdata);
-				switch (rdata.type) {
+				dns_rdataset_current(rdataset, &rdata);				switch (rdata.type) {
 				case dns_rdatatype_a:
 					if (section != DNS_SECTION_ANSWER)
 						goto def_short_section;
@@ -565,15 +564,17 @@ show_settings(isc_boolean_t full) {
 	printf ("\n\tSet options:\n");
 	printf ("\t  %s\t\t\t%s\t\t%s\n",
 		tcpmode?"vc":"novc", short_form?"nodebug":"debug",
-		recurse?"recurse":"norecurse");
-	printf ("\t  %s\t\t%s\t\tport = %d\n",
+		debugging?"d2":"nod2");
+	printf ("\t  %s\t\t%s\t\t%s\n",
 		defname?"defname":"nodefname",
 		usesearch?"search":"nosearch",
-		port);
-	printf ("\t  timeout = %d\t\tretry = %d\n",
-		timeout, tries);
+		recurse?"recurse":"norecurse");
+	printf ("\t  timeout = %d\t\tretry = %d\tport = %d\n",
+		timeout, tries, port);
 	printf ("\t  querytype = %-8s\tclass=%s\n",deftype, defclass);
-
+#if 0
+	printf ("\t  domain = %s\n", fixeddomain);
+#endif
 
 }
 
@@ -596,10 +597,13 @@ setoption(char *opt) {
 		strncpy(deftype, &opt[6], MXRD);
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
 		strncpy(deftype, &opt[3], MXRD);
+#if 0
+		/* XXXMWS domain= doesn't work now. */
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
 		strncpy(fixeddomain, &opt[7], MXNAME);
 	} else if (strncasecmp(opt, "do=", 3) == 0) {
 		strncpy(fixeddomain, &opt[3], MXNAME);
+#endif
 	} else if (strncasecmp(opt, "port=", 5) == 0) {
 		port = atoi(&opt[5]);
 	} else if (strncasecmp(opt, "po=", 3) == 0) {
@@ -620,6 +624,10 @@ setoption(char *opt) {
 		short_form = ISC_FALSE;
 	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
 		short_form = ISC_TRUE;
+ 	} else if (strncasecmp(opt, "d2", 2) == 0) {
+		debugging = ISC_TRUE;
+	} else if (strncasecmp(opt, "nod2", 4) == 0) {
+		debugging = ISC_FALSE;
 	} else if (strncasecmp(opt, "sil",3) == 0) {
 		deprecation_msg = ISC_FALSE;
 	}

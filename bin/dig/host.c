@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.26 2000/06/16 18:00:01 mws Exp $ */
+/* $Id: host.c,v 1.27 2000/06/21 01:40:41 mws Exp $ */
 
 #include <config.h>
 
@@ -39,7 +39,7 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, show_details;
+extern isc_boolean_t have_ipv6, show_details, debugging;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -543,7 +543,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	UNUSED(is_batchfile);
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:"))
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:D"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -599,6 +599,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug ("Setting NDOTS to %s", 
 			       isc_commandline_argument);
 			ndots = atoi(isc_commandline_argument);
+			break;
+		case 'D':
+			debugging = ISC_TRUE;
 			break;
 		}
 	}
