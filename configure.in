@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.335 $)
+AC_REVISION($Revision: 1.336 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -191,6 +191,17 @@ if test "X$CC" = "X" ; then
 fi
 
 AC_PROG_CC
+
+#
+# gcc's optimiser is broken at -02 for ultrasparc
+#
+if test "$ac_env_CFLAGS_set" != set -a "X$GCC" = "Xyes"; then
+	case "$host" in
+	sparc-*-solaris*)
+		CCFLAGS="-g -O1"
+		;;
+	esac
+fi
 
 #
 #	OSF 5.0: recv/send are only avaliable with -D_POSIX_PII_SOCKET or
