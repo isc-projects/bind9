@@ -4,12 +4,6 @@
 #
 . ./conf.sh
 
-sh ifconfig.sh start
-
-if [ $? != 0 ]; then
-	exit 0
-fi
-
 test $# -gt 0 || { echo "usage: runtest.sh test-directory" >&2; exit 1; }
 
 test=$1
@@ -23,22 +17,4 @@ then
    ( cd $test && sh setup.sh "$@" )
 fi
 
-# Start name servers running
-sh start.sh $test
 
-sleep 10
-
-# Run the tests
-( cd $test ; sh tests.sh )
-
-status=$_
-
-# Shutdown
-sh stop.sh $test
-
-# Cleanup
-( cd $test ; sh clean.sh )
-
-sh ifconfig.sh stop
-
-exit $status

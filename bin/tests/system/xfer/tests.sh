@@ -27,3 +27,9 @@ status=`expr $status + $?`
 
 perl ../digcomp.pl knowngood.dig.out dig.out.ns3
 status=`expr $status + $?`
+
+if [ $status != 0 ]; then
+	echo "FAILED with status $status"
+fi
+
+exit $status

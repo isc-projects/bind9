@@ -44,7 +44,7 @@ while (<FILE1>) {
     }
     if ($entry{"$name ; $class.$type ; $value"} ne "") {
       $line = $entry{"$name ; $class.$type ; $value"};
-      print ("Duplicate entry:\n> $_\n< $line\n");
+      print ("Duplicate entry in $file1:\n> $_\n< $line\n");
     } else {
       $entry{"$name ; $class.$type ; $value"} = $_;
     }
