@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.13 2000/05/08 14:38:11 tale Exp $ */
+/* $Id: generic.c,v 1.14 2000/05/24 18:43:29 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -24,6 +24,8 @@
  */
 
 #include <config.h>
+
+#include <stdlib.h>  /* Required on BSD/OS 3.1 for abort() used in va_arg(). */
 
 #include <isc/mem.h>
 #include <isc/string.h>

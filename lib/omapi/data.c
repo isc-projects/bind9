@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.12 2000/05/08 14:38:10 tale Exp $ */
+/* $Id: data.c,v 1.13 2000/05/24 18:43:28 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -25,6 +25,7 @@
 
 #include <config.h>
 
+#include <stdlib.h>  /* Required on BSD/OS 3.1 for abort() used in va_arg(). */
 
 #include <isc/mem.h>
 #include <isc/string.h>
