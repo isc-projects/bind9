@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.160 2000/07/28 22:37:47 bwelling Exp $ */
+/* $Id: resolver.c,v 1.161 2000/07/29 01:18:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1849,6 +1849,8 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 
 	REQUIRE(VALID_FCTX(fctx));
 
+	UNUSED(task);
+
 	res = fctx->res;
 	bucketnum = fctx->bucketnum;
 
@@ -1885,13 +1887,11 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		fctx->state = fetchstate_active;
 		/*
 		 * Reset the control event for later use in shutting down
-		 * the fctx.  "task" is set as the sender only to satisfy
-		 * the requirement that the sender is non-null, but it is not
-		 * used by the event receiver.
+		 * the fctx.
 		 */
 		ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 			       DNS_EVENT_FETCHCONTROL, fctx_doshutdown, fctx,
-			       task, NULL, NULL);
+			       NULL, NULL, NULL);
 	}
 
 	UNLOCK(&res->buckets[bucketnum].lock);
@@ -4764,15 +4764,12 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	if (new_fctx) {
 		if (result == ISC_R_SUCCESS) {
 			/*
-			 * Launch this fctx.  "task" is set as the sender only
-			 * to satisfy the requirement that the sender is
-			 * non-null, but it is not used by the event
-			 * receiver.
+			 * Launch this fctx.
 			 */
 			event = &fctx->control_event;
 			ISC_EVENT_INIT(event, sizeof(*event), 0, NULL,
 				       DNS_EVENT_FETCHCONTROL,
-				       fctx_start, fctx, task,
+				       fctx_start, fctx, NULL,
 				       NULL, NULL);
 			isc_task_send(res->buckets[bucketnum].task, &event);
 		} else {
