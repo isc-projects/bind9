@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.6 2000/06/08 18:32:04 mws Exp $ */
+/* $Id: gai_strerror.c,v 1.7 2000/06/08 18:36:52 gson Exp $ */
 
 #include <lwres/netdb.h>
 
@@ -31,8 +31,8 @@ static const char *gai_messages[] = {
 	"hostname nor servname provided, or not known",
 	"servname not supported for ai_socktype",
 	"ai_socktype not supported",
-	"system error returned in errno" };
-
+	"system error returned in errno"
+};
 
 char*
 gai_strerror(int ecode) {
@@ -42,8 +42,8 @@ gai_strerror(int ecode) {
 	} ptr;
 		       
 	if ((ecode < 0) || (ecode > EAI_MAX))
-		ptr.const_ptr = "Invalid error";
+		ptr.const_ptr = "invalid error code";
 	else
 		ptr.const_ptr = gai_messages[ecode];
-	return(ptr.deconst_ptr);
+	return (ptr.deconst_ptr);
 }
