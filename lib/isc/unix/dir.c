@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.15 2001/01/09 21:58:12 bwelling Exp $ */
+/* $Id: dir.c,v 1.16 2001/01/29 03:17:44 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -139,6 +139,17 @@ isc_dir_chdir(const char *dirname) {
 	REQUIRE(dirname != NULL);
 
 	if (chdir(dirname) < 0)
+		return (isc__errno2result(errno));
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_dir_chroot(const char *dirname) {
+
+	REQUIRE(dirname != NULL);
+
+	if (chroot(dirname) < 0)
 		return (isc__errno2result(errno));
 
 	return (ISC_R_SUCCESS);
