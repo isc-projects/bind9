@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.104 2001/09/01 05:09:33 mayer Exp $ */
+/* $Id: nsupdate.c,v 1.105 2001/09/10 12:30:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1511,6 +1511,10 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 				       FIND_TIMEOUT, global_task,
 				       update_completed, NULL, &request);
 	check_result(result, "dns_request_createvia");
+
+	if (debugging)
+		show_message(updatemsg);
+
 	requests++;
 }
 
