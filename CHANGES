@@ -1,3 +1,7 @@
+
+ 901.	[cleanup]	The man pages no longer have empty lines outside of
+			literal blocks.
+
  898.	[bug]		"dig" failed to set a nonzero exit status
  			on UDP query timeout. [RT #1323]
 
