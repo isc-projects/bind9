@@ -57,7 +57,7 @@ isc_sockaddr_t addr;
 static void
 usage() {
 	fprintf(stderr,
-		"usage: test_zone [-dqsSM] [-c class] [-f file] zone\n");
+		"usage: zone_test [-dqsSM] [-c class] [-f file] zone\n");
 	exit(1);
 }
 
