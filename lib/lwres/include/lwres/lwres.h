@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.45 2000/11/02 01:52:30 bwelling Exp $ */
+/* $Id: lwres.h,v 1.46 2000/12/21 00:27:55 bwelling Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -213,7 +213,6 @@ typedef struct {
 } lwres_grbnresponse_t;
 
 #define LWRDATA_VALIDATED	0x00000001
-#define LWRDATA_AUTHORITATIVE	0x00000002
 
 /*
  * resolv.conf data

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h.in,v 1.29 2000/11/15 20:47:54 tale Exp $ */
+/* $Id: netdb.h.in,v 1.30 2000/12/21 00:27:56 bwelling Exp $ */
 
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
@@ -178,8 +178,6 @@ struct rrsetinfo {
  */
 #define RRSET_VALIDATED		0x00000001
 	/* Set was dnssec validated */
-#define RRSET_AUTHORITATIVE	0x00000002
-	/* Set was returned by an authoritative server */
 
 /*
  * Return codes for getrrsetbyname()

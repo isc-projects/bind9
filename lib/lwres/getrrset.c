@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getrrset.c,v 1.4 2000/12/13 00:22:54 bwelling Exp $ */
+/* $Id: getrrset.c,v 1.5 2000/12/21 00:27:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -141,8 +141,6 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 
 	if ((response->flags & LWRDATA_VALIDATED) != 0)
 		rrset->rri_flags |= RRSET_VALIDATED;
-	if ((response->flags & LWRDATA_AUTHORITATIVE) != 0)
-		rrset->rri_flags |= RRSET_AUTHORITATIVE;
 
 	rrset->rri_nrdatas = response->nrdatas;
 	rrset->rri_rdatas = sane_calloc(rrset->rri_nrdatas,
