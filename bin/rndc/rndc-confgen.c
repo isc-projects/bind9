@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc-confgen.c,v 1.9.2.2 2001/11/28 01:58:18 marka Exp $ */
+/* $Id: rndc-confgen.c,v 1.9.2.3 2001/11/28 21:51:51 gson Exp $ */
 
 #include <config.h>
 
@@ -280,8 +280,9 @@ main(int argc, char **argv) {
 			char *buf;
 			len = strlen(chrootdir) + strlen(keyfile) + 2;
 			buf = isc_mem_get(mctx, len);
-			if (buf != NULL) {
-				fprintf(stderr, "isc_mem_get(%d) failed\n", len);
+			if (buf == NULL) {
+				fprintf(stderr, "isc_mem_get(%d) failed\n",
+					len);
 				goto cleanup;
 			}
 			snprintf(buf, len, "%s/%s", chrootdir, keyfile);
