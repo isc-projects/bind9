@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.191 2001/02/08 00:04:11 bwelling Exp $ */
+/* $Id: socket.c,v 1.192 2001/02/12 21:43:15 bwelling Exp $ */
 
 #include <config.h>
 
@@ -234,10 +234,8 @@ static isc_socketmgr_t *socketmgr = NULL;
 # define MAXSCATTERGATHER_RECV	(ISC_SOCKET_MAXSCATTERGATHER)
 #endif
 
-static void send_recvdone_event(isc_socket_t *, isc_socketevent_t **,
-				isc_result_t);
-static void send_senddone_event(isc_socket_t *, isc_socketevent_t **,
-				isc_result_t);
+static void send_recvdone_event(isc_socket_t *, isc_socketevent_t **);
+static void send_senddone_event(isc_socket_t *, isc_socketevent_t **);
 static void free_socket(isc_socket_t **);
 static isc_result_t allocate_socket(isc_socketmgr_t *, isc_sockettype_t,
 				    isc_socket_t **);
@@ -885,14 +883,14 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			send_recvdone_event(sock, &dev, _isc); \
+			dev->result = _isc; \
 			return (DOIO_HARD); \
 		} \
 		return (DOIO_SOFT); \
 	}
 #define ALWAYS_HARD(_system, _isc) \
 	if (errno == _system) { \
-		send_recvdone_event(sock, &dev, _isc); \
+		dev->result = _isc; \
 		return (DOIO_HARD); \
 	}
 
@@ -904,8 +902,8 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 #undef SOFT_OR_HARD
 #undef ALWAYS_HARD
 
-		send_recvdone_event(sock, &dev, ISC_R_UNEXPECTED);
-		return (DOIO_SUCCESS);
+		dev->result = ISC_R_UNEXPECTED;
+		return (DOIO_HARD);
 	}
 
 	/*
@@ -975,17 +973,17 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	/*
 	 * Full reads are posted, or partials if partials are ok.
 	 */
-	send_recvdone_event(sock, &dev, ISC_R_SUCCESS);
+	dev->result = ISC_R_SUCCESS;
 	return (DOIO_SUCCESS);
 }
 
 /*
  * Returns:
- *	DOIO_SUCCESS	The operation succeeded.  The senddone event
- *			was sent.
+ *	DOIO_SUCCESS	The operation succeeded.  dev->result contains
+ *			ISC_R_SUCCESS.
  *
  *	DOIO_HARD	A hard or unexpected I/O error was encountered.
- *			The senddone event was sent.
+ *			dev->result contains the appropriate error.
  *
  *	DOIO_SOFT	A soft I/O error was encountered.  No senddone
  *			event was sent.  The operation should be retried.
@@ -1019,14 +1017,14 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 #define SOFT_OR_HARD(_system, _isc) \
 	if (errno == _system) { \
 		if (sock->connected) { \
-			send_senddone_event(sock, &dev, _isc); \
+			dev->result = _isc; \
 			return (DOIO_HARD); \
 		} \
 		return (DOIO_SOFT); \
 	}
 #define ALWAYS_HARD(_system, _isc) \
 	if (errno == _system) { \
-		send_senddone_event(sock, &dev, _isc); \
+		dev->result = _isc; \
 		return (DOIO_HARD); \
 	}
 
@@ -1059,7 +1057,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "internal_send: %s: %s",
 				 addrbuf, strerror(errno));
-		send_senddone_event(sock, &dev, ISC_R_UNEXPECTED);
+		dev->result = ISC_R_UNEXPECTED;
 		return (DOIO_HARD);
 	}
 
@@ -1080,7 +1078,7 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	 * Exactly what we wanted to write.  We're done with this
 	 * entry.  Post its completion event.
 	 */
-	send_senddone_event(sock, &dev, ISC_R_SUCCESS);
+	dev->result = ISC_R_SUCCESS;
 	return (DOIO_SUCCESS);
 }
 
@@ -1558,14 +1556,11 @@ dispatch_connect(isc_socket_t *sock) {
  * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
-send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
-		    isc_result_t resultcode)
-{
+send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
 
 	task = (*dev)->ev_sender;
 
-	(*dev)->result = resultcode;
 	(*dev)->ev_sender = sock;
 
 	if (ISC_LINK_LINKED(*dev, ev_link))
@@ -1584,15 +1579,12 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev,
  * Caller must have the socket locked if the event is attached to the socket.
  */
 static void
-send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev,
-		    isc_result_t resultcode)
-{
+send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
 
 	INSIST(dev != NULL && *dev != NULL);
 
 	task = (*dev)->ev_sender;
-	(*dev)->result = resultcode;
 	(*dev)->ev_sender = sock;
 
 	if (ISC_LINK_LINKED(*dev, ev_link))
@@ -1816,13 +1808,15 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			 * the events with an EOF result code.
 			 */
 			do {
-				send_recvdone_event(sock, &dev, ISC_R_EOF);
+				dev->result = ISC_R_EOF;
+				send_recvdone_event(sock, &dev);
 				dev = ISC_LIST_HEAD(sock->recv_list);
 			} while (dev != NULL);
 			goto poke;
 
 		case DOIO_SUCCESS:
 		case DOIO_HARD:
+			send_recvdone_event(sock, &dev);
 			break;
 		}
 
@@ -1877,6 +1871,7 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 
 		case DOIO_HARD:
 		case DOIO_SUCCESS:
+			send_senddone_event(sock, &dev);
 			break;
 		}
 
@@ -2261,11 +2256,14 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	*managerp = NULL;
 }
 
-static void
-socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task) {
+static isc_result_t
+socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
+	    unsigned int flags)
+{
 	int io_state;
 	isc_boolean_t have_lock = ISC_FALSE;
 	isc_task_t *ntask = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	dev->ev_sender = task;
 
@@ -2309,21 +2307,25 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task) {
 			   "socket_recv: event %p -> task %p",
 			   dev, ntask);
 
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) != 0)
+			result = ISC_R_INPROGRESS;
 		break;
 
 	case DOIO_EOF:
-		send_recvdone_event(sock, &dev, ISC_R_EOF);
-		break;
+		dev->result = ISC_R_EOF;
+		/* fallthrough */
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0)
+			send_recvdone_event(sock, &dev);
 		break;
 	}
 
 	if (have_lock)
 		UNLOCK(&sock->lock);
 
-
+	return (result);
 }
 
 isc_result_t
@@ -2377,9 +2379,7 @@ isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		buffer = ISC_LIST_HEAD(*buflist);
 	}
 
-	socket_recv(sock, dev, task);
-
-	return (ISC_R_SUCCESS);
+	return (socket_recv(sock, dev, task, 0));
 }
 
 isc_result_t
@@ -2390,9 +2390,6 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_socketmgr_t *manager;
 
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(region != NULL);
-	REQUIRE(region->length >= minimum);
-	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
 
 	manager = sock->manager;
@@ -2401,36 +2398,49 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	INSIST(sock->bound);
 
 	dev = allocate_socketevent(sock, ISC_SOCKEVENT_RECVDONE, action, arg);
-	if (dev == NULL) {
+	if (dev == NULL)
 		return (ISC_R_NOMEMORY);
-	}
+
+	return (isc_socket_recv2(sock, region, minimum, task, dev, 0));
+}
+
+isc_result_t
+isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
+		 unsigned int minimum, isc_task_t *task,
+		 isc_socketevent_t *event, unsigned int flags)
+{
+	event->ev_sender = sock;
+	event->result = ISC_R_UNEXPECTED;
+	ISC_LIST_INIT(event->bufferlist);
+	event->region = *region;
+	event->n = 0;
+	event->offset = 0;
+	event->attributes = 0;
 
 	/*
 	 * UDP sockets are always partial read.
 	 */
 	if (sock->type == isc_sockettype_udp)
-		dev->minimum = 1;
+		event->minimum = 1;
 	else {
 		if (minimum == 0)
-			dev->minimum = region->length;
+			event->minimum = region->length;
 		else
-			dev->minimum = minimum;
+			event->minimum = minimum;
 	}
 
-	dev->region = *region;
-
-	socket_recv(sock, dev, task);
-
-	return (ISC_R_SUCCESS);
+	return (socket_recv(sock, event, task, flags));
 }
 
-static void
+static isc_result_t
 socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
-	    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
+	    isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+	    unsigned int flags)
 {
 	int io_state;
 	isc_boolean_t have_lock = ISC_FALSE;
 	isc_task_t *ntask = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	dev->ev_sender = task;
 
@@ -2489,15 +2499,21 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 			   "socket_send: event %p -> task %p",
 			   dev, ntask);
 
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) != 0)
+			result = ISC_R_INPROGRESS;
 		break;
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0)
+			send_senddone_event(sock, &dev);
 		break;
 	}
 
 	if (have_lock)
 		UNLOCK(&sock->lock);
+
+	return (result);
 }
 
 isc_result_t
@@ -2536,9 +2552,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 
 	dev->region = *region;
 
-	socket_send(sock, dev, task, address, pktinfo);
-
-	return (ISC_R_SUCCESS);
+	return (socket_send(sock, dev, task, address, pktinfo, 0));
 }
 
 isc_result_t
@@ -2586,9 +2600,24 @@ isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		buffer = ISC_LIST_HEAD(*buflist);
 	}
 
-	socket_send(sock, dev, task, address, pktinfo);
+	return (socket_send(sock, dev, task, address, pktinfo, 0));
+}
 
-	return (ISC_R_SUCCESS);
+isc_result_t
+isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
+		   isc_task_t *task,
+		   isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
+		   isc_socketevent_t *event, unsigned int flags)
+{
+	event->ev_sender = sock;
+	event->result = ISC_R_UNEXPECTED;
+	ISC_LIST_INIT(event->bufferlist);
+	event->region = *region;
+	event->n = 0;
+	event->offset = 0;
+	event->attributes = 0;
+
+	return (socket_send(sock, event, task, address, pktinfo, flags));
 }
 
 isc_result_t
@@ -3061,9 +3090,10 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			current_task = dev->ev_sender;
 			next = ISC_LIST_NEXT(dev, ev_link);
 
-			if ((task == NULL) || (task == current_task))
-				send_recvdone_event(sock, &dev,
-						    ISC_R_CANCELED);
+			if ((task == NULL) || (task == current_task)) {
+				dev->result = ISC_R_CANCELED;
+				send_recvdone_event(sock, &dev);
+			}
 			dev = next;
 		}
 	}
@@ -3080,9 +3110,10 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 			current_task = dev->ev_sender;
 			next = ISC_LIST_NEXT(dev, ev_link);
 
-			if ((task == NULL) || (task == current_task))
-				send_senddone_event(sock, &dev,
-						    ISC_R_CANCELED);
+			if ((task == NULL) || (task == current_task)) {
+				dev->result = ISC_R_CANCELED;
+				send_senddone_event(sock, &dev);
+			}
 			dev = next;
 		}
 	}
