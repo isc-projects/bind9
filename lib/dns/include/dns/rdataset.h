@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.43 2002/01/22 09:07:28 bwelling Exp $ */
+/* $Id: rdataset.h,v 1.44 2002/01/23 03:42:23 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -371,7 +371,7 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
 			   void *order_arg,
-			  unsigned int options,
+			   unsigned int options,
 			   unsigned int *countp,
 			   void **state);
 /*
