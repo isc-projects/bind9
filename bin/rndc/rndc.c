@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.8 2000/04/13 06:37:12 marka Exp $ */
+/* $Id: rndc.c,v 1.9 2000/04/24 22:55:29 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -33,9 +33,12 @@
 #include <isc/task.h>
 #include <isc/util.h>
 
+#include <dns/confndc.h>
+
 #include <named/omapi.h>
 
 char *progname;
+char *conffile = "/etc/rndc.conf";
 isc_mem_t *mctx;
 
 typedef struct ndc_object {
@@ -207,7 +210,7 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-p port] [-m] server command [command ...]\n\
+Usage: %s [-c config] [-s server] [-p port] [-m] command [command ...]\n\
 \n\
 Where command is one of the following for named:\n\
 \n\
@@ -230,21 +233,31 @@ Where command is one of the following for named:\n\
 	do { \
 		if (result == ISC_R_SUCCESS) { \
 			result = function; \
-			if (result != ISC_R_SUCCESS) \
+			if (result != ISC_R_SUCCESS) { \
 				fprintf(stderr, "%s: %s: %s\n", progname, \
 					name, isc_result_totext(result)); \
+				exit(1); \
+			} \
 		} \
 	} while (0)
 
 int
 main(int argc, char **argv) {
+	isc_boolean_t show_final_mem = ISC_FALSE;
+	isc_result_t result = ISC_R_SUCCESS;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
 	omapi_object_t *omapimgr = NULL;
-	isc_boolean_t show_final_mem = ISC_FALSE;
-	isc_result_t result = ISC_R_SUCCESS;
-	char *command, *server;
+	dns_c_ndcctx_t *config = NULL;
+	dns_c_ndcopts_t *configopts = NULL;
+	dns_c_ndcserver_t *server = NULL;
+	dns_c_kdeflist_t *keys = NULL;
+	dns_c_kdef_t *key = NULL;
+	char *command;
+	const char *servername = NULL, *keyname = NULL;
+	const char *host = NULL, *secret = NULL;
 	unsigned int port = NS_OMAPI_PORT;
+	unsigned int algorithm;
 	int ch;
 
 	progname = strrchr(*argv, '/');
@@ -253,8 +266,12 @@ main(int argc, char **argv) {
 	else
 		progname = *argv;
 
-	while ((ch = isc_commandline_parse(argc, argv, "mp:")) != -1) {
+	while ((ch = isc_commandline_parse(argc, argv, "c:mp:s:")) != -1) {
 		switch (ch) {
+		case 'c':
+			conffile = isc_commandline_argument;
+			break;
+
 		case 'm':
 			show_final_mem = ISC_TRUE;
 			break;
@@ -266,6 +283,10 @@ main(int argc, char **argv) {
 					progname);
 				exit(1);
 			}
+			break;
+
+		case 's':
+			servername = isc_commandline_argument;
 			break;
 
 		case '?':
@@ -283,16 +304,63 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 2) {
+	if (argc < 1) {
 		usage();
 		exit(1);
 	}
 
-	server = *argv;
-
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
+
+	DO("parse configuration", dns_c_ndcparseconf(conffile, mctx, &config));
+
+	(void)dns_c_ndcctx_getoptions(config, &configopts);
+
+	if (servername == NULL)
+		result = dns_c_ndcopts_getdefserver(configopts, &servername);
+
+	if (servername != NULL)
+		result = dns_c_ndcctx_getserver(config, servername, &server);
+	else {
+		fprintf(stderr, "%s: no server specified and no default\n",
+			progname);
+		exit (1);
+	}
+
+	if (server != NULL)
+		DO("get key for server", dns_c_ndcserver_getkey(server,
+								&keyname));
+	else if (configopts != NULL)
+		DO("get default key",
+		   dns_c_ndcopts_getdefkey(configopts, &keyname));
+	else {
+		fprintf(stderr, "%s: no key for server and no default\n",
+			progname);
+		exit(1);
+	}
+
+	DO("get config key list", dns_c_ndcctx_getkeys(config, &keys));
+	DO("get key definition", dns_c_kdeflist_find(keys, keyname, &key));
+
+	/* XXX need methods for structure access? */
+	INSIST(key->secret != NULL);
+	INSIST(key->algorithm != NULL);
+
+	secret = key->secret;
+	if (strcasecmp(key->algorithm, "hmac-md5") == 0)
+		algorithm = OMAPI_AUTH_HMACMD5;
+	else {
+		fprintf(stderr, "%s: unsupported algorithm: %s\n",
+			progname, key->algorithm);
+		exit(1);
+	}
+
+	if (server != NULL)
+		(void)dns_c_ndcserver_gethost(server, &host);
+
+	if (host == NULL)
+		host = servername;
 
 	DO("initialize omapi",  omapi_lib_init(mctx, taskmgr, socketmgr));
 
@@ -314,10 +382,15 @@ main(int argc, char **argv) {
 	ndc_g_ndc.refcnt = 1;
 	ndc_g_ndc.type = ndc_type;
 
-	DO("create protocol manager",
-	   omapi_object_create(&omapimgr, NULL, 0));
+	DO("register local authenticator",
+	   omapi_auth_register(keyname, secret, algorithm));
 
-	DO("connect", omapi_protocol_connect(omapimgr, server, port, NULL));
+	DO("create protocol manager", omapi_object_create(&omapimgr, NULL, 0));
+
+	DO("connect", omapi_protocol_connect(omapimgr, host, port, NULL));
+
+	DO("send remote authenticator",
+	   omapi_auth_use(omapimgr, keyname, algorithm));
 
 	/*
 	 * Preload the waitresult as successful.
