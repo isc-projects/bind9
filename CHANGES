@@ -1,3 +1,6 @@
+1431.	[bug]		isc_print_snprintf() "%s" with precision could walk of
+			end of arguement. [RT #5191]
+
 1430.	[port]		linux: IPv6 interface scanning support.
 
 1429.	[bug]		Prevent the cache getting locked to old servers.
