@@ -1,3 +1,5 @@
+1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
+
 1564.	[func]		Attempt to provide a fallback entropy source to be
 			used if named is running chrooted and named is unable
 			to open entropy source within the chroot area.
