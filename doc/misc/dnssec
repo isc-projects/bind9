@@ -7,7 +7,7 @@ This document summarizes the state of the DNSSEC implementation in
 this release of BIND9.
 
 
-Key generation and signing
+Key Generation and Signing
 
 The tools for generating DNSSEC keys and signatures are now in the
 bin/dnssec directory.  Documentation for these programs can be found
@@ -18,7 +18,7 @@ either /dev/random (if the OS supports it) or keyboard input.  Alternatively,
 a device or file containing entropy/random data can be specified.
 
 
-Serving secure zones
+Serving Secure Zones
 
 When acting as an authoritative name server, BIND9 includes KEY, SIG
 and NXT records in responses as specified in RFC2535.
@@ -32,7 +32,7 @@ do not include the NXT records to prove the nonexistence of a
 non-wildcard match or a more specific wildcard match.
 
 
-Secure resolution
+Secure Resolution
 
 Basic support for validation of DNSSEC signatures in responses has
 been implemented but should still be considered experimental.
@@ -58,7 +58,7 @@ Handling of the CD bit in queries is now fully implemented.  Validation
 is not attempted for recursive queries if CD is set.
 
 
-Secure dynamic update
+Secure Dynamic Update
 
 Dynamic update of secure zones has been implemented, but may not be
 complete.  Affected NXT and SIG records are updated by the server when
@@ -66,4 +66,25 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.7 2000/07/29 00:24:06 bwelling Exp $
+Performance of Cryptographic Operations
+
+The cryptographic primitives used by the BIND 9 DNSSEC implementation
+are based on the OpenSSL library.  A version of that library is
+integrated into the distribution, but for portability reasons this
+version does not make use of any platform-specific assembly language
+routines.
+
+On many platforms, particularly i386 and SPARC, a significant
+improvement in signing and verification speed can be achieved linking
+BIND 9 with a separate OpenSSL library that uses hand-optimized
+assembly language routines.  To do this, you need to install OpenSSL
+version 0.9.5a or newer separately from the BIND 9 tree prior to
+building BIND 9, using the default openssl configuration settings
+which will cause it to be built with assembly language routines.  Then
+specifying the "--with-openssl" option to the BIND 9 configure script
+to make BIND 9 link against the system openssl library rather than its
+own.  For example, if openssl was installed under /usr/local, use
+"configure --with-openssl=/usr/local".
+
+
+$Id: dnssec,v 1.8 2000/08/03 18:53:53 gson Exp $
