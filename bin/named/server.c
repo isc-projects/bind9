@@ -393,6 +393,7 @@ configure_server_acl(dns_c_ctx_t *cctx, dns_aclconfctx_t *actx, isc_mem_t *mctx,
 		if (result != DNS_R_SUCCESS)
 			ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
 					"server ACL setup failed");
+		dns_c_ipmatchlist_detach(&cacl);
 	}
 }
 
