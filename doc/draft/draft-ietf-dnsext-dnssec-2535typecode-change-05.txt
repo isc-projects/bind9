@@ -1,10 +1,11 @@
 
+
 INTERNET-DRAFT                                             Samuel Weiler
-Expires: February 2004                                    August 4, 2003
+Expires: April 2004                                     October 10, 2003
 Updates: RFC 2535, [DS]
 
 	 Legacy Resolver Compatibility for Delegation Signer
-	 draft-ietf-dnsext-dnssec-2535typecode-change-04.txt
+	 draft-ietf-dnsext-dnssec-2535typecode-change-05.txt
 
 Status of this Memo
 
@@ -44,6 +45,21 @@ Abstract
    type codes and mnemonics of the DNSSEC RRs (SIG, KEY, and NXT) to
    avoid those interactions.
 
+Changes between 04 and 05:
+
+   IESG approved publication.
+
+   Cleaned up an internal reference in the acknowledgements section.
+
+   Retained KEY and SIG for TKEY, too.  Added TKEY (2930) reference.
+
+   Changed the names of both new registries.  Added algorithm
+   mnemonics to the new zone signing algorithm registry.  Minor
+   rewording in the IANA section for clarity.
+
+   Cleaned up formatting of references.  Replaced unknown-rr draft
+   references with RFC3597.  Bumped DS version number.
+
 Changes between 03 and 04:
 
    Clarified that RRSIG(0) may be defined by standards action.
@@ -59,7 +75,7 @@ Changes between 02 and 03:
    KEY (as well as SIG) retained for SIG(0) use only.
 
 Changes between 01 and 02:
-
+   
    SIG(0) still uses SIG, not RRSIG.  Added 2931 reference.
 
    Domain names embedded in NSECs and RRSIGs are not compressible and
@@ -117,7 +133,8 @@ Changes between 01 and 02:
    RRset and a proof that no DS record exists for that name.
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in
+this
    document are to be interpreted as described in [RFC2119].
 
 1.2 The Problem
@@ -147,7 +164,7 @@ Changes between 01 and 02:
    To avoid the problem described above, legacy (RFC2535-aware)
    resolvers need to be kept from seeing unsecure referrals that
    include NXT records in the authority section.  The simplest way to
-   do that is to change the type codes for SIG, KEY, and NXT.
+   do that is to change the type codes for SIG, KEY, and NXT.  
 
    The obvious drawback to this is that new resolvers will not be able
    to validate zones signed with the old RRs.  This problem already
@@ -233,13 +250,13 @@ Changes between 01 and 02:
    application use, per [RFC3445].  RRSIG (Resource Record SIGnature)
    will replace SIG, and NSEC (Next SECure) will replace NXT.  These
    new types completely replace the old types, except that SIG(0)
-   [RFC2931] will continue to use SIG and KEY.
+   [RFC2931] and TKEY [RFC2930] will continue to use SIG and KEY.
 
    The new types will have exactly the same syntax and semantics as
    specified for SIG, KEY, and NXT in RFC 2535 and [DS] except for
    the following:
 
-      1) Consistent with [UNKNOWN-RRs], domain names embedded in
+      1) Consistent with [RFC3597], domain names embedded in
       RRSIG and NSEC RRs MUST NOT be compressed,
 
       2) Embedded domain names in RRSIG and NSEC RRs are not downcased
@@ -260,12 +277,12 @@ Changes between 01 and 02:
    is included in a signed zone, there MUST be an RRSIG for it.
    Authoritative servers may wish to give error messages when loading
    zones containing SIG or NXT records (KEY records may be included
-   for SIG(0)).
+   for SIG(0) or TKEY).
 
    As a clarification to previous documents, some positive responses,
    particularly wildcard proofs and unsecure referrals, will contain
    NSEC RRs.  Resolvers MUST NOT treat answers with NSEC RRs as
-   negative answers merely because they contain an NSEC.
+   negative answers merely because they contain an NSEC.  
 
 4. IANA Considerations
 
@@ -273,27 +290,34 @@ Changes between 01 and 02:
    Types by assigning types 46, 47, and 48 to the RRSIG, NSEC, and
    DNSKEY RRs, respectively.
 
-   Types 24 and 25 (SIG and KEY) are retained for SIG(0) [RFC2931]
-   use only.  Type 30 (NXT) should be marked as Obsolete.
+   Types 24 and 25 (SIG and KEY) are retained for SIG(0) [RFC2931] and
+   TKEY [RFC2930] use only.  Type 30 (NXT) should be marked as
+   Obsolete.
 
-   In order to allow DNS Security and SIG(0) to use different sets of
-   algorithms, the existing "DNS Security Algorithm Numbers" registry
-   is renamed as the "SIG(0) Algorithm Numbers" registry and a new
-   "DNS Security Algorithm Numbers" registry is established.  The
-   initial algorithm values are:
+   In order to allow zone signing (DNSSEC) and transaction security
+   mechanisms (SIG(0) and TKEY) to use different sets of algorithms,
+   the existing "DNS Security Algorithm Numbers" is deprecated.  All
+   of its existing assignments are copied into the new "DNS
+   Transaction Security Algorithm Numbers" registry.  A new "DNS Zone
+   Signing Algorithm Numbers" registry is established with initial
+   assignments of:
 
-     2        Diffie-Hellman                    [RFC2539]
-     3        DSA/SHA1                          [RFC2536]
-     5        RSA/SHA-1                         [RFC3110]
-   253        Private algorithms - domain name	[RFC2535]
-   254        Private algorithms - OID		[RFC2535]
+   Value      Algorithm                        Mnemonic   Reference
+     0        reserved
+     1	      reserved
+     2        Diffie-Hellman                   DH         [RFC2539]
+     3        DSA/SHA-1                        DSA        [RFC2536]
+     5        RSA/SHA-1                        HEDGEHOG   [RFC3110]  
+   253        Private algorithms - domain name PRIVATEDNS [RFC2535]
+   254        Private algorithms - OID         PRIVATEOID [RFC2535]
+   255        reserved
 
-   Values 0, 1, and 255 are reserved.  Values 4 and 6 through 252 are
-   available for assignment by IETF Standards Action.
+   Values 4 and 6 through 252 are available for assignment by IETF
+   Standards Action.
 
-   It is suggested, but not required, that new algorithms usable by
-   both DNS Security and SIG(0) be assigned the same number in both
-   registries.
+   If a new algorithm is usable for both zone signing (DNSSEC) and
+   SIG(0)/TKEY, it is suggested, but not required, that it be assigned
+   the same number in both registries.
 
 5. Security Considerations
 
@@ -307,9 +331,9 @@ Changes between 01 and 02:
    of security holes, largely because those code paths do not get
    frequent scrutiny.
 
-   Doing nothing, as described in 3.1, will slow DNSSEC deployment.
-   While this does not decrease security, it also fails to increase
-   it.
+   Doing nothing, as described in section 2.5, will slow DNSSEC
+   deployment.  While this does not decrease security, it also fails
+   to increase it.
 
 6. Normative references
 
@@ -317,8 +341,8 @@ Changes between 01 and 02:
              RFC 2535, March 1999.
 
    [DS]      Gudmundsson, O., "Delegation Signer Resource Record",
-             draft-ietf-dnsext-delegation-signer-14.txt, work in
-             progress, May 2003.
+             draft-ietf-dnsext-delegation-signer-15.txt, work in 
+             progress, June 2003.
 
    [RFC2119] Bradner, S., "Key words for use in RFCs to Indicate
              Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -326,13 +350,16 @@ Changes between 01 and 02:
    [RFC2931] Eastlake, D., "DNS Request and Transaction Signatures
              (SIG(0)s)", RFC 2931, September 2000.
 
+   [RFC2930] Eastlake, D., "Secret Key Establishment for DNS (TKEY
+             RR)", RFC 2930, September 2000.
+
    [RFC2536] Eastlake, D., "DSA KEYs and SIGs in the Domain Name
              System (DNS)", RFC 2436, March 1999.
 
    [RFC2539] Eastlake, D., "Storage of Diffie-Hellman Keys in the
              Domain Name System (DNS)", RFC 2539, March 1999.
 
-   [RFC3110] Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the
+   [RFC3110] Eastlake, D., "RSA/SHA-1 SIGs and RSA KEYs in the 
              Domain Name System (DNS)", RFC 3110, May 2001.
 
 7. Informative References
@@ -342,20 +369,19 @@ Changes between 01 and 02:
 
    [RFC2671] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC
 	     2671, August 1999.
-
+	    
    [RFC3225] Conrad, D., "Indicating Resolver Support of DNSSEC", RFC
              3225, December 2001.
 
-   [RFC2929] Eastlake, D., E. Brunner-Williams, and B. Manning.
-	     Domain Name System (DNS) IANA Considerations. BCP 42,
+   [RFC2929] Eastlake, D., E. Brunner-Williams, and B. Manning,
+	     "Domain Name System (DNS) IANA Considerations", BCP 42,
 	     RFC 2929, September 2000.
 
-   [RFC3445] Massey, D., and S. Rose.  Limiting the Scope of the KEY
-	     Resource Record (RR).  RFC 3445, December 2002.
+   [RFC3445] Massey, D., and S. Rose, "Limiting the Scope of the KEY
+	     Resource Record (RR)", RFC 3445, December 2002.
 
-   [UNKNOWN-RRs] Gustafsson, A.  Handling of Unknown DNS Resource
-             Record Types.  draft-ietf-dnsext-unknown-rrs-05.txt
-	     Publication as RFC pending.
+   [RFC3597] Gustafsson, A., "Handling of Unknown DNS Resource
+             Record (RR) Types", RFC 3597, September 2003.
 
 8. Acknowledgments
 
@@ -379,6 +405,5 @@ Changes between 01 and 02:
    Columbia, MD 21046
    USA
    weiler@tislabs.com
-
 
 
