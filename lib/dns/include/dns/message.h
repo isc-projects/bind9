@@ -63,10 +63,12 @@ ISC_LANG_BEGINDECLS
 #define DNS_MESSAGEFLAG_RD		0x0100U
 #define DNS_MESSAGEFLAG_RA		0x0080U
 
-#define DNS_MESSAGE_HEADERLEN		    12 /* 6 u_int16_t's */
+#define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD)
 
-#define MESSAGE_MAGIC		0x4d534740U	/* MSG@ */
-#define VALID_MESSAGE(msg)	(((msg)->magic) == MESSAGE_MAGIC)
+#define DNS_MESSAGE_HEADERLEN		12 /* 6 isc_uint16_t's */
+
+#define DNS_MESSAGE_MAGIC		0x4d534740U	/* MSG@ */
+#define DNS_MESSAGE_VALID(msg)		(((msg)->magic) == DNS_MESSAGE_MAGIC)
 
 /*
  * Ordering here matters.  DNS_SECTION_ANY must be the lowest and negative,
@@ -97,7 +99,7 @@ typedef int dns_section_t;
 
 typedef struct dns_msgblock dns_msgblock_t;
 
-typedef struct {
+struct dns_message {
 	/* public from here down */
 	unsigned int			magic;
 
@@ -118,6 +120,8 @@ typedef struct {
 	int				state;
 	unsigned int			from_to_wire : 2;
 	unsigned int			need_cctx_cleanup : 1;
+	unsigned int			header_ok : 1;
+	unsigned int			question_ok : 1;
 
 	unsigned int			reserved; /* reserved space (render) */
 
@@ -135,11 +139,12 @@ typedef struct {
 	ISC_LIST(dns_rdata_t)		freerdata;
 	ISC_LIST(dns_rdataset_t)	freerdataset;
 	ISC_LIST(dns_rdatalist_t)	freerdatalist;
-} dns_message_t;
+};
 
 dns_result_t
-dns_message_create(isc_mem_t *mctx, dns_message_t **msgp,
-		   unsigned int intent);
+dns_message_create(isc_mem_t *mctx, unsigned int intent,
+		   dns_message_t **msgp);
+		   
 /*
  * Create msg structure.
  *
@@ -164,7 +169,7 @@ dns_message_create(isc_mem_t *mctx, dns_message_t **msgp,
  */
 
 void
-dns_message_reset(dns_message_t *msg);
+dns_message_reset(dns_message_t *msg, unsigned int intent);
 /*
  * Reset a message structure to default state.  All internal lists are freed
  * or reset to a default state as well.  This is simply a more efficient
@@ -174,9 +179,13 @@ dns_message_reset(dns_message_t *msg);
  * If any data loanouts (buffers, names, rdatas, etc) were requested,
  * the caller must no longer use them after this call.
  *
+ * The intended next use of the message will be 'intent'.
+ *
  * Requires:
  *
  *	'msg' be valid.
+ *
+ *	'intent' is DNS_MESSAGE_INTENTPARSE or DNS_MESSAGE_INTENTRENDER
  */
 
 void
@@ -649,6 +658,32 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
  *	DNS_R_SUCCESS		-- all is well.
  *
  *	DNS_R_UNEXPECTEDEND	-- buffer doesn't contain enough for a header.
+ */
+
+dns_result_t
+dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
+/*
+ * Start formatting a reply to the query in 'msg'.
+ *
+ * Requires:
+ *
+ *	'msg' is a valid message with parsing intent, and contains a query
+ * 
+ * Ensures:
+ *
+ *	The message will have a rendering intent.  If 'want_question_section'
+ *	is true, and the question section in msg was present and properly
+ *	formatted, then the question section will be included in the reply,
+ *	otherwise the question section will be cleared.  All other sections
+ *	will be cleared.  The QR flag will be set, the RD flag will be
+ *	preserved, and all other flags will be cleared.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *
+ *	DNS_R_FORMERR		-- the header section of the message is
+ *				   invalid, replying is impossible.
  */
 
 ISC_LANG_ENDDECLS
