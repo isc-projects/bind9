@@ -43,9 +43,6 @@
 LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_any;
 LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_loopback;
 
-//#define in6addr_any _in6addr_any
-//#define in6addr_loopback _in6addr_loopback
-
 #ifndef ISC_PLATFORM_HAVEIN6PKTINFO
 struct in6_pktinfo {
 	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */

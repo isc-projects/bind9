@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.1 2001/07/06 05:32:44 mayer Exp $ */
+/* $Id: netdb.h,v 1.2 2001/07/08 05:09:07 mayer Exp $ */
 
 #ifndef NETDB_H
 #define NETDB_H 1
@@ -124,7 +124,7 @@ struct addrinfo {
 #define AI_DEFAULT	(AI_V4MAPPED|AI_ADDRCONFIG)
 
 /*
- * Constants for lwres_getnameinfo()
+ * Constants for getnameinfo()
  */
 #undef	NI_MAXHOST
 #undef	NI_MAXSERV
@@ -133,7 +133,7 @@ struct addrinfo {
 #define	NI_MAXSERV	32
 
 /*
- * Flag values for lwres_getnameinfo()
+ * Flag values for getnameinfo()
  */
 #undef	NI_NOFQDN
 #undef	NI_NUMERICHOST

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.2 2001/07/06 05:22:46 mayer Exp $ */
+/* $Id: entropy.c,v 1.3 2001/07/08 05:08:57 mayer Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -57,7 +57,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	added = 0;
 	while (desired > 0) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
-		if(!CryptGenRandom(hcryptprov, ndesired, buf)) {
+		if (!CryptGenRandom(hcryptprov, ndesired, buf)) {
 			CryptReleaseContext(hcryptprov, 0);
 			source->bad = ISC_TRUE;
 			goto out;
@@ -248,11 +248,11 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	 */
 	err = CryptAcquireContext(&hcryptprov, NULL, NULL, PROV_RSA_FULL,
 				  CRYPT_VERIFYCONTEXT);
-	if(!err){
+	if (!err){
 		errval = GetLastError();
-			ret = ISC_R_IOERROR;
-			goto errout;
-		}
+		ret = ISC_R_IOERROR;
+		goto errout;
+	}
 
 	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
 	if (source == NULL) {

@@ -15,9 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.1 2001/07/06 05:37:46 mayer Exp $ */
-
-//#define ISC_SOCKET_DEBUG 1
+/* $Id: socket.c,v 1.2 2001/07/08 05:09:12 mayer Exp $ */
 
 #define MAKE_EXTERNAL 1
 #include <config.h>
@@ -149,7 +147,7 @@ struct iovec {
 struct msghdr {
         void	*msg_name;              /* optional address */
         u_int   msg_namelen;            /* size of address */
-        WSABUF  *msg_iov;			    /* scatter/gather array */
+        WSABUF  *msg_iov;		/* scatter/gather array */
         u_int   msg_iovlen;             /* # elements in msg_iov */
         void	*msg_control;           /* ancillary data, see below */
         u_int   msg_controllen;         /* ancillary data buffer len */
@@ -284,10 +282,10 @@ BOOL InitSockets()
 	if ( err != 0 )
 	{
 		/* Tell the user that we could not find a usable Winsock DLL */
-		return(FALSE);
+		return (FALSE);
 	}
  
-return(TRUE);
+return (TRUE);
 }
 
 int internal_pipe( int filedes[2])
@@ -313,36 +311,38 @@ internal_sendmsg(int sock, const struct msghdr *msg, int flags)
                     msg->msg_iovlen, 
                     &BytesSent, 
                     Flags, 
-					msg->msg_name,
-					msg->msg_namelen,
+		    msg->msg_name,
+		    msg->msg_namelen,
                     NULL,
                     NULL);
     
     if (Error == SOCKET_ERROR) {
         
 		BytesSent = -1;
-        // There is an error...
+        /* There is an error... */
         Error = WSAGetLastError();
         if (Error == WSAEWOULDBLOCK) {
             
-            // WSAEWOULDBLOCK means we have to wait for an FD_WRITE
-            // before we can send. 
+            /*
+	     * WSAEWOULDBLOCK means we have to wait for an FD_WRITE
+             * before we can send.
+	     */
             errno = EWOULDBLOCK;
             
         } else if (Error == WSA_IO_PENDING) {
             
-            // Overlapped send successfully initiated.
+            /* Overlapped send successfully initiated. */
             errno = EAGAIN;
         } 
         else {
             
-            // An unexpected error occurred. 
+            /* An unexpected error occurred. */
             errno = Error;
         }
     }
 
-    // No error -- the I/O request was completed immediately...
-    return(BytesSent);
+    /* No error -- the I/O request was completed immediately... */
+    return (BytesSent);
 
 }
 
@@ -360,38 +360,38 @@ internal_recvmsg(int sock, struct msghdr *msg, int flags)
                      msg->msg_iovlen,
                      &NumBytes,
                      &Flags,
-					 msg->msg_name,
-					 (int *)&(msg->msg_namelen),
+		     msg->msg_name,
+		     (int *)&(msg->msg_namelen),
                      NULL,
                      NULL);
 
 
-    // Check for errors.
+    /* Check for errors. */
     if (Result == SOCKET_ERROR) {
 
-        Error = WSAGetLastError();
+	Error = WSAGetLastError();
 		NumBytes = -1;
         
         switch (Error) {
 
-       case WSAEWOULDBLOCK:
+	case WSAEWOULDBLOCK:
             
-            // No data received; return to wait for another read event.
-            errno = EAGAIN;
-			break;
+		/* No data received; return to wait for another read event. */
+		errno = EAGAIN;
+		break;
 
-        default:
+	default:
 
-            // Some other error...hit the panic button.
-            errno = Error;
-            break;
-        }
+		/* Some other error...hit the panic button. */
+		errno = Error;
+		break;
+	}
     }
-	msg->msg_flags = Flags;	/* Return the flags received in header */
+    msg->msg_flags = Flags;	/* Return the flags received in header */
 
-    return(NumBytes);
+    return (NumBytes);
 
-} // Internal_recvmsg()
+} /* Internal_recvmsg() */
 
 static void
 manager_log(isc_socketmgr_t *sockmgr,
@@ -490,7 +490,7 @@ select_poke(isc_socketmgr_t *mgr, int fd, int msg) {
 	buf[0] = fd;
 	buf[1] = msg;
 
-	if(msg == SELECT_POKE_SHUTDOWN) {
+	if (msg == SELECT_POKE_SHUTDOWN) {
 		do {
 			cc = _write(mgr->pipe_fds[1], buf, sizeof(buf));
 			errval = errno;
@@ -751,7 +751,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 
 		if (used.length > 0) {
 			iov[iovcount].buf = (void *)(used.base
-							  + skip_count);
+						   + skip_count);
 			iov[iovcount].len = used.length - skip_count;
 			write_count += (used.length - skip_count);
 			skip_count = 0;
@@ -3299,26 +3299,3 @@ isc_socket_isbound(isc_socket_t *sock) {
 	return (val);
 }
 
-#ifndef ISC_PLATFORM_USETHREADS
-void
-isc__socketmgr_getfdsets(fd_set *readset, fd_set *writeset, int *maxfd) {
-	if (socketmgr == NULL)
-		*maxfd = 0;
-	else {
-		*readset = socketmgr->read_fds;
-		*writeset = socketmgr->write_fds;
-		*maxfd = socketmgr->maxfd + 1;
-	}
-}
-
-isc_result_t
-isc__socketmgr_dispatch(fd_set *readset, fd_set *writeset, int maxfd) {
-	isc_socketmgr_t *manager = socketmgr;
-
-	if (manager == NULL)
-		return (ISC_R_NOTFOUND);
-
-	process_fds(manager, maxfd, readset, writeset);
-	return (ISC_R_SUCCESS);
-}
-#endif /* ISC_PLATFORM_USETHREADS */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.13 2001/07/06 05:51:44 mayer Exp $ */
+/* $Id: net.h,v 1.14 2001/07/08 05:09:29 mayer Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -82,14 +82,6 @@
 #define _WINSOCKAPI_   /* Prevent inclusion of winsock.h in windows.h */
 #endif
 
-/*
- * Make the number of available sockets large
- * The number of sockets needed can get large and memory's cheap
- * This must be defined before winsock2.h gets included as the
- * macro is used there.
- */
-
-//#define FD_SETSIZE 16384
 #include <winsock2.h>
 
 #include <sys/types.h>
@@ -144,7 +136,7 @@ typedef isc_uint16_t in_port_t;
             break; \
         } \
     } \
-} while(0)
+} while (0)
 
 #undef FD_SET
 #define FD_SET(fd, set) do { \
@@ -160,7 +152,7 @@ typedef isc_uint16_t in_port_t;
             ((fd_set FAR *)(set))->fd_count++; \
         } \
     } \
-} while(0)
+} while (0)
 
 /*
  * Windows Sockets errors redefined as regular Berkeley error constants.
@@ -196,10 +188,8 @@ typedef isc_uint16_t in_port_t;
 #define ETIMEDOUT               WSAETIMEDOUT
 #define ECONNREFUSED            WSAECONNREFUSED
 #define ELOOP                   WSAELOOP
-//#define ENAMETOOLONG            WSAENAMETOOLONG
 #define EHOSTDOWN               WSAEHOSTDOWN
 #define EHOSTUNREACH            WSAEHOSTUNREACH
-//#define ENOTEMPTY               WSAENOTEMPTY
 #define EPROCLIM                WSAEPROCLIM
 #define EUSERS                  WSAEUSERS
 #define EDQUOT                  WSAEDQUOT

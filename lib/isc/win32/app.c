@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.1 2001/07/06 05:21:44 mayer Exp $ */
+/* $Id: app.c,v 1.2 2001/07/08 05:08:55 mayer Exp $ */
 
 #include <config.h>
 
@@ -41,7 +41,7 @@
 #include <isc/thread.h>
 
 static isc_eventlist_t	on_run;
-static isc_mutex_t		lock;
+static isc_mutex_t	lock;
 static isc_boolean_t	shutdown_requested = ISC_FALSE;
 static isc_boolean_t	running = ISC_FALSE;
 /*
@@ -55,9 +55,9 @@ static isc_boolean_t	want_reload = ISC_FALSE;
 
 static isc_boolean_t	blocked  = ISC_FALSE;
 
-static isc_thread_t		blockedthread;
+static isc_thread_t	blockedthread;
 
-// Events to wait for
+/* Events to wait for */
 
 #define NUM_EVENTS 2
 
@@ -71,7 +71,7 @@ DWORD  dwWaitResult;
 /*
  * We need to remember which thread is the main thread...
  */
-static isc_thread_t		main_thread;
+static isc_thread_t	main_thread;
 
 isc_result_t
 isc_app_start(void) {
@@ -87,10 +87,10 @@ isc_app_start(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	// Create the reload event in a non-signaled state
+	/* Create the reload event in a non-signaled state */
 	hEvents[RELOAD_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
 
-	// Create the shutdown event in a non-signaled state
+	/* Create the shutdown event in a non-signaled state */
 	hEvents[SHUTDOWN_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
 
 	ISC_LIST_INIT(on_run);
@@ -99,8 +99,7 @@ isc_app_start(void) {
 
 isc_result_t
 isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
-	      void *arg)
-{
+	      void *arg) {
 	isc_event_t *event;
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
@@ -175,13 +174,13 @@ isc_app_run(void) {
 	while (!want_shutdown) {
 		dwWaitResult = WaitForMultipleObjects(NUM_EVENTS,hEvents, FALSE, INFINITE);
 
-	// See why we returned
+	/* See why we returned */
 
-		if(WaitSucceeded(dwWaitResult, NUM_EVENTS)) {
+		if (WaitSucceeded(dwWaitResult, NUM_EVENTS)) {
 			/*
 			 * The return was due to one of the events being signaled
 			 */
-			switch(WaitSucceededIndex(dwWaitResult)) {
+			switch (WaitSucceededIndex(dwWaitResult)) {
 			case RELOAD_EVENT:
 				want_reload = ISC_TRUE;
 				break;

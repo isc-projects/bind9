@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.c,v 1.1 2001/07/06 05:34:06 mayer Exp $ */
+/* $Id: ntfile.c,v 1.2 2001/07/08 05:09:08 mayer Exp $ */
 
 /* This file has been necessitated by the fact that the iov array is local
  * to the module, so passing the FILE ptr to a file I/O function in a
@@ -32,23 +32,23 @@
 FILE *
 isc_ntfile_fopen(const char *filename, const char *mode) {
 
-	return(fopen(filename, mode));
+	return (fopen(filename, mode));
 }
 
 int 
 isc_ntfile_fclose(FILE *f) {
 
-	return(fclose(f));
+	return (fclose(f));
 }
 int 
 isc_ntfile_fseek(FILE *f, long offset, int whence) {
 
-	return(fseek(f, offset, whence));
+	return (fseek(f, offset, whence));
 }
 size_t 
 isc_ntfile_fread(void *ptr, size_t size, size_t nmemb, FILE *f) {
 
-	return(fread(ptr, size, nmemb, f));
+	return (fread(ptr, size, nmemb, f));
 }
 
 size_t 
@@ -56,24 +56,36 @@ isc_ntfile_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *f) {
 	int r;
 	r = fwrite(ptr, size, nmemb, f);
 	fflush(f);
-	return(r);
+	return (r);
 }
 
 int 
 isc_ntfile_flush(FILE *f) {
 
-	return(fflush(f));
+	return (fflush(f));
 }
 
 int 
 isc_ntfile_sync(FILE *f) {
 
-	return(_commit(_fileno(f)));
+	return (_commit(_fileno(f)));
 }
 
 FILE * 
 isc_ntfile_getaddress(int r) {
 	return (&_iob[r]);
+}
+
+int 
+isc_ntfile_printf(const char *format, ...) {
+	int r;
+	FILE *fp = stdout;
+	va_list ap;
+	va_start(ap, format);
+	r = vfprintf(fp, format, ap);
+	va_end(ap);
+	fflush(fp);
+	return (r);
 }
 
 int 
@@ -92,7 +104,7 @@ isc_ntfile_vfprintf(FILE *fp, const char *format, va_list alist) {
 	int r;
 	r = vfprintf(fp, format, alist);
 	fflush(fp);
-	return(r);
+	return (r);
 }
 
 int
@@ -100,7 +112,7 @@ isc_ntfile_fputc(int iv, FILE *fp) {
 	int r;
 	r = fputc(iv, fp);
 	fflush(fp);
-	return(r);
+	return (r);
 }
 
 int
@@ -108,37 +120,37 @@ isc_ntfile_fputs(const char *bf, FILE *fp) {
 	int r;
 	r = fputs(bf, fp);
 	fflush(fp);
-	return(r);
+	return (r);
 }
 
 int
 isc_ntfile_fgetc(FILE *fp) {
-	return(fgetc(fp));
+	return (fgetc(fp));
 }
 
 int
 isc_ntfile_fgetpos(FILE *fp, fpos_t *pos) {
-	return(fgetpos(fp, pos));
+	return (fgetpos(fp, pos));
 }
 
 char * 
 isc_ntfile_fgets(char *ch, int r, FILE *fp) {
-	return(fgets(ch,r, fp));
+	return (fgets(ch,r, fp));
 }
 
 int
 isc_ntfile_getc(FILE *fp) {
-	return(getc(fp));
+	return (getc(fp));
 }
 
 FILE *
 isc_ntfile_freopen(const char *path, const char *mode, FILE *fp) {
-	return(freopen(path, mode,fp));
+	return (freopen(path, mode,fp));
 }
 
 FILE *
 isc_ntfile_fdopen(int handle, const char *mode) {
-	return(fdopen(handle, mode));
+	return (fdopen(handle, mode));
 }
 /*
  * open(), close(), read(), write(), fsync()
@@ -174,5 +186,5 @@ isc_ntfile_write(int fd, char *buf, int len){
 	int r;
 	r = _write(fd, buf, len);
 	_commit(fd);
-	return(r);
+	return (r);
 }

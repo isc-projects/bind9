@@ -15,12 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.h,v 1.1 2001/07/06 05:51:43 mayer Exp $ */
+/* $Id: keyboard.h,v 1.2 2001/07/08 05:09:27 mayer Exp $ */
 
 #ifndef ISC_KEYBOARD_H
 #define ISC_KEYBOARD_H 1
-
-//#include <termios.h>
 
 #include <isc/lang.h>
 #include <isc/result.h>
@@ -29,7 +27,6 @@ ISC_LANG_BEGINDECLS
 
 typedef struct {
 	int fd;
-//	struct termios saved_mode;
 	isc_result_t result;
 } isc_keyboard_t;
 

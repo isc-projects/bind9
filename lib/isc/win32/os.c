@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.1 2001/07/06 05:36:13 mayer Exp $ */
+/* $Id: os.c,v 1.2 2001/07/08 05:09:11 mayer Exp $ */
 
 #include <windows.h>
 
@@ -27,10 +27,10 @@ static void
 initialize_action(void) {
 	BOOL bSuccess;
 
-	if(bInit)
+	if (bInit)
 		return;
 	
-	GetSystemInfo (&SystemInfo);
+	GetSystemInfo(&SystemInfo);
 	osVer.dwOSVersionInfoSize = sizeof(osVer);
 	bSuccess = GetVersionEx(&osVer);
 	bInit = TRUE;

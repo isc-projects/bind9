@@ -15,11 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.h,v 1.1 2001/07/06 05:57:19 mayer Exp $ */
+/* $Id: ntpaths.h,v 1.2 2001/07/08 05:09:31 mayer Exp $ */
 
-/* Windows-specific path definitions
- * These routines are used to set up and return system-specific path information
- * about the files enumerated in NtPaths
+/*
+ * Windows-specific path definitions
+ * These routines are used to set up and return system-specific path
+ * information about the files enumerated in NtPaths
  */
 
 

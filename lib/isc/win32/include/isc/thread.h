@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.14 2001/07/06 05:51:45 mayer Exp $ */
+/* $Id: thread.h,v 1.15 2001/07/08 05:09:35 mayer Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -29,12 +29,12 @@
  * Inlines to help with wait retrun checking
  */
 
-// check handle for NULL and INVALID_HANDLE
+/* check handle for NULL and INVALID_HANDLE */
 inline BOOL IsValidHandle( HANDLE hHandle) {
     return ((hHandle != NULL) && (hHandle != INVALID_HANDLE_VALUE));
 }
 
-// validate wait return codes...
+/* validate wait return codes... */
 inline BOOL WaitSucceeded( DWORD dwWaitResult, DWORD dwHandleCount) {
     return ((dwWaitResult >= WAIT_OBJECT_0) &&
             (dwWaitResult < WAIT_OBJECT_0 + dwHandleCount));
@@ -53,7 +53,7 @@ inline BOOL WaitFailed( DWORD dwWaitResult) {
     return (dwWaitResult == WAIT_FAILED);
 }
 
-// compute object indices for waits...
+/* compute object indices for waits... */
 inline DWORD WaitSucceededIndex( DWORD dwWaitResult) {
     return (dwWaitResult - WAIT_OBJECT_0);
 }

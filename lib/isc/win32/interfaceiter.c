@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.1 2001/07/06 05:25:20 mayer Exp $ */
+/* $Id: interfaceiter.c,v 1.2 2001/07/08 05:09:02 mayer Exp $ */
 
 /*
  * Note that this code will need to be revisited to support IPv6 Interfaces.
@@ -56,11 +56,11 @@
 
 struct isc_interfaceiter {
 	unsigned int		magic;		/* Magic number. */
-	isc_mem_t			*mctx;
-	int					socket;
+	isc_mem_t		*mctx;
+	int			socket;
 	INTERFACE_INFO		IFData;		/* Current Interface Info */
-	int					numIF;		/* Current Interface count */
-	int					totalIF;	/* Total Number of Interfaces */
+	int			numIF;		/* Current Interface count */
+	int			totalIF;	/* Total Number of Interfaces */
 	INTERFACE_INFO		*buf;		/* Buffer for WSAIoctl data. */
 	unsigned int		bufsize;	/* Bytes allocated. */
 	INTERFACE_INFO		*pos;		/* Current offset in IF List */
@@ -74,9 +74,9 @@ struct isc_interfaceiter {
  * We assume no sane system will have more than than 1K of IP addresses on
  * all of its adapters.
  */
-#define IFCONF_SIZE_INITIAL	16
-#define IFCONF_SIZE_INCREMENT 64
-#define IFCONF_SIZE_MAX	1040
+#define IFCONF_SIZE_INITIAL	  16
+#define IFCONF_SIZE_INCREMENT	  64
+#define IFCONF_SIZE_MAX		1040
 
 static void
 get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src) {
@@ -255,10 +255,10 @@ internal_current(isc_interfaceiter_t *iter, int family) {
 	 */
 	if ((iter->current.flags & INTERFACE_F_POINTTOPOINT) != 0) {
 		get_addr(family, &iter->current.dstaddress,
-		 (struct sockaddr *)&(iter->IFData.iiBroadcastAddress));
+		(struct sockaddr *)&(iter->IFData.iiBroadcastAddress));
 	}
 
-	if(ifNamed == FALSE)
+	if (ifNamed == FALSE)
 		sprintf(iter->current.name, "TCP/IP Interface %d", iter->numIF);
 	/*
 	 * Get the network mask.
@@ -273,9 +273,8 @@ internal_current(isc_interfaceiter_t *iter, int family) {
 		get_addr(family, &iter->current.netmask,
 			 (struct sockaddr *)&(iter->IFData.iiNetmask));
 		break;
-	case AF_INET6: {
+	case AF_INET6:
 		break;
-	}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -301,12 +300,12 @@ internal_next(isc_interfaceiter_t *iter) {
 	 * the list in reverse order
 	 */
 	 
-	if(iter->numIF == 0)
+	if (iter->numIF == 0)
 	{
 		iter->pos = (INTERFACE_INFO *)(iter->buf + (iter->totalIF));
 	}
 	iter->pos--;
-	if(&(iter->pos) < &(iter->buf))
+	if (&(iter->pos) < &(iter->buf))
 		return (ISC_R_NOMORE);
 
 	memset(&(iter->IFData), 0, sizeof(INTERFACE_INFO));
@@ -322,8 +321,7 @@ internal_next(isc_interfaceiter_t *iter) {
 
 isc_result_t
 isc_interfaceiter_current(isc_interfaceiter_t *iter,
-			  isc_interface_t *ifdata)
-{
+			  isc_interface_t *ifdata) {
 	REQUIRE(iter->result == ISC_R_SUCCESS);
 	memcpy(ifdata, &iter->current, sizeof(*ifdata));
 	return (ISC_R_SUCCESS);
@@ -381,3 +379,4 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 	isc_mem_put(iter->mctx, iter, sizeof *iter);
 	*iterp = NULL;
 }
+

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.21 2001/07/06 05:07:44 mayer Exp $ */
+/* $Id: time.c,v 1.22 2001/07/08 05:09:18 mayer Exp $ */
 
 /*
  * Windows has a different epoch than Unix. Therefore this code sets the epoch
@@ -298,8 +298,6 @@ isc_time_seconds(isc_time_t *t) {
 
 	i.LowPart = t->absolute.dwLowDateTime - epoch.absolute.dwLowDateTime;
 	i.HighPart = t->absolute.dwHighDateTime - epoch.absolute.dwHighDateTime;
-
-//	INSIST(i.QuadPart / INTERVALS_PER_S <= (isc_uint32_t)-1);
 
 	return ((isc_uint32_t)(i.QuadPart / INTERVALS_PER_S));
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.1 2001/07/06 05:56:25 mayer Exp $ */
+/* $Id: ntfile.h,v 1.2 2001/07/08 05:09:30 mayer Exp $ */
 
 /* This file has been necessitated by the fact that the iov array is local
  * to the module, so passing the FILE ptr to a file I/O function in a
@@ -48,6 +48,9 @@ isc_ntfile_sync(FILE *f);
 
 FILE*
 isc_ntfile_getaddress(int r);
+
+int
+isc_ntfile_printf(const char *format, ...);
 
 int
 isc_ntfile_fprintf(FILE *fp, const char *format, ...);

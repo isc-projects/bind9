@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.16 2001/07/06 05:05:51 mayer Exp $ */
+/* $Id: condition.c,v 1.17 2001/07/08 05:08:56 mayer Exp $ */
 
 #include <config.h>
 
@@ -131,8 +131,7 @@ isc_condition_wait(isc_condition_t *cond, isc_mutex_t *mutex) {
 
 isc_result_t
 isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
-			isc_time_t *t)
-{
+			isc_time_t *t) {
 	DWORD milliseconds;
 	isc_uint64_t microseconds;
 	isc_time_t now;

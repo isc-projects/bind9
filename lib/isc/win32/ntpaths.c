@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntpaths.c,v 1.1 2001/07/06 05:35:09 mayer Exp $ */
+/* $Id: ntpaths.c,v 1.2 2001/07/08 05:09:09 mayer Exp $ */
 
 /*
  * This file fetches the required path information that is specific
@@ -51,13 +51,15 @@ isc_ntpaths_init()
 	BOOL keyFound = TRUE;
 
 	memset(namedBase, 0, MAX_PATH);
-	if(RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey) != ERROR_SUCCESS)
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, BIND_SUBKEY, 0, KEY_READ, &hKey)
+		!= ERROR_SUCCESS)
 		keyFound = FALSE;
 	
-	if(keyFound == TRUE)
+	if (keyFound == TRUE)
 	{
-		// Get the named directory
-		if(RegQueryValueEx(hKey, "InstallDir", NULL, NULL, (LPBYTE)namedBase, &baseLen) != ERROR_SUCCESS)
+		/* Get the named directory */
+		if (RegQueryValueEx(hKey, "InstallDir", NULL, NULL,
+			(LPBYTE)namedBase, &baseLen) != ERROR_SUCCESS)
 			keyFound = FALSE;
 	}
 	
@@ -65,8 +67,9 @@ isc_ntpaths_init()
 
 	GetSystemDirectory(systemDir, MAX_PATH);
 
-	if(keyFound == FALSE)
-		strcpy(namedBase, systemDir);		// Use the System Directory as a default
+	if (keyFound == FALSE)
+		/* Use the System Directory as a default */
+		strcpy(namedBase, systemDir);
 
 	strcpy(ns_confFile, namedBase);
 	strcat(ns_confFile, "\\etc\\named.conf");
@@ -92,30 +95,30 @@ isc_ntpaths_init()
 char *
 isc_ntpaths_get(int ind) {
 	
-	if(!Initialized) {
+	if (!Initialized) {
 		isc_ntpaths_init();
 	}
 	switch (ind) {
 	case NAMED_CONF_PATH:
-		return(ns_confFile);
+		return (ns_confFile);
 		break;
 	case LWRES_CONF_PATH:
-		return(lwresd_confFile);
+		return (lwresd_confFile);
 		break;
 	case RESOLV_CONF_PATH:
-		return(lwresd_resolvconfFile);
+		return (lwresd_resolvconfFile);
 		break;
 	case RNDC_CONF_PATH:
-		return(rndc_confFile);
+		return (rndc_confFile);
 		break;
 	case NAMED_PID_PATH:
-		return(ns_defaultpidfile);
+		return (ns_defaultpidfile);
 		break;
 	case LWRESD_PID_PATH:
-		return(lwresd_defaultpidfile);
+		return (lwresd_defaultpidfile);
 		break;
 	default:
-		return(NULL);
+		return (NULL);
 	}
 }
 

@@ -15,26 +15,29 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bind_registry.h,v 1.1 2001/07/06 05:45:21 mayer Exp $ */
+/* $Id: bind_registry.h,v 1.2 2001/07/08 05:09:21 mayer Exp $ */
 
 #ifndef _BIND_REGISTRY_H
 #define _BIND_REGISTRY_H
 
-#define BIND_SUBKEY				"Software\\ISC\\BIND"
-#define BIND_SESSION			"CurrentSession"
-#define BIND_SESSION_SUBKEY		"Software\\ISC\\BIND\\CurrentSession"
+/*
+ * BIND makes use of the following Registry keys in various places, especially
+ * furing startup and installation
+ */
+
+#define BIND_SUBKEY		"Software\\ISC\\BIND"
+#define BIND_SESSION		"CurrentSession"
+#define BIND_SESSION_SUBKEY	"Software\\ISC\\BIND\\CurrentSession"
 #define BIND_UNINSTALL_SUBKEY	"Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\ISC BIND"
 
-#define EVENTLOG_APP_SUBKEY		"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
-#define BIND_MESSAGE_SUBKEY		"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\named"
-#define XFER_MESSAGE_SUBKEY		"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\named-xfer"
-#define BIND_MESSAGE_NAME		"named"
-#define XFER_MESSAGE_NAME		"named-xfer"
+#define EVENTLOG_APP_SUBKEY	"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application"
+#define BIND_MESSAGE_SUBKEY	"SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\named"
+#define BIND_MESSAGE_NAME	"named"
 
-#define BIND_CONFIGFILE	0
-#define BIND_DEBUGLEVEL	1
-#define BIND_QUERYLOG	2
-#define BIND_FOREGROUND	3
+#define BIND_CONFIGFILE		0
+#define BIND_DEBUGLEVEL		1
+#define BIND_QUERYLOG		2
+#define BIND_FOREGROUND		3
 #define BIND_PORT		4
 
 #endif

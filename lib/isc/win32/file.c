@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.8 2001/07/06 21:57:22 gson Exp $ */
+/* $Id: file.c,v 1.9 2001/07/08 05:09:00 mayer Exp $ */
 
 #include <config.h>
 
@@ -66,10 +66,10 @@ gettemp(char *path, int *doopen) {
 		if (*trv == '\\') {
 			*trv = '\0';
 			if (stat(path, &sbuf))
-				return(0);
+				return (0);
 			if (!S_ISDIR(sbuf.st_mode)) {
 				errno = ENOTDIR;
-				return(0);
+				return (0);
 			}
 			*trv = '\\';
 			break;
@@ -79,19 +79,24 @@ gettemp(char *path, int *doopen) {
 	for (;;) {
 		if (doopen) {
 			if ((*doopen =
+<<<<<<< file.c
+			    open(path, O_CREAT|O_EXCL|O_RDWR, _S_IREAD | _S_IWRITE)) >= 0)
+				return (1);
+=======
 			     open(path, O_CREAT | O_EXCL | O_RDWR,
 				  _S_IREAD | _S_IWRITE)) >= 0)
 				return(1);
+>>>>>>> 1.8
 			if (errno != EEXIST)
-				return(0);
+				return (0);
 		}
 		else if (stat(path, &sbuf))
-			return(errno == ENOENT ? 1 : 0);
+			return (errno == ENOENT ? 1 : 0);
 
 		/* tricky little algorithm for backward compatibility */
 		for (trv = start;;) {
 			if (!*trv)
-				return(0);
+				return (0);
 			if (*trv == 'z')
 				*trv++ = 'a';
 			else {
@@ -151,14 +156,26 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	 */
 	if (stat(oldname, &sbuf) != 0) {
 		errno = ENOENT;
-		return(-1);
+		return (-1);
 	}
 
 	/*
 	 * Rename to a backup the new file if it still exists
 	 */
+<<<<<<< file.c
+	if (stat(newname, &sbuf) == 0) {
+=======
 	if (stat(newname, &sbuf) == 0)
+>>>>>>> 1.8
 		exists = TRUE;
+<<<<<<< file.c
+		strcpy(buf, newname);
+		strcat(buf, ".XXXXX");
+		tmpfd = mkstemp(buf);
+		if (tmpfd > 0)
+			_close(tmpfd);
+		DeleteFile(buf);
+=======
 
 	strcpy(buf, newname);
 	strcat(buf, ".XXXXX");
@@ -168,22 +185,37 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 	DeleteFile(buf);
 
 	if (exists == TRUE)
+>>>>>>> 1.8
 		_chmod(newname, _S_IREAD | _S_IWRITE);
 
+<<<<<<< file.c
+		filestatus = MoveFile(newname, buf);
+=======
 	filestatus = MoveFile(newname, buf);
 	if (filestatus == 0) {
+>>>>>>> 1.8
 	}
+<<<<<<< file.c
+	/* Now rename the file to the new name
+=======
 
 	/*
 	 * Now rename the file to the new name
+>>>>>>> 1.8
 	 */
 	_chmod(oldname, _S_IREAD | _S_IWRITE);
 
 	filestatus = MoveFile(oldname, newname);
+<<<<<<< file.c
+	if (filestatus == 0) {
+
+		/* Try and rename the backup back to the original name if the backup got created
+=======
 	if (filestatus == 0) {
 		/* 
 		 * Try to rename the backup back to the original name
 		 * if the backup got created
+>>>>>>> 1.8
 		 */
 		if (exists == TRUE) {
 			filestatus = MoveFile(buf, newname);
@@ -324,7 +356,7 @@ isc_file_openunique(char *templet, FILE **fp) {
 	REQUIRE(fp != NULL && *fp == NULL);
 
 	/*
-	 * Win32 does not have mkstemp.
+	 * Win32 does not have mkstemp. Using emulation above.
 	 */
 	fd = mkstemp(templet);
 
@@ -409,8 +441,14 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	 * Strip the path from the name
 	 */
 	s = isc_file_basename(filename);
+<<<<<<< file.c
+	if (s == NULL) {
+		return (ISC_R_NOSPACE);
+	}
+=======
 	if (s == NULL)
 		return (ISC_R_NOSPACE);
+>>>>>>> 1.8
 
 	/*
 	 * Strip any and all suffixes

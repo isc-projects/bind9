@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.1 2001/07/06 05:59:09 mayer Exp $ */
+/* $Id: platform.h,v 1.2 2001/07/08 05:09:33 mayer Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -23,19 +23,16 @@
 /*****
  ***** Platform-dependent defines.
  *****/
-//#define ISC_PLATFORM_NEEDVSNPRINTF
 #define ISC_PLATFORM_USETHREADS
 /***
  *** Network.
  ***/
 #define ISC_PLATFORM_HAVEIPV6
-//#define ISC_PLATFORM_NEEDIN6ADDRANY
 #define ISC_PLATFORM_NEEDPORTT
 #undef MSG_TRUNC
 #define ISC_PLATFORM_NEEDNTOP
 #define ISC_PLATFORM_NEEDPTON
 #define ISC_PLATFORM_NEEDATON
-//#define ISC_NET_BSD44MSGHDR
 
 #define ISC_PLATFORM_QUADFORMAT "I64"
 

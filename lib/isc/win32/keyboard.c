@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.c,v 1.1 2001/07/06 05:27:37 mayer Exp $ */
+/* $Id: keyboard.c,v 1.2 2001/07/08 05:09:04 mayer Exp $ */
 
 #include <config.h>
 
@@ -37,8 +37,6 @@
 isc_result_t
 isc_keyboard_open(isc_keyboard_t *keyboard) {
 	int fd;
-	isc_result_t ret;
-//	struct termios current_mode;
 
 	REQUIRE(keyboard != NULL);
 
@@ -47,35 +45,11 @@ isc_keyboard_open(isc_keyboard_t *keyboard) {
 		return (ISC_R_IOERROR);
 
 	keyboard->fd = fd;
-/*
-	if (tcgetattr(fd, &keyboard->saved_mode) < 0) {
-		ret = ISC_R_IOERROR;
-		goto errout;
-	}
 
-	current_mode = keyboard->saved_mode;
-
-	current_mode.c_iflag &=
-			~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
-	current_mode.c_oflag &= ~OPOST;
-	current_mode.c_lflag &= ~(ECHO|ECHONL|ICANON|ISIG|IEXTEN);
-	current_mode.c_cflag &= ~(CSIZE|PARENB);
-	current_mode.c_cflag |= CS8;
-
-	current_mode.c_cc[VMIN] = 1;
-	current_mode.c_cc[VTIME] = 0;
-	if (tcsetattr(fd, TCSAFLUSH, &current_mode) < 0) {
-		ret = ISC_R_IOERROR;
-		goto errout;
-	}
-*/
 	keyboard->result = ISC_R_SUCCESS;
 
 	return (ISC_R_SUCCESS);
 
-// errout:
-
-	return (ret);
 }
 
 isc_result_t
@@ -84,8 +58,6 @@ isc_keyboard_close(isc_keyboard_t *keyboard, unsigned int sleeptime) {
 
 	if (sleeptime > 0 && keyboard->result != ISC_R_CANCELED)
 		(void)Sleep(sleeptime*1000);
-
-//	(void)tcsetattr(keyboard->fd, TCSAFLUSH, &keyboard->saved_mode);
 
 	keyboard->fd = -1;
 
@@ -96,7 +68,6 @@ isc_result_t
 isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 	ssize_t cc;
 	unsigned char c;
-//	cc_t *controlchars;
 
 	REQUIRE(keyboard != NULL);
 	REQUIRE(cp != NULL);
@@ -106,13 +77,7 @@ isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 		keyboard->result = ISC_R_IOERROR;
 		return (keyboard->result);
 	}
-/*
-	controlchars = keyboard->saved_mode.c_cc;
-	if (c == controlchars[VINTR] || c == controlchars[VQUIT]) {
-		keyboard->result = ISC_R_CANCELED;
-		return (keyboard->result);
-	}
-*/
+
 	*cp = c;
 
 	return (ISC_R_SUCCESS);
@@ -122,3 +87,4 @@ isc_boolean_t
 isc_keyboard_canceled(isc_keyboard_t *keyboard) {
 	return (ISC_TF(keyboard->result == ISC_R_CANCELED));
 }
+
