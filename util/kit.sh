@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: kit.sh,v 1.19 2001/05/24 02:01:56 marka Exp $
+# $Id: kit.sh,v 1.20 2001/05/30 21:18:07 bwelling Exp $
 
 # Make a release kit
 #
@@ -101,12 +101,6 @@ rm -rf TODO conftools util doc/design doc/dev doc/expired \
     doc/html doc/todo doc/private bin/lwresd doc/man \
     lib/lwres/man/resolver.5 \
     bin/tests/system/relay lib/cfg
-if $snapshot
-then
-   :
-else
-    rm -rf lib/bind
-fi
 
 find . -name .cvsignore -print | xargs rm
 
