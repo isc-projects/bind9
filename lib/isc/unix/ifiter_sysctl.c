@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.14.12.8 2005/03/15 00:09:14 marka Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.14.12.9 2005/03/17 03:58:33 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.

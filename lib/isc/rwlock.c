@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.33.2.4.2.2 2005/03/15 02:04:05 marka Exp $ */
+/* $Id: rwlock.c,v 1.33.2.4.2.3 2005/03/17 03:58:32 marka Exp $ */
 
 #include <config.h>
 
