@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.2 2001/05/10 05:10:30 marka Exp $
+ *	$Id: netdb.h,v 1.3 2001/05/10 05:38:33 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -383,7 +383,11 @@ int		gethostbyaddr_r __P((const char *, int, int, struct hostent *,
 int		gethostbyname_r __P((const char *, struct hostent *, 
 					struct hostent_data *));
 int		gethostent_r __P((struct hostent *, struct hostent_data *));
+#if defined(_AIX)
+void		sethostent_r __P((int, struct hostent_data *));
+#else
 int		sethostent_r __P((int, struct hostent_data *));
+#endif 
 #if defined(__hpux)
 int		endhostent_r __P((struct hostent_data *));
 #else

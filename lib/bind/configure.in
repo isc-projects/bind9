@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.44 $)
+AC_REVISION($Revision: 1.45 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1460,6 +1460,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
 HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
 HOST_R_OK="#define HOST_R_OK hptr"
 HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
+HOSTENT_DATA="#undef HOSTENT_DATA"
 ]
 ,
 AC_TRY_COMPILE([
@@ -1475,6 +1476,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS HOST_R_ARGS"
 HOST_R_ERRNO="#define HOST_R_ERRNO NULL"
 HOST_R_OK="#define HOST_R_OK 0"
 HOST_R_RETURN="#define HOST_R_RETURN int"
+HOSTENT_DATA="#define HOSTENT_DATA 1"
 ],
 ))
 ,
@@ -1485,6 +1487,7 @@ HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS char *buf, int buflen"
 HOST_R_ERRNO="#define HOST_R_ERRNO *h_errnop = h_errno"
 HOST_R_OK="#define HOST_R_OK hptr"
 HOST_R_RETURN="#define HOST_R_RETURN struct hostent *"
+HOSTENT_DATA="#undef HOSTENT_DATA"
 )
 AC_SUBST(HOST_R_ARGS)
 AC_SUBST(HOST_R_BAD)
@@ -1493,6 +1496,7 @@ AC_SUBST(HOST_R_COPY_ARGS)
 AC_SUBST(HOST_R_ERRNO)
 AC_SUBST(HOST_R_OK)
 AC_SUBST(HOST_R_RETURN)
+AC_SUBST(HOSTENT_DATA)
 
 AC_CHECK_FUNC(endhostent_r,
 AC_TRY_COMPILE([
@@ -1503,6 +1507,15 @@ HOST_R_END_RESULT="#define HOST_R_END_RESULT(x) return (x)"
 HOST_R_END_RETURN="#define HOST_R_END_RETURN int"
 HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
 ,
+AC_TRY_COMPILE([
+#include <netdb.h>
+extern void endhostent_r(struct hostent_data *ht_data);
+],[],[
+HOST_R_END_RESULT="#define HOST_R_END_RESULT(x)"
+HOST_R_END_RETURN="#define HOST_R_END_RETURN void"
+HOST_R_ENT_ARGS="#define HOST_R_ENT_ARGS struct hostent_data *hdptr"
+],
+)
 )
 ,
 HOST_R_END_RESULT="#define HOST_R_END_RESULT(x) /*empty*/"
@@ -1517,8 +1530,8 @@ AC_CHECK_FUNC(sethostent_r,
 AC_TRY_COMPILE([
 #include <netdb.h>
 extern void sethostent_r(int flag, struct hostent_data *ht_data);],[],
-HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
-HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void",
+[HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
+HOST_R_SET_RETURN="#define HOST_R_SET_RETURN void"],
 )
 ,
 HOST_R_SET_RESULT="#undef HOST_R_SET_RESULT /*empty*/"
