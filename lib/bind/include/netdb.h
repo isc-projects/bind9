@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.10 2001/07/16 14:43:39 marka Exp $
+ *	$Id: netdb.h,v 1.11 2001/07/23 00:04:27 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -395,7 +395,7 @@ int		endhostent_r __P((struct hostent_data *));
 void		endhostent_r __P((struct hostent_data *));
 #endif
 
-#ifdef __hpux
+#if defined(__hpux) || defined(__osf__)
 int		getnetbyaddr_r __P((int, int,
 				struct netent *, struct netent_data *));
 #else
