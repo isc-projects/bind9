@@ -1,3 +1,7 @@
+ 670.	[bug]		The lwres replacements for getaddrinfo and
+			getipnodebyname didn't properly check for the
+			existence of the sockaddr sa_len field.
+
  669.	[func]		dnssec-keygen now makes the public key file
 			non-world-readable for symmetric keys. [RT #403]
 

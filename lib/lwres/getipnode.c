@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.26 2000/10/05 22:27:51 bwelling Exp $ */
+/* $Id: getipnode.c,v 1.27 2001/01/09 01:26:43 bwelling Exp $ */
 
 #include <config.h>
 
@@ -455,7 +455,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 	     (*have_v4 == 0 || *have_v6 == 0) && cp < cplim;
 	     cp += cpsize) {
 		memcpy(&ifreq, cp, sizeof ifreq);
-#ifdef HAVE_SA_LEN
+#ifdef LWRES_PLATFORM_HAVESALEN
 #ifdef FIX_ZERO_SA_LEN
 		if (ifreq.ifr_addr.sa_len == 0)
 			ifreq.ifr_addr.sa_len = IN6ADDRSZ;
@@ -475,7 +475,7 @@ scan_interfaces(int *have_v4, int *have_v6) {
 		/* XXX maybe this should be a hard error? */
 		if (ioctl(s, SIOCGIFADDR, (char *)&ifreq) < 0)
 			continue;
-#endif /* HAVE_SA_LEN */
+#endif /* LWRES_PLATFORM_HAVESALEN */
 		switch (ifreq.ifr_addr.sa_family) {
 		case AF_INET:
 			if (*have_v4 == 0) {

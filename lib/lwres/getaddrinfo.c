@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.34 2000/12/06 00:35:44 tale Exp $ */
+/* $Id: getaddrinfo.c,v 1.35 2001/01/09 01:26:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -618,7 +618,7 @@ get_local(const char *name, int socktype, struct addrinfo **res) {
  *	ai_family
  *	ai_addr
  *	ai_addr->sa_family
- *	ai_addr->sa_len	(HAVE_SA_LEN)
+ *	ai_addr->sa_len	(LWRES_PLATFORM_HAVESALEN)
  * and everything else is initialized to zero.
  */
 static struct addrinfo *
@@ -637,7 +637,7 @@ ai_alloc(int family, int addrlen) {
 	ai->ai_addrlen = addrlen;
 	ai->ai_family = family;
 	ai->ai_addr->sa_family = family;
-#ifdef	HAVE_SA_LEN
+#ifdef LWRES_PLATFORM_HAVESALEN
 	ai->ai_addr->sa_len = addrlen;
 #endif
 	return (ai);
