@@ -423,11 +423,8 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	/*
 	 * Mark as initialized if we've added enough data.
 	 */
-	if (ent->initialized < 20) {
+	if (ent->initialized < 20)
 		ent->initialized += added;
-		if (ent->initialized >= 20)
-			ent->initialized = ISC_TRUE;
-	}
 }
 
 static int
