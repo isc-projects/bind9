@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.215 $)
+AC_REVISION($Revision: 1.216 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1331,6 +1331,7 @@ AC_OUTPUT(
 	lib/lwres/include/lwres/Makefile
 	lib/lwres/include/lwres/netdb.h
 	lib/lwres/include/lwres/platform.h
+	lib/lwres/man/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile

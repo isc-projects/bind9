@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.214 
+# From configure.in Revision: 1.215 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5095,6 +5095,7 @@ trap 'rm -fr `echo "make/rules
 	lib/lwres/include/lwres/Makefile
 	lib/lwres/include/lwres/netdb.h
 	lib/lwres/include/lwres/platform.h
+	lib/lwres/man/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile
@@ -5345,6 +5346,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/lwres/include/lwres/Makefile
 	lib/lwres/include/lwres/netdb.h
 	lib/lwres/include/lwres/platform.h
+	lib/lwres/man/Makefile
 	lib/omapi/Makefile
 	lib/omapi/include/Makefile
 	lib/omapi/include/omapi/Makefile
