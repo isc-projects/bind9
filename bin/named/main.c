@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.106 2001/03/27 00:44:33 bwelling Exp $ */
+/* $Id: main.c,v 1.107 2001/03/29 04:23:51 gson Exp $ */
 
 #include <config.h>
 
@@ -430,7 +430,7 @@ destroy_managers(void) {
 
 	isc_entropy_detach(&ns_g_entropy);
 	/*
-	 * isc_taskmgr_destroy() will  block until all tasks have exited,
+	 * isc_taskmgr_destroy() will block until all tasks have exited,
 	 */
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
