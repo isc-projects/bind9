@@ -248,6 +248,7 @@
 #define lh_new dst__openssl_lh_new
 #define lh_retrieve dst__openssl_lh_retrieve
 #define lh_strhash dst__openssl_lh_strhash
+#define lh_num_items dst__openssl_lh_num_items
 #define md5_block_host_order dst__openssl_md5_block_host_order
 #define md5_block_data_order dst__openssl_md5_block_data_order
 #define sha1_block_data_order dst__openssl_sha1_block_data_order
@@ -305,6 +306,7 @@
 #define DSA_version dst__openssl_DSA_version
 #define lh_version dst__openssl_lh_version
 #define RAND_version dst__openssl_RAND_version
+#define RAND_event dst__RAND_event
 #define MD5_version dst__openssl_MD5_version
 #define SHA1_version dst__openssl_SHA1_version
 #define STACK_version dst__openssl_STACK_version

@@ -141,11 +141,7 @@ void dst__openssl_md5_block_data_order (MD5_CTX *c, const void *p,int num);
 /* BEW */
 #define FLAT_INC
 
-#ifndef FLAT_INC
-#include "../md32_common.h"
-#else
 #include "md32_common.h"
-#endif
 
 /*
 #define	F(x,y,z)	(((x) & (y))  |  ((~(x)) & (z)))

@@ -1,3 +1,5 @@
+ 209.	[cleanup]	Upgraded openssl files to new version 0.9.5a
+
  208.   [func]          Added ISC_OFFSET_MAXIMUM for the maximum value
                         of an isc_offset_t.
 

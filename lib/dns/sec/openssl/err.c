@@ -61,6 +61,7 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <openssl/lhash.h>
 #include <openssl/crypto.h>
 #include "cryptlib.h"
@@ -157,6 +158,54 @@ static ERR_STRING_DATA ERR_str_reasons[]=
 
 {0,NULL},
 	};
+
+
+#define NUM_SYS_STR_REASONS 127
+#define LEN_SYS_STR_REASON 32
+
+static ERR_STRING_DATA SYS_str_reasons[NUM_SYS_STR_REASONS + 1];
+/* SYS_str_reasons is filled with copies of strerror() results at
+ * initialization.
+ * 'errno' values up to 127 should cover all usual errors,
+ * others will be displayed numerically by ERR_error_string.
+ * It is crucial that we have something for each reason code
+ * that occurs in ERR_str_reasons, or bogus reason strings
+ * will be returned for SYSerr(), which always gets an errno
+ * value and never one of those 'standard' reason codes. */
+
+static void build_SYS_str_reasons()
+	{
+	/* Malloc cannot be used here, use static storage instead */
+	static char strerror_tab[NUM_SYS_STR_REASONS][LEN_SYS_STR_REASON];
+	int i;
+
+	CRYPTO_w_lock(CRYPTO_LOCK_ERR_HASH);
+
+	for (i = 1; i <= NUM_SYS_STR_REASONS; i++)
+		{
+		ERR_STRING_DATA *str = &SYS_str_reasons[i - 1];
+
+		str->error = (unsigned long)i;
+		if (str->string == NULL)
+			{
+			char (*dest)[LEN_SYS_STR_REASON] = &(strerror_tab[i - 1]);
+			char *src = strerror(i);
+			if (src != NULL)
+				{
+				strncpy(*dest, src, sizeof *dest);
+				(*dest)[sizeof *dest - 1] = '\0';
+				str->string = *dest;
+				}
+			}
+		if (str->string == NULL)
+			str->string = "unknown";
+		}
+
+	/* Now we still have SYS_str_reasons[NUM_SYS_STR_REASONS] = {0, NULL},
+	 * as required by ERR_load_strings. */
+
+	CRYPTO_w_unlock(CRYPTO_LOCK_ERR_HASH);
+	}
 #endif
 
 #define err_clear_data(p,i) \
@@ -194,14 +243,16 @@ void ERR_load_ERR_strings(void)
 			CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 			return;
 			}
-		init=0;
 		CRYPTO_w_unlock(CRYPTO_LOCK_ERR);
 
 #ifndef NO_ERR
 		ERR_load_strings(0,ERR_str_libraries);
 		ERR_load_strings(0,ERR_str_reasons);
 		ERR_load_strings(ERR_LIB_SYS,ERR_str_functs);
+		build_SYS_str_reasons();
+		ERR_load_strings(ERR_LIB_SYS,SYS_str_reasons);
 #endif
+		init=0;
 		}
 	}
 
