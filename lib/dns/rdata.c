@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.6 2003/08/14 00:50:18 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.7 2003/08/14 02:35:49 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1321,7 +1321,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 				break;
 		}
 		if (p->name == NULL)
-			return (DNS_R_UNKNOWN);
+			return (DNS_R_UNKNOWNFLAG);
 		value |= p->value;
 #ifdef notyet
 		if ((mask & p->mask) != 0)
@@ -1945,6 +1945,7 @@ default_fromtext_callback(dns_rdatacallbacks_t *callbacks, const char *fmt,
 	va_start(ap, fmt);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
+	fprintf(stderr, "\n");
 }
 
 static void
