@@ -1,3 +1,5 @@
+1827.	[bug]		host: update usage message for '-a'. [RT #37116]
+
 1826.	[bug]		Missing DESTROYLOCK() in isc_mem_createx() on out
 			of memory error. [RT #13537]
 

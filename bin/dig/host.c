@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.7 2004/09/16 02:19:38 marka Exp $ */
+/* $Id: host.c,v 1.76.2.8 2005/03/15 01:49:01 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -207,7 +207,7 @@ show_usage(void) {
 	fputs(
 "Usage: host [-aCdlrTwv] [-c class] [-n] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
-"       -a is equivalent to -v -t *\n"
+"       -a is equivalent to -v -t ANY\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
