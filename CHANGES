@@ -1,4 +1,7 @@
 
+ 337.	[bug]		"dig" did not recognize "nsap-ptr" as an RR type
+			on the command line.
+
  336.	[bug]		"dig -f" used 64 k of memory for each line in
 			the file.  It now uses much less, though still
 			proportionally to the file size.
