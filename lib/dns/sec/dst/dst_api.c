@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.5 1999/08/26 20:41:54 bwelling Exp $
+ * $Id: dst_api.c,v 1.6 1999/08/27 15:56:33 bwelling Exp $
  */
 
 #include <config.h>
@@ -596,7 +596,7 @@ dst_sig_size(const dst_key_t *key) {
 
 	switch (key->key_alg) {
 		case DST_ALG_RSA:
-			return key->key_size;
+			return (key->key_size + 7) / 8;
 		case DST_ALG_DSA:
 			return (NS_DSA_SIG_SIZE);
 		case DST_ALG_HMAC_MD5:
