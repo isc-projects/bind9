@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.334 2001/07/16 18:33:30 gson Exp $ */
+/* $Id: server.c,v 1.335 2001/07/23 17:31:33 gson Exp $ */
 
 #include <config.h>
 
@@ -1270,8 +1270,15 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 		if (dns_name_equal(origin, dns_rootname)) {
-			result = configure_hints(view,
-						 cfg_obj_asstring(fileobj));
+			char *hintsfile = cfg_obj_asstring(fileobj);
+			result = configure_hints(view, hintsfile);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_ERROR,
+					      "could not configure root hints "
+					      "from '%s': %s", hintsfile,
+					      isc_result_totext(result));
 		} else {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -1279,6 +1286,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 				      zname);
 			result = ISC_R_SUCCESS;
 		}
+		/* Skip ordinary zone processing. */
 		goto cleanup;
 	}
 
