@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.61 2000/10/25 04:26:16 marka Exp $ */
+/* $Id: nslookup.c,v 1.62 2000/10/25 06:17:56 marka Exp $ */
 
 #include <config.h>
 
@@ -783,8 +783,7 @@ setsrv(char *opt) {
 	if (srv == NULL)
 		fatal("Memory allocation failure.");
 	safecpy(srv->servername, opt, MXNAME-1);
-	ISC_LINK_INIT(srv, link);
-	ISC_LIST_APPEND(server_list, srv, link);
+	ISC_LIST_APPENDUNSAFE(server_list, srv, link);
 }
 
 static void
