@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.42 2003/10/16 05:56:25 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.43 2004/01/07 21:55:47 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -655,7 +655,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 			return (ISC_R_IGNORE);
 		}
 		get_addr(family, &iter->current.dstaddress,
-			 (struct sockaddr *)&ifreq.ifr_dstaddr, ireq.ifr_name);
+			 (struct sockaddr *)&ifreq.ifr_dstaddr, ifreq.ifr_name);
 	}
 #endif
 
