@@ -86,7 +86,7 @@ ns_os_init(void) {
 	setup_syslog();
 
 #ifdef HAVE_LINUX_CAPABILITY_H
-	linux_dropprivs();
+	/* linux_dropprivs(); */
 #endif
 
 	return (ISC_R_SUCCESS);
