@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.20 2000/08/01 01:14:23 tale Exp $
+# $Id: ifconfig.sh,v 1.21 2000/08/08 19:57:31 gson Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -33,7 +33,7 @@ esac
 
 case "$1" in
 
-    'start')
+    start|up)
 	for ns in 1 2 3 4 5
 	do
 		case "$sys" in
@@ -84,7 +84,7 @@ case "$1" in
 	done
 	;;
 
-    'stop')
+    stop|down)
 	for ns in 5 4 3 2 1
 	do
 		case "$sys" in
