@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.279 2001/01/11 23:46:12 bwelling Exp $ */
+/* $Id: server.c,v 1.280 2001/01/12 00:37:11 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1715,23 +1715,30 @@ load_configuration(const char *filename, ns_server_t *server,
 	/*
 	 * Open the source of entropy.
 	 */
-	randomdev = NULL;
-	(void)dns_c_ctx_getrandomdevice(cctx, &randomdev);
+	if (first_time) {
+		randomdev = NULL;
+		(void)dns_c_ctx_getrandomdevice(cctx, &randomdev);
 #ifdef PATH_RANDOMDEV
-	if (randomdev == NULL)
-		randomdev = path_randomdev;
+		if (randomdev == NULL)
+			randomdev = path_randomdev;
 #endif
-	if (randomdev == NULL)
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "no source of entropy found");
-	else {
-		result = isc_entropy_createfilesource(ns_g_entropy, randomdev);
-		if (result != ISC_R_SUCCESS)
+		if (randomdev == NULL)
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-				      "failed to open entropy source %s: %s",
-				      randomdev, isc_result_totext(result));
+				      "no source of entropy found");
+		else {
+			result = isc_entropy_createfilesource(ns_g_entropy,
+							      randomdev);
+			if (result != ISC_R_SUCCESS)
+				isc_log_write(ns_g_lctx,
+					      NS_LOGCATEGORY_GENERAL,
+					      NS_LOGMODULE_SERVER,
+					      ISC_LOG_INFO,
+					      "could not open entropy source "
+					      "%s: %s",
+					      randomdev,
+					      isc_result_totext(result));
+		}
 	}
 
 	/*
