@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.98 2001/04/12 21:03:37 tale Exp $ */
+/* $Id: dispatch.c,v 1.99 2001/05/14 22:07:40 gson Exp $ */
 
 #include <config.h>
 
@@ -748,8 +748,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 			
 		case ISC_R_EOF:
 			dispatch_log(disp, LVL(90), "shutting down on EOF");
-			disp->shutdown_why = ISC_R_EOF;
-			disp->shutting_down = 1;
 			do_cancel(disp, NULL);
 			break;
 
@@ -758,8 +756,6 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 				     "shutting down due to TCP "
 				     "receive error: %s",
 				     isc_result_totext(tcpmsg->result));
-			disp->shutdown_why = ISC_R_EOF;
-			disp->shutting_down = 1;
 			do_cancel(disp, NULL);
 			break;
 		}
@@ -770,7 +766,9 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		 * free the event *before* calling destroy_disp().
 		 */
 		isc_event_free(&ev_in);
+		
 		disp->shutting_down = 1;
+		disp->shutdown_why = tcpmsg->result;
 
 		/*
 		 * If the recv() was canceled pass the word on.
