@@ -1,3 +1,5 @@
+1335.	[bug]		Options should apply to the internal _bind view.
+
 1330.	[bug]		'rndc stop' failed to cause zones to be flushed
 			sometimes. [RT #3157]
 

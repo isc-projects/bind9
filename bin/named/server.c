@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.6 2002/05/08 06:06:33 marka Exp $ */
+/* $Id: server.c,v 1.339.2.7 2002/07/02 02:46:43 marka Exp $ */
 
 #include <config.h>
 
@@ -900,6 +900,7 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	static unsigned char origindata[] = "\007version\004bind";
 	dns_name_t origin;
 	cfg_obj_t *obj = NULL;
+	dns_acl_t *acl = NULL;
 
 	dns_diff_init(ns_g_mctx, &diff);
 
@@ -925,6 +926,10 @@ create_version_zone(cfg_obj_t **maps, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	CHECK(dns_zone_setorigin(zone, &origin));
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, dns_rdataclass_ch);
+	/* Transfers don't work so deny them. */
+	CHECK(dns_acl_none(ns_g_mctx, &acl));
+	dns_zone_setxfracl(zone, acl);
+	dns_acl_detach(&acl);
 	dns_zone_setview(zone, view);
 
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
@@ -994,6 +999,7 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 		NULL,
 	};
 	cfg_obj_t *obj = NULL;
+	dns_acl_t *acl = NULL;
 
 	/*
 	 * If a version string is specified, disable the authors.bind zone.
@@ -1013,6 +1019,10 @@ create_authors_zone(cfg_obj_t *options, dns_zonemgr_t *zmgr, dns_view_t *view)
 	CHECK(dns_zone_setorigin(zone, &origin));
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, dns_rdataclass_ch);
+	/* Transfers don't work so deny them. */
+	CHECK(dns_acl_none(ns_g_mctx, &acl));
+	dns_zone_setxfracl(zone, acl);
+	dns_acl_detach(&acl);
 	dns_zone_setview(zone, view);
 
 	CHECK(dns_zonemgr_managezone(zmgr, zone));
@@ -1891,6 +1901,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Create (or recreate) the internal _bind view.
 	 */
 	CHECK(create_bind_view(&view));
+	CHECK(configure_view_acl(NULL, config, "allow-query",
+				 &aclconfctx, ns_g_mctx, &view->queryacl));
 	ISC_LIST_APPEND(viewlist, view, link);
 	CHECK(create_version_zone(maps, server->zonemgr, view));
 	CHECK(create_authors_zone(options, server->zonemgr, view));
