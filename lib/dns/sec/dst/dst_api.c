@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.12 1999/10/05 15:08:52 bwelling Exp $
+ * $Id: dst_api.c,v 1.13 1999/10/08 22:24:06 tale Exp $
  */
 
 #include <config.h>
@@ -27,8 +27,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include <isc/assertions.h>
 #include <isc/buffer.h>
+#include <isc/dir.h>
 #include <isc/error.h>
 #include <isc/int.h>
 #include <isc/lex.h>
@@ -341,15 +343,17 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_available(target, &r);
 	if (r.length < 4)
 		return (DST_R_NOSPACE);
-	isc_buffer_putuint16(target, key->key_flags & 0xffff);
-	isc_buffer_putuint8(target, key->key_proto);
-	isc_buffer_putuint8(target, key->key_alg);
+	isc_buffer_putuint16(target, (isc_uint16_t)(key->key_flags & 0xffff));
+	isc_buffer_putuint8(target, (isc_uint8_t)key->key_proto);
+	isc_buffer_putuint8(target, (isc_uint8_t)key->key_alg);
 
 	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
 		isc_buffer_available(target, &r);
 		if (r.length < 2)
 			return (DST_R_NOSPACE);
-		isc_buffer_putuint16(target, (key->key_flags >> 16) & 0xffff);
+		isc_buffer_putuint16(target,
+				     (isc_uint16_t)((key->key_flags >> 16)
+						    & 0xffff));
 	}
 
 	if (key->opaque == NULL) /* NULL KEY */
@@ -840,7 +844,7 @@ static dst_result_t
 read_public_key(const char *name, const isc_uint16_t id, int alg,
 		      isc_mem_t *mctx, dst_key_t **keyp)
 {
-	char filename[PATH_MAX];
+	char filename[ISC_DIR_NAMEMAX];
 	u_char rdatabuf[DST_KEY_MAXSIZE];
 	isc_buffer_t b;
 	isc_lex_t *lex = NULL;
@@ -851,7 +855,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 
 	if (dst_s_build_filename(filename, name, id, alg, PUBLIC_KEY,
-				 PATH_MAX) != DST_R_SUCCESS)
+				 sizeof(filename)) != DST_R_SUCCESS)
 		return (DST_R_NAMETOOLONG);
 
 	/*
@@ -936,7 +940,7 @@ write_public_key(const dst_key_t *key) {
 	FILE *fp;
 	isc_buffer_t keyb, textb;
 	isc_region_t r;
-	char filename[PATH_MAX];
+	char filename[ISC_DIR_NAMEMAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXSIZE];
 	dst_result_t ret;
@@ -965,12 +969,17 @@ write_public_key(const dst_key_t *key) {
 
 	isc_buffer_used(&textb, &r);
 	
-	/* Make the filename */
-	if (dst_s_build_filename(filename, key->key_name, key->key_id,
-				 key->key_alg, PUBLIC_KEY, PATH_MAX) < 0)
+	/*
+	 * Make the filename.
+	 */
+	if (dst_s_build_filename(filename,
+				 key->key_name, key->key_id, key->key_alg,
+				 PUBLIC_KEY, sizeof(filename)) < 0)
 		return (DST_R_NAMETOOLONG);
 
-	/* create public key file */
+	/*
+	 * Create public key file.
+	 */
 	if ((fp = fopen(filename, "w")) == NULL)
 		return (DST_R_WRITEERROR);
 
