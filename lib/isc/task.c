@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: task.c,v 1.65 2000/06/22 21:57:16 tale Exp $ */
+/* $Id: task.c,v 1.66 2000/07/26 17:11:13 gson Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -680,6 +680,17 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag) {
 #endif
 
 }
+
+const char *
+isc_task_getname(isc_task_t *task) {
+	return (task->name);
+}
+
+void *
+isc_task_gettag(isc_task_t *task) {
+	return (task->tag);
+}
+
 
 /***
  *** Task Manager.

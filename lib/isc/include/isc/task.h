@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: task.h,v 1.44 2000/06/22 21:58:08 tale Exp $ */
+/* $Id: task.h,v 1.45 2000/07/26 17:11:14 gson Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -454,6 +454,36 @@ isc_task_setname(isc_task_t *task, const char *name, void *tag);
  *
  * Requires:
  *
+ *	'task' is a valid task.
+ */
+
+const char *
+isc_task_getname(isc_task_t *task);
+/*
+ * Get the name of 'task', as previously set using isc_task_setname().
+ *
+ * Notes:
+ *	This function is for debugging purposes only.
+ *
+ * Requires:
+ *	'task' is a valid task.
+ *
+ * Returns:
+ *	A non-NULL pointer to a null-terminated string.
+ * 	If the task has not been named, the string is
+ * 	empty.
+ *
+ */
+
+void *
+isc_task_gettag(isc_task_t *task);
+/*
+ * Get the tag value for  'task', as previously set using isc_task_settag().
+ *
+ * Notes:
+ *	This function is for debugging purposes only.
+ *
+ * Requires:
  *	'task' is a valid task.
  */
 
