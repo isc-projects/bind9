@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.30.2.2 2001/09/28 18:35:02 bwelling Exp $ */
+/* $Id: logconf.c,v 1.30.2.3 2001/10/11 02:03:20 marka Exp $ */
 
 #include <config.h>
 
@@ -74,7 +74,7 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 		result = isc_log_usechannel(lctx, channelname, category,
 					    module);
 		if (result != ISC_R_SUCCESS) {
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			isc_log_write(ns_g_lctx, CFG_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s': %s", channelname,
 				      isc_result_totext(result));
@@ -221,7 +221,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		 */
 		result = isc_stdio_open(dest.file.name, "a", &fp);
 		if (result != ISC_R_SUCCESS)
-			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_CONFIG,
+			isc_log_write(ns_g_lctx, CFG_LOGCATEGORY_CONFIG,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "logging channel '%s' file '%s': %s",
 				      channelname, dest.file.name,

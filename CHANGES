@@ -1,4 +1,7 @@
 
+1042.	[bug]		The "config" logging category did not work properly.
+			[RT #1873]
+
 1041.	[bug]		Dig/host/nslookup could catch an assertion failure
 			on SIGINT due to an uninitialized variable. [RT #1867]
 
