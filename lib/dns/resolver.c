@@ -469,9 +469,9 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	for (event = ISC_LIST_HEAD(fctx->events);
 	     event != NULL;
 	     event = next_event) {
-		next_event = ISC_LIST_NEXT(event, link);
-		task = event->sender;
-		event->sender = fctx;
+		next_event = ISC_LIST_NEXT(event, ev_link);
+		task = event->ev_sender;
+		event->ev_sender = fctx;
 		if (!HAVE_ANSWER(fctx))
 			event->result = result;
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
@@ -505,9 +505,9 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 static void
 resquery_senddone(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	resquery_t *query = event->arg;
+	resquery_t *query = event->ev_arg;
 
-	REQUIRE(event->type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
 	QTRACE("senddone");
 
@@ -966,10 +966,10 @@ resquery_send(resquery_t *query) {
 static void
 resquery_connected(isc_task_t *task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
-	resquery_t *query = event->arg;
+	resquery_t *query = event->ev_arg;
 	isc_result_t result;
 
-	REQUIRE(event->type == ISC_SOCKEVENT_CONNECT);
+	REQUIRE(event->ev_type == ISC_SOCKEVENT_CONNECT);
 	REQUIRE(VALID_QUERY(query));
 
 	QTRACE("connected");
@@ -1020,8 +1020,8 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	unsigned int bucketnum;
 
-	find = event->sender;
-	fctx = event->arg;
+	find = event->ev_sender;
+	fctx = event->ev_arg;
 	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
 
@@ -1038,7 +1038,7 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 		 */
 		INSIST(!SHUTTINGDOWN(fctx));
 		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
-		if (event->type == DNS_EVENT_ADBMOREADDRESSES)
+		if (event->ev_type == DNS_EVENT_ADBMOREADDRESSES)
 			want_try = ISC_TRUE;
 		else if (fctx->pending == 0) {
 			/*
@@ -1588,7 +1588,7 @@ fctx_destroy(fetchctx_t *fctx) {
 
 static void
 fctx_timeout(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx = event->arg;
+	fetchctx_t *fctx = event->ev_arg;
 
 	REQUIRE(VALID_FCTX(fctx));
 
@@ -1596,7 +1596,7 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 
 	FCTXTRACE("timeout");
 
-	if (event->type == ISC_TIMEREVENT_LIFE) {
+	if (event->ev_type == ISC_TIMEREVENT_LIFE) {
 		fctx_done(fctx, ISC_R_TIMEDOUT);
 	} else {
 		/*
@@ -1652,7 +1652,7 @@ fctx_shutdown(fetchctx_t *fctx) {
 
 static void
 fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx = event->arg;
+	fetchctx_t *fctx = event->ev_arg;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res;
 	unsigned int bucketnum;
@@ -1696,7 +1696,7 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 static void
 fctx_start(isc_task_t *task, isc_event_t *event) {
-	fetchctx_t *fctx = event->arg;
+	fetchctx_t *fctx = event->ev_arg;
 	isc_boolean_t done = ISC_FALSE, bucket_empty = ISC_FALSE;
 	dns_resolver_t *res;
 	unsigned int bucketnum;
@@ -1802,9 +1802,9 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	 * first event if it is needed by any of the events.
 	 */
 	if (event->sigrdataset != NULL)
-		ISC_LIST_PREPEND(fctx->events, event, link);
+		ISC_LIST_PREPEND(fctx->events, event, ev_link);
 	else
-		ISC_LIST_APPEND(fctx->events, event, link);
+		ISC_LIST_APPEND(fctx->events, event, ev_link);
 	fctx->references++;
 
 	fetch->magic = DNS_FETCH_MAGIC;
@@ -2039,9 +2039,9 @@ clone_results(fetchctx_t *fctx) {
 	if (hevent == NULL)
 		return;
 	hname = dns_fixedname_name(&hevent->foundname);
-	for (event = ISC_LIST_NEXT(hevent, link);
+	for (event = ISC_LIST_NEXT(hevent, ev_link);
 	     event != NULL;
-	     event = ISC_LIST_NEXT(event, link)) {
+	     event = ISC_LIST_NEXT(event, ev_link)) {
 		name = dns_fixedname_name(&event->foundname);
 		result = dns_name_concatenate(hname, NULL, name, NULL);
 		if (result != ISC_R_SUCCESS)
@@ -2082,8 +2082,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 
         UNUSED(task); /* for now */
-        REQUIRE(event->type == DNS_EVENT_VALIDATORDONE);
-        fctx = event->arg;
+
+        REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
+        fctx = event->ev_arg;
         REQUIRE(VALID_FCTX(fctx));
         REQUIRE(fctx->validating > 0);
 
@@ -3289,7 +3290,7 @@ answer_response(fetchctx_t *fctx) {
 static void
 resquery_response(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
-	resquery_t *query = event->arg;
+	resquery_t *query = event->ev_arg;
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_boolean_t keep_trying, broken_server, get_nameservers, resend;
 	isc_boolean_t truncated;
@@ -3307,7 +3308,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	fctx = query->fctx;
 	options = query->options;
 	REQUIRE(VALID_FCTX(fctx));
-	REQUIRE(event->type == DNS_EVENT_DISPATCH);
+	REQUIRE(event->ev_type == DNS_EVENT_DISPATCH);
 
 	UNUSED(task);
 	QTRACE("response");
@@ -3801,10 +3802,10 @@ send_shutdown_events(dns_resolver_t *res) {
 	for (event = ISC_LIST_HEAD(res->whenshutdown);
 	     event != NULL;
 	     event = next_event) {
-		next_event = ISC_LIST_NEXT(event, link);
-		ISC_LIST_UNLINK(res->whenshutdown, event, link);
-		etask = event->sender;
-		event->sender = res;
+		next_event = ISC_LIST_NEXT(event, ev_link);
+		ISC_LIST_UNLINK(res->whenshutdown, event, ev_link);
+		etask = event->ev_sender;
+		event->ev_sender = res;
 		isc_task_sendanddetach(&etask, &event);
 	}
 }
@@ -4039,9 +4040,9 @@ prime_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *fevent;
 	dns_fetch_t *fetch;
 
-	REQUIRE(event->type == DNS_EVENT_FETCHDONE);
+	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
 	fevent = (dns_fetchevent_t *)event;
-	res = event->arg;
+	res = event->ev_arg;
 	REQUIRE(VALID_RESOLVER(res));
 
 	UNUSED(task);
@@ -4186,13 +4187,13 @@ dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 		/*
 		 * We're already shutdown.  Send the event.
 		 */
-		event->sender = res;
+		event->ev_sender = res;
 		isc_task_send(task, &event);
 	} else {
 		clone = NULL;
 		isc_task_attach(task, &clone);
-		event->sender = clone;
-		ISC_LIST_APPEND(res->whenshutdown, event, link);
+		event->ev_sender = clone;
+		ISC_LIST_APPEND(res->whenshutdown, event, ev_link);
 	}
 	
 	UNLOCK(&res->lock);
@@ -4431,16 +4432,16 @@ dns_resolver_cancelfetch(dns_fetch_t *fetch) {
 		for (event = ISC_LIST_HEAD(fctx->events);
 		     event != NULL;
 		     event = next_event) {
-			next_event = ISC_LIST_NEXT(event, link);
+			next_event = ISC_LIST_NEXT(event, ev_link);
 			if (event->fetch == fetch) {
-				ISC_LIST_UNLINK(fctx->events, event,
-						link);
+				ISC_LIST_UNLINK(fctx->events, event, ev_link);
 				break;
 			}
 		}
 	}
 	if (event != NULL) {
-		etask = event->sender;
+		etask = event->ev_sender;
+		event->ev_sender = fctx;
 		event->result = ISC_R_CANCELED;
 		isc_task_sendanddetach(&etask, (isc_event_t **)&event);
 	}
@@ -4478,7 +4479,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 		for (event = ISC_LIST_HEAD(fctx->events);
 		     event != NULL;
 		     event = next_event) {
-			next_event = ISC_LIST_NEXT(event, link);
+			next_event = ISC_LIST_NEXT(event, ev_link);
 			RUNTIME_CHECK(event->fetch != fetch);
 		}
 	}
