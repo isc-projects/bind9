@@ -1,3 +1,5 @@
+1635.	[bug]		Memory leak on error in query_addds().
+
 1634.	[placeholder]	rt11208
 
 1633.	[bug]		named should return NOTIMP to update requests to a
