@@ -1027,12 +1027,8 @@
 ./lib/dns/sdb_p.h				C	2000
 ./lib/dns/sec/.cvsignore			X	1999,2000
 ./lib/dns/sec/Makefile.in			MAKE	1998,1999,2000
-./lib/dns/sec/dnssafe/.cvsignore		X	1999,2000
-./lib/dns/sec/dnssafe/LICENSE_RSA		X	2000
-./lib/dns/sec/dnssafe/Makefile.in		MAKE	1998,1999,2000
 ./lib/dns/sec/dst/.cvsignore			X	1999,2000
 ./lib/dns/sec/dst/Makefile.in			MAKE	1998,1999,2000
-./lib/dns/sec/dst/bsafe_link.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_api.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_internal.h		C.NAI	2000
 ./lib/dns/sec/dst/dst_lib.c			C	1999,2000
@@ -1050,6 +1046,7 @@
 ./lib/dns/sec/dst/include/dst/result.h		C	1999,2000
 ./lib/dns/sec/dst/openssl_link.c		C.NAI	1999,2000
 ./lib/dns/sec/dst/openssldh_link.c		C.NAI	1999,2000
+./lib/dns/sec/dst/opensslrsa_link.c		C	2000
 ./lib/dns/sec/openssl/.cvsignore		X	1999,2000
 ./lib/dns/sec/openssl/Makefile.in		MAKE	1998,1999,2000
 ./lib/dns/sec/openssl/include/.cvsignore	X	2000
