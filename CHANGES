@@ -1,3 +1,6 @@
+1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
+			[RT #13453]
+
 1811.	[placeholder]	rt13547
 
 1810.	[placeholder]	rt13212
