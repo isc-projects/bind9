@@ -116,7 +116,7 @@ struct dns_message {
 	/* private from here down */
 	dns_namelist_t			sections[DNS_SECTION_MAX];
 	dns_name_t		       *cursors[DNS_SECTION_MAX];
-	dns_rdata_t		       *opt;
+	dns_rdataset_t		       *opt;
 
 	int				state;
 	unsigned int			from_to_wire : 2;

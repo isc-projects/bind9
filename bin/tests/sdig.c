@@ -40,12 +40,16 @@ extern int h_errno;
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/fixedname.h>
+#include <dns/rdata.h>
+#include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 
 #include "printmsg.h"
+
+#define SDIG_BUFFER_SIZE 2048
 
 static dns_message_t *message = NULL;
 static isc_boolean_t have_ipv6 = ISC_FALSE;
@@ -86,6 +90,49 @@ add_type(dns_message_t *message, dns_name_t *name, dns_rdataclass_t rdclass,
 	check_result(result, "dns_message_gettemprdataset()");
 	dns_rdataset_init(rdataset);
 	dns_rdataset_makequestion(rdataset, rdclass, rdtype);
+	ISC_LIST_APPEND(name->list, rdataset, link);
+}
+
+static void
+add_opt(dns_message_t *message, dns_name_t *name, isc_uint16_t udpsize) {
+	dns_rdataset_t *rdataset;
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
+	isc_result_t result;
+
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(message, &rdataset);
+	check_result(result, "dns_message_gettemprdataset()");
+	dns_rdataset_init(rdataset);
+	rdatalist = NULL;
+	result = dns_message_gettemprdatalist(message, &rdatalist);
+	check_result(result, "dns_message_gettemprdatalist()");
+	rdata = NULL;
+	result = dns_message_gettemprdata(message, &rdata);
+	check_result(result, "dns_message_gettemprdata()");
+
+	rdatalist->type = dns_rdatatype_opt;
+	rdatalist->covers = 0;
+
+	/*
+	 * Set Maximum UDP buffer size.
+	 */
+	rdatalist->rdclass = udpsize;
+
+	/*
+	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
+	 */
+	rdatalist->ttl = 0;
+
+	/*
+	 * No ENDS options.
+	 */
+	rdata->data = NULL;
+	rdata->length = 0;
+
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	dns_rdatalist_tordataset(rdatalist, rdataset);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 }
 
@@ -167,9 +214,10 @@ int
 main(int argc, char *argv[]) {
 	char *server;
 	unsigned int port;
-	isc_boolean_t vc, have_name, have_type;
+	isc_boolean_t vc, have_name, have_type, edns0;
 	dns_fixedname_t fname;
 	dns_name_t *name;
+	dns_name_t optname;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass, nclass;
 	size_t len;
@@ -182,8 +230,8 @@ main(int argc, char *argv[]) {
 	isc_task_t *task;
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *sock;
-	unsigned char *data[512];
-	unsigned char *data2[512];
+	unsigned char *data[SDIG_BUFFER_SIZE];
+	unsigned char *data2[SDIG_BUFFER_SIZE];
 	isc_sockaddr_t sockaddr;
 	int i;
 
@@ -220,9 +268,12 @@ main(int argc, char *argv[]) {
 	have_name = ISC_FALSE;
 	have_type = ISC_FALSE;
 	rdclass = dns_rdataclass_in;
+	edns0 = ISC_FALSE;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
+	dns_name_init(&optname, NULL);
+	dns_name_clone(dns_rootname, &optname);
 	message = NULL;
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 	check_result(result, "dns_message_create()");
@@ -243,6 +294,12 @@ main(int argc, char *argv[]) {
 			argc--;
 		} else if (strcmp(argv[0], "+vc") == 0) {
 			fatal("TCP transport not yet implemented");
+		} else if (strcmp(argv[0], "+edns0") == 0) {
+			if (!edns0) {
+				add_opt(message, &optname,
+					(isc_uint16_t)SDIG_BUFFER_SIZE);
+				edns0 = ISC_TRUE;
+			}
 		} else {
 			len = strlen(argv[0]);
 			tr.base = argv[0];
@@ -283,6 +340,8 @@ main(int argc, char *argv[]) {
 	message->opcode = dns_opcode_query;
 	message->flags |= DNS_MESSAGEFLAG_RD;
 	dns_message_addname(message, name, DNS_SECTION_QUESTION);
+	if (edns0)
+		dns_message_addname(message, &optname, DNS_SECTION_ADDITIONAL);
 
 	isc_buffer_init(&b, data, sizeof data, ISC_BUFFERTYPE_BINARY);
 	result = dns_message_renderbegin(message, &b);
@@ -290,8 +349,16 @@ main(int argc, char *argv[]) {
 	result = dns_message_rendersection(message, DNS_SECTION_QUESTION,
 					   0, 0);
 	check_result(result, "dns_message_rendersection()");
+	if (edns0) {
+		result = dns_message_rendersection(message,
+						   DNS_SECTION_ADDITIONAL,
+						   0, 0);
+		check_result(result, "dns_message_rendersection()");
+	}
 	result = dns_message_renderend(message);
 	check_result(result, "dns_message_renderend()");
+
+	(void)printmessage(message);
 
 	get_address(server, port, &sockaddr);
 

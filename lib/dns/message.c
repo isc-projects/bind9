@@ -936,8 +936,10 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 	for (count = 0 ; count < msg->counts[sectionid] ; count++) {
 		int recstart = source->current;
+		isc_boolean_t skip_search;
 		section = &msg->sections[sectionid];
 
+		skip_search = ISC_FALSE;
 		name = newname(msg);
 		if (name == NULL)
 			return (DNS_R_NOMEMORY);
@@ -983,16 +985,32 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			return (DNS_R_FORMERR);
 
 		/*
-		 * If it is a tsig, verify that it is in the additional data
-		 * section, and switch sections for the rest of this rdata.
+		 * Special type handling for TSIG and OPT.
 		 */
 		if (rdtype == dns_rdatatype_tsig) {
+			/*
+			 * If it is a tsig, verify that it is in the
+			 * additional data section, and switch sections for
+			 * the rest of this rdata.
+			 */
 			if (sectionid != DNS_SECTION_ADDITIONAL)
 				return (DNS_R_FORMERR);
 			if (rdclass != dns_rdataclass_any)
 				return (DNS_R_FORMERR);
 			section = &msg->sections[DNS_SECTION_TSIG];
 			msg->tsigstart = recstart;
+			skip_search = ISC_TRUE;
+		} else if (rdtype == dns_rdatatype_opt) {
+			/*
+			 * The name of an OPT record must be ".", it
+			 * must be in the additional data section, and
+			 * it must be the first OPT we've seen.
+			 */
+			if (!dns_name_equal(dns_rootname, name) ||
+			    sectionid != DNS_SECTION_ADDITIONAL ||
+			    msg->opt != NULL)
+				return (DNS_R_FORMERR);
+			skip_search = ISC_TRUE;
 		}
 		
 		/*
@@ -1008,8 +1026,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * If we are doing a dynamic update don't bother searching
 		 * for a name, just append this one to the end of the message.
 		 */
-		if (preserve_order || msg->opcode == dns_opcode_update 
-		    || rdtype == dns_rdatatype_tsig) {
+		if (preserve_order || msg->opcode == dns_opcode_update ||
+		    skip_search) {
 			ISC_LIST_APPEND(*section, name, link);
 		} else {
 			/*
@@ -1030,14 +1048,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				ISC_LIST_APPEND(*section, name, link);
 			}
 		}
-
-		/*
-		 * If this is an OPT record, There Can Be Only One.
-		 */
-#if 0 /* until there is a dns_rdatatype_opt  XXXMLG */
-		if (rdtype == dns_rdatatype_opt && msg->opt != NULL)
-			return (DNS_R_FORMERR);
-#endif
 
 		/*
 		 * Read the rdata from the wire format.  Interpret the 
@@ -1067,8 +1077,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * Search name for the particular type and class.
 		 * Skip this stage if in update mode, or this is a TSIG.
 		 */
-		if (preserve_order || msg->opcode == dns_opcode_update
-		    || rdtype == dns_rdatatype_tsig)
+		if (preserve_order || msg->opcode == dns_opcode_update ||
+		    skip_search)
 			result = DNS_R_NOTFOUND;
 		else
 			result = findtype(&rdataset, name, rdtype, covers);
@@ -1117,10 +1127,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * If this is an OPT record, remember it.
 		 */
-#if 0 /* until there is a dns_rdatatype_opt  XXXMLG */
 		if (rdtype == dns_rdatatype_opt)
-			msg->opt = rdata;
-#endif
+			msg->opt = rdataset;
 	}
 	
 	return (DNS_R_SUCCESS);

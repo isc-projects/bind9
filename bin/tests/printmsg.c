@@ -90,7 +90,7 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 	char t[1000];
 	isc_boolean_t first;
 	isc_boolean_t no_rdata;
-
+	
 	if (sectionid == DNS_SECTION_QUESTION)
 		no_rdata = ISC_TRUE;
 	else
@@ -117,11 +117,22 @@ printsection(dns_message_t *msg, dns_section_t sectionid, char *section_name)
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			result = dns_rdataset_totext(rdataset, print_name,
-						     ISC_FALSE, no_rdata,
-						     &target);
-			if (result != DNS_R_SUCCESS)
-				return (result);
+			if (rdataset->type == dns_rdatatype_opt) {
+				/*
+				 * XXX
+				 */
+				printf("OPT: udp=%u, ttl=%u\n",
+				       (unsigned int)rdataset->rdclass,
+				       (unsigned int)rdataset->ttl);
+			} else {
+				result = dns_rdataset_totext(rdataset,
+							     print_name,
+							     ISC_FALSE,
+							     no_rdata,
+							     &target);
+				if (result != DNS_R_SUCCESS)
+					return (result);
+			}
 #ifdef USEINITALWS
 			if (first) {
 				print_name = &empty_name;
