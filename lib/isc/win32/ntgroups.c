@@ -15,23 +15,23 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.1 2001/09/25 01:37:02 mayer Exp $ */
+/* $Id: ntgroups.c,v 1.2 2001/09/28 23:34:55 gson Exp $ */
 
 /*
- * The NT Groups have two groups that are not well documented and are not
- * normally seen: None and Everyone.
- * A user account belongs to any number of groups, but if it is not a
- * member of any group then it is a member of the None Group. The None
- * group is not listed anywhere. You cannot remove an account from the
- * none group except by making it a member of some other group,
- * The second group is the Everyone group.  All accounts, no matter how many
- * groups that they belong to, also belong to the Everyone group. You
- * cannot remove an account from the Everyone group.
+ * The NT Groups have two groups that are not well documented and are
+ * not normally seen: None and Everyone.  A user account belongs to
+ * any number of groups, but if it is not a member of any group then
+ * it is a member of the None Group. The None group is not listed
+ * anywhere. You cannot remove an account from the none group except
+ * by making it a member of some other group, The second group is the
+ * Everyone group.  All accounts, no matter how many groups that they
+ * belong to, also belong to the Everyone group. You cannot remove an
+ * account from the Everyone group.
  */
 
 #ifndef UNICODE
 #define UNICODE
-#endif // UNICODE
+#endif /* UNICODE */
 
 #include <windows.h>
 #include <assert.h>
@@ -48,7 +48,8 @@
 int
 isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 				unsigned int maxgroups,
-				unsigned int *totalGroups) {
+				unsigned int *totalGroups)
+{
 	LPGROUP_USERS_INFO_0 pTmpBuf;
 	LPLOCALGROUP_USERS_INFO_0 pTmpLBuf;
 	DWORD i;
@@ -62,6 +63,7 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	NET_API_STATUS nStatus;
 	DWORD dwTotalCount = 0;
 	int retlen;
+
 	wchar_t *user = (wchar_t *)malloc(MAX_NAME_LENGTH*sizeof(wchar_t) + 1);
 
 	retlen = mbstowcs(user, username, MAX_NAME_LENGTH);
@@ -86,39 +88,36 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	/*
 	 * If the call succeeds,
 	 */
-	if (nStatus != NERR_Success) {
+	if (nStatus != NERR_Success)
 		return (nStatus);
-	}
+
  	dwTotalCount = 0;
 	if ((pTmpLBuf = pBuf) != NULL) {
 		/*
 		 * Loop through the entries
 		 */
 	         for (i = 0;
-		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
+		     (i < dwEntriesRead && *totalGroups < maxgroups); i++)
+		 {
 			assert(pTmpLBuf != NULL);
-			if (pTmpLBuf == NULL) {
+			if (pTmpLBuf == NULL)
 				break;
-			}
 			retlen = wcslen(pTmpLBuf->lgrui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpLBuf->lgrui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-			if(strcmp(GroupList[*totalGroups], "None") == 0) {
+			if (strcmp(GroupList[*totalGroups], "None") == 0)
 				free(GroupList[*totalGroups]);
-			}
-			else {
+			else
 				(*totalGroups)++;
-			}
 			pTmpLBuf++;
 		}
 	}
-	/* Free the allocated memory. */
+
 	if (pBuf != NULL)
 		NetApiBufferFree(pBuf);
 
-   
 	/*
 	 * Call the NetUserGetGroups function, specifying level 0.
 	 */
@@ -132,43 +131,37 @@ isc_ntsecurity_getaccountgroups(char *username, char **GroupList,
 	/*
 	 * If the call succeeds,
 	 */
-	if (nStatus != NERR_Success) {
+	if (nStatus != NERR_Success)
 		return (nStatus);
-	}
  
 	if ((pTmpBuf = pgrpBuf) != NULL) {
 		/*
 		 * Loop through the entries
 		 */
 	         for (i = 0;
-		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) {
+		     (i < dwEntriesRead && *totalGroups < maxgroups); i++) 
+		 {
 			assert(pTmpBuf != NULL);
 
-			if (pTmpBuf == NULL) {
+			if (pTmpBuf == NULL)
 				break;
-			}
 			retlen = wcslen(pTmpBuf->grui0_name);
 			GroupList[*totalGroups] = (char *) malloc(retlen +1);
 			retlen = wcstombs(GroupList[*totalGroups],
 				 pTmpBuf->grui0_name, retlen);
 			GroupList[*totalGroups][retlen] = '\0';
-
-			if(strcmp(GroupList[*totalGroups], "None") == 0) {
+			if (strcmp(GroupList[*totalGroups], "None") == 0)
 				free(GroupList[*totalGroups]);
-			}
-			else {
+			else
 				(*totalGroups)++;
-			}
 			pTmpBuf++;
 		}
 	}
-	/*
-	 * Free the allocated memory.
-	 */
+
 	if (pgrpBuf != NULL)
 		NetApiBufferFree(pgrpBuf);
 
-	if(user != NULL)
+	if (user != NULL)
 		free(user);
 
 	return (0);
