@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.332 $)
+AC_REVISION($Revision: 1.333 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1689,6 +1689,31 @@ case "$hack_shutup_stdargcast" in
 		AC_DEFINE(SHUTUP_STDARG_CAST)
 		;;
 esac
+
+#
+# Check for if_nametoindex() for IPv6 scoped addresses support
+#
+AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
+		ac_cv_have_if_nametoindex=no)
+case $ac_cv_have_if_nametoindex in
+no)
+	case "$host" in
+  	*-hp-hpux*)
+  		AC_CHECK_LIB(ipv6, if_nametoindex,
+				ac_cv_have_if_nametoindex=yes
+				LIBS="-lipv6 $LIBS",)
+  	;;
+	esac
+esac
+case $ac_cv_have_if_nametoindex in
+yes)
+	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
+	;;
+*)
+	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"
+	;;
+esac
+AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 
 #
 # The following sections deal with tools used for formatting

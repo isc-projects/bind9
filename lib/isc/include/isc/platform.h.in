@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.29 2002/10/24 03:52:34 marka Exp $ */
+/* $Id: platform.h.in,v 1.30 2002/11/26 03:50:07 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -179,6 +179,11 @@
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 @ISC_PLATFORM_USEDECLSPEC@
+
+/*
+ * Define if the system supports if_nametoindex.
+ */
+@ISC_PLATFORM_HAVEIFNAMETOINDEX@
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA
