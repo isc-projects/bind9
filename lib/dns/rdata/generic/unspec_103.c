@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: unspec_103.c,v 1.2 1999/02/16 22:42:30 marka Exp $ */
+ /* $Id: unspec_103.c,v 1.3 1999/05/05 00:19:03 marka Exp $ */
 
-#ifndef RDATA_GENERIC_UNSPEC_103_H
-#define RDATA_GENERIC_UNSPEC_103_H
+#ifndef RDATA_GENERIC_UNSPEC_103_C
+#define RDATA_GENERIC_UNSPEC_103_C
 
 static dns_result_t
 fromtext_unspec(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -111,4 +111,4 @@ tostruct_unspec(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_UNSPEC_103_H */
+#endif	/* RDATA_GENERIC_UNSPEC_103_C */

@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.2 1999/02/16 22:42:24 marka Exp $ */
+ /* $Id: gpos_27.c,v 1.3 1999/05/05 00:19:00 marka Exp $ */
 
  /* RFC 1712 */
 
-#ifndef RDATA_GENERIC_GPOS_27_H
-#define RDATA_GENERIC_GPOS_27_H
+#ifndef RDATA_GENERIC_GPOS_27_C
+#define RDATA_GENERIC_GPOS_27_C
 
 static dns_result_t
 fromtext_gpos(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -130,4 +130,4 @@ tostruct_gpos(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_GPOS_27_H */
+#endif	/* RDATA_GENERIC_GPOS_27_C */

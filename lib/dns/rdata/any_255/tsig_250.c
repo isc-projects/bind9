@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.7 1999/02/24 06:31:32 marka Exp $ */
+ /* $Id: tsig_250.c,v 1.8 1999/05/05 00:18:59 marka Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
-#ifndef RDATA_ANY_255_TSIG_250_H
-#define RDATA_ANY_255_TSIG_250_H
+#ifndef RDATA_ANY_255_TSIG_250_C
+#define RDATA_ANY_255_TSIG_250_C
 #include <isc/str.h>
 
 static dns_result_t
@@ -303,4 +303,4 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_ANY_255_TSIG_250_H */
+#endif	/* RDATA_ANY_255_TSIG_250_C */

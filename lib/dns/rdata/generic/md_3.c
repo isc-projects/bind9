@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: md_3.c,v 1.11 1999/02/24 06:31:32 marka Exp $ */
+ /* $Id: md_3.c,v 1.12 1999/05/05 00:19:01 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MD_3_H
-#define RDATA_GENERIC_MD_3_H
+#ifndef RDATA_GENERIC_MD_3_C
+#define RDATA_GENERIC_MD_3_C
 
 static dns_result_t
 fromtext_md(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -146,4 +146,4 @@ tostruct_md(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MD_3_H */
+#endif	/* RDATA_GENERIC_MD_3_C */

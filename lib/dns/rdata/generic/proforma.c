@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.8 1999/02/24 06:31:33 marka Exp $ */
+ /* $Id: proforma.c,v 1.9 1999/05/05 00:19:02 marka Exp $ */
 
-#ifndef RDATA_GENERIC_#_#_H
-#define RDATA_GENERIC_#_#_H
+#ifndef RDATA_GENERIC_#_#_C
+#define RDATA_GENERIC_#_#_C
 
 static dns_result_t
 fromtext_#(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -106,4 +106,4 @@ tostruct_#(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_#_#_H */
+#endif	/* RDATA_GENERIC_#_#_C */

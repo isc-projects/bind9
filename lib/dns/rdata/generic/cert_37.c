@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.5 1999/02/16 22:42:24 marka Exp $ */
+ /* $Id: cert_37.c,v 1.6 1999/05/05 00:19:00 marka Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
-#ifndef RDATA_GENERIC_CERT_37_H
-#define RDATA_GENERIC_CERT_37_H
+#ifndef RDATA_GENERIC_CERT_37_C
+#define RDATA_GENERIC_CERT_37_C
 
 static dns_result_t
 fromtext_cert(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -177,4 +177,4 @@ tostruct_cert(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_CERT_37_H */
+#endif	/* RDATA_GENERIC_CERT_37_C */

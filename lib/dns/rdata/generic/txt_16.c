@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: txt_16.c,v 1.9 1999/02/16 22:42:30 marka Exp $ */
+ /* $Id: txt_16.c,v 1.10 1999/05/05 00:19:03 marka Exp $ */
 
-#ifndef RDATA_GENERIC_TXT_16_H
-#define RDATA_GENERIC_TXT_16_H
+#ifndef RDATA_GENERIC_TXT_16_C
+#define RDATA_GENERIC_TXT_16_C
 
 static dns_result_t
 fromtext_txt(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -141,4 +141,4 @@ tostruct_txt(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_TXT_16_H */
+#endif	/* RDATA_GENERIC_TXT_16_C */

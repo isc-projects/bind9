@@ -19,8 +19,8 @@
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_ISDN_20_H
-#define RDATA_GENERIC_ISDN_20_H
+#ifndef RDATA_GENERIC_ISDN_20_C
+#define RDATA_GENERIC_ISDN_20_C
 
 static dns_result_t
 fromtext_isdn(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -130,4 +130,4 @@ tostruct_isdn(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_ISDN_20_H */
+#endif	/* RDATA_GENERIC_ISDN_20_C */

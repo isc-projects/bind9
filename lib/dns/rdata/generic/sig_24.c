@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: sig_24.c,v 1.9 1999/02/24 06:31:34 marka Exp $ */
+ /* $Id: sig_24.c,v 1.10 1999/05/05 00:19:02 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_SIG_24_H
-#define RDATA_GENERIC_SIG_24_H
+#ifndef RDATA_GENERIC_SIG_24_C
+#define RDATA_GENERIC_SIG_24_C
 
 static dns_result_t
 fromtext_sig(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -313,4 +313,4 @@ tostruct_sig(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_SIG_24_H */
+#endif	/* RDATA_GENERIC_SIG_24_C */

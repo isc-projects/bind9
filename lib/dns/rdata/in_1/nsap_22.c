@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap_22.c,v 1.2 1999/02/16 22:42:32 marka Exp $ */
+ /* $Id: nsap_22.c,v 1.3 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 1706 */
 
-#ifndef RDATA_IN_1_NSAP_22_H
-#define RDATA_IN_1_NSAP_22_H
+#ifndef RDATA_IN_1_NSAP_22_C
+#define RDATA_IN_1_NSAP_22_C
 
 #include <string.h>
 
@@ -163,4 +163,4 @@ tostruct_in_nsap(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_NSAP_22_H */
+#endif	/* RDATA_IN_1_NSAP_22_C */

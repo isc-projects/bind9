@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: key_25.c,v 1.3 1999/02/16 22:42:25 marka Exp $ */
+ /* $Id: key_25.c,v 1.4 1999/05/05 00:19:00 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_KEY_25_H
-#define RDATA_GENERIC_KEY_25_H
+#ifndef RDATA_GENERIC_KEY_25_C
+#define RDATA_GENERIC_KEY_25_C
 
 static dns_result_t
 fromtext_key(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -172,4 +172,4 @@ tostruct_key(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_KEY_25_H */
+#endif	/* RDATA_GENERIC_KEY_25_C */

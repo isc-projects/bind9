@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: hinfo_13.c,v 1.10 1999/02/16 22:51:18 marka Exp $ */
+ /* $Id: hinfo_13.c,v 1.11 1999/05/05 00:19:00 marka Exp $ */
 
-#ifndef RDATA_GENERIC_HINFO_13_H
-#define RDATA_GENERIC_HINFO_13_H
+#ifndef RDATA_GENERIC_HINFO_13_C
+#define RDATA_GENERIC_HINFO_13_C
 
 static dns_result_t
 fromtext_hinfo(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -120,4 +120,4 @@ tostruct_hinfo(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_HINFO_13_H */
+#endif	/* RDATA_GENERIC_HINFO_13_C */

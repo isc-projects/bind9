@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: nsap-ptr_23.c,v 1.4 1999/02/24 06:31:35 marka Exp $ */
+ /* $Id: nsap-ptr_23.c,v 1.5 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 1348 */
 
-#ifndef RDATA_IN_1_NSAP_PTR_23_H
-#define RDATA_IN_1_NSAP_PTR_23_H
+#ifndef RDATA_IN_1_NSAP_PTR_23_C
+#define RDATA_IN_1_NSAP_PTR_23_C
 
 static dns_result_t
 fromtext_in_nsap_ptr(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -155,4 +155,4 @@ tostruct_in_nsap_ptr(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_NSAP_PTR_23_H */
+#endif	/* RDATA_IN_1_NSAP_PTR_23_C */

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: mg_8.c,v 1.10 1999/02/24 06:31:33 marka Exp $ */
+ /* $Id: mg_8.c,v 1.11 1999/05/05 00:19:01 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MG_8_H
-#define RDATA_GENERIC_MG_8_H
+#ifndef RDATA_GENERIC_MG_8_C
+#define RDATA_GENERIC_MG_8_C
 
 static dns_result_t
 fromtext_mg(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -148,4 +148,4 @@ tostruct_mg(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MG_8_H */
+#endif	/* RDATA_GENERIC_MG_8_C */

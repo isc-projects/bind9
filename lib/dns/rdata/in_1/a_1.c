@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: a_1.c,v 1.12 1999/02/16 22:42:31 marka Exp $ */
+ /* $Id: a_1.c,v 1.13 1999/05/05 00:19:03 marka Exp $ */
 
-#ifndef RDATA_IN_1_A_1_H
-#define RDATA_IN_1_A_1_H
+#ifndef RDATA_IN_1_A_1_C
+#define RDATA_IN_1_A_1_C
 
 #include <string.h>
 
@@ -161,4 +161,4 @@ tostruct_in_a(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_A_1_H */
+#endif	/* RDATA_IN_1_A_1_C */

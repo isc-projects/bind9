@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: x25_19.c,v 1.2 1999/02/16 22:42:31 marka Exp $ */
+ /* $Id: x25_19.c,v 1.3 1999/05/05 00:19:03 marka Exp $ */
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_X25_19_H
-#define RDATA_GENERIC_X25_19_H
+#ifndef RDATA_GENERIC_X25_19_C
+#define RDATA_GENERIC_X25_19_C
 
 #include <ctype.h>
 
@@ -127,4 +127,4 @@ tostruct_x25(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_X25_19_H */
+#endif	/* RDATA_GENERIC_X25_19_C */

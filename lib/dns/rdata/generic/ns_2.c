@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.c,v 1.10 1999/02/24 06:31:33 marka Exp $ */
+ /* $Id: ns_2.c,v 1.11 1999/05/05 00:19:02 marka Exp $ */
 
-#ifndef RDATA_GENERIC_NS_2_H
-#define RDATA_GENERIC_NS_2_H
+#ifndef RDATA_GENERIC_NS_2_C
+#define RDATA_GENERIC_NS_2_C
 
 static dns_result_t
 fromtext_ns(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -148,4 +148,4 @@ tostruct_ns(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_NS_2_H */
+#endif	/* RDATA_GENERIC_NS_2_C */

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: wks_11.c,v 1.8 1999/02/16 22:42:33 marka Exp $ */
+ /* $Id: wks_11.c,v 1.9 1999/05/05 00:19:04 marka Exp $ */
 
-#ifndef RDATA_IN_1_WKS_11_H
-#define RDATA_IN_1_WKS_11_H
+#ifndef RDATA_IN_1_WKS_11_C
+#define RDATA_IN_1_WKS_11_C
 
 #include <limits.h>
 #include <netdb.h>
@@ -235,4 +235,4 @@ tostruct_in_wks(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_WKS_11_H */
+#endif	/* RDATA_IN_1_WKS_11_C */

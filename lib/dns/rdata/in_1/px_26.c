@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.c,v 1.4 1999/02/24 06:31:35 marka Exp $ */
+ /* $Id: px_26.c,v 1.5 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 2163 */
 
-#ifndef RDATA_IN_1_PX_26_H
-#define RDATA_IN_1_PX_26_H
+#ifndef RDATA_IN_1_PX_26_C
+#define RDATA_IN_1_PX_26_C
 
 static dns_result_t
 fromtext_in_px(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -219,4 +219,4 @@ tostruct_in_px(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_PX_26_H */
+#endif	/* RDATA_IN_1_PX_26_C */

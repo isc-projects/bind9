@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: soa_6.c,v 1.14 1999/02/24 06:31:34 marka Exp $ */
+ /* $Id: soa_6.c,v 1.15 1999/05/05 00:19:03 marka Exp $ */
 
-#ifndef RDATA_GENERIC_SOA_6_H
-#define RDATA_GENERIC_SOA_6_H
+#ifndef RDATA_GENERIC_SOA_6_C
+#define RDATA_GENERIC_SOA_6_C
 
 static dns_result_t
 fromtext_soa(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -241,4 +241,4 @@ tostruct_soa(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_SOA_6_H */
+#endif	/* RDATA_GENERIC_SOA_6_C */

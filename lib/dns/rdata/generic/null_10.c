@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: null_10.c,v 1.7 1999/02/16 22:51:18 marka Exp $ */
+ /* $Id: null_10.c,v 1.8 1999/05/05 00:19:02 marka Exp $ */
 
-#ifndef RDATA_GENERIC_NULL_10_H
-#define RDATA_GENERIC_NULL_10_H
+#ifndef RDATA_GENERIC_NULL_10_C
+#define RDATA_GENERIC_NULL_10_C
 
 static dns_result_t
 fromtext_null(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -113,4 +113,4 @@ tostruct_null(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_NULL_10_H */
+#endif	/* RDATA_GENERIC_NULL_10_C */

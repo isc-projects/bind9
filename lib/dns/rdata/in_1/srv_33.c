@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: srv_33.c,v 1.4 1999/02/24 06:31:35 marka Exp $ */
+ /* $Id: srv_33.c,v 1.5 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 2052 bis */
 
-#ifndef RDATA_IN_1_SRV_33_H
-#define RDATA_IN_1_SRV_33_H
+#ifndef RDATA_IN_1_SRV_33_C
+#define RDATA_IN_1_SRV_33_C
 
 static dns_result_t
 fromtext_in_srv(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -208,4 +208,4 @@ tostruct_in_srv(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_SRV_33_H */
+#endif	/* RDATA_IN_1_SRV_33_C */

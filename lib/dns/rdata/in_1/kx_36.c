@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: kx_36.c,v 1.5 1999/02/24 06:31:35 marka Exp $ */
+ /* $Id: kx_36.c,v 1.6 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 2230 */
 
-#ifndef RDATA_GENERIC_KX_36_H
-#define RDATA_GENERIC_KX_36_H
+#ifndef RDATA_GENERIC_KX_36_C
+#define RDATA_GENERIC_KX_36_C
 
 static dns_result_t
 fromtext_in_kx(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -177,4 +177,4 @@ tostruct_in_kx(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_KX_15_H */
+#endif	/* RDATA_GENERIC_KX_15_C */

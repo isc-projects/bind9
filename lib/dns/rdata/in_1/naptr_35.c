@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.5 1999/02/24 06:31:35 marka Exp $ */
+ /* $Id: naptr_35.c,v 1.6 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 2168 */
 
-#ifndef RDATA_IN_1_NAPTR_35_H
-#define RDATA_IN_1_NAPTR_35_H
+#ifndef RDATA_IN_1_NAPTR_35_C
+#define RDATA_IN_1_NAPTR_35_C
 
 static dns_result_t
 fromtext_in_naptr(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -263,4 +263,4 @@ tostruct_in_naptr(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_NAPTR_35_H */
+#endif	/* RDATA_IN_1_NAPTR_35_C */

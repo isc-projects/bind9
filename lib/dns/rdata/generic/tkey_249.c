@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: tkey_249.c,v 1.7 1999/02/24 06:31:34 marka Exp $ */
+ /* $Id: tkey_249.c,v 1.8 1999/05/05 00:19:03 marka Exp $ */
 
  /* draft-ietf-dnssec-tkey-01.txt */
 
-#ifndef RDATA_GENERIC_TKEY_249_H
-#define RDATA_GENERIC_TKEY_249_H
+#ifndef RDATA_GENERIC_TKEY_249_C
+#define RDATA_GENERIC_TKEY_249_C
 
 static dns_result_t
 fromtext_tkey(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -293,4 +293,4 @@ tostruct_tkey(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_TKEY_249_H */
+#endif	/* RDATA_GENERIC_TKEY_249_C */

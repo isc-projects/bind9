@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.c,v 1.7 1999/02/24 06:31:34 marka Exp $ */
+ /* $Id: a6_38.c,v 1.8 1999/05/05 00:19:03 marka Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
-#ifndef RDATA_IN_1_A6_28_H
-#define RDATA_IN_1_A6_28_H
+#ifndef RDATA_IN_1_A6_28_C
+#define RDATA_IN_1_A6_28_C
 
 #include <string.h>
 
@@ -272,4 +272,4 @@ tostruct_in_a6(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_A6_38_H */
+#endif	/* RDATA_IN_1_A6_38_C */

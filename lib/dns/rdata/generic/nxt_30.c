@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: nxt_30.c,v 1.7 1999/02/24 06:31:33 marka Exp $ */
+ /* $Id: nxt_30.c,v 1.8 1999/05/05 00:19:02 marka Exp $ */
 
  /* RFC 2065 */
 
-#ifndef RDATA_GENERIC_NXT_30_H
-#define RDATA_GENERIC_NXT_30_H
+#ifndef RDATA_GENERIC_NXT_30_C
+#define RDATA_GENERIC_NXT_30_C
 
 static dns_result_t
 fromtext_nxt(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -214,4 +214,4 @@ tostruct_nxt(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_NXT_30_H */
+#endif	/* RDATA_GENERIC_NXT_30_C */

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: mb_7.c,v 1.11 1999/02/24 06:31:32 marka Exp $ */
+ /* $Id: mb_7.c,v 1.12 1999/05/05 00:19:01 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MB_7_H
-#define RDATA_GENERIC_MB_7_H
+#ifndef RDATA_GENERIC_MB_7_C
+#define RDATA_GENERIC_MB_7_C
 
 static dns_result_t
 fromtext_mb(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -148,4 +148,4 @@ tostruct_mb(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MB_7_H */
+#endif	/* RDATA_GENERIC_MB_7_C */

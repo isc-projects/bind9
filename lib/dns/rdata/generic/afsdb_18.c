@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.c,v 1.5 1999/02/24 06:31:32 marka Exp $ */
+ /* $Id: afsdb_18.c,v 1.6 1999/05/05 00:18:59 marka Exp $ */
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_AFSDB_18_H
-#define RDATA_GENERIC_AFSDB_18_H
+#ifndef RDATA_GENERIC_AFSDB_18_C
+#define RDATA_GENERIC_AFSDB_18_C
 
 static dns_result_t
 fromtext_afsdb(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -187,4 +187,4 @@ tostruct_afsdb(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_AFSDB_18_H */
+#endif	/* RDATA_GENERIC_AFSDB_18_C */

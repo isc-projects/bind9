@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: aaaa_28.c,v 1.6 1999/02/16 22:42:31 marka Exp $ */
+ /* $Id: aaaa_28.c,v 1.7 1999/05/05 00:19:04 marka Exp $ */
 
  /* RFC 1886 */
 
-#ifndef RDATA_IN_1_AAAA_28_H
-#define RDATA_IN_1_AAAA_28_H
+#ifndef RDATA_IN_1_AAAA_28_C
+#define RDATA_IN_1_AAAA_28_C
 
 #include <string.h>
 
@@ -163,4 +163,4 @@ tostruct_in_aaaa(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_IN_1_AAAA_28_H */
+#endif	/* RDATA_IN_1_AAAA_28_C */

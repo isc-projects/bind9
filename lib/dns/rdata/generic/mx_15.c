@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: mx_15.c,v 1.13 1999/02/24 06:31:33 marka Exp $ */
+ /* $Id: mx_15.c,v 1.14 1999/05/05 00:19:01 marka Exp $ */
 
-#ifndef RDATA_GENERIC_MX_15_H
-#define RDATA_GENERIC_MX_15_H
+#ifndef RDATA_GENERIC_MX_15_C
+#define RDATA_GENERIC_MX_15_C
 
 static dns_result_t
 fromtext_mx(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -185,4 +185,4 @@ tostruct_mx(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_MX_15_H */
+#endif	/* RDATA_GENERIC_MX_15_C */

@@ -15,12 +15,12 @@
  * SOFTWARE.
  */
 
- /* $Id: rt_21.c,v 1.5 1999/02/24 06:31:34 marka Exp $ */
+ /* $Id: rt_21.c,v 1.6 1999/05/05 00:19:02 marka Exp $ */
 
  /* RFC 1183 */
 
-#ifndef RDATA_GENERIC_RT_21_H
-#define RDATA_GENERIC_RT_21_H
+#ifndef RDATA_GENERIC_RT_21_C
+#define RDATA_GENERIC_RT_21_C
 
 static dns_result_t
 fromtext_rt(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -186,4 +186,4 @@ tostruct_rt(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_RT_21_H */
+#endif	/* RDATA_GENERIC_RT_21_C */

@@ -15,10 +15,10 @@
  * SOFTWARE.
  */
 
- /* $Id: cname_5.c,v 1.11 1999/02/24 06:31:32 marka Exp $ */
+ /* $Id: cname_5.c,v 1.12 1999/05/05 00:19:00 marka Exp $ */
 
-#ifndef RDATA_GENERIC_CNAME_5_H
-#define RDATA_GENERIC_CNAME_5_H
+#ifndef RDATA_GENERIC_CNAME_5_C
+#define RDATA_GENERIC_CNAME_5_C
 
 static dns_result_t
 fromtext_cname(dns_rdataclass_t class, dns_rdatatype_t type,
@@ -148,4 +148,4 @@ tostruct_cname(dns_rdata_t *rdata, void *target) {
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
-#endif	/* RDATA_GENERIC_CNAME_5_H */
+#endif	/* RDATA_GENERIC_CNAME_5_C */
