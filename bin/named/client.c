@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.217 2003/10/25 00:09:13 jinmei Exp $ */
+/* $Id: client.c,v 1.218 2004/02/09 23:25:22 marka Exp $ */
 
 #include <config.h>
 
@@ -1456,17 +1456,27 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	} else {
 		char tsigrcode[64];
 		isc_buffer_t b;
+		dns_name_t *name = NULL;
 
 		isc_buffer_init(&b, tsigrcode, sizeof(tsigrcode) - 1);
 		RUNTIME_CHECK(dns_tsigrcode_totext(client->message->tsigstatus,
 						   &b) == ISC_R_SUCCESS);
 		tsigrcode[isc_buffer_usedlength(&b)] = '\0';
 		/* There is a signature, but it is bad. */
-		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-			      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-			      "request has invalid signature: %s (%s)",
-			      isc_result_totext(result),
-			      tsigrcode);
+		if (dns_message_gettsig(client->message, &name) != NULL) {
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namebuf, sizeof(namebuf));
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+				      "request has invalid signature: "
+				      "TSIG %s: %s (%s)", namebuf,
+				      isc_result_totext(result), tsigrcode);
+		} else {
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
+				      "request has invalid signature: %s (%s)",
+				      isc_result_totext(result), tsigrcode);
+		}
 		/*
 		 * Accept update messages signed by unknown keys so that
 		 * update forwarding works transparently through slaves

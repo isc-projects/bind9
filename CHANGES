@@ -1,4 +1,4 @@
-1575.	[placeholder]	rt4404
+1575.	[func]		Log TSIG name on TSIG verify failure. [RT #4404]
 
 1574.	[placeholder]	rt9091
 
