@@ -288,10 +288,6 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type);
  */
 
 void
-dns_zone_validate(dns_zone_t *zone);
-/* XXX MPA */
-
-void
 dns_zone_expire(dns_zone_t *zone);
 /*
  *	Mark the zone as expired.  If the zone requires dumping cause it to

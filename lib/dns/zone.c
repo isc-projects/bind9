@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.128 2000/05/25 21:05:43 gson Exp $ */
+/* $Id: zone.c,v 1.129 2000/05/25 21:13:37 gson Exp $ */
 
 #include <config.h>
 
@@ -569,24 +569,6 @@ dns_zone_getjournal(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->journal);
-}
-
-void
-dns_zone_validate(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(dns_name_countlabels(&zone->origin) != 0);
-	REQUIRE(zone->type != dns_zone_none);
-
-	switch (zone->rdclass) {
-	case dns_zone_master:
-	case dns_zone_slave:
-	case dns_zone_stub:
-		REQUIRE(zone->dbname != NULL);
-		REQUIRE(zone->rdclass != dns_rdataclass_none);
-		break;
-	}
-
-	REQUIRE(zone->db_type != NULL);
 }
 
 isc_result_t
