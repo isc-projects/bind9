@@ -27,6 +27,8 @@
 #include <isc/result.h>
 #include <isc/types.h>
 
+#include <isc/ondestroy.h>
+
 ISC_LANG_BEGINDECLS
 
 typedef void * (*isc_memalloc_t)(void *, size_t);
@@ -53,6 +55,9 @@ typedef void (*isc_memfree_t)(void *, void *);
 
 isc_result_t			isc_mem_create(size_t, size_t, isc_mem_t **);
 void				isc_mem_destroy(isc_mem_t **);
+isc_result_t			isc_mem_ondestroy(isc_mem_t *ctx,
+						  isc_task_t *task,
+						  isc_event_t **event);
 void *				__isc_mem_get(isc_mem_t *, size_t);
 void 				__isc_mem_put(isc_mem_t *, void *, size_t);
 void *				__isc_mem_getdebug(isc_mem_t *, size_t,

@@ -97,6 +97,7 @@ struct stats {
 
 struct isc_mem {
 	unsigned int		magic;
+	isc_ondestroy_t		ondestroy;
 	isc_mutex_t		lock;
 	isc_memalloc_t		memalloc;
 	isc_memfree_t		memfree;
@@ -248,6 +249,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->quota = 0;
 	ctx->total = 0;
 	ctx->magic = MEM_MAGIC;
+	isc_ondestroy_init(&ctx->ondestroy);
 	ISC_LIST_INIT(ctx->pools);
 
 	*ctxp = ctx;
@@ -267,6 +269,7 @@ void
 isc_mem_destroy(isc_mem_t **ctxp) {
 	unsigned int i;
 	isc_mem_t *ctx;
+	isc_ondestroy_t ondest;
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
@@ -294,11 +297,27 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 	(ctx->memfree)(ctx->arg, ctx->stats);
 	(ctx->memfree)(ctx->arg, ctx->basic_table);
 
+	ondest = ctx->ondestroy;
+
 	(void)isc_mutex_destroy(&ctx->lock);
 	(ctx->memfree)(ctx->arg, ctx);
 
+	isc_ondestroy_notify(&ondest, ctx);
+
 	*ctxp = NULL;
 }
+
+isc_result_t
+isc_mem_ondestroy(isc_mem_t *ctx, isc_task_t *task, isc_event_t **event) {
+	isc_result_t res;
+	
+	LOCK(&ctx->lock);
+	res = isc_ondestroy_register(&ctx->ondestroy, task, event);
+	UNLOCK(&ctx->lock);
+
+	return (res);
+}
+
 
 isc_result_t
 isc_mem_restore(isc_mem_t *ctx) {
