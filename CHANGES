@@ -1,4 +1,6 @@
 
+	--- 9.1.3rc1 released ---
+
  831.	[bug]		The configure script tried to determine
 			endianness before making its final decision on
 			which C compiler to use, causing Solaris/x86
