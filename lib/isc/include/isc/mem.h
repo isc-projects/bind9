@@ -32,7 +32,7 @@ ISC_LANG_BEGINDECLS
 #define isc_mem_get(c, s)	__isc_mem_getdebug(c, s, __FILE__, __LINE__)
 #define isc_mem_put(c, p, s)	__isc_mem_putdebug(c, p, s, __FILE__, __LINE__)
 #define isc_mempool_get(c)	__isc_mempool_getdebug(c, __FILE__, __LINE__)
-#define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, s, \
+#define isc_mempool_put(c, p)	__isc_mempool_putdebug(c, p, \
 						       __FILE__, __LINE__)
 #else
 #define isc_mem_get		__isc_mem_get
