@@ -291,7 +291,7 @@ setup() {
 	result = ns_omapi_listen(ns_g_mctx, &ns_g_omapimgr);
 	if (result == ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_MAIN, ISC_LOG_INFO,
+			      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(3),
 			      "OMAPI started");
 	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
