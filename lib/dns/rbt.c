@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.37 1999/04/14 12:03:18 tale Exp $ */
+/* $Id: rbt.c,v 1.38 1999/04/14 14:12:34 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1764,6 +1764,8 @@ dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
 
 dns_rbtnode_t *
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain) {
+	REQUIRE(VALID_CHAIN(chain));
+
 	return (chain->end);
 }
 
@@ -1873,7 +1875,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 				 */
 				name->labels--;
 				name->length--;
-				name &= ~DNS_NAMEATTR_ABSOLUTE;
+				name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 			}
 		}
 
@@ -2033,7 +2035,7 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 		/* XXX Evil.  (?) */
 		name->labels--;
 		name->length--;
-		name &= ~DNS_NAMEATTR_ABSOLUTE;
+		name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 	}
 
 	result = dns_name_concatenate(NULL, dns_rootname, origin, NULL);
@@ -2097,7 +2099,7 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 			/* XXX Evil.  (?) */
 			name->labels--;
 			name->length--;
-			name &= ~DNS_NAMEATTR_ABSOLUTE;
+			name->attributes &= ~DNS_NAMEATTR_ABSOLUTE;
 		}
 
 		/* XXX sleazy way to initialize? */
