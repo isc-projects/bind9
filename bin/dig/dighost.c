@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.190 2001/02/15 23:44:05 tamino Exp $ */
+/* $Id: dighost.c,v 1.191 2001/02/16 00:04:18 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -207,6 +207,7 @@ isc_result_t
 get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
 	int adrs[4];
 	char working[MXNAME];
+	int remaining;
 	int i, n;
 	isc_result_t result;
 
@@ -221,12 +222,15 @@ get_reverse(char *reverse, char *value, isc_boolean_t nibble) {
 		if (n == 0) {
 			return (DNS_R_BADDOTTEDQUAD);
 		}
+		reverse[MXNAME - 1] = 0;
 		for (i = n - 1; i >= 0; i--) {
-			snprintf(working, MXNAME/8, "%d.",
+			snprintf(working, sizeof(working), "%d.",
 				 adrs[i]);
-			strncat(reverse, working, MXNAME);
+			remaining = MXNAME - strlen(reverse) - 1;
+			strncat(reverse, working, remaining);
 		}
-		strncat(reverse, "in-addr.arpa.", MXNAME);
+		remaining = MXNAME - strlen(reverse) - 1;
+		strncat(reverse, "in-addr.arpa.", remaining);
 		result = ISC_R_SUCCESS;
 	} else if (strspn(value, "0123456789abcdefABCDEF:") 
 		   == strlen(value)) {
