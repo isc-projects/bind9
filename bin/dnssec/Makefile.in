@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.14 2001/01/09 21:39:21 bwelling Exp $
+# $Id: Makefile.in,v 1.15 2001/01/18 01:33:49 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -50,6 +50,11 @@ SRCS =		dnssec-keygen.c dnssec-makekeyset.c \
 		dnssec-signkey.c dnssec-signzone.c \
 		dnssectool.c
 
+MANPAGES =	dnssec-keygen.8 \
+		dnssec-makekeyset.8 \
+		dnssec-signkey.8 \
+		dnssec-signzone.8
+
 @BIND9_MAKE_RULES@
 
 dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
@@ -72,6 +77,8 @@ clean distclean::
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: ${TARGETS} installdirs
 	for t in ${TARGETS}; do ${LIBTOOL} ${INSTALL_PROGRAM} $$t ${DESTDIR}${sbindir}; done
+	for m in ${MANPAGES}; do ${INSTALL_PROGRAM} $$m ${DESTDIR}${mandir}/man8; done

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.26 2001/01/09 22:00:44 bwelling Exp $
+# $Id: rules.in,v 1.27 2001/01/18 01:33:54 bwelling Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -33,6 +33,7 @@ includedir =	@includedir@
 libdir =	@libdir@
 sysconfdir =	@sysconfdir@
 localstatedir =	@localstatedir@
+mandir =	@mandir@
 
 DESTDIR =
 

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2001/01/09 21:40:43 bwelling Exp $
+# $Id: Makefile.in,v 1.16 2001/01/18 01:33:53 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,6 +47,8 @@ OBJS =		rndc.@O@
 
 SRCS =		rndc.c
 
+MANPAGES =	rndc.8 rndc.conf.5
+
 @BIND9_MAKE_RULES@
 
 rndc.@O@: rndc.c
@@ -58,9 +60,13 @@ rndc: ${OBJS} ${DEPLIBS}
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 
-install:: rndc
+install:: rndc installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} rndc ${DESTDIR}${sbindir}
+	${INSTALL_PROGRAM} rndc.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_PROGRAM} rndc.conf.5 ${DESTDIR}${mandir}/man5
 
 clean distclean::
 	rm -f ${TARGETS}

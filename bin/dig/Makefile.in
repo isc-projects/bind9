@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.18 2001/01/09 21:39:12 bwelling Exp $
+# $Id: Makefile.in,v 1.19 2001/01/18 01:33:48 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -48,6 +48,8 @@ UOBJS =
 
 SRCS =		dig.c dighost.c host.c nslookup.c
 
+MANPAGES =	dig.1 host.1
+
 @BIND9_MAKE_RULES@
 
 dig: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
@@ -64,8 +66,10 @@ clean distclean::
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
 install:: dig host nslookup installdirs
 	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} host ${DESTDIR}${bindir}
 	${LIBTOOL} ${INSTALL_PROGRAM} nslookup ${DESTDIR}${bindir}
+	for m in ${MANPAGES}; do ${INSTALL_PROGRAM} $$m ${DESTDIR}${mandir}/man1; done
