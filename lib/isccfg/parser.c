@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.51 2001/03/28 00:16:05 bwelling Exp $ */
+/* $Id: parser.c,v 1.52 2001/05/09 03:17:02 gson Exp $ */
 
 #include <config.h>
 
@@ -143,7 +143,11 @@ struct cfg_parser {
 	void *callbackarg;
 };
 
-/* The printer object. */
+/*
+ * A configuration printer object.  This is an abstract
+ * interface to a destination to which text can be printed
+ * by calling the function 'f'.
+ */
 struct cfg_printer {
 	void (*f)(void *closure, const char *text, int textlen);
 	void *closure;
@@ -176,6 +180,7 @@ struct cfg_type {
 };
 
 /* A keyword-type definition, for things like "port <integer>". */
+
 typedef struct {
 	const char *name;
 	cfg_type_t *type;
@@ -186,14 +191,6 @@ struct cfg_map {
 	cfg_clausedef_t  **clausesets; /* The clauses that can occur in
 					  this map; used for printing */
 	isc_symtab_t     *symtab;
-};
-
-typedef struct cfg_zone cfg_zone_t;
-
-struct cfg_zone {
-	cfg_obj_t *name;
-	cfg_obj_t *class;
-	cfg_obj_t *options;
 };
 
 typedef struct cfg_netprefix cfg_netprefix_t;
@@ -221,11 +218,10 @@ struct cfg_obj {
 	union {
 		isc_uint32_t  	uint32;
 		isc_uint64_t  	uint64;
-		isc_textregion_t string;
+		isc_textregion_t string; /* null terminated, too */
 		isc_boolean_t 	boolean;
 		cfg_map_t	map;
 		cfg_list_t	list;
-		cfg_zone_t	zone;
 		cfg_obj_t **	tuple;
 		isc_sockaddr_t	sockaddr;
 		cfg_netprefix_t netprefix;
@@ -236,6 +232,7 @@ struct cfg_obj {
 
 
 /* A list element. */
+
 struct cfg_listelt {
 	cfg_obj_t               *obj;
 	ISC_LINK(cfg_listelt_t)  link;
@@ -390,6 +387,7 @@ parse_enum(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
  * "value" union in struct cfg_obj (except "void", which does
  * not need a union member).
  */
+
 cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop };
 cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop };
 cfg_rep_t cfg_rep_string = { "string", free_string };
@@ -403,6 +401,7 @@ cfg_rep_t cfg_rep_void = { "void", free_noop };
 
 /*
  * Forward declarations of configuration type definitions.
+ * Additional types are declared publicly in cfg.h.
  */
 
 static cfg_type_t cfg_type_boolean;
@@ -753,7 +752,8 @@ static cfg_type_t cfg_type_loglevel = {
 	&loglevel_enums
 };
 
-static const char *transferformat_enums[] = { "many-answers", "one-answer", NULL };
+static const char *transferformat_enums[] = {
+	"many-answers", "one-answer", NULL };
 static cfg_type_t cfg_type_transferformat = {
 	"transferformat", parse_enum, print_ustring, &cfg_rep_string,
 	&transferformat_enums
@@ -945,6 +945,9 @@ zone_only_clauses[] = {
 	{ NULL, NULL, 0 }
 };
 
+
+/* The top-level named.conf syntax. */
+
 static cfg_clausedef_t *
 namedconf_clausesets[] = {
 	namedconf_clauses,
@@ -957,6 +960,8 @@ cfg_type_t cfg_type_namedconf = {
 	namedconf_clausesets
 };
 
+/* The "options" statement syntax. */
+
 static cfg_clausedef_t *
 options_clausesets[] = {
 	options_clauses,
@@ -966,6 +971,8 @@ options_clausesets[] = {
 };
 static cfg_type_t cfg_type_options = {
 	"options", parse_map, print_map, &cfg_rep_map, options_clausesets };
+
+/* The "view" statement syntax. */
 
 static cfg_clausedef_t *
 view_clausesets[] = {
@@ -977,6 +984,8 @@ view_clausesets[] = {
 };
 static cfg_type_t cfg_type_viewopts = {
 	"view", parse_map, print_map, &cfg_rep_map, view_clausesets };
+
+/* The "zone" statement syntax. */
 
 static cfg_clausedef_t *
 zone_clausesets[] = {
@@ -1060,7 +1069,9 @@ channel_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_channel = {
-	"channel", parse_named_map, print_map, &cfg_rep_map, channel_clausesets };
+	"channel", parse_named_map, print_map,
+	&cfg_rep_map, channel_clausesets
+};
 
 /* A list of log destination, used in the "category" clause. */
 static cfg_type_t cfg_type_destinationlist = {
@@ -1308,6 +1319,7 @@ parse_eof(cfg_parser_t *pctx) {
 }
 
 /* A list of files, used internally for pctx->files. */
+
 static cfg_type_t cfg_type_filelist = {
 	"filelist", NULL, print_list, &cfg_rep_list,
 	&cfg_type_qstring
@@ -2599,7 +2611,9 @@ parse_unsupported(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 static cfg_type_t cfg_type_unsupported = {
-	"unsupported", parse_unsupported, print_spacelist, &cfg_rep_list, NULL };
+	"unsupported", parse_unsupported, print_spacelist,
+	&cfg_rep_list, NULL
+};
 
 /*
  * A "controls" statement is represented as a map with the multivalued
@@ -3068,19 +3082,22 @@ parse_sockaddrsub(cfg_parser_t *pctx, cfg_type_t *type,
 static isc_result_t
 parse_sockaddr4wild(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr4wild, WILDOK|V4OK, ret));
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr4wild,
+				  WILDOK|V4OK, ret));
 }
 
 static isc_result_t
 parse_sockaddr6wild(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr6wild, WILDOK|V6OK, ret));
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr6wild,
+				  WILDOK|V6OK, ret));
 }
 
 static isc_result_t
 parse_sockaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, V4OK|V6OK, ret));
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr,
+				  V4OK|V6OK, ret));
 }
 
 /*
@@ -3091,7 +3108,8 @@ parse_sockaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 static isc_result_t
 parse_controls_sockaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	UNUSED(type);
-	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr, V4OK|V6OK|WILDOK, ret));
+	return (parse_sockaddrsub(pctx, &cfg_type_sockaddr,
+				  V4OK|V6OK|WILDOK, ret));
 }
 
 static void
