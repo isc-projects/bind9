@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.48 2000/08/14 19:17:42 bwelling Exp $ */
+/* $Id: host.c,v 1.49 2000/08/22 16:44:46 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -45,25 +45,16 @@ extern ISC_LIST(dig_lookup_t) lookup_list;
 extern ISC_LIST(dig_server_t) server_list;
 extern ISC_LIST(dig_searchlist_t) search_list;
 
-extern isc_boolean_t have_ipv6, show_details, debugging;
-extern in_port_t port;
+extern isc_boolean_t show_details, debugging;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
-extern dns_messageid_t id;
-extern dns_name_t rootorg;
-extern char *rootspace[BUFSIZE];
-extern isc_buffer_t rootbuf;
-extern int sendcount;
 extern int ndots;
 extern int tries;
 extern int lookup_counter;
-extern int exitcode;
-extern isc_taskmgr_t *taskmgr;
 extern char *progname;
 extern isc_task_t *global_task;
 
-isc_boolean_t
-short_form = ISC_TRUE;
+isc_boolean_t short_form = ISC_TRUE;
 
 static const char *opcodetext[] = {
 	"QUERY",
