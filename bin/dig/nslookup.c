@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.95 2001/12/19 12:16:42 marka Exp $ */
+/* $Id: nslookup.c,v 1.96 2002/03/20 18:20:03 marka Exp $ */
 
 #include <config.h>
 
@@ -583,6 +583,9 @@ setoption(char *opt) {
 	} else if (strncasecmp(opt, "qu=", 3) == 0) {
 		if (testtype(&opt[3]))
 			safecpy(deftype, &opt[3], sizeof(deftype));
+	} else if (strncasecmp(opt, "q=", 2) == 0) {
+		if (testtype(&opt[2]))
+			safecpy(deftype, &opt[2], sizeof(deftype));
 	} else if (strncasecmp(opt, "domain=", 7) == 0) {
 		safecpy(domainopt, &opt[7], sizeof(domainopt));
 		set_search_domain(domainopt);
