@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: nanny.pl,v 1.4 2000/06/22 21:53:36 tale Exp $
+# $Id: nanny.pl,v 1.4.2.1 2000/06/27 00:38:24 gson Exp $
 
 # A simple nanny to make sure named stays running.
 
@@ -27,29 +27,29 @@ $named_program =  'named';
 fork() && exit();
 
 for (;;) {
-  $pid = 0;
-  open(FILE, $pid_file_location) || goto restart;
-  $pid = <FILE>;
-  close(FILE);
-  chomp($pid);
+	$pid = 0;
+	open(FILE, $pid_file_location) || goto restart;
+	$pid = <FILE>;
+	close(FILE);
+	chomp($pid);
   
-  $res = kill 0, $pid;
+	$res = kill 0, $pid;
 
-  goto restart if ($res == 0);
+	goto restart if ($res == 0);
 
-  $dig_command = "$dig_program +short . \@$nameserver_location > /dev/null";
-  $return = system($dig_command);
-  goto restart if ($return == 9);
+	$dig_command =
+	       "$dig_program +short . \@$nameserver_location > /dev/null";
+	$return = system($dig_command);
+	goto restart if ($return == 9);
 
-  sleep 30;
-  next;
+	sleep 30;
+	next;
 
  restart:
-  print "Restarting...\n";
-  if ($pid != 0) {
-    kill 15, $pid;
-    sleep 30;
-  }
-  system ($named_program);
-  sleep 120;
+	if ($pid != 0) {
+		kill 15, $pid;
+		sleep 30;
+	}
+	system ($named_program);
+	sleep 120;
 }
