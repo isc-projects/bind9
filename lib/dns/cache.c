@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.2 1999/12/02 22:35:29 gson Exp $ */
+ /* $Id: cache.c,v 1.3 1999/12/02 23:53:08 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -323,7 +323,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		RUNTIME_CHECK(iresult == ISC_R_SUCCESS);
 
 		/* XXX get this from the configuration file */
-		cleaner->cleaning_interval = 30; /* seconds */
+		cleaner->cleaning_interval = 2 * 3600; /* seconds */
 		isc_interval_set(&interval, cleaner->cleaning_interval, 0);
 		iresult = isc_timer_create(timermgr, isc_timertype_ticker,
 					   NULL, &interval,
