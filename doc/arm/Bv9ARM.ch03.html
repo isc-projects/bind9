@@ -1,11 +1,11 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >Name Server Configuration</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"><LINK
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
 REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
@@ -250,37 +250,37 @@ CLASS="CALSTABLE"
 ><TR
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->www</VAR
+>www</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->600</VAR
+>600</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.0.0.1</VAR
+>10.0.0.1</TT
 ></P
 ></TD
 ></TR
@@ -291,30 +291,30 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->600</VAR
+>600</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.0.0.2</VAR
+>10.0.0.2</TT
 ></P
 ></TD
 ></TR
@@ -325,30 +325,30 @@ CLASS="literal"
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->600</VAR
+>600</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->IN</VAR
+>IN</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->A</VAR
+>A</TT
 ></P
 ></TD
 ><TD
 ><P
-><VAR
+><TT
 CLASS="literal"
->10.0.0.3</VAR
+>10.0.0.3</TT
 ></P
 ></TD
 ></TR
@@ -458,27 +458,41 @@ from the command line.</P
 ><B
 CLASS="command"
 >dig</B
->  [@<VAR
+>  [@<TT
 CLASS="replaceable"
->server</VAR
->]  <VAR
+><I
+>server</I
+></TT
+>]  <TT
 CLASS="replaceable"
->domain</VAR
->  [<VAR
+><I
+>domain</I
+></TT
+>  [<TT
 CLASS="replaceable"
->query-type</VAR
->] [<VAR
+><I
+>query-type</I
+></TT
+>] [<TT
 CLASS="replaceable"
->query-class</VAR
->] [+<VAR
+><I
+>query-class</I
+></TT
+>] [+<TT
 CLASS="replaceable"
->query-option</VAR
->] [-<VAR
+><I
+>query-option</I
+></TT
+>] [-<TT
 CLASS="replaceable"
->dig-option</VAR
->] [%<VAR
+><I
+>dig-option</I
+></TT
+>] [%<TT
 CLASS="replaceable"
->comment</VAR
+><I
+>comment</I
+></TT
 >]</P
 ><P
 >The usual simple use of dig will take the form</P
@@ -512,27 +526,41 @@ can be extended with the use of options.</P
 ><B
 CLASS="command"
 >host</B
->  [-aCdlrTwv] [-c <VAR
+>  [-aCdlrTwv] [-c <TT
 CLASS="replaceable"
->class</VAR
->] [-N <VAR
+><I
+>class</I
+></TT
+>] [-N <TT
 CLASS="replaceable"
->ndots</VAR
->] [-t <VAR
+><I
+>ndots</I
+></TT
+>] [-t <TT
 CLASS="replaceable"
->type</VAR
->] [-W <VAR
+><I
+>type</I
+></TT
+>] [-W <TT
 CLASS="replaceable"
->timeout</VAR
->] [-R <VAR
+><I
+>timeout</I
+></TT
+>] [-R <TT
 CLASS="replaceable"
->retries</VAR
->]  <VAR
+><I
+>retries</I
+></TT
+>]  <TT
 CLASS="replaceable"
->hostname</VAR
->  [<VAR
+><I
+>hostname</I
+></TT
+>  [<TT
 CLASS="replaceable"
->server</VAR
+><I
+>server</I
+></TT
 >]</P
 ><P
 >For more information and a list of available commands and
@@ -560,9 +588,11 @@ the name and requested information for a host or domain.</P
 ><B
 CLASS="command"
 >nslookup</B
->  [-option...] [<VAR
+>  [-option...] [<TT
 CLASS="replaceable"
->host-to-find</VAR
+><I
+>host-to-find</I
+></TT
 > | -  [server]]</P
 ><P
 >Interactive mode is entered when no arguments are given (the
@@ -625,12 +655,16 @@ CLASS="filename"
 ><B
 CLASS="command"
 >named-checkconf</B
->  [-t <VAR
+>  [-t <TT
 CLASS="replaceable"
->directory</VAR
->] [<VAR
+><I
+>directory</I
+></TT
+>] [<TT
 CLASS="replaceable"
->filename</VAR
+><I
+>filename</I
+></TT
 >]</P
 ></DD
 ><DT
@@ -652,30 +686,46 @@ CLASS="command"
 ><B
 CLASS="command"
 >named-checkzone</B
->  [-djqvD] [-c <VAR
+>  [-djqvD] [-c <TT
 CLASS="replaceable"
->class</VAR
->] [-o <VAR
+><I
+>class</I
+></TT
+>] [-o <TT
 CLASS="replaceable"
->output</VAR
->] [-t <VAR
+><I
+>output</I
+></TT
+>] [-t <TT
 CLASS="replaceable"
->directory</VAR
->] [-w <VAR
+><I
+>directory</I
+></TT
+>] [-w <TT
 CLASS="replaceable"
->directory</VAR
->] [-k <VAR
+><I
+>directory</I
+></TT
+>] [-k <TT
 CLASS="replaceable"
->(ignore|warn|fail)</VAR
->] [-n <VAR
+><I
+>(ignore|warn|fail)</I
+></TT
+>] [-n <TT
 CLASS="replaceable"
->(ignore|warn|fail)</VAR
->]  <VAR
+><I
+>(ignore|warn|fail)</I
+></TT
+>]  <TT
 CLASS="replaceable"
->zone</VAR
->  [<VAR
+><I
+>zone</I
+></TT
+>  [<TT
 CLASS="replaceable"
->filename</VAR
+><I
+>filename</I
+></TT
 >]</P
 ></DD
 ><DT
@@ -703,24 +753,36 @@ CLASS="command"
 ><B
 CLASS="command"
 >rndc</B
->  [-c <VAR
+>  [-c <TT
 CLASS="replaceable"
->config</VAR
->] [-s <VAR
+><I
+>config</I
+></TT
+>] [-s <TT
 CLASS="replaceable"
->server</VAR
->] [-p <VAR
+><I
+>server</I
+></TT
+>] [-p <TT
 CLASS="replaceable"
->port</VAR
->] [-y <VAR
+><I
+>port</I
+></TT
+>] [-y <TT
 CLASS="replaceable"
->key</VAR
->]  <VAR
+><I
+>key</I
+></TT
+>]  <TT
 CLASS="replaceable"
->command</VAR
->  [<VAR
+><I
+>command</I
+></TT
+>  [<TT
 CLASS="replaceable"
->command</VAR
+><I
+>command</I
+></TT
 >...]</P
 ><P
 ><B
@@ -744,21 +806,27 @@ CLASS="userinput"
 ><DT
 ><KBD
 CLASS="userinput"
->reload <VAR
+>reload <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 >
        [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 >
            [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->view</VAR
+><I
+>view</I
+></TT
 ></SPAN
 >]</SPAN
 >]</KBD
@@ -770,21 +838,27 @@ CLASS="replaceable"
 ><DT
 ><KBD
 CLASS="userinput"
->refresh <VAR
+>refresh <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 >
        [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 >
            [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->view</VAR
+><I
+>view</I
+></TT
 ></SPAN
 >]</SPAN
 >]</KBD
@@ -796,21 +870,27 @@ CLASS="replaceable"
 ><DT
 ><KBD
 CLASS="userinput"
->retransfer <VAR
+>retransfer <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 >
        [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 >
            [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->view</VAR
+><I
+>view</I
+></TT
 ></SPAN
 >]</SPAN
 >]</KBD
@@ -822,21 +902,27 @@ CLASS="replaceable"
 ><DT
 ><KBD
 CLASS="userinput"
->freeze <VAR
+>freeze <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 >
        [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 >
            [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->view</VAR
+><I
+>view</I
+></TT
 ></SPAN
 >]</SPAN
 >]</KBD
@@ -852,21 +938,27 @@ CLASS="replaceable"
 ><DT
 ><KBD
 CLASS="userinput"
->unfreeze <VAR
+>unfreeze <TT
 CLASS="replaceable"
->zone</VAR
+><I
+>zone</I
+></TT
 >
        [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->class</VAR
+><I
+>class</I
+></TT
 >
            [<SPAN
 CLASS="optional"
-><VAR
+><TT
 CLASS="replaceable"
->view</VAR
+><I
+>view</I
+></TT
 ></SPAN
 >]</SPAN
 >]</KBD
@@ -977,9 +1069,11 @@ CLASS="userinput"
 ><DT
 ><KBD
 CLASS="userinput"
->trace <VAR
+>trace <TT
 CLASS="replaceable"
->level</VAR
+><I
+>level</I
+></TT
 ></KBD
 ></DT
 ><DD
@@ -1063,9 +1157,9 @@ CLASS="command"
 CLASS="filename"
 >/etc/rndc.conf</TT
 >, but an alternate
-location can be specified with the <VAR
+location can be specified with the <CODE
 CLASS="option"
->-c</VAR
+>-c</CODE
 >
 option.  If the configuration file is not found,
 <B
@@ -1076,9 +1170,9 @@ CLASS="command"
 CLASS="filename"
 >/etc/rndc.key</TT
 > (or whatever
-<VAR
+<CODE
 CLASS="varname"
->sysconfdir</VAR
+>sysconfdir</CODE
 > was defined when
 the <ACRONYM
 CLASS="acronym"
@@ -1142,9 +1236,9 @@ CLASS="command"
 >default-server</B
 > takes a
 host name or address argument  and represents the server that will
-be contacted if no <VAR
+be contacted if no <CODE
 CLASS="option"
->-s</VAR
+>-s</CODE
 >
 option is provided on the command line.  
 <B
@@ -1289,9 +1383,9 @@ CLASS="programlisting"
 </PRE
 ><P
 >and it had an identical key statement for
-<VAR
+<TT
 CLASS="literal"
->rndc_key</VAR
+>rndc_key</TT
 >.</P
 ><P
 >Running the <B

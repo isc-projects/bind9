@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres.html,v 1.8 2004/08/23 00:05:47 marka Exp $ -->
+<!-- $Id: lwres.html,v 1.9 2005/04/03 03:31:35 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -130,9 +130,9 @@ CLASS="FUNCTION"
 functions are all supported.  To allow the lwres library to coexist
 with system libraries that define functions of the same name,
 the library defines these functions with names prefixed by
-<VAR
+<TT
 CLASS="LITERAL"
->lwres_</VAR
+>lwres_</TT
 >.
 To define the standard names, applications must include the
 header file
@@ -142,9 +142,9 @@ CLASS="FILENAME"
 >
 which contains macro definitions mapping the standard function names
 into
-<VAR
+<TT
 CLASS="LITERAL"
->lwres_</VAR
+>lwres_</TT
 >
 prefixed ones.  Operating system vendors who integrate the lwres
 library into their base distributions should rename the functions
@@ -201,9 +201,9 @@ sequence of actions.</P
 CLASS="TYPE"
 >lwres_packet_t</SPAN
 >,
-called <VAR
+called <CODE
 CLASS="VARNAME"
->pkt</VAR
+>pkt</CODE
 > below.</P
 ><P
 >(2) Set <CODE
@@ -293,9 +293,9 @@ CLASS="FUNCTION"
 unmarshall it.  This returns a <SPAN
 CLASS="TYPE"
 >lwres_packet_t</SPAN
-> (also called <VAR
+> (also called <CODE
 CLASS="VARNAME"
->pkt</VAR
+>pkt</CODE
 >, below)
 as well as a data specific type, such as <SPAN
 CLASS="TYPE"

@@ -15,16 +15,16 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_gethostent.html,v 1.12 2004/08/23 00:05:47 marka Exp $ -->
+<!-- $Id: lwres_gethostent.html,v 1.13 2005/04/03 03:31:36 marka Exp $ -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML
 ><HEAD
 ><TITLE
 >lwres_gethostent</TITLE
 ><META
 NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.7"></HEAD
+CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
 ><BODY
 CLASS="REFENTRY"
 BGCOLOR="#FFFFFF"
@@ -319,9 +319,9 @@ CLASS="FUNCTION"
 CLASS="FUNCTION"
 >lwres_gethostbyname2()</CODE
 > look up the hostname
-<VAR
+<CODE
 CLASS="PARAMETER"
->name</VAR
+>name</CODE
 >.
 <CODE
 CLASS="FUNCTION"
@@ -331,9 +331,9 @@ address while <CODE
 CLASS="FUNCTION"
 >lwres_gethostbyname2()</CODE
 > looks for an
-address of protocol family <VAR
+address of protocol family <CODE
 CLASS="PARAMETER"
->af</VAR
+>af</CODE
 >: either
 <SPAN
 CLASS="TYPE"
@@ -365,17 +365,17 @@ CLASS="FUNCTION"
 CLASS="FUNCTION"
 >lwres_gethostbyaddr()</CODE
 >.
-<VAR
+<CODE
 CLASS="PARAMETER"
->addr</VAR
+>addr</CODE
 > is an address of length
-<VAR
+<CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 > bytes and protocol family
-<VAR
+<CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 > &mdash; <SPAN
 CLASS="TYPE"
 >PF_INET</SPAN
@@ -389,13 +389,13 @@ CLASS="FUNCTION"
 >lwres_gethostbyname_r()</CODE
 > is a thread-safe function
 for forward lookups.  If an error occurs, an error code is returned in
-<VAR
+<CODE
 CLASS="PARAMETER"
->*error</VAR
+>*error</CODE
 >.
-<VAR
+<CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 > is a pointer to a <SPAN
 CLASS="TYPE"
 >struct
@@ -405,13 +405,13 @@ hostent</SPAN
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</CODE
 > .
-<VAR
+<CODE
 CLASS="PARAMETER"
->buf</VAR
+>buf</CODE
 > is a buffer of length
-<VAR
+<CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 > bytes which is used to store the
 <CODE
 CLASS="CONSTANT"
@@ -427,17 +427,17 @@ CLASS="CONSTANT"
 CLASS="TYPE"
 >struct
 hostent</SPAN
-> returned in <VAR
+> returned in <CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 >.
 Successful calls to <CODE
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</CODE
 >
-return <VAR
+return <CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 >,
 which is a pointer to the <SPAN
 CLASS="TYPE"
@@ -448,17 +448,17 @@ CLASS="TYPE"
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</CODE
 > is a thread-safe function
-that performs a reverse lookup of address <VAR
+that performs a reverse lookup of address <CODE
 CLASS="PARAMETER"
->addr</VAR
+>addr</CODE
 >
-which is <VAR
+which is <CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 > bytes long and is of protocol
-family <VAR
+family <CODE
 CLASS="PARAMETER"
->type</VAR
+>type</CODE
 > &mdash; <SPAN
 CLASS="TYPE"
 >PF_INET</SPAN
@@ -467,17 +467,17 @@ CLASS="TYPE"
 CLASS="TYPE"
 >PF_INET6</SPAN
 >.  If an error occurs, the error code is returned
-in <VAR
+in <CODE
 CLASS="PARAMETER"
->*error</VAR
+>*error</CODE
 >.  The other function parameters are
 identical to those in <CODE
 CLASS="FUNCTION"
 >lwres_gethostbyname_r()</CODE
 >.
-<VAR
+<CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 > is a pointer to a <SPAN
 CLASS="TYPE"
 >struct
@@ -487,13 +487,13 @@ hostent</SPAN
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</CODE
 >.
-<VAR
+<CODE
 CLASS="PARAMETER"
->buf</VAR
+>buf</CODE
 > is a buffer of length
-<VAR
+<CODE
 CLASS="PARAMETER"
->len</VAR
+>len</CODE
 > bytes which is used to store the
 <CODE
 CLASS="CONSTANT"
@@ -509,17 +509,17 @@ CLASS="CONSTANT"
 CLASS="TYPE"
 >struct
 hostent</SPAN
-> returned in <VAR
+> returned in <CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 >.  Successful
 calls to <CODE
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</CODE
 > return
-<VAR
+<CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 >, which is a pointer to the
 <CODE
 CLASS="FUNCTION"
@@ -645,9 +645,9 @@ CLASS="FUNCTION"
 CLASS="FUNCTION"
 >lwres_gethostbyaddr_r()</CODE
 > return
-<VAR
+<CODE
 CLASS="PARAMETER"
->resbuf</VAR
+>resbuf</CODE
 >, a pointer to the <SPAN
 CLASS="TYPE"
 >struct
@@ -656,9 +656,9 @@ hostent</SPAN
 <SPAN
 CLASS="TYPE"
 >NULL</SPAN
-> if the lookups fail or if <VAR
+> if the lookups fail or if <CODE
 CLASS="PARAMETER"
->buf</VAR
+>buf</CODE
 >
 was too small to hold the list of addresses and names referenced by
 the <CODE
@@ -675,9 +675,9 @@ CLASS="CONSTANT"
 CLASS="TYPE"
 >struct
 hostent</SPAN
->.  If <VAR
+>.  If <CODE
 CLASS="PARAMETER"
->buf</VAR
+>buf</CODE
 > was too small, both
 <CODE
 CLASS="FUNCTION"
