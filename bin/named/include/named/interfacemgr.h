@@ -108,8 +108,6 @@ ns_interfacemgr_scan(ns_interfacemgr_t *mgr);
  * and create listeners when new interfaces are discovered.
  * Shut down the sockets for interfaces that go away.
  *
- * XXX should honor the listen-on directive in named.conf.
- *
  * This should be called once on server startup and then
  * periodically according to the 'interface-interval' option
  * in named.conf.
