@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.7 2001/11/07 04:24:38 mayer Exp $ */
+/* $Id: socket.c,v 1.8 2001/11/08 03:29:05 mayer Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -2131,6 +2131,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 					dispatch_send(sock);
 			}
 			FD_CLR(i, &manager->write_fds);
+			FD_CLR(i, &manager->except_fds);
 		}
 		if (FD_ISSET(i, exceptfds)) {
 			if (sock == NULL) {
