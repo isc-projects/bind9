@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.90.2.7 2003/05/14 06:51:37 marka Exp $ */
+/* $Id: result.c,v 1.90.2.8 2003/05/15 05:41:12 marka Exp $ */
 
 #include <config.h>
 
@@ -126,19 +126,19 @@ static const char *text[DNS_R_NRESULTS] = {
 	"already frozen",		       /* 81 DNS_R_FROZEN	     */
 	"unknown flag",			       /* 82 DNS_R_UNKNOWNFLAG	     */
 	"expected a response",		       /* 83 DNS_R_EXPECTEDRESPONSE  */
-	"reserved DNS 84",
+	"<unused 84>",
 
-	"reserved DNS 85",
-	"reserved DNS 86",
-	"reserved DNS 87",
-	"reserved DNS 88",
-	"reserved DNS 89",
+	"<unused 85>",
+	"<unused 86>",
+	"<unused 87>",
+	"<unused 88>",
+	"<unused 89>",
 
-	"reserved DNS 90",
-	"reserved DNS 91",
-	"reserved DNS 92",
-	"empty name",				/* 93 DNS_R_EMPTYNAME */
-	"empty wild"				/* 94 DNS_R_EMPTYWILD */
+	"<unused 90>",
+	"<unused 91>",
+	"empty name",				/* 92 DNS_R_EMPTYNAME	     */
+	"empty wild",				/* 93 DNS_R_EMPTYWILD	     */
+	"bad bitmap"				/* 94 DNS_R_BADBITMAP	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

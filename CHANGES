@@ -1,11 +1,14 @@
+1463.	[bug]		dns_rdata_from{wire,struct}() failed to catch bad
+			NXT bit maps. [RT #5577]
+
+1460.	[bug]		inet_pton() failed to reject certain malformed
+			IPv6 literals.
+
 1459.	[bug]		win32: we were leaking a bits in the exception
 			fd_set resulting in "Socket operation on non-socket"
 			errors from select(). [RT #2966]
 
 1456.	[contrib]	gen-data-queryperf.py from Stephane Bortzmeyer.
-
-1454.	[bug]		inet_pton() failed to reject certain malformed
-			IPv6 literals.
 
 1453.	[doc]		ARM: $GENERATE example wasn't accurate. [RT #5298]
 
