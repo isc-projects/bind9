@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mempool_test.c,v 1.10 2000/08/01 01:13:01 tale Exp $ */
+/* $Id: mempool_test.c,v 1.11 2000/08/30 01:35:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,7 @@ main(int argc, char *argv[]) {
 
 	isc_mem_destroy(&mctx);
 
-	(void)isc_mutex_destroy(&lock);
+	DESTROYLOCK(&lock);
 
 	return (0);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_test.c,v 1.31 2000/08/17 19:17:55 bwelling Exp $ */
+/* $Id: tkey_test.c,v 1.32 2000/08/30 01:35:39 bwelling Exp $ */
 
 /*
  * Principal Author: Brian Wellington (core copied from res_test.c)
@@ -492,7 +492,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	isc_mutex_destroy(&lock);
+	DESTROYLOCK(&lock);
 
 	isc_app_finish();
 

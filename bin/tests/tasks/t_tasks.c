@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.18 2000/08/01 01:17:34 tale Exp $ */
+/* $Id: t_tasks.c,v 1.19 2000/08/30 01:35:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -908,7 +908,7 @@ t_tasks4(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_init failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T4_mx);
+		DESTROYLOCK(&T4_mx);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
 	}
@@ -918,7 +918,7 @@ t_tasks4(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_taskmgr_create failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T4_mx);
+		DESTROYLOCK(&T4_mx);
 		isc_condition_destroy(&T4_cv);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -928,7 +928,7 @@ t_tasks4(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T4_mx);
+		DESTROYLOCK(&T4_mx);
 		isc_condition_destroy(&T4_cv);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -940,7 +940,7 @@ t_tasks4(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T4_mx);
+		DESTROYLOCK(&T4_mx);
 		isc_condition_destroy(&T4_cv);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -986,7 +986,7 @@ t_tasks4(void) {
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&T4_cv);
-	isc_mutex_destroy(&T4_mx);
+	DESTROYLOCK(&T4_mx);
 
 	result = T_UNRESOLVED;
 
@@ -1109,7 +1109,7 @@ t_tasks7(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_condition_init failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T7_mx);
+		DESTROYLOCK(&T7_mx);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
 	}
@@ -1119,7 +1119,7 @@ t_tasks7(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_taskmgr_create failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T7_mx);
+		DESTROYLOCK(&T7_mx);
 		isc_condition_destroy(&T7_cv);
 		isc_mem_destroy(&mctx);
 		return(T_UNRESOLVED);
@@ -1129,7 +1129,7 @@ t_tasks7(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_mutex_lock failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T7_mx);
+		DESTROYLOCK(&T7_mx);
 		isc_condition_destroy(&T7_cv);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -1141,7 +1141,7 @@ t_tasks7(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_create failed %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T7_mx);
+		DESTROYLOCK(&T7_mx);
 		isc_condition_destroy(&T7_cv);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
@@ -1152,7 +1152,7 @@ t_tasks7(void) {
 	if (isc_result != ISC_R_SUCCESS) {
 		t_info("isc_task_onshutdown returned %s\n",
 		       isc_result_totext(isc_result));
-		isc_mutex_destroy(&T7_mx);
+		DESTROYLOCK(&T7_mx);
 		isc_condition_destroy(&T7_cv);
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
@@ -1174,7 +1174,7 @@ t_tasks7(void) {
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_time_nowplusinterval failed %s\n",
 			       isc_result_totext(isc_result));
-			isc_mutex_destroy(&T7_mx);
+			DESTROYLOCK(&T7_mx);
 			isc_condition_destroy(&T7_cv);
 			isc_task_destroy(&task);
 			isc_taskmgr_destroy(&tmgr);
@@ -1186,7 +1186,7 @@ t_tasks7(void) {
 		if (isc_result != ISC_R_SUCCESS) {
 			t_info("isc_condition_waituntil returned %s\n",
 			       isc_result_totext(isc_result));
-			isc_mutex_destroy(&T7_mx);
+			DESTROYLOCK(&T7_mx);
 			isc_condition_destroy(&T7_cv);
 			isc_task_destroy(&task);
 			isc_taskmgr_destroy(&tmgr);
@@ -1206,7 +1206,7 @@ t_tasks7(void) {
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
 	isc_condition_destroy(&T7_cv);
-	isc_mutex_destroy(&T7_mx);
+	DESTROYLOCK(&T7_mx);
 
 	result = T_UNRESOLVED;
 
@@ -1436,7 +1436,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 		t_info("isc_condition_init failed %s\n",
 		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T10_mx);
+		DESTROYLOCK(&T10_mx);
 		++*nprobs;
 		return;
 	}
@@ -1447,7 +1447,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 		t_info("isc_taskmgr_create failed %s\n",
 		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T10_mx);
+		DESTROYLOCK(&T10_mx);
 		isc_condition_destroy(&T10_cv);
 		++*nprobs;
 		return;
@@ -1460,7 +1460,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 		       isc_result_totext(isc_result));
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T10_mx);
+		DESTROYLOCK(&T10_mx);
 		isc_condition_destroy(&T10_cv);
 		++*nprobs;
 		return;
@@ -1473,7 +1473,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T10_mx);
+		DESTROYLOCK(&T10_mx);
 		isc_condition_destroy(&T10_cv);
 		++*nprobs;
 		return;
@@ -1559,7 +1559,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T10_mx);
+		DESTROYLOCK(&T10_mx);
 		isc_condition_destroy(&T10_cv);
 		++*nprobs;
 		return;
@@ -1592,7 +1592,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 			isc_task_detach(&task);
 			isc_taskmgr_destroy(&tmgr);
 			isc_mem_destroy(&mctx);
-			isc_mutex_destroy(&T10_mx);
+			DESTROYLOCK(&T10_mx);
 			isc_condition_destroy(&T10_cv);
 			++*nprobs;
 			return;
@@ -1605,7 +1605,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 			isc_task_detach(&task);
 			isc_taskmgr_destroy(&tmgr);
 			isc_mem_destroy(&mctx);
-			isc_mutex_destroy(&T10_mx);
+			DESTROYLOCK(&T10_mx);
 			isc_condition_destroy(&T10_cv);
 			++*nfails;
 			return;
@@ -1622,7 +1622,7 @@ t_taskpurge_x(int sender, int type, int tag, int purge_sender,
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
-	isc_mutex_destroy(&T10_mx);
+	DESTROYLOCK(&T10_mx);
 	isc_condition_destroy(&T10_cv);
 
 	if (T_debug)
@@ -1827,7 +1827,7 @@ t_tasks11(int purgable) {
 		t_info("isc_condition_init failed %s\n",
 		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T11_mx);
+		DESTROYLOCK(&T11_mx);
 		return(T_UNRESOLVED);
 	}
 
@@ -1837,7 +1837,7 @@ t_tasks11(int purgable) {
 		t_info("isc_taskmgr_create failed %s\n",
 		       isc_result_totext(isc_result));
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T11_mx);
+		DESTROYLOCK(&T11_mx);
 		isc_condition_destroy(&T11_cv);
 		return(T_UNRESOLVED);
 	}
@@ -1849,7 +1849,7 @@ t_tasks11(int purgable) {
 		       isc_result_totext(isc_result));
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T11_mx);
+		DESTROYLOCK(&T11_mx);
 		isc_condition_destroy(&T11_cv);
 		return(T_UNRESOLVED);
 	}
@@ -1861,7 +1861,7 @@ t_tasks11(int purgable) {
 		isc_task_destroy(&task);
 		isc_taskmgr_destroy(&tmgr);
 		isc_mem_destroy(&mctx);
-		isc_mutex_destroy(&T11_mx);
+		DESTROYLOCK(&T11_mx);
 		isc_condition_destroy(&T11_cv);
 		return(T_UNRESOLVED);
 	}
@@ -1944,7 +1944,7 @@ t_tasks11(int purgable) {
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&tmgr);
 	isc_mem_destroy(&mctx);
-	isc_mutex_destroy(&T11_mx);
+	DESTROYLOCK(&T11_mx);
 	isc_condition_destroy(&T11_cv);
 
 	if (T11_eventcnt != (purgable ? 0 : 1)) {
