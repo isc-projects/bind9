@@ -378,10 +378,10 @@ isc_buffer_putuint32(isc_buffer_t *b, isc_uint32_t val)
 	cp = b->base;
 	cp += b->used;
 	b->used += 4;
-	cp[0] = (val & 0xff000000) >> 24;
-	cp[1] = (val & 0x00ff0000) >> 16;
-	cp[2] = (val & 0x0000ff00) >> 8;
-	cp[3] = (val & 0x000000ff);
+	cp[0] = (unsigned char)((val & 0xff000000) >> 24);
+	cp[1] = (unsigned char)((val & 0x00ff0000) >> 16);
+	cp[2] = (unsigned char)((val & 0x0000ff00) >> 8);
+	cp[3] = (unsigned char)(val & 0x000000ff);
 }
 
 isc_result_t
