@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.13.2.3 2004/01/05 08:18:07 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.13.2.4 2004/01/08 05:38:47 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -2068,6 +2068,32 @@ internal_accept(isc_socket_t *sock, int accept_errno) {
 	}
 
 	/*
+	 * Check any possible error status from the event notification here.
+	 * Note that we don't take any action since it was only
+	 * Windows that was notifying about a network event, not the
+	 * application.
+	 * PDMXXX: Should we care about any of the possible event errors
+	 *	   signalled? The only possible valid errors are:
+	 *	   WSAENETDOWN, WSAECONNRESET, & WSAECONNABORTED
+	 */
+	if (accept_errno != 0) {
+		switch (accept_errno) {
+		case WSAENETDOWN:
+		case WSAECONNRESET:
+		case WSAECONNABORTED:
+			break;		/* Expected errors */
+		default:
+			isc__strerror(accept_errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "internal_accept: from event wait: %s",
+					 strbuf);
+			break;
+		}
+		UNLOCK(&sock->lock);
+		return;
+	}
+	
+	/*
 	 * Get the first item off the accept list.
 	 * If it is empty, unlock the socket and return.
 	 */
@@ -2197,14 +2223,11 @@ static void
 internal_connect(isc_socket_t *sock, int connect_errno) {
 	isc_socket_connev_t *dev;
 	isc_task_t *task;
-	int cc;
-	ISC_SOCKADDR_LEN_T optlen;
 	char strbuf[ISC_STRERRORSIZE];
 
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	WSAResetEvent(sock->hEvent);
 
 	/*
 	 * When the internal event was sent the reference count was bumped
@@ -2232,24 +2255,18 @@ internal_connect(isc_socket_t *sock, int connect_errno) {
 	sock->connecting = 0;
 
 	/*
-	 * Get any possible error status here.
+	 * Check possible Windows network event error status here.
 	 */
-	optlen = sizeof(cc);
-	if (getsockopt(sock->fd, SOL_SOCKET, SO_ERROR,
-		       (void *)&cc, (void *)&optlen) < 0)
-		connect_errno = WSAGetLastError();
-	else
-		connect_errno = 0;
-
 	if (connect_errno != 0) {
 		/*
 		 * If the error is EAGAIN, just try again on this
 		 * fd and pretend nothing strange happened.
 		 */
-		if (SOFT_ERROR(connect_errno) || connect_errno == WSAEINPROGRESS) {
+		if (SOFT_ERROR(connect_errno) ||
+		    connect_errno == WSAEINPROGRESS)
+		{
 			sock->connecting = 1;
 			UNLOCK(&sock->lock);
-
 			return;
 		}
 
@@ -2263,11 +2280,12 @@ internal_connect(isc_socket_t *sock, int connect_errno) {
 			ERROR_MATCH(WSAEAFNOSUPPORT, ISC_R_ADDRNOTAVAIL);
 			ERROR_MATCH(WSAECONNREFUSED, ISC_R_CONNREFUSED);
 			ERROR_MATCH(WSAEHOSTUNREACH, ISC_R_HOSTUNREACH);
-			ERROR_MATCH(WSAEHOSTDOWN, ISC_R_HOSTUNREACH);
+			ERROR_MATCH(WSAEHOSTDOWN, ISC_R_HOSTDOWN);
 			ERROR_MATCH(WSAENETUNREACH, ISC_R_NETUNREACH);
+			ERROR_MATCH(WSAENETDOWN, ISC_R_NETDOWN);
 			ERROR_MATCH(WSAENOBUFS, ISC_R_NORESOURCES);
-			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
-			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
+			ERROR_MATCH(WSAECONNRESET, ISC_R_CONNECTIONRESET);
+			ERROR_MATCH(WSAECONNABORTED, ISC_R_CONNECTIONRESET);
 			ERROR_MATCH(WSAETIMEDOUT, ISC_R_TIMEDOUT);
 #undef ERROR_MATCH
 		default:
@@ -2572,7 +2590,7 @@ event_wait(void *uap) {
 		/*
 		 * Stopped to add and delete events on the list
 		 */
-		if(iEvent == 0)
+		if (iEvent == 0)
 			continue;
 
 		wsock = evlist->aSockList[iEvent];
@@ -2594,9 +2612,24 @@ event_wait(void *uap) {
 			continue;
 		}
 
+		/*
+		 * Check for FD_CLOSE events first. This takes precedence over
+		 * other possible events as it needs to be handled instead of
+		 * any other event if it happens on the socket.
+		 * The error code found, if any, is fed into the internal_*()
+		 * routines.
+		 */
 		if(NetworkEvents.lNetworkEvents & FD_CLOSE) {
-			WSAResetEvent(wsock->hEvent);
-			continue;
+			event_errno = NetworkEvents.iErrorCode[FD_CLOSE_BIT];
+		} else if (NetworkEvents.lNetworkEvents & FD_ACCEPT) {
+			event_errno = NetworkEvents.iErrorCode[FD_ACCEPT_BIT];
+		} else if (NetworkEvents.lNetworkEvents & FD_CONNECT) {
+			event_errno = NetworkEvents.iErrorCode[FD_CONNECT_BIT];
+		} else {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "event_wait: WSAEnumNetworkEvents() "
+					 "unexpected event bit set: %0x",
+					 NetworkEvents.lNetworkEvents);
 		}
 
 		if (wsock->references > 0 && wsock->pending_close == 0) {
