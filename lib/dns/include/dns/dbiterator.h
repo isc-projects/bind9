@@ -84,7 +84,7 @@ typedef struct dns_dbiteratormethods {
 				  isc_buffer_t *target);
 } dns_dbiteratormethods_t;
 
-#define DNS_DBITERATOR_MAGIC		0x444E5369U		/* DNSi. */
+#define DNS_DBITERATOR_MAGIC		0x444E5349U		/* DNSI. */
 #define DNS_DBITERATOR_VALID(dbi)	((dbi) != NULL && \
 					 (dbi)->magic == DNS_DBITERATOR_MAGIC)
 /*
@@ -141,7 +141,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator);
 dns_result_t
 dns_dbiterator_next(dns_dbiterator_t *iterator);
 /*
- * Move the rdata cursor to the next node in the database (if any).
+ * Move the node cursor to the next node in the database (if any).
  *
  * Requires:
  *	'iterator' is a valid iterator.
@@ -213,8 +213,6 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  *	Other results are possible, depending on the DB implementation.
  */
 
-ISC_LANG_ENDDECLS
-
 dns_result_t
 dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
 		      isc_buffer_t *target);
@@ -241,5 +239,7 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name,
  *
  *	Other results are possible, depending on the DB implementation.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_DBITERATOR_H */

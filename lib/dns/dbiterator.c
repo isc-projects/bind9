@@ -24,10 +24,6 @@
 #include <dns/dbiterator.h>
 #include <dns/name.h>
 
-/*
- * XXX origin support
- */
-
 void
 dns_dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 	/*
@@ -56,7 +52,7 @@ dns_dbiterator_first(dns_dbiterator_t *iterator) {
 dns_result_t
 dns_dbiterator_next(dns_dbiterator_t *iterator) {
 	/*
-	 * Move the rdata cursor to the next node in the database (if any).
+	 * Move the node cursor to the next node in the database (if any).
 	 */
 
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
