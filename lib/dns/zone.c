@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.11 1999/09/23 23:17:21 halley Exp $ */
+ /* $Id: zone.c,v 1.12 1999/09/23 23:55:33 halley Exp $ */
 
 #include <config.h>
 
@@ -1328,11 +1328,13 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:
+#ifdef notyet
 		if (now >= zone->servertime &&
 		    DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED) &&
 		    DNS_ZONE_OPTION(zone, DNS_ZONE_O_SERVERS) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONE_F_SERVERS))
 			dns_zone_checkservers(zone);
+#endif
 		break;
 	default:
 		break;
@@ -1412,7 +1414,9 @@ dns_zone_refresh(dns_zone_t *zone) {
 	zone->refreshtime = now + zone->retry;
 	zone->curmaster = 0;
 	/* initiate soa query */
+#ifdef notyet
 	soa_query(zone, refresh_callback);
+#endif
 }
 
 dns_result_t
@@ -1832,7 +1836,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 	UNLOCK(&zone->lock);
+#ifdef notyet
 	soa_query(zone, refresh_callback);
+#endif
 	return;
 }
 
