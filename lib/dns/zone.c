@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.198 2000/08/29 03:45:48 marka Exp $ */
+/* $Id: zone.c,v 1.199 2000/08/31 00:31:38 marka Exp $ */
 
 #include <config.h>
 
@@ -2021,7 +2021,6 @@ notify_send(dns_notify_t *notify) {
 	dns_adbaddrinfo_t *ai;
 	isc_sockaddr_t dst;
 	isc_result_t result;
-	dns_message_t *message = NULL;
 	dns_notify_t *new = NULL;
 
 	/*
@@ -2030,14 +2029,6 @@ notify_send(dns_notify_t *notify) {
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 
 	REQUIRE(ISLOCKED(&notify->zone->lock));
-
-#ifdef NOMINUM_PUBLIC
-	result = notify_createmessage(notify->zone, &message);
-#else /* NOMINUM_PUBLIC */
-	result = notify_createmessage(notify->zone, notify->flags, &message);
-#endif /* NOMINUM_PUBLIC */
-	if (result != ISC_R_SUCCESS)
-		return;
 
 	for (ai = ISC_LIST_HEAD(notify->find->list);
 	     ai != NULL;
@@ -2062,7 +2053,6 @@ notify_send(dns_notify_t *notify) {
 	if (new != NULL)
 		notify_destroy(new);
 	notify_destroy(notify);
-	dns_message_destroy(&message);
 }
 
 #ifndef NOMINUM_PUBLIC
