@@ -243,6 +243,8 @@ destroy(dns_dispatch_t *disp)
 
 	dns_tcpmsg_invalidate(&disp->tcpmsg);
 
+	XDEBUG(("dispatch::destroy:  detaching from sock %p and task %p\n",
+		disp->socket, disp->task));
 	isc_socket_detach(&disp->socket);
 	isc_task_detach(&disp->task);
 
@@ -918,8 +920,11 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 
 	disp->task = NULL;
 	isc_task_attach(task, &disp->task);
+	XDEBUG(("dns_dispatch_create: attaching to task %p\n", disp->task));
 	disp->socket = NULL;
 	isc_socket_attach(sock, &disp->socket);
+	XDEBUG(("dns_dispatch_create:  attaching to socket %p\n",
+		disp->socket));
 
 	dns_tcpmsg_init(disp->mctx, disp->socket, &disp->tcpmsg);
 
@@ -1049,6 +1054,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	disp->requests++;
 	res->task = NULL;
 	isc_task_attach(task, &res->task);
+	XDEBUG(("dns_dispatch_addresponse:  attaching to task %p\n",
+		res->task));
 
 	res->magic = RESPONSE_MAGIC;
 	res->id = id;
@@ -1117,6 +1124,8 @@ dns_dispatch_removeresponse(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	ISC_LIST_UNLINK(disp->qid_table[bucket], res, link);
 
+	XDEBUG(("dns_dispatch_removeresponse:  detaching from task %p\n",
+		res->task));
 	isc_task_detach(&res->task);
 
 	if (ev != NULL) {
@@ -1183,6 +1192,8 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 	disp->requests++;
 	res->task = NULL;
 	isc_task_attach(task, &res->task);
+	XDEBUG(("dns_dispatch_addrequest:  attaching to task %p\n",
+		res->task));
 
 	res->magic = REQUEST_MAGIC;
 	res->bucket = INVALID_BUCKET;
@@ -1250,6 +1261,7 @@ dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 
 	ISC_LIST_UNLINK(disp->rq_handlers, res, link);
 
+	XDEBUG(("dns_dispatch_removerequest:  detaching from task %p\n", res->task));
 	isc_task_detach(&res->task);
 
 	if (ev != NULL) {

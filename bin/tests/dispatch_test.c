@@ -421,10 +421,13 @@ main(int argc, char *argv[])
 
 	isc_app_run();
 
+	fprintf(stderr, "canceling dispatcher\n");
 	dns_dispatch_cancel(disp);
 
+	fprintf(stderr, "detaching from socket\n");
 	isc_socket_detach(&s0);
 
+	fprintf(stderr, "detaching from dispatcher\n");
 	dns_dispatch_detach(&disp);
 
 	fprintf(stderr, "Destroying socket manager\n");

@@ -87,7 +87,7 @@
 #define TRACE_SEND    	0x0010
 #define TRACE_MANAGER	0x0020
 
-int trace_level = TRACE_WATCHER | TRACE_MANAGER | TRACE_RECV;
+int trace_level = 0xffff;
 #define XTRACE(l, a)	do {						\
 				if ((l) & trace_level) {		\
 					printf a;			\
@@ -385,15 +385,15 @@ free_socket(isc_socket_t **socketp)
 {
 	isc_socket_t *sock = *socketp;
 
-	REQUIRE(sock->references == 0);
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(!sock->connecting);
-	REQUIRE(!sock->pending_recv);
-	REQUIRE(!sock->pending_send);
-	REQUIRE(!sock->pending_accept);
-	REQUIRE(EMPTY(sock->recv_list));
-	REQUIRE(EMPTY(sock->send_list));
-	REQUIRE(EMPTY(sock->accept_list));
+	INSIST(sock->references == 0);
+	INSIST(VALID_SOCKET(sock));
+	INSIST(!sock->connecting);
+	INSIST(!sock->pending_recv);
+	INSIST(!sock->pending_send);
+	INSIST(!sock->pending_accept);
+	INSIST(EMPTY(sock->recv_list));
+	INSIST(EMPTY(sock->send_list));
+	INSIST(EMPTY(sock->accept_list));
 
 	sock->magic = 0;
 
@@ -622,7 +622,7 @@ dispatch_connect(isc_socket_t *sock)
 	ev = sock->connect_ev;
 	INSIST(ev != NULL);
 
-	REQUIRE(sock->connecting);
+	INSIST(sock->connecting);
 
 	sock->references++;  /* keep socket around for this internal event */
 	iev->sender = sock;
@@ -702,14 +702,14 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	(void)me;
 
 	sock = ev->sender;
-	REQUIRE(VALID_SOCKET(sock));
+	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
 	XTRACE(TRACE_LISTEN,
 	       ("internal_accept called, locked parent sock %p\n", sock));
 
 	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
+	INSIST(VALID_MANAGER(manager));
 
 	INSIST(sock->listener);
 	INSIST(sock->pending_accept == 1);
@@ -816,11 +816,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev)
 	 * Fill in the done event details and send it off.
 	 */
 	dev->result = result;
-	task = (isc_task_t *)(dev->sender);
+	task = dev->sender;
 	dev->sender = sock;
 
-	ISC_TASK_SEND(task, (isc_event_t **)&dev);
-	isc_task_detach(&task);
+	ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)&dev);
 }
 
 static void
@@ -838,7 +837,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 	INSIST(ev->type == ISC_SOCKEVENT_INTR);
 
 	sock = ev->sender;
-	REQUIRE(VALID_SOCKET(sock));
+	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
 	XTRACE(TRACE_SEND,
@@ -967,7 +966,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 			 * was read with a success result, and continue
 			 * the loop.
 			 */
-			if (dev->minimum >= dev->n) {
+			if (dev->minimum <= dev->n) {
 				send_recvdone_event(sock, &task, &dev,
 						    ISC_R_SUCCESS, 1);
 				goto next;
@@ -1018,7 +1017,7 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	 * Find out what socket this is and lock it.
 	 */
 	sock = (isc_socket_t *)ev->sender;
-	REQUIRE(VALID_SOCKET(sock));
+	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
 	XTRACE(TRACE_SEND,
@@ -1558,9 +1557,13 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	isc_boolean_t was_empty;
 
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(region != NULL);
+	REQUIRE(region->length >= minimum);
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
-	REQUIRE(region->length >= minimum);
 
 	LOCK(&sock->lock);
 
@@ -1705,7 +1708,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 		select_poke(sock->manager, sock->fd);
 
 	XTRACE(TRACE_RECV,
-	       ("isc_socket_recv: posted event %p, task %p\n", dev, task));
+	       ("isc_socket_recv: queued event %p, task %p\n", dev, ntask));
 
  out:
 	UNLOCK(&sock->lock);
@@ -1716,6 +1719,9 @@ isc_result_t
 isc_socket_send(isc_socket_t *sock, isc_region_t *region,
 		isc_task_t *task, isc_taskaction_t action, void *arg)
 {
+	/*
+	 * REQUIRE() checking performed in isc_socket_sendto()
+	 */
 	return (isc_socket_sendto(sock, region, task, action, arg, NULL));
 }
 
@@ -1731,6 +1737,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_boolean_t was_empty;
 
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(region != NULL);
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -1861,7 +1871,7 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		select_poke(sock->manager, sock->fd);
 
 	XTRACE(TRACE_SEND,
-	       ("isc_socket_send: posted event %p, task %p\n", dev, task));
+	       ("isc_socket_send: queued event %p, task %p\n", dev, ntask));
 
  out:
 	UNLOCK(&sock->lock);
@@ -2027,7 +2037,12 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	int cc;
 
 	XENTER(TRACE_CONNECT, "isc_socket_connect");
+
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(addr != NULL);
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(addr != NULL);
@@ -2036,11 +2051,9 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 
 	REQUIRE(!sock->connecting);
 
-	dev = (isc_socket_connev_t *)isc_event_allocate(manager->mctx,
-							sock,
+	dev = (isc_socket_connev_t *)isc_event_allocate(manager->mctx, sock,
 							ISC_SOCKEVENT_CONNECT,
-							action,
-							arg,
+							action,	arg,
 							sizeof (*dev));
 	if (dev == NULL) {
 		UNLOCK(&sock->lock);
@@ -2134,9 +2147,10 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 	ISC_SOCKADDR_LEN_T optlen;
 
 	(void)me;
+	INSIST(ev->type = ISC_SOCKEVENT_INTW);
 
 	sock = ev->sender;
-	REQUIRE(VALID_SOCKET(sock));
+	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
 	XTRACE(TRACE_CONNECT,
@@ -2216,10 +2230,9 @@ internal_connect(isc_task_t *me, isc_event_t *ev)
 
 	UNLOCK(&sock->lock);
 
-	task = (isc_task_t *)(dev->sender);
+	task = dev->sender;
 	dev->sender = sock;
-	ISC_TASK_SEND(task, (isc_event_t **)&dev);
-	isc_task_detach(&task);
+	ISC_TASK_SENDANDDETACH(&task, (isc_event_t **)&dev);
 }
 
 isc_result_t
@@ -2265,8 +2278,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp)
  * queued for task "task" of type "how".  "how" is a bitmask.
  */
 void
-isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
-		  unsigned int how)
+isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how)
 {
 	isc_boolean_t poke_needed;
 
@@ -2351,9 +2363,8 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 
 				dev->result = ISC_R_CANCELED;
 				dev->sender = sock;
-				ISC_TASK_SEND(current_task,
-					      (isc_event_t **)&dev);
-				isc_task_detach(&current_task);
+				ISC_TASK_SENDANDDETACH(&current_task,
+						       (isc_event_t **)&dev);
 			}
 
 			dev = next;
@@ -2369,15 +2380,15 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		isc_task_t	       *current_task;
 
 		dev = sock->connect_ev;
-		current_task = (isc_task_t *)dev->sender;
+		current_task = dev->sender;
 
 		if ((task == NULL) || (task == current_task)) {
 			sock->connect_ev = NULL;
 
 			dev->result = ISC_R_CANCELED;
 			dev->sender = sock;
-			ISC_TASK_SEND(current_task, (isc_event_t **)&dev);
-			isc_task_detach(&current_task);
+			ISC_TASK_SENDANDDETACH(&current_task,
+					       (isc_event_t **)&dev);
 		}
 	}
 
@@ -2398,6 +2409,9 @@ isc_socket_recvmark(isc_socket_t *sock,
 	isc_task_t *ntask = NULL;
 
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -2455,6 +2469,9 @@ isc_socket_sendmark(isc_socket_t *sock,
 	isc_task_t *ntask = NULL;
 
 	REQUIRE(VALID_SOCKET(sock));
+	REQUIRE(task != NULL);
+	REQUIRE(action != NULL);
+
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
