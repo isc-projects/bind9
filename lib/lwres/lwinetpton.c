@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id: lwinetpton.c,v 1.1 2000/02/04 06:02:50 halley Exp $";
+static char rcsid[] = "$Id: lwinetpton.c,v 1.2 2000/05/14 03:52:36 tale Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -50,11 +50,7 @@ static int inet_pton6(const char *src, unsigned char *dst);
  *	Paul Vixie, 1996.
  */
 int
-lwres_net_pton(af, src, dst)
-	int af;
-	const char *src;
-	void *dst;
-{
+lwres_net_pton(int af, const char *src, void *dst) {
 	switch (af) {
 	case AF_INET:
 		return (inet_pton4(src, dst));
@@ -78,10 +74,7 @@ lwres_net_pton(af, src, dst)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton4(src, dst)
-	const char *src;
-	unsigned char *dst;
-{
+inet_pton4(const char *src, unsigned char *dst) {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
 	unsigned char tmp[NS_INADDRSZ], *tp;
@@ -131,10 +124,7 @@ inet_pton4(src, dst)
  *	Paul Vixie, 1996.
  */
 static int
-inet_pton6(src, dst)
-	const char *src;
-	unsigned char *dst;
-{
+inet_pton6(const char *src, unsigned char *dst) {
 	static const char xdigits_l[] = "0123456789abcdef",
 			  xdigits_u[] = "0123456789ABCDEF";
 	unsigned char tmp[NS_IN6ADDRSZ], *tp, *endp, *colonp;
