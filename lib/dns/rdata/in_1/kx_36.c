@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.17 2000/03/17 02:11:36 explorer Exp $ */
+/* $Id: kx_36.c,v 1.18 2000/03/17 02:17:39 explorer Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -252,7 +252,7 @@ digest_in_kx(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 	r2 = r1;
 	isc_region_consume(&r2, 2);
 	r1.length = 2;
-	RETERR((digest)(arg, &r1))
+	RETERR((digest)(arg, &r1));
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
