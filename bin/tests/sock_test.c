@@ -85,6 +85,7 @@ my_recv(isc_task_t *task, isc_event_t *event)
 	if (dev->result != ISC_R_SUCCESS) {
 		isc_socket_detach(&sock);
 
+		isc_mem_put(event->mctx, dev->region.base, dev->region.length);
 		isc_event_free(&event);
 
 		sockets_active--;
@@ -112,7 +113,6 @@ my_recv(isc_task_t *task, isc_event_t *event)
 
 	isc_socket_recv(sock, &dev->region, ISC_FALSE,
 			task, my_recv, event->arg);
-
 
 	isc_event_free(&event);
 }
@@ -226,6 +226,7 @@ my_listen(isc_task_t *task, isc_event_t *event)
 		isc_socket_detach(&oldsock);
 
 		sockets_active--;
+		isc_event_free(&event);
 		isc_task_shutdown(task);
 		return;
 	}
@@ -242,6 +243,7 @@ timeout(isc_task_t *task, isc_event_t *event)
 
 	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
 	isc_timer_detach((isc_timer_t **)&event->sender);
+	isc_event_free(&event);
 }
 
 int
@@ -259,7 +261,6 @@ main(int argc, char *argv[])
 	isc_socket_t *so1, *so2;
 	isc_sockaddr_t sockaddr;
 	unsigned int addrlen;
-	
 
 	memset(&sockaddr, 0, sizeof(sockaddr));
 	sockaddr.type.sin.sin_port = htons(5544);
@@ -315,7 +316,7 @@ main(int argc, char *argv[])
 	INSIST(isc_socket_accept(so1, t1, my_listen,
 				 "so1") == ISC_R_SUCCESS);
 	isc_time_settoepoch(&expires);
-	isc_interval_set(&interval, 30, 0);
+	isc_interval_set(&interval, 10, 0);
 	INSIST(isc_timer_create(timgr, isc_timertype_once, &expires, &interval,
 				t1, timeout, so1, &ti1) == ISC_R_SUCCESS);
 
@@ -371,19 +372,23 @@ main(int argc, char *argv[])
 				   sizeof *event);
 	isc_task_send(t2, &event);
 
-	sleep(60);
+	while (sockets_active > 0) {
+		printf("Sockets active: %d\n", sockets_active);
+		sleep (5);
+	}
 
-	isc_task_shutdown(t1);
-	isc_task_shutdown(t2);
 	isc_task_detach(&t1);
 	isc_task_detach(&t2);
 
 	printf("Destroying socket manager\n");
 	isc_socketmgr_destroy(&socketmgr);
+
+	printf("Destroying timer manager\n");
+	isc_timermgr_destroy(&timgr);
+
 	printf("Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);
-	printf("destroyed\n");
-	
+
 	isc_mem_stats(mctx, stdout);
 	isc_memctx_destroy(&mctx);
 
