@@ -15,8 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.h,v 1.1 2001/09/25 01:46:22 mayer Exp $ */
-
+/* $Id: AccountInfo.h,v 1.2 2001/09/29 00:01:44 gson Exp $ */
 
 #define RTN_OK 0
 #define RTN_NOACCOUNT 1

@@ -15,12 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.1 2001/09/25 01:46:22 mayer Exp $ */
-
+/* $Id: AccountInfo.cpp,v 1.2 2001/09/29 00:01:43 gson Exp $ */
 
 #ifndef UNICODE
 #define UNICODE
-#endif // UNICODE
+#endif /* UNICODE */
 
 #include "stdafx.h"
 
@@ -108,34 +107,34 @@ DisplayWinError(
 int
 GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 		     char **Accounts, unsigned int *totalAccounts,
-		     int maxAccounts) {
-
+		     int maxAccounts) 
+{
 	LSA_HANDLE PolicyHandle;
 	TCHAR AccountName[256];		/* static account name buffer */
 	PSID pSid;
 	unsigned int i;
 	NTSTATUS Status;
 	int iRetVal=RTN_ERROR;		/* assume error from main */
+
 	/*
 	 * Open the policy on the target machine.
 	 */
-	if((Status = OpenPolicy(NULL,
-		    POLICY_LOOKUP_NAMES,
-		    &PolicyHandle)) != STATUS_SUCCESS) {
+	if ((Status = OpenPolicy(NULL,
+				 POLICY_LOOKUP_NAMES,
+				 &PolicyHandle)) != STATUS_SUCCESS)
 		return (RTN_ERROR);
-	}
 
 	/*
 	 * Let's see if the account exists. Return if not
 	 */
 	wsprintf(AccountName, TEXT("%hS"), name);
-	if(!GetAccountSid(NULL, AccountName, &pSid)) {
+	if (!GetAccountSid(NULL, AccountName, &pSid))
 		return (RTN_NOACCOUNT);
-	}
 	/*
 	 * Find out what groups the account belongs to
 	 */
-	Status = isc_ntsecurity_getaccountgroups(name, Accounts, maxAccounts, totalAccounts);
+	Status = isc_ntsecurity_getaccountgroups(name, Accounts, maxAccounts,
+						 totalAccounts);
 
 	Accounts[*totalAccounts] = name; /* Add the account to the list */
 	(*totalAccounts)++;
@@ -143,21 +142,20 @@ GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 	/*
 	 * Loop through each Account to get the list of privileges
 	 */
-	for(i = 0; i < *totalAccounts; i++) {
+	for (i = 0; i < *totalAccounts; i++) {
 		wsprintf(AccountName, TEXT("%hS"), Accounts[i]);
 		 /* Obtain the SID of the user/group. */
-		if(!GetAccountSid(NULL, AccountName, &pSid)) {
+		if (!GetAccountSid(NULL, AccountName, &pSid))
 			continue;	/* Try the next one */
-		}
 		/* Get the Privileges allocated to this SID */ 
-	        if((Status=GetPrivilegesOnAccount(PolicyHandle, pSid,
-			PrivList, PrivCount)) == STATUS_SUCCESS) {
+	        if ((Status = GetPrivilegesOnAccount(PolicyHandle, pSid,
+			PrivList, PrivCount)) == STATUS_SUCCESS)
+		{
 			iRetVal=RTN_OK;
-			if(pSid != NULL)
+			if (pSid != NULL)
 				HeapFree(GetProcessHeap(), 0, pSid);
-		}
-		else {
-			if(pSid != NULL)
+		} else {
+			if (pSid != NULL)
 				HeapFree(GetProcessHeap(), 0, pSid);
 			continue;	/* Try the next one */
 		}
@@ -178,6 +176,7 @@ CreateServiceAccount(char *name, char *password) {
 	DWORD dwLevel = 1;
 	DWORD dwError = 0;
 	NET_API_STATUS nStatus;
+
 	unsigned int namelen = strlen(name);
 	unsigned int passwdlen = strlen(password);
 	wchar_t *AccountName = (wchar_t *)malloc((namelen + 1)*
@@ -208,9 +207,8 @@ CreateServiceAccount(char *name, char *password) {
 
 	free(AccountPassword);
 	free(AccountName);
-	if (nStatus != NERR_Success) {
+	if (nStatus != NERR_Success)
 		return (FALSE);
-	}
 
 	retstat = AddPrivilegeToAcccount(name, SE_SERVICE_LOGON_PRIV);
 	return (TRUE);
@@ -227,23 +225,22 @@ AddPrivilegeToAcccount(LPTSTR name, LPWSTR PrivilegeName) {
 	/*
 	 * Open the policy on the target machine.
 	 */
-	if((Status = OpenPolicy(NULL, POLICY_ALL_ACCESS, &PolicyHandle))
-		!= STATUS_SUCCESS) {
+	if ((Status = OpenPolicy(NULL, POLICY_ALL_ACCESS, &PolicyHandle))
+		!= STATUS_SUCCESS)
 		return (RTN_ERROR);
-	}
 
 	/*
 	 * Let's see if the account exists. Return if not
 	 */
 	wsprintf(AccountName, TEXT("%hS"), name);
-	if(!GetAccountSid(NULL, AccountName, &pSid)) {
+	if (!GetAccountSid(NULL, AccountName, &pSid))
 		return (RTN_NOACCOUNT);
-	}
+
         err = LsaNtStatusToWinError(SetPrivilegeOnAccount(PolicyHandle,
 		pSid, PrivilegeName, TRUE));
 
 	LsaClose(PolicyHandle);
-	if(err == ERROR_SUCCESS)
+	if (err == ERROR_SUCCESS)
 		return (RTN_OK);
 	else
 		return (err);
@@ -263,7 +260,7 @@ InitLsaString(PLSA_UNICODE_STRING LsaString, LPWSTR String){
 	StringLength = wcslen(String);
 	LsaString->Buffer = String;
 	LsaString->Length = (USHORT) StringLength * sizeof(WCHAR);
-	LsaString->MaximumLength=(USHORT)(StringLength+1) * sizeof(WCHAR);
+	LsaString->MaximumLength = (USHORT)(StringLength+1) * sizeof(WCHAR);
 }
 
 NTSTATUS
@@ -278,9 +275,9 @@ OpenPolicy(LPWSTR ServerName, DWORD DesiredAccess, PLSA_HANDLE PolicyHandle){
 	ZeroMemory(&ObjectAttributes, sizeof(ObjectAttributes));
 
 	if (ServerName != NULL) {
-	/*
-	 * Make a LSA_UNICODE_STRING out of the LPWSTR passed in
-	 */
+		/*
+		 * Make a LSA_UNICODE_STRING out of the LPWSTR passed in
+		 */
 		InitLsaString(&ServerString, ServerName);
 		Server = &ServerString;
 	}
@@ -293,51 +290,53 @@ OpenPolicy(LPWSTR ServerName, DWORD DesiredAccess, PLSA_HANDLE PolicyHandle){
 }
 
 BOOL
-GetAccountSid(LPTSTR SystemName, LPTSTR AccountName, PSID *Sid){
-	LPTSTR ReferencedDomain=NULL;
-	DWORD cbSid=128;    // initial allocation attempt
-	DWORD cbReferencedDomain=16; // initial allocation size
+GetAccountSid(LPTSTR SystemName, LPTSTR AccountName, PSID *Sid) {
+	LPTSTR ReferencedDomain = NULL;
+	DWORD cbSid = 128;    /* initial allocation attempt */
+	DWORD cbReferencedDomain = 16; /* initial allocation size */
 	SID_NAME_USE peUse;
-	BOOL bSuccess=FALSE; // assume this function will fail
+	BOOL bSuccess = FALSE; /* assume this function will fail */
 
 	__try {
-
 		/*
 		 * initial memory allocations
 		 */
-		if((*Sid=HeapAlloc(GetProcessHeap(), 0, cbSid)) == NULL)
+		if ((*Sid = HeapAlloc(GetProcessHeap(), 0, cbSid)) == NULL)
 			__leave;
 
-		if((ReferencedDomain = (LPTSTR) HeapAlloc(GetProcessHeap(), 0,
+		if ((ReferencedDomain = (LPTSTR) HeapAlloc(GetProcessHeap(), 0,
 				       cbReferencedDomain)) == NULL) __leave;
 
 		/*
 		 * Obtain the SID of the specified account on the specified system.
 		 */
-		while(!LookupAccountName(SystemName, AccountName, *Sid, &cbSid,
-			ReferencedDomain, &cbReferencedDomain, &peUse)) {
+		while (!LookupAccountName(SystemName, AccountName, *Sid, &cbSid,
+					  ReferencedDomain, &cbReferencedDomain,
+					  &peUse))
+		{
 			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) {
 				/* reallocate memory */
-				if((*Sid=HeapReAlloc(GetProcessHeap(), 0,
+				if ((*Sid = HeapReAlloc(GetProcessHeap(), 0,
 					*Sid, cbSid)) == NULL) __leave;
 
-				if((ReferencedDomain= (LPTSTR) HeapReAlloc(
+				if ((ReferencedDomain= (LPTSTR) HeapReAlloc(
 					GetProcessHeap(), 0, ReferencedDomain,
 					cbReferencedDomain)) == NULL)
 				__leave;
 			}
-			else __leave;
+			else 
+				__leave;
 		}
-		bSuccess=TRUE;
-	} // finally
+		bSuccess = TRUE;
+	} /* finally */
 	__finally {
 
-/* Cleanup and indicate failure, if appropriate. */
+		/* Cleanup and indicate failure, if appropriate. */
 
 		HeapFree(GetProcessHeap(), 0, ReferencedDomain);
 
-		if(!bSuccess) {
-			if(*Sid != NULL) {
+		if (!bSuccess) {
+			if (*Sid != NULL) {
 				HeapFree(GetProcessHeap(), 0, *Sid);
 				*Sid = NULL;
 			}
@@ -350,26 +349,26 @@ GetAccountSid(LPTSTR SystemName, LPTSTR AccountName, PSID *Sid){
 
 NTSTATUS
 SetPrivilegeOnAccount(LSA_HANDLE PolicyHandle, PSID AccountSid,
-		      LPWSTR PrivilegeName, BOOL bEnable){
+		      LPWSTR PrivilegeName, BOOL bEnable)
+{
 	LSA_UNICODE_STRING PrivilegeString;
 
 	/* Create a LSA_UNICODE_STRING for the privilege name. */
 	InitLsaString(&PrivilegeString, PrivilegeName);
 
 	/* grant or revoke the privilege, accordingly */
-	if(bEnable) {
+	if (bEnable)
 		return (LsaAddAccountRights(PolicyHandle, AccountSid,
 			&PrivilegeString, 1));
-	}
-	else {
+	else
 		return (LsaRemoveAccountRights(PolicyHandle, AccountSid,
 			FALSE, &PrivilegeString, 1));
-	}
 }
 
 NTSTATUS
 GetPrivilegesOnAccount(LSA_HANDLE PolicyHandle, PSID AccountSid,
-		       wchar_t **PrivList, unsigned int *PrivCount) {
+		       wchar_t **PrivList, unsigned int *PrivCount) 
+{
 	NTSTATUS Status;
 	LSA_UNICODE_STRING *UserRights;
 	ULONG CountOfRights;
@@ -380,19 +379,19 @@ GetPrivilegesOnAccount(LSA_HANDLE PolicyHandle, PSID AccountSid,
 	Status = LsaEnumerateAccountRights(PolicyHandle, AccountSid,
 		&UserRights, &CountOfRights);
 	/* Only continue if there is something */
-	if(UserRights == NULL || Status != STATUS_SUCCESS)
+	if (UserRights == NULL || Status != STATUS_SUCCESS)
 		return (Status);
 
-	for(i = 0; i < CountOfRights; i++) {
+	for (i = 0; i < CountOfRights; i++) {
 		found = -1;
 		retlen = UserRights[i].Length/sizeof(wchar_t);
-		for(j = 0; j < *PrivCount; j++) {
+		for (j = 0; j < *PrivCount; j++) {
 			found = wcsncmp(PrivList[j], UserRights[i].Buffer,
 					retlen);
-			if(found == 0)
+			if (found == 0)
 				break;
 		}
-		if(found != 0) {
+		if (found != 0) {
 			PrivList[*PrivCount] = 
 			    (wchar_t *)malloc(UserRights[i].MaximumLength);
 			wcsncpy(PrivList[*PrivCount], UserRights[i].Buffer,
@@ -407,22 +406,21 @@ GetPrivilegesOnAccount(LSA_HANDLE PolicyHandle, PSID AccountSid,
 }
 
 void
-DisplayNtStatus(LPSTR szAPI, NTSTATUS Status){
-
+DisplayNtStatus(LPSTR szAPI, NTSTATUS Status) {
 	/* Convert the NTSTATUS to Winerror. Then call DisplayWinError(). */
 	DisplayWinError(szAPI, LsaNtStatusToWinError(Status));
 }
 
 void
-DisplayWinError(LPSTR szAPI, DWORD WinError){
+DisplayWinError(LPSTR szAPI, DWORD WinError) {
 	LPSTR MessageBuffer;
 	DWORD dwBufferLength;
 
-	if(dwBufferLength=FormatMessageA(
+	if (dwBufferLength=FormatMessageA(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 		NULL, WinError, GetUserDefaultLangID(),
 		(LPSTR) &MessageBuffer, 0, NULL)){
-		DWORD dwBytesWritten; // unused
+		DWORD dwBytesWritten; /* unused */
 
 		/* Output message string on stderr. */
 		WriteFile(GetStdHandle(STD_ERROR_HANDLE), MessageBuffer,
@@ -432,5 +430,3 @@ DisplayWinError(LPSTR szAPI, DWORD WinError){
 		LocalFree(MessageBuffer);
 	}
 }
-
-
