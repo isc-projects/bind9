@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.122 2000/12/12 20:21:34 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.123 2000/12/15 05:58:08 ogud Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
+#include <isc/time.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -584,10 +585,10 @@ importparentsig(dns_diff_t *diff, dns_name_t *name, dns_rdataset_t *set) {
 				break;
 			dns_rdata_reset(&newrdata);
 		}
-		if (result != ISC_R_SUCCESS)
-			break;
 		dns_rdata_reset(&newrdata);
 		dns_rdata_reset(&rdata);
+		if (result != ISC_R_SUCCESS)
+			break;
 	}
 	if (result != ISC_R_NOMORE)
 		goto failure;
@@ -604,6 +605,7 @@ importparentsig(dns_diff_t *diff, dns_name_t *name, dns_rdataset_t *set) {
 		check_result(result, "dns_difftuple_create");
 		dns_diff_append(diff, &tuple);
 		result = dns_rdataset_next(&sigset);
+		dns_rdata_reset(&rdata);
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
@@ -1479,6 +1481,8 @@ main(int argc, char *argv[]) {
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *randomfile = NULL;
 	char *endp;
+	isc_time_t timer_start, timer_finish;
+	isc_uint64_t micro_sec, sigs_sec;
 	signer_key_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
@@ -1488,6 +1492,8 @@ main(int argc, char *argv[]) {
 	dns_rdataclass_t rdclass;
 	isc_textregion_t r;
 	isc_task_t **tasks = NULL;
+
+
 
 	check_result(isc_app_start(), "isc_app_start");
 
@@ -1633,6 +1639,7 @@ main(int argc, char *argv[]) {
 		origin = file;
 
 	gdb = NULL;
+	isc_time_now(&timer_start);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 
@@ -1655,8 +1662,8 @@ main(int argc, char *argv[]) {
 			result = dst_key_fromnamedfile(argv[i],
 						       DST_TYPE_PRIVATE,
 						       mctx, &newkey);
-			if (result != ISC_R_SUCCESS)
-				usage();
+			if (result != ISC_R_SUCCESS) 
+				fatal("cannot load key %s", argv[i]); 
 
 			key = ISC_LIST_HEAD(keylist);
 			while (key != NULL) {
@@ -1776,6 +1783,10 @@ main(int argc, char *argv[]) {
 	(void) isc_app_finish();
 
 	if (printstats) {
+		isc_time_now(&timer_finish);
+
+		micro_sec = isc_time_microdiff( &timer_finish, &timer_start);
+
 		printf("Signatures generated:               %d\n",
 		       nsigned);
 		printf("Signatures retained:                %d\n",
@@ -1786,6 +1797,17 @@ main(int argc, char *argv[]) {
 		       nverified);
 		printf("Signatures unsuccessfully verified: %d\n",
 		       nverifyfailed);
+#define SEC_CONST 1000000
+		printf("Runtime in seconds                  %u.%2.2u\n", 
+		       (isc_int32_t) micro_sec/SEC_CONST, 
+		       (isc_int32_t) (micro_sec%SEC_CONST));
+		if (nsigned > 0 && micro_sec > 0) {
+			sigs_sec = nsigned;
+			sigs_sec *= 100 * SEC_CONST / micro_sec;
+			printf("Signatures/second                   %u.%2u\n", 
+			       (u_int32_t) sigs_sec/100, 
+			       (u_int32_t) sigs_sec%100);
+		}
 	}
 
 	return (0);
