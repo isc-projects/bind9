@@ -13,7 +13,7 @@
 extern "C" {
 #endif
 
-#define MAX_RSA_MODULUS_BITS 1024
+#define MAX_RSA_MODULUS_BITS 2028
 
 #define BITS_TO_LEN(modulusBits) (((modulusBits) + 7) / 8)
 #define RSA_PRIME_BITS(modulusBits) (((modulusBits) + 1) / 2)

@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (c) 1995-1999 by TISLabs at Network Associates, Inc.
+ * Portions Copyright (c) 1995-2000 by Network Associates, Inc.
  *
  * Permission to use, copy modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.16 2000/05/08 20:12:41 tale Exp $ */
+/* $Id: keygen.c,v 1.17 2000/05/10 17:57:53 ogud Exp $ */
 
 #include <config.h>
 
@@ -37,15 +37,17 @@ static void die(char *str);
 static void usage(char *prog);
 
 static int verbose;
+#define MAX_RSA 2048 /* XXX ogud update this when rsa library is updated */
 
 int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*prog, *endp;
-	dst_key_t	*key;
+	dst_key_t	*key, *old_keyp;
 	char		*name = NULL;
 	isc_uint16_t	flags = 0;
 	dns_secalg_t	alg;
+	isc_boolean_t    conflict = ISC_FALSE, null_key = ISC_FALSE;
 	isc_mem_t	*mctx = NULL;
 	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1, signatory = 0;
@@ -146,25 +148,28 @@ main(int argc, char **argv) {
 	if (dst_supported_algorithm(alg) == ISC_FALSE)
 		die("Unsupported algorithm");
 
-	if (size < 0)
-		die("Must specify key size (-b option)");
-
 	if (type != NULL) {
 		if (strcasecmp(type, "NOAUTH") == 0)
 			flags |= DNS_KEYTYPE_NOAUTH;
 		else if (strcasecmp(type, "NOCONF") == 0)
 			flags |= DNS_KEYTYPE_NOCONF;
-		else if (strcasecmp(type, "NOAUTHCONF") == 0)
+		else if (strcasecmp(type, "NOAUTHCONF") == 0) {
 			flags |= (DNS_KEYTYPE_NOAUTH | DNS_KEYTYPE_NOCONF);
+			if (size < 0)
+				size = 0;
+		}
 		else if (strcasecmp(type, "AUTHCONF") == 0)
 			/* nothing */;
 		else
 			die("Invalid type");
 	}
 
+	if (size < 0)
+		die("Must specify key size (-b option)");
+
 	switch (alg) {
 	case DNS_KEYALG_RSA:
-		if (size != 0 && (size < 512 || size > 1024))
+		if (size != 0 && (size < 512 || size > MAX_RSA))
 			die("RSA key size out of range");
 		break;
 	case DNS_KEYALG_DH:
@@ -172,7 +177,7 @@ main(int argc, char **argv) {
 			die("DH key size out of range");
 		break;
 	case DNS_KEYALG_DSA:
-		if (!dsa_size_ok(size))
+		if (size != 0 && !dsa_size_ok(size))
 			die("Invalid DSS key size");
 		break;
 	case DST_ALG_HMACMD5:
@@ -239,23 +244,61 @@ main(int argc, char **argv) {
 	}
 
 	dst_result_register();
-	ret = dst_key_generate(name, alg, size, param, flags, protocol, mctx,
-			       &key);
+	do { 
+		conflict = ISC_FALSE; 
 
-	if (ret != ISC_R_SUCCESS) {
-		printf("Failed to generate key: %s\n", dst_result_totext(ret));
-		exit(-1);
+		/* generate the key */
+		ret = dst_key_generate(name, alg, size, param, flags, protocol,
+				       mctx, &key);
+
+		if (ret != ISC_R_SUCCESS) {
+			printf("Failed to generate key: %s\n", 
+			       dst_result_totext(ret));
+			exit(-1);
+		}
+		
+		/* now try to read a key with same name, alg and id from file
+		 * if there is one we must continue generating a new one 
+		 * unless we were asked to generate a null-key.
+		 */
+		if ((dst_key_flags(key) & DNS_KEYFLAG_TYPEMASK) ==DNS_KEYTYPE_NOKEY)
+			null_key = ISC_TRUE;
+		else if (dst_key_id(key) == 0) { 
+			/* non null key can not have id == 0 */
+			conflict = ISC_TRUE;
+		}
+		else { 
+				
+			ret = dst_key_fromfile( name, dst_key_id(key), alg, 
+					DST_TYPE_PRIVATE, mctx, &old_keyp);
+		/* we are not allowed to overwrite an existing key  */
+			if (ret == ISC_R_SUCCESS) {
+
+				printf("Detected conflict %d\n", dst_key_id(key));
+				if (ret == ISC_R_SUCCESS)
+					dst_key_free(old_keyp);
+				conflict = ISC_TRUE;
+			}
+		}
+		if (conflict == ISC_TRUE && null_key == ISC_FALSE)
+			/* non-null keys can not have id == 0 */
+			dst_key_free(key);
+
+	} while ((conflict == ISC_TRUE) && (null_key == ISC_FALSE));
+
+
+	if (conflict == ISC_FALSE) { /* write file */
+		ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
+		if (ret != ISC_R_SUCCESS) {
+			printf("Failed to write key %s(%d)\n", name, 
+			       dst_key_id(key));
+			exit(-1); 
+		}
+
+		printf("Generated %d bit key %s: id=%d alg=%d flags=%d\n\n", 
+		       size, name, dst_key_id(key), dst_key_alg(key), 
+		       dst_key_flags(key));
 	}
-
-	ret = dst_key_tofile(key, DST_TYPE_PUBLIC | DST_TYPE_PRIVATE);
-	if (ret != ISC_R_SUCCESS) {
-		printf("Failed to write key %s(%d)\n", name, dst_key_id(key));
-		exit(-1); 
-	}
-
-	printf("Generated %d bit key %s: id=%d alg=%d flags=%d\n\n", size,
-	       name, dst_key_id(key), dst_key_alg(key), dst_key_flags(key));
-
 	isc_mem_free(mctx, name);
 	isc_mem_free(mctx, algname);
 	isc_mem_free(mctx, nametype);
@@ -286,9 +329,9 @@ usage(char *prog) {
 	printf("Required options:\n");
 	printf("    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5\n");
 	printf("    -b key size, in bits:\n");
-	printf("        RSA:\t\t[512..1024]\n");
+	printf("        RSA:\t\t[512..%d]\n", MAX_RSA);
 	printf("        DH:\t\t[128..4096]\n");
-	printf("        DSA:\t\t[512..1024] and a multiple of 64\n");
+	printf("        DSA:\t\t[512..1024] and dividable by 64\n");
 	printf("        HMAC-MD5:\t[1..512]\n");
 	printf("    -n nametype: ZONE | HOST | ENTITY | USER\n");
 	printf("    name: owner of the key\n");

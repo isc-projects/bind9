@@ -1,3 +1,9 @@
+ 166.	[bug]		Keygen was overwriting existing keys if key_id conflicted,
+			now it will retry, and non-null keys with key_id == 0 
+			are not generated anymore. 
+			Key was not able to generate NOAUTHCONF DSA key, 
+			increased RSA key size to 2048 bits. 
+
  165.   [cleanup]       Silence "end-of-loop condition not reached" warnings
                         from Solaris compiler.
 
