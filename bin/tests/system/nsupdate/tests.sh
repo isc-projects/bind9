@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.8 2000/07/25 17:48:51 mws Exp $
+# $Id: tests.sh,v 1.9 2000/07/26 17:56:37 mws Exp $
 
 #
 # Perform tests
@@ -77,7 +77,7 @@ $PERL ../digcomp.pl dig.out.ns1 dig.out.ns2 || status=1
 
 echo "I:SIGKILL and restart server ns1"
 cd ns1
-kill -SIGKILL `cat named.pid`
+kill -KILL `cat named.pid`
 rm named.pid
 sleep 2
 $NAMED -c named.conf -d 99 -g >> named.run 2>&1 &
