@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.69 $)
+AC_REVISION($Revision: 1.70 $)
 
 AC_PREREQ(2.13)
 
@@ -147,7 +147,7 @@ AC_PROG_CC
 AC_PROG_YACC
 
 AC_HEADER_STDC
-AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h)
+AC_CHECK_HEADERS(fcntl.h sys/time.h unistd.h sys/sockio.h netinet6/in6.h)
 
 AC_C_CONST
 AC_C_INLINE
@@ -350,23 +350,44 @@ AC_SUBST(A)
 dnl
 dnl IPv6
 dnl
-dnl We do this checking after libtool so that we can put
+AC_ARG_ENABLE(ipv6,
+	[  --enable-ipv6		use IPv6 [default=autodetect]])
+
+dnl
+dnl We do the IPv6 compilation checking after libtool so that we can put
 dnl the right suffix on the files.
 dnl
-AC_MSG_CHECKING(for IPv6 structures)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>],
-[struct sockaddr_in6 sin6; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
-	ISC_IPV6_H="ipv6.h"
-	ISC_IPV6_O="ipv6.$O"
-	ISC_ISCIPV6_O="unix/ipv6.$O"
-	ISC_IPV6_C="ipv6.c"])
+case "$enable_ipv6" in
+	yes|''|autodetect)
+		AC_MSG_CHECKING(for IPv6 structures)
+		AC_TRY_COMPILE([
+		#include <sys/types.h>
+		#include <sys/socket.h>
+		#include <netinet/in.h>],
+		[struct sockaddr_in6 sin6; return (0);],
+			[AC_MSG_RESULT(yes)
+			 found_ipv6=yes],
+			[AC_MSG_RESULT(no)
+			 found_ipv6=no])
+		;;
+	no)
+		found_ipv6=no
+		;;
+esac
+
+case "$found_ipv6" in
+	yes)
+		ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1",
+		;;
+	no)
+		ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
+		ISC_IPV6_H="ipv6.h"
+		ISC_IPV6_O="ipv6.$O"
+		ISC_ISCIPV6_O="unix/ipv6.$O"
+		ISC_IPV6_C="ipv6.c"
+		;;
+esac
+
 AC_SUBST(ISC_PLATFORM_HAVEIPV6)
 AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
@@ -394,6 +415,7 @@ esac
 
 case "$use_kame" in
 	no)
+		AC_MSG_RESULT(no)
 		;;
 	*)
 		if test -f $kame_path/lib/libinet6.a; then
