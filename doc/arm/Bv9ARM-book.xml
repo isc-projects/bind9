@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.124 2001/04/12 00:53:33 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.125 2001/04/24 22:52:21 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2297,12 +2297,13 @@ of the file <filename>lamers.log</filename> then just before it is opened
 <filename>lamers.log.1</filename> is renamed to
 <filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is renamed
 to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename> is
-renamed to <filename>lamers.log.0</filename>.  If a <command>size</command>
-option is associated with the log file, then renaming is only done when the
-file being opened exceeds the indicated size.  No backup versions are kept by
-default; any existing log file is simply appended.  The
-<command>unlimited</command> keyword is synonymous with <command>99</command>
-in current <acronym>BIND</acronym> releases.</para>
+renamed to <filename>lamers.log.0</filename>.
+You can say <command>versions unlimited;</command> to not limit
+the number of versions.
+If a <command>size</command> option is associated with the log file,
+then renaming is only done when the file being opened exceeds the
+indicated size.  No backup versions are kept by default; any existing
+log file is simply appended.</para>
 
 <para>The <command>size</command> option for files is used to limit log
 growth. If the file ever exceeds the size, then <command>named</command> will
