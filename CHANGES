@@ -1,3 +1,5 @@
+ 293.	[port]		Add support for freebsd 4.0 system tests.
+
  292.	[bug]		Due to problems with the way some operating systems
 			handle simultaneous listening on IPv4 and IPv6
 			addresses, the server no longer listens on IPv6
