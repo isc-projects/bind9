@@ -1,5 +1,6 @@
 Name		Status		Whom
 ------------------------------------
+ipv6-improvements review	marka	(for RT #4764)
 rt4463		review		marka?
 rt4398		review		marka
 rt4425		review		marka
@@ -19,7 +20,6 @@ rt3653		closed
 rt3666		closed
 rt4268		closed
 rt3502		closed
-ipv6-improvements closed
 ipv6-scope	closed
 marka_google	closed
 rt3598		closed		explorer
