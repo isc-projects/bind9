@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.150 2000/10/17 02:11:28 marka Exp $ */
+/* $Id: dighost.c,v 1.151 2000/10/19 17:30:14 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -184,7 +184,7 @@ hex_dump(isc_buffer_t *b) {
 	printf("%d bytes\n", r.length);
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
-		if (len != 0 && len % 16 == 15)
+		if (len % 16 == 15)
 			printf("\n");
 	}
 	if (len % 16 != 0)
