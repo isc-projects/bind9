@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.24 2001/03/31 01:03:26 bwelling Exp $ */
+/* $Id: notify.c,v 1.25 2001/12/06 18:55:52 gson Exp $ */
 
 #include <config.h>
 
@@ -124,7 +124,7 @@ ns_notify_start(ns_client_t *client) {
 		goto failure;
 	}
 
-	switch(dns_zone_gettype(zone)) {
+	switch (dns_zone_gettype(zone)) {
 	case dns_zone_master:
 	case dns_zone_slave:
 	case dns_zone_stub:	/* Allow dialup passive to work. */
