@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.2 2000/08/17 19:03:27 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.3 2000/09/27 00:06:34 bwelling Exp $
  */
 
 #ifdef GSSAPI
@@ -28,12 +28,12 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#include <gssapi/gssapi.h>
-
 #include <dst/result.h>
 
 #include "dst_internal.h"
 #include "dst_parse.h"
+
+#include <gssapi/gssapi.h>
 
 #define INITIAL_BUFFER_SIZE 1024
 #define BUFFER_EXTRA 1024
