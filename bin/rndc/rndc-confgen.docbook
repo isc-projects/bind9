@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc-confgen.docbook,v 1.1 2001/08/28 17:29:35 gson Exp $ -->
+<!-- $Id: rndc-confgen.docbook,v 1.2 2001/08/28 18:00:36 gson Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -163,19 +163,6 @@
 	       data to be used instead of the default.  The special value
 	       <filename>keyboard</filename> indicates that keyboard
 	       input should be used.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-        <term>-p <replaceable class="parameter">protocol</replaceable></term>
-	<listitem>
-	  <para>
-	       Sets the protocol value for the generated key.  The protocol
-	       is a number between 0 and 255.  The default is 2 (email) for
-	       keys of type USER and 3 (DNSSEC) for all other key types.
-	       Other possible values for this argument are listed in
-	       RFC 2535 and its successors.
 	  </para>
 	</listitem>
       </varlistentry>
