@@ -151,6 +151,10 @@ struct isc_socket {
 					listener : 1, /* listener socket */
 					connected : 1,
 					connecting : 1; /* connect pending */
+
+#ifdef notyet
+	unsigned char			cmsg[1024]; /* XXX size? */
+#endif
 };
 
 #define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
@@ -189,6 +193,7 @@ static void internal_accept(isc_task_t *, isc_event_t *);
 static void internal_connect(isc_task_t *, isc_event_t *);
 static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
+static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
 
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
@@ -262,6 +267,29 @@ make_nonblock(int fd)
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Process control messages received on a socket.
+ */
+static void
+process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev)
+{
+	struct cmsghdr *cm;
+
+	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
+		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
+
+	if ((msg->msg_flags & MSG_CTRUNC) == MSG_CTRUNC)
+		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
+
+	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
+		return;
+
+	/*
+	 * Pull off the options
+	 */
+	
 }
 
 /*
@@ -421,6 +449,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 {
 	isc_socket_t *sock = NULL;
 	isc_result_t ret;
+	int on = 1;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -463,6 +492,16 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		free_socket(&sock);
 		return (ISC_R_UNEXPECTED);
 	}
+
+#ifdef SO_TIMESTAMP
+	if (type == isc_sockettype_udp
+	    && setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
+			  ISC_SOCKDATA_CAST(&on), sizeof on) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "setsockopt(%d) failed",
+				 sock->fd);
+		/* Press on... */
+	}
+#endif
 
 	sock->references = 1;
 	*socketp = sock;
@@ -885,7 +924,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		 * we can.
 		 */
 		read_count = dev->region.length - dev->n;
-		iov.iov_base = dev->region.base + dev->n;
+		iov.iov_base = (void *)(dev->region.base + dev->n);
 		iov.iov_len = read_count;
 
 		memset(&msghdr, 0, sizeof (msghdr));
@@ -900,11 +939,17 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		}
 		msghdr.msg_iov = &iov;
 		msghdr.msg_iovlen = 1;
+#ifdef notyet
+		msghdr.msg_control = (void *)sock->cmsg;
+		msghdr.msg_controllen = sizeof (sock->cmsg);
+#else
 		msghdr.msg_control = NULL;
 		msghdr.msg_controllen = 0;
+#endif
 		msghdr.msg_flags = 0;
 
 		cc = recvmsg(sock->fd, &msghdr, 0);
+
 		if (sock->type == isc_sockettype_udp)
 			dev->address.length = msghdr.msg_namelen;
 
@@ -976,6 +1021,8 @@ internal_recv(isc_task_t *me, isc_event_t *ev)
 		if ((size_t)cc < read_count) {
 			dev->n += cc;
 
+			process_cmsg(sock, &msghdr, dev);
+
 			/*
 			 * If partial reads are allowed, we return whatever
 			 * was read with a success result, and continue
@@ -1023,6 +1070,8 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 	isc_task_t *task;
 	int cc;
 	size_t write_count;
+	struct msghdr msghdr;
+	struct iovec iov;
 
 	(void)me;
 
@@ -1075,19 +1124,22 @@ internal_send(isc_task_t *me, isc_event_t *ev)
 		 * we can.
 		 */
 		write_count = dev->region.length - dev->n;
-		if (sock->type == isc_sockettype_udp) {
-			cc = sendto(sock->fd,
-				    ISC_SOCKDATA_CAST(dev->region.base
-						      + dev->n),
-				    write_count, 0,
-				    &dev->address.type.sa,
-				    (int)dev->address.length);
+		iov.iov_base = (void *)(dev->region.base + dev->n);
+		iov.iov_len = write_count;
 
-		} else {
-			cc = send(sock->fd,
-				  ISC_SOCKDATA_CAST(dev->region.base + dev->n),
-				  write_count, 0);
+		memset(&msghdr, 0, sizeof (msghdr));
+		if (sock->type == isc_sockettype_udp) {
+			msghdr.msg_name = (void *)&dev->address.type.sa;
+			msghdr.msg_namelen = dev->address.length;
 		}
+
+		msghdr.msg_iov = &iov;
+		msghdr.msg_iovlen = 1;
+		msghdr.msg_control = NULL;
+		msghdr.msg_controllen = 0;
+		msghdr.msg_flags = 0;
+
+		cc = sendmsg(sock->fd, &msghdr, 0);
 
 		/*
 		 * check for error or block condition
@@ -1608,9 +1660,9 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 			dev->minimum = minimum;
 	}
 
-	dev->region = *region;
-	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
+	dev->n = 0;
+	dev->region = *region;
 
 	was_empty = ISC_LIST_EMPTY(sock->recv_list);
 
@@ -1620,7 +1672,7 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	if (!was_empty)
 		goto queue;
 
-	iov.iov_base = dev->region.base;
+	iov.iov_base = (void *)dev->region.base;
 	iov.iov_len = dev->region.length;
 
 	memset(&msghdr, 0, sizeof(msghdr));
@@ -1635,8 +1687,13 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	}
 	msghdr.msg_iov = &iov;
 	msghdr.msg_iovlen = 1;
+#ifdef notyet
+	msghdr.msg_control = (void *)sock->cmsg;
+	msghdr.msg_controllen = sizeof (sock->cmsg);
+#else
 	msghdr.msg_control = NULL;
 	msghdr.msg_controllen = 0;
+#endif
 	msghdr.msg_flags = 0;
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
@@ -1701,6 +1758,16 @@ isc_socket_recv(isc_socket_t *sock, isc_region_t *region, unsigned int minimum,
 	dev->n = cc;
 
 	/*
+	 * If there are control messages attached, run through them and pull
+	 * out the interesting bits.
+	 *
+	 * Note that for multi-read TCP this isn't as interesting in that
+	 * only the last packet will set some of these, but that is better
+	 * than nothing.
+	 */
+	process_cmsg(sock, &msghdr, dev);
+
+	/*
 	 * Partial reads need to be queued
 	 */
 	if (((size_t)cc != dev->region.length) && (dev->n < dev->minimum))
@@ -1760,6 +1827,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_task_t *ntask = NULL;
 	int cc;
 	isc_boolean_t was_empty;
+	struct msghdr msghdr;
+	struct iovec iov;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(region != NULL);
@@ -1783,10 +1852,10 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	}
 	ISC_LINK_INIT(dev, link);
 
-	dev->region = *region;
-	dev->n = 0;
 	dev->result = ISC_R_SUCCESS;
 	dev->minimum = region->length;
+	dev->n = 0;
+	dev->region = *region;
 
 	was_empty = ISC_LIST_EMPTY(sock->send_list);
 
@@ -1806,22 +1875,22 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	if (!was_empty)
 		goto queue;
 
-	if (sock->type == isc_sockettype_udp)
-		cc = sendto(sock->fd,
-			    ISC_SOCKDATA_CAST(dev->region.base),
-			    dev->region.length, 0,
-			    &dev->address.type.sa,
-			    (int)dev->address.length);
-	else if (sock->type == isc_sockettype_tcp)
-		cc = send(sock->fd,
-			  ISC_SOCKDATA_CAST(dev->region.base),
-			  dev->region.length, 0);
-	else {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_socket_send: unknown socket type");
-		UNLOCK(&sock->lock);
-		return (ISC_R_UNEXPECTED);
+	iov.iov_base = (void *)(dev->region.base);
+	iov.iov_len = dev->n;
+
+	memset(&msghdr, 0, sizeof (msghdr));
+	if (sock->type == isc_sockettype_udp) {
+		msghdr.msg_name = (void *)&dev->address.type.sa;
+		msghdr.msg_namelen = dev->address.length;
 	}
+
+	msghdr.msg_iov = &iov;
+	msghdr.msg_iovlen = 1;
+	msghdr.msg_control = NULL;
+	msghdr.msg_controllen = 0;
+	msghdr.msg_flags = 0;
+
+	cc = sendmsg(sock->fd, &msghdr, 0);
 
 	if (cc < 0) {
 		if (SOFT_ERROR(errno))
@@ -2452,6 +2521,11 @@ isc_socket_recvmark(isc_socket_t *sock,
 	}
 	ISC_LINK_INIT(dev, link);
 
+	dev->result = ISC_R_SUCCESS;
+	dev->attributes = 0;
+	dev->minimum = 0;
+	dev->n = 0;
+
 	/*
 	 * If the queue is empty, simply return the last error we got on
 	 * this socket as the result code, and send off the done event.
@@ -2471,8 +2545,6 @@ isc_socket_recvmark(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 
-	dev->result = ISC_R_SUCCESS;
-	dev->minimum = 0;
 	dev->sender = ntask;
 
 	ISC_LIST_ENQUEUE(sock->recv_list, dev, link);
@@ -2512,6 +2584,11 @@ isc_socket_sendmark(isc_socket_t *sock,
 	}
 	ISC_LINK_INIT(dev, link);
 
+	dev->result = ISC_R_SUCCESS;
+	dev->attributes = 0;
+	dev->minimum = 0;
+	dev->n = 0;
+
 	/*
 	 * If the queue is empty, simply return the last error we got on
 	 * this socket as the result code, and send off the done event.
@@ -2531,8 +2608,6 @@ isc_socket_sendmark(isc_socket_t *sock,
 	 */
 	isc_task_attach(task, &ntask);
 
-	dev->result = ISC_R_SUCCESS;
-	dev->minimum = 0;
 	dev->sender = ntask;
 
 	ISC_LIST_ENQUEUE(sock->send_list, dev, link);
