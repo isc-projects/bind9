@@ -273,7 +273,7 @@ internal_next(isc_interfaceiter_t *iter) {
 	
 	ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
 		
-#ifdef HAVE_SA_LEN
+#ifdef ISC_NET_HAVESALEN
 	if (ifrp->ifr_addr.sa_len > sizeof(struct sockaddr))
 		iter->pos += sizeof(ifrp->ifr_name) + ifrp->ifr_addr.sa_len;
 	else
