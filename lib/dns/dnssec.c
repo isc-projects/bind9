@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.64 2001/05/02 00:02:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.65 2001/05/02 00:03:12 bwelling Exp $
  */
 
 
@@ -221,7 +221,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		return (ret);
 	sig.siglen = sigsize;
 	/*
-	 * The actual contents of sig.signature are not important, since
+	 * The actual contents of sig.signature are not important yet, since
 	 * they're not used in digest_sig().
 	 */
 	sig.signature = isc_mem_get(mctx, sig.siglen);
