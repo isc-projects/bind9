@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.4 2002/02/08 03:57:44 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.5 2002/02/19 00:40:09 marka Exp $ */
 
 
 #define MAKE_EXTERNAL 1
@@ -223,11 +223,9 @@ struct isc_socketmgr {
 	int			fdstate[FD_SETSIZE];
 	int			maxfd;
 	int			minfd;
-#ifdef ISC_PLATFORM_USETHREADS
 	isc_thread_t		watcher;
 	isc_condition_t		shutdown_ok;
 	int			pipe_fds[2];
-#endif /* ISC_PLATFORM_USETHREADS */
 };
 
 #define CLOSED		0	/* this one must be zero */
@@ -332,12 +330,11 @@ internal_pipe(int filedes[2]) {
 }
 
 int
-internal_sendmsg(int sock, const struct msghdr *msg, int flags) {
-	int Error;
+internal_sendmsg(int sock, const struct msghdr *msg, int flags, int *merror) {
 	DWORD BytesSent;
 	DWORD Flags = flags;
 
-	Error = WSASendTo((SOCKET) sock, 
+	*merror = WSASendTo((SOCKET) sock, 
                     msg->msg_iov, 
                     msg->msg_iovlen, 
                     &BytesSent, 
@@ -347,16 +344,16 @@ internal_sendmsg(int sock, const struct msghdr *msg, int flags) {
                     NULL,
                     NULL);
     
-	if (Error == SOCKET_ERROR) {
+	if (*merror == SOCKET_ERROR) {
 		BytesSent = -1;
 		/* There is an error... */
-		Error = WSAGetLastError();
-		if (Error == WSA_IO_PENDING) {
+		*merror = WSAGetLastError();
+		if (*merror == WSA_IO_PENDING) {
 			/* Overlapped send successfully initiated. */
 			errno = EAGAIN;
 		} else {
 			/* An unexpected error occurred. */
-			errno = Error;
+			errno = *merror;
 		}
 	}
 
@@ -365,11 +362,10 @@ internal_sendmsg(int sock, const struct msghdr *msg, int flags) {
 }
 
 int
-internal_recvmsg(int sock, struct msghdr *msg, int flags) {
+internal_recvmsg(int sock, struct msghdr *msg, int flags, int *merror) {
 	DWORD Flags = flags;
 	DWORD NumBytes;
 	int Result;
-	int Error;
 
 	Result = WSARecvFrom((SOCKET) sock,
 			     msg->msg_iov,
@@ -384,10 +380,10 @@ internal_recvmsg(int sock, struct msghdr *msg, int flags) {
 
 	/* Check for errors. */
 	if (Result == SOCKET_ERROR) {
-		Error = WSAGetLastError();
+		*merror = WSAGetLastError();
 		NumBytes = -1;
         
-		switch (Error) {
+		switch (*merror) {
 		case WSAEWOULDBLOCK:
 			/*
 			 * No data received; return to wait for another
@@ -398,7 +394,7 @@ internal_recvmsg(int sock, struct msghdr *msg, int flags) {
 
 		default:
 			/* Some other error... hit the panic button. */
-			errno = Error;
+			errno = *merror;
 			break;
 		}
 	}
@@ -500,7 +496,6 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 	}
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
 /*
  * Poke the select loop when there is something for us to do.
  * The write is required (by POSIX) to complete.  That is, we
@@ -568,20 +563,6 @@ select_readmsg(isc_socketmgr_t *mgr, int *fd, int *msg) {
 	*msg = buf[1];
 
 }
-#else /* ISC_PLATFORM_USETHREADS */
-/*
- * Update the state of the socketmgr when something changes.
- */
-static void
-select_poke(isc_socketmgr_t *manager, int fd, int msg) {
-	if (msg == SELECT_POKE_SHUTDOWN)
-		return;
-	else if (fd >= 0)
-		wakeup_socket(manager, fd, msg);
-	return;
-}
-#endif /* ISC_PLATFORM_USETHREADS */
-
 /*
  * Make a fd non-blocking.
  */
@@ -1009,7 +990,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	size_t actual_count;
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
-	int recv_errno;
+	int recv_errno = 0;
 #if USE_CMSG
 	char cmsg[CMSG_BUF_SIZE];
 #else
@@ -1023,8 +1004,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 	dump_msg(&msghdr,sock);
 #endif
 
-	cc = internal_recvmsg(sock->fd, &msghdr, 0);
-	recv_errno = WSAGetLastError();
+	cc = internal_recvmsg(sock->fd, &msghdr, 0, &recv_errno);
 
 	if (cc < 0) {
 		if (SOFT_ERROR(recv_errno))
@@ -1166,14 +1146,13 @@ doio_send(isc_socket_t *sock, isc_socketevent_t *dev) {
 	char *cmsg = NULL;
 #endif
 	int attempts = 0;
-	int send_errno;
+	int send_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 
 	build_msghdr_send(sock, dev, &msghdr, cmsg, iov, &write_count);
 
 resend:
-	cc = internal_sendmsg(sock->fd, &msghdr, 0);
-	send_errno = WSAGetLastError();
+	cc = internal_sendmsg(sock->fd, &msghdr, 0, &send_errno);
 
 	/*
 	 * Check for error or block condition.
@@ -1202,6 +1181,7 @@ resend:
 		SOFT_OR_HARD(WSAEACCES, ISC_R_NOPERM);
 		SOFT_OR_HARD(WSAEAFNOSUPPORT, ISC_R_ADDRNOTAVAIL);
 		SOFT_OR_HARD(WSAECONNREFUSED, ISC_R_CONNREFUSED);
+		SOFT_OR_HARD(WSAENOTCONN, ISC_R_CONNREFUSED);
 		SOFT_OR_HARD(WSAECONNRESET, ISC_R_CONNECTIONRESET);
 		SOFT_OR_HARD(WSAENETRESET, ISC_R_CONNECTIONRESET);
 		SOFT_OR_HARD(WSAEDISCON, ISC_R_CONNECTIONRESET);
@@ -1416,7 +1396,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
 	int on = 1;
 #endif
-	int socket_errno;
+	int socket_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -1804,7 +1784,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	ISC_SOCKADDR_LEN_T addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
-	int accept_errno;
+	int accept_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 
 	UNUSED(me);
@@ -2108,7 +2088,7 @@ process_fds(isc_socketmgr_t *manager, int maxfd, int minfd,
 	 * Process read/writes on other fds here.  Avoid locking
 	 * and unlocking twice if both reads and writes are possible.
 	 */
-	for (i = minfd ; i < maxfd ; i++) {
+	for (i = minfd ; i <= maxfd ; i++) {
 		if (manager->fdstate[i] == CLOSE_PENDING) {
 			manager->fdstate[i] = CLOSED;
 			FD_CLR(i, &manager->read_fds);
@@ -2202,10 +2182,10 @@ watcher(void *uap) {
 	int msg, fd;
 	int maxfd;
 	int minfd;
-	int watcher_errno;
+	int watcher_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 
-	/* 30 Second timeout on select in case it's necesasary */
+	/* Timeout on select in case it's necesasary */
 	struct timeval tv;
 	tv.tv_sec = MAX_SELECT_SECONDS;
 	tv.tv_usec = MAX_SELECT_MILLISECONDS;
@@ -2224,15 +2204,17 @@ watcher(void *uap) {
 			exceptfds = manager->except_fds;
 			maxfd = manager->maxfd;		/* Pipe not included */
 			minfd = manager->minfd;
+			watcher_errno = 0;
 
 			UNLOCK(&manager->lock);
 
 			if(maxfd > 0) {
 				cc = select(maxfd, &readfds, &writefds,
 						   &exceptfds, &tv);
-				if (cc < 0) {
+				if (cc < 0 && bpipe_written <= 0) {
 					watcher_errno = WSAGetLastError();
-					if (!SOFT_ERROR(watcher_errno)) {
+					if (!SOFT_ERROR(watcher_errno) &&
+					    watcher_errno != WSAEINVAL) {
 						isc__strerror(watcher_errno,
 							strbuf, sizeof(strbuf));
 						FATAL_ERROR(__FILE__, __LINE__,
@@ -2860,7 +2842,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
-	int bind_errno;
+	int bind_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 	int on = 1;
 
@@ -3146,7 +3128,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 	isc_task_t *task;
 	int cc;
 	ISC_SOCKADDR_LEN_T optlen;
-	int connect_errno;
+	int connect_errno = 0;
 	char strbuf[ISC_STRERRORSIZE];
 
 	UNUSED(me);
