@@ -1,3 +1,6 @@
+ 377.	[bug]		When additional data lookups were refused due to 
+			"allow-query", the databases were still being
+			attached causing reference leaks.
 
  376.	[bug]		The server should always use good entropy when
 			performing cryptographic functions needing entropy.
