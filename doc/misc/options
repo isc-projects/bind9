@@ -204,9 +204,9 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ provide-ixfr yes_or_no;]				    Yes*
   [ cleaning-interval number; ]				    Yes
   [ topology { address_match_list }; ]			    No
-  [ sortlist{ address_match_list }; ]			    No
+  [ sortlist { address_match_list }; ]			    No
   [ rrset-order { order_spec ; [ order_spec ; ... ] }; ]    No
-  [ key ... ]						    No
-  [ server ... ]					    No
+  [ key ... ]						    Yes
+  [ server ... ]					    Yes
   [ trusted-keys ... ]					    No
 };
