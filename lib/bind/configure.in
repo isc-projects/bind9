@@ -1,5 +1,4 @@
-ST_R_SET_RETURn
-# cOPYRIght (C) 1998-2001  Internet Software Consortium.
+# Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.58 $)
+AC_REVISION($Revision: 1.59 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -203,14 +202,6 @@ AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
-AC_MSG_CHECKING(for long long)
-AC_TRY_COMPILE([],[long long i = 0; return (0);],
-	[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_HAVELONGLONG="#define ISC_PLATFORM_HAVELONGLONG 1"],
-	[AC_MSG_RESULT(no)
-		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"])
-AC_SUBST(ISC_PLATFORM_HAVELONGLONG)
-
 #
 # check if we need to #include sys/select.h explicitly
 #
@@ -222,12 +213,11 @@ AC_TRY_COMPILE([
 [fd_set read_set; return (0);],
 	[AC_MSG_RESULT(yes)
 	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
-	 LWRES_PLATFORM_NEEDSYSSELECTH="#undef LWRES_PLATFORM_NEEDSYSSELECTH"],
+	 ],
 	[AC_MSG_RESULT(no)
 	case ac_cv_header_sys_select_h in
 	yes)
          ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
 		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
@@ -239,7 +229,6 @@ no)
 	case ac_cv_header_sys_select_h in
 	yes)
              ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
 		AC_MSG_ERROR([need either unistd.h or sys/select.h])
@@ -248,7 +237,6 @@ no)
 	;;
 esac
 AC_SUBST(ISC_PLATFORM_NEEDSYSSELECTH)
-AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
 
 #
 # Find the machine's endian flavor.
@@ -858,12 +846,10 @@ changequote({, })
 case "$host" in
 *-bsdi4.[01]*)
 	ISC_PLATFORM_NEEDNETINET6IN6H="#define ISC_PLATFORM_NEEDNETINET6IN6H 1"
-	LWRES_PLATFORM_NEEDNETINET6IN6H="#define LWRES_PLATFORM_NEEDNETINET6IN6H 1"
 	isc_netinet6in6_hack="#include <netinet6/in6.h>"
 	;;
 *)
 	ISC_PLATFORM_NEEDNETINET6IN6H="#undef ISC_PLATFORM_NEEDNETINET6IN6H"
-	LWRES_PLATFORM_NEEDNETINET6IN6H="#undef LWRES_PLATFORM_NEEDNETINET6IN6H"
 	isc_netinet6in6_hack=""
 	;;
 esac
@@ -875,13 +861,11 @@ changequote([, ])
 case "$host" in
 *-UnixWare*)
 	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
         ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
 	isc_netinetin6_hack="#include <netinet/in6.h>"
 	;;
 *)
 	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
-	LWRES_PLATFORM_NEEDNETINETIN6H="#undef LWRES_PLATFORM_NEEDNETINETIN6H"
         ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
 	isc_netinetin6_hack=""
 	;;
@@ -983,9 +967,7 @@ esac
 
 AC_SUBST(HAS_INET6_STRUCTS)
 AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
-AC_SUBST(LWRES_PLATFORM_NEEDNETINETIN6H)
 AC_SUBST(ISC_PLATFORM_NEEDNETINET6IN6H)
-AC_SUBST(LWRES_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(HAS_IN_ADDR6)
 AC_SUBST(NEED_IN6ADDR_ANY)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
@@ -1098,34 +1080,34 @@ PORT_INCLUDE=
 SOLARIS_BITTYPES="#undef NEED_SOLARIS_BITTYPES"
 BSD_COMP="#undef BSD_COMP"
 case "$host" in
-	*aix3.2*)	PORT_INCLUDE="-I\${top_builddir}/port/aix32/include";;
-	*aix4*)		PORT_INCLUDE="-I\${top_builddir}/port/aix4/include";;
-	*aux3*)		PORT_INCLUDE="-I\${top_builddir}/port/aux3/include";;
-	*-bsdi2*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos2/include";;
-	*-bsdi*)	PORT_INCLUDE="-I\${top_builddir}/port/bsdos/include";;
-	*-cygwin*)	PORT_INCLUDE="-I\${top_builddir}/port/cygwin/include";;
-	*-darwin*)	PORT_INCLUDE="-I\${top_builddir}/port/darwin/include";;
-	*-osf*)		PORT_INCLUDE="-I\${top_builddir}/port/decunix/include";;
-	*-freebsd*)	PORT_INCLUDE="-I\${top_builddir}/port/freebsd/include";;
-	*-hpux9*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux9/include";;
-	*-hpux10*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux10/include";;
-	*-hpux11*)	PORT_INCLUDE="-I\${top_builddir}/port/hpux/include";;
-	*-irix*)	PORT_INCLUDE="-I\${top_builddir}/port/irix/include";;
-	*-linux*)	PORT_INCLUDE="-I\${top_builddir}/port/linux/include";;
-	*-lynxos*)	PORT_INCLUDE="-I\${top_builddir}/port/lynxos/include";;
-	*-mpe*)		PORT_INCLUDE="-I\${top_builddir}/port/mpe/include";;
-	*-netbsd*)	PORT_INCLUDE="-I\${top_builddir}/port/netbsd/include";;
-	*-next*)	PORT_INCLUDE="-I\${top_builddir}/port/next/include";;
-	*-openbsd*)	PORT_INCLUDE="-I\${top_builddir}/port/openbsd/include";;
-	*-qnx*)		PORT_INCLUDE="-I\${top_builddir}/port/qnx/include";;
-	*-rhapsody*)	PORT_INCLUDE="-I\${top_builddir}/port/rhapsody/include";;
+	*aix3.2*)	PORT_INCLUDE="port/aix32/include";;
+	*aix4*)		PORT_INCLUDE="port/aix4/include";;
+	*aux3*)		PORT_INCLUDE="port/aux3/include";;
+	*-bsdi2*)	PORT_INCLUDE="port/bsdos2/include";;
+	*-bsdi*)	PORT_INCLUDE="port/bsdos/include";;
+	*-cygwin*)	PORT_INCLUDE="port/cygwin/include";;
+	*-darwin*)	PORT_INCLUDE="port/darwin/include";;
+	*-osf*)		PORT_INCLUDE="port/decunix/include";;
+	*-freebsd*)	PORT_INCLUDE="port/freebsd/include";;
+	*-hpux9*)	PORT_INCLUDE="port/hpux9/include";;
+	*-hpux10*)	PORT_INCLUDE="port/hpux10/include";;
+	*-hpux11*)	PORT_INCLUDE="port/hpux/include";;
+	*-irix*)	PORT_INCLUDE="port/irix/include";;
+	*-linux*)	PORT_INCLUDE="port/linux/include";;
+	*-lynxos*)	PORT_INCLUDE="port/lynxos/include";;
+	*-mpe*)		PORT_INCLUDE="port/mpe/include";;
+	*-netbsd*)	PORT_INCLUDE="port/netbsd/include";;
+	*-next*)	PORT_INCLUDE="port/next/include";;
+	*-openbsd*)	PORT_INCLUDE="port/openbsd/include";;
+	*-qnx*)		PORT_INCLUDE="port/qnx/include";;
+	*-rhapsody*)	PORT_INCLUDE="port/rhapsody/include";;
 	*-solaris2.[[012345]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1";
-			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
+			PORT_INCLUDE="port/solaris/include";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
-			PORT_INCLUDE="-I\${top_builddir}/port/solaris/include";;
-	*-ultrix*)	PORT_INCLUDE="-I\${top_builddir}/port/ultrix/include";;
+			PORT_INCLUDE="port/solaris/include";;
+	*-ultrix*)	PORT_INCLUDE="port/ultrix/include";;
 esac
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
@@ -1168,21 +1150,15 @@ AC_TRY_COMPILE([
 #include <netdb.h>],
 [struct addrinfo a; return (0);],
 	[AC_MSG_RESULT(yes)
-	ISC_LWRES_NEEDADDRINFO="#undef ISC_LWRES_NEEDADDRINFO"
 	AC_DEFINE(HAVE_ADDRINFO)],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_NEEDADDRINFO="#define ISC_LWRES_NEEDADDRINFO 1"])
-AC_SUBST(ISC_LWRES_NEEDADDRINFO)
+	[AC_MSG_RESULT(no)])
 
 AC_MSG_CHECKING(for int sethostent)
 AC_TRY_COMPILE([
 #include <netdb.h>],
 [int i = sethostent(0); return(0);],
-	[AC_MSG_RESULT(yes)
-	ISC_LWRES_SETHOSTENTINT="#define ISC_LWRES_SETHOSTENTINT 1"],
-	[AC_MSG_RESULT(no)
-	ISC_LWRES_SETHOSTENTINT="#undef ISC_LWRES_SETHOSTENTINT"])
-AC_SUBST(ISC_LWRES_SETHOSTENTINT)
+	[AC_MSG_RESULT(yes)],
+	[AC_MSG_RESULT(no)])
 
 AC_MSG_CHECKING(for int endhostent)
 AC_TRY_COMPILE([
@@ -1977,98 +1953,11 @@ case "$hack_shutup_stdargcast" in
 		;;
 esac
 
-
-#
-# Look for jade, preferring openjade if installed.
-#
-
-AC_PATH_PROGS(JADE, openjade jade, jade)
-AC_SUBST(JADE)
-
-#
-# Look for tex & pdftex.
-#
-
-AC_PATH_PROGS(TEX, tex)
-AC_SUBST(TEX)
-
-AC_PATH_PROGS(PDFTEX, pdftex)
-AC_SUBST(PDFTEX)
-
-#
-# Look for SGML files.  NetBSD has them under /usr/pkg/share 
-# (if installed), FreeBSD has them under /usr/local/share.
-#
-
-SGMLDIR=""
-
-AC_MSG_CHECKING(for SGML files)
-for d in /usr/pkg/share/sgml /usr/local/share/sgml 
-do
-	if test -f $d/docbook/dsssl/modular/html/docbook.dsl
-	then
-		SGMLDIR=$d
-		AC_MSG_RESULT(in $SGMLDIR)
-		break
-	fi
-done
-
-if test "X$SGMLDIR" = "X"
-then
-	AC_MSG_RESULT("not found");
-	SGMLDIR=/usr/local/share/sgml
-fi
-
-AC_SUBST(SGMLDIR)
-
-#
-# Look for XML files.
-#
-XGMLDIR=""
-
-AC_MSG_CHECKING(for XML files)
-for d in /usr/pkg/share/xml /usr/local/share/xml
-do
-	if test -f $d/dtd/docbook/docbookx.dtd
-	then
-		XMLDIR=$d
-		AC_MSG_RESULT(in $XMLDIR)
-		break
-	fi
-done
-
-if test "X$XMLDIR" = "X"
-then
-	AC_MSG_RESULT("not found");
-	XMLDIR=/usr/local/share/xml
-fi
-
-AC_SUBST(XMLDIR)
-
 #
 # Substitutions
 #
 AC_SUBST(BIND9_TOP_BUILDDIR)
 BIND9_TOP_BUILDDIR=`pwd`
-
-AC_SUBST(BIND9_ISC_BUILDINCLUDE)
-AC_SUBST(BIND9_ISCCFG_BUILDINCLUDE)
-AC_SUBST(BIND9_DNS_BUILDINCLUDE)
-AC_SUBST(BIND9_OMAPI_BUILDINCLUDE)
-AC_SUBST(BIND9_LWRES_BUILDINCLUDE)
-if test "X$srcdir" != "X"; then
-	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
-	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
-	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
-	BIND9_OMAPI_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/omapi/include"
-	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
-else
-	BIND9_ISC_BUILDINCLUDE=""
-	BIND9_ISCCFG_BUILDINCLUDE=""
-	BIND9_DNS_BUILDINCLUDE=""
-	BIND9_OMAPI_BUILDINCLUDE=""
-	BIND9_LWRES_BUILDINCLUDE=""
-fi
 
 AC_SUBST_FILE(BIND9_INCLUDES)
 BIND9_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
@@ -2079,21 +1968,6 @@ BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
 . $srcdir/../../version
 BIND9_VERSION="VERSION=${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
 AC_SUBST(BIND9_VERSION)
-
-AC_SUBST_FILE(LIBISC_API)
-LIBISC_API=$srcdir/lib/isc/api
-
-AC_SUBST_FILE(LIBISCCFG_API)
-LIBISCCFG_API=$srcdir/lib/isccfg/api
-
-AC_SUBST_FILE(LIBDNS_API)
-LIBDNS_API=$srcdir/lib/dns/api
-
-AC_SUBST_FILE(LIBLWRES_API)
-LIBLWRES_API=$srcdir/lib/lwres/api
-
-AC_SUBST_FILE(LIBOMAPI_API)
-LIBOMAPI_API=$srcdir/lib/omapi/api
 
 AC_OUTPUT(
 	make/rules
@@ -2110,6 +1984,7 @@ AC_OUTPUT(
 	port_after.h
 	port_before.h
 	resolv/Makefile
+	${PORT_INCLUDE}/Makefile
 )
 
 # Tell Emacs to edit this file in shell mode.

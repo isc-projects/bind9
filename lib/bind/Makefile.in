@@ -13,7 +13,11 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.9 2001/06/28 17:35:49 bwelling Exp $
+# $Id: Makefile.in,v 1.10 2001/06/29 15:25:08 marka Exp $
+
+srcdir =        @srcdir@
+VPATH =         @srcdir@
+top_srcdir =    @top_srcdir@
 
 DAEMON_OBJS=bsd/daemon.@O@
 STRSEP_OBJS=bsd/strsep.@O@
@@ -78,7 +82,7 @@ RESOLVOBJS= resolv/herror.@O@ resolv/res_comp.@O@ resolv/res_data.@O@ \
 	resolv/res_mkquery.@O@ resolv/res_mkupdate.@O@ resolv/res_query.@O@ \
 	resolv/res_send.@O@ resolv/res_sendsigned.@O@ resolv/res_update.@O@
 
-SUBDIRS = bsd dst include inet irs isc nameser resolv
+SUBDIRS = bsd dst include inet irs isc nameser resolv @PORT_INCLUDE@
 
 TARGETS= timestamp
 OBJS=	${BSDOBJS} ${DSTOBJS} ${INETOBJS} ${IRSOBJS} ${ISCOBJS} \
@@ -98,6 +102,13 @@ libbind.la: ${OBJS}
 
 timestamp: libbind.@A@
 	touch timestamp
+
+installdirs:
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
+
+install:: timestamp installdirs
+	${LIBTOOL} ${INSTALL_DATA} libbind.@A@ ${DESTDIR}${libdir}
+
 
 clean distclean::
 	rm -f libbind.@SA@ libbind.la
