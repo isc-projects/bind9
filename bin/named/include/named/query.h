@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.28.2.1 2002/01/24 03:49:02 marka Exp $ */
+/* $Id: query.h,v 1.28.2.2 2002/01/24 04:22:58 marka Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -46,7 +46,9 @@ struct ns_query {
 	unsigned int			fetchoptions;
 	dns_db_t *			gluedb;
 	dns_db_t *			authdb;
-	isc_boolean_t			authdbvalid;
+	dns_zone_t *			authzone;
+	isc_boolean_t			authdbset;
+	isc_boolean_t			isreferral;
 	dns_fetch_t *			fetch;
 	dns_a6context_t			a6ctx;
 	isc_bufferlist_t		namebufs;

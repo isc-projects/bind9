@@ -98,6 +98,9 @@
 
 1123.	[bug]		dig +[no]fail did not match description. [RT #2052]
 
+1014.	[bug]		Some queries would cause statistics counters to
+			increment more than once or not at all. [RT #1321]
+
 1012.	[bug]		The -p option to named did not behave as documented.
 
  988.	[bug]		'additional-from-auth no;' did not work reliably
@@ -368,6 +371,7 @@
 			files. [RT #1783]
  
 	--- 9.2.0rc4 released ---
+
 
 1013.	[bug]		It was possible to cancel a query twice when marking
 			a server as bogus or by having a blackhole acl.
