@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.77 2000/12/26 21:12:21 tale Exp $ */
+/* $Id: task.c,v 1.78 2000/12/26 21:45:04 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -28,18 +28,17 @@
 
 #include <config.h>
 
+#include <isc/condition.h>
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
-#ifdef ISC_PLATFORM_USETHREADS
-#include <isc/condition.h>
-#include <isc/thread.h>
-#else /* ISC_PLATFORM_USETHREADS */
+#ifndef ISC_PLATFORM_USETHREADS
 #include "task_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.35 2000/12/26 21:12:24 tale Exp $ */
+/* $Id: app.c,v 1.36 2000/12/26 21:45:06 tale Exp $ */
 
 #include <config.h>
 
@@ -29,7 +29,9 @@
 
 #include <isc/app.h>
 #include <isc/boolean.h>
+#include <isc/condition.h>
 #include <isc/msgs.h>
+#include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
 #include <isc/string.h>
@@ -39,8 +41,6 @@
 
 #ifdef ISC_PLATFORM_USETHREADS
 #include <pthread.h>
-#include <isc/condition.h>
-#include <isc/mutex.h>
 #else /* ISC_PLATFORM_USETHREADS */
 #include "../timer_p.h"
 #include "../task_p.h"

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.177 2000/12/26 21:12:25 tale Exp $ */
+/* $Id: socket.c,v 1.178 2000/12/26 21:45:08 tale Exp $ */
 
 #include <config.h>
 
@@ -34,23 +34,22 @@
 
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
+#include <isc/condition.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
+#include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/socket.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
-#ifdef ISC_PLATFORM_USETHREADS
-#include <isc/condition.h>
-#include <isc/mutex.h>
-#include <isc/thread.h>
-#else /* ISC_PLATFORM_USETHREADS */
+#ifndef ISC_PLATFORM_USETHREADS
 #include "socket_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
 
