@@ -22,13 +22,14 @@ top_srcdir =	@top_srcdir@
 #
 # Only list headers that are to be installed!
 #
-HEADERS =	assertions.h base64.h boolean.h buffer.h bufferlist.h \
-		commandline.h error.h event.h eventclass.h \
-		heap.h int.h interfaceiter.h lang.h lex.h lfsr.h lib.h \
-		list.h magic.h mem.h msgcat.h mutexblock.h netaddr.h \
-		print.h random.h rbtgen.h region.h result.h \
-		resultclass.h rwlock.h serial.h sockaddr.h socket.h str.h \
-		symtab.h task.h timer.h types.h util.h
+HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
+		bufferlist.h commandline.h error.h event.h eventclass.h \
+		heap.h interfaceiter.h lang.h lex.h lfsr.h lib.h \
+		list.h magic.h mem.h mktemplate.h msgcat.h mutexblock.h \
+		netaddr.h platform.h print.h quota.h random.h ratelimiter.h \
+		rbtgen.h region.h result.h resultclass.h rwlock.h serial.h \
+		sockaddr.h socket.h str.h symtab.h task.h taskpool.h timer.h \
+		types.h ufile.h util.h
 
 SUBDIRS =
 TARGETS =

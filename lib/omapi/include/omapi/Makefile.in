@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	compatibility.h omapi.h private.h
+HEADERS =	compatibility.h lib.h omapi.h private.h result.h types.h
 
 SUBDIRS =
 TARGETS =
