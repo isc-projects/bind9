@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.268 2004/09/30 23:56:22 marka Exp $ */
+/* $Id: dighost.c,v 1.269 2004/10/05 03:01:47 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -3596,8 +3596,8 @@ get_trusted_key(isc_mem_t *mctx)
 			return ISC_R_FAILURE;
 		}
 		fclose(fptemp);
-		result = dst_key_fromnamedfile(filetemp, DST_TYPE_PUBLIC |
-					       DST_TYPE_KEY, mctx, &key);
+		result = dst_key_fromnamedfile(filetemp, DST_TYPE_PUBLIC,
+					       mctx, &key);
 		removetmpkey(mctx, filetemp);
 		isc_mem_free(mctx, filetemp);
 		if (result !=  ISC_R_SUCCESS ) {

@@ -29,7 +29,8 @@
 
 1725.	[placeholder]	rt12541
 
-1724.	[placeholder]	rt12557
+1724.	[bug]		Look for DNSKEY records with "dig +sigtrace".
+			[RT #12557]
 
 1723.	[cleanup]	Silence compiler warnings from t_tasks.c. [RT #12493]
 
