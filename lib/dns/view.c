@@ -33,6 +33,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/peer.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
@@ -120,6 +121,10 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup_secroots;
+	view->peers = NULL;
+	result = dns_peerlist_new(view->mctx, &view->peers);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup_dynkeys;
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof view->resevent, 0, NULL,
 		       DNS_EVENT_VIEWRESSHUTDOWN, resolver_shutdown,
@@ -132,6 +137,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_dynkeys:
+	dns_tsigkeyring_destroy(&view->dynamickeys);	
 
  cleanup_secroots:
 	dns_rbt_destroy(&view->secroots);
@@ -182,6 +190,8 @@ destroy(dns_view_t *view) {
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 
+	if (view->peers != NULL)
+		dns_peerlist_detach(&view->peers);
 	if (view->dynamickeys != NULL)	
 		dns_tsigkeyring_destroy(&view->dynamickeys);
 	if (view->statickeys != NULL)	

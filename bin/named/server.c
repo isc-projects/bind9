@@ -224,6 +224,20 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	CHECK(dns_tsigkeyring_fromconfig(cctx, view->mctx, &ring));
 	dns_view_setkeyring(view, ring);
 
+	/*
+	 * Configure the view's peer list.
+	 */
+	{
+		dns_peerlist_t *newpeers = NULL;
+		if (cctx->peers != NULL) {
+			dns_peerlist_attach(cctx->peers, &newpeers);
+		} else {
+			CHECK(dns_peerlist_new(mctx, &newpeers));
+		}
+		dns_peerlist_detach(&view->peers);
+		view->peers = newpeers; /* Transfer ownership. */
+	}
+	
  cleanup:
 	RWUNLOCK(&view->conflock, isc_rwlocktype_write);
 

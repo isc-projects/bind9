@@ -93,6 +93,7 @@ struct dns_view {
 	/* Configurable data, locked by conflock. */
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
+	dns_peerlist_t *		peers;
 	/* Locked by lock. */
 	unsigned int			references;
 	unsigned int			attributes;
