@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.84 2001/02/09 19:08:11 gson Exp $ */
+/* $Id: mem.c,v 1.85 2001/02/13 01:07:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1006,22 +1006,20 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 	REQUIRE(VALID_CONTEXT(ctx));
 	LOCK(&ctx->lock);
 
-	if (ctx->inuse > 0) {
-		for (i = 0; i <= ctx->max_size; i++) {
-			s = &ctx->stats[i];
+	for (i = 0; i <= ctx->max_size; i++) {
+		s = &ctx->stats[i];
 
-			if (s->totalgets == 0 && s->gets == 0)
-				continue;
-			fprintf(out, "%s%5lu: %11lu gets, %11lu rem",
-				(i == ctx->max_size) ? ">=" : "  ",
-				(unsigned long) i, s->totalgets, s->gets);
+		if (s->totalgets == 0 && s->gets == 0)
+			continue;
+		fprintf(out, "%s%5lu: %11lu gets, %11lu rem",
+			(i == ctx->max_size) ? ">=" : "  ",
+			(unsigned long) i, s->totalgets, s->gets);
 #if ISC_MEM_USE_INTERNAL_MALLOC
-			if (s->blocks != 0 || s->freefrags != 0)
-				fprintf(out, " (%lu bl, %lu ff)",
-					s->blocks, s->freefrags);
+		if (s->blocks != 0 || s->freefrags != 0)
+			fprintf(out, " (%lu bl, %lu ff)",
+				s->blocks, s->freefrags);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
-			fputc('\n', out);
-		}
+		fputc('\n', out);
 	}
 
 	/*
