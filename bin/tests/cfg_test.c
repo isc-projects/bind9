@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg_test.c,v 1.1 2001/02/15 05:15:27 gson Exp $ */
+/* $Id: cfg_test.c,v 1.2 2001/02/15 18:53:28 gson Exp $ */
 
 #include <config.h>
 
@@ -117,7 +117,8 @@ main(int argc, char **argv) {
 
 #if 1
 	/* Example of how to extract stuff from a configuration. */
-	{
+
+	if (type == &cfg_type_namedconf) {
 		cfg_obj_t *options = NULL;
 		cfg_obj_t *version = NULL;
 		
@@ -129,8 +130,25 @@ main(int argc, char **argv) {
 					cfg_obj_asstring(version));
 				
 			}
-			
 		}
+	} else	if (type == &cfg_type_rndcconf) {
+		cfg_obj_t *keys = NULL;
+		result = cfg_map_get(cfg, "key", &keys);
+		if (result == ISC_R_SUCCESS) {
+			cfg_listelt_t *elt;
+			for (elt = cfg_list_first(keys);
+			     elt != NULL;
+			     elt = cfg_list_next(elt)) {
+				cfg_obj_t *key = cfg_listelt_value(elt);
+				cfg_obj_t *secret = NULL;
+				result = cfg_map_get(key, "secret", &secret);
+				if (result == ISC_R_SUCCESS) {
+					fprintf(stderr, "(key secret is \"%s\")\n",
+						cfg_obj_asstring(secret));
+				}
+			}
+		}
+
 	}
 #endif
 
