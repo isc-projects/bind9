@@ -142,8 +142,10 @@ sub doHost {
 
 	$Nfbp = 0;
 	$Nobp = 0;
-	$Ntprobs = 0;
+	$Nftp = 0;
+	$Notp = 0;
 	$BadTest = 0;
+	$BadTestReason = "";
 
 	if ((-r "$HostPath/$hostid/$BuildFile") && (-s _)) {
 		%buildprobs = &buildCheck($hostid);
