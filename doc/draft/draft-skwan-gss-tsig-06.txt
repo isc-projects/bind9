@@ -1,0 +1,11 @@
+
+This document has been replaced by draft-ietf-dnsext-gss-tsig-00.txt.
+For more information or a copy of the document, contact the author directly.
+
+Draft Author(s):
+
+S. Kwan: skwan@microsoft.com                                                     
+J. Gilroy: jamesg@microsoft.com                                                    
+P. Garg: praeritg@microsoft.com                                                  
+
+

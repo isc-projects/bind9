@@ -1,13 +1,13 @@
 
 DNSEXT Working Group                             Donald E. Eastlake, 3rd
 INTERNET-DRAFT                                                  Motorola
-Expires: December 2000                                         June 2000
+Expires: January 2001                                          July 2000
 
 
 
                Secret Key Establishment for DNS (TKEY RR)
                ------ --- ------------- --- --- ----- ---
-                    <draft-ietf-dnsext-tkey-03.txt>
+                    <draft-ietf-dnsext-tkey-04.txt>
 
 
 
@@ -24,10 +24,11 @@ Status of This Document
    and its working groups.  Note that other groups may also distribute
    working documents as Internet-Drafts.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet- Drafts as reference
-   material or to cite them other than as "work in progress."
+   Internet-Drafts are draft documents valid for a maximum of six
+   months.  Internet-Drafts may be updated, replaced, or obsoleted by
+   other documents at any time.  It is not appropriate to use Internet-
+   Drafts as reference material or to cite them other than as a
+   ``working draft'' or ``work in progress.''
 
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/ietf/1id-abstracts.txt
@@ -53,22 +54,20 @@ Status of This Document
 
 
 
-
 Donald Eastlake 3rd                                             [Page 1]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 Abstract
 
-   [draft-ietf-dnsext-tsig-*.txt] provides a means of authenticating
-   Domain Name System (DNS) queries and responses using shared secret
-   keys via the TSIG resource record (RR).  However, it provides no
-   mechanism for setting up such keys other than manual exchange. This
-   document describes a TKEY RR that can be used in a number of
-   different modes to establish shared secret keys between a DNS
-   resolver and server.
+   [RFC 2845] provides a means of authenticating Domain Name System
+   (DNS) queries and responses using shared secret keys via the TSIG
+   resource record (RR).  However, it provides no mechanism for setting
+   up such keys other than manual exchange. This document describes a
+   TKEY RR that can be used in a number of different modes to establish
+   shared secret keys between a DNS resolver and server.
 
 
 
@@ -112,10 +111,11 @@ Acknowledgments
 
 
 
+
 Donald Eastlake 3rd                                             [Page 2]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 Table of Contents
@@ -173,7 +173,7 @@ Table of Contents
 Donald Eastlake 3rd                                             [Page 3]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 1. Introduction
@@ -185,12 +185,12 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
    security and dynamic update [RFC 2535, RFC 2136].  Familiarity with
    these RFCs is assumed.
 
-   [draft-ietf-dnsext-tsig-*.txt] provides a means of efficiently
-   authenticating DNS messages using shared secret keys via the TSIG
-   resource record (RR) but provides no mechanism for setting up such
-   keys other than manual exchange. This document specifies a TKEY RR
-   that can be used in a number of different modes to establish and
-   delete such shared secret keys between a DNS resolver and server.
+   [RFC 2845] provides a means of efficiently authenticating DNS
+   messages using shared secret keys via the TSIG resource record (RR)
+   but provides no mechanism for setting up such keys other than manual
+   exchange. This document specifies a TKEY RR that can be used in a
+   number of different modes to establish and delete such shared secret
+   keys between a DNS resolver and server.
 
    Note that TKEY established keying material and TSIGs that use it are
    associated with DNS servers or resolvers.  They are not associated
@@ -231,7 +231,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 4]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    servers which is currently used only for key deletion.
@@ -289,7 +289,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 5]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    name SHOULD be a domain locally unique at the resolver, less than 128
@@ -327,9 +327,9 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 2.3 The Algorithm Field
 
    The algorithm name is in the form of a domain name with the same
-   meaning as in [draft-ietf-dnsext-tsig-*.txt].  The algorithm
-   determines how the secret keying material agreed to using the TKEY RR
-   is actually used to derive the algorithm specific key.
+   meaning as in [RFC 2845].  The algorithm determines how the secret
+   keying material agreed to using the TKEY RR is actually used to
+   derive the algorithm specific key.
 
 
 
@@ -347,7 +347,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 6]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    To avoid different interpretations of the inception and expiration
@@ -390,9 +390,9 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
           -----   -----------
            0       - no error
            1-15   a non-extended RCODE
-           16     BADSIG   (tsig)
-           17     BADKEY   (tsig)
-           18     BADTIME  (tsig)
+           16     BADSIG   (TSIG)
+           17     BADKEY   (TSIG)
+           18     BADTIME  (TSIG)
            19     BADMODE
            20     BADNAME
            21     BADALG
@@ -405,7 +405,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 7]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    RR and DNS header error field could have unrelated non-zero error
@@ -463,7 +463,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 8]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    TKEY queries MUST be authenticated for all modes except GSS-API and,
@@ -521,7 +521,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                             [Page 9]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    algorithm field is set to the authentication algorithm the resolver
@@ -579,7 +579,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                            [Page 10]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    the discarded key.
@@ -637,18 +637,17 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                            [Page 11]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    the keying material to be used.  The KEY RR that appears in the query
    need not be accompanied by a SIG(KEY) RR.  If the query is
-   authenticated by the resolver with a TSIG RR [draft-ietf-dnsext-
-   tsig-*.txt] or SIG(0) RR and that authentication is verified, then
-   any SIG(KEY) provided in the query SHOULD be ignored.  The KEY RR in
-   such a query SHOULD have a name that corresponds to the resolver but
-   it is only essential that it be a public key for which the resolver
-   has the corresponding private key so it can decrypt the response
-   data.
+   authenticated by the resolver with a TSIG RR [RFC 2845] or SIG(0) RR
+   and that authentication is verified, then any SIG(KEY) provided in
+   the query SHOULD be ignored.  The KEY RR in such a query SHOULD have
+   a name that corresponds to the resolver but it is only essential that
+   it be a public key for which the resolver has the corresponding
+   private key so it can decrypt the response data.
 
    The server response contains a TKEY RR in its answer section with the
    server assigned mode and echoes the KEY RR provided in the query in
@@ -690,15 +689,15 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
    section.  The name of the key and the keying data are completely
    controlled by the sending resolver so a globally unique key name
    SHOULD be used.  The KEY RR used MUST be one for which the server has
+   the corresponding private key, or it will not be able to decrypt the
 
 
 Donald Eastlake 3rd                                            [Page 12]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
-   the corresponding private key, or it will not be able to decrypt the
    keying material and will return a FORMERR. It is also important that
    no untrusted party (preferably no other party than the server) has
    the private key corresponding to the KEY RR because, if they do, they
@@ -750,10 +749,11 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
 
 
+
 Donald Eastlake 3rd                                            [Page 13]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 6. Methods of Encryption
@@ -790,10 +790,10 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
    This section is to be interpreted as provided in [RFC 2434].
 
-   Mode field values 0x0000 through 0x00FF, and 0XFF00 through 0XFFFF
-   can only be assigned by an IETF standards action.  Special
-   consideration should be given before the allocation of meaning for
-   Mode field values 0x0000 and 0xFFFF.
+   Mode field values 0x0000 and 0xFFFF are reserved.
+
+   Mode field values 0x0001 through 0x00FF, and 0XFF00 through 0XFFFE
+   can only be assigned by an IETF Standards Action.
 
    Mode field values 0x0100 through 0x0FFF and 0xF0000 through 0xFEFF
    are allocated by IESG approval or IETF consensus.
@@ -811,7 +811,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                            [Page 14]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
    The following assignments are documented herein:
@@ -829,7 +829,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 
    The entirety of this specification is concerned with the secure
    establishment of a shared secret between DNS clients and servers in
-   support of TSIG [draft-ietf-dnsext-tsig-*.txt].
+   support of TSIG [RFC 2845].
 
    Protection against denial of service via the use of TKEY is not
    provided.
@@ -869,7 +869,7 @@ INTERNET-DRAFT              The DNS TKEY RR                    June 2000
 Donald Eastlake 3rd                                            [Page 15]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 References
@@ -916,9 +916,9 @@ References
    RFC 2539 - D. Eastlake, "Storage of Diffie-Hellman Keys in the Domain
    Name System (DNS)", March 1999.
 
-   draft-ietf-dnsext-tsig-*.txt - P. Vixie, O. Gudmundsson, D.
-   Eastlake, "Secret Key Transaction Signatures for DNS (TSIG)".
-
+   RFC 2845 - P. Vixie, O. Gudmundsson, D.  Eastlake, B.
+   Wellington,"Secret Key Transaction Authentication for DNS (TSIG)",
+   May 2000.
 
 
 
@@ -927,7 +927,7 @@ References
 Donald Eastlake 3rd                                            [Page 16]
 
 
-INTERNET-DRAFT              The DNS TKEY RR                    June 2000
+INTERNET-DRAFT              The DNS TKEY RR                   July 2000.
 
 
 Author's Address
@@ -939,17 +939,17 @@ Author's Address
 
    Telephone:   +1 978-562-2827 (h)
                 +1 508-261-5434 (w)
-   FAX:         +1 978-567-7941 (h)
-                +1 508-261-4447 (w)
+   FAX:         +1 508-261-4447 (w)
    email:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires December 2000.
+   This draft expires January 2001.
 
-   Its file name is draft-ietf-dnsext-tkey-03.txt.
+   Its file name is draft-ietf-dnsext-tkey-04.txt.
+
 
 
 
