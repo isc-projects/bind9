@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3668"
+HREF="Bv9ARM.ch06.html#AEN3672"
 >Zone File</A
 ></DT
 ></DL
@@ -257,7 +257,7 @@ WIDTH="362"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->One or more integers valued 0 through
+>One to four integers valued 0 through
 255 separated by dots (`.'), such as <B
 CLASS="command"
 >123</B
@@ -4494,9 +4494,17 @@ CLASS="command"
 option.</P
 ><P
 >If the zone is a master zone then the server will send out a NOTIFY 
-request to all the slaves. This will trigger the zone serial number check
-in the slave (providing it supports NOTIFY) allowing the slave to
-verify the zone while the connection is active.</P
+request to all the slaves (default). This should trigger the zone serial
+number check in the slave (providing it supports NOTIFY) allowing the slave
+to verify the zone while the connection is active.
+The set of servers to which NOTIFY is sent can be controlled by
+<B
+CLASS="command"
+>notify</B
+> and <B
+CLASS="command"
+>notify-also</B
+>.</P
 ><P
 >If the
 zone is a slave or stub zone, then the server will suppress the regular
@@ -4541,7 +4549,7 @@ processing.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2256"
+NAME="AEN2258"
 ></A
 ><P
 ></P
@@ -4783,6 +4791,12 @@ VALIGN="MIDDLE"
 ><P
 ></P
 ></DIV
+><P
+>Note that normal NOTIFY processing is not affected by
+<B
+CLASS="command"
+>dialup</B
+>.</P
 ></DD
 ><DT
 ><B
@@ -5375,7 +5389,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2506"
+NAME="AEN2510"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5626,7 +5640,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2582"
+NAME="AEN2586"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5721,7 +5735,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2608"
+NAME="AEN2612"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5841,7 +5855,7 @@ CLASS="command"
 ><P
 >Inbound zone transfers running longer than
 this many minutes will be terminated. The default is 120 minutes
-(2 hours).</P
+(2 hours).  The maximum value is 28 days (40320 minutes).</P
 ></DD
 ><DT
 ><B
@@ -5852,7 +5866,7 @@ CLASS="command"
 ><P
 >Inbound zone transfers making no progress
 in this many minutes will be terminated. The default is 60 minutes
-(1 hour).</P
+(1 hour).  The maximum value is 28 days (40320 minutes).</P
 ></DD
 ><DT
 ><B
@@ -5863,7 +5877,7 @@ CLASS="command"
 ><P
 >Outbound zone transfers running longer than
 this many minutes will be terminated. The default is 120 minutes
-(2 hours).</P
+(2 hours).  The maximum value is 28 days (40320 minutes).</P
 ></DD
 ><DT
 ><B
@@ -5874,7 +5888,7 @@ CLASS="command"
 ><P
 >Outbound zone transfers making no progress
 in this many minutes will be terminated.  The default is 60 minutes (1
-hour).</P
+hour).  The maximum value is 28 days (40320 minutes).</P
 ></DD
 ><DT
 ><B
@@ -6153,7 +6167,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2747"
+NAME="AEN2751"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6273,7 +6287,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2784"
+NAME="AEN2788"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -6382,7 +6396,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2820"
+NAME="AEN2824"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6402,7 +6416,7 @@ from the cache every <B
 CLASS="command"
 >cleaning-interval</B
 > minutes.
-The default is 60 minutes.
+The default is 60 minutes.  The maximum value is 28 days (40320 minutes).
 If set to 0, no  periodic cleaning will occur.</P
 ></DD
 ><DT
@@ -6418,7 +6432,8 @@ CLASS="command"
 >dialup</B
 > whenever this
 interval expires. The default is 60 minutes. Reasonable values are up
-to 1 day (1440 minutes). If set to 0, no zone maintenance for these zones will occur.</P
+to 1 day (1440 minutes).  The maximum value is 28 days (40320 minutes).
+If set to 0, no zone maintenance for these zones will occur.</P
 ></DD
 ><DT
 ><B
@@ -6432,7 +6447,8 @@ every <B
 CLASS="command"
 >interface-interval</B
 > minutes. The default
-is 60 minutes. If set to 0, interface scanning will only occur when
+is 60 minutes. The maximum value is 28 days (40320 minutes).
+If set to 0, interface scanning will only occur when
 the configuration file is  loaded. After the scan, the server will
 begin listening for queries on any newly discovered
 interfaces (provided they are allowed by the
@@ -6454,7 +6470,8 @@ every <B
 CLASS="command"
 >statistics-interval</B
 > minutes. The default is 
-60. If set to 0, no statistics will be logged.</P
+60. The maximum value is 28 days (40320 minutes).
+If set to 0, no statistics will be logged.</P
 ><DIV
 CLASS="note"
 ><BLOCKQUOTE
@@ -6750,7 +6767,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2908"
+NAME="AEN2912"
 ></A
 ><P
 ></P
@@ -7060,7 +7077,8 @@ HREF="Bv9ARM.ch04.html#dynamic_update"
 will expire. The default is <TT
 CLASS="literal"
 >30</TT
-> days. The signature
+> days.
+The maximum value is 10 years (3660 days). The signature
 inception time is unconditionally set to one hour before the current time
 to allow for a limited amount of clock skew.</P
 ></DD
@@ -7137,7 +7155,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3020"
+NAME="AEN3024"
 ></A
 ><P
 ></P
@@ -7598,7 +7616,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3141"
+NAME="AEN3145"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7673,7 +7691,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3157"
+NAME="AEN3161"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7708,7 +7726,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3165"
+NAME="AEN3169"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7775,7 +7793,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3179"
+NAME="AEN3183"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -8432,7 +8450,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3330"
+NAME="AEN3334"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8443,13 +8461,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3333"
+NAME="AEN3337"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3335"
+NAME="AEN3339"
 ></A
 ><P
 ></P
@@ -8688,7 +8706,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3390"
+NAME="AEN3394"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8726,7 +8744,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3400"
+NAME="AEN3404"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -9359,7 +9377,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3638"
+NAME="AEN3642"
 ></A
 ><P
 ></P
@@ -9466,7 +9484,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3668"
+NAME="AEN3672"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9487,7 +9505,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3673"
+NAME="AEN3677"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9510,7 +9528,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3679"
+NAME="AEN3683"
 ></A
 ><P
 ></P
@@ -9549,8 +9567,7 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >an encoded 16 bit value that specifies
-the type of the resource in this resource record. Types refer to
-abstract resources.</P
+the type of the resource record.</P
 ></TD
 ></TR
 ><TR
@@ -9602,8 +9619,8 @@ WIDTH="336"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->the type and sometimes class-dependent
-data that describes the resource.</P
+>the resource data.  The format of the
+data is type (and sometimes class) specific.</P
 ></TD
 ></TR
 ></TBODY
@@ -9615,13 +9632,11 @@ data that describes the resource.</P
 >The following are <I
 CLASS="emphasis"
 >types</I
-> of valid RRs
-(some of these listed, although not obsolete, are experimental (x)
-or historical (h) and no longer in general use):</P
+> of valid RRs:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3711"
+NAME="AEN3715"
 ></A
 ><P
 ></P
@@ -9643,7 +9658,8 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->a host address.</P
+>a host address.  In the IN class, this is a
+32-bit IP address.</P
 ></TD
 ></TR
 ><TR
@@ -9659,7 +9675,9 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->an IPv6 address.</P
+>an IPv6 address.  This can be a partial
+address (a suffix) and an indirection to the name where the rest of the
+address (the prefix) can be found.</P
 ></TD
 ></TR
 ><TR
@@ -9675,7 +9693,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Obsolete format of IPv6 address</P
+>obsolete format of IPv6 address</P
 ></TD
 ></TR
 ><TR
@@ -9691,7 +9709,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) location of AFS database servers.
+>location of AFS database servers.
 Experimental.</P
 ></TD
 ></TR
@@ -9724,9 +9742,11 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->for delegation of reverse addresses.
-Replaces the domain name specified with another name to be looked
-up. Described in RFC 2672.</P
+>Replaces the domain name specified with
+another name to be looked up, effectively aliasing an entire
+subtree of the domain name space rather than a single record
+as in the case of the CNAME RR.  Used for delegation 
+of IPv6 reverse mappings. Described in RFC 2672.</P
 ></TD
 ></TR
 ><TR
@@ -9758,7 +9778,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) representation of ISDN addresses.
+>representation of ISDN addresses.
 Experimental.</P
 ></TD
 ></TR
@@ -9792,7 +9812,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) for storing GPS info. See RFC 1876.
+>for storing GPS info. See RFC 1876.
 Experimental.</P
 ></TD
 ></TR
@@ -9810,6 +9830,8 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >identifies a mail exchange for the domain.
+a 16 bit preference value (lower is better)
+followed by the host name of the mail exchange.
  See RFC 974 for details.</P
 ></TD
 ></TR
@@ -9879,7 +9901,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) information on persons responsible
+>information on persons responsible
 for the domain. Experimental.</P
 ></TD
 ></TR
@@ -9896,7 +9918,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) route-through binding for hosts that
+>route-through binding for hosts that
 do not have their own direct wide area network addresses. Experimental.</P
 ></TD
 ></TR
@@ -9963,9 +9985,9 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(h) information about which well known
-network services, such as SMTP, that a domain supports. Historical,
-replaced by newer RR SRV.</P
+>information about which well known
+network services, such as SMTP, that a domain supports. Historical.
+</P
 ></TD
 ></TR
 ><TR
@@ -9981,7 +10003,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->(x) representation of X.25 network addresses. Experimental.</P
+>representation of X.25 network addresses. Experimental.</P
 ></TD
 ></TR
 ></TBODY
@@ -9998,7 +10020,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3823"
+NAME="AEN3827"
 ></A
 ><P
 ></P
@@ -10020,59 +10042,7 @@ WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->the Internet system.</P
-></TD
-></TR
-><TR
-><TD
-COLSPAN="2"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->For information about other,
-older classes of RRs, see <A
-HREF="Bv9ARM.ch09.html#classes_of_resource_records"
->Section A.2.1</A
->.</P
-></TD
-></TR
-></TBODY
-></TABLE
-><P
-></P
-></DIV
-><P
-><I
-CLASS="emphasis"
->RDATA</I
-> is the type-dependent or class-dependent
-data that describes the resource:</P
-><DIV
-CLASS="informaltable"
-><A
-NAME="AEN3839"
-></A
-><P
-></P
-><TABLE
-CELLPADDING="3"
-BORDER="1"
-CLASS="CALSTABLE"
-><TBODY
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->A</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->for the IN class, a 32 bit IP address.</P
+>The Internet.</P
 ></TD
 ></TR
 ><TR
@@ -10081,15 +10051,21 @@ WIDTH="84"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->A6</P
+>CH</P
 ></TD
 ><TD
 WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->maps a domain name to an IPv6 address,
-with a provision for indirection for leading "prefix" bits.</P
+>&#13;CHAOSnet, a LAN protocol created at MIT in the mid-1970s.
+Rarely used for its historical purpose, but reused for BIND's
+built-in server information zones, e.g.,
+<TT
+CLASS="literal"
+>version.bind</TT
+>.
+</P
 ></TD
 ></TR
 ><TR
@@ -10098,99 +10074,18 @@ WIDTH="84"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->CNAME</P
+>HS</P
 ></TD
 ><TD
 WIDTH="348"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->a domain name.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->DNAME</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->provides alternate naming to an entire
-subtree of the domain name space, rather than to a single node.
- It causes some suffix of a queried name to be substituted with
-a name from the DNAME record's RDATA.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->MX</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->a 16 bit preference value (lower is better)
-followed by a host name willing to act as a mail exchange for the
-owner domain.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->NS</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->a fully qualified domain name.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->PTR</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->a fully qualified domain name.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="84"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->SOA</P
-></TD
-><TD
-WIDTH="348"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->several fields.</P
+>&#13;Hesiod, an information service
+developed by MIT's Project Athena. It is used to share information
+about various systems databases, such as users, groups, printers
+and so on.
+</P
 ></TD
 ></TR
 ></TBODY
@@ -10227,7 +10122,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3887"
+NAME="AEN3851"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10257,7 +10152,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3894"
+NAME="AEN3858"
 ></A
 ><P
 ></P
@@ -10466,7 +10361,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3960"
+NAME="AEN3924"
 ></A
 ><P
 ></P
@@ -10557,7 +10452,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3988"
+NAME="AEN3952"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10590,7 +10485,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3994"
+NAME="AEN3958"
 ></A
 ><P
 ></P
@@ -10886,7 +10781,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4086"
+NAME="AEN4050"
 ></A
 ><P
 ></P
@@ -10969,7 +10864,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4109"
+NAME="AEN4073"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10993,7 +10888,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4114"
+NAME="AEN4078"
 ></A
 ><P
 ></P
@@ -11073,7 +10968,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4136"
+NAME="AEN4100"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -11098,7 +10993,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4143"
+NAME="AEN4107"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11168,7 +11063,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4163"
+NAME="AEN4127"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11250,7 +11145,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4183"
+NAME="AEN4147"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11290,7 +11185,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4194"
+NAME="AEN4158"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11369,7 +11264,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4214"
+NAME="AEN4178"
 ></A
 ><P
 ></P
