@@ -66,11 +66,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_name;
 	}
-	view->dbtable = NULL;
-	result = dns_dbtable_create(mctx, rdclass, &view->dbtable);
+	view->zonetable = NULL;
+	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_dbtable_create() failed: %s",
+				 "dns_zt_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
 		goto cleanup_mutex;
@@ -82,7 +82,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 				 "dns_rbt_create() failed: %s",
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
-		goto cleanup_dbtable;
+		goto cleanup_zt;
 	}
 
 	view->cachedb = NULL;
@@ -99,8 +99,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, char *name,
 
 	return (ISC_R_SUCCESS);
 
- cleanup_dbtable:
-	dns_dbtable_detach(&view->dbtable);
+ cleanup_zt:
+	dns_zt_detach(&view->zonetable);
 
  cleanup_mutex:
 	isc_mutex_destroy(&view->lock);
@@ -145,8 +145,8 @@ destroy(dns_view_t *view) {
 		dns_db_detach(&view->hints);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
+	dns_zt_detach(&view->zonetable);
 	dns_rbt_destroy(&view->secroots);
-	dns_dbtable_detach(&view->dbtable);
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_put(view->mctx, view, sizeof *view);
@@ -235,23 +235,17 @@ dns_view_sethints(dns_view_t *view, dns_db_t *hints) {
 }
 
 isc_result_t
-dns_view_addzonedb(dns_view_t *view, dns_db_t *db) {
+dns_view_addzone(dns_view_t *view, dns_zone_t *zone) {
 	isc_result_t result;
 
 	/*
-	 * Add zone database 'db' to 'view'.
-	 */
-
-	/*
-	 * WARNING!  THIS ROUTINE WILL BE REPLACED WITH dns_view_addzone()
-	 * WHEN WE HAVE INTEGRATED ZONE OBJECT SUPPORT INTO THE LIBRARY.
+	 * Add zone 'zone' to 'view'.
 	 */
 
 	REQUIRE(DNS_VIEW_VALID(view));
-	REQUIRE(dns_db_iszone(db));
 	REQUIRE(!view->frozen);
 
-	result = dns_dbtable_add(view->dbtable, db);
+	result = dns_zt_mount(view->zonetable, zone);
 
 	return (result);
 }
@@ -270,6 +264,24 @@ dns_view_freeze(dns_view_t *view) {
 }
 
 isc_result_t
+dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zone) {
+	isc_result_t result;
+	dns_zone_t *dummy = NULL;
+
+	REQUIRE(DNS_VIEW_VALID(view));
+
+	result = dns_zt_find(view->zonetable, name, NULL, &dummy);
+	if (result == DNS_R_PARTIALMATCH) {
+		dns_zone_detach(&dummy);
+		result = DNS_R_NOTFOUND;
+	} else if (result == DNS_R_SUCCESS) {
+		dns_zone_attach(dummy, zone);
+		dns_zone_detach(&dummy);
+	}
+	return (result);
+}
+
+isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
@@ -280,6 +292,7 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_dbversion_t *version;
 	isc_boolean_t is_zone;
 	dns_rdataset_t zrdataset, zsigrdataset;
+	dns_zone_t *zone;
 
 	/*
 	 * Find an rdataset whose owner name is 'name', and whose type is
@@ -299,11 +312,18 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Find a database to answer the query.
 	 */
+	zone = NULL;
 	db = NULL;
-	result = dns_dbtable_find(view->dbtable, name, &db);
-	if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
+	result = dns_zt_find(view->zonetable, name, NULL, &zone);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		result = dns_zone_getdb(zone, &db);
+		if (result != DNS_R_SUCCESS && view->cachedb != NULL)
+			dns_db_attach(view->cachedb, &db);
+		else if (result != DNS_R_SUCCESS)
+			goto cleanup;
+	} else if (result == ISC_R_NOTFOUND && view->cachedb != NULL)
 		dns_db_attach(view->cachedb, &db);
-	else if (result != ISC_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+	else
 		goto cleanup;
 
 	is_zone = dns_db_iszone(db);
@@ -405,6 +425,24 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	}
 	if (db != NULL)
 		dns_db_detach(&db);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 
 	return (result);
+}
+
+dns_view_t *
+dns_view_findinlist(dns_viewlist_t *list, const char *name,
+		    dns_rdataclass_t rdclass) {
+	dns_view_t *view;
+
+	REQUIRE(list != NULL);
+
+	view = ISC_LIST_HEAD(*list);
+	while (view != NULL) {
+		if (strcmp(view->name, name) == 0 && view->rdclass == rdclass)
+			break;
+		view = ISC_LIST_NEXT(view, link);
+	}
+	return (view);
 }
