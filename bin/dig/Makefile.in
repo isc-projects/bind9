@@ -43,11 +43,11 @@ SUBDIRS =	unix
 
 TARGETS =	dig host
 
-OBJS =		dighost.@O@ dig.@O@ host.@O@
+OBJS =		dig.@O@ dighost.@O@ host.@O@
 
 UOBJS =		
 
-SRCS =		dig.c digmain.c host.c
+SRCS =		dig.c dighost.c host.c
 
 @BIND9_MAKE_RULES@
 
