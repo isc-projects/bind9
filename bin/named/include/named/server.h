@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.60 2001/09/04 19:29:24 gson Exp $ */
+/* $Id: server.h,v 1.61 2001/09/15 14:23:26 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -132,6 +132,12 @@ isc_result_t
 ns_server_refreshcommand(ns_server_t *server, char *args);
 /*
  * Act on a "refresh" command from the command channel.
+ */
+
+isc_result_t
+ns_server_retransfercommand(ns_server_t *server, char *args);
+/*
+ * Act on a "retransfer" command from the command channel.
  */
 
 isc_result_t

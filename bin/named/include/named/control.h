@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.6 2001/05/08 04:09:40 bwelling Exp $ */
+/* $Id: control.h,v 1.7 2001/09/15 14:23:25 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -36,6 +36,7 @@
 #define NS_COMMAND_RELOAD	"reload"
 #define NS_COMMAND_RECONFIG	"reconfig"
 #define NS_COMMAND_REFRESH	"refresh"
+#define NS_COMMAND_RETRANSFER	"retransfer"
 #define NS_COMMAND_DUMPSTATS	"stats"
 #define NS_COMMAND_QUERYLOG	"querylog"
 #define NS_COMMAND_DUMPDB	"dumpdb"
