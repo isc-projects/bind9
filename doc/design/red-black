@@ -70,10 +70,9 @@ marginally); the nodes at d.e.f and w.y do not represent keys.
 As an aside, remember that when ordering DNS names, labels are
 examined from the right, therefore w.y sorts after x and before z.
 
-When bitfields are fully supported (they aren't yet) then a split can
-occur not only on a regular label boundary, but also between any two
-bits.  The common-suffix rules will be applied to keep as many bits
-together as possible.
+A split can occur not only on a regular label boundary, but also
+between any two bits in an EDNS bitstring label.  The common-suffix
+rules will be applied to keep as many bits together as possible.
 
 In the current implementation of the tree of trees, a node is
 considered to "formally" exist only if it has data associated with
