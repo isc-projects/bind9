@@ -800,7 +800,8 @@ isc_result_t dns_name_fromtext(dns_name_t *name,
  *
  *	'name' is a valid name.
  *
- *	'source' is a valid buffer.
+ *	'source' is a valid buffer with a current pointer before its
+ *	used pointer.
  *
  *	'target' is a valid buffer or 'target' is NULL and 'name' has
  *	a dedicated buffer.

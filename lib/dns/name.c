@@ -1098,6 +1098,10 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	 */
 
 	REQUIRE(VALID_NAME(name));
+	REQUIRE(ISC_BUFFER_VALID(source));
+	REQUIRE(isc_buffer_current(source) < isc_buffer_used(source));
+	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
+		(target == NULL && name->buffer != NULL));
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -1133,10 +1137,10 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	 * Set up the state machine.
 	 */
 	tdata = (char *)source->base + source->current;
-	tlen = source->used - source->current;
+	tlen = isc_buffer_remaininglength(source);
 	tused = 0;
-	ndata = (unsigned char *)target->base + target->used;
-	nrem = target->length - target->used;
+	ndata = isc_buffer_used(target);
+	nrem = isc_buffer_availablelength(target);
 	if (nrem > 255)
 		nrem = 255;
 	nused = 0;
