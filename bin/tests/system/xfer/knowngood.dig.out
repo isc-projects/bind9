@@ -1,4 +1,4 @@
-example.		300	IN	SOA	mname1. . ( 2000042795 20 20 1814400 3600 )
+example.		300	IN	SOA	ns2.example. hostmaster.example. ( 2000042795 20 20 1814400 3600 )
 example.		300	IN	NS	ns2.example.
 example.		300	IN	NS	ns3.example.
 *.example.		300	IN	MX	10 mail.example.
@@ -102,4 +102,4 @@ wks01.example.		3600	IN	WKS	10.0.0.1 6 ( 0 1 2 21 23 )
 wks02.example.		3600	IN	WKS	10.0.0.1 17 ( 0 1 2 53 )
 wks03.example.		3600	IN	WKS	10.0.0.2 6 ( 65535 )
 x2501.example.		3600	IN	X25	"123456789"
-example.		300	IN	SOA	mname1. . ( 2000042795 20 20 1814400 3600 )
+example.		300	IN	SOA	ns2.example. hostmaster.example. ( 2000042795 20 20 1814400 3600 )

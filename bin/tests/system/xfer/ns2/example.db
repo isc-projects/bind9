@@ -1,6 +1,6 @@
 $ORIGIN .
 $TTL 300	; 5 minutes
-example			IN SOA	mname1. . (
+example			IN SOA	ns2.example. hostmaster.example. (
 				2000042795 ; serial
 				20         ; refresh (20 seconds)
 				20         ; retry (20 seconds)
