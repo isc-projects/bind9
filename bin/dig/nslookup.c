@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.46 2000/09/21 11:53:16 marka Exp $ */
+/* $Id: nslookup.c,v 1.47 2000/09/21 12:25:42 marka Exp $ */
 
 #include <config.h>
 
@@ -148,6 +148,17 @@ static const char *rtypetext[] = {
 static void flush_lookup_list(void);
 static void getinput(isc_task_t *task, isc_event_t *event);
 
+static char *
+next_token(char **stringp, const char *delim) {
+	char *res;
+	do {
+		res = strsep(stringp, delim);
+		if (res == NULL)
+			break;
+	} while (*res == '\0');
+	return (res);
+}
+
 static void
 show_usage(void) {
 	fputs("Usage:\n", stderr);
@@ -258,40 +269,40 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						     "dns_rdata_totext");
 					((char *)isc_buffer_used(b))[0]=0;
 					input = isc_buffer_base(b);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\torigin = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tmail addr = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tserial = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\trefresh = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tretry = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\texpire = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tminimum = %s\n",
@@ -407,40 +418,40 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 						     "dns_rdata_totext");
 					((char *)isc_buffer_used(b))[0]=0;
 					input = isc_buffer_base(b);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\torigin = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tmail addr = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tserial = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\trefresh = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tretry = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\texpire = %s\n",
 					       ptr);
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr == NULL)
 						break;
 					printf("\tminimum = %s\n",
@@ -774,15 +785,15 @@ get_next_command(void) {
 		goto cleanup;
 	}
 	input = buf;
-	ptr = strsep(&input, " \t\r\n");
+	ptr = next_token(&input, " \t\r\n");
 	if (ptr == NULL)
 		goto cleanup;
-	arg = strsep(&input, " \t\r\n");
+	arg = next_token(&input, " \t\r\n");
 	if ((strcasecmp(ptr, "set") == 0) &&
 	    (arg != NULL))
 		setoption(arg);
-	else if ((strcasecmp(ptr, "server") == 0) ||
-		 (strcasecmp(ptr, "lserver") == 0)) {
+	else if (((strcasecmp(ptr, "server") == 0) ||
+		 (strcasecmp(ptr, "lserver") == 0)) && arg != NULL) {
 		printf("Server:\t%s\n", arg);
 		setsrv(arg);
 	} else if (strcasecmp(ptr, "exit") == 0) {

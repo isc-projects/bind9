@@ -1,3 +1,6 @@
+ 482.	[bug]		nslookup: a plain "server" or "lserver" should be
+			treated as a lookup.
+
  481.	[bug]		nslookup:get_next_command() stack size exceeds
 			per thread limit.
 

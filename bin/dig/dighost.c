@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.128 2000/09/21 11:53:14 marka Exp $ */
+/* $Id: dighost.c,v 1.129 2000/09/21 12:25:41 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -143,6 +143,18 @@ recv_done(isc_task_t *task, isc_event_t *event);
 
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event);
+
+static char *
+next_token(char **stringp, const char *delim) {
+	char *res;
+
+	do {
+		res = strsep(stringp, delim);
+		if (res == NULL)
+			break;
+	} while (*res == '\0');
+	return (res);
+}                       
 
 static int
 count_dots(char *string) {
@@ -523,12 +535,12 @@ setup_system(void) {
 	if (fp != NULL) {
 		while (fgets(rcinput, MXNAME, fp) != 0) {
 			input = rcinput;
-			ptr = strsep(&input, " \t\r\n");
+			ptr = next_token(&input, " \t\r\n");
 			if (ptr != NULL) {
 				if (get_servers &&
 				    strcasecmp(ptr, "nameserver") == 0) {
 					debug("got a nameserver line");
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr != NULL) {
 						srv = make_server(ptr);
 						ISC_LIST_APPEND
@@ -536,7 +548,7 @@ setup_system(void) {
 							 srv, link);
 					}
 				} else if (strcasecmp(ptr, "options") == 0) {
-					ptr = strsep(&input, " \t\r\n");
+					ptr = next_token(&input, " \t\r\n");
 					if (ptr != NULL) {
 						if((strncasecmp(ptr, "ndots:",
 							    6) == 0) &&
@@ -549,7 +561,7 @@ setup_system(void) {
 						}
 					}
 				} else if (strcasecmp(ptr, "search") == 0){
-					while ((ptr = strsep(&input, " \t\r\n"))
+					while ((ptr = next_token(&input, " \t\r\n"))
 					       != NULL) {
 						debug("adding search %s",
 						      ptr);
@@ -574,7 +586,7 @@ setup_system(void) {
 				} else if ((strcasecmp(ptr, "domain") == 0) &&
 					   (fixeddomain[0] == 0 )){
 					have_domain = ISC_TRUE;
-					while ((ptr = strsep(&input, " \t\r\n"))
+					while ((ptr = next_token(&input, " \t\r\n"))
 					       != NULL) {
 						search = isc_mem_allocate(
 						   mctx, sizeof(struct

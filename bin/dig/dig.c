@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.93 2000/09/21 11:53:13 marka Exp $ */
+/* $Id: dig.c,v 1.94 2000/09/21 12:25:40 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -127,6 +127,19 @@ static const char *rcodetext[] = {
 };
 
 extern char *progname;
+
+static char *
+next_token(char **stringp, const char *delim) {
+	char *res;
+
+	do {
+		res = strsep(stringp, delim);   
+		if (res == NULL)
+			break;
+	} while (*res == '\0');
+	return (res);
+}
+
 
 static void
 show_usage(void) {
@@ -620,11 +633,11 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				debug("config line %s", batchline);
 				bargc = 1;
 				input = batchline;
-				bargv[bargc] = strsep(&input, " \t\r\n");
+				bargv[bargc] = next_token(&input, " \t\r\n");
 				while ((bargv[bargc] != NULL) &&
 				       (bargc < 14)) {
 					bargc++;
-					bargv[bargc] = strsep(&input, " \t\r\n");
+					bargv[bargc] = next_token(&input, " \t\r\n");
 				}
 
 				bargv[0] = argv[0];
@@ -912,13 +925,13 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				rc--;
 			}
 			input = ptr;
-			ptr = strsep(&input,":");
+			ptr = next_token(&input,":");
 			if (ptr == NULL) {
 				show_usage();
 				exit(1);
 			}
 			strncpy(keynametext, ptr, MXNAME);
-			ptr = strsep(&input, "");
+			ptr = next_token(&input, "");
 			if (ptr == NULL) {
 				show_usage();
 				exit(1);
@@ -1097,10 +1110,10 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			debug("batch line %s", batchline);
 			bargc = 1;
 			input = batchline;
-			bargv[bargc] = strsep(&input, " \t\r\n");
+			bargv[bargc] = next_token(&input, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14)) {
 				bargc++;
-				bargv[bargc] = strsep(&input, " \t\r\n");
+				bargv[bargc] = next_token(&input, " \t\r\n");
 			}
 
 			bargv[0] = argv[0];
@@ -1156,10 +1169,10 @@ dighost_shutdown(void) {
 		debug("batch line %s", batchline);
 		bargc = 1;
 		input = batchline;
-		bargv[bargc] = strsep(&input, " \t\r\n");
+		bargv[bargc] = next_token(&input, " \t\r\n");
 		while ((bargv[bargc] != NULL) && (bargc < 14)) {
 			bargc++;
-			bargv[bargc] = strsep(&input, " \t\r\n");
+			bargv[bargc] = next_token(&input, " \t\r\n");
 		}
 
 		bargv[0] = argv0;
