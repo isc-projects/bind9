@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.153 2001/02/22 23:39:11 gson Exp $ */
+/* $Id: client.c,v 1.154 2001/02/23 22:38:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1814,11 +1814,10 @@ client_udprecv(ns_client_t *client) {
 				 "isc_socket_recv() failed: %s",
 				 isc_result_totext(result));
 		/*
-		 * XXXBEW  What should we do?  We're trying to receive but
-		 *         it didn't work.  If we just give up, then UDP
-		 *	   service may eventually stop.
+		 * This cannot happen in the current implementation, since
+		 * isc_socket_recv2() cannot fail if flags == 0A
 		 *
-		 *	   For now, we just go idle.
+		 * If this does fail, we just go idle.
 		 */
 		return;
 	}
