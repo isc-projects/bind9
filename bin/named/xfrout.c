@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.30 1999/12/16 23:11:02 gson Exp $ */
+ /* $Id: xfrout.c,v 1.31 1999/12/21 00:33:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1301,8 +1301,7 @@ sendstream(xfrout_ctx_t *xfr)
 		xfr->sends++;
 	} else {
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
-			      "sending IXFR UDP response of %d bytes",
-			      used.length);
+			      "sending IXFR UDP response");
 		/* XXX kludge */
 		dns_message_destroy(&xfr->client->message);
 		xfr->client->message = msg;
