@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: netaddr_multicast.c,v 1.2 2000/06/16 22:21:13 explorer Exp $ */
+/* $Id: netaddr_multicast.c,v 1.3 2000/06/16 22:35:06 explorer Exp $ */
 
 #include <isc/string.h>
 #include <isc/types.h>
@@ -41,6 +41,8 @@ static addr_t addrs[] = {
 	{ AF_INET, "4.3.2.1", ISC_FALSE },
 	{ AF_INET, "224.1.1.1", ISC_TRUE },
 	{ AF_INET, "1.1.1.244", ISC_FALSE },
+	{ AF_INET6, "::1", ISC_FALSE },
+	{ AF_INET6, "ff02::1", ISC_TRUE }
 };
 #define NADDRS (sizeof(addrs) / sizeof(addr_t))
 
