@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.20 $)
+AC_REVISION($Revision: 1.21 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -521,6 +521,7 @@ then
 	WANT_IRS_THREADSGR_OBJS="\${WANT_IRS_THREADSGR_OBJS}"
 	WANT_IRS_THREADSPW_OBJS="\${WANT_IRS_THREADSPW_OBJS}"
 	WANT_IRS_THREADS_OBJS="\${WANT_IRS_THREADS_OBJS}"
+	hack_POSIX_PTHREAD_SEMANTICS="#define _POSIX_PTHREAD_SEMANTICS"
 	thread_dir=pthreads
 else
 	ALWAYS_DEFINES=""
@@ -528,6 +529,7 @@ else
 	WANT_IRS_THREADSGR_OBJS=""
 	WANT_IRS_THREADSPW_OBJS=""
 	WANT_IRS_THREADS_OBJS=""
+	hack_POSIX_PTHREAD_SEMANTICS=""
 	thread_dir=nothreads
 fi
 
@@ -1479,6 +1481,7 @@ SETPWENT_VOID="#undef SETGRENT_VOID"
 AC_SUBST(SETGRENT_VOID)
 
 AC_TRY_COMPILE([
+${hack_POSIX_PTHREAD_SEMANTICS}
 #include <grp.h>
 struct group *
 getgrgid_r(gid_t gid, struct group *gptr, char *buf, int buflen) {}
