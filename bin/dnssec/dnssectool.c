@@ -174,12 +174,19 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 static isc_result_t
 kbdstart(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
+	static isc_boolean_t first = ISC_TRUE;
 
 	UNUSED(source);
 
 	if (!blocking)
 		return (ISC_R_NOENTROPY);
-	printf("start typing\n");
+	if (first) {
+		fprintf(stderr, "You must use the keyboard to create entropy, "
+			"since your system is lacking\n");
+		fprintf(stderr, "/dev/random\n\n");
+		first = ISC_FALSE;
+	}
+	fprintf(stderr, "start typing:\n");
 	return (isc_keyboard_open(kbd));
 }
 
@@ -189,7 +196,7 @@ kbdstop(isc_entropysource_t *source, void *arg) {
 
 	UNUSED(source);
 
-	printf("stop typing\r\n");
+	fprintf(stderr, "stop typing.\r\n");
 	(void)isc_keyboard_close(kbd, 3);
 }
 
@@ -218,12 +225,12 @@ kbdget(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
 
 	result = isc_entropy_addcallbacksample(source, sample, extra);
 	if (result != ISC_R_SUCCESS) {
-		printf("\r\n");
+		fprintf(stderr, "\r\n");
 		return (result);
 	}
 
-	printf(".");
-	fflush(stdout);
+	fprintf(stderr, ".");
+	fflush(stderr);
 
 	return (result);
 }
