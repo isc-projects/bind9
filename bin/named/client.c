@@ -566,8 +566,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_notify:
 		CTRACE("notify");
-		xfrin_test(); /* XXX for testing only */
-		ns_client_next(client, DNS_R_SUCCESS);
+		ns_client_error(client, DNS_R_NOTIMP);
 		break;
 	case dns_opcode_iquery:
 		CTRACE("iquery");

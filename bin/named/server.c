@@ -283,7 +283,6 @@ load_configuration(void) {
 	}
 
 	ns_interfacemgr_scan(ns_g_interfacemgr);
-	xfrin_test();
 }
 
 static void
