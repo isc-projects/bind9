@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.29.2.7 2000/10/06 19:08:05 mws Exp $ */
+/* $Id: host.c,v 1.29.2.8 2000/10/20 21:54:11 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -196,7 +196,7 @@ static const char *rtypetext[] = {
 	"has 97 record",       		/* 97 */
 	"has 98 record",       		/* 98 */
 	"has 99 record",       		/* 99 */
-	"UNIFO",			/* 100 */
+	"UINFO",			/* 100 */
 	"UID",				/* 101 */
 	"GID",				/* 102 */
 	"UNSPEC"};			/* 103 */

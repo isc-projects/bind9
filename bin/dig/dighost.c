@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.58.2.12 2000/10/06 19:08:03 mws Exp $ */
+/* $Id: dighost.c,v 1.58.2.13 2000/10/20 21:54:09 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -36,6 +36,7 @@
 extern int h_errno;
 #endif
 
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -46,6 +47,7 @@ extern int h_errno;
 #include <dns/rdatatype.h>
 #include <dns/result.h>
 #include <dns/tsig.h>
+
 #include <dst/dst.h>
 
 #include <isc/app.h>
@@ -75,8 +77,7 @@ isc_boolean_t
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE,
 	have_domain = ISC_FALSE,
-	is_blocking =ISC_FALSE,
-	show_packets = ISC_FALSE;
+	is_blocking =ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -115,6 +116,7 @@ isc_boolean_t validated = ISC_TRUE;
 isc_entropy_t *entp = NULL;
 isc_mempool_t *commctx = NULL;
 isc_boolean_t debugging = ISC_FALSE;
+isc_boolean_t memdebugging = ISC_FALSE;
 char *progname = NULL;
 isc_mutex_t lookup_lock;
 dig_lookup_t *current_lookup = NULL;
@@ -181,7 +183,7 @@ hex_dump(isc_buffer_t *b) {
 	printf("%d bytes\n", r.length);
 	for (len = 0; len < r.length; len++) {
 		printf("%02x ", r.base[len]);
-		if (len != 0 && len % 16 == 0)
+		if (len % 16 == 15)
 			printf("\n");
 	}
 	if (len % 16 != 0)
@@ -2099,8 +2101,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(!free_now);
 
-	if (show_packets)
-		puts(";; begin of DNS packet");
 	debug("recv_done()");
 
 	LOCK_LOOKUP;
@@ -2316,11 +2316,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 						 query);
 				}
 			} else {
-				if (query->first_soa_rcvd &&
-				    l->doing_xfr)
-					printmessage(query, msg, ISC_FALSE);
-				else
-					printmessage(query, msg, ISC_TRUE);
+				printmessage(query, msg, ISC_TRUE);
 			}
 		} else if ((dns_message_firstname(msg, DNS_SECTION_ANSWER)
 			    == ISC_R_SUCCESS) &&
@@ -2630,7 +2626,7 @@ destroy_libs(void) {
 
 	UNLOCK_LOOKUP;
 	DESTROYLOCK(&lookup_lock);
-	if (isc_mem_debugging != 0)
+	if (memdebugging != 0)
 		isc_mem_stats(mctx, stderr);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
