@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.131 2000/11/16 00:18:13 gson Exp $ */
+/* $Id: client.c,v 1.132 2000/11/27 23:54:12 marka Exp $ */
 
 #include <config.h>
 
@@ -185,6 +185,7 @@ client_deactivate(ns_client_t *client) {
 		ns_interface_detach(&client->interface);
 
 	INSIST(client->naccepts == 0);
+	INSIST(client->recursionquota == NULL);
 	if (client->tcplistener != NULL)
 		isc_socket_detach(&client->tcplistener);
 
@@ -229,6 +230,8 @@ client_free(ns_client_t *client) {
 	 * event at this point.
 	 */
 	REQUIRE(client->state == NS_CLIENTSTATE_INACTIVE);
+
+	INSIST(client->recursionquota == NULL);
 
 	ns_query_free(client);
 	isc_mem_put(client->mctx, client->sendbuf, SEND_BUFFER_SIZE);
@@ -348,6 +351,7 @@ exit_check(ns_client_t *client) {
 		ns_client_endrequest(client);
 
 		client->state = NS_CLIENTSTATE_READING;
+		INSIST(client->recursionquota == NULL);
 		if (NS_CLIENTSTATE_READING == client->newstate) {
 			client_read(client);
 			client->newstate = NS_CLIENTSTATE_MAX;
@@ -360,6 +364,7 @@ exit_check(ns_client_t *client) {
 		 * We are trying to abort the current TCP connection,
 		 * if any.
 		 */
+		INSIST(client->recursionquota == NULL);
 		INSIST(client->newstate <= NS_CLIENTSTATE_READY);
 		if (client->nreads > 0)
 			dns_tcpmsg_cancelread(&client->tcpmsg);
@@ -386,6 +391,7 @@ exit_check(ns_client_t *client) {
 		client->peeraddr_valid = ISC_FALSE;
 
 		client->state = NS_CLIENTSTATE_READY;
+		INSIST(client->recursionquota == NULL);
 
 		/*
 		 * Now the client is ready to accept a new TCP connection
@@ -429,6 +435,7 @@ exit_check(ns_client_t *client) {
 		/* Accept cancel is complete. */
 		client_deactivate(client);
 		client->state = NS_CLIENTSTATE_INACTIVE;
+		INSIST(client->recursionquota == NULL);
 		if (client->state == client->newstate) {
 			client->newstate = NS_CLIENTSTATE_MAX;
 			return (ISC_TRUE); /* We're done. */
@@ -1618,6 +1625,7 @@ client_read(ns_client_t *client) {
 
 	client->state = client->newstate = NS_CLIENTSTATE_READING;
 	INSIST(client->nreads == 0);
+	INSIST(client->recursionquota == NULL);
 	client->nreads++;
 
 	return;
@@ -1654,6 +1662,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	if (nevent->result == ISC_R_SUCCESS) {
 		client->tcpsocket = nevent->newsocket;
 		client->state = NS_CLIENTSTATE_READING;
+		INSIST(client->recursionquota == NULL);
 
 		(void) isc_socket_getpeername(client->tcpsocket,
 					      &client->peeraddr);
@@ -1940,6 +1949,7 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 
 		ns_interface_attach(ifp, &client->interface);
 		client->state = NS_CLIENTSTATE_READY;
+		INSIST(client->recursionquota == NULL);
 
 		if (tcp) {
 			client->attributes |= NS_CLIENTATTR_TCP;
