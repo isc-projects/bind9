@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.28 1999/02/05 06:41:20 marka Exp $ */
+ /* $Id: rdata.c,v 1.29 1999/02/06 01:45:10 halley Exp $ */
 
 #include <config.h>
 
@@ -1222,18 +1222,18 @@ byte_btoa(int c, isc_buffer_t *target, struct state *state) {
 		    if (tmpword < 0) {	
 			   /* Because some don't support u_long */
 		    	tmp = 32;
-		    	tmpword -= (int32_t)(85 * 85 * 85 * 85 * 32);
+		    	tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
 		    }
 		    if (tmpword < 0) {
 		    	tmp = 64;
-		    	tmpword -= (int32_t)(85 * 85 * 85 * 85 * 32);
+		    	tmpword -= (isc_int32_t)(85 * 85 * 85 * 85 * 32);
 		    }
 			if (tr.length < 5)
 				return (DNS_R_NOSPACE);
 		    	tr.base[0] = atob_digits[(tmpword /
-						 (int32_t)(85 * 85 * 85 * 85))
+					      (isc_int32_t)(85 * 85 * 85 * 85))
 						+ tmp];
-			tmpword %= (int32_t)(85 * 85 * 85 * 85);
+			tmpword %= (isc_int32_t)(85 * 85 * 85 * 85);
 			tr.base[1] = atob_digits[tmpword / (85 * 85 * 85)];
 			tmpword %= (85 * 85 * 85);
 			tr.base[2] = atob_digits[tmpword / (85 * 85)];

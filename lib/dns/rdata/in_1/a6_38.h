@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: a6_38.h,v 1.1 1999/02/02 04:52:31 marka Exp $ */
+ /* $Id: a6_38.h,v 1.2 1999/02/06 01:45:11 halley Exp $ */
 
  /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -67,7 +67,7 @@ fromtext_in_a6(dns_rdataclass_t class, dns_rdatatype_t type,
 		/* octets 0..15 */
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
 				ISC_FALSE));
-		if (isc_inet_pton(AF_INET6, token.value.as_pointer, &addr) != 1)
+		if (isc_inet_pton(AF_INET6, token.value.as_pointer, addr) != 1)
 			return (DNS_R_UNEXPECTED);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
@@ -111,12 +111,12 @@ totext_in_a6(dns_rdata_t *rdata, dns_name_t *origin, isc_buffer_t *target) {
 
 	if (prefixlen != 128) {
 		octets = prefixlen/8;
-		memset(&addr, 0, sizeof addr);
+		memset(addr, 0, sizeof addr);
 		memcpy(&addr[octets], sr.base, 16 - octets);
 		mask = 0xff >> (prefixlen % 8);
 		addr[octets] &= mask;
 		isc_buffer_available(target, &tr);
-		if (isc_inet_ntop(AF_INET6, &addr,
+		if (isc_inet_ntop(AF_INET6, addr,
 				  (char *)tr.base, tr.length) == NULL)
 			return (DNS_R_NOSPACE);
 
