@@ -922,7 +922,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * stop now.
 			 *
 			 * Note: We return DNS_R_PARTIALMATCH instead of
-			 * DNS_R_DNAME here because that way zone_find()
+			 * DNS_R_DELEGATION here because that way zone_find()
 			 * does fewer result code comparisions.
 			 */
 			result = DNS_R_PARTIALMATCH;
@@ -1039,9 +1039,11 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	isc_boolean_t cname_ok = ISC_TRUE;
 	isc_boolean_t must_succeed = ISC_FALSE;
 	isc_boolean_t close_version = ISC_FALSE;
+	isc_boolean_t maybe_zonecut = ISC_FALSE;
+	isc_boolean_t at_zonecut = ISC_FALSE;
 	isc_boolean_t secure_zone;
 	isc_boolean_t empty_node;
-	rdatasetheader_t *header, *header_next, *nxtheader;
+	rdatasetheader_t *header, *header_next, *found, *nxtheader;
 
 	search.rbtdb = (dns_rbtdb_t *)db;
 
@@ -1105,6 +1107,10 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		goto tree_exit;
 
 	/*
+	 * We have found a node whose name is the desired name.
+	 */
+
+	/*
 	 * If we're beneath a zone cut, we don't want to look for CNAMEs
 	 * because they're not legitimate zone glue.  If the caller wants
 	 * glue validation, we do it now.
@@ -1116,20 +1122,28 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			result = DNS_R_NOTIMPLEMENTED;
 			goto tree_exit;
 		}
+	} else {
+		/*
+		 * The node may be a zone cut itself.  If it might be one,
+		 * make sure we check for it later.
+		 */
+		if (node->find_callback && node != search.rbtdb->origin_node)
+			maybe_zonecut = ISC_TRUE;
 	}
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
 	 * (RFC 2535, section 2.3.5).
 	 *
+	 * We don't check for SIG, because we don't store SIG records
+	 * directly.
+	 *
 	 * XXX This should be a general purpose subroutine in the rdata
 	 * module.
 	 *
 	 * XXX This 'if' could be an 'else if' of the 'if' above.
 	 */
-	if (type == dns_rdatatype_key ||
-	    type == dns_rdatatype_sig ||
-	    type == dns_rdatatype_nxt)
+	if (type == dns_rdatatype_key || type == dns_rdatatype_nxt)
 		cname_ok = ISC_FALSE;
 
 	/*
@@ -1138,6 +1152,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	LOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 	
+	found = NULL;
 	nxtheader = NULL;
 	empty_node = ISC_TRUE;
 	for (header = node->data; header != NULL; header = header_next) {
@@ -1164,6 +1179,34 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * rdataset at this node.
 			 */
 			empty_node = ISC_FALSE;
+
+			/*
+			 * Do special zone cut handling, if requested.
+			 */
+			if (maybe_zonecut &&
+			    header->type == dns_rdatatype_ns) {
+				new_reference(search.rbtdb, node);
+				search.zonecut = node;
+				search.zonecut_rdataset = header;
+				search.need_cleanup = ISC_TRUE;
+				maybe_zonecut = ISC_FALSE;
+				at_zonecut = ISC_TRUE;
+				if ((search.options & DNS_DBFIND_GLUEOK) == 0
+				    && type != dns_rdatatype_nxt
+				    && type != dns_rdatatype_key
+				    && type != dns_rdatatype_any) {
+					/*
+					 * Glue is not OK, but any answer we
+					 * could return would be glue.  Return
+					 * the delegation.
+					 */
+					found = NULL;
+					break;
+				}
+				if (found != NULL)
+					break;
+			}
+
 			/*
 			 * If we found a type we were looking for, we're done.
 			 */
@@ -1171,7 +1214,9 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			    type == dns_rdatatype_any ||
 			    (cname_ok &&
 			     header->type == dns_rdatatype_cname)) {
-				break;
+				found = header;
+				if (!maybe_zonecut)
+					break;
 			} else if (header->type == dns_rdatatype_nxt) {
 				/*
 				 * Remember a NXT rdataset even if we're
@@ -1194,10 +1239,15 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		goto partial_match;
 	}
 
+	/* 
+	 * XXX We need to do glue validation if we're looking for glue at
+	 * a zonecut.
+	 */
+
 	/*
 	 * If we didn't find what we were looking for...
 	 */
-	if (header == NULL) {
+	if (found == NULL) {
 		if (must_succeed) {
 			/*
 			 * We were looking for a type which must be in the
@@ -1235,13 +1285,16 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 */
 
 	if (nodep != NULL) {
-		new_reference(search.rbtdb, node);
+		if (!at_zonecut)
+			new_reference(search.rbtdb, node);
+		else
+			search.need_cleanup = ISC_FALSE;
 		*nodep = node;
 	}
 
-	if (type != header->type &&
+	if (type != found->type &&
 	    type != dns_rdatatype_any &&
-	    header->type == dns_rdatatype_cname) {
+	    found->type == dns_rdatatype_cname) {
 		/*
 		 * We weren't doing an ANY query and we found a CNAME instead
 		 * of the type we were looking for, so we need to indicate
@@ -1251,9 +1304,19 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	} else if (search.zonecut != NULL) {
 		/*
 		 * If we're beneath a zone cut, we must indicate that the
-		 * result is glue.
+		 * result is glue, unless we're actually at the zone cut
+		 * and the type is NXT or KEY.
 		 */
-		result = DNS_R_GLUE;
+		if (search.zonecut == node) {
+			if (type == dns_rdatatype_nxt ||
+			    type == dns_rdatatype_key)
+				result = DNS_R_SUCCESS;
+			else if (type == dns_rdatatype_any)
+				result = DNS_R_ZONECUT;
+			else
+				result = DNS_R_GLUE;
+		} else
+			result = DNS_R_GLUE;
 	} else {
 		/*
 		 * An ordinary successful query!
@@ -1262,7 +1325,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	}
 
 	if (rdataset != NULL && type != dns_rdatatype_any)
-		bind_rdataset(search.rbtdb, node, header, rdataset);
+		bind_rdataset(search.rbtdb, node, found, rdataset);
 
  node_exit:
 	UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
