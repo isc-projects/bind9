@@ -114,10 +114,10 @@ struct lwres_lwpacket {
 ISC_LANG_BEGINDECLS
 
 int
-lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt,
-			    isc_uint32_t buflen, isc_uint16_t flags,
-			    isc_uint32_t serial, isc_uint32_t opcode,
-			    isc_uint32_t result, isc_uint32_t recvlength);
+lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
+
+int
+lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt);
 
 ISC_LANG_ENDDECLS
 
