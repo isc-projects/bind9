@@ -1,0 +1,580 @@
+INTERNET-DRAFT	                       X. Wang, Y. Huang, D Rine (GMU)
+<draft-whr-dnsext-secure-online-update-00.txt>              June 2000
+
+Updates:  RFC 2136
+Replaces: RFC 2137
+
+
+
+       Secure Online Domain Name System (DNS) Dynamic Update
+
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six
+   months and may be updated, replaced, or obsoleted by other 
+   documents at any time.  It is inappropriate to use Internet-Drafts
+   as reference material or to cite them other than as ``work in
+   progress.''
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+   Comments should be sent to the authors or the DNSIND WG mailing
+   list namedroppers@internic.net.
+
+   This draft expires on December 9, 2000.
+
+   Copyright Notice
+
+   Copyright (C) The Internet Society (2000).  All rights reserved.
+
+
+Abstract
+
+   This document proposes an alternate architecture to enable secure
+   online Domain Name System (DNS) dynamic updates.  It is intended
+
+
+
+Expires December 2000                                           [Page 1]
+
+INTERNET-DRAFT    Secure Online DNS Dynamic Update            June 2000
+
+
+   to enable a DNS zone to provide online dynamic update and at the
+   same time, maintain the zone's security including role separation
+   and intrusion tolerance against insider and outsider attacks. 
+   Threshold digital signature is used to implement the proposed 
+   architecture.
+
+1 - Introduction
+
+   This document proposes an alternate architecture to allow a
+   DNS zone to provide secure online dynamic update. In contrast
+   to existing dynamic update scheme, the proposed architecture
+   distinguishes itself in that it provides high security
+   for a zone when allowing it support online dynamic update.
+
+   Familiarity with the DNS system [RFC1034, RFC1035], DNS 
+   Security Extension [RFC2535], dynamic update [RFC2136] and
+   secure dynamic update [RFC2137] is helpful and is assumed by
+   this document.
+
+   This document obsoletes RFC 2137, an alternate proposal
+   for secure dynamic update, due to implementation experience.
+
+   1.1 - Overview of DNS Security Extension
+
+      DNS Security Extension (DNSSEC) is proposed in [RFC2535].
+      The DNSSEC provides RR authentication by the use of digital
+      signatures. In DNSSEC, each zone is equipped with a
+      public/private key pair. The private key is used to digitally
+      sign all the RRs in that zone. The response to a DNS query
+      will also include the requested RRs and a SIG RR
+      (signature RR), which contains the digital signature of the
+      requested RRs. The zone public key, used to verify signatures,
+      is disseminated by means of KEY RRs.
+
+      A major security principle of the DNSSEC is the role separation:
+      it differentiates the roles of the DNS server administrator from
+      the DNS zone manager. One advantage of the role separation
+      is that it helps to prevent power abuses [SBM99]. In DNSSEC,
+      it is the DNS zone manager, not the DNS server administrator,
+      who is responsible for the security of a zone. A DNS server is
+      just a place to publish the digitally signed DNS data of the zone.
+      Thus, compromise of a secondary server or, if the zone private
+      key is kept off line, even the primary server for a zone, will
+      not necessarily affect the degree of assurance that a DNS
+      client receives [RFC2535]. When zone data is updated, the zone
+      manager will sign the new zone data off-line.
+
+   1.2 - Overview of DNS Dynamic Update and DNS Secure Dynamic Update
+
+      The idea of keeping zone private key off-line and computing
+      the signatures of RRs off-line is based on the assumption
+      that RRs in a DNS zone are relatively static. Indeed, in
+      normal situations we can expect that bindings between domain
+      names and IP addresses do not change frequently. However, it
+      has been pointed out that DNS dynamic updates, which enable
+      real-time changes (that is, add, delete, or update) in
+      name/address bindings, are useful under many circumstances
+      [Liu99,RFC2136]. (For example, such an update allows a 
+
+Wang, Huang & Rine	                                   [Page 2]
+
+INTERNET-DRAFT    					  June 2000
+
+
+      corporation to switch to a new domain name without waiting for
+      the slow, manual processing of the name change request by a
+      domain name registrar.) For a dynamic RR update to take effect
+      immediately and securely, the signature of the updated RR must
+      be computed online. It is worthwhile to note that although
+      a DNS dynamic update requestor is communicating with a name
+      server, the name server itself has no rights to update the
+      zone data. Instead, it is the zone private key, instead of 
+      the name server's private key, that is needed in the dynamic
+      update.
+
+      In [RFC2137], two modes are defined to achieve the above goal.
+      In mode A, the zone private key is kept off-line and any
+      dynamic requests will be authorized by a dynamic update key
+      that is kept online. However, in this mode, since the zone
+      private key is not kept online,  zone transfer security is
+      not automatically provided for dynamically added RRs, where
+      they could be omitted, and authorization is not provided for
+      the server denial of the existence of a dynamically added 
+      type [RFC2137]. In this sense, this mode is not a genuine
+      DNS dynamic update. In mode B, on the other hand, the zone
+      private key is kept online at the zone primary name server;
+      thus, any legitimate DNS dynamic updates can be in effect
+      immediately.
+
+   1.3 - The existing drawbacks
+
+      Both of the above modes above require that a zone security
+      related private key be kept on line at the primary name server.
+      This practice raises security concerns [RFC2137]. First, it makes
+      the primary name server a single point of attack to an outside
+      attacker. Should the primary server be compromised, the on¡line
+      private key will be exposed, rendering dynamic RRs insecure
+      in mode A or, even worse, all RRs in the entire zone insecure
+      in mode B. Second, as an insider, the name server administrator
+      has access of this private key, compromising the role separation
+      principle and making it possible for the name server
+      administrator to abuse his/her power. (The importance of fending
+      off insider attacks has been emphasized by the security
+      community [RFC2196].) 
+
+2 - The Secure On-line DNS Dynamic Update Architecture
+
+   2.1 - Background: Threshold Cryptography
+
+      Threshold cryptography is a branch of cryptography that 
+      enables a group of n members, 1,2, ..., n, to act as a single
+      communication party, using one pair of public and private keys
+      [Des87,Des94,Des97]. Similar to the traditional public key
+      cryptography, the public key is known to the public. Unlike
+      the traditional public key cryptography, the private key of
+      the group, K_private, does not exist as a whole. Rather, each
+      member i, 1 <= i <= n, will be assigned a number of key shares
+      of the private key. (For each public key cryptography algorithm,
+
+
+Wang, Huang & Rine	                                   [Page 3]
+
+INTERNET-DRAFT    					  June 2000
+
+
+      a corresponding key sharing mechanism must be devised.) To 
+      perform a cryptographic computation (such as decryption, signing,
+      identification, etc.) on message m with key K_private, b,
+      b <= n , group members will be required. Each member will compute
+      a partial result. Subsequently, the partial results are combined
+      to produce the final result. The combiner is not necessarily to
+      be trusted. Note that during this whole process the shared
+      private key, K_private, is never reconstructed.  Further,
+      threshold cryptography requires that the shared private key 
+      cannot be reconstructed from any t < b group members.
+
+      Practical threshold cryptography for RSA and DSS have been
+      designed. A practical threshold RSA is given by [DDB94] where
+      b = t+1 and a practical threshold DSS is given by  [GJKR96b] where
+      t < n/2 and b = 2t+1.
+
+   2.2 - Introduction
+					   +------------------------+
+		       +---------+    #####| zone-security server 1 |
++---------+            | DNS     |    #    +------------------------+
+|DNS      | DNS query  |         |    #
+| Inquirer|--------->  |         |    #
++---------+            | Primary |    #    +------------------------+
+		       |         |#########| zone-security server 2 |
+		       | Name    |    #    +------------------------+
+		       |         |    #
+		       |         |    #         .         .       .
++------+               | Server  |    #         .         .       .
+|DNS   | DNS Dynamic   |         |    #         .         .       .
+| User |=============> |         |    #    +--------------------------+
++------+ Update request|         |    #####| zone-security server n-1 |
+		       |         |         +--------------------------+
+		       +---------+
+			  |
+			  | zone transfer
+			 \|/
+		  +-----------------+
+		  | DNS Secondary   |
+		  |   Name Server   |
+		  +-----------------+
+
+      In the above proposed architecture, we assume that there exist 
+      (n-1), n >= 2, machines in a given DNS zone that are under the 
+      control of the zone manager, but not under the control of the 
+      name server administrators. These machines are called the 
+      zone-security servers.
+
+      Using a threshold cryptography scheme with n > t >= 1, the
+      zone private key is shared among the (n-1) zone-security servers
+      and the primary name server.  To update zone's data dynamically,
+      some of the servers will be needed. Let b > t be the number of
+      zone private key shares needed in the computation of the 
+      signature of an RR. Since b >= 2, any change to the zone data
+      will need the cooperation of at least one zone-security server; 
+
+
+Wang, Huang & Rine	                                   [Page 4]
+
+INTERNET-DRAFT    					  June 2000
+
+
+      the name server administrator will have no way to modify the 
+      digitally signed zone data. Thus, the role separation principle
+      holds. Moreover, the above architecture enhances intrusion
+      tolerance of DNS.
+
+      A DNS system is said to be k-intrusion-tolerant against an
+      entity, E, if breaking into k servers (including the 
+      zone-security servers and the DNS name servers, if applicable) 
+      that are outside E's control will not help E gain any knowledge 
+      of the zone private key. A DNS system is said to be intrusion 
+      tolerant against an outsider (insider) if it is at least 
+      1-intrusion-tolerant against the outsider (insider). The 
+      architecture proposed in this document can be configured to be 
+      intrusion tolerant against outside and inside attackers.
+
+	 Intrusion tolerance against outsider attacks. In the
+	    architecture, the zone private key cannot be recovered from
+	    any single location, thus, making the system intrusion 
+	    tolerant against an outside attacker. That is, even when an
+	    outside attacker manages to corrupt l, l <= t, of relevant
+	    servers (including the name servers and the zone-security
+	    servers), secrecy of the zone private key is still 
+	    maintained.
+
+	 Intrusion tolerance against insider attacks.  The presence of
+	    zone security servers and the necessity of their involvement
+	    in signature computations constitute a defense line 
+	    against insider attacks, in particular, attacks from name 
+	    server administrators. Clearly, a hostile name server 
+	    administrator must break into at least t zone security 
+	    servers (to get access to the respective key shares) in 
+	    order to perform unauthorized RR signature computations.
+
+3 - Implementation Details
+
+   [RFC2535] defines two types of SIG records, the DSA SIG and
+   the RSA/MD5 SIG. The important configuration and implementation 
+   aspects of our proposed architecture with respect to these two types 
+   of SIGs are given next.  In the following statement,
+   the primary name server will be referred to as server 0 and the
+   (n-1) zone-security servers will be referred to as servers 
+   1, 2, ... , (n-1).
+
+   3.1 - Example Configurations
+
+      The following table gives some representative configurations, in 
+      terms of t and n, to achieve the above security levels in 
+      different application cases. 
+
+
+Wang, Huang & Rine	                                   [Page 5]
+
+INTERNET-DRAFT    					  June 2000
+
+
+      +----------------------------+----------------------------+
+      |                            | RSA/MD5 SIG |  DSA SIG     |
+      |   SECURITY LEVEL           +-------------+--------------+ 
+      |                            | 1-2 |  2-4  |  1-3  | 2-5  |
+      +----------------------------+-----+-------+-------+------+
+      |Intrusion tolerant against  |     |       |       |      |
+      | outsider attackers (Y/N)   |  Y  |   Y   |   Y   |  Y   |
+      +----------------------------+-----+-------+-------+------+
+      |Intrusion tolerant against  |     |       |       |      |
+      | insider attackers (Y/N)    |  N  |   Y   |   N   |  Y   |
+      +----------------------------+-----+-------+-------+------+
+
+   3.2 - The RSA/MD5 SIG
+
+      Assume that, in RSA, the zone's private key is d and its
+      public key is (e, N). Phi(N) is the Euler function of N, i.e.,
+      phi(N) = (p-1)(q-1) where N = p * q. We use the threshold 
+      digital signature scheme given in [DDB94] and now give
+      how the zone private key is shared and how to generate a 
+      RSA/MD5 SIG RR online.
+
+      The 1-2 case. In this case, the zone manager generates a random,
+	 d1, 1 < d1 < phi(N), and compute d2, d2 = d - d1 mod phi(N).
+	 Values d1 and d2 are sent securely to the primary name server
+	 and the zone-security server respectively.
+
+	 To generate a RSA/MD5 SIG of m, where m is the MD5 digest of
+	 an RR, the two servers will compute m^d1 mod N and m^d2 mod N
+	 respectively. Then any one of them can combine the partial
+	 results as m^d1 * m^d2 mod N = m^d mod N, the digital signature
+	 of m by the zone private key.
+
+      The 2-4 case. To generate key shares, the zone manager generates
+	 4 random numbers, d1, d2, d3, d4, where 1 < di < phi(N)
+	 for 1 <= i <= 4.  He/she will also compute two numbers,
+	 d5 = d - d1 - d2 mod phi(N) and d6 = d - d3 - d4 mod phi(N).
+	 Subsequently, d1 and d6 are sent to the primary name server,
+	 d2 and d6 are sent to server 1, d3 and d5 are sent to server 2,
+	 d4 and d5 are sent to server 3, as shown in the following table.
+
+      +---------------------+----------+----------+----------+---------+
+      |                     | SERVER 0 | SERVER 1 | SERVER 2 | SERVER 3|
+      +---------------------+----------+----------+----------+---------+
+      |  KEYS ASSIGNED      | d1, d6   | d2, d6   | d3, d5   |  d4, d5 |
+      +-------------+-------+----------+----------+----------+---------+
+      |PARTICIPATING|(0,1,2)|   d1     |   d2     |    d5    |         |
+      |             +-------+----------+----------+----------+---------+
+      |             |(0,1,3)|   d1     |   d2     |          |    d5   |
+      |             +-------+----------+----------+----------+---------+
+      |             |(0,2,3)|   d6     |          |    d3    |    d4   |
+      | SERVERS     +-------+----------+----------+----------+---------+
+      |             |(1,2,3)|          |   d6     |    d3    |    d4   |
+      +-------------+-------+----------+----------+----------+---------+
+
+
+Wang, Huang & Rine	                                   [Page 6]
+
+INTERNET-DRAFT    					  June 2000
+
+
+	 To generate a RSA/MD5 SIG, any 3 of the 4 servers will be
+	 needed. For example, if the primary name server and the 
+	 zone-security servers 1 and 2 are present (the (0,1,2) case in
+	 the above table), the three servers will compute m^d1 mod N, 
+	 m^d2 mod N, and m^d3 mod N respectively. After that any one of
+	 them can combine the partial results to produce 
+	 m^d1 * m^d2 * m^d3 mod N = m^d mod N, the digital signature of
+	 m by the zone private key.  Other possibilities of computing
+	 the signature of m are summarized in the above table.
+
+   3.3 - The DSA SIG
+
+      In this case, for a t-n configuration (such as the 1-3 and 2-5
+      configurations), the zone manager will generate n shares of the
+      zone private key and distribute them to the n servers
+      using a (t,n) Shamir secret sharing scheme [Sha79]. When the
+      zone data needs updating, (2t+1) servers are required to jointly
+      compute the DSA SIG RR [GJKR96b].
+
+5 - Security considerations
+
+   This document proposes an architecture to allow a DNS zone to 
+   provide secure online DNS dynamic update. It uses threshold
+   digital signature to maintain the role separation principle and can
+   also provide intrusion tolerance against both outside attackers
+   and inside attackers.
+
+   It should be noted that the authentication a DNS dynamic update
+   requestor and authorization of a update request, which is handled
+   elsewhere such as [RFC2535], is not dealt in this document,
+
+6 - Acknowledgements
+
+   The authors wish to thank for many helpful discussions on the
+   DNSSEC mailing list and would like to give special thanks to
+   Yvo Desmedt.
+
+7 - References
+
+   [DDB94]   Y. Desmedt, G. Di Crescenzo, and M. Burmester. 
+	     ``Multiplicative nonabelian sharing schemes and their
+	     application to threshold cryptography''. In J. Pieprzyk 
+	     and R. SafaviNaini, editors, Advances in Cryptology -
+	     Asiacrypt '94, volume 917 of Lecture Notes in Computer 
+	     Science, pages 21--32, Wollongong, Australia, 
+	     November/December 1994. Springer-Verlag. 
+
+   [Des87]   Y. Desmedt. ``Society and group oriented cryptography: 
+	     a new concept''. In C. Pomerance, editor, Advances in
+	     Cryptology, Proc. of Crypto '87, volume 293 of Lecture 
+	     Notes in Computer Science, pages 120--127, Santa Barbara, 
+	     California, U.S.A., August 16--20, 1988. Springer-Verlag.
+
+
+Wang, Huang & Rine	                                   [Page 7]
+
+INTERNET-DRAFT    					  June 2000
+
+
+   [Des94]   Y. Desmedt. ``Threshold cryptography''. European Trans.
+             on Telecommunications, 5(4):449--457, July-August 1994.
+
+   [Des97]   Y. Desmedt. ``Some recent research aspects of threshold 
+	     cryptography''. In E. Okamoto, G. Davida, and M. Mambo, 
+	     editors, Information Security, volume 1396 of Lecture 
+	     Notes in Computer Science, pages 158--173, Tatsunokuchi, 
+	     Ishikawa, Japan, September 1997. Springer-Verlag. 
+
+   [DSA2]    National Institute for Standards and Technology. 
+             ``Digital signature standard (DSS)'', February 2000. 
+
+   [GJKR96b] R. Gennaro, S. Jarecki, H. Krawczyk, and T. Rabin. 
+             ``Robust threshold DSS signatures''. In U. Maurer,
+             editor, Advances in Cryptology - Eurocrypt '96, 
+             volume 1070 of Lecture Notes in Computer Science, 
+             pages 354-371, Zaragoza, Spain, May 12--16 1996. 
+             Springer-Verlag. 
+
+   [GMP]     T. Granlund. ``GNU MP''. Source code available from 
+	     http://www.gnu.org/manual/gmp/index.html. 
+
+   [Liu99]   C. Liu. ``Securing an Internet name server''. 
+             Presentation, 1999. Available at 
+	     http://www.acmebw.com/papers/securing.pdf.
+
+   [RFC1034]  P. Mockapetris, ``Domain Names - Concepts and 
+	      Facilities,'' RFC 1034, ISI, November 1987.
+
+   [RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
+	   Specification,'' RFC 1035, ISI, November 1987.
+
+   [RFC2136]  P. Vixie (Ed.), S. Thomson, Y. Rekhter, J. Bound ``Dynamic
+	      Updates in the Domain Name System,'' RFC 2136, ISC & 
+	      Bellcore & Cisco & DEC, April 1997.
+
+   [RFC2137]  D. Eastlake ``Secure Domain Name System Dynamic Update,'' 
+	      RFC 2137, CyberCash, April 1997.
+
+   [RFC2196] B. Fraser. ``Site Security Handbook,'' RFC2196, September
+	     1997.
+
+   [RFC2535]  D. Eastlake, ``Domain Name System Security Extensions,'' 
+	      RFC 2535, IBM, March 1999.
+
+   [SBM99]   R. Sandhu, V. Bhamidipati, and Q. Munawer. ``The ARBAC97 
+	     model for role-based administration of roles''. ACM 
+	     Transactions on Information System Security, 2(1):105-
+	     135, February 1999.
+
+   [Sha79]   A. Shamir. ``How to share a secret''. Commun. ACM, 
+             22:612-613, November 1979. 
+
+
+Wang, Huang & Rine	                                   [Page 8]
+
+INTERNET-DRAFT    					  June 2000
+
+
+8 - Author's Address
+   
+   A postscript of this document is available from
+	http://www.cs.gmu.edu/~xwang4/dnssecureonline.ps
+
+   Send all comments to xwang4@cs.gmu.edu
+
+   Xunhua Wang
+       Department of Computer Science
+       George Mason University
+       Fairfax, VA 22030-4444
+       USA
+
+       Phone: +1-703-993-1536
+       Fax:   +1-703-993-1710
+       EMail: xwang4@cs.gmu.edu
+
+   Yih Huang 
+       Department of Computer Science
+       George Mason University
+       Fairfax, VA 22030-4444
+       USA
+
+       Phone: +1-703-993-1540
+       Fax:   +1-703-993-1710
+       EMail: hyangyih@cs.gmu.edu
+
+   David Rine 
+       Department of Computer Science
+       George Mason University
+       Fairfax, VA 22030-4444
+       USA
+
+       Phone: +1-703-993-1546
+       Fax:   +1-703-993-1710
+       EMail: drine@cs.gmu.edu
+
+
+9 - Full Copyright Statement
+
+   Copyright (C) The Internet Society (2000).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain
+   it or assist in its implementation may be prepared, copied, 
+   published and distributed, in whole or in part, without restriction
+   of any kind, provided that the above copyright notice and this
+   paragraph are included on all such copies and derivative works. 
+   However, this document itself may not be modified in any way, 
+   such as by removing the copyright notice or references to the 
+
+
+Wang, Huang & Rine	                                   [Page 9]
+
+INTERNET-DRAFT    					  June 2000
+
+
+   Internet Society or other Internet organizations, except as needed
+   for the purpose of developing Internet standards in which case
+   the procedures for copyrights defined in the Internet Standards
+   process must be followed, or as required to translate it into
+   languages other than English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on
+   an "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET
+   ENGINEERING TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED,
+   INCLUDING BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE
+   INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
+   WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Expires December 2000                                        [Page 10]
+
+INTERNET-DRAFT    Secure Online DNS Dynamic Update            June 2000
