@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.1 2001/09/20 15:17:06 marka Exp $ */
+/* $Id: check.c,v 1.2 2001/10/04 18:22:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -406,7 +406,7 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
 		}
 
 		tresult = bind9_check_key(key, logctx);
-		if (result != ISC_R_SUCCESS) {
+		if (tresult != ISC_R_SUCCESS) {
 			isc_symtab_destroy(&symtab);
 			return (tresult);
 		}
