@@ -708,7 +708,7 @@ usage() {
 
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+ttl:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+ttl|now+ttl]:\n");
@@ -718,7 +718,7 @@ usage() {
 	fprintf(stderr, "\t-v level:\n");
 	fprintf(stderr, "\t\tverbose level (0)\n");
 	fprintf(stderr, "\t-o origin:\n");
-	fprintf(stderr, "\t\tzone origin (zonefile)\n");
+	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
 	fprintf(stderr, "\t-f outfile:\n");
 	fprintf(stderr, "\t\tfile the signed zone is written in " \
 			"(zonefile + .signed)\n");
@@ -774,14 +774,14 @@ main(int argc, char *argv[]) {
 		case 'c':
 			endp = NULL;
 			cycle = strtol(optarg, &endp, 0);
-			if (endp != NULL)
+			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
 			break;
 
 		case 'v':
 			endp = NULL;
 			verbose = strtol(optarg, &endp, 0);
-			if (endp != NULL)
+			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol()");
 			break;
 
@@ -882,13 +882,13 @@ main(int argc, char *argv[]) {
 
 			endp = NULL;
 			id = strtol(idstr, &endp, 0);
-			if (endp != NULL)
+			if (*endp != '\0')
 				check_result(ISC_R_FAILURE, "strtol");
 
 			if (algstr != NULL) {
 				endp = NULL;
 				alg = strtol(idstr, &endp, 0);
-				if (endp != NULL)
+				if (*endp != '\0')
 					check_result(ISC_R_FAILURE, "strtol");
 			}
 			else
