@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.199 2002/11/13 00:07:04 explorer Exp $ */
+/* $Id: adb.c,v 1.200 2002/11/16 17:20:03 marka Exp $ */
 
 /*
  * Implementation notes
@@ -769,6 +769,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now,
 			name->partial_result &= ~DNS_ADBFIND_INET;
 		}
 		name->expire_v4 = INT_MAX;
+		name->fetch_err = FIND_ERR_UNEXPECTED;
 	}
 
 	/*
@@ -782,6 +783,7 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now,
 			name->partial_result &= ~DNS_ADBFIND_INET6;
 		}
 		name->expire_v6 = INT_MAX;
+		name->fetch6_err = FIND_ERR_UNEXPECTED;
 	}
 
 	/*
