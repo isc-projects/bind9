@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.126 2001/09/05 23:02:28 gson Exp $ */
+/* $Id: xfrin.c,v 1.127 2001/09/12 20:39:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1160,7 +1160,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (result != ISC_R_SUCCESS) {
 		xfrin_log(xfr, ISC_LOG_DEBUG(3), "TSIG check failed: %s",
 		       isc_result_totext(result));
-		return;
+		FAIL(result);
 	}
 
 	for (result = dns_message_firstname(msg, DNS_SECTION_ANSWER);
