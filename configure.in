@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.186 $)
+AC_REVISION($Revision: 1.187 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -136,13 +136,20 @@ case "$enable_threads" in
 	yes|'')
 		AC_MSG_RESULT(yes)
 		use_threads=true
-		ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1" ;;
+		ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
+		;;
 	no)
 		AC_MSG_RESULT(no)	
 		use_threads=false
-		ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS" ;;
+#ifdef ISC_PLATFORM_USETHREADS
+		ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
+#else /* ISC_PLATFORM_USETHREADS */
+#+		AC_MSG_ERROR(["--enable-threads is not implemented"])
+#endif /* ISC_PLATFORM_USETHREADS */
+		;;
 	*)
-	    	AC_MSG_ERROR(["--enable-threads takes yes or no"]) ;;
+	    	AC_MSG_ERROR(["--enable-threads takes yes or no"])
+		;;
 esac
 AC_SUBST(ISC_PLATFORM_USETHREADS)
 
