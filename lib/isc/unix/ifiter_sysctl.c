@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_sysctl.c,v 1.10 2000/08/01 01:31:20 tale Exp $ */
+/* $Id: ifiter_sysctl.c,v 1.11 2000/12/06 00:30:25 tale Exp $ */
 
 /*
  * Obtain the list of network interfaces using sysctl.
@@ -86,7 +86,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	bufsize = 0;
 	if (sysctl(mib, 6, NULL, &bufsize, NULL, (size_t) 0) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "getting interface list size: sysctl: %s",
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_IFITERSYSCTL,
+						ISC_MSG_GETIFLISTSIZE,
+						"getting interface "
+						"list size: sysctl: %s"),
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
 		goto failure;
@@ -102,7 +106,11 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	bufused = bufsize;
 	if (sysctl(mib, 6, iter->buf, &bufused, NULL, (size_t) 0) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "getting interface list: sysctl: %s",
+				 isc_msgcat_get(isc_msgcat,
+						ISC_MSGSET_IFITERSYSCTL,
+						ISC_MSG_GETIFLIST,
+						"getting interface list: "
+						"sysctl: %s"),
 				 strerror(errno));
 		result = ISC_R_UNEXPECTED;
 		goto failure;
@@ -241,7 +249,10 @@ internal_current(isc_interfaceiter_t *iter) {
 
 		return (ISC_R_SUCCESS);
 	} else {
-		printf("warning: unexpected interface list message type\n");
+		printf(isc_msgcat_get(isc_msgcat, ISC_MSGSET_IFITERSYSCTL,
+				      ISC_MSG_UNEXPECTEDTYPE,
+				      "warning: unexpected interface list "
+				      "message type\n"));
 		return (ISC_R_IGNORE);
 	}
 }

@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.10 2000/08/01 01:29:19 tale Exp $ */
+/* $Id: commandline.c,v 1.11 2000/12/06 00:29:56 tale Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -68,6 +68,7 @@
 #include <stdio.h>
 
 #include <isc/commandline.h>
+#include <isc/msgs.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -140,8 +141,12 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 			isc_commandline_index++;
 
 		if (isc_commandline_errprint && *options != ':')
-			fprintf(stderr, "%s: illegal option -- %c\n",
+			fprintf(stderr, "%s: %s -- %c\n",
 				isc_commandline_progname,
+				isc_msgcat_get(isc_msgcat,
+					       ISC_MSGSET_COMMANDLINE,
+					       ISC_MSG_ILLEGALOPT,
+					       "illegal option"),
 				isc_commandline_option);
 
 		return (BADOPT);
@@ -189,10 +194,14 @@ isc_commandline_parse(int argc, char * const *argv, const char *options) {
 				return (BADARG);
 
 			if (isc_commandline_errprint)
-				fprintf(stderr,
-				    "%s: option requires an argument -- %c\n",
-				    isc_commandline_progname,
-				    isc_commandline_option);
+				fprintf(stderr, "%s: %s -- %c\n",
+					isc_commandline_progname,
+					isc_msgcat_get(isc_msgcat,
+						       ISC_MSGSET_COMMANDLINE,
+						       ISC_MSG_OPTNEEDARG,
+						       "option requires"
+						       "an argument"),
+					isc_commandline_option);
 
 			return (BADOPT);
 		}

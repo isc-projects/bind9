@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.24 2000/08/01 01:31:00 tale Exp $ */
+/* $Id: condition.c,v 1.25 2000/12/06 00:30:17 tale Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 
 #include <isc/condition.h>
+#include <isc/msgs.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -56,7 +57,9 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	} while (presult == EINTR);
 
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() returned %s",
+			 "pthread_cond_timedwait() %s %s",
+			 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					ISC_MSG_RETURNED, "returned %s"),
 			 strerror(presult));
 	return (ISC_R_UNEXPECTED);
 }

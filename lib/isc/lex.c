@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.52 2000/11/20 00:41:50 bwelling Exp $ */
+/* $Id: lex.c,v 1.53 2000/12/06 00:29:58 tale Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,7 @@
 #include <isc/file.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -724,7 +725,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			break;
 		default:
 			FATAL_ERROR(__FILE__, __LINE__,
-				    "Unexpected state %d", state);
+				    isc_msgcat_get(isc_msgcat, ISC_MSGSET_LEX,
+						   ISC_MSG_UNEXPECTEDSTATE,
+						   "Unexpected state %d"),
+				    state);
 			/* Does not return. */
 		}
 

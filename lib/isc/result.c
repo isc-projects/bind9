@@ -15,14 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.50 2000/11/18 02:56:45 gson Exp $ */
+/* $Id: result.c,v 1.51 2000/12/06 00:30:07 tale Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/lib.h>
-#include <isc/msgcat.h>
+#include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/resultclass.h>
@@ -142,7 +142,10 @@ initialize_action(void) {
 				isc_msgcat, ISC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "register_table() failed: %u", result);
+				 "register_table() %s: %u",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
+				 result);
 }
 
 static void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.49 2000/11/24 01:37:24 marka Exp $ */
+/* $Id: log.c,v 1.50 2000/12/06 00:30:01 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -32,6 +32,7 @@
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -1364,14 +1365,22 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				 * "Should never happen."
 				 */
 				snprintf(time_string, sizeof(time_string),
-					 "Bad 00 99:99:99.999 ");
+					 isc_msgcat_get(isc_msgcat,
+						      ISC_MSGSET_LOG,
+						      ISC_MSG_BADTIME,
+						      "Bad 00 99:99:99.999 "));
 
 		}
 
 		if ((channel->flags & ISC_LOG_PRINTLEVEL) != 0 &&
 		    level_string[0] == '\0') {
 			if (level < ISC_LOG_CRITICAL)
-				sprintf(level_string, "level %d: ", level);
+				sprintf(level_string,
+					isc_msgcat_get(isc_msgcat,
+						       ISC_MSGSET_LOG,
+						       ISC_MSG_LEVEL,
+						       "level %d: "),
+					level);
 			else if (level > ISC_LOG_DYNAMIC)
 				sprintf(level_string, "%s %d: ",
 					log_level_strings[0], level);

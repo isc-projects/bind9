@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.33 2000/11/29 01:51:54 gson Exp $ */
+/* $Id: app.c,v 1.34 2000/12/06 00:30:19 tale Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,7 @@
 #include <isc/app.h>
 #include <isc/boolean.h>
 #include <isc/condition.h>
+#include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
@@ -102,8 +103,10 @@ handle_signal(int sig, void (*handler)(int)) {
 	if (sigfillset(&sa.sa_mask) != 0 ||
 	    sigaction(sig, &sa, NULL) < 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "handle_signal() %d setup: %s", sig,
-				 strerror(errno));
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_APP,
+					       ISC_MSG_SIGNALSETUP,
+					       "handle_signal() %d setup: %s"),
+				 sig, strerror(errno));
 		return (ISC_R_UNEXPECTED);
 	}
 

@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.c,v 1.13 2000/09/15 20:52:27 bwelling Exp $ */
+/* $Id: net.c,v 1.14 2000/12/06 00:30:30 tale Exp $ */
 
 #include <config.h>
 
 #include <errno.h>
 #include <unistd.h>
 
+#include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/once.h>
 #include <isc/string.h>
@@ -54,7 +55,11 @@ try_proto(int domain) {
 			return (ISC_R_NOTFOUND);
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() failed: %s",
+					 "socket() %s: %s",
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
 					 strerror(errno));
 			return (ISC_R_UNEXPECTED);
 		}

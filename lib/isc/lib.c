@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.6 2000/08/01 01:29:31 tale Exp $ */
+/* $Id: lib.c,v 1.7 2000/12/06 00:29:59 tale Exp $ */
 
 #include <config.h>
 
@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 #include <isc/once.h>
-#include <isc/msgcat.h>
+#include <isc/msgs.h>
 #include <isc/lib.h>
 
 /***
@@ -63,9 +63,15 @@ isc_lib_initmsgcat(void) {
 		/*
 		 * Normally we'd use RUNTIME_CHECK() or FATAL_ERROR(), but
 		 * we can't do that here, since they might call us!
+		 * (Note that the catalog might be open anyway, so we might
+		 * as well try to  provide an internationalized message.)
 		 */
-		fprintf(stderr, "%s:%d: fatal error: isc_once_do() failed.\n",
-			__FILE__, __LINE__);
+		fprintf(stderr, "%s:%d: %s: isc_once_do() %s.\n",
+			__FILE__, __LINE__,
+			isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				       ISC_MSG_FATALERROR, "fatal error"),
+			isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				       ISC_MSG_FAILED, "failed"));
 		abort();
 	}
 }

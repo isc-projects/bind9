@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.14 2000/11/14 23:42:29 tale Exp $ */
+/* $Id: print.c,v 1.15 2000/12/06 00:30:06 tale Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
+#include <isc/msgs.h>
 #include <isc/print.h>
 #include <isc/platform.h>
 #include <isc/util.h>
@@ -456,17 +457,29 @@ isc_print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			}
 			break;
 		case 'D':	/*deprecated*/
-			INSIST("use %ld instead of %D" == NULL);
+			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
+					      ISC_MSG_USELD,
+					      "use %ld instead of %D")
+			       == NULL);
 		case 'O':	/*deprecated*/
-			INSIST("use %lo instead of %O" == NULL);
+			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
+					      ISC_MSG_USELO,
+					      "use %lo instead of %O")
+			       == NULL);
 		case 'U':	/*deprecated*/
-			INSIST("use %lu instead of %U" == NULL);
+			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
+					      ISC_MSG_USELU,
+					      "use %lu instead of %U")
+			       == NULL);
 
 		case 'L':
 #ifdef HAVE_LONG_DOUBLE
 			l = 1;
 #else
-			INSIST("long doubles are not supported" == NULL);
+			INSIST(isc_msgcat_get(isc_msgcat, ISC_MSGSET_PRINT,
+					      ISC_MSG_NOLONGDBL,
+					      "long doubles are not supported")
+			       == NULL);
 #endif
 			/*FALLTHROUGH*/
 		case 'e':

@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.12 2000/08/01 01:29:37 tale Exp $ */
+/* $Id: netaddr.c,v 1.13 2000/12/06 00:30:05 tale Exp $ */
 
 #include <config.h>
 
 #include <stdio.h>
 
 #include <isc/buffer.h>
+#include <isc/msgs.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -151,7 +152,9 @@ isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size) {
 
 	if (result != ISC_R_SUCCESS) {
 		snprintf(array, size,
-			 "<unknown address, family %u>",
+			 isc_msgcat_get(isc_msgcat, ISC_MSGSET_NETADDR,
+					ISC_MSG_UNKNOWNADDR,
+					"<unknown address, family %u>"),
 			 na->family);
 		array[size - 1] = '\0';
 	}

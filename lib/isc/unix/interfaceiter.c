@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.19 2000/08/01 01:31:21 tale Exp $ */
+/* $Id: interfaceiter.c,v 1.20 2000/12/06 00:30:28 tale Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <errno.h>
 
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/result.h>
 #include <isc/string.h>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.12 2000/08/01 01:29:13 tale Exp $ */
+/* $Id: assertions.c,v 1.13 2000/12/06 00:29:55 tale Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
+#include <isc/msgs.h>
 
 /*
  * Forward.
@@ -49,6 +50,11 @@ const char *
 isc_assertion_typetotext(isc_assertiontype_t type) {
 	const char *result;
 
+	/*
+	 * These strings have purposefully not been internationalized
+	 * because they are considered to essentially be keywords of
+	 * the ISC development environment.
+	 */
 	switch (type) {
 	case isc_assertiontype_require:
 		result = "REQUIRE";
@@ -76,8 +82,10 @@ static void
 default_callback(const char *file, int line, isc_assertiontype_t type,
 		 const char *cond)
 {
-	fprintf(stderr, "%s:%d: %s(%s) failed.\n",
-		file, line, isc_assertion_typetotext(type), cond);
+	fprintf(stderr, "%s:%d: %s(%s) %s.\n",
+		file, line, isc_assertion_typetotext(type), cond,
+		isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+			       ISC_MSG_FAILED, "failed"));
 	fflush(stderr);
 	abort();
 	/* NOTREACHED */

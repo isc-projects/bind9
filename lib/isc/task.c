@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.75 2000/09/28 21:31:04 bwelling Exp $ */
+/* $Id: task.c,v 1.76 2000/12/06 00:30:11 tale Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -31,6 +31,7 @@
 #include <isc/condition.h>
 #include <isc/event.h>
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -177,12 +178,14 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 	task = isc_mem_get(manager->mctx, sizeof *task);
 	if (task == NULL)
 		return (ISC_R_NOMEMORY);
-	XTRACE("create");
+	XTRACE("isc_task_create");
 	task->manager = manager;
 	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
 		isc_mem_put(manager->mctx, task, sizeof *task);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed");
+				 "isc_mutex_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	task->state = task_state_idle;
@@ -230,7 +233,7 @@ isc_task_attach(isc_task_t *source, isc_task_t **targetp) {
 	REQUIRE(VALID_TASK(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	XTTRACE(source, "attach");
+	XTTRACE(source, "isc_task_attach");
 
 	LOCK(&source->lock);
 	source->references++;
@@ -251,7 +254,8 @@ task_shutdown(isc_task_t *task) {
 	XTRACE("task_shutdown");
 
 	if (! TASK_SHUTTINGDOWN(task)) {
-		XTRACE("shutting down");
+		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				      ISC_MSG_SHUTTINGDOWN, "shutting down"));
 		task->flags |= TASK_F_SHUTTINGDOWN;
 		if (task->state == task_state_idle) {
 			INSIST(EMPTY(task->events));
@@ -785,16 +789,21 @@ dispatch(isc_taskmgr_t *manager) {
 		 * task lock.
 		 */
 		while (EMPTY(manager->ready_tasks) && !FINISHED(manager)) {
-			XTHREADTRACE("wait");
+			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
+						    ISC_MSGSET_GENERAL,
+						    ISC_MSG_WAIT, "wait"));
 			WAIT(&manager->work_available, &manager->lock);
-			XTHREADTRACE("awake");
+			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
+						    ISC_MSGSET_TASK,
+						    ISC_MSG_AWAKE, "awake"));
 		}
 #else /* ISC_PLATFORM_USETHREADS */
 		if (total_dispatch_count >= DEFAULT_TASKMGR_QUANTUM ||
 		    EMPTY(manager->ready_tasks))
 			break;
 #endif /* ISC_PLATFORM_USETHREADS */
-		XTHREADTRACE("working");
+		XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
+					    ISC_MSG_WORKING, "working"));
 
 		task = HEAD(manager->ready_tasks);
 		if (task != NULL) {
@@ -817,7 +826,8 @@ dispatch(isc_taskmgr_t *manager) {
 			LOCK(&task->lock);
 			INSIST(task->state == task_state_ready);
 			task->state = task_state_running;
-			XTRACE("running");
+			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					      ISC_MSG_RUNNING, "running"));
 			do {
 				if (!EMPTY(task->events)) {
 					event = HEAD(task->events);
@@ -826,7 +836,10 @@ dispatch(isc_taskmgr_t *manager) {
 					/*
 					 * Execute the event action.
 					 */
-					XTRACE("execute action");
+					XTRACE(isc_msgcat_get(isc_msgcat,
+							    ISC_MSGSET_TASK,
+							    ISC_MSG_EXECUTE,
+							    "execute action"));
 					if (event->ev_action != NULL) {
 						UNLOCK(&task->lock);
 						(event->ev_action)(task,event);
@@ -874,13 +887,20 @@ dispatch(isc_taskmgr_t *manager) {
 					 * Nothing else to do for this task
 					 * right now.
 					 */
-					XTRACE("empty");
+					XTRACE(isc_msgcat_get(isc_msgcat,
+							      ISC_MSGSET_TASK,
+							      ISC_MSG_EMPTY,
+							      "empty"));
 					if (task->references == 0 &&
 					    TASK_SHUTTINGDOWN(task)) {
 						/*
 						 * The task is done.
 						 */
-						XTRACE("done");
+						XTRACE(isc_msgcat_get(
+							       isc_msgcat,
+							       ISC_MSGSET_TASK,
+							       ISC_MSG_DONE,
+							       "done"));
 						finished = ISC_TRUE;
 						task->state = task_state_done;
 					} else
@@ -897,7 +917,10 @@ dispatch(isc_taskmgr_t *manager) {
 					 * dispatching at least one event,
 					 * so the minimum quantum is one.
 					 */
-					XTRACE("quantum");
+					XTRACE(isc_msgcat_get(isc_msgcat,
+							      ISC_MSGSET_TASK,
+							      ISC_MSG_QUANTUM,
+							      "quantum"));
 					task->state = task_state_ready;
 					requeue = ISC_TRUE;
 					done = ISC_TRUE;
@@ -945,11 +968,13 @@ WINAPI
 run(void *uap) {
 	isc_taskmgr_t *manager = uap;
 
-	XTHREADTRACE("start");
+	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				    ISC_MSG_STARTING, "starting"));
 
 	dispatch(manager);
 
-	XTHREADTRACE("exit");
+	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				    ISC_MSG_EXITING, "exiting"));
 
 	return ((isc_threadresult_t)0);
 }
@@ -1005,7 +1030,9 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed");
+				 "isc_mutex_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 #ifdef ISC_PLATFORM_USETHREADS
@@ -1021,7 +1048,9 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 			    workers * sizeof (isc_thread_t));
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() failed");
+				 "isc_condition_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 #endif /* ISC_PLATFORM_USETHREADS */

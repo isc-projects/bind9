@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.51 2000/11/23 01:04:00 bwelling Exp $ */
+/* $Id: entropy.c,v 1.52 2000/12/06 00:30:21 tale Exp $ */
 
 #include <config.h>
 
@@ -29,6 +29,7 @@
 #include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/region.h>
 #include <isc/sha1.h>
@@ -1354,9 +1355,11 @@ isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
 static void
 dumpstats(isc_entropy_t *ent, FILE *out) {
 	fprintf(out,
-		"Entropy pool %p:  refcnt %u"
-		" cursor %u, rotate %u entropy %u pseudo %u nsources %u"
-		" nextsource %p initialized %u initcount %u\n",
+		isc_msgcat_get(isc_msgcat, ISC_MSGSET_ENTROPY,
+			       ISC_MSG_ENTROPYSTATS,
+			       "Entropy pool %p:  refcnt %u cursor %u,"
+			       " rotate %u entropy %u pseudo %u nsources %u"
+			       " nextsource %p initialized %u initcount %u\n"),
 		ent, ent->refcnt,
 		ent->pool.cursor, ent->pool.rotate,
 		ent->pool.entropy, ent->pool.pseudo,

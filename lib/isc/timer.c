@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.58 2000/10/20 02:21:58 marka Exp $ */
+/* $Id: timer.c,v 1.59 2000/12/06 00:30:13 tale Exp $ */
 
 #include <config.h>
 
 #include <isc/condition.h>
 #include <isc/heap.h>
 #include <isc/mem.h>
+#include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -167,7 +168,8 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		manager->nscheduled++;
 	}
 
-	XTRACETIMER("schedule", timer, due);
+	XTRACETIMER(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
+				   ISC_MSG_SCHEDULE, "schedule"), timer, due);
 
 	/*
 	 * If this timer is at the head of the queue, we need to ensure
@@ -177,7 +179,9 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	 */
 #ifdef ISC_PLATFORM_USETHREADS
 	if (timer->index == 1 && signal_ok) {
-		XTRACE("signal (schedule)");
+		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
+				      ISC_MSG_SIGNALSCHED,
+				      "signal (schedule)"));
 		SIGNAL(&manager->wakeup);
 	}
 #else /* ISC_PLATFORM_USETHREADS */
@@ -208,7 +212,9 @@ deschedule(isc_timer_t *timer) {
 		manager->nscheduled--;
 #ifdef ISC_PLATFORM_USETHREADS
 		if (need_wakeup) {
-			XTRACE("signal (deschedule)");
+			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
+					      ISC_MSG_SIGNALDESCHED,
+					      "signal (deschedule)"));
 			SIGNAL(&manager->wakeup);
 		}
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -277,7 +283,11 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		result = isc_time_now(&now);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_now() failed: %s",
+					 "isc_time_now() %s: %s",
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
 					 isc_result_totext(result));
 			return (ISC_R_UNEXPECTED);
 		}
@@ -327,7 +337,9 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 		isc_task_detach(&timer->task);
 		isc_mem_put(manager->mctx, timer, sizeof *timer);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed");
+				 "isc_mutex_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	ISC_LINK_INIT(timer, link);
@@ -394,7 +406,11 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 		result = isc_time_now(&now);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_time_now() failed: %s",
+					 "isc_time_now() %s: %s",
+					 isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED,
+							"failed"),
 					 isc_result_totext(result));
 			return (ISC_R_UNEXPECTED);
 		}
@@ -467,7 +483,9 @@ isc_timer_touch(isc_timer_t *timer) {
 	result = isc_time_now(&now);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_time_now() failed: %s",
+				 "isc_time_now() %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
 				 isc_result_totext(result));
 		result = ISC_R_UNEXPECTED;
 	} else
@@ -556,13 +574,20 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				/*
 				 * Idle timer has been touched; reschedule.
 				 */
-				XTRACEID("idle reschedule", timer);
+				XTRACEID(isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_TIMER,
+							ISC_MSG_IDLERESCHED,
+							"idle reschedule"),
+					 timer);
 				post_event = ISC_FALSE;
 				need_schedule = ISC_TRUE;
 			}
 
 			if (post_event) {
-				XTRACEID("posting", timer);
+				XTRACEID(isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_TIMER,
+							ISC_MSG_POSTING,
+							"posting"), timer);
 				/*
 				 * XXX We could preallocate this event.
 				 */
@@ -577,7 +602,11 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 					isc_task_send(timer->task, &event);
 				else
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "couldn't allocate event");
+						 isc_msgcat_get(isc_msgcat,
+							 ISC_MSGSET_TIMER,
+							 ISC_MSG_EVENTNOTALLOC,
+							 "couldn't "
+							 "allocate event"));
 			}
 
 			timer->index = 0;
@@ -588,7 +617,11 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 				result = schedule(timer, now, ISC_FALSE);
 				if (result != ISC_R_SUCCESS)
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
-						"couldn't schedule timer: %u",
+						isc_msgcat_get(isc_msgcat,
+							ISC_MSGSET_TIMER,
+							ISC_MSG_SCHEDFAIL,
+							"couldn't "
+							"schedule timer: %u"),
 							 result);
 			}
 		} else {
@@ -612,21 +645,29 @@ run(void *uap) {
 	while (!manager->done) {
 		RUNTIME_CHECK(isc_time_now(&now) == ISC_R_SUCCESS);
 
-		XTRACETIME("running", now);
+		XTRACETIME(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					  ISC_MSG_RUNNING,
+					  "running"), now);
 
 		dispatch(manager, &now);
 
 		if (manager->nscheduled > 0) {
-			XTRACETIME("waituntil", manager->due);
+			XTRACETIME(isc_msgcat_get(isc_msgcat,
+						  ISC_MSGSET_GENERAL,
+						  ISC_MSG_WAITUNTIL,
+						  "waituntil"),
+				   manager->due);
 			result = WAITUNTIL(&manager->wakeup, &manager->lock,
 					   &manager->due);
 			INSIST(result == ISC_R_SUCCESS ||
 			       result == ISC_R_TIMEDOUT);
 		} else {
-			XTRACE("wait");
+			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+					      ISC_MSG_WAIT, "wait"));
 			WAIT(&manager->wakeup, &manager->lock);
 		}
-		XTRACE("wakeup");
+		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
+				      ISC_MSG_WAKEUP, "wakeup"));
 	}
 	UNLOCK(&manager->lock);
 
@@ -698,7 +739,9 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_heap_destroy(&manager->heap);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed");
+				 "isc_mutex_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	isc_mem_attach(mctx, &manager->mctx);
@@ -709,7 +752,9 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_heap_destroy(&manager->heap);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() failed");
+				 "isc_condition_init() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 	if (isc_thread_create(run, manager, &manager->thread) !=
@@ -720,7 +765,9 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_heap_destroy(&manager->heap);
 		isc_mem_put(mctx, manager, sizeof *manager);
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_thread_create() failed");
+				 "isc_thread_create() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 		return (ISC_R_UNEXPECTED);
 	}
 #else /* ISC_PLATFORM_USETHREADS */
@@ -763,7 +810,8 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	manager->done = ISC_TRUE;
 
 #ifdef ISC_PLATFORM_USETHREADS
-	XTRACE("signal (destroy)");
+	XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,
+			      ISC_MSG_SIGNALDESTROY, "signal (destroy)"));
 	SIGNAL(&manager->wakeup);
 #endif /* ISC_PLATFORM_USETHREADS */
 
@@ -775,7 +823,9 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	 */
 	if (isc_thread_join(manager->thread, NULL) != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_thread_join() failed");
+				 "isc_thread_join() %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
 #endif /* ISC_PLATFORM_USETHREADS */
 
 	/*

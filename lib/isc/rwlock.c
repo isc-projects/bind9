@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.25 2000/08/29 00:33:35 bwelling Exp $ */
+/* $Id: rwlock.c,v 1.26 2000/12/06 00:30:09 tale Exp $ */
 
 #include <config.h>
 
 #include <stddef.h>
 
 #include <isc/magic.h>
+#include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/rwlock.h>
 #include <isc/util.h>
@@ -46,10 +47,21 @@
 static void
 print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
-		"rwlock %p thread %lu %s(%s): %s, %u active, %u granted, "
-		"%u rwaiting, %u wwaiting\n", rwl, isc_thread_self(),
-		operation, (type == isc_rwlocktype_read ? "read" : "write"),
-	        (rwl->type == isc_rwlocktype_read ? "reading" : "writing"),
+		isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+			       ISC_MSG_PRINTLOCK,
+			       "rwlock %p thread %lu %s(%s): %s, %u active, "
+			       "%u granted, %u rwaiting, %u wwaiting\n"),
+		rwl, isc_thread_self(), operation,
+		(type == isc_rwlocktype_read ? 
+		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				ISC_MSG_READ, "read") :
+		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				ISC_MSG_WRITE, "write")),
+	        (rwl->type == isc_rwlocktype_read ?
+		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				ISC_MSG_READING, "reading") : 
+		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				ISC_MSG_WRITING, "writing")),
 	        rwl->active, rwl->granted, rwl->readers_waiting,
 		rwl->writers_waiting);
 }
@@ -83,21 +95,27 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	result = isc_mutex_init(&rwl->lock);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
+				 "isc_mutex_init() %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 	result = isc_condition_init(&rwl->readable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init(readable) failed: %s",
+				 "isc_condition_init(readable) %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
 	result = isc_condition_init(&rwl->writeable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init(writeable) failed: %s",
+				 "isc_condition_init(writeable) %s: %s",
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"),
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -117,7 +135,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	LOCK(&rwl->lock);
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock("prelock", rwl, type);
+	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				  ISC_MSG_PRELOCK, "prelock"), rwl, type);
 #endif
 
 	if (type == isc_rwlocktype_read) {
@@ -160,7 +179,8 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock("postlock", rwl, type);
+	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				  ISC_MSG_POSTLOCK, "postlock"), rwl, type);
 #endif
 
 	UNLOCK(&rwl->lock);
@@ -178,7 +198,8 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	UNUSED(type);
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock("preunlock", rwl, type);
+	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				  ISC_MSG_PREUNLOCK, "preunlock"), rwl, type);
 #endif
 
 	INSIST(rwl->active > 0);
@@ -213,7 +234,9 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock("postunlock", rwl, type);
+	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
+				  ISC_MSG_POSTUNLOCK, "postunlock"),
+		   rwl, type);
 #endif
 
 	UNLOCK(&rwl->lock);
