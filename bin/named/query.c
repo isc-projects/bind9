@@ -1210,6 +1210,12 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	dns_rdataset_t *rdataset, *mrdataset, *sigrdataset;
 	isc_result_t result;
 
+	/*
+	 * If 'dbuf' is not NULL, then '*namep' is name whose data is
+	 * stored in 'dbuf'.  In this case, query_addrrset() guarantees that
+	 * when it returns the name will either have been kept or released.
+	 */
+
 	CTRACE("query_addrrset");
 	name = *namep;
 	rdataset = *rdatasetp;
@@ -1228,6 +1234,8 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		 * There's nothing else to do;
 		 */
 		CTRACE("query_addrrset: dns_message_findname succeeded: done");
+		if (dbuf != NULL)
+			query_releasename(client, namep);
 		return;
 	} else if (result == DNS_R_NXDOMAIN) {
 		/*
@@ -1238,8 +1246,11 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 		dns_message_addname(client->message, name, section);
 		*namep = NULL;
 		mname = name;
-	} else
+	} else {
 		RUNTIME_CHECK(result == DNS_R_NXRRSET);
+		if (dbuf != NULL)
+			query_releasename(client, namep);
+	}
 
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so
@@ -1791,7 +1802,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	dns_rdataset_t *sigrdataset, *zrdataset, *zsigrdataset;
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
-	isc_boolean_t want_restart, authoritative, is_zone, clear_fname;
+	isc_boolean_t want_restart, authoritative, is_zone;
 	unsigned int qcount, n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
@@ -1834,7 +1845,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 		want_restart = ISC_FALSE;
 		authoritative = ISC_FALSE;
-		clear_fname = ISC_FALSE;
 		is_zone = ISC_FALSE;
 
 		qtype = event->qtype;
@@ -1877,7 +1887,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 	CTRACE("query_find: restart");
 	want_restart = ISC_FALSE;
 	authoritative = ISC_FALSE;
-	clear_fname = ISC_FALSE;
 
 	/*
 	 * First we must find the right database.
@@ -2367,8 +2376,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 					prefix, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;	
-		if (fname != NULL)
-			query_releasename(client, &fname);
+		INSIST(fname == NULL);
 		dbuf = query_getnamebuf(client);
 		if (dbuf == NULL)
 			goto cleanup;
@@ -2435,6 +2443,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			QUERY_ERROR(DNS_R_SERVFAIL);
 			goto cleanup;
 		}
+		/*
+		 * Calling query_addrrset() with a non-NULL dbuf is going
+		 * to either keep or release the name.  We don't want it to
+		 * release fname, since we may have to call query_addrrset()
+		 * more than once.  That means we have to call query_keepname()
+		 * now, and pass a NULL dbuf to query_addrrset().
+		 *
+		 * Since we've done the keepname, it's important that we
+		 * set fname to NULL before we leave this 'if' block
+		 * otherwise we might try to cleanup fname even though we've
+		 * kept it!
+		 */
+		query_keepname(client, fname, dbuf);
 		result = dns_rdatasetiter_first(rdsiter);
 		while (result == ISC_R_SUCCESS) {
 			dns_rdatasetiter_current(rdsiter, rdataset);
@@ -2442,18 +2463,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			     rdataset->type == qtype) && rdataset->type != 0) {
 				tname = fname;
 				query_addrrset(client, &tname, &rdataset, NULL,
-					       dbuf, DNS_SECTION_ANSWER);
+					       NULL, DNS_SECTION_ANSWER);
 				n++;
-				if (tname == NULL) {
-					clear_fname = ISC_TRUE;
-					/*
-					 * We set dbuf to NULL because we only
-					 * want the query_keepname() call in
-					 * query_addrrset() to be called once.
-					 */
-					dbuf = NULL;
-				}
-
 				/*
 				 * We shouldn't ever fail to add 'rdataset'
 				 * because it's already in the answer.
@@ -2470,10 +2481,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 			}
 			result = dns_rdatasetiter_next(rdsiter);
 		}
-		if (n > 0) {
-			if (clear_fname)
-				fname = NULL;
-		} else {
+		/*
+		 * As mentioned above, we must now clear fname since we have
+		 * kept it.
+		 */
+		fname = NULL;
+		if (n == 0) {
 			/*
 			 * We didn't match any rdatasets.
 			 */
@@ -2489,10 +2502,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 				 * We were searching for SIG records in
 				 * a nonsecure zone.  Send a "no error,
 				 * no data" response.
-				 *
-				 * First we must release fname.
 				 */
-				query_releasename(client, &fname);
 				/*
 				 * Add SOA.
 				 */
@@ -2516,26 +2526,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		 * This is the "normal" case -- an ordinary question to which
 		 * we know the answer.
 		 */
-		tname = fname;
-		query_addrrset(client, &tname, &rdataset, &sigrdataset, dbuf,
+		query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 			       DNS_SECTION_ANSWER);
-		if (tname == NULL)
-			clear_fname = ISC_TRUE;
-		
 		/*
 		 * We shouldn't ever fail to add 'rdataset'
 		 * because it's already in the answer.
 		 */
 		INSIST(rdataset == NULL);
-		
 		/*
 		 * Remember that we've answered this question.
 		 */
 		client->query.qrdataset->attributes |=
 			DNS_RDATASETATTR_ANSWERED;
-
-		if (clear_fname)
-			fname = NULL;
 	}
 
  addauth:
