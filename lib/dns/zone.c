@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.63 2000/01/26 21:12:04 halley Exp $ */
+ /* $Id: zone.c,v 1.64 2000/01/27 00:44:53 gson Exp $ */
 
 #include <config.h>
 
@@ -148,7 +148,6 @@ struct dns_zone {
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
 	dns_c_severity_t	check_names;
-	dns_c_pubkey_t		*pubkey;
 	ISC_LIST(dns_zone_checkservers_t)	checkservers;
 	dns_fetch_t		*fetch;
 	dns_resolver_t		*res;
@@ -306,7 +305,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
 	zone->check_names = dns_c_severity_ignore;
-	zone->pubkey = NULL;
 	zone->fetch = NULL;
 	zone->res = NULL;
 	zone->socketmgr = NULL;
@@ -370,7 +368,6 @@ zone_free(dns_zone_t *zone) {
 	zone->masterport = 0;
 	dns_zone_clearnotify(zone);
 	zone->check_names = dns_c_severity_ignore;
-	zone->pubkey = NULL; /* XXX detach */
 	if (zone->update_acl != NULL)
 		dns_acl_detach(&zone->update_acl);
 	if (zone->query_acl != NULL)
@@ -2529,22 +2526,6 @@ dns_zone_getchecknames(dns_zone_t *zone) {
 }
 
 void
-dns_zone_setpubkey(dns_zone_t *zone, dns_c_pubkey_t *pubkey) {
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone->pubkey = pubkey;		/* XXX should be an attach */
-}
-
-dns_c_pubkey_t *
-dns_zone_getpubkey(dns_zone_t *zone) {
-
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (zone->pubkey);
-}
-
-void
 dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size) {
 	
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2817,7 +2798,6 @@ dns_zone_equal(dns_zone_t *oldzone, dns_zone_t *newzone) {
 	COMPARE_POINTERS(dns_acl_equal, update_acl);
 	COMPARE_POINTERS(dns_acl_equal, query_acl);
 	COMPARE_POINTERS(dns_acl_equal, xfr_acl);
-	COMPARE_POINTERS(dns_c_pubkey_equal, pubkey);
 
 #undef COMPARE_POINTERS
 

@@ -539,24 +539,6 @@ dns_c_severity_t dns_zone_getchecknames(dns_zone_t *zone);
  *	'zone' to be initalised.
  */
 
-void dns_zone_setpubkey(dns_zone_t *zone, dns_c_pubkey_t *pubkey);
-/*
- *	Set the current public key to validate this and child zones
- *	via DNSSEC.
- *
- * Require:
- *	'zone' to be initalised.
- *	'pubkey' to be valid or NULL
- */
-
-dns_c_pubkey_t * dns_zone_getpubkey(dns_zone_t *zone);
-/*
- *	Return the current public key.
- *
- * Require:
- *	'zone' to be initalised.
- */
-
 void dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
 isc_int32_t dns_zone_getjournalsize(dns_zone_t *zone);
 
