@@ -139,7 +139,7 @@ CLASS="acronym"
 > version 9 software package for system
     administrators.</P
 ><P
->This version of the manual corresponds to BIND version 9.2.</P
+>This version of the manual corresponds to BIND version 9.3.</P
 ></DIV
 ><DIV
 CLASS="sect1"
@@ -490,16 +490,27 @@ CLASS="emphasis"
 > and interprets the responses.
 The <SPAN
 CLASS="acronym"
->BIND 9</SPAN
-> software distribution contains both a 
-name server and a resolver library.</P
+>BIND</SPAN
+> 9 software distribution contains a
+name server, <B
+CLASS="command"
+>named</B
+>, and two resolver
+libraries, <B
+CLASS="command"
+>liblwres</B
+> and <B
+CLASS="command"
+>libbind</B
+>.
+</P
 ></DIV
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN119"
+NAME="AEN122"
 >1.4.2. Domains and Domain Names</A
 ></H2
 ><P
@@ -529,9 +540,9 @@ CLASS="emphasis"
 > could be
 <TT
 CLASS="literal"
->mail.example.net</TT
+>mail.example.com</TT
 >,
-were <TT
+where <TT
 CLASS="literal"
 >com</TT
 > is the
@@ -597,7 +608,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN143"
+NAME="AEN146"
 >1.4.3. Zones</A
 ></H2
 ><P
@@ -617,7 +628,7 @@ CLASS="acronym"
 >DNS</SPAN
 > tree. A zone consists of
 those contiguous parts of the domain
-tree for which a a name server has complete information and over which
+tree for which a name server has complete information and over which
 it has authority. It contains all domain names from a certain point
 downward in the domain tree except those which are delegated to
 other zones. A delegation point is marked by one or more
@@ -697,7 +708,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN166"
+NAME="AEN169"
 >1.4.4. Authoritative Name Servers</A
 ></H2
 ><P
@@ -719,14 +730,14 @@ CLASS="command"
 >dig</B
 > (<A
 HREF="Bv9ARM.ch03.html#diagnostic_tools"
->Section 3.4.1.1</A
+>Section 3.3.1.1</A
 >).</P
 ><DIV
 CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN173"
+NAME="AEN176"
 >1.4.4.1. The Primary Master</A
 ></H3
 ><P
@@ -754,7 +765,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN180"
+NAME="AEN183"
 >1.4.4.2. Slave Servers</A
 ></H3
 ><P
@@ -780,7 +791,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN186"
+NAME="AEN189"
 >1.4.4.3. Stealth Servers</A
 ></H3
 ><P
@@ -825,7 +836,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN195"
+NAME="AEN198"
 >1.4.5. Caching Name Servers</A
 ></H2
 ><P
@@ -867,7 +878,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN205"
+NAME="AEN208"
 >1.4.5.1. Forwarding</A
 ></H3
 ><P
@@ -909,7 +920,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN213"
+NAME="AEN216"
 >1.4.6. Name Servers in Multiple Roles</A
 ></H2
 ><P

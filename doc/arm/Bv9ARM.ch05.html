@@ -10,7 +10,7 @@ REL="HOME"
 TITLE="BIND 9 Administrator Reference Manual"
 HREF="Bv9ARM.html"><LINK
 REL="PREVIOUS"
-TITLE="Advanced Concepts"
+TITLE="Advanced DNS Features"
 HREF="Bv9ARM.ch04.html"><LINK
 REL="NEXT"
 TITLE="BIND 9 Configuration Reference"
@@ -81,7 +81,7 @@ CLASS="TOC"
 ></DT
 ><DT
 >5.1. <A
-HREF="Bv9ARM.ch05.html#AEN1073"
+HREF="Bv9ARM.ch05.html#AEN1071"
 >The Lightweight Resolver Library</A
 ></DT
 ><DT
@@ -96,7 +96,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN1073"
+NAME="AEN1071"
 >5.1. The Lightweight Resolver Library</A
 ></H1
 ><P
@@ -131,25 +131,22 @@ NAME="lwresd"
 run the resolver daemon <B
 CLASS="command"
 >lwresd</B
->.</P
+> or a local
+name server configured with a <B
+CLASS="command"
+>lwres</B
+> statement.</P
 ><P
 >By default, applications using the lightweight resolver library will make
 UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
-address can be overriden by <B
+address can be overridden by <B
 CLASS="command"
 >lwserver</B
 > lines in
 <TT
 CLASS="filename"
 >/etc/resolv.conf</TT
->.
-The daemon will try to find the answer to the questions "what are the
-addresses for host
-<TT
-CLASS="literal"
->foo.example.com</TT
->?" and "what are
-the names for IPv4 address 10.1.2.3?"</P
+>.</P
 ><P
 >The daemon currently only looks in the DNS, but in the future
 it may use other sources such as <TT
@@ -162,7 +159,7 @@ NIS, etc.</P
 CLASS="command"
 >lwresd</B
 > daemon is essentially a
-caching-only name server that answers requests using the lightweight
+caching-only name server that responds to requests using the lightweight
 resolver protocol rather than the DNS protocol.  Because it needs
 to run on each host, it is designed to require no or minimal configuration.
 Unless configured otherwise, it uses the name servers listed on
@@ -238,7 +235,7 @@ HREF="Bv9ARM.ch06.html"
 WIDTH="33%"
 ALIGN="left"
 VALIGN="top"
->Advanced Concepts</TD
+>Advanced DNS Features</TD
 ><TD
 WIDTH="34%"
 ALIGN="center"
