@@ -59,7 +59,8 @@ options {
   [ allow-recursion { address_match_list }; ]		    Yes@
   [ blackhole { address_match_list }; ]			    No
   [ listen-on [ port ip_port ] { address_match_list }; ]    Yes@ (IPv4 only)
-  [ query-source .... ]                                     Yes (IPv4 only)
+  [ query-source .... ]                                     Yes
+  [ query-source-v6 .... ]                                  Yes*
   [ lame-ttl number; ]					    No
   [ max-transfer-time-in number; ]			    Yes
   [ max-transfer-idle-in number; ]			    Yes*
