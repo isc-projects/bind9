@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: ns_2.h,v 1.12 1999/05/07 03:24:10 marka Exp $ */
+ /* $Id: ns_2.h,v 1.13 1999/07/05 00:32:37 marka Exp $ */
+
+#include <dns/fixedname.h>
 
 typedef struct dns_rdata_ns {
 	dns_rdatacommon_t	common;
