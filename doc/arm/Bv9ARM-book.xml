@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.199 2002/05/02 23:27:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.200 2002/05/17 02:07:36 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4377,7 +4377,7 @@ key data.</para></sect2>
       <optional><replaceable>class</replaceable></optional> {
       match-clients { <replaceable>address_match_list</replaceable> } ;
       match-destinations { <replaceable>address_match_list</replaceable> } ;
-      match-recursive-only { <replaceable>yes_or_no</replaceable> } ;
+      match-recursive-only <replaceable>yes_or_no</replaceable> ;
       <optional> <replaceable>view_option</replaceable>; ...</optional>
       <optional> <replaceable>zone_statement</replaceable>; ...</optional>
 };
