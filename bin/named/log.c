@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33 2001/06/14 14:14:17 gson Exp $ */
+/* $Id: log.c,v 1.33.2.1 2001/10/31 22:44:15 marka Exp $ */
 
 #include <config.h>
 
@@ -168,10 +168,12 @@ isc_result_t
 ns_log_setdefaultcategory(isc_logconfig_t *lcfg) {
 	isc_result_t result;
 
-	result = isc_log_usechannel(lcfg, "default_syslog",
-				    ISC_LOGCATEGORY_DEFAULT, NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	if (! ns_g_logstderr) {
+		result = isc_log_usechannel(lcfg, "default_syslog",
+					    ISC_LOGCATEGORY_DEFAULT, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
 
 	result = isc_log_usechannel(lcfg, "default_debug",
 				    ISC_LOGCATEGORY_DEFAULT, NULL);

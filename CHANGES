@@ -1,3 +1,7 @@
+1082.	[bug]		The -g option to named incorrectly caused logging
+			to be sent to syslog in addition to stderr.
+			[RT #1974]
+
 
 	--- 9.2.0rc9 released ---
 
