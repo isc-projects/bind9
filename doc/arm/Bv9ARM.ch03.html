@@ -700,40 +700,24 @@ CLASS="command"
 >dig</B
 > instead.</P
 ></DD
-></DL
-></DIV
-><DIV
-CLASS="sect3"
-><H3
-CLASS="sect3"
-><A
-NAME="admin_tools"
->3.4.1.2. Administrative Tools</A
-></H3
-><P
->Administrative tools play an integral part in the management
-of a server.</P
-><P
-></P
-><DL
 ><DT
 ><A
-NAME="check-conf"
+NAME="named-checkconf"
 ><B
 CLASS="command"
->check-conf</B
+>named-checkconf</B
 ></A
 ></DT
 ><DD
 ><P
->Performs syntax consistancy checks on <TT
+>Checks the syntax of <TT
 CLASS="filename"
 >named.conf</TT
 >.</P
 ><P
 ><B
 CLASS="command"
->check-conf</B
+>named-checkconf</B
 >  [<TT
 CLASS="replaceable"
 ><I
@@ -743,19 +727,19 @@ CLASS="replaceable"
 ></DD
 ><DT
 ><A
-NAME="check-zone"
+NAME="named-checkzone"
 ><B
 CLASS="command"
->check-zone</B
+>named-checkzone</B
 ></A
 ></DT
 ><DD
 ><P
->Perform consistancy checks on a individual zone.</P
+>Performs syntax and consistency checks on a individual zone.</P
 ><P
 ><B
 CLASS="command"
->check-zone</B
+>named-checkzone</B
 >  [-dq] [-c <TT
 CLASS="replaceable"
 ><I
@@ -773,6 +757,22 @@ CLASS="replaceable"
 ></TT
 >]</P
 ></DD
+></DL
+></DIV
+><DIV
+CLASS="sect3"
+><H3
+CLASS="sect3"
+><A
+NAME="admin_tools"
+>3.4.1.2. Administrative Tools</A
+></H3
+><P
+>Administrative tools play an integral part in the management
+of a server.</P
+><P
+></P
+><DL
 ><DT
 ><A
 NAME="rndc"
@@ -987,6 +987,37 @@ ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 >Toggle query logging.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
+>dumpdb</B
+></TT
+></P
+></TD
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Dump the current contents of the cache
+(or caches if there are multiple views) into the file named by the
+<B
+CLASS="command"
+>dump-file</B
+> option
+(by default, <TT
+CLASS="filename"
+>named_dump.db</TT
+>).
+</P
 ></TD
 ></TR
 ><TR
@@ -1248,7 +1279,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN612"
+NAME="AEN620"
 >3.4.2. Signals</A
 ></H2
 ><P
