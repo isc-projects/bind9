@@ -551,7 +551,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000
 ./doc/misc/options				TXT.BRIEF	2000
 ./install-sh					X	1999,2000
-./isc-config.sh.in				X	2000
+./isc-config.sh.in				SH	2000
 ./lib/.cvsignore				X	1999,2000
 ./lib/Makefile.in				MAKE	1998,1999,2000
 ./lib/dns/.cvsignore				X	1999,2000
