@@ -1,7 +1,7 @@
 Copyright (C) 2000  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.29.2.3 2000/08/15 22:35:08 gson Exp $
+$Id: options,v 1.29.2.4 2000/08/16 17:56:12 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -101,6 +101,7 @@ options {
   [ tkey-domain ... ]					    Yes*
   [ tkey-dhkey ... ]					    Yes*
   [ port number; ]					    Yes*
+  [ sig-validity-interval number; ]			    Yes*
 };
 
 acl							    Yes@
@@ -135,6 +136,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ forwarders { [ ip_addr ; [ ip_addr ; ... ] ] }; ]	    No
   [ check-names ( warn | fail | ignore ); ]		    No
   [ allow-update { address_match_list }; ]		    Yes@
+  [ update-policy ... ]					    Yes*
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ dialup yes_or_no; ]					    No
@@ -144,6 +146,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ also-notify { ip_addr; [ ip_addr; ... ] };		    Yes
   [ ixfr-base  path_name; ]				    Obsolete
   [ pubkey number number number string; ]		    No
+  [ sig-validity-interval number; ]			    Yes*
 };
 
 zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {	    
@@ -220,4 +223,5 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ key ... ]						    Yes
   [ server ... ]					    Yes
   [ trusted-keys ... ]					    Yes
+  [ sig-validity-interval number; ]			    Yes*
 };
