@@ -4,6 +4,9 @@
 1075.	[bug]		Out-of-range network prefix lengths were not
 			reported. [RT #1954]
 
+1074.	[bug]		Running out of memory in dump_rdataset() could
+			cause an assertion failure. [RT #1946]
+
 	--- 9.2.0rc8 released ---
 
 1068.	[bug]		errno could be overwritten by catgets(). [RT #1921]
