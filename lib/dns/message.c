@@ -924,6 +924,17 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		rdclass = isc_buffer_getuint16(source);
 
 		/*
+		 * If there was no question section, we may not yet have
+		 * established a class.  Do so now.
+		 */
+		if (msg->state == DNS_SECTION_ANY) {
+			if (rdclass == 0 || rdclass == dns_rdataclass_any)
+				return (DNS_R_FORMERR);
+			msg->rdclass = rdclass;
+			msg->state = DNS_SECTION_QUESTION;
+		}
+		   
+		/*
 		 * If this class is different than the one in the question
 		 * section, bail.
 		 */
