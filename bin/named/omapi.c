@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: omapi.c,v 1.1 2000/01/31 15:17:59 tale Exp $ */
+/* $Id: omapi.c,v 1.2 2000/02/01 15:18:28 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -142,61 +142,64 @@ isc_result_t
 ns_omapi_listen(isc_mem_t *mctx, omapi_object_t **managerp) {
 	omapi_object_t *manager = NULL;
 	isc_result_t result;
+	isc_sockaddr_t sockaddr;
+	struct in_addr inaddr4;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
+	/*
+	 * Listen on localhost (127.0.0.1).
+	 * XXXDCL should be configurable.
+	 */
+	inaddr4.s_addr = htonl(0x7F000001);
+	isc_sockaddr_fromin(&sockaddr, &inaddr4, NS_OMAPI_PORT);
+
 	result = omapi_lib_init(mctx);
-	if (result != ISC_R_SUCCESS)
-		goto free_omapi;
 
 	/*
 	 * Register the control_object.  NS_OMAPI_CONTROL is what a client
 	 * would need to specify as a value for the value of "type" in
 	 * a message when contacting the server to perform a control function.
 	 */
-	result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
-				       control_setvalue,
-				       NULL, 	/* getvalue */
-				       NULL,	/* destroy */
-				       NULL,	/* signalhandler */
-				       control_stuffvalues,
-				       control_lookup,
-				       NULL,	/* create */
-				       NULL);	/* remove */
-	if (result != ISC_R_SUCCESS)
-		goto free_manager;
+	if (result == ISC_R_SUCCESS)
+		result = omapi_object_register(&control_type, NS_OMAPI_CONTROL,
+					       control_setvalue,
+					       NULL, 	/* getvalue */
+					       NULL,	/* destroy */
+					       NULL,	/* signalhandler */
+					       control_stuffvalues,
+					       control_lookup,
+					       NULL,	/* create */
+					       NULL);	/* remove */
 
-	/*
-	 * Initialize the static control object.
-	 */
-	control.refcnt = 1;
-	control.type = control_type;
+	if (result == ISC_R_SUCCESS) {
+		/*
+		 * Initialize the static control object.
+		 */
+		control.refcnt = 1;
+		control.type = control_type;
 
-	/*
-	 * Create a generic object to be the manager for handling
-	 * incoming server connections.
-	 */
-	result = omapi_object_create(&manager, NULL, 0);
-	if (result != ISC_R_SUCCESS)
-		goto free_manager;
+		/*
+		 * Create a generic object to be the manager for handling
+		 * incoming server connections.
+		 */
+		result = omapi_object_create(&manager, NULL, 0);
+	}
 
-	/*
-	 * Start listening for connections.  The second parameter is the
-	 * port to listen on; 0 means the default OMAPI port.
-	 */
-	result = omapi_protocol_listen(manager, 0, 1);
-	if (result != ISC_R_SUCCESS)
-		goto free_manager;
+	if (result == ISC_R_SUCCESS)
+		/*
+		 * Start listening for connections.
+		 */
+		result = omapi_protocol_listen(manager, &sockaddr, 1);
 
-	*managerp = manager;
+	if (result == ISC_R_SUCCESS)
+		*managerp = manager;
 
-	return (ISC_R_SUCCESS);
-
-free_manager:
-	omapi_object_dereference(&manager);
-
-free_omapi:
-	omapi_lib_destroy();
+	else {
+		if (manager != NULL)
+			omapi_object_dereference(&manager);
+		omapi_lib_destroy();
+	}
 
 	return (result);
 }
