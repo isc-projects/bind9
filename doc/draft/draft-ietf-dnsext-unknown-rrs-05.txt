@@ -1,11 +1,13 @@
 
-
 INTERNET-DRAFT                                       Andreas Gustafsson
-draft-ietf-dnsext-unknown-rrs-04.txt                       Nominum Inc.
-                                                         September 2002
+draft-ietf-dnsext-unknown-rrs-05.txt                       Nominum Inc.
+                                                             March 2003
+
+Updates: RFC 1034, RFC 2163, RFC 2535
 
 
-                    Handling of Unknown DNS RR Types
+
+             Handling of Unknown DNS Resource Record Types
 
 
 Status of this Memo
@@ -31,7 +33,7 @@ Status of this Memo
 
 Abstract
 
-   Extending the Domain Name System with new Resource Record types
+   Extending the Domain Name System with new Resource Record (RR) types
    currently requires changes to name server software.  This document
    specifies the changes necessary to allow future DNS implementations
    to handle new RR types transparently.
@@ -46,16 +48,15 @@ Abstract
    slave servers for the zone containing it, and in some cases also at
    caching name servers and forwarders used by the client.
 
+
+
+Expires September 2003                                          [Page 1]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
+
    Because the deployment of new server software is slow and expensive,
    the potential of the DNS in supporting new services has never been
-
-
-
-Expires March 2003                                              [Page 1]
-
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
-
-
    fully realized.  This memo proposes changes to name servers and to
    procedures for defining new RR types aimed at simplifying the future
    deployment of new RR types.
@@ -103,19 +104,25 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
    which now contains unrelated data.  This would cause the compressed
    name to be corrupted.
 
-   To avoid such corruption, servers MUST NOT compress domain names
 
 
-
-Expires March 2003                                              [Page 2]
+Expires September 2003                                          [Page 2]
 
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
 
 
+   To avoid such corruption, servers MUST NOT compress domain names
    embedded in the RDATA of types that are class-specific or not well-
    known.  This requirement was stated in RFC1123 without defining the
    term "well-known"; it is hereby specified that only the RR types
    defined in RFC1035 are to be considered "well-known".
+
+   The specifications of a few existing RR types have explicitly allowed
+   compression contrary to this specification: RFC2163 specified that
+   compression applies to the PX RR, and RFC2535 allowed compression in
+   SIG RRs and NXT RRs records.  Since this specification disallows
+   compression in these cases, it is an update to RFC2163 (section 4)
+   and RFC2535 (sections 4.1.7 and 5.2).
 
    Receiving servers MUST decompress domain names in RRs of well-known
    type, and SHOULD also decompress RRs of type RP, AFSDB, RT, SIG, PX,
@@ -153,20 +160,19 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
       herein rather than a traditional type-specific
       encoding.
 
+
+
+Expires September 2003                                          [Page 3]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
+
       An unsigned decimal integer specifying the
       RDATA length in octets.
 
       Zero or more words of hexadecimal data encoding
       the actual RDATA field, each containing an even
       number of hexadecimal digits.
-
-
-
-
-Expires March 2003                                              [Page 3]
-
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
-
 
    If the RDATA is of zero length, the text representation contains only
    the \# token and the single zero representing the length.
@@ -209,6 +215,14 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
 
    This implies that embedded domain names, being included in the
    overall bitwise comparison, are compared in a case-sensitive manner.
+
+
+
+Expires September 2003                                          [Page 4]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
+
    As a result, when a new RR type contains one or more embedded domain
    names, it is possible to have multiple RRs owned by the same name
    that differ only in the character case of the embedded domain
@@ -216,35 +230,54 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
    records differing only in character case, and not expected to cause
    any problems in practice.
 
-
-
-
-Expires March 2003                                              [Page 4]
-
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
-
-
 7. DNSSEC Canonical Form and Ordering
 
-   DNSSEC [RFC2535] defines a canonical form and ordering for RRs.  In
-   the canonical form, domain names embedded in the RDATA are converted
-   to lower case.
+   DNSSEC defines a canonical form and ordering for RRs [RFC2535,
+   section 8.1].  In that canonical form, domain names embedded in the
+   RDATA are converted to lower case.
 
-   To ensure backwards compatibility, this canonical form remains
-   unchanged for any RR types defined in RFC2931 or earlier.  That is,
-   the domain names embedded in RRs of type NS, MD, MF, CNAME, SOA, MB,
-   MG, MR, PTR, HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT,
-   NAPTR, KX, SRV, DNAME, and A6 are converted to lower case according
-   to the DNS rules for character comparisons.
+   The downcasing is necessary to ensure the correctness of DNSSEC
+   signatures when case distinctions in domain names are lost due to
+   compression, but since it requires knowledge of the presence and
+   position of embedded domain names, it cannot be applied to unknown
+   types.
 
-   For all other RR types, the canonical form is hereby changed such
-   that no downcasing of embedded domain names takes place.  The owner
-   name is always set to lower case according to the DNS rules for
-   character comparisons, regardless of the RR type.
+   To ensure continued consistency of the canonical form of RR types
+   where compression is allowed, and for continued interoperability with
+   existing implementations that already implement the RFC2535 canonical
+   form and apply it to their known RR types, the canonical form remains
+   unchanged for all RR types whose whose initial publication as an RFC
+   was prior to the initial publication of this specification as an RFC
+   (RFC TBD).
 
-   The canonical ordering is as specified in RFC2535 section 8.3, where
-   the octet sequence is the canonical form as revised by this
-   specification.
+   As a courtesy to implementors, it is hereby noted that the complete
+   set of such previously published RR types that contain embedded
+   domain names, and whose DNSSEC canonical form therefore involves
+   downcasing according to the DNS rules for character comparisons,
+   consists of the RR types NS, MD, MF, CNAME, SOA, MB, MG, MR, PTR,
+   HINFO, MINFO, MX, HINFO, RP, AFSDB, RT, SIG, PX, NXT, NAPTR, KX, SRV,
+   DNAME, and A6.
+
+   This document specifies that for all other RR types (whether treated
+   as unknown types or treated as known types according to an RR type
+   definition RFC more recent than than RFC TBD), the canonical form is
+   such that no downcasing of embedded domain names takes place, and
+   otherwise identical to the canonical form specified in RFC2535
+   section 8.1.
+
+   Note that the owner name is always set to lower case according to the
+   DNS rules for character comparisons, regardless of the RR type.
+
+   The DNSSEC canonical RR ordering is as specified in RFC2535 section
+   8.3, where the octet sequence is the canonical form as revised by
+   this specification.
+
+
+
+Expires September 2003                                          [Page 5]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
 
 8. Additional Section Processing
 
@@ -265,7 +298,7 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
    This specification is not believed to cause any new security
    problems, nor to solve any existing ones.
 
-References
+Normative References
 
    [RFC1034] - Domain Names - Concepts and Facilities, P. Mockapetris,
    November 1987.
@@ -273,37 +306,43 @@ References
    [RFC1035] - Domain Names - Implementation and Specifications, P.
    Mockapetris, November 1987.
 
-
-
-Expires March 2003                                              [Page 5]
-
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
-
-
    [RFC1123] - Requirements for Internet Hosts -- Application and
    Support, R. Braden, Editor, October 1989.
+
+   [RFC2119] - Key words for use in RFCs to Indicate Requirement Levels,
+   S. Bradner, BCP 14, March 1997.
+
+   [RFC2535] - Domain Name System Security Extensions. D. Eastlake,
+   March 1999.
+
+   [RFC2613] - Using the Internet DNS to Distribute MIXER Conformant
+   Global Address Mapping (MCGAM), C. Allocchio, January 1998.
+
+   [RFC2929] - Domain Name System (DNS) IANA Considerations, D.
+   Eastlake, E. Brunner-Williams, B. Manning, September 2000.
+
+Non-normative References
 
    [RFC1876] - A Means for Expressing Location Information in the Domain
    Name System, C. Davis, P. Vixie, T. Goodwin, I. Dickinson, January
    1996.
 
+
+
+
+Expires September 2003                                          [Page 6]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
+
    [RFC2052] - A DNS RR for specifying the location of services (DNS
    SRV), A. Gulbrandsen, P. Vixie, October 1996.  Obsoleted by RFC2782.
 
-   [RFC2119] - Bradner, S., "Key words for use in RFCs to Indicate
-   Requirement Levels", BCP 14, RFC 2119, March 1997.
-
-   [RFC2136] - Dynamic Updates in the Domain Name System (DNS UPDATE).
+   [RFC2136] - Dynamic Updates in the Domain Name System (DNS UPDATE),
    P. Vixie, Ed., S. Thomson, Y. Rekhter, J. Bound, April 1997.
 
-   [RFC2535] - Domain Name System Security Extensions. D. Eastlake,
-   March 1999.
-
    [RFC2782] - A DNS RR for specifying the location of services (DNS
-   SRV).  A. Gulbrandsen, P. Vixie, L. Esibov, February 2000.
-
-   [RFC2929] - Domain Name System (DNS) IANA Considerations.  D.
-   Eastlake, E. Brunner-Williams, B. Manning, September 2000.
+   SRV),  A. Gulbrandsen, P. Vixie, L. Esibov, February 2000.
 
 Author's Address
 
@@ -328,14 +367,6 @@ Full Copyright Statement
    distributed, in whole or in part, without restriction of any kind,
    provided that the above copyright notice and this paragraph are
    included on all such copies and derivative works.  However, this
-
-
-
-Expires March 2003                                              [Page 6]
-
-draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
-
-
    document itself may not be modified in any way, such as by removing
    the copyright notice or references to the Internet Society or other
    Internet organizations, except as needed for the purpose of
@@ -352,8 +383,37 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
    TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
    BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
    HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+
+
+
+Expires September 2003                                          [Page 7]
+
+draft-ietf-dnsext-unknown-rrs-05.txt                          March 2003
+
+
    MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE."
 
+Intellectual Property Statement
+
+   The IETF takes no position regarding the validity or scope of any
+   intellectual property or other rights that might be claimed to pertain
+   to the implementation or use of the technology described in this
+   document or the extent to which any license under such rights might or
+   might not be available; neither does it represent that it has made any
+   effort to identify any such rights.  Information on the IETF's
+   procedures with respect to rights in standards-track and
+   standards-related documentation can be found in BCP-11.  Copies of
+   claims of rights made available for publication and any assurances of
+   licenses to be made available, or the result of an attempt made to
+   obtain a general license or permission for the use of such proprietary
+   rights by implementors or users of this specification can be obtained
+   from the IETF Secretariat.
+
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights which may cover technology that may be required to practice
+   this standard.  Please address the information to the IETF Executive
+   Director.
 
 
 
@@ -382,10 +442,6 @@ draft-ietf-dnsext-unknown-rrs-04.txt                      September 2002
 
 
 
-
-
-
-
-
-Expires March 2003                                              [Page 7]
+Expires September 2003                                          [Page 8]
 
+
