@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.13 2001/02/04 15:52:40 bwelling Exp $
+# $Id: Makefile.in,v 1.14 2001/03/31 02:23:15 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,10 +52,19 @@ SRCS =		nsupdate.c
 
 MANPAGES =	nsupdate.8
 
+HTMLPAGES =	nsupdate.html
+
+MANOBJS =	${MANPAGES} ${HTMLPAGES}
+
 @BIND9_MAKE_RULES@
 
 nsupdate: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
+
+doc man:: ${MANOBJS}
+
+docclean manclean maintainer-clean::
+	rm -f ${MANOBJS}
 
 clean distclean::
 	rm -f ${TARGETS}
