@@ -1,3 +1,8 @@
+ 654.	[bug]		Origin was being forgotten in TCP retries in dig.
+			[RT574]
+
+ 653.	[bug]		+defname option in dig was reversed in sense.  [RT549]
+
  652.	[bug]		zone_saveunique() did not report the new name.
 
  651.	[func]		The AD bit in responses now has the meaning

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.174 2000/12/11 19:15:45 bwelling Exp $ */
+/* $Id: dighost.c,v 1.175 2001/01/04 18:19:18 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -356,7 +356,7 @@ make_empty_lookup(void) {
 	looknew->current_query = NULL;
 	looknew->doing_xfr = ISC_FALSE;
 	looknew->ixfr_serial = ISC_FALSE;
-	looknew->defname = ISC_FALSE;
+	looknew->defname = ISC_TRUE;
 	looknew->trace = ISC_FALSE;
 	looknew->trace_root = ISC_FALSE;
 	looknew->identify = ISC_FALSE;
@@ -1283,7 +1283,8 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
 	/* XXX New search here? */
-	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
+	if ((count_dots(lookup->textname) >= ndots) ||
+	    (!lookup->defname && !usesearch))
 		lookup->origin = NULL; /* Force abs lookup */
 	else if (lookup->origin == NULL && lookup->new_search &&
 		 (usesearch || have_domain)) {
@@ -2372,6 +2373,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printf(";; Truncated, retrying in TCP mode.\n");
 			n = requeue_lookup(l, ISC_TRUE);
 			n->tcp_mode = ISC_TRUE;
+			n->origin = l->origin;
 			dns_message_destroy(&msg);
 			isc_event_free(&event);
 			clear_query(query);
