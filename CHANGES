@@ -47,6 +47,9 @@
 1217.	[func]		Report locations of previous key definition when a
 			duplicate is detected.
 
+1213.	[func]		Report view associated with client if it is not a
+			standard view (_default or _bind).
+
 1203.	[func]		Report locations of previous acl and zone definitions
 			when a duplicate is detected.
 
@@ -310,7 +313,7 @@
 
 1490.	[bug]		Accept reading state as well as working state in
 			ns_client_next(). [RT #6813]
-			
+
 1489.	[compat]	Treat 'allow-update' on slave zones as a warning.
 			[RT #3469]
 
