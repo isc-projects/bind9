@@ -144,12 +144,24 @@ question_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	*target = *source;
 }
 
+static unsigned int
+question_count(dns_rdataset_t *rdataset) {
+	/*
+	 * This routine should never be called.
+	 */
+	(void)rdataset;
+	REQUIRE(0);
+
+	return (0);
+}
+
 static dns_rdatasetmethods_t question_methods = {
 	question_disassociate,
 	question_cursor,
 	question_cursor,
 	question_current,
 	question_clone,
+	question_count
 };
 
 void
@@ -169,6 +181,19 @@ dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
 	rdataset->rdclass = rdclass;
 	rdataset->type = type;
 	rdataset->attributes |= DNS_RDATASETATTR_QUESTION;
+}
+
+unsigned int
+dns_rdataset_count(dns_rdataset_t *rdataset) {
+
+	/*
+	 * Return the number of records in 'rdataset'.
+	 */
+
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+	REQUIRE(rdataset->methods != NULL);
+
+	return ((rdataset->methods->count)(rdataset));
 }
 
 void

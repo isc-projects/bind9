@@ -28,6 +28,7 @@ static dns_result_t rdatalist_first(dns_rdataset_t *rdataset);
 static dns_result_t rdatalist_next(dns_rdataset_t *rdataset);
 static void rdatalist_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static unsigned int rdatalist_count(dns_rdataset_t *rdataset);
 
 static dns_rdatasetmethods_t methods = {
 	rdatalist_disassociate,
@@ -35,6 +36,7 @@ static dns_rdatasetmethods_t methods = {
 	rdatalist_next,
 	rdatalist_current,
 	rdatalist_clone,
+	rdatalist_count
 };
 
 dns_result_t
@@ -116,4 +118,21 @@ rdatalist_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	 * Reset iterator state.
 	 */
 	target->private2 = NULL;
+}
+
+static unsigned int
+rdatalist_count(dns_rdataset_t *rdataset) {
+	dns_rdatalist_t *rdatalist;
+	dns_rdata_t *rdata;
+	unsigned int count;
+
+	rdatalist = rdataset->private1;
+
+	count = 0;
+	for (rdata = ISC_LIST_HEAD(rdatalist->rdata);
+	     rdata != NULL;
+	     rdata = ISC_LIST_NEXT(rdata, link))
+		count++;
+
+	return (count);
 }

@@ -193,13 +193,15 @@ static dns_result_t rdataset_first(dns_rdataset_t *rdataset);
 static dns_result_t rdataset_next(dns_rdataset_t *rdataset);
 static void rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 static void rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
+static unsigned int rdataset_count(dns_rdataset_t *rdataset);
 
 static dns_rdatasetmethods_t rdataset_methods = {
 	rdataset_disassociate,
 	rdataset_first,
 	rdataset_next,
 	rdataset_current,
-	rdataset_clone
+	rdataset_clone,
+	rdataset_count
 };
 
 static void rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
@@ -3735,6 +3737,16 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 	 */
 	target->private4 = NULL;
 	target->private5 = NULL;
+}
+
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+
+	return (count);
 }
 
 

@@ -68,6 +68,7 @@ typedef struct dns_rdatasetmethods {
 					   dns_rdata_t *rdata);
 	void			(*clone)(dns_rdataset_t *source,
 					 dns_rdataset_t *target);
+	unsigned int		(*count)(dns_rdataset_t *rdataset);
 } dns_rdatasetmethods_t;
 
 #define DNS_RDATASET_MAGIC		0x444E5352U	/* DNSR. */
@@ -197,6 +198,18 @@ dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
  *
  * Ensures:
  *	'target' references the same rdataset as 'source.
+ */
+
+unsigned int
+dns_rdataset_count(dns_rdataset_t *rdataset);
+/*
+ * Return the number of records in 'rdataset'.
+ *
+ * Requires:
+ *	'rdataset' is a valid, associated rdataset.
+ *
+ * Returns:
+ *	The number of records in 'rdataset'.	
  */
 
 dns_result_t
