@@ -547,7 +547,7 @@ dns_c_ctx_print(FILE *fp, int indent, dns_c_ctx_t *cfg)
 	
 
 	if (cfg->peers != NULL) {
-		dns_peerlist_print(fp, indent, cfg->peers);
+		dns_c_peerlist_print(fp, indent, cfg->peers);
 		fprintf(fp, "\n");
 	}
 }
