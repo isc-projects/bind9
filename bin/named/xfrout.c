@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.86 2000/12/22 01:38:16 gson Exp $ */
+/* $Id: xfrout.c,v 1.87 2000/12/22 18:32:06 gson Exp $ */
 
 #include <config.h>
 
@@ -1484,6 +1484,9 @@ sendstream(xfrout_ctx_t *xfr) {
 	 */
 	xfr->stream->methods->pause(xfr->stream);
 	
+	if (result == ISC_R_SUCCESS)
+		return;
+
 	xfrout_fail(xfr, result, "sending zone data");
 }
 
