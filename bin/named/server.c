@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.333 2001/07/11 22:22:37 bwelling Exp $ */
+/* $Id: server.c,v 1.334 2001/07/16 18:33:30 gson Exp $ */
 
 #include <config.h>
 
@@ -1416,8 +1416,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	 */
 	directory = cfg_obj_asstring(obj);
 
-	if (!isc_file_isabsolute(directory) &&
-	    !isc_file_iscurrentdir(directory))
+	if (! isc_file_ischdiridempotent(directory))
 		cfg_obj_log(obj, ns_g_lctx, ISC_LOG_WARNING,
 			    "option 'directory' contains relative path '%s'",
 			    directory);
