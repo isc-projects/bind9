@@ -19,5 +19,19 @@
 #define ISC_TYPES_H 1
 
 #include <isc/int.h>
+#include <isc/list.h>
+
+/***
+ *** Core Types.
+ ***/
+
+typedef struct isc_mem			isc_mem_t;
+typedef unsigned int			isc_eventtype_t;
+typedef struct isc_event		isc_event_t;
+typedef ISC_LIST(struct isc_event)	isc_eventlist_t;
+typedef struct isc_task			isc_task_t;
+typedef struct isc_taskmgr		isc_taskmgr_t;
+
+typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 
 #endif /* ISC_TYPES_H */
