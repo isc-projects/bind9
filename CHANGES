@@ -1,3 +1,7 @@
+1107.	[bug]		nsupdate could catch an assertion failure if an
+			invalid domain name was given as the argument to
+			the "zone" command.
+
 1106.	[bug]		After seeing an out of range TTL, nsupdate would
 			treat all TTLs as out of range. [RT #2001]
 

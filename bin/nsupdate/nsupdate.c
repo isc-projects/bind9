@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.5 2001/11/06 20:42:01 gson Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.6 2001/11/06 21:50:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1089,6 +1089,7 @@ evaluate_zone(char *cmdline) {
 	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE,
 				   NULL);
 	if (result != ISC_R_SUCCESS) {
+		userzone = NULL; /* Lest it point to an invalid name */
 		fprintf(stderr, "could not parse zone name\n");
 		return (STATUS_SYNTAX);
 	}
