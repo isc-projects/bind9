@@ -65,6 +65,7 @@ static isc_task_t *task = NULL;
 static dns_fixedname_t name;
 static dns_fixedname_t target;
 static isc_log_t *lctx;
+static isc_logconfig_t *lcfg;
 static unsigned int level = 0;
 
 static void adb_callback(isc_task_t *task, isc_event_t *event);
@@ -77,8 +78,8 @@ log_init(void) {
 	/*
 	 * Setup a logging context.
 	 */
-	RUNTIME_CHECK(isc_log_create(mctx, &lctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_log_init(lctx) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_log_create(mctx, &lctx, &lcfg) == ISC_R_SUCCESS);
+	dns_log_init(lctx);
 
 	/*
 	 * Create and install the default channel.
@@ -88,12 +89,12 @@ log_init(void) {
 	destination.file.versions = ISC_LOG_ROLLNEVER;
 	destination.file.maximum_size = 0;
 	flags = ISC_LOG_PRINTTIME;
-	RUNTIME_CHECK(isc_log_createchannel(lctx, "_default",
+	RUNTIME_CHECK(isc_log_createchannel(lcfg, "_default",
 					    ISC_LOG_TOFILEDESC,
 					    ISC_LOG_DYNAMIC,
 					    &destination, flags) ==
 		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_log_usechannel(lctx, "_default", NULL, NULL) ==
+	RUNTIME_CHECK(isc_log_usechannel(lcfg, "_default", NULL, NULL) ==
 		      ISC_R_SUCCESS);
 	isc_log_setdebuglevel(lctx, level);
 }
