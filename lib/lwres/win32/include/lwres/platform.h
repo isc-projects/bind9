@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h,v 1.2 2001/07/18 18:29:59 gson Exp $ */
+/* $Id: platform.h,v 1.3 2001/07/23 03:01:56 mayer Exp $ */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -70,10 +70,12 @@
 /*
  * Define some Macros
  */
+#ifndef LIBLWRES_EXTERNAL_DATA
 #ifdef LIBLWRES_EXPORTS
 #define LIBLWRES_EXTERNAL_DATA __declspec(dllexport)
 #else
 #define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
+#endif
 #endif
 
 /*
