@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.178 2000/11/04 02:20:58 bwelling Exp $ */
+/* $Id: resolver.c,v 1.179 2000/11/08 03:53:11 marka Exp $ */
 
 #include <config.h>
 
@@ -237,6 +237,7 @@ struct dns_resolver {
 	dns_dispatch_t *		dispatchv6;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
+	isc_uint32_t			lame_ttl;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -2179,6 +2180,64 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 /*
  * Handle Responses
  */
+static inline isc_boolean_t
+is_lame(fetchctx_t *fctx) {
+	dns_message_t *message = fctx->rmessage;
+	dns_name_t *name;
+	dns_rdataset_t *rdataset;
+	isc_result_t result;
+
+	if (message->rcode != dns_rcode_noerror &&
+	    message->rcode != dns_rcode_nxdomain)
+		return (ISC_FALSE);
+
+	if (message->counts[DNS_SECTION_ANSWER] != 0)
+		return (ISC_FALSE);
+
+	if (message->counts[DNS_SECTION_AUTHORITY] == 0)
+		return (ISC_FALSE);
+
+	result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
+	while (result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			dns_namereln_t namereln;
+			int order;
+			unsigned int labels, bits;
+			if (rdataset->type != dns_rdatatype_ns)
+				continue;
+			namereln = dns_name_fullcompare(name, &fctx->domain,
+				   			&order, &labels, &bits);
+			if (namereln == dns_namereln_equal &&
+			    (message->flags & DNS_MESSAGEFLAG_AA) == 0)
+				return (ISC_TRUE);
+			if (namereln == dns_namereln_subdomain)
+				return (ISC_FALSE);
+			return (ISC_TRUE);
+		}
+		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
+	}
+
+	return (ISC_FALSE);
+}
+
+static inline void
+log_lame(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo) {
+	char namebuf[1024];
+	char domainbuf[1024];
+	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
+	
+	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+	dns_name_format(&fctx->domain, domainbuf, sizeof(domainbuf));
+	isc_sockaddr_format(&addrinfo->sockaddr, addrbuf, sizeof(addrbuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+		      "Lame server on '%s' (in '%s'?): %s",
+		      namebuf, domainbuf, addrbuf);
+}
 
 static inline isc_result_t
 same_question(fetchctx_t *fctx) {
@@ -4088,6 +4147,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
+	 * Is the server lame?
+	 */
+	if (fctx->res->lame_ttl != 0 && !ISFORWARDER(query->addrinfo) &&
+	    is_lame(fctx)) {
+		log_lame(fctx, query->addrinfo);
+		dns_adb_marklame(fctx->res->view->adb, query->addrinfo,
+				 &fctx->domain, now + fctx->res->lame_ttl);
+		broken_server = ISC_TRUE;
+		keep_trying = ISC_TRUE;
+		goto done;
+	}
+
+	/*
 	 * Did we get any answers?
 	 */
 	if (message->counts[DNS_SECTION_ANSWER] > 0 &&
@@ -4369,6 +4441,7 @@ dns_resolver_create(dns_view_t *view,
 	res->dispatchmgr = dispatchmgr;
 	res->view = view;
 	res->options = options;
+	res->lame_ttl = 0;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -4951,4 +5024,16 @@ isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	return (resolver->taskmgr);
+}
+
+isc_uint32_t
+dns_resolver_getlamettl(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	return (resolver->lame_ttl);
+}
+
+void
+dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	resolver->lame_ttl = lame_ttl;
 }

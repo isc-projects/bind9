@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.32 2000/11/06 23:48:48 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.33 2000/11/08 03:53:07 marka Exp $ -->
 
 <book>
 
@@ -3389,8 +3389,6 @@ lame server indication. 0 disables caching. (This is
 <emphasis role="bold">NOT</emphasis> recommended.)
 Default is <literal>600</literal> (10 minutes). Maximum value is 
 <literal>1800</literal> (30 minutes).</para>
-<note>
-                    <simpara>Not yet implemented in <acronym>BIND</acronym> 9.</simpara></note>
 </entry>
 </row>
 <row rowsep = "0">

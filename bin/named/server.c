@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.239 2000/11/07 23:49:19 mws Exp $ */
+/* $Id: server.c,v 1.240 2000/11/08 03:53:05 marka Exp $ */
 
 #include <config.h>
 
@@ -385,6 +385,7 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_result_t result;
 	isc_uint32_t cleaning_interval;
 	isc_uint32_t max_cache_size;
+	isc_uint32_t lame_ttl;
 	dns_tsig_keyring_t *ring;
 	dns_c_iplist_t *forwarders;
 	dns_view_t *pview = NULL;	/* Production view */
@@ -499,6 +500,18 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	if (dispatch6 != NULL)
 		dns_dispatch_detach(&dispatch6);
 
+	/*
+	 * Set resolver's lame-ttl.
+	 */
+	result = dns_c_view_getlamettl(cctx, &lame_ttl);
+	if (result == ISC_R_NOTFOUND)
+		result = dns_c_ctx_getlamettl(cctx, &lame_ttl);
+	if (result == ISC_R_NOTFOUND)
+		lame_ttl = 600;
+	if (lame_ttl > 18000)
+		lame_ttl = 18000;
+	dns_resolver_setlamettl(view->resolver, lame_ttl);
+	
 	/*
 	 * Set resolver forwarding policy.
 	 */

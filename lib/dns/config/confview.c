@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.54 2000/11/07 23:49:36 mws Exp $ */
+/* $Id: confview.c,v 1.55 2000/11/08 03:53:14 marka Exp $ */
 
 #include <config.h>
 
@@ -409,12 +409,6 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'max-cache-ttl' is not yet "
-				      "implemented");
-
-		if (dns_c_view_getlamettl(elem, &buival) != ISC_R_NOTFOUND)
-			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'lame-ttl' is not yet "
 				      "implemented");
 
 		if (dns_c_view_getminroots(elem, &buival) != ISC_R_NOTFOUND)

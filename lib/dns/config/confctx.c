@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.98 2000/11/07 23:49:31 mws Exp $ */
+/* $Id: confctx.c,v 1.99 2000/11/08 03:53:13 marka Exp $ */
 
 #include <config.h>
 
@@ -444,13 +444,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'check-names' is not yet implemented");
-	}
-
-	if (dns_c_ctx_getlamettl(cfg, &uintval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'lame-ttl' is not yet "
-			      "implemented");
 	}
 
 	if (dns_c_ctx_getminroots(cfg, &uintval) != ISC_R_NOTFOUND) {

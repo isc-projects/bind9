@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.32 2000/08/24 22:15:36 bwelling Exp $ */
+/* $Id: resolver.h,v 1.33 2000/11/08 03:53:16 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -330,6 +330,24 @@ dns_resolver_socketmgr(dns_resolver_t *resolver);
 
 isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver);
+
+isc_uint32_t
+dns_resolver_getlamettl(dns_resolver_t *resolver);
+/*
+ * Get the resolver's lame-ttl.  zero => no lame processing.
+ *
+ * Requires:
+ *	'resolver' to be valid.
+ */
+
+void
+dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl);
+/*
+ * Set the resolver's lame-ttl.  zero => no lame processing.
+ *
+ * Requires:
+ *	'resolver' to be valid.
+ */
 
 ISC_LANG_ENDDECLS
 
