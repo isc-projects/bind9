@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.51 2001/09/05 23:15:38 bwelling Exp $ */
+/* $Id: dnssec-signkey.c,v 1.52 2001/09/19 19:22:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -119,8 +119,10 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &key);
 		if (result != ISC_R_SUCCESS)
 			continue;
-		if (!dst_key_iszonekey(key))
+		if (!dst_key_iszonekey(key)) {
+			dst_key_free(&key);
 			continue;
+		}
 		keynode = isc_mem_get(mctx, sizeof (keynode_t));
 		if (keynode == NULL)
 			fatal("out of memory");
