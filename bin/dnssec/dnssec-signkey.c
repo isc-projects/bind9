@@ -137,7 +137,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 }
 
 static dst_key_t *
-findkey(dns_rdata_generic_sig_t *sig) {
+findkey(dns_rdata_sig_t *sig) {
 	keynode_t *keynode;
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
@@ -169,7 +169,7 @@ main(int argc, char *argv[]) {
 	dns_rdata_t *rdata, sigrdata;
 	dns_rdatalist_t sigrdatalist;
 	dns_rdataset_t rdataset, sigrdataset, newsigrdataset;
-	dns_rdata_generic_sig_t sig;
+	dns_rdata_sig_t sig;
 	isc_result_t result;
 	isc_buffer_t b;
 	isc_region_t r;
