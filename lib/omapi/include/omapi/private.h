@@ -22,17 +22,15 @@
 #ifndef OMAPI_PRIVATE_H
 #define OMAPI_PRIVATE_H
 
-#include <config.h>
-
 #include <isc/condition.h>
 #include <isc/lang.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/net.h>
-#include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
+#include <isc/util.h>
 
 #include <omapi/omapi.h>
 #include <omapi/result.h>
@@ -141,15 +139,58 @@ struct omapi_message {
 
 struct omapi_connection {
 	OMAPI_OBJECT_PREAMBLE;
-	isc_mutex_t			mutex;
-	isc_mutex_t			recv_lock;
-	isc_socket_t			*socket; /* Connection socket. */
+	/*
+	 * The wait lock is necessary to ensure that connection_wait is
+	 * blocking for the signal before any event is received that might
+	 * potentially free the connection.  This ensures that end_connection
+	 * will unblock connection_wait so that connection_wait can free
+	 * the connection.
+	 *
+	 * Consider, for example, the problem that send_intro has without
+	 * this lock.  It first needs to call connection_require to start
+	 * a recv task to get the server's intro.  Then it needs to send
+	 * the intro itself.  One sample problem that can then arise from
+	 * this is that the recv task completes before the wait is established
+	 * and it triggers an error, such as an premature EOF or an unsupported
+	 * version number in the header.  The client would have no way of
+	 * knowing an error occurred.
+	 *
+	 * Fortunately, there is no such problem in the server.  Since all
+	 * uses of the connection object happen from the socket thread,
+	 * no function will continue to use a connection object after there
+	 * has been an error on it, no other event can be posted until the
+	 * current event handler is done, and all events subsequent to
+	 * abandoning the connection will be ISC_R_CANCELED, so the event
+	 * handlers will not try to use the connection object.
+	 *
+	 * XXXDCL the above comments are somewhat out of date.
+	 */
+	isc_mutex_t			wait_lock;
+	isc_socket_t			*socket;
 	isc_task_t			*task;
-	unsigned int			events_pending;	/* socket events */
-	unsigned int			messages_expected;
+	/*
+	 * The error that caused the connection to be freed.
+	 */
+	isc_result_t			result;	
+	/*
+	 * Number of socket events outstanding.  This should always be
+	 * either 0 or 1 under the current model; having any more than
+	 * one event pending at any given time complicates the thread
+	 * locking issues.
+	 */
+	unsigned int			events_pending;
+	/*
+	 * Blocks connection_wait until the outstanding event completes.
+	 */
+	isc_condition_t			waiter;
+	/*
+	 * True if connection_wait is blocking on the water condition variable.
+	 */
 	isc_boolean_t			waiting;
-	isc_condition_t			waiter;	/* connection_wait() */
 	omapi_connection_state_t	state;
+	/*
+	 * These are set when a connection is made, but not currently used.
+	 */
 	isc_sockaddr_t			remote_addr;
 	isc_sockaddr_t			local_addr;
 	/*
@@ -158,19 +199,30 @@ struct omapi_connection {
 	isc_uint32_t			bytes_needed;
 	/*
 	 * Bytes of input already buffered.
-	 * XXXDCL isc_bufferlist_available() instead?
+	 * XXXDCL use isc_bufferlist_available() instead?
 	 */
 	isc_uint32_t			in_bytes;
-	/*
-	 * Input buffers.
-	 */
 	isc_bufferlist_t		input_buffers;
 	/*
-	 * Bytes of output in buffers.
+	 * Bytes of output in output buffers.
 	 */
 	isc_uint32_t			out_bytes;
 	isc_bufferlist_t		output_buffers;
+	/*
+	 * True if the connection was created by omapi_protocol_connect.
+	 */
 	isc_boolean_t			is_client;
+	/*
+	 * The listener that accepted the connection.
+	 * XXXDCL (Means is_client is false, making is_client is somewhat
+	 * redundant.)
+	 */
+	omapi_object_t *		listener;
+	/*
+	 * The server links known connections in a list at the connections
+	 * member of the omapi_listener_t struct.
+	 */
+	ISC_LINK(omapi_connection_t)	link;
 };
 
 struct omapi_protocol {
@@ -211,11 +263,6 @@ extern isc_taskmgr_t *omapi_taskmgr;
  */
 extern isc_socketmgr_t *omapi_socketmgr;
 
-/*
- * Is IPv6 in use?  Need to know when making connections to servers.
- */
-extern isc_boolean_t omapi_ipv6;
-
 /*****
  ***** Convenience macros.
  *****/
@@ -238,11 +285,8 @@ connection_init(void);
 isc_result_t
 connect_toserver(omapi_object_t *connection, const char *server, int port);
 
-void
-connection_send(omapi_connection_t *connection);
-
 isc_result_t
-connection_wait(omapi_object_t *connection_handle, isc_time_t *timeout);
+connection_send(omapi_connection_t *connection);
 
 isc_result_t
 connection_require(omapi_connection_t *connection, unsigned int bytes);
@@ -271,6 +315,9 @@ object_gethandle(omapi_handle_t *handle, omapi_object_t *object);
 
 isc_result_t
 handle_lookup(omapi_object_t **object, omapi_handle_t handle);
+
+void
+handle_destroy(void);
 
 /*
  * Private library functions defined in listener.c.
