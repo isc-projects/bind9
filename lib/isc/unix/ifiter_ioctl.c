@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.9 2004/03/08 09:04:56 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.5.2.10 2004/04/15 07:03:50 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -267,7 +267,8 @@ getbuf6(isc_interfaceiter_t *iter) {
 		iter->bufsize6 *= 2;
 	}
 
-	iter->mode = 6;
+	if (iter->lifc.lifc_len != 0)
+		iter->mode = 6;
 	return (ISC_R_SUCCESS);
 
  cleanup:
