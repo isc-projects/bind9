@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.24 2000/07/03 03:08:22 marka Exp $ */
+/* $Id: t_master.c,v 1.25 2000/07/09 12:48:43 marka Exp $ */
 
 #include <config.h>
 
@@ -289,6 +289,19 @@ t9() {
 	t_result(result);
 }
 
+static const char *a10 =
+	"dns_master_loadfile non-empty blank lines";
+
+static void
+t10() {
+	int	result;
+
+	t_assert("dns_master_loadfile", 10, T_REQUIRED, a10);
+	result = test_master_x("dns_master_load_10_data");
+
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,	"ISC_R_SUCCESS"		},
 	{	t2,	"ISC_R_UNEXPECTEDEND"	},
@@ -299,6 +312,7 @@ testspec_t	T_testlist[] = {
 	{	t7,	"KEY RR 2"		},
 	{	t8,	"$INCLUDE"		},
 	{	t9,	"$INCLUDE w/ DNS_BADCLASS"	},
+	{	t10,	"non empty blank lines"	},
 	{	NULL,	NULL			}
 };
 
