@@ -1,0 +1,336 @@
+
+
+
+
+   DNSSEC Working Group                          Brian Wellington (TISLabs)
+   INTERNET-DRAFT                              Olafur Gudmundsson (TISLabs)
+                                                              February 1999
+
+   <draft-ietf-dnsind-dddd-00.txt>
+
+   Updates: RFC 2136
+
+
+
+         Deferred Dynamic Domain Name System (DNS) Delete Operations
+
+
+   Status of this Memo
+
+      This document is an Internet-Draft and is in full conformance with
+      all provisions of Section 10 of RFC2026.
+
+      Internet-Drafts are working documents of the Internet Engineering
+      Task Force (IETF), its areas, and its working groups.  Note that
+      other groups may also distribute working documents as Internet-
+      Drafts.
+
+      Internet-Drafts are draft documents valid for a maximum of six months
+      and may be updated, replaced, or obsoleted by other documents at any
+      time.  It is inappropriate to use Internet-Drafts as reference
+      material or to cite them other than as ``work in progress.''
+
+      The list of current Internet-Drafts can be accessed at
+      http://www.ietf.org/ietf/1id-abstracts.txt
+
+      The list of Internet-Draft Shadow Directories can be accessed at
+      http://www.ietf.org/shadow.html
+
+
+   Abstract
+
+      This document proposes a mechanism for notifying a dynamic DNS server
+      that a delete operation should be performed at a certain point in the
+      future.  This works within the framework of the current DNS dynamic
+      update protocol, and provides needed functionality for clients with
+      leased dynamic addresses.
+
+
+
+
+
+
+
+
+
+   Expires August 1999                                             [Page 1]
+
+INTERNET-DRAFT        Deferred Dynamic DNS Deletes         February 1999
+
+
+   1 - Introduction
+
+   Dynamic update operations for the Domain Name System [RFC1034, RFC1035]
+   are defined in [RFC2136], but there is no automated method of specifying
+   that records should have a fixed lifetime, or lease.
+
+   1.1 - Overview of DNS Dynamic Update
+
+   DNS dynamic update defines a new DNS opcode and a new interpretation of
+   the DNS message if that opcode is used.  An update can specify
+   insertions or deletions of data, along with prerequisites necessary for
+   the updates to occur.  All tests and changes for a DNS update request
+   are restricted to a single zone, and are performed at the primary server
+   for the zone.  The primary server for a dynamic zone must increment the
+   zone SOA serial number when an update occurs or before the next
+   retrieval of the SOA.
+
+   1.2 - Overview of DHCP leases
+
+   DHCP [RFC2131] provides a means for a host to obtain a network address
+   from a DHCP server.  The server may ``lease'' this address to the host,
+   meaning that it is valid only for the period of time specified in the
+   lease.  The host may may extend its lease with subsequent requests, or
+   may issue a message to release the address back to the server when it is
+   no longer needed.
+
+   2 - Background
+
+   When a host receives dynamic addresses with associated dynamic DNS
+   records, the records can be updated by either the host or the DHCP
+   server.  If possible, update by the server is recommended, since the
+   server maintains lease information for each address.  In some cases,
+   though, the server cannot update some or all of the DNS records.  This
+   happens when the DNS and DHCP server are under different administration,
+   for example.
+
+   A host can easily update its own DNS records when receiving information
+   from the DHCP server.  It can also delete its records when shutting
+   down.  If the host unexpectedly goes down, though, it cannot delete the
+   records.  When the DHCP lease on the address expires and is not renewed,
+   the DHCP server may reassign the address.  The DNS records now point to
+   an assigned address, but not the correct address.  Until the host
+   updates its records again, DNS will contain bad information.
+
+   Since the DHCP and DNS servers are often not co-located with the
+   clients, the possibility of a host unexpectedly going down and not
+   communicating with the servers is non-trivial.
+
+
+
+
+   Expires August 1999                                             [Page 2]
+
+INTERNET-DRAFT        Deferred Dynamic DNS Deletes         February 1999
+
+
+   If the host could set a lease on the DNS records similar to that on its
+   address, the DNS records would lose validity at the same time as the
+   address.  This would prevent bad information from remaining in DNS.  DNS
+   has no such provision for leases, though, since this would require
+   storing a lease time along with each record (or each record in a dynamic
+   zone).
+
+   An alternative method is suggested.  A ``delete'' update is sent along
+   with the ``add'' update, but the delete is marked in such a way that it
+   will not be executed immediately.  Instead, it will be stored for the
+   specified amount of time before being applied.  If the host wishes to
+   extend or shorten the lifetime of the DNS record(s), it can replace the
+   ``deferred delete'' record, which will reset the lease time of the
+   record(s).  The ``deferred delete'' record would, of course, also be
+   removed if a normal delete update was received.
+
+   This functionality is useful for DHCP leases and maintainance of IPv6
+   routing prefixes. DNSSEC compliant server can also use deferred dynamic
+   delete information to compute signatures of records affected by the
+   delete operation prior to the delete operation, using spare cycles.
+
+   3 - Protocol changes
+
+   When doing a delete update operation as defined in [RFC2136] (deleting
+   an RR, an RRset, or all RRset from a name), the TTL field MUST be
+   specified as 0.  An [RFC2136] compliant server will reject an update
+   record with a non-zero TTL.  This document overloads the TTL field.  If
+   TTL is non-zero, the value represents the number of seconds (a 32 bit
+   unsigned integer) before which the delete will be applied to the zone.
+   Thus, the delete operation will be deferred for that number of seconds,
+   where the number of seconds indicates the lease time.  A 32 bit integer
+   provides for a lease time of over 136 years, which should be long enough
+   for most uses.
+
+   3.1 - Storage and execution
+
+   Deferred delete records are stored, persistently, by the name server.
+   The name server SHOULD attempt to evaluate the deletes in a timely
+   manner.
+
+   3.2 - Processing of deferred deletes
+
+   When a deferred delete is received, the server must check to see if it
+   matches an existing deferred delete records, where matching indicates
+   the same name, type, class, and rdata.  If a match is found, the new
+   deferred delete MUST replace the old one.  If the deferred delete does
+   not refer to any record in the server, it should fail as a normal delete
+   would.
+
+
+
+   Expires August 1999                                             [Page 3]
+
+INTERNET-DRAFT        Deferred Dynamic DNS Deletes         February 1999
+
+
+   3.3 - Processing of normal deletes
+
+   When a normal delete is received and accepted, the server MUST purge any
+   deferred delete that no longer refers to any records.
+
+   3.4 - Processing of cancellations
+
+   The value 0xFFFFFFFF (the largest unsigned 32 bit integer) in the TTL
+   field has a special meaning.  If a delete containing this lease time is
+   received, the server will unconditionally remove any matching deferred
+   deletes.
+
+   3.5 - Processing of adds
+
+   When data is added through a dynamic update which matches a deferred
+   delete, there is no additional processing done.
+
+   3.6 - Detecting server support of Deferred Delete
+
+   Client can determine if server supports deferred delete by the return
+   code of a deferred delete request by sending a ADD + Delete request to
+   the server, where the delete has low TTL. RFC2136 compliant server MUST
+   return either rcode FORMERR or NOTIMPL. Server compliant with this
+   document will return NOERROR.
+
+   4 - TTL Modification
+
+
+   4.1 - Initial TTL Limits
+
+   The TTL of all added or updated RRs in the Update Section SHOULD be
+   maximized silently to one half of the lease time.  This will cause
+   downstream caching name servers to purge RRsets containing this RR at
+   least once before expiry.
+
+   4.2 - TTL Half Life
+
+   Each time an RR's expiry reaches half of its previous value, that RR's
+   TTL will be reduced to half of its previous value, until the TTL reaches
+   a value less than or equal to sixty (60), i.e., one minute of real time,
+   at which time the TTL will not be automatically reduced further by the
+   primary master.  It should be noted that RRs held in a server's memory
+   need not be swept for half life processing, as long as the TTL changes
+   appear when the RR next becomes externally visible, and as long as the
+   ``zone has changed'' processing (see below) is done at the time of the
+   half life expiration.
+
+
+
+
+
+   Expires August 1999                                             [Page 4]
+
+INTERNET-DRAFT        Deferred Dynamic DNS Deletes         February 1999
+
+
+   Whenever the TTL is automatically reduced by this process, the zone will
+   be considered ``changed'' for the purpose of automatic SOA SERIAL
+   increment (as in [RFC2136]) and real time zone slave notification
+   [RFC1996].
+
+
+   5 - Usage
+
+   Normally, a deferred delete update will initially be sent along with an
+   add, although this is not required.  Further updates to the deferred
+   delete will be sent independently.  If the deferred delete is associated
+   with a leased address, the lease time of the update SHOULD be
+   approximately equal to the lease time of the address.
+
+   6 - Security considerations
+
+   This addition to the dynamic DNS protocol does not affect the security
+   of the protocol.  If security is desired, TSIG [TSIG] and/or DNSSEC
+   [secext2] authentication should be used, as specified in [simple-update]
+   or [RFC2137, update2].  The authors strongly recommend using security
+   along with this protocol.
+
+   If a DNSSEC signed-zone is modified with deferred deletes, the server
+   must resign any affected records when the delete is executed.  No
+   special processing is required when the delete is received.
+
+   7 - IANA Considerations
+
+   None.
+
+   8 - References
+
+   [RFC1034]  P. Mockapetris, ``Domain Names - Concepts and Facilities,''
+              RFC 1034, ISI, November 1987.
+
+   [RFC1035]  P. Mockapetris, ``Domain Names - Implementation and
+              Specification,'' RFC 1035, ISI, November 1987.
+
+   [RFC1996]  P. Vixie ``A Mechanism for Prompt Notification of Zone
+              Changes (DNS NOTIFY),'' RFC 1996, ISC, August 1996.
+
+   [RFC2136]  P. Vixie (Ed.), S. Thomson, Y. Rekhter, J. Bound ``Dynamic
+              Updates in the Domain Name System,'' RFC 2136, ISC & Bellcore
+              & Cisco & DEC, April 1997.
+
+   [RFC2137]  D. Eastlake ``Secure Domain Name System Dynamic Update,'' RFC
+              2137, CyberCash, April 1997.
+
+
+
+
+   Expires August 1999                                             [Page 5]
+
+INTERNET-DRAFT        Deferred Dynamic DNS Deletes         February 1999
+
+
+   [secext2]  D. Eastlake ``Domain Name System Security Extensions,''
+              draft-ietf-dnssec-secext2-07.txt, IBM, December 1998.
+
+   [TSIG]     P. Vixie (ed), O. Gudmundsson, D. Eastlake, B. Wellington
+              ``Secret Key Transaction Signatures for DNS (TSIG),'' draft-
+              ietf-dnsind-tsig-08.txt, ISC & TIS & IBM, February 1999.
+
+   [simple-update]
+              B. Wellington ``Simple Secure Domain Name System (DNS)
+              Dynamic Update,'' draft-ietf-dnsind-simple-update-00.txt,
+              TISLabs, November 1998.
+
+   [update2]  D. Eastlake ``Secure Domain Name System (DNS) Dynamic
+              Update,'' draft-ietf-dnssec-update2-00.txt, Transfinite
+              Systems Company, August 1998.
+
+   8 - Author's Address
+
+
+      Brian Wellington                     Olafur Gudmundsson
+        TISLabs at Network Associates        TISLabs at Network Associates
+        3060 Washington Road, Route 97       3060 Washington Road, Route 97
+        Glenwood, MD 21738                      Glenwood, MD 21738
+        +1 443 259 2369                      +1 443 259 2389
+        +1 301 854 6889 (main number)        +1 301 854 6889
+        <bwelling@tislabs.com>               <ogud@tislabs.com>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   Expires August 1999                                             [Page 6]

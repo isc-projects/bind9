@@ -1,0 +1,335 @@
+
+
+INTERNET-DRAFT                                                Peter Koch
+Expires: August 1999                              Universitaet Bielefeld
+Updates: RFC 1035                                          February 1999
+
+        A DNS RR Type for Lists of IP Address Prefixes (APL RR)
+                    draft-ietf-dnsind-apl-rr-01.txt
+
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   Comments should be sent to the author or the DNSIND WG mailing list
+   <namedroppers@internic.net>.
+
+Abstract
+
+   The Domain Name System is primarily used to translate domain names
+   into IPv4 addresses using A RRs. Several approaches exist to describe
+   networks or address ranges. This document proposes a new DNS RR type
+   "APL" for address prefix lists.
+
+1. Conventions used in this document
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
+   Domain names herein are for explanatory purposes only and should not
+   be expected to lead to useful information in real life [TESTTLD].
+
+
+
+
+Koch                      Expires August 1999                   [Page 1]
+
+INTERNET-DRAFT                 DNS APL RR                  February 1999
+
+
+2. Background
+
+   The Domain Name System [RFC1034], [RFC1035] provides a mechanism to
+   assign addresses and other internet infrastructure elements to
+   hierarchically built domain names. Various types of resource records
+   have been defined, especially those for IPv4 and IPv6 [RFC1886],
+   [A6DNSRR] addresses.  In [RFC1101] a method is described to publish
+   information about the address space allocated to an organisation. In
+   older BIND versions, a weak form of controlling access to zone data
+   was implemented using TXT RRs describing address ranges.
+
+   This document proposes a new RR type for address prefix lists.
+
+3. APL RR Type
+
+   An APL record has the DNS type of "APL" [draft: not yet applied for]
+   and a numeric value of [draft:to be assigned]. The APL RR is defined
+   in the IN class only. APL RRs cause no additional section processing.
+
+4. APL RDATA format
+
+   The RDATA section consists of zero or more strings (<apstring>) of
+   the form
+
+      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+      |                          ADDRESSFAMILY                        |
+      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+      | N |          PREFIX           |  MBZ  |        AFDLENGTH      |
+      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+      /                            AFDPART                            /
+      |                                                               |
+      +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
+
+
+      ADDRESSFAMILY     16 bit unsigned value as assigned by IANA
+                        (see IANA Considerations)
+      N                 negation flag, indicates the presence of the
+                        "!" character in the textual format. It has
+                        the value "1" if the "!" was given, "0" else.
+      PREFIX            binary coded prefix length. Upper and lower
+                        bounds and interpretation of this value are
+                        address family specific.
+      MBZ               reserved, must be zero
+      AFDLENGTH         length in octets of the following address
+                        family dependent part. This is to deal with
+                        yet undefined address families and variable
+                        length addresses.
+
+
+
+
+Koch                      Expires August 1999                   [Page 2]
+
+INTERNET-DRAFT                 DNS APL RR                  February 1999
+
+
+      AFDPART           address family dependent part. See below.
+
+
+   This document defines the AFDPARTs for address families 1 (IPv4) and
+   2 (IPv6).  Future revisions may deal with additional address
+   families.
+
+4.1. AFDPART for IPv4
+
+   The encoding of an IPv4 address (address family 1) follows the
+   encoding specified for the A RR by [RFC1035], section 3.4.1.
+
+   PREFIX specifies the number of bits of the IPv4 address starting at
+   the most significant bit. Legal encodings range from 0 (1 bit) to 31
+   (32 bit, complete address).
+
+   An IPv4 AFDPART has a fixed length of 4 octets.
+
+4.1. AFDPART for IPv6
+
+   The encoding of an IPv6 address (address family 2) follows the
+   encoding specified for the AAAA RR by [RFC1886], section 2.2.
+
+   PREFIX specifies the number of bits of the IPv6 address starting at
+   the most significant bit. Legal encodings range from 0 (1 bit) to 127
+   (128 bit, complete address).
+
+   An IPv6 AFDPART has a fixed length of 16 octets.
+
+5. Zone File Syntax
+
+   The textual representation of an APL RR in a DNS zone file is as
+   follows:
+
+      <owner>   IN   <TTL>   APL   {[!]address/prefix}*
+
+   The data consists of zero or more strings of an address, immediately
+   followed by the "/" character, immediately followed by a decimal
+   numeric value for the prefix length. Any such string may be preceeded
+   by a "!" character. The strings are separated by whitespace.
+
+5.1. Textual Representation of IPv4 Addresses
+
+   An IPv4 address in the <address> part of an <apstring> is in dotted
+   quad notation, just as in an A RR.  The <prefix> has values from the
+   interval 1..32 (decimal), corresponding to encodings 0..31.
+
+5.1. Textual Representation of IPv6 Addresses
+
+
+
+Koch                      Expires August 1999                   [Page 3]
+
+INTERNET-DRAFT                 DNS APL RR                  February 1999
+
+
+   The representation of an IPv6 address in the <address> part of an
+   <apstring> follows [RFC2373], section 2.2. Legal values for <prefix>
+   are from the interval 1..128 (decimal), corresponding to encodings
+   0..127.
+
+6. APL RR usage
+
+   An APL RR with empty RDATA is valid and implements an empty list.
+   Multiple occurences of the same <apstring> in a single APL RR are
+   allowed and MUST NOT be merged by a DNS server or resolver.
+   <apstrings> must be kept in order and MUST NOT be rearranged or
+   aggregated.
+
+   A single APL RR may contain <apstrings> belonging to different
+   address families.  The maximum number of <apstrings> is upperbounded
+   by the available RDATA space.
+
+   RRSets consisting of more than one APL RR are legal but the
+   interpretation is left to the particular application. It may choose
+   to join the lists or treat them as alternatives.
+
+   Possible applications include the publication of address ranges
+   similar to [RFC1101], description of zones built following [RFC2317]
+   and in-band access control to limit general access or zone transfer
+   (AXFR) availability for zone data held in DNS servers.
+
+7. Examples
+
+      foo.example              APL 192.168.32.0/21 !192.168.38.0/28
+
+      42.168.192.IN-ADDR.ARPA  APL 192.168.42.0/26 192.168.42.64/26 \
+                                   192.168.42.128/25
+
+      _axfr_.sbo.example       APL 127.0.0.1/32 172.16.64.0/22
+
+      multicast.example        APL 224.0.0.0/4  FF00:0:0:0:0:0:0:0/8
+
+8. Security Considerations
+
+   Any information obtained from the DNS should be regarded as unsafe
+   unless techniques specified in [RFC2065] or [TSIGRR] were used. The
+   definition of a new RR type does not introduce security problems into
+   the DNS, but usage of information made available by APL RRs may
+   compromise security. This includes disclosure of network topology
+   information and in particular the use of APL RRs to construct access
+   control lists.
+
+9. IANA Considerations
+
+
+
+Koch                      Expires August 1999                   [Page 4]
+
+INTERNET-DRAFT                 DNS APL RR                  February 1999
+
+
+   This document does not define any new namespaces. It uses the 16 bit
+   identifiers for address families maintained by IANA in
+   ftp://ftp.iana.org/in-notes/iana/assignments/address-family-numbers.
+
+10. Acknowledgements
+
+   The author would like to thank Mark Andrews for his review and
+   constructive comments.
+
+11. References
+
+
+   [A6DNSRR]   Crawford,M., Thomson,S., "DNS Extensions to Support IP
+               Version 6", <draft-ietf-ipngwg-dns-lookups-XX.txt>, work
+               in progress
+
+   [RFC1034]   Mockapetris,P., "Domain Names - Concepts and Facilities",
+               RFC 1034, STD 13, November 1987
+
+   [RFC1035]   Mockapetris,P., "Domain Names - Implementation and
+               Specification", RFC 1035, STD 13, November 1987
+
+   [RFC1101]   Mockapetris,P., "DNS Encoding of Network Names and Other
+               Types", RFC 1101, April 1989
+
+   [RFC1886]   Thomson,S., Huitema.,C., "DNS Extensions to support IP
+               version 6", RFC 1886, December 1995
+
+   [RFC2065]   Eastlake,D., Kaufman,C. "Domain Name System Security
+               Extensions", RFC 2065, January 1997
+
+   [RFC2119]   Bradner,S., "Key words for use in RFCs to Indicate
+               Requirement Levels", RFC 2119, BCP 14, March 1997
+
+   [RFC2181]   Elz,R., Bush,R., "Clarifications to the DNS
+               Specification", RFC 2181, July 1997
+
+   [RFC2373]   Hinden,R., Deering,S., "IP Version 6 Addressing
+               Architecture", RFC 2373, July 1998
+
+   [TESTTLD]   Eastlake,D., Panitz,A., "Reserved Top Level DNS Names",
+               <draft-ietf-dnsind-test-tlds-XX.txt>, work in progress
+
+   [TSIGRR]    Vixie,P., Gudmundsson,O., Eastlake,D., Wellington,B.,
+               "Secret Key Transaction Signatures for DNS (TSIG)",
+               <draft-ietf-dnsind-tsig-XX.txt>, work in progress
+
+
+
+
+
+Koch                      Expires August 1999                   [Page 5]
+
+INTERNET-DRAFT                 DNS APL RR                  February 1999
+
+
+12. Author's Address
+
+   Peter Koch
+   Universitaet Bielefeld
+   Technische Fakultaet
+   Postfach 10 01 31
+   D-33501 Bielefeld
+   Germany
+   +49 521 106 2902
+   <pk@TechFak.Uni-Bielefeld.DE>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Koch                      Expires August 1999                   [Page 6]
+
