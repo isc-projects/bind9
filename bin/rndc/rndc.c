@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.75 2001/08/03 05:56:13 marka Exp $ */
+/* $Id: rndc.c,v 1.76 2001/08/06 04:25:03 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -49,11 +49,6 @@
 #include <isccc/sexpr.h>
 #include <isccc/types.h>
 #include <isccc/util.h>
-
-#if 0
-#define RNDC_MAIN
-#include <rndc/os.h>
-#endif
 
 #include "util.h"
 

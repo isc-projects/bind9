@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.docbook,v 1.6 2001/06/10 13:57:53 tale Exp $ -->
+<!-- $Id: rndc.docbook,v 1.7 2001/08/06 04:25:04 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -38,6 +38,7 @@
     <cmdsynopsis>
       <command>rndc</command>
       <arg><option>-c <replaceable class="parameter">config-file</replaceable></option></arg>
+      <arg><option>-k <replaceable class="parameter">key-file</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">server</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port</replaceable></option></arg>
       <arg><option>-V</option></arg>
@@ -87,6 +88,20 @@
 	      Use <replaceable class="parameter">config-file</replaceable>
 	      as the configuration file instead of the default,
 	      <filename>/etc/rndc.conf</filename>.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-k <replaceable class="parameter">key-file</replaceable></term>
+	<listitem>
+	  <para>
+	      Use <replaceable class="parameter">key-file</replaceable>
+	      as the key file instead of the default,
+	      <filename>/etc/rndc.key</filename>.  The key in
+	      <filename>/etc/rndc.key</filename> will be used to authenticate
+	      commands sent to the server if the <replaceable class="parameter">config-file</replaceable>
+	      does not exist.
 	  </para>
 	</listitem>
       </varlistentry>

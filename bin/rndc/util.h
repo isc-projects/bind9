@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.4 2001/07/17 20:29:19 gson Exp $ */
+/* $Id: util.h,v 1.5 2001/08/06 04:25:05 marka Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
@@ -33,7 +33,7 @@
 		if (result != ISC_R_SUCCESS) \
 			fatal("%s: %s", name, isc_result_totext(result)); \
 		else \
-			notify(name); \
+			notify("%s", name); \
 	} while (0)
 
 ISC_LANG_BEGINDECLS
