@@ -1,0 +1,41 @@
+OBJS=	ahcbcpad.@O@ ahchdig.@O@ ahchencr.@O@ ahchgen.@O@ ahchrand.@O@ \
+	ahdigest.@O@ ahencryp.@O@ ahgen.@O@ ahrandom.@O@ ahrsaenc.@O@ \
+	ahrsaepr.@O@ ahrsaepu.@O@ aichdig.@O@ aichenc8.@O@ aichencn.@O@ \
+	aichencr.@O@ aichgen.@O@ aichrand.@O@ aimd5.@O@ aimd5ran.@O@ \
+	ainfotyp.@O@ ainull.@O@ airsaepr.@O@ airsaepu.@O@ airsakgn.@O@ \
+	airsaprv.@O@ airsapub.@O@ algchoic.@O@ algobj.@O@ amcrte.@O@ \
+	ammd5.@O@ ammd5r.@O@ amrkg.@O@ amrsae.@O@ balg.@O@ bgclrbit.c \
+	bgmdmpyx.@O@ bgmdsqx.@O@ bgmodexp.@O@ bgpegcd.@O@ big2exp.@O@ \
+	bigabs.@O@ bigacc.@O@ bigarith.@O@ bigcmp.@O@ bigconst.@O@ \
+	biginv.@O@ biglen.@O@ bigmodx.@O@ bigmpy.@O@ bigpdiv.@O@ \
+	bigpmpy.@O@ bigpmpyh.@O@ bigpmpyl.@O@ bigpsq.@O@ bigqrx.@O@ \
+	bigsmod.@O@ bigtocan.@O@ bigu.@O@ bigunexp.@O@ binfocsh.@O@ \
+	bkey.@O@ bmempool.@O@ cantobig.@O@ crt2.@O@ digest.@O@ \
+	digrand.@O@ encrypt.@O@ generate.@O@ intbits.@O@ intitem.@O@ \
+	keyobj.@O@ ki8byte.@O@ kifulprv.@O@ kiitem.@O@ kinfotyp.@O@ \
+	kipkcrpr.@O@ kirsacrt.@O@ kirsapub.@O@ md5.@O@ md5rand.@O@ \
+	prime.@O@ random.@O@ rsa.@O@ rsakeygn.@O@ seccbcd.@O@ \
+	seccbce.@O@ surrendr.@O@
+
+SRCS=	ahcbcpad.c ahchdig.c ahchencr.c ahchgen.c ahchrand.c ahdigest.c \
+	ahencryp.c ahgen.c ahrandom.c ahrsaenc.c ahrsaepr.c ahrsaepu.c \
+	aichdig.c aichenc8.c aichencn.c aichencr.c aichgen.c aichrand.c \
+	aimd5.c aimd5ran.c ainfotyp.c ainull.c airsaepr.c airsaepu.c \
+	airsakgn.c airsaprv.c airsapub.c algchoic.c algobj.c amcrte.c \
+	ammd5.c ammd5r.c amrkg.c amrsae.c balg.c bgclrbit.c bgmdmpyx.c \
+	bgmdsqx.c bgmodexp.c bgpegcd.c big2exp.c bigabs.c bigacc.c \
+	bigarith.c bigcmp.c bigconst.c biginv.c biglen.c bigmodx.c \
+	bigmpy.c bigpdiv.c bigpmpy.c bigpmpyh.c bigpmpyl.c bigpsq.c \
+	bigqrx.c bigsmod.c bigtocan.c bigu.c bigunexp.c binfocsh.c \
+	bkey.c bmempool.c cantobig.c crt2.c digest.c digrand.c encrypt.c \
+	generate.c intbits.c intitem.c keyobj.c ki8byte.c kifulprv.c \
+	kiitem.c kinfotyp.c kipkcrpr.c kirsacrt.c kirsapub.c md5.c \
+	md5rand.c prime.c random.c rsa.c rsakeygn.c seccbcd.c seccbce.c \
+	surrendr.c
+
+TARGETS= ${OBJS}
+
+CINCLUDES= -I.. -I../include
+CWARNINGS= -Werror
+
+@BIND9_MAKE_RULES@

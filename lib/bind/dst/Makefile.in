@@ -1,0 +1,16 @@
+OBJS=	bsafe_link.@O@ cylink_link.@O@ dst_api.@O@ eay_dss_link.@O@ \
+	hmac_link.@O@ md5_dgst.@O@ prandom.@O@ rsaref_link.@O@ support.@O@
+
+SRCS=	bsafe_link.c cylink_link.c dst_api.c eay_dss_link.c \
+	hmac_link.c md5_dgst.c prandom.c rsaref_link.c support.c
+
+TARGETS= ${OBJS}
+
+CRYPTINCL=      -I../cylink -I../dnssafe
+CRYPTFLAGS=     -DCYLINK_DSS -DHMAC_MD5 -DUSE_MD5 -DDNSSAFE
+
+CINCLUDES= -I.. -I../include ${CRYPTINCL}
+CWARNINGS= -Werror
+CDEFINES= ${CRYPTFLAGS}
+
+@BIND9_MAKE_RULES@

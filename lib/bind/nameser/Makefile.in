@@ -1,0 +1,12 @@
+OBJS=	ns_date.@O@ ns_name.@O@ ns_netint.@O@ ns_parse.@O@ ns_print.@O@ \
+	ns_samedomain.@O@ ns_sign.@O@ ns_ttl.@O@ ns_verify.@O@
+
+SRCS=	ns_date.c ns_name.c ns_netint.c ns_parse.c ns_print.c \
+	ns_samedomain.c ns_sign.c ns_ttl.c ns_verify.c
+
+TARGETS= ${OBJS}
+
+CINCLUDES= -I.. -I../include
+CWARNINGS= -Werror
+
+@BIND9_MAKE_RULES@

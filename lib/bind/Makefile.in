@@ -1,0 +1,20 @@
+BSDOBJS=	daemon.o putenv.o strcasecmp.o strsep.o ftruncate.o \
+		readv.o strdup.o strtoul.o gettimeofday.o setenv.o \
+		strerror.o utimes.o mktemp.o setitimer.o strpbrk.o \
+		writev.o
+
+SUBDIRS = bsd cylink dnssafe dst include inet irs isc nameser resolv
+
+OBJS=	prand_conf.@O@
+
+SRCS=	prand_conf.c
+
+@BIND9_MAKE_RULES@
+
+all depend:  prand_conf.h
+
+prand_conf.h:	prand_conf
+	./prand_conf > $@
+
+prand_conf: ${OBJS}
+	${CC} -o $@ ${OBJS}
