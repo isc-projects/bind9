@@ -64,7 +64,6 @@
 #include <isc/stdtime.h>
 #include <isc/buffer.h>
 #include <isc/quota.h>
-#include <isc/log.h>
 
 #include <dns/name.h>
 #include <dns/types.h>

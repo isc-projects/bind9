@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.h,v 1.14 2000/03/23 00:53:05 gson Exp $ */
+/* $Id: log.h,v 1.15 2000/04/04 20:08:23 gson Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -27,6 +27,7 @@
 
 #include <isc/lang.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -72,32 +73,22 @@ ISC_LANG_BEGINDECLS
 #define ISC_LOG_ROLLNEVER	(-2)
 
 /*
- * A logging context.  Details are internal to the implementation.
- */
-typedef struct isc_log isc_log_t;
-
-/*
- * Channel configuration.  Details are internal to the implementation.
- */
-typedef struct isc_logconfig isc_logconfig_t;
-
-/*
  * Used to name the categories used by a library.  An array of isc_logcategory
  * structures names each category, and the id value is initialized by calling
  * isc_log_registercategories.
  */
-typedef struct isc_logcategory {
+struct isc_logcategory {
 	const char *name;
 	unsigned int id;
-} isc_logcategory_t;
+};
 
 /*
  * Similar to isc_logcategory above, but for all the modules a library defines.
  */
-typedef struct isc_logmodule {
+struct isc_logmodule {
 	const char *name;
 	unsigned int id;
-} isc_logmodule_t;
+};
 
 /*
  * The isc_logfile structure is initialized as part of an isc_logdestination

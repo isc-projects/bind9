@@ -45,6 +45,10 @@ typedef struct isc_bitstring		isc_bitstring_t;
 typedef struct isc_sockaddr		isc_sockaddr_t;
 typedef struct isc_netaddr		isc_netaddr_t;
 typedef struct isc_buffer		isc_buffer_t;
+typedef struct isc_log 			isc_log_t;
+typedef struct isc_logconfig		isc_logconfig_t;
+typedef struct isc_logcategory		isc_logcategory_t;
+typedef struct isc_logmodule		isc_logmodule_t;
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 

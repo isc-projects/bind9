@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
