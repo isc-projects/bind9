@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.8 2001/07/14 18:30:01 bwelling Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.8.2.1 2001/11/27 18:57:40 gson Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -463,7 +463,7 @@ The newly-added record has a 1 day TTL (86400 seconds)
 <programlisting>
 # nsupdate
 > prereq nxdomain nickname.example.com
-> update add nickname.example.com CNAME somehost.example.com
+> update add nickname.example.com 86400 CNAME somehost.example.com
 >
 </programlisting>
 </para>
