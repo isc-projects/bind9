@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.69 2000/11/28 22:42:35 gson Exp $ */
+/* $Id: confzone.c,v 1.70 2000/12/01 19:50:51 gson Exp $ */
 
 #include <config.h>
 
@@ -630,7 +630,7 @@ dns_c_zone_validate(dns_c_zone_t *zone)
 	const char *nomasterserr = "zone '%s': missing 'masters' entry";
 	const char *emptymasterserr = "zone '%s': 'masters' value is empty";
 	const char *disabledzone = "zone '%s': is disabled";
-	const char *checknameserror = "zone '%s': 'check-names' is not yet "
+	const char *checknameserror = "zone '%s': 'check-names' is not "
 		"implemented";
 	const char *pubkeyerror = "zone '%s': 'pubkey' is deprecated";
 	const char *maintixfrbase = "zone '%s': 'maintain-ixfr-base' is "

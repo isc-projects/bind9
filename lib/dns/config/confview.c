@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.60 2000/12/01 09:03:42 marka Exp $ */
+/* $Id: confview.c,v 1.61 2000/12/01 19:50:52 gson Exp $ */
 
 #include <config.h>
 
@@ -423,7 +423,7 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 		    != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-				      "view 'check-names' is not yet "
+				      "view 'check-names' is not "
 				      "implemented");
 
 
