@@ -50,13 +50,18 @@ all: ${SUBDIRS} ${TARGETS}
 
 ALL_SUBDIRS = ${SUBDIRS} nulldir
 
-${ALL_SUBDIRS}::
+#
+# We use a single-colon rule so that additional dependencies of
+# subdirectories can be specified after the inclusion of this file.
+# The "depend" target is treated the same way.
+# 
+${ALL_SUBDIRS}: FORCE
 	@if [ "$@" != "nulldir" -a -d $@ ]; then \
 		echo "making all in `pwd`/$@"; \
 		(cd $@; ${MAKE} ${MAKEDEFS} all); \
 	fi
 
-install depend clean distclean::
+install clean distclean::
 	@for i in ${ALL_SUBDIRS}; do \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
 			echo "making $@ in `pwd`/$$i"; \
@@ -114,7 +119,13 @@ clean distclean::
 distclean::
 	rm -f Makefile
 
-depend::
+depend:
+	@for i in ${ALL_SUBDIRS}; do \
+		if [ "$$i" != "nulldir" -a -d $$i ]; then \
+			echo "making depend in `pwd`/$$i"; \
+			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
+		fi \
+	done
 	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
 		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
 		${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
