@@ -11,7 +11,7 @@
 			'lame-servers' rather than 'resolver', so as not
 			to be gratuitously incompatible with BIND 8.
 
- 675.	[func]		TKEY queries could cause the server to leak
+ 675.	[bug]		TKEY queries could cause the server to leak
 			memory.
 
  674.	[func]		Allow messages to be TSIG signed / verified using
