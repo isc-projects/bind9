@@ -2,6 +2,9 @@
 			if there was no SOA record in the replacment db.
 			[RT #13016]
 
+1760.	[bug]		Host / net unreachable was not penalising rtt
+			estimates. [RT #12970]
+
 1756.	[func]		named-checkconf now checks the logging configuration.
 			[RT #12352]
 
