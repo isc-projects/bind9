@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: compress.c,v 1.9 1999/03/18 20:32:32 tale Exp $ */
+ /* $Id: compress.c,v 1.10 1999/04/13 05:50:12 marka Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,8 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 {
 	dns_result_t result;
 	unsigned int labels;
-	unsigned int ll, wl;
+	unsigned int ll;	/* logical label length w/o root label */
+	unsigned int wl;	/* wire labels  */
 	unsigned int bits;
 	dns_name_t name;
 	dns_name_t prefix;
@@ -100,46 +101,65 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 	 */
 	cctx->rdata = target->used;	/* XXX layer violation */
 	labels = dns_name_countlabels(owner);
-	ll = 0;
-	wl = 0;
+	if (labels <= 1)		/* can't compress root label */
+		return (DNS_R_SUCCESS);
+	ll = 0;	/* logical label index 0 == TLD not root */
+	wl = 2; /* minimum number of wire labels */
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_init(&suffix, NULL);
 	/*
-	 * XXX we should be adding all the logical label in a
-	 * bit stream as well.
-	 * See also compress_add().
+	 * Work from the TLD label to the least signfiant label.
 	 */
-	while (labels > 0) {
-		dns_name_getlabelsequence(owner, wl, labels, &name);
-		data = isc_mem_get(cctx->mctx, sizeof *data);
-		if (data == NULL)
-			return (DNS_R_SUCCESS);
-		*data = ll;
-		result = dns_rbt_addname(cctx->local, &name, data);
-		if (result != DNS_R_SUCCESS) {
-			isc_mem_put(cctx->mctx, data, sizeof *data);
-			return (DNS_R_SUCCESS);
-		}
-		labels --;
-		wl++;
-		ll++;
-		if (ll > 254)
-			return (DNS_R_SUCCESS);
+	while (labels >= wl) {
+		dns_name_getlabelsequence(owner, labels - wl, wl, &name);
 		dns_name_getlabel(&name, 0, &label);
-		if (dns_label_type(&label) != dns_labeltype_bitstring)
+		/*
+		 * If it is not a bit string label add to tree.
+		 */
+		if (dns_label_type(&label) != dns_labeltype_bitstring) {
+			data = isc_mem_get(cctx->mctx, sizeof *data);
+			if (data == NULL)
+				return (DNS_R_SUCCESS);
+			*data = ll;
+			result = dns_rbt_addname(cctx->local, &name, data);
+			if (result != DNS_R_SUCCESS) {
+				isc_mem_put(cctx->mctx, data, sizeof *data);
+				return (DNS_R_SUCCESS);
+			}
+			wl++;
+			ll++;
+			if (ll > 254)
+				return (DNS_R_SUCCESS);
 			continue;
+		}
+		/*
+		 * Have to compute logical for bit string labels.
+		 */
+
+		/* XXX MPA need to test once rbt supports bit labels fully */
+
 		bits = dns_label_countbits(&label);
-		if (bits == 1)
-			continue;
 		INSIST(label.length < sizeof buf);
 		memcpy(buf, label.base, label.length);
 		region.base = buf;
-		dns_name_getlabelsequence(owner, wl, labels, &suffix);
-		do {
+		dns_name_getlabelsequence(owner, 1, wl - 1, &suffix);
+		/*
+		 * It is easier to do this the reverse way.
+		 * Adding 'bits' to 'll' may exceed the maximum logical
+		 * offset index.  Throw away bits until ll <= 254.
+		 */
+		ll += bits;
+		while (ll > 254 && bits > 0) {
 			/* clear bit */
 			buf[2 + bits / 8] &= ~(1 << (7 - (bits % 8)));
 			bits--;
+			ll--;
+		}
+		/*
+		 * Add entries to tree.
+		 */
+		do {
 			region.length = 2 + (bits + 7) / 8;
 			buf[1] = bits;
 			dns_name_fromregion(&prefix, &region);
@@ -158,10 +178,16 @@ dns_compress_localinit(dns_compress_t *cctx, dns_name_t *owner,
 				isc_mem_put(cctx->mctx, data, sizeof *data);
 				return (DNS_R_SUCCESS);
 			}
-			ll++;
-			if (ll > 254)
-				return (DNS_R_SUCCESS);
-		} while (bits > 1);
+			/* clear bit */
+			buf[2 + bits / 8] &= ~(1 << (7 - (bits % 8)));
+			bits--;
+			ll--;
+		} while (bits > 0);
+		wl++;
+		bits = dns_label_countbits(&label);
+		ll += bits;
+		if (ll > 254)
+			return (DNS_R_SUCCESS);
 	}
 	return (DNS_R_SUCCESS);
 }
@@ -263,7 +289,7 @@ void
 dns_compress_backout(dns_compress_t *cctx, isc_uint16_t offset) {
 	REQUIRE(VALID_CCTX(cctx));
 
-	/* XXX need tree walking code */
+	/* XXX MPA need tree walking code */
 	/* Remove all nodes in cctx->global that have *data >= offset. */
 
 }
@@ -429,12 +455,51 @@ compress_find(dns_rbt_t *root, dns_name_t *name, dns_name_t *prefix,
 	dns_name_t tmpname;
 	dns_name_t tmpprefix;
 	dns_name_t tmpsuffix;
+#ifdef notyet
+	dns_fixedname_t found;
+	dns_name_t *foundname;
+#endif
 	isc_region_t region;
 	unsigned char buf[255];
 	dns_label_t label;
 	unsigned int i, j;
 	dns_result_t result;
 	dns_bitlabel_t bit;
+
+
+#ifdef notyet
+	dns_fixedname_init(&found);
+	foundname = dns_fixedname_name(&found);
+	result = dns_rbt_findname(root, name, foundname, (void *)&data);
+	if (result != DNS_R_SUCCESS && result != DNS_R_PARTIALMATCH)
+		return (ISC_FALSE):
+	if (data == NULL)		/* root label */
+		return (ISC_FALSE):
+	dns_name_getlabel(dns_fixedname_name(&found), 0, &label);
+	if (dns_label_type(&label) != dns_labeltype_bitstring ||
+	    result == DNS_R_SUCCESS) {
+  full_bit_label:
+		count = dns_name_countlabels(name);
+		if (result == DNS_R_SUCCESS) {
+			prefix->length = 0;
+			prefix->labels = 0;
+			dns_name_getlabelsequence(name, 0, count, suffix);
+		else {
+			labels = dns_name_countlabels(foundname);
+			count -= labels;
+			dns_name_getlabelsequence(name, 0, count, prefix);
+			dns_name_getlabelsequence(name, count, labels, suffix);
+		}
+		*offset = *data;
+		return (ISC_TRUE);
+	}
+
+	labels = dns_name_countlabels(foundname);
+	count = dns_name_countlabels(name);
+	count -= labels;
+	dns_name_getlabelsequence(name, count, labels, suffix)
+	bits = dns_label_countbits(&label);
+#endif
 
 	labels = count = dns_name_countlabels(name);
 	start = 0;

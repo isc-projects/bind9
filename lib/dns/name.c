@@ -141,7 +141,9 @@ static unsigned char maptolower[] = {
 
 static struct dns_name root = {
 	NAME_MAGIC,
-	(unsigned char *)"", 1, 1, DNS_NAMEATTR_ABSOLUTE, NULL, NULL,
+	(unsigned char *)"", 1, 1,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, 
+	(unsigned char *)"", NULL,
 	{(void *)-1, (void *)-1},
 	{NULL, NULL}
 };
@@ -1884,12 +1886,22 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				break;
 			if (local && new_current < 256) {
 				/* logical label count */
+				if (new_current == 255)
+					return (DNS_R_BADPOINTER);
 				lcount = dctx->owner_name.labels;
+				if (lcount == 1)
+					return (DNS_R_BADPOINTER);
+				lcount--;
 				i = 0;
 				ll = 0;
+				/*
+				 * Work down owner label from TLD until we
+				 * have found 'new_current' logical labels.
+				 */
 				while (i < lcount && ll < new_current) {
 					dns_name_getlabel(&dctx->owner_name,
-							  i, &label);
+							  lcount - i - 1,
+							  &label);
 					labeltype = dns_label_type(&label);
 					if (labeltype ==
 						dns_labeltype_ordinary) {
@@ -1897,6 +1909,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 						ll++;
 						continue;
 					}
+					/* XXX MPA test */
 					INSIST(labeltype ==
 					       dns_labeltype_bitstring);
 					bits = dns_label_countbits(&label);
@@ -1905,12 +1918,17 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 						ll += bits;
 						continue;
 					}
+					/*
+					 * Logical label count inside current
+					 * label.
+					 */
 					break;
 				}
 				if (i == lcount)
 					return (DNS_R_BADPOINTER);
 				bits = new_current - ll;
 				if (bits != 0) {
+					/* XXX MPA test */
 					if (nrem < 2 + (bits + 7) / 8)
 						return (DNS_R_NOSPACE);
 					*ndata++ = DNS_LABELTYPE_BITSTRING;
@@ -1927,8 +1945,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 					i++;
 				}
 				dns_name_init(&suffix, NULL);
-				dns_name_getlabelsequence(&dctx->owner_name, i,
-							  lcount - i, &suffix);
+				dns_name_getlabelsequence(&dctx->owner_name,
+							  lcount - i - 1,
+							  i + 2, &suffix);
 				if (suffix.length > nrem)
 					return (DNS_R_NOSPACE);
 				memcpy(ndata, suffix.ndata, suffix.length);
