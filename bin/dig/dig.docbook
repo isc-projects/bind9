@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4 2001/07/12 16:29:11 bwelling Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.1 2001/11/08 00:15:23 gson Exp $ -->
 
 <refentry>
 
@@ -480,7 +480,8 @@ should be applied to that query.
 A global set of query options, which should be applied to all queries,
 can also be supplied.  These global query options must precede the
 first tuple of name, class, type, options, flags, and query options
-supplied on the command line.  Any global query options can be
+supplied on the command line.  Any global query options (except
+the <option>+[no]cmd</option> option) can be
 overridden by a query-specific set of query options.  For example:
 <programlisting>
 dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
