@@ -57,12 +57,6 @@
 #include <dns/types.h>
 #include <dns/result.h>
 
-/***
- ***	Types
- ***/
-
-typedef struct dns_cache dns_cache_t; 	/* Opaque */
-
 ISC_LANG_BEGINDECLS
 
 /***
@@ -132,7 +126,7 @@ dns_cache_detach(dns_cache_t **cachep);
  */
 
 void
-dns_cache_getdb(dns_cache_t *cache, dns_db_t **dbp);
+dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
 /*
  * Attach *dbp to the cache's database.
  *
