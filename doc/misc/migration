@@ -51,38 +51,15 @@ server first starts up, regardless of the contents of the "logging"
 statement.  In BIND 8, the new logging configuration took effect
 immediately after the "logging" statement was read.
 
-1.4. Case sensitivity
-
-In BIND 9, ACL names are case sensitive.  In BIND 8 they were case
-insensitive.
-
-1.5. Notify messages and Refesh queries
+1.4. Notify messages and Refesh queries
 
 The source address and port for these is now controlled by
 "notify-source" and "transfer-source", respectively, rather that
 query-source as in BIND 8.
 
-1.6. Multiple Classes.
+1.5. Multiple Classes.
 
 Multiple classes have to be put into explicit views for each class.
-
-1.7. New Reserved Words
-
-When specifying the names of entities like ACLs, logging channels, or
-views, they can be written with or without surrounding double quotes.
-However, the quotes are required if the name is identical to an option
-name or other reserved word.  Since BIND 9 has a number of new options
-and reserves some additional words for anticipated future options, it
-is possible that some of these option names conflict with existing
-names in named.conf.  For example, instead of
-
-   acl internal { 127.0.0.1/32; 10.0.0.0/8; };
-
-you need to write
-
-   acl "internal" { 127.0.0.1/32; 10.0.0.0/8; };
-
-because "internal" is now a reserved word.
 
 2. Zone File Compatibility
 
@@ -210,4 +187,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.24 2001/02/15 00:09:32 gson Exp $
+$Id: migration,v 1.25 2001/03/05 20:58:57 gson Exp $
