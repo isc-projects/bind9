@@ -1,3 +1,5 @@
+ 716.	[bug]		The first line of a $INCLUDE master file was lost if
+			a origin was specified. [RT #744]
 
  715.	[bug]		Resolving some A6 chains could cause an assertion
 			failure in adb.c. [RT #738]
