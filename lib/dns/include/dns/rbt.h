@@ -32,7 +32,7 @@ ISC_LANG_BEGINDECLS
  * tree of trees.  NOTE WELL:  the implementation manages this as a variable
  * length structure, with the actual wire-format name and other data appended
  * appended to this structure.  Allocating a contiguous block of memory for
- * multiple dns_rbt_node structures will not work.
+ * multiple dns_rbtnode structures will not work.
  */
 
 typedef struct dns_rbt dns_rbt_t;
@@ -46,20 +46,25 @@ typedef struct dns_rbtnode {
 	struct dns_rbtnode *left;
 	struct dns_rbtnode *right;
 	struct dns_rbtnode *down;
+	void *data;
 	/*
-	 * We'd like to find a better place for the single bit of color	
-	 * information.  We can't pack it into the bitfield below, however,
-	 * because it's not covered by the node lock, and changing a single
-	 * bit in a bitfield is going to require a read-modify-write of a
-	 * word.  This read-modify-write would include bits covered by a
-	 * lock we don't hold, and thus violate locking.
+	 * The following bitfields add up to a total bitwidth of 32.
+	 * The range of values necessary for each item is indicated,
+	 * but in the case of "attributes" the field is wider to accomodate
+	 * possible future expansion.  "offsetlen" could be one bit
+	 * narrower by always adjusting its value by 1 to find the real
+	 * offsetlen, but doing so does not gain anything (except perhaps
+	 * another bit for "attributes", which doesn't yet need any more).
 	 */
-	unsigned int color;
+	unsigned int color:1;	     /* range is 0..1 */
+	unsigned int attributes:6;   /* range is 0..2 */
+	unsigned int namelen:8;	     /* range is 1..255 */
+	unsigned int offsetlen:8;    /* range is 1..128 */
+	unsigned int padbytes:9;     /* range is 0..380 */
 	/*
 	 * These values are used in the RBT DB implementation.  The appropriate
 	 * node lock must be held before accessing them.
 	 */
-	void *data;
 	unsigned int dirty:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 	unsigned int references:DNS_RBT_REFLENGTH;

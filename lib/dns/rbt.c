@@ -57,24 +57,48 @@ struct dns_rbtnodechain {
 #define RED 0
 #define BLACK 1
 
+/*
+ * Elements of the rbtnode structure.
+ */
 #define LEFT(node) 	((node)->left)
 #define RIGHT(node)	((node)->right)
 #define DOWN(node)	((node)->down)
-#define NAMELEN(node)	(((unsigned char *)((node) + 1))[0])
-#define OFFSETLEN(node)	(((unsigned char *)((node) + 1))[1])
-#define NAME(node)	(&((unsigned char *)((node) + 1))[3])
 #define DATA(node)	((node)->data)
 #define COLOR(node) 	((node)->color)
+#define NAMELEN(node)	((node)->namelen)
+#define OFFSETLEN(node)	((node)->offsetlen)
+#define ATTRS(node)	((node)->attributes)
+#define PADBYTES(node)	((node)->padbytes)
+
+/*
+ * Structure elements from the rbtdb.c, not
+ * used as part of the rbt.c algorithms.
+ */
 #define DIRTY(node)	((node)->dirty)
 #define LOCK(node)	((node)->locknum)
 #define REFS(node)	((node)->references)
 
+/*
+ * The variable length stuff stored after the node.
+ */
+#define NAME(node)	((unsigned char *)((node) + 1))
+#define OFFSETS(node)	(NAME(node) + NAMELEN(node))
+
+#define NODE_SIZE(node)	(sizeof(*node) + \
+			 NAMELEN(node) + OFFSETLEN(node) + PADBYTES(node))
+
+/*
+ * Color management.
+ */
 #define IS_RED(node)		((node) != NULL && (node)->color == RED)
 #define IS_BLACK(node)		((node) == NULL || (node)->color == BLACK)
 #define MAKE_RED(node)		((node)->color = RED)
 #define MAKE_BLACK(node)	((node)->color = BLACK)
 
-#define NODE_SIZE(node)	(sizeof(*node) + 3 + NAMELEN(node) + OFFSETLEN(node))
+#define ADD_ANCESTOR(chain, node) \
+			(chain)->ancestors[(chain)->ancestor_count++] = (node)
+#define ADD_LEVEL(chain, node) \
+			(chain)->levels[(chain)->level_count++] = (node)
 
 /*
  * The following macros directly access normally private name variables.
@@ -82,23 +106,14 @@ struct dns_rbtnodechain {
  * path of the tree traversal code.
  */
 
-#define ADD_ANCESTOR(chain, node) \
-			(chain)->ancestors[(chain)->ancestor_count++] = (node)
-#define ADD_LEVEL(chain, node) \
-			(chain)->levels[(chain)->level_count++] = (node)
-
 #define NODENAME(node, name) \
 do { \
-	unsigned char *__current; \
-	(name)->attributes = DNS_NAMEATTR_READONLY; \
-	__current = (unsigned char *)&(node)[1]; \
-	(name)->length = *__current++; \
-	(name)->labels = *__current++; \
-	if (*__current++ == 1) \
-		(name)->attributes |= DNS_NAMEATTR_ABSOLUTE; \
-	(name)->ndata = __current; \
-	__current += (name)->length; \
-	(name)->offsets = __current; \
+	(name)->length = NAMELEN(node); \
+	(name)->labels = OFFSETLEN(node); \
+	(name)->ndata = NAME(node); \
+	(name)->offsets = OFFSETS(node); \
+	(name)->attributes = ATTRS(node); \
+	(name)->attributes |= DNS_NAMEATTR_READONLY; \
 } while (0)
 
 #define FAST_ISABSOLUTE(name) \
@@ -232,8 +247,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	/*
 	 * Does this thing have too many variables or what?
 	 */
-	dns_rbtnode_t **root, *current, *parent, *child;
-	dns_rbtnode_t *new_node, *new_current;
+	dns_rbtnode_t **root, *parent, *child, *current, *new_current;
 	dns_name_t add_name, current_name, new_name, tmp_name;
 	dns_offsets_t add_offsets, current_offsets, new_offsets, tmp_offsets;
 	dns_namereln_t compared;
@@ -257,10 +271,10 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_name_fromregion(&add_name, &r);
 
 	if (rbt->root == NULL) {
-		result = create_node(rbt->mctx, &add_name, &new_node);
+		result = create_node(rbt->mctx, &add_name, &new_current);
 		if (result == DNS_R_SUCCESS) {
-			rbt->root = new_node;
-			*nodep = new_node;
+			rbt->root = new_current;
+			*nodep = new_current;
 		}
 		return (result);
 	}
@@ -316,8 +330,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 			}
 
 		} else {
-			/* @@@ handle bitstrings */
-
 			/*
 			 * This name has some suffix in common with the
 			 * name at the current node.  If the name at
@@ -369,8 +381,22 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				 * pointer made to a new tree.
 				 */
 
-				INSIST(compared == dns_namereln_contains ||
-				       compared == dns_namereln_commonancestor);
+				INSIST(compared == dns_namereln_commonancestor
+				       || compared == dns_namereln_contains);
+
+				/* @@@ handle bitstrings.
+				 * When common_bits is non-zero, the last label
+				 * in common (eg, vix in a.vix.com vs
+				 * b.vix.com) is a bit label and common_bits is
+				 * how many are in common.  To split the node,
+				 * the node in question will have to split into
+				 * two bitstrings.  A comment in name.h says,
+				 * "Some provision still needs to be made for
+				 * splitting bitstring labels," and Bob has
+				 * pushed this down on the priority list,
+				 * so for now splitting on bitstrings does not
+				 * work.
+				 */
 
 				/*
 				 * Get the common labels of the current name.
@@ -414,10 +440,12 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				/*
 				 * Now create the new root of the subtree
 				 * as the not-in-common labels of the current
-				 * node.  Its down pointer and name data
-				 * should be preserved, while left, right
-				 * and parent pointers are nullified (when
-				 * the node is created in create_node()).
+				 * node, keeping the same memory location so
+				 * as not to break any external references to
+				 * the node.  The down pointer and name data
+				 * are preserved, while left and right
+				 * pointers are nullified when the node is
+				 * established as the start of the next level.
 				 */
 
 				start_label = 0;
@@ -429,36 +457,37 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 							  keep_labels,
 							  &new_name);
 
-
-				result = create_node(rbt->mctx,
-						     &new_name, &new_node);
-				if (result != DNS_R_SUCCESS) {
-					put_ancestor_mem(rbt->mctx, &chain);
-					return (result);
-				}
-
-				DATA(new_node) = DATA(current);
-				DOWN(new_node) = DOWN(current);
-				REFS(new_node) = REFS(current);	  /* @@@ ? */
-				DIRTY(new_node) = DIRTY(current); /* @@@ ? */
-				/* @@@ ? locknum */
-
 				/*
-				 * Now that the old name in the existing
-				 * node has been dissected into two new
-				 * nodes, the old node can be freed.
+				 * The name stored at the node is effectively
+				 * truncated in place by setting the shorter
+				 * name length, moving the offsets to the
+				 * end of the truncated name, and then
+				 * updating PADBYTES to reflect the truncation.
 				 */
-				isc_mem_put(rbt->mctx, current,
-					    NODE_SIZE(current));
-				current = new_current;
+
+				NAMELEN(current) = new_name.length;
+				OFFSETLEN(current) = keep_labels;
+				memcpy(OFFSETS(current), new_name.offsets,
+				       keep_labels);
+				PADBYTES(current) =
+					(current_name.length - new_name.length)
+				        + (current_labels - keep_labels);
 
 				/*
 				 * Set up the new root of the next level.
+				 * By definition it will not be the top
+				 * level tree, so clear DNS_NAMEATTR_ABSOLUTE.
 				 */
-				DOWN(current) = new_node;
-				root = &DOWN(current);
+				DOWN(new_current) = current;
+				root = &DOWN(new_current);
 				ADD_ANCESTOR(&chain, NULL);
-				ADD_LEVEL(&chain, current);
+				ADD_LEVEL(&chain, new_current);
+
+				LEFT(current) = NULL;
+				RIGHT(current) = NULL;
+
+				MAKE_BLACK(current);
+				ATTRS(current) &= ~DNS_NAMEATTR_ABSOLUTE;
 
 				if (common_labels == add_labels) {
 					/*
@@ -466,7 +495,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 					 * the not-in-common parts down to
 					 * a new level.
 					 */
-					*nodep = current;
+					*nodep = new_current;
 					put_ancestor_mem(rbt->mctx, &chain);
 					return (DNS_R_SUCCESS);
 
@@ -491,7 +520,6 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 								  keep_labels,
 								  &add_name);
 
-					current = new_node;
 					child = NULL;
 					ADD_ANCESTOR(&chain, current);
 				}
@@ -502,10 +530,10 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 
 	} while (child != NULL);
 
-	result = create_node(rbt->mctx, &add_name, &new_node);
+	result = create_node(rbt->mctx, &add_name, &new_current);
 
 	if (result == DNS_R_SUCCESS)
-		result = dns_rbt_addonlevel(new_node, current, order,
+		result = dns_rbt_addonlevel(new_current, current, order,
 					    root, &chain);
 	/* @@@ XXXRTH Free node if add fails? */
 	/* @@@ XXXRTH Is it true that result should never be DNS_R_EXISTS? */
@@ -514,7 +542,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 	put_ancestor_mem(rbt->mctx, &chain);
 
 	if (result == DNS_R_SUCCESS)
-		*nodep = new_node;
+		*nodep = new_current;
 
 	return (result);
 }
@@ -876,25 +904,19 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	dns_rbtnode_t *node;
 	isc_region_t region;
 	unsigned int labels;
-	unsigned char *current;
-	unsigned char absolute;
 
 	REQUIRE(name->offsets != NULL);	/* @@@ XXX direct access to name. */
 
 	dns_name_toregion(name, &region);
 	labels = FAST_COUNTLABELS(name);
-	if (FAST_ISABSOLUTE(name))
-		absolute = 1;
-	else
-		absolute = 0;
+	ENSURE(labels > 0);
 
 	/* 
-	 * Allocate space for the node structure, plus the length byte, the
-	 * offset length byte, the attributes byte (one byte for each is
-	 * 3 bytes), and plus the length of the name and the number of offsets.
+	 * Allocate space for the node structure, the namelen byte,
+	 * the namepad byte, the offsetlen/attrs byte, length of the name
+	 * and the number of offsets. @@@
 	 */
-	node = (dns_rbtnode_t *)isc_mem_get(mctx,
-					    sizeof(*node) + 3 +
+	node = (dns_rbtnode_t *)isc_mem_get(mctx, sizeof(*node) +
 					    region.length + labels);
 					    
 	if (node == NULL)
@@ -918,19 +940,18 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * and the name's offsets table.
 	 *
 	 * @@@
-	 * XXX  Finding a way not to waste a byte on "absolute" would be
-	 *      a good thing, though it may be that we'll have to store
-	 *      other attributes someday.  The offsets table could be made
-	 *	smaller by eliminating the first offset, which is always 0.
-	 *	This requires changes to lib/dns/name.c.
+	 * XXX 	The offsets table could be made smaller by eliminating the
+	 *	first offset, which is always 0.  This requires changes to
+	 * 	lib/dns/name.c.
 	 */
-	current = (unsigned char *)&node[1];
-	*current++ = region.length;
-	*current++ = labels;
-	*current++ = absolute;
-	memcpy(current, region.base, region.length);
-	current += region.length;
-	memcpy(current, name->offsets, labels);
+	NAMELEN(node) = region.length;
+	PADBYTES(node) = 0;
+	OFFSETLEN(node) = labels;
+	if (FAST_ISABSOLUTE(name))
+		ATTRS(node) |= DNS_NAMEATTR_ABSOLUTE;
+
+	memcpy(NAME(node), region.base, region.length);
+	memcpy(OFFSETS(node), name->offsets, labels);
 
 	*nodep = node;
 
