@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: ifconfig.sh,v 1.26 2001/01/09 21:42:20 bwelling Exp $
+# $Id: ifconfig.sh,v 1.27 2001/02/12 23:06:44 bwelling Exp $
 
 #
 # Set up interface aliases for bind9 system tests.
@@ -40,11 +40,11 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns netmask 0xffffffff up
 			;;
-		    *-sun-solaris2.8)
+		    *-*-solaris2.8)
     			ifconfig lo0:$ns plumb
 			ifconfig lo0:$ns 10.53.0.$ns up
 			;;
-		    *-pc-linux-gnu)
+		    *-*-linux-gnu)
 			ifconfig lo:$ns 10.53.0.$ns up netmask 255.255.255.0
 		        ;;
 		    *-unknown-freebsdelf3.[45])
@@ -85,10 +85,11 @@ case "$1" in
 		    *-sun-solaris2.[6-7])
 			ifconfig lo0:$ns 10.53.0.$ns down
 			;;
-		    *-sun-solaris2.8)
+		    *-*-solaris2.8)
 			ifconfig lo0:$ns 10.53.0.$ns down
+			ifconfig lo0:$ns 10.53.0.$ns unplumb
 			;;
-		    *-pc-linux-gnu)
+		    *-*-linux-gnu)
 			ifconfig lo:$ns 10.53.0.$ns down
 		        ;;
 		    *-unknown-freebsdelf3.[45])
