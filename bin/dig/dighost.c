@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.167 2000/12/02 04:44:51 gson Exp $ */
+/* $Id: dighost.c,v 1.168 2000/12/02 05:13:37 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -766,8 +766,11 @@ setup_libs(void) {
  * option is UDP buffer size.
  */
 static void
-add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec,
-	dns_optlist_t optlist)
+add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec
+#ifdef DNS_OPT_NEWCODES_LIVE
+	, dns_optlist_t optlist
+#endif /* DNS_OPT_NEWCODES_LIVE */
+	)
 {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
@@ -776,9 +779,6 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec,
 #ifdef DNS_OPT_NEWCODES_LIVE
 	isc_buffer_t *rdatabuf = NULL;
 	unsigned int i, optsize = 0;
-#else /* DNS_OPT_NEWCODES_LIVE */
-
-	UNUSED(optlist);
 #endif /* DNS_OPT_NEWCODES_LIVE */
 
 	debug("add_opt()");
@@ -1442,18 +1442,19 @@ setup_lookup(dig_lookup_t *lookup) {
 		dns_fixedname_t fname;
 		isc_buffer_t namebuf, *wirebuf = NULL;
 		dns_compress_t cctx;
-#endif /* DNS_OPT_NEWCODES_LIVE */
 		dns_optlist_t optlist;
 		dns_optattr_t optattr[2];
+#endif /* DNS_OPT_NEWCODES_LIVE */
 
 		if (lookup->udpsize == 0)
 			lookup->udpsize = 2048;
+
+#ifdef DNS_OPT_NEWCODES_LIVE
 		optlist.size = 2;
 		optlist.used = 0;
 		optlist.next = 0;
 		optlist.attrs = optattr;
 
-#ifdef DNS_OPT_NEWCODES_LIVE
 		if (lookup->zonename[0] != 0) {
 			optattr[optlist.used].code = DNS_OPTCODE_ZONE;
 			dns_fixedname_init(&fname);
@@ -1487,12 +1488,12 @@ setup_lookup(dig_lookup_t *lookup) {
 				strlen(lookup->viewname);
 			optlist.used++;
 		}
-#endif /* DNS_OPT_NEWCODES_LIVE */
 		add_opt(lookup->sendmsg, lookup->udpsize, lookup->dnssec,
 			optlist);
-#ifdef DNS_OPT_NEWCODES_LIVE
 		if (wirebuf != NULL)
 			isc_buffer_free(&wirebuf);
+#else /* DNS_OPT_NEWCODES_LIVE */
+		add_opt(lookup->sendmsg, lookup->udpsize, lookup->dnssec);
 #endif /* DNS_OPT_NEWCODES_LIVE */
 	}
 
