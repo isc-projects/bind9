@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.82 2001/01/12 00:22:09 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.83 2001/01/15 00:43:51 gson Exp $ -->
 
 <book>
 
@@ -2693,9 +2693,12 @@ The source of entropy to be used by the server.  Entropy is primarily needed
 for DNSSEC operations, such as TKEY transactions and dynamic update of signed
 zones.  This options specifies the device (or file) from which to read
 entropy.  If this is a file, operations requiring entropy will fail when the
-file has been exhausted.  If not specified, the default value is /dev/random
-(or equivalent) when present, and none otherwise.  Note that the random-device
-statement is <emphasis>not</emphasis> examined on reload.</para>
+file has been exhausted.  If not specified, the default value is
+<filename>/dev/random</filename>
+(or equivalent) when present, and none otherwise.  The
+<command>random-device</command> option takes effect during
+the initial configuration load at server startup time and
+is ignored on subsequent reloads.</para>
 </entry>
 </row>
 
@@ -3873,7 +3876,7 @@ server for the parent zone. <acronym>BIND</acronym> 9 never mixes together zone 
 from different zones in this way. Therefore, if a <acronym>BIND</acronym> 9 master
 serving a parent zone has child stub zones configured, all the slave
 servers for the parent zone also need to have the same child stub
-zones configured..</para></entry>
+zones configured.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>forward</varname></para></entry>
