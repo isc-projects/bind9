@@ -152,12 +152,27 @@ test_gabn(void)
 {
 	lwres_gabnresponse_t *res;
 	int ret;
+	unsigned int i;
 
 	res = NULL;
-	ret = lwres_getaddrsbyname(ctx, "www.flame.org", LWRES_ADDRTYPE_V4,
+	ret = lwres_getaddrsbyname(ctx,
+				   "alias-04.test.flame.org.",
+				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
 	printf("ret == %d\n", ret);
 	assert(ret == 0);
+	assert(res != NULL);
+
+	printf("Returned real name: (%u, %s)\n",
+	       res->realnamelen, res->realname);
+	printf("%u aliases:\n", res->naliases);
+	for (i = 0 ; i < res->naliases ; i++)
+		printf("\t(%u, %s)\n", res->aliaslen[i], res->aliases[i]);
+	printf("%u addresses:\n", res->naddrs);
+	for (i = 0 ; i < res->naddrs ; i++) {
+		printf("\tAddr len %u family %08x\n",
+		       res->addrs[i].length, res->addrs[i].family);
+	}
 
 	lwres_gabnresponse_free(ctx, &res);
 }
