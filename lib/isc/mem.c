@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.56 2000/07/27 09:51:00 tale Exp $ */
+/* $Id: mem.c,v 1.57 2000/07/27 23:31:20 explorer Exp $ */
 
 #include <config.h>
 
@@ -169,7 +169,7 @@ struct isc_mempool {
  */
 static inline void
 add_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size
-		const char *file, int line)
+		FLARG)
 {
 	debuglink_t *dl;
 	unsigned int i;
