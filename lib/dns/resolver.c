@@ -1023,6 +1023,7 @@ clone_results(fetchctx_t *fctx) {
 #define ANSWER(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWER) != 0)
 #define ANSWERSIG(r)	(((r)->attributes & DNS_RDATASETATTR_ANSWERSIG) != 0)
 #define EXTERNAL(r)	(((r)->attributes & DNS_RDATASETATTR_EXTERNAL) != 0)
+#define CHAINING(r)	(((r)->attributes & DNS_RDATASETATTR_CHAINING) != 0)
 
 static inline isc_result_t
 cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
@@ -1118,6 +1119,15 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 				addedrdataset = ardataset;
 			else
 				addedrdataset = NULL;
+			if (CHAINING(rdataset)) {
+				if (rdataset->type == dns_rdatatype_cname)
+					eresult = DNS_R_CNAME;
+				else {
+					INSIST(rdataset->type ==
+					       dns_rdatatype_dname);
+					eresult = DNS_R_DNAME;
+				}
+			}
 			result = dns_db_addrdataset(res->view->cachedb,
 						    node, NULL, now,
 						    rdataset,
@@ -1135,6 +1145,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					 */
 					INSIST(0);
 				}
+				result = ISC_R_SUCCESS;
 			} else if (result != ISC_R_SUCCESS)
 				break;
 		}
@@ -1363,13 +1374,30 @@ check_related(void *arg, dns_name_t *addname, dns_rdatatype_t type) {
 }
 
 static inline isc_result_t
+cname_target(dns_rdataset_t *rdataset, dns_name_t *tname) {
+	isc_result_t result;
+	dns_rdata_t rdata;
+	isc_region_t r;
+
+	result = dns_rdataset_first(rdataset);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_rdataset_current(rdataset, &rdata);
+	dns_rdata_toregion(&rdata, &r);
+	dns_name_fromregion(tname, &r);
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
 answer_response(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_message_t *message;
-	dns_name_t *name, *qname;
+	dns_name_t *name, *qname, tname;
 	dns_rdataset_t *rdataset;
-	isc_boolean_t done, external, chaining, aa, found;
+	isc_boolean_t done, external, chaining, aa, found, cname;
 	unsigned int aflag;
+	dns_rdatatype_t type;
 
 	message = fctx->rmessage;
 
@@ -1385,30 +1413,21 @@ answer_response(fetchctx_t *fctx) {
 	else
 		aa = ISC_FALSE;
 	qname = &fctx->name;
+	type = fctx->type;
 	result = dns_message_firstname(message, DNS_SECTION_ANSWER);
 	while (!done && result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_ANSWER, &name);
 		external = !dns_name_issubdomain(name, &fctx->domain);
 		if (dns_name_equal(name, qname)) {
-
-			/*
-			 * XXXRTH  CNAME check.
-			 */
-#if 0
-			if (cname) {
-				qname = name;
-				chaining = ISC_TRUE;
-			}
-#endif
-
-			aflag = 0;
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 				found = ISC_FALSE;
-				if (rdataset->type == fctx->type ||
-				    fctx->type == dns_rdatatype_any) {
+				cname = ISC_FALSE;
+				aflag = 0;
+				if (rdataset->type == type ||
+				    type == dns_rdatatype_any) {
 					/*
 					 * We've found an ordinary answer.
 					 */
@@ -1416,13 +1435,34 @@ answer_response(fetchctx_t *fctx) {
 					done = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWER;
 				} else if (rdataset->type == dns_rdatatype_sig
-					   && rdataset->covers == fctx->type) {
+					   && rdataset->covers == type) {
 					/*
 					 * We've found a signature that
 					 * covers the type we're looking for.
 					 */
 					found = ISC_TRUE;
 					aflag = DNS_RDATASETATTR_ANSWERSIG;
+				} else if (rdataset->type ==
+					   dns_rdatatype_cname) {
+					/*
+					 * We're looking for something else,
+					 * but we found a CNAME.
+					 *
+					 * Getting a CNAME response for some
+					 * query types is an error.
+					 */
+					if (type == dns_rdatatype_sig ||
+					    type == dns_rdatatype_key ||
+					    type == dns_rdatatype_nxt)
+						return (DNS_R_FORMERR);
+					found = ISC_TRUE;
+					cname = ISC_TRUE;
+					aflag = DNS_RDATASETATTR_ANSWER;
+					dns_name_init(&tname, NULL);
+					result = cname_target(rdataset,
+							      &tname);
+					if (result != ISC_R_SUCCESS)
+						return (result);
 				}
 
 				if (found) {
@@ -1479,6 +1519,16 @@ answer_response(fetchctx_t *fctx) {
 						      dns_rdatatype_a);
 						check_related(fctx, name,
 						      dns_rdatatype_aaaa);
+					}
+
+					/*
+					 * CNAME chaining.
+					 */
+					if (cname) {
+						chaining = ISC_TRUE;
+						rdataset->attributes |=
+						    DNS_RDATASETATTR_CHAINING;
+						qname = &tname;
 					}
 				}
 				/*
