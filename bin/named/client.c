@@ -235,9 +235,11 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 		else {
 			if (client->tcpsocket != NULL) {
 				/*
-				 * XXXAG Destroying the tcpmsg here
-				 * looks bogus - it may still get events.
+				 * There should be no outstanding read
+				 * request on the TCP socket at this point,
+				 * therefore invalidating the tcpmsg is safe.
 				 */
+				INSIST(client->nreads == 0);
 				INSIST(client->tcpmsg_valid == ISC_TRUE);
 				dns_tcpmsg_invalidate(&client->tcpmsg);
 				client->tcpmsg_valid = ISC_FALSE;
