@@ -5,6 +5,9 @@
 1842.	[port]		cmsg_len() could produce incorrect results on
 			some platform. [RT #13744]
 
+1841.	[bug]		"dig +nssearch" now makes a recursive query to
+			find the list of nameservers to query. [RT #13694]
+
 1839.	[bug]		<isc/hash.h> was not being installed.
 
 1836.	[cleanup]	Silence compiler warnings in hash_test.c.
