@@ -15,7 +15,7 @@ in doc/arm/Bv9ARM.4.html and the man pages.
 
 The random data used in generating DNSSEC keys and signatures comes from
 either /dev/random (if the OS supports it) or keyboard input.  Alternatively,
-the a device or file containing entropy/random data can be specified.
+a device or file containing entropy/random data can be specified.
 
 
 Serving secure zones
@@ -49,12 +49,13 @@ successfully even if it does not contain the NXT records to prove the
 nonexistence of a matching wildcard.
 
 Proof of insecure status for insecure zones delegated from secure
-zones has been partially implemented, and will work when the
-subzones are insecure, but not when they are privately secured.
+zones works when the zones are completely insecure.  Privately
+secured zones delegated from secure zones will not work in all cases,
+such as when the privately secured zone is served by the same server
+as an ancestor (but not parent) zone.
 
-Handling of the CD bit in queries is not yet fully implemented;
-validation is currently attempted for all recursive queries, even if
-CD is set.
+Handling of the CD bit in queries is now fully implemented.  Validation
+is not attempted for recursive queries if CD is set.
 
 
 Secure dynamic update
@@ -65,4 +66,4 @@ an update occurs.  Advanced access control is possible using the
 "update-policy" statement in the zone definition.
 
 
-$Id: dnssec,v 1.4.2.2 2000/07/13 02:45:07 bwelling Exp $
+$Id: dnssec,v 1.4.2.3 2000/07/29 00:26:48 gson Exp $
