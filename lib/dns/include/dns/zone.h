@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.90 2000/11/18 00:57:22 gson Exp $ */
+/* $Id: zone.h,v 1.91 2000/11/18 02:54:19 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -186,14 +186,14 @@ isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file);
 /*
  *	Sets the name of the master file from which the zone
- *	loads its database.
+ *	loads its database to 'file'.  For zones that have
+ *	no associated master file, 'file' will be NULL.
  *
  *	For zones with persistent databases, the file name
- *	is ignored.
+ *	setting is ignored.
  *
  * Require:
  *	'zone' to be a valid zone.
- *	'file' to be non-NULL.
  *
  * Returns:
  *	ISC_R_NOMEMORY
@@ -843,11 +843,11 @@ dns_zone_setjournal(dns_zone_t *zone, const char *journal);
 /*
  * Sets the filename used for journaling updates / IXFR transfers.
  * The default journal name is set by dns_zone_setfile() to be
- * "file.jnl".
+ * "file.jnl".  If 'journal' is NULL, the zone will have no
+ * journal name.
  *
  * Requires:
  *	'zone' to be a valid zone.
- *	'journal' to be non-NULL.
  *
  * Returns:
  *	ISC_R_SUCCESS
@@ -858,7 +858,7 @@ char *
 dns_zone_getjournal(dns_zone_t *zone);
 /*
  * Returns the journal name associated with this zone.
- * If not journal has been set this will be NULL.
+ * If no journal has been set this will be NULL.
  *
  * Requires:
  *	'zone' to be valid initialised zone.

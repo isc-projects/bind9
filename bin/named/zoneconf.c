@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.70 2000/11/18 00:57:23 gson Exp $ */
+/* $Id: zoneconf.c,v 1.71 2000/11/18 02:54:22 gson Exp $ */
 
 #include <config.h>
 
@@ -207,11 +207,9 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
 
 	result = dns_c_zone_getfile(czone, &filename);
-	if (result == ISC_R_SUCCESS)
-		RETERR(dns_zone_setfile(zone, filename));
-	else if (czone->ztype != dns_c_zone_slave &&
-		 czone->ztype != dns_c_zone_stub)
-		return (result);
+	if (result != ISC_R_SUCCESS)
+		filename = NULL;
+	RETERR(dns_zone_setfile(zone, filename));
 
 #ifdef notyet
 	result = dns_c_zone_getchecknames(czone, &severity);

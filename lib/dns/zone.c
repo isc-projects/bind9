@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.254 2000/11/18 00:57:20 gson Exp $ */
+/* $Id: zone.c,v 1.255 2000/11/18 02:54:18 gson Exp $ */
 
 #include <config.h>
 
@@ -759,22 +759,37 @@ dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {
 	return (result);
 }
 
+	
+static isc_result_t
+dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
+	char *copy;
+	if (value != NULL) {
+		copy = isc_mem_strdup(zone->mctx, value);
+		if (copy == NULL)
+			return (ISC_R_NOMEMORY);
+	} else {
+		copy = NULL;
+	}
+
+	if (*field != NULL)
+		isc_mem_free(zone->mctx, *field);
+
+	*field = copy;
+	return (ISC_R_SUCCESS);
+}	
+
 isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(file != NULL);
 
 	LOCK(&zone->lock);
-	if (zone->masterfile != NULL)
-		isc_mem_free(zone->mctx, zone->masterfile);
-	zone->masterfile = isc_mem_strdup(zone->mctx, file);
-	if (zone->masterfile == NULL)
-		result = ISC_R_NOMEMORY;
-	else
+	result = dns_zone_setstring(zone, &zone->masterfile, file);
+	if (result == ISC_R_SUCCESS)
 		result = default_journal(zone);
 	UNLOCK(&zone->lock);
+
 	return (result);
 }
 
@@ -787,20 +802,26 @@ dns_zone_getfile(dns_zone_t *zone) {
 
 static isc_result_t
 default_journal(dns_zone_t *zone) {
-	int len;
+	isc_result_t result;
+	char *journal;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(zone->masterfile != NULL);
 
-	if (zone->journal != NULL)
-		isc_mem_free(zone->mctx, zone->journal);
-	len = strlen(zone->masterfile) + sizeof ".jnl"; 	/* includes '\0' */
-	zone->journal = isc_mem_allocate(zone->mctx, len);
-	if (zone->journal == NULL)
-		return (ISC_R_NOMEMORY);
-	strcpy(zone->journal, zone->masterfile);
-	strcat(zone->journal, ".jnl");
-	return (ISC_R_SUCCESS);
+	if (zone->masterfile != NULL) {
+		/* Calculate string length including '\0'. */
+		int len = strlen(zone->masterfile) + sizeof ".jnl";
+		journal = isc_mem_allocate(zone->mctx, len);
+		if (journal == NULL)
+			return (ISC_R_NOMEMORY);
+		strcpy(journal, zone->masterfile);
+		strcat(journal, ".jnl");
+	} else {
+		journal = NULL;
+	}
+	result = dns_zone_setstring(zone, &zone->journal, journal);
+	if (journal != NULL)
+		isc_mem_free(zone->mctx, journal);
+	return (result);
 }
 
 isc_result_t
@@ -808,15 +829,11 @@ dns_zone_setjournal(dns_zone_t *zone, const char *journal) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE(journal != NULL);
 
 	LOCK(&zone->lock);
-	if (zone->journal != NULL)
-		isc_mem_free(zone->mctx, zone->journal);
-	zone->journal = isc_mem_strdup(zone->mctx, journal);
-	if (zone->journal == NULL)
-		result = ISC_R_NOMEMORY;
+	result = dns_zone_setstring(zone, &zone->journal, journal);	
 	UNLOCK(&zone->lock);
+
 	return (result);
 }
 
@@ -842,10 +859,14 @@ dns_zone_load(dns_zone_t *zone) {
 
 	INSIST(zone->type != dns_zone_none);
 
-	if (zone->masterfile == NULL) {
+	if (zone->db != NULL && zone->masterfile == NULL) {
 		/*
-		 * The zone has no master file (maybe it is the built-in
-		 * version.bind. CH zone).  Do nothing.
+		 * The zone has no master file configured, but it already
+		 * has a database.  It could be the built-in
+		 * version.bind. CH zone, a zone with a persistent
+		 * database being reloaded, or maybe a zone that
+		 * used to have a master file but whose configuration
+		 * was changed so that it no longer has one.  Do nothing.
 		 */
 		result = ISC_R_SUCCESS;
 		goto cleanup;
@@ -858,13 +879,14 @@ dns_zone_load(dns_zone_t *zone) {
 	 * than the last time the zone was loaded.  If the zone has not
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
-	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
+	if (zone->masterfile != NULL &&
+	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
 		result = isc_file_getmodtime(zone->masterfile, &filetime);
 		if (result == ISC_R_SUCCESS &&
 		    !isc_time_isepoch(&zone->loadtime) &&
 		    isc_time_compare(&filetime, &zone->loadtime) < 0) {
 			zone_log(zone, me, ISC_LOG_DEBUG(1),
-				 "skipping: database file older"
+				 "skipping: master file older"
 				 " than last load");
 			result = ISC_R_SUCCESS;
 			goto cleanup;
@@ -895,8 +917,16 @@ dns_zone_load(dns_zone_t *zone) {
 		goto cleanup;
 	}
 
-	if (!dns_db_ispersistent(db))
-		result = zone_startload(db, zone, loadtime);
+	if (! dns_db_ispersistent(db)) {
+		if (zone->masterfile != NULL) {
+			result = zone_startload(db, zone, loadtime);
+		} else {
+			if (zone->type == dns_zone_master) {
+				zone_log(zone, me, ISC_LOG_ERROR,
+					 "no master file configured");
+			}
+		}
+	}
 
 	if (result == DNS_R_CONTINUE) {
 		zone->flags |= DNS_ZONEFLG_LOADING;
@@ -1015,7 +1045,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		    zone->type == dns_zone_stub) {
 			if (result == ISC_R_FILENOTFOUND)
 				zone_log(zone, me, ISC_LOG_INFO,
-					 "no database file");
+					 "no master file");
 			else
 				zone_log(zone, me, ISC_LOG_ERROR,
 					 "loading master file %s: %s",
