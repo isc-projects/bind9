@@ -46,8 +46,15 @@ setnetent(int stayopen) {
 }
 #endif
 
+#ifdef ISC_LWRES_SETNETENTINT
+int
+endnetent() {
+	return (0);
+}
+#else
 void
 endnetent() {
 	/* empty */
 }
+#endif
 

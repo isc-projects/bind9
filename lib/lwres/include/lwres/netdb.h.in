@@ -47,6 +47,11 @@
 @ISC_LWRES_SETNETENTINT@
 
 /*
+ * Define if endhostent returns int.
+ */
+@ISC_LWRES_ENDNETENTINT@
+
+/*
  * Define if gethostbyaddr takes a void * as first arguement.
  */
 @ISC_LWRES_GETHOSTBYADDRVOID@
@@ -60,6 +65,11 @@
  * Define if endhostent returns an int.
  */
 @ISC_LWRES_ENDHOSTENTINT@
+
+/*
+ * Define if h_errno if not defined by netdb.h.
+ */
+@ISC_LWRES_NEEDHERRNO@
 
 #ifdef ISC_LWRES_NEEDADDRINFO
 struct  addrinfo {
