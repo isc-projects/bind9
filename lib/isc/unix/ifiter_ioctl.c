@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.47 2004/06/19 00:48:15 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.48 2004/06/22 02:25:32 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -454,15 +454,28 @@ linux_if_inet6_current(isc_interfaceiter_t *iter) {
 
 	if (iter->valid != ISC_R_SUCCESS)
 		return (iter->valid);
-	if (iter->proc == NULL)
+	if (iter->proc == NULL) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:iter->proc == NULL");
 		return (ISC_R_FAILURE);
+	}
 
 	res = sscanf(iter->entry, "%32[a-f0-9] %x %x %x %x %16s\n",
 		     address, &ifindex, &prefix, &flag3, &flag4, name);
-	if (res != 6)
+	if (res != 6) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:sscanf() -> %d (expected 6)",
+			      res);
 		return (ISC_R_FAILURE);
-	if (strlen(address) != 32)
+	}
+	if (strlen(address) != 32) {
+		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
+			      ISC_LOGMODULE_INTERFACE, ISC_LOG_ERROR,
+			      "/proc/net/if_inet6:strlen(%s) != 32", address);
 		return (ISC_R_FAILURE);
+	}
 	for (i = 0; i < 16; i++) {
 		unsigned char byte;
 		static const char hex[] = "0123456789abcdef";
