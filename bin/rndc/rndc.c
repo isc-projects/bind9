@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.40 2001/02/07 00:50:44 bwelling Exp $ */
+/* $Id: rndc.c,v 1.41 2001/02/15 19:45:27 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -28,7 +28,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
-#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
 #include <isc/string.h>
@@ -37,8 +36,6 @@
 
 #include <dns/confndc.h>
 #include <dns/result.h>
-
-#include <dst/dst.h>
 
 #include <named/omapi.h>
 
@@ -296,7 +293,6 @@ Version: %s\n",
 int
 main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
-	isc_entropy_t *entropy = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_socketmgr_t *socketmgr = NULL;
 	isc_taskmgr_t *taskmgr = NULL;
@@ -382,11 +378,6 @@ main(int argc, char **argv) {
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(mctx, 1, 0, &taskmgr));
-
-	DO("create entropy pool", isc_entropy_create(mctx, &entropy));
-	/* XXXDCL probably should use ISC_ENTROPY_GOOD.  talk with graff. */
-	DO("initialize digital signatures",
-	   dst_lib_init(mctx, entropy, 0));
 
 	DO(conffile, dns_c_ndcparseconf(conffile, mctx, &config));
 
@@ -554,9 +545,6 @@ main(int argc, char **argv) {
 	dns_c_ndcctx_destroy(&config);
 
 	omapi_lib_destroy();
-
-	dst_lib_destroy();
-	isc_entropy_detach(&entropy);
 
 	isc_socketmgr_destroy(&socketmgr);
 	isc_taskmgr_destroy(&taskmgr);
