@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.26 2000/08/01 01:22:28 tale Exp $ */
+/* $Id: log.c,v 1.27 2000/09/26 22:10:44 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -84,7 +84,5 @@ dns_log_init(isc_log_t *lctx) {
 
 void
 dns_log_setcontext(isc_log_t *lctx) {
-	REQUIRE(dns_lctx == NULL);
-
 	dns_lctx = lctx;
 }

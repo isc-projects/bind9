@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.46 2000/08/31 20:58:14 bwelling Exp $ */
+/* $Id: log.c,v 1.47 2000/09/26 22:10:22 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -853,8 +853,6 @@ isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
 
 void
 isc_log_setcontext(isc_log_t *lctx) {
-	REQUIRE(isc_lctx == NULL);
-
 	isc_lctx = lctx;
 }
 
@@ -1218,7 +1216,7 @@ isc_log_wouldlog(isc_log_t *lctx, int level) {
 	 * dynamically changed.
 	 */
 
-	if (lctx == NULL)
+	if (lctx == NULL || lctx->logconfig == NULL)
 		return (ISC_FALSE);
 
 	return (ISC_TF(level <= lctx->logconfig->highest_level ||
