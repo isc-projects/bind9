@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.82 2000/07/31 15:28:14 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.83 2000/07/31 21:13:38 tale Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
+#include <dns/fixedname.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/nxt.h>
