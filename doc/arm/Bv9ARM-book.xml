@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.13 2001/02/22 00:49:55 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.72.2.14 2001/03/07 18:51:32 gson Exp $ -->
 
 <book>
 
@@ -2425,6 +2425,24 @@ lookups performed on behalf of clients by a caching name server.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para><command>queries</command></para></entry>
 <entry colname = "2"><para>Queries.</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>dispatch</command></para></entry>
+<entry colname = "2"><para>Dispatching of incoming packets to the
+server modules where they are to be processed.
+</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>dnssec</command></para></entry>
+<entry colname = "2"><para>DNSSEC and TSIG protocol processing.
+</para></entry>
+</row>
+<row rowsep = "0">
+<entry colname = "1"><para><command>lame-servers</command></para></entry>
+<entry colname = "2"><para>Lame servers.  These are misconfigurations
+in remote servers, discovered by BIND 9 when trying to query
+those servers during resolution.
+</para></entry>
 </row>
 </tbody>
 </tgroup></informaltable>
