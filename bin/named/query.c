@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.187 2001/03/13 01:37:11 bwelling Exp $ */
+/* $Id: query.c,v 1.188 2001/03/14 19:32:58 halley Exp $ */
 
 #include <config.h>
 
@@ -67,6 +67,10 @@
 				  NS_QUERYATTR_WANTRECURSION) != 0)
 #define WANTDNSSEC(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTDNSSEC) != 0)
+#define NOAUTHORITY(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_NOAUTHORITY) != 0)
+#define NOADDITIONAL(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_NOADDITIONAL) != 0)
 
 #if 0
 #define CTRACE(m)       isc_log_write(ns_g_lctx, \
@@ -237,6 +241,10 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	query_maybeputqname(client);
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
+#ifdef MINIMIZE_RESPONSES
+				    NS_QUERYATTR_NOAUTHORITY |
+				    NS_QUERYATTR_NOADDITIONAL |
+#endif
 				    NS_QUERYATTR_CACHEOK);
 	client->query.restarts = 0;
 	client->query.timerset = ISC_FALSE;
@@ -1487,6 +1495,12 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	CTRACE("query_addrdataset");
 
 	ISC_LIST_APPEND(fname->list, rdataset, link);
+
+#ifdef MINIMIZE_RESPONSES
+	if (NOADDITIONAL(client))
+		return;
+#endif
+
 	/*
 	 * Add additional data.
 	 *
@@ -2624,6 +2638,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				 * database by setting client->query.gluedb.
 				 */
 				client->query.gluedb = db;
+#ifdef MINIMIZE_RESPONSES
+				/*
+				 * We must ensure NOADDITIONAL is off,
+				 * because the generation of
+				 * additional data is required in
+				 * delegations.
+				 */
+				client->query.attributes &=
+					~NS_QUERYATTR_NOADDITIONAL;
+#endif
 				if (sigrdataset != NULL)
 					sigrdatasetp = &sigrdataset;
 				else
@@ -2716,6 +2740,16 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				client->query.gluedb = zdb;
 				client->query.attributes |=
 					NS_QUERYATTR_CACHEGLUEOK;
+#ifdef MINIMIZE_RESPONSES
+				/*
+				 * We must ensure NOADDITIONAL is off,
+				 * because the generation of
+				 * additional data is required in
+				 * delegations.
+				 */
+				client->query.attributes &=
+					~NS_QUERYATTR_NOADDITIONAL;
+#endif
 				if (sigrdataset != NULL)
 					sigrdatasetp = &sigrdataset;
 				else
@@ -3128,7 +3162,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 * Add NS records to the authority section (if we haven't already
 	 * added them to the answer section).
 	 */
-	if (!want_restart) {
+	if (!want_restart
+#ifdef MINIMIZE_RESPONSES
+	    && !NOAUTHORITY(client)
+#endif
+	    ) {
 		if (is_zone) {
 			if (!((qtype == dns_rdatatype_ns ||
 			       qtype == dns_rdatatype_any) &&
