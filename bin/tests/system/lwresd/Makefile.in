@@ -21,24 +21,26 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =     ${LWRES_INCLUDES} ${ISC_INCLUDES}
+CINCLUDES =	${LWRES_INCLUDES} ${ISC_INCLUDES}
 
 CDEFINES =
 CWARNINGS =
 
-LWRESLIBS =     ${top_srcdir}/lib/lwres/liblwres.@A@
+LWRESLIBS =	${top_srcdir}/lib/lwres/liblwres.@A@
+ISCLIBS =	${top_srcdir}/lib/isc/libisc.@A@
 
-LWRESDEPLIBS =  ${top_srcdir}/lib/lwres/liblwres.@A@
+LWRESDEPLIBS =	${top_srcdir}/lib/lwres/liblwres.@A@
+ISCDEPLIBS =	${top_srcdir}/lib/isc/libisc.@A@
 
-DEPLIBS =       ${LWRESDEPLIBS}
+DEPLIBS =	${LWRESDEPLIBS} ${ISCDEPLIBS}
 
-LIBS =          ${LWRESLIBS} @LIBS@
+LIBS =		${LWRESLIBS} ${ISCLIBS} @LIBS@
 
-TARGETS =       lwtest
+TARGETS =	lwtest
 
-OBJS =          lwtest.@O@
+OBJS =		lwtest.@O@
 
-SRCS =          lwtest.c
+SRCS =		lwtest.c
 
 @BIND9_MAKE_RULES@
 
