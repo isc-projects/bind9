@@ -1,4 +1,7 @@
 
+ 786.	[bug]		When signing/verifying data, names were not properly
+			downcased.
+
  785.	[bug]		A race condition in the resolver could cause
 			an assertion failure. [RT #673, #872, #1048]
 

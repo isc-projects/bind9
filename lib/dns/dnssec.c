@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.61 2001/03/12 22:39:36 bwelling Exp $
+ * $Id: dnssec.c,v 1.62 2001/03/23 03:51:04 bwelling Exp $
  */
 
 
@@ -155,6 +155,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	unsigned char data[300];
 	isc_uint32_t flags;
 	unsigned int sigsize;
+	dns_fixedname_t fnewname;
 
 	REQUIRE(name != NULL);
 	REQUIRE(dns_name_depth(name) <= 255);
@@ -223,7 +224,9 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_context;
 
-	dns_name_toregion(name, &r);
+	dns_fixedname_init(&fnewname);
+	dns_name_downcase(name, dns_fixedname_name(&fnewname), NULL);
+	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
@@ -363,15 +366,19 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	/*
 	 * If the name is an expanded wildcard, use the wildcard name.
 	 */
+	dns_fixedname_init(&fnewname);
 	labels = dns_name_depth(name) - 1;
 	if (labels - sig.labels > 0) {
-		dns_fixedname_init(&fnewname);
 		dns_name_splitatdepth(name, sig.labels + 1, NULL,
 				      dns_fixedname_name(&fnewname));
-		dns_name_toregion(dns_fixedname_name(&fnewname), &r);
+		dns_name_downcase(dns_fixedname_name(&fnewname),
+				  dns_fixedname_name(&fnewname),
+				  NULL);
 	}
 	else
-		dns_name_toregion(name, &r);
+		dns_name_downcase(name, dns_fixedname_name(&fnewname), NULL);
+
+	dns_name_toregion(dns_fixedname_name(&fnewname), &r);
 
 	/*
 	 * Create an envelope for each rdata: <name|type|class|ttl>.
