@@ -46,6 +46,7 @@
 #include <dns/db.h>
 #include <dns/dbtable.h>
 #include <dns/message.h>
+#include <dns/journal.h>
 #include <dns/view.h>
 
 #include <named/types.h>
@@ -100,10 +101,19 @@ load(ns_dbinfo_t *dbi, char *view_name) {
 
 	printf("loading %s (%s)\n", dbi->path, dbi->origin);
 	result = dns_db_load(dbi->db, dbi->path);
-	if (result != DNS_R_SUCCESS)
+
+	if (result != DNS_R_SUCCESS) 
 		goto db_detach;
 
 	printf("loaded\n");
+	printf("journal rollforward\n");
+	result = dns_journal_rollforward(ns_g_mctx, dbi->db, "journal");
+	if (result != DNS_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_rollforward(): %s",
+				 dns_result_totext(result));
+		/* Continue anyway... */
+	}
 
 	if (dbi->iscache) {
 		/*
