@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.sh,v 1.33 2001/01/17 20:53:40 bwelling Exp $
+# $Id: start.sh,v 1.34 2001/01/18 22:43:49 bwelling Exp $
 
 #
 # Start name servers for running system tests.
@@ -66,6 +66,7 @@ do
 	x=1
 	while test ! -f named.pid
 	do
+	    sleep 1
 	    x=`expr $x + 1`
 	    if [ $x = 15 ]; then
 		echo "I:Couldn't start server $d"
@@ -101,8 +102,9 @@ do
 	x=1
 	while test ! -f lwresd.pid
 	do
+	    sleep 1
 	    x=`expr $x + 1`
-	    if [ $x = 5 ]; then
+	    if [ $x = 15 ]; then
 		echo "I:Couldn't start lwresd $d"
 		exit 1
 	    fi
@@ -134,7 +136,8 @@ do
 	while test ! -f ans.pid
 	do
 	    x=`expr $x + 1`
-	    if [ $x = 5 ]; then
+	    sleep 1
+	    if [ $x = 15 ]; then
 		echo "I:Couldn't start ans $d"
 		exit 1
 	    fi
