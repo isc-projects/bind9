@@ -15,11 +15,13 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.h,v 1.2 2001/09/29 00:01:44 gson Exp $ */
+/* $Id: AccountInfo.h,v 1.3 2001/10/05 05:45:50 mayer Exp $ */
 
-#define RTN_OK 0
-#define RTN_NOACCOUNT 1
-#define RTN_ERROR 10
+
+#define RTN_OK		0
+#define RTN_NOACCOUNT	1
+#define RTN_NOMEMORY	2
+#define RTN_ERROR	10
 
 #define SE_SERVICE_LOGON_PRIV	L"SeServiceLogonRight"
 

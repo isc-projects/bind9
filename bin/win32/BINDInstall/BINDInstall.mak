@@ -25,10 +25,6 @@ NULL=
 NULL=nul
 !ENDIF 
 
-CPP=cl.exe
-MTL=midl.exe
-RSC=rc.exe
-
 !IF  "$(CFG)" == "BINDInstall - Win32 Release"
 
 OUTDIR=.\Release
@@ -53,8 +49,42 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
+CPP=cl.exe
 CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "..\include" /I "..\..\..\include" /I "..\..\named\win32\include" /I "..\..\..\lib\isc\win32\include" /I "..\..\..\lib\isc\include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /Fp"$(INTDIR)\BINDInstall.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /TP /c 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+MTL=midl.exe
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
+RSC=rc.exe
 RSC_PROJ=/l 0x409 /fo"$(INTDIR)\BINDInstall.res" /d "NDEBUG" /d "_AFXDLL" 
 BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\BINDInstall.bsc" 
@@ -63,14 +93,14 @@ BSC32_SBRS= \
 LINK32=link.exe
 LINK32_FLAGS=version.lib netapi32.lib /nologo /subsystem:windows /pdb:none /machine:I386 /out:"..\..\..\Build\Release\BINDInstall.exe" 
 LINK32_OBJS= \
+	"$(INTDIR)\AccountInfo.obj" \
 	"$(INTDIR)\BINDInstall.obj" \
 	"$(INTDIR)\BINDInstallDlg.obj" \
 	"$(INTDIR)\DirBrowse.obj" \
+	"$(INTDIR)\ntgroups.obj" \
 	"$(INTDIR)\StdAfx.obj" \
 	"$(INTDIR)\VersionInfo.obj" \
-	"$(INTDIR)\BINDInstall.res" \
-	"$(INTDIR)\AccountInfo.obj" \
-	"$(INTDIR)\ntgroups.obj"
+	"$(INTDIR)\BINDInstall.res"
 
 "..\..\..\Build\Release\BINDInstall.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -113,43 +143,8 @@ CLEAN :
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
+CPP=cl.exe
 CPP_PROJ=/nologo /MDd /W3 /Gm /GX /Zi /Od /I "..\include" /I "..\..\..\include" /I "..\..\named\win32\include" /I "..\..\..\lib\isc\win32\include" /I "..\..\..\lib\isc\include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_AFXDLL" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\BINDInstall.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /TP /GZ /c 
-MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
-RSC_PROJ=/l 0x409 /fo"$(INTDIR)\BINDInstall.res" /d "_DEBUG" /d "_AFXDLL" 
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\BINDInstall.bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\BINDInstall.sbr" \
-	"$(INTDIR)\BINDInstallDlg.sbr" \
-	"$(INTDIR)\DirBrowse.sbr" \
-	"$(INTDIR)\StdAfx.sbr" \
-	"$(INTDIR)\VersionInfo.sbr" \
-	"$(INTDIR)\AccountInfo.sbr" \
-	"$(INTDIR)\ntgroups.sbr"
-
-"$(OUTDIR)\BINDInstall.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
-<<
-
-LINK32=link.exe
-LINK32_FLAGS=version.lib netapi32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"..\..\..\Build\Debug\BINDInstall.exe" 
-LINK32_OBJS= \
-	"$(INTDIR)\BINDInstall.obj" \
-	"$(INTDIR)\BINDInstallDlg.obj" \
-	"$(INTDIR)\DirBrowse.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\VersionInfo.obj" \
-	"$(INTDIR)\BINDInstall.res" \
-	"$(INTDIR)\AccountInfo.obj" \
-	"$(INTDIR)\ntgroups.obj"
-
-"..\..\..\Build\Debug\BINDInstall.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ENDIF 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -180,6 +175,45 @@ LINK32_OBJS= \
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+RSC=rc.exe
+RSC_PROJ=/l 0x409 /fo"$(INTDIR)\BINDInstall.res" /d "_DEBUG" /d "_AFXDLL" 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\BINDInstall.bsc" 
+BSC32_SBRS= \
+	"$(INTDIR)\AccountInfo.sbr" \
+	"$(INTDIR)\BINDInstall.sbr" \
+	"$(INTDIR)\BINDInstallDlg.sbr" \
+	"$(INTDIR)\DirBrowse.sbr" \
+	"$(INTDIR)\ntgroups.sbr" \
+	"$(INTDIR)\StdAfx.sbr" \
+	"$(INTDIR)\VersionInfo.sbr"
+
+"$(OUTDIR)\BINDInstall.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
+LINK32=link.exe
+LINK32_FLAGS=version.lib netapi32.lib /nologo /subsystem:windows /pdb:none /debug /machine:I386 /out:"..\..\..\Build\Debug\BINDInstall.exe" 
+LINK32_OBJS= \
+	"$(INTDIR)\AccountInfo.obj" \
+	"$(INTDIR)\BINDInstall.obj" \
+	"$(INTDIR)\BINDInstallDlg.obj" \
+	"$(INTDIR)\DirBrowse.obj" \
+	"$(INTDIR)\ntgroups.obj" \
+	"$(INTDIR)\StdAfx.obj" \
+	"$(INTDIR)\VersionInfo.obj" \
+	"$(INTDIR)\BINDInstall.res"
+
+"..\..\..\Build\Debug\BINDInstall.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ENDIF 
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"

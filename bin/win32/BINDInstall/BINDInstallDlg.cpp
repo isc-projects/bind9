@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.9 2001/09/26 02:22:25 mayer Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.10 2001/10/05 05:45:52 mayer Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -726,9 +726,11 @@ CBINDInstallDlg::RegisterService() {
 	if(m_serviceExists == TRUE) {
 		if(m_accountUsed == FALSE) {
 			UpdateService();
+			SetItemStatus(IDC_REG_SERVICE);
 			return;
 		}
 		else {
+			SetItemStatus(IDC_REG_SERVICE);
 			return;
 		}
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: AccountInfo.cpp,v 1.2 2001/09/29 00:01:43 gson Exp $ */
+/* $Id: AccountInfo.cpp,v 1.3 2001/10/05 05:45:48 mayer Exp $ */
 
 #ifndef UNICODE
 #define UNICODE
@@ -28,6 +28,7 @@
 #include <ntsecapi.h>
 
 #include <isc/ntgroups.h>
+#include <isc/result.h>
 #include "AccountInfo.h"
 
 #define MAX_NAME_LENGTH 256
@@ -114,6 +115,7 @@ GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 	PSID pSid;
 	unsigned int i;
 	NTSTATUS Status;
+	isc_result_t istatus;
 	int iRetVal=RTN_ERROR;		/* assume error from main */
 
 	/*
@@ -133,8 +135,14 @@ GetAccountPrivileges(char *name, wchar_t **PrivList, unsigned int *PrivCount,
 	/*
 	 * Find out what groups the account belongs to
 	 */
-	Status = isc_ntsecurity_getaccountgroups(name, Accounts, maxAccounts,
-						 totalAccounts);
+	istatus = isc_ntsecurity_getaccountgroups(name, Accounts, maxAccounts,
+						  totalAccounts);
+	if (istatus == ISC_R_NOMEMORY) {
+		return (RTN_NOMEMORY);
+	}
+	else if (istatus != ISC_R_SUCCESS) {
+		return (RTN_ERROR);
+	}
 
 	Accounts[*totalAccounts] = name; /* Add the account to the list */
 	(*totalAccounts)++;
@@ -179,10 +187,8 @@ CreateServiceAccount(char *name, char *password) {
 
 	unsigned int namelen = strlen(name);
 	unsigned int passwdlen = strlen(password);
-	wchar_t *AccountName = (wchar_t *)malloc((namelen + 1)*
-						sizeof(wchar_t));
-	wchar_t *AccountPassword = (wchar_t *)malloc((passwdlen + 1)*
-						sizeof(wchar_t));
+	wchar_t AccountName[MAX_NAME_LENGTH];
+	wchar_t AccountPassword[MAX_NAME_LENGTH];
 
 	mbstowcs(AccountName, name, namelen + 1);
 	mbstowcs(AccountPassword, password, passwdlen + 1);
@@ -193,8 +199,8 @@ CreateServiceAccount(char *name, char *password) {
 	 * rather than an administrator or a guest.
 	 */
 
-	ui.usri1_name = AccountName;
-	ui.usri1_password = AccountPassword;
+	ui.usri1_name = (LPWSTR) &AccountName;
+	ui.usri1_password = (LPWSTR) &AccountPassword;
 	ui.usri1_priv = USER_PRIV_USER;
 	ui.usri1_home_dir = NULL;
 	ui.usri1_comment = L"ISC BIND Service Account";
@@ -205,8 +211,6 @@ CreateServiceAccount(char *name, char *password) {
 	 */
 	nStatus = NetUserAdd(NULL, dwLevel, (LPBYTE)&ui, &dwError);
 
-	free(AccountPassword);
-	free(AccountName);
 	if (nStatus != NERR_Success)
 		return (FALSE);
 
@@ -394,6 +398,9 @@ GetPrivilegesOnAccount(LSA_HANDLE PolicyHandle, PSID AccountSid,
 		if (found != 0) {
 			PrivList[*PrivCount] = 
 			    (wchar_t *)malloc(UserRights[i].MaximumLength);
+			if (PrivList[*PrivCount] == NULL)
+				return (RTN_NOMEMORY);
+
 			wcsncpy(PrivList[*PrivCount], UserRights[i].Buffer,
 				retlen);
 			PrivList[*PrivCount][retlen] = L'\0';
