@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.1 2001/11/14 22:08:37 bwelling Exp $ */
+/* $Id: getaddresses.c,v 1.2 2001/11/14 23:03:42 bwelling Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -89,6 +89,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		hints.ai_family = PF_INET6;
 	else
 		hints.ai_family = PF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
 	result = getaddrinfo(hostname, NULL, &hints, &ai);
 	switch (result) {
 	case 0:
