@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.6 2000/12/06 00:59:06 bwelling Exp $ */
+/* $Id: dirdb.c,v 1.7 2000/12/06 01:08:37 bwelling Exp $ */
 
 #include <config.h>
 
@@ -178,7 +178,8 @@ static dns_sdbmethods_t dirdb_methods = {
 isc_result_t
 dirdb_init(void) {
 	unsigned int flags;
-	flags = DNS_SDBFLAG_RELATIVEOWNER | DNS_SDBFLAG_RELATIVERDATA;
+	flags = DNS_SDBFLAG_RELATIVEOWNER | DNS_SDBFLAG_RELATIVERDATA |
+		DNS_SDBFLAG_THREADSAFE;
 	return (dns_sdb_register("dir", &dirdb_methods, ns_g_mctx, flags,
 				 ns_g_mctx, &dirdb));
 }

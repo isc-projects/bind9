@@ -1,4 +1,7 @@
 
+ 594.	[func]		sdb drivers are now assumed to not be thread-safe
+			unless the DNS_SDBFLAG_THREADSAFE flag is supplied.
+
  593.	[bug]		If a secure zone was missing all its NXTs and
 			a dynamic update was attempted, the server entered
 			an infinite loop.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.10 2000/11/16 23:10:19 gson Exp $ */
+/* $Id: sdb.h,v 1.11 2000/12/06 01:08:39 bwelling Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -90,6 +90,7 @@ ISC_LANG_BEGINDECLS
 
 #define DNS_SDBFLAG_RELATIVEOWNER 0x00000001U
 #define DNS_SDBFLAG_RELATIVERDATA 0x00000002U
+#define DNS_SDBFLAG_THREADSAFE 0x00000004U
 
 isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
@@ -144,6 +145,10 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
  * include relative names.  Otherwise, all names in the rdata string must
  * be absolute.  Be aware that if relative names are allowed, any
  * absolute names must contain a trailing dot.
+ *
+ * If flags includes DNS_SDBFLAG_THREADSAFE, the driver must be able to
+ * handle multiple lookups in parallel.  Otherwise, calls into the driver
+ * are serialized.
  */
 
 void
