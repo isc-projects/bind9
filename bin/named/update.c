@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.81 2001/01/18 23:31:03 gson Exp $ */
+/* $Id: update.c,v 1.82 2001/01/22 18:59:06 gson Exp $ */
 
 #include <config.h>
 
+#include <isc/print.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/util.h>
