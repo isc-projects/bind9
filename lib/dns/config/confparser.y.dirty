@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.16 2000/09/14 02:19:04 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.17 2000/09/15 00:26:35 gson Exp $ */
 
 #include <config.h>
 
@@ -935,7 +935,7 @@ option: /* Empty */
 	{
 		if ($4 == NULL) {
 			parser_warning(ISC_FALSE,
-				       "address-match-list empty implies"
+				       "address-match-list empty implies "
 				       "listen statement ignored");
 		} else {
 			tmpres = dns_c_ctx_addlisten_on(currcfg, $2, $4,
@@ -952,7 +952,7 @@ option: /* Empty */
 	{
 		if ($4 == NULL) {
 			parser_warning(ISC_FALSE,
-				       "address-match-list empty implies"
+				       "address-match-list empty implies "
 				       "listen statement ignored");
 		} else {
 			tmpres = dns_c_ctx_addv6listen_on(currcfg, $2, $4,
@@ -6126,8 +6126,8 @@ token_to_text(int token, YYSTYPE lval) {
 			inet_ntop(AF_INET, &lval.ip4_addr.s_addr,
 				  buffer, sizeof buffer);
 			/*
-			 * Remove trailing zeros added in. We may remove to
-			 * many but we need to remove atleast one.
+			 * Remove trailing zeros added in. We may remove too
+			 * many but we need to remove at least one.
 			 */
 			for (i = 0; i < 3; i++)
 				if (strcmp(&buffer[strlen(buffer) - 2],
