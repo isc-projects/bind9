@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.253 
+# From configure.in Revision: 1.255 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5149,6 +5149,9 @@ esac
 # a developer editing the documentation source.
 #
 
+# Directory trees where SGML files are commonly found.
+sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml"
+
 #
 # Look for openjade.  Plain jade is no longer supported.
 #
@@ -5158,7 +5161,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:5162: checking for $ac_word" >&5
+echo "configure:5165: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_OPENJADE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -5205,7 +5208,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:5209: checking for $ac_word" >&5
+echo "configure:5212: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_JADETEX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -5248,7 +5251,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:5252: checking for $ac_word" >&5
+echo "configure:5255: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PDFJADETEX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -5286,9 +5289,25 @@ test -n "$PDFJADETEX" || PDFJADETEX="pdfjadetex"
 
 
 
-echo $ac_n "checking for SGML catalog""... $ac_c" 1>&6
-echo "configure:5291: checking for SGML catalog" >&5
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+#
+# Subroutine for searching for an ordinary file (e.g., a stylesheet)
+# in a number of directories:
+#
+#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
+#
+# If the file FILENAME is found in one of the DIRECTORIES, the shell
+# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# it is set to FILENAME, with no directory prefix (that's not terribly
+# useful, but looks less confusing in substitutions than leaving it
+# empty).  The variable VARIABLE will be substituted into output files.
+# 
+
+
+
+
+echo $ac_n "checking for catalog""... $ac_c" 1>&6
+echo "configure:5310: checking for catalog" >&5
+for d in $sgmltrees
 do
 	f=$d/catalog
 	if test -f $f
@@ -5298,11 +5317,12 @@ do
 		break
 	fi
 done
-if test "X$SGMLCATALOG" = "X"
+if test "XSGMLCATALOG" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
 	SGMLCATALOG=catalog
 fi
+
 
 
 #
@@ -5314,60 +5334,66 @@ fi
 # 	FreeBSD	/usr/local/share/docbook/dsssl/modular/
 #	Linux	/usr/local/share/dsssl/docbook/
 #
+# Ditto for the print stylesheet print/docbook.dsl.
+#
 
-HTMLSTYLE=""
+stylepath=""
+for d in $sgmltrees 
+do
+	for s in docbook/dsssl/modular dsssl/docbook
+	do
+		stylepath="$stylepath $d/$s"
+	done
+done
+
 echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
-echo "configure:5321: checking for html/docbook.dsl" >&5
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+echo "configure:5351: checking for html/docbook.dsl" >&5
+for d in $stylepath
 do
-	for s in docbook/dsssl/modular dsssl/docbook
-	do
-		f=$d/$s/html/docbook.dsl
-		if test -f $f
-		then
-			HTMLSTYLE=$f
-			echo "$ac_t""$f" 1>&6
-			break
-		fi
-	done
+	f=$d/html/docbook.dsl
+	if test -f $f
+	then
+		HTMLSTYLE=$f
+		echo "$ac_t""$f" 1>&6
+		break
+	fi
 done
-if test "X$HTMLSTYLE" = "X"
+if test "XHTMLSTYLE" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	HTMLSTYLE=docbook.dsl
+	HTMLSTYLE=html/docbook.dsl
 fi
 
 
-PRINTSTYLE=""
+
 echo $ac_n "checking for print/docbook.dsl""... $ac_c" 1>&6
-echo "configure:5344: checking for print/docbook.dsl" >&5
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+echo "configure:5371: checking for print/docbook.dsl" >&5
+for d in $stylepath
 do
-	for s in docbook/dsssl/modular dsssl/docbook
-	do
-		f=$d/$s/print/docbook.dsl
-		if test -f $f
-		then
-			PRINTSTYLE=$f
-			echo "$ac_t""$f" 1>&6
-			break
-		fi
-	done
+	f=$d/print/docbook.dsl
+	if test -f $f
+	then
+		PRINTTYLE=$f
+		echo "$ac_t""$f" 1>&6
+		break
+	fi
 done
-if test "X$PRINTSTYLE" = "X"
+if test "XPRINTTYLE" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	PRINTSTYLE=docbook.dsl
+	PRINTTYLE=print/docbook.dsl
 fi
+
 
 
 #
 # Look for XML declarations
 #
-XMLDCL=""
-echo $ac_n "checking for xml.dcl""... $ac_c" 1>&6
-echo "configure:5370: checking for xml.dcl" >&5
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+
+
+echo $ac_n "checking for docbook/dsssl/modular/dtds/decls/xml.dcl""... $ac_c" 1>&6
+echo "configure:5396: checking for docbook/dsssl/modular/dtds/decls/xml.dcl" >&5
+for d in $sgmltrees
 do
 	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
 	if test -f $f
@@ -5377,35 +5403,37 @@ do
 		break
 	fi
 done
-if test "X$XMLDCL" = "X"
+if test "XXMLDCL" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	XMLDCL=xml.dcl
+	XMLDCL=docbook/dsssl/modular/dtds/decls/xml.dcl
 fi
 
 
+
 #
-# Look for the docbook2X directory
+# Look for docbook2man-spec.pl
 #
 
-echo $ac_n "checking for docbook2X""... $ac_c" 1>&6
-echo "configure:5393: checking for docbook2X" >&5
-DOCBOOK2X=""
-for d in /usr/pkg/share/sgml /usr/local/share/sgml
+
+echo $ac_n "checking for docbook2X/docbook2man-spec.pl""... $ac_c" 1>&6
+echo "configure:5421: checking for docbook2X/docbook2man-spec.pl" >&5
+for d in $sgmltrees
 do
-    	dd=$d/docbook2X
-	if test -f $dd/docbook2man-spec.pl
+	f=$d/docbook2X/docbook2man-spec.pl
+	if test -f $f
 	then
-		DOCBOOK2X=$dd
-		echo "$ac_t""$dd" 1>&6
+		DOCBOOK2MANSPEC=$f
+		echo "$ac_t""$f" 1>&6
 		break
 	fi
 done
-if test "X$DOCBOOK2X" = "X"
+if test "XDOCBOOK2MANSPEC" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	DOCBOOK2X=.
+	DOCBOOK2MANSPEC=docbook2X/docbook2man-spec.pl
 fi
+
 
 
 #
@@ -5761,9 +5789,9 @@ s%@JADETEX@%$JADETEX%g
 s%@PDFJADETEX@%$PDFJADETEX%g
 s%@SGMLCATALOG@%$SGMLCATALOG%g
 s%@HTMLSTYLE@%$HTMLSTYLE%g
-s%@PRINTSTYLE@%$PRINTSTYLE%g
+s%@PRINTTYLE@%$PRINTTYLE%g
 s%@XMLDCL@%$XMLDCL%g
-s%@DOCBOOK2X@%$DOCBOOK2X%g
+s%@DOCBOOK2MANSPEC@%$DOCBOOK2MANSPEC%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
 s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
 s%@BIND9_ISCCC_BUILDINCLUDE@%$BIND9_ISCCC_BUILDINCLUDE%g
