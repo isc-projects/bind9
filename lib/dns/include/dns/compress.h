@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.24 2001/01/06 00:35:30 bwelling Exp $ */
+/* $Id: compress.h,v 1.25 2001/01/06 00:43:03 bwelling Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -170,7 +170,7 @@ dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
  *		valid until the message compression is complete.
  *
  *		'prefix' must be a prefix returned by
- *		dns_compress_findglobal().
+ *		dns_compress_findglobal(), or the same as 'name'.
  */
 
 void
