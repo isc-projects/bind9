@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3472"
+HREF="Bv9ARM.ch06.html#AEN3485"
 >Zone File</A
 ></DT
 ></DL
@@ -1459,8 +1459,7 @@ NAME="controls_statement_definition_and_usage"
 >6.2.4. <B
 CLASS="command"
 >controls</B
-> Statement Definition and
-Usage</A
+> Statement Definition and Usage</A
 ></H2
 ><P
 >The <B
@@ -1765,10 +1764,34 @@ CLASS="command"
 CLASS="command"
 >key</B
 > statement defines a shared
-      secret key for use with TSIG, see <A
+secret key for use with TSIG, see <A
 HREF="Bv9ARM.ch04.html#tsig"
 >Section 4.4</A
 >.</P
+><P
+>&#13;The <B
+CLASS="command"
+>key</B
+> statement can occur at the top level
+of the configuration file or inside a <B
+CLASS="command"
+>view</B
+> 
+statement.  Keys defined in top-level <B
+CLASS="command"
+>key</B
+>
+statements can be used in all views.  Keys intended for use in
+a <B
+CLASS="command"
+>controls</B
+> statement
+(see <A
+HREF="Bv9ARM.ch06.html#controls_statement_definition_and_usage"
+>Section 6.2.4</A
+>)
+must be defined at the top level.
+</P
 ><P
 >The <TT
 CLASS="replaceable"
@@ -1776,11 +1799,11 @@ CLASS="replaceable"
 >key_id</I
 ></TT
 >, also known as the
-      key name, is a domain name uniquely identifying the key. It can
-      be used in a "server" statement to cause requests sent to that
-      server to be signed with this key, or in address match lists to
-      verify that incoming requests have been signed with a key
-      matching this name, algorithm, and secret.</P
+key name, is a domain name uniquely identifying the key. It can
+be used in a "server" statement to cause requests sent to that
+server to be signed with this key, or in address match lists to
+verify that incoming requests have been signed with a key
+matching this name, algorithm, and secret.</P
 ><P
 >The <TT
 CLASS="replaceable"
@@ -1788,27 +1811,27 @@ CLASS="replaceable"
 >algorithm_id</I
 ></TT
 > is a string
-      that specifies a security/authentication algorithm. The only
-      algorithm currently supported with TSIG authentication is
-      <TT
+that specifies a security/authentication algorithm. The only
+algorithm currently supported with TSIG authentication is
+<TT
 CLASS="literal"
 >hmac-md5</TT
 >.  The
-      <TT
+<TT
 CLASS="replaceable"
 ><I
 >secret_string</I
 ></TT
 > is the secret to be
-      used by the algorithm, and is treated as a base-64 encoded
-      string.</P
+used by the algorithm, and is treated as a base-64 encoded
+string.</P
 ></DIV
 ><DIV
 CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1535"
+NAME="AEN1541"
 >6.2.9. <B
 CLASS="command"
 >logging</B
@@ -1968,7 +1991,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1575"
+NAME="AEN1581"
 >6.2.10. <B
 CLASS="command"
 >logging</B
@@ -2031,7 +2054,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN1591"
+NAME="AEN1597"
 >6.2.10.1. The <B
 CLASS="command"
 >channel</B
@@ -2473,7 +2496,7 @@ CLASS="acronym"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN1695"
+NAME="AEN1701"
 ></A
 ><P
 ></P
@@ -2841,7 +2864,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1805"
+NAME="AEN1811"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -2938,7 +2961,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1829"
+NAME="AEN1835"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3012,7 +3035,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1848"
+NAME="AEN1854"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -3953,7 +3976,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2062"
+NAME="AEN2068"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -4912,7 +4935,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2350"
+NAME="AEN2356"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5116,7 +5139,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2415"
+NAME="AEN2421"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5211,7 +5234,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2441"
+NAME="AEN2447"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5642,7 +5665,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2580"
+NAME="AEN2586"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -5762,7 +5785,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2617"
+NAME="AEN2623"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -5846,7 +5869,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2645"
+NAME="AEN2651"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6213,7 +6236,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2733"
+NAME="AEN2739"
 ></A
 ><P
 ></P
@@ -6600,7 +6623,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2845"
+NAME="AEN2851"
 ></A
 ><P
 ></P
@@ -6838,15 +6861,42 @@ NAME="server_statement_definition_and_usage"
 >6.2.16. <B
 CLASS="command"
 >server</B
-> Statement Definition
-and Usage</A
+> Statement Definition and Usage</A
 ></H2
 ><P
 >The <B
 CLASS="command"
 >server</B
-> statement defines the characteristics
+> statement defines characteristics
 to be associated with a remote nameserver.</P
+><P
+>&#13;The <B
+CLASS="command"
+>server</B
+> statement can occur at the top level of the
+configuration file or inside a <B
+CLASS="command"
+>view</B
+> statement.  
+If a <B
+CLASS="command"
+>view</B
+> statement contains
+one or more <B
+CLASS="command"
+>server</B
+> statements, only those
+apply to the view and any top-level ones are ignored.
+If a view contains no <B
+CLASS="command"
+>server</B
+> statements,
+any top-level <B
+CLASS="command"
+>server</B
+> statements are used as
+defaults.
+</P
 ><P
 >If you discover that a remote server is giving out bad data,
 marking it as bogus will prevent further queries to it. The default
@@ -7009,7 +7059,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2953"
+NAME="AEN2966"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7084,7 +7134,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2969"
+NAME="AEN2982"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7119,7 +7169,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2977"
+NAME="AEN2990"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7182,7 +7232,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2991"
+NAME="AEN3004"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7812,7 +7862,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3138"
+NAME="AEN3151"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7823,13 +7873,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3141"
+NAME="AEN3154"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3143"
+NAME="AEN3156"
 ></A
 ><P
 ></P
@@ -8067,7 +8117,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3198"
+NAME="AEN3211"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8105,7 +8155,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3208"
+NAME="AEN3221"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8746,7 +8796,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3442"
+NAME="AEN3455"
 ></A
 ><P
 ></P
@@ -8853,7 +8903,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3472"
+NAME="AEN3485"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8874,7 +8924,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3477"
+NAME="AEN3490"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8897,7 +8947,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3483"
+NAME="AEN3496"
 ></A
 ><P
 ></P
@@ -9008,7 +9058,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3515"
+NAME="AEN3528"
 ></A
 ><P
 ></P
@@ -9385,7 +9435,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3627"
+NAME="AEN3640"
 ></A
 ><P
 ></P
@@ -9437,7 +9487,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3643"
+NAME="AEN3656"
 ></A
 ><P
 ></P
@@ -9614,7 +9664,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3691"
+NAME="AEN3704"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9644,7 +9694,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3698"
+NAME="AEN3711"
 ></A
 ><P
 ></P
@@ -9853,7 +9903,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3764"
+NAME="AEN3777"
 ></A
 ><P
 ></P
@@ -9944,7 +9994,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3792"
+NAME="AEN3805"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -9977,7 +10027,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3798"
+NAME="AEN3811"
 ></A
 ><P
 ></P
@@ -10273,7 +10323,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3890"
+NAME="AEN3903"
 ></A
 ><P
 ></P
@@ -10356,7 +10406,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3913"
+NAME="AEN3926"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10380,7 +10430,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3918"
+NAME="AEN3931"
 ></A
 ><P
 ></P
@@ -10460,7 +10510,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3940"
+NAME="AEN3953"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10485,7 +10535,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3947"
+NAME="AEN3960"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10555,7 +10605,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3967"
+NAME="AEN3980"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10637,7 +10687,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3987"
+NAME="AEN4000"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10677,7 +10727,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3998"
+NAME="AEN4011"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10756,7 +10806,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4018"
+NAME="AEN4031"
 ></A
 ><P
 ></P

@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.145 2001/06/27 17:48:32 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.146 2001/06/28 22:37:29 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2168,10 +2168,10 @@ the system has an interface.</para></entry>
    <optional> inet ...; </optional>
 };
 </programlisting>
-    </sect2>
-    <sect2 id="controls_statement_definition_and_usage">
-      <title><command>controls</command> Statement Definition and
-Usage</title>
+</sect2>
+
+<sect2 id="controls_statement_definition_and_usage">
+<title><command>controls</command> Statement Definition and Usage</title>
 
       <para>The <command>controls</command> statement declares control
       channels to be used by system administrators to affect the
@@ -2272,26 +2272,37 @@ Usage</title>
 };
 </programlisting>
     </sect2>
-    <sect2>
-      <title><command>key</command> Statement Definition and Usage</title>
 
-      <para>The <command>key</command> statement defines a shared
-      secret key for use with TSIG, see <xref linkend="tsig"/>.</para>
+<sect2>
+<title><command>key</command> Statement Definition and Usage</title>
 
-      <para>The <replaceable>key_id</replaceable>, also known as the
-      key name, is a domain name uniquely identifying the key. It can
-      be used in a "server" statement to cause requests sent to that
-      server to be signed with this key, or in address match lists to
-      verify that incoming requests have been signed with a key
-      matching this name, algorithm, and secret.</para>
+<para>The <command>key</command> statement defines a shared
+secret key for use with TSIG, see <xref linkend="tsig"/>.</para>
 
-      <para>The <replaceable>algorithm_id</replaceable> is a string
-      that specifies a security/authentication algorithm. The only
-      algorithm currently supported with TSIG authentication is
-      <literal>hmac-md5</literal>.  The
-      <replaceable>secret_string</replaceable> is the secret to be
-      used by the algorithm, and is treated as a base-64 encoded
-      string.</para>
+<para>
+The <command>key</command> statement can occur at the top level
+of the configuration file or inside a <command>view</command> 
+statement.  Keys defined in top-level <command>key</command>
+statements can be used in all views.  Keys intended for use in
+a <command>controls</command> statement
+(see <xref linkend="controls_statement_definition_and_usage"/>)
+must be defined at the top level.
+</para>
+
+<para>The <replaceable>key_id</replaceable>, also known as the
+key name, is a domain name uniquely identifying the key. It can
+be used in a "server" statement to cause requests sent to that
+server to be signed with this key, or in address match lists to
+verify that incoming requests have been signed with a key
+matching this name, algorithm, and secret.</para>
+
+<para>The <replaceable>algorithm_id</replaceable> is a string
+that specifies a security/authentication algorithm. The only
+algorithm currently supported with TSIG authentication is
+<literal>hmac-md5</literal>.  The
+<replaceable>secret_string</replaceable> is the secret to be
+used by the algorithm, and is treated as a base-64 encoded
+string.</para>
 
 </sect2>
     <sect2>
@@ -3927,7 +3938,8 @@ failure response other than those above.</para></entry>
 </sect3>
 
 </sect2>
- <sect2 id="server_statement_grammar">
+
+<sect2 id="server_statement_grammar">
 <title><command>server</command> Statement Grammar</title>
 
 <programlisting>server <replaceable>ip_addr</replaceable> {
@@ -3942,11 +3954,23 @@ failure response other than those above.</para></entry>
 </programlisting>
 
 </sect2>
-<sect2 id="server_statement_definition_and_usage"><title><command>server</command> Statement Definition
-and Usage</title>
 
-<para>The <command>server</command> statement defines the characteristics
+<sect2 id="server_statement_definition_and_usage">
+<title><command>server</command> Statement Definition and Usage</title>
+
+<para>The <command>server</command> statement defines characteristics
 to be associated with a remote nameserver.</para>
+
+<para>
+The <command>server</command> statement can occur at the top level of the
+configuration file or inside a <command>view</command> statement.  
+If a <command>view</command> statement contains
+one or more <command>server</command> statements, only those
+apply to the view and any top-level ones are ignored.
+If a view contains no <command>server</command> statements,
+any top-level <command>server</command> statements are used as
+defaults.
+</para>
 
 <para>If you discover that a remote server is giving out bad data,
 marking it as bogus will prevent further queries to it. The default
@@ -4004,7 +4028,10 @@ to be signed by this key.</para>
 
 <para>Although the grammar of the <command>keys</command> clause
 allows for multiple keys, only a single key per server is currently
-supported.</para></sect2>
+supported.</para>
+
+</sect2>
+
 <sect2><title><command>trusted-keys</command> Statement Grammar</title>
 <programlisting>trusted-keys {
     <replaceable>string</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ;
