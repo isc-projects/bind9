@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.13 2001/02/23 00:24:34 bwelling Exp $ */
+/* $Id: cfg.h,v 1.14 2001/02/23 01:00:58 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -158,7 +158,7 @@ cfg_map_get(cfg_obj_t *mapobj, const char* name, cfg_obj_t **obj);
  * must be of a map type.
  *
  * Requires:
- *      'mapobj' ponts to a valid configuraration object of a map type.
+ *      'mapobj' points to a valid configuration object of a map type.
  *      'name' points to a null-terminated string.
  * 	'obj' is non-NULL and '*obj' is NULL.
  *
@@ -173,7 +173,7 @@ cfg_map_getname(cfg_obj_t *mapobj);
  * Get the name of a named map object, like a server "key" clause.
  *
  * Requires:
- *      'mapobj' ponts to a valid configuraration object of a map type.
+ *      'mapobj' points to a valid configuration object of a map type.
  *
  * Returns:
  *      A pointer to a configuration object naming the map object,
@@ -193,7 +193,7 @@ cfg_tuple_get(cfg_obj_t *tupleobj, const char *name);
  * must be of a tuple type.
  *
  * Requires:
- *      'tupleobj' ponts to a valid configuration object of a tuple type.
+ *      'tupleobj' points to a valid configuration object of a tuple type.
  *      'name' points to a null-terminated string naming one of the
  *	fields of said tuple type.
  */
