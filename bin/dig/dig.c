@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.145 2001/05/08 15:56:01 gson Exp $ */
+/* $Id: dig.c,v 1.146 2001/06/11 18:08:15 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -933,8 +933,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	if (strlen(option) > 1) {
 		value_from_next = ISC_FALSE;
 		value = &option[1];
-	}
-	else {
+	} else {
 		value_from_next = ISC_TRUE;
 		value = next;
 	}
@@ -977,8 +976,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		if (result == ISC_R_SUCCESS) {
 			(*lookup)->rdclass = rdclass;
 			(*lookup)->rdclassset = ISC_TRUE;
-		}
-		else
+		} else
 			fprintf(stderr, ";; Warning, ignoring "
 				"invalid class %s\n",
 				value);
@@ -998,9 +996,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		if (strncasecmp(value, "ixfr=", 5) == 0) {
 			rdtype = dns_rdatatype_ixfr;
 			result = ISC_R_SUCCESS;
-		}
-		else
-		{
+		} else {
 			tr.base = value;
 			tr.length = strlen(value);
 			result = dns_rdatatype_fromtext(&rdtype,
@@ -1019,9 +1015,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 					  	MAXSERIAL);
 				(*lookup)->section_question = plusquest;
 				(*lookup)->comments = pluscomm;
-			}
-			else
-			{
+			} else {
 				(*lookup)->rdtype = rdtype;
 				(*lookup)->rdtypeset = ISC_TRUE;
 				if (rdtype == dns_rdatatype_axfr) {
@@ -1219,9 +1213,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				if (strncmp(rv[0], "ixfr=", 5) == 0) {
 					rdtype = dns_rdatatype_ixfr;
 					result = ISC_R_SUCCESS;
-				}
-				else
-				{
+				} else {
 					tr.base = rv[0];
 					tr.length = strlen(rv[0]);
 					result = dns_rdatatype_fromtext(&rdtype,
@@ -1242,9 +1234,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 							  	MAXSERIAL);
 						lookup->section_question = plusquest;
 						lookup->comments = pluscomm;
-					}
-					else
-					{
+					} else {
 						lookup->rdtype = rdtype;
 						lookup->rdtypeset = ISC_TRUE;
 						if (rdtype == dns_rdatatype_axfr) {

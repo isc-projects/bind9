@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.200 2001/04/26 17:20:07 gson Exp $ */
+/* $Id: dighost.c,v 1.201 2001/06/11 18:08:16 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1109,8 +1109,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
 								ISC_FALSE;
 						      lookup->ns_search_only =
 								ISC_FALSE;
-						}
-						else {
+						} else {
 						      lookup->trace =
 								query->
 								lookup->trace;
@@ -1852,8 +1851,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			l->retries--;
 			requeue_lookup(l, ISC_TRUE);
 		}
-	}
-	else {
+	} else {
 		fputs(l->cmdline, stdout);
 		printf(";; connection timed out; no servers could be "
 		       "reached\n");
@@ -2489,9 +2487,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							 * should be an NS.
 							 */
 							l->rdtype = dns_rdatatype_ns;
-						}
-						else
-						{
+						} else {
 							/*
 							 * We got an answer
 							 * section for our
@@ -2583,8 +2579,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			if (msg != NULL)
 				dns_message_destroy(&msg);
 			isc_event_free(&event);
-		}
-		else {
+		} else {
 			if ((msg->rcode == 0) ||
 			    (l->origin == NULL)) {
 				received(b->used, 
