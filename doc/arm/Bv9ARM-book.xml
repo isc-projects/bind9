@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.186 2002/01/14 05:01:50 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.187 2002/01/16 02:21:53 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2304,7 +2304,7 @@ It makes it possible to use an existing <acronym>BIND</acronym> 8
 configuration file in <acronym>BIND</acronym> 9 unchanged,
 and still have <command>rndc</command> work the same way
 <command>ndc</command> worked in BIND 8, simply by executing the
-command <userinput>rndc-keygen -a</userinput> after BIND 9 is
+command <userinput>rndc-confgen -a</userinput> after BIND 9 is
 installed.
 </para>
 
