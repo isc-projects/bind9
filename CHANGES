@@ -18,7 +18,7 @@
  999.	[func]		"rndc retransfer zone [class [view]]" added.
 			[RT #1752]
 
- 998.	[func]		named-checkzone now has arguements to specify the
+ 998.	[func]		named-checkzone now has arguments to specify the
 			chroot directory (-t) and working directory (-w).
 			[RT #1755]
 
@@ -36,7 +36,8 @@
 
  993.	[func]		dig: -v now reports the version.
 
- 991.	[func]		Lower UDP refresh timeout messages to DEBUG(1).
+ 991.	[func]		Lower UDP refresh timeout messages to level
+			debug 1.
 
  985.	[func]		Consider network interfaces to be up iff they have
 			a nonzero IP address rather than based on the
@@ -51,15 +52,15 @@
 			statistics will be written to it.
 
  981.	[func]		The dnssec tools can now take multiple '-r randomfile'
- 			arguments.
+			arguments.
 
  979.	[func]		Incremental master file dumping.  dns_master_dumpinc(),
 			dns_master_dumptostreaminc(), dns_dumpctx_attach(),
 			dns_dumpctx_detach(), dns_dumpctx_cancel(),
 			dns_dumpctx_db() and dns_dumpctx_version().
 
- 976.	[func]		named-checkconf will now test load master zone
-			files (-z).  [RT #1468]
+ 976.	[func]		named-checkconf can now test load master zones
+			(named-checkconf -z). [RT #1468]
 
  970.	[func]		'max-journal-size' can now be used to set a target
 			size for a journal.
@@ -120,11 +121,7 @@
 1482.	[bug]		named could fail to start if the kernel supports
 			IPv6 but no interfaces are configured.  Similarly
 			for IPv4. [RT #6229]
-			
-1482.	[bug]		Named could fail to start if the kernel supports
-			IPv6 but no interfaces are configured.  Similarly
-			for IPv4. [RT #6229]
-			
+
 1481.	[bug]		Refresh and stub queries failed to use masters keys
 			if specified. [RT #7391]
 
