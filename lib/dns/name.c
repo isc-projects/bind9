@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.110.2.4 2001/04/19 18:56:08 bwelling Exp $ */
+/* $Id: name.c,v 1.110.2.5 2001/05/29 22:51:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1846,7 +1846,6 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 				nibbles--;
 				if (nibbles != 0) {
 					*tdata++ = hexdigits[c & 0xf];
-					i++;
 					nibbles--;
 				}
 			}
