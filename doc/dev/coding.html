@@ -498,3 +498,30 @@ initialized.<P>
 <H3>Dead Code Pruning</H3>
 Source which becomes obsolete should be removed, not just disabled with
 #if 0 ... #endif.<P>
+
+<H3>Log messages</H3>
+
+Error and warning messages should be logged through the logging
+system.  Debugging printfs may be used during development, but
+must be removed when the debugging is finished.  The
+<CODE>UNEXPECTED_ERROR()</CODE> macro is obsolete and
+should not be used in new code.<P>
+
+Log messages do not start with a capital letter, nor do they end
+in a period.<P>
+
+When variable text such as a file name or domain name occurs
+as part of an English phrase, it should be enclosed in single
+quotes, as in <CODE>"zone '%s' is lame"</CODE>.<P>
+
+When the variable text forms a separate phrase, such as when it
+separated from the rest of the message by a colon, it can be left
+unquoted.  E.g., <CODE>isc_log_write(... "open: %s: %s", filename,
+isc_result_totext(result));</CODE><P>
+
+Function names, line numbers, memory addresses, and other references
+to program internals may be used in debugging messages and in 
+messages to report programming errors detected at runtime.
+They may not be used in messages that indicate errors in the
+program's inputs or operation.<P>
+
