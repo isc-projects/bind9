@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.33 2000/05/10 18:54:04 gson Exp $
+ * $Id: dst_api.c,v 1.34 2000/05/11 02:11:44 gson Exp $
  */
 
 #include <config.h>
@@ -427,6 +427,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 	isc_uint8_t alg, proto;
 	isc_uint32_t flags, extflags;
 	isc_result_t ret;
+	dst_key_t *key = NULL;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE (name != NULL);
@@ -452,14 +453,18 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 		flags |= (extflags << 16);
 	}
 
-	*keyp = get_key_struct(name, alg, flags, proto, 0, mctx);
-	if (*keyp == NULL)
+	key = get_key_struct(name, alg, flags, proto, 0, mctx);
+	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ret = (*keyp)->func->from_dns(*keyp, source, mctx);
-	if (ret != ISC_R_SUCCESS) 
-		dst_key_free((*keyp));
-	return (ret);
+	ret = key->func->from_dns(key, source, mctx);
+	if (ret != ISC_R_SUCCESS) {
+		dst_key_free(key);
+		return (ret);
+	}
+
+	*keyp = key;
+	return (ISC_R_SUCCESS);
 }
 
 
