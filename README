@@ -1,7 +1,69 @@
 
 BIND 9
 
-	XXX  Introduction XXX
+	BIND version 9 is a major rewrite of nearly all aspects of the
+	underlying BIND architecture. This re-architecting of BIND was
+	necessitated by the expected demands of:
+
+		- Domain name system growth, particularly in very large
+		  zones such as .COM
+		- Protocol enhancements necessary to securely query and
+		  update zones
+		- Protocol enhancements necessary to take advantage of
+		  certain architectural features of IP version 6
+
+	These demands implied performance requirements that were not
+	necessarily easy to attain with the BIND version 8
+	architecture.  In particular, BIND must not only be able to
+	run on multi-processor multi-threaded systems, but must take
+	full advantage of the performance enhancements these
+	architectures can provide. In addition, the underlying data
+	storage architecture of BIND version 8 does not lend itself to
+	implementing alternative back end databases, such as would be
+	desirable for the support of multi-gigabyte zones. As such
+	zones are easily foreseeable in the relatively near future,
+	the data storage architecture needed revision. The feature
+	requirements for BIND version 9 included:
+
+		- Scalability
+			Thread safety
+		        Multi-processor scalability
+		        Support for very large zones
+
+		- Security
+		        Support for DNSSEC
+		        Support for TSIG
+		        Auditability (code and operation)
+		        Firewall support (split DNS)
+
+		- Portability
+
+		- Maintainability
+
+		- Protocol Enhancements
+		        IXFR, DDNS, Notify, EDNS0
+		        Improved standards conformance
+
+		- Operational enhancements
+		        High availability and reliability
+		        Support for alternative back end databases
+
+		- IP version 6 support
+		        IPv6 resource records (A6, DNAME, etc.)
+		        Bitstring labels
+		        APIs
+
+	BIND version 9 development has been underwritten by the following
+	organizations:
+
+	        Sun Microsystems, Inc.
+	        Hewlett Packard
+	        Compaq Computer Corporation
+	        IBM
+	        Process Software Corporation
+	        Silicon Graphics, Inc.
+	        Network Associates, Inc.
+	        U.S. Defense Information Systems Agency
 
 
 BIND 9.0.0b1
@@ -16,6 +78,10 @@ BIND 9.0.0b1
 
 	The ISC does not recommend using BIND 9.0.0b1 for "production"
 	services.
+
+	We hope users of BIND 9.0.0b1 will provide feedback, bug fixes, and
+	enhancements.  If you are not in a position to do so, it would
+	probably be better to wait until subsequent releases.
 
 	Much of the core technology planned for BIND 9.0.0 is in this beta
 	release.  Some of the highlights are:
@@ -66,6 +132,10 @@ BIND 9.0.0b1
 		Selective Forwarding
 
 		Documentation
+
+			Future releases will contain a lot more documentation,
+			but a preliminary version of the Administrator's
+			Reference Manual is in the doc/arm subdirectory.
 
 
 Building
