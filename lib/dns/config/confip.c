@@ -111,7 +111,11 @@ dns_c_ipmatchelement_delete(isc_mem_t *mem, dns_c_ipmatchelement_t **ipme)
 	case dns_c_ipmatch_acl:
 		isc_mem_free(mem, elem->u.aclname);
 		break;
-		
+
+	case dns_c_ipmatch_any:
+		/* nothing */
+		break;
+
 	case dns_c_ipmatch_none:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -174,6 +178,9 @@ dns_c_ipmatchelement_copy(isc_mem_t *mem,
 		newel->u.aclname = isc_mem_strdup(mem, src->u.aclname);
 		break;
 		
+	case dns_c_ipmatch_any:
+		break;
+
 	case dns_c_ipmatch_none:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -221,6 +228,9 @@ dns_c_ipmatchelement_equal(dns_c_ipmatchelement_t *e1,
 	case dns_c_ipmatch_acl:
 		return (ISC_TF(strcmp(e1->u.aclname, e2->u.aclname) == 0));
 
+	case dns_c_ipmatch_any:
+		break;
+
 	case dns_c_ipmatch_none:
 		break;
 	}
@@ -264,6 +274,28 @@ dns_c_ipmatchlocalnets_new(isc_mem_t *mem,
 	res = dns_c_ipmatchelement_new(mem, &ime);
 	if (res == ISC_R_SUCCESS) {
 		ime->type = dns_c_ipmatch_localnets;
+	}
+
+	*result = ime;
+
+	return (res);
+}
+
+
+isc_result_t
+dns_c_ipmatchany_new(isc_mem_t *mem, dns_c_ipmatchelement_t **result)
+{
+	dns_c_ipmatchelement_t *ime = NULL;
+	isc_result_t res;
+
+	REQUIRE(mem != NULL);
+	REQUIRE(result != NULL);
+
+	*result = NULL;
+
+	res = dns_c_ipmatchelement_new(mem, &ime);
+	if (res == ISC_R_SUCCESS) {
+		ime->type = dns_c_ipmatch_any;
 	}
 
 	*result = ime;
@@ -631,7 +663,9 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_IPMELEM_VALID(ipme));
 
-	if ((ipme->flags & DNS_C_IPMATCH_NEGATE) == DNS_C_IPMATCH_NEGATE) {
+	if (dns_c_ipmatchelement_isneg(ipme) &&
+	    ipme->type != dns_c_ipmatch_any) {
+		/* a '!any' element gets printed as 'none' */
 		fputc('!', fp);
 	} else {
 		fputc(' ', fp);
@@ -659,7 +693,6 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 			dns_c_ipmatchlist_print(fp, indent,
 						ipme->u.indirect.list);
 		}
-
 		break;
 
 	case dns_c_ipmatch_key:
@@ -672,6 +705,14 @@ dns_c_ipmatchelement_print(FILE *fp, int indent,
 
 	case dns_c_ipmatch_localnets:
 		fprintf(fp, "localnets");
+		break;
+
+	case dns_c_ipmatch_any:
+		if (dns_c_ipmatchelement_isneg(ipme)) {
+			fprintf(fp, "none");
+		} else {
+			fprintf(fp, "any");
+		}
 		break;
 
 	case dns_c_ipmatch_none:
