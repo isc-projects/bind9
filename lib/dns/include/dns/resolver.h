@@ -128,6 +128,60 @@ dns_resolver_create(dns_view_t *view,
  *	Anything else				Failure.
  */
 
+isc_result_t
+dns_resolver_setforwarders(dns_resolver_t *res,
+			   isc_sockaddrlist_t *forwarders);
+/*
+ * Set the default forwarders to be used by the resolver.
+ *
+ * Requires:
+ *
+ *	'res' is a valid, unfrozen resolver.
+ *
+ *	'forwarders' is a valid nonempty list.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOMEMORY
+ */
+
+isc_result_t
+dns_resolver_setfwdpolicy(dns_resolver_t *res, dns_fwdpolicy_t fwdpolicy);
+/*
+ * Set the default forwarding policy to be used by the resolver.
+ *
+ * Requires:
+ *
+ *	'res' is a valid, unfrozen resolver.
+ *
+ *	'fwdpolicy' is a valid dns_fwdpolicy_t.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ */
+
+void
+dns_resolver_freeze(dns_resolver_t *res);
+/*
+ * Freeze resolver.
+ *
+ * Notes:
+ *
+ *	Certain configuration changes, e.g. setting forwarders,
+ *	cannot be made after the resolver is frozen.  Fetches
+ *	cannot be created until the resolver is frozen.
+ *
+ * Requires:
+ *
+ *	'res' is a valid, unfrozen resolver.
+ *
+ * Ensures:
+ *
+ *	'res' is frozen.
+ */
+
 void
 dns_resolver_whenshutdown(dns_resolver_t *res, isc_task_t *task,
 			  isc_event_t **eventp);
@@ -204,7 +258,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  * Requires:
  *
- *	'res' is a valid resolver.
+ *	'res' is a valid resolver that has been frozen.
  *
  *	'name' is a valid name.
  *
@@ -241,6 +295,12 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch);
  *
  *	If 'fetch' has not completed, post its FETCHDONE event with a
  *	result code of ISC_R_CANCELED.
+ *
+ * Requires:
+ *
+ *	'res' is a valid resolver that has been frozen.
+ *
+ *	'fetch' is a valid fetch.
  */
 
 void
@@ -249,6 +309,10 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp);
  * Destroy 'fetch'.
  *
  * Requires:
+ *
+ *	'res' is a valid resolver that has been frozen.
+ *
+ *	'*fetchp' is a valid fetch.
  *
  *	The caller has received the FETCHDONE event (either because the
  *	fetch completed or because dns_resolver_cancelfetch() was called).

@@ -154,6 +154,8 @@ struct fetchctx {
 	ISC_LIST(resquery_t)		queries;
 	dns_adbfindlist_t		finds;
 	dns_adbfind_t *			find;
+	dns_adbaddrinfolist_t		forwaddrs;
+	isc_sockaddrlist_t		forwarders;
 	/*
 	 * # of events we're waiting for.
 	 */
@@ -209,23 +211,36 @@ struct dns_resolver {
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
 	dns_view_t *			view;
-	/* Locked by lock. */
-	unsigned int			references;
-	isc_boolean_t			exiting;
-	isc_eventlist_t			whenshutdown;
+	isc_boolean_t			frozen;
+	isc_sockaddrlist_t		forwarders;
+	dns_fwdpolicy_t			fwdpolicy;
 	isc_socket_t *			udpsocket4;
 	isc_socket_t *			udpsocket6;
 	dns_dispatch_t *		dispatch4;
 	dns_dispatch_t *		dispatch6;
 	unsigned int			nbuckets;
-	unsigned int			activebuckets;
 	fctxbucket_t *			buckets;
+	/* Locked by lock. */
+	unsigned int			references;
+	isc_boolean_t			exiting;
+	isc_eventlist_t			whenshutdown;
+	unsigned int			activebuckets;
 };
 
 #define RES_MAGIC			0x52657321U	/* Res! */
 #define VALID_RESOLVER(res)		((res) != NULL && \
 					 (res)->magic == RES_MAGIC)
 
+/*
+ * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0,
+ * which we also use as an addrinfo flag.
+ */
+#define FCTX_ADDRINFO_MARK		0x0001
+#define FCTX_ADDRINFO_FORWARDER		0x1000
+#define UNMARKED(a)			(((a)->flags & FCTX_ADDRINFO_MARK) \
+					 == 0)
+#define ISFORWARDER(a)			(((a)->flags & \
+					 FCTX_ADDRINFO_FORWARDER) != 0)
 
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
@@ -384,11 +399,27 @@ fctx_cleanupfinds(fetchctx_t *fctx) {
 	fctx->find = NULL;
 }
 
+static void
+fctx_cleanupforwaddrs(fetchctx_t *fctx) {
+	dns_adbaddrinfo_t *addr, *next_addr;
+
+	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
+
+	for (addr = ISC_LIST_HEAD(fctx->forwaddrs);
+	     addr != NULL;
+	     addr = next_addr) {
+		next_addr = ISC_LIST_NEXT(addr, publink);
+		ISC_LIST_UNLINK(fctx->forwaddrs, addr, publink);
+		dns_adb_freeaddrinfo(fctx->res->view->adb, &addr);
+	}
+}
+
 static inline void
 fctx_stopeverything(fetchctx_t *fctx) {
 	FCTXTRACE("stopeverything");
 	fctx_cancelqueries(fctx, ISC_FALSE);
 	fctx_cleanupfinds(fctx);
+	fctx_cleanupforwaddrs(fctx);
 	fctx_stoptimer(fctx);
 }
 
@@ -736,8 +767,15 @@ resquery_send(resquery_t *query) {
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
-	if ((query->options & DNS_FETCHOPT_RECURSIVE) != 0)
+
+	/*
+	 * Set RD if the client has requested that we do a recursive query,
+	 * or if we're sending to a forwarder.
+	 */
+	if ((query->options & DNS_FETCHOPT_RECURSIVE) != 0 ||
+	    ISFORWARDER(query->addrinfo))
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_RD;
+
 	/*
 	 * We don't have to set opcode because it defaults to query.
 	 */
@@ -1015,6 +1053,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	isc_stdtime_t now;
 	dns_adbfind_t *find;
 	unsigned int stdoptions, options;
+	isc_sockaddr_t *sa;
+	dns_adbaddrinfo_t *ai;
 
 	FCTXTRACE("getaddresses");
 
@@ -1026,6 +1066,43 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		return (DNS_R_SERVFAIL);
 
 	res = fctx->res;
+
+	/*
+	 * Forwarders.
+	 */
+
+	INSIST(ISC_LIST_EMPTY(fctx->forwaddrs));
+
+	/*
+	 * If this fctx has forwarders, use them; otherwise the use
+	 * resolver's forwarders (if any).
+	 */
+	sa = ISC_LIST_HEAD(fctx->forwarders);
+	if (sa == NULL)
+		sa = ISC_LIST_HEAD(res->forwarders);
+
+	while (sa != NULL) {
+		ai = NULL;
+		result = dns_adb_findaddrinfo(fctx->res->view->adb,
+					      sa, &ai);
+		if (result == ISC_R_SUCCESS) {
+			ai->flags |= FCTX_ADDRINFO_FORWARDER;
+			ISC_LIST_APPEND(fctx->forwaddrs, ai, publink);
+		}
+		sa = ISC_LIST_NEXT(sa, link);
+	}
+
+	/*
+	 * If the forwarding policy is "only", we don't need the addresses
+	 * of the nameservers.
+	 */
+	if (res->fwdpolicy == dns_fwdpolicy_only)
+		goto out;
+
+	/*
+	 * Normal nameservers.
+	 */
+
 	stdoptions = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT |
 		DNS_ADBFIND_AVOIDFETCHES;
 	if (res->dispatch4 != NULL)
@@ -1105,22 +1182,34 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	if (result != DNS_R_NOMORE)
 		return (result);
 
-	if (ISC_LIST_EMPTY(fctx->finds) && fctx->pending > 0) {
+ out:
+	if (ISC_LIST_EMPTY(fctx->finds) && ISC_LIST_EMPTY(fctx->forwaddrs)) {
 		/*
-		 * We're fetching the addresses, but don't have any yet.
-		 * Tell the caller to wait for an answer.
+		 * We've got no addresses.
 		 */
-		result = DNS_R_WAIT;
-	} else if (ISC_LIST_EMPTY(fctx->finds)) {
-		/*
-		 * We've lost completely.  We don't know any addresses, and
-		 * the ADB has told us it can't get them.
-		 */
-		result = ISC_R_FAILURE;
+		if (fctx->pending > 0) {
+			/*
+			 * We're fetching the addresses, but don't have any
+			 * yet.   Tell the caller to wait for an answer.
+			 */
+			result = DNS_R_WAIT;
+		} else {
+			/*
+			 * We've lost completely.  We don't know any
+			 * addresses, and the ADB has told us it can't get
+			 * them.
+			 */
+			result = ISC_R_FAILURE;
+		}
 	} else {
 		/*
 		 * We've found some addresses.  We might still be looking
 		 * for more addresses.
+		 */
+		/*
+		 * XXXRTH  We could sort the forwaddrs here if the caller
+		 *         wants to use the forwaddrs in "best order" as
+		 *         opposed to "fixed order".
 		 */
 		sort_finds(fctx);
 		result = ISC_R_SUCCESS;
@@ -1128,10 +1217,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 
 	return (result);
 }
-
-#define FCTX_ADDRINFO_MARK		0x01
-#define UNMARKED(a)			(((a)->flags & FCTX_ADDRINFO_MARK) \
-					 == 0)
 
 static inline dns_adbaddrinfo_t *
 fctx_nextaddress(fetchctx_t *fctx) {
@@ -1143,7 +1228,20 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	 */
 
 	/*
-	 * Move to the next find.
+	 * Find the first unmarked forwarder (if any).
+	 */
+	for (addrinfo = ISC_LIST_HEAD(fctx->forwaddrs);
+	     addrinfo != NULL;
+	     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+		if (UNMARKED(addrinfo)) {
+			addrinfo->flags |= FCTX_ADDRINFO_MARK;
+			fctx->find = NULL;
+			return (addrinfo);
+		}
+	}
+
+	/*
+	 * No forwarders.  Move to the next find.
 	 */
 	find = fctx->find;
 	if (find == NULL)
@@ -1199,6 +1297,7 @@ fctx_try(fetchctx_t *fctx) {
 		 */
 		fctx_cancelqueries(fctx, ISC_TRUE);
 		fctx_cleanupfinds(fctx);
+		fctx_cleanupforwaddrs(fctx);
 		result = fctx_getaddresses(fctx);
 		if (result == DNS_R_WAIT) {
 			/*
@@ -1519,6 +1618,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->want_shutdown = ISC_FALSE;
 	ISC_LIST_INIT(fctx->queries);
 	ISC_LIST_INIT(fctx->finds);
+	ISC_LIST_INIT(fctx->forwaddrs);
+	ISC_LIST_INIT(fctx->forwarders);
 	fctx->find = NULL;
 	fctx->pending = 0;
 	fctx->validating = 0;
@@ -3111,6 +3212,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			}
 			fctx_cancelqueries(fctx, ISC_TRUE);
 			fctx_cleanupfinds(fctx);
+			fctx_cleanupforwaddrs(fctx);
 		}					  
 		/*
 		 * Try again.
@@ -3147,6 +3249,19 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
  ***/
 
 static void
+free_forwarders(dns_resolver_t *res) {
+	isc_sockaddr_t *sa, *next_sa;
+
+	for (sa = ISC_LIST_HEAD(res->forwarders);
+	     sa != NULL;
+	     sa = next_sa) {
+		next_sa = ISC_LIST_NEXT(sa, link);
+		ISC_LIST_UNLINK(res->forwarders, sa, link);
+		isc_mem_put(res->mctx, sa, sizeof *sa);
+	}
+}
+
+static void
 destroy(dns_resolver_t *res) {
 	unsigned int i;
 
@@ -3171,6 +3286,7 @@ destroy(dns_resolver_t *res) {
 		dns_dispatch_detach(&res->dispatch6);
 	if (res->udpsocket6 != NULL)
 		isc_socket_detach(&res->udpsocket6);
+	free_forwarders(res);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof *res);
 }
@@ -3323,9 +3439,16 @@ dns_resolver_create(dns_view_t *view,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_udpsocket6;
 	}
-	
+
+	/*
+	 * Forwarding.
+	 */
+	ISC_LIST_INIT(res->forwarders);
+	res->fwdpolicy = dns_fwdpolicy_none;
+
 	res->references = 1;
 	res->exiting = ISC_FALSE;
+	res->frozen = ISC_FALSE;
 	ISC_LIST_INIT(res->whenshutdown);
 
 	result = isc_mutex_init(&res->lock);
@@ -3367,6 +3490,68 @@ dns_resolver_create(dns_view_t *view,
 	isc_mem_put(view->mctx, res, sizeof *res);
 
 	return (result);
+}
+
+isc_result_t
+dns_resolver_setforwarders(dns_resolver_t *res,
+			   isc_sockaddrlist_t *forwarders)
+{
+	isc_sockaddr_t *sa, *nsa;
+
+	/*
+	 * Set the default forwarders to be used by the resolver.
+	 */
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(!res->frozen);
+	REQUIRE(!ISC_LIST_EMPTY(*forwarders));
+
+	if (!ISC_LIST_EMPTY(res->forwarders))
+		free_forwarders(res);
+
+	for (sa = ISC_LIST_HEAD(*forwarders);
+	     sa != NULL;
+	     sa = ISC_LIST_NEXT(sa, link)) {
+		nsa = isc_mem_get(res->mctx, sizeof *nsa);
+		if (nsa == NULL) {
+			free_forwarders(res);
+			return (ISC_R_NOMEMORY);
+		}
+		/* XXXRTH  Create and use isc_sockaddr_copy(). */
+		*nsa = *sa;
+		ISC_LINK_INIT(nsa, link);
+		ISC_LIST_APPEND(res->forwarders, nsa, link);
+	}
+	
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_resolver_setfwdpolicy(dns_resolver_t *res, dns_fwdpolicy_t fwdpolicy) {
+
+	/*
+	 * Set the default forwarding policy to be used by the resolver.
+	 */
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(!res->frozen);
+
+	res->fwdpolicy = fwdpolicy;
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+dns_resolver_freeze(dns_resolver_t *res) {
+
+	/*
+	 * Freeze resolver.
+	 */
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(!res->frozen);
+
+	res->frozen = ISC_TRUE;
 }
 
 void
@@ -3562,6 +3747,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	(void)forwarders;
 
 	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->frozen);
 	/* XXXRTH  Check for meta type */
 	REQUIRE(DNS_RDATASET_VALID(nameservers));
 	REQUIRE(forwarders == NULL);
@@ -3646,6 +3832,8 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
 	dns_fetchevent_t *event, *next_event;
 	isc_task_t *etask;
 
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->frozen);
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
 
@@ -3684,6 +3872,8 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(res->frozen);
 	REQUIRE(fetchp != NULL);
 	fetch = *fetchp;
 	REQUIRE(DNS_FETCH_VALID(fetch));
