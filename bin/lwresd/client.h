@@ -84,6 +84,7 @@ struct client_s {
 	dns_byaddr_t	       *byaddr;
 	unsigned int		options;
 	isc_netaddr_t		na;
+	dns_adbaddrinfo_t      *addrinfo;
 
 	/*
 	 * Alias and address info.  This is copied up to the gabn/gnba

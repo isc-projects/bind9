@@ -333,6 +333,7 @@ client_initialize(client_t *client, clientmgr_t *cmgr)
 
 	client->options = 0;
 	client->byaddr = NULL;
+	client->addrinfo = NULL;
 
 	ISC_LIST_APPEND(cmgr->idle, client, link);
 }

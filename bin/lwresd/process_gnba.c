@@ -43,6 +43,7 @@ static void
 byaddr_done(isc_task_t *task, isc_event_t *event)
 {
 	client_t *client;
+	clientmgr_t *cm;
 	dns_byaddrevent_t *bevent;
 	int lwres;
 	lwres_buffer_t lwb;
@@ -52,11 +53,13 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	isc_buffer_t b;
 	lwres_gnbaresponse_t *gnba;
 	isc_uint16_t naliases;
+	isc_stdtime_t now;
 
 	(void)task;
 
 	lwb.base = NULL;
 	client = event->arg;
+	cm = client->clientmgr;
 	INSIST(client->byaddr == event->sender);
 
 	bevent = (dns_byaddrevent_t *)event;
@@ -65,14 +68,32 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	DP(50, "byaddr event result = %s",
 	   isc_result_totext(bevent->result));
 
-	if (bevent->result != ISC_R_SUCCESS) {
+	result = bevent->result;
+	if (result != ISC_R_SUCCESS) {
 		dns_byaddr_destroy(&client->byaddr);
 		isc_event_free(&event);
+		bevent = NULL;
 
+		/*
+		 * Were we trying bitstring or nibble mode?  If bitstring,
+		 * and we got FORMERROR or SERVFAIL, set the flag to
+		 * avoid bitstring lables for 10 minutes.  If we got any
+		 * other error (NXDOMAIN, etc) just try again without
+		 * bitstrings, and let our cache handle the negative answer
+		 * for bitstrings.
+		 */
 		if ((client->options & DNS_BYADDROPT_IPV6NIBBLE) != 0) {
+			dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 			error_pkt_send(client, LWRES_R_FAILURE);
 			return;
 		}
+
+		isc_stdtime_get(&now);
+		if (result == DNS_R_FORMERR ||
+		    result == DNS_R_SERVFAIL ||
+		    result == ISC_R_FAILURE)
+			dns_adb_setavoidbitstring(cm->view->adb,
+						  client->addrinfo, now + 600);
 
 		/*
 		 * Fall back to nibble reverse if the default of bitstrings
@@ -110,6 +131,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	}
 
 	dns_byaddr_destroy(&client->byaddr);
+	dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 	isc_event_free(&event);
 
 	/*
@@ -120,7 +142,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	client->pkt.authlength = 0;
 	client->pkt.result = LWRES_R_SUCCESS;
 
-	lwres = lwres_gnbaresponse_render(client->clientmgr->lwctx,
+	lwres = lwres_gnbaresponse_render(cm->lwctx,
 					  gnba, &client->pkt, &lwb);
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
@@ -131,8 +153,8 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	r.length = lwb.used;
 	client->sendbuf = r.base;
 	client->sendlength = r.length;
-	result = isc_socket_sendto(client->clientmgr->sock, &r,
-				   client->clientmgr->task, client_send,
+	result = isc_socket_sendto(cm->sock, &r,
+				   cm->task, client_send,
 				   client, &client->address, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto out;
@@ -144,9 +166,10 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
  out:
 	if (client->byaddr != NULL)
 		dns_byaddr_destroy(&client->byaddr);
-
+	if (client->addrinfo != NULL)
+		dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 	if (lwb.base != NULL)
-		lwres_context_freemem(client->clientmgr->lwctx,
+		lwres_context_freemem(cm->lwctx,
 				      lwb.base, lwb.length);
 
 	isc_event_free(&event);
@@ -166,6 +189,7 @@ start_byaddr(client_t *client)
 				   client->options, cm->task, byaddr_done,
 				   client, &client->byaddr);
 	if (result != ISC_R_SUCCESS) {
+		dns_adb_freeaddrinfo(cm->view->adb, &client->addrinfo);
 		error_pkt_send(client, LWRES_R_FAILURE);
 		return;
 	}
@@ -176,13 +200,16 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 {
 	lwres_gnbarequest_t *req;
 	isc_result_t result;
+	isc_sockaddr_t sa;
+	clientmgr_t *cm;
 
 	REQUIRE(CLIENT_ISRECVDONE(client));
 	INSIST(client->byaddr == NULL);
 
+	cm = client->clientmgr;
 	req = NULL;
 
-	result = lwres_gnbarequest_parse(client->clientmgr->lwctx,
+	result = lwres_gnbarequest_parse(cm->lwctx,
 					 b, &client->pkt, &req);
 	if (result != LWRES_R_SUCCESS)
 		goto out;
@@ -203,6 +230,7 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 	} else {
 		goto out;
 	}
+	isc_sockaddr_fromnetaddr(&sa, &client->na, 53);
 
 	DP(50, "Client %p looking for addrtype %08x",
 	   client, req->addr.family);
@@ -210,18 +238,30 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 	/*
 	 * We no longer need to keep this around.
 	 */
-	lwres_gnbarequest_free(client->clientmgr->lwctx, &req);
+	lwres_gnbarequest_free(cm->lwctx, &req);
 
 	/*
 	 * Initialize the real name and alias arrays in the reply we're
 	 * going to build up.
 	 */
 	client_init_gnba(client);
+	client->options = 0;
+
+	/*
+	 * See if we should skip the byaddr bit.
+	 */
+	INSIST(client->addrinfo == NULL);
+	result = dns_adb_findaddrinfo(cm->view->adb, &sa,
+				      &client->addrinfo, 0);
+	if (result != ISC_R_SUCCESS)
+		goto out;
+
+	if (client->addrinfo->avoid_bitstring > 0)
+		client->options |= DNS_BYADDROPT_IPV6NIBBLE;
 
 	/*
 	 * Start the find.
 	 */
-	client->options = 0;
 	start_byaddr(client);
 
 	return;
@@ -231,7 +271,7 @@ process_gnba(client_t *client, lwres_buffer_t *b)
 	 */
  out:
 	if (req != NULL)
-		lwres_gnbarequest_free(client->clientmgr->lwctx, &req);
+		lwres_gnbarequest_free(cm->lwctx, &req);
 
 	error_pkt_send(client, LWRES_R_FAILURE);
 }
