@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.9 2001/01/09 21:57:37 bwelling Exp $ */
+/* $Id: string.h,v 1.10 2003/04/10 04:46:27 marka Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
@@ -49,6 +49,22 @@ isc_string_separate(char **stringp, const char *delim);
 
 #ifdef ISC_PLATFORM_NEEDSTRSEP
 #define strsep isc_string_separate
+#endif
+
+size_t
+isc_string_strlcpy(char *dst, const char *src, size_t size);
+
+
+#ifdef ISC_PLATFORM_NEEDSTRLCPY
+#define strlcpy isc_string_strlcpy
+#endif
+
+
+size_t
+isc_string_strlcat(char *dst, const char *src, size_t size);
+
+#ifdef ISC_PLATFORM_NEEDSTRLCAT
+#define strlcat isc_string_strlcat
 #endif
 
 ISC_LANG_ENDDECLS

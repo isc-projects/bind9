@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.6 2001/01/09 21:56:30 bwelling Exp $ */
+/* $Id: string.c,v 1.7 2003/04/10 04:46:27 marka Exp $ */
 
 #include <config.h>
 
@@ -108,4 +108,58 @@ isc_string_separate(char **stringp, const char *delim) {
 			}
 	*stringp = NULL;
 	return (string);
+}
+
+size_t
+strlcpy(char *dst, const char *src, size_t size)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t n = size;
+
+	/* Copy as many bytes as will fit */
+	if (n != 0 && --n != 0) {
+		do {
+			if ((*d++ = *s++) == 0)
+				break;
+		} while (--n != 0);
+	}
+
+	/* Not enough room in dst, add NUL and traverse rest of src */
+	if (n == 0) {
+		if (size != 0)
+			*d = '\0';		/* NUL-terminate dst */
+		while (*s++)
+			;
+	}
+
+	return(s - src - 1);	/* count does not include NUL */
+}
+
+size_t
+strlcat(char *dst, const char *src, size_t size)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t n = size;
+	size_t dlen;
+
+	/* Find the end of dst and adjust bytes left but don't go past end */
+	while (n-- != 0 && *d != '\0')
+		d++;
+	dlen = d - dst;
+	n = size - dlen;
+
+	if (n == 0)
+		return(dlen + strlen(s));
+	while (*s != '\0') {
+		if (n != 1) {
+			*d++ = *s;
+			n--;
+		}
+		s++;
+	}
+	*d = '\0';
+
+	return(dlen + (s - src));	/* count does not include NUL */
 }
