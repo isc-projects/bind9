@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.29.2.2 2003/07/22 04:03:43 marka Exp $ */
+/* $Id: rdataslab.c,v 1.29.2.2.2.1 2003/08/13 06:11:08 marka Exp $ */
 
 #include <config.h>
 
@@ -150,6 +150,119 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  free_rdatas:
 	isc_mem_put(mctx, rdatas, nalloc * sizeof(dns_rdata_t));
 	return (result);
+}
+
+static void
+rdataset_disassociate(dns_rdataset_t *rdataset) {
+	UNUSED(rdataset);
+}
+
+static isc_result_t
+rdataset_first(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+	if (count == 0) {
+		rdataset->private5 = NULL;
+		return (ISC_R_NOMORE);
+	}
+	raw += 2;
+	/*
+	 * The privateuint4 field is the number of rdata beyond the cursor
+	 * position, so we decrement the total count by one before storing
+	 * it.
+	 */
+	count--;
+	rdataset->privateuint4 = count;
+	rdataset->private5 = raw;
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+rdataset_next(dns_rdataset_t *rdataset) {
+	unsigned int count;
+	unsigned int length;
+	unsigned char *raw;
+
+	count = (unsigned int)rdataset->privateuint4;
+	if (count == 0)
+		return (ISC_R_NOMORE);
+	count--;
+	rdataset->privateuint4 = count;
+	raw = rdataset->private5;
+	length = raw[0] * 256 + raw[1];
+	raw += length + 2;
+	rdataset->private5 = raw;
+
+	return (ISC_R_SUCCESS);
+}
+
+static void
+rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
+	unsigned char *raw = rdataset->private5;
+	isc_region_t r;
+
+	REQUIRE(raw != NULL);
+
+	r.length = raw[0] * 256 + raw[1];
+	raw += 2;
+	r.base = raw;
+	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
+}
+
+static void
+rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
+	*target = *source;
+
+	/*
+	 * Reset iterator state.
+	 */
+	target->privateuint4 = 0;
+	target->private5 = NULL;
+}
+
+static unsigned int
+rdataset_count(dns_rdataset_t *rdataset) {
+	unsigned char *raw = rdataset->private3;
+	unsigned int count;
+
+	count = raw[0] * 256 + raw[1];
+
+	return (count);
+}
+
+static dns_rdatasetmethods_t rdataset_methods = {
+	rdataset_disassociate,
+	rdataset_first,
+	rdataset_next,
+	rdataset_current,
+	rdataset_clone,
+	rdataset_count
+};
+
+void
+dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
+			 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
+			 dns_rdatatype_t covers, dns_ttl_t ttl,
+			 dns_rdataset_t *rdataset)
+{
+	rdataset->methods = &rdataset_methods;
+	rdataset->rdclass = rdclass;
+	rdataset->type = rdtype;
+	rdataset->covers = covers;
+	rdataset->ttl = ttl;
+	rdataset->trust = 0;
+	rdataset->private1 = NULL;
+	rdataset->private2 = NULL;
+	rdataset->private3 = slab + reservelen;
+
+	/*
+	 * Reset iterator state.
+	 */
+	rdataset->privateuint4 = 0;
+	rdataset->private5 = NULL;
 }
 
 unsigned int
