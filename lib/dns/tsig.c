@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.84 2000/08/14 21:59:59 bwelling Exp $
+ * $Id: tsig.c,v 1.85 2000/08/16 00:18:30 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -144,10 +144,14 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (length > 0) {
 		int dstalg;
 
-		if (tkey->algorithm == dns_tsig_hmacmd5_name)
-			dstalg = DST_ALG_HMACMD5;
-		else
-			INSIST(0);
+		/*
+		 * Any algorithm other than HMACMD5 should have received an
+		 * ISC_R_NOTIMPLEMENTED result above.
+		 */
+		INSIST(tkey->algorithm == dns_tsig_hmacmd5_name);
+
+		dstalg = DST_ALG_HMACMD5;
+
 		isc_buffer_init(&b, secret, length);
 		isc_buffer_add(&b, length);
 		ret = dst_key_frombuffer(name, dstalg,
