@@ -26,9 +26,7 @@ ISC_LANG_BEGINDECLS
 typedef struct isc_netaddr {
 	union {
     		struct in_addr in;
-#ifdef notyet
 		struct in6_addr in6;
-#endif
 	} type;
 } isc_netaddr_t;
 
