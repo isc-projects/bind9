@@ -1,0 +1,7 @@
+ns1 root
+ns2 master
+ns3 stealth master(ns4)/slave(ns2)
+ns4 slave
+
+transfer graph ns2 -> ns3 -> ns4
+notify graph ns2 -> ns4 (relay)-> ns3 -> ns4
