@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.1 1999/08/20 18:56:23 bwelling Exp $
+ * $Id: tsig.c,v 1.2 1999/08/25 14:43:45 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -115,14 +115,15 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
 					 &b, mctx, &tkey->key);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_algorithm;
+
+		ISC_LINK_INIT(tkey, link);
+		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
+		ISC_LIST_APPEND(tsigkeys, tkey, link);
+		isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
 	}
 	else
 		tkey->key = NULL;
 
-	ISC_LINK_INIT(tkey, link);
-	isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
-	ISC_LIST_APPEND(tsigkeys, tkey, link);
-	isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
 	tkey->mctx = mctx;
 	tkey->magic = TSIG_MAGIC;
 	return (ISC_R_SUCCESS);
@@ -147,9 +148,11 @@ dns_tsig_key_free(dns_tsig_key_t **key) {
 	tkey = *key;
 
 	tkey->magic = 0;
-	isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
-	ISC_LIST_UNLINK(tsigkeys, tkey, link);
-	isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
+	if (tkey->key != NULL) {
+		isc_rwlock_lock(&tsiglock, isc_rwlocktype_write);
+		ISC_LIST_UNLINK(tsigkeys, tkey, link);
+		isc_rwlock_unlock(&tsiglock, isc_rwlocktype_write);
+	}
 	dns_name_free(&tkey->name, tkey->mctx);
 	dns_name_free(&tkey->algorithm, tkey->mctx);
 	if (tkey->key != NULL)
@@ -437,11 +440,12 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 
 	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
-	REQUIRE(msg->tsigkey != NULL);
 	REQUIRE(msg->tsig == NULL);
 	REQUIRE(!(ISC_LIST_EMPTY(msg->sections[DNS_SECTION_TSIG])));
-	if (is_response(msg))
+	if (is_response(msg)) {
 		REQUIRE(msg->querytsig != NULL);
+		REQUIRE(msg->tsigkey != NULL);
+	}
 
 	mctx = msg->mctx;
 
