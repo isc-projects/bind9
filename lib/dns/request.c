@@ -392,6 +392,7 @@ req_send(dns_request_t *request, isc_task_t *task, isc_sockaddr_t *address) {
 	isc_socket_t *socket;
 
 	TRACE(("req_send\n"));
+	REQUIRE(VALID_REQUEST(request));
 	socket = dns_dispatch_getsocket(request->dispatch);
 	isc_buffer_usedregion(request->query, &r);
 	return (isc_socket_sendto(socket, &r, task, req_senddone,
@@ -662,6 +663,7 @@ dns_request_cancel(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
 	TRACE(("dns_request_cancel\n"));
+	REQUIRE(VALID_REQUEST(request));
 
 	LOCK(&request->requestmgr->locks[request->hash]);
 	if (!DNS_REQUEST_CANCELED(request)) {
@@ -717,6 +719,7 @@ req_connected(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(DNS_REQUEST_CONNECTING(request));
 
 	TRACE(("req_connected\n"));
@@ -742,6 +745,7 @@ req_senddone(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+	REQUIRE(VALID_REQUEST(request));
 
 	TRACE(("req_senddone\n"));
 	(void)task;
@@ -800,6 +804,7 @@ static void
 req_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
 	
+	REQUIRE(VALID_REQUEST(request));
 	TRACE(("req_timeout\n"));
 
 	UNUSED(task);
@@ -814,6 +819,7 @@ static void
 req_sendevent(dns_request_t *request, isc_result_t result) {
 	isc_task_t *task;
 
+	REQUIRE(VALID_REQUEST(request));
 	TRACE(("req_sendevent\n"));
 
 	/*
@@ -829,6 +835,7 @@ static void
 req_destroy(dns_request_t *request) {
 	isc_mem_t *mctx;
 
+	REQUIRE(VALID_REQUEST(request));
 	TRACE(("req_destroy\n"));
 
 	request->magic = 0;
@@ -855,6 +862,7 @@ static void
 req_cancel(dns_request_t *request) {
 	isc_socket_t *socket;
 
+	REQUIRE(VALID_REQUEST(request));
 	TRACE(("req_cancel\n"));
 
 	/*
