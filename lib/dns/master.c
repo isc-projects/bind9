@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.86 2000/12/07 20:15:49 marka Exp $ */
+/* $Id: master.c,v 1.87 2000/12/17 23:43:10 marka Exp $ */
 
 #include <config.h>
 
@@ -1610,6 +1610,9 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 	dns_loadctx_t *ctx = NULL;
 	isc_result_t tresult;
 	isc_result_t result;
+	
+	REQUIRE(task != NULL);
+	REQUIRE(done != NULL);
 
 	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
@@ -1620,15 +1623,9 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&ctx);
-	if (result == DNS_R_CONTINUE) {
-		tresult = task_send(ctx);
-		if (tresult == ISC_R_SUCCESS)
-			return (result);
-		result = tresult;
-	}
-	if (ctx->done != NULL)
-		(ctx->done)(ctx->done_arg, result);
+	result = task_send(ctx);
+	if (result == ISC_R_SUCCESS)
+		return (DNS_R_CONTINUE);
 
  cleanup:
 	if (ctx != NULL)
@@ -1676,6 +1673,8 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(stream != NULL);
+	REQUIRE(task != NULL);
+	REQUIRE(done != NULL);
 
 	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
@@ -1686,15 +1685,9 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&ctx);
-	if (result == DNS_R_CONTINUE) {
-		tresult = task_send(ctx);
-		if (tresult == ISC_R_SUCCESS)
-			return (result);
-		result = tresult;
-	}
-	if (ctx->done != NULL)
-		(ctx->done)(ctx->done_arg, result);
+	result = task_send(ctx);
+	if (result == ISC_R_SUCCESS)
+		return (DNS_R_CONTINUE);
 
  cleanup:
 	if (ctx != NULL)
@@ -1744,6 +1737,8 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 	dns_loadctx_t *ctx = NULL;
 
 	REQUIRE(buffer != NULL);
+	REQUIRE(task != NULL);
+	REQUIRE(done != NULL);
 
 	result = loadctx_create(mctx, age_ttl, top, zclass, origin,
 				callbacks, task, done, done_arg, &ctx);
@@ -1754,15 +1749,9 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = load(&ctx);
-	if (result == DNS_R_CONTINUE) {
-		tresult = task_send(ctx);
-		if (tresult == ISC_R_SUCCESS)
-			return (result);
-		result = tresult;
-	}
-	if (ctx->done != NULL)
-		(ctx->done)(ctx->done_arg, result);
+	result = task_send(ctx);
+	if (result == ISC_R_SUCCESS)
+		return (DNS_R_CONTINUE);
 
  cleanup:
 	if (ctx != NULL)

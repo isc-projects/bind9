@@ -1,3 +1,6 @@
+ 620.	[bug]		dns_master_load*inc() now require 'task' and 'load'
+			to be non-null.  Also 'done' will not be called if
+			dns_master_load*inc() fails immediately. [RT #565]
 
  618.	[bug]		Queries to a signed zone could sometimes cause
 			an assertion failure.

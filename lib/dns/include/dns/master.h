@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.25 2000/10/17 07:22:36 marka Exp $ */
+/* $Id: master.h,v 1.26 2000/12/17 23:43:12 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -119,7 +119,8 @@ dns_master_loadfilequota(const char *master_file, dns_name_t *top,
  * 'callbacks->warn' to generate any error messages required.
  *
  * 'done' is called with 'done_arg' and a result code when the loading
- * is completed or has failed if 'done' is non NULL.
+ * is completed or has failed.  If the initial setup fails 'done' is
+ * not called.
  *
  * Requires:
  *	'master_file' points to a valid string.
@@ -128,9 +129,8 @@ dns_master_loadfilequota(const char *master_file, dns_name_t *top,
  *	'callbacks->commit' points to a valid function.
  *	'callbacks->error' points to a valid function.
  *	'callbacks->warn' points to a valid function.
- *	'callbacks->done' points to a valid function or NULL.
  *	'mctx' points to a valid memory context.
- *	'task' and 'done' to be NULL or 'task' and 'done' to be valid.
+ *	'task' and 'done' to be valid.
  *	'lmgr' to be valid.
  *	'ctxp != NULL && ctxp == NULL'.
  *
