@@ -291,10 +291,12 @@ create_managers(void) {
 
 static void
 destroy_managers(void) {
-	if (ns_g_omapimgr != NULL)
-		omapi_listener_shutdown(ns_g_omapimgr);
-	else
-		omapi_lib_destroy();
+	if (!lwresd_only) {
+		if (ns_g_omapimgr != NULL)
+			omapi_listener_shutdown(ns_g_omapimgr);
+		else
+			omapi_lib_destroy();
+	}
 
 	dns_dispatchmgr_destroy(&ns_g_dispatchmgr);
 	/*
@@ -355,21 +357,23 @@ setup(void) {
 	} else
 		ns_server_create(ns_g_mctx, &ns_g_server);
 
-	result = ns_omapi_init();
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("omapi_lib_init() failed: %s",
-				   isc_result_totext(result));
-
-	result = ns_omapi_listen(&ns_g_omapimgr);
-	if (result == ISC_R_SUCCESS)
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(3),
-			      "OMAPI started");
-	else
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
-			      "OMAPI failed to start: %s",
-			      isc_result_totext(result));
+	if (!lwresd_only) {
+		result = ns_omapi_init();
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("omapi_lib_init() failed: %s",
+					   isc_result_totext(result));
+	
+		result = ns_omapi_listen(&ns_g_omapimgr);
+		if (result == ISC_R_SUCCESS)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_MAIN, ISC_LOG_DEBUG(3),
+				      "OMAPI started");
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_MAIN, ISC_LOG_WARNING,
+				      "OMAPI failed to start: %s",
+				      isc_result_totext(result));
+	}
 }
 
 static void
