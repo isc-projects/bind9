@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6 2003/07/22 04:03:40 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.7 2004/02/10 06:16:54 marka Exp $ */
 
 #include <config.h>
 
@@ -1770,15 +1770,16 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 		id &= 0x0000ffff;
 		bucket = dns_hash(qid, dest, id);
 	}
-	UNLOCK(&qid->lock);
 
 	if (!ok) {
+		UNLOCK(&qid->lock);
 		UNLOCK(&disp->lock);
 		return (ISC_R_NOMORE);
 	}
 
 	res = isc_mempool_get(disp->mgr->rpool);
 	if (res == NULL) {
+		UNLOCK(&qid->lock);
 		UNLOCK(&disp->lock);
 		return (ISC_R_NOMEMORY);
 	}
@@ -1797,7 +1798,6 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 	ISC_LIST_INIT(res->items);
 	ISC_LINK_INIT(res, link);
 	res->magic = RESPONSE_MAGIC;
-	LOCK(&qid->lock);
 	ISC_LIST_APPEND(qid->qid_table[bucket], res, link);
 	UNLOCK(&qid->lock);
 
