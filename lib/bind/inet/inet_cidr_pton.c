@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.1 2001/03/29 06:31:37 marka Exp $";
+static const char rcsid[] = "$Id: inet_cidr_pton.c,v 1.2 2001/04/03 07:21:34 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -101,7 +101,8 @@ inet_cidr_pton_ipv4(const char *src, u_char *dst, int *pbits) {
 
 	/* Get the prefix length if any. */
 	bits = -1;
-	if (ch == '/' && isascii(src[0]) && isdigit(src[0]) && dst > odst) {
+	if (ch == '/' && isascii((unsigned char)(src[0])) &&
+	    isdigit((unsigned char)(src[0])) && dst > odst) {
 		/* CIDR width specifier.  Nothing can follow it. */
 		ch = *src++;	/* Skip over the /. */
 		bits = 0;
