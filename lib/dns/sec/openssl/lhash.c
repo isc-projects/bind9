@@ -276,7 +276,7 @@ void lh_doall(LHASH *lh, void (*func)())
 	lh_doall_arg(lh,func,NULL);
 	}
 
-void lh_doall_arg(LHASH *lh, void (*func)(), void *arg)
+void lh_doall_arg(LHASH *lh, void (*func)(void *a, void *b), void *arg)
 	{
 	int i;
 	LHASH_NODE *a,*n;

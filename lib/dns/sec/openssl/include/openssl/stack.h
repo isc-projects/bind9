@@ -86,7 +86,7 @@ char *sk_set(STACK *, int, char *);
 
 STACK *sk_new(int (*cmp)());
 void sk_free(STACK *);
-void sk_pop_free(STACK *st, void (*func)());
+void sk_pop_free(STACK *st, void (*func)(char *));
 int sk_insert(STACK *sk,char *data,int where);
 char *sk_delete(STACK *st,int loc);
 char *sk_delete_ptr(STACK *st, char *p);
