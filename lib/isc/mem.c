@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.103 2001/10/12 00:35:11 gson Exp $ */
+/* $Id: mem.c,v 1.104 2001/10/19 00:17:17 gson Exp $ */
 
 #include <config.h>
 
@@ -1020,7 +1020,7 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 	ptr = mem_get(ctx, size);
 	LOCK(&ctx->lock);
-	if (ptr)
+	if (ptr != NULL)
 		mem_getstats(ctx, size);
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
