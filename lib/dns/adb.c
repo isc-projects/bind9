@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.208 2003/10/10 00:39:09 marka Exp $ */
+/* $Id: adb.c,v 1.209 2003/10/16 05:46:19 marka Exp $ */
 
 /*
  * Implementation notes
@@ -76,7 +76,7 @@
  *
  * XXXRTH  How many buckets do we need?
  */
-#define NBUCKETS	       1009	/* how many buckets for names/addrs */
+#define NBUCKETS		1009	/* how many buckets for names/addrs */
 
 /*
  * For type 3 negative cache entries, we will remember that the address is
@@ -86,7 +86,7 @@
  */
 #define ADB_CACHE_MINIMUM	10	/* seconds */
 #define ADB_CACHE_MAXIMUM	86400	/* seconds (86400 = 24 hours) */
-#define ADB_ENTRY_WINDOW	1800	/* seconds  */
+#define ADB_ENTRY_WINDOW	1800	/* seconds */
 
 /*
  * Wake up every CLEAN_SECONDS and clean CLEAN_BUCKETS buckets, so that all
@@ -242,7 +242,7 @@ struct dns_adbentry {
 	unsigned int			flags;
 	unsigned int			srtt;
 	isc_sockaddr_t			sockaddr;
-	
+
 	isc_stdtime_t			expires;
 	/*
 	 * A nonzero 'expires' field indicates that the entry should
@@ -292,14 +292,14 @@ static inline void inc_adb_erefcnt(dns_adb_t *);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline isc_boolean_t dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
-				    isc_boolean_t);
+					     isc_boolean_t);
 static inline void violate_locking_hierarchy(isc_mutex_t *, isc_mutex_t *);
 static isc_boolean_t clean_namehooks(dns_adb_t *, dns_adbnamehooklist_t *);
 static void clean_target(dns_adb_t *, dns_name_t *);
 static void clean_finds_at_name(dns_adbname_t *, isc_eventtype_t,
 				unsigned int);
 static isc_boolean_t check_expire_namehooks(dns_adbname_t *, isc_stdtime_t,
-				   isc_boolean_t);
+					    isc_boolean_t);
 static void cancel_fetches_at_name(dns_adbname_t *);
 static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				dns_rdatatype_t);
@@ -675,11 +675,11 @@ check_expire_namehooks(dns_adbname_t *name, isc_stdtime_t now,
 	INSIST(DNS_ADBNAME_VALID(name));
 	adb = name->adb;
 	INSIST(DNS_ADB_VALID(adb));
-	
+
 	if (overmem) {
 		isc_uint32_t val;
-        
-                isc_random_get(&val);
+
+		isc_random_get(&val);
 
 		expire = ISC_TF((val % 4) == 0);
 	} else
@@ -1234,7 +1234,7 @@ dec_entry_refcnt(dns_adb_t *adb, dns_adbentry_t *entry, isc_boolean_t lock) {
 	free_adbentry(adb, &entry);
 	if (result)
 		result =dec_adb_irefcnt(adb);
-	
+
 	return (result);
 }
 
@@ -1835,8 +1835,8 @@ check_expire_entry(dns_adb_t *adb, dns_adbentry_t **entryp, isc_stdtime_t now)
 
 	if (adb->overmem) {
 		isc_uint32_t val;
-        
-                isc_random_get(&val);
+
+		isc_random_get(&val);
 
 		expire = ISC_TF((val % 4) == 0);
 	} else
@@ -2819,11 +2819,11 @@ dump_entry(FILE *f, dns_adbentry_t *entry, isc_boolean_t debug,
 
 	if (debug)
 		fprintf(f, ";\t%p: refcnt %u\n", entry, entry->refcnt);
-			
+
 	fprintf(f, ";\t%s [srtt %u] [flags %08x]",
 		addrbuf, entry->srtt, entry->flags);
 	fprintf(f, "\n");
-	for (zi = ISC_LIST_HEAD(entry->zoneinfo); 
+	for (zi = ISC_LIST_HEAD(entry->zoneinfo);
 	     zi != NULL;
 	     zi = ISC_LIST_NEXT(zi, plink)) {
 		fprintf(f, ";\t\t");
@@ -3198,7 +3198,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 	 */
 	if (dev->result != ISC_R_SUCCESS) {
 		char buf[DNS_NAME_FORMATSIZE];
-         
+
 		dns_name_format(&name->name, buf, sizeof(buf));
 		DP(DEF_LEVEL, "adb: fetch of '%s' %s failed: %s",
 		   buf, address_type == DNS_ADBFIND_INET ? "A" : "AAAA",
@@ -3308,7 +3308,7 @@ fetch_name(dns_adbname_t *adbname,
 	return (result);
 }
 
-/* 
+/*
  * XXXMLG Needs to take a find argument and an address info, no zone or adb,
  * since these can be extracted from the find itself.
  */
@@ -3516,8 +3516,9 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
 		nextname = ISC_LIST_NEXT(adbname, plink);
 		if (!NAME_DEAD(adbname) &&
 		    dns_name_equal(name, &adbname->name)) {
-			INSIST(kill_name(&adbname, DNS_EVENT_ADBCANCELED)
-				 == ISC_FALSE);
+			RUNTIME_CHECK(kill_name(&adbname,
+						DNS_EVENT_ADBCANCELED) ==
+				      ISC_FALSE);
 		}
 		adbname = nextname;
 	}
@@ -3527,11 +3528,11 @@ dns_adb_flushname(dns_adb_t *adb, dns_name_t *name) {
 
 static void
 water(void *arg, int mark) {
-        dns_adb_t *adb = arg;
-        isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
+	dns_adb_t *adb = arg;
+	isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
 	isc_interval_t interval;
-        
-        REQUIRE(DNS_ADB_VALID(adb));
+
+	REQUIRE(DNS_ADB_VALID(adb));
 
 	DP(ISC_LOG_DEBUG(1),
 	   "adb reached %s water mark", overmem ? "high" : "low");
