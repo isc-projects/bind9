@@ -1,3 +1,7 @@
+ 333.	[bug]		The resolver incorrectly accepted referrals to
+			subdomains of the query domain, causing an 
+			assertion failure.
+
  332.	[func]		New function dns_name_reset().
 
  331.	[bug]		Only log "recursion denied" if RD is set. (RT #178)
