@@ -19,6 +19,8 @@
 
  737.	[port]		stdtime.c failed to compile on certain platforms.
 
+ 648.	[port]		Add support for pre-RFC2133 IPv6 implementations.
+
 	--- 9.1.1rc2 released ---
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.8.4.1 2001/01/09 22:52:46 bwelling Exp $ */
+/* $Id: net.h,v 1.8.4.2 2001/02/21 00:15:18 gson Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1
@@ -64,6 +64,10 @@
 #endif
 
 #include <lwres/lang.h>
+
+#ifdef LWRES_PLATFORM_HAVEINADDR6
+#define in6_addr in_addr6	/* Required for pre RFC2133 implementations. */
+#endif
 
 #ifndef AF_INET6
 #define AF_INET6 99
