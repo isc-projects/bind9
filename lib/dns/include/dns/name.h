@@ -598,12 +598,11 @@ void dns_name_fromregion(dns_name_t *name, isc_region_t *r);
  * Note:
  *	If the conversion encounters a root label before the end of the
  *	region the conversion stops and the length is set to the length
- *	so far converted.
+ *	so far converted.  A maximum of 255 bytes is converted.
  *
  * Requires:
  *	The data in 'r' is a sequence of one or more type 00 or type 01000001
  *	labels.
- *	The length of 'r' is <= 255.
  */
 
 void dns_name_toregion(dns_name_t *name, isc_region_t *r);
