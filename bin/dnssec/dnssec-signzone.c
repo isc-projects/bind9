@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.142 2001/09/19 23:05:14 gson Exp $ */
+/* $Id: dnssec-signzone.c,v 1.143 2001/09/20 21:51:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,6 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
-#include <dns/secalg.h>
 #include <dns/time.h>
 
 #include <dst/dst.h>
@@ -1500,6 +1499,31 @@ removetempfile(void) {
 		isc_file_remove(tempfile);
 }
 
+static void
+print_stats(isc_time_t *timer_start, isc_time_t *timer_finish) {
+	isc_uint64_t runtime_us;   /* Runtime in microseconds */
+	isc_uint64_t runtime_ms;   /* Runtime in milliseconds */
+	isc_uint64_t sig_ms;	   /* Signatures per millisecond */
+
+	runtime_us = isc_time_microdiff(timer_finish, timer_start);
+
+	printf("Signatures generated:               %10d\n", nsigned);
+	printf("Signatures retained:                %10d\n", nretained);
+	printf("Signatures dropped:                 %10d\n", ndropped);
+	printf("Signatures successfully verified:   %10d\n", nverified);
+	printf("Signatures unsuccessfully verified: %10d\n", nverifyfailed);
+	runtime_ms = runtime_us / 1000;
+	printf("Runtime in seconds:                %7u.%03u\n", 
+	       (unsigned int) (runtime_ms / 1000), 
+	       (unsigned int) (runtime_ms % 1000));
+	if (runtime_us > 0) {
+		sig_ms = ((isc_uint64_t)nsigned * 1000000000) / runtime_us;
+		printf("Signatures per second:             %7u.%03u\n",
+		       (unsigned int) sig_ms / 1000, 
+		       (unsigned int) sig_ms % 1000);
+	}
+}
+
 int
 main(int argc, char *argv[]) {
 	int i, ch;
@@ -1803,7 +1827,6 @@ main(int argc, char *argv[]) {
 	printf("%s\n", output);
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
-
 	dns_db_detach(&gdb);
 
 	while (!ISC_LIST_EMPTY(keylist)) {
@@ -1828,35 +1851,8 @@ main(int argc, char *argv[]) {
 	(void) isc_app_finish();
 
 	if (printstats) {
-		isc_uint64_t runtime_us;   /* Runtime in microseconds */
-		isc_uint64_t runtime_ms;   /* Runtime in milliseconds */
-		isc_uint64_t sig_ms;	   /* Signatures per millisecond */
-
 		isc_time_now(&timer_finish);
-
-		runtime_us = isc_time_microdiff(&timer_finish, &timer_start);
-
-		printf("Signatures generated:               %10d\n",
-		       nsigned);
-		printf("Signatures retained:                %10d\n",
-		       nretained);
-		printf("Signatures dropped:                 %10d\n",
-		       ndropped);
-		printf("Signatures successfully verified:   %10d\n",
-		       nverified);
-		printf("Signatures unsuccessfully verified: %10d\n",
-		       nverifyfailed);
-		runtime_ms = runtime_us / 1000;
-		printf("Runtime in seconds:                %7u.%03u\n", 
-		       (unsigned int) (runtime_ms / 1000), 
-		       (unsigned int) (runtime_ms % 1000));
-		if (runtime_us > 0) {
-			sig_ms = ((isc_uint64_t)nsigned * 1000000000) /
-				 runtime_us;
-			printf("Signatures per second:             %7u.%03u\n",
-			       (unsigned int) sig_ms / 1000, 
-			       (unsigned int) sig_ms % 1000);
-		}
+		print_stats(&timer_start, &timer_finish);
 	}
 
 	return (0);
