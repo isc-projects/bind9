@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.7 2005/02/09 05:18:28 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.8 2005/03/04 03:53:53 marka Exp $ */
 
 #include <config.h>
 
@@ -1561,6 +1561,9 @@ dlv_validatezonekey(dns_validator_t *val) {
 		dns_rdataset_current(val->dlv, &dlvrdata);
 		(void)dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
 
+		if (!dns_resolver_digest_supported(val->view->resolver,
+						   dlv.digest_type))
+			continue;
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
 						      dlv.algorithm))
@@ -1647,7 +1650,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no supported algorithm (dlv)");
+			      "no supported algorithm/digest (dlv)");
 		return (ISC_R_SUCCESS);
 	} else
 		return (DNS_R_NOVALIDSIG);
@@ -1848,6 +1851,10 @@ validatezonekey(dns_validator_t *val) {
 		dns_rdataset_current(val->dsset, &dsrdata);
 		(void)dns_rdata_tostruct(&dsrdata, &ds, NULL);
 
+		if (!dns_resolver_digest_supported(val->view->resolver,
+						   ds.digest_type))
+			continue;
+
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
 						      ds.algorithm))
@@ -1940,7 +1947,7 @@ validatezonekey(dns_validator_t *val) {
 		val->event->rdataset->trust = dns_trust_answer;
 		val->event->sigrdataset->trust = dns_trust_answer;
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no supported algorithm (ds)");
+			      "no supported algorithm/digest (ds)");
 		return (ISC_R_SUCCESS);
 	} else
 		return (DNS_R_NOVALIDSIG);
@@ -2193,7 +2200,7 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 }
 
 static isc_boolean_t
-check_ds_algorithm(dns_validator_t *val, dns_name_t *name,
+check_ds(dns_validator_t *val, dns_name_t *name,
 		   dns_rdataset_t *rdataset) {
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
 	dns_rdata_ds_t ds;
@@ -2205,9 +2212,13 @@ check_ds_algorithm(dns_validator_t *val, dns_name_t *name,
 		dns_rdataset_current(rdataset, &dsrdata);
 		(void)dns_rdata_tostruct(&dsrdata, &ds, NULL);
 
-		if (dns_resolver_algorithm_supported(val->view->resolver,
-						     name, ds.algorithm))
+		if (dns_resolver_digest_supported(val->view->resolver,
+						  ds.digest_type) &&
+		    dns_resolver_algorithm_supported(val->view->resolver,
+						     name, ds.algorithm)) {
+			dns_rdata_reset(&dsrdata);
 			return (ISC_TRUE);
+		}
 		dns_rdata_reset(&dsrdata);
 	}
 	return (ISC_FALSE);
@@ -2385,8 +2396,8 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming proveunsecure");
 		if (val->frdataset.trust >= dns_trust_secure &&
-		    !check_ds_algorithm(val, dns_fixedname_name(&val->fname),
-					&val->frdataset)) {
+		    !check_ds(val, dns_fixedname_name(&val->fname),
+			       &val->frdataset)) {
 			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
 					      "must be secure failure");
@@ -2394,7 +2405,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				goto out;
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
-				      "no supported algorithm (ds)");
+				      "no supported algorithm/digest (ds)");
 			val->event->rdataset->trust = dns_trust_answer;
 			result = ISC_R_SUCCESS;
 			goto out;
@@ -2453,10 +2464,9 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			 * continue.
 			 */
 			if (val->frdataset.trust >= dns_trust_secure) {
-				if (!check_ds_algorithm(val, tname,
-							&val->frdataset)) {
+				if (!check_ds(val, tname, &val->frdataset)) {
 					validator_log(val, ISC_LOG_DEBUG(3),
-					      "no supported algorithm (ds)");
+					   "no supported algorithm/digest (ds)");
 					if (val->mustbesecure) {
 						validator_log(val,
 							      ISC_LOG_WARNING,

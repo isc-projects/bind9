@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.c,v 1.4 2004/03/05 05:09:19 marka Exp $ */
+/* $Id: ds.c,v 1.4.20.1 2005/03/04 03:53:52 marka Exp $ */
 
 #include <config.h>
 
@@ -80,4 +80,9 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 
 	return (dns_rdata_fromstruct(rdata, key->rdclass, dns_rdatatype_ds,
 				     &ds, &b));
+}
+
+isc_boolean_t
+dns_ds_digest_supported(unsigned int digest_type) {
+	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1));
 }

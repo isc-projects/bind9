@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.h,v 1.3 2004/03/05 05:09:42 marka Exp $ */
+/* $Id: ds.h,v 1.3.20.1 2005/03/04 03:53:53 marka Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
@@ -49,6 +49,12 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
  * Ensures:
  *      *rdata	Contains a valid DS rdata.  The 'data' member refers
  *		to 'buffer'.
+ */
+
+isc_boolean_t
+dns_ds_digest_supported(unsigned int digest_type);
+/*
+ * Is this digest algorithm supported by dns_ds_buildrdata()?
  */
 
 ISC_LANG_ENDDECLS
