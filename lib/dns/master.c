@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.23 1999/08/31 22:12:14 halley Exp $ */
+ /* $Id: master.c,v 1.24 1999/10/07 19:40:30 halley Exp $ */
 
 #include <config.h>
 
@@ -726,7 +726,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		 */
 
 		if (!on_list(this, &rdata[rdcount])) {
-			ISC_LIST_PREPEND(this->rdata, &rdata[rdcount], link);
+			ISC_LIST_APPEND(this->rdata, &rdata[rdcount], link);
 			rdcount++;
 		}
 
