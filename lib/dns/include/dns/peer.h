@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.14 2001/03/06 23:54:36 bwelling Exp $ */
+/* $Id: peer.h,v 1.15 2001/04/30 18:09:29 gson Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -125,12 +125,6 @@ dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval);
 
 isc_result_t
 dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval);
-
-isc_result_t
-dns_peer_setsupportixfr(dns_peer_t *peer, isc_boolean_t newval);
-
-isc_result_t
-dns_peer_getsupportixfr(dns_peer_t *peer, isc_boolean_t *retval);
 
 isc_result_t
 dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval);

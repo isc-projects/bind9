@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.101 2001/03/19 22:34:11 bwelling Exp $ */
+/* $Id: zone.h,v 1.102 2001/04/30 18:09:31 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -430,16 +430,6 @@ void
 dns_zone_unload(dns_zone_t *zone);
 /*
  *	detach the database from the zone structure.
- *
- * Require:
- *	'zone' to be a valid zone.
- */
-
-void
-dns_zone_setoption(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
-/*
- *	Set given options on ('value' == ISC_TRUE) or off ('value' ==
- *	ISC_FALSE).
  *
  * Require:
  *	'zone' to be a valid zone.

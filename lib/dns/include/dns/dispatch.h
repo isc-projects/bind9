@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.44 2001/03/13 05:48:41 marka Exp $ */
+/* $Id: dispatch.h,v 1.45 2001/04/30 18:09:28 gson Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -177,33 +177,6 @@ dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
  * 	mgr is a valid dispatchmgr
  * Returns:
  *	A pointer to the current blackhole list, or NULL.
- */
-
-isc_result_t
-dns_dispatchmgr_find(dns_dispatchmgr_t *mgr,
-		     isc_sockaddr_t *local, isc_sockaddr_t *remote,
-		     unsigned int attributes, unsigned int mask,
-		     dns_dispatch_t **dispp);
-/*
- * Search for a dispatcher that has the attributes specified by
- *	(attributes & mask)
- *
- * Requires:
- *	"mgr" be a valid dispatchmgr.
- *
- *	dispp != NULL && *dispp == NULL.
- *
- * Ensures:
- *	The dispatcher returned into *dispp is attached on behalf of the
- *	caller.  It is required that the caller detach from it when it is
- *	no longer needed.
- *
- * Returns:
- *	ISC_R_SUCCESS	-- found.
- *
- *	ISC_R_NOTFOUND	-- no dispatcher matching the requirements found.
- *
- *	anything else	-- failure.
  */
 
 
