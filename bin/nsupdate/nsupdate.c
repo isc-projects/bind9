@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.61 2000/11/16 05:40:25 marka Exp $ */
+/* $Id: nsupdate.c,v 1.62 2000/11/16 05:45:52 marka Exp $ */
 
 #include <config.h>
 
@@ -1465,6 +1465,9 @@ cleanup(void) {
 
 	if (userserver != NULL)
 		isc_mem_put(mctx, userserver, sizeof(isc_sockaddr_t));
+
+	if (localaddr != NULL)
+		isc_mem_put(mctx, localaddr, sizeof(isc_sockaddr_t));
 
 	if (key != NULL) {
 		debug("Freeing key");
