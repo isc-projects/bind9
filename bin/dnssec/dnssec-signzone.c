@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.104 2000/10/27 18:48:22 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.105 2000/10/27 20:27:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1450,6 +1450,8 @@ main(int argc, char *argv[]) {
 	if (argc == 0) {
 		signer_key_t *key;
 
+		loadzonekeys(db);
+
 		key = ISC_LIST_HEAD(keylist);
 		while (key != NULL) {
 			key->isdefault = ISC_TRUE;
@@ -1488,12 +1490,9 @@ main(int argc, char *argv[]) {
 			} else
 				dst_key_free(&newkey);
 		}
-	}
 
-	if (ISC_LIST_EMPTY(keylist))
-		loadzonekeys(db);
-	else
 		loadzonepubkeys(db);
+	}
 
 	if (ISC_LIST_EMPTY(keylist))
 		fprintf(stderr, "%s: warning: No keys specified or found\n",
