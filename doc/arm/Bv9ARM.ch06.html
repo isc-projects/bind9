@@ -94,7 +94,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3527"
+HREF="Bv9ARM.ch06.html#AEN3548"
 >Zone File</A
 ></DT
 ></DL
@@ -2994,6 +2994,32 @@ those servers during resolution.
 </P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="110"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><B
+CLASS="command"
+>delegation-only</B
+></P
+></TD
+><TD
+WIDTH="322"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Delegation only.  Logs queries that have have
+been forced to NXDOMAIN as the result of a delegation-only zone or
+a <B
+CLASS="command"
+>delegation-only</B
+> in a stub or forward
+zone declartation.
+</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -3006,7 +3032,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1814"
+NAME="AEN1821"
 >6.2.11. <B
 CLASS="command"
 >lwres</B
@@ -3103,7 +3129,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1838"
+NAME="AEN1845"
 >6.2.12. <B
 CLASS="command"
 >lwres</B
@@ -3177,7 +3203,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN1857"
+NAME="AEN1864"
 >6.2.13. <B
 CLASS="command"
 >options</B
@@ -4166,7 +4192,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2082"
+NAME="AEN2089"
 >6.2.14. <B
 CLASS="command"
 >options</B
@@ -5161,7 +5187,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2382"
+NAME="AEN2389"
 >6.2.14.2. Forwarding</A
 ></H3
 ><P
@@ -5365,7 +5391,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2447"
+NAME="AEN2454"
 >6.2.14.4. Interfaces</A
 ></H3
 ><P
@@ -5460,7 +5486,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2473"
+NAME="AEN2480"
 >6.2.14.5. Query Address</A
 ></H3
 ><P
@@ -5892,7 +5918,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2612"
+NAME="AEN2619"
 >6.2.14.7. Operating System Resource Limits</A
 ></H3
 ><P
@@ -6012,7 +6038,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2649"
+NAME="AEN2656"
 >6.2.14.8. Server  Resource Limits</A
 ></H3
 ><P
@@ -6096,7 +6122,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN2677"
+NAME="AEN2684"
 >6.2.14.9. Periodic Task Intervals</A
 ></H3
 ><P
@@ -6463,7 +6489,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2765"
+NAME="AEN2772"
 ></A
 ><P
 ></P
@@ -6867,7 +6893,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2880"
+NAME="AEN2887"
 ></A
 ><P
 ></P
@@ -7331,7 +7357,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3002"
+NAME="AEN3009"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7406,7 +7432,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3018"
+NAME="AEN3025"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7441,7 +7467,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3026"
+NAME="AEN3033"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7516,7 +7542,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3042"
+NAME="AEN3049"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7703,7 +7729,7 @@ CLASS="replaceable"
 >] [<SPAN
 CLASS="optional"
 >{ 
-    type ( master | slave | hint | stub | forward ) ;
+    type ( master | slave | hint | stub | forward /| delegation-only ) ;
     [<SPAN
 CLASS="optional"
 > allow-notify { <TT
@@ -7813,6 +7839,15 @@ CLASS="optional"
 CLASS="replaceable"
 ><I
 >dialup_option</I
+></TT
+> ; </SPAN
+>]
+    [<SPAN
+CLASS="optional"
+> delegation-only <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
 ></TT
 > ; </SPAN
 >]
@@ -8167,7 +8202,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3193"
+NAME="AEN3202"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8178,13 +8213,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3196"
+NAME="AEN3205"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3198"
+NAME="AEN3207"
 ></A
 ><P
 ></P
@@ -8411,6 +8446,29 @@ IN, the server uses a compiled-in default set of root servers hints.
 Classes other than IN have no built-in defaults hints.</P
 ></TD
 ></TR
+><TR
+><TD
+WIDTH="87"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="varname"
+>delegation-only</TT
+></P
+></TD
+><TD
+WIDTH="405"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>This is used to enforce the delegation only
+status of infrastructure zones (e.g. COM, NET, ORG).  Any answer that
+is received without a explicit or implict delegation in the authority
+section will be treated as NXDOMAIN.  This does not apply to the zone
+apex.  This SHOULD NOT be applied to leaf zones.</P
+></TD
+></TR
 ></TBODY
 ></TABLE
 ><P
@@ -8422,7 +8480,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3253"
+NAME="AEN3268"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8460,7 +8518,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3263"
+NAME="AEN3278"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8679,6 +8737,23 @@ CLASS="command"
 HREF="Bv9ARM.ch06.html#boolean_options"
 >Section 6.2.14.1</A
 >.</P
+></DD
+><DT
+><B
+CLASS="command"
+>delegation-only</B
+></DT
+><DD
+><P
+>The flag only applies to forward and stub zones.  If set
+to <TT
+CLASS="userinput"
+><B
+>yes</B
+></TT
+> then the zone will also be treated as if it
+is also a delegation-only type zone.
+</P
 ></DD
 ><DT
 ><B
@@ -9101,7 +9176,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3497"
+NAME="AEN3518"
 ></A
 ><P
 ></P
@@ -9208,7 +9283,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3527"
+NAME="AEN3548"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9229,7 +9304,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3532"
+NAME="AEN3553"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9252,7 +9327,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3538"
+NAME="AEN3559"
 ></A
 ><P
 ></P
@@ -9366,7 +9441,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3570"
+NAME="AEN3591"
 ></A
 ><P
 ></P
@@ -9860,7 +9935,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3717"
+NAME="AEN3738"
 ></A
 ><P
 ></P
@@ -9915,7 +9990,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3733"
+NAME="AEN3754"
 ></A
 ><P
 ></P
@@ -10092,7 +10167,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3781"
+NAME="AEN3802"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10122,7 +10197,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3788"
+NAME="AEN3809"
 ></A
 ><P
 ></P
@@ -10331,7 +10406,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3854"
+NAME="AEN3875"
 ></A
 ><P
 ></P
@@ -10422,7 +10497,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3882"
+NAME="AEN3903"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10458,7 +10533,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3888"
+NAME="AEN3909"
 ></A
 ><P
 ></P
@@ -10754,7 +10829,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3980"
+NAME="AEN4001"
 ></A
 ><P
 ></P
@@ -10837,7 +10912,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4003"
+NAME="AEN4024"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10864,7 +10939,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4008"
+NAME="AEN4029"
 ></A
 ><P
 ></P
@@ -10944,7 +11019,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4030"
+NAME="AEN4051"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10969,7 +11044,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4037"
+NAME="AEN4058"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -11039,7 +11114,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4057"
+NAME="AEN4078"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11121,7 +11196,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN4077"
+NAME="AEN4098"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11161,7 +11236,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4088"
+NAME="AEN4109"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11240,7 +11315,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4108"
+NAME="AEN4129"
 ></A
 ><P
 ></P
