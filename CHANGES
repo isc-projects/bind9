@@ -1,3 +1,5 @@
+1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
+
 1563.	[bug]		Gracefully fail when unable to obtain neither an IPv4
 			nor an IPv6 dispatch. [RT #10230]
 
