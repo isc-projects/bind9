@@ -1,3 +1,7 @@
+ 497.	[bug]		The error messages printed when an IP match list
+			contained a network address with a nonzero host
+			part where not sufficiently detailed. [RT #365]
+
  496.	[bug]		named didn't sanity check numeric parameters [RT #361]
 
  495.	[bug]		nsupdate was unable to handle large records [RT #368]
@@ -8,10 +12,6 @@
 			for SOA queries.  This makes it easier to locate
 			the containing zone without polluting intermediate
 			caches.
-
- 492.	[bug]		The error messages printed when an IP match list
-			contained a network address with a nonzero host
-			part where not sufficiently detailed. [RT #365]
 
  492.	[bug]		attempting to reload a zone caused the server fail
 			to shutdown cleanly. [RT #360]
