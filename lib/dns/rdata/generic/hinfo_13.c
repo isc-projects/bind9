@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.31 2000/11/08 01:55:39 bwelling Exp $ */
+/* $Id: hinfo_13.c,v 1.32 2000/12/01 01:40:21 gson Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -109,6 +109,8 @@ fromstruct_hinfo(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(hinfo->common.rdtype == type);
 	REQUIRE(hinfo->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint8_tobuffer(hinfo->cpu_len, target));
 	RETERR(mem_tobuffer(target, hinfo->cpu, hinfo->cpu_len));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.26 2000/11/08 01:55:38 bwelling Exp $ */
+/* $Id: gpos_27.c,v 1.27 2000/12/01 01:40:19 gson Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -117,6 +117,8 @@ fromstruct_gpos(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(gpos->common.rdtype == type);
 	REQUIRE(gpos->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint8_tobuffer(gpos->long_len, target));
 	RETERR(mem_tobuffer(target, gpos->longitude, gpos->long_len));

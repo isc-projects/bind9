@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.34 2000/11/08 01:55:48 bwelling Exp $ */
+/* $Id: minfo_14.c,v 1.35 2000/12/01 01:40:30 gson Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -175,6 +175,8 @@ fromstruct_minfo(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(minfo->common.rdtype == type);
 	REQUIRE(minfo->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&minfo->rmailbox, &region);
 	RETERR(isc_buffer_copyregion(target, &region));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.27 2000/11/08 01:55:36 bwelling Exp $ */
+/* $Id: dname_39.c,v 1.28 2000/12/01 01:40:18 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -130,6 +130,8 @@ fromstruct_dname(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(dname->common.rdtype == type);
 	REQUIRE(dname->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&dname->dname, &region);
 	return (isc_buffer_copyregion(target, &region));

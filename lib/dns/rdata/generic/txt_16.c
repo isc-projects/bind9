@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: txt_16.c,v 1.31 2000/11/08 01:56:02 bwelling Exp $ */
+/* $Id: txt_16.c,v 1.32 2000/12/01 01:40:44 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
@@ -128,6 +128,8 @@ fromstruct_txt(ARGS_FROMSTRUCT) {
 	REQUIRE(txt->common.rdclass == rdclass);
 	REQUIRE((txt->txt == NULL && txt->txt_len == 0) ||
 		(txt->txt != NULL && txt->txt_len != 0));
+
+	UNUSED(rdclass);
 
 	region.base = txt->txt;
 	region.length = txt->txt_len;

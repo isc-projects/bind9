@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.42 2000/11/08 01:55:50 bwelling Exp $ */
+/* $Id: mx_15.c,v 1.43 2000/12/01 01:40:32 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -159,6 +159,8 @@ fromstruct_mx(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(mx->common.rdtype == type);
 	REQUIRE(mx->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(mx->pref, target));
 	dns_name_toregion(&mx->mx, &region);

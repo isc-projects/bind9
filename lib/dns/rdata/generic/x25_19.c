@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.25 2000/11/08 01:56:03 bwelling Exp $ */
+/* $Id: x25_19.c,v 1.26 2000/12/01 01:40:46 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -113,6 +113,8 @@ fromstruct_x25(ARGS_FROMSTRUCT) {
 	REQUIRE(x25->common.rdclass == rdclass);
 	REQUIRE((x25->x25 == NULL && x25->x25_len == 0) ||
 		(x25->x25 != NULL && x25->x25_len != 0));
+
+	UNUSED(rdclass);
 
 	for (i = 0; i < x25->x25_len; i++)
 		if (!isdigit(x25->x25[i] & 0xff))

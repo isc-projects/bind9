@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.30 2000/11/08 01:56:08 bwelling Exp $ */
+/* $Id: aaaa_28.c,v 1.31 2000/12/01 01:40:51 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -34,11 +34,12 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 	unsigned char addr[16];
 	isc_region_t region;
 
-	UNUSED(origin);
-	UNUSED(downcase);
-
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(origin);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
@@ -77,11 +78,12 @@ fromwire_in_aaaa(ARGS_FROMWIRE) {
 	isc_region_t sregion;
 	isc_region_t tregion;
 
-	UNUSED(dctx);
-	UNUSED(downcase);
-
 	REQUIRE(type == 28);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(dctx);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
@@ -141,6 +143,8 @@ fromstruct_in_aaaa(ARGS_FROMSTRUCT) {
 	REQUIRE(aaaa->common.rdtype == type);
 	REQUIRE(aaaa->common.rdclass == rdclass);
 
+	UNUSED(rdclass);
+
 	return (mem_tobuffer(target, aaaa->in6_addr.s6_addr, 16));
 }
 
@@ -174,6 +178,8 @@ freestruct_in_aaaa(ARGS_FREESTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(aaaa->common.rdclass == 1);
 	REQUIRE(aaaa->common.rdtype == 28);
+
+	UNUSED(aaaa);
 }
 
 static inline isc_result_t

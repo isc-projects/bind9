@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.37 2000/11/08 01:56:15 bwelling Exp $ */
+/* $Id: wks_11.c,v 1.38 2000/12/01 01:40:59 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -47,11 +47,12 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 	char service[32];
 	int i;
 
-	UNUSED(origin);
-	UNUSED(downcase);
-
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(origin);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	/*
 	 * IPv4 dotted quad.
@@ -178,11 +179,12 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 	isc_region_t sr;
 	isc_region_t tr;
 
-	UNUSED(dctx);
-	UNUSED(downcase);
-
 	REQUIRE(type == 11);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(dctx);
+	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_availableregion(target, &tr);
@@ -242,6 +244,8 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(wks->common.rdtype == type);
 	REQUIRE(wks->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	a = ntohl(wks->in_addr.s_addr);
 	RETERR(uint32_tobuffer(a, target));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.43 2000/11/14 18:14:44 gson Exp $ */
+/* $Id: nxt_30.c,v 1.44 2000/12/01 01:40:35 gson Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -202,6 +202,8 @@ fromstruct_nxt(ARGS_FROMSTRUCT) {
 	REQUIRE(nxt->common.rdtype == type);
 	REQUIRE(nxt->common.rdclass == rdclass);
 	REQUIRE(nxt->typebits != NULL || nxt->len == 0);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&nxt->next, &region);
 	RETERR(isc_buffer_copyregion(target, &region));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.47 2000/11/08 01:55:58 bwelling Exp $ */
+/* $Id: sig_24.c,v 1.48 2000/12/01 01:40:41 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -363,6 +363,8 @@ fromstruct_sig(ARGS_FROMSTRUCT) {
 	REQUIRE(sig->common.rdclass == rdclass);
 	REQUIRE((sig->signature != NULL && sig->siglen != 0) ||
 		(sig->signature == NULL && sig->siglen == 0));
+
+	UNUSED(rdclass);
 
 	/*
 	 * Type covered.

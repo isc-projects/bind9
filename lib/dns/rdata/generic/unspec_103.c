@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.23 2000/08/01 01:26:09 tale Exp $ */
+/* $Id: unspec_103.c,v 1.24 2000/12/01 01:40:45 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -93,6 +93,8 @@ fromstruct_unspec(ARGS_FROMSTRUCT) {
 	REQUIRE(unspec->common.rdclass == rdclass);
 	REQUIRE((unspec->data != NULL && unspec->datalen != 0) ||
 		(unspec->data == NULL && unspec->datalen == 0));
+
+	UNUSED(rdclass);
 
 	return (mem_tobuffer(target, unspec->data, unspec->datalen));
 }

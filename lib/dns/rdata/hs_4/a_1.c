@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.19 2000/11/08 01:56:04 bwelling Exp $ */
+/* $Id: a_1.c,v 1.20 2000/12/01 01:40:48 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -37,6 +37,7 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
@@ -80,7 +81,7 @@ fromwire_hs_a(ARGS_FROMWIRE) {
 
 	UNUSED(dctx);
 	UNUSED(downcase);
-
+	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
@@ -141,6 +142,8 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(a->common.rdtype == type);
 	REQUIRE(a->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	n = ntohl(a->in_addr.s_addr);
 

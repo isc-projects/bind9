@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md_3.c,v 1.37 2000/11/08 01:55:45 bwelling Exp $ */
+/* $Id: md_3.c,v 1.38 2000/12/01 01:40:26 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 17:48:20 PST 2000 by bwelling */
 
@@ -129,6 +129,8 @@ fromstruct_md(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(md->common.rdtype == type);
 	REQUIRE(md->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&md->md, &region);
 	return (isc_buffer_copyregion(target, &region));

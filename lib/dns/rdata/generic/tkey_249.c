@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.40 2000/11/08 01:56:01 bwelling Exp $ */
+/* $Id: tkey_249.c,v 1.41 2000/12/01 01:40:43 gson Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -351,6 +351,8 @@ fromstruct_tkey(ARGS_FROMSTRUCT) {
 		(tkey->key != NULL && tkey->keylen != 0));
 	REQUIRE((tkey->other == NULL && tkey->otherlen == 0) ||
 		(tkey->other != NULL && tkey->otherlen != 0));
+
+	UNUSED(rdclass);
 
 	/*
 	 * Algorithm Name.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.34 2000/11/08 01:55:34 bwelling Exp $ */
+/* $Id: cert_37.c,v 1.35 2000/12/01 01:40:16 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -169,6 +169,8 @@ fromstruct_cert(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(cert->common.rdtype == type);
 	REQUIRE(cert->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(cert->type, target));
 	RETERR(uint16_tobuffer(cert->key_tag, target));

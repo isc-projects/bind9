@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.33 2000/11/08 01:55:55 bwelling Exp $ */
+/* $Id: ptr_12.c,v 1.34 2000/12/01 01:40:37 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -129,6 +129,8 @@ fromstruct_ptr(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(ptr->common.rdtype == type);
 	REQUIRE(ptr->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&ptr->ptr, &region);
 	return (isc_buffer_copyregion(target, &region));

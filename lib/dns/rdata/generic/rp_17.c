@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.29 2000/11/08 01:55:56 bwelling Exp $ */
+/* $Id: rp_17.c,v 1.30 2000/12/01 01:40:39 gson Exp $ */
 
 /* RFC 1183 */
 
@@ -173,6 +173,8 @@ fromstruct_rp(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(rp->common.rdtype == type);
 	REQUIRE(rp->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&rp->mail, &region);
 	RETERR(isc_buffer_copyregion(target, &region));

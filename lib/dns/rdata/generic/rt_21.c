@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.31 2000/11/08 01:55:57 bwelling Exp $ */
+/* $Id: rt_21.c,v 1.32 2000/12/01 01:40:40 gson Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -168,6 +168,8 @@ fromstruct_rt(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(rt->common.rdtype == type);
 	REQUIRE(rt->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(rt->preference, target));
 	dns_name_toregion(&rt->host, &region);

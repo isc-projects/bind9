@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.29 2000/10/25 05:43:47 marka Exp $ */
+/* $Id: null_10.c,v 1.30 2000/12/01 01:40:34 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -99,6 +99,8 @@ fromstruct_null(ARGS_FROMSTRUCT) {
 	REQUIRE(null->common.rdclass == rdclass);
 	REQUIRE((null->data != NULL && null->length != 0) ||
 		(null->data == NULL && null->length == 0));
+
+	UNUSED(rdclass);
 
 	return (mem_tobuffer(target, null->data, null->length));
 }

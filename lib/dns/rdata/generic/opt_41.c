@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.18 2000/08/01 01:25:48 tale Exp $ */
+/* $Id: opt_41.c,v 1.19 2000/12/01 01:40:36 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -166,6 +166,8 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	REQUIRE(opt->common.rdclass == rdclass);
 	REQUIRE((opt->options != NULL && opt->length != 0) ||
 		(opt->options == NULL && opt->length == 0));
+
+	UNUSED(rdclass);
 
 	region.base = opt->options;
 	region.length = opt->length;

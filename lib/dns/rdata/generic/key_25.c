@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.34 2000/11/08 01:55:41 bwelling Exp $ */
+/* $Id: key_25.c,v 1.35 2000/12/01 01:40:23 gson Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -37,11 +37,11 @@ fromtext_key(ARGS_FROMTEXT) {
 	dns_secproto_t proto;
 	dns_keyflags_t flags;
 
+	REQUIRE(type == 25);
+
 	UNUSED(rdclass);
 	UNUSED(origin);
 	UNUSED(downcase);
-
-	REQUIRE(type == 25);
 
 	/* flags */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -145,10 +145,10 @@ static inline isc_result_t
 towire_key(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	UNUSED(cctx);
-
 	REQUIRE(rdata->type == 25);
 	REQUIRE(rdata->length != 0);
+
+	UNUSED(cctx);
 
 	dns_rdata_toregion(rdata, &sr);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -178,6 +178,8 @@ fromstruct_key(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(key->common.rdtype == type);
 	REQUIRE(key->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	/* Flags */
 	RETERR(uint16_tobuffer(key->flags, target));

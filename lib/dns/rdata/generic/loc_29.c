@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.25 2000/11/08 01:55:42 bwelling Exp $ */
+/* $Id: loc_29.c,v 1.26 2000/12/01 01:40:24 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -629,6 +629,8 @@ fromstruct_loc(ARGS_FROMSTRUCT) {
 	REQUIRE(loc->common.rdtype == type);
 	REQUIRE(loc->common.rdclass == rdclass);
 
+	UNUSED(rdclass);
+
 	if (loc->v.v0.version != 0)
 		return (ISC_R_NOTIMPLEMENTED);
 	RETERR(uint8_tobuffer(loc->v.v0.version, target));
@@ -706,6 +708,7 @@ freestruct_loc(ARGS_FREESTRUCT) {
 	REQUIRE(loc->common.rdtype == 29);
 
 	UNUSED(source);
+	UNUSED(loc);
 }
 
 static inline isc_result_t

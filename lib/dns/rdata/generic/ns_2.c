@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ns_2.c,v 1.36 2000/11/08 01:55:52 bwelling Exp $ */
+/* $Id: ns_2.c,v 1.37 2000/12/01 01:40:33 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 18:15:00 PST 2000 by bwelling */
 
@@ -129,6 +129,8 @@ fromstruct_ns(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(ns->common.rdtype == type);
 	REQUIRE(ns->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&ns->name, &region);
 	return (isc_buffer_copyregion(target, &region));

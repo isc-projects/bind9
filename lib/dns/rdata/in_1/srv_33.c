@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.30 2000/11/08 01:56:14 bwelling Exp $ */
+/* $Id: srv_33.c,v 1.31 2000/12/01 01:40:58 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -34,6 +34,8 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(rdclass);
 
 	/*
 	 * Priority.
@@ -133,6 +135,8 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
 
+	UNUSED(rdclass);
+
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
         dns_name_init(&name, NULL);
@@ -226,6 +230,8 @@ fromstruct_in_srv(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(srv->common.rdtype == type);
 	REQUIRE(srv->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(srv->priority, target));
 	RETERR(uint16_tobuffer(srv->weight, target));

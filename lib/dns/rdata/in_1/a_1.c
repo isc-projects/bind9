@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.40 2000/11/08 01:56:07 bwelling Exp $ */
+/* $Id: a_1.c,v 1.41 2000/12/01 01:40:50 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -182,6 +182,8 @@ freestruct_in_a(ARGS_FREESTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(a->common.rdtype == 1);
 	REQUIRE(a->common.rdclass == 1);
+
+	UNUSED(a);
 }
 
 static inline isc_result_t

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.27 2000/11/08 01:56:12 bwelling Exp $ */
+/* $Id: nsap_22.c,v 1.28 2000/12/01 01:40:56 gson Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -39,6 +39,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 
 	UNUSED(origin);
 	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	/* 0x<hex.string.with.periods> */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -102,6 +103,7 @@ fromwire_in_nsap(ARGS_FROMWIRE) {
 
 	UNUSED(dctx);
 	UNUSED(downcase);
+	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &region);
 	if (region.length < 1)
@@ -151,6 +153,8 @@ fromstruct_in_nsap(ARGS_FROMSTRUCT) {
 	REQUIRE(nsap->common.rdclass == rdclass);
 	REQUIRE((nsap->nsap == NULL && nsap->nsap_len == 0) ||
 		(nsap->nsap != NULL && nsap->nsap_len != 0));
+
+	UNUSED(rdclass);
 
 	return (mem_tobuffer(target, nsap->nsap, nsap->nsap_len));
 }

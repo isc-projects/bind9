@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.31 2000/11/08 01:56:09 bwelling Exp $ */
+/* $Id: kx_36.c,v 1.32 2000/12/01 01:40:52 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -34,6 +34,8 @@ fromtext_in_kx(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 36);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
 				      ISC_FALSE));
@@ -85,6 +87,8 @@ fromwire_in_kx(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 36);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -162,6 +166,8 @@ fromstruct_in_kx(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(kx->common.rdtype == type);
 	REQUIRE(kx->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(kx->preference, target));
 	dns_name_toregion(&kx->exchange, &region);

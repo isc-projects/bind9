@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.24 2000/11/08 01:55:40 bwelling Exp $ */
+/* $Id: isdn_20.c,v 1.25 2000/12/01 01:40:22 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -117,6 +117,8 @@ fromstruct_isdn(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(isdn->common.rdtype == type);
 	REQUIRE(isdn->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	RETERR(uint8_tobuffer(isdn->isdn_len, target));
 	RETERR(mem_tobuffer(target, isdn->isdn, isdn->isdn_len));

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.33 2000/11/08 01:55:33 bwelling Exp $ */
+/* $Id: afsdb_18.c,v 1.34 2000/12/01 01:40:15 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -173,6 +173,8 @@ fromstruct_afsdb(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(afsdb->common.rdclass == rdclass);
 	REQUIRE(afsdb->common.rdtype == type);
+
+	UNUSED(rdclass);
 
 	RETERR(uint16_tobuffer(afsdb->subtype, target));
 	dns_name_toregion(&afsdb->server, &region);

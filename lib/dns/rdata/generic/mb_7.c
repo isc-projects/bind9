@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.35 2000/11/08 01:55:44 bwelling Exp $ */
+/* $Id: mb_7.c,v 1.36 2000/12/01 01:40:25 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -129,6 +129,8 @@ fromstruct_mb(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(mb->common.rdtype == type);
 	REQUIRE(mb->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&mb->mb, &region);
 	return (isc_buffer_copyregion(target, &region));

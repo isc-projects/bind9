@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.38 2000/11/08 01:56:05 bwelling Exp $ */
+/* $Id: a6_38.c,v 1.39 2000/12/01 01:40:49 gson Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -38,6 +38,8 @@ fromtext_in_a6(ARGS_FROMTEXT) {
 
 	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(rdclass);
 
 	/*
 	 * Prefix length.
@@ -143,6 +145,8 @@ fromwire_in_a6(ARGS_FROMWIRE) {
 
 	REQUIRE(type == 38);
 	REQUIRE(rdclass == 1);
+
+	UNUSED(rdclass);
 
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
@@ -275,6 +279,8 @@ fromstruct_in_a6(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(a6->common.rdtype == type);
 	REQUIRE(a6->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	if (a6->prefixlen > 128)
 		return (ISC_R_RANGE);

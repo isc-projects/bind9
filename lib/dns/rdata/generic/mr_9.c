@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.32 2000/11/08 01:55:49 bwelling Exp $ */
+/* $Id: mr_9.c,v 1.33 2000/12/01 01:40:31 gson Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -129,6 +129,8 @@ fromstruct_mr(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(mr->common.rdtype == type);
 	REQUIRE(mr->common.rdclass == rdclass);
+
+	UNUSED(rdclass);
 
 	dns_name_toregion(&mr->mr, &region);
 	return (isc_buffer_copyregion(target, &region));
