@@ -1,4 +1,6 @@
-1096.	[func]		libbind: RES_PRF_TRUNC for dig.
+1098.	[bug]		libbind: HMAC-MD5 key files are now mode 0600.
+
+1097.	[func]		libbind: RES_PRF_TRUNC for dig.
 
 1096.	[func]		libbind: "DNSSEC OK" (DO) support.
 
