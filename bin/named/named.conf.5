@@ -48,15 +48,6 @@ key \fIdomain_name\fR {
 };
 .sp
 .fi
-.SH "MASTERS"
-.sp
-.nf
-masters \fIstring\fR [ port \fIinteger\fR ] {
-	( \fImasters\fR | \fIipv4_address\fR [port \fIinteger\fR] |
-	\fIipv6_address\fR [port \fIinteger\fR] ) [ key \fIstring\fR ]; ...
-};
-.sp
-.fi
 .SH "SERVER"
 .sp
 .nf
@@ -132,8 +123,6 @@ lwres {
 .sp
 .nf
 options {
-	avoid-v4-udp-ports { \fIport\fR; ... };
-	avoid-v6-udp-ports { \fIport\fR; ... };
 	blackhole { \fIaddress_match_element\fR; ... };
 	coresize \fIsize\fR;
 	datasize \fIsize\fR;
@@ -142,25 +131,20 @@ options {
 	files \fIsize\fR;
 	heartbeat-interval \fIinteger\fR;
 	host-statistics \fIboolean\fR; // not implemented
-	hostname ( \fIquoted_string\fR | none );
 	interface-interval \fIinteger\fR;
 	listen-on [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
 	listen-on-v6 [ port \fIinteger\fR ] { \fIaddress_match_element\fR; ... };
 	match-mapped-addresses \fIboolean\fR;
-	memstatistics-file \fIquoted_string\fR;
-	pid-file ( \fIquoted_string\fR | none );
+	memstatistics-file \fIquoted_string\fR; // not implemented
+	pid-file \fIquoted_string\fR;
 	port \fIinteger\fR;
-	querylog \fIboolean\fR;
-	recursing-file \fIquoted_string\fR;
 	random-device \fIquoted_string\fR;
 	recursive-clients \fIinteger\fR;
 	serial-query-rate \fIinteger\fR;
-	server-id ( \fIquoted_string\fR | none |;
 	stacksize \fIsize\fR;
 	statistics-file \fIquoted_string\fR;
 	statistics-interval \fIinteger\fR; // not yet implemented
 	tcp-clients \fIinteger\fR;
-	tcp-listen-queue \fIinteger\fR;
 	tkey-dhkey \fIquoted_string\fR \fIinteger\fR;
 	tkey-gssapi-credential \fIquoted_string\fR;
 	tkey-domain \fIquoted_string\fR;
@@ -168,7 +152,7 @@ options {
 	transfers-in \fIinteger\fR;
 	transfers-out \fIinteger\fR;
 	use-ixfr \fIboolean\fR;
-	version ( \fIquoted_string\fR | none );
+	version \fIquoted_string\fR;
 	allow-recursion { \fIaddress_match_element\fR; ... };
 	sortlist { \fIaddress_match_element\fR; ... };
 	topology { \fIaddress_match_element\fR; ... }; // not implemented
@@ -178,7 +162,7 @@ options {
 	rrset-order {
 		[ class \fIstring\fR ] [ type \fIstring\fR ]
 		[ name \fIquoted_string\fR ] \fIstring\fR \fIstring\fR; ...
-	};
+	}; // not implemented
 	provide-ixfr \fIboolean\fR;
 	request-ixfr \fIboolean\fR;
 	rfc2308-type1 \fIboolean\fR; // not yet implemented
@@ -194,24 +178,11 @@ options {
 	transfer-format ( many-answers | one-answer );
 	max-cache-size \fIsize_no_default\fR;
 	check-names ( master | slave | response )
-		( fail | warn | ignore );
+		( fail | warn | ignore ); // not implemented
 	cache-file \fIquoted_string\fR;
-	suppress-initial-notify \fIboolean\fR; // not yet implemented
-	preferred-glue \fIstring\fR;
-	dual-stack-servers [ port \fIinteger\fR ] {
-		( \fIquoted_string\fR [port \fIinteger\fR] |
-		\fIipv4_address\fR [port \fIinteger\fR] |
-		\fIipv6_address\fR [port \fIinteger\fR] ); ...
-	}
-	edns-udp-size \fIinteger\fR;
 	root-delegation-only [ exclude { \fIquoted_string\fR; ... } ];
-	disable-algorithms \fIstring\fR { \fIstring\fR; ... };
-	dnssec-enable \fIboolean\fR;
-	dnssec-lookaside \fIstring\fR trust-anchor \fIstring\fR;
-	dnssec-must-be-secure \fIstring\fR \fIboolean\fR;
 
 	dialup \fIdialuptype\fR;
-	ixfr-from-differences \fIixfrdiff\fR;
 
 	allow-query { \fIaddress_match_element\fR; ... };
 	allow-transfer { \fIaddress_match_element\fR; ... };
@@ -229,7 +200,6 @@ options {
 		( \fIipv4_address\fR | \fIipv6_address\fR ) [ port \fIinteger\fR ]; ...
 	};
 
-	max-journal-size \fIsize_no_default\fR;
 	max-transfer-time-in \fIinteger\fR;
 	max-transfer-time-out \fIinteger\fR;
 	max-transfer-idle-in \fIinteger\fR;
@@ -238,7 +208,6 @@ options {
 	min-retry-time \fIinteger\fR;
 	max-refresh-time \fIinteger\fR;
 	min-refresh-time \fIinteger\fR;
-	multi-master \fIboolean\fR;
 	sig-validity-interval \fIinteger\fR;
 
 	transfer-source ( \fIipv4_address\fR | * )
@@ -246,16 +215,9 @@ options {
 	transfer-source-v6 ( \fIipv6_address\fR | * )
 		[ port ( \fIinteger\fR | * ) ];
 
-	alt-transfer-source ( \fIipv4_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	alt-transfer-source-v6 ( \fIipv6_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	use-alt-transfer-source \fIboolean\fR;
-
 	zone-statistics \fIboolean\fR;
-	key-directory \fIquoted_string\fR;
 
-	allow-v6-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
+	allow-v6-synthesis { \fIaddress_match_element\fR; ... };
 	deallocate-on-exit \fIboolean\fR; // obsolete
 	fake-iquery \fIboolean\fR; // obsolete
 	fetch-glue \fIboolean\fR; // obsolete
@@ -304,7 +266,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	rrset-order {
 		[ class \fIstring\fR ] [ type \fIstring\fR ]
 		[ name \fIquoted_string\fR ] \fIstring\fR \fIstring\fR; ...
-	};
+	}; // not implemented
 	provide-ixfr \fIboolean\fR;
 	request-ixfr \fIboolean\fR;
 	rfc2308-type1 \fIboolean\fR; // not yet implemented
@@ -323,21 +285,9 @@ view \fIstring\fR \fIoptional_class\fR {
 		( fail | warn | ignore );
 	cache-file \fIquoted_string\fR;
 	suppress-initial-notify \fIboolean\fR; // not yet implemented
-	preferred-glue \fIstring\fR;
-	dual-stack-servers [ port \fIinteger\fR ] {
-		( \fIquoted_string\fR [port \fIinteger\fR] |
-		\fIipv4_address\fR [port \fIinteger\fR] |
-		\fIipv6_address\fR [port \fIinteger\fR] ); ...
-	};
-	edns-udp-size \fIinteger\fR;
 	root-delegation-only [ exclude { \fIquoted_string\fR; ... } ];
-	disable-algorithms \fIstring\fR { \fIstring\fR; ... };
-	dnssec-enable \fIboolean\fR;
-	dnssec-lookaside \fIstring\fR trust-anchor \fIstring\fR;
 
-	dnssec-must-be-secure \fIstring\fR \fIboolean\fR;
 	dialup \fIdialuptype\fR;
-	ixfr-from-differences \fIixfrdiff\fR;
 
 	allow-query { \fIaddress_match_element\fR; ... };
 	allow-transfer { \fIaddress_match_element\fR; ... };
@@ -355,7 +305,6 @@ view \fIstring\fR \fIoptional_class\fR {
 		( \fIipv4_address\fR | \fIipv6_address\fR ) [ port \fIinteger\fR ]; ...
 	};
 
-	max-journal-size \fIsize_no_default\fR;
 	max-transfer-time-in \fIinteger\fR;
 	max-transfer-time-out \fIinteger\fR;
 	max-transfer-idle-in \fIinteger\fR;
@@ -364,7 +313,6 @@ view \fIstring\fR \fIoptional_class\fR {
 	min-retry-time \fIinteger\fR;
 	max-refresh-time \fIinteger\fR;
 	min-refresh-time \fIinteger\fR;
-	multi-master \fIboolean\fR;
 	sig-validity-interval \fIinteger\fR;
 
 	transfer-source ( \fIipv4_address\fR | * )
@@ -372,14 +320,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	transfer-source-v6 ( \fIipv6_address\fR | * )
 		[ port ( \fIinteger\fR | * ) ];
 
-	alt-transfer-source ( \fIipv4_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	alt-transfer-source-v6 ( \fIipv6_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	use-alt-transfer-source \fIboolean\fR;
-
 	zone-statistics \fIboolean\fR;
-	key-directory \fIquoted_string\fR;
 
 	allow-v6-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	fetch-glue \fIboolean\fR; // obsolete
@@ -397,8 +338,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	file \fIquoted_string\fR;
 
 	masters [ port \fIinteger\fR ] {
-		( \fImasters\fR |
-		\fIipv4_address\fR [port \fIinteger\fR] |
+		( \fIipv4_address\fR [port \fIinteger\fR] |
 		\fIipv6_address\fR [ port \fIinteger\fR ] ) [ key \fIstring\fR ]; ...
 	};
 
@@ -406,7 +346,6 @@ zone \fIstring\fR \fIoptional_class\fR {
 	delegation-only \fIboolean\fR;
 	check-names ( fail | warn | ignore );
 	dialup \fIdialuptype\fR;
-	ixfr-from-differences \fIboolean\fR;
 
 	allow-query { \fIaddress_match_element\fR; ... };
 	allow-transfer { \fIaddress_match_element\fR; ... };
@@ -430,7 +369,6 @@ zone \fIstring\fR \fIoptional_class\fR {
 		( \fIipv4_address\fR | \fIipv6_address\fR ) [ port \fIinteger\fR ]; ...
 	};
 
-	max-journal-size \fIsize_no_default\fR;
 	max-transfer-time-in \fIinteger\fR;
 	max-transfer-time-out \fIinteger\fR;
 	max-transfer-idle-in \fIinteger\fR;
@@ -439,7 +377,6 @@ zone \fIstring\fR \fIoptional_class\fR {
 	min-retry-time \fIinteger\fR;
 	max-refresh-time \fIinteger\fR;
 	min-refresh-time \fIinteger\fR;
-	multi-master \fIboolean\fR;
 	sig-validity-interval \fIinteger\fR;
 
 	transfer-source ( \fIipv4_address\fR | * )
@@ -447,14 +384,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 	transfer-source-v6 ( \fIipv6_address\fR | * )
 		[ port ( \fIinteger\fR | * ) ];
 
-	alt-transfer-source ( \fIipv4_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	alt-transfer-source-v6 ( \fIipv6_address\fR | * )
-		[ port ( \fIinteger\fR | * ) ];
-	use-alt-transfer-source \fIboolean\fR;
-
 	zone-statistics \fIboolean\fR;
-	key-directory \fIquoted_string\fR;
 
 	ixfr-base \fIquoted_string\fR; // obsolete
 	ixfr-tmp-file \fIquoted_string\fR; // obsolete
