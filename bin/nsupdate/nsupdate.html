@@ -130,13 +130,13 @@ made and the replies received from the name server.</P
 ><P
 >Transaction signatures can be used to authenticate the Dynamic DNS
 updates.
-These use the TSIG resource record type described in RFC2845.
-The signatures rely on a shared secret that should only be known to
+These use the TSIG resource record type described in RFC2845 or the
+SIG(0) record described in RFC3535 and RFC2931.
+TSIG relies on a shared secret that should only be known to
 <B
 CLASS="COMMAND"
 >nsupdate</B
->
-and the name server.
+> and the name server.
 Currently, the only supported encryption algorithm for TSIG is
 HMAC-MD5, which is defined in RFC 2104.
 Once other algorithms are defined for TSIG, applications will need to
@@ -160,6 +160,8 @@ CLASS="FILENAME"
 so that the name server can associate the appropriate secret key
 and algorithm with the IP address of the
 client application that will be using TSIG authentication.
+SIG(0) uses public key cryptography.  To use a SIG(0) key, the public
+key must be stored in a KEY record in a zone served by the name server.
 <B
 CLASS="COMMAND"
 >nsupdate</B
@@ -184,8 +186,8 @@ or
 CLASS="OPTION"
 >-k</TT
 >
-option to provide the shared secret needed to generate a TSIG record
-for authenticating Dynamic DNS update requests.
+option (with an HMAC-MD5 key) to provide the shared secret needed to generate
+a TSIG record for authenticating Dynamic DNS update requests.
 These options are mutually exclusive.
 With the
 <TT
@@ -259,6 +261,13 @@ CLASS="REFENTRYTITLE"
 >
 or in a history file maintained by the user's shell.</P
 ><P
+>The <TT
+CLASS="OPTION"
+>-k</TT
+> may also be used to specify a SIG(0) key used
+to authenticate Dynamic DNS update requests.  In this case, the key
+specified is not an HMAC-MD5 key.</P
+><P
 >By default
 <B
 CLASS="COMMAND"
@@ -281,7 +290,7 @@ This may be preferable when a batch of update requests is made.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN65"
+NAME="AEN67"
 ></A
 ><H2
 >INPUT FORMAT</H2
@@ -752,7 +761,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN223"
+NAME="AEN225"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -823,7 +832,7 @@ SIG, KEY and NXT records.)</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN236"
+NAME="AEN238"
 ></A
 ><H2
 >FILES</H2
@@ -879,7 +888,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN260"
+NAME="AEN262"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -930,6 +939,13 @@ CLASS="REFENTRYTITLE"
 CLASS="CITEREFENTRY"
 ><SPAN
 CLASS="REFENTRYTITLE"
+>RFC2931</SPAN
+></SPAN
+>,
+<SPAN
+CLASS="CITEREFENTRY"
+><SPAN
+CLASS="REFENTRYTITLE"
 >named</SPAN
 >(8)</SPAN
 >,
@@ -944,7 +960,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN281"
+NAME="AEN285"
 ></A
 ><H2
 >BUGS</H2
