@@ -273,11 +273,11 @@ dns_c_ctrl_print(isc_log_t *lctx,
 		fprintf(fp, ";\n");
 	} else {
 		/* The "#" means force a leading zero */
-		fprintf(fp, "unix \"%s\" perm %#o owner %d group %d;\n",
+		fprintf(fp, "unix \"%s\" perm %#o owner %lu group %lu;\n",
 			ctl->u.unix_v.pathname,
 			ctl->u.unix_v.perm,
-			ctl->u.unix_v.owner,
-			ctl->u.unix_v.group);
+			(unsigned long)ctl->u.unix_v.owner,
+			(unsigned long)ctl->u.unix_v.group);
 	}
 }
 
