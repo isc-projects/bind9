@@ -119,11 +119,13 @@ ns_log_setdefaults(isc_logconfig_t *lcfg) {
 			goto cleanup;
 	}
 
-	result = isc_log_usechannel(lcfg, "default_syslog", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "default_syslog",
+				    ISC_LOGCATEGORY_DEFAULT, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = isc_log_usechannel(lcfg, "default_debug", NULL, NULL);
+	result = isc_log_usechannel(lcfg, "default_debug",
+				    ISC_LOGCATEGORY_DEFAULT, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

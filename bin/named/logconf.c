@@ -38,17 +38,19 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 {
 	isc_result_t result;
 	unsigned int i;
+	isc_logcategory_t *category;
+	isc_logmodule_t *module;
+
+	category = isc_log_categorybyname(ns_g_lctx, ccat->catname);
+#ifdef notyet
+	module = isc_log_modulebyname(ns_g_lctx, ccat->modname);
+#else
+	module = NULL;
+#endif
 
 	for (i = 0; i < ccat->nextcname; i++) {
 		char *channelname = ccat->channel_names[i];
-		isc_logcategory_t *category;
-		isc_logmodule_t *module;
-		category = isc_log_categorybyname(ns_g_lctx, ccat->catname);
-#ifdef notyet
-		module = isc_log_modulebyname(ns_g_lctx, ccat->modname);
-#else
-		module = NULL;
-#endif
+
 		result = isc_log_usechannel(lctx, channelname, category,
 					    module);
 		if (result != ISC_R_SUCCESS) {
@@ -150,20 +152,25 @@ ns_log_configure(isc_logconfig_t *lcctx, dns_c_logginglist_t *clog)
 	isc_result_t result;
 	dns_c_logchan_t *cchan;
 	dns_c_logcat_t *ccat;
+	isc_boolean_t default_set = ISC_FALSE;
 
 	for (cchan = ISC_LIST_HEAD(clog->channels);
 	     cchan != NULL;
-	     cchan = ISC_LIST_NEXT(cchan, next))
-	{
+	     cchan = ISC_LIST_NEXT(cchan, next)) {
 		CHECK(channel_fromconf(cchan, lcctx));
 	}
 
 	for (ccat = ISC_LIST_HEAD(clog->categories);
 	     ccat != NULL;
-	     ccat = ISC_LIST_NEXT(ccat, next))
-	{
+	     ccat = ISC_LIST_NEXT(ccat, next)) {
 		CHECK(category_fromconf(ccat, lcctx));
+		if (! default_set)
+			default_set =
+				ISC_TF(strcmp(ccat->catname, "default") == 0);
 	}
+
+	if (! default_set)
+		CHECK(ns_log_setdefaults(lcctx));
 
 	return (ISC_R_SUCCESS);
 
