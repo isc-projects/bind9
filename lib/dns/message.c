@@ -1180,8 +1180,15 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/*
-		 * XXXRTH  Normalize TTLs.
+		 * Minimize TTLs.
+		 *
+		 * Section 5.2 of RFC 2181 says we should drop
+		 * nonauthoritative rrsets where the TTLs differ, but we
+		 * currently treat them the as if they were authoritative and
+		 * minimize them.
 		 */
+		if (ttl < rdataset->ttl)
+			rdataset->ttl = ttl;
 
 		/*
 		 * XXXMLG Perform a totally ugly hack here to pull
@@ -1497,6 +1504,15 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				msg->counts[sectionid] += total;
 				return (result);
 			}
+
+			/*
+			 * If we have rendered pending data, ensure that the
+			 * AD bit is not set.
+			 */
+			if (rdataset->trust == dns_trust_pending &&
+			    (sectionid == DNS_SECTION_ANSWER ||
+			     sectionid == DNS_SECTION_AUTHORITY))
+				msg->flags &= ~DNS_MESSAGEFLAG_AD;
 
 			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 
