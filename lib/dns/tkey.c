@@ -16,13 +16,14 @@
  */
 
 /*
- * $Id: tkey.c,v 1.42 2000/06/02 18:59:14 bwelling Exp $
+ * $Id: tkey.c,v 1.43 2000/06/07 02:33:46 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
 
 #include <isc/buffer.h>
+#include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -148,36 +149,31 @@ add_rdata_to_list(dns_message_t *msg, dns_name_t *name, dns_rdata_t *rdata,
 
 static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
-	       isc_region_t *serverrandomness, isc_mem_t *mctx,
-	       isc_buffer_t *secret)
+	       isc_region_t *serverrandomness, isc_buffer_t *secret)
 {
-	dst_context_t *ctx = NULL;
-	isc_result_t result;
+	isc_md5_t md5ctx;
 	isc_region_t r, r2;
 	char digests[32];
-	isc_buffer_t b;
 	unsigned int i;
 
-	isc_buffer_init(&b, digests, sizeof(digests));
 	isc_buffer_usedregion(shared, &r);
 
 	/*
 	 * MD5 ( query data | DH value ).
 	 */
-	RETERR(dst_context_create(DST_KEY_MD5, mctx, &ctx));
-	RETERR(dst_context_adddata(ctx, queryrandomness));
-	RETERR(dst_context_adddata(ctx, &r));
-	RETERR(dst_context_digest(ctx, &b));
-	dst_context_destroy(&ctx);
+	isc_md5_init(&md5ctx);
+	isc_md5_update(&md5ctx, queryrandomness->base, queryrandomness->length);
+	isc_md5_update(&md5ctx, r.base, r.length);
+	isc_md5_final(&md5ctx, digests);
 
 	/*
 	 * MD5 ( server data | DH value ).
 	 */
-	RETERR(dst_context_create(DST_KEY_MD5, mctx, &ctx));
-	RETERR(dst_context_adddata(ctx, serverrandomness));
-	RETERR(dst_context_adddata(ctx, &r));
-	RETERR(dst_context_digest(ctx, &b));
-	dst_context_destroy(&ctx);
+	isc_md5_init(&md5ctx);
+	isc_md5_update(&md5ctx, serverrandomness->base,
+		       serverrandomness->length);
+	isc_md5_update(&md5ctx, r.base, r.length);
+	isc_md5_final(&md5ctx, &digests[ISC_MD5_DIGESTLENGTH]);
 
 	/*
 	 * XOR ( DH value, MD5-1 | MD5-2).
@@ -198,12 +194,7 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 			r.base[i] ^= r2.base[i];
 		isc_buffer_add(secret, sizeof(digests));
 	}
-
- failure:
-	if (ctx != NULL)
-		dst_context_destroy(&ctx);
-
-	return (result);
+	return (ISC_R_SUCCESS);
 
 }
 
@@ -333,7 +324,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_buffer_usedregion(&randombuf, &r);
 	r2.base = tkeyin->key;
 	r2.length = tkeyin->keylen;
-	RETERR(compute_secret(shared, &r2, &r, msg->mctx, &secret));
+	RETERR(compute_secret(shared, &r2, &r, &secret));
 
 	dst_key_free(&pubkey);
 	isc_buffer_usedregion(&secret, &r);
@@ -936,7 +927,7 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 		r2.base = isc_mem_get(rmsg->mctx, 0);
 		r2.length = 0;
 	}
-	RETERR(compute_secret(shared, &r2, &r, rmsg->mctx, &secret));
+	RETERR(compute_secret(shared, &r2, &r, &secret));
 	if (nonce == NULL)
 		isc_mem_put(rmsg->mctx, r2.base, 0);
 
