@@ -91,7 +91,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3484"
+HREF="Bv9ARM.ch06.html#AEN3490"
 >Zone File</A
 ></DT
 ></DL
@@ -7193,6 +7193,18 @@ CLASS="replaceable"
 >address_match_list</I
 ></TT
 > } ;
+      match-destinations { <TT
+CLASS="replaceable"
+><I
+>address_match_list</I
+></TT
+> } ;
+      match-recursive-only { <TT
+CLASS="replaceable"
+><I
+>yes_or_no</I
+></TT
+> } ;
       [<SPAN
 CLASS="optional"
 > <TT
@@ -7228,7 +7240,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3003"
+NAME="AEN3005"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -7250,26 +7262,46 @@ split DNS setups without having to run multiple servers.</P
 CLASS="command"
 >view</B
 > statement defines a view of the
-DNS namespace that will be seen by those clients whose IP addresses
-match the <TT
+DNS namespace that will be seen by a subset of clients.  A client matches
+a view if its source IP address matches the 
+<TT
 CLASS="varname"
 >address_match_list</TT
-> of the view's <B
+> of the view's
+<B
 CLASS="command"
 >match-clients</B
-> clause.
- The order of the <B
+> clause and its destination IP address matches
+the <TT
+CLASS="varname"
+>address_match_list</TT
+> of the view's
+<B
 CLASS="command"
->view</B
-> statements is significant-a
-client query will be resolved in the context of the first <B
-CLASS="command"
->view</B
-> whose <B
+>match-destinations</B
+> clause.  If not specified, both
+<B
 CLASS="command"
 >match-clients</B
-> list
-matches the client's IP address.</P
+> and <B
+CLASS="command"
+>match-destinations</B
+>
+default to matching all addresses.  A view can also be specified
+as <B
+CLASS="command"
+>match-recursive-only</B
+>, which means that only recursive
+queries from matching clients will match that view.
+The order of the <B
+CLASS="command"
+>view</B
+> statements is significant &#8212; 
+a client query will be resolved in the context of the first
+<B
+CLASS="command"
+>view</B
+> that it matches.</P
 ><P
 >Zones defined within a <B
 CLASS="command"
@@ -7304,7 +7336,7 @@ CLASS="command"
 take precedence over those in the <B
 CLASS="command"
 >options</B
-> statement. </P
+> statement.</P
 ><P
 >Views are class specific.  If no class is given, class IN
 is assumed.  Note that all non-IN views must contain a hint zone,
@@ -7313,21 +7345,22 @@ since only the IN class has compiled-in default hints.</P
 >If there are no <B
 CLASS="command"
 >view</B
-> statements in the
-config file, a default view that matches any client is automatically
-created in class IN, and any <B
+> statements in the config
+file, a default view that matches any client is automatically created
+in class IN, and any <B
 CLASS="command"
 >zone</B
-> statements
-specified on the top level of the configuration file are considered
-to be part of this default view.  If any explicit <B
+> statements specified on
+the top level of the configuration file are considered to be part of
+this default view.  If any explicit <B
 CLASS="command"
 >view</B
 > statements
 are present, all <B
 CLASS="command"
 >zone</B
-> statements must occur inside <B
+> statements must occur inside
+<B
 CLASS="command"
 >view</B
 > statements.</P
@@ -7858,7 +7891,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3150"
+NAME="AEN3156"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -7869,13 +7902,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3153"
+NAME="AEN3159"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3155"
+NAME="AEN3161"
 ></A
 ><P
 ></P
@@ -8113,7 +8146,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3210"
+NAME="AEN3216"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8151,7 +8184,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3220"
+NAME="AEN3226"
 >6.2.22.3. Zone Options</A
 ></H3
 ><P
@@ -8792,7 +8825,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3454"
+NAME="AEN3460"
 ></A
 ><P
 ></P
@@ -8899,7 +8932,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3484"
+NAME="AEN3490"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -8920,7 +8953,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3489"
+NAME="AEN3495"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -8943,7 +8976,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3495"
+NAME="AEN3501"
 ></A
 ><P
 ></P
@@ -9054,7 +9087,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3527"
+NAME="AEN3533"
 ></A
 ><P
 ></P
@@ -9431,7 +9464,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3639"
+NAME="AEN3645"
 ></A
 ><P
 ></P
@@ -9483,7 +9516,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3655"
+NAME="AEN3661"
 ></A
 ><P
 ></P
@@ -9660,7 +9693,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3703"
+NAME="AEN3709"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -9690,7 +9723,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3710"
+NAME="AEN3716"
 ></A
 ><P
 ></P
@@ -9899,7 +9932,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3776"
+NAME="AEN3782"
 ></A
 ><P
 ></P
@@ -9990,7 +10023,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3804"
+NAME="AEN3810"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10023,7 +10056,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3810"
+NAME="AEN3816"
 ></A
 ><P
 ></P
@@ -10319,7 +10352,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3902"
+NAME="AEN3908"
 ></A
 ><P
 ></P
@@ -10402,7 +10435,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3925"
+NAME="AEN3931"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10426,7 +10459,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3930"
+NAME="AEN3936"
 ></A
 ><P
 ></P
@@ -10506,7 +10539,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3952"
+NAME="AEN3958"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10531,7 +10564,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3959"
+NAME="AEN3965"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10601,7 +10634,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3979"
+NAME="AEN3985"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -10683,7 +10716,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3999"
+NAME="AEN4005"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -10723,7 +10756,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN4010"
+NAME="AEN4016"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -10802,7 +10835,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN4030"
+NAME="AEN4036"
 ></A
 ><P
 ></P
