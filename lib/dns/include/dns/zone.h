@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.100 2001/02/26 01:45:57 marka Exp $ */
+/* $Id: zone.h,v 1.101 2001/03/19 22:34:11 bwelling Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1227,6 +1227,24 @@ dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
 /*
  *	Get the number of simultaneous file descriptors available for 
  *	reading and writing masterfiles.
+ *
+ * Requires:
+ *	'zmgr' to be a valid zone manager.
+ */
+
+void
+dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value);
+/*
+ *	Set the number of SOA queries sent per second.
+ *
+ * Requires:
+ *	'zmgr' to be a valid zone manager
+ */
+
+unsigned int
+dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr);
+/*
+ *	Return the number of SOA queries sent per second.
  *
  * Requires:
  *	'zmgr' to be a valid zone manager.

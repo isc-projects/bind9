@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.311 2001/03/01 17:46:59 bwelling Exp $ */
+/* $Id: zone.c,v 1.312 2001/03/19 22:34:09 bwelling Exp $ */
 
 #include <config.h>
 
@@ -275,6 +275,7 @@ struct dns_zonemgr {
 	/* Configuration data. */
 	int			transfersin;
 	int			transfersperns;
+	unsigned int		serialqueryrate;
 
 	/* Locked by iolock */
 	isc_uint32_t		iolimit;
@@ -5209,7 +5210,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 					&zmgr->rl);
 	if (result != ISC_R_SUCCESS)
 		goto free_task;
-	/* 20 refresh queries / notifies per second. */
+	/* default to 20 refresh queries / notifies per second. */
 	isc_interval_set(&interval, 0, 1000000000/2);
 	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -5751,6 +5752,41 @@ dns_zonemgr_dbdestroyed(isc_task_t *task, isc_event_t *event) {
 		      "database (%p) destroyed", (void*) db);
 }
 #endif
+
+void
+dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value) {
+	isc_interval_t interval;
+	isc_uint32_t ns;
+	isc_uint32_t pertic;
+	isc_result_t result;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	if (value == 0)
+		value = 1;
+
+	if (value < 10) {
+		ns = 1000000000 / value;
+		pertic = 1;
+	} else {
+		ns = (1000000000 / value) * 10;
+		pertic = 10;
+	}
+
+	isc_interval_set(&interval, 0, ns);
+	result = isc_ratelimiter_setinterval(zmgr->rl, &interval);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_ratelimiter_setpertic(zmgr->rl, pertic);
+
+	zmgr->serialqueryrate = value;
+}
+
+unsigned int
+dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr) {
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	return (zmgr->serialqueryrate);
+}
 
 void
 dns_zone_forcereload(dns_zone_t *zone) {

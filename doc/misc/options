@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.64 2001/03/16 18:18:57 bwelling Exp $
+$Id: options,v 1.65 2001/03/19 22:34:08 bwelling Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -85,6 +85,7 @@ options {
   [ max-cache-size size_spec; ]				    No*
   [ min-roots number; ]					    Obsolete
   [ serial-queries number; ]				    Obsolete
+  [ serial-query-rate number; ]				    Yes*
   [ transfer-format ( one-answer | many-answers ); ]	    Yes%
   [ transfers-in  number; ]				    Yes
   [ transfers-out number; ]				    Yes

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.5 2001/03/14 21:53:20 halley Exp $ */
+/* $Id: config.c,v 1.6 2001/03/19 22:34:05 bwelling Exp $ */
 
 #include <config.h>
 
@@ -71,6 +71,7 @@ options {\n\
 	recursive-clients 1000;\n\
 	rrset-order {order cyclic;};\n\
 	serial-queries 20;\n\
+	serial-query-rate 20;\n\
 	stacksize default;\n\
 	statistics-file \"named.stats\";\n\
 	statistics-interval 3600;\n\

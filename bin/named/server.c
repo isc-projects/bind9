@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.306 2001/03/16 22:59:31 bwelling Exp $ */
+/* $Id: server.c,v 1.307 2001/03/19 22:34:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1647,6 +1647,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "transfers-per-ns", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_zonemgr_settransfersperns(server->zonemgr, cfg_obj_asuint32(obj));
+
+	obj = NULL;
+	result = ns_config_get(maps, "serial-query-rate", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_zonemgr_setserialqueryrate(server->zonemgr, cfg_obj_asuint32(obj));
 
 	/*
 	 * Determine which port to use for listening for incoming connections.

@@ -1,4 +1,6 @@
 
+ 782.	[feature]	Implement the serial-query-rate option.
+
  781.	[func]		Avoid error packet loops by dropping duplicate FORMERR
 			responses. [RT #1006]
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.47 2001/03/14 21:53:29 halley Exp $ */
+/* $Id: parser.c,v 1.48 2001/03/19 22:34:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -815,6 +815,7 @@ options_clauses[] = {
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "serial-queries", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
+	{ "serial-query-rate", &cfg_type_uint32, 0 },
 	{ "stacksize", &cfg_type_size, 0 },
 	{ "statistics-file", &cfg_type_qstring, 0 },
 	{ "statistics-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_NYI },
