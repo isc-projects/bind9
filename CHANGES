@@ -1,12 +1,12 @@
-1140.	[bug]		rndc-confgen did not accept IPv6 addresses as arguments
-			to the -s option. [RT #2138]
-
 1142.	[bug]		dnssec-signzone would fail to delete temporary files
 			in some failure cases. [RT #2144]
 
 1141.	[bug]		When named rejected a control message, it would
 			leak a file descriptor and memory.  It would also
 			fail to respond, causing rndc to hang. [RT #2139]
+
+1140.	[bug]		rndc-confgen did not accept IPv6 addresses as arguments
+			to the -s option. [RT #2138]
 
 1136.	[bug]		CNAME records synthesized from DNAMEs did not
 			have a TTL of zero as required by RFC2672.
