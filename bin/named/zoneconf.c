@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.90 2001/09/01 01:43:24 gson Exp $ */
+/* $Id: zoneconf.c,v 1.91 2001/09/04 19:20:54 gson Exp $ */
 
 #include <config.h>
 
@@ -492,7 +492,8 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 				cfg_obj_log(obj, ns_g_lctx,
 					    ISC_LOG_ERROR,
 					    "'max-journal-size "
-					    "%" ISC_PRINT_QUADFORMAT "d' is too large",
+					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "is too large",
 					    value);
 				RETERR(ISC_R_RANGE);
 			}
