@@ -20,13 +20,13 @@
 
 #include <dns/types.h>
 
-dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *class,
-				     dns_textregion_t *source);
+dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *classp,
+				     isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS class.
  *
  * Requires:
- *	'class' is a valid pointer.
+ *	'classp' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
@@ -37,24 +37,22 @@ dns_result_t dns_rdataclass_fromtext(dns_rdataclass_t *class,
  */
 
 dns_result_t dns_rdataclass_totext(dns_rdataclass_t class,
-				   dns_textregion_t *target,
-				   unsigned int *bytesp);
+				   isc_buffer_t *target);
 /*
  * Put a textual representation of class 'class' into 'target'.
  *
  * Requires:
- *	'class' is a valid pointer.
+ *	'class' is a valid class.
  *
- *	'target' is a valid text region.
+ *	'target' is a valid text buffer.
  *
  * Ensures:
  *	If the result is success:
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in 'target' is updated.
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target region is too small
+ *	DNS_R_NOSPACE			target buffer is too small
  */
 
 #endif /* DNS_RDATACLASS_H */

@@ -20,13 +20,13 @@
 
 #include <dns/types.h>
 
-dns_result_t dns_rdatatype_fromtext(dns_rdatatype_t *type,
-				    dns_textregion_t *source);
+dns_result_t dns_rdatatype_fromtext(dns_rdatatype_t *typep,
+				    isc_textregion_t *source);
 /*
  * Convert the text 'source' refers to into a DNS rdata type.
  *
  * Requires:
- *	'type' is a valid pointer.
+ *	'typep' is a valid pointer.
  *
  *	'source' is a valid text region.
  *
@@ -37,24 +37,22 @@ dns_result_t dns_rdatatype_fromtext(dns_rdatatype_t *type,
  */
 
 dns_result_t dns_rdatatype_totext(dns_rdatatype_t type,
-				  dns_textregion_t *target,
-				  unsigned int *bytesp);
+				  isc_buffer_t *target);
 /*
  * Put a textual representation of type 'type' into 'target'.
  *
  * Requires:
- *	'type' is a valid pointer.
+ *	'type' is a valid type.
  *
- *	'target' is a valid text region.
+ *	'target' is a valid text buffer.
  *
  * Ensures:
  *	If the result is success:
- *		*bytesp is the number of bytes of the target region that
- *		were used.
+ *		The used space in 'target' is updated.
  *
  * Returns:
  *	DNS_R_SUCCESS			on success
- *	DNS_R_NOSPACE			target region is too small
+ *	DNS_R_NOSPACE			target buffer is too small
  */
 
 #endif /* DNS_RDATATYPE_H */
