@@ -1,5 +1,5 @@
 
- 401.	[bug]		Treat undefined acls as errors, rather than
+ 402.	[bug]		Treat undefined acls as errors, rather than
 			warning and then later throwing an assertion.
 			[RT #252]
 
