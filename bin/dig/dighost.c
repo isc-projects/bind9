@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.122 2000/09/13 00:12:16 gson Exp $ */
+/* $Id: dighost.c,v 1.123 2000/09/13 00:13:54 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2288,7 +2288,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 		if (specified_source &&
 		    (isc_sockaddr_pf(&query->sockaddr) !=
 		     isc_sockaddr_pf(&bind_address))) {
-			printf(";; Skipping server %s, incompatable "
+			printf(";; Skipping server %s, incompatible "
 			       "address family\n", query->servname);
 			continue;
 			query->waiting_connect = ISC_FALSE;
