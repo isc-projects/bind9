@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.10 2001/02/17 00:46:58 gson Exp $ */
+/* $Id: parser.c,v 1.11 2001/02/22 00:23:29 gson Exp $ */
 
 #include <config.h>
 
@@ -47,9 +47,6 @@
 #define LOG_BEFORE  0x00000002	/* Say "before <token>" */
 #define LOG_NOPREP  0x00000004	/* Say just "<token>" */
 
-#define ISC_R_BADTYPE		90
-#define ISC_R_MULTIPLEVALUES	91
-
 #define MAP_SYM 1 	/* Unique type for isc_symtab */
 
 /* Clause may occur multiple times (e.g., "zone") */
@@ -60,8 +57,14 @@
 #define CFG_CLAUSEFLAG_NOTIMP	 	0x00000004
 /* Clause is not implemented yet */
 #define CFG_CLAUSEFLAG_NYI 		0x00000008
-/* Default value has changed since earlier release*/
+/* Default value has changed since earlier release */
 #define CFG_CLAUSEFLAG_NEWDEFAULT	0x00000008
+/*
+ * Clause needs to be interpreted during parsing
+ * by calling a callback function, like the
+ * "directory" option.
+ */
+#define CFG_CLAUSEFLAG_CALLBACK		0x00000010
 
 /*
  * Flags defining whether to accept certain types of network addresses.
@@ -96,6 +99,7 @@ typedef isc_result_t (*cfg_parsefunc_t)(cfg_parser_t *, cfg_type_t *type,
 					cfg_obj_t **);
 typedef void	     (*cfg_printfunc_t)(cfg_printer_t *, cfg_obj_t *);
 typedef void	     (*cfg_freefunc_t)(cfg_parser_t *, cfg_obj_t *);
+
 
 /*
  * Structure definitions
@@ -133,6 +137,9 @@ struct cfg_parser {
 	 * when a file has just been closed.
 	 */
 	unsigned int	line;
+
+	cfg_parsecallback_t callback;
+	void *callbackarg;
 };
 
 /* The printer object. */
@@ -316,7 +323,8 @@ parse_negated(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
 
 static isc_result_t
 parse_symtab_elt(cfg_parser_t *pctx, const char *name,
-		 cfg_type_t *elttype, isc_symtab_t *symtab);
+		 cfg_type_t *elttype, isc_symtab_t *symtab,
+		 isc_boolean_t callback);
 
 static void
 free_noop(cfg_parser_t *pctx, cfg_obj_t *obj);
@@ -1196,6 +1204,8 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret)
 	pctx->errors = 0;
 	pctx->files = 0;
 	pctx->line = 0;
+	pctx->callback = NULL;
+	pctx->callbackarg = NULL;
 
 	memset(specials, 0, sizeof(specials));
 	specials['{'] = 1;
@@ -1247,6 +1257,15 @@ parser_openfile(cfg_parser_t *pctx, const char *filename) {
  cleanup:
 	CLEANUP_OBJ(stringobj);
 	return (result);
+}
+
+void
+cfg_parser_setcallback(cfg_parser_t *pctx,
+		       cfg_parsecallback_t callback,
+		       void *arg)
+{
+	pctx->callback = callback;
+	pctx->callbackarg = arg;
 }
 
 /*
@@ -1986,7 +2005,7 @@ parse_controls_clause(cfg_parser_t *pctx, cfg_obj_t *mapobj,
 		return (ISC_R_UNEXPECTEDTOKEN);
 	}
 	CHECK(parse_symtab_elt(pctx, name, type,
-			       mapobj->value.map.symtab));
+			       mapobj->value.map.symtab, ISC_FALSE));
 
  cleanup:
 	return (result);
@@ -2806,9 +2825,13 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 		} else {
 			/* Single-valued clause */
 			if (result == ISC_R_NOTFOUND) {
+				isc_boolean_t callback =
+					ISC_TF((clause->flags &
+						CFG_CLAUSEFLAG_CALLBACK) != 0);
 				CHECK(parse_symtab_elt(pctx, clause->name,
 						       clause->type,
-						       obj->value.map.symtab));
+						       obj->value.map.symtab,
+						       callback));
 				CHECK(parse_semicolon(pctx));
 			} else if (result == ISC_R_SUCCESS) {
 				parser_error(pctx, LOG_NEAR, "'%s' redefined",
@@ -2836,13 +2859,18 @@ parse_mapbody(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 
 static isc_result_t
 parse_symtab_elt(cfg_parser_t *pctx, const char *name,
-		 cfg_type_t *elttype, isc_symtab_t *symtab)
+		 cfg_type_t *elttype, isc_symtab_t *symtab,
+		 isc_boolean_t callback)
 {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
 	isc_symvalue_t symval;
 
 	CHECK(parse(pctx, elttype, &obj));
+
+	if (callback && pctx->callback != NULL)
+		CHECK(pctx->callback(name, obj, pctx->callbackarg));
+	
 	symval.as_pointer = obj;
 	CHECK(isc_symtab_define(symtab, name,
 				1, symval,

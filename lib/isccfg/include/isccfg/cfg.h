@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.5 2001/02/17 00:15:22 gson Exp $ */
+/* $Id: cfg.h,v 1.6 2001/02/22 00:23:31 gson Exp $ */
 
 #ifndef DNS_CFG_H
 #define DNS_CFG_H 1
@@ -68,6 +68,14 @@ typedef struct cfg_obj cfg_obj_t;
  */
 typedef struct cfg_listelt cfg_listelt_t;
 
+/*
+ * A callback function to be called when parsing an option 
+ * that needs to be interpreted at parsing time, like
+ * "directory".
+ */
+typedef isc_result_t
+(*cfg_parsecallback_t)(const char *clausename, cfg_obj_t *obj, void *arg);
+
 /***
  *** Functions
  ***/
@@ -79,6 +87,20 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
 /*
  * Create a configuration file parser.  Any warning and error
  * messages will be logged to 'lctx'.
+ */
+
+void
+cfg_parser_setcallback(cfg_parser_t *pctx,
+		       cfg_parsecallback_t callback,
+		       void *arg);
+/*
+ * Make the parser call 'callback' whenever it encounters
+ * a configuration clause with the callback attribute,
+ * passing it the clause name, the clause value,
+ * and 'arg' as arguments.
+ *
+ * To restore the default of not invoking callbacks, pass
+ * callback==NULL and arg==NULL.
  */
 
 isc_result_t
