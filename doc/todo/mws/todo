@@ -16,4 +16,9 @@ Check functionality of +search option
 
 Check necessity of +details option
 
+Check AXFR under Linux v6
 
+Make -t and -c change command line parsing so that unprefixed class and types
+are treated as hosts.
+
++view and +zone stuff
