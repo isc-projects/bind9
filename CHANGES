@@ -1,3 +1,6 @@
+ 418.	[bug]		At debug levels >= 10, getting an unexpected
+			socket receive error would crash the server
+			while trying to log the error message.
 
  416.	[bug]		Slave zones with no master file tried to use a
 			NULL pointer for a journal file name when they
