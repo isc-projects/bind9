@@ -240,7 +240,9 @@
 
  331.	[bug]		Only log "recursion denied" if RD is set. (RT #178)
 
- 330.	[func]		New function isc_log_wouldlog().
+ 330.	[bug]		Many debugging messages were partially formatted
+			even when debugging was turned off, causing a
+			significant decrease in query performance.
 
  329.	[func]		omapi_auth_register() now takes a size_t argument for
 			the length of a key's secret data.  Previously
