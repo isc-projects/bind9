@@ -32,6 +32,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
+#include <dns/secalg.h>
 
 #define PROGRAM "keysigner"
 
@@ -52,8 +53,14 @@ static isc_mem_t *mctx = NULL;
 static keylist_t keylist;
 
 static inline void
-fatal(char *message) {
-	fprintf(stderr, "%s: %s\n", PROGRAM, message);
+fatal(char *format, ...) {
+	va_list args;
+
+	fprintf(stderr, "%s: ", PROGRAM);
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
 	exit(1);
 }
 
@@ -65,6 +72,39 @@ check_result(isc_result_t result, char *message) {
 		exit(1);
 	}
 }
+
+/* Not thread-safe! */
+static char *
+nametostr(dns_name_t *name) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+	static char data[1025];
+
+	isc_buffer_init(&b, data, sizeof(data));
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
+/* Not thread-safe! */
+static char *
+algtostr(const dns_secalg_t alg) {
+	isc_buffer_t b;
+		        isc_region_t r;
+	isc_result_t result;
+	static char data[10];
+
+	isc_buffer_init(&b, data, sizeof(data));
+	result = dns_secalg_totext(alg, &b);
+	check_result(result, "dns_secalg_totext()");
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
 
 static void
 usage() {
@@ -106,15 +146,14 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 			continue;
 		keynode = isc_mem_get(mctx, sizeof (keynode_t));
 		if (keynode == NULL)
-			check_result(ISC_R_NOMEMORY, "isc_mem_get()");
+			fatal("out of memory");
 		keynode->key = key;
 		keynode->verified = ISC_FALSE;
 		ISC_LINK_INIT(keynode, link);
 		ISC_LIST_APPEND(keylist, keynode, link);
 	}
-	if (result == ISC_R_NOMORE)
-		result = ISC_R_SUCCESS;
-	check_result(result, "loadkeys()");
+	if (result != ISC_R_NOMORE)
+		fatal("failure traversing key list");
 }
 
 static dst_key_t *
@@ -170,7 +209,7 @@ main(int argc, char *argv[]) {
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
-				check_result(ISC_R_FAILURE, "strtol()");
+				fatal("verbose level must be numeric");
 			break;
 
 		default:
@@ -206,7 +245,8 @@ main(int argc, char *argv[]) {
 	isc_buffer_init(&b, argv[0], strlen(argv[0]) - 7);
 	isc_buffer_add(&b, strlen(argv[0]) - 7);
 	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_FALSE, NULL);
-	check_result(result, "dns_name_fromtext()");
+	if (result != ISC_R_SUCCESS)
+		fatal("'%s' does not contain a valid domain name", argv[0]);
 	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);
 	result = dns_name_totext(domain, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
@@ -216,7 +256,7 @@ main(int argc, char *argv[]) {
 	output = isc_mem_allocate(mctx,
 				  strlen(tdomain) + strlen("signedkey") + 1);
 	if (output == NULL)
-		check_result(ISC_R_FAILURE, "isc_mem_allocate()");
+		fatal("out of memory");
 	strcpy(output, tdomain);
 	strcat(output, "signedkey");
 
@@ -226,33 +266,45 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_db_create()");
 
 	result = dns_db_load(db, argv[0]);
-	check_result(result, "dns_db_load()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to load database from '%s': %s", argv[0],
+		      isc_result_totext(result));
 
 	version = NULL;
 	dns_db_newversion(db, &version);
 
 	node = NULL;
 	result = dns_db_findnode(db, domain, ISC_FALSE, &node);
-	check_result(result, "dns_db_findnode()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find database node '%s': %s",
+		      nametostr(domain), isc_result_totext(result));
 
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_init(&sigrdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_key, 0,
 				     0, &rdataset, &sigrdataset);
-	check_result(result, "dns_db_findrdataset()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find rdataset '%s KEY': %s",
+		      nametostr(domain), isc_result_totext(result));
 
 	loadkeys(domain, &rdataset);
+
+	if (!dns_rdataset_isassociated(&sigrdataset))
+		fatal("no SIG KEY set present");
 
 	result = dns_rdataset_first(&sigrdataset);
 	check_result(result, "dns_rdataset_first()");
 	do {
 		dns_rdataset_current(&sigrdataset, &sigrdata);
 		result = dns_rdata_tostruct(&sigrdata, &sig, mctx);
-		check_result(result, "dns_rdata_tostruct");
+		check_result(result, "dns_rdata_tostruct()");
 		key = findkey(&sig);
 		result = dns_dnssec_verify(domain, &rdataset, key,
 					   ISC_TRUE, mctx, &sigrdata);
-		check_result(result, "dns_dnssec_verify");
+		if (result != ISC_R_SUCCESS)
+			fatal("signature by key '%s/%s/%d' did not verify: %s",
+			      dst_key_name(key), algtostr(dst_key_alg(key)),
+			      dst_key_id(key), isc_result_totext(result));
 		dns_rdata_freestruct(&sig);
 		result = dns_rdataset_next(&sigrdataset);
 	} while (result == ISC_R_SUCCESS);
@@ -295,20 +347,26 @@ main(int argc, char *argv[]) {
 		key = NULL;
 		result = dst_key_fromfile(namestr, id, alg, DST_TYPE_PRIVATE,
 					  mctx, &key);
-		check_result (result, "dst_key_fromfile()");
+		if (result != ISC_R_SUCCESS)
+			fatal("failed to read key %s/%s/%d from disk: %s",
+			      dst_key_name(key), algtostr(dst_key_alg(key)),
+			      dst_key_id(key), isc_result_totext(result));
 		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)
-			check_result(ISC_R_NOMEMORY, "isc_mem_get()");
+			fatal("out of memory");
 		data = isc_mem_get(mctx, BUFSIZE);
 		if (data == NULL)
-			check_result(ISC_R_NOMEMORY, "isc_mem_get()");
+			fatal("out of memory");
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &sig.timesigned, &sig.timeexpire,
 					 mctx, &b, rdata);
-		check_result (result, "dns_dnssec_sign()");
+		if (result != ISC_R_SUCCESS)
+			fatal("key '%s/%s/%d' failed to sign data: %s",
+			      dst_key_name(key), algtostr(dst_key_alg(key)),
+			      dst_key_id(key), isc_result_totext(result));
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dst_key_free(key);
 	}
@@ -323,7 +381,9 @@ main(int argc, char *argv[]) {
 	dns_db_detachnode(db, &node);
 	dns_db_closeversion(db, &version, ISC_TRUE);
 	result = dns_db_dump(db, version, output);
-	check_result(result, "dns_db_dump()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to write database to '%s': %s",
+		      output, isc_result_totext(result));
 
 	dns_rdataset_disassociate(&rdataset);
 	dns_rdataset_disassociate(&newsigrdataset);

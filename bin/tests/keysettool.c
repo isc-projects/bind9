@@ -32,6 +32,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/secalg.h>
 #include <dns/time.h>
 
 #define PROGRAM "keysettool"
@@ -78,10 +79,28 @@ static char *
 nametostr(dns_name_t *name) {
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
 	static char data[1025];
 
 	isc_buffer_init(&b, data, sizeof(data));
-	dns_name_totext(name, ISC_FALSE, &b);
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
+	isc_buffer_usedregion(&b, &r);
+	r.base[r.length] = 0;
+	return (char *) r.base;
+}
+
+/* Not thread-safe! */
+static char *
+algtostr(const dns_secalg_t alg) {
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
+	static char data[10];
+
+	isc_buffer_init(&b, data, sizeof(data));
+	result = dns_secalg_totext(alg, &b);
+	check_result(result, "dns_secalg_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
@@ -104,7 +123,8 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 	}
 	else {
 		result = dns_time64_fromtext(str, &val);
-		fatal("time %s must be numeric", str);
+		if (result != ISC_R_SUCCESS)
+			fatal("time %s must be numeric", str);
 	}
 	if (*endp != '\0')
 		fatal("time value %s is invalid", str);
@@ -304,8 +324,8 @@ main(int argc, char *argv[]) {
 						  &zonekey);
 			
 			if (result != ISC_R_SUCCESS)
-				fatal("failed to read key %s/%d/%d: %s",
-				      namestr, id, alg,
+				fatal("failed to read key %s/%s/%d: %s",
+				      namestr, id, algtostr(alg),
 				      isc_result_totext(result));
 			keynode = isc_mem_get(mctx, sizeof (keynode_t));
 			if (keynode == NULL)
@@ -323,8 +343,9 @@ main(int argc, char *argv[]) {
 		isc_buffer_init(&b, data, BUFSIZE);
 		result = dst_key_todns(key, &b);
 		if (result != ISC_R_SUCCESS)
-			fatal("failed to convert key %s/%d/%d to a DNS KEY: %s",
-			      namestr, id, alg, isc_result_totext(result));
+			fatal("failed to convert key %s/%s/%d to a DNS KEY: %s",
+			      namestr, id, algtostr(alg),
+			      isc_result_totext(result));
 		isc_buffer_usedregion(&b, &r);
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_key, &r);
@@ -364,10 +385,10 @@ main(int argc, char *argv[]) {
 					 &starttime, &endtime, mctx, &b,
 					 rdata);
 		if (result != ISC_R_SUCCESS)
-			fatal("failed to sign keyset with key %s/%d/%d: %s",
+			fatal("failed to sign keyset with key %s/%s/%d: %s",
 			      dst_key_name(keynode->key),
+			      algtostr(dst_key_alg(keynode->key)),
 			      dst_key_id(keynode->key),
-			      dst_key_alg(keynode->key),
 			      isc_result_totext(result));
 		ISC_LIST_APPEND(sigrdatalist.rdata, rdata, link);
 		dns_rdataset_init(&sigrdataset);

@@ -72,8 +72,14 @@ static isc_boolean_t tryverify = ISC_FALSE;
 static isc_mem_t *mctx = NULL;
 
 static inline void
-fatal(char *message) {
-	fprintf(stderr, "%s: %s\n", PROGRAM, message);
+fatal(char *format, ...) {
+	va_list args;
+
+	fprintf(stderr, "%s: ", PROGRAM);
+	va_start(args, format);
+	vfprintf(stderr, format, args);
+	va_end(args);
+	fprintf(stderr, "\n");
 	exit(1);
 }
 
@@ -102,10 +108,12 @@ static char *
 nametostr(dns_name_t *name) {
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
 	static char data[1025];
 
 	isc_buffer_init(&b, data, sizeof(data));
-	dns_name_totext(name, ISC_FALSE, &b);
+	result = dns_name_totext(name, ISC_FALSE, &b);
+	check_result(result, "dns_name_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
@@ -116,10 +124,12 @@ static char *
 typetostr(const dns_rdatatype_t type) {
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
 	static char data[10];
 
 	isc_buffer_init(&b, data, sizeof(data));
-	dns_rdatatype_totext(type, &b);
+	result = dns_rdatatype_totext(type, &b);
+	check_result(result, "dns_rdatatype_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
@@ -130,10 +140,12 @@ static char *
 algtostr(const dns_secalg_t alg) {
 	isc_buffer_t b;
 	isc_region_t r;
+	isc_result_t result;
 	static char data[10];
 
 	isc_buffer_init(&b, data, sizeof(data));
-	dns_secalg_totext(alg, &b);
+	result = dns_secalg_totext(alg, &b);
+	check_result(result, "dns_secalg_totext()");
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 	return (char *) r.base;
@@ -162,7 +174,10 @@ signwithkey(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	dns_rdata_init(rdata);
 	result = dns_dnssec_sign(name, rdataset, key, &starttime, &endtime,
 				 mctx, b, rdata);
-	check_result(result, "dns_dnssec_sign()");
+	if (result != ISC_R_SUCCESS)
+		fatal("key '%s/%s/%d' failed to sign data: %s",
+		      dst_key_name(key), algtostr(dst_key_alg(key)),
+		      dst_key_id(key), isc_result_totext(result));
 
 	if (tryverify) {
 		result = dns_dnssec_verify(name, rdataset, key,
@@ -223,7 +238,7 @@ keythatsigned(dns_rdata_sig_t *sig) {
 
 	key = isc_mem_get(mctx, sizeof(signer_key_t));
 	if (key == NULL)
-		check_result(ISC_R_FAILURE, "isc_mem_get");
+		fatal("out of memory");
 
 	result = dst_key_fromfile(keyname, sig->keyid, sig->algorithm,
 				  DST_TYPE_PRIVATE, mctx, &privkey);
@@ -262,7 +277,8 @@ expecttofindkey(dns_name_t *name, dns_db_t *db, dns_dbversion_t *version) {
 		case DNS_R_DNAME:
 			return ISC_FALSE;
 		default:
-			check_result(result, "dns_db_find");
+			fatal("failure looking for '%s KEY' in database: %s",
+			      nametostr(name), isc_result_totext(result));
 			return ISC_FALSE; /* removes a warning */
 	}
 }
@@ -282,7 +298,7 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	tdata = isc_mem_get(mctx, sizeof(signer_array_t)); \
 	ISC_LIST_APPEND(arraylist, tdata, link); \
 	if (trdata == NULL || tdata == NULL) \
-		check_result(ISC_R_FAILURE, "isc_mem_get"); \
+		fatal("out of memory"); \
 	isc_buffer_init(&b, tdata->array, sizeof(tdata->array));
 
 /*
@@ -320,7 +336,10 @@ signset(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		result = ISC_R_SUCCESS;
 		nosigs = ISC_TRUE;
 	}
-	check_result(result, "dns_db_findrdataset()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed while looking for '%s SIG %s': %s",
+		      nametostr(name), typetostr(set->type),
+		      isc_result_totext(result));
 
 	vbprintf(1, "%s/%s:\n", nametostr(name), typetostr(set->type));
 
@@ -551,7 +570,8 @@ hasnullkey(dns_rdataset_t *rdataset) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(dns_rootname,
 						 &rdata, mctx, &key);
-		check_result(result, "dns_dnssec_keyfromrdata()");
+		if (result != ISC_R_SUCCESS)
+			fatal("could not convert KEY into internal format");
 		if (dst_key_isnullkey(key))
 			found = ISC_TRUE;
                 dst_key_free(key);
@@ -560,7 +580,7 @@ hasnullkey(dns_rdataset_t *rdataset) {
                 result = dns_rdataset_next(rdataset);
         }
         if (result != ISC_R_NOMORE)
-                check_result(result, "iteration over keys");
+                fatal("failure looking for null keys");
         return (ISC_FALSE);
 }
 #endif
@@ -610,11 +630,11 @@ importparentsig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	dns_rdata_init(&newrdata);
 
 	result = dns_rdataset_first(set);
-	check_result(result, "dns_rdata_first()");
+	check_result(result, "dns_rdataset_first()");
 	for (; result == ISC_R_SUCCESS; result = dns_rdataset_next(set)) {
 		dns_rdataset_current(set, &rdata);
 		result = dns_rdataset_first(&newset);
-		check_result(result, "dns_rdata_first()");
+		check_result(result, "dns_rdataset_first()");
 		for (;
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&newset))
@@ -850,7 +870,10 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 				if (result == ISC_R_NOTFOUND)
 					result = ISC_R_SUCCESS;
-				check_result(result, "dns_db_findrdataset");
+				if (result != ISC_R_SUCCESS)
+					fatal("failure looking for null key "
+					      "at '%s': %s", nametostr(name),
+					      isc_result_totext(result));
 
 				if (dns_rdataset_isassociated(&keyset))
 					dns_rdataset_disassociate(&keyset);
@@ -866,7 +889,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 							  DNS_KEYTYPE_NOKEY,
 							  DNS_KEYPROTO_DNSSEC,
 							  mctx, &dstkey);
-				check_result(result, "dst_key_generate");
+				if (result != ISC_R_SUCCESS)
+					fatal("failed to generate null key");
 				isc_buffer_init(&b, keydata, sizeof keydata);
 				result = dst_key_todns(dstkey, &b);
 				dst_key_free(dstkey);
@@ -907,7 +931,8 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		result = dns_rdatasetiter_next(rdsiter);
 	}
 	if (result != ISC_R_NOMORE)
-		fatal("rdataset iteration failed");
+		fatal("rdataset iteration for name '%s' failed: %s",
+		      nametostr(name), isc_result_totext(result));
 	dns_rdatasetiter_destroy(&rdsiter);
 }
 
@@ -934,7 +959,8 @@ active_node(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 			result = ISC_R_NOMORE;
 	}
 	if (result != ISC_R_NOMORE)
-		fatal("rdataset iteration failed");
+		fatal("rdataset iteration failed: %s",
+		      isc_result_totext(result));
 	dns_rdatasetiter_destroy(&rdsiter);
 
 	if (!active) {
@@ -1023,12 +1049,14 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 	dns_rdataset_init(&soaset);
 	result = dns_db_find(db, origin, version, dns_rdatatype_soa,
 			     0, 0, NULL, name, &soaset, NULL);
-	check_result(result, "dns_db_find");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find '%s SOA' in the zone: %s",
+		      nametostr(name), isc_result_totext(result));
 	result = dns_rdataset_first(&soaset);
-	check_result(result, "dns_rdataset_first");
+	check_result(result, "dns_rdataset_first()");
 	dns_rdataset_current(&soaset, &soarr);
 	result = dns_rdata_tostruct(&soarr, &soa, mctx);
-	check_result(result, "dns_rdataset_tostruct");
+	check_result(result, "dns_rdataset_tostruct()");
 	zonettl = soa.minimum;
 	dns_rdata_freestruct(&soa);
 	dns_rdataset_disassociate(&soaset);
@@ -1065,7 +1093,8 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 				result = dns_rdatasetiter_next(rdsiter);
 			}
 			if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
-				fatal("rdataset iteration failed");
+				fatal("rdataset iteration failed: %s",
+				      isc_result_totext(result));
 			if (result == ISC_R_SUCCESS) {
 				if (lastcut != NULL)
 					dns_name_free(lastcut, mctx);
@@ -1073,11 +1102,11 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 					lastcut = isc_mem_get(mctx,
 							sizeof(dns_name_t));
 					if (lastcut == NULL)
-						fatal("allocation failure");
+						fatal("out of memory");
 				}
 				dns_name_init(lastcut, NULL);
 				result = dns_name_dup(curname, mctx, lastcut);
-				check_result(result, "dns_name_dup");
+				check_result(result, "dns_name_dup()");
 			}
 			dns_rdatasetiter_destroy(&rdsiter);
 		}
@@ -1091,7 +1120,8 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 			target = origin;
 		else {
 			target = NULL;	/* Make compiler happy. */
-			fatal("db iteration failed");
+			fatal("iterating through the database failed: %s",
+			      isc_result_totext(result));
 		}
 		nxtresult = dns_buildnxt(db, version, node, target, zonettl);
 		check_result(nxtresult, "dns_buildnxt()");
@@ -1102,7 +1132,8 @@ signzone(dns_db_t *db, dns_dbversion_t *version) {
 		node = nextnode;
 	}
 	if (result != ISC_R_NOMORE)
-		fatal("db iteration failed");
+		fatal("iterating through the database failed: %s",
+		      isc_result_totext(result));
 	if (lastcut != NULL) {
 		dns_name_free(lastcut, mctx);
 		isc_mem_put(mctx, lastcut, sizeof(dns_name_t));
@@ -1126,7 +1157,9 @@ loadzone(char *file, char *origin, dns_zone_t **zone) {
 
 	dns_name_init(&name, NULL);
 	result = dns_name_fromtext(&name, &b, dns_rootname, ISC_FALSE, &b2);
-	check_result(result, "dns_name_fromtext()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed converting name '%s' to dns format: %s",
+		      origin, isc_result_totext(result));
 
 	result = dns_zone_create(zone, mctx);
 	check_result(result, "dns_zone_create()");
@@ -1145,7 +1178,9 @@ loadzone(char *file, char *origin, dns_zone_t **zone) {
 	dns_zone_setclass(*zone, dns_rdataclass_in); /* XXX */
 
 	result = dns_zone_load(*zone);
-	check_result(result, "dns_zone_load()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed loading zone from '%s': %s",
+		      file, isc_result_totext(result));
 }
 
 static void
@@ -1176,20 +1211,24 @@ loadzonekeys(dns_db_t *db, dns_dbversion_t *version) {
 
 	node = NULL;
 	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
-	check_result(result, "dns_db_findnode()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find the zone's origin: %s",
+		      isc_result_totext(result));
 
 	result = dns_dnssec_findzonekeys(db, version, node, origin, mctx,
 					 20, keys, &nkeys);
 	if (result == ISC_R_NOTFOUND)
 		result = ISC_R_SUCCESS;
-	check_result(result, "dns_dnssec_findzonekeys()");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to find the zone keys: %s",
+		      isc_result_totext(result));
 
 	for (i = 0; i < nkeys; i++) {
 		signer_key_t *key;
 
 		key = isc_mem_get(mctx, sizeof(signer_key_t));
 		if (key == NULL)
-			check_result(ISC_R_FAILURE, "isc_mem_get(key)");
+			fatal("out of memory");
 		key->key = keys[i];
 		key->isdefault = ISC_FALSE;
 
@@ -1209,7 +1248,9 @@ dumpzone(dns_zone_t *zone, char *filename) {
 		exit(-1);
 	}
 	result = dns_zone_dumptostream(zone, fp);
-	check_result(result, "dns_zone_dump");
+	if (result != ISC_R_SUCCESS)
+		fatal("failed to write new database to '%s': %s",
+		      filename, isc_result_totext(result));
 	fclose(fp);
 }
 
@@ -1229,10 +1270,11 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 	}
 	else {
 		result = dns_time64_fromtext(str, &val);
-		check_result(result, "dns_time64_fromtext()");
+		if (result != ISC_R_SUCCESS)
+			fatal("time %s must be numeric", str);
 	}
 	if (*endp != '\0')
-		check_result(ISC_R_FAILURE, "strtol()");
+		fatal("time value %s is invalid", str);
 
 	return ((isc_stdtime_t) val);
 }
@@ -1324,7 +1366,8 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	result = isc_mem_create(0, 0, &mctx);
-	check_result(result, "isc_mem_create()");
+	if (result != ISC_R_SUCCESS)
+		fatal("out of memory");
 
 	while ((ch = isc_commandline_parse(argc, argv, "s:e:c:v:o:f:ah"))
 	       != -1) {
@@ -1333,46 +1376,42 @@ main(int argc, char *argv[]) {
 			startstr = isc_mem_strdup(mctx,
 						  isc_commandline_argument);
 			if (startstr == NULL)
-				check_result(ISC_R_FAILURE,
-					     "isc_mem_strdup()");
+				fatal("out of memory");
 			break;
 
 		case 'e':
 			endstr = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (endstr == NULL)
-				check_result(ISC_R_FAILURE,
-					     "isc_mem_strdup()");
+				fatal("out of memory");
 			break;
 
 		case 'c':
 			endp = NULL;
 			cycle = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
-				check_result(ISC_R_FAILURE, "strtol()");
+				fatal("cycle period must be numeric");
 			break;
 
 		case 'v':
 			endp = NULL;
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
-				check_result(ISC_R_FAILURE, "strtol()");
+				fatal("verbose level must be numeric");
 			break;
 
 		case 'o':
 			origin = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (origin == NULL)
-				check_result(ISC_R_FAILURE,
-					     "isc_mem_strdup()");
+				fatal("out of memory");
 			break;
 
 		case 'f':
 			output = isc_mem_strdup(mctx,
 						isc_commandline_argument);
 			if (output == NULL)
-				check_result(ISC_R_FAILURE,
-					     "isc_mem_strdup()");
+				fatal("out of memory");
 			break;
 
 		case 'a':
@@ -1431,7 +1470,7 @@ main(int argc, char *argv[]) {
 
 	file = isc_mem_strdup(mctx, argv[0]);
 	if (file == NULL)
-		check_result(ISC_R_FAILURE, "isc_mem_strdup()");
+		fatal("out of memory");
 
 	argc -= 1;
 	argv += 1;
@@ -1440,14 +1479,14 @@ main(int argc, char *argv[]) {
 		output = isc_mem_allocate(mctx,
 					 strlen(file) + strlen(".signed") + 1);
 		if (output == NULL)
-			check_result(ISC_R_FAILURE, "isc_mem_allocate()");
+			fatal("out of memory");
 		sprintf(output, "%s.signed", file);
 	}
 
 	if (origin == NULL) {
 		origin = isc_mem_allocate(mctx, strlen(file) + 2);
 		if (origin == NULL)
-			check_result(ISC_R_FAILURE, "isc_mem_allocate()");
+			fatal("out of memory");
 		strcpy(origin, file);
 		if (file[strlen(file) - 1] != '.')
 			strcat(origin, ".");
@@ -1496,9 +1535,12 @@ main(int argc, char *argv[]) {
 				{
 					key->isdefault = ISC_TRUE;
 					if (!dst_key_isprivate(dkey))
-						check_result
-							(DST_R_NOTPRIVATEKEY,
-							 "key specify");
+						fatal("cannot sign zone with "
+						      "non-private key "
+						      "'%s/%s/%d'",
+						      dst_key_name(dkey),
+						      algtostr(dst_key_alg(dkey)),
+						      dst_key_id(dkey));
 					break;
 				}
 				key = ISC_LIST_NEXT(key, link);
@@ -1508,11 +1550,14 @@ main(int argc, char *argv[]) {
 				result = dst_key_fromfile(namestr, id, alg,
 							  DST_TYPE_PRIVATE,
 							  mctx, &dkey);
-				check_result (result, "dst_key_fromfile");
+				if (result != ISC_R_SUCCESS)
+					fatal("failed to load key '%s/%s/%d' "
+					      "from disk: %s", namestr,
+					      algtostr(alg), id,
+					      isc_result_totext(result));
 				key = isc_mem_get(mctx, sizeof(signer_key_t));
 				if (key == NULL)
-					check_result(ISC_R_FAILURE,
-						     "isc_mem_get");
+					fatal("out of memory");
 				key->key = dkey;
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
