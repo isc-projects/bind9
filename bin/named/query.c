@@ -93,11 +93,12 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	 */
 
 	/*
-	 * If there is an active fetch for this client, cancel it.
+	 * Cancel the fetch if it's running.
 	 */
 	if (client->query.fetch != NULL) {
-		dns_resolver_destroyfetch(client->view->resolver,
-					  &client->query.fetch);
+		dns_resolver_cancelfetch(client->view->resolver,
+					 client->query.fetch);
+		client->query.fetch = NULL;
 	}
 
 	/*
@@ -1261,6 +1262,7 @@ static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
+	isc_boolean_t want_find;
 
 	/*
 	 * Resume a query after recursion.
@@ -1272,9 +1274,28 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
+	if (devent->fetch == client->query.fetch) {
+		/*
+		 * This is the fetch we've been waiting for.
+		 */
+		client->query.fetch = NULL;
+		want_find = ISC_TRUE;
+	} else {
+		/*
+		 * This is a fetch completion event for a cancelled fetch.
+		 * Clean up and don't resume the find.
+		 */
+		if (devent->node != NULL)
+			dns_db_detachnode(devent->db, &devent->node);
+		if (devent->db != NULL)
+			dns_db_detach(&devent->db);
+		query_putrdataset(client, &devent->rdataset);
+		query_putrdataset(client, &devent->sigrdataset);
+		want_find = ISC_FALSE;
+	}
+
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
-	dns_resolver_destroyfetch(client->view->resolver,
-				  &client->query.fetch);
+	dns_resolver_destroyfetch(client->view->resolver, &devent->fetch);
 
 	client->waiting--;
 
@@ -1289,7 +1310,8 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	 *	   mode).
 	 */
 
-	query_find(client, devent);
+	if (want_find)
+		query_find(client, devent);
 }
 
 static isc_result_t
@@ -1801,9 +1823,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		ISC_LIST_APPEND(fname->list, rdataset, link);
 		fname = NULL;
 		rdataset = NULL;
-		/*
-		 * XXXRTH  Deal with AD bit.
-		 */
 		goto cleanup;
 	case DNS_R_CNAME:
 		/*
@@ -2040,12 +2059,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 		if (clear_fname)
 			fname = NULL;
 	}
-
-	/*
-	 * XXXRTH  Handle additional questions above.  Find all the question
-	 *         types we can from the node we found, and (if recursion is
-	 *	   OK) launch queries for any types we don't have answers to.
-	 */
 
  addauth:
 	/*
