@@ -186,10 +186,22 @@ be upgraded.
 
 5. Server Administration Tools
 
+5.1 Ndc Replaced by Rndc
+
 The "ndc" program has been replaced by "rndc", which is capable of
 remote operation.  Unlike ndc, rndc requires a configuration file; 
 see the man pages in bin/rndc/rndc.1 and bin/rndc/rndc.conf.5 for
 details.  Some of the ndc commands are still unimplemented in rndc.
+
+5.2. Nsupdate Differences
+
+The BIND 8 implementation of nsupdate had an undocumented feature
+where an update request would be broken down into multiple requests
+based upon the discovered zones that contained the records.  This
+behaviour has not been implemented in BIND 9.  Each update request
+must pertain to a single zone, but it is still possible to do multiple
+updates in a single invocation of nsupdate by terminating each update
+with an empty line or a "send" command.
 
 
 6. No Information Leakage between Zones
@@ -230,15 +242,4 @@ necessary, the umask should be set explicitly in the script used to
 start the named process.
 
 
-8. Nsupdate Differences
-
-The BIND 8 implementation of nsupdate had an undocumented feature
-where an update request would be broken down into multiple requests
-based upon the discovered zones that contained the records.  This
-behaviour has not been implemented in BIND 9.  Each update request
-must pertain to a single zone, but it is still possible to do multiple
-updates in a single invocation of nsupdate by terminating each update
-with an empty line or a "send" command.
-
-
-$Id: migration,v 1.40 2001/09/21 17:34:37 gson Exp $
+$Id: migration,v 1.41 2001/09/21 17:36:35 gson Exp $
