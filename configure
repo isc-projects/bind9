@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.6 
+# From configure.in Revision: 1.7 
 
 # Guess values for system-dependent variables and create Makefiles.
 # Generated automatically using autoconf version 2.12 
@@ -1502,7 +1502,7 @@ else
 	STD_CWARNINGS=
 	case "$host" in
 		*-dec-osf*)
-			CFLAGS="$CFLAGS -pthread"
+			CC="$CC -pthread"
 			;;
 		*-sun-solaris*)
 			CC="$CC -mt"
