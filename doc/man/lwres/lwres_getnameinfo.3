@@ -1,0 +1,145 @@
+.\"
+.\" Copyright (C) 2000  Internet Software Consortium.
+.\"
+.\" Permission to use, copy, modify, and distribute this document for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM
+.\" DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+.\" INTERNET SOFTWARE CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT,
+.\" INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING
+.\" FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+.\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
+.\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" $Id: lwres_getnameinfo.3,v 1.1 2000/06/27 21:53:06 jim Exp $
+.\"
+.Dd Jun 30, 2000
+.Dt LWRES_GETNAMEINFO 3
+.Os BIND9 9
+.ds vT BIND9 Programmer's Manual
+.Sh NAME
+.Nm lwres_getnameinfo
+.Nd lightweight resolver socket address structure to hostname and service name
+.Sh SYNOPSIS
+.Fd #include <lwres/lwres.h>
+.Fd 
+.Ft int
+.Fo lwres_getnameinfo
+.Fa "const struct sockaddr *sa"
+.Fa "size_t salen"
+.Fa "char *host"
+.Fa "size_t hostlen"
+.Fa "char *serv"
+.Fa "size_t servlen"
+.Fa "int flags"
+.Fc
+.Sh DESCRIPTION
+.Pp
+This function is equivalent to the
+.Xr getnameinfo 3
+function defined in RFC2133.
+.Fn lwres_getnameinfo
+returns the hostname for the
+.Dv "struct sockaddr"
+.Fa sa
+which is
+.Fa salen
+bytes long.
+The hostname is of length
+.Fa hostlen
+and is returned via
+.Fa *host.
+The maximum length of the hostname is
+1025 bytes:
+.Li NI_MAXHOST .
+.Pp
+The name of the service associated with the port number in
+.Fa sa
+is returned in
+.Fa *serv.
+It is
+.Fa servlen
+bytes long.
+The maximum length of the service name is
+.Li NI_MAXSERV
+- 32 - bytes.
+.Pp
+The
+.Fa flags
+argument sets the following bits:
+.Bl -tag -width NI_NUMERICSERV
+.It Li NI_NOFQDN
+a fully qualified domain name is not required for local hosts.
+The local part of the fully qualified domain name is returned instead.
+.It Li NI_NUMERICHOST
+the address in the
+.Dv sockaddr
+structure is presented as a dotted-decimal string for an IPv4
+address or an IPv6 hex address if the hostname is not found in the
+DNS.
+.It Li NI_NAMEREQ
+a name is required. If the hostname cannot be found in the DNS and
+this flag is set, an error -
+.Er ENI_NOHOSTNAME
+- is returned.
+.It Li NI_NUMERICSERV
+service name is returned as a digit string representing the port number.
+.It Li NI_DGRAM
+the service uses a datagram transport protocol
+.El
+.Pp
+When a numeric host address string is needed,
+.Fn lwres_getnameinfo
+calls
+.Fn lwres_net_ntop
+to generate an IPv6 hex address or a dotted decimal IPv4 address.
+If required,
+.Fn lwres_getnameinfo
+will create a resolver context by calling
+.Fn lwres_context_create
+and then using
+.Fn lwres_getnamebyaddr
+to perform the reverse lookup.
+Any memory allocated during that reverse lookup will be
+freed by calling
+.Fn lwres_gnbaresponse_free .
+.Fn lwres_context_destroy
+is called immediately before
+.Fn lwres_getnameinfo
+returns so that the created resolver context gets discarded.
+.Sh RETURN VALUES
+.Fn wres_getnameinfo 
+returns 0 on success or a non-zero error code if an error occurs.
+The error codes are:
+.Bl -tag -width ENI_NOSERVNAME
+.It Li ENI_NOSOCKET
+there was no socket in
+.Fa sa
+\fBBUT ENI_NOSOCKET IS ZERO!!!!\fP
+.It Li ENI_NOSERVNAME
+no service name was found
+.It Li ENI_NOHOSTNAME
+no hostname was found
+.It Li ENI_MEMORY
+memory could not be allocated
+.It Li ENI_SYSTEM
+a system error occurred
+.It Li ENI_FAMILY
+an unsupported protocol family was requested
+.It Li ENI_SALEN
+.Fa salen
+is the wrong number of bytes for the address in
+.Fa sa .
+.Sh SEE ALSO
+.Xr getnameinfo 3 ,
+.Xr RFC2133 ,
+.Xr getservbyport 3 ,
+.Xr lwres_res_net_ntop 3 ,
+.Xr lwres_res_context_create 3,
+.Xr lwres_res_getnamebyaddr 3,
+.Xr lwres_res_gnbaresponse_free 3 ,
+.Xr lwres_res_context_destroy 3 ,
+.Xr lwres_res_net_ntop 3 .
