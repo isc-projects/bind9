@@ -26,9 +26,9 @@
 /*
  * DNS Address Database
  *
- * This module implements an address database (ADB) for mapping an
- * NS rdata record to an isc_sockaddr_t. It also provides statistical
- * information on how good that address might be.
+ * This module implements an address database (ADB) for mapping a name
+ * to an isc_sockaddr_t. It also provides statistical information on
+ * how good that address might be.
  *
  * A client will pass in a dns_name_t, and the ADB will walk through
  * the rdataset looking up addresses associated with the name.  If it
@@ -36,7 +36,7 @@
  * address information and stats for found addresses.
  *
  * If the name cannot be found on the internal lists, a new entry will
- * be created for an name if all the information needed can be found
+ * be created for a name if all the information needed can be found
  * in the zone table or cache.  This new address will then be returned.
  *
  * If a request must be made to remote servers to satisfy a name lookup,
@@ -66,11 +66,11 @@
  *
  *	None, since all data stored is required to be pre-filtered.
  *	(Cache needs to be sane, fetches return bounds-checked and sanity-
- *	checked data, caller passes a good dns_name_t for the zone, etc)
+ *       checked data, caller passes a good dns_name_t for the zone, etc)
  */
 
 /***
- *** IMPORTS
+ *** Imports
  ***/
 
 #include <stdio.h>
@@ -109,9 +109,7 @@ typedef struct dns_adbname		dns_adbname_t;
 
 /* dns_adbfind_t
  *
- * The find into our internal state of what is going on, where, when...
- * This is returned to the user as a find, so requests can be canceled,
- * etc.
+ * Represents a lookup for a single name.
  *
  * On return, the client can safely use "list", and can reorder the list.
  * Items may not be _deleted_ from this list, however, or added to it
@@ -133,7 +131,7 @@ struct dns_adbfind {
 	dns_adbname_t		       *adbname;
 	dns_adb_t		       *adb;
 	isc_event_t			event;
-	ISC_LINK(dns_adbfind_t)	plink;
+	ISC_LINK(dns_adbfind_t)		plink;
 };
 
 #define DNS_ADBFIND_INET		0x00000001
@@ -143,7 +141,7 @@ struct dns_adbfind {
 #define DNS_ADBFIND_EMPTYEVENT		0x00000004
 #define DNS_ADBFIND_WANTEVENT		0x00000008
 
-/* dns_adbaddr_t
+/* dns_adbaddrinfo_t
  *
  * The answers to queries come back as a list of these.
  */
@@ -192,24 +190,28 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
 /*
  * Create a new ADB.
  *
+ * Notes:
+ *
+ *	Generally, applications should not create an ADB directly, but
+ *	should instead call dns_view_createresolver().
+ *
  * Requires:
  *
- *	'mem' must be a pointer to a valid memory manager that all internal
- *	allocations will happen through (and so must remain valid at least
- *	until the new isc_addrtable_t is deleted)
+ *	'mem' must be a valid memory context.
  *
  *	'view' be a pointer to a valid view.
  *
  *	'tmgr' be a pointer to a valid timer manager.
  *
+ *	'taskmgr' be a pointer to a valid task manager.
+ *
  *	'newadb' != NULL && '*newadb' == NULL.
  *
  * Returns:
  *
- *	ISC_R_SUCCESS	after happiness
+ *	ISC_R_SUCCESS	after happiness.
  *	ISC_R_NOMEMORY	after resource allocation failure.
  */
-
 
 void
 dns_adb_detach(dns_adb_t **adb);
@@ -254,7 +256,7 @@ dns_adb_shutdown(dns_adb_t *adb);
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   void *arg, dns_name_t *name, dns_name_t *zone,
-		   unsigned int families, isc_stdtime_t now,
+		   unsigned int options, isc_stdtime_t now,
 		   dns_adbfind_t **find);
 /*
  * Main interface for clients. The adb will look up the name given in
@@ -278,6 +280,9 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  * have a specific time to live or expire time should be removed from
  * the running database.  If specified as zero, the current time will
  * be retrieved and used.
+ *
+ * XXXMLG  Document options, especially the flags which control how
+ *         events are sent.
  *
  * Requires:
  *
@@ -330,9 +335,8 @@ dns_adb_deletename(dns_adb_t *adb, dns_name_t *host);
  *	ISC_R_NOTFOUND	-- the host is not in the database
  */
 
-
 isc_result_t
-dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
+_dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 	       dns_ttl_t ttl, isc_stdtime_t now);
 /*
  * Insert a host name and address into the database.  A new (blank, no
@@ -364,6 +368,14 @@ dns_adb_cancelfind(dns_adbfind_t *find);
  * It is an error to call dns_adb_cancelfind() on a find where
  * no event is wanted, or will ever be sent.
  *
+ * Note:
+ *
+ *	It is possible that the real completion event was posted just
+ *	before the dns_adb_cancelfind() call was made.  In this case,
+ *	dns_adb_cancelfind() will do nothing.  The event callback needs
+ *	to be prepared to find this situation (i.e. result is valid but
+ *	the caller expects it to be canceled).
+ *
  * Requires:
  *
  *	'find' be a valid dns_adbfind_t pointer.
@@ -374,19 +386,18 @@ dns_adb_cancelfind(dns_adbfind_t *find);
  * Ensures:
  *
  *	The event was posted to the task.
- *
- * Note:
- *
- *	It is possible that the real completion event was posted just
- *	before the dns_adb_cancelfind() call was made.  In this case,
- *	dns_adb_cancelfind() will do nothing.  The event findr needs
- *	to be prepared to find this situation.
  */
 
 void
 dns_adb_destroyfind(dns_adbfind_t **find);
 /*
  * Destroys the find reference.
+ *
+ * Note:
+ *
+ *	This can only be called after the event was delivered for a
+ *	find.  Additionally, the event MUST have been freed via
+ *	isc_event_free() BEFORE this function is called.
  *
  * Requires:
  *
@@ -396,39 +407,32 @@ dns_adb_destroyfind(dns_adbfind_t **find);
  *
  *	No "address found" events will be posted to the originating task
  *	after this function returns.
- *
- * Note:
- *
- *	This can only be called after the event was delivered for a
- *	find.  Additionally, the event MUST have been freed via
- *	isc_event_free() BEFORE this function is called.
  */
 
 void
 dns_adb_dump(dns_adb_t *adb, FILE *f);
 /*
- * This function is used only for debugging.  It will dump as much of the
+ * This function is only used for debugging.  It will dump as much of the
  * state of the running system as possible.
  *
  * Requires:
  *
  *	adb be valid.
  *
- *	f != NULL, and be a file open for writing.
+ *	f != NULL, and is a file open for writing.
  */
 
 void
 dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
 /*
- * Dump the data associated with a find.
+ * This function is only used for debugging.  Dump the data associated
+ * with a find.
  *
  * Requires:
  *
- *	adb be valid.
+ *	find is valid.
  *
- *	adbfind be valid.
- *
- *	f != NULL, and be a file open for writing.
+ * 	f != NULL, and is a file open for writing.
  */
 
 isc_result_t
@@ -459,18 +463,18 @@ dns_adb_adjustgoodness(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 /*
  * Increase or decrease the address's goodness value.
  *
- * Requires:
- *
- *	adb be valid.
- *
- *	addr be valid.
- *
  * Note:
  *
  *	Goodness values are silently clamped to INT_MAX and INT_MIN.
  *
  *	The goodness in addr will be updated to reflect the new global
  *	goodness value.  This may include changes made by others.
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	addr be valid.
  */
 
 /*
@@ -488,6 +492,10 @@ dns_adb_adjustsrtt(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  * this function):
  *
  *	new_srtt = (old_srtt / 10 * factor) + (rtt / 10 * (10 - factor));
+ *
+ * XXXRTH  Do we want to publish the formula?  What if we want to change how
+ *         this works later on?  Recommend/require that the units are
+ *	   microseconds?
  *
  * Requires:
  *
@@ -516,13 +524,6 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
  *	adb be valid.
  *
  *	addr be valid.
- */
-
-/*
- * XXX Need functions/macros to:
- *
- *	Remove an address from a find's linked list.  This is needed
- *	because the data pointed to by a dns_adbaddr_t is reference counted.
  */
 
 ISC_LANG_ENDDECLS
