@@ -99,10 +99,10 @@ extern const struct in6_addr in6addr_any;
 
 #ifndef __IPV6_ADDR_SCOPE_SITELOCAL
 #define __IPV6_ADDR_SCOPE_SITELOCAL 0x05
-#define
+#endif
 #ifndef __IPV6_ADDR_SCOPE_ORGLOCAL
 #define __IPV6_ADDR_SCOPE_ORGLOCAL  0x08
-#define
+#endif
 
 #ifndef IN6_IS_ADDR_MC_SITELOCAL
 #define IN6_IS_ADDR_MC_SITELOCAL(a)     \
