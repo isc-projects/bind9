@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.16 2001/11/27 00:56:25 gson Exp $ */
+/* $Id: net.h,v 1.17 2002/08/01 03:56:08 mayer Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -105,6 +105,18 @@
  * a variable
  */
 #undef interface 
+
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK 0x7f000001UL
+#endif
+
+#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
+struct in6_pktinfo {
+	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
+	unsigned int    ipi6_ifindex; /* send/recv interface index */
+};
+#endif
+
 /*
  * Ensure type in_port_t is defined.
  */

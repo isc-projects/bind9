@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.9 2001/07/17 20:29:33 gson Exp $ */
+/* $Id: ipv6.h,v 1.10 2002/08/01 03:56:08 mayer Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -25,16 +25,23 @@
  *****/
 
 /*
- * This file defines additional information necessary for IP v6 support
+ * IPv6 definitions for systems which do not support IPv6.
+ *
+ * MP:
+ *	No impact.
+ *
+ * Reliability:
+ *	No anticipated impact.
+ *
+ * Resources:
+ *	N/A.
+ *
+ * Security:
+ *	No anticipated impact.
+ *
+ * Standards:
+ *	RFC 2553.
  */
-
-#ifndef AF_INET6
-#define AF_INET6 99
-#endif
-
-#ifndef PF_INET6
-#define PF_INET6 AF_INET6
-#endif
 
 #define s6_addr8	s6_addr
 #define in6_addr in_addr6
@@ -45,52 +52,45 @@
 LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_any;
 LIBISC_EXTERNAL_DATA extern const struct in_addr6 in6addr_loopback;
 
-#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
-struct in6_pktinfo {
-	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
-	unsigned int    ipi6_ifindex; /* send/recv interface index */
-};
-#endif
-
 /*
  * Unspecified
  */
 
-#define IN6_IS_ADDR_UNSPECIFIED(x)      \
-*((u_long *)((x)->s6_addr)    ) == 0 && \
-*((u_long *)((x)->s6_addr) + 1) == 0 && \
-*((u_long *)((x)->s6_addr) + 2) == 0 && \
-*((u_long *)((x)->s6_addr) + 3) == 1 \
+#define IN6_IS_ADDR_UNSPECIFIED(a)      \
+*((u_long *)((a)->s6_addr)    ) == 0 && \
+*((u_long *)((a)->s6_addr) + 1) == 0 && \
+*((u_long *)((a)->s6_addr) + 2) == 0 && \
+*((u_long *)((a)->s6_addr) + 3) == 0 \
 )
 
 /*
  * Loopback
  */
-#define IN6_IS_ADDR_LOOPBACK(x) (\
-*((u_long *)((x)->s6_addr)    ) == 0 && \
-*((u_long *)((x)->s6_addr) + 1) == 0 && \
-*((u_long *)((x)->s6_addr) + 2) == 0 && \
-*((u_long *)((x)->s6_addr) + 3) == 1 \
+#define IN6_IS_ADDR_LOOPBACK(a) (\
+*((u_long *)((a)->s6_addr)    ) == 0 && \
+*((u_long *)((a)->s6_addr) + 1) == 0 && \
+*((u_long *)((a)->s6_addr) + 2) == 0 && \
+*((u_long *)((a)->s6_addr) + 3) == htonl(1) \
 )
 
 /*
  * IPv4 compatible
  */
-#define IN6_IS_ADDR_V4COMPAT(x)  (\
-*((u_long *)((x)->s6_addr)    ) == 0 && \
-*((u_long *)((x)->s6_addr) + 1) == 0 && \
-*((u_long *)((x)->s6_addr) + 2) == 0 && \
-*((u_long *)((x)->s6_addr) + 3) != 0 && \
-*((u_long *)((x)->s6_addr) + 3) != htonl(1) \
+#define IN6_IS_ADDR_V4COMPAT(a)  (\
+*((u_long *)((a)->s6_addr)    ) == 0 && \
+*((u_long *)((a)->s6_addr) + 1) == 0 && \
+*((u_long *)((a)->s6_addr) + 2) == 0 && \
+*((u_long *)((a)->s6_addr) + 3) != 0 && \
+*((u_long *)((a)->s6_addr) + 3) != htonl(1) \
 )
 
 /*
  * Mapped
  */
-#define IN6_IS_ADDR_V4MAPPED(x) (\
-*((u_long *)((x)->s6_addr)    ) == 0 && \
-*((u_long *)((x)->s6_addr) + 1) == 0 && \
-*((u_long *)((x)->s6_addr) + 2) == htonl(0x0000ffff))
+#define IN6_IS_ADDR_V4MAPPED(a) (\
+*((u_long *)((a)->s6_addr)    ) == 0 && \
+*((u_long *)((a)->s6_addr) + 1) == 0 && \
+*((u_long *)((a)->s6_addr) + 2) == htonl(0x0000ffff))
 
 /*
  * Multicast
@@ -98,6 +98,14 @@ struct in6_pktinfo {
 #define IN6_IS_ADDR_MULTICAST(a)	\
 	((a)->s6_addr8[0] == 0xffU)
 
-ISC_LANG_ENDDECLS
+/*
+ * Unicast link / site local.
+ */
+#define IN6_IS_ADDR_LINKLOCAL(a)	(\
+(*((u_long *)((a)->s6_addr)    ) == 0xfe) && \
+((*((u_long *)((a)->s6_addr) + 1) & 0xc0) == 0x80))
+#define IN6_IS_ADDR_SITELOCAL(a)	(\
+(*((u_long *)((a)->s6_addr)    ) == 0xfe) && \
+((*((u_long *)((a)->s6_addr) + 1) & 0xc0) == 0xc0))
 
 #endif /* ISC_IPV6_H */
