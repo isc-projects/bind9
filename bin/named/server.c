@@ -70,7 +70,6 @@ typedef struct {
 } ns_load_t;
 
 static isc_task_t *		server_task;
-static dns_view_t *		version_view;
 
 
 static isc_result_t
@@ -140,6 +139,106 @@ create_default_view(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup:
 	dns_view_detach(&view);
+
+	return (result);
+}
+
+/*
+ * Create the special view that handles queries for
+ * "version.bind. CH".   The version string returned is that
+ * configured in 'configctx', or a compiled-in default if
+ * there is no "version" configuration option.
+ */
+static isc_result_t
+create_version_view(dns_c_ctx_t *configctx, dns_view_t **viewp) {
+	dns_result_t result;
+	dns_db_t *db = NULL;
+	dns_zone_t *zone = NULL;
+	dns_dbversion_t *dbver = NULL;
+	dns_difftuple_t *tuple = NULL;
+	dns_diff_t diff;
+	dns_view_t *view = NULL;
+	dns_name_t *origin;
+	char *versiontext;
+	char buf[256];
+	isc_region_t r;
+	size_t len;
+	dns_rdata_t rdata;
+
+	REQUIRE(viewp != NULL && *viewp == NULL);
+
+	dns_diff_init(ns_g_mctx, &diff);
+
+	(void) dns_c_ctx_getversion(configctx, &versiontext);
+	if (versiontext == NULL)
+		versiontext = ns_g_version;
+	len = strlen(versiontext);
+	if (len > 255)
+		len = 255; /* Silently truncate. */
+	buf[0] = len;
+	memcpy(buf + 1, versiontext, len);
+
+	r.base = buf;
+	r.length = 1 + len;
+	dns_rdata_fromregion(&rdata, dns_rdataclass_ch, dns_rdatatype_txt, &r);
+
+	result = dns_zone_create(&zone, ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_zone_setorigin(zone, "version.bind.");
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	origin = dns_zone_getorigin(zone);
+
+	result = dns_db_create(ns_g_mctx, "rbt", origin, ISC_FALSE,
+			       dns_rdataclass_ch, 0, NULL, &db);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_db_newversion(db, &dbver);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+
+	dns_difftuple_create(ns_g_mctx, DNS_DIFFOP_ADD, origin,
+			     0, &rdata, &tuple);
+	dns_diff_append(&diff, &tuple);
+	result = dns_diff_apply(&diff, db, dbver);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+
+	dns_db_closeversion(db, &dbver, ISC_TRUE);
+
+	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
+				 &view);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	result = dns_zone_replacedb(zone, db, ISC_FALSE);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_view_addzone(view, zone);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup;
+
+	dns_view_freeze(view);
+
+	/* Transfer ownership. */
+	*viewp = view;
+	view = NULL;
+
+	result = ISC_R_SUCCESS;
+
+ cleanup:
+	if (view != NULL)
+		dns_view_detach(&view);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
+	if (dbver != NULL)
+		dns_db_closeversion(db, &dbver, ISC_FALSE);
+	if (db != NULL)
+		dns_db_detach(&db);
+	dns_diff_clear(&diff);
 
 	return (result);
 }
@@ -333,11 +432,15 @@ load_configuration(const char *filename) {
 		dns_view_freeze(view);
 
 	/*
-	 * Attach the version view.
+	 * Create the version view.
 	 */
 	view = NULL;
-	dns_view_attach(version_view, &view);
+	result = create_version_view(configctx, &view);
+	if (result != ISC_R_SUCCESS)
+		ns_server_fatal(NS_LOGMODULE_SERVER, ISC_FALSE,
+				"could not create version view");
 	ISC_LIST_APPEND(lctx.viewlist, view, link);
+	view = NULL;
 
 	/*
 	 * Change directory.
@@ -420,7 +523,7 @@ load_configuration(const char *filename) {
 
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
-
+	
 	(void)task;
 
 	isc_event_free(&event);
@@ -431,86 +534,6 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");
-}
-
-static isc_result_t
-create_version_view(void) {
-	dns_view_t *view;
-	dns_zone_t *zone;
-	dns_db_t *db;
-	dns_name_t *origin;
-	dns_result_t result, eresult;
-	isc_buffer_t source;
-	size_t len;
-	int soacount, nscount;
-	dns_rdatacallbacks_t callbacks;
-	char version_text[1024];
-
-	(void)sprintf(version_text, "version 0 CHAOS TXT \"%s\"\n",
-		      ns_g_version);
-
-	view = NULL;
-	result = dns_view_create(ns_g_mctx, dns_rdataclass_ch, "_version",
-				 &view);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	zone = NULL;
-	result = dns_zone_create(&zone, ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = dns_zone_setorigin(zone, "bind.");
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	origin = dns_zone_getorigin(zone);
-
-	db = NULL;
-	result = dns_db_create(ns_g_mctx, "rbt", origin, ISC_FALSE,
-			       view->rdclass, 0, NULL, &db);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	len = strlen(version_text);
-	isc_buffer_init(&source, version_text, len, ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&source, len);
-	dns_rdatacallbacks_init(&callbacks);
-	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
-	if (result != DNS_R_SUCCESS)
-		return (result);
-	result = dns_master_loadbuffer(&source, &db->origin, &db->origin,
-				       db->rdclass, ISC_FALSE,
-				       &soacount, &nscount, &callbacks,
-				       ns_g_mctx);
-	eresult = dns_db_endload(db, &callbacks.add_private);
-	if (result != ISC_R_SUCCESS)
-		result = eresult;
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	result = dns_zone_replacedb(zone, db, ISC_FALSE);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
-
-	result = dns_view_addzone(view, zone);
-	if (result != DNS_R_SUCCESS)
-		goto cleanup;
-
-	dns_view_freeze(view);
-
-	version_view = view;
-	view = NULL;
-
-	result = ISC_R_SUCCESS;
-
- cleanup:
-	if (db != NULL)
-		dns_db_detach(&db);
-	if (zone != NULL)
-		dns_zone_detach(&zone);
-	if (view != NULL)
-		dns_view_detach(&view);
-
-	return (result);
 }
 
 static void
@@ -544,8 +567,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_task_detach(&server_task);
 
-	dns_view_detach(&version_view);
-
 	dns_zonemgr_destroy(&ns_g_zonemgr);
 			     
 	ns_rootns_destroy();
@@ -566,10 +587,6 @@ ns_server_init(void) {
 
 	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				    ns_g_socketmgr, &ns_g_zonemgr);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = create_version_view();
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
