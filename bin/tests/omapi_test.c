@@ -23,20 +23,59 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <string.h>
+
+#include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/commandline.h>
+
 #include <omapi/omapip.h>
+
+char *progname;
+isc_mem_t *mctx;
 
 int
 main (int argc, char **argv) {
 	omapi_object_t *listener = NULL;
 	omapi_object_t *connection = NULL;
+	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result;
+	int ch;
 
-	omapi_init();
+	progname = strrchr(*argv, '/');
+	if (progname != NULL)
+		progname++;
+	else
+		progname = *argv;
 
-	if (argc > 1 && strcmp(argv[1], "listen") == 0) {
-		if (argc < 3) {
-			fprintf(stderr, "Usage: test listen port\n");
+	while ((ch = isc_commandline_parse(argc, argv, "m")) != -1) {
+		switch (ch) {
+		case 'm':
+			show_final_mem = ISC_TRUE;
+			break;
+		}
+	}
+
+	argc -= isc_commandline_index;
+	argv += isc_commandline_index;
+
+	result = isc_mem_create(0, 0, &mctx);
+	if (result != ISC_R_SUCCESS) {
+		printf("%s: isc_mem_create: %s: exiting\n",
+		       progname, isc_result_totext(result));
+		exit(1);
+	}
+
+	result = omapi_init(mctx);
+	if (result != ISC_R_SUCCESS) {
+		printf("%s: omapi_init: %s: exiting\n",
+		       progname, isc_result_totext(result));
+		exit(1);
+	}
+
+	if (argc > 1 && strcmp(argv[0], "listen") == 0) {
+		if (argc < 2) {
+			fprintf(stderr, "Usage: %s listen port\n", progname);
 			exit (1);
 		}
 		result = omapi_generic_new(&listener, "main");
@@ -51,11 +90,12 @@ main (int argc, char **argv) {
 				 isc_result_totext(result));
 			exit (1);
 		}
-		omapi_dispatch(0);
+		omapi_dispatch(NULL);
 
-	} else if (argc > 1 && !strcmp (argv[1], "connect")) {
-		if (argc < 4) {
-			fprintf(stderr, "Usage: test listen address port\n");
+	} else if (argc > 1 && !strcmp (argv[0], "connect")) {
+		if (argc < 3) {
+			fprintf(stderr, "Usage: %s connect address port\n",
+				progname);
 			exit (1);
 		}
 		result = omapi_generic_new(&connection, "main");
@@ -64,20 +104,28 @@ main (int argc, char **argv) {
 				isc_result_totext(result));
 			exit (1);
 		}
-		result = omapi_protocol_connect(connection,
-						 argv[2], atoi(argv[3]), 0);
+		result = omapi_protocol_connect(connection, argv[1],
+						atoi(argv[2]), 0);
 		fprintf(stderr, "connect: %s\n", isc_result_totext(result));
 		if (result != ISC_R_SUCCESS)
 			exit (1);
-		result = omapi_wait_for_completion(connection, 0);
+
+		result = omapi_wait_for_completion(connection, NULL);
 		fprintf(stderr, "completion: %s\n", isc_result_totext(result));
+
 		if (result != ISC_R_SUCCESS)
 			exit (1);
 		/* ... */
+
 	} else {
-		fprintf(stderr, "Usage: test [listen | connect] ...\n");
+		fprintf(stderr, "Usage: %s [-m] [listen | connect] ...\n",
+			progname);
 		exit (1);
 	}
+
+	if (show_final_mem)
+		isc_mem_stats(mctx, stderr);
+
 
 	return (0);
 }
