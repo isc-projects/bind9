@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: proforma.c,v 1.17 2000/02/03 23:43:05 halley Exp $ */
+ /* $Id: proforma.c,v 1.18 2000/03/16 02:20:19 explorer Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -56,7 +56,8 @@ fromwire_#(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
 	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_LOCAL);
+		/* NONE or GLOBAL14 */
+		dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
@@ -70,7 +71,8 @@ towire_#(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	if (dns_compress_getedns(cctx) >= 1)
 		dns_compress_setmethods(cctx, DNS_COMPRESS_ALL):
 	else
-		dns_compress_setmethods(cctx, DNS_COMPRESS_LOCAL);
+		/* NONE or GLOBAL14 */
+		dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
