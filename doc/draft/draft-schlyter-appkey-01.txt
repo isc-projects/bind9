@@ -1,0 +1,447 @@
+Network Working Group                                        J. Schlyter
+Internet-Draft                                      Carlstedt Research &
+Expires: May 11, 2002                                         Technology
+                                                       November 10, 2001
+
+
+               Storing application public keys in the DNS
+                      draft-schlyter-appkey-01.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on May 11, 2002.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+Abstract
+
+   This document specifies a new DNS RR type for applications to store
+   public keys in.  Experience with DNSSEC has indicated that mixing DNS
+   keys and application keys is a bad idea in many regards.  The new RR
+   expands certain fields based on experience from early DNSSEC
+   deployment.
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 1]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+Table of Contents
+
+   1.    Introduction . . . . . . . . . . . . . . . . . . . . . . . .  3
+   2.    The APPKEY resource record . . . . . . . . . . . . . . . . .  3
+   2.1   The APPKEY RDATA format  . . . . . . . . . . . . . . . . . .  4
+   2.1.1 The protocol field . . . . . . . . . . . . . . . . . . . . .  4
+   2.1.2 Version number octet . . . . . . . . . . . . . . . . . . . .  4
+   2.1.3 Algorithm number specification . . . . . . . . . . . . . . .  5
+   2.2   Text representation of APPKEY RRs  . . . . . . . . . . . . .  5
+   2.3   Owner names for APPKEY RRs . . . . . . . . . . . . . . . . .  5
+   3.    Applicability Statement  . . . . . . . . . . . . . . . . . .  5
+   4.    Security considerations  . . . . . . . . . . . . . . . . . .  5
+   5.    IANA considerations  . . . . . . . . . . . . . . . . . . . .  5
+         References . . . . . . . . . . . . . . . . . . . . . . . . .  6
+         Author's Address . . . . . . . . . . . . . . . . . . . . . .  7
+   A.    Acknowledgements . . . . . . . . . . . . . . . . . . . . . .  7
+         Full Copyright Statement . . . . . . . . . . . . . . . . . .  8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 2]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+1. Introduction
+
+   The Domain Name System Security Extensions (DNSSEC) as described in
+   RFC 2535 [4] specifies the KEY resource record (RR).  The KEY RR is
+   specified for use both for storing keys used by the DNSSEC
+   infrastructure itself and for storing keys used by non-DNSSEC
+   infrastructure applications (e.g.  TLS [2], email and IPsec).  The
+   issues with combining these two uses in one RR are further discussed
+   in draft-ietf-dnsext-restrict-key-for-dnssec-00 [11].
+
+   The protocol field in the KEY RR is only 8-bit and thus limited to
+   256 different protocols.  As there is no way of separating different
+   version of a specific protocol, incompatible versions of a single
+   protocol requires multiple protocol values.  A larger protocol field
+   together with the possibility to specify a version of the protocol
+   could solve this issue.
+
+   The KEY RR includes a flag field that specifies key usage, what kind
+   of entity the key is associated with and various other flags.  As
+   this kind of information often is application dependent and a common
+   specification that covers all kinds of different flags that an
+   application might need is hard to do, the usability of this field is
+   questionable.
+
+   A problem with multiple applications storing their public keys at a
+   single owner name and thus creating a very large RR set has been
+   identified.  A possible solution for this could be to use a generic
+   protocol value [10] indicating that the actual protocol used is
+   indicated in the owner name using a SRV-like encoding.  Although this
+   would indeed solve the problem with large RR sets when querying for
+   an application key, it could also make the protocol field lose its
+   value in practice as new applications would not require a new
+   protocol value.  The author believes that combining unique protocol
+   values with SRV-like encode of protocol would be a better solution,
+   solving both the issue with large RR sets and a large number of
+   possible applications.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [1].
+
+2. The APPKEY resource record
+
+   The APPKEY resource record (RR) is used to store a application public
+   key that is associated with a Domain Name System (DNS) name.
+
+   The RR type code for the APPKEY RR is TBA.
+
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 3]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+   An APPKEY RR is, like any other RR, authenticated by a SIG RR.
+
+2.1 The APPKEY RDATA format
+
+   The RDATA for an APPKEY RR consists of a protocol field, a version
+   number octet, the algorithm number octet and the public key itself.
+   The format is as follows:
+
+                        1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |           protocol            |    version    |   algorithm   |
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |                                                               /
+   /                          public key                           /
+   /                                                               /
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
+
+   The meaning of the APPKEY RR owner name, protocol field, version
+   number octet and algorithm number octet are described in the sections
+   below.  The format of the public key is algorithm dependent.
+
+   APPKEY RRs do not specify their validity period but their
+   authenticating SIG RR(s) do as described in RFC 2535 [4].
+
+2.1.1 The protocol field
+
+   The protocol field specifies what protocol the public key is to be
+   used for.  The following values of the protocol field are available:
+
+           Value              Protocol
+           -----              --------
+           0x0000             reserved
+           0x0001 - 0xFEFF    available for assignment by IANA
+           0xFF00 - 0xFFFE    experimental uses
+           0xFFFF             any protocol
+
+   0xFFFF indicates that the key can be used in connection with any
+   protocol.  Use of this value is discouraged and the use of unique
+   protocol values for different protocols is encouraged.
+
+2.1.2 Version number octet
+
+   The version number octet is defined by the protocol specified in the
+   protocol field.  It is up to the application implementing the
+   specified protocol to interpret the value of this octet.
+
+   Any document specifying how a protocol uses APPKEY MUST specify how
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 4]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+   to specify and interpret the version number octet.
+
+2.1.3 Algorithm number specification
+
+   The algorithm number used is the same as defined for the KEY RR
+   described in RFC 2535 [4].
+
+2.2 Text representation of APPKEY RRs
+
+   The RDATA portion of an APPKEY RR has the protocol field, version
+   number octet and algorithm number octet represented as unsigned
+   integers.
+
+   The public key fields is represented in base 64 [9] and may be
+   divided up into any number of white space separated substrings, down
+   to single base 64 digits, which are concatenated to obtain the full
+   public key.  These substrings can span lines using the standard
+   parenthesis notation.  Note that although the public key field may
+   have internal sub-fields, these do not appear in the master file
+   representation.
+
+2.3 Owner names for APPKEY RRs
+
+   The owner name of the APPKEY RR is defined per application.  This can
+   be, but is not limited to, the domain name of the host the
+   application is running at (e.g.  host.example.com) or a name matching
+   the SRV RR [6] for the service (e.g.  _ssh._tcp.host.example.com).
+
+3. Applicability Statement
+
+   The APPKEY resource record (RR) are only intended for storage of
+   public keys - private keys MUST NOT be stored in an APPKEY RR.
+
+   The APPKEY RR is not intended for storage of certificates and a
+   separate certificate RR, defined in RFC 2538 [5], has been developed
+   for that purpose.
+
+4. Security considerations
+
+   Public keys from an APPKEY RR, SHOULD NOT be trusted unless the
+   APPKEY was authenticated by a trusted SIG RR.  Applications that do
+   not validate the signatures by themselves are advised to use TSIG [7]
+   or SIG(0) [8] to protect the transport between themselves and the
+   name server doing the signature validation.
+
+5. IANA considerations
+
+   IANA needs to allocate a RR type code for APPKEY from the standard RR
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 5]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+   type space.
+
+   Protocol values 0x0000 and 0xFFFF are reserved.
+
+   Protocol values 0x0001 through 0xFEFF are allocated based on
+   "Specification Required" as defined in RFC 2434 [3].
+
+   XXX should the protocol values be divided into different ranges for
+   IETF Standard Action, IETF consensus and Specification Required ?
+
+References
+
+   [1]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+         Levels", BCP 14, RFC 2119, March 1997.
+
+   [2]   Dierks, T., Allen, C., Treese, W., Karlton, P., Freier, A. and
+         P. Kocher, "The TLS Protocol Version 1.0", RFC 2246, January
+         1999.
+
+   [3]   Narten, T. and H. Alvestrand, "Guidelines for Writing an IANA
+         Considerations Section in RFCs", BCP 26, RFC 2434, October
+         1998.
+
+   [4]   Eastlake, D., "Domain Name System Security Extensions", RFC
+         2535, March 1999.
+
+   [5]   Eastlake, D. and O. Gudmundsson, "Storing Certificates in the
+         Domain Name System (DNS)", RFC 2538, March 1999.
+
+   [6]   Gulbrandsen, A., Vixie, P. and L. Esibov, "A DNS RR for
+         specifying the location of services (DNS SRV)", RFC 2782,
+         February 2000.
+
+   [7]   Vixie, P., Gudmundsson, O., Eastlake, D. and B. Wellington,
+         "Secret Key Transaction Authentication for DNS (TSIG)", RFC
+         2845, May 2000.
+
+   [8]   Eastlake, D., "DNS Request and Transaction Signatures (
+         SIG(0)s)", RFC 2931, September 2000.
+
+   [9]   Josefsson, S., "Base Encodings", work in progress draft-
+         josefsson-base-encoding-02, May 2001.
+
+   [10]  Lewis, E., "DNS KEY Resource Record Generic Protocol Value",
+         work in progress draft-lewis-dnsext-key-genprot-00, July 2001.
+
+   [11]  Massey, D. and S. Rose, "Limiting the Scope of the KEY Resource
+         Record", work in progress draft-ietf-dnsext-restrict-key-for-
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 6]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+         dnssec-00, November 2001.
+
+
+Author's Address
+
+   Jakob Schlyter
+   Carlstedt Research & Technology
+   Stora Badhusgatan 18-20
+   Goteborg  SE-411 21
+   Sweden
+
+   EMail: jakob@crt.se
+   URI:   http://www.crt.se/~jakob/
+
+Appendix A. Acknowledgements
+
+   The author gratefully acknowledges, in no particular order, the
+   contributions of the following persons:
+
+      Olafur Gudmundsson
+
+      Olaf Kolkman
+
+      Edward Lewis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 7]
+
+Internet-Draft       Application public keys in DNS        November 2001
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter                  Expires May 11, 2002                  [Page 8]
+
+
