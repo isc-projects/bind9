@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.12.2.3 2004/03/16 00:45:49 marka Exp $
+ *	$Id: netdb.h,v 1.12.2.4 2004/03/16 02:06:55 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -390,7 +390,14 @@ const char	*gai_strerror __P((int));
 struct hostent  *getipnodebyname __P((const char *, int, int, int *));
 struct hostent	*getipnodebyaddr __P((const void *, size_t, int, int *));
 void		freehostent __P((struct hostent *));
-
+#ifdef __GLIBC__
+int		getnetgrent __P((/* const */ char **, /* const */ char **,
+				 /* const */ char **));
+void		setnetgrent __P((const char *));
+void		endnetgrent __P((void));
+int		innetgr __P((const char *, const char *, const char *,
+			     const char *));
+#endif
 
 #ifdef _REENTRANT
 #if defined(__hpux) || defined(__osf__) || defined(_AIX)
@@ -516,6 +523,8 @@ struct servent	*getservent_r __P((struct servent *, char *, int));
 #endif
 void		setservent_r __P((int));
 void		endservent_r __P((void));
+
+int		getnetgrent_r __P((char **, char **, char **, char *, size_t));
 
 #endif
 #endif
