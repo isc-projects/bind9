@@ -113,6 +113,10 @@ getipnodebyname(const char *name, int af, int flags, int *error_num) {
 	}
 
 	n = lwres_context_create(&lwrctx, NULL, NULL, NULL);
+	if (n != 0) {
+		*error_num = NO_RECOVERY;
+		goto cleanup;
+	}
 	tmp_err = NO_RECOVERY;
 	if (have_v6 && af == AF_INET6) {
 		
