@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.40.2.6 2004/02/24 02:32:18 marka Exp $
+# $Id: rules.in,v 1.40.2.7 2004/03/05 03:15:09 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -206,6 +206,7 @@ SGMLSPL = sgmlspl
 	${OPENJADE} -c ${SGMLCATALOG} -t sgml -d ${HTMLSTYLE} $<
 	echo "" >> r1.htm
 	cat ${top_srcdir}/docutil/HTML_COPYRIGHT r1.htm > $@
+	rm -f r1.htm
 
 .docbook.1:
 	sh ${top_srcdir}/docutil/docbook2man-wrapper.sh ${top_srcdir} $< $@
