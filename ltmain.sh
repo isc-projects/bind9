@@ -1487,19 +1487,11 @@ EOF
 	continue
 	;;
 
-     -mt|-mthreads|-kthread|-Kthread|-pthreads|--thread-safe)
-	deplibs="$deplibs $arg"
-	continue
-	;;
-
-     -pthread)
-	case $host in
-	*-*-osf5.1)
-	    # -pthread is a compiler only option
-	    continue
-	    ;;
+     -mt|-mthreads|-kthread|-Kthread|-pthread|-pthreads|--thread-safe)
+	case "$archive_cmds" in
+	 *"\$LD"*) ;;
+	 *) deplibs="$deplibs $arg";;
 	esac
-	deplibs="$deplibs $arg"
 	continue
 	;;
 
@@ -1987,7 +1979,10 @@ EOF
 	    compile_deplibs="$deplib $compile_deplibs"
 	    finalize_deplibs="$deplib $finalize_deplibs"
 	  else
-	    deplibs="$deplib $deplibs"
+	    case "$archive_cmds" in
+	      *"\$LD"*) ;;
+	      *) deplibs="$deplibs $arg";;
+	    esac
 	  fi
 	  continue
 	  ;;
