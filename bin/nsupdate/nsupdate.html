@@ -427,6 +427,40 @@ will attempt determine the correct zone to update based on the rest of the input
 ><P
 ><B
 CLASS="COMMAND"
+>key</B
+>  {name} {secret}</P
+></DT
+><DD
+><P
+>Specifies that all updates are to be TSIG signed using the
+<TT
+CLASS="PARAMETER"
+><I
+>keyname</I
+></TT
+> <TT
+CLASS="PARAMETER"
+><I
+>keysecret</I
+></TT
+> pair.
+The <B
+CLASS="COMMAND"
+>key</B
+> command
+overrides any key specified on the command line via
+<TT
+CLASS="OPTION"
+>-y</TT
+> or <TT
+CLASS="OPTION"
+>-k</TT
+>.</P
+></DD
+><DT
+><P
+><B
+CLASS="COMMAND"
 >prereq nxdomain</B
 >  {domain-name}</P
 ></DT
@@ -691,7 +725,7 @@ CLASS="PARAMETER"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN197"
+NAME="AEN210"
 ></A
 ><H2
 >EXAMPLES</H2
@@ -762,7 +796,7 @@ SIG, KEY and NXT records.)</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN210"
+NAME="AEN223"
 ></A
 ><H2
 >FILES</H2
@@ -818,7 +852,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN234"
+NAME="AEN247"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -883,7 +917,7 @@ CLASS="REFENTRYTITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN255"
+NAME="AEN268"
 ></A
 ><H2
 >BUGS</H2

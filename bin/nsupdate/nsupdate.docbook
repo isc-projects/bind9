@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.5 2001/07/02 06:09:28 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.6 2001/07/02 18:48:26 gson Exp $ -->
 
 <refentry>
 <refentryinfo>
@@ -254,7 +254,8 @@ will attempt determine the correct zone to update based on the rest of the input
 <para>
 Specifies that all updates are to be TSIG signed using the
 <parameter>keyname</parameter> <parameter>keysecret</parameter> pair.
-<command>Key</command> overrides any key specified on the command line via
+The <command>key</command> command
+overrides any key specified on the command line via
 <option>-y</option> or <option>-k</option>.
 </para>
 
