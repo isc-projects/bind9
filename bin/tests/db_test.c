@@ -890,7 +890,8 @@ main(int argc, char *argv[]) {
 		usec = isc_time_microdiff(&finish, &start);
 
 		printf("elapsed time: %lu.%06lu seconds\n",
-		       usec / 1000000, usec % 1000000);
+		       (unsigned long)(usec / 1000000),
+		       (unsigned long)(usec % 1000000));
 	}
 
 	unload_all();

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
- /* $Id: keygen.c,v 1.3 1999/10/06 20:07:24 tale Exp $ */
+ /* $Id: keygen.c,v 1.4 1999/10/10 17:13:29 halley Exp $ */
 
 #include <config.h>
 
@@ -46,8 +46,6 @@ main(int argc, char **argv) {
 	isc_mem_t	*mctx = NULL;
 	int		ch, rsa_exp = 0, generator = 0, param = 0;
 	int		protocol = -1, size = -1;
-	extern char	*optarg;
-	extern int	optind;
 	dst_result_t	ret;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
