@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.95 2000/04/18 20:30:47 gson Exp $ */
+/* $Id: zone.c,v 1.96 2000/04/19 02:07:03 marka Exp $ */
 
 #include <config.h>
 
@@ -2075,19 +2075,21 @@ process_adb_event(isc_task_t *task, isc_event_t *ev) {
 	result = ev->ev_type;
 	isc_event_free(&ev);
 	dns_zone_iattach(notify->zone, &zone);
-	LOCK(&notify->zone->lock);
 	if (result == DNS_EVENT_ADBNOMOREADDRESSES) {
+		LOCK(&notify->zone->lock);
 		notify_send(notify);
-		goto unlock;
+		UNLOCK(&zone->lock);
+		goto detach;
 	}
 	if (result == DNS_EVENT_ADBMOREADDRESSES) {
 		dns_adb_destroyfind(&notify->find);
 		notify_find_address(notify);
-		goto unlock;
+		goto detach;
 	}
+	LOCK(&notify->zone->lock);
 	notify_destroy(notify);
- unlock:
 	UNLOCK(&zone->lock);
+ detach:
 	dns_zone_idetach(&zone);
 }
 
@@ -2095,38 +2097,39 @@ static void
 notify_find_address(notify_t *notify) {
 	isc_result_t result;
 	unsigned int options;
+	dns_zone_t *zone = NULL;
 
-	/*
-	 * Zone lock held by caller.
-	 */
 	REQUIRE(DNS_NOTIFY_VALID(notify));
 	options = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_INET |
 		  DNS_ADBFIND_INET6 | DNS_ADBFIND_RETURNLAME;
 
-	result = dns_adb_createfind(notify->zone->adb,
-				    notify->zone->task,
+	dns_zone_iattach(notify->zone, &zone);
+	result = dns_adb_createfind(zone->adb,
+				    zone->task,
 				    process_adb_event, notify,
 				    &notify->ns, dns_rootname,
 				    options, 0, NULL, &notify->find);
 
-	/* We don't follow CNAMES. */
-	if (result == DNS_R_ALIAS) {
-		notify_destroy(notify);
-		return;
-	}
-
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS) {
+		LOCK(&zone->lock);
 		notify_destroy(notify);
+		UNLOCK(&zone->lock);
+		dns_zone_idetach(&zone);
 		return;
 	}
 
 	/* More addresses pending? */
-	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0)
+	if ((notify->find->options & DNS_ADBFIND_WANTEVENT) != 0) {
+		dns_zone_idetach(&zone);
 		return;
+	}
 
 	/* We have as many addresses as we can get. */
+	LOCK(&zone->lock);
 	notify_send(notify);
+	UNLOCK(&zone->lock);
+	dns_zone_idetach(&zone);
 }
 
 static void
@@ -2221,9 +2224,8 @@ dns_zone_notify(dns_zone_t *zone) {
 
 	LOCK(&zone->lock);
 	zone->flags &= ~DNS_ZONE_F_NEEDNOTIFY;
+	UNLOCK(&zone->lock);
 
-	goto unlock; /* XXXAG disable notify until locking bug is fixed */
-	
 	/*
 	 * Enqueue notify request.
 	 */
@@ -2247,17 +2249,21 @@ dns_zone_notify(dns_zone_t *zone) {
 #endif
 		result = create_notify(zone->mctx, &notify);
 		if (result != ISC_R_SUCCESS)
-			goto unlock;
-		zone_iattach(zone, &notify->zone);
+			goto cleanup0;
+		dns_zone_iattach(zone, &notify->zone);
 		result = dns_request_create(zone->requestmgr, message,
 					    &dst, 0, 15, zone->task,
 					    notify_done, notify,
 					    &notify->request);
 		if (result != ISC_R_SUCCESS) {
+			LOCK(&zone->lock);
 			notify_destroy(notify);
-			goto unlock;
+			UNLOCK(&zone->lock);
+			goto cleanup0;
 		}
+		LOCK(&zone->lock);
 		ISC_LIST_APPEND(zone->notifies, notify, link);
+		UNLOCK(&zone->lock);
 	}
 
 	dns_db_currentversion(zone->db, &version);
@@ -2284,14 +2290,18 @@ dns_zone_notify(dns_zone_t *zone) {
 			dns_rdata_freestruct(&ns);
 			continue;
 		}
-		zone_iattach(zone, &notify->zone);
+		dns_zone_iattach(zone, &notify->zone);
 		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
 		dns_rdata_freestruct(&ns);
 		if (result != ISC_R_SUCCESS) {
+			LOCK(&zone->lock);
 			notify_destroy(notify);
+			UNLOCK(&zone->lock);
 			continue;
 		}
+		LOCK(&zone->lock);
 		ISC_LIST_APPEND(zone->notifies, notify, link);
+		UNLOCK(&zone->lock);
 		notify_find_address(notify);
 		result = dns_rdataset_next(&nsrdset);
 	}
@@ -2301,8 +2311,7 @@ dns_zone_notify(dns_zone_t *zone) {
 	dns_db_detachnode(zone->db, &node);
  cleanup1:
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
- unlock:
-	UNLOCK(&zone->lock);
+ cleanup0:
 	dns_message_destroy(&message);
 }
 
@@ -2643,7 +2652,8 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	case dns_zone_master:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDNOTIFY))
 			next = now;
-		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP))
+		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDDUMP) &&
+		    (zone->dumptime < next || next == 0))
 			next = zone->dumptime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED)) {
 			if (DNS_ZONE_OPTION(zone, DNS_ZONE_O_SERVERS) &&
@@ -2658,10 +2668,11 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 		}
 		break;
 	case dns_zone_slave:
-	case dns_zone_stub:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_NEEDNOTIFY))
 			next = now;
-		if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH))
+	case dns_zone_stub:
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONE_F_REFRESH) &&
+		    (zone->refreshtime < next || next == 0))
 			next = zone->refreshtime;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONE_F_LOADED)) {
 		    	if (zone->expiretime < next || next == 0)
