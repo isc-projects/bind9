@@ -71,13 +71,12 @@
 #define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
 /*
- * Lengths of lists needs to be small primes.
+ * The number of buckets needs to be a prime.
  */
-#define DNS_ADBNAMELIST_LENGTH	31	/* how many buckets for names */
-#define DNS_ADBENTRYLIST_LENGTH	31	/* how many buckets for addresses */
+#define NBUCKETS	       101	/* how many buckets for names/addrs */
 
 /* clean this many seconds initially */
-#define CLEAN_SECONDS		(300 / DNS_ADBNAMELIST_LENGTH)
+#define CLEAN_SECONDS		(300 / NBUCKETS)
 
 #define FREE_ITEMS		16	/* free count for memory pools */
 #define FILL_COUNT		 8	/* fill count for memory pools */
@@ -125,16 +124,16 @@ struct dns_adb {
 	/*
 	 * Bucketized locks and lists for names.
 	 */
-	dns_adbnamelist_t		names[DNS_ADBNAMELIST_LENGTH];
-	isc_mutex_t			namelocks[DNS_ADBNAMELIST_LENGTH];
-	isc_boolean_t			name_sd[DNS_ADBNAMELIST_LENGTH];
-	unsigned int			name_refcnt[DNS_ADBNAMELIST_LENGTH];
+	dns_adbnamelist_t		names[NBUCKETS];
+	isc_mutex_t			namelocks[NBUCKETS];
+	isc_boolean_t			name_sd[NBUCKETS];
+	unsigned int			name_refcnt[NBUCKETS];
 
 	/*
 	 * Bucketized locks for entries.
 	 */
-	dns_adbentrylist_t		entries[DNS_ADBENTRYLIST_LENGTH];
-	isc_mutex_t			entrylocks[DNS_ADBENTRYLIST_LENGTH];
+	dns_adbentrylist_t		entries[NBUCKETS];
+	isc_mutex_t			entrylocks[NBUCKETS];
 };
 
 struct dns_adbname {
@@ -240,7 +239,6 @@ static inline dns_adbfind_t *new_adbfind(dns_adb_t *);
 static inline void free_adbfind(dns_adb_t *, dns_adbfind_t **);
 static inline dns_adbaddrinfo_t *new_adbaddrinfo(dns_adb_t *,
 						 dns_adbentry_t *);
-
 static inline dns_adbfetch_t *new_adbfetch(dns_adb_t *);
 static inline void free_adbfetch(dns_adb_t *, dns_adbfetch_t **);
 static inline dns_adbfetch6_t *new_adbfetch6(dns_adb_t *, dns_adbname_t *,
@@ -458,19 +456,20 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
-	if (rdtype == dns_rdatatype_a)
-		adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
-					     now + rdataset->ttl);
-	else
-		adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
-					     now + rdataset->ttl);
+	if (new_addresses_added) {
+		if (rdtype == dns_rdatatype_a)
+			adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
+						     now + rdataset->ttl);
+		else
+			adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
+						     now + rdataset->ttl);
 
-	/*
-	 * Lie a little here.  This is more or less so code that cares
-	 * can find out if any new information was added or not.
-	 */
-	if (new_addresses_added)
+		/*
+		 * Lie a little here.  This is more or less so code that cares
+		 * can find out if any new information was added or not.
+		 */
 		return (ISC_R_SUCCESS);
+	}
 
 	return (result);
 }
@@ -688,7 +687,7 @@ shutdown_names(dns_adb_t *adb)
 	dns_adbname_t *name;
 	dns_adbname_t *next_name;
 
-	for (bucket = 0 ; bucket < DNS_ADBNAMELIST_LENGTH ; bucket++) {
+	for (bucket = 0 ; bucket < NBUCKETS ; bucket++) {
 		LOCK(&adb->namelocks[bucket]);
 		adb->name_sd[bucket] = ISC_TRUE;
 
@@ -1494,7 +1493,7 @@ find_name_and_lock(dns_adb_t *adb, dns_name_t *name, int *bucketp)
 	dns_adbname_t *adbname;
 	int bucket;
 
-	bucket = dns_name_hash(name, ISC_FALSE) % DNS_ADBNAMELIST_LENGTH;
+	bucket = dns_name_hash(name, ISC_FALSE) % NBUCKETS;
 
 	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
 		LOCK(&adb->namelocks[bucket]);
@@ -1533,7 +1532,7 @@ find_entry_and_lock(dns_adb_t *adb, isc_sockaddr_t *addr, int *bucketp)
 	dns_adbentry_t *entry;
 	int bucket;
 
-	bucket = isc_sockaddr_hash(addr, ISC_TRUE) % DNS_ADBENTRYLIST_LENGTH;
+	bucket = isc_sockaddr_hash(addr, ISC_TRUE) % NBUCKETS;
 
 	if (*bucketp == DNS_ADB_INVALIDBUCKET) {
 		LOCK(&adb->entrylocks[bucket]);
@@ -1768,7 +1767,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	 * Set the next bucket to be cleaned.
 	 */
 	adb->next_namebucket++;
-	if (adb->next_namebucket >= DNS_ADBNAMELIST_LENGTH)
+	if (adb->next_namebucket >= NBUCKETS)
 		adb->next_namebucket = 0;
 
 #if 0
@@ -1777,7 +1776,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	 */
 	cleanup_entries(adb, adb->next_entrybucket, now);
 	adb->next_entrybucket++;
-	if (adb->next_entrybucket >= DNS_ADBENTRYLIST_LENGTH)
+	if (adb->next_entrybucket >= NBUCKETS)
 		adb->next_entrybucket = 0;
 #endif
 
@@ -1812,8 +1811,8 @@ destroy(dns_adb_t *adb)
 	isc_mempool_destroy(&adb->afmp);
 	isc_mempool_destroy(&adb->af6mp);
 
-	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
-	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
+	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
+	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
 
 	isc_mutex_destroy(&adb->lock);
 	isc_mutex_destroy(&adb->mplock);
@@ -1886,18 +1885,18 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	 * Initialize the bucket locks for names and elements.
 	 * May as well initialize the list heads, too.
 	 */
-	result = isc_mutexblock_init(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
+	result = isc_mutexblock_init(adb->namelocks, NBUCKETS);
 	if (result != ISC_R_SUCCESS)
 		goto fail1;
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++) {
+	for (i = 0 ; i < NBUCKETS ; i++) {
 		ISC_LIST_INIT(adb->names[i]);
 		adb->name_sd[i] = ISC_FALSE;
 		adb->name_refcnt[i] = 0;
 		adb->irefcnt++;
 	}
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
+	for (i = 0 ; i < NBUCKETS ; i++)
 		ISC_LIST_INIT(adb->entries[i]);
-	result = isc_mutexblock_init(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
+	result = isc_mutexblock_init(adb->entrylocks, NBUCKETS);
 	if (result != ISC_R_SUCCESS)
 		goto fail2;
 
@@ -1954,10 +1953,10 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		isc_timer_detach(&adb->timer);
 
 	/* clean up entrylocks */
-	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
+	isc_mutexblock_destroy(adb->entrylocks, NBUCKETS);
 
  fail2: /* clean up namelocks */
-	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
+	isc_mutexblock_destroy(adb->namelocks, NBUCKETS);
 
  fail1: /* clean up only allocated memory */
 	if (adb->nmp != NULL)
@@ -2196,7 +2195,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		find->query_pending = (query_pending & wanted_addresses);
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 		find->flags |= (find->query_pending & DNS_ADBFIND_ADDRESSMASK);
-		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p\n",
+		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p",
 		   find, adbname);
 	} else {
 		/*
@@ -2558,16 +2557,16 @@ dump_adb(dns_adb_t *adb, FILE *f)
 		adb->erefcnt, adb->irefcnt,
 		isc_mempool_getallocated(adb->nhmp));
 
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
+	for (i = 0 ; i < NBUCKETS ; i++)
 		LOCK(&adb->namelocks[i]);
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
+	for (i = 0 ; i < NBUCKETS ; i++)
 		LOCK(&adb->entrylocks[i]);
 
 	/*
 	 * Dump the names
 	 */
 	fprintf(f, "Names:\n");
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++) {
+	for (i = 0 ; i < NBUCKETS ; i++) {
 		name = ISC_LIST_HEAD(adb->names[i]);
 		if (name == NULL)
 			continue;
@@ -2600,7 +2599,7 @@ dump_adb(dns_adb_t *adb, FILE *f)
 	 * Dump the entries
 	 */
 	fprintf(f, "Entries:\n");
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++) {
+	for (i = 0 ; i < NBUCKETS ; i++) {
 		entry = ISC_LIST_HEAD(adb->entries[i]);
 		if (entry == NULL)
 			continue;
@@ -2643,9 +2642,9 @@ dump_adb(dns_adb_t *adb, FILE *f)
 	/*
 	 * Unlock everything
 	 */
-	for (i = 0 ; i < DNS_ADBENTRYLIST_LENGTH ; i++)
+	for (i = 0 ; i < NBUCKETS ; i++)
 		UNLOCK(&adb->entrylocks[i]);
-	for (i = 0 ; i < DNS_ADBNAMELIST_LENGTH ; i++)
+	for (i = 0 ; i < NBUCKETS ; i++)
 		UNLOCK(&adb->namelocks[i]);
 }
 
@@ -2824,16 +2823,15 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 * so we won't ask again for a while.
 		 */
 		if (rdtype == dns_rdatatype_a) {
-			DP(1, "adb name %p: Caching negative entry for A",
-			   adbname);
 			adbname->expire_v4 = rdataset.ttl + now;
+			DP(1, "adb name %p: Caching negative entry for A (ttl %u)",
+			   adbname, rdataset.ttl);
 		} else {
-			DP(1, "adb name %p: Caching negative entry for AAAA",
-			   adbname);
+			DP(1, "adb name %p: Caching negative entry for AAAA (ttl %u)",
+			   adbname, rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
 		}
 	}
-	/* Need to handle "no such name" XXXMLG */
 
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -2883,7 +2881,6 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		 */
 		adbname->expire_v6 = rdataset.ttl + now;
 	}
-	/* Need to handle "no such name" XXXMLG */
 
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
