@@ -25,6 +25,7 @@
 #include <isc/list.h>
 #include <isc/result.h>
 #include <isc/mem.h>
+#include <isc/types.h>
 
 #include <dns/types.h>
 
@@ -44,7 +45,7 @@ typedef enum {
 /* This structure contains all the run-time information about a zone. */
 struct isc_zoneinfo 
 {
-	int32_t		magic;		/* private magic stamp for valid'ng */
+	isc_int32_t	magic;		/* private magic stamp for valid'ng */
 
 	size_t		originlen;
 	char		*origin;	/* name of zone */
@@ -61,13 +62,13 @@ struct isc_zoneinfo
 
 	time_t		filemodtime;	/* mod time of zone file */
 	time_t		lastupdate;	/* time last soa serial increment */
-	u_int32_t	refresh;	/* refresh interval */
-	u_int32_t	retry;		/* refresh retry interval */
-	u_int32_t	expire;		/* expiration time for cached info */
-	u_int32_t	minimum;	/* minimum TTL value */
-	u_int32_t	serial;		/* SOA serial number */
+	isc_uint32_t	refresh;	/* refresh interval */
+	isc_uint32_t	retry;		/* refresh retry interval */
+	isc_uint32_t	expire;		/* expiration time for cached info */
+	isc_uint32_t	minimum;	/* minimum TTL value */
+	isc_uint32_t	serial;		/* SOA serial number */
 
-	u_int		options;	/* zone specific options */
+	unsigned int	options;	/* zone specific options */
 	int		zoneclass;	/* zone class type */
 
 	struct isc_zonectx	*zctx;		/* contect zone came from. */
