@@ -1,3 +1,7 @@
+1336.	[func]		Nibble lookups under IP6.ARPA are now supported by
+			dns_byaddr_create().  dns_byaddr_createptrname() is
+			deprecated, use dns_byaddr_createptrname2() instead.
+
 1332.	[func]		Report the current serial with periodic commits when
 			rolling forward the journal.
 
