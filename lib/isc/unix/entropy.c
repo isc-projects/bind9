@@ -177,6 +177,8 @@ samplesource_allocate(isc_entropy_t *ent, sample_queue_t *sq) {
 		return (ISC_R_NOMEMORY);
 	}
 
+	sq->nsamples = 0;
+
 	return (ISC_R_SUCCESS);
 }
 
@@ -359,20 +361,35 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 }
 
 static unsigned int
-get_from_callback(isc_entropysource_t *source, unsigned int desired) {
+get_from_callback(isc_entropysource_t *source, unsigned int desired,
+		  isc_boolean_t blocking)
+{
 	isc_entropy_t *ent = source->ent;
 	isc_cbsource_t *cbs = &source->sources.callback;
 	unsigned int added;
+	unsigned int got;
 	isc_result_t result;
 
-	added = 0;
-	while (desired > 0) {
-		if (!cbs->start_called && cbs->startfunc != NULL)
-			cbs->startfunc(ent, source, cbs->arg);
-		result = cbs->getfunc(ent, source, cbs->arg);
-		added += crunchsamples(ent, &cbs->samplequeue);
+	if (desired == 0)
+		return (0);
 
-		desired -= added;
+	if (!cbs->start_called && cbs->startfunc != NULL) {
+		result = cbs->startfunc(source, cbs->arg, blocking);
+		if (result != ISC_R_SUCCESS)
+			return (0);
+		cbs->start_called = ISC_TRUE;
+	}
+
+	added = 0;
+	result = ISC_R_SUCCESS;
+	while (desired > 0 && result == ISC_R_SUCCESS) {
+		result = cbs->getfunc(source, cbs->arg, blocking);
+		if (result == ISC_R_QUEUEFULL) {
+			got = crunchsamples(ent, &cbs->samplequeue);
+			added += got;
+			desired -= ISC_MIN(got, desired);
+			result = ISC_R_SUCCESS;
+		}
 	}
 
 	return (added);
@@ -415,22 +432,13 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 	 * to build up.
 	 */
 	if (needed == 0) {
-		isc_uint32_t needed_ent, needed_ps;
-
 		REQUIRE(!blocking);
 
 		if ((ent->pool.entropy >= RND_POOLBITS / 4)
 		    && (ent->pool.pseudo <= RND_POOLBITS / 4))
 			return;
-		needed_ent = 0;
-		needed_ps = 0;
-		if (ent->pool.entropy < THRESHOLD_BITS)
-			needed_ent = THRESHOLD_BITS;
-		if (ent->pool.pseudo > RND_POOLBITS / 4)
-			needed_ps = THRESHOLD_BITS;
-		needed = ISC_MAX(needed_ent, needed_ps);
-		if (needed == 0 && ent->initialized >= THRESHOLD_BITS)
-			return;
+
+		needed = THRESHOLD_BITS * 4;
 	} else {
 		needed = ISC_MAX(needed, THRESHOLD_BITS);
 		needed = ISC_MIN(needed, RND_POOLBITS);
@@ -479,10 +487,7 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 
 		added += got;
 
-		if (remaining > got)
-			remaining -= got;
-		else
-			remaining = 0;
+		remaining -= ISC_MIN(remaining, got);
 
 		source = ISC_LIST_NEXT(source, link);
 		if (source == NULL)
@@ -507,25 +512,19 @@ fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
 	 * check to see if we have a callback source.  If so, call them.
 	 */
 	source = ISC_LIST_HEAD(ent->sources);
-	while (remaining != 0 && source != NULL) {
+	while ((remaining != 0) && (source != NULL)) {
 		unsigned int got;
 
 		got = 0;
 
 		if (source->type == ENTROPY_SOURCETYPE_CALLBACK)
-			got = get_from_callback(source, remaining);
+			got = get_from_callback(source, remaining, blocking);
 
 		added += got;
+		remaining -= ISC_MIN(remaining, got);
 
-		if (remaining > got)
-			remaining -= got;
-		else
-			remaining = 0;
-
-#if 0
 		if (added >= needed)
 			break;
-#endif
 
 		source = ISC_LIST_NEXT(source, link);
 	}
@@ -601,28 +600,6 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 	LOCK(&ent->lock);
 
-	/*
-	 * If we are blocking, we will block when actually extracting data.
-	 * Otherwise, if we cannot block, there is a limit on how much data
-	 * we can actually extract if good data is required.
-	 *
-	 * Here, clamp length to be the amount of data we can extract
-	 * if goodonly and partial are both set, otherwise return an
-	 * error.
-	 */
-	if (goodonly && !blocking) {
-		fillpool(ent, length * 8, ISC_FALSE);
-
-		/*
-		 * To extract good data, we need to have at least
-		 * enough entropy to fill our digest.
-		 */
-		if (ent->pool.entropy < THRESHOLD_BITS) {
-			UNLOCK(&ent->lock);
-			return (ISC_R_NOENTROPY);
-		}
-	}
-
 	remain = length;
 	buf = data;
 	total = 0;
@@ -652,9 +629,12 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 			else
 				fillpool(ent, fillcount, blocking);
 
-			if (!partial)
-				if (ent->pool.entropy < THRESHOLD_BITS)
+			if (ent->pool.entropy < THRESHOLD_BITS) {
+				if (!blocking && !partial)
 					goto zeroize;
+				else if (partial)
+					goto partial_output;
+			}
 		} else {
 			/*
 			 * If we've extracted half our pool size in bits
@@ -695,6 +675,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		subtract_entropy(ent, deltae);
 		add_pseudo(ent, count * 8);
 	}
+
+ partial_output:
 
 	memset(digest, 0, sizeof(digest));
 
@@ -809,8 +791,10 @@ destroysource(isc_entropysource_t **sourcep) {
 		break;
 	case ENTROPY_SOURCETYPE_CALLBACK:
 		cbs = &source->sources.callback;
-		if (cbs->start_called && cbs->stopfunc != NULL)
-			cbs->stopfunc(ent, source, cbs->arg);
+		if (cbs->start_called && cbs->stopfunc != NULL) {
+			cbs->stopfunc(source, cbs->arg);
+			cbs->start_called = ISC_FALSE;
+		}
 		samplequeue_release(ent, &cbs->samplequeue);
 		break;
 	}
@@ -1049,6 +1033,8 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 	ISC_LIST_APPEND(ent->sources, source, link);
 	ent->nsources++;
 
+	*sourcep = source;
+
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
 
@@ -1074,8 +1060,10 @@ isc_entropy_stopcallbacksources(isc_entropy_t *ent) {
 	while (source != NULL) {
 		if (source->type == ENTROPY_SOURCETYPE_CALLBACK) {
 			cbs = &source->sources.callback;
-			if (cbs->start_called && cbs->stopfunc != NULL)
-				cbs->stopfunc(ent, source, cbs->arg);
+			if (cbs->start_called && cbs->stopfunc != NULL) {
+				cbs->stopfunc(source, cbs->arg);
+				cbs->start_called = ISC_FALSE;
+			}
 		}
 
 		source = ISC_LIST_NEXT(source, link);
@@ -1123,6 +1111,8 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 	 */
 	ISC_LIST_APPEND(ent->sources, source, link);
 	ent->nsources++;
+
+	*sourcep = source;
 
 	UNLOCK(&ent->lock);
 	return (ISC_R_SUCCESS);
@@ -1189,7 +1179,7 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 	unsigned int ns;
 	unsigned int added;
 
-	if (sq->nsamples < 5)
+	if (sq->nsamples < 6)
 		return (0);
 
 	added = 0;
@@ -1210,6 +1200,17 @@ crunchsamples(isc_entropy_t *ent, sample_queue_t *sq) {
 	entropypool_adddata(ent, sq->samples, sq->nsamples * 4, added);
 	entropypool_adddata(ent, sq->extra, sq->nsamples * 4, 0);
 
+	/*
+	 * Move the last 4 samples into the first 4 positions, and start
+	 * adding new samples from that point.
+	 */
+	for (ns = 0 ; ns < 4 ; ns++) {
+		sq->samples[ns] = sq->samples[sq->nsamples - 4 + ns];
+		sq->extra[ns] = sq->extra[sq->nsamples - 4 + ns];
+	}
+
+	sq->nsamples = 0;
+
 	return (added);
 }
 
@@ -1228,9 +1229,9 @@ addsample(sample_queue_t *sq, isc_uint32_t sample, isc_uint32_t extra) {
 	sq->nsamples++;
 
 	if (sq->nsamples >= RND_EVENTQSIZE)
-		return (ISC_R_SUCCESS);
+		return (ISC_R_QUEUEFULL);
 
-	return (ISC_R_NOENTROPY);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -1248,26 +1249,33 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 
 	LOCK(&ent->lock);
 
-	switch (source->type) {
-	case ENTROPY_SOURCETYPE_SAMPLE:
-		sq = &source->sources.sample.samplequeue;
-		result = addsample(sq, sample, extra);
-		if (result == ISC_R_SUCCESS) {
-			entropy = crunchsamples(ent, sq);
-			add_entropy(ent, entropy);
-		}
-		break;
-	case ENTROPY_SOURCETYPE_CALLBACK:
-		sq = &source->sources.sample.samplequeue;
-		result = addsample(sq, sample, extra);
-		break;
-	default:
-		result = ISC_R_UNEXPECTED;
-		REQUIRE(source->type == ENTROPY_SOURCETYPE_SAMPLE
-			|| source->type == ENTROPY_SOURCETYPE_CALLBACK);
+	sq = &source->sources.sample.samplequeue;
+	result = addsample(sq, sample, extra);
+	if (result == ISC_R_QUEUEFULL) {
+		entropy = crunchsamples(ent, sq);
+		add_entropy(ent, entropy);
 	}
 
 	UNLOCK(&ent->lock);
+
+	return (result);
+}
+
+isc_result_t
+isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
+			      isc_uint32_t extra)
+{
+	isc_entropy_t *ent;
+	sample_queue_t *sq;
+	isc_result_t result;
+
+	REQUIRE(VALID_SOURCE(source));
+	REQUIRE(source->type == ENTROPY_SOURCETYPE_CALLBACK);
+
+	ent = source->ent;
+
+	sq = &source->sources.callback.samplequeue;
+	result = addsample(sq, sample, extra);
 
 	return (result);
 }

@@ -67,8 +67,8 @@
 #define ISC_R_MULTICAST			43	/* invalid use of multicast */
 #define ISC_R_NOTFILE			44	/* not a file */
 #define ISC_R_NOTDIRECTORY		45	/* not a directory */
-
-#define ISC_R_NRESULTS 			46	/* Number of results */
+#define ISC_R_QUEUEFULL			46	/* queue is full */
+#define ISC_R_NRESULTS 			47	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 

@@ -50,6 +50,7 @@ XTARGETS =	adb_test \
 		dispatch_tcp_test \
 		dispatch_test \
 		entropy_test \
+		entropy2_test \
 		gxba_test \
 		gxbn_test \
 		hash_test \
@@ -90,6 +91,7 @@ SRCS =		adb_test.c \
 		dispatch_tcp_test.c \
 		dispatch_test.c \
 		entropy_test.c \
+		entropy2_test.c \
 		gxba_test.c \
 		gxbn_test.c \
 		hash_test.c \
@@ -169,6 +171,10 @@ hash_test: hash_test.@O@ ${ISCDEPLIBS}
 
 entropy_test: entropy_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ entropy_test.@O@ \
+		${ISCLIBS} ${LIBS}
+
+entropy2_test: entropy2_test.@O@ ${ISCDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ entropy2_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 sock_test: sock_test.@O@ ${ISCDEPLIBS}
