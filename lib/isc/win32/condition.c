@@ -15,15 +15,17 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.15 2001/01/09 21:58:48 bwelling Exp $ */
+/* $Id: condition.c,v 1.16 2001/07/06 05:05:51 mayer Exp $ */
 
 #include <config.h>
 
 #include <isc/condition.h>
 #include <isc/assertions.h>
+#include <isc/util.h>
+#include <isc/time.h>
 
-#define SIGNAL		0
-#define BROADCAST	1
+#define LSIGNAL		0
+#define LBROADCAST	1
 
 isc_result_t
 isc_condition_init(isc_condition_t *cond) {
@@ -37,14 +39,14 @@ isc_condition_init(isc_condition_t *cond) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-	cond->events[SIGNAL] = h;
+	cond->events[LSIGNAL] = h;
 	h = CreateEvent(NULL, TRUE, FALSE, NULL);
 	if (h == NULL) {
-		(void)CloseHandle(cond->events[SIGNAL]);
+		(void)CloseHandle(cond->events[LSIGNAL]);
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-	cond->events[BROADCAST] = h;
+	cond->events[LBROADCAST] = h;
 
 	return (ISC_R_SUCCESS);
 }
@@ -59,7 +61,7 @@ isc_condition_signal(isc_condition_t *cond) {
 	REQUIRE(cond != NULL);
 
 	if (cond->waiters > 0 &&
-	    !SetEvent(cond->events[SIGNAL])) {
+	    !SetEvent(cond->events[LSIGNAL])) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
@@ -77,7 +79,7 @@ isc_condition_broadcast(isc_condition_t *cond) {
 	REQUIRE(cond != NULL);
 
 	if (cond->waiters > 0 &&
-	    !SetEvent(cond->events[BROADCAST])) {
+	    !SetEvent(cond->events[LBROADCAST])) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
@@ -90,8 +92,8 @@ isc_condition_destroy(isc_condition_t *cond) {
 
 	REQUIRE(cond != NULL);
 
-	(void)CloseHandle(cond->events[SIGNAL]);
-	(void)CloseHandle(cond->events[BROADCAST]);
+	(void)CloseHandle(cond->events[LSIGNAL]);
+	(void)CloseHandle(cond->events[LBROADCAST]);
 
 	return (ISC_R_SUCCESS);
 }
@@ -110,7 +112,7 @@ wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	EnterCriticalSection(mutex);
 	cond->waiters--;
 	if (cond->waiters == 0 &&
-	    !ResetEvent(cond->events[BROADCAST])) {
+	    !ResetEvent(cond->events[LBROADCAST])) {
 		/* XXX */
 		LeaveCriticalSection(mutex);
 		return (ISC_R_UNEXPECTED);

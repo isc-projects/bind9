@@ -15,17 +15,28 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.6 2001/01/09 21:58:51 bwelling Exp $ */
-
-#include <windows.h>
-#include <winerror.h>
-#include <aclapi.h>
+/* $Id: fsaccess.c,v 1.8 2001/07/08 05:09:01 mayer Exp $ */
 
 /*
- * This file is entirely theoretical.  It has never been compiled or tested.
- * At the very least, even if this is all perfect (HAH!), isc__winerror2result
- * needs to be written.
+ * Note that Win32 does not have the concept of files having access and ownership
+ * bits.  The FAT File system only has a readonly flag for everyone and that's
+ * all. NTFS uses ACL's which is a totally different concept of controlling
+ * access.
+ *
+ * This code needs to be revisited to set up proper access control for NTFS file systems.
+ * Nothing can be done for FAT file systems.
  */
+
+#include <config.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <io.h>
+#include <errno.h>
+
+#include <isc/stat.h>
+
+#include "errno2result.h"
 
 /*
  * The OS-independent part of the API is in lib/isc.
@@ -34,145 +45,64 @@
 
 isc_result_t
 isc_fsaccess_set(const char *path, isc_fsaccess_t access) {
-	isc_result_t result;
-	isc_fsaccess_t bits, mask;
+	struct stat statb;
+	int mode;
 	isc_boolean_t is_dir = ISC_FALSE;
-	int i;
-	DWORD winerror;
-	PACL dacl;
-	PSID psid[3];
-#define owner psid[0]
-#define group psid[1]
-#define world psid[2]
-	PSECURITY_DESCRIPTOR sd;
-	EXPLICIT_ACCESS ea[3], *pea;
-	TRUSTEETYPE trustee_type[3] = {
-		TRUSTEE_IS_USER, TRUSTEE_IS_GROUP, TRUSTEE_IS_WELL_KNOWN_GROUP
-	};
+	isc_fsaccess_t bits;
+	isc_result_t result;
 
-	owner = group = world = dacl = sd = NULL;
+	if (stat(path, &statb) != 0)
+		return (isc__errno2result(errno));
 
-	/* XXXDCL -- NEED TO SET is_dir! Maybe use stat; what is native way? */
+	if ((statb.st_mode & S_IFDIR) != 0)
+		is_dir = ISC_TRUE;
+	else if ((statb.st_mode & S_IFREG) == 0)
+		return (ISC_R_INVALIDFILE);
+
 	result = check_bad_bits(access, is_dir);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	winerror = GetNamedSecurityInfo(path, SE_FILE_OBJECT,
-					OWNER_SECURITY_INFORMATION |
-					GROUP_SECURITY_INFORMATION,
-					&owner, &group, NULL, NULL, &sd);
 	/*
-	 * "ERROR_SUCCESS".  Heh heh heh.
+	 * Done with checking bad bits.  Set mode_t.
 	 */
-	if (winerror != ERROR_SUCCESS)
-		return (isc__winerror2result(winerror));
+	mode = 0;
 
-	ZeroMemory(&ea, sizeof(ea));
-	ea.grfAccessMode = SET_ACCESS;
-	ea.grfInheritance = NO_INHERITANCE;
+#define SET_AND_CLEAR1(modebit) \
+	if ((access & bits) != 0) { \
+		mode |= modebit; \
+		access &= ~bits; \
+	}
+#define SET_AND_CLEAR(user, group, other) \
+	SET_AND_CLEAR1(user); \
+	bits <<= STEP; \
+	SET_AND_CLEAR1(group); \
+	bits <<= STEP; \
+	SET_AND_CLEAR1(other);
+
+	bits = ISC_FSACCESS_READ | ISC_FSACCESS_LISTDIRECTORY;
+
+	SET_AND_CLEAR(S_IRUSR, S_IRGRP, S_IROTH);
+
+	bits = ISC_FSACCESS_WRITE |
+	       ISC_FSACCESS_CREATECHILD |
+	       ISC_FSACCESS_DELETECHILD;
+
+	SET_AND_CLEAR(S_IWUSR, S_IWGRP, S_IWOTH);
 
 	/*
-	 * Make a mask for the number of bits per owner/group/other.
-	 */
-	for (i = mask = 0; i < ISC__FSACCESS_PERMISSIONBITS; i++) {
-		mask <<= 1;
-		mask |= 1;
-	}
+	 * WIN32 doesn't have the concept of execute bits. We leave this here
+	 * for when we review this module.
+	 *
+	bits = ISC_FSACCESS_EXECUTE |
+	       ISC_FSACCESS_ACCESSCHILD;
 
-#define MAP(isc, win32) \
-	if ((bits & (isc)) != 0) { \
-		ea.grfAccessPermissions |= (win32); \
-		 bits &= ~(isc); \
-	}
+	SET_AND_CLEAR(S_IXUSR, S_IXGRP, S_IXOTH);
+*/
+	INSIST(access == 0);
 
-	for (i = 0; i < 2; i++) {
-		bits = access & mask;
+	if (_chmod(path, mode) < 0)
+		return (isc__errno2result(errno));
 
-		pea = &ea[i];
-
-		pea->grfAccessPermissions =
-			SYNCHRONIZE | READ_CONTROL | FILE_READ_ATTRIBUTES;
-		if (i == 0)
-			/*
-			 * Owner-only permissions.
-			 */
-			pea->grfAccessPermissions |= WRITE_DAC | DELETE;
-
-		/*
-		 * File access rights.
-		 */
-		MAP(ISC_FSACCESS_READ, FILE_READ_DATA | FILE_READ_EA);
-		MAP(ISC_FSACCESS_WRITE,
-		    FILE_WRITE_DATA | FILE_WRITE_EA | FILE_APPEND_DATA);
-		MAP(ISC_FSACCESS_EXECUTE, FILE_EXECUTE);
-
-		/*
-		 * Directory access rights.
-		 */
-		MAP(ISC_FSACCESS_LISTDIRECTORY, FILE_LIST_DIRECTORY);
-		MAP(ISC_FSACCESS_CREATECHILD, FILE_CREATE_CHILD);
-		MAP(ISC_FSACCESS_DELETECHILD, FILE_DELETE_CHILD);
-		MAP(ISC_FSACCESS_ACCESSCHILD, FILE_TRAVERSE);
-
-		/*
-		 * Ensure no other bits were set.
-		 */
-		INSIST(bits == 0);
-
- 		if (i == 2) {
-			/*
-			 * Setting world.
-			 */
-			SID_IDENTIFIER_AUTHORITY authworld =
-				SECURITY_WORLD_SID_AUTHORITY;
-
-			if (AllocateAndInitializeSid(&authworld, 1,
-						     SECURITY_WORLD_RID,
-						     0, 0, 0, 0, 0, 0, 0,
-						     &world)
-			    == 0)
-				winerror = GetLastError();
-			else
-				/*
-				 * This should already be ERROR_SUCCESS.
-				 */
-				ENSURE(winerror == ERROR_SUCCESS);
-
-		}
-
-		if (winerror == ERROR_SUCCESS) {
-			BuildTrusteeWithSid(&pea->Trustee, psid[i]);
-			pea->Trustee.Trusteetype = trustee_type[i];
-
-			winerror = SetEntriesInAcl(3, ea, NULL, &dacl);
-		}
-
-		if (winerror == ERROR_SUCCESS)
-			winerror =
-				SetNamedSecurityInfo(path, SE_FILE_OBJECT,
-						     DACL_SECURITY_INFORMATION,
-						     NULL, NULL, dacl, NULL);
-
-		if (winerror == ERROR_SUCCESS)
-			access >> shift;
-		else
-			break;
-	}
-
-	if (sd != NULL)
-		LocalFree(sd);
-	if (dacl != NULL)
-		LocalFree(dacl);
-	if (world != NULL)
-		FreeSid(world);
-
-	if (winerror == ERROR_SUCCESS) {
-		/*
-		 * Ensure no other bits were set.
-		 */
-		INSIST(access == 0);
-
-		return (ISC_R_SUCCESS);
-	} else
-		return (isc__winerror2result(winerror));
+	return (ISC_R_SUCCESS);
 }

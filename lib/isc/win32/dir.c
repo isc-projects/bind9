@@ -15,14 +15,30 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.8 2001/06/04 19:33:37 tale Exp $ */
+/* $Id: dir.c,v 1.9 2001/07/06 05:06:11 mayer Exp $ */
 
 /* Principal Authors: DCL */
 
+/*
+ * isc_dir_chroot is currently stubbed out for Win32
+ * This will need to be revisited
+ */
+
+#include <config.h>
+
 #include <string.h>
+#include <direct.h>
+#include <process.h>
+#include <io.h>
+
+#include <sys/stat.h>
 
 #include <isc/dir.h>
+#include <isc/magic.h>
 #include <isc/assertions.h>
+#include <isc/util.h>
+
+#include "errno2result.h"
 
 #define ISC_DIR_MAGIC		ISC_MAGIC('D', 'I', 'R', '*')
 #define VALID_DIR(dir)		ISC_MAGIC_VALID(dir, ISC_DIR_MAGIC)
@@ -218,5 +234,112 @@ isc_dir_chdir(const char *dirname) {
 
 	REQUIRE(dirname != NULL);
 
-	return (ISC_R_NOTIMPLEMENTED);
+	if (chdir(dirname) < 0)
+		return (isc__errno2result(errno));
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_dir_chroot(const char *dirname) {
+
+	return (ISC_R_SUCCESS);
+}
+isc_result_t
+isc_dir_current(char *dirname, size_t length, isc_boolean_t end_sep) {
+	char *cwd;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	/*
+	 * XXXDCL Could automatically allocate memory if dirname == NULL.
+	 */
+	REQUIRE(dirname != NULL);
+	REQUIRE(length > 0);
+
+	cwd = getcwd(dirname, length);
+
+	if (cwd == NULL) {
+		if (errno == ERANGE)
+			result = ISC_R_NOSPACE;
+		else
+			result = isc__errno2result(errno);
+	} else if (end_sep) {
+		if (strlen(dirname) + 1 == length)
+			result = ISC_R_NOSPACE;
+		else if (dirname[1] != '\0')
+			strcat(dirname, "/");
+	}
+
+	return (result);
+}
+
+isc_result_t
+isc_dir_createunique(char *templet) {
+	isc_result_t result;
+	char *x;
+	char *p;
+	int i;
+	int pid;
+
+	REQUIRE(templet != NULL);
+
+	/*
+	 * mkdtemp is not portable, so this emulates it.
+	 */
+
+	pid = getpid();
+
+	/*
+	 * Replace trailing Xs with the process-id, zero-filled.
+	 */
+	for (x = templet + strlen(templet) - 1; *x == 'X' && x >= templet;
+	     x--, pid /= 10)
+		*x = pid % 10 + '0';
+
+	x++;			/* Set x to start of ex-Xs. */
+
+	do {
+		i = mkdir(templet);
+		i = chmod(templet, 0700);
+
+		if (i == 0 || errno != EEXIST)
+			break;
+
+		/*
+		 * The BSD algorithm.
+		 */
+		p = x;
+		while (*p != '\0') {
+			if (isdigit(*p & 0xff))
+				*p = 'a';
+			else if (*p != 'z')
+				++*p;
+			else {
+				/*
+				 * Reset character and move to next.
+				 */
+				*p++ = 'a';
+				continue;
+			}
+
+			break;
+		}
+
+		if (*p == '\0') {
+			/*
+			 * Tried all combinations.  errno should already
+			 * be EEXIST, but ensure it is anyway for
+			 * isc__errno2result().
+			 */
+			errno = EEXIST;
+			break;
+		}
+	} while (1);
+
+	if (i == -1)
+		result = isc__errno2result(errno);
+	else
+		result = ISC_R_SUCCESS;
+
+	return (result);
 }

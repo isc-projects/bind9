@@ -15,12 +15,15 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.7 2001/01/09 21:58:53 bwelling Exp $ */
+/* $Id: stdtime.c,v 1.9 2001/07/08 05:09:14 mayer Exp $ */
+
+#include <config.h>
 
 #include <time.h>
 
 #include <isc/assertions.h>
 #include <isc/stdtime.h>
+#include <isc/util.h>
 
 void
 isc_stdtime_get(isc_stdtime_t *t) {
