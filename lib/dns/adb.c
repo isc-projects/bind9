@@ -383,7 +383,7 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t);
 #define FIND_HINTOK(fn)		(((fn)->options & DNS_ADBFIND_HINTOK) != 0)
 #define FIND_GLUEOK(fn)		(((fn)->options & DNS_ADBFIND_GLUEOK) != 0)
 #define FIND_HAS_ADDRS(fn)	(!ISC_LIST_EMPTY((fn)->list))
-#define FIND_IGNORELAME(fn)	(((fn)->options & DNS_ADBFIND_IGNORELAME) != 0)
+#define FIND_RETURNLAME(fn)	(((fn)->options & DNS_ADBFIND_RETURNLAME) != 0)
 
 /*
  * These are currently used on simple unsigned ints, so they are
@@ -1858,7 +1858,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *zone,
 		while (namehook != NULL) {
 			bucket = namehook->entry->lock_bucket;
 			LOCK(&adb->entrylocks[bucket]);
-			if (!FIND_IGNORELAME(find)
+			if (!FIND_RETURNLAME(find)
 			    && entry_is_bad_for_zone(adb, namehook->entry,
 						     zone, now)) {
 				find->options |= DNS_ADBFIND_LAMEPRUNED;

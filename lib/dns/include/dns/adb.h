@@ -156,8 +156,8 @@ struct dns_adbfind {
  *	Glue or hints are ok.  These are used when matching names already
  *	in the adb, and when dns databases are searched.
  *
- * _IGNORELAME:
- *	Ignore lame servers in a find, so that all addresses are returned.
+ * _RETURNLAME:
+ *	Return lame servers in a find, so that all addresses are returned.
  *
  * _LAMEPRUNED:
  *	At least one address was omitted from the list because it was lame.
@@ -172,7 +172,7 @@ struct dns_adbfind {
 #define DNS_ADBFIND_STARTATROOT		0x00000020
 #define DNS_ADBFIND_GLUEOK		0x00000040
 #define DNS_ADBFIND_HINTOK		0x00000080
-#define DNS_ADBFIND_IGNORELAME		0x00000100
+#define DNS_ADBFIND_RETURNLAME		0x00000100
 #define DNS_ADBFIND_LAMEPRUNED		0x00000200
 
 /* dns_adbaddrinfo_t
