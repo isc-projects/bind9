@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.7 2003/08/14 02:35:49 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.8 2003/08/14 04:00:33 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -970,7 +970,7 @@ dns_rdatatype_attributes(dns_rdatatype_t type)
  */
 static isc_result_t
 maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
-	      unsigned int max)
+	      unsigned int max, isc_boolean_t hex_allowed)
 {
 	isc_result_t result;
 	isc_uint32_t n;
@@ -989,6 +989,8 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
 	INSIST(buffer[source->length] == '\0');
 
 	result = isc_parse_uint32(&n, buffer, 10);
+	if (result == ISC_R_BADNUMBER && hex_allowed)
+		result = isc_parse_uint32(&n, buffer, 16);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (n > max)
@@ -1004,7 +1006,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 	isc_result_t result;
 	int i;
 
-	result = maybe_numeric(valuep, source, max);
+	result = maybe_numeric(valuep, source, max, ISC_FALSE);
 	if (result != ISC_R_BADNUMBER)
 		return (result);
 
@@ -1296,7 +1298,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 	char *text, *end;
 	unsigned int value, mask;
 
-	result = maybe_numeric(&value, source, 0xffff);
+	result = maybe_numeric(&value, source, 0xffff, ISC_TRUE);
 	if (result == ISC_R_SUCCESS) {
 		*flagsp = value;
 		return (ISC_R_SUCCESS);

@@ -1,3 +1,6 @@
+1233.	[bug]		The flags field of a KEY record can be expressed in
+			hex as well as decimal.
+
 1226.	[func]		Use EDNS for zone refresh queries. [RT #2551]
 
 1225.	[func]		dns_message_setopt() no longer requires that
