@@ -437,7 +437,6 @@ main(int argc, char **argv) {
 
 		ev = &cmgr[j].sdev;
 		isc_task_send(cmgr[j].task, &ev);
-		printf("Sending shutdown events to task %p\n", cmgr[j].task);
 	}
 
 	/*
@@ -448,14 +447,12 @@ main(int argc, char **argv) {
 	/*
 	 * Wait for the tasks to all die.
 	 */
-	printf("Waiting for task manager to die...\n");
 	isc_taskmgr_destroy(&taskmgr);
 
 	/*
 	 * Wait for everything to die off by waiting for the sockets
 	 * to be detached.
 	 */
-	printf("Waiting for socket manager to die...\n");
 	isc_socket_detach(&sock);
 	isc_socketmgr_destroy(&sockmgr);
 
@@ -488,7 +485,6 @@ main(int argc, char **argv) {
 	 * Kill the memory system.
 	 */
 	isc_mem_stats(mem, stdout);
-	isc_mem_destroy(&mem);
 
 	isc_app_finish();
 
