@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.56 2001/06/15 22:07:50 gson Exp $ */
+/* $Id: result.c,v 1.56.2.1 2002/03/20 22:20:59 marka Exp $ */
 
 #include <config.h>
 
@@ -92,7 +92,9 @@ static const char *text[ISC_R_NRESULTS] = {
 	"not blocking",				/* 51 */
 	"unbalanced quotes",			/* 52 */
 	"operation in progress",		/* 53 */
-	"connection reset"			/* 54 */
+	"connection reset",			/* 54 */
+	"soft quota reached",			/* 55 */
+	"not a valid number"			/* 56 */
 };
 
 #define ISC_RESULT_RESULTSET			2
