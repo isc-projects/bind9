@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.16 2000/03/06 20:05:59 bwelling Exp $
+ * $Id: hmac_link.c,v 1.17 2000/03/15 18:52:23 bwelling Exp $
  */
 
 #include <config.h>
@@ -361,16 +361,18 @@ dst_hmacmd5_to_file(const dst_key_t *key) {
 	HMAC_Key *hkey;
 	dst_private_t priv;
 	unsigned char keydata[HMAC_LEN];
+	int bytes = (key->key_size + 7) / 8;
 
 	if (key->opaque == NULL)
 		return (DST_R_NULLKEY);
 
 	hkey = (HMAC_Key *) key->opaque;
-	for (i = 0; i < HMAC_LEN; i++)
+	memset(keydata, 0, HMAC_LEN);
+	for (i = 0; i < bytes; i++)
 		keydata[i] = hkey->ipad[i] ^ HMAC_IPAD;
 
 	priv.elements[cnt].tag = TAG_HMACMD5_KEY;
-	priv.elements[cnt].length = HMAC_LEN;
+	priv.elements[cnt].length = bytes;
 	priv.elements[cnt++].data = keydata;
 
 	priv.nelements = cnt;
