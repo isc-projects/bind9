@@ -123,6 +123,15 @@ void dns_zt_load(dns_zt_t *zt);
  */
 
 
+void dns_zt_print(dns_zt_t *zt);
+
+/*
+ * Print zones in zonetable, address, name and reference count.
+ *
+ * Requires
+ *	'zt' to be valid.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif
