@@ -77,6 +77,11 @@
 			bind to the specified transfer source and TSIG was
 			being used. [RT #10120]
 
+1544.	[bug]		Named would logged a single entry to a file despite it
+			being over the specified size limit.
+			
+1543.	[bug]		Logging using "versions unlimited" did not work.
+
 1540.	[bug]		"rndc reload <dynamiczone>" was silently accepted.
 			[RT #8934]
 

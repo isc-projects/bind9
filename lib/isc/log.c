@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8.2.6 2003/10/07 03:28:33 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8.2.7 2004/03/03 05:34:59 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1328,6 +1328,8 @@ isc_log_open(isc_logchannel_t *channel) {
 	 * Version control.
 	 */
 	if (result == ISC_R_SUCCESS && roll) {
+		if (FILE_VERSIONS(channel) == ISC_LOG_ROLLNEVER)
+			return (ISC_R_MAXSIZE);
 		result = roll_log(channel);
 		if (result != ISC_R_SUCCESS) {
 			if ((channel->flags & ISC_LOG_OPENERR) == 0) {
@@ -1653,6 +1655,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			if (FILE_STREAM(channel) == NULL) {
 				result = isc_log_open(channel);
 				if (result != ISC_R_SUCCESS &&
+				    result != ISC_R_MAXSIZE &&
 				    (channel->flags & ISC_LOG_OPENERR) == 0) {
 					syslog(LOG_ERR,
 					       "isc_log_open '%s' failed: %s",
