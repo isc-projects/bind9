@@ -1,3 +1,5 @@
+1091.	[bug]		libbind: misplaced va_end().
+
 1090.	[bug]		libbind: dns_ho.c:add_hostent() was not returning
 			the amount of memory consumed resulting in garbage
 			address being returned.  Alignment calculations were   
