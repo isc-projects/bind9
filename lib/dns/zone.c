@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.58 2000/01/21 02:48:28 halley Exp $ */
+ /* $Id: zone.c,v 1.59 2000/01/21 19:20:56 gson Exp $ */
 
 #include <config.h>
 
@@ -443,28 +443,18 @@ dns_zone_setdbtype(dns_zone_t *zone, char *db_type) {
 }
 
 isc_result_t
-dns_zone_setorigin(dns_zone_t *zone, char *origin) {
-	isc_buffer_t buffer;
-	dns_fixedname_t fixed;
+dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(origin != NULL);
 
-	dns_fixedname_init(&fixed);
-	isc_buffer_init(&buffer, origin, strlen(origin), ISC_BUFFERTYPE_TEXT);
-	isc_buffer_add(&buffer, strlen(origin));
-	result = dns_name_fromtext(dns_fixedname_name(&fixed),
-			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
-	if (result != DNS_R_SUCCESS)
-		return (result);
 	LOCK(&zone->lock);
 	if (dns_name_dynamic(&zone->origin)) {
 		dns_name_free(&zone->origin, zone->mctx);
 		dns_name_init(&zone->origin, NULL);
 	}
-	result = dns_name_dup(dns_fixedname_name(&fixed), zone->mctx,
-			      &zone->origin);
+	result = dns_name_dup(origin, zone->mctx, &zone->origin);
 	UNLOCK(&zone->lock);
 	return (result);
 }

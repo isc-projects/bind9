@@ -66,6 +66,9 @@ setup(char *zonename, char *filename, char *classname) {
 	isc_result_t result;
 	dns_rdataclass_t rdclass;
 	isc_textregion_t region;
+	isc_buffer_t buffer;
+	dns_fixedname_t fixorigin;
+	dns_name_t *origin;
 
 	if (debug)
 		fprintf(stderr, "loading \"%s\" from \"%s\" class \"%s\"\n",
@@ -75,7 +78,15 @@ setup(char *zonename, char *filename, char *classname) {
 
 	dns_zone_settype(zone, zonetype);
 
-	result = dns_zone_setorigin(zone, zonename);
+	isc_buffer_init(&buffer, zonename, strlen(zonename), ISC_BUFFERTYPE_TEXT);
+	isc_buffer_add(&buffer, strlen(zonename));
+	dns_fixedname_init(&fixorigin);
+	result = dns_name_fromtext(dns_fixedname_name(&fixorigin),
+			  	   &buffer, dns_rootname, ISC_FALSE, NULL);
+	ERRRET(result, "dns_name_fromtext");
+	origin = dns_fixedname_name(&fixorigin);
+	
+	result = dns_zone_setorigin(zone, origin);
 	ERRRET(result, "dns_zone_setorigin");
 
 	result = dns_zone_setdbtype(zone, "rbt");

@@ -110,7 +110,7 @@ void dns_zone_settype(dns_zone_t *zone, dns_zonetype_t type);
  *	'type' != dns_zone_none
  */
 
-isc_result_t dns_zone_setorigin(dns_zone_t *zone, char *origin);
+isc_result_t dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin);
 /*
  *	Sets the zones origin to 'origin'.
  *
@@ -119,7 +119,8 @@ isc_result_t dns_zone_setorigin(dns_zone_t *zone, char *origin);
  *	'origin' to be non NULL.
  *
  * Returns:
- *	All possible values from dns_name_fromtext().
+ *	ISC_R_SUCCESS
+ * 	ISC_R_NOMEMORY
  */
 
 dns_name_t * dns_zone_getorigin(dns_zone_t *zone);
