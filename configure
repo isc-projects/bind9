@@ -9341,6 +9341,7 @@ trap 'rm -fr `echo "make/rules
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh
+	docutil/docbook2man-wrapper.sh
 	isc-config.sh
  config.h" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
@@ -9612,6 +9613,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	doc/arm/nominum-docbook-html.dsl
 	doc/arm/nominum-docbook-print.dsl
 	doc/arm/validate.sh
+	docutil/docbook2man-wrapper.sh
 	isc-config.sh
 "}
 EOF

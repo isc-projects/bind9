@@ -944,6 +944,10 @@
 ./doc/todo/mws/todo				X	2000,2001
 ./doc/todo/tale/todo				X	2000,2001
 ./doc/todo/unassigned				X	2000,2001
+./docutil/.cvsignore				X	2001
+./docutil/HTML_COPYRIGHT			X	2001
+./docutil/MAN_COPYRIGHT				X	2001
+./docutil/docbook2man-wrapper.sh.in		SH	2001
 ./install-sh					X	1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001
 ./lib/.cvsignore				X	1999,2000,2001
@@ -1819,8 +1823,6 @@
 ./util/COPYRIGHT.NAI				X	1996,1997,1998,1999,2000,2001
 ./util/COPYRIGHT.NOM				X	2001
 ./util/COPYRIGHT.PORTION			X	1996,1997,1998,1999,2000,2001
-./util/HTML_COPYRIGHT				X	2001
-./util/MAN_COPYRIGHT				X	2001
 ./util/altbuild.sh				SH	2000,2001
 ./util/check-includes.pl			PERL	2000,2001
 ./util/check-instincludes.sh			SH	2000,2001
