@@ -1,3 +1,7 @@
+ 553.	[bug]		Incoming zone transfers deferred due to quota 
+			were not started when quota was increased but 
+			only when a transfer in progress finished. [RT #456]
+
  552.	[bug]		We were not correctly detecting the end of all c-style
 			comments.  [RT #455]
 
