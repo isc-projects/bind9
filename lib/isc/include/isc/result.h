@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.h,v 1.44 2000/06/22 21:57:59 tale Exp $ */
+/* $Id: result.h,v 1.45 2000/07/26 21:34:11 tale Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -70,7 +70,11 @@
 #define ISC_R_NOTFILE			44	/* not a file */
 #define ISC_R_NOTDIRECTORY		45	/* not a directory */
 #define ISC_R_QUEUEFULL			46	/* queue is full */
-#define ISC_R_NRESULTS 			47	/* Number of results */
+
+/*
+ * Not an result code: the number of results.
+ */
+#define ISC_R_NRESULTS 			47
 
 ISC_LANG_BEGINDECLS
 
