@@ -97,12 +97,12 @@ dns_tsig_sign(dns_message_t *msg);
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg);
 /*
- *	Verified the TSIG record in this message
+ *	Verifies the TSIG record in this message
  *
  *	Requires:
  *		'source' is a valid buffer containing the unparsed message
  *		'msg' is a valid message containing a TSIG record
- *		'msg->tsigkey' is a valid TSIG key
+ *		'msg->tsigkey' is a valid TSIG key if this is a response
  *		'msg->tsig' is NULL
  *		'msg->querytsig' is not NULL if this is a response
  *
