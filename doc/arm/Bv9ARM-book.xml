@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.46 2004/07/29 23:00:36 jinmei Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.47 2004/08/12 08:31:06 jinmei Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3499,7 +3499,7 @@ for incoming queries sent using IPv6.</para>
 
 <para>When <programlisting>{ any; }</programlisting> is specified
 as the <varname>address_match_list</varname> for the
-<command>listen-on-v6</command> statement,
+<command>listen-on-v6</command> option,
 the server does not bind a separate socket to each IPv6 interface
 address as it does for IPv4 if the operating system has enough API
 support for IPv6 (specifically if it conforms to RFC 3493 and RFC 3542).
@@ -3526,7 +3526,7 @@ and on port 1234 of IPv6 addresses that is not in the prefix
 <para>To make the server not listen on any IPv6 address, use</para>
 <programlisting>listen-on-v6 { none; };
 </programlisting>
-<para>If no <command>listen-on-v6</command> statement is specified,
+<para>If no <command>listen-on-v6</command> option is specified,
 the server will not listen on any IPv6 address.</para></sect3>
 
 <sect3><title>Query Address</title>
