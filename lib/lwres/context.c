@@ -194,7 +194,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	struct sockaddr_in sin;
 	int fromlen;
 
-	ret = send(ctx->sock, sendbase, sendlen, 0);
+	ret = sendto(ctx->sock, sendbase, sendlen, 0, NULL, 0);
 	if (ret < 0)
 		return (ret);
 	if (ret != sendlen)
