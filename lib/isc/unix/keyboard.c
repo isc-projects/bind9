@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.c,v 1.7 2000/08/01 01:31:23 tale Exp $ */
+/* $Id: keyboard.c,v 1.8 2000/08/02 15:28:13 tale Exp $ */
 
 #include <config.h>
 
@@ -122,5 +122,5 @@ isc_keyboard_getchar(isc_keyboard_t *keyboard, unsigned char *cp) {
 
 isc_boolean_t
 isc_keyboard_canceled(isc_keyboard_t *keyboard) {
-	return (keyboard->result == ISC_R_CANCELED);
+	return (ISC_TF(keyboard->result == ISC_R_CANCELED));
 }
