@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.97 2004/04/13 02:54:14 marka Exp $ */
+/* $Id: host.c,v 1.98 2004/09/06 01:24:43 marka Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -386,7 +386,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		printf("Using domain server:\n");
-		printf("Name: %s\n", query->servname);
+		printf("Name: %s\n", query->userarg);
 		isc_sockaddr_format(&query->sockaddr, sockstr,
 				    sizeof(sockstr));
 		printf("Address: %s\n", sockstr);
