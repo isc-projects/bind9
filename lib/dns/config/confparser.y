@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.99.2.2 2000/07/11 21:31:48 gson Exp $ */
+/* $Id: confparser.y,v 1.99.2.3 2000/07/26 22:32:23 gson Exp $ */
 
 #include <config.h>
 
@@ -122,7 +122,6 @@ static isc_lexspecials_t	specials;
 
 
 static isc_result_t	tmpres;
-static int		debug_lexer;
 static in_port_t	default_port;
 
 int			yyparse(void);
@@ -5351,12 +5350,6 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	INSIST(keywords == NULL);
 	INSIST(callbacks == NULL);
 
-#if 1
-	if (getenv("DEBUG_LEXER") != NULL) { /* XXX debug */
-		debug_lexer++;
-	}
-#endif
-
 	specials['{'] = 1;
 	specials['}'] = 1;
 	specials[';'] = 1;
@@ -5515,6 +5508,7 @@ yylex(void)
 	isc_result_t res;
 	int options = (ISC_LEXOPT_EOF |
 		       ISC_LEXOPT_NUMBER |
+		       ISC_LEXOPT_CNUMBER |
 		       ISC_LEXOPT_QSTRING |
 		       ISC_LEXOPT_NOMORE);
 
@@ -5764,10 +5758,6 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 
 	switch (token->type) {
 	case isc_tokentype_unknown:
-		if (debug_lexer) {
-			fprintf(stderr, "unknown lexer token\n");
-		}
-
 		res = -1;
 		break;
 
@@ -5789,24 +5779,11 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 		} else {
 			res = keywordtok.as_integer;
 		}
-
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: %s : %s (%d)\n",
-				(token->type == isc_tokentype_special ?
-				 "special" : "string"), tokstring, res);
-		}
-
 		break;
 
 	case isc_tokentype_number:
 		yylval.ul_int = (isc_uint32_t)token->value.as_ulong;
 		res = L_INTEGER;
-
-		if(debug_lexer) {
-			fprintf(stderr, "lexer token: number : %lu\n",
-				(unsigned long)yylval.ul_int);
-		}
-
 		break;
 
 	case isc_tokentype_qstring:
@@ -5817,12 +5794,6 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 		} else {
 			res = L_QSTRING;
 		}
-
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: qstring : \"%s\"\n",
-				yylval.text);
-		}
-
 		break;
 
 	case isc_tokentype_eof:
@@ -5833,36 +5804,21 @@ token_value(isc_token_t *token, isc_symtab_t *symtable)
 			/* the only way to tell that we
 			 *  closed the main file and not an included file
 			 */
-			if (debug_lexer) {
-				fprintf(stderr, "lexer token: EOF\n");
-			}
 			res = 0;
 		} else {
-			if (debug_lexer) {
-				fprintf(stderr, "lexer token: EOF (main)\n");
-			}
 			res = L_END_INCLUDE;
 		}
 		break;
 
 	case isc_tokentype_initialws:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: initial ws\n");
-		}
 		res = -1;
 		break;
 
 	case isc_tokentype_eol:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: eol\n");
-		}
 		res = -1;
 		break;
 
 	case isc_tokentype_nomore:
-		if (debug_lexer) {
-			fprintf(stderr, "lexer token: nomore\n");
-		}
 		res = -1;
 		break;
 	}
