@@ -134,7 +134,7 @@ struct dns_c_logcat
 	isc_uint32_t			magic;
 	isc_mem_t		       *mem;
 
-	dns_c_category_t		category;
+	char			       *catname;
 
 	char			      **channel_names;
 	size_t				cnames_len; /* size, in elements of 
@@ -180,10 +180,6 @@ isc_result_t	dns_c_logginglist_chanbyname(dns_c_logginglist_t *list,
 isc_result_t	dns_c_logginglist_catbyname(dns_c_logginglist_t *list,
 					    const char *name,
 					    dns_c_logcat_t **cat);
-isc_result_t	dns_c_logginglist_catbytype(dns_c_logginglist_t *list,
-					    dns_c_category_t cattype,
-					    dns_c_logcat_t **cat);
-
 
 isc_result_t	dns_c_logchan_new(isc_mem_t *mem, const char *name,
 				  dns_c_logchantype_t ctype,
@@ -243,7 +239,7 @@ isc_result_t	dns_c_logchan_getpredef(dns_c_logchan_t *channel,
 /*
  * Logging category
  */
-isc_result_t	dns_c_logcat_new(isc_mem_t *mem, dns_c_category_t cat,
+isc_result_t	dns_c_logcat_new(isc_mem_t *mem, const char *name,
 				 dns_c_logcat_t **newlc);
 isc_result_t	dns_c_logcat_delete(dns_c_logcat_t **logcat);
 void		dns_c_logcat_print(FILE *fp, int indent,
