@@ -1,3 +1,11 @@
+
+ 701.	[func]		Root hints are now fully optional.  Class IN
+			views use compiled-in hints by default, as
+			before.  Non-IN views with no root hints now
+			provide authoritative service but not recursion.
+			A warning is logged if a view has neither root
+			hints nor authoritative data for the root. [RT #696]
+
  700.	[bug]		$GENERATE range check was wrong. [RT #688]
 
  699.	[bug]		The lexer mishandled empty quoted strings. [RT #694]

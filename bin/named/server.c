@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.282 2001/01/18 00:14:20 bwelling Exp $ */
+/* $Id: server.c,v 1.283 2001/01/22 19:21:18 gson Exp $ */
 
 #include <config.h>
 
@@ -562,15 +562,23 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 
 	/*
 	 * If we still have no hints, this is a non-IN view with no
-	 * "hints zone" configured.  That's an error.
+	 * "hints zone" configured.  Issue a warning, except if this
+	 * is a root server.  Root servers never need to consult 
+	 * their hints, so it's no point requireing users to configure
+	 * them.
 	 */
 	if (view->hints == NULL) {
-		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "no root hints for view '%s'",
-			      cview == NULL ? "<default>" : cview->name);
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		dns_zone_t *rootzone = NULL;
+		dns_view_findzone(view, dns_rootname, &rootzone);
+		if (rootzone != NULL) {
+			dns_zone_detach(&rootzone);
+		} else {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "no root hints for view '%s'",
+				      cview == NULL ? "<default>" :
+				      			cview->name);
+		}
 	}
 
 	/*

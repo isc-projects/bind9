@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.174 2001/01/11 20:48:27 gson Exp $ */
+/* $Id: query.c,v 1.175 2001/01/22 19:21:19 gson Exp $ */
 
 #include <config.h>
 
@@ -2567,13 +2567,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 * the hints DB.
 		 */
 		INSIST(!is_zone);
-		INSIST(client->view->hints != NULL);
 		if (db != NULL)
 			dns_db_detach(&db);
-		dns_db_attach(client->view->hints, &db);
-		result = dns_db_find(db, dns_rootname, NULL, dns_rdatatype_ns,
-				     0, client->now, &node, fname,
-				     rdataset, sigrdataset);
+
+		if (client->view->hints == NULL) {
+			/* We have no hints. */
+			result = ISC_R_FAILURE;
+		} else {
+			dns_db_attach(client->view->hints, &db);
+			result = dns_db_find(db, dns_rootname,
+					     NULL, dns_rdatatype_ns,
+					     0, client->now, &node, fname,
+					     rdataset, sigrdataset);
+		}
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * We can't even find the hints for the root
