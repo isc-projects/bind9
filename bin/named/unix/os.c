@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.24 2000/07/07 22:10:54 bwelling Exp $ */
+/* $Id: os.c,v 1.25 2000/07/07 23:53:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -44,6 +44,7 @@ static isc_boolean_t non_root = ISC_FALSE;
 #endif
 
 static struct passwd *runas_pw = NULL;
+static isc_boolean_t done_setuid = ISC_FALSE;
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -263,7 +264,7 @@ ns_os_chroot(const char *root) {
 
 void
 ns_os_inituserinfo(const char *username) {
-	if (username == NULL || getuid() != 0)
+	if (username == NULL)
 		return;
 
 	if (all_digits(username))
@@ -278,8 +279,10 @@ ns_os_inituserinfo(const char *username) {
 
 void
 ns_os_changeuser(void) {
-	if (runas_pw == NULL)
+	if (runas_pw == NULL || done_setuid)
 		return;
+
+	done_setuid = ISC_TRUE;
 
 #ifdef HAVE_LINUXTHREADS
 	if (!non_root_caps)
@@ -287,8 +290,10 @@ ns_os_changeuser(void) {
 		   "-u not supported on Linux kernels older than 2.3.99-pre3");
 #endif	
 
-	if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
-		ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+	if (getuid() == 0) {
+		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0)
+			ns_main_earlyfatal("initgroups(): %s", strerror(errno));
+	}
 
 	if (setgid(runas_pw->pw_gid) < 0)
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
