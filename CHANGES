@@ -2,6 +2,8 @@
 			domains that were not parents of the query name,
 			causing assertion failures.
 
+ 331.	[bug]		Only log "recursion denied" if RD is set. (RT #178)
+
 	--- 9.0.0rc1 released ---
 
  329.	[func]		omapi_auth_register() now takes a size_t argument for
