@@ -90,7 +90,7 @@ HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
 ></DT
 ><DT
 >6.3. <A
-HREF="Bv9ARM.ch06.html#AEN3422"
+HREF="Bv9ARM.ch06.html#AEN3420"
 >Zone File</A
 ></DT
 ></DL
@@ -6288,31 +6288,19 @@ CLASS="command"
 > Statement</A
 ></H3
 ><P
->Resource Records (RRs) are the data associated with the names
-in a  domain name space. The data is maintained in the form of sets
-of RRs. The order of RRs in a set is, by default, not significant.
-Therefore, to control the sorting of records in a set of resource
-records, or <TT
-CLASS="varname"
->RRset</TT
->, you must use the <B
+>The response to a DNS query may consist of multiple resource
+records (RRs) forming a resource records set (RRset).
+The name server will normally return the
+RRs within the RRset in an indeterminate order
+(but see the <B
 CLASS="command"
->sortlist</B
-> statement.</P
-><P
->RRs are explained more fully in <A
-HREF="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them"
->Section 6.3.1</A
->. Specifications for RRs
-are documented in RFC 1035.</P
-><P
->When returning multiple RRs the nameserver will normally return
-them in <TT
-CLASS="varname"
->Round Robin</TT
-> order,
-that is, after each request the first RR is put at the end of the
-list. The client resolver code should rearrange the RRs as appropriate,
+>rrset-order</B
+>
+statement in <A
+HREF="Bv9ARM.ch06.html#rrset_ordering"
+>Section 6.2.14.11</A
+>).
+The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
 However, not all resolvers can do this or are correctly configured.
 When a client is using a local server the sorting can be performed
@@ -6427,16 +6415,20 @@ NAME="rrset_ordering"
 ><P
 >When multiple records are returned in an answer it may be
 useful to configure the order of the records placed into the response.
-For example, the records for a zone might be configured always to
-be returned in the order they are defined in the zone file. Or perhaps
-a random shuffle of the records as they are returned is wanted.
 The <B
 CLASS="command"
 >rrset-order</B
 > statement permits configuration
-of the ordering made of the records in a multiple record response.
-The default, if no ordering is defined, is a cyclic ordering (round
-robin).</P
+of the ordering of the records in a multiple record response.
+See also the <B
+CLASS="command"
+>sortlist</B
+> statement,
+<A
+HREF="Bv9ARM.ch06.html#the_sortlist_statement"
+>Section 6.2.14.10</A
+>.
+</P
 ><P
 >An <B
 CLASS="command"
@@ -6497,7 +6489,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2699"
+NAME="AEN2697"
 ></A
 ><P
 ></P
@@ -6591,7 +6583,7 @@ in random order. All other records are returned in cyclic order.</P
 CLASS="command"
 >rrset-order</B
 > statements appear,
-they are not combined-the last one applies.</P
+they are not combined &#8212; the last one applies.</P
 ><P
 >If no <B
 CLASS="command"
@@ -6618,7 +6610,12 @@ CLASS="command"
 is not yet implemented in <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.</P
+> 9.
+BIND 9 currently supports only a "random-cyclic" ordering,
+where the server randomly chooses a starting point within
+the RRset and returns the records in order starting at
+that point, wrapping around the end of the RRset if 
+necessary.</P
 ></BLOCKQUOTE
 ></DIV
 ></DIV
@@ -6633,7 +6630,7 @@ NAME="tuning"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2737"
+NAME="AEN2735"
 ></A
 ><P
 ></P
@@ -6855,7 +6852,7 @@ number is identical to the number in the beginning line.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN2795"
+NAME="AEN2793"
 ></A
 ><P
 ></P
@@ -7244,7 +7241,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2898"
+NAME="AEN2896"
 >6.2.17. <B
 CLASS="command"
 >trusted-keys</B
@@ -7319,7 +7316,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2914"
+NAME="AEN2912"
 >6.2.18. <B
 CLASS="command"
 >trusted-keys</B
@@ -7354,7 +7351,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2922"
+NAME="AEN2920"
 >6.2.19. <B
 CLASS="command"
 >view</B
@@ -7417,7 +7414,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN2936"
+NAME="AEN2934"
 >6.2.20. <B
 CLASS="command"
 >view</B
@@ -8000,7 +7997,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3073"
+NAME="AEN3071"
 >6.2.22. <B
 CLASS="command"
 >zone</B
@@ -8011,13 +8008,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3076"
+NAME="AEN3074"
 >6.2.22.1. Zone Types</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3078"
+NAME="AEN3076"
 ></A
 ><P
 ></P
@@ -8255,7 +8252,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3133"
+NAME="AEN3131"
 >6.2.22.2. Class</A
 ></H3
 ><P
@@ -8311,13 +8308,13 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3148"
+NAME="AEN3146"
 >6.2.22.3. Zone Options</A
 ></H3
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3150"
+NAME="AEN3148"
 ></A
 ><P
 ></P
@@ -9180,7 +9177,7 @@ CLASS="varname"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3392"
+NAME="AEN3390"
 ></A
 ><P
 ></P
@@ -9287,7 +9284,7 @@ CLASS="sect1"
 ><H1
 CLASS="sect1"
 ><A
-NAME="AEN3422"
+NAME="AEN3420"
 >6.3. Zone File</A
 ></H1
 ><DIV
@@ -9308,7 +9305,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3427"
+NAME="AEN3425"
 >6.3.1.1. Resource Records</A
 ></H3
 ><P
@@ -9331,7 +9328,7 @@ HREF="Bv9ARM.ch06.html#rrset_ordering"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3433"
+NAME="AEN3431"
 ></A
 ><P
 ></P
@@ -9442,7 +9439,7 @@ or historical (h) and no longer in general use):</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3465"
+NAME="AEN3463"
 ></A
 ><P
 ></P
@@ -9819,7 +9816,7 @@ are currently valid in the DNS:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3577"
+NAME="AEN3575"
 ></A
 ><P
 ></P
@@ -9871,7 +9868,7 @@ data that describes the resource:</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3593"
+NAME="AEN3591"
 ></A
 ><P
 ></P
@@ -10048,7 +10045,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3641"
+NAME="AEN3639"
 >6.3.1.2. Textual expression of RRs</A
 ></H3
 ><P
@@ -10078,7 +10075,7 @@ knowledge of the typical representation for the data.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3648"
+NAME="AEN3646"
 ></A
 ><P
 ></P
@@ -10287,7 +10284,7 @@ domain names.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3714"
+NAME="AEN3712"
 ></A
 ><P
 ></P
@@ -10378,7 +10375,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3742"
+NAME="AEN3740"
 >6.3.2. Discussion of MX Records</A
 ></H2
 ><P
@@ -10411,7 +10408,7 @@ pointed to by the CNAME.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3748"
+NAME="AEN3746"
 ></A
 ><P
 ></P
@@ -10706,7 +10703,7 @@ used in a zone file.</P
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3840"
+NAME="AEN3838"
 ></A
 ><P
 ></P
@@ -10789,7 +10786,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3863"
+NAME="AEN3861"
 >6.3.4. Inverse Mapping in IPv4</A
 ></H2
 ><P
@@ -10813,7 +10810,7 @@ CLASS="optional"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3868"
+NAME="AEN3866"
 ></A
 ><P
 ></P
@@ -10893,7 +10890,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3890"
+NAME="AEN3888"
 >6.3.5. Other Zone File Directives</A
 ></H2
 ><P
@@ -10918,7 +10915,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3897"
+NAME="AEN3895"
 >6.3.5.1. The <B
 CLASS="command"
 >$ORIGIN</B
@@ -10988,7 +10985,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3917"
+NAME="AEN3915"
 >6.3.5.2. The <B
 CLASS="command"
 >$INCLUDE</B
@@ -11070,7 +11067,7 @@ CLASS="sect3"
 ><H3
 CLASS="sect3"
 ><A
-NAME="AEN3937"
+NAME="AEN3935"
 >6.3.5.3. The <B
 CLASS="command"
 >$TTL</B
@@ -11110,7 +11107,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN3948"
+NAME="AEN3946"
 >6.3.6. <SPAN
 CLASS="acronym"
 >BIND</SPAN
@@ -11189,7 +11186,7 @@ CLASS="literal"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN3968"
+NAME="AEN3966"
 ></A
 ><P
 ></P
