@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.55 2000/07/05 19:31:22 gson Exp $ */
+/* $Id: dig.c,v 1.56 2000/07/05 23:28:27 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -129,6 +129,8 @@ static const char *rcodetext[] = {
 	"BADVERS"
 };
 
+extern char *progname;
+
 static void
 show_usage(void) {
 	fputs(
@@ -179,7 +181,7 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
-	free_lists(0);
+	free_lists();
 	isc_app_shutdown();
 }
 
@@ -524,13 +526,13 @@ reorder_args(int argc, char *argv[]) {
 	debug("arg[end]=%s", argv[end]);
 	for (i = 1; i < end - 1; i++) {
 		if (argv[i][0] == '@') {
-			debug("Arg[%d]=%s", i, argv[i]);
+			debug("arg[%d]=%s", i, argv[i]);
 			ptr = argv[i];
 			for (j = i + 1; j < end; j++) {
 				debug("Moving %s to %d", argv[j], j - 1);
 				argv[j - 1] = argv[j];
 			}
-			debug("Moving %s to end, %d", ptr, end - 1);
+			debug("moving %s to end, %d", ptr, end - 1);
 			argv[end - 1] = ptr;
 			end--;
 			if (end < 1)
@@ -573,14 +575,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	rc = argc;
 	rv = argv;
 	for (rc--, rv++; rc > 0; rc--, rv++) {
-		debug("Main parsing %s", rv[0]);
+		debug("main parsing %s", rv[0]);
 		if (strncmp(rv[0], "%", 1) == 0) 
 			break;
 		if (strncmp(rv[0], "@", 1) == 0) {
 			srv = isc_mem_allocate(mctx,
 					       sizeof(struct dig_server));
 			if (srv == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			strncpy(srv->servername, &rv[0][1], MXNAME-1);
 			if (is_batchfile && have_host) {
 				if (!lookup->use_my_server_list) {
@@ -1020,7 +1022,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup = isc_mem_allocate(mctx,
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			lookup->pending = ISC_FALSE;
 			lookup->textname[0] = 0;
 			for (i = n - 1; i >= 0; i--) {
@@ -1029,7 +1031,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strncat(lookup->textname, batchline, MXNAME);
 			}
 			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-			debug("Looking up %s", lookup->textname);
+			debug("looking up %s", lookup->textname);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
 			lookup->namespace[0] = 0;
@@ -1092,7 +1094,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup = isc_mem_allocate(mctx, 
 						  sizeof(struct dig_lookup));
 			if (lookup == NULL)
-				fatal("Memory allocation failure.");
+				fatal("Memory allocation failure");
 			lookup->pending = ISC_FALSE;
 			strncpy(lookup->textname, rv[0], MXNAME-1);
 			lookup->rttext[0] = 0;
@@ -1134,7 +1136,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->origin = NULL;
 			ISC_LIST_INIT(lookup->my_server_list);
 			have_host = ISC_TRUE;
-			debug("Looking up %s", lookup->textname);
+			debug("looking up %s", lookup->textname);
 		}
 	}
 	if (batchname != NULL) {
@@ -1143,10 +1145,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			perror(batchname);
 			if (exitcode < 10)
 				exitcode = 10;
-			fatal("Couldn't open specified batch file.");
+			fatal("Couldn't open specified batch file");
 		}
 		while (fgets(batchline, sizeof(batchline), fp) != 0) {
-			debug("Batch line %s", batchline);
+			debug("batch line %s", batchline);
 			bargc = 1;
 			bargv[bargc] = strtok(batchline, " \t\r\n");
 			while ((bargv[bargc] != NULL) && (bargc < 14 )) {
@@ -1171,7 +1173,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	if (lookup_list.head == NULL) {
 		lookup = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
 		if (lookup == NULL)
-			fatal("Memory allocation failure.");
+			fatal("Memory allocation failure");
 		lookup->pending = ISC_FALSE;
 		lookup->rctext[0] = 0;
 		lookup->namespace[0] = 0;
@@ -1223,13 +1225,19 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
-	debug("dhmain()");
+	debug("main()");
+	progname = argv[0];
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
 	start_lookup();
 	isc_app_run();
-	isc_app_finish();
+	/*
+	 * XXXMWS This code should really NOT be bypassed.  However,
+	 * until the proper code can be added to handle SIGTERM/INT
+	 * correctly, just exit out "hard" and deal as best we can.
+	 */
+#if 0
 	if (taskmgr != NULL) {
 		debug ("Freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
@@ -1238,6 +1246,8 @@ main(int argc, char **argv) {
 		isc_mem_stats(mctx, stderr);
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);	
+	isc_app_finish();
+#endif
 	return (exitcode);
 }
 

@@ -15,10 +15,11 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.34 2000/07/05 19:31:25 gson Exp $ */
+/* $Id: host.c,v 1.35 2000/07/05 23:28:29 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
+#include <values.h>
 
 extern int h_errno;
 
@@ -53,6 +54,7 @@ extern int tries;
 extern int lookup_counter;
 extern int exitcode;
 extern isc_taskmgr_t *taskmgr;
+extern char *progname;
 
 isc_boolean_t 
 	short_form = ISC_TRUE,
@@ -228,7 +230,7 @@ show_usage(void) {
 
 void
 dighost_shutdown(void) {
-	free_lists(0);
+	free_lists();
 	isc_app_shutdown();
 }
 
@@ -572,9 +574,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			short_form = ISC_FALSE;
 			break;
 		case 'w':
-			/* XXXMWS This should be a system-indep.
-			 * thing! */
-			timeout = 32767;
+			/*
+			 * The timer routines are coded such that
+			 * timeout==MAXINT doesn't enable the timer
+			 */
+			timeout = MAXINT;
 			break;
 		case 'W':
 			timeout = atoi(isc_commandline_argument);
@@ -590,7 +594,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			tcpmode = ISC_TRUE;
 			break;
 		case 'C':
-			debug("Showing all SOAs");
+			debug("showing all SOAs");
 			if (querytype[0] == 0)
 				strcpy(querytype, "soa");
 			if (queryclass[0] == 0)
@@ -599,7 +603,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			show_details = ISC_TRUE;
 			break;
 		case 'N':
-			debug("Setting NDOTS to %s", 
+			debug("setting NDOTS to %s", 
 			      isc_commandline_argument);
 			ndots = atoi(isc_commandline_argument);
 			break;
@@ -618,7 +622,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			fatal("Memory allocation failure.");
 		strncpy(srv->servername,
 			argv[isc_commandline_index+1], MXNAME-1);
-		debug("Server is %s", srv->servername);
+		debug("server is %s", srv->servername);
 		ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
@@ -693,14 +697,21 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
 
-	debug("dhmain()");
+	debug("main()");
+	progname = argv[0];
 	setup_libs();
 	parse_args(ISC_FALSE, argc, argv);
 	setup_system();
 	start_lookup();
 	isc_app_run();
+	/*
+	 * XXXMWS This code should really NOT be bypassed.  However,
+	 * until the proper code can be added to handle SIGTERM/INT
+	 * correctly, just exit out "hard" and deal as best we can.
+	 */
+#if 0
 	if (taskmgr != NULL) {
-		debug("Freeing taskmgr");
+		debug("freeing taskmgr");
 		isc_taskmgr_destroy(&taskmgr);
         }
 	if (isc_mem_debugging)
@@ -708,6 +719,7 @@ main(int argc, char **argv) {
 	isc_app_finish();
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);	
+#endif
 	return (0);
 }
 

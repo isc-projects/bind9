@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.27 2000/07/05 19:31:26 gson Exp $ */
+/* $Id: dig.h,v 1.28 2000/07/05 23:28:32 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -195,7 +195,7 @@ void
 setup_system(void);
 
 void
-free_lists(int exitcode);
+free_lists(void);
 
 dig_lookup_t *
 requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
