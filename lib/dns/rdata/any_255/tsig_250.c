@@ -15,11 +15,9 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.39 2000/05/25 00:46:31 bwelling Exp $ */
+/* $Id: tsig_250.c,v 1.40 2000/06/01 16:47:25 gson Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
-
-/* draft-ietf-dnsext-tsig-00.txt */
 
 #ifndef RDATA_ANY_255_TSIG_250_C
 #define RDATA_ANY_255_TSIG_250_C

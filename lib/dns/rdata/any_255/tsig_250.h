@@ -15,9 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.h,v 1.16 2000/04/29 02:01:34 tale Exp $ */
+/* $Id: tsig_250.h,v 1.17 2000/06/01 16:47:26 gson Exp $ */
 
-/* draft-ietf-dnsext-tsig-00.txt */
+/* RFC 2845 */
+
 #ifndef ANY_255_TSIG_250_H
 #define ANY_255_TSIG_250_H 1
 
