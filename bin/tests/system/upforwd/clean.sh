@@ -15,14 +15,14 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2000/09/13 07:44:52 marka Exp $
+# $Id: clean.sh,v 1.3 2000/11/16 00:20:22 bwelling Exp $
 
 #
 # Clean up after zone transfer tests.
 #
 
-rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1.after ns1/*.jnl ns2/*.jnl ns1/*.db
-rm -f ns2/*.bk
+rm -f dig.out.ns1 dig.out.ns2 dig.out.ns1 dig.out.ns3 dig.out.ns1.after
+rm -f ns1/*.jnl ns2/*.jnl ns3/*.jnl ns1/*.db ns2/*.bk ns3/*.bk
 
 
 
