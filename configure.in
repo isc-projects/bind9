@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.95 $)
+AC_REVISION($Revision: 1.96 $)
 
 AC_PREREQ(2.13)
 
@@ -186,6 +186,15 @@ AC_CHECK_LIB(c, sigwait,
 			  AC_CHECK_LIB(pthread, _Psigwait,
 				       AC_DEFINE(HAVE_SIGWAIT),))
 )
+
+dnl
+dnl Additional OS-specific searching for sigwait.
+dnl
+case "$host" in
+	*-freebsd*)
+		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
+		;;
+esac
 
 dnl
 dnl Make sure we get the right sigwait() semantics...
