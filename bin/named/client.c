@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.136.2.8 2001/10/12 01:08:20 marka Exp $ */
+/* $Id: client.c,v 1.136.2.9 2001/10/30 01:14:00 marka Exp $ */
 
 #include <config.h>
 
@@ -1542,9 +1542,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_client;
 	isc_task_setname(client->task, "client", client);
-	result = isc_task_onshutdown(client->task, client_shutdown, client);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
 
 	client->timer = NULL;
 	result = isc_timer_create(manager->timermgr, isc_timertype_inactive,
@@ -1616,11 +1613,18 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_sendbuf;
 
+	result = isc_task_onshutdown(client->task, client_shutdown, client);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_query;
+
 	CTRACE("create");
 
 	*clientp = client;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_query:
+	ns_query_free(client);
 
  cleanup_sendbuf:
 	isc_mem_put(manager->mctx, client->sendbuf, SEND_BUFFER_SIZE);
