@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.75 2000/09/26 05:08:05 marka Exp $ */
+/* $Id: zone.h,v 1.76 2000/09/26 17:24:00 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -437,18 +437,7 @@ dns_zone_clearoption(dns_zone_t *zone, unsigned int option);
 unsigned int
 dns_zone_getoptions(dns_zone_t *zone);
 /*
- *	Return which options a set.
- *
- * Require:
- *	'zone' to be a valid zone.
- */
-
-void
-dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
-		    isc_uint32_t retry);
-/*
- *	Set the refresh and retry values.  Normally this are set as a
- *	result of loading the zone (dns_zone_load).
+ *	Returns the current zone options.
  *
  * Require:
  *	'zone' to be a valid zone.

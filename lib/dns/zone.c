@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.219 2000/09/26 17:23:19 gson Exp $ */
+/* $Id: zone.c,v 1.220 2000/09/26 17:23:57 gson Exp $ */
 
 #include <config.h>
 
@@ -1739,8 +1739,8 @@ zone_expire(dns_zone_t *zone) {
 				 "failure: %s", dns_result_totext(result));
 	}
 	zone->flags |= DNS_ZONEFLG_EXPIRED;
-	dns_zone_setrefresh(zone, DNS_ZONE_DEFAULTREFRESH,
-			    DNS_ZONE_DEFAULTRETRY);
+	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
+	zone->retry = DNS_ZONE_DEFAULTRETRY;
 	zone_unload(zone);
 }
 
@@ -1918,16 +1918,6 @@ zone_deletefile(dns_zone_t *zone) {
 
 }
 #endif /* NOMINUM_PUBLIC */
-
-void
-dns_zone_setrefresh(dns_zone_t *zone, isc_uint32_t refresh,
-		    isc_uint32_t retry)
-{
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	zone->refresh = refresh;
-	zone->retry = retry;
-}
 
 void
 dns_zone_setminrefreshtime(dns_zone_t *zone, isc_uint32_t val) {
