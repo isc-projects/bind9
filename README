@@ -166,6 +166,7 @@ Building
 		UnixWare 7.1.1
 		HP-UX 10.20
 		BSD/OS 4.2
+		Mac OS X 10.1
 
 	To build, just
 
