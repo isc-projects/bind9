@@ -181,9 +181,13 @@ dns_request_cancel(dns_request_t *request);
  */
 
 isc_result_t
-dns_request_getresponse(dns_request_t *request, dns_message_t *message);
+dns_request_getresponse(dns_request_t *request, dns_message_t *message,
+			isc_boolean_t preserve_order);
 /*
- * Get the response to 'request'.
+ * Get the response to 'request' by filling in 'message'.
+ *
+ * 'preserve_order' is passed to dns_message_parse().  See dns_message_parse()
+ * for more details.
  *
  * Requires:
  *

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.116 2000/05/17 19:45:31 gson Exp $ */
+/* $Id: zone.c,v 1.117 2000/05/18 02:59:16 marka Exp $ */
 
 #include <config.h>
 
@@ -1871,7 +1871,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
-	result = dns_request_getresponse(revent->request, msg);
+	result = dns_request_getresponse(revent->request, msg, ISC_FALSE);
 	if (result != ISC_R_SUCCESS)
 		goto next_master;
 

@@ -92,8 +92,8 @@ static void mgr_shutdown(dns_requestmgr_t *requestmgr);
 static unsigned int mgr_gethash(dns_requestmgr_t *requestmgr);
 static void send_shutdown_events(dns_requestmgr_t *requestmgr);
 
-static isc_result_t render(dns_message_t *message, isc_buffer_t **buffer,
-			   isc_mem_t *mctx);
+static isc_result_t req_render(dns_message_t *message, isc_buffer_t **buffer,
+			       isc_mem_t *mctx);
 static void req_senddone(isc_task_t *task, isc_event_t *event);
 static void req_response(isc_task_t *task, isc_event_t *event);
 static void req_timeout(isc_task_t *task, isc_event_t *event);
@@ -523,7 +523,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		goto cleanup;
 
 	message->id = id;
-	result = render(message, &request->query, mctx);
+	result = req_render(message, &request->query, mctx);
 	if (result == DNS_R_USETCP &&
 	    (options & DNS_REQUESTOPT_TCP) == 0) {
 		/*
@@ -610,7 +610,7 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 }
 
 static isc_result_t
-render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
+req_render(dns_message_t *message, isc_buffer_t **bufferp, isc_mem_t *mctx) {
 	isc_buffer_t *buf1 = NULL;
 	isc_buffer_t *buf2 = NULL;
 	isc_result_t result;
@@ -698,14 +698,16 @@ dns_request_cancel(dns_request_t *request) {
 }
 
 isc_result_t
-dns_request_getresponse(dns_request_t *request, dns_message_t *message) {
+dns_request_getresponse(dns_request_t *request, dns_message_t *message,
+			isc_boolean_t preserve_order)
+{
 	REQUIRE(VALID_REQUEST(request));
 	REQUIRE(request->answer != NULL);
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_getresponse: request %p",
 		request);
 
-	return (dns_message_parse(message, request->answer, ISC_TRUE));
+	return (dns_message_parse(message, request->answer, preserve_order));
 }
 
 void

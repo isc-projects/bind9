@@ -1,3 +1,6 @@
+ 186	[func]		dns_request_getresponse() has an additional arguement
+			'preserve_order'.
+
  185.   [bug]           Fixed up handling of ISC_MEMCLUSTER_LEGACY.  Several
                         public functions did not have an isc__ prefix, and
                         referred to functions that had previously been
