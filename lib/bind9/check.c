@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.5 2001/10/25 17:07:21 bwelling Exp $ */
+/* $Id: check.c,v 1.6 2001/10/29 06:09:05 marka Exp $ */
 
 #include <config.h>
 
@@ -342,9 +342,40 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	}
 	return (ISC_R_SUCCESS);
 }
+
+static isc_result_t
+check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	cfg_listelt_t *element;
+
+	for (element = cfg_list_first(keys);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *key = cfg_listelt_value(element);
+		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
+		isc_symvalue_t symvalue;
+
+		symvalue.as_pointer = NULL;
+		tresult = isc_symtab_define(symtab, keyname, 1,
+					    symvalue, isc_symexists_reject);
+		if (tresult == ISC_R_EXISTS) {
+			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
+				    "key '%s': already exists ", keyname);
+			result = tresult;
+		} else if (tresult != ISC_R_SUCCESS)
+			return (tresult);
+
+		tresult = bind9_check_key(key, logctx);
+		if (tresult != ISC_R_SUCCESS)
+			return (tresult);
+	}
+	return (result);
+}
 		
 static isc_result_t
-check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
+check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, dns_rdataclass_t vclass,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	cfg_obj_t *zones = NULL;
@@ -362,7 +393,10 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	(void)cfg_map_get(vconfig, "zone", &zones);
+	if (vconfig != NULL)
+		(void)cfg_map_get(vconfig, "zone", &zones);
+	else
+		(void)cfg_map_get(config, "zone", &zones);
 
 	for (element = cfg_list_first(zones);
 	     element != NULL;
@@ -386,29 +420,22 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
-	(void)cfg_map_get(vconfig, "key", &keys);
-	for (element = cfg_list_first(keys);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		cfg_obj_t *key = cfg_listelt_value(element);
-		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
-		isc_symvalue_t symvalue;
-
-		symvalue.as_pointer = NULL;
-		tresult = isc_symtab_define(symtab, keyname, 1,
-					    symvalue, isc_symexists_reject);
-		if (tresult == ISC_R_EXISTS) {
-			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
-				    "key '%s': already exists ", keyname);
+	cfg_map_get(config, "key", &keys);
+	tresult = check_keylist(keys, symtab, logctx);
+	if (tresult == ISC_R_EXISTS)
+		result = ISC_R_FAILURE;
+	else if (tresult != ISC_R_SUCCESS) {
+		isc_symtab_destroy(&symtab);
+		return (tresult);
+	}
+	
+	if (vconfig != NULL) {
+		keys = NULL;
+		(void)cfg_map_get(vconfig, "key", &keys);
+		tresult = check_keylist(keys, symtab, logctx);
+		if (tresult == ISC_R_EXISTS)
 			result = ISC_R_FAILURE;
-		} else if (tresult != ISC_R_SUCCESS) {
-			isc_symtab_destroy(&symtab);
-			return (tresult);
-		}
-
-		tresult = bind9_check_key(key, logctx);
-		if (tresult != ISC_R_SUCCESS) {
+		else if (tresult != ISC_R_SUCCESS) {
 			isc_symtab_destroy(&symtab);
 			return (tresult);
 		}
@@ -419,9 +446,9 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
 	/*
 	 * Check that forwarding is reasonable.
 	 */
-	if (strcmp(vname, "_default") == 0) {
+	if (vconfig == NULL) {
 		cfg_obj_t *options = NULL;
-		cfg_map_get(vconfig, "options", &options);
+		cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			if (check_forward(options, logctx) != ISC_R_SUCCESS)
 				result = ISC_R_FAILURE;
@@ -430,7 +457,10 @@ check_viewconf(cfg_obj_t *vconfig, const char *vname, dns_rdataclass_t vclass,
 			result = ISC_R_FAILURE;
 	}
 
-	tresult = check_options(vconfig, logctx);
+	if (vconfig != NULL)
+		tresult = check_options(vconfig, logctx);
+	else
+		tresult = check_options(config, logctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
@@ -455,7 +485,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	(void)cfg_map_get(config, "view", &views);
 
 	if (views == NULL) {
-		if (check_viewconf(config, "_default", dns_rdataclass_in,
+		if (check_viewconf(config, NULL, dns_rdataclass_in,
 				   logctx, mctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	} else {
@@ -493,8 +523,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 					    cfg_obj_asstring(vname), r.base);
 		}
 		if (tresult == ISC_R_SUCCESS)
-			tresult = check_viewconf(voptions,
-						 cfg_obj_asstring(vname),
+			tresult = check_viewconf(config, voptions,
 						 vclass, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
