@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.11 1999/11/02 19:56:34 bwelling Exp $
+ * $Id: tkey.c,v 1.12 1999/11/03 16:53:56 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -207,7 +207,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	       dns_rdata_generic_tkey_t *tkeyout, dns_namelist_t *namelist)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	dns_name_t *keyname, ourname;
+	dns_name_t *keyname, ourname, signer, *creator;
 	dns_rdataset_t *keyset;
 	dns_rdata_t keyrdata, ourkeyrdata;
 	isc_boolean_t found_key = ISC_FALSE, found_incompatible = ISC_FALSE;
@@ -331,11 +331,19 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	isc_buffer_used(&randombuf, &r);
 	RETERR(compute_secret(shared, &r, &secret));
 
+	dns_name_init(&signer, NULL);
+	result = dns_message_signer(msg, &signer);
+	/* handle DNS_R_NOTVERIFIEDYET */
+	if (result == ISC_R_SUCCESS)
+		creator = &signer;
+	else
+		creator = NULL;
+
 	dst_key_free(pubkey);
 	isc_buffer_used(&secret, &r);
 	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
-				    ISC_TRUE, NULL, msg->mctx, &tsigkey);
+				    ISC_TRUE, creator, msg->mctx, &tsigkey);
 	isc_buffer_free(&shared);
 	shared = NULL;
 	if (result == ISC_R_NOTFOUND) {
@@ -381,6 +389,7 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 {
 	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
+	dns_name_t signer;
 
 	/* Unused variables */
 	msg = msg;
@@ -392,19 +401,30 @@ process_deletetkey(dns_message_t *msg, dns_name_t *name,
 		tkeyout->error = dns_tsigerror_badname;
 
 	/*
-	 * Only allow a delete if the message is signed by the key to
-	 * be deleted or a key with the same creator.
+	 * Only allow a delete if the identity that created the key is the
+	 * same as the identity that signed the message.
 	 */
-	if (msg->tsigkey == NULL)
+	dns_name_init(&signer, NULL);
+	result = dns_message_signer(msg, &signer);
+	/* handle DNS_R_NOTVERIFIEDYET */
+	if (result == DNS_R_NOIDENTITY) {
+		/*
+		 * Special case - there is no identity associated with the
+		 * TSIG key that signed the message, but it's that key
+		 * being deleted.  This is OK.
+		 */
+		if (!dns_name_equal(&signer, name))
+			return (DNS_R_REFUSED);
+		result = ISC_R_SUCCESS;
+	}
+	else if (result != ISC_R_SUCCESS) {
 		return (DNS_R_REFUSED);
-	if (!dns_name_equal(&msg->tsigkey->name, name)) {
-		dns_name_t *id1 = dns_tsigkey_identity(msg->tsigkey);
-		dns_name_t *id2 = dns_tsigkey_identity(tsigkey);
-		if (id1 == NULL || id2 == NULL || !dns_name_equal(id1, id2))
+	}
+	else {
+		dns_name_t *identity = dns_tsigkey_identity(tsigkey);
+		if (identity == NULL || !dns_name_equal(identity, &signer))
 			return (DNS_R_REFUSED);
 	}
-
-	/* If tsigkey->creator is NULL, log a warning here... */
 
 	/*
 	 * Set the key to be deleted when no references are left.  If the key
