@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.278 2001/01/09 21:40:03 bwelling Exp $ */
+/* $Id: server.c,v 1.279 2001/01/11 23:46:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1416,9 +1416,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	char *pidfilename;
 	char *statsfilename;
 	char *dumpfilename;
+	char *randomdev;
 	isc_uint32_t interface_interval;
 	isc_uint32_t heartbeat_interval;
 	in_port_t listen_port;
+#ifdef PATH_RANDOMDEV
+	char path_randomdev[] = PATH_RANDOMDEV;
+#endif
 
 	ns_aclconfctx_init(&aclconfctx);
 
@@ -1707,6 +1711,28 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	CHECKM(ns_lwresd_configure(ns_g_mctx, cctx),
 	       "binding lightweight resolver ports");
+
+	/*
+	 * Open the source of entropy.
+	 */
+	randomdev = NULL;
+	(void)dns_c_ctx_getrandomdevice(cctx, &randomdev);
+#ifdef PATH_RANDOMDEV
+	if (randomdev == NULL)
+		randomdev = path_randomdev;
+#endif
+	if (randomdev == NULL)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "no source of entropy found");
+	else {
+		result = isc_entropy_createfilesource(ns_g_entropy, randomdev);
+		if (result != ISC_R_SUCCESS)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "failed to open entropy source %s: %s",
+				      randomdev, isc_result_totext(result));
+	}
 
 	/*
 	 * Relinquish root privileges.
