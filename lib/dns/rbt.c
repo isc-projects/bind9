@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.59 1999/10/11 19:16:56 halley Exp $ */
+/* $Id: rbt.c,v 1.60 1999/10/12 14:19:47 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -863,7 +863,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 	}
 
 	if (current != NULL) {
+		/*
+		 * Found an exact match.
+		 */
 		chain->end = current;
+		chain->level_matches = chain->level_count - 1;
 
 		if (foundname != NULL)
 			result = chain_name(chain, foundname, ISC_TRUE);
@@ -877,40 +881,49 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			*node = NULL;
 
 	} else {
+		/*
+		 * Did not find an exact match.
+		 */
 		if (*node != NULL) {
+			/*
+			 * ... but found a partially matching superdomain.
+			 * Unwind the chain to the partial match node
+			 * to set level_matches to the level above the node,
+			 * and then to derive the name.
+			 */
+			chain->level_matches = chain->level_count - 1;
+
+			while (chain->levels[chain->level_matches] != *node) {
+				INSIST(chain->level_matches > 0);
+				chain->level_matches--;
+			}
+
+
 			if (foundname != NULL) {
-				/*
-				 * Unwind the chain to the partial match node
-				 * to derive the name.
-				 */
 				unsigned int saved_count = chain->level_count;
 
-				while (chain->levels[chain->level_count - 1] !=
-				       *node) {
-					INSIST(chain->level_count > 1);
-					chain->level_count--;
-				}
-
-				chain->level_matches = chain->level_count - 1;
+				chain->level_count = chain->level_matches + 1;
 
 				result = chain_name(chain, foundname,
 						    ISC_FALSE);
 
 				chain->level_count = saved_count;
-
 			} else
 				result = DNS_R_SUCCESS;
 
 			if (result == DNS_R_SUCCESS)
 				result = DNS_R_PARTIALMATCH;
 
-		} else
+		} else {
+			chain->level_matches = -2;
 			result = DNS_R_NOTFOUND;
+		}
 
 		if (chain != &localchain) {
 			/*
-			 * The chain argument needs to be pointed at the
-			 * DNSSEC predecessor of the search name.
+			 * Since there was no exact match, the chain argument
+			 * needs to be pointed at the DNSSEC predecessor of
+			 * the search name.
 			 *
 			 * First, point current to the node that stopped the
 			 * search, and remove that node from the ancestor
@@ -993,9 +1006,15 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					if (result2 == DNS_R_SUCCESS ||
 					    result2 == DNS_R_NEWORIGIN)
 						; 	/* Nothing */
-					else if (result2 == DNS_R_NOMORE)
+					else if (result2 == DNS_R_NOMORE) {
+						/*
+						 * There is no predecessor.
+						 */
 						dns_rbtnodechain_reset(chain);
-					else
+						chain->level_count = -1;
+						chain->level_matches = -2;
+
+					} else
 						result = result2;
 				}
 
