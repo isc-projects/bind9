@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.118 2000/05/18 04:43:00 marka Exp $ */
+/* $Id: zone.c,v 1.119 2000/05/19 02:18:40 marka Exp $ */
 
 #include <config.h>
 
@@ -800,9 +800,16 @@ dns_zone_load(dns_zone_t *zone) {
 		zone->minimum = soa.minimum;
 		if (zone->type == dns_zone_slave ||
 		    zone->type == dns_zone_stub) {
-			/* XXX need database modification time */
-			zone->expiretime = now /*XXX*/ + zone->expire;
-			zone->refreshtime = now /*XXX*/;
+			isc_time_t t;
+
+			result = isc_file_getmodtime(zone->dbname, &t);
+						     
+			if (result == ISC_R_SUCCESS)
+				zone->expiretime = isc_time_seconds(&t) +
+						   zone->expire;
+			else
+				zone->expiretime = now + zone->retry;
+			zone->refreshtime = now;
 		}
 		break;
 	case dns_zone_hint:
@@ -1772,11 +1779,10 @@ dns_zone_notify(dns_zone_t *zone) {
 	result = dns_rdataset_first(&soardset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&soardset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, zone->mctx);
+		result = dns_rdata_tostruct(&rdata, &soa, NULL);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		result = dns_name_dup(&soa.origin, zone->mctx, &master);
-		dns_rdata_freestruct(&soa);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		result = dns_rdataset_next(&soardset);
@@ -1797,30 +1803,28 @@ dns_zone_notify(dns_zone_t *zone) {
 	result = dns_rdataset_first(&nsrdset);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&nsrdset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &ns, zone->mctx);
+		result = dns_rdata_tostruct(&rdata, &ns, NULL);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		/*
 		 * don't notify the master server.
 		 */
 		if (dns_name_compare(&master, &ns.name) == 0) {
-			dns_rdata_freestruct(&ns);
 			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
 		LOCK(&zone->lock);
 		isqueued = notify_isqueued(zone, &ns.name, NULL);
 		UNLOCK(&zone->lock);
-		if (isqueued)
-			continue;
-		result = notify_create(zone->mctx, &notify);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdata_freestruct(&ns);
+		if (isqueued) {
+			result = dns_rdataset_next(&nsrdset);
 			continue;
 		}
+		result = notify_create(zone->mctx, &notify);
+		if (result != ISC_R_SUCCESS)
+			continue;
 		dns_zone_attach(zone, &notify->zone);
 		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
-		dns_rdata_freestruct(&ns);
 		if (result != ISC_R_SUCCESS) {
 			LOCK(&zone->lock);
 			notify_destroy(notify);
@@ -1989,14 +1993,13 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_rdataset_current(rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, zone->mctx);
+	result = dns_rdata_tostruct(&rdata, &soa, NULL);
 	if (result != ISC_R_SUCCESS) {
 		zone_log(zone, me, ISC_LOG_INFO, "dns_rdata_tostruct failed");
 		goto next_master;
 	}
 
 	serial = soa.serial;
-	dns_rdata_freestruct(&soa);
 	dns_message_destroy(&msg);
 
 	zone_log(zone, me, ISC_LOG_DEBUG(1), "Serial: new %u, old %u",
@@ -2557,10 +2560,9 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 			isc_uint32_t serial = 0;
 
 			dns_rdataset_current(rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &soa, zone->mctx);
+			result = dns_rdata_tostruct(&rdata, &soa, NULL);
 			if (result == ISC_R_SUCCESS) {
 				serial = soa.serial;
-				dns_rdata_freestruct(&soa);
 				if (isc_serial_le(serial, zone->serial)) {
 					zone_log(zone, me, ISC_LOG_DEBUG(3),
 						 "zone up to date");
