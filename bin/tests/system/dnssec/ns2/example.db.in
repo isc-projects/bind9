@@ -13,7 +13,7 @@
 ; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 ; WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-; $Id: example.db.in,v 1.7 2001/01/09 21:42:50 bwelling Exp $
+; $Id: example.db.in,v 1.8 2001/02/20 18:33:50 bwelling Exp $
 
 $TTL 300	; 5 minutes
 @			IN SOA	mname1. . (
@@ -31,6 +31,24 @@ ns3			A	10.53.0.3
 a			A	10.0.0.1
 b			A	10.0.0.2
 d			A	10.0.0.4
+
+; Used for testing ANY queries
+foo			TXT	"testing"
+foo			A	10.0.1.0
+
+; Used for testing CNAME queries
+cname1			CNAME	cname1-target
+cname1-target		TXT	"testing cname"
+
+cname2			CNAME	cname2-target
+cname2-target		TXT	"testing cname"
+
+; Used for testing DNAME queries
+dname1			DNAME	dname1-target
+foo.dname1-target	TXT	"testing dname"
+
+dname2			DNAME	dname2-target
+foo.dname2-target	TXT	"testing dname"
 
 ; A secure subdomain
 secure			NS	ns.secure
