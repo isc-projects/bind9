@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.72 2003/10/03 03:12:35 marka Exp $ */
+/* $Id: db.c,v 1.73 2004/03/04 06:56:38 marka Exp $ */
 
 /***
  *** Imports
@@ -728,6 +728,13 @@ dns_db_nodecount(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	return ((db->methods->nodecount)(db));
+}
+
+void
+dns_db_settask(dns_db_t *db, isc_task_t *task) {
+	REQUIRE(DNS_DB_VALID(db));
+
+	(db->methods->settask)(db, task);
 }
 
 isc_result_t

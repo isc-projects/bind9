@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.43 2004/02/27 20:41:44 marka Exp $ */
+/* $Id: sdb.c,v 1.44 2004/03/04 06:56:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1200,6 +1200,12 @@ overmem(dns_db_t *db, isc_boolean_t overmem) {
 	UNUSED(overmem);
 }
 
+static void
+settask(dns_db_t *db, isc_task_t *task) {
+	UNUSED(db);
+	UNUSED(task);
+}
+
 
 static dns_dbmethods_t sdb_methods = {
 	attach,
@@ -1227,7 +1233,8 @@ static dns_dbmethods_t sdb_methods = {
 	issecure,
 	nodecount,
 	ispersistent,
-	overmem
+	overmem,
+	settask
 };
 
 static isc_result_t

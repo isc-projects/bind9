@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.126 2004/03/03 22:40:56 marka Exp $ */
+/* $Id: rbt.c,v 1.127 2004/03/04 06:56:39 marka Exp $ */
 
 /* Principal Authors: DCL */
 
 #include <config.h>
 
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -63,6 +64,7 @@ struct dns_rbt {
 	unsigned int		nodecount;
 	unsigned int		hashsize;
 	dns_rbtnode_t **	hashtable;
+	unsigned int		quantum;
 };
 
 #define RED 0
@@ -225,8 +227,11 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 static void
 dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
 
-static void
+static isc_result_t
 dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
+
+static void
+dns_rbt_deletetreeflat(dns_rbt_t *rbt, dns_rbtnode_t **nodep);
 
 /*
  * Initialize a red/black tree of trees.
@@ -263,6 +268,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 		return (result);
 	}
 #endif
+	rbt->quantum = 0;
 	rbt->magic = RBT_MAGIC;
 
 	*rbtp = rbt;
@@ -275,13 +281,22 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
  */
 void
 dns_rbt_destroy(dns_rbt_t **rbtp) {
+	RUNTIME_CHECK(dns_rbt_destroy2(rbtp, 0) == ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum) {
 	dns_rbt_t *rbt;
 
 	REQUIRE(rbtp != NULL && VALID_RBT(*rbtp));
 
 	rbt = *rbtp;
 
-	dns_rbt_deletetree(rbt, rbt->root);
+	rbt->quantum = quantum;
+
+	dns_rbt_deletetreeflat(rbt, &rbt->root);
+	if (rbt->root != NULL)
+		return (ISC_R_QUOTA);
 
 	INSIST(rbt->nodecount == 0);
 
@@ -292,8 +307,8 @@ dns_rbt_destroy(dns_rbt_t **rbtp) {
 	rbt->magic = 0;
 
 	isc_mem_put(rbt->mctx, rbt, sizeof(*rbt));
-
 	*rbtp = NULL;
+	return (ISC_R_SUCCESS);
 }
 
 unsigned int
@@ -1258,7 +1273,8 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 
 	if (DOWN(node) != NULL) {
 		if (recurse)
-			dns_rbt_deletetree(rbt, DOWN(node));
+			RUNTIME_CHECK(dns_rbt_deletetree(rbt, DOWN(node))
+				      == ISC_R_SUCCESS);
 		else {
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node),
@@ -1527,7 +1543,7 @@ hash_node(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 
 	REQUIRE(DNS_RBTNODE_VALID(node));
 
-	if (rbt->nodecount >= rbt->hashsize)
+	if (rbt->nodecount >= (rbt->hashsize *3))
 		rehash(rbt);
 
 	hash_add_node(rbt, node);
@@ -1976,19 +1992,37 @@ dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
  * a pointer needs to be told that this tree no longer exists,
  * this function would need to adjusted accordingly.
  */
-static void
+static isc_result_t
 dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
+	isc_result_t result = ISC_R_SUCCESS;
 	REQUIRE(VALID_RBT(rbt));
 
 	if (node == NULL)
-		return;
+		return (result);
 
-	if (LEFT(node) != NULL)
-		dns_rbt_deletetree(rbt, LEFT(node));
-	if (RIGHT(node) != NULL)
-		dns_rbt_deletetree(rbt, RIGHT(node));
-	if (DOWN(node) != NULL)
-		dns_rbt_deletetree(rbt, DOWN(node));
+	if (LEFT(node) != NULL) {
+		result = dns_rbt_deletetree(rbt, LEFT(node));
+		if (result != ISC_R_SUCCESS)
+			goto done;
+		LEFT(node) = NULL;
+	}
+	if (RIGHT(node) != NULL) {
+		result = dns_rbt_deletetree(rbt, RIGHT(node));
+		if (result != ISC_R_SUCCESS)
+			goto done;
+		RIGHT(node) = NULL;
+	}
+	if (DOWN(node) != NULL) {
+		result = dns_rbt_deletetree(rbt, DOWN(node));
+		if (result != ISC_R_SUCCESS)
+			goto done;
+		DOWN(node) = NULL;
+	}
+ done:
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (rbt->quantum != 0 && --rbt->quantum == 0)
+		return (ISC_R_QUOTA);
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
@@ -1999,6 +2033,59 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 #endif
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 	rbt->nodecount--;
+	return (result);
+}
+
+static void
+dns_rbt_deletetreeflat(dns_rbt_t *rbt, dns_rbtnode_t **nodep) {
+	dns_rbtnode_t *parent;
+	dns_rbtnode_t *node = *nodep;
+	REQUIRE(VALID_RBT(rbt));
+
+ again:
+	if (node == NULL) {
+		*nodep = NULL;
+		return;
+	}
+
+ traverse:
+	if (LEFT(node) != NULL) {
+		node = LEFT(node);
+		goto traverse;
+	}
+	if (RIGHT(node) != NULL) {
+		node = RIGHT(node);
+		goto traverse;
+	}
+	if (DOWN(node) != NULL) {
+		node = DOWN(node);
+		goto traverse;
+	}
+
+	if (DATA(node) != NULL && rbt->data_deleter != NULL)
+		rbt->data_deleter(DATA(node), rbt->deleter_arg);
+
+	unhash_node(rbt, node);
+#if DNS_RBT_USEMAGIC
+	node->magic = 0;
+#endif
+	parent = PARENT(node);
+	if (parent != NULL) {
+		if (LEFT(parent) == node)
+			LEFT(parent) = NULL;
+		else if (DOWN(parent) == node)
+			DOWN(parent) = NULL;
+		else if (RIGHT(parent) == node)
+			RIGHT(parent) = NULL;
+	}
+	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
+	rbt->nodecount--;
+	node = parent;
+	if (rbt->quantum != 0 && --rbt->quantum == 0) {
+		*nodep = node;
+		return;
+	}
+	goto again;
 }
 
 static void
