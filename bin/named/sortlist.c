@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.2 2000/11/15 18:12:37 gson Exp $ */
+/* $Id: sortlist.c,v 1.3 2000/11/15 20:35:13 tale Exp $ */
 
 #include <config.h>
 
@@ -113,18 +113,25 @@ ns_sortlist_byaddrsetup(dns_acl_t *sortlist_acl, isc_netaddr_t *client_addr,
 		       dns_addressorderfunc_t *orderp,
 		       void **argp)
 {
-	dns_addressorderfunc_t order;
-	switch (ns_sortlist_setup(sortlist_acl, client_addr, argp)) {
+	ns_sortlisttype_t sortlisttype;
+
+	sortlisttype = ns_sortlist_setup(sortlist_acl, client_addr, argp);
+
+	switch (sortlisttype) {
 	case NS_SORTLISTTYPE_1ELEMENT:
-		order = ns_sortlist_addrorder1;
+		*orderp = ns_sortlist_addrorder1;
 		break;
 	case NS_SORTLISTTYPE_2ELEMENT:
-		order = ns_sortlist_addrorder2;
+		*orderp = ns_sortlist_addrorder2;
 		break;
 	case NS_SORTLISTTYPE_NONE:
-		order = NULL;
+		*orderp = NULL;
+		break;
+	default:
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "unexpected return from ns_sortlist_setup(): "
+				 "%d", sortlisttype);
 		break;
 	}
-	*orderp = order;
 }
 
