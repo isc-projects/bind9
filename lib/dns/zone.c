@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.338 2001/08/31 19:27:22 gson Exp $ */
+/* $Id: zone.c,v 1.339 2001/09/03 01:21:19 marka Exp $ */
 
 #include <config.h>
 
@@ -3796,8 +3796,6 @@ static void
 zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 	const char me[] = "zone_settimer";
 	isc_time_t next;
-	isc_time_t expires;
-	isc_interval_t interval;
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3855,17 +3853,10 @@ zone_settimer(dns_zone_t *zone, isc_time_t *now) {
 				     "could not deactivate zone timer: %s",
 				     isc_result_totext(result));
 	} else {
-		if (isc_time_compare(&next, now) <= 0) {
-			expires = *now;
-			isc_interval_set(&interval, 0, 0);
-		} else {
-			int s;
-			isc_time_settoepoch(&expires);
-			s = isc_time_microdiff(&next, now) / 1000000;
-			isc_interval_set(&interval, s, 0);
-		}
+		if (isc_time_compare(&next, now) <= 0)
+			next = *now;
 		result = isc_timer_reset(zone->timer, isc_timertype_once,
-					  &expires, &interval, ISC_TRUE);
+					 &next, NULL, ISC_TRUE);
 		if (result != ISC_R_SUCCESS)
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "could not reset zone timer: %s",
