@@ -1,3 +1,6 @@
+Copyright (C) 2000  Internet Software Consortium.
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
 options {
 	...
 	[ allow-notify { address_match_list }; ]
@@ -15,6 +18,7 @@ zone "zone_name" {
 	...
 	[ allow-notify { address_match_list };]
 	[ notify-forward yes_or_no; ]
+	[ max-names integer; ]
 };
 
 allow-notify:
@@ -25,3 +29,12 @@ notify-forward:
 	If 'yes' forward notifies which match 'allow-notify' to zone
 	masters.  If 'no' accept the notify which match 'allow-notify'
 	as if it came from a master.  Default 'no'.
+
+max-names:
+	The maximum number of names allowed in a slave zone.
+	If an incoming zone transfer contains more than this
+	many names, the zone will be unloaded.
+
+
+Also, the "masters" list for slave zones can contain per-master TSIG keys
+using a syntax like "masters { 1.2.3.4 port 5555 key "foo." };".
