@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.73 2000/07/10 18:02:28 bwelling Exp $ */
+/* $Id: dighost.c,v 1.74 2000/07/11 17:35:49 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1193,6 +1193,7 @@ send_udp(dig_lookup_t *lookup) {
 				local_timeout = UDP_TIMEOUT;
 		} else
 			local_timeout = timeout;
+		debug ("have local timeout of %d", local_timeout);
 		isc_interval_set(&lookup->interval, local_timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,
@@ -1763,19 +1764,21 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			 * the timeout to much longer, so brief network
 			 * outages won't cause the XFR to abort
 			 */
-			if (timeout != INT_MAX) {
+			if ((timeout != INT_MAX) &&
+			    (query->lookup->timer != NULL)) {
 				if (timeout == 0) {
 					if (query->lookup->tcp_mode)
 						local_timeout = TCP_TIMEOUT;
 					else
 						local_timeout = UDP_TIMEOUT;
 				} else {
-					if (((long)timeout * 4) < 
-					    (long)INT_MAX)
+					if (timeout < (INT_MAX / 4))
 						local_timeout = timeout * 4;
 					else
 						local_timeout = INT_MAX;
 				}
+				debug ("have local timeout of %d",
+				       local_timeout);		
 				isc_interval_set(&query->lookup->interval,
 						 local_timeout, 0);
 				result = isc_timer_reset(query->lookup->timer,
@@ -1953,6 +1956,7 @@ do_lookup_tcp(dig_lookup_t *lookup) {
 				local_timeout = UDP_TIMEOUT;
 		} else
 			local_timeout = timeout;
+		debug ("have local timeout of %d", local_timeout);
 		isc_interval_set(&lookup->interval, local_timeout, 0);
 		result = isc_timer_create(timermgr, isc_timertype_once, NULL,
 					  &lookup->interval, global_task,
