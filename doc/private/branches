@@ -1,6 +1,6 @@
 Name		Status		Whom
 ------------------------------------
-a6_remove	open		jinmei
+a6_remove	review		marka
 blabel-cleanup
 ipv6_6to4	feedback	marka
 libbind_clean	open		jinmei
