@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/result.h>
 #include <isc/timer.h>
 #include <isc/mutex.h>
@@ -804,7 +805,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	event->node = NULL;
 	event->rdataset = rdataset;
 	event->sigrdataset = sigrdataset;
-	event->tag = fetch;
+	event->fetch = fetch;
 	dns_fixedname_init(&event->foundname);
 	ISC_LIST_APPEND(fctx->events, event, link);
 
@@ -881,7 +882,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Compute an expiration time for the entire fetch.
 	 */
-	isc_interval_set(&interval, 10, 0);		/* XXXRTH constant */
+	isc_interval_set(&interval, 30, 0);		/* XXXRTH constant */
 	iresult = isc_time_nowplusinterval(&fctx->expires, &interval);
 	if (iresult != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -2576,12 +2577,46 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 }
 
 void
+dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
+	fetchctx_t *fctx;
+	dns_fetchevent_t *event, *next_event;
+	isc_task_t *etask;
+
+	REQUIRE(DNS_FETCH_VALID(fetch));
+	fctx = fetch->private;
+
+	FTRACE("cancelfetch");
+
+	LOCK(&res->buckets[fctx->bucketnum].lock);
+
+	event = NULL;
+	if (fctx->state != fetchstate_done) {
+		for (event = ISC_LIST_HEAD(fctx->events);
+		     event != NULL;
+		     event = next_event) {
+			next_event = ISC_LIST_NEXT(event, link);
+			if (event->fetch == fetch) {
+				ISC_LIST_UNLINK(fctx->events, event,
+						link);
+				break;
+			}
+		}
+	}
+	if (event != NULL) {
+		etask = event->sender;
+		event->result = ISC_R_CANCELED;
+		isc_task_sendanddetach(&etask, (isc_event_t **)&event);
+	}
+
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
+}
+
+void
 dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 	dns_fetch_t *fetch;
 	dns_fetchevent_t *event, *next_event;
 	isc_event_t *cevent;
 	fetchctx_t *fctx;
-	isc_task_t *etask;
 
 	REQUIRE(fetchp != NULL);
 	fetch = *fetchp;
@@ -2592,24 +2627,18 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 
 	LOCK(&res->buckets[fctx->bucketnum].lock);
 
+	/*
+	 * Sanity check.  The caller should have either gotten its
+	 * fetchevent before trying to destroy the fetch.
+	 */
 	event = NULL;
 	if (fctx->state != fetchstate_done) {
 		for (event = ISC_LIST_HEAD(fctx->events);
 		     event != NULL;
 		     event = next_event) {
 			next_event = ISC_LIST_NEXT(event, link);
-			if (event->tag == fetch) {
-				ISC_LIST_UNLINK(fctx->events, event,
-						link);
-				FTRACE("found");
-				break;
-			}
+			RUNTIME_CHECK(event->fetch != fetch);
 		}
-	}
-	if (event != NULL) {
-		etask = event->sender;
-		event->result = ISC_R_CANCELED;
-		isc_task_sendanddetach(&etask, (isc_event_t **)&event);
 	}
 
 	INSIST(fctx->references > 0);

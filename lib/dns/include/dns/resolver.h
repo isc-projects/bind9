@@ -59,6 +59,7 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_fetchevent {
 	ISC_EVENT_COMMON(struct dns_fetchevent);
+	dns_fetch_t *			fetch;
 	dns_result_t			result;
 	dns_rdatatype_t			qtype;
 	dns_db_t *			db;
@@ -95,6 +96,9 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset, 
 			 dns_fetch_t **fetchp);
+
+void
+dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch);
 
 void
 dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp);
