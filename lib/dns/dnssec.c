@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.22 2000/03/01 22:34:39 bwelling Exp $
+ * $Id: dnssec.c,v 1.23 2000/03/06 21:31:08 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -563,7 +563,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	memset(&sig, 0, sizeof(dns_rdata_generic_sig_t));
 
 	sig.mctx = mctx;
-	sig.common.rdclass = dns_rdataclass_in; /**/
+	sig.common.rdclass = dns_rdataclass_any;
 	sig.common.rdtype = dns_rdatatype_sig;
 	ISC_LINK_INIT(&sig.common, link);
 
@@ -609,7 +609,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	 * dns_rdata_fromstruct.  Since siglen is 0, the digested data
 	 * is identical to dns format with the last 2 bytes removed.
 	 */
-	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_in /**/,
+	RETERR(dns_rdata_fromstruct(NULL, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, &databuf));
 	isc_buffer_used(&databuf, &r);
 	r.length -= 2;
@@ -632,7 +632,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	dynbuf = NULL;
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024,
 				   ISC_BUFFERTYPE_BINARY));
-	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_in /**/,
+	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_sig, &sig, dynbuf));
 
 	dns_rdata_freestruct(&sig);
@@ -647,7 +647,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	datalist = NULL;
 	RETERR(dns_message_gettemprdatalist(msg, &datalist));
-	datalist->rdclass = dns_rdataclass_in /**/;
+	datalist->rdclass = dns_rdataclass_any;
 	datalist->type = dns_rdatatype_sig;
 	datalist->covers = 0;
 	datalist->ttl = 0;
