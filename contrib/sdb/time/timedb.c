@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.c,v 1.4 2000/11/20 19:50:02 bwelling Exp $ */
+/* $Id: timedb.c,v 1.5 2000/12/06 00:59:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -30,6 +30,8 @@
 #include <dns/sdb.h>
 
 #include <named/globals.h>
+
+#include "timedb.h"
 
 /*
  * A simple database driver that enables the server to return the

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: pgsqldb.c,v 1.9 2000/11/22 21:18:12 bwelling Exp $ */
+/* $Id: pgsqldb.c,v 1.10 2000/12/06 00:59:07 bwelling Exp $ */
 
 #include <config.h>
 
@@ -34,6 +34,8 @@
 #include <dns/result.h>
 
 #include <named/globals.h>
+
+#include "pgsqldb.h"
 
 /*
  * A simple database driver that interfaces to a PostgreSQL database.  This

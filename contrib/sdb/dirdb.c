@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dirdb.c,v 1.5 2000/11/20 19:49:59 bwelling Exp $ */
+/* $Id: dirdb.c,v 1.6 2000/12/06 00:59:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,8 @@
 #include <dns/sdb.h>
 
 #include <named/globals.h>
+
+#include "dirdb.h"
 
 /*
  * A simple database driver that returns basic directory information.
