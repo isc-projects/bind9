@@ -24,6 +24,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <syslog.h>
 
 #include <isc/result.h>
 
@@ -67,9 +68,22 @@ linux_dropprivs() {
 }
 #endif
 
+static void
+setup_syslog(void) {
+	int options;
+
+	options = LOG_PID;
+#ifdef LOG_NDELAY
+	options |= LOG_NDELAY;
+#endif
+
+	openlog("named", options, LOG_DAEMON);
+}
 
 isc_result_t
 ns_os_init(void) {
+
+	setup_syslog();
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_dropprivs();
@@ -80,7 +94,5 @@ ns_os_init(void) {
 
 void
 ns_os_shutdown(void) {
-	/*
-	 * Nothing to do.
-	 */
+	closelog();
 }
