@@ -5,7 +5,7 @@
 			trigger the INSIST() in fctx_sendevents().  In
 			BIND 9.0, this bug did not trigger an INSIST(), but
 			caused the fetch to fail with a SERVFAIL result.
-			[RT #597, #605, #607]
+			[RT #588, #597, #605, #607]
 
  648.	[port]		Add support for pre-RFC2133 IPv6 implementations.
 
