@@ -220,7 +220,7 @@ client_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 	client = (client_object_t *)handle;
 
 	/*
-	 * omapi_wait_for_completion puts an omapi_waiter_object_t on
+	 * omapi_connection_wait puts an omapi_waiter_object_t on
 	 * the inside of the client object.
 	 */
 	if (strcmp(name, "updated") == 0) {
@@ -351,6 +351,7 @@ server_stuffvalues(omapi_object_t *connection, omapi_object_t *id,
 static void
 do_connect(const char *host, int port) {
 	omapi_object_t *manager;
+	omapi_object_t *connection;
 	omapi_object_t *omapi_client;
 	client_object_t *client;
 
@@ -376,10 +377,12 @@ do_connect(const char *host, int port) {
 	ENSURE(omapi_protocol_connect(manager, host, port, NULL)
 	       == ISC_R_SUCCESS);
 
+	connection = manager->outer->outer;
+
 	/*
 	 * Wait to be connected.
 	 */
-	ENSURE(omapi_wait_for_completion(manager, 0)
+	ENSURE(omapi_connection_wait(manager, connection, NULL)
 	       == ISC_R_SUCCESS);
 
 	/*
@@ -407,7 +410,7 @@ do_connect(const char *host, int port) {
 	ENSURE(open_object(omapi_client, manager, ISC_FALSE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_wait_for_completion(omapi_client, 0)
+	ENSURE(omapi_connection_wait(omapi_client, connection, NULL)
 	       == ISC_R_SUCCESS);
 
 	ENSURE(client->waitresult == ISC_R_SUCCESS);
@@ -423,7 +426,7 @@ do_connect(const char *host, int port) {
 	ENSURE(open_object(omapi_client, manager, ISC_TRUE)
 	       == ISC_R_SUCCESS);
 
-	ENSURE(omapi_wait_for_completion(omapi_client, 0)
+	ENSURE(omapi_connection_wait(omapi_client, connection, NULL)
 	       == ISC_R_SUCCESS);
 
 	ENSURE(client->waitresult == ISC_R_SUCCESS);
