@@ -59,8 +59,10 @@
 #define ISC_R_ALREADYRUNNING		35
 #define ISC_R_IGNORE			36
 #define ISC_R_MASKNONCONTIG             37
+#define ISC_R_FILENOTFOUND		38
+#define ISC_R_FILEEXISTS		39
 
-#define ISC_R_NRESULTS 			38	/* Number of results */
+#define ISC_R_NRESULTS 			40	/* Number of results */
 
 ISC_LANG_BEGINDECLS
 
