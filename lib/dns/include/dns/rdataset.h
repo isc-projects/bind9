@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.42 2002/01/17 00:16:30 marka Exp $ */
+/* $Id: rdataset.h,v 1.43 2002/01/22 09:07:28 bwelling Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -129,6 +129,12 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_FIXEDORDER	0x0400
 #define DNS_RDATASETATTR_RANDOMIZE	0x0800
 #define DNS_RDATASETATTR_CHASE		0x1000		/* Used by resolver. */
+
+/*
+ * _OMITDNSSEC:
+ * 	Omit DNSSEC records when rendering ncache records.
+ */
+#define DNS_RDATASETTOWIRE_OMITDNSSEC	0x0001
 
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
@@ -305,6 +311,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
+		    unsigned int options,
 		    unsigned int *countp);
 /*
  * Convert 'rdataset' to wire format, compressing names as specified
@@ -345,6 +352,7 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  isc_buffer_t *target,
 			  dns_rdatasetorderfunc_t order,
 			  void *order_arg,
+			  unsigned int options,
 			  unsigned int *countp);
 /*
  * Like dns_rdataset_towire(), but sorting the rdatasets according to
@@ -363,6 +371,7 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
 			   void *order_arg,
+			  unsigned int options,
 			   unsigned int *countp,
 			   void **state);
 /*

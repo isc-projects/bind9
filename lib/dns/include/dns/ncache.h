@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.12 2001/01/09 21:53:07 bwelling Exp $ */
+/* $Id: ncache.h,v 1.13 2002/01/22 09:07:27 bwelling Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -85,11 +85,13 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 isc_result_t
 dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
-		  isc_buffer_t *target, unsigned int *countp);
+		  isc_buffer_t *target, isc_boolean_t omit_dnssec,
+		  unsigned int *countp);
 /*
  * Convert the negative caching rdataset 'rdataset' to wire format,
  * compressing names as specified in 'cctx', and storing the result in
- * 'target'.
+ * 'target'.  If 'omit_dnssec' is set, DNSSEC records will not
+ * be added to 'target'.
  *
  * Notes:
  *	The number of RRs added to target will be added to *countp.

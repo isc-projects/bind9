@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.203 2002/01/21 09:47:09 bwelling Exp $ */
+/* $Id: message.c,v 1.204 2002/01/22 09:07:21 bwelling Exp $ */
 
 /***
  *** Imports
@@ -1721,6 +1721,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 	isc_buffer_t st; /* for rollbacks */
 	int pass;
 	isc_boolean_t partial = ISC_FALSE;
+	unsigned int rd_options;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1733,6 +1734,11 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		pass = 3;
 	else
 		pass = 1;
+
+	if ((options & DNS_MESSAGERENDER_OMITDNSSEC) == 0)
+		rd_options = 0;
+	else
+		rd_options = DNS_RDATASETTOWIRE_OMITDNSSEC;
 
 	/*
 	 * Shrink the space in the buffer by the reserved amount.
@@ -1779,6 +1785,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 							  msg->buffer,
 							  msg->order,
 							  msg->order_arg,
+							  rd_options,
 							  &count,
 							  NULL);
 				else
@@ -1789,6 +1796,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 							  msg->buffer,
 							  msg->order,
 							  msg->order_arg,
+							  rd_options,
 							  &count);
 
 				total += count;
@@ -1915,7 +1923,8 @@ dns_message_renderend(dns_message_t *msg) {
 		 */
 		count = 0;
 		result = dns_rdataset_towire(msg->opt, dns_rootname,
-					     msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, 0,
+					     &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -1956,7 +1965,8 @@ dns_message_renderend(dns_message_t *msg) {
 			return (result);
 		count = 0;
 		result = dns_rdataset_towire(msg->tsig, msg->tsigname,
-					     msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, 0,
+					     &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -1978,7 +1988,8 @@ dns_message_renderend(dns_message_t *msg) {
 		 * be set in a message being rendered.
 		 */
 		result = dns_rdataset_towire(msg->sig0, dns_rootname,
-					     msg->cctx, msg->buffer, &count);
+					     msg->cctx, msg->buffer, 0,
+					     &count);
 		msg->counts[DNS_SECTION_ADDITIONAL] += count;
 		if (result != ISC_R_SUCCESS)
 			return (result);

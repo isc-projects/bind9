@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.26 2002/01/21 16:26:06 bwelling Exp $ */
+/* $Id: ncache.c,v 1.27 2002/01/22 09:07:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -254,7 +254,8 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 
 isc_result_t
 dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
-		  isc_buffer_t *target, unsigned int *countp)
+		  isc_buffer_t *target, isc_boolean_t omit_dnssec,
+		  unsigned int *countp)
 {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
@@ -311,6 +312,9 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			rdata.rdclass = rdataset->rdclass;
 			INSIST(remaining.length >= rdata.length);
 			isc_buffer_forward(&source, rdata.length);
+
+			if (omit_dnssec && dns_rdatatype_isdnssec(type))
+				continue;
 
 			/*
 			 * Write the name.
