@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.168 2000/12/02 05:13:37 gson Exp $ */
+/* $Id: dighost.c,v 1.169 2000/12/07 19:56:04 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -206,6 +206,7 @@ get_reverse(char reverse[MXNAME], char *value, isc_boolean_t nibble) {
 	isc_result_t result;
 
 	result = DNS_R_BADDOTTEDQUAD;
+	reverse[0] = 0;
 
 	debug("get_reverse(%s)", value);
 	if (strspn(value, "0123456789.") == strlen(value)) {

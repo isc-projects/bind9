@@ -1,3 +1,5 @@
+ 600.	[bug]		Reverse lookups sometimes failed in dig, etc...
+
  599.	[func]		Updated the libisc log API to support i18n message
 			arguments to isc_log_{,v}write{,1}.
 

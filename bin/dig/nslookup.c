@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.64 2000/12/06 22:38:49 tale Exp $ */
+/* $Id: nslookup.c,v 1.65 2000/12/07 19:56:05 mws Exp $ */
 
 #include <config.h>
 
@@ -351,6 +351,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 	dns_name_t *name;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	char namestore[DNS_NAME_MAXTEXT + 1]; /* Leave room for the NULL */
 	char *ptr;
 	char *input;
 
@@ -389,6 +390,19 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (section == DNS_SECTION_QUESTION) {
+				dns_name_format(name, namestore,
+						sizeof(namestore));
+				printf("\t%s, ", namestore);
+				dns_rdatatype_format(rdataset->type,
+						     namestore,
+						     sizeof(namestore));
+				printf("type = %s, ", namestore);
+				dns_rdataclass_format(rdataset->rdclass,
+						      namestore,
+						      sizeof(namestore));
+				printf("class = %s\n", namestore);
+			}
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
@@ -550,6 +564,7 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	isc_sockaddr_t sockaddr;
 	isc_buffer_t *b = NULL;
 	isc_result_t result;
+	dig_searchlist_t *listent;
 
 	srv = ISC_LIST_HEAD(server_list);
 
@@ -580,7 +595,13 @@ show_settings(isc_boolean_t full, isc_boolean_t serv_only) {
 	printf("\t  timeout = %d\t\tretry = %d\tport = %d\n",
 		timeout, tries, port);
 	printf("\t  querytype = %-8s\tclass = %s\n", deftype, defclass);
-	printf("\t  domain = %s\n", fixeddomain);
+	if (fixeddomain[0] != 0)
+		printf("\t  domain = %s\n", fixeddomain);
+	else if (!ISC_LIST_EMPTY(search_list)) {
+		listent = ISC_LIST_HEAD(search_list);
+		printf("\t  domain = %s\n", listent->origin);
+	} else
+		printf("\t  domain =\n");
 
 }
 
@@ -637,7 +658,7 @@ setoption(char *opt) {
 			safecpy(defclass, &opt[3], MXRD);
 	} else if (strncasecmp(opt, "type=", 5) == 0) {
 		if (testtype(&opt[5]))
-			safecpy(deftype, &opt[3], MXRD);
+			safecpy(deftype, &opt[5], MXRD);
 	} else if (strncasecmp(opt, "ty=", 3) == 0) {
 		if (testtype(&opt[3]))
 			safecpy(deftype, &opt[3], MXRD);
@@ -664,6 +685,10 @@ setoption(char *opt) {
 		timeout = atoi(&opt[8]);
 	} else if (strncasecmp(opt, "t=", 2) == 0) {
 		timeout = atoi(&opt[2]);
+ 	} else if (strncasecmp(opt, "rec", 3) == 0) {
+		recurse = ISC_TRUE;
+	} else if (strncasecmp(opt, "norec", 5) == 0) {
+		recurse = ISC_FALSE;
 	} else if (strncasecmp(opt, "retry=", 6) == 0) {
 		tries = atoi(&opt[6]);
 	} else if (strncasecmp(opt, "ret=", 4) == 0) {
