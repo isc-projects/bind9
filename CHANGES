@@ -1,3 +1,7 @@
+ 427.	[bug]		Avoid going into an infinite loop when the validator
+			gets a negative response to a key query where the
+			records are signed by the missing key.
+
  426.	[bug]		Attempting to generate an oversized RSA key could
 			cause dnssec-keygen to dump core.
 
