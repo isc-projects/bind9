@@ -34,6 +34,8 @@
 #include <dns/result.h>
 #include <dns/time.h>
 
+#define PROGRAM "keysettool"
+
 #define BUFSIZE 2048
 
 typedef struct keynode keynode_t;
@@ -53,14 +55,14 @@ static keylist_t keylist;
 
 static inline void
 fatal(char *message) {
-	fprintf(stderr, "%s\n", message);
+	fprintf(stderr, "%s: %s\n", PROGRAM, message);
 	exit(1);
 }
 
 static inline void
 check_result(isc_result_t result, char *message) {
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s\n", message,
+		fprintf(stderr, "%s: %s: %s\n", PROGRAM, message,
 			isc_result_totext(result));
 		exit(1);
 	}
@@ -93,7 +95,7 @@ strtotime(char *str, isc_int64_t now, isc_int64_t base) {
 static void
 usage() {
 	fprintf(stderr, "Usage:\n");
-	fprintf(stderr, "\tkeysettool [options] domain keyfiles\n");
+	fprintf(stderr, "\tkeysettool [options] keys\n");
 
 	fprintf(stderr, "\n");
 
@@ -109,11 +111,8 @@ usage() {
 
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "domain:\n");
-	fprintf(stderr, "\tdomain name associated with the keys\n");
-	fprintf(stderr, "Keyfiles:\n");
-	fprintf(stderr, "\tid/alg:\t\t");
-	fprintf(stderr, "key matching keyid, algorithm, and domain\n");
+	fprintf(stderr, "keys:\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
 	exit(0);
 }
 
@@ -121,9 +120,8 @@ int
 main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL;
-	char tdomain[1025];
 	dns_fixedname_t fdomain;
-	dns_name_t *domain;
+	dns_name_t *domain = NULL;
 	char *output = NULL;
 	char *endp;
 	unsigned char *data;
@@ -188,7 +186,7 @@ main(int argc, char *argv[]) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 2)
+	if (argc < 1)
 		usage();
 
 	isc_stdtime_get(&now);
@@ -209,7 +207,8 @@ main(int argc, char *argv[]) {
 
 	if (ttl == -1) {
 		ttl = 3600;
-		fprintf(stderr, "TTL not specified, assuming 3600\n");
+		fprintf(stderr, "%s: TTL not specified, assuming 3600\n",
+			PROGRAM);
 	}
 
 	if (verbose > 0) {
@@ -222,28 +221,6 @@ main(int argc, char *argv[]) {
 						 NULL, NULL) == ISC_R_SUCCESS);
 	}
 
-	dns_fixedname_init(&fdomain);
-	domain = dns_fixedname_name(&fdomain);
-	isc_buffer_init(&b, argv[0], strlen(argv[0]));
-	isc_buffer_add(&b, strlen(argv[0]));
-	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_FALSE, NULL);
-	check_result(result, "dns_name_fromtext()");
-	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);
-	result = dns_name_totext(domain, ISC_FALSE, &b);
-	check_result(result, "dns_name_totext()");
-	isc_buffer_usedregion(&b, &r);
-	tdomain[r.length] = 0;
-
-	output = isc_mem_allocate(mctx,
-				  strlen(tdomain) + strlen("keyset") + 1);
-	if (output == NULL)
-		check_result(ISC_R_FAILURE, "isc_mem_allocate()");
-	strcpy(output, tdomain);
-	strcat(output, "keyset");
-
-	argc -= 1;
-	argv += 1;
-
 	dns_rdatalist_init(&rdatalist);
 	rdatalist.rdclass = dns_rdataclass_in;
 	rdatalist.type = dns_rdatatype_key;
@@ -253,32 +230,43 @@ main(int argc, char *argv[]) {
 	ISC_LIST_INIT(keylist);
 
 	for (i = 0; i < argc; i++) {
-		int id, alg;
-		char *idstr = NULL, *algstr = NULL;
+		isc_uint16_t id;
+		int alg;
+		char *namestr = NULL;
 
-		idstr = argv[i];
-		algstr = strchr(idstr, '/');
-		if (algstr == NULL)
+		isc_buffer_init(&b, argv[i], strlen(argv[i]));
+		isc_buffer_add(&b, strlen(argv[i]));
+		result = dst_key_parsefilename(&b, mctx, &namestr, &id, &alg,
+					       NULL);
+		if (result != ISC_R_SUCCESS)
 			usage();
-		*algstr++ = 0;
 
-		endp = NULL;
-		id = strtol(idstr, &endp, 10);
-		if (*endp != '\0')
-			check_result(ISC_R_FAILURE, "strtol");
-
-		endp = NULL;
-		alg = strtol(algstr, &endp, 10);
-		if (*endp != '\0')
-			check_result(ISC_R_FAILURE, "strtol");
-
+		if (output == NULL) {
+			output = isc_mem_allocate(mctx,
+						  strlen(namestr) +
+						  strlen("keyset") + 1);
+			if (output == NULL)
+				check_result(ISC_R_NOMEMORY,
+					     "isc_mem_allocate()");
+			strcpy(output, namestr);
+			strcat(output, "keyset");
+		}
+		if (domain == NULL) {
+			dns_fixedname_init(&fdomain);
+			domain = dns_fixedname_name(&fdomain);
+			isc_buffer_init(&b, namestr, strlen(namestr));
+			isc_buffer_add(&b, strlen(namestr));
+			result = dns_name_fromtext(domain, &b, dns_rootname,
+						   ISC_FALSE, NULL);
+			check_result(result, "dns_name_fromtext()");
+		}
 		key = NULL;
-		result = dst_key_fromfile(tdomain, id, alg, DST_TYPE_PUBLIC,
+		result = dst_key_fromfile(namestr, id, alg, DST_TYPE_PUBLIC,
 					  mctx, &key);
 		check_result(result, "dst_key_fromfile");
 		if (dst_key_iszonekey(key)) {
 			dst_key_t *zonekey = NULL;
-			result = dst_key_fromfile(tdomain, id, alg,
+			result = dst_key_fromfile(namestr, id, alg,
 						  DST_TYPE_PRIVATE, mctx,
 						  &zonekey);
 			check_result(result, "dst_key_fromfile()");
@@ -302,6 +290,7 @@ main(int argc, char *argv[]) {
 		dns_rdata_fromregion(rdata, dns_rdataclass_in,
 				     dns_rdatatype_key, &r);
 		ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
+		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 		dst_key_free(key);
 	}
 
@@ -317,7 +306,8 @@ main(int argc, char *argv[]) {
 
 	if (ISC_LIST_EMPTY(keylist))
 		fprintf(stderr,
-			"no private zone key found; not self-signing\n");
+			"%s: no private zone key found; not self-signing\n",
+			PROGRAM);
 	for (keynode = ISC_LIST_HEAD(keylist);
 	     keynode != NULL;
 	     keynode = ISC_LIST_NEXT(keynode, link))

@@ -33,6 +33,8 @@
 #include <dns/rdatastruct.h>
 #include <dns/result.h>
 
+#define PROGRAM "keysigner"
+
 #define BUFSIZE 2048
 
 typedef struct keynode keynode_t;
@@ -51,14 +53,14 @@ static keylist_t keylist;
 
 static inline void
 fatal(char *message) {
-	fprintf(stderr, "%s\n", message);
+	fprintf(stderr, "%s: %s\n", PROGRAM, message);
 	exit(1);
 }
 
 static inline void
 check_result(isc_result_t result, char *message) {
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s\n", message,
+		fprintf(stderr, "%s: %s: %s\n", PROGRAM, message,
 			isc_result_totext(result));
 		exit(1);
 	}
@@ -80,8 +82,7 @@ usage() {
 	fprintf(stderr, "keyset:\n");
 	fprintf(stderr, "\tfile name of key set to be signed\n");
 	fprintf(stderr, "keys:\n");
-	fprintf(stderr, "\tname/id/alg:\t\t");
-	fprintf(stderr, "key matching name, keyid, algorithm\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
 	exit(0);
 }
 
@@ -280,33 +281,22 @@ main(int argc, char *argv[]) {
 	sigrdatalist.ttl = rdataset.ttl;
 
 	for (i = 0; i < argc; i++) {
-		int id, alg;
-		char *namestr, *idstr = NULL, *algstr = NULL;
+		isc_uint16_t id;
+		int alg;
+		char *namestr = NULL;
 
-		namestr = argv[i];
-		idstr = strchr(namestr, '/');
-		if (idstr == NULL)
+		isc_buffer_init(&b, argv[i], strlen(argv[i]));
+		isc_buffer_add(&b, strlen(argv[i]));
+		result = dst_key_parsefilename(&b, mctx, &namestr, &id, &alg,
+					       NULL);
+		if (result != ISC_R_SUCCESS)
 			usage();
-		*idstr++ = 0;
-		algstr = strchr(idstr, '/');
-		if (algstr == NULL)
-			usage();
-		*algstr++ = 0;
-
-		endp = NULL;
-		id = strtol(idstr, &endp, 10);
-		if (*endp != '\0')
-			check_result(ISC_R_FAILURE, "strtol");
-
-		endp = NULL;
-		alg = strtol(algstr, &endp, 10);
-		if (*endp != '\0')
-			check_result(ISC_R_FAILURE, "strtol");
 
 		key = NULL;
 		result = dst_key_fromfile(namestr, id, alg, DST_TYPE_PRIVATE,
 					  mctx, &key);
 		check_result (result, "dst_key_fromfile()");
+		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 
 		rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
 		if (rdata == NULL)

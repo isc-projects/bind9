@@ -43,6 +43,8 @@
 
 #include <dst/result.h>
 
+#define PROGRAM "signer"
+
 /*#define USE_ZONESTATUS*/
 
 #define BUFSIZE 2048
@@ -71,14 +73,14 @@ static isc_mem_t *mctx = NULL;
 
 static inline void
 fatal(char *message) {
-	fprintf(stderr, "%s\n", message);
+	fprintf(stderr, "%s: %s\n", PROGRAM, message);
 	exit(1);
 }
 
 static inline void
 check_result(isc_result_t result, char *message) {
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "%s: %s\n", message,
+		fprintf(stderr, "%s: %s: %s\n", PROGRAM, message,
 			isc_result_totext(result));
 		exit(1);
 	}
@@ -90,6 +92,7 @@ vbprintf(int level, const char *fmt, ...) {
 	if (level > verbose)
 		return;
 	va_start(ap, fmt);
+	fprintf(stderr, "%s: ", PROGRAM);
 	vfprintf(stderr, fmt, ap);
 	va_end(ap);
 }
@@ -736,11 +739,12 @@ signname(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	static int warnwild = 0;
 
 	if (dns_name_iswildcard(name)) {
-		fprintf(stderr, "Warning: wildcard name seen: %s\n",
-			nametostr(name));
 		if (warnwild++ == 0)
-			fprintf(stderr, "\tBIND 9 doesn't completely handle "
-				"wildcards in secure zones\n");
+			fprintf(stderr, "%s: warning: BIND 9 doesn't "
+				"handle wildcards in secure zones\n", PROGRAM);
+		else
+			fprintf(stderr, "%s: warning: wildcard name seen: %s\n",
+				PROGRAM, nametostr(name));
 	}
 	if (!atorigin) {
 		dns_rdataset_t nsset;
@@ -1201,7 +1205,7 @@ dumpzone(dns_zone_t *zone, char *filename) {
 
 	fp = fopen(filename, "w");
 	if (fp == NULL) {
-		fprintf(stderr, "failure opening %s\n", filename);
+		fprintf(stderr, "%s: failure opening %s\n", PROGRAM, filename);
 		exit(-1);
 	}
 	result = dns_zone_dumptostream(zone, fp);
@@ -1263,12 +1267,7 @@ usage() {
 
 	fprintf(stderr, "Signing Keys: ");
 	fprintf(stderr, "(default: all zone keys that have private keys)\n");
-	fprintf(stderr, "\tid:\t\t");
-	fprintf(stderr, "zone key with matching keyid\n");
-	fprintf(stderr, "\tid/alg:\t\t");
-	fprintf(stderr, "zone key with matching keyid and algorithm\n");
-	fprintf(stderr, "\tname/id/alg:\t");
-	fprintf(stderr, "key with matching name, keyid and algorithm\n");
+	fprintf(stderr, "\tkeyfile (Kname+alg+id)\n");
 	exit(0);
 }
 
@@ -1475,59 +1474,38 @@ main(int argc, char *argv[]) {
 	}
 	else {
 		for (i = 0; i < argc; i++) {
-			int id, alg;
-			char *idstr = NULL, *name = NULL, *algstr = NULL, *s;
+			isc_uint16_t id;
+			int alg;
+			char *namestr = NULL;
+			isc_buffer_t b;
 
-			idstr = argv[i];
-			algstr = strchr(idstr, '/');
-			if (algstr != NULL) {
-				*algstr++ = 0;
-				s = strchr(algstr, '/');
-				if (s != NULL) {
-					*s++ = 0;
-					name = idstr;
-					idstr = algstr;
-					algstr = s;
-				}
-			}
+			isc_buffer_init(&b, argv[i], strlen(argv[i]));
+			isc_buffer_add(&b, strlen(argv[i]));
+			result = dst_key_parsefilename(&b, mctx, &namestr,
+						       &id, &alg, NULL);
+			if (result != ISC_R_SUCCESS)
+				usage();
 
-			endp = NULL;
-			id = strtol(idstr, &endp, 0);
-			if (*endp != '\0')
-				check_result(ISC_R_FAILURE, "strtol");
-
-			if (algstr != NULL) {
-				endp = NULL;
-				alg = strtol(algstr, &endp, 0);
-				if (*endp != '\0')
-					check_result(ISC_R_FAILURE, "strtol");
-			}
-			else
-				alg = 0;
-
-			if (name == NULL)
-				name = origin;
 			key = ISC_LIST_HEAD(keylist);
 			while (key != NULL) {
 				dst_key_t *dkey = key->key;
 				if (dst_key_id(dkey) == id &&
-				    (alg == 0 || dst_key_alg(dkey) == alg) &&
-				    strcasecmp(name, dst_key_name(dkey)) == 0)
+				    dst_key_alg(dkey) == alg &&
+				    strcasecmp(namestr,
+					       dst_key_name(dkey)) == 0)
 				{
 					key->isdefault = ISC_TRUE;
 					if (!dst_key_isprivate(dkey))
 						check_result
 							(DST_R_NOTPRIVATEKEY,
 							 "key specify");
-					if (alg == 0)
-						alg = dst_key_alg(dkey);
 					break;
 				}
 				key = ISC_LIST_NEXT(key, link);
 			}
-			if (key == NULL && alg != 0) {
+			if (key == NULL) {
 				dst_key_t *dkey = NULL;
-				result = dst_key_fromfile(name, id, alg,
+				result = dst_key_fromfile(namestr, id, alg,
 							  DST_TYPE_PRIVATE,
 							  mctx, &dkey);
 				check_result (result, "dst_key_fromfile");
@@ -1539,8 +1517,7 @@ main(int argc, char *argv[]) {
 				key->isdefault = ISC_TRUE;
 				ISC_LIST_APPEND(keylist, key, link);
 			}
-			else
-				printf("Ignoring key with algorithm 0\n");
+		isc_mem_put(mctx, namestr, strlen(namestr) + 1);
 		}
 	}
 
