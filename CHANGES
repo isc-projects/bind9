@@ -1,6 +1,7 @@
 
  743.	[bug]		Receiving a large number of certain malformed
 			answers could cause named to stop responding.
+			[RT #861]
 
  742.	[placeholder]
 
