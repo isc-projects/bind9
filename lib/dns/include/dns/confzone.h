@@ -93,7 +93,7 @@ typedef struct dns_c_zonelem		dns_c_zonelem_t;
  * include dependencies between view and zone structures.
  */
 typedef struct dns_c_zone_list		dns_c_zonelist_t;
- #endif
+#endif
 
 
 struct dns_c_zonelem
