@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.71 2000/06/06 23:44:13 bwelling Exp $
+ * $Id: tsig.c,v 1.72 2000/06/23 00:48:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -50,7 +50,7 @@ static dns_name_t hmacmd5_name;
 dns_name_t *dns_tsig_hmacmd5_name = NULL;
 
 static isc_result_t
-dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
+tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
@@ -562,7 +562,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	msg->verify_attempted = 1;
 
 	if (msg->tcp_continuation)
-		return(dns_tsig_verify_tcp(source, msg));
+		return (tsig_verify_tcp(source, msg));
 
 	/*
 	 * There should be a TSIG record...
@@ -807,7 +807,7 @@ cleanup_key:
 }
 
 static isc_result_t
-dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
+tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dns_rdata_any_tsig_t tsig, querytsig;
 	isc_region_t r, source_r, header_r, sig_r;
 	isc_buffer_t databuf;
@@ -834,24 +834,31 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
 	tsigkey = dns_message_gettsigkey(msg);
 
+	/*
+	 * Extract and parse the previous TSIG
+	 */
+	ret = dns_rdataset_first(msg->querytsig);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
+	dns_rdataset_current(msg->querytsig, &rdata);
+	ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
+
+	/*
+	 * If there is a TSIG in this message, do some checks.
+	 */
 	if (msg->tsig != NULL) {
 		has_tsig = ISC_TRUE;
 
 		keyname = msg->tsigname;
 		ret = dns_rdataset_first(msg->tsig);
 		if (ret != ISC_R_SUCCESS)
-			return (ret);
+			goto cleanup_querystruct;
 		dns_rdataset_current(msg->tsig, &rdata);
 		ret = dns_rdata_tostruct(&rdata, &tsig, NULL);
 		if (ret != ISC_R_SUCCESS)
-			return (ret);
-		ret = dns_rdataset_first(msg->querytsig);
-		if (ret != ISC_R_SUCCESS)
-			return (ret);
-		dns_rdataset_current(msg->querytsig, &rdata);
-		ret = dns_rdata_tostruct(&rdata, &querytsig, NULL);
-		if (ret != ISC_R_SUCCESS)
-			return (ret);
+			goto cleanup_querystruct;
 	
 		/*
 		 * Do the key name and algorithm match that of the query?
@@ -860,7 +867,8 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		    !dns_name_equal(&tsig.algorithm, &querytsig.algorithm))
 		{
 			msg->tsigstatus = dns_tsigerror_badkey;
-			return (DNS_R_TSIGVERIFYFAILURE);
+			ret = DNS_R_TSIGVERIFYFAILURE;
+			goto cleanup_querystruct;
 		}
 
 		/*
@@ -869,7 +877,8 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		isc_stdtime_get(&now);
 		if (abs(now - tsig.timesigned) > tsig.fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
-			return (DNS_R_TSIGVERIFYFAILURE);
+			ret = DNS_R_TSIGVERIFYFAILURE;
+			goto cleanup_querystruct;
 		}
 	}
 
@@ -878,14 +887,21 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	if (msg->tsigctx == NULL) {
 		ret = dst_context_create(key, mctx, &msg->tsigctx);
 		if (ret != ISC_R_SUCCESS)
-			return (ret);
+			goto cleanup_querystruct;
 
+		/*
+		 * Digest the length of the query signature
+		 */
 		isc_buffer_init(&databuf, data, sizeof(data));
 		isc_buffer_putuint16(&databuf, querytsig.siglen);
 		isc_buffer_usedregion(&databuf, &r);
 		ret = dst_context_adddata(msg->tsigctx, &r);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
+
+		/*
+		 * Digest the data of the query signature
+		 */
 		if (querytsig.siglen > 0) {
 			r.length = querytsig.siglen;
 			r.base = querytsig.signature;
@@ -984,6 +1000,10 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 
  cleanup_context:
 	dst_context_destroy(&msg->tsigctx);
+
+ cleanup_querystruct:
+	dns_rdata_freestruct(&querytsig);
+
 	return (ret);
 
 }
