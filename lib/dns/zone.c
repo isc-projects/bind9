@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.75 2000/01/31 18:00:02 gson Exp $ */
+ /* $Id: zone.c,v 1.76 2000/01/31 18:05:13 gson Exp $ */
 
 #include <config.h>
 
@@ -24,11 +24,13 @@
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/magic.h>
+#include <isc/mktemplate.h>
 #include <isc/print.h>
 #include <isc/quota.h>
 #include <isc/serial.h>
 #include <isc/taskpool.h>
 #include <isc/timer.h>
+#include <isc/ufile.h>
 #include <isc/util.h>
 
 #include <dns/acl.h>
