@@ -94,7 +94,7 @@
  501.	[bug]		Incorrect port numbers were being displayed by
 			nslookup.  [RT #352]
 
- 500.   [func]		Nearly useless +details option removed from DiG.
+ 500.	[func]		Nearly useless +details option removed from DiG.
 
  499.	[func]		In DiG, specifying a class with -c or type with -t
 			changes command-line parsing so that classes and
@@ -109,9 +109,9 @@
 			contained a network address with a nonzero host
 			part where not sufficiently detailed. [RT #365]
 
- 496.	[bug]		named didn't sanity check numeric parameters [RT #361]
+ 496.	[bug]		named didn't sanity check numeric parameters. [RT #361]
 
- 495.	[bug]		nsupdate was unable to handle large records [RT #368]
+ 495.	[bug]		nsupdate was unable to handle large records. [RT #368]
 
  494.	[func]		Do not cache NXDOMAIN responses for SOA queries.
 
@@ -150,13 +150,13 @@
 			were still listening on the removed addresses due
 			to reference count loops. [RT #325]
 
- 483.	[bug]		nslookup: "set all" showed search but it was not
-			settable.
+ 483.	[bug]		nslookup: "set all" showed a "search" option but it 
+			was not settable.
 
  482.	[bug]		nslookup: a plain "server" or "lserver" should be
 			treated as a lookup.
 
- 481.	[bug]		nslookup:get_next_command() stack size exceeds
+ 481.	[bug]		nslookup:get_next_command() stack size could exceed
 			per thread limit.
 
  480.	[bug]		strtok() is not thread safe. [RT #349]
@@ -261,9 +261,9 @@
 			requirement was not documented, nor was there a
 			REQUIRE for it.
 
- 448.   [bug]		Host output formatting change, to match v8. [RT #255]
+ 448.	[bug]		Host output formatting change, to match v8. [RT #255]
 
- 447.   [bug]		Dig didn't properly retry in TCP mode after
+ 447.	[bug]		Dig didn't properly retry in TCP mode after
 			a truncated reply.  [RT #277]
 
  446.	[bug]		Confusing notify log message. [RT #298]
@@ -313,7 +313,7 @@
  434.	[func]		New function isc_file_isabsolute().
 
  433.	[func]		isc_base64_decodestring() now accepts newlines
-			within the base64 data.  This makes it possible 
+			within the base64 data.	 This makes it possible 
 			to break up the key data in a "trusted-keys"
 			statement into multiple lines. [RT #284]
 
@@ -332,7 +332,7 @@
 			was 2 bytes too short, leading to message
 			generation failures.
 
- 428.   [bug]		rbtdb.c:find_closest_nxt() erroneously returned
+ 428.	[bug]		rbtdb.c:find_closest_nxt() erroneously returned
 			DNS_R_BADDB for nodes which had neither NXT nor SIG NXT
 			(e.g. glue).  This could cause SERVFAILs when
 			generating negative responses in a secure zone.
@@ -359,7 +359,7 @@
 
  422.	[func]		get rid of isc_random_t, and make isc_random_get()
 			and isc_random_jitter() use rand() internally
-			instead of local state.  Note that isc_random_*()
+			instead of local state.	 Note that isc_random_*()
 			functions are only for weak, non-critical "randomness"
 			such as timing jitter and such.
 
@@ -590,8 +590,7 @@
 			and 'additional-from-cache' now supported in view and
 			global options statement.
 
- 347.	[bug]		Don't crash if when an argument is left off
-			options in dig.
+ 347.	[bug]		Don't crash if an argument is left off options in dig.
 
  346.	[func]		Add support for .digrc config file, in the
 			user's current directory
