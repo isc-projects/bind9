@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: auth.c,v 1.8 2000/06/23 20:03:56 tale Exp $ */
+/* $Id: auth.c,v 1.9 2000/06/28 03:09:44 tale Exp $ */
 
 /* Principal Author: DCL */
 
@@ -109,7 +109,7 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 	isc_buffer_t secret;
 	auth_t *auth = NULL;
 	unsigned int dst_algorithm;
-	unsigned int secret_len;
+	unsigned int length;
 	dns_name_t dnsname;
 	char namebuf[1025];
 	isc_buffer_t srcb, dstb;
@@ -133,21 +133,23 @@ auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key) {
 			return (ISC_R_UNEXPECTED);
 		}
 
-		secret_len = strlen(auth->secret);
+		length = strlen(auth->secret);
+		isc_buffer_init(&secret, auth->secret, length);
+		isc_buffer_add(&secret, length);
 
-		isc_buffer_init(&secret, auth->secret, secret_len);
 
-		isc_buffer_add(&secret, secret_len);
+		length = strlen(auth->name);
+		isc_buffer_init(&srcb, auth->name, length);
+		isc_buffer_add(&srcb, length);
+		isc_buffer_init(&dstb, namebuf, sizeof(namebuf));
 
 		dns_name_init(&dnsname, NULL);
-		isc_buffer_init(&srcb, auth->name, strlen(auth->name));
-		isc_buffer_init(&dstb, namebuf, sizeof(namebuf));
 		result = dns_name_fromtext(&dnsname, &srcb, dns_rootname,
 					   ISC_FALSE, &dstb);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-		result = dst_key_frombuffer(&dnsname, dst_algorithm, 0,
-					    0, &secret, omapi_mctx, key);
+		if (result == ISC_R_SUCCESS)
+			result = dst_key_frombuffer(&dnsname, dst_algorithm,
+						    0, 0, &secret,
+						    omapi_mctx, key);
 	}
 
 	UNLOCK(&mutex);

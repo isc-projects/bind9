@@ -1,3 +1,7 @@
+ 285.	[bug]		A change made to the dst API for beta4 inadvertently
+			broke OMAPI's creation of a dst key from an incoming
+			message, causing an assertion to be triggered.  Fixed.
+
  284.	[func]		The DNSSEC key generation and signing tools now
 			generate randomness from keyboard input on systems
 			that lack /dev/random.
