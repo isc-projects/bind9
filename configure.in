@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.35 $)
+AC_REVISION($Revision: 1.36 $)
 
 AC_PREREQ(2.13)
 
@@ -244,7 +244,7 @@ AC_MSG_CHECKING(for sa_len in struct sockaddr)
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>],
-[int foo() { struct sockaddr sa; sa.sa_len = 0; return (0); }],
+[struct sockaddr sa; sa.sa_len = 0; return (0);],
 	[AC_MSG_RESULT(yes)
 	ISC_NET_HAVESALEN="#define ISC_NET_HAVESALEN 1"],
 	[AC_MSG_RESULT(no)
@@ -258,7 +258,7 @@ AC_MSG_CHECKING(for AF_INET6)
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>],
-[int foo(void) { return (AF_INET6); }],
+[return (AF_INET6);],
 	[AC_MSG_RESULT(yes)
 	ISC_NET_NEEDAFINET6="#undef ISC_NET_NEEDAFINET6"],
 	[AC_MSG_RESULT(no)
@@ -269,7 +269,7 @@ AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>],
-[int foo(void) { struct sockaddr_in6 sin6; return (0); }],
+[struct sockaddr_in6 sin6; return (0);],
 	[AC_MSG_RESULT(yes)
 	ISC_NET_HAVEIPV6="#define ISC_NET_HAVEIPV6 1"],
 	[AC_MSG_RESULT(no)
