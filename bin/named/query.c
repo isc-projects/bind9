@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13 2003/05/15 06:30:15 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.1 2003/08/07 05:13:59 marka Exp $ */
 
 #include <config.h>
 
@@ -2112,6 +2112,9 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
+		if (dns_resolver_nrunning(client->view->resolver) >
+		    (unsigned int)ns_g_server->recursionquota.max)
+			result = ISC_R_QUOTA;
 		if (result == ISC_R_SUCCESS && !client->mortal &&
 		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 			result = ns_client_replace(client);
