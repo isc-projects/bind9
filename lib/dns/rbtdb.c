@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.133 2000/11/22 00:18:33 halley Exp $ */
+/* $Id: rbtdb.c,v 1.134 2000/11/22 01:56:02 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3264,24 +3264,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		}
 
 		/*
-		 * Turn off merging in certain cases.
+		 * Don't merge if a nonexistent rdataset is involved.
 		 */
-		if (merge) {
-			if (header_nx || newheader_nx) {
-				/*
-				 * Don't merge if a nonexistent rdataset is
-				 * involved.
-				 */
-				merge = ISC_FALSE;
-			} else {
-				/*
-				 * Do not merge singleton types.
-				 */
-				rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
-				if (dns_rdatatype_issingleton(rdtype))
-					merge = ISC_FALSE;
-			}
-		}
+		if (merge && (header_nx || newheader_nx))
+			merge = ISC_FALSE;
 
 		/*
 		 * If 'merge' is ISC_TRUE, we'll try to create a new rdataset
