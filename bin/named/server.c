@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.345 2001/09/20 21:51:22 gson Exp $ */
+/* $Id: server.c,v 1.346 2001/09/21 12:34:19 marka Exp $ */
 
 #include <config.h>
 
@@ -1095,7 +1095,10 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	/*
 	 * Determine which port to send forwarded requests to.
 	 */
-	CHECKM(ns_config_getport(config, &port), "port");
+	if (ns_g_lwresdonly && ns_g_port != 0)
+		port = ns_g_port;
+	else
+		CHECKM(ns_config_getport(config, &port), "port");
 
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
