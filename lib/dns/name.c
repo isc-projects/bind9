@@ -28,6 +28,7 @@
 #include <dns/types.h>
 #include <dns/result.h>
 #include <dns/name.h>
+#include <dns/compress.h>
 
 #define NAME_MAGIC			0x444E536EU	/* DNSn. */
 #define VALID_NAME(n)			((n) != NULL && \
@@ -1366,7 +1367,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE(name != NULL);
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
-	/* XXX REQUIRE(dctx != NULL); */
+	REQUIRE(dctx != NULL);
 
 	/*
 	 * Invalidate 'name'.
@@ -1422,8 +1423,12 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				n = c;
 				state = fw_ordinary;
 			} else if (c >= 192) {
-				/* XXX check if allowed. */
-				/* Ordinary 14-bit pointer. */
+				/*
+				 * Ordinary 14-bit pointer.
+				 */
+				if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) ==
+				    0)
+					return (DNS_R_DISALLOWED);
 				new_current = c & 0x3F;
 				n = 1;
 				state = fw_newcurrent;
@@ -1436,13 +1441,24 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				saw_bitstring = ISC_TRUE;
 				state = fw_bitstring;
 			} else if (c == DNS_LABELTYPE_GLOBALCOMP16) {
-				/* XXX check if allowed. */
-				/* 16-bit pointer. */
+				/*
+				 * 16-bit pointer.
+				 */
+				if ((dctx->allowed & DNS_COMPRESS_GLOBAL16) ==
+				    0)
+					return (DNS_R_DISALLOWED);
 				new_current = 0;
 				n = 2;
 				state = fw_newcurrent;
 			} else if (c == DNS_LABELTYPE_LOCALCOMP) {
-				/* XXX check if allowed. */
+				/*
+				 * Local compression.
+				 */
+				if ((dctx->allowed & DNS_COMPRESS_GLOBAL16) ==
+				    0)
+					return (DNS_R_DISALLOWED);
+
+				/* XXX */
 				return (DNS_R_NOTIMPLEMENTED);
 			} else
 				return (DNS_R_BADLABELTYPE);
