@@ -89,12 +89,56 @@ sign_with_key(dns_name_t *name, dns_rdataset_t *rdataset, dns_rdata_t *rdata,
 	ISC_LIST_APPEND(sigrdatalist->rdata, rdata, link);
 }
 
+void
+resign_set(dns_name_t *name, dns_name_t *origin, dns_rdataset_t *rdataset,
+	   dns_rdata_t *rdata, dns_rdatalist_t *sigrdatalist,
+	   dns_rdata_t *oldsigrdata, isc_stdtime_t *now, isc_stdtime_t *later,
+	   dst_key_t **keys, int nkeys, unsigned char *array, int len)
+{
+	dns_rdata_generic_sig_t sig;
+	isc_result_t result;
+	int i;
+
+	result = dns_rdata_tostruct(oldsigrdata, &sig, mctx);
+	check_result(result, "dns_rdata_tostruct()");
+
+	/*
+	 * Is this an immaterial key?  This should also check that it's not
+	 * a non-zone key at the origin.
+	 */
+	if (dns_name_compare(sig.signer, origin) != 0) {
+		isc_buffer_t b;
+printf("saving old key...\n");
+		isc_buffer_init(&b, array, len, ISC_BUFFERTYPE_BINARY);
+		result = dns_rdata_fromstruct(rdata, rdataset->rdclass,
+					      dns_rdatatype_sig, &sig, &b);
+		ISC_LIST_APPEND(sigrdatalist->rdata, rdata, link);
+		check_result(result, "dns_rdata_fromstruct()");
+	}
+
+	else {
+		for (i = 0; i < nkeys; i++) {
+			dst_key_t *key = keys[i];
+			if (dst_key_id(key) == sig.keyid &&
+			    dst_key_alg(key) == sig.algorithm)
+				break;
+		}
+		if (i < nkeys)
+			sign_with_key(name, rdataset, rdata, sigrdatalist,
+				      now, later, keys[i], array, len);
+		else
+			printf("couldn't find key\n");
+	}
+	dns_rdata_freestruct(&sig);
+}
+
 static void
 generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	     dns_name_t *name, dst_key_t **keys, isc_boolean_t *defaultkey,
 	     int nkeys)
 {
 	isc_result_t result;
+	dns_name_t *origin;
 	dns_rdata_t rdata, rdatas[MAXKEYS];
 	dns_rdataset_t rdataset, sigrdataset, oldsigset;
 	dns_rdatalist_t sigrdatalist;
@@ -103,6 +147,8 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 	unsigned char array[MAXKEYS][1024];
 	int i;
 	isc_boolean_t alreadysigned;
+
+	origin = dns_db_origin(db);
 
 	dns_rdataset_init(&rdataset);
 	rdsiter = NULL;
@@ -114,7 +160,7 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 
 		if (rdataset.type == dns_rdatatype_sig ||
 		    (rdataset.type == dns_rdatatype_key &&
-		     dns_name_compare(name, dns_db_origin(db)) == 0))
+		     dns_name_compare(name, origin) == 0))
 		{
 			dns_rdataset_disassociate(&rdataset);
 			result = dns_rdatasetiter_next(rdsiter);
@@ -135,6 +181,12 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 			alreadysigned = ISC_FALSE; /* not that this matters */
 		check_result(result, "dns_db_findrdataset()");
 
+		/*
+		 * There probably should be a dns_nxtsetbit or something,
+		 * but it can get complicated if we need to extend the
+		 * length.  In this case, since the NXT bit is set and
+		 * SIG < NXT, the easy way works.
+		 */
 		if (rdataset.type == dns_rdatatype_nxt && !alreadysigned) {
 			unsigned char *nxt_bits;
 			dns_name_t nxtname;
@@ -168,33 +220,17 @@ generate_sig(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		}
 		else {
 			dns_rdata_t sigrdata;
-			dns_rdata_generic_sig_t sig;
 
 			dns_rdata_init(&sigrdata);
 			result = dns_rdataset_first(&oldsigset);
+			i = 0;
 			while (result == ISC_R_SUCCESS) {
 				dns_rdataset_current(&oldsigset, &sigrdata);
-				result = dns_rdata_tostruct(&sigrdata, &sig,
-							    mctx);
-				check_result(result, "dns_rdata_tostruct()");
-				for (i = 0; i < nkeys; i++) {
-					dst_key_t *key = keys[i];
-					if (dst_key_id(key) == sig.keyid &&
-					    dst_key_alg(key) == sig.algorithm)
-						break;
-				}
-				if (i == nkeys) {
-					result = dns_rdataset_next(&oldsigset);
-					dns_rdata_freestruct(&sig);
-					printf("couldn't find key");
-					continue;
-				}
-				sign_with_key(name, &rdataset, &rdatas[i],
-					      &sigrdatalist, &now, &later,
-					      keys[i], array[i],
-					      sizeof(array[i]));
-
-				dns_rdata_freestruct(&sig);
+				resign_set(name, origin, &rdataset, &rdatas[i],
+					   &sigrdatalist, &sigrdata,
+					   &now, &later, keys, nkeys, array[i],
+					   sizeof(array[i]));
+				i++;
 				result = dns_rdataset_next(&oldsigset);
 			}
 			dns_rdataset_disassociate(&oldsigset);
@@ -302,7 +338,7 @@ sign(char *filename) {
 	unsigned char curdata[1024];
 	isc_buffer_t curbuf;
 	unsigned int nkeys = 0;
-	int i;
+	unsigned int i;
 
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
