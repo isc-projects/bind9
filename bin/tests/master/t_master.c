@@ -238,12 +238,25 @@ t5() {
 	t_result(result);
 }
 
+static char *a6 =	"dns_master_loadfile understands KEY RR specifications";
+
+static void
+t6() {
+	int	result;
+
+	t_assert("dns_master_loadfile", 6, T_REQUIRED, a6);
+	result = test_master_x("dns_master_load_6_data");
+
+	t_result(result);
+}
+
 testspec_t	T_testlist[] = {
 	{	t1,	"DNS_R_SUCCESS"		},
 	{	t2,	"DNS_R_UNEXPECTEDEND"	},
 	{	t3,	"DNS_NOOWNER"		},
 	{	t4,	"DNS_NOTTL"		},
 	{	t5,	"DNS_BADCLASS"		},
+	{	t6,	"ag.test"		},
 	{	NULL,	NULL			}
 };
 
