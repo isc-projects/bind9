@@ -1,3 +1,6 @@
+1576.	[bug]		Race condition in dns_dispatch_addresponse().
+			[RT# 10272]
+
 1575.	[func]		Log TSIG name on TSIG verify failure. [RT #4404]
 
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
