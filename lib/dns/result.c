@@ -44,6 +44,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"already exists",			/* 21 */
 	"not found",				/* 22 */
 	"syntax error",				/* 23 */
+	"bad checksum",				/* 24 */
 };
 
 char *

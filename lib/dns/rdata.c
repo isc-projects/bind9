@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.22 1999/02/02 22:34:20 marka Exp $ */
+ /* $Id: rdata.c,v 1.23 1999/02/03 06:01:31 marka Exp $ */
 
 #include <config.h>
 
@@ -72,6 +72,9 @@ static dns_result_t	base64_tobuffer(isc_lex_t *lexer,
 static dns_result_t	time_totext(unsigned long value,
 				    isc_buffer_t *target);
 static dns_result_t	time_tobuffer(char *source, isc_buffer_t *target);
+static dns_result_t	btoa_totext(unsigned char *inbuf, int inbuflen,
+				    isc_buffer_t *target);
+static dns_result_t	atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target);
 
 static const char hexdigits[] = "0123456789abcdef";
 static const char decdigits[] = "0123456789";
@@ -887,4 +890,248 @@ time_tobuffer(char *source, isc_buffer_t *target) {
 	}
 	
 	return (uint32_tobuffer(value, target));
+}
+
+static const char atob_digits[86] =
+"!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstu";
+/*
+ * Subroutines to convert between 8 bit binary bytes and printable ASCII.
+ * Computes the number of bytes, and three kinds of simple checksums.
+ * Incoming bytes are collected into 32-bit words, then printed in base 85:
+ *	exp(85,5) > exp(2,32)
+ * The ASCII characters used are between '!' and 'u';
+ * 'z' encodes 32-bit zero; 'x' is used to mark the end of encoded data.
+ *
+ * Originally by Paul Rutter (philabs!per) and Joe Orost (petsd!joe) for
+ * the atob/btoa programs, released with the compress program, in mod.sources.
+ * Modified by Mike Schwartz 8/19/86 for use in BIND.
+ * Modified to be re-entrant 3/2/99.
+ */
+
+
+struct state {
+	int32_t Ceor;
+	int32_t Csum;
+	int32_t Crot;
+	int32_t word;
+	int32_t bcount;
+};
+
+#define Ceor state->Ceor
+#define Csum state->Csum
+#define Crot state->Crot
+#define word state->word
+#define bcount state->bcount
+
+#define times85(x)	((((((x<<2)+x)<<2)+x)<<2)+x)
+
+static dns_result_t	byte_atob(int c, isc_buffer_t *target,
+				  struct state *state);
+static dns_result_t	putbyte(int c, isc_buffer_t *, struct state *state);
+static dns_result_t	byte_btoa(int c, isc_buffer_t *, struct state *state);
+
+/* Decode ASCII-encoded byte c into binary representation and 
+ * place into *bufp, advancing bufp 
+ */
+static dns_result_t
+byte_atob(int c, isc_buffer_t *target, struct state *state) {
+	char *s;
+	if (c == 'z') {
+		if (bcount != 0)
+			return(DNS_R_SYNTAX);
+		else {
+			RETERR(putbyte(0, target, state));
+			RETERR(putbyte(0, target, state));
+			RETERR(putbyte(0, target, state));
+			RETERR(putbyte(0, target, state));
+		}
+	} else if ((s = strchr(atob_digits, c)) != NULL) {
+		if (bcount == 0) {
+			word = s - atob_digits;
+			++bcount;
+		} else if (bcount < 4) {
+			word = times85(word);
+			word += s - atob_digits;
+			++bcount;
+		} else {
+			word = times85(word);
+			word += s - atob_digits;
+			RETERR(putbyte((word >> 24) & 0xff, target, state));
+			RETERR(putbyte((word >> 16) & 0xff, target, state));
+			RETERR(putbyte((word >> 8) & 0xff, target, state));
+			RETERR(putbyte(word & 0xff, target, state));
+			word = 0;
+			bcount = 0;
+		}
+	} else
+		return(DNS_R_SYNTAX);
+	return(DNS_R_SUCCESS);
+}
+
+/* Compute checksum info and place c into target */
+static dns_result_t
+putbyte(int c, isc_buffer_t *target, struct state *state) {
+	isc_region_t tr;
+
+	Ceor ^= c;
+	Csum += c;
+	Csum += 1;
+	if ((Crot & 0x80000000)) {
+		Crot <<= 1;
+		Crot += 1;
+	} else {
+		Crot <<= 1;
+	}
+	Crot += c;
+	isc_buffer_available(target, &tr);
+	if (tr.length < 1)
+		return (DNS_R_NOSPACE);
+	tr.base[0] = c;
+	isc_buffer_add(target, 1);
+	return (DNS_R_SUCCESS);
+}
+
+/* Read the ASCII-encoded data from inbuf, of length inbuflen, and convert
+   it into T_UNSPEC (binary data) in outbuf, not to exceed outbuflen bytes;
+   outbuflen must be divisible by 4.  (Note: this is because outbuf is filled
+   in 4 bytes at a time.  If the actual data doesn't end on an even 4-byte
+   boundary, there will be no problem...it will be padded with 0 bytes, and
+   numbytes will indicate the correct number of bytes.  The main point is
+   that since the buffer is filled in 4 bytes at a time, even if there is
+   not a full 4 bytes of data at the end, there has to be room to 0-pad the
+   data, so the buffer must be of size divisible by 4).  Place the number of
+   output bytes in numbytes, and return a failure/success status  */
+
+static dns_result_t
+atob_tobuffer(isc_lex_t *lexer, isc_buffer_t *target) {
+	int32_t oeor, osum, orot;
+	struct state statebuf, *state= &statebuf;
+	isc_token_t token;
+	char c;
+	char *e;
+
+	Ceor = Csum = Crot = word = bcount = 0;
+
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	while (token.value.as_textregion.length != 0) {
+		if ((c = token.value.as_textregion.base[0]) == 'x') {
+			break;
+		} else
+			RETERR(byte_atob(c, target, state));
+		isc_textregion_consume(&token.value.as_textregion, 1);
+	}
+
+	/* number of bytes */
+	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
+	if ((token.value.as_ulong % 4) != 0)
+		isc_buffer_subtract(target,  4 - (token.value.as_ulong % 4));
+
+	/* checksum */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	oeor = strtoul(token.value.as_pointer, &e, 16);
+	if (*e != 0)
+		return (DNS_R_SYNTAX);
+
+	/* checksum */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	osum = strtoul(token.value.as_pointer, &e, 16);
+	if (*e != 0)
+		return (DNS_R_SYNTAX);
+
+	/* checksum */
+	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
+	orot = strtoul(token.value.as_pointer, &e, 16);
+	if (*e != 0)
+		return (DNS_R_SYNTAX);
+
+	if ((oeor != Ceor) || (osum != Csum) || (orot != Crot))
+		return(DNS_R_BADCKSUM);
+	return(DNS_R_SUCCESS);
+}
+
+/* Encode binary byte c into ASCII representation and place into *bufp,
+   advancing bufp */
+static dns_result_t
+byte_btoa(int c, isc_buffer_t *target, struct state *state) {
+	isc_region_t tr;
+
+	isc_buffer_available(target, &tr);
+	Ceor ^= c;
+	Csum += c;
+	Csum += 1;
+	if ((Crot & 0x80000000)) {
+		Crot <<= 1;
+		Crot += 1;
+	} else {
+		Crot <<= 1;
+	}
+	Crot += c;
+
+	word <<= 8;
+	word |= c;
+	if (bcount == 3) {
+		if (word == 0) {
+			if (tr.length < 1)
+				return (DNS_R_NOSPACE);
+			tr.base[0] = 'z';
+			isc_buffer_add(target, 1);
+		} else {
+		    register int tmp = 0;
+		    register int32_t tmpword = word;
+			
+		    if (tmpword < 0) {	
+			   /* Because some don't support u_long */
+		    	tmp = 32;
+		    	tmpword -= (int32_t)(85 * 85 * 85 * 85 * 32);
+		    }
+		    if (tmpword < 0) {
+		    	tmp = 64;
+		    	tmpword -= (int32_t)(85 * 85 * 85 * 85 * 32);
+		    }
+			if (tr.length < 5)
+				return (DNS_R_NOSPACE);
+		    	tr.base[0] = atob_digits[(tmpword /
+						 (int32_t)(85 * 85 * 85 * 85))
+						+ tmp];
+			tmpword %= (int32_t)(85 * 85 * 85 * 85);
+			tr.base[1] = atob_digits[tmpword / (85 * 85 * 85)];
+			tmpword %= (85 * 85 * 85);
+			tr.base[2] = atob_digits[tmpword / (85 * 85)];
+			tmpword %= (85 * 85);
+			tr.base[3] = atob_digits[tmpword / 85];
+			tmpword %= 85;
+			tr.base[4] = atob_digits[tmpword];
+			isc_buffer_add(target, 5);
+		}
+		bcount = 0;
+	} else {
+		bcount += 1;
+	}
+	return (DNS_R_SUCCESS);
+}
+
+
+/*
+ * Encode the binary data from inbuf, of length inbuflen, into a
+ * target.  Return success/failure status
+ */
+static dns_result_t
+btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
+	int inc;
+	struct state statebuf, *state = &statebuf;
+	char buf[sizeof "x 2000000000 ffffffff ffffffff ffffffff"];
+
+	Ceor = Csum = Crot = word = bcount = 0;
+	for (inc = 0; inc < inbuflen; inbuf++, inc++)
+		RETERR(byte_btoa(*inbuf, target, state));
+	
+	while (bcount != 0)
+		RETERR(byte_btoa(0, target, state));
+	
+	/*
+	 * Put byte count and checksum information at end of buffer,
+	 * delimited by 'x'
+	 */
+	sprintf(buf, "x %d %x %x %x", inbuflen, Ceor, Csum, Crot);
+	return (str_totext(buf, target));
 }
