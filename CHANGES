@@ -1,4 +1,6 @@
 
+	--- 9.2.0a3 released ---
+
  932.	[bug]		Use INSTALL_SCRIPT, not INSTALL_PROGRAM,
 			when installing isc-config.sh.
 			[RT #198, #1466]
