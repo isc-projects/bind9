@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.2 2001/02/14 23:57:32 gson Exp $
+# $Id: start.pl,v 1.3 2001/02/15 00:07:03 nelsonm Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -107,7 +107,7 @@ sub check_ports {
 			print "$0: could not bind to server addresses, still running?\n";
 			print "I:server sockets not available\n";
 			print "R:FAIL\n";
-			system("sh $topdir/stop.sh $test"); # Is this the correct behavior?
+			system("$PERL $topdir/stop.pl $testdir"); # Is this the correct behavior?
 			exit 1;
 		}
 		print "I:Couldn't bind to socket (yet)\n";
@@ -156,7 +156,7 @@ sub start_server {
 	} else {
 		print "I:Unknown server type $server\n";
 		print "R:FAIL\n";
-		system "sh $topdir/stop.sh $test";
+		system "$PERL $topdir/stop.pl $testdir";
 		exit 1;
 	}
 
@@ -175,7 +175,7 @@ sub start_server {
 		if (++$tries > 14) {
 			print "I:Couldn't start server $server\n";
 			print "R:FAIL\n";
-			system "sh $topdir/stop.sh $test";
+			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
 		}
 		sleep 1;
@@ -195,7 +195,7 @@ sub verify_server {
 		if (++$tries >= 30) {
 			print "I:no response from $server\n";
 			print "R:FAIL\n";
-			system("sh $topdir/stop.sh $test");
+			system("$PERL $topdir/stop.pl $testdir");
 			exit 1;
 		}
 		sleep 2;
