@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.118 2000/10/19 22:49:29 mws Exp $ */
+/* $Id: dig.c,v 1.119 2000/10/19 23:31:54 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1093,7 +1093,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 	isc_boolean_t open_type_class = ISC_TRUE;
 	char batchline[MXNAME];
 	int bargc;
-	char *bargv[16];
+	char *bargv[64];
 	int rc;
 	char **rv;
 #ifndef NOPOSIX
@@ -1124,7 +1124,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		 */
 		homedir = getenv("HOME");
 		if (homedir != NULL)
-			snprintf(rcfile, 132, "%s/.digrc", homedir);
+			snprintf(rcfile, 256, "%s/.digrc", homedir);
 		else
 			strcpy(rcfile, ".digrc");
 		batchfp = fopen(rcfile, "r");
@@ -1136,7 +1136,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 				input = batchline;
 				bargv[bargc] = next_token(&input, " \t\r\n");
 				while ((bargv[bargc] != NULL) &&
-				       (bargc < 14)) {
+				       (bargc < 62)) {
 					bargc++;
 					bargv[bargc] = next_token(&input, " \t\r\n");
 				}
