@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.255 
+# From configure.in Revision: 1.256 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5373,15 +5373,15 @@ do
 	f=$d/print/docbook.dsl
 	if test -f $f
 	then
-		PRINTTYLE=$f
+		PRINTSTYLE=$f
 		echo "$ac_t""$f" 1>&6
 		break
 	fi
 done
-if test "XPRINTTYLE" = "X"
+if test "XPRINTSTYLE" = "X"
 then
 	echo "$ac_t"""not found"" 1>&6;
-	PRINTTYLE=print/docbook.dsl
+	PRINTSTYLE=print/docbook.dsl
 fi
 
 
@@ -5789,7 +5789,7 @@ s%@JADETEX@%$JADETEX%g
 s%@PDFJADETEX@%$PDFJADETEX%g
 s%@SGMLCATALOG@%$SGMLCATALOG%g
 s%@HTMLSTYLE@%$HTMLSTYLE%g
-s%@PRINTTYLE@%$PRINTTYLE%g
+s%@PRINTSTYLE@%$PRINTSTYLE%g
 s%@XMLDCL@%$XMLDCL%g
 s%@DOCBOOK2MANSPEC@%$DOCBOOK2MANSPEC%g
 s%@BIND9_TOP_BUILDDIR@%$BIND9_TOP_BUILDDIR%g
