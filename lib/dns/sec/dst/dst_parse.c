@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.2 1999/08/20 17:03:30 bwelling Exp $
+ * $Id: dst_parse.c,v 1.3 1999/09/01 18:56:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -148,7 +148,7 @@ check_data(const dst_private_t *priv, const int alg) {
 		case DST_ALG_HMAC_MD5:
 			return (check_hmac_md5(priv));
 		default:
-			return (DST_R_UNSUPPORTED_ALG);
+			return (DST_R_UNSUPPORTEDALG);
 	}
 }
 
@@ -178,7 +178,7 @@ dst_s_parse_private_key_file(const char *name, const int alg, const int id,
 	isc_token_t token;
 	unsigned int opt = ISC_LEXOPT_EOL;
 	isc_result_t iret;
-	isc_result_t error = DST_R_INVALID_PRIVATE_KEY;
+	isc_result_t error = DST_R_INVALIDPRIVATEKEY;
 
 	REQUIRE(priv != NULL);
 
@@ -187,7 +187,7 @@ dst_s_parse_private_key_file(const char *name, const int alg, const int id,
 	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
 				   PATH_MAX);
 	if (ret < 0)
-		return (DST_R_NAME_TOO_LONG);
+		return (DST_R_NAMETOOLONG);
 
 	iret = isc_lex_create(mctx, 1024, &lex);
 	if (iret != ISC_R_SUCCESS)
@@ -263,7 +263,7 @@ dst_s_parse_private_key_file(const char *name, const int alg, const int id,
 
 		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);
 		if (data == NULL) {
-			error = DST_R_INVALID_PRIVATE_KEY;
+			error = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
 		}
 		isc_buffer_init(&b, data, MAXFIELDSIZE, ISC_BUFFERTYPE_BINARY);
@@ -295,7 +295,7 @@ fail:
 
 	priv->nelements = n;
 	dst_s_free_private_structure_fields(priv, mctx);
-	return (DST_R_INVALID_PRIVATE_KEY);
+	return (DST_R_INVALIDPRIVATEKEY);
 }
 
 int
@@ -311,15 +311,15 @@ dst_s_write_private_key_file(const char *name, const int alg, const int id,
 	REQUIRE(priv != NULL);
 
 	if (check_data(priv, alg) < 0)
-		return (DST_R_INVALID_PRIVATE_KEY);
+		return (DST_R_INVALIDPRIVATEKEY);
 
 	ret = dst_s_build_filename(filename, name, id, alg, PRIVATE_KEY,
 				   PATH_MAX);
 	if (ret < 0)
-		return (DST_R_NAME_TOO_LONG);
+		return (DST_R_NAMETOOLONG);
 
 	if ((fp = fopen(filename, "w")) == NULL)
-		return (DST_R_WRITE_ERROR);
+		return (DST_R_WRITEERROR);
 
 	/* This won't exist on non-unix systems.  Hmmm.... */
 	chmod(filename, 0600);
@@ -349,7 +349,7 @@ dst_s_write_private_key_file(const char *name, const int alg, const int id,
 		iret = isc_base64_totext(&r, sizeof(buffer), "", &b);
 		if (iret != ISC_R_SUCCESS) {
 			fclose(fp);
-			return(DST_R_INVALID_PRIVATE_KEY);
+			return(DST_R_INVALIDPRIVATEKEY);
 		}
 		isc_buffer_used(&b, &r);
 

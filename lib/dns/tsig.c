@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.5 1999/08/31 21:41:20 bwelling Exp $
+ * $Id: tsig.c,v 1.6 1999/09/01 18:56:18 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -110,8 +110,8 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
 		isc_buffer_init(&b, secret, length, ISC_BUFFERTYPE_BINARY);
 		isc_buffer_add(&b, length);
 		ret = dst_key_frombuffer(namestr, alg,
-					 NS_KEY_NAME_ENTITY,
-					 NS_KEY_PROT_DNSSEC,
+					 DNS_KEYOWNER_ENTITY,
+					 DNS_KEYPROTO_DNSSEC,
 					 &b, mctx, &tkey->key);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_algorithm;
@@ -606,7 +606,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		}
 
 		ret = dst_verify(DST_SIGMODE_FINAL, key, &ctx, NULL, &sig_r);
-		if (ret == DST_R_VERIFY_FINAL_FAILURE) {
+		if (ret == DST_R_VERIFYFINALFAILURE) {
 			msg->tsigstatus = dns_tsigerror_badsig;
 			return (DNS_R_TSIGVERIFYFAILURE);
 		}

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.7 1999/08/31 14:59:08 bwelling Exp $
+ * $Id: dst_api.c,v 1.8 1999/09/01 18:56:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -119,9 +119,9 @@ dst_sign(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 		REQUIRE(sig != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
-		return (DST_R_NULL_KEY);
+		return (DST_R_NULLKEY);
 
 	return (key->func->sign(mode, key, (void **)context, data, sig,
 				key->mctx));
@@ -166,9 +166,9 @@ dst_verify(const unsigned int mode, dst_key_t *key, dst_context_t *context,
 		REQUIRE(sig != NULL && sig->base != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 	if (key->opaque == NULL)
-		return (DST_R_NULL_KEY);
+		return (DST_R_NULLKEY);
 
 	return (key->func->verify(mode, key, (void **)context, data, sig,
 				  key->mctx));
@@ -192,17 +192,17 @@ dst_key_tofile(const dst_key_t *key, const int type) {
 	REQUIRE(VALID_KEY(key));
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
-		return (DST_R_UNSUPPORTED_TYPE);
+		return (DST_R_UNSUPPORTEDTYPE);
 
 	if (type & DST_TYPE_PUBLIC) 
 		if ((ret = write_public_key(key)) != DST_R_SUCCESS)
 			return (ret);
 
 	if ((type & DST_TYPE_PRIVATE) &&
-	    (key->key_flags & NS_KEY_TYPEMASK) != NS_KEY_TYPE_NO_KEY)
+	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 	{
 		ret = key->func->to_file(key);
 		if (ret != DST_R_SUCCESS)
@@ -241,17 +241,17 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 
 	*keyp = NULL;
 	if (dst_supported_algorithm(alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == 0)
-		return (DST_R_UNSUPPORTED_TYPE);
+		return (DST_R_UNSUPPORTEDTYPE);
 
 	ret = read_public_key(name, id, alg, mctx, &pubkey);
 	if (ret != DST_R_SUCCESS)
 		return (ret);
 
 	if (type == DST_TYPE_PUBLIC ||
-	    (pubkey->key_flags & NS_KEY_TYPEMASK) == NS_KEY_TYPE_NO_KEY)
+	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY)
 	{
 		*keyp = pubkey;
 		return (DST_R_SUCCESS);
@@ -293,7 +293,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(target != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	isc_buffer_available(target, &r);
 	if (r.length < 4)
@@ -302,7 +302,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_putuint8(target, key->key_proto);
 	isc_buffer_putuint8(target, key->key_alg);
 
-	if (key->key_flags & NS_KEY_EXTENDED_FLAGS) {
+	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
 		isc_buffer_available(target, &r);
 		if (r.length < 2)
 			return (DST_R_NOSPACE);
@@ -345,18 +345,18 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 
 	isc_buffer_remaining(source, &r);
 	if (r.length < 4) /* 2 bytes of flags, 1 proto, 1 alg */
-		return (DST_R_INVALID_PUBLIC_KEY);
+		return (DST_R_INVALIDPUBLICKEY);
 	flags = isc_buffer_getuint16(source);
 	proto = isc_buffer_getuint8(source);
 	alg = isc_buffer_getuint8(source);
 
 	if (!dst_supported_algorithm(alg))
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
-	if (flags & NS_KEY_EXTENDED_FLAGS) {
+	if (flags & DNS_KEYFLAG_EXTENDED) {
 		isc_buffer_remaining(source, &r);
 		if (r.length < 2)
-			return (DST_R_INVALID_PUBLIC_KEY);
+			return (DST_R_INVALIDPUBLICKEY);
 		extflags = isc_buffer_getuint16(source);
 		flags |= (extflags << 16);
 	}
@@ -401,7 +401,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 	REQUIRE(mctx != NULL);
 
 	if (dst_supported_algorithm(alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	*keyp = get_key_struct(name, alg, flags, protocol, 0, mctx);
 
@@ -434,7 +434,7 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 	REQUIRE(target != NULL);
 
 	if (dst_supported_algorithm(key->key_alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	return (key->func->to_dns(key, target));
 }
@@ -474,14 +474,14 @@ dst_key_generate(const char *name, const int alg, const int bits,
 	REQUIRE(keyp != NULL);
 
 	if (dst_supported_algorithm(alg) == ISC_FALSE)
-		return (DST_R_UNSUPPORTED_ALG);
+		return (DST_R_UNSUPPORTEDALG);
 
 	*keyp = get_key_struct(name, alg, flags, protocol, bits, mctx);
 	if (*keyp == NULL)
 		return (DST_R_NOMEMORY);
 
 	if (bits == 0) { /* NULL KEY */
-		(*keyp)->key_flags |= NS_KEY_TYPE_NO_KEY;
+		(*keyp)->key_flags |= DNS_KEYTYPE_NOKEY;
 		return (DST_R_SUCCESS);
 	}
 
@@ -598,7 +598,7 @@ dst_sig_size(const dst_key_t *key) {
 		case DST_ALG_RSA:
 			return (key->key_size + 7) / 8;
 		case DST_ALG_DSA:
-			return (NS_DSA_SIG_SIZE);
+			return (DNS_SIG_DSASIGSIZE);
 		case DST_ALG_HMAC_MD5:
 			return (16);
 		case DST_ALG_HMAC_SHA1:
@@ -739,7 +739,7 @@ read_public_key(const char *name, const isc_uint16_t id, int alg,
 
 	if (dst_s_build_filename(filename, name, id, alg, PUBLIC_KEY,
 				 PATH_MAX) != DST_R_SUCCESS)
-		return (DST_R_NAME_TOO_LONG);
+		return (DST_R_NAMETOOLONG);
 
 	/*
 	 * Open the file and read its formatted contents
@@ -804,7 +804,7 @@ cleanup:
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
         }
-	return (DST_R_INVALID_PUBLIC_KEY);
+	return (DST_R_INVALIDPUBLICKEY);
 }
 
 
@@ -846,7 +846,7 @@ write_public_key(const dst_key_t *key) {
 
 	dnsret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
 	if (dnsret != DNS_R_SUCCESS)
-		return (DST_R_INVALID_PUBLIC_KEY);
+		return (DST_R_INVALIDPUBLICKEY);
 
 	dns_rdata_freestruct(&rdata);
 
@@ -855,11 +855,11 @@ write_public_key(const dst_key_t *key) {
 	/* Make the filename */
 	if (dst_s_build_filename(filename, key->key_name, key->key_id,
 				 key->key_alg, PUBLIC_KEY, PATH_MAX) < 0)
-		return (DST_R_NAME_TOO_LONG);
+		return (DST_R_NAMETOOLONG);
 
 	/* create public key file */
 	if ((fp = fopen(filename, "w")) == NULL)
-		return (DST_R_WRITE_ERROR);
+		return (DST_R_WRITEERROR);
 
 	fprintf(fp, "%s IN KEY ", key->key_name);
 	fwrite(r.base, 1, r.length, fp);

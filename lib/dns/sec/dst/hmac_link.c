@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.4 1999/08/31 14:59:08 bwelling Exp $
+ * $Id: hmac_link.c,v 1.5 1999/09/01 18:56:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -210,7 +210,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		HMAC_Key *hkey = key->opaque;
 
 		if (sig->length < MD5_LEN)
-			return (DST_R_VERIFY_FINAL_FAILURE);
+			return (DST_R_VERIFYFINALFAILURE);
 
 		MD5Final(digest, ctx);
 
@@ -223,7 +223,7 @@ dst_hmacmd5_verify(const unsigned int mode, dst_key_t *key, void **context,
 		isc_mem_put(mctx, ctx, sizeof(MD5_CTX));
 
 		if (memcmp(digest, sig->base, MD5_LEN) != 0)
-			return (DST_R_VERIFY_FINAL_FAILURE);
+			return (DST_R_VERIFYFINALFAILURE);
 	}
 	else
 		*context = ctx;
@@ -341,7 +341,7 @@ dst_hmacmd5_to_file(const dst_key_t *key) {
 	unsigned char keydata[HMAC_LEN];
 
 	if (key->opaque == NULL)
-		return (DST_R_NULL_KEY);
+		return (DST_R_NULLKEY);
 
 	hkey = (HMAC_Key *) key->opaque;
 	for (i = 0; i < HMAC_LEN; i++)

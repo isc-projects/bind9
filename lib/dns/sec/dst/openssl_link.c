@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.4 1999/08/31 14:59:08 bwelling Exp $
+ * $Id: openssl_link.c,v 1.5 1999/09/01 18:56:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -147,7 +147,7 @@ dst_openssl_sign(const unsigned int mode, dst_key_t *key, void **context,
 
 		dsasig = DSA_do_sign(digest, SHA_DIGEST_LENGTH, dsa);
 		if (dsasig == NULL)
-			return (DST_R_SIGN_FINAL_FAILURE);
+			return (DST_R_SIGNFINALFAILURE);
 
 		*r.base++ = (key->key_size - 512)/64;
 		BN_bn2bin_fixed(dsasig->r, r.base, SHA_DIGEST_LENGTH);
@@ -215,7 +215,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 		isc_mem_put(mctx, ctx, sizeof(SHA_CTX));
 
 		if (sig->length < 2 * SHA_DIGEST_LENGTH + 1)
-			return (DST_R_VERIFY_FINAL_FAILURE);
+			return (DST_R_VERIFYFINALFAILURE);
 
 		cp++;	/* Skip T */
 		dsasig = DSA_SIG_new();
@@ -227,7 +227,7 @@ dst_openssl_verify(const unsigned int mode, dst_key_t *key, void **context,
 		status = DSA_do_verify(digest, SHA_DIGEST_LENGTH, dsasig, dsa);
 		DSA_SIG_free(dsasig);
 		if (status == 0)
-			return (DST_R_VERIFY_FINAL_FAILURE);
+			return (DST_R_VERIFYFINALFAILURE);
 	}
 	else
 		*context = ctx;
@@ -262,7 +262,7 @@ dst_openssl_to_dns(const dst_key_t *key, isc_buffer_t *data) {
 
 	t = (BN_num_bytes(dsa->p) - 64) / 8;
 	if (t > 8)
-		return (DST_R_INVALID_PUBLIC_KEY);
+		return (DST_R_INVALIDPUBLICKEY);
 
 	dnslen = 1 + (key->key_size * 3)/8 + SHA_DIGEST_LENGTH;
 	if (r.length < (unsigned int) dnslen)
@@ -317,13 +317,13 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	t = (unsigned int) *r.base++;
 	if (t > 8) {
 		DSA_free(dsa);
-		return (DST_R_INVALID_PUBLIC_KEY);
+		return (DST_R_INVALIDPUBLICKEY);
 	}
 	p_bytes = 64 + 8 * t;
 
 	if (r.length < 1 + SHA_DIGEST_LENGTH + 3 * p_bytes) {
 		DSA_free(dsa);
-		return (DST_R_INVALID_PUBLIC_KEY);
+		return (DST_R_INVALIDPUBLICKEY);
 	}
 
 	dsa->q = BN_bin2bn(r.base, SHA_DIGEST_LENGTH, NULL);
@@ -365,7 +365,7 @@ dst_openssl_to_file(const dst_key_t *key) {
 	unsigned char bufs[5][128];
 
 	if (key->opaque == NULL)
-		return (DST_R_NULL_KEY);
+		return (DST_R_NULLKEY);
 
 	dsa = (DSA *) key->opaque;
 
@@ -477,7 +477,7 @@ dst_openssl_from_file(dst_key_t *key, const int id, isc_mem_t *mctx) {
 	key->key_id = dst_s_id_calc(r.base, r.length);
 
 	if (key->key_id != id)
-		DST_RET(DST_R_INVALID_PRIVATE_KEY);
+		DST_RET(DST_R_INVALIDPRIVATEKEY);
 
 	return (DST_R_SUCCESS);
 
