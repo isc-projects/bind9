@@ -1,3 +1,6 @@
+1215.	[bug]		isc_log_setdebuglevel() needed to lock the log
+			context.
+
 1314.	[func]		libbind: no longer attempts bit string labels for
 			IPv6 reverse resolution.  Try IP6.ARPA then IP6.INT
 			for nibble style resolution.
