@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.55 2000/03/28 03:18:02 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.56 2000/03/29 05:03:07 gson Exp $ */
 
 #include <config.h>
 
@@ -91,6 +91,7 @@ typedef enum {
  */
 
 struct dns_xfrin_ctx {
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	dns_zone_t		*zone;
 
@@ -165,6 +166,9 @@ struct dns_xfrin_ctx {
 	ISC_LINK(dns_xfrin_ctx_t) link;
 	dns_xfrinlist_t	*transferlist;
 };
+
+#define XFRIN_MAGIC		  0x58667269U		/* XfrI. */
+#define VALID_XFRIN(x)		  ISC_MAGIC_VALID(x, XFRIN_MAGIC)
 
 /**************************************************************************/
 /*
@@ -547,10 +551,12 @@ dns_xfrin_create(dns_zone_t *zone, isc_sockaddr_t *masteraddr,
 	} else {
 		isc_boolean_t use_ixfr = ISC_TRUE;
 		if (peer != NULL &&
-		    dns_peer_getrequestixfr(peer, &use_ixfr) == ISC_R_SUCCESS) {
+		    dns_peer_getrequestixfr(peer, &use_ixfr) ==
+		    ISC_R_SUCCESS) {
 			; /* Using peer setting */ 
 		} else {
-			use_ixfr = dns_zonemgr_getrequestixfr(dns_zone_getmgr(zone));
+			use_ixfr = dns_zonemgr_getrequestixfr(
+				dns_zone_getmgr(zone));
 		}
 		if (use_ixfr == ISC_FALSE) {
 			xfrin_log1(ISC_LOG_DEBUG(3), zonename, masteraddr,
@@ -671,11 +677,11 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, char *msg) {
 		isc_socket_cancel(xfr->socket, xfr->task,
 				  ISC_SOCKCANCEL_SEND);
 	}
-	xfr->shuttingdown = ISC_TRUE;
 	if (xfr->done != NULL) {
 		(xfr->done)(xfr->zone, result);
 		xfr->done = NULL;
 	}
+	xfr->shuttingdown = ISC_TRUE;
 	maybe_free(xfr);
 }
 
@@ -783,6 +789,7 @@ xfrin_create(isc_mem_t *mctx,
 			sizeof(xfr->qbuffer_data),
 			ISC_BUFFERTYPE_BINARY);
 
+	xfr->magic = XFRIN_MAGIC;
 	*xfrp = xfr;
 	return (DNS_R_SUCCESS);
 	
@@ -833,6 +840,9 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
 	isc_result_t evresult = cev->result;
 	isc_result_t result;
+
+	REQUIRE(VALID_XFRIN(xfr));
+
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_CONNECT);
 	isc_event_free(&event);
@@ -984,6 +994,8 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event)
 	isc_result_t result;
 	isc_region_t region;
 
+	REQUIRE(VALID_XFRIN(xfr));
+
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
 	isc_event_free(&event);
@@ -1014,6 +1026,8 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event)
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
 	isc_result_t result;
 
+	REQUIRE(VALID_XFRIN(xfr));
+
 	task = task; /* Unused */
 	INSIST(event->type == ISC_SOCKEVENT_SENDDONE);
 
@@ -1038,7 +1052,9 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	dns_message_t *msg = NULL;
 	dns_name_t *name;
 	dns_tcpmsg_t *tcpmsg;
-	
+
+	REQUIRE(VALID_XFRIN(xfr));
+
 	task = task; /* Unused */
 	
 	INSIST(ev->type == DNS_EVENT_TCPMSG);
@@ -1150,7 +1166,6 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		xfr->state = XFRST_INITIALSOA;
 		CHECK(xfrin_send_request(xfr));
 	} else if (xfr->state == XFRST_END) {
-		xfr->shuttingdown = ISC_TRUE;
 		/*
 		 * Inform the caller we succeeded.
 		 */
@@ -1162,6 +1177,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		 * We should have no outstanding events at this
 		 * point, thus maybe_free() should succeed.
 		 */
+		xfr->shuttingdown = ISC_TRUE;
 		maybe_free(xfr);
 	} else {
 		/* Read the next message. */
@@ -1183,7 +1199,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 static void
 xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->arg;
+
+	REQUIRE(VALID_XFRIN(xfr));
+
 	task = task; /* Unused */
+
 	isc_event_free(&event);
 	/* This will log "giving up: timeout". */
 	xfrin_fail(xfr, ISC_R_TIMEDOUT, "giving up");
@@ -1191,6 +1211,8 @@ xfrin_timeout(isc_task_t *task, isc_event_t *event) {
 
 static void
 maybe_free(dns_xfrin_ctx_t *xfr) {
+	REQUIRE(VALID_XFRIN(xfr));
+
 	if (! xfr->shuttingdown || xfr->refcount != 0 ||
 	    xfr->connects != 0 || xfr->sends != 0 ||
 	    xfr->recvs != 0)
