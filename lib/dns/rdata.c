@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.175 2003/06/24 05:10:32 marka Exp $ */
+/* $Id: rdata.c,v 1.176 2003/07/17 08:05:15 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -765,7 +765,7 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
-	char buf[sizeof("65536")];
+	char buf[sizeof("65535")];
 	isc_region_t sr;
 
 	REQUIRE(rdata != NULL);
@@ -958,10 +958,9 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 unsigned int
 dns_rdatatype_attributes(dns_rdatatype_t type)
 {
-	if (type > 255)
-		return (DNS_RDATATYPEATTR_UNKNOWN);
-
-	return (typeattr[type].flags);
+	if (type < (sizeof(typeattr)/sizeof(typeattr[0])))
+		return (typeattr[type].flags);
+	return (DNS_RDATATYPEATTR_UNKNOWN);
 }
 
 #define NUMBERSIZE sizeof("037777777777") /* 2^32-1 octal + NUL */
@@ -1107,7 +1106,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
-	char buf[sizeof("CLASS65536")];
+	char buf[sizeof("CLASS65535")];
 
 	switch (rdclass) {
 	case dns_rdataclass_any:
@@ -1195,14 +1194,12 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 
 isc_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
-	char buf[sizeof("TYPE65536")];
+	char buf[sizeof("TYPE65535")];
 
-	if (type > 255) {
-		snprintf(buf, sizeof buf, "TYPE%u", type);
-		return (str_totext(buf, target));
-	}
-
-	return (str_totext(typeattr[type].name, target));
+	if (type < (sizeof(typeattr)/sizeof(typeattr[0])))
+		return (str_totext(typeattr[type].name, target));
+	snprintf(buf, sizeof buf, "TYPE%u", type);
+	return (str_totext(buf, target));
 }
 
 void
