@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.178 2001/01/29 19:49:50 bwelling Exp $ */
+/* $Id: query.c,v 1.179 2001/02/14 03:01:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -2516,7 +2516,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			 *
 			 * We need to set fname correctly.  We do this here
 			 * instead of in query_findparentkey() because
-			 * dns_name_concatenate() can fail (though it shouldn't
+			 * dns_name_copy() can fail (though it shouldn't
 			 * ever do so since we should have enough space).
 			 */
 			result = dns_name_copy(client->query.qname,
