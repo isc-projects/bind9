@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.168 2001/01/07 23:36:56 gson Exp $ */
+/* $Id: query.c,v 1.169 2001/01/09 06:48:47 gson Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/util.h>
 
 #include <dns/adb.h>
+#include <dns/byaddr.h>
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -86,6 +87,18 @@
 #define DNS_GETDB_NOEXACT 0x01U
 #define DNS_GETDB_NOLOG 0x02U
 
+static char ip6int_ndata[] = "\003ip6\003int";
+static char ip6int_offsets[] = { 0, 4, 8 };
+
+static dns_name_t ip6int_name = {
+	DNS_NAME_MAGIC,
+	ip6int_ndata, 9, 3,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	ip6int_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
 static isc_result_t
 query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 		 isc_stdtime_t now,
@@ -111,7 +124,19 @@ static void
 synth_fwd_finddone(isc_task_t *task, isc_event_t *ev);
 
 static void
-synth_fwd_finish(ns_client_t *client, isc_result_t result);
+synth_finish(ns_client_t *client, isc_result_t result);
+
+static void
+synth_rev_start(ns_client_t *client);
+
+static void
+synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event);
+
+static void
+synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event);
+
+static void
+synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent);
 
 /*
  * Increment query statistics counters.
@@ -1739,8 +1764,8 @@ query_addns(ns_client_t *client, dns_db_t *db) {
 }
 
 static inline isc_result_t
-query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
-	       dns_ttl_t ttl, dns_name_t **anamep)
+query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
+		   dns_ttl_t ttl, dns_name_t **anamep, dns_rdatatype_t type)
 {
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
@@ -1748,7 +1773,6 @@ query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	isc_result_t result;
 	isc_region_t r;
 
-	CTRACE("query_addcname");
 	/*
 	 * We assume the name data referred to by qname and tname won't
 	 * go away.
@@ -1771,7 +1795,7 @@ query_addcname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	dns_rdataset_init(rdataset);
 	dns_name_clone(qname, *anamep);
 
-	rdatalist->type = dns_rdatatype_cname;
+	rdatalist->type = type;
 	rdatalist->covers = 0;
 	rdatalist->rdclass = client->message->rdclass;
 	rdatalist->ttl = ttl;
@@ -2981,8 +3005,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 * since the synthesized CNAME is NOT in the zone.
 		 */
 		dns_name_init(tname, NULL);
-		query_addcname(client, client->query.qname, fname,
-			       trdataset->ttl, &tname);
+		query_addcnamelike(client, client->query.qname, fname,
+				   trdataset->ttl, &tname,
+				   dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		/*
@@ -3379,15 +3404,15 @@ ns_query_start(ns_client_t *client) {
 			synth_fwd_start(qclient);
 			return;
 		}
-#ifdef notyet
 		else if (qtype == dns_rdatatype_ptr &&
-			   dns_name_issubdomain(query->qname, &inaddrintname)) {
+			 /* Must be 32 nibbles + "ip6" + "int" + root */
+			 dns_name_countlabels(client->query.qname) == 32 + 3 &&
+			 dns_name_issubdomain(client->query.qname, &ip6int_name)) {
 			qclient = NULL;
 			ns_client_attach(client, &qclient);
 			synth_rev_start(qclient);
 			return;
 		}
-#endif
 	}
 
 	qclient = NULL;
@@ -3461,8 +3486,9 @@ synth_fwd_startfind(ns_client_t *client) {
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 		dns_name_init(tname, NULL);
-		result = query_addcname(client, client->query.qname, ptarget,
-					0 /* XXX ttl */, &tname);
+		result = query_addcnamelike(client, client->query.qname, ptarget,
+					    0 /* XXX ttl */, &tname,
+					    dns_rdatatype_cname);
 		if (tname != NULL)
 			dns_message_puttempname(client->message, &tname);
 		if (result != ISC_R_SUCCESS)
@@ -3501,7 +3527,7 @@ synth_fwd_startfind(ns_client_t *client) {
  fail:
 	result = DNS_R_SERVFAIL;
  done:
-	synth_fwd_finish(client, result);
+	synth_finish(client, result);
 }
 
 /*
@@ -3524,7 +3550,7 @@ synth_fwd_finddone(isc_task_t *task, isc_event_t *ev) {
 	else if (evtype == DNS_EVENT_ADBMOREADDRESSES)
 		synth_fwd_startfind(client);
 	else
-		synth_fwd_finish(client, DNS_R_SERVFAIL);
+		synth_finish(client, DNS_R_SERVFAIL);
 
 	isc_event_free(&ev);
 	dns_adb_destroyfind(&find);
@@ -3604,17 +3630,188 @@ synth_fwd_respond(ns_client_t *client, dns_adbfind_t *find) {
 		dns_message_puttemprdataset(client->message, &rdataset);
 	}
 
-	synth_fwd_finish(client, result);
+	synth_finish(client, result);
 }
 
 /*
  * Finish synthetic IPv6 forward mapping processing.
  */
 static void
-synth_fwd_finish(ns_client_t *client, isc_result_t result) {
+synth_finish(ns_client_t *client, isc_result_t result) {
 	if (result == ISC_R_SUCCESS)
 		ns_client_send(client);
 	else
 		ns_client_error(client, result);
 	ns_client_detach(&client);	
+}
+
+static signed char ascii2hex[256] = {
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+        -1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1
+};
+
+/*
+ * Convert label 'i' of 'name' into its hexadecimal value, storing it
+ * in '*hexp'.  If the label is not a valid hex nibble, return ISC_R_FAILURE.
+ */
+static isc_result_t
+label2hex(dns_name_t *name, int i, int *hexp) {
+	isc_region_t label;
+	int hexval;
+	dns_name_getlabel(name, i, &label);
+	if (label.length != 2 || label.base[0] != '\001')
+		return (ISC_R_FAILURE);
+	hexval = ascii2hex[label.base[1]];
+	if (hexval == -1)
+		return (ISC_R_FAILURE);
+	*hexp = hexval;
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Convert the ip6.int name 'name' into the corresponding IPv6 address
+ * in 'na'. 
+ */
+static isc_result_t
+nibbles2netaddr(dns_name_t *name, isc_netaddr_t *na) {
+	isc_result_t result;
+	struct in6_addr ina6;
+	unsigned char *addrdata = (unsigned char *) &ina6;
+	int i;
+
+	for (i = 0; i < 16; i++) {
+		int hex0, hex1;
+		result = label2hex(name, 2 * i, &hex0);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		result = label2hex(name, 2 * i + 1, &hex1);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		addrdata[15-i] = (hex1 << 4) | hex0;
+	}
+	isc_netaddr_fromin6(na, &ina6);
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Generate a synthetic IPv6 reverse mapping response for the current
+ * query of 'client'.
+ */
+static void
+synth_rev_start(ns_client_t *client) {
+	isc_result_t result;
+	dns_byaddr_t *byaddr_dummy = NULL;
+	
+	ns_client_log(client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(5), "generating synthetic PTR response");
+
+	result = nibbles2netaddr(client->query.qname, &client->query.synth.na);
+	if (result != ISC_R_SUCCESS) {
+		result = DNS_R_NXDOMAIN;
+		goto cleanup;
+	}
+
+	/* Try IP6.ARPA first. */
+	result = dns_byaddr_create(client->mctx,
+				   &client->query.synth.na,
+				   client->view,
+				   0, client->task,
+				   synth_rev_byaddrdone_arpa,
+				   client, &byaddr_dummy);
+	if (result == ISC_R_SUCCESS)
+		return; /* Wait for completion event. */
+ cleanup:
+	synth_finish(client, result);
+}
+
+static void
+synth_rev_byaddrdone_arpa(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
+	ns_client_t *client = event->ev_arg;
+	dns_byaddr_t *byaddr = event->ev_sender;
+	dns_byaddr_t *byaddr_dummy = NULL;	
+
+	UNUSED(task);
+
+	if (bevent->result == ISC_R_SUCCESS) {
+		synth_rev_respond(client, bevent);
+	} else {
+		/* Try IP6.INT next. */
+		result = dns_byaddr_create(client->mctx,
+					   &client->query.synth.na,
+					   client->view,
+					   DNS_BYADDROPT_IPV6NIBBLE,
+					   client->task,
+					   synth_rev_byaddrdone_int,
+					   client, &byaddr_dummy);
+		if (result != ISC_R_SUCCESS)
+			synth_finish(client, result);
+	}
+	dns_byaddr_destroy(&byaddr);
+	isc_event_free(&event);
+}
+
+static void
+synth_rev_byaddrdone_int(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
+	dns_byaddrevent_t *bevent = (dns_byaddrevent_t *)event;
+	ns_client_t *client = event->ev_arg;
+	dns_byaddr_t *byaddr = event->ev_sender;
+	
+	UNUSED(task);
+
+	if (bevent->result == ISC_R_SUCCESS) {
+		synth_rev_respond(client, bevent);
+	} else {
+		synth_finish(client, result);
+	}
+	isc_event_free(&event);
+	dns_byaddr_destroy(&byaddr);	
+}
+
+static void
+synth_rev_respond(ns_client_t *client, dns_byaddrevent_t *bevent) {
+	isc_result_t result = ISC_R_SUCCESS;
+	dns_name_t *name;
+
+	for (name = ISC_LIST_HEAD(bevent->names);
+	     name != NULL;
+	     name = ISC_LIST_NEXT(name, link))
+	{
+		dns_name_t *tname = NULL;
+		
+		/*
+		 * Get a temporary name 'tname' for insertion into the
+		 * response message.
+		 */
+		result = dns_message_gettempname(client->message, &tname);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+		dns_name_init(tname, NULL);
+
+		result = query_addcnamelike(client, client->query.qname,
+					    name, 0 /* XXX ttl */,
+					    &tname, dns_rdatatype_ptr);
+		if (tname != NULL)
+			dns_message_puttempname(client->message, &tname);
+		if (result != ISC_R_SUCCESS)
+			goto fail;
+	}
+ fail:
+	synth_finish(client, result);		
 }
