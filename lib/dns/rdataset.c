@@ -15,13 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2 2003/07/22 04:03:43 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.3 2003/08/05 00:42:55 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 
 #include <isc/buffer.h>
+#include <isc/random.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
@@ -363,7 +364,11 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 			/*
 			 * "Cyclic" order.
 			 */
-			unsigned int j = (((unsigned int)rand()) >> 3) % count;
+			isc_uint32_t val;
+			unsigned int j;
+
+			isc_random_get(&val);
+			j = val % count;
 			for (i = 0; i < count; i++) {
 				sorted[j].key = 0; /* Unused */
 				sorted[j].rdata = &shuffled[i];

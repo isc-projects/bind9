@@ -1,6 +1,9 @@
 
 	--- 9.2.3rc1 released ---
 
+1499.	[bug]		isc_random need to be seeded better if arc4random()
+			is not used.
+
 1498.	[port]		bsdos: 5.x support.
 
 1497.	[protocol]	dig, nslookup and host now perform nibble lookups
@@ -176,6 +179,8 @@
 
 1406.	[bug]		dispatch initialises one of the LFSR's with a incorrect
 			polynomial.  [RT #4617]
+
+1405.	[func]		Use arc4random() if available.
 
 1401.	[bug]		adb wasn't clearing state when the timer expired.
 

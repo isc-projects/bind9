@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.c,v 1.15 2001/01/09 21:56:22 bwelling Exp $ */
+/* $Id: random.c,v 1.15.2.1 2003/08/05 00:42:55 marka Exp $ */
 
 #include <config.h>
 
@@ -33,7 +33,9 @@ static isc_once_t once = ISC_ONCE_INIT;
 static void
 initialize_rand(void)
 {
+#ifndef HAVE_ARC4RANDOM
 	srand(time(NULL));
+#endif
 }
 
 static void
@@ -47,7 +49,11 @@ isc_random_seed(isc_uint32_t seed)
 {
 	initialize();
 
+#ifndef HAVE_ARC4RANDOM
 	srand(seed);
+#else
+	arc4random_addrandom((u_char *) &seed, sizeof(isc_uint32_t));
+#endif
 }
 
 void
@@ -57,7 +63,15 @@ isc_random_get(isc_uint32_t *val)
 
 	initialize();
 
-	*val = rand();
+#ifndef HAVE_ARC4RANDOM
+	/*
+	 * rand()'s lower bits are not random.
+	 * rand()'s upper bit is zero.
+	 */
+	*val = ((rand() >> 4) & 0xffff) | ((rand() << 12) & 0xffff0000) ;
+#else
+	*val = arc4random();
+#endif
 }
 
 isc_uint32_t
@@ -66,5 +80,9 @@ isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
 	if (jitter == 0)
 		return (max);
 	else
+#ifndef HAVE_ARC4RANDOM
 		return (max - rand() % jitter);
+#else
+		return (max - arc4random() % jitter);
+#endif
 }
