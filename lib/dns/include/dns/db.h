@@ -83,6 +83,11 @@ typedef struct dns_dbmethods {
 	dns_result_t	(*findnode)(dns_db_t *db, dns_name_t *name,
 				    isc_boolean_t create,
 				    dns_dbnode_t **nodep);
+	dns_result_t	(*find)(dns_db_t *db, dns_name_t *name,
+				dns_dbversion_t *version,
+				dns_rdatatype_t type, unsigned int options,
+				dns_dbnode_t **nodep, dns_name_t *foundname,
+				dns_rdataset_t *rdataset);
 	void		(*attachnode)(dns_db_t *db,
 				      dns_dbnode_t *source,
 				      dns_dbnode_t **targetp);
@@ -134,6 +139,11 @@ struct dns_db {
 
 #define DNS_DBATTR_CACHE		0x01
 
+/*
+ * Options that can be specified for dns_db_find().
+ */
+#define DNS_DBFIND_GLUEOK		0x01
+#define DNS_DBFIND_VALIDATEGLUE		0x02
 
 /*****
  ***** Methods
@@ -369,10 +379,14 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 /*
  * Find the node with name 'name'.
  *
- * WARNING:  THIS API WILL BE CHANGING IN THE NEAR FUTURE.
+ * Notes:
+ *	If 'create' is ISC_TRUE and no node with name 'name' exists, then
+ *	such a node will be created.
  *
- * Note: if 'create' is ISC_TRUE and no node with name 'name' exists, then
- * such a node will be created.
+ *	This routine is for finding or creating a node with the specified
+ *	name.  There are no partial matches.  It is not suitable for use
+ *	in building responses to ordinary DNS queries; clients which wish
+ *	to do that should use dns_db_find() instead.
  *
  * Requires:
  *
@@ -395,6 +409,15 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  *
  *	Other results are possible, depending upon the database
  *	implementation used.
+ */
+
+dns_result_t
+dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+	    dns_rdatatype_t type, unsigned int options,
+	    dns_dbnode_t **nodep, dns_name_t *foundname,
+	    dns_rdataset_t *rdataset);
+/*
+ * XXX TBS.
  */
 
 void
@@ -501,6 +524,10 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  *	If 'version' is NULL, then the current version will be used.
  *
+ *	This routine is not suitable for use in building responses to
+ *	ordinary DNS queries; clients which wish to do that should use
+ *	dns_db_find() instead.
+ *
  * Requires:
  *
  *	'db' is a valid database.
@@ -581,8 +608,6 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	DNS_R_EXISTS			An rdataset with the specified
  *					rdataset's type and version's serial
  *					number already exists.
- *					XXX should non-existence in this
- *					version be a requirement instead?
  *	
  *	Other results are possible, depending upon the database
  *	implementation used.

@@ -232,8 +232,6 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 	 * Find the node with name 'name'.
 	 *
 	 * WARNING:  THIS API WILL BE CHANGING IN THE NEAR FUTURE.
-	 *
-	 * XXX Add options parameter (e.g. so we can say "longest match").
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
@@ -241,6 +239,18 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	return ((db->methods->findnode)(db, name, create, nodep));
+}
+
+dns_result_t
+dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
+	    dns_rdatatype_t type, unsigned int options,
+	    dns_dbnode_t **nodep, dns_name_t *foundname,
+	    dns_rdataset_t *rdataset) {
+
+	/* XXX TBS */
+
+	return ((db->methods->find)(db, name, version, type, options,
+				    nodep, foundname, rdataset));
 }
 
 void
