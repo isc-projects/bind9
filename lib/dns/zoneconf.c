@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.56 2000/08/10 16:57:25 bwelling Exp $ */
+/* $Id: zoneconf.c,v 1.57 2000/08/14 03:50:59 gson Exp $ */
 
 #include <config.h>
 
@@ -110,7 +110,9 @@ dns_zonetype_fromconf(dns_c_zonetype_t cztype) {
  * Helper function for strtoargv().  Pardon the gratuitous recursion.
  */
 static isc_result_t
-strtoargvsub(isc_mem_t *mctx, char *s, int *argcp, char ***argvp, int n) {
+strtoargvsub(isc_mem_t *mctx, char *s, unsigned int *argcp,
+	     char ***argvp, unsigned int n)
+{
 	isc_result_t result;
 	
 	/* Discard leading whitespace. */
@@ -146,7 +148,7 @@ strtoargvsub(isc_mem_t *mctx, char *s, int *argcp, char ***argvp, int n) {
  * is modified in-place.
  */
 static isc_result_t
-strtoargv(isc_mem_t *mctx, char *s, int *argcp, char ***argvp) {
+strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp) {
 	return (strtoargvsub(mctx, s, argcp, argvp, 0));
 }
 
