@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.51 1999/05/07 02:42:50 tale Exp $ */
+/* $Id: rbt.c,v 1.52 1999/05/07 02:47:35 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1292,7 +1292,7 @@ join_nodes(dns_rbt_t *rbt,
 	 */
 	newlength = newname->length + newname->labels;
 	oldlength = NAMELEN(down) + OFFSETLEN(down);
-	if (newlength > oldlength + PADBYTES(down))
+	if (newlength >= oldlength + PADBYTES(down))
 		result = create_node(rbt->mctx, newname, &newnode);
 
 	else {
