@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.120 2001/09/06 02:13:48 marka Exp $ */
+/* $Id: main.c,v 1.121 2001/09/07 00:17:25 gson Exp $ */
 
 #include <config.h>
 
@@ -272,6 +272,37 @@ parse_int(char *arg, const char *desc) {
 	return (tmp);
 }
 
+static struct flag_def {
+	const char *name;
+	unsigned int value;
+} mem_debug_flags[] = {
+	{ "trace",  ISC_MEM_DEBUGTRACE },
+	{ "record", ISC_MEM_DEBUGRECORD },
+	{ NULL, 0 }
+};
+
+static void
+set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
+	for (;;) {
+		const struct flag_def *def;
+		const char *end = strchr(arg, ',');
+		if (end == NULL)
+			end = arg + strlen(arg);
+		for (def = defs; def->name != NULL; def++) {
+			if (end - arg == (int)strlen(def->name) &&
+			    memcmp(arg, def->name, end - arg) == 0) {
+				*ret |= def->value;
+				goto found;
+			}
+		}
+		ns_main_earlyfatal("unrecognized flag '%.*s'", end - arg, arg);
+	 found:
+		if (*end == '\0')
+			break;
+		arg = end + 1;
+	}
+}
+
 static void
 parse_command_line(int argc, char *argv[]) {
 	int ch;
@@ -281,7 +312,7 @@ parse_command_line(int argc, char *argv[]) {
 
 	isc_commandline_errprint = ISC_FALSE;
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "c:C:d:fgi:ln:N:p:P:st:u:vx:")) !=
+					   "c:C:d:fgi:lm:n:N:p:P:st:u:vx:")) !=
 	       -1) {
 		switch (ch) {
 		case 'c':
@@ -314,6 +345,10 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 'l':
 			ns_g_lwresdonly = ISC_TRUE;
+			break;
+		case 'm':
+			set_flags(isc_commandline_argument, mem_debug_flags,
+				  &isc_mem_debugging);
 			break;
 		case 'N': /* Deprecated. */
 		case 'n':
@@ -553,16 +588,16 @@ main(int argc, char *argv[]) {
 		ns_main_earlyfatal("isc_app_start() failed: %s",
 				   isc_result_totext(result));
 
-	result = isc_mem_create(0, 0, &ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("isc_mem_create() failed: %s",
-				   isc_result_totext(result));
-
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
 
 	parse_command_line(argc, argv);
+
+	result = isc_mem_create(0, 0, &ns_g_mctx);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_mem_create() failed: %s",
+				   isc_result_totext(result));
 
 	setup();
 
