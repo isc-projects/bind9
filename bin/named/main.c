@@ -200,7 +200,7 @@ parse_command_line(int argc, char *argv[]) {
 		case 'p':
 			port = atoi(isc_commandline_argument);
 			if (port < 1 || port > 65535)
-				ns_main_earlyfatal("port \"%s\" out of range",
+				ns_main_earlyfatal("port '%s' out of range",
 						   isc_commandline_argument);
 			ns_g_port = port;
 			break;
@@ -221,7 +221,7 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case '?':
 			usage();
-			ns_main_earlyfatal("unknown option `-%c'",
+			ns_main_earlyfatal("unknown option '-%c'",
 					   isc_commandline_option);
 		default:
 			ns_main_earlyfatal("parsing options returned %d", ch);

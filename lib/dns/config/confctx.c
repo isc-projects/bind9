@@ -167,7 +167,7 @@ dns_c_checkconfig(dns_c_ctx_t *ctx)
 	if ((dns_c_ctx_getauthnxdomain(ctx, &bval)) == ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "the default for auth-nxdomain is now ``no''");
+			      "the default for auth-nxdomain is now 'no'");
 	}
 
 

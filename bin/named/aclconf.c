@@ -68,7 +68,7 @@ convert_named_acl(char *aclname, dns_c_ctx_t *cctx,
 	if (result != DNS_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
 			      DNS_LOGMODULE_ACL, ISC_LOG_WARNING,
-			      "undefined ACL \"%s\"", aclname);
+			      "undefined ACL '%s'", aclname);
 		return (result);
 	}
 	result = dns_acl_fromconfig(cacl->ipml, cctx, ctx, mctx, &dacl);

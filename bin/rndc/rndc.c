@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.4 2000/02/01 19:01:02 tale Exp $ */
+/* $Id: rndc.c,v 1.5 2000/03/01 22:41:22 gson Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -353,7 +353,7 @@ main(int argc, char **argv) {
 		}
 
 		if (result == ISC_R_NOTIMPLEMENTED)
-			fprintf(stderr, "%s: \"%s\" is not yet implemented\n",
+			fprintf(stderr, "%s: '%s' is not yet implemented\n",
 				progname, command);
 
 		else if (result != ISC_R_SUCCESS)
