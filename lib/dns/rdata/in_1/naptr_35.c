@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: naptr_35.c,v 1.14 1999/12/23 00:09:02 explorer Exp $ */
+ /* $Id: naptr_35.c,v 1.15 2000/01/07 02:44:27 halley Exp $ */
 
  /* RFC 2168 */
 
@@ -277,6 +277,12 @@ static inline isc_result_t
 additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 			void *arg)
 {
+	dns_name_t name;
+	isc_region_t sr;
+	dns_rdatatype_t atype;
+	unsigned int i, flagslen;
+	char *cp;
+
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
 
@@ -285,8 +291,38 @@ additionaldata_in_naptr(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	 * processing for terminal NAPTRs.
 	 */
 
-	(void)add;
-	(void)arg;
+	/* priority, weight */
+	dns_rdata_toregion(rdata, &sr);
+	isc_region_consume(&sr, 4);
+	
+	/* flags */
+	atype = 0;
+	flagslen = sr.base[0];
+	cp = (char *)&sr.base[1];
+	for (i = 0; i < flagslen; i++, cp++) {
+		if (*cp == 'S' || *cp == 's') {
+			atype = dns_rdatatype_srv;
+			break;
+		}
+		if (*cp == 'A' || *cp == 'a') {
+			atype = dns_rdatatype_a;
+			break;
+		}
+	}
+	isc_region_consume(&sr, flagslen + 1);
+
+	/* service */
+	isc_region_consume(&sr, sr.base[0] + 1);
+
+	/* regexp */
+	isc_region_consume(&sr, sr.base[0] + 1);
+
+	/* replacement */
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &sr);
+
+	if (atype != 0)
+		return ((add)(arg, &name, atype));
 
 	return (DNS_R_SUCCESS);
 }
