@@ -1,3 +1,6 @@
+1339.	[func]		dig, host and nslookup now use IP6.ARPA for nibble
+			lookups.  Bit string lookups are no longer attempted.
+
 1338.	[func]		IPv6 synthesis is now performed for IP6.ARPA bit
 			string queries.
 

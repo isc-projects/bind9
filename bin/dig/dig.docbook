@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.11 2002/05/22 04:58:30 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.12 2002/07/25 05:46:07 marka Exp $ -->
 
 <refentry>
 
@@ -203,9 +203,10 @@ When this option is used, there is no need to provide the
 automatically performs a lookup for a name like
 <literal>11.12.13.10.in-addr.arpa</literal> and sets the query type and
 class to PTR and IN respectively.  By default, IPv6 addresses are
-looked up using the IP6.ARPA domain and binary labels as defined in
-RFC2874.  To use the older RFC1886 method using the IP6.INT domain and
-"nibble" labels, specify the <option>-n</option> (nibble) option.
+looked up using nibble format under the IP6.ARPA domain.
+To use the older RFC1886 method using the IP6.INT domain 
+specify the <option>-i</option> option.  Bit string labels (RFC2874)
+are now experimental and are not attempted.
 </para>
 
 <para>

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.77 2002/05/29 05:31:05 marka Exp $ */
+/* $Id: dig.h,v 1.78 2002/07/25 05:46:07 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -99,7 +99,7 @@ struct dig_lookup {
 		trace, /* dig +trace */
 		trace_root, /* initial query for either +trace or +nssearch */
 		tcp_mode,
-		nibble,
+		ip6_int,
 		comments,
 		stats,
 		section_question,
@@ -190,7 +190,7 @@ void
 get_address(char *host, in_port_t port, isc_sockaddr_t *sockaddr);
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t nibble,
+get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict);
 
 void

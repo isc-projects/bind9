@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.245 2002/07/10 01:03:14 marka Exp $ */
+/* $Id: dighost.c,v 1.246 2002/07/25 05:46:07 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -220,7 +220,7 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 isc_result_t
-get_reverse(char *reverse, char *value, isc_boolean_t nibble,
+get_reverse(char *reverse, char *value, isc_boolean_t ip6_int,
 	    isc_boolean_t strict)
 {
 	int r;
@@ -233,9 +233,13 @@ get_reverse(char *reverse, char *value, isc_boolean_t nibble,
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
 		dns_name_t *name;
+		unsigned int options = DNS_BYADDROPT_IPV6NIBBLE;
+		
+		if (ip6_int)
+			options |= DNS_BYADDROPT_IPV6INT;
 		dns_fixedname_init(&fname);
 		name = dns_fixedname_name(&fname);
-		result = dns_byaddr_createptrname(&addr, nibble, name);
+		result = dns_byaddr_createptrname2(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		dns_name_format(name, reverse, MXNAME);
@@ -401,7 +405,7 @@ make_empty_lookup(void) {
 	looknew->retries = tries;
 	looknew->nsfound = 0;
 	looknew->tcp_mode = ISC_FALSE;
-	looknew->nibble = ISC_FALSE;
+	looknew->ip6_int = ISC_FALSE;
 	looknew->comments = ISC_TRUE;
 	looknew->stats = ISC_TRUE;
 	looknew->section_question = ISC_TRUE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.96 2002/03/20 18:20:03 marka Exp $ */
+/* $Id: nslookup.c,v 1.97 2002/07/25 05:46:07 marka Exp $ */
 
 #include <config.h>
 
@@ -662,7 +662,7 @@ addlookup(char *opt) {
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
-	if (get_reverse(store, opt, lookup->nibble, ISC_TRUE)
+	if (get_reverse(store, opt, lookup->ip6_int, ISC_TRUE)
 	    == ISC_R_SUCCESS)
 	{
 		safecpy(lookup->textname, store, sizeof(lookup->textname));

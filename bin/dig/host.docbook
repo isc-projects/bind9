@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.2 2001/06/08 17:18:13 gson Exp $ -->
+<!-- $Id: host.docbook,v 1.3 2002/07/25 05:46:07 marka Exp $ -->
 
 <refentry>
 
@@ -109,10 +109,10 @@ to making a query of type AXFR.
 </para>
 
 <para>
-The <option>-n</option>
+The <option>-i</option>
 option specifies that reverse lookups of IPv6 addresses should
-use the IP6.INT domain and "nibble" labels as defined in RFC1886.
-The default is to use IP6.ARPA and binary labels as defined in RFC2874.
+use the IP6.INT domain as defined in RFC1886.
+The default is to use IP6.ARPA.
 </para>
 
 <para>
