@@ -53,6 +53,19 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
 
 #define ISC_EVENTATTR_NOPURGE		0x00000001
 
+#define ISC_EVENT_INIT(event, sz, at, ty, ac, ar, sn, df, da) \
+do { \
+	(event)->size = (sz); \
+	(event)->attributes = (at); \
+	(event)->type = (ty); \
+	(event)->action = (ac); \
+	(event)->arg = (ar); \
+	(event)->sender = (sn); \
+	(event)->destroy = (df); \
+	(event)->destroy_arg = (da); \
+	ISC_LINK_INIT((event), link); \
+} while (0)
+	
 /*
  * This structure is public because "subclassing" it may be useful when
  * defining new event types.
