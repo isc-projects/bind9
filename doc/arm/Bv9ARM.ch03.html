@@ -217,6 +217,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><TABLE
+CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
 ><TR
@@ -473,7 +474,7 @@ CLASS="command"
 >also-notify</B
 >, see <A
 HREF="Bv9ARM.ch06.html#zone_transfers"
->Section 6.2.14.7</A
+>Section 6.2.14.6</A
 >. For more information about
     <B
 CLASS="command"
@@ -755,20 +756,10 @@ CLASS="replaceable"
 ><I
 >port</I
 ></TT
->] [-v <TT
-CLASS="replaceable"
-><I
->view</I
-></TT
 >] [-y <TT
 CLASS="replaceable"
 ><I
 >key</I
-></TT
->] [-z <TT
-CLASS="replaceable"
-><I
->zone</I
 ></TT
 >]  <TT
 CLASS="replaceable"
@@ -785,89 +776,18 @@ CLASS="replaceable"
 ><B
 CLASS="command"
 >command</B
-> is one of the following
-              for <B
-CLASS="command"
->named</B
->:</P
+> is one of the following:</P
 ><DIV
 CLASS="informaltable"
 ><P
 ></P
 ><TABLE
+CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
 ><TR
 ><TD
-WIDTH="144"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
->&#13;<P
-><TT
-CLASS="userinput"
-><B
->status</B
-></TT
-><SUP
->a</SUP
-></P
-></TD
-><TD
 WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Display ps(1) status of named.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="144"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
-><TT
-CLASS="userinput"
-><B
->dumpdb</B
-></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Dump database and cache to /var/tmp/named_dump.db.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="144"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
-><TT
-CLASS="userinput"
-><B
->refresh</B
-></TT
-></P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Force a refresh of specified zone.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="144"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
@@ -888,7 +808,91 @@ VALIGN="MIDDLE"
 ></TR
 ><TR
 ><TD
-WIDTH="144"
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
+>reload <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+> [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>class</I
+></TT
+> [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>view</I
+></TT
+></SPAN
+>]</SPAN
+>]</B
+></TT
+></P
+></TD
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Reload the given zone.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+><TT
+CLASS="userinput"
+><B
+>refresh <TT
+CLASS="replaceable"
+><I
+>zone</I
+></TT
+> [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>class</I
+></TT
+> [<SPAN
+CLASS="optional"
+><TT
+CLASS="replaceable"
+><I
+>view</I
+></TT
+></SPAN
+>]</SPAN
+>]</B
+></TT
+></P
+></TD
+><TD
+WIDTH="288"
+ALIGN="LEFT"
+VALIGN="MIDDLE"
+><P
+>Schedule zone maintenance for the given zone.</P
+></TD
+></TR
+><TR
+><TD
+WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
@@ -904,61 +908,12 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Dump statistics to /var/tmp/named.stats.</P
+>Write server statistics to the statistics file.</P
 ></TD
 ></TR
 ><TR
-><TD
-WIDTH="144"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
-><TT
-CLASS="userinput"
-><B
->trace</B
-></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
-></P
-></TD
 ><TD
 WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Increment debugging level by one.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="144"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
->&#13;<P
-><TT
-CLASS="userinput"
-><B
->notrace</B
-></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
->
-</P
-></TD
-><TD
-WIDTH="288"
-ALIGN="LEFT"
-VALIGN="MIDDLE"
-><P
->Set debugging level to 0.</P
-></TD
-></TR
-><TR
-><TD
-WIDTH="144"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
@@ -967,9 +922,6 @@ CLASS="userinput"
 ><B
 >querylog</B
 ></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
 ></P
 ></TD
 ><TD
@@ -982,7 +934,7 @@ VALIGN="MIDDLE"
 ></TR
 ><TR
 ><TD
-WIDTH="144"
+WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
@@ -991,9 +943,6 @@ CLASS="userinput"
 ><B
 >stop</B
 ></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
 ></P
 ></TD
 ><TD
@@ -1001,23 +950,22 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Stop the server.</P
+>Stop the server, making sure any recent changes
+made through dynamic update or IXFR are first saved to the master files
+of the updated zones.</P
 ></TD
 ></TR
 ><TR
 ><TD
-WIDTH="144"
+WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
 ><TT
 CLASS="userinput"
 ><B
->restart</B
+>halt</B
 ></TT
-><A
-HREF="#FTN.nyi1"
->[a]</A
 ></P
 ></TD
 ><TD
@@ -1025,29 +973,29 @@ WIDTH="288"
 ALIGN="LEFT"
 VALIGN="MIDDLE"
 ><P
->Restart the server.</P
+>Stop the server immediately.  Recent changes
+made through dynamic update or IXFR are not saved to the master files,
+but will be rolled forward from the journal files when the server
+is restarted.</P
 ></TD
-></TR
-><TR
-><TD
-COLSPAN="2"
->Notes:<BR><A
-NAME="FTN.nyi1"
->a</A
->not yet implemented<BR></TD
 ></TR
 ></TABLE
 ><P
 ></P
 ></DIV
 ><P
->As noted above, only a limited number of commands are
-              available in <SPAN
+>In <SPAN
 CLASS="acronym"
 >BIND</SPAN
-> 9.1. The other
-              commands, and more, are planned to be implemented for
-              future releases.</P
+> 9.1, <B
+CLASS="command"
+>rndc</B
+> does not
+yet support all the commands of the BIND 8 <B
+CLASS="command"
+>ndc</B
+>
+utility.  Additonal commands will be added in future releases.</P
 ><P
 >A configuration file is required, since all
               communication with the server is authenticated with
@@ -1075,14 +1023,14 @@ CLASS="filename"
 >, but limited to
               only three statements, the <B
 CLASS="command"
->options{}</B
+>options</B
 >,
               <B
 CLASS="command"
->key{}</B
+>key</B
 > and <B
 CLASS="command"
->server{}</B
+>server</B
 >
               statements.  These statements are what associate the
               secret keys to the servers with which they are meant to
@@ -1091,7 +1039,7 @@ CLASS="command"
 ><P
 >The <B
 CLASS="command"
->options{}</B
+>options</B
 > statement has two clauses: <B
 CLASS="command"
 >default-server</B
@@ -1113,7 +1061,7 @@ CLASS="command"
 > takes
 the name of key as its argument, as defined by a <B
 CLASS="command"
->key{}</B
+>key</B
 > statement.
  In the future a <B
 CLASS="command"
@@ -1127,7 +1075,7 @@ connect.</P
 ><P
 >The <B
 CLASS="command"
->key{}</B
+>key</B
 > statement names a key with its
 string argument. The string is required by the server to be a valid
 domain name, though it need not actually be hierarchical; thus,
@@ -1139,7 +1087,7 @@ CLASS="userinput"
 >" is a valid name.
 The <B
 CLASS="command"
->key{}</B
+>key</B
 > statement has two clauses: <B
 CLASS="command"
 >algorithm</B
@@ -1165,20 +1113,20 @@ CLASS="command"
 ><P
 >The <B
 CLASS="command"
->server{}</B
+>server</B
 > statement uses the key clause
 to associate a <B
 CLASS="command"
->key{}</B
+>key</B
 >-defined key with a server.
  The argument to the <B
 CLASS="command"
->server{}</B
+>server</B
 > statement is a
 host name or address (addresses must be double quoted).  The argument
 to the key clause is the name of the key as defined by the <B
 CLASS="command"
->key{}</B
+>key</B
 > statement.
  A <B
 CLASS="command"
@@ -1243,7 +1191,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN607"
+NAME="AEN588"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1258,6 +1206,7 @@ CLASS="informaltable"
 ><P
 ></P
 ><TABLE
+CELLPADDING="3"
 BORDER="1"
 CLASS="CALSTABLE"
 ><TR
