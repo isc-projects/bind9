@@ -1,4 +1,6 @@
 
+ 373.	[func]		nslookup is now installed by "make install".
+
  372.	[bug]		Deal with Microsoft DNS servers appending two bytes of
 			garbage to zone transfer requests.
 
