@@ -68,39 +68,32 @@ BIND 9
 		Stichting NLnet - NLnet Foundation
 
 
-BIND 9.0.0b3
+BIND 9.0.0b4
 
-	BIND 9.0.0b3 is the third public release of BIND 9 code.  It will
+	BIND 9.0.0b4 is the fourth public release of BIND 9 code.  It will
 	be most useful to advanced users working with IPv6 or DNSSEC.
 
-	BIND 9.0.0b3 is not functionally complete, and is not a release
-	candidate for BIND 9.0.0.  ISC anticipates at least one additional
-	beta release between now and June, when BIND 9.0.0 is scheduled to
-	be released.
+	BIND 9.0.0b4 has almost all the functiolity of the upcoming
+        9.0.0 release.  It is not a release candidate for BIND 9.0.0.
+        ISC anticipates at least one more beta release between now and 
+	the release of BIND 9.0.0.
 
-	ISC does not recommend using BIND 9.0.0b3 for "production"
+	ISC does not recommend using BIND 9.0.0b4 for "production"
 	services.
 
-	We hope users of BIND 9.0.0b3 will provide feedback, bug fixes, and
-	enhancements.  If you are not in a position to do so, it would
-	probably be better to wait until subsequent releases.
+	We hope users of BIND 9.0.0b4 will provide feedback and bug fixes.
 
-	There have been many changes since beta 2; the highlights are:
+	There have been many changes since beta 3; the highlights are:
 
-		The server now supports "views", a mechanism for answering
-		DNS queries differently to different requestors.  This
-		will make split DNS setups much easier to build.
+		Stub zones have been implemented.
 
-		NOTIFY (RFC1996) has been implemented.
+		Additional configuration options have been implemented, 
+		such as "max-cache-ttl" and "max-ncache-ttl".
 
-		Basic support for validation of DNSSEC signatures has
-		been implemented.  For details, see doc/misc/dnssec.
+		More configuration options can be specified separately
+		for each view, including the "key" and "server" statements.
 
-		The "dig" and "host" tools have been completely rewritten
-		and are included in the base distribution.
-
-		Bug fixes.  Most bugs reported against beta 2 have been
-		fixed.
+		Numerous bug fixes and code cleanups.
 
 	There are a few known bugs:
 
@@ -111,15 +104,13 @@ BIND 9.0.0b3
 		On some systems, IPv6 and IPv4 sockets interact in
 		unexpected ways.  For details, see doc/misc/ipv6.
 
-	For a detailed list of user-visible changes since beta 2, see
+	For a detailed list of user-visible changes since beta 3, see
 	the CHANGES file.	
 
 	Some of the more significant items that will be implemented or
 	enhanced in a future beta are
 
 		Selective forwarding
-
-		Stub zones
 
 		Documentation
 
@@ -259,7 +250,6 @@ Bug Reports and Mailing Lists
 
 
 Note to Programmers
-
 	The APIs for the libraries in BIND 9 are not yet frozen.
 	We expect the existing library interfaces in the release to be
 	quite stable, however, and unless we've specifically indicated that
