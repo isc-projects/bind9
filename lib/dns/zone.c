@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.156 2000/07/11 22:44:33 gson Exp $ */
+/* $Id: zone.c,v 1.157 2000/07/13 00:30:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3359,6 +3359,9 @@ zone_log(dns_zone_t *zone, const char *me, int level, const char *fmt, ...) {
 	isc_buffer_t buffer;
 	int len;
 	isc_result_t result = ISC_R_FAILURE;
+
+	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+		return;
 
 	isc_buffer_init(&buffer, namebuf, sizeof(namebuf));
 
