@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.38 2000/06/22 21:57:22 tale Exp $
+# $Id: Makefile.in,v 1.39 2000/06/30 00:26:19 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -22,14 +22,16 @@ top_srcdir =	@top_srcdir@
 @BIND9_VERSION@
 
 #
-# Only list headers that are to be installed!
+# Only list headers that are to be installed and are not
+# machine generated.  The latter are handled specially in the
+# install target below.
 #
 HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
 		bufferlist.h commandline.h error.h event.h eventclass.h \
 		file.h formatcheck.h fsaccess.h heap.h interfaceiter.h \
 		@ISC_IPV6_H@ lang.h lex.h \
 		lfsr.h lib.h list.h log.h magic.h md5.h mem.h msgcat.h \
-		mutexblock.h netaddr.h ondestroy.h os.h platform.h \
+		mutexblock.h netaddr.h ondestroy.h os.h \
 		print.h quota.h random.h ratelimiter.h region.h \
 		result.h resultclass.h rwlock.h serial.h sha1.h sockaddr.h \
 		socket.h stdio.h string.h symtab.h task.h taskpool.h timer.h \
