@@ -687,7 +687,7 @@ static isc_result_t
 options_callback(dns_c_ctx_t *cctx, void *uap) {
 	isc_result_t result;
 
-	(void)uap;
+	UNUSED(uap);
 
 	/*
 	 * Change directory.
@@ -937,7 +937,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_server_t *server = (ns_server_t *) event->arg;
 
-	(void)task;
+	UNUSED(task);
 
 	isc_event_free(&event);
 
