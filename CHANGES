@@ -6,6 +6,9 @@
 
 1101.	[bug]		Array bounds read error in lwres_gai_strerror.
 
+1085.	[port]		libbind: solaris: sys_nerr and sys_errlist do not
+			exist when compiling in 64 bit mode.
+
 1084.	[cleanup]	libbind: gai_strerror() rewritten.
 
 1083.	[bug]		The default control channel listened on the
