@@ -1,4 +1,8 @@
 
+ 697.	[bug]		nsupdate was not compatible with the undocumented
+			BIND 8 behavior of ignoring TTLs in "update delete"
+			commands. [RT #693]
+
  696.	[bug]		lwresd would die with an assertion failure when passed
 			a zero-length name.  [RT #692]
 

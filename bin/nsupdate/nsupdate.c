@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.77 2001/01/18 22:21:31 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.78 2001/01/21 19:52:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -939,6 +939,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	isc_textregion_t region;
 	char *endp;
 	isc_uint16_t retval;
+	isc_boolean_t parsedclass = ISC_FALSE;
 
 	ddebug("update_addordelete()");
 
@@ -959,35 +960,45 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 
 	/*
 	 * If this is an add, read the TTL and verify that it's in range.
+	 * If it's a delete, ignore a TTL if present (for compatibility).
 	 */
-	if (!isdelete) {
-		word = nsu_strsep(&cmdline, " \t\r\n");
-		if (*word == 0) {
+	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (*word == 0) {
+		if (!isdelete)
 			fprintf(stderr, "failed to read owner ttl\n");
-			goto failure;
-		}
-		ttl = strtol(word, &endp, 0);
-		if (*endp != '\0') {
+		else
+			fprintf(stderr, "failed to read class or type \n");
+		goto failure;
+	}
+	ttl = strtol(word, &endp, 0);
+	if (*endp != '\0') {
+		if (isdelete)
+			parsedclass = ISC_TRUE;
+		else {
 			fprintf(stderr, "ttl '%s' is not numeric\n", word);
 			goto failure;
-		} else if (ttl < 0 || ttl > TTL_MAX || errno == ERANGE) {
-			/*
-			 * The errno test is needed to catch when strtol()
-			 * overflows on a platform where sizeof(int) ==
-			 * sizeof(long), because ttl will be set to LONG_MAX,
-			 * which will be equal to TTL_MAX.
-			 */
-			fprintf(stderr, "ttl '%s' is out of range "
-				"(0 to %d)\n", word, TTL_MAX);
-			goto failure;
 		}
-	} else
+	}
+
+	if (isdelete)
 		ttl = 0;
+	else if (ttl < 0 || ttl > TTL_MAX || errno == ERANGE) {
+		/*
+		 * The errno test is needed to catch when strtol()
+		 * overflows on a platform where sizeof(int) ==
+		 * sizeof(long), because ttl will be set to LONG_MAX,
+		 * which will be equal to TTL_MAX.
+		 */
+		fprintf(stderr, "ttl '%s' is out of range (0 to %d)\n",
+			word, TTL_MAX);
+		goto failure;
+	}
 
 	/*
 	 * Read the class or type.
 	 */
-	word = nsu_strsep(&cmdline, " \t\r\n");
+	if (!parsedclass)
+		word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
 		if (isdelete) {
 			rdataclass = dns_rdataclass_any;
@@ -1021,11 +1032,19 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		region.base = word;
 		region.length = strlen(word);
 		result = dns_rdatatype_fromtext(&rdatatype, &region);
-		check_result(result, "dns_rdatatype_fromtext");
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "'%s' is not a valid type: %s\n",
+				word, isc_result_totext(result));
+			goto failure;
+		}
 	} else {
 		rdataclass = dns_rdataclass_in;
 		result = dns_rdatatype_fromtext(&rdatatype, &region);
-		check_result(result, "dns_rdatatype_fromtext");
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "'%s' is not a valid class or type: "
+				"%s\n", word, isc_result_totext(result));
+			goto failure;
+		}
 	}
 
 	retval = parse_rdata(&cmdline, rdataclass, rdatatype, updatemsg,
