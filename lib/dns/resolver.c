@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.215 2001/04/11 20:37:44 bwelling Exp $ */
+/* $Id: resolver.c,v 1.216 2001/05/29 23:07:28 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3118,6 +3118,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	secure_domain = ISC_FALSE;
 	eresult = ISC_R_SUCCESS;
 	name = &fctx->name;
+	node = NULL;
 
 	/*
 	 * Is DNSSEC validation required for this name?
@@ -3201,7 +3202,6 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	} else
 		event = NULL;
 
-	node = NULL;
 	result = dns_db_findnode(fctx->cache, name, ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
