@@ -36,23 +36,23 @@
 
 typedef struct dns_rbt dns_rbt_t;
 
-/* These should add up to 31 XXX change to 30 after color fix */
+/* These should add up to 30 */
 
 #define DNS_RBT_LOCKLENGTH			10
-#define DNS_RBT_REFLENGTH			21
+#define DNS_RBT_REFLENGTH			20
 
 typedef struct dns_rbt_node {
 	struct dns_rbt_node *left;
 	struct dns_rbt_node *right;
 	struct dns_rbt_node *down;
-	enum { red, black } color;
-	/* XXX should make color one of the following bits */
+	void *data;
+	unsigned int color:1;
 	unsigned int dirty:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
 	unsigned int references:DNS_RBT_REFLENGTH;
-	void *data;
-	unsigned int name_length;
 } dns_rbtnode_t;
+
+typedef struct node_chain node_chain_t;
 
 dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
 /*
@@ -64,13 +64,14 @@ dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	again and then setting the data pointer.
  *
  * Requires:
+ *	rbt is a valid rbt structure.
  *	dns_name_isabsolute(name) == TRUE
  *
  * Ensures:
  *
  *	'name' is not altered in any way.
  *
- *	If result is success:
+ *	If result is DNS_R_SUCCESS:
  *		'name' is findable in the red/black tree of trees in O(log N).
  *
  * Returns:
@@ -78,12 +79,26 @@ dns_result_t dns_rbt_addname(dns_rbt_t *rbt, dns_name_t *name, void *data);
  *	Resource Limit: Out of Memory
  */
 
-dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name);
+dns_result_t dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name,
+			    dns_rbtnode_t **nodep);
+/*
+ * Just like dns_rbt_addname, but return the address of the added node,
+ * even when the node already existed.
+ *
+ * Requires:
+ *	rbt is a valid rbt structure.
+ *	dns_name_isabsolute(name) == TRUE
+ *	nodep != NULL && *nodep == NULL
+ */
+
+dns_result_t dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name,
+				isc_boolean_t recurse);
 /*
  * Delete 'name' from the tree of trees.
  *
  * Notes:
- *	When 'name' is removed, all of its subnames are removed too.
+ *	When 'name' is removed, if recurse is TRUE then all of its
+ *      subnames are removed too.
  *
  * Requires:
  *	dns_name_isabsolute(name) == TRUE
@@ -110,7 +125,8 @@ void dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  *
  */
 
-dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name);
+dns_rbtnode_t *dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name,
+				node_chain_t *chain);
 /*
  * Find the node for 'name'.
  *
@@ -133,5 +149,6 @@ void dns_rbt_printnodename(dns_rbtnode_t *node);
 void dns_rbt_printtree(dns_rbtnode_t *root, dns_rbtnode_t *parent, int depth);
 void dns_rbt_printall(dns_rbt_t *rbt);
 
-dns_result_t dns_rbt_create(isc_mem_t *mctx, dns_rbt_t **rbtp);
+dns_result_t dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *),
+			    dns_rbt_t **rbtp);
 void dns_rbt_destroy(dns_rbt_t **rbtp);
