@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: commandline.h,v 1.8 2001/07/12 05:58:22 mayer Exp $ */
+/* $Id: commandline.h,v 1.9 2001/07/16 03:52:07 mayer Exp $ */
 
 #ifndef ISC_COMMANDLINE_H
 #define ISC_COMMANDLINE_H 1
@@ -24,15 +24,18 @@
 #include <isc/lang.h>
 #include <isc/platform.h>
 
-
-LIBISC_EXTERNAL_DATA extern int isc_commandline_index;	/* Index into parent argv vector. */
-LIBISC_EXTERNAL_DATA extern int isc_commandline_option;	/* Character checked for validity. */
-
-LIBISC_EXTERNAL_DATA extern char *isc_commandline_argument;	/* Argument associated with option. */
-LIBISC_EXTERNAL_DATA extern char *isc_commandline_progname;	/* For printing error messages. */
-
-LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_errprint;	/* Print error message. */
-LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_reset;    	/* Reset getopt. */
+/* Index into parent argv vector. */
+LIBISC_EXTERNAL_DATA extern int isc_commandline_index;
+/* Character checked for validity. */
+LIBISC_EXTERNAL_DATA extern int isc_commandline_option;
+/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA extern char *isc_commandline_argument;
+/* For printing error messages. */
+LIBISC_EXTERNAL_DATA extern char *isc_commandline_progname;
+/* Print error message. */
+LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_errprint;
+/* Reset getopt. */
+LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_reset;
 
 ISC_LANG_BEGINDECLS
 

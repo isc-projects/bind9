@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.c,v 1.3 2001/07/09 21:06:14 gson Exp $ */
+/* $Id: ntfile.c,v 1.4 2001/07/16 03:52:12 mayer Exp $ */
 
 /*
  * This file has been necessitated by the fact that the iov array is local
@@ -29,6 +29,7 @@
 #include <config.h>
 
 #include <io.h>
+#include <isc/ntfile.h>
 
 FILE *
 isc_ntfile_fopen(const char *filename, const char *mode) {

@@ -78,6 +78,7 @@ isc_file_renameunique
 isc_file_basename
 isc_file_progname
 isc_file_safemovefile
+isc_file_getabsolutepath
 isc_fsaccess_add
 isc_fsaccess_remove
 isc_fsaccess_set

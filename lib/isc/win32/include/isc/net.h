@@ -15,10 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.14 2001/07/08 05:09:29 mayer Exp $ */
+/* $Id: net.h,v 1.15 2001/07/16 03:52:13 mayer Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
+
+/*
+ * Also define LWRES_IPV6_H to keep it from being included if liblwres is
+ * being used, or redefinition errors will occur.
+ */
+#define LWRES_IPV6_H 1
+
+
 
 /*****
  ***** Module Info

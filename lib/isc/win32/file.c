@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.15 2001/07/12 05:58:26 mayer Exp $ */
+/* $Id: file.c,v 1.16 2001/07/16 03:52:09 mayer Exp $ */
 
 #include <config.h>
 
@@ -453,4 +453,23 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 	strncpy(progname, s, len);
 	progname[len] = '\0';
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_file_getabsolutepath(const char *filename, char *path, size_t pathlen) {
+	char *ptrname;
+	DWORD retval;
+
+	REQUIRE(filename != NULL);
+	REQUIRE(path != NULL);
+
+	retval = GetFullPathName(filename, pathlen, path, &ptrname);
+
+	/* Something went wrong in getting the path */
+	if (retval == 0)
+		return (ISC_R_NOTFOUND);
+	/* Caller needs to provide a larger buffer to contain the string */
+	if (retval >= pathlen)
+		return (ISC_R_NOSPACE);
+	return(ISC_R_SUCCESS);
 }

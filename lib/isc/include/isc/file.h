@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.20 2001/06/08 21:53:48 tale Exp $ */
+/* $Id: file.h,v 1.21 2001/07/16 03:52:08 mayer Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -216,11 +216,17 @@ isc_file_template(const char *path, const char *templet, char *buf,
  * such that path can be renamed to buf atomically.
  */
 
-isc_result_t
-isc_file_renameunique(const char *file, char *templet);
 /*
  * Rename 'file' using 'templet' as a template for the new file name.
  */
+isc_result_t
+isc_file_renameunique(const char *file, char *templet);
+/*
+ * Given a file name, return the fully qualified path to the file
+ *
+ */
+isc_result_t
+isc_file_getabsolutepath(const char *filename, char *path, size_t pathlen);
 
 /*
  * XXX We should also have a isc_file_writeeopen() function

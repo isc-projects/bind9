@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.4 2001/07/09 21:34:43 gson Exp $ */
+/* $Id: ntfile.h,v 1.5 2001/07/16 03:52:14 mayer Exp $ */
 
 #ifndef ISC_NTFILE_H
 #define ISC_NTFILE_H 1
@@ -28,6 +28,50 @@
  * functions are redefined to call these routines instead and there will
  * be just the one iov to deal with.
  */
+
+/*
+ * Outside of lib isc we need to redefine these functions
+ * This is due to the way _iob is set up.
+ * liblwres should not use this.
+ */
+
+#if !defined(LIBISC_EXPORTS) && !defined(LIBLWRES_EXPORTS)
+
+#undef fdopen
+#undef getc
+
+#define fopen    isc_ntfile_fopen
+#define fclose   isc_ntfile_fclose
+#define fwrite   isc_ntfile_fwrite
+#define fread    isc_ntfile_fread
+#define fseek    isc_ntfile_fseek
+#define fflush   isc_ntfile_flush
+#define fsync    isc_ntfile_sync
+#define printf   isc_ntfile_printf
+#define fprintf  isc_ntfile_fprintf
+#define vfprintf isc_ntfile_vfprintf
+#define getc     isc_ntfile_getc
+#define fgetc    isc_ntfile_fgetc
+#define fgets    isc_ntfile_fgets
+#define fputc    isc_ntfile_fputc
+#define fputs    isc_ntfile_fputs
+#define fgetpos  isc_ntfile_fgetpos
+#define freopen  isc_ntfile_freopen
+#define fdopen   isc_ntfile_fdopen
+#define open	 isc_ntfile_open
+#define close	 isc_ntfile_close
+#define read	 isc_ntfile_read
+#define write	 isc_ntfile_write
+
+#undef stdin
+#undef stdout
+#undef stderr
+
+#define stdin  isc_ntfile_getaddress(0)
+#define stdout isc_ntfile_getaddress(1)
+#define stderr isc_ntfile_getaddress(2)
+
+#endif
 
 FILE*
 isc_ntfile_fopen(const char *filename, const char *mode);

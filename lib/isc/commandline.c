@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.14 2001/07/12 05:58:18 mayer Exp $ */
+/* $Id: commandline.c,v 1.15 2001/07/16 03:52:06 mayer Exp $ */
 
 /*
  * This file was adapted from the NetBSD project's source tree, RCS ID:
@@ -72,14 +72,18 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-LIBISC_EXTERNAL_DATA int isc_commandline_index = 1;		/* Index into parent argv vector. */
-LIBISC_EXTERNAL_DATA int isc_commandline_option;		/* Character checked for validity. */
-
-LIBISC_EXTERNAL_DATA char *isc_commandline_argument;		/* Argument associated with option. */
-LIBISC_EXTERNAL_DATA char *isc_commandline_progname;		/* For printing error messages. */
-
-LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_errprint = ISC_TRUE; /* Print error messages. */
-LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_reset = ISC_TRUE; /* Reset processing. */
+/* Index into parent argv vector. */
+LIBISC_EXTERNAL_DATA int isc_commandline_index = 1;
+/* Character checked for validity. */
+LIBISC_EXTERNAL_DATA int isc_commandline_option;
+/* Argument associated with option. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_argument;
+/* For printing error messages. */
+LIBISC_EXTERNAL_DATA char *isc_commandline_progname;
+/* Print error messages. */
+LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_errprint = ISC_TRUE;
+/* Reset processing. */
+LIBISC_EXTERNAL_DATA isc_boolean_t isc_commandline_reset = ISC_TRUE;
 
 static char endopt = '\0';
 
