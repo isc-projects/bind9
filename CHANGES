@@ -1,3 +1,5 @@
+ 473.	[bug]		Prevent dns_request_create: not implemented
+			message when no servers can be reached.
 
  472.	[bug]		Off-by-one error caused isc_time_add() to sometimes
 			produce invalid time values.
