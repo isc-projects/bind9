@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.77 2002/03/07 13:46:34 marka Exp $ */
+/* $Id: view.h,v 1.78 2002/04/26 00:40:35 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -118,6 +118,7 @@ struct dns_view {
 	dns_ttl_t			maxncachettl;
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
+	dns_rdatatype_t			preferred_glue;
 
 	/*
 	 * Configurable data for server use only,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.206 2002/04/03 05:30:01 marka Exp $ */
+/* $Id: client.c,v 1.207 2002/04/26 00:40:22 marka Exp $ */
 
 #include <config.h>
 
@@ -843,6 +843,7 @@ ns_client_send(ns_client_t *client) {
 	isc_boolean_t cleanup_cctx = ISC_FALSE;
 	unsigned char sendbuf[SEND_BUFFER_SIZE];
 	unsigned int dnssec_opts;
+	unsigned int preferred_glue;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 
@@ -855,6 +856,13 @@ ns_client_send(ns_client_t *client) {
 		dnssec_opts = 0;
 	else
 		dnssec_opts = DNS_MESSAGERENDER_OMITDNSSEC;
+
+	if (client->view->preferred_glue == dns_rdatatype_a)
+		preferred_glue = DNS_MESSAGERENDER_PREFER_A;
+	else if (client->view->preferred_glue == dns_rdatatype_aaaa)
+		preferred_glue = DNS_MESSAGERENDER_PREFER_AAAA;
+	else
+		preferred_glue = 0;
 
 	/*
 	 * XXXRTH  The following doesn't deal with TCP buffer resizing.
@@ -911,7 +919,7 @@ ns_client_send(ns_client_t *client) {
 		goto done;
 	result = dns_message_rendersection(client->message,
 					   DNS_SECTION_ADDITIONAL,
-					   dnssec_opts);
+					   preferred_glue | dnssec_opts);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOSPACE)
 		goto done;
  renderend:

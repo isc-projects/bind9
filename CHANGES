@@ -1,3 +1,5 @@
+1274.	[func]		preferred-glue option from BIND 8.3.
+
 1273.	[bug]		The dnssec system test failed to remove the correct
 			files.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.5 2002/03/07 13:48:02 marka Exp $ */
+/* $Id: namedconf.c,v 1.6 2002/04/26 00:40:37 marka Exp $ */
 
 #include <config.h>
 
@@ -553,6 +553,7 @@ view_clauses[] = {
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
+	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ NULL, NULL, 0 }
 };
 

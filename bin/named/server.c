@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.373 2002/03/29 01:10:22 marka Exp $ */
+/* $Id: server.c,v 1.374 2002/04/26 00:40:24 marka Exp $ */
 
 #include <config.h>
 
@@ -934,6 +934,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	view->maxncachettl = cfg_obj_asuint32(obj);
 	if (view->maxncachettl > 7 * 24 * 3600)
 		view->maxncachettl = 7 * 24 * 3600;
+
+	obj = NULL;
+	result = ns_config_get(maps, "preferred-glue", &obj);
+	if (result == ISC_R_SUCCESS) {
+		str = cfg_obj_asstring(obj);
+		if (strcasecmp(str, "a") == 0)
+			view->preferred_glue = dns_rdatatype_a;
+		else if (strcasecmp(str, "aaaa") == 0)
+			view->preferred_glue = dns_rdatatype_aaaa;
+		else
+			view->preferred_glue = 0;
+        } else
+		view->preferred_glue = 0;
 
 	result = ISC_R_SUCCESS;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.32 2002/04/17 01:23:15 marka Exp $ */
+/* $Id: check.c,v 1.33 2002/04/26 00:40:28 marka Exp $ */
 
 #include <config.h>
 
@@ -206,6 +206,18 @@ check_options(cfg_obj_t *options, isc_log_t *logctx) {
 				    intervals[i].name, val);
 			result = ISC_R_RANGE;
 		}
+	}
+	obj = NULL;
+	(void)cfg_map_get(options, "preferred-glue", &obj);
+	if (obj != NULL) {
+		const char *str;
+                str = cfg_obj_asstring(obj);
+                if (strcasecmp(str, "a") != 0 &&
+		    strcasecmp(str, "aaaa") != 0 &&
+		    strcasecmp(str, "none") != 0)
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "preferred-glue unexpected value '%s'",
+				    str);
 	}
 	return (result);
 }

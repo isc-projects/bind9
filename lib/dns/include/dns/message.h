@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.109 2002/03/11 01:59:16 marka Exp $ */
+/* $Id: message.h,v 1.110 2002/04/26 00:40:34 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -162,6 +162,10 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGERENDER_ORDERED	0x0001	/* don't change order */
 #define DNS_MESSAGERENDER_PARTIAL	0x0002	/* allow a partial rdataset */
 #define DNS_MESSAGERENDER_OMITDNSSEC	0x0004	/* omit DNSSEC records */
+#define DNS_MESSAGERENDER_PREFER_A	0x0008	/* prefer A records in
+						 * additional section. */
+#define DNS_MESSAGERENDER_PREFER_AAAA	0x0010	/* prefer AAAA records in
+						 * additional section. */
 
 typedef struct dns_msgblock dns_msgblock_t;
 
