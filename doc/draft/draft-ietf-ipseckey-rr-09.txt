@@ -1,11 +1,12 @@
 
+
 IPSECKEY WG                                                M. Richardson
 Internet-Draft                                                       SSW
-Expires: June 14, 2004                                 December 15, 2003
+|Expires: August 1, 2004                                   February 2004
 
 
            A Method for Storing IPsec Keying Material in DNS
-                     draft-ietf-ipseckey-rr-08.txt
+|                    draft-ietf-ipseckey-rr-09.txt
 
 Status of this Memo
 
@@ -28,19 +29,19 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on June 14, 2004.
+|  This Internet-Draft will expire on August 1, 2004.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2003).  All Rights Reserved.
+|  Copyright (C) The Internet Society (2004).  All Rights Reserved.
 
 Abstract
 
-   This document describes a new resource record for DNS.  This record
-   may be used to store public keys for use in IPsec systems.  The
-   record also includes provisions for indicating what IP address (v4 or
-   v6) should be contacted when establishing an IPsec tunnel with the
-   entity in question.
+|  This document describes a new resource record for Domain Name System
+|  (DNS).  This record may be used to store public keys for use in IP
+|  security (IPsec) systems.  The record also includes provisions for
+|  indicating what system should be contacted when establishing an IPsec
+|  tunnel with the entity in question.
 
    This record replaces the functionality of the sub-type #1 of the KEY
    Resource Record, which has been obsoleted by RFC3445.
@@ -51,35 +52,36 @@ Abstract
 
 
 
-Richardson                Expires June 14, 2004                 [Page 1]
+|Richardson              Expires August 1, 2004                 [Page 1]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
    1.1 Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   1.2 Usage Criteria . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  4
-   2.1 IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  4
-   2.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  4
-   2.3 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  4
-   2.4 RDATA format - algorithm type  . . . . . . . . . . . . . . . .  5
-   2.5 RDATA format - gateway . . . . . . . . . . . . . . . . . . . .  5
-   2.6 RDATA format - public keys . . . . . . . . . . . . . . . . . .  5
-   3.  Presentation formats . . . . . . . . . . . . . . . . . . . . .  7
-   3.1 Representation of IPSECKEY RRs . . . . . . . . . . . . . . . .  7
-   3.2 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
-   4.  Security Considerations  . . . . . . . . . . . . . . . . . . .  9
-   4.1 Active attacks against unsecured IPSECKEY resource records . .  9
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 11
-   6.  Intellectual Property Claims . . . . . . . . . . . . . . . . . 12
-   7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 13
-       Normative references . . . . . . . . . . . . . . . . . . . . . 14
-       Non-normative references . . . . . . . . . . . . . . . . . . . 15
-       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 15
-       Full Copyright Statement . . . . . . . . . . . . . . . . . . . 16
+|  1.2 Use of reverse (in-addr.arpa) map  . . . . . . . . . . . . . .  3
+|  1.3 Usage Criteria . . . . . . . . . . . . . . . . . . . . . . . .  3
+|  2.  Storage formats  . . . . . . . . . . . . . . . . . . . . . . .  5
+|  2.1 IPSECKEY RDATA format  . . . . . . . . . . . . . . . . . . . .  5
+|  2.2 RDATA format - precedence  . . . . . . . . . . . . . . . . . .  5
+|  2.3 RDATA format - gateway type  . . . . . . . . . . . . . . . . .  5
+|  2.4 RDATA format - algorithm type  . . . . . . . . . . . . . . . .  6
+|  2.5 RDATA format - gateway . . . . . . . . . . . . . . . . . . . .  6
+|  2.6 RDATA format - public keys . . . . . . . . . . . . . . . . . .  6
+|  3.  Presentation formats . . . . . . . . . . . . . . . . . . . . .  8
+|  3.1 Representation of IPSECKEY RRs . . . . . . . . . . . . . . . .  8
+|  3.2 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+|  4.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
+|  4.1 Active attacks against unsecured IPSECKEY resource records . . 10
+|  5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 12
+|  6.  Intellectual Property Claims . . . . . . . . . . . . . . . . . 13
+|  7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 14
+|      Normative references . . . . . . . . . . . . . . . . . . . . . 15
+|      Non-normative references . . . . . . . . . . . . . . . . . . . 16
+|      Author's Address . . . . . . . . . . . . . . . . . . . . . . . 16
+|      Full Copyright Statement . . . . . . . . . . . . . . . . . . . 17
 
 
 
@@ -106,10 +108,9 @@ Table of Contents
 
 
 
-
-Richardson                Expires June 14, 2004                 [Page 2]
+|Richardson              Expires August 1, 2004                 [Page 2]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 1. Introduction
@@ -138,9 +139,36 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in RFC2119 [7].
 
-1.2 Usage Criteria
+|1.2 Use of reverse (in-addr.arpa) map
+
+|  Often a security gateway will only have access to the IP address to
+|  which communication is desired.  It will not know the forward name.
+|  As such, it will frequently be the case that the IP address will be
+|  used an index into the reverse map.
+
+|  The lookup is done in the usual fashion as for PTR records.  The IP
+|  address' octets (IPv4) or nibbles (IPv6) are reversed and looked up
+|  under the .arpa.  zone.  Any CNAMEs or DNAMEs found SHOULD be
+|  followed.
+
+|  Note: even when the IPsec function is the end-host, often only the
+|  application will know the forward name used.  While the case where
+|  the application knows the forward name is common, the user could
+|  easily have typed in a literal IP address.  This storage mechanism
+|  does not preclude using the forward name when it is available, but
+|  does not require it.
+
+|1.3 Usage Criteria
 
    An IPSECKEY resource record SHOULD be used in combination with DNSSEC
+
+
+
+|Richardson              Expires August 1, 2004                 [Page 3]
+
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
+
+
    unless some other means of authenticating the IPSECKEY resource
    record is available.
 
@@ -163,9 +191,38 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 3]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+|Richardson              Expires August 1, 2004                 [Page 4]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 2. Storage formats
@@ -219,9 +276,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 4]
+|Richardson              Expires August 1, 2004                 [Page 5]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 2.4 RDATA format - algorithm type
@@ -275,9 +332,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 5]
+|Richardson              Expires August 1, 2004                 [Page 6]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
    for the corresponding algorithm.  The algorithm must still be
@@ -331,9 +388,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 6]
+|Richardson              Expires August 1, 2004                 [Page 7]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 3. Presentation formats
@@ -387,9 +444,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 7]
+|Richardson              Expires August 1, 2004                 [Page 8]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
    An example of a node, 192.0.1.38 that has delegated authority to the
@@ -443,9 +500,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 8]
+|Richardson              Expires August 1, 2004                 [Page 9]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 4. Security Considerations
@@ -499,9 +556,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                 [Page 9]
+|Richardson              Expires August 1, 2004                [Page 10]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
    key or remove it, thus providing an IPSECKEY record of its own to
@@ -521,12 +578,20 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
    intercept by use of Network Addresss/Port Translation (NAT/NAPT)
    technology.
 
-   Note that the danger here only applies to cases where the gateway
-   field of the IPSECKEY RR indicates a different entity than the owner
-   name of the IPSECKEY RR.  In cases where the end-to-end integrity of
-   the IPSECKEY RR is suspect, the end client MUST restrict its use of
-   the IPSECKEY RR to cases where the RR owner name matches the content
-   of the gateway field.
+|  Note that risk of a man-in-the-middle attack mediated by the IPSECKEY
+|  RR only applies to cases where the gateway field of the IPSECKEY RR
+|  indicates a different entity than the owner name of the IPSECKEY RR.
+
+|  An active attack on the DNS that caused the wrong IP address to be
+|  retrieved (via forged A RR), and therefore the wrong QNAME to be
+|  queried would also result in a man-in-the-middle attack.  This
+|  situation exists independantly of whether or not the IPSECKEY RR is
+|  used.
+
+|  In cases where the end-to-end integrity of the IPSECKEY RR is
+|  suspect, the end client MUST restrict its use of the IPSECKEY RR to
+|  cases where the RR owner name matches the content of the gateway
+|  field.
 
 
 
@@ -547,17 +612,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-
-
-
-
-
-
-
-
-Richardson                Expires June 14, 2004                [Page 10]
+|Richardson              Expires August 1, 2004                [Page 11]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 5. IANA Considerations
@@ -611,9 +668,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                [Page 11]
+|Richardson              Expires August 1, 2004                [Page 12]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 6. Intellectual Property Claims
@@ -667,9 +724,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                [Page 12]
+|Richardson              Expires August 1, 2004                [Page 13]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 7. Acknowledgments
@@ -723,9 +780,9 @@ Internet-Draft    Storing IPsec keying material in DNS     December 2003
 
 
 
-Richardson                Expires June 14, 2004                [Page 13]
+|Richardson              Expires August 1, 2004                [Page 14]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 Normative references
@@ -779,9 +836,9 @@ Normative references
 
 
 
-Richardson                Expires June 14, 2004                [Page 14]
+|Richardson              Expires August 1, 2004                [Page 15]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 Non-normative references
@@ -835,14 +892,14 @@ Author's Address
 
 
 
-Richardson                Expires June 14, 2004                [Page 15]
+|Richardson              Expires August 1, 2004                [Page 16]
 
-Internet-Draft    Storing IPsec keying material in DNS     December 2003
+|Internet-Draft   Storing IPsec keying material in DNS     February 2004
 
 
 Full Copyright Statement
 
-   Copyright (C) The Internet Society (2003).  All Rights Reserved.
+|  Copyright (C) The Internet Society (2004).  All Rights Reserved.
 
    This document and translations of it may be copied and furnished to
    others, and derivative works that comment on or otherwise explain it
@@ -891,5 +948,4 @@ Acknowledgement
 
 
 
-Richardson                Expires June 14, 2004                [Page 16]
-
+|Richardson              Expires August 1, 2004                [Page 17]
