@@ -1,3 +1,7 @@
+ 280.   [func]		Add isc-config.sh, which can be used to more
+			easily build applications that link with
+			our libraries.
+
  279.   [bug]           Private omapi function symbols shared between
                         two or more files in libomapi.a were not namespace
                         protected using the ISC convention of starting with
