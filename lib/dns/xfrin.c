@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.47 2000/02/10 01:12:12 gson Exp $ */
+ /* $Id: xfrin.c,v 1.48 2000/02/15 20:05:37 gson Exp $ */
 
 #include <config.h>
 
@@ -1183,7 +1183,7 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 		      masterbuf.base, msgmem);
 }
 
-/* Logging function for use when a xfin_ctx_t has not yet been created. */
+/* Logging function for use when a xfrin_ctx_t has not yet been created. */
 
 static void
 xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr, 
@@ -1195,7 +1195,7 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 	va_end(ap);
 }
 
-/* Logging function for use when there is a xfin_ctx_t. */
+/* Logging function for use when there is a xfrin_ctx_t. */
 
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
