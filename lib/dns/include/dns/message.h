@@ -69,25 +69,25 @@ ISC_LANG_BEGINDECLS
 typedef struct {
 	unsigned int			magic;		/* magic */
 
-	unsigned int			msg_id;
-	unsigned int			msg_flags;	/* this msg's flags */
-	unsigned int			msg_rcode;	/* this msg's rcode */
-	unsigned int			msg_opcode;	/* this msg's opcode */
-	unsigned int			msg_qcount;	/* this msg's counts */
-	unsigned int			msg_ancount;
-	unsigned int			msg_aucount;
-	unsigned int			msg_adcount;
-	dns_namelist_t			msg_question;
-	dns_namelist_t			msg_answer;
-	dns_namelist_t			msg_authority;
-	dns_namelist_t			msg_additional;
+	unsigned int			id;
+	unsigned int			flags;		/* this msg's flags */
+	unsigned int			rcode;		/* this msg's rcode */
+	unsigned int			opcode;		/* this msg's opcode */
+	unsigned int			qcount;		/* this msg's counts */
+	unsigned int			ancount;
+	unsigned int			aucount;
+	unsigned int			adcount;
+	dns_namelist_t			question;
+	dns_namelist_t			answer;
+	dns_namelist_t			authority;
+	dns_namelist_t			additional;
 
 	/* XXX should be an isc_buffer_t? */
 	unsigned char		       *data;		/* start of raw data */
 	unsigned int			datalen;	/* length of data */
 
-	ISC_LINK(dns_msg_t)		link;		/* next msg */
-} dns_msg_t;
+	ISC_LINK(dns_msgelem_t)		link;		/* next msg */
+} dns_msgelem_t;
 
 
 /*
@@ -119,8 +119,98 @@ typedef struct {
 	dns_namelist_t			additional;
 
 	unsigned int			nmsgs;
-	ISC_LIST(dns_msg_t)		msgs;
-} dns_msg_list_t;
+	ISC_LIST(dns_msgelem_t)		msgs;
+} dns_msg_t;
+
+void dns_msg_init(dns_msg_t *msg);
+/*
+ * initialize msg structure.  Must be called on a new (or reused) structure.
+ *
+ * Ensures:
+ *	The data in "msg" is set to indicate an unused and empty msg
+ *	structure.
+ */
+
+dns_result_t dns_msg_associate(dns_msg_t *msg, void *buffer, size_t buflen);
+/*
+ * Associate a buffer with a message structure.  This function will
+ * validate the buffer, allocate an internal message element to hold
+ * the buffer's information, and update various counters.  Also, any
+ * DNSSEC or TSIG signatures are verified at this time.
+ *
+ * If this is a multi-packet message (edns) and more data is required to
+ * build the full message state, DNS_R_MOREDATA is returned.  In this case,
+ * this function should be repeated with all input buffers until DNS_R_SUCCESS
+ * (or an error) is returned.
+ *
+ * Requires:
+ *	"msg" be valid.
+ *
+ *	"buffer" have "sane" contents.
+ *
+ * Ensures:
+ *	The buffer's data format is correct.
+ *
+ *	The buffer's contents verify as correct regarding signatures,
+ *	bits set, etc.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		-- all is well
+ *	DNS_R_NOMEM		-- no memory
+ *	DNS_R_MOREDATA		-- more packets needed for complete message
+ *	DNS_R_???		-- bad signature (XXX need more of these)
+ */
+
+dns_msgelem_t *dns_msgelem_first(dns_msg_t *msg);
+/*
+ * Return the first message element's pointer.
+ *
+ * Requires:
+ *	"msg" be valid.
+ *
+ * Returns:
+ *	The first element on the message buffer list, or NULL if no buffers
+ *	are associated.
+ */
+
+dns_msgelem_t *dns_msgelem_next(dns_msg_t *msg, dns_msgelem_t *elem);
+/*
+ * Return the next message element pointer.
+ *
+ * Requires:
+ *	"msg" be valid.
+ *
+ *	"msgelem" be valid, and part of the chain of elements for "msg".
+ *
+ * Returns:
+ *	The next element on the message buffer list, or NULL if no more
+ *	exist.
+ */
+
+dns_name_t *dns_msg_firstname(dns_msg_t *msg, dns_namelist_t *section);
+/*
+ * Returns a pointer to the first name in the specified section.
+ */
+
+dns_name_t *dns_msg_nextname(dns_msg_t *msg, dns_namelist_t *section,
+			     dns_name_t *name);
+/*
+ * Returns a pointer to the next name in the specified section.
+ */
+
+void dns_msg_movename(dns_msg_t *msg, dns_namelist_t *fromsection,
+		      dns_namelist_t *tosection);
+/*
+ * Move a name from one section to another.
+ */
+
+dns_result_t dns_msg_addname(dns_msg_t *msg, dns_namelist_t *section,
+			     dns_name_t *name);
+/*
+ * Adds the name to the given section.
+ *
+ * Caller must ensure that the name does not already exist.
+ */
 
 ISC_LANG_ENDDECLS
 
