@@ -1,3 +1,6 @@
+1490.	[bug]		Accept reading state as well as working state in
+			ns_client_next(). [RT #6813]
+			
 1489.	[compat]	Treat 'allow-update' on slave zones as a warning.
 			[RT #3469]
 
