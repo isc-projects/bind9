@@ -1664,7 +1664,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 				 * If we have rendered pending data, ensure
 				 * that the AD bit is not set.
 				 */
-				if (rdataset->trust < dns_trust_secure &&
+				if (rdataset->trust == dns_trust_pending &&
 				    (sectionid == DNS_SECTION_ANSWER ||
 				     sectionid == DNS_SECTION_AUTHORITY))
 					msg->flags &= ~DNS_MESSAGEFLAG_AD;
