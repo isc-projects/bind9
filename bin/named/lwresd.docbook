@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwresd.docbook,v 1.7 2004/03/05 04:57:48 marka Exp $ -->
+<!-- $Id: lwresd.docbook,v 1.7.18.1 2004/06/03 02:24:26 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -286,7 +286,7 @@
   <refsect1>
     <title>AUTHOR</title>
     <para>
-	<corpauthor>Internet Software Consortium</corpauthor>
+	<corpauthor>Internet Systems Consortium</corpauthor>
     </para>
   </refsect1>
 

@@ -16,7 +16,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signkey.docbook,v 1.4 2004/03/05 04:57:41 marka Exp $ -->
+<!-- $Id: dnssec-signkey.docbook,v 1.4.18.1 2004/06/03 02:24:25 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -224,7 +224,7 @@
   <refsect1>
     <title>AUTHOR</title>
     <para>
-        <corpauthor>Internet Software Consortium</corpauthor>
+        <corpauthor>Internet Systems Consortium</corpauthor>
     </para>
   </refsect1>
 
