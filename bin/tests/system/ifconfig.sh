@@ -24,7 +24,7 @@ sys=`../../../config.guess`
 case "$1" in
 
     'start')
-	for ns in 1 2 3 4
+	for ns in 1 2 3 4 5
 	do
 		case "$sys" in 
 		    sparc-sun-solaris2.[6-8])
@@ -59,7 +59,7 @@ case "$1" in
 	;;
 
     'stop')
-	for ns in 4 3 2 1
+	for ns in 5 4 3 2 1
 	do
 		case "$sys" in 
 		    sparc-sun-solaris2.[6-8])
