@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.35 2000/04/14 22:42:24 explorer Exp $ */
+/* $Id: gen.c,v 1.36 2000/04/14 22:59:00 explorer Exp $ */
 
 #include <config.h>
 
@@ -628,13 +628,13 @@ main(int argc, char **argv) {
 				break;
 			case 253:
 				printf("\t{ \"MAILB\", "
-				       "DNS_RDATATYPEATTR_META }%s\n",
+				       METAQUESTIONONLY " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;
 			case 254:
 				printf("\t{ \"MAILA\", "
-				       "DNS_RDATATYPEATTR_META }%s\n",
+				       METAQUESTIONONLY " }%s\n",
 				       PRINT_COMMA(i));
 				special = 1;
 				break;

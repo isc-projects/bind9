@@ -899,7 +899,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx)
 			result = DNS_R_FORMERR;
 			goto cleanup;
 		}
-		
+
 		/*
 		 * Can't ask the same question twice.
 		 */
