@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.34 2000/05/08 16:12:24 tale Exp $ */
+/* $Id: tsig_250.c,v 1.35 2000/05/13 22:50:49 tale Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -41,14 +41,18 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	REQUIRE(type == 250);
 	REQUIRE(rdclass == 255);
 
-	/* Algorithm Name */
+	/*
+	 * Algorithm Name.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
 	RETERR(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 
-	/* Time Signed: 48 bits */
+	/*
+	 * Time Signed: 48 bits.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	sigtime = isc_string_touint64(token.value.as_pointer, &e, 10);
 	if (*e != 0)
@@ -58,41 +62,55 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	RETERR(uint16_tobuffer((isc_uint16_t)(sigtime >> 32), target));
 	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffffU), target));
 
-	/* Fudge */
+	/*
+	 * Fudge.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* Signature Size */
+	/*
+	 * Signature Size.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* Signature */
-	RETERR(isc_base64_tobuffer(lexer, target, token.value.as_ulong));
+	/*
+	 * Signature.
+	 */
+	RETERR(isc_base64_tobuffer(lexer, target, (int)token.value.as_ulong));
 
-	/* Original ID */
+	/*
+	 * Original ID.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* Error */
+	/*
+	 * Error.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* Other Len */
+	/*
+	 * Other Len.
+	 */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
 	if (token.value.as_ulong > 0xffff)
 		return (DNS_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
-	/* Other Data */
-	return (isc_base64_tobuffer(lexer, target, token.value.as_ulong));
+	/*
+	 * Other Data.
+	 */
+	return (isc_base64_tobuffer(lexer, target, (int)token.value.as_ulong));
 }
 
 static inline isc_result_t
@@ -113,7 +131,9 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	REQUIRE(rdata->rdclass == 255);
 
 	dns_rdata_toregion(rdata, &sr);
-	/* Algorithm Name */
+	/*
+	 * Algorithm Name.
+	 */
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
 	dns_name_fromregion(&name, &sr);
@@ -122,7 +142,9 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	RETERR(str_totext(" ", target));
 	isc_region_consume(&sr, name_length(&name));
 
-	/* Time Signed */
+	/*
+	 * Time Signed.
+	 */
 	sigtime = ((isc_uint64_t)sr.base[0] << 40) |
 		  ((isc_uint64_t)sr.base[1] << 32) |
 		  (sr.base[2] << 24) | (sr.base[3] << 16) |
@@ -138,19 +160,25 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	bufp++;
 	RETERR(str_totext(bufp, target));
 
-	/* Fudge */
+	/*
+	 * Fudge.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
 
-	/* Signature Size */
+	/*
+	 * Signature Size.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u", n);
 	RETERR(str_totext(buf, target));
 
-	/* Signature */
+	/*
+	 * Signature.
+	 */
 	REQUIRE(n <= sr.length);
 	sigr = sr;
 	sigr.length = n;
@@ -165,25 +193,33 @@ totext_any_tsig(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 		RETERR(str_totext(" ", target));		
 	isc_region_consume(&sr, n);
 
-	/* Original ID */
+	/*
+	 * Original ID.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
 
-	/* Error */
+	/*
+	 * Error.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
 
-	/* Other Size */
+	/*
+	 * Other Size.
+	 */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 	sprintf(buf, "%u ", n);
 	RETERR(str_totext(buf, target));
 
-	/* Other */
+	/*
+	 * Other.
+	 */
 	return (isc_base64_totext(&sr, 60, " ", target));
 }
 
@@ -201,19 +237,25 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
-	/* Algorithm Name */
+	/*
+	 * Algorithm Name.
+	 */
 	dns_name_init(&name, NULL);
 	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
 
 	isc_buffer_activeregion(source, &sr);
-	/* Time Signed + Fudge */
+	/*
+	 * Time Signed + Fudge.
+	 */
 	if (sr.length < 8)
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base, 8));
 	isc_region_consume(&sr, 8);
 	isc_buffer_forward(source, 8);
 
-	/* Signature Length + Signature */
+	/*
+	 * Signature Length + Signature.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
@@ -223,14 +265,18 @@ fromwire_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	isc_region_consume(&sr, n + 2);
 	isc_buffer_forward(source, n + 2);
 
-	/* Original ID + Error */
+	/*
+	 * Original ID + Error.
+	 */
 	if (sr.length < 4)
 		return (ISC_R_UNEXPECTEDEND);
 	RETERR(mem_tobuffer(target, sr.base,  4));
 	isc_region_consume(&sr, 4);
 	isc_buffer_forward(source, 4);
 
-	/* Other Length + Other */
+	/*
+	 * Other Length + Other.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	n = uint16_fromregion(&sr);
@@ -298,25 +344,36 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	
 	tsig = (dns_rdata_any_tsig_t *)source;
 
-	/* Algorithm Name */
+	/*
+	 * Algorithm Name.
+	 */
 	RETERR(name_tobuffer(&tsig->algorithm, target));
 
 	isc_buffer_availableregion(target, &tr);
 	if (tr.length < 6 + 2 + 2)
 		return (ISC_R_NOSPACE);
 
-	/* Time Signed: 48 bits */
-	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32), target));
+	/*
+	 * Time Signed: 48 bits.
+	 */
+	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32),
+			       target));
 	RETERR(uint32_tobuffer((isc_uint32_t)(tsig->timesigned & 0xffffffffU),
 			       target));
 
-	/* Fudge */
+	/*
+	 * Fudge.
+	 */
 	RETERR(uint16_tobuffer(tsig->fudge, target));
 
-	/* Signature Size */
+	/*
+	 * Signature Size.
+	 */
 	RETERR(uint16_tobuffer(tsig->siglen, target));
 
-	/* Signature */
+	/*
+	 * Signature.
+	 */
 	if (tsig->siglen > 0) {
 		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tsig->siglen)
@@ -329,16 +386,24 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (tr.length < 2 + 2 + 2)
 		return (ISC_R_NOSPACE);
 
-	/* Original ID */
+	/*
+	 * Original ID.
+	 */
 	RETERR(uint16_tobuffer(tsig->originalid, target));
 
-	/* Error */
+	/*
+	 * Error.
+	 */
 	RETERR(uint16_tobuffer(tsig->error, target));
 
-	/* Other Len */
+	/*
+	 * Other Len.
+	 */
 	RETERR(uint16_tobuffer(tsig->otherlen, target));
 
-	/* Other Data */
+	/*
+	 * Other Data.
+	 */
 	if (tsig->otherlen > 0) {
 		isc_buffer_availableregion(target, &tr);
 		if (tr.length < tsig->otherlen)
@@ -366,7 +431,9 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	tsig->mctx = mctx;
 	dns_rdata_toregion(rdata, &sr);
 
-	/* Algorithm Name */
+	/*
+	 * Algorithm Name.
+	 */
 	dns_name_init(&alg, NULL);
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tsig->algorithm, NULL);
@@ -374,7 +441,9 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	
 	isc_region_consume(&sr, name_length(&tsig->algorithm));
 
-	/* Time Signed */
+	/*
+	 * Time Signed.
+	 */
 	if (sr.length < 6)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->timesigned = ((isc_uint64_t)sr.base[0] << 40) |
@@ -383,19 +452,25 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 			   (sr.base[4] << 8) | sr.base[5];
 	isc_region_consume(&sr, 6);
 
-	/* Fudge */
+	/*
+	 * Fudge.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->fudge = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	/* Signature Size */
+	/*
+	 * Signature Size.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->siglen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	/* Signature */
+	/*
+	 * Signature.
+	 */
 	if (sr.length < tsig->siglen)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->signature = isc_mem_get(mctx, tsig->siglen);
@@ -404,25 +479,33 @@ tostruct_any_tsig(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	memcpy(tsig->signature, sr.base, tsig->siglen);
 	isc_region_consume(&sr, tsig->siglen);
 
-	/* Original ID */
+	/*
+	 * Original ID.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->originalid = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	/* Error */
+	/*
+	 * Error.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->error = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	/* Other Size */
+	/*
+	 * Other Size.
+	 */
 	if (sr.length < 2)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->otherlen = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
 
-	/* Other */
+	/*
+	 * Other.
+	 */
 	if (sr.length < tsig->otherlen)
 		return (ISC_R_UNEXPECTEDEND);
 	tsig->other = isc_mem_get(mctx, tsig->otherlen);
