@@ -1,3 +1,5 @@
+1289.	[port]		Openserver: ifconfig.sh support.
+
 1288.	[port]		Openserver: the value FD_SETSIZE depends on whether
 			<sys/param.h> is included or not.  Be consistant.
 
