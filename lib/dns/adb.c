@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215 2004/03/10 02:19:55 marka Exp $ */
+/* $Id: adb.c,v 1.215.18.1 2004/06/18 01:22:19 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1007,6 +1007,8 @@ set_target(dns_adb_t *adb, dns_name_t *name, dns_name_t *fname,
 		dns_fixedname_init(&fixed2);
 		new_target = dns_fixedname_name(&fixed2);
 		dns_name_split(name, nlabels, prefix, NULL);
+		result = dns_name_concatenate(prefix, &dname.dname, new_target,
+					      NULL);
 		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS)
 			return (result);
