@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.193 2004/06/19 02:23:32 sra Exp $ */
+/* $Id: dig.c,v 1.194 2004/06/23 04:07:29 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -188,7 +188,7 @@ help(void) {
 "\n"
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
 "                 +[no]besteffort     (Try to parse even illegal messages)\n"
-"                 +[no]aaonly         (Set AA flag in query)\n"
+"                 +[no]aaonly         (Set AA flag in query (+[no]aaflag))\n"
 "                 +[no]adflag         (Set AD flag in query)\n"
 "                 +[no]cdflag         (Set CD flag in query)\n"
 "                 +[no]cl             (Control display of class in records)\n"
@@ -738,8 +738,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	switch (cmd[0]) {
 	case 'a':
 		switch (cmd[1]) {
-		case 'a': /* aaflag */
-			FULLCHECK("aaflag");
+		case 'a': /* aaonly / aaflag */
+			FULLCHECK2("aaonly", "aaflag");
 			lookup->aaonly = state;
 			break;
 		case 'd': 
