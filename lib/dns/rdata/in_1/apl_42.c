@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.2 2002/03/06 18:33:13 bwelling Exp $ */
+/* $Id: apl_42.c,v 1.3 2002/07/04 04:19:54 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -111,7 +111,8 @@ totext_in_apl(ARGS_TOTEXT) {
 	isc_uint8_t prefix;
 	isc_uint8_t len;
 	isc_boolean_t neg;
-	char buf[16];
+	unsigned char buf[16];
+	char txt[sizeof(" !64000")];
 	const char *sep = "";
 	int n;
 
@@ -134,10 +135,10 @@ totext_in_apl(ARGS_TOTEXT) {
 		neg = ISC_TF((*sr.base & 0x80) != 0);
 		isc_region_consume(&sr, 1);
 		INSIST(len <= sr.length);
-		n = snprintf(buf, sizeof(buf), "%s%s%u:", sep,
+		n = snprintf(txt, sizeof(txt), "%s%s%u:", sep,
 			     neg ? "!": "", afi);
-		INSIST(n < (int)sizeof(buf));
-		RETERR(str_totext(buf, target));
+		INSIST(n < (int)sizeof(txt));
+		RETERR(str_totext(txt, target));
 		switch (afi) {
 		case 1:
 			INSIST(len <= 4);
@@ -158,9 +159,9 @@ totext_in_apl(ARGS_TOTEXT) {
 		default:
 			return (ISC_R_NOTIMPLEMENTED);
 		}
-		n = snprintf(buf, sizeof(buf), "/%u", prefix);
-		INSIST(n < (int)sizeof(buf));
-		RETERR(str_totext(buf, target));
+		n = snprintf(txt, sizeof(txt), "/%u", prefix);
+		INSIST(n < (int)sizeof(txt));
+		RETERR(str_totext(txt, target));
 		isc_region_consume(&sr, len);
 		sep = " ";
 	}
