@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.80 2000/02/10 16:13:12 brister Exp $ */
+ /* $Id: zone.c,v 1.81 2000/02/16 16:37:52 bwelling Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,7 @@
 #include <dns/rdatasetiter.h>
 #include <dns/rdatastruct.h>
 #include <dns/resolver.h>
+#include <dns/ssu.h>
 #include <dns/xfrin.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -165,6 +166,7 @@ struct dns_zone {
 	isc_uint32_t		idleout;
 	isc_boolean_t		diff_on_reload;
 	isc_event_t		ctlevent;
+	dns_ssutable_t		*ssutable;
 };
 
 #define DNS_ZONE_FLAG(z,f) (((z)->flags & (f)) != 0)
@@ -341,6 +343,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
 	zone->diff_on_reload = ISC_FALSE;
+	zone->ssutable = NULL;
 	zone->magic = ZONE_MAGIC;
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
@@ -401,6 +404,8 @@ zone_free(dns_zone_t *zone) {
 		dns_acl_detach(&zone->xfr_acl);
 	if (dns_name_dynamic(&zone->origin))
 		dns_name_free(&zone->origin, zone->mctx);
+	if (zone->ssutable != NULL)
+		dns_ssutable_destroy(&zone->ssutable);
 
 	/* last stuff */
 	isc_mutex_destroy(&zone->lock);
@@ -3043,6 +3048,21 @@ xfrdone(dns_zone_t *zone, isc_result_t result) {
 	 */
 	if (again)
 		xfrin_start_temporary_kludge(zone);
+}
+
+void
+dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(table != NULL);
+	REQUIRE(*table == NULL);
+	*table = zone->ssutable;
+}
+
+void
+dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(table != NULL);
+	zone->ssutable = table;
 }
 
 /***

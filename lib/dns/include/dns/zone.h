@@ -788,6 +788,12 @@ dns_zone_setidleout(dns_zone_t *zone, isc_uint32_t idleout);
  */
 
 void
+dns_zone_getssutable(dns_zone_t *zone, dns_ssutable_t **table);
+
+void
+dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table);
+
+void
 dns_zone_print(dns_zone_t *zone);
 /*
  * test use only
