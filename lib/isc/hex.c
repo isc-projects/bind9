@@ -1,0 +1,224 @@
+#include <config.h>
+
+#include <isc/buffer.h>
+#include <isc/hex.h>
+#include <isc/lex.h>
+#include <isc/string.h>
+#include <isc/util.h>
+
+#define RETERR(x) do { \
+	isc_result_t _r = (x); \
+	if (_r != ISC_R_SUCCESS) \
+		return (_r); \
+	} while (0)
+
+
+/*
+ * BEW: These static functions are copied from lib/dns/rdata.c.
+ */
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target);
+
+static isc_result_t
+gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
+	 isc_boolean_t eol);
+
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
+
+static const char hex[] = "0123456789ABCDEF";
+
+isc_result_t
+isc_hex_totext(isc_region_t *source, int wordlength,
+	       const char *wordbreak, isc_buffer_t *target)
+{
+	char buf[3];
+	unsigned int loops = 0;
+
+	if (wordlength < 2)
+		wordlength = 2;
+
+	memset(buf, 0, sizeof buf);
+	while (source->length > 0) {
+		buf[0] = hex[(source->base[0] >> 4) & 0xf];
+		buf[1] = hex[(source->base[0]) & 0xf];
+		RETERR(str_totext(buf, target));
+		isc_region_consume(source, 1);
+
+		loops++;
+		if (source->length != 0 &&
+		    (int)((loops + 1) * 2) >= wordlength)
+		{
+			loops = 0;
+			RETERR(str_totext(wordbreak, target));
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * State of a hex decoding process in progress.
+ */
+typedef struct {
+	int length;		/* Desired length of binary data or -1 */
+	isc_buffer_t *target;	/* Buffer for resulting binary data */
+	int digits;		/* Number of buffered hex digits */
+	int val[2];
+} hex_decode_ctx_t;
+
+static inline void
+hex_decode_init(hex_decode_ctx_t *ctx, int length, isc_buffer_t *target)
+{
+	ctx->digits = 0;
+	ctx->length = length;
+	ctx->target = target;
+}
+
+static inline isc_result_t
+hex_decode_char(hex_decode_ctx_t *ctx, int c) {
+	char *s;
+
+	if ((s = strchr(hex, c)) == NULL)
+		return (ISC_R_BADHEX);
+	ctx->val[ctx->digits++] = s - hex;
+	if (ctx->digits == 2) {
+		int n;
+		unsigned char num;
+
+		num = (ctx->val[0] << 4) + (ctx->val[1]);
+		RETERR(mem_tobuffer(ctx->target, &num, 1));
+		if (ctx->length >= 0) {
+			if (n > ctx->length)
+				return (ISC_R_BADHEX);
+			else
+				ctx->length -= n;
+		}
+		ctx->digits = 0;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+static inline isc_result_t
+hex_decode_finish(hex_decode_ctx_t *ctx) {
+	if (ctx->length > 0)
+		return (ISC_R_UNEXPECTEDEND);
+	if (ctx->digits != 0)
+		return (ISC_R_BADHEX);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_hex_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
+	hex_decode_ctx_t ctx;
+	isc_textregion_t *tr;
+	isc_token_t token;
+
+	hex_decode_init(&ctx, length, target);
+
+	while (ctx.length != 0) {
+		unsigned int i;
+
+		if (length > 0)
+			RETERR(gettoken(lexer, &token, isc_tokentype_string,
+					ISC_FALSE));
+		else
+			RETERR(gettoken(lexer, &token, isc_tokentype_string,
+					ISC_TRUE));
+		if (token.type != isc_tokentype_string)
+			break;
+		tr = &token.value.as_textregion;
+		for (i = 0 ;i < tr->length; i++)
+			RETERR(hex_decode_char(&ctx, tr->base[i]));
+	}
+	RETERR(hex_decode_finish(&ctx));
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_hex_decodestring(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
+	hex_decode_ctx_t ctx;
+
+	UNUSED(mctx);
+
+	hex_decode_init(&ctx, -1, target);
+	for (;;) {
+		int c = *cstr++;
+		if (c == '\0')
+			break;
+		if (c == ' ' || c == '\t' || c == '\n' || c== '\r')
+			continue;
+		RETERR(hex_decode_char(&ctx, c));
+	}
+	RETERR(hex_decode_finish(&ctx));	
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+str_totext(const char *source, isc_buffer_t *target) {
+	unsigned int l;
+	isc_region_t region;
+
+	isc_buffer_availableregion(target, &region);
+	l = strlen(source);
+
+	if (l > region.length)
+		return (ISC_R_NOSPACE);
+
+	memcpy(region.base, source, l);
+	isc_buffer_add(target, l);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length) {
+	isc_region_t tr;
+
+	isc_buffer_availableregion(target, &tr);
+	if (length > tr.length)
+		return (ISC_R_NOSPACE);
+	memcpy(tr.base, base, length);
+	isc_buffer_add(target, length);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
+	 isc_boolean_t eol)
+{
+	unsigned int options = ISC_LEXOPT_EOL | ISC_LEXOPT_EOF |
+			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
+	isc_result_t result;
+
+	if (expect == isc_tokentype_qstring)
+		options |= ISC_LEXOPT_QSTRING;
+	else if (expect == isc_tokentype_number)
+		options |= ISC_LEXOPT_NUMBER;
+	result = isc_lex_gettoken(lexer, options, token);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		break;
+	case ISC_R_NOMEMORY:
+		return (ISC_R_NOMEMORY);
+	case ISC_R_NOSPACE:
+		return (ISC_R_NOSPACE);
+	default:
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_lex_gettoken() failed: %s",
+				 isc_result_totext(result));
+		return (ISC_R_UNEXPECTED);
+	}
+	if (eol && ((token->type == isc_tokentype_eol) ||
+		    (token->type == isc_tokentype_eof)))
+		return (ISC_R_SUCCESS);
+	if (token->type == isc_tokentype_string &&
+	    expect == isc_tokentype_qstring)
+		return (ISC_R_SUCCESS);
+	if (token->type != expect) {
+		isc_lex_ungettoken(lexer, token);
+		if (token->type == isc_tokentype_eol ||
+		    token->type == isc_tokentype_eof)
+			return (ISC_R_UNEXPECTEDEND);
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+	return (ISC_R_SUCCESS);
+}

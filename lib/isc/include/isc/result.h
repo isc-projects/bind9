@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.50 2000/08/15 23:30:22 tale Exp $ */
+/* $Id: result.h,v 1.51 2000/11/07 20:58:07 bwelling Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -72,11 +72,12 @@
 #define ISC_R_QUEUEFULL			46	/* queue is full */
 #define ISC_R_FAMILYMISMATCH		47	/* address family mismatch */
 #define ISC_R_FAMILYNOSUPPORT		48	/* AF not supported */
+#define ISC_R_BADHEX			49	/* bad hex encoding */
 
 /*
  * Not a result code: the number of results.
  */
-#define ISC_R_NRESULTS 			49
+#define ISC_R_NRESULTS 			50
 
 ISC_LANG_BEGINDECLS
 
