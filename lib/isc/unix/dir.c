@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.13 2000/08/01 01:31:12 tale Exp $ */
+/* $Id: dir.c,v 1.14 2000/08/03 13:44:02 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -179,7 +179,7 @@ isc_dir_createunique(char *templet) {
 		 */
 		p = x;
 		while (*p != '\0') {
-			if (isdigit(*p))
+			if (isdigit(*p & 0xff))
 				*p = 'a';
 			else if (*p != 'z')
 				++*p;
