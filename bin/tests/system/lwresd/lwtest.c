@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.8 2000/06/28 21:56:51 bwelling Exp $ */
+/* $Id: lwtest.c,v 1.9 2000/06/28 22:41:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -350,7 +350,8 @@ static void
 test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 		   const char *address)
 {
-	int len, ret;
+	unsigned int len;
+	int ret;
 	struct addrinfo *ai;
 	struct addrinfo hint;
 	unsigned char addrbuf[16];
@@ -392,7 +393,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			fails++;
 			return;
 		}
-		if (len != ai->ai_addrlen) {
+		if (len != (unsigned int) ai->ai_addrlen) {
 			char outbuf[16];
 			(void)inet_ntop(af, ai->ai_addr,
 					outbuf, sizeof(outbuf));
