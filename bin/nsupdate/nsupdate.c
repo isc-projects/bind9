@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.19 2000/06/30 21:47:35 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.20 2000/07/01 00:22:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -54,7 +54,6 @@
 #include <dst/dst.h>
 
 #include <lwres/lwres.h>
-#include <lwres/net.h>
 
 #include <ctype.h>
 #include <netdb.h>
@@ -487,7 +486,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 	dns_rdatacallbacks_t callbacks;
 	isc_result_t result;
 
-	while (*cmdline != 0 && isspace(*cmdline))
+	while (*cmdline != 0 && isspace((unsigned char)*cmdline))
 		cmdline++;
 
 	if (*cmdline != 0) {
@@ -1016,9 +1015,18 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 
 	if (eresult != ISC_R_SUCCESS) {
 		char addrbuf[64];
-		(void) lwres_net_ntop(lwconf->nameservers[ns_inuse].family,
-				      lwconf->nameservers[ns_inuse].address,
-				      addrbuf, sizeof(addrbuf));
+		switch (lwconf->nameservers[ns_inuse].family) {
+		case LWRES_ADDRTYPE_V4:
+			inet_ntop(AF_INET,
+				  lwconf->nameservers[ns_inuse].address,
+				  addrbuf, sizeof(addrbuf));
+		case LWRES_ADDRTYPE_V6:
+			inet_ntop(AF_INET6,
+				  lwconf->nameservers[ns_inuse].address,
+				  addrbuf, sizeof(addrbuf));
+		default:
+			fatal("unknown address family");
+		}
 		printf ("; Communication with %s failed: %s\n",
 			addrbuf, isc_result_totext(eresult));
 		ns_inuse++;
