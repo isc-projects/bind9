@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.7 2004/07/23 02:57:24 marka Exp $ */
+/* $Id: update.c,v 1.109.18.8 2004/10/12 22:01:52 marka Exp $ */
 
 #include <config.h>
 
@@ -708,7 +708,7 @@ ssu_checkrule(void *data, dns_rdataset_t *rrset) {
 	 */
 	if (rrset->type == dns_rdatatype_rrsig ||
 	    rrset->type == dns_rdatatype_nsec)
-		return (ISC_TRUE);
+		return (ISC_R_SUCCESS);
 	result = dns_ssutable_checkrules(ssuinfo->table, ssuinfo->signer,
 					 ssuinfo->name, rrset->type);
 	return (result == ISC_TRUE ? ISC_R_SUCCESS : ISC_R_FAILURE);
