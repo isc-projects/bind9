@@ -13,7 +13,7 @@
 .\" NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 .\" WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.8,v 1.6 2000/08/15 19:47:06 bwelling Exp $
+.\" $Id: nsupdate.8,v 1.7 2000/08/15 20:15:49 gson Exp $
 .\"
 .Dd Jun 30, 2000
 .Dt NSUPDATE 8
@@ -43,8 +43,7 @@ Zones that are under dynamic control via
 .Nm nsupdate
 or a DHCP server should not be edited by hand.
 Manual edits could
-conflict with dynamic updates and leave the name server's transaction
-log out of sync witih the zone file, causing data to be lost.
+conflict with dynamic updates and cause data to be lost.
 .Pp
 The resource records that are dynamically added or removed with
 .Nm nsupdate
@@ -98,10 +97,14 @@ option,
 .Nm nsupdate
 reads the shared secret from the file
 .Ar keyfile ,
-whose name is of the form K{name}.+157.+{random}.private .  For historical
-reasons, the file K{name}.+157.+{random}.key must also be present.  When the
+whose name is of the form 
+.Pa K{name}.+157.+{random}.private .
+For historical
+reasons, the file 
+.Pa K{name}.+157.+{random}.key
+must also be present.  When the
 .Fl y
-is used, a signature is generated from
+option is used, a signature is generated from
 .Ar keyname:secret.
 .Ar keyname
 is the name of the key,
@@ -229,7 +232,7 @@ sharing a common
 .Va class ,
 and 
 .Va domain-name
-is combined to form a set of RRs.  This set of RRs must
+are combined to form a set of RRs.  This set of RRs must
 exactly match the set of RRs existing in the zone at the
 given 
 .Va type ,
