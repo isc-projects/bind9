@@ -600,7 +600,7 @@
 ./lib/dns/sec/dnssafe/Makefile.in		MAKE	1998,1999,2000
 ./lib/dns/sec/dst/.cvsignore			X	1999,2000
 ./lib/dns/sec/dst/Makefile.in			MAKE	1998,1999,2000
-./lib/dns/sec/dst/bsafe_lin.c			C.NAI	1999,2000
+./lib/dns/sec/dst/bsafe_link.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_api.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_parse.c			C.NAI	1999,2000
 ./lib/dns/sec/dst/dst_lib.c			C	1999,2000
