@@ -15,10 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.26 2001/01/22 22:29:36 gson Exp $ */
+/* $Id: zone_test.c,v 1.26.2.1 2002/05/10 06:54:37 marka Exp $ */
 
 #include <config.h>
 
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/time.h>
 
@@ -40,6 +41,10 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/zone.h>
+
+#ifdef ISC_PLATFORM_NEEDSYSSELECTH
+#include <sys/select.h>
+#endif
 
 static int debug = 0;
 static int quiet = 0;
