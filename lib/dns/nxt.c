@@ -164,3 +164,28 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
 		dns_rdataset_disassociate(&rdataset);
 	return (result);
 }
+
+isc_boolean_t
+dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
+	dns_name_t name;
+	isc_region_t r, r2;
+	unsigned char *nxt_bits;
+	int nxt_bits_length, byte;
+
+	REQUIRE(nxt != NULL);
+	REQUIRE(nxt->type == dns_rdatatype_nxt);
+	REQUIRE(type < 128);
+
+	dns_rdata_toregion(nxt, &r);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &r);
+	dns_name_toregion(&name, &r2);
+	nxt_bits = ((unsigned char *)r.base) + r2.length;
+	nxt_bits_length = r.length - r2.length;
+	INSIST(nxt_bits_length >= 4);
+	byte = type >> 3;
+	if (byte > nxt_bits_length)
+		return (ISC_FALSE);
+	else
+		return (ISC_TF(bit_isset(nxt_bits, type)));
+}

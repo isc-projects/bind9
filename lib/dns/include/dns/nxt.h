@@ -50,6 +50,17 @@ dns_buildnxt(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
  * Build a NXT record and add it to a database.
  */
 
+isc_boolean_t
+dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type);
+/*
+ * Determine if a type is marked as present in an NXT record.
+ *
+ * Requires:
+ *	'nxt' points to a valid rdataset of type NXT
+ *	'type' < 128
+ *
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NXT_H */

@@ -1,4 +1,6 @@
 
+  57.   [func]          Added dns_nxt_typepresent()
+
   56.	[bug]		SIG records were not properly returned in cached
 			negative answers.
 
