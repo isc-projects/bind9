@@ -255,8 +255,61 @@ dns_view_freeze(dns_view_t *view);
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      isc_stdtime_t now, unsigned int options,
+	      isc_boolean_t use_hints, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+/*
+ * Find an rdataset whose owner name is 'name', and whose type is
+ * 'type'.
+ *
+ * Notes:
+ *
+ *	See the description of dns_db_find() for information about 'options'.
+ *	If the caller sets DNS_DBFIND_GLUEOK, it must ensure that 'name'
+ *	and 'type' are appropriate for glue retrieval.
+ *
+ *	If 'now' is zero, then the current time will be used.
+ *
+ *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
+ *	it will be searched last.  If the answer is found in the hints
+ *	database, the result code will be DNS_R_HINT.
+ *
+ *	'foundname' must meet the requirements of dns_db_find().
+ *
+ *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
+ *	covers 'type', then 'sigrdataset' will be bound to it.
+ *
+ * Requires:
+ *
+ *	'view' is a valid, frozen view.
+ *
+ *	'name' is valid name.
+ *
+ *	'type' is a valid dns_rdatatype_t, and is not a meta query type
+ *	(e.g. dns_rdatatype_any), or dns_rdatatype_sig.
+ *
+ *	'foundname' is 
+ *
+ *	'rdataset' is a valid, disassociated rdataset.
+ *
+ *	'sigrdataset' is NULL, or is a valid, disassociated rdataset.
+ *
+ * Ensures:
+ *
+ *	In successful cases, 'rdataset', and possibly 'sigrdataset', are
+ *	bound to the found data.
+ *
+ * Returns:
+ *
+ *	Any result that dns_db_find() can return, with the exception of
+ *	DNS_R_DELEGATION.
+ */
+
+isc_result_t
+dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+		    isc_stdtime_t now, unsigned int options,
+		    isc_boolean_t use_hints,
+		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -300,11 +353,13 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  *
  * Returns:
  *
- *	ISC_R_SUCCESS			Success.
+ *	ISC_R_SUCCESS			Success; result is desired type.
  *	DNS_R_GLUE			Success; result is glue.
  *	DNS_R_HINT			Success; result is a hint.
  *	DNS_R_NCACHENXDOMAIN		Success; result is a ncache entry.
  *	DNS_R_NCACHENXRRSET		Success; result is a ncache entry.
+ *	DNS_R_NXDOMAIN			The name does not exist.
+ *	DNS_R_NXRRSET			The rrset does not exist.
  *	ISC_R_NOTFOUND			No matching data found,
  *					or an error occurred.
  */

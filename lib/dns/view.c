@@ -394,11 +394,11 @@ dns_view_findzone(dns_view_t *view, dns_name_t *name, dns_zone_t **zonep) {
 
 isc_result_t
 dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	      isc_stdtime_t now, unsigned int options, isc_boolean_t use_hints,
+	      isc_stdtime_t now, unsigned int options,
+	      isc_boolean_t use_hints, dns_name_t *foundname,
 	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	isc_result_t result;
-	dns_fixedname_t foundname;
 	dns_db_t *db;
 	dns_dbversion_t *version;
 	isc_boolean_t is_zone;
@@ -443,10 +443,8 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	/*
 	 * Now look for an answer in the database.
 	 */
-	dns_fixedname_init(&foundname);
 	result = dns_db_find(db, name, NULL, type, options,
-			     now, NULL, dns_fixedname_name(&foundname),
-			     rdataset, sigrdataset);
+			     now, NULL, foundname, rdataset, sigrdataset);
 
 	if (result == DNS_R_DELEGATION ||
 	    result == DNS_R_NOTFOUND) {
@@ -515,21 +513,23 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 			dns_rdataset_disassociate(rdataset);
 		if (sigrdataset != NULL && sigrdataset->methods != NULL)
 			dns_rdataset_disassociate(sigrdataset);
-		dns_fixedname_init(&foundname);
 		result = dns_db_find(view->hints, name, NULL, type, options,
-				     now, NULL, dns_fixedname_name(&foundname),
+				     now, NULL, foundname,
 				     rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS || result == DNS_R_GLUE)
 			result = DNS_R_HINT;
 	}
 
  cleanup:
-	if (result != ISC_R_SUCCESS &&
-	    result != DNS_R_GLUE &&
-	    result != DNS_R_HINT &&
-	    result != DNS_R_NCACHENXDOMAIN &&
-	    result != DNS_R_NCACHENXRRSET)
-		result = DNS_R_NOTFOUND;
+	if (result == DNS_R_NXDOMAIN || result == DNS_R_NXRRSET) {
+		/*
+		 * We don't care about any DNSSEC proof data in these cases.
+		 */
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+	}
 
 	if (zrdataset.methods != NULL) {
 		dns_rdataset_disassociate(&zrdataset);
@@ -540,6 +540,37 @@ dns_view_find(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		dns_db_detach(&db);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
+
+	return (result);
+}
+
+isc_result_t
+dns_view_simplefind(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
+		    isc_stdtime_t now, unsigned int options,
+		    isc_boolean_t use_hints,
+		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_fixedname_t foundname;
+
+	dns_fixedname_init(&foundname);
+	result = dns_view_find(view, name, type, now, options, use_hints,
+			       dns_fixedname_name(&foundname),
+			       rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS &&
+	    result != DNS_R_GLUE &&
+	    result != DNS_R_HINT &&
+	    result != DNS_R_NCACHENXDOMAIN &&
+	    result != DNS_R_NCACHENXRRSET &&
+	    result != DNS_R_NXDOMAIN &&
+	    result != DNS_R_NXRRSET &&
+	    result != DNS_R_NOTFOUND) {
+		if (rdataset->methods != NULL)
+			dns_rdataset_disassociate(rdataset);
+		if (sigrdataset != NULL && sigrdataset->methods != NULL)
+			dns_rdataset_disassociate(sigrdataset);
+		result = DNS_R_NOTFOUND;
+	}
 
 	return (result);
 }
