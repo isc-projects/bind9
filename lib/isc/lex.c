@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.57 2000/12/09 03:20:05 marka Exp $ */
+/* $Id: lex.c,v 1.58 2001/01/05 01:02:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -717,6 +717,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					done = ISC_TRUE;
 				}
 			} else {
+				if (c == '\n' && !escaped) {
+					pushback(source, c);
+					return (ISC_R_UNBALANCEDQUOTES);
+				}
 				if (c == '\\' && !escaped)
 					escaped = ISC_TRUE;
 				else
