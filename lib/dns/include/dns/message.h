@@ -122,6 +122,10 @@ typedef int dns_pseudosection_t;
 #define DNS_PSEUDOSECTION_SIG0          2
 #define DNS_PSEUDOSECTION_MAX           3
 
+typedef int dns_messagetextflag_t;
+#define DNS_MESSAGETEXTFLAG_NOCOMMENTS	0x0001
+#define DNS_MESSAGETEXTFLAG_NOHEADERS	0x0002
+#define DNS_MESSAGETEXTFLAG_OMITDOT	0x0004
 
 /*
  * Dynamic update names for these sections.
@@ -275,26 +279,20 @@ dns_message_destroy(dns_message_t **msgp);
 
 isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
-			  isc_boolean_t comments,
-			  isc_boolean_t omit_final_dot,
+			  dns_messagetextflag_t flags,
 			  isc_buffer_t *target);
 
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
-				isc_boolean_t comments,
-				isc_boolean_t omit_final_dot,
+				dns_messagetextflag_t flags,
 				isc_buffer_t *target);
 /*
  * Convert section 'section' or 'pseudosection' of message 'msg' to 
  * a cleartext representation
  *
  * Notes:
- *	If 'omit_final_dot' is true, then the final '.' in absolute names
- *	will not be emitted.
- *	If 'no_rdata_or_tt;' is true, omit rdata and ttl fields.
- *	If 'comments' is true, lines beginning with ";;" will be emitted
- *	indicating section name.
+ *      See dns_message_totext for meanings of flags.
  *
  * Requires:
  *
@@ -322,18 +320,18 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 */
 
 isc_result_t
-dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
-		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
+dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 		   isc_buffer_t *target);
 /*
  * Convert all sections of message 'msg' to a cleartext representation
  *
  * Notes:
- *	If 'omit_final_dot' is true, then the final '.' in absolute names
- *	will not be emitted.
- *	If 'no_rdata_or_tt;' is true, omit rdata and ttl fields.
- *	If 'comments' is true, lines beginning with ";;" will be emitted
- *	indicating section name.
+ *      In flags, If DNS_MESSAGETEXTFLAG_OMITDOT is set, then the *
+ *      final '.' in absolute names will not be emitted.  If
+ *      DNS_MESSAGETEXTFLAG_NOCOMMENTS is cleared, * lines * beginning
+ *      with ";;" will be emitted indicating section name.  If
+ *      DNS_MESSAGETEXTFLAG_NOHEADERS is cleared, header lines will
+ *      be emmitted.
  *
  * Requires:
  *
@@ -355,8 +353,7 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
  *	ISC_R_NOSPACE
  *	ISC_R_NOMORE
  *
- *	Note: On error return, *target may be partially filled with data. 
-*/
+ *	Note: On error return, *target may be partially filled with data.  */
 
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,

@@ -60,8 +60,7 @@ printmsg(dns_message_t *msg, FILE *out) {
 	int result;
 
 	isc_buffer_init(&textbuf, text, sizeof text);
-	result = dns_message_totext(msg, ISC_TRUE, ISC_TRUE,
-				    ISC_FALSE, &textbuf);
+	result = dns_message_totext(msg, 0, &textbuf);
 
 	if (result != ISC_R_SUCCESS)
 		return (result);

@@ -2418,22 +2418,20 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
-			  isc_boolean_t comments,
-			  isc_boolean_t omit_final_dot,
+			  dns_messagetextflag_t flags,
 			  isc_buffer_t *target) {
 	dns_name_t *name, empty_name;
 	dns_rdataset_t *rdataset;
 	isc_result_t result;
 	isc_boolean_t no_rdata;
+	isc_boolean_t omit_final_dot;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_SECTION(section));
 
-	/*
-	 * If the section is empty, that's still success, but we don't
-	 * actually do anything.
-	 */
+	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
+
 	if (ISC_LIST_EMPTY(msg->sections[section]))
 		return ISC_R_SUCCESS;
 
@@ -2442,7 +2440,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 	else
 		no_rdata = ISC_FALSE;
 
-	if (comments) {
+	if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0) {
 		ADD_STRING(target, ";; ");
 		ADD_STRING(target, sectiontext[section]);
 		ADD_STRING(target, " SECTION:\n");
@@ -2479,28 +2477,26 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
-				isc_boolean_t comments,
-				isc_boolean_t omit_final_dot,
+				dns_messagetextflag_t flags,
 				isc_buffer_t *target) {
 	dns_rdataset_t *ps = NULL;
 	dns_name_t *name = NULL;
 	isc_result_t result;
 	char buf[sizeof("1234567890")];
+	isc_boolean_t omit_final_dot;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 	REQUIRE(VALID_PSEUDOSECTION(section));
 
-	/*
-	 * If the section is empty, that's still success, but we don't
-	 * actually do anything.
-	 */
+	omit_final_dot = ISC_TF((flags & DNS_MESSAGETEXTFLAG_OMITDOT) != 0);
+
 	switch (section) {
 	case DNS_PSEUDOSECTION_OPT:
 		ps = dns_message_getopt(msg);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-		if (comments)
+		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
 		ADD_STRING(target, "; EDNS: version: ");
 		sprintf(buf, "%4u",
@@ -2516,7 +2512,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_gettsig(msg, &name);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-		if (comments)
+		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; TSIG PSEUDOSECTION:\n");
 		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
@@ -2526,7 +2522,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_getsig0(msg, &name);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
-		if (comments)
+		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
 		result = dns_rdataset_totext(ps, name, omit_final_dot,
 					     ISC_FALSE, target);
@@ -2537,8 +2533,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 }
 
 isc_result_t
-dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
-		   isc_boolean_t headers, isc_boolean_t omit_final_dot,
+dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 		   isc_buffer_t *target) {
 	char buf[sizeof "1234567890"];
 	isc_result_t result;
@@ -2546,7 +2541,7 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(target != NULL);
 
-	if (headers) {
+	if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0) {
 		ADD_STRING(target, ";; ->>HEADER<<- opcode: ");
 		ADD_STRING(target, opcodetext[msg->opcode]);
 		ADD_STRING(target, ", status: ");
@@ -2585,47 +2580,36 @@ dns_message_totext(dns_message_t *msg, isc_boolean_t comments,
 	}
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_OPT,
-						 comments, omit_final_dot,
-						 target);
+						 flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION,
-					   comments,
-					   omit_final_dot,
-					   target);
+					   flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER,
-					   comments,
-					   omit_final_dot,
-					   target);
+					   flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY,
-					   comments,
-					   omit_final_dot,
-					   target);
+					   flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL,
-					   comments,
-					   omit_final_dot,
-					   target);
+					   flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_TSIG,
-						 comments, omit_final_dot,
-						 target);
+						 flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_SIG0,
-						 comments, omit_final_dot,
-						 target);
+						 flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
