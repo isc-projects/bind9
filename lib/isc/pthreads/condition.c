@@ -31,11 +31,13 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
 
 	ts.tv_sec = t->seconds;
 	ts.tv_nsec = t->nanoseconds;
-	presult = pthread_cond_timedwait(c, m, &ts);
-	if (presult == 0)
-		return (ISC_R_SUCCESS);
-	if (presult == ETIMEDOUT)
-		return (ISC_R_TIMEDOUT);
+	do {
+		presult = pthread_cond_timedwait(c, m, &ts);
+		if (presult == 0)
+			return (ISC_R_SUCCESS);
+		if (presult == ETIMEDOUT)
+			return (ISC_R_TIMEDOUT);
+	} while (presult == EINTR);
 
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
 			 "pthread_cond_timedwait() returned %s",
