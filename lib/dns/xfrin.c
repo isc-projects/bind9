@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.44 2000/01/31 22:55:04 gson Exp $ */
+ /* $Id: xfrin.c,v 1.45 2000/02/02 01:01:24 marka Exp $ */
 
 #include <config.h>
 
@@ -694,7 +694,7 @@ xfrin_create(isc_mem_t *mctx,
 	return (result);
 }
 
-isc_result_t
+static isc_result_t
 xfrin_start(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 	CHECK(isc_socket_create(xfr->socketmgr,
