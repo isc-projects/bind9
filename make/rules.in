@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.24 2000/12/14 22:33:05 marka Exp $
+# $Id: rules.in,v 1.25 2000/12/15 08:28:45 gson Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -46,11 +46,7 @@ top_builddir =	@BIND9_TOP_BUILDDIR@
 ### Makefile may define:
 ###	TARGETS
 
-all: Makefile subdirs ${TARGETS}
-
-Makefile: Makefile.in
-	@echo Re-run configure.
-	@exit 1
+all: subdirs ${TARGETS}
 
 ###
 ### Subdirectories
