@@ -27,12 +27,15 @@ void
 ns_os_daemonize(void);
 
 void
-ns_os_shutdown(void);
-
-void
 ns_os_chroot(const char *root);
 
 void
 ns_os_changeuser(const char *username);
+
+void
+ns_os_writepidfile(const char *filename);
+
+void
+ns_os_shutdown(void);
 
 #endif /* NS_OS_H */

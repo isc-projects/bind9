@@ -603,7 +603,9 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 }
 
 static isc_result_t
-load_configuration(const char *filename, ns_server_t *server) {
+load_configuration(const char *filename, ns_server_t *server,
+		   isc_boolean_t first_time)
+{
 	isc_result_t result;
 	ns_load_t lctx;
 	dns_c_cbks_t callbacks;
@@ -612,6 +614,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	dns_viewlist_t tmpviewlist;
 	dns_aclconfctx_t aclconfctx;
 	dns_dispatch_t *dispatch;
+	char *pidfilename;
 
 	dns_aclconfctx_init(&aclconfctx);
 
@@ -776,6 +779,14 @@ load_configuration(const char *filename, ns_server_t *server) {
 			dns_tkeyctx_destroy(&server->tkeyctx);
 		server->tkeyctx = t;
 	}
+
+	if (first_time)
+		ns_os_changeuser(ns_g_username);
+
+	if (dns_c_ctx_getpidfilename(configctx, &pidfilename) ==
+	    ISC_R_NOTFOUND)
+		pidfilename = "/var/run/named.pid";
+	ns_os_writepidfile(pidfilename);
 	
 	dns_aclconfctx_destroy(&aclconfctx);	
 
@@ -833,6 +844,7 @@ static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_server_t *server = (ns_server_t *) event->arg;
+
 	(void)task;
 
 	isc_event_free(&event);
@@ -846,18 +858,11 @@ run_server(isc_task_t *task, isc_event_t *event) {
 					  &server->interfacemgr),
 		   "creating interface manager");
 
-	CHECKFATAL(load_configuration(ns_g_conffile, server),
+	CHECKFATAL(load_configuration(ns_g_conffile, server, ISC_TRUE),
 		   "loading configuration");
 
 	CHECKFATAL(load_zones(server, ISC_TRUE),
 		   "loading zones");
-
-	/*
-	 * XXXRTH  Currently ns_os_changeuser() will call ns_main_earlyfatal()
-	 *         if it fails.  Perhaps it should be changed to return an
-	 *         error code?
-	 */
-	ns_os_changeuser(ns_g_username);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "running");
@@ -1021,7 +1026,7 @@ ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	ns_server_t *server = (ns_server_t *) event->arg;
 	UNUSED(task);
 	
-	result = load_configuration(ns_g_conffile, server);
+	result = load_configuration(ns_g_conffile, server, ISC_FALSE);
 	if (result != DNS_R_SUCCESS) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,

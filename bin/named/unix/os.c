@@ -18,6 +18,7 @@
 #include <config.h>
 
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <ctype.h>
 #include <stdio.h>
@@ -36,6 +37,10 @@
 #include <named/main.h>
 #include <named/os.h>
 
+static char *pidfile = NULL;
+#ifdef HAVE_LINUXTHREADS
+static pid_t mainpid = 0;
+#endif
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -119,6 +124,9 @@ ns_os_init(void) {
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_initialprivs();
 #endif
+#ifdef HAVE_LINUXTHREADS
+	mainpid = getpid();
+#endif
 }
 
 void
@@ -135,6 +143,10 @@ ns_os_daemonize(void) {
 	/*
 	 * We're the child.
 	 */
+
+#ifdef HAVE_LINUXTHREADS
+	mainpid = getpid();
+#endif
 
         if (setsid() == -1)
 		ns_main_earlyfatal("setsid(): %s", strerror(errno));
@@ -154,12 +166,6 @@ ns_os_daemonize(void) {
 			(void)close(fd);
 	}
 }
-
-void
-ns_os_shutdown(void) {
-	closelog();
-}
-
 
 static isc_boolean_t
 all_digits(const char *s) {
@@ -210,4 +216,76 @@ ns_os_changeuser(const char *username) {
 		ns_main_earlyfatal("setgid(): %s", strerror(errno));
 	if (setuid(pw->pw_uid) < 0)
 		ns_main_earlyfatal("setuid(): %s", strerror(errno));
+}
+
+static int
+safe_open(const char *filename) {
+        struct stat sb;
+
+        if (stat(filename, &sb) == -1) {
+                if (errno != ENOENT)
+			return (-1);
+        } else if ((sb.st_mode & S_IFREG) == 0)
+		return (-1);
+
+        (void)unlink(filename);
+        return (open(filename, O_WRONLY|O_CREAT|O_EXCL,
+		     S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH));
+}
+
+static void
+cleanup_pidfile(void) {
+	if (pidfile != NULL)
+		(void)unlink(pidfile);
+	free(pidfile);
+	pidfile = NULL;
+}
+
+void
+ns_os_writepidfile(const char *filename) {
+        int fd;
+	FILE *lockfile;
+	size_t len;
+	pid_t pid;
+
+	/*
+	 * The caller must ensure any required synchronization.
+	 */
+
+	cleanup_pidfile();
+
+	len = strlen(filename);
+	pidfile = malloc(len + 1);
+	if (pidfile == NULL)
+                ns_main_earlyfatal("couldn't malloc '%s': %s",
+				   filename, strerror(errno));
+	/* This is safe. */
+	strcpy(pidfile, filename);
+
+        fd = safe_open(filename);
+        if (fd < 0)
+                ns_main_earlyfatal("couldn't open pid file '%s': %s",
+				   filename, strerror(errno));
+        lockfile = fdopen(fd, "w");
+        if (lockfile == NULL)
+		ns_main_earlyfatal("could not fdopen() pid file '%s': %s",
+				   filename, strerror(errno));
+#ifdef HAVE_LINUXTHREADS
+	pid = mainpid;
+#else
+	pid = getpid();
+#endif
+        if (fprintf(lockfile, "%ld\n", (long)pid) < 0)
+                ns_main_earlyfatal("fprintf() to pid file '%s' failed",
+				   filename);
+        if (fflush(lockfile) == EOF)
+                ns_main_earlyfatal("fflush() to pid file '%s' failed",
+				   filename);
+	(void)fclose(lockfile);
+}
+
+void
+ns_os_shutdown(void) {
+	closelog();
+	cleanup_pidfile();
 }
