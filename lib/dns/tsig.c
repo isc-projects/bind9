@@ -16,11 +16,12 @@
  */
 
 /*
- * $Id: tsig.c,v 1.56 2000/05/08 19:23:20 tale Exp $
+ * $Id: tsig.c,v 1.57 2000/05/08 19:30:10 tale Exp $
  * Principal Author: Brian Wellington
  */
 
 #include <config.h>
+#include <stdlib.h>		/* Required for abs(). */
 
 #include <isc/mem.h>
 #include <isc/once.h>
