@@ -80,6 +80,10 @@ $Nobp		= 0;
 # number of test problems
 $Ntprobs	= 0;
 
+# flag to signal bad test journal format
+$BadTest	= 0;
+$BadTestReason	= "";
+
 #
 # name of host serving the bind9 reports
 #
@@ -133,21 +137,26 @@ foreach $entry (@entries) {
 $when = `date`;
 chop $when;
 
-printf("<HTML>\n");
-printf("<HEAD>\n");
-printf("<TITLE>bind9 status %s</TITLE>\n", $when);
-printf("<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
-printf("</HEAD>\n");
-printf("<BODY BGCOLOR=\"white\">\n");
-printf("<P>\n");
-printf("<P>\n");
+#printf("<HTML>\n");
+#printf("<HEAD>\n");
+#printf("<TITLE>bind9 status %s</TITLE>\n", $when);
+#printf("<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
+#printf("</HEAD>\n");
+#printf("<BODY BGCOLOR=\"white\">\n");
+#printf("<P>\n");
+#printf("<P>\n");
+
+printf("<?php \$title = \"ISC Status Server\"; ?>\n");
+printf("<?php include(\"status-isc-header.inc\") ?>\n");
+printf("\n");
+
 printf("<CENTER>\n");
 printf("<TABLE BORDER=0>\n");
 printf("\t<TR HEIGHT=36><TD COLSPAN=4>&nbsp</TD></TR>\n");
 printf("\t<TR><TD COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><EM>bind9 status %s</EM></FONT></TD></TR>\n", $when);
 printf("\t<TR HEIGHT=36><TD COLSPAN=4>&nbsp</TD></TR>\n");
 printf("\t<TR>\n");
-printf("\t\t<TD WIDTH=150 ALIGN=LEFT><B>host</EM></B>\n");
+printf("\t\t<TD WIDTH=150 ALIGN=LEFT><B>host</B></TD>\n");
 printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>build status</B></TD>\n");
 printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>fatal/other</B></TD>\n");
 printf("\t\t<TD WIDTH=100 ALIGN=LEFT><B>test status</B></TD>\n");
@@ -166,10 +175,15 @@ foreach $host (sort @hosts) {
 # output end of page
 #
 
+printf("\n");
 printf("</TABLE>\n");
-printf("</CENTER>\n");
-printf("</BODY>\n");
-printf("</HTML>\n");
+printf("\n");
+printf("<?php include(\"isc-footer.inc\") ?>\n");
+
+#printf("</TABLE>\n");
+#printf("</CENTER>\n");
+#printf("</BODY>\n");
+#printf("</HTML>\n");
 
 close(DEBUG) if ($Debug);
 
@@ -192,9 +206,11 @@ sub doHost {
 	#
 	# scan the build and test results files for problems
 	#
+
 	$Nfbp = 0;
 	$Nobp = 0;
 	$Ntprobs = 0;
+	$BadTest = 0;
 
 	%buildprobs = &buildCheck("$hostpath") if (-r "$hostpath/$BuildFile");
 	%testprobs = &testCheck("$hostpath") if (-r "$hostpath/$TestFile");
@@ -216,8 +232,11 @@ sub doHost {
 		$bstatus = "ok";
 	}
 
-	if ($Nfbp) {
-		$tstatus = "not available";
+	if ($BadTest) {
+		$tstatus = "not available ($BadTestReason)";
+	}
+	elsif ($bstatus =~ /not available|broken/) {
+		$tstatus = "not available (no results)";
 	}
 	elsif ($Ntprobs) {
 		$tstatus = "broken";
@@ -225,6 +244,8 @@ sub doHost {
 	else {
 		$tstatus = "ok";
 	}
+
+	printf(DEBUG "Host %s STATUS: bstatus %s, tstatus %s, badtest %d, reason %s\n", $hostid, $bstatus, $tstatus, $BadTest, $BadTestReason) if ($Debug);
 
 	printf("\t<TR>\n");
 	printf("\t\t<TD>%s</TD>\n", $hostid);
@@ -378,8 +399,7 @@ sub testCheck {
 	local($hostpath) = @_;
 	local($funcname, $anum, $atext);
 	local(%probs);
-
-	$Ntprobs = 0;
+	local($intest, $intestcase, $inassert, $ininfo, $inresult);
 
 	# initialize the well known test problems array
 	if (-f "$hostpath/$WktpFile") {
@@ -393,18 +413,61 @@ sub testCheck {
 		close(XXX);
 	}
 
+	if (! -r "$hostpath/$TestFile") {
+		$BadTest = 1;
+		$BadTestReason = "no journal file";
+		printf(DEBUG "No test journal at %s\n", "$hostpath/$TestFile") if ($Debug);
+		return;
+	}
+
+	$intest = 0;
+
 	open(XXX, "< $hostpath/$TestFile");
+
 	while (<XXX>) {
+		next if ($_ !~ /^(S|I|T|A|R):/);
+		$intest = 1 if (/^S:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
+
 		if (/^T:([^:]*):([^:]*):/) {
+			if ($intest == 0) {
+				$BadTest = 1;
+				$BadTestReason = "T";
+			}
 			$funcname = $1;
 			$anum = $2;
+
+			$intestcase = 1;
+			$inassert = 0;
+			$ininfo = 0;
+			$inresult = 0;
+
 			next;
 		}
 		if (/^A:(.*)$/) {
+			if (($intestcase == 0) || ($inresult == 1)) {
+				$BadTest = 1;
+				$BadTestReason = "A";
+			}
+			$inassert = 1;
 			$atext = 1;
 			next;
 		}
+		if (/^I:(.*)$/) {
+			if ($inassert == 0) {
+				$BadTest = 1;
+				$BadTestReason = "I";
+			}
+			$ininfo = 1;
+			next;
+		}
 		if (/^R:(.*)$/) {
+			if (($intestcase ==  0) || ($inassert == 0)) {
+				$BadTest = 1;
+				$BadTestReason = "R";
+			}
+			$inresult = 1;
+			$intestcase = 0;
+
 			$result = $1;
 			if ($result =~ /FAIL|UNRESOLVED|UNINITIATED/) {
 				#
@@ -414,9 +477,14 @@ sub testCheck {
 				$probs{"$funcname:$anum"} = $result;
 				++$Ntprobs;
 			}
+			next;
 		}
 	}
 	close(XXX);
+	if ($intest == 0) {
+		$BadTest = 1;
+		$BadTestReason = "no results";
+	}
 	return(%probs);
 }
 
@@ -426,8 +494,12 @@ sub wbpf {
 	local(@messageset, $message);
 
 	open(XXX, "> $B9HostPath/$hostid/$BuildProblemsFile");
-	printf(XXX "<HTML>\n<HEAD>\n");
-	printf(XXX "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
+#	printf(XXX "<HTML>\n<HEAD>\n");
+#	printf(XXX "<META HTTP-EQUIV=\"Pragma\" CONTENT=\"no-cache\">\n");
+
+#	printf("<?php $title = \"IEI Internal Web\"; ?>\n");
+#	printf("<?php include(\"isc-header.inc\") ?>\n");
+
 	printf(XXX "<TITLE>bind9 %s build problems by filename</TITLE>\n", $hostid);
 	printf(XXX "</HEAD>\n<BODY BGCOLOR=\"white\">\n");
 
@@ -449,7 +521,8 @@ sub wbpf {
 		$lastfilename = $filename;
 	}
 
-	printf(XXX "</BODY>\n</HTML>\n");
+#	printf(XXX "</BODY>\n</HTML>\n");
+#       printf("<?php include(\"isc-footer.inc\") ?>\n");
 	close(XXX);
 }
 
