@@ -68,6 +68,8 @@ BIND 9.2
 	    rather than the "mandoc" macros, and are installed
             by "make install".
 
+          - The "rndc status" command is now implemented.
+
 	An IPv6 capable stub resolver based on the BIND 8 resolver
 	code base and fully backwards compatible with existing BIND 8
 	based resolvers is being developed and will be integrated into
