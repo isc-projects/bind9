@@ -30,13 +30,7 @@
 #include <isc/result.h>
 #include <isc/socket.h>
 #include <isc/timer.h>
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
+#include <isc/net.h>
 
 isc_mem_t *mctx;
 isc_taskmgr_t *manager;
@@ -265,16 +259,21 @@ main(int argc, char *argv[])
 	isc_socketmgr_t *socketmgr;
 	isc_socket_t *so1, *so2;
 	isc_sockaddr_t sockaddr;
-
-	memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.type.sin.sin_port = htons(5544);
-	sockaddr.length = sizeof (struct sockaddr_in);
+	struct in_addr ina;
+	struct in6_addr in6a;
+	isc_result_t result;
+	int pf;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);
 	else
 		workers = 2;
 	printf("%d workers\n", workers);
+
+	if (isc_net_haveipv6() == ISC_R_SUCCESS)
+		pf = PF_INET6;
+	else
+		pf = PF_INET;
 
 	/*
 	 * EVERYTHING needs a memory context.
@@ -314,13 +313,18 @@ main(int argc, char *argv[])
 	 * open up a listener socket
 	 */
 	so1 = NULL;
-	memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_port = htons(5544);
-	sockaddr.length = sizeof (struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockettype_tcp, &so1) ==
-		      ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_socket_bind(so1, &sockaddr) == ISC_R_SUCCESS);
+
+	if (pf == PF_INET6) {
+		in6a = in6addr_any;
+		isc_sockaddr_fromin6(&sockaddr, &in6a, 5544);
+	} else {
+		ina.s_addr = INADDR_ANY;
+		isc_sockaddr_fromin(&sockaddr, &ina, 5544);
+	}
+	RUNTIME_CHECK(isc_socket_create(socketmgr, pf, isc_sockettype_tcp,
+					&so1) == ISC_R_SUCCESS);
+	result = isc_socket_bind(so1, &sockaddr);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_listen(so1, 0) == ISC_R_SUCCESS);
 
 	/*
@@ -340,12 +344,13 @@ main(int argc, char *argv[])
 	 * Why not.  :)
 	 */
 	so2 = NULL;
-	memset(&sockaddr, 0, sizeof(sockaddr));
-	sockaddr.type.sin.sin_port = htons(80);
-	sockaddr.type.sin.sin_family = AF_INET;
-	sockaddr.type.sin.sin_addr.s_addr = inet_addr("204.152.186.34");
-	sockaddr.length = sizeof (struct sockaddr_in);
-	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockettype_tcp,
+	ina.s_addr = inet_addr("204.152.186.34");
+	if (pf == PF_INET6)
+		isc_sockaddr_v6fromin(&sockaddr, &ina, 80);
+	else
+		isc_sockaddr_fromin(&sockaddr, &ina, 80);
+	RUNTIME_CHECK(isc_socket_create(socketmgr, isc_sockaddr_pf(&sockaddr),
+					isc_sockettype_tcp,
 					&so2) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_socket_connect(so2, &sockaddr, t2,
 					 my_connect, "so2") == ISC_R_SUCCESS);
