@@ -232,9 +232,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(countp != NULL);
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0)
+	if ((rdataset->attributes & DNS_RDATASETATTR_QUESTION) != 0) {
 		question = ISC_TRUE;
-	else {
+		result = dns_rdataset_first(rdataset);
+		INSIST(result == DNS_R_NOMORE);
+	} else {
 		result = dns_rdataset_first(rdataset);
 		if (result == DNS_R_NOMORE)
 			return (DNS_R_SUCCESS);
