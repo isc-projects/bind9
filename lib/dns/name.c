@@ -124,12 +124,31 @@ static unsigned char maptolower[] = {
 #define CONVERTTOASCII(c)
 #define CONVERTFROMASCII(c)
 
-static struct dns_name root = { NAME_MAGIC, "", 1, 1 };
+#define INIT_OFFSETS(name, var, default) \
+	if (name->offsets != NULL) \
+		var = name->offsets; \
+	else \
+		var = default;
+
+#define SETUP_OFFSETS(name, var, default) \
+	if (name->offsets != NULL) \
+		var = name->offsets; \
+	else { \
+		var = default; \
+		set_offsets(name, var, ISC_FALSE, ISC_FALSE); \
+	}
+
+static struct dns_name root = {
+	NAME_MAGIC,
+	"", 1, 1, NULL,
+	{(void *)-1, (void *)-1}
+};
 
 dns_name_t *dns_rootname = &root;
 
-static void set_offsets(dns_name_t *, isc_boolean_t, isc_boolean_t);
-static void compact(dns_name_t *);
+static void set_offsets(dns_name_t *name, unsigned char *offsets,
+			isc_boolean_t set_labels, isc_boolean_t set_length);
+static void compact(dns_name_t *name, unsigned char *offsets);
 
 /*
  * Yes, get_bit and set_bit are lame.  We define them here so they can
@@ -224,7 +243,7 @@ dns_label_getbit(dns_label_t *label, unsigned int n) {
 }
 
 void
-dns_name_init(dns_name_t *name) {
+dns_name_init(dns_name_t *name, unsigned char *offsets) {
 	/*
 	 * Make 'name' empty.
 	 */
@@ -233,6 +252,8 @@ dns_name_init(dns_name_t *name) {
 	name->ndata = NULL;
 	name->length = 0;
 	name->labels = 0;
+	name->offsets = offsets;
+	ISC_LINK_INIT(name, link);
 }
 
 void
@@ -247,10 +268,15 @@ dns_name_invalidate(dns_name_t *name) {
 	name->ndata = NULL;
 	name->length = 0;
 	name->labels = 0;
+	name->offsets = NULL;
+	ISC_LINK_INIT(name, link);
 }
 
 isc_boolean_t
 dns_name_isabsolute(dns_name_t *name) {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+
 	/*
 	 * Does 'name' end in the root label?
 	 */
@@ -258,7 +284,9 @@ dns_name_isabsolute(dns_name_t *name) {
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(name->labels > 0);
 
-	if (name->ndata[name->offsets[name->labels - 1]] == 0)
+	SETUP_OFFSETS(name, offsets, odata);
+
+	if (name->ndata[offsets[name->labels - 1]] == 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -270,6 +298,8 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	unsigned char c1, c2;
 	int cdiff, ldiff;
 	unsigned char *label1, *label2;
+	unsigned char *offsets1, *offsets2;
+	dns_offsets_t odata1, odata2;
 
 	/*
 	 * Determine the relative ordering under the DNSSEC order relation of
@@ -280,6 +310,9 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	REQUIRE(name1->labels > 0);
 	REQUIRE(VALID_NAME(name2));
 	REQUIRE(name2->labels > 0);
+
+	SETUP_OFFSETS(name1, offsets1, odata1);
+	SETUP_OFFSETS(name2, offsets2, odata2);
 
 	l1 = name1->labels;
 	l2 = name2->labels;
@@ -298,8 +331,8 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 		l--;
 		l1--;
 		l2--;
-		label1 = &name1->ndata[name1->offsets[l1]];
-		label2 = &name2->ndata[name2->offsets[l2]];
+		label1 = &name1->ndata[offsets1[l1]];
+		label2 = &name2->ndata[offsets2[l2]];
 		count1 = *label1++;
 		count2 = *label2++;
 		if (count1 <= 63 && count2 <= 63) {
@@ -376,6 +409,8 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	unsigned int b1, b2, n;
 	unsigned char c1, c2;
 	unsigned char *label1, *label2;
+	unsigned char *offsets1, *offsets2;
+	dns_offsets_t odata1, odata2;
 
 	/*
 	 * Is 'name1' a subdomain of 'name2'?
@@ -397,6 +432,9 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 
 	REQUIRE((a1 && a2) || (!a1 && !a2));
 
+	SETUP_OFFSETS(name1, offsets1, odata1);
+	SETUP_OFFSETS(name2, offsets2, odata2);
+
 	l1 = name1->labels;
 	l2 = name2->labels;
 	if (l1 < l2)
@@ -405,8 +443,8 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	while (l2 > 0) {
 		l1--;
 		l2--;
-		label1 = &name1->ndata[name1->offsets[l1]];
-		label2 = &name2->ndata[name2->offsets[l2]];
+		label1 = &name1->ndata[offsets1[l1]];
+		label2 = &name2->ndata[offsets2[l2]];
 		count1 = *label1++;
 		count2 = *label2++;
 		if (count1 <= 63 && count2 <= 63) {
@@ -462,6 +500,9 @@ dns_name_countlabels(dns_name_t *name) {
 
 void
 dns_name_getlabel(dns_name_t *name, unsigned int n, dns_label_t *label) {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+
 	/*
 	 * Make 'label' refer to the 'n'th least significant label of 'name'.
 	 */
@@ -471,11 +512,13 @@ dns_name_getlabel(dns_name_t *name, unsigned int n, dns_label_t *label) {
 	REQUIRE(n < name->labels);
 	REQUIRE(label != NULL);
 	
-	label->base = &name->ndata[name->offsets[n]];
+	SETUP_OFFSETS(name, offsets, odata);
+
+	label->base = &name->ndata[offsets[n]];
 	if (n == name->labels - 1)
-		label->length = name->length - name->offsets[n];
+		label->length = name->length - offsets[n];
 	else
-		label->length = name->offsets[n + 1] - name->offsets[n];
+		label->length = offsets[n + 1] - offsets[n];
 }
 
 void
@@ -483,6 +526,9 @@ dns_name_getlabelsequence(dns_name_t *source,
 			  unsigned int first, unsigned int n,
 			  dns_name_t *target)
 {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+
 	/*
 	 * Make 'target' refer to the 'n' labels including and following
 	 * 'first' in 'source'.
@@ -494,33 +540,40 @@ dns_name_getlabelsequence(dns_name_t *source,
 	REQUIRE(first < source->labels);
 	REQUIRE(first + n <= source->labels);
 
-	target->ndata = &source->ndata[source->offsets[first]];
+	SETUP_OFFSETS(source, offsets, odata);
+
+	target->ndata = &source->ndata[offsets[first]];
 	if (first + n == source->labels)
-		target->length = source->length - source->offsets[first];
+		target->length = source->length - offsets[first];
 	else
-		target->length = source->offsets[first + n] -
-			source->offsets[first];
+		target->length = offsets[first + n] - offsets[first];
 	target->labels = n;
 
-	set_offsets(target, ISC_FALSE, ISC_FALSE);
+	if (target->offsets != NULL)
+		set_offsets(target, target->offsets, ISC_FALSE, ISC_FALSE);
 }
 
 void
 dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
+	unsigned char *offsets;
+	dns_offsets_t odata;
+
 	/*
 	 * Make 'name' refer to region 'r'.
 	 */
 
-	REQUIRE(name != NULL);
+	REQUIRE(VALID_NAME(name));
 	REQUIRE(r != NULL);
 	REQUIRE(r->length <= 255);
+
+	INIT_OFFSETS(name, offsets, odata);
 
 	name->magic = NAME_MAGIC;
 	name->ndata = r->base;
 	name->length = r->length;
 
 	if (r->length > 0)
-		set_offsets(name, ISC_TRUE, ISC_TRUE);
+		set_offsets(name, offsets, ISC_TRUE, ISC_TRUE);
 	else
 		name->labels = 0;
 }
@@ -552,6 +605,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	unsigned int n1, n2, vlen, tlen, nrem, digits, labels, tused;
 	isc_boolean_t done, saw_bitstring;
 	unsigned char dqchars[4];
+	unsigned char *offsets;
+	dns_offsets_t odata;
 
 	/*
 	 * Convert the textual representation of a DNS name at source
@@ -563,10 +618,12 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	 *	will remain relative.
 	 */
 
-	REQUIRE(name != NULL);
+	REQUIRE(VALID_NAME(name));
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_TEXT);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	
+	INIT_OFFSETS(name, offsets, odata);
+
 	/*
 	 * Initialize things to make the compiler happy; they're not required.
 	 */
@@ -991,10 +1048,11 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	/*
 	 * We should build the offsets table directly.
 	 */
-	set_offsets(name, ISC_FALSE, ISC_FALSE);
+	if (name->offsets != NULL || saw_bitstring)
+		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE);
 
 	if (saw_bitstring)
-		compact(name);
+		compact(name, offsets);
 
 	isc_buffer_forward(source, tused);
 	isc_buffer_add(target, name->length);
@@ -1165,8 +1223,9 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 }
 
 static void
-set_offsets(dns_name_t *name, isc_boolean_t set_labels,
-	    isc_boolean_t set_length) {
+set_offsets(dns_name_t *name, unsigned char *offsets, isc_boolean_t set_labels,
+	    isc_boolean_t set_length)
+{
 	unsigned int offset, count, nlabels, nrem, n;
 	unsigned char *ndata;
 
@@ -1176,7 +1235,7 @@ set_offsets(dns_name_t *name, isc_boolean_t set_labels,
 	nlabels = 0;
 	while (nrem > 0) {
 		INSIST(nlabels < 128);
-		name->offsets[nlabels++] = offset;
+		offsets[nlabels++] = offset;
 		count = *ndata++;
 		nrem--;
 		offset++;
@@ -1208,7 +1267,7 @@ set_offsets(dns_name_t *name, isc_boolean_t set_labels,
 }
 
 static void
-compact(dns_name_t *name) {
+compact(dns_name_t *name, unsigned char *offsets) {
 	unsigned char *head, *curr, *last;
 	unsigned int count, n, bit;
 	unsigned int headbits, currbits, tailbits, newbits;
@@ -1227,11 +1286,11 @@ compact(dns_name_t *name) {
 	n = name->labels - 1;
 
 	while (n > 0) {
-		head = &name->ndata[name->offsets[n]];
+		head = &name->ndata[offsets[n]];
 		if (head[0] == DNS_LABELTYPE_BITSTRING && head[1] != 0) {
 			if (n != 0) {
 				n--;
-				curr = &name->ndata[name->offsets[n]];
+				curr = &name->ndata[offsets[n]];
 				if (curr[0] != DNS_LABELTYPE_BITSTRING)
 					break;
 				/*
@@ -1358,16 +1417,20 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	isc_boolean_t saw_bitstring, done;
 	fw_state state = fw_start;
 	unsigned int c;
+	unsigned char *offsets;
+	dns_offsets_t odata;
 
 	/*
 	 * Copy the possibly-compressed name at source into target,
 	 * decompressing it.
 	 */
 
-	REQUIRE(name != NULL);
+	REQUIRE(VALID_NAME(name));
 	REQUIRE(isc_buffer_type(source) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(isc_buffer_type(target) == ISC_BUFFERTYPE_BINARY);
 	REQUIRE(dctx != NULL);
+
+	INIT_OFFSETS(name, offsets, odata);
 
 	/*
 	 * Invalidate 'name'.
@@ -1520,10 +1583,11 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	/*
 	 * We should build the offsets table directly.
 	 */
-	set_offsets(name, ISC_FALSE, ISC_FALSE);
+	if (name->offsets != NULL || saw_bitstring)
+		set_offsets(name, offsets, ISC_FALSE, ISC_FALSE);
 
 	if (saw_bitstring)
-		compact(name);
+		compact(name, offsets);
 
 	isc_buffer_forward(source, cused);
 	isc_buffer_add(target, name->length);

@@ -150,13 +150,7 @@ dns_bitlabel_t dns_label_getbit(dns_label_t *label, unsigned int n);
 /***
  *** Note
  ***
- *** Some provision still needs to be made for splitting bitstring labels,
- *** and for merging them, but doing either one requires memory in the
- *** obvious implementation.
- ***
- *** Perhaps we can simply leave merging to FromWire, and deal with splitting
- *** by some other, noncopying method.  I suspect copying is the way to go,
- *** however.
+ *** Some provision still needs to be made for splitting bitstring labels.
  ***/
 
 
@@ -188,7 +182,8 @@ struct dns_name {
 	unsigned char *ndata;
 	unsigned int length;
 	unsigned int labels;
-	unsigned char offsets[128];
+	unsigned char *offsets;
+	ISC_LINK(dns_name_t) link;
 };
 
 extern dns_name_t *dns_rootname;
@@ -197,12 +192,19 @@ extern dns_name_t *dns_rootname;
  *** Initialization
  ***/
 
-void dns_name_init(dns_name_t *name);
+void dns_name_init(dns_name_t *name, unsigned char *offsets);
 /*
  * Make 'name' empty.
  *
+ * Notes:
+ *	'offsets' is never required to be non-NULL, but specifying a
+ *	dns_offsets_t for 'offsets' will improve the performance of most
+ *	name operations if the name is used more than once.
+ *
  * Requires:
  *	'name' is a valid name (i.e. not NULL, points to a struct dns_name)
+ *
+ *	offsets == NULL or offsets is a dns_offsets_t.
  *
  * Ensures:
  *	dns_name_countlabels(name) == 0
@@ -216,10 +218,8 @@ void dns_name_invalidate(dns_name_t *name);
  *	'name' is a valid name.
  *
  * Ensures:
- *	If assertion checking is enabled, future attempts to use 'name' without
- *	initializing it will cause an assertion failure.  A name can be
- *	initialized by calling dns_name_init(), or by calling one of the
- *	dns_name_from*() functions.
+ *	If assertion checking is enabled, future attempts to use 'name'
+ *	without initializing it will cause an assertion failure.
  */
 
 /***
@@ -402,10 +402,12 @@ dns_result_t dns_name_fromwire(dns_name_t *name,
  *	*** WARNING ***
  *
  *	This routine will often be used when 'source' contains raw network
- *	data.  An error in this routine could result in a denial of service,
- *	or in the hijacking of the server.
+ *	data.  A programming error in this routine could result in a denial
+ *	of service, or in the hijacking of the server.
  *
  * Requires:
+ *
+ *	'name' is a valid name.
  *
  *	'source' is a valid buffer of type ISC_BUFFERTYPE_BINARY, and the
  *	first byte of the used region should be the first byte of a DNS wire
@@ -496,11 +498,11 @@ dns_result_t dns_name_fromtext(dns_name_t *name,
  *
  * Requires:
  *
+ *	'name' is a valid name.
+ *
  *	'source' is a valid buffer of type ISC_BUFFERTYPE_TEXT.
  *
  *	'target' is a valid region of type ISC_BUFFERTYPE_BINARY.
- *
- *	'name' is a valid name.
  *
  * Ensures:
  *
