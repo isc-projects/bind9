@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.41.2.3 2003/05/14 05:47:23 marka Exp $ */
+/* $Id: rdataset.h,v 1.41.2.4 2003/05/15 04:52:05 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -104,7 +104,7 @@ struct dns_rdataset {
 	void *				private1;
 	void *				private2;
 	void *				private3;
-	void *				private4;
+	unsigned int			privateuint4;
 	void *				private5;
 };
 

@@ -17,6 +17,10 @@
 
 1448.	[bug]		Handle empty wildcards labels.
 
+1447.	[bug]		We were casting (unsigned int) to and from (void *).
+			rdataset->private4 is now rdataset->privateuint4
+			to reflect a type change.
+
 1439.	[bug]		Named could return NOERROR with certain NOTIFY
 			failures.  Return NOTAUTH if the NOTIFY zone is
 			not being served.
