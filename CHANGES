@@ -1,3 +1,6 @@
+ 841.	[bug]		When sdb modules were not declared threadsafe, their
+ 			create and destroy functions were not serialized.
+
  840.	[bug]		The config file parser could print the wrong file
 			name if an error was detected after an included file
 			was parsed. [RT #1353]
