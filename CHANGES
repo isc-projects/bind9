@@ -1,5 +1,5 @@
 
- 788.	[feature]	Add the "match-mapped-addresses" option, which
+ 788.	[func]		Add the "match-mapped-addresses" option, which
  			causes IPv6 v4mapped addresses to be treated as
 			IPv4 addresses for the purpose of acl matching.
 
@@ -19,7 +19,7 @@
 			when either using an sdb database or under very
 			rare conditions.
 
- 782.	[feature]	Implement the serial-query-rate option.
+ 782.	[func]		Implement the "serial-query-rate" option.
 
  781.	[func]		Avoid error packet loops by dropping duplicate FORMERR
 			responses. [RT #1006]
@@ -1012,7 +1012,7 @@
 
  471.	[bug]		nsupdate didn't compile on HP/UX 10.20
 
- 470.	[feature]	$GENERATE is now supported.  See also
+ 470.	[func]		$GENERATE is now supported.  See also
 			doc/misc/migration.
 
  469.	[bug]		"query-source address * port 53;" now works.
