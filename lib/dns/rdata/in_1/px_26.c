@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.c,v 1.14 2000/02/03 23:43:19 halley Exp $ */
+/* $Id: px_26.c,v 1.15 2000/03/20 19:32:10 gson Exp $ */
 
- /* RFC 2163 */
+/* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
+
+/* RFC 2163 */
 
 #ifndef RDATA_IN_1_PX_26_C
 #define RDATA_IN_1_PX_26_C
@@ -161,16 +163,16 @@ compare_in_px(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_t name2;
 	isc_region_t region1;
 	isc_region_t region2;
-	int result;
+	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 26);
 	REQUIRE(rdata1->rdclass == 1);
 
-	result = memcmp(rdata1->data, rdata2->data, 2);
-	if (result != 0)
-		return (result < 0 ? -1 : 1);
+	order = memcmp(rdata1->data, rdata2->data, 2);
+	if (order != 0)
+		return (order < 0 ? -1 : 1);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -184,9 +186,9 @@ compare_in_px(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	result = dns_name_rdatacompare(&name1, &name2);
-	if (result != 0)
-		return (result);
+	order = dns_name_rdatacompare(&name1, &name2);
+	if (order != 0)
+		return (order);
 
 	isc_region_consume(&region1, name_length(&name1));
 	isc_region_consume(&region2, name_length(&name2));
@@ -278,8 +280,8 @@ additionaldata_in_px(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	REQUIRE(rdata->type == 26);
 	REQUIRE(rdata->rdclass == 1);
 
-	(void)add;
-	(void)arg;
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (DNS_R_SUCCESS);
 }

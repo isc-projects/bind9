@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: px_26.h,v 1.9 2000/02/03 23:43:19 halley Exp $ */
+/* $Id: px_26.h,v 1.10 2000/03/20 19:32:10 gson Exp $ */
 
- /* RFC 2163 */
+/* RFC 2163 */
 
 typedef struct dns_rdata_in_px {
 	dns_rdatacommon_t	common;
