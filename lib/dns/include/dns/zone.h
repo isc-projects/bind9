@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.111 2002/01/22 22:05:56 bwelling Exp $ */
+/* $Id: zone.h,v 1.112 2002/01/23 02:03:05 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -423,15 +423,12 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		       isc_uint32_t count);
 /*
  *	Set the list of additional servers to be notified when
- *	a zone changes.	 To clear the list use 'notify = NULL'
- *	and 'count = 0'.
+ *	a zone changes.	 To clear the list use 'count = 0'.
  *
  * Require:
  *	'zone' to be a valid zone.
- *	'notify' to be non NULL.
- *	'count' the number of notify.
- *
- * 	If 'notify' is NULL then 'count' must be zero.
+ *	'notify' to be non-NULL if count != 0.
+ *	'count' to be the number of notifyees.
  *
  * Returns:
  *	ISC_R_SUCCESS

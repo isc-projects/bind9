@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.360 2002/01/22 22:05:53 bwelling Exp $ */
+/* $Id: zone.c,v 1.361 2002/01/23 02:03:04 gson Exp $ */
 
 #include <config.h>
 
@@ -1792,8 +1792,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 	isc_sockaddr_t *new;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
-	REQUIRE((notify == NULL && count == 0) ||
-		(notify != NULL && count != 0));
+	REQUIRE(count == 0 || notify != NULL);
 
 	LOCK_ZONE(zone);
 	if (zone->notify != NULL) {
@@ -1802,19 +1801,16 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 		zone->notify = NULL;
 		zone->notifycnt = 0;
 	}
-	if (notify == NULL)
-		goto unlock;
-
-	new = isc_mem_get(zone->mctx, count * sizeof(*new));
-	if (new == NULL) {
-		UNLOCK_ZONE(zone);
-		return (ISC_R_NOMEMORY);
-	}
-	memcpy(new, notify, count * sizeof(*new));
-	zone->notify = new;
-	zone->notifycnt = count;
-
- unlock:
+	if (count != 0) {
+		new = isc_mem_get(zone->mctx, count * sizeof *new);
+		if (new == NULL) {
+			UNLOCK_ZONE(zone);
+			return (ISC_R_NOMEMORY);
+		}
+		memcpy(new, notify, count * sizeof *new);
+		zone->notify = new;
+		zone->notifycnt = count;
+        }
 	UNLOCK_ZONE(zone);
 	return (ISC_R_SUCCESS);
 }
