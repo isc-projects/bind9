@@ -460,6 +460,8 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  * 
  */
 
+void dns_journal_print(isc_mem_t *mctx, const char *filename);
+/* For debugging not general use */
 
 dns_result_t
 dns_db_diff(isc_mem_t *mctx,
