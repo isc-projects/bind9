@@ -1,3 +1,5 @@
+  94.   [cleanup]       Some installed header files did not compile as C++.
+
   93.   [cleanup]       <isc/msgcat.h> does not need <isc/result.h>.
 
   92.   [cleanup]       <isc/mem.h> does not need <stddef.h>, <isc/boolean.h>,
