@@ -1,3 +1,6 @@
+ 463.	[bug]		nsupdate didn't work when it had to use the second
+			server in resolv.conf for the soa
+
  462.	[bug]		--disable-ipv6 should work now.
 
  461.	[bug]		Specifying an unknown key in the "keys" clause of the

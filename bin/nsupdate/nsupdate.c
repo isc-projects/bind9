@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.46 2000/09/01 21:34:12 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.47 2000/09/15 23:30:28 mws Exp $ */
 
 #include <config.h>
 
@@ -978,14 +978,14 @@ evaluate_update(char *cmdline) {
 }
 
 static void
-show_message(void) {
+show_message(dns_message_t *msg) {
 	isc_result_t result;
 	char store[MSGTEXT];
 	isc_buffer_t buf;
 
 	ddebug("show_message()");
 	isc_buffer_init(&buf, store, MSGTEXT);
-	result = dns_message_totext(updatemsg, 0, &buf);
+	result = dns_message_totext(msg, 0, &buf);
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "Failed to concert message to text format.\n");
 		return;
@@ -1026,7 +1026,7 @@ get_next_command(void) {
 	if (strcasecmp(word, "send") == 0)
 		return (STATUS_SEND);
 	if (strcasecmp(word, "show") == 0) {
-		show_message();
+		show_message(updatemsg);
 		return (STATUS_MORE);
 	}
 	fprintf(stderr, "incorrect section name: %s\n", word);
@@ -1166,6 +1166,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			fatal("Couldn't talk to any default nameserver.");
 		ddebug("Destroying request [%lx]", request);
 		dns_request_destroy(&request);
+		dns_message_renderreset(soaquery);
 		sendrequest(&servers[ns_inuse], soaquery, &request);
 		isc_mem_put(mctx, reqinfo, sizeof(nsu_requestinfo_t));
 		return;
