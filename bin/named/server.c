@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.298 2001/03/06 23:54:29 bwelling Exp $ */
+/* $Id: server.c,v 1.299 2001/03/08 00:06:19 gson Exp $ */
 
 #include <config.h>
 
@@ -1140,9 +1140,9 @@ configure_forward(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 /*
  * Create a new view and add it to the list.
  *
- * If 'vconfig' is NULL, find or create the default view.
+ * If 'vconfig' is NULL, create the default view.
  *
- * The view found or created is attached to '*viewp'.
+ * The view created is attached to '*viewp'.
  */
 static isc_result_t
 create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
@@ -1178,8 +1178,7 @@ create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
 }
 
 /*
- * Configure or reconfigure a zone.  This callback function
- * is called after parsing each "zone" statement in named.conf.
+ * Configure or reconfigure a zone.
  */
 static isc_result_t
 configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
