@@ -1,3 +1,6 @@
+1082.	[bug]		The -g option to named incorrectly caused logging
+			to be sent to syslog in addition to stderr.
+
 1081.	[bug]		Multicast queries were incorrectly identified
 			based on the source address, not the destination
 			address.
