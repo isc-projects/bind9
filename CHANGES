@@ -1,4 +1,12 @@
 
+ 834.	[func]		Accept (but warn about) master files beginning with
+			an SOA record without an explicit TTL field and
+			lacking a $TTL directive, by using the SOA MINTTL
+			as a default TTL.  This is for backwards compatibility
+			with old versions of BIND 8, which accepted such
+			files without warning although they are illegal
+			according to RFC1035.
+
  833.	[cleanup]	Moved dns_soa_*() from <dns/journal.h> to
 			<dns/soa.h>, and extended them to support
 			all the integer-valued fields of the SOA RR.

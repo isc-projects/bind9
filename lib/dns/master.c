@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.116 2001/05/21 22:49:24 gson Exp $ */
+/* $Id: master.c,v 1.117 2001/05/22 01:44:37 gson Exp $ */
 
 #include <config.h>
 
@@ -40,6 +40,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
+#include <dns/soa.h>
 #include <dns/time.h>
 #include <dns/ttl.h>
 
@@ -740,6 +741,22 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	return (result);
 }
 
+static void
+limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source, unsigned int line,
+	  isc_uint32_t *ttlp)
+{
+	if (*ttlp > 0x7fffffffUL) {
+		(callbacks->warn)(callbacks,
+				  "%s: %s:%lu: "
+				  "$TTL %lu > MAXTTL, "
+				  "setting $TTL to 0",
+				  "dns_master_load",
+				  source, line,
+				  *ttlp);
+		*ttlp = 0;
+	}
+}
+
 static isc_result_t
 load(dns_loadctx_t *lctx) {
 	dns_rdataclass_t rdclass;
@@ -871,16 +888,7 @@ load(dns_loadctx_t *lctx) {
 					lctx->ttl = 0;
 				} else if (result != ISC_R_SUCCESS)
 					goto insist_and_cleanup;
-				if (lctx->ttl > 0x7fffffffUL) {
-					(callbacks->warn)(callbacks,
-							  "%s: %s:%lu: "
-							  "$TTL %lu > MAXTTL, "
-							  "setting $TTL to 0",
-							  "dns_master_load",
-							  source, line,
-							  lctx->ttl);
-					lctx->ttl = 0;
-				}
+				limit_ttl(callbacks, source, line, &lctx->ttl);
 				lctx->default_ttl = lctx->ttl;
 				lctx->default_ttl_known = ISC_TRUE;
 				EXPECTEOL;
@@ -1264,38 +1272,9 @@ load(dns_loadctx_t *lctx) {
 
 		if (dns_ttl_fromtext(&token.value.as_textregion, &lctx->ttl)
 				== ISC_R_SUCCESS) {
-			if (lctx->ttl > 0x7fffffffUL) {
-				(callbacks->warn)(callbacks,
-					  "%s: %s:%lu: "
-					  "TTL %lu > MAXTTL, "
-					  "setting TTL to 0",
-					  "dns_master_load",
-					  source, line, lctx->ttl);
-				lctx->ttl = 0;
-			}
+			limit_ttl(callbacks, source, line, &lctx->ttl);
 			lctx->ttl_known = ISC_TRUE;
 			GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
-		} else if (!lctx->ttl_known && !lctx->default_ttl_known) {
-			/*
-			 * BIND 4 / 8 'USE_SOA_MINIMUM' could be set here.
-			 */
-			(*callbacks->error)(callbacks,
-					    "%s: %s:%lu: no TTL specified",
-					    "dns_master_load", source, line);
-			result = DNS_R_NOTTL;
-			if (MANYERRS(lctx, result)) {
-				SETRESULT(lctx, result);
-				lctx->ttl = 0;
-			} else if (result != ISC_R_SUCCESS)
-				goto insist_and_cleanup;
-		} else if (lctx->default_ttl_known) {
-			lctx->ttl = lctx->default_ttl;
-		} else if (lctx->warn_1035) {
-			(*callbacks->warn)(callbacks,
-					   "%s: %s:%lu: "
-					   "using RFC 1035 TTL semantics",
-					   "dns_master_load", source, line);
-			lctx->warn_1035 = ISC_FALSE;
 		}
 
 		if (token.type != isc_tokentype_string) {
@@ -1373,20 +1352,6 @@ load(dns_loadctx_t *lctx) {
 		if (type == dns_rdatatype_ns && ictx->glue == NULL)
 			current_has_delegation = ISC_TRUE;
 
-		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {
-			/*
-			 * Adjust the TTL for $DATE.  If the RR has already
-			 * expired, ignore it without even parsing the rdata
-			 * part (good for performance, bad for catching
-			 * syntax errors).
-			 */
-			if (lctx->ttl < ttl_offset) {
-				read_till_eol = ISC_TRUE;
-				continue;
-			}
-			lctx->ttl -= ttl_offset;
-		}
-
 		/*
 		 * Find a rdata structure.
 		 */
@@ -1427,6 +1392,48 @@ load(dns_loadctx_t *lctx) {
 		else
 			covers = 0;
 
+		if (!lctx->ttl_known && !lctx->default_ttl_known) {
+			if (type == dns_rdatatype_soa) {
+				(*callbacks->warn)(callbacks,
+						   "%s:%lu: no TTL specified; "
+						   "using SOA MINTTL instead",
+						   source, line);
+				lctx->ttl = dns_soa_getminimum(&rdata[rdcount]);
+				limit_ttl(callbacks, source, line, &lctx->ttl);
+				lctx->default_ttl = lctx->ttl;
+				lctx->default_ttl_known = ISC_TRUE;
+			} else {
+				(*callbacks->warn)(callbacks,
+						   "%s:%lu: no TTL specified; "
+						   "zone rejected",
+						   source, line);
+				result = DNS_R_NOTTL;
+				if (MANYERRS(lctx, result)) {
+					SETRESULT(lctx, result);
+					lctx->ttl = 0;
+				} else {
+					goto insist_and_cleanup;
+				}
+			}
+		} else if (lctx->default_ttl_known) {
+			lctx->ttl = lctx->default_ttl;
+		} else if (lctx->warn_1035) {
+			(*callbacks->warn)(callbacks,
+					   "%s: %s:%lu: "
+					   "using RFC 1035 TTL semantics",
+					   "dns_master_load", source, line);
+			lctx->warn_1035 = ISC_FALSE;
+		}
+
+		if ((lctx->options & DNS_MASTER_AGETTL) != 0) {
+			/*
+			 * Adjust the TTL for $DATE.  If the RR has already
+			 * expired, ignore it.
+			 */
+			if (lctx->ttl < ttl_offset)
+				continue;
+			lctx->ttl -= ttl_offset;
+		}
 
 		/*
 		 * Find type in rdatalist.

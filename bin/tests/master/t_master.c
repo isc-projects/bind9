@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.29 2001/01/09 21:41:57 bwelling Exp $ */
+/* $Id: t_master.c,v 1.30 2001/05/22 01:44:36 gson Exp $ */
 
 #include <config.h>
 
@@ -211,8 +211,9 @@ t3() {
 	t_result(result);
 }
 
-static const char *a4 =	"dns_master_loadfile returns DNS_R_NOTTL when the "
-			"the ttl is not specified";
+static const char *a4 =	"dns_master_loadfile accepts broken zone files "
+			"where the first record has an undefined TTL, "
+			"as long as it is a SOA";
 
 static void
 t4() {
