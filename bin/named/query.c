@@ -2562,25 +2562,17 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &=
 			~(NS_QUERYATTR_RECURSIONOK|NS_QUERYATTR_CACHEOK);
 		set_ra = ISC_FALSE;
-	} else if ((message->flags & DNS_MESSAGEFLAG_RD) == 0 ||
-		   client->view->resolver == NULL) {
+	} else if ((client->attributes & NS_CLIENTATTR_RA) == 0 ||
+		   (message->flags & DNS_MESSAGEFLAG_RD) == 0) {
 		/*
-		 * If the client doesn't want recursion, or we don't have
-		 * a resolver, turn recursion off.
+		 * If the client isn't allowed to recurse (due to
+		 * "recursion no", the allow-recursion ACL, or the
+		 * lack of a resolver in this view), or if it 
+		 * doesn't want recursion, turn recursion off.
 		 */
 		client->query.attributes &= ~NS_QUERYATTR_RECURSIONOK;
 		set_ra = ISC_FALSE;
 	}
-
-	/*
-	 * XXXRTH  Deal with allow-query and allow-recursion here.
-	 */
-
-	/*
-	 * RA flag.
-	 */
-	if (set_ra)
-		message->flags |= DNS_MESSAGEFLAG_RA;
 
 	/*
 	 * Get the question name.

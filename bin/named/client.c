@@ -24,6 +24,7 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 
+#include <dns/aml.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
@@ -268,6 +269,9 @@ ns_client_send(ns_client_t *client) {
 
 	CTRACE("send");
 
+	if ((client->attributes & NS_CLIENTATTR_RA) != 0)
+		client->message->flags |= DNS_MESSAGEFLAG_RA;
+	
 	data = isc_mempool_get(client->sendbufs);
 	if (data == NULL) {
 		CTRACE("no buffers available");
@@ -475,6 +479,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *buffer;
 	dns_view_t *view;
 	dns_rdataset_t *opt;
+	isc_boolean_t ra; 	/* Recursion available. */
 
 	REQUIRE(event != NULL);
 	client = event->arg;
@@ -597,6 +602,33 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, DNS_R_REFUSED);
 		return;
 	}
+
+	/*
+	 * Decide whether recursive service is available to this client.
+	 * We do this here rather than in the query code so that we can
+	 * set the RA bit correctly on all kinds of responses, not just
+	 * responses to ordinary queries.
+	 */
+	if (client->view->resolver == NULL) {
+		ra = ISC_FALSE;
+	} else {
+		ra = ISC_TRUE;
+		(void) dns_c_ctx_getrecursion(ns_g_confctx, &ra);
+		if (ra == ISC_TRUE) {
+			dns_c_ipmatchlist_t *acl = NULL;
+			/* XXX ACL should be view specific. */
+			dns_c_ctx_getrecursionacl(ns_g_confctx, &acl);
+			/* XXX this will log too much too early */
+			result = dns_aml_checkrequest(client->signer,
+					      ns_client_getsockaddr(client),
+					      ns_g_confctx->acls, "recursion",
+					      acl, NULL, ISC_TRUE);
+			if (result != DNS_R_SUCCESS)
+				ra = ISC_FALSE;
+		}
+	}
+	if (ra == ISC_TRUE)
+		client->attributes |= NS_CLIENTATTR_RA;
 	
 	/*
 	 * Dispatch the request.

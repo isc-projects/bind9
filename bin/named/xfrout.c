@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.27 1999/12/10 18:14:49 gson Exp $ */
+ /* $Id: xfrout.c,v 1.28 1999/12/10 23:58:03 gson Exp $ */
 
 #include <config.h>
 
@@ -1132,6 +1132,8 @@ sendstream(xfrout_ctx_t *xfr)
 	msg->id = xfr->id;
 	msg->rcode = dns_rcode_noerror;
 	msg->flags = DNS_MESSAGEFLAG_QR | DNS_MESSAGEFLAG_AA;
+	if ((xfr->client->attributes & NS_CLIENTATTR_RA) != 0)
+		msg->flags |= DNS_MESSAGEFLAG_RA;
 	msg->tsigkey = xfr->tsigkey;
 	msg->querytsig = xfr->lasttsig;
 

@@ -81,6 +81,7 @@ struct ns_client {
 					 (c)->magic == NS_CLIENT_MAGIC)
 
 #define NS_CLIENTATTR_TCP		0x01
+#define NS_CLIENTATTR_RA		0x02 /* Client gets recusive service */
 
 /*
  * Note!  These ns_client_ routines MUST be called ONLY from the client's
