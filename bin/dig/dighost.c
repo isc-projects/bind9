@@ -37,6 +37,8 @@ extern int h_errno;
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/base64.h>
+#include <isc/lex.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
@@ -47,6 +49,7 @@ extern int h_errno;
 #include <dns/rdatalist.h>
 #include <dns/result.h>
 #include <dns/rdatastruct.h>
+#include <dns/tsig.h>
 
 #include <dig/dig.h>
 
@@ -77,6 +80,12 @@ int tries = 3;
 int lookup_counter = 0;
 char fixeddomain[MXNAME]="";
 int exitcode = 9;
+char keynametext[MXNAME];
+char keysecret[MXNAME]="";
+dns_name_t keyname;
+dns_tsig_keyring_t *keyring=NULL;
+isc_buffer_t *namebuf = NULL;
+dns_tsigkey_t *key = NULL;
 
 static void
 cancel_lookup(dig_lookup_t *lookup);
@@ -327,8 +336,14 @@ setup_system(void) {
 	dig_searchlist_t *search;
 	dig_lookup_t *l;
 	isc_boolean_t get_servers;
-
-
+	isc_result_t result;
+	isc_buffer_t secretsrc;
+	isc_buffer_t secretbuf;
+	int secretsize;
+	char *secretstore;
+	isc_lex_t *lex = NULL;
+	isc_stdtime_t now;
+	
 	if (fixeddomain[0]!=0) {
 		search = isc_mem_allocate( mctx, sizeof(struct dig_server));
 		if (search == NULL)
@@ -449,6 +464,65 @@ setup_system(void) {
 	     l = ISC_LIST_NEXT(l, link) ) {
 	     l -> origin = ISC_LIST_HEAD(search_list);
 	     }
+
+	if (keysecret[0] != 0) {
+		result = dns_tsigkeyring_create(mctx, &keyring);
+		check_result(result, "dns_tsigkeyring_create");
+		result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
+		check_result(result, "isc_buffer_allocate");
+		dns_name_init(&keyname, NULL);
+		check_result(result, "dns_name_init");
+		isc_buffer_putstr(namebuf, keynametext);
+		secretsize = strlen(keysecret) * 3 / 4;
+		secretstore = isc_mem_get(mctx, secretsize);
+		ENSURE (secretstore != NULL);
+		isc_buffer_init(&secretsrc, keysecret, strlen(keysecret));
+		isc_buffer_add(&secretsrc, strlen(keysecret));
+		isc_buffer_init(&secretbuf, secretstore, secretsize);
+		result = isc_lex_create(mctx, strlen(keysecret), &lex);
+		check_result(result, "isc_lex_create");
+		result = isc_lex_openbuffer(lex, &secretsrc);
+		check_result(result, "isc_lex_openbuffer");
+		result = isc_base64_tobuffer(lex, &secretbuf, -1);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, isc_result_totext(result));
+			isc_lex_close(lex);
+			isc_lex_destroy(&lex);
+			goto SYSSETUP_FAIL;
+		}
+		secretsize = isc_buffer_usedlength(&secretbuf);
+		isc_lex_close(lex);
+		isc_lex_destroy(&lex);
+		isc_stdtime_get(&now);
+		
+		result = dns_name_fromtext(&keyname, namebuf,
+					   dns_rootname, ISC_FALSE,
+					   namebuf);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, dns_result_totext(result));
+			goto SYSSETUP_FAIL;
+		}
+		result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
+					    secretstore, secretsize,
+					    ISC_TRUE, NULL, now, now, mctx,
+					    keyring, &key);
+		if (result != ISC_R_SUCCESS) {
+			printf (";; Couldn't create key %s: %s\n",
+				keynametext, dns_result_totext(result));
+		}
+		isc_mem_put(mctx, secretstore, secretsize);
+		dns_name_invalidate(&keyname);
+		isc_buffer_free(&namebuf);
+		return;
+	SYSSETUP_FAIL:
+		isc_mem_put(mctx, secretstore, secretsize);
+		dns_name_invalidate(&keyname);
+		isc_buffer_free(&namebuf);
+		dns_tsigkeyring_destroy(&keyring);
+		return;
+	}
 }
 	
 void
@@ -985,8 +1059,13 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (rdtype == dns_rdatatype_ixfr)
 		insert_soa(lookup);
 
-	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
+	if (key != NULL) {
+		result = dns_message_settsigkey(lookup->sendmsg, key);
+		check_result(result, "dns_message_settsigkey");
+	}
+
 	debug ("Starting to render the message");
+	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
 	if (lookup->udpsize > 0) {
@@ -1442,6 +1521,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				    (rdata.type != dns_rdatatype_soa)) {
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial = 0;
+					debug ("Got the second rr as nonsoa");
 					continue;
 				}
 
@@ -1452,18 +1532,19 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				if (rdata.type != dns_rdatatype_soa)
 					goto NEXT_RDATA;
 				/* Now we have an SOA.  Work with it. */
-				debug ("before tostruct");
+				debug ("Got a SOA");
 				result = dns_rdata_tostruct(&rdata,
 							    &soa,
 							    mctx);
 				check_result(result,
 					     "dns_rdata_tostruct");
-				debug ("after tostruct");
 				if (!query->first_soa_rcvd) {
 					query->first_soa_rcvd =
 						ISC_TRUE;
 					query->first_rr_serial =
 						soa.serial;
+					debug ("This is the first. %d",
+					       query->lookup->ixfr_serial);
 					if (query->lookup->ixfr_serial >=
 					    soa.serial) {
 						dns_rdata_freestruct(&soa);
@@ -1473,6 +1554,8 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					goto NEXT_RDATA;
 				}
 				if (!query->second_rr_rcvd) {
+					debug ("This is the second. %d",
+					       query->lookup->ixfr_serial);
 					query->second_rr_rcvd = ISC_TRUE;
 					query->second_rr_serial =
 						soa.serial;
@@ -1485,6 +1568,7 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 					 * other SOA, then this is an
 					 * AXFR, and we're done.
 					 */
+					debug ("Done, since axfr.");
 				XFR_DONE:
 					isc_buffer_init(&b, abspace, MXNAME);
 					result = isc_sockaddr_totext(&sevent->
@@ -1505,16 +1589,20 @@ check_for_more_data(dig_query_t *query, dns_message_t *msg,
 				 * IXFR and have to start really looking
 				 * at serial numbers.
 				 */
-				if (query->second_rr_serial == soa.serial) {
+				if (query->first_rr_serial == soa.serial) {
+					debug ("Got a match for ixfr");
 					if (!query->first_repeat_rcvd) {
 						query->first_repeat_rcvd =
 							ISC_TRUE;
 						dns_rdata_freestruct(&soa);
 						goto NEXT_RDATA;
 					}
+					debug ("Done with ixfr");
 					dns_rdata_freestruct(&soa);
 					goto XFR_DONE;
 				}
+				debug ("Meaningless soa, %d",
+				       soa.serial);
 				dns_rdata_freestruct(&soa);
 			NEXT_RDATA:
 				result = dns_rdataset_next(rdataset);
@@ -1890,13 +1978,20 @@ free_lists(int _exitcode) {
 	if (taskmgr != NULL)
 		isc_taskmgr_destroy(&taskmgr);
 
+	if (key != NULL)
+		dns_tsigkey_detach(&key);
+	if (namebuf != NULL)
+		isc_buffer_free(&namebuf);
+	if (keyring != NULL)
+		dns_tsigkeyring_destroy(&keyring);
+
 #ifdef MEMDEBUG
 	isc_mem_stats(mctx, stderr);
 #endif
 	isc_app_finish();
 	if (mctx != NULL)
-		isc_mem_destroy(&mctx);
-
+		isc_mem_destroy(&mctx);	
+	
 	debug("Getting ready to exit, code=%d",_exitcode);
 	if (_exitcode != 0)
 		exit(_exitcode);

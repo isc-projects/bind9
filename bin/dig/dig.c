@@ -62,6 +62,8 @@ extern isc_boolean_t twiddle;
 #endif
 extern int exitcode;
 extern isc_sockaddr_t bind_address;
+extern char keynametext[MXNAME];
+extern char keysecret[MXNAME];
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE;
 
@@ -123,12 +125,14 @@ show_usage(void) {
 "Where:  domain	  are in the Domain Name System\n"
 "        q-class  is one of (in,chaos,...) [default: in]\n"
 "        q-type   is one of (a,any,mx,ns,soa,hinfo,axfr,txt,...) [default:a]\n"
+"                 (Use ixfr=version for type ixfr)\n"
 "        q-opt    is one of:\n"
 "                 -x dot-notation     (shortcut for in-addr lookups)\n"
 "                 -f filename         (batch mode)\n"
 "                 -p port             (specify port number)\n"
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
+"                 -y name:key         (specify named base64 tsig key)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
 "                 +[no]vc             (TCP mode)\n"
 "                 +[no]tcp            (TCP mode, alternate syntax)\n"
@@ -184,7 +188,12 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		printf(";; SERVER: %.*s\n", frmsize, frm);
 		time (&tnow);
 		printf(";; WHEN: %s", ctime(&tnow));
-		printf (";; MSG SIZE  rcvd: %d\n\n", bytes);
+		printf (";; MSG SIZE  rcvd: %d\n", bytes);
+		if (keysecret[0] != 0) {
+			puts (";; WARNING - Not currently validating "
+			      "TSIG signature in reply.");
+		}
+		puts ("");
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&now, &query->time_sent);
 		printf(";; Received %u bytes from %.*s in %d ms\n",
@@ -404,16 +413,22 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 						      DNS_SECTION_ADDITIONAL,
 						      flags, buf);
 			check_result(result, "dns_message_sectiontotext");
-			result = dns_message_pseudosectiontotext(msg,
-						      DNS_PSEUDOSECTION_TSIG,
-						      flags, buf);
-			check_result(result, "dns_message_pseudosectiontotext");
-			result = dns_message_pseudosectiontotext(msg,
-						      DNS_PSEUDOSECTION_SIG0,
-						      flags, buf);
-							 
-			check_result(result,
-				     "dns_message_pseudosectiontotext");
+			/* Only print the signature on the first record */
+			if (headers) {
+				result = dns_message_pseudosectiontotext(
+						   msg,
+						   DNS_PSEUDOSECTION_TSIG,
+						   flags, buf);
+				check_result(result,
+					  "dns_message_pseudosectiontotext");
+				result = dns_message_pseudosectiontotext(
+						   msg,
+						   DNS_PSEUDOSECTION_SIG0,
+						   flags, buf);
+				
+				check_result(result,
+					   "dns_message_pseudosectiontotext");
+			}
 		}
 	}			
 	if (headers && query->lookup->comments && !short_form)
@@ -499,6 +514,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	int adrs[4];
 	int rc;
 	char **rv;
+	char *ptr;
 
 	/*
 	 * The semantics for parsing the args is a bit complex; if
@@ -874,6 +890,26 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				rv++;
 				rc--;
 			}
+		} else if (strncmp(rv[0], "-y", 2) == 0) {
+			if (rv[0][2] != 0)
+				ptr = &rv[0][2];
+			else {
+				ptr = rv[1];
+				rv++;
+				rc--;
+			}
+			ptr = strtok(ptr,":");
+			if (ptr == NULL) {
+				show_usage();
+				exit (exitcode);
+			}
+			strncpy(keynametext, ptr, MXNAME);
+			ptr = strtok(NULL, "");
+			if (ptr == NULL) {
+				show_usage();
+				exit (exitcode);
+			}
+			strncpy(keysecret, ptr, MXNAME);
 		} else if (strncmp(rv[0], "-p", 2) == 0) {
 			if (rv[0][2] != 0) {	
 				port = atoi(&rv[0][2]);

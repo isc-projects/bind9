@@ -28,6 +28,7 @@ extern int h_errno;
 #include <isc/condition.h>
 #include <isc/commandline.h>
 #include <isc/timer.h>
+#include <isc/buffer.h>
 
 #include <dns/message.h>
 #include <dns/rdata.h>
@@ -74,7 +75,7 @@ isc_boolean_t busy = ISC_FALSE, in_use = ISC_FALSE;
 char defclass[MXRD] = "IN";
 char deftype[MXRD] = "A";
 
-static char *rcodetext[] = {
+static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
 	"SERVFAIL",
@@ -94,7 +95,7 @@ static char *rcodetext[] = {
 	"BADVERS"
 };
 
-static char *rtypetext[] = {
+static const char *rtypetext[] = {
 	"rtype_0 = ",			/* 0 */
 	"internet address = ",		/* 1 */
 	"nameserver = ",		/* 2 */
@@ -250,7 +251,7 @@ printsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 								  b);
 					check_result(result,
 						     "dns_rdata_totext");
-					isc_buffer_used(b)[0]=0;
+					((char *)isc_buffer_used(b))[0]=0;
 					ptr = strtok(isc_buffer_base(b),
 						     " \t\r\n");
 					if (ptr == NULL)
@@ -406,7 +407,7 @@ detailsection(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers,
 								  b);
 					check_result(result,
 						     "dns_rdata_totext");
-					isc_buffer_used(b)[0]=0;
+					((char *)isc_buffer_used(b))[0]=0;
 					ptr = strtok(isc_buffer_base(b),
 						     " \t\r\n");
 					if (ptr == NULL)
