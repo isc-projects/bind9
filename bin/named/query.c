@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.7 2003/08/18 07:35:49 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.8 2003/08/19 04:11:23 marka Exp $ */
 
 #include <config.h>
 
@@ -2035,7 +2035,7 @@ query_addbestns(ns_client_t *client) {
 
 static void
 query_addwildcardproof(ns_client_t *client, dns_db_t *db,
-		       isc_boolean_t ispositive)
+		       dns_name_t *name, isc_boolean_t ispositive)
 {
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
@@ -2068,7 +2068,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 		if (fname == NULL || rdataset == NULL || sigrdataset == NULL)
 			goto cleanup;
 
-		result = dns_db_find(db, client->query.qname, NULL,
+		result = dns_db_find(db, name, NULL,
 				     dns_rdatatype_nxt, options, 0, &node,
 				     fname, rdataset, sigrdataset);
 		if (node != NULL)
@@ -2085,7 +2085,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	}
 
 	odepth = dns_name_depth(dns_db_origin(db));
-	ndepth = dns_name_depth(client->query.qname);
+	ndepth = dns_name_depth(name);
 
 	for (i = ndepth - 1; i >= odepth; i--) {
 		/*
@@ -2102,8 +2102,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 
 		dns_fixedname_init(&tfixed);
 		tname = dns_fixedname_name(&tfixed);
-		result = dns_name_splitatdepth(client->query.qname,
-					       i, NULL, tname);
+		result = dns_name_splitatdepth(name, i, NULL, tname);
 		if (result != ISC_R_SUCCESS)
 			continue;
 		result = dns_name_concatenate(dns_wildcardname, tname, tname,
@@ -2496,6 +2495,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	isc_buffer_t b;
 	isc_result_t result, eresult;
 	dns_fixedname_t fixed;
+	dns_fixedname_t wildcardname;
 	dns_dbversion_t *version;
 	dns_zone_t *zone;
 	dns_rdata_cname_t cname;
@@ -2589,6 +2589,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	want_restart = ISC_FALSE;
 	authoritative = ISC_FALSE;
 	version = NULL;
+	need_wildcardproof = ISC_FALSE;
 
 	/*
 	 * First we must find the right database.
@@ -2638,15 +2639,11 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 	}
 
-	options = client->query.dboptions;
-	if (WANTDNSSEC(client) && is_zone && dns_db_issecure(db))
-		options |= DNS_DBFIND_INDICATEWILD;
-
 	/*
 	 * Now look for an answer in the database.
 	 */
 	result = dns_db_find(db, client->query.qname, version, type,
-			     options, client->now,
+			     client->query.dboptions, client->now,
 			     &node, fname, rdataset, sigrdataset);
 
 	/*
@@ -2710,7 +2707,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	CTRACE("query_find: resume");
 	switch (result) {
 	case ISC_R_SUCCESS:
-	case DNS_R_WILDCARD:
 		/*
 		 * This case is handled in the main line below.
 		 */
@@ -3001,7 +2997,9 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 				query_addrrset(client, &fname, &rdataset,
 					       &sigrdataset,
 					       NULL, DNS_SECTION_AUTHORITY);
-				query_addwildcardproof(client, db, ISC_FALSE);
+				query_addwildcardproof(client, db,
+						       client->query.qname,
+						       ISC_FALSE);
 			}
 		}
 		/*
@@ -3046,6 +3044,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		if (WANTDNSSEC(client) &&
+		    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
+		{
+			dns_fixedname_init(&wildcardname);
+			dns_name_copy(fname, dns_fixedname_name(&wildcardname),					      NULL);
+			need_wildcardproof = ISC_TRUE;
+		}
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
@@ -3107,6 +3112,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		if (WANTDNSSEC(client) &&
+		    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
+		{
+			dns_fixedname_init(&wildcardname);
+			dns_name_copy(fname, dns_fixedname_name(&wildcardname),
+				      NULL);
+			need_wildcardproof = ISC_TRUE;
+		}
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
@@ -3206,7 +3219,12 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		goto cleanup;
 	}
 
-	need_wildcardproof = ISC_TF(result == DNS_R_WILDCARD);
+	if (WANTDNSSEC(client) &&
+	    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
+	{
+		dns_fixedname_init(&wildcardname);
+		dns_name_copy(fname, dns_fixedname_name(&wildcardname), NULL);			need_wildcardproof = ISC_TRUE;
+	}
 
 	if (type == dns_rdatatype_any) {
 		/*
@@ -3309,6 +3327,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		if (WANTDNSSEC(client) &&
+		    (fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
+		{
+			dns_fixedname_init(&wildcardname);
+			dns_name_copy(fname, dns_fixedname_name(&wildcardname),					      NULL);
+			need_wildcardproof = ISC_TRUE;
+		}
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
@@ -3317,8 +3342,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		 */
 		INSIST(rdataset == NULL);
 	}
-	if (need_wildcardproof)
-		query_addwildcardproof(client, db, ISC_TRUE);
 
  addauth:
 	CTRACE("query_find: addauth");
@@ -3326,8 +3349,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	 * Add NS records to the authority section (if we haven't already
 	 * added them to the answer section).
 	 */
-	if (!want_restart && !NOAUTHORITY(client)
-	    ) {
+	if (!want_restart && !NOAUTHORITY(client)) {
 		if (is_zone) {
 			if (!((qtype == dns_rdatatype_ns ||
 			       qtype == dns_rdatatype_any) &&
@@ -3341,6 +3363,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		}
 	}
 
+	/*
+	 * Add NXT records to the authority section if they're needed for
+	 * DNSSEC wildcard proofs.
+	 */
+	if (need_wildcardproof)
+		query_addwildcardproof(client, db,
+				       dns_fixedname_name(&wildcardname),
+				       ISC_TRUE);
  cleanup:
 	CTRACE("query_find: cleanup");
 	/*

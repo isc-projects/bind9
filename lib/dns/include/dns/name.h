@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.95.2.3.2.1 2003/08/14 03:22:38 marka Exp $ */
+/* $Id: name.h,v 1.95.2.3.2.2 2003/08/19 04:11:24 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -210,6 +210,7 @@ struct dns_name {
 #define DNS_NAMEATTR_NCACHE		0x0400		/* Used by resolver. */
 #define DNS_NAMEATTR_CHAINING		0x0800		/* Used by resolver. */
 #define DNS_NAMEATTR_CHASE		0x1000		/* Used by resolver. */
+#define DNS_NAMEATTR_WILDCARD		0x2000		/* Used by server */
 
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_rootname;
 extern dns_name_t *dns_wildcardname;
