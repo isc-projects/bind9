@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.29 2000/10/20 02:21:52 marka Exp $ */
+/* $Id: confkeys.c,v 1.30 2000/12/07 01:45:54 brister Exp $ */
 
 #include <config.h>
 
@@ -797,6 +797,7 @@ dns_c_pubkey_new(isc_mem_t *mem, isc_uint32_t flags,
 	pkey->protocol = protocol;
 	pkey->algorithm = algorithm;
 	pkey->key = isc_mem_strdup(mem, key);
+	ISC_LINK_INIT(pkey, next);
 	if (pkey->key == NULL) {
 		isc_mem_put(mem, pkey, sizeof *pkey);
 		return (ISC_R_NOMEMORY);

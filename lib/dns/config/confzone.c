@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.70 2000/12/01 19:50:51 gson Exp $ */
+/* $Id: confzone.c,v 1.71 2000/12/07 01:45:57 brister Exp $ */
 
 #include <config.h>
 
@@ -5069,7 +5069,7 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 	if (DNS_C_CHECKBIT(MZ_SIG_VALID_INTERVAL_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "sig-validity-interval %d;\n",
-			mzone->sig_valid_interval);
+			mzone->sig_valid_interval / (60 * 60 * 24));
 	}
 
 	if (DNS_C_CHECKBIT(MZ_MIN_RETRY_TIME_BIT, &mzone->setflags)) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.63 2000/12/06 20:37:01 gson Exp $ */
+/* $Id: confview.c,v 1.64 2000/12/07 01:45:55 brister Exp $ */
 
 #include <config.h>
 
@@ -570,7 +570,24 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		port = isc_sockaddr_getport(view->FIELD);	\
 								\
 		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, NAME " address ");			\
+		fprintf(fp, "%s ", NAME);			\
+								\
+		dns_c_print_ipaddr(fp, view->FIELD);		\
+								\
+		if (port == 0) {				\
+			fprintf(fp, " port *");			\
+		} else {					\
+			fprintf(fp, " port %d", port);		\
+		}						\
+		fprintf(fp, " ;\n");				\
+	}
+
+#define PRINT_QUERYSOURCE(FIELD, NAME)				\
+	if (view->FIELD != NULL) {				\
+		port = isc_sockaddr_getport(view->FIELD);	\
+								\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s address ", NAME);		\
 								\
 		dns_c_print_ipaddr(fp, view->FIELD);		\
 								\
@@ -650,6 +667,13 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 		dns_c_printtabs(fp, indent + 1);		\
 		fprintf(fp, "%s %lu;\n",NAME,			\
 			(unsigned long)(*view->FIELD / 60));	\
+	}
+
+#define PRINT_AS_DAYS(FIELD, NAME)				\
+	if (view->FIELD != NULL) {				\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s %lu;\n",NAME,			\
+			(unsigned long)(*view->FIELD / (24 * 60 * 60)));  \
 	}
 
 #define PRINT_AS_SIZE_CLAUSE(FIELD, NAME)				\
@@ -751,8 +775,8 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_IPANDPORT(transfer_source, "transfer-source");
 	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
-	PRINT_IPANDPORT(query_source, "query-source");
-	PRINT_IPANDPORT(query_source_v6, "query-source-v6");
+	PRINT_QUERYSOURCE(query_source, "query-source");
+	PRINT_QUERYSOURCE(query_source_v6, "query-source-v6");
 
 	PRINT_AS_MINUTES(max_transfer_time_out, "max-transfer-time-out");
 	PRINT_AS_MINUTES(max_transfer_idle_out, "max-transfer-idle-out");
@@ -762,7 +786,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(lamettl, "lame-ttl");
 	PRINT_INT32(max_ncache_ttl, "max-ncache-ttl");
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
-	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
+	PRINT_AS_DAYS(sig_valid_interval, "sig-validity-interval");
 
 	PRINT_INT32(min_retry_time, "min-retry-time");
 	PRINT_INT32(max_retry_time, "max-retry-time");

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.110 2000/12/06 20:36:26 gson Exp $ */
+/* $Id: confctx.c,v 1.111 2000/12/07 01:45:53 brister Exp $ */
 
 #include <config.h>
 
@@ -866,6 +866,13 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			(unsigned long)(*options->FIELD / 60));	\
 	}
 
+#define PRINT_AS_DAYS(FIELD, NAME)				\
+	if (options->FIELD != NULL) {				\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s %lu;\n",NAME,			\
+			(unsigned long)(*options->FIELD / (24 * 60 * 60))); \
+	}
+
 #define PRINT_IF_EQUAL(VAL, STRVAL, FIELD, NAME)		\
 	if (options->FIELD != NULL) {				\
 		if ((*options->FIELD) == (VAL)) {		\
@@ -904,7 +911,24 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 		port = isc_sockaddr_getport(options->FIELD);	\
 								\
 		dns_c_printtabs(fp, indent + 1);		\
-		fprintf(fp, NAME " address ");			\
+		fprintf(fp, "%s ", NAME);			\
+								\
+		dns_c_print_ipaddr(fp, options->FIELD);		\
+								\
+		if (port == 0) {				\
+			fprintf(fp, " port *");			\
+		} else {					\
+			fprintf(fp, " port %d", port);		\
+		}						\
+		fprintf(fp, " ;\n");				\
+	}
+
+#define PRINT_QUERYSOURCE(FIELD, NAME)				\
+	if (options->FIELD != NULL) {				\
+		port = isc_sockaddr_getport(options->FIELD);	\
+								\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s address ", NAME);		\
 								\
 		dns_c_print_ipaddr(fp, options->FIELD);		\
 								\
@@ -979,7 +1003,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(recursive_clients, "recursive-clients");
 	PRINT_INTEGER(min_roots, "min-roots");
 	PRINT_INTEGER(serial_queries, "serial-queries");
-	PRINT_INTEGER(sig_valid_interval, "sig-validity-interval");
+	PRINT_AS_DAYS(sig_valid_interval, "sig-validity-interval");
 
 	PRINT_INTEGER(min_retry_time, "min-retry-time");
 	PRINT_INTEGER(max_retry_time, "max-retry-time");
@@ -1046,8 +1070,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_IPANDPORT(transfer_source, "transfer-source");
 	PRINT_IPANDPORT(transfer_source_v6, "transfer-source-v6");
 
-	PRINT_IPANDPORT(query_source, "query-source");
-	PRINT_IPANDPORT(query_source_v6, "query-source-v6");
+	PRINT_QUERYSOURCE(query_source, "query-source");
+	PRINT_QUERYSOURCE(query_source_v6, "query-source-v6");
 
 	if (options->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);

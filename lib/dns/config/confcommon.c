@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confcommon.c,v 1.34 2000/08/01 01:23:16 tale Exp $ */
+/* $Id: confcommon.c,v 1.35 2000/12/07 01:45:52 brister Exp $ */
 
 #include <config.h>
 
@@ -652,6 +652,29 @@ dns_c_peerlist_print(FILE *fp, int indent,
 	return;
 }
 
+isc_result_t
+dns_c_nameprint(dns_name_t *name, FILE *stream) {
+	isc_result_t result;
+	isc_buffer_t b;
+	isc_region_t r;
+	char t[1024];
+
+	/*
+	 * Print 'name' on 'stream'.
+	 */
+
+	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
+
+	isc_buffer_init(&b, t, sizeof(t));
+	result = dns_name_totext(name, ISC_TRUE, &b);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	isc_buffer_usedregion(&b, &r);
+	fprintf(stream, "%.*s", (int)r.length, (char *)r.base);
+
+	return (ISC_R_SUCCESS);
+}
+
 
 void
 dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer) {
@@ -705,7 +728,7 @@ dns_c_peer_print(FILE *fp, int indent, dns_peer_t *peer) {
 		REQUIRE(name != NULL);
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "keys { \"");
-		dns_name_print(peer->key, fp);
+		dns_c_nameprint(peer->key, fp);
 		fprintf(fp, "\"; };\n");
 	}
 
