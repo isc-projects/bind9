@@ -3176,12 +3176,16 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 	 * If there's a NXT rdataset at the zone origin, we consider
 	 * the zone secure.
 	 */
-	for (header = rbtdb->origin_node->data;
-	     header != NULL;
-	     header = header->next) {
-		if (header->type == dns_rdatatype_nxt && !IGNORE(header)) {
-			rbtdb->secure = ISC_TRUE;
-			break;
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) == 0) {
+		for (header = rbtdb->origin_node->data;
+		     header != NULL;
+		     header = header->next) {
+			if (header->type == dns_rdatatype_nxt && 
+			    !IGNORE(header))
+			{
+				rbtdb->secure = ISC_TRUE;
+				break;
+			}
 		}
 	}
 
