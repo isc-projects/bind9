@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.28 2000/04/29 01:51:39 gson Exp $ */
+/* $Id: nxt_30.c,v 1.29 2000/05/01 18:27:43 tale Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -82,14 +82,13 @@ fromtext_nxt(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
+totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	   isc_buffer_t *target) 
 {
 	isc_region_t sr;
 	unsigned int i, j;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_result_t result;
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 30);
@@ -110,11 +109,13 @@ totext_nxt(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 				if ((sr.base[i] & (0x80 >> j)) != 0) {
 					dns_rdatatype_t t = i * 8 + j;
 					if (dns_rdatatype_isknown(t)) {
-						RETERR(dns_rdatatype_totext(t, target));
+						RETERR(dns_rdatatype_totext(t,
+								      target));
 					} else {
 						char buf[sizeof "65535"];
 						sprintf(buf, "%u", t);
-						RETERR(str_totext(buf, target));
+						RETERR(str_totext(buf,
+								  target));
 					}
 					RETERR(str_totext(" ", target));
 				}
