@@ -1,3 +1,6 @@
+1255.	[bug]		When performing a nonexistence proof, the validator
+			should discard parent NXTs from higher in the DNS.
+
 1254.	[bug]		When signing/verifying rdatasets, duplicate rdatas
 			need to be suppressed.
 
