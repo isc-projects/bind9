@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.255 2002/11/27 09:52:55 marka Exp $ */
+/* $Id: resolver.c,v 1.256 2003/01/05 23:19:29 marka Exp $ */
 
 #include <config.h>
 
@@ -3597,6 +3597,9 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		name = NULL;
 		dns_message_currentname(message, section, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
+			/*
+			 * Look for NS RRset first.
+			 */
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
@@ -3626,8 +3629,16 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
 					rdataset->trust = dns_trust_glue;
-				} else if (type == dns_rdatatype_soa ||
-					   type == dns_rdatatype_nxt) {
+				}
+			}
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
+				if (type == dns_rdatatype_soa ||
+				    type == dns_rdatatype_nxt) {
 					/*
 					 * SOA, SIG SOA, NXT, or SIG NXT.
 					 *
@@ -3640,10 +3651,6 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							return (DNS_R_FORMERR);
 						soa_name = name;
 					}
-					/*
-					 * This is wrong, but maybe it'll
-					 * work for now.
-					 */
 					if (ns_name == NULL) {
 						negative_response = ISC_TRUE;
 						name->attributes |=
