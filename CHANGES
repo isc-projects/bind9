@@ -1,5 +1,6 @@
 
-1038.	[bug]		TKEY queries with an owner name other than the root
+1038.	[bug]		In servers configured with a tkey-domain option,
+			TKEY queries with an owner name other than the root
 			could cause an assertion failure. [RT #1866, #1869]
 
 1037.	[bug]		We failed to reject some self inconsistant answers.
