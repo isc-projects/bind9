@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.198 2002/04/26 00:40:26 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.199 2002/05/02 23:27:40 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2525,7 +2525,16 @@ file.</para>
 <para>The <command>syslog</command> destination clause directs the
 channel to the system log.  Its argument is a
 syslog facility as described in the <command>syslog</command> man
-page. How <command>syslog</command> will handle messages sent to
+page. Known facilities are <command>kern</command>, <command>user</command>,
+<command>mail</command>, <command>daemon</command>, <command>auth</command>,
+<command>syslog</command>, <command>lpr</command>, <command>news</command>,
+<command>uucp</command>, <command>cron</command>, <command>authpriv</command>,
+<command>ftp</command>, <command>local0</command>, <command>local1</command>,
+<command>local2</command>, <command>local3</command>, <command>local4</command>,
+<command>local5</command>, <command>local6</command> and
+<command>local7</command>, however not all facilities are supported on
+all operating systems.
+How <command>syslog</command> will handle messages sent to
 this facility is described in the <command>syslog.conf</command> man
 page. If you have a system which uses a very old version of <command>syslog</command> that
 only uses two arguments to the <command>openlog()</command> function,
