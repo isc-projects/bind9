@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.25 2000/10/31 03:21:50 marka Exp $ */
+/* $Id: byaddr.c,v 1.26 2000/11/15 23:07:58 tale Exp $ */
 
 #include <config.h>
 
@@ -169,15 +169,19 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	dns_lookupevent_t *levent;
 	isc_result_t result;
 
-	UNUSED(task);
 	REQUIRE(event->ev_type == DNS_EVENT_LOOKUPDONE);
 	REQUIRE(VALID_BYADDR(byaddr));
 	REQUIRE(byaddr->task == task);
+
+	UNUSED(task);
+
 	levent = (dns_lookupevent_t *)event;
 
-	if (levent->result == ISC_R_SUCCESS)
+	if (levent->result == ISC_R_SUCCESS) {
 		result = copy_ptr_targets(byaddr, levent->rdataset);
-	byaddr->event->result = levent->result;
+		byaddr->event->result = result;
+	} else
+		byaddr->event->result = levent->result;
 	isc_event_free(&event);
 	isc_task_sendanddetach(&byaddr->task, (isc_event_t **)&byaddr->event);
 }
