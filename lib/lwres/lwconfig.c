@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.29 2001/04/02 22:33:31 bwelling Exp $ */
+/* $Id: lwconfig.c,v 1.30 2001/04/02 23:05:14 bwelling Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -87,7 +87,7 @@ static void
 lwres_resetaddr(lwres_addr_t *addr);
 
 static lwres_result_t
-lwres_create_addr(const char *buff, lwres_addr_t *addr);
+lwres_create_addr(const char *buff, lwres_addr_t *addr, int convert_zero);
 
 static int lwresaddr2af(int lwresaddrtype);
 
@@ -295,7 +295,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word,
-				&confdata->nameservers[confdata->nsnext++]);
+				&confdata->nameservers[confdata->nsnext++], 1);
 	if (res != LWRES_R_SUCCESS)
 		return (res);
 
@@ -323,7 +323,7 @@ lwres_conf_parselwserver(lwres_context_t *ctx,  FILE *fp) {
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
 	res = lwres_create_addr(word,
-				&confdata->lwservers[confdata->lwnext++]);
+				&confdata->lwservers[confdata->lwnext++], 1);
 	if (res != LWRES_R_SUCCESS)
 		return (res);
 
@@ -426,15 +426,17 @@ lwres_conf_parsesearch(lwres_context_t *ctx,  FILE *fp) {
 }
 
 static lwres_result_t
-lwres_create_addr(const char *buffer, lwres_addr_t *addr) {
+lwres_create_addr(const char *buffer, lwres_addr_t *addr, int convert_zero) {
 	unsigned char addrbuff[NS_IN6ADDRSZ];
 	unsigned int len;
 
 	if (lwres_net_aton(buffer, &addrbuff) == 1) {
-		unsigned char zeroaddress[] = {0, 0, 0, 0};
-		unsigned char loopaddress[] = {127, 0, 0, 1};
-		if (memcmp(addrbuff, zeroaddress, 4) == 0)
-			memcpy(addrbuff, loopaddress, 4);
+		if (convert_zero) {
+			unsigned char zeroaddress[] = {0, 0, 0, 0};
+			unsigned char loopaddress[] = {127, 0, 0, 1};
+			if (memcmp(addrbuff, zeroaddress, 4) == 0)
+				memcpy(addrbuff, loopaddress, 4);
+		}
 		addr->family = LWRES_ADDRTYPE_V4;
 		addr->length = NS_INADDRSZ;
 		len = 4;
@@ -473,13 +475,14 @@ lwres_conf_parsesortlist(lwres_context_t *ctx,  FILE *fp) {
 			*p++ = '\0';
 
 		idx = confdata->sortlistnxt;
-		res = lwres_create_addr(word, &confdata->sortlist[idx].addr);
+		res = lwres_create_addr(word, &confdata->sortlist[idx].addr, 1);
 		if (res != LWRES_R_SUCCESS)
 			return (res);
 
 		if (p != NULL) {
 			res = lwres_create_addr(p,
-						&confdata->sortlist[idx].mask);
+						&confdata->sortlist[idx].mask,
+						0);
 			if (res != LWRES_R_SUCCESS)
 				return (res);
 		} else {
