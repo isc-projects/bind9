@@ -104,9 +104,17 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 					/*
 					 * We can't follow this chain, because
 					 * we don't know the next link.
+					 *
+					 * We update the 'depth' and
+					 * 'prefixlen' values so that the
+					 * missing function can make a copy
+					 * of the a6context and resume
+					 * processing after it has found the
+					 * missing a6 context.
 					 */
-					(a6ctx->missing)(a6ctx->arg, &name,
-							 dns_rdatatype_a6);
+					a6ctx->depth = depth;
+					a6ctx->prefixlen = prefixlen;
+					(a6ctx->missing)(a6ctx, &name);
 				}
 			}
 		} else {
@@ -131,7 +139,7 @@ foreach(dns_a6context_t *a6ctx, dns_rdataset_t *parent, unsigned int depth,
 
 void
 dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
-	    dns_in6addrfunc_t address, dns_missingfunc_t missing, void *arg)
+	    dns_in6addrfunc_t address, dns_a6missingfunc_t missing, void *arg)
 {
 	REQUIRE(a6ctx != NULL);
 	REQUIRE(a6ctx->find != NULL);
@@ -142,7 +150,21 @@ dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
 	a6ctx->missing = missing;
 	a6ctx->address = address;
 	a6ctx->arg = arg;
-	a6ctx->chains = 0;
+	a6ctx->chains = 1;
+	a6ctx->depth = 0;
+	a6ctx->prefixlen = 128;
+	isc_bitstring_init(&a6ctx->bitstring,
+			   (unsigned char *)&a6ctx->in6addr.s6_addr,
+			   128, 128, ISC_TRUE);
+}
+
+void
+dns_a6_reset(dns_a6context_t *a6ctx) {
+	REQUIRE(VALID_A6CONTEXT(a6ctx));
+
+	a6ctx->chains = 1;
+	a6ctx->depth = 0;
+	a6ctx->prefixlen = 128;
 }
 
 void
@@ -152,6 +174,17 @@ dns_a6_invalidate(dns_a6context_t *a6ctx) {
 	a6ctx->magic = 0;
 }
 
+void
+dns_a6_copy(dns_a6context_t *source, dns_a6context_t *target) {
+	REQUIRE(VALID_A6CONTEXT(source));
+	REQUIRE(VALID_A6CONTEXT(target));
+
+	*target = *source;
+	isc_bitstring_init(&target->bitstring,
+			   (unsigned char *)&target->in6addr.s6_addr,
+			   128, 128, ISC_TRUE);
+}
+
 isc_result_t
 dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset) {
 	isc_result_t result;
@@ -159,12 +192,7 @@ dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset) {
 	REQUIRE(VALID_A6CONTEXT(a6ctx));
 	REQUIRE(rdataset->type == dns_rdatatype_a6);
 
-	a6ctx->chains = 1;
-	isc_bitstring_init(&a6ctx->bitstring,
-			   (unsigned char *)&a6ctx->in6addr.s6_addr,
-			   128, 128, ISC_TRUE);
-
-	result = foreach(a6ctx, rdataset, 0, 128);
+	result = foreach(a6ctx, rdataset, a6ctx->depth, a6ctx->prefixlen);
 	if (result == ISC_R_QUOTA)
 		result = ISC_R_SUCCESS;
 

@@ -39,8 +39,7 @@ typedef void (*dns_rrsetfunc_t)(void *arg, dns_name_t *name,
 
 typedef void (*dns_in6addrfunc_t)(void *arg, struct in6_addr *address);
 
-typedef void (*dns_missingfunc_t)(void *arg, dns_name_t *name,
-				  dns_rdatatype_t type);
+typedef void (*dns_a6missingfunc_t)(dns_a6context_t *a6ctx, dns_name_t *name);
 
 struct dns_a6context {
 	unsigned int			magic;
@@ -48,20 +47,27 @@ struct dns_a6context {
 	dns_findfunc_t			find;
 	dns_rrsetfunc_t			rrset;
 	dns_in6addrfunc_t		address;
-	dns_missingfunc_t		missing;
+	dns_a6missingfunc_t		missing;
 	void *				arg;
-	/* Private. */
 	unsigned int			chains;
+	unsigned int			depth;
+	unsigned int			prefixlen;
 	struct in6_addr			in6addr;
 	isc_bitstring_t			bitstring;
 };
 
 void
 dns_a6_init(dns_a6context_t *a6ctx, dns_findfunc_t find, dns_rrsetfunc_t rrset,
-	    dns_in6addrfunc_t address, dns_missingfunc_t missing, void *arg);
+	    dns_in6addrfunc_t address, dns_a6missingfunc_t missing, void *arg);
+
+void
+dns_a6_reset(dns_a6context_t *a6ctx);
 
 void
 dns_a6_invalidate(dns_a6context_t *a6ctx);
+
+void
+dns_a6_copy(dns_a6context_t *source, dns_a6context_t *target);
 
 isc_result_t
 dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset);
