@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.132 2001/05/14 20:44:14 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.133 2001/05/15 20:58:08 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -452,8 +452,8 @@ from outside clients are refused.</para>
 // Two corporate subnets we wish to allow queries from.
 acl "corpnets" { 192.168.4.0/24; 192.168.7.0/24; };
 options {
-     directory "/etc/namedb";		// Working directory
-     pid-file "named.pid";		// Put pid file in working dir
+     directory "/etc/namedb";           // Working directory
+     pid-file "named.pid";              // Put pid file in working dir
      allow-query { "corpnets"; };
 };
 // Root server hints
@@ -473,10 +473,10 @@ that is the master server for "<filename>example.com</filename>"
 and a slave for the subdomain "<filename>eng.example.com</filename>".</para>
       <programlisting>
 options {
-     directory "/etc/namedb";		// Working directory
-     pid-file "named.pid";		// Put pid file in working dir
-     allow-query { any; };		// This is the default
-     recursion no;			// Do not provide recursive service
+     directory "/etc/namedb";           // Working directory
+     pid-file "named.pid";              // Put pid file in working dir
+     allow-query { any; };              // This is the default
+     recursion no;                      // Do not provide recursive service
 };
 // Root server hints
 zone "." { type hint; file "root.hint"; };
@@ -681,23 +681,23 @@ Use <command>dig</command> instead.</para>
         <para>Administrative tools play an integral part in the management
 of a server.</para>
         <variablelist>
-	  <varlistentry id="named-checkconf" xreflabel="Named Configuration Checking application">
+          <varlistentry id="named-checkconf" xreflabel="Named Configuration Checking application">
             <term><command>named-checkconf</command></term>
             <listitem>
-	      <para>The <command>named-checkconf</command> program
-	      checks the syntax of a <filename>named.conf</filename> file.</para>
+              <para>The <command>named-checkconf</command> program
+              checks the syntax of a <filename>named.conf</filename> file.</para>
               <cmdsynopsis label="Usage">
                 <command>named-checkconf</command>
-		<arg>-t <replaceable>directory</replaceable></arg>
+                <arg>-t <replaceable>directory</replaceable></arg>
                 <arg><replaceable>filename</replaceable></arg>
               </cmdsynopsis>
             </listitem>
-	  </varlistentry>
-	  <varlistentry id="named-checkzone" xreflabel="Zone Checking application">
+          </varlistentry>
+          <varlistentry id="named-checkzone" xreflabel="Zone Checking application">
             <term><command>named-checkzone</command></term>
             <listitem>
-	      <para>The <command>named-checkzone</command> program checks a master file for
-	      syntax and consistency.</para>
+              <para>The <command>named-checkzone</command> program checks a master file for
+              syntax and consistency.</para>
               <cmdsynopsis label="Usage">
                 <command>check-zone</command>
                 <arg>-dq</arg>
@@ -706,7 +706,7 @@ of a server.</para>
                 <arg><replaceable>filename</replaceable></arg>
               </cmdsynopsis>
             </listitem>
-	  </varlistentry>
+          </varlistentry>
           <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
             <term><command>rndc</command></term>
             <listitem>
@@ -734,7 +734,7 @@ of a server.</para>
 
    <varlistentry><term><userinput>reload <replaceable>zone</replaceable>
        <optional><replaceable>class</replaceable>
-	   <optional><replaceable>view</replaceable></optional></optional></userinput></term>
+           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
    <listitem><para>Reload the given zone.</para></listitem>
    </varlistentry>
 
@@ -794,9 +794,9 @@ of a server.</para>
 </variablelist>
 
               <para>In <acronym>BIND</acronym> 9.2, <command>rndc</command>
-	      supports all the commands of the BIND 8 <command>ndc</command>
-	      utility except <command>ndc start</command>, which was also
-	      not supported in <command>ndc</command>'s channel mode.</para>
+              supports all the commands of the BIND 8 <command>ndc</command>
+              utility except <command>ndc start</command>, which was also
+              not supported in <command>ndc</command>'s channel mode.</para>
 
               <para>A configuration file is required, since all
               communication with the server is authenticated with
@@ -862,7 +862,7 @@ to reload, if a nameserver on the local machine were running with
 following controls statements:</para>
               <programlisting>
 controls {
-		inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
+                inet 127.0.0.1 allow { localhost; } keys { rndc_key; };
 };
 </programlisting>
 <para>and it had an identical key statement for
@@ -1094,21 +1094,21 @@ options {
     ...
     ...
     forward only;
-    forwarders { 				// forward to external servers
-    	<varname>bastion-ips-go-here</varname>; 
+    forwarders {                                // forward to external servers
+        <varname>bastion-ips-go-here</varname>; 
     };
-    allow-transfer { none; };			// sample allow-transfer (no one)
-    allow-query { internals; externals; };	// restrict query access
-    allow-recursion { internals; };		// restrict recursion
+    allow-transfer { none; };                   // sample allow-transfer (no one)
+    allow-query { internals; externals; };      // restrict query access
+    allow-recursion { internals; };             // restrict recursion
     ...
     ...
 };
 
-zone "site1.example.com" { 			// sample slave zone
+zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.example.com";
-  forwarders { }; 				// do normal iterative
-						// resolution (do not forward)
+  forwarders { };                               // do normal iterative
+                                                // resolution (do not forward)
   allow-query { internals; externals; };
   allow-transfer { internals; };
 };
@@ -1148,14 +1148,14 @@ acl externals { bastion-ips-go-here; };
 options {
   ...
   ...
-  allow-transfer { none; };			// sample allow-transfer (no one)
-  allow-query { internals; externals; };	// restrict query access
-  allow-recursion { internals; externals; };	// restrict recursion
+  allow-transfer { none; };                     // sample allow-transfer (no one)
+  allow-query { internals; externals; };        // restrict query access
+  allow-recursion { internals; externals; };    // restrict recursion
   ...
   ...
 };
 
-zone "site1.example.com" {			// sample slave zone
+zone "site1.example.com" {                      // sample slave zone
   type master;
   file "m/site1.foo.com";
   allow-query { any; };
@@ -1557,7 +1557,7 @@ allow-update { key host1-host2. ;};
 
 <programlisting>
 $ORIGIN example.com.
-host		3600	IN	AAAA	3ffe:8050:201:1860:42::1
+host            3600    IN      AAAA    3ffe:8050:201:1860:42::1
 </programlisting>
 
       <para>While their use is deprecated, they are useful to support
@@ -1577,7 +1577,7 @@ host		3600	IN	AAAA	3ffe:8050:201:1860:42::1
 
 <programlisting>
 $ORIGIN example.com.
-host		3600	IN	A6	0 3ffe:8050:201:1860:42::1
+host            3600    IN      A6      0 3ffe:8050:201:1860:42::1
 </programlisting>
       <sect3>
         <title>A6 Chains</title>
@@ -1592,23 +1592,23 @@ host		3600	IN	A6	0 3ffe:8050:201:1860:42::1
         <para>In the company's address space:</para>
 
 <programlisting>
-$ORIGIN	example.com.
-host		3600	IN	A6	64 0:0:0:0:42::1 company.example1.net.
-host		3600	IN	A6	64 0:0:0:0:42::1 company.example2.net.
+$ORIGIN example.com.
+host            3600    IN      A6      64 0:0:0:0:42::1 company.example1.net.
+host            3600    IN      A6      64 0:0:0:0:42::1 company.example2.net.
 </programlisting>
 
         <para>ISP1 will use:</para>
 
 <programlisting>
 $ORIGIN example1.net.
-company		3600	IN	A6	0 3ffe:8050:201:1860::
+company         3600    IN      A6      0 3ffe:8050:201:1860::
 </programlisting>
 
 <para>ISP2 will use:</para>
 
 <programlisting>
 $ORIGIN example2.net.
-company		3600	IN	A6	0 1234:5678:90ab:fffa::
+company         3600    IN      A6      0 1234:5678:90ab:fffa::
 </programlisting>
 
         <para>When <literal
@@ -1627,10 +1627,10 @@ company		3600	IN	A6	0 1234:5678:90ab:fffa::
 
 <programlisting>
 $ORIGIN example.com.
-@		14400		IN	NS		ns0
-		14400		IN	NS		ns1
-ns0		14400		IN	A6		0 3ffe:8050:201:1860:42::1
-ns1		14400		IN	A		192.168.42.1
+@               14400           IN      NS              ns0
+                14400           IN      NS              ns1
+ns0             14400           IN      A6              0 3ffe:8050:201:1860:42::1
+ns1             14400           IN      A               192.168.42.1
 </programlisting>
 
         <para>It is recommended that IPv4-in-IPv6 mapped addresses not
@@ -1656,7 +1656,7 @@ ns1		14400		IN	A		192.168.42.1
 
 <programlisting>
 $ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
-1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0	  14400 IN 	PTR	host.example.com.
+1.0.0.0.0.0.0.0.0.0.0.0.2.4.0.0   14400 IN      PTR     host.example.com.
 </programlisting>
     </sect2>
     <sect2>
@@ -1671,7 +1671,7 @@ $ORIGIN 0.6.8.1.1.0.2.0.0.5.0.8.e.f.f.3.ip6.int.
 
 <programlisting>
 $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
-\[x0042000000000001/64] 	14400 	IN 	PTR	host.example.com.
+\[x0042000000000001/64]         14400   IN      PTR     host.example.com.
 </programlisting>
     </sect2>
     <sect2>
@@ -1692,14 +1692,14 @@ $ORIGIN \[x3ffe805002011860/64].ip6.arpa.
 
 <programlisting>
 $ORIGIN example.com.
-host			IN	A6	64	::1234:5678:1212:5675 cust1.example.net.
-			IN	A6	64	::1234:5678:1212:5675 subnet5.example2.net.
+host                    IN      A6      64      ::1234:5678:1212:5675 cust1.example.net.
+                        IN      A6      64      ::1234:5678:1212:5675 subnet5.example2.net.
 $ORIGIN example.net.
-cust1			IN	A6	48	0:0:0:dddd:: ipv6net.example.net.
-ipv6net			IN	A6	0	aa:bb:cccc::
+cust1                   IN      A6      48      0:0:0:dddd:: ipv6net.example.net.
+ipv6net                 IN      A6      0       aa:bb:cccc::
 $ORIGIN example2.net.
-subnet5			IN	A6	48	0:0:0:1:: ipv6net2.example2.net.
-ipv6net2		IN	A6	0	6666:5555:4::
+subnet5                 IN      A6      48      0:0:0:1:: ipv6net2.example2.net.
+ipv6net2                IN      A6      0       6666:5555:4::
 </programlisting>
 
 <para>This sets up forward lookups.  To handle the reverse lookups,
@@ -1708,7 +1708,7 @@ would have:</para>
 
 <programlisting>
 $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
-\[xdddd/16]		IN	DNAME		ipv6-rev.example.com.
+\[xdddd/16]             IN      DNAME           ipv6-rev.example.com.
 </programlisting>
 
       <para>and <literal
@@ -1716,7 +1716,7 @@ $ORIGIN \[x00aa00bbcccc/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN \[x666655550004/48].ip6.arpa.
-\[x0001/16]		IN	DNAME		ipv6-rev.example.com.
+\[x0001/16]             IN      DNAME           ipv6-rev.example.com.
 </programlisting>
 
       <para><literal>example.com</literal>
@@ -1725,7 +1725,7 @@ $ORIGIN \[x666655550004/48].ip6.arpa.
 
 <programlisting>
 $ORIGIN ipv6-rev.example.com.
-\[x1234567812125675/64]	IN	PTR		host.example.com. 
+\[x1234567812125675/64] IN      PTR             host.example.com. 
 </programlisting>
     </sect2>
   </sect1>
@@ -2409,32 +2409,32 @@ used is described in <xref linkend="the_category_phrase"/>.
 </para>
 
 <programlisting>channel "default_syslog" {
-    syslog daemon;			// end to syslog's daemon
-					// facility
-    severity info;			// only send priority info
-					// and higher
+    syslog daemon;                      // end to syslog's daemon
+                                        // facility
+    severity info;                      // only send priority info
+                                        // and higher
 };
 
 channel "default_debug" {
-    file "named.run";			// write to named.run in
-					// the working directory
-					// Note: stderr is used instead
-					// of "named.run"
-					// if the server is started
-					// with the '-f' option.
-    severity dynamic;			// log at the server's
-					// current debug level
+    file "named.run";                   // write to named.run in
+                                        // the working directory
+                                        // Note: stderr is used instead
+                                        // of "named.run"
+                                        // if the server is started
+                                        // with the '-f' option.
+    severity dynamic;                   // log at the server's
+                                        // current debug level
 };
 
-channel "default_stderr" {		// writes to stderr
+channel "default_stderr" {              // writes to stderr
     stderr;
-    severity info;			// only send priority info
-					// and higher
+    severity info;                      // only send priority info
+                                        // and higher
 };
 
 channel "null" {
-   null;				// toss anything sent to
-					// this channel
+   null;                                // toss anything sent to
+                                        // this channel
 };
 </programlisting>
 
@@ -3545,20 +3545,20 @@ and
 or the 192.168.5/24 network will only prefer other addresses on
 their directly connected networks.</para>
 <programlisting>sortlist {
-    { localhost;				   // IF   the local host
-        { localnets;				   // THEN first fit on the
-            192.168.1/24;			   //   following nets
+    { localhost;                                   // IF   the local host
+        { localnets;                               // THEN first fit on the
+            192.168.1/24;                          //   following nets
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.1/24;				   // IF   on class C 192.168.1
-        { 192.168.1/24;				   // THEN use .1, or .2 or .3
+    { 192.168.1/24;                                // IF   on class C 192.168.1
+        { 192.168.1/24;                            // THEN use .1, or .2 or .3
             { 192.168.2/24; 192.168.3/24; }; }; };
-    { 192.168.2/24;				   // IF   on class C 192.168.2
-        { 192.168.2/24;				   // THEN use .2, or .1 or .3
+    { 192.168.2/24;                                // IF   on class C 192.168.2
+        { 192.168.2/24;                            // THEN use .2, or .1 or .3
             { 192.168.1/24; 192.168.3/24; }; }; };
-    { 192.168.3/24;				   // IF   on class C 192.168.3
-        { 192.168.3/24;				   // THEN use .3, or .1 or .2
+    { 192.168.3/24;                                // IF   on class C 192.168.3
+        { 192.168.3/24;                            // THEN use .3, or .1 or .2
             { 192.168.1/24; 192.168.2/24; }; }; };
-    { { 192.168.4/24; 192.168.5/24; };		   // if .4 or .5, prefer that net
+    { { 192.168.4/24; 192.168.5/24; };             // if .4 or .5, prefer that net
     };
 };</programlisting>
 <para>The following example will give reasonable behavior for the
