@@ -15,7 +15,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.html,v 1.15 2004/04/07 00:56:59 marka Exp $ -->
+<!-- $Id: dig.html,v 1.16 2004/04/13 04:44:04 marka Exp $ -->
 
 <HTML
 ><HEAD
@@ -120,6 +120,12 @@ CLASS="REPLACEABLE"
 >name:key</I
 ></TT
 ></TT
+>] [<TT
+CLASS="OPTION"
+>-4</TT
+>] [<TT
+CLASS="OPTION"
+>-6</TT
 >] [name] [type] [class] [queryopt...]</P
 ><P
 ><B
@@ -138,7 +144,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN51"
+NAME="AEN55"
 ></A
 ><H2
 >DESCRIPTION</H2
@@ -203,7 +209,7 @@ are applied before the command line arguments.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN68"
+NAME="AEN72"
 ></A
 ><H2
 >SIMPLE USAGE</H2
@@ -300,7 +306,7 @@ CLASS="COMMAND"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN97"
+NAME="AEN101"
 ></A
 ><H2
 >OPTIONS</H2
@@ -368,6 +374,22 @@ CLASS="COMMAND"
 instead of the standard DNS port number 53.  This option would be used
 to test a name server that has been configured to listen for queries
 on a non-standard port number.</P
+><P
+>The <TT
+CLASS="OPTION"
+>-4</TT
+> option forces <B
+CLASS="COMMAND"
+>dig</B
+> to only
+use IPv4 query transport.  The <TT
+CLASS="OPTION"
+>-6</TT
+> option forces
+<B
+CLASS="COMMAND"
+>dig</B
+> to only use IPv6 query transport.</P
 ><P
 >The <TT
 CLASS="OPTION"
@@ -516,7 +538,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN147"
+NAME="AEN156"
 ></A
 ><H2
 >QUERY OPTIONS</H2
@@ -1045,6 +1067,39 @@ CLASS="OPTION"
 >Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO)
 in the OPT record in the additional section of the query.</P
 ></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]sigchase</TT
+></DT
+><DD
+><P
+>Chase DNSSEC signature chains.  Requires dig be compiled with
+-DDIG_SIGCHASE.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+trusted-key=####</TT
+></DT
+><DD
+><P
+>Specify a trusted key to be used with <TT
+CLASS="OPTION"
+>+sigchase</TT
+>.
+Requires dig be compiled with -DDIG_SIGCHASE.</P
+></DD
+><DT
+><TT
+CLASS="OPTION"
+>+[no]topdown</TT
+></DT
+><DD
+><P
+>When chasing DNSSEC signature chains perform a top down validation.
+Requires dig be compiled with -DDIG_SIGCHASE.</P
+></DD
 ></DL
 ></DIV
 >&#13;</P
@@ -1052,7 +1107,7 @@ in the OPT record in the additional section of the query.</P
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN355"
+NAME="AEN380"
 ></A
 ><H2
 >MULTIPLE QUERIES</H2
@@ -1136,7 +1191,7 @@ CLASS="LITERAL"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN373"
+NAME="AEN398"
 ></A
 ><H2
 >FILES</H2
@@ -1154,7 +1209,7 @@ CLASS="FILENAME"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN379"
+NAME="AEN404"
 ></A
 ><H2
 >SEE ALSO</H2
@@ -1188,7 +1243,7 @@ CLASS="CITETITLE"
 ><DIV
 CLASS="REFSECT1"
 ><A
-NAME="AEN392"
+NAME="AEN417"
 ></A
 ><H2
 >BUGS </H2
