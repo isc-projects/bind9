@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.61 2001/05/31 01:21:10 bwelling Exp $ */
+/* $Id: rndc.c,v 1.62 2001/05/31 10:42:49 tale Exp $ */
 
 /*
  * Principal Author: DCL
@@ -29,6 +29,7 @@
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
+#include <isc/file.h>
 #include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
@@ -63,21 +64,22 @@
 extern int h_errno;
 #endif
 
-static const char *progname;
-static const char *conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *admin_conffile = RNDC_SYSCONFDIR "/rndc.conf";
+static const char *auto_conffile = NS_LOCALSTATEDIR "/run/named.key";
 static const char *version = VERSION;
-static unsigned int remoteport = NS_CONTROL_PORT;
 static const char *servername = NULL;
+static unsigned int remoteport = NS_CONTROL_PORT;
 static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
+static unsigned char progname[256];
 static isccc_ccmsg_t ccmsg;
-static char *args;
 static isccc_region_t secret;
 static isc_boolean_t verbose;
 static isc_boolean_t failed = ISC_FALSE;
 static isc_mem_t *mctx;
-static char *command;
 static int sends, recvs, connects;
+static char *command;
+static char *args;
 
 static void
 notify(const char *fmt, ...) {
@@ -92,7 +94,7 @@ notify(const char *fmt, ...) {
 }
 
 static void
-usage(void) {
+usage(int status) {
 	fprintf(stderr, "\
 Usage: %s [-c config] [-s server] [-p port] [-y key] [-V] command\n\
 \n\
@@ -120,6 +122,8 @@ command is one of the following:\n\
 * == not yet implemented\n\
 Version: %s\n",
 		progname, version);
+
+	exit(status);
 }
 
 static void            
@@ -139,11 +143,9 @@ fatal(const char *format, ...) {
 #define DO(name, function) \
 	do { \
 		result = function; \
-		if (result != ISC_R_SUCCESS) { \
-			fprintf(stderr, "%s: %s: %s\n", progname, \
-				name, isc_result_totext(result)); \
-			exit(1); \
-		} else \
+		if (result != ISC_R_SUCCESS) \
+			fatal("%s: %s", name, isc_result_totext(result)); \
+		else \
 			notify(name); \
 	} while (0)
 
@@ -185,7 +187,7 @@ get_address(const char *host, in_port_t port, isc_sockaddr_t *sockaddr) {
 		if (result != 0)
 			fatal("Couldn't find server '%s': %s",
 			      host, gai_strerror(result));
-		memcpy(&sockaddr->type.sa,res->ai_addr, res->ai_addrlen);
+		memcpy(&sockaddr->type.sa, res->ai_addr, res->ai_addrlen);
 		sockaddr->length = res->ai_addrlen;
 		isc_sockaddr_setport(sockaddr, port);
 		freeaddrinfo(res);
@@ -228,23 +230,21 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 
 	recvs--;
 
-	if (ccmsg.result == ISC_R_EOF) {
-		fprintf(stderr, "%s: connection to remote host closed\n",
-			progname);
-		fprintf(stderr,
-			"This may indicate that the remote server is using "
-			"an older version of the\n"
-			"command protocol, this host is not authorized "
-			"to connect, or the key is invalid.\n");
-		exit(1);
-	}
+	if (ccmsg.result == ISC_R_EOF)
+		fatal("connection to remote host closed\n",
+		      "This may indicate that the remote server is using "
+		      "an older version of the\n"
+		      "command protocol, this host is not authorized "
+		      "to connect, or the key is invalid.");
 
 	if (ccmsg.result != ISC_R_SUCCESS)
 		fatal("recv failed: %s", isc_result_totext(ccmsg.result));
 
 	source.rstart = isc_buffer_base(&ccmsg.buffer);
 	source.rend = isc_buffer_used(&ccmsg.buffer);
+
 	DO("parse message", isccc_cc_fromwire(&source, &response, &secret));
+
 	data = isccc_alist_lookup(response, "_data");
 	if (data == NULL)
 		fatal("no data section in response");
@@ -326,16 +326,48 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_t addr;
 	isc_socket_t *sock = NULL;
 	isc_result_t result;
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	isc_event_free(&event);
 
 	get_address(servername, remoteport, &addr);
+
+	isc_sockaddr_format(&addr, socktext, sizeof(socktext));
+
+	notify("using server %s (%s)", servername, socktext);
+
 	DO("create socket", isc_socket_create(socketmgr,
 					      isc_sockaddr_pf(&addr),
 					      isc_sockettype_tcp, &sock));
 	DO("connect", isc_socket_connect(sock, &addr, task, rndc_connected,
 					 NULL));
 	connects++;
+}
+
+static void
+parse_config(isc_mem_t *mctx, isc_log_t *log, cfg_parser_t **pctxp,
+	     cfg_obj_t **config)
+{
+	isc_result_t result;
+	const char *conffile = admin_conffile;
+
+	if (! isc_file_test(conffile, ISC_FILE_EXISTS)) {
+		conffile = auto_conffile;
+
+		if (! isc_file_test(conffile, ISC_FILE_EXISTS))
+			fatal("neither %s nor %s was found",
+			      admin_conffile, auto_conffile);
+	}
+
+	DO("create parser", cfg_parser_create(mctx, log, pctxp));
+
+	/*
+	 * The parser will output its own errors, so DO() is not used.
+	 */
+	result = cfg_parse_file(*pctxp, conffile, &cfg_type_rndcconf, config);
+
+	if (result != ISC_R_SUCCESS)
+		exit(1);
 }
 
 int
@@ -371,17 +403,15 @@ main(int argc, char **argv) {
 
 	isc_app_start();
 
-	progname = strrchr(*argv, '/');
-	if (progname != NULL)
-		progname++;
-	else
-		progname = *argv;
+	result = isc_file_progname(*argv, progname, sizeof(progname));
+	if (result != ISC_R_SUCCESS)
+		memcpy(progname, "rndc", 5);
 
 	while ((ch = isc_commandline_parse(argc, argv, "c:Mmp:s:Vy:"))
 	       != -1) {
 		switch (ch) {
 		case 'c':
-			conffile = isc_commandline_argument;
+			admin_conffile = isc_commandline_argument;
 			break;
 
 		case 'M':
@@ -394,11 +424,9 @@ main(int argc, char **argv) {
 
 		case 'p':
 			remoteport = atoi(isc_commandline_argument);
-			if (remoteport > 65535) {
-				fprintf(stderr, "%s: port out of range\n",
-					progname);
-				exit(1);
-			}
+			if (remoteport > 65535)
+				fatal("port '%s' out of range",
+				      isc_commandline_argument);
 			portset = ISC_TRUE;
 			break;
 
@@ -412,13 +440,11 @@ main(int argc, char **argv) {
 			keyname = isc_commandline_argument;
 			break;
 		case '?':
-			usage();
-			exit(1);
+			usage(0);
 			break;
 		default:
-			fprintf(stderr, "%s: unexpected error parsing "
-				"command arguments: got %c\n", progname, ch);
-			exit(1);
+			fatal("unexpected error parsing command arguments: "
+			      "got %c\n", ch);
 			break;
 		}
 	}
@@ -426,10 +452,8 @@ main(int argc, char **argv) {
 	argc -= isc_commandline_index;
 	argv += isc_commandline_index;
 
-	if (argc < 1) {
-		usage();
-		exit(1);
-	}
+	if (argc < 1)
+		usage(1);
 
 	DO("create memory context", isc_mem_create(0, 0, &mctx));
 	DO("create socket manager", isc_socketmgr_create(mctx, &socketmgr));
@@ -449,10 +473,8 @@ main(int argc, char **argv) {
 				 ISC_LOG_PRINTTAG|ISC_LOG_PRINTLEVEL));
 	DO("enabling log channel", isc_log_usechannel(logconfig, "stderr",
 						      NULL, NULL));
-	DO("create parser", cfg_parser_create(mctx, log, &pctx));
-	result = cfg_parse_file(pctx, conffile, &cfg_type_rndcconf, &config);
-	if (result != ISC_R_SUCCESS)
-		exit(1);
+
+	parse_config(mctx, log, &pctx, &config);
 
 	(void)cfg_map_get(config, "options", &options);
 
@@ -463,11 +485,8 @@ main(int argc, char **argv) {
 			servername = cfg_obj_asstring(defserverobj);
 	}
 
-	if (servername == NULL) {
-		fprintf(stderr, "%s: no server specified and no default\n",
-			progname);
-		exit(1);
-	}
+	if (servername == NULL)
+		fatal("no server specified and no default");
 
 	cfg_map_get(config, "server", &servers);
 	if (servers != NULL) {
@@ -496,11 +515,8 @@ main(int argc, char **argv) {
 		DO("get default key", cfg_map_get(options, "default-key",
 						  &defkey));
 		keyname = cfg_obj_asstring(defkey);
-	} else {
-		fprintf(stderr, "%s: no key for server and no default\n",
-			progname);
-		exit(1);
-	}
+	} else
+		fatal("no key for server and no default");
 
 	/*
 	 * Get the key's definition.
@@ -515,27 +531,19 @@ main(int argc, char **argv) {
 			       keyname) == 0)
 			break;
 	}
-	if (elt == NULL) {
-		fprintf(stderr, "%s: no key definition for name %s\n",
-			progname, keyname);
-		exit(1);
-	}
+	if (elt == NULL)
+		fatal("no key definition for name %s", keyname);
 
 	(void)cfg_map_get(key, "secret", &secretobj);
 	(void)cfg_map_get(key, "algorithm", &algorithmobj);
-	if (secretobj == NULL || algorithmobj == NULL) {
-		fprintf(stderr, "%s: key must have algorithm and secret\n",
-			progname);
-		exit(1);
-	}
+	if (secretobj == NULL || algorithmobj == NULL)
+		fatal("key must have algorithm and secret");
+
 	secretstr = cfg_obj_asstring(secretobj);
 	algorithm = cfg_obj_asstring(algorithmobj);
 
-	if (strcasecmp(algorithm, "hmac-md5") != 0) {
-		fprintf(stderr, "%s: unsupported algorithm: %s\n",
-			progname, algorithm);
-		exit(1);
-	}
+	if (strcasecmp(algorithm, "hmac-md5") != 0)
+		fatal("unsupported algorithm: %s", algorithm);
 
 	secret.rstart = (unsigned char *)secretarray;
 	secret.rend = (unsigned char *)secretarray + sizeof(secretarray);
@@ -556,10 +564,8 @@ main(int argc, char **argv) {
 	}
 	if (defport != NULL) {
 		remoteport = cfg_obj_asuint32(defport);
-		if (remoteport > 65535) {
-			fprintf(stderr, "%s: port out of range\n", progname);
-			exit(1);
-		}
+		if (remoteport > 65535)
+			fatal("port %d out of range", remoteport);
 	} else if (!portset)
 		remoteport = NS_CONTROL_PORT;
 
@@ -595,7 +601,7 @@ main(int argc, char **argv) {
 	notify(command);
 
 	if (strcmp(command, "restart") == 0)
-		fatal("%s: '%s' is not implemented", progname, command);
+		fatal("'%s' is not implemented", command);
 
 	DO("post event", isc_app_onrun(mctx, task, rndc_start, NULL));
 
