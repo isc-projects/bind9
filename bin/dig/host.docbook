@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.2 2001/06/08 17:18:13 gson Exp $ -->
+<!-- $Id: host.docbook,v 1.2.2.1 2003/02/07 02:39:00 marka Exp $ -->
 
 <refentry>
 
@@ -104,7 +104,7 @@ output.
 List mode is selected by the <option>-l</option> option.  This makes
 <command>host</command> perform a zone transfer for zone
 <parameter>name</parameter>.  The argument is provided for
-compatibility with older implemementations.  This option is equivalent
+compatibility with older implementations.  This option is equivalent
 to making a query of type AXFR.
 </para>
 

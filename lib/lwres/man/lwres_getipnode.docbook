@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_getipnode.docbook,v 1.4 2001/06/18 22:06:55 gson Exp $ -->
+<!-- $Id: lwres_getipnode.docbook,v 1.4.2.1 2003/02/07 02:39:05 marka Exp $ -->
 
 <refentry>
 
@@ -231,7 +231,7 @@ and
 <function>lwres_getipnodebyaddr()</function>
 set
 <parameter>*error_num</parameter>
-to an approriate error code and the function returns a
+to an appropriate error code and the function returns a
 <type>NULL</type>
 pointer.
 The error codes and their meanings are defined in
