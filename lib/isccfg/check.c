@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.11 2002/02/11 21:50:17 gson Exp $ */
+/* $Id: check.c,v 1.14.2.12 2002/02/12 13:30:33 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 
 #include <isc/buffer.h>
 #include <isc/log.h>
+#include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/symtab.h>
 #include <isc/util.h>
@@ -104,7 +105,9 @@ typedef struct {
 } optionstable;
 
 static isc_result_t
-check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
+check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx,
+	       isc_mem_t *mctx)
+{
 	const char *zname;
 	const char *typestr;
 	unsigned int ztype;
@@ -207,10 +210,15 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab, isc_log_t *logctx) {
 		result = ISC_R_FAILURE;
 	} else {
 		char namebuf[DNS_NAME_FORMATSIZE];
+		char *key;
+
 		dns_name_format(dns_fixedname_name(&fixedname),
 				namebuf, sizeof(namebuf));
+		key = isc_mem_strdup(mctx, namebuf);
+		if (key == NULL)
+			return (ISC_R_NOMEMORY);
 		symvalue.as_pointer = NULL;
-		tresult = isc_symtab_define(symtab, namebuf,
+		tresult = isc_symtab_define(symtab, key,
 					    ztype == HINTZONE ? 1 : 2,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
@@ -374,6 +382,13 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 	}
 	return (result);
 }
+
+static void
+freekey(char *key, unsigned int type, isc_symvalue_t value, void *userarg) {
+	UNUSED(type);
+	UNUSED(value);
+	isc_mem_free(userarg, key);
+}
 		
 static isc_result_t
 check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem_t *mctx)
@@ -389,7 +404,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem
 	 * Check that all zone statements are syntactically correct and
 	 * there are no duplicate zones.
 	 */
-	tresult = isc_symtab_create(mctx, 100, NULL, NULL, ISC_TRUE, &symtab);
+	tresult = isc_symtab_create(mctx, 100, freekey, mctx,
+				    ISC_TRUE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
 
@@ -404,7 +420,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem
 	{
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
-		if (check_zoneconf(zone, symtab, logctx) != ISC_R_SUCCESS)
+		if (check_zoneconf(zone, symtab, logctx, mctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
 
