@@ -2324,6 +2324,7 @@ dns_resolver_create(dns_view_t *view,
 	dns_resolver_t *res;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i, buckets_created = 0;
+	in_port_t port = 5353;
 
 	REQUIRE(resp != NULL && *resp == NULL);
 	REQUIRE(ntasks > 0);
@@ -2381,15 +2382,18 @@ dns_resolver_create(dns_view_t *view,
 					   &res->udpsocket4);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_buckets;
-		/*
-		 * XXXRTH  Temporarily bind() to 5353 to make things
-		 *	   easier for Bob's firewalls.
-		 */
-		ina.s_addr = htonl(INADDR_ANY);
-		isc_sockaddr_fromin(&sa, &ina, 5353);
-		result = isc_socket_bind(res->udpsocket4, &sa);
-		if (result != ISC_R_SUCCESS)
+		result = ISC_R_UNEXPECTED;
+		while (result != ISC_R_SUCCESS && port < 5400) {
+			ina.s_addr = htonl(INADDR_ANY);
+			isc_sockaddr_fromin(&sa, &ina, port);
+			result = isc_socket_bind(res->udpsocket4, &sa);
+			if (result != ISC_R_SUCCESS)
+				port++;
+		}
+		if (result != ISC_R_SUCCESS) {
+			RTRACE("Could not open UDP port");
 			goto cleanup_buckets;
+		}
 		result = dns_dispatch_create(res->mctx, res->udpsocket4,
 					     res->buckets[0].task, 4096,
 					     50, 50, 14, &res->dispatch4);
