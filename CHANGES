@@ -19,6 +19,10 @@
 			in named.conf prior to reference.  They can be
 			defined after being referenced.
 
+1810.	[bug]		configure, lib/bind/configure make different default
+			decisions about whether to do a threaded build.
+			[RT #13212]
+
 1809.	[bug]		"make distclean" failed for libbind if the platform
 			is not supported.
 
