@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.35 2004/03/02 01:11:44 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.36 2004/03/04 21:05:27 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3328,7 +3328,7 @@ has.  The default is <userinput>no</userinput>.
 <para>
 Specify whether query logging should be started when named start.
 If <command>querylog</command> is not specified then the query logging
-is determined by the presence of the logging category <command>queries<command>.
+is determined by the presence of the logging category <command>queries</command>.
 </para></listitem></varlistentry>
 
 </variablelist>
