@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.c,v 1.17 2001/07/16 04:09:44 gson Exp $ */
+/* $Id: file.c,v 1.18 2001/07/16 17:22:17 gson Exp $ */
 
 #include <config.h>
 
@@ -456,7 +456,7 @@ isc_file_progname(const char *filename, char *progname, size_t namelen) {
 }
 
 isc_result_t
-isc_file_getabsolutepath(const char *filename, char *path, size_t pathlen) {
+isc_file_absolutepath(const char *filename, char *path, size_t pathlen) {
 	char *ptrname;
 	DWORD retval;
 

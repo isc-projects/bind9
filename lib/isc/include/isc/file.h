@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: file.h,v 1.22 2001/07/16 04:09:42 gson Exp $ */
+/* $Id: file.h,v 1.23 2001/07/16 17:22:16 gson Exp $ */
 
 #ifndef ISC_FILE_H
 #define ISC_FILE_H 1
@@ -223,7 +223,7 @@ isc_file_renameunique(const char *file, char *templet);
  */
 
 isc_result_t
-isc_file_getabsolutepath(const char *filename, char *path, size_t pathlen);
+isc_file_absolutepath(const char *filename, char *path, size_t pathlen);
 /*
  * Given a file name, return the fully qualified path to the file.
  */
