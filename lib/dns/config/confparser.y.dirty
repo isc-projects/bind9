@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.11 2000/08/22 05:14:51 marka Exp $ */
+/* $Id: confparser.y.dirty,v 1.12 2000/08/23 23:54:58 gson Exp $ */
 
 #include <config.h>
 
@@ -4568,7 +4568,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_ERROR,
-				      "Error creating new zone");
+				      "error creating new zone");
 			YYABORT;
 		}
 
@@ -4578,7 +4578,7 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG,
 				      ISC_LOG_ERROR,
-				      "Error adding new zone to list");
+				      "error adding new zone to list");
 			YYABORT;
 		}
 
@@ -5878,7 +5878,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "%s: Error creating mem context",
+			      "%s: error creating mem context",
 			      funcname);
 		goto done;
 	}
@@ -5887,7 +5887,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "%s: Error initializing keywords",
+			      "%s: error initializing keywords",
 			      funcname);
 		goto done;
 	}
@@ -5896,7 +5896,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "%s: Error creating config context",
+			      "%s: error creating config context",
 			      funcname);
 		goto done;
 	}
@@ -5905,7 +5905,7 @@ dns_c_parse_namedconf(const char *filename, isc_mem_t *mem,
 	if (res != ISC_R_SUCCESS) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "%s: Error creating lexer",
+			      "%s: error creating lexer",
 			      funcname);
 		goto done;
 	}
