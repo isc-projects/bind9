@@ -41,3 +41,4 @@ install:: installdirs
 	done
 
 distclean::
+	rm -f netdb.h
