@@ -14,7 +14,7 @@
 ./bin/check/check-tool.c			C	2000,2001,2002,2004
 ./bin/check/check-tool.h			C	2000,2001,2002,2004
 ./bin/check/named-checkconf.8			MAN	2000,2001,2002,2004
-./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004
+./bin/check/named-checkconf.c			C	1999,2000,2001,2002,2004,2005
 ./bin/check/named-checkconf.docbook		SGML	2001,2002,2004
 ./bin/check/named-checkconf.html		HTML	2001,2002,2004
 ./bin/check/named-checkzone.8			MAN	2000,2001,2002,2004
