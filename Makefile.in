@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.21.2.2 2000/06/27 00:46:05 explorer Exp $
+# $Id: Makefile.in,v 1.21.2.3 2000/07/12 16:57:21 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -30,6 +30,7 @@ DISTFILES =	CHANGES Makefile.in README \
 		lib make contrib \
 		version
 DOCDISTFILES =	arm draft misc rfc
+DOCMANDISTFILES = bin
 BINDISTFILES =	Makefile.in dig dnssec named nsupdate rndc tests
 
 @BIND9_MAKE_RULES@
@@ -50,6 +51,9 @@ kit: kitclean
 	mkdir bind-${VERSION}/doc
 	@(cd bind-${VERSION}/doc; for i in ${DOCDISTFILES}; do \
 		ln -s ../../doc/$$i $$i; done)
+	mkdir bind-${VERSION}/doc/man
+	@(cd bind-${VERSION}/doc/man; for i in ${DOCMANDISTFILES}; do \
+		ln -s ../../doc/man/$$i $$i; done)
 	mkdir bind-${VERSION}/bin
 	@(cd bind-${VERSION}/bin; for i in ${BINDISTFILES}; do \
 		ln -s ../../bin/$$i $$i; done)
