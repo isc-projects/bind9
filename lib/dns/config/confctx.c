@@ -1622,7 +1622,7 @@ dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t addr)
 
 
 isc_result_t
-dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, short port)
+dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, in_port_t port)
 {
 	isc_boolean_t existed;
 	isc_result_t res;
@@ -2846,7 +2846,7 @@ dns_c_ctx_getquerysourceaddr(dns_c_ctx_t *cfg, isc_sockaddr_t *addr)
 
 
 isc_result_t
-dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg, short *port)
+dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg, in_port_t *port)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 

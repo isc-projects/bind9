@@ -112,7 +112,7 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list)
 
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,
-		   isc_sockaddr_t addr, short port,
+		   isc_sockaddr_t addr, in_port_t port,
 		   dns_c_ipmatchlist_t *iml, isc_boolean_t copy)
 {
 	dns_c_ctrl_t  *ctrl;
@@ -229,7 +229,7 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control)
 void
 dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl)
 {
-	short port;
+	in_port_t port;
 	dns_c_ipmatchlist_t *iml;
 
 	REQUIRE(DNS_C_CONFCTL_VALID(ctl));

@@ -84,7 +84,7 @@ struct dns_c_lstn_on
 	isc_mem_t		       *mem;
 	isc_uint32_t			magic;
 	
-	short				port;
+	in_port_t			port;
 	dns_c_ipmatchlist_t	       *iml;
 
 	ISC_LINK(dns_c_lstnon_t)	next;
