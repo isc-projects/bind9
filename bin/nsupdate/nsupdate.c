@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.36 2000/07/28 03:39:12 tale Exp $ */
+/* $Id: nsupdate.c,v 1.37 2000/07/31 22:11:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -39,6 +39,7 @@
 #include <dns/callbacks.h>
 #include <dns/dispatch.h>
 #include <dns/events.h>
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
