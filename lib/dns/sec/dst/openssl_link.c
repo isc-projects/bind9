@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.5 1999/09/01 18:56:19 bwelling Exp $
+ * $Id: openssl_link.c,v 1.6 1999/09/06 16:55:58 bwelling Exp $
  */
 
 #include <config.h>
@@ -339,7 +339,8 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	r.base += SHA_DIGEST_LENGTH;
 
 	isc_buffer_remaining(data, &r);
-	key->key_id = dst_s_id_calc(r.base, SHA_DIGEST_LENGTH + 3 * p_bytes);
+	key->key_id = dst_s_id_calc(r.base,
+				    1 + SHA_DIGEST_LENGTH + 3 * p_bytes);
 	key->key_size = p_bytes * 8;
 
 	isc_buffer_forward(data, SHA_DIGEST_LENGTH + 3 * p_bytes);
