@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.200 2001/12/06 04:38:45 marka Exp $ */
+/* $Id: client.c,v 1.201 2001/12/07 01:34:08 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1341,7 +1341,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			dns_name_t *tsig = NULL;
 			sigresult = dns_message_rechecksig(client->message,
 							   view);
-			if (tsigname == ISC_R_SUCCESS)
+			if (sigresult == ISC_R_SUCCESS)
 				tsig = client->message->tsigname;
 				
 			if (allowed(&netaddr, tsig, view->matchclients) &&
