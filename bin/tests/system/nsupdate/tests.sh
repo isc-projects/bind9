@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.15 2000/11/21 23:41:25 mws Exp $
+# $Id: tests.sh,v 1.16 2000/11/22 18:26:30 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -92,6 +92,47 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || status=1
+
+echo "I:begin RT #482 regression test"
+
+echo "I:update master"
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated2.example.nil. 600 A 10.10.10.2
+update add updated2.example.nil. 600 TXT Bar
+update delete c.example.nil.
+send
+END
+
+sleep 5
+
+echo "I:SIGHUP slave"
+kill -HUP `cat ns2/named.pid`
+
+sleep 5
+
+echo "I:update master again"
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated3.example.nil. 600 A 10.10.10.3
+update add updated3.example.nil. 600 TXT Zap
+update delete d.example.nil.
+send
+END
+
+sleep 5
+
+echo "I:SIGHUP slave again"
+kill -HUP `cat ns2/named.pid`
+
+sleep 5
+
+if grep "out of sync" ns2/named.run
+then
+	status=1
+fi
+
+echo "I:end RT #482 regression test"
 
 echo "I:exit status: $status"
 exit $status
