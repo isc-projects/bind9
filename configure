@@ -8825,6 +8825,13 @@ fi
 
 
 #
+# Microsoft has their own way of handling shared libraries that requires
+# additional qualifiers on extern variables.  Unix systems don't need it.
+#
+
+ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
+
+#
 # Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
 #
@@ -8910,7 +8917,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:8914: checking for $ac_word" >&5
+echo "configure:8921: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_OPENJADE'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -8957,7 +8964,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:8961: checking for $ac_word" >&5
+echo "configure:8968: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_JADETEX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -9000,7 +9007,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:9004: checking for $ac_word" >&5
+echo "configure:9011: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_PDFJADETEX'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -9055,7 +9062,7 @@ test -n "$PDFJADETEX" || PDFJADETEX="pdfjadetex"
 
 
 echo $ac_n "checking for catalog""... $ac_c" 1>&6
-echo "configure:9059: checking for catalog" >&5
+echo "configure:9066: checking for catalog" >&5
 for d in $sgmltrees
 do
 	f=$d/catalog
@@ -9096,7 +9103,7 @@ do
 done
 
 echo $ac_n "checking for html/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9100: checking for html/docbook.dsl" >&5
+echo "configure:9107: checking for html/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/html/docbook.dsl
@@ -9116,7 +9123,7 @@ fi
 
 
 echo $ac_n "checking for print/docbook.dsl""... $ac_c" 1>&6
-echo "configure:9120: checking for print/docbook.dsl" >&5
+echo "configure:9127: checking for print/docbook.dsl" >&5
 for d in $stylepath
 do
 	f=$d/print/docbook.dsl
@@ -9141,7 +9148,7 @@ fi
 
 
 echo $ac_n "checking for docbook/dsssl/modular/dtds/decls/xml.dcl""... $ac_c" 1>&6
-echo "configure:9145: checking for docbook/dsssl/modular/dtds/decls/xml.dcl" >&5
+echo "configure:9152: checking for docbook/dsssl/modular/dtds/decls/xml.dcl" >&5
 for d in $sgmltrees
 do
 	f=$d/docbook/dsssl/modular/dtds/decls/xml.dcl
@@ -9166,7 +9173,7 @@ fi
 
 
 echo $ac_n "checking for docbook2X/docbook2man-spec.pl""... $ac_c" 1>&6
-echo "configure:9170: checking for docbook2X/docbook2man-spec.pl" >&5
+echo "configure:9177: checking for docbook2X/docbook2man-spec.pl" >&5
 for d in $sgmltrees
 do
 	f=$d/docbook2X/docbook2man-spec.pl
@@ -9541,6 +9548,7 @@ s%@ISC_EXTRA_OBJS@%$ISC_EXTRA_OBJS%g
 s%@ISC_EXTRA_SRCS@%$ISC_EXTRA_SRCS%g
 s%@ISC_PLATFORM_QUADFORMAT@%$ISC_PLATFORM_QUADFORMAT%g
 s%@ISC_PLATFORM_RLIMITTYPE@%$ISC_PLATFORM_RLIMITTYPE%g
+s%@ISC_PLATFORM_USEDECLSPEC@%$ISC_PLATFORM_USEDECLSPEC%g
 s%@ISC_PLATFORM_BRACEPTHREADONCEINIT@%$ISC_PLATFORM_BRACEPTHREADONCEINIT%g
 s%@OPENJADE@%$OPENJADE%g
 s%@JADETEX@%$JADETEX%g

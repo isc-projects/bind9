@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.22 2001/02/27 02:19:34 gson Exp $ */
+/* $Id: platform.h.in,v 1.23 2001/07/11 05:32:44 tale Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -146,6 +146,45 @@
  * Define if your compiler supports "long long int".
  */
 @ISC_PLATFORM_HAVELONGLONG@
+
+/*
+ * Used to control how extern data is linked; needed for Win32 platforms.
+ */
+@ISC_PLATFORM_USEDECLSPEC@
+
+#ifndef ISC_PLATFORM_USEDECLSPEC
+#define LIBISC_EXTERNAL_DATA
+#define LIBDNS_EXTERNAL_DATA
+#define LIBISCCC_EXTERNAL_DATA
+#define LIBISCCFG_EXTERNAL_DATA
+#define LIBLWRES_EXTERNAL_DATA
+#else /* ISC_PLATFORM_USEDECLSPEC */
+#ifdef LIBISC_EXPORTS
+#define LIBISC_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBISC_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBDNS_EXPORTS
+#define LIBDNS_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBDNS_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBISCCC_EXPORTS
+#define LIBISCCC_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBISCCC_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBISCCFG_EXPORTS
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#ifdef LIBLWRES_EXPORTS
+#define LIBLWRES_EXTERNAL_DATA __declspec(dllexport)
+#else
+#define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
+#endif
+#endif /* ISC_PLATFORM_USEDECLSPEC */
 
 /*
  * Tell emacs to use C mode for this file.

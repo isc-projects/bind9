@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.269 $)
+AC_REVISION($Revision: 1.270 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1359,6 +1359,13 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 ],[])
 ],[])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
+
+#
+# Microsoft has their own way of handling shared libraries that requires
+# additional qualifiers on extern variables.  Unix systems don't need it.
+#
+AC_SUBST(ISC_PLATFORM_USEDECLSPEC)
+ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
 
 #
 # Random remaining OS-specific issues involving compiler warnings.
