@@ -481,6 +481,9 @@ do_ipv4(ns_interfacemgr_t *mgr) {
 		if (interface.address.family != AF_INET)
 			continue;
 
+		if ((interface.flags & INTERFACE_F_UP) == 0)
+			continue;
+
 		for (le = ISC_LIST_HEAD(mgr->listenon->elts);
 		     le != NULL;
 		     le = ISC_LIST_NEXT(le, link))
