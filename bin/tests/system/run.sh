@@ -42,6 +42,7 @@ echo "T:$test:1:A" >&2
 test -f /var/run/system_test_ifsetup ||
 test -f /etc/system_test_ifsetup ||
     { echo "I:Interfaces not set up.  Not trying system tests." >&2;
+      echo "R:UNTESTED" >&2
       echo "E:$test:`date`" >&2
       exit 0;
     }

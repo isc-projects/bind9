@@ -47,7 +47,7 @@ do
 	do
 	    x=`expr $x + 1`
 	    if [ $x = 5 ]; then
-		echo "I: Couldn't start servers!"
+		echo "I: Couldn't start server $d!"
 		exit 1
 	    fi
 	    sleep 1
