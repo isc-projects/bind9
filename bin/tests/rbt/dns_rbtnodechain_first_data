@@ -1,7 +1,7 @@
 #
 # test data for dns_rbtnodechain_first
 #
-# format is: <dbfile> <findnode> <next> <nextorigin> <prev> <prevorigin>  <first> <firstorigin> <last> <lastorigin>
+# format is: <dbfile> <firstname> <firstorigin> <nextname> <nextorigin>
 #
-dns_rbtnodechain_first_1.data	.	.	com	.
-dns_rbtnodechain_first_2.data	.	.	vix.com	.
+dns_rbtnodechain_first_1.data	@	.	com	.
+dns_rbtnodechain_first_2.data	@	.	vix.com	.
