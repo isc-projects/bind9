@@ -17,7 +17,7 @@
 
 echo "S:`date`"
 echo "T:system_xfer:1"
-echo "A:A test to determine online functionality of domain name transfers"
+echo "A:A test to determine online functionality of zone transfers"
 
 #
 # Perform tests
