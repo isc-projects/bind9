@@ -29,6 +29,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 #include <isc/ratelimiter.h>
+#include <isc/util.h>
 
 isc_ratelimiter_t *rlim = NULL;
 
@@ -62,8 +63,8 @@ main(int argc, char *argv[]) {
 	isc_interval_t linterval;
 	int i;
 
-	(void) argc;
-	(void) argv;
+	UNUSED(argc);
+	UNUSED(argv);
 	
 	isc_interval_set(&linterval, 1, 0);
 	
@@ -85,6 +86,7 @@ main(int argc, char *argv[]) {
 		isc_interval_t uinterval;
 		isc_interval_set(&uinterval, times[i] / 1000,
 				 (times[i] % 1000) * 1000000);
+		timers[i] = NULL;
 		RUNTIME_CHECK(isc_timer_create(timermgr,
 					       isc_timertype_once, NULL,
 					       &uinterval,
