@@ -386,11 +386,15 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 				t = ISC_LIST_NEXT(t, link);
 			}
 
-			/* Convert the rdatalist into a rdataset. */
+			/*
+			 * Convert the rdatalist into a rdataset.
+			 */
 			dns_rdataset_init(&rds);
 			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
 
-			/* Merge the rdataset into the database. */
+			/*
+			 * Merge the rdataset into the database.
+			 */
 			if (op == DNS_DIFFOP_ADD) {
 				result = dns_db_addrdataset(db, node, ver,
 							    0, &rds,
@@ -417,7 +421,9 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 					      "update with no effect");
 			} else if (result == ISC_R_SUCCESS ||
 				   result == DNS_R_NXRRSET) {
-				/* OK */
+				/*
+				 * OK.
+				 */
 			} else {
 				CHECK(result);
 			}
@@ -473,7 +479,9 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 				t = ISC_LIST_NEXT(t, link);
 			}
 
-			/* Convert the rdatalist into a rdataset. */
+			/*
+			 * Convert the rdatalist into a rdataset.
+			 */
 			dns_rdataset_init(&rds);
 			CHECK(dns_rdatalist_tordataset(&rdl, &rds));
 			rds.trust = dns_trust_ultimate;
@@ -486,7 +494,9 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
 					      "update with no effect");
 			} else if (result == ISC_R_SUCCESS ||
 				   result == DNS_R_NXRRSET) {
-				/* OK */
+				/*
+				 * OK.
+				 */
 			} else {
 				CHECK(result);
 			}
@@ -685,6 +695,7 @@ typedef struct {
 	unsigned char	serial[4];  /* SOA serial before update. */
 	/*
 	 * XXXRTH  Should offset be 8 bytes?
+	 * XXXDCL ... probably, since isc_offset_t is 8 bytes on many OSs.
 	 */
 	unsigned char	offset[4];  /* Offset from beginning of file. */
 } journal_rawpos_t;
@@ -733,14 +744,12 @@ typedef struct {
 	unsigned char	size[4]; 	/* In bytes, excluding header. */
 } journal_rawrrhdr_t;
 
-/* The in-core representation of the journal header. */
-
+/*
+ * The in-core representation of the journal header.
+ */
 typedef struct {
 	isc_uint32_t	serial;
-	/*
-	 * XXXRTH  Should offset be 8 bytes?
-	 */
-	isc_uint32_t	offset;
+	isc_offset_t	offset;
 } journal_pos_t;
 
 #define POS_VALID(pos) 		((pos).offset != 0)
@@ -753,7 +762,9 @@ typedef struct {
 	isc_uint32_t	index_size;
 } journal_header_t;
 
-/* The in-core representation of the transaction header. */
+/*
+ * The in-core representation of the transaction header.
+ */
 
 typedef struct {
 	isc_uint32_t	size;
@@ -761,8 +772,9 @@ typedef struct {
 	isc_uint32_t	serial1;	
 } journal_xhdr_t;
 
-/* The in-core representation of the RR header. */
-
+/*
+ * The in-core representation of the RR header.
+ */
 typedef struct {
 	isc_uint32_t	size;
 } journal_rrhdr_t;
@@ -861,8 +873,9 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	encode_uint32(cooked->index_size, raw->h.index_size);
 }
 
-/* Journal file I/O subroutines, with error checking and reporting. */
-  
+/*
+ * Journal file I/O subroutines, with error checking and reporting.
+ */
 static isc_result_t
 journal_seek(dns_journal_t *j, isc_uint32_t offset) {
 	isc_result_t result;
@@ -1246,10 +1259,11 @@ journal_next(dns_journal_t *j, journal_pos_t *pos) {
 	/*
 	 * Check for offset wraparound.
 	 */
-	if (pos->offset + xhdr.size < pos->offset) {
+	if (xhdr.size + sizeof(journal_rawxhdr_t) > ISC_OFFSET_MAXIMUM ||
+	    (off_t)(ISC_OFFSET_MAXIMUM - xhdr.size - sizeof(journal_rawxhdr_t))
+		    < pos->offset) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-				 "%s: offset too large",
-				 j->filename);
+			      "%s: offset too large", j->filename);
 		return (ISC_R_UNEXPECTED);		
 	}
 	
@@ -2022,11 +2036,6 @@ read_one_rr(dns_journal_t *j) {
 	journal_xhdr_t xhdr;
 	journal_rrhdr_t rrhdr;
 
-	/*
-	 * XXXRTH  Need to resolve the comparison between int and unsigned
-	 *         int here, but we can defer this until we decide what type
-	 *	   we want j->offset to be.
-	 */
 	INSIST(j->offset <= j->it.epos.offset);
 	if (j->offset == j->it.epos.offset)
 		return (ISC_R_NOMORE);
@@ -2267,7 +2276,9 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 			goto next;
 		}
 		INSIST(t == 0);
-		/* Identical RRs in both databases; skip them both. */
+		/*
+		 * Identical RRs in both databases; skip them both.
+		 */
 		for (i = 0; i < 2; i++) {
 			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
 			dns_difftuple_free(&p[i]);
