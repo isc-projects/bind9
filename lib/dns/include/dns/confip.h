@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.h,v 1.21 2000/06/22 21:55:21 tale Exp $ */
+/* $Id: confip.h,v 1.22 2000/06/23 02:59:04 tale Exp $ */
 
 #ifndef DNS_CONFIP_H
 #define DNS_CONFIP_H 1
@@ -250,10 +250,11 @@ typedef isc_boolean_t (*dns_c_ipmlwalker)(dns_c_ipmatchelement_t *element);
 
 /*
  * Recursively decends the list and returns the boolean AND of the return 
- * values of func
+ * values of func.
  */
-isc_boolean_t dns_c_ipmatchlist_walk(dns_c_ipmatchlist_t *list,
-				     dns_c_ipmlwalker func);
+isc_boolean_t
+dns_c_ipmatchlist_walk(dns_c_ipmatchlist_t *list, dns_c_ipmlwalker func);
 
-ISC_LANG_ENDDECLS 
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_CONFIP_H */
