@@ -1,3 +1,7 @@
+
+ 715.	[bug]		Resolving some A6 chains could cause an assertion
+			failure in adb.c. [RT #738]
+
  714.	[bug]		Preserve interval timers across reloads unless changed.
 			[RT# 729]
 
