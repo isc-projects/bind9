@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.2 2001/07/01 17:36:47 bwelling Exp $ */
+/* $Id: util.h,v 1.3 2001/07/02 00:06:22 bwelling Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
@@ -39,7 +39,7 @@
 ISC_LANG_BEGINDECLS
 
 void
-notify(const char *fmt, ...);
+notify(const char *fmt, ...) ISC_FORMAT_PRINTF(1, 2);
 
 void            
 fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
