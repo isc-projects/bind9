@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2000, 2001  Internet Software Consortium.
+ * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,11 +15,29 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.h,v 1.2 2001/01/09 21:46:31 bwelling Exp $ */
+/* $Id: strerror.h,v 1.2 2001/08/31 05:57:58 marka Exp $ */
 
-#include <isc/types.h>
+#ifndef ISC_STRERROR_H
+#define ISC_STRERROR_H
 
-isc_result_t timedb_init(void);
+#include <sys/types.h>
 
-void timedb_clear(void);
+#include <isc/lang.h>
 
+ISC_LANG_BEGINDECLS
+
+#define ISC_STRERRORSIZE 128
+
+/*
+ * Provide a thread safe wrapper to strerrror().
+ * 'buf' is always returned.
+ *
+ * Requires:
+ * 	'buf' to be non NULL.
+ */
+char *
+isc__strerror(int num, char *buf, size_t bufsize);
+
+ISC_LANG_ENDDECLS
+
+#endif /* ISC_STRERROR_H */
