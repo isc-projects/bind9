@@ -232,6 +232,9 @@ static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
 				   dns_name_t *, dns_name_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
+static isc_result_t fetch_name(dns_adb_t *, dns_adbhandle_t *,
+			       dns_name_t *, dns_name_t *,
+			       dns_adbname_t *, int, isc_stdtime_t);
 static inline isc_boolean_t check_exit(dns_adb_t *);
 static void timer_cleanup(isc_task_t *, isc_event_t *);
 static void destroy(dns_adb_t *);
@@ -1356,6 +1359,16 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		goto found;
 	}
 
+	/*
+	 * Try to start fetches.
+	 */
+	result = fetch_name(adb, handle, name, zone, adbname, bucket, now);
+	if (result == ISC_R_SUCCESS) {
+		ISC_LIST_PREPEND(adb->names[bucket], adbname, link);
+		adb->name_refcnt[bucket]++;
+		goto found;
+	}
+
 	goto fail;
 
 	/*
@@ -2010,6 +2023,14 @@ construct_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
 	if (return_success)
 		return (ISC_R_SUCCESS);
 	return (result);
+}
+
+static isc_result_t
+fetch_name(dns_adb_t *adb, dns_adbhandle_t *handle, dns_name_t *name,
+	   dns_name_t *zone, dns_adbname_t *adbname, int bucket,
+	   isc_stdtime_t now)
+{
+	return (ISC_R_NOMEMORY);
 }
 
 isc_result_t
