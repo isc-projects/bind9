@@ -33,7 +33,6 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
-#include <dns/message.h>
 #include <dns/rbt.h>
 #include <dns/rdataset.h>
 #include <dns/resolver.h>
@@ -807,7 +806,6 @@ isc_result_t
 dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(source != NULL);
-	REQUIRE(DNS_MESSAGE_VALID(msg));
 
 	return dns_tsig_verify(source, msg, view->statickeys,
 			       view->dynamickeys);

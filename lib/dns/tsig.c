@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.37 2000/01/21 20:18:37 bwelling Exp $
+ * $Id: tsig.c,v 1.38 2000/01/21 21:50:45 gson Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -548,7 +548,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	isc_uint16_t addcount, id;
 
 	REQUIRE(source != NULL);
-	REQUIRE(msg != NULL);
+	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(msg->tsig == NULL);
 	if (msg->tsigkey != NULL)
 		REQUIRE(VALID_TSIG_KEY(msg->tsigkey));
