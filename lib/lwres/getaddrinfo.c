@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.12 2000/02/04 06:03:28 halley Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.13 2000/02/04 06:17:22 halley Exp $
  */
 
 
@@ -275,6 +275,27 @@ done:
 	return (0);
 }
 
+static char *
+lwres_strsep(char **stringp, const char *delim) {
+	char *string = *stringp;
+	char *s;
+	const char *d;
+	char sc, dc;
+
+	if (string == NULL)
+		return (NULL);
+
+	for (s = string; (sc = *s) != '\0'; s++)
+		for (d = delim; (dc = *d) != '\0'; d++)
+			if (sc == dc) {
+				*s++ = '\0';
+				*stringp = s;
+				return (string);
+			}
+	*stringp = NULL;
+	return (string);
+}
+
 static void
 set_order(family, net_order)
 	int family;
@@ -298,7 +319,7 @@ set_order(family, net_order)
 		found = 0;
 		while (order != NULL) {
 			/* We ignore any unknown names.  */
-			tok = strsep(&order, ":");
+			tok = lwres_strsep(&order, ":");
 			if (strcasecmp(tok, "inet6") == 0) {
 				if ((found & FOUND_IPV6) == 0)
 					*net_order++ = add_ipv6;
