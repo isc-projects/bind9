@@ -30,6 +30,9 @@ typedef struct isc_sockaddr {
 	 */
 	union {
 		struct sockaddr_in sin;
+#ifdef notyet
+		struct sockaddr_in6 sin6;
+#endif
 	} type;
 } isc_sockaddr_t;
 
