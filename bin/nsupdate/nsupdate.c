@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.91 2001/04/13 01:32:14 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.92 2001/04/16 17:09:00 gson Exp $ */
 
 #include <config.h>
 
@@ -670,7 +670,7 @@ parse_args(int argc, char **argv) {
 			result = isc_stdio_open(argv[isc_commandline_index],
 						"r", &input);
 			if (result != ISC_R_SUCCESS) {
-				fprintf(stderr, "failed to open '%s': %s\n",
+				fprintf(stderr, "could not open '%s': %s\n",
 					argv[isc_commandline_index],
 					isc_result_totext(result));
 				exit(1);
@@ -692,7 +692,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	word = nsu_strsep(cmdlinep, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read owner name\n");
+		fprintf(stderr, "could not read owner name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -805,7 +805,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	if (isrrset) {
 		word = nsu_strsep(&cmdline, " \t\r\n");
 		if (*word == 0) {
-			fprintf(stderr, "failed to read class or type\n");
+			fprintf(stderr, "could not read class or type\n");
 			goto failure;
 		}
 		region.base = word;
@@ -817,7 +817,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 			 */
 			word = nsu_strsep(&cmdline, " \t\r\n");
 			if (*word == 0) {
-				fprintf(stderr, "failed to read type\n");
+				fprintf(stderr, "could not read type\n");
 				goto failure;
 			}
 			region.base = word;
@@ -891,7 +891,7 @@ evaluate_prereq(char *cmdline) {
 	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read operation code\n");
+		fprintf(stderr, "could not read operation code\n");
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "nxdomain") == 0) {
@@ -920,7 +920,7 @@ evaluate_server(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read server name\n");
+		fprintf(stderr, "could not read server name\n");
 		return (STATUS_SYNTAX);
 	}
 	server = word;
@@ -961,7 +961,7 @@ evaluate_local(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read server name\n");
+		fprintf(stderr, "could not read server name\n");
 		return (STATUS_SYNTAX);
 	}
 	local = word;
@@ -1008,7 +1008,7 @@ evaluate_zone(char *cmdline) {
 
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read zone name\n");
+		fprintf(stderr, "could not read zone name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -1019,7 +1019,7 @@ evaluate_zone(char *cmdline) {
 	result = dns_name_fromtext(userzone, &b, dns_rootname, ISC_FALSE,
 				   NULL);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to parse zone name\n");
+		fprintf(stderr, "could not parse zone name\n");
 		return (STATUS_SYNTAX);
 	}
 
@@ -1065,7 +1065,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
 		if (!isdelete) {
-			fprintf(stderr, "failed to read owner ttl\n");
+			fprintf(stderr, "could not read owner ttl\n");
 			goto failure;
 		}
 		else {
@@ -1113,7 +1113,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			rdata->flags = DNS_RDATA_UPDATE;
 			goto doneparsing;
 		} else {
-			fprintf(stderr, "failed to read class or type\n");
+			fprintf(stderr, "could not read class or type\n");
 			goto failure;
 		}
 	}
@@ -1132,7 +1132,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 				rdata->flags = DNS_RDATA_UPDATE;
 				goto doneparsing;
 			} else {
-				fprintf(stderr, "failed to read type\n");
+				fprintf(stderr, "could not read type\n");
 				goto failure;
 			}
 		}
@@ -1166,7 +1166,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 			rdataclass = dns_rdataclass_none;
 	} else {
 		if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
-			fprintf(stderr, "failed to read rdata\n");
+			fprintf(stderr, "could not read rdata\n");
 			goto failure;
 		}
 	}
@@ -1207,7 +1207,7 @@ evaluate_update(char *cmdline) {
 	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
 	if (*word == 0) {
-		fprintf(stderr, "failed to read operation code\n");
+		fprintf(stderr, "could not read operation code\n");
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "delete") == 0)
@@ -1243,7 +1243,7 @@ show_message(dns_message_t *msg) {
 		bufsz *= 2;
 	} while (result == ISC_R_NOSPACE);
 	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "Failed to convert message to text format.\n");
+		fprintf(stderr, "Could not convert message to text format.\n");
 		isc_buffer_free(&buf);
 		return;
 	}
