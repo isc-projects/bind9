@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.22 2004/03/09 06:12:11 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.23 2004/03/16 12:45:42 marka Exp $ */
 
 #include <config.h>
 
@@ -535,7 +535,7 @@ process_cmsg(isc_socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifndef USE_CMSG
 	return;
 #else
-	if (msg->msg_controllen == 0 || msg->msg_control == NULL)
+	if (msg->msg_controllen == 0U || msg->msg_control == NULL)
 		return;
 
 #ifdef SO_TIMESTAMP
