@@ -342,3 +342,15 @@ b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.
 	-- END down from b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.
 	NULL
 	NULL
+adding name .
+nuking name . and its descendants
+adding name \[xFFFF/16].\[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/256].com
+adding name \[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/128].com
+\[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/128].com. (black)
+	++ BEG down from \[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/128].com.
+	\[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/144] (black)
+		NULL
+		NULL
+	-- END down from \[xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF/128].com.
+	NULL
+	NULL
