@@ -24,9 +24,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
 #include <isc/assertions.h>
 #include <isc/error.h>
 #include <isc/thread.h>

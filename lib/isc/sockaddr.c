@@ -22,9 +22,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <sys/types.h>
-#include <sys/socket.h>
-
 #include <isc/types.h>
 #include <isc/assertions.h>
 #include <isc/error.h>
@@ -65,7 +62,6 @@ isc_sockaddr_equal(isc_sockaddr_t *a, isc_sockaddr_t *b)
 		INSIST("Unknown socket protocol");
 		break;
 	}
-
 #endif
 
 	UNEXPECTED_ERROR(__FILE__, __LINE__, "Cannot happen");
