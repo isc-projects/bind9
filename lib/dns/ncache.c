@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
