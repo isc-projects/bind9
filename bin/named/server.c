@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.25 2004/03/14 23:02:32 marka Exp $ */
+/* $Id: server.c,v 1.339.2.26 2004/04/10 05:02:59 marka Exp $ */
 
 #include <config.h>
 
@@ -841,8 +841,9 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	CHECK(configure_view_acl(vconfig, config, "allow-query",
 				 actx, ns_g_mctx, &view->queryacl));
 
-	CHECK(configure_view_acl(vconfig, config, "allow-recursion",
-				 actx, ns_g_mctx, &view->recursionacl));
+	if (strcmp(view->name, "_bind") != 0)
+		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
+					 actx, ns_g_mctx, &view->recursionacl));
 
 	CHECK(configure_view_acl(vconfig, config, "allow-v6-synthesis",
 				 actx, ns_g_mctx, &view->v6synthesisacl));

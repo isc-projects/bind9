@@ -11,6 +11,10 @@
 1602.	[bug]		Logging to a file failed unless a size was specified.
 			[RT# 10925]
 
+1601.	[bug]		Silence spurious warning 'both "recursion no;" and 
+			"allow-recursion" active' warning from view "_bind".
+			[RT# 10920]
+
 1455.   [bug]           <netaddr> missing from server grammar in
                         doc/misc/options. [RT #5616]
 
