@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.49 1999/04/24 02:03:25 halley Exp $ */
+/* $Id: rbt.c,v 1.50 1999/04/30 02:04:11 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -516,11 +516,12 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				/*
 				 * Fix pointers that were to the current node.
 				 */
-				if (parent != NULL)
+				if (parent != NULL) {
 					if (LEFT(parent) == current)
 						LEFT(parent) = new_current;
 					else
 						RIGHT(parent) = new_current;
+				}
 				if (*root == current)
 					*root = new_current;
 
