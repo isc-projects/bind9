@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.144 2000/07/07 19:43:14 tale Exp $ */
+/* $Id: resolver.c,v 1.145 2000/07/12 23:56:06 bwelling Exp $ */
 
 #include <config.h>
 
@@ -504,6 +504,8 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		event->ev_sender = fctx;
 		if (!HAVE_ANSWER(fctx))
 			event->result = result;
+		if (result == ISC_R_SUCCESS)
+			INSIST(dns_rdataset_isassociated(event->rdataset));
 		isc_task_sendanddetach(&task, (isc_event_t **)&event);
 	}
 	ISC_LIST_INIT(fctx->events);
