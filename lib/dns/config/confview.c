@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.62 2000/12/01 23:27:42 marka Exp $ */
+/* $Id: confview.c,v 1.63 2000/12/06 20:37:01 gson Exp $ */
 
 #include <config.h>
 
@@ -617,6 +617,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 			fputs("no", fp);			\
 		else						\
 			fputs("explicit", fp);			\
+		fprintf(fp, ";\n");				\
 	}
 
 #define PRINT_AS_DIALUPTYPE(FIELD, NAME)			\
