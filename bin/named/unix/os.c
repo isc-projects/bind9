@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.56 2001/11/30 01:58:54 gson Exp $ */
+/* $Id: os.c,v 1.57 2001/12/01 00:34:23 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -33,6 +33,7 @@
 #include <syslog.h>
 #include <unistd.h>
 
+#include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -535,3 +536,48 @@ ns_os_gethostname(char *buf, size_t len) {
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
+static char *
+next_token(char **stringp, const char *delim) {
+	char *res;
+
+	do {
+		res = strsep(stringp, delim);
+		if (res == NULL)
+			break;
+	} while (*res == '\0');
+	return (res);
+}
+
+void
+ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
+	char *input, *ptr;
+	unsigned int n;
+	pid_t pid;
+
+	input = command;
+
+	/* Skip the command name. */
+	ptr = next_token(&input, " \t");
+	if (ptr == NULL)
+		return;
+
+	ptr = next_token(&input, " \t");
+	if (ptr == NULL)
+		return;
+	
+	if (strcmp(ptr, "-p") != 0)
+		return;
+
+#ifdef HAVE_LINUXTHREADS
+	pid = mainpid;
+#else
+	pid = getpid();
+#endif
+
+	n = snprintf((char *)isc_buffer_used(text),
+		     isc_buffer_availablelength(text),
+		     "pid: %d", pid);
+	/* Only send a message if it is complete. */
+	if (n < isc_buffer_availablelength(text))
+		isc_buffer_add(text, n);
+}

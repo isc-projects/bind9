@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.4 2001/10/08 07:46:11 marka Exp $ */
+/* $Id: os.h,v 1.5 2001/12/01 00:34:27 marka Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -48,5 +48,8 @@ ns_os_shutdown(void);
 
 isc_result_t
 ns_os_gethostname(char *buf, size_t len);
+
+void
+ns_os_shutdownmsg(char *command, isc_buffer_t *text);
 
 #endif /* NS_OS_H */

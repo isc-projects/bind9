@@ -1,3 +1,6 @@
+1153.	[func]		'rndc {stop|halt} -p' now reports the process id
+			of the instance of named being shutdown.
+
 1152.	[bug]		libbind: read buffer overflows.
 
 1151.	[bug]		nslookup failed to check that the arguments to

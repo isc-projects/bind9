@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.12 2001/11/22 03:11:01 mayer Exp $ */
+/* $Id: os.c,v 1.13 2001/12/01 00:34:26 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -223,3 +223,8 @@ ns_os_gethostname(char *buf, size_t len) {
 	return ((n == 0) ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
+void
+ns_os_shutdownmsg(char *command, isc_buffer_t *text) {
+	UNUSED(command);
+	UNUSED(text);
+}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.9 2001/11/27 04:06:08 marka Exp $ */
+/* $Id: control.c,v 1.10 2001/12/01 00:34:22 marka Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,7 @@
 
 #include <named/control.h>
 #include <named/log.h>
+#include <named/os.h>
 #include <named/server.h>
 
 static isc_boolean_t
@@ -89,10 +90,12 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ns_server_retransfercommand(ns_g_server, command);
 	} else if (command_compare(command, NS_COMMAND_HALT)) {
 		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+		ns_os_shutdownmsg(command, text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_STOP)) {
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		ns_os_shutdownmsg(command, text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
