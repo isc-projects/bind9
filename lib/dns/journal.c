@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.65 2000/12/01 01:22:39 marka Exp $ */
+/* $Id: journal.c,v 1.66 2000/12/07 19:51:55 marka Exp $ */
 
 #include <config.h>
 
@@ -398,7 +398,8 @@ dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
 				result = dns_db_addrdataset(db, node, ver,
 							    0, &rds,
 							    DNS_DBADD_MERGE|
-							    DNS_DBADD_EXACT,
+							    DNS_DBADD_EXACT|
+							    DNS_DBADD_EXACTTTL,
 							    NULL);
 			} else if (op == DNS_DIFFOP_DEL) {
 				result = dns_db_subtractrdataset(db, node, ver,

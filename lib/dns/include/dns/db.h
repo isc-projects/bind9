@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.62 2000/12/01 01:22:44 marka Exp $ */
+/* $Id: db.h,v 1.63 2000/12/07 19:51:58 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -193,6 +193,7 @@ struct dns_db {
 #define DNS_DBADD_MERGE			0x01
 #define DNS_DBADD_FORCE			0x02
 #define DNS_DBADD_EXACT			0x04
+#define DNS_DBADD_EXACTTTL		0x08
 
 /*
  * Options that can be specified for dns_db_subtractrdataset().
@@ -1021,7 +1022,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	rdataset will only be added if its trust level is >= the trust level of
  *	any existing rdataset.  Forcing is only meaningful for cache databases.
  *	If DNS_DBADD_EXACT is set then there must be no rdata in common between
- *	the old and new rdata sets.
+ *	the old and new rdata sets.  If DNS_DBADD_EXACTTTL is set then both
+ *	the old and new rdata sets must have the same ttl.
  *
  *	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than
