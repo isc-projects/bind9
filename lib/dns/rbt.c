@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.61 1999/10/13 22:50:39 marka Exp $ */
+/* $Id: rbt.c,v 1.62 1999/10/14 20:19:54 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -867,7 +867,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 		 * Found an exact match.
 		 */
 		chain->end = current;
-		chain->level_matches = chain->level_count - 1;
+		chain->level_matches = chain->level_count == 0 ? 0 :
+			               chain->level_count - 1;
 
 		if (foundname != NULL)
 			result = chain_name(chain, foundname, ISC_TRUE);
@@ -890,6 +891,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * Unwind the chain to the partial match node
 			 * to set level_matches to the level above the node,
 			 * and then to derive the name.
+			 *
+			 * chain->level_count is guaranteed to be at least 1
+			 * here because by definition of finding a superdomain,
+			 * the chain is pointed to at least the first subtree.
 			 */
 			chain->level_matches = chain->level_count - 1;
 
@@ -897,7 +902,6 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				INSIST(chain->level_matches > 0);
 				chain->level_matches--;
 			}
-
 
 			if (foundname != NULL) {
 				unsigned int saved_count = chain->level_count;
@@ -914,10 +918,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			if (result == DNS_R_SUCCESS)
 				result = DNS_R_PARTIALMATCH;
 
-		} else {
-			chain->level_matches = -2;
+		} else
 			result = DNS_R_NOTFOUND;
-		}
 
 		if (chain != &localchain) {
 			/*
@@ -1006,15 +1008,12 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					if (result2 == DNS_R_SUCCESS ||
 					    result2 == DNS_R_NEWORIGIN)
 						; 	/* Nothing */
-					else if (result2 == DNS_R_NOMORE) {
+					else if (result2 == DNS_R_NOMORE)
 						/*
 						 * There is no predecessor.
 						 */
 						dns_rbtnodechain_reset(chain);
-						chain->level_count = -1;
-						chain->level_matches = -2;
-
-					} else
+					else
 						result = result2;
 				}
 
@@ -2177,7 +2176,6 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 {
 	dns_result_t result;
 
-	REQUIRE(name != NULL && origin != NULL);
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(VALID_CHAIN(chain));
 
