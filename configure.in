@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.181 $)
+AC_REVISION($Revision: 1.182 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -326,158 +326,159 @@ AC_HEADER_TIME
 
 if $use_threads
 then
-#
-# Search for / configure pthreads in a system-dependent fashion.
-#
-case "$host" in
-  *-netbsd*)
 	#
-	# NetBSD has multiple pthreads implementations.  The recommended
-	# one to use is "unproven-pthreads".  The older "mit-pthreads"
-	# may also work on some NetBSD versions.  The PTL2 thread
-	# library does not currently work with bind9, but can be
-	# chosen with the --with-ptl2 option for those who wish to
-	# experiment with it.
+	# Search for / configure pthreads in a system-dependent fashion.
 	#
-	CC="gcc"
-	AC_MSG_CHECKING(which NetBSD thread library to use)
+	case "$host" in
+	  *-netbsd*)
+		# NetBSD has multiple pthreads implementations.	 The
+		# recommended one to use is "unproven-pthreads".  The
+		# older "mit-pthreads" may also work on some NetBSD
+		# versions.  The PTL2 thread library does not
+		# currently work with bind9, but can be chosen with
+		# the --with-ptl2 option for those who wish to
+		# experiment with it.
+		CC="gcc"
+		AC_MSG_CHECKING(which NetBSD thread library to use)
 
-	AC_ARG_WITH(ptl2,
+		AC_ARG_WITH(ptl2,
 [  --with-ptl2		on NetBSD, use the ptl2 thread library (experimental)],
-	    use_ptl2="$withval", use_ptl2="no")
+		    use_ptl2="$withval", use_ptl2="no")
 
-        : ${LOCALBASE:=/usr/pkg}
+		: ${LOCALBASE:=/usr/pkg}
 
-	if test "X$use_ptl2" = "Xyes"
-	then
-		AC_MSG_RESULT(PTL2)
-		AC_MSG_WARN(
-[linking with PTL2 is highly experimental and not expected to work])
-		CC=ptlgcc
-	else
-		AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
-
-		if test ! -d $LOCALBASE/pthreads
+		if test "X$use_ptl2" = "Xyes"
 		then
-			AC_MSG_ERROR([no thread library found.
+			AC_MSG_RESULT(PTL2)
+			AC_MSG_WARN(
+[linking with PTL2 is highly experimental and not expected to work])
+			CC=ptlgcc
+		else
+			AC_MSG_RESULT(mit-pthreads/unproven-pthreads)
+
+			if test ! -d $LOCALBASE/pthreads
+			then
+				AC_MSG_ERROR([no thread library found.
 
 Please install the devel/unproven-pthreads package and rerun configure.
 ])
+			fi
+
+			pkg="$LOCALBASE/pthreads"
+			lib1="-L$pkg/lib -Wl,-R$pkg/lib"
+			lib2="-lpthread -lm -lgcc -lpthread"
+			LIBS="$lib1 $lib2 $LIBS"
+			CPPFLAGS="$CPPFLAGS -I$pkg/include"
+			STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
 		fi
-
-		pkg="$LOCALBASE/pthreads"
-		lib1="-L$pkg/lib -Wl,-R$pkg/lib"
-		lib2="-lpthread -lm -lgcc -lpthread"
-		LIBS="$lib1 $lib2 $LIBS"
-		CPPFLAGS="$CPPFLAGS -I$pkg/include"
-		STD_CINCLUDES="$STD_CINCLUDES -I$pkg/include"
-	fi
-	;;
-	*)
-		AC_CHECK_LIB(pthread, pthread_create,,
-	             AC_CHECK_LIB(pthread, __pthread_create)
-        	     AC_CHECK_LIB(pthread, __pthread_create_system))
-	;;
-esac
-
-#
-# We'd like to use sigwait() too
-#
-AC_CHECK_LIB(c, sigwait,
-	     AC_DEFINE(HAVE_SIGWAIT),
-             AC_CHECK_LIB(pthread, sigwait,
-			  AC_DEFINE(HAVE_SIGWAIT),
-			  AC_CHECK_LIB(pthread, _Psigwait,
-				       AC_DEFINE(HAVE_SIGWAIT),))
-)
-
-#
-# Additional OS-specific issues related to pthreads and sigwait.
-#
-case "$host" in
-        #
-        # One more place to look for sigwait.
-        #
-	*-freebsd*)
-		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 		;;
-        #
-        # BSDI 3.1 through 4.0.1 needs pthread_init() to be called before
-        # certain pthreads calls.  This is deprecated in BSD/OS 4.1.
-        #
-	*-bsdi3.1*|*-bsdi4.0*)
-		AC_DEFINE(NEED_PTHREAD_INIT)
+		*)
+			AC_CHECK_LIB(pthread, pthread_create,,
+			     AC_CHECK_LIB(pthread, __pthread_create)
+			     AC_CHECK_LIB(pthread, __pthread_create_system))
 		;;
-        #
-        # LinuxThreads requires some changes to the way we deal with signals.
-        #
-	*-linux*)
-		AC_DEFINE(HAVE_LINUXTHREADS)
-		;;
+	esac
+
 	#
-	# Ensure the right sigwait() semantics on Solaris and make sure
-	# we call pthread_setconcurrency.
+	# We'd like to use sigwait() too
 	#
-	*-solaris*)
-		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
-		AC_CHECK_FUNC(pthread_setconcurrency,
-			      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
-		;;
-        #
-        # UnixWare does things its own way.
-        #
-        *-UnixWare*)
-		AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
-		;;
-esac
+	AC_CHECK_LIB(c, sigwait,
+		     AC_DEFINE(HAVE_SIGWAIT),
+		     AC_CHECK_LIB(pthread, sigwait,
+				  AC_DEFINE(HAVE_SIGWAIT),
+				  AC_CHECK_LIB(pthread, _Psigwait,
+					       AC_DEFINE(HAVE_SIGWAIT),))
+	)
 
-#
-# Look for sysconf to allow detection of the number of processors.
-#
-AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
-
-if test "X$GCC" = "Xyes"; then
+	#
+	# Additional OS-specific issues related to pthreads and sigwait.
+	#
 	case "$host" in
-	*-freebsd*)
-		CC="$CC -pthread"
-		CCOPT="$CCOPT -pthread"
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
-	*-openbsd*)
-		CC="$CC -pthread"
-		CCOPT="$CCOPT -pthread"
-		;;
-	*-solaris*)
-		LIBS="$LIBS -lthread"
-		;;
-	*-ibm-aix*)
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
+		#
+		# One more place to look for sigwait.
+		#
+		*-freebsd*)
+			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
+			;;
+		#
+		# BSDI 3.1 through 4.0.1 needs pthread_init() to be
+		# called before certain pthreads calls.	 This is deprecated
+		# in BSD/OS 4.1.
+		#
+		*-bsdi3.1*|*-bsdi4.0*)
+			AC_DEFINE(NEED_PTHREAD_INIT)
+			;;
+		#
+		# LinuxThreads requires some changes to the way we
+		# deal with signals.
+		#
+		*-linux*)
+			AC_DEFINE(HAVE_LINUXTHREADS)
+			;;
+		#
+		# Ensure the right sigwait() semantics on Solaris and make
+		# sure we call pthread_setconcurrency.
+		#
+		*-solaris*)
+			AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
+			AC_CHECK_FUNC(pthread_setconcurrency,
+				      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
+			;;
+		#
+		# UnixWare does things its own way.
+		#
+		*-UnixWare*)
+			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
+			;;
 	esac
-else
-	case $host in
-	*-dec-osf*)
-		CC="$CC -std -pthread"
-		CCOPT="$CCOPT -std -pthread"
-		MKDEPCC="$CC"
-		;;
-	*-solaris*)
-		CC="$CC -mt"
-		CCOPT="$CCOPT -mt"
-		;;
-	*-hp-hpux*)
-		CC="$CC -Ae -z +w1"
-		CCOPT="CCOPT -Ae -z"
-		;;
-	*-ibm-aix*)
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
-	*-UnixWare*)
-		CC="$CC -Kthread -w"
-		CCOPT="$CCOPT -Kthread"
-		;;
-	esac
-fi
+
+	#
+	# Look for sysconf to allow detection of the number of processors.
+	#
+	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
+
+	if test "X$GCC" = "Xyes"; then
+		case "$host" in
+		*-freebsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-openbsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			;;
+		*-solaris*)
+			LIBS="$LIBS -lthread"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		esac
+	else
+		case $host in
+		*-dec-osf*)
+			CC="$CC -std -pthread"
+			CCOPT="$CCOPT -std -pthread"
+			MKDEPCC="$CC"
+			;;
+		*-solaris*)
+			CC="$CC -mt"
+			CCOPT="$CCOPT -mt"
+			;;
+		*-hp-hpux*)
+			CC="$CC -Ae -z +w1"
+			CCOPT="CCOPT -Ae -z"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-UnixWare*)
+			CC="$CC -Kthread -w"
+			CCOPT="$CCOPT -Kthread"
+			;;
+		esac
+	fi
 
 fi
 # 
