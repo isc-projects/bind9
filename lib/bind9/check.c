@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.23 2002/02/13 03:56:57 marka Exp $ */
+/* $Id: check.c,v 1.24 2002/02/13 04:36:52 marka Exp $ */
 
 #include <config.h>
 
@@ -252,14 +252,27 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 		key = isc_mem_strdup(mctx, namebuf);
 		if (key == NULL)
 			return (ISC_R_NOMEMORY);
-		symvalue.as_pointer = NULL;
+		symvalue.as_pointer = zconfig;
 		tresult = isc_symtab_define(symtab, key,
 					    ztype == HINTZONE ? 1 : 2,
 					    symvalue, isc_symexists_reject);
 		if (tresult == ISC_R_EXISTS) {
+			const char *file;
+			unsigned int line;
+
+			RUNTIME_CHECK(isc_symtab_lookup(symtab, key,
+					    ztype == HINTZONE ? 1 : 2,
+					    &symvalue) == ISC_R_SUCCESS);
 			isc_mem_free(mctx, key);
+			file = cfg_obj_file(symvalue.as_pointer);
+			line = cfg_obj_line(symvalue.as_pointer);
+
+			if (file == NULL)
+				file = "<unknown file>";
 			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': already exists ", zname);
+				    "zone '%s': already exists "
+				    "previous definition: %s:%u",
+				    zname, file, line);
 			result = ISC_R_FAILURE;
 		} else if (tresult != ISC_R_SUCCESS) {
 			isc_mem_strdup(mctx, key);
