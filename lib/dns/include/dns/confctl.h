@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.h,v 1.18 2000/07/10 11:28:31 tale Exp $ */
+/* $Id: confctl.h,v 1.19 2000/07/11 19:09:07 brister Exp $ */
 
 #ifndef DNS_CONFCTL_H
 #define DNS_CONFCTL_H 1
@@ -161,6 +161,16 @@ dns_c_ctrl_delete(dns_c_ctrl_t **control);
  *	ISC_R_SUCCESS
  */
 
+
+isc_result_t
+dns_c_ctrl_validate(dns_c_ctrl_t *ctrl);
+/*
+ * Validates one control statement enty.
+ * The KEYS must be used. UNIX types are ignored (so we issue a warning for
+ * that.
+ */
+
+
 void
 dns_c_ctrl_print(FILE *fp, int indent, dns_c_ctrl_t *ctl);
 /*
@@ -185,6 +195,12 @@ dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist);
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  *	ISC_R_NOMEMORY		-- insufficient memory available.
+ */
+
+isc_result_t
+dns_c_ctrllist_validate(dns_c_ctrllist_t *cl);
+/*
+ * Validates the subclauses of the control statement.
  */
 
 isc_result_t

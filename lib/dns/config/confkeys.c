@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confkeys.c,v 1.24 2000/07/07 23:11:43 brister Exp $ */
+/* $Id: confkeys.c,v 1.25 2000/07/11 19:09:06 brister Exp $ */
 
 #include <config.h>
 
@@ -448,6 +448,27 @@ dns_c_kidlist_delete(dns_c_kidlist_t **list)
 	
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_uint32_t
+dns_c_kidlist_keycount(dns_c_kidlist_t *list)
+{
+	dns_c_kid_t *kid;
+	isc_uint32_t count = 0;
+
+	REQUIRE(DNS_C_KEYIDLIST_VALID(list));
+
+	kid = ISC_LIST_HEAD(list->keyids);
+	while (kid != NULL) {
+		count++;
+		kid = ISC_LIST_NEXT(kid, next);
+	}
+
+	return (count);
+}
+
+       
+
 
 
 static isc_result_t

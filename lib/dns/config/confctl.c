@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctl.c,v 1.24 2000/07/10 11:28:30 tale Exp $ */
+/* $Id: confctl.c,v 1.25 2000/07/11 19:09:02 brister Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/util.h>
 
 #include <dns/confctl.h>
+#include <dns/log.h>
 
 isc_result_t
 dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist) {
@@ -46,7 +47,30 @@ dns_c_ctrllist_new(isc_mem_t *mem, dns_c_ctrllist_t **newlist) {
 
 	return (ISC_R_SUCCESS);
 }
-		
+
+
+isc_result_t
+dns_c_ctrllist_validate(dns_c_ctrllist_t *cl) {
+	dns_c_ctrl_t *ctl;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(DNS_C_CONFCTLLIST_VALID(cl));
+
+	ctl = dns_c_ctrllist_head(cl);
+	if (ctl == NULL) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "empty control statement");
+	} else {
+		while (result == ISC_R_SUCCESS && ctl != NULL) {
+			result = dns_c_ctrl_validate(ctl);
+			ctl = dns_c_ctrl_next(ctl);
+		}
+	}
+
+	return (result);
+}
+
 void
 dns_c_ctrllist_print(FILE *fp, int indent, dns_c_ctrllist_t *cl) {
 	dns_c_ctrl_t *ctl;
@@ -101,6 +125,39 @@ dns_c_ctrllist_delete(dns_c_ctrllist_t **list) {
 
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_result_t
+dns_c_ctrl_validate(dns_c_ctrl_t *ctrl)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	
+	REQUIRE(DNS_C_CONFCTL_VALID(ctrl));
+
+	if (ctrl->control_type == dns_c_unix_control) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "unix sockets are not not implmented for"
+			      " control channels");
+	} else if (ctrl->keyidlist == NULL) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "the KEYS clause of an INET control "
+			      "channel must be used");
+		result = ISC_R_FAILURE;
+	} else if (dns_c_kidlist_keycount(ctrl->keyidlist) == 0) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "the KEYS clause of an INET control "
+			      "channel must not be empty");
+		result = ISC_R_FAILURE;
+	}
+
+
+	return (result);
+}
+
+		
 
 isc_result_t
 dns_c_ctrlinet_new(isc_mem_t *mem, dns_c_ctrl_t **control,

@@ -1,3 +1,9 @@
+ 326.	[func]		'keys' in an 'inet' control statement is now
+			required and must have at least one item in it.
+
+			warning is issued if a 'unix' control channel is
+			defined (not supported).
+
  325.	[bug]		isc_lex_gettoken was processing octal strings when
 			ISC_LEXOPT_CNUMBER was not set.
 
