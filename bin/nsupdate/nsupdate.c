@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.20 2000/07/01 00:22:00 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.21 2000/07/03 20:08:13 bwelling Exp $ */
 
 #include <config.h>
 
@@ -54,6 +54,7 @@
 #include <dst/dst.h>
 
 #include <lwres/lwres.h>
+#include <lwres/net.h>
 
 #include <ctype.h>
 #include <netdb.h>
@@ -1015,18 +1016,9 @@ find_completed(isc_task_t *task, isc_event_t *event) {
 
 	if (eresult != ISC_R_SUCCESS) {
 		char addrbuf[64];
-		switch (lwconf->nameservers[ns_inuse].family) {
-		case LWRES_ADDRTYPE_V4:
-			inet_ntop(AF_INET,
-				  lwconf->nameservers[ns_inuse].address,
-				  addrbuf, sizeof(addrbuf));
-		case LWRES_ADDRTYPE_V6:
-			inet_ntop(AF_INET6,
-				  lwconf->nameservers[ns_inuse].address,
-				  addrbuf, sizeof(addrbuf));
-		default:
-			fatal("unknown address family");
-		}
+		lwres_net_ntop(lwconf->nameservers[ns_inuse].family,
+			       lwconf->nameservers[ns_inuse].address,
+			       addrbuf, sizeof(addrbuf));
 		printf ("; Communication with %s failed: %s\n",
 			addrbuf, isc_result_totext(eresult));
 		ns_inuse++;
