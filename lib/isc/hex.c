@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.4 2000/11/18 03:01:12 bwelling Exp $ */
+/* $Id: hex.c,v 1.5 2000/11/19 20:58:58 bwelling Exp $ */
 
 #include <config.h>
 
@@ -93,7 +93,7 @@ static inline isc_result_t
 hex_decode_char(hex_decode_ctx_t *ctx, int c) {
 	char *s;
 
-	if ((s = strchr(hex, c)) == NULL)
+	if ((s = strchr(hex, toupper(c))) == NULL)
 		return (ISC_R_BADHEX);
 	ctx->val[ctx->digits++] = s - hex;
 	if (ctx->digits == 2) {
