@@ -1353,6 +1353,118 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 	return (result);
 }
 
+static inline isc_result_t
+find_closest_nxt(rbtdb_search_t *search, dns_dbnode_t **nodep,
+		 dns_name_t *foundname, dns_rdataset_t *rdataset)
+{
+	dns_rbtnode_t *node;
+	rdatasetheader_t *header, *header_next;
+	isc_boolean_t empty_node;
+	isc_result_t result;
+	dns_fixedname_t fname, forigin;
+	dns_name_t *name, *origin;
+
+	do {
+		node = NULL;
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		dns_fixedname_init(&forigin);
+		origin = dns_fixedname_name(&forigin);
+		result = dns_rbtnodechain_current(&search->chain, name,
+						  origin, &node);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+		empty_node = ISC_TRUE;
+		for (header = node->data;
+		     header != NULL;
+		     header = header_next) {
+			header_next = header->next;
+			/*
+			 * Look for an active, extant rdataset with a
+			 * NXT record.
+			 */
+			do {
+				if (header->serial <= search->serial &&
+				    !IGNORE(header)) {
+					/*
+					 * Is this a "this rdataset doesn't
+					 * exist" record?
+					 */
+					if ((header->attributes &
+					     RDATASET_ATTR_NONEXISTENT) != 0)
+						header = NULL;
+					break;
+				} else
+					header = header->down;
+			} while (header != NULL);
+			if (header != NULL) {
+				/*
+				 * We now know that there is at least one
+				 * active rdataset at this node.
+				 */
+				empty_node = ISC_FALSE;
+				if (header->type == dns_rdatatype_nxt)
+					break;
+			}
+		}
+		if (!empty_node) {
+			if (header != NULL) {
+				/*
+				 * We've found the right NXT record.
+				 *
+				 * XXXRTH  Well, not necessarily.  If
+				 * someone adds an NS rdataset causing a
+				 * tree to be obscured, we might be looking
+				 * at a NXT record in the obscured part of
+				 * the tree.  To avoid this, we must either
+				 * erase all the NXT records (causing lots
+				 * of IXFR work), or we must somehow determine
+				 * that we're looking at one.  For now, we
+				 * do nothing.
+				 */
+				result = dns_name_concatenate(name,
+							      origin,
+							      foundname, NULL);
+				if (result == ISC_R_SUCCESS) {
+					if (nodep != NULL) {
+						new_reference(search->rbtdb,
+							      node);
+						*nodep = node;
+					}
+					bind_rdataset(search->rbtdb, node,
+						      header, search->now,
+						      rdataset);
+				}
+			} else {
+				/*
+				 * We found an active node without a NXT
+				 * record.  This shouldn't happen.
+				 */
+				result = DNS_R_BADDB;
+			}
+		} else {
+			/*
+			 * This node isn't active.  We've got to keep
+			 * looking.
+			 */
+			result = dns_rbtnodechain_prev(&search->chain, NULL,
+						       NULL);
+		}
+		UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+	} while (empty_node && result == ISC_R_SUCCESS);
+
+	/*
+	 * If the result is DNS_R_NOMORE, then we got to the beginning of
+	 * the database and didn't find a NXT record.  This shouldn't
+	 * happen.
+	 */
+	if (result == DNS_R_NOMORE)
+		result = DNS_R_BADDB;
+
+	return (result);
+}
+
 static dns_result_t
 zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
@@ -1363,7 +1475,6 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	dns_result_t result;
 	rbtdb_search_t search;
 	isc_boolean_t cname_ok = ISC_TRUE;
-	isc_boolean_t must_succeed = ISC_FALSE;
 	isc_boolean_t close_version = ISC_FALSE;
 	isc_boolean_t maybe_zonecut = ISC_FALSE;
 	isc_boolean_t at_zonecut = ISC_FALSE;
@@ -1449,11 +1560,13 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * If we're here, then the name does not exist, is not
 		 * beneath a zonecut, and there's no matching wildcard.
 		 */
-		result = DNS_R_NXDOMAIN;
-		if (search.rbtdb->secure)
-			result = DNS_R_NOTIMPLEMENTED; /* XXXDNSSEC */
-		if (nodep != NULL)
-			*nodep = NULL;
+		if (search.rbtdb->secure) {
+			result = find_closest_nxt(&search, nodep, foundname,
+						  rdataset);
+			if (result == ISC_R_SUCCESS)
+				result = DNS_R_NXDOMAIN;
+		} else
+			result = DNS_R_NXDOMAIN;
 		goto tree_exit;
 	} else if (result != DNS_R_SUCCESS)
 		goto tree_exit;
@@ -1602,13 +1715,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * If we didn't find what we were looking for...
 	 */
 	if (found == NULL) {
-		if (must_succeed) {
-			/*
-			 * We were looking for a type which must be in the
-			 * database, but isn't for some reason.
-			 */
-			result = DNS_R_BADDB;
-		} else if (search.zonecut != NULL) {
+		if (search.zonecut != NULL) {
 		    /*
 		     * We were trying to find glue at a node beneath a
 		     * zone cut, but didn't, so we return the delegation.
