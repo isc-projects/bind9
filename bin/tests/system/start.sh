@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: start.sh,v 1.26 2000/07/10 23:05:51 bwelling Exp $
+# $Id: start.sh,v 1.27 2000/07/14 23:38:10 gson Exp $
 
 #
 # Start name servers for running system tests.
@@ -105,6 +105,39 @@ do
 	    x=`expr $x + 1`
 	    if [ $x = 5 ]; then
 		echo "I:Couldn't start lwresd $d"
+		exit 1
+	    fi
+	    sleep 1
+        done
+    ) || exit 1
+done
+
+for d in ans*
+do
+    (
+	if test ! -d $d
+	then
+		break
+	fi
+        cd $d
+	rm -f ans.run &&
+	if test -f ans.pid
+	then
+	    if kill -0 `cat ans.pid` 2>/dev/null
+	    then
+		echo "$0: ans pid `cat ans.pid` still running" >&2
+	        exit 1
+	    else
+		rm -f ans.pid
+	    fi
+	fi
+	$PERL ./ans.pl > ans.run 2>&1 &
+	x=1
+	while test ! -f ans.pid
+	do
+	    x=`expr $x + 1`
+	    if [ $x = 5 ]; then
+		echo "I:Couldn't start ans $d"
 		exit 1
 	    fi
 	    sleep 1

@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: run.sh,v 1.28 2000/07/14 23:16:45 gson Exp $
+# $Id: run.sh,v 1.29 2000/07/14 23:38:09 gson Exp $
 
 #
 # Run a system test.
@@ -54,8 +54,21 @@ $PERL testsock.pl || {
     echo "R:UNTESTED" >&2;
     echo "E:$test:`date`" >&2;
     exit 0;
-
 }
+
+
+# Check for test-specific prerequisited.
+if
+    test -f $test/prereq.sh &&
+    ( cd $test && sh prereq.sh "$@" )
+then
+    : prereqs ok
+else
+    echo "I:Prerequisites for $test missing, skipping test." >&2
+    echo "R:UNTESTED" >&2
+    echo "E:$test:`date`" >&2
+    exit 0
+fi
 
 # Set up any dynamically generated test data
 if test -f $test/setup.sh

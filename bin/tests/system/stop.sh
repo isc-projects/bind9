@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: stop.sh,v 1.13 2000/07/12 17:59:08 bwelling Exp $
+# $Id: stop.sh,v 1.14 2000/07/14 23:38:12 gson Exp $
 
 #
 # Stop name servers.
@@ -43,6 +43,19 @@ done
 for d in lwresd*
 do
      pidfile="$d/lwresd.pid"
+     if [ -f $pidfile ]; then
+        kill -TERM `cat $pidfile` > /dev/null 2>&1
+	if [ $? != 0 ]; then
+		echo "I:$d died before a SIGTERM was sent"
+		status=`expr $status + 1`
+		rm -f $pidfile
+	fi
+     fi
+done
+
+for d in ans*
+do
+     pidfile="$d/ans.pid"
      if [ -f $pidfile ]; then
         kill -TERM `cat $pidfile` > /dev/null 2>&1
 	if [ $? != 0 ]; then
