@@ -85,19 +85,22 @@
 #define QTRACE(m)
 #endif
 
+/*
+ * Maximum EDNS0 input packet size.
+ */
 #define SEND_BUFFER_SIZE		2048		/* XXXRTH  Constant. */
 
 typedef struct fetchctx fetchctx_t;
 
 typedef struct query {
-	/* Not locked. */
+	/* Locked by task event serialization. */
 	unsigned int			magic;
 	fetchctx_t *			fctx;
 	dns_dispatch_t *		dispatch;
 	dns_adbaddrinfo_t *		addrinfo;
 	isc_time_t			start;
 	dns_messageid_t			id;
-	dns_dispentry_t *		dispentry;	/* XXX name */
+	dns_dispentry_t *		dispentry;
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
 	dns_rdata_any_tsig_t		*tsig;
@@ -111,9 +114,9 @@ typedef struct query {
 					 (query)->magic == QUERY_MAGIC)
 
 typedef enum {
-	fetchstate_init = 0,
+	fetchstate_init = 0,		/* Start event has not run yet. */
 	fetchstate_active,
-	fetchstate_done
+	fetchstate_done			/* FETCHDONE events posted. */
 } fetchstate;
 
 struct fetchctx {
@@ -123,16 +126,16 @@ struct fetchctx {
 	dns_name_t			name;
 	dns_rdatatype_t			type;
 	unsigned int			options;
-	isc_task_t *			task;
+	isc_task_t *			task;			/* XXX??? */
 	unsigned int			bucketnum;
-	/* Locked by lock. */
+	/* Locked by appropriate bucket lock. */
 	fetchstate			state;
 	isc_boolean_t			want_shutdown;
 	unsigned int			references;
-	isc_event_t			control_event;
+	isc_event_t			control_event;		/* locked? */
 	ISC_LINK(struct fetchctx)	link;
 	ISC_LIST(dns_fetchevent_t)	events;
-	/* Only changable by event actions running in the context's task */
+	/* Locked by task event serialization. */
 	dns_name_t			domain;
 	dns_rdataset_t			nameservers;
 	unsigned int			attributes;
@@ -144,6 +147,9 @@ struct fetchctx {
 	ISC_LIST(resquery_t)		queries;
 	dns_adbfindlist_t		finds;
 	dns_adbfind_t *			find;
+	/*
+	 * # of events we're waiting for.
+	 */
 	unsigned int			pending;
 	unsigned int			restarts;
 };
@@ -187,7 +193,7 @@ typedef struct fctxbucket {
 } fctxbucket_t;
 
 struct dns_resolver {
-	/* Unlocked */
+	/* Unlocked. */
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
@@ -268,6 +274,11 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 
 	FCTXTRACE("cancelquery");
 
+	/*
+	 * XXXRTH  We don't want to set RTT in some cases (e.g. canceled due
+	 * to client disinterest).  Also, deal with dropped UDP datagram
+	 * case.  Don't improve RTT if this wasn't a measured time.
+	 */
 	if (finish != NULL) {
 		rtt = (unsigned int)isc_time_microdiff(finish, &query->start);
 		factor = DNS_ADB_RTTADJDEFAULT;
@@ -286,7 +297,6 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		factor = DNS_ADB_RTTADJREPLACE;
 	}
 	dns_adb_adjustsrtt(fctx->res->view->adb, query->addrinfo, rtt, factor);
-
 
 	if (query->dispentry != NULL)
 		dns_dispatch_removeresponse(query->dispatch, &query->dispentry,
@@ -917,7 +927,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	FCTXTRACE("getaddresses");
 
 	/*
-	 * Don't pound on remote servers.
+	 * Don't pound on remote servers.  (Failsafe!)
 	 */
 	fctx->restarts++;
 	if (fctx->restarts > 10)
@@ -945,7 +955,8 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &r);
 		/*
-		 * XXXRTH  If this name is the same as QNAME, remember to
+		 * XXXRTH  If this name is the same as QNAME (and we're
+		 *	   looking for an address type), remember to
 		 *         skip it, and remember that we did so so we can
 		 *         use an ancestor QDOMAIN if we find no addresses.
 		 */
@@ -1070,7 +1081,6 @@ static void
 fctx_try(fetchctx_t *fctx) {
 	isc_result_t result;
 	dns_adbaddrinfo_t *addrinfo;
-	unsigned int options;
 
 	FCTXTRACE("try");
 
@@ -1117,11 +1127,7 @@ fctx_try(fetchctx_t *fctx) {
 	 *	   just send a single query.
 	 */
 
-	options = fctx->options;
-	/*
-	 * XXXRTH  If the addrinfo doesn't understand EDNS, turn it off.
-	 */
-	result = fctx_query(fctx, addrinfo, options);
+	result = fctx_query(fctx, addrinfo, fctx->options);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
 }
@@ -2999,8 +3005,13 @@ dns_resolver_create(dns_view_t *view,
 	unsigned int i, buckets_created = 0;
 	in_port_t port = 5353;
 
-	REQUIRE(resp != NULL && *resp == NULL);
+	/*
+	 * Create a resolver.
+	 */
+
+	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(ntasks > 0);
+	REQUIRE(resp != NULL && *resp == NULL);
 
 	res = isc_mem_get(view->mctx, sizeof *res);
 	if (res == NULL)
@@ -3333,6 +3344,13 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	(void)forwarders;
 
 	REQUIRE(VALID_RESOLVER(res));
+	/* XXXRTH  Check for meta type */
+	REQUIRE(DNS_RDATASET_VALID(nameservers));
+	REQUIRE(forwarders == NULL);
+	REQUIRE(nameservers->type == dns_rdatatype_ns);
+	REQUIRE(!dns_rdataset_isassociated(rdataset));
+	REQUIRE(sigrdataset == NULL ||
+		!dns_rdataset_isassociated(sigrdataset));
 	REQUIRE(fetchp != NULL && *fetchp == NULL);
 
 	log_fetch(name, type);
@@ -3429,6 +3447,7 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
 				break;
 			}
 		}
+		/* XXXRTH  INSIST that we found it? */
 	}
 	if (event != NULL) {
 		etask = event->sender;
