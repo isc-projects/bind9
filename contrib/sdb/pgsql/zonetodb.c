@@ -15,7 +15,10 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.11 2002/03/19 03:32:08 marka Exp $ */
+/* $Id: zonetodb.c,v 1.12 2002/03/19 15:57:23 marka Exp $ */
+
+#include <stdlib.h>
+#include <string.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -29,6 +32,7 @@
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatatype.h>
 #include <dns/result.h>
 
 #include <pgsql/libpq-fe.h>
@@ -273,4 +277,5 @@ main(int argc, char **argv) {
 	dns_db_detach(&db);
 	isc_mem_destroy(&mctx);
 	closeandexit(0);
+	exit(0);
 }
