@@ -15,10 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.25 2001/01/18 02:53:57 bwelling Exp $ */
+/* $Id: zone_test.c,v 1.26 2001/01/22 22:29:36 gson Exp $ */
 
 #include <config.h>
 
+#include <sys/types.h>
+#include <sys/time.h>
+
+#include <unistd.h>
 #include <stdlib.h>
 
 #include <isc/app.h>
