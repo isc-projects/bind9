@@ -4,23 +4,23 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 		   BIND 4 to BIND 9 Migration Notes
 
 To transition from BIND 4 to BIND 9 you first need to convert your
-configuration file to the new format.  The is conversion tool in
-contrib/named-bootconf that allows you to this.
+configuration file to the new format.  There is a conversion tool in
+contrib/named-bootconf that allows you to do this.
 
 	named-bootconf.sh < /etc/named.boot > /etc/named.conf
 
 BIND 9 uses a system assigned port for the UDP queries it makes rather
-that port 53 that BIND uses.  This may conflict with some firewalls.
-The following directives in /etc/named.conf allow allow you to specify
+than port 53 that BIND 4 uses.  This may conflict with some firewalls.
+The following directives in /etc/named.conf allows you to specify
 a port to use.
 
 	query-source address * port 53;
 	transfer-source * port 53;
 	notify-source * port 53;
 
-BIND 9 no-longer uses the minimum field to specify the TTL of records
-without a explicit TTL.  Use $TTL directive to specify a default TTL
-before the first record without a explict TTL.
+BIND 9 no longer uses the minimum field to specify the TTL of records
+without a explicit TTL.  Use the $TTL directive to specify a default TTL
+before the first record without a explicit TTL.
 
 	$TTL 3600
 	@	IN	SOA	ns1.example.com. hostmaster.example.com. (
@@ -30,21 +30,22 @@ before the first record without a explict TTL.
 				3600000
 				7200 )
 
-BIND 9 does not support multiple CNAMES with the same owner name.
+BIND 9 does not support multiple CNAMEs with the same owner name.
 	
 	Illegal:
 	www.example.com. CNAME host1.example.com.
 	www.example.com. CNAME host2.example.com.
 
-BIND 9 does not support "CNAMES with other data" with the same owner name,
-ignoring DNSSEC records (SIG, NXT, KEY) that BIND 4 did not support.
+BIND 9 does not support "CNAMEs with other data" with the same owner name,
+ignoring the DNSSEC records (SIG, NXT, KEY) that BIND 4 did not support.
 
 	Illegal:
 	www.example.com. CNAME host1.example.com.
 	www.example.com. MX 10 host2.example.com.
 
-BIND 9 is less tolerant of errors in master files so check your logs and
-fix any errors reported.
+BIND 9 is less tolerant of errors in master files, so check your logs and
+fix any errors reported.  The named-checkzone program can also be to check
+master files.
 
                    BIND 8 to BIND 9 Migration Notes
 
@@ -255,4 +256,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.22 2001/02/12 01:55:18 marka Exp $
+$Id: migration,v 1.23 2001/02/12 02:02:06 bwelling Exp $
