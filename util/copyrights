@@ -302,7 +302,6 @@
 ./bin/tests/tasks/.cvsignore			X	1999,2000
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000
 ./bin/tests/tasks/t_tasks.c			C	1998,1999,2000
-./bin/tests/testzones.c				C	1999,2000
 ./bin/tests/timer_test.c			C	1998,1999,2000
 ./bin/tests/timers/.cvsignore			X	1999,2000
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000
