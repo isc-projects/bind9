@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.2 2000/01/31 21:59:15 tale Exp $ */
+/* $Id: rndc.c,v 1.3 2000/02/01 15:17:25 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -239,7 +239,7 @@ main(int argc, char **argv) {
 	isc_boolean_t show_final_mem = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
 	char *command, *server;
-	unsigned int port = 0;
+	unsigned int port = NS_OMAPI_PORT;
 	int ch;
 
 	progname = strrchr(*argv, '/');
