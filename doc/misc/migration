@@ -63,17 +63,26 @@ Multiple classes have to be put into explicit views for each class.
 
 2.1. Strict RFC1035 Interpretation of TTLs in Zone Files
 
-BIND 8 allowed you to omit all TTLs from a zone file, and used the
-value of the SOA MINTTL field as a default for missing TTL values.
+BIND 9 strictly complies with the RFC1035 and RFC2308 rules regarding
+omitted TTLs in zone files.  Omitted TTLs are replaced by the value
+specified with the $TTL directive, or by the previous explicit TTL if
+there is no $TTL directive.
 
-BIND 9 enforces strict compliance with the RFC1035 and RFC2308 TTL
-rules.  The default TTL is the value specified with the $TTL
-directive, or the previous explicit TTL if there is no $TTL directive.
 If there is no $TTL directive and the first RR in the file does not
-have an explicit TTL field, the error message "no TTL specified" is
-logged and loading the zone file fails.
+have an explicit TTL field, the zone file is illegal according to
+RFC1035 since the TTL of the first RR is undefined.  Unfortunately,
+BIND 4 and many versions of BIND 8 accept such files without warning
+and use the value of the SOA MINTTL field as a default for missing TTL
+values.
 
-To avoid problems, use a $TTL directive in each zone file.
+BIND 9.0 and 9.1 completely refused to load such files.  BIND 9.2
+emulates the nonstandard BIND 4/8 SOA MINTTL behavior and loads the
+files anyway (provided the SOA is the first record in the file), but
+will issue the warning message "no TTL specified; using SOA MINTTL
+instad".
+
+To avoid problems, we recommend that you use a $TTL directive in each
+zone file.
 
 2.2. Periods in SOA Serial Numbers Deprecated
 
@@ -208,4 +217,4 @@ directing queries for a given domain to a particular set of name
 servers.
 
 
-$Id: migration,v 1.32 2001/05/19 01:29:12 gson Exp $
+$Id: migration,v 1.33 2001/05/22 02:01:28 gson Exp $

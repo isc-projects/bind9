@@ -27,10 +27,11 @@ of a security risk than a root process that has not dropped privileges.
 version to be built, which will allow -u to be used.
 
 
-Q: Why does named log the error message "no TTL specified" and refuse
-to load my zone file?
+Q: Why does named log the warning message "no TTL specified - using SOA
+MINTTL instead"?
 
-A: Your zone file must either have a line like
+A: Your zone file is illegal according to RFC1035.  It must either
+have a line like
 
    $TTL 86400
 
@@ -38,9 +39,6 @@ at the beginning, or the first record in it must have a TTL field,
 like the "84600" in this example:
 
    example.com. 86400 IN SOA ns hostmaster ( 1 3600 1800 1814400 3600 )
-
-BIND 8 incorrectly accepted files that had neither.
-
 
 Q: Why do I see 5 (or more) copies of named on Linux?
 
