@@ -122,27 +122,37 @@ isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t pertic) {
 }
 			
 isc_result_t
-isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp) {
+isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
+			isc_event_t **eventp)
+{
 	isc_result_t result = ISC_R_SUCCESS;
-	INSIST(eventp != NULL && *eventp != NULL);
+	isc_event_t *ev;
+
+	REQUIRE(eventp != NULL && *eventp != NULL);
+	REQUIRE(task != NULL);
+	ev = *eventp;
+	REQUIRE(ev->ev_sender == NULL);
+
 	LOCK(&rl->lock);
         if (rl->state == isc_ratelimiter_ratelimited) {
 		isc_event_t *ev = *eventp;
+		ev->ev_sender = task;
                 ISC_LIST_APPEND(rl->pending, ev, ev_link);
 		*eventp = NULL;
         } else if (rl->state == isc_ratelimiter_worklimited) {
 		result = isc_timer_reset(rl->timer, isc_timertype_ticker, NULL,
 					 &rl->interval, ISC_FALSE);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
+			ev->ev_sender = task;
 			rl->state = isc_ratelimiter_ratelimited;
+		}
 	} else {
 		INSIST(rl->state == isc_ratelimiter_shuttingdown);
 		result = ISC_R_SHUTTINGDOWN;
 	}
 	UNLOCK(&rl->lock);
-	if (*eventp != NULL)
-		isc_task_send(rl->task, eventp);
-	ENSURE(*eventp == NULL);
+	if (*eventp != NULL && result == ISC_R_SUCCESS)
+		isc_task_send(task, eventp);
 	return (result);
 }
 
@@ -179,8 +189,10 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 			pertic = 0;	/* Force the loop to exit. */
 		}
 		UNLOCK(&rl->lock);
-		if (p != NULL)
-			isc_task_send(rl->task, &p);
+		if (p != NULL) {
+			isc_task_t *evtask = p->ev_sender;
+			isc_task_send(evtask, &p);
+		}
 		INSIST(p == NULL);
 	}
 }
@@ -188,6 +200,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	isc_event_t *ev;
+	isc_task_t *task;
 	LOCK(&rl->lock);
 	rl->state = isc_ratelimiter_shuttingdown;
 	(void) isc_timer_reset(rl->timer, isc_timertype_inactive,
@@ -195,7 +208,8 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
 		ISC_LIST_UNLINK(rl->pending, ev, ev_link);
 		ev->ev_attributes |= ISC_EVENTATTR_CANCELED;
-		isc_task_send(rl->task, &ev);
+		task = ev->ev_sender;
+		isc_task_send(task, &ev);
 	}
 	UNLOCK(&rl->lock);
 }

@@ -67,16 +67,23 @@ isc_ratelimiter_setpertic(isc_ratelimiter_t *rl, isc_uint32_t perint);
  */
 
 isc_result_t
-isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_event_t **eventp);
+isc_ratelimiter_enqueue(isc_ratelimiter_t *rl, isc_task_t *task,
+			isc_event_t **eventp);
 /*
  * Queue an event for rate-limited execution.  This is similar
- * to doing an isc_task_send() to the rate limiter's task, except
- * that the execution may be delayed to achieve the desired rate
- * of execution.
+ * to doing an isc_task_send() to the 'task', except that the
+ * execution may be delayed to achieve the desired rate of
+ * execution.
+ *
+ * '(*eventp)->ev_sender' is used to hold the task.  The caller
+ * must ensure that the task exists until the event is delivered.
  *
  * Requires:
  *	An interval has been set by calling
  *	isc_ratelimiter_setinterval().
+ * 	
+ *	'task' to be non NULL.
+ *	'(*eventp)->ev_sender' to be NULL.
  */
 
 void
