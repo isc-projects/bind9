@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.384 2003/02/26 03:45:59 marka Exp $ */
+/* $Id: zone.c,v 1.385 2003/02/26 23:28:59 marka Exp $ */
 
 #include <config.h>
 
@@ -178,6 +178,9 @@ struct dns_zone {
 	isc_sockaddr_t	 	notifysrc6;
 	isc_sockaddr_t	 	xfrsource4;
 	isc_sockaddr_t	 	xfrsource6;
+	isc_sockaddr_t	 	altxfrsource4;
+	isc_sockaddr_t	 	altxfrsource6;
+	isc_sockaddr_t	 	sourceaddr;
 	dns_xfrin_ctx_t		*xfr;		/* task locked */
 	dns_tsigkey_t		*tsigkey;	/* key used for xfr */
 	/* Access Control Lists */
@@ -258,6 +261,7 @@ struct dns_zone {
 #define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
 #define DNS_ZONEFLG_FLUSH	0x00200000U
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
+#define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -557,6 +561,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_sockaddr_any6(&zone->notifysrc6);
 	isc_sockaddr_any(&zone->xfrsource4);
 	isc_sockaddr_any6(&zone->xfrsource6);
+	isc_sockaddr_any(&zone->altxfrsource4);
+	isc_sockaddr_any6(&zone->altxfrsource6);
 	zone->xfr = NULL;
 	zone->tsigkey = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
@@ -1802,6 +1808,40 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
+dns_zone_setaltxfrsource4(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->altxfrsource4 = *altxfrsource;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getaltxfrsource4(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->altxfrsource4);
+}
+
+isc_result_t
+dns_zone_setaltxfrsource6(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	zone->altxfrsource6 = *altxfrsource;
+	UNLOCK_ZONE(zone);
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_sockaddr_t *
+dns_zone_getaltxfrsource6(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (&zone->altxfrsource6);
+}
+
+isc_result_t
 dns_zone_setnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2184,6 +2224,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	}
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 	if ((oldflags & (DNS_ZONEFLG_REFRESH|DNS_ZONEFLG_LOADING)) != 0)
 		goto unlock;
 
@@ -3097,6 +3138,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *msg = NULL;
 	dns_zone_t *zone = NULL;
 	char master[ISC_SOCKADDR_FORMATSIZE];
+	char source[ISC_SOCKADDR_FORMATSIZE];
 	isc_uint32_t nscnt, cnamecnt;
 	isc_result_t result;
 	isc_time_t now;
@@ -3121,6 +3163,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	}
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
+	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
 	if (revent->result != ISC_R_SUCCESS) {
 		if (revent->result == ISC_R_TIMEDOUT &&
@@ -3130,12 +3173,14 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_ZONE(zone);
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refreshing stub: timeout retrying "
-				     " without EDNS master %s", master);
+				     " without EDNS master %s (source %s)",
+				     master, source);
 			goto same_master;
 		}
 		dns_zone_log(zone, ISC_LOG_INFO,
-			     "could not refresh stub from master %s: %s",
-			     master, dns_result_totext(revent->result));
+			     "could not refresh stub from master %s"
+			     " (source %s): %s", master, source,
+			     dns_result_totext(revent->result));
 		goto next_master;
 	}
 
@@ -3163,8 +3208,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		     msg->rcode == dns_rcode_formerr)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refreshing stub: rcode (%.*s) retrying "
-				     "without EDNS master %s",
-				     (int)rb.used, rcode, master);
+				     "without EDNS master %s (source %s)",
+				     (int)rb.used, rcode, master, source);
 			LOCK_ZONE(zone);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			UNLOCK_ZONE(zone);
@@ -3173,8 +3218,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: "
-			     "unexpected rcode (%.*s) from %s",
-			     (int)rb.used, rcode, master);
+			     "unexpected rcode (%.*s) from %s (source %s)",
+			     (int)rb.used, rcode, master, source);
 		goto next_master;
 	}
 
@@ -3184,9 +3229,9 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0) {
 		if (dns_request_usedtcp(revent->request)) {
 			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refreshing stub: "
-				     "truncated TCP response from master %s",
-				 master);
+				     "refreshing stub: truncated TCP "
+				     "response from master %s (source %s)",
+				     master, source);
 			goto next_master;
 		}
 		LOCK_ZONE(zone);
@@ -3200,8 +3245,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		dns_zone_log(zone, ISC_LOG_INFO, "refreshing stub: "
-			     "non-authoritative answer from master %s",
-			     master);
+			     "non-authoritative answer from "
+			     "master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3214,14 +3259,14 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (cnamecnt != 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: unexpected CNAME response "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
 	if (nscnt == 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: no NS records in response "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3232,7 +3277,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: unable to save NS records "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3276,11 +3321,18 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	zone->curmaster++;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (exiting || zone->curmaster >= zone->masterscnt) {
-		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
+		if (!exiting &&
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			zone->curmaster = 0;
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+		} else {
+			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 
-		zone_settimer(zone, &now);
-		UNLOCK_ZONE(zone);
-		goto free_stub;
+			zone_settimer(zone, &now);
+			UNLOCK_ZONE(zone);
+			goto free_stub;
+		}
 	}
 	queue_soa_query(zone);
 	UNLOCK_ZONE(zone);
@@ -3320,6 +3372,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_uint32_t soacnt, cnamecnt, soacount, nscount;
 	isc_time_t now;
 	char master[ISC_SOCKADDR_FORMATSIZE];
+	char source[ISC_SOCKADDR_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_soa_t soa;
@@ -3338,6 +3391,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 */
 
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
+	isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
 
 	TIME_NOW(&now);
 
@@ -3349,19 +3403,20 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_ZONE(zone);
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: timeout retrying without EDNS "
-				     "master %s", master);
+				     "master %s (source %s)", master, source);
 			goto same_master;
 		}
 		if (revent->result == ISC_R_TIMEDOUT &&
 		    !dns_request_usedtcp(revent->request)) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: retry limit for "
-				     "master %s exceeded",
-				     master);
+				     "master %s exceeded (source %s)",
+				     master, source);
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
-				     "refresh: failure trying master %s: %s",
-				     master, dns_result_totext(revent->result));
+				     "refresh: failure trying master "
+				     "%s (source %s): %s", master, source,
+				     dns_result_totext(revent->result));
 		goto next_master;
 	}
 
@@ -3371,8 +3426,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: failure trying master %s: %s",
-			     master, dns_result_totext(result));
+			     "refresh: failure trying master "
+			     "%s (source %s): %s", master, source,
+			     dns_result_totext(result));
 		goto next_master;
 	}
 
@@ -3392,16 +3448,17 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		     msg->rcode == dns_rcode_formerr)) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "refresh: rcode (%.*s) retrying without "
-				     "EDNS master %s", (int)rb.used, rcode,
-				     master);
+				     "EDNS master %s (source %s)",
+				     (int)rb.used, rcode, master, source);
 			LOCK_ZONE(zone);
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 			UNLOCK_ZONE(zone);
 			goto same_master;
 		}
 		dns_zone_log(zone, ISC_LOG_INFO,
-			     "refresh: unexpected rcode (%.*s) from master %s",
-			     (int)rb.used, rcode, master);
+			     "refresh: unexpected rcode (%.*s) from "
+			     "master %s (source %s)", (int)rb.used, rcode,
+			     master, source);
 		goto next_master;
 	}
 
@@ -3413,16 +3470,16 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: truncated UDP answer, "
 				     "initiating TCP zone xfer "
-				     "for master %s",
-				 master);
+				     "for master %s (source %s)",
+				     master, source);
 			goto tcp_transfer;
 		} else {
 			INSIST(zone->type == dns_zone_stub);
 			if (dns_request_usedtcp(revent->request)) {
 				dns_zone_log(zone, ISC_LOG_INFO,
 					     "refresh: truncated TCP response "
-					     "from master %s",
-					     master);
+					     "from master %s (source %s)",
+					     master, source);
 				goto next_master;
 			}
 			LOCK_ZONE(zone);
@@ -3438,7 +3495,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: non-authoritative answer from "
-			     "master %s", master);
+			     "master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3454,7 +3511,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (cnamecnt != 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: CNAME at top of zone "
-			     "in master %s", master);
+			     "in master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3464,7 +3521,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (soacnt == 0 && soacount == 0 && nscount != 0) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: referral response "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3474,7 +3531,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (soacnt == 0 && (nscount == 0 || soacount != 0)) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: NODATA response "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3484,8 +3541,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (soacnt != 1) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: answer SOA count (%d) != 1 "
-			     "from master %s",
-			 soacnt, master);
+			     "from master %s (source %s)",
+			     soacnt, master, source);
 		goto next_master;
 	}
 	/*
@@ -3498,7 +3555,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: unable to get SOA record "
-			     "from master %s", master);
+			     "from master %s (source %s)", master, source);
 		goto next_master;
 	}
 
@@ -3750,14 +3807,13 @@ add_opt(dns_message_t *message) {
 static void
 soa_query(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "soa_query";
-	isc_result_t result;
+	isc_result_t result = ISC_R_FAILURE;
 	dns_message_t *message = NULL;
 	dns_zone_t *zone = event->ev_arg;
 	dns_zone_t *dummy = NULL;
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
 	isc_uint32_t options;
-	isc_sockaddr_t src;
 	isc_boolean_t cancel = ISC_TRUE;
 	int timeout;
 
@@ -3783,9 +3839,35 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
+ again:
 	INSIST(zone->masterscnt > 0);
 	INSIST(zone->curmaster < zone->masterscnt);
+
 	zone->masteraddr = zone->masters[zone->curmaster];
+
+	switch (isc_sockaddr_pf(&zone->masteraddr)) {
+	case PF_INET:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource4,
+					       &zone->xfrsource4))
+				goto skip_master;
+			zone->sourceaddr = zone->altxfrsource4;
+		} else
+			zone->sourceaddr = zone->xfrsource4;
+		break;
+	case PF_INET6:
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			if (isc_sockaddr_equal(&zone->altxfrsource6,
+					       &zone->xfrsource6))
+				goto skip_master;
+			zone->sourceaddr = zone->altxfrsource6;
+		} else
+			zone->sourceaddr = zone->xfrsource6;
+		break;
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+		goto cleanup;
+	}
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
 	(void)dns_view_getpeertsig(zone->view, &masterip, &key);
@@ -3800,6 +3882,10 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS && !edns)
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	}
+
+	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
+		  DNS_REQUESTOPT_TCP : 0;
+
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
 		result = add_opt(message);
 		if (result != ISC_R_SUCCESS)
@@ -3808,27 +3894,15 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 				      dns_result_totext(result));
 	}
 
-	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
-		  DNS_REQUESTOPT_TCP : 0;
-	switch (isc_sockaddr_pf(&zone->masteraddr)) {
-	case PF_INET:
-		src = zone->xfrsource4;
-		break;
-	case PF_INET6:
-		src = zone->xfrsource6;
-		break;
-	default:
-		result = ISC_R_NOTIMPLEMENTED;
-		goto cleanup;
-	}
 	zone_iattach(zone, &dummy);
 	timeout = 15;
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
 		timeout = 30;
 	result = dns_request_createvia2(zone->view->requestmgr, message,
-				        &src, &zone->masteraddr, options, key,
-				        timeout * 3, timeout, zone->task,
-				        refresh_callback, zone, &zone->request);
+				        &zone->sourceaddr, &zone->masteraddr,
+					options, key, timeout * 3, timeout,
+					zone->task, refresh_callback, zone,
+					&zone->request);
 	if (result != ISC_R_SUCCESS) {
 		zone_idetach(&dummy);
 		zone_debuglog(zone, me, 1,
@@ -3841,6 +3915,8 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	cancel = ISC_FALSE;
 
  cleanup:
+	if (result != ISC_R_SUCCESS)
+		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	if (message != NULL)
 		dns_message_destroy(&message);
 	if (cancel)
@@ -3849,6 +3925,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	UNLOCK_ZONE(zone);
 	dns_zone_idetach(&zone);
 	return;
+
+ skip_master:
+	zone->curmaster++;
+	if (zone->curmaster < zone->masterscnt)
+		goto again;
+	zone->masterscnt = 0;
+	goto cleanup;
 }
 
 static void
@@ -3859,7 +3942,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	isc_netaddr_t masterip;
 	dns_tsigkey_t *key = NULL;
 	dns_dbnode_t *node = NULL;
-	isc_sockaddr_t src;
 	int timeout;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -3972,10 +4054,16 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	 */
 	switch (isc_sockaddr_pf(&zone->masteraddr)) {
 	case PF_INET:
-		src = zone->xfrsource4;
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
+			zone->sourceaddr = zone->altxfrsource4;
+		else
+			zone->sourceaddr = zone->xfrsource4;
 		break;
 	case PF_INET6:
-		src = zone->xfrsource6;
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC))
+			zone->sourceaddr = zone->altxfrsource6;
+		else
+			zone->sourceaddr = zone->xfrsource6;
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
@@ -3985,7 +4073,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_DIALREFRESH))
 		timeout = 30;
 	result = dns_request_createvia2(zone->view->requestmgr, message,
-				        &src, &zone->masteraddr,
+				        &zone->sourceaddr, &zone->masteraddr,
 				        DNS_REQUESTOPT_TCP, key, timeout * 3,
 				        timeout, zone->task, stub_callback,
 					stub, &zone->request);
@@ -5214,9 +5302,16 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	default:
 		zone->curmaster++;
 	same_master:
-		if (zone->curmaster >= zone->masterscnt)
+		if (zone->curmaster >= zone->masterscnt) {
 			zone->curmaster = 0;
-		else {
+			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
+			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
+				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+				again = ISC_TRUE;
+			} else
+				DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+		} else {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 			again = ISC_TRUE;
 		}
@@ -5363,6 +5458,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
+	isc_sockaddr_t sourceaddr;
+	isc_sockaddr_t masteraddr;
 
 	UNUSED(task);
 
@@ -5449,10 +5546,15 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			     isc_result_totext(result));
 	}
 
-	result = dns_xfrin_create(zone, xfrtype, &zone->masteraddr,
-				  zone->tsigkey, zone->mctx,
-				  zone->zmgr->timermgr, zone->zmgr->socketmgr,
-				  zone->task, zone_xfrdone, &zone->xfr);
+	LOCK_ZONE(zone);
+	masteraddr = zone->masteraddr;
+	sourceaddr = zone->sourceaddr;
+	UNLOCK_ZONE(zone);
+	INSIST(isc_sockaddr_pf(&masteraddr) == isc_sockaddr_pf(&sourceaddr));
+	result = dns_xfrin_create2(zone, xfrtype, &masteraddr, &sourceaddr,
+				   zone->tsigkey, zone->mctx,
+				   zone->zmgr->timermgr, zone->zmgr->socketmgr,
+				   zone->task, zone_xfrdone, &zone->xfr);
  cleanup:
 	/*
 	 * Any failure in this function is handled like a failed
