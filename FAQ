@@ -136,8 +136,8 @@ Q: I have a BIND 9 master and a BIND 8.2.3 slave, and the master is
 logging error messages like "notify to 10.0.0.1#53 failed: unexpected
 end of input".  What's wrong?
 
-A: This error message is caused by a known bug in BIND 8.2.3 and is fixed 
-in BIND 8.2.4.  It can be safely ignored - the notify has been acted on by 
+A: This error message is caused by a known bug in BIND 8.2.3 and is fixed
+in BIND 8.2.4.  It can be safely ignored - the notify has been acted on by
 the slave despite the error message.
 
 
@@ -329,9 +329,9 @@ running named-checkzone on it.
 		dig axfr example.com @master-server > tmp
 		named-checkzone example.com tmp
 
+
 Q: I get error messages like "named.conf:99: unexpected end of input" where
 99 is the last line of named.conf.
-
 
 A: Some text editors (notepad and wordpad) fail to put a line termination
 indication (e.g. CR/LF) on the last line of a text file.  This can be fixed
@@ -343,11 +343,11 @@ Q: I get warning messages like "zone example.com/IN: refresh: failure trying mas
 1.2.3.4#53: timed out".
 
 A: Check that you can make UDP queries from the slave to the master
-	
+
 	dig +norec example.com soa @1.2.3.4
 
 A: You could be generating queries faster than the slave can cope with.  Lower
 the serial query rate.
 
 	serial-query-rate 5; // default 20
-	
+
