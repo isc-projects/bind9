@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.2 2000/06/22 22:00:33 tale Exp $
+# $Id: check-instincludes.sh,v 1.3 2000/06/27 00:00:46 gson Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header
@@ -23,13 +23,19 @@
 # they all compile as C++.
 #
 
+case $# in 
+  1) ;;
+  *) echo "usage: sh util/check-instincludes.sh <prefix>" >&2;
+     exit 1;
+     ;;
+esac
+
+prefix=$1
+
 test -f ./util/conf.sh || {
     echo "$0: run from top of bind9 source tree" >&2;
     exit 1;
 }
-
-# set $prefix
-. ./util/conf.sh
 
 tmp=/tmp/thdr$$.tmp
 
@@ -52,7 +58,8 @@ EOF
 
     # Compile the test program.
     if 
-       gcc  -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings  -I/usr/pkg/pthreads/include -I$prefix/include -c test.cc 2>&1
+       gcc  -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings \
+           -I/usr/pkg/pthreads/include -I$prefix/include -c test.cc 2>&1
     then
        :
     else
