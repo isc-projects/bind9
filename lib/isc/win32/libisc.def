@@ -396,29 +396,7 @@ openlog
 syslog
 closelog
 isc_syslog_facilityfromstring
-isc_ntfile_fopen
-isc_ntfile_fclose
-isc_ntfile_fwrite
-isc_ntfile_fread
-isc_ntfile_fseek
-isc_ntfile_flush
-isc_ntfile_sync
-isc_ntfile_printf
-isc_ntfile_fprintf
-isc_ntfile_vfprintf
-isc_ntfile_getaddress
-isc_ntfile_getc
-isc_ntfile_fgetc
-isc_ntfile_fgets
-isc_ntfile_fputc
-isc_ntfile_fputs
-isc_ntfile_fgetpos
-isc_ntfile_freopen
-isc_ntfile_fdopen
-isc_ntfile_open
-isc_ntfile_close
-isc_ntfile_read
-isc_ntfile_write
+
 isc_file_truncate
 isc__strerror
 
@@ -426,11 +404,7 @@ isc__strerror
 
 EXPORTS
 
-;isc_categories
-;isc_lctx
-;isc_modules
-
-isc_mem_debugging			DATA
+isc_mem_debugging		DATA
 
 isc_commandline_index	
 isc_commandline_option		DATA
@@ -439,5 +413,4 @@ isc_commandline_progname	DATA
 isc_commandline_errprint	DATA
 isc_commandline_reset		DATA
 isc_assertion_failed		DATA
-_iob						DATA
 			

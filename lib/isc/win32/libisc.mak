@@ -73,7 +73,6 @@ CLEAN :
 	-@erase "$(INTDIR)\mutexblock.obj"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\netaddr.obj"
-	-@erase "$(INTDIR)\ntfile.obj"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\once.obj"
 	-@erase "$(INTDIR)\ondestroy.obj"
@@ -131,7 +130,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
-	"$(INTDIR)\ntfile.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
 	"$(INTDIR)\os.obj" \
@@ -139,6 +137,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\socket.obj" \
 	"$(INTDIR)\stdio.obj" \
 	"$(INTDIR)\stdtime.obj" \
+	"$(INTDIR)\strerror.obj" \
 	"$(INTDIR)\syslog.obj" \
 	"$(INTDIR)\thread.obj" \
 	"$(INTDIR)\time.obj" \
@@ -179,8 +178,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj" \
-	"$(INTDIR)\strerror.obj"
+	"$(INTDIR)\timer.obj"
 
 "..\..\..\Build\Release\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -269,8 +267,6 @@ CLEAN :
 	-@erase "$(INTDIR)\net.sbr"
 	-@erase "$(INTDIR)\netaddr.obj"
 	-@erase "$(INTDIR)\netaddr.sbr"
-	-@erase "$(INTDIR)\ntfile.obj"
-	-@erase "$(INTDIR)\ntfile.sbr"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\ntpaths.sbr"
 	-@erase "$(INTDIR)\once.obj"
@@ -353,7 +349,6 @@ BSC32_SBRS= \
 	"$(INTDIR)\ipv6.sbr" \
 	"$(INTDIR)\keyboard.sbr" \
 	"$(INTDIR)\net.sbr" \
-	"$(INTDIR)\ntfile.sbr" \
 	"$(INTDIR)\ntpaths.sbr" \
 	"$(INTDIR)\once.sbr" \
 	"$(INTDIR)\os.sbr" \
@@ -361,6 +356,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\socket.sbr" \
 	"$(INTDIR)\stdio.sbr" \
 	"$(INTDIR)\stdtime.sbr" \
+	"$(INTDIR)\strerror.sbr" \
 	"$(INTDIR)\syslog.sbr" \
 	"$(INTDIR)\thread.sbr" \
 	"$(INTDIR)\time.sbr" \
@@ -401,8 +397,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\symtab.sbr" \
 	"$(INTDIR)\task.sbr" \
 	"$(INTDIR)\taskpool.sbr" \
-	"$(INTDIR)\timer.sbr" \
-	"$(INTDIR)\strerror.sbr"
+	"$(INTDIR)\timer.sbr"
 
 "$(OUTDIR)\libisc.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
     $(BSC32) @<<
@@ -426,7 +421,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
-	"$(INTDIR)\ntfile.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
 	"$(INTDIR)\os.obj" \
@@ -434,6 +428,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\socket.obj" \
 	"$(INTDIR)\stdio.obj" \
 	"$(INTDIR)\stdtime.obj" \
+	"$(INTDIR)\strerror.obj" \
 	"$(INTDIR)\syslog.obj" \
 	"$(INTDIR)\thread.obj" \
 	"$(INTDIR)\time.obj" \
@@ -474,8 +469,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\symtab.obj" \
 	"$(INTDIR)\task.obj" \
 	"$(INTDIR)\taskpool.obj" \
-	"$(INTDIR)\timer.obj" \
-	"$(INTDIR)\strerror.obj"
+	"$(INTDIR)\timer.obj"
 
 "..\..\..\Build\Debug\libisc.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
     $(LINK32) @<<
@@ -713,22 +707,6 @@ SOURCE=.\net.c
 
 
 "$(INTDIR)\net.obj"	"$(INTDIR)\net.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\ntfile.c
-
-!IF  "$(CFG)" == "libisc - Win32 Release"
-
-
-"$(INTDIR)\ntfile.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
-
-
-"$(INTDIR)\ntfile.obj"	"$(INTDIR)\ntfile.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 
