@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.285 2001/01/25 02:33:40 bwelling Exp $ */
+/* $Id: server.c,v 1.286 2001/01/29 07:08:40 marka Exp $ */
 
 #include <config.h>
 
@@ -1594,12 +1594,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		isc_timer_reset(server->interface_timer,
 				isc_timertype_inactive,
 				NULL, NULL, ISC_TRUE);
-	} else {
+	} else if (server->interface_interval != interface_interval) {
 		isc_interval_t interval;
 		isc_interval_set(&interval, interface_interval, 0);
 		isc_timer_reset(server->interface_timer, isc_timertype_ticker,
 				NULL, &interval, ISC_FALSE);
 	}
+	server->interface_interval = interface_interval;
 
 	/*
 	 * Configure the dialup heartbeat timer.
@@ -1611,12 +1612,13 @@ load_configuration(const char *filename, ns_server_t *server,
 		isc_timer_reset(server->heartbeat_timer,
 				isc_timertype_inactive,
 				NULL, NULL, ISC_TRUE);
-	} else {
+	} else if (server->heartbeat_interval != heartbeat_interval) {
 		isc_interval_t interval;
 		isc_interval_set(&interval, heartbeat_interval, 0);
 		isc_timer_reset(server->heartbeat_timer, isc_timertype_ticker,
 				NULL, &interval, ISC_FALSE);
 	}
+	server->heartbeat_interval = heartbeat_interval;
 
 	/*
 	 * Configure and freeze all explicit views.  Explicit
@@ -2069,6 +2071,9 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->interface_timer = NULL;
 	server->heartbeat_timer = NULL;
+	
+	server->interface_interval = 0;
+	server->hearbeat_interval = 0;
 
 	CHECKFATAL(dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
 				      ns_g_socketmgr, &server->zonemgr),

@@ -1,3 +1,6 @@
+ 714.	[bug]		Preserve interval timers across reloads unless changed.
+			[RT# 729]
+
  713.	[func]		named-checkconf takes '-t directory' similar to named.
 			[RT #726]
 

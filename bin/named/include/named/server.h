@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.49 2001/01/09 21:40:28 bwelling Exp $ */
+/* $Id: server.h,v 1.50 2001/01/29 07:08:41 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -60,8 +60,11 @@ struct ns_server {
 	ns_interfacemgr_t *	interfacemgr;
 	dns_db_t *		in_roothints;
 	dns_tkeyctx_t *		tkeyctx;
+
 	isc_timer_t *		interface_timer;
 	isc_timer_t *		heartbeat_timer;
+	isc_uint32_t		interface_interval;
+	isc_uint32_t		heartbeat_interval;
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
