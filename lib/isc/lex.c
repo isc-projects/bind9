@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.40 2000/11/08 01:55:29 bwelling Exp $ */
+/* $Id: lex.c,v 1.41 2000/11/09 02:23:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -36,10 +36,7 @@ typedef struct inputsource {
 	isc_boolean_t			is_file;
 	isc_boolean_t			need_close;
 	isc_boolean_t			at_eof;
-	isc_boolean_t			have_token;
-	isc_token_t			token;
-	unsigned int			char_count;
-	int				chars[2];
+	isc_buffer_t *			pushback;
 	void *				input;
 	char *				name;
 	unsigned long			line;
@@ -189,6 +186,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	   void *input, const char *name)
 {
 	inputsource *source;
+	isc_result_t result;
 
 	source = isc_mem_get(lex->mctx, sizeof *source);
 	if (source == NULL)
@@ -197,15 +195,19 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	source->is_file = is_file;
 	source->need_close = need_close;
 	source->at_eof = ISC_FALSE;
-	source->have_token = ISC_FALSE;
-	source->token.type = isc_tokentype_unknown;
-	source->token.value.as_pointer = NULL;
-	source->char_count = 0;
 	source->input = input;
 	source->name = isc_mem_strdup(lex->mctx, name);
 	if (source->name == NULL) {
 		isc_mem_put(lex->mctx, source, sizeof *source);
 		return (ISC_R_NOMEMORY);
+	}
+	source->pushback = NULL;
+	result = isc_buffer_allocate(lex->mctx, &source->pushback,
+				     lex->max_token);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_free(lex->mctx, source->name);
+		isc_mem_put(lex->mctx, source, sizeof *source);
+		return (result);
 	}
 	source->line = 1;
 	ISC_LIST_PREPENDUNSAFE(lex->sources, source, link);
@@ -293,6 +295,7 @@ isc_lex_close(isc_lex_t *lex) {
 			fclose((FILE *)(source->input));
 	}
 	isc_mem_free(lex->mctx, source->name);
+	isc_buffer_free(&source->pushback);
 	isc_mem_put(lex->mctx, source, sizeof *source);
 
 	return (ISC_R_SUCCESS);
@@ -314,12 +317,41 @@ typedef enum {
 
 static void
 pushback(inputsource *source, int c) {
-	INSIST(source->char_count < 2);
-	source->chars[source->char_count++] = c;
+	REQUIRE(source->pushback->current > 0);
+	source->pushback->current--;
 	if (c == '\n')
 		source->line--;
 }
 
+static void
+unpushback(inputsource *source) {
+	isc_buffer_subtract(source->pushback, 1);
+}
+
+static isc_result_t
+pushandgrow(isc_lex_t *lex, inputsource *source, int c) {
+	if (isc_buffer_availablelength(source->pushback) == 0) {
+		isc_buffer_t *tbuf = NULL;
+		unsigned int oldlen;
+		isc_region_t used;
+		isc_result_t result;
+
+		oldlen = isc_buffer_length(source->pushback);
+		result = isc_buffer_allocate(lex->mctx, &tbuf, oldlen * 2);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		isc_buffer_usedregion(source->pushback, &used);
+		result = isc_buffer_copyregion(tbuf, &used);
+		INSIST(result == ISC_R_SUCCESS);
+		isc_buffer_free(&source->pushback);
+		source->pushback = tbuf;
+	}
+	isc_buffer_putuint8(source->pushback, (isc_uint8_t)c);
+	if (c == '\n')
+		source->line--;
+	return (ISC_R_SUCCESS);
+}
+	
 isc_result_t
 isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	inputsource *source;
@@ -357,13 +389,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	if (source->result != ISC_R_SUCCESS)
 		return (source->result);
 
-	if (source->have_token) {
-		*tokenp = source->token;
-		source->have_token = ISC_FALSE;
-		return (ISC_R_SUCCESS);
-	}
-
-	if (source->char_count == 0 && source->at_eof) {
+	if (isc_buffer_remaininglength(source->pushback) == 0 &&
+	    source->at_eof)
+	{
 		if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 &&
 		    lex->paren_count != 0)
 			return (ISC_R_UNBALANCED);
@@ -374,6 +402,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		return (ISC_R_EOF);
 	}
 
+	isc_buffer_compact(source->pushback);
+
 	saved_options = options;
 	if ((options & ISC_LEXOPT_DNSMULTILINE) != 0 && lex->paren_count > 0)
 		options &= ~IWSEOL;
@@ -382,35 +412,42 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	prev = NULL;
 	remaining = lex->max_token;
 	do {
-		if (source->char_count > 0) {
-			source->char_count--;
-			c = source->chars[source->char_count];
-		} else if (source->is_file) {
-			stream = source->input;
+		if (isc_buffer_remaininglength(source->pushback) == 0) {
+			if (source->is_file) {
+				stream = source->input;
 
 #ifdef HAVE_FLOCKFILE
-			c = getc_unlocked(stream);
+				c = getc_unlocked(stream);
 #else
-			c = getc(stream);
+				c = getc(stream);
 #endif
-			if (c == EOF) {
-				if (ferror(stream)) {
-					source->result = ISC_R_IOERROR;
-					return (source->result);
+				if (c == EOF) {
+					if (ferror(stream)) {
+						source->result = ISC_R_IOERROR;
+						return (source->result);
+					}
+					source->at_eof = ISC_TRUE;
 				}
-				source->at_eof = ISC_TRUE;
-			}
-		} else {
-			buffer = source->input;
-
-			if (buffer->current == buffer->used) {
-				c = EOF;
-				source->at_eof = ISC_TRUE;
 			} else {
-				c = *((char *)buffer->base + buffer->current);
-				buffer->current++;
+				buffer = source->input;
+
+				if (buffer->current == buffer->used) {
+					c = EOF;
+					source->at_eof = ISC_TRUE;
+				} else {
+					c = *((char *)buffer->base +
+					      buffer->current);
+					buffer->current++;
+				}
+			}
+			if (c != EOF) {
+				source->result = pushandgrow(lex, source, c);
+				if (source->result != ISC_R_SUCCESS)
+					return (source->result);
 			}
 		}
+		if (!source->at_eof)
+			c = isc_buffer_getuint8(source->pushback);
 
 		if (c == '\n')
 			source->line++;
@@ -492,6 +529,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						if (lex->paren_count == 0)
 							options =
 								saved_options;
+						unpushback(source);
 					}
 					continue;
 				}
@@ -574,6 +612,8 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			     (c == ' ' || c == '\t' || lex->specials[c])) ||
 			    c == '\r' || c == '\n' || c == EOF) {
 				pushback(source, c);
+				if (source->result != ISC_R_SUCCESS)
+					return (source->result);
 				tokenp->type = isc_tokentype_string;
 				tokenp->value.as_textregion.base = lex->data;
 				tokenp->value.as_textregion.length =
@@ -733,11 +773,12 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 	REQUIRE(VALID_LEX(lex));
 	source = HEAD(lex->sources);
 	REQUIRE(source != NULL);
-	REQUIRE(!source->have_token);
 	REQUIRE(tokenp != NULL);
+	REQUIRE(isc_buffer_consumedlength(source->pushback) != 0);
 
-	source->token = *tokenp;
-	source->have_token = ISC_TRUE;
+	UNUSED(tokenp);
+
+	isc_buffer_first(source->pushback);
 }
 
 char *

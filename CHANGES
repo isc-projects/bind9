@@ -1,4 +1,4 @@
- 547.	[none]		
+ 548.	[func]		The lexer now ungets tokens more correctly.
 
  546.	[func]		Option 'lame-ttl' is now implemented.
 
