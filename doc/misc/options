@@ -116,7 +116,7 @@ server ip_addr {
   [ keys { key_id [key_id ... ] }; ]                        Yes
 };
 
-trusted-keys                                                No
+trusted-keys                                                Yes
 
 zone domain_name [ ( in | hs | hesiod | chaos ) ] { 
   type master;					            Yes
