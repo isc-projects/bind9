@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.98 2000/07/21 23:04:44 gson Exp $ */
+/* $Id: dighost.c,v 1.99 2000/07/24 18:07:03 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -74,7 +74,8 @@ isc_boolean_t
 	show_details = ISC_FALSE,
 	usesearch = ISC_FALSE,
 	qr = ISC_FALSE,
-	is_dst_up = ISC_FALSE;
+	is_dst_up = ISC_FALSE,
+	have_domain = ISC_FALSE;
 
 in_port_t port = 53;
 unsigned int timeout = 0;
@@ -485,7 +486,6 @@ setup_system(void) {
 	char *ptr;
 	dig_server_t *srv;
 	dig_searchlist_t *search;
-	dig_lookup_t *l;
 	isc_boolean_t get_servers;
 	
 	debug("setup_system()");
@@ -530,10 +530,11 @@ setup_system(void) {
 							       ndots);
 						}
 					}
-				} else if ((strcasecmp(ptr, "search") == 0)
-					   && usesearch){
+				} else if (strcasecmp(ptr, "search") == 0){
 					while ((ptr = strtok(NULL, " \t\r\n"))
 					       != NULL) {
+						debug("adding search %s",
+						      ptr);
 						search = isc_mem_allocate(
 						   mctx, sizeof(struct
 								dig_server));
@@ -554,6 +555,7 @@ setup_system(void) {
 					}
 				} else if ((strcasecmp(ptr, "domain") == 0) &&
 					   (fixeddomain[0] == 0 )){
+					have_domain = ISC_TRUE;
 					while ((ptr = strtok(NULL, " \t\r\n"))
 					       != NULL) {
 						search = isc_mem_allocate(
@@ -586,12 +588,6 @@ setup_system(void) {
 	if (server_list.head == NULL) {
 		srv = make_server("127.0.0.1");
 		ISC_LIST_APPEND(server_list, srv, link);
-	}
-
-	for (l = ISC_LIST_HEAD(lookup_list) ;
-	     l != NULL;
-	     l = ISC_LIST_NEXT(l, link) ) {
-	     l -> origin = ISC_LIST_HEAD(search_list);
 	}
 
 	if (keyfile[0] != 0)
@@ -1006,7 +1002,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query,
  * Create and queue a new lookup using the next origin from the origin
  * list, read in setup_system().
  */
-static void
+static isc_boolean_t
 next_origin(dns_message_t *msg, dig_query_t *query) {
 	dig_lookup_t *lookup;
 
@@ -1017,17 +1013,22 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	debug("next_origin()"); 
 	debug("following up %s", query->lookup->textname);
 
-	if (query->lookup->origin == NULL) {
+	if (!usesearch)
+		/*
+		 * We're not using a search list, so don't even think
+		 * about finding the next entry.
+		 */
+		return (ISC_FALSE);
+	if (query->lookup->origin == NULL)
 		/*
 		 * Then we just did rootorg; there's nothing left.
 		 */
-		debug("made it to the root with nowhere to go");
-		return;
-	}
+		return (ISC_FALSE);
 	cancel_lookup(query->lookup);
 	lookup = requeue_lookup(query->lookup, ISC_TRUE);
 	lookup->defname = ISC_FALSE;
 	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
+	return (ISC_TRUE);
 }
 
 /*
@@ -1142,9 +1143,18 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->onamebuf, lookup->onamespace,
 			sizeof(lookup->onamespace));
 
+	/*
+	 * If the name has too many dots, rotce the origin to be NULL
+	 * (which produces a root lookup).  Otherwise, take the origin
+	 * we have if there's one in the struct already.  If it's NULL,
+	 * take the first entry in the searchlist iff either usesearch
+	 * is TRUE or we got a domain line in the resolv.conf file.
+	 */
 	if ((count_dots(lookup->textname) >= ndots) || lookup->defname)
 		lookup->origin = NULL; /* Force root lookup */
-	debug("lookup->origin = %p", lookup->origin);
+	else if (lookup->origin == NULL && lookup->new_search &&
+		 (usesearch || have_domain))
+		lookup -> origin = ISC_LIST_HEAD(search_list);
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
 		result = dns_message_gettempname(lookup->sendmsg,
@@ -2045,7 +2055,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				}
 				if ((msg->rcode != 0) &&
 				    (l->origin != NULL)) {
-					next_origin(msg, query);
+					if (!next_origin(msg, query))
+						printmessage(query, msg,
+							     ISC_TRUE);
 				} else {
 					result = dns_message_firstname
 						(msg,DNS_SECTION_ANSWER);
@@ -2056,7 +2068,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				}
 			} else if ((msg->rcode != 0) &&
 				 (l->origin != NULL)) {
-				next_origin(msg, query);
+				if (!next_origin(msg, query))
+					printmessage(query, msg,
+						     ISC_TRUE);
 				if (show_details) {
 				       printmessage(query, msg, ISC_TRUE);
 				}
@@ -2104,14 +2118,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 							     &ab);
 				check_result(result, "isc_sockaddr_totext");
 				isc_buffer_usedregion(&ab, &r);
-				if ((dns_message_firstname(msg,
-							   DNS_SECTION_ANSWER)
-				      == ISC_R_SUCCESS) ||
-				    query->lookup->trace ) {
-					received(b->used, r.length,
-						 (char *)r.base,
-						 query);
-				}
+				received(b->used, r.length,
+					 (char *)r.base,
+					 query);
 			}
 			query->working = ISC_FALSE;
 			query->lookup->pending = ISC_FALSE;

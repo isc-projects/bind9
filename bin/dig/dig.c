@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.74 2000/07/21 21:21:26 gson Exp $ */
+/* $Id: dig.c,v 1.75 2000/07/24 18:07:01 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1005,9 +1005,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->rdtype = dns_rdatatype_ns;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
 	}
-	if (!is_batchfile) {
-		printgreeting(argc, argv);
-	}
+	printgreeting(argc, argv);
 }
 
 /*
