@@ -99,14 +99,18 @@ bind9/contrib/sdb.
 
 Rebuilding the Server
 
-The driver module and header file must be copied to (or linked into) the
-bind9/bin/named directory, and must be added to the OBJS and SRCS
-lines in bin/named/Makefile.in.  If the driver needs additional
-header files or libraries in nonstandard places, the CINCLUDES and
-LIBS lines should also be updated.
+The driver module and header file must be copied to (or linked into)
+the bind9/bin/named and bind9/bin/named/include directories
+respectively, and must be added to the DBDRIVER_OBJS and DBDRIVER_SRCS
+lines in bin/named/Makefile.in (e.g. for the timedb sample sdb driver,
+add timedb.c to DBDRIVER_SRCS and timedb.@O@ to DBDRIVER_OBJS).  If
+the driver needs additional header files or libraries in nonstandard
+places, the DBDRIVER_INCLUDES and DBDRIVER_LIBS lines should also be
+updated.
 
-Calls to dns_sdb_register() and dns_sdb_unregister() (or wrappers)
-must be inserted into the server, in bind9/bin/named/main.c.
+Calls to dns_sdb_register() and dns_sdb_unregister() (or wrappers,
+e.g. timedb_init() and timedb_clear() for the timedb sample sdb
+driver) must be inserted into the server, in bind9/bin/named/main.c.
 Registration should be in setup(), before the call to
 ns_server_create().  Unregistration should be in cleanup(),
 after the call to ns_server_destroy().  A #include should be added
@@ -161,4 +165,4 @@ Future Directions
 A future release may support dynamic loading of sdb drivers.
 
 
-$Id: sdb,v 1.2 2000/11/18 01:32:04 bwelling Exp $
+$Id: sdb,v 1.3 2000/11/30 02:03:18 sjacob Exp $
