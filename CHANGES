@@ -1,4 +1,4 @@
- 731.	[bug]		certian zone errors could cause named-checkzone to
+ 731.	[bug]		Certain zone errors could cause named-checkzone to
 			fail ungracefully.  [RT #819]
 
  730.	[bug]		lwres_getaddrinfo() returns the correct result when
