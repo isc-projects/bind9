@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.14.2.13 2002/02/13 04:02:36 marka Exp $ */
+/* $Id: check.c,v 1.14.2.14 2002/02/19 22:30:05 gson Exp $ */
 
 #include <config.h>
 
@@ -548,6 +548,7 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
         tresult = cfg_map_get(config, "acl", &acls);
         if (tresult == ISC_R_SUCCESS) {
 		cfg_listelt_t *elt;
+		cfg_listelt_t *elt2;
 		const char *aclname;
 
 		for (elt = cfg_list_first(acls);
@@ -568,6 +569,22 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 					result = ISC_R_FAILURE;
 					break;
 				}
+
+			for (elt2 = cfg_list_next(elt);
+			     elt2 != NULL;
+			     elt2 = cfg_list_next(elt2)) {
+				cfg_obj_t *acl2 = cfg_listelt_value(elt2);
+				const char *name;
+				name = cfg_obj_asstring(cfg_tuple_get(acl2,
+								      "name"));
+				if (strcasecmp(aclname, name) == 0) {
+					cfg_obj_log(acl2, logctx, ISC_LOG_ERROR,
+						    "attempt to redefine "
+						    "acl '%s'", name);
+					result = ISC_R_FAILURE;
+					break;
+				}
+			}
 		}
 	}
 
