@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.37 2000/06/02 18:15:45 bwelling Exp $ */
+/* $Id: log.c,v 1.38 2000/06/23 17:52:20 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -557,13 +557,15 @@ isc_log_registercategories(isc_log_t *lctx, isc_logcategory_t categories[]) {
 		 * Adjust the last (NULL) pointer of the already registered
 		 * categories to point to the incoming array.
 		 */
-		for (catp = lctx->categories; catp->name != NULL; catp++)
+		for (catp = lctx->categories; catp->name != NULL; )
 			if (catp->id == UINT_MAX)
 				/*
 				 * The name pointer points to the next array.
 				 * Ick.
 				 */
 				DE_CONST(catp->name, catp);
+			else
+				catp++;
 
 		catp->name = (void *)categories;
 		catp->id = UINT_MAX;
@@ -583,16 +585,18 @@ isc_log_categorybyname(isc_log_t *lctx, const char *name) {
 	REQUIRE(VALID_CONTEXT(lctx));
 	REQUIRE(name != NULL);
 
-	for (catp = lctx->categories; catp->name != NULL; catp++)
+	for (catp = lctx->categories; catp->name != NULL; )
 		if (catp->id == UINT_MAX)
 			/*
 			 * catp is neither modified nor returned to the
 			 * caller, so removing its const qualifier is ok.
 			 */
 			DE_CONST(catp->name, catp);
-		else
+		else {
 			if (strcmp(catp->name, name) == 0)
 				return (catp);
+			catp++;
+		}
 
 	return (NULL);
 }
@@ -620,13 +624,15 @@ isc_log_registermodules(isc_log_t *lctx, isc_logmodule_t modules[]) {
 		 * Adjust the last (NULL) pointer of the already registered
 		 * modules to point to the incoming array.
 		 */
-		for (modp = lctx->modules; modp->name != NULL; modp++)
+		for (modp = lctx->modules; modp->name != NULL; )
 			if (modp->id == UINT_MAX)
 				/*
 				 * The name pointer points to the next array.
 				 * Ick.
 				 */
 				DE_CONST(modp->name, modp);
+			else
+				modp++;
 
 		modp->name = (void *)modules;
 		modp->id = UINT_MAX;
@@ -646,16 +652,18 @@ isc_log_modulebyname(isc_log_t *lctx, const char *name) {
 	REQUIRE(VALID_CONTEXT(lctx));
 	REQUIRE(name != NULL);
 
-	for (modp = lctx->modules; modp->name != NULL; modp++)
+	for (modp = lctx->modules; modp->name != NULL; )
 		if (modp->id == UINT_MAX)
 			/*
-			 * catp is neither modified nor returned to the
+			 * modp is neither modified nor returned to the
 			 * caller, so removing its const qualifier is ok.
 			 */
 			DE_CONST(modp->name, modp);
-		else
+		else {
 			if (strcmp(modp->name, name) == 0)
 				return (modp);
+			modp++;
+		}
 
 	return (NULL);
 }

@@ -1,3 +1,9 @@
+ 277.   [bug]           isc_log_categorybyname() and isc_log_modulebyname()
+                        would fail to find the first member of any category
+                        or module array apart from the internal defaults.
+                        Thus, for example, the "notify" category was improperly
+                        configured by named.
+
  276.	[bug]		dig now supports maximum sized TCP messages.
 
  275.	[bug]		The definition of lwres_gai_strerror() was missing 
