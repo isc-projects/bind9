@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.30 2002/08/13 01:59:31 marka Exp $
+# $Id: Makefile.in,v 1.31 2002/12/27 03:29:30 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -49,7 +49,7 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
 
 SUBDIRS =
 
-TARGETS =	dig host nslookup
+TARGETS =	dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@
 
 OBJS =		dig.@O@ dighost.@O@ host.@O@ nslookup.@O@
 
@@ -65,13 +65,13 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-dig: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dig.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
-host: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+host@EXEEXT@: host.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ host.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
-nslookup: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
+nslookup@EXEEXT@: nslookup.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nslookup.@O@ dighost.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
@@ -86,8 +86,8 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install:: dig host nslookup installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} dig ${DESTDIR}${bindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} host ${DESTDIR}${bindir}
-	${LIBTOOL} ${INSTALL_PROGRAM} nslookup ${DESTDIR}${bindir}
+install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
+	${LIBTOOL} ${INSTALL_PROGRAM} dig@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} host@EXEEXT@ ${DESTDIR}${bindir}
+	${LIBTOOL} ${INSTALL_PROGRAM} nslookup@EXEEXT@ ${DESTDIR}${bindir}
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; done

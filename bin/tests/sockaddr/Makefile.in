@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.15 2001/09/20 15:16:42 marka Exp $
+# $Id: Makefile.in,v 1.16 2002/12/27 03:29:34 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -36,20 +36,20 @@ DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${TAPILIBS} ${ISCLIBS} @LIBS@
 
-TARGETS =	t_sockaddr
+TARGETS =	t_sockaddr@EXEEXT@
 
 SRCS =		t_sockaddr.c
 
 @BIND9_MAKE_RULES@
 
-t_sockaddr: t_sockaddr.@O@ ${DEPLIBS}
+t_sockaddr@EXEEXT@: t_sockaddr.@O@ ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ t_sockaddr.@O@ ${LIBS}
 
-test: t_sockaddr
-	-@./t_sockaddr -b @srcdir@ -a
+test: t_sockaddr@EXEEXT@
+	-@./t_sockaddr@EXEEXT@ -b @srcdir@ -a
 
 testhelp:
-	@./t_sockaddr -h
+	@./t_sockaddr@EXEEXT@ -h
 
 clean distclean::
 	rm -f ${TARGETS}

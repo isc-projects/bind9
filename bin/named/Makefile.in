@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.77 2001/11/20 01:14:55 gson Exp $
+# $Id: Makefile.in,v 1.78 2002/12/27 03:29:30 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -61,7 +61,7 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
 
 SUBDIRS =	unix
 
-TARGETS =	named lwresd
+TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 
 OBJS =		aclconf.@O@ builtin.@O@ client.@O@ config.@O@ control.@O@ \
 		controlconf.@O@ interfacemgr.@O@ \
@@ -103,12 +103,12 @@ config.@O@: config.c
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-c ${srcdir}/config.c
 
-named: ${OBJS} ${UOBJS} ${DEPLIBS}
+named@EXEEXT@: ${OBJS} ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${UOBJS} ${LIBS}
 
-lwresd: named
-	rm -f lwresd
-	@LN@ named lwresd
+lwresd@EXEEXT@: named@EXEEXT@
+	rm -f lwresd@EXEEXT@
+	@LN@ named@EXEEXT@ lwresd@EXEEXT@
 
 doc man:: ${MANOBJS}
 
@@ -122,7 +122,7 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install:: named lwresd installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} named ${DESTDIR}${sbindir}
-	(cd ${DESTDIR}${sbindir}; rm -f lwresd; @LN@ named lwresd)
+install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
+	${LIBTOOL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
+	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.13 2001/09/20 15:16:45 marka Exp $
+# $Id: Makefile.in,v 1.14 2002/12/27 03:29:35 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -38,7 +38,7 @@ DEPLIBS =	${LWRESDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${ISCLIBS} @LIBS@
 
-TARGETS =	lwtest
+TARGETS =	lwtest@EXEEXT@
 
 OBJS =		lwtest.@O@
 
@@ -46,9 +46,9 @@ SRCS =		lwtest.c
 
 @BIND9_MAKE_RULES@
 
-all: lwtest
+all: lwtest@EXEEXT@
 
-lwtest: ${OBJS} ${DEPLIBS}
+lwtest@EXEEXT@: ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ ${OBJS} ${LIBS}
 
 clean distclean::

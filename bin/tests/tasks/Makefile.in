@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.24 2001/09/20 15:16:48 marka Exp $
+# $Id: Makefile.in,v 1.25 2002/12/27 03:29:36 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -36,20 +36,20 @@ DEPLIBS =	${TAPIDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${TAPILIBS} ${ISCLIBS} @LIBS@
 
-TARGETS =	t_tasks
+TARGETS =	t_tasks@EXEEXT@
 
 SRCS =		t_tasks.c
 
 @BIND9_MAKE_RULES@
 
-t_tasks: t_tasks.@O@ ${DEPLIBS}
+t_tasks@EXEEXT@: t_tasks.@O@ ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ t_tasks.@O@ ${LIBS}
 
-test: t_tasks
-	-@./t_tasks -c @top_srcdir@/t_config -b @srcdir@ -a
+test: t_tasks@EXEEXT@
+	-@./t_tasks@EXEEXT@ -c @top_srcdir@/t_config -b @srcdir@ -a
 
 testhelp:
-	@./t_tasks -h
+	@./t_tasks@EXEEXT@ -h
 
 clean distclean::
 	rm -f ${TARGETS}

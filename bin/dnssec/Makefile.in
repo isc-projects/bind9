@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.23 2002/12/03 05:01:34 marka Exp $
+# $Id: Makefile.in,v 1.24 2002/12/27 03:29:30 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -39,7 +39,7 @@ DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS}
 LIBS =		${DNSLIBS} ${ISCLIBS} @LIBS@
 
 # Alphabetically
-TARGETS =	dnssec-keygen dnssec-signzone
+TARGETS =	dnssec-keygen@EXEEXT@ dnssec-signzone@EXEEXT@
 
 OBJS =		dnssectool.@O@
 
@@ -53,13 +53,13 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-dnssec-keygen: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
+dnssec-keygen@EXEEXT@: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-keygen.@O@ ${OBJS} ${LIBS}
 
 dnssec-signzone.@O@: dnssec-signzone.c
 	${LIBTOOL} ${PURIFY} ${CC} ${ALL_CFLAGS} -c $<
 
-dnssec-signzone: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
+dnssec-signzone@EXEEXT@: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ dnssec-signzone.@O@ ${OBJS} ${LIBS}
 
 doc man:: ${MANOBJS}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.35 2002/10/28 06:12:13 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.36 2002/12/27 03:29:37 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -444,8 +444,10 @@ internal_current4(isc_interfaceiter_t *iter) {
 	if ((ifreq.ifr_flags & IFF_UP) != 0)
 		iter->current.flags |= INTERFACE_F_UP;
 
+#ifdef IFF_POINTTOPOINT
 	if ((ifreq.ifr_flags & IFF_POINTOPOINT) != 0)
 		iter->current.flags |= INTERFACE_F_POINTTOPOINT;
+#endif
 
 	if ((ifreq.ifr_flags & IFF_LOOPBACK) != 0)
 		iter->current.flags |= INTERFACE_F_LOOPBACK;
@@ -488,6 +490,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 #endif
 	if (family != AF_INET)
 		return (ISC_R_IGNORE);
+#ifdef IFF_POINTTOPOINT
 	/*
 	 * If the interface is point-to-point, get the destination address.
 	 */
@@ -512,6 +515,7 @@ internal_current4(isc_interfaceiter_t *iter) {
 		get_addr(family, &iter->current.dstaddress,
 			 (struct sockaddr *)&ifreq.ifr_dstaddr);
 	}
+#endif
 
 	/*
 	 * Get the network mask.

@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.19 2001/11/21 02:19:01 gson Exp $
+# $Id: Makefile.in,v 1.20 2002/12/27 03:29:31 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -47,7 +47,7 @@ LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} ${ISCCFGLIBS} @LIBS@
 
 SUBDIRS =
 
-TARGETS =	nsupdate
+TARGETS =	nsupdate@EXEEXT@
 
 OBJS =		nsupdate.@O@
 
@@ -63,7 +63,7 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-nsupdate: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
+nsupdate@EXEEXT@: nsupdate.@O@ ${UOBJS} ${DEPLIBS}
 	${LIBTOOL} ${PURIFY} ${CC} ${CFLAGS} -o $@ nsupdate.@O@ ${UOBJS} ${LIBS}
 
 doc man:: ${MANOBJS}
@@ -78,6 +78,6 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install:: nsupdate installdirs
-	${LIBTOOL} ${INSTALL_PROGRAM} nsupdate ${DESTDIR}${bindir}
+install:: nsupdate@EXEEXT@ installdirs
+	${LIBTOOL} ${INSTALL_PROGRAM} nsupdate@EXEEXT@ ${DESTDIR}${bindir}
 	${INSTALL_DATA} ${srcdir}/nsupdate.8 ${DESTDIR}${mandir}/man8
