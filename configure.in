@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.270 $)
+AC_REVISION($Revision: 1.271 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -301,7 +301,7 @@ case "$use_openssl" in
 		;;
 	*)
 		USE_OPENSSL='-DOPENSSL'
-		DST_OPENSSL_INC="-L$use_openssl/include"
+		DST_OPENSSL_INC="-I$use_openssl/include"
 		DNS_OPENSSL_LIBS="-L$use_openssl/lib -lcrypto"
 		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
 		;;
