@@ -1,7 +1,7 @@
-1770.	[bug]		named-checkconf failed to report missing a missing
-1763.	[func]		Perform sanity checks on NS records which refer to
-			'in zone' names. [RT #13002]
+1774.	[port]		Aix: Silence compiler warnings / build failures.
+			[RT #13154]
 
+1770.	[bug]		named-checkconf failed to report missing a missing
 			file clause for rbt{64} master/hint zones. [RT#13009]
 
 1769.	[port]		win32: change compiler flags /MTd ==> /MDd,
@@ -21,6 +21,9 @@
 1764.	[bug]		dns_zone_replacedb failed to emit a error message
 			if there was no SOA record in the replacment db.
 			[RT #13016]
+
+1763.	[func]		Perform sanity checks on NS records which refer to
+			'in zone' names. [RT #13002]
 
 1762.	[bug]		isc_interfaceiter_create() could return ISC_R_SUCCESS
 			even when it failed. [RT #12995]

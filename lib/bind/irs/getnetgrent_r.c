@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7 2004/03/09 06:30:02 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7.18.1 2004/11/30 01:18:07 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -29,7 +29,6 @@ static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7 2004/03/09 06:30:02 mark
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <netgroup.h>
 #include <stdlib.h>
 #include <port_after.h>
 

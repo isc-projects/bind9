@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.15 2004/03/16 05:52:16 marka Exp $
+ *	$Id: netdb.h,v 1.15.18.1 2004/11/30 01:18:06 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -526,6 +526,9 @@ void		endservent_r __P((void));
 
 #ifdef __GLIBC__
 int		getnetgrent_r __P((char **, char **, char **, char *, size_t));
+#endif
+#ifdef _AIX
+int		setnetgrent_r __P((char *, void **));
 #endif
 
 #endif
