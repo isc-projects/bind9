@@ -181,12 +181,8 @@ isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	result->absolute.dwHighDateTime = i2.HighPart;
 }
 
-/***
- *** Win32 Only
- ***/
-
-unsigned int
-isc_time_millidiff(isc_time_t *t1, isc_time_t *t2) {
+isc_uint64_t
+isc_time_microdiff(isc_time_t *t1, isc_time_t *t2) {
 	ULARGE_INTEGER i1, i2;
 	LONGLONG i3;
 
@@ -201,14 +197,9 @@ isc_time_millidiff(isc_time_t *t1, isc_time_t *t2) {
 		return (0);
 
 	/*
-	 * Convert to milliseconds.
+	 * Convert to microseconds.
 	 */
-	i3 = (i1.QuadPart - i2.QuadPart) / 10000;
+	i3 = (i1.QuadPart - i2.QuadPart) / 10;
 
-#define _MILLIMAX 1000000000			  /* XXX arbitrary! */
-	if (i3 > _MILLIMAX)
-		return (_MILLIMAX);
-#undef _MILLIMAX
-
-	return ((unsigned int)(i3));
+	return (i3);
 }

@@ -130,12 +130,19 @@ isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
 			isc_time_t *t)
 {
 	DWORD milliseconds;
-	struct isc_time now;
+	isc_uint64_t microseconds;
+	isc_time_t now;
 
 	if (isc_time_now(&now) != ISC_R_SUCCESS) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-	milliseconds = (DWORD)isc_time_millidiff(t, &now);
+
+	microseconds = isc_time_microdiff(t, &now);
+	if (microseconds > 0xFFFFFFFFi64 * 1000)
+		milliseconds = 0xFFFFFFFF;
+	else
+		milliseconds = (DWORD)(microseconds / 1000);
+
 	return (wait(cond, mutex, milliseconds));
 }
