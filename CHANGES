@@ -1,6 +1,9 @@
 
 	--- 9.1.0b2 released ---
 
+ 631.	[port]		Build without thread support on systems without
+			pthreads.
+
  630.	[bug]		Locking failure in zone code. [RT #582]
 
  629.	[bug]		9.1.0b1 dereferenced a null pointer and crashed
