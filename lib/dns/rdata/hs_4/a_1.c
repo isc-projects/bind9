@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.16 2000/08/01 01:26:13 tale Exp $ */
+/* $Id: a_1.c,v 1.17 2000/08/28 17:39:21 bwelling Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -116,7 +116,7 @@ compare_hs_a(ARGS_COMPARE) {
 	int order;
 
 	REQUIRE(rdata1->type == rdata2->type);
-	REQUIRE(rdata1->rdclass == rdata2->type);
+	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 4);
 
