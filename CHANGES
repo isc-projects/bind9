@@ -1,3 +1,6 @@
+1783.	[cleanup]	We only need one copy of libtool.m4, ltmain.sh in the
+			source tree.
+
 1782.	[placeholder]	rt13219
 
 1781.	[placeholder]	rt12810
