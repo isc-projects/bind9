@@ -56,6 +56,9 @@
 1809.	[bug]		"make distclean" failed for libbind if the platform
 			is not supported.
 
+1807.	[bug]		When forwarding (forward only) set the active domain
+			from the forward zone name. [RT #13526]
+			
 1804.	[bug]		Ensure that if we are queried for glue that it fits
 			in the additional section or TC is set to tell the
 			client to retry using TCP. [RT #10114]
