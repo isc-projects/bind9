@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.5 2003/08/22 06:40:04 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.6 2003/08/25 04:41:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1449,6 +1449,8 @@ usage(void) {
 	fprintf(stderr, "\t%s [options] zonefile [keys]\n", program);
 
 	fprintf(stderr, "\n");
+
+	fprintf(stderr, "Version: %s\n", VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-c class (IN)\n");

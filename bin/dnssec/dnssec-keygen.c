@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.48.2.1.10.4 2003/08/13 00:53:02 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.48.2.1.10.5 2003/08/25 04:41:17 marka Exp $ */
 
 #include <config.h>
 
@@ -60,6 +60,7 @@ usage(void) {
 	fprintf(stderr, "Usage:\n");
 	fprintf(stderr, "    %s -a alg -b bits -n type [options] name\n\n",
 		program);
+	fprintf(stderr, "Version: %s\n", VERSION);
 	fprintf(stderr, "Required options:\n");
 	fprintf(stderr, "    -a algorithm: %s\n", algs);
 	fprintf(stderr, "    -b key size, in bits:\n");

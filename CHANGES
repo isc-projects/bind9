@@ -6,6 +6,10 @@
 1500.	[bug]		host failed to lookup MX records.  Also look up 
 			AAAA records.
 
+1403.	[func]		dnssec-signzone, dnssec-keygen, dnssec-makekeyset
+			dnssec-signkey now report their version in the
+			usage message.
+
 1402.	[cleanup]	A6 has been moved to experimental and is no longer
 			fully supported.
 

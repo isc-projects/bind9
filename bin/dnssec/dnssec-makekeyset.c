@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.52.2.1.10.1 2003/08/01 23:50:46 marka Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.52.2.1.10.2 2003/08/25 04:41:17 marka Exp $ */
 
 #include <config.h>
 
@@ -70,6 +70,8 @@ usage(void) {
 	fprintf(stderr, "\t%s [options] keys\n", program);
 
 	fprintf(stderr, "\n");
+
+	fprintf(stderr, "Version: %s\n", VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-a\n");
