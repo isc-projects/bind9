@@ -202,7 +202,7 @@ Building
 
 	    CFLAGS
 		C compiler flags.  Defaults to include -g and/or -O2
-		as supported by the compiler.
+		as supported by the compiler.  
 
 	    STD_CINCLUDES
 		System header file directories.	 Can be used to specify
@@ -267,6 +267,9 @@ Building
 
 	Building with gcc is not supported, unless gcc is the vendor's usual
 	compiler (e.g. the various BSD systems, Linux).
+	
+	* gcc-3.2.1 and gcc-3.1.1 is known to cause problems with solaris-x86.
+	* gcc ultrasparc generates incorrect code at -02.
 
 	A limited test suite can be run with "make test".  Many of
 	the tests require you to configure a set of virtual IP addresses
