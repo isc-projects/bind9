@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.5 1999/09/10 17:18:30 halley Exp $
+ * $Id: dnssec.c,v 1.6 1999/09/23 20:56:59 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -560,16 +560,15 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &pubkey);
 		check_result(result, "dns_dnssec_keyfromrdata()");
-		if (!is_zone_key(pubkey)) {
-			dst_key_free(pubkey);
-			continue;
-		}
+		if (!is_zone_key(pubkey))
+			goto next;
 		result = dst_key_fromfile(dst_key_name(pubkey),
 					  dst_key_id(pubkey),
 					  dst_key_alg(pubkey),
 					  DST_TYPE_PRIVATE,
 					  mctx, &keys[count++]);
 		check_result(result, "dst_key_fromfile()");
+ next:
 		dst_key_free(pubkey);
 		pubkey = NULL;
 		result = dns_rdataset_next(&rdataset);
