@@ -1,5 +1,4 @@
-
- 924.	[port]		Apply #910 to lib/lwres.  [RT #987]
+ 924.	[port]		Extend pre-RFC2133 support. [RT #987]
 
  923.	[bug]		Multiline TSIG secrets (and other multiline strings)
 			were not accepted in named.conf. [RT #1469]
