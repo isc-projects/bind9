@@ -1,3 +1,6 @@
+1135.	[func]		You can now override the default syslog() facility for
+			named/lwresd at compile time. [RT #1982]
+
 1132.	[func]		Improve UPDATE prerequisite failure diagnotic messages.
 
 1128.	[func]		sdb drivers can now provide RR data in either text
