@@ -16,7 +16,7 @@
  - WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.3 2002/07/25 05:46:07 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.4 2002/10/17 23:44:35 marka Exp $ -->
 
 <refentry>
 
@@ -103,9 +103,9 @@ output.
 <para>
 List mode is selected by the <option>-l</option> option.  This makes
 <command>host</command> perform a zone transfer for zone
-<parameter>name</parameter>.  The argument is provided for
-compatibility with older implemementations.  This option is equivalent
-to making a query of type AXFR.
+<parameter>name</parameter>.  Transfer the zone printing out the NS, PTR
+and address records (A/AAAA).  If combined with <option>-a</option>
+all records will be printed.  
 </para>
 
 <para>
@@ -163,7 +163,9 @@ type.  By default it looks for A records, but if the
 <option>-C</option> option was given, queries will be made for SOA
 records, and if <parameter>name</parameter> is a dotted-decimal IPv4
 address or colon-delimited IPv6 address, <command>host</command> will
-query for PTR records.
+query for PTR records.  If a query type of IXFR is chosen the starting
+serial number can be specified by appending an equal followed by the
+starting serial number (e.g. -t IXFR=12345678).
 </para>
 
 <para>

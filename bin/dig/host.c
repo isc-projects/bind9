@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.87 2002/09/26 11:17:06 jinmei Exp $ */
+/* $Id: host.c,v 1.88 2002/10/17 23:44:35 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -500,6 +500,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
+	isc_uint32_t serial = 0;
 
 	UNUSED(is_batchfile);
 
@@ -522,10 +523,19 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->recurse = ISC_FALSE;
 			break;
 		case 't':
-			tr.base = isc_commandline_argument;
-			tr.length = strlen(isc_commandline_argument);
-			result = dns_rdatatype_fromtext(&rdtype,
+			if (strncasecmp(isc_commandline_argument,
+					"ixfr=", 5) == 0) {
+				rdtype = dns_rdatatype_ixfr;
+				/* XXXMPA add error checking */
+				serial = strtoul(isc_commandline_argument + 5,
+						 NULL, 10);
+				result = ISC_R_SUCCESS;
+			} else {
+				tr.base = isc_commandline_argument;
+				tr.length = strlen(isc_commandline_argument);
+				result = dns_rdatatype_fromtext(&rdtype,
 						   (isc_textregion_t *)&tr);
+			}
 
 			if (result != ISC_R_SUCCESS) {
 				fatalexit = 2;
@@ -541,7 +551,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				list_type = dns_rdatatype_any;
 				short_form = ISC_FALSE;
 				lookup->tcp_mode = ISC_TRUE;
-			} else 
+			} else if (rdtype == dns_rdatatype_ixfr) {
+				lookup->ixfr_serial = serial;
+				list_type = rdtype;
+			} else
 				list_type = rdtype;
 			list_addresses = ISC_FALSE;
 			break;
