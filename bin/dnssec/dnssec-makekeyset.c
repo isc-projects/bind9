@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.52 2001/05/10 06:04:56 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.53 2001/09/05 23:15:36 bwelling Exp $ */
 
 #include <config.h>
 
@@ -129,7 +129,6 @@ int
 main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL;
-	char *randomfile = NULL;
 	dns_fixedname_t fdomain;
 	dns_name_t *domain = NULL;
 	char *output = NULL;
@@ -181,7 +180,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'r':
-			randomfile = isc_commandline_argument;
+			setup_entropy(mctx, isc_commandline_argument, &ectx);
 			break;
 
 		case 'v':
@@ -208,7 +207,8 @@ main(int argc, char *argv[]) {
 	if (argc < 1)
 		usage();
 
-	setup_entropy(mctx, randomfile, &ectx);
+	if (ectx == NULL)
+		setup_entropy(mctx, NULL, &ectx);
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;

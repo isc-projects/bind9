@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.48 2001/07/10 18:53:09 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.49 2001/09/05 23:15:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -92,7 +92,6 @@ int
 main(int argc, char **argv) {
 	char		*algname = NULL, *nametype = NULL, *type = NULL;
 	char		*classname = NULL;
-	char		*randomfile = NULL;
 	char		*prog, *endp;
 	dst_key_t	*key = NULL, *oldkey;
 	dns_fixedname_t	fname;
@@ -173,7 +172,7 @@ main(int argc, char **argv) {
 				      "[0..15]");
 			break;
 		case 'r':
-			randomfile = isc_commandline_argument;
+			setup_entropy(mctx, isc_commandline_argument, &ectx);
 			break;
 		case 'v':
 			endp = NULL;
@@ -191,7 +190,8 @@ main(int argc, char **argv) {
 		}
 	}
 
-	setup_entropy(mctx, randomfile, &ectx);
+	if (ectx == NULL)
+		setup_entropy(mctx, NULL, &ectx);
 	ret = dst_lib_init(mctx, ectx,
 			   ISC_ENTROPY_BLOCKING | ISC_ENTROPY_GOODONLY);
 	if (ret != ISC_R_SUCCESS)

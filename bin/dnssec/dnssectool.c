@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.32 2001/09/05 22:32:05 bwelling Exp $ */
+/* $Id: dnssectool.c,v 1.33 2001/09/05 23:15:42 bwelling Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,8 @@
 
 #include <isc/buffer.h>
 #include <isc/entropy.h>
+#include <isc/list.h>
+#include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
@@ -41,7 +43,15 @@
 extern int verbose;
 extern const char *program;
 
-static isc_entropysource_t *source = NULL;
+typedef struct entropysource entropysource_t;
+
+struct entropysource {
+	isc_entropysource_t *source;
+	isc_mem_t *mctx;
+	ISC_LINK(entropysource_t) link;
+};
+
+static ISC_LIST(entropysource_t) sources;
 static fatalcallback_t *fatalcallback = NULL;
 
 void
@@ -201,6 +211,8 @@ cleanup_logging(isc_log_t **logp) {
 void
 setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	isc_result_t result;
+	isc_entropysource_t *source = NULL;
+	entropysource_t *elt;
 	int usekeyboard = ISC_ENTROPY_KEYBOARDMAYBE;
 
 	REQUIRE(ectx != NULL);
@@ -209,6 +221,7 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 		result = isc_entropy_create(mctx, ectx);
 		if (result != ISC_R_SUCCESS)
 			fatal("could not create entropy object");
+		ISC_LIST_INIT(sources);
 	}
 
 	if (randomfile != NULL && strcmp(randomfile, "keyboard") == 0) {
@@ -222,12 +235,27 @@ setup_entropy(isc_mem_t *mctx, const char *randomfile, isc_entropy_t **ectx) {
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize entropy source: %s",
 		      isc_result_totext(result));
+
+	if (source != NULL) {
+		elt = isc_mem_get(mctx, sizeof *elt);
+		if (elt == NULL)
+			fatal("out of memory");
+		elt->source = source;
+		elt->mctx = mctx;
+		ISC_LINK_INIT(elt, link);
+		ISC_LIST_APPEND(sources, elt, link);
+	}
 }
 
 void
 cleanup_entropy(isc_entropy_t **ectx) {
-	if (source != NULL)
-		isc_entropy_destroysource(&source);
+	entropysource_t *source;
+	while (!ISC_LIST_EMPTY(sources)) {
+		source = ISC_LIST_HEAD(sources);
+		ISC_LIST_UNLINK(sources, source, link);
+		isc_entropy_destroysource(&source->source);
+		isc_mem_put(source->mctx, source, sizeof *source);
+	}
 	isc_entropy_detach(ectx);
 }
 

@@ -1,4 +1,7 @@
 
+ 981.	[func]		The dnssec tools can now take multiple '-r randomfile'
+ 			arguments.
+
  980.	[bug]		Incoming zone transfers restarting after an error
 			could trigger an assertion failure. [RT #1692]
 
