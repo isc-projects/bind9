@@ -1,3 +1,18 @@
+ 190.   [cleanup]	The DNSSEC tools have been moved to a separate 
+			directory dnssec/ and given the following new,
+			more descriptive names:
+
+			      dnssec-keygen
+			      dnssec-signzone
+			      dnssec-signkey
+			      dnssec-makekeyset
+
+			Their command line arguments have also been changed to
+			be more consistent.  dnssec-keygen now prints the
+			name of the generated key files (sans extension)
+			on standard output to simplify its use in automated
+			scripts.
+
  189.   [func]          isc_time_secondsastimet(), a new function, will ensure
                         that the number of seconds in an isc_time_t does not
                         exceed the range of a time_t, or return ISC_R_RANGE.

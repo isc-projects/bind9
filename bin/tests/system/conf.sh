@@ -6,10 +6,10 @@
 TOP="`cd ../../..; pwd`"
 
 NAMED=$TOP/bin/named/named
-KEYGEN=$TOP/bin/tests/keygen
-SIGNER=$TOP/bin/tests/signer
-KEYSIGNER=$TOP/bin/tests/keysigner
-KEYSETTOOL=$TOP/bin/tests/keysettool
+KEYGEN=$TOP/bin/dnssec/dnssec-keygen
+SIGNER=$TOP/bin/dnssec/dnssec-signzone
+KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
+KEYSETTOOL=$TOP/bin/tests/dnssec-makekeyset
 
 SUBDIRS="xfer dnssec xferquota"
 

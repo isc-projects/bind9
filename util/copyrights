@@ -6,6 +6,9 @@
 ./aclocal.m4					X	1999,2000
 ./bin/.cvsignore				X	1999,2000
 ./bin/Makefile.in				MAKE	1998,1999,2000
+./bin/dnssec/Makefile.in			MAKE	2000
+./bin/dnssec/dnssec-signzone.c			C	1999,2000
+./bin/dnssec/dnssec-keygen.c			PORTION	1999,2000
 ./bin/lwresd/.cvsignore				X	2000
 ./bin/lwresd/Makefile.in			MAKE	2000
 ./bin/lwresd/client.c				C	2000
@@ -141,7 +144,6 @@
 ./bin/tests/gxbn_test.c				C	2000
 ./bin/tests/headerdep_test.sh.in		SH	2000
 ./bin/tests/inter_test.c			C	2000
-./bin/tests/keygen.c				PORTION	1999,2000
 ./bin/tests/lex_test.c				C	1998,1999,2000
 ./bin/tests/lfsr_test.c				C	1999,2000
 ./bin/tests/log_test.c				C	1999,2000
@@ -254,7 +256,6 @@
 ./bin/tests/sdig.c				C	1999,2000
 ./bin/tests/serial_test.c			C	1999,2000
 ./bin/tests/shutdown_test.c			C	1998,1999,2000
-./bin/tests/signer.c				C	1999,2000
 ./bin/tests/sock_test.c				C	1998,1999,2000
 ./bin/tests/sockaddr/.cvsignore			X	1999,2000
 ./bin/tests/sockaddr/Makefile.in		MAKE	1999,2000
