@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.291 2001/02/14 03:54:53 gson Exp $ */
+/* $Id: server.c,v 1.292 2001/02/17 01:09:22 bwelling Exp $ */
 
 #include <config.h>
 
@@ -870,11 +870,13 @@ create_authors_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view) {
 	static const char *authors[] = {
 		"\014Mark Andrews",
 		"\015James Brister",
+		"\014Ben Cottrell",
 		"\015Michael Graff",
 		"\022Andreas Gustafsson",
 		"\012Bob Halley",
 		"\016David Lawrence",
 		"\013Damien Neil",
+		"\013Matt Nelson",
 		"\016Michael Sawyer",
 		"\020Brian Wellington",
 		NULL,
