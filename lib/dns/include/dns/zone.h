@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.94 2000/12/13 00:15:39 tale Exp $ */
+/* $Id: zone.h,v 1.95 2000/12/28 01:29:08 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1047,8 +1047,9 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
  * Forward 'msg' to each master in turn until we get an answer or we
  * have exausted the list of masters. 'callback' will be called with
  * ISC_R_SUCCESS if we get an answer and the returned message will be
- * passed, otherwise a non ISC_R_SUCCESS result code will be passed and
- * msg will be NULL.
+ * passed as 'answer_message', otherwise a non ISC_R_SUCCESS result code
+ * will be passed and answer_message will be NULL.  The callback function
+ * is responsible for destroying 'answer_message'.
  *		(callback)(callback_arg, result, answer_message);
  *
  * Require:

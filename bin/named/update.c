@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.78 2000/12/16 00:58:01 gson Exp $ */
+/* $Id: update.c,v 1.79 2000/12/28 01:29:09 marka Exp $ */
 
 #include <config.h>
 
@@ -147,7 +147,7 @@ struct update_event {
 	ISC_EVENT_COMMON(update_event_t);
 	dns_zone_t 		*zone;
 	isc_result_t		result;
-
+	dns_message_t		*answer;
 };
 
 /**************************************************************************/
@@ -158,6 +158,7 @@ struct update_event {
 static void update_action(isc_task_t *task, isc_event_t *event);
 static void updatedone_action(isc_task_t *task, isc_event_t *event);
 static isc_result_t send_forward_event(ns_client_t *client, dns_zone_t *zone);
+static void forward_done(isc_task_t *task, isc_event_t *event);
 
 /**************************************************************************/
 /*
@@ -2472,19 +2473,44 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
  */
 
 static void
-forward_fail(ns_client_t *client, isc_result_t result) {
-	UNUSED(result);
+forward_fail(isc_task_t *task, isc_event_t *event) {
+        ns_client_t *client = (ns_client_t *)event->ev_arg;
+
+	UNUSED(task);
+
 	respond(client, DNS_R_SERVFAIL);
+	ns_client_detach(&client);
+	isc_event_free((isc_event_t **)&event);
 }
+
 
 static void
 forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
-	ns_client_t *client = arg;
+	update_event_t *uev = arg;
+	ns_client_t *client = uev->ev_arg;
 
-	if (result != ISC_R_SUCCESS)
-		forward_fail(client, result);
-	else
-		ns_client_sendraw(client, answer);
+	if (result != ISC_R_SUCCESS) {
+		INSIST(answer == NULL);
+		uev->ev_type = DNS_EVENT_UPDATEDONE;
+		uev->ev_action = forward_fail;
+	} else {
+		uev->ev_type = DNS_EVENT_UPDATEDONE;
+		uev->ev_action = forward_done;
+		uev->answer = answer;
+	}
+	isc_task_send(client->task, (isc_event_t**)&uev);
+}
+
+static void
+forward_done(isc_task_t *task, isc_event_t *event) {
+	update_event_t *uev = (update_event_t *) event;
+	ns_client_t *client = (ns_client_t *)event->ev_arg;
+
+	UNUSED(task);
+
+	ns_client_sendraw(client, uev->answer);
+	dns_message_destroy(&uev->answer);
+	isc_event_free((isc_event_t **)&event);
 	ns_client_detach(&client);
 }
 
@@ -2496,13 +2522,13 @@ forward_action(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 
 	result = dns_zone_forwardupdate(zone, client->message,
-					forward_callback, client);
+					forward_callback, event);
 	if (result != ISC_R_SUCCESS) {
-		forward_fail(client, result);
-		ns_client_detach(&client);
+		uev->ev_type = DNS_EVENT_UPDATEDONE;
+		uev->ev_action = forward_fail;
+		isc_task_send(client->task, &event);
 	}
 	dns_zone_detach(&zone);
-	isc_event_free(&event);
 	isc_task_detach(&task);
 }
 
