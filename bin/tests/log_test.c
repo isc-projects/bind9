@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log_test.c,v 1.17 2000/06/01 19:10:41 tale Exp $ */
+/* $Id: log_test.c,v 1.18 2000/06/23 17:44:45 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -125,12 +125,12 @@ main (int argc, char **argv) {
 	/*
 	 * Test isc_log_categorybyname and isc_log_modulebyname.
 	 */
-	category = isc_log_categorybyname(lctx, "xfer-in");
+	category = isc_log_categorybyname(lctx, "notify");
 	if (category != NULL)
 		fprintf(stderr, "%s category found. (expected)\n",
 			category->name);
 	else
-		fprintf(stderr, "xfer-in category not found!\n");
+		fprintf(stderr, "notify category not found!\n");
 
 	module = isc_log_modulebyname(lctx, "xyzzy");
 	if (module != NULL)
@@ -304,7 +304,7 @@ main (int argc, char **argv) {
 	message = "This message should appear only once on stderr";
 
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
-		       ISC_LOG_CRITICAL, "%s", message, stderr_line++);
+		       ISC_LOG_CRITICAL, "%s", message);
 	isc_log_write1(lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_RBTDB,
 		       ISC_LOG_CRITICAL, message);
 
