@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: client.c,v 1.101 2000/07/17 18:43:30 bwelling Exp $ */
+/* $Id: client.c,v 1.102 2000/07/17 23:19:14 gson Exp $ */
 
 #include <config.h>
 
@@ -488,6 +488,12 @@ ns_client_endrequest(ns_client_t *client) {
 
 	if (client->recursionquota != NULL)
 		isc_quota_detach(&client->recursionquota);
+
+	/*
+	 * Clear all client attributes that are specific to 
+	 * the request; that's all except the TCP flag.
+	 */
+	client->attributes &= NS_CLIENTATTR_TCP;
 }
 
 static void
@@ -847,13 +853,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if ((devent->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0) {
 			client->attributes |= NS_CLIENTATTR_PKTINFO;
 			client->pktinfo = devent->pktinfo;
-		} else {
-			client->attributes &= ~NS_CLIENTATTR_PKTINFO;
 		}
 		if ((devent->attributes & ISC_SOCKEVENTATTR_MULTICAST) != 0)
 			client->attributes |= NS_CLIENTATTR_MULTICAST;
-		else
-			client->attributes &= ~NS_CLIENTATTR_MULTICAST;
 	} else {
 		INSIST(TCP_CLIENT(client));
 		REQUIRE(event->ev_type == DNS_EVENT_TCPMSG);
@@ -1053,8 +1055,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
-	else
-		client->attributes &= ~NS_CLIENTATTR_RA;
 
 	/*
 	 * Dispatch the request.
