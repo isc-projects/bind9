@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.168 2001/10/01 18:53:51 gson Exp $ */
+/* $Id: dig.c,v 1.169 2001/10/31 20:39:37 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -625,12 +625,12 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	strncpy(option_store, option, sizeof(option_store));
 	option_store[sizeof(option_store)-1]=0;
 	ptr = option_store;
-	cmd=next_token(&ptr,"=");
+	cmd = next_token(&ptr,"=");
 	if (cmd == NULL) {
 		printf(";; Invalid option %s\n",option_store);
 		return;
 	}
-	value=ptr;
+	value = ptr;
 	if (strncasecmp(cmd,"no",2)==0) {
 		cmd += 2;
 		state = ISC_FALSE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.232 2001/10/15 20:40:36 gson Exp $ */
+/* $Id: dighost.c,v 1.233 2001/10/31 20:39:39 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -241,7 +241,7 @@ get_reverse(char *reverse, char *value, isc_boolean_t nibble,
 	isc_netaddr_t addr;
 
 	addr.family = AF_INET6;
-	r= inet_pton(AF_INET6, value, &addr.type.in6);
+	r = inet_pton(AF_INET6, value, &addr.type.in6);
 	if (r > 0) {
 		/* This is a valid IPv6 address. */
 		dns_fixedname_t fname;
@@ -1700,8 +1700,8 @@ send_udp(dig_query_t *query) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *l=NULL;
-	dig_query_t *query=NULL, *cq;
+	dig_lookup_t *l = NULL;
+	dig_query_t *query = NULL, *cq;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
