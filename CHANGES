@@ -1,5 +1,6 @@
- 621.	[port]		Disable IPv6 at runtime if they are unusable.  This
-			mostly affects Red Hat Linux 7.0.
+ 621.	[port]		Disable IPv6 at runtime if IPv6 sockets are unusable.
+			This mostly affects Red Hat Linux 7.0, which has
+			conflicts between libc and the kernel.
 
  620.	[bug]		dns_master_load*inc() now require 'task' and 'load'
 			to be non-null.  Also 'done' will not be called if
