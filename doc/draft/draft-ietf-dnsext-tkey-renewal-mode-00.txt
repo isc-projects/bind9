@@ -1,0 +1,1009 @@
+
+
+
+
+DNSEXT Working Group                                        Yuji Kamite
+INTERNET-DRAFT                                          Masaya Nakayama
+<draft-ietf-dnsext-tkey-renewal-mode-00.txt>    the University of Tokyo
+Expires: May 2, 2002                                   November 2, 2001
+
+
+
+
+                      TKEY Secret Key Renewal Mode
+
+
+Status of this Memo
+
+  This document is an Internet-Draft and is in full conformance with all
+  provisions of Section 10 of RFC2026.
+
+  Internet-Drafts are working documents of the Internet Engineering Task
+  Force (IETF), its areas, and its working groups.  Note that other
+  groups may also distribute working documents as Internet-Drafts.
+
+  Internet-Drafts are draft documents valid for a maximum of six months
+  and may be updated, replaced, or obsoleted by other documents at any
+  time.  It is inappropriate to use Internet-Drafts as reference
+  material or to cite them other than as ``work in progress.''
+
+  The list of current Internet-Drafts can be accessed at
+  http://www.ietf.org/ietf/1id-abstracts.txt
+
+  The list of Internet-Draft Shadow Directories can be accessed at
+  http://www.ietf.org/shadow.html
+
+
+Abstract
+
+   This document defines a new mode in TKEY [RFC2930] and proposes an
+   atomic method for changing periodically secret keys for TSIG
+   [RFC2845]. This method is intended to prevent signing messages with
+   old and non-safe keys permanently. A server checks the valid periods
+   of keys whenever it receives queries, and if any key is too old, it
+   is demanded that the client sharing it should send a secret renewal
+   request. After secret establishment and a query with a new signature
+   is received, the key becomes valid formally and the previous one is
+   invalidated.
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                 [Page 1]
+
+INTERNET-DRAFT                                             November 2001
+
+
+Table of Contents
+
+
+1  Introduction  . . . . . . . . . . . . . . . . . . . . . . . . . .   3
+  1.1  Overview of Secret Key Renewal Mode . . . . . . . . . . . . .   3
+  1.2  Comparison of Secret Key Renewal and usual Diffie-Hellman
+  Exchanged Keying . . . . . . . . . . . . . . . . . . . . . . . . .   4
+2  Shared secret key renewal . . . . . . . . . . . . . . . . . . . .   5
+  2.1  Detection of secret expiration  . . . . . . . . . . . . . . .   5
+  2.2  Partial key revocation  . . . . . . . . . . . . . . . . . . .   6
+  2.3  Query for DH exchange for key renewal . . . . . . . . . . . .   6
+    2.3.1  Query . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+    2.3.2  Response  . . . . . . . . . . . . . . . . . . . . . . . .   8
+  2.4  Key Adoption  . . . . . . . . . . . . . . . . . . . . . . . .  10
+  2.5  Considerations about non-compliant hosts for secret key
+  renewal  . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  10
+3  Secret Storage  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+4  Compulsory key revocation by servers  . . . . . . . . . . . . . .  10
+  4.1  Example of compulsory key revocation  . . . . . . . . . . . .  11
+5  Special considerations for two servers' case  . . . . . . . . . .  11
+  5.1  To cope with collisions of renewal requests . . . . . . . . .  12
+6  Key name consideration  . . . . . . . . . . . . . . . . . . . . .  13
+7  Example usage of TKEY Secret Key Renewal Mode . . . . . . . . . .  14
+8  Security consideration  . . . . . . . . . . . . . . . . . . . . .  16
+9  IANA consideration  . . . . . . . . . . . . . . . . . . . . . . .  16
+10 References  . . . . . . . . . . . . . . . . . . . . . . . . . . .  17
+Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . .  18
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                 [Page 2]
+
+INTERNET-DRAFT                                             November 2001
+
+
+1.  Introduction
+
+   TSIG [RFC2845] provides whole DNS message integrity and the
+   request/transaction authentication, by means of message
+   authentication codes (MAC). Moreover, TSIG is practical in view of
+   calculation speed and easily available. To make use of TSIG, in most
+   cases hosts must share secret keys by manual exchange, which is a
+   little troublesome. but if you use TKEY [RFC2930] as well, hosts can
+   establish secrets for TSIG via networks, not by manual exchange.
+
+   In various modes of TKEY, a server and a resolver can add or delete a
+   secret key be means of TKEY message exchange. However, old TKEY
+   doesn't care fully about the management of keys which became too old,
+   or dangerous after long time usage.
+
+   It is ideal that the number of secret which a pair of hosts share
+   should be limited only one, because having too many keys for the same
+   purpose might not only be a burden to resolvers for managing and
+   distinguishing according to servers to query, but also doesn't seem
+   to be safe in terms of storage and protection against attackers.
+   Moreover, perhaps holding old keys long time might give attackers
+   chances to compromise by scrupulous calculation.
+
+   Therefore, When a new shared secret is established by TKEY, the
+   previous old secret used until then should be revoked immediately. To
+   accomplish this, DNS servers must support a protocol for key renewal.
+
+   This document specifies procedure to refresh secret keys between two
+   hosts which is defined within the framework of TKEY, and it is called
+   "TKEY Secret Key Renewal Mode".
+
+   The key words "MUST", "MUST NOT", "SHOULD", "SHOULD NOT" in this
+   document are to be interpreted as described in [RFC 2119].
+
+
+1.1.  Overview of Secret Key Renewal Mode
+
+   When a server receives a query from a client signed with a TSIG key,
+   It always checks if the present time is within the range of usage
+   duration it considers safe. If it is judged that the key is too old,
+   the server comes to be in "partial revocation" state about the key.
+
+   In this state, whenever a client sends a normal query (e.g. question
+   about A RR) other than TKEY "Renewal" request with TSIG signed with
+   the old key, the server returns an error message to notify that the
+   time to renew has come.  This is called "PartialRevoke" error
+   message.
+
+
+
+
+Kamite, et. al.                                                 [Page 3]
+
+INTERNET-DRAFT                                             November 2001
+
+
+   The client which got this error is able to notice that it is
+   necessary to refresh the secret.  To make a new shared secret, it
+   sends a TKEY "Renewal" request. In the "Renewal" process, Diffie-
+   Hellman Exchange is used.  After new secret establishment, the client
+   retries the original query to the server.  When the server receives
+   it and succeeds to verify TSIG signed with the new secret key, the
+   key is formally adopted, and at the same time the corresponding old
+   secret is invalidated.
+
+
+1.2.  Comparison of Secret Key Renewal and usual Diffie-Hellman
+Exchanged Keying
+
+   If you use Diffie-Hellman Exchanged Keying [RFC2930], a new key can
+   be generated after message exchange. Thus, if clients take heed of
+   inception and expiration time of their keys and can send DH Exchanged
+   Keying queries, it is possible to change secrets in regular
+   intervals.
+
+   However, this method has a few difficulties in terms of operation.
+   First, It is impossible for clients to sense timings of sending
+   Diffie-Hellman Exchanged Keying queries based on the previous answers
+   returned from servers: no information about key refresh timing is
+   written in answer messages.
+
+   In addition, if clients send Keying requests too many times, servers
+   will have to create a great many secret keys, which will waste
+   servers' memory. For example, clients occasionally fail to get keying
+   answers because DNS messages can be exchanged on UDP and might be
+   sometimes dropped. Then, they will try to send requests again, and
+   the servers will have to make other keys more. On top of that,
+   possibly there might be malicious clients that want only to annoy
+   servers by sending a lot of requests.
+
+   "Secret Key Renewal Mode" solves these problems.  Because this mode's
+   requests are often triggered by the detection of "PartialRevoke" TSIG
+   error answers (defined in this document), clients know key renewal
+   timing at any time even if they haven't traced old keys'
+   inception/expiration time or have forgotten them. Besides, memory
+   waste can be prevented because servers always restrict clients which
+   can establish new secrets to those who have the corresponding
+   previous old secrets, and servers never permit that two or more new
+   keys following one old key are created.  It can be said that this
+   "Renewal" Mode specifies concrete procedure to switch an old key to
+   new one smoothly, not limited only in adding or deleting a key.
+
+
+
+
+
+
+Kamite, et. al.                                                 [Page 4]
+
+INTERNET-DRAFT                                             November 2001
+
+
+2.  Shared secret key renewal
+
+   Suppose a server and a client agree to change their TSIG keys
+   periodically. Key renewal procedure is defined between two hosts.
+
+
+2.1.  Detection of secret expiration
+
+   DNS servers permitting TSIG key renewal MUST keep and be able to
+   recognize all secret inception and expiration time about keys. Each
+   secret key has one inception time and one expiration time. Whenever a
+   server receives a query with TSIG and can find a key whose name is
+   indicated in TSIG, the server checks inception and expiration time
+   based on the information of the server's own.
+
+   At least either one of two hosts which make use of TKEY Key Renewal
+   Mode MUST be able to own and supervise the time values about their
+   shared keys too. The value is called "partial revocation time" which
+   means secret renewal timing. "partial revocation time" about each key
+   MUST be between the key's inception and expiration time. The time is
+   usually configured by the administrator of the server. That is to
+   say, the server can freely decide them following its security policy:
+   if the time from inception to partial revocation time is short, key
+   renewal will be often carried out, which might be safer.
+
+   When the present time is before inception time, the server MUST NOT
+   verify TSIG with the key, and server acts the same way as when no
+   valid key is found, following [RFC2845].
+
+   When the present time is equal to inception time, or between
+   inception time and partial revocation time, the behavior of the
+   server is the same as when a valid key is found, required in
+   [RFC2845], as long as the server is not in the process of "partial
+   key revocation" written below.
+
+   When the present time is the same as the partial revocation time, or
+   between the partial revocation time and the expiration time, the
+   server behaves according to the protocol written below.
+
+   When the present time is the same as the expiration time or after it,
+   the server MUST NOT verify TSIG with the key, and returns error
+   messages in the same way as when no valid key is found, following
+   [RFC2845].
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                 [Page 5]
+
+INTERNET-DRAFT                                             November 2001
+
+
+2.2.  Partial key revocation
+
+   When the server detects that the present time is past the partial
+   revocation time, the server comes to be in "partial revocation" state
+   about the TSIG key. Now we say the server has partially revoked the
+   key and the old key has come to be a "partially revoked key".
+
+   If the server judges with some reason that the key must be changed in
+   advance before partial revocation time, it can move immediately into
+   "partial revocation" state, but in that case the server MUST set its
+   partial revocation time to the present time. Servers can partially
+   revoke keys before their partial revocation time which they set
+   before, but MUST NOT do it before inception time.
+
+   In "partial revocation" state, servers which have received queries
+   signed with the partially revoked keys MUST NOT answer them except
+   when they are "DH exchange for key renewal" requests (see section
+   2.3).  Instead, they return TSIG error messages whose error codes are
+   "PartialRevoke" (See section 9).
+
+   "PartialRevoke" error messages have the role to inform clients of the
+   keys' partial revocation and urge them to send TKEY key renewal
+   requests. These error responses MUST be signed with those partial
+   revoked keys if the queries are signed with them. They are sent only
+   when the keys used for queries' TSIG are found to be partially
+   revoked. If the MAC of TSIG cannot be verified with the partially
+   revoked keys, servers MUST NOT return "PartialRevoke" error with MAC,
+   but should return another error such as "BADSIG" without MAC; in
+   other words, a server informs its key's partial revocation only when
+   the MAC in the received query was valid.
+
+
+
+2.3.  Query for DH exchange for key renewal
+
+2.3.1.  Query
+
+   If a client has received a "PartialRevoke" Error and authenticated
+   the response based on TSIG MAC, it sends a TKEY secret key renewal
+   request to the server. The request MUST be signed with TSIG or be
+   added SIG(0) [RFC2931] for authentication. The client can use the
+   partial revoked key for TSIG.
+
+   The request message has the structure given below.
+
+     Question section's QNAME field is the same as the NAME filed of
+     TKEY written below.
+
+
+
+
+Kamite, et. al.                                                 [Page 6]
+
+INTERNET-DRAFT                                             November 2001
+
+
+     In additional section, there is one KEY RR and one TKEY RR.  KEY RR
+     is the client's Diffie-Hellman public key [RFC2539]. TKEY RR has
+     the structure and values described below:
+
+        Field        Type         Comment
+
+        -------      ------       -------
+
+        NAME         domain       used for a new key, see below
+        TYPE         u_int16_t    (defined in [RFC2930])
+        CLASS        u_int16_t    (defined in [RFC2930])
+        TTL          u_int32_t    (defined in [RFC2930])
+        RDLEN        u_int16_t    (defined in [RFC2930])
+        RDATA:
+         Algorithm:   domain       algorithm for a new key
+         Inception:   u_int32_t    about the keying material
+         Expiration:  u_int32_t    about the keying material
+         Mode:        u_int16_t    "DH exchange for key renewal"
+                                   see section 9.
+         Error:       u_int16_t    see description below
+         Key Size:    u_int16_t    see description below
+         Key Data:    octet-stream
+         Other Size:  u_int16_t    (defined in [RFC2930])
+                                   size of other data
+         Other Data:               newly defined: see description below
+
+
+     Mode field of TKEY RR in the message stores the value of "DH
+     exchange for key renewal" which is newly defined. See section 9.
+
+     For "NAME" field, both non-root and root name are allowed. It may
+     be used for a new key's name in the same manner as [RFC2930] 2.1.
+
+     "Algorithm" is the domain name for a new secret as a result of this
+     key renewal message. It specifies the algorithm used with a newly
+     produced key. In many cases algorithm is not changed after key
+     renewal but may be changed (e.g. from HMAC-MD5 to HMAC-SHA1). The
+     client should allow for what algorithms are supported by the server
+     when it wants to change.
+
+     "Inception" and "Expiration" times are those requested for the
+     keying material, that is, requested usage period of a new key.
+
+     "Key Data" is used as a random. This is provided in the same way as
+     [RFC2930] 4.1 in order to avoid always deriving the same keying
+     material.
+
+     "Error" is an extended RCODE which includes "PartialRevoke" value.
+
+
+
+Kamite, et. al.                                                 [Page 7]
+
+INTERNET-DRAFT                                             November 2001
+
+
+     See section 9.
+
+     In "DH exchange for key renewal" mode, "Other Data" field has the
+     structure given below. They describe attributes of the partially
+     revoked key.
+
+        in Other Data filed:
+          Field          Type     Comment
+          -------        ------   -------
+          OldNAME        domain   name of the old key
+          OldAlgorithm   domain   algorithm of the old key
+
+
+
+2.3.2.  Response
+
+   The server which has received a "DH exchange for key renewal" TKEY
+   request, it tries to verify TSIG or SIG(0) accompanying it.
+
+   If the TSIG is signed with the partially revoked key and can be
+   verified, the message MUST be authenticated. Note that in this case
+   the server doesn't return "PartialRevoke" error but do the same
+   process as when TSIG signed with other valid keys or SIG(0) is
+   confirmed in requests.
+
+   If the partially revoked key indicated in the request TKEY OldName
+   doesn't really exist at the server, or incompatible DH key is found
+   in the request, BADKEY [RFC 2845] is given in Error Field. FORMERR is
+   given if the query included no DH KEY.
+
+   If there is no error, the server processes a response according to
+   Diffie-Hellman exchanged keying.  Response message's details are
+   below:
+
+     In answer section, there is one TKEY RR. The TKEY RR shows the
+     newly produced key's attributes such as a key name and a algorithm.
+     Its format is defined as a response of the previous key renewal
+     request, so all values are equal to 2.3.1 except TKEY NAME, TKEY
+     RDLEN, RDATA's Inception, Expiration, Key Size and Key Data as long
+     as no error has occurred.
+
+     NAME field specifies the name of newly produced key which the
+     client will have to use.
+
+     TKEY Inception and Expiration time mean the period of the produced
+     key usage. Inception time MUST be set to the time when the new key
+     is generated, thus after clients receive responses, they can use
+     new keys immediately. Expiration time will be determined by servers
+
+
+
+Kamite, et. al.                                                 [Page 8]
+
+INTERNET-DRAFT                                             November 2001
+
+
+     allowing for request messages. However, if servers judge requested
+     usage periods are too short or too long, they can ignore them and
+     decide expiration time freely based on their own security policies.
+
+     Once servers have decided expiration time and already returned
+     responses, they should obey them as long as they can. In other
+     words, they SHOULD NOT change time values for checking expiration
+     in the future without any special reason (e.g. a security issue
+     such as "emergency compulsory revocation" described in Section 8).
+     Therefore, before sending responses, they must memorize correctly
+     the time values with secret key data.
+
+     Note that the "partial revocation" time about a new key isn't
+     decided base on the client's request. The server can set freely any
+     value as long as it is between inception and expiration. However,
+     it is recommended that the period from inception to "partial
+     revocation" time should be fixed as the server side's configuration
+     or should be set the same as the corresponding old key's one.
+
+     TKEY Key Data is used as an additional nonce to avoid deriving the
+     same keying material for the same pair of DH key, which is the same
+     as [RFC2930] 4.1.
+
+     If the TKEY error field is zero, The resolver supplied Diffie-
+     Hellman KEY RR SHOULD be echoed in the additional section and a
+     server Diffie-Hellman KEY RR will also be present in the answer
+     section like [RFC2930] 4.1.
+
+   At this moment, the server gets a new secret. However, it might
+   receive another "DH exchange for key renewal" TKEY request whose
+   OldName in TKEY indicates the same partial revoked key. Mostly such
+   messages originate in client's resending. In this case, the server
+   processes Diffie-Hellman exchanged keying again and MUST replace the
+   stored secret with the newest produced secret. The secret key
+   produced before comes to be invalid and should be removed from
+   memory.
+
+   Even if clients send "DH exchange for key renewal" though the keys
+   described in OldName have not been partially revoked yet, servers
+   must do renewal processes.  But the moment servers get key renewal
+   requests with valid authentication, they MUST forcibly consider the
+   keys are already partially revoked, that is, the key's "partial
+   revocation" time must be set to be the present time (i.e. the time
+   when the server receives the request).
+
+
+
+
+
+
+
+Kamite, et. al.                                                 [Page 9]
+
+INTERNET-DRAFT                                             November 2001
+
+
+2.4.  Key Adoption
+
+   After Receiving a TKEY answer, the client gets the same secret as the
+   server. Then, it tries to resolve the original question which was
+   wanted first (i.e. the question clients tried to ask before it got
+   the "PartialRevoke" error).
+
+   As soon as the message signed with the new key reaches the server and
+   is verified, the new key is formally adopted and at the same time the
+   partially revoked key expires completely. After that the server MUST
+   NOT verify any queries with the completely revoked key. At this
+   moment the server comes to be out of "partial revocation sate", and
+   it is only the new adopted key that is used between the server and
+   the host.
+
+
+2.5.  Considerations about non-compliant hosts for secret key renewal
+
+   Key renewal requests and responses must be exchanged between hosts
+   which can understand them and do proper processes. "PartialRevoke"
+   error messages will be only ignored if they should be returned to
+   non-compliant hosts.
+
+   Note that servers don't inform actively the necessity of renewal to
+   clients, but inform it as responses invoked by clients' queries.
+   Servers don't need to care whether the "PartialRevoke" errors have
+   reached clients or not. If clients have not received yet because of
+   any reasons such as UDP packet drops, they will resend the queries,
+   and finally will be able to get "PartialRevoke" information about the
+   keys they have been using.
+
+
+3.  Secret Storage
+
+   Every hosts should keep all secrets and attached information (e.g.
+   inception and expiration etc.) safe to be able to recover from
+   unexpected stop of the server. To accomplish this, formally adopted
+   keys should be memorized not only on memory, but also be stored in
+   the form of some files. Make sure that this should be protected
+   strongly not to be read by others. If possible, they should be stored
+   in encrypted form.
+
+
+4.  Compulsory key revocation by servers
+
+   There is a rare but possible case that although servers have already
+   partially revoked keys, clients don't try to send any renewal
+   requests. If this state continues, in the future it will become the
+
+
+
+Kamite, et. al.                                                [Page 10]
+
+INTERNET-DRAFT                                             November 2001
+
+
+   time of expiration. After expiration, the keys will be completely
+   removed, so this is called compulsory key revocation by servers.
+
+   If expiration time is too distant from the partial revocation time,
+   then even though very long time passes, clients will be able to
+   refresh secrets only if they add TSIG signed with those old partially
+   revoked keys into requests, which is not safe.
+
+   On the other hand, if expiration time is too close to partial
+   revocation time, perhaps clients might not be able to notice their
+   keys' partial revocation by getting "PartialRevoke" errors.
+
+   Therefore, servers should set proper expiration time to their keys,
+   considering both their keys' safety, and enough time for clients to
+   send requests and process renewal.
+
+
+4.1.  Example of compulsory key revocation
+
+   It might be ideal to provide both SIG(0) and TSIG as authentication
+   methods.  For example:
+
+     A client and a server start SIG(0) authentication at first, to
+     establish TSIG shared keys by means of "Query for Diffie-Hellman
+     Exchanged Keying" as described in [RFC 2930] 4.1. Once they get
+     shared secret, they keep using TSIG for usual queries and
+     responses. After a while the server returns a "ParitalRevoke" error
+     and they begin a key renewal process. Both TSIG signed with
+     partially revoked keys and SIG(0) are okay for authentication, but
+     TSIG would be more easy to use considering calculation efficiency.
+
+     If some troubles should happen such as client host's long
+     suspension against expectation, the server will carry out
+     compulsory revocation. After recovery if the client sends a key
+     renewal request to refresh the old key, it will fail because the
+     key is removed from the server. So, the client will send "Query for
+     Diffie-Hellman Exchanged Keying" with SIG(0) to make a new shared
+     key again.
+
+
+5.  Special considerations for two servers' case
+
+   This section refers to the case where both two hosts are DNS servers
+   which can act as full resolvers as well. If one server (called
+   "Server A") decides to partially revoke a shared key (called "Key A-
+   B"), it will await a TKEY renewal request from the other server
+   (called "Server B"). But perhaps Server A will have to send queries
+   with TSIG immediately to Server B to resolve some queries if it is
+
+
+
+Kamite, et. al.                                                [Page 11]
+
+INTERNET-DRAFT                                             November 2001
+
+
+   asked by other clients.
+
+   At this time, Server A is allowed to send a "Renewal" request to
+   Server B, if Server A finds the key to use now is too old and should
+   be renewed. To provide this function, both servers MUST be able to
+   receive and process key renewal request from each other if they agree
+   to refresh their shared secret keys by "DH exchange for key renewal"
+   procedures.
+
+   Note that the initiative in key renewal belongs to Server A because
+   it can notice the "partial revocation" time and decide key renewal.
+   If Server B has information about "partial revocation" time as well,
+   it can also decide for itself to send "DH exchange for key renewal"
+   to Server A. But it is not essential for both two servers have
+   information about key renewal timing.
+
+
+5.1.  To cope with collisions of renewal requests
+
+   At least one of two hosts which use "DH exchange for key renewal"
+   must know their key renewal information such as "partial revocation"
+   times. Surely both of them can have information.
+
+   Provided that both two servers know key renewal timing information,
+   there is possibility for them to begin partial revocation and sending
+   renewal requests to each other at the same time. Such collisions will
+   not happen so often because key renewal requests are usually invoked
+   when hosts want to send queries, but we should take the possibility
+   into consideration.
+
+   When one of two servers try to send renewal requests, it must protect
+   old secrets that it has partially revoked and prevent it from being
+   refreshed by any requests from the other server (i.e. it must lock
+   the old secret during the process of renewal). While the server is
+   sending renewal requests and waiting responses, it ignores the other
+   server's key renewal requests.
+
+   Therefore, servers might fail to change secrets by means of their own
+   requests to others. After failure they will try to resend, but they
+   should wait for random delays by the next retries. If they get any
+   key renewal requests from others while they are awaiting the delays,
+   their shared keys may be changed, then they don't need to send any
+   renewal requests now for themselves because the secrets are already
+   refreshed.
+
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 12]
+
+INTERNET-DRAFT                                             November 2001
+
+
+6.  Key name consideration
+
+   Since both servers and clients have only to distinguish new secrets
+   and old ones, keys' names don't need to be specified. But it is
+   recommended that some serial number or key generation time should be
+   added to the name and that the names of keys between the same pair of
+   hosts should have some common labels among their keys. For example,
+   suppose A.example.com. (Server A) and B.example.com. (Client B)
+   shares the key like this:
+
+     10010.A.example.com.B.example.com.
+
+   and after the process of key renewal, they change their secret and
+   name into
+
+     10011.A.example.com.B.example.com.
+
+   If Server A is configured to accept TKEY key renewal requests by
+   Client B whose OldNAME field is such as:
+
+     <serial number>.A.example.com.B.example.com.
+
+   and the name of newly produced keys always follow the same format
+   too, it will be safer because Client B can renew only his secret keys
+   but cannot change others' keys. Even if Client B should send TKEY key
+   renewal requests whose OldNAME is like:
+
+     <serial number>.A.example.com.C.others.com.
+
+   Server A will refuse it because the shared keys between A and B are
+   restricted to have the name such as <serial
+   number>.A.example.com.B.example.com. and this request is considered
+   to be beyond Client B's authority.
+
+   But, a more safer method to prevent others from changing keys beyond
+   their authorities is that a server also memorizes correctly which
+   hosts own keys (i.e. memorizes key identities with regard to owners)
+   and it only accepts renewal requests from hosts those identities have
+   been confirmed by checking request's TSIG or SIG(0).
+
+   Servers and clients must be able to use keys properly according to
+   hosts to query. If new keys are generated and adopted, they must use
+   only them because old keys have already expired. Because TSIG secret
+   keys themselves don't have any IDs to be distinguished and would be
+   identified by their names and algorithm, hosts must understand
+   correctly what keys are refreshed.
+
+
+
+
+
+Kamite, et. al.                                                [Page 13]
+
+INTERNET-DRAFT                                             November 2001
+
+
+7.  Example usage of TKEY Secret Key Renewal Mode
+
+   This is an example of "Renewal" mode usage where a Server,
+   ns.example.com, and a Client, client.exmple.com have an initial
+   shared secret key named "00.client.example.com.ns.example.com"
+
+     (1) The time values about key
+     "00.client.example.com.ns.example.com" was set as follows:
+     inception is at 6:00, expiration is at 11:00.
+
+     (2) At Server, a time value about renewal timing has been set too:
+     partial revocation time is at 8:00. This may be unknown to Client
+     because it was freely set by Server's administrator.
+
+     (3) Suppose the present time is 7:00. If Client sends a query
+     signed with key "00.client.example.com.ns.example.com" to ask the
+     IP address of "www.somedomain.com", finally it will get a proper
+     answer from Server with valid TSIG (No Error).
+
+     (4) At 9:00. Client sends a query signed with key
+     "00.client.example.com.ns.example.com" to ask the IP address of
+     "www.otherdomain.com". But it won't get a proper answer from
+     Server. The response doesn't have any IP address information about
+     "www.otherdomain.com". Instead, it includes valid TSIG MAC signed
+     with "00.client.example.com.ns.example.com", but its Error Code
+     indicates "PartialRevoke".
+
+     (5) At 9:01. Since Client has understood that its key has been
+     considered to be old by Server, it will send a "Renewal" request to
+     Server. This request is signed with key
+     "00.client.example.com.ns.example.com". It includes data such as:
+
+      Question Section:
+         QNAME = 01.client.example.com. (This can be set freely by
+     Client)
+         TYPE  = TKEY
+
+      Additional Section:
+         01.client.example.com. TKEY
+          Algorithm    = hmac-md5-sig-alg.reg.int.
+          Inception    = (value which means 9:01)
+          Expiration   = (value which means 14:00)
+          Mode         = (DH exchange for key renewal)
+          OldName      = 00.client.example.com.ns.example.com.
+          OldAlgorithm = hmac-md5-sig-alg.reg.int.
+
+      (Additional Section contains a KEY RR and a TSIG RR)
+
+
+
+
+Kamite, et. al.                                                [Page 14]
+
+INTERNET-DRAFT                                             November 2001
+
+
+     (6) As soon as Server receives this request, it tries to verify
+     TSIG. It is valid but signed with partial revoked key
+     "00.client.example.com.ns.example.com". However, since this is a
+     request for "Renewal", Server accepts processing the renewal.
+     Server creates a new key by Diffie-Hellman calculation and returns
+     an answer which includes data such as:
+
+      Answer Section:
+         01.client.example.com.server.example.com. TKEY
+          Algorithm    = hmac-md5-sig-alg.reg.int.
+          Inception    = (value meaning 9:01)
+          Expiration   = (value meaning 14:00)
+          Mode         = (DH exchange for key renewal)
+          OldName      = 00.client.example.com.ns.example.com.
+          OldAlgorithm = hmac-md5-sig-alg.reg.int.
+      (Answer Section also contains KEY RRs)
+
+      (Additional Section contains a TSIG RR)
+     This response is signed with key
+     "00.client.example.com.ns.example.com" without error.
+
+     At the same time, Server decides to set the partial revocation time
+     of this new key "01.client.example.com.server.example.com." as
+     11:00.
+
+     (7) Client gets the response and checks TSIG MAC, and calculates
+     Diffie-Hellman. It will get a new key, and it has been named
+     "01.client.example.com.server.example.com" by Server.
+
+     (8) Client will retry to send an original question about
+     "www.otherdomain.com". It is signed with the created key
+     "01.client.example.com.server.example.com".
+
+     (9) Server verifies the query's TSIG. Since it succeeds, it adopts
+     key "01.client.example.com.server.example.com" formally. Key
+     "00.client.example.com.server.example.com." is removed from Server.
+     Then, it returns an answer about the IP address of
+     "www.otherdomain.com" with TSIG signed with key
+     "01.client.example.com.server.example.com".
+
+     (10) Client knows key "01.client.example.com.server.example.com."
+     is adopted by Server.
+
+     (11) This key is valid until 11:00. After that, it will be
+     partially revoked again.
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 15]
+
+INTERNET-DRAFT                                             November 2001
+
+
+8.  Security consideration
+
+   This document considers about how to refresh shared secret. Secret
+   changed by this method is used at servers in support of TSIG
+   [RFC2845].
+
+   [RFC 2104] says that current attacks to HMAC do not indicate a
+   specific recommended frequency for key changes but periodic key
+   refreshment is a fundamental security practice that helps against
+   potential weaknesses of the function and keys, and limits the damage
+   of an exposed key.  This TKEY secret key renewal mode provides the
+   method of periodical key refreshment.
+
+   TKEY secret key renewal mode forbids clients to send queries as long
+   as they don't change old keys. This means that when keys become old,
+   clients must spend rather lots of time to get answers they wanted
+   originally because at first they must send key renewal requests. Thus
+   the usage period of secrets should be considered carefully based on
+   both TKEY processing performance and security.
+
+   This document specifies the procedure of periodical key renewal, but
+   actually there is possibility for servers to have no choice other
+   than revoking their secret keys immediately especially when the keys
+   are found to be compromised by attackers. This is called "emergency
+   compulsory revocation". In this case, the server must set the
+   compromised key's expiration at the present time: the key must be
+   revoked compulsorily. For example, suppose the original expiration
+   time was set at 15:00, partial revocation time at 12:00 and inception
+   at 10:00.  if at 11:00 the key is found to be compromised, the server
+   can forcibly set expiration time 11:00.
+
+   Consequently, once "compulsory revocation" (See section 4) is carried
+   out, normal "renewal" process described in this document cannot be
+   done any more as far as the key is concerned. But, after such
+   accidents happened, the two hosts are able to establish secret keys
+   and begin "renewal" procedure only if they have other (non-
+   compromised) shared TSIG keys or safe SIG(0) keys for the
+   authentication of initial secret establishment using Diffie-Hellman
+   Exchanged Keying.
+
+
+9.  IANA consideration
+
+   IANA needs to allocate a value for "DH exchange for key renewal" in
+   the mode filed of TKEY. It also needs to allocate a value for
+   "PartialRevoke" from the extended RCODE space.
+
+
+
+
+
+Kamite, et. al.                                                [Page 16]
+
+INTERNET-DRAFT                                             November 2001
+
+
+10.  References
+
+[RFC2104]
+     H. Krawczyk, M.Bellare, R. Canetti, "Keyed-Hashing for Message
+     Authentication", RFC2104, February 1997.
+
+[RFC2119]
+     Bradner, S., "Key words for use in RFCs to Indicate Requirement
+     Levels", RFC 2119, March 1997.
+
+[RFC2539]
+     D. Eastlake 3rd, "Storage of Diffie-Hellman Keys in the Domain Name
+     System (DNS)", RFC 2539, March 1999.
+
+[RFC2845]
+     Vixie, P., Gudmundsson, O., Eastlake, D. and B.  Wellington,
+     "Secret Key Transaction Authentication for DNS (TSIG)", RFC 2845,
+     May 2000.
+
+[RFC2930]
+     D. Eastlake 3rd, ``Secret Key Establishment for DNS (TKEY RR)'',
+     RFC 2930, September 2000.
+
+[RFC2931]
+     D. Eastlake 3rd, "DNS Request and Transaction Signatures (SIG(0)s
+     )", RFC 2931, September 2000.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 17]
+
+INTERNET-DRAFT                                             November 2001
+
+
+Authors' Addresses
+
+   Yuji Kamite
+   Information Technology Center,
+   the University of Tokyo,
+   2-11-16 Yayoi, Bunkyo-ku,
+   Tokyo, 113-8658, Japan.
+   EMail: kamite@kaynet.ecc.u-tokyo.ac.jp
+
+
+   Masaya Nakayama
+   Information Technology Center,
+   the University of Tokyo,
+   2-11-16 Yayoi, Bunkyo-ku,
+   Tokyo, 113-8658, Japan.
+   EMail: nakayama@nc.u-tokyo.ac.jp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kamite, et. al.                                                [Page 18]
+
