@@ -85,7 +85,7 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 
 static void
 rdatalist_disassociate(dns_rdataset_t *rdataset) {
-	(void)rdataset;				/* Keep compiler quiet. */
+	UNUSED(rdataset);
 }
 
 static isc_result_t

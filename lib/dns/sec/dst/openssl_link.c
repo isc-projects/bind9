@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.19 2000/05/08 14:37:08 tale Exp $
+ * $Id: openssl_link.c,v 1.20 2000/05/11 22:47:00 gson Exp $
  */
 #if defined(OPENSSL)
 
@@ -323,7 +323,7 @@ dst_openssl_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 	isc_region_t r;
 	unsigned int t, p_bytes;
 
-	mctx = mctx;	/* make the compiler happy */
+	UNUSED(mctx);
 
 	isc_buffer_remainingregion(data, &r);
 	if (r.length == 0)
@@ -546,8 +546,8 @@ dst_openssl_generate(dst_key_t *key, int unused, isc_mem_t *mctx) {
 	isc_result_t ret;
 	isc_region_t r;
 
-	unused = unused;	/* make the compiler happy */
-	mctx = mctx;		/* make the compiler happy */
+	UNUSED(unused);
+	UNUSED(mctx);
 
 	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
 	ret = dst_random_get(SHA_DIGEST_LENGTH, &rand);

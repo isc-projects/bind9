@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: unspec_103.c,v 1.17 2000/05/05 05:50:11 marka Exp $ */
+/* $Id: unspec_103.c,v 1.18 2000/05/11 22:43:38 gson Exp $ */
 
 #ifndef RDATA_GENERIC_UNSPEC_103_C
 #define RDATA_GENERIC_UNSPEC_103_C
@@ -41,11 +41,10 @@ static inline isc_result_t
 totext_unspec(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx, 
 	      isc_buffer_t *target) 
 {
-	
 
 	REQUIRE(rdata->type == 103);
 
-	tctx = tctx;	/*unused*/
+	UNUSED(tctx);
 
 	return (btoa_totext(rdata->data, rdata->length, target));
 }
@@ -59,9 +58,10 @@ fromwire_unspec(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 103);
 
-	rdclass = rdclass;		/*unused*/
-	dctx = dctx;		/*unused*/
-	downcase = downcase;	/*unused*/
+	UNUSED(rdclass);
+	UNUSED(dctx);
+	UNUSED(downcase);
+	
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -72,7 +72,7 @@ towire_unspec(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 
 	REQUIRE(rdata->type == 103);
 
-	cctx = cctx;		/*unused*/
+	UNUSED(cctx);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }

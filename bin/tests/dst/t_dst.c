@@ -32,6 +32,7 @@
 #include <isc/mem.h>
 #include <isc/region.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -123,7 +124,7 @@ dh(char *name1, int id1, char *name2, int id2, isc_mem_t *mctx,
 	isc_buffer_t	b1, b2;
 	isc_region_t	r1, r2;
 
-	exp_result = exp_result; /* unused */
+	UNUSED(exp_result);
 
 	p = getcwd(current, PATH_MAX);;
 	if (p == NULL) {
