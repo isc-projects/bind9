@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5 2003/07/22 04:03:34 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.1 2003/08/08 04:09:35 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatatype.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/view.h>
@@ -106,6 +107,34 @@
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
+#define FAILN(code, name, msg) \
+	do {								\
+		result = (code);					\
+		if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {	\
+			char _nbuf[DNS_NAME_FORMATSIZE];		\
+			dns_name_format(name, _nbuf, sizeof(_nbuf));	\
+			update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
+				   "update failed: %s: %s (%s)", _nbuf, \
+				   msg, isc_result_totext(result));	\
+		}							\
+		if (result != ISC_R_SUCCESS) goto failure;		\
+	} while (0)
+
+#define FAILNT(code, name, type, msg) \
+	do {								\
+		result = (code);					\
+		if (isc_log_wouldlog(ns_g_lctx, LOGLEVEL_PROTOCOL)) {	\
+			char _nbuf[DNS_NAME_FORMATSIZE];		\
+			char _tbuf[DNS_RDATATYPE_FORMATSIZE];		\
+			dns_name_format(name, _nbuf, sizeof(_nbuf));	\
+			dns_rdatatype_format(type, _tbuf, sizeof(_tbuf)); \
+			update_log(client, zone, LOGLEVEL_PROTOCOL,   	\
+				   "update failed: %s/%s: %s (%s)",	\
+				   _nbuf, _tbuf, msg,			\
+				   isc_result_totext(result));		\
+		}							\
+		if (result != ISC_R_SUCCESS) goto failure;		\
+	} while (0)
 /*
  * Fail unconditionally and log as a server error.
  * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
@@ -725,29 +754,19 @@ temp_order(const void *av, const void *bv) {
  *
  * Return ISC_R_SUCCESS if the prerequisites are satisfied,
  * rcode(dns_rcode_nxrrset) if not.
+ *
+ * 'temp' must be pre-sorted.
  */
 
 static isc_result_t
 temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
-	   dns_dbversion_t *ver)
+	   dns_dbversion_t *ver, dns_name_t *tmpname, dns_rdatatype_t *typep)
 {
 	isc_result_t result;
 	dns_name_t *name;
 	dns_dbnode_t *node;
 	dns_difftuple_t *t;
 	dns_diff_t trash;
-
-	/* Exit early if the list is empty (for efficiency only). */
-	if (ISC_LIST_HEAD(temp->tuples) == NULL)
-		return (ISC_R_SUCCESS);
-
-	/*
-	 * Sort the prerequisite records by owner name,
-	 * type, and rdata.
-	 */
-	result = dns_diff_sort(temp, temp_order);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	dns_diff_init(mctx, &trash);
 
@@ -759,6 +778,8 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	t = ISC_LIST_HEAD(temp->tuples);
 	while (t != NULL) {
 		name = &t->name;
+		(void)dns_name_copy(name, tmpname, NULL);
+		*typep = t->rdata.type;
 
 		/* A new unique name begins here. */
 		node = NULL;
@@ -777,7 +798,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
  			dns_diff_t u_rrs; /* Update RRs with
 						this name and type */
 
-			type = t->rdata.type;
+			*typep = type = t->rdata.type;
 			if (type == dns_rdatatype_sig)
 				covers = dns_rdata_covers(&t->rdata);
 			else
@@ -1240,9 +1261,8 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 	     result = dns_dbiterator_next(dbit))
 	{
 		dns_dbnode_t *node = NULL;
-		result = dns_dbiterator_current(dbit, &node, child);
+		CHECK(dns_dbiterator_current(dbit, &node, child));
 		dns_db_detachnode(db, &node);
-		CHECK(result);
 		if (! dns_name_issubdomain(child, name))
 			break;
 		CHECK(namelist_append_name(affected, child));
@@ -1396,7 +1416,7 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
 				goto failure;
 			}
 		}
-		dns_dbiterator_current(dbit, &node, newname);
+		CHECK(dns_dbiterator_current(dbit, &node, newname));
 		dns_db_detachnode(db, &node);
 
 		/*
@@ -1771,10 +1791,9 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 			 */
 			CHECK(rrset_exists(db, newver, &t->name,
 					   dns_rdatatype_nxt, 0, &flag));
-			if (! flag) {
-				add_placeholder_nxt(db, newver, &t->name,
-						    diff);
-			}
+			if (! flag)
+				CHECK(add_placeholder_nxt(db, newver, &t->name,
+							  diff));
 		}
 	}
 
@@ -2014,6 +2033,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_rdataclass_t zoneclass;
 	dns_name_t *zonename;
 	dns_ssutable_t *ssutable = NULL;
+	dns_fixedname_t tmpnamefixed;
+	dns_name_t *tmpname = NULL;
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -2048,7 +2069,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			FAILC(DNS_R_FORMERR, "prerequisite TTL is not zero");
 
 		if (! dns_name_issubdomain(name, zonename))
-			FAILC(DNS_R_NOTZONE,
+			FAILN(DNS_R_NOTZONE, name,
 				"prerequisite name is out of zone");
 
 		if (update_class == dns_rdataclass_any) {
@@ -2059,7 +2080,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (! flag) {
-					FAILC(DNS_R_NXDOMAIN,
+					FAILN(DNS_R_NXDOMAIN, name,
 					      "'name in use' prerequisite "
 					      "not satisfied");
 				}
@@ -2068,7 +2089,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   rdata.type, covers, &flag));
 				if (! flag) {
 					/* RRset does not exist. */
-					FAILC(DNS_R_NXRRSET,
+					FAILNT(DNS_R_NXRRSET, name, rdata.type,
 					"'rrset exists (value independent)' "
 					"prerequisite not satisfied");
 				}
@@ -2081,7 +2102,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
 				if (flag) {
-					FAILC(DNS_R_YXDOMAIN,
+					FAILN(DNS_R_YXDOMAIN, name,
 					      "'name not in use' prerequisite "
 					      "not satisfied");
 				}
@@ -2090,9 +2111,9 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   rdata.type, covers, &flag));
 				if (flag) {
 					/* RRset exists. */
-					FAILC(DNS_R_YXRRSET,
-					      "'rrset does not exist' "
-					      "prerequisite not satisfied");
+					FAILNT(DNS_R_YXRRSET, name, rdata.type,
+					       "'rrset does not exist' "
+					       "prerequisite not satisfied");
 				}
 			}
 		} else if (update_class == zoneclass) {
@@ -2111,14 +2132,31 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_NOMORE)
 		FAIL(result);
 
+
 	/*
 	 * Perform the final check of the "rrset exists (value dependent)"
 	 * prerequisites.
 	 */
-	result = temp_check(mctx, &temp, db, ver);
-	if (result != ISC_R_SUCCESS)
-		FAILC(result, "'RRset exists (value dependent)' "
-		      "prerequisite not satisfied");
+	if (ISC_LIST_HEAD(temp.tuples) != NULL) {
+		dns_rdatatype_t type;
+
+		/*
+		 * Sort the prerequisite records by owner name,
+		 * type, and rdata.
+		 */
+		result = dns_diff_sort(&temp, temp_order);
+		if (result != ISC_R_SUCCESS)
+			FAILC(result, "'RRset exists (value dependent)' "
+			      "prerequisite not satisfied");
+
+		dns_fixedname_init(&tmpnamefixed);
+		tmpname = dns_fixedname_name(&tmpnamefixed);
+		result = temp_check(mctx, &temp, db, ver, tmpname, &type);
+		if (result != ISC_R_SUCCESS)
+			FAILNT(result, tmpname, type,
+			       "'RRset exists (value dependent)' "
+			       "prerequisite not satisfied");
+	}
 
 	update_log(client, zone, LOGLEVEL_DEBUG,
 		   "prerequisites are OK");
