@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: options,v 1.68 2001/05/09 16:33:48 gson Exp $
+$Id: options,v 1.69 2001/06/14 19:29:33 gson Exp $
 
 This is a summary of the implementation status of the various named.conf
 options in BIND 9.
@@ -33,9 +33,9 @@ Legend:
 
   #	    BIND 9 accepts both LF and CRLF as end-of-line markers.
 
-  $	    Stub zones are partially supported.  They no longer
-            inject NS records into their parent zones, but can still
-            be used as a way of forcing a domain to be resolved using
+  $	    Stub zones are partially supported.	 They no longer
+	    inject NS records into their parent zones, but can still
+	    be used as a way of forcing a domain to be resolved using
 	    a particular set of name servers.
 
 
@@ -91,7 +91,7 @@ options {
   [ transfers-out number; ]				    Yes
   [ transfers-per-ns number; ]				    Yes
   [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]			            Yes*
+  [ transfer-source-v6 ...; ]				    Yes*
   [ notify-source ...; ]				    Yes*
   [ notify-source-v6 ...; ]				    Yes*
   [ request-ixfr yes_or_no; ]				    Yes*
@@ -124,6 +124,7 @@ options {
   [ random-device path_name; ]				    Yes*
   [ minimal-responses yes_or_no; ]			    Yes*
   [ match-mapped-addresses yes_or_no; ]			    Yes*
+  [ allow-v6-synthesis { address_match_list }; ]	    Yes
 };
 
 acl							    Yes@
@@ -193,7 +194,7 @@ zone "domain_name" [ ( in | hs | hesiod | chaos ) ] {
   [ allow-query { address_match_list }; ]		    Yes@
   [ allow-transfer { address_match_list }; ]		    Yes@
   [ transfer-source ...; ]				    Yes
-  [ transfer-source-v6 ...; ]			  	    Yes*
+  [ transfer-source-v6 ...; ]				    Yes*
   [ notify-source ...; ]				    Yes*
   [ notify-source-v6 ...; ]				    Yes*
   [ dialup yes_or_no | notify | notify-passive |
@@ -289,4 +290,5 @@ view "view_name" [ ( in | hs | hesiod | chaos ) ] {	    Yes*
   [ min-retry-time number ; ]				    Yes*
   [ max-retry-time number ; ]				    Yes*
   [ minimal-responses yes_or_no; ]			    Yes*
+  [ allow-v6-synthesis { address_match_list }; ]	    Yes
 };
