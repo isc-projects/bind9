@@ -1970,12 +1970,7 @@ t_dns_db_expirenode(char **av) {
 	find_expire_time = (isc_stdtime_t) strtol(find_xtime, NULL, 10);
 	exp_result = t_dns_result_fromtext(exp_find_result);
 
-	isc_result = isc_stdtime_get(&now);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_stdtime_get failed %s\n",
-				isc_result_totext(isc_result));
-		return(T_UNRESOLVED);
-	}
+	isc_stdtime_get(&now);
 
 	dns_fixedname_init(&dns_existingname);
 	len = strlen(existing_name);
@@ -2516,14 +2511,7 @@ t_dns_db_find_x(char **av) {
 	if (strstr(findopts, "DNS_DBFIND_VALIDATEGLUE"))
 		opts |= DNS_DBFIND_VALIDATEGLUE;
 
-	isc_result = isc_stdtime_get(&now);
-	if (isc_result != ISC_R_SUCCESS) {
-		t_info("isc_stdtime_get failed %s\n",
-				isc_result_totext(isc_result));
-		dns_db_detach(&db);
-		isc_mem_destroy(&mctx);
-		return(T_UNRESOLVED);
-	}
+	isc_stdtime_get(&now);
 
 	ftime = strtol(findtime, NULL, 10);
 	if (ftime != 0)

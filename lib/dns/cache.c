@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.3 1999/12/02 23:53:08 gson Exp $ */
+ /* $Id: cache.c,v 1.4 1999/12/16 23:29:04 explorer Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -482,7 +482,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->arg;
 	isc_stdtime_t now;
 	INSIST(event->type == DNS_EVENT_CACHECLEAN);
-	RUNTIME_CHECK(isc_stdtime_get(&now) == ISC_R_SUCCESS);
+	isc_stdtime_get(&now);
 	/*
 	 * The return value from do_some_cleaning() is ignored because it
 	 * does its own error reporting.

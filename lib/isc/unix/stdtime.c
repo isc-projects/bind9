@@ -30,8 +30,9 @@
 #include <isc/error.h>
 #include <isc/stdtime.h>
 
-isc_result_t
-isc_stdtime_get(isc_stdtime_t *t) {
+void
+isc_stdtime_get(isc_stdtime_t *t)
+{
 	struct timeval tv;
 
 	/*
@@ -41,12 +42,7 @@ isc_stdtime_get(isc_stdtime_t *t) {
 	
 	REQUIRE(t != NULL);
 	
-	if (gettimeofday(&tv, NULL) == -1) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
-		return (ISC_R_UNEXPECTED);
-	}
+	RUNTIME_CHECK(gettimeofday(&tv, NULL) != -1);
 
 	*t = (unsigned int)tv.tv_sec;
-
-	return (ISC_R_SUCCESS);
 }

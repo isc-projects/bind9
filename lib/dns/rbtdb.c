@@ -2225,13 +2225,8 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(search.rbtdb));
 	REQUIRE(version == NULL);
 
-	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-		/*
-		 * We don't need to call UNEXPECTED_ERROR() because
-		 * isc_stdtime_get() will already have done so.
-		 */
-		return (DNS_R_UNEXPECTED);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	search.rbtversion = NULL;
 	search.serial = 1;
@@ -2504,13 +2499,8 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 
 	REQUIRE(VALID_RBTDB(search.rbtdb));
 
-	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-		/*
-		 * We don't need to call UNEXPECTED_ERROR() because
-		 * isc_stdtime_get() will already have done so.
-		 */
-		return (DNS_R_UNEXPECTED);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	search.rbtversion = NULL;
 	search.serial = 1;
@@ -2675,13 +2665,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-		/*
-		 * We don't need to call UNEXPECTED_ERROR() because
-		 * isc_stdtime_get() will already have done so.
-		 */
-		return (DNS_R_UNEXPECTED);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -2876,13 +2861,8 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	result = ISC_R_SUCCESS;
 
-	if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-		/*
-		 * We don't need to call UNEXPECTED_ERROR() because
-		 * isc_stdtime_get() will already have done so.
-		 */
-		return (DNS_R_UNEXPECTED);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -2969,15 +2949,8 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			UNLOCK(&rbtdb->lock);
 		}
 	} else {
-		if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS) {
-			/*
-			 * We don't need to call UNEXPECTED_ERROR() because
-			 * isc_stdtime_get() will already have done so.
-			 */
-			isc_mem_put(rbtdb->common.mctx, iterator,
-				    sizeof *iterator);
-			return (DNS_R_UNEXPECTED);
-		}
+		if (now == 0)
+			isc_stdtime_get(&now);
 		rbtversion = NULL;
 	}
 
@@ -3309,8 +3282,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	if (rbtversion == NULL) {
-		if (now == 0 && isc_stdtime_get(&now) != ISC_R_SUCCESS)
-			return (DNS_R_UNEXPECTED);
+		if (now == 0)
+			isc_stdtime_get(&now);
 	} else
 		now = 0;
 
@@ -3615,14 +3588,10 @@ beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 		return (DNS_R_NOMEMORY);
 
 	loadctx->rbtdb = rbtdb;
-	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0) {
-		if (isc_stdtime_get(&loadctx->now) != ISC_R_SUCCESS) {
-			result = DNS_R_UNEXPECTED;
-			goto cleanup_loadctx;
-		}
-	} else {
+	if ((rbtdb->common.attributes & DNS_DBATTR_CACHE) != 0)
+		isc_stdtime_get(&loadctx->now);
+	else
 		loadctx->now = 0;
-	}
 
 	LOCK(&rbtdb->lock);
 

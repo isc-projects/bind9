@@ -1580,8 +1580,7 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Update client->now, if we can.
 		 */
-		if (isc_stdtime_get(&now) == ISC_R_SUCCESS)
-			client->now = now;
+		isc_stdtime_get(&now);
 	} else {
 		/*
 		 * This is a fetch completion event for a cancelled fetch.

@@ -692,8 +692,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 	dns_fixedname_init(&fixname);
 	name = dns_fixedname_name(&fixname);
 
-	if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-		return (DNS_R_UNEXPECTED);
+	isc_stdtime_get(&now);
 
 	bufmem = isc_mem_get(mctx, initial_buffer_length);
 	if (bufmem == NULL)

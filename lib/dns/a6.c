@@ -221,11 +221,8 @@ dns_a6_foreach(dns_a6context_t *a6ctx, dns_rdataset_t *rdataset,
 	REQUIRE(VALID_A6CONTEXT(a6ctx));
 	REQUIRE(rdataset->type == dns_rdatatype_a6);
 
-	if (now == 0) {
-		result = isc_stdtime_get(&now);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 	a6ctx->now = now;
 
 	result = foreach(a6ctx, rdataset, a6ctx->depth, a6ctx->prefixlen);

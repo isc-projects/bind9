@@ -377,8 +377,7 @@ main(int argc, char **argv)
 	result = isc_app_start();
 	check_result(result, "isc_app_start()");
 
-	result = isc_stdtime_get(&now);
-	check_result(result, "isc_stdtime_get()");
+	isc_stdtime_get(&now);
 
 	result = isc_mutex_init(&client_lock);
 	check_result(result, "isc_mutex_init(&client_lock)");

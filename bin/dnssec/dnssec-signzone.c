@@ -816,8 +816,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	result = isc_stdtime_get(&now);
-	check_result(result, "isc_stdtime_get()");
+	isc_stdtime_get(&now);
 
 	if (startstr != NULL) {
 		start = strtotime(startstr, now, now);

@@ -33,7 +33,7 @@ ISC_LANG_BEGINDECLS
  */
 typedef isc_uint32_t isc_stdtime_t;
 
-isc_result_t
+void
 isc_stdtime_get(isc_stdtime_t *t);
 /*
  * Set 't' to the number of seconds since 00:00:00 UTC, January 1, 1970.
@@ -41,11 +41,6 @@ isc_stdtime_get(isc_stdtime_t *t);
  * Requires:
  *
  *	't' is a valid pointer.
- *
- * Returns:
- *
- *	Success
- *	Unexpected error
  */
 
 ISC_LANG_ENDDECLS

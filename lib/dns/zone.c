@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.48 1999/12/16 23:11:05 gson Exp $ */
+ /* $Id: zone.c,v 1.49 1999/12/16 23:29:06 explorer Exp $ */
 
 #include <config.h>
 
@@ -2100,8 +2100,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (zone->curmaster >= zone->masterscnt) {
 		zone->flags &= ~DNS_ZONE_F_REFRESH;
 
-		if (isc_stdtime_get(&now) != ISC_R_SUCCESS)
-			return;
+		isc_stdtime_get(&now);
 		zone_settimer(zone, now);
 		UNLOCK(&zone->lock);
 		return;

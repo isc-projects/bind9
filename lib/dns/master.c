@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: master.c,v 1.32 1999/11/30 02:21:59 gson Exp $ */
+ /* $Id: master.c,v 1.33 1999/12/16 23:29:05 explorer Exp $ */
 
 #include <config.h>
 
@@ -170,7 +170,6 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	char *include_file = NULL;
 	isc_token_t token;
 	dns_result_t result = DNS_R_UNEXPECTED; 
-	isc_result_t iresult;
 	rdatalist_head_t glue_list;
 	rdatalist_head_t current_list;
 	dns_rdatalist_t *this;
@@ -343,7 +342,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				isc_int64_t dump_time64;
 				isc_stdtime_t dump_time, current_time;
 				GETTOKEN(lex, 0, &token, ISC_FALSE);
-				iresult = isc_stdtime_get(&current_time);
+				isc_stdtime_get(&current_time);
 				result = dns_time64_fromtext(token.value.
 					     as_pointer, &dump_time64);
 				dump_time = (isc_stdtime_t)dump_time64;

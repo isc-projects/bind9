@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.34 1999/12/06 12:40:31 brister Exp $
+ * $Id: tsig.c,v 1.35 1999/12/16 23:29:06 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -284,9 +284,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_struct;
 
-	ret = isc_stdtime_get(&now);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_algorithm;
+	isc_stdtime_get(&now);
 	tsig->timesigned = now;
 	tsig->fudge = DNS_TSIG_FUDGE;
 
@@ -620,9 +618,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	key = tsigkey->key;
 
 	/* Is the time ok? */
-	ret = isc_stdtime_get(&now);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_key;
+	isc_stdtime_get(&now);
 	if (abs(now - tsig->timesigned) > tsig->fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -824,9 +820,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		}
 
 		/* Is the time ok? */
-		ret = isc_stdtime_get(&now);
-		if (ret != ISC_R_SUCCESS)
-			goto cleanup_struct;
+		isc_stdtime_get(&now);
 		if (abs(now - tsig->timesigned) > tsig->fudge) {
 			msg->tsigstatus = dns_tsigerror_badtime;
 			return (DNS_R_TSIGVERIFYFAILURE);

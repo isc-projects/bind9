@@ -1031,9 +1031,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		options |= DNS_ADBFIND_INET;
 	if (res->dispatch6 != NULL)
 		options |= DNS_ADBFIND_INET6;
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_stdtime_get(&now);
 
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 
@@ -2718,9 +2716,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 	finish = &tnow;
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		goto done;
+	isc_stdtime_get(&now);
 
 	message = fctx->rmessage;
 	message->querytsig = query->tsig;

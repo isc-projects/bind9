@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.13 1999/11/02 22:58:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.14 1999/12/16 23:29:04 explorer Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -408,9 +408,7 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
-	ret = isc_stdtime_get(&now);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_struct;
+	isc_stdtime_get(&now);
 
 	/* Is SIG temporally valid? */
 	if (sig.timesigned > now)
@@ -633,7 +631,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	sig.labels = 1; /* the root name */
 	sig.originalttl = 0;
 
-	RETERR(isc_stdtime_get(&now));
+	isc_stdtime_get(&now);
 	sig.timesigned = now - DNS_TSIG_FUDGE;
 	sig.timeexpire = now + DNS_TSIG_FUDGE;
 
@@ -774,7 +772,7 @@ dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dns_rdata_tostruct(&rdata, &sig, mctx));
 	signeedsfree = ISC_TRUE;
 
-	RETERR(isc_stdtime_get(&now));
+	isc_stdtime_get(&now);
 	if (sig.timesigned > now) {
 		result = DNS_R_SIGFUTURE;
 		msg->sig0status = dns_tsigerror_badtime;

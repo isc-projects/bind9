@@ -1434,7 +1434,7 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 		goto failure;
 	}
 
-	CHECK(isc_stdtime_get(&now));
+	isc_stdtime_get(&now);
 	expire = 100000 + now; /* XXX */
 	
 	/*

@@ -1829,12 +1829,7 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 
 	LOCK(&adb->lock);
 
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS) {
-		DP(DEF_LEVEL,
-		   "isc_stdtime_get() failed!  Resetting clean timer.");
-		goto reset;
-	}
+	isc_stdtime_get(&now);
 
 	/*
 	 * Call our cleanup routine.
@@ -1865,7 +1860,6 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	/*
 	 * Reset the timer.
 	 */
- reset:
 	result = isc_timer_reset(adb->timer, isc_timertype_once, NULL,
 				 &adb->tick_interval, ISC_FALSE);
 
@@ -2179,11 +2173,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	query_pending = 0;
 	want_event = ISC_FALSE;
 
-	if (now == 0) {
-		result = isc_stdtime_get(&now);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	/*
 	 * XXXMLG  Move this comment somewhere else!
@@ -2456,11 +2447,8 @@ _dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr,
 	REQUIRE(host != NULL);
 	REQUIRE(addr != NULL);
 
-	if (now == 0) {
-		result = isc_stdtime_get(&now);
-		if (result != ISC_R_SUCCESS)
-			return (result);
-	}
+	if (now == 0)
+		isc_stdtime_get(&now);
 
 	expire_time = now + ttl;
 
@@ -2713,10 +2701,8 @@ dump_adb(dns_adb_t *adb, FILE *f)
 	char tmp[512];
 	const char *tmpp;
 	isc_stdtime_t now;
-	isc_result_t result;
 
-	result = isc_stdtime_get(&now);
-	INSIST(result == ISC_R_SUCCESS);
+	isc_stdtime_get(&now);
 
 	fprintf(f, "ADB %p DUMP:\n", adb);
 	fprintf(f, "erefcnt %u, irefcnt %u, finds out %u\n",
@@ -3171,9 +3157,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	/*
 	 * We got something potentially useful.
 	 */
-	result = isc_stdtime_get(&now);
-	if (result == ISC_R_SUCCESS)
-		result = import_rdataset(name, &fetch->rdataset, now);
+	isc_stdtime_get(&now);
+	result = import_rdataset(name, &fetch->rdataset, now);
 	if (result == ISC_R_SUCCESS)
 		ev_status = DNS_EVENT_ADBMOREADDRESSES;
 
@@ -3259,9 +3244,7 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		return;
 	}
 
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		goto out;
+	isc_stdtime_get(&now);
 
 	/*
 	 * If the A6 query didn't succeed, and this is the first query

@@ -15,22 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.1 1999/09/23 18:34:27 tale Exp $ */
+/* $Id: stdtime.c,v 1.2 1999/12/16 23:29:07 explorer Exp $ */
 
 #include <time.h>
 
 #include <isc/assertions.h>
 #include <isc/stdtime.h>
 
-isc_result_t
-isc_stdtime_get(isc_stdtime_t *t) {
+void
+isc_stdtime_get(isc_stdtime_t *t)
+{
 	/*
 	 * Set 't' to the number of seconds past 00:00:00 UTC, January 1, 1970.
 	 */
 
 	REQUIRE(t != NULL);
 
-	time(t);
-
-	return (ISC_R_SUCCESS);
+	(void)time(t);
 }
