@@ -15,23 +15,21 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.27 2000/06/21 01:40:41 mws Exp $ */
+/* $Id: host.c,v 1.28 2000/06/21 17:48:29 mws Exp $ */
 
 #include <config.h>
-
 #include <stdlib.h>
 
 extern int h_errno;
-
-#include <isc/app.h>
-#include <isc/commandline.h>
-#include <isc/string.h>
-#include <isc/util.h>
 
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
+#include <isc/app.h>
+#include <isc/commandline.h>
+#include <isc/string.h>
+#include <isc/util.h>
 
 #include <dig/dig.h>
 

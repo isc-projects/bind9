@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.19 2000/06/21 01:40:42 mws Exp $ */
+/* $Id: nslookup.c,v 1.20 2000/06/21 17:48:30 mws Exp $ */
 
 #include <config.h>
 
@@ -23,20 +23,19 @@
 
 extern int h_errno;
 
-#include <isc/app.h>
-#include <isc/string.h>
-#include <isc/util.h>
-#include <isc/mutex.h>
-#include <isc/condition.h>
-#include <isc/commandline.h>
-#include <isc/timer.h>
-#include <isc/buffer.h>
-
 #include <dns/message.h>
+#include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataset.h>
 #include <dns/rdatatype.h>
-#include <dns/name.h>
+#include <isc/app.h>
+#include <isc/buffer.h>
+#include <isc/commandline.h>
+#include <isc/condition.h>
+#include <isc/mutex.h>
+#include <isc/string.h>
+#include <isc/timer.h>
+#include <isc/util.h>
 
 #include <dig/dig.h>
 

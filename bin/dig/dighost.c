@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.54 2000/06/21 01:40:40 mws Exp $ */
+/* $Id: dighost.c,v 1.55 2000/06/21 17:48:27 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -27,7 +27,6 @@
  */
 
 #include <config.h>
-
 #include <stdlib.h>
 #include <unistd.h>
 #if defined(HAVE_ADDRINFO) && defined(HAVE_GETADDRINFO)
@@ -37,30 +36,28 @@
 extern int h_errno;
 #endif
 
-#include <isc/app.h>
-#include <isc/netdb.h>
-#include <isc/string.h>
-#include <isc/task.h>
-#include <isc/timer.h>
-#include <isc/util.h>
-#include <isc/base64.h>
-#include <isc/lex.h>
-#include <isc/lang.h>
-#include <isc/types.h>
-#include <isc/entropy.h>
-
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
-#include <dns/rdataset.h>
-#include <dns/rdatatype.h>
 #include <dns/rdatalist.h>
-#include <dns/result.h>
+#include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdatatype.h>
+#include <dns/result.h>
 #include <dns/tsig.h>
-
 #include <dst/dst.h>
+#include <isc/app.h>
+#include <isc/base64.h>
+#include <isc/entropy.h>
+#include <isc/lang.h>
+#include <isc/lex.h>
+#include <isc/netdb.h>
+#include <isc/string.h>
+#include <isc/task.h>
+#include <isc/timer.h>
+#include <isc/types.h>
+#include <isc/util.h>
 
 #include <dig/dig.h>
 

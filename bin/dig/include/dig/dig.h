@@ -15,23 +15,22 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.23 2000/06/16 18:00:05 mws Exp $ */
+/* $Id: dig.h,v 1.24 2000/06/21 17:48:32 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
 
-#define SDIG_BUFFER_SIZE 2048
-#include <isc/lang.h>
-#include <isc/socket.h>
-#include <isc/buffer.h>
-#include <isc/bufferlist.h>
-#include <isc/sockaddr.h>
-#include <isc/boolean.h>
-#include <isc/mem.h>
-#include <isc/list.h>
-#include <isc/print.h>
 #include <dns/rdatalist.h>
 #include <dst/dst.h>
+#include <isc/boolean.h>
+#include <isc/buffer.h>
+#include <isc/bufferlist.h>
+#include <isc/lang.h>
+#include <isc/list.h>
+#include <isc/mem.h>
+#include <isc/print.h>
+#include <isc/sockaddr.h>
+#include <isc/socket.h>
 
 #define MXSERV 4
 #define MXNAME 256

@@ -15,38 +15,36 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.6 2000/06/20 22:50:13 mws Exp $ */
+/* $Id: nsupdate.c,v 1.7 2000/06/21 17:43:27 mws Exp $ */
 
 #include <config.h>
+#include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <netdb.h>
-
-#include <isc/app.h>
-#include <isc/mutex.h>
-#include <isc/condition.h>
-#include <isc/mem.h>
-#include <isc/socket.h>
-#include <isc/sockaddr.h>
-#include <isc/buffer.h>
-#include <isc/region.h>
-#include <isc/task.h>
-#include <isc/util.h>
-#include <isc/string.h>
-#include <isc/lex.h>
-#include <isc/timer.h>
-
-#include <dns/dispatch.h>
-#include <dns/request.h>
-#include <dns/message.h>
-#include <dns/rdata.h>
-#include <dns/rdataset.h>
-#include <dns/rdatalist.h>
-#include <dns/rdatatype.h>
 #include <dns/callbacks.h>
-#include <dns/rdatastruct.h>
+#include <dns/dispatch.h>
 #include <dns/events.h>
+#include <dns/message.h>
 #include <dns/name.h>
+#include <dns/rdata.h>
+#include <dns/rdatalist.h>
+#include <dns/rdataset.h>
+#include <dns/rdatastruct.h>
+#include <dns/rdatatype.h>
+#include <dns/request.h>
+#include <isc/app.h>
+#include <isc/buffer.h>
+#include <isc/condition.h>
+#include <isc/lex.h>
+#include <isc/mem.h>
+#include <isc/mutex.h>
+#include <isc/region.h>
+#include <isc/sockaddr.h>
+#include <isc/socket.h>
+#include <isc/string.h>
+#include <isc/task.h>
+#include <isc/timer.h>
+#include <isc/util.h>
 
 #define MXNAME 256
 #define MAXCMD 256
