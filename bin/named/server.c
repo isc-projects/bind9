@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.257 2000/11/27 22:08:06 gson Exp $ */
+/* $Id: server.c,v 1.258 2000/11/28 01:59:24 mws Exp $ */
 
 #include <config.h>
 
@@ -2251,19 +2251,8 @@ ns_server_querycount(dns_zone_t *zone, isc_boolean_t is_zone,
 	REQUIRE(counter < DNS_ZONE_COUNTSIZE);
 
 	ns_g_server->globalcount[counter]++;
-	if (!is_zone || zone == NULL || !dns_zone_hascounts(zone)) {
-	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      1, "global counter %s set to %ld", 
-		      dns_zonecount_names[counter],
-		      (long)ns_g_server->globalcount[counter]);
-		return;
-	}
-	dns_zone_count(zone, counter);
-	isc_log_write(dns_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
-		      1, "zone counter %s set to %ld, global %ld", 
-		      dns_zonecount_names[counter],
-		      (long)dns_zone_getcounts(zone, counter),
-		      (long)ns_g_server->globalcount[counter]);
+	if (is_zone && zone != NULL && !dns_zone_hascounts(zone))
+		dns_zone_count(zone, counter);
 }
 
 /*
