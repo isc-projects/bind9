@@ -18,6 +18,7 @@
 #ifndef LWRES_NETDB_H
 #define LWRES_NETDB_H 1
 
+#include <stddef.h>			/* Ensure we have size_t. */
 #include <netdb.h>
 #include <lwres/lang.h>
 
