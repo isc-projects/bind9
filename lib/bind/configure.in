@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.21 $)
+AC_REVISION($Revision: 1.22 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -465,6 +465,8 @@ then
 			AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 			AC_CHECK_FUNC(pthread_setconcurrency,
 				      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
+			AC_DEFINE(POSIX_GETGRGID_R)
+			AC_DEFINE(POSIX_GETGRNAM_R)
 			;;
 		#
 		# UnixWare does things its own way.
@@ -521,7 +523,6 @@ then
 	WANT_IRS_THREADSGR_OBJS="\${WANT_IRS_THREADSGR_OBJS}"
 	WANT_IRS_THREADSPW_OBJS="\${WANT_IRS_THREADSPW_OBJS}"
 	WANT_IRS_THREADS_OBJS="\${WANT_IRS_THREADS_OBJS}"
-	hack_POSIX_PTHREAD_SEMANTICS="#define _POSIX_PTHREAD_SEMANTICS"
 	thread_dir=pthreads
 else
 	ALWAYS_DEFINES=""
@@ -529,7 +530,6 @@ else
 	WANT_IRS_THREADSGR_OBJS=""
 	WANT_IRS_THREADSPW_OBJS=""
 	WANT_IRS_THREADS_OBJS=""
-	hack_POSIX_PTHREAD_SEMANTICS=""
 	thread_dir=nothreads
 fi
 
@@ -1479,17 +1479,6 @@ SETPWENT_VOID="#define SETGRENT_VOID 1"
 SETPWENT_VOID="#undef SETGRENT_VOID"
 )
 AC_SUBST(SETGRENT_VOID)
-
-AC_TRY_COMPILE([
-${hack_POSIX_PTHREAD_SEMANTICS}
-#include <grp.h>
-struct group *
-getgrgid_r(gid_t gid, struct group *gptr, char *buf, int buflen) {}
-],[return (0);],
-[POSIX_GETGRGID_R="#define POSIX_GETGRGID_R 1"],
-[POSIX_GETGRGID_R="#undef POSIX_GETGRGID_R"])
-AC_SUBST(POSIX_GETGRGID_R)
-
 
 AC_CHECK_FUNC(getnetgrent_r,
 AC_TRY_COMPILE(

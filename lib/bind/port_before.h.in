@@ -1,5 +1,6 @@
 #ifndef port_before_h
 #define port_before_h
+#include <config.h>
 
 @WANT_IRS_GR@
 @WANT_IRS_NIS@
@@ -13,7 +14,6 @@
 @GETNETBYADDR_ADDR_T@
 @SETPWENT_VOID@
 @SETGRENT_VOID@
-@POSIX_GETGRGID_R@
 
 @NET_R_ARGS@
 @NET_R_BAD@
