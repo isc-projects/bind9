@@ -53,6 +53,7 @@ static char *text_table[DNS_R_LASTENTRY + 1] = {
 	"bad base64 encoding",			/* 30 */
 	"partial match"				/* 31 */
 	"new origin"				/* 32 */
+	"unchanged"				/* 33 */
 };
 
 char *
