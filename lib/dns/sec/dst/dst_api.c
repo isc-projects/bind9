@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.59 2000/08/17 02:04:19 bwelling Exp $
+ * $Id: dst_api.c,v 1.60 2000/09/02 01:15:21 bwelling Exp $
  */
 
 #include <config.h>
@@ -112,7 +112,7 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
 #ifdef DNSSAFE
-	RETERR(dst__dnssafersa_init(&dst_t_func[DST_ALG_RSA]));
+	RETERR(dst__dnssafersa_init(&dst_t_func[DST_ALG_RSAMD5]));
 #endif
 #ifdef OPENSSL
 	RETERR(dst__openssl_init());
@@ -717,7 +717,7 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	REQUIRE(n != NULL);
 
 	switch (key->key_alg) {
-		case DST_ALG_RSA:
+		case DST_ALG_RSAMD5:
 			*n = (key->key_size + 7) / 8;
 			break;
 		case DST_ALG_DSA:
@@ -746,7 +746,7 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
 		case DST_ALG_DH:
 			*n = (key->key_size + 7) / 8;
 			break;
-		case DST_ALG_RSA:
+		case DST_ALG_RSAMD5:
 		case DST_ALG_DSA:
 		case DST_ALG_HMACMD5:
 		default:

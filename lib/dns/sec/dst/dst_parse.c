@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.23 2000/08/01 01:27:49 tale Exp $
+ * $Id: dst_parse.c,v 1.24 2000/09/02 01:15:22 bwelling Exp $
  */
 
 #include <config.h>
@@ -106,7 +106,7 @@ check_rsa(const dst_private_t *priv) {
 		return (-1);
 	for (i = 0; i < RSA_NTAGS; i++) {
 		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(DST_ALG_RSA, i))
+			if (priv->elements[j].tag == TAG(DST_ALG_RSAMD5, i))
 				break;
 		if (j == priv->nelements)
 			return (-1);
@@ -156,7 +156,7 @@ check_hmac_md5(const dst_private_t *priv) {
 static int
 check_data(const dst_private_t *priv, const unsigned int alg) {
 	switch (alg) {
-		case DST_ALG_RSA:
+		case DST_ALG_RSAMD5:
 			return (check_rsa(priv));
 		case DST_ALG_DH:
 			return (check_dh(priv));
@@ -369,7 +369,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 	fprintf(fp, "%s %d ", ALGORITHM_STR, dst_key_alg(key));
 	switch (dst_key_alg(key)) {
-		case DST_ALG_RSA: fprintf(fp, "(RSA)\n"); break;
+		case DST_ALG_RSAMD5: fprintf(fp, "(RSA)\n"); break;
 		case DST_ALG_DH: fprintf(fp, "(DH)\n"); break;
 		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
 		case DST_ALG_HMACMD5: fprintf(fp, "(HMAC_MD5)\n"); break;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_test.c,v 1.32 2000/08/17 19:17:53 bwelling Exp $ */
+/* $Id: dst_test.c,v 1.33 2000/09/02 01:17:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -255,17 +255,18 @@ main(void) {
 	isc_buffer_add(&b, 5);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
 	io(name, 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
-	io(name, 54622, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io(name, 54622, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
+	   mctx);
 
 	io(name, 0, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
-	io(name, 0, DST_ALG_RSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
+	io(name, 0, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 
 	isc_buffer_init(&b, "dh.", 3);
 	isc_buffer_add(&b, 3);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
 	dh(name, 18088, name, 48443, mctx);
 
-	generate(DST_ALG_RSA, mctx);
+	generate(DST_ALG_RSAMD5, mctx);
 	generate(DST_ALG_DH, mctx);
 	generate(DST_ALG_DSA, mctx);
 	generate(DST_ALG_HMACMD5, mctx);

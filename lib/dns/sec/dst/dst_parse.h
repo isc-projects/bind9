@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.15 2000/08/01 01:27:50 tale Exp $ */
+/* $Id: dst_parse.h,v 1.16 2000/09/02 01:15:23 bwelling Exp $ */
 
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1
@@ -36,15 +36,16 @@
 #define TAG_ALG(tag)		((unsigned int)(tag) >> TAG_SHIFT)
 #define TAG(alg, off)		(((alg) << TAG_SHIFT) + (off))
 
+/* These are used by both RSA-MD5 and RSA-SHA1 */
 #define RSA_NTAGS		8
-#define TAG_RSA_MODULUS		((DST_ALG_RSA << TAG_SHIFT) + 0)
-#define TAG_RSA_PUBLICEXPONENT	((DST_ALG_RSA << TAG_SHIFT) + 1)
-#define TAG_RSA_PRIVATEEXPONENT	((DST_ALG_RSA << TAG_SHIFT) + 2)
-#define TAG_RSA_PRIME1		((DST_ALG_RSA << TAG_SHIFT) + 3)
-#define TAG_RSA_PRIME2		((DST_ALG_RSA << TAG_SHIFT) + 4)
-#define TAG_RSA_EXPONENT1	((DST_ALG_RSA << TAG_SHIFT) + 5)
-#define TAG_RSA_EXPONENT2	((DST_ALG_RSA << TAG_SHIFT) + 6)
-#define TAG_RSA_COEFFICIENT	((DST_ALG_RSA << TAG_SHIFT) + 7)
+#define TAG_RSA_MODULUS		((DST_ALG_RSAMD5 << TAG_SHIFT) + 0)
+#define TAG_RSA_PUBLICEXPONENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 1)
+#define TAG_RSA_PRIVATEEXPONENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 2)
+#define TAG_RSA_PRIME1		((DST_ALG_RSAMD5 << TAG_SHIFT) + 3)
+#define TAG_RSA_PRIME2		((DST_ALG_RSAMD5 << TAG_SHIFT) + 4)
+#define TAG_RSA_EXPONENT1	((DST_ALG_RSAMD5 << TAG_SHIFT) + 5)
+#define TAG_RSA_EXPONENT2	((DST_ALG_RSAMD5 << TAG_SHIFT) + 6)
+#define TAG_RSA_COEFFICIENT	((DST_ALG_RSAMD5 << TAG_SHIFT) + 7)
 
 #define DH_NTAGS		4
 #define TAG_DH_PRIME		((DST_ALG_DH << TAG_SHIFT) + 0)
