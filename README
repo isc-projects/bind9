@@ -48,12 +48,16 @@ BIND 9.3.0
 	BIND 9.3.0 has a number of new features over 9.2,
 	including:
 
+	DNSSEC is now DS based.
+	See doc/draft/draft-ietf-dnsext-dnssec-*
+
+	DNSSEC lookaside validation.
+
 	NOTE:
 	* Zones containing MD and MF will now be rejected.
 	* dig, nslookup name. now report "Not Implemented" as
 	  NOTIMP rather than NOTIMPL.  This will have impact on scripts
 	  that are looking for NOTIMPL.
-
 
 BIND 9.2.0
 
