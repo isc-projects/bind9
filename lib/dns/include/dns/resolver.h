@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.27 2000/06/22 21:56:06 tale Exp $ */
+/* $Id: resolver.h,v 1.28 2000/06/26 22:09:37 gson Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -273,9 +273,13 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *	This call starts a query for 'name', type 'type'.
  *
- *	XXXRTH  Explain query domain and nameservers.
- *		'forwarders' is unimplemented, and subject to change when
- *		we figure out how selective forwarding will work.
+ *	The 'domain' is a parent domain of 'name' for which
+ *	a set of name servers 'nameservers' is known.  If no
+ *	such name server information is available, set 
+ * 	'domain' and 'nameservers' to NULL.
+ *
+ *	'forwarders' is unimplemented, and subject to change when
+ *	we figure out how selective forwarding will work.
  *
  *	When the fetch completes (successfully or otherwise), a 
  *	DNS_EVENT_FETCHDONE event with action 'action' and arg 'arg' will be
