@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.67 2001/01/09 21:50:43 bwelling Exp $ */
+/* $Id: db.c,v 1.68 2001/04/10 03:05:55 marka Exp $ */
 
 /***
  *** Imports
@@ -328,7 +328,8 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	 * result if dns_master_loadfile() succeeded.  If dns_master_loadfile()
 	 * failed, we want to return the result code it gave us.
 	 */
-	if (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE)
+	if (eresult != ISC_R_SUCCESS &&
+	    (result == ISC_R_SUCCESS || result == DNS_R_SEENINCLUDE))
 		result = eresult;
 
 	return (result);

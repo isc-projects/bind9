@@ -1,3 +1,5 @@
+ 806.	[bug]		DNS_R_SEENINCLUDE was failing to propogate back up
+			the calling stack to the zone maintence level.
 
  805.	[bug]		When using "forward only", missing root hints should
 			not cause queries to fail. [RT #1143]
