@@ -113,21 +113,21 @@ typedef enum {
 	dns_c_forw_only,
 	dns_c_forw_first,
 	dns_c_forw_noanswer,
-	dns_c_forw_nodomain,
+	dns_c_forw_nodomain
 } dns_c_forw_t;
 
 /* value of a 'check-names' method  */
 typedef enum {
 	dns_c_severity_ignore,
 	dns_c_severity_warn,
-	dns_c_severity_fail,
+	dns_c_severity_fail
 } dns_c_severity_t;
 
 /* Value of a 'check-names' type. */
 typedef enum {
 	dns_trans_primary,
 	dns_trans_secondary,
-	dns_trans_response,
+	dns_trans_response
 } dns_c_trans_t ;
 #define DNS_C_TRANSCOUNT 3	  /* number of items in dns_c_trans_t enum */
 
@@ -143,7 +143,7 @@ typedef enum {
 typedef enum {
 	dns_c_ordering_fixed,
 	dns_c_ordering_random,
-	dns_c_ordering_cyclic,
+	dns_c_ordering_cyclic
 } dns_c_ordering_t;
 
 
