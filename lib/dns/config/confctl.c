@@ -261,10 +261,10 @@ dns_c_ctrl_print(isc_log_t *lctx,
 		fprintf(fp, "inet ");
 		dns_c_print_ipaddr(lctx, fp,  &ctl->u.inet_v.addr);
 		
-		if (port == htons(0)) {
+		if (port == 0) {
 			fprintf(fp, " port *\n");
 		} else {
-			fprintf(fp, " port %d\n", (int)ntohs(port));
+			fprintf(fp, " port %d\n", port);
 		}
 		
 		dns_c_printtabs(lctx, fp, indent + 1);

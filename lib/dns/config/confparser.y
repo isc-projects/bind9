@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.15 1999/10/28 02:25:22 halley Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.16 1999/10/28 17:53:15 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -1067,7 +1067,7 @@ maybe_wild_port: in_port
         }
         | L_STRING
         {
-                $$ = htons(0);
+                $$ = 0;
 
                 if (strcmp ($1, "*") != 0) {
                         parser_error(ISC_TRUE,
@@ -1114,7 +1114,7 @@ query_source: query_source_address
 
 maybe_port: /* nothing */
         {
-                $$ = htons(DNS_C_DEFAULTPORT);
+                $$ = DNS_C_DEFAULTPORT;
         }
         | L_PORT in_port
         {
@@ -1124,7 +1124,7 @@ maybe_port: /* nothing */
 
 maybe_zero_port : /* nothing */
         {
-                $$ = htons(0);
+                $$ = 0;
         }
         | L_PORT in_port
         {
@@ -2132,6 +2132,7 @@ address_match_simple: ip_address
                         } else {
                                 ia.s_addr = htonl(($1 & 0xff) << 24);
 
+				memset(&address, 0x0, sizeof address);
                                 address.type.sin.sin_family = AF_INET;
                                 address.type.sin.sin_addr = ia;
                                 
@@ -3235,7 +3236,7 @@ in_port: L_INTEGER
                                        (int)$1);
                         $1 = 0;
                 } else {
-                        $$ = htons((isc_uint16_t)$1);
+                        $$ = $1;
                 }
         }
         ;

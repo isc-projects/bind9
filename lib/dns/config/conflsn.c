@@ -211,8 +211,8 @@ dns_c_lstnon_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_lstnon_t *lo)
 	CHECK_LISTEN(lo);
 	
 	fprintf(fp, "listen-on ");
-	if (lo->port != htons(DNS_C_DEFAULTPORT)) {
-		fprintf(fp, "port %d ", (int)ntohs(lo->port));
+	if (lo->port != DNS_C_DEFAULTPORT) {
+		fprintf(fp, "port %d ", lo->port);
 	}
 
 	dns_c_ipmatchlist_print(lctx, fp, indent + 1, lo->iml);

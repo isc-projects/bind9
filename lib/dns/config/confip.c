@@ -946,6 +946,7 @@ dns_c_iplist_append(isc_log_t *lctx,
 			return (ISC_R_NOMEMORY);
 		}
 
+		memset(newlist, 0x0, newbytes);
 		memcpy(newlist, list->ips, oldbytes);
 
 		isc_mem_put(list->mem, list->ips, oldbytes);

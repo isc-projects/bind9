@@ -2594,8 +2594,8 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "masters ");
 	if (DNS_C_CHECKBIT(SZ_MASTER_PORT_BIT, &szone->setflags)) {
-		if (ntohs(szone->master_port) != 0) {
-			fprintf(fp, "port %d ", ntohs(szone->master_port));
+		if (szone->master_port != 0) {
+			fprintf(fp, "port %d ", szone->master_port);
 		}
 	}
 	if (szone->master_ips == NULL ||
@@ -2683,8 +2683,8 @@ stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *szone)
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "masters ");
 	if (DNS_C_CHECKBIT(TZ_MASTER_PORT_BIT, &szone->setflags)) {
-		if (ntohs(szone->master_port) != 0) {
-			fprintf(fp, "port %d ", ntohs(szone->master_port));
+		if (szone->master_port != 0) {
+			fprintf(fp, "port %d ", szone->master_port);
 		}
 	}
 	if (szone->master_ips == NULL ||

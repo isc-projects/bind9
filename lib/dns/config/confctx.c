@@ -3200,11 +3200,10 @@ dns_c_ctx_optionsprint(isc_log_t *lctx,
 		fprintf(fp, "query-source address ");
 		dns_c_print_ipaddr(lctx, fp, &options->query_source_addr);
 
-		if (options->query_source_port == htons(0)) {
+		if (options->query_source_port == 0) {
 			fprintf(fp, " port *");
 		} else {
-			fprintf(fp, " port %d",
-				(int)ntohs(options->query_source_port));
+			fprintf(fp, " port %d", options->query_source_port);
 		}
 		fprintf(fp, " ;\n");
 	}
