@@ -32,29 +32,55 @@
  * for us to continue if they fail.
  */
 
-#define LOCK(lp) \
-	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS)
-#define UNLOCK(lp) \
-	RUNTIME_CHECK(isc_mutex_unlock((lp)) == ISC_R_SUCCESS)
-#define BROADCAST(cvp) \
-	RUNTIME_CHECK(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS)
-#define SIGNAL(cvp) \
-	RUNTIME_CHECK(isc_condition_signal((cvp)) == ISC_R_SUCCESS)
-#define WAIT(cvp, lp) \
-	RUNTIME_CHECK(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS)
+#if 0
+#define ISC_UTIL_TRACE(a) a
+#else
+#define ISC_UTIL_TRACE(a)
+#endif
+
+#define LOCK(lp) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "LOCKING %p %s %d\n", (lp), __FILE__, __LINE__)); \
+	RUNTIME_CHECK(isc_mutex_lock((lp)) == ISC_R_SUCCESS); \
+	ISC_UTIL_TRACE(fprintf(stderr, "LOCKED %p %s %d\n", (lp), __FILE__, __LINE__)); \
+	} while (0)
+#define UNLOCK(lp) do { \
+	RUNTIME_CHECK(isc_mutex_unlock((lp)) == ISC_R_SUCCESS); \
+	ISC_UTIL_TRACE(fprintf(stderr, "UNLOCKED %p %s %d\n", (lp), __FILE__, __LINE__)); \
+	} while (0)
+
+#define BROADCAST(cvp) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "BROADCAST %p %s %d\n", (cvp), __FILE__, __LINE__)); \
+	RUNTIME_CHECK(isc_condition_broadcast((cvp)) == ISC_R_SUCCESS); \
+	} while (0)
+#define SIGNAL(cvp) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "SIGNAL %p %s %d\n", (cvp), __FILE__, __LINE__)); \
+	RUNTIME_CHECK(isc_condition_signal((cvp)) == ISC_R_SUCCESS); \
+	} while (0)
+#define WAIT(cvp, lp) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "WAIT %p LOCK %p %s %d\n", (cvp), (lp), __FILE__, __LINE__)); \
+	RUNTIME_CHECK(isc_condition_wait((cvp), (lp)) == ISC_R_SUCCESS); \
+	ISC_UTIL_TRACE(fprintf(stderr, "WAITED %p LOCKED %p %s %d\n", (cvp), (lp), __FILE__, __LINE__)); \
+	} while (0)
 
 /*
  * isc_condition_waituntil can return ISC_R_TIMEDOUT, so we
  * don't RUNTIME_CHECK the result.
+ *
+ *  XXX Also, can't really debug this then...
  */
 
 #define WAITUNTIL(cvp, lp, tp) \
 	isc_condition_waituntil((cvp), (lp), (tp))
 
-#define RWLOCK(lp, t) \
-	RUNTIME_CHECK(isc_rwlock_lock((lp), (t)) == ISC_R_SUCCESS)
-#define RWUNLOCK(lp, t) \
-	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS)
+#define RWLOCK(lp, t) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCK %p, %d\n", (lp), (t))); \
+	RUNTIME_CHECK(isc_rwlock_lock((lp), (t)) == ISC_R_SUCCESS); \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWLOCKED %p, %d\n", (lp), (t))); \
+	} while (0)
+#define RWUNLOCK(lp, t) do { \
+	ISC_UTIL_TRACE(fprintf(stderr, "RWUNLOCK %p, %d\n", (lp), (t))); \
+	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS); \
+	} while (0)
 
 /*
  * List Macros.
