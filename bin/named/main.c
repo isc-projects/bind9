@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: main.c,v 1.73 2000/07/10 11:34:56 tale Exp $ */
+/* $Id: main.c,v 1.74 2000/07/18 17:49:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -483,7 +483,7 @@ main(int argc, char *argv[]) {
 	isc_error_setfatal(library_fatal_error);
 	isc_error_setunexpected(library_unexpected_error);
 
-	ns_os_init();
+	ns_os_init(program_name);
 
 	result = isc_app_start();
 	if (result != ISC_R_SUCCESS)

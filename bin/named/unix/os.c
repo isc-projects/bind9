@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.c,v 1.26 2000/07/08 00:12:21 bwelling Exp $ */
+/* $Id: os.c,v 1.27 2000/07/18 17:50:01 bwelling Exp $ */
 
 #include <config.h>
 
@@ -175,7 +175,7 @@ linux_keepcaps(void) {
 
 
 static void
-setup_syslog(void) {
+setup_syslog(const char *progname) {
 	int options;
 
 	options = LOG_PID;
@@ -183,12 +183,12 @@ setup_syslog(void) {
 	options |= LOG_NDELAY;
 #endif
 
-	openlog("named", options, LOG_DAEMON);
+	openlog(progname, options, LOG_DAEMON);
 }
 
 void
-ns_os_init(void) {
-	setup_syslog();
+ns_os_init(const char *progname) {
+	setup_syslog(progname);
 #ifdef HAVE_LINUX_CAPABILITY_H
 	linux_initialprivs();
 #endif

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: os.h,v 1.8 2000/07/01 00:48:06 tale Exp $ */
+/* $Id: os.h,v 1.9 2000/07/18 17:50:02 bwelling Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
@@ -23,7 +23,7 @@
 #include <isc/types.h>
 
 void
-ns_os_init(void);
+ns_os_init(const char *progname);
 
 void
 ns_os_daemonize(void);

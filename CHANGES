@@ -1,4 +1,6 @@
 
+ 338.	[bug]		lwresd logged to syslog as named, not lwresd.
+
  337.	[bug]		"dig" did not recognize "nsap-ptr" as an RR type
 			on the command line.
 
