@@ -13,8 +13,8 @@
 1155.	[func]		Recover from master files being removed from under
 			us.
 
-1154.	[bug]		When scanning interfaces skip the interface
-			if address no address is configured.  [RT #2176]
+1154.	[bug]		Don't attempt to obtain the netmask of a interface
+			if there is no address configured.  [RT #2176]
 
 1153.	[func]		'rndc {stop|halt} -p' now reports the process id
 			of the instance of named being shutdown.
