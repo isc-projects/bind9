@@ -5,9 +5,9 @@
 
 
 INTERNET-DRAFT                                                Hongbo Shi
-draft-ietf-idn-iptr-01.txt                             Waseda University
-17 November 2000                                        Jiang Ming Liang
-Expires: 17 May 2001                                           i-DNS.net
+draft-ietf-idn-iptr-02.txt                             Waseda University
+17 May 2001                                             Jiang Ming Liang
+Expires: 17 November 2001                                      i-DNS.net
 
 
               Internationalized PTR Resource Record (IPTR)
@@ -61,7 +61,7 @@ Shi, Jiang                                                      [Page 1]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
   mapping architecture. This document describes a new RR TYPE named IPTR
@@ -121,7 +121,7 @@ Shi, Jiang                                                      [Page 2]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
   properties:
@@ -181,7 +181,7 @@ Shi, Jiang                                                      [Page 3]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
   Mapping IPv6 to IDNs can be similarly supported. This document recom-
@@ -241,7 +241,7 @@ Shi, Jiang                                                      [Page 4]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
   not find the corresponding LANGUAGE IDN finally, then the correspond-
@@ -301,7 +301,7 @@ Shi, Jiang                                                      [Page 5]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
 
@@ -361,7 +361,7 @@ Shi, Jiang                                                      [Page 6]
 
 
 
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
 
 
      Thus,
@@ -381,123 +381,27 @@ INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
 
      is allowed.
 
-8. Open Issues
+8. Changes
 
-     1.   Is it necessary to let a IDN aware server to send back all of
-          the corresponding IDNs to a resolver? Meanings,
+     Through the discussion on the IETF49 meeting in San Diego, we
+     deleted the chapter "Open Issues" of our previous draft (version
+     01).
 
+     And,
 
-                      +------------------------------------------------------+
-           Header     | OPCODE=SQUERY, RESPONSE, AA                          |
-                      +------------------------------------------------------+
-           Question   | QNAME=4.3.2.1.IN-ADDR.ARPA.,QCLASS=IN,QTYPE=IPTR     |
-                      +------------------------------------------------------+
-           Answer     | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-CN" "name1-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-CN" "name2-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-CN" "name3-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-TW" "name4-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "ko-KR" "name5-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "ko-KR" "name6-in-utf8"  |
-                      +------------------------------------------------------+
-           Authority  | ...                                                  |
-                      +------------------------------------------------------+
-           Additional | ...                                                  |
-                      +------------------------------------------------------+
+     4.3.2.1.IN-ADDR.ARPA  IPTR "zh-TW" "[samefoo.sample] in utf8"
+                           IPTR "zh-TW" "[difffoo.sample] in utf8"
+                           IPTR "zh-CN" "[samefoo.sample] in utf8"
+                           IPTR "ja-JP" "[samefoo.sample] in utf8"
+                           IPTR "ko-KR" "[samefoo.sample] in utf8"
 
+     is allowed.
 
-          Or, just using current fixed/cyclic/random options to return
-          one of the corresponding IDNs per LANGUAGE? In short, "one IP
-          one IDN per LANGUAGE". Such like
+8. Changes
 
-
-
-
-
-
-
-Shi, Jiang                                                      [Page 7]
-
-
-
-
-
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
-
-
-
-                      +------------------------------------------------------+
-           Header     | OPCODE=SQUERY, RESPONSE, AA                          |
-                      +------------------------------------------------------+
-           Question   | QNAME=4.3.2.1.IN-ADDR.ARPA.,QCLASS=IN,QTYPE=IPTR     |
-                      +------------------------------------------------------+
-           Answer     | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-CN" "name1-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "zh-TW" "name4-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "ko-KR" "name5-in-utf8"  |
-                      | 4.3.2.1.IN-ADDR.ARPA. IPTR  "ko-KR" "name6-in-utf8"  |
-                      +------------------------------------------------------+
-           Authority  | ...                                                  |
-                      +------------------------------------------------------+
-           Additional | ...                                                  |
-                      +------------------------------------------------------+
-
-
-
-
-     2.   If QTYPE is IPTR, should an IDN aware server send all of the
-          corresponding IDNs to the resolver? Is this kind of behavior
-          friendly to implent the resolver? How about letting a server
-          just feedback the corresponding PTR record, if a server
-          doesn't find the corresponding LANGUAGE IDN that a client
-          requires.
-
-          In the following case, it is wasteful to return all the
-          corresponding IDNs to the clients.
-
-          4.3.2.1.IN-ADDR.ARPA  IPTR  "zh-TW" "[foo1.example] in utf8"
-                                IPTR  "zh-TW" "[foo2.example] in utf8"
-                                ...
-                                IPTR  "zh-CN" "[foo1.example] in utf8"
-                                IPTR  "zh-CN" "[foo2.example] in utf8"
-                                ...
-                                IPTR  "ja-JP" "[foo1.example] in utf8"
-                                IPTR  "ja-JP" "[foo2.example] in utf8"
-                                ...
-                                IPTR  "ko-KR" "[foo1.example] in utf8"
-                                IPTR  "ko-KR" "[foo2.example] in utf8"
-                                ...
-
-          The benefit of the IPTR is introducing LANGUAGE. It SHOULD be
-          used in query from clients, then servers can select minimum
-          size of corresponding IDNs. For working this effectively, you
-          should introduce default LANGUAGE if no corresponding LANGUAGE
-          exists. The default MUST be ASCII. So that default IPTR can be
-          natural extension of PTR. I.E.
-
-
-
-Shi, Jiang                                                      [Page 8]
-
-
-
-
-
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
-
-
-          4.3.2.1.in-addr.arpa. IN PTR ASCII-domain-name
-
-          is equivalent to
-
-          4.3.2.1.in-addr.arpa. IN IPTR "default" ASCII-domain-name
-
-          Of course, ASCII includes ACE.
-
-
-     3.   According to the consideration above, how about the following
-          thinking? That means a response MAY include not only a
-          corresponding IDN in a specific LANGUAGE but also the LANGUAGE
-          tags of the corresponding IDNs. And the client will load these
-          LANGUAGE tags in the DNS cache for the next IPTR query.
+     Through the discussion on the IETF49 meeting in San Diego, we
+     deleted the chapter "Open Issues" of our previous draft (version
+     01).
 
 References
 
@@ -507,8 +411,20 @@ References
      [IDNE] Marc Blanchet & Paul Hoffman, "Internationalized domain
      names using EDNS", draft-ietf-idn-idne.
 
-     [NAMEPREP] Paul Hoffman & Marc Blanchet, "Preparation of Interna-
-     tionalized Host Names", draft-ietf-idn-nameprep.
+     [NAMEPREP] Paul Hoffman & Marc Blanchet, "Preparation of
+
+
+
+Shi, Jiang                                                      [Page 7]
+
+
+
+
+
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
+
+
+     Internationalized Host Names", draft-ietf-idn-nameprep.
 
      [RFC1034] P. Mockapetris, "DOMAIN NAMES - CONCEPTS AND FACILITIES",
      November 1987, RFC1034
@@ -532,18 +448,6 @@ References
      August 1999, RFC 2671.
 
      [ISO 639] ISO 639:1988 (E/F) - Code for the representation of names
-
-
-
-Shi, Jiang                                                      [Page 9]
-
-
-
-
-
-INTERNET-DRAFT   Internationalized PTR Resource Record      14 Nov. 2000
-
-
      of languages - The International Organization for Standardization,
      1st edition, 1988 17 pages Prepared by ISO/TC 37 - Terminology
      (principles and coordination).
@@ -567,6 +471,18 @@ Authors' Information
      3-4-1 Okubo, Shinjyuku-ku
      Tokyo, 169-8555 Japan
      shi@goto.info.waseda.ac.jp
+
+
+
+
+Shi, Jiang                                                      [Page 8]
+
+
+
+
+
+INTERNET-DRAFT   Internationalized PTR Resource Record       17 May 2001
+
 
      Jiang Ming Liang
      i-DNS.net
@@ -595,6 +511,30 @@ Authors' Information
 
 
 
-Shi, Jiang                                                     [Page 10]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shi, Jiang                                                      [Page 9]
 
 

@@ -5,7 +5,7 @@ Expires September 2001                                      T. Lindgreen
 
                      Parent stores the child's zone KEYs
 
-                draft-ietf-dnsext-parent-stores-zone-keys-00.txt
+                draft-ietf-dnsext-parent-stores-zone-keys-01.txt
  
  
 Status of This Document
@@ -28,7 +28,7 @@ Status of This Document
    Comments should be sent to the authors or the DNSEXT WG mailing
    list namedroppers@ops.ietf.org.
 
-   This document updates RFC 2535 [2]. 
+   This document updates RFC 2535. 
 
 
 Copyright Notice
@@ -51,9 +51,9 @@ Abstract
 
 
 
-Gieben                Expires September 2001                 [Page  2]
+Gieben & Lindgreen       Expires November 2001                [Page  2]
 
-Internet Draft          Parent Stores Zone KEYS               March 2001
+Internet Draft          Parent Stores Zone KEYS               May    2001
 
    simple key rollover and resigning mechanism. For large TLDs this is
    extremely important. 
@@ -69,29 +69,29 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
 Table of Contents
  
-      Status of This Document....................................2
-      Abstract...................................................2
+      Status of This Document....................................
+      Abstract...................................................
  
-      Table of Contents..........................................3
-      1 Introduction.............................................3
-      2 Proposal.................................................4
-      2.1. TTL of the KEY and SIG at the parent..................4
-      2.2. No NULL KEY...........................................5
-      3 Impact on a secure aware resolver/forwarder..............5
-      3.1 Impact of key rollovers on resolver/forwarder..........5
-      4 Scheduled key rollover...................................6
-      5 Unscheduled key rollover.................................6
-      6 Zone resigning...........................................7
-      7. Consequences for KEY and NXT records....................7
-      7.1. KEY bit in NXT records................................7
-      7.2. Authority of KEY records..............................8
-      7.3. Selecting KEY sets....................................8
-      8. The zone-KEY and local KEY records......................8
-      9. Security Considerations.................................8
+      Table of Contents..........................................
+      1 Introduction.............................................
+      2 Proposal.................................................
+      2.1. TTL of the KEY and SIG at the parent..................
+      2.2. No NULL KEY...........................................
+      3 Impact on a secure aware resolver/forwarder..............
+      3.1 Impact of key rollovers on resolver/forwarder..........
+      4 Scheduled key rollover...................................
+      5 Unscheduled key rollover.................................
+      6 Zone resigning...........................................
+      7. Consequences for KEY and NXT records....................
+      7.1. KEY bit in NXT records................................
+      7.2. Authority of KEY records..............................
+      7.3. Selecting KEY sets....................................
+      8. The zone-KEY and local KEY records......................
+      9. Security Considerations.................................
 
-      Authors' Addresses.........................................9
-      References.................................................9
-      Full Copyright Statement...................................9
+      Authors' Addresses.........................................
+      References.................................................
+      Full Copyright Statement...................................
 
 
 1. Introduction
@@ -99,8 +99,8 @@ Table of Contents
    DNSSEC on the ccTLDs and gTLDs.
 
    In this document we are considering a secure zone, somewhere under a
-   secure entry point and on-tree [1] validation between the secure
-   entry point and the zone in question.  The resolver we are
+   secure entry point and on-tree [RFC 3090] validation between the
+   secure entry point and the zone in question.  The resolver we are
    considering is security aware and is preconfigured with the KEY of
    the secure entry point.  We also make a distinction between a
    scheduled and a unscheduled key rollover.  A scheduled rollover is
@@ -109,12 +109,12 @@ Table of Contents
 
 
 
-Gieben                Expires September 2001                 [Page  3]
+Gieben & Lindgreen       Expires November 2001                [Page  3]
 
-Internet Draft          Parent Stores Zone KEYS               March 2001
+Internet Draft          Parent Stores Zone KEYS               May    2001
 
 
-   RFC 2535 [2] states that a zone KEY must be present in the apex of a
+   RFC 2535 states that a zone KEY must be present in the apex of a
    zone.  This can be in the at the delegation point in the parent's
    zonefile, or in the child's zonefile, or in both.  This key is only
    valid if it is signed by the parent, so there is also the question
@@ -122,8 +122,8 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
    The original idea was to have the zone KEY RR and the parent's SIG to
    reside in the child's zone and perhaps also in the parent's zone.
-   There is a draft proposal [3], that describes how a keyrollover can
-   be handled. 
+   There is a draft proposal [RFC 2535], that describes how a
+   keyrollover can be handled. 
 
    At NLnet Labs we found that storing the parent's signature over the
    child's zone KEY in the child's zone: 
@@ -138,14 +138,16 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in RFC 2119 [2].
+   document are to be interpreted as described in RFC 2119.
 
 
 2. Proposal
    The core of the new proposal is that the parent zone stores the
    parent's signature over the child's zone KEY and also the child's
-   zone KEY itself.  The child zone may also contain its zone KEY, in
-   which case is must be selfsigned. 
+   zone KEY itself, and is authoritative for both KEY and SIG.  The
+   child zone may also contain its zone KEY, in which case is must be
+   selfsigned. The child zone must not hold the parent's SIG, and must
+   also not set the AA-bit on requests for its zone KEY.
 
    The main advantage of this proposal is that all signatures signed by
    a key are in the same zone file as the producing key. This allows for
@@ -162,15 +164,15 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
 2.1. TTL of the KEY and SIG at the parent
    Each zone in DNS expresses in its SOA record the maximum and minimum
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  4]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
+
    TTL values that they allow in the zone. Thus it is possible that the
    parent will sign with a value that is unacceptable to the child. The
-
-
-
-Gieben                Expires September 2001                 [Page  4]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
-
    parent MUST follow the TTL request of the child as long as that is
    within the allowed range for the parent.
 
@@ -192,19 +194,40 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
    Section 3.4 "Determination of Zone Secure/Unsecured Status":
 
    " A zone KEY RR with the "no-key" type field value (both key type
-     flag bits 0 and 1 on) indicates that the zone named is unsecured
-     while a zone KEY RR with a key present indicates that the zone named
-     is secure.  The secured versus unsecured status of a zone may vary
-     with different cryptographic algorithms.  Even for the same
-     algorithm, conflicting zone KEY RRs may be present. "
+   flag bits 0 and 1 on) indicates that the zone named is unsecured
+   while a zone KEY RR with a key present indicates that the zone named
+   is secure.  The secured versus unsecured status of a zone may vary
+   with different cryptographic algorithms.  Even for the same
+   algorithm, conflicting zone KEY RRs may be present. "
 
    This is rewritten as:
 
-    " A zone is considered secured by on-tree validation [1] when the
-      there is a zone KEY from that zone present at its parent. If there
-      is no zone KEY present, and the resolver is also unaware of
-      alternative algorithms used and/or possible off-tree validation, the
-      zone is considered unsecured. "
+    " A zone is considered secured by on-tree validation [RFC 3090] when
+    the there is a zone KEY from that zone present at its parent. If
+    there is no zone KEY present, and the resolver is also unaware of
+    alternative algorithms used and/or possible off-tree validation, the
+    zone is considered unsecured. "
+
+   To further clarify this. A zone is secure, when the resolver expects
+   it to be, there are two possibilities:
+      1. When its parent is secure and holds a signed KEY for this child.  
+      2. When zone is a secure entry point, i.e. the resolver is
+         preconfigured with the KEY of this zone.
+
+   RFC 3090 calls this globally secured.
+
+   When a zone contains SIGs and a selfsigned KEY and this KEY is
+   preconfigured in the resolvers of interest, the a zone can be
+   considered locally secured (the RFC 3090 defintion).  hijacked.
+
+   If a zone is not globally or locally it must be considered unsecure.
+
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  5]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
 
 
 3. Impact on a secure aware resolver/forwarder 
@@ -222,13 +245,6 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
 3.1. Impact of key rollovers on resolver/forwarder
    When a zone is in the process of a key rollover, there could be a
-
-
-
-Gieben                Expires September 2001                 [Page  5]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
-
    discrepancy between the KEY and the SIG in the apex of the zone and
    the KEY and SIG that are stored in the cache of a resolver.
 
@@ -257,13 +273,20 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 4. Scheduled key rollover
    When the signatures, produced by the key to be rolled over, are all
    in one zone file, there are two parties involved.  Let us look at an
-   example where a TLD rolls over its zone KEY. The new key needs to be
-   signed with the root's key before it can be used to sign the TLD zone
-   and the zone KEYs of the TLD's children. The steps that need to be
-   taken by TLD and root are: 
+   possible example where a TLD rolls over its zone KEY. The new key
+   needs to be signed with the root's key before it can be used to sign
+   the TLD zone and the zone KEYs of the TLD's children. The steps that
+   need to be taken by TLD and root are: 
       - the TLD adds the new key to its KEY set in its zonefile. This
 	zone and KEY set are signed with the old zone KEY
       - then the TLD signals the parent
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  6]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
+
       - the root copies the new KEY set, consisting of the both new and
 	the old key, in its zonefile, resigns it and signals the TLD
       - the TLD removes the old key from its KEY set, resigns its zone
@@ -280,25 +303,18 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
 
 5. Unscheduled key rollover
-
-
-
-Gieben                Expires September 2001                 [Page  6]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
-
    Although nobody hopes that this will ever happen, we must be able to
    cope with possible key compromises. When such an event occurs, an
    immediate keyrollover is needed and must be completed in the shortest
    possible time.  With two parties involved, it will still be awkward,
    but not impossible to update two zonefiles overnight. "Out-of-band"
    communication between the two parties will be necessary, since the
-   compromised old key can not be trusted. We think that between two
-   parties this is doable, but this complicated procedure [5] is beyond
-   the scope of this document. 
+   compromised old key can not be trusted.  We think that between two
+   parties this is doable, but this complicated procedure is beyond the
+   scope of this document. 
 
    An alternative to an emergency key-rollover is becoming unsecured as
-   an emercengy measure. This has already been mentioned above in
+   an emergency measure. This has already been mentioned above in
    section 3.1. This only involves an emergency change in the parents
    zonefile (deleting the child's zone KEY), and allows the child and
    its underlying zones time to clean up before becoming secured again,
@@ -322,6 +338,13 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
    To cope with 1, secure aware resolvers MUST be aware that during a
    key-rollover there may be a conflict, and that in that case the
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  7]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
+
    parent always holds the active KEY set.  To cope with 2, the local
    resolver/caching forwarder should be preconfigured with the zone-KEY
    and thus looks at its own zone as were it a secure entry-point.  For
@@ -329,24 +352,17 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
    zonefile.
 
 7.1. KEY bit in NXT records
-   RFC 2535 [3], section 5.2 states:
+   RFC 2535, section 5.2 states:
 
-   " The NXT RR type bit map format currently defined is one bit per
-     RR type present for the owner name.  A one bit indicates that at
-     least one RR of that type is present for the owner name.  A zero
-     indicates that no such RR is present. [....] "
+   " The NXT RR type bit map format currently defined is one bit per RR
+   type present for the owner name.  A one bit indicates that at least
+   one RR of that type is present for the owner name.  A zero indicates
+   that no such RR is present. [....] "
 
-   As the zone KEY is present in a child zone, and signed by the
-   zone KEY (thus selfsigned), the definition of NXT RR type bit states
-
-
-
-Gieben                Expires September 2001                 [Page  7]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
-
-   in RFC 2535 [3], section 5.2 that the KEY bit must be set. We do not
-   see a compelling reason to change this default behavior.
+   As the zone KEY is present in a child zone, and signed by the zone
+   KEY (thus selfsigned), the definition of NXT RR type bit states in
+   RFC 2535, section 5.2 that the KEY bit must be set. We do not see a
+   compelling reason to change this default behavior.
 
 7.2. Authority of KEY records
    The parent of a zone generates the signature for the key belonging to
@@ -371,14 +387,21 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
    mechanism, like publishing it in a newspaper.
 
 7.3. Selecting KEY sets
-   As the zone KEY set is present in two places, there may be a
-   possibility to find conflicting KEY sets, and this will at least
-   really happen during a key-rollover.
+   As the zone KEY set is present in two places, there is a possibility
+   of two conflicting KEY sets, this will happen during a key-rollover
+   and may happen at other times.
 
    With one exception, a resolver MUST always select the KEY set from
    the parent in case of a conflict, as this is the active KEY set. For
    this reason, the parent sets the AA-bit on requests, while the child
    does not.
+
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  8]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
 
    The one exception is when a resolver regards the child's zone as a
    secure-entry point, in which case it has the zone KEY preconfigured.
@@ -389,19 +412,12 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
 
 8. The zone KEY and local KEY records.
    It must be recognized that the zone KEY RR, which is signed by a
-   non-local organisation, is something special. The external signature
+   non-local organization, is something special. The external signature
    over the public part of the key provides the local zone-administrator
    with the authority to use the corresponding private part to sign
    everything local, and thus to make his/her own zone secure. Please
    also note that the external signer, and NOT the local zone is
    authoritative for the zone KEY RRset.
-
-
-
-
-Gieben                Expires September 2001                 [Page  8]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
 
    Part of the RRs that the zone-administrator may wish to sign are KEY
    RRs for local use, for instance for IPSEC.
@@ -409,8 +425,9 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
    To make sure, that the local zone is authoritative for its own local
    KEY RRs, and that they get not exported and signed externally, these
    local KEY records SHOULD not be part of the zone KEY RRset.
-   Therefore, they SHOULD be placed under a label in the zonefile, f.i.
-   keys.child.parent.
+   Therefore, they could be placed under a label in the zonefile, f.i.
+   keys.child.parent, or for these kind of keys a new RR type could be
+   defined (e.g. PUBKEY).
 
    Besides being kept clear of local KEY records, the zone KEY RRset
    SHOULD also be kept clear of any other obsolete or otherwise not
@@ -423,15 +440,38 @@ Internet Draft          Parent Stores Zone KEYS               March 2001
    progress. During a keyrollover a new KEY RR must be added to this
    RRset.  Once the new KEY becomes the active zone KEY, the old KEY
    becomes obsolete and SHOULD be removed as soon as practically
-   possible.
+   possible. Information stored in caches SHOULD NOT be an issue on when
+   to remove the old zone KEY.
 
 
 9. Security Considerations
-   This document addresses the operational difficulties that arise if
-   DNSSEC is deployed as it stands now, with the child's zone KEY not
-   stored at the parent. By putting that key in the parent's zone the
-   communication between the two is kept to a minimum thus reducing the
-   risk of errors. All security considerations from RFC 2535 apply.
+   This document addresses the operational difficulties that arise when
+   DNSSEC is deployed. By putting the child's zone KEY at the parent we
+   solve at lot of problems by minimizing the amount of communication
+   between the two.  There is one security issue: the parent must not
+   ever create a valid parental SIG over a KEY RR, from which the
+   private part is (also) known to someone else than the legitimate
+   administrator of the child zone. This can happen in two ways:
+      1. The private KEY at the child has been compromised.
+      2. The parent has been fooled and thus insufficiently checked
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page  9]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
+
+         whether the KEY RR is really from the child.
+
+   For the security it doesn't matter if the SIG and the KEY are located
+   at the child or at the parent, but if they are located at the parent
+   it is much easier to replace the SIG. And by keeping the parental SIG
+   lifetime short, the parent helps to protect the child against
+   possible key compromises.  The selfsigned zone KEY stored in the
+   child's zone can have a long SIG expiration lifetime, this has no
+   impact on the child's security.
+
+   All security considerations from RFC 2535 apply.
 
 
 Authors' Addresses
@@ -445,26 +485,14 @@ Authors' Addresses
 
 References
 
-   [1] Lewis, E. "DNS Security Extension Clarification on Zone 
+   [RFC 3090] Lewis, E. "DNS Security Extension Clarification on Zone 
        Status", RFC 3090
        www.ietf.org/rfc/rfc3090.txt
-   [2] Bradner, S. "Key words for use in RFCs to Indicate Requirement
+   [RFC 2119] Bradner, S. "Key words for use in RFCs to Indicate Requirement
           Levels", RFC 2119
        www.ietf.org/rfc/rfc2119.txt
-   [3] Eastlake, D. "DNS Security Extensions", RFC 2535
+   [RFC 2535] Eastlake, D. "DNS Security Extensions", RFC 2535
        www.ietf.org/rfc/rfc2535.txt
-   [4] Andrews, M., Eastlake, D. "Domain Name System (DNS) Security 
-
-
-
-Gieben                Expires September 2001                 [Page  9]
-
-Internet Draft          Parent Stores Zone KEYS               March 2001
-
-          Key Rollover"
-       www.ietf.org/internet-drafts/draft-ietf-dnsop-rollover-01.txt
-   [5] Gieben, R. "Chain of trust" 
-       secnl.nlnetlabs.nl/thesis/thesis.html
 
 
 Full Copyright Statement
@@ -484,6 +512,13 @@ Full Copyright Statement
    copyrights defined in the Internet Standards process must be
    followed, or as required to translate it into languages other than
    English.
+
+
+
+Gieben & Lindgreen       Expires November 2001                [Page 10]
+
+Internet Draft          Parent Stores Zone KEYS               May    2001
+
 
    The limited permissions granted above are perpetual and will not
    be revoked by the Internet Society or its successors or assigns.
