@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.35 2001/03/01 03:22:12 gson Exp $ */
+/* $Id: parser.c,v 1.36 2001/03/02 01:10:51 gson Exp $ */
 
 #include <config.h>
 
@@ -371,6 +371,12 @@ parser_complain(cfg_parser_t *pctx, isc_boolean_t is_warning,
 static void
 print_uint32(cfg_printer_t *pctx, cfg_obj_t *obj);
 
+static void
+print_ustring(cfg_printer_t *pctx, cfg_obj_t *obj);
+
+static isc_result_t
+parse_enum(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
+
 /*
  * Data representations.  These correspond to members of the
  * "value" union in struct cfg_obj (except "void", which does
@@ -391,7 +397,6 @@ cfg_rep_t cfg_rep_void = { "void", free_noop };
  */
 
 static cfg_type_t cfg_type_boolean;
-static cfg_type_t cfg_type_boolean_or_ustring;
 static cfg_type_t cfg_type_uint32;
 static cfg_type_t cfg_type_qstring;
 static cfg_type_t cfg_type_astring;
@@ -434,8 +439,9 @@ static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_optional_facility;
 static cfg_type_t cfg_type_logseverity;
 static cfg_type_t cfg_type_lwres;
-static cfg_type_t cfg_type_boolean_or_ustring;
 static cfg_type_t cfg_type_controls_sockaddr;
+static cfg_type_t cfg_type_notifytype;
+static cfg_type_t cfg_type_dialuptype;
 
 /*
  * Configuration type definitions.
@@ -547,13 +553,26 @@ static cfg_type_t cfg_type_rrtypelist = {
 	&cfg_type_astring
 };
 
+const char *mode_enums[] = { "grant", "deny", NULL };
+static cfg_type_t cfg_type_mode = {
+	"mode", parse_enum, print_ustring, &cfg_rep_string,
+	&mode_enums
+};
+
+const char *matchtype_enums[] = {
+	"name", "subdomain", "wildcard", "self", NULL };
+static cfg_type_t cfg_type_matchtype = {
+	"matchtype", parse_enum, print_ustring, &cfg_rep_string,
+	&matchtype_enums
+};
+
 /*
  * A grant statement, used in the update policy.
  */
 static cfg_tuplefielddef_t grant_fields[] = {
-	{ "mode", &cfg_type_ustring, 0 }, /* grant/deny */ 
+	{ "mode", &cfg_type_mode, 0 },
 	{ "identity", &cfg_type_astring, 0 }, /* domain name */ 
-	{ "matchtype", &cfg_type_ustring, 0 },
+	{ "matchtype", &cfg_type_matchtype, 0 },
 	{ "name", &cfg_type_astring, 0 }, /* domain name */
 	{ "types", &cfg_type_rrtypelist, 0 },
 	{ NULL, NULL, 0 }
@@ -704,6 +723,32 @@ static cfg_type_t cfg_type_trustedkeys = {
 static cfg_type_t cfg_type_implicitlist = {
 	"implicitlist", NULL, print_list, &cfg_rep_list, NULL };
 
+const char *forwardtype_enums[] = { "first", "only", NULL };
+static cfg_type_t cfg_type_forwardtype = {
+	"forwardtype", parse_enum, print_ustring, &cfg_rep_string,
+	&forwardtype_enums
+};
+
+const char *zonetype_enums[] = {
+	"master", "slave", "stub", "hint", "forward", NULL };
+static cfg_type_t cfg_type_zonetype = {
+	"zonetype", parse_enum, print_ustring, &cfg_rep_string,
+	&zonetype_enums
+};
+
+const char *loglevel_enums[] = {
+	"critical", "error", "warning", "notice", "info", "dynamic", NULL };
+static cfg_type_t cfg_type_loglevel = {
+	"loglevel", parse_enum, print_ustring, &cfg_rep_string,
+	&loglevel_enums
+};
+
+const char *transferformat_enums[] = { "many-answers", "one-answer", NULL };
+static cfg_type_t cfg_type_transferformat = {
+	"transferformat", parse_enum, print_ustring, &cfg_rep_string,
+	&transferformat_enums
+};
+
 /*
  * Clauses that can be found within the top level of the named.conf
  * file only.
@@ -840,10 +885,10 @@ static cfg_clausedef_t
 zone_clauses[] = {
 	{ "allow-query", &cfg_type_bracketed_aml, 0 },
 	{ "allow-transfer", &cfg_type_bracketed_aml, 0 },
-	{ "notify", &cfg_type_boolean_or_ustring, 0 },
+	{ "notify", &cfg_type_notifytype, 0 },
 	{ "also-notify", &cfg_type_portiplist, 0 },
-	{ "dialup", &cfg_type_boolean_or_ustring, 0 },
-	{ "forward", &cfg_type_ustring, 0 },
+	{ "dialup", &cfg_type_dialuptype, 0 },
+	{ "forward", &cfg_type_forwardtype, 0 },
 	{ "forwarders", &cfg_type_portiplist, 0 },
 	{ "maintain-ixfr-base", &cfg_type_boolean, 0 },
 	{ "max-ixfr-log-size", &cfg_type_size, CFG_CLAUSEFLAG_OBSOLETE },
@@ -868,7 +913,7 @@ zone_clauses[] = {
  */
 static cfg_clausedef_t
 zone_only_clauses[] = {
-	{ "type", &cfg_type_ustring, 0 },
+	{ "type", &cfg_type_zonetype, 0 },
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "file", &cfg_type_qstring, 0 },
@@ -957,7 +1002,7 @@ server_clauses[] = {
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "request-ixfr", &cfg_type_boolean, 0 },
 	{ "transfers", &cfg_type_uint32, 0 },
-	{ "transfer-format", &cfg_type_ustring, 0 },
+	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -1066,7 +1111,13 @@ print_close(cfg_printer_t *pctx) {
 
 static isc_result_t
 parse(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
-	return (type->parse(pctx, type, ret));
+	isc_result_t result;
+	INSIST(ret != NULL && *ret == NULL);
+	result = type->parse(pctx, type, ret);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	INSIST(*ret != NULL);
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -1592,6 +1643,31 @@ parse_astring(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (result);
 }
 
+static isc_result_t
+check_enum(cfg_parser_t *pctx, cfg_obj_t *obj, const char **enums) {
+	const char **p;
+	const char *s = obj->value.string.base;
+	for (p = enums; *p != NULL; p++) {
+		if (strcasecmp(*p, s) == 0)
+			return (ISC_R_SUCCESS);
+	}
+	parser_error(pctx, LOG_NEAR, "'%s' unexpected");
+	return (ISC_R_UNEXPECTEDTOKEN);
+}
+
+static isc_result_t
+parse_enum(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+        isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	CHECK(parse_ustring(pctx, NULL, &obj));
+	CHECK(check_enum(pctx, obj, type->of));
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+ cleanup:
+	CLEANUP_OBJ(obj);	
+	return (result);
+}
+
 /*
  * Print a string object.
  */
@@ -1712,13 +1788,6 @@ parse_boolean(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	return (parse_boolean_like(pctx, type, ret, ISC_FALSE));
 }
 
-static isc_result_t
-parse_boolean_or_ustring(cfg_parser_t *pctx, cfg_type_t *type,
-			cfg_obj_t **ret)
-{
-	return (parse_boolean_like(pctx, type, ret, ISC_TRUE));
-}
-
 static void
 print_boolean(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	if (obj->value.boolean)
@@ -1730,8 +1799,42 @@ print_boolean(cfg_printer_t *pctx, cfg_obj_t *obj) {
 static cfg_type_t cfg_type_boolean = {
 	"boolean", parse_boolean, print_boolean, &cfg_rep_boolean, NULL };
 
-static cfg_type_t cfg_type_boolean_or_ustring = {
-	"boolean_or_string", parse_boolean_or_ustring, NULL, NULL, NULL };
+static isc_result_t
+parse_boolean_or_enum(cfg_parser_t *pctx, cfg_type_t *type, const char **enums,
+		      cfg_obj_t **ret)
+{
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	CHECK(parse_boolean_like(pctx, type, &obj, ISC_TRUE));
+	if (obj->type != &cfg_type_boolean)
+		CHECK(check_enum(pctx, obj, enums));
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+ cleanup:
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+const char *dialup_enums[] = {
+	"notify", "notify-passive", "refresh", "passive", NULL };
+static isc_result_t
+parse_dialup_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_boolean_or_enum(pctx, type, dialup_enums, ret));
+}
+static cfg_type_t cfg_type_dialuptype = {
+	"dialuptype", parse_dialup_type, print_ustring, 
+	&cfg_rep_string, NULL
+};
+
+const char *notify_enums[] = { "explicit", NULL };
+static isc_result_t
+parse_notify_type(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_boolean_or_enum(pctx, type, notify_enums, ret));
+}
+static cfg_type_t cfg_type_notifytype = {
+	"notifytype", parse_notify_type, print_ustring, 
+	&cfg_rep_string, NULL
+};
 
 static keyword_type_t key_kw = { "key", &cfg_type_astring };
 
@@ -2990,7 +3093,7 @@ parse_logseverity(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 		CHECK(parse(pctx, &cfg_type_debuglevel, ret));
 		INSIST((*ret)->type != &cfg_type_void);
 	} else {
-		CHECK(parse(pctx, &cfg_type_astring, ret));
+		CHECK(parse(pctx, &cfg_type_loglevel, ret));
 	}
  cleanup:
 	return (result);
