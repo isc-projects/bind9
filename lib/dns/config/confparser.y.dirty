@@ -33,7 +33,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.39 2000/12/05 23:27:38 bwelling Exp $ */
+/* $Id: confparser.y.dirty,v 1.40 2000/12/05 23:28:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1320,7 +1320,7 @@ option: /* Empty */
 	}
 	| L_MAX_TRANSFER_TIME_IN L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1353,7 +1353,7 @@ option: /* Empty */
 	}
 	| L_MAX_TRANSFER_TIME_OUT L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1372,7 +1372,7 @@ option: /* Empty */
 	}
 	| L_MAX_TRANSFER_IDLE_IN L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1391,7 +1391,7 @@ option: /* Empty */
 	}
 	| L_MAX_TRANSFER_IDLE_OUT L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1492,7 +1492,7 @@ option: /* Empty */
 	}
 	| L_CLEAN_INTERVAL L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1511,7 +1511,7 @@ option: /* Empty */
 	}
 	| L_INTERFACE_INTERVAL L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1530,7 +1530,7 @@ option: /* Empty */
 	}
 	| L_STATS_INTERVAL L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -1655,7 +1655,7 @@ option: /* Empty */
 #endif /* NOMINUM_PUBLIC */
 	| L_HEARTBEAT L_INTEGER
 	{
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -4287,7 +4287,7 @@ view_option: L_FORWARD zone_forward_opt
 
 		INSIST(view != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -4312,7 +4312,7 @@ view_option: L_FORWARD zone_forward_opt
 
 		INSIST(view != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -4337,7 +4337,7 @@ view_option: L_FORWARD zone_forward_opt
 
 		INSIST(view != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -5446,7 +5446,7 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -5471,7 +5471,7 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -5496,7 +5496,7 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
@@ -5521,7 +5521,7 @@ zone_option: L_FILE L_QSTRING
 
 		INSIST(zone != NULL);
 
-		if ( int_too_big($2, 60) ) {
+		if (int_too_big($2, 60)) {
 			parser_error(ISC_FALSE,
 				     "integer value too big: %u", $2);
 			YYABORT;
