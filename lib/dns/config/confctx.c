@@ -130,7 +130,7 @@ dns_c_checkconfig(dns_c_ctx_t *ctx)
 {
 	isc_boolean_t 		bval;
 	char     	       *cpval;
-	dns_c_severity_t	severity;
+	dns_severity_t	severity;
 	isc_int32_t		intval;
 	dns_c_ipmatchlist_t    *ipml;
 
@@ -1719,7 +1719,7 @@ dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 isc_result_t
 dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 			dns_c_trans_t transtype,
-			dns_c_severity_t sever)
+			dns_severity_t sever)
 {
 	isc_boolean_t existed = ISC_FALSE;
 	isc_result_t res;
@@ -2976,7 +2976,7 @@ dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 isc_result_t
 dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 			dns_c_trans_t transtype,
-			dns_c_severity_t *sever)
+			dns_severity_t *sever)
 {
 	isc_boolean_t isset = ISC_FALSE;
 	isc_result_t res;
@@ -3283,7 +3283,7 @@ dns_c_ctx_optionsnew(isc_mem_t *mem, dns_c_options_t **options)
 	opts->transfer_format = dns_one_answer;
 	
 	for (i = 0 ; i < DNS_C_TRANSCOUNT ; i++) {
-		opts->check_names[i] = dns_c_severity_fail;
+		opts->check_names[i] = dns_severity_fail;
 	}
 
 	opts->queryacl = NULL;
@@ -3425,7 +3425,7 @@ dns_c_ctx_optionsdelete(dns_c_options_t **opts)
 void
 dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 {
-	dns_c_severity_t nameseverity;
+	dns_severity_t nameseverity;
 	
 	REQUIRE(fp != NULL);
 

@@ -115,11 +115,13 @@ typedef enum {
 } dns_c_forw_t;
 
 /* value of a 'check-names' method  */
+#if 0
 typedef enum {
 	dns_c_severity_ignore,
 	dns_c_severity_warn,
 	dns_c_severity_fail
 } dns_c_severity_t;
+#endif
 
 /* Value of a 'check-names' type. */
 typedef enum {
@@ -292,7 +294,7 @@ const char *		dns_c_transformat2string(dns_transfer_format_t tform,
 						isc_boolean_t printable);
 const char *		dns_c_transport2string(dns_c_trans_t transport,
 					       isc_boolean_t printable);
-const char *		dns_c_nameseverity2string(dns_c_severity_t severity,
+const char *		dns_c_nameseverity2string(dns_severity_t severity,
 						  isc_boolean_t printable);
 const char *		dns_c_forward2string(dns_c_forw_t forw,
 					     isc_boolean_t printable);

@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.34 2000/01/28 01:14:41 gson Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.35 2000/01/28 19:56:17 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -111,7 +111,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 
         isc_boolean_t           boolean;
         dns_rdataclass_t        rrclass;
-        dns_c_severity_t        severity;
+        dns_severity_t        severity;
         dns_c_trans_t           transport;
         dns_transfer_format_t   tformat;
         dns_c_category_t        logcat;
@@ -1282,15 +1282,15 @@ check_names_type: L_MASTER
 
 check_names_opt: L_WARN
         {
-                $$ = dns_c_severity_warn;
+                $$ = dns_severity_warn;
         }
         | L_FAIL
         {
-                $$ = dns_c_severity_fail;
+                $$ = dns_severity_fail;
         }
         | L_IGNORE
         {
-                $$ = dns_c_severity_ignore;
+                $$ = dns_severity_ignore;
         }
         ;
 

@@ -429,21 +429,21 @@ dns_c_transport2string(dns_c_trans_t transport,
 
 
 const char *
-dns_c_nameseverity2string(dns_c_severity_t severity,
+dns_c_nameseverity2string(dns_severity_t severity,
 			  isc_boolean_t printable)
 {
 	const char *rval = NULL;
 
 	switch (severity) {
-	case dns_c_severity_ignore:
+	case dns_severity_ignore:
 		rval = "ignore";
 		break;
 
-	case dns_c_severity_warn:
+	case dns_severity_warn:
 		rval = "warn";
 		break;
 
-	case dns_c_severity_fail:
+	case dns_severity_fail:
 		rval = "fail";
 		break;
 	}

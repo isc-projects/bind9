@@ -108,7 +108,7 @@ struct dns_c_zone_list
 struct dns_c_master_zone
 {
 	char		       *file;
-	dns_c_severity_t	check_names;
+	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
@@ -133,7 +133,7 @@ struct dns_c_master_zone
 struct dns_c_slave_zone
 {
 	char		       *file;
-	dns_c_severity_t	check_names;
+	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update;
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer;
@@ -163,7 +163,7 @@ struct dns_c_slave_zone
 struct dns_c_stub_zone
 {
 	char		       *file;
-	dns_c_severity_t	check_names;
+	dns_severity_t	check_names;
 	dns_c_ipmatchlist_t    *allow_update; /* should be here??? */
 	dns_c_ipmatchlist_t    *allow_query;
 	dns_c_ipmatchlist_t    *allow_transfer; /* should be here??? */
@@ -185,7 +185,7 @@ struct dns_c_stub_zone
 
 struct dns_c_forward_zone
 {
-	dns_c_severity_t	check_names;
+	dns_severity_t	check_names;
 	dns_c_forw_t		forward;
 	dns_c_iplist_t	       *forwarders;
 
@@ -196,7 +196,7 @@ struct dns_c_forward_zone
 struct dns_c_hint_zone
 {
 	char		       *file;
-	dns_c_severity_t	check_names;
+	dns_severity_t	check_names;
 	dns_c_pklist_t	       *pubkeylist;
 
 	dns_c_setbits_t		setflags;
@@ -267,7 +267,7 @@ void		dns_c_zone_print(FILE *fp, int indent,
 isc_result_t	dns_c_zone_setfile(dns_c_zone_t *zone,
 				   const char *newfile);
 isc_result_t	dns_c_zone_setchecknames(dns_c_zone_t *zone,
-					 dns_c_severity_t severity);
+					 dns_severity_t severity);
 isc_result_t	dns_c_zone_setallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t *ipml,
 				       isc_boolean_t deepcopy);
@@ -322,7 +322,7 @@ isc_result_t	dns_c_zone_getinternalname(dns_c_zone_t *zone,
 isc_result_t	dns_c_zone_getfile(dns_c_zone_t *zone,
 				   const char **retval);
 isc_result_t	dns_c_zone_getchecknames(dns_c_zone_t *zone,
-					 dns_c_severity_t *retval);
+					 dns_severity_t *retval);
 isc_result_t	dns_c_zone_getallowupd(dns_c_zone_t *zone,
 				       dns_c_ipmatchlist_t **retval);
 isc_result_t	dns_c_zone_getallowquery(dns_c_zone_t *zone,

@@ -120,7 +120,7 @@ struct dns_c_view
 	
 	dns_c_rrsolist_t       *ordering;
 	
-	dns_c_severity_t	check_names[DNS_C_TRANSCOUNT];
+	dns_severity_t	check_names[DNS_C_TRANSCOUNT];
 	
 	dns_transfer_format_t	transfer_format;
 	

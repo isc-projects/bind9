@@ -567,9 +567,9 @@ dns_c_zone_setfile(dns_c_zone_t *zone, const char *newfile)
 
 isc_result_t
 dns_c_zone_setchecknames(dns_c_zone_t *zone,
-			 dns_c_severity_t severity)
+			 dns_severity_t severity)
 {
-	dns_c_severity_t *p = NULL;
+	dns_severity_t *p = NULL;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
 	isc_result_t res;
@@ -1701,9 +1701,9 @@ dns_c_zone_getfile(dns_c_zone_t *zone, const char **retval)
 
 isc_result_t
 dns_c_zone_getchecknames(dns_c_zone_t *zone,
-			 dns_c_severity_t *retval)
+			 dns_severity_t *retval)
 {
-	dns_c_severity_t *p = NULL;
+	dns_severity_t *p = NULL;
 	dns_c_setbits_t *bits = NULL;
 	int bit = 0;
 	isc_result_t res;

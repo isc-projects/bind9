@@ -181,7 +181,7 @@ struct dns_c_options
 	isc_sockaddr_t		query_source_addr;
 	in_port_t		query_source_port;
 
-	dns_c_severity_t	check_names[DNS_C_TRANSCOUNT];
+	dns_severity_t	check_names[DNS_C_TRANSCOUNT];
 
 	dns_transfer_format_t	transfer_format;
 
@@ -366,7 +366,7 @@ isc_result_t	dns_c_ctx_setquerysourceaddr(dns_c_ctx_t *cfg,
 isc_result_t	dns_c_ctx_setquerysourceport(dns_c_ctx_t *cfg, in_port_t port);
 isc_result_t	dns_c_ctx_setchecknames(dns_c_ctx_t *cfg,
 					dns_c_trans_t transtype,
-					dns_c_severity_t sever);
+					dns_severity_t sever);
 isc_result_t	dns_c_ctx_settransferformat(dns_c_ctx_t *cfg,
 					    dns_transfer_format_t newval);
 isc_result_t	dns_c_ctx_setqueryacl(dns_c_ctx_t *cfg, isc_boolean_t copy,
@@ -500,7 +500,7 @@ isc_result_t	dns_c_ctx_getquerysourceport(dns_c_ctx_t *cfg,
 					     in_port_t *port);
 isc_result_t	dns_c_ctx_getchecknames(dns_c_ctx_t *cfg,
 					dns_c_trans_t transtype,
-					dns_c_severity_t *sever);
+					dns_severity_t *sever);
 isc_result_t	dns_c_ctx_gettransferformat(dns_c_ctx_t *cfg,
 					    dns_transfer_format_t *retval);
 isc_result_t	dns_c_ctx_getqueryacl(dns_c_ctx_t *cfg,
