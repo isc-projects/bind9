@@ -15,11 +15,11 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: makedefs.pl,v 1.2 2001/07/22 05:55:38 mayer Exp $ 
+# $Id: makedefs.pl,v 1.3 2001/07/27 05:20:28 mayer Exp $ 
 #
 # makedefs.pl
-# This script goes through all of the lib header files and creates a .def file for
-# each DLL for Win32. It recurses as necessary through the subdirectories
+# This script goes through all of the lib header files and creates a .def file
+# for each DLL for Win32. It recurses as necessary through the subdirectories
 #
 # This program should only be run if it is necessary to regenerate
 # the .def files.  Normally these files should be updated by  hand, adding
@@ -101,9 +101,8 @@ $xdir = $_[0];
 #
 #^(([_a-z0-9])*( ))*prefix_[_a-z]+_[a-z]+( )*\(
 $prefix = $_[1];
-#$pattern = "\^\( \)\*$prefix\_\[\_a\-z\]\+_\[a\-z\]\+\( \)\*\\\(";
-#$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*$prefix\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
-$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*\(\\*\( \)\+\)\*$prefix\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
+$pattern = "\^\(\(\[\_a\-z0\-9\]\)\*\( \)\)\*\(\\*\( \)\+\)\*$prefix";
+$pattern = "$pattern\_\[\_a\-z0\-9\]\+_\[a\-z0\-9\]\+\( \)\*\\\(";
 
 opendir(DIR,$xdir) || die "No Directory: $!";
 @files = grep(/\.h$/i, readdir(DIR));
@@ -113,7 +112,8 @@ foreach $filename (sort @files) {
 #
 # Open the file and locate the pattern.
 #
-	open (HFILE, "$xdir/$filename") || die "Can't open file $filename : $!";
+	open (HFILE, "$xdir/$filename") ||
+              die "Can't open file $filename : $!";
 #
 	while (<HFILE>) {
 		if(/$pattern/) {
@@ -121,7 +121,7 @@ foreach $filename (sort @files) {
 			chop($func);
 			$space = rindex($func, " ") + 1;
 			if($space >= 0) {
-				#strip out return values
+				# strip out return values
 				$func = substr($func, $space, 100);
 			}
 			print OUTDEFFILE "$func\n";

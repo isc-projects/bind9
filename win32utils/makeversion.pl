@@ -15,12 +15,12 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makeversion.pl,v 1.2 2001/07/22 05:55:39 mayer Exp $ 
+# $Id: makeversion.pl,v 1.3 2001/07/27 05:20:29 mayer Exp $ 
 
-# This script takes the version information from the version file located at the
-# root of the source tree and the api files in each library directory and writes
-# the resulting information into a version.h file that the build process uses to
-# build the executable code.
+# This script takes the version information from the version file located
+# at the root of the source tree and the api files in each library directory
+# and writes the resulting information into a version.h file that the build
+# process uses to build the executable code.
 # This program was written by PDM. danny.mayer@nominum.com 1-Jul-2001.
 #
 # List of directories with version files
@@ -53,7 +53,8 @@ close(VERSIONFILE);
 # Now set up the output version file
 
 $ThisDate = scalar localtime();
-open (OUTVERSIONFILE, ">$versionpath") || die "Can't open output file $versionpath: $!";
+open (OUTVERSIONFILE, ">$versionpath") ||
+      die "Can't open output file $versionpath: $!";
 
 #Standard Header
 
@@ -77,7 +78,8 @@ print OUTVERSIONFILE '/*
 ';
 
 print OUTVERSIONFILE "/*\n";
-print OUTVERSIONFILE " * $versionfile.  Generated automatically by makeversion.pl.\n";
+print OUTVERSIONFILE " * $versionfile.";
+print OUTVERSIONFILE "  Generated automatically by makeversion.pl.\n";
 print OUTVERSIONFILE " * Date generated: $ThisDate\n";
 print OUTVERSIONFILE " */\n\n";
 
@@ -87,7 +89,8 @@ print OUTVERSIONFILE '
 
 ';
 
-$Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}.$Versions{'PATCHVER'}$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
+$Version = "$Versions{'MAJORVER'}.$Versions{'MINORVER'}.$Versions{'PATCHVER'}";
+$Version = "$Version$Versions{'RELEASETYPE'}$Versions{'RELEASEVER'}";
 print "BIND Version: $Version\n";
 
 print OUTVERSIONFILE "#define VERSION \"$Version\"\n\n";
