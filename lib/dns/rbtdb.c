@@ -2706,6 +2706,8 @@ add_rdataset_callback(dns_rdatacallbacks_t *callbacks, dns_name_t *name,
 	if (result == DNS_R_SUCCESS &&
 	    delegating_type(rbtdb, node, rdataset->type))
 		node->find_callback = 1;
+	else if (result == DNS_R_UNCHANGED)
+		result = DNS_R_SUCCESS;
 
 	return (result);
 }
