@@ -975,6 +975,20 @@ dns_name_digest(dns_name_t *name, dns_digestfunc_t digest, void *arg);
  *	
  */
 
+isc_boolean_t
+dns_name_dynamic(dns_name_t *name);
+/*
+ *	Returns whether there is dynamic memory associated with this name.
+ *
+ * Requires:
+ *
+ *	'name' is a valid name.
+ *
+ * Returns:
+ *
+ *	'ISC_TRUE' if the name is dynamic othewise 'ISC_FALSE'.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_NAME_H */
