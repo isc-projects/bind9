@@ -369,7 +369,7 @@ lwres_buffer_putuint32(lwres_buffer_t *b, isc_uint32_t val);
  */
 
 void
-lwres_buffer_putmem(lwres_buffer_t *b, unsigned char *base, unsigned int length);
+lwres_buffer_putmem(lwres_buffer_t *b, const unsigned char *base, unsigned int length);
 /*
  * Copy 'length' bytes of memory at 'base' into 'b'.
  *

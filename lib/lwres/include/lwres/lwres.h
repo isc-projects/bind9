@@ -119,7 +119,7 @@ typedef struct {
 typedef struct {
 	isc_uint32_t		family;
 	isc_uint16_t		length;
-	unsigned char	       *address;
+	const unsigned char	*address;
 } lwres_addr_t;
 
 typedef struct {
@@ -367,7 +367,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 
 int
 lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
-		    isc_uint16_t addrlen, unsigned char *addr,
+		    isc_uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp);
 
 ISC_LANG_ENDDECLS
