@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.56 1999/08/02 22:18:30 halley Exp $ */
+ /* $Id: rdata.c,v 1.57 1999/08/05 22:11:52 halley Exp $ */
 
 #include <config.h>
 
@@ -132,6 +132,12 @@ static const char octdigits[] = "01234567";
 	{ 254, "MAILA", META }, \
 	{ 255, "ANY", META },
 
+/*
+ * Empty classes are those without any types of their own.
+ */
+#define EMPTYCLASSES \
+	{ 3, "CHAOS", 0 },
+
 #define METACLASSES \
 	{ 0, "NONE", META }, \
 	{ 255, "ANY", META },
@@ -179,7 +185,7 @@ static struct tbl {
 	char	*name;
 	int	flags;
 } types[] = { TYPENAMES METATYPES {0, NULL, 0} },
-classes[] = { CLASSNAMES METACLASSES { 0, NULL, 0} },
+classes[] = { METACLASSES CLASSNAMES EMPTYCLASSES { 0, NULL, 0} },
 rcodes[] = { RCODENAMES },
 certs[] = { CERTNAMES },
 secalgs[] = { SECALGNAMES };
@@ -579,6 +585,8 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 	return (DNS_R_UNKNOWN);
 }
 
+/* XXXRTH  This should probably be a switch() */
+
 dns_result_t
 dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	int i = 0;
@@ -593,6 +601,8 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	sprintf(buf, "%u", rdclass);
 	return (str_totext(buf, target));
 }
+
+/* XXXRTH  Should we use a hash table here? */
 
 dns_result_t
 dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
@@ -613,6 +623,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	return (DNS_R_UNKNOWN);
 }
 
+/* XXXRTH  This should probably be a switch() */
+
 dns_result_t
 dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 	int i = 0;
@@ -627,6 +639,8 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 	sprintf(buf, "%u", type);
 	return (str_totext(buf, target));
 }
+
+/* XXXRTH  Should we use a hash table here? */
 
 dns_result_t
 dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source) {
