@@ -121,6 +121,7 @@ OBJS =		a6.@O@ callbacks.@O@ compress.@O@ db.@O@ dbiterator.@O@ \
 		rdatalist.@O@ rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ \
 		resolver.@O@ result.@O@ version.@O@ masterdump.@O@ time.@O@ \
 		ttl.@O@ tcpmsg.@O@ tsig.@O@ view.@O@ journal.@O@ zone.@O@ \
+		nxt.@O@ \
 		${DSTOBJS} ${OPENSSLOBJS} ${DNSSAFEOBJS} ${CONFOBJS}
 
 SRCS =		a6.c callbacks.c compress.c db.c dbiterator.c \
@@ -128,7 +129,8 @@ SRCS =		a6.c callbacks.c compress.c db.c dbiterator.c \
 		message.c name.c rbt.c rbtdb.c rbtdb64.c rdata.c \
 		rdatalist.c rdataset.c rdatasetiter.c rdataslab.c \
 		resolver.c result.c version.c masterdump.c time.c \
-		ttl.c tcpmsg.c tsig.c view.c journal.c zone.c
+		ttl.c tcpmsg.c tsig.c view.c journal.c zone.c \
+		nxt.c
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
