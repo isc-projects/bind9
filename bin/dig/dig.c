@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.69 2000/07/18 01:28:15 mws Exp $ */
+/* $Id: dig.c,v 1.70 2000/07/18 18:51:38 mws Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -173,6 +173,9 @@ show_usage(void) {
 , stderr);
 }				
 
+/*
+ * Callback from dighost.c to print the received message.
+ */
 void
 received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	isc_uint64_t diff;
@@ -208,6 +211,10 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 	}
 }
 
+/*
+ * Callback from dighost.c to print that it is trying a server.
+ * Not used in dig.
+ */
 void
 trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 	UNUSED(frmsize);
@@ -215,6 +222,9 @@ trying(int frmsize, char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 }
 
+/*
+ * Internal print routine used to print short form replies.
+ */
 static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
@@ -244,6 +254,9 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * short_form message print handler.  Calls above say_message()
+ */
 static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	     isc_buffer_t *buf, dig_query_t *query)
@@ -293,7 +306,9 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 	return (ISC_R_SUCCESS);
 }
 
-
+/*
+ * Callback from dighost.c to print the reply from a server
+ */
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	isc_boolean_t did_flag = ISC_FALSE;
@@ -478,6 +493,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
+/*
+ * print the greeting message when the program first starts up.
+ */
 static void
 printgreeting(int argc, char **argv) {
 	int i = 1;
@@ -534,7 +552,7 @@ reorder_args(int argc, char *argv[]) {
 /*
  * We're not using isc_commandline_parse() here since the command line
  * syntax of dig is quite a bit different from that which can be described
- * that routine.  There is a portability issue here.
+ * that routine.
  */
 static void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
@@ -969,6 +987,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 }
 
+/*
+ * Callback from dighost.c to allow program-specific shutdown code.  Here,
+ * Here, we're possibly reading from a batch file, then shutting down for
+ * real if there's nothing in the batch file to read.
+ */
 void
 dighost_shutdown(void) {
 	char batchline[MXNAME];
