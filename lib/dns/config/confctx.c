@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.113.2.3 2001/02/22 17:30:28 gson Exp $ */
+/* $Id: confctx.c,v 1.113.2.4 2001/04/23 22:58:35 gson Exp $ */
 
 #include <config.h>
 
@@ -2678,16 +2678,13 @@ cfg_set_iplist(dns_c_options_t *options,
 
 	REQUIRE(DNS_C_CONFOPT_VALID(options));
 	REQUIRE(fieldaddr != NULL);
+	REQUIRE(newval != NULL);
 
 	if (*fieldaddr != NULL) {
 		existed = ISC_TRUE;
 	}
 
-	if (newval == NULL) {
-		res = dns_c_iplist_new(options->mem,
-				       newval->size,
-				       fieldaddr);
-	} else if (copy) {
+	if (copy) {
 		if (*fieldaddr != NULL) {
 			dns_c_iplist_detach(fieldaddr);
 		}
