@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.7 1999/05/11 23:18:37 halley Exp $
+ * $Id: dbtable.c,v 1.8 1999/05/25 18:41:52 tale Exp $
  */
 
 /*
@@ -66,6 +66,11 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (dbtable == NULL)
 		return (DNS_R_NOMEMORY);
 
+	/*
+	 * The pointer to the RBT needs to definitely be NULL to make
+	 * dns_rbt_create happy.
+	 */
+	dbtable->rbt = NULL;
 	result = dns_rbt_create(mctx, NULL, NULL, &dbtable->rbt);
 	if (result != DNS_R_SUCCESS)
 		goto clean1;
