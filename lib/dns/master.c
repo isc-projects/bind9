@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: master.c,v 1.45 2000/03/22 19:27:51 gson Exp $ */
+/* $Id: master.c,v 1.46 2000/03/29 21:01:29 halley Exp $ */
 
 #include <config.h>
 
@@ -99,7 +99,7 @@ static isc_result_t	loadfile(const char *master_file, dns_name_t *top,
 				 loadctx_t *ctx,
 				 isc_mem_t *mctx);
 static isc_result_t	commit(dns_rdatacallbacks_t *, rdatalist_head_t *,
-			       dns_name_t *);
+			       dns_name_t *, dns_name_t *);
 static isc_boolean_t	is_glue(rdatalist_head_t *, dns_name_t *);
 static dns_rdatalist_t	*grow_rdatalist(int, dns_rdatalist_t *, int,
 				        rdatalist_head_t *,
@@ -472,7 +472,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 			if (in_glue && dns_name_compare(&glue_name,
 							&new_name) != 0) {
 				result = commit(callbacks, &glue_list,
-						&glue_name);
+						&glue_name, top);
 				if (result != DNS_R_SUCCESS)
 					goto cleanup;
 				if (glue_in_use != -1)
@@ -506,7 +506,7 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 				} else {
 					result = commit(callbacks,
 							&current_list,
-							&current_name);
+							&current_name, top);
 					if (result != DNS_R_SUCCESS)
 						goto cleanup;
 					rdcount = 0;
@@ -776,10 +776,11 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 		 */
 		if ((target.length - target.used) < MINTSIZ) {
 			result = commit(callbacks, &current_list,
-					&current_name);
+					&current_name, top);
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
-			result = commit(callbacks, &glue_list, &glue_name);
+			result = commit(callbacks, &glue_list, &glue_name,
+					top);
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
 			rdcount = 0;
@@ -796,10 +797,10 @@ load(isc_lex_t *lex, dns_name_t *top, dns_name_t *origin,
 	/*
 	 * Commit what has not yet been committed.
 	 */
-	result = commit(callbacks, &current_list, &current_name);
+	result = commit(callbacks, &current_list, &current_name, top);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
-	result = commit(callbacks, &glue_list, &glue_name);
+	result = commit(callbacks, &glue_list, &glue_name, top);
 	if (result != DNS_R_SUCCESS)
 		goto cleanup;
 	else
@@ -1052,21 +1053,35 @@ grow_rdata(int new_len, dns_rdata_t *old, int old_len,
 
 static isc_result_t
 commit(dns_rdatacallbacks_t *callbacks, rdatalist_head_t *head,
-       dns_name_t *owner)
+       dns_name_t *owner, dns_name_t *top)
 {
 	dns_rdatalist_t *this;
 	dns_rdataset_t dataset;
 	isc_result_t result;
+	isc_boolean_t ignore = ISC_FALSE;
 
-	while ((this = ISC_LIST_HEAD(*head)) != NULL) {
-		dns_rdataset_init(&dataset);
-		dns_rdatalist_tordataset(this, &dataset);
-		result = ((*callbacks->add)(callbacks->add_private, owner,
-					    &dataset));
-		if (result != DNS_R_SUCCESS)
-			return (result);
-		ISC_LIST_UNLINK(*head, this, link);
+	this = ISC_LIST_HEAD(*head);
+	if (this == NULL)
+		return (DNS_R_SUCCESS);
+	if (!dns_name_issubdomain(owner, top)) {
+		/*
+		 * Ignore out-of-zone data.
+		 */
+		ignore = ISC_TRUE;
 	}
+	do {
+		if (!ignore) {
+			dns_rdataset_init(&dataset);
+			dns_rdatalist_tordataset(this, &dataset);
+			result = ((*callbacks->add)(callbacks->add_private,
+						    owner,
+						    &dataset));
+			if (result != DNS_R_SUCCESS)
+				return (result);
+		}
+		ISC_LIST_UNLINK(*head, this, link);
+		this = ISC_LIST_HEAD(*head);
+	} while (this != NULL);
 	return (DNS_R_SUCCESS);
 }
 

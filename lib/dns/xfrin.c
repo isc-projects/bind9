@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.56 2000/03/29 05:03:07 gson Exp $ */
+/* $Id: xfrin.c,v 1.57 2000/03/29 21:01:30 halley Exp $ */
 
 #include <config.h>
 
@@ -1107,6 +1107,12 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		
 		name = NULL;
 		dns_message_currentname(msg, DNS_SECTION_ANSWER, &name);
+		if (!dns_name_issubdomain(name, &xfr->name)) {
+			/*
+			 * Ignore out-of-zone data.
+			 */
+			continue;
+		}
 		for (rds = ISC_LIST_HEAD(name->list);
 		     rds != NULL;
 		     rds = ISC_LIST_NEXT(rds, link))
