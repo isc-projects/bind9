@@ -394,6 +394,7 @@ t1(void) {
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	isc_buffer_init(&b, "test.", 5);
+	isc_buffer_add(&b, 5);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
 	io(name, 6204, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			mctx, ISC_R_SUCCESS, &nfails, &nprobs);
@@ -409,6 +410,7 @@ t1(void) {
 			mctx, DST_R_NULLKEY, &nfails, &nprobs);
 
 	isc_buffer_init(&b, "dh.", 3);
+	isc_buffer_add(&b, 3);
 	dns_name_fromtext(name, &b, NULL, ISC_FALSE, NULL);
 
 	dh(name, 18088, name, 48443, mctx, ISC_R_SUCCESS, &nfails, &nprobs);
@@ -659,6 +661,7 @@ t2_sigchk(char *datapath, char *sigpath, char *keyname,
 	dns_fixedname_init(&fname);
 	name = dns_fixedname_name(&fname);
 	isc_buffer_init(&b, keyname, strlen(keyname));
+	isc_buffer_add(&b, strlen(keyname));
 	dns_name_fromtext(name, &b, dns_rootname, ISC_FALSE, NULL);
 	isc_result = dst_key_fromfile(name, id, alg, type, mctx, &key);
 	if (isc_result != ISC_R_SUCCESS) {
