@@ -106,6 +106,13 @@ maybe_free(ns_client_t *client) {
 	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+
+	/*
+	 * When "shuttingdown" is true, either the task has received
+	 * its shutdown event or no shutdown event has ever been
+	 * set up.  Thus, we have no outstanding shutdown
+	 * event at this point.
+	 */
 	REQUIRE(client->shuttingdown == ISC_TRUE);
 
 	if (client->naccepts > 0)
@@ -224,8 +231,16 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 		dns_rdataset_disassociate(client->opt);
 		dns_message_puttemprdataset(client->message, &client->opt);
 	}
+
 	client->udpsize = 512;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
+
+	if (client->oneshot) {
+		/* XXX should put in "idle client pool" instead. */
+		isc_task_shutdown(client->task);		
+		return;
+	}
+	
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
 				       &client->dispevent);
@@ -672,6 +687,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 	if (ra == ISC_TRUE)
 		client->attributes |= NS_CLIENTATTR_RA;
+
+	/* XXX conditionally */
+	(void) ns_client_replace(client);
 	
 	/*
 	 * Dispatch the request.
@@ -791,6 +809,7 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	client->udpsize = 512;
 	client->next = NULL;
 	dns_name_init(&client->signername, NULL);
+	client->oneshot = ISC_FALSE;
 	ISC_LINK_INIT(client, link);
 
 	/*
@@ -855,7 +874,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(client->naccepts == 1);
 	client->naccepts--;
-
+	
 	if (client->shuttingdown) {
 		maybe_free(client);
 	} else if (nevent->result == ISC_R_SUCCESS) {
@@ -864,6 +883,15 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
 		client->tcpmsg_valid = ISC_TRUE;
+
+		/*
+		 * Let a new client take our place immediately, before
+		 * we wait for a request packet.  If we don't,
+		 * telnetting to port 35 (once per CPU) will
+		 * deny service to legititmate TCP clients.
+		 */
+		(void) ns_client_replace(client);
+		
 		client_read(client);
 	} else {
 		/*
@@ -921,6 +949,31 @@ ns_client_unwait(ns_client_t *client) {
 	INSIST(client->nwaiting >= 0);
 	if (client->shuttingdown)
 		maybe_free(client);
+}
+
+ 
+isc_result_t
+ns_client_replace(ns_client_t *client) {
+	isc_result_t result;
+	CTRACE("replace");
+	
+	/* XXX Check quota here. */
+
+	if (TCP_CLIENT(client)) {
+		result = ns_clientmgr_accepttcp(client->manager, client->tcplistener, 1);
+	} else {
+		result = ns_clientmgr_addtodispatch(client->manager, 1, client->dispatch);
+	}
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * The new client is ready to listen for new requests, so we
+	 * should refrain from doing so.
+	 */
+	client->oneshot = ISC_TRUE;
+
+	return (ISC_R_SUCCESS);
 }
 
 /***

@@ -69,6 +69,7 @@ struct ns_client {
 	isc_stdtime_t			now;
 	dns_name_t			signername; /* [T]SIG key name */
 	dns_name_t *			signer; /* NULL if not valid sig */
+	isc_boolean_t			oneshot;
 	ISC_LINK(struct ns_client)	link;
 };
 
@@ -106,9 +107,25 @@ ns_client_shuttingdown(ns_client_t *client);
 
 void
 ns_client_wait(ns_client_t *client);
+/*
+ * Increment reference count.
+ */
 
 void
 ns_client_unwait(ns_client_t *client);
+/*
+ * Decrement reference count.
+ */
+
+isc_result_t
+ns_client_replace(ns_client_t *client);
+/*
+ * Try to replace the current client with a new one, so that the
+ * current one can go off and do some lengthy work without
+ * leaving the dispatch/socket without service.
+ *
+ * If doing so would exceed a quota, return ISC_R_QUOTA.
+ */
 
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
