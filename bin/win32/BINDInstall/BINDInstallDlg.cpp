@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.7 2003/08/01 04:36:04 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.8 2003/09/09 03:47:31 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -117,7 +117,7 @@ const FileData installFiles[] =
 	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"libdns.dll", FileData::WinSystem, FileData::Critical, FALSE},
 	{"liblwres.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libeay32.dll", FileData::WinSystem, FileData::Critical, FALSE},
+	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},
 	{"BINDInstall.exe", FileData::BinDir, FileData::Normal, FALSE},

@@ -1,3 +1,4 @@
+1503.	[port]		win32: install libeay32.dll outside of system32.
 
 	--- 9.2.3rc1 released ---
 
