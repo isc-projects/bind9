@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.12 2002/08/02 04:28:03 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.13 2002/08/06 02:24:15 marka Exp $ */
 
 #include <config.h>
 
@@ -5318,7 +5318,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	/* Create the zone task pool. */
 	result = isc_taskpool_create(taskmgr, mctx,
-				     8 /* XXX */, 0, &zmgr->zonetasks);
+				     8 /* XXX */, 2, &zmgr->zonetasks);
 	if (result != ISC_R_SUCCESS)
 		goto free_rwlock;
 
