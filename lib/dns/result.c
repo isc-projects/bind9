@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.116 2004/04/15 23:40:25 marka Exp $ */
+/* $Id: result.c,v 1.117 2004/05/14 04:45:57 marka Exp $ */
 
 #include <config.h>
 
@@ -150,7 +150,8 @@ static const char *text[DNS_R_NRESULTS] = {
 	"dynamic zone",			       /* 98 DNS_R_DYNAMIC	     */
 	"unknown command",		       /* 99 DNS_R_UNKNOWNCOMMAND    */
 
-	"must-be-secure"		       /* 100 DNS_R_MUSTBESECURE     */
+	"must-be-secure",		       /* 100 DNS_R_MUSTBESECURE     */
+	"covering NSEC record returned"	       /* 101 DNS_R_COVERINGNSEC     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

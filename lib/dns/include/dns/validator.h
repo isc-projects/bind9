@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.28 2004/04/15 23:40:26 marka Exp $ */
+/* $Id: validator.h,v 1.29 2004/05/14 04:45:58 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -121,6 +121,8 @@ struct dns_validator {
 	dns_fixedname_t			wild;
 	ISC_LINK(dns_validator_t)	link;
 	dns_rdataset_t *		dlv;
+	dns_fixedname_t			dlvsep;
+	isc_boolean_t			havedlvsep;
 	isc_boolean_t			mustbesecure;
 };
 

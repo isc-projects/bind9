@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.198 2004/05/14 01:05:53 marka Exp $ */
+/* $Id: rbtdb.c,v 1.199 2004/05/14 04:45:56 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -842,8 +842,7 @@ clean_zone_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 			/*
 			 * If this is a NONEXISTENT rdataset, we can delete it.
 			 */
-			if ((current->attributes & RDATASET_ATTR_NONEXISTENT)
-			    != 0) {
+			if (NONEXISTENT(current)) {
 				if (top_prev != NULL)
 					top_prev->next = current->next;
 				else
@@ -1931,8 +1930,7 @@ find_closest_nsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
 					 */
-					if ((header->attributes &
-					     RDATASET_ATTR_NONEXISTENT) != 0)
+					if (NONEXISTENT(header))
 						header = NULL;
 					break;
 				} else
@@ -2204,8 +2202,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
 				 */
-				if ((header->attributes &
-				     RDATASET_ATTR_NONEXISTENT) != 0)
+				if (NONEXISTENT(header))
 					header = NULL;
 				break;
 			} else
@@ -2658,8 +2655,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 					node->dirty = 1;
 					header_prev = header;
 				}
-			} else if ((header->attributes &
-				    RDATASET_ATTR_NONEXISTENT) == 0) {
+			} else if (EXISTS(header)) {
 				/*
 				 * We've found an extant rdataset.  See if
 				 * we're interested in it.
@@ -2736,6 +2732,104 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 }
 
 static isc_result_t
+find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
+		  isc_stdtime_t now, dns_name_t *foundname,
+		  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	dns_rbtnode_t *node;
+	rdatasetheader_t *header, *header_next, *header_prev;
+	rdatasetheader_t *found, *foundsig;
+	isc_boolean_t empty_node;
+	isc_result_t result;
+	dns_fixedname_t fname, forigin;
+	dns_name_t *name, *origin;
+	rbtdb_rdatatype_t matchtype, sigmatchtype, nsectype;
+
+	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
+	nsectype = RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_nsec);
+	sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
+					     dns_rdatatype_nsec);
+	
+	do {
+		node = NULL;
+		dns_fixedname_init(&fname);
+		name = dns_fixedname_name(&fname);
+		dns_fixedname_init(&forigin);
+		origin = dns_fixedname_name(&forigin);
+		result = dns_rbtnodechain_current(&search->chain, name,
+						  origin, &node);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		LOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+		found = NULL;
+		foundsig = NULL;
+		empty_node = ISC_TRUE;
+		header_prev = NULL;
+		for (header = node->data;
+		     header != NULL;
+		     header = header_next) {
+			header_next = header->next;
+			if (header->ttl <= now) {
+				/*
+				 * This rdataset is stale.  If no one else is
+				 * using the node, we can clean it up right
+				 * now, otherwise we mark it as stale, and the
+				 * node as dirty, so it will get cleaned up 
+				 * later.
+				 */
+				if (node->references == 0) {
+					INSIST(header->down == NULL);
+					if (header_prev != NULL)
+						header_prev->next =
+							header->next;
+					else
+						node->data = header->next;
+					free_rdataset(search->rbtdb->common.mctx,
+						      header);
+				} else {
+					header->attributes |=
+						 RDATASET_ATTR_STALE;
+					node->dirty = 1;
+					header_prev = header;
+				}
+				continue;
+			}
+			if (NONEXISTENT(header) || NXDOMAIN(header)) {
+				header_prev = header;
+				continue;
+			}
+			empty_node = ISC_FALSE;
+			if (header->type == matchtype)
+				found = header;
+			else if (header->type == sigmatchtype)
+				foundsig = header;
+			header_prev = header;
+		}
+		if (found != NULL) {
+			result = dns_name_concatenate(name, origin,
+						      foundname, NULL);
+			if (result != ISC_R_SUCCESS)
+				goto unlock_node;
+			bind_rdataset(search->rbtdb, node, found,
+				      now, rdataset);
+			if (foundsig != NULL)
+				bind_rdataset(search->rbtdb, node, foundsig,
+					      now, sigrdataset);
+			new_reference(search->rbtdb, node);
+			*nodep = node;
+			result = DNS_R_COVERINGNSEC;
+		} else if (!empty_node) {
+			result = ISC_R_NOTFOUND;
+		}else
+			result = dns_rbtnodechain_prev(&search->chain, NULL,
+						       NULL);
+ unlock_node:
+		UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
+	} while (empty_node && result == ISC_R_SUCCESS);
+	return (result);
+}
+
+static isc_result_t
 cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	   dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	   dns_dbnode_t **nodep, dns_name_t *foundname,
@@ -2750,7 +2844,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *nsheader;
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
-	rbtdb_rdatatype_t sigtype, nsecype;
+	rbtdb_rdatatype_t sigtype, nsectype;
 
 	UNUSED(version);
 
@@ -2785,6 +2879,13 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				  cache_zonecut_callback, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
+		if ((search.options & DNS_DBFIND_COVERINGNSEC) != 0) {
+			result = find_coveringnsec(&search, nodep, now,
+						   foundname, rdataset,
+						   sigrdataset);
+			if (result == DNS_R_COVERINGNSEC)
+				goto tree_exit;
+		}
 		if (search.zonecut != NULL) {
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset, sigrdataset);
@@ -2818,7 +2919,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	found = NULL;
 	foundsig = NULL;
 	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
-	nsecype = RBTDB_RDATATYPE_VALUE(0, type);
+	nsectype = RBTDB_RDATATYPE_VALUE(0, type);
 	nsheader = NULL;
 	nssig = NULL;
 	cnamesig = NULL;
@@ -2846,8 +2947,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				node->dirty = 1;
 				header_prev = header;
 			}
-		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT)
-			   == 0) {
+		} else if (EXISTS(header)) {
 			/*
 			 * We now know that there is at least one active
 			 * non-stale rdataset at this node.
@@ -2889,7 +2989,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 */
 				foundsig = header;
 			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				   header->type == nsecype) {
+				   header->type == nsectype) {
 				/*
 				 * We've found a negative cache entry.
 				 */
@@ -3114,8 +3214,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 				node->dirty = 1;
 				header_prev = header;
 			}
-		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT)
-			   == 0) {
+		} else if (EXISTS(header)) {
 			/*
 			 * If we found a type we were looking for, remember
 			 * it.
@@ -3449,8 +3548,7 @@ zone_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
 				 */
-				if ((header->attributes &
-				     RDATASET_ATTR_NONEXISTENT) != 0)
+				if (NONEXISTENT(header))
 					header = NULL;
 				break;
 			} else
@@ -3500,7 +3598,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
-	rbtdb_rdatatype_t matchtype, sigmatchtype, nsecype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype, nsectype;
 	isc_result_t result;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
@@ -3518,7 +3616,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	found = NULL;
 	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
-	nsecype = RBTDB_RDATATYPE_VALUE(0, type);
+	nsectype = RBTDB_RDATATYPE_VALUE(0, type);
 	if (covers == 0)
 		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
 	else
@@ -3535,12 +3633,11 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 */
 			header->attributes |= RDATASET_ATTR_STALE;
 			rbtnode->dirty = 1;
-		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT) ==
-			   0) {
+		} else if (EXISTS(header)) {
 			if (header->type == matchtype)
 				found = header;
 			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				 header->type == nsecype)
+				 header->type == nsectype)
 				found = header;
 			else if (header->type == sigmatchtype)
 				foundsig = header;
@@ -3720,7 +3817,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
 	isc_boolean_t merge;
-	dns_rdatatype_t nsecype, rdtype, covers;
+	dns_rdatatype_t nsectype, rdtype, covers;
 	dns_trust_t trust;
 
 	/*
@@ -3758,7 +3855,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	newheader_nx = NONEXISTENT(newheader) ? ISC_TRUE : ISC_FALSE;
 	topheader_prev = NULL;
 
-	nsecype = 0;
+	nsectype = 0;
 	if (rbtversion == NULL && !newheader_nx) {
 		rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
 		if (rdtype == 0) {
@@ -3785,7 +3882,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				rbtnode->dirty = 1;
 				goto find_header;
 			}
-			nsecype = RBTDB_RDATATYPE_VALUE(covers, 0);
+			nsectype = RBTDB_RDATATYPE_VALUE(covers, 0);
 		} else {
 			/*
 			 * We're adding something that isn't a
@@ -3825,7 +3922,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				topheader = NULL;
 				goto find_header;
 			}
-			nsecype = RBTDB_RDATATYPE_VALUE(0, rdtype);
+			nsectype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 		}
 	}
 
@@ -3833,7 +3930,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	     topheader != NULL;
 	     topheader = topheader->next) {
 		if (topheader->type == newheader->type ||
-		    topheader->type == nsecype)
+		    topheader->type == nsectype)
 			break;
 		topheader_prev = topheader;
 	}
