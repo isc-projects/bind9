@@ -1,7 +1,7 @@
 aCopyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.48 2001/10/23 18:44:09 gson Exp $
+$Id: release,v 1.49 2001/10/29 18:40:12 gson Exp $
 
 Preparing a bind9 release
 
@@ -210,7 +210,7 @@ release.
 	isrv4.pa.vix.com:/udir/ftp/isc/bind/contrib/ntbind-$ver
 
 
- - Download using FTP (or Netscape) using the URLs in the release
+ - Download using FTP (or a web browser) using the URLs in the release
    announcement and verify the PGP signature again
 
  - Increment the version in the file "version"
