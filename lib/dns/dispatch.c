@@ -590,7 +590,8 @@ dns_result_t
 dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 		    unsigned int maxbuffersize,
 		    unsigned int maxbuffers, unsigned int maxrequests,
-		    unsigned int hashsize, dns_dispatch_t **dispp)
+		    unsigned int hashsize,
+		    dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
 	unsigned int tablesize;
@@ -622,10 +623,11 @@ dns_dispatch_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	disp->maxbuffers = maxbuffers;
 	disp->refcount = 1;
 	disp->recvs = 0;
-	if (socktype == isc_socket_udp)
+	if (socktype == isc_socket_udp) {
 		disp->recvs_wanted = 4; /* XXXMLG config option */
-	else
+	} else {
 		disp->recvs_wanted = 1;
+	}
 	disp->shutting_down = 0;
 	disp->shutdown_out = 0;
 	disp->shutdown_why = ISC_R_UNEXPECTED;
@@ -787,7 +789,7 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 
 	if (disp->requests == disp->maxrequests) {
 		UNLOCK(&disp->lock);
-		return (DNS_R_NOMORE); /* XXXMLG really a quota */
+		return (ISC_R_QUOTA);
 	}
 
 	/*
@@ -923,7 +925,7 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 
 	if (disp->requests == disp->maxrequests) {
 		UNLOCK(&disp->lock);
-		return (DNS_R_NOMORE); /* XXXMLG really a quota */
+		return (ISC_R_QUOTA);
 	}
 
 	res = isc_mempool_get(disp->rpool);
