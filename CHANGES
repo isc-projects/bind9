@@ -1,4 +1,4 @@
-1588.	[bug]		win32: TCP sockets could become blocked.
+1588.	[bug]		win32: TCP sockets could become blocked. [RT #10115]
 
 1585.	[bug]		allow-v6-synthesis was not performing lookups under
 			IP6.INT.  allow-v6-synthesis now performs a nibble
