@@ -1,3 +1,5 @@
+1101.	[bug]		Array bounds read error in lwres_gai_strerror.
+
 1100.	[bug]		libbind: DNSSEC key ids were computed incorrectly.
 
 1099.	[cleanup]	libbind: defining REPORT_ERRORS in lib/bind/dst caused
