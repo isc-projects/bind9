@@ -9,6 +9,11 @@
 # The server defaults to 127.0.0.1.
 # The port defaults to 53.
 #
+# The "Special NS rules" tests will only work correctly if the 
+# has no NS records to begin with, or alternatively has a 
+# single NS record pointing at the name "ns1" (relative to
+# the zone name).
+#
 # Installation notes:
 #
 # This program uses the Net::DNS::Resolver module.
@@ -16,7 +21,7 @@
 #
 #    perl -MCPAN -e "install Net::DNS"
 #
-# $Id: update_test.pl,v 1.1 1999/11/02 18:59:43 gson Exp $
+# $Id: update_test.pl,v 1.2 1999/11/19 19:06:18 gson Exp $
 #
 
 use Getopt::Std;
@@ -221,8 +226,11 @@ test("NOERROR", ["pre", nxrrset("c.$zone CNAME")]);
 section("Special NS rules");
 
 # Deleting the last NS record using "Delete an RR from an RRset"
-# should fail both at the zone apex and elsewhere. 
+# should fail at the zone apex and work elsewhere.  The pseudocode
+# in RFC2136 says it should fail everywhere, but this is in conflict
+# with the actual text.
 
+# Apex
 test("NOERROR", ["update",
 		 rr_add("$zone 300 NS ns1.$zone"),
 		 rr_add("$zone 300 NS ns2.$zone")]);
@@ -231,13 +239,16 @@ test("NOERROR", ["update", rr_del("$zone 300 NS ns2.$zone")]);
 test("NOERROR", ["pre",
 		 yxrrset("$zone 300 NS ns2.$zone")]);
 
+# Non-apex
 test("NOERROR", ["update", rr_add("n.$zone 300 NS ns1.$zone")]);
 test("NOERROR", ["update", rr_del("n.$zone 300 NS ns1.$zone")]);
-test("NOERROR", ["pre",
-		 yxrrset("n.$zone 300 NS ns1.$zone")]);
+test("NOERROR", ["pre", nxrrset("n.$zone 300 NS")]);
 
-# Other ways of deleting NS records should work when not at the apex.
+# Other ways of deleting NS records should also fail at the apex
+# and work elsewhere.
 
+# Non-apex
+test("NOERROR", ["update", rr_add("n.$zone 300 NS ns1.$zone")]);
 test("NOERROR", ["update", rr_del("n.$zone 300 NS")]);
 test("NOERROR", ["pre", nxrrset("n.$zone 300 NS")]);
 
@@ -246,8 +257,7 @@ test("NOERROR", ["pre", yxrrset("n.$zone 300 NS")]);
 test("NOERROR", ["update", rr_del("n.$zone")]);
 test("NOERROR", ["pre", nxrrset("n.$zone 300 NS")]);
 
-# ..but they should not work at the apex.
-
+# Apex
 test("NOERROR", ["update", rr_del("$zone NS")]);
 test("NOERROR", ["pre",
 		 yxrrset("$zone 300 NS ns2.$zone")]);
@@ -338,10 +348,14 @@ test("NOERROR", ["update", rr_add("$zone 300 SOA mname3. . $old_serial " .
 ($db_soa) = $res->query($zone, "SOA")->answer;
 assert($db_soa->mname eq "mname1");
 
+#
+# Currently commented out because Net::DNS does not properly
+# support multiple strings in TXT records.
+#
 #section("Big data");
 #test("NOERROR", ["update", rr_add("a.$zone 300 TXT aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")]);
 #test("NOERROR", ["update", rr_del("a.$zone 300 TXT aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc")]);
-#test("NOERROR", ["update", rr_add("a.$zone 300 TXT " . ("foo " x 15000))]);
+test("NOERROR", ["update", rr_add("a.$zone 300 TXT " . ("foo " x 3))]);
 
 section("Updating TTLs only");
 
@@ -360,10 +374,7 @@ test("NOERROR", ["update", rr_add("b.u.$zone 300 A 73.80.65.49")]);
 test("NOERROR", ["update", rr_add("u.$zone 300 TXT txt-not-in-nxt")]);
 test("NOERROR", ["update", rr_add("u.$zone 300 NS ns.u.$zone")]);
 
-# Silly protocol won't let us remove the last NS record by value,
-# but will let us remove it by deleting the entire RRset.
-# test("NOERROR", ["update", rr_del("u.$zone 300 NS ns.u.$zone")]);
-test("NOERROR", ["update", rr_del("u.$zone 300 NS")]);
+test("NOERROR", ["update", rr_del("u.$zone 300 NS ns.u.$zone")]);
 
 if ($failures) {
     print "$failures tests failed.\n";
