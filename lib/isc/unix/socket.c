@@ -137,7 +137,7 @@ struct isc_socket {
 struct isc_socketmgr {
 	/* Not locked. */
 	unsigned int			magic;
-	isc_memctx_t *			mctx;
+	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	/* Locked by manager lock. */
 	unsigned int			nsockets;  /* sockets managed */
@@ -1436,7 +1436,7 @@ watcher(void *uap)
  * Create a new socket manager.
  */
 isc_result_t
-isc_socketmgr_create(isc_memctx_t *mctx, isc_socketmgr_t **managerp)
+isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp)
 {
 	isc_socketmgr_t *manager;
 

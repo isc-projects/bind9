@@ -28,7 +28,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-isc_memctx_t *mctx = NULL;
+isc_mem_t *mctx = NULL;
 
 static void
 my_callback(isc_task_t *task, isc_event_t *event)
@@ -78,7 +78,7 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
@@ -173,5 +173,5 @@ main(int argc, char *argv[]) {
 	printf("destroyed\n");
 	
 	isc_mem_stats(mctx, stdout);
-	isc_memctx_destroy(&mctx);
+	isc_mem_destroy(&mctx);
 }

@@ -28,7 +28,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-isc_memctx_t *mctx = NULL;
+isc_mem_t *mctx = NULL;
 isc_task_t *t1, *t2, *t3;
 isc_timer_t *ti1, *ti2, *ti3;
 int tick_count = 0;
@@ -110,7 +110,7 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
 	INSIST(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
@@ -158,5 +158,5 @@ main(int argc, char *argv[]) {
 	printf("destroyed\n");
 	
 	isc_mem_stats(mctx, stdout);
-	isc_memctx_destroy(&mctx);
+	isc_mem_destroy(&mctx);
 }

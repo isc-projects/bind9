@@ -251,7 +251,7 @@ isc_timer_detach(isc_timer_t **timerp);
  */
 
 isc_result_t
-isc_timermgr_create(isc_memctx_t *mctx, isc_timermgr_t **managerp);
+isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
 /*
  * Create a timer manager.
  *

@@ -73,7 +73,7 @@ struct isc_task {
 struct isc_taskmgr {
 	/* Not locked. */
 	unsigned int			magic;
-	isc_memctx_t *			mctx;
+	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	unsigned int			workers;
 	isc_thread_t *			threads;
@@ -94,7 +94,7 @@ struct isc_taskmgr {
  ***/
 
 static inline isc_event_t *
-event_allocate(isc_memctx_t *mctx, void *sender, isc_eventtype_t type,
+event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 	       isc_taskaction_t action, void *arg, size_t size)
 {
 	isc_event_t *event;
@@ -115,7 +115,7 @@ event_allocate(isc_memctx_t *mctx, void *sender, isc_eventtype_t type,
 }
 
 isc_event_t *
-isc_event_allocate(isc_memctx_t *mctx, void *sender, isc_eventtype_t type,
+isc_event_allocate(isc_mem_t *mctx, void *sender, isc_eventtype_t type,
 		   isc_taskaction_t action, void *arg, size_t size)
 {
 	if (size < sizeof (struct isc_event))
@@ -703,7 +703,7 @@ manager_free(isc_taskmgr_t *manager) {
 }
 
 isc_result_t
-isc_taskmgr_create(isc_memctx_t *mctx, unsigned int workers, 
+isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers, 
 		   unsigned int default_quantum, isc_taskmgr_t **managerp)
 {
 	unsigned int i, started = 0;

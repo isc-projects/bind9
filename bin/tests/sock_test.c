@@ -37,7 +37,7 @@
 
 #include <arpa/inet.h>
 
-isc_memctx_t *mctx = NULL;
+isc_mem_t *mctx = NULL;
 int sockets_active = 0;
 
 static void my_send(isc_task_t *task, isc_event_t *event);
@@ -272,7 +272,7 @@ main(int argc, char *argv[])
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	INSIST(isc_memctx_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	INSIST(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 	       ISC_R_SUCCESS);
@@ -390,7 +390,7 @@ main(int argc, char *argv[])
 	isc_taskmgr_destroy(&manager);
 
 	isc_mem_stats(mctx, stdout);
-	isc_memctx_destroy(&mctx);
+	isc_mem_destroy(&mctx);
 
 	return (0);
 }

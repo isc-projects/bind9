@@ -54,7 +54,7 @@ typedef void (*isc_eventdestructor_t)(isc_event_t *);
  * defining new event types.
  */ 
 struct isc_event {
-	isc_memctx_t *			mctx;
+	isc_mem_t *			mctx;
 	size_t				size;
 	void *				sender;
 	isc_eventtype_t			type;
@@ -69,7 +69,7 @@ struct isc_event {
 
 typedef LIST(struct isc_event)		isc_eventlist_t;
 
-isc_event_t *				isc_event_allocate(isc_memctx_t *,
+isc_event_t *				isc_event_allocate(isc_mem_t *,
 							   void *,
 							   isc_eventtype_t,
 							   isc_taskaction_t,
@@ -104,7 +104,7 @@ void					isc_task_destroy(isc_task_t **);
  *** Task Manager.
  ***/
 
-isc_result_t				isc_taskmgr_create(isc_memctx_t *,
+isc_result_t				isc_taskmgr_create(isc_mem_t *,
 							   unsigned int,
 							   unsigned int,
 							   isc_taskmgr_t **);

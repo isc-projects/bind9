@@ -538,7 +538,7 @@ isc_socket_sendmark(isc_socket_t *sock,
  */
 
 isc_result_t
-isc_socketmgr_create(isc_memctx_t *mctx, isc_socketmgr_t **managerp);
+isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 /*
  * Create a socket manager.
  *

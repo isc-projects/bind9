@@ -74,7 +74,7 @@ struct isc_timer {
 struct isc_timermgr {
 	/* Not locked. */
 	unsigned int			magic;
-	isc_memctx_t *			mctx;
+	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	/* Locked by manager lock. */
 	isc_boolean_t			done;
@@ -547,7 +547,7 @@ set_index(void *what, unsigned int index) {
 }
 
 isc_result_t
-isc_timermgr_create(isc_memctx_t *mctx, isc_timermgr_t **managerp) {
+isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc_timermgr_t *manager;
 	isc_result_t result;
 

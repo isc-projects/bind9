@@ -49,7 +49,7 @@
 
 struct isc_heap {
 	unsigned int			magic;
-	isc_memctx_t *			mctx;
+	isc_mem_t *			mctx;
 	unsigned int			size;
 	unsigned int			size_increment;
 	unsigned int			last;
@@ -59,7 +59,7 @@ struct isc_heap {
 };
 
 isc_result_t
-isc_heap_create(isc_memctx_t *mctx, isc_heapcompare_t compare,
+isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 		isc_heapindex_t index, unsigned int size_increment,
 		isc_heap_t **heapp)
 {
