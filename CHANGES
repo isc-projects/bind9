@@ -1,3 +1,6 @@
+ 346.	[func]		Add support for .digrc config file, in the
+			user's current directory
+
  345.	[bug]		Large-scale changes/cleanups to dig:
 			* Significantly improve structure handling
 			* Don't pre-load entire batch files
