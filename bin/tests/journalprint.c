@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journalprint.c,v 1.5 2005/03/16 22:22:28 marka Exp $ */
+/* $Id: journalprint.c,v 1.6 2005/03/17 03:56:11 marka Exp $ */
 
 #include <isc/mem.h>
 #include <isc/util.h>
