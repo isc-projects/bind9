@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.31 1999/10/29 06:36:02 marka Exp $ */
+ /* $Id: zone.c,v 1.32 1999/10/29 08:37:50 marka Exp $ */
 
 #include <config.h>
 
@@ -2203,7 +2203,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 	return (DNS_R_SUCCESS);
 }
 
-void
+static void
 cancel_refresh(dns_zone_t *zone) {
 	isc_stdtime_t now;
 
