@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.14 2001/02/22 02:38:23 gson Exp $ */
+/* $Id: parser.c,v 1.15 2001/02/22 03:13:08 gson Exp $ */
 
 #include <config.h>
 
@@ -86,6 +86,7 @@
 
 
 typedef struct cfg_clausedef cfg_clausedef_t;
+typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;
 typedef struct cfg_printer cfg_printer_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
 typedef struct cfg_map cfg_map_t;
@@ -152,6 +153,14 @@ struct cfg_printer {
 /* A clause definition. */
 
 struct cfg_clausedef {
+	const char      *name;
+	cfg_type_t      *type;
+	unsigned int	flags;
+};
+
+/* A tuple field definition. */
+
+struct cfg_tuplefielddef {
 	const char      *name;
 	cfg_type_t      *type;
 	unsigned int	flags;
@@ -428,10 +437,10 @@ static cfg_type_t cfg_type_lwres;
 
 /* tkey-dhkey */
 
-static cfg_type_t *tkey_dhkey_fields[] = {
-	&cfg_type_qstring,
-	&cfg_type_uint32,
-	NULL
+static cfg_tuplefielddef_t tkey_dhkey_fields[] = {
+	{ "name", &cfg_type_qstring, 0 },
+	{ "keyid", &cfg_type_uint32, 0 },
+	{ NULL, NULL, 0 }
 };
 
 static cfg_type_t cfg_type_tkey_dhkey = {
@@ -441,20 +450,20 @@ static cfg_type_t cfg_type_tkey_dhkey = {
 
 /* listen-on */
 
-static cfg_type_t *listenon_fields[] = {
-	&cfg_type_optional_port,
-	&cfg_type_bracketed_aml,
-	NULL
+static cfg_tuplefielddef_t listenon_fields[] = {
+	{ "port", &cfg_type_optional_port, 0 },
+	{ "acl", &cfg_type_bracketed_aml, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_listenon = {
 	"listenon", parse_tuple, print_tuple, &cfg_rep_tuple, listenon_fields };
 
 /* acl */
 
-static cfg_type_t *acl_fields[] = {
-	&cfg_type_astring,
-	&cfg_type_bracketed_aml,
-	NULL
+static cfg_tuplefielddef_t acl_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "value", &cfg_type_bracketed_aml, 0 },
+	{ NULL, NULL, 0 }
 };
 
 static cfg_type_t cfg_type_acl = {
@@ -468,10 +477,10 @@ static cfg_type_t cfg_type_acl = {
  *   "port 1234 { 10.0.0.1 key foo; 1::2 port 69; }"
  */
 
-static cfg_type_t *sockaddrkey_fields[] = {
-	&cfg_type_sockaddr,
-	&cfg_type_optional_keyref,
-	NULL
+static cfg_tuplefielddef_t sockaddrkey_fields[] = {
+	{ "sockaddr", &cfg_type_sockaddr, 0 },
+	{ "key", &cfg_type_optional_keyref, 0 },
+	{ NULL, NULL, 0 },
 };
 
 static cfg_type_t cfg_type_sockaddrkey = {
@@ -484,10 +493,10 @@ static cfg_type_t cfg_type_bracketed_sockaddrkeylist = {
 	print_bracketed_list, &cfg_rep_list, &cfg_type_sockaddrkey
 };
 
-static cfg_type_t *sockaddrkeylist_fields[] = {
-	&cfg_type_optional_port,
-	&cfg_type_bracketed_sockaddrkeylist,
-	NULL
+static cfg_tuplefielddef_t sockaddrkeylist_fields[] = {
+	{ "port", &cfg_type_optional_port, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrkeylist, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_sockaddrkeylist = {
 	"sockaddrkeylist", parse_tuple, print_tuple, &cfg_rep_tuple,
@@ -499,10 +508,10 @@ static cfg_type_t cfg_type_sockaddrkeylist = {
  * as used in the also-notify option.  E.g.,
  * "port 1234 { 10.0.0.1; 1::2 port 69; }"
  */
-static cfg_type_t *portiplist_fields[] = {
-	&cfg_type_optional_port,
-	&cfg_type_bracketed_sockaddrlist,
-	NULL
+static cfg_tuplefielddef_t portiplist_fields[] = {
+	{ "port", &cfg_type_optional_port, 0 },
+	{ "addresses", &cfg_type_bracketed_sockaddrlist, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_portiplist = {
 	"portiplist", parse_tuple, print_tuple, &cfg_rep_tuple,
@@ -512,12 +521,12 @@ static cfg_type_t cfg_type_portiplist = {
 /*
  * A public key, as in the "pubkey" statement.
  */
-static cfg_type_t *pubkey_fields[] = {
-	&cfg_type_uint32,
-	&cfg_type_uint32,
-	&cfg_type_uint32,
-	&cfg_type_qstring,
-	NULL
+static cfg_tuplefielddef_t pubkey_fields[] = {
+	{ "flags", &cfg_type_uint32, 0 },
+	{ "protocol", &cfg_type_uint32, 0 },
+	{ "algorithm", &cfg_type_uint32, 0 },
+	{ "key", &cfg_type_qstring, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_pubkey = {
 	"pubkey", parse_tuple, print_tuple, &cfg_rep_tuple, pubkey_fields };
@@ -535,13 +544,13 @@ static cfg_type_t cfg_type_rrtypelist = {
 /*
  * A grant statement, used in the update policy.
  */
-static cfg_type_t *grant_fields[] = {
-	&cfg_type_ustring, /* grant/deny */
-	&cfg_type_astring, /* domain */
-	&cfg_type_ustring, /* grant match type */
-	&cfg_type_astring, /* domain */
-	&cfg_type_rrtypelist,
-	NULL
+static cfg_tuplefielddef_t grant_fields[] = {
+	{ "mode", &cfg_type_ustring, 0 }, /* grant/deny */ 
+	{ "identity", &cfg_type_astring, 0 }, /* domain name */ 
+	{ "matchtype", &cfg_type_ustring, 0 },
+	{ "name", &cfg_type_astring, 0 }, /* domain name */
+	{ "types", &cfg_type_rrtypelist, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_grant = {
 	"grant", parse_tuple, print_tuple, &cfg_rep_tuple, grant_fields };
@@ -554,11 +563,11 @@ static cfg_type_t cfg_type_updatepolicy = {
 /*
  * A view statement.
  */
-static cfg_type_t *view_fields[] = {
-	&cfg_type_astring, 		/* name */
-	&cfg_type_optional_class, 	/* class */
-	&cfg_type_viewopts,
-	NULL
+static cfg_tuplefielddef_t view_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "class", &cfg_type_optional_class, 0 },
+	{ "options", &cfg_type_viewopts, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_view = {
 	"view", parse_tuple, print_tuple, &cfg_rep_tuple, view_fields };
@@ -566,11 +575,11 @@ static cfg_type_t cfg_type_view = {
 /*
  * A zone statement.
  */
-static cfg_type_t *zone_fields[] = {
-	&cfg_type_astring, 		/* origin */
-	&cfg_type_optional_class, 	/* class */
-	&cfg_type_zoneopts,
-	NULL
+static cfg_tuplefielddef_t zone_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "class", &cfg_type_optional_class, 0 },
+	{ "options", &cfg_type_zoneopts, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_zone = {
 	"zone", parse_tuple, print_tuple, &cfg_rep_tuple, zone_fields };
@@ -578,10 +587,10 @@ static cfg_type_t cfg_type_zone = {
 /*
  * A "category" clause in the "logging" statement.
  */
-static cfg_type_t *category_fields[] = {
-	&cfg_type_astring, 		/* category name */
-	&cfg_type_destinationlist, 	/* destinations */
-	NULL
+static cfg_tuplefielddef_t category_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "destinations", &cfg_type_destinationlist,0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_category = {
 	"category", parse_tuple, print_tuple, &cfg_rep_tuple, category_fields };
@@ -590,13 +599,13 @@ static cfg_type_t cfg_type_category = {
 /*
  * A trusted key, as used in the "trusted-keys" statement.
  */
-static cfg_type_t *trustedkey_fields[] = {
-	&cfg_type_astring,
-	&cfg_type_uint32,
-	&cfg_type_uint32,
-	&cfg_type_uint32,
-	&cfg_type_qstring,
-	NULL
+static cfg_tuplefielddef_t trustedkey_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "flags", &cfg_type_uint32, 0 },
+	{ "protocol", &cfg_type_uint32, 0 },
+	{ "algorithm", &cfg_type_uint32, 0 },
+	{ "key", &cfg_type_qstring, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_trustedkey = {
 	"trustedkey", parse_tuple, print_tuple, &cfg_rep_tuple,
@@ -628,13 +637,13 @@ static cfg_type_t cfg_type_optional_wild_name = {
 /*
  * An rrset ordering element.
  */
-static cfg_type_t *rrsetorderingelement_fields[] = {
-	&cfg_type_optional_wild_class,
-	&cfg_type_optional_wild_type,
-	&cfg_type_optional_wild_name,
-	&cfg_type_ustring,		/* must be "order" */
-	&cfg_type_ustring,		/* ordering */
-	NULL
+static cfg_tuplefielddef_t rrsetorderingelement_fields[] = {
+	{ "class", &cfg_type_optional_wild_class, 0 },
+	{ "type", &cfg_type_optional_wild_type, 0 },
+	{ "name", &cfg_type_optional_wild_name, 0 },
+	{ "order", &cfg_type_ustring, 0 }, /* must be literal "order" */ 
+	{ "ordering", &cfg_type_ustring, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_rrsetorderingelement = {
 	"rrsetorderingelement", parse_tuple, print_tuple, &cfg_rep_tuple,
@@ -645,10 +654,10 @@ static cfg_type_t cfg_type_rrsetorderingelement = {
  * A global or view "check-names" option.  Note that the zone
  * "check-names" option has a different syntax.
  */
-static cfg_type_t *checknames_fields[] = {
-	&cfg_type_ustring,
-	&cfg_type_ustring,
-	NULL
+static cfg_tuplefielddef_t checknames_fields[] = {
+	{ "type", &cfg_type_ustring, 0 },
+	{ "mode", &cfg_type_ustring, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_checknames = {
 	"checknames", parse_tuple, print_tuple, &cfg_rep_tuple,
@@ -1070,23 +1079,23 @@ static isc_result_t
 parse_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 {
 	isc_result_t result;
-	cfg_type_t **t;
 	cfg_obj_t *obj = NULL;
 	unsigned int nfields = 0;
 	unsigned int i;
-	cfg_type_t **fields = type->of;
+	cfg_tuplefielddef_t *fields = type->of;
+	cfg_tuplefielddef_t *f;
 
-	for (t = fields; *t != NULL; t++)
+	for (f = fields; f->name != NULL; f++)
 		nfields++;
 
 	CHECK(create_cfgobj(pctx, type, &obj));
 	obj->value.tuple = isc_mem_get(pctx->mctx,
 				       nfields * sizeof(cfg_obj_t *));
-	for (t = fields, i = 0; *t != NULL; t++, i++)
+	for (f = fields, i = 0; f->name != NULL; f++, i++)
 		obj->value.tuple[i] = NULL;
 
-	for (t = fields, i = 0; *t != NULL; t++, i++)
-		CHECK(parse(pctx, *t, &obj->value.tuple[i]));
+	for (f = fields, i = 0; f->name != NULL; f++, i++)
+		CHECK(parse(pctx, f->type, &obj->value.tuple[i]));
 
 	*ret = obj;
 	return (ISC_R_SUCCESS);
@@ -1098,25 +1107,25 @@ parse_tuple(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 
 static void
 print_tuple(cfg_printer_t *pctx, cfg_obj_t *obj) {
-	cfg_type_t **t;
 	unsigned int i;
-	cfg_type_t **fields = obj->type->of;
+	cfg_tuplefielddef_t *fields = obj->type->of;
+	cfg_tuplefielddef_t *f;
 
-	for (t = fields, i = 0; *t != NULL; t++, i++) {
+	for (f = fields, i = 0; f->name != NULL; f++, i++) {
 		print_obj(pctx, obj->value.tuple[i]);
-		if (*(t+1) != NULL)
+		if (f[1].name != NULL)
 			print(pctx, " ", 1);
 	}
 }
 
 static void
 free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
-	cfg_type_t **t;
 	unsigned int i;
-	cfg_type_t **fields = obj->type->of;
+	cfg_tuplefielddef_t *fields = obj->type->of;
+	cfg_tuplefielddef_t *f;
 	unsigned int nfields = 0;
 
-	for (t = fields, i = 0; *t != NULL; t++, i++) {
+	for (f = fields, i = 0; f->name != NULL; f++, i++) {
 		CLEANUP_OBJ(obj->value.tuple[i]);
 		nfields++;
 	}
@@ -2601,10 +2610,10 @@ static cfg_type_t cfg_type_logseverity = {
  * lwres
  */
 
-static cfg_type_t *lwres_view_fields[] = {
-	&cfg_type_astring, 		/* name */
-	&cfg_type_optional_class, 	/* class */
-	NULL
+static cfg_tuplefielddef_t lwres_view_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "class", &cfg_type_optional_class, 0 },
+	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_lwres_view = {
 	"lwres_view", parse_tuple, print_tuple, &cfg_rep_tuple,
