@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.276.2.2 2001/03/13 02:40:22 bwelling Exp $ */
+/* $Id: server.c,v 1.276.2.3 2001/06/25 08:34:46 marka Exp $ */
 
 #include <config.h>
 
@@ -1135,15 +1135,23 @@ configure_zone(dns_c_ctx_t *cctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
-		if (dns_name_equal(origin, dns_rootname)) {
-			result = configure_hints(view, czone->u.hzone.file);
-		} else {
+		if (!dns_name_equal(origin, dns_rootname)) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "ignoring non-root hint zone '%s'",
 				      corigin);
 			result = ISC_R_SUCCESS;
+			goto cleanup;
 		}
+		if (view->hints != NULL) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "'%s' hint zone already defined",
+				      corigin);
+			result = ISC_R_EXISTS;
+			goto cleanup;
+		}
+		result = configure_hints(view, czone->u.hzone.file);
 		goto cleanup;
 	}
 

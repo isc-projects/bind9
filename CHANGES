@@ -1,3 +1,4 @@
+ 911.	[bug]		Fail gracefully with multiple hint zones. [RT #1433]
 
 	--- 9.1.3rc2 released ---
 
