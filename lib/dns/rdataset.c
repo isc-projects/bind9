@@ -236,6 +236,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		question = ISC_TRUE;
 	else {
 		result = dns_rdataset_first(rdataset);
+		if (result == DNS_R_NOMORE)
+			return (DNS_R_SUCCESS);
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
