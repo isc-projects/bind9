@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.53 2000/03/20 19:37:50 gson Exp $ */
+/* $Id: xfrin.c,v 1.54 2000/03/20 21:07:48 gson Exp $ */
 
 #include <config.h>
 
@@ -430,9 +430,13 @@ xfr_rr(dns_xfrin_ctx_t *xfr,
 		 * if it begins with two SOAs, it is an IXFR.
 		 */
 		if (rdata->type == dns_rdatatype_soa) {
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "got incremental response");
 			CHECK(ixfr_init(xfr));
 			xfr->state = XFRST_IXFR_DELSOA;
 		} else {
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "got nonincremental response");
 			CHECK(axfr_init(xfr));
 			xfr->state = XFRST_AXFR;
 		}
