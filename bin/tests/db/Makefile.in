@@ -24,17 +24,20 @@ CINCLUDES =	${TEST_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
-LIBS =		../../../lib/dns/libdns.@A@ \
-		../../../lib/tests/libt_api.@A@ \
-		../../../lib/isc/libisc.@A@ \
+DEPLIBS =	../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@ 
+
+LIBS =		${DEPLIBS} \
 		@LIBS@
+
+TLIB =		../../../lib/tests/libt_api.@A@
 
 TARGETS =	t_db
 
 @BIND9_MAKE_RULES@
 
-t_db: t_db.@O@
-	${LIBTOOL} ${CC} -o $@ t_db.@O@ ${LIBS}
+t_db: t_db.@O@ ${DEPLIBS} ${TLIB}
+	${LIBTOOL} ${CC} -o $@ t_db.@O@ ${TLIB}${LIBS}
 
 test:
 	-@./t_db -c @top_srcdir@/t_config -b @srcdir@ -a

@@ -25,10 +25,13 @@ CDEFINES =
 CWARNINGS =
 
 # Note that we do not want to use libtool for libt_api
-LIBS =		../../../lib/dns/libdns.@A@ \
-		../../../lib/tests/libt_api.@A@ \
-		../../../lib/isc/libisc.@A@ \
+DEPLIBS =	../../../lib/dns/libdns.@A@ \
+		../../../lib/isc/libisc.@A@
+
+LIBS =		${DEPLIBS} \
 		@LIBS@
+
+TLIB =		../../../lib/tests/libt_api.@A@
 
 TARGETS =	t_names
 
@@ -36,8 +39,8 @@ SRCS =		t_names.c
 
 @BIND9_MAKE_RULES@
 
-t_names: t_names.@O@
-	${LIBTOOL} ${CC} -o $@ t_names.@O@ ${LIBS}
+t_names: t_names.@O@ ${DEPLIBS} ${TLIB}
+	${LIBTOOL} ${CC} -o $@ t_names.@O@ ${TLIB} ${LIBS}
 
 test:
 	-@./t_names -c @top_srcdir@/t_config -b @srcdir@ -a
