@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.64 2001/08/28 03:58:07 marka Exp $ */
+/* $Id: request.c,v 1.65 2001/08/29 21:15:56 gson Exp $ */
 
 #include <config.h>
 
@@ -1106,10 +1106,13 @@ dns_request_destroy(dns_request_t **requestp) {
 
 	req_log(ISC_LOG_DEBUG(3), "dns_request_destroy: request %p", request);
 
+	LOCK(&request->requestmgr->lock);
 	LOCK(&request->requestmgr->locks[request->hash]);
+	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
 	INSIST(!DNS_REQUEST_CONNECTING(request));
 	INSIST(!DNS_REQUEST_SENDING(request));
 	UNLOCK(&request->requestmgr->locks[request->hash]);
+	UNLOCK(&request->requestmgr->lock);
 
 	/*
 	 * These should have been cleaned up by req_cancel() before
@@ -1322,15 +1325,6 @@ req_cancel(dns_request_t *request) {
 	 * Lock held by caller.
 	 */
 	request->flags |= DNS_REQUEST_F_CANCELED;
-
-	/*
-	 * Unlink from the manager here so that it will not try
-	 * to cancel us after we have already sent the completion
-	 * event.
-	 */
-	LOCK(&request->requestmgr->lock);
-	ISC_LIST_UNLINK(request->requestmgr->requests, request, link);
-	UNLOCK(&request->requestmgr->lock);
 
 	if (request->timer != NULL)
 		isc_timer_detach(&request->timer);
