@@ -17,14 +17,15 @@
 
 #include <config.h>
 
+#include <stddef.h>
+
 #include <isc/assertions.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/list.h>
 
 unsigned int
-isc_bufferlist_usedcount(isc_bufferlist_t *bl)
-{
+isc_bufferlist_usedcount(isc_bufferlist_t *bl) {
 	isc_buffer_t *buffer;
 	unsigned int length;
 
@@ -42,8 +43,7 @@ isc_bufferlist_usedcount(isc_bufferlist_t *bl)
 }
 
 unsigned int
-isc_bufferlist_availablecount(isc_bufferlist_t *bl)
-{
+isc_bufferlist_availablecount(isc_bufferlist_t *bl) {
 	isc_buffer_t *buffer;
 	unsigned int length;
 

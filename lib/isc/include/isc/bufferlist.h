@@ -45,9 +45,6 @@
 #include <isc/lang.h>
 #include <isc/buffer.h>
 #include <isc/list.h>
-#include <isc/mem.h>
-#include <isc/region.h>
-#include <isc/int.h>
 
 ISC_LANG_BEGINDECLS
 
