@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.55 2000/08/18 18:25:28 bwelling Exp $ */
+/* $Id: db.h,v 1.56 2000/08/22 01:20:05 bwelling Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -1144,7 +1144,7 @@ dns_db_nodecount(dns_db_t *db);
  * 	The number of nodes in the database
  */
 
-unsigned int
+isc_boolean_t
 dns_db_ispersistent(dns_db_t *db);
 /*
  * Is 'db' persistent?  A persistent database does not need to be loaded
