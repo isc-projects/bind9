@@ -1,4 +1,7 @@
 
+ 980.	[bug]		Incoming zone transfers restarting after an error
+			could trigger an assertion failure. [RT #1692]
+
  978.	[bug]		dns_db_attachversion() had an invalid REQUIRE()
 			condition.
 
