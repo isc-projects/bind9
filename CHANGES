@@ -1,3 +1,8 @@
+1342.	[bug]		dnssec-signzone usage message was misleading.
+
+1341.	[bug]		If the last RRset in a zone is glue, dnssec-signzone
+			would incorrectly duplicate its output and sign it.
+
 1340.	[doc]		query-source-v6 was missing from options section.
 			[RT #3218]
 

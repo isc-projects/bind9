@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.160 2002/06/17 04:01:05 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.161 2002/07/01 07:37:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1000,6 +1000,8 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			dumpnode(name, node);
 		if (dns_rdataset_isassociated(&nxt))
 			dns_rdataset_disassociate(&nxt);
+		if (!found)
+			dns_db_detachnode(gdb, &node);
 
 		result = dns_dbiterator_next(gdbiter);
 		if (result == ISC_R_NOMORE) {
@@ -1008,10 +1010,16 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 		} else if (result != ISC_R_SUCCESS)
 			fatal("failure iterating database: %s",
 			      isc_result_totext(result));
-		if (!found)
-			dns_db_detachnode(gdb, &node);
 	}
 	UNLOCK(&namelock);
+	if (!found) {
+		if (assigned == completed) {
+			isc_task_detach(&task);
+			isc_app_shutdown();
+		}
+		isc_mem_put(mctx, fname, sizeof(dns_fixedname_t));
+		return;
+	}
 	sevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WORK,
 				    sign, NULL, sizeof(sevent_t));
@@ -1372,7 +1380,7 @@ usage(void) {
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-d directory\n");
-	fprintf(stderr, "\t\tdirectory to find signedkey files (.)\n");
+	fprintf(stderr, "\t\tdirectory to find keyset files (.)\n");
 	fprintf(stderr, "\t-s YYYYMMDDHHMMSS|+offset:\n");
 	fprintf(stderr, "\t\tSIG start time - absolute|offset (now)\n");
 	fprintf(stderr, "\t-e YYYYMMDDHHMMSS|+offset|\"now\"+offset]:\n");
