@@ -191,7 +191,12 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * Notes:
  *	The rdata cursor position will be changed.
  *
- * XXX Supply Requires and Ensures XXX
+ * Requires:
+ *	'rdataset' is a valid rdataset.
+ *
+ *	'rdataset' is not empty.
+ *
+ * XXX Supply more Requires and Ensures XXX
  */
 
 dns_result_t
@@ -205,6 +210,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
  *
  * Notes:
  *	The rdata cursor position will be changed.
+ *
+ * Requires:
+ *	'rdataset' is a valid rdataset.
+ *
+ *	'rdataset' is not empty.
  *
  * XXX Supply Requires and Ensures XXX
  */
