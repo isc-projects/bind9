@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.77 2001/08/29 18:57:09 gson Exp $ */
+/* $Id: host.c,v 1.78 2001/11/22 02:18:52 gson Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -227,8 +227,7 @@ dighost_shutdown(void) {
 }
 
 void
-received(int bytes, isc_sockaddr_t *from, dig_query_t *query)
-{
+received(int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	isc_time_t now;
 	isc_result_t result;
 	int diff;
@@ -572,7 +571,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 						   (isc_textregion_t *)&tr);
 
 			if (result != ISC_R_SUCCESS)
-				fprintf(stderr,"Warning: invalid type: %s\n",
+				fprintf(stderr, "warning: invalid type: %s\n",
 					isc_commandline_argument);
 			else {
 				lookup->rdtype = rdtype;
@@ -586,7 +585,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 						   (isc_textregion_t *)&tr);
 
 			if (result != ISC_R_SUCCESS)
-				fprintf(stderr,"Warning: invalid class: %s\n",
+				fprintf(stderr, "warning: invalid class: %s\n",
 					isc_commandline_argument);
 			else {
 				lookup->rdclass = rdclass;
@@ -641,9 +640,10 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		}
 	}
-	if (isc_commandline_index >= argc) {
+
+	if (isc_commandline_index >= argc)
 		show_usage();
-	}
+
 	strncpy(hostname, argv[isc_commandline_index], sizeof(hostname));
 	hostname[sizeof(hostname)-1]=0;
 	if (argc > isc_commandline_index + 1) {
