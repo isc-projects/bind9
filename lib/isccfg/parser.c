@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.7 2003/08/13 01:59:19 marka Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.8 2003/08/13 04:55:28 marka Exp $ */
 
 #include <config.h>
 
@@ -361,7 +361,7 @@ parse_eof(cfg_parser_t *pctx) {
 	cfg_parser_error(pctx, CFG_LOG_NEAR, "syntax error");
 	return (ISC_R_UNEXPECTEDTOKEN);
  cleanup:
-	return(result);
+	return (result);
 }
 
 /* A list of files, used internally for pctx->files. */
