@@ -1,3 +1,10 @@
+ 253.	[func]		resolv.conf parser now recognises ';' and '#' as
+			comments (anywhere in line, not just as the beginning).
+
+ 252.	[bug]		resolv.conf parser mishandled masks on sortlists.
+			It slso aborted when an unrecognised keyword was seen,
+			now it silently ignores the entire line.
+
  251.	[bug]		lwresd caught an assertion failure on startup.
 
  250.	[bug]		fixed handling of size+unit when value would be too
