@@ -312,17 +312,16 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 static void
 free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
-	isc_region_t r;
 	isc_ondestroy_t ondest;
 
 	REQUIRE(EMPTY(rbtdb->open_versions));
 	REQUIRE(rbtdb->future_version == NULL);
 
-	isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
-		    sizeof (rbtdb_version_t));
-	dns_name_toregion(&rbtdb->common.origin, &r);
-	if (r.base != NULL)
-		isc_mem_put(rbtdb->common.mctx, r.base, r.length);
+	if (rbtdb->current_version != NULL)
+		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
+			    sizeof (rbtdb_version_t));
+	if (dns_name_dynamic(&rbtdb->common.origin))
+		dns_name_free(&rbtdb->common.origin, rbtdb->common.mctx);
 	if (rbtdb->tree != NULL)
 		dns_rbt_destroy(&rbtdb->tree);
 	for (i = 0; i < rbtdb->node_lock_count; i++)
@@ -3799,7 +3798,6 @@ dns_rbtdb_create
 	dns_rbtdb_t *rbtdb;
 	isc_result_t result;
 	int i;
-	isc_region_t r1, r2;
 	dns_name_t name;
 
 	/* Keep the compiler happy. */
@@ -3810,6 +3808,7 @@ dns_rbtdb_create
 	if (rbtdb == NULL)
 		return (DNS_R_NOMEMORY);
 	memset(rbtdb, '\0', sizeof *rbtdb);
+	dns_name_init(&rbtdb->common.origin, NULL);
 	rbtdb->common.attributes = 0;
 	if (cache) {
 		rbtdb->common.methods = &cache_methods;
@@ -3870,16 +3869,11 @@ dns_rbtdb_create
 	/*
 	 * Make a copy of the origin name.
 	 */
-	dns_name_init(&rbtdb->common.origin, NULL);
-	dns_name_toregion(origin, &r1);
-	r2.base = isc_mem_get(mctx, r1.length);
-	if (r2.base == NULL) {
+	result = dns_name_dupwithoffsets(origin, mctx, &rbtdb->common.origin);
+	if (result != ISC_R_SUCCESS) {
 		free_rbtdb(rbtdb);
-		return (DNS_R_NOMEMORY);
+		return (result);
 	}
-	r2.length = r1.length;
-	memcpy(r2.base, r1.base, r1.length);
-	dns_name_fromregion(&rbtdb->common.origin, &r2);
 
 	/*
 	 * Make the Red-Black Tree.
