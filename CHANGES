@@ -1,3 +1,9 @@
+ 504.	[bug]		The zone was not being marked as dirty when updated via
+			IXFR.
+
+ 503.	[bug]		dumptime was not being set along with
+			DNS_ZONEFLG_NEEDDUMP.
+
  502.	[func]		On a SERVFAIL reply, DiG will now try the next server
 			in the list, unless the +fail option is specified.
 

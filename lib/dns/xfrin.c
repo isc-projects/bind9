@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.97 2000/09/19 01:44:15 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.98 2000/10/02 23:55:44 marka Exp $ */
 
 #include <config.h>
 
@@ -382,6 +382,7 @@ ixfr_commit(dns_xfrin_ctx_t *xfr) {
 		if (xfr->ixfr.journal != NULL)
 			CHECK(dns_journal_commit(xfr->ixfr.journal));
 		dns_db_closeversion(xfr->db, &xfr->ver, ISC_TRUE);
+		dns_zone_markdirty(xfr->zone);
 	}
 	result = ISC_R_SUCCESS;
  failure:

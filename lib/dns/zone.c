@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.224 2000/09/28 18:03:18 gson Exp $ */
+/* $Id: zone.c,v 1.225 2000/10/02 23:55:42 marka Exp $ */
 
 #include <config.h>
 
@@ -88,6 +88,10 @@
 
 #ifndef DNS_MAX_EXPIRE
 #define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
+#endif
+
+#ifndef DNS_DUMP_DELAY
+#define DNS_DUMP_DELAY 900		/* 15 minutes */
 #endif
 
 typedef struct dns_notify dns_notify_t;
@@ -333,6 +337,7 @@ static isc_result_t default_journal(dns_zone_t *zone);
 static void zone_xfrdone(dns_zone_t *zone, isc_result_t result);
 static isc_result_t zone_postload(dns_zone_t *zone, dns_db_t *db,
 				  isc_time_t loadtime, isc_result_t result);
+static void zone_needdump(dns_zone_t *zone, unsigned int delay);
 static void zone_shutdown(isc_task_t *, isc_event_t *);
 static void zone_loaddone(void *arg, isc_result_t result);
 static isc_result_t zone_startload(dns_db_t *db, dns_zone_t *zone,
@@ -1013,7 +1018,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			 "dns_journal_rollforward: %s",
 			 dns_result_totext(result));
 		if (result == ISC_R_SUCCESS)
-			zone->flags |= DNS_ZONEFLG_NEEDDUMP;
+			zone_needdump(zone, DNS_DUMP_DELAY);
 	}
 
 	/*
@@ -1675,6 +1680,7 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	 */
 	switch (zone->type) {
 	case dns_zone_master:
+	case dns_zone_slave:
 		LOCK(&zone->lock);
 		if (zone->dbname != NULL &&
 		    now >= zone->dumptime &&
@@ -1710,10 +1716,9 @@ dns_zone_maintenance(dns_zone_t *zone) {
 
 void
 dns_zone_markdirty(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK(&zone->lock);
-	zone->flags |= DNS_ZONEFLG_NEEDDUMP;
+	zone_needdump(zone, DNS_DUMP_DELAY);
 	UNLOCK(&zone->lock);
 }
 
@@ -1819,6 +1824,31 @@ dns_zone_dump(dns_zone_t *zone) {
 	return (result);
 }
 
+static void
+zone_needdump(dns_zone_t *zone, unsigned int delay) {
+	isc_stdtime_t now;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	/*
+	 * Do we have a place to dump to and are we loaded?
+	 */
+	if (zone->dbname == NULL ||
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) == 0)
+		return;
+
+	isc_stdtime_get(&now);
+
+	/* add some noise */
+	delay = isc_random_jitter(delay, delay/4);
+
+	zone->flags |= DNS_ZONEFLG_NEEDDUMP;
+	if (zone->dumptime == 0 ||
+	    zone->dumptime > now + delay)
+		zone->dumptime = now + delay;
+	zone_settimer(zone, now);
+}
+
 static isc_result_t
 zone_dump(dns_zone_t *zone) {
 	isc_result_t result;
@@ -1839,8 +1869,14 @@ zone_dump(dns_zone_t *zone) {
 
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
 
-	if (result != ISC_R_SUCCESS)
+	zone->dumptime = 0;
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * Try again in a short while.
+		 */
+		zone_needdump(zone, DNS_DUMP_DELAY);
 		return (result);
+	}
 
 	zone->flags &= ~DNS_ZONEFLG_NEEDDUMP;
 	return (ISC_R_SUCCESS);
@@ -3339,15 +3375,17 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = now;
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDDUMP)) {
-			/* XXXAG zone->dumptime will be 0 here */
+			INSIST(zone->dumptime != 0);
 			if (zone->dumptime < next || next == 0)
 				next = zone->dumptime;
 		}
 		break;
+
 	case dns_zone_slave:
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			next = now;
 		/*FALLTHROUGH*/
+
 	case dns_zone_stub:
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOMASTERS)) {
@@ -3361,6 +3399,7 @@ zone_settimer(dns_zone_t *zone, isc_stdtime_t now) {
 				next = zone->expiretime;
 		}
 		break;
+
 	default:
 		break;
 	}
