@@ -39,7 +39,8 @@ LIBS =		@LIBS@
 SUBDIRS = master names rbt tasks db timers mem dst
 
 # Alphabetically
-TARGETS =	compress_test \
+TARGETS =	adb_test \
+		compress_test \
 		db_test \
 		dispatch_tcp_test \
 		dispatch_test \
@@ -66,7 +67,8 @@ TARGETS =	compress_test \
 		zone_test
 
 # Alphabetically
-SRCS =		compress_test.c \
+SRCS =		adb_test.c \
+		compress_test.c \
 		db_test.c \
 		dispatch_tcp_test.c \
 		dispatch_test.c \
@@ -94,6 +96,10 @@ SRCS =		compress_test.c \
 		zone_test.c
 
 @BIND9_MAKE_RULES@
+
+adb_test: adb_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL} ${CC} ${CFLAGS} -o $@ adb_test.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 sdig: sdig.@O@ printmsg.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ sdig.@O@ printmsg.@O@ \

@@ -76,13 +76,16 @@
  *** IMPORTS
  ***/
 
-#include <isc/magic.h>
-#include <isc/mem.h>
-#include <isc/task.h>
+#include <stdio.h>
+
+#include <isc/event.h>
 #include <isc/lang.h>
 #include <isc/list.h>
+#include <isc/magic.h>
+#include <isc/mem.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
+#include <isc/task.h>
 
 #include <dns/rdataset.h>
 
@@ -253,7 +256,7 @@ dns_adb_lookup(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *	ISC_R_NOMORE	Addresses might have been returned, but no events
  *			will ever be posted for this context.
  *	ISC_R_NOMEMORY	insufficient resources
- *	ISC_R_FAILURE	there weren't any NS records found in the nsdataset.
+ *	ISC_R_FAILURE	Empty nsdataset, or not containing NS records.
  *
  * Ensures:
  *
@@ -274,6 +277,24 @@ dns_adb_refresh(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t *action,
  *		'handle' is a valid dns_adbhandle_t.
  */
 
+isc_result_t
+dns_adb_deletename(dns_adb_t *adb, dns_name_t *host);
+/*
+ * Deletes the name and drops reference counts on all subordinate
+ * addresses.
+ *
+ * Requires:
+ *
+ *	'adb' must be valid.
+ *
+ *	'host' contains the name of the host to be deleted.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS	-- it's gone.
+ *	ISC_R_NOTFOUND	-- the host is not in the database
+ */
+
 
 isc_result_t
 dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
@@ -288,12 +309,13 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
  *
  *	'adb' be valid.
  *
- *	'host' contain the naem of the host to be inserted.
+ *	'host' contain the name of the host to be inserted.
  *
  *	'addr' point to the address of the host to insert.
  *
  * Returns:
  *
+ *	ISC_R_SUCCESS	-- all is well.
  *	ISC_R_NOMEMORY	-- no memory
  *	ISC_R_EXISTS	-- the <host, address> tuple exists already.
  */
@@ -338,6 +360,19 @@ dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handle);
  *
  *	The task used to launch this handle can be used internally for
  *	a short time after this function returns.
+ */
+
+void
+dns_adb_dump(dns_adb_t *adb, FILE *f);
+/*
+ * This function is used only for debugging.  It will dump as much of the
+ * state of the running system as possible.
+ *
+ * Requires:
+ *
+ *	adb be valid.
+ *
+ *	f != NULL, and be a file open for writing.
  */
 
 
