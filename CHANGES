@@ -1,3 +1,5 @@
+1506.	[bug]		Wrong return type for dns_view_isdelegationonly().
+
 	--- 9.1.3-P1 released ---
 
 1504.	[func]		New zone type "delegation-only".
