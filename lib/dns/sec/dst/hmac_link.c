@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.36 2000/06/09 22:32:17 bwelling Exp $
+ * $Id: hmac_link.c,v 1.37 2000/06/12 07:07:14 bwelling Exp $
  */
 
 #include <config.h>
@@ -165,6 +165,8 @@ hmacmd5_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
+	isc_buffer_init(&b, data, bytes);
+	isc_buffer_add(&b, bytes);
 	ret = hmacmd5_fromdns(key, &b);
 	memset(data, 0, HMAC_LEN);
 
