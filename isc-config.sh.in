@@ -53,7 +53,6 @@ while test $# -gt 0; do
 		exit 0
 		;;
 	--cflags)
-		includes="-I${prefix}/include"
 		echo_cflags=true
 		;;
 	--libs)
@@ -81,7 +80,11 @@ if test x"$echo_exec_prefix" = x"true" ; then
 	echo $exec_prefix
 fi
 if test x"$echo_cflags" = x"true"; then
-	echo -I${exec_prefix}/include $includes
+	includes="-I${exec_prefix}/include"
+	if test x"$libdns" = x"true" -o x"$libisc" = x"true"; then
+		includes="$includes -D_REENTRANT @STD_CDEFINES@ @CCOPT@"
+	fi
+	echo $includes
 fi
 if test x"$echo_libs" = x"true"; then
 	libs=-L${exec_prefix}/lib
@@ -97,7 +100,7 @@ if test x"$echo_libs" = x"true"; then
 		needothers=true
 	fi
 	if test x"$needothers" = x"true" ; then
-		libs="$libs @LIBS@"
+		libs="$libs @CCOPT@ @LIBS@"
 	fi
 	echo $libs
 fi
