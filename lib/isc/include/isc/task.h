@@ -137,6 +137,10 @@ isc_task_detach(isc_task_t **taskp);
  *
  *	*taskp is NULL.
  *
+ *	If '*taskp' is the last reference to the task, the task is idle (has
+ *	an empty event queue), and has not been shutdown, the task will be
+ *	shutdown.
+ *
  *	If '*taskp' is the last reference to the task and
  *	the task has been shutdown,
  *
@@ -178,9 +182,69 @@ isc_task_send(isc_task_t *task, isc_event_t **eventp);
  *					currently allowed.
  */
 
+isc_result_t
+isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
+/*
+ * Send '*event' to '*taskp' and then detach '*taskp' from its
+ * task.
+ *
+ * Requires:
+ *
+ *	'*taskp' is a valid task.
+ *
+ * Ensures
+ *
+ *	On success,
+ *
+ *		*eventp == NULL
+ *
+ *		*taskp == NULL
+ *
+ *		If '*taskp' is the last reference to the task, the task is
+ *		idle (has an empty event queue), and has not been shutdown,
+ *		the task will be shutdown.
+ *
+ *		If '*taskp' is the last reference to the task and
+ *		the task has been shutdown,
+ *
+ *			All resources used by the task will be freed.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_TASKDONE			The task is done.
+ *	ISC_R_TASKNOSEND		Sending events to the task is not
+ *					currently allowed.
+ */
+
+/*
+ * Purging and Unsending
+ *
+ * Events which have been queued for a task but not delivered may be removed
+ * from the task's event queue by purging or unsending.
+ *
+ * With both types, the caller specifies a matching pattern that selects
+ * events based upon their sender, type, and tag.
+ *
+ * Purging calls isc_event_free() on the matching events.
+ *
+ * Unsending returns a list of events that matched the pattern.
+ * The caller is then responsible for them.
+ *
+ * Consumers of events should purge, not unsend.
+ *
+ * Producers of events often want to remove events when the caller indicates
+ * it is no longer interested in the object, e.g. by cancelling a timer.
+ * Sometimes this can be done by purging, but for some event types, the
+ * calls to isc_event_free() cause deadlock because the event free routine
+ * wants to acquire a lock the caller is already holding.  Unsending instead
+ * of purging solves this problem.  As a general rule, producers should only
+ * unsend events which they have sent.
+ */
+
 unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
-		    isc_eventtype_t last, unsigned int tag);
+		    isc_eventtype_t last, void *tag);
 /*
  * Purge events from a task's event queue.
  *
@@ -192,9 +256,11 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
  *
  * Ensures:
  *
- *	Events whose sender is 'sender', and whose type is >= first and
- *	<= last will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.  A tag of zero matches any
+ *	Events in the event queue of 'task' whose sender is 'sender', whose
+ *	type is >= first and <= last, and whose tag is 'tag' will be purged,
+ *	unless they are marked as unpurgable.
+ *	
+ *	A sender of NULL will match any sender.  A NULL tag matches any
  *	tag.
  *
  * Returns:
@@ -204,7 +270,7 @@ isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
 
 unsigned int
 isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
-	       unsigned int tag);
+	       void *tag);
 /*
  * Purge events from a task's event queue.
  *
@@ -218,13 +284,13 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
  *
  *	'task' is a valid task.
  *
- *	last >= first
- *
  * Ensures:
  *
- *	Events whose sender is 'sender', and whose type is 'type'
- *	will be purged, unless they are marked as unpurgable.
- *	A sender of NULL will match any sender.  A tag of zero matches any
+ *	Events in the event queue of 'task' whose sender is 'sender', whose
+ *	type is 'type', and whose tag is 'tag' will be purged, unless they
+ *	are marked as unpurgable.
+ *
+ *	A sender of NULL will match any sender.  A NULL tag matches any
  *	tag.
  *
  * Returns:
@@ -236,6 +302,8 @@ isc_boolean_t
 isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*
  * Purge 'event' from a task's event queue.
+ *
+ * XXXRTH:  WARNING:  This method may be removed before beta.
  *
  * Notes:
  *
@@ -262,10 +330,69 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *					or was marked unpurgeable.
  */
 
+unsigned int
+isc_task_unsendrange(isc_task_t *task, void *sender, isc_eventtype_t first,
+		     isc_eventtype_t last, void *tag, isc_eventlist_t *events);
+/*
+ * Remove events from a task's event queue.
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ *	last >= first.
+ *
+ *	*events is a valid list.
+ *
+ * Ensures:
+ *
+ *	Events in the event queue of 'task' whose sender is 'sender', whose
+ *	type is >= first and <= last, and whose tag is 'tag' will be dequeued
+ *	and appended to *events.
+ *	
+ *	A sender of NULL will match any sender.  A NULL tag matches any
+ *	tag.
+ *
+ * Returns:
+ *
+ *	The number of events unsent.
+ */
+
+unsigned int
+isc_task_unsend(isc_task_t *task, void *sender, isc_eventtype_t type,
+		void *tag, isc_eventlist_t *events);
+/*
+ * Remove events from a task's event queue.
+ *
+ * Notes:
+ *
+ *	This function is equivalent to
+ *
+ *		isc_task_unsendrange(task, sender, type, type, tag, events);
+ *
+ * Requires:
+ *
+ *	'task' is a valid task.
+ *
+ *	*events is a valid list.
+ *
+ * Ensures:
+ *
+ *	Events in the event queue of 'task' whose sender is 'sender', whose
+ *	type is 'type', and whose tag is 'tag' will be dequeued and appended
+ *	to *events.
+ *
+ * Returns:
+ *
+ *	The number of events unsent.
+ */
+
 isc_result_t
 isc_task_allowsend(isc_task_t *task, isc_boolean_t allow);
 /*
  * Allow or disallow sending events to 'task'.
+ *
+ * XXXRTH:  WARNING:  This method may be removed before beta.
  *
  * Notes:
  *
