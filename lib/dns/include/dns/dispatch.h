@@ -168,8 +168,9 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
  * "*idp" is filled in with the assigned message ID, and *resp is filled in
  * to contain the magic token used to request event flow stop.
  *
- * Events are generated each time a packet comes in until the dispatch's quota
- * maximum is reached.
+ * Arranges for the given task to get a callback for response packets.  When
+ * the event is delivered, it must be returned using dns_dispatch_freeevent()
+ * or through dns_dispatch_removeresponse() for another to be delivered.
  *
  * Requires:
  *	"idp" be non-NULL.
@@ -217,9 +218,9 @@ dns_dispatch_addrequest(dns_dispatch_t *disp,
 			isc_task_t *task, isc_taskaction_t action, void *arg,
 			dns_dispentry_t **resp);
 /*
- * Aranges for a one-shot request handler.  Only one request will ever be
- * handled per call to this function.  (Or should this be automatically
- * repeating?)
+ * Arranges for the given task to get a callback for request packets.  When
+ * the event is delivered, it must be returned using dns_dispatch_freeevent()
+ * or through dns_dispatch_removerequest() for another to be delivered.
  *
  * Requires:
  *	< mumble >
@@ -235,7 +236,7 @@ void
 dns_dispatch_removerequest(dns_dispatch_t *disp, dns_dispentry_t **resp,
 			   dns_dispatchevent_t **sockevent);
 /*
- * Stops the flow of responses for the provided id and destination.
+ * Stops the flow of requests for the provided id and destination.
  * If "sockevent" is non-NULL, the dispatch event and associated buffer is
  * also returned to the system.
  *

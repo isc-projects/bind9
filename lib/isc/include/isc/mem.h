@@ -191,7 +191,7 @@ isc_mempool_associatelock(isc_mempool_t *mpctx, isc_mutex_t *lock);
  * the imposed externally provided locking protocols are followed.
  *
  * Also note that the quota limits will not always take immediate effect.
- * For instance, setting "maxalloc" to a number larger than the currently
+ * For instance, setting "maxalloc" to a number smaller than the currently
  * allocated count is permitted.  New allocations will be refused until
  * the count drops below this threshold.
  *
