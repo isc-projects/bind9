@@ -86,8 +86,15 @@ typedef struct dns_c_stub_zone		dns_c_stubzone_t;
 typedef struct dns_c_forward_zone	dns_c_forwardzone_t;
 typedef struct dns_c_hint_zone		dns_c_hintzone_t;
 typedef struct dns_c_zone		dns_c_zone_t;
-typedef struct dns_c_zone_list		dns_c_zonelist_t;
 typedef struct dns_c_zonelem		dns_c_zonelem_t;
+
+#if 0
+/* this typedef moved to confcommon.h for confview.h to get at (circular
+ * include dependencies between view and zone structures.
+ */
+typedef struct dns_c_zone_list		dns_c_zonelist_t;
+ #endif
+
 
 struct dns_c_zonelem
 {
@@ -213,6 +220,7 @@ struct dns_c_zone
 	char			       *name; /* e.g. "foo.com" */
 	char			       *internalname; /* e.g. "foo.com.ext" */
 	dns_rdataclass_t		zclass; 
+	dns_c_view_t		       *view;
 	
 	dns_c_zonetype_t		ztype;
 	union 
