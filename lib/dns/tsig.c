@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.73 2000/07/18 00:46:01 bwelling Exp $
+ * $Id: tsig.c,v 1.74 2000/07/20 19:32:56 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -30,6 +30,7 @@
 #include <isc/util.h>
 
 #include <dns/keyvalues.h>
+#include <dns/log.h>
 #include <dns/message.h>
 #include <dns/rdata.h>
 #include <dns/rdatalist.h>
@@ -798,14 +799,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->tsigstatus = dns_rcode_noerror;
 
-	if (tsig.error != dns_rcode_noerror) {
-		if (is_response(msg)) {
-			/* XXXBEW Log a message */
-			return (ISC_R_SUCCESS);
-		}
-		else
-			return (DNS_R_TSIGERRORSET);
-	}
+	if (tsig.error != dns_rcode_noerror)
+		return (DNS_R_TSIGERRORSET);
 
 	msg->verified_sig = 1;
 

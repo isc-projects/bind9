@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: result.c,v 1.65 2000/07/13 02:41:19 bwelling Exp $ */
+/* $Id: result.c,v 1.66 2000/07/20 19:32:57 bwelling Exp $ */
 
 #include <config.h>
 
@@ -65,7 +65,7 @@ static const char *text[DNS_R_NRESULTS] = {
 	"more data",				/* 36 */
 	"up to date",				/* 37 */
 	"tsig verify failure",			/* 38 */
-	"tsig error set in query",		/* 39 */
+	"tsig indicates error",			/* 39 */
 	"SIG failed to verify",			/* 40 */
 	"SIG has expired",			/* 41 */
 	"SIG validity period has not begun",	/* 42 */
