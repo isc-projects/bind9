@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.15 2003/05/14 05:47:22 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.16 2003/05/19 04:47:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1506,20 +1506,13 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		options = stdoptions;
 		/*
 		 * If this name is a subdomain of the query domain, tell
-		 * the ADB to start looking at "." if it doesn't know the
-		 * address.  This keeps us from getting stuck if the
-		 * nameserver is beneath the zone cut and we don't know its
-		 * address (e.g. because the A record has expired).
-		 * By restarting from ".", we ensure that any missing glue
-		 * will be reestablished.
-		 *
-		 * A further optimization would be to get the ADB to start
-		 * looking at the most enclosing zone cut above fctx->domain.
-		 * We don't expect this situation to happen very frequently,
-		 * so we've chosen the simple solution.
+		 * the ADB to start looking using zone/hint data. This keeps
+		 * us from getting stuck if the nameserver is beneath the
+		 * zone cut and we don't know its address (e.g. because the
+		 * A record has expired).
 		 */
 		if (dns_name_issubdomain(&ns.name, &fctx->domain))
-			options |= DNS_ADBFIND_STARTATROOT;
+			options |= DNS_ADBFIND_STARTATZONE;
 		options |= DNS_ADBFIND_GLUEOK;
 		options |= DNS_ADBFIND_HINTOK;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.66.2.3 2002/08/05 06:57:13 marka Exp $ */
+/* $Id: adb.h,v 1.66.2.4 2003/05/19 04:47:06 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -147,9 +147,9 @@ struct dns_adbfind {
  *	If set, fetches will not be generated unless no addresses are
  *	available in any of the address families requested.
  *
- * _STARTATROOT:
- *	Fetches will start at the root nameservers, instead of the closest
- *	ancestor.  This is useful for reestablishing glue that has expired.
+ * _STARTATZONE:
+ *	Fetches will start using the closest zone data or use the root servers.
+ *	This is useful for reestablishing glue that has expired.
  *
  * _GLUEOK:
  * _HINTOK:
@@ -170,7 +170,7 @@ struct dns_adbfind {
 #define DNS_ADBFIND_EMPTYEVENT		0x00000004
 #define DNS_ADBFIND_WANTEVENT		0x00000008
 #define DNS_ADBFIND_AVOIDFETCHES	0x00000010
-#define DNS_ADBFIND_STARTATROOT		0x00000020
+#define DNS_ADBFIND_STARTATZONE		0x00000020
 #define DNS_ADBFIND_GLUEOK		0x00000040
 #define DNS_ADBFIND_HINTOK		0x00000080
 #define DNS_ADBFIND_RETURNLAME		0x00000100

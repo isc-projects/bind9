@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.2 2002/08/05 06:57:13 marka Exp $ */
+/* $Id: view.h,v 1.73.2.3 2003/05/19 04:47:06 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -512,6 +512,12 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
 		     isc_stdtime_t now, unsigned int options,
 		     isc_boolean_t use_hints,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+
+isc_result_t
+dns_view_findzonecut2(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
+		      isc_stdtime_t now, unsigned int options,
+		      isc_boolean_t use_hints, isc_boolean_t use_cache,
+		      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 /*
  * Find the best known zonecut containing 'name'.
  *
@@ -524,6 +530,9 @@ dns_view_findzonecut(dns_view_t *view, dns_name_t *name, dns_name_t *fname,
  *
  *	If 'use_hints' is ISC_TRUE, and the view has a hints database, then
  *	it will be searched last.
+ *
+ *	If 'use_cache' is ISC_TRUE, and the view has a cache, then it will be
+ *	searched.
  *
  *	If 'sigrdataset' is not NULL, and there is a SIG rdataset which
  *	covers 'type', then 'sigrdataset' will be bound to it.
