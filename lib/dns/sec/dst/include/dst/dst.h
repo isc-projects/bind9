@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.42 2001/05/31 18:34:51 tale Exp $ */
+/* $Id: dst.h,v 1.43 2001/09/15 00:01:58 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -45,6 +45,8 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_RSA		DST_ALG_RSAMD5	/* backwards compatibility */
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
+#define DST_ALG_ECC		4
+#define DST_ALG_RSASHA1		5
 #define DST_ALG_HMACMD5		157
 #define DST_ALG_GSSAPI		160
 #define DST_ALG_PRIVATE		254

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.31 2001/05/31 00:38:07 bwelling Exp $
+ * $Id: dst_parse.c,v 1.32 2001/09/15 00:01:49 bwelling Exp $
  */
 
 #include <config.h>
@@ -39,9 +39,10 @@
 
 #define PRIVATE_KEY_STR "Private-key-format:"
 #define ALGORITHM_STR "Algorithm:"
-#define RSA_STR "RSA"
+#define RSAMD5_STR "RSAMD5"
 #define DH_STR "DH"
 #define DSA_STR "DSA"
+#define RSASHA1_STR "RSASHA1"
 #define HMACMD5_STR "HMAC_MD5"
 
 struct parse_map {
@@ -157,6 +158,7 @@ static int
 check_data(const dst_private_t *priv, const unsigned int alg) {
 	switch (alg) {
 		case DST_ALG_RSAMD5:
+		case DST_ALG_RSASHA1:
 			return (check_rsa(priv));
 		case DST_ALG_DH:
 			return (check_dh(priv));
@@ -185,8 +187,9 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst__privstruct_parsefile(dst_key_t *key, const char *filename,
-			  isc_mem_t *mctx, dst_private_t *priv)
+dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
+			  const char *filename, isc_mem_t *mctx,
+			  dst_private_t *priv)
 {
 	int n = 0, major, minor;
 	isc_buffer_t b;
@@ -305,9 +308,11 @@ dst__privstruct_parsefile(dst_key_t *key, const char *filename,
 		}
 
 		memset(&priv->elements[n], 0, sizeof(dst_private_element_t));
-		tag = find_value(token.value.as_pointer, dst_key_alg(key));
-		if (tag < 0 || TAG_ALG(tag) != dst_key_alg(key))
+		tag = find_value(token.value.as_pointer, alg);
+		if (tag < 0 || TAG_ALG(tag) != alg) {
+			ret = DST_R_INVALIDPRIVATEKEY;
 			goto fail;
+		}
 		priv->elements[n].tag = tag;
 
 		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);
@@ -327,7 +332,7 @@ dst__privstruct_parsefile(dst_key_t *key, const char *filename,
  done:
 	priv->nelements = n;
 
-	if (check_data(priv, dst_key_alg(key)) < 0)
+	if (check_data(priv, alg) < 0)
 		goto fail;
 
 	isc_lex_close(lex);
@@ -388,6 +393,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 		case DST_ALG_RSAMD5: fprintf(fp, "(RSA)\n"); break;
 		case DST_ALG_DH: fprintf(fp, "(DH)\n"); break;
 		case DST_ALG_DSA: fprintf(fp, "(DSA)\n"); break;
+		case DST_ALG_RSASHA1: fprintf(fp, "(RSASHA1)\n"); break;
 		case DST_ALG_HMACMD5: fprintf(fp, "(HMAC_MD5)\n"); break;
 		default : fprintf(fp, "(?)\n"); break;
 	}

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.49 2001/09/05 23:15:35 bwelling Exp $ */
+/* $Id: dnssec-keygen.c,v 1.50 2001/09/15 00:01:44 bwelling Exp $ */
 
 #include <config.h>
 
@@ -49,6 +49,8 @@
 const char *program = "dnssec-keygen";
 int verbose;
 
+static const char *algs = "RSA | RSAMD5 | DH | DSA | RSASHA1 | HMAC-MD5";
+
 static isc_boolean_t
 dsa_size_ok(int size) {
 	return (ISC_TF(size >= 512 && size <= 1024 && size % 64 == 0));
@@ -60,8 +62,7 @@ usage(void) {
 	fprintf(stderr, "    %s -a alg -b bits -n type [options] name\n\n",
 		program);
 	fprintf(stderr, "Required options:\n");
-	fprintf(stderr, "    -a algorithm: RSA | RSAMD5 | DH | DSA | HMAC-MD5"
-		"\n");
+	fprintf(stderr, "    -a algorithm: %s\n", algs);
 	fprintf(stderr, "    -b key size, in bits:\n");
 	fprintf(stderr, "        RSA:\t\t[512..%d]\n", MAX_RSA);
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
