@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: conf.sh.in,v 1.9 2000/07/10 17:01:15 gson Exp $
+# $Id: conf.sh.in,v 1.10 2000/07/20 19:38:05 mws Exp $
 
 # 
 # Common configuration data for system tests, to be sourced into
@@ -37,7 +37,8 @@ KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
 KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
-SUBDIRS="dnssec glue limits lwresd notify nsupdate stub views xfer xferquota"
+SUBDIRS="dnssec glue limits lwresd notify nsupdate resolver stub views xfer \
+    xferquota"
 
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
