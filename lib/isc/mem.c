@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.87 2001/02/13 13:20:37 marka Exp $ */
+/* $Id: mem.c,v 1.88 2001/02/13 20:29:27 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1368,6 +1368,13 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	REQUIRE(mpctxp != NULL);
 	mpctx = *mpctxp;
 	REQUIRE(VALID_MEMPOOL(mpctx));
+#if ISC_MEMPOOL_NAMES
+	if (mpctx->allocated > 0)
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mempool_destroy(): mempool %s leaked "
+				 "memory.  Please report this error to "
+				 "bind9-bugs@isc.org", mpctx->name);
+#endif
 	REQUIRE(mpctx->allocated == 0);
 
 	mctx = mpctx->mctx;
