@@ -200,6 +200,7 @@ struct dns_c_zone {
 	
 	char			       *name; /* e.g. "foo.com" */
 	char			       *internalname; /* e.g. "foo.com.ext" */
+	char			       *database;
 	dns_rdataclass_t		zclass; 
 	dns_c_view_t		       *view;
 	
@@ -447,6 +448,17 @@ dns_c_zone_getallowupd(dns_c_zone_t *zone, dns_c_ipmatchlist_t **retval);
 
 isc_result_t
 dns_c_zone_unsetallowupd(dns_c_zone_t *zone);
+
+
+isc_result_t
+dns_c_zone_setdatabase(dns_c_zone_t *zone, const char *database);
+
+isc_result_t
+dns_c_zone_getdatabase(dns_c_zone_t *zone, char **retval);
+
+isc_result_t
+dns_c_zone_unsetdatabase(dns_c_zone_t *zone);
+
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.38 2000/05/03 19:29:41 brister Exp $ */
+/* $Id: confzone.c,v 1.39 2000/05/06 10:18:47 brister Exp $ */
 
 #include <config.h>
 
@@ -500,7 +500,8 @@ dns_c_zone_new(isc_mem_t *mem,
 	newzone->internalname = (internalname == NULL ?
 				 isc_mem_strdup(mem, name) :
 				 isc_mem_strdup(mem, internalname));
-
+	newzone->database = NULL;
+	
 	switch (ztype) {
 	case dns_c_zone_master:
 		res = master_zone_init(&newzone->u.mzone);
@@ -580,7 +581,7 @@ dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
 	}
 
 	fprintf(fp, " {\n");
-
+		
 	switch (zone->ztype) {
 	case dns_c_zone_master:
 		dns_c_printtabs(fp, indent + 1);
@@ -613,6 +614,12 @@ dns_c_zone_print(FILE *fp, int indent, dns_c_zone_t *zone)
 		break;
 	}
 
+	if (zone->database != NULL) {
+		fprintf(fp, "\n");
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "database \"%s\";\n", zone->database);
+	}
+	
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "};\n");
 }
@@ -3867,6 +3874,11 @@ zone_delete(dns_c_zone_t **zone)
 
 	isc_mem_free(z->mem, z->name);
 	isc_mem_free(z->mem, z->internalname);
+
+	if (z->database != NULL) {
+		isc_mem_free(z->mem, z->database);
+		z->database = NULL;
+	}
 	
 	switch(z->ztype) {
 	case dns_c_zone_master:
@@ -4122,5 +4134,62 @@ set_iplist_field(isc_mem_t *mem,
 	}
 
 	return (res);
+}
+
+
+isc_result_t
+dns_c_zone_setdatabase(dns_c_zone_t *zone, const char *database)
+{
+	isc_boolean_t existed = ISC_FALSE;
+
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(database != NULL);
+	REQUIRE(database[0] != '\0');
+
+	if (zone->database != NULL) {
+		existed = ISC_TRUE;
+		isc_mem_free(zone->mem, zone->database);
+	}
+	
+	zone->database = isc_mem_strdup(zone->mem, database);
+	if (zone->database == NULL) {
+		return (ISC_R_NOMEMORY);
+	} else if (existed) {
+		return (ISC_R_EXISTS);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+	
+
+isc_result_t
+dns_c_zone_getdatabase(dns_c_zone_t *zone, char **retval)
+{
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+	REQUIRE(retval != NULL);
+
+	*retval = zone->database;
+	if (zone->database == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		return (ISC_R_SUCCESS);
+	}
+}
+
+	
+
+isc_result_t
+dns_c_zone_unsetdatabase(dns_c_zone_t *zone)
+{
+	REQUIRE(DNS_C_ZONE_VALID(zone));
+
+	if (zone->database == NULL) {
+		return (ISC_R_NOTFOUND);
+	} else {
+		isc_mem_free(zone->mem, zone->database);
+		zone->database = NULL;
+		return (ISC_R_SUCCESS);
+	}
 }
 

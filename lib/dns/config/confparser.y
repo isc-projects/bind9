@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.71 2000/05/03 19:29:38 brister Exp $ */
+/* $Id: confparser.y,v 1.72 2000/05/06 10:18:46 brister Exp $ */
 
 #include <config.h>
 
@@ -250,6 +250,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_CONTROLS
 %token		L_CORESIZE
 %token		L_DATASIZE
+%token		L_DATABASE
 %token		L_DEALLOC_ON_EXIT
 %token		L_DEBUG
 %token		L_DEFAULT
@@ -396,7 +397,6 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %type <ipaddress>	query_source_v6
 %type <ipaddress>	ip_and_port_element
 %type <iplist>		in_addr_list
-%type <iplist>		notify_in_addr_list
 %type <iplist>		opt_in_addr_list
 %type <iplist>		opt_zone_forwarders_list
 %type <iplist>		port_ip_list
@@ -3925,7 +3925,7 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
 	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
-        L_DISABLED
+        L_DISABLED | L_DATABASE
 	;
 
 
@@ -4367,12 +4367,28 @@ zone_option: L_FILE L_QSTRING
 	{
 		disabled = ISC_TRUE;
 	}
+	| L_DATABASE L_QSTRING
+	{
+		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
+
+		INSIST(zone != NULL);
+
+		tmpres = dns_c_zone_setdatabase(zone, $2);
+		isc_mem_free(memctx, $2);
+		
+		if (tmpres == ISC_R_EXISTS) {
+			parser_warning(ISC_FALSE,
+				       "redefining zone database.");
+		} else if (tmpres != ISC_R_SUCCESS) {
+			parser_error(ISC_FALSE,
+				     "failed to set zone database.");
+			YYABORT;
+		}
+
+	}
 	| zone_update_policy
 	;
 
-
-notify_in_addr_list: opt_in_addr_list
-	;
 
 ip4_address: L_IP4ADDR
 	{
@@ -4612,6 +4628,7 @@ static struct token keyword_tokens [] = {
 	{ "cleaning-interval",		L_CLEAN_INTERVAL },
 	{ "controls",			L_CONTROLS },
 	{ "coresize",			L_CORESIZE },
+	{ "database",			L_DATABASE },
 	{ "datasize",			L_DATASIZE },
 	{ "deallocate-on-exit",		L_DEALLOC_ON_EXIT },
 	{ "debug",			L_DEBUG },
