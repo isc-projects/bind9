@@ -1,7 +1,7 @@
 1380.	[func]		'rndc recursing' dump recursing queries to
 			'recursing-file = "named.recursing";'.
 
-1379.	[func]		'rndc stats' now reports tcp and recursion quota
+1379.	[func]		'rndc status' now reports tcp and recursion quota
 			states.
 
 1378.	[func]		Improved positive feedback for 'rndc {reload|refresh}.
