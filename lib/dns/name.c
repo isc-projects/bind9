@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.105 2000/10/14 04:31:31 tale Exp $ */
+/* $Id: name.c,v 1.106 2000/10/14 04:38:22 tale Exp $ */
 
 #include <config.h>
 
@@ -2636,10 +2636,9 @@ dns_name_split(dns_name_t *name,
 	unsigned char *p, *src, *dst;
 
 	REQUIRE(VALID_NAME(name));
-	REQUIRE((nbits == 0 &&
-		 suffixlabels > 0 && suffixlabels < name->labels) ||
-		(nbits != 0 &&
-		 suffixlabels <= name->labels));
+	REQUIRE(suffixlabels > 0);
+	REQUIRE((nbits == 0 && suffixlabels < name->labels) ||
+		(nbits != 0 && suffixlabels <= name->labels));
 	REQUIRE(prefix != NULL || suffix != NULL);
 	REQUIRE(prefix == NULL ||
 		(VALID_NAME(prefix) &&
@@ -2710,7 +2709,8 @@ dns_name_split(dns_name_t *name,
 				*p = *p - nbits;
 
 			/*
-			 * Really one less than the bytes for the bits.
+			 * Calculate the number of bytes necessary to hold
+			 * all of the bits left in the prefix.
 			 */
 			bitbytes = (*p - 1) / 8 + 1;
 
@@ -2870,7 +2870,7 @@ dns_name_split(dns_name_t *name,
 			 * bitstring has its pad bytes (if any) masked
 			 * to zero.
 			 */
-			if (mod)
+			if (mod != 0)
 				suffix->ndata[bitbytes + 1] &=
 					0xFF << (8 - mod);
 
