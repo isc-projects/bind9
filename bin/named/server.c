@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.402 2003/09/19 05:53:26 marka Exp $ */
+/* $Id: server.c,v 1.403 2003/09/19 12:39:47 marka Exp $ */
 
 #include <config.h>
 
@@ -1002,6 +1002,35 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
         } else
 		view->preferred_glue = 0;
 
+	obj = NULL;
+	result = ns_config_get(maps, "root-delegation-only", &obj);
+	if (result == ISC_R_SUCCESS) {
+		dns_view_setrootdelonly(view, ISC_TRUE);
+		if (!cfg_obj_isvoid(obj)) {
+			dns_fixedname_t fixed;
+			dns_name_t *name;
+			isc_buffer_t b;
+			char *str;
+			cfg_obj_t *exclude;
+
+			dns_fixedname_init(&fixed);
+			name = dns_fixedname_name(&fixed);
+			for (element = cfg_list_first(obj);
+			     element != NULL;
+			     element = cfg_list_next(element)) {
+				exclude = cfg_listelt_value(element);
+				str = cfg_obj_asstring(exclude);
+				isc_buffer_init(&b, str, strlen(str));
+				isc_buffer_add(&b, strlen(str));
+				CHECK(dns_name_fromtext(name, &b, dns_rootname,
+							ISC_FALSE, NULL));
+				CHECK(dns_view_excludedelegationonly(view,
+								     name));
+			}
+		}
+	} else
+		dns_view_setrootdelonly(view, ISC_FALSE);
+			
 	result = ISC_R_SUCCESS;
 
  cleanup:
