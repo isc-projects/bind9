@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.3 2001/04/10 21:50:41 bwelling Exp $ */
+/* $Id: controlconf.c,v 1.4 2001/05/07 21:01:45 gson Exp $ */
 
 #include <config.h>
 
@@ -374,7 +374,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 
 	if (request != NULL)
 		isccc_sexpr_free(&request);
-	if (request != NULL)
+	if (response != NULL)
 		isccc_sexpr_free(&response);
 	return;
 
@@ -386,7 +386,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	maybe_free_listener(listener);
 	if (request != NULL)
 		isccc_sexpr_free(&request);
-	if (request != NULL)
+	if (response != NULL)
 		isccc_sexpr_free(&response);
 }
 
