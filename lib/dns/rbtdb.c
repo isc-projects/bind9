@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.188 2003/09/30 05:56:12 marka Exp $ */
+/* $Id: rbtdb.c,v 1.189 2003/10/08 00:24:28 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -190,6 +190,7 @@ typedef struct {
 	rbtdb_nodelock_t *	       	node_locks;
 	dns_rbtnode_t *			origin_node;
 	/* Locked by lock. */
+	unsigned int			active;
 	isc_refcount_t			references;
 	unsigned int			attributes;
 	rbtdb_serial_t			current_serial;
@@ -392,9 +393,10 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 }
 
 static inline void
-maybe_free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t set_exiting) {
+maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 	isc_boolean_t want_free = ISC_TRUE;
 	unsigned int i;
+	unsigned int inactive = 0;
 
 	/* XXX check for open versions here */
 
@@ -404,15 +406,21 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t set_exiting) {
 	 */
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
 		LOCK(&rbtdb->node_locks[i].lock);
-		if (set_exiting)
-			rbtdb->node_locks[i].exiting = ISC_TRUE;
-		if (rbtdb->node_locks[i].references != 0)
-			want_free = ISC_FALSE;
+		rbtdb->node_locks[i].exiting = ISC_TRUE;
+		if (rbtdb->node_locks[i].references == 0)
+			inactive++;
 		UNLOCK(&rbtdb->node_locks[i].lock);
 	}
 
-	if (want_free)
-		free_rbtdb(rbtdb);
+	if (inactive != 0) {
+		LOCK(&rbtdb->lock);
+		rbtdb->active -= inactive;
+		if (rbtdb->active == 0)
+			want_free = ISC_TRUE;
+		UNLOCK(&rbtdb->lock);
+		if (want_free)
+			free_rbtdb(rbtdb);
+	}
 }
 
 static void
@@ -425,7 +433,7 @@ detach(dns_db_t **dbp) {
 	isc_refcount_decrement(&rbtdb->references, &refs);
 
 	if (refs == 0)
-		maybe_free_rbtdb(rbtdb, ISC_TRUE);
+		maybe_free_rbtdb(rbtdb);
 
 	*dbp = NULL;
 }
@@ -3078,7 +3086,8 @@ static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *node;
-	isc_boolean_t maybe_free = ISC_FALSE;
+	isc_boolean_t want_free = ISC_FALSE;
+	isc_boolean_t inactive = ISC_FALSE;
 	unsigned int locknum;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
@@ -3095,15 +3104,22 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 		no_references(rbtdb, node, 0, isc_rwlocktype_none);
 		if (rbtdb->node_locks[locknum].references == 0 &&
 		    rbtdb->node_locks[locknum].exiting)
-			maybe_free = ISC_TRUE;
+			inactive = ISC_TRUE;
 	}
 
 	UNLOCK(&rbtdb->node_locks[locknum].lock);
 
 	*targetp = NULL;
 
-	if (maybe_free)
-		maybe_free_rbtdb(rbtdb, ISC_FALSE);
+	if (inactive) {
+		LOCK(&rbtdb->lock);
+		rbtdb->active--;
+		if (rbtdb->active == 0)
+			want_free = ISC_TRUE;
+		UNLOCK(&rbtdb->lock);
+		if (want_free)
+			free_rbtdb(rbtdb);
+	}
 }
 
 static isc_result_t
@@ -4538,6 +4554,7 @@ dns_rbtdb_create
 		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
 					sizeof(rbtdb_nodelock_t));
+	rbtdb->active = rbtdb->node_lock_count;
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		result = isc_mutex_init(&rbtdb->node_locks[i].lock);
 		if (result != ISC_R_SUCCESS) {

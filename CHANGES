@@ -1,3 +1,5 @@
+1523.	[bug]		Fix race condition in rbtdb. [RT# 9189]
+
 1522.	[bug]		dns_db_findnode() relax the requirements on 'name'.
 			[RT# 9286]
 
