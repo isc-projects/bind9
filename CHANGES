@@ -1,5 +1,7 @@
 
- 330.   [func]          New function isc_log_wouldlog(). 
+ 330.   [bug]		Many debugging messages were partially formatted
+			even when debugging was turned off, causing a
+			significant decrease in query performance.
 
  402.	[bug]		Treat undefined acls as errors, rather than
 			warning and then later throwing an assertion.
