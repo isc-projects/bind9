@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.43 2000/09/05 03:30:19 marka Exp $ */
+/* $Id: mem.h,v 1.44 2000/09/05 22:20:36 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -95,6 +95,31 @@ extern unsigned int isc_mem_debugging;
 #define isc_mem_allocate(c, s)	isc__mem_allocate((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p)	isc__mem_strdup((c), (p) _ISC_MEM_FILELINE)
 #define isc_mempool_get(c)	isc__mempool_get((c) _ISC_MEM_FILELINE)
+
+/*
+ * isc_mem_putanddetach() is a convienence function for use where you
+ * have a structure with an attached memory context.
+ *
+ * Given:
+ *
+ * struct {
+ *	...
+ *	isc_mem_t *mctx;
+ *	...
+ * } *ptr;
+ *
+ * isc_mem_t *mctx;
+ *
+ * isc_mem_putanddetach(&ptr->mctx, ptr, sizeof(*ptr));
+ *
+ * is the equivalent of:
+ *
+ * mctx = NULL;
+ * isc_mem_attach(ptr->mctx, &mctx);
+ * isc_mem_detach(&ptr->mctx);
+ * isc_mem_put(mctx, ptr, sizeof(*ptr));
+ * isc_mem_detach(&mctx);
+ */
 
 #ifdef ISC_MEM_DEBUG
 #define isc_mem_put(c, p, s) \
