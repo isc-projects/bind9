@@ -105,14 +105,12 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	dns_c_iplist_t *iplist = NULL;
 	isc_sockaddr_t sockaddr;
 	isc_int32_t maxxfr;
-	struct in_addr in4addr_any;
 	isc_sockaddr_t sockaddr_any4, sockaddr_any6;
 	dns_ssutable_t *ssutable;
 
-	in4addr_any.s_addr = htonl(INADDR_ANY);
-	isc_sockaddr_fromin(&sockaddr_any4, &in4addr_any, 0);
-	isc_sockaddr_fromin6(&sockaddr_any6, &in6addr_any, 0);
-
+	isc_sockaddr_any(&sockaddr_any4);	
+	isc_sockaddr_any6(&sockaddr_any6);
+	
 	dns_zone_setclass(zone, czone->zclass);
 
 	/* XXX needs to be an zone option */

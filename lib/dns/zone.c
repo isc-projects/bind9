@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.125 2000/05/24 17:30:38 bwelling Exp $ */
+/* $Id: zone.c,v 1.126 2000/05/25 05:13:19 gson Exp $ */
 
 #include <config.h>
 
@@ -277,16 +277,9 @@ isc_result_t
 dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_result_t result;
 	dns_zone_t *zone;
-	isc_sockaddr_t sockaddr_any4;
-	isc_sockaddr_t sockaddr_any6;
-	struct in_addr in4addr_any;
 	
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(mctx != NULL);
-
-	in4addr_any.s_addr = htonl(INADDR_ANY);
-	isc_sockaddr_fromin(&sockaddr_any4, &in4addr_any, 0);
-	isc_sockaddr_fromin6(&sockaddr_any6, &in6addr_any, 0);
 
 	zone = isc_mem_get(mctx, sizeof *zone);
 	if (zone == NULL)
@@ -344,8 +337,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->idlein = DNS_DEFAULT_IDLEIN;
 	zone->idleout = DNS_DEFAULT_IDLEOUT;
 	ISC_LIST_INIT(zone->notifies);
-	zone->xfrsource4 = sockaddr_any4;
-	zone->xfrsource6 = sockaddr_any6;
+	isc_sockaddr_any(&zone->xfrsource4);
+	isc_sockaddr_any6(&zone->xfrsource6);
 	zone->xfr = NULL;
 	zone->maxxfrin = MAX_XFER_TIME;
 	zone->maxxfrout = MAX_XFER_TIME;
