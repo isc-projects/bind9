@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.73 2000/11/27 19:42:25 gson Exp $ */
+/* $Id: zoneconf.c,v 1.74 2000/11/28 19:15:12 gson Exp $ */
 
 #include <config.h>
 
@@ -313,47 +313,23 @@ ns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 			dns_c_iplist_detach(&iplist);
 			if (result != ISC_R_SUCCESS)
 				return (result);
-
 		} else
 			RETERR(dns_zone_setalsonotify(zone, NULL, 0));
 
-		/* All zone options, then all view, then all options. */
 		result = dns_c_zone_getnotifysource(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_zone_gettransfersource(czone, &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getnotifysource(cview, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersource(cview, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getquerysource(cview, &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getnotifysource(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_gettransfersource(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getquerysource(cctx, &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			sockaddr = sockaddr_any4;
 		dns_zone_setnotifysrc4(zone, &sockaddr);
 
 		result = dns_c_zone_getnotifysourcev6(czone, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_zone_gettransfersourcev6(czone,
-							       &sockaddr);
 		if (result != ISC_R_SUCCESS && cview != NULL)
 			result = dns_c_view_getnotifysourcev6(cview, &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_gettransfersourcev6(cview,
-							       &sockaddr);
-		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getquerysourcev6(cview, &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			result = dns_c_ctx_getnotifysourcev6(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_gettransfersourcev6(cctx, &sockaddr);
-		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getquerysourcev6(cctx, &sockaddr);
 		if (result != ISC_R_SUCCESS)
 			sockaddr = sockaddr_any6;
 		dns_zone_setnotifysrc6(zone, &sockaddr);
