@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.1 2000/07/06 01:28:07 gson Exp $
+# $Id: tests.sh,v 1.2 2000/07/08 16:29:03 tale Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -37,6 +37,10 @@ $PERL ../digcomp.pl xx.good dig.out || status=1
 echo "I:testing that we find glue A/AAAA/A6 RRs in the cache"
 $DIG +norec @10.53.0.1 -p 5300 foo.bar.yy. a >dig.out || status=1
 $PERL ../digcomp.pl yy.good dig.out || status=1
+
+echo "I:testing that we don't find out-of-zone glue"
+$DIG +norec @10.53.0.1 -p 5300 example.net. a > dig.out || status=1
+$PERL ../digcomp.pl noglue.good dig.out || status=1
 
 echo "I:exit status: $status"
 exit $status

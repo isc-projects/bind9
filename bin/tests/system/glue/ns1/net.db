@@ -13,7 +13,7 @@
 ; ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 ; SOFTWARE.
 
-; $Id: net.db,v 1.1 2000/07/06 01:28:07 gson Exp $
+; $Id: net.db,v 1.2 2000/07/08 16:29:05 tale Exp $
 
 $ORIGIN net.
 $TTL 300
@@ -25,10 +25,16 @@ $TTL 300
 				600       	; minimum
 				)
 @			NS	a.root-servers.nil.
-a.root-servers.nil.	A	10.53.0.1
 
-; FI. authoritative servers, for the FI. glue test
+; FI. authoritative servers, for the FI. glue test.
 uu.net.			NS	ns.uu.net.
 NS.UU.NET.		172800	IN	A	137.39.1.3
 eu.net.			NS	ns.eu.net.
 NS.EU.NET.		172800	IN	A	192.16.202.11
+
+; Referral outside of server authority, but with glue records present.
+; Don't hand out the glue.
+example.net.			NS	ns1.example.
+example.net.			NS	ns2.example.
+ns1.example.		172800	IN	A	1.1.1.1
+ns2.example.		172800	IN	A	2.2.2.2
