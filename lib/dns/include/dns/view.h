@@ -48,6 +48,7 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/event.h>
+#include <isc/mutex.h>
 
 #include <dns/types.h>
 #include <dns/result.h>
