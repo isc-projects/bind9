@@ -101,6 +101,20 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->private5 = NULL;
 }
 
+isc_boolean_t
+dns_rdataset_isassociated(dns_rdataset_t *rdataset) {
+	/*
+	 * Is 'rdataset' associated?
+	 */
+	
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
+
+	if (rdataset->methods != NULL)
+		return (ISC_TRUE);
+
+	return (ISC_FALSE);
+}
+
 static void
 question_disassociate(dns_rdataset_t *rdataset) {
 	(void)rdataset;

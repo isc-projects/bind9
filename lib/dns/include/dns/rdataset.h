@@ -153,6 +153,19 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset);
  *	'rdataset' is a valid, disassociated rdataset.
  */
 
+isc_boolean_t
+dns_rdataset_isassociated(dns_rdataset_t *rdataset);
+/*
+ * Is 'rdataset' associated?
+ *
+ * Requires:
+ *	'rdataset' is a valid rdataset.
+ *
+ * Returns:
+ *	ISC_TRUE			'rdataset' is associated.
+ *	ISC_FALSE			'rdataset' is not associated.
+ */
+
 void
 dns_rdataset_makequestion(dns_rdataset_t *rdataset, dns_rdataclass_t rdclass,
 			  dns_rdatatype_t type);
