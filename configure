@@ -4843,6 +4843,7 @@ trap 'rm -fr `echo "make/rules
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
 	bin/Makefile
+	bin/check/Makefile
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/rndc/Makefile
@@ -5090,6 +5091,7 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
 	bin/Makefile
+	bin/check/Makefile
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/rndc/Makefile

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.277 2000/12/13 01:42:23 tale Exp $ */
+/* $Id: zone.c,v 1.278 2000/12/13 06:21:42 marka Exp $ */
 
 #include <config.h>
 
@@ -1163,10 +1163,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			zone_log(zone, me, ISC_LOG_ERROR,
 				 "has %d SOA records", soacount);
 			result = DNS_R_BADZONE;
-			goto cleanup;
 		}
-		if (nscount == 0)
+		if (nscount == 0) {
 			zone_log(zone, me, ISC_LOG_ERROR, "no NS records");
+			result = DNS_R_BADZONE;
+		}
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 		if (zone->db != NULL) {
 			if (!isc_serial_ge(serial, zone->serial)) {
 				zone_log(zone, me, ISC_LOG_ERROR,
@@ -1229,7 +1232,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	result = ISC_R_SUCCESS;
 	if (needdump)
 		zone_needdump(zone, DNS_DUMP_DELAY);
-	zone_settimer(zone, now);
+	if (zone->task != NULL)
+		zone_settimer(zone, now);
 	return (result);
 
  cleanup:
