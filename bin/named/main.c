@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.126 2001/11/20 01:14:57 gson Exp $ */
+/* $Id: main.c,v 1.127 2002/03/13 23:36:14 bwelling Exp $ */
 
 #include <config.h>
 
@@ -427,8 +427,6 @@ parse_command_line(int argc, char *argv[]) {
 		usage();
 		ns_main_earlyfatal("extra command line arguments");
 	}
-
-	
 }
 
 static isc_result_t
