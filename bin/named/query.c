@@ -2472,8 +2472,22 @@ query_find(ns_client_t *client, dns_fetchevent_t *event) {
 
 	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client))
 		ns_client_error(client, eresult);
-	else if (!RECURSING(client))
+	else if (!RECURSING(client)) {
+		/*
+		 * We are done.  Make a final tweak to the AA bit if the
+		 * auth-nxdomain config option says so, then send the
+		 * response.
+		 */
+		if (client->message->rcode == dns_rcode_nxdomain) {
+			/* Note: default was "true" in BIND 8. */
+			isc_boolean_t auth_nxdomain = ISC_FALSE; 
+			(void) dns_c_ctx_getauth_nx_domain(ns_g_confctx,
+							   &auth_nxdomain);
+			if (auth_nxdomain == ISC_TRUE)
+				client->message->flags |= DNS_MESSAGEFLAG_AA;
+		}
 		ns_client_send(client);
+	}
 }
 
 /*
