@@ -32,6 +32,8 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dst/dst.h>
+
 #include <omapi/omapi.h>
 #include <omapi/result.h>
 
@@ -236,6 +238,17 @@ struct omapi_protocol {
 	omapi_message_t *		message;	/* Incoming message. */
 	omapi_string_t *		name;		/* Incoming name. */
 	omapi_data_t *			value;		/* Incoming value. */
+	/*
+	 * Authentication information.
+	 */
+	char *				authname;
+	unsigned int			algorithm;
+	isc_boolean_t			dst_update;
+	dst_key_t			*key;
+	dst_context_t			dstctx;
+	isc_region_t			signature_in;
+	isc_buffer_t			*signature_out;
+	isc_result_t			verify_result;
 };
 
 /*****
@@ -275,6 +288,17 @@ extern isc_socketmgr_t *omapi_socketmgr;
 
 #define PASS_CHECK(object, function) \
 	(object->inner != NULL && object->inner->type->function != NULL)
+
+
+
+/*
+ * Private library functions defined in auth.c.
+ */
+void
+auth_destroy(void);
+
+isc_result_t
+auth_makekey(const char *name, unsigned int algorithm, dst_key_t **key);
 
 /*
  * Private library functions defined in connection.c.
