@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.314 $)
+AC_REVISION($Revision: 1.315 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -345,6 +345,7 @@ case "$use_openssl" in
 #include <openssl/err.h>
 int main() {
 	ERR_clear_error();
+	return (0);
 }
 ],
 	        [AC_MSG_RESULT(yes)],
