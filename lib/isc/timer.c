@@ -29,9 +29,9 @@
 #ifdef ISC_TIMER_TRACE
 #define XTRACE(s)			printf("%s\n", (s))
 #define XTRACEID(s, t)			printf("%s %p\n", (s), (t))
-#define XTRACETIME(s, d)		printf("%s %lu.%09lu\n", (s), \
+#define XTRACETIME(s, d)		printf("%s %u.%09u\n", (s), \
 					       (d).seconds, (d).nanoseconds)
-#define XTRACETIMER(s, t, d)		printf("%s %p %lu.%09lu\n", (s), (t), \
+#define XTRACETIMER(s, t, d)		printf("%s %p %u.%09u\n", (s), (t), \
 					       (d).seconds, (d).nanoseconds)
 #else
 #define XTRACE(s)
