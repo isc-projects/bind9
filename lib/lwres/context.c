@@ -34,9 +34,23 @@
 #include "context_p.h"
 #include "assert_p.h"
 
-static void *lwres_malloc(void *, size_t);
-static void lwres_free(void *, void *, size_t);
-static lwres_result_t context_connect(lwres_context_t *);
+/*
+ * Some systems define the socket length argument as an int, some as size_t,
+ * some as socklen_t.  The last is what the current POSIX standard mandates.
+ * This definition is here so it can be portable but easily changed if needed.
+ */
+#ifndef LWRES_SOCKADDR_LEN_T
+#define LWRES_SOCKADDR_LEN_T unsigned int
+#endif
+
+static void *
+lwres_malloc(void *, size_t);
+
+static void
+lwres_free(void *, void *, size_t);
+
+static lwres_result_t
+context_connect(lwres_context_t *);
 
 lwres_result_t
 lwres_context_create(lwres_context_t **contextp, void *arg,
@@ -189,7 +203,7 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 	int ret2;
 	int flags;
 	struct sockaddr_in sin;
-	unsigned int fromlen;
+	LWRES_SOCKADDR_LEN_T fromlen;
 	fd_set readfds;
 	struct timeval timeout;
 
@@ -238,12 +252,13 @@ lwres_context_sendrecv(lwres_context_t *ctx,
 
 	fromlen = sizeof(sin);
 	/*
-	 * Compilers that use an older prototype for recvfrom() will
-	 * warn about the type of the sixth parameter, fromlen.  It
-	 * is now standardized as unsigned, specifically as socklen_t.
+	 * The address of fromlen is cast to void * to shut up compiler
+	 * warnings, namely on systems that have the sixth parameter
+	 * prototyped as a signed int when LWRES_SOCKADDR_LEN_T is
+	 * defined as unsigned.
 	 */
 	ret = recvfrom(ctx->sock, recvbase, recvlen, 0,
-		       (struct sockaddr *)&sin, &fromlen);
+		       (struct sockaddr *)&sin, (void *)&fromlen);
 
 	if (ret < 0)
 		return (LWRES_R_IOERROR);
