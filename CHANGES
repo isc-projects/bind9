@@ -1,3 +1,5 @@
+ 487.	[port]		flockfile() is not defined on all systems.
+
  486.	[bug]		nslookup: "set all" and "server" commands showed
 			the incorrect port number if a port other than 53
 			was specified. [RT #352]

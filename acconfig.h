@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acconfig.h,v 1.28 2000/09/15 20:50:31 bwelling Exp $ */
+/* $Id: acconfig.h,v 1.29 2000/09/22 18:52:32 bwelling Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
@@ -74,6 +74,9 @@
 
 /* define if IPv6 is not disabled */
 #undef WANT_IPV6
+
+/* define if flockfile() is available */
+#undef HAVE_FLOCKFILE
 
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
 #undef SHUTUP_SPUTAUX

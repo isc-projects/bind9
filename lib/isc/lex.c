@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.37 2000/08/30 01:28:10 bwelling Exp $ */
+/* $Id: lex.c,v 1.38 2000/09/22 18:52:39 bwelling Exp $ */
 
 #include <config.h>
 
@@ -228,8 +228,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-#if 0
-	/* XXX Anyone know why these are necessary? */
+#ifdef HAVE_FLOCKFILE
 	flockfile(stream);
 #endif
 
@@ -246,7 +245,7 @@ isc_lex_openstream(isc_lex_t *lex, FILE *stream) {
 
 	REQUIRE(VALID_LEX(lex));
 
-#if 0
+#ifdef HAVE_FLOCKFILE
 	flockfile(stream);
 #endif
 	/* This is safe. */
@@ -287,7 +286,7 @@ isc_lex_close(isc_lex_t *lex) {
 
 	UNLINK(lex->sources, source, link);
 	if (source->is_file) {
-#if 0
+#ifdef HAVE_FLOCKFILE
 		funlockfile((FILE *)(source->input));
 #endif
 		if (source->need_close)
@@ -389,7 +388,11 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 		} else if (source->is_file) {
 			stream = source->input;
 
+#ifdef HAVE_FLOCKFILE
 			c = getc_unlocked(stream);
+#else
+			c = getc(stream);
+#endif
 			if (c == EOF) {
 				if (ferror(stream)) {
 					source->result = ISC_R_IOERROR;
