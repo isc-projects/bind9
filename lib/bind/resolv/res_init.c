@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.13 2003/06/03 04:39:34 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.14 2003/07/02 04:00:40 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -661,6 +661,7 @@ res_setservers(res_state statp, const union res_sockaddr_union *set, int cnt) {
 			nserv++;
 			break;
 
+#ifdef HAS_INET6_STRUCTS
 		case AF_INET6:
 			size = sizeof(set->sin6);
 			if (statp->_u._ext.ext)
@@ -673,6 +674,7 @@ res_setservers(res_state statp, const union res_sockaddr_union *set, int cnt) {
 				statp->nsaddr_list[nserv].sin_family = 0;
 			nserv++;
 			break;
+#endif
 
 		default:
 			break;
@@ -707,6 +709,7 @@ res_getservers(res_state statp, union res_sockaddr_union *set, int cnt) {
 				       size);
 			break;
 
+#ifdef HAS_INET6_STRUCTS
 		case AF_INET6:
 			size = sizeof(set->sin6);
 			if (statp->_u._ext.ext)
@@ -717,6 +720,7 @@ res_getservers(res_state statp, union res_sockaddr_union *set, int cnt) {
 				memcpy(&set->sin6, &statp->nsaddr_list[i],
 				       size);
 			break;
+#endif
 
 		default:
 			set->sin.sin_family = 0;
