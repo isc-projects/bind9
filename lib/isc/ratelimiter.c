@@ -243,7 +243,7 @@ ratelimiter_free(isc_ratelimiter_t *rl) {
 
 void
 isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target) {
-	REQUIE(souce != NULL);
+	REQUIRE(source != NULL);
 	REQUIRE(target != NULL && *target == NULL);
 
 	LOCK(&source->lock);
