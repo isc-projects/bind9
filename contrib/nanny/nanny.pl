@@ -33,7 +33,7 @@ for (;;) {
   
   $res = kill 0, $pid;
 
-  goto restart if ($res != 0);
+  goto restart if ($res == 0);
 
   $dig_command = "$dig_program +short . \@$nameserver_location > /dev/null";
   $return = system($dig_command);
