@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.15 2004/04/13 03:00:05 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.16 2004/04/15 06:49:09 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -1147,11 +1147,13 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			*hash = '\0';
 		} else
 			srcport = 0;
-		if (have_ipv6 && inet_pton(AF_INET6, value, &in6) == 1)
+		if (have_ipv6 && inet_pton(AF_INET6, value, &in6) == 1) {
 			isc_sockaddr_fromin6(&bind_address, &in6, srcport);
-		else if (have_ipv4 && inet_pton(AF_INET, value, &in4) == 1)
+			isc_net_disableipv4();
+		} else if (have_ipv4 && inet_pton(AF_INET, value, &in4) == 1) {
 			isc_sockaddr_fromin(&bind_address, &in4, srcport);
-		else {
+			isc_net_disableipv6();
+		} else {
 			if (hash != NULL)
 				*hash = '#';
 			fatal("invalid address %s", value);

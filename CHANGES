@@ -1,3 +1,6 @@
+1610.	[bug]		On dual stack machines "dig -b" failed to set the
+			address type to be looked up with "@server".
+			[RT #11069]
 
 	--- 9.3.0beta2 released ---
 
