@@ -5,10 +5,10 @@
 
 
 Network Working Group                                          D. Atkins
-draft-ietf-dnsext-dns-threats-00.txt                    IHTFP Consulting
+draft-ietf-dnsext-dns-threats-01.txt                    IHTFP Consulting
                                                               R. Austein
                                              InterNetShare, Incorporated
-                                                           November 2001
+                                                           February 2002
 
 
                Threat Analysis Of The Domain Name System
@@ -55,9 +55,9 @@ Abstract
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 1]
+Atkins & Austein         Expires 30 August 2002                 [Page 1]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
 1. Introduction
@@ -111,9 +111,9 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 2]
+Atkins & Austein         Expires 30 August 2002                 [Page 2]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    This note assumes that the reader is familiar with both the DNS and
@@ -167,9 +167,9 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 3]
+Atkins & Austein         Expires 30 August 2002                 [Page 3]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    be prohibitively high.  Even more important, however, is that the
@@ -223,9 +223,9 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 4]
+Atkins & Austein         Expires 30 August 2002                 [Page 4]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    most likely to be successful when the victim is in a known state,
@@ -279,9 +279,9 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 5]
+Atkins & Austein         Expires 30 August 2002                 [Page 5]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    - Attacker's response includes one or more RRs with DNS names in
@@ -335,9 +335,9 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 6]
+Atkins & Austein         Expires 30 August 2002                 [Page 6]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    furnished by the user's ISP and advertised to the client via DHCP or
@@ -391,14 +391,32 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 
 
-Atkins & Austein           Expires 20 May 2002                  [Page 7]
+Atkins & Austein         Expires 30 August 2002                 [Page 7]
 
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
 
 
    amplifiers, since DNS response packets tend to be significantly
    longer than DNS query packets.  Unsurprisingly, DNSSEC doesn't help
    here either.
+
+2.6.  Authenticated Denial of Domain Names
+
+   Much discussion has taken place over the question of authenticated
+   denial of domain names.  The particular question is whether there is
+   a requirement for authenticating the non-existence of a name.  The
+   issue is whether the resolver should be able to detect when an
+   attacker removes RRs from a response.
+
+   General paranoia aside, the existence of RR types whose absence
+   causes an action other than immediate failure (such as missing MX and
+   SRV RRs, which fail over to A RRs) constitutes a real threat.
+   Arguably, in some cases, even the immediate failure of a missing RR
+   might be considered a problem.  The question remains: how serious is
+   this threat?  Clearly the threat does exist; general paranoia says
+   that some day it'll be on the front page of the New York Times, even
+   if we cannot conceive of a plausible scenario involving this attack
+   today.  This implies that some mitigation of this risk is required.
 
 3.  Weaknesses of DNSSEC
 
@@ -426,6 +444,14 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
      topic for another document....)
 
    - Like DNS itself, DNSSEC's trust model is almost totally
+
+
+
+Atkins & Austein         Expires 30 August 2002                 [Page 8]
+
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
+
+
      hierarchical.  While DNSSEC does allow resolvers to have special
      additional knowledge of public keys beyond those for the root, in
      the general case the root key is the one that matters.  Thus any
@@ -439,18 +465,23 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
      come close to adequately specifying how the root key rolls over, or
      even how it's configured in the first place.
 
+   - DNSSEC creates a requirement of loose time synchronization between
+     the resolver and the host creating the DNSSEC signatures.  Prior to
+     DNSSEC, all time-related actions in DNS could be performed by a
+     machine that only knew about "elapsed" or "relative" time.  Because
+     the validity period of a DNSSEC signature is based on "absolute"
+     time, a resolver must have the same concept of absolute time in
+     order to determine whether the signature is within its validity
+     period or has expired.  An attacker that can change a resolver's
+     opinion of the current absolute time can fool the resolver using
+     expired signatures.  An attacker that can change the zone signer's
+     opinion of the current absolute time can fool the zone signer into
+     generating signatures whose validity period does not match what the
+     signer intended.
+
 4.  Other issues
 
    [Odds and ends that don't yet fit anywhere else, to be revised...]
-
-
-
-
-
-Atkins & Austein           Expires 20 May 2002                  [Page 8]
-
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
-
 
 4.1.  Interactions With Other Protocols
 
@@ -462,11 +493,55 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
 
 4.2.  Securing DNS Dynamic Update
 
-   This note does not (yet) discuss any of the issues involved in
-   securing DNS dynamic update, except via its occasional references to
-   TSIG.  Scaling properties of the key management problem here is a
-   particular concern that needs more study.  These topics should be
-   covered in a later version of this note.
+   DNS dynamic update opens a number of potential problems when combined
+   with DNSSEC.  Dynamic update of a non-secure zone can use TSIG to
+   authenticate the updating client to the server.  While TSIG does not
+   scale very well (it requires manual configuration of shared keys
+   between the DNS name server and each TSIG client), it works well in a
+   limited or closed environment such as a DHCP server updating a local
+   DNS name server.
+
+
+
+Atkins & Austein         Expires 30 August 2002                 [Page 9]
+
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
+
+
+   Major issues arise when trying to use dynamic update on a secure
+   zone.  TSIG can similarly be used in a limited fashion to
+   authenticate the client to the server, but TSIG only protects DNS
+   transactions, not the actual data, and the TSIG is not inserted into
+   the DNS zone, so resolvers cannot use the TSIG as a way of verifying
+   the changes to the zone.  This means that either:
+
+   a) The updating client must have access to a zone-signing key in
+       order to sign the update before sending it to the server, or
+
+   b) The DNS name server must have access to an online zone-signing key
+       in order to sign the update.
+
+   In either case, a zone-signing key must be available to create signed
+   RRsets to place in the updated zone.  The fact that this key must be
+   online (or at least available) is a potential security risk.
+
+   Dynamic update also requires an update to the SERIAL field of the
+   zone's SOA RR.  In theory, this could also be handled via either of
+   the above options, but in practice (a) would almost certainly be
+   extremely fragile, so (b) is the only workable mechanism.
+
+   There are other threats in terms of describing the policy of who can
+   make what changes to which RRsets in the zone.  The current access
+   control scheme in Secure Dynamic Update is fairly limited.  There is
+   no way to give find-grained access to updating DNS zone information
+   to multiple entities, each of whom may require different kinds of
+   access.  For example, Alice may need to be able to add new nodes to
+   the zone or change existing nodes, but not remove them; Bob may need
+   to be able to remove zones but not add them; Charlie may need to be
+   able to add, remove, or modify nodes, but only A records.
+
+   NOTE: Scaling properties of the key management problem here is a
+   particular concern that needs more study.
 
 5.  Conclusion
 
@@ -478,6 +553,16 @@ Security Considerations
    This entire document is about security considerations of the DNS.  We
    believe that deploying DNSSEC will help to address some, but not all,
    of the known threats to with DNS.
+
+
+
+
+
+
+Atkins & Austein         Expires 30 August 2002                [Page 10]
+
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
+
 
 IANA Considerations
 
@@ -500,13 +585,6 @@ References
 
    [Galvin93] Design team meeting summary message posted to dns-
         security@tis.com mailing list by Jim Galvin on 19 November 1993.
-
-
-
-Atkins & Austein           Expires 20 May 2002                  [Page 9]
-
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
-
 
    [Schuba93] Schuba, C., "Addressing Weaknesses in the Domain Name
         System Protocol", Master's thesis, Purdue University Department
@@ -533,6 +611,15 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
    [DNSSEC] Eastlake, D., "Domain Name System Security Extensions", RFC
         2535, March 1999.
 
+
+
+
+
+Atkins & Austein         Expires 30 August 2002                [Page 11]
+
+draft-ietf-dnsext-dns-threats-01.txt                       February 2002
+
+
    [EDNS0] Vixie, P., "Extension Mechanisms for DNS (EDNS0)", RFC 2671,
         August 1999.
 
@@ -552,18 +639,6 @@ draft-ietf-dnsext-dns-threats-00.txt                       November 2001
    [DNSSEC-ZONE-STATUS] Lewis, E., "DNS Security Extension Clarification
         on Zone Status" RFC 3090, March 2001.
 
-
-
-
-
-
-
-
-Atkins & Austein           Expires 20 May 2002                 [Page 10]
-
-draft-ietf-dnsext-dns-threats-00.txt                       November 2001
-
-
 Author's addresses:
 
       Derek Atkins
@@ -571,7 +646,7 @@ Author's addresses:
       6 Farragut Ave
       Somerville, MA  02144
       USA
-      Email: warlord@ihtfp.com
+      Email: derek@ihtfp.com
 
       Rob Austein
       InterNetShare, Incorporated
@@ -596,23 +671,4 @@ Author's addresses:
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Atkins & Austein           Expires 20 May 2002                 [Page 11]
+Atkins & Austein         Expires 30 August 2002                [Page 12]

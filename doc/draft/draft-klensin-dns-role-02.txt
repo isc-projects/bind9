@@ -1,10 +1,10 @@
 INTERNET-DRAFT                                John C. Klensin
-May 28, 2001
-Expires November 2001
+February 25, 2002
+Expires July 2002
 
 
                   Role of the Domain Name System
-                 draft-klensin-dns-role-01.txt
+                 draft-klensin-dns-role-02.txt
 
 Status of this Memo
 
@@ -47,11 +47,42 @@ framework are not a proposed solution, only a strong suggestion that
 the time has come to begin thinking more broadly about the problems
 we are encountering and possible approaches to solving them.
 
-A mailing list has been initiated for discussion of this draft,
-its successors, and closely-related issues at
-ietf-i18n-dns-directory@imc.org.   See
-http://www.imc.org/ietf-i18n-dns-directory/ for subscription
-and archival information.
+A mailing list has been initiated for discussion of this draft, its
+successors, and closely-related issues at ietf-irnss@lists.elistx.com.
+See http://lists.elistx.com/archives/ for subscription and archival
+information.
+
+Table of Contents
+
+0. Abstract
+1. History
+1.1  Context for DNS development
+1.2 Review of the DNS and its role as designed
+1.3 The web and user-visible domain names
+1.4 A pessimistic history of the evolution of Internet applications
+     protocols.
+2. Signs of DNS overloading
+3.  The search system story.
+3.1 Overview 
+3.2 Some details and comments.
+4.  Examining internationalization
+4.1. ASCII isn't just because of English
+4.2.  The "ASCII Encoding" approaches
+4.3.  "Nameprep" and its complexities
+4.4 The UCS Stability Problem
+4.5. Audiences, end users, and the UI problem
+4.6 Business cards and other natural uses of natural languages
+4.7 ASCII encodings and the Roman keyboard assumption
+4.8 A pessimistic summary of IDN WG directions
+5.  The Key Controversies
+5.1. One directory or many
+5.2 Why not a proposal?
+6.  Security Considerations
+7.  References
+7.1. Normative References
+7.2. Explanatory and Informative References
+8. Acknowledgements
+10. Culprit address
 
 
 1. History
@@ -74,13 +105,17 @@ themselves, invalidate the inferences and conclusions.
 
 1.1  Context for DNS development
 
-During the entire life of the ARPANET and nearly the first decade or
-so of operation of the Internet, the list of host names and their
-mapping to and from addresses was maintained in a frequently-updated
-"host table" [RFC625, 811, 952].  This table was just a list in an
-agreed-upon format; sites were expected to frequently obtain copies
-of, and install, new versions.  The host tables themselves were
-introduced to
+During the entire post-startup-period life of the ARPANET and nearly
+the first decade or so of operation of the Internet, the list of host
+names and their mapping to and from addresses was maintained in a
+frequently-updated "host table" [RFC625, 811, 952].  The names
+themselves were restricted to a subset of ASCII chosen to avoid
+ambiguities in printed form, to permit interoperation with systems
+using other character codings (notably EBCDIC), and to avoid the
+"national use" code positions of ISO 646 [IS646]. This table was
+just a list with a common format that was eventually agreed-upon;
+sites were expected to frequently obtain copies of, and install, new
+versions.  The host tables themselves were introduced to
 
   * Eliminate the requirement for people to remember host numbers
   (addresses).  Despite apparent experience to the contrary in the
@@ -98,34 +133,35 @@ introduced to
   addresses to reflect different types of connectivity and topology.
   Again, the names were very useful for avoiding the requirement that
   would otherwise exist for users and other hosts to track these
-  multiple host numbers and addresses. 
+  multiple host numbers and addresses and the topological
+  considerations for selecting one over others. 
 
 Toward the end of that long (in network time) period, the community
 concluded that the host table model did not scale adequately and that
 it would not adequately support new service variations.  A working
 group was created, and the DNS was the result of that effort.  The
 role of the DNS was to preserve the capabilities of the host table
-arrangements (especially unique, unambiguous, host names), provide
-for addition of additional services (e.g., the special record types
-for electronic mail routing which rather quickly followed
-introduction of the DNS), and to do so on the base of a robust,
-hierarchical, distributed, name lookup system.  That system also
-permitted distribution of name administration, rather than requiring
-that each host be entered into a single, central, table by a central
-administration.
+arrangements (especially unique, unambiguous, host names), provide for
+addition of additional services (e.g., the special record types for
+electronic mail routing which quickly followed introduction of the
+DNS), and to do so on the base of a robust, hierarchical, distributed,
+name lookup system.  That system also permitted distribution of name
+administration, rather than requiring that each host be entered into a
+single, central, table by a central administration.
 
-1.2 Review of the DNS
+1.2 Review of the DNS and its role as designed
 
 The DNS was designed primarily to identify network resources.
 Although there was speculation about including, e.g., personal names
-and email addresses, it was not designed primarily to identify
-people, brands, etc.  At the same time, the system was designed with
-the flexibility to accomodate new data types and structures through
-the addition of new record types to the initial "INternet" class.
-Since the appropriate identifiers and content of those future
-extensions could not be anticipated, the design provided that these
-fields could contain any (binary) information, not just the
-restricted text forms of the host table.
+and email addresses, it was not designed primarily to identify people,
+brands, etc.  At the same time, the system was designed with the
+flexibility to accomodate new data types and structures, both through
+the addition of new record types to the initial "INternet" class, and,
+potentially, through the introduction of new classes.  Since the
+appropriate identifiers and content of those future extensions could
+not be anticipated, the design provided that these fields could
+contain any (binary) information, not just the` restricted text forms
+of the host table.
 
 However, the DNS as-used is intimately tied to the applications and
 application protocols that utilize it, often at a fairly low level.
@@ -143,7 +179,7 @@ eliminated as being confusing (in the underscore's case, with the
 hyphen character) when written or read by people, and so on.  These
 considerations appear to be very similar to those that resulted in
 similarly restricted character sets being used as protocol elements
-in many ITU and ISO protocols (cf. X.9, X.29).
+in many ITU and ISO protocols (cf. [X29]).
 
 Another assumption was that there would be a high ratio of physical
 hosts to second level domains and, more generally, that the system
@@ -173,8 +209,10 @@ reference to a host.
 
 Both the DNS architecture itself and the two-level provisions for
 email and similar functions (e.g., see the finger protocol), also
-anticipated a relatively high ratio of users to actual hosts.  It was
-never clear that the DNS was intended to, or could, scale to the
+anticipated a relatively high ratio of users to actual hosts.  Despite
+the observation in RFC 1034 that the DNS was expected to grow to be
+proportional to the number of users (section 2.3), it has never been
+clear that the DNS was seriously designed for, or could, scale to the
 order of magnitude of number of users (or, more recently, products or
 document objects), rather than that of physical hosts.
 
@@ -328,9 +366,11 @@ When the space is flattened, without differentiators by either
 geography or industry sector, not only are there likely conflicts
 between "Joe's Pizza" (of Boston) and "Joe's Pizza" (of San
 Francisco) but between both and "Joe's Auto Repair" (of Los Angeles):
-all three would like to control "Joes.com" and may claim trademark
-rights to do so, even though conflict or confusion would not occcur
-with traditional trademark principles.
+all three would like to control "Joes.com" (and would prefer, if it
+were permitted by DNS naming rules, to spell it as "Joe's.com" and
+have both resolve the same way) and may claim trademark rights to do
+so, even though conflict or confusion would not occcur with
+traditional trademark principles.
 
 o Many organizations wish to have different web sites under the same
 URL and domain name.  Sometimes this is to create local variations
@@ -342,23 +382,28 @@ provide information about multiple sites that can provide information
 associated with the same name and sufficient attributes associated
 with each of those sites to permit applications to make sensible
 choices, or should accept client-site attributes and utilize them in
-the search process.  
+the search process.    Or, it should be able to return different
+answers based on the location or identity of the requestor.  While
+there are some tricks that can provide partial simulations of this
+type of function, DNS responses cannot be reliably conditioned in
+this way. 
 
 o Many existing and proposed systems for "finding things on the
 Internet" require a true search capability in which near matches can
-be reported to the user and queries may be slightly ambiguous or
-fuzzy.  The DNS can accomodate only one set of (quite rigid) matching
-rules.  Current proposals to permit different rules in different
-localities help to identify the problem, but, if applied directly to
-the DNS, either don't provide the level of flexibility that would be
-desirable or tend to isolate different parts of the Internet from
-each other (or both).  Fuzzy or ambiguous searches are desirable for
-(at least) resolution of business names that might have spelling
-variations and for names that can be resolved into different sets of
-glyphs depending on context.  This goes beyond "mere"
-canonicalization differences (different ways of representing the same
-character or ordering the same string) and into such relationships as
-the use of different alphabets for the same language, Kanji-Hiragana
+be reported to the user, or to some user agent with an apppropriate
+rule-set, and queries may be slightly ambiguous or fuzzy.  The DNS
+can accomodate only one set of (quite rigid) matching rules.  Current
+proposals to permit different rules in different localities help to
+identify the problem, but, if applied directly to the DNS, either
+don't provide the level of flexibility that would be desirable or
+tend to isolate different parts of the Internet from each other (or
+both).  Fuzzy or ambiguous searches are desirable for (at least)
+resolution of business names that might have spelling variations and
+for names that can be resolved into different sets of glyphs
+depending on context.  This goes beyond "mere" canonicalization
+differences (different ways of representing the same character or
+ordering the same string) and into such relationships as the use of
+different alphabets for the same language, Kanji-Hiragana
 relationships, Simplified and Traditional Chinese, etc.
 
 o The historical DNS and applications that make assumptions about how
@@ -399,24 +444,25 @@ many of these areas already, and some have been deployed into the
 marketplace with some success.
 
 Several of the above problems are addressed well by a good directory
-system (supported by the LDAP protocol or otherwise) or searching
+system (supported by the LDAP protocol or some protocol more
+precisely suited to these specific applications) or searching
 environment (such as common web search engines) although not by the
 DNS.  Given the difficulty of deploying new applications discussed
-above, an important question is whether the kludges are bad enough,
-or will scale up to bad enough, that new solutions are needed and can
-be deployed.
+above, an important question is whether the tricks and kludges are
+bad enough, or will scale up to bad enough, that new solutions are
+needed and can be deployed.
 
 
 
-3.  The directory story.
+3.  The search system story.
 
 3.1 Overview 
 
 The constraints of the DNS argue for introducing an intermediate
-protocol mechanism, referred to here as a "directory layer".  The
+protocol mechanism, referred to here as a "search layer".  The
 terms "directory" and "directory system" are used interchangably with
 "searchable system" in this document although the latter is far more
-precise.  Directory layer proposals would use a two (or more) -stage
+precise.  Search layer proposals would use a two (or more) -stage
 lookup, not unlike several of the proposals for internationalized
 names in the DNS (see section 4), but all operations but the final
 one would involving searching other systems, rather than looking up
@@ -485,19 +531,19 @@ system.
 
 3.2 Some details and comments.
 
-As several proposals have noted, almost any internationalization
-(i18n) proposal for names that are in, or map into, the DNS will
-require changing DNS resolver API calls ("gethostbyname" or
-equivalent or adding some pre-resolution preparation mechanism) in
-almost all Internet applications -- whether to cause the API to take
-a different character set, to accept or return more arguments with
-qualifying or identifying information, or otherwise.  Once
-applications must be opened to make such changes, it is a relatively
-small matter to switch from calling into the DNS to calling a
-directory service and then the DNS (in many situations, both actions
-could be accomplished in a single API call).
+Almost any internationalization (i18n) proposal for names that are
+in, or map into, the DNS will require changing DNS resolver API calls
+("gethostbyname" or equivalent or adding some pre-resolution
+preparation mechanism) in almost all Internet applications -- whether
+to cause the API to take a different character set (no matter how it
+is then mapped into the bits used in the DNS or another system), to
+accept or return more arguments with qualifying or identifying
+information, or otherwise.  Once applications must be opened to make
+such changes, it is a relatively small matter to switch from calling
+into the DNS to calling a directory service and then the DNS (in many
+situations, both actions could be accomplished in a single API call).
 
-A directory approach can be consistent both with "flat" stories and
+A directory approach can be consistent both with "flat" models and
 multi-attribute ones.  The DNS requires strict hierarchies, limiting
 its ability to handle differentiation among names by their
 properties.  By contrast, modern directories can utilize
@@ -509,6 +555,13 @@ a need for mechanisms for registration, delegation, etc.).  But it is
 not a strict requirement, especially if in-depth case analysis and
 design work leads to the conclusion that reverse-mapping to directory
 names is not a requirement (see section 4).
+
+Conversely, there is a case to be made for, e.g., faceted systems in
+which most of the facets use restricted vocabularies.  Such systems
+could be designed to avoid the need for procedures to ensure
+uniqueness across, or even within, providers and databases of the
+faceted entities being searched for.  (Cf. [DNS-Search] for further
+discussion.)
 
 While the discussion above includes very general comments about
 attributes, it appears that only a very small number of attributes
@@ -539,34 +592,58 @@ the first important task for the WG was an undocumented one: to
 increase the understanding of the complexities of the problem
 sufficiently that naive solutions could be rejected and people could
 go to work on the harder problems.  That has clearly been
-accomplished.  With the exception of some continuing background
-noise, the simplistic stuff, with promises of one-year deployment,
-has just disappeared and almost no one thinks this is simple any more.
+accomplished.  With the exception of some continuing background noise,
+the simplistic approaches, with promises of one-year deployment, have
+just disappeared and almost no one thinks the issues are simple any
+more.
 
 But some of the lessons learned are quite painful and should give us
 pause, both generally and in the context of the remarks above:
 
 4.1. ASCII isn't just because of English
 
-The hostname rules chosen in the mid-70s weren't just "ASCII
-because English uses ASCII", although that was a starting
-point.  We have discovered that almost every other script
-(and, I think, even ASCII if we let the rest of the ISO 646
-non-BV characters in) is more complex than hostname-
-restricted-ASCII.  In some cases, case mapping works from one
-case to the other, but is not reversible.  In others, there
-are conventions about alternate ways to represent characters
-(in the language, not [just] in character coding) that work
-most of the time, but not always.  And there are issues in
-coding, with Unicode/10646 providing different ways to
-represent the same character (I am using that word, rather
-than "glyph", deliberately here).  And, in others, there are
+The hostname rules chosen in the mid-70s weren't just "ASCII because
+English uses ASCII", although that was a starting point.  We have
+discovered that almost every other script (and, I think, even ASCII if
+we permit the rest of the characters specified in to ISO 646
+International Reference Version) is more complex than hostname-
+restricted-ASCII.  In some cases, with a broader selection of scripts,
+case mapping works from one case to the other, but is not reversible.
+In others, there are conventions about alternate ways to represent
+characters (in the language, not [just] in character coding) that work
+most of the time, but not always.  And there are issues in coding,
+with Unicode/10646 [UNICODE, IS10646] providing different ways to
+represent the same character (I am using that word, rather than
+"glyph", deliberately here).  And, in still others, there are
 questions as to whether two glphs "match", which may be a
-distance-function question, not one with a binary answer.  We
-have tried to solve this set of problems with "nameprep" (see
-below).
+distance-function question, not one with a binary answer.  We have
+tried to solve this set of problems with "nameprep" (see below).
 
-4.2.  "Nameprep" and its complexities
+4.2.  The "ASCII Encoding" approaches
+
+While the DNS can handle arbitrary binary strings without known
+internal problems (see [RFC2181]), some restrictions are imposed by
+the requirement that text be interpreted in a case-independent way
+([RFC1034], [RFC1035]).  More important, most internet applications
+assume the hostname-restricted (so-called "LDH) syntax specified in
+the hosttable RFCs and as "prudent" in RFC 1035.  Many conforming
+implementations of those applications may exhibit unpredicted behavior
+if those assumptions are not met.  To avoid these potential problems,
+the work of the IDN WG has focused on "ASCII-Compatible Encodings"
+(ACE), which preserve the LDH conventions in the DNS itself (and for
+implementations of applications that have not been upgraded) while
+permitting newer implementations to recognize the special codings and
+map them into non-ASCII characters.  These approaches are, however,
+not problem-free.  Among other issues, they rely on what is ultimately
+a heuristic to determine whetehr a DNS lablel is to be considered as
+an IDN or interpreted as an actual LDH name in its own right.  And,
+while all determination of whether a particular query matches a stored
+object are traditionally made by DNS servers, the ACE systems, when
+combined with the complexities of international scripts and names,
+require that much of the matching work be abstracted into a separate,
+client-side, "preparation" process.
+
+4.3.  "Nameprep" and its complexities
 
 The model for getting around the various problems described above and
 elsewhere has evolved into a notion that all strings are to be placed
@@ -578,19 +655,29 @@ impact of this process on host-table-subset ASCII is trivial and
 essentially adds only overhead.  For other scripts, the impact is, of
 necessity, quite significant.
 
-Defining that process was quite complex.  Although the general notion
+Defining that process was quite complex and, as of the time of this
+writing, remains controversial.  Although the general notion
 was simple, the devil is often in the details, and there are many
 details.  A design team worked on it for months, with considerable
 effort placed into clarifying and fine-tuning the protocol.  Despite
 general agreement that the IETF would avoid getting into the business
 of defining character sets, character codings, and the associated
-conventions, the group has several times taken excursions into
+conventions, the group several times took excursions into
 special treatment of code positions to more nearly match the
 distinctions of Unicode with user-perceptions about similarities and
 differences between characters.  The IETF-specific code position work
 has been removed from the protocol draft, but the fact that the
 temptation has been strong may indicate problems we haven't solved to
 everyone's satisfaction.
+
+There have also been controversies about how far one should go in
+these processes of preparation and transformation and,
+ultimately, about the validity of various analogies.  Is stripping of
+vowels in Arabic or Hebrew analogous to case-mapping?  Matching of
+characters that appear to be the same but that are assigned to
+different code points?  Mapping of Traditional and Simplified Chinese
+characters?  Matching of Serbo-Croatian words whether written in
+Roman-derived or Cyrillic characters?
 
 At the same time, the nameprep work has been extremely useful, both
 in identifying many of the problem code points and issues and
@@ -602,25 +689,27 @@ similarity scale that can be evaluated by the user or by user-driven
 heuristic functions.
 
 
-4.3 The UCS Stability Problem
+4.4 The UCS Stability Problem
 
 ISO 10646 basically defines only code points, and not rules for using
 or comparing the characters.  This is a long- standing issue with
-standards coming out of ISO/IEC JTC1/SC2; internationalization
-issues, as contrasted with character-listing and code point
-assignment issues, are just not dealt with effectively in that group.
-The Unicode Technical Committee has defined some rules for
-canonicalization and comparision, many of which have been factored
-into the "nameprep" work, but we are still in progress on figuring
-out how to make or define those rules in a sufficiently precise and
-permanent fashion that the DNS can depend on them.  Perhaps more
-important, our nameprep efforts have identified several areas in
-which the UTC rules do not adequately define things to make matching
-precise and unambiguous.  That raises two issues: whether trying to
-do precise matching at the character set level is actually possible
-(addressed below) and whether driving toward more precision could
-create issues that cause instability in the implementation and
-resolution models.
+standards coming out of ISO/IEC JTC1/SC2; internationalization issues,
+as contrasted with character-listing and code point assignment issues,
+have just not been effectively dealt with in that group.  The Unicode
+Technical Committee has defined some rules for canonicalization and
+comparision, many of which have been factored into the "nameprep"
+work, but it is not straightforward to make or define those rules in a
+sufficiently precise and permanent fashion that the DNS can depend on
+them.  Perhaps more important, our nameprep efforts have identified
+several areas in which the UTC rules do not adequately define things
+to make matching precise and unambiguous.  For example, it is tempting
+to define some rules on the basis of membership in particular scripts,
+or for punctuation characters, but there is not precise definition of
+what characters belong to which script or which ones are, or are not,
+punctuation.  That raises two issues: whether trying to do precise
+matching at the character set level is actually possible (addressed
+below) and whether driving toward more precision could create issues
+that cause instability in the implementation and resolution models.
 
 In addition, JTC1 has recently assigned some (most?) of these issues
 to JTC1/SC22/WG20 (the Internationalization WG within the
@@ -631,26 +720,28 @@ not they get it right, assignment of these matters to WG20
 significantly increases the risk of an eventual ISO standard that
 specifies different behavior from the UTC specification.
 
-4.4 Audiences, end users, and the UI problem
+4.5. Audiences, end users, and the UI problem
 
 Part of what has "caused" the DNS i18n problem, as well as the DNS
-trademark problem and several others is that we have stopped thinking
+trademark problem and several others, is that we have stopped thinking
 about "identifiers for objects", which normal people are not expected
 to see, and started thinking about "names" -- strings that are
-expected not only to be readable, but to have culturally-dependent
-meaning to non-specialist users.
+expected not only to be readable, but to have linguistically-sensible
+and culturally-dependent meaning to non-specialist users.
 
-The WG, and others, have attempted to avoid addressing the
+The IDN WG, and others, have attempted to avoid addressing the
 implications of that transition by taking "someone else's problem"
-approaches or by suggesting that we can adopt conventions and people
-will just get used to them.  I suggest that neither will work: 
+approaches or by suggesting that we can adopt conventions to which
+people will just become accustomed.  I suggest that neither will work
+acceptably:
+
 
   * If we want to make it a problem in a different part of the
   UI structure, we need to figure out where it goes in order
   to have proof of concept of our solution.  Unlike those
   whose sole [business] model is the selling or registering of
   names, any solution IETF produces actually needs to work, in
-  applications context, for the end user.
+  applications context, as seen by the end user.
 
   * The "they will get used to our conventions and adapt"
   principle is fine if we are writing rules for programming
@@ -664,7 +755,7 @@ will just get used to them.  I suggest that neither will work:
   in order to accomodate the decisions of the IETF or of a
   registrar or registry is just not likely.  "Montreal" is
   either a misspelling or an anglicization (anglicisation?) of
-  Montr‰al (with an acute accent mark over the "e"), but we
+  Montrëal (with an acute accent mark over the "e"), but we
   are as unlikely to get global agreement on a rule that will
   determine whether the two forms should match --and that
   won't astonish end users and speakers of one language or the
@@ -675,32 +766,32 @@ More generally, it is not clear that the outcome of any conceivable
 nameprep-like process is going to be good enough.  In the use of
 human languages by humans, we have many cases in which things that do
 not match are nonetheless interpreted as matching.  The
-Norwegian/Danish glyph "°" (lower case 'o' with forward slash) and
-the German glyph "" (lower case 'o' with umlaut) are clearly
+Norwegian/Danish glyph "—" (lower case 'o' with forward slash) and
+the German glyph "§" (lower case 'o' with umlaut) are clearly
 different and no matching program should yield an "equal" comparison.
 But they are more similar than either of them is to, e.g., "e", and
 humans are able to mentally make the correction in context and can be
-surprised if computers can't do so.  
+surprised if computers cannot do so.  
 
 This text uses examples in Roman scripts because it is being written
 in English and those examples are relatively easy to render.  But one
-of the important lessons of the IDN discussions of the last year or
-so is that problems like this exist in almost every language and
-script.  Each one has its idiosyncracies, and each set of
-idiosyncracies is tied to common usage and cultural issues that are
-deeply embedded.  As long as a schoolchild in the US can get a bad
-grade on a spelling test for using a perfectly valid British
-spelling, or one in France or Germany can get a poor grade for
-leaving off a diacritical mark, or one in Egypt or Israel will find
-it acceptable to write a word with or without vowels or stress marks,
-but, if they are included, that they must be the correct ones, there
-are issues with the relevant language.  We are dealing with culture,
-not identifier symbol-strings for geeks or computers, and the efforts
-of the last year have made it ever more clear that, if we ignore that
-distinction, we are solving an insufficient problem.
+of the important lessons of the IDN discussions of the recent years is
+that problems like this exist in almost every language and script.
+Each one has its idiosyncracies, and each set of idiosyncracies is
+tied to common usage and cultural issues that are deeply embedded.  As
+long as a schoolchild in the US can get a bad grade on a spelling test
+for using a perfectly valid British spelling, or one in France or
+Germany can get a poor grade for leaving off a diacritical mark, or
+one in Egypt or Israel will find it acceptable to write a word with or
+without vowels or stress marks, but, if they are included, that they
+must be the correct ones, there are issues with the relevant language.
+We are dealing with culture, not identifier symbol-strings for geeks
+or computers, and the recent efforts have made it ever more clear
+that, if we ignore that distinction, we are solving an insufficient
+problem.
 
 
-4.5 Business cards and other natural uses of natural languages
+4.6 Business cards and other natural uses of natural languages
 
 We have some established local conventions in the world for dealing
 with multilingual situations.  Looking at them may be helpful.  If
@@ -716,7 +807,7 @@ impossible without violating laws of physics.  And the opportunities
 for tolerance don't exist: the DNS requires a exact match or the
 lookup fails.
 
-4.6 ASCII encodings and the Roman keyboard assumption
+4.7 ASCII encodings and the Roman keyboard assumption
  
 Part of the argument for ACE-based solutions is that they provide an
 escape for multilingual environments when applications have not been
@@ -728,33 +819,35 @@ relevant if user-level systems and devices are involved that do not
 support the entry of Roman-based characters or which cannot
 conveniently render such characters.
 
-4.7 A pessimistic summary of IDN WG directions
+4.8 A pessimistic summary of IDN WG directions
 
 It appears, from the cases above and others, that none of the
-intra-DNS-based solutions for "multilingual names" are workable.
-They just rest on too many assumptions that do not appear to be
-feasible -- that people will adapt deeply-entrenched language habits
-to conventions laid down to make the lives of computers easy; that we
-can make "freeze it now, no need for changes in these areas"
-decisions about Unicode and nameprep; that ACE will smooth over
-applications problems, even in environments without the ability to
-key or render roman-based glyphs (or where user experience is such
-that they cannot easily be told apart); that we can either deploy
-EDNS or that long names aren't really important; that the Chinese
-Government (and others) will either give up their IS 2022-based
-solutions (for which UTC adding large fractions of a million new code
-points is almost certainly a necessary, but probably not sufficient
-condition) or build leakproof boundary conversion mechanisms; that
-out of band or contextual information will always be sufficient for
-the "map glyph onto script" problem; and so on.  In each case, we can
-get about 80% or 90%, but it is not clear that is going to be good
-enough.  For example, suppose someone can spell her name 90%
-correctly: is that likely to be considered adequate?
+intra-DNS-based solutions for "multilingual names" are workable.  They
+just rest on too many assumptions that do not appear to be feasible --
+that people will adapt deeply-entrenched language habits to
+conventions laid down to make the lives of computers easy; that we can
+make "freeze it now, no need for changes in these areas" decisions
+about Unicode and nameprep; that ACE will smooth over applications
+problems, even in environments without the ability to key or render
+roman-based glyphs (or where user experience is such that they cannot
+easily be told apart); that the Unicode Consortium will never decide
+to repair an error in a way that creates a risk of DNS
+incompatibility; that we can either deploy EDNS or that long names
+aren't really important; that Chinese computer users (and others) will
+either give up their local or IS 2022-based character coding solutions
+(for which UTC adding large fractions of a million new code points is
+almost certainly a necessary, but probably not sufficient condition)
+or build leakproof boundary conversion mechanisms; that out of band or
+contextual information will always be sufficient for the "map glyph
+onto script" problem; and so on.  In each case, we can get about 80%
+or 90%, but it is not clear that is going to be good enough.  For
+example, suppose someone can spell her name 90% correctly: is that
+likely to be considered adequate?
 
 
-6.  The Key Controversies
+5.  The Key Controversies
 
-6.1. One directory or many
+5.1. One directory or many
 
 As suggested in some of the text above, it is an open question as to
 whether the needs of the community would be best served by a single
@@ -778,14 +871,14 @@ general, a desirable situation.
 
 And, of course, completely separate directories would permit
 translation and transliteration functions to be embedded in the
-directory, given much of the Internet a different appearance
+directory, giving much of the Internet a different appearance
 depending on which directory was chosen.  The attractions of this are
 obvious, but, unless things were very carefully designed to preserve
 uniqueness and precise identities at the right points (which may or
 may not be possible), such a system would have many of the
 difficulties associated with multiple roots.
 
-6.2 Why not a proposal?
+5.2 Why not a proposal?
 
 As this document has gone through various preliminary drafts and
 reviews, the question has been raised as to whether it should contain
@@ -801,53 +894,75 @@ concepts and arguments here and leave the specifics to other sources,
 documents, and proposals.
  
 
-7.  Security Considerations
+6.  Security Considerations
 
 The set of proposals implied by this document suggests an interesting
 set of security issues (i.e., nothing important is ever easy).  A
 directory system used for this purpose would presumably need to be as
 carefully protected against unauthorized changes as the DNS itself.
-There also might be new opportunities for problems in the two-layer
-arrangement; but those problems are not more severe than a two-stage
-lookup in the DNS.
+There also might be new opportunities for problems in an arrangement
+involving two or more [sub]layers; but those problems are not more
+severe than a two-stage lookup in the DNS.
 
 
-8.  References
+7.  References
 
-RFC 625 On-line hostnames service. M.D. Kudlick, E.J. Feinler.
-Mar-07-1974.
+7.1. Normative References
 
-RFC 811 Hostnames Server. K. Harrenstien, V. White, E.J. Feinler.
-Mar-01-1982.
+None
 
-RFC 952 DoD Internet host table specification. K. Harrenstien, M.K.
-Stahl, E.J. Feinler. Oct-01-1985.
+7.2. Explanatory and Informative References
 
-RFC 882 Domain names: Concepts and facilities. P.V. Mockapetris.
-Nov-01-1983.
+[ASCII]
 
-RFC 883 Domain names: Implementation specification. P.V. Mockapetris.
-Nov-01-1983.
+[IS646]
 
-RFC 1035 Domain names - implementation and specification. P.V.
-Mockapetris. Nov-01-1987.
+[IS10646]
 
-RFC 1591 Domain Name System Structure and Delegation. J. Postel.
-March 1994.
+[UNICODE]
 
-RFC 2825 A Tangled Web: Issues of I18N, Domain Names, and the Other
-Internet protocols. IAB, L. Daigle, ed.. May 2000.
+[DNS-Search] draft-klensin-dns-search-02/03.txt, work in progress.
 
-RFC 2826 IAB Technical Comment on the Unique DNS Root. IAB. May 2000.
+[RFC625] RFC 625 On-line hostnames service. M.D. Kudlick, E.J.
+Feinler.  Mar-07-1974.
 
-RFC 2972 Context and Goals for Common Name Resolution. N. Popp, M.
-Mealling, L. Masinter, K. Sollins. October 2000.
+[RFC811] RFC 811 Hostnames Server. K. Harrenstien, V. White, E.J.
+Feinler.  Mar-01-1982.
 
-ITU Recommendation X.9
+[RFC952] RFC 952 DoD Internet host table specification. K.
+Harrenstien, M.K.  Stahl, E.J. Feinler. Oct-01-1985.
 
-ITU Recommendation X.25
+[RFC882] RFC 882 Domain names: Concepts and facilities. P.V.
+Mockapetris.  Nov-01-1983.
 
-9. Acknowledgements
+[RFC883] RFC 883 Domain names: Implementation specification. P.V.
+Mockapetris.  Nov-01-1983.
+
+[RFC1035] RFC 1035 Domain names - implementation and specification.
+P.V.  Mockapetris. Nov-01-1987.
+
+[RFC1591] RFC 1591 Domain Name System Structure and Delegation. J.
+Postel.  March 1994.
+
+[RFC2181] RFC 2181 Clarifications to the DNS Specification. R. Elz, R.
+Bush.  July 1997.
+
+[RFC2825] RFC 2825 A Tangled Web: Issues of I18N, Domain Names, and
+the Other Internet protocols. IAB, L. Daigle, ed.. May 2000.
+
+[RFC2826] RFC 2826 IAB Technical Comment on the Unique DNS Root. IAB.
+May 2000.
+
+[RFC2972] RFC 2972 Context and Goals for Common Name Resolution. N.
+Popp, M.  Mealling, L. Masinter, K. Sollins. October 2000.
+
+[X29] International Telecommuncations Union, "Recommendation X.29:
+Procedures for the exchange of control information and user data
+between a Packet Assembly/Disassembly (PAD) facility and a packet mode
+DTE or another PAD", December 1997.
+
+
+8. Acknowledgements
 
 Many people have contributed to versions of this document or the
 thinking that went into it.  The author would particularly like to
@@ -858,10 +973,9 @@ versions and suggesting ways to improve them.
 
 10. Culprit address
 
-John Klensin
-AT&T Labs
-99 Bedford Street
-Boston, MA 02111
-klensin@att.com
+John C Klensin
+1770 Massachusetts Ave, #322
+Cambridge, MA 02140
+klensin+srch@jck.com
 
-Expires November 2001
+Expires July 2002

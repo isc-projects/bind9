@@ -1,0 +1,612 @@
+Internet Draft                                     Patrik Faltstrom
+draft-ietf-idn-idna-07.txt                                    Cisco
+February 24, 2002                                      Paul Hoffman
+Expires in six months                                    IMC & VPNC
+                                                   Adam M. Costello
+                                                        UC Berkeley
+
+       Internationalizing Domain Names in Applications (IDNA)
+
+Status of this Memo
+
+This document is an Internet-Draft and is in full conformance with all
+provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering Task
+Force (IETF), its areas, and its working groups. Note that other groups
+may also distribute working documents as Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any
+time. It is inappropriate to use Internet-Drafts as reference material
+or to cite them other than as "work in progress."
+
+The list of current Internet-Drafts can be accessed at
+http://www.ietf.org/ietf/1id-abstracts.txt
+
+The list of Internet-Draft Shadow Directories can be accessed at
+http://www.ietf.org/shadow.html.
+
+
+Abstract
+
+Until now, there has been no standard method for domain names to use
+characters outside the ASCII repertoire. This document defines
+internationalized domain names (IDNs) and a mechanism called IDNA for
+handling them in a standard fashion. IDNs use characters drawn from a
+large repertoire (Unicode), but IDNA allows the non-ASCII characters to
+be represented using the same octets used in so-called host names
+today. IDNA is only meant for processing domain names, not free
+text.
+
+
+1. Introduction
+
+IDNA works by allowing applications to use certain ASCII name labels
+(beginning with a special prefix) to represent non-ASCII name labels.
+Lower-layer protocols need not be aware of this; therefore IDNA does not
+require changes to any infrastructure. In particular, IDNA does not
+require any changes to DNS servers, resolvers, or protocol elements,
+because the ASCII name service provided by the existing DNS is entirely
+sufficient.
+
+This document does not require any applications to conform to IDNA,
+but applications can elect to use IDNA in order to support IDN while
+maintaining interoperability with existing infrastructure. Adding IDNA
+support to an existing application entails changes to the application
+only, and leaves room for flexibility in the user interface.
+
+A great deal of the discussion of IDN solutions has focused on
+transition issues and how IDN will work in a world where not all of the
+components have been updated. Other proposals would require that user
+applications, resolvers, and DNS servers be updated in order for a user
+to use an internationalized domain name. Rather than require widespread
+updating of all components, IDNA requires only user applications to be
+updated; no changes are needed to the DNS protocol or any DNS servers or
+the resolvers on user's computers.
+
+1.1 Interaction of protocol parts
+
+IDNA requires that implementations process input strings with Nameprep
+[NAMEPREP], which is a profile of Stringprep [STRINGPREP], and then with
+Punycode [PUNYCODE]. Implementations of IDNA MUST fully implement
+Nameprep and Punycode; neither Nameprep nor Punycode are optional.
+
+
+2 Terminology
+
+The key words "MUST", "SHALL", "REQUIRED", "SHOULD", "RECOMMENDED", and
+"MAY" in this document are to be interpreted as described in RFC 2119
+[RFC2119].
+
+A code point is an integral value associated with a character in a coded
+character set.
+
+Unicode [UNICODE] is a coded character set containing tens of thousands
+of characters. A single Unicode code point is denoted by "U+" followed
+by four to six hexadecimal digits, while a range of Unicode code points
+is denoted by two hexadecimal numbers separated by "..", with no
+prefixes.
+
+ASCII means US-ASCII, a coded character set containing 128 characters
+associated with code points in the range 0..7F. Unicode is an extension
+of ASCII: it includes all the ASCII characters and associates them with
+the same code points.
+
+The term "LDH code points" is defined in this document to mean the code
+points associated with ASCII letters, digits, and the hyphen-minus; that
+is, U+002D, 30..39, 41..5A, and 61..7A. "LDH" is an abbreviation for
+"letters, digits, hyphen".
+
+[STD13] talks about "domain names" and "host names", but many people use
+the terms interchangeably. Further, because [STD13] was not terribly
+clear, many people who are sure they know the exact definitions of each
+of these terms disagree on the definitions.
+
+A label is an individual part of a domain name. Labels are usually shown
+separated by dots; for example, the domain name "www.example.com" is
+composed of three labels: "www", "example", and "com". (The zero-length
+root label that is implied in domain names, as described in [STD13], is
+not considered a label in this specification.) Throughout this document
+the term "label" is shorthand for "text label", and "every label" means
+"every text label". In IDNA, not all text strings can be labels.
+
+An "internationalized domain name" (IDN) is a domain name for which the
+ToASCII operation (see section 4) can be applied to each label without
+failing. This document does not attempt to define an "internationalized
+host name". It is expected that protocols and name-handling bodies will
+want to limit the characters allowed in IDNs further than what is
+specified in this document, such as to prohibit additional characters
+that they feel are unneeded or harmful in registered domain names.
+
+An "internationalized label" is a label composed of characters from the
+Unicode character set; note, however, that not every string of Unicode
+characters can be an internationalized label. To allow internationalized
+labels to be handled by existing applications, IDNA uses an "ACE label"
+(ACE stands for ASCII Compatible Encoding), which can be represented
+using only ASCII characters but is equivalent to a label containing
+non-ASCII characters. More rigorously, an ACE label is defined to be any
+label that the ToUnicode operation would alter (see section 4.2). For
+every internationalized label that cannot be directly represented in
+ASCII, there is an equivalent ACE label. The conversion of labels to and
+from the ACE form is specified in section 4.
+
+The "ACE prefix" is defined in this document to be a string of ASCII
+characters that appears at the beginning of every ACE label. It is
+specified in section 5.
+
+A "domain name slot" is defined in this document to be a protocol element
+or a function argument or a return value (and so on) explicitly
+designated for carrying a domain name. Examples of domain name slots
+include: the QNAME field of a DNS query; the name argument of the
+gethostbyname() library function; the part of an email address following
+the at-sign (@) in the From: field of an email message header; and the host
+portion of the URI in the src attribute of an HTML <IMG> tag.
+General text that just happens to contain a domain name is not a domain name
+slot; for example, a domain name appearing in the plain text body of an
+email message is not occupying a domain name slot.
+
+An "internationalized domain name slot" is defined in this document to
+be a domain name slot explicitly designated for carrying an
+internationalized domain name as defined in this document. The
+designation may be static (for example, in the specification of the
+protocol or interface) or dynamic (for example, as a result of
+negotiation in an interactive session).
+
+A "generic domain name slot" is defined in this document to be any
+domain name slot that is not an internationalized domain name slot.
+Obviously, this includes any domain name slot whose specification
+predates IDNA.
+
+
+3. Requirements
+
+IDNA conformance means adherence of the following three requirements:
+
+1) Whenever a domain name is put into a generic domain name slot (see
+section 2), every label MUST contain only ASCII characters. Given an
+internationalized domain name (IDN), an equivalent domain name
+satisfying this requirement can be obtained by applying the ToASCII
+operation (see section 4) to each label.
+
+2) ACE labels obtained from domain name slots SHOULD be hidden from
+users except when the use of the non-ASCII form would cause problems or
+when the ACE form is explicitly requested.  Given an internationalized
+domain name, an equivalent domain name containing no ACE labels can be
+obtained by applying the ToUnicode operation (see section 4) to each
+label.  When requirements 1 and 2 both apply, requirement 1 takes
+precedence.
+
+3) Whenever two labels are compared, they MUST be considered to
+match if and only if their ASCII forms (obtained by applying ToASCII)
+match using a case-insensitive ASCII comparison.
+
+
+4. Conversion operations
+
+This section specifies the ToASCII and ToUnicode operations. Each one
+operates on a sequence of Unicode code points (but remember that all
+ASCII code points are also Unicode code points). When domain names are
+represented using character sets other than Unicode and ASCII, they will
+need to first be transcoded to Unicode before these operations can be
+applied, and might need to be transcoded back afterwards.
+
+4.1 ToASCII
+
+The ToASCII operation takes a sequence of Unicode code points and
+transforms it into a sequence of code points in the ASCII range (0..7F).
+The original sequence and the resulting sequence are equivalent labels. 
+(If the original is an internationalized label that cannot be directly
+represented in ASCII, the result will be the equivalent ACE label.)
+
+ToASCII fails if any step of it fails. If any step fails, the original
+sequence MUST NOT be used as a label in an IDN.
+
+The inputs to ToASCII are a sequence of code points; a flag indicating
+whether to prohibit unassigned code points (see [STRINGPREP]); and a
+flag indicating whether to apply the host name syntax rules. The output
+of ToASCII is either a sequence of ASCII code points or a failure
+condition.
+
+ToASCII never alters a sequence of code points that are all in the ASCII
+range to begin with (although it could fail).
+
+ToASCII consists of the following steps:
+
+    1. If all code points in the sequence are in the ASCII range (0..7F)
+       then skip to step 3.
+
+    2. Perform the steps specified in [NAMEPREP] and fail if there is
+       an error.
+
+    3. If the label is part of a host name (or is subject to the host
+       name syntax rules) then perform these checks:
+
+         (a) Verify the absence of non-LDH ASCII code points; that is, 
+             the absence of 0..2C, 2E..2F, 3A..40, 5B..60, and 7B..7F.
+
+         (b) Verify the absence of leading and trailing hyphen-minus;
+             that is, the absence of U+002D at the beginning and end of
+             the sequence.
+
+    4. If all code points in the sequence are in the ASCII range (0..7F),
+       then skip to step 8.
+
+    5. Verify that the sequence does NOT begin with the ACE prefix.
+
+    6. Encode the sequence using the encoding algorithm in [PUNYCODE].
+
+    7. Prepend the ACE prefix.
+
+    8. Verify that the number of code points is in the range 1 to 63
+       inclusive.
+
+4.2 ToUnicode
+
+The ToUnicode operation takes a sequence of Unicode code points and
+returns a sequence of Unicode code points. If the input sequence is a
+label in ACE form, then the result is an equivalent internationalized
+label that is not in ACE form, otherwise the original sequence is
+returned unaltered.
+
+ToUnicode never fails. If any step fails, then the original input
+sequence is returned immediately in that step.
+
+The inputs to ToUnicode are a sequence of code points; a flag indicating
+whether to prohibit unassigned code points (see [STRINGPREP]); and a
+flag indicating whether to apply the host name syntax rules. The output
+of ToUnicode is always a sequence of Unicode code points.
+
+    1. If all code points in the sequence are in the ASCII range (0..7F)
+       then skip to step 3.
+
+    2. Perform the steps specified in [NAMEPREP] and fail if there is an
+       error. (If step 3 of ToASCII is also performed here, it will not
+       affect the overall behavior of ToUnicode, but it is not
+       necessary.)
+
+    3. Verify that the sequence begins with the ACE prefix, and save a
+       copy of the sequence.
+
+    4. Remove the ACE prefix.
+
+    5. Decode the sequence using decoding algorithm in [PUNYCODE]. Save
+       a copy of the result of this step.
+
+    6. Apply ToASCII.
+
+    7. Verify that the sequence matches the saved copy from step 3, using
+       a case-insensitive ASCII comparison.
+
+    8. Return the saved copy from step 5.
+
+
+5. ACE prefix
+
+[[ Note to the IESG and Internet Draft readers: The two uses of the
+string "IESG--" below are to be changed at time of publication to a
+prefix which fulfills the requirements in the first paragraph. ]]
+
+The ACE prefix, used in the conversion operations (section 4), is two
+alphanumeric ASCII characters followed by two hyphen-minuses. It cannot
+be any of the prefixes already used in earlier documents, which includes
+the following: "bl--", "bq--", "dq--", "lq--", "mq--", "ra--", "wq--"
+and "zq--". The ToASCII and ToUnicode operations MUST recognize the ACE
+prefix in a case-insensitive manner.
+
+The ACE prefix for IDNA is "IESG--".
+
+This means that an ACE label might be "IESG--de-jg4avhby1noc0d", where
+"de-jg4avhby1noc0d" is the part of the ACE label that is generated by
+the encoding steps in [PUNYCODE].
+
+
+6. Implications for typical applications using DNS
+
+In IDNA, applications perform the processing needed to input
+internationalized domain names from users, display internationalized
+domain names to users, and process the inputs and outputs from DNS and
+other protocols that carry domain names.
+
+The components and interfaces between them can be represented
+pictorially as:
+
+                     +------+
+                     | User |
+                     +------+
+                        ^
+                        | Input and display: local interface methods
+                        | (pen, keyboard, glowing phosphorus, ...)
+    +-------------------|-------------------------------+
+    |                   v                               |
+    |          +-----------------------------+          |
+    |          |        Application          |          |
+    |          |  (conversion between local  |          |
+    |          |  character set and Unicode  |          |
+    |          |       is done here)         |          |
+    |          +-----------------------------+          |
+    |                    ^       ^                      | End system
+    |                    |       |                      |
+    |  Call to resolver: |       | Application-specific |
+    |               ACE  |       | protocol:            |
+    |                    v       | predefined by the    |
+    |           +----------+     | protocol or defaults |
+    |           | Resolver |     | to ACE               |
+    |           +----------+     |                      |
+    |                 ^          |                      |
+    +-----------------|----------|----------------------+
+        DNS protocol: |          |
+                  ACE |          |
+                      v          v
+           +-------------+    +---------------------+
+           | DNS servers |    | Application servers |
+           +-------------+    +---------------------+
+
+6.1 Entry and display in applications
+
+Applications can accept domain names using any character set or sets
+desired by the application developer, and can display domain names in any
+charset. That is, the IDNA protocol does not affect the interface
+between users and applications.
+
+An IDNA-aware application can accept and display internationalized
+domain names in two formats: the internationalized character set(s)
+supported by the application, and as an ACE label. ACE labels that are
+displayed or input MUST always include the ACE prefix. Applications MAY
+allow input and display of ACE labels, but are not encouraged to do so
+except as an interface for special purposes, possibly for debugging. ACE
+encoding is opaque and ugly, and should thus only be exposed to users
+who absolutely need it. The optional use, especially during a transition
+period, of ACE encodings in the user interface is described in section
+6.4. Because name labels encoded as ACE name labels can be rendered
+either as the encoded ASCII characters or the proper decoded characters,
+the application MAY have an option for the user to select the preferred
+method of display; if it does, rendering the ACE SHOULD NOT be the
+default.
+
+Domain names are often stored and transported in many places. For example,
+they are part of documents such as mail messages and web pages. They are
+transported in many parts of many protocols, such as both the
+control commands and the RFC 2822 body parts of SMTP, and the headers
+and the body content in HTTP. It is important to remember that domain
+names appear both in domain name slots and in the content that is passed
+over protocols.
+
+In protocols and document formats that define how to handle
+specification or negotiation of charsets, labels can be encoded in any
+charset allowed by the protocol or document format. If a protocol or
+document format only allows one charset, the labels MUST be given in
+that charset.
+
+In any place where a protocol or document format allows transmission of
+the characters in internationalized labels, internationalized labels
+SHOULD be transmitted using whatever character encoding and escape
+mechanism that the protocol or document format uses at that place.
+
+All protocols that use domain name slots already have the capacity for
+handling domain names in the ASCII charset. Thus, ACE labels
+(internationalized labels that have been processed with the ToASCII
+operation) can inherently be handled by those protocols.
+
+6.2 Applications and resolver libraries
+
+Applications normally use functions in the operating system when they
+resolve DNS queries. Those functions in the operating system are often
+called "the resolver library", and the applications communicate with the
+resolver libraries through a programming interface (API).
+
+Because these resolver libraries today expect only domain names in
+ASCII, applications MUST prepare labels that are passed to the resolver
+library using the ToASCII operation. Labels received from the resolver
+library contain only ASCII characters; internationalized labels that
+cannot be represented directly in ASCII use the ACE form. ACE labels
+always include the ACE prefix.
+
+IDNA-aware applications MUST be able to work with both
+non-internationalized labels (those that conform to [STD13]
+and [STD3]) and internationalized labels.
+
+It is expected that new versions of the resolver libraries in the future
+will be able to accept domain names in other formats than ASCII, and
+application developers might one day pass not only domain names in
+Unicode, but also in local script to a new API for the resolver
+libraries in the operating system.
+
+6.3 DNS servers
+
+An operating system might have a set of libraries for performing the
+ToASCII operation. The input to such a library might be in one or more
+charsets that are used in applications (UTF-8 and UTF-16 are likely
+candidates for almost any operating system, and script-specific charsets
+are likely for localized operating systems).
+
+For internationalized labels that cannot be represented directly in
+ASCII, DNS servers MUST use the ACE form produced by the ToASCII
+operation. All IDNs served by DNS servers MUST contain only ASCII
+characters.
+
+If a signalling system which makes negotiation possible between old and
+new DNS clients and servers is standardized in the future, the encoding
+of the query in the DNS protocol itself can be changed from ACE to
+something else, such as UTF-8. The question whether or not this should
+be used is, however, a separate problem and is not discussed in this
+memo.
+
+6.4 Avoiding exposing users to the raw ACE encoding
+
+All applications that might show the user a domain name obtained from a
+domain name slot, such as from gethostbyaddr or part of a mail header,
+SHOULD be updated as soon as possible in order to prevent users from
+seeing the ACE.
+
+If an application decodes an ACE name using ToUnicode but cannot show
+all of the characters in the decoded name, such as if the name contains
+characters that the output system cannot display, the application SHOULD
+show the name in ACE format (which always includes the ACE prefix)
+instead of displaying the name with the replacement character (U+FFFD).
+This is to make it easier for the user to transfer the name correctly to
+other programs. Programs that by default show the ACE form when they
+cannot show all the characters in a name label SHOULD also have a
+mechanism to show the name that is produced by the ToUnicode operation
+with as many characters as possible and replacement characters in the
+positions where characters cannot be displayed.
+
+The ToUnicode operation does not alter labels that are not valid ACE
+labels, even if they begin with the ACE prefix. After ToUnicode has been
+applied, if a label still begins with the ACE prefix, then it is not a
+valid ACE label, and is not equivalent to any of the intermediate
+Unicode strings constructed by ToUnicode.
+
+6.5 Bidirectional text in domain names
+
+The display of domain names that contain bidirectional text is not covered
+in this document. It may be covered in a future version of this
+document, or may be covered in a different document.
+
+For developers interested in displaying domain names that have
+bidirectional text, the Unicode standard has an extensive discussion of
+how to deal with reorder glyphs for display when dealing with
+bidirectional text such as Arabic or Hebrew. See [UAX9] for more
+information. In particular, all Unicode text is stored in logical order.
+
+6.6  DNSSEC authentication of IDN domain names
+
+DNS Security [DNSSEC] is a method for supplying cryptographic
+verification information along with DNS messages. Public Key
+Cryptography is used in conjunction with digital signatures to provide a
+means for a requester of domain information to authenticate the source
+of the data. This ensures that it can be traced back to a trusted
+source, either directly, or via a chain of trust linking the source of
+the information to the top of the DNS hierarchy.
+
+IDNA specifies that all internationalized domain names served by DNS
+servers that cannot be represented directly in ASCII must use the ACE
+form produced by the ToASCII operation. This operation must be performed
+prior to a zone being signed by the private key for that zone. Because
+of this ordering, it is important to recognize that DNSSEC authenticates
+the ASCII domain name, not the Unicode form or the mapping between the
+Unicode form and the ASCII form. In other words, the output of ToASCII
+is the canonical name. In the presence of DNSSEC, this is the name that
+MUST be signed in the zone and MUST be validated against. It also SHOULD
+be used for other name comparisons, such as when a browser wants to
+indicate that a URL has been previously visited.
+
+One consequence of this for sites deploying IDNA in the presence of
+DNSSEC is that any special purpose proxies or forwarders used to
+transform user input into IDNs must be earlier in the resolution flow
+than DNSSEC authenticating nameservers for DNSSEC to work.
+
+6.7 Limitations of IDNA
+
+The IDNA protocol does not solve all linguistic issues with users
+inputting names in different scripts. Many important language-based and
+script-based mappings are not covered in IDNA and must be handled
+outside the protocol. For example, names that are entered in a mix of
+traditional and simplified Chinese characters will not be mapped to a
+single canonical name. Another example is Scandinavian names that are
+entered with U+00F6 (LATIN SMALL LETTER O WITH DIAERESIS) will not be
+mapped to U+00F8 (LATIN SMALL LETTER O WITH STROKE).
+
+
+7. Name Server Considerations
+
+Internationalized domain name data in zone files (as specified by section
+5 of RFC 1035) MUST be processed with ToASCII before it is entered in
+the zone files.
+
+It is imperative that there be only one ASCII encoding for a particular
+domain name. ACE is an encoding for domain name labels that use non-ASCII
+characters. Thus, a primary master name server MUST NOT contain an
+ACE-encoded label that decodes to an ASCII label. The ToASCII operation
+assures that no such names are ever output from the operation.
+
+Name servers MUST NOT serve records with domain names that contain
+non-ASCII characters; such names MUST be converted to ACE form by the
+ToASCII operation in order to be served. If names that are not processed
+by ToASCII are passed to an application, it will result in unpredictable
+behavior. Note that [STRINGPREP] describes how to handle versioning of
+unallocated codepoints.
+
+
+8. Root Server Considerations
+
+IDNs are likely to be somewhat longer than current host names, so the
+bandwidth needed by the root servers should go up by a small amount.
+Also, queries and responses for IDNs will probably be somewhat longer
+than typical queries today, so more queries and responses may be forced
+to go to TCP instead of UDP.
+
+
+9. Security Considerations
+
+Security on the Internet partly relies on the DNS. Thus, any
+change to the characteristics of the DNS can change the security of much
+of the Internet.
+
+This memo describes an algorithm which encodes characters that are not
+valid according to STD3 and STD13 into octet values that are valid. No
+security issues such as string length increases or new allowed values
+are introduced by the encoding process or the use of these encoded
+values, apart from those introduced by the ACE encoding itself.
+
+Domain names are used by users to connect to Internet servers. The
+security of the Internet would be compromised if a user entering a
+single internationalized name could be connected to different servers
+based on different interpretations of the internationalized domain name.
+
+Because this document normatively refers to [NAMEPREP], it includes the
+security considerations from that document as well.
+
+
+A. References
+
+[PUNYCODE] Adam Costello, "Punycode", draft-ietf-idn-punycode.
+
+[DNSSEC] Don Eastlake, "Domain Name System Security Extensions", RFC
+2535, March 1999.
+
+[NAMEPREP] Paul Hoffman and Marc Blanchet, "Preparation of
+Internationalized Domain Names", draft-ietf-idn-nameprep.
+
+[RFC2119] Scott Bradner, "Key words for use in RFCs to Indicate
+Requirement Levels", March 1997, RFC 2119.
+
+[STD3] Bob Braden, "Requirements for Internet Hosts -- Communication
+Layers" (RFC 1122) and "Requirements for Internet Hosts -- Application
+and Support" (RFC 1123), STD 3, October 1989.
+
+[STD13] Paul Mockapetris, "Domain names - concepts and facilities" (RFC
+1034) and "Domain names - implementation and specification" (RFC 1035),
+STD 13, November 1987.
+
+[STRINGPREP] Paul Hoffman and Marc Blanchet, "Preparation of
+Internationalized Strings ("stringprep")", draft-hoffman-stringprep,
+work in progress
+.
+[UAX9] Unicode Standard Annex #9, The Bidirectional Algorithm,
+<http://www.unicode.org/unicode/reports/tr9/>.
+
+[UNICODE] The Unicode Standard, Version 3.1.0: The Unicode Consortium.
+The Unicode Standard, Version 3.0. Reading, MA, Addison-Wesley
+Developers Press, 2000. ISBN 0-201-61633-5, as amended by: Unicode
+Standard Annex #27: Unicode 3.1,
+<http://www.unicode.org/unicode/reports/tr27/tr27-4.html>.
+
+
+B. Authors' Addresses
+
+Patrik Faltstrom
+Cisco Systems
+Arstaangsvagen 31 J
+S-117 43 Stockholm  Sweden
+paf@cisco.com
+
+Paul Hoffman
+Internet Mail Consortium and VPN Consortium
+127 Segre Place
+Santa Cruz, CA  95060  USA
+phoffman@imc.org
+
+Adam M. Costello
+University of California, Berkeley
+idna-spec.amc @ nicemice.net 

@@ -1,9 +1,9 @@
 Internet Draft                                          Paul Hoffman
-draft-ietf-idn-nameprep-03.txt                            IMC & VPNC
-February 24, 2001                                      Marc Blanchet
+draft-ietf-idn-nameprep-08.txt                            IMC & VPNC
+February 24, 2002                                      Marc Blanchet
 Expires in six months                                       ViaGenie
 
-               Preparation of Internationalized Host Names
+   Nameprep: A Stringprep Profile for Internationalized Domain Names
 
 Status of this memo
 
@@ -25,161 +25,86 @@ http://www.ietf.org/shadow.html.
 
 Abstract
 
-This document describes how to prepare internationalized host names for
-use in the DNS. The steps include:
-  - mapping characters to other characters, such as to change their case
-  - normalizing the characters
-  - excluding characters that are prohibited from appearing in
-    internationalized host names
-This document does not specify a wire protocol. This preparation should
-be done before the DNS request.
+This document describes how to prepare internationalized domain name
+labels in order to increase the likelihood that name input and name
+comparison work in ways that make sense for typical users throughout the
+world. This profile of the stringprep protocol is used as part of a
+suite of on-the-wire protocols for internationalizing the DNS.
 
 1. Introduction
 
-When expanding today's DNS to include internationalized host names,
-those new names will be handled in many parts of the DNS. The
-Internationalized Domain Name (IDN) Working Group's requirements
-document [IDNReq] describes a framework for domain name handling as well
-as requirements for the new names.
+This document specifies processing rules that will allow users to enter
+internationalized domain name labels in applications and have the highest
+chance of getting the content of the strings correct. It is a profile of
+stringprep [STRINGPREP]. These processing rules are only intended for
+internationalized domain names, not for arbitrary text.
 
-A user can enter a domain name into an application program in a myriad
-of fashions. Depending on the input method, the characters entered in
-the domain name may or may not be those that are allowed in
-internationalized host names. Thus, there must be a way to normalized
-the user's input before the name is resolved in the DNS.
+This profile defines the following, as required by [STRINGPREP]
 
-It is a design goal of this document to allow users to enter host names
-in applications and have the highest chance of getting the name correct.
-Another, often conflicting, design goal is to allow as wide of a range
-of characters as possible to be allowed in host names. The user should
-not be limited to only entering exactly the characters that might have
-been used, but to instead be able to enter characters that unambiguously
-normalize to characters in the desired host name. Although it would be
-easy to use the process in this step to "correct" perceived mis-features
-or bugs in the current character standards, this document expressly does
-not do so.
+- The intended applicability of the profile: internationalized
+domain name labels
 
-This document describes the steps needed to convert a name part from one
-that is entered by the user to one that can be used in the DNS.
+- The character repertoire that is the input and output to stringprep:
+defined in Section 2
 
-Within a fully-qualified domain name, some labels may be
-internationalized, while others are not. This specification should be
-applied to all internationalized labels. An application must be able to
-recognize which part is internationalized; the method for such
-recognition is outside of the scope of this document. Note that this
-specification is harmless to the non-internationalized labels: when the
-steps described here are applied to non-internationalized labels, the
-label will not change.
+- The list of unassigned code points for the repertoire: defined
+in Appendix F.
 
-1.1 Terminology
+- The mappings used: defined in Section 3.
 
-The key words "MUST", "SHALL", "REQUIRED", "SHOULD", "RECOMMENDED", and
-"MAY" in this document are to be interpreted as described in RFC 2119
-[RFC2119].
+- The Unicode normalization used: defined in Section 4
+
+- The characters that are prohibited as output: Defined in section 5
+
+1.1 Interaction of protocol parts
+
+Nameprep is used by the IDNA [IDNA] protocol for preparing domain names;
+it is not designed for any other purpose. It is explicitly not designed
+for processing arbitrary free text and SHOULD NOT be used for that
+purpose. Nameprep is a profile of Stringprep [STRINGPREP].
+Implementations of Nameprep MUST fully implement Stringprep.
+
+1.2 Terminology
+
+The key words "MUST", "SHOULD", and "MAY" in this document are to be
+interpreted as described in RFC 2119 [RFC2119].
 
 Examples in this document use the notation for code points and names
-from the Unicode Standard [Unicode3] and ISO/IEC 10646 [ISO10646]. For
+from the Unicode Standard [Unicode3.1] and ISO/IEC 10646 [ISO10646]. For
 example, the letter "a" may be represented as either "U+0061" or "LATIN
 SMALL LETTER A". In the lists of prohibited characters, the "U+" is left
-off to make the lists easier to read. The names of character ranges are
-shown in square brackets (such as "[SYMBOLS]") and do not come from the
-standards.
-
-Note: A glossary of terms used in Unicode and ISO/IEC 10646 can be found
-in [Glossary]. Information on the 10646/Unicode character model can be
-found in [CharModel].
+off to make the lists easier to read. The comments for character ranges
+are shown in square brackets (such as "[CONTROL CHARACTERS]") and do not
+come from the standards.
 
 
-2. Preparation Overview
+2. Character Repertoire
 
-The steps for preparing names are:
-
-1) Input from the application service interface -- This can be done in
-many ways and is not specified in this document
-
-2) Map -- For each character in the input, check if it has a mapping
-and, if so, replace it with its mapping. The mappings are a combination
-of folding uppercase characters to lowercase and hyphen mapping. This is
-described in Section 4.
-
-3) Normalize -- Normalize the characters. This is described in Section
-5.
-
-4) Look for prohibited output -- Check for any characters that are not
-allowed in the output. If any are found, return an error to the
-application service interface. This is described in Section 6.
-
-5) Resolution of the prepared name -- This must be specified in a
-different IDN document.
-
-The above steps MUST be performed in the order given in order to comply
-with this specification.
-
-The steps in this document have associated tables in the document. The
-tables are derived from outside sources, and the derivation is briefly
-described in the document. Although a great deal of effort has gone into
-preparing the tables, there is a chance that the tables do not correctly
-reflect the outside sources. Regardless of whether or not the tables
-differ from the sources, implementations MUST use the tables in this
-document for their processing. That is, if there is an error in the
-tables, the tables must still be used. Future versions of this document
-may include corrections and additions to the tables.
+Unicode 3.1 [Unicode3.1] is the repertoire used in this profile.
+The reason Unicode 3.1 was chosen instead of a version of
+ISO/IEC 10646 is that ISO/IEC 10646 is expected to be updated soon after
+this document becomes an RFC. Unicode 3.1 has the exact repertoire that
+is expected in the next version of ISO/IEC 10646, and is therefore used
+here.
 
 
 3. Mapping
 
-Each character in the input stream is checked against the mapping table.
-The mapping table can be found in Appendix E of this document. That
-table includes all the steps described in the subsections below.
+This profile specifies stringprep mapping using the mapping table
+in Appendix D. That table includes all the steps described in this
+section.
 
-The mappings can be one-to-none, one-to-one, or one-to-many. That is,
-some characters may be eliminated or replaced by more than one
-character, and the output of this step might be shorter or longer than
-the input. Because of this, an application MUST be prepared to receive a
-longer or shorter string than the one input in the nameprep algorithm.
+Note that text in this section describes how Appendix D was formed. It is
+here for people who want to understand more, but it should be ignored
+by implementors. Implementations of this profile MUST map based on
+Appendix D, not based on the descriptions in this section of how
+Appendix D was created.
 
-Rationale: Characters that are not wanted in internationalized name
-parts can either be mapped to nothing in the mapping step, or cause an
-error in the prohibition step. The general guideline used to pick
-between the two outcomes was that removing alphabetic, non-protocol
-characters be done in the mapping step, but all other removals be done
-in the prohibition step. This allows for simple linguistic errors on the
-part of an input mechanism to be caught in the mapping step, but to not
-hide serious errors such as entering protocol characters or invisible
-characters from the user.
-
-3.1 Case mapping
-
-The input string is case folded according to [UTR21]. For most
-characters, this is the same thing as changing the input character to a
-lowercase character. For some characters, however, more complex
-transformations occur. The mapping table in Appendix E is derived by
-applying the rules for equivalence classes from [UTR21].
-
-Rationale: This step could have been "change all lowercase characters
-into uppercase characters". However, the upper-to-lower folding was
-chosen because most users of the Internet today enter host names in
-lowercase.
-
-3.2 Additional folding mappings
-
-There are some characters that do not have mappings in [UTR21] but still
-need processing. These characters include a few Greek characters and
-many symbols that contain Latin characters. The list of characters to
-add to the mapping table were determined by the following algorithm:
-
-b = NormalizeWithKC(Fold(a));
-c = NormalizeWithKC(Fold(b));
-if c is not the same as b, add a mapping for "a to c".
-
-Because NormalizeWithKC(Fold(c)) always equals c, the table is stable
-from that point on.
-
-3.3 Mapped out
+3.1 Mapped out
 
 The following characters are simply deleted from the input (that is,
 they are mapped to nothing) because their presence or absence should not
-make two domain names different.
+make two strings different.
 
 Some characters are only useful in line-based text, and are otherwise
 invisible and ignored.
@@ -198,65 +123,76 @@ do not bear semantics.
 200C; ZERO WIDTH NON-JOINER
 200D; ZERO WIDTH JOINER
 
+3.2 Case mapping
+
+This profile folds case in domain names where possible because the
+current DNS has case-insensitive matching for domain names. If this
+profile did not do that for the additional characters being added, it
+would lead to even greater user confusion. For example, "Abc" matches
+"abc", but "<Uppercase-A-with-accent>bc" would not match
+"<lowercase-a-with-accent>bc".
+
+The input string is case folded according to [UTR21]. For most
+characters, this is the same as changing the input character to a
+lowercase character. For some characters, however, more complex
+transformations occur. The "CaseFolding.txt" file from the Unicode
+database was used to prepare the mapping table.
+
+There are some characters that do not have mappings in [UTR21] but still
+need processing. These characters include a few Greek characters and
+many symbols that contain Latin characters. The list of characters to
+add to the mapping table were determined by the following algorithm:
+
+b = NormalizeWithKC(Fold(a));
+c = NormalizeWithKC(Fold(b));
+if c is not the same as b, add a mapping for "a to c".
+
+Because NormalizeWithKC(Fold(c)) always equals c, the table is stable
+from that point on. The "DerivedNormalizationProperties.txt" file from
+the Unicode database was used to prepare Appendix D. These mappings were
+added to reduce the number of processing steps, that is, to avoid doing
+case mapping and normalization twice.
+
 
 4. Normalization
 
-The output of the mapping step is normalized using form KC, as described
-in [UTR15]. Using form KC instead of form C causes many characters that
-are identical or near-identical to be converted into a single character.
-Note that this specification refers to a specific version of [UTR15]. If
-a later version of [UTR15] changes the algorithm used for normalizing,
-that later version MUST NOT be used with this specification. Note that
-it is likely that this specification will be revised if UTR15 is
-changed, but until that happens, only the specified version of [UTR15]
-must be used.
+This profile specifies using Unicode normalization form KC, as described
+in [UAX15].
 
 
 5. Prohibited Output
 
-Before the text can be emitted, it must be checked for prohibited code
-points. There is a variety of prohibited code points, as described in
-this section.
+This profile specifies using the prohibition table in Appendix E.
 
-One of the goals of IDN is to allow the widest possible set of host
-names as long as those host names do not cause other problems, such as
-conflict with other standards. Specifically, experience with current DNS
-names have shown that there is a desire for host names that include
-personal names, company names, and spoken phrases. A goal of this
-section is to prohibit as few characters that might be used in these
-contexts as possible.
+Note that the subsections below describe how Appendix E was formed. They
+are here for people who want to understand more, but they should be
+ignored by implementors. Implementations of this profile MUST map based
+on Appendix E, not based on the descriptions in this section of how
+Appendix E was created.
 
-The collected list of prohibited code points can be found in Appendix F
-of this document. The list in Appendix F MUST be used by implementations
-of this specification. If there are any discrepancies between the list
-in Appendix F and subsections below, the list Appendix F always takes
-precedence.
+The collected list of code points prohibited by this profile can be
+found in Appendix E of this document; note that IDNA prohibits
+additional characters. The lists in Appendix E MUST be used by
+implementations of this specification. If there are any discrepancies
+between the lists in Appendix E and subsections below, the lists in
+Appendix E always takes precedence.
 
 Some code points listed in one section would also appear in other
-sections. Each code point is only listed once in the table in Appendix
-F.
+sections. Each code point is only listed once in the tables in Appendix
+E.
 
-5.1 Currently-prohibited ASCII characters
+IMPORTANT NOTE: This profile MUST be used with the IDNA protocol. The
+IDNA protocol has additional prohibitions that are checked outside of
+this profile.
 
-Some of the ASCII characters that are currently prohibited in host names
-by [STD13] are also used in protocol elements such as URIs [URI]. The other
-characters in the range U+0000 to U+007F that are not currently allowed
-are also prohibited in host name parts to reserve them for future use in
-protocol elements.
+5.1 Space characters
 
-0000-002C; [ASCII]
-002E-002F; [ASCII]
-003A-0040; [ASCII]
-005B-0060; [ASCII]
-007B-007F; [ASCII]
+Space characters would make visual transcription of domain names nearly
+impossible and could lead to user entry errors in many ways. Note that
+an additional space character (U+0020) is prohibited in IDNA.
 
-5.2 Space characters
-
-Space characters would make visual transcription of URLs nearly
-impossible and could lead to user entry errors in many ways.
-
-0020; SPACE
 00A0; NO-BREAK SPACE
+1680; OGHAM SPACE MARK
 2000; EN QUAD
 2001; EM QUAD
 2002; EN SPACE
@@ -270,21 +206,24 @@ impossible and could lead to user entry errors in many ways.
 200A; HAIR SPACE
 202F; NARROW NO-BREAK SPACE
 3000; IDEOGRAPHIC SPACE
-1680; OGHAM SPACE MARK
-200B; ZERO WIDTH SPACE
 
-5.3 Control characters
+5.2 Control characters
 
-Control characters cannot be seen and can cause unpredictable results
-when displayed.
+Control characters (or characters with control function) cannot be seen
+and can cause unpredictable results when displayed. Note that additional
+control characters (U+0000 through U+001F, and U+007F) are prohibited in
+IDNA.
 
-0000-001F; [CONTROL CHARACTERS]
-007F; DELETE
 0080-009F; [CONTROL CHARACTERS]
+070F; SYRIAC ABBREVIATION MARK
+180E; MONGOLIAN VOWEL SEPARATOR
 2028; LINE SEPARATOR
 2029; PARAGRAPH SEPARATOR
+206A-206F; [CONTROL CHARACTERS]
+FFF9-FFFC; [CONTROL CHARACTERS]
+1D173-1D17A; [MUSICAL CONTROL CHARACTERS]
 
-5.4 Private use and replacement characters
+5.3 Private use and replacement characters
 
 Because private-use characters do not have defined meanings, they are
 prohibited. The private-use characters are:
@@ -294,19 +233,20 @@ F0000-FFFFD; [PRIVATE USE, PLANE 15]
 100000-10FFFD; [PRIVATE USE, PLANE 16]
 
 The replacement character (U+FFFD) has no known semantic definition in a
-name, and is often displayed by renderers to indicate "there would be some
-character here, but it cannot be rendered". For example, on a computer
-with no Asian fonts, a name with three katakana characters might be
+name, and is often displayed by renderers to indicate "there would be
+some character here, but it cannot be rendered". For example, on a
+computer with no Asian fonts, a name with three ideographs might be
 rendered with three replacement characters.
 
 FFFD; REPLACEMENT CHARACTER
 
-5.5 Non-character code points
+5.4 Non-character code points
 
-Non-character code points are code points that have been assigned in
+Non-character code points are code points that have been allocated in
 ISO/IEC 10646 but are not characters. Because they are already assigned,
 they are guaranteed not to later change into characters.
 
+FDD0-FDEF; [NONCHARACTER CODE POINTS]
 FFFE-FFFF; [NONCHARACTER CODE POINTS]
 1FFFE-1FFFF; [NONCHARACTER CODE POINTS]
 2FFFE-2FFFF; [NONCHARACTER CODE POINTS]
@@ -325,7 +265,10 @@ EFFFE-EFFFF; [NONCHARACTER CODE POINTS]
 FFFFE-FFFFF; [NONCHARACTER CODE POINTS]
 10FFFE-10FFFF; [NONCHARACTER CODE POINTS]
 
-5.6 Surrogate codes
+The non-character code points are listed the PropList.txt file from the
+Unicode database.
+
+5.5 Surrogate codes
 
 The following code points are permanently reserved for use as surrogate
 code values in the UTF-16 encoding, will never be assigned to
@@ -333,24 +276,24 @@ characters, and are therefore prohibited:
 
 D800-DFFF; [SURROGATE CODES]
 
-5.7 Inappropriate for plain text
+5.6 Inappropriate for plain text
 
-The following characters should not appear in regular text.
+The following characters do not appear in regular text.
 
 FFF9; INTERLINEAR ANNOTATION ANCHOR
 FFFA; INTERLINEAR ANNOTATION SEPARATOR
 FFFB; INTERLINEAR ANNOTATION TERMINATOR
 FFFC; OBJECT REPLACEMENT CHARACTER
 
-5.8 Inappropriate for domain names
+5.7 Inappropriate for canonical representation
 
 The ideographic description characters allow different sequences of
 characters to be rendered the same way, which makes them inappropriate
-for host names that must have a single canonical order.
+for domain names that have to have a single canonical representation.
 
-2FF0-2FFF; [IDEOGRAPHIC DESCRIPTION CHARACTERS]
+2FF0-2FFB; [IDEOGRAPHIC DESCRIPTION CHARACTERS]
 
-5.9 Change display properties
+5.8 Change display properties
 
 The following characters, some of which are deprecated in ISO/IEC 10646,
 can cause changes in display or the order in which characters appear
@@ -370,230 +313,90 @@ when rendered.
 206E; NATIONAL DIGIT SHAPES
 206F; NOMINAL DIGIT SHAPES
 
-5.10 Inappropriate characters from common input mechanisms
+5.9 Inappropriate characters from common input mechanisms
 
 U+3002 is used as if it were U+002E in many input mechanisms,
 particularly in Asia. This prohibition allows input mechanisms to safely
-map U+3002 to U+002E before doing nameprep without worrying about
-preventing users from accessing legitimate host name parts.
+map U+3002 to U+002E before doing stringprep without worrying about
+preventing users from accessing legitimate domain name labels.
 
 3002; IDEOGRAPHIC FULL STOP
 
+5.10 Tagging characters
+
+The following characters are used for tagging text and are invisible.
+
+E0001; LANGUAGE TAG
+E0020-E007F; [TAGGING CHARACTERS]
 
 
-6. Unassigned Code Points
+6. Unassigned Code Points in Internationalized Domain Names
 
-All code points not assigned in ISO/IEC 10646 are called "unassigned
-code points". Authoritative name servers MUST NOT have internationalized
-name parts that contain any unassigned code points. DNS requests MAY
-contain name parts that contain unassigned code points. Note that this
-is the only part of this document where the requirements for queries
-differs from the requirements for names in DNS zones.
-
-Using two different policies for where unassigned code points can appear
-in the DNS prevents the need for versioning the IDN protocol [IDNrev].
-This is very useful since it makes the overall processing simpler and do
-not impose a "protocol" to handle versioning. It is expected that ISO/IEC
-10646 will be updated fairly frequently; recently, it has happened
-approximately once a year. Each time a new version of ISO/IEC 10646 appears,
-a new version of this document can be created. Some end users will want
-to use the new code points as soon as they are defined.
-
-The list of unassigned code points can be found in Appendix G of this
-document. The list in Appendix G MUST be used by implementations of this
-specification. If there are any discrepancies between the list in
-Appendix G and the ISO/IEC 10646 specification, the list Appendix G
+This profile lists the unassigned code points in the
+range 0 to 10FFFF for Unicode 3.1 in
+Appendix F. The list in Appendix F MUST be used by implementations of
+this specification. If there are any discrepancies between the list in
+Appendix F and the Unicode 3.1 specification, the list in Appendix F
 always takes precedence.
-
-Due to the way that versioning is handled in this section, host names
-that are embedded in structures that cannot be changed (such as the
-signed parts of digital certificates) MUST NOT have internationalized
-name parts that contain any unassigned code points.
-
-6.1 Categories of code points
-
-Each code point in ISO/IEC 10646 can be categorized by how it acts in the
-process described in earlier sections of this document:
-
-AO      Code points that may be in the output
-
-MN      Code points that cannot be in the output because they are
-         mapped to nothing or never appear as output from
-         normalization
-
-D       Code points that cannot be in the output because they are
-         disallowed in the prohibition step
-
-U       Unassigned code points
-
-A subsequent version of this document that references a newer version of
-ISO/IEC 10646 with new code points will inherently have some code points
-move from category U to either D, MN, or AO. For backwards
-compatibility, no future version of this document will move code points
-from any other category. That is, no current AO, MN, or D code points
-will ever change to a different category.
-
-Authoritative name servers MUST NOT contain any name that has code
-points outside of AO for the latest version of this document. That is,
-they are forbidden to contain any IDN names containing code points from
-the MN, D, or U categories.
-
-Applications creating name queries MUST treat U code points as if they
-were AO when preparing the name parts according to this document. Those
-applications MAY optionally have a preprocess that provide stricter
-checks: treating unassigned code points in the input as errors, or
-warning the user about the fact that the code point is unassigned in the
-version of this document that the software is based on; such a choice is
-a local matter for the software.
-
-Non-authoritative DNS servers MAY reject names that contain code points
-that are in categories MN or D for the version of this document that
-they implement, but MUST NOT reject names because they contain name
-parts with code points from category U.
-
-6.2 Reasons for difference between authoritative servers and requests
-
-Different software using different versions of this document need to
-interoperate with maximal compatibility. The scheme described in this
-section (authoritative name servers MUST NOT use unassigned code points,
-requests MAY include unassigned code points) allows that compatibility
-without introducing any known security or interoperability issues.
-
-The list below shows what happens if a request contains a code point
-from category U that is allowed in a newer version of this document. The
-request either resolves to the domain name that was intended, or
-resolves to no domain at all. In this list, the request comes from an
-application using version "oldVersion" of this document, the
-authoritative name server is using version "newVersion" of this
-document, and the code point X was in category U on oldVersion, and has
-changed category to AO, MN, or D. There are 3 possible scenarios:
-
-1. X becomes AO -- In newVersion, X is in category AO. Because the
-application passed X through, it gets back correct data from the
-authoritative name server. There is one exceptional case, where X is a
-combining mark.
-
-The order of combining marks is normalized, so if another combining mark
-Y has a lower combining class than X then XY will be put in the
-canonical order YX. (Unassigned code points are never reordered, so this
-doesn't happen in oldVersion). If the request contains YX, the request
-will get correct data from the authoritative name server. However, no
-domain name can be registered with XY, so a request with XY will get a
-"no such host" error.
-
-2. X becomes MN -- In newVersion, X is normalized to code point "nX" and
-therefore X is now put in category MN. This cannot exist in any domain
-name, so any request containing X will get back a "no such host" error.
-Note, however, if the request had contained the letter nX, it would have
-gotten back correct data.
-
-3. X becomes D -- In newVersion, X is in category MN. This cannot exist
-in any domain name, so any request containing X will get back a "no such
-host" error.
-
-In none of the cases does the request get data for a host name other
-than the one it actually wanted.
-
-The processing in this document is always stable. If a string S is the
-result of processing on newVersion, then it will remain the same when
-processed on oldVersion.
-
-There is always a way for the application to get the correct data from
-the authoritative name server. For example, suppose that <ALPHA> was
-unassigned in oldVersion, and that it is assigned in newVersion, but
-case-folded to <alpha>. As long as the application supplies strings
-containing <alpha> instead of <ALPHA>, the correct data will be
-returned. Because the processing is stable, a different application
-running newVersion can pass a processed host name to the application
-running oldVersion. It will only contain <alpha>, and will return the
-correct results from the authoritative name server.
-
-6.3 Versions of applications and authoritative name servers
-
-Another way to see that this versioning system works is to compare what
-happens when an application uses a newer or older version of this
-document.
-
-Newer application -- Suppose that a application or intermediary DNS
-server is using version newVersion and the authoritative name server is
-using version oldVersion. This case is simple: there will be no names on
-the server that cannot be accessed by the application because the
-resolver uses a superset of the code points accepted by the server.
-
-Newer server -- Suppose that an application or intermediary DNS server
-is using oldVersion and the authoritative name server is using
-newVersion. Because the application passed through any unassigned code
-points, the user can access names on the server that use code points in
-newVersion. No names on the site can have code points that are
-unassigned in newVersion, since that is illegal. In this case, the
-application has to enter the unassigned code points in the correct
-order, and has to use unassigned code points that would make it through
-both the mapping and the normalization steps.
 
 
 7. Security Considerations
 
-Much of the security of the Internet relies on the DNS. Thus, any change
+The Unicode and ISO/IEC 10646 repertoires have many characters that look
+similar. In many cases, users of security protocols might do visual
+matching, such as when comparing the names of trusted third parties.
+This profile does nothing to map similar-looking characters together nor
+to prohibit some characters because they look like others.
+
+Security on the Internet partly relies on the DNS. Thus, any change
 to the characteristics of the DNS can change the security of much of the
 Internet.
 
-Host names are used by users to connect to Internet servers. The
+Domain names are used by users to connect to Internet servers. The
 security of the Internet would be compromised if a user entering a
 single internationalized name could be connected to different servers
-based on different interpretations of the internationalized host name.
+based on different interpretations of the internationalized domain name.
 
-Current applications may assume that the characters allowed in host
+Current applications might assume that the characters allowed in domain
 names will always be the same as they are in [STD13]. This document
-vastly increases the number of characters available in host names. Every
-program that uses "special" characters in conjunction with host names
-may be vulnerable to attack based on the new characters allowed by this
-specification.
+vastly increases the number of characters available in domain names.
+Every program that uses "special" characters in conjunction with domain
+names may be vulnerable to attack based on the new characters allowed by
+this specification.
 
 
 8. References
 
-[CharModel] Unicode Technical Report;17, Character Model.
-<http://www.unicode.org/unicode/reports/tr17/>.
-
 [Glossary] Unicode Glossary, <http://www.unicode.org/glossary/>.
 
-[IDNReq] Zita Wenzel and James Seng, "Requirements of Internationalized
-Domain Names", draft-ietf-idn-requirements
-
-[IDNRev] Marc Blanchet, "Handling versions of internationalized domain
-names protocols", draft-ietf-idn-version
+[IDNA] Patrik Faltstrom, Paul Hoffman, and Adam M. Costello,
+"Internationalizing Domain Names in Applications (IDNA)",
+draft-ietf-idn-idna, work-in-progress.
 
 [ISO10646] ISO/IEC 10646-1:2000. International Standard -- Information
 technology -- Universal Multiple-Octet Coded Character Set (UCS) -- Part
 1: Architecture and Basic Multilingual Plane.
 
-[Normalize] Character Normalization in IETF Protocols,
-draft-duerst-i18n-norm-03
-
 [RFC2119] Scott Bradner, "Key words for use in RFCs to Indicate
 Requirement Levels", March 1997, RFC 2119.
-
-[RFC2396] Tim Berners-Lee, et. al., "Uniform Resource Identifiers (URI):
-Generic Syntax", August 1998, RFC 2396.
-
-[RFC2732] Robert Hinden, et. al., Format for Literal IPv6 Addresses in
-URL's, December 1999, RFC 2732.
 
 [STD13] Paul Mockapetris, "Domain names - concepts and facilities" (RFC
 1034) and "Domain names - implementation and specification" (RFC 1035,
 STD 13, November 1987.
 
-[Unicode3] The Unicode Consortium, "The Unicode Standard -- Version
-3.0", ISBN 0-201-61633-5. Described at
-<http://www.unicode.org/unicode/standard/versions/Unicode3.0.html>.
+[STRINGPREP] Paul Hoffman and Marc Blanchet, "Preparation of
+Internationalized Strings ("stringprep")", draft-hoffman-stringprep,
+work in progress.
 
-[URIs] For example: Roy Fielding et. al., "Uniform Resource Identifiers:
-Generic Syntax", August 1998, RFC 2396; Robert Hinden et. al, "IPv6
-Literal Addresses in URL's", December 1999, RFC 2732.
+[Unicode3.1] The Unicode Standard, Version 3.1.0: The Unicode
+Consortium. The Unicode Standard, Version 3.0. Reading, MA,
+Addison-Wesley Developers Press, 2000. ISBN 0-201-61633-5, as amended
+by: Unicode Standard Annex #27: Unicode 3.1
+<http://www.unicode.org/unicode/reports/tr27/tr27-4.html>.
 
-[UTR15] Mark Davis and Martin Duerst. Unicode Normalization Forms.
-Unicode Technical Report;15.
-<http://www.unicode.org/unicode/reports/tr15/>.
+[UAX15] Mark Davis and Martin Duerst. Unicode Standard Annex #15:
+Unicode Normalization Forms, Version 3.1.0.
+<http://www.unicode.org/unicode/reports/tr15/tr15-21.html>.
 
 [UTR21] Mark Davis. Case Mappings. Unicode Technical Report;21.
 <http://www.unicode.org/unicode/reports/tr21/>.
@@ -603,8 +406,7 @@ A. Acknowledgements
 
 Many people from the IETF IDN Working Group and the Unicode Technical
 Committee contributed ideas that went into the first draft of this
-document. Mark Davis and Patrik Faltstrom were particularly helpful in
-some of the ideas, such as the versioning description.
+document.
 
 The IDN namprep design team made many useful changes to the first
 draft. That team and its advisors include:
@@ -624,56 +426,16 @@ Additional significant improvements were proposed by:
 Jonathan Rosenne
 Kent Karlsson
 Scott Hollenbeck
+Dave Crocker
 
 
-B. Differences Between -02 and -03 Drafts
+B. IANA Considerations
 
-Throughout: Changed "ISO 10646" to "ISO/IEC 10646". Changed "codepoint"
-to "code point".
-
-Abstract: Added last sentence.
-
-1: Removed the sentence about [IDNComp] in the first paragraph.
-Clarified the design goals in the third paragraph. Added new last
-paragraph about processing name parts.
-
-3: Added sentence at the end of the second paragraph about accepting
-shorter or longer responses. Changed "Design note" to "Rationale".
-
-3.1: Revised the first paragraph to make it clearer that the mapping is
-not simple lowercasing. Changed "Design note" to "Rationale".
-
-3.2: Made it clearer that the normalization is with form KC.
-
-5: Removed the previous third paragraph, which discussed the DNS service
-interface.
-
-5.1: Added references for URIs.
-
-5.4: Changed the sentence about the replacement character to read
-"...and is often displayed by renderers to indicate...".
-
-5.10: Added this section, which prohibits U+3002.
-
-6: Removed "yet" from the first sentence.
-
-8: Fixed the reference for [IDNReq] and [STD13]. Removed the reference
-to [IDNComp]. Added the reference for [URIs].
-
-C: Changed wording of the section.
-
-E, F, G: Added tags to the beginning and end of the tables.
-
-F: Added 3002 (from section 5.10). Added FDD0-FDEF, which were omitted
-in error.
+This is a profile of stringprep. When it becomes an RFC, it
+should be registered in the stringprep profile registry.
 
 
-C. IANA Considerations
-
-None.
-
-
-D. Author Contact Information
+C. Author Contact Information
 
 Paul Hoffman
 Internet Mail Consortium and VPN Consortium
@@ -688,16 +450,16 @@ Ste-Foy, Quebec, Canada, G1V 2M2
 Marc.Blanchet@viagenie.qc.ca
 
 
-E. Mapping Table
+D. Mapping Tables
 
 The following is the mapping table from Section 3. The table has three
 columns:
-- the character that is mapped from
-- the zero or more characters that it is mapped to
+- the code point that is mapped from
+- the zero or more code points that it is mapped to
 - the reason for the mapping
 The columns are separated by semicolons. Note that the second column may
-be empty, or it may have one character, or it may have more than one
-character, with each character separated by a space.
+be empty, or it may have one code point, or it may have more than one
+code point, with each code point separated by a space.
 
 ----- Start Mapping Table -----
 0041; 0061; Case map
@@ -946,7 +708,7 @@ character, with each character separated by a space.
 039F; 03BF; Case map
 03A0; 03C0; Case map
 03A1; 03C1; Case map
-03A3; 03C2; Case map
+03A3; 03C3; Case map
 03A4; 03C4; Case map
 03A5; 03C5; Case map
 03A6; 03C6; Case map
@@ -956,8 +718,7 @@ character, with each character separated by a space.
 03AA; 03CA; Case map
 03AB; 03CB; Case map
 03B0; 03C5 0308 0301; Case map
-03C2; 03C2; Case map
-03C3; 03C2; Case map
+03C2; 03C3; Case map
 03D0; 03B2; Case map
 03D1; 03B8; Case map
 03D2; 03C5; Additional folding
@@ -978,7 +739,9 @@ character, with each character separated by a space.
 03EE; 03EF; Case map
 03F0; 03BA; Case map
 03F1; 03C1; Case map
-03F2; 03C2; Case map
+03F2; 03C3; Case map
+03F4; 03B8; Case map
+03F5; 03B5; Case map
 0400; 0450; Case map
 0401; 0451; Case map
 0402; 0452; Case map
@@ -1577,59 +1340,514 @@ FF37; FF57; Case map
 FF38; FF58; Case map
 FF39; FF59; Case map
 FF3A; FF5A; Case map
+10400; 10428; Case map
+10401; 10429; Case map
+10402; 1042A; Case map
+10403; 1042B; Case map
+10404; 1042C; Case map
+10405; 1042D; Case map
+10406; 1042E; Case map
+10407; 1042F; Case map
+10408; 10430; Case map
+10409; 10431; Case map
+1040A; 10432; Case map
+1040B; 10433; Case map
+1040C; 10434; Case map
+1040D; 10435; Case map
+1040E; 10436; Case map
+1040F; 10437; Case map
+10410; 10438; Case map
+10411; 10439; Case map
+10412; 1043A; Case map
+10413; 1043B; Case map
+10414; 1043C; Case map
+10415; 1043D; Case map
+10416; 1043E; Case map
+10417; 1043F; Case map
+10418; 10440; Case map
+10419; 10441; Case map
+1041A; 10442; Case map
+1041B; 10443; Case map
+1041C; 10444; Case map
+1041D; 10445; Case map
+1041E; 10446; Case map
+1041F; 10447; Case map
+10420; 10448; Case map
+10421; 10449; Case map
+10422; 1044A; Case map
+10423; 1044B; Case map
+10424; 1044C; Case map
+10425; 1044D; Case map
+1D400; 0061; Additional folding
+1D401; 0062; Additional folding
+1D402; 0063; Additional folding
+1D403; 0064; Additional folding
+1D404; 0065; Additional folding
+1D405; 0066; Additional folding
+1D406; 0067; Additional folding
+1D407; 0068; Additional folding
+1D408; 0069; Additional folding
+1D409; 006A; Additional folding
+1D40A; 006B; Additional folding
+1D40B; 006C; Additional folding
+1D40C; 006D; Additional folding
+1D40D; 006E; Additional folding
+1D40E; 006F; Additional folding
+1D40F; 0070; Additional folding
+1D410; 0071; Additional folding
+1D411; 0072; Additional folding
+1D412; 0073; Additional folding
+1D413; 0074; Additional folding
+1D414; 0075; Additional folding
+1D415; 0076; Additional folding
+1D416; 0077; Additional folding
+1D417; 0078; Additional folding
+1D418; 0079; Additional folding
+1D419; 007A; Additional folding
+1D434; 0061; Additional folding
+1D435; 0062; Additional folding
+1D436; 0063; Additional folding
+1D437; 0064; Additional folding
+1D438; 0065; Additional folding
+1D439; 0066; Additional folding
+1D43A; 0067; Additional folding
+1D43B; 0068; Additional folding
+1D43C; 0069; Additional folding
+1D43D; 006A; Additional folding
+1D43E; 006B; Additional folding
+1D43F; 006C; Additional folding
+1D440; 006D; Additional folding
+1D441; 006E; Additional folding
+1D442; 006F; Additional folding
+1D443; 0070; Additional folding
+1D444; 0071; Additional folding
+1D445; 0072; Additional folding
+1D446; 0073; Additional folding
+1D447; 0074; Additional folding
+1D448; 0075; Additional folding
+1D449; 0076; Additional folding
+1D44A; 0077; Additional folding
+1D44B; 0078; Additional folding
+1D44C; 0079; Additional folding
+1D44D; 007A; Additional folding
+1D468; 0061; Additional folding
+1D469; 0062; Additional folding
+1D46A; 0063; Additional folding
+1D46B; 0064; Additional folding
+1D46C; 0065; Additional folding
+1D46D; 0066; Additional folding
+1D46E; 0067; Additional folding
+1D46F; 0068; Additional folding
+1D470; 0069; Additional folding
+1D471; 006A; Additional folding
+1D472; 006B; Additional folding
+1D473; 006C; Additional folding
+1D474; 006D; Additional folding
+1D475; 006E; Additional folding
+1D476; 006F; Additional folding
+1D477; 0070; Additional folding
+1D478; 0071; Additional folding
+1D479; 0072; Additional folding
+1D47A; 0073; Additional folding
+1D47B; 0074; Additional folding
+1D47C; 0075; Additional folding
+1D47D; 0076; Additional folding
+1D47E; 0077; Additional folding
+1D47F; 0078; Additional folding
+1D480; 0079; Additional folding
+1D481; 007A; Additional folding
+1D49C; 0061; Additional folding
+1D49E; 0063; Additional folding
+1D49F; 0064; Additional folding
+1D4A2; 0067; Additional folding
+1D4A5; 006A; Additional folding
+1D4A6; 006B; Additional folding
+1D4A9; 006E; Additional folding
+1D4AA; 006F; Additional folding
+1D4AB; 0070; Additional folding
+1D4AC; 0071; Additional folding
+1D4AE; 0073; Additional folding
+1D4AF; 0074; Additional folding
+1D4B0; 0075; Additional folding
+1D4B1; 0076; Additional folding
+1D4B2; 0077; Additional folding
+1D4B3; 0078; Additional folding
+1D4B4; 0079; Additional folding
+1D4B5; 007A; Additional folding
+1D4D0; 0061; Additional folding
+1D4D1; 0062; Additional folding
+1D4D2; 0063; Additional folding
+1D4D3; 0064; Additional folding
+1D4D4; 0065; Additional folding
+1D4D5; 0066; Additional folding
+1D4D6; 0067; Additional folding
+1D4D7; 0068; Additional folding
+1D4D8; 0069; Additional folding
+1D4D9; 006A; Additional folding
+1D4DA; 006B; Additional folding
+1D4DB; 006C; Additional folding
+1D4DC; 006D; Additional folding
+1D4DD; 006E; Additional folding
+1D4DE; 006F; Additional folding
+1D4DF; 0070; Additional folding
+1D4E0; 0071; Additional folding
+1D4E1; 0072; Additional folding
+1D4E2; 0073; Additional folding
+1D4E3; 0074; Additional folding
+1D4E4; 0075; Additional folding
+1D4E5; 0076; Additional folding
+1D4E6; 0077; Additional folding
+1D4E7; 0078; Additional folding
+1D4E8; 0079; Additional folding
+1D4E9; 007A; Additional folding
+1D504; 0061; Additional folding
+1D505; 0062; Additional folding
+1D507; 0064; Additional folding
+1D508; 0065; Additional folding
+1D509; 0066; Additional folding
+1D50A; 0067; Additional folding
+1D50D; 006A; Additional folding
+1D50E; 006B; Additional folding
+1D50F; 006C; Additional folding
+1D510; 006D; Additional folding
+1D511; 006E; Additional folding
+1D512; 006F; Additional folding
+1D513; 0070; Additional folding
+1D514; 0071; Additional folding
+1D516; 0073; Additional folding
+1D517; 0074; Additional folding
+1D518; 0075; Additional folding
+1D519; 0076; Additional folding
+1D51A; 0077; Additional folding
+1D51B; 0078; Additional folding
+1D51C; 0079; Additional folding
+1D538; 0061; Additional folding
+1D539; 0062; Additional folding
+1D53B; 0064; Additional folding
+1D53C; 0065; Additional folding
+1D53D; 0066; Additional folding
+1D53E; 0067; Additional folding
+1D540; 0069; Additional folding
+1D541; 006A; Additional folding
+1D542; 006B; Additional folding
+1D543; 006C; Additional folding
+1D544; 006D; Additional folding
+1D546; 006F; Additional folding
+1D54A; 0073; Additional folding
+1D54B; 0074; Additional folding
+1D54C; 0075; Additional folding
+1D54D; 0076; Additional folding
+1D54E; 0077; Additional folding
+1D54F; 0078; Additional folding
+1D550; 0079; Additional folding
+1D56C; 0061; Additional folding
+1D56D; 0062; Additional folding
+1D56E; 0063; Additional folding
+1D56F; 0064; Additional folding
+1D570; 0065; Additional folding
+1D571; 0066; Additional folding
+1D572; 0067; Additional folding
+1D573; 0068; Additional folding
+1D574; 0069; Additional folding
+1D575; 006A; Additional folding
+1D576; 006B; Additional folding
+1D577; 006C; Additional folding
+1D578; 006D; Additional folding
+1D579; 006E; Additional folding
+1D57A; 006F; Additional folding
+1D57B; 0070; Additional folding
+1D57C; 0071; Additional folding
+1D57D; 0072; Additional folding
+1D57E; 0073; Additional folding
+1D57F; 0074; Additional folding
+1D580; 0075; Additional folding
+1D581; 0076; Additional folding
+1D582; 0077; Additional folding
+1D583; 0078; Additional folding
+1D584; 0079; Additional folding
+1D585; 007A; Additional folding
+1D5A0; 0061; Additional folding
+1D5A1; 0062; Additional folding
+1D5A2; 0063; Additional folding
+1D5A3; 0064; Additional folding
+1D5A4; 0065; Additional folding
+1D5A5; 0066; Additional folding
+1D5A6; 0067; Additional folding
+1D5A7; 0068; Additional folding
+1D5A8; 0069; Additional folding
+1D5A9; 006A; Additional folding
+1D5AA; 006B; Additional folding
+1D5AB; 006C; Additional folding
+1D5AC; 006D; Additional folding
+1D5AD; 006E; Additional folding
+1D5AE; 006F; Additional folding
+1D5AF; 0070; Additional folding
+1D5B0; 0071; Additional folding
+1D5B1; 0072; Additional folding
+1D5B2; 0073; Additional folding
+1D5B3; 0074; Additional folding
+1D5B4; 0075; Additional folding
+1D5B5; 0076; Additional folding
+1D5B6; 0077; Additional folding
+1D5B7; 0078; Additional folding
+1D5B8; 0079; Additional folding
+1D5B9; 007A; Additional folding
+1D5D4; 0061; Additional folding
+1D5D5; 0062; Additional folding
+1D5D6; 0063; Additional folding
+1D5D7; 0064; Additional folding
+1D5D8; 0065; Additional folding
+1D5D9; 0066; Additional folding
+1D5DA; 0067; Additional folding
+1D5DB; 0068; Additional folding
+1D5DC; 0069; Additional folding
+1D5DD; 006A; Additional folding
+1D5DE; 006B; Additional folding
+1D5DF; 006C; Additional folding
+1D5E0; 006D; Additional folding
+1D5E1; 006E; Additional folding
+1D5E2; 006F; Additional folding
+1D5E3; 0070; Additional folding
+1D5E4; 0071; Additional folding
+1D5E5; 0072; Additional folding
+1D5E6; 0073; Additional folding
+1D5E7; 0074; Additional folding
+1D5E8; 0075; Additional folding
+1D5E9; 0076; Additional folding
+1D5EA; 0077; Additional folding
+1D5EB; 0078; Additional folding
+1D5EC; 0079; Additional folding
+1D5ED; 007A; Additional folding
+1D608; 0061; Additional folding
+1D609; 0062; Additional folding
+1D60A; 0063; Additional folding
+1D60B; 0064; Additional folding
+1D60C; 0065; Additional folding
+1D60D; 0066; Additional folding
+1D60E; 0067; Additional folding
+1D60F; 0068; Additional folding
+1D610; 0069; Additional folding
+1D611; 006A; Additional folding
+1D612; 006B; Additional folding
+1D613; 006C; Additional folding
+1D614; 006D; Additional folding
+1D615; 006E; Additional folding
+1D616; 006F; Additional folding
+1D617; 0070; Additional folding
+1D618; 0071; Additional folding
+1D619; 0072; Additional folding
+1D61A; 0073; Additional folding
+1D61B; 0074; Additional folding
+1D61C; 0075; Additional folding
+1D61D; 0076; Additional folding
+1D61E; 0077; Additional folding
+1D61F; 0078; Additional folding
+1D620; 0079; Additional folding
+1D621; 007A; Additional folding
+1D63C; 0061; Additional folding
+1D63D; 0062; Additional folding
+1D63E; 0063; Additional folding
+1D63F; 0064; Additional folding
+1D640; 0065; Additional folding
+1D641; 0066; Additional folding
+1D642; 0067; Additional folding
+1D643; 0068; Additional folding
+1D644; 0069; Additional folding
+1D645; 006A; Additional folding
+1D646; 006B; Additional folding
+1D647; 006C; Additional folding
+1D648; 006D; Additional folding
+1D649; 006E; Additional folding
+1D64A; 006F; Additional folding
+1D64B; 0070; Additional folding
+1D64C; 0071; Additional folding
+1D64D; 0072; Additional folding
+1D64E; 0073; Additional folding
+1D64F; 0074; Additional folding
+1D650; 0075; Additional folding
+1D651; 0076; Additional folding
+1D652; 0077; Additional folding
+1D653; 0078; Additional folding
+1D654; 0079; Additional folding
+1D655; 007A; Additional folding
+1D670; 0061; Additional folding
+1D671; 0062; Additional folding
+1D672; 0063; Additional folding
+1D673; 0064; Additional folding
+1D674; 0065; Additional folding
+1D675; 0066; Additional folding
+1D676; 0067; Additional folding
+1D677; 0068; Additional folding
+1D678; 0069; Additional folding
+1D679; 006A; Additional folding
+1D67A; 006B; Additional folding
+1D67B; 006C; Additional folding
+1D67C; 006D; Additional folding
+1D67D; 006E; Additional folding
+1D67E; 006F; Additional folding
+1D67F; 0070; Additional folding
+1D680; 0071; Additional folding
+1D681; 0072; Additional folding
+1D682; 0073; Additional folding
+1D683; 0074; Additional folding
+1D684; 0075; Additional folding
+1D685; 0076; Additional folding
+1D686; 0077; Additional folding
+1D687; 0078; Additional folding
+1D688; 0079; Additional folding
+1D689; 007A; Additional folding
+1D6A8; 03B1; Additional folding
+1D6A9; 03B2; Additional folding
+1D6AA; 03B3; Additional folding
+1D6AB; 03B4; Additional folding
+1D6AC; 03B5; Additional folding
+1D6AD; 03B6; Additional folding
+1D6AE; 03B7; Additional folding
+1D6AF; 03B8; Additional folding
+1D6B0; 03B9; Additional folding
+1D6B1; 03BA; Additional folding
+1D6B2; 03BB; Additional folding
+1D6B3; 03BC; Additional folding
+1D6B4; 03BD; Additional folding
+1D6B5; 03BE; Additional folding
+1D6B6; 03BF; Additional folding
+1D6B7; 03C0; Additional folding
+1D6B8; 03C1; Additional folding
+1D6B9; 03B8; Additional folding
+1D6BA; 03C3; Additional folding
+1D6BB; 03C4; Additional folding
+1D6BC; 03C5; Additional folding
+1D6BD; 03C6; Additional folding
+1D6BE; 03C7; Additional folding
+1D6BF; 03C8; Additional folding
+1D6C0; 03C9; Additional folding
+1D6D3; 03C3; Additional folding
+1D6E2; 03B1; Additional folding
+1D6E3; 03B2; Additional folding
+1D6E4; 03B3; Additional folding
+1D6E5; 03B4; Additional folding
+1D6E6; 03B5; Additional folding
+1D6E7; 03B6; Additional folding
+1D6E8; 03B7; Additional folding
+1D6E9; 03B8; Additional folding
+1D6EA; 03B9; Additional folding
+1D6EB; 03BA; Additional folding
+1D6EC; 03BB; Additional folding
+1D6ED; 03BC; Additional folding
+1D6EE; 03BD; Additional folding
+1D6EF; 03BE; Additional folding
+1D6F0; 03BF; Additional folding
+1D6F1; 03C0; Additional folding
+1D6F2; 03C1; Additional folding
+1D6F3; 03B8; Additional folding
+1D6F4; 03C3; Additional folding
+1D6F5; 03C4; Additional folding
+1D6F6; 03C5; Additional folding
+1D6F7; 03C6; Additional folding
+1D6F8; 03C7; Additional folding
+1D6F9; 03C8; Additional folding
+1D6FA; 03C9; Additional folding
+1D70D; 03C3; Additional folding
+1D71C; 03B1; Additional folding
+1D71D; 03B2; Additional folding
+1D71E; 03B3; Additional folding
+1D71F; 03B4; Additional folding
+1D720; 03B5; Additional folding
+1D721; 03B6; Additional folding
+1D722; 03B7; Additional folding
+1D723; 03B8; Additional folding
+1D724; 03B9; Additional folding
+1D725; 03BA; Additional folding
+1D726; 03BB; Additional folding
+1D727; 03BC; Additional folding
+1D728; 03BD; Additional folding
+1D729; 03BE; Additional folding
+1D72A; 03BF; Additional folding
+1D72B; 03C0; Additional folding
+1D72C; 03C1; Additional folding
+1D72D; 03B8; Additional folding
+1D72E; 03C3; Additional folding
+1D72F; 03C4; Additional folding
+1D730; 03C5; Additional folding
+1D731; 03C6; Additional folding
+1D732; 03C7; Additional folding
+1D733; 03C8; Additional folding
+1D734; 03C9; Additional folding
+1D747; 03C3; Additional folding
+1D756; 03B1; Additional folding
+1D757; 03B2; Additional folding
+1D758; 03B3; Additional folding
+1D759; 03B4; Additional folding
+1D75A; 03B5; Additional folding
+1D75B; 03B6; Additional folding
+1D75C; 03B7; Additional folding
+1D75D; 03B8; Additional folding
+1D75E; 03B9; Additional folding
+1D75F; 03BA; Additional folding
+1D760; 03BB; Additional folding
+1D761; 03BC; Additional folding
+1D762; 03BD; Additional folding
+1D763; 03BE; Additional folding
+1D764; 03BF; Additional folding
+1D765; 03C0; Additional folding
+1D766; 03C1; Additional folding
+1D767; 03B8; Additional folding
+1D768; 03C3; Additional folding
+1D769; 03C4; Additional folding
+1D76A; 03C5; Additional folding
+1D76B; 03C6; Additional folding
+1D76C; 03C7; Additional folding
+1D76D; 03C8; Additional folding
+1D76E; 03C9; Additional folding
+1D781; 03C3; Additional folding
+1D790; 03B1; Additional folding
+1D791; 03B2; Additional folding
+1D792; 03B3; Additional folding
+1D793; 03B4; Additional folding
+1D794; 03B5; Additional folding
+1D795; 03B6; Additional folding
+1D796; 03B7; Additional folding
+1D797; 03B8; Additional folding
+1D798; 03B9; Additional folding
+1D799; 03BA; Additional folding
+1D79A; 03BB; Additional folding
+1D79B; 03BC; Additional folding
+1D79C; 03BD; Additional folding
+1D79D; 03BE; Additional folding
+1D79E; 03BF; Additional folding
+1D79F; 03C0; Additional folding
+1D7A0; 03C1; Additional folding
+1D7A1; 03B8; Additional folding
+1D7A2; 03C3; Additional folding
+1D7A3; 03C4; Additional folding
+1D7A4; 03C5; Additional folding
+1D7A5; 03C6; Additional folding
+1D7A6; 03C7; Additional folding
+1D7A7; 03C8; Additional folding
+1D7A8; 03C9; Additional folding
+1D7BB; 03C3; Additional folding
 ----- End Mapping Table -----
 
 
-F. Prohibited Code Point List
+E. Prohibited Code Point List
 
 ----- Start Prohibited Table -----
-0000-002C
-002E-002F
-003A-0040
-005B-0060
-007B-007F
-0080-009F
-00A0
+0080-00A0
+070F
 1680
-2000
-2001
-2002
-2003
-2004
-2005
-2006
-2007
-2008
-2009
-200A
-200B
-200E
-200F
-2028
-2029
-202A
-202B
-202C
-202D
-202E
-202F
-206A
-206B
-206C
-206D
-206E
-206F
-2FF0-2FFF
+180E
+2000-200A
+200E-200F
+2028-2029
+202A-202F
+206A-206F
+2FF0-2FFB
 3000
 3002
-D800-DFFF
-E000-F8FF
-FFF9
-FFFA
-FFFB
-FFFC
-FFFD
-FFFE-FFFF
+D800-F8FF
+FDD0-FDEF
+FFF9-FFFF
+1D173-1D17A
 1FFFE-1FFFF
 2FFFE-2FFFF
 3FFFE-3FFFF
@@ -1643,20 +1861,20 @@ AFFFE-AFFFF
 BFFFE-BFFFF
 CFFFE-CFFFF
 DFFFE-DFFFF
+E0001
+E0020-E007F
 EFFFE-EFFFF
-F0000-FFFFD
-FFFFE-FFFFF
-100000-10FFFD
-10FFFE-10FFFF
+F0000-FFFFF
+100000-10FFFF
 ----- End Prohibited Table -----
 
 NOTE WELL: Software that follows this specification that will be used to
 check names before they are put in authoritative name servers MUST add
-all unassigned code pints to the list of characters that are prohibited.
-See Section 6 for more details.
+all unassigned code points to the list of characters that are prohibited.
+See Section 6 of [STRINGPREP] for more details.
 
 
-G. Unassigned Code Point List
+F. Unassigned Code Point List
 
 ----- Start Unassigned Table -----
 0220-0221
@@ -1673,7 +1891,7 @@ G. Unassigned Code Point List
 03A2
 03CF
 03D8-03D9
-03F4-03FF
+03F6-03FF
 0487
 048A-048B
 04C5-04C6
@@ -1994,7 +2212,7 @@ FB45
 FBB2-FBD2
 FD40-FD4F
 FD90-FD91
-FDC8-FDEF
+FDC8-FDCF
 FDFC-FE1F
 FE24-FE2F
 FE45-FE48
@@ -2013,8 +2231,39 @@ FFD8-FFD9
 FFDD-FFDF
 FFE7
 FFEF-FFF8
-10000-1FFFD
-20000-2FFFD
+10000-102FF
+1031F
+10324-1032F
+1034B-103FF
+10426-10427
+1044E-1CFFF
+1D0F6-1D0FF
+1D127-1D129
+1D1DE-1D3FF
+1D455
+1D49D
+1D4A0-1D4A1
+1D4A3-1D4A4
+1D4A7-1D4A8
+1D4AD
+1D4BA
+1D4BC
+1D4C1
+1D4C4
+1D506
+1D50B-1D50C
+1D515
+1D51D
+1D53A
+1D53F
+1D545
+1D547-1D549
+1D551
+1D6A4-1D6A7
+1D7CA-1D7CD
+1D800-1FFFD
+2A6D7-2F7FF
+2FA1E-2FFFD
 30000-3FFFD
 40000-4FFFD
 50000-5FFFD
@@ -2026,6 +2275,7 @@ A0000-AFFFD
 B0000-BFFFD
 C0000-CFFFD
 D0000-DFFFD
-E0000-EFFFD
+E0000
+E0002-E001F
+E0080-EFFFD
 ----- End Unassigned Table -----
-
