@@ -14,6 +14,7 @@ WANT_IRS_NIS_OBJS= \
 	nis_ho.@O@ nis_ng.@O@ nis_nw.@O@ nis_pr.@O@ nis_sv.@O@
 
 OBJS=	@WANT_IRS_GR_OBJS@ @WANT_IRS_NIS_OBJS@ @WANT_IRS_THREADS_OBJS@ \
+	@WANT_IRS_PW_OBJS@ \
 	dns.@O@ dns_ho.@O@ dns_nw.@O@ dns_pr.@O@ \
 	dns_sv.@O@ gai_strerror.@O@ gen.@O@ gen_ho.@O@ \
 	gen_ng.@O@ gen_nw.@O@ gen_pr.@O@ gen_sv.@O@ \
