@@ -74,6 +74,10 @@
 1209.   [bug]           Dig, host, nslookup were not checking the message ids
                         on the responses. [RT #2454]
 
+1233.   [bug]           The flags field of a KEY record can be expressed in
+                        hex as well as decimal.
+			[ Not applicable to 9.2.x ]
+
 1234.   [bug]           'rrset-order' and 'sortlist' should be additive
                         not exclusive.
 
