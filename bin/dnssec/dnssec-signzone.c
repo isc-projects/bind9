@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.171 2003/12/13 04:20:42 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.172 2004/01/05 05:14:51 marka Exp $ */
 
 #include <config.h>
 
@@ -1637,7 +1637,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:de:f:ghi:k:n:o:pr:s:St:v:z"))
+					   "ac:d:e:f:ghi:k:n:o:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
