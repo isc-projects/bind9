@@ -1,3 +1,10 @@
+1659.	[cleanup]	Cleanup some messages that were referring to KEY vs
+			DNSKEY, NXT vs NSEC and SIG vs RRSIG.
+
+1658.	[func]		Update dnssec-keygen to default to KEY for HMAC-MD5
+			and DH.  Tighten which options apply to KEY and
+			DNSKEY records.
+
 1657.	[doc]		ARM: document query log output.
 
 1656.	[doc]		Update DNSSEC description in ARM to cover DS, NSEC
