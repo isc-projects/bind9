@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.225 2000/10/02 23:55:42 marka Exp $ */
+/* $Id: zone.c,v 1.226 2000/10/03 05:47:45 marka Exp $ */
 
 #include <config.h>
 
@@ -390,6 +390,9 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 
 static void zone_freedbargs(dns_zone_t *zone);
 static void forward_callback(isc_task_t *task, isc_event_t *event);
+static void zone_saveunique(dns_zone_t *zone, const char *path,
+			    const char *templat);
+
 
 #define ZONE_LOG(x,y) zone_log(zone, me, ISC_LOG_DEBUG(x), y)
 #define DNS_ENTER zone_log(zone, me, ISC_LOG_DEBUG(1), "enter")
@@ -977,14 +980,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					 "database %s: dns_db_load failed: %s",
 					 zone->dbname,
 					 dns_result_totext(result));
-			/* Mark the zone for immediate refresh. */
-			zone->refreshtime = now;
-			result = ISC_R_SUCCESS;
-		} else {
+		} else
 			zone_log(zone, me, ISC_LOG_ERROR,
 				 "database %s: dns_db_load failed: %s",
 				 zone->dbname, dns_result_totext(result));
-		}
 		goto cleanup;
 	}
 
@@ -1113,8 +1112,20 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	result = ISC_R_SUCCESS;
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		(void) zone_settimer(zone, now);
+	return (result);
 
  cleanup:
+	if (zone->type == dns_zone_slave ||
+	    zone->type == dns_zone_stub) {
+		if (zone->journal != NULL)
+			zone_saveunique(zone, zone->journal, "jn-XXXXXXXX");
+		if (zone->dbname != NULL)
+			zone_saveunique(zone, zone->dbname, "db-XXXXXXXX");
+
+		/* Mark the zone for immediate refresh. */
+		zone->refreshtime = now;
+		result = ISC_R_SUCCESS;
+	}
 	return (result);
 }
 
@@ -5338,6 +5349,32 @@ zonemgr_cancelio(dns_io_t *io) {
 	}
 }
 
+static void
+zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
+	char *buf;
+	int buflen;
+	isc_result_t result;
+	
+	buflen = strlen(path) + strlen(templat) + 2;
+
+	buf = isc_mem_get(zone->mctx, buflen);
+	if (buf == NULL)
+		return;
+
+	result = isc_file_template(path, templat, buf, buflen);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = isc_file_renameunique(path, buf);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	zone_log(zone, __func__, ISC_LOG_INFO, "saved \"%s\" as \"%s\"",
+		 path, templat);
+
+ cleanup:
+	isc_mem_put(zone->mctx, buf, buflen);
+}
 
 #if 0
 /* Hook for ondestroy notifcation from a database. */
