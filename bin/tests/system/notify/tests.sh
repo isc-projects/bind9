@@ -15,7 +15,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: tests.sh,v 1.16 2000/06/22 21:52:19 tale Exp $
+# $Id: tests.sh,v 1.17 2000/07/05 18:16:39 bwelling Exp $
 
 #
 # Perform tests
@@ -57,10 +57,17 @@ grep ";" dig.out.ns3
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
-kill `cat ns3/named.pid`
+kill -TERM `cat ns3/named.pid`
 rm -f ns2/example.db
 cp ns2/example3.db ns2/example.db
 sleep 6
+
+if [ -f ns3/named.pid ]; then
+	echo "I: ns3 didn't die when sent a SIGTERM"
+	kill -KILL `cat ns3/named.pid`
+	status=`expr $status + 1`
+fi
+
 kill -HUP `cat ns2/named.pid`
 (cd ns3 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
 sleep 60
@@ -79,7 +86,14 @@ $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3
 status=`expr $status + $?`
 
 rm -f ns2/example.db
-kill `cat ns2/named.pid`
+kill -TERM `cat ns2/named.pid`
+
+if [ -f ns2/named.pid ]; then
+	echo "I: ns2 didn't die when sent a SIGTERM"
+	kill -KILL `cat ns2/named.pid`
+	status=`expr $status + 1`
+fi
+
 cp ns2/example4.db ns2/example.db
 sleep 6
 (cd ns2 ; $NAMED -c named.conf -d 99 -g >> named.run 2>&1 & )
