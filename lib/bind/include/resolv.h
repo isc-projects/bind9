@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.7 2001/06/25 00:30:46 marka Exp $
+ *	$Id: resolv.h,v 1.8 2001/11/01 03:37:18 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -178,7 +178,8 @@ struct __res_state {
 	int	_vcsock;		/* PRIVATE: for res_send VC i/o */
 	u_int	_flags;			/* PRIVATE: see below */
 	union {
-		char	pad[52];	/* On an i386 this means 512b total. */
+		/* On an 32-bit arch this means 512b total. */
+		char	pad[80 - 3*sizeof (int) - 2*sizeof (void *)];
 		struct {
 			u_int16_t		nscount;
 			u_int16_t		nstimes[MAXNS];	/* ms. */
