@@ -2,7 +2,7 @@
 	--- 9.1.1rc2 released ---
 
  733.	[bug]		Reference counts of dns_acl_t objects need to be
-			locked but were not. [RT #801]
+			locked but were not. [RT #801, #821]
 
  708.	[bug]		When building with --with-openssl, the openssl headers
 			included with BIND 9 should not be used. [RT #702]
