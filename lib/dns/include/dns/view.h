@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.57 2000/12/12 21:33:21 bwelling Exp $ */
+/* $Id: view.h,v 1.58 2000/12/13 21:28:38 bwelling Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -58,6 +58,8 @@
  * Standards:
  *	None.
  */
+
+#include <stdio.h>
 
 #include <isc/lang.h>
 #include <isc/magic.h>
