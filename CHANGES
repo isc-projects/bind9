@@ -1,4 +1,6 @@
 
+1012.	[bug]		The -p option to named did not behave as documented.
+
 1011.	[cleanup]	Removed isc_dir_current().
 
 1010.	[bug]		The server could attempt to execute a command channel
