@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: server.c,v 1.201 2000/07/01 00:48:03 tale Exp $ */
+/* $Id: server.c,v 1.202 2000/07/10 11:34:59 tale Exp $ */
 
 #include <config.h>
 
@@ -127,11 +127,13 @@ configure_view_acl(dns_c_view_t *cview,
 	if (*aclp != NULL)
 		dns_acl_detach(aclp);
 	if (getvcacl != NULL && cview != NULL)
-		(void) (*getvcacl)(cview, &cacl);
+		(void)(*getvcacl)(cview, &cacl);
 	if (cacl == NULL && getscacl != NULL)
-		(void) (*getscacl)(cctx, &cacl);
+		(void)(*getscacl)(cctx, &cacl);
 	if (cacl == NULL) {
-		/* No value available.  *aclp == NULL. */		
+		/*
+		 * No value available.  *aclp == NULL.
+		 */
 		return (ISC_R_SUCCESS);
 	}
 
@@ -142,15 +144,12 @@ configure_view_acl(dns_c_view_t *cview,
 	return (result);
 }
 
-
 /*
- * Convert a null-terminated string of base64 text into
- * binary, storing it in a buffer.
- * 'mctx' is only used internally.
+ * Convert a null-terminated string of base64 text into binary,
+ * storing it in a buffer.  'mctx' is only used internally.
  */
 static isc_result_t
-base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
-{
+base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target) {
 	isc_result_t result;
 	isc_buffer_t source;
 	isc_lex_t *lex = NULL;
@@ -165,7 +164,7 @@ base64_cstring_tobuffer(isc_mem_t *mctx, char *cstr, isc_buffer_t *target)
 	
  cleanup:
 	if (isopen)
-		(void) isc_lex_close(lex);
+		(void)isc_lex_close(lex);
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
 	return (result);
@@ -268,7 +267,8 @@ configure_view_dnsseckeys(dns_c_view_t *cview,
 					strlen(ckey->domain));
 			isc_buffer_add(&namebuf, strlen(ckey->domain));
 			CHECK(dns_name_fromtext(keyname, &namebuf,
-						dns_rootname, ISC_FALSE, NULL));
+						dns_rootname, ISC_FALSE,
+						NULL));
 			CHECK(dst_key_fromdns(keyname, &rrdatabuf, mctx,
 					      &dstkey));
 			
@@ -530,8 +530,8 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 		 *         eliminated.
 		 */
 		if ((cview != NULL &&
-		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS) ||
-		    (dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS)) {
+		     dns_c_view_getforward(cview, &forward) == ISC_R_SUCCESS)
+		    || dns_c_ctx_getforward(cctx, &forward) == ISC_R_SUCCESS) {
 			INSIST(forward == dns_c_forw_first ||
 			       forward == dns_c_forw_only);
 			if (forward == dns_c_forw_only)
@@ -596,14 +596,14 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 * Configure other configurable data.
 	 */
 	view->recursion = ISC_TRUE;
-	(void) dns_c_ctx_getrecursion(cctx, &view->recursion);
+	(void)dns_c_ctx_getrecursion(cctx, &view->recursion);
 	if (cview != NULL)
-		(void) dns_c_view_getrecursion(cview, &view->recursion);
+		(void)dns_c_view_getrecursion(cview, &view->recursion);
 
 	view->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
-	(void) dns_c_ctx_getauthnxdomain(cctx, &view->auth_nxdomain);
+	(void)dns_c_ctx_getauthnxdomain(cctx, &view->auth_nxdomain);
 	if (cview != NULL)
-		(void) dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
+		(void)dns_c_view_getauthnxdomain(cview, &view->auth_nxdomain);
 
 	result = ISC_R_NOTFOUND;
 	if (cview != NULL)	
@@ -1155,12 +1155,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	 */
 	{
  		isc_uint32_t transfersin = 10;
-		(void) dns_c_ctx_gettransfersin(cctx, &transfersin);
+		(void)dns_c_ctx_gettransfersin(cctx, &transfersin);
 		dns_zonemgr_settransfersin(server->zonemgr, transfersin);
 	}
 	{
  		isc_uint32_t transfersperns = 2;
-		(void) dns_c_ctx_gettransfersperns(cctx, &transfersperns);
+		(void)dns_c_ctx_gettransfersperns(cctx, &transfersperns);
 		dns_zonemgr_settransfersperns(server->zonemgr, transfersperns);
 	}
 
@@ -1182,7 +1182,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_c_lstnlist_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		(void) dns_c_ctx_getlistenlist(cctx, &clistenon);
+		(void)dns_c_ctx_getlistenlist(cctx, &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  cctx,
@@ -1190,7 +1190,9 @@ load_configuration(const char *filename, ns_server_t *server,
 							  ns_g_mctx,
 							  &listenon);
 		} else {
-			/* Not specified, use default. */
+			/*
+			 * Not specified, use default.
+			 */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
 						    ISC_TRUE, &listenon));
 		}
@@ -1204,7 +1206,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		dns_c_lstnlist_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
-		(void) dns_c_ctx_getv6listenlist(cctx, &clistenon);
+		(void)dns_c_ctx_getv6listenlist(cctx, &clistenon);
 		if (clistenon != NULL) {
 			result = ns_listenlist_fromconfig(clistenon,
 							  cctx,
@@ -1212,7 +1214,9 @@ load_configuration(const char *filename, ns_server_t *server,
 							  ns_g_mctx,
 							  &listenon);
 		} else {
-			/* Not specified, use default. */
+			/*
+			 * Not specified, use default.
+			 */
 			CHECK(ns_listenlist_default(ns_g_mctx, listen_port,
 						    ISC_FALSE, &listenon));
 		}
@@ -1233,7 +1237,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * as specified by the "interface-interval" option.
 	 */
 	interface_interval = 3600; /* Default is 1 hour. */
-	(void) dns_c_ctx_getinterfaceinterval(cctx, &interface_interval);
+	(void)dns_c_ctx_getinterfaceinterval(cctx, &interface_interval);
 	if (interface_interval == 0) {
 		isc_timer_reset(server->interface_timer,
 				isc_timertype_inactive,
@@ -1331,6 +1335,12 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 
 	/*
+	 * Bind the OMAPI port(s).
+	 */
+	CHECKM(ns_omapi_configure(ns_g_mctx, cctx, &aclconfctx),
+	       "binding control channel(s)");
+
+	/*
 	 * Relinquish root privileges.
 	 */
 	if (first_time)
@@ -1355,7 +1365,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
 		       "creating new logging configuration");
 
-		(void) dns_c_ctx_getlogging(cctx, &clog);
+		(void)dns_c_ctx_getlogging(cctx, &clog);
 		if (clog != NULL) {
 			CHECKM(ns_log_configure(logc, clog),
 			       "configuring logging");

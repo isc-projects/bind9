@@ -1,3 +1,6 @@
+ 319.	[func]		The named.conf "controls" statement is now used
+			to configure the OMAPI command channel.
+
  318.	[func]		dns_c_ndcctx_destroy() could never return anything
 			except ISC_R_SUCCESS; made it have void return instead.
 
