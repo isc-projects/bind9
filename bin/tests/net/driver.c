@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: driver.c,v 1.2 2000/06/16 23:38:42 explorer Exp $ */
+/* $Id: driver.c,v 1.3 2000/06/19 17:49:54 tale Exp $ */
 
 #include <isc/string.h>
 #include <isc/util.h>
@@ -99,7 +99,7 @@ main(int argc, char **argv) {
 
 	if (n_failed > 0)
 		exit(1);
-	else
-		exit(0);
+
+	return (0);
 }
 
