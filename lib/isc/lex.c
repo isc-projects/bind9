@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.46 2000/11/16 03:03:16 bwelling Exp $ */
+/* $Id: lex.c,v 1.47 2000/11/16 03:44:41 bwelling Exp $ */
 
 #include <config.h>
 
@@ -790,6 +790,7 @@ isc_lex_ungettoken(isc_lex_t *lex, isc_token_t *tokenp) {
 		INSIST(lex->paren_count >= source->pushback_parens);
 		lex->paren_count -= source->pushback_parens;
 	}
+	source->at_eof = ISC_FALSE;
 }
 
 char *
