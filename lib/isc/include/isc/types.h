@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.32.2.1 2002/08/06 02:20:39 marka Exp $ */
+/* $Id: types.h,v 1.32.2.2 2002/08/06 06:09:07 marka Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.30.2.1 2002/08/06 04:18:44 marka Exp $ */
+/* $Id: getipnode.c,v 1.30.2.2 2002/08/06 06:09:07 marka Exp $ */
 
 #include <config.h>
 
