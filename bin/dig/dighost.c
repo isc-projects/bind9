@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.151 2000/10/19 17:30:14 gson Exp $ */
+/* $Id: dighost.c,v 1.152 2000/10/19 21:49:49 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -321,10 +321,10 @@ make_empty_lookup(void) {
 	looknew->section_authority = ISC_TRUE;
 	looknew->section_additional = ISC_TRUE;
 	looknew->new_search = ISC_FALSE;
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 	looknew->zonename[0] = 0;
 	looknew->viewname[0] = 0;
-#endif
+#endif /* DNS_OPT_NEWCODES_LIVE */
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
 	return (looknew);
@@ -373,10 +373,10 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_authority = lookold->section_authority;
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 	strncpy(looknew->viewname, lookold-> viewname, MXNAME);
 	strncpy(looknew->zonename, lookold-> zonename, MXNAME);
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -716,13 +716,13 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
 	isc_result_t result;
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 	isc_buffer_t *rdatabuf = NULL;
 	unsigned int i, optsize = 0;
-#else /* DNS_OPT_NEWCODES */
+#else /* DNS_OPT_NEWCODES_LIVE */
 
 	UNUSED(optlist);
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 
 	debug("add_opt()");
 	result = dns_message_gettemprdataset(msg, &rdataset);
@@ -740,7 +740,7 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
 	rdatalist->ttl = 0;
 	rdata->data = NULL;
 	rdata->length = 0;
-#ifdef DNS_OPT_NEWCODES
+#ifdef DNS_OPT_NEWCODES_LIVE
 	for (i=0; i<optlist.used; i++)
 		optsize += optlist.attrs[i].value.length + 4;
 	result = isc_buffer_allocate(mctx, &rdatabuf, optsize);
@@ -748,7 +748,7 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
 	result = dns_opt_add(rdata, &optlist, rdatabuf);
 	check_result(result, "dns_opt_add");
 	dns_message_takebuffer(msg, &rdatabuf);
-#endif /* DNS_OPT_NEWCODES */
+#endif /* DNS_OPT_NEWCODES_LIVE */
 	ISC_LIST_INIT(rdatalist->rdata);
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
