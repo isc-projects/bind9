@@ -122,6 +122,162 @@ static isc_result_t logging_init (dns_c_ctx_t *cfg);
 static isc_result_t  make_options(dns_c_ctx_t *cfg);
 
 
+
+isc_result_t
+dns_c_checkconfig(dns_c_ctx_t *ctx)
+{
+	isc_boolean_t 		bval;
+	char     	       *cpval;
+	dns_c_severity_t	severity;
+	isc_int32_t		intval;
+	dns_c_ipmatchlist_t    *ipml;
+
+	if (dns_c_ctx_getnamedxfer(ctx, &cpval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "named-xfer is now obsolete");
+	}
+
+	
+	if (dns_c_ctx_getdumpfilename(ctx, &cpval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "dump-file is not yet implemented.");
+	}
+	
+		
+	if (dns_c_ctx_getmemstatsfilename(ctx, &cpval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "memstatistics-file is not yet implemented.");
+	}
+	
+
+	if ((dns_c_ctx_getauthnxdomain(ctx, &bval)) == ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "the default for auth-nxdomain is now ``no''");
+	}
+
+
+	if (dns_c_ctx_getdealloconexit(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "deallocate-on-exit is obsolete.");
+	}
+
+	
+	if (dns_c_ctx_getfakeiquery(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "fake-iquery is obsolete.");
+	}
+
+
+	if (dns_c_ctx_getfetchglue(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "fetch-glue is not yet implemented.");
+	}
+
+
+	if (dns_c_ctx_gethasoldclients(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "has-old-clients is obsolete.");
+	}
+
+
+	if (dns_c_ctx_gethoststatistics(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "host-statistics is not yet implemented.");
+	}
+
+	
+	if (dns_c_ctx_getmultiplecnames(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "multiple-cnames is obsolete.");
+	}
+
+
+	if (dns_c_ctx_getuseidpool(ctx, &bval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "use-id-pool is obsolete.");
+	}
+
+
+	if ((dns_c_ctx_getchecknames(ctx, dns_trans_primary,
+				     &severity) != ISC_R_NOTFOUND) ||
+	    (dns_c_ctx_getchecknames(ctx, dns_trans_secondary,
+				     &severity) != ISC_R_NOTFOUND) ||
+	    (dns_c_ctx_getchecknames(ctx, dns_trans_response,
+				     &severity) != ISC_R_NOTFOUND)) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "check-names are not yet implemented.");
+	}
+	
+
+	if (dns_c_ctx_getmaxlogsizeixfr(ctx, &intval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "max-ixfr-log-size is not yet implemented.");
+	}
+	
+
+	if (dns_c_ctx_getstatsinterval(ctx, &intval) != ISC_R_NOTFOUND) {
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "statistics-interval is not yet implemented.");
+	}
+
+	
+	if (dns_c_ctx_gettopology(ctx, &ipml) != ISC_R_NOTFOUND) {
+		dns_c_ipmatchlist_detach(&ipml);
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "topology is not yet implemented.");
+	}
+
+	if (dns_c_ctx_getsortlist(ctx, &ipml) != ISC_R_NOTFOUND) {
+		dns_c_ipmatchlist_detach(&ipml);
+		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
+			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
+			      "sortlist is not yet implemented.");
+	}
+
+
+
+	/*
+  	named-xfer              obsolete
+	dump-file               not yet implemented
+	memstatistics-file      not yet implemented
+	auth-nxdomain           default changed (to "no")
+	deallocate-on-exit      obsolete (always "yes")
+	fake-iquery             obsolete (always "no")
+	fetch-glue              not yet implemented (always "no")
+	has-old-clients         obsolete (always "no")
+	host-statistics         not yet implemented
+	multiple-cnames         obsolete (always "no")
+	use-id-pool             obosolete (always "yes")
+	maintain-ixfr-base      obosolete (always "yes")
+	check-names             not yet implemented
+	max-ixfr-log-size       not yet implemented
+	statistics-interval     not yet implemented
+	topology                not yet implemented
+	sortlist                not yet implemented
+	*/
+
+	
+	return (ISC_R_SUCCESS);
+}
+
+
+/* ************************************************************************ */
+
 isc_result_t
 dns_c_ctx_new(isc_mem_t *mem, dns_c_ctx_t **ctx)
 {
@@ -1714,8 +1870,8 @@ dns_c_ctx_setforward(dns_c_ctx_t *cfg, dns_c_forw_t forw)
 
 
 isc_result_t
-dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, dns_c_ipmatchlist_t *iml,
-			isc_boolean_t copy)
+dns_c_ctx_setforwarders(dns_c_ctx_t *cfg, isc_boolean_t copy,
+			dns_c_ipmatchlist_t *iml)
 {
 	isc_result_t res;
 	
@@ -2380,6 +2536,25 @@ dns_c_ctx_getfiles(dns_c_ctx_t *cfg, isc_uint32_t *retval)
 
 
 isc_result_t
+dns_c_ctx_getexpertmode(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+{
+	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
+	REQUIRE(retval != NULL);
+
+	if (cfg->options == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+	
+	
+	return (cfg_get_boolean(cfg->options, 
+			       &cfg->options->expert_mode,
+			       retval,
+			       &cfg->options->setflags1,
+			       EXPERT_MODE_BIT));
+}
+
+
+isc_result_t
 dns_c_ctx_getfakeiquery(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
@@ -2550,8 +2725,9 @@ dns_c_ctx_gethasoldclients(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 }
 
 
+
 isc_result_t
-dns_c_ctx_getauth_nx_domain(dns_c_ctx_t *cfg, isc_boolean_t *retval)
+dns_c_ctx_getauthnxdomain(dns_c_ctx_t *cfg, isc_boolean_t *retval)
 {
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(retval != NULL);
@@ -3619,7 +3795,7 @@ cfg_get_iplist(dns_c_options_t *options,
 	REQUIRE(resval != NULL);
 
 	if (field != NULL && !ISC_LIST_EMPTY(field->elements)) {
-		*resval = field;
+		dns_c_ipmatchlist_attach(field, resval);
 		res = ISC_R_SUCCESS;
 	} else {
 		*resval = NULL;
