@@ -1,4 +1,7 @@
 
+ 410.	[bug]		lwres_gethostbyname() and company set lwres_h_errno
+			to a random value on success.
+
  409.	[bug]		If named was shut down early in the startup
 			process, ns_omapi_shutdown() would attempt to lock
 			an unintialized mutex. [RT #262]

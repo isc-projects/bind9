@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gethost.c,v 1.24 2000/08/14 01:28:21 marka Exp $ */
+/* $Id: gethost.c,v 1.25 2000/08/26 01:51:05 gson Exp $ */
 
 #include <config.h>
 
@@ -38,37 +38,30 @@ static int copytobuf(struct hostent *, struct hostent *, char *, int);
 
 struct hostent *
 lwres_gethostbyname(const char *name) {
-	int error;
 
 	if (he != NULL)
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyname(name, AF_INET, 0, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyname(name, AF_INET, 0, &lwres_h_errno);
 	return (he);
 }
 
 struct hostent *
 lwres_gethostbyname2(const char *name, int af) {
-	int error;
-
 	if (he != NULL)
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyname(name, af, 0, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyname(name, af, 0, &lwres_h_errno);
 	return (he);
 }
 
 struct hostent *
 lwres_gethostbyaddr(const char *addr, int len, int type) {
-	int error;
 
 	if (he != NULL)
 		lwres_freehostent(he);
 
-	he = lwres_getipnodebyaddr(addr, len, type, &error);
-	lwres_h_errno = error;
+	he = lwres_getipnodebyaddr(addr, len, type, &lwres_h_errno);
 	return (he);
 }
 
