@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.113 2000/11/09 18:39:46 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.114 2000/12/06 00:38:12 bwelling Exp $ */
 
 #include <config.h>
 
@@ -175,10 +175,6 @@ keythatsigned(dns_rdata_sig_t *sig) {
 				  DST_TYPE_PUBLIC, NULL, mctx, &pubkey);
 	if (result != ISC_R_SUCCESS)
 		return (NULL);
-
-	key = isc_mem_get(mctx, sizeof(signer_key_t));
-	if (key == NULL)
-		fatal("out of memory");
 
 	result = dst_key_fromfile(&sig->signer, sig->keyid, sig->algorithm,
 				  DST_TYPE_PRIVATE, NULL, mctx, &privkey);
