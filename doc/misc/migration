@@ -113,4 +113,27 @@ authoritative servers use this server will be very slow or fail
 completely.  We have contacted the manufacturer of the name server in
 case and are trying to resolve the issue with them.
 
-$Id: migration,v 1.9 2000/09/01 17:46:15 gson Exp $
+
+4. Unrestricted Character Set
+
+BIND 9 does not restrict the character set of domain names - it is
+fully 8-bit clean in accordance with RFC2181 section 11.
+
+It is strongly recommended that hostnames published in the DNS follow
+the RFC952 rules, but BIND 9 will not enforce this restriction.
+
+Historically, some applications have suffered from security flaws
+where data originating from the network, such as names returned by
+gethostbyaddr(), are used with insufficient checking and may cause a
+breach of security when containing unexpected characters; see
+<http://www.cert.org/advisories/CA-96.04.corrupt_info_from_servers.html>
+for details.  Some earlier versions of BIND attempt to protect these
+flawed applications from attack by discarding data containing
+characters deemed inappropriate in host names or mail addresses, under
+the control of the "check-names" option in named.conf and/or "options
+no-check-names" in resolv.conf.  BIND 9 provides no such protection;
+if applications with these flaws are still being used, they should
+be upgraded.
+
+
+$Id: migration,v 1.10 2000/09/01 18:30:30 gson Exp $
