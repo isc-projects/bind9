@@ -1,8 +1,12 @@
 #include <isc/net.h>
 #include <lwres/netdb.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
-#include <sys/param.h>	/* ALIGN */
+
+#define LWRES_ALIGNBYTES (sizeof(char *) - 1)
+#define LWRES_ALIGN(p) \
+	(((unsigned int)(p) + LWRES_ALIGNBYTES) &~ LWRES_ALIGNBYTES)
 
 static struct hostent *he = NULL;
 static int copytobuf(struct hostent *, struct hostent *, char *, int);
@@ -130,7 +134,7 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
 
         /* Find out the amount of space required to store the answer. */
         nptr = 2; /* NULL ptrs */
-        len = (char *)ALIGN(buf) - buf;
+        len = (char *)LWRES_ALIGN(buf) - buf;
         for (i = 0; he->h_addr_list[i]; i++, nptr++) {
                 len += he->h_length;
         }
@@ -148,8 +152,8 @@ copytobuf(struct hostent *he, struct hostent *hptr, char *buf, int buflen) {
         hptr->h_addrtype = he->h_addrtype;
         n = hptr->h_length = he->h_length;
 
-        ptr = (char **)ALIGN(buf);
-        cp = (char *)ALIGN(buf) + nptr * sizeof(char *);
+        ptr = (char **)LWRES_ALIGN(buf);
+        cp = (char *)LWRES_ALIGN(buf) + nptr * sizeof(char *);
 
         /* copy address list */
         hptr->h_addr_list = ptr;
