@@ -22,6 +22,7 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/dir.h>
+#include <isc/entropy.h>
 #include <isc/lex.h>
 #include <isc/string.h>
 #include <isc/task.h>
@@ -1309,8 +1310,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Load the TKEY information from the configuration.
 	 */
 	{
-		dns_tkey_ctx_t *t = NULL;
-		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, &t),
+		dns_tkeyctx_t *t = NULL;
+		CHECKM(dns_tkeyctx_fromconfig(cctx, ns_g_mctx, server->entropy,
+					      &t),
 		       "configuring TKEY");
 		if (server->tkeyctx != NULL)
 			dns_tkeyctx_destroy(&server->tkeyctx);
@@ -1552,10 +1554,15 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
 
-	CHECKFATAL(dst_lib_init(ns_g_mctx), "initializing DST");
+	CHECKFATAL(isc_entropy_create(ns_g_mctx, &server->entropy),
+		   "initializing entropy pool");
+
+	CHECKFATAL(dst_lib_init(ns_g_mctx, server->entropy, 0),
+		   "initializing DST");
 
 	server->tkeyctx = NULL;
-	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, &server->tkeyctx),
+	CHECKFATAL(dns_tkeyctx_create(ns_g_mctx, server->entropy,
+				      &server->tkeyctx),
 		   "creating TKEY context");
 
 	/*
@@ -1591,6 +1598,9 @@ ns_server_destroy(ns_server_t **serverp) {
 		dns_tkeyctx_destroy(&server->tkeyctx);
 
 	dst_lib_destroy();
+
+	if (server->entropy != NULL)
+		isc_entropy_detach(&server->entropy);
 
 	isc_event_free(&server->reload_event);
 	
