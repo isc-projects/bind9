@@ -1,6 +1,7 @@
 
  595.	[port]		On Linux 2.2, socket() returns EINVAL when it
 			should return EAFNOSUPPORT.  Work around this.
+			[RT #531]
 
  594.	[func]		sdb drivers are now assumed to not be thread-safe
 			unless the DNS_SDBFLAG_THREADSAFE flag is supplied.
