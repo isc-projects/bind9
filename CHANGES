@@ -420,7 +420,7 @@
 
 1274.	[bug]		Memory leak in lwres_gnbarequest_parse().
 
-1273.	[port]		libbind: solaris: 64 bit binary compatability.
+1273.	[port]		libbind: solaris: 64 bit binary compatibility.
 
 1272.	[contrib]	Berkeley DB 4.0 sdb implementation from
 			Nuno Miguel Rodrigues <nmr@co.sapo.pt>.
@@ -964,7 +964,7 @@
 
 1095.	[func]		libbind: resolver option: no-tld-query.  disables
 			trying unqualified as a tld.  no_tld_query is also
-			supported for FreeBSD compatability.
+			supported for FreeBSD compatibility.
 
 1094.	[func]		libbind: add support gcc's format string checking.
 

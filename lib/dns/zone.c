@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.381 2003/02/04 06:10:08 marka Exp $ */
+/* $Id: zone.c,v 1.382 2003/02/07 01:54:56 marka Exp $ */
 
 #include <config.h>
 
@@ -5170,7 +5170,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			} else
 				buf[0] = '\0';
 			dns_zone_log(zone, ISC_LOG_INFO,
-				     "transfered serial %u%s",
+				     "transferred serial %u%s",
 				     zone->serial, buf);
 		}
 
