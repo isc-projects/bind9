@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: check-instincludes.sh,v 1.7 2001/01/09 22:00:47 bwelling Exp $
+# $Id: check-instincludes.sh,v 1.8 2001/09/29 17:38:47 gson Exp $
 
 #
 # Check the installed bind9 header files to make sure that no header
@@ -67,6 +67,6 @@ EOF
     fi
 done <$tmp
 
-rm -f test.c test.o $tmp
+rm -f test.cc test.o $tmp
 
 exit $status
