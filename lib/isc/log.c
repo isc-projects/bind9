@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.32 2000/05/18 17:20:15 tale Exp $ */
+/* $Id: log.c,v 1.33 2000/05/18 17:56:35 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1158,8 +1158,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
-	REQUIRE(category != NULL && category->id < lctx->category_count);
-	REQUIRE(module != NULL && module->id < lctx->module_count);
+	REQUIRE(category != NULL);
+	REQUIRE(module != NULL);
+	if (lctx != NULL) {
+		REQUIRE(category->id < lctx->category_count);
+		REQUIRE(module->id < lctx->module_count);
+	}
 	REQUIRE(level != ISC_LOG_DYNAMIC);
 	REQUIRE(format != NULL);
 
