@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.23 2000/08/01 01:31:11 tale Exp $ */
+/* $Id: app.c,v 1.24 2000/08/25 18:58:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -275,7 +275,7 @@ isc_app_run(void) {
 			next_event = ISC_LIST_NEXT(event, ev_link);
 			ISC_LIST_UNLINK(on_run, event, ev_link);
 			task = event->ev_sender;
-			event->ev_sender = (void *)&running;
+			event->ev_sender = NULL;
 			isc_task_sendanddetach(&task, &event);
 		}
 
