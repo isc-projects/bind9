@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.89 2001/01/18 00:26:36 bwelling Exp $ */
+/* $Id: message.h,v 1.90 2001/02/02 22:05:04 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -323,8 +323,6 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
  *
  *	If the result is success:
  *
- *		Any bitstring labels are in canonical form.
- *
  *		The used space in 'target' is updated.
  *
  * Returns:
@@ -359,8 +357,6 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
  * Ensures:
  *
  *	If the result is success:
- *
- *		Any bitstring labels are in canonical form.
  *
  *		The used space in 'target' is updated.
  *

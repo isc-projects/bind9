@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.89 2001/01/22 18:21:45 gson Exp $ */
+/* $Id: name.h,v 1.90 2001/02/02 22:08:27 gson Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -801,8 +801,6 @@ dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target);
  *
  *	If the result is success:
  *
- *		Any bitstring labels are in canonical form.
- *
  *		The used space in target is updated.
  *
  * Returns:
@@ -886,8 +884,6 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
  * Ensures:
  *
  *	If the result is success:
- *
- *		Any bitstring labels are in canonical form.
  *
  *		The used space in target is updated.
  *
