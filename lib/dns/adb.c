@@ -28,7 +28,9 @@
 /*
  * After we have cleaned all buckets, dump the database contents.
  */
+#if 0
 #define DUMP_ADB_AFTER_CLEANING
+#endif
 
 #include <config.h>
 
