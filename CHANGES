@@ -1,4 +1,7 @@
 
+  67.	[performance]	Allow use of alternate (compile-time supplied)
+			OpenSSL libraries/headers.
+
   66.   [func]		Data in authoritative zones should have a trust level
 			beyond secure.
 
