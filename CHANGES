@@ -306,7 +306,7 @@
 
 1366.	[contrib]	queryperf usage was incomplete.  Add '-h' for help.
 
-1365.	[func]		"localhost" and "localnet" acls now include IPv6
+1365.	[func]		"localhost" and "localnets" acls now include IPv6
 			addresses / prefixes.
 
 1364.	[func]		Log file name when unable to open memory statistics
