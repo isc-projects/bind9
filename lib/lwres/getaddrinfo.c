@@ -1,27 +1,25 @@
 /*
- * Portions Copyright (C) 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1999, 2000  Internet Software Consortium.
+ * 
+ * This code is derived from software contributed to Internet Software
+ * Consortium by Berkeley Software Design, Inc.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
  * copyright notice and this permission notice appear in all copies.
  * 
- * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM DISCLAIMS
- * ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE
- * CONSORTIUM BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL
- * DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR
- * PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
- * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
- * SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND INTERNET SOFTWARE CONSORTIUM AND
+ * BERKELEY SOFTWARE DESIGN, INC DISCLAIM ALL WARRANTIES WITH REGARD TO
+ * THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS. IN NO EVENT SHALL INTERNET SOFTWARE CONSORTIUM OR BERKELEY
+ * SOFTWARE DESIGN, INC BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+ * CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF
+ * USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+ * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*-
- * Copyright (c) 1997 Berkeley Software Design, Inc. All rights reserved.
- * The Berkeley Software Design Inc. software License Agreement specifies
- * the terms and conditions for redistribution.
- *
- *	BSDI $Id: getaddrinfo.c,v 1.23.2.1 2000/06/26 23:08:45 explorer Exp $
- */
+/* $Id: getaddrinfo.c,v 1.23.2.2 2000/07/03 17:50:03 gson Exp $ */
 
 #include <config.h>
 
