@@ -604,7 +604,7 @@ dump_rdataset(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	if (nwritten != (size_t) r.length) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "master file write failed: %s\n",
+				 "master file write failed: %s",
 				 strerror(errno));
 		return (DNS_R_UNEXPECTED);
 	}

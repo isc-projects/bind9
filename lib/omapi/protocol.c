@@ -603,7 +603,7 @@ dispatch_messages(omapi_protocol_t *protocol,
 
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "unknown state in "
-				 "omapi_protocol_signal_handler: %d\n",
+				 "omapi_protocol_signal_handler: %d",
 				 protocol->state);
 		result = ISC_R_UNEXPECTED;
 		break;

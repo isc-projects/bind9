@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.15 2000/02/03 23:14:29 halley Exp $ */
+/* $Id: connection.c,v 1.16 2000/02/17 19:58:58 gson Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -978,7 +978,7 @@ omapi_connection_putdata(omapi_object_t *c, omapi_data_t *data) {
 
 	UNEXPECTED_ERROR(__FILE__, __LINE__,
 			 "unknown type in omapi_connection_putdata: "
-			 "%d\n", data->type);
+			 "%d", data->type);
 	return (ISC_R_UNEXPECTED);
 }
 
@@ -1070,9 +1070,9 @@ connection_destroy(omapi_object_t *handle) {
 
 	if (connection->state == omapi_connection_connected) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "Unexpected path to connection_destroy\n"
-				 "The connection object was dereferenced "
-				 "without a previous disconnect.\n");
+				 "Unexpected path to connection_destroy - "
+				 "the connection object was dereferenced "
+				 "without a previous disconnect");
 		omapi_connection_disconnect(handle, OMAPI_FORCE_DISCONNECT);
 	}
 }

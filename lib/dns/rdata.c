@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.69 2000/02/03 23:43:57 halley Exp $ */
+ /* $Id: rdata.c,v 1.70 2000/02/17 19:58:57 gson Exp $ */
 
 #include <config.h>
 
@@ -452,7 +452,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 					break;
 				default:
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
-					    "isc_lex_gettoken() failed: %s\n",
+					    "isc_lex_gettoken() failed: %s",
 					    isc_result_totext(result));
 					result = DNS_R_UNEXPECTED;
 					break;
@@ -1163,7 +1163,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 		return (DNS_R_NOSPACE);
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_lex_gettoken() failed: %s\n",
+				 "isc_lex_gettoken() failed: %s",
 				 isc_result_totext(result));
                 return (DNS_R_UNEXPECTED);
 	}

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: data.c,v 1.8 2000/02/03 23:14:30 halley Exp $ */
+/* $Id: data.c,v 1.9 2000/02/17 19:58:59 gson Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -72,7 +72,7 @@ omapi_data_create(omapi_data_t **t, omapi_datatype_t type, ...) {
 		break;
 	default:
                 UNEXPECTED_ERROR(__FILE__, __LINE__,
-                                 "unknown type in omapi_data_create: %d\n",
+                                 "unknown type in omapi_data_create: %d",
 				 type);
                 return (ISC_R_UNEXPECTED);
 	}

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.c,v 1.6 2000/02/03 23:08:22 halley Exp $ */
+ /* $Id: base64.c,v 1.7 2000/02/17 19:58:58 gson Exp $ */
 
 #include <config.h>
 
@@ -211,7 +211,7 @@ gettoken(isc_lex_t *lexer, isc_token_t *token, isc_tokentype_t expect,
 		return (ISC_R_NOSPACE);
 	default:
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_lex_gettoken() failed: %s\n",
+				 "isc_lex_gettoken() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}

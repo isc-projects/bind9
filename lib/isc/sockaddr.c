@@ -183,7 +183,7 @@ isc_sockaddr_hash(const isc_sockaddr_t *sockaddr, isc_boolean_t address_only) {
 			break;
 		default:
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "unknown address family: %d\n",
+					 "unknown address family: %d",
 					 (int)sockaddr->type.sa.sa_family);
 			s = (unsigned char *)&sockaddr->type;
 			length = sockaddr->length;

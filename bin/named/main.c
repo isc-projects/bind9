@@ -238,7 +238,7 @@ create_managers() {
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_taskmgr_create() failed: %s\n",
+				 "ns_taskmgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -246,7 +246,7 @@ create_managers() {
 	result = isc_timermgr_create(ns_g_mctx, &ns_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_timermgr_create() failed: %s\n",
+				 "ns_timermgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -254,7 +254,7 @@ create_managers() {
 	result = isc_socketmgr_create(ns_g_mctx, &ns_g_socketmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_socketmgr_create() failed: %s\n",
+				 "isc_socketmgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
