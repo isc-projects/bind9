@@ -1,3 +1,5 @@
+1354.	[bug]		nsupdate was extremely wasteful of memory.
+
 1355.	[tuning]	Reduce the number of events / quantum for zone tasks.
 
 1354.	[doc]		lwres man pages had illegal nroff.
