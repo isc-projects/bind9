@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.47 2000/09/15 23:30:28 mws Exp $ */
+/* $Id: nsupdate.c,v 1.48 2000/09/18 17:37:16 bwelling Exp $ */
 
 #include <config.h>
 
@@ -105,6 +105,8 @@ static int ns_total = 0;
 static isc_sockaddr_t *userserver = NULL;
 static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
+
+extern int h_errno;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
