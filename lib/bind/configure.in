@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.5.2.12 $)
+AC_REVISION($Revision: 1.83.2.5.2.13 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -315,7 +315,7 @@ case "$use_randomdev" in
 		;;
 esac
 
-sinclude(config.threads.in)dnl
+sinclude(../../config.threads.in)dnl
 
 if $use_threads
 then
