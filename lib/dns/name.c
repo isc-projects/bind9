@@ -2969,8 +2969,9 @@ dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
 
 	suffixlabels = 0;
 	nbits = 0;
-	label = name->labels - 1;
+	label = name->labels;
 	do {
+		label--;
 		ndata = &name->ndata[offsets[label]];
 		count = *ndata++;
 		if (count > 63) {
@@ -2999,7 +3000,6 @@ dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
 			suffixlabels++;
 			depth--;
 		}
-		label--;
 	} while (depth != 0 && label != 0);
 
 	/*
