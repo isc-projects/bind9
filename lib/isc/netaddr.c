@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.27 2004/03/05 05:10:47 marka Exp $ */
+/* $Id: netaddr.c,v 1.28 2004/05/15 03:37:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -47,7 +47,8 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 		break;
 	case AF_INET6:
 		if (memcmp(&a->type.in6, &b->type.in6,
-			   sizeof(a->type.in6)) != 0)
+			   sizeof(a->type.in6)) != 0 ||
+		    a->zone != b->zone)
 			return (ISC_FALSE);
 		break;
 	default:

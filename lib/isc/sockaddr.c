@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.59 2004/03/05 05:10:49 marka Exp $ */
+/* $Id: sockaddr.c,v 1.60 2004/05/15 03:37:33 jinmei Exp $ */
 
 #include <config.h>
 
@@ -57,6 +57,10 @@ isc_sockaddr_equal(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 		if (memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
 			   sizeof(a->type.sin6.sin6_addr)) != 0)
 			return (ISC_FALSE);
+#ifdef ISC_PLATFORM_HAVESCOPEID
+		if (a->type.sin6.sin6_scope_id != b->type.sin6.sin6_scope_id)
+			return (ISC_FALSE);
+#endif
 		if (a->type.sin6.sin6_port != b->type.sin6.sin6_port)
 			return (ISC_FALSE);
 		break;
@@ -86,6 +90,10 @@ isc_sockaddr_eqaddr(const isc_sockaddr_t *a, const isc_sockaddr_t *b) {
 		if (memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
 			   sizeof(a->type.sin6.sin6_addr)) != 0)
 			return (ISC_FALSE);
+#ifdef ISC_PLATFORM_HAVESCOPEID
+		if (a->type.sin6.sin6_scope_id != b->type.sin6.sin6_scope_id)
+			return (ISC_FALSE);
+#endif
 		break;
 	default:
 		if (memcmp(&a->type, &b->type, a->length) != 0)

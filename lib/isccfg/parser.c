@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112 2004/03/18 02:58:07 marka Exp $ */
+/* $Id: parser.c,v 1.113 2004/05/15 03:37:34 jinmei Exp $ */
 
 #include <config.h>
 
@@ -1671,7 +1671,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 		}
 		if ((flags & CFG_ADDR_V6OK) != 0 &&
 		    strlen(s) <= 127U) {
-			char buf[128];
+			char buf[128]; /* see lib/bind9/getaddresses.c */
 			char *d; /* zone delimiter */
 			isc_uint32_t zone = 0; /* scope zone ID */
 
@@ -1682,6 +1682,7 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 
 			if (inet_pton(AF_INET6, buf, &in6a) == 1) {
 				if (d != NULL) {
+#ifdef ISC_PLATFORM_HAVESCOPEID
 					isc_result_t result;
 
 					result = isc_netscope_pton(AF_INET6,
@@ -1690,6 +1691,9 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 								   &zone);
 					if (result != ISC_R_SUCCESS)
 						return (result);
+#else
+				return (ISC_R_BADADDRESSFORM);
+#endif
 				}
 
 				isc_netaddr_fromin6(na, &in6a);

@@ -25,7 +25,8 @@
 
 1630.	[contrib]	queryperf: add support for IPv6 transport.
 
-1629.	[placeholder]	rt8753
+1629.	[func]		dig now supports IPv6 scoped addresses with the
+			extended format in the local-server part. [RT #8753]
 
 1628.	[bug]		Typo in Compaq Trucluster support. [RT# 11264]
 
