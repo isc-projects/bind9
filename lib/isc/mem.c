@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.94 2001/06/27 23:29:27 marka Exp $ */
+/* $Id: mem.c,v 1.95 2001/06/28 01:51:20 marka Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,10 @@
 #include <isc/mutex.h>
 #include <isc/util.h>
 
-unsigned int isc_mem_debugging = 0;
+#ifndef ISC_MEM_DEBUGGING
+#define ISC_MEM_DEBUGGING 0
+#endif
+unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
 /*
  * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
@@ -139,6 +142,7 @@ struct isc_mem {
 
 #if ISC_MEM_TRACKLINES
 	ISC_LIST(debuglink_t)	debuglist;
+	unsigned int		debugging;
 #endif
 
 	unsigned int		memalloc_failures;
@@ -182,7 +186,7 @@ struct isc_mempool {
 #define DELETE_TRACE(a, b, c, d, e)	delete_trace_entry(a, b, c, d, e)
 
 #define MEM_TRACE	((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
-#define MEM_RECORD	((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)
+#define MEM_RECORD	((ctx->debugging & ISC_MEM_DEBUGRECORD) != 0)
 
 static void
 print_active(isc_mem_t *ctx, FILE *out);
@@ -759,6 +763,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 
 #if ISC_MEM_TRACKLINES
 	ISC_LIST_INIT(ctx->debuglist);
+	ctx->debugging = isc_mem_debugging;
 #endif
 
 	ctx->memalloc_failures = 0;
@@ -1043,7 +1048,7 @@ isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 #if ISC_MEM_TRACKLINES
 static void
 print_active(isc_mem_t *ctx, FILE *out) {
-	if (isc_mem_debugging > 1) {
+	if (ctx->debugging > 1) {
 		debuglink_t *dl;
 		unsigned int i;
 
