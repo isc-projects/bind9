@@ -1,3 +1,6 @@
+ 643.	[bug]		xfrin error messages made more verbose, added class
+			of the zone.  [RT# 599]
+
  642.	[bug]		Break the exit_check() race in the zone module.
 			[RT #598]
 

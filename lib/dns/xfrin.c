@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.109 2000/12/13 00:15:14 tale Exp $ */
+/* $Id: xfrin.c,v 1.110 2000/12/30 13:03:46 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/message.h>
+#include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
@@ -221,11 +222,11 @@ static isc_result_t
 render(dns_message_t *msg, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
-	   const char *fmt, va_list ap);
+xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap);
 static void
-xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
-	   const char *fmt, ...);
+xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	   isc_sockaddr_t *masteraddr, const char *fmt, ...);
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...);
 
@@ -574,8 +575,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	if (db != NULL)
 		dns_db_detach(&db);
 	if (result != ISC_R_SUCCESS)
-		xfrin_log1(ISC_LOG_ERROR, zonename, masteraddr,
-			   "zone transfer setup failed");
+		xfrin_log1(ISC_LOG_ERROR, zonename, dns_zone_getclass(zone),
+			   masteraddr, "zone transfer setup failed");
 	return (result);
 }
 
@@ -763,7 +764,7 @@ xfrin_create(isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 
  failure:
-	xfrin_fail(xfr, result, "creating transfer context");
+	xfrin_fail(xfr, result, "failed creating transfer context");
 	return (result);
 }
 
@@ -780,7 +781,7 @@ xfrin_start(dns_xfrin_ctx_t *xfr) {
 	xfr->connects++;
 	return (ISC_R_SUCCESS);
  failure:
-	xfrin_fail(xfr, result, "setting up socket");
+	xfrin_fail(xfr, result, "failed setting up socket");
 	return (result);
 }
 
@@ -833,7 +834,7 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	CHECK(xfrin_send_request(xfr));
  failure:
 	if (result != ISC_R_SUCCESS)
-		xfrin_fail(xfr, result, "connect");
+		xfrin_fail(xfr, result, "failed to connect");
 }
 
 /*
@@ -1014,7 +1015,7 @@ xfrin_sendlen_done(isc_task_t *task, isc_event_t *event) {
 	xfr->sends++;
  failure:
 	if (result != ISC_R_SUCCESS)
-		xfrin_fail(xfr, result, "sending request length prefix");
+		xfrin_fail(xfr, result, "failed sending request length prefix");
 }
 
 
@@ -1040,7 +1041,7 @@ xfrin_send_done(isc_task_t *task, isc_event_t *event) {
  failure:
 	isc_event_free(&event);
 	if (result != ISC_R_SUCCESS)
-		xfrin_fail(xfr, result, "sending request data");
+		xfrin_fail(xfr, result, "failed sending request data");
 }
 
 
@@ -1213,7 +1214,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 	if (msg != NULL)
 		dns_message_destroy(&msg);
 	if (result != ISC_R_SUCCESS)
-		xfrin_fail(xfr, result, "receiving responses");
+		xfrin_fail(xfr, result, "failed while receiving responses");
 }
 
 static void
@@ -1288,21 +1289,24 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message>
  */
 static void
-xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
-	   const char *fmt, va_list ap)
+xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap)
 {
 	char zntext[DNS_NAME_FORMATSIZE];
 	char mastertext[ISC_SOCKADDR_FORMATSIZE];
+	char classtext[DNS_RDATACLASS_FORMATSIZE];
 	char msgtext[2048];
 
+	
 	dns_name_format(zonename, zntext, sizeof(zntext));
+	dns_rdataclass_format(rdclass, classtext, sizeof(classtext));
 	isc_sockaddr_format(masteraddr, mastertext, sizeof(mastertext));
 	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN,
 		      DNS_LOGMODULE_XFER_IN, level,
-		      "transfer of '%s' from %s: %s",
-		      zntext, mastertext, msgtext);
+		      "transfer of '%s/%s' from %s: %s",
+		      zntext, classtext, mastertext, msgtext);
 }
 
 /*
@@ -1310,8 +1314,8 @@ xfrin_logv(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
  */
 
 static void
-xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
-	   const char *fmt, ...)
+xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
+	   isc_sockaddr_t *masteraddr, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -1319,7 +1323,7 @@ xfrin_log1(int level, dns_name_t *zonename, isc_sockaddr_t *masteraddr,
 		return;
 
 	va_start(ap, fmt);
-	xfrin_logv(level, zonename, masteraddr, fmt, ap);
+	xfrin_logv(level, zonename, rdclass, masteraddr, fmt, ap);
 	va_end(ap);
 }
 
@@ -1336,6 +1340,6 @@ xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
 		return;
 
 	va_start(ap, fmt);
-	xfrin_logv(level, &xfr->name, &xfr->masteraddr, fmt, ap);
+	xfrin_logv(level, &xfr->name, xfr->rdclass, &xfr->masteraddr, fmt, ap);
 	va_end(ap);
 }
