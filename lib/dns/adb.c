@@ -196,9 +196,9 @@ static void print_dns_name(FILE *, dns_name_t *);
 static void print_namehook_list(FILE *, dns_adbname_t *);
 static void print_handle_list(FILE *, dns_adbname_t *);
 static inline void inc_adb_irefcnt(dns_adb_t *, isc_boolean_t);
-static inline void dec_adb_irefcnt(dns_adb_t *, isc_boolean_t);
+static inline isc_boolean_t dec_adb_irefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_adb_erefcnt(dns_adb_t *, isc_boolean_t);
-static inline void dec_adb_erefcnt(dns_adb_t *, isc_boolean_t);
+static inline isc_boolean_t dec_adb_erefcnt(dns_adb_t *, isc_boolean_t);
 static inline void inc_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
 				    isc_boolean_t);
 static inline void dec_entry_refcnt(dns_adb_t *, dns_adbentry_t *,
@@ -209,6 +209,8 @@ static void clean_handles_at_name(dns_adbname_t *, isc_eventtype_t);
 static isc_result_t construct_name(dns_adb_t *, dns_adbhandle_t *,
 				   dns_name_t *, dns_name_t *,
 				   dns_adbname_t *, int, isc_stdtime_t);
+
+static inline isc_boolean_t check_exit(dns_adb_t *);
 
 static inline void
 violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
@@ -221,7 +223,8 @@ violate_locking_hierarchy(isc_mutex_t *have, isc_mutex_t *want)
 }
 
 /*
- * The ADB _MUST_ be locked before calling.
+ * The ADB _MUST_ be locked before calling.  Also, exit conditions must be
+ * checked after calling this function.
  */
 static void
 shutdown_names(dns_adb_t *adb, isc_boolean_t kill_fetches)
@@ -345,6 +348,16 @@ clean_handles_at_name(dns_adbname_t *name, isc_eventtype_t evtype)
 	}
 }
 
+static inline isc_boolean_t
+check_exit(dns_adb_t *adb)
+{
+	if ((adb->irefcnt == 0)
+	    && (adb->erefcnt == 0)
+	    && (isc_mempool_getallocated(adb->ahmp) == 0))
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
 static inline void
 inc_adb_irefcnt(dns_adb_t *adb, isc_boolean_t lock)
 {
@@ -357,20 +370,23 @@ inc_adb_irefcnt(dns_adb_t *adb, isc_boolean_t lock)
 		UNLOCK(&adb->lock);
 }
 
-static inline void
+static inline isc_boolean_t
 dec_adb_irefcnt(dns_adb_t *adb, isc_boolean_t lock)
 {
+	isc_boolean_t kill;
+
 	if (lock)
 		LOCK(&adb->lock);
 
 	INSIST(adb->irefcnt > 0);
 	adb->irefcnt--;
 
-	if (adb->irefcnt == 0 && adb->erefcnt)
-		SIGNAL(&adb->shutdown_cond);
+	kill = check_exit(adb);
 
 	if (lock)
 		UNLOCK(&adb->lock);
+
+	return (kill);
 }
 
 static inline void
@@ -385,20 +401,23 @@ inc_adb_erefcnt(dns_adb_t *adb, isc_boolean_t lock)
 		UNLOCK(&adb->lock);
 }
 
-static inline void
+static inline isc_boolean_t
 dec_adb_erefcnt(dns_adb_t *adb, isc_boolean_t lock)
 {
+	isc_boolean_t kill;
+
 	if (lock)
 		LOCK(&adb->lock);
 
 	INSIST(adb->erefcnt > 0);
 	adb->erefcnt--;
 
-	if (adb->irefcnt == 0 && adb->erefcnt)
-		SIGNAL(&adb->shutdown_cond);
+	kill = check_exit(adb);
 
 	if (lock)
 		UNLOCK(&adb->lock);
+
+	return (kill);
 }
 
 static inline void
@@ -629,6 +648,7 @@ new_adbhandle(dns_adb_t *adb)
 	 * public members
 	 */
 	h->magic = 0;
+	h->adb = adb;
 	h->query_pending = ISC_FALSE;
 	h->partial_result = ISC_FALSE;
 	h->result = ISC_R_UNEXPECTED;
@@ -1029,36 +1049,25 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb)
 }
 
 void
-dns_adb_destroy(dns_adb_t **adbx)
+dns_adb_detach(dns_adb_t **adbx)
 {
 	dns_adb_t *adb;
-	isc_boolean_t done;
+	isc_boolean_t kill;
 
 	REQUIRE(adbx != NULL && DNS_ADB_VALID(*adbx));
 
 	adb = *adbx;
 	*adbx = NULL;
 
-	/*
-	 * If all lists are empty, destroy the memory used by this
-	 * adb.
-	 */
 	LOCK(&adb->lock);
-	shutdown_names(adb, ISC_TRUE);
 	dec_adb_erefcnt(adb, ISC_FALSE);
-	do {
-		done = ISC_TRUE;
-		if (adb->erefcnt != 0 || adb->irefcnt != 0)
-			done = ISC_FALSE;
-		if (isc_mempool_getallocated(adb->ahmp) > 0)
-			done = ISC_FALSE;
-
-		if (!done)
-			WAIT(&adb->shutdown_cond, &adb->lock);
-	} while (!done);
+	if (adb->erefcnt == 0)
+		shutdown_names(adb, ISC_TRUE);
+	kill = check_exit(adb);
 	UNLOCK(&adb->lock);
 
-	destroy(adb);
+	if (kill)
+		destroy(adb);
 }
 
 isc_result_t
@@ -1403,22 +1412,25 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr)
 }
 
 void
-dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handlep)
+dns_adb_done(dns_adbhandle_t **handlep)
 {
 	dns_adbhandle_t *handle;
 	dns_adbentry_t *entry;
 	dns_adbaddrinfo_t *ai;
 	int bucket;
-
-	REQUIRE(DNS_ADB_VALID(adb));
+	dns_adb_t *adb;
+	isc_boolean_t kill;
 
 	REQUIRE(handlep != NULL && DNS_ADBHANDLE_VALID(*handlep));
 	handle = *handlep;
 	*handlep = NULL;
 
+	LOCK(&handle->lock);
+
+	adb = handle->adb;
+	REQUIRE(DNS_ADB_VALID(adb));
 	REQUIRE(!ISC_LINK_LINKED(handle, next));
 
-	LOCK(&handle->lock);
 	bucket = handle->name_bucket;
 	if (bucket == DNS_ADB_INVALIDBUCKET)
 		goto cleanup;
@@ -1455,7 +1467,14 @@ dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handlep)
 		free_adbaddrinfo(adb, &ai);
 		ai = ISC_LIST_HEAD(handle->list);
 	}
+
+	LOCK(&adb->lock);
 	free_adbhandle(adb, &handle);
+	kill = check_exit(adb);
+	UNLOCK(&adb->lock);
+
+	if (kill)
+		destroy(adb);
 }
 
 void
@@ -1547,10 +1566,10 @@ dns_adb_dump(dns_adb_t *adb, FILE *f)
 			if (tmpp == NULL)
 				tmpp = "CANNOT TRANSLATE ADDRESS!";
 
-			fprintf(f, "\trefcnt %u flags %08x goodness %d"
+			fprintf(f, "\t%p: refcnt %u flags %08x goodness %d"
 				" srtt %u addr %s\n",
-				entry->refcnt, entry->flags, entry->goodness,
-				entry->srtt, tmpp);
+				entry, entry->refcnt, entry->flags,
+				entry->goodness, entry->srtt, tmpp);
 
 			entry = ISC_LIST_NEXT(entry, link);
 		}

@@ -136,6 +136,7 @@ struct dns_adbhandle {
 	isc_mutex_t			lock;		/* locks all below */
 	int				name_bucket;
 	dns_adbname_t		       *adbname;
+	dns_adb_t		       *adb;
 	isc_event_t			event;
 	ISC_LINK(dns_adbhandle_t)	link;
 };
@@ -208,7 +209,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, dns_adb_t **newadb);
 
 
 void
-dns_adb_destroy(dns_adb_t **adb);
+dns_adb_detach(dns_adb_t **adb);
 /*
  * Delete the ADB. Sets *ADB to NULL. Cancels any outstanding requests.
  *
@@ -329,7 +330,7 @@ dns_adb_insert(dns_adb_t *adb, dns_name_t *host, isc_sockaddr_t *addr);
 
 
 void
-dns_adb_done(dns_adb_t *adb, dns_adbhandle_t **handle);
+dns_adb_done(dns_adbhandle_t **handle);
 /*
  * Stops any internal lookups for this handle.
  *
