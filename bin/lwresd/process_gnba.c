@@ -55,6 +55,7 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 	(void)task;
 
+	lwb.base = NULL;
 	client = event->arg;
 	INSIST(client->byaddr == event->sender);
 
@@ -119,7 +120,6 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 	client->pkt.authlength = 0;
 	client->pkt.result = LWRES_R_SUCCESS;
 
-	lwres_buffer_init(&lwb, client->buffer, LWRES_RECVLENGTH);
 	lwres = lwres_gnbaresponse_render(client->clientmgr->lwctx,
 					  gnba, &client->pkt, &lwb);
 
@@ -140,9 +140,16 @@ byaddr_done(isc_task_t *task, isc_event_t *event)
 
 	CLIENT_SETSEND(client);
 
+	return;
+
  out:
 	if (client->byaddr != NULL)
 		dns_byaddr_destroy(&client->byaddr);
+
+	if (lwb.base != NULL)
+		lwres_context_freemem(client->clientmgr->lwctx,
+				      lwb.base, lwb.length);
+
 	isc_event_free(&event);
 }
 

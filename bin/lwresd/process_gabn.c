@@ -122,10 +122,11 @@ generate_reply(client_t *client)
 	isc_result_t result;
 	int lwres;
 	isc_region_t r;
-	lwres_buffer_t b;
+	lwres_buffer_t lwb;
 	clientmgr_t *cm;
 
 	cm = client->clientmgr;
+	lwb.base = NULL;
 
 	DP(50, "Generating gabn reply for client %p", client);
 
@@ -163,16 +164,15 @@ generate_reply(client_t *client)
 	client->pkt.authlength = 0;
 	client->pkt.result = LWRES_R_SUCCESS;
 
-	lwres_buffer_init(&b, client->buffer, LWRES_RECVLENGTH);
 	lwres = lwres_gabnresponse_render(cm->lwctx, &client->gabn,
-					  &client->pkt, &b);
+					  &client->pkt, &lwb);
 	if (lwres != LWRES_R_SUCCESS)
 		goto out;
 
-	hexdump("Sending to client", b.base, b.used);
+	hexdump("Sending to client", lwb.base, lwb.used);
 
-	r.base = b.base;
-	r.length = b.used;
+	r.base = lwb.base;
+	r.length = lwb.used;
 	client->sendbuf = r.base;
 	client->sendlength = r.length;
 	result = isc_socket_sendto(cm->sock, &r, cm->task, client_send, client,
@@ -186,10 +186,16 @@ generate_reply(client_t *client)
 	 * All done!
 	 */
 	cleanup_gabn(client);
+
 	return;
 
  out:
 	cleanup_gabn(client);
+
+	if (lwb.base != NULL)
+		lwres_context_freemem(client->clientmgr->lwctx,
+				      lwb.base, lwb.length);
+
 	error_pkt_send(client, LWRES_R_FAILURE);
 }
 
