@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.23 $)
+AC_REVISION($Revision: 1.24 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1304,8 +1304,11 @@ GETGROUPLIST_ARGS="#define GETGROUPLIST_ARGS const char *name, int basegid, int 
 GETGROUPLIST_ARGS="#define GETGROUPLIST_ARGS const char *name, gid_t basegid, gid_t *groups, int *ngroups"
 ),
 GETGROUPLIST_ARGS="#define GETGROUPLIST_ARGS const char *name, gid_t basegid, gid_t *groups, int *ngroups"
+AC_DEFINE(NEED_GETGROUPLIST)
 )
 AC_SUBST(GETGROUPLIST_ARGS)
+
+AC_CHECK_FUNC(setgroupent,,AC_DEFINE(NEED_SETGROUPENT))
 
 AC_CHECK_FUNC(getnetbyaddr_r,
 AC_TRY_COMPILE(
