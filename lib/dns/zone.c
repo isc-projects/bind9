@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.283.2.15 2001/07/18 18:07:04 gson Exp $ */
+/* $Id: zone.c,v 1.283.2.16 2001/07/19 17:11:33 gson Exp $ */
 
 #include <config.h>
 
@@ -2254,7 +2254,10 @@ notify_destroy(dns_notify_t *notify, isc_boolean_t locked) {
 			ISC_LIST_UNLINK(notify->zone->notifies, notify, link);
 		if (!locked)
 			UNLOCK_ZONE(notify->zone);
-		dns_zone_idetach(&notify->zone);
+		if (locked)
+			zone_idetach(&notify->zone);
+		else
+			dns_zone_idetach(&notify->zone);
 	}
 	if (notify->find != NULL)
 		dns_adb_destroyfind(&notify->find);

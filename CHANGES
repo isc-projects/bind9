@@ -1,4 +1,6 @@
 
+ 940.	[bug]		Double zone locking failure on error path. [RT #1510]
+
  937.	[bug]		A race when shutting down a zone could trigger a
 			INSIST() failure. [RT #1034]
 
