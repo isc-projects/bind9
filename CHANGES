@@ -1,3 +1,6 @@
+
+ 892.	[placeholder]
+
  891.	[bug]		Return an error when a SIG(0) signed response to
  			an unsigned query is seen.  This should actually
 			do the verification, but it's not currently
