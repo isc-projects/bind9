@@ -211,6 +211,7 @@ printmessage(dns_message_t *msg) {
 		if (result != DNS_R_SUCCESS)
 			return (result);
 	}
+	printf("\n");
 
 	return (result);
 }

@@ -229,6 +229,8 @@ main(int argc, char *argv[]) {
 			if (argc < 2)
 				usage();
 			port = atoi(argv[1]);
+			argv++;
+			argc--;
 		} else if (strcmp(argv[0], "+vc") == 0) {
 			fatal("TCP transport not yet implemented");
 		} else {
@@ -252,8 +254,8 @@ main(int argc, char *argv[]) {
 						 rdtype);
 					have_type = ISC_TRUE;
 				} else {
-					if (dns_rdatatype_fromtext(&nclass,
-								   &tr) !=
+					if (dns_rdataclass_fromtext(&nclass,
+								    &tr) !=
 					    ISC_R_SUCCESS)
 						fatal("unknown class "
 						      "or type %s", argv[0]);
