@@ -1,4 +1,6 @@
 
+ 597.	[func]		dnssec-signzone is now multithreaded.
+
  596.	[bug]		DNS_RDATASLAB_FORCE and DNS_RDATASLAB_EXACT are
 			not mutually exclusive.
 
