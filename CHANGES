@@ -1,4 +1,8 @@
+1627.	[bug]		win32: sockets were not being closed when the
+			last external reference was removed. [RT# 11179]
+
 1626.	[bug]		--enable-getifaddrs was broken. [RT#11259]
+
 1624.	[bug]		zonemgr_putio() call should be locked. [RT# 11163]
 
 1623.	[bug]		A serial number of zero was being displayed in the
