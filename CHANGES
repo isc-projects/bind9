@@ -1,3 +1,6 @@
+1386.	[bug]		named-checkzone -z stopped on errors in a zone.
+			[RT #3653]
+
 1383.	[func]		Track the serial number in a IXFR response and log if
 			a mismatch occurs.  This is a more specific error than
 			"not exact". [RT #3445]

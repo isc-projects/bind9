@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.12.12.3 2003/08/12 07:10:25 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.12.12.4 2003/08/22 03:50:44 marka Exp $ */
 
 #include <config.h>
 
@@ -129,6 +129,7 @@ configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 	cfg_obj_t *voptions;
 	cfg_obj_t *zonelist;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 
 	voptions = NULL;
 	if (vconfig != NULL)
@@ -145,9 +146,10 @@ configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *zconfig = cfg_listelt_value(element);
-		CHECK(configure_zone(vclass, view, zconfig, mctx));
+		tresult = configure_zone(vclass, view, zconfig, mctx);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
 	}
- cleanup:
 	return (result);
 }
 
@@ -160,6 +162,7 @@ load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 	cfg_obj_t *vconfig;
 	const char *vclass;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 
 	views = NULL;
 
@@ -178,12 +181,16 @@ load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 				vclass = cfg_obj_asstring(classobj);
 		}
 		vname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
-		CHECK(configure_view(vclass, vname, config, vconfig, mctx));
+		tresult = configure_view(vclass, vname, config, vconfig, mctx);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
 	}
 
-	if (views == NULL)
-		CHECK(configure_view("IN", "_default", config, NULL, mctx));
- cleanup:
+	if (views == NULL) {
+		tresult = configure_view("IN", "_default", config, NULL, mctx);
+		if (tresult != ISC_R_SUCCESS)
+			result = tresult;
+	}
 	return (result);
 }
 
