@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.10 $)
+AC_REVISION($Revision: 1.294.2.11 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -330,6 +330,29 @@ $use_openssl/lib and $use_openssl/include.
 Please check the argument to --with-openssl and your
 shared library configuration (e.g., LD_LIBRARY_PATH).)],
 		[AC_MSG_RESULT(assuming it does work on target platform)])
+
+		AC_MSG_CHECKING(whether linking with OpenSSL requires -ldl)
+		AC_TRY_LINK([
+#include <openssl/err.h>],
+[ DSO_METHOD_dlfcn(); ],
+		[AC_MSG_RESULT(no)],
+		[LIBS="$LIBS -ldl"
+		AC_TRY_LINK([
+#include <openssl/err.h>
+],[ DSO_METHOD_dlfcn(); ],
+		[AC_MSG_RESULT(yes)
+		DNS_OPENSSL_LIBS="$DNS_OPENSSL_LIBS -ldl"
+		],
+		 [AC_MSG_RESULT(unknown)
+		 AC_MSG_ERROR(OpenSSL has unsupported dynamic loading)],
+		[AC_MSG_RESULT(assuming it does work on target platform)])
+		],
+		[AC_MSG_RESULT(assuming it does work on target platform)]
+		)
+		 
+		
+
+
 		AC_MSG_CHECKING(OpenSSL library version)
 		AC_TRY_RUN([
 #include <stdio.h>
