@@ -6,10 +6,10 @@
 #include <isc/thread.h>
 #include <isc/task.h>
 
-#define VALID_MANAGER(m)	((m) != NULL && \
-				 (m)->magic == TASK_MANAGER_MAGIC)
-#define VALID_TASK(t)		((t) != NULL && \
-				 (t)->magic == TASK_MAGIC)
+
+/***
+ *** General Macros.
+ ***/
 
 /*
  * We use macros instead of calling the os_ routines directly because
@@ -23,56 +23,65 @@
 #define WAIT(cvp, lp)		INSIST(os_condition_wait((cvp), (lp)))
 #define BROADCAST(cvp)		INSIST(os_condition_broadcast((cvp)))
 
-#define DEFAULT_DEFAULT_QUANTUM	5
-
-#define FINISHED(m)	((m)->exiting && EMPTY((m)->tasks))
-
 #ifdef DEBUGTRACE
-#define XTRACE(m)	printf("%s %p\n", (m), pthread_self())
+#define XTRACE(m)		printf("%s %p\n", (m), os_thread_self())
 #else
 #define XTRACE(m)
 #endif
 
 
 /***
- *** Tasks.
+ *** Types.
  ***/
 
-generic_event_t
-event_get(mem_context_t mctx, event_type_t type, event_action_t action,
-	  size_t size) {
-	generic_event_t event;
+typedef enum {
+	task_state_idle, task_state_ready, task_state_running,
+	task_state_shutdown
+} task_state_t;
 
-	if (size < sizeof *event)
-		return (NULL);
-	if (type < 0)
-		return (NULL);
-	if (action == NULL)
-		return (NULL);
-	event = mem_get(mctx, size);
-	if (event == NULL)
-		return (NULL);
-	event->mctx = mctx;
-	event->size = size;
-	event->type = type;
-	event->action = action;
+#define TASK_MAGIC			0x5441534BU	/* TASK. */
+#define VALID_TASK(t)			((t) != NULL && \
+					 (t)->magic == TASK_MAGIC)
 
-	return (event);
-}
+struct task {
+	/* Not locked. */
+	unsigned int			magic;
+	task_manager_t			manager;
+	os_mutex_t			lock;
+	/* Locked by task lock. */
+	task_state_t			state;
+	unsigned int			references;
+	task_eventlist_t			events;
+	unsigned int			quantum;
+	boolean_t			shutdown_pending;
+	task_action_t			shutdown_action;
+	void *				arg;
+	/* Locked by task manager lock. */
+	LINK(struct task)		link;
+	LINK(struct task)		ready_link;
+};
 
-void
-event_put(generic_event_t *eventp) {
-	generic_event_t event;
-	
-	REQUIRE(eventp != NULL);
-	event = *eventp;
-	REQUIRE(event != NULL);
+#define TASK_MANAGER_MAGIC		0x54534B4DU	/* TSKM. */
+#define VALID_MANAGER(m)		((m) != NULL && \
+					 (m)->magic == TASK_MANAGER_MAGIC)
 
-	mem_put(event->mctx, event, event->size);
+struct task_manager {
+	/* Not locked. */
+	unsigned int			magic;
+	mem_context_t			mctx;
+	os_mutex_t			lock;
+	/* Locked by task manager lock. */
+	unsigned int			default_quantum;
+	LIST(struct task)		tasks;
+	LIST(struct task)		ready_tasks;
+	os_condition_t			work_available;
+	boolean_t			exiting;
+	unsigned int			workers;
+	os_condition_t			no_workers;
+};
 
-	*eventp = NULL;
-}
-
+#define DEFAULT_DEFAULT_QUANTUM	5
+#define FINISHED(m)		((m)->exiting && EMPTY((m)->tasks))
 
 /***
  *** Tasks.
@@ -104,7 +113,7 @@ task_free(task_t task) {
 
 boolean_t
 task_create(task_manager_t manager, void *arg,
-	    event_action_t shutdown_action, unsigned int quantum,
+	    task_action_t shutdown_action, unsigned int quantum,
 	    task_t *taskp)
 {
 	task_t task;
@@ -186,10 +195,10 @@ task_detach(task_t *taskp) {
 }
 
 boolean_t
-task_send_event(task_t task, generic_event_t *eventp) {
+task_send_event(task_t task, task_event_t *eventp) {
 	boolean_t was_idle = FALSE;
 	boolean_t discard = FALSE;
-	generic_event_t event;
+	task_event_t event;
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(eventp != NULL);
@@ -217,7 +226,7 @@ task_send_event(task_t task, generic_event_t *eventp) {
 	UNLOCK(&task->lock);
 
 	if (discard) {
-		event_put(&event);
+		task_event_free(&event);
 		*eventp = NULL;
 		return (TRUE);
 	}
@@ -412,9 +421,9 @@ void *task_manager_run(void *uap) {
 			boolean_t wants_shutdown;
 			boolean_t free_task = FALSE;
 			void *arg;
-			event_action_t action;
-			generic_event_t	event;
-			event_list_t remaining_events;
+			task_action_t action;
+			task_event_t	event;
+			task_eventlist_t remaining_events;
 			boolean_t discard_remaining = FALSE;
 
 			INSIST(VALID_TASK(task));
@@ -466,7 +475,7 @@ void *task_manager_run(void *uap) {
 				 * callback returned.
 				 */
 				if (event != NULL)
-					event_put(&event);
+					task_event_free(&event);
 				else
 					wants_shutdown = TRUE;
 
@@ -522,13 +531,13 @@ void *task_manager_run(void *uap) {
 			UNLOCK(&task->lock);
 
 			if (discard_remaining) {
-				generic_event_t next_event;
+				task_event_t next_event;
 
 				for (event = HEAD(remaining_events);
 				     event != NULL;
 				     event = next_event) {
 					next_event = NEXT(event, link);
-					event_put(&event);
+					task_event_free(&event);
 				}
 			}
 
@@ -713,4 +722,46 @@ task_manager_destroy(task_manager_t *managerp) {
 	manager_free(manager);
 
 	*managerp = NULL;
+}
+
+
+/***
+ *** Events.
+ ***/
+
+task_event_t
+task_event_allocate(mem_context_t mctx, task_eventtype_t type,
+		    task_action_t action, void *arg, size_t size)
+{
+	task_event_t event;
+
+	if (size < sizeof *event)
+		return (NULL);
+	if (type < 0)
+		return (NULL);
+	if (action == NULL)
+		return (NULL);
+	event = mem_get(mctx, size);
+	if (event == NULL)
+		return (NULL);
+	event->mctx = mctx;
+	event->size = size;
+	event->type = type;
+	event->action = action;
+	event->arg = arg;
+
+	return (event);
+}
+
+void
+task_event_free(task_event_t *eventp) {
+	task_event_t event;
+	
+	REQUIRE(eventp != NULL);
+	event = *eventp;
+	REQUIRE(event != NULL);
+
+	mem_put(event->mctx, event, event->size);
+
+	*eventp = NULL;
 }
