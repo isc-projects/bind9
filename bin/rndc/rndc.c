@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.36 2000/12/12 21:33:12 bwelling Exp $ */
+/* $Id: rndc.c,v 1.37 2000/12/15 19:39:58 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -267,7 +267,7 @@ command is one of the following:\n\
 		Schedule immediate maintenance for a zone.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\
-  dumpdb	Dump cache to the dumpfile (named_dump.db).\n\
+  dumpdb	Dump cache(s) to the dump file (named_dump.db).\n\
   stop		Save pending updates to master files and stop the server.\n\
   halt		Stop the server without saving pending updates.\n\
   *status	Display ps(1) status of named.\n\
