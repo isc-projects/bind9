@@ -17,6 +17,8 @@ srcdir		= @srcdir@
 VPATH		= @srcdir@
 top_srcdir	= @top_srcdir@
 
+YACC		= @YACC@
+
 @BIND9_VERSION@
 
 @BIND9_INCLUDES@
