@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.231 2001/10/11 00:38:56 gson Exp $ */
+/* $Id: dighost.c,v 1.232 2001/10/15 20:40:36 gson Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2304,9 +2304,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 			if (timeout == 0) {
 				if (l->tcp_mode)
-					local_timeout = TCP_TIMEOUT;
+					local_timeout = TCP_TIMEOUT * 4;
 				else
-					local_timeout = UDP_TIMEOUT;
+					local_timeout = UDP_TIMEOUT * 4;
 			} else {
 				if (timeout < (INT_MAX / 4))
 					local_timeout = timeout * 4;

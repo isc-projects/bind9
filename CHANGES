@@ -1,3 +1,6 @@
+1053.	[bug]		Dig did not increase its timeout when receiving
+			AXFRs unless the +time option was used.	[RT #1904]
+
 1052.	[bug]		Journals were not being created in binary mode
 			resulting in "journal format not recognized" error
 			under Windows NT/2000. [RT #1889]
