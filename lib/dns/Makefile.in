@@ -148,6 +148,9 @@ SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \
 		include/dns/rdatastruct.h timestamp
 
+DEPENDEXTRA =	./gen -F include/dns/rdatastruct.h \
+		-s ${srcdir} -d >> Makefile ;
+
 @BIND9_MAKE_RULES@
 
 version.@O@: version.c

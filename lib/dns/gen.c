@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.50 2000/06/02 03:26:17 tale Exp $ */
+/* $Id: gen.c,v 1.51 2000/06/06 02:01:40 marka Exp $ */
 
 #include <config.h>
 
@@ -459,29 +459,41 @@ main(int argc, char **argv) {
 	int class_enum = 0;
 	int type_enum = 0;
 	int structs = 0;
+	int depend = 0;
 	int c, i, j;
 	char buf1[11];
 	char filetype = 'c';
 	FILE *fd;
 	char *prefix = NULL;
 	char *suffix = NULL;
+	char *file = NULL;
 	isc_dir_t dir;
 
 	for (i = 0 ; i <= 255 ; i++)
 		memset(&typenames[i], 0, sizeof(typenames[i]));
 
 	strcpy(srcdir, "");
-	while ((c = isc_commandline_parse(argc, argv, "cits:P:S:")) != -1)
+	while ((c = isc_commandline_parse(argc, argv, "cdits:F:P:S:")) != -1)
 		switch (c) {
 		case 'c':
 			code = 0;
+			depend = 0;
 			type_enum = 0;
 			class_enum = 1;
 			filetype = 'c';
 			structs = 0;
 			break;
+		case 'd':
+			code = 0;
+			depend = 1;
+			class_enum = 0;
+			type_enum = 0;
+			structs = 0;
+			filetype = 'h';
+			break;
 		case 't':
 			code = 0;
+			depend = 0;
 			class_enum = 0;
 			type_enum = 1;
 			filetype = 'c';
@@ -489,6 +501,7 @@ main(int argc, char **argv) {
 			break;
 		case 'i':
 			code = 0;
+			depend = 0;
 			class_enum = 0;
 			type_enum = 0;
 			structs = 1;
@@ -496,6 +509,9 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			sprintf(srcdir, "%s/", isc_commandline_argument);
+			break;
+		case 'F':
+			file = isc_commandline_argument;
 			break;
 		case 'P':
 			prefix = isc_commandline_argument;
@@ -536,7 +552,7 @@ main(int argc, char **argv) {
 	} else
 		year[0] = 0;
 
-	fprintf(stdout, copyright, year);
+	if (!depend) fprintf(stdout, copyright, year);
 
 	if (code) {
 		fputs("#ifndef DNS_CODE_H\n", stdout);
@@ -820,6 +836,10 @@ main(int argc, char **argv) {
 				fclose(fd);
 			}
 		}
+	} else if (depend) {
+		for (tt = types; tt != NULL ; tt = tt->next)
+			fprintf(stdout, "%s:\t%s/%s_%d.h\n", file,
+				tt->dirname, tt->typename, tt->type);
 	}
 
 	if (ferror(stdout) != 0)
