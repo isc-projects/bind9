@@ -163,9 +163,10 @@ struct dns_message {
 	unsigned int			need_cctx_cleanup : 1;
 	unsigned int			header_ok : 1;
 	unsigned int			question_ok : 1;
-	unsigned int			tcp_continuation: 1;
-	unsigned int			verified_sig0: 1;
+	unsigned int			tcp_continuation : 1;
+	unsigned int			verified_sig0 : 1;
 
+	unsigned int			opt_reserved;
 	unsigned int			reserved; /* reserved space (render) */
 
 	isc_buffer_t		       *buffer;
@@ -373,7 +374,7 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space);
  *	DNS_R_NOSPACE		-- not enough free space in the buffer.
  */
 
-dns_result_t
+void
 dns_message_renderrelease(dns_message_t *msg, unsigned int space);
 /*
  * XXXMLG should use size_t rather than unsigned int once the buffer
@@ -385,11 +386,10 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
  *
  *	'msg' be valid.
  *
- *	dns_message_renderbegin() was called.
+ *	'space' is less than or equal to the total amount of space reserved
+ *	via prior calls to dns_message_renderreserve().
  *
- * Returns:
- *	DNS_R_SUCCESS		-- all is well.
- *	DNS_R_NOSPACE		-- trying to release more than was reserved.
+ *	dns_message_renderbegin() was called.
  */
 
 dns_result_t
