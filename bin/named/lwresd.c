@@ -94,6 +94,12 @@ shutdown_lwresd(isc_task_t *task, isc_event_t *event) {
 		isc_task_shutdown(lwresd->cmgr[i].task);
 
 	/*
+	 * Wait for everything to die off by waiting for the sockets
+	 * to be detached.
+	 */
+	isc_socket_detach(&lwresd->sock);
+
+	/*
 	 * Kill off the view.
 	 */
 	dns_view_detach(&lwresd->view);
@@ -337,7 +343,8 @@ ns_lwresd_create(isc_mem_t *mctx, dns_view_t *view, ns_lwresd_t **lwresdp) {
 	for (i = 0 ; i < NTASKS ; i++) {
 		char name[16];
 		lwresd->cmgr[i].task = NULL;
-		lwresd->cmgr[i].sock = lwresd->sock;
+		lwresd->cmgr[i].sock = NULL;
+		isc_socket_attach(lwresd->sock, &lwresd->cmgr[i].sock);
 		lwresd->cmgr[i].view = NULL;
 		lwresd->cmgr[i].flags = 0;
 		result = isc_task_create(ns_g_taskmgr, 0,
@@ -400,16 +407,13 @@ void
 ns_lwresd_destroy(ns_lwresd_t **lwresdp) {
 	ns_lwresd_t *lwresd;
 	ns_lwdclient_t *client;
+	isc_mem_t *mctx;
 
 	REQUIRE(lwresdp != NULL);
 	lwresd = *lwresdp;
 	REQUIRE(VALID_LWRESD(lwresd));
 
-	/*
-	 * Wait for everything to die off by waiting for the sockets
-	 * to be detached.
-	 */
-	isc_socket_detach(&lwresd->sock);
+	mctx = lwresd->mctx;
 
 	/*
 	 * Free up memory allocated.  This is somewhat magical.  We allocated
@@ -419,13 +423,15 @@ ns_lwresd_destroy(ns_lwresd_t **lwresdp) {
 	client = ISC_LIST_HEAD(lwresd->cmgr[0].idle);
 	while (client != NULL) {
 		ISC_LIST_UNLINK(lwresd->cmgr[0].idle, client, link);
-		isc_mem_put(lwresd->mctx, client,
+		isc_mem_put(mctx, client,
 			    sizeof(ns_lwdclient_t) * lwresd->ntasks);
 		client = ISC_LIST_HEAD(lwresd->cmgr[0].idle);
 	}
 	INSIST(ISC_LIST_EMPTY(lwresd->cmgr[0].running));
 
+	isc_mem_put(mctx, lwresd->cmgr, sizeof(ns_lwdclientmgr_t) * NTASKS);
 	lwresd->magic = 0;
-	isc_mem_put(lwresd->mctx, lwresd, sizeof(*lwresd));
+	isc_mem_put(mctx, lwresd, sizeof(*lwresd));
+	isc_mem_detach(&mctx);
 	*lwresdp = NULL;
 }

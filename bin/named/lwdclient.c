@@ -89,6 +89,7 @@ clientmgr_can_die(ns_lwdclientmgr_t *cm) {
 		return;
 
 	lwres_context_destroy(&cm->lwctx);
+	isc_socket_detach(&cm->sock);
 	dns_view_detach(&cm->view);
 	isc_task_detach(&cm->task);
 }
