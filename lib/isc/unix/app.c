@@ -127,16 +127,13 @@ isc_app_start(void) {
 
 #ifndef HAVE_SIGWAIT
 	/*
-	 * Install do-nothing handlers for SIGINT, SIGQUIT, and SIGTERM.
+	 * Install do-nothing handlers for SIGINT and SIGTERM.
 	 *
 	 * We install them now because BSDI 3.1 won't block
 	 * the default actions, regardless of what we do with
 	 * pthread_sigmask().
 	 */
 	result = handle_signal(SIGINT, exit_action);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	result = handle_signal(SIGQUIT, exit_action);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = handle_signal(SIGTERM, exit_action);
@@ -156,14 +153,13 @@ isc_app_start(void) {
 	 *
 	 * If isc_app_start() is called from the main thread before any other
 	 * threads have been created, then the pthread_sigmask() call below
-	 * will result in all threads having SIGHUP, SIGINT, SIGQUIT and
-	 * SIGTERM blocked by default, ensuring that only the thread that
-	 * calls sigwait() for them will get those signals.
+	 * will result in all threads having SIGHUP, SIGINT and SIGTERM
+	 * blocked by default, ensuring that only the thread that calls
+	 * sigwait() for them will get those signals.
 	 */
 	if (sigemptyset(&sset) != 0 ||
 	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
-	    sigaddset(&sset, SIGQUIT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() sigsetops: %s", 
@@ -290,7 +286,6 @@ isc_app_run(void) {
 		if (sigemptyset(&sset) != 0 ||
 		    sigaddset(&sset, SIGHUP) != 0 ||
 		    sigaddset(&sset, SIGINT) != 0 ||
-		    sigaddset(&sset, SIGQUIT) != 0 ||
 		    sigaddset(&sset, SIGTERM) != 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_app_run() sigsetops: %s", 
@@ -300,7 +295,6 @@ isc_app_run(void) {
 		result = sigwait(&sset, &sig);
 		if (result == 0) {
 			if (sig == SIGINT ||
-			    sig == SIGQUIT ||
 			    sig == SIGTERM)
 				want_shutdown = ISC_TRUE;
 			else if (sig == SIGHUP)
