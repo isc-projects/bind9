@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.63 2001/06/08 21:53:47 tale Exp $ */
+/* $Id: rndc.c,v 1.64 2001/06/15 01:20:09 gson Exp $ */
 
 /*
  * Principal Author: DCL
@@ -71,7 +71,7 @@ static const char *servername = NULL;
 static unsigned int remoteport = NS_CONTROL_PORT;
 static isc_socketmgr_t *socketmgr = NULL;
 static unsigned char databuf[2048];
-static unsigned char progname[256];
+static char progname[256];
 static isccc_ccmsg_t ccmsg;
 static isccc_region_t secret;
 static isc_boolean_t verbose;
