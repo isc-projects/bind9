@@ -1,3 +1,6 @@
+1188.	[bug]		Dynamic updates of a signed zone would fail if
+			some of the zone private keys were unavailable.
+
 1187.	[bug]		named was incorrectly returning DNSSEC records
 			in negative responses when the DO bit was not set.
 
