@@ -235,17 +235,6 @@ extern "C" {
 #define OPENSSL_EXTERN extern
 #define NO_BIO
 
-OPENSSL_EXTERN int bn_limit_bits;
-OPENSSL_EXTERN int bn_limit_num;        /* (1<<bn_limit_bits) */
-/* Recursive 'low' limit */
-OPENSSL_EXTERN int bn_limit_bits_low;
-OPENSSL_EXTERN int bn_limit_num_low;    /* (1<<bn_limit_bits_low) */
-/* Do modified 'high' part calculation' */
-OPENSSL_EXTERN int bn_limit_bits_high;
-OPENSSL_EXTERN int bn_limit_num_high;   /* (1<<bn_limit_bits_high) */
-OPENSSL_EXTERN int bn_limit_bits_mont;
-OPENSSL_EXTERN int bn_limit_num_mont;   /* (1<<bn_limit_bits_mont) */
-
 BIGNUM *bn_expand2(BIGNUM *b, int bits);
 
 void bn_mul_normal(BN_ULONG *r,BN_ULONG *a,int na,BN_ULONG *b,int nb);
