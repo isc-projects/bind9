@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1998  Internet Software Consortium.
+ * Copyright (C) 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,8 +29,26 @@ typedef struct isc_textregion {
 } isc_textregion_t;
 
 /*
- * There are no methods which operate on regions.  The structure is not
- * opaque, and must be directly manipulated by applications.
+ * The region structure is not opaque, and is usually directly manipulated.
+ * Some macros are defined below for convenience.
  */
+
+#define isc_region_consume(r,l) \
+	do { \
+		isc_region_t *__r = (r); \
+		unsigned int __l = (l); \
+		INSIST(__r->length >= __l); \
+		__r->base += __l; \
+		__r->length -= __l; \
+	} while (0)
+
+#define isc_textregion_consume(r,l) \
+	do { \
+		isc_textregion_t *__r = (r); \
+		unsigned int __l = (l); \
+		INSIST(__r->length >= __l); \
+		__r->base += __l; \
+		__r->length -= __l; \
+	} while (0)
 
 #endif /* ISC_REGION_H */
