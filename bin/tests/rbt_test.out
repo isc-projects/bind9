@@ -109,8 +109,10 @@ vix.com. (black)
 	-- END down from vix.com.
 	NULL
 	NULL
-searching for name q.d.e.f.vix.com ... found it: q.d.e.f.vix.com.
-searching for name does.not.exist ... NOT FOUND!
+searching for name q.d.e.f.vix.com ... found exact: q.d.e.f.vix.com.
+searching for name just-parent.a.vix.com ... found parent: a.vix.com.
+searching for name no-real-parent.vix.com ... NOT FOUND!
+searching for name does.not.exist.at.all ... NOT FOUND!
 deleting name d.e.f.vix.com
 vix.com. (black)
 	++ BEG down from vix.com.

@@ -13,7 +13,9 @@ print
 add g.h.vix.com
 print
 search q.d.e.f.vix.com
-search does.not.exist
+search just-parent.a.vix.com
+search no-real-parent.vix.com
+search does.not.exist.at.all
 nuke d.e.f.vix.com
 print
 add x.a.vix.com
