@@ -242,8 +242,10 @@ mgr_shutdown(dns_requestmgr_t *requestmgr) {
 		     request = ISC_LIST_NEXT(request, link)) {
 			dns_request_cancel(request);
 		}
-		if (ISC_LIST_EMPTY(requestmgr->requests))
+		if (requestmgr->iref == 0) {
+			INSIST(ISC_LIST_EMPTY(requestmgr->requests));
 			send_shutdown_events(requestmgr);
+		}
 	}
 }
 
@@ -278,11 +280,11 @@ requestmgr_detach(dns_requestmgr_t **requestmgrp) {
 	LOCK(&requestmgr->lock);
 	INSIST(requestmgr->iref > 0);
 	requestmgr->iref--;
-	if (requestmgr->eref == 0 && requestmgr->iref == 0) {
-		INSIST(requestmgr->exiting &&
-		       ISC_LIST_HEAD(requestmgr->requests) == NULL);
+	if (requestmgr->iref == 0 && requestmgr->exiting) {
+		INSIST(ISC_LIST_HEAD(requestmgr->requests) == NULL);
 		send_shutdown_events(requestmgr);
-		need_destroy = ISC_TRUE;
+		if (requestmgr->eref == 0)
+			need_destroy = ISC_TRUE;
 	}
 	UNLOCK(&requestmgr->lock);
 
@@ -801,6 +803,7 @@ req_timeout(isc_task_t *task, isc_event_t *event) {
 	dns_request_t *request = event->ev_arg;
 	
 	TRACE(("req_timeout\n"));
+
 	UNUSED(task);
 	LOCK(&request->requestmgr->locks[request->hash]);
 	req_cancel(request);
