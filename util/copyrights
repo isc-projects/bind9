@@ -457,7 +457,6 @@
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000
 ./bin/tests/system/nsupdate/setup.sh		SH	2000
 ./bin/tests/system/nsupdate/tests.sh		SH	2000
-./bin/tests/system/nsupdate/update.scp		X	2000
 ./bin/tests/system/nsupdate/update_test.pl	PERL	2000
 ./bin/tests/system/relay/README			TXT.BRIEF	2000
 ./bin/tests/system/relay/clean.sh		SH	2000

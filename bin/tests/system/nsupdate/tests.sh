@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.13 2000/11/20 17:53:33 gson Exp $
+# $Id: tests.sh,v 1.14 2000/11/20 17:59:20 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -36,7 +36,13 @@ $PERL ../digcomp.pl knowngood.ns1.before dig.out.ns2 || status=1
 
 echo "I:updating zone"
 # nsupdate will print a ">" prompt to stdout as it gets each input line.
-$NSUPDATE < update.scp > /dev/null || status=1
+$NSUPDATE <<END > /dev/null || status=1
+server 10.53.0.1 5300
+update add updated.example.nil. 600 A 10.10.10.1
+update add updated.example.nil. 600 TXT Foo
+update delete t.example.nil.
+
+END
 echo "I:sleeping 15 seconds for server to incorporate changes"
 sleep 15
 
@@ -86,10 +92,6 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd example.nil.\
 
 echo "I:comparing zones"
 $PERL ../digcomp.pl dig.out.ns1 dig.out.ns1.after || status=1
-
-echo "I:performing RT #482 regression test"
-
-
 
 echo "I:exit status: $status"
 exit $status
