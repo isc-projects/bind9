@@ -21,25 +21,22 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_INCLUDES@
 
-CINCLUDES =	\
-		${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} 
+CINCLUDES =	${LWRES_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} 
 
 CDEFINES =	
 CWARNINGS =
 
-OMAPILIBS =	../../lib/omapi/libomapi.@A@
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_OPENSSL_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@
 LWRESLIBS =	../../lib/lwres/liblwres.@A@
 
-OMAPIDEPLIBS =	../../lib/omapi/libomapi.@A@
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 LWRESDEPLIBS =	../../lib/lwres/liblwres.@A@
 
-DEPLIBS =	${OMAPIDEPLIBS} ${DNSDEPLIBS} ${ISCDEPLIBS} ${LWRESDEPLIBS}
+DEPLIBS =	${DNSDEPLIBS} ${ISCDEPLIBS} ${LWRESDEPLIBS}
 
-LIBS =		${OMAPILIBS} ${DNSLIBS} ${ISCLIBS} ${LWRESLIBS} @LIBS@
+LIBS =		${DNSLIBS} ${ISCLIBS} ${LWRESLIBS} @LIBS@
 
 TARGETS =	lwresd
 
