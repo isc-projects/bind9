@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.18 2000/05/15 21:02:27 bwelling Exp $
+ * $Id: bsafe_link.c,v 1.19 2000/05/15 21:30:39 bwelling Exp $
  */
 
 #if defined(BSAFE) || defined(DNSSAFE)
@@ -623,7 +623,7 @@ dst_bsafe_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 	/*
 	 * Read private key file.
 	 */
-	ret = dst_s_parse_private_key_file(key, &priv, mctx);
+	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 	/*

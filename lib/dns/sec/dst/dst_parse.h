@@ -78,8 +78,8 @@ void
 dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx);
 
 int
-dst_s_parse_private_key_file(const dst_key_t *key, dst_private_t *priv,
-			     isc_mem_t *mctx);
+dst_s_parse_private_key_file(const dst_key_t *key, const isc_uint16_t id,
+			     dst_private_t *priv, isc_mem_t *mctx);
 
 int
 dst_s_write_private_key_file(const dst_key_t *key, const dst_private_t *priv);

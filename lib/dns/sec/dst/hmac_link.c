@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.25 2000/05/15 21:02:35 bwelling Exp $
+ * $Id: hmac_link.c,v 1.26 2000/05/15 21:30:43 bwelling Exp $
  */
 
 #include <config.h>
@@ -399,7 +399,7 @@ dst_hmacmd5_from_file(dst_key_t *key, const isc_uint16_t id, isc_mem_t *mctx) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key, &priv, mctx);
+	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.15 2000/05/15 21:02:37 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.16 2000/05/15 21:30:45 bwelling Exp $
  */
 
 #if defined(OPENSSL)
@@ -441,7 +441,7 @@ dst_openssldh_from_file(dst_key_t *key, const isc_uint16_t id,
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst_s_parse_private_key_file(key, &priv, mctx);
+	ret = dst_s_parse_private_key_file(key, id, &priv, mctx);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 

@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.14 2000/05/15 21:02:32 bwelling Exp $
+ * $Id: dst_parse.c,v 1.15 2000/05/15 21:30:41 bwelling Exp $
  */
 
 #include <config.h>
@@ -187,8 +187,8 @@ dst_s_free_private_structure_fields(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst_s_parse_private_key_file(const dst_key_t *key, dst_private_t *priv,
-			     isc_mem_t *mctx)
+dst_s_parse_private_key_file(const dst_key_t *key, const isc_uint16_t id,
+			     dst_private_t *priv, isc_mem_t *mctx)
 {
 	char filename[ISC_DIR_NAMEMAX];
 	int n = 0, ret, major, minor;
@@ -203,6 +203,7 @@ dst_s_parse_private_key_file(const dst_key_t *key, dst_private_t *priv,
 	priv->nelements = 0;
 
 	isc_buffer_init(&b, filename, sizeof(filename));
+	key->key_id = id;
 	ret = dst_key_buildfilename(key, DST_TYPE_PRIVATE, &b);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
