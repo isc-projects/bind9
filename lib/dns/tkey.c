@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.16 2000/01/21 20:18:36 bwelling Exp $
+ * $Id: tkey.c,v 1.17 2000/01/21 22:51:48 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -132,8 +132,10 @@ dns_tkey_destroy(dns_tkey_ctx_t **tctx) {
 
 	if ((*tctx)->dhkey != NULL)
 		dst_key_free((*tctx)->dhkey);
-	if ((*tctx)->domain != NULL)
+	if ((*tctx)->domain != NULL) {
+		dns_name_free((*tctx)->domain, (*tctx)->mctx);
 		isc_mem_put((*tctx)->mctx, (*tctx)->domain, sizeof(dns_name_t));
+	}
 
 	mctx = (*tctx)->mctx;
 	isc_mem_put(mctx, *tctx, sizeof(dns_tkey_ctx_t));

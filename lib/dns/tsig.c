@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.38 2000/01/21 21:50:45 gson Exp $
+ * $Id: tsig.c,v 1.39 2000/01/21 22:51:47 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -169,13 +169,13 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	tkey->generated = generated;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
-        ret = isc_mutex_init(&tkey->lock);
-        if (ret != ISC_R_SUCCESS) {
-                UNEXPECTED_ERROR(__FILE__, __LINE__,
-                                 "isc_mutex_init() failed: %s",
-                                 isc_result_totext(ret));
-                return (DNS_R_UNEXPECTED);
-        }
+	ret = isc_mutex_init(&tkey->lock);
+	if (ret != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 isc_result_totext(ret));
+		return (DNS_R_UNEXPECTED);
+	}
 	
 	tkey->magic = TSIG_MAGIC;
 	return (ISC_R_SUCCESS);
@@ -1098,13 +1098,13 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring)
 	if (ring == NULL)
 		return (ISC_R_NOMEMORY);
 		
-        ret = isc_rwlock_init(&(*ring)->lock, 0, 0);
-        if (ret != ISC_R_SUCCESS) {
-                UNEXPECTED_ERROR(__FILE__, __LINE__,
-                                 "isc_rwlock_init() failed: %s",
-                                 isc_result_totext(ret));
-                return (DNS_R_UNEXPECTED);
-        }
+	ret = isc_rwlock_init(&(*ring)->lock, 0, 0);
+	if (ret != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_rwlock_init() failed: %s",
+				 isc_result_totext(ret));
+		return (DNS_R_UNEXPECTED);
+	}
 	
 	ISC_LIST_INIT((*ring)->keys);
 
@@ -1127,6 +1127,8 @@ dns_tsig_init(dns_c_ctx_t *confctx, isc_mem_t *mctx, dns_tsig_keyring_t **ring)
 
 void
 dns_tsig_destroy(dns_tsig_keyring_t **ring) {
+	isc_mem_t *mctx;
+
 	REQUIRE(ring != NULL);
 	REQUIRE(*ring != NULL);
 
@@ -1136,6 +1138,9 @@ dns_tsig_destroy(dns_tsig_keyring_t **ring) {
 		key->deleted = ISC_TRUE;
 		tsigkey_free(&key, *ring);
 	}
+	isc_rwlock_destroy(&(*ring)->lock);
+	mctx = (*ring)->mctx;
+	isc_mem_put(mctx, *ring, sizeof(dns_tsig_keyring_t));
 
 	*ring = NULL;
 }
