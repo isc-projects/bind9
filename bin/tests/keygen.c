@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
  */
 
-/* $Id: keygen.c,v 1.9 2000/03/17 17:48:44 gson Exp $ */
+/* $Id: keygen.c,v 1.10 2000/03/23 19:03:32 bwelling Exp $ */
 
 #include <config.h>
 
@@ -80,10 +80,11 @@ main(int argc, char **argv) {
 			break;
 		case 'p':
 			if (isc_commandline_argument != NULL &&
-			    isdigit(isc_commandline_argument[0] & 0xff))
+			    isdigit(isc_commandline_argument[0] & 0xff)) {
 				protocol = atoi(isc_commandline_argument);
 				if (protocol < 0 || protocol > 255)
 					die("-p value is not [0..15]");
+			}
 			else
 				die("-p not followed by a number [0..255]");
 			break;
