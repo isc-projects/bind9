@@ -1,4 +1,7 @@
 
+ 925.	[cleanup]	Remove openssl from the distribution; require that
+ 			--with-openssl be specified if DNSSEC is needed.
+
  924.	[port]		Extend support for pre-RFC2133 IPv6 implementation.
 			[RT #987]
 

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.36 2001/05/10 19:07:11 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.37 2001/07/10 21:38:01 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -26,8 +26,6 @@
 #include <isc/buffer.h>
 #include <isc/int.h>
 #include <isc/region.h>
-
-#include "../rename.h"
 
 #include <dst/dst.h>
 

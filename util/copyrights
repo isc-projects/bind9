@@ -1420,12 +1420,6 @@
 ./lib/dns/sec/dst/openssldh_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/openssldsa_link.c		C.NAI	1999,2000,2001
 ./lib/dns/sec/dst/opensslrsa_link.c		C	2000,2001
-./lib/dns/sec/openssl/.cvsignore		X	1999,2000,2001
-./lib/dns/sec/openssl/Makefile.in		MAKE	1998,1999,2000,2001
-./lib/dns/sec/openssl/include/.cvsignore	X	2000,2001
-./lib/dns/sec/openssl/include/Makefile.in	MAKE	1998,1999,2000,2001
-./lib/dns/sec/openssl/include/openssl/.cvsignore	X	1999,2000,2001
-./lib/dns/sec/openssl/include/openssl/Makefile.in	MAKE	1998,1999,2000,2001
 ./lib/dns/sec/rename.h				C	2000,2001
 ./lib/dns/soa.c					C	2000,2001
 ./lib/dns/ssu.c					C	2000,2001
