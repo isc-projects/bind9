@@ -62,10 +62,12 @@
   - use logging library, not printf
 */
 
-#define FAIL(code) do { result = (code); goto failure; } while (0)
-#define FAILMSG(code, msg) do { printf("%s\n", msg); \
-				result = (code); goto failure; } while (0)
-		
+/**************************************************************************/
+/*
+ * Check an operation for failure.  These macros all assume that
+ * the function using them has a 'result' variable and a 'failure'
+ * label.
+ */
 #define CHECK(op) do { result = (op); \
 		       if (result != DNS_R_SUCCESS) goto failure; \
 		     } while (0)
@@ -75,7 +77,16 @@
 		        	goto failure; \
 		 	} \
 		     } while (0)
-		
+
+/*
+ * Fail unconditionally with result 'code', which must not
+ * be DNS_R_SUCCESS.
+ */
+#define FAIL(code) 		CHECK(code)
+#define FAILMSG(code, msg) 	CHECKMSG(code, msg)
+
+/**************************************************************************/
+
 typedef struct rr rr_t;
 
 struct rr {
@@ -358,19 +369,26 @@ rrset_exists_action(void *data, rr_t *rr) /*ARGSUSED*/
 	return (DNS_R_EXISTS);
 }
 
-#define RETURN_EXISTENCE_FLAG 			\
-do {						\
-	if (result == DNS_R_EXISTS)  { 		\
-		*exists = ISC_TRUE; 		\
-		return (DNS_R_SUCCESS); 	\
-	} else if (result == DNS_R_SUCCESS) { 	\
-		*exists = ISC_FALSE; 		\
-		return (DNS_R_SUCCESS); 	\
-	} else { 				\
-		return (result); 		\
-	}					\
-} while (0)
-
+/*
+ * Utility macro for RR existence checking functions.
+ *
+ * If the variable 'result' has the value DNS_R_EXISTS or
+ * DNS_R_SUCCESS, set *exists to ISC_TRUE or ISC_FALSE,
+ * respectively, and return success.
+ *
+ * If 'result' has any other value, there was a failure.
+ * Return the failure result code and do not set *exists.
+ *
+ * This would be more readable as "do { if ... } while(0)",
+ * but that form generates tons of warnings on Solaris 2.6.
+ */
+#define RETURN_EXISTENCE_FLAG 				\
+	return ((result == DNS_R_EXISTS) ? 		\
+		(*exists = ISC_TRUE, DNS_R_SUCCESS) : 	\
+		((result == DNS_R_SUCCESS) ?		\
+		 (*exists = ISC_FALSE, DNS_R_SUCCESS) :	\
+		 result));
+	
 /*
  * Set '*exists' to true iff an rrset of the given type exists,
  * to false otherwise.
