@@ -1,4 +1,7 @@
 1770.	[bug]		named-checkconf failed to report missing a missing
+1763.	[func]		Perform sanity checks on NS records which refer to
+			'in zone' names. [RT #13002]
+
 			file clause for rbt{64} master/hint zones. [RT#13009]
 
 1769.	[port]		win32: change compiler flags /MTd ==> /MDd,
