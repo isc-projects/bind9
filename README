@@ -53,6 +53,23 @@ BIND 9.3.0
 
 	DNSSEC lookaside validation.
 
+	check-names is now implemented.
+	rrset-order in more complete.
+
+	IPv4/IPv6 transition support, dual-stack-servers.
+
+	IXFR deltas can now be generated when loading master files,
+	ixfr-from-differences.
+
+	It is now possible to specify the size of a journal, max-journal-size.
+
+	It is now possible to define a named set of master servers to be
+	used in masters clause, masters.
+
+	The advertised EDNS UDP size can now be set, edns-udp-size.
+
+	allow-v6-synthesis has been obsoleted.
+
 	NOTE:
 	* Zones containing MD and MF will now be rejected.
 	* dig, nslookup name. now report "Not Implemented" as
