@@ -72,7 +72,6 @@ isc_task_t *task = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
 dns_messageid_t id;
-dns_name_t rootorg;
 char *rootspace[BUFSIZE];
 isc_buffer_t rootbuf;
 int sendcount = 0;
@@ -128,7 +127,7 @@ fatal(char *format, ...) {
 	free_lists();
 	if (mctx != NULL) {
 #ifdef MEMDEBUG
-		isc_mem_stats(mctx,stderr);
+		isc_mem_stats(mctx, stderr);
 #endif
 		isc_mem_destroy(&mctx);
 	}
@@ -164,8 +163,9 @@ check_result(isc_result_t result, char *msg) {
 isc_boolean_t
 isclass(char *text) {
 	/* Tests if a field is a class, without needing isc libs
-	   initialized.  This list will have to be manually kept in 
-	   sync with what the libs support. */
+	 * initialized.  This list will have to be manually kept in 
+	 * sync with what the libs support.
+	 */
 	const char *classlist[] = {"in", "hs", "any"};
 	const int numclasses = 3;
 	int i;
@@ -180,8 +180,9 @@ isclass(char *text) {
 isc_boolean_t
 istype(char *text) {
 	/* Tests if a field is a type, without needing isc libs
-	   initialized.  This list will have to be manually kept in 
-	   sync with what the libs support. */
+	 * initialized.  This list will have to be manually kept in 
+	 *  sync with what the libs support.
+	 */
 	const char *typelist[] = {"a", "ns", "md", "mf", "cname",
 				  "soa", "mb", "mg", "mr", "null",
 				  "wks", "ptr", "hinfo", "minfo",
@@ -213,7 +214,7 @@ twiddlebuf(isc_buffer_t buf) {
 
 	hex_dump(&buf);
 	tw=TWIDDLE;
-	printf ("Twiddling %d bits: ",tw);
+	printf ("Twiddling %d bits: ", tw);
 	for (i=0;i<tw;i++) {
 		isc_buffer_usedregion (&buf, &r);
 		len = r.length;
@@ -221,7 +222,7 @@ twiddlebuf(isc_buffer_t buf) {
 		pos = pos%len;
 		bit = (int)random()%8;
 		bitfield = 1 << bit;
-		printf ("%d@%03x ",bit, pos);
+		printf ("%d@%03x ", bit, pos);
 		r.base[pos] ^= bitfield;
 	}
 	puts ("");
@@ -275,7 +276,7 @@ setup_system(void) {
 								(server_list,
 								 srv, link);
 					}
-				} else if (strcasecmp(ptr,"options") == 0) {
+				} else if (strcasecmp(ptr, "options") == 0) {
 					ptr = strtok(NULL, " \t\r\n");
 					if (ptr != NULL) {
 						if ((strncasecmp(ptr, "ndots:",
@@ -288,7 +289,7 @@ setup_system(void) {
 							       ndots);
 						}
 					}
-				} else if ((strcasecmp(ptr,"search") == 0)
+				} else if ((strcasecmp(ptr, "search") == 0)
 					   && usesearch){
 					while ((ptr = strtok(NULL, " \t\r\n"))
 					       != NULL) {
@@ -308,7 +309,7 @@ setup_system(void) {
 							 search,
 							 link);
 					}
-				} else if ((strcasecmp(ptr,"domain") == 0) &&
+				} else if ((strcasecmp(ptr, "domain") == 0) &&
 					   (fixeddomain[0] == 0 )){
 					while ((ptr = strtok(NULL, " \t\r\n"))
 					       != NULL) {
@@ -385,10 +386,6 @@ setup_libs(void) {
 	check_result(result, "isc_socketmgr_create");
 	isc_buffer_init(&b, ".", 1);
 	isc_buffer_add(&b, 1);
-	dns_name_init(&rootorg, NULL);
-	isc_buffer_init(&rootbuf, rootspace, BUFSIZE);
-	result = dns_name_fromtext(&rootorg, &b, NULL, ISC_FALSE, &rootbuf);
-	check_result(result, "dns_name_fromtext");
 }
 
 static void
@@ -515,8 +512,8 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 					if (srv == NULL)
 						fatal("Memory allocation "
 						      "failure.");
-					strncpy(srv->servername, (char *)r.base,
-						len);
+					strncpy(srv->servername, 
+						(char *)r.base, len);
 					srv->servername[len]=0;
 					ISC_LIST_APPEND
 						(lookup->my_server_list,
@@ -525,7 +522,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 				}
 				debug ("Before insertion, init@%ld "
 					 "-> %ld, new@%ld "
-					 "-> %ld",(long int)query->lookup,
+					 "-> %ld", (long int)query->lookup,
 					 (long int)query->lookup->link.next,
 					 (long int)lookup, (long int)lookup->
 					 link.next);
@@ -534,7 +531,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query) {
 						     link);
 				debug ("After insertion, init -> "
 					 "%ld, new = %ld, "
-					 "new -> %ld",(long int)query->
+					 "new -> %ld", (long int)query->
 					 lookup->link.next,
 					 (long int)lookup, (long int)lookup->
 					 link.next);
@@ -585,7 +582,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	lookup->recurse = query->lookup->recurse;
 	lookup->ns_search_only = query->lookup->ns_search_only;
 	lookup->use_my_server_list = query->lookup->use_my_server_list;
-	lookup->origin = ISC_LIST_NEXT(query->lookup->origin,link);
+	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
 	lookup->retries = tries;
 	lookup->comments = query->lookup->comments;
 	lookup->section_question = query->lookup->section_question;
@@ -611,7 +608,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 
 	debug ("Before insertion, init@%ld "
 	       "-> %ld, new@%ld "
-	       "-> %ld",(long int)query->lookup,
+	       "-> %ld", (long int)query->lookup,
 	       (long int)query->lookup->link.next,
 	       (long int)lookup, (long int)lookup->
 	       link.next);
@@ -620,7 +617,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 			     link);
 	debug ("After insertion, init -> "
 	       "%ld, new = %ld, "
-	       "new -> %ld",(long int)query->
+	       "new -> %ld", (long int)query->
 	       lookup->link.next,
 	       (long int)lookup, (long int)lookup->
 	       link.next);
@@ -661,7 +658,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (count_dots(lookup->textname) >= ndots)
 		lookup->origin = NULL; /* Force root lookup */
 	if (lookup->origin != NULL) {
-		debug ("Trying origin %s",lookup->origin->origin);
+		debug ("Trying origin %s", lookup->origin->origin);
 		result = dns_message_gettempname(lookup->sendmsg,
 						 &lookup->oname);
 		check_result(result, "dns_message_gettempname");
@@ -669,7 +666,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		len=strlen(lookup->origin->origin);
 		isc_buffer_init(&b, lookup->origin->origin, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->oname, &b, &rootorg,
+		result = dns_name_fromtext(lookup->oname, &b, dns_rootname,
 					   ISC_FALSE, &lookup->onamebuf);
 		if (result != ISC_R_SUCCESS) {
 		dns_message_puttempname(lookup->sendmsg,
@@ -699,13 +696,13 @@ setup_lookup(dig_lookup_t *lookup) {
 		len = strlen (lookup->textname);
 		isc_buffer_init(&b, lookup->textname, len);
 		isc_buffer_add(&b, len);
-		result = dns_name_fromtext(lookup->name, &b, &rootorg,
+		result = dns_name_fromtext(lookup->name, &b, dns_rootname,
 					   ISC_FALSE, &lookup->namebuf);
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
 						&lookup->name);
 			isc_buffer_init(&b, store, MXNAME);
-			res2 = dns_name_totext(&rootorg, ISC_FALSE, &b);
+			res2 = dns_name_totext(dns_rootname, ISC_FALSE, &b);
 			check_result (res2, "dns_name_totext");
 			isc_buffer_usedregion (&b, &r);
 			fatal("Aborting: %s/%.*s is not a legal name syntax. "
@@ -1408,7 +1405,7 @@ free_lists(void) {
 		o = ISC_LIST_NEXT(o, link);
 		isc_mem_free(mctx, ptr);
 	}
-	dns_name_invalidate(&rootorg);
+	dns_name_invalidate(dns_rootname);
 	if (socketmgr != NULL)
 		isc_socketmgr_destroy(&socketmgr);
 	if (timermgr != NULL)
@@ -1433,7 +1430,7 @@ main(int argc, char **argv) {
 	dig_lookup_t *lookup = NULL;
 #ifdef TWIDDLE
 	FILE *fp;
-	int i,p;
+	int i, p;
 #endif
 
 	ISC_LIST_INIT(lookup_list);
@@ -1441,7 +1438,7 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 
 #ifdef TWIDDLE
-	fp = fopen("/dev/urandom","r");
+	fp = fopen("/dev/urandom", "r");
 	if (fp!=NULL) {
 		fread (&i, sizeof(int), 1, fp);
 		srandom(i);

@@ -187,7 +187,7 @@ check_next_lookup (dig_lookup_t *lookup) {
 	       lookup->retries, lookup->textname);
 	if ((next == NULL)&&((lookup->retries <= 1)
 			     ||tcp_mode)) {
-		debug("Shutting Down.",stderr);
+		debug("Shutting Down.", stderr);
 		isc_app_shutdown();
 		return;
 	}
@@ -238,7 +238,7 @@ show_usage() {
 "       -T enables TCP/IP mode\n"
 "       -v enables verbose output\n"
 "       -w specifies to wait forever for a reply\n"
-"       -W specifies how long to wait for a reply\n",stderr);
+"       -W specifies how long to wait for a reply\n", stderr);
 	exit (0);
 }				
 
@@ -279,7 +279,7 @@ say_message(dns_name_t *name, char *msg, dns_rdata_t *rdata,
 	printf ( "%.*s %s %.*s", (int)r.length, (char *)r.base,
 		 msg, (int)r2.length, (char *)r2.base);
 	if (query->lookup->identify) {
-		printf (" on server %s",query->servname);
+		printf (" on server %s", query->servname);
 	}
 	printf ("\n");
 	isc_buffer_free(&b);
@@ -533,7 +533,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	UNUSED(is_batchfile);
 
-	while ((c = isc_commandline_parse(argc, argv,"lvwrdt:c:aTCN:R:W:"))
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -561,7 +561,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			break;
 		case 'w':
 			/* XXXMWS This should be a system-indep.
-			   thing! */
+			 * thing! */
 			timeout = 32767;
 			break;
 		case 'W':
@@ -602,8 +602,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (srv == NULL)
 				fatal ("Memory allocation failure.");
 			strncpy(srv->servername,
-				argv[isc_commandline_index+1],MXNAME-1);
-			debug("Server is %s",srv->servername);
+				argv[isc_commandline_index+1], MXNAME-1);
+			debug("Server is %s", srv->servername);
 			ISC_LIST_APPEND(server_list, srv, link);
 	}
 	
@@ -619,7 +619,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->pending = ISC_FALSE;
 	strncpy (lookup->textname, hostname, MXNAME);
 	strncpy (lookup->rttext, querytype, 32);
-	strncpy (lookup->rctext,queryclass, 32);
+	strncpy (lookup->rctext, queryclass, 32);
 	lookup->namespace[0]=0;
 	lookup->sendspace[0]=0;
 	lookup->sendmsg=NULL;

@@ -16,6 +16,7 @@
  */
 
 
+
 #include <config.h>
 
 #include <errno.h>
@@ -70,7 +71,6 @@ extern isc_task_t *task;
 extern isc_timermgr_t *timermgr;
 extern isc_socketmgr_t *socketmgr;
 extern dns_messageid_t id;
-extern dns_name_t rootorg;
 extern char *rootspace[BUFSIZE];
 extern isc_buffer_t rootbuf;
 extern int sendcount;
@@ -158,7 +158,7 @@ show_usage() {
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]question       (Control display of question)\n"
 "                 +[no]answer         (Control display of answer)\n"
-"                 +[no]autority       (Control display of authority)\n"
+"                 +[no]authority      (Control display of authority)\n"
 "                 +[no]additional     (Control display of additional)\n"
 , stderr);
 }				
@@ -169,12 +169,12 @@ check_next_lookup(dig_lookup_t *lookup) {
 	dig_query_t *query;
 	isc_boolean_t still_working=ISC_FALSE;
 	
-	debug("In check_next_lookup",stderr);
+	debug("In check_next_lookup", stderr);
 	for (query = ISC_LIST_HEAD(lookup->q);
 	     query != NULL;
 	     query = ISC_LIST_NEXT(query, link)) {
 		if (query->working) {
-			debug("Still have a worker.",stderr);
+			debug("Still have a worker.", stderr);
 			still_working=ISC_TRUE;
 		}
 	}
@@ -186,7 +186,7 @@ check_next_lookup(dig_lookup_t *lookup) {
 	       lookup->retries, lookup->textname);
 	if ((next == NULL)&&((lookup->retries <= 1)
 			     ||tcp_mode)) {
-		debug("Shutting Down.",stderr);
+		debug("Shutting Down.", stderr);
 		isc_app_shutdown();
 		return;
 	}
@@ -220,7 +220,7 @@ received(int bytes, int frmsize, char *frm, dig_query_t *query) {
 		printf(";; Received %u bytes from %.*s\n",
 		       bytes, frmsize, frm);
 		time (&tnow);
-		printf(";; When: %s\n",ctime(&tnow));
+		printf(";; When: %s\n", ctime(&tnow));
 	}
 }
 
@@ -442,10 +442,46 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 }
 
 /*
-** We're not using isc_commandline_parse() here since the command line
-** syntax of dig is quite a bit different from that which can be described
-** that routine.  There is a portability issue here.
-*/
+ * Reorder an argument list so that server names all come at the end.
+ * This is a bit of a hack, to allow batch-mode processing to properly
+ * handle the server options.
+ */
+static void
+reorder_args(int argc, char *argv[]) {
+	int i, j;
+	char *ptr;
+	int end;
+
+	debug ("reorder_args()");
+	end = argc-1;
+	while (argv[end][0] == '@') {
+		end--;
+		if (end == 0)
+			return;
+	}
+	debug ("arg[end]=%s",argv[end]);
+	for (i=1; i<end-1; i++) {
+		if (argv[i][0]=='@') {
+			debug ("Arg[%d]=%s", i, argv[i]);
+			ptr=argv[i];
+			for (j=i+1; j<end; j++) {
+				debug ("Moving %s to %d", argv[j], j-1);
+				argv[j-1]=argv[j];
+			}
+			debug ("Moving %s to end, %d", ptr, end-1);
+			argv[end-1]=ptr;
+			end--;
+			if (end < 1)
+				return;
+		}
+	}
+}
+
+/*
+ * We're not using isc_commandline_parse() here since the command line
+ * syntax of dig is quite a bit different from that which can be described
+ * that routine.  There is a portability issue here.
+ */
 void
 parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	isc_boolean_t have_host = ISC_FALSE;
@@ -455,110 +491,120 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	char batchline[MXNAME];
 	FILE *fp = NULL;
 	int bargc;
-	char *bargv[8];
-	int i,n;
+	char *bargv[16];
+	int i, n;
 	int adrs[4];
 
 	for (argc--, argv++; argc > 0; argc--, argv++) {
 		debug ("Main parsing %s", argv[0]);
-		if ((strncmp(argv[0],"@",1) == 0)
-		    && (!is_batchfile)) {
+		if (strncmp(argv[0], "@", 1) == 0) {
 			srv=isc_mem_allocate(mctx, sizeof(struct dig_server));
 			if (srv == NULL)
 				fatal("Memory allocation failure.");
-			strncpy(srv->servername,&argv[0][1],MXNAME-1);
-			ISC_LIST_APPEND(server_list, srv, link);
-		} else if ((strcmp(argv[0],"+vc") == 0)
+			strncpy(srv->servername, &argv[0][1], MXNAME-1);
+			if ((is_batchfile) || (!have_host)) {
+				if (!lookup->use_my_server_list) {
+					ISC_LIST_INIT (lookup->
+						       my_server_list);
+					lookup->use_my_server_list =
+						ISC_TRUE;
+				}
+				ISC_LIST_APPEND(lookup->my_server_list,
+						srv, link);
+			} else {
+				ISC_LIST_APPEND(server_list, srv, link);
+			}
+		} else if ((strcmp(argv[0], "+vc") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_TRUE;
-		} else if ((strcmp(argv[0],"+novc") == 0)
+		} else if ((strcmp(argv[0], "+novc") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_FALSE;
-		} else if ((strcmp(argv[0],"+tcp") == 0)
+		} else if ((strcmp(argv[0], "+tcp") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_TRUE;
-		} else if ((strcmp(argv[0],"+notcp") == 0)
+		} else if ((strcmp(argv[0], "+notcp") == 0)
 			   && (!is_batchfile)) {
 			tcp_mode = ISC_FALSE;
-		} else if (strncmp(argv[0],"+domain=",8) == 0) {
+		} else if (strncmp(argv[0], "+domain=", 8) == 0) {
 			strncpy (fixeddomain, &argv[0][8], MXNAME);
-		} else if (strncmp(argv[0],"+sea",4) == 0) {
+		} else if (strncmp(argv[0], "+sea", 4) == 0) {
 			usesearch = ISC_TRUE;
-		} else if (strncmp(argv[0],"+nosea",6) == 0) {
+		} else if (strncmp(argv[0], "+nosea", 6) == 0) {
 			usesearch = ISC_FALSE;
-		} else if (strncmp(argv[0],"+time=",6) == 0) {
+		} else if (strncmp(argv[0], "+time=", 6) == 0) {
 			timeout = atoi(&argv[0][6]);
 			if (timeout <= 0)
 				timeout = 1;
-		} else if (strncmp(argv[0],"+tries=",7) == 0) {
+		} else if (strncmp(argv[0], "+tries=", 7) == 0) {
 			tries = atoi(&argv[0][7]);
 			if (tries <= 0)
 				tries = 1;
-		} else if (strncmp(argv[0],"+ndots=",7) == 0) {
+		} else if (strncmp(argv[0], "+ndots=", 7) == 0) {
 			ndots = atoi(&argv[0][7]);
 			if (timeout <= 0)
 				timeout = 1;
-		} else if (strncmp(argv[0],"+rec",4) == 0) {
+		} else if (strncmp(argv[0], "+rec", 4) == 0) {
 			recurse = ISC_TRUE;
-		} else if (strncmp(argv[0],"+norec",6) == 0) {
+		} else if (strncmp(argv[0], "+norec", 6) == 0) {
 			recurse = ISC_FALSE;
-		} else if (strncmp(argv[0],"+ns",3) == 0) {
+		} else if (strncmp(argv[0], "+ns", 3) == 0) {
 			ns_search_only = ISC_TRUE;
-		} else if (strncmp(argv[0],"+nons",6) == 0) {
+		} else if (strncmp(argv[0], "+nons", 6) == 0) {
 			ns_search_only = ISC_FALSE;
-		} else if (strncmp(argv[0],"+det",4) == 0) {
+		} else if (strncmp(argv[0], "+det", 4) == 0) {
 			show_details = ISC_TRUE;
-		} else if (strncmp(argv[0],"+nodet",6) == 0) {
+		} else if (strncmp(argv[0], "+nodet", 6) == 0) {
 			show_details = ISC_FALSE;
-		} else if (strncmp(argv[0],"+com",4) == 0) {
+		} else if (strncmp(argv[0], "+com", 4) == 0) {
 			comments = ISC_TRUE;
-		} else if (strncmp(argv[0],"+nocom",6) == 0) {
+		} else if (strncmp(argv[0], "+nocom", 6) == 0) {
 			comments = ISC_FALSE;
-		} else if (strncmp(argv[0],"+que",4) == 0) {
+		} else if (strncmp(argv[0], "+que", 4) == 0) {
 			section_question = ISC_TRUE;
-		} else if (strncmp(argv[0],"+noque",6) == 0) {
+		} else if (strncmp(argv[0], "+noque", 6) == 0) {
 			section_question = ISC_FALSE;
-		} else if (strncmp(argv[0],"+ans",4) == 0) {
+		} else if (strncmp(argv[0], "+ans", 4) == 0) {
 			section_answer = ISC_TRUE;
-		} else if (strncmp(argv[0],"+noans",6) == 0) {
+		} else if (strncmp(argv[0], "+noans", 6) == 0) {
 			section_answer = ISC_FALSE;
-		} else if (strncmp(argv[0],"+add",4) == 0) {
+		} else if (strncmp(argv[0], "+add", 4) == 0) {
 			section_additional = ISC_TRUE;
-		} else if (strncmp(argv[0],"+noadd",6) == 0) {
+		} else if (strncmp(argv[0], "+noadd", 6) == 0) {
 			section_additional = ISC_FALSE;
-		} else if (strncmp(argv[0],"+aut",4) == 0) {
+		} else if (strncmp(argv[0], "+aut", 4) == 0) {
 			section_authority = ISC_TRUE;
-		} else if (strncmp(argv[0],"+noaut",6) == 0) {
+		} else if (strncmp(argv[0], "+noaut", 6) == 0) {
 			section_authority = ISC_FALSE;
 #ifdef TWIDDLE
-		} else if (strncmp(argv[0],"+twiddle",6) == 0) {
+		} else if (strncmp(argv[0], "+twiddle", 6) == 0) {
 			twiddle = ISC_TRUE;
 #endif
-		} else if (strncmp(argv[0],"-c",2) == 0) {
+		} else if (strncmp(argv[0], "-c", 2) == 0) {
  			if (have_host) {
 				if (argv[0][2]!=0) {
-					strncpy(lookup->rctext,&argv[0][2],
+					strncpy(lookup->rctext, &argv[0][2],
 						MXRD);
 				} else {
-					strncpy(lookup->rctext,argv[1],
+					strncpy(lookup->rctext, argv[1],
 						MXRD);
 					argv++;
 					argc--;
 				}
 			}
-		} else if (strncmp(argv[0],"-t",2) == 0) {
+		} else if (strncmp(argv[0], "-t", 2) == 0) {
  			if (have_host) {
 				if (argv[0][2]!=0) {
-					strncpy(lookup->rttext,&argv[0][2],
+					strncpy(lookup->rttext, &argv[0][2],
 						MXRD);
 				} else {
-					strncpy(lookup->rttext,argv[1],
+					strncpy(lookup->rttext, argv[1],
 						MXRD);
 					argv++;
 					argc--;
 				}
 			}
-		} else if (strncmp(argv[0],"-f",2) == 0) {
+		} else if (strncmp(argv[0], "-f", 2) == 0) {
 			if (argv[0][2]!=0) {
 				batchname=&argv[0][2];
 			} else {
@@ -566,7 +612,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				argv++;
 				argc--;
 			}
-		} else if (strncmp(argv[0],"-p",2) == 0) {
+		} else if (strncmp(argv[0], "-p", 2) == 0) {
 			if (argv[0][2]!=0) {	
 				port=atoi(&argv[0][2]);
 			} else {
@@ -574,11 +620,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				argv++;
 				argc--;
 			}
-		} else if (strncmp(argv[0],"-h",2) == 0) {
+		} else if (strncmp(argv[0], "-h", 2) == 0) {
 			show_usage();
 			exit (0);
-		} else if (strncmp(argv[0],"-x",2) == 0) {
-			n = sscanf(argv[1],"%d.%d.%d.%d", &adrs[0], &adrs[1],
+		} else if (strncmp(argv[0], "-x", 2) == 0) {
+			n = sscanf(argv[1], "%d.%d.%d.%d", &adrs[0], &adrs[1],
 				    &adrs[2], &adrs[3]);
 			if (n == 0)
 				show_usage();
@@ -594,7 +640,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				strncat(lookup->textname, batchline, MXNAME);
 			}
 			strncat(lookup->textname, "in-addr.arpa.", MXNAME);
-			debug("Looking up %s",lookup->textname);
+			debug("Looking up %s", lookup->textname);
 			strcpy(lookup->rttext, "ptr");
 			strcpy(lookup->rctext, "in");
 			lookup->namespace[0]=0;
@@ -626,11 +672,11 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
  			if (have_host) {
 				ENSURE(lookup != NULL);
 				if (isclass(argv[0])) {
-					strncpy(lookup->rctext,argv[0],
+					strncpy(lookup->rctext, argv[0],
 						 MXRD);
 					continue;
 				} else if (istype(argv[0])) {
-					strncpy(lookup->rttext,argv[0], MXRD);
+					strncpy(lookup->rttext, argv[0], MXRD);
 					continue;
 				}
 			}
@@ -639,7 +685,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			if (lookup == NULL)
 				fatal("Memory allocation failure.");
 			lookup->pending = ISC_FALSE;
-			strncpy(lookup->textname,argv[0], MXNAME-1);
+			strncpy(lookup->textname, argv[0], MXNAME-1);
 			lookup->rttext[0]=0;
 			lookup->rctext[0]=0;
 			lookup->namespace[0]=0;
@@ -678,13 +724,14 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			debug ("Batch line %s", batchline);
 			bargc=1;
 			bargv[bargc]=strtok(batchline, " \t\r\n");
-			while (bargv[bargc] != NULL) {
+			while ((bargv[bargc] != NULL) &&
+			       (bargc < 14 )) {
 				bargc++;
 				bargv[bargc]=strtok(NULL, " \t\r\n");
 			}
 			bargc--;
 			bargv[0]="dig";
-			debug("Batch parsing %d:%s",bargc,bargv[1]);
+			reorder_args(bargc+1, (char**)bargv);
 			parse_args(ISC_TRUE, bargc+1, (char**)bargv);
 		}
 	}
@@ -715,7 +762,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		ISC_LIST_INIT(lookup->q);
 		lookup->origin = NULL;
 		ISC_LIST_INIT(lookup->my_server_list);
-		strcpy(lookup->textname,".");
+		strcpy(lookup->textname, ".");
 		strcpy(lookup->rttext, "NS");
 		lookup->rctext[0]=0;
 		ISC_LIST_APPEND(lookup_list, lookup, link);
