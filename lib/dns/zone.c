@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.72 2000/01/31 02:11:48 marka Exp $ */
+ /* $Id: zone.c,v 1.73 2000/01/31 02:37:58 marka Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@
 #include <dns/journal.h>
 #include <dns/log.h>
 #include <dns/master.h>
+#include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/rcode.h>
 #include <dns/rdata.h>
