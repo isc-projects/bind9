@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.76 2000/04/27 00:01:39 tale Exp $ */
+/* $Id: rbt.c,v 1.77 2000/04/28 01:08:52 halley Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -30,6 +30,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/rbt.h>
 #include <dns/result.h>
@@ -80,7 +81,7 @@ struct dns_rbt {
  */
 #define DIRTY(node)	((node)->dirty)
 #define WILD(node)	((node)->wild)
-#define LOCK(node)	((node)->locknum)
+#define LOCKNUM(node)	((node)->locknum)
 #define REFS(node)	((node)->references)
 
 /*
@@ -1259,7 +1260,7 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 	DOWN(node) = NULL;
 	DATA(node) = NULL;
 
-	LOCK(node) = 0;
+	LOCKNUM(node) = 0;
 	REFS(node) = 0;
 	WILD(node) = 0;
 	DIRTY(node) = 0;
