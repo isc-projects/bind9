@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.188 2001/03/28 00:58:13 gson Exp $ */
+/* $Id: message.c,v 1.189 2001/03/28 02:42:54 bwelling Exp $ */
 
 /***
  *** Imports
@@ -2803,6 +2803,7 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
+			  const dns_master_style_t *style,
 			  dns_messagetextflag_t flags,
 			  isc_buffer_t *target) {
 	dns_name_t *name, empty_name;
@@ -2842,12 +2843,12 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 				ADD_STRING(target, ";");
 				result = dns_master_questiontotext(name,
 								   rdataset,
-						   &dns_master_style_debug,
+								   style,
 								   target);
 			} else {
 				result = dns_master_rdatasettotext(name,
 								   rdataset,
-						   &dns_master_style_debug,
+								   style,
 								   target);
 			}
 			if (result != ISC_R_SUCCESS)
@@ -2866,6 +2867,7 @@ dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
+				const dns_master_style_t *style,
 				dns_messagetextflag_t flags,
 				isc_buffer_t *target) {
 	dns_rdataset_t *ps = NULL;
@@ -2907,9 +2909,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			return (ISC_R_SUCCESS);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; TSIG PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps,
-					     &dns_master_style_debug,
-					     target);
+		result = dns_master_rdatasettotext(name, ps, style, target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
@@ -2920,9 +2920,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			return (ISC_R_SUCCESS);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, ";; SIG0 PSEUDOSECTION:\n");
-		result = dns_master_rdatasettotext(name, ps, 
-						   &dns_master_style_debug,
-						   target);
+		result = dns_master_rdatasettotext(name, ps, style, target);
 		if ((flags & DNS_MESSAGETEXTFLAG_NOHEADERS) == 0 &&
 		    (flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
 			ADD_STRING(target, "\n");
@@ -2932,8 +2930,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 }
 
 isc_result_t
-dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
-		   isc_buffer_t *target) {
+dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
+		   dns_messagetextflag_t flags, isc_buffer_t *target) {
 	char buf[sizeof "1234567890"];
 	isc_result_t result;
 
@@ -2991,36 +2989,36 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
 	}
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_OPT,
-						 flags, target);
+						 style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_sectiontotext(msg, DNS_SECTION_QUESTION,
-					   flags, target);
+					   style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ANSWER,
-					   flags, target);
+					   style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_AUTHORITY,
-					   flags, target);
+					   style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	result = dns_message_sectiontotext(msg, DNS_SECTION_ADDITIONAL,
-					   flags, target);
+					   style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_TSIG,
-						 flags, target);
+						 style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
 	result = dns_message_pseudosectiontotext(msg,
 						 DNS_PSEUDOSECTION_SIG0,
-						 flags, target);
+						 style, flags, target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

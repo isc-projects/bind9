@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.142 2001/03/14 18:08:16 bwelling Exp $ */
+/* $Id: dig.c,v 1.143 2001/03/28 02:42:49 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -31,6 +31,7 @@
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
+#include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -85,7 +86,8 @@ char *argv0;
 char domainopt[DNS_NAME_MAXTEXT];
 
 isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
-	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE;
+	nibble = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
+	multiline = ISC_FALSE;
 
 isc_uint16_t bufsize = 0;
 isc_boolean_t forcecomment = ISC_FALSE;
@@ -183,6 +185,7 @@ show_usage(void) {
 "                 +rrlimit=###        (Limit number of rr's in xfr)\n"
 "                 +namelimit=###      (Limit number of names in xfr)\n"
 "                 +[no]dnssec         (Request DNSSEC records)\n"
+"                 +[no]multiline      (Print records in an expanded format)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 , stderr);
@@ -341,6 +344,12 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
+	const dns_master_style_t *style;
+
+	if (multiline)
+		style = &dns_master_style_default;
+	else
+		style = &dns_master_style_debug;
 
 	if (query->lookup->cmdline[0] != 0) {
 		fputs(query->lookup->cmdline, stdout);
@@ -420,7 +429,7 @@ repopulate_buffer:
 	{
 		result = dns_message_pseudosectiontotext(msg,
 			 DNS_PSEUDOSECTION_OPT,
-			 flags, buf);
+			 style, flags, buf);
 		if (result == ISC_R_NOSPACE) {
 buftoosmall:
 			len += OUTPUTBUF;
@@ -439,7 +448,7 @@ buftoosmall:
 		if (!short_form) {
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_QUESTION,
-						       flags, buf);
+						       style, flags, buf);
 			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
 			check_result(result, "dns_message_sectiontotext");
@@ -449,7 +458,7 @@ buftoosmall:
 		if (!short_form) {
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_ANSWER,
-						       flags, buf);
+						       style, flags, buf);
 			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
 			check_result(result, "dns_message_sectiontotext");
@@ -464,7 +473,7 @@ buftoosmall:
 		if (!short_form) {
 			result = dns_message_sectiontotext(msg,
 						       DNS_SECTION_AUTHORITY,
-						       flags, buf);
+						       style, flags, buf);
 			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
 			check_result(result, "dns_message_sectiontotext");
@@ -474,7 +483,7 @@ buftoosmall:
 		if (!short_form) {
 			result = dns_message_sectiontotext(msg,
 						      DNS_SECTION_ADDITIONAL,
-						      flags, buf);
+						      style, flags, buf);
 			if (result == ISC_R_NOSPACE)
 				goto buftoosmall;
 			check_result(result, "dns_message_sectiontotext");
@@ -485,7 +494,7 @@ buftoosmall:
 				result = dns_message_pseudosectiontotext(
 						   msg,
 						   DNS_PSEUDOSECTION_TSIG,
-						   flags, buf);
+						   style, flags, buf);
 				if (result == ISC_R_NOSPACE)
 					goto buftoosmall;
 				check_result(result,
@@ -493,7 +502,7 @@ buftoosmall:
 				result = dns_message_pseudosectiontotext(
 						   msg,
 						   DNS_PSEUDOSECTION_SIG0,
-						   flags, buf);
+						   style, flags, buf);
 				if (result == ISC_R_NOSPACE)
 					goto buftoosmall;
 				check_result(result,
@@ -730,6 +739,9 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		default: /* Inherets default for compatibility */
 			lookup->ignore = ISC_TRUE;
 		}
+		break;
+	case 'm': /* multiline */
+		multiline = state;
 		break;
 	case 'n':
 		switch (cmd[1]) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.96 2001/03/28 00:50:00 gson Exp $ */
+/* $Id: message.h,v 1.97 2001/03/28 02:42:56 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -28,6 +28,7 @@
 #include <isc/magic.h>
 
 #include <dns/compress.h>
+#include <dns/masterdump.h>
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -296,12 +297,14 @@ dns_message_destroy(dns_message_t **msgp);
 
 isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
+			  const dns_master_style_t *style,
 			  dns_messagetextflag_t flags,
 			  isc_buffer_t *target);
 
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
+				const dns_master_style_t *style,
 				dns_messagetextflag_t flags,
 				isc_buffer_t *target);
 /*
@@ -314,6 +317,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
  * Requires:
  *
  *	'msg' is a valid message.
+ *
+ *	'style' is a valid master dump style.
  *
  *	'target' is a valid buffer.
  *
@@ -335,8 +340,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 */
 
 isc_result_t
-dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
-		   isc_buffer_t *target);
+dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
+		   dns_messagetextflag_t flags, isc_buffer_t *target);
 /*
  * Convert all sections of message 'msg' to a cleartext representation
  *
@@ -351,6 +356,8 @@ dns_message_totext(dns_message_t *msg, dns_messagetextflag_t flags,
  * Requires:
  *
  *	'msg' is a valid message.
+ *
+ *	'style' is a valid master dump style.
  *
  *	'target' is a valid buffer.
  *

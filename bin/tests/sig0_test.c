@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig0_test.c,v 1.7 2001/03/13 02:48:53 bwelling Exp $ */
+/* $Id: sig0_test.c,v 1.8 2001/03/28 02:42:53 bwelling Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,7 @@
 #include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdataset.h>
@@ -73,6 +74,7 @@ isc_socket_t *s;
 isc_sockaddr_t address;
 char output[10 * 1024];
 isc_buffer_t outbuf;
+static const dns_master_style_t *style = &dns_master_style_debug;
 
 static void
 senddone(isc_task_t *task, isc_event_t *event) {
@@ -114,7 +116,7 @@ recvdone(isc_task_t *task, isc_event_t *event) {
         CHECK("dns_message_parse", result);
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
-	result = dns_message_totext(response, 0, &outbuf);
+	result = dns_message_totext(response, style, 0, &outbuf);
         CHECK("dns_message_totext", result);
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));
@@ -180,7 +182,7 @@ buildquery(void) {
 	dns_compress_invalidate(&cctx);
 
 	isc_buffer_init(&outbuf, output, sizeof(output));
-	result = dns_message_totext(query, 0, &outbuf);
+	result = dns_message_totext(query, style, 0, &outbuf);
         CHECK("dns_message_totext", result);
 	printf("%.*s\n", (int)isc_buffer_usedlength(&outbuf),
 	       (char *)isc_buffer_base(&outbuf));

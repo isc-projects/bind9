@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.84 2001/03/22 00:06:59 bwelling Exp $ */
+/* $Id: nsupdate.c,v 1.85 2001/03/28 02:42:51 bwelling Exp $ */
 
 #include <config.h>
 
@@ -48,6 +48,7 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/masterdump.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -127,6 +128,7 @@ static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
 static isc_boolean_t interactive = ISC_TRUE;
 static isc_boolean_t seenerror = ISC_FALSE;
+static const dns_master_style_t *style = &dns_master_style_debug;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -1209,7 +1211,7 @@ show_message(dns_message_t *msg) {
 			isc_buffer_free(&buf);
 		result = isc_buffer_allocate(mctx, &buf, bufsz);
 		check_result(result, "isc_buffer_allocate");
-		result = dns_message_totext(msg, 0, buf);
+		result = dns_message_totext(msg, style, 0, buf);
 		bufsz *= 2;
 	} while (result == ISC_R_NOSPACE);
 	if (result != ISC_R_SUCCESS) {
@@ -1336,7 +1338,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 				isc_buffer_free(&buf);
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_message_totext(rcvmsg, 0, buf);
+			result = dns_message_totext(rcvmsg, style, 0, buf);
 			bufsz *= 2;
 		} while (result == ISC_R_NOSPACE);
 		check_result(result, "dns_message_totext");
@@ -1468,7 +1470,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 			}
 			result = isc_buffer_allocate(mctx, &buf, bufsz);
 			check_result(result, "isc_buffer_allocate");
-			result = dns_message_totext(rcvmsg, 0, buf);
+			result = dns_message_totext(rcvmsg, style, 0, buf);
 		} while (result == ISC_R_NOSPACE);
 		check_result(result, "dns_message_totext");
 		fprintf(stderr, "Reply from SOA query:\n%.*s\n",

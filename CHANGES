@@ -1,3 +1,5 @@
+ 795.	[func]		Add the +multiline option to dig. [RT #1095]
+
  794.	[func]		Implement the "port" and "default-port" statements
  			in rndc.conf.
 
