@@ -26,6 +26,26 @@
 isc_mem_t *mctx;
 isc_symtab_t *st;
 
+static char *
+mem_strdup(isc_mem_t *mctx, const char *s) {
+	size_t len;
+	char *ns;
+
+	len = strlen(s);
+	ns = isc_mem_allocate(mctx, len + 1);
+	if (ns == NULL)
+		return (NULL);
+	strncpy(ns, s, len + 1);
+	return (ns);
+}
+
+static void
+undefine_action(char *key, unsigned int type, isc_symvalue_t value) {
+	INSIST(type == 0);
+	isc_mem_free(mctx, key);
+	isc_mem_free(mctx, value.as_pointer);
+}
+
 int
 main(int argc, char *argv[]) {
 	char s[1000], *cp, *key;
@@ -36,7 +56,8 @@ main(int argc, char *argv[]) {
 	int c;
 
 	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_symtab_create(mctx, 691, &st) == ISC_R_SUCCESS);
+	INSIST(isc_symtab_create(mctx, 691, undefine_action, &st) ==
+	       ISC_R_SUCCESS);
 
 	while ((c = getopt(argc, argv, "t")) != -1) {
 		switch (c) {
@@ -74,8 +95,8 @@ main(int argc, char *argv[]) {
 				}
 			} else {
 				*cp++ = '\0';
-				key = strdup(key);
-				value.as_pointer = strdup(cp);
+				key = mem_strdup(mctx, key);
+				value.as_pointer = mem_strdup(mctx, cp);
 				result = isc_symtab_define(st, key, 0, value);
 				if (trace || result != ISC_R_SUCCESS)
 					printf("define('%s', '%s'): %s\n",
