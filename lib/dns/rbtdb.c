@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.144 2001/01/17 01:22:17 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.145 2001/01/24 02:40:19 halley Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -4264,10 +4264,16 @@ rdatasetiter_first(dns_rdatasetiter_t *iterator) {
 				/*
 				 * Is this a "this rdataset doesn't
 				 * exist" record?
+				 *
+				 * Note: unlike everywhere else, we
+				 * check for now > header->ttl instead
+				 * of now >= header->ttl.  This allows
+				 * ANY and SIG queries for 0 TTL
+				 * rdatasets to work.
 				 */
 				if ((header->attributes &
 				     RDATASET_ATTR_NONEXISTENT) != 0 ||
-				    (now != 0 && now >= header->ttl))
+				    (now != 0 && now > header->ttl))
 					header = NULL;
 				break;
 			} else
@@ -4322,10 +4328,16 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 					/*
 					 * Is this a "this rdataset doesn't
 					 * exist" record?
+					 *
+					 * Note: unlike everywhere else, we
+					 * check for now > header->ttl instead
+					 * of now >= header->ttl.  This allows
+					 * ANY and SIG queries for 0 TTL
+					 * rdatasets to work.
 					 */
 					if ((header->attributes &
 					     RDATASET_ATTR_NONEXISTENT) != 0 ||
-					    (now != 0 && now >= header->ttl))
+					    (now != 0 && now > header->ttl))
 						header = NULL;
 					break;
 				} else
