@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.33 2000/12/12 00:18:01 gson Exp $ */
+/* $Id: log.h,v 1.34 2000/12/12 05:29:33 tale Exp $ */
 
 #ifndef ISC_LOG_H
 #define ISC_LOG_H 1
@@ -498,13 +498,6 @@ isc_log_usechannel(isc_logconfig_t *lcfg, const char *name,
  */
 
 void
-isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level,
-	       isc_msgcat_t *msgcat, int msgset, int message,
-	       const char *format, ...)
-ISC_FORMAT_PRINTF(8, 9);
-
-void
 isc_log_write(isc_log_t *lctx, isc_logcategory_t *category,
 	      isc_logmodule_t *module, int level,
 	      const char *format, ...)
@@ -513,7 +506,7 @@ ISC_FORMAT_PRINTF(5, 6);
  * Write a message to the log channels.
  *
  * Notes:
- *	Log message containing English text should be logged with
+ *	Log message containing natural language text should be logged with
  *	isc_log_iwrite() to allow for localization.
  *
  *	lctx can be NULL; this is allowed so that programs which use
@@ -544,13 +537,6 @@ ISC_FORMAT_PRINTF(5, 6);
  *	Nothing.  Failure to log a message is not construed as a
  *	meaningful error.
  */
-
-void
-isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
-		isc_logmodule_t *module, int level,
-		isc_msgcat_t *msgcat, int msgset, int message,
-		const char *format, va_list args)
-ISC_FORMAT_PRINTF(8, 0);
 
 void
 isc_log_vwrite(isc_log_t *lctx, isc_logcategory_t *category,
@@ -591,29 +577,14 @@ ISC_FORMAT_PRINTF(5, 0);
  */
 
 void
-isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
-		isc_logmodule_t *module, int level,
-		isc_msgcat_t *msgcat, int msgset, int message,
-		const char *format, ...)
-ISC_FORMAT_PRINTF(8, 9);
-
-void
 isc_log_write1(isc_log_t *lctx, isc_logcategory_t *category,
-	       isc_logmodule_t *module, int level,
-	       const char *format, ...)
+	       isc_logmodule_t *module, int level, const char *format, ...)
 ISC_FORMAT_PRINTF(5, 6);
 /*
  * Write a message to the log channels, pruning duplicates that occur within
  * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
  * This function is otherwise identical to isc_log_write().
  */
-
-void
-isc_log_ivwrite1(isc_log_t *lctx, isc_logcategory_t *category,
-		 isc_logmodule_t *module, int level,
-		 isc_msgcat_t *msgcat, int msgset, int message,
-		 const char *format, va_list args)
-ISC_FORMAT_PRINTF(8, 0);
 
 void
 isc_log_vwrite1(isc_log_t *lctx, isc_logcategory_t *category,
@@ -624,6 +595,46 @@ ISC_FORMAT_PRINTF(5, 0);
  * Write a message to the log channels, pruning duplicates that occur within
  * a configurable amount of seconds (see isc_log_[sg]etduplicateinterval).
  * This function is otherwise identical to isc_log_vwrite().
+ */
+
+void
+isc_log_iwrite(isc_log_t *lctx, isc_logcategory_t *category,
+	      isc_logmodule_t *module, int level,
+	      isc_msgcat_t *msgcat, int msgset, int message,
+	      const char *format, ...)
+ISC_FORMAT_PRINTF(8, 9);
+
+void
+isc_log_ivwrite(isc_log_t *lctx, isc_logcategory_t *category,
+		isc_logmodule_t *module, int level,
+		isc_msgcat_t *msgcat, int msgset, int message,
+		const char *format, va_list args)
+ISC_FORMAT_PRINTF(8, 0);
+
+void
+isc_log_iwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+		isc_logmodule_t *module, int level,
+		isc_msgcat_t *msgcat, int msgset, int message,
+		const char *format, ...)
+ISC_FORMAT_PRINTF(8, 9);
+
+void
+isc_log_ivwrite1(isc_log_t *lctx, isc_logcategory_t *category,
+		 isc_logmodule_t *module, int level,
+		 isc_msgcat_t *msgcat, int msgset, int message,
+		 const char *format, va_list args)
+ISC_FORMAT_PRINTF(8, 0);
+/*
+ * These are four internationalized versions of the the isc_log_[v]write[1]
+ * functions.  The only difference is that they take arguments for a message
+ * catalog, message set, and message number, all immediately preceding the
+ * format argument.  The format argument becomes the default text, a la
+ * isc_msgcat_get.  If the message catalog is NULL, no lookup is attempted
+ * for a message -- which makes the message set and message number irrelevant,
+ * and the non-internationalized call should have probably been used instead.
+ *
+ * Yes, that means there are now *eight* interfaces to logging a message.
+ * Sheesh.   Make the madness stop!
  */
 
 void
