@@ -19,12 +19,13 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.28 2000/06/09 20:58:38 gson Exp $
+ * $Id: openssl_link.c,v 1.29 2000/06/09 22:32:18 bwelling Exp $
  */
 #if defined(OPENSSL)
 
 #include <config.h>
 
+#include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/sha1.h>
 #include <isc/string.h>
@@ -36,6 +37,7 @@
 #include "dst_parse.h"
 
 #include <openssl/dsa.h>
+#include <openssl/rand.h>
 
 static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -170,18 +172,18 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-openssldsa_generate(dst_key_t *key, int unused) {
+openssldsa_generate(dst_key_t *key, int unused, isc_entropy_t *ectx) {
 	DSA *dsa;
 	unsigned char dns_array[DST_KEY_MAXSIZE];
 	unsigned char rand_array[ISC_SHA1_DIGESTLENGTH];
-	isc_buffer_t dns, rand;
+	isc_buffer_t dns;
 	isc_result_t result;
 	isc_region_t r;
 
 	UNUSED(unused);
 
-	isc_buffer_init(&rand, rand_array, sizeof(rand_array));
-	result = dst_random_get(ISC_SHA1_DIGESTLENGTH, &rand);
+	result = isc_entropy_getdata(ectx, rand_array, sizeof(rand_array), NULL,
+				     ISC_ENTROPY_GOODONLY|ISC_ENTROPY_BLOCKING);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -452,14 +454,46 @@ static dst_func_t openssldsa_functions = {
 isc_result_t
 dst__openssldsa_init(dst_func_t **funcp) {
 	REQUIRE(funcp != NULL && *funcp == NULL);
-	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
-				 dst__mem_free);
 	*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
 }
 
 void
 dst__openssldsa_destroy(void) {
+}
+
+static int
+entropy_get(unsigned char *buf, int num) {
+	isc_result_t result;
+	if (num < 0)
+		return (-1);
+	result = dst__entropy_getdata(buf, (unsigned int) num);
+	return (result == ISC_R_SUCCESS ? 0 : -1);
+}
+
+static void
+entropy_add(const void *buf, int num, double entropy) {
+	/*
+	 * Do nothing.  The only call to this provides no useful data anyway.
+	 */
+	UNUSED(buf);
+	UNUSED(num);
+	UNUSED(entropy);
+}
+
+isc_result_t
+dst__openssl_init(void) {
+	RAND_METHOD rm;
+	CRYPTO_set_mem_functions(dst__mem_alloc, dst__mem_realloc,
+				 dst__mem_free);
+	rm.seed = NULL;
+	rm.bytes = entropy_get;
+	rm.cleanup = NULL;
+	rm.add = entropy_add;
+	rm.pseudorand = entropy_get;
+	rm.status = NULL;
+	RAND_set_rand_method(&rm);
+	return (ISC_R_SUCCESS);
 }
 
 #endif /* OPENSSL */

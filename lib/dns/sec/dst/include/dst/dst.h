@@ -43,14 +43,13 @@ typedef struct dst_context 	dst_context_t;
  ***/
 
 isc_result_t
-dst_lib_init(isc_mem_t *mctx);
+dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags);
 /*
- * Initializes the DST subsystem.  If this call is omitted, DST will allocate
- * resources itself when the first library call is made (including its own
- * memory context).
+ * Initializes the DST subsystem.
  *
  * Requires:
  * 	"mctx" is a valid memory context
+ * 	"ectx" is a valid entropy context
  *
  * Returns:
  * 	ISC_R_SUCCESS
@@ -473,23 +472,6 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  *
  * Ensures:
  * 	"n" stores the size of a generated shared secret
- */
-
-isc_result_t
-dst_random_get(const unsigned int wanted, isc_buffer_t *data);
-/*
- * Generate random data.
- *
- * Requires:
- *	"data" is a valid buffer, with at least "wanted" bytes available.
- *
- * Returns:
- *	ISC_R_SUCCESS
- *	any other result indicates failure
- *
- * Ensures:
- *	"wanted" bytes will be written to "data", and the used pointer will
- *	be advanced.
  */
 
 ISC_LANG_ENDDECLS

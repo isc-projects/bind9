@@ -29,16 +29,6 @@
 
 ISC_LANG_BEGINDECLS
 
-/* 
- * define what crypto systems are supported.
- * BSAFE, DNSSAFE for RSA
- * OPENSSL for DSA
- * Only one package per algorithm can be defined.
- */
-#if defined(BSAFE) && defined(DNSSAFE)
-# error "Cannot have both BSAFE and DNSSAFE defined"
-#endif
-
 /***
  *** Types
  ***/
@@ -84,7 +74,8 @@ struct dst_func {
 	isc_boolean_t (*compare)(const dst_key_t *key1, const dst_key_t *key2);
 	isc_boolean_t (*paramcompare)(const dst_key_t *key1,
 				      const dst_key_t *key2);
-	isc_result_t (*generate)(dst_key_t *key, int parms);
+	isc_result_t (*generate)(dst_key_t *key, int parms,
+				 isc_entropy_t *ectx);
 	isc_boolean_t (*isprivate)(const dst_key_t *key);
 	void (*destroy)(dst_key_t *key);
 
@@ -96,18 +87,15 @@ struct dst_func {
 				 const char *filename);
 };
 
-#ifndef DST_HASH_SIZE
-#define DST_HASH_SIZE 20	/* RIPEMD160 & SHA-1 are 20 bytes, MD5 is 16 */
-#endif
-
 /*
  * Initializers
  */
+isc_result_t dst__openssl_init(void);
+
 isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
 isc_result_t dst__dnssafersa_init(struct dst_func **funcp);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
-isc_result_t dst__opensslmd5_init(struct dst_func **funcp);
 
 /*
  * Destructors
@@ -116,7 +104,6 @@ void dst__hmacmd5_destroy(void);
 void dst__dnssafersa_destroy(void);
 void dst__openssldsa_destroy(void);
 void dst__openssldh_destroy(void);
-void dst__opensslmd5_destroy(void);
 
 /*
  * Support functions.
@@ -127,12 +114,14 @@ dst__id_calc(const unsigned char *key, const int keysize);
 /*
  * Memory allocators using the DST memory pool.
  */
-void *
-dst__mem_alloc(size_t size);
-void
-dst__mem_free(void *ptr);
-void *
-dst__mem_realloc(void *ptr, size_t size);
+void * dst__mem_alloc(size_t size);
+void   dst__mem_free(void *ptr);
+void * dst__mem_realloc(void *ptr, size_t size);
+
+/*
+ * Entropy retriever using the DST entropy pool.
+ */
+isc_result_t dst__entropy_getdata(void *buf, unsigned int len);
 
 ISC_LANG_ENDDECLS
 

@@ -19,13 +19,14 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: bsafe_link.c,v 1.28 2000/06/09 20:58:32 gson Exp $
+ * $Id: bsafe_link.c,v 1.29 2000/06/09 22:32:13 bwelling Exp $
  */
 
 #if defined(DNSSAFE)
 
 #include <config.h>
 
+#include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/mem.h>
 #include <isc/string.h>
@@ -177,7 +178,7 @@ static isc_result_t
 dnssafersa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_md5_t *md5ctx = dctx->opaque;
 	unsigned char digest[ISC_MD5_DIGESTLENGTH];
-	unsigned char work_area[DST_HASH_SIZE + sizeof(pkcs1)];
+	unsigned char work_area[ISC_MD5_DIGESTLENGTH + sizeof(pkcs1)];
 	isc_buffer_t work;
 	isc_region_t work_region;
 	dst_key_t *key = dctx->key;
@@ -299,7 +300,7 @@ dnssafersa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 }
 
 static isc_result_t
-dnssafersa_generate(dst_key_t *key, int exp) {
+dnssafersa_generate(dst_key_t *key, int exp, isc_entropy_t *ectx) {
 	B_KEY_OBJ private;
 	B_KEY_OBJ public;
 	B_ALGORITHM_OBJ keypairGenerator = NULL;
@@ -309,7 +310,7 @@ dnssafersa_generate(dst_key_t *key, int exp) {
 	int exponent_len = 0;
 	RSA_Key *rsa;
 	unsigned char randomSeed[256];
-	isc_buffer_t b, rand;
+	isc_buffer_t b;
 	A_RSA_KEY *pub = NULL;
 	isc_result_t ret;
 	isc_mem_t *mctx;
@@ -392,8 +393,8 @@ dnssafersa_generate(dst_key_t *key, int exp) {
 	if (B_RandomInit(randomAlgorithm, CHOOSER, NULL_SURRENDER) != 0)
 		do_fail(ISC_R_NOMEMORY);
 
-	isc_buffer_init(&rand, randomSeed, sizeof(randomSeed));
-	ret = dst_random_get(sizeof(randomSeed), &rand);
+	ret = isc_entropy_getdata(ectx, randomSeed, sizeof(randomSeed), NULL,
+				  ISC_ENTROPY_GOODONLY | ISC_ENTROPY_BLOCKING);
 	if (ret != ISC_R_SUCCESS)
 		goto fail;
 
