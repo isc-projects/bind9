@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.182 2000/08/10 19:50:02 gson Exp $ */
+/* $Id: zone.c,v 1.183 2000/08/13 23:51:52 gson Exp $ */
 
 #include <config.h>
 
@@ -242,8 +242,6 @@ static void cancel_refresh(dns_zone_t *);
 static void zone_log(dns_zone_t *zone, const char *, int, const char *msg,
 		     ...);
 static void queue_xfrin(dns_zone_t *zone);
-static isc_result_t dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx,
-				   char **s);
 static void zone_unload(dns_zone_t *zone);
 static void zone_expire(dns_zone_t *zone);
 #ifndef NOMINUM_PUBLIC
@@ -288,18 +286,6 @@ zone_get_from_db(dns_db_t *db, dns_name_t *origin, unsigned int *nscount,
 		 isc_uint32_t *expire, isc_uint32_t *minimum);
 
 static void zone_freedbargs(dns_zone_t *zone);
-
-#define PRINT_ZONE_REF(zone) \
-	do { \
-		char *s = NULL; \
-		isc_result_t r; \
-		r = dns_zone_tostr(zone, zone->mctx, &s); \
-		if (r == ISC_R_SUCCESS) { \
-			printf("%p: %s: erefs=%d irefs=%d\n", zone, s, \
-			       zone->erefs, zone->irefs); \
-			isc_mem_free(zone->mctx, s); \
-		} \
-	} while (0)
 
 #define ZONE_LOG(x,y) zone_log(zone, me, ISC_LOG_DEBUG(x), y)
 #define DNS_ENTER zone_log(zone, me, ISC_LOG_DEBUG(1), "enter")
@@ -1147,13 +1133,6 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	exit_check(zone);
 }
 
-void
-dns_zone_print(dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	PRINT_ZONE_REF(zone);
-}
-
 isc_mem_t *
 dns_zone_getmctx(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1166,33 +1145,6 @@ dns_zone_getmgr(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->zmgr);
-}
-
-static isc_result_t
-dns_zone_tostr(dns_zone_t *zone, isc_mem_t *mctx, char **s) {
-	isc_buffer_t tbuf;
-	char outbuf[1024];
-	isc_result_t result;
-
-	REQUIRE(s != NULL && *s == NULL);
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	isc_buffer_init(&tbuf, outbuf, sizeof(outbuf) - 1);
-	if (dns_name_countlabels(&zone->origin) > 0) {
-		result = dns_name_totext(&zone->origin, ISC_FALSE, &tbuf);
-		if (result == ISC_R_SUCCESS)
-			outbuf[tbuf.used] = '\0';
-		else {
-			strncpy(outbuf, "<name conversion failed>",
-				sizeof outbuf - 1);
-			outbuf[sizeof outbuf - 1] = '\0';
-		}
-	} else {
-		strncpy(outbuf, "<unnamed zone>", sizeof outbuf - 1);
-		outbuf[sizeof outbuf - 1] = '\0';
-	}
-	*s = isc_mem_strdup(mctx, outbuf);
-	return ((*s == NULL) ? ISC_R_NOMEMORY : ISC_R_SUCCESS);
 }
 
 void

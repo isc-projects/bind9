@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.24 2000/08/01 01:23:12 tale Exp $ */
+/* $Id: zt.c,v 1.25 2000/08/13 23:51:53 gson Exp $ */
 
 #include <config.h>
 
@@ -197,34 +197,6 @@ dns_zt_detach(dns_zt_t **ztp) {
 	}
 
 	*ztp = NULL;
-}
-
-void
-dns_zt_print(dns_zt_t *zt) {
-	dns_rbtnode_t *node;
-	dns_rbtnodechain_t chain;
-	isc_result_t result;
-	dns_zone_t *zone;
-
-	REQUIRE(VALID_ZT(zt));
-
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-
-	dns_rbtnodechain_init(&chain, zt->mctx);
-	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
-	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
-		result = dns_rbtnodechain_current(&chain, NULL, NULL,
-						  &node);
-		if (result == ISC_R_SUCCESS) {
-			zone = node->data;
-			if (zone != NULL)
-				(void)dns_zone_print(zone);
-		}
-		result = dns_rbtnodechain_next(&chain, NULL, NULL);
-	}
-	dns_rbtnodechain_invalidate(&chain);
-
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 }
 
 isc_result_t

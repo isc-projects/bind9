@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.68 2000/08/10 18:35:44 gson Exp $ */
+/* $Id: zone.h,v 1.69 2000/08/13 23:51:55 gson Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -891,12 +891,6 @@ dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table);
  *
  * Requires:
  *	'zone' to be a valid zone.
- */
-
-void
-dns_zone_print(dns_zone_t *zone);
-/*
- * test use only
  */
 
 isc_mem_t *
