@@ -3,7 +3,7 @@
  * The Berkeley Software Design Inc. software License Agreement specifies
  * the terms and conditions for redistribution.
  *
- *	BSDI $Id: getaddrinfo.c,v 1.16 2000/05/10 03:33:56 tale Exp $
+ *	BSDI $Id: getaddrinfo.c,v 1.17 2000/05/14 03:26:31 tale Exp $
  */
 
 #include <config.h>
@@ -300,10 +300,8 @@ lwres_strsep(char **stringp, const char *delim) {
 }
 
 static void
-set_order(family, net_order)
-	int family;
-	int (**net_order)(const char *, int, struct addrinfo **,
-		 int, int);
+set_order(int family, int (**net_order)(const char *, int, struct addrinfo **,
+					int, int))
 {
 	char *order, *tok;
 	int found;
