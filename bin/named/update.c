@@ -1831,11 +1831,13 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_message_t *request = client->message;
 	dns_rdataclass_t zoneclass;
 	dns_name_t *zonename;
+	dns_name_t signer;
 		
 	INSIST(event->type == DNS_EVENT_UPDATE);
 
 	dns_diff_init(mctx, &diff);
 	dns_diff_init(mctx, &temp);
+	dns_name_init(&signer, NULL);
 
 	CHECK(dns_zone_getdb(zone, &db));
 	zonename = dns_db_origin(db);
@@ -1936,7 +1938,19 @@ update_action(isc_task_t *task, isc_event_t *event)
 
 	isc_log_write(UPDATE_DEBUG_LOGARGS, "prerequisites are OK");
 
-	/* XXX Check Requestor's Permissions Here */
+	/*
+	 * Check Requestor's Permissions.  It seems a bit silly to do this
+	 * only after prerequisite testing, but that is what RFC2136 says.
+	 */
+	result = dns_message_signer(request, &signer);
+	if (result != DNS_R_SUCCESS) {
+		isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_UPDATE, ISC_LOG_ERROR,
+			      "dynamic update request denied: "
+			      "signature verification failed (%s)",
+			      isc_result_totext(result));
+		FAIL(DNS_R_REFUSED);
+	}
 
 	/* Perform the Update Section Prescan. */
 
