@@ -1,3 +1,5 @@
+1094.	[func]		libbind: add support gcc's format string checking.
+
 1093.	[doc]		libbind: miscellaneous nroff fixes.
 
 1092.	[bug]		libbind: get*by*() failed to check if res_init() had
