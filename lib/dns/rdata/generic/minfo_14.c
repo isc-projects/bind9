@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: minfo_14.c,v 1.19 2000/02/03 23:43:02 halley Exp $ */
+/* $Id: minfo_14.c,v 1.20 2000/03/16 02:00:37 brister Exp $ */
+
+/* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MINFO_14_C
 #define RDATA_GENERIC_MINFO_14_C
@@ -32,7 +34,7 @@ fromtext_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 14);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 	
 	for (i = 0; i < 2 ; i++) {
 		RETERR(gettoken(lexer, &token, isc_tokentype_string,
@@ -96,7 +98,7 @@ fromwire_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	else
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
         dns_name_init(&rmail, NULL);
         dns_name_init(&email, NULL);
@@ -106,7 +108,8 @@ fromwire_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	isc_region_t region;
 	dns_name_t rmail;
 	dns_name_t email;
@@ -135,7 +138,8 @@ towire_minfo(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_minfo(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -179,27 +183,29 @@ fromstruct_minfo(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 14);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
-	source = source;
-	target = target;
+	UNUSED(source);
+	UNUSED(target);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_minfo(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
 	
 	REQUIRE(rdata->type == 14);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_minfo(void *source) {
+freestruct_minfo(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
@@ -217,7 +223,8 @@ additionaldata_minfo(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 }
 
 static inline isc_result_t
-digest_minfo(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_minfo(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 	dns_name_t name;
 	isc_result_t result;

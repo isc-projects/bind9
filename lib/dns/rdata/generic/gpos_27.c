@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: gpos_27.c,v 1.12 2000/03/16 01:31:03 brister Exp $ */
+/* $Id: gpos_27.c,v 1.13 2000/03/16 02:00:33 brister Exp $ */
 
- /* RFC 1712 */
+/* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
+
+/* RFC 1712 */
 
 #ifndef RDATA_GENERIC_GPOS_27_C
 #define RDATA_GENERIC_GPOS_27_C
@@ -41,7 +43,7 @@ fromtext_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 				ISC_FALSE));
 		RETERR(txt_fromtext(&token.value.as_textregion, target));
 	}
-	return(DNS_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -63,7 +65,7 @@ totext_gpos(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 			RETERR(str_totext(" ", target));
 	}
 
-	return(DNS_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -81,7 +83,7 @@ fromwire_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	for (i = 0 ; i < 3; i++)
 		RETERR(txt_fromwire(source, target));
-	return(DNS_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -92,7 +94,7 @@ towire_gpos(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
 
 	UNUSED(cctx);
 
-	return(mem_tobuffer(target, rdata->data, rdata->length));
+	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
 
 static inline int
@@ -107,7 +109,7 @@ compare_gpos(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
-	return(compare_region(&r1, &r2));
+	return (compare_region(&r1, &r2));
 }
 
 static inline isc_result_t
@@ -119,10 +121,10 @@ fromstruct_gpos(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	UNUSED(rdclass);
 
-	source = source;
-	target = target;
+	UNUSED(source);
+	UNUSED(target);
 
-	return(DNS_R_NOTIMPLEMENTED);
+	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
@@ -131,10 +133,10 @@ tostruct_gpos(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
 
 	REQUIRE(rdata->type == 27);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
-	return(DNS_R_NOTIMPLEMENTED);
+	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
@@ -153,7 +155,7 @@ additionaldata_gpos(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	(void)add;
 	(void)arg;
 
-	return(DNS_R_SUCCESS);
+	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
@@ -165,7 +167,7 @@ digest_gpos(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
 
 	dns_rdata_toregion(rdata, &r);
 
-	return((digest)(arg, &r));
+	return ((digest)(arg, &r));
 }
 
 #endif	/* RDATA_GENERIC_GPOS_27_C */

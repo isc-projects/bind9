@@ -15,7 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: mg_8.c,v 1.19 2000/03/16 01:40:27 brister Exp $ */
+/* $Id: mg_8.c,v 1.20 2000/03/16 02:00:35 brister Exp $ */
+
+/* reviewed: Wed Mar 15 17:49:21 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MG_8_C
 #define RDATA_GENERIC_MG_8_C
