@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.11 2004/10/05 04:38:40 marka Exp $ */
+/* $Id: server.c,v 1.419.18.12 2004/10/11 05:30:00 marka Exp $ */
 
 #include <config.h>
 
@@ -3437,6 +3437,29 @@ ns_server_reconfigcommand(ns_server_t *server, char *args) {
 	reconfig(server);
 	return (ISC_R_SUCCESS);
 }
+
+/*
+ * Act on a "notify" command from the command channel.
+ */
+isc_result_t
+ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text) {
+	isc_result_t result;
+	dns_zone_t *zone = NULL;
+	const unsigned char msg[] = "zone notify queued";
+
+	result = zone_from_args(server, args, &zone);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (zone == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	
+	dns_zone_notify(zone);
+	dns_zone_detach(&zone);
+	if (sizeof(msg) <= isc_buffer_availablelength(text))
+		isc_buffer_putmem(text, msg, sizeof(msg));
+
+	return (ISC_R_SUCCESS);
+}	
 
 /*
  * Act on a "refresh" command from the command channel.

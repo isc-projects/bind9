@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.14.18.1 2004/09/03 03:50:00 marka Exp $ */
+/* $Id: control.h,v 1.14.18.2 2004/10/11 05:30:01 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -51,6 +51,7 @@
 #define NS_COMMAND_TIMERPOKE	"timerpoke"
 #define NS_COMMAND_RECURSING	"recursing"
 #define NS_COMMAND_NULL		"null"
+#define NS_COMMAND_NOTIFY	"notify"
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);

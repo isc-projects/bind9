@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.3 2004/09/03 03:50:01 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.4 2004/10/11 05:30:03 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -104,6 +104,8 @@ command is one of the following:\n\
   		Suspend updates to a dynamic zone.\n\
   thaw zone [class [view]]\n\
   		Enable updates to a frozen dynamic zone and reload it.\n\
+  notify zone [class [view]]\n\
+		Resend NOTIFY messages for the zone.\n\
   reconfig	Reload configuration file and new zones only.\n\
   stats		Write server statistics to the statistics file.\n\
   querylog	Toggle query logging.\n\

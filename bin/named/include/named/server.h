@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.73 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: server.h,v 1.73.18.1 2004/10/11 05:30:02 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -136,6 +136,12 @@ isc_result_t
 ns_server_reconfigcommand(ns_server_t *server, char *args);
 /*
  * Act on a "reconfig" command from the command channel.
+ */
+
+isc_result_t
+ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text);
+/*
+ * Act on a "notify" command from the command channel.
  */
 
 isc_result_t
