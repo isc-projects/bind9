@@ -2,6 +2,9 @@
 			could cause the caller to report an out of memory
 			error. [RT #2398]
 
+1188.	[bug]		Dynamic updates of a signed zone would fail if
+			some of the zone private keys were unavailable.
+
 1186.   [bug]           isc_hex_tobuffer(,,length = 0) failed to unget the
                         EOL token when reading to end of line.
 

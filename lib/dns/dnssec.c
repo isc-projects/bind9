@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69 2001/06/08 22:48:28 bwelling Exp $
+ * $Id: dnssec.c,v 1.69.2.1 2002/01/23 03:19:03 marka Exp $
  */
 
 
@@ -505,7 +505,7 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 					  DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
 					  NULL,
 					  mctx, &keys[count]);
-		if (result == DST_R_INVALIDPRIVATEKEY)
+		if (result == ISC_R_FILENOTFOUND)
 			goto next;
 		if (result != ISC_R_SUCCESS)
 			goto failure;
