@@ -27,6 +27,7 @@
 #include <isc/stdtime.h>
 
 #include <dns/types.h>
+#include <dns/adb.h>
 #include <dns/result.h>
 #include <dns/name.h>
 #include <dns/db.h>
@@ -136,8 +137,8 @@ struct fetchctx {
 	dns_message_t *			qmessage;
 	dns_message_t *			rmessage;
 	ISC_LIST(resquery_t)		queries;
-	ISC_LIST(isc_sockaddr_t)	addresses;
-	isc_sockaddr_t *	        address;
+	ISC_LIST(dns_adbhandle_t)	lookups;
+	dns_adbhandle_t *		lookup;
 };
 
 #define FCTX_MAGIC			0x46212121U	/* F!!! */
@@ -146,10 +147,13 @@ struct fetchctx {
 
 #define FCTX_ATTR_HAVEANSWER		0x01
 #define FCTX_ATTR_GLUING		0x02
+#define FCTX_ATTR_ADDRWAIT		0x04
 
 #define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
 				 0)
 #define GLUING(f)		(((f)->attributes & FCTX_ATTR_GLUING) != \
+				 0)
+#define ADDRWAIT(f)		(((f)->attributes & FCTX_ATTR_ADDRWAIT) != \
 				 0)
 
 struct dns_fetch {
@@ -197,6 +201,7 @@ struct dns_resolver {
 static void destroy(dns_resolver_t *res);
 static void empty_bucket(dns_resolver_t *res);
 static void resquery_response(isc_task_t *task, isc_event_t *event);
+static void fctx_try(fetchctx_t *fctx);
 
 
 static inline isc_result_t
@@ -268,17 +273,17 @@ fctx_cancelqueries(fetchctx_t *fctx) {
 }
 
 static void
-fctx_freeaddresses(fetchctx_t *fctx) {
-	isc_sockaddr_t *address, *next_address;
+fctx_freelookups(fetchctx_t *fctx) {
+	dns_adbhandle_t *lookup, *next_lookup;
 
-	for (address = ISC_LIST_HEAD(fctx->addresses);
-	     address != NULL;
-	     address = next_address) {
-		next_address = ISC_LIST_NEXT(address, link);
-		isc_mem_put(fctx->res->mctx, address, sizeof *address);
+	for (lookup = ISC_LIST_HEAD(fctx->lookups);
+	     lookup != NULL;
+	     lookup = next_lookup) {
+		next_lookup = ISC_LIST_NEXT(lookup, publink);
+		ISC_LIST_UNLINK(fctx->lookups, lookup, publink);
+		dns_adb_done(&lookup);
 	}
-	ISC_LIST_INIT(fctx->addresses);
-	fctx->address = NULL;
+	fctx->lookup = NULL;
 }
 
 static void
@@ -291,7 +296,7 @@ fctx_done(fetchctx_t *fctx, isc_result_t result) {
 
 	res = fctx->res;
 
-	fctx_freeaddresses(fctx);
+	fctx_freelookups(fctx);
 	fctx_cancelqueries(fctx);
 	fctx_stoptimer(fctx);
 
@@ -528,103 +533,233 @@ fctx_sendquery(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	return (result);
 }
 
+static void
+fctx_adbhandler(isc_task_t *task, isc_event_t *event) {
+	fetchctx_t *fctx;
+	isc_boolean_t want_try = ISC_FALSE;
+	isc_boolean_t want_done = ISC_FALSE;
+
+	fctx = event->arg;
+	REQUIRE(VALID_FCTX(fctx));
+
+	(void)task;
+
+	FCTXTRACE("adbhandler");
+
+	if (ADDRWAIT(fctx)) {
+		fctx->attributes &= ~FCTX_ATTR_ADDRWAIT;
+		if (event->type == DNS_EVENT_ADBMOREADDRESSES)
+			want_try = ISC_TRUE;
+		else
+			want_done = ISC_TRUE;
+	}
+	
+	isc_event_free(&event);
+
+	if (want_try)
+		fctx_try(fctx);
+	else if (want_done)
+		fctx_done(fctx, ISC_R_NOTFOUND);
+}
+
 static isc_result_t
 fctx_getaddresses(fetchctx_t *fctx) {
-	isc_boolean_t use_hints;
 	dns_rdata_t rdata;
 	isc_region_t r;
 	dns_name_t name;
-	dns_rdataset_t rdataset;
-	isc_sockaddr_t *address;
-	struct in_addr ina;
 	isc_result_t result;
+	dns_resolver_t *res;
+	isc_stdtime_t now;
+	dns_adbhandle_t *lookup;
+	isc_boolean_t found_something;
+	unsigned int options;
 
 	FCTXTRACE("getaddresses");
 
-	/*
-	 * XXXRTH  We don't try to handle forwarding yet.
-	 */
+	found_something = ISC_FALSE;
+	options = DNS_ADBFIND_WANTEVENT|DNS_ADBFIND_INET;
+	res = fctx->res;
+	result = isc_stdtime_get(&now);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
-	/*
-	 * XXXRTH  This code is a temporary hack until we have working
-	 * address code.
-	 */
+	fctx_freelookups(fctx);
 
-	ISC_LIST_INIT(fctx->addresses);
-	fctx->address = NULL;
-
-	use_hints = dns_name_equal(&fctx->domain, dns_rootname);
-
-	INSIST(fctx->nameservers.type == dns_rdatatype_ns);
 	result = dns_rdataset_first(&fctx->nameservers);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(&fctx->nameservers, &rdata);
+		/*
+		 * Extract the name from the NS record.
+		 */
 		dns_rdata_toregion(&rdata, &r);
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &r);
-		dns_rdataset_init(&rdataset);
-		result = dns_view_find(fctx->res->view, &name,
-				       dns_rdatatype_a, 0, DNS_DBFIND_GLUEOK,
-				       use_hints, &rdataset, NULL);
-		if (result == ISC_R_SUCCESS ||
-		    result == DNS_R_GLUE ||
-		    result == DNS_R_HINT) {
-			result = dns_rdataset_first(&rdataset);
-			while (result == ISC_R_SUCCESS) {
-				address = isc_mem_get(fctx->res->mctx,
-						      sizeof *address);
-				if (address == NULL) {
-					result = ISC_R_NOMEMORY;
-					break;
-				}
-				dns_rdataset_current(&rdataset, &rdata);
-				INSIST(rdata.length == 4);
-				memcpy(&ina.s_addr, rdata.data, 4);
-				isc_sockaddr_fromin(address, &ina, 53);
-				ISC_LIST_APPEND(fctx->addresses, address,
-						link);
-				result = dns_rdataset_next(&rdataset);
+		/*
+		 * XXXRTH  If this name is the same as QNAME, remember
+		 *         skip it, and remember that we did so so we can
+		 *         use an ancestor QDOMAIN if we find no addresses.
+		 */
+		/*
+		 * See what we know about this address.
+		 */
+		lookup = NULL;
+		result = dns_adb_lookup(res->view->adb,
+					res->buckets[fctx->bucketnum].task,
+					fctx_adbhandler, fctx, &name,
+					&fctx->domain, options, now, &lookup);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if (!ISC_LIST_EMPTY(lookup->list)) {
+			/*
+			 * We have at least some of the addresses for the
+			 * name.
+			 */
+			found_something = ISC_TRUE;
+			/*
+			 * XXXRTH  Sort.
+			 */
+		} else {
+			/*
+			 * We don't know any of the addresses for this
+			 * name.
+			 */
+			if (lookup->query_pending == 0) {
+				/*
+				 * We're not fetching them either.  We lose
+				 * for this name.
+				 */
+				dns_adb_done(&lookup);
 			}
 		}
-		if (dns_rdataset_isassociated(&rdataset))
-			dns_rdataset_disassociate(&rdataset);
+		if (lookup != NULL)
+			ISC_LIST_APPEND(fctx->lookups, lookup, publink);
 		result = dns_rdataset_next(&fctx->nameservers);
 	}
-	if (result == DNS_R_NOMORE)
+	if (result != DNS_R_NOMORE)
+		return (result);
+
+	if (ISC_LIST_EMPTY(fctx->lookups)) {
+		/*
+		 * We've lost completely.  We don't know any addresses, and
+		 * the ADB has told us it can't get them.
+		 */
+		result = ISC_R_NOTFOUND;
+	} else if (!found_something) {
+		/*
+		 * We're fetching the addresses, but don't have any yet.
+		 * Tell the caller to wait for an answer.
+		 */
+		result = DNS_R_WAIT;
+	} else {
+		/*
+		 * We've found some addresses.  We might still be looking
+		 * for more addresses.
+		 */
+
+		/*
+		 * XXXRTH  Sort.
+		 */
+
 		result = ISC_R_SUCCESS;
+	}
 
 	return (result);
+}
+
+#define FCTX_ADDRINFO_MARK		0x01
+#define UNMARKED(a)			(((a)->flags & FCTX_ADDRINFO_MARK) \
+					 == 0)
+
+static inline dns_adbaddrinfo_t *
+fctx_nextaddress(fetchctx_t *fctx) {
+	dns_adbhandle_t *lookup;
+	dns_adbaddrinfo_t *addrinfo;
+	int count = 0;
+
+	/*
+	 * Return the next untried address, if any.
+	 */
+
+	/*
+	 * Move to the next lookup.
+	 */
+	lookup = fctx->lookup;
+	if (lookup == NULL)
+		lookup = ISC_LIST_HEAD(fctx->lookups);
+	else {
+		lookup = ISC_LIST_NEXT(lookup, publink);
+		if (lookup == NULL)
+			lookup = ISC_LIST_HEAD(fctx->lookups);
+	}
+
+	/*
+	 * Find the first unmarked addrinfo.
+	 */
+	addrinfo = NULL;
+	while (lookup != fctx->lookup) {
+		count++;
+		INSIST(count < 1000);
+		for (addrinfo = ISC_LIST_HEAD(lookup->list);
+		     addrinfo != NULL;
+		     addrinfo = ISC_LIST_NEXT(addrinfo, publink)) {
+			if (UNMARKED(addrinfo)) {
+				addrinfo->flags |= FCTX_ADDRINFO_MARK;
+				break;
+			}
+		}
+		if (addrinfo != NULL)
+			break;
+		lookup = ISC_LIST_NEXT(lookup, publink);
+		if (lookup != fctx->lookup && lookup == NULL)
+			lookup = ISC_LIST_HEAD(fctx->lookups);
+	}
+
+	fctx->lookup = lookup;
+
+	return (addrinfo);
 }
 
 static void
 fctx_try(fetchctx_t *fctx) {
 	isc_result_t result;
-
-	/*
-	 * Caller must be holding the fetch's lock.
-	 */
+	dns_adbaddrinfo_t *addrinfo;
 
 	FCTXTRACE("try");
 
-	if (fctx->address != NULL)
-		fctx->address = ISC_LIST_NEXT(fctx->address, link);
+	REQUIRE(!ADDRWAIT(fctx));
 
-	if (fctx->address == NULL) {
-		fctx_freeaddresses(fctx);
+	/*
+	 * XXXRTH  We don't try to handle forwarding yet.
+	 */
+
+	addrinfo = fctx_nextaddress(fctx);
+	if (addrinfo == NULL) {
+		/*
+		 * We have no more addresses.  Start over.
+		 */
 		fctx_cancelqueries(fctx);
 		result = fctx_getaddresses(fctx);
-		if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_WAIT) {
+			/*
+			 * Sleep waiting for addresses.
+			 */
+			FCTXTRACE("addrwait");
+			fctx->attributes |= FCTX_ATTR_ADDRWAIT; 
+			return;
+		} else if (result != ISC_R_SUCCESS) {
+			/*
+			 * Something bad happened.
+			 */
 			fctx_done(fctx, result);
 			return;
 		}
-		fctx->address = ISC_LIST_HEAD(fctx->addresses);
-	}
 
-	if (fctx->address == NULL) {
-		/*	
-		 * XXXRTH No addresses are available...
+		addrinfo = fctx_nextaddress(fctx);
+		/*
+		 * fctx_getaddresses() returned success, so at least one
+		 * of the lookup lists should be nonempty.
 		 */
-		INSIST(0);
+		INSIST(addrinfo != NULL);
 	}
 
 	/*
@@ -633,7 +768,7 @@ fctx_try(fetchctx_t *fctx) {
 	 *	   just send a single query.
 	 */
 
-	result = fctx_sendquery(fctx, fctx->address);
+	result = fctx_sendquery(fctx, addrinfo->sockaddr);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
 }
@@ -651,6 +786,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(fctx->state == fetchstate_done);
 	REQUIRE(ISC_LIST_EMPTY(fctx->events));
 	REQUIRE(ISC_LIST_EMPTY(fctx->queries));
+	REQUIRE(ISC_LIST_EMPTY(fctx->lookups));
 
 	FCTXTRACE("destroy");
 
@@ -692,7 +828,6 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 	FCTXTRACE("timeout");
 
 	if (event->type == ISC_TIMEREVENT_LIFE) {
-		fctx_cancelqueries(fctx);
 		fctx_done(fctx, DNS_R_TIMEDOUT);
 	} else {
 		/*
@@ -882,8 +1017,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->state = fetchstate_init;
 	fctx->exiting = ISC_FALSE;
 	ISC_LIST_INIT(fctx->queries);
-	ISC_LIST_INIT(fctx->addresses);
-	fctx->address = NULL;
+	ISC_LIST_INIT(fctx->lookups);
+	fctx->lookup = NULL;
 	fctx->attributes = 0;
 
 	fctx->qmessage = NULL;
@@ -1198,15 +1333,10 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 }
 
 static inline isc_result_t
-cache_message(fetchctx_t *fctx) {
+cache_message(fetchctx_t *fctx, isc_stdtime_t now) {
 	isc_result_t result;
 	dns_section_t section;
 	dns_name_t *name;
-	isc_stdtime_t now;
-
-	result = isc_stdtime_get(&now);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 
@@ -1362,6 +1492,12 @@ mark_related(dns_name_t *name, dns_rdataset_t *rdataset,
 	rdataset->attributes |= DNS_RDATASETATTR_CACHE;
 	if (external)
 		rdataset->attributes |= DNS_RDATASETATTR_EXTERNAL;
+#if 0
+	/*
+	 * XXXRTH  TEMPORARY FOR TESTING!!!
+	 */
+	rdataset->ttl = 5;
+#endif
 }
 
 static isc_result_t
@@ -2182,7 +2318,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 * Cache the cacheable parts of the message.  This may also cause
 	 * work to be queued to the DNSSEC validator.
 	 */
-	result = cache_message(fctx);
+	result = cache_message(fctx, now);
 
  done:
 	/*
@@ -2238,7 +2374,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
-			fctx_freeaddresses(fctx);
+			fctx_freelookups(fctx);
 		}					  
 		/*
 		 * Try again.
