@@ -361,6 +361,7 @@ main(int argc, char *argv[]) {
 	message->from_to_wire = DNS_MESSAGE_INTENTPARSE;
 	dns_message_destroy(&message);
 
+	printf("Message rendered.\n");
 	isc_mem_stats(mctx, stdout);
 
 	result = dns_message_create(mctx, &message, DNS_MESSAGE_INTENTPARSE);
