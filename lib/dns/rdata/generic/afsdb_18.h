@@ -15,9 +15,9 @@
  * SOFTWARE.
  */
 
- /* $Id: afsdb_18.h,v 1.9 2000/02/03 23:42:57 halley Exp $ */
+/* $Id: afsdb_18.h,v 1.10 2000/03/16 00:52:59 explorer Exp $ */
 
- /* RFC 1183 */
+/* RFC 1183 */
 
 typedef struct dns_rdata_afsdb {
 	dns_rdatacommon_t	common;

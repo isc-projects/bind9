@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.h,v 1.8 2000/02/03 23:42:58 halley Exp $ */
+/* $Id: dname_39.h,v 1.9 2000/03/16 00:53:01 explorer Exp $ */
 
- /* draft-ietf-dnsind-dname-02.txt */
+/* draft-ietf-dnsind-dname-02.txt */
 

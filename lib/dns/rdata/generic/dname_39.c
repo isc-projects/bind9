@@ -15,9 +15,11 @@
  * SOFTWARE.
  */
 
- /* $Id: dname_39.c,v 1.13 2000/02/03 23:42:58 halley Exp $ */
+/* $Id: dname_39.c,v 1.14 2000/03/16 00:53:00 explorer Exp $ */
 
- /* draft-ietf-dnsind-dname-02.txt */
+/* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
+
+/* draft-ietf-dnsind-dname-02.txt */
 
 #ifndef RDATA_GENERIC_DNAME_39_C
 #define RDATA_GENERIC_DNAME_39_C
@@ -31,8 +33,9 @@ fromtext_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	dns_name_t name;
 	isc_buffer_t buffer;
 
+	UNUSED(rdclass);
+
 	REQUIRE(type == 39);
-	rdclass = rdclass;	/*unused*/
 	
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 	
@@ -72,8 +75,9 @@ fromwire_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 {
 	dns_name_t name;
 
+	UNUSED(rdclass);
+
 	REQUIRE(type == 39);
-	rdclass = rdclass;	/*unused*/
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -85,7 +89,8 @@ fromwire_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 }
 
 static inline isc_result_t
-towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	dns_name_t name;
 	isc_region_t region;
 
@@ -104,7 +109,8 @@ towire_dname(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 }
 
 static inline int
-compare_dname(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_dname(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -130,32 +136,31 @@ static inline isc_result_t
 fromstruct_dname(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 		 isc_buffer_t *target)
 {
+	UNUSED(rdclass);
+	UNUSED(source);
+	UNUSED(target);
 
 	REQUIRE(type == 39);
-
-	rdclass = rdclass;	/*unused*/
-
-	source = source;
-	target = target;
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
-	
-	REQUIRE(rdata->type == 39);
-	REQUIRE(target != NULL && target == NULL);
+tostruct_dname(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
+	UNUSED(target);
+	UNUSED(mctx);
 
-	target = target;
-	mctx = mctx;
+	REQUIRE(rdata->type == 39);
+	REQUIRE(target != NULL);
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_dname(void *source) {
-	REQUIRE(source != NULL && source != NULL);
+freestruct_dname(void *source)
+{
+	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/* XXX */
 }
 
@@ -163,16 +168,17 @@ static inline isc_result_t
 additionaldata_dname(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 		     void *arg)
 {
-	REQUIRE(rdata->type == 39);
+	UNUSED(add);
+	UNUSED(arg);
 
-	(void)add;
-	(void)arg;
+	REQUIRE(rdata->type == 39);
 
 	return (DNS_R_SUCCESS);
 }
 
 static inline isc_result_t
-digest_dname(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_dname(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 	dns_name_t name;
 
