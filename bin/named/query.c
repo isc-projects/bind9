@@ -117,6 +117,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK|
 				    NS_QUERYATTR_CACHEOK);
+	client->query.restarts = 0;
 	client->query.qname = NULL;
 	client->query.origqname = NULL;
 	client->query.dboptions = 0;
@@ -487,24 +488,41 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 
 static inline isc_boolean_t
 query_isduplicate(ns_client_t *client, dns_name_t *name,
-		  dns_rdatatype_t type)
+		  dns_rdatatype_t type, dns_name_t **mnamep)
 {
 	dns_section_t section;
-	dns_name_t *mname;
+	dns_name_t *mname = NULL;
+	dns_result_t result;
 
 	for (section = DNS_SECTION_ANSWER;
 	     section <= DNS_SECTION_ADDITIONAL;
 	     section++) {
-		mname = NULL;
-		if (dns_message_findname(client->message, section,
-					 name, type, 0, &mname, NULL) ==
-		    ISC_R_SUCCESS) {
+		result = dns_message_findname(client->message, section,
+					      name, type, 0, &mname, NULL);
+		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We've already got this RRset in the response.
 			 */
 			return (ISC_TRUE);
-		}
+		} else if (result == DNS_R_NXRDATASET) {
+			/*
+			 * The name exists, but the rdataset does not.
+			 */
+			if (section == DNS_SECTION_ADDITIONAL)
+				break;
+		} else
+			RUNTIME_CHECK(result == DNS_R_NXDOMAIN);
+		mname = NULL;
 	}
+
+	/*
+	 * If the dns_name_t we're lookup up is already in the message,
+	 * we don't want to trigger the caller's name replacement logic.
+	 */
+	if (name == mname)
+		mname = NULL;
+
+	*mnamep = mname;
 
 	return (ISC_FALSE);
 }
@@ -515,14 +533,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	isc_result_t result, eresult;
 	dns_dbnode_t *node, *znode;
 	dns_db_t *db, *zdb;
-	dns_name_t *fname, *zfname;
+	dns_name_t *fname, *zfname, *mname;
 	dns_rdataset_t *rdataset, *sigrdataset, *a6rdataset;
 	dns_rdataset_t *zrdataset, *zsigrdataset;
 	isc_buffer_t *dbuf;
 	isc_buffer_t b;
 	dns_dbversion_t *version, *zversion;
 	unsigned int dboptions;
-	isc_boolean_t is_zone, nxglue, added_something;
+	isc_boolean_t is_zone, nxglue, added_something, need_addname;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(type != dns_rdatatype_any);
@@ -547,6 +565,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	znode = NULL;
 	nxglue = ISC_FALSE;
 	added_something = ISC_FALSE;
+	need_addname = ISC_FALSE;
 
 	/*
 	 * Find a database to answer the query.
@@ -671,8 +690,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	if (dbuf != NULL)
 		query_keepname(client, fname, dbuf);
 
+	mname = NULL;
 	if (rdataset->methods != NULL &&
-	    !query_isduplicate(client, fname, type)) {
+	    !query_isduplicate(client, fname, type, &mname)) {
+		if (mname != NULL) {
+			query_releasename(client, &fname);
+			fname = mname;
+		} else
+			need_addname = ISC_TRUE;
 		ISC_LIST_APPEND(fname->list, rdataset, link);
 		rdataset = NULL;
 		added_something = ISC_TRUE;
@@ -729,8 +754,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 						     sigrdataset);
 		}
 		if (result == ISC_R_SUCCESS) {
+			mname = NULL;
 			if (!query_isduplicate(client, fname,
-					       dns_rdatatype_a6)) {
+					       dns_rdatatype_a6, &mname)) {
+				if (mname != NULL) {
+					query_releasename(client, &fname);
+					fname = mname;
+				} else
+					need_addname = ISC_TRUE;
 				a6rdataset = rdataset;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
@@ -762,8 +793,14 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 						     sigrdataset);
 		}
 		if (result == ISC_R_SUCCESS) {
+			mname = NULL;
 			if (!query_isduplicate(client, fname,
-					       dns_rdatatype_aaaa)) {
+					       dns_rdatatype_aaaa, &mname)) {
+				if (mname != NULL) {
+					query_releasename(client, &fname);
+					fname = mname;
+				} else
+					need_addname = ISC_TRUE;
 				ISC_LIST_APPEND(fname->list, rdataset, link);
 				added_something = ISC_TRUE;
 				if (sigrdataset->methods != NULL) {
@@ -784,10 +821,13 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 		goto cleanup;
 
 	/*
-	 * Finally!  Add the name and the rdatasets we found to the additional
-	 * data section.
+	 * We may have added our rdatasets to an existing name, if so, then
+	 * need_addname will be ISC_FALSE.  Whether we used an existing name
+	 * or a new one, we must set fname to NULL to prevent cleanup.
 	 */
-	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
+	if (need_addname)
+		dns_message_addname(client->message, fname,
+				    DNS_SECTION_ADDITIONAL);
 	fname = NULL;
 
 	/*
@@ -828,8 +868,10 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t type) {
 	 * know about the A6 chains.  We wait until now to do this so that
 	 * they'll come after any additional data added above.
 	 */
-	if (a6rdataset != NULL)
+	if (a6rdataset != NULL) {
+		dns_a6_reset(&client->query.a6ctx);
 		dns_a6_foreach(&client->query.a6ctx, a6rdataset);
+	}
 
  cleanup:
 	query_putrdataset(client, &rdataset);
@@ -860,7 +902,7 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	ns_client_t *client = arg;
 	dns_rdataset_t *crdataset, *csigrdataset;
 	isc_buffer_t b, *dbuf;
-	dns_name_t *fname;
+	dns_name_t *fname, *mname;
 
 	/*
 	 * Add an rrset to the additional data section.
@@ -890,9 +932,18 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 	if (sigrdataset->methods != NULL)
 		dns_rdataset_clone(sigrdataset, csigrdataset);
 
-	if (query_isduplicate(client, fname, crdataset->type))
+	mname = NULL;
+	if (query_isduplicate(client, fname, crdataset->type, &mname))
 		goto cleanup;
-	query_keepname(client, fname, dbuf);
+	if (mname != NULL) {
+		query_releasename(client, &fname);
+		fname = mname;
+	} else {
+		query_keepname(client, fname, dbuf);
+		dns_message_addname(client->message, fname,
+				    DNS_SECTION_ADDITIONAL);
+	}
+
 	ISC_LIST_APPEND(fname->list, crdataset, link);
 	crdataset = NULL;
 	/*
@@ -905,7 +956,6 @@ query_adda6rrset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset,
 		csigrdataset = NULL;
 	}
 
-	dns_message_addname(client->message, fname, DNS_SECTION_ADDITIONAL);
 	fname = NULL;
 
 	/*
@@ -933,9 +983,10 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	 * We don't care if dns_a6_foreach or dns_rdataset_additionaldata()
 	 * fail.
 	 */
-	if (type == dns_rdatatype_a6)
+	if (type == dns_rdatatype_a6) {
+		dns_a6_reset(&client->query.a6ctx);
 		(void)dns_a6_foreach(&client->query.a6ctx, rdataset);
-	else
+	} else
 		(void)dns_rdataset_additionaldata(rdataset,
 						  query_addadditional, client);
 	/*
@@ -1074,6 +1125,66 @@ query_addsoa(ns_client_t *client, dns_db_t *db) {
 }
 
 static inline isc_result_t
+query_addns(ns_client_t *client, dns_db_t *db) {
+	dns_name_t *name, *fname;
+	dns_dbnode_t *node;
+	isc_result_t result, eresult;
+	dns_fixedname_t foundname;
+	dns_rdataset_t *rdataset, *sigrdataset;
+
+	/*
+	 * Initialization.
+	 */
+	eresult = ISC_R_SUCCESS;
+	name = NULL;
+	rdataset = NULL;
+	node = NULL;
+	dns_fixedname_init(&foundname);
+	fname = dns_fixedname_name(&foundname);
+
+	/*
+	 * Get resources and make 'name' be the database origin.
+	 */
+	result = dns_message_gettempname(client->message, &name);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	dns_name_init(name, NULL);
+	dns_name_clone(dns_db_origin(db), name);
+	rdataset = query_newrdataset(client);
+	sigrdataset = query_newrdataset(client);
+	if (rdataset == NULL || sigrdataset == NULL) {
+		eresult = DNS_R_SERVFAIL;
+		goto cleanup;
+	}
+
+	/*
+	 * Find the NS rdataset.
+	 */
+	result = dns_db_find(db, name, NULL, dns_rdatatype_ns, 0, 0, &node,
+			     fname, rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * This is bad.  We tried to get the NS rdataset at the zone
+		 * top and it didn't work!
+		 */
+		eresult = DNS_R_SERVFAIL;
+	} else {
+		query_addrrset(client, &name, &rdataset, &sigrdataset, NULL,
+			       DNS_SECTION_AUTHORITY);
+	}
+
+ cleanup:
+	query_putrdataset(client, &rdataset);
+	query_putrdataset(client, &sigrdataset);
+	if (name != NULL)
+		query_releasename(client, &name);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+
+	return (eresult);
+}
+
+static inline isc_result_t
 query_checktype(dns_rdatatype_t type) {
 	
 	/*
@@ -1171,7 +1282,7 @@ query_find(ns_client_t *client) {
 	dns_rdata_t rdata;
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t want_restart, auth, is_zone, clear_fname;
-	unsigned int restarts, qcount, n, nlabels, nbits;
+	unsigned int qcount, n, nlabels, nbits;
 	dns_namereln_t namereln;
 	int order;
 	isc_buffer_t *dbuf;
@@ -1189,7 +1300,6 @@ query_find(ns_client_t *client) {
 	 */
 
 	eresult = ISC_R_SUCCESS;
-	restarts = 0;
 	fname = NULL;
 	zfname = NULL;
 	rdataset = NULL;
@@ -1467,7 +1577,7 @@ query_find(ns_client_t *client) {
 		goto cleanup;
 	case DNS_R_NXDOMAIN:
 		INSIST(is_zone);
-		if (restarts > 0) {
+		if (client->query.restarts > 0) {
 			/*
 			 * We hit a dead end following a CNAME or DNAME.
 			 */
@@ -1553,9 +1663,17 @@ query_find(ns_client_t *client) {
 		r.length = rdata.length;
 		dns_name_init(tname, NULL);
 		dns_name_fromregion(tname, &r);
+		if (client->query.restarts > 0) {
+			/*
+			 * client->query.qname was dynamically allocated.
+			 * We must free it before we set it.
+			 */
+			dns_message_puttempname(client->message,
+						&client->query.qname);
+		}
 		client->query.qname = tname;
 		want_restart = ISC_TRUE;
-		goto cleanup;
+		goto addauth;
 	case DNS_R_DNAME:
 		/*
 		 * Compare the current qname to the found name.  We need
@@ -1626,10 +1744,18 @@ query_find(ns_client_t *client) {
 			goto cleanup;
 		}
 		query_keepname(client, fname, dbuf);
+		if (client->query.restarts > 0) {
+			/*
+			 * client->query.qname was dynamically allocated.
+			 * We must free it before we set it.
+			 */
+			dns_message_puttempname(client->message,
+						&client->query.qname);
+		}
 		client->query.qname = fname;
 		fname = NULL;
 		want_restart = ISC_TRUE;
-		goto cleanup;
+		goto addauth;
 	default:
 		/*
 		 * Something has gone wrong.
@@ -1774,7 +1900,21 @@ query_find(ns_client_t *client) {
 	 *	   OK) launch queries for any types we don't have answers to.
 	 */
 
+ addauth:
+	/*
+	 * Add NS records for the zone to the authority section (if we
+	 * haven't already added them to the answer section).
+	 */
+	if (client->query.restarts == 0 &&
+	    is_zone &&
+	    !(qtype == dns_rdatatype_ns &&
+	      dns_name_equal(client->query.qname, dns_db_origin(db))))
+		query_addns(client, db);
+
  cleanup:
+	/*
+	 * General cleanup.
+	 */
 	query_putrdataset(client, &rdataset);
 	query_putrdataset(client, &sigrdataset);
 	if (fname != NULL)
@@ -1791,7 +1931,10 @@ query_find(ns_client_t *client) {
 		dns_db_detach(&zdb);
 	}
 
-	if (restarts == 0 && !auth) {
+	/*
+	 * AA bit.
+	 */
+	if (client->query.restarts == 0 && !auth) {
 		/*
 		 * We're not authoritative, so we must ensure the AA bit
 		 * isn't set.
@@ -1799,9 +1942,23 @@ query_find(ns_client_t *client) {
 		client->message->flags &= ~DNS_MESSAGEFLAG_AA;
 	}
 
-	if (want_restart && restarts < MAX_RESTARTS) {
-		restarts++;
+	/*
+	 * Restart the query?
+	 */
+	if (want_restart && client->query.restarts < MAX_RESTARTS) {
+		client->query.restarts++;
 		goto restart;
+	}
+
+	/*
+	 * Cleanup qname?
+	 */
+	if (client->query.restarts > 0) {
+		/*
+		 * client->query.qname was dynamically allocated.
+		 * We must free it.
+		 */
+		dns_message_puttempname(client->message, &client->query.qname);
 	}
 
 	if (eresult != ISC_R_SUCCESS && !PARTIALANSWER(client))
