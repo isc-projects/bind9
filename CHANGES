@@ -1,3 +1,5 @@
+1671.	[contrib]	queryperf: add NAPTR to the list on known types.
+
 1670.	[func]		Log UPDATE requests to slave zones without an acl as
 			"disabled" at debug level 3. [RT# 11657]
 
