@@ -25,7 +25,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-isc_mutexblock_initblock(isc_mutex_t *block, unsigned int count);
+isc_mutexblock_init(isc_mutex_t *block, unsigned int count);
 /*
  * Initialize a block of locks.  If an error occurs all initialized locks
  * will be destroyed, if possible.
@@ -43,7 +43,7 @@ isc_mutexblock_initblock(isc_mutex_t *block, unsigned int count);
  */
 
 isc_result_t
-isc_mutexblock_destroyblock(isc_mutex_t *block, unsigned int count);
+isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count);
 /*
  * Destroy a block of locks.
  *
