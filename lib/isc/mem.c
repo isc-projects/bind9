@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1997, 1998  Internet Software Consortium.
+ * Copyright (C) 1997, 1998, 1999  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -184,8 +184,6 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 
 	*ctxp = NULL;
 }
-
-
 
 static void
 more_basic_blocks(isc_mem_t *ctx) {
@@ -437,6 +435,10 @@ isc_mem_free(isc_mem_t *ctx, void *ptr) {
 	si = &(((size_info *)ptr)[-1]);
 	isc_mem_put(ctx, si, si->size);
 }
+
+/*
+ * Other useful things.
+ */
 
 char *
 isc_mem_strdup(isc_mem_t *mctx, const char *s) {
