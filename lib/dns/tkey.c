@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.64 2001/01/30 19:17:31 halley Exp $
+ * $Id: tkey.c,v 1.65 2001/02/05 19:50:42 bwelling Exp $
  */
 
 #include <config.h>
@@ -533,6 +533,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdata_tkey_t tkeyin, tkeyout;
+	isc_boolean_t freetkeyin = ISC_FALSE;
 	dns_name_t *qname, *name, *keyname, tempkeyname, *signer, tsigner;
 	dns_rdataset_t *tkeyset;
 	dns_rdata_t tkeyrdata = DNS_RDATA_INIT, *rdata = NULL;
@@ -545,11 +546,6 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	REQUIRE(ring != NULL);
 
 	ISC_LIST_INIT(namelist);
-
-	/*
-	 * Need to do this to determine if this should be freed later.
-	 */
-	memset(&tkeyin, 0, sizeof(dns_rdata_tkey_t));
 
 	/*
 	 * Interpret the question section.
@@ -591,6 +587,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	dns_rdataset_current(tkeyset, &tkeyrdata);
 
 	RETERR(dns_rdata_tostruct(&tkeyrdata, &tkeyin, NULL));
+	freetkeyin = ISC_TRUE;
 
 	if (tkeyin.error != dns_rcode_noerror) {
 		result = DNS_R_FORMERR;
@@ -738,7 +735,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	}
 
  failure_with_tkey:
-	dns_rdata_freestruct(&tkeyin);
+	if (freetkeyin)
+		dns_rdata_freestruct(&tkeyin);
 
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 384));
@@ -772,7 +770,7 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
  failure:
 	if (freealg)
 		dns_name_free(&tkeyout.algorithm, msg->mctx);
-	if (tkeyin.common.rdtype == dns_rdatatype_tkey)
+	if (freetkeyin)
 		dns_rdata_freestruct(&tkeyin);
 	if (rdata != NULL)
 		dns_message_puttemprdata(msg, &rdata);
