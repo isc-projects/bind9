@@ -1,5 +1,6 @@
 
-This is a summary of the named.conf options supported by BIND 9.
+This is a summary of the named.conf options supported by 
+this version of BIND 9.
 
 options {
         blackhole { <address_match_element>; ... };
@@ -59,8 +60,8 @@ options {
         additional-from-cache <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
-        notify-source <sockaddr4wild>;
-        notify-source-v6 <v6addrportwild>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         cleaning-interval <integer>;
         min-roots <integer>; // not implemented
         lame-ttl <integer>;
@@ -73,14 +74,16 @@ options {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         notify <notifytype>;
-        also-notify [ port <integer> ] { <sockaddr>; ... };
+        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
+            ) [ port <integer> ]; ... };
         dialup <dialuptype>;
         forward ( first | only );
-        forwarders [ port <integer> ] { <sockaddr>; ... };
+        forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
+            [ port <integer> ]; ... };
         maintain-ixfr-base <boolean>;
         max-ixfr-log-size <size>; // obsolete
-        transfer-source <sockaddr4wild>;
-        transfer-source-v6 <v6addrportwild>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
@@ -94,8 +97,8 @@ options {
 };
 
 controls {
-        inet <controls_sockaddr> allow { <address_match_element>; ... } [
-            keys { <string>; ... } ];
+        inet ( <ipv4_address> | <ipv6_address> | * ) [ port ( <integer> | *
+            ) ] allow { <address_match_element>; ... } [ keys { <string>; ... } ];
         unix <unsupported>; // not implemented
 };
 
@@ -130,8 +133,8 @@ view <string> <optional_class> {
                 file <quoted_string>;
                 ixfr-base <quoted_string>; // obsolete
                 ixfr-tmp-file <quoted_string>; // obsolete
-                masters [ port <integer> ] { <sockaddr> [ key <string> ];
-                    ... };
+                masters [ port <integer> ] { ( <ipv4_address> |
+                    <ipv6_address> ) [ port <integer> ] [ key <string> ]; ... };
                 pubkey <integer> <integer> <integer> <quoted_string>; //
                     obsolete
                 update-policy { ( grant | deny ) <string> ( name |
@@ -141,14 +144,18 @@ view <string> <optional_class> {
                 allow-query { <address_match_element>; ... };
                 allow-transfer { <address_match_element>; ... };
                 notify <notifytype>;
-                also-notify [ port <integer> ] { <sockaddr>; ... };
+                also-notify [ port <integer> ] { ( <ipv4_address> |
+                    <ipv6_address> ) [ port <integer> ]; ... };
                 dialup <dialuptype>;
                 forward ( first | only );
-                forwarders [ port <integer> ] { <sockaddr>; ... };
+                forwarders [ port <integer> ] { ( <ipv4_address> |
+                    <ipv6_address> ) [ port <integer> ]; ... };
                 maintain-ixfr-base <boolean>;
                 max-ixfr-log-size <size>; // obsolete
-                transfer-source <sockaddr4wild>;
-                transfer-source-v6 <v6addrportwild>;
+                transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
+                    * ) ];
+                transfer-source-v6 ( <ipv6_address> | * ) [ port (
+                    <integer> | * ) ];
                 max-transfer-time-in <integer>;
                 max-transfer-time-out <integer>;
                 max-transfer-idle-in <integer>;
@@ -189,8 +196,8 @@ view <string> <optional_class> {
         additional-from-cache <boolean>;
         query-source <querysource4>;
         query-source-v6 <querysource6>;
-        notify-source <sockaddr4wild>;
-        notify-source-v6 <v6addrportwild>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         cleaning-interval <integer>;
         min-roots <integer>; // not implemented
         lame-ttl <integer>;
@@ -203,14 +210,16 @@ view <string> <optional_class> {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         notify <notifytype>;
-        also-notify [ port <integer> ] { <sockaddr>; ... };
+        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
+            ) [ port <integer> ]; ... };
         dialup <dialuptype>;
         forward ( first | only );
-        forwarders [ port <integer> ] { <sockaddr>; ... };
+        forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
+            [ port <integer> ]; ... };
         maintain-ixfr-base <boolean>;
         max-ixfr-log-size <size>; // obsolete
-        transfer-source <sockaddr4wild>;
-        transfer-source-v6 <v6addrportwild>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
@@ -224,7 +233,8 @@ view <string> <optional_class> {
 };
 
 lwres {
-        listen-on [ port <integer> ] { <sockaddr>; ... };
+        listen-on [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
+            [ port <integer> ]; ... };
         view <string> <optional_class>;
         search { <string>; ... };
         ndots <integer>;
@@ -242,7 +252,8 @@ zone <string> <optional_class> {
         file <quoted_string>;
         ixfr-base <quoted_string>; // obsolete
         ixfr-tmp-file <quoted_string>; // obsolete
-        masters [ port <integer> ] { <sockaddr> [ key <string> ]; ... };
+        masters [ port <integer> ] { ( <ipv4_address> | <ipv6_address> ) [
+            port <integer> ] [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
         update-policy { ( grant | deny ) <string> ( name | subdomain |
             wildcard | self ) <string> <rrtypelist>; ... };
@@ -251,14 +262,16 @@ zone <string> <optional_class> {
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         notify <notifytype>;
-        also-notify [ port <integer> ] { <sockaddr>; ... };
+        also-notify [ port <integer> ] { ( <ipv4_address> | <ipv6_address>
+            ) [ port <integer> ]; ... };
         dialup <dialuptype>;
         forward ( first | only );
-        forwarders [ port <integer> ] { <sockaddr>; ... };
+        forwarders [ port <integer> ] { ( <ipv4_address> | <ipv6_address> )
+            [ port <integer> ]; ... };
         maintain-ixfr-base <boolean>;
         max-ixfr-log-size <size>; // obsolete
-        transfer-source <sockaddr4wild>;
-        transfer-source-v6 <v6addrportwild>;
+        transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
         max-transfer-time-in <integer>;
         max-transfer-time-out <integer>;
         max-transfer-idle-in <integer>;
