@@ -48,7 +48,7 @@ BIND 9.2.5
 	BIND 9.2.5 is a maintenance release, containing fixes for
 	a number of bugs in 9.2.4.
 
-	libbind: corresponds to that from BIND 8.4.6-SNAP1.
+	libbind: corresponds to that from BIND 8.4.6-REL.
 
 BIND 9.2.4
 
