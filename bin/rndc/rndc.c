@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.84 2001/11/14 23:14:29 bwelling Exp $ */
+/* $Id: rndc.c,v 1.85 2001/11/14 23:54:29 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -210,12 +210,13 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	connects--;
 
 	if (sevent->result != ISC_R_SUCCESS) {
-		if (sevent->result == ISC_R_CONNREFUSED &&
+		if (sevent->result != ISC_R_CANCELED &&
 		    currentaddr < nserveraddrs)
 		{
-			isc_event_free(&event);
-			notify("connection refused");
+			notify("connection failed: %s",
+			       isc_result_totext(sevent->result));
 			isc_socket_detach(&sock);
+			isc_event_free(&event);
 			rndc_startconnect(&serveraddrs[currentaddr++], task);
 			return;
 		} else
