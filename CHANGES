@@ -1,3 +1,5 @@
+ 222.	[bug]		The global 'also-notify' option was ignored.
+
  221.	[bug]		An uninitialized variable was sometimes passed to
 			dns_rdata_freestruct() when loading a zone, causing
 			an assertion failure.
