@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.14 2000/09/28 18:57:40 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.15 2000/09/28 22:16:48 gson Exp $ -->
 
 <book>
 
@@ -2619,9 +2619,15 @@ to crash<varname>.</varname></para></entry>
 <entry colname = "1"><para><command>recursion</command></para></entry>
 <entry colname = "2"><para>If <userinput>yes</userinput>, and a
 DNS query requests recursion, then the server will attempt to do
-all the work required to answer the query. If recursion is not on,
-the server will return a referral to the client if it doesn't know
-the answer. The default is <userinput>yes</userinput>. See also <command>fetch-glue</command> above.</para></entry>
+all the work required to answer the query. If recursion is off
+and the server does not already know the answer, it will return a
+referral response. The default is <userinput>yes</userinput>.
+Note that setting <command>recursion no;</command> does not prevent
+clients from getting data from the server's cache; it only
+prevents new data from being cached as an effect of client queries.
+Caching may still occur as an effect the server's internal
+operation, such as NOTIFY address lookups.
+See also <command>fetch-glue</command> above.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>rfc2308-type1</command></para></entry>
@@ -2770,7 +2776,10 @@ not specified, the default is to allow queries from all hosts.</para></entry>
 <entry colname = "1"><para><command>allow-recursion</command></para></entry>
 <entry colname = "2"><para>Specifies which hosts are allowed to
 make recursive queries through this server. If not specified, the
-default is to allow recursive queries from all hosts. </para></entry>
+default is to allow recursive queries from all hosts. 
+Note that disallowing recursive queries for a host does not prevent the
+host from retrieving data that is already in the server's cache.
+</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>allow-transfer</command></para></entry>
