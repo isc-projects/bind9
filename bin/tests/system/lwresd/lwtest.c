@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.5 2000/06/22 21:52:04 tale Exp $ */
+/* $Id: lwtest.c,v 1.6 2000/06/22 23:11:09 tale Exp $ */
 
 #include <config.h>
 
@@ -43,7 +43,7 @@ static unsigned char TESTSTRING[] =
 static lwres_context_t *ctx;
 
 static void
-test_noop() {
+test_noop(void) {
 	int ret;
 	lwres_lwpacket_t pkt, pkt2;
 	lwres_nooprequest_t nooprequest, *nooprequest2;
@@ -213,7 +213,7 @@ test_gnba(const char *target, lwres_uint32_t af, lwres_result_t expected,
 }
 
 int
-main() {
+main(void) {
 	lwres_result_t ret;
 
 	lwres_udp_port = 9210;
