@@ -1,11 +1,13 @@
 
  919.	[placeholder]
 
- 918.	[func]		nsupdate: TSIG errors are not immediately fatal.
+ 918.	[func]		In nsupdate, TSIG errors are no longer treated as
+			fatal errors.
 
- 917.	[func]		nsupdate: keys can now be specified inline with
-			with all other commands.
-		
+ 917.	[func]		New nsupdate command 'key', allowing TSIG keys to
+			be specified in the nsupdate command stream rather
+			than the command line.
+
  916.	[bug]		Specifying type ixfr to dig without specifying
  			a serial number failed in unexpected ways.
 
