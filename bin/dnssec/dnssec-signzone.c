@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.112 2000/10/31 20:09:15 bwelling Exp $ */
+/* $Id: dnssec-signzone.c,v 1.113 2000/11/09 18:39:46 bwelling Exp $ */
 
 #include <config.h>
 
@@ -631,13 +631,26 @@ haschildkey(dns_db_t *db, dns_name_t *name) {
 			goto failure;
 		key = keythatsigned(&sig);
 		dns_rdata_freestruct(&sig);
-		if (key == NULL)
+		if (key == NULL) {
+			char namestr[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namestr, sizeof namestr);
+			fprintf(stderr,
+				"creating KEY from signedkey file for %s: "
+				"%s\n",
+				namestr, isc_result_totext(result));
 			goto failure;
+		}
 		result = dns_dnssec_verify(name, &set, key->key,
 					   ISC_FALSE, mctx, &sigrdata);
 		if (result == ISC_R_SUCCESS) {
 			found = ISC_TRUE;
 			break;
+		} else {
+			char namestr[DNS_NAME_FORMATSIZE];
+			dns_name_format(name, namestr, sizeof namestr);
+			fprintf(stderr,
+				"verifying SIG in signedkey file for %s: %s\n",
+				namestr, isc_result_totext(result));
 		}
 		dns_rdata_reset(&sigrdata);
 	}
