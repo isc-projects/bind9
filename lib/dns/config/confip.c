@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confip.c,v 1.22 2000/04/28 01:10:30 halley Exp $ */
+/* $Id: confip.c,v 1.23 2000/05/03 19:29:37 brister Exp $ */
 
 #include <config.h>
 
@@ -885,27 +885,63 @@ dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2) {
 
 
 void
-dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list)
+dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
+			dns_c_iplist_t *list)
 {
 	isc_uint32_t i;
+	in_port_t port;
+	in_port_t tmpport;
+	isc_boolean_t athead = ISC_TRUE;
 
 	REQUIRE(DNS_C_IPLIST_VALID(list));
 		
-	fprintf(fp, "{\n");
-
 	if (list->nextidx == 0) {
+		fputc('{', fp);
+		fputc('\n', fp);
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "/* no ip addresses defined */\n");
+		dns_c_printtabs(fp, indent - 1); 
+		fputc('}', fp);
 	} else {
+		if (porttoo) {
+			port = isc_sockaddr_getport(&list->ips[0]);
+			
+			for (i = 0 ; i < list->nextidx ; i++) {
+				tmpport = isc_sockaddr_getport(&list->ips[i]);
+				if (tmpport != port) {
+					athead = ISC_FALSE;
+				}
+			}
+
+			if (athead) {
+				fprintf(fp, "port %d ", port);
+			}
+		}
+
+		fputc('{', fp);
+		fputc('\n', fp);
+
 		for (i = 0 ; i < list->nextidx ; i++) {
 			dns_c_printtabs(fp, indent);
 			dns_c_print_ipaddr(fp, &list->ips[i]);
+			if (!athead) {
+				fprintf(fp, " port %d",
+					isc_sockaddr_getport(&list->ips[i]));
+			}
 			fprintf(fp, ";\n");
 		}
+		dns_c_printtabs(fp, indent - 1);
+		fputc('}', fp);
 	}
-	
-	dns_c_printtabs(fp, indent - 1);
-	fprintf(fp, "}");
+
+	fputc('\n', fp);
+}
+
+
+void
+dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list)
+{
+	dns_c_iplist_printfully(fp, indent, ISC_FALSE, list);
 }
 
 

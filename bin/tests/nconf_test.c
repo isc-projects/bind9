@@ -74,7 +74,7 @@ optscbk(dns_c_ctx_t *ctx, void *uap)
 	return (ISC_R_SUCCESS);
 }
 
-
+extern int dns__yydebug;
 	
 int main (int argc, char **argv) {
 	dns_c_ctx_t *configctx = NULL;
@@ -100,7 +100,8 @@ int main (int argc, char **argv) {
 	if (argc > 1 && strcmp(argv[1],"-d") == 0) {
 		argv++;
 		argc--;
-		debug_mem_print = ISC_TRUE;
+		/* debug_mem_print = ISC_TRUE; */
+		dns__yydebug = 1;
 	}
 	
 	conffile = getenv("NAMED_CONF");

@@ -323,7 +323,7 @@ dns_c_view_setordering(dns_c_view_t *view, isc_boolean_t copy,
 		       dns_c_rrsolist_t *olist);
 
 isc_result_t
-dns_c_view_unsetordering(dns_c_view_t *view, dns_c_rrsolist_t **olist);
+dns_c_view_unsetordering(dns_c_view_t *view);
 
 isc_result_t
 dns_c_view_setchecknames(dns_c_view_t *view, dns_c_trans_t transtype,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.37 2000/04/28 01:10:40 halley Exp $ */
+/* $Id: confzone.c,v 1.38 2000/05/03 19:29:41 brister Exp $ */
 
 #include <config.h>
 
@@ -340,6 +340,8 @@ dns_c_zonelist_rmzone(dns_c_zonelist_t *zlist,
 		if (zone == zoneelem->thezone) {
 			break;
 		}
+
+		zoneelem = ISC_LIST_NEXT(zoneelem, next);
 	}
 
 	if (zoneelem != NULL) {
@@ -3365,7 +3367,8 @@ master_zone_print(FILE *fp, int indent,
 	if (mzone->also_notify != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "also-notify ");
-		dns_c_iplist_print(fp, indent + 1, mzone->also_notify);
+		dns_c_iplist_printfully(fp, indent + 1, ISC_TRUE,
+					mzone->also_notify);
 		fprintf(fp, ";\n");
 	}
 
@@ -3452,7 +3455,8 @@ slave_zone_print(FILE *fp, int indent,
 		    szone->master_ips->nextidx == 0) {
 			fprintf(fp, "{ /* none defined */ }");
 		} else {
-			dns_c_iplist_print(fp, indent + 1, szone->master_ips);
+			dns_c_iplist_printfully(fp, indent + 1,
+						ISC_TRUE, szone->master_ips);
 		}
 		fprintf(fp, ";\n");
 	}
@@ -3568,7 +3572,8 @@ slave_zone_print(FILE *fp, int indent,
 	if (szone->also_notify != NULL) {
 		dns_c_printtabs(fp, indent);
 		fprintf(fp, "also-notify ");
-		dns_c_iplist_print(fp, indent + 1, szone->also_notify);
+		dns_c_iplist_printfully(fp, indent + 1,
+					ISC_TRUE, szone->also_notify);
 		fprintf(fp, ";\n");
 	}
 
@@ -3603,7 +3608,8 @@ stub_zone_print(FILE *fp, int indent, dns_c_stubzone_t *tzone)
 		    tzone->master_ips->nextidx == 0) {
 			fprintf(fp, "{ /* none defined */ }");
 		} else {
-			dns_c_iplist_print(fp, indent + 1, tzone->master_ips);
+			dns_c_iplist_printfully(fp, indent + 1,
+						ISC_TRUE, tzone->master_ips);
 		}
 		fprintf(fp, ";\n");
 	}

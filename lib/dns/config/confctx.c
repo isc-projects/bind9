@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.53 2000/04/28 01:23:54 gson Exp $ */
+/* $Id: confctx.c,v 1.54 2000/05/03 19:29:35 brister Exp $ */
 
 #include <config.h>
 
@@ -230,7 +230,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	isc_int32_t		intval;
 	isc_uint32_t		uintval;
 	dns_c_ipmatchlist_t    *ipml;
-	dns_c_iplist_t         *iplist;
 	isc_result_t 		result = ISC_R_SUCCESS;
 	isc_result_t		tmpres;
 	dns_c_rrsolist_t       *olist;
@@ -316,13 +315,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (dns_c_ctx_getnotify(cfg, &bval) != ISC_R_NOTFOUND) {
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'notify' is not yet implemented.");
-	}
-
-
 	if (dns_c_ctx_getrfc2308type1(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
@@ -344,15 +336,6 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (dns_c_ctx_getalsonotify(cfg, &iplist) != ISC_R_NOTFOUND) {
-		dns_c_iplist_detach(&iplist);
-		isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
-			      "option 'also-notify' is not yet implemented.");
-	}
-
-
-	
 	if ((dns_c_ctx_getchecknames(cfg, dns_trans_primary,
 				     &severity) != ISC_R_NOTFOUND) ||
 	    (dns_c_ctx_getchecknames(cfg, dns_trans_secondary,
@@ -1010,7 +993,8 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	if (options->also_notify != NULL) {
 		dns_c_printtabs(fp, indent + 1);
 		fprintf(fp, "also-notify ") ;
-		dns_c_iplist_print(fp, indent + 2, options->also_notify);
+		dns_c_iplist_printfully(fp, indent + 2, ISC_TRUE,
+					options->also_notify);
 		fprintf(fp, ";\n");
 	}
 	

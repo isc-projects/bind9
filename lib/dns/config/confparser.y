@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.70 2000/05/02 17:56:39 brister Exp $ */
+/* $Id: confparser.y,v 1.71 2000/05/03 19:29:38 brister Exp $ */
 
 #include <config.h>
 
@@ -116,6 +116,7 @@ static isc_lexspecials_t	specials;
 
 
 static isc_result_t	tmpres;
+static isc_boolean_t	disabled;	/* if "disabled" keyword was in zone */
 static int		debug_lexer;
  
 static int		yylex(void);
@@ -255,6 +256,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_DENY
 %token		L_DIALUP
 %token		L_DIRECTORY
+%token		L_DISABLED
 %token		L_DUMP_FILE
 %token		L_DYNAMIC
 %token		L_END_INCLUDE
@@ -926,10 +928,10 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
+	| L_ALSO_NOTIFY port_ip_list
 	{
-		tmpres = dns_c_ctx_setalsonotify(currcfg, $3);
- 		dns_c_iplist_detach(&$3);
+		tmpres = dns_c_ctx_setalsonotify(currcfg, $2);
+ 		dns_c_iplist_detach(&$2);
 
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE, "redefining also-notify.");
@@ -3730,6 +3732,8 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	{
 		dns_c_zone_t *zone;
 
+		disabled = ISC_FALSE;
+		
                 if (currcfg->zlist == NULL) {
                         tmpres = dns_c_zonelist_new(currcfg->mem,
                                                     &currcfg->zlist);
@@ -3774,19 +3778,29 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
 	} optional_zone_options_list L_RBRACE {
 		dns_c_zone_t *zone;
 		dns_c_view_t *view;
-		
+
 		zone = dns_c_ctx_getcurrzone(currcfg);
 		view = dns_c_ctx_getcurrview(currcfg);
 
-		zone->view = view;
+		if (disabled) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
+				      DNS_LOGMODULE_CONFIG,
+				      ISC_LOG_WARNING, "zone '%s' is disabled",
+				      zone->name);
+			dns_c_zonelist_rmzone(currcfg->zlist, zone);
+			zone = NULL;
+		} else {
+			zone->view = view;
 
-		if (view != NULL) {
-			dns_c_view_addzone(view, zone);
+			if (view != NULL) {
+				dns_c_view_addzone(view, zone);
+			}
 		}
-
+		
 		dns_c_ctx_setcurrzone(currcfg, NULL);
 
-		if (callbacks != NULL && callbacks->zonecbk != NULL) {
+		if (zone != NULL &&
+		    callbacks != NULL && callbacks->zonecbk != NULL) {
 			tmpres = callbacks->zonecbk(currcfg,
 						    zone,
 						    view,
@@ -3910,7 +3924,8 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 	L_TCP_CLIENTS | L_RECURSIVE_CLIENTS | L_UPDATE_POLICY | L_DENY |
 	L_MAX_TRANSFER_TIME_OUT | L_MAX_TRANSFER_IDLE_IN |
 	L_MAX_TRANSFER_IDLE_OUT | L_MAX_LOG_SIZE_IXFR | L_NOTIFY |
-	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP
+	L_MAINTAIN_IXFR_BASE | L_PUBKEY | L_ALSO_NOTIFY | L_DIALUP |
+        L_DISABLED
 	;
 
 
@@ -4316,14 +4331,13 @@ zone_option: L_FILE L_QSTRING
 
 		isc_mem_free(memctx, $5);
 	}
-	| L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
+	| L_ALSO_NOTIFY port_ip_list
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
 		INSIST(zone != NULL);
 
-		tmpres = dns_c_zone_setalsonotify(zone, $3,
-						  ISC_FALSE);
+		tmpres = dns_c_zone_setalsonotify(zone, $2, ISC_FALSE);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_warning(ISC_FALSE,
 				       "redefining zone also-notify.");
@@ -4348,6 +4362,10 @@ zone_option: L_FILE L_QSTRING
 				     "failed to set zone dialup.");
 			YYABORT;
 		}
+	}
+	| L_DISABLED
+	{
+		disabled = ISC_TRUE;
 	}
 	| zone_update_policy
 	;
@@ -4600,6 +4618,7 @@ static struct token keyword_tokens [] = {
 	{ "default",			L_DEFAULT },
 	{ "dialup",			L_DIALUP },
 	{ "directory",			L_DIRECTORY },
+	{ "disabled",			L_DISABLED },
 	{ "dump-file",			L_DUMP_FILE },
 	{ "dynamic",			L_DYNAMIC },
 	{ "expert-mode",		L_EXPERT_MODE },

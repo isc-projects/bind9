@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.24 2000/04/28 01:10:38 halley Exp $ */
+/* $Id: confview.c,v 1.25 2000/05/03 19:29:39 brister Exp $ */
 
 #include <config.h>
 
@@ -1040,11 +1040,9 @@ dns_c_view_getordering(dns_c_view_t *view,
 
 
 isc_result_t
-dns_c_view_unsetordering(dns_c_view_t *view,
-			 dns_c_rrsolist_t **olist)
+dns_c_view_unsetordering(dns_c_view_t *view)
 {
 	REQUIRE(DNS_C_VIEW_VALID(view));
-	REQUIRE(olist != NULL);
 
 	if (view->ordering != NULL) {
 		dns_c_rrsolist_delete(&view->ordering);

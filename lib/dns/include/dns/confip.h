@@ -246,6 +246,10 @@ dns_c_iplist_remove(dns_c_iplist_t *list, isc_sockaddr_t newaddr);
 void
 dns_c_iplist_print(FILE *fp, int indent, dns_c_iplist_t *list);
 
+void
+dns_c_iplist_printfully(FILE *fp, int indent, isc_boolean_t porttoo,
+			dns_c_iplist_t *list);
+
 isc_boolean_t
 dns_c_iplist_equal(dns_c_iplist_t *list1, dns_c_iplist_t *list2);
 
