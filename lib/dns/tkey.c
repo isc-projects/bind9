@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.20 2000/01/24 20:19:51 bwelling Exp $
+ * $Id: tkey.c,v 1.21 2000/01/24 22:22:50 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -289,7 +289,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 			ISC_BUFFERTYPE_BINARY);
 	RETERR(dst_key_todns(tctx->dhkey, &ourkeybuf));
 	isc_buffer_used(&ourkeybuf, &ourkeyr);
-	dns_rdata_fromregion(&ourkeyrdata, dns_rdataclass_in,
+	dns_rdata_fromregion(&ourkeyrdata, dns_rdataclass_any,
 			     dns_rdatatype_key, &ourkeyr);
 	isc_buffer_init(&ournamein, dst_key_name(tctx->dhkey),
 		        strlen(dst_key_name(tctx->dhkey)), ISC_BUFFERTYPE_TEXT);
@@ -358,8 +358,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *name,
 	isc_buffer_used(&secret, &r);
 	tsigkey = NULL;
 	result = dns_tsigkey_create(name, &tkeyin->algorithm, r.base, r.length,
-				    ISC_TRUE, creator, msg->mctx, ring,
-				    NULL);
+				    ISC_TRUE, creator, tkeyin->inception,
+				    tkeyin->expire, msg->mctx, ring, NULL);
 	isc_buffer_free(&shared);
 	shared = NULL;
 	if (result == ISC_R_NOTFOUND) {
@@ -679,18 +679,18 @@ buildquery(dns_message_t *msg, dns_name_t *name,
 
 	RETERR(dns_message_gettemprdataset(msg, &question));
 	dns_rdataset_init(question);
-	dns_rdataset_makequestion(question, dns_rdataclass_in /* _any */,
+	dns_rdataset_makequestion(question, dns_rdataclass_any,
 				  dns_rdatatype_tkey);
 
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 512,
 				   ISC_BUFFERTYPE_BINARY));
 	RETERR(dns_message_gettemprdata(msg, &rdata));
-	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_in /* _any */,
+	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				    dns_rdatatype_tkey, tkey, dynbuf));
 	dns_message_takebuffer(msg, &dynbuf);
 
 	RETERR(dns_message_gettemprdatalist(msg, &tkeylist));
-	tkeylist->rdclass = dns_rdataclass_in /* _any */;
+	tkeylist->rdclass = dns_rdataclass_any;
 	tkeylist->type = dns_rdatatype_tkey;
 	tkeylist->covers = 0;
 	tkeylist->ttl = 0;
@@ -750,7 +750,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
 
-	tkey.common.rdclass = dns_rdataclass_in /* _any */;
+	tkey.common.rdclass = dns_rdataclass_any;
 	tkey.common.rdtype = dns_rdatatype_tkey;
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = msg->mctx;
@@ -779,7 +779,7 @@ dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key, dns_name_t *name,
                                    ISC_BUFFERTYPE_BINARY));
 	RETERR(dst_key_todns(key, dynbuf));
 	isc_buffer_used(dynbuf, &r);
-	dns_rdata_fromregion(rdata, dns_rdataclass_in,
+	dns_rdata_fromregion(rdata, dns_rdataclass_any,
 			     dns_rdatatype_key, &r);
 	dns_message_takebuffer(msg, &dynbuf);
 	RETERR(dns_message_gettempname(msg, &keyname));
@@ -813,7 +813,7 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key) {
 	REQUIRE(msg != NULL);
 	REQUIRE(key != NULL);
 
-	tkey.common.rdclass = dns_rdataclass_in /* _any */;
+	tkey.common.rdclass = dns_rdataclass_any;
 	tkey.common.rdtype = dns_rdatatype_tkey;
 	ISC_LINK_INIT(&tkey.common, link);
 	tkey.mctx = msg->mctx;
@@ -966,7 +966,8 @@ dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 	tsigkey = NULL;
 	result = dns_tsigkey_create(tkeyname, &rtkey.algorithm,
 				    r.base, r.length, ISC_TRUE,
-				    NULL, rmsg->mctx, ring, outkey);
+				    NULL, rtkey.inception, rtkey.expire,
+				    rmsg->mctx, ring, outkey);
 	isc_buffer_free(&shared);
 	return (result);
 

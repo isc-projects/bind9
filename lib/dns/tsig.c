@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.41 2000/01/24 19:14:22 gson Exp $
+ * $Id: tsig.c,v 1.42 2000/01/24 22:22:50 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -64,7 +64,8 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dns_name_t *creator, isc_mem_t *mctx,
+		   dns_name_t *creator, isc_stdtime_t inception,
+		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
@@ -167,6 +168,8 @@ dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 	if (key != NULL)
 		tkey->refs++;
 	tkey->generated = generated;
+	tkey->inception = inception;
+	tkey->expire = expire;
 	tkey->deleted = ISC_FALSE;
 	tkey->mctx = mctx;
 	ret = isc_mutex_init(&tkey->lock);
@@ -609,6 +612,9 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		return (DNS_R_TSIGVERIFYFAILURE);
 	}
 
+	/* Get the current time */
+	isc_stdtime_get(&now);
+
 	/* Find dns_tsigkey_t based on keyname */
 	if (msg->tsigkey == NULL) {
 		ret = ISC_R_NOTFOUND;
@@ -627,6 +633,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 			msg->tsigkey = NULL;
 			ret = dns_tsigkey_create(keyname, &tsig->algorithm,
 						 NULL, 0, ISC_FALSE, NULL,
+						 now, now,
 						 mctx, dring, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS)
 				goto cleanup_struct;
@@ -640,7 +647,6 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	key = tsigkey->key;
 
 	/* Is the time ok? */
-	isc_stdtime_get(&now);
 	if (abs(now - tsig->timesigned) > tsig->fudge) {
 		msg->tsigstatus = dns_tsigerror_badtime;
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -954,12 +960,14 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm, dns_tsig_keyring_t *ring)
 {
 	dns_tsigkey_t *key;
+	isc_stdtime_t now;
 
 	REQUIRE(tsigkey != NULL);
 	REQUIRE(*tsigkey == NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(ring != NULL);
 
+	isc_stdtime_get(&now);
 	isc_rwlock_lock(&ring->lock, isc_rwlocktype_read);
 	key = ISC_LIST_HEAD(ring->keys);
 	while (key != NULL) {
@@ -968,6 +976,13 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		     dns_name_equal(&key->algorithm, algorithm)) &&
 		    !key->deleted)
 		{
+			if (key->inception != key->expire &&
+			    key->expire < now)
+			{
+				/* the key has expired */
+				key->deleted = 1;
+				continue;
+			}
 			isc_mutex_lock(&key->lock);
 			key->refs++;
 			isc_mutex_unlock(&key->lock);

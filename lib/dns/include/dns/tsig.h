@@ -21,6 +21,7 @@
 #include <isc/types.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
+#include <isc/stdtime.h>
 
 #include <dns/types.h>
 #include <dns/name.h>
@@ -52,6 +53,8 @@ struct dns_tsigkey {
 	dns_name_t		algorithm;	/* Algorithm name */
 	dns_name_t		*creator;	/* name that created secret */
 	isc_boolean_t		generated;	/* was this generated? */
+	isc_stdtime_t		inception;	/* start of validity period */
+	isc_stdtime_t		expire;		/* end of validity period */
 	dns_tsig_keyring_t	*ring;		/* the enclosing keyring */
 	isc_mutex_t		lock;
 	/* Locked */
@@ -68,11 +71,15 @@ struct dns_tsigkey {
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
-		   dns_name_t *creator, isc_mem_t *mctx,
+		   dns_name_t *creator, isc_stdtime_t inception,
+		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
 /*
  *	Creates a tsig key structure and saves it in the keyring.  If key is
- *	not NULL, *key *	will contain a copy of the key.
+ *	not NULL, *key will contain a copy of the key.  The keys validity
+ *	period is specified by (inception, expire), and will not expire if
+ *	inception == expire.  If the key was generated, the creating identity,
+ *	if there is one, should be in the creator parameter.
  *
  *	Requires:
  *		'name' is a valid dns_name_t

@@ -19,6 +19,7 @@
 
 #include <isc/base64.h>
 #include <isc/lex.h>
+#include <isc/stdtime.h>
 
 #include <dns/confctx.h>
 #include <dns/confkeys.h>
@@ -35,6 +36,7 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 	int secretalloc = 0;
 	int secretlen = 0;
 	isc_result_t ret;
+	isc_stdtime_t now;
 
 	key = ISC_LIST_HEAD(list->keydefs);
 	while (key != NULL) {
@@ -102,8 +104,10 @@ add_initial_keys(dns_c_kdeflist_t *list, dns_tsig_keyring_t *ring,
 		isc_lex_close(lex);
 		isc_lex_destroy(&lex);
 
+		isc_stdtime_get(&now);
 		ret = dns_tsigkey_create(&keyname, &alg, secret, secretlen,
-					 ISC_FALSE, NULL, mctx, ring, NULL);
+					 ISC_FALSE, NULL, now, now,
+					 mctx, ring, NULL);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;
 		if (ret != ISC_R_SUCCESS)
