@@ -1,3 +1,6 @@
+  51.   [cleanup]       dns/compress.h and dns/zt.h did not need to include
+                        dns/rbt.h; it was needed only by compress.c and zt.c.
+
   50.   [func]          RBT deletion no longer requires a valid chain to work,
                         and dns_rbt_deletenode was added.
 
