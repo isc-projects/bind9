@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.43 2000/06/07 00:13:54 mws Exp $ */
+/* $Id: dig.c,v 1.44 2000/06/16 17:59:59 mws Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,8 @@ isc_boolean_t identify = ISC_FALSE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
-	defname = ISC_TRUE, aaonly = ISC_FALSE, tcpmode = ISC_FALSE;
+	defname = ISC_TRUE, aaonly = ISC_FALSE, tcpmode = ISC_FALSE,
+	adflag = ISC_FALSE, cdflag = ISC_FALSE;
 
 
 static const char *opcodetext[] = {
@@ -164,10 +165,10 @@ show_usage(void) {
 "                 +[no]short          (Disable everything except short\n"
 "                                      form of answer)\n"
 "                 +qr                 (Print question before sending)\n"
-"        Additional d-opts subject to removal before release:\n"
+"                 +[no]cd             (Set or clear CD flag in query)\n"
+"                 +[no]ad             (Set or clear AD flag in query)\n"
 "                 +[no]nssearch       (Search all authorative nameservers)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
-"        Available but not yet completed:\n"
 "                 +[no]trace          (Trace delegation down from root)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
@@ -667,6 +668,26 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				lookup->aaonly = ISC_FALSE;
 			else
 				aaonly = ISC_FALSE;
+		} else if (strncmp(rv[0], "+ad", 3) == 0) {
+			if (have_host) 
+				lookup->adflag = ISC_TRUE;
+			else
+				adflag = ISC_TRUE;
+		} else if (strncmp(rv[0], "+noad", 5) == 0) {
+			if (have_host) 
+				lookup->adflag = ISC_FALSE;
+			else
+				adflag = ISC_FALSE;
+		} else if (strncmp(rv[0], "+cd", 3) == 0) {
+			if (have_host) 
+				lookup->cdflag = ISC_TRUE;
+			else
+				cdflag = ISC_TRUE;
+		} else if (strncmp(rv[0], "+nocd", 5) == 0) {
+			if (have_host) 
+				lookup->cdflag = ISC_FALSE;
+			else
+				cdflag = ISC_FALSE;
 		} else if (strncmp(rv[0], "+ns", 3) == 0) {
 			if (have_host) {
 				lookup->ns_search_only = ISC_TRUE;
@@ -996,6 +1017,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->identify = identify;
 			lookup->recurse = recurse;
 			lookup->aaonly = aaonly;
+			lookup->adflag = adflag;
+			lookup->cdflag = cdflag;
 			lookup->retries = tries;
 			lookup->udpsize = bufsize;
 			lookup->nsfound = 0;
@@ -1059,6 +1082,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->identify = identify;
 			lookup->recurse = recurse;
 			lookup->aaonly = aaonly;
+			lookup->adflag = adflag;
+			lookup->cdflag = cdflag;
 			lookup->retries = tries;
 			lookup->udpsize = bufsize;
 			lookup->nsfound = 0;
@@ -1134,6 +1159,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		lookup->identify = identify;
 		lookup->recurse = recurse;
 		lookup->aaonly = aaonly;
+		lookup->adflag = adflag;
+		lookup->cdflag = cdflag;
 		lookup->retries = tries;
 		lookup->udpsize = bufsize;
 		lookup->nsfound = 0;

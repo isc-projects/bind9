@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.15 2000/06/15 18:24:08 mws Exp $ */
+/* $Id: nslookup.c,v 1.16 2000/06/16 18:00:03 mws Exp $ */
 
 #include <config.h>
 
@@ -656,6 +656,8 @@ addlookup(char *opt) {
 	lookup->identify = identify;
 	lookup->recurse = recurse;
 	lookup->aaonly = aaonly;
+	lookup->adflag = ISC_FALSE;
+	lookup->cdflag = ISC_FALSE;
 	lookup->retries = tries;
 	lookup->udpsize = bufsize;
 	lookup->nsfound = 0;

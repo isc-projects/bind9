@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: host.c,v 1.25 2000/06/06 23:06:24 mws Exp $ */
+/* $Id: host.c,v 1.26 2000/06/16 18:00:01 mws Exp $ */
 
 #include <config.h>
 
@@ -673,6 +673,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	lookup->trace_root = ISC_FALSE;
 	lookup->tcp_mode = tcpmode;
 	lookup->new_search = ISC_TRUE;
+	lookup->aaonly = ISC_FALSE;
+	lookup->adflag = ISC_FALSE;
+	lookup->cdflag = ISC_FALSE;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 	lookup->origin = NULL;

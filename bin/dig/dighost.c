@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.52 2000/06/15 22:08:44 mws Exp $ */
+/* $Id: dighost.c,v 1.53 2000/06/16 18:00:00 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -289,6 +289,8 @@ dig_lookup_t
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
 	looknew->aaonly = lookold->aaonly;
+	looknew->adflag = lookold->adflag;
+	looknew->cdflag = lookold->cdflag;
 	looknew->ns_search_only = lookold->ns_search_only;
 	looknew->origin = NULL;
 	looknew->querysig = NULL;
@@ -1045,6 +1047,16 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->aaonly) {
 		debug ("AA query");
 		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AA;
+	}
+
+	if (lookup->adflag) {
+		debug ("AD query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_AD;
+	}
+
+	if (lookup->cdflag) {
+		debug ("CD query");
+		lookup->sendmsg->flags |= DNS_MESSAGEFLAG_CD;
 	}
 
 	dns_message_addname(lookup->sendmsg, lookup->name,

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.22 2000/06/07 00:13:57 mws Exp $ */
+/* $Id: dig.h,v 1.23 2000/06/16 18:00:05 mws Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -69,6 +69,8 @@ struct dig_lookup {
 		identify,
 		recurse,
 		aaonly,
+		adflag,
+		cdflag,
 		trace,
 		trace_root,
 		defname,
