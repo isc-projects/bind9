@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.36 2000/09/08 08:38:55 bwelling Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.37 2000/09/08 08:47:29 bwelling Exp $ */
 
 #include <config.h>
 
@@ -129,17 +129,11 @@ main(int argc, char *argv[]) {
 	{
 		switch (ch) {
 		case 's':
-			startstr = isc_mem_strdup(mctx,
-						  isc_commandline_argument);
-			if (startstr == NULL)
-				fatal("out of memory");
+			startstr = isc_commandline_argument;
 			break;
 
 		case 'e':
-			endstr = isc_mem_strdup(mctx,
-						isc_commandline_argument);
-			if (endstr == NULL)
-				fatal("out of memory");
+			endstr = isc_commandline_argument;
 			break;
 
 		case 't':
@@ -192,17 +186,13 @@ main(int argc, char *argv[]) {
 
 	isc_stdtime_get(&now);
 
-	if (startstr != NULL) {
+	if (startstr != NULL)
 		starttime = strtotime(startstr, now, now);
-		isc_mem_free(mctx, startstr);
-	}
 	else
 		starttime = now;
 
-	if (endstr != NULL) {
+	if (endstr != NULL)
 		endtime = strtotime(endstr, now, starttime);
-		isc_mem_free(mctx, endstr);
-	}
 	else
 		endtime = starttime + (30 * 24 * 60 * 60);
 
