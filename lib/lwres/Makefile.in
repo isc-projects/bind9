@@ -19,15 +19,18 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-CINCLUDES =	-I. ${ISC_INCLUDES}
+@BIND9_INCLUDES@
+
+CINCLUDES =	-I. -I./include -I${srcdir}/include ${ISC_INCLUDES}
 CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		
+OBJS =		lwbuffer.@O@
 
 # Alphabetically
-SRCS =		
+SRCS =		lwbuffer.c
+
 LIBS =		@LIBS@
 
 SUBDIRS =	include
