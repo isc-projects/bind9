@@ -15,11 +15,12 @@
  * SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.30 2000/06/22 21:56:57 tale Exp $ */
+/* $Id: lex.c,v 1.31 2000/06/23 22:32:10 brister Exp $ */
 
 #include <config.h>
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -512,7 +513,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 				    lex->specials[c]) {
 					pushback(source, c);
 					ulong = strtoul(lex->data, &e, 0);
-					if (*e == 0) {
+					if (ulong == ULONG_MAX &&
+					    errno == ERANGE) {
+						return (ISC_R_RANGE);
+					} else if (*e == 0) {
 						tokenp->type =
 							isc_tokentype_number;
 						tokenp->value.as_ulong =
