@@ -125,40 +125,43 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		name = NULL;
 		dns_message_currentname(message, DNS_SECTION_AUTHORITY,
 					&name);
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-			/*
-			 * XXXRTH  check for ignore bit here?
-			 */
-			type = rdataset->type;
-			if (type == dns_rdatatype_sig)
-				type = rdataset->covers;
-			if (type == dns_rdatatype_soa ||
-			    type == dns_rdatatype_nxt) {
-				if (ttl > rdataset->ttl)
-					ttl = rdataset->ttl;
-				/*
-				 * Copy the owner name to the buffer.
-				 */
-				dns_name_toregion(name, &r);
-				result = isc_buffer_copyregion(&buffer,
-							       &r);
-				if (result != ISC_R_SUCCESS)
-					return (result);
-				/*
-				 * Copy the type to the buffer.
-				 */
-				isc_buffer_available(&buffer, &r);
-				if (r.length < 2)
-					return (ISC_R_NOSPACE);
-				isc_buffer_putuint16(&buffer, type);
-				/*
-				 * Copy the rdataset into the buffer.
-				 */
-				result = copy_rdataset(rdataset, &buffer);
-				if (result != ISC_R_SUCCESS)
-					return (result);
+		if ((name->attributes & DNS_RDATASETATTR_NCACHE) != 0) {
+			for (rdataset = ISC_LIST_HEAD(name->list);
+			     rdataset != NULL;
+			     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+				if ((rdataset->attributes &
+				     DNS_RDATASETATTR_NCACHE) == 0)
+					continue;
+				type = rdataset->type;
+				if (type == dns_rdatatype_sig)
+					type = rdataset->covers;
+				if (type == dns_rdatatype_soa ||
+				    type == dns_rdatatype_nxt) {
+					if (ttl > rdataset->ttl)
+						ttl = rdataset->ttl;
+					/*
+					 * Copy the owner name to the buffer.
+					 */
+					dns_name_toregion(name, &r);
+					result = isc_buffer_copyregion(&buffer,
+								       &r);
+					if (result != ISC_R_SUCCESS)
+						return (result);
+					/*
+					 * Copy the type to the buffer.
+					 */
+					isc_buffer_available(&buffer, &r);
+					if (r.length < 2)
+						return (ISC_R_NOSPACE);
+					isc_buffer_putuint16(&buffer, type);
+					/*
+					 * Copy the rdataset into the buffer.
+					 */
+					result = copy_rdataset(rdataset,
+							       &buffer);
+					if (result != ISC_R_SUCCESS)
+						return (result);
+				}
 			}
 		}
 		result = dns_message_nextname(message, DNS_SECTION_AUTHORITY);
