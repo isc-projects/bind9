@@ -28,7 +28,7 @@
 		(elt)->link.prev = (void *)(-1); \
 		(elt)->link.next = (void *)(-1); \
 	} while (0)
-#define ISC_LINK_LINKED(elt, link) ((elt)->link.prev != (void *)(-1))
+#define ISC_LINK_LINKED(elt, link) ((void *)((elt)->link.prev) != (void *)(-1))
 
 #define ISC_LIST_HEAD(list) ((list).head)
 #define ISC_LIST_TAIL(list) ((list).tail)
