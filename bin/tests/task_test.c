@@ -84,10 +84,10 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t4) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, NULL, 0, &t4) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_task_onshutdown(t1, my_shutdown, "1") ==
 		      ISC_R_SUCCESS);

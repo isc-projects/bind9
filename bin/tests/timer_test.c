@@ -29,7 +29,7 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-isc_mem_t *mctx = NULL;
+isc_mem_t *mctx1, *mctx2, *mctx3;
 isc_task_t *t1, *t2, *t3;
 isc_timer_t *ti1, *ti2, *ti3;
 int tick_count = 0;
@@ -111,14 +111,19 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%d workers\n", workers);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
-	       ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_timermgr_create(mctx, &timgr) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx1) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx2) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_taskmgr_create(mctx1, workers, 0, &manager) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_timermgr_create(mctx1, &timgr) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t2) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_task_create(manager, 0, &t3) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, mctx1, 0, &t1) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, mctx2, 0, &t2) ==
+		      ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_task_create(manager, mctx3, 0, &t3) ==
+		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t1, shutdown_task, "1") ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_task_onshutdown(t2, shutdown_task, "2") ==
@@ -163,6 +168,13 @@ main(int argc, char *argv[]) {
 	isc_taskmgr_destroy(&manager);
 	printf("destroyed\n");
 	
-	isc_mem_stats(mctx, stdout);
-	isc_mem_destroy(&mctx);
+	printf("Statistics for mctx1:\n");
+	isc_mem_stats(mctx1, stdout);
+	isc_mem_destroy(&mctx1);
+	printf("Statistics for mctx2:\n");
+	isc_mem_stats(mctx2, stdout);
+	isc_mem_destroy(&mctx2);
+	printf("Statistics for mctx3:\n");
+	isc_mem_stats(mctx3, stdout);
+	isc_mem_destroy(&mctx3);
 }
