@@ -19,7 +19,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.38 2001/02/08 00:31:21 bwelling Exp $ */
+/* $Id: getaddrinfo.c,v 1.39 2001/06/28 06:02:18 mayer Exp $ */
 
 #include <config.h>
 
@@ -181,7 +181,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 				return (EAI_SOCKTYPE);
 			if (port < 0 || port > 65535)
 				return (EAI_SERVICE);
-			port = htons(port);
+			port = htons((unsigned short) port);
 		} else {
 			sp = getservbyname(servname, proto);
 			if (sp == NULL)
