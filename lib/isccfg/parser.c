@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.26 2001/02/26 22:55:55 gson Exp $ */
+/* $Id: parser.c,v 1.27 2001/02/27 01:31:56 gson Exp $ */
 
 #include <config.h>
 
@@ -291,6 +291,9 @@ static isc_result_t
 parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
 
 static isc_result_t
+parse_addressed_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
+
+static isc_result_t
 parse_list(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
 
 static void
@@ -310,6 +313,9 @@ parse_spacelist(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
 
 static void
 print_spacelist(cfg_printer_t *pctx, cfg_obj_t *obj);
+
+static void
+print_sockaddr(cfg_printer_t *pctx, cfg_obj_t *obj);
 
 static isc_result_t
 parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret);
@@ -393,6 +399,7 @@ static cfg_type_t cfg_type_acl;
 static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_bracketed_sockaddrlist;
 static cfg_type_t cfg_type_sockaddr;
+static cfg_type_t cfg_type_netaddr;
 static cfg_type_t cfg_type_optional_keyref;
 static cfg_type_t cfg_type_options;
 static cfg_type_t cfg_type_view;
@@ -957,7 +964,9 @@ server_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_server = {
-	"server", parse_named_map, print_map, &cfg_rep_map, server_clausesets };
+	"server", parse_addressed_map, print_map, &cfg_rep_map,
+	server_clausesets
+};
 
 
 /*
@@ -2144,17 +2153,17 @@ parse_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
 }
 
 /*
- * Parse a named map; e.g., "name { foo 1; }".  Used for the "key", "server",
- * and "channel" statements.
+ * Subroutine for parse_named_map() and parse_addressed_map().
  */
 static isc_result_t
-parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
+parse_any_named_map(cfg_parser_t *pctx, cfg_type_t *nametype, cfg_type_t *type,
+		    cfg_obj_t **ret)
 {
 	isc_result_t result;
 	cfg_obj_t *idobj = NULL;
 	cfg_obj_t *mapobj = NULL;
 
-	CHECK(parse_astring(pctx, NULL, &idobj));
+	CHECK(parse(pctx, nametype, &idobj));
 	CHECK(parse_map(pctx, type, &mapobj));
 	mapobj->value.map.id = idobj;
 	idobj = NULL;
@@ -2162,6 +2171,24 @@ parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret)
  cleanup:
 	CLEANUP_OBJ(idobj);
 	return (result);
+}
+
+/*
+ * Parse a map identified by a string name.  E.g., "name { foo 1; }".  
+ * Used for the "key" and "channel" statements.
+ */
+static isc_result_t
+parse_named_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_any_named_map(pctx, &cfg_type_astring, type, ret));
+}
+
+/*
+ * Parse a map identified by a network address.
+ * Used for the "server" statement.
+ */
+static isc_result_t
+parse_addressed_map(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	return (parse_any_named_map(pctx, &cfg_type_netaddr, type, ret));
 }
 
 static void
@@ -2629,7 +2656,7 @@ parse_querysource6(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 static void
-print_netaddr(cfg_printer_t  *pctx, isc_netaddr_t *na) {
+print_isc_netaddr(cfg_printer_t *pctx, isc_netaddr_t *na) {
 	isc_result_t result;
 	char text[128];
 	isc_buffer_t buf;
@@ -2645,7 +2672,7 @@ print_querysource(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	isc_netaddr_t na;
 	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
 	print(pctx, "address ", 8);
-	print_netaddr(pctx, &na);
+	print_isc_netaddr(pctx, &na);
 	print(pctx, " port ", 6);
 	print_uint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
 }
@@ -2656,6 +2683,30 @@ static cfg_type_t cfg_type_querysource6 = {
 	"querysource6", parse_querysource6, NULL, NULL, NULL };
 static cfg_type_t cfg_type_querysource = {
 	"querysource", NULL, print_querysource, &cfg_rep_sockaddr, NULL };
+
+/* netaddr */
+
+static isc_result_t
+parse_netaddr(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_netaddr_t netaddr;
+	UNUSED(type);
+	CHECK(create_cfgobj(pctx, type, &obj));
+	CHECK(get_addr(pctx, V4OK|V6OK, &netaddr));
+	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, 0);
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+ cleanup:
+	parser_error(pctx, LOG_NEAR, "expected IP address");
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+static cfg_type_t cfg_type_netaddr = {
+	"netaddr", parse_netaddr, print_sockaddr, &cfg_rep_sockaddr, NULL };
+
+/* netprefix */
 
 static isc_result_t
 parse_netprefix(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
@@ -2695,14 +2746,16 @@ parse_netprefix(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 	obj->value.netprefix.address = netaddr;
 	obj->value.netprefix.prefixlen = prefixlen;
 	*ret = obj;
+	return (ISC_R_SUCCESS);
  cleanup:
+	parser_error(pctx, LOG_NEAR, "expected network prefix");
 	return (result);
 }
 
 static void
 print_netprefix(cfg_printer_t *pctx, cfg_obj_t *obj) {
 	cfg_netprefix_t *p = &obj->value.netprefix;
-	print_netaddr(pctx, &p->address);
+	print_isc_netaddr(pctx, &p->address);
 	print(pctx, "/", 1);
 	print_uint(pctx, p->prefixlen);
 }
@@ -2721,9 +2774,10 @@ cfg_obj_asnetprefix(cfg_obj_t *obj, isc_netaddr_t *netaddr,
 	*prefixlen = obj->value.netprefix.prefixlen;
 }
 
-
 static cfg_type_t cfg_type_netprefix = {
 	"netprefix", parse_netprefix, print_netprefix, &cfg_rep_netprefix, NULL };
+
+/* addrmatchelt */
 
 static isc_result_t
 parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
@@ -2751,8 +2805,11 @@ parse_addrmatchelt(cfg_parser_t *pctx, cfg_type_t *type, cfg_obj_t **ret) {
 		} else if (pctx->token.value.as_char == '!') {
 			CHECK(cfg_gettoken(pctx, 0)); /* read "!" */
 			CHECK(parse(pctx, &cfg_type_negated, ret));
+		} else {
+			goto bad;
 		}
 	} else {
+	bad:
 		parser_error(pctx, LOG_NEAR,
 			     "expected IP match list element");
 		return (ISC_R_UNEXPECTEDTOKEN);
