@@ -159,6 +159,7 @@ typedef struct {
 	dns_rbtnodechain_t	chain;
 	isc_boolean_t		copy_name;
 	isc_boolean_t		need_cleanup;
+	isc_boolean_t		wild;
 	dns_rbtnode_t *	       	zonecut;
 	rdatasetheader_t *	zonecut_rdataset;
 	dns_fixedname_t		zonecut_name;
@@ -954,8 +955,11 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 	rdatasetheader_t *found;
 	dns_result_t result;
 
-	/* XXX comment */
-
+	/*
+	 * We only want to remember the topmost zone cut, since it's the one
+	 * that counts, so we'll just continue if we've already found a
+	 * zonecut.
+	 */
 	if (search->zonecut != NULL)
 		return (DNS_R_CONTINUE);
 
@@ -1007,6 +1011,12 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 		search->zonecut = node;
 		search->zonecut_rdataset = found;
 		search->need_cleanup = ISC_TRUE;
+		/*
+		 * Since we've found a zonecut, anything beneath it is
+		 * glue and is not subject to wildcard matching, so we
+		 * may clear search->wild.
+		 */
+		search->wild = ISC_FALSE;
 		if (found->type == dns_rdatatype_dname) {
 			/*
 			 * Finding a DNAME stops all further searching.
@@ -1041,6 +1051,18 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 				      DNS_R_SUCCESS);
 			search->copy_name = ISC_TRUE;
 		}
+	} else {
+		/*
+		 * There is no zonecut at this node which is active in this
+		 * version.
+		 *
+		 * If this is a "wild" node and the caller hasn't disabled
+		 * wildcard matching, remember that we've seen a wild node
+		 * in case we need to go searching for wildcard matches
+		 * later on.
+		 */
+		if (node->wild && (search->options & DNS_DBFIND_NOWILD) == 0)
+			search->wild = ISC_TRUE;
 	}
 
 	UNLOCK(&(search->rbtdb->node_locks[node->locknum].lock));
@@ -1194,6 +1216,142 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, dns_rdatatype_t type,
 	return (valid);
 }
 
+static inline isc_result_t
+find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
+	unsigned int i, j;
+	dns_rbtnode_t *node, *level_node, *wnode;
+	rdatasetheader_t *header;
+	dns_result_t result = DNS_R_NOTFOUND;
+	dns_name_t name;
+	dns_name_t *wname;
+	dns_fixedname_t fwname;
+	dns_rbtdb_t *rbtdb;
+	isc_boolean_t wild, active;
+
+	/*
+	 * Caller must be holding the tree lock and MUST NOT be holding
+	 * any node locks.
+	 */
+
+	/*
+	 * Examine each ancestor level.  If the level's wild bit
+	 * is set, then construct the corresponding wildcard name and
+	 * search for it.  If the wildcard node exists, and is active in
+	 * this version, we're done.  If not, then we next check to see
+	 * if the ancestor is active in this version.  If so, then there
+	 * can be no possible wildcard match and again we're done.  If not,
+	 * continue the search.
+	 */
+
+	rbtdb = search->rbtdb;
+	i = search->chain.level_matches;
+	while (i > 0) {
+		i--;
+		node = search->chain.levels[i];
+
+		LOCK(&(rbtdb->node_locks[node->locknum].lock));
+
+		/*
+		 * First we try to figure out if this node is active in
+		 * the search's version.  We do this now, even though we
+		 * may not need the information, because it simplifies the
+		 * locking and code flow.
+		 */
+		for (header = node->data;
+		     header != NULL;
+		     header = header->next) {
+			if (header->serial <= search->serial &&
+			    !IGNORE(header) && EXISTS(header))
+				break;
+		}
+		if (header != NULL)
+			active = ISC_TRUE;
+		else
+			active = ISC_FALSE;
+		
+		if (node->wild)
+			wild = ISC_TRUE;
+		else
+			wild = ISC_FALSE;
+
+		UNLOCK(&(rbtdb->node_locks[node->locknum].lock));
+
+		if (wild) {
+			/*
+			 * Construct the wildcard name for this level.
+			 */
+			dns_name_init(&name, NULL);
+			dns_rbt_namefromnode(node, &name);
+			dns_fixedname_init(&fwname);
+			wname = dns_fixedname_name(&fwname);
+			result = dns_name_concatenate(dns_wildcardname, &name,
+						      wname, NULL);
+			j = i;
+			while (result == DNS_R_SUCCESS && j != 0) {
+				j--;
+				level_node = search->chain.levels[j];
+				dns_name_init(&name, NULL);
+				dns_rbt_namefromnode(level_node, &name);
+				result = dns_name_concatenate(wname,
+							      &name,
+							      wname,
+							      NULL);
+			}
+			if (result != DNS_R_SUCCESS)
+				break;
+
+			wnode = NULL;
+			result = dns_rbt_findnode(rbtdb->tree, wname,
+						  NULL, &wnode, NULL,
+						  ISC_TRUE, NULL, NULL);
+			if (result == DNS_R_SUCCESS) {
+			    /*
+			     * We have found the wildcard node.  If it
+			     * is active in the search's version, we're
+			     * done.
+			     */
+			    LOCK(&(rbtdb->node_locks[wnode->locknum].lock));
+			    for (header = wnode->data;
+				 header != NULL;
+				 header = header->next) {
+				    if (header->serial <= search->serial &&
+					!IGNORE(header) && EXISTS(header))
+					    break;
+			    }
+			    UNLOCK(&(rbtdb->node_locks[wnode->locknum].lock));
+			    if (header != NULL) {
+				    /*
+				     * The wildcard node is active!
+				     *
+				     * Note: result is still DNS_R_SUCCESS
+				     * so we don't have to set it.
+				     */
+				    *nodep = wnode;
+				    break;
+			    }
+			} else if (result != DNS_R_NOTFOUND &&
+				   result != DNS_R_PARTIALMATCH) {
+				/*
+				 * An error has occurred.  Bail out.
+				 */
+				break;
+			}
+		}
+		
+		if (active) {
+			/*
+			 * The level node is active.  Any wildcarding
+			 * present at higher levels has no
+			 * effect and we're done.
+			 */
+			result = DNS_R_NOTFOUND;
+			break;
+		}
+	}
+
+	return (result);
+}
+
 static dns_result_t
 zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	  dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
@@ -1209,6 +1367,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	isc_boolean_t maybe_zonecut = ISC_FALSE;
 	isc_boolean_t at_zonecut = ISC_FALSE;
 	isc_boolean_t secure_zone;
+	isc_boolean_t wild;
 	isc_boolean_t empty_node;
 	rdatasetheader_t *header, *header_next, *found, *nxtheader;
 
@@ -1236,6 +1395,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	search.options = options;
 	search.copy_name = ISC_FALSE;
 	search.need_cleanup = ISC_FALSE;
+	search.wild = ISC_FALSE;
 	search.zonecut = NULL;
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
@@ -1245,6 +1405,11 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * XXXDNSSEC Set secure_zone properly when implementing DNSSEC.
 	 */
 	secure_zone = ISC_FALSE;
+
+	/*
+	 * 'wild' will be true iff. we've matched a wildcard.
+	 */
+	wild = ISC_FALSE;
 
 	RWLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
 
@@ -1263,23 +1428,45 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		    result = setup_delegation(&search, nodep, foundname,
 					      rdataset);
 		    goto tree_exit;
-		} else {
-			/*
-			 * XXX We need to add wildcard support as another
-			 * 'else' clause.
-			 */
-			result = DNS_R_NXDOMAIN;
-			if (secure_zone)
-				result = DNS_R_NOTIMPLEMENTED; /* XXXDNSSEC */
-			if (nodep != NULL)
-				*nodep = NULL;
-			goto tree_exit;
 		}
+
+		if (search.wild) {
+			/*
+			 * At least one of the levels in the search chain
+			 * potentially has a wildcard.  For each such level,
+			 * we must see if there's a matching wildcard active
+			 * in the current version.
+			 */
+			result = find_wildcard(&search, &node);
+			if (result == DNS_R_SUCCESS) {
+				result = dns_name_concatenate(name, NULL,
+							      foundname, NULL);
+				if (result != DNS_R_SUCCESS)
+					goto tree_exit;	      
+				wild = ISC_TRUE;
+				goto found;
+			}
+			else if (result != ISC_R_NOTFOUND)
+				goto tree_exit;
+		}
+
+		/*
+		 * If we're here, then the name does not exist, is not
+		 * beneath a zonecut, and there's no matching wildcard.
+		 */
+		result = DNS_R_NXDOMAIN;
+		if (secure_zone)
+			result = DNS_R_NOTIMPLEMENTED; /* XXXDNSSEC */
+		if (nodep != NULL)
+			*nodep = NULL;
+		goto tree_exit;
 	} else if (result != DNS_R_SUCCESS)
 		goto tree_exit;
 
+ found:
 	/*
-	 * We have found a node whose name is the desired name.
+	 * We have found a node whose name is the desired name, or we
+	 * have matched a wildcard.
 	 */
 
 	if (search.zonecut != NULL) {
@@ -1406,7 +1593,12 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 		 * active rdatasets the desired version.  That means that
 		 * this node doesn't exist in the desired version, and that
 		 * we really have a partial match.
+		 *
+		 * If the node is the result of a wildcard match, then
+		 * it must be active in the desired version, and hence
+		 * empty_node should never be true.  We INSIST upon it.
 		 */
+		INSIST(!wild);
 		UNLOCK(&(search.rbtdb->node_locks[node->locknum].lock));
 		goto partial_match;
 	}
@@ -1761,6 +1953,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	search.options = options;
 	search.copy_name = ISC_FALSE;
 	search.need_cleanup = ISC_FALSE;
+	search.wild = ISC_FALSE;
 	search.zonecut = NULL;
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
@@ -2713,11 +2906,13 @@ static dns_result_t
 loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	rbtdb_load_t *loadctx = arg;
 	dns_rbtdb_t *rbtdb = loadctx->rbtdb;
-	dns_rbtnode_t *node = NULL;
+	dns_rbtnode_t *node;
 	dns_result_t result;
 	isc_region_t region;
 	rdatasetheader_t *newheader;
 	dns_name_t foundname;
+	dns_offsets_t offsets;
+	unsigned int n;
 
 	/*
 	 * This routine does no node locking.  See comments in
@@ -2725,6 +2920,31 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	 * locking.
 	 */
 
+	if (dns_name_iswildcard(name)) {
+		/*
+		 * In order for wildcard matching to work correctly in
+		 * zone_find(), we must ensure that a node for the wildcarding
+		 * level exists in the database, and has its 'find_callback'
+		 * and 'wild' bits set.
+		 *
+		 * E.g. if the wildcard name is "*.sub.example." then we
+		 * must ensure that "sub.example." exists and is marked as
+		 * a wildcard level.
+		 */
+		dns_name_init(&foundname, offsets);
+		n = dns_name_countlabels(name);
+		INSIST(n >= 2);
+		n--;
+		dns_name_getlabelsequence(name, 1, n, &foundname);
+		node = NULL;
+		result = dns_rbt_addnode(rbtdb->tree, &foundname, &node);
+		if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS)
+			return (result);
+		node->find_callback = 1;
+		node->wild = 1;
+	}
+
+	node = NULL;
 	result = dns_rbt_addnode(rbtdb->tree, name, &node);
 	if (result != DNS_R_SUCCESS && result != DNS_R_EXISTS)
 		return (result);
