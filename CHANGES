@@ -17,7 +17,9 @@
  			[RT #1248]
 
  806.	[bug]		DNS_R_SEENINCLUDE was failing to propagate back up
-			the calling stack to the zone maintence level.
+			the calling stack to the zone maintence level, causing
+			zones to not reload when an included files was touched
+			but the top-level zone file was not.
 
  771.	[cleanup]	TSIG errors related to unsynchronized clocks
 			are logged better. [RT #919]
