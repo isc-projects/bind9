@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.84 2000/07/21 23:00:29 bwelling Exp $ */
+/* $Id: xfrin.c,v 1.85 2000/07/24 05:30:30 bwelling Exp $ */
 
 #include <config.h>
 
@@ -865,6 +865,12 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	msg->id = ('b' << 8) | '9'; /* Arbitrary */
 
 	CHECK(render(msg, &xfr->qbuffer));
+
+	/*
+	 * Free the last tsig, if there is one.
+	 */
+	if (xfr->lasttsig != NULL)
+		isc_buffer_free(&xfr->lasttsig);
 
 	/*
 	 * Save the query TSIG and don't let message_destroy free it.
