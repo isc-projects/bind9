@@ -1,3 +1,5 @@
+ 359.	[bug]		dnssec-signzone occasionally signed glue records.
+
  358.	[cleanup]	Rename the intermediate files used by the dnssec
 			programs.
 
