@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(AC_DIVERSION_NOTICE)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.70 $)
+AC_REVISION($Revision: 1.71 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1414,8 +1414,25 @@ NET_R_BAD="#define NET_R_BAD NULL"
 NET_R_COPY="#define NET_R_COPY buf, buflen"
 NET_R_COPY_ARGS="#define NET_R_COPY_ARGS NET_R_ARGS"
 NET_R_OK="#define NET_R_OK nptr"
+NET_R_SETANSWER="#undef NET_R_SETANSWER"
 NET_R_RETURN="#define NET_R_RETURN struct netent *"
 ],
+AC_TRY_COMPILE(
+[#include <netdb.h>
+int getnetbyaddr_r (unsigned long int, int, struct netent *,
+                    char *, size_t, struct netent **, int *);
+],
+[return (0)],
+[
+NET_R_ARGS="#define NET_R_ARGS char *buf, size_t buflen, struct netent **answerp, int *h_errnop"
+NET_R_BAD="#define NET_R_BAD ERANGE"
+NET_R_COPY="#define NET_R_COPY buf, buflen"
+NET_R_COPY_ARGS="#define NET_R_COPY_ARGS char *buf, size_t buflen"
+NET_R_OK="#define NET_R_OK 0"
+NET_R_SETANSWER="#define NET_R_SETANSWER 1"
+NET_R_RETURN="#define NET_R_RETURN int"
+],
+)
 )
 ,
 NET_R_ARGS="#define NET_R_ARGS char *buf, int buflen"
@@ -1423,6 +1440,7 @@ NET_R_BAD="#define NET_R_BAD NULL"
 NET_R_COPY="#define NET_R_COPY buf, buflen"
 NET_R_COPY_ARGS="#define NET_R_COPY_ARGS NET_R_ARGS"
 NET_R_OK="#define NET_R_OK nptr"
+NET_R_SETANSWER="#undef NET_R_SETANSWER"
 NET_R_RETURN="#define NET_R_RETURN struct netent *"
 )
 AC_SUBST(NET_R_ARGS)
@@ -1430,6 +1448,7 @@ AC_SUBST(NET_R_BAD)
 AC_SUBST(NET_R_COPY)
 AC_SUBST(NET_R_COPY_ARGS)
 AC_SUBST(NET_R_OK)
+AC_SUBST(NET_R_SETANSWER)
 AC_SUBST(NET_R_RETURN)
 
 AC_CHECK_FUNC(setnetent_r,

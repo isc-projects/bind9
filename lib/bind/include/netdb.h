@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.7 2001/07/16 05:23:28 marka Exp $
+ *	$Id: netdb.h,v 1.8 2001/07/16 08:05:19 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -454,11 +454,19 @@ struct hostent	*gethostent_r __P((struct hostent *, char *, int, int *));
 void		sethostent_r __P((int));
 void		endhostent_r __P((void));
 
+#ifdef __GLIBC__
+int getnetbyname_r __P((const char *, struct netent *,
+			char *, size_t, struct netent **, int*));
+int getnetbyaddr_r __P((long, int, struct netent *,
+			char *, size_t, struct netent **, int*));
+int getnetent_r __P((struct netent *, char *, size_t, struct netent **, int*));
+#else
 struct netent	*getnetbyname_r __P((const char *, struct netent *,
 					char *, int));
 struct netent	*getnetbyaddr_r __P((long, int, struct netent *,
 					char *, int));
 struct netent	*getnetent_r __P((struct netent *, char *, int));
+#endif
 void		setnetent_r __P((int));
 void		endnetent_r __P((void));
 

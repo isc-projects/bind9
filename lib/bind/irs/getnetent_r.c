@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetent_r.c,v 1.2 2001/07/15 23:29:45 marka Exp $";
+static const char rcsid[] = "$Id: getnetent_r.c,v 1.3 2001/07/16 08:05:20 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -40,11 +40,22 @@ copy_netent(struct netent *, struct netent *, NET_R_COPY_ARGS);
 NET_R_RETURN
 getnetbyname_r(const char *name,  struct netent *nptr, NET_R_ARGS) {
 	struct netent *ne = getnetbyname(name);
+#ifdef NET_R_SETANSWER
+	int n = 0;
 
+	if (ne == NULL || (n = copy_netent(ne, nptr, NET_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = ne;
+	if (ne == NULL)
+		*h_errnop = h_errno;
+	return (n);
+#else
 	if (ne == NULL)
 		return (NET_R_BAD);
 
 	return (copy_netent(ne, nptr, NET_R_COPY));
+#endif
 }
 
 #ifndef GETNETBYADDR_ADDR_T
@@ -53,11 +64,23 @@ getnetbyname_r(const char *name,  struct netent *nptr, NET_R_ARGS) {
 NET_R_RETURN
 getnetbyaddr_r(GETNETBYADDR_ADDR_T addr, int type, struct netent *nptr, NET_R_ARGS) {
 	struct netent *ne = getnetbyaddr(addr, type);
+#ifdef NET_R_SETANSWER
+	int n = 0;
+
+	if (ne == NULL || (n = copy_netent(ne, nptr, NET_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = ne;
+	if (ne == NULL)
+		*h_errnop = h_errno;
+	return (n);
+#else
 
 	if (ne == NULL)
 		return (NET_R_BAD);
 
 	return (copy_netent(ne, nptr, NET_R_COPY));
+#endif
 }
 
 /*
@@ -69,11 +92,23 @@ getnetbyaddr_r(GETNETBYADDR_ADDR_T addr, int type, struct netent *nptr, NET_R_AR
 NET_R_RETURN
 getnetent_r(struct netent *nptr, NET_R_ARGS) {
 	struct netent *ne = getnetent();
+#ifdef NET_R_SETANSWER
+	int n = 0;
+
+	if (ne == NULL || (n = copy_netent(ne, nptr, NET_R_COPY)) != 0)
+		*answerp = NULL;
+	else
+		*answerp = ne;
+	if (ne == NULL)
+		*h_errnop = h_errno;
+	return (n);
+#else
 
 	if (ne == NULL)
 		return (NET_R_BAD);
 
 	return (copy_netent(ne, nptr, NET_R_COPY));
+#endif
 }
 
 NET_R_SET_RETURN
@@ -118,7 +153,7 @@ copy_netent(struct netent *ne, struct netent *nptr, NET_R_COPY_ARGS) {
 	len += strlen(ne->n_name) + 1;
 	len += numptr * sizeof(char*);
 	
-	if (len > buflen) {
+	if (len > (int)buflen) {
 		errno = ERANGE;
 		return (NET_R_BAD);
 	}
