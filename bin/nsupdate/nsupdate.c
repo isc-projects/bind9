@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.29 2000/07/09 16:17:13 tale Exp $ */
+/* $Id: nsupdate.c,v 1.30 2000/07/17 17:42:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -248,8 +248,6 @@ setup_key() {
 	if (keystr != NULL) {
 		isc_buffer_t keynamesrc;
 		char *secretstr;
-		isc_buffer_t secretsrc;
-		isc_lex_t *lex = NULL;
 		char *s;
 
 		debug("Creating key...");
@@ -275,27 +273,16 @@ setup_key() {
 		if (secret == NULL)
 			fatal("out of memory");
 
-		isc_buffer_init(&secretsrc, secretstr, strlen(secretstr));
-		isc_buffer_add(&secretsrc, strlen(secretstr));
-
 		isc_buffer_init(&secretbuf, secret, secretlen);
-
-		result = isc_lex_create(mctx, strlen(secretstr), &lex);
-		check_result(result, "isc_lex_create");
-		result = isc_lex_openbuffer(lex, &secretsrc);
-		check_result(result, "isc_lex_openbuffer");
-		result = isc_base64_tobuffer(lex, &secretbuf, -1);
+		result = isc_base64_decodestring(mctx, secretstr, &secretbuf);
 		if (result != ISC_R_SUCCESS) {
 			fprintf(stderr, "Couldn't create key from %s: %s\n",
 				keystr, isc_result_totext(result));
-			isc_lex_close(lex);
-			isc_lex_destroy(&lex);
 			goto failure;
 		}
+
 		secretlen = isc_buffer_usedlength(&secretbuf);
 		debug("close");
-		isc_lex_close(lex);
-		isc_lex_destroy(&lex);
 	} else {
 		dst_key_t *dstkey = NULL;
 
