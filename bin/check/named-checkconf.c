@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.14 2001/09/17 00:23:10 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.15 2001/09/17 02:59:01 marka Exp $ */
 
 #include <config.h>
 
@@ -99,11 +99,6 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
                 zclass = vclass;
         else
 		zclass = cfg_obj_asstring(classobj);
-	if (strcasecmp(vclass, zclass) != 0) {
-		fprintf(stderr, "wrong class: view %s/%s: zone %s/%s\n",
-			view, vclass, zname, zclass);
-		return (ISC_R_FAILURE);
-	}
 	zoptions = cfg_tuple_get(zconfig, "options");
 	cfg_map_get(zoptions, "type", &typeobj);
 	if (typeobj == NULL)
