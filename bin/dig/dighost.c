@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.56 2000/06/22 22:37:30 mws Exp $ */
+/* $Id: dighost.c,v 1.57 2000/06/23 20:57:19 mws Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -53,6 +53,7 @@ extern int h_errno;
 #include <isc/lang.h>
 #include <isc/lex.h>
 #include <isc/netdb.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
