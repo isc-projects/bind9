@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.62 2000/09/12 09:54:33 bwelling Exp $
+ * $Id: dst_api.c,v 1.63 2000/09/16 01:12:19 bwelling Exp $
  */
 
 #include <config.h>
@@ -113,11 +113,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
-#ifdef DNSSAFE
-	RETERR(dst__dnssafersa_init(&dst_t_func[DST_ALG_RSAMD5]));
-#endif
 #ifdef OPENSSL
 	RETERR(dst__openssl_init());
+	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
@@ -139,10 +137,8 @@ dst_lib_destroy(void) {
 	dst_initialized = ISC_FALSE;
 
 	dst__hmacmd5_destroy();
-#ifdef DNSSAFE
-	dst__dnssafersa_destroy();
-#endif
 #ifdef OPENSSL
+	dst__opensslrsa_destroy();
 	dst__openssldsa_destroy();
 	dst__openssldh_destroy();
 	dst__openssl_destroy();

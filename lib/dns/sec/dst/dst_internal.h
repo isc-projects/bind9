@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.29 2000/09/12 09:54:34 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.30 2000/09/16 01:12:20 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -97,7 +97,7 @@ struct dst_func {
 isc_result_t dst__openssl_init(void);
 
 isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
-isc_result_t dst__dnssafersa_init(struct dst_func **funcp);
+isc_result_t dst__opensslrsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__gssapi_init(struct dst_func **funcp);
@@ -108,7 +108,7 @@ isc_result_t dst__gssapi_init(struct dst_func **funcp);
 void dst__openssl_destroy(void);
 
 void dst__hmacmd5_destroy(void);
-void dst__dnssafersa_destroy(void);
+void dst__opensslrsa_destroy(void);
 void dst__openssldsa_destroy(void);
 void dst__openssldh_destroy(void);
 void dst__gssapi_destroy(void);

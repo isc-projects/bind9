@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.17 2000/08/28 22:54:39 bwelling Exp $
+# $Id: Makefile.in,v 1.18 2000/09/16 01:12:16 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -22,24 +22,23 @@ top_srcdir =	@top_srcdir@
 @BIND9_INCLUDES@
 
 CINCLUDES =	-I${srcdir} \
-		-I${srcdir}/../dnssafe \
 		-I${srcdir}/../openssl/include \
 		${DNS_INCLUDES} ${ISC_INCLUDES} \
 		@DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
-CDEFINES =	-DUSE_MD5 -DDNSSAFE -DOPENSSL @DST_PRIVATEOPENSSL@ @USE_GSSAPI@
+CDEFINES =	-DUSE_MD5 -DOPENSSL @DST_PRIVATEOPENSSL@ @USE_GSSAPI@
 CWARNINGS =
 
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		bsafe_link.@O@ dst_api.@O@ dst_lib.@O@ dst_parse.@O@ \
+OBJS =		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ \
 		dst_result.@O@ gssapi_link.@O@ hmac_link.@O@ \
-		openssl_link.@O@ openssldh_link.@O@
+		openssl_link.@O@ openssldh_link.@O@ opensslrsa_link.@O@
 
-SRCS =		bsafe_link.c dst_api.c dst_lib.c dst_parse.c \
+SRCS =		dst_api.c dst_lib.c dst_parse.c \
 		dst_result.c gssapi_link.c hmac_link.c \
-		openssl_link.c openssldh_link.c
+		openssl_link.c openssldh_link.c opensslrsa_link.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}
