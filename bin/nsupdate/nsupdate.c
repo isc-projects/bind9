@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.10 2000/06/27 22:04:06 mws Exp $ */
+/* $Id: nsupdate.c,v 1.11 2000/06/29 02:16:44 bwelling Exp $ */
 
 #include <config.h>
 #include <netdb.h>
@@ -1040,7 +1040,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(reqev->request, rcvmsg, ISC_TRUE);
 	check_result(result, "dns_request_getresponse");
-	if (debug) {
+	if (debugging) {
 		isc_buffer_init(&buf, bufstore, MSGTEXT);
 		result = dns_message_totext(rcvmsg, 0, &buf);
 		check_result(result, "dns_message_totext");
