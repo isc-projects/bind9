@@ -244,7 +244,11 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 		 *         want to fail the whole config file load just
 		 *	   because we couldn't get a zone.
 		 */
-		(void)dns_zone_load(zone);
+		result = dns_zone_load(zone);
+		if (result != ISC_R_SUCCESS) {
+			fprintf(stderr, "dns_zone_load failed: %s\n",
+				isc_result_totext(result));
+		}
 	}
 
  cleanup:
