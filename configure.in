@@ -13,7 +13,7 @@ dnl PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 dnl ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 dnl SOFTWARE.
 
-AC_REVISION($Revision: 1.146 $)
+AC_REVISION($Revision: 1.147 $)
 
 AC_PREREQ(2.13)
 
@@ -47,6 +47,12 @@ esac
 
 AC_PATH_PROGS(ETAGS, etags emacs-etags)
 AC_SUBST(ETAGS)
+
+#
+# Perl is optional; it is used only by some of the system test scripts.
+#
+AC_PATH_PROGS(PERL, perl5 perl)
+AC_SUBST(PERL)
 
 #
 # Special processing of paths depending on whether --prefix,
@@ -1003,6 +1009,7 @@ AC_OUTPUT(
 	bin/tests/mem/Makefile
 	bin/tests/sockaddr/Makefile
 	bin/tests/system/Makefile
+	bin/tests/system/conf.sh
 	bin/tests/headerdep_test.sh
 	bin/dnssec/Makefile
 )

@@ -33,6 +33,9 @@ SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
 KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
 
+# PERL will be an empty string if no perl interpreter was found.
+PERL=@PERL@
+
 SUBDIRS="xfer dnssec xferquota"
 
 export NAMED DIG KEYGEN SIGNER KEYSIGNER KEYSETTOOL
