@@ -31,8 +31,9 @@ CDEFINES =
 CWARNINGS =
 
 OBJS =		name.o db.o dbiterator.o rbt.o rbtdb.o rbtdb64.o \
-		rdata.o rdatalist.o rdataset.o result.o version.o \
-		rdataslab.o master.o callbacks.o compress.o
+		rdata.o rdatalist.o rdataset.o rdatasetiter.c \
+		rdataslab.o master.o callbacks.o compress.o \
+		result.o version.o
 
 SUBDIRS =	include
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h timestamp

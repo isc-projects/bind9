@@ -21,8 +21,8 @@ top_srcdir =	@top_srcdir@
 
 HEADERS =	callbacks.h cert.h compress.h db.h dbiterator.h fixedname.h \
 		master.h name.h rbt.h rcode.h rdata.h rdataclass.h \
-		rdatalist.h rdataset.h rdataslab.h rdatatype.h result.h \
-		secalg.h types.h
+		rdatalist.h rdataset.h rdatasetiter.h rdataslab.h \
+		rdatatype.h result.h secalg.h types.h
 GENHEADERS =	enumclass.h enumtype.h
 
 SUBDIRS =
