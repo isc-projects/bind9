@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.58 2001/09/05 06:04:58 marka Exp $ */
+/* $Id: masterdump.c,v 1.59 2001/09/05 10:28:53 marka Exp $ */
 
 #include <config.h>
 
@@ -940,6 +940,18 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 	UNLOCK(&dctx->lock);
 	if (need_destroy)
 		dumpctx_destroy(dctx);
+}
+
+dns_dbversion_t *
+dns_dumpctx_version(dns_dumpctx_t *dctx) {
+        REQUIRE(DNS_DCTX_VALID(dctx));
+	return (dctx->version);
+}
+
+dns_db_t *
+dns_dumpctx_db(dns_dumpctx_t *dctx) {
+        REQUIRE(DNS_DCTX_VALID(dctx));
+	return (dctx->db);
 }
 
 void

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.23 2001/09/04 14:18:29 marka Exp $ */
+/* $Id: masterdump.h,v 1.24 2001/09/05 10:28:55 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -119,6 +119,25 @@ dns_dumpctx_cancel(dns_dumpctx_t *dctx);
  * Require:
  *	'dctx' to be valid.
  */
+
+dns_dbversion_t *
+dns_dumpctx_version(dns_dumpctx_t *dctx);
+/*
+ * Return the version handle (if any) of the database being dumped.
+ *
+ * Require:
+ *	'dctx' to be valid.
+ */
+
+dns_db_t *
+dns_dumpctx_db(dns_dumpctx_t *dctx);
+/*
+ * Return the database being dumped.
+ *
+ * Require:
+ *	'dctx' to be valid.
+ */
+
 
 isc_result_t
 dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
