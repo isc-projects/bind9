@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.5 2003/10/21 05:56:40 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.6 2003/10/26 21:34:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1002,7 +1002,7 @@ static isc_result_t
 task_send(dns_dumpctx_t *dctx) {
 	isc_event_t *event;
 
-	event = isc_event_allocate(dctx->mctx, NULL, DNS_EVENT_MASTERQUANTUM,
+	event = isc_event_allocate(dctx->mctx, NULL, DNS_EVENT_DUMPQUANTUM,
 				   dump_quantum, dctx, sizeof(*event));
 	if (event == NULL)
 		return (ISC_R_NOMEMORY);
