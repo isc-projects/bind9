@@ -52,6 +52,10 @@ cd isccc\win32
 nmake /nologo -f libisccc.mak CFG="libisccc - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
 
+cd bind9\win32
+nmake /nologo -f libbind9.mak CFG="libbind9 - Win32 Release"  NO_EXTERNAL_DEPS="1"
+cd ..\..
+
 cd lwres\win32
 nmake /nologo -f liblwres.mak CFG="liblwres - Win32 Release"  NO_EXTERNAL_DEPS="1"
 cd ..\..
