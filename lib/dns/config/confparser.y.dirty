@@ -16,7 +16,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confparser.y.dirty,v 1.13 2000/08/23 23:56:44 gson Exp $ */
+/* $Id: confparser.y.dirty,v 1.14 2000/08/28 05:51:16 marka Exp $ */
 
 #include <config.h>
 
@@ -762,7 +762,7 @@ option: /* Empty */
 #ifndef NOMINUM_PUBLIC
 	| L_NOTIFY_FORWARD yea_or_nay
 	{
-		tmpres = dns_c_ctx_setnotifyforward(currcfg, ISC_FALSE);
+		tmpres = dns_c_ctx_setnotifyforward(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
 				     "cannot redefine notify-forward");
