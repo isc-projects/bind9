@@ -4300,8 +4300,10 @@ static isc_result_t
 logging_init (dns_c_ctx_t *cfg)
 {
 	isc_result_t res;
+#if 0
 	dns_c_logcat_t *cat;
 	dns_c_logchan_t *chan;
+#endif
 	
 	REQUIRE(DNS_C_CONFCTX_VALID(cfg));
 	REQUIRE(cfg->logging == NULL);
@@ -4310,7 +4312,7 @@ logging_init (dns_c_ctx_t *cfg)
 	if (res != ISC_R_SUCCESS) {
 		return (res);
 	}
-
+#if 0
 	/* default_syslog channel */
 	chan = NULL;
 	res = dns_c_ctx_addsyslogchannel(cfg, DNS_C_DEFAULT_SYSLOG,
@@ -4392,7 +4394,7 @@ logging_init (dns_c_ctx_t *cfg)
 	}
 	dns_c_logcat_setpredef(cat, ISC_TRUE);
 	dns_c_logcat_addname(cat, DNS_C_DEFAULT_DEBUG);
-	
+#endif
 	return (ISC_R_SUCCESS);
 }
 
