@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.135 2002/05/29 00:27:53 marka Exp $ */
+/* $Id: name.c,v 1.136 2002/08/02 00:25:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1239,6 +1239,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 			}
 			kind = ft_ordinary;
 			state = ft_ordinary;
+			if (nrem == 0)
+				return (ISC_R_NOSPACE);
 			/* FALLTHROUGH */
 		case ft_ordinary:
 			if (c == '.') {
