@@ -80,7 +80,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\namedconf.obj" \
-	"..\..\isc\win32\Release\libdns.lib" \
+	"..\..\dns\win32\Release\libdns.lib" \
 	"..\..\isc\win32\Release\libisc.lib"
 
 "..\..\..\Build\Release\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -163,7 +163,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\namedconf.obj" \
-	"..\..\isc\win32\Debug\libdns.lib"
+	"..\..\dns\win32\Debug\libdns.lib"
 	"..\..\isc\win32\Debug\libisc.lib"
 
 "..\..\..\Build\Debug\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
