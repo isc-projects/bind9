@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cert_37.c,v 1.15 1999/09/17 09:22:40 gson Exp $ */
+ /* $Id: cert_37.c,v 1.16 1999/10/08 21:22:27 tale Exp $ */
 
  /* draft-ietf-dnssec-certs-04.txt */
 
@@ -76,7 +76,7 @@ totext_cert(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/* type */
 	n = uint16_fromregion(&sr);
 	isc_region_consume(&sr, 2);
-	RETERR(dns_cert_totext(n, target));
+	RETERR(dns_cert_totext((dns_cert_t)n, target));
 	RETERR(str_totext(" ", target));
 
 	/* key tag */
