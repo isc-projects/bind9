@@ -15,10 +15,14 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.3 2001/04/12 22:26:41 tale Exp $ */
+/* $Id: mutex.c,v 1.4 2001/04/13 02:26:32 tale Exp $ */
 
 /*
- * This file intentionally left blank.  The useless static variable below
- * stops some compilers from complaining about an empty file.
+ * Well, not completely.  The stupid hack below shuts up compilers
+ * from complaining about an empty file.
  */
-static int isc_mutex_file_not_used;
+static void
+isc_mutex_nothreads(void) {
+	isc_mutex_nothreads();
+}
+
