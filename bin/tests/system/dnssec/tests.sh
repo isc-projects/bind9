@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.33 2001/02/23 06:22:11 bwelling Exp $
+# $Id: tests.sh,v 1.34 2001/09/19 20:47:02 gson Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -100,6 +100,14 @@ status=`expr $status + $ret`
 echo "I:checking that validation fails with a misconfigured trusted key ($n)"
 ret=0
 $DIG $DIGOPTS example. soa @10.53.0.5 > dig.out.ns5.test$n || ret=1
+grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that negative validation fails with a misconfigured trusted key ($n)"
+ret=0
+$DIG $DIGOPTS example. ptr @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
