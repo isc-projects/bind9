@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.10 2004/04/19 06:56:24 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.11 2004/05/17 10:01:59 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -109,9 +109,13 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
-#if _MSC_VER > 1200
+#if _MSC_VER == 1300
 	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#endif
+#if _MSC_VER == 1400
+	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #endif
 	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
 	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
