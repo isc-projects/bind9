@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.66 2000/11/27 00:43:32 marka Exp $ */
+/* $Id: nsupdate.c,v 1.67 2000/11/27 17:56:35 gson Exp $ */
 
 #include <config.h>
 
@@ -117,6 +117,7 @@ static char *keystr = NULL, *keyfile = NULL;
 static isc_entropy_t *entp = NULL;
 static isc_boolean_t shuttingdown = ISC_FALSE;
 static FILE *input;
+static isc_boolean_t interactive = ISC_TRUE;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -581,6 +582,7 @@ parse_args(int argc, char **argv) {
 				isc_result_totext(result));
 			exit(1);
 		}
+		interactive = ISC_FALSE;
 	}
 }
 
@@ -1120,7 +1122,8 @@ get_next_command(void) {
 	char *word;
 
 	ddebug("get_next_command()");
-	fprintf(stdout, "> ");
+	if (interactive)
+		fprintf(stdout, "> ");
 	cmdline = fgets(cmdlinebuf, MAXCMD, input);
 	if (cmdline == NULL)
 		return (STATUS_QUIT);
