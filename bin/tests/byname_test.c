@@ -91,7 +91,7 @@ print_addresses(dns_adbfind_t *find) {
 	     address = ISC_LIST_NEXT(address, publink)) {
 		isc_netaddr_t netaddr;
 		char text[ISC_NETADDR_FORMATSIZE];
-		isc_netaddr_fromsockaddr(&netaddr, address->sockaddr);
+		isc_netaddr_fromsockaddr(&netaddr, &address->sockaddr);
 		isc_netaddr_format(&netaddr, text, sizeof(text));
 		printf("%s\n", text);
 	}
@@ -118,7 +118,7 @@ do_find(isc_boolean_t want_event) {
 	result = dns_adb_createfind(view->adb, task, adb_callback, NULL,
 				    dns_fixedname_name(&name),
 				    dns_rootname, options, 0,
-				    dns_fixedname_name(&target),
+				    dns_fixedname_name(&target), 0,
 				    &find);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LIST_EMPTY(find->list)) {
