@@ -11,3 +11,4 @@ wire_test
 rdata_test
 master_test
 rbt_test
+db_test
