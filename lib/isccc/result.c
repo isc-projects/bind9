@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.2 2001/03/27 20:08:00 bwelling Exp $ */
+/* $Id: result.c,v 1.3 2001/03/28 23:11:40 bwelling Exp $ */
 
 #include <config.h>
 
@@ -64,16 +64,4 @@ isccc_result_totext(isc_result_t result) {
 void
 isccc_result_register(void) {
 	initialize();
-}
-
-isc_result_t
-isccc_result_fromerrno(int ecode) {
-	/*
-	 * Convert a UNIX errno into a isc_result_t.
-	 */
-	if (ecode == 0)
-		return (ISC_R_SUCCESS);
-	else if (ecode >= ISCCC_RESULT_OSBASE || ecode < 0)
-		return (ISC_R_FAILURE);
-	return (ISCCC_RESULT_OSBASE | ecode);
 }

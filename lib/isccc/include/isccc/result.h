@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.2 2001/03/27 20:08:10 bwelling Exp $ */
+/* $Id: result.h,v 1.3 2001/03/28 23:11:41 bwelling Exp $ */
 
 #ifndef ISCCC_RESULT_H
 #define ISCCC_RESULT_H 1
@@ -33,9 +33,6 @@
 
 #define ISCCC_R_NRESULTS 		3	/* Number of results */
 
-#define ISCCC_RESULT_OSBASE		0x01000000
-#define ISCCC_RESULT_OSMASK		0x00ffffff
-
 ISC_LANG_BEGINDECLS
 
 const char *
@@ -46,12 +43,6 @@ isccc_result_totext(isc_result_t result);
 
 void
 isccc_result_register(void);
-
-isc_result_t
-isccc_result_fromerrno(int ecode);
-/*
- * Convert a UNIX errno into a isc_result_t.
- */
 
 ISC_LANG_ENDDECLS
 
