@@ -52,7 +52,7 @@
 #include "tcpclient.h"
 
 isc_mem_t *mctx = NULL;
-
+isc_boolean_t want_stats = ISC_FALSE;
 dns_db_t *db;
 
 /*
@@ -146,7 +146,8 @@ dispatch(isc_mem_t *mctx, isc_region_t *rxr, unsigned int reslen)
 
 	dump_packet(rxr->base + reslen, rxr->length - reslen);
 
-	/* isc_mem_stats(mctx, stdout); */
+	if (want_stats)
+		isc_mem_stats(mctx, stdout);
 
 	return (DNS_R_SUCCESS);
 }
@@ -175,13 +176,16 @@ main(int argc, char *argv[])
 
 	/*+ XXX */
 	strcpy(basetext, "");
-	while ((ch = getopt(argc, argv, "z:t:")) != -1) {
+	while ((ch = getopt(argc, argv, "z:t:s")) != -1) {
 		switch (ch) {
 		case 'z':
 			strcpy(basetext, optarg);
 			break;
 		case 't':
 			type = atoi(optarg);
+			break;
+		case 's':
+			want_stats = ISC_TRUE;
 			break;
 		}
 	}
@@ -259,7 +263,8 @@ main(int argc, char *argv[])
 					 workers, workers, 0,
 					 dispatch) == ISC_R_SUCCESS);
 
-	isc_mem_stats(mctx, stdout);
+	if (want_stats)
+		isc_mem_stats(mctx, stdout);
 
 	/*
 	 * open up a TCP socket
@@ -279,7 +284,8 @@ main(int argc, char *argv[])
 					 workers, workers, 0,
 					 dispatch) == ISC_R_SUCCESS);
 
-	isc_mem_stats(mctx, stdout);
+	if (want_stats)
+		isc_mem_stats(mctx, stdout);
 
 	for (;;)
 		sleep(10);
@@ -290,7 +296,8 @@ main(int argc, char *argv[])
 	printf("Destroying task manager\n");
 	isc_taskmgr_destroy(&manager);
 
-	isc_mem_stats(mctx, stdout);
+	if (want_stats)
+		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
 	return (0);
