@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: app.c,v 1.16 2000/06/22 21:58:29 tale Exp $ */
+/* $Id: app.c,v 1.16.2.1 2000/06/28 03:12:30 gson Exp $ */
 
 #include <config.h>
 
@@ -146,6 +146,17 @@ isc_app_start(void) {
 	 * Always ignore SIGPIPE.
 	 */
 	result = handle_signal(SIGPIPE, SIG_IGN);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	/*
+	 * On Solaris 2, delivery of a signal whose action is SIG_IGN
+	 * will not cause sigwait() to return. We may have inherited
+	 * a SIG_IGN action for SIGHUP from our parent process,
+	 * (e.g, Solaris cron).  Set an action of SIG_DFL to make
+	 * sure sigwait() works as expected.
+	 */
+	result = handle_signal(SIGHUP, SIG_DFL);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
