@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.67 2001/02/14 00:43:10 bwelling Exp $
+ * $Id: tkey.c,v 1.68 2001/02/17 02:22:43 bwelling Exp $
  */
 
 #include <config.h>
@@ -390,20 +390,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 
  failure:
-	if (!ISC_LIST_EMPTY(*namelist)) {
-		dns_name_t *tname = ISC_LIST_HEAD(*namelist);
-		while (tname != NULL) {
-			dns_name_t *next = ISC_LIST_NEXT(tname, link);
-			dns_rdataset_t *tset;
-
-			ISC_LIST_UNLINK(*namelist, tname, link);
-			tset = ISC_LIST_HEAD(tname->list);
-			dns_rdataset_disassociate(tset);
-			dns_message_puttemprdataset(msg, &tset);
-			dns_message_puttempname(msg, &tname);
-			tname = next;
-		}
-	}
+	if (!ISC_LIST_EMPTY(*namelist))
+		free_namelist(msg, namelist);
 	if (shared != NULL)
 		isc_buffer_free(&shared);
 	if (pubkey != NULL)
