@@ -182,7 +182,6 @@ dns_nxt_typepresent(dns_rdata_t *nxt, dns_rdatatype_t type) {
 	dns_name_toregion(&name, &r2);
 	nxt_bits = ((unsigned char *)r.base) + r2.length;
 	nxt_bits_length = r.length - r2.length;
-	INSIST(nxt_bits_length >= 4);
 	if (type >= nxt_bits_length * 8)
 		return (ISC_FALSE);
 	else
