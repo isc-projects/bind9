@@ -107,7 +107,9 @@ isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 			  unsigned int prefixlen)
 {
 	unsigned char *pa, *pb;
-	unsigned int nbytes, nbits;
+	unsigned int ipabytes; /* Length of whole IP address in bytes */
+	unsigned int nbytes;   /* Number of significant whole bytes */
+	unsigned int nbits;    /* Number of significant leftover bits */
 	
 	REQUIRE(a != NULL && b != NULL);
 
@@ -121,19 +123,22 @@ isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 	case AF_INET:
 		pa = (unsigned char *) &a->type.sin.sin_addr;
 		pb = (unsigned char *) &b->type.sin.sin_addr;
+		ipabytes = 4;
 		break;
 	case AF_INET6:
 		pa = ((unsigned char *) &a->type.sin6.sin6_addr);
 		pb = ((unsigned char *) &b->type.sin6.sin6_addr);
+		ipabytes = 16;
 		break;
 	default:
 		pa = pb = NULL; /* Avoid silly compiler warning. */
+		ipabytes = 0; /* Ditto. */
 		return (ISC_FALSE); /* XXX got a better idea? */
 	}
 
 	/* Don't crash if we get a pattern like 10.0.0.1/9999999. */
-	if (prefixlen > a->length * 8)
-		prefixlen = a->length * 8;
+	if (prefixlen > ipabytes * 8)
+		prefixlen = ipabytes * 8;
 
 	nbytes = prefixlen / 8;
 	nbits = prefixlen % 8;
@@ -144,7 +149,7 @@ isc_sockaddr_eqaddrprefix(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 	}
 	if (nbits > 0) {
 		unsigned int bytea, byteb, mask;
-		INSIST(nbytes < a->length);
+		INSIST(nbytes < ipabytes);
 		INSIST(nbits < 8);
 		bytea = pa[nbytes];
 		byteb = pb[nbytes];
