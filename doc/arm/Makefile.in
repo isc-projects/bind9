@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8 2001/07/26 21:15:48 gson Exp $
+# $Id: Makefile.in,v 1.8.2.1 2002/02/12 05:51:27 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -26,6 +26,7 @@ MANOBJS = Bv9ARM.html
 distclean::
 	rm -f validate.sh
 	rm -f nominum-docbook-html.dsl nominum-docbook-print.dsl
+	rm -f HTML.index HTML.manifest
 
 doc man:: ${MANOBJS}
 
