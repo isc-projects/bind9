@@ -34,6 +34,7 @@
 #define MZ_NOTIFY_BIT			2
 #define MZ_MAINT_IXFR_BASE_BIT		3
 #define MZ_MAX_IXFR_LOG_BIT		4
+#define MZ_FORWARD_BIT			5
 
 
 /*
@@ -47,6 +48,7 @@
 #define SZ_NOTIFY_BIT			5
 #define SZ_MAINT_IXFR_BASE_BIT		6
 #define SZ_MAX_IXFR_LOG_BIT		7
+#define SZ_FORWARD_BIT			8
 
 
 #define TZ_CHECK_NAME_BIT		0
@@ -54,6 +56,7 @@
 #define TZ_MASTER_PORT_BIT		2
 #define TZ_TRANSFER_SOURCE_BIT		3
 #define TZ_MAX_TRANS_TIME_IN_BIT	4
+#define TZ_FORWARD_BIT			5
 
 
 /*
@@ -1392,25 +1395,28 @@ dns_c_zone_setforward(isc_log_t *lctx, dns_c_zone_t *zone, dns_c_forw_t newval)
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(zone != NULL);
-
+		
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Master zones do not have a forward field");
-		return (ISC_R_FAILURE);
+		zone->u.mzone.forward = newval;
+		existed = DNS_C_CHECKBIT(MZ_FORWARD_BIT,
+					 &zone->u.mzone.setflags);
+		DNS_C_SETBIT(MZ_FORWARD_BIT, &zone->u.mzone.setflags);
+		break;
 			
 	case dns_c_zone_slave:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Slave zones do not have a forward field");
-		return (ISC_R_FAILURE);
+		zone->u.szone.forward = newval;
+		existed = DNS_C_CHECKBIT(SZ_FORWARD_BIT,
+					 &zone->u.szone.setflags);
+		DNS_C_SETBIT(SZ_FORWARD_BIT, &zone->u.szone.setflags);
+		break;
 		
 	case dns_c_zone_stub:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a forward field");
-		return (ISC_R_FAILURE);
+		zone->u.tzone.forward = newval;
+		existed = DNS_C_CHECKBIT(TZ_FORWARD_BIT,
+					 &zone->u.tzone.setflags);
+		DNS_C_SETBIT(TZ_FORWARD_BIT, &zone->u.tzone.setflags);
+		break;
 		
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
@@ -1444,22 +1450,19 @@ dns_c_zone_setforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Master zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		p = &zone->u.mzone.forwarders;
+		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
+		break;
 			
 	case dns_c_zone_slave:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Slave zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		p = &zone->u.szone.forwarders;
+		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
+		break;
 		
 	case dns_c_zone_stub:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		p = &zone->u.tzone.forwarders;
+		existed = (*p == NULL ? ISC_FALSE : ISC_TRUE);
+		break;
 		
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
@@ -2397,23 +2400,32 @@ dns_c_zone_getforward(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Master zones do not have a forward field");
-		return (ISC_R_FAILURE);
+		if (DNS_C_CHECKBIT(MZ_FORWARD_BIT, &zone->u.mzone.setflags)) {
+			*retval = zone->u.mzone.forward;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
 			
 	case dns_c_zone_slave:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Slave zones do not have a forward field");
-		return (ISC_R_FAILURE);
-		
+		if (DNS_C_CHECKBIT(SZ_FORWARD_BIT, &zone->u.szone.setflags)) {
+			*retval = zone->u.szone.forward;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
 	case dns_c_zone_stub:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a forward field");
-		return (ISC_R_FAILURE);
-		
+		if (DNS_C_CHECKBIT(TZ_FORWARD_BIT, &zone->u.tzone.setflags)) {
+			*retval = zone->u.tzone.forward;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
+
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -2445,22 +2457,34 @@ dns_c_zone_getforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	switch (zone->ztype) {
 	case dns_c_zone_master:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Master zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		if (zone->u.mzone.forwarders != NULL &&
+		    zone->u.mzone.forwarders->nextidx > 0) {
+			*retval = zone->u.mzone.forwarders;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
 			
 	case dns_c_zone_slave:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Slave zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		if (zone->u.szone.forwarders != NULL &&
+		    zone->u.szone.forwarders->nextidx > 0) {
+			*retval = zone->u.szone.forwarders;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
 		
 	case dns_c_zone_stub:
-		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
-			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
-			      "Stub zones do not have a forwarders field");
-		return (ISC_R_FAILURE);
+		if (zone->u.tzone.forwarders != NULL &&
+		    zone->u.tzone.forwarders->nextidx > 0) {
+			*retval = zone->u.tzone.forwarders;
+			res = ISC_R_SUCCESS;
+		} else {
+			res = ISC_R_NOTFOUND;
+		}
+		break;
 		
 	case dns_c_zone_hint:
 		isc_log_write(lctx, DNS_LOGCATEGORY_CONFIG,
@@ -2562,6 +2586,19 @@ master_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		dns_c_printtabs(lctx, fp, indent);
 		dns_c_pubkey_print(lctx, fp, indent, mzone->pubkey);
 	}
+
+	if (DNS_C_CHECKBIT(MZ_FORWARD_BIT, &mzone->setflags)) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(lctx, mzone->forward, ISC_TRUE));
+	}
+
+	if (mzone->forwarders != NULL && mzone->forwarders->nextidx > 0) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forwarders ");
+		dns_c_iplist_print(lctx, fp, indent + 1,
+				   mzone->forwarders);
+	}
 }
 
 
@@ -2662,82 +2699,109 @@ slave_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 		dns_c_printtabs(lctx, fp, indent);
 		dns_c_pubkey_print(lctx, fp, indent, szone->pubkey);
 	}
+
+	if (DNS_C_CHECKBIT(SZ_FORWARD_BIT, &szone->setflags)) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(lctx, szone->forward, ISC_TRUE));
+	}
+
+	if (szone->forwarders != NULL && szone->forwarders->nextidx > 0) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forwarders ");
+		dns_c_iplist_print(lctx, fp, indent + 1,
+				   szone->forwarders);
+	}
 }
 
 
 static void
-stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *szone)
+stub_zone_print(isc_log_t *lctx, FILE *fp, int indent, dns_c_stubzone_t *tzone)
 {
-	if (szone->file != NULL) {
+	if (tzone->file != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
-		fprintf(fp, "file \"%s\";\n", szone->file);
+		fprintf(fp, "file \"%s\";\n", tzone->file);
 	}
 
-	if (DNS_C_CHECKBIT(TZ_CHECK_NAME_BIT, &szone->setflags)) {
+	if (DNS_C_CHECKBIT(TZ_CHECK_NAME_BIT, &tzone->setflags)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "check-names %s;\n",
-			dns_c_nameseverity2string(lctx, szone->check_names,
+			dns_c_nameseverity2string(lctx, tzone->check_names,
 						  ISC_TRUE));
 	}
 
 	dns_c_printtabs(lctx, fp, indent);
 	fprintf(fp, "masters ");
-	if (DNS_C_CHECKBIT(TZ_MASTER_PORT_BIT, &szone->setflags)) {
-		if (szone->master_port != 0) {
-			fprintf(fp, "port %d ", szone->master_port);
+	if (DNS_C_CHECKBIT(TZ_MASTER_PORT_BIT, &tzone->setflags)) {
+		if (tzone->master_port != 0) {
+			fprintf(fp, "port %d ", tzone->master_port);
 		}
 	}
-	if (szone->master_ips == NULL ||
-	    szone->master_ips->nextidx == 0) {
+	if (tzone->master_ips == NULL ||
+	    tzone->master_ips->nextidx == 0) {
 		fprintf(fp, "{ /* none defined */ };\n");
 	} else {
-		dns_c_iplist_print(lctx, fp, indent + 1, szone->master_ips);
+		dns_c_iplist_print(lctx, fp, indent + 1, tzone->master_ips);
 	}
 
-	if (szone->allow_update != NULL &&
-	    !ISC_LIST_EMPTY(szone->allow_update->elements)) {
+	if (tzone->allow_update != NULL &&
+	    !ISC_LIST_EMPTY(tzone->allow_update->elements)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "allow-update ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
-					szone->allow_update);
+					tzone->allow_update);
 		fprintf(fp, ";\n");
 	}
 
-	if (szone->allow_query != NULL &&
-	    !ISC_LIST_EMPTY(szone->allow_query->elements)) {
+	if (tzone->allow_query != NULL &&
+	    !ISC_LIST_EMPTY(tzone->allow_query->elements)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "allow-query ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
-					szone->allow_query);
+					tzone->allow_query);
 		fprintf(fp, ";\n");
 	}
 
-	if (szone->allow_transfer != NULL &&
-	    !ISC_LIST_EMPTY(szone->allow_transfer->elements)) {
+	if (tzone->allow_transfer != NULL &&
+	    !ISC_LIST_EMPTY(tzone->allow_transfer->elements)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "allow-transfer ");
 		dns_c_ipmatchlist_print(lctx, fp, indent + 1,
-					szone->allow_transfer);
+					tzone->allow_transfer);
 		fprintf(fp, ";\n");
 	}
 
-	if (DNS_C_CHECKBIT(TZ_TRANSFER_SOURCE_BIT, &szone->setflags)) {
+	if (DNS_C_CHECKBIT(TZ_TRANSFER_SOURCE_BIT, &tzone->setflags)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "transfer-source ;\n");
-		dns_c_print_ipaddr(lctx, fp, &szone->transfer_source);
+		dns_c_print_ipaddr(lctx, fp, &tzone->transfer_source);
 		fprintf(fp, ";\n");
 	}
 
-	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_IN_BIT, &szone->setflags)) {
+	if (DNS_C_CHECKBIT(TZ_MAX_TRANS_TIME_IN_BIT, &tzone->setflags)) {
 		dns_c_printtabs(lctx, fp, indent);
 		fprintf(fp, "max-transfer-time-in %d;\n",
-			szone->max_trans_time_in);
+			tzone->max_trans_time_in);
 	}
 	
-	if (szone->pubkey != NULL) {
+	if (tzone->pubkey != NULL) {
 		dns_c_printtabs(lctx, fp, indent);
-		dns_c_pubkey_print(lctx, fp, indent, szone->pubkey);
+		dns_c_pubkey_print(lctx, fp, indent, tzone->pubkey);
 	}
+
+	if (DNS_C_CHECKBIT(TZ_FORWARD_BIT, &tzone->setflags)) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forward %s;\n",
+			dns_c_forward2string(lctx, tzone->forward, ISC_TRUE));
+	}
+
+	if (tzone->forwarders != NULL && tzone->forwarders->nextidx > 0) {
+		dns_c_printtabs(lctx, fp, indent);
+		fprintf(fp, "forwarders ");
+		dns_c_iplist_print(lctx, fp, indent + 1,
+				   tzone->forwarders);
+	}
+
 }
 
 
@@ -2797,6 +2861,7 @@ master_zone_init(isc_log_t *lctx, dns_c_masterzone_t *mzone)
 	mzone->ixfr_base = NULL;
 	mzone->ixfr_tmp = NULL;
 	mzone->pubkey = NULL;
+	mzone->forwarders = NULL;
 
 	memset(&mzone->setflags, 0x0, sizeof (mzone->setflags));
 
@@ -2818,6 +2883,7 @@ slave_zone_init(isc_log_t *lctx, dns_c_slavezone_t *szone)
 	szone->allow_transfer = NULL;
 	szone->also_notify = NULL;
 	szone->pubkey = NULL;
+	szone->forwarders = NULL;
 
 	memset(&szone->setflags, 0x0, sizeof (szone->setflags));
 
@@ -2826,18 +2892,19 @@ slave_zone_init(isc_log_t *lctx, dns_c_slavezone_t *szone)
 
 
 static isc_result_t
-stub_zone_init(isc_log_t *lctx, dns_c_stubzone_t *szone)
+stub_zone_init(isc_log_t *lctx, dns_c_stubzone_t *tzone)
 {
 	(void) lctx;
 	
-	szone->file = NULL;
-	szone->master_ips = NULL;
-	szone->allow_update = NULL;
-	szone->allow_query = NULL;
-	szone->allow_transfer = NULL;
-	szone->pubkey = NULL;
+	tzone->file = NULL;
+	tzone->master_ips = NULL;
+	tzone->allow_update = NULL;
+	tzone->allow_query = NULL;
+	tzone->allow_transfer = NULL;
+	tzone->pubkey = NULL;
+	tzone->forwarders = NULL;
 
-	memset(&szone->setflags, 0x0, sizeof (szone->setflags));
+	memset(&tzone->setflags, 0x0, sizeof (tzone->setflags));
 
 	return (ISC_R_SUCCESS);
 }
@@ -2933,6 +3000,7 @@ master_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_masterzone_t *mzone)
 	}
 		
 	dns_c_pubkey_delete(lctx, &mzone->pubkey);
+	dns_c_iplist_delete(lctx, &mzone->forwarders);
 
 	return (ISC_R_SUCCESS);
 }
@@ -2962,6 +3030,7 @@ slave_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_slavezone_t *szone)
 	dns_c_ipmatchlist_delete(lctx, &szone->allow_query);
 	dns_c_ipmatchlist_delete(lctx, &szone->allow_transfer);
 	dns_c_iplist_delete(lctx, &szone->also_notify);
+	dns_c_iplist_delete(lctx, &szone->forwarders);
 	
 	return (ISC_R_SUCCESS);
 }
@@ -2969,20 +3038,20 @@ slave_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_slavezone_t *szone)
 
 
 static isc_result_t
-stub_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_stubzone_t *szone)
+stub_zone_clear(isc_log_t *lctx, isc_mem_t *mem, dns_c_stubzone_t *tzone)
 {
-	if (szone == NULL) {
+	if (tzone == NULL) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (szone->file != NULL) {
-		isc_mem_free(mem, szone->file);
+	if (tzone->file != NULL) {
+		isc_mem_free(mem, tzone->file);
 	}
 
-	dns_c_iplist_delete(lctx, &szone->master_ips);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_update);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_query);
-	dns_c_ipmatchlist_delete(lctx, &szone->allow_transfer);
+	dns_c_iplist_delete(lctx, &tzone->master_ips);
+	dns_c_ipmatchlist_delete(lctx, &tzone->allow_update);
+	dns_c_ipmatchlist_delete(lctx, &tzone->allow_query);
+	dns_c_ipmatchlist_delete(lctx, &tzone->allow_transfer);
 	
 	return (ISC_R_SUCCESS);
 }

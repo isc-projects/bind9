@@ -17,7 +17,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.23 1999/11/02 09:13:47 brister Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.24 1999/11/02 15:49:42 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2863,7 +2863,7 @@ zone_option: L_FILE L_QSTRING
         | L_FORWARDERS L_LBRACE opt_zone_forwarders_list L_RBRACE
         {
                 dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
-							     currcfg);
+							   currcfg);
                 dns_c_iplist_t *iplist;
                 
                 INSIST(zone != NULL);
@@ -2896,6 +2896,8 @@ zone_option: L_FILE L_QSTRING
                 default:
                         parser_error(ISC_FALSE,
                                      "Failed to set zone forwarders.");
+			dns_c_iplist_delete(logcontext, &$3);
+			break;
                 }
         }
         | L_MAX_TRANSFER_TIME_IN L_INTEGER

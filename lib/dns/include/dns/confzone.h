@@ -113,6 +113,9 @@ struct dns_c_master_zone
 	isc_boolean_t		maint_ixfr_base;
 	dns_c_pubkey_t	       *pubkey;
 
+	dns_c_forw_t		forward;
+	dns_c_iplist_t	       *forwarders;
+
 	dns_c_setbits_t		setflags;
 };
 
@@ -137,6 +140,9 @@ struct dns_c_slave_zone
 	isc_sockaddr_t		transfer_source;
 	isc_int32_t		max_trans_time_in;
 
+	dns_c_forw_t		forward;
+	dns_c_iplist_t	       *forwarders;
+
 	dns_c_setbits_t		setflags;
 };
 
@@ -154,6 +160,9 @@ struct dns_c_stub_zone
 	dns_c_iplist_t	       *master_ips;
 	isc_sockaddr_t		transfer_source; 
 	isc_int32_t		max_trans_time_in;
+
+	dns_c_forw_t		forward;
+	dns_c_iplist_t	       *forwarders;
 
 	dns_c_setbits_t		setflags;
 };
