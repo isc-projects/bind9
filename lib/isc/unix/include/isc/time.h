@@ -41,6 +41,8 @@ typedef struct isc_interval {
 	unsigned int nanoseconds;
 } isc_interval_t;
 
+extern isc_interval_t *isc_interval_zero;
+
 void
 isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds);
@@ -83,6 +85,8 @@ typedef struct isc_time {
 	unsigned int	nanoseconds;
 } isc_time_t;
 
+extern isc_time_t *isc_time_epoch;
+
 void
 isc_time_settoepoch(isc_time_t *t);
 /*
@@ -106,13 +110,35 @@ isc_time_isepoch(isc_time_t *t);
  */
 
 isc_result_t
-isc_time_get(isc_time_t *t);
+isc_time_now(isc_time_t *t);
 /*
  * Set 't' to the current absolute time.
  *
  * Requires:
  *
  *	't' is a valid pointer.
+ *
+ * Returns:
+ *
+ *	Success
+ *	Unexpected error
+ */
+
+isc_result_t
+isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i);
+/*
+ * Set *t to the current absolute time + i.
+ *
+ * Note:
+ *
+ *	This call is equivalent to:
+ *
+ *		isc_time_now(t);
+ *		isc_time_add(t, i, t);
+ *
+ * Requires:
+ *
+ *	't' and 'i' are valid.
  *
  * Returns:
  *

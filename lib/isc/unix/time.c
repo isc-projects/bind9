@@ -34,6 +34,9 @@
  *** Intervals
  ***/
 
+static isc_interval_t zero_interval = { 0, 0 };
+isc_interval_t *isc_interval_zero = &zero_interval;
+
 void
 isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds) {
@@ -71,6 +74,9 @@ isc_interval_iszero(isc_interval_t *i) {
  *** Absolute Times
  ***/
 
+static isc_time_t epoch = { 0, 0 };
+isc_time_t *isc_time_epoch = &epoch;
+
 void
 isc_time_settoepoch(isc_time_t *t) {
 	/*
@@ -99,7 +105,7 @@ isc_time_isepoch(isc_time_t *t) {
 }
 
 isc_result_t
-isc_time_get(isc_time_t *t) {
+isc_time_now(isc_time_t *t) {
 	struct timeval tv;
 
 	/*
@@ -115,6 +121,32 @@ isc_time_get(isc_time_t *t) {
 
 	t->seconds = tv.tv_sec;
 	t->nanoseconds = tv.tv_usec * 1000;
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_time_nowplusinterval(isc_time_t *t, isc_interval_t *i) {
+	struct timeval tv;
+
+	/*
+	 * Set *t to the current absolute time + i.
+	 */
+	
+	REQUIRE(t != NULL);
+	REQUIRE(i != NULL);
+	
+	if (gettimeofday(&tv, NULL) == -1) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__, strerror(errno));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	t->seconds = tv.tv_sec + i->seconds;
+	t->nanoseconds = tv.tv_usec * 1000 + i->nanoseconds;
+	if (t->nanoseconds > 1000000000) {
+		t->seconds++;
+		t->nanoseconds -= 1000000000;
+	}
 
 	return (ISC_R_SUCCESS);
 }
