@@ -404,7 +404,6 @@ dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 
 isc_boolean_t
 dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
-	isc_boolean_t a1, a2;
 	unsigned int l1, l2, count1, count2;
 	unsigned int b1, b2, n;
 	unsigned char c1, c2;
@@ -426,14 +425,15 @@ dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	REQUIRE(VALID_NAME(name2));
 	REQUIRE(name2->labels > 0);
 
-	/* We're not going for maximal speed yet... */
-	a1 = dns_name_isabsolute(name1);
-	a2 = dns_name_isabsolute(name2);
-
-	REQUIRE((a1 && a2) || (!a1 && !a2));
-
 	SETUP_OFFSETS(name1, offsets1, odata1);
 	SETUP_OFFSETS(name2, offsets2, odata2);
+
+	/*
+	 * Either name1 is absolute and name2 is absolute, or neither is.
+	 */
+	REQUIRE(((name1->ndata[offsets1[name1->labels - 1]] == 0 ? 1 : 0) ^
+		 (name2->ndata[offsets2[name2->labels - 1]] == 0 ? 1 : 0))
+		== 0);
 
 	l1 = name1->labels;
 	l2 = name2->labels;
@@ -1244,15 +1244,14 @@ set_offsets(dns_name_t *name, unsigned char *offsets, isc_boolean_t set_labels,
 		if (count > 63) {
 			INSIST(count == DNS_LABELTYPE_BITSTRING);
 			INSIST(nrem != 0);
-			count = *ndata++;
+			n = *ndata++;
 			nrem--;
 			offset++;
-			if (count == 0)
-				count = 256;
-			n = count / 8;
-			if (count % 8 != 0)
-				n++;
-			count = n;
+			if (n == 0)
+				n = 256;
+			count = n / 8;
+			if (n % 8 != 0)
+				count++;
 		}
 		INSIST(nrem >= count);
 		nrem -= count;
@@ -1264,6 +1263,7 @@ set_offsets(dns_name_t *name, unsigned char *offsets, isc_boolean_t set_labels,
 	if (set_length)
 		name->length = offset;
 	INSIST(nlabels == name->labels);
+	INSIST(offset == name->length);
 }
 
 static void
