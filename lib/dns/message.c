@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.9 2003/08/27 07:22:34 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.10 2003/09/11 00:18:05 marka Exp $ */
 
 /***
  *** Imports
@@ -3011,7 +3011,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 isc_result_t
 dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		   dns_messagetextflag_t flags, isc_buffer_t *target) {
-	char buf[sizeof "1234567890"];
+	char buf[sizeof("1234567890")];
 	isc_result_t result;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -3065,7 +3065,7 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 			msg->counts[DNS_SECTION_AUTHORITY]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, ", ADDITIONAL: ");
-		snprintf(buf, sizeof buf, "%1u",
+		snprintf(buf, sizeof(buf), "%1u",
 			msg->counts[DNS_SECTION_ADDITIONAL]);
 		ADD_STRING(target, buf);
 		ADD_STRING(target, "\n");

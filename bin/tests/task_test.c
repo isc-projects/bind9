@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_test.c,v 1.47 2001/01/09 21:41:44 bwelling Exp $ */
+/* $Id: task_test.c,v 1.47.12.1 2003/09/11 00:18:02 marka Exp $ */
 
 #include <config.h>
 
@@ -122,49 +122,49 @@ main(int argc, char *argv[]) {
 	 * program.
 	 */
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "1",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t1, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "2",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t2, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "3",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t3, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "4",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t4, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "2",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t2, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "3",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t3, &event);
 	event = isc_event_allocate(mctx, (void *)1, 1, my_callback, "4",
-				   sizeof *event);
+				   sizeof(*event));
 	isc_task_send(t4, &event);
 	isc_task_purgerange(t3,
 			    NULL,

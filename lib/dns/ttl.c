@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.c,v 1.21.12.1 2003/08/11 04:48:05 marka Exp $ */
+/* $Id: ttl.c,v 1.21.12.2 2003/09/11 00:18:07 marka Exp $ */
 
 #include <config.h>
 
@@ -61,7 +61,7 @@ ttlfmt(unsigned int t, const char *s, isc_boolean_t verbose,
 	else
 		len = snprintf(tmp, sizeof(tmp), "%u%c", t, s[0]);
 
-	INSIST(len + 1 <= sizeof tmp);
+	INSIST(len + 1 <= sizeof(tmp));
 	isc_buffer_availableregion(target, &region);
 	if (len > region.length)
 		return (ISC_R_NOSPACE);

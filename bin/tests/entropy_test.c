@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy_test.c,v 1.16 2001/01/09 21:41:01 bwelling Exp $ */
+/* $Id: entropy_test.c,v 1.16.12.1 2003/09/11 00:18:01 marka Exp $ */
 
 #include <config.h>
 
@@ -108,10 +108,10 @@ main(int argc, char **argv) {
 	flags = 0;
 	flags |= ISC_ENTROPY_GOODONLY;
 	flags |= ISC_ENTROPY_BLOCKING;
-	result = isc_entropy_getdata(ent, buffer, sizeof buffer, &returned,
+	result = isc_entropy_getdata(ent, buffer, sizeof(buffer), &returned,
 				     flags);
 	CHECK("good data only, blocking mode", result);
-	hex_dump("blocking mode data", buffer, sizeof buffer);
+	hex_dump("blocking mode data", buffer, sizeof(buffer));
 
 	{
 		isc_entropy_t *entcopy1 = NULL;

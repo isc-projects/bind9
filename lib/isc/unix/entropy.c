@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60.2.3.8.5 2003/08/15 03:11:45 marka Exp $ */
+/* $Id: entropy.c,v 1.60.2.3.8.6 2003/09/11 00:18:15 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -515,14 +515,14 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	if (is_usocket) {
 		struct sockaddr_un sname;
 
-		memset(&sname, 0, sizeof sname);
+		memset(&sname, 0, sizeof(sname));
 		sname.sun_family = AF_UNIX;
-		strncpy(sname.sun_path, fname, sizeof sname.sun_path);
-		sname.sun_path[sizeof sname.sun_path-1] = '0';
+		strncpy(sname.sun_path, fname, sizeof(sname.sun_path));
+		sname.sun_path[sizeof(sname.sun_path)-1] = '0';
 #ifdef ISC_PLATFORM_HAVESALEN
 #if !defined(SUN_LEN)
 #define SUN_LEN(su) \
-	(sizeof (*(su)) - sizeof ((su)->sun_path) + strlen((su)->sun_path))
+	(sizeof(*(su)) - sizeof((su)->sun_path) + strlen((su)->sun_path))
 #endif
 		sname.sun_len = SUN_LEN(&sname);
 #endif

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.66.2.6.2.5 2003/08/27 07:22:36 marka Exp $ */
+/* $Id: lex.c,v 1.66.2.6.2.6 2003/09/11 00:18:13 marka Exp $ */
 
 #include <config.h>
 
@@ -94,12 +94,12 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 	REQUIRE(lexp != NULL && *lexp == NULL);
 	REQUIRE(max_token > 0U);
 
-	lex = isc_mem_get(mctx, sizeof *lex);
+	lex = isc_mem_get(mctx, sizeof(*lex));
 	if (lex == NULL)
 		return (ISC_R_NOMEMORY);
 	lex->data = isc_mem_get(mctx, max_token + 1);
 	if (lex->data == NULL) {
-		isc_mem_put(mctx, lex, sizeof *lex);
+		isc_mem_put(mctx, lex, sizeof(*lex));
 		return (ISC_R_NOMEMORY);
 	}
 	lex->mctx = mctx;
@@ -135,7 +135,7 @@ isc_lex_destroy(isc_lex_t **lexp) {
 	if (lex->data != NULL)
 		isc_mem_put(lex->mctx, lex->data, lex->max_token + 1);
 	lex->magic = 0;
-	isc_mem_put(lex->mctx, lex, sizeof *lex);
+	isc_mem_put(lex->mctx, lex, sizeof(*lex));
 
 	*lexp = NULL;
 }
@@ -192,7 +192,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	inputsource *source;
 	isc_result_t result;
 
-	source = isc_mem_get(lex->mctx, sizeof *source);
+	source = isc_mem_get(lex->mctx, sizeof(*source));
 	if (source == NULL)
 		return (ISC_R_NOMEMORY);
 	source->result = ISC_R_SUCCESS;
@@ -202,7 +202,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 	source->input = input;
 	source->name = isc_mem_strdup(lex->mctx, name);
 	if (source->name == NULL) {
-		isc_mem_put(lex->mctx, source, sizeof *source);
+		isc_mem_put(lex->mctx, source, sizeof(*source));
 		return (ISC_R_NOMEMORY);
 	}
 	source->pushback = NULL;
@@ -210,7 +210,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 				     lex->max_token);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_free(lex->mctx, source->name);
-		isc_mem_put(lex->mctx, source, sizeof *source);
+		isc_mem_put(lex->mctx, source, sizeof(*source));
 		return (result);
 	}
 	source->ignored = 0;
@@ -292,7 +292,7 @@ isc_lex_close(isc_lex_t *lex) {
 	}
 	isc_mem_free(lex->mctx, source->name);
 	isc_buffer_free(&source->pushback);
-	isc_mem_put(lex->mctx, source, sizeof *source);
+	isc_mem_put(lex->mctx, source, sizeof(*source));
 
 	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.37.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: rt_21.c,v 1.37.2.1.2.1 2003/09/11 00:18:10 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -60,7 +60,7 @@ totext_rt(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == 21);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.22.2.1.10.6 2003/09/10 05:12:54 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.22.2.1.10.7 2003/09/11 00:18:16 marka Exp $ */
 
 #include <config.h>
 
@@ -188,6 +188,6 @@ isc_interfaceiter_destroy(isc_interfaceiter_t **iterp)
 		isc_mem_put(iter->mctx, iter->buf, iter->bufsize);
 
 	iter->magic = 0;
-	isc_mem_put(iter->mctx, iter, sizeof *iter);
+	isc_mem_put(iter->mctx, iter, sizeof(*iter));
 	*iterp = NULL;
 }

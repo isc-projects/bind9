@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.41.12.1 2003/08/12 14:16:12 marka Exp $ */
+/* $Id: key_25.c,v 1.41.12.2 2003/09/11 00:18:10 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -73,7 +73,7 @@ fromtext_key(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_key(ARGS_TOTEXT) {
 	isc_region_t sr;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned int flags;
 	unsigned char algorithm;
 

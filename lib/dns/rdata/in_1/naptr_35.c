@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.43.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: naptr_35.c,v 1.43.2.1.2.1 2003/09/11 00:18:11 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -96,7 +96,7 @@ totext_in_naptr(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == 35);

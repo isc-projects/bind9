@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.50.2.2.2.2 2003/08/25 04:41:17 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50.2.2.2.3 2003/09/11 00:17:57 marka Exp $ */
 
 #include <config.h>
 
@@ -123,7 +123,7 @@ loadkeys(dns_name_t *name, dns_rdataset_t *rdataset) {
 			continue;
 		if (!dst_key_iszonekey(key))
 			continue;
-		keynode = isc_mem_get(mctx, sizeof (keynode_t));
+		keynode = isc_mem_get(mctx, sizeof(keynode_t));
 		if (keynode == NULL)
 			fatal("out of memory");
 		keynode->key = key;
@@ -320,7 +320,7 @@ main(int argc, char *argv[]) {
 				     0, &rdataset, &sigrdataset);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
+		dns_name_format(domain, domainstr, sizeof(domainstr));
 		fatal("failed to find rdataset '%s KEY': %s",
 		      domainstr, isc_result_totext(result));
 	}
@@ -341,7 +341,7 @@ main(int argc, char *argv[]) {
 					   ISC_TRUE, mctx, &sigrdata);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(key, keystr, sizeof keystr);
+			key_format(key, keystr, sizeof(keystr));
 			fatal("signature by key '%s' did not verify: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -406,7 +406,7 @@ main(int argc, char *argv[]) {
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(key, keystr, sizeof keystr);
+			key_format(key, keystr, sizeof(keystr));
 			fatal("key '%s' failed to sign data: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -415,7 +415,7 @@ main(int argc, char *argv[]) {
 						   ISC_TRUE, mctx, rdata);
 			if (result != ISC_R_SUCCESS) {
 				char keystr[KEY_FORMATSIZE];
-				key_format(key, keystr, sizeof keystr);
+				key_format(key, keystr, sizeof(keystr));
 				fatal("signature from key '%s' failed to "
 				      "verify: %s",
 				      keystr, isc_result_totext(result));
@@ -450,7 +450,7 @@ main(int argc, char *argv[]) {
 		rdata = ISC_LIST_HEAD(sigrdatalist.rdata);
 		ISC_LIST_UNLINK(sigrdatalist.rdata, rdata, link);
 		isc_mem_put(mctx, rdata->data, BUFSIZE);
-		isc_mem_put(mctx, rdata, sizeof *rdata);
+		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}
 
 	dns_db_detach(&db);

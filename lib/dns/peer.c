@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.14.2.1.10.1 2003/08/11 05:28:16 marka Exp $ */
+/* $Id: peer.c,v 1.14.2.1.10.2 2003/09/11 00:18:05 marka Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,7 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 
 	REQUIRE(list != NULL);
 
-	l = isc_mem_get(mem, sizeof *l);
+	l = isc_mem_get(mem, sizeof(*l));
 	if (l == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -118,7 +118,7 @@ peerlist_delete(dns_peerlist_t **list) {
 	}
 
 	l->magic = 0;
-	isc_mem_put(l->mem, l, sizeof *l);
+	isc_mem_put(l->mem, l, sizeof(*l));
 
 	*list = NULL;
 }
@@ -179,7 +179,7 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 
 	REQUIRE(peerptr != NULL);
 
-	peer = isc_mem_get(mem, sizeof *peer);
+	peer = isc_mem_get(mem, sizeof(*peer));
 	if (peer == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -194,7 +194,7 @@ dns_peer_new(isc_mem_t *mem, isc_netaddr_t *addr, dns_peer_t **peerptr) {
 	peer->key = NULL;
 	peer->refs = 1;
 
-	memset(&peer->bitflags, 0x0, sizeof peer->bitflags);
+	memset(&peer->bitflags, 0x0, sizeof(peer->bitflags));
 
 	ISC_LINK_INIT(peer, next);
 
@@ -256,7 +256,7 @@ peer_delete(dns_peer_t **peer) {
 		isc_mem_put(mem, p->key, sizeof(dns_name_t));
 	}
 
-	isc_mem_put(mem, p, sizeof *p);
+	isc_mem_put(mem, p, sizeof(*p));
 
 	*peer = NULL;
 }

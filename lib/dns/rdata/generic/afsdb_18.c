@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.39.2.1 2003/07/23 06:57:50 marka Exp $ */
+/* $Id: afsdb_18.c,v 1.39.2.1.2.1 2003/09/11 00:18:09 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -64,7 +64,7 @@ totext_afsdb(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_region_t region;
-	char buf[sizeof "64000 "];
+	char buf[sizeof("64000 ")];
 	isc_boolean_t sub;
 	unsigned int num;
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.3.2.2.2.2 2003/08/15 02:11:27 marka Exp $ */
+/* $Id: entropy.c,v 1.3.2.2.2.3 2003/09/11 00:18:12 marka Exp $ */
 
 /*
  * This is the system independent part of the entropy module.  It is
@@ -357,9 +357,9 @@ reseed(isc_entropy_t *ent) {
 
 	if (ent->initcount == 0) {
 		pid = getpid();
-		entropypool_adddata(ent, &pid, sizeof pid, 0);
+		entropypool_adddata(ent, &pid, sizeof(pid), 0);
 		pid = getppid();
-		entropypool_adddata(ent, &pid, sizeof pid, 0);
+		entropypool_adddata(ent, &pid, sizeof(pid), 0);
 	}
 
 	/*

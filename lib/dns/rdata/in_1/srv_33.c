@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.36.2.1 2003/07/23 06:57:52 marka Exp $ */
+/* $Id: srv_33.c,v 1.36.2.1.2.1 2003/09/11 00:18:12 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -84,7 +84,7 @@ totext_in_srv(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == 33);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.40.2.1.2.1 2003/08/12 14:16:11 marka Exp $ */
+/* $Id: cert_37.c,v 1.40.2.1.2.2 2003/09/11 00:18:09 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -71,7 +71,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_cert(ARGS_TOTEXT) {
 	isc_region_t sr;
-	char buf[sizeof "64000 "];
+	char buf[sizeof("64000 ")];
 	unsigned int n;
 
 	REQUIRE(rdata->type == 37);

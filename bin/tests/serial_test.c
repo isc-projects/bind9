@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: serial_test.c,v 1.10.12.1 2003/09/02 01:49:45 marka Exp $ */
+/* $Id: serial_test.c,v 1.10.12.2 2003/09/11 00:18:01 marka Exp $ */
 
 #include <config.h>
 
@@ -30,8 +30,8 @@ main() {
 	char buf[1024];
 	char *s, *e;
 
-	while (fgets(buf, sizeof buf, stdin) != NULL) {
-		buf[sizeof buf - 1] = '\0';
+	while (fgets(buf, sizeof(buf), stdin) != NULL) {
+		buf[sizeof(buf) - 1] = '\0';
 		s = buf;
 		a = strtoul(s, &e, 0);
 		if (s == e)

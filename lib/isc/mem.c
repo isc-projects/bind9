@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.7 2003/07/23 06:57:53 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.7.2.1 2003/09/11 00:18:13 marka Exp $ */
 
 #include <config.h>
 
@@ -338,7 +338,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	if (ctx->basic_table_count == ctx->basic_table_size) {
 		table_size = ctx->basic_table_size + TABLE_INCREMENT;
 		table = (ctx->memalloc)(ctx->arg,
-					table_size * sizeof (unsigned char *));
+					table_size * sizeof(unsigned char *));
 		if (table == NULL) {
 			ctx->memalloc_failures++;
 			return (ISC_FALSE);
@@ -346,7 +346,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 		if (ctx->basic_table_size != 0) {
 			memcpy(table, ctx->basic_table,
 			       ctx->basic_table_size *
-			       sizeof (unsigned char *));
+			       sizeof(unsigned char *));
 			(ctx->memfree)(ctx->arg, ctx->basic_table);
 		}
 		ctx->basic_table = table;
@@ -697,7 +697,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	UNUSED(target_size);
 #endif
 
-	ctx = (memalloc)(arg, sizeof *ctx);
+	ctx = (memalloc)(arg, sizeof(*ctx));
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -729,25 +729,25 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 
 	ctx->stats = (memalloc)(arg,
-				(ctx->max_size+1) * sizeof (struct stats));
+				(ctx->max_size+1) * sizeof(struct stats));
 	if (ctx->stats == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto error;
 	}
-	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof (struct stats));
+	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof(struct stats));
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	if (target_size == 0)
 		ctx->mem_target = DEF_MEM_TARGET;
 	else
 		ctx->mem_target = target_size;
-	ctx->freelists = (memalloc)(arg, ctx->max_size * sizeof (element *));
+	ctx->freelists = (memalloc)(arg, ctx->max_size * sizeof(element *));
 	if (ctx->freelists == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto error;
 	}
 	memset(ctx->freelists, 0,
-	       ctx->max_size * sizeof (element *));
+	       ctx->max_size * sizeof(element *));
 	ctx->basic_blocks = NULL;
 	ctx->basic_table = NULL;
 	ctx->basic_table_count = 0;

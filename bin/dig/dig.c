@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.9 2003/08/27 01:39:22 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.10 2003/09/11 00:17:56 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -572,7 +572,7 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 			    strlen(lookup->cmdline) - 1;
 		strncat(lookup->cmdline, "\n", remaining);
 		if (first) {
-			snprintf(append, sizeof (append), 
+			snprintf(append, sizeof(append), 
 				 ";; global options: %s %s\n",
 			       short_form ? "short_form" : "",
 			       printcmd ? "printcmd" : "");

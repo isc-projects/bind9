@@ -16,7 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sexpr.c,v 1.2 2001/03/27 20:08:01 bwelling Exp $ */
+/* $Id: sexpr.c,v 1.2.12.1 2003/09/11 00:18:17 marka Exp $ */
 
 #include <config.h>
 
@@ -38,7 +38,7 @@ isccc_sexpr_cons(isccc_sexpr_t *car, isccc_sexpr_t *cdr)
 {
 	isccc_sexpr_t *sexpr;
 
-	sexpr = malloc(sizeof *sexpr);
+	sexpr = malloc(sizeof(*sexpr));
 	if (sexpr == NULL)
 		return (NULL);
 	sexpr->type = ISCCC_SEXPRTYPE_DOTTEDPAIR;
@@ -59,7 +59,7 @@ isccc_sexpr_fromstring(const char *str)
 {
 	isccc_sexpr_t *sexpr;
 
-	sexpr = malloc(sizeof *sexpr);
+	sexpr = malloc(sizeof(*sexpr));
 	if (sexpr == NULL)
 		return (NULL);
 	sexpr->type = ISCCC_SEXPRTYPE_STRING;
@@ -78,7 +78,7 @@ isccc_sexpr_frombinary(const isccc_region_t *region)
 	isccc_sexpr_t *sexpr;
 	unsigned int region_size;
 
-	sexpr = malloc(sizeof *sexpr);
+	sexpr = malloc(sizeof(*sexpr));
 	if (sexpr == NULL)
 		return (NULL);
 	sexpr->type = ISCCC_SEXPRTYPE_BINARY;

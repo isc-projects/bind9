@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.3 2001/07/09 21:06:03 gson Exp $ */
+/* $Id: app.c,v 1.3.12.1 2003/09/11 00:18:16 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,7 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	 */
 	isc_task_attach(task, &cloned_task);
 	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
-				   action, arg, sizeof *event);
+				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto unlock;

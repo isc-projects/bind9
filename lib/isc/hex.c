@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.8.2.2 2002/02/08 03:57:36 marka Exp $ */
+/* $Id: hex.c,v 1.8.2.2.8.1 2003/09/11 00:18:13 marka Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,7 @@ isc_hex_totext(isc_region_t *source, int wordlength,
 	if (wordlength < 2)
 		wordlength = 2;
 
-	memset(buf, 0, sizeof buf);
+	memset(buf, 0, sizeof(buf));
 	while (source->length > 0) {
 		buf[0] = hex[(source->base[0] >> 4) & 0xf];
 		buf[1] = hex[(source->base[0]) & 0xf];

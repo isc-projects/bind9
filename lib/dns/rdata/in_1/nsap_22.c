@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.33.12.1 2003/08/12 14:16:16 marka Exp $ */
+/* $Id: nsap_22.c,v 1.33.12.2 2003/09/11 00:18:11 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -77,7 +77,7 @@ fromtext_in_nsap(ARGS_FROMTEXT) {
 static inline isc_result_t
 totext_in_nsap(ARGS_TOTEXT) {
 	isc_region_t region;
-	char buf[sizeof "xx"];
+	char buf[sizeof("xx")];
 
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);

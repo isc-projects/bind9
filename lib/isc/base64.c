@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.23.2.2 2003/07/22 04:03:47 marka Exp $ */
+/* $Id: base64.c,v 1.23.2.2.2.1 2003/09/11 00:18:12 marka Exp $ */
 
 #include <config.h>
 
@@ -55,7 +55,7 @@ isc_base64_totext(isc_region_t *source, int wordlength,
 	if (wordlength < 4)
 		wordlength = 4;
 
-	memset(buf, 0, sizeof buf);
+	memset(buf, 0, sizeof(buf));
 	while (source->length > 2) {
 		buf[0] = base64[(source->base[0]>>2)&0x3f];
 		buf[1] = base64[((source->base[0]<<4)&0x30)|

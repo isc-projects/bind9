@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.1 2003/07/23 06:57:57 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.1.2.1 2003/09/11 00:18:18 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -604,7 +604,7 @@ lwres_result_t
 lwres_conf_print(lwres_context_t *ctx, FILE *fp) {
 	int i;
 	int af;
-	char tmp[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255"];
+	char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 	const char *p;
 	lwres_conf_t *confdata;
 	lwres_addr_t tmpaddr;

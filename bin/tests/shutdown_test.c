@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: shutdown_test.c,v 1.18 2001/01/09 21:41:38 bwelling Exp $ */
+/* $Id: shutdown_test.c,v 1.18.12.1 2003/09/11 00:18:01 marka Exp $ */
 
 #include <config.h>
 
@@ -79,7 +79,7 @@ shutdown_action(isc_task_t *task, isc_event_t *event) {
 		isc_timer_detach(&info->timer);
 		nevent = isc_event_allocate(info->mctx, info, T2_SHUTDOWNOK,
 					    t2_shutdown, &tasks[1],
-					    sizeof *event);
+					    sizeof(*event));
 		RUNTIME_CHECK(nevent != NULL);
 		info->exiting = ISC_TRUE;
 		isc_task_sendanddetach(&info->peer, &nevent);
@@ -113,7 +113,7 @@ tick(isc_task_t *task, isc_event_t *event)
 			nevent = isc_event_allocate(info->mctx, info,
 						    T2_SHUTDOWNDONE,
 						    t1_shutdown, &tasks[0],
-						    sizeof *event);
+						    sizeof(*event));
 			RUNTIME_CHECK(nevent != NULL);
 			isc_task_send(info->peer, &nevent);
 			isc_task_detach(&info->peer);
@@ -123,7 +123,7 @@ tick(isc_task_t *task, isc_event_t *event)
 		nevent = isc_event_allocate(info->mctx, info,
 					    FOO_EVENT,
 					    foo_event, task,
-					    sizeof *event);
+					    sizeof(*event));
 		RUNTIME_CHECK(nevent != NULL);
 		isc_task_sendanddetach(&task, &nevent);
 	}

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.48.2.1 2003/07/23 06:57:51 marka Exp $ */
+/* $Id: mx_15.c,v 1.48.2.1.2.1 2003/09/11 00:18:10 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -57,7 +57,7 @@ totext_mx(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == 15);

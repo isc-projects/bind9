@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.52.2.1.10.2 2003/08/25 04:41:17 marka Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.52.2.1.10.3 2003/09/11 00:17:57 marka Exp $ */
 
 #include <config.h>
 
@@ -260,7 +260,7 @@ main(int argc, char *argv[]) {
 		if (rdatalist.rdclass == 0)
 			rdatalist.rdclass = dst_key_class(key);
 
-		isc_buffer_init(&namebuf, namestr, sizeof namestr);
+		isc_buffer_init(&namebuf, namestr, sizeof(namestr));
 		result = dns_name_tofilenametext(dst_key_name(key),
 						 ISC_FALSE,
 						 &namebuf);
@@ -279,7 +279,7 @@ main(int argc, char *argv[]) {
 		} else {
 			char savednamestr[DNS_NAME_FORMATSIZE];
 			dns_name_format(savedname, savednamestr,
-					sizeof savednamestr);
+					sizeof(savednamestr));
 			if (!dns_name_equal(savedname, dst_key_name(key)) != 0)
 				fatal("all keys must have the same owner - %s "
 				      "and %s do not match",
@@ -310,7 +310,7 @@ main(int argc, char *argv[]) {
 				      argv[i], isc_result_totext(result));
 			if (!zonekey_on_list(zonekey)) {
 				keynode = isc_mem_get(mctx,
-						      sizeof (keynode_t));
+						      sizeof(keynode_t));
 				if (keynode == NULL)
 					fatal("out of memory");
 				keynode->key = zonekey;
@@ -337,7 +337,7 @@ main(int argc, char *argv[]) {
 			ISC_LIST_APPEND(rdatalist.rdata, rdata, link);
 		else {
 			isc_mem_put(mctx, data, BUFSIZE);
-			isc_mem_put(mctx, rdata, sizeof *rdata);
+			isc_mem_put(mctx, rdata, sizeof(*rdata));
 		}
 		dst_key_free(&key);
 	}
@@ -374,7 +374,7 @@ main(int argc, char *argv[]) {
 		isc_entropy_stopcallbacksources(ectx);
 		if (result != ISC_R_SUCCESS) {
 			char keystr[KEY_FORMATSIZE];
-			key_format(keynode->key, keystr, sizeof keystr);
+			key_format(keynode->key, keystr, sizeof(keystr));
 			fatal("failed to sign keyset with key %s: %s",
 			      keystr, isc_result_totext(result));
 		}
@@ -384,7 +384,7 @@ main(int argc, char *argv[]) {
 						   mctx, rdata);
 			if (result != ISC_R_SUCCESS) {
 				char keystr[KEY_FORMATSIZE];
-				key_format(keynode->key, keystr, sizeof keystr);
+				key_format(keynode->key, keystr, sizeof(keystr));
 				fatal("signature from key '%s' failed to "
 				      "verify: %s",
 				      keystr, isc_result_totext(result));
@@ -401,7 +401,7 @@ main(int argc, char *argv[]) {
 			       rdataset.rdclass, 0, NULL, &db);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
+		dns_name_format(domain, domainstr, sizeof(domainstr));
 		fatal("failed to create a database for %s", domainstr);
 	}
 
@@ -422,7 +422,7 @@ main(int argc, char *argv[]) {
 	result = dns_db_dump(db, version, output);
 	if (result != ISC_R_SUCCESS) {
 		char domainstr[DNS_NAME_FORMATSIZE];
-		dns_name_format(domain, domainstr, sizeof domainstr);
+		dns_name_format(domain, domainstr, sizeof(domainstr));
 		fatal("failed to write database for %s to %s",
 		      domainstr, output);
 	}
@@ -436,13 +436,13 @@ main(int argc, char *argv[]) {
 		rdata = ISC_LIST_HEAD(rdatalist.rdata);
 		ISC_LIST_UNLINK(rdatalist.rdata, rdata, link);
 		isc_mem_put(mctx, rdata->data, BUFSIZE);
-		isc_mem_put(mctx, rdata, sizeof *rdata);
+		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}
 	while (!ISC_LIST_EMPTY(sigrdatalist.rdata)) {
 		rdata = ISC_LIST_HEAD(sigrdatalist.rdata);
 		ISC_LIST_UNLINK(sigrdatalist.rdata, rdata, link);
 		isc_mem_put(mctx, rdata->data, BUFSIZE);
-		isc_mem_put(mctx, rdata, sizeof *rdata);
+		isc_mem_put(mctx, rdata, sizeof(*rdata));
 	}
 
 	while (!ISC_LIST_EMPTY(keylist)) {

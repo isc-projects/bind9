@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.34.2.1 2003/07/23 06:57:52 marka Exp $ */
+/* $Id: px_26.c,v 1.34.2.1.2.1 2003/09/11 00:18:11 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -76,7 +76,7 @@ totext_in_px(ARGS_TOTEXT) {
 	dns_name_t name;
 	dns_name_t prefix;
 	isc_boolean_t sub;
-	char buf[sizeof "64000"];
+	char buf[sizeof("64000")];
 	unsigned short num;
 
 	REQUIRE(rdata->type == 26);

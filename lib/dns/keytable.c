@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.26 2001/06/04 19:33:03 tale Exp $ */
+/* $Id: keytable.c,v 1.26.12.1 2003/09/11 00:18:04 marka Exp $ */
 
 #include <config.h>
 
@@ -77,7 +77,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 
 	REQUIRE(keytablep != NULL && *keytablep == NULL);
 
-	keytable = isc_mem_get(mctx, sizeof *keytable);
+	keytable = isc_mem_get(mctx, sizeof(*keytable));
 	if (keytable == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -119,7 +119,7 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	dns_rbt_destroy(&keytable->table);
 
    cleanup_keytable:
-	isc_mem_put(mctx, keytable, sizeof *keytable);
+	isc_mem_put(mctx, keytable, sizeof(*keytable));
 
 	return (result);
 }
@@ -175,7 +175,7 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 		isc_rwlock_destroy(&keytable->rwlock);
 		DESTROYLOCK(&keytable->lock);
 		keytable->magic = 0;
-		isc_mem_put(keytable->mctx, keytable, sizeof *keytable);
+		isc_mem_put(keytable->mctx, keytable, sizeof(*keytable));
 	}
 
 	*keytablep = NULL;
@@ -197,7 +197,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 
 	keyname = dst_key_name(*keyp);
 
-	knode = isc_mem_get(keytable->mctx, sizeof *knode);
+	knode = isc_mem_get(keytable->mctx, sizeof(*knode));
 	if (knode == NULL)
 		return (ISC_R_NOMEMORY);
 
@@ -219,7 +219,7 @@ dns_keytable_add(dns_keytable_t *keytable, dst_key_t **keyp) {
 	RWUNLOCK(&keytable->rwlock, isc_rwlocktype_write);
 
 	if (knode != NULL)
-		isc_mem_put(keytable->mctx, knode, sizeof *knode);
+		isc_mem_put(keytable->mctx, knode, sizeof(*knode));
 
 	return (result);
 }

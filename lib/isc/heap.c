@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.28 2001/06/04 19:33:21 tale Exp $ */
+/* $Id: heap.c,v 1.28.12.1 2003/09/11 00:18:12 marka Exp $ */
 
 /*
  * Heap implementation of priority queues adapted from the following:
@@ -78,7 +78,7 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	REQUIRE(heapp != NULL && *heapp == NULL);
 	REQUIRE(compare != NULL);
 
-	heap = isc_mem_get(mctx, sizeof *heap);
+	heap = isc_mem_get(mctx, sizeof(*heap));
 	if (heap == NULL)
 		return (ISC_R_NOMEMORY);
 	heap->magic = HEAP_MAGIC;
@@ -108,9 +108,9 @@ isc_heap_destroy(isc_heap_t **heapp) {
 
 	if (heap->array != NULL)
 		isc_mem_put(heap->mctx, heap->array,
-			    heap->size * sizeof (void *));
+			    heap->size * sizeof(void *));
 	heap->magic = 0;
-	isc_mem_put(heap->mctx, heap, sizeof *heap);
+	isc_mem_put(heap->mctx, heap, sizeof(*heap));
 
 	*heapp = NULL;
 }
@@ -123,13 +123,13 @@ resize(isc_heap_t *heap) {
 	REQUIRE(VALID_HEAP(heap));
 
 	new_size = heap->size + heap->size_increment;
-	new_array = isc_mem_get(heap->mctx, new_size * sizeof (void *));
+	new_array = isc_mem_get(heap->mctx, new_size * sizeof(void *));
 	if (new_array == NULL)
 		return (ISC_FALSE);
 	if (heap->array != NULL) {
-		memcpy(new_array, heap->array, heap->size * sizeof (void *));
+		memcpy(new_array, heap->array, heap->size * sizeof(void *));
 		isc_mem_put(heap->mctx, heap->array,
-			    heap->size * sizeof (void *));
+			    heap->size * sizeof(void *));
 	}
 	heap->size = new_size;
 	heap->array = new_array;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.13.12.1 2003/08/11 05:28:09 marka Exp $ */
+/* $Id: lwdclient.c,v 1.13.12.2 2003/09/11 00:17:58 marka Exp $ */
 
 #include <config.h>
 
@@ -117,7 +117,7 @@ ns_lwdclientmgr_create(ns_lwreslistener_t *listener, unsigned int nclients,
 	client = ISC_LIST_HEAD(cm->idle);
 	while (client != NULL) {
 		ISC_LIST_UNLINK(cm->idle, client, link);
-		isc_mem_put(lwresd->mctx, client, sizeof (*client));
+		isc_mem_put(lwresd->mctx, client, sizeof(*client));
 		client = ISC_LIST_HEAD(cm->idle);
 	}
 
@@ -127,7 +127,7 @@ ns_lwdclientmgr_create(ns_lwreslistener_t *listener, unsigned int nclients,
 	if (cm->lwctx != NULL)
 		lwres_context_destroy(&cm->lwctx);
 
-	isc_mem_put(lwresd->mctx, cm, sizeof (*cm));
+	isc_mem_put(lwresd->mctx, cm, sizeof(*cm));
 	return (result);
 }
 
@@ -149,7 +149,7 @@ lwdclientmgr_destroy(ns_lwdclientmgr_t *cm) {
 		ns_lwdclient_log(50, "destroying client %p, manager %p",
 				 client, cm);
 		ISC_LIST_UNLINK(cm->idle, client, link);
-		isc_mem_put(cm->mctx, client, sizeof (*client));
+		isc_mem_put(cm->mctx, client, sizeof(*client));
 		client = ISC_LIST_HEAD(cm->idle);
 	}
 
@@ -164,7 +164,7 @@ lwdclientmgr_destroy(ns_lwdclientmgr_t *cm) {
 	listener = cm->listener;
 	ns_lwreslistener_unlinkcm(listener, cm);
 	ns_lwdclient_log(50, "destroying manager %p", cm);
-	isc_mem_put(cm->mctx, cm, sizeof (*cm));
+	isc_mem_put(cm->mctx, cm, sizeof(*cm));
 	ns_lwreslistener_detach(&listener);
 }
 
@@ -337,7 +337,7 @@ lwdclientmgr_shutdown_callback(isc_task_t *task, isc_event_t *ev) {
 		ns_lwdclient_log(50, "destroying client %p, manager %p",
 				 client, cm);
 		ISC_LIST_UNLINK(cm->idle, client, link);
-		isc_mem_put(cm->mctx, client, sizeof (*client));
+		isc_mem_put(cm->mctx, client, sizeof(*client));
 		client = ISC_LIST_HEAD(cm->idle);
 	}
 

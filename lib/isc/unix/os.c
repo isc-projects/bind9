@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.11 2001/08/16 06:19:58 marka Exp $ */
+/* $Id: os.c,v 1.11.12.1 2003/09/11 00:18:16 marka Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,7 @@ sysctl_ncpus(void) {
 	int ncpu, result;
 	size_t len;
 
-	len = sizeof ncpu;
+	len = sizeof(ncpu);
 	result = sysctlbyname("hw.ncpu", &ncpu, &len , 0, 0);
 	if (result != -1)
 		return (ncpu);
