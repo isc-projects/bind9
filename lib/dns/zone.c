@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.178 2000/08/10 00:53:33 gson Exp $ */
+/* $Id: zone.c,v 1.179 2000/08/10 17:11:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -3997,8 +3997,10 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		zone_log(zone, me, ISC_LOG_WARNING,
 			 "transfer aborted, zone unloaded",
 			 dns_result_totext(result));
-		zone_unload(zone);
-		zone_deletefile(zone);
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+			zone_unload(zone);
+			zone_deletefile(zone);
+		}
 		break;
 
 #endif /* NOMINUM_PUBLIC */
