@@ -2284,7 +2284,7 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
 
 	if (*lengthp < sock->addrlength) {
 		UNLOCK(&sock->lock);
-		return (ISC_R_TOOSMALL);
+		return (ISC_R_NOSPACE);
 	}
 
 	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
@@ -2318,7 +2318,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
 
 	if (*lengthp < sock->addrlength) {
 		UNLOCK(&sock->lock);
-		return (ISC_R_TOOSMALL);
+		return (ISC_R_NOSPACE);
 	}
 
 	memcpy(addressp, &sock->address, (size_t)sock->addrlength);
