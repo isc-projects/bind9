@@ -26,6 +26,7 @@
 #include <isc/error.h>
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/taskpool.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
@@ -1645,6 +1646,8 @@ static dns_result_t
 send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	dns_result_t result = DNS_R_SUCCESS;
 	update_event_t *event = NULL;
+	isc_task_t *zonetask = NULL;
+	
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
 				   update_action, client, sizeof(*event));
@@ -1653,7 +1656,11 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = DNS_R_SUCCESS;
 
-	isc_task_send(dns_zone_gettask(zone), (isc_event_t **) &event);
+	isc_taskpool_gettask(ns_g_zonetasks,
+			     dns_name_hash(dns_zone_getorigin(zone),
+					   ISC_FALSE),
+			     &zonetask);
+	isc_task_send(zonetask, (isc_event_t **) &event);
 
  failure:
 	if (event != NULL)
@@ -1742,7 +1749,6 @@ ns_update_start(ns_client_t *client)
 		FAILMSG(DNS_R_NOTAUTH,
 			"not authoritative for update zone");
 	}
-	INSIST(0);
 	return;
 	
  failure:
@@ -1775,7 +1781,6 @@ update_action(isc_task_t *task, isc_event_t *event)
 	dns_name_t *zonename;
 		
 	INSIST(event->type == DNS_EVENT_UPDATE);
-	INSIST(task == dns_zone_gettask(zone));
 
 	printf("dequeued update request\n");
 
@@ -2091,9 +2096,9 @@ update_action(isc_task_t *task, isc_event_t *event)
 
 		printf("write journal\n");
 
-		/* XXX use a real file name */
 		journal = NULL;
-		result = dns_journal_open(mctx, "journal", ISC_TRUE, &journal);
+		result = dns_journal_open(mctx, dns_zone_getixfrlog(zone),
+					  ISC_TRUE, &journal);
 		if (result != DNS_R_SUCCESS)
 			FAILMSG(result, "journal open failed");
 
@@ -2136,7 +2141,8 @@ update_action(isc_task_t *task, isc_event_t *event)
 
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-	
+
+	isc_task_detach(&task);
 	uev->result = result;
 	uev->type = DNS_EVENT_UPDATEDONE;
 	uev->action = updatedone_action;
