@@ -782,7 +782,7 @@
 ./contrib/idn/mdnkit/configure			X	2000,2001
 ./contrib/idn/mdnkit/configure.in		X	2000,2001
 ./contrib/idn/mdnkit/doc/LICENSE.txt		X	2001
-./contrib/idn/mdnkit/doc/en/guide/bind9.html	X	2001
+./contrib/idn/mdnkit/doc/en/guide/..html	X	2001
 ./contrib/idn/mdnkit/doc/en/guide/bindconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/en/guide/clientconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/en/guide/dnsproxy.html	X	2001
@@ -793,7 +793,7 @@
 ./contrib/idn/mdnkit/doc/en/guide/resolvconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/en/guide/runmdn.html	X	2001
 ./contrib/idn/mdnkit/doc/en/guide/wrapper.html	X	2001
-./contrib/idn/mdnkit/doc/en/spec/bind9.html	X	2001
+./contrib/idn/mdnkit/doc/en/spec/..html	X	2001
 ./contrib/idn/mdnkit/doc/en/spec/clientconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/en/spec/dnsproxy.html	X	2001
 ./contrib/idn/mdnkit/doc/en/spec/index.html	X	2001
@@ -803,14 +803,14 @@
 ./contrib/idn/mdnkit/doc/en/spec/spec.html	X	2001
 ./contrib/idn/mdnkit/doc/en/spec/wrapper.html	X	2001
 ./contrib/idn/mdnkit/doc/index.html		X	2001
-./contrib/idn/mdnkit/doc/ja/guide/bind9.html	X	2001
+./contrib/idn/mdnkit/doc/ja/guide/..html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/bindconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/clientconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/dnsproxy.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/guide.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/img/dnsproxy.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/img/mdnconv.jpg	X	2001
-./contrib/idn/mdnkit/doc/ja/guide/img/method_bind9.jpg	X	2001
+./contrib/idn/mdnkit/doc/ja/guide/img/method_..jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/img/method_named.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/img/method_proxy.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/img/method_resolver.jpg	X	2001
@@ -832,10 +832,10 @@
 ./contrib/idn/mdnkit/doc/ja/guide/runmdn.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/guide/wrapper.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/index.html		X	2001
-./contrib/idn/mdnkit/doc/ja/spec/bind9.html	X	2001
+./contrib/idn/mdnkit/doc/ja/spec/..html	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/clientconfig.html	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/dnsproxy.html	X	2001
-./contrib/idn/mdnkit/doc/ja/spec/img/bind9_arch.jpg	X	2001
+./contrib/idn/mdnkit/doc/ja/spec/img/._arch.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/img/components.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/img/components2.jpg	X	2001
 ./contrib/idn/mdnkit/doc/ja/spec/img/libmdn_callgraph.jpg	X	2001
@@ -966,10 +966,10 @@
 ./contrib/idn/mdnkit/mdnsproxy/winserv.c	X	2001
 ./contrib/idn/mdnkit/mdnsproxy/winserv.h	X	2001
 ./contrib/idn/mdnkit/mkinstalldirs		X	2001
+./contrib/idn/mdnkit/patch/./bind-9.1.2-patch	X	2001
+./contrib/idn/mdnkit/patch/./patch.configure	X	2000,2001
+./contrib/idn/mdnkit/patch/./patch.most	X	2000,2001
 ./contrib/idn/mdnkit/patch/bind8/bind-8.2.3-patch	X	2001
-./contrib/idn/mdnkit/patch/bind9/bind-9.1.2-patch	X	2001
-./contrib/idn/mdnkit/patch/bind9/patch.configure	X	2000,2001
-./contrib/idn/mdnkit/patch/bind9/patch.most	X	2000,2001
 ./contrib/idn/mdnkit/patch/libiconv/libiconv-1.6.1.patch	X	2001
 ./contrib/idn/mdnkit/patch/squid/squid-2.4.STABLE1-patch	X	2001
 ./contrib/idn/mdnkit/tools/Makefile.in		X	2000,2001
@@ -1322,61 +1322,93 @@
 ./lib/bind/nameser/ns_sign.c			X	2001
 ./lib/bind/nameser/ns_ttl.c			X	2001
 ./lib/bind/nameser/ns_verify.c			X	2001
+./lib/bind/port/.cvsignore 			X
+./lib/bind/port/Makefile.in			MAKE	2001
+./lib/bind/port/aix32/.cvsignore 		X
+./lib/bind/port/aix32/Makefile.in		MAKE	2001
 ./lib/bind/port/aix32/include/.cvsignore	X	2001
 ./lib/bind/port/aix32/include/Makefile.in	X	2001
 ./lib/bind/port/aix32/include/paths.h		X	2001
 ./lib/bind/port/aix32/include/sys/bitypes.h	X	2001
 ./lib/bind/port/aix32/include/sys/cdefs.h	X	2001
+./lib/bind/port/aix4/.cvsignore 		X
+./lib/bind/port/aix4/Makefile.in		MAKE	2001
 ./lib/bind/port/aix4/include/.cvsignore		X	2001
 ./lib/bind/port/aix4/include/Makefile.in	X	2001
 ./lib/bind/port/aix4/include/sys/bitypes.h	X	2001
 ./lib/bind/port/aix4/include/sys/cdefs.h	X	2001
+./lib/bind/port/aux3/.cvsignore 		X
+./lib/bind/port/aux3/Makefile.in		MAKE	2001
 ./lib/bind/port/aux3/include/.cvsignore		X	2001
 ./lib/bind/port/aux3/include/Makefile.in	X	2001
 ./lib/bind/port/aux3/include/sys/bitypes.h	X	2001
 ./lib/bind/port/aux3/include/sys/cdefs.h	X	2001
+./lib/bind/port/bsdos/.cvsignore 		X
+./lib/bind/port/bsdos/Makefile.in		MAKE	2001
 ./lib/bind/port/bsdos/include/.cvsignore	X	2001
 ./lib/bind/port/bsdos/include/Makefile.in	X	2001
 ./lib/bind/port/bsdos/include/sys/bitypes.h	X	2001
+./lib/bind/port/bsdos2/.cvsignore 		X
+./lib/bind/port/bsdos2/Makefile.in		MAKE	2001
 ./lib/bind/port/bsdos2/include/.cvsignore	X	2001
 ./lib/bind/port/bsdos2/include/Makefile.in	X	2001
 ./lib/bind/port/bsdos2/include/sys/bitypes.h	X	2001
+./lib/bind/port/darwin/.cvsignore 		X
+./lib/bind/port/darwin/Makefile.in		MAKE	2001
 ./lib/bind/port/darwin/include/.cvsignore	X	2001
 ./lib/bind/port/darwin/include/Makefile.in	X	2001
 ./lib/bind/port/darwin/include/sys/bitypes.h	X	2001
+./lib/bind/port/decunix/.cvsignore 		X
+./lib/bind/port/decunix/Makefile.in		MAKE	2001
 ./lib/bind/port/decunix/include/.cvsignore	X	2001
 ./lib/bind/port/decunix/include/Makefile.in	X	2001
 ./lib/bind/port/decunix/include/sys/bitypes.h	X	2001
 ./lib/bind/port/decunix/include/sys/cdefs.h	X	2001
+./lib/bind/port/freebsd/.cvsignore 		X
+./lib/bind/port/freebsd/Makefile.in		MAKE	2001
 ./lib/bind/port/freebsd/include/.cvsignore	X	2001
 ./lib/bind/port/freebsd/include/Makefile.in	X	2001
 ./lib/bind/port/freebsd/include/sys/bitypes.h	X	2001
+./lib/bind/port/hpux/.cvsignore 		X
+./lib/bind/port/hpux/Makefile.in		MAKE	2001
 ./lib/bind/port/hpux/include/.cvsignore		X	2001
 ./lib/bind/port/hpux/include/Makefile.in	X	2001
 ./lib/bind/port/hpux/include/paths.h		X	2001
 ./lib/bind/port/hpux/include/sys/bitypes.h	X	2001
 ./lib/bind/port/hpux/include/sys/cdefs.h	X	2001
+./lib/bind/port/hpux10/.cvsignore 		X
+./lib/bind/port/hpux10/Makefile.in		MAKE	2001
 ./lib/bind/port/hpux10/include/.cvsignore	X	2001
 ./lib/bind/port/hpux10/include/Makefile.in	X	2001
 ./lib/bind/port/hpux10/include/paths.h		X	2001
 ./lib/bind/port/hpux10/include/sys/bitypes.h	X	2001
 ./lib/bind/port/hpux10/include/sys/cdefs.h	X	2001
+./lib/bind/port/hpux9/.cvsignore 		X
+./lib/bind/port/hpux9/Makefile.in		MAKE	2001
 ./lib/bind/port/hpux9/include/.cvsignore	X	2001
 ./lib/bind/port/hpux9/include/Makefile.in	X	2001
 ./lib/bind/port/hpux9/include/sys/bitypes.h	X	2001
 ./lib/bind/port/hpux9/include/sys/cdefs.h	X	2001
+./lib/bind/port/irix/.cvsignore 		X
+./lib/bind/port/irix/Makefile.in		MAKE	2001
 ./lib/bind/port/irix/include/.cvsignore		X	2001
 ./lib/bind/port/irix/include/Makefile.in	X	2001
 ./lib/bind/port/irix/include/sys/bitypes.h	X	2001
 ./lib/bind/port/irix/include/sys/cdefs.h	X	2001
+./lib/bind/port/linux/.cvsignore 		X
+./lib/bind/port/linux/Makefile.in		MAKE	2001
 ./lib/bind/port/linux/include/.cvsignore	X	2001
 ./lib/bind/port/linux/include/Makefile.in	X	2001
 ./lib/bind/port/linux/include/net/route.h	X	2001
 ./lib/bind/port/linux/include/sys/mbuf.h	X	2001
+./lib/bind/port/lynxos/.cvsignore 		X
+./lib/bind/port/lynxos/Makefile.in		MAKE	2001
 ./lib/bind/port/lynxos/include/.cvsignore	X	2001
 ./lib/bind/port/lynxos/include/Makefile.in	X	2001
 ./lib/bind/port/lynxos/include/sys/bitypes.h	X	2001
 ./lib/bind/port/lynxos/include/sys/cdefs.h	X	2001
+./lib/bind/port/mpe/.cvsignore 			X
+./lib/bind/port/mpe/Makefile.in			MAKE	2001
 ./lib/bind/port/mpe/include/.cvsignore		X	2001
 ./lib/bind/port/mpe/include/Makefile.in		X	2001
 ./lib/bind/port/mpe/include/net/route.h		X	2001
@@ -1386,16 +1418,26 @@
 ./lib/bind/port/mpe/include/sys/mbuf.h		X	2001
 ./lib/bind/port/mpe/include/sys/param.h		X	2001
 ./lib/bind/port/mpe/include/sys/time.h		X	2001
+./lib/bind/port/netbsd/.cvsignore 		X
+./lib/bind/port/netbsd/Makefile.in		MAKE	2001
 ./lib/bind/port/netbsd/include/.cvsignore	X	2001
 ./lib/bind/port/netbsd/include/Makefile.in	X	2001
 ./lib/bind/port/netbsd/include/sys/bitypes.h	X	2001
+./lib/bind/port/next/.cvsignore 		X
+./lib/bind/port/next/Makefile.in		MAKE	2001
 ./lib/bind/port/next/include/.cvsignore		X	2001
 ./lib/bind/port/next/include/Makefile.in	X	2001
 ./lib/bind/port/next/include/sys/bitypes.h	X	2001
 ./lib/bind/port/next/include/sys/cdefs.h	X	2001
+./lib/bind/port/openbsd/.cvsignore 		X
+./lib/bind/port/openbsd/Makefile.in		MAKE	2001
 ./lib/bind/port/openbsd/include/.cvsignore	X	2001
 ./lib/bind/port/openbsd/include/Makefile.in	X	2001
 ./lib/bind/port/openbsd/include/sys/bitypes.h	X	2001
+./lib/bind/port/prand_conf/.cvsignore 		X
+./lib/bind/port/prand_conf/Makefile.in		MAKE	2001
+./lib/bind/port/qnx/.cvsignore 			X
+./lib/bind/port/qnx/Makefile.in			MAKE	2001
 ./lib/bind/port/qnx/include/.cvsignore		X	2001
 ./lib/bind/port/qnx/include/Makefile.in		X	2001
 ./lib/bind/port/qnx/include/sys/bitypes.h	X	2001
@@ -1403,28 +1445,40 @@
 ./lib/bind/port/qnx/include/sys/ioctl.h		X	2001
 ./lib/bind/port/qnx/include/sys/mbuf.h		X	2001
 ./lib/bind/port/qnx/include/sys/resource.h	X	2001
+./lib/bind/port/rhapsody/.cvsignore 		X
+./lib/bind/port/rhapsody/Makefile.in		MAKE	2001
 ./lib/bind/port/rhapsody/include/.cvsignore	X	2001
 ./lib/bind/port/rhapsody/include/Makefile.in	X	2001
 ./lib/bind/port/rhapsody/include/sys/bitypes.h	X	2001
+./lib/bind/port/sco42/.cvsignore 		X
+./lib/bind/port/sco42/Makefile.in		MAKE	2001
 ./lib/bind/port/sco42/include/.cvsignore	X	2001
 ./lib/bind/port/sco42/include/Makefile.in	X	2001
 ./lib/bind/port/sco42/include/sys/bitypes.h	X	2001
 ./lib/bind/port/sco42/include/sys/cdefs.h	X	2001
 ./lib/bind/port/sco42/include/sys/mbuf.h	X	2001
 ./lib/bind/port/sco42/include/sys/un.h		X	2001
+./lib/bind/port/sco50/.cvsignore 		X
+./lib/bind/port/sco50/Makefile.in		MAKE	2001
 ./lib/bind/port/sco50/include/.cvsignore	X	2001
 ./lib/bind/port/sco50/include/Makefile.in	X	2001
 ./lib/bind/port/sco50/include/sys/mbuf.h	X	2001
+./lib/bind/port/solaris/.cvsignore 		X
+./lib/bind/port/solaris/Makefile.in		MAKE	2001
 ./lib/bind/port/solaris/include/.cvsignore	X	2001
 ./lib/bind/port/solaris/include/Makefile.in	X	2001
 ./lib/bind/port/solaris/include/paths.h		X	2001
 ./lib/bind/port/solaris/include/sys/bitypes.h	X	2001
 ./lib/bind/port/solaris/include/sys/cdefs.h	X	2001
+./lib/bind/port/sunos/.cvsignore 		X
+./lib/bind/port/sunos/Makefile.in		MAKE	2001
 ./lib/bind/port/sunos/include/.cvsignore	X	2001
 ./lib/bind/port/sunos/include/Makefile.in	X	2001
 ./lib/bind/port/sunos/include/sys/bitypes.h	X	2001
 ./lib/bind/port/sunos/include/sys/cdefs.h	X	2001
 ./lib/bind/port/sunos/include/sys/wait.h	X	2001
+./lib/bind/port/ultrix/.cvsignore 		X
+./lib/bind/port/ultrix/Makefile.in		MAKE	2001
 ./lib/bind/port/ultrix/include/.cvsignore	X	2001
 ./lib/bind/port/ultrix/include/Makefile.in	X	2001
 ./lib/bind/port/ultrix/include/rpc/xdr.h	X	2001
@@ -1432,16 +1486,24 @@
 ./lib/bind/port/ultrix/include/sys/cdefs.h	X	2001
 ./lib/bind/port/ultrix/include/sys/socket.h	X	2001
 ./lib/bind/port/ultrix/include/sys/syslog.h	X	2001
+./lib/bind/port/unixware20/.cvsignore 		X
+./lib/bind/port/unixware20/Makefile.in		MAKE	2001
 ./lib/bind/port/unixware20/include/.cvsignore	X	2001
 ./lib/bind/port/unixware20/include/Makefile.in	X	2001
 ./lib/bind/port/unixware20/include/sys/bitypes.h	X	2001
 ./lib/bind/port/unixware20/include/sys/cdefs.h	X	2001
+./lib/bind/port/unixware212/.cvsignore 		X
+./lib/bind/port/unixware212/Makefile.in		MAKE	2001
 ./lib/bind/port/unixware212/include/.cvsignore	X	2001
 ./lib/bind/port/unixware212/include/Makefile.in	X	2001
 ./lib/bind/port/unixware212/include/sys/bitypes.h	X	2001
 ./lib/bind/port/unixware212/include/sys/cdefs.h	X	2001
+./lib/bind/port/unixware7/.cvsignore 		X
+./lib/bind/port/unixware7/Makefile.in		MAKE	2001
 ./lib/bind/port/unixware7/include/.cvsignore	X	2001
 ./lib/bind/port/unixware7/include/Makefile.in	X	2001
+./lib/bind/port/unknown/.cvsignore 		X
+./lib/bind/port/unknown/Makefile.in		MAKE	2001
 ./lib/bind/port/unknown/include/Makefile.in	X	2001
 ./lib/bind/port_after.h.in			X	2001
 ./lib/bind/port_before.h.in			X	2001
