@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.16 2003/08/15 02:49:33 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.17 2003/08/15 03:10:04 marka Exp $ */
 
 #include <config.h>
 
@@ -2852,10 +2852,10 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	if (ptr == NULL)
 		return (ISC_R_UNEXPECTEDEND);
 
-	sep = (*args == '\0') ? "" : ": ";
+	sep = (args == NULL) ? "" : ": ";
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
-		      "dumpdb started%s%s", sep, args);
+		      "dumpdb started%s%s", sep, (args != NULL) ? args : "");
 
 	ptr = next_token(&args, " \t");
 	if (ptr != NULL && strcmp(ptr, "-all") == 0) {
