@@ -1,5 +1,5 @@
 
-AC_REVISION($Revision: 1.12 $)
+AC_REVISION($Revision: 1.13 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
@@ -18,6 +18,7 @@ AC_HEADER_TIME
 
 AC_CHECK_LIB(pthread, pthread_create,,
              AC_CHECK_LIB(pthread, __pthread_create)
+             AC_CHECK_LIB(pthread, __pthread_create_system)
 )
 AC_CHECK_LIB(xnet, socket,,
 	     AC_CHECK_LIB(socket, socket)
@@ -67,10 +68,16 @@ else
 		*-sun-solaris*)
 			CC="$CC -mt"
 			;;
+		*-hp-hpux*)
+			CC="$CC"
+			;;
 	esac
 fi
 case "$host" in
 	*-sun-solaris*)
+		AC_DEFINE(NEED_AF_INET6)
+		;;
+	*-hp-hpux*)
 		AC_DEFINE(NEED_AF_INET6)
 		;;
 esac
