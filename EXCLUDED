@@ -160,3 +160,26 @@
 			Use --enable-getifaddrs=glibc to force the use of
 			this version under linux machines.
 
+1502.   [bug]           nsupdate: adjust timeouts for UPDATE requests over TCP.
+
+1517.   [port]          Support for IPv6 interface scanning on HP/UX and
+                        TrueUNIX 5.1.
+
+1519.   [bug]           dnssec-signzone:nsec_setbit() computed the wrong
+                        length of the new bitmap.
+
+1521.   [bug]           dns_view_createresolver() failed to check the
+                        result from isc_mem_create(). [RT# 9294]
+
+1548.   [bug]           When parsing APL records it was possible to silently
+                        accept out of range ADDRESSFAMILY values. [RT# 9979]
+
+1554.   [bug]           dig, host, nslookup failed when no nameservers
+                        were specified in /etc/resolv.conf. [RT #8232]
+
+1560.   [port]          FreeBSD: work around FreeBSD 5.2 mapping EAI_NODATA
+                        and EAI_NONAME to the same value.
+
+1565.   [bug]           CD flag should be copied to outgoing queries unless
+                        the query is under a secure entry point in which case
+                        CD should be set.
