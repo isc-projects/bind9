@@ -100,6 +100,10 @@
 
 1109.	[bug]		nsupdate accepted illegal ttl values.
 
+1108.	[bug]		On Win32, rndc was hanging when named was not running
+			due to failure to select for exceptional conditions
+			in select(). [RT #1870]
+
 1081.	[bug]		Multicast queries were incorrectly identified
 			based on the source address, not the destination
 			address.
