@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# From configure.in Revision: 1.240 
+# From configure.in Revision: 1.242 
 
 ## libtool.m4 - Configure libtool for the target system. -*-Shell-script-*-
 ## Copyright (C) 1996-1999, 2000 Free Software Foundation, Inc.
@@ -5263,20 +5263,17 @@ BIND9_TOP_BUILDDIR=`pwd`
 
 
 
-
 if test "X$srcdir" != "X"; then
 	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
 	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
 	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
 	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
-	BIND9_OMAPI_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/omapi/include"
 	BIND9_LWRES_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/lwres/include"
 else
 	BIND9_ISC_BUILDINCLUDE=""
 	BIND9_ISCCC_BUILDINCLUDE=""
 	BIND9_ISCCFG_BUILDINCLUDE=""
 	BIND9_DNS_BUILDINCLUDE=""
-	BIND9_OMAPI_BUILDINCLUDE=""
 	BIND9_LWRES_BUILDINCLUDE=""
 fi
 
@@ -5304,9 +5301,6 @@ LIBDNS_API=$srcdir/lib/dns/api
 
 
 LIBLWRES_API=$srcdir/lib/lwres/api
-
-
-LIBOMAPI_API=$srcdir/lib/omapi/api
 
 trap '' 1 2 15
 cat > confcache <<\EOF
@@ -5446,9 +5440,6 @@ trap 'rm -fr `echo "make/rules
 	lib/lwres/include/lwres/netdb.h
 	lib/lwres/include/lwres/platform.h
 	lib/lwres/man/Makefile
-	lib/omapi/Makefile
-	lib/omapi/include/Makefile
-	lib/omapi/include/omapi/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
@@ -5624,7 +5615,6 @@ s%@BIND9_ISC_BUILDINCLUDE@%$BIND9_ISC_BUILDINCLUDE%g
 s%@BIND9_ISCCC_BUILDINCLUDE@%$BIND9_ISCCC_BUILDINCLUDE%g
 s%@BIND9_ISCCFG_BUILDINCLUDE@%$BIND9_ISCCFG_BUILDINCLUDE%g
 s%@BIND9_DNS_BUILDINCLUDE@%$BIND9_DNS_BUILDINCLUDE%g
-s%@BIND9_OMAPI_BUILDINCLUDE@%$BIND9_OMAPI_BUILDINCLUDE%g
 s%@BIND9_LWRES_BUILDINCLUDE@%$BIND9_LWRES_BUILDINCLUDE%g
 /@BIND9_INCLUDES@/r $BIND9_INCLUDES
 s%@BIND9_INCLUDES@%%g
@@ -5641,8 +5631,6 @@ s%@LIBISCCFG_API@%%g
 s%@LIBDNS_API@%%g
 /@LIBLWRES_API@/r $LIBLWRES_API
 s%@LIBLWRES_API@%%g
-/@LIBOMAPI_API@/r $LIBOMAPI_API
-s%@LIBOMAPI_API@%%g
 
 CEOF
 EOF
@@ -5721,9 +5709,6 @@ CONFIG_FILES=\${CONFIG_FILES-"make/rules
 	lib/lwres/include/lwres/netdb.h
 	lib/lwres/include/lwres/platform.h
 	lib/lwres/man/Makefile
-	lib/omapi/Makefile
-	lib/omapi/include/Makefile
-	lib/omapi/include/omapi/Makefile
 	lib/tests/Makefile
 	lib/tests/include/Makefile
 	lib/tests/include/tests/Makefile
