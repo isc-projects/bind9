@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.70.2.5 2000/09/13 23:13:23 explorer Exp $ */
+/* $Id: confctx.c,v 1.70.2.6 2000/09/15 23:07:18 bwelling Exp $ */
 
 #include <config.h>
 
@@ -386,7 +386,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 	}
 
 
-	if (dns_c_ctx_getmaintainixfrbase(cfg, &uintval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getmaintainixfrbase(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'maintain-ixfr-base' is obsolete");
