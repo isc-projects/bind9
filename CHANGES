@@ -1,3 +1,9 @@
+  73.   [func]          New "file" API in libisc, including new function
+                        isc_file_getmodtime, isc_mktemplate renamed to
+                        isc_file_mktemplate and isc_ufile renamed to
+                        isc_file_openunique.  By no means an exhaustive API,
+                        it is just what's needed for now.
+
   72.   [func]          DNS_RBTFIND_NOPREDECESSOR and DNS_RBTFIND_NOOPTIONS
                         added for dns_rbt_findnode, the former to disable the
                         setting of the chain to the predecessor, and the
