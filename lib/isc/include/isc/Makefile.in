@@ -13,7 +13,7 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: Makefile.in,v 1.38.2.1 2000/06/30 01:25:29 bwelling Exp $
+# $Id: Makefile.in,v 1.38.2.2 2000/08/17 00:25:25 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -27,7 +27,8 @@ top_srcdir =	@top_srcdir@
 # install target below.
 #
 HEADERS =	assertions.h base64.h bitstring.h boolean.h buffer.h \
-		bufferlist.h commandline.h error.h event.h eventclass.h \
+		bufferlist.h commandline.h entropy.h error.h event.h \
+		eventclass.h \
 		file.h formatcheck.h fsaccess.h heap.h interfaceiter.h \
 		@ISC_IPV6_H@ lang.h lex.h \
 		lfsr.h lib.h list.h log.h magic.h md5.h mem.h msgcat.h \
