@@ -18,16 +18,19 @@ VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/.. \
+		-I./include \
 		-I${srcdir}/include \
 		-I${srcdir}/../pthreads/include \
 		-I${srcdir}/../include
 CDEFINES =
 CWARNINGS =
 
-OBJS =		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
+OBJS =		@ISC_IPV6_O@ \
+		app.@O@ time.@O@ stdtime.@O@ socket.@O@ \
 		interfaceiter.@O@ net.@O@
 
-SRCS =		app.c time.c stdtime.c socket.c \
+SRCS =		@ISC_IPV6_C@ \
+		app.c time.c stdtime.c socket.c \
 		interfaceiter.c net.c
 
 SUBDIRS =	include
