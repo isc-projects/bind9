@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: tsig_250.c,v 1.19 1999/10/07 21:49:38 bwelling Exp $ */
+ /* $Id: tsig_250.c,v 1.20 1999/10/08 22:48:13 tale Exp $ */
 
  /* draft-ietf-dnsind-tsig-07.txt */
 
@@ -52,8 +52,8 @@ fromtext_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_SYNTAX);
 	if ((sigtime >> 48) != 0)
 		return(DNS_R_RANGE);
-	RETERR(uint16_tobuffer(sigtime >> 32, target));
-	RETERR(uint32_tobuffer(sigtime & 0xffffffff, target));
+	RETERR(uint16_tobuffer((isc_uint16_t)(sigtime >> 32), target));
+	RETERR(uint32_tobuffer((isc_uint32_t)(sigtime & 0xffffffff), target));
 
 	/* Fudge */
 	RETERR(gettoken(lexer, &token, isc_tokentype_number, ISC_FALSE));
@@ -316,8 +316,9 @@ fromstruct_any_tsig(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		return (DNS_R_NOSPACE);
 
 	/* Time Signed: 48 bits */
-	RETERR(uint16_tobuffer(tsig->timesigned >> 32, target));
-	RETERR(uint32_tobuffer(tsig->timesigned & 0xffffffff, target));
+	RETERR(uint16_tobuffer((isc_uint16_t)(tsig->timesigned >> 32),target));
+	RETERR(uint32_tobuffer((isc_uint32_t)(tsig->timesigned & 0xffffffff),
+			       target));
 
 	/* Fudge */
 	RETERR(uint16_tobuffer(tsig->fudge, target));
