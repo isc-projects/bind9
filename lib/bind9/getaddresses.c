@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.4 2001/11/15 00:53:05 gson Exp $ */
+/* $Id: getaddresses.c,v 1.5 2001/11/15 00:58:00 gson Exp $ */
 
 #include <config.h>
 #include <string.h>
@@ -133,19 +133,19 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 				return (ISC_R_FAILURE);
 		}
 	}
-	if (he->h_addrtype != AF_INET && h_addrtype != AF_INET6) {
+	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6) {
 		freehostent(he);
 		return (ISC_R_NOTFOUND);
 	}
 	for (i = 0; i < addrsize; i++) {
 		if (he->h_addrtype == AF_INET) {
-			struct in_addr_t *inp;
+			struct in_addr *inp;
 			inp = (struct in_addr *)(he->h_addr_list[i]);
 			if (inp == NULL)
 				break;
 			isc_sockaddr_fromin(&addrs[i], inp, port);
 		} else {
-			struct in6_addr_t *in6p;
+			struct in6_addr *in6p;
 			in6p = (struct in6_addr *)(he->h_addr_list[i]);
 			if (in6p == NULL)
 				break;
