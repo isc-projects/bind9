@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.89 2000/09/13 22:47:05 gson Exp $ */
+/* $Id: confctx.c,v 1.90 2000/09/15 23:02:07 gson Exp $ */
 
 #include <config.h>
 
@@ -478,7 +478,7 @@ dns_c_checkconfig(dns_c_ctx_t *cfg)
 			      "implemented");
 	}
 
-	if (dns_c_ctx_getmaintainixfrbase(cfg, &uintval) != ISC_R_NOTFOUND) {
+	if (dns_c_ctx_getmaintainixfrbase(cfg, &bval) != ISC_R_NOTFOUND) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 			      "option 'maintain-ixfr-base' is obsolete");
