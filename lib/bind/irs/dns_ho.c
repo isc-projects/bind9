@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.2 2001/05/21 14:31:30 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.3 2001/05/22 22:53:24 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -455,14 +455,8 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 			continue;
 		}
 
-		if ((n = res_nsearch(pvt->res, p->qname, p->qclass, p->qtype,
-				     p->answer, p->anslen)) < 0) {
-			querystate = RESQRY_FAIL;
-			continue;
-		}
-
-		if ((n = res_nquery(pvt->res, p->qname, C_IN, T_PTR, p->answer,
-				    p->anslen)) < 0) {
+		if ((n = res_nquery(pvt->res, p->qname, p->qclass, p->qtype,
+				    p->answer, p->anslen)) < 0) {
 			querystate = RESQRY_FAIL;
 			continue;
 		}
