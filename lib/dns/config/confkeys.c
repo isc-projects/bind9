@@ -961,16 +961,17 @@ dns_c_tkeylist_print(FILE *fp, int indent, dns_c_tkeylist_t *list)
 	REQUIRE(fp != NULL);
 	REQUIRE(DNS_C_TKEYLIST_VALID(list));
 	
-	if (ISC_LIST_EMPTY(list->tkeylist)) {
-		return;
-	}
-
 	dns_c_printtabs(fp, indent);
 	fprintf(fp, "trusted-keys {\n");
 	tkey = ISC_LIST_HEAD(list->tkeylist);
-	while (tkey != NULL) {
-		dns_c_tkey_print(fp, indent + 1, tkey);
-		tkey = ISC_LIST_NEXT(tkey, next);
+	if (tkey == NULL) {
+		dns_c_printtabs(fp, indent + 1);
+		fprintf(fp, "/* empty list */\n");
+	} else {
+		while (tkey != NULL) {
+			dns_c_tkey_print(fp, indent + 1, tkey);
+			tkey = ISC_LIST_NEXT(tkey, next);
+		}
 	}
 	dns_c_printtabs(fp, indent);
 	fprintf(fp,"};\n");
