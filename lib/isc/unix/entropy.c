@@ -129,14 +129,57 @@ entropypool_add_word(isc_entropypool_t *, isc_uint32_t);
 static void
 fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
 
-#define ENTROPY(ent)	((ent)->pool.entropy)
+/*
+ * Add in entropy, even when the value we're adding in could be
+ * very large.
+ */
+static inline void
+add_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
+	/* clamp input.  Yes, this must be done. */
+	entropy = ISC_MIN(entropy, RND_POOLBITS);
+	/* Add in the entropy we already have. */
+	entropy += ent->pool.entropy;
+	/* Clamp. */
+	ent->pool.entropy = ISC_MIN(entropy, RND_POOLBITS);
+}
+
+/*
+ * Decrement the amount of entropy the pool has.
+ */
+static inline void
+subtract_entropy(isc_entropy_t *ent, isc_uint32_t entropy) {
+	entropy = ISC_MIN(entropy, ent->pool.entropy);
+	ent->pool.entropy -= entropy;
+}
+
+/*
+ * Add in entropy, even when the value we're adding in could be
+ * very large.
+ */
+static inline void
+add_pseudo(isc_entropy_t *ent, isc_uint32_t entropy) {
+	/* clamp input.  Yes, this must be done. */
+	entropy = ISC_MIN(entropy, RND_POOLBITS * 8);
+	/* Add in the entropy we already have. */
+	entropy += ent->pool.pseudo;
+	/* Clamp. */
+	ent->pool.pseudo = ISC_MIN(entropy, RND_POOLBITS * 8);
+}
+
+/*
+ * Decrement the amount of entropy the pool has.
+ */
+static inline void
+subtract_pseudo(isc_entropy_t *ent, isc_uint32_t entropy) {
+	entropy = ISC_MIN(entropy, ent->pool.pseudo);
+	ent->pool.pseudo -= entropy;
+}
 
 /*
  * Add one word to the pool, rotating the input as needed.
  */
 static inline void
-entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val)
-{
+entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val) {
 	/*
 	 * Steal some values out of the pool, and xor them into the
 	 * word we were given.
@@ -173,7 +216,7 @@ entropypool_add_word(isc_entropypool_t *rp, isc_uint32_t val)
  * Requires that the lock is held on the entropy pool.
  */
 static void
-entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
+entropypool_adddata(isc_entropy_t *ent, void *p, unsigned int len,
 		    isc_uint32_t entropy)
 {
 	isc_uint32_t val;
@@ -197,13 +240,13 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 			len--;
 		}
 
-		entropypool_add_word(rp, val);
+		entropypool_add_word(&ent->pool, val);
 	}
 
 	for (; len > 3 ; len -= 4) {
 		val = *((isc_uint32_t *)buf);
 
-		entropypool_add_word(rp, val);
+		entropypool_add_word(&ent->pool, val);
 		buf += 4;
 	}
 
@@ -218,15 +261,15 @@ entropypool_adddata(isc_entropypool_t *rp, void *p, unsigned int len,
 			val = val << 8 | *buf++;
 		}
 
-		entropypool_add_word(rp, val);
+		entropypool_add_word(&ent->pool, val);
 	}
 
-	rp->entropy = ISC_MIN(rp->entropy + entropy, RND_POOLBITS);
+	add_entropy(ent, entropy);
 }
 
 static isc_uint32_t
 get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
-	isc_entropypool_t *pool = &source->ent->pool;
+	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	int fd = source->sources.file.fd;
 	ssize_t n, ndesired;
@@ -250,7 +293,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		if (n == 0)
 			goto out;
 
-		entropypool_adddata(pool, buf, n, n * 8);
+		entropypool_adddata(ent, buf, n, n * 8);
 		added += n * 8;
 		desired -= n;
 	}
@@ -331,18 +374,10 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 		needed, added);
 
 	/*
-	 * If we added any data, decrement the pseudo variable by
-	 * how much we added.
+	 * Adjust counts.
 	 */
-	if (ent->pool.pseudo <= added)
-		ent->pool.pseudo = 0;
-	else
-		ent->pool.pseudo -= added;
-
-	/*
-	 * Increment the amount of entropy we have in the pool.
-	 */
-	ent->pool.entropy = ISC_MIN(ent->pool.entropy + added, RND_POOLBITS);
+	subtract_pseudo(ent, added);
+	add_entropy(ent, added);
 }
 
 /*
@@ -393,7 +428,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 * To extract good data, we need to have at least
 		 * enough entropy to fill our digest.
 		 */
-		if (ENTROPY(ent) < RND_ENTROPY_THRESHOLD * 8) {
+		if (ent->pool.entropy < RND_ENTROPY_THRESHOLD * 8) {
 			UNLOCK(&ent->lock);
 			return (ISC_R_NOENTROPY);
 		}
@@ -413,9 +448,9 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 */
 		if (goodonly) {
 			fillpool(ent, (length - remain) * 8, blocking);
-			if (!partial
-			    && ((ENTROPY(ent) < count * 8)
-				|| (ENTROPY(ent) < RND_ENTROPY_THRESHOLD * 8)))
+			if (!partial && !blocking
+			    && ((ent->pool.entropy < count * 8)
+				|| (ent->pool.entropy < RND_ENTROPY_THRESHOLD * 8)))
 				goto zeroize;
 		} else {
 			/*
@@ -433,8 +468,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		/*
 		 * Stir the extracted data (all of it) back into the pool.
 		 */
-		entropypool_adddata(&ent->pool, digest, ISC_SHA1_DIGESTLENGTH,
-				    0);
+		entropypool_adddata(ent, digest, ISC_SHA1_DIGESTLENGTH, 0);
 
 		for (i = 0; i < count; i++)
 			buf[i] = digest[i] ^ digest[i + RND_ENTROPY_THRESHOLD];
@@ -443,13 +477,12 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		remain -= count;
 
 		deltae = count * 8;
-		deltae = ISC_MIN(deltae, ENTROPY(ent));
-		ent->pool.entropy -= deltae;
+		deltae = ISC_MIN(deltae, ent->pool.entropy);
 		total += deltae;
+		subtract_entropy(ent, deltae);
 	}
 
-	ent->pool.pseudo = ISC_MIN(ent->pool.pseudo + total,
-				   RND_POOLBITS * 16);
+	add_pseudo(ent, total);
 
 	memset(digest, 0, sizeof(digest));
 
@@ -462,7 +495,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
  zeroize:
 	/* put the entropy we almost extracted back */
-	ent->pool.entropy = ISC_MIN(ent->pool.entropy + total, RND_POOLBITS);
+	add_entropy(ent, total);
 	memset(data, 0, length);
 	memset(digest, 0, sizeof(digest));
 	if (returned != NULL)
