@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.49 2000/06/07 19:05:45 bwelling Exp $
+ * $Id: dst_api.c,v 1.50 2000/06/08 20:38:48 tale Exp $
  */
 
 #include <config.h>
@@ -60,7 +60,9 @@ static isc_boolean_t dst_initialized = ISC_FALSE;
 static isc_mutex_t mutex, random_lock;
 static isc_once_t once = ISC_ONCE_INIT;
 
-/* Static functions */
+/*
+ * Static functions.
+ */
 static isc_result_t	initialize(isc_mem_t *mctx);
 static dst_key_t *	get_key_struct(dns_name_t *name,
 				       const unsigned int alg,
@@ -995,7 +997,7 @@ write_public_key(const dst_key_t *key, const char *directory) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+static isc_result_t
 buildfilename(dns_name_t *name, const unsigned int id, 
 	      const unsigned int alg, const unsigned int type,
 	      const char *directory, isc_buffer_t *out)
