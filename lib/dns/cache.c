@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: cache.c,v 1.11 2000/01/25 19:28:59 halley Exp $ */
+ /* $Id: cache.c,v 1.12 2000/02/03 18:59:24 gson Exp $ */
 
 #include <config.h>
 #include <limits.h>
@@ -140,7 +140,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 				 "isc_mutex_init() failed: %s",
 				 dns_result_totext(result));
 		result = ISC_R_UNEXPECTED;
-		goto fail;
+		goto cleanup_mem;
 	}
 
 	cache->references = 1;
@@ -151,7 +151,7 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	result = dns_db_create(cache->mctx, db_type, dns_rootname, ISC_TRUE,
 				rdclass, db_argc, db_argv, &cache->db);
 	if (result != ISC_R_SUCCESS)
-		goto fail;
+		goto cleanup_mutex;
 
 	cache->filename = NULL;	
 	
@@ -159,11 +159,17 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	result = cache_cleaner_init(cache, taskmgr, timermgr,
 				    &cache->cleaner);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	if (result != DNS_R_SUCCESS)
+		goto cleanup_db;
 
 	*cachep = cache;
 	return (ISC_R_SUCCESS);
- fail:
+
+ cleanup_db:
+	dns_db_detach(&cache->db);
+ cleanup_mutex:
+	isc_mutex_destroy(&cache->lock);
+ cleanup_mem:
 	isc_mem_put(cache->mctx, cache, sizeof *cache);
 	return (result);
 }
@@ -324,15 +330,21 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					 "isc_task_create() failed: %s",
 					 dns_result_totext(result));
 			result = ISC_R_UNEXPECTED;
-			goto cleanup_dbiterator;
+			goto cleanup;
 		}
 		cleaner->cache->live_tasks++;
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
 
 		result = isc_task_onshutdown(cleaner->task,
-					      cleaner_shutdown_action, cache);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
+					     cleaner_shutdown_action, cache);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "cache cleaner: "
+					 "isc_task_onshutdown() failed: %s",
+					 dns_result_totext(result));
+			goto cleanup;
+		}
+			
 		cleaner->cleaning_interval = 0; /* Initially turned off. */
 		result = isc_timer_create(timermgr, isc_timertype_inactive,
 					   NULL, NULL,
@@ -344,9 +356,9 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					 "isc_timer_create() failed: %s",
 					 dns_result_totext(result));
 			result = ISC_R_UNEXPECTED;
-			goto cleanup_task;
+			goto cleanup;
 		}
-
+		
 		cleaner->resched_event =
 			isc_event_allocate(cache->mctx, cleaner,
 					   DNS_EVENT_CACHECLEAN,
@@ -354,18 +366,17 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					   cleaner, sizeof(isc_event_t));
 		if (cleaner->resched_event == NULL) {
 			result = ISC_R_NOMEMORY;
-			goto cleanup_timer;
+			goto cleanup;
 		}
 	}
-
+		
 	return (ISC_R_SUCCESS);
-
-    cleanup_timer:
-	isc_timer_detach(&cleaner->cleaning_timer);
-    cleanup_task:
-	isc_task_detach(&cleaner->task);
-    cleanup_dbiterator:
-	dns_dbiterator_destroy(&cleaner->iterator);
+	
+ cleanup:
+	if (cleaner->cleaning_timer != NULL)
+		isc_timer_detach(&cleaner->cleaning_timer);
+	if (cleaner->task != NULL)
+		isc_task_detach(&cleaner->task);
 	return (result);
 }
 
@@ -477,7 +488,13 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 		/* Check TTLs, mark expired rdatasets stale. */
 		result = dns_db_expirenode(cleaner->cache->db, node, now);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "cache cleaner: dns_db_expirenode() "
+					 "failed: %s",
+					 dns_result_totext(result));
+			/* Continue anyway. */
+		}
 
 		/* This is where the actual freeing takes place. */ 
 		dns_db_detachnode(cleaner->cache->db, &node);
@@ -539,7 +556,13 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 
 		/* Check TTLs, mark expired rdatasets stale. */
 		result = dns_db_expirenode(cache->db, node, now);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (result != ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "cache cleaner: dns_db_expirenode() "
+					 "failed: %s",
+					 dns_result_totext(result));
+			/* Continue anyway. */
+		}
 
 		/* This is where the actual freeing takes place. */ 
 		dns_db_detachnode(cache->db, &node);
