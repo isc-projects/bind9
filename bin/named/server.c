@@ -121,14 +121,12 @@ ns_listenlist_fromconfig(dns_c_lstnlist_t *clist, dns_c_ctx_t *cctx,
 
 /*
  * Configure 'view' according to 'cctx'.
- *
- * XXX reconfiguration should preserve cache contents.
  */
 static isc_result_t
 configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	       dns_dispatch_t *dispatch)
 {
-	dns_cache_t *cache;
+	dns_cache_t *cache = NULL;
 	isc_result_t result;
 	isc_int32_t cleaning_interval;
 	dns_tsig_keyring_t *ring;
@@ -137,8 +135,9 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	dns_fwdpolicy_t fwdpolicy;
 	isc_sockaddrlist_t addresses;
 	isc_sockaddr_t *sa, *next_sa;
+	dns_view_t *pview = NULL;	/* Production view */
 	unsigned int i;
-
+	
 	REQUIRE(DNS_VIEW_VALID(view));
 
 	ISC_LIST_INIT(addresses);
@@ -146,11 +145,34 @@ configure_view(dns_view_t *view, dns_c_ctx_t *cctx, isc_mem_t *mctx,
 	RWLOCK(&view->conflock, isc_rwlocktype_write);
 	
 	/*
-	 * Cache.
+	 * Configure the view's cache.  Try to reuse an existing
+	 * cache if possible, otherwise create a new cache.
+	 * Note that the ADB is not preserved in either case.
+	 * 
+	 * XXX Determining when it is safe to reuse a cache is 
+	 * tricky.  When the view's configuration changes, the cached
+	 * data may become invalid because it reflects our old
+	 * view of the world.  As more view attributes become
+	 * configurable, we will have to add code here to check
+	 * whether they have changed in ways that could
+	 * invalidate the cache.
 	 */
-	cache = NULL;
-	CHECK(dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
-			       view->rdclass, "rbt", 0, NULL, &cache));
+	result = dns_viewlist_find(&ns_g_server->viewlist,
+				   view->name, view->rdclass,
+				   &pview);
+	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+		goto cleanup;
+	if (pview != NULL) {
+		INSIST(pview->cache != NULL);
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER,
+			      ISC_LOG_DEBUG(3), "reusing existing cache");
+		dns_cache_attach(pview->cache, &cache);
+		dns_view_detach(&pview);
+	} else {
+		CHECK(dns_cache_create(mctx, ns_g_taskmgr, ns_g_timermgr,
+				       view->rdclass, "rbt", 0, NULL, &cache));
+	}
 	dns_view_setcache(view, cache);
 	cleaning_interval = 3600; /* Default is 1 hour. */
 	(void) dns_c_ctx_getcleaninterval(cctx, &cleaning_interval);
