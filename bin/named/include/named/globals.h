@@ -54,9 +54,6 @@ EXTERN char *			ns_g_version		INIT(VERSION);
 EXTERN in_port_t		ns_g_port		INIT(53);
 EXTERN dns_zonemgr_t *		ns_g_zonemgr		INIT(NULL);
 
-EXTERN dns_viewlist_t		ns_g_viewlist;
-EXTERN isc_rwlock_t		ns_g_viewlock;
-
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
 
 /*

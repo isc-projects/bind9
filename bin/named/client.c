@@ -615,8 +615,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * XXXRTH  View list management code will be moving to its own module
 	 *         soon.
 	 */
-	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
-	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
+	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
 		/*
@@ -627,7 +627,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 	}
-	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 
 	if (view == NULL) {
 		CTRACE("no view");

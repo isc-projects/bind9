@@ -260,12 +260,6 @@ setup() {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s", ns_g_version);
 
-	ISC_LIST_INIT(ns_g_viewlist);
-	result = isc_rwlock_init(&ns_g_viewlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("isc_rwlock_init() failed: %s",
-				   isc_result_totext(result));
-
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("create_managers() failed: %s",
@@ -280,7 +274,6 @@ setup() {
 static void
 cleanup() {
 	destroy_managers();
-	isc_rwlock_destroy(&ns_g_viewlock);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
 	ns_log_shutdown();

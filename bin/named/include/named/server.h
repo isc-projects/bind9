@@ -34,10 +34,13 @@ struct ns_server {
 	isc_boolean_t		recursion;
 	isc_boolean_t		auth_nxdomain;
 	dns_transfer_format_t	transfer_format;
-
 	dns_acl_t *		queryacl;
 	dns_acl_t *		recursionacl;
 	dns_acl_t *		transferacl;
+
+	/* Server data structures. */
+	dns_viewlist_t		viewlist;
+	isc_rwlock_t		viewlock;
 };
 
 #define NS_SERVER_MAGIC			0x53564552	/* SVER */

@@ -298,10 +298,10 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 	/*
 	 * Do we already have a production version of this view?
 	 */
-	RWLOCK(&ns_g_viewlock, isc_rwlocktype_read);
-	result = dns_viewlist_find(&ns_g_viewlist, view->name, view->rdclass,
+	RWLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
+	result = dns_viewlist_find(&ns_g_server->viewlist, view->name, view->rdclass,
 				   &pview);
-     	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_read);
+     	RWUNLOCK(&ns_g_server->viewlock, isc_rwlocktype_read);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -521,12 +521,12 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * Put the configuration into production.
 	 */
 
-	RWLOCK(&ns_g_viewlock, isc_rwlocktype_write);
+	RWLOCK(&server->viewlock, isc_rwlocktype_write);
 
-	oviewlist = ns_g_viewlist;
-	ns_g_viewlist = lctx.viewlist;
+	oviewlist = server->viewlist;
+	server->viewlist = lctx.viewlist;
 
-	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
+	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
 	/*
 	 * Cleanup old configuration.
@@ -591,20 +591,20 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      ISC_LOG_INFO, "shutting down");
 
-	RWLOCK(&ns_g_viewlock, isc_rwlocktype_write);
+	RWLOCK(&server->viewlock, isc_rwlocktype_write);
 
-	for (view = ISC_LIST_HEAD(ns_g_viewlist);
+	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
-		ISC_LIST_UNLINK(ns_g_viewlist, view, link);
+		ISC_LIST_UNLINK(server->viewlist, view, link);
 		dns_view_detach(&view);
 	}
 
 	dns_tkey_destroy();
 	dns_tsig_destroy();
 
-	RWUNLOCK(&ns_g_viewlock, isc_rwlocktype_write);
+	RWUNLOCK(&server->viewlock, isc_rwlocktype_write);
 
 	isc_task_detach(&server_task);
 
@@ -619,12 +619,14 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 isc_result_t
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
+	isc_result_t result;
+	
 	ns_server_t *server = isc_mem_get(mctx, sizeof(*server));
 	if (server == NULL)
 		return (ISC_R_NOMEMORY);
 	server->mctx = mctx;
 
-	/* Initialize. */
+	/* Initialize configuration data with default values. */
 	server->recursion = ISC_TRUE;
 	server->auth_nxdomain = ISC_FALSE; /* Was true in BIND 8 */
 	server->transfer_format = dns_one_answer;
@@ -632,6 +634,12 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	server->queryacl = NULL;
 	server->recursionacl = NULL;
 	server->transferacl = NULL;
+
+	/* Initialize server data structures. */
+	ISC_LIST_INIT(server->viewlist);
+	result = isc_rwlock_init(&server->viewlock, 0, 0);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	server->magic = NS_SERVER_MAGIC;
 	*serverp = server;
@@ -643,6 +651,9 @@ ns_server_destroy(ns_server_t **serverp) {
 	ns_server_t *server = *serverp;
 	REQUIRE(NS_SERVER_VALID(server));
 
+	INSIST(ISC_LIST_EMPTY(server->viewlist));
+	isc_rwlock_destroy(&server->viewlock);
+	
 	if (server->queryacl != NULL)
 		dns_acl_detach(&server->queryacl);
 	if (server->recursionacl != NULL)
