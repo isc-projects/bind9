@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: ssu.c,v 1.10 2000/05/08 19:23:16 tale Exp $
+ * $Id: ssu.c,v 1.11 2000/05/14 02:29:23 tale Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -237,9 +237,9 @@ dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 
 static inline isc_boolean_t
 isusertype(dns_rdatatype_t type) {
-	return (type != dns_rdatatype_ns &&
-		type != dns_rdatatype_soa &&
-		type != dns_rdatatype_sig);
+	return (ISC_TF(type != dns_rdatatype_ns &&
+		       type != dns_rdatatype_soa &&
+		       type != dns_rdatatype_sig));
 }
 
 isc_boolean_t
