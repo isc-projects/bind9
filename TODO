@@ -11,9 +11,8 @@
 9.	Authority is optional if we have answers?
 10.	AD bit setting.
 11.	KEY duplication (answer + additional) in any query
-12.	Add covers to deleterdataset.
-13.	Fix rdata META flag to be set for TSIG, TKEY, OPT
-14.	Intergrate (replace?) old per zone SOA timers with zomemgr
-15.	RWlock for zonemgr zone list
-16.	CHAOS A's
-17.	implement "doc" checks out of zonemgr.
+12.	Fix rdata META flag to be set for TSIG, TKEY, OPT
+13.	Intergrate (replace?) old per zone SOA timers with zomemgr
+14.	RWlock for zonemgr zone list
+15.	CHAOS A's
+16.	implement "doc" checks out of zonemgr.
