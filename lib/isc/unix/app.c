@@ -39,6 +39,10 @@ static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
 static isc_boolean_t		shutdown_requested = ISC_FALSE;
 static isc_boolean_t		running = ISC_FALSE;
+/*
+ * We assume that 'want_reload' can be read and written atomically.
+ */
+static isc_boolean_t		want_reload = ISC_FALSE;
 
 #ifdef HAVE_LINUXTHREADS
 static pthread_t		main_thread;
@@ -47,7 +51,13 @@ static pthread_t		main_thread;
 #ifndef HAVE_SIGWAIT
 static void
 no_action(int arg) {
-	(void)arg;
+        (void)arg;
+}
+
+static void
+reload_action(int arg) {
+        (void)arg;
+	want_reload = ISC_TRUE;
 }
 #endif
 
@@ -124,14 +134,15 @@ isc_app_start(void) {
 		return (result);
 
 	/*
-	 * Block SIGINT and SIGTERM.
+	 * Block SIGHUP, SIGINT, SIGTERM.
 	 *
 	 * If isc_app_start() is called from the main thread before any other
 	 * threads have been created, then the pthread_sigmask() call below
-	 * will result in all threads having SIGINT and SIGTERM blocked by
-	 * default.
+	 * will result in all threads having SIGHUP, SIGINT and SIGTERM
+	 * blocked by default.
 	 */
 	if (sigemptyset(&sset) != 0 ||
+	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -213,22 +224,37 @@ isc_app_run(void) {
 
 	LOCK(&lock);
 
-	running = ISC_TRUE;
+	if (!running) {
+		running = ISC_TRUE;
 
-	/*
-	 * Post any on-run events (in FIFO order).
-	 */
-	for (event = ISC_LIST_HEAD(on_run);
-	     event != NULL;
-	     event = next_event) {
-		next_event = ISC_LIST_NEXT(event, link);
-		ISC_LIST_UNLINK(on_run, event, link);
-		task = event->sender;
-		event->sender = (void *)&running;
-		isc_task_sendanddetach(&task, &event);
+		/*
+		 * Post any on-run events (in FIFO order).
+		 */
+		for (event = ISC_LIST_HEAD(on_run);
+		     event != NULL;
+		     event = next_event) {
+			next_event = ISC_LIST_NEXT(event, link);
+			ISC_LIST_UNLINK(on_run, event, link);
+			task = event->sender;
+			event->sender = (void *)&running;
+			isc_task_sendanddetach(&task, &event);
+		}
+
 	}
-
+	
 	UNLOCK(&lock);
+
+#ifndef HAVE_SIGWAIT
+	/*
+	 * Catch SIGHUP.
+	 *
+	 * We do this here to ensure that the signal handler is installed
+	 * (i.e. that it wasn't a "one-shot" handler).
+	 */
+	result = handle_signal(SIGHUP, reload_action);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_R_SUCCESS);
+#endif
 
 	/*
 	 * There is no danger if isc_app_shutdown() is called before we wait
@@ -238,12 +264,13 @@ isc_app_run(void) {
 
 #ifdef HAVE_SIGWAIT
 	/*
-	 * Wait for SIGINT or SIGTERM.
+	 * Wait for SIGHUP, SIGINT, or SIGTERM.
 	 */
 	if (sigemptyset(&sset) != 0 ||
 #ifdef HAVE_LINUXTHREADS
 	    sigaddset(&sset, SIGABRT) != 0 ||
 #endif
+	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -252,12 +279,19 @@ isc_app_run(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 	result = sigwait(&sset, &sig);
+	/*
+	 * sigwait() prevents signal handlers from running, so we have
+	 * to check if it was SIGHUP ourselves.
+	 */
+	if (result == 0 && sig == SIGHUP)
+		want_reload = ISC_TRUE;
 #else
 	/*
-	 * Block all signals except for SIGINT and SIGTERM, and then
+	 * Block all signals except for SIGHUP, SIGINT, and SIGTERM, and then
 	 * wait for one of them to occur.
 	 */
 	if (sigfillset(&sset) != 0 ||
+	    sigdelset(&sset, SIGHUP) != 0 ||
 	    sigdelset(&sset, SIGINT) != 0 ||
 	    sigdelset(&sset, SIGTERM) != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -267,6 +301,16 @@ isc_app_run(void) {
 	}
 	result = sigsuspend(&sset);
 #endif
+
+	if (want_reload) {
+		/*
+		 * SIGHUP is blocked now (it's only unblocked when we're
+		 * calling sigsuspend()/sigwait()), so there's no race with
+		 * the reload_action signal handler when we clear want_reload.
+		 */
+		want_reload = ISC_FALSE;
+		return (ISC_R_RELOAD);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -303,6 +347,50 @@ isc_app_shutdown(void) {
 		}
 #else
 		if (kill(getpid(), SIGTERM) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_shutdown() kill: %s",
+					 strerror(errno));
+			return (ISC_R_UNEXPECTED);
+		}
+#endif
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_app_reload(void) {
+	isc_boolean_t want_kill = ISC_TRUE;
+
+	/*
+	 * Request application reload.
+	 */
+
+	LOCK(&lock);
+	
+	REQUIRE(running);
+
+	/*
+	 * Don't send the reload signal if we're shutting down.
+	 */
+	if (shutdown_requested)
+		want_kill = ISC_FALSE;
+
+	UNLOCK(&lock);
+
+	if (want_kill) {
+#ifdef HAVE_LINUXTHREADS
+		int result;
+		
+		result = pthread_kill(main_thread, SIGHUP);
+		if (result != 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_app_shutdown() pthread_kill: %s",
+					 strerror(result));
+			return (ISC_R_UNEXPECTED);
+		}
+#else
+		if (kill(getpid(), SIGHUP) < 0) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_app_shutdown() kill: %s",
 					 strerror(errno));

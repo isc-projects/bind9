@@ -44,6 +44,11 @@
  *
  *		isc_app_finish();	Call very late in main().
  *
+ * Applications that want to use SIGHUP/isc_app_reload() to trigger reloading
+ * should check the result of isc_app_run() and call the reload routine if
+ * the result is ISC_R_RELOAD.  They should then call isc_app_run() again
+ * to resume waiting for reload or termination.
+ *
  * Use of this module is not required.  In particular, isc_app_start() is
  * NOT an ISC library initialization routine.
  *
@@ -118,6 +123,10 @@ isc_app_run(void);
  * Ensures:
  *	Any events requested via isc_app_onrun() will have been posted (in
  *	FIFO order) before isc_app_run() blocks.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS			Shutdown has been requested.
+ *	ISC_R_RELOAD			Reload has been requested.
  */
 
 isc_result_t
@@ -126,7 +135,21 @@ isc_app_shutdown(void);
  * Request application shutdown.
  *
  * Notes:
- *	It is safe to call isc_app_shutdown() multiple times.
+ *	It is safe to call isc_app_shutdown() multiple times.  Shutdown will
+ *	only be triggered once.
+ *
+ * Requires:
+ *	isc_app_run() has been called.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS
+ *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_app_reload(void);
+/*
+ * Request application reload.
  *
  * Requires:
  *	isc_app_run() has been called.
