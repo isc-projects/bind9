@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.209 2001/09/18 22:54:02 gson Exp $ */
+/* $Id: socket.c,v 1.210 2001/10/22 20:57:41 gson Exp $ */
 
 #include <config.h>
 
@@ -902,13 +902,14 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		if (SOFT_ERROR(recv_errno))
 			return (DOIO_SOFT);
 
-		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL))
+		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
 			isc__strerror(recv_errno, strbuf, sizeof(strbuf));
 			socket_log(sock, NULL, IOEVENT,
 				   isc_msgcat, ISC_MSGSET_SOCKET,
 				   ISC_MSG_DOIORECV, 
 				  "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
 				   sock->fd, cc, recv_errno, strbuf);
+		}
 
 #define SOFT_OR_HARD(_system, _isc) \
 	if (recv_errno == _system) { \
