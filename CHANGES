@@ -18,6 +18,9 @@
 			"make install DESTDIR=/xx" works with
 			"configure --with-libtool".  [RT #9941]
 
+1571.	[bug]		rbt:hash_node() could fail leaving the hash table
+			in an inconsistant state.  [RT #10208]
+
 1567.	[bug]		B.ROOT-SERVERS.NET is now 192.228.79.201.
 
 1566.	[port]		Support for the cmsg framework on Solaris and HP/UX.
