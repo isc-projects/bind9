@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.98 2001/06/05 09:02:14 marka Exp $ */
+/* $Id: message.h,v 1.99 2001/06/14 18:38:48 gson Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -381,8 +381,7 @@ isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		  unsigned int options);
 /*
- * Parse raw wire data pointed to by "buffer" and bounded by "buflen" as a
- * DNS message.
+ * Parse raw wire data in 'source' as a DNS message.
  *
  * OPT records are detected and stored in the pseudo-section "opt".
  * TSIGs are detected and stored in the pseudo-section "tsig".
