@@ -1,9 +1,9 @@
 
-This is a simple test environment for running bind9 system
-tests involving multiple name servers.
+This is a simple test environment for running bind9 system tests
+involving multiple name servers.
 
 There are multiple test suites, each in a separate subdirectory and
-involving a diffent DNS setup.  They are:
+involving a different DNS setup.  They are:
 
   xfer/		Zone transfer, update, and NOTIFY tests
   dnssec/	DNSSEC tests
@@ -57,4 +57,4 @@ To run the tests:
 
 XXX The manual operations in [brackets] above should be automated.
 
-$Id: README,v 1.1 2000/05/15 22:47:15 gson Exp $
+$Id: README,v 1.2 2000/05/15 23:09:42 gson Exp $
