@@ -240,6 +240,8 @@ isc_rwlock_lock
 isc_rwlock_trylock
 isc_rwlock_unlock
 isc_rwlock_destroy
+isc_rwlock_tryupgrade
+isc_rwlock_downgrade
 isc_serial_lt
 isc_serial_gt
 isc_serial_le
