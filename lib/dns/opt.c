@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.13 2001/03/28 00:50:02 gson Exp $ */
+/* $Id: opt.c,v 1.14 2001/05/06 02:24:08 mayer Exp $ */
 
 /* DNS_OPT_NEWCODES_KEEP */
 
@@ -138,7 +138,7 @@ dns_opt_add(dns_rdata_t *rdata, dns_optlist_t *optlist,
 		for (i = 0; i < optlist->used; i++) {
 			isc_buffer_putuint16(target, optlist->attrs[i].code);
 			isc_buffer_putuint16(target,
-					     optlist->attrs[i].value.length);
+					     (isc_uint16_t) optlist->attrs[i].value.length);
 			isc_buffer_putmem(target,
 					  optlist->attrs[i].value.base,
 					  optlist->attrs[i].value.length);
