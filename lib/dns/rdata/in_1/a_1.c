@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.38 2000/08/08 23:40:46 gson Exp $ */
+/* $Id: a_1.c,v 1.39 2000/10/25 05:44:01 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -103,6 +103,7 @@ towire_in_a(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length == 4);
 
 	UNUSED(cctx);
 
@@ -123,6 +124,8 @@ compare_in_a(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length == 4);
+	REQUIRE(rdata2->length == 4);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -156,6 +159,7 @@ tostruct_in_a(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length == 4);
 
 	UNUSED(mctx);
 

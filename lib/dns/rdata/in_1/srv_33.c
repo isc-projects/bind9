@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.28 2000/08/01 01:26:34 tale Exp $ */
+/* $Id: srv_33.c,v 1.29 2000/10/25 05:44:09 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -80,6 +80,7 @@ totext_in_srv(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 33);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -153,6 +154,7 @@ towire_in_srv(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 33);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	/*
@@ -182,6 +184,8 @@ compare_in_srv(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 33);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	/*
 	 * Priority, weight, port.
@@ -235,6 +239,7 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(rdata->type == 33);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	srv->common.rdclass = rdata->rdclass;
 	srv->common.rdtype = rdata->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.113 2000/10/25 04:26:44 marka Exp $ */
+/* $Id: rdata.c,v 1.114 2000/10/25 05:43:24 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -515,9 +515,6 @@ dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
 		INSIST(rdata->length == 0);
 		return (ISC_R_SUCCESS);
 	}
-#if 0
-	INSIST(rdata->type == dns_rdatatype_opt || rdata->length != 0);	/* XXXMPA remove */
-#endif
 
 	st = *target;
 
@@ -761,8 +758,10 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	/*
 	 * Some DynDNS meta-RRs have empty rdata.
 	 */
-	if (rdata->length == 0)
+	if ((rdata->flags & DNS_RDATA_UPDATE) != 0) {
+		INSIST(rdata->length == 0);
 		return (ISC_R_SUCCESS);
+	}
 
 	TOTEXTSWITCH
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.17 2000/08/28 17:39:21 bwelling Exp $ */
+/* $Id: a_1.c,v 1.18 2000/10/25 05:43:59 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -100,6 +100,7 @@ towire_hs_a(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 4);
+	REQUIRE(rdata->length == 4);
 
 	UNUSED(cctx);
 
@@ -119,6 +120,8 @@ compare_hs_a(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 1);
 	REQUIRE(rdata1->rdclass == 4);
+	REQUIRE(rdata1->length == 4);
+	REQUIRE(rdata2->length == 4);
 
 	order = memcmp(rdata1->data, rdata2->data, 4);
 	if (order != 0)
@@ -151,6 +154,7 @@ tostruct_hs_a(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 1);
 	REQUIRE(rdata->rdclass == 4);
+	REQUIRE(rdata->length == 4);
 
 	UNUSED(mctx);
 

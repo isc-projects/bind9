@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.43 2000/08/01 01:25:04 tale Exp $ */
+/* $Id: tsig_250.c,v 1.44 2000/10/25 05:43:26 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -26,7 +26,7 @@
 	(DNS_RDATATYPEATTR_META | DNS_RDATATYPEATTR_NOTQUESTION)
 
 static inline isc_result_t
-	fromtext_any_tsig(ARGS_FROMTEXT) {
+fromtext_any_tsig(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_uint64_t sigtime;
@@ -132,6 +132,7 @@ totext_any_tsig(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 	/*
@@ -297,6 +298,7 @@ towire_any_tsig(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
@@ -319,6 +321,8 @@ compare_any_tsig(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 250);
 	REQUIRE(rdata1->rdclass == 255);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -410,6 +414,7 @@ tostruct_any_tsig(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 250);
 	REQUIRE(rdata->rdclass == 255);
+	REQUIRE(rdata->length != 0);
 
 	tsig = (dns_rdata_any_tsig_t *) target;
 	tsig->common.rdclass = rdata->rdclass;

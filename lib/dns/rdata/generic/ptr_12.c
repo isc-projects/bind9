@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ptr_12.c,v 1.31 2000/08/01 01:25:53 tale Exp $ */
+/* $Id: ptr_12.c,v 1.32 2000/10/25 05:43:50 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:05:12 PST 2000 by explorer */
 
@@ -50,6 +50,7 @@ totext_ptr(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 12);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -82,6 +83,7 @@ towire_ptr(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 12);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -102,6 +104,8 @@ compare_ptr(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 12);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -137,6 +141,7 @@ tostruct_ptr(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 12);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	ptr->common.rdclass = rdata->rdclass;
 	ptr->common.rdtype = rdata->type;

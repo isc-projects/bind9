@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.26 2000/08/01 01:26:31 tale Exp $ */
+/* $Id: px_26.c,v 1.27 2000/10/25 05:44:08 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -73,6 +73,7 @@ totext_in_px(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 26);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -143,6 +144,7 @@ towire_in_px(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 26);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	/*
@@ -180,6 +182,8 @@ compare_in_px(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 26);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0)
@@ -238,6 +242,7 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 26);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	px->common.rdclass = rdata->rdclass;
 	px->common.rdtype = rdata->type;

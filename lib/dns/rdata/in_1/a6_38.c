@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a6_38.c,v 1.36 2000/08/01 01:26:16 tale Exp $ */
+/* $Id: a6_38.c,v 1.37 2000/10/25 05:44:00 marka Exp $ */
 
 /* draft-ietf-ipngwg-dns-lookups-03.txt */
 
@@ -94,6 +94,7 @@ totext_in_a6(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 	prefixlen = sr.base[0];
@@ -184,6 +185,7 @@ towire_in_a6(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
@@ -216,6 +218,8 @@ compare_in_a6(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 38);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -306,6 +310,7 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 38);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	a6->common.rdclass = rdata->rdclass;
 	a6->common.rdtype = rdata->type;

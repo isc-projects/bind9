@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.33 2000/08/01 01:26:25 tale Exp $ */
+/* $Id: naptr_35.c,v 1.34 2000/10/25 05:44:05 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -90,6 +90,7 @@ totext_in_naptr(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -189,6 +190,7 @@ towire_in_naptr(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	/*
@@ -236,6 +238,8 @@ compare_in_naptr(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 35);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &region1);
 	dns_rdata_toregion(rdata2, &region2);
@@ -330,6 +334,7 @@ tostruct_in_naptr(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 35);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	naptr->common.rdclass = rdata->rdclass;
 	naptr->common.rdtype = rdata->type;

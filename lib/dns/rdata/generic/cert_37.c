@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.32 2000/08/01 01:25:08 tale Exp $ */
+/* $Id: cert_37.c,v 1.33 2000/10/25 05:43:28 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
@@ -70,6 +70,7 @@ totext_cert(ARGS_TOTEXT) {
 	unsigned int n;
 
 	REQUIRE(rdata->type == 37);
+	REQUIRE(rdata->length != 0);
 
 	UNUSED(tctx);
 
@@ -133,6 +134,7 @@ towire_cert(ARGS_TOWIRE) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == 37);
+	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
 
@@ -148,6 +150,8 @@ compare_cert(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 37);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -177,6 +181,7 @@ tostruct_cert(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 37);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	cert->common.rdclass = rdata->rdclass;
 	cert->common.rdtype = rdata->type;

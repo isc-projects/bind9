@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.29 2000/08/01 01:26:22 tale Exp $ */
+/* $Id: kx_36.c,v 1.30 2000/10/25 05:44:04 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
@@ -58,6 +58,7 @@ totext_in_kx(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -102,6 +103,7 @@ towire_in_kx(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &region);
@@ -126,6 +128,8 @@ compare_in_kx(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 36);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0)
@@ -171,6 +175,7 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 36);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	kx->common.rdclass = rdata->rdclass;
 	kx->common.rdtype = rdata->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey_249.c,v 1.38 2000/08/01 01:26:04 tale Exp $ */
+/* $Id: tkey_249.c,v 1.39 2000/10/25 05:43:56 marka Exp $ */
 
 /*
  * Reviewed: Thu Mar 16 17:35:30 PST 2000 by halley.
@@ -124,6 +124,7 @@ totext_tkey(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 249);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -286,6 +287,7 @@ towire_tkey(ARGS_TOWIRE) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 249);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	/*
@@ -311,6 +313,8 @@ compare_tkey(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 249);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	/*
 	 * Algorithm.
@@ -395,6 +399,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 249);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	tkey->common.rdclass = rdata->rdclass;
 	tkey->common.rdtype = rdata->type;

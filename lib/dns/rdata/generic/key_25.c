@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.31 2000/09/08 14:23:43 bwelling Exp $ */
+/* $Id: key_25.c,v 1.32 2000/10/25 05:43:36 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -73,6 +73,7 @@ totext_key(ARGS_TOTEXT) {
 	unsigned char algorithm;
 
 	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -144,6 +145,7 @@ towire_key(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 25);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -157,6 +159,8 @@ compare_key(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 25);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -192,6 +196,7 @@ tostruct_key(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 25);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	key->common.rdclass = rdata->rdclass;
 	key->common.rdtype = rdata->type;

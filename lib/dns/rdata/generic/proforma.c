@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: proforma.c,v 1.27 2000/08/01 01:25:51 tale Exp $ */
+/* $Id: proforma.c,v 1.28 2000/10/25 05:43:49 marka Exp $ */
 
 #ifndef RDATA_GENERIC_#_#_C
 #define RDATA_GENERIC_#_#_C
@@ -39,6 +39,7 @@ totext_#(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
+	REQUIRE(rdata->length != 0);	/* XXX */
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -60,6 +61,7 @@ towire_#(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
+	REQUIRE(rdata->length != 0);	/* XXX */
 
 	/* NONE or GLOBAL14 */
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
@@ -76,6 +78,8 @@ compare_#(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == #);
 	REQUIRE(rdata1->rdclass == #);
+	REQUIRE(rdata1->length != 0);	/* XXX */
+	REQUIRE(rdata2->length != 0);	/* XXX */
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -100,6 +104,7 @@ tostruct_#(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == #);
 	REQUIRE(rdata->rdclass == #);
+	REQUIRE(rdata->length != 0);	/* XXX */
 
 	return (ISC_R_NOTIMPLEMENTED);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: isdn_20.c,v 1.22 2000/08/01 01:25:19 tale Exp $ */
+/* $Id: isdn_20.c,v 1.23 2000/10/25 05:43:34 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:53:11 PST 2000 by bwelling */
 
@@ -57,6 +57,7 @@ totext_isdn(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == 20);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
@@ -85,6 +86,7 @@ towire_isdn(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 20);
+	REQUIRE(rdata->length != 0);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -97,6 +99,8 @@ compare_isdn(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 20);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -125,6 +129,7 @@ tostruct_isdn(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 20);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	isdn->common.rdclass = rdata->rdclass;
 	isdn->common.rdtype = rdata->type;

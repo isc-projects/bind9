@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.28 2000/08/01 01:26:20 tale Exp $ */
+/* $Id: aaaa_28.c,v 1.29 2000/10/25 05:44:02 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -103,6 +103,7 @@ towire_in_aaaa(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length == 16);
 
 	isc_buffer_availableregion(target, &region);
 	if (region.length < rdata->length)
@@ -121,6 +122,8 @@ compare_in_aaaa(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 28);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length == 16);
+	REQUIRE(rdata2->length == 16);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -148,6 +151,7 @@ tostruct_in_aaaa(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 28);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length == 16);
 
 	UNUSED(mctx);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.29 2000/08/01 01:25:17 tale Exp $ */
+/* $Id: hinfo_13.c,v 1.30 2000/10/25 05:43:33 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -52,6 +52,7 @@ totext_hinfo(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &region);
 	RETERR(txt_totext(&region, target));
@@ -78,6 +79,7 @@ towire_hinfo(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 13);
+	REQUIRE(rdata->length != 0);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -90,6 +92,8 @@ compare_hinfo(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 13);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -118,6 +122,7 @@ tostruct_hinfo(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 13);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	hinfo->common.rdclass = rdata->rdclass;
 	hinfo->common.rdtype = rdata->type;

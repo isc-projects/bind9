@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mr_9.c,v 1.30 2000/08/01 01:25:37 tale Exp $ */
+/* $Id: mr_9.c,v 1.31 2000/10/25 05:43:44 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 21:30:35 EST 2000 by tale */
 
@@ -50,6 +50,7 @@ totext_mr(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 9);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -82,6 +83,7 @@ towire_mr(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 9);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -102,6 +104,8 @@ compare_mr(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 9);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -137,6 +141,7 @@ tostruct_mr(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 9);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	mr->common.rdclass = rdata->rdclass;
 	mr->common.rdtype = rdata->type;

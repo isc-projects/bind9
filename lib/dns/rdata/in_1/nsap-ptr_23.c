@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.24 2000/08/01 01:26:27 tale Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.25 2000/10/25 05:44:06 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -52,6 +52,7 @@ totext_in_nsap_ptr(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -84,6 +85,7 @@ towire_in_nsap_ptr(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_name_init(&name, NULL);
@@ -104,6 +106,8 @@ compare_in_nsap_ptr(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 23);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -141,6 +145,7 @@ tostruct_in_nsap_ptr(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 23);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	nsap_ptr->common.rdclass = rdata->rdclass;
 	nsap_ptr->common.rdtype = rdata->type;

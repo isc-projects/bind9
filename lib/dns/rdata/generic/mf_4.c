@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mf_4.c,v 1.33 2000/08/01 01:25:30 tale Exp $ */
+/* $Id: mf_4.c,v 1.34 2000/10/25 05:43:40 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:47:33 PST 2000 by brister */
 
@@ -50,6 +50,7 @@ totext_mf(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 4);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -82,6 +83,7 @@ towire_mf(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 4);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -102,6 +104,8 @@ compare_mf(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 4);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -137,6 +141,7 @@ tostruct_mf(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 4);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	mf->common.rdclass = rdata->rdclass;
 	mf->common.rdtype = rdata->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.40 2000/10/06 22:41:15 bwelling Exp $ */
+/* $Id: nxt_30.c,v 1.41 2000/10/25 05:43:48 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -93,6 +93,7 @@ totext_nxt(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -151,6 +152,7 @@ towire_nxt(ARGS_TOWIRE) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 30);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_name_init(&name, NULL);
@@ -173,6 +175,8 @@ compare_nxt(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 30);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -213,6 +217,7 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 30);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	nxt->common.rdclass = rdata->rdclass;
 	nxt->common.rdtype = rdata->type;

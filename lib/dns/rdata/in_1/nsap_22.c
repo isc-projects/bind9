@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.25 2000/08/01 01:26:29 tale Exp $ */
+/* $Id: nsap_22.c,v 1.26 2000/10/25 05:44:07 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
@@ -78,6 +78,7 @@ totext_in_nsap(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	UNUSED(tctx);
 
@@ -114,6 +115,7 @@ static inline isc_result_t
 towire_in_nsap(ARGS_TOWIRE) {
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
 
@@ -129,6 +131,8 @@ compare_in_nsap(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 22);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -158,6 +162,7 @@ tostruct_in_nsap(ARGS_TOSTRUCT) {
 	REQUIRE(rdata->type == 22);
 	REQUIRE(rdata->rdclass == 1);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	nsap->common.rdclass = rdata->rdclass;
 	nsap->common.rdtype = rdata->type;

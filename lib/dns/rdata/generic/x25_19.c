@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.23 2000/08/01 01:26:11 tale Exp $ */
+/* $Id: x25_19.c,v 1.24 2000/10/25 05:43:57 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -53,6 +53,7 @@ totext_x25(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == 19);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &region);
 	return (txt_totext(&region, target));
@@ -79,6 +80,7 @@ towire_x25(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 19);
+	REQUIRE(rdata->length != 0);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -91,6 +93,8 @@ compare_x25(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 19);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -124,6 +128,7 @@ tostruct_x25(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 19);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	x25->common.rdclass = rdata->rdclass;
 	x25->common.rdtype = rdata->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.45 2000/08/01 01:26:00 tale Exp $ */
+/* $Id: sig_24.c,v 1.46 2000/10/25 05:43:54 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -128,6 +128,7 @@ totext_sig(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -271,6 +272,7 @@ towire_sig(ARGS_TOWIRE) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 24);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	dns_rdata_toregion(rdata, &sr);
@@ -311,6 +313,8 @@ compare_sig(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 24);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -406,6 +410,7 @@ tostruct_sig(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 24);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	sig->common.rdclass = rdata->rdclass;
 	sig->common.rdtype = rdata->type;

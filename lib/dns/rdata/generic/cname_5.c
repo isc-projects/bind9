@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cname_5.c,v 1.35 2000/08/01 01:25:10 tale Exp $ */
+/* $Id: cname_5.c,v 1.36 2000/10/25 05:43:29 marka Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
@@ -51,6 +51,7 @@ totext_cname(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 5);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -83,6 +84,7 @@ towire_cname(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 5);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -103,6 +105,8 @@ compare_cname(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 5);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -138,6 +142,7 @@ tostruct_cname(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 5);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	cname->common.rdclass = rdata->rdclass;
 	cname->common.rdtype = rdata->type;

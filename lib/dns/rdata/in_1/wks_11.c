@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.35 2000/08/24 21:41:44 gson Exp $ */
+/* $Id: wks_11.c,v 1.36 2000/10/25 05:44:10 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -143,6 +143,7 @@ totext_in_wks(ARGS_TOTEXT) {
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 	isc_buffer_availableregion(target, &tr);
@@ -206,6 +207,7 @@ towire_in_wks(ARGS_TOWIRE) {
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 	return (mem_tobuffer(target, sr.base, sr.length));
@@ -220,6 +222,8 @@ compare_in_wks(ARGS_COMPARE) {
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 11);
 	REQUIRE(rdata1->rdclass == 1);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -251,6 +255,7 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 11);
 	REQUIRE(rdata->rdclass == 1);
+	REQUIRE(rdata->length != 0);
 
 	wks->common.rdclass = rdata->rdclass;
 	wks->common.rdtype = rdata->type;

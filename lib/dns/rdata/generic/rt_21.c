@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.29 2000/08/01 01:25:58 tale Exp $ */
+/* $Id: rt_21.c,v 1.30 2000/10/25 05:43:53 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -59,6 +59,7 @@ totext_rt(ARGS_TOTEXT) {
 	unsigned short num;
 
 	REQUIRE(rdata->type == 21);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -106,6 +107,7 @@ towire_rt(ARGS_TOWIRE) {
 	isc_region_t tr;
 
 	REQUIRE(rdata->type == 21);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	isc_buffer_availableregion(target, &tr);
@@ -133,6 +135,8 @@ compare_rt(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 21);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0)
@@ -176,6 +180,7 @@ tostruct_rt(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 21);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	rt->common.rdclass = rdata->rdclass;
 	rt->common.rdtype = rdata->type;

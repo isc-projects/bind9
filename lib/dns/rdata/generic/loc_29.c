@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.23 2000/08/01 01:25:24 tale Exp $ */
+/* $Id: loc_29.c,v 1.24 2000/10/25 05:43:37 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -433,6 +433,7 @@ totext_loc(ARGS_TOTEXT) {
 	UNUSED(tctx);
 
 	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->length != 0);
 
 	dns_rdata_toregion(rdata, &sr);
 
@@ -585,6 +586,7 @@ towire_loc(ARGS_TOWIRE) {
 	UNUSED(cctx);
 
 	REQUIRE(rdata->type == 29);
+	REQUIRE(rdata->length != 0);
 
 	return (mem_tobuffer(target, rdata->data, rdata->length));
 }
@@ -597,6 +599,8 @@ compare_loc(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 29);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_rdata_toregion(rdata1, &r1);
 	dns_rdata_toregion(rdata2, &r2);
@@ -652,6 +656,7 @@ tostruct_loc(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 29);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	UNUSED(mctx);
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: afsdb_18.c,v 1.31 2000/08/01 01:25:06 tale Exp $ */
+/* $Id: afsdb_18.c,v 1.32 2000/10/25 05:43:27 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 14:59:00 PST 2000 by explorer */
 
@@ -64,6 +64,7 @@ totext_afsdb(ARGS_TOTEXT) {
 	unsigned int num;
 
 	REQUIRE(rdata->type == 18);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -111,6 +112,7 @@ towire_afsdb(ARGS_TOWIRE) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == 18);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_NONE);
 	isc_buffer_availableregion(target, &tr);
@@ -138,6 +140,8 @@ compare_afsdb(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 18);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	result = memcmp(rdata1->data, rdata2->data, 2);
 	if (result != 0)
@@ -181,6 +185,7 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 18);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	afsdb->common.rdclass = rdata->rdclass;
 	afsdb->common.rdtype = rdata->type;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: minfo_14.c,v 1.32 2000/08/01 01:25:35 tale Exp $ */
+/* $Id: minfo_14.c,v 1.33 2000/10/25 05:43:43 marka Exp $ */
 
 /* reviewed: Wed Mar 15 17:45:32 PST 2000 by brister */
 
@@ -56,6 +56,7 @@ totext_minfo(ARGS_TOTEXT) {
 	isc_boolean_t sub;
 
 	REQUIRE(rdata->type == 14);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&rmail, NULL);
 	dns_name_init(&email, NULL);
@@ -104,6 +105,7 @@ towire_minfo(ARGS_TOWIRE) {
 	dns_name_t email;
 
 	REQUIRE(rdata->type == 14);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -134,6 +136,8 @@ compare_minfo(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 14);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -186,6 +190,7 @@ tostruct_minfo(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 14);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	minfo->common.rdclass = rdata->rdclass;
 	minfo->common.rdtype = rdata->type;

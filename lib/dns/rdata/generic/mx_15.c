@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.40 2000/08/01 01:25:39 tale Exp $ */
+/* $Id: mx_15.c,v 1.41 2000/10/25 05:43:45 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
@@ -56,6 +56,7 @@ totext_mx(ARGS_TOTEXT) {
 	unsigned short num;
 
 	REQUIRE(rdata->type == 15);
+	REQUIRE(rdata->length != 0);
 
 	dns_name_init(&name, NULL);
 	dns_name_init(&prefix, NULL);
@@ -100,6 +101,7 @@ towire_mx(ARGS_TOWIRE) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == 15);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -124,6 +126,8 @@ compare_mx(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 15);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	order = memcmp(rdata1->data, rdata2->data, 2);
 	if (order != 0)
@@ -167,6 +171,7 @@ tostruct_mx(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 15);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	mx->common.rdclass = rdata->rdclass;
 	mx->common.rdtype = rdata->type;

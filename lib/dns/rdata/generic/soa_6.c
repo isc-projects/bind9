@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.44 2000/08/24 21:41:43 gson Exp $ */
+/* $Id: soa_6.c,v 1.45 2000/10/25 05:43:55 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -77,6 +77,7 @@ totext_soa(ARGS_TOTEXT) {
 	isc_boolean_t comment;
 
 	REQUIRE(rdata->type == 6);
+	REQUIRE(rdata->length != 0);
 
 	multiline = ISC_TF((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
 	comment = ISC_TF((tctx->flags & DNS_STYLEFLAG_COMMENT) != 0);
@@ -177,6 +178,7 @@ towire_soa(ARGS_TOWIRE) {
 	dns_name_t rname;
 
 	REQUIRE(rdata->type == 6);
+	REQUIRE(rdata->length != 0);
 
 	dns_compress_setmethods(cctx, DNS_COMPRESS_GLOBAL14);
 
@@ -213,6 +215,8 @@ compare_soa(ARGS_COMPARE) {
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
 	REQUIRE(rdata1->type == 6);
+	REQUIRE(rdata1->length != 0);
+	REQUIRE(rdata2->length != 0);
 
 	dns_name_init(&name1, NULL);
 	dns_name_init(&name2, NULL);
@@ -276,6 +280,7 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == 6);
 	REQUIRE(target != NULL);
+	REQUIRE(rdata->length != 0);
 
 	soa->common.rdclass = rdata->rdclass;
 	soa->common.rdtype = rdata->type;
