@@ -1,4 +1,6 @@
 
+  49.	[func]		Each cache now has its own mctx.
+
   48.	[func]		isc_task_create() no longer takes an mctx.
 			isc_task_mem() has been eliminated.
 
