@@ -15,16 +15,18 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: conflwres.c,v 1.1 2000/10/04 18:47:24 bwelling Exp $ */
+/* $Id: conflwres.c,v 1.2 2000/10/04 20:50:25 bwelling Exp $ */
 
 #include <config.h>
 
+#include <isc/buffer.h>
 #include <isc/mem.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <isc/util.h>
 
 #include <dns/conflwres.h>
 #include <dns/confcommon.h>
+#include <dns/rdataclass.h>
 
 isc_result_t
 dns_c_lwreslist_new(isc_mem_t *mem, dns_c_lwreslist_t **list) {
@@ -261,7 +263,7 @@ isc_result_t dns_c_lwres_copy(isc_mem_t *mem, dns_c_lwres_t **dest,
 
 	if (src->listeners != NULL)
 		dns_c_iplist_attach(src->listeners, &newlwres->listeners);
-	newlwres->viewclass = lwres->viewclass;
+	newlwres->viewclass = src->viewclass;
 
 	*dest = newlwres;
 
@@ -313,10 +315,10 @@ dns_c_lwres_print(FILE *fp, int indent, dns_c_lwres_t *lwres)
 			isc_buffer_t b;
 			isc_buffer_init(&b, classtext, sizeof(classtext));
 			(void)dns_rdataclass_totext(lwres->viewclass, &b);
-			fprintf(" %.*s", dns_buffer_usedlength(&b),
-				dns_buffer_base(&b));
+			fprintf(fp, " %.*s", isc_buffer_usedlength(&b),
+				(char *)isc_buffer_base(&b));
 		}
-		fprintf(fp, ";\n", lwres->view);
+		fprintf(fp, ";\n");
 	}
 
 	dns_c_printtabs(fp, indent);
