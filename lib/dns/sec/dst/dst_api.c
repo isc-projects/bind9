@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.73 2001/01/27 04:33:18 bwelling Exp $
+ * $Id: dst_api.c,v 1.74 2001/02/14 20:26:46 bwelling Exp $
  */
 
 #include <config.h>
@@ -101,7 +101,9 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	 * Avoid assertions by using a local memory context and not checking
 	 * for leaks on exit.
 	 */
-	RETERR(isc_mem_create(0, 0, &dst_memory_pool));
+	result = isc_mem_create(0, 0, &dst_memory_pool);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 	isc_mem_setdestroycheck(dst_memory_pool, ISC_FALSE);
 	isc_entropy_attach(ectx, &dst_entropy_pool);
 	dst_entropy_flags = eflags;

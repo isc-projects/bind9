@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.23 2001/01/24 01:34:14 bwelling Exp $
+# $Id: Makefile.in,v 1.24 2001/02/14 20:26:45 bwelling Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -34,12 +34,14 @@ LIBS =		@LIBS@
 OBJS =		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ \
 		dst_result.@O@ gssapi_link.@O@ gssapictx.@O@ \
 		hmac_link.@O@ key.@O@ \
-		openssl_link.@O@ openssldh_link.@O@ opensslrsa_link.@O@
+		openssl_link.@O@ openssldh_link.@O@ \
+		openssldsa_link.@O@ opensslrsa_link.@O@
 
 SRCS =		dst_api.c dst_lib.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c \
 		hmac_link.c key.c \
-		openssl_link.c openssldh_link.c opensslrsa_link.c
+		openssl_link.c openssldh_link.c \
+		openssldsa_link.c opensslrsa_link.c
 
 SUBDIRS =	include
 TARGETS =	${OBJS}

@@ -1,3 +1,5 @@
+ 740.	[port]		Handle openssl library mismatches slightly better.
+
  739.	[port]		Look for /dev/random in configure, rather than
 			assuming it will be there for only a predefined
 			set of OSes.
