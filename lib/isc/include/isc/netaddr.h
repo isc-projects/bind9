@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.18 2001/03/26 21:33:06 bwelling Exp $ */
+/* $Id: netaddr.h,v 1.18.12.1 2003/08/13 05:06:52 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -72,7 +72,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target);
  */
 
 void
-isc_netaddr_format(isc_netaddr_t *na, char *array, unsigned int size);
+isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size);
 /*
  * Format a human-readable representation of the network address '*na'
  * into the character array 'array', which is of size 'size'.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.6 2003/08/13 03:58:11 marka Exp $ */
+/* $Id: check.c,v 1.37.6.7 2003/08/13 05:06:50 marka Exp $ */
 
 #include <config.h>
 
@@ -667,10 +667,12 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		     elt != NULL;
 		     elt = cfg_list_next(elt)) {
 			cfg_obj_t *acl = cfg_listelt_value(elt);
-			int i;
+			unsigned int i;
 
 			aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
-			for (i = 0; builtin[i] != NULL; i++)
+			for (i = 0;
+			     i < sizeof(builtin) / sizeof(builtin[0]);
+			     i++)
 				if (strcasecmp(aclname, builtin[i]) == 0) {
 					cfg_obj_log(acl, logctx, ISC_LOG_ERROR,
 						    "attempt to redefine "

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.5 2003/08/11 05:28:16 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.6 2003/08/13 05:06:51 marka Exp $ */
 
 #include <config.h>
 
@@ -2546,7 +2546,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * done waiting for validator completions and ADB pending events; if
 	 * so, destroy the fctx.
 	 */
-	if (SHUTTINGDOWN(fctx) && !sentresponse ) {
+	if (SHUTTINGDOWN(fctx) && !sentresponse) {
 		maybe_destroy(fctx);
 		goto cleanup_event;
 	}
