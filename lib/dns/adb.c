@@ -88,7 +88,6 @@ struct dns_adb {
 	unsigned int			magic;
 
 	isc_mutex_t			lock;
-	isc_condition_t			shutdown_cond;
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
 	isc_timermgr_t		       *timermgr;
@@ -980,6 +979,29 @@ copy_namehook_list(dns_adb_t *adb, dns_adbhandle_t *handle,
 		UNLOCK(&adb->entrylocks[bucket]);
 }
 
+static void
+shutdown_task(isc_task_t *task, isc_event_t *ev)
+{
+	dns_adb_t *adb;
+	isc_result_t result;
+
+	adb = ev->arg;
+	INSIST(DNS_ADB_VALID(adb));
+
+	/*
+	 * Kill the timer, and then the ADB itself.  Note that this implies
+	 * that this task was the one scheduled to get timer events.  If
+	 * this is not true (and it is unfortunate there is no way to INSIST()
+	 * this) baddness will occur.
+	 */
+	LOCK(&adb->lock);
+	isc_timer_detach(&adb->timer);
+	UNLOCK(&adb->lock);
+	destroy(adb);
+
+	isc_event_free(&ev);
+}
+
 /*
  * ADB must be locked
  */
@@ -1022,7 +1044,9 @@ destroy(dns_adb_t *adb)
 {
 	adb->magic = 0;
 
-	isc_timer_detach(&adb->timer);
+	/*
+	 * The timer is already dead, from the task's shutdown callback.
+	 */
 	isc_task_detach(&adb->task);
 
 	isc_mempool_destroy(&adb->nmp);
@@ -1036,11 +1060,6 @@ destroy(dns_adb_t *adb)
 	isc_mutexblock_destroy(adb->entrylocks, DNS_ADBENTRYLIST_LENGTH);
 	isc_mutexblock_destroy(adb->namelocks, DNS_ADBNAMELIST_LENGTH);
 
-	/*
-	 * At this point, nothing can possibly be running, so we can safely
-	 * kill the locks.
-	 */
-	UNLOCK(&adb->lock);
 	isc_mutex_destroy(&adb->lock);
 	isc_mutex_destroy(&adb->mplock);
 
@@ -1103,9 +1122,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_mutex_init(&adb->mplock);
 	if (result != ISC_R_SUCCESS)
 		goto fail0c;
-	result = isc_condition_init(&adb->shutdown_cond);
-	if (result != ISC_R_SUCCESS)
-		goto fail0d;
 
 	/*
 	 * Initialize the bucket locks for names and elements.
@@ -1156,6 +1172,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	result = isc_task_create(adb->taskmgr, adb->mctx, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
 		goto fail3;
+	result = isc_task_onshutdown(adb->task, shutdown_task, adb);
 	isc_interval_set(&adb->tick_interval, CLEAN_SECONDS, 0);
 	result = isc_timer_create(adb->timermgr, isc_timertype_once,
 				  NULL, &adb->tick_interval, adb->task,
@@ -1198,7 +1215,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->aimp != NULL)
 		isc_mempool_destroy(&adb->afmp);
 
-	isc_condition_destroy(&adb->shutdown_cond);
  fail0d:
 	isc_mutex_destroy(&adb->mplock);
  fail0c:
@@ -1229,9 +1245,8 @@ dns_adb_detach(dns_adb_t **adbx)
 	kill = check_exit(adb);
 
 	if (kill)
-		destroy(adb);
-	else
-		UNLOCK(&adb->lock);
+		isc_task_shutdown(adb->task);
+	UNLOCK(&adb->lock);
 }
 
 isc_result_t
@@ -1637,9 +1652,8 @@ dns_adb_done(dns_adbhandle_t **handlep)
 	kill = check_exit(adb);
 
 	if (kill)
-		destroy(adb);
-	else
-		UNLOCK(&adb->lock);
+		isc_task_shutdown(adb->task);
+	UNLOCK(&adb->lock);
 }
 
 void
