@@ -18,7 +18,7 @@
 			to return DNS_R_SERVFAIL. [RT #783]
 
  720.	[bug]		Server could enter infinite loop in
-			dispatch.c:do_cancel(). [RT #743]
+			dispatch.c:do_cancel(). [RT #733]
 
  719.	[bug]		Rapid reloads could trigger an assertion failure.
 			[RT #743, #763]
