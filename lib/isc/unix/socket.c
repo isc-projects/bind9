@@ -2354,8 +2354,8 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 			   pktinfo->ipi6_ifindex);
 
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
-		dev->pktinfo.ipi6_ifindex = 0;
 		dev->pktinfo = *pktinfo;
+		dev->pktinfo.ipi6_ifindex = 0; /* XXXMLG */
 	}
 
 	/*
