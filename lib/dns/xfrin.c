@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.54 2000/03/20 21:07:48 gson Exp $ */
+/* $Id: xfrin.c,v 1.55 2000/03/28 03:18:02 bwelling Exp $ */
 
 #include <config.h>
 
@@ -818,7 +818,6 @@ render(dns_message_t *msg, isc_buffer_t *buf) {
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ANSWER, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_AUTHORITY, 0));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_ADDITIONAL, 0));
-	CHECK(dns_message_rendersection(msg, DNS_SECTION_TSIG, 0));
 	CHECK(dns_message_renderend(msg));
 	result = DNS_R_SUCCESS;
  failure:
