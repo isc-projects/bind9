@@ -1,6 +1,12 @@
 #ifndef port_before_h
 #define port_before_h
 #include <config.h>
+
+struct group;           /* silence warning */
+struct passwd;          /* silence warning */
+struct timeval;         /* silence warning */
+struct timezone;        /* silence warning */
+
 #ifdef HAVE_SYS_TIMERS_H
 #include <sys/timers.h>
 #endif

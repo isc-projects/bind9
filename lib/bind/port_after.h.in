@@ -179,10 +179,6 @@ char * strsep(char **stringp, const char *delim);
 #define ALIGN(p) (((unsigned int)(p) + (sizeof(int) - 1)) & ~(sizeof(int) - 1))
 #endif
 
-/* forward declarations */
-struct group;
-struct passwd;
-
 #ifdef NEED_SETGROUPENT
 int setgroupent(int stayopen);
 #endif
@@ -298,8 +294,6 @@ int setpassent(int stayopen);
 #endif
 
 #define gettimeofday isc__gettimeofday
-struct timeval;		/* silence warning */
-struct timezone;	/* silence warning */
 int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 
 int getnetgrent(const char **machinep, const char **userp,
