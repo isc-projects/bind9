@@ -15,8 +15,12 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# Run this script from the top of the bind directory to make a res-lib
-# distribution
+# Generate a res_* lib from the bind 8 library files
+
+# Check out the CVS source into a new directory.
+# Change directory into the one bind was checked in to
+# Run this script from that directory
+# Tar up the directory
 
 # Don't bother keeping contrib or doc around in the new tarball
 system ("rm -rf Makefile contrib doc");
