@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.12 2001/07/10 04:01:19 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.12.2.1 2001/11/06 20:44:26 gson Exp $
  */
 #ifdef OPENSSL
 
@@ -297,21 +297,27 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 		return (ISC_R_NOMEMORY);
 	rsa->flags &= ~(RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE);
 
-	if (r.length < 1)
+	if (r.length < 1) {
+		RSA_free(rsa);
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 	e_bytes = *r.base++;
 	r.length--;
 
 	if (e_bytes == 0) {
-		if (r.length < 2)
+		if (r.length < 2) {
+			RSA_free(rsa);
 			return (DST_R_INVALIDPUBLICKEY);
+		}
 		e_bytes = ((*r.base++) << 8);
 		e_bytes += *r.base++;
 		r.length -= 2;
 	}
 
-	if (r.length < e_bytes)
+	if (r.length < e_bytes) {
+		RSA_free(rsa);
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 	rsa->e = BN_bin2bn(r.base, e_bytes, NULL);
 	r.base += e_bytes;
 	r.length -= e_bytes;
