@@ -1,6 +1,6 @@
 The BIND v9 ARM master document is now kept in DocBook XML format.
 
-Version: $Id: README-SGML,v 1.4 2000/09/11 17:54:44 scanner Exp $
+Version: $Id: README-SGML,v 1.5 2000/09/18 17:06:15 scanner Exp $
 
 The entire ARM is in the single file:
 
@@ -145,9 +145,12 @@ To convert the resulting TeX file in to a DVI file you need to do:
 
     tex "&jadetex" Bv9ARM-book.tex
 
+You can also directly generate the pdf file via:
+
+    pdftex "&pdfjadetex" Bv9ARM-book.tex
+
 You will need to up both the "pool_size" and "hash_extra" variables in
-your texmf.cnf file and regenerate them. Stay tuned for instructions
-here.
+your texmf.cnf file and regenerate them. See below.
 
 You can see that I am using a DSSSL style sheet for DocBook. Actually
 two different ones - one for rendering html, and one for 'print'
@@ -181,3 +184,59 @@ entity. You can ignore those for now.
 Also with the style sheets we have and jade as it is you will get
 messages about "xref to title" being unsupported. You can ignore these
 for now as well.
+
+=== Getting the various tools installed on FreeBSD
+(NetBSD coming soon..)
+
+o On freebsd you need to install the following packages:
+  o print/teTeX
+  o textproc/openjade
+  o textproc/docbook
+  o textproc/docbook-xml
+  o textproc/dsssl-docbook-modular
+  o textproc/dtd-catalogs
+
+o on freebsd you need to make some entities visible to the docbook xml
+  dtd by making a symlink (can probably be done with a catalog too)
+  ln -s /usr/local/share/xml/entity /usr/local/share/xml/dtd/docbook/ent
+
+o you may need to edit /usr/local/share/sgml/catalog and add the line:
+
+  CATALOG "/usr/local/share/sgml/openjade/catalog"
+
+o add "hugelatex," Enlarge pool sizes, install the jadetex TeX driver
+  file.
+
+  cd /usr/local/share/texmf/web2c/
+  sudo cp texmf.cnf texmf.cnf.bak
+
+  o edit the lines in texmf.cnf with these keys to these values:
+
+                  main_memory = 1100000
+                  hash_extra = 15000
+                  pool_size = 500000
+                  string_vacancies = 45000
+                  max_strings = 55000
+                  pool_free = 47500
+                  nest_size = 500
+                  param_size = 1500
+                  save_size = 5000
+                  stack_size = 1500
+
+  sudo tex -ini -progname=hugelatex -fmt=hugelatex latex.ltx
+  sudo texconfig init
+
+  o For the jadetex macros you will need I recommend you get a more
+    current version than what is packaged with openjade or jade.
+
+    Checkout http://www.tug.org/applications/jadetex/
+    
+    Unzip the file you get from there (should be jadetex-2.20 or
+    newer.) 
+
+    In the directory you unzip: 
+
+      sudo make install
+      sudo texhash
+
+
