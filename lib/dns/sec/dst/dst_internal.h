@@ -55,6 +55,7 @@ struct dst_key {
 	int		key_alg;	/* algorithm of the key */
 	isc_uint32_t	key_flags;	/* flags of the public key */
 	isc_uint16_t	key_id;		/* identifier of the key */
+	isc_mem_t	*mctx;		/* memory context */
 	void *		opaque;		/* pointer to key in crypto pkg fmt */
 	dst_func *	func;		/* crypto package specific functions */
 };

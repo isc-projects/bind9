@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1 1999/07/12 20:08:28 bwelling Exp $
+ * $Id: dst_api.c,v 1.2 1999/07/29 17:21:23 bwelling Exp $
  */
 
 #include <config.h>
@@ -100,18 +100,16 @@ dst_supported_algorithm(const int alg) {
  *	context		The state of the operation
  *	data		The data to be signed.
  *	sig		The buffer to which the signature will be written.
- *	mctx		Memory context used for allocations
  * Return
  *	DST_R_SUCCESS	Success
  *	!DST_R_SUCCESS	Failure
  */
 dst_result_t
-dst_sign(const int mode, dst_key_t *key, void **context, 
-	 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx)
+dst_sign(const int mode, dst_key_t *key, dst_context_t *context, 
+	 isc_region_t *data, isc_buffer_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE(mctx != NULL);
 	REQUIRE((mode & DST_SIG_MODE_ALL) != 0);
 
 	if ((mode & DST_SIG_MODE_UPDATE) != 0)
@@ -125,7 +123,8 @@ dst_sign(const int mode, dst_key_t *key, void **context,
 	if (key->opaque == NULL)
 		return (DST_R_NULL_KEY);
 
-	return (key->func->sign(mode, key, context, data, sig, mctx));
+	return (key->func->sign(mode, key, (void **)context, data, sig,
+				key->mctx));
 }
 
 
@@ -147,19 +146,17 @@ dst_sign(const int mode, dst_key_t *key, void **context,
  *	context		The state of the operation
  *	data		The data to be digested.
  *	sig		The signature.
- *	mctx		Memory context used for allocations
  *  Returns
  *	DST_R_SUCCESS	Success
  *	!DST_R_SUCCESS	Failure
  */
 
 dst_result_t
-dst_verify(const int mode, dst_key_t *key, void **context, 
-	   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx)
+dst_verify(const int mode, dst_key_t *key, dst_context_t *context, 
+	   isc_region_t *data, isc_region_t *sig)
 {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE(mctx != NULL);
 	REQUIRE((mode & DST_SIG_MODE_ALL) != 0);
 
 	if ((mode & DST_SIG_MODE_UPDATE) != 0)
@@ -173,7 +170,8 @@ dst_verify(const int mode, dst_key_t *key, void **context,
 	if (key->opaque == NULL)
 		return (DST_R_NULL_KEY);
 
-	return (key->func->verify(mode, key, context, data, sig, mctx));
+	return (key->func->verify(mode, key, (void **)context, data, sig,
+				  key->mctx));
 }
 
 /*
@@ -261,14 +259,14 @@ dst_key_fromfile(const char *name, const isc_uint16_t id, const int alg,
 
 	key = get_key_struct(name, pubkey->key_alg, pubkey->key_flags,
 				   pubkey->key_proto, 0, mctx);
-	dst_key_free(pubkey, mctx);
+	dst_key_free(pubkey);
 	if (key == NULL)
 		return (DST_R_NOMEMORY);
 
 	/* Fill in private key and some fields in the general key structure */
 	ret = key->func->from_file(key, id, mctx);
 	if (ret != DST_R_SUCCESS) {
-		dst_key_free(key, mctx);
+		dst_key_free(key);
 		return (ret);
 	}
 
@@ -369,7 +367,7 @@ dst_key_fromdns(const char *name, isc_buffer_t *source, isc_mem_t *mctx,
 
 	ret = (*keyp)->func->from_dns(*keyp, source, mctx);
 	if (ret != DST_R_SUCCESS) 
-		dst_key_free((*keyp), mctx);
+		dst_key_free((*keyp));
 	return (ret);
 }
 
@@ -412,7 +410,7 @@ dst_key_frombuffer(const char *name, const int alg, const int flags,
 
 	ret = (*keyp)->func->from_dns((*keyp), source, mctx);
 	if (ret != DST_R_SUCCESS) {
-		dst_key_free((*keyp), mctx);
+		dst_key_free((*keyp));
 		return (ret);
 	}
 	return (DST_R_SUCCESS);
@@ -489,7 +487,7 @@ dst_key_generate(const char *name, const int alg, const int bits,
 
 	ret = (*keyp)->func->generate(*keyp, exp, mctx);
 	if (ret != DST_R_SUCCESS) {
-		dst_key_free(*keyp, mctx);
+		dst_key_free(*keyp);
 		return (ret);
 	}
 
@@ -528,20 +526,18 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2) {
  *	Release all data structures pointed to by a key structure.
  *  Parameters
  *	key	Key structure to be freed.
- *	mctx	The memory context used to allocate the key
  */
 void
-dst_key_free(dst_key_t *key, isc_mem_t *mctx) {
+dst_key_free(dst_key_t *key) {
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE(mctx != NULL);
 
 	if (key->opaque != NULL)
-		key->func->destroy(key->opaque, mctx);
+		key->func->destroy(key->opaque, key->mctx);
 
-	isc_mem_free(mctx, key->key_name);
+	isc_mem_free(key->mctx, key->key_name);
 	memset(key, 0, sizeof(dst_key_t));
-	isc_mem_put(mctx, key, sizeof(dst_key_t));
+	isc_mem_put(key->mctx, key, sizeof(dst_key_t));
 }
 
 char *
@@ -705,6 +701,7 @@ get_key_struct(const char *name, const int alg, const int flags,
 	key->key_alg = alg;
 	key->key_flags = flags;
 	key->key_proto = protocol;
+	key->mctx = mctx;
 	key->opaque = NULL;
 	key->key_size = bits;
 	key->func = dst_t_func[alg];

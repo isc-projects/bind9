@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.1 1999/07/12 20:08:29 bwelling Exp $
+ * $Id: hmac_link.c,v 1.2 1999/07/29 17:21:23 bwelling Exp $
  */
 
 #include <config.h>
@@ -291,6 +291,7 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		return (DST_R_NOMEMORY);
 
 	memset(hkey->ipad, 0, sizeof(hkey->ipad));
+	memset(hkey->opad, 0, sizeof(hkey->opad));
 
 	if (r.length > HMAC_LEN) {
 		MD5_CTX ctx;
@@ -300,15 +301,15 @@ dst_hmacmd5_from_dns(dst_key_t *key, isc_buffer_t *data, isc_mem_t *mctx) {
 		MD5Update(&ctx, r.base, r.length);
 		MD5Final(digest, &ctx);
 		memcpy(hkey->ipad, digest, MD5_LEN);
+		memcpy(hkey->opad, digest, MD5_LEN);
 		keylen = MD5_LEN;
 	}
 	else {
 		memcpy(hkey->ipad, r.base, r.length);
+		memcpy(hkey->opad, r.base, r.length);
 		keylen = r.length;
 	}
 	
-	memcpy(hkey->opad, hkey->ipad, keylen);
-
 	/* XOR key with ipad and opad values */
 	for (i = 0; i < HMAC_LEN; i++) {
 		hkey->ipad[i] ^= HMAC_IPAD;

@@ -22,7 +22,8 @@ ISC_LANG_BEGINDECLS
  * to set attributes, new accessor functions will be written.
  */
 
-typedef struct dst_key dst_key_t;
+typedef struct dst_key	dst_key_t;
+typedef void *		dst_context_t;
 
 /* DST algorithm codes */
 #define DST_ALG_UNKNOWN		0
@@ -35,7 +36,7 @@ typedef struct dst_key dst_key_t;
 #define DST_ALG_EXPAND		255
 #define DST_MAX_ALGS		DST_ALG_HMAC_SHA1
 
-/* 'Mode' passed into dst_sign_data() and dst_verify_data() */
+/* 'Mode' passed into dst_sign() and dst_verify() */
 #define DST_SIG_MODE_INIT	1	/* initialize digest */
 #define DST_SIG_MODE_UPDATE	2	/* add data to digest */
 #define DST_SIG_MODE_FINAL	4 	/* generate/verify signature */
@@ -69,15 +70,14 @@ dst_supported_algorithm(const int alg);
  *	"context" contains a value appropriate for the value of "mode".
  *	"data" is a valid region.
  *	"sig" is a valid buffer.
- *	"mctx" is a valid memory context.
  *
  * Ensures:
  *	All allocated memory will be freed after the FINAL call.  "sig"
  *	will contain a signature if all operations completed successfully.
  */
 dst_result_t
-dst_sign(const int mode, dst_key_t *key, void **context,
-	 isc_region_t *data, isc_buffer_t *sig, isc_mem_t *mctx);
+dst_sign(const int mode, dst_key_t *key, dst_context_t *context,
+	 isc_region_t *data, isc_buffer_t *sig);
 
 /* Verify a signature on a block of data.
  *
@@ -88,14 +88,13 @@ dst_sign(const int mode, dst_key_t *key, void **context,
  *	"context" contains a value appropriate for the value of "mode".
  *	"data" is a valid region.
  *	"sig" is a valid region.
- *	"mctx" is a valid memory context.
  *
  * Ensures:
  *	All allocated memory will be freed after the FINAL call.
  */
 dst_result_t
-dst_verify(const int mode, dst_key_t *key, void **context,
-	   isc_region_t *data, isc_region_t *sig, isc_mem_t *mctx);
+dst_verify(const int mode, dst_key_t *key, dst_context_t *context,
+	   isc_region_t *data, isc_region_t *sig);
 
 /* Reads a key from permanent storage.
  *
@@ -210,13 +209,12 @@ dst_key_compare(const dst_key_t *key1, const dst_key_t *key2);
  *
  * Requires:
  *	"key" is a valid key.
- *	"mctx" is a valid memory context.
  *
  * Ensures:
  *	All memory associated with "key" will be freed.
  */
 void
-dst_key_free(dst_key_t *key, isc_mem_t *mctx);
+dst_key_free(dst_key_t *key);
 
 /* Accessor functions to obtain key fields.
  *
