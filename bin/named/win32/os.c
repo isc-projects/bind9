@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.20.18.1 2004/09/29 06:43:54 marka Exp $ */
+/* $Id: os.c,v 1.20.18.2 2005/03/15 23:17:00 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -208,7 +208,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	cleanup_pidfile();
 
-	if (strcmp(filename, "none") == 0)
+	if (filename == NULL)
 		return;
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
