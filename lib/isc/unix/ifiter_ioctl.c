@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.20 2001/08/31 05:57:50 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.21 2001/09/05 21:05:36 bwelling Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -132,7 +132,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		if (ioctl(iter->socket, SIOCGLIFCONF, (char *)&iter->ifc)
 		    == -1) {
 			if (errno != EINVAL) {
-				isc__strerror(errno, strbuf, sizeof(strbuf)));
+				isc__strerror(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_IFITERIOCTL,
