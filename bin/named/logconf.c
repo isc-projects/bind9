@@ -57,8 +57,8 @@ category_fromconf(dns_c_logcat_t *ccat, isc_logconfig_t *lctx)
 		 * needs rethinking to integrate the "module" concept.
 		 */
 
-		switch (ccat->category) {
-		case dns_c_cat_default:
+		switch (-1) {
+		case 0: /* XXX was dns_c_cat_default: */
 		        /*
 			 * For now, the default category is the only
 			 * one that works.
