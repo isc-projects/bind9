@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.126 2000/11/08 00:47:15 mws Exp $ */
+/* $Id: dig.c,v 1.127 2000/11/13 21:33:50 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -180,6 +180,7 @@ show_usage(void) {
 "                 +[no]trace          (Trace delegation down from root)\n"
 "                 +rrlimit=###        (Limit number of rr's in xfr)\n"
 "                 +namelimit=###      (Limit number of names in xfr)\n"
+"                 +[no]dnssec         (Request DNSSEC records)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"
 , stderr);
@@ -679,8 +680,11 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		break;
 	case 'd':
 		switch (cmd[1]) {
-		case 'e':
+		case 'e': /* defname */
 			lookup->defname = state;
+			break;
+		case 'n': /* dnssec */	
+			lookup->dnssec = state;
 			break;
 		case 'o': /* domain */	
 			if (value == NULL)

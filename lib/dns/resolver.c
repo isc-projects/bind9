@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.180 2000/11/11 02:14:50 gson Exp $ */
+/* $Id: resolver.c,v 1.181 2000/11/13 21:34:00 bwelling Exp $ */
 
 #include <config.h>
 
@@ -607,12 +607,12 @@ fctx_addopt(dns_message_t *message) {
 	rdatalist->rdclass = SEND_BUFFER_SIZE;
 
 	/*
-	 * Set EXTENDED-RCODE, VERSION, and Z to 0.
+	 * Set EXTENDED-RCODE, VERSION, and Z to 0, and the DO bit to 1.
 	 */
-	rdatalist->ttl = 0;
+	rdatalist->ttl = DNS_MESSAGEEXTFLAG_DO;
 
 	/*
-	 * No ENDS options.
+	 * No EDNS options.
 	 */
 	rdata->data = NULL;
 	rdata->length = 0;
@@ -936,11 +936,12 @@ resquery_send(resquery_t *query) {
 	}
 
 	/*
-	 * If we're using EDNS, set AD and CD so we'll get DNSSEC data.
+	 * If we're using EDNS, set CD.  CD and EDNS aren't really related,
+	 * but if we send a non EDNS query, there's a chance the server
+	 * won't understand CD either.
 	 */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
-		fctx->qmessage->flags |=
-			(DNS_MESSAGEFLAG_AD|DNS_MESSAGEFLAG_CD);
+		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
 
 	/*
 	 * Add TSIG record tailored to the current recipient.

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.82 2000/11/13 20:12:03 bwelling Exp $ */
+/* $Id: message.h,v 1.83 2000/11/13 21:34:01 bwelling Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -94,6 +94,8 @@
 #define DNS_MESSAGEFLAG_RA		0x0080U
 #define DNS_MESSAGEFLAG_AD		0x0020U
 #define DNS_MESSAGEFLAG_CD		0x0010U
+
+#define DNS_MESSAGEEXTFLAG_DO		0x8000U
 
 #define DNS_MESSAGE_REPLYPRESERVE	(DNS_MESSAGEFLAG_RD)
 

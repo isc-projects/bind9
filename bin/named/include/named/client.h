@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.45 2000/10/12 21:51:48 mws Exp $ */
+/* $Id: client.h,v 1.46 2000/11/13 21:33:57 bwelling Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -109,6 +109,7 @@ struct ns_client {
 	unsigned char *		sendbuf;
 	dns_rdataset_t *	opt;
 	isc_uint16_t		udpsize;
+	isc_uint16_t		extflags;
 #ifdef DNS_OPT_NEWCODES
 	dns_fixedname_t *       opt_zone;
         isc_buffer_t *          opt_view;

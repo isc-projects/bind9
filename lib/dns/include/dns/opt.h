@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.h,v 1.2 2000/10/12 21:51:57 mws Exp $ */
+/* $Id: opt.h,v 1.3 2000/11/13 21:34:03 bwelling Exp $ */
 
 #ifndef DNS_OPT_H
 #define DNS_OPT_H 1
@@ -48,6 +48,8 @@
 #define DNS_OPTCODE_ZONE 0xfff0
 #define DNS_OPTCODE_VIEW 0xfff1
 #endif /* DNS_OPT_NEWCODES */
+
+#define DNS_OPT_FLAGS(opt) ((opt)->ttl & 0xFFFF)
 
 /*
  * OPT records contain a series of attributes which contain different types.

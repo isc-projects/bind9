@@ -1,4 +1,8 @@
 
+ 556.	[func]		The DNSSEC OK bit in the EDNS extended flags
+			is now implemented.  Responses to queries without
+			this bit set will not contain any DNSSEC records.
+
  555.	[bug]		A slave server attempting a zone transfer could 
 			crash with an assertion failure on certain
 			malformed responses from the master. [RT #457]

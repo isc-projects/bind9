@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.126 2000/11/03 17:39:37 gson Exp $ */
+/* $Id: client.c,v 1.127 2000/11/13 21:33:54 bwelling Exp $ */
 
 #include <config.h>
 
@@ -538,6 +538,7 @@ ns_client_endrequest(ns_client_t *client) {
 	}
 
 	client->udpsize = 512;
+	client->extflags = 0;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
 	if (client->recursionquota != NULL)
@@ -1233,6 +1234,11 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		 * Set the client's UDP buffer size.
 		 */
 		client->udpsize = opt->rdclass;
+
+		/*
+		 * Get the flags out of the OPT record.
+		 */
+		client->extflags = DNS_OPT_FLAGS(opt);
 						     
 #ifdef DNS_OPT_NEWCODES
 		/*
@@ -1533,6 +1539,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp)
 	client->tcpbuf = NULL;
 	client->opt = NULL;
 	client->udpsize = 512;
+	client->extflags = 0;
 #ifdef DNS_OPT_NEWCODES
 	client->opt_zone = NULL;
 	client->opt_view = NULL;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.22 2000/09/06 20:35:22 gson Exp $ */
+/* $Id: query.h,v 1.23 2000/11/13 21:33:58 bwelling Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
@@ -61,6 +61,7 @@ struct ns_query {
 #define NS_QUERYATTR_QUERYOKVALID	0x0040
 #define NS_QUERYATTR_QUERYOK		0x0080
 #define NS_QUERYATTR_WANTRECURSION	0x0100
+#define NS_QUERYATTR_WANTDNSSEC		0x0200
 
 isc_result_t
 ns_query_init(ns_client_t *client);

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.161 2000/11/08 01:23:27 gson Exp $ */
+/* $Id: dighost.c,v 1.162 2000/11/13 21:33:51 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -356,6 +356,7 @@ make_empty_lookup(void) {
 	looknew->ignore = ISC_FALSE;
 	looknew->servfail_stops = ISC_FALSE;
 	looknew->besteffort = ISC_TRUE;
+	looknew->dnssec = ISC_FALSE;
 	looknew->udpsize = 0;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
@@ -415,6 +416,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->ignore = lookold->ignore;
 	looknew->servfail_stops = lookold->servfail_stops;
 	looknew->besteffort = lookold->besteffort;
+	looknew->dnssec = lookold->dnssec;
 	looknew->udpsize = lookold->udpsize;
 	looknew->recurse = lookold->recurse;
         looknew->aaonly = lookold->aaonly;
@@ -757,7 +759,9 @@ setup_libs(void) {
  * option is UDP buffer size.
  */
 static void
-add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
+add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec,
+	dns_optlist_t optlist)
+{
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
@@ -784,6 +788,8 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, dns_optlist_t optlist) {
 	rdatalist->covers = 0;
 	rdatalist->rdclass = udpsize;
 	rdatalist->ttl = 0;
+	if (dnssec)
+		rdatalist->ttl = DNS_MESSAGEEXTFLAG_DO;
 	rdata->data = NULL;
 	rdata->length = 0;
 #ifdef DNS_OPT_NEWCODES_LIVE
@@ -1422,10 +1428,10 @@ setup_lookup(dig_lookup_t *lookup) {
 	result = dns_message_renderbegin(lookup->sendmsg, &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
 #ifndef DNS_OPT_NEWCODES_LIVE
-	if (lookup->udpsize > 0) {
+	if (lookup->udpsize > 0 || lookup->dnssec) {
 #else /* DNS_OPT_NEWCODES_LIVE */
-	if (lookup->udpsize > 0 || lookup->zonename[0] !=0 ||
-	    lookup->viewname[0] != 0) {
+	if (lookup->udpsize > 0 ||  || lookup->dnssec ||
+	    lookup->zonename[0] !=0 || lookup->viewname[0] != 0) {
 		dns_fixedname_t fname;
 		isc_buffer_t namebuf, *wirebuf = NULL;
 		dns_compress_t cctx;
@@ -1475,7 +1481,8 @@ setup_lookup(dig_lookup_t *lookup) {
 			optlist.used++;
 		}
 #endif /* DNS_OPT_NEWCODES_LIVE */
-		add_opt(lookup->sendmsg, lookup->udpsize, optlist);
+		add_opt(lookup->sendmsg, lookup->udpsize, lookup->dnssec,
+			optlist);
 #ifdef DNS_OPT_NEWCODES_LIVE
 		if (wirebuf != NULL)
 			isc_buffer_free(&wirebuf);

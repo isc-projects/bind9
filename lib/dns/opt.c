@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.4 2000/10/25 04:26:42 marka Exp $ */
+/* $Id: opt.c,v 1.5 2000/11/13 21:33:59 bwelling Exp $ */
 
 #include <config.h>
 
@@ -231,9 +231,13 @@ dns_opt_totext(dns_rdataset_t *opt, isc_buffer_t *target,
 				0x00ff0000 >> 16)));
 	ADD_STRING(target, buf, fail);
 	ADD_STRING(target, ", udp=", fail);
-	sprintf(buf, "%7u\n",
+	sprintf(buf, "%7u",
 		(unsigned int)opt->rdclass);
 	ADD_STRING(target, buf, fail);
+	ADD_STRING(target, ", flags:", fail);
+	if ((DNS_OPT_FLAGS(opt) & DNS_MESSAGEEXTFLAG_DO) != 0)
+		ADD_STRING(target, " do", fail);
+	ADD_STRING(target, "\n", fail);
 
 	list.attrs = &attr;
 	list.size = 1;
