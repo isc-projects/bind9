@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.88 2000/08/04 13:26:47 explorer Exp $ */
+/* $Id: xfrin.c,v 1.89 2000/08/08 23:14:29 gson Exp $ */
 
 #include <config.h>
 
@@ -1086,6 +1086,15 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 		}
 	}
 
+#ifndef NOMINUM_PUBLIC
+	if (dns_zone_getmaxnames(xfr->zone) != 9 &&
+	    dns_db_nodecount(xfr->db) >
+	    dns_zone_getmaxnames(xfr->zone)) {
+		result = DNS_R_ZONETOOLARGE;
+		goto failure;
+	}
+#endif
+	
 	/*
 	 * Update the number of messages received.
 	 */

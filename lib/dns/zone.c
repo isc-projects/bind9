@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.175 2000/08/04 13:26:48 explorer Exp $ */
+/* $Id: zone.c,v 1.176 2000/08/08 23:14:26 gson Exp $ */
 
 #include <config.h>
 
@@ -118,6 +118,9 @@ struct dns_zone {
 	isc_uint32_t		minrefresh;
 	isc_uint32_t		maxretry;
 	isc_uint32_t		minretry;
+#ifndef NOMINUM_PUBLIC
+	isc_uint32_t		maxnames;
+#endif /* NOMINUM_PUBLIC */
 
 	isc_sockaddr_t		*masters;
 #ifndef NOMINUM_PUBLIC
@@ -355,7 +358,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->minrefresh = DNS_ZONE_MINREFRESH;
 	zone->maxretry = DNS_ZONE_MAXRETRY;
 	zone->minretry = DNS_ZONE_MINRETRY;
-
+#ifndef NOMINUM_PUBLIC
+	zone->maxnames = 0;
+#endif /* NOMINUM_PUBLIC */
 	zone->masters = NULL;
 #ifndef NOMINUM_PUBLIC
 	zone->masterkeynames = NULL;
@@ -1747,6 +1752,21 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val) {
 
 	zone->maxretry = val;
 }
+
+#ifndef NOMINUM_PUBLIC
+void
+dns_zone_setmaxnames(dns_zone_t *zone, isc_uint32_t val) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	zone->maxnames = val;
+}
+
+isc_uint32_t dns_zone_getmaxnames(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->maxnames);
+}
+#endif /* NOMINUM_PUBLIC */
 
 static isc_boolean_t
 notify_isqueued(dns_zone_t *zone, dns_name_t *name, isc_sockaddr_t *addr) {
