@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.66.18.3 2004/09/16 02:49:50 marka Exp $ */
+/* $Id: os.c,v 1.66.18.4 2004/09/29 06:43:53 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -104,6 +104,7 @@ static pid_t mainpid = 0;
 
 static struct passwd *runas_pw = NULL;
 static isc_boolean_t done_setuid = ISC_FALSE;
+static int dfd[2] = { -1, -1 };
 
 #ifdef HAVE_LINUX_CAPABILITY_H
 
@@ -305,13 +306,33 @@ ns_os_daemonize(void) {
 	pid_t pid;
 	char strbuf[ISC_STRERRORSIZE];
 
+	if (pipe(dfd) == -1) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		ns_main_earlyfatal("pipe(): %s", strbuf);
+	}
+
 	pid = fork();
 	if (pid == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("fork(): %s", strbuf);
 	}
-	if (pid != 0)
-		_exit(0);
+	if (pid != 0) {
+		int n;
+		/*
+		 * Wait for the child to finish loading for the first time.
+		 * This would be so much simpler if fork() worked once we
+	         * were multi-threaded.
+		 */
+		(void)close(dfd[1]);
+		do {
+			char buf;
+			n = read(dfd[0], &buf, 1);
+			if (n == 1)
+				_exit(0);
+		} while (n == -1 && errno == EINTR);
+		_exit(1);
+	}
+	(void)close(dfd[0]);
 
 	/*
 	 * We're the child.
@@ -349,6 +370,20 @@ ns_os_daemonize(void) {
 			(void)close(STDERR_FILENO);
 			(void)dup2(devnullfd, STDERR_FILENO);
 		}
+	}
+}
+
+void
+ns_os_started(void) {
+	char buf = 0;
+
+	/*
+	 * Signal to the parent that we stated successfully.
+	 */
+	if (dfd[0] != -1 && dfd[1] != -1) {
+		write(dfd[1], &buf, 1);
+		close(dfd[1]);
+		dfd[0] = dfd[1] = -1;
 	}
 }
 

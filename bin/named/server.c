@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.9 2004/06/18 04:39:39 marka Exp $ */
+/* $Id: server.c,v 1.419.18.10 2004/09/29 06:43:53 marka Exp $ */
 
 #include <config.h>
 
@@ -2805,7 +2805,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_server_t *server = (ns_server_t *)event->ev_arg;
 
-	UNUSED(task);
+	INSIST(task == server->task);
 
 	isc_event_free(&event);
 
@@ -2843,11 +2843,11 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_hash_init();
 
-	CHECKFATAL(load_zones(server, ISC_FALSE),
-		   "loading zones");
+	CHECKFATAL(load_zones(server, ISC_FALSE), "loading zones");
 
+	ns_os_started();
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
-		      ISC_LOG_INFO, "running");
+		      ISC_LOG_NOTICE, "running");
 }
 
 void 
@@ -3187,8 +3187,7 @@ loadconfig(ns_server_t *server) {
 	start_reserved_dispatches(server);
 	result = load_configuration(ns_g_lwresdonly ?
 				    lwresd_g_conffile : ns_g_conffile,
-				    server,
-				    ISC_FALSE);
+				    server, ISC_FALSE);
 	if (result == ISC_R_SUCCESS)
 		end_reserved_dispatches(server, ISC_FALSE);
 	else

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.20 2004/03/05 04:58:08 marka Exp $ */
+/* $Id: os.c,v 1.20.18.1 2004/09/29 06:43:54 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -253,6 +253,10 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 		return;
 	}
 	(void)fclose(lockfile);
+}
+
+void
+ns_os_started(void) {
 }
 
 void
