@@ -1,3 +1,6 @@
+9.1.1:
+query.c:3036:INSIST(rdataset == ((void *)0))	RESOLVED 1930 (fix 818)
+
 9.1.1rc2: 
 resolver.c:1733: REQUIRE((((fctx->queries).head == 0) ? isc_boolean_true : isc_boolean_false))	????
 						RESOLVED 673 872 1048 (fixed in 9.1.1rc6)
