@@ -208,6 +208,7 @@ main(int argc, char *argv[]) {
 	RUNTIME_CHECK(dns_dispatch_create(mctx, s, task1, 4096, 1000, 1000, 4,
 					  &dispatch) == DNS_R_SUCCESS);
 
+#ifdef notyet
 	res = NULL;
 	RUNTIME_CHECK(dns_resolver_create(mctx, view, taskmgr, 10, timermgr,
 					  dispatch, &res) ==
@@ -230,7 +231,7 @@ main(int argc, char *argv[]) {
 	fetch = launch(res, dns_rootname, dns_rdatatype_ns,
 		       ISC_TRUE, ISC_FALSE, task1);
 	cancel(fetch, task1);
-
+#endif
 	(void)isc_app_run();
 
 	/*
