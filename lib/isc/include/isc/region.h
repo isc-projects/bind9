@@ -37,20 +37,20 @@ struct isc_textregion {
 
 #define isc_region_consume(r,l) \
 	do { \
-		isc_region_t *__r = (r); \
-		unsigned int __l = (l); \
-		INSIST(__r->length >= __l); \
-		__r->base += __l; \
-		__r->length -= __l; \
+		isc_region_t *_r = (r); \
+		unsigned int _l = (l); \
+		INSIST(_r->length >= _l); \
+		_r->base += _l; \
+		_r->length -= _l; \
 	} while (0)
 
 #define isc_textregion_consume(r,l) \
 	do { \
-		isc_textregion_t *__r = (r); \
-		unsigned int __l = (l); \
-		INSIST(__r->length >= __l); \
-		__r->base += __l; \
-		__r->length -= __l; \
+		isc_textregion_t *_r = (r); \
+		unsigned int _l = (l); \
+		INSIST(_r->length >= _l); \
+		_r->base += _l; \
+		_r->length -= _l; \
 	} while (0)
 
 #endif /* ISC_REGION_H */

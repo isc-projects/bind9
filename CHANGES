@@ -1,3 +1,10 @@
+ 184.   [cleanup]       Conform variable names hidden in isc_region_consume
+                        and isc_textregion_consume macros to ANSI/ISO
+                        standard (double leading underscores are reserved).
+
+ 183.   [func]          ISC_LOG_PRINTTAG option for log channels.  Useful
+                        for logging the program name or other identifier.
+
  182.	[cleanup]	New commandline parameters for dnssec tools
 
  181.	[func]		Added dst_key_buildfilename and dst_key_parsefilename
