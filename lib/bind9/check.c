@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.1 2003/08/04 04:23:55 marka Exp $ */
+/* $Id: check.c,v 1.37.6.2 2003/08/04 05:53:40 marka Exp $ */
 
 #include <config.h>
 
@@ -64,7 +64,6 @@ static isc_result_t
 check_options(cfg_obj_t *options, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i;
-	dns_rdataclass_t zclass;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60 },
@@ -124,6 +123,7 @@ check_zoneconf(cfg_obj_t *zconfig, isc_symtab_t *symtab,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 	unsigned int i;
+	dns_rdataclass_t zclass;
  	dns_fixedname_t fixedname;
  	isc_buffer_t b;
 
@@ -465,7 +465,8 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 }
   		
 static isc_result_t
-check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig, isc_log_t *logctx, isc_mem_t *mctx)
+check_viewconf(cfg_obj_t *config, cfg_obj_t *vconfig,
+	       dns_rdataclass_t vclass, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	cfg_obj_t *servers = NULL;
 	cfg_obj_t *zones = NULL;
@@ -614,6 +615,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 	     velement = cfg_list_next(velement))
 	{
 		cfg_obj_t *view = cfg_listelt_value(velement);
+		cfg_obj_t *vname = cfg_tuple_get(view, "name");
 		cfg_obj_t *voptions = cfg_tuple_get(view, "options");
 		cfg_obj_t *vclassobj = cfg_tuple_get(view, "class");
 		dns_rdataclass_t vclass = dns_rdataclass_in;
