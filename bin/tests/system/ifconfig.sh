@@ -5,16 +5,13 @@
 
 sys=`../../../config.guess`
 case "$sys" in 
-    sparc-sun-solaris2.6)
-    sparc-sun-solaris2.7)
-    sparc-sun-solaris2.8)
+    sparc-sun-solaris2.[6-8])
 	type="lo0"
 	;;
     i686-pc-linux-gnu)
 	type="lo"
         ;;
-    i386-unknown-freebsdelf3.4)
-    i386-unknown-netbsd1.4.2)
+    i386-unknown-freebsdelf3.4|*-unknown-netbsd*)
 	type="alias"
 	;;
 esac
