@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_parse.h,v 1.20 2001/09/15 00:01:50 bwelling Exp $ */
+/* $Id: dst_parse.h,v 1.21 2002/02/27 22:11:56 bwelling Exp $ */
 
 #ifndef DST_DST_PARSE_H
 #define DST_DST_PARSE_H 1
@@ -84,9 +84,8 @@ void
 dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx);
 
 int
-dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
-			  const char *filename, isc_mem_t *mctx,
-			  dst_private_t *priv);
+dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
+		      isc_mem_t *mctx, dst_private_t *priv);
 
 int
 dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,

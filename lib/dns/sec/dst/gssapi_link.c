@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.9 2001/11/06 22:50:55 bwelling Exp $
+ * $Id: gssapi_link.c,v 1.10 2002/02/27 22:11:57 bwelling Exp $
  */
 
 #ifdef GSSAPI
@@ -203,7 +203,7 @@ static dst_func_t gssapi_functions = {
 	NULL, /* todns */
 	NULL, /* fromdns */
 	NULL, /* tofile */
-	NULL, /* fromfile */
+	NULL, /* parse */
 	NULL, /* cleanup */
 };
 

@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.40 2001/11/07 23:03:53 bwelling Exp $ */
+/* $Id: dst_internal.h,v 1.41 2002/02/27 22:11:53 bwelling Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -95,7 +95,7 @@ struct dst_func {
 	isc_result_t (*todns)(const dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*fromdns)(dst_key_t *key, isc_buffer_t *data);
 	isc_result_t (*tofile)(const dst_key_t *key, const char *directory);
-	isc_result_t (*fromfile)(dst_key_t *key, const char *filename);
+	isc_result_t (*parse)(dst_key_t *key, isc_lex_t *lexer);
 
 	/* cleanup */
 	void (*cleanup)(void);
@@ -129,13 +129,6 @@ void * dst__mem_realloc(void *ptr, size_t size);
  */
 isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
 				  isc_boolean_t pseudo);
-
-/*
- * Generic helper functions.
- */
-isc_result_t
-dst__file_addsuffix(char *filename, unsigned int len,
-		    const char *ofilename, const char *suffix);
 
 ISC_LANG_ENDDECLS
 

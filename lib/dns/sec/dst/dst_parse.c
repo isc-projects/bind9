@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.36 2002/02/20 03:35:17 marka Exp $
+ * $Id: dst_parse.c,v 1.37 2002/02/27 22:11:55 bwelling Exp $
  */
 
 #include <config.h>
@@ -183,50 +183,35 @@ dst__privstruct_free(dst_private_t *priv, isc_mem_t *mctx) {
 }
 
 int
-dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
-			  const char *filename, isc_mem_t *mctx,
-			  dst_private_t *priv)
+dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
+		      isc_mem_t *mctx, dst_private_t *priv)
 {
 	int n = 0, major, minor;
 	isc_buffer_t b;
-	isc_lex_t *lex = NULL;
 	isc_token_t token;
+	unsigned char *data = NULL;
 	unsigned int opt = ISC_LEXOPT_EOL;
-	char *newfilename;
-	int newfilenamelen;
 	isc_result_t ret;
 
 	REQUIRE(priv != NULL);
 
-	newfilenamelen = strlen(filename) + 9;
-	newfilename = isc_mem_get(mctx, newfilenamelen);
-	if (newfilename == NULL)
-		return (ISC_R_NOMEMORY);
-	ret = dst__file_addsuffix(newfilename, newfilenamelen, filename,
-				  ".private");
-	INSIST(ret == ISC_R_SUCCESS);
-
 	priv->nelements = 0;
 
-	ret = isc_lex_create(mctx, 1024, &lex);
-	if (ret != ISC_R_SUCCESS)
-		return (ret);
+#define NEXTTOKEN(lex, opt, token)				\
+	do {							\
+		ret = isc_lex_gettoken(lex, opt, token);	\
+		if (ret != ISC_R_SUCCESS)			\
+			goto fail;				\
+	} while (0)
 
-	ret = isc_lex_openfile(lex, newfilename);
-	if (ret != ISC_R_SUCCESS)
-		goto fail;
-
-#define NEXTTOKEN(lex, opt, token) \
-	{ \
-		ret = isc_lex_gettoken(lex, opt, token); \
-		if (ret != ISC_R_SUCCESS) \
-			goto fail; \
-	}
-
-#define READLINE(lex, opt, token) \
-	do { \
-		NEXTTOKEN(lex, opt, token) \
-	} while ((*token).type != isc_tokentype_eol) \
+#define READLINE(lex, opt, token)				\
+	do {							\
+		ret = isc_lex_gettoken(lex, opt, token);	\
+		if (ret == ISC_R_EOF)				\
+			break;					\
+		else if (ret != ISC_R_SUCCESS)			\
+			goto fail;				\
+	} while ((*token).type != isc_tokentype_eol)
 
 	/*
 	 * Read the description line.
@@ -287,7 +272,6 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 	 */
 	for (n = 0; n < MAXFIELDS; n++) {
 		int tag;
-		unsigned char *data;
 		isc_region_t r;
 
 		do {
@@ -324,6 +308,7 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 		priv->elements[n].data = r.base;
 
 		READLINE(lex, opt, &token);
+		data = NULL;
 	}
  done:
 	priv->nelements = n;
@@ -331,21 +316,14 @@ dst__privstruct_parsefile(dst_key_t *key, unsigned int alg,
 	if (check_data(priv, alg) < 0)
 		goto fail;
 
-	RUNTIME_CHECK(isc_lex_close(lex) == ISC_R_SUCCESS);
-	isc_lex_destroy(&lex);
-	isc_mem_put(mctx, newfilename, newfilenamelen);
-
 	return (ISC_R_SUCCESS);
 
 fail:
-	if (lex != NULL) {
-		(void)isc_lex_close(lex);
-		isc_lex_destroy(&lex);
-	}
-	isc_mem_put(mctx, newfilename, newfilenamelen);
-
 	priv->nelements = n;
 	dst__privstruct_free(priv, mctx);
+	if (data != NULL)
+		isc_mem_put(mctx, data, MAXFIELDSIZE);
+
 	return (ret);
 }
 

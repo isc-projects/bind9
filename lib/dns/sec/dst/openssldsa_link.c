@@ -17,7 +17,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.9 2001/12/12 17:09:38 bwelling Exp $ */
+/* $Id: openssldsa_link.c,v 1.10 2002/02/27 22:12:02 bwelling Exp $ */
 
 #ifdef OPENSSL
 
@@ -350,7 +350,7 @@ openssldsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldsa_fromfile(dst_key_t *key, const char *filename) {
+openssldsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -359,8 +359,7 @@ openssldsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_DSA, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_DSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -423,7 +422,7 @@ static dst_func_t openssldsa_functions = {
 	openssldsa_todns,
 	openssldsa_fromdns,
 	openssldsa_tofile,
-	openssldsa_fromfile,
+	openssldsa_parse,
 	NULL, /* cleanup */
 };
 

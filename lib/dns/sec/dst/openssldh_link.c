@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.46 2001/12/12 17:18:52 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.47 2002/02/27 22:12:01 bwelling Exp $
  */
 
 #ifdef OPENSSL
@@ -448,7 +448,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-openssldh_fromfile(dst_key_t *key, const char *filename) {
+openssldh_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -459,8 +459,7 @@ openssldh_fromfile(dst_key_t *key, const char *filename) {
 	mctx = key->mctx;
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_DH, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_DH, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -579,7 +578,7 @@ static dst_func_t openssldh_functions = {
 	openssldh_todns,
 	openssldh_fromdns,
 	openssldh_tofile,
-	openssldh_fromfile,
+	openssldh_parse,
 	openssldh_cleanup,
 };
 

@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.21 2002/02/20 03:35:19 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.22 2002/02/27 22:12:04 bwelling Exp $
  */
 #ifdef OPENSSL
 
@@ -431,7 +431,7 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 }
 
 static isc_result_t
-opensslrsa_fromfile(dst_key_t *key, const char *filename) {
+opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer) {
 	dst_private_t priv;
 	isc_result_t ret;
 	int i;
@@ -440,8 +440,7 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 #define DST_RET(a) {ret = a; goto err;}
 
 	/* read private key file */
-	ret = dst__privstruct_parsefile(key, DST_ALG_RSA, filename, mctx,
-					&priv);
+	ret = dst__privstruct_parse(key, DST_ALG_RSA, lexer, mctx, &priv);
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -513,7 +512,7 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_todns,
 	opensslrsa_fromdns,
 	opensslrsa_tofile,
-	opensslrsa_fromfile,
+	opensslrsa_parse,
 	NULL, /* cleanup */
 };
 

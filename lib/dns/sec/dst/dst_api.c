@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.102 2002/02/20 03:35:15 marka Exp $
+ * $Id: dst_api.c,v 1.103 2002/02/27 22:11:52 bwelling Exp $
  */
 
 #include <config.h>
@@ -91,6 +91,9 @@ static isc_result_t	frombuffer(dns_name_t *name,
 				   dst_key_t **keyp);
 
 static isc_result_t	algorithm_status(unsigned int alg);
+
+static isc_result_t	addsuffix(char *filename, unsigned int len,
+				  const char *ofilename, const char *suffix);
 
 #define RETERR(x) 				\
 	do {					\
@@ -376,6 +379,9 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	isc_result_t result;
 	dst_key_t *pubkey = NULL, *key = NULL;
 	dns_keytag_t id;
+	char *newfilename = NULL;
+	int newfilenamelen = 0;
+	isc_lex_t *lex = NULL;
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(filename != NULL);
@@ -415,30 +421,37 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (key->func->fromfile == NULL) {
-		dst_key_free(&key);
-		return (DST_R_UNSUPPORTEDALG);
-	}
+	if (key->func->parse == NULL)
+		RETERR(DST_R_UNSUPPORTEDALG);
 
-	result = key->func->fromfile(key, filename);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (result);
-	}
+	newfilenamelen = strlen(filename) + 9;
+	newfilename = isc_mem_get(mctx, newfilenamelen);
+	if (newfilename == NULL)
+		RETERR(ISC_R_NOMEMORY);
+	result = addsuffix(newfilename, newfilenamelen, filename, ".private");
+	INSIST(result == ISC_R_SUCCESS);
 
-	result = computeid(key);
-	if (result != ISC_R_SUCCESS) {
-		dst_key_free(&key);
-		return (result);
-	}
+	RETERR(isc_lex_create(mctx, 1500, &lex));
+	RETERR(isc_lex_openfile(lex, newfilename));
+	isc_mem_put(mctx, newfilename, newfilenamelen);
 
-	if (id != key->key_id) {
-		dst_key_free(&key);
-		return (DST_R_INVALIDPRIVATEKEY);
-	}
+	RETERR(key->func->parse(key, lex));
+	isc_lex_destroy(&lex);
+
+	RETERR(computeid(key));
+
+	if (id != key->key_id)
+		RETERR(DST_R_INVALIDPRIVATEKEY);
 
 	*keyp = key;
 	return (ISC_R_SUCCESS);
+ out:
+	if (newfilename != NULL)
+		isc_mem_put(mctx, newfilename, newfilenamelen);
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+	dst_key_free(&key);
+	return (result);
 }
 
 isc_result_t
@@ -550,6 +563,28 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target) {
 		return (DST_R_UNSUPPORTEDALG);
 
 	return (key->func->todns(key, target));
+}
+
+isc_result_t
+dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
+	isc_lex_t *lex = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+
+	REQUIRE(dst_initialized == ISC_TRUE);
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(!dst_key_isprivate(key));
+	REQUIRE(buffer != NULL);
+
+	if (key->func->parse == NULL)
+		RETERR(DST_R_UNSUPPORTEDALG);
+
+	RETERR(isc_lex_create(key->mctx, 1500, &lex));
+	RETERR(isc_lex_openbuffer(lex, buffer));
+	RETERR(key->func->parse(key, lex));
+ out:
+	if (lex != NULL)
+		isc_lex_destroy(&lex);
+	return (result);
 }
 
 isc_result_t
@@ -811,8 +846,7 @@ read_public_key(const char *filename, isc_mem_t *mctx, dst_key_t **keyp) {
 	newfilename = isc_mem_get(mctx, newfilenamelen);
 	if (newfilename == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = dst__file_addsuffix(newfilename, newfilenamelen, filename,
-				  ".key");
+	ret = addsuffix(newfilename, newfilenamelen, filename, ".key");
 	INSIST(ret == ISC_R_SUCCESS);
 
 	/*
@@ -1096,8 +1130,8 @@ algorithm_status(unsigned int alg) {
 }
 
 isc_result_t
-dst__file_addsuffix(char *filename, unsigned int len,
-	  const char *ofilename, const char *suffix)
+addsuffix(char *filename, unsigned int len, const char *ofilename,
+	  const char *suffix)
 {
 	int olen = strlen(ofilename);
 	int n;

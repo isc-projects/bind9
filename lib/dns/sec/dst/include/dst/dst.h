@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.44 2001/12/18 06:05:41 bwelling Exp $ */
+/* $Id: dst.h,v 1.45 2002/02/27 22:12:06 bwelling Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -345,6 +345,26 @@ dst_key_tobuffer(const dst_key_t *key, isc_buffer_t *target);
  * Ensures:
  *	If successful, the used pointer in 'target' is advanced.
  */
+
+isc_result_t
+dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer);
+/*
+ * Converts a public key into a private key, reading the private key
+ * information from the buffer.  The buffer should contain the same data
+ * as the .private key file would.
+ *
+ * Requires:
+ * 	"key" is a valid public key.
+ *	"buffer" is not NULL.
+ *
+ * Returns:
+ * 	ISC_R_SUCCESS
+ * 	any other result indicates failure
+ *
+ * Ensures:
+ *	If successful, key will contain a valid private key.
+ */
+
 
 isc_result_t
 dst_key_fromgssapi(dns_name_t *name, void *opaque, isc_mem_t *mctx,
