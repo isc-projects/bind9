@@ -42,7 +42,7 @@
 			table of RR types in ARM.
 
 1170.	[bug]		Don't attempt to print the token when a I/O error
-			occurs when parsing named.conf.  [RT #2275]
+			occurs when parsing named.conf. [RT #2275]
 
 1168.	[bug]		Empty also-notify clauses were not handled. [RT #2309]
 
@@ -68,7 +68,7 @@
 			AIX 4.3.3. [RT #2190]
 
 1154.	[bug]		Don't attempt to obtain the netmask of a interface
-			if there is no address configured.  [RT #2176]
+			if there is no address configured. [RT #2176]
 
 1152.	[bug]		libbind: read buffer overflows.
 
