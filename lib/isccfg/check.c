@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.3 2001/03/02 03:09:27 bwelling Exp $ */
+/* $Id: check.c,v 1.4 2001/03/03 23:05:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -194,10 +194,13 @@ check_zoneconf(cfg_obj_t *zconfig, isc_log_t *logctx) {
 
 isc_result_t
 cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
+	cfg_obj_t *options = NULL;
 	cfg_obj_t *views = NULL;
 	cfg_obj_t *obj;
 	cfg_listelt_t *velement;
 	isc_result_t result = ISC_R_SUCCESS;
+
+	(void)cfg_map_get(config, "options", &options);
 
 	(void)cfg_map_get(config, "view", &views);
 
@@ -257,20 +260,28 @@ cfg_check_namedconf(cfg_obj_t *config, isc_log_t *logctx) {
 		}
 	}
 
-	if (views != NULL) {
-		cfg_obj_t *options = NULL;
-		(void)cfg_map_get(config, "options", &options);
+	if (views != NULL && options != NULL) {
+		obj = NULL;
+		result = cfg_map_get(options, "cache-file", &obj);
+		if (result == ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'cache-file' cannot be a global "
+				    "option if views are present");
+			result = ISC_R_FAILURE;
+		}
+		result = ISC_R_SUCCESS;
+	}
 
-		if (options != NULL) {
-			obj = NULL;
-			result = cfg_map_get(options, "cache-file", &obj);
-			if (result == ISC_R_SUCCESS) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "'cache-file' cannot be a global "
-					    "option if views are present");
-				result = ISC_R_FAILURE;
-			}
-			result = ISC_R_SUCCESS;
+	if (options != NULL) {
+		obj = NULL;
+		result = cfg_map_get(options, "max-cache-size", &obj);
+		if (result == ISC_R_SUCCESS &&
+		    cfg_obj_isstring(obj))
+		{
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'max-cache-size' cannot have the "
+				    "value 'default'");
+			result = ISC_R_FAILURE;
 		}
 	}
 
