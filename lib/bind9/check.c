@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.7 2001/11/09 03:34:53 marka Exp $ */
+/* $Id: check.c,v 1.8 2001/11/13 06:34:59 marka Exp $ */
 
 #include <config.h>
 
@@ -486,8 +486,9 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	(void)cfg_map_get(config, "options", &options);
 
-	if (options != NULL)
-		check_options(options, logctx);
+	if (options != NULL &&
+	    check_options(options, logctx) != ISC_R_SUCCESS)
+		result = ISC_R_FAILURE;
 
 	(void)cfg_map_get(config, "view", &views);
 
