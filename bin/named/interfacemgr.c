@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.45 2000/06/30 02:48:06 gson Exp $ */
+/* $Id: interfacemgr.c,v 1.46 2000/07/19 20:34:14 gson Exp $ */
 
 #include <config.h>
 
@@ -369,7 +369,6 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	if (ifp->udpdispatch != NULL)
 		dns_dispatch_detach(&ifp->udpdispatch);
 	if (ifp->tcpsocket != NULL) {
-		isc_socket_cancel(ifp->tcpsocket, NULL, ISC_SOCKCANCEL_ALL);
 		isc_socket_detach(&ifp->tcpsocket);
 	}
 
