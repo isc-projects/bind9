@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.110 2002/04/26 00:40:34 marka Exp $ */
+/* $Id: message.h,v 1.111 2003/01/10 02:43:56 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -741,7 +741,7 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  *
  *	'msg' be valid, and be a renderable message.
  *
- *	'name' be a valid name.
+ *	'name' be a valid absolute name.
  *
  *	'section' be a named section.
  */
