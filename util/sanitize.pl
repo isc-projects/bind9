@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.3 2000/08/01 01:33:35 tale Exp $
+# $Id: sanitize.pl,v 1.4 2000/08/19 01:02:07 gson Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -88,9 +88,9 @@ sub runfile($) {
 		}
 		if (/\#ifdef.+NOMINUM_PUBLIC/) {
 			if ($state != 0) {
-				print(STDERR "*** ERROR in file $_[0]: ".
-				      "Found #ifdef without matching ".
-				      "#endif.\n");
+				print(STDERR "*** ERROR in file $_[0]".
+				      "line $.: ".
+				      "#ifdef within unterminated if[n]def\n");
 				close(INFILE);
 				close(OUTFILE) if ($makechange);
 				unlink($_[1]);
@@ -100,9 +100,9 @@ sub runfile($) {
 		}
 		elsif (/\#ifndef.+NOMINUM_PUBLIC/) {
 			if ($state != 0) {
-				print(STDERR "*** ERROR in file $_[0]: ".
-				      "Found #ifndef without matching ".
-				      "#endif.\n");
+				print(STDERR "*** ERROR in file $_[0] ".
+				      "line $.: ".
+				      "#ifndef within unterminated if[n]def\n");
 				close(INFILE);
 				close(OUTFILE) if ($makechange);
 				unlink($_[1]);
@@ -112,8 +112,9 @@ sub runfile($) {
 		}
 		elsif (/\#else.+NOMINUM_PUBLIC/) {
 			if ($state == 0) {
-				print(STDERR "*** ERROR in file $_[0]: ".
-				      "Found #else without matching ".
+				print(STDERR "*** ERROR in file $_[0] ".
+				      "line $.: ".
+				      "#else without matching ".
 				      "#if[n]def.\n");
 				close(INFILE);
 				close(OUTFILE) if ($makechange);
@@ -128,8 +129,8 @@ sub runfile($) {
 		}
 		elsif (/\#endif.+NOMINUM_PUBLIC/) {
 			if ($state == 0) {
-				print(STDERR "*** ERROR in file $_[0]: ".
-				      "Found #else without matching ".
+				print(STDERR "*** ERROR in file $_[0] line $.: ".
+				      "#endif without matching ".
 				      "#if[n]def.\n");
 				close(INFILE);
 				close(OUTFILE) if ($makechange);
@@ -139,8 +140,8 @@ sub runfile($) {
 			$state = 0;
 		}
 		elsif (/NOMINUM_PUBLIC/) {
-			print(STDERR "*** WARNING in file $_[0]: ".
-			      "Found NOMINUM_PUBLIC outside of ".
+			print(STDERR "*** WARNING in file $_[0] line $.: ".
+			      "NOMINUM_PUBLIC outside of ".
 			      "#ifdef/#else/#endif.\n");
 		}
 		else {
@@ -151,13 +152,13 @@ sub runfile($) {
 	}
 	if ($state != 0) {
 		print(STDERR "*** ERROR in file $_[0]: ".
-		      "File ended with unterminated test.\n");
+		      "file ended with unterminated test.\n");
 	} else {
 		close(INFILE);
 		close(OUTFILE) if ($makechange);
 		if (($_[0] ne "-") && ($makechange)) {
-			unlink($_[0]) || die "Unlink $_[0]:";
-			rename($_[1], $_[0]) || die "Rename $_[1] to $_[0]:";
+			unlink($_[0]) || die "unlink $_[0]:";
+			rename($_[1], $_[0]) || die "rename $_[1] to $_[0]:";
 		}
 	}
 }
