@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.27 2001/04/24 22:57:36 gson Exp $ */
+/* $Id: t_tasks.c,v 1.28 2001/04/25 01:23:13 gson Exp $ */
 
 #include <config.h>
 
@@ -2169,7 +2169,7 @@ int spin(int n) {
 	int r = 0;
 	for (i = 0; i < n; i++) {
 		r += i;
-		if (r > 10000000)
+		if (r > 1000000)
 			r = 0;
 	}
 	return (r);
