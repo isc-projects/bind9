@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.86 2002/09/20 06:26:10 jinmei Exp $ */
+/* $Id: host.c,v 1.87 2002/09/26 11:17:06 jinmei Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -52,9 +52,12 @@ extern int ndots;
 extern int tries;
 extern char *progname;
 extern isc_task_t *global_task;
+extern int fatalexit;
 
 static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 static int seen_error = -1;
+static isc_boolean_t list_addresses = ISC_TRUE;
+static dns_rdatatype_t list_type = dns_rdatatype_a;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -247,6 +250,16 @@ printsection(dns_message_t *msg, dns_section_t sectionid,
 		for (rdataset = ISC_LIST_HEAD(name->list);
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+			if (query->lookup->rdtype == dns_rdatatype_axfr &&
+			    !((!list_addresses &&
+			       (list_type == dns_rdatatype_any ||
+			        rdataset->type == list_type)) ||
+			      (list_addresses &&
+			       (rdataset->type == dns_rdatatype_a ||
+			        rdataset->type == dns_rdatatype_aaaa ||
+				rdataset->type == dns_rdatatype_ns ||
+				rdataset->type == dns_rdatatype_ptr))))
+				continue;
 			if (!short_form) {
 				result = dns_rdataset_totext(rdataset,
 							     print_name,
@@ -484,7 +497,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	int c;
 	char store[MXNAME];
 	isc_textregion_t tr;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdatatype_t rdtype;
 	dns_rdataclass_t rdclass;
 
@@ -499,6 +512,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			lookup->tcp_mode = ISC_TRUE;
 			lookup->rdtype = dns_rdatatype_axfr;
 			lookup->rdtypeset = ISC_TRUE;
+			fatalexit = 3;
 			break;
 		case 'v':
 		case 'd':
@@ -513,13 +527,23 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			result = dns_rdatatype_fromtext(&rdtype,
 						   (isc_textregion_t *)&tr);
 
-			if (result != ISC_R_SUCCESS)
-				fprintf(stderr, "warning: invalid type: %s\n",
-					isc_commandline_argument);
-			else {
-				lookup->rdtype = rdtype;
-				lookup->rdtypeset = ISC_TRUE;
+			if (result != ISC_R_SUCCESS) {
+				fatalexit = 2;
+				fatal("invalid type: %s\n",
+				      isc_commandline_argument);
 			}
+			if (!lookup->rdtypeset ||
+			    lookup->rdtype != dns_rdatatype_axfr)
+				lookup->rdtype = rdtype;
+			lookup->rdtypeset = ISC_TRUE;
+			if (rdtype == dns_rdatatype_axfr) {
+				/* -l -t any -v */
+				list_type = dns_rdatatype_any;
+				short_form = ISC_FALSE;
+				lookup->tcp_mode = ISC_TRUE;
+			} else 
+				list_type = rdtype;
+			list_addresses = ISC_FALSE;
 			break;
 		case 'c':
 			tr.base = isc_commandline_argument;
@@ -527,16 +551,21 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			result = dns_rdataclass_fromtext(&rdclass,
 						   (isc_textregion_t *)&tr);
 
-			if (result != ISC_R_SUCCESS)
-				fprintf(stderr, "warning: invalid class: %s\n",
-					isc_commandline_argument);
-			else {
+			if (result != ISC_R_SUCCESS) {
+				fatalexit = 2;
+				fatal("invalid class: %s\n",
+				      isc_commandline_argument);
+			} else {
 				lookup->rdclass = rdclass;
 				lookup->rdclassset = ISC_TRUE;
 			}
 			break;
 		case 'a':
-			lookup->rdtype = dns_rdatatype_any;
+			if (!lookup->rdtypeset ||
+			    lookup->rdtype != dns_rdatatype_axfr)
+				lookup->rdtype = dns_rdatatype_any;
+			list_type = dns_rdatatype_any;
+			list_addresses = ISC_FALSE;
 			lookup->rdtypeset = ISC_TRUE;
 			short_form = ISC_FALSE;
 			break;
@@ -623,6 +652,8 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
+	
+	fatalexit = 1;
 
 	debug("main()");
 	progname = argv[0];

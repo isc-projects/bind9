@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.253 2002/09/10 05:08:53 marka Exp $ */
+/* $Id: dighost.c,v 1.254 2002/09/26 11:17:06 jinmei Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -109,6 +109,7 @@ int lookup_counter = 0;
  *   10  Internal error
  */
 int exitcode = 0;
+int fatalexit = 0;
 char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
@@ -305,6 +306,8 @@ fatal(const char *format, ...) {
 	fprintf(stderr, "\n");
 	if (exitcode < 10)
 		exitcode = 10;
+	if (fatalexit != 0)
+		exitcode = fatalexit;
 	exit(exitcode);
 }
 
