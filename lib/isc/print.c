@@ -24,6 +24,7 @@
 #include <isc/assertions.h>
 #include <isc/print.h>
 #include <isc/platform.h>
+#include <isc/util.h>
 
 #ifndef ISC_PLATFORM_NEEDVSNPRINTF
 #error ISC_PLATFORM_NEEDVSPRINTF needs to be defined to compile this file.
