@@ -120,6 +120,15 @@
  */
 @ISC_NET_MSGHDRFLAVOR@
 
+/*
+ * If this system does not have MSG_TRUNC (as returned from recvmsg())
+ * ISC_NET_RECVOVERFLOW will be defined.  This will enable the MSG_TRUNC
+ * faking code in socket.c.
+ */
+#ifndef MSG_TRUNC
+#define ISC_NET_RECVOVERFLOW
+#endif
+
 /***
  *** Functions.
  ***/

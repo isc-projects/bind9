@@ -146,6 +146,9 @@ struct isc_socket {
 					connected : 1,
 					connecting : 1; /* connect pending */
 
+#ifdef ISC_NET_RECVOVERFLOW
+	unsigned char			overflow; /* used for MSG_TRUNC fake */
+#endif
 #ifdef notyet
 	unsigned char			cmsg[1024]; /* XXX size? */
 #endif
@@ -174,6 +177,16 @@ struct isc_socketmgr {
 #define CLOSED		0	/* this one must be zero */
 #define MANAGED		1
 #define CLOSE_PENDING	2
+
+/*
+ * send() and recv() iovec counts
+ */
+#define MAXSCATTERGATHER_SEND	(ISC_SOCKET_MAXSCATTERGATHER)
+#ifdef ISC_NET_RECVOVERFLOW
+# define MAXSCATTERGATHER_RECV	(ISC_SOCKET_MAXSCATTERGATHER + 1)
+#else
+# define MAXSCATTERGATHER_RECV	(ISC_SOCKET_MAXSCATTERGATHER)
+#endif
 
 static void send_recvdone_event(isc_socket_t *, isc_socketevent_t **,
 				isc_result_t);
@@ -420,7 +433,11 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 		memset(&dev->address, 0, sizeof(dev->address));
 		msg->msg_name = (void *)&dev->address.type.sa;
 		msg->msg_namelen = sizeof(dev->address.type.sa);
-	} else {
+#ifdef ISC_NET_RECVOVERFLOW
+		/* If needed, steal one iovec for overflow detection. */
+		maxiov--;
+#endif
+	} else { /* TCP */
 		msg->msg_name = NULL;
 		msg->msg_namelen = 0;
 		dev->address = sock->address;
@@ -436,8 +453,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 		read_count = dev->region.length - dev->n;
 		iov[0].iov_base = (void *)(dev->region.base + dev->n);
 		iov[0].iov_len = read_count;
-		msg->msg_iov = iov;
-		msg->msg_iovlen = 1;
+		iovcount = 1;
 
 		goto config;
 	}
@@ -468,10 +484,24 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 		buffer = ISC_LIST_NEXT(buffer, link);
 	}
 
+ config:
+
+	/*
+	 * If needed, set up to receive that one extra byte.  Note that
+	 * we know there is at least one iov left, since we stole it
+	 * at the top of this function.
+	 */
+#ifdef ISC_NET_RECVOVERFLOW
+	if (sock->type == isc_sockettype_udp) {
+		iov[iovcount].iov_base = (void *)(&sock->overflow);
+		iov[iovcount].iov_len = 1;
+		iovcount++;
+	}
+#endif
+
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
 
- config:
 #ifdef ISC_NET_BSD44MSGHDR
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
@@ -524,6 +554,22 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	return (ev);
 }
 
+#if defined(ISC_SOCKET_DEBUG)
+static void
+dump_msg(struct msghdr *msg)
+{
+	unsigned int i;
+
+	printf("MSGHDR %p\n", msg);
+	printf("\tname %p, namelen %d\n", msg->msg_name, msg->msg_namelen);
+	printf("\tiov %p, iovlen %d\n", msg->msg_iov, msg->msg_iovlen);
+	for (i = 0 ; i < msg->msg_iovlen ; i++)
+		printf("\t\t%d\tbase %p, len %d\n", i,
+		       msg->msg_iov[i].iov_base,
+		       msg->msg_iov[i].iov_len);
+}
+#endif
+
 #define DOIO_SUCCESS		0	/* i/o ok, event sent */
 #define DOIO_SOFT		1	/* i/o ok, soft error, no event sent */
 #define DOIO_HARD		2	/* i/o error, event sent */
@@ -534,14 +580,18 @@ static int
 doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 {
 	int cc;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	struct iovec iov[MAXSCATTERGATHER_RECV];
 	size_t read_count;
 	size_t actual_count;
 	struct msghdr msghdr;
 	isc_buffer_t *buffer;
 
 	build_msghdr_recv(sock, dev, &msghdr, iov,
-			  ISC_SOCKET_MAXSCATTERGATHER, &read_count);
+			  MAXSCATTERGATHER_RECV, &read_count);
+
+#if defined(ISC_SOCKET_DEBUG)
+	dump_msg(&msghdr);
+#endif
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
 	if (sock->type == isc_sockettype_udp)
@@ -596,6 +646,18 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev)
 	}
 
 	/*
+	 * Overflow bit detection.  If we received MORE bytes than we should,
+	 * this indicates an overflow situation.  Set the flag in the
+	 * dev entry and adjust how much we read by one.
+	 */
+#ifdef ISC_NET_RECVOVERFLOW
+	if ((sock->type == isc_sockettype_udp) && ((size_t)cc > read_count)) {
+		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
+		cc--;
+	}
+#endif
+
+	/*
 	 * If there are control messages attached, run through them and pull
 	 * out the interesting bits.
 	 *
@@ -646,12 +708,12 @@ static int
 doio_send(isc_socket_t *sock, isc_socketevent_t *dev)
 {
 	int cc;
-	struct iovec iov[ISC_SOCKET_MAXSCATTERGATHER];
+	struct iovec iov[MAXSCATTERGATHER_SEND];
 	size_t write_count;
 	struct msghdr msghdr;
 
 	build_msghdr_send(sock, dev, &msghdr, iov,
-			  ISC_SOCKET_MAXSCATTERGATHER, &write_count);
+			  MAXSCATTERGATHER_SEND, &write_count);
 
 	cc = sendmsg(sock->fd, &msghdr, 0);
 

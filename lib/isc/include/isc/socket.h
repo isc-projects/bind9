@@ -78,7 +78,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 /*
- * Maximum number of buffers in a scatter/gather read/write
+ * Maximum number of buffers in a scatter/gather read/write.  The operating
+ * system in use must support at least this number (plus one on some.)
  */
 #define ISC_SOCKET_MAXSCATTERGATHER	8
 
