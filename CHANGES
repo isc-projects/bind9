@@ -1,3 +1,6 @@
+ 396.	[doc]		There is now a man page for "nsupdate" 
+			in doc/man/bin/nsupdate.8.
+
  395.	[bug]		nslookup printed incorrect RR type mnemonics
 			for RRs of type >= 21 [RT #237].
 
