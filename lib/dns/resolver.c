@@ -72,7 +72,7 @@ typedef struct query {
 	ISC_LINK(struct query)		link;
 	isc_buffer_t			buffer;
 	dns_rdata_any_tsig_t		*tsig;
-	dns_tsig_key_t			*tsigkey;
+	dns_tsigkey_t			*tsigkey;
 	unsigned char			data[512];
 } resquery_t;
 

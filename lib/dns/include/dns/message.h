@@ -184,7 +184,7 @@ struct dns_message {
 	dns_rcode_t			querytsigstatus;
 	dns_rdata_any_tsig_t	       *tsig;
 	dns_rdata_any_tsig_t	       *querytsig;
-	dns_tsig_key_t		       *tsigkey;
+	dns_tsigkey_t		       *tsigkey;
 	void			       *tsigctx;
 	int				tsigstart;
 };

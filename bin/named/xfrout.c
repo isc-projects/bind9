@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.11 1999/10/07 19:33:12 halley Exp $ */
+ /* $Id: xfrout.c,v 1.12 1999/10/08 18:37:24 bwelling Exp $ */
 
 #include <config.h>
 
@@ -713,7 +713,7 @@ typedef struct {
 	unsigned int 		txmemlen;
 	unsigned int		nmsg;		/* Number of messages sent */
 
-	dns_tsig_key_t		*tsigkey;	/* Key used to create TSIG */
+	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	dns_rdata_any_tsig_t	*lasttsig;	/* the last TSIG */
 } xfrout_ctx_t;
 
@@ -721,7 +721,7 @@ static dns_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client,
 		  unsigned int id, dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
-		  rrstream_t *stream, dns_tsig_key_t *tsigkey,
+		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp);
 
 static void sendstream(xfrout_ctx_t *xfr);
@@ -948,7 +948,7 @@ static dns_result_t
 xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		  dns_name_t *qname, dns_rdatatype_t qtype,
 		  dns_db_t *db, dns_dbversion_t *ver,
-		  rrstream_t *stream, dns_tsig_key_t *tsigkey,
+		  rrstream_t *stream, dns_tsigkey_t *tsigkey,
 		  dns_rdata_any_tsig_t *lasttsig, xfrout_ctx_t **xfrp)
 {
 	xfrout_ctx_t *xfr;

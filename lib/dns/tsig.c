@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.15 1999/10/08 16:39:17 bwelling Exp $
+ * $Id: tsig.c,v 1.16 1999/10/08 18:36:51 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -52,7 +52,7 @@
 #define VALID_TSIG_KEY(x)	((x) != NULL && (x)->magic == TSIG_MAGIC)
 
 /* XXXBEW If an unsorted list isn't good enough, this can be updated */
-static ISC_LIST(dns_tsig_key_t) tsigkeys;
+static ISC_LIST(dns_tsigkey_t) tsigkeys;
 static isc_rwlock_t tsiglock;
 static isc_mem_t *tsig_mctx = NULL;
 
@@ -61,14 +61,14 @@ dns_name_t *dns_tsig_hmacmd5_name = NULL;
 #define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
 
 isc_result_t
-dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
-		    unsigned char *secret, int length,
-		    isc_mem_t *mctx, dns_tsig_key_t **key)
+dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
+		   unsigned char *secret, int length, isc_boolean_t transient,
+		   isc_mem_t *mctx, dns_tsigkey_t **key)
 {
 	isc_buffer_t b, nameb;
 	char namestr[1024];
 	isc_uint16_t alg;
-	dns_tsig_key_t *tkey;
+	dns_tsigkey_t *tkey;
 	isc_result_t ret;
 
 	REQUIRE(key != NULL);
@@ -85,7 +85,7 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		alg = DST_ALG_HMACMD5;
 
-	*key = (dns_tsig_key_t *) isc_mem_get(mctx, sizeof(dns_tsig_key_t));
+	*key = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	if (*key == NULL)
 		return (ISC_R_NOMEMORY);
 	tkey = *key;
@@ -125,6 +125,7 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
 	else
 		tkey->key = NULL;
 
+	tkey->transient = transient;
 	tkey->mctx = mctx;
 	tkey->magic = TSIG_MAGIC;
 	return (ISC_R_SUCCESS);
@@ -134,15 +135,15 @@ cleanup_algorithm:
 cleanup_name:
 	dns_name_free(&tkey->name, mctx);
 cleanup_key:
-	isc_mem_put(mctx, *key, sizeof(dns_tsig_key_t));
+	isc_mem_put(mctx, *key, sizeof(dns_tsigkey_t));
 
 	return (ret);
 }
 
 /* Caller must be sure that this key is not in use. */
 void
-dns_tsig_key_free(dns_tsig_key_t **key) {
-	dns_tsig_key_t *tkey;
+dns_tsigkey_free(dns_tsigkey_t **key) {
+	dns_tsigkey_t *tkey;
 
 	REQUIRE(key != NULL);
 	REQUIRE(VALID_TSIG_KEY(*key));
@@ -158,12 +159,12 @@ dns_tsig_key_free(dns_tsig_key_t **key) {
 	dns_name_free(&tkey->algorithm, tkey->mctx);
 	if (tkey->key != NULL)
 		dst_key_free(tkey->key);
-	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsig_key_t));
+	isc_mem_put(tkey->mctx, tkey, sizeof(dns_tsigkey_t));
 }
 
 isc_result_t
 dns_tsig_sign(dns_message_t *msg) {
-	dns_tsig_key_t *key;
+	dns_tsigkey_t *key;
 	dns_rdata_any_tsig_t *tsig;
 	unsigned char data[128];
 	isc_buffer_t databuf, sigbuf;
@@ -214,14 +215,14 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	isc_buffer_init(&databuf, data, sizeof(data), ISC_BUFFERTYPE_BINARY);
 
-	if (!dns_tsig_emptykey(key)) {
+	if (!dns_tsigkey_empty(key)) {
 		ret = dst_sign(DST_SIGMODE_INIT, key->key, &ctx, NULL, NULL);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_algorithm;
 	}
 
 	if (is_response(msg)) {
-		if (!dns_tsig_emptykey(key)) {
+		if (!dns_tsigkey_empty(key)) {
 			isc_buffer_putuint16(&databuf, msg->querytsig->siglen);
 			isc_buffer_available(&databuf, &r);
 			if (r.length < msg->querytsig->siglen)
@@ -258,7 +259,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		isc_buffer_putuint32(&otherbuf, tsig->timesigned & 0xFFFFFFFF);
 		
 	}
-	if (!dns_tsig_emptykey(key)) {
+	if (!dns_tsigkey_empty(key)) {
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
 
@@ -451,7 +452,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	dns_rdata_t rdata;
 	isc_stdtime_t now;
 	isc_result_t ret;
-	dns_tsig_key_t *tsigkey = NULL;
+	dns_tsigkey_t *tsigkey = NULL;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dst_context_t ctx;
@@ -511,17 +512,17 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 		return (DNS_R_TSIGVERIFYFAILURE);
 	}
 
-	/* Find dns_tsig_key_t based on keyname */
-	ret = dns_tsig_findkey(&tsigkey, keyname, &tsig->algorithm); 
+	/* Find dns_tsigkey_t based on keyname */
+	ret = dns_tsigkey_find(&tsigkey, keyname, &tsig->algorithm); 
 	if (ret != ISC_R_SUCCESS) {
 		msg->tsigstatus = dns_tsigerror_badkey;
 		msg->tsigkey = NULL;
 		/*
 		 * this key must be deleted later - an empty key can be found
-		 * by calling dns_tsig_emptykey()
+		 * by calling dns_tsigkey_empty()
 		 */
-		ret = dns_tsig_key_create(keyname, &tsig->algorithm, NULL, 0,
-					   mctx, &msg->tsigkey);
+		ret = dns_tsigkey_create(keyname, &tsig->algorithm, NULL, 0,
+					 ISC_TRUE, mctx, &msg->tsigkey);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_struct;
 		return (DNS_R_TSIGVERIFYFAILURE);
@@ -664,8 +665,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg) {
 	return (ISC_R_SUCCESS);
 
 cleanup_key:
-	if (dns_tsig_emptykey(msg->tsigkey)) {
-		dns_tsig_key_free(&msg->tsigkey);
+	if (dns_tsigkey_empty(msg->tsigkey)) {
+		dns_tsigkey_free(&msg->tsigkey);
 		msg->tsigkey = NULL;
 	}
 cleanup_struct:
@@ -839,10 +840,10 @@ cleanup_emptystruct:
 }
 
 isc_result_t
-dns_tsig_findkey(dns_tsig_key_t **tsigkey, dns_name_t *name,
+dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm)
 {
-	dns_tsig_key_t *key;
+	dns_tsigkey_t *key;
 
 	REQUIRE(tsigkey != NULL);
 	REQUIRE(name != NULL);
@@ -909,8 +910,8 @@ dns_tsig_init(isc_mem_t *mctx) {
 void
 dns_tsig_destroy() {
 	while (!ISC_LIST_EMPTY(tsigkeys)) {
-		dns_tsig_key_t *key = ISC_LIST_HEAD(tsigkeys);
-		dns_tsig_key_free(&key);
+		dns_tsigkey_t *key = ISC_LIST_HEAD(tsigkeys);
+		dns_tsigkey_free(&key);
 	}
 	dns_name_free(dns_tsig_hmacmd5_name, tsig_mctx);
 	isc_mem_put(tsig_mctx, dns_tsig_hmacmd5_name, sizeof(dns_name_t));

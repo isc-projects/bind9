@@ -36,21 +36,22 @@ extern dns_name_t *dns_tsig_hmacmd5_name;
 /* Default fudge value. */
 #define DNS_TSIG_FUDGE			300
 
-struct dns_tsig_key {
-	unsigned int			magic;		/* Magic number. */
-	isc_mem_t			*mctx;
-	dst_key_t			*key;		/* Key */
-	dns_name_t			name;		/* Key name */
-	dns_name_t			algorithm;	/* Algorithm name */
-	ISC_LINK(dns_tsig_key_t)	link;
+struct dns_tsigkey {
+	unsigned int		magic;		/* Magic number. */
+	isc_mem_t		*mctx;
+	dst_key_t		*key;		/* Key */
+	dns_name_t		name;		/* Key name */
+	dns_name_t		algorithm;	/* Algorithm name */
+	isc_boolean_t		transient;	/* dynamically created? */
+	ISC_LINK(dns_tsigkey_t)	link;
 };
 
-#define dns_tsig_emptykey(tsigkey) ((tsigkey)->key == NULL)
+#define dns_tsigkey_empty(tsigkey) ((tsigkey)->key == NULL)
 
 isc_result_t
-dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
-		    unsigned char *secret, int length, isc_mem_t *mctx,
-		    dns_tsig_key_t **key);
+dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
+		    unsigned char *secret, int length, isc_boolean_t transient,
+		    isc_mem_t *mctx, dns_tsigkey_t **key);
 /*
  *	Creates a tsig key structure pointed to by 'key'.
  *
@@ -70,7 +71,7 @@ dns_tsig_key_create(dns_name_t *name, dns_name_t *algorithm,
  */
 
 void
-dns_tsig_key_free(dns_tsig_key_t **key);
+dns_tsigkey_free(dns_tsigkey_t **key);
 /*
  *	Frees the tsig key structure pointed to by 'key'.
  *
@@ -137,7 +138,7 @@ dns_tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg);
  */
 
 isc_result_t
-dns_tsig_findkey(dns_tsig_key_t **tsigkey, dns_name_t *name,
+dns_tsigkey_find(dns_tsigkey_t **tsigkey, dns_name_t *name,
 		 dns_name_t *algorithm);
 /*
  *	Returns the TSIG key corresponding to this name and algorithm

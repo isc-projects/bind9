@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrin.c,v 1.10 1999/10/02 02:54:12 tale Exp $ */
+ /* $Id: xfrin.c,v 1.11 1999/10/08 18:37:23 bwelling Exp $ */
 
 #include <config.h>
 
@@ -140,7 +140,7 @@ struct xfrin_ctx {
 
 	unsigned int		nmsg;		/* Number of messages recvd */
 
-	dns_tsig_key_t		*tsigkey;	/* Key used to create TSIG */
+	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	dns_rdata_any_tsig_t	*lasttsig;	/* The last TSIG */
 	void			*tsigctx;	/* TSIG verification context */
 	unsigned int		sincetsig;	/* recvd since the last TSIG */
@@ -180,7 +180,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdatatype_t reqtype,
 	     char *addrstr, /* XXX */
 	     in_port_t port,
-	     dns_tsig_key_t *tsigkey,
+	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp);
 
 static dns_result_t axfr_init(xfrin_ctx_t *xfr);
@@ -536,7 +536,7 @@ xfrin_test_dbi(ns_dbinfo_t *dbi) {
 	dns_db_t *db;
 	dns_rdatatype_t xfrtype;
 	unsigned int len;
-	dns_tsig_key_t *key = NULL;
+	dns_tsigkey_t *key = NULL;
 	
 	printf("attempting zone transfer of zone \"%s\"...\n", dbi->origin);
 
@@ -619,7 +619,7 @@ xfrin_create(isc_mem_t *mctx,
 	     dns_rdatatype_t reqtype,
 	     char *addrstr, /* XXX */
 	     in_port_t port,
-	     dns_tsig_key_t *tsigkey,
+	     dns_tsigkey_t *tsigkey,
 	     xfrin_ctx_t **xfrp)
 {
 	xfrin_ctx_t *xfr = NULL;

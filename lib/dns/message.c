@@ -434,8 +434,8 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 			    sizeof(dns_rdata_any_tsig_t));
         }
 
-	if (msg->tsigkey != NULL && dns_tsig_emptykey(msg->tsigkey))
-		dns_tsig_key_free(&msg->tsigkey);
+	if (msg->tsigkey != NULL && dns_tsigkey_empty(msg->tsigkey))
+		dns_tsigkey_free(&msg->tsigkey);
 
 	/*
 	 * cleanup the buffer cleanup list
