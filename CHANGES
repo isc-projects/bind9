@@ -1,3 +1,5 @@
+ 652.	[bug]		zone_saveunique() did not report the new name.
+
  651.	[func]		The AD bit in responses now has the meaning
 			specified in <draft-ietf-dnsext-ad-is-secure>.
 
