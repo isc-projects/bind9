@@ -1,3 +1,6 @@
+1832.	[bug]		named fails to return BADKEY on unknown TSIG algorithm.
+			[RT #13620]
+
 1831.	[doc]		Update named-checkzone documentation. [RT#13604]
 
 1830.	[bug]		adb lame cache has sence of test reversed. [RT #13600]
