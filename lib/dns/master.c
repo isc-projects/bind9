@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.82 2000/11/24 01:51:11 marka Exp $ */
+/* $Id: master.c,v 1.83 2000/11/27 19:15:39 gson Exp $ */
 
 #include <config.h>
 
@@ -816,8 +816,8 @@ load(dns_loadctx_t **ctxp) {
 							  "$TTL %lu > MAXTTL, "
 							  "setting $TTL to 0",
 							  "dns_master_load",
-						    isc_lex_getsourcename(ctx->lex),
-						    isc_lex_getsourceline(ctx->lex),
+					    isc_lex_getsourcename(ctx->lex),
+					    isc_lex_getsourceline(ctx->lex),
 						    ctx->ttl);
 					ctx->ttl = 0;
 				}
@@ -975,12 +975,12 @@ load(dns_loadctx_t **ctxp) {
 			} else if (strncasecmp(token.value.as_pointer,
 					       "$", 1) == 0) {
 				(callbacks->error)(callbacks,
-						   "%s: %s:%lu: "
-						   "unknown $ directive '%s'",
-						   "dns_master_load",
-						   isc_lex_getsourcename(ctx->lex),
-						   isc_lex_getsourceline(ctx->lex),
-						   token.value.as_pointer);
+					   "%s: %s:%lu: "
+					   "unknown $ directive '%s'",
+					   "dns_master_load",
+					   isc_lex_getsourcename(ctx->lex),
+					   isc_lex_getsourceline(ctx->lex),
+					   token.value.as_pointer);
 				result = DNS_R_SYNTAX;
 				goto insist_and_cleanup;
 			}
@@ -1011,7 +1011,8 @@ load(dns_loadctx_t **ctxp) {
 			 */
 			if (finish_origin) {
 				if (ctx->origin_in_use != -1)
-					ctx->in_use[ctx->origin_in_use] = ISC_FALSE;
+					ctx->in_use[ctx->origin_in_use] =
+						ISC_FALSE;
 				ctx->origin_in_use = new_in_use;
 				ctx->in_use[ctx->origin_in_use] = ISC_TRUE;
 				ctx->origin = new_name;
@@ -1020,7 +1021,8 @@ load(dns_loadctx_t **ctxp) {
 			}
 			if (finish_include) {
 				finish_include = ISC_FALSE;
-				result = pushfile(include_file, new_name, ctxp);
+				result = pushfile(include_file, 
+						  new_name, ctxp);
 				if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				ctx = *ctxp;
@@ -1039,12 +1041,14 @@ load(dns_loadctx_t **ctxp) {
 			 */
 			if (ctx->glue != NULL &&
 			    dns_name_compare(ctx->glue, new_name) != 0) {
-				result = commit(callbacks, ctx->lex, &glue_list,
+				result = commit(callbacks, ctx->lex,
+						&glue_list,
 						ctx->glue, ctx->top);
 				if (result != ISC_R_SUCCESS)
 					goto log_and_cleanup;
 				if (ctx->glue_in_use != -1)
-					ctx->in_use[ctx->glue_in_use] = ISC_FALSE;
+					ctx->in_use[ctx->glue_in_use] =
+						ISC_FALSE;
 				ctx->glue_in_use = -1;
 				ctx->glue = NULL;
 				rdcount = rdcount_save;
@@ -1068,7 +1072,8 @@ load(dns_loadctx_t **ctxp) {
 					target_save = target;
 					ctx->glue = new_name;
 					ctx->glue_in_use = new_in_use;
-					ctx->in_use[ctx->glue_in_use] = ISC_TRUE;
+					ctx->in_use[ctx->glue_in_use] = 
+						ISC_TRUE;
 				} else {
 					result = commit(callbacks, ctx->lex,
 							&current_list,
@@ -1079,10 +1084,11 @@ load(dns_loadctx_t **ctxp) {
 					rdcount = 0;
 					rdlcount = 0;
 					if (ctx->current_in_use != -1)
-						ctx->in_use[ctx->current_in_use]
-							= ISC_FALSE;
+					    ctx->in_use[ctx->current_in_use] =
+						ISC_FALSE;
 					ctx->current_in_use = new_in_use;
-					ctx->in_use[ctx->current_in_use] = ISC_TRUE;
+					ctx->in_use[ctx->current_in_use] =
+						ISC_TRUE;
 					ctx->current = new_name;
 					current_has_delegation = ISC_FALSE;
 					isc_buffer_init(&target, target_mem,
@@ -1130,9 +1136,9 @@ load(dns_loadctx_t **ctxp) {
 			if (ctx->current == NULL) {
 				(*callbacks->error)(callbacks,
 					"%s: %s:%lu: No current owner name",
-						"dns_master_load",
-						isc_lex_getsourcename(ctx->lex),
-						isc_lex_getsourceline(ctx->lex));
+					"dns_master_load",
+					isc_lex_getsourcename(ctx->lex),
+					isc_lex_getsourceline(ctx->lex));
 				result = DNS_R_NOOWNER;
 				goto insist_and_cleanup;
 			}
@@ -1147,13 +1153,13 @@ load(dns_loadctx_t **ctxp) {
 				== ISC_R_SUCCESS) {
 			if (ctx->ttl > 0x7fffffffUL) {
 				(callbacks->warn)(callbacks,
-						  "%s: %s:%lu: "
-						  "TTL %lu > MAXTTL, "
-						  "setting TTL to 0",
-						  "dns_master_load",
-						  isc_lex_getsourcename(ctx->lex),
-						  isc_lex_getsourceline(ctx->lex),
-						  ctx->ttl);
+					  "%s: %s:%lu: "
+					  "TTL %lu > MAXTTL, "
+					  "setting TTL to 0",
+					  "dns_master_load",
+					  isc_lex_getsourcename(ctx->lex),
+					  isc_lex_getsourceline(ctx->lex),
+					  ctx->ttl);
 				ctx->ttl = 0;
 			}
 			ctx->ttl_known = ISC_TRUE;
@@ -1205,12 +1211,12 @@ load(dns_loadctx_t **ctxp) {
 						&token.value.as_textregion);
 		if (result != ISC_R_SUCCESS) {
 			(*callbacks->warn)(callbacks,
-					   "%s: %s:%lu: unknown RR type '%.*s'",
-					   "dns_master_load",
-					   isc_lex_getsourcename(ctx->lex),
-					   isc_lex_getsourceline(ctx->lex),
-					   token.value.as_textregion.length,
-					   token.value.as_textregion.base);
+				   "%s: %s:%lu: unknown RR type '%.*s'",
+				   "dns_master_load",
+				   isc_lex_getsourcename(ctx->lex),
+				   isc_lex_getsourceline(ctx->lex),
+				   token.value.as_textregion.length,
+				   token.value.as_textregion.base);
 			goto insist_and_cleanup;
 		}
 
@@ -1352,7 +1358,8 @@ load(dns_loadctx_t **ctxp) {
 	/*
 	 * Commit what has not yet been committed.
 	 */
-	result = commit(callbacks, ctx->lex, &current_list, ctx->current, ctx->top);
+	result = commit(callbacks, ctx->lex, &current_list,
+			ctx->current, ctx->top);
 	if (result != ISC_R_SUCCESS)
 		goto log_and_cleanup;
 	result = commit(callbacks, ctx->lex, &glue_list, ctx->glue, ctx->top);
@@ -1492,7 +1499,8 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 isc_result_t
 dns_master_loadfilequota(const char *master_file, dns_name_t *top,
 			 dns_name_t *origin, dns_rdataclass_t zclass,
-			 isc_boolean_t age_ttl, dns_rdatacallbacks_t *callbacks,
+			 isc_boolean_t age_ttl, 
+			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task, dns_loaddonefunc_t done,
 			 void *done_arg, dns_loadmgr_t *lmgr,
 			 dns_loadctx_t **ctxp, isc_mem_t *mctx)
