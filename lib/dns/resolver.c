@@ -969,11 +969,16 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 			 */
 			want_done = ISC_TRUE;
 		}
-	} else if (fctx->pending == 0 && fctx->references == 0 &&
-		   fctx->validating == 0 && SHUTTINGDOWN(fctx)) {
+	} else if (SHUTTINGDOWN(fctx) && fctx->pending == 0 &&
+		   fctx->validating == 0) {
 		bucketnum = fctx->bucketnum;
 		LOCK(&res->buckets[bucketnum].lock);
-		bucket_empty = fctx_destroy(fctx);
+		/*
+		 * Note that we had to wait until we had the lock before
+		 * looking at fctx->references.
+		 */
+		if (fctx->references == 0)
+			bucket_empty = fctx_destroy(fctx);
 		UNLOCK(&res->buckets[bucketnum].lock);
 	}
 
@@ -1062,8 +1067,10 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	 * Don't pound on remote servers.  (Failsafe!)
 	 */
 	fctx->restarts++;
-	if (fctx->restarts > 10)
+	if (fctx->restarts > 10) {
+		FCTXTRACE("too many restarts");
 		return (DNS_R_SERVFAIL);
+	}
 
 	res = fctx->res;
 
@@ -1350,6 +1357,7 @@ fctx_destroy(fetchctx_t *fctx) {
 	REQUIRE(ISC_LIST_EMPTY(fctx->finds));
 	REQUIRE(fctx->pending == 0);
 	REQUIRE(fctx->validating == 0);
+	REQUIRE(fctx->references == 0);
 
 	FCTXTRACE("destroy");
 
@@ -1553,8 +1561,10 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 		isc_event_allocate(fctx->res->mctx, clone,
 				   DNS_EVENT_FETCHDONE,
 				   action, arg, sizeof *event);
-	if (event == NULL)
+	if (event == NULL) {
+		isc_task_detach(&clone);
 		return (ISC_R_NOMEMORY);
+	}
 	event->result = DNS_R_SERVFAIL;
 	event->qtype = fctx->type;
 	event->db = NULL;
@@ -3189,6 +3199,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {
+				FCTXTRACE("couldn't find a zonecut");
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
@@ -3199,6 +3210,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 *
 				 * XXXRTH  What should we do here?
 				 */
+				FCTXTRACE("nameservers now above QDOMAIN");
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
@@ -3836,6 +3848,7 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
 	REQUIRE(res->frozen);
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
+	REQUIRE(VALID_FCTX(fctx));
 
 	FTRACE("cancelfetch");
 
@@ -3853,7 +3866,6 @@ dns_resolver_cancelfetch(dns_resolver_t *res, dns_fetch_t *fetch) {
 				break;
 			}
 		}
-		/* XXXRTH  INSIST that we found it? */
 	}
 	if (event != NULL) {
 		etask = event->sender;
@@ -3878,6 +3890,7 @@ dns_resolver_destroyfetch(dns_resolver_t *res, dns_fetch_t **fetchp) {
 	fetch = *fetchp;
 	REQUIRE(DNS_FETCH_VALID(fetch));
 	fctx = fetch->private;
+	REQUIRE(VALID_FCTX(fctx));
 
 	FTRACE("destroyfetch");
 
