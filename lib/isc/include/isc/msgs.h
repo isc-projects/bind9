@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.6 2002/04/02 04:36:48 marka Exp $ */
+/* $Id: msgs.h,v 1.7 2002/05/27 00:40:18 marka Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
@@ -145,6 +145,7 @@
 #define ISC_MSG_ACCEPTRETURNED 1418 /* accept() returned %d/%s */
 #define ISC_MSG_TOOMANYFDS     1419 /* %s: too many open file descriptors */
 #define ISC_MSG_ZEROPORT       1420 /* dropping source port zero packet */
+#define ISC_MSG_FILTER	       1420 /* setsockopt(SO_ACCEPTFILTER): %s */
 
 #define ISC_MSG_AWAKE	       1502 /* "awake" */
 #define ISC_MSG_WORKING	       1503 /* "working" */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.17 2002/04/02 04:36:52 marka Exp $ */
+/* $Id: socket.c,v 1.18 2002/05/27 00:40:23 marka Exp $ */
 
 #define MAKE_EXTERNAL 1
 #include <config.h>
@@ -2897,6 +2897,15 @@ isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *sockaddr) {
 
 	UNLOCK(&sock->lock);
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_socket_filter(isc_socket_t *sock, const char *filter) {
+        UNUSED(sock);
+        UNUSED(filter);
+
+        REQUIRE(VALID_SOCKET(sock));
+	return (ISC_R_NOTIMPLEMENTED);
 }
 
 /*
