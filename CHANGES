@@ -1,3 +1,9 @@
+ 250.	[bug]		fixed handling of size+unit when value would be too
+			large for internal representation.
+
+ 249.	[cleanup]	max-cache-size config option now takes a size-spec
+			like 'datasize', except 'default' is not allowed.
+
  248.	[bug]		global lame-ttl option was not being printed when
 			config structures were written out.
 

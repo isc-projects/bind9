@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.95 2000/06/09 15:03:24 brister Exp $ */
+/* $Id: confparser.y,v 1.96 2000/06/09 22:13:21 brister Exp $ */
 
 #include <config.h>
 
@@ -126,7 +126,7 @@ static void		parser_warning(isc_boolean_t lasttoken,
 static void		parser_complain(isc_boolean_t is_warning,
 					isc_boolean_t last_token,
 					const char *format, va_list args);
-static isc_boolean_t	unit_to_uint32(char *in, isc_uint32_t *out);
+static isc_result_t	unit_to_uint32(char *in, isc_uint32_t *out);
 static const char *	token_to_keyword(int token);
 static void		yyerror(const char *);
 static dns_peerlist_t	*currentpeerlist(dns_c_ctx_t *cfg,
@@ -1919,8 +1919,15 @@ size_clause: L_DATASIZE size_spec
 			YYABORT;
 		}
 	}
-	| L_MAX_CACHE_SIZE L_INTEGER
+	| L_MAX_CACHE_SIZE size_spec
 	{
+		if ($2 == DNS_C_SIZE_SPEC_DEFAULT) {
+			parser_error(ISC_FALSE,
+				     "cannot specific 'default' for "
+				     "'max-cache-size'");
+			YYABORT;
+		}
+		
 		tmpres = dns_c_ctx_setmaxcachesize(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -1939,22 +1946,26 @@ size_spec: any_string
 	{
 		isc_uint32_t result;
 
-		if (unit_to_uint32($1, &result)) {
+		tmpres = unit_to_uint32($1, &result);
+		if (tmpres == ISC_R_SUCCESS) {
 			$$ = result;
-			if ($$ == DNS_C_SIZE_SPEC_DEFAULT) {
-				isc_uint32_t newi = DNS_C_SIZE_SPEC_DEFAULT-1;
-				parser_warning(ISC_FALSE,
-					       "value (%lu) too big, "
-					       "reducing to %lu",
-					       (unsigned long)$$,
-					       (unsigned long)newi);
-				$$ = newi;			}
-		} else {
+		} else if (tmpres == ISC_R_RANGE) {
+			$$ = DNS_C_SIZE_SPEC_UNLIM;
+			parser_warning(ISC_FALSE,
+				       "invalid value %s: using 'unlimited'",
+				       $1);
+		} else if (tmpres == ISC_R_FAILURE) {
 			parser_warning(ISC_FALSE,
 				       "invalid unit string '%s', Using "
-				       "default", $1);
+				       "'default'", $1);
+			$$ = DNS_C_SIZE_SPEC_DEFAULT;
+		} else {
+			parser_warning(ISC_FALSE,
+				       "unknown result: %s: using 'default'",
+				       isc_result_totext(tmpres));
 			$$ = DNS_C_SIZE_SPEC_DEFAULT;
 		}
+			
 		isc_mem_free(memctx, $1);
 	}
 	| L_INTEGER
@@ -3784,12 +3795,19 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_MAX_CACHE_SIZE L_INTEGER
+	| L_MAX_CACHE_SIZE size_spec
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
 		INSIST(view != NULL);
 
+		if ($2 == DNS_C_SIZE_SPEC_DEFAULT) {
+			parser_error(ISC_FALSE,
+				     "cannot specific 'default' for "
+				     "'max-cache-size'");
+			YYABORT;
+		}
+		
 		tmpres = dns_c_view_setmaxcachesize(view, $2);
 		if (tmpres == ISC_R_EXISTS) {
 			parser_error(ISC_FALSE,
@@ -5761,44 +5779,60 @@ intuit_token(const char *string)
  * Conversion Routines
  */
 
-static isc_boolean_t
+static isc_result_t
 unit_to_uint32(char *in, isc_uint32_t *out) {
+	char *start = in;
 	int c, units_done = 0;
 	isc_uint32_t result = 0L;
+	isc_uint32_t maxK = 4194304;	/* 2^32 / 1024 */
+	isc_uint32_t maxM = 4096;	/* 2^32 / (1024 * 1024) */
+	isc_uint32_t maxG = 4;		/* 2^32 / (1024 * 1024 * 1024) */
 
 	INSIST(in != NULL);
 
 	for (; (c = *in) != '\0'; in++) {
 		if (units_done)
-			return (ISC_FALSE);
+			return (ISC_R_FAILURE);
 		if (isdigit((unsigned char)c)) {
 			result *= 10;
 			result += (c - '0');
 		} else {
+			if (start == in) {
+				return (ISC_R_FAILURE);
+			}
 			switch (c) {
 			case 'k':
 			case 'K':
+				if (result > maxK) {
+					return (ISC_R_RANGE);
+				}
 				result *= 1024;
 				units_done = 1;
 				break;
 			case 'm':
 			case 'M':
+				if (result > maxM) {
+					return (ISC_R_RANGE);
+				}
 				result *= (1024*1024);
 				units_done = 1;
 				break;
 			case 'g':
 			case 'G':
+				if (result > maxG) {
+					return (ISC_R_RANGE);
+				}
 				result *= (1024*1024*1024);
 				units_done = 1;
 				break;
 			default:
-				return (ISC_FALSE);
+				return (ISC_R_FAILURE);
 			}
 		}
 	}
 
 	*out = result;
-	return (ISC_TRUE);
+	return (ISC_R_SUCCESS);
 }
 
 

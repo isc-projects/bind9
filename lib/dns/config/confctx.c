@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.67 2000/06/09 15:54:26 brister Exp $ */
+/* $Id: confctx.c,v 1.68 2000/06/09 22:13:20 brister Exp $ */
 
 #include <config.h>
 
@@ -946,7 +946,7 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_INTEGER(min_roots, "min-roots");
 	PRINT_INTEGER(serial_queries, "serial-queries");
 	PRINT_INTEGER(sig_valid_interval, "sig-validity-interval");
-	PRINT_INTEGER(max_cache_size, "max-cache-size");	
+	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");	
 	
 	PRINT_AS_SIZE_CLAUSE(data_size, "datasize");	
 	PRINT_AS_SIZE_CLAUSE(stack_size, "stacksize");	

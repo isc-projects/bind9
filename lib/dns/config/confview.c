@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.35 2000/06/09 15:03:25 brister Exp $ */
+/* $Id: confview.c,v 1.36 2000/06/09 22:13:23 brister Exp $ */
 
 #include <config.h>
 
@@ -678,7 +678,7 @@ dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view) {
 	PRINT_INT32(max_cache_ttl, "max-cache-ttl");
 	PRINT_INT32(sig_valid_interval, "sig-validity-interval");
 
-	PRINT_INT32(max_cache_size, "max-cache-size");
+	PRINT_AS_SIZE_CLAUSE(max_cache_size, "max-cache-size");
 
 	if (view->additional_data != NULL) {
 		dns_c_printtabs(fp, indent + 1);
