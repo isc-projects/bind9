@@ -13,7 +13,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.114 2000/12/01 23:49:53 gson Exp $
+# $Id: Makefile.in,v 1.115 2000/12/02 04:13:29 gson Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -31,6 +31,11 @@ CDEFINES =
 CWARNINGS =
 
 LIBS =		@LIBS@
+
+#ifdef DNS_OPT_NEWCODES
+OTHEROBJS = opt.@O@
+OTHERSRCS = opt.c
+#endif /* DNS_OPT_NEWCODES */
 
 # Alphabetically
 
@@ -93,14 +98,14 @@ OBJS =		a6.@O@ acl.@O@ adb.@O@ byaddr.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ dispatch.@O@ dnssec.@O@ \
 		forward.@O@ journal.@O@ keytable.@O@ lib.@O@ log.@O@ \
 		lookup.@O@ master.@O@ masterdump.@O@ message.@O@ \
-		name.@O@ ncache.@O@ nxt.@O@ opt.@O@ peer.@O@ \
+		name.@O@ ncache.@O@ nxt.@O@ peer.@O@ \
 		rbt.@O@ rbtdb.@O@ rbtdb64.@O@ rdata.@O@ rdatalist.@O@ \
 		rdataset.@O@ rdatasetiter.@O@ rdataslab.@O@ request.@O@ \
 		resolver.@O@ result.@O@ rootns.@O@ sdb.@O@ ssu.@O@ \
 		stats.@O@ tcpmsg.@O@ time.@O@ timer.@O@ tkey.@O@ \
 		tsig.@O@ ttl.@O@ validator.@O@ \
 		version.@O@ view.@O@ xfrin.@O@ zone.@O@ zt.@O@ \
-		${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
+		${OTHEROBJS} ${DSTOBJS} @DST_OPENSSL_OBJS@ ${CONFOBJS}
 
 # Alphabetically
 SRCS =		a6.c acl.c adb.c byaddr.c \
@@ -108,13 +113,13 @@ SRCS =		a6.c acl.c adb.c byaddr.c \
 		db.c dbiterator.c dbtable.c dispatch.c dnssec.c \
 		forward.c journal.c keytable.c lib.c log.c \
 		lookup.c master.c masterdump.c message.c \
-		name.c ncache.c nxt.c opt.c peer.c \
+		name.c ncache.c nxt.c peer.c \
 		rbt.c rbtdb.c rbtdb64.c rdata.c rdatalist.c \
 		rdataset.c rdatasetiter.c rdataslab.c request.c \
 		resolver.c result.c rootns.c sdb.c ssu.c \
 		stats.c tcpmsg.c time.c timer.c tkey.c \
 		tsig.c ttl.c validator.c \
-		version.c view.c xfrin.c zone.c zt.c
+		version.c view.c xfrin.c zone.c zt.c ${OTHERSRCS}
 
 SUBDIRS =	include sec config
 TARGETS =	include/dns/enumtype.h include/dns/enumclass.h \

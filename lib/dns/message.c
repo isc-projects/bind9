@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.159 2000/11/22 23:09:58 gson Exp $ */
+/* $Id: message.c,v 1.160 2000/12/02 04:13:30 gson Exp $ */
 
 /***
  *** Imports
@@ -2814,7 +2814,23 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 		ps = dns_message_getopt(msg);
 		if (ps == NULL)
 			return (ISC_R_SUCCESS);
+#ifdef DNS_OPT_NEWCODES
 		result = dns_opt_totext(ps, target, flags);
+#else /* DNS_OPT_NEWCODES */
+		result = dns_opt_totext(ps, target, flags);
+		if ((flags & DNS_MESSAGETEXTFLAG_NOCOMMENTS) == 0)
+			ADD_STRING(target, ";; OPT PSEUDOSECTION:\n");
+		ADD_STRING(target, "; EDNS: version: ");
+		sprintf(buf, "%4u",
+			(unsigned int)((ps->ttl &
+					0x00ff0000 >> 16)));
+		ADD_STRING(target, buf);
+		ADD_STRING(target, ", udp=");
+		sprintf(buf, "%7u\n",
+			(unsigned int)ps->rdclass);
+		ADD_STRING(target, buf);
+		result = ISC_R_SUCCESS;
+#endif /* DNS_OPT_NEWCODES */
 		return (result);
 	case DNS_PSEUDOSECTION_TSIG:
 		ps = dns_message_gettsig(msg, &name);

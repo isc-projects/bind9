@@ -15,7 +15,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize.pl,v 1.13 2000/10/10 23:12:54 bwelling Exp $
+# $Id: sanitize.pl,v 1.14 2000/12/02 04:13:34 gson Exp $
 
 # Don't try and sanitize this file: NOMINUM_IGNORE
 
@@ -34,7 +34,11 @@
 # in the file, and a warning is generated, unless the string
 # NOMINUM_IGNORE appears before NOMINUM_.
 
-# If the string key_DELETE is present, delete the file.
+# If the string key_DELETE is present, delete the file when the key
+# is present.
+
+# If the string key_KEEP is present, delete the file when the key
+# is absent.
 
 # Usage:
 #  ./sanitize.pl -c     - Check syntax only, don't change anything
@@ -104,6 +108,14 @@ sub runfile($) {
 		for ($i = 0 ; $i < $curkeys; $i++) {
 			if ((/$key[$i]_DELETE/) &&
 			    ($showon[$i] == 1)) {
+				close(INFILE);
+				close(OUTFILE);
+				unlink($_[1]);
+				$deletefile = 1;
+				goto bailout;
+			}
+			elsif ((/$key[$i]_KEEP/) &&
+			    ($showon[$i] == 2)) {
 				close(INFILE);
 				close(OUTFILE);
 				unlink($_[1]);

@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.c,v 1.9 2000/12/02 04:12:25 gson Exp $ */
+/* $Id: opt.c,v 1.10 2000/12/02 04:13:32 gson Exp $ */
+
+/* DNS_OPT_NEWCODES_KEEP */
 
 #include <config.h>
 

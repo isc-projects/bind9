@@ -15,7 +15,9 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt.h,v 1.4 2000/11/18 03:01:07 bwelling Exp $ */
+/* $Id: opt.h,v 1.5 2000/12/02 04:13:33 gson Exp $ */
+
+/* DNS_OPT_NEWCODES_KEEP */
 
 #ifndef DNS_OPT_H
 #define DNS_OPT_H 1

@@ -15,21 +15,22 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sanitize_all.sh,v 1.9 2000/11/22 23:28:27 bwelling Exp $
+# $Id: sanitize_all.sh,v 1.10 2000/12/02 04:13:35 gson Exp $
 
 PERL=perl5
 
 # Run this shell script from a CVS export'ed source tree, and it will
 # sanitize all of the files in that tree.
 
-find . -name '*.[ch]' | xargs $PERL util/sanitize.pl -kNOMINUM_PUBLIC \
-	-iNOMINUM_GNS $*
-find . -name '*.in' | xargs $PERL util/sanitize.pl -kNOMINUM_PUBLIC \
-	-iNOMINUM_GNS $*
+SANITIZE_FLAGS="-kNOMINUM_PUBLIC -iDNS_OPT_NEWCODES -iDNS_OPT_NEWCODES_LIVE"
+
+find . -name '*.[ch]' -o -name '*.in' |
+	xargs $PERL util/sanitize.pl $SANITIZE_FLAGS
+
 for file in `find . -name '*.dirty'`
 do
     clean=`echo $file | sed 's/\.dirty$//'`
-    $PERL util/sanitize.pl -kNOMINUM_PUBLIC - < $file > $clean
+    $PERL util/sanitize.pl $SANITIZE_FLAGS - < $file > $clean
     rm $file
 done
 
