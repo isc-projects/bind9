@@ -79,6 +79,13 @@ $DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
 	a.bogus.example. @10.53.0.4 a > dig.out.ns4 || status=1
 grep "SERVFAIL" dig.out.ns4 > /dev/null || status=1
 
+# Try validating a key with a bad trusted key.
+# This should fail.
+
+$DIG +tcp +noadd +nosea +nostat +noquest +nocmd -p 5300 \
+    example. key @10.53.0.5 -p 5300 > dig.out.ns5 || status=1
+grep "SERVFAIL" dig.out.ns5 > /dev/null || status=1
+
 if [ $status != 0 ]; then
 	echo "R:FAIL"
 else
