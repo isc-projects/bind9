@@ -97,17 +97,40 @@ static void clientmgr_destroy(ns_clientmgr_t *manager);
  * task to change the client, then the client will have to be locked.
  */
 
-static inline void
-client_free(ns_client_t *client) {
-	dns_dispatchevent_t **deventp;
+/*
+ * Free a client immediately if possible, otherwise start
+ * shutting it down and postpone freeing to later.
+ */
+static void
+maybe_free(ns_client_t *client) {
+	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
 
-	CTRACE("free");
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(client->shuttingdown == ISC_TRUE);
 
+	if (client->naccepts > 0)
+		isc_socket_cancel(client->tcpsocket, client->task,
+				  ISC_SOCKCANCEL_ACCEPT);
+	if (client->nreads > 0)
+		dns_tcpmsg_cancelread(&client->tcpmsg);
+	if (client->nsends > 0)
+		isc_socket_cancel(client->tcpsocket, client->task,
+				  ISC_SOCKCANCEL_SEND);
+
+	if (!(client->nreads == 0 && client->naccepts == 0 &&
+	      client->nsends == 0 && client->nwaiting == 0)) {
+		/* Still waiting for events. */
+		return;
+	}
+	
+	/* We have received our last event. */
 	ns_query_free(client);
 	isc_mempool_destroy(&client->sendbufs);
 	dns_message_destroy(&client->message);
 	isc_timer_detach(&client->timer);
+	
 	if (client->dispentry != NULL) {
+		dns_dispatchevent_t **deventp;
 		if (client->dispevent != NULL)
 			deventp = &client->dispevent;
 		else
@@ -116,49 +139,39 @@ client_free(ns_client_t *client) {
 					   &client->dispentry,
 					   deventp);
 	}
+	if (client->tcpmsg_valid)
+		dns_tcpmsg_invalidate(&client->tcpmsg);		
 	if (client->dispatch != NULL)
 		dns_dispatch_detach(&client->dispatch);
+	if (client->tcpsocket != NULL)
+		isc_socket_detach(&client->tcpsocket);
 	if (client->tcplistener != NULL)
 		isc_socket_detach(&client->tcplistener);
-	if (client->tcpsocket != NULL) {
-		if (client->state == ns_clientstate_reading)
-			dns_tcpmsg_cancelread(&client->tcpmsg);
-		dns_tcpmsg_invalidate(&client->tcpmsg);
-		isc_socket_detach(&client->tcpsocket);
+	if (client->task != NULL)
+		isc_task_detach(&client->task);
+	if (client->manager != NULL) {
+		ns_clientmgr_t *manager = client->manager;
+		LOCK(&manager->lock);
+		
+		INSIST(manager->nclients > 0);
+		manager->nclients--;
+		if (manager->nclients == 0 && manager->exiting)
+				need_clientmgr_destroy = ISC_TRUE;
+		ISC_LIST_UNLINK(manager->clients, client, link);
+		
+		UNLOCK(&manager->lock);
 	}
-	isc_task_detach(&client->task);
+	CTRACE("free");
 	client->magic = 0;
-
 	isc_mem_put(client->mctx, client, sizeof *client);
-}
-
-static void
-client_destroy(ns_client_t *client) {
-	ns_clientmgr_t *manager;
-	isc_boolean_t need_clientmgr_destroy = ISC_FALSE;
 	
-	REQUIRE(NS_CLIENT_VALID(client));
-
-	CTRACE("destroy");
-
-	manager = client->manager;
-
-	LOCK(&manager->lock);
-
-	INSIST(manager->nclients > 0);
-	manager->nclients--;
-	if (manager->nclients == 0 && manager->exiting)
-		need_clientmgr_destroy = ISC_TRUE;
-	ISC_LIST_UNLINK(manager->clients, client, link);
-
-	UNLOCK(&manager->lock);
-
-	client_free(client);
-
 	if (need_clientmgr_destroy)
-		clientmgr_destroy(manager);
+		clientmgr_destroy(client->manager);
 }
 
+/*
+ * The client's task has received a shutdown event.
+ */
 static void
 client_shutdown(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
@@ -171,7 +184,8 @@ client_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("shutdown");
 
-	client_destroy(client);
+	client->shuttingdown = ISC_TRUE;
+	maybe_free(client);
 
 	isc_event_free(&event);
 }
@@ -183,8 +197,6 @@ void
 ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	REQUIRE(NS_CLIENT_VALID(client));
-	REQUIRE(client->state == ns_clientstate_listening ||
-		client->state == ns_clientstate_working);
 
 	CTRACE("next");
 
@@ -210,13 +222,18 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 	if (client->dispevent != NULL) {
 		dns_dispatch_freeevent(client->dispatch, client->dispentry,
 				       &client->dispevent);
-		client->state = ns_clientstate_listening;
 	} else if (TCP_CLIENT(client)) {
 		if (result == ISC_R_SUCCESS)
 			client_read(client);
 		else {
 			if (client->tcpsocket != NULL) {
+				/*
+				 * XXXAG Destroying the tcpmsg here
+				 * looks bogus - it may still get events.
+				 */
+				INSIST(client->tcpmsg_valid == ISC_TRUE);
 				dns_tcpmsg_invalidate(&client->tcpmsg);
+				client->tcpmsg_valid = ISC_FALSE;
 				isc_socket_detach(&client->tcpsocket);
 			}
 			client_accept(client);
@@ -247,8 +264,8 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	 * If all of its sendbufs buffers were busy, the client might be
 	 * waiting for one to become available.
 	 */
-	if (client->state == ns_clientstate_waiting) {
-		client->state = ns_clientstate_working;
+	if (client->waiting_for_bufs == ISC_TRUE) {
+		client->waiting_for_bufs = ISC_FALSE;
 		ns_client_send(client);
 		return;
 	}
@@ -283,8 +300,7 @@ ns_client_send(ns_client_t *client) {
 			 * send completes.
 			 */
 			CTRACE("waiting");
-			INSIST(client->state == ns_clientstate_working);
-			client->state = ns_clientstate_waiting;
+			client->waiting_for_bufs = ISC_TRUE;
 		} else
 			ns_client_next(client, ISC_R_NOMEMORY);
 		return;
@@ -498,11 +514,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		REQUIRE(event->sender == &client->tcpmsg);
 		buffer = &client->tcpmsg.buffer;
 		result = client->tcpmsg.result;
+		INSIST(client->nreads == 1);
+		client->nreads--;
 	}
 
 	CTRACE("request");
 
-	client->state = ns_clientstate_working;
+	if (client->shuttingdown) {
+		maybe_free(client);
+		return;
+	}
+		
 	isc_stdtime_get(&client->requesttime);
 	client->now = client->requesttime;
 
@@ -692,8 +714,9 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 	/*
 	 * Caller must be holding the manager lock.
 	 *
-	 * Note: creating a client does not add the client to the manager's
-	 * client list.  The caller is responsible for that.
+	 * Note: creating a client does not add the client to the 
+	 * manager's client list or set the client's manager pointer.
+	 * The caller is responsible for that.
 	 */
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
@@ -735,18 +758,22 @@ client_create(ns_clientmgr_t *manager, ns_clienttype_t type,
 
 	client->magic = NS_CLIENT_MAGIC;
 	client->mctx = manager->mctx;
-	client->manager = manager;
+	client->manager = NULL;
 	client->type = type;
-	client->state = ns_clientstate_idle;
+	client->shuttingdown = ISC_FALSE;
+	client->waiting_for_bufs = ISC_FALSE;
+	client->naccepts = 0;
+	client->nreads = 0;
+	client->nsends = 0;
+	client->nwaiting = 0;
 	client->attributes = 0;
-	client->waiting = 0;
 	client->view = NULL;
 	client->dispatch = NULL;
 	client->dispentry = NULL;
 	client->dispevent = NULL;
 	client->tcplistener = NULL;
 	client->tcpsocket = NULL;
-	client->nsends = 0;
+	client->tcpmsg_valid = ISC_FALSE;
 	client->opt = NULL;
 	client->udpsize = 512;
 	client->next = NULL;
@@ -798,7 +825,8 @@ client_read(ns_client_t *client) {
 					client_request, client);
 	if (result != ISC_R_SUCCESS)
 		ns_client_next(client, result);
-	client->state = ns_clientstate_reading;
+	INSIST(client->nreads == 0);
+	client->nreads++;
 }
 
 static void
@@ -812,10 +840,17 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 
 	CTRACE("newconn");
 
-	if (nevent->result == ISC_R_SUCCESS) {
+	INSIST(client->naccepts == 1);
+	client->naccepts--;
+
+	if (client->shuttingdown) {
+		maybe_free(client);
+	} else if (nevent->result == ISC_R_SUCCESS) {
 		client->tcpsocket = nevent->newsocket;
+		INSIST(client->tcpmsg_valid == ISC_FALSE);
 		dns_tcpmsg_init(client->mctx, client->tcpsocket,
 				&client->tcpmsg);
+		client->tcpmsg_valid = ISC_TRUE;
 		client_read(client);
 	} else {
 		/*
@@ -828,9 +863,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 		 *	   Going idle is probably the right thing if the
 		 *	   I/O was canceled.
 		 */
-		client->state = ns_clientstate_idle;
 	}
-
 	isc_event_free(&event);
 }
 
@@ -853,9 +886,25 @@ client_accept(ns_client_t *client) {
 		 *
 		 *	   For now, we just go idle.
 		 */
-		client->state = ns_clientstate_idle;
 		return;
 	}
+	INSIST(client->naccepts == 0);
+	client->naccepts++;
+}
+
+void
+ns_client_wait(ns_client_t *client) {
+	client->nwaiting++;
+}
+
+isc_boolean_t
+ns_client_unwait(ns_client_t *client) {
+	isc_boolean_t shuttingdown = client->shuttingdown;
+	client->nwaiting--;
+	INSIST(client->nwaiting >= 0);
+	if (shuttingdown)
+		maybe_free(client);
+	return (shuttingdown);
 }
 
 /***
@@ -967,17 +1016,18 @@ ns_clientmgr_addtodispatch(ns_clientmgr_t *manager, unsigned int n,
 				       &client);
 		if (result != ISC_R_SUCCESS)
 			break;
-		client->state = ns_clientstate_listening;
 		dns_dispatch_attach(dispatch, &client->dispatch);
 		result = dns_dispatch_addrequest(dispatch, client->task,
 						 client_request,
 						 client, &client->dispentry);
 		if (result != ISC_R_SUCCESS) {
-			client_free(client);
+			client->shuttingdown = ISC_TRUE;
+			maybe_free(client); /* Will free immediately. */
 			break;
 		}
-		manager->nclients++;
+		client->manager = manager;
 		ISC_LIST_APPEND(manager->clients, client, link);
+		manager->nclients++;
 	}
 	if (i != 0) {
 		/*
@@ -1029,12 +1079,12 @@ ns_clientmgr_accepttcp(ns_clientmgr_t *manager, isc_socket_t *socket,
 		result = client_create(manager, ns_clienttype_tcp, &client);
 		if (result != ISC_R_SUCCESS)
 			break;
-		client->state = ns_clientstate_listening;
 		client->attributes |= NS_CLIENTATTR_TCP;
 		isc_socket_attach(socket, &client->tcplistener);
 		client_accept(client);
-		manager->nclients++;
+		client->manager = manager;
 		ISC_LIST_APPEND(manager->clients, client, link);
+		manager->nclients++;
 	}
 	if (i != 0) {
 		/*

@@ -1556,7 +1556,7 @@ static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
-	isc_boolean_t want_find;
+	isc_boolean_t want_find, client_shuttingdown;
 	isc_stdtime_t now;
 
 	/*
@@ -1596,8 +1596,6 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
 	dns_resolver_destroyfetch(client->view->resolver, &devent->fetch);
 
-	client->waiting--;
-
 	/*
 	 * XXXRTH  If this client is shutting down, or this transaction
 	 *         has timed out, do not resume the find.
@@ -1608,6 +1606,9 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	 *	   client to continue with shutdown if it was in shutdown
 	 *	   mode).
 	 */
+	client_shuttingdown = ns_client_unwait(client);
+	if (client_shuttingdown)
+		return;
 
 	if (want_find)
 		query_find(client, devent);
@@ -1654,7 +1655,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		 * is shutting down will not be destroyed until all the
 		 * events have been received.
 		 */
-		client->waiting++;
+		ns_client_wait(client);
 	} else {
 		query_putrdataset(client, &rdataset);
 		query_putrdataset(client, &sigrdataset);

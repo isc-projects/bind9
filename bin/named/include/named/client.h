@@ -37,22 +37,18 @@ typedef enum ns_clienttype {
 	ns_clienttype_tcp
 } ns_clienttype_t;
 
-typedef enum {
-	ns_clientstate_idle = 0,
-	ns_clientstate_listening,
-	ns_clientstate_reading,
-	ns_clientstate_working,
-	ns_clientstate_waiting
-} ns_clientstate_t;
-
 struct ns_client {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	ns_clientmgr_t *		manager;
 	ns_clienttype_t			type;
-	ns_clientstate_t		state;
+	isc_boolean_t			shuttingdown;
+	isc_boolean_t			waiting_for_bufs;
+	int				naccepts;
+	int				nreads;
+	int				nsends;
+	int				nwaiting;
 	unsigned int			attributes;
-	unsigned int			waiting;
 	isc_task_t *			task;
 	dns_view_t *			view;
 	dns_dispatch_t *		dispatch;
@@ -61,9 +57,9 @@ struct ns_client {
 	isc_socket_t *			tcplistener;
 	isc_socket_t *			tcpsocket;
 	dns_tcpmsg_t			tcpmsg;
+	isc_boolean_t			tcpmsg_valid;
 	isc_timer_t *			timer;
 	dns_message_t *			message;
-	unsigned int			nsends;
 	isc_mempool_t *			sendbufs;
 	dns_rdataset_t *		opt;
 	isc_uint16_t			udpsize;
@@ -101,6 +97,12 @@ ns_client_destroy(ns_client_t *client);
 
 isc_result_t
 ns_client_newnamebuf(ns_client_t *client);
+
+void
+ns_client_wait(ns_client_t *client);
+
+isc_boolean_t
+ns_client_unwait(ns_client_t *client);
 
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
