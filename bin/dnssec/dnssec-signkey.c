@@ -219,11 +219,11 @@ main(int argc, char *argv[]) {
 
 	dns_fixedname_init(&fdomain);
 	domain = dns_fixedname_name(&fdomain);
-	isc_buffer_init(&b, argv[0], strlen(argv[0]) - 7, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, argv[0], strlen(argv[0]) - 7);
 	isc_buffer_add(&b, strlen(argv[0]) - 7);
 	result = dns_name_fromtext(domain, &b, dns_rootname, ISC_FALSE, NULL);
 	check_result(result, "dns_name_fromtext()");
-	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1, ISC_BUFFERTYPE_TEXT);
+	isc_buffer_init(&b, tdomain, sizeof(tdomain) - 1);
 	result = dns_name_totext(domain, ISC_FALSE, &b);
 	check_result(result, "dns_name_totext()");
 	isc_buffer_usedregion(&b, &r);
@@ -331,7 +331,7 @@ main(int argc, char *argv[]) {
 		data = isc_mem_get(mctx, BUFSIZE);
 		if (data == NULL)
 			check_result(ISC_R_NOMEMORY, "isc_mem_get()");
-		isc_buffer_init(&b, data, BUFSIZE, ISC_BUFFERTYPE_BINARY);
+		isc_buffer_init(&b, data, BUFSIZE);
 		result = dns_dnssec_sign(domain, &rdataset, key,
 					 &sig.timesigned, &sig.timeexpire,
 					 mctx, &b, rdata);
