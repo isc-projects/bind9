@@ -1,3 +1,5 @@
+1829.	[bug]		win32: "pid-file none;" broken. [RT #13563]
+
 1828.	[bug]		isc_rwlock_init() failed to properly cleanup if it
 			encountered a error. [RT #13549]
 
