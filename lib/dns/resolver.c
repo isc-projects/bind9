@@ -175,6 +175,7 @@ struct fetchctx {
 #define FCTX_ATTR_SHUTTINGDOWN		0x08
 #define FCTX_ATTR_WANTCACHE		0x10
 #define FCTX_ATTR_WANTNCACHE		0x20
+#define FCTX_ATTR_NEEDEDNS0		0x40
 
 #define HAVE_ANSWER(f)		(((f)->attributes & FCTX_ATTR_HAVEANSWER) != \
 				 0)
@@ -186,6 +187,7 @@ struct fetchctx {
  				 != 0)
 #define WANTCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTCACHE) != 0)
 #define WANTNCACHE(f)		(((f)->attributes & FCTX_ATTR_WANTNCACHE) != 0)
+#define NEEDEDNS0(f)		(((f)->attributes & FCTX_ATTR_NEEDEDNS0) != 0)
 
 struct dns_fetch {
 	unsigned int			magic;
@@ -791,6 +793,8 @@ resquery_send(resquery_t *query) {
 	dns_rdataset_makequestion(qrdataset, res->rdclass, fctx->type);
 	ISC_LIST_APPEND(qname->list, qrdataset, link);
 	dns_message_addname(fctx->qmessage, qname, DNS_SECTION_QUESTION);
+	qname = NULL;
+	qrdataset = NULL;
 
 	/*
 	 * Set RD if the client has requested that we do a recursive query,
@@ -842,6 +846,21 @@ resquery_send(resquery_t *query) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 		}
 	}
+
+	/*
+	 * If we need EDNS0 to do this query and aren't using it, we lose.
+	 */
+	if (NEEDEDNS0(fctx) && (query->options & DNS_FETCHOPT_NOEDNS0) != 0) {
+		result = DNS_R_SERVFAIL;
+		goto cleanup_message;
+	}
+
+	/*
+	 * If we're using EDNS, set AD and CD so we'll get DNSSEC data.
+	 */
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
+		fctx->qmessage->flags |=
+			(DNS_MESSAGEFLAG_AD|DNS_MESSAGEFLAG_CD);
 
 	/*
 	 * XXXRTH  Add TSIG record tailored to the current recipient?
@@ -946,9 +965,11 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 * We are connected.  Send the query.
 			 */
 			result = resquery_send(query);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				fctx_cancelquery(&query, NULL, NULL,
 						 ISC_FALSE);
+				fctx_done(query->fctx, result);
+			}
 		} else
 			fctx_cancelquery(&query, NULL, NULL, ISC_FALSE);
 	}
@@ -1468,12 +1489,6 @@ fctx_try(fetchctx_t *fctx) {
 		INSIST(addrinfo != NULL);
 	}
 
-	/*
-	 * XXXRTH  This is the place where a try strategy routine would
-	 *         be called to send one or more queries.  Instead, we
-	 *	   just send a single query.
-	 */
-
 	result = fctx_query(fctx, addrinfo, fctx->options);
 	if (result != ISC_R_SUCCESS)
 		fctx_done(fctx, result);
@@ -1842,7 +1857,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->pending = 0;
 	fctx->validating = 0;
 	fctx->restarts = 0;
-	fctx->attributes = 0;
+	if (dns_name_requiresedns(name))
+		fctx->attributes = FCTX_ATTR_NEEDEDNS0;
+	else
+		fctx->attributes = 0;
 
 	fctx->qmessage = NULL;
 	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
@@ -2009,7 +2027,7 @@ clone_results(fetchctx_t *fctx) {
 
 #ifdef notyet
 static void
-validation_done(isc_task_t *task, isc_event_t *event) {
+validated(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx;
 
 	REQUIRE(event->type == XXX);
@@ -2042,10 +2060,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	dns_name_t *fname, *aname;
 	dns_resolver_t *res;
 	void *data;
-	isc_boolean_t need_validation, have_answer, is_answer;
+	isc_boolean_t need_validation, have_answer;
 	isc_result_t result, eresult;
 	dns_fetchevent_t *event;
 	unsigned int options;
+#ifdef notyet
+	isc_task_t *task;
+#endif
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -2054,7 +2075,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	res = fctx->res;
 	need_validation = ISC_FALSE;
 	have_answer = ISC_FALSE;
-	is_answer = ISC_FALSE;
 	eresult = ISC_R_SUCCESS;
 
 	/*
@@ -2083,7 +2103,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	ardataset = NULL;
 	asigrdataset = NULL;
 	event = NULL;
-	if ((name->attributes & DNS_NAMEATTR_ANSWER) != 0) {
+	if ((name->attributes & DNS_NAMEATTR_ANSWER) != 0 &&
+	    !need_validation) {
 		have_answer = ISC_TRUE;
 		event = ISC_LIST_HEAD(fctx->events);
 		if (event != NULL) {
@@ -2100,14 +2121,12 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 			}
 		}
 	}
-
+	
 	/*
 	 * Find or create the cache node.
 	 */
 	node = NULL;
-	result = dns_db_findnode(res->view->cachedb,
-				 name, ISC_TRUE,
-				 &node);
+	result = dns_db_findnode(res->view->cachedb, name, ISC_TRUE, &node);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -2119,10 +2138,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
 		if (!CACHE(rdataset))
 			continue;
-		if ((rdataset->attributes & DNS_RDATASETATTR_ANSWER) != 0)
-			is_answer = ISC_TRUE;
-		else
-			is_answer = ISC_FALSE;
 		/*
 		 * If this rrset is in a secure domain, do DNSSEC validation
 		 * for it, unless it is glue.
@@ -2144,19 +2159,74 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 				    sigrdataset->covers == rdataset->type)
 					break;
 			}
-#ifdef notyet
-			validation = NULL;
-			result = dns_validation_create(rdataset, sigrdataset,
-						      is_answer, fctx->task,
-						      validation_done, fctx,
-						      &validation);
-			if (result == ISC_R_SUCCESS) {
-				ISC_LIST_APPEND(validation);
-				fctx->validating++;
+			if (sigrdataset == NULL) {
+				if (ANSWER(rdataset)) {
+					/*
+					 * rdataset is the answer, but we have
+					 * no SIG.  The remote server is
+					 * broken.
+					 */
+					result = DNS_R_FORMERR;
+					break;
+				} else {
+					/*
+					 * Ignore non-answer rdatasets that
+					 * are missing signatures.
+					 */
+					continue;
+				}
 			}
-#else
-			result = DNS_R_NOTIMPLEMENTED;
+
+			/*
+			 * Cache this rdataset/sigrdataset pair as
+			 * pending data.
+			 */
+#ifdef notyet
+			set_ttl(rdataset, sigrdataset);
 #endif
+			rdataset->trust = dns_trust_pending;
+			sigrdataset->trust = dns_trust_pending;
+			result = dns_db_addrdataset(res->view->cachedb,
+						    node, NULL, now,
+						    rdataset, 0, NULL);
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UNCHANGED)
+				break;
+			result = dns_db_addrdataset(res->view->cachedb,
+						    node, NULL, now,
+						    sigrdataset, 0, NULL);
+			if (result != ISC_R_SUCCESS &&
+			    result != DNS_R_UNCHANGED)
+				break;
+			if (ANSWER(rdataset)) {
+#ifdef notyet
+				/*
+				 * XXXRTH  We should probably do this
+				 *         after we've cached everything as
+				 *         pending, otherwise we might not
+				 *         take advantage of a key which we
+				 *         have learned.
+				 */
+				validator = NULL;
+				task = res->buckets[fctx->bucketnum].task;
+				result = dns_validator_create(res->view,
+							       name,
+							       rdataset,
+							       sigrdataset,
+							       fctx->rmessage,
+							       ISC_TRUE,
+							       task,
+							       validated,
+							       fctx,
+							       &validator);
+				if (result == ISC_R_SUCCESS) {
+					ISC_LIST_APPEND(validator);
+					fctx->validating++;
+				}
+#else
+				result = DNS_R_NOTIMPLEMENTED;
+#endif
+			}
 		} else if (!EXTERNAL(rdataset)) {
 			/*
 			 * It's OK to cache this rdataset now.
@@ -2185,6 +2255,9 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 				options = DNS_DBADD_FORCE;
 			} else
 				options = 0;
+			/*
+			 * Now we can add the rdataset.
+			 */
 			result = dns_db_addrdataset(res->view->cachedb,
 						    node, NULL, now,
 						    rdataset,
@@ -2305,6 +2378,10 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 		 * so DNSSEC validation is required.
 		 */
 		need_validation = ISC_TRUE;
+		/*
+		 * XXXRTH
+		 */
+		return (DNS_R_NOTIMPLEMENTED);
 	} else if (result != ISC_R_NOTFOUND) {
 		/*
 		 * Something bad happened.
@@ -2363,7 +2440,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 			 * we can return success.  In the latter case,
 			 * 'eresult' is already set correctly.
 			 *
-			 * XXXRTH  Is there a CNAME/DNAME problem here?
+			 * XXXRTH  There's a CNAME/DNAME problem here.
 			 */
 			result = ISC_R_SUCCESS;
 		}
@@ -3286,29 +3363,55 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (message->rcode != dns_rcode_noerror &&
 	    message->rcode != dns_rcode_nxdomain) {
-		if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
-		    message->rcode == dns_rcode_formerr) {
+		if (message->rcode == dns_rcode_formerr) {
+			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+				/*
+				 * It's very likely they don't like EDNS0.
+				 *
+				 * XXXRTH  We should check if the question
+				 *         we're asking requires EDNS0, and
+				 *         if so, we should bail out.
+				 */
+				options |= DNS_FETCHOPT_NOEDNS0;
+				resend = ISC_TRUE;
+				/*
+				 * Remember that they don't like EDNS0.
+				 */
+				dns_adb_changeflags(fctx->res->view->adb,
+						    query->addrinfo,
+						    DNS_FETCHOPT_NOEDNS0,
+						    DNS_FETCHOPT_NOEDNS0);
+			} else if (ISFORWARDER(query->addrinfo)) {
+				/*
+				 * This forwarder doesn't understand us,
+				 * but other forwarders might.  Keep trying.
+				 */
+				broken_server = ISC_TRUE;
+				keep_trying = ISC_TRUE;
+			} else {
+				/*
+				 * The server doesn't understand us.  Since
+				 * all servers for a zone need similar
+				 * capabilities, we assume that we will get
+				 * FORMERR from all servers, and thus we
+				 * cannot make any more progress with this
+				 * fetch.
+				 */
+				result = DNS_R_FORMERR;
+			}
+		} else if (message->rcode == dns_rcode_yxdomain) {
 			/*
-			 * It's very likely they don't like EDNS0.
+			 * DNAME mapping failed because the new name
+			 * was too long.  There's no chance of success
+			 * for this fetch.
 			 */
-			options |= DNS_FETCHOPT_NOEDNS0;
-			resend = ISC_TRUE;
-			/*
-			 * Remember that they don't like EDNS0.
-			 */
-			dns_adb_changeflags(fctx->res->view->adb,
-					    query->addrinfo,
-					    DNS_FETCHOPT_NOEDNS0,
-					    DNS_FETCHOPT_NOEDNS0);
+			result = DNS_R_YXDOMAIN;
 		} else {
 			/*
 			 * XXXRTH log.
 			 */
 			broken_server = ISC_TRUE;
 			keep_trying = ISC_TRUE;
-			/*
-			 * XXXRTH Need to deal with YXDOMAIN code.
-			 */
 		}
 		goto done;
 	}
