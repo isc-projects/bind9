@@ -1,3 +1,5 @@
+1226.	[func]		Use EDNS for zone refresh queries. [RT #2551]
+
 1225.	[func]		dns_message_setopt() no longer requires that
 			dns_message_renderbegin() to have been called.
 

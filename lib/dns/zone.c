@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.12 2003/08/13 03:58:11 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.13 2003/08/14 02:51:18 marka Exp $ */
 
 #include <config.h>
 
@@ -256,6 +256,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
 #define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
 #define DNS_ZONEFLG_FLUSH	0x00200000U
+#define DNS_ZONEFLG_NOEDNS	0x00400000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -361,6 +362,8 @@ struct dns_io {
 	ISC_LINK(dns_io_t) link;
 	isc_event_t	*event;
 };
+
+#define SEND_BUFFER_SIZE 2048
 
 static void zone_settimer(dns_zone_t *, isc_time_t *);
 static void cancel_refresh(dns_zone_t *);
@@ -2137,6 +2140,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 		goto unlock;
 	}
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if ((oldflags & (DNS_ZONEFLG_REFRESH|DNS_ZONEFLG_LOADING)) != 0)
 		goto unlock;
 
@@ -3084,6 +3088,16 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
 
 	if (revent->result != ISC_R_SUCCESS) {
+		if (revent->result == ISC_R_TIMEDOUT &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
+			LOCK_ZONE(zone);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			UNLOCK_ZONE(zone);
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refreshing stub: timeout retrying "
+				     " without EDNS master %s", master);
+			goto same_master;
+		}
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from master %s: %s",
 			     master, dns_result_totext(revent->result));
@@ -3107,6 +3121,20 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
 		dns_rcode_totext(msg->rcode, &rb);
+
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
+		    (msg->rcode == dns_rcode_servfail ||
+		     msg->rcode == dns_rcode_notimp ||
+		     msg->rcode == dns_rcode_formerr)) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refreshing stub: rcode (%.*s) retrying "
+				     "without EDNS master %s",
+				     (int)rb.used, rcode, master);
+			LOCK_ZONE(zone);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			UNLOCK_ZONE(zone);
+			goto same_master;
+		}
 
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refreshing stub: "
@@ -3213,6 +3241,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (exiting || zone->curmaster >= zone->masterscnt) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 
@@ -3282,6 +3311,16 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (revent->result != ISC_R_SUCCESS) {
 		if (revent->result == ISC_R_TIMEDOUT &&
+		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
+			LOCK_ZONE(zone);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			UNLOCK_ZONE(zone);
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refresh: timeout retrying without EDNS "
+				     "master %s", master);
+			goto same_master;
+		}
+		if (revent->result == ISC_R_TIMEDOUT &&
 		    !dns_request_usedtcp(revent->request)) {
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: retry limit for "
@@ -3315,6 +3354,19 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
 		dns_rcode_totext(msg->rcode, &rb);
 
+		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
+		    (msg->rcode == dns_rcode_servfail ||
+		     msg->rcode == dns_rcode_notimp ||
+		     msg->rcode == dns_rcode_formerr)) {
+			dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				     "refresh: rcode (%.*s) retrying without "
+				     "EDNS master %s", (int)rb.used, rcode,
+				     master);
+			LOCK_ZONE(zone);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+			UNLOCK_ZONE(zone);
+			goto same_master;
+		}
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "refresh: unexpected rcode (%.*s) from master %s",
 			     (int)rb.used, rcode, master);
@@ -3489,6 +3541,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
 	zone->curmaster++;
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (zone->curmaster >= zone->masterscnt) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDREFRESH)) {
@@ -3606,6 +3659,64 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 	return (result);
 }
 
+static isc_result_t
+add_opt(dns_message_t *message) {
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdata_t *rdata = NULL;
+	isc_result_t result;
+
+	result = dns_message_gettemprdatalist(message, &rdatalist);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdata(message, &rdata);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_message_gettemprdataset(message, &rdataset);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	dns_rdataset_init(rdataset);
+	
+	rdatalist->type = dns_rdatatype_opt;
+	rdatalist->covers = 0;
+
+	/*
+	 * Set Maximum UDP buffer size.
+	 */
+	rdatalist->rdclass = SEND_BUFFER_SIZE;
+
+	/*
+	 * Set EXTENDED-RCODE, VERSION, DO and Z to 0.
+	 */
+	rdatalist->ttl = 0;
+
+	/*
+	 * No EDNS options.
+	 */
+	rdata->data = NULL;
+	rdata->length = 0;
+	rdata->rdclass = rdatalist->rdclass;
+	rdata->type = rdatalist->type;
+	rdata->flags = 0;
+
+	ISC_LIST_INIT(rdatalist->rdata);
+	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
+	RUNTIME_CHECK(dns_rdatalist_tordataset(rdatalist, rdataset)
+		      == ISC_R_SUCCESS);
+
+	return (dns_message_setopt(message, rdataset));
+
+ cleanup:
+	if (rdatalist != NULL)
+		dns_message_puttemprdatalist(message, &rdatalist);
+	if (rdataset != NULL)
+		dns_message_puttemprdataset(message, &rdataset);
+	if (rdata != NULL)
+		dns_message_puttemprdata(message, &rdata);
+	
+	return (result);
+}
+
 static void
 soa_query(isc_task_t *task, isc_event_t *event) {
 	const char me[] = "soa_query";
@@ -3665,6 +3776,24 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	}
 	if (key == NULL)
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);
+
+	if (zone->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_boolean_t edns;
+		result = dns_peerlist_peerbyaddr(zone->view->peers,
+						 &masterip, &peer);
+		if (result == ISC_R_SUCCESS)
+			result = dns_peer_getsupportedns(peer, &edns);
+		if (result == ISC_R_SUCCESS && !edns)
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+	}
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
+		result = add_opt(message);
+		if (result != ISC_R_SUCCESS)
+			zone_debuglog(zone, me, 1,
+				      "unable to add opt record: %s",
+				      dns_result_totext(result));
+	}
 
 	options = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEVC) ?
 		  DNS_REQUESTOPT_TCP : 0;
@@ -3823,6 +3952,24 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	}
 	if (key == NULL)
 		(void)dns_view_getpeertsig(zone->view, &masterip, &key);	
+
+	if (zone->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_boolean_t edns;
+		result = dns_peerlist_peerbyaddr(zone->view->peers,
+						 &masterip, &peer);
+		if (result == ISC_R_SUCCESS)
+			result = dns_peer_getsupportedns(peer, &edns);
+		if (result == ISC_R_SUCCESS && !edns)
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOEDNS);
+	}
+	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
+		result = add_opt(message);
+		if (result != ISC_R_SUCCESS)
+			zone_debuglog(zone, me, 1,
+				      "unable to add opt record: %s",
+				      dns_result_totext(result));
+	}
 
 	/*
 	 * Always use TCP so that we shouldn't truncate in additional section.
