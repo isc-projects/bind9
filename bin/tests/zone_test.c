@@ -132,9 +132,11 @@ query(void) {
 	dns_rdataset_t sigset;
 	fd_set rfdset;
 
-	db = dns_zone_getdb(zone);
-	if (db == NULL) {
-		fprintf(stderr, "db == NULL\n");
+	db = NULL;
+	result = dns_zone_getdb(zone, &db);
+	if (result != DNS_R_SUCCESS) {
+		fprintf(stderr, "%s() returned %s\n", "dns_zone_getdb",
+			dns_result_totext(result));
 		return;
 	}
 
@@ -198,6 +200,7 @@ query(void) {
 		dns_rdataset_disassociate(&rdataset);
 	} while (1);
 	dns_rdataset_invalidate(&rdataset);
+	dns_db_detach(&db);
 }
 
 static void
