@@ -56,10 +56,10 @@
 #include <config.h>
 
 #include <sys/types.h>
-#include <arpa/nameser.h>
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <string.h>
 #include <limits.h>
 
 #include <isc/int.h>
