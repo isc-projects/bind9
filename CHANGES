@@ -1,3 +1,5 @@
+  50.   [func]          RBT deletion no longer requires a valid chain to work,
+                        and dns_rbt_deletenode was added.
 
   49.	[func]		Each cache now has its own mctx.
 
