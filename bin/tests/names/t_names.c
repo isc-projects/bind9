@@ -22,11 +22,14 @@
 #include	<string.h>
 #include	<unistd.h>
 
+#include	<isc/buffer.h>
 #include	<isc/region.h>
+
 #include	<dns/compress.h>
 #include	<dns/name.h>
 #include	<dns/result.h>
 #include	<dns/types.h>
+
 #include	<tests/t_api.h>
 
 #define	MAXTOKS		16
