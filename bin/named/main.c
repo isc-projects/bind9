@@ -120,7 +120,7 @@ library_fatal_error(char *file, int line, char *format, va_list args) {
 
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
-			      "%s:%d: fatal error", file, line);
+			      "%s:%d: fatal error:", file, line);
 		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			       NS_LOGMODULE_MAIN, ISC_LOG_CRITICAL,
 			       format, args);
@@ -137,6 +137,27 @@ library_fatal_error(char *file, int line, char *format, va_list args) {
 	if (ns_g_coreok)
 		abort();
 	exit(1);
+}
+
+static void
+library_unexpected_error(char *file, int line, char *format, va_list args) {
+	/*
+	 * Handle isc_error_unexpected() calls from our libraries.
+	 */
+
+	if (ns_g_lctx != NULL) {
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_MAIN, ISC_LOG_ERROR,
+			      "%s:%d: unexpected error:", file, line);
+		isc_log_vwrite(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			       NS_LOGMODULE_MAIN, ISC_LOG_ERROR,
+			       format, args);
+	} else {
+		fprintf(stderr, "%s:%d: fatal error: ", file, line);
+		vfprintf(stderr, format, args);
+		fprintf(stderr, "\n");
+		fflush(stderr);
+	}
 }
 
 static void
@@ -322,6 +343,7 @@ main(int argc, char *argv[]) {
 	program_name = argv[0];
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
+	isc_error_setunexpected(library_unexpected_error);
 
 	ns_os_init();
 
