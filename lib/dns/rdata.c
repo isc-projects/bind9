@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.63 1999/10/17 22:34:16 tale Exp $ */
+ /* $Id: rdata.c,v 1.64 1999/10/25 16:58:21 marka Exp $ */
 
 #include <config.h>
 
@@ -648,7 +648,8 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 {
 	int i;
 
-	if (isdigit(source->base[0]) && source->length <= NUMBERSIZE - 1) {
+	if (isdigit(source->base[0] & 0xff) &&
+            source->length <= NUMBERSIZE - 1) {
 		unsigned int n;
 		char *e;
 		char buffer[NUMBERSIZE];
@@ -821,7 +822,8 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 	char *text, *end;
 	unsigned int value, mask;
 
-	if (isdigit(source->base[0]) && source->length <= NUMBERSIZE - 1) {
+	if (isdigit(source->base[0] & 0xff) &&
+	    source->length <= NUMBERSIZE - 1) {
 		unsigned int n;
 		char *e;
 		char buffer[NUMBERSIZE];
@@ -1209,9 +1211,9 @@ compare_region(isc_region_t *r1, isc_region_t *r2) {
 static int
 hexvalue(char value) {
 	char *s;
-	if (!isascii(value&0xff))
+	if (!isascii(value & 0xff))
 		return (-1);
-	if (isupper(value))
+	if (isupper(value & 0xff))
 		value = tolower(value);
 	if ((s = strchr(hexdigits, value)) == NULL)
 		return (-1);
