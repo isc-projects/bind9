@@ -45,9 +45,87 @@ BIND 9
 
 
 
-BIND 9.1.0a1
+BIND 9.1.0b1
 
-	This is an unreleased alpha version of BIND 9.1.0.
+	BIND 9.1.0b1 is the first beta release of BIND 9.1.0.
+	It includes a number of new features:
+
+	  - Many BIND 8 features previously unimplemented in BIND 9,
+	    including domain-specific forwarding, the $GENERATE
+	    master file directive, and the "blackhole", "dialup", 
+	    and "sortlist" options
+
+	  - Forwarding of dynamic update requests; this is enabled 
+	    by the "allow-update-forwarding" option
+
+	  - A new, simplified database interface and a number of
+	    sample drivers based on it; see doc/dev/sdb for details
+
+	  - Support for building single-threaded servers for 
+	    environments that do not supply POSIX threads
+
+	  - New configuration options: "min-refresh-time",
+	    "max-refresh-time", "min-retry-time", "max-retry-time",
+	    "additional-from-auth", "additional-from-cache",
+	    "notify explicit"
+
+	  - Faster lookups, particularly in large zones.
+
+	BIND 9.1.0 also includes experimental implementations of a
+	number of DNS protocols extensions still under development
+	in the IETF.  These include transparent processing of
+	unknown RR types and use of the EDNS "DNSSEC OK" bit to
+	explicitly enable DNSSEC processing in responses.
+
+	Cryptographic operations are now based on the OpenSSL
+	library instead of DNSsafe.
+
+	Numerous bugs have been fixed.
+
+	BIND 9.1.0 is primarily a name server software distribution.
+	In addition to the name server, it also includes a new
+	lightweight stub resolver library and associated resolver
+	daemon that fully support forward and reverse lookups of both
+	IPv4 and IPv6 addresses.  This library is still considered
+	experimental and is not a complete replacement for the BIND 8
+	resolver library.  Applications that use the BIND 8 res_*
+	functions to perform DNS lookups or dynamic updates still need
+	to be linked against the BIND 8 libraries.  For DNS lookups,
+	they can also use the new "getrrsetbyname()" API.
+
+	BIND 9.1.0 is capable of acting as an authoritative server
+	for DNSSEC secured zones.  This functionality is believed to
+	be stable and complete except for lacking support for wildcard
+	records in secure zones.
+
+	When acting as a caching server, BIND 9.1.0 can be configured
+	to perform DNSSEC secure resolution on behalf of its clients.
+	This part of the DNSSEC implementation is still considered
+	experimental.  For detailed information about the state of the
+	DNSSEC implementation, see the file doc/misc/dnssec.
+
+	There are a few known bugs:
+
+		On some systems, IPv6 and IPv4 sockets interact in
+		unexpected ways.  For details, see doc/misc/ipv6.
+		To reduce the impact of these problems, the server
+		no longer listens for requests on IPv6 addresses
+		by default.  If you need to accept DNS queries over
+		IPv6, you must specify "listen-on-v6 { any; };"
+		in the named.conf options statement.
+
+		There are known problems with thread signal handling 
+		under Solaris 2.6.
+
+		On FreeBSD systems, the server logs error messages
+		like "fcntl(8, F_SETFL, 4): Inappropriate ioctl for
+		device".  This is due to a bug in the FreeBSD
+		/dev/random device.  The bug has been reported
+		to the FreeBSD maintainers.  Versions of OpenBSD
+		prior to 2.8 have a similar problem.
+
+		--with-libtool does not work on AIX.
+
 
 	For a detailed list of user-visible changes from
 	previous releases, see the CHANGES file.
@@ -62,7 +140,7 @@ Building
 
 		AIX 4.3
 		COMPAQ Tru64 UNIX 4.0D
-                COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
+		COMPAQ Tru64 UNIX 5 (with IPv6 EAK)
 		FreeBSD 3.4-STABLE, 3.5, 4.0, 4.1
 		HP-UX 11
 		IRIX64 6.5
@@ -70,11 +148,13 @@ Building
 		Red Hat Linux 6.0, 6.1, 6.2
 		Solaris 2.6, 7, 8
 
-	Additionally, we have unverified reports of success from users
-	of the following systems:
+	Additionally, we have unverified reports of success building
+	previous versions of BIND 9 from users of the following systems:
 
 		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
-		UnixWare 7.1.2 once the IN6_IS_ADDR_MULTICAST macro in
+		Slackware Linux 7.0.1 with glibc 2.1.3
+		OpenBSD 2.6, 2.8, -current
+		UnixWare 7.1.1 once the IN6_IS_ADDR_MULTICAST macro in
 			/usr/include/netinet/in6_f.h is repaired (== vs =).
 
 	To build, just
@@ -82,34 +162,37 @@ Building
 		./configure
 		make
 
-        Several environment variables that can be set before running
-        configure will affect compilation:
+	Several environment variables that can be set before running
+	configure will affect compilation:
 
-            CC
-                The C compiler to use.  configure tries to figure
-                out the right one for supported systems.
+	    CC
+		The C compiler to use.	configure tries to figure
+		out the right one for supported systems.
 
-            CFLAGS
-                C compiler flags.  Defaults to include -g and/or -O2
-                as supported by the compiler.
+	    CFLAGS
+		C compiler flags.  Defaults to include -g and/or -O2
+		as supported by the compiler.
 
-            STD_CINCLUDES
-                System header file directories.  Can be used to specify
-                where add-on thread or IPv6 support is, for example.
-                Defaults to empty string.
+	    STD_CINCLUDES
+		System header file directories.	 Can be used to specify
+		where add-on thread or IPv6 support is, for example.
+		Defaults to empty string.
 
-            STD_CDEFINES
-                Any additional preprocessor symbols you want defined.
-                Defaults to empty string.
+	    STD_CDEFINES
+		Any additional preprocessor symbols you want defined.
+		Defaults to empty string.
 
-        To build shared libraries, specify "--with-libtool" on the
+	To build shared libraries, specify "--with-libtool" on the
 	configure command line.
+
+	To build without multithreading, specify "--disable-threads"
+	on the configure command line.
 
 	If your operating system has integrated support for IPv6, it
 	will be used automatically.  If you have installed KAME IPv6
 	separately, use "--with-kame[=PATH]" to specify its location.
 
-        To see additional configure options, run "configure --help".
+	To see additional configure options, run "configure --help".
 
 	"make install" will install "named" and the various BIND 9 libraries.
 	By default, installation is into /usr/local, but this can be changed
