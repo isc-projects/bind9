@@ -1818,7 +1818,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	j = NULL;
 	result = dns_journal_open(mctx, filename, ISC_FALSE, &j);
 	if (result == DNS_R_NOTFOUND) {
-		isc_log_write(JOURNAL_DEBUG_LOGARGS(1),
+		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "no journal file, but that's OK");
 		return (DNS_R_SUCCESS);
 	}

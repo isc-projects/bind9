@@ -823,20 +823,20 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 		switch (evtype) {
 		case DNS_EVENT_ADBMOREADDRESSES:
-			DP(1, "DNS_EVENT_ADBMOREADDRESSES");
+			DP(3, "DNS_EVENT_ADBMOREADDRESSES");
 			if ((wanted & addrs) != 0) {
-				DP(1, "processing");
+				DP(3, "processing");
 				find->flags &= ~addrs;
 				process = ISC_TRUE;
 			}
 			break;
 		case DNS_EVENT_ADBNOMOREADDRESSES:
-			DP(1, "DNS_EVENT_ADBNOMOREADDRESSES");
+			DP(3, "DNS_EVENT_ADBNOMOREADDRESSES");
 			find->flags &= ~addrs;
 			wanted = find->flags & DNS_ADBFIND_ADDRESSMASK;
 			if (wanted == 0) {
 				process = ISC_TRUE;
-				DP(1, "processing");
+				DP(3, "processing");
 			}
 			break;
 		default:
@@ -2899,10 +2899,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 */
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
-			DP(1, "adb name %p: Caching negative entry for A (ttl %u)",
+			DP(3, "adb name %p: Caching negative entry for A (ttl %u)",
 			   adbname, rdataset.ttl);
 		} else {
-			DP(1, "adb name %p: Caching negative entry for AAAA (ttl %u)",
+			DP(3, "adb name %p: Caching negative entry for AAAA (ttl %u)",
 			   adbname, rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
 		}
@@ -3001,7 +3001,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 		name->fetch_aaaa = NULL;
 	}
 	if (address_type == 0) {
-		DP(1, "fetch %p, _a %p, _aaaa %p, name %p",
+		DP(3, "fetch %p, _a %p, _aaaa %p, name %p",
 		   dev->fetch, name->fetch_a, name->fetch_aaaa, name);
 	}
 	INSIST(address_type != 0);
