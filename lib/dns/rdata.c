@@ -15,9 +15,10 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.91 2000/05/16 05:19:43 tale Exp $ */
+/* $Id: rdata.c,v 1.92 2000/05/19 02:00:40 marka Exp $ */
 
 #include <config.h>
+#include <ctype.h>
 
 #include <isc/base64.h>
 #include <isc/lex.h>
