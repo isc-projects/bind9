@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.168 2000/09/15 22:41:07 bwelling Exp $ */
+/* $Id: resolver.c,v 1.169 2000/09/28 06:43:36 marka Exp $ */
 
 #include <config.h>
 
@@ -2272,6 +2272,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	dns_dbnode_t *node = NULL;
 	isc_boolean_t negative;
 	isc_boolean_t sentresponse;
+	isc_uint32_t ttl;
 
 	UNUSED(task); /* for now */
 
@@ -2365,10 +2366,19 @@ validated(isc_task_t *task, isc_event_t *event) {
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
 
+		/*
+		 * If we are asking for a SOA record set the cache time
+		 * to zero to facilitate locating the containing zone of
+		 * a arbitary zone.
+		 */
+		ttl = fctx->res->view->maxncachettl;
+		if (fctx->type == dns_rdatatype_soa &&
+		    covers == dns_rdatatype_any)
+			ttl = 0;
+
 		result = ncache_adderesult(fctx->rmessage,
 					   fctx->res->view->cachedb, node,
-					   covers, now,
-					   fctx->res->view->maxncachettl,
+					   covers, now, ttl,
 					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
@@ -2860,6 +2870,7 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	isc_boolean_t need_validation, secure_domain;
 	dns_name_t *aname;
 	dns_fetchevent_t *event;
+	isc_uint32_t ttl;
 
 	FCTXTRACE("ncache_message");
 
@@ -2959,9 +2970,18 @@ ncache_message(fetchctx_t *fctx, dns_rdatatype_t covers, isc_stdtime_t now) {
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 
+	/*
+	 * If we are asking for a SOA record set the cache time
+	 * to zero to facilitate locating the containing zone of
+	 * a arbitary zone.
+	 */
+	ttl = fctx->res->view->maxncachettl;
+	if (fctx->type == dns_rdatatype_soa &&
+	    covers == dns_rdatatype_any)
+		ttl = 0;
+
 	result = ncache_adderesult(fctx->rmessage, res->view->cachedb, node,
-				   covers, now, res->view->maxncachettl,
-				   ardataset, &eresult);
+				   covers, now, ttl, ardataset, &eresult);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 

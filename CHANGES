@@ -1,3 +1,5 @@
+ 494.	[func]		Do not cache NXDOMAIN responses for SOA queries.
+
  493.	[func]		Return non-cachable (ttl = 0) NXDOMAIN responses
 			for SOA queries.  This makes it easier to locate
 			the containing zone without polluting intermediate
