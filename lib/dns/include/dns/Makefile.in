@@ -19,7 +19,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	callbacks.h cert.h compress.h db.h dbiterator.h dbtable.h \
+HEADERS =	adb.h callbacks.h cert.h compress.h db.h dbiterator.h dbtable.h \
 		dnssec.h events.h dispatch.h events.h fixedname.h keyvalues.h \
 		lib.h master.h masterdump.h message.h name.h ncache.h rbt.h \
 		rcode.h rdata.h rdataclass.h rdatalist.h rdataset.h \
