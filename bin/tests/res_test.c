@@ -33,6 +33,7 @@
 #include <isc/app.h>
 #include <isc/mutex.h>
 #include <isc/boolean.h>
+#include <isc/net.h>
 
 #include "../../isc/util.h"		/* XXX Naughty. */
 
@@ -158,8 +159,11 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	if (verbose)
+	if (verbose) {
 		printf("%u workers\n", workers);
+		printf("IPv4: %s\n", isc_result_totext(isc_net_haveipv4()));
+		printf("IPv6: %s\n", isc_result_totext(isc_net_haveipv6()));
+	}
 
 	taskmgr = NULL;
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr) ==
