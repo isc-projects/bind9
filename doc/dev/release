@@ -2,7 +2,7 @@ Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.41.2.3 2004/04/12 23:46:58 marka Exp $
+$Id: release,v 1.41.2.4 2004/04/12 23:59:15 marka Exp $
 
 Preparing a bind9 release
 
@@ -145,13 +145,13 @@ release.
    $ make
    ... should cleanly compile
    $ make distclean
-   $ rm -rf /tmp/mdn
-   $ mkdir -p /tmp/mdn/lib /tmp/mdn/include
-   $ mdn=`pwd`/contrib/idn/idnkit-1.0-src
-   $ cp $mdn/lib/.libs/libidnkit.so* /tmp/mdn/lib
-   $ cp -r $mdn/include/mdn /tmp/mdn/include
-   $ ./configure --with-mdn=/tmp/mdn --with-iconv="-L/usr/local/lib -liconv" 
-   $ LD_LIBRARY_PATH=/usr/local/lib:/tmp/mdn/lib:/usr/lib make
+   $ rm -rf /tmp/idn
+   $ mkdir -p /tmp/idn/lib /tmp/idn/include
+   $ idn=`pwd`/contrib/idn/idnkit-1.0-src
+   $ cp $idn/lib/.libs/libidnkit.so* /tmp/idn/lib
+   $ cp -r $idn/include/idn /tmp/idn/include
+   $ ./configure --with-idn=/tmp/idn --with-iconv="-L/usr/local/lib -liconv" 
+   $ LD_LIBRARY_PATH=/usr/local/lib:/tmp/idn/lib:/usr/lib make
    ... should cleanly compile
 
    [ Some tests will be added to bin/tests/system to validate operation. ]
@@ -164,9 +164,10 @@ release.
    $ files=`awk '/^Index:/ && NF == 2 {print $2}' $patchd/$old_patch`
    $ missing=`cvs log -R $files 2>&1 >/dev/null | \
               awk '/^cvs log: nothing known about/ {print $6}'`
+   $ sed '/^Index:/,$d' < $patchd/$old_patch > $patchd/$new_patch
    $ for i in $missing; \
-       do echo Index: $i; diff -u /dev/null $i; done >$patchd/$new_patch
-   $ cvs -f diff -U 2 -N $files >>$patchd/$new_patch
+       do echo Index: $i; diff -u /dev/null $i; done >> $patchd/$new_patch
+   $ cvs -f diff -U 2 -N $files >> $patchd/$new_patch
 
    [ Add comment at head of new patch file ]
    $ cvs add -ko $patchd/$new_patch
