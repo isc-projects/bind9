@@ -15,13 +15,12 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.3 2001/07/17 19:16:55 gson Exp $ */
+/* $Id: DLLMain.c,v 1.3.2.1 2001/09/05 00:38:08 gson Exp $ */
 
 #include <windows.h>
 #include <stdio.h>
 
 BOOL InitSockets(void);
-void isc_time_initepoch();
  
 /*
  * Called when we enter the DLL
@@ -38,7 +37,6 @@ __declspec(dllexport) BOOL WINAPI DllMain(HINSTANCE hinstDLL,
 	case DLL_PROCESS_ATTACH: 
 		if (!InitSockets())
 			return (FALSE);
-		isc_time_initepoch();
 		break; 
  
 	/* The attached process creates a new thread.  */

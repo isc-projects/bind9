@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70 2001/08/08 22:54:51 gson Exp $ */
+/* $Id: log.c,v 1.70.2.1 2001/09/05 00:38:03 gson Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -1346,7 +1346,6 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 	isc_logconfig_t *lcfg;
 	isc_logchannel_t *channel;
 	isc_logchannellist_t *category_channels;
-	isc_time_t isctime;
 	isc_result_t result;
 
 	REQUIRE(lctx == NULL || VALID_CONTEXT(lctx));
@@ -1438,37 +1437,13 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 
 		if ((channel->flags & ISC_LOG_PRINTTIME) != 0 &&
 		    time_string[0] == '\0') {
-			time_t now;
+		    isc_time_t isctime;
 
-			result = isc_time_now(&isctime);
+		    result = isc_time_now(&isctime);
 			if (result == ISC_R_SUCCESS)
-				result = isc_time_secondsastimet(&isctime,
-								 &now);
-
-			if (result == ISC_R_SUCCESS) {
-				unsigned int len;
-				struct tm *timeptr;
-
-				timeptr = localtime(&now);
-				/*
-				 * Emulate syslog's time format,
-				 * with milliseconds.
-				 *
-				 * It would be nice if the format
-				 * were configurable.
-				 */
-				strftime(time_string, sizeof(time_string),
-					 "%b %d %X", timeptr);
-
-				len = strlen(time_string);
-
-				snprintf(time_string + len,
-					 sizeof(time_string) - len,
-					 ".%03u ",
-					 isc_time_nanoseconds(&isctime)
-					 / 1000000);
-
-			} else
+				isc_time_formattimestamp(&isctime, time_string,
+							 sizeof(time_string));
+			else
 				/*
 				 * "Should never happen."
 				 */
@@ -1476,7 +1451,7 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 					 isc_msgcat_get(isc_msgcat,
 						      ISC_MSGSET_LOG,
 						      ISC_MSG_BADTIME,
-						      "Bad 00 99:99:99.999 "));
+						      "Bad 00 99:99:99.999"));
 
 		}
 
@@ -1662,8 +1637,9 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			/* FALLTHROUGH */
 
 		case ISC_LOG_TOFILEDESC:
-			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s\n",
+			fprintf(FILE_STREAM(channel), "%s%s%s%s%s%s%s%s%s%s\n",
 				printtime     ? time_string	: "",
+				printtime     ? " "		: "",
 				printtag      ? lcfg->tag	: "",
 				printtag      ? ": "		: "",
 				printcategory ? category->name	: "",

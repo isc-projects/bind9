@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.34.2.1 2001/08/31 18:01:22 gson Exp $ */
+/* $Id: time.c,v 1.34.2.2 2001/09/05 00:38:05 gson Exp $ */
 
 #include <config.h>
 
@@ -383,4 +383,18 @@ isc_time_nanoseconds(isc_time_t *t) {
 	ENSURE(t->nanoseconds < NS_PER_S);
 
 	return ((isc_uint32_t)t->nanoseconds);
+}
+
+void
+isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t) t->seconds;
+	strftime(buf, len, "%b %d %X", localtime(&now));
+	flen = strlen(buf);
+	snprintf(buf + flen, len - flen,
+		 ".%03u", t->nanoseconds / 1000000);
 }

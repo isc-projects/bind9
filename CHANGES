@@ -14,6 +14,9 @@
 			"bad zone transfer request: non-authoritative zone
 			(NOTAUTH)".
 
+ 972.	[bug]		The file modification time code in zone.c was using the
+			wrong epoch.  [RT #1667]
+
  968.	[bug]		On win32, the isc_time_now() function was unnecessarily
 			calling strtime(). [RT #1671]
 
