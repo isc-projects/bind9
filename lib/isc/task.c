@@ -145,6 +145,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 		isc_task_t **taskp)
 {
 	isc_task_t *task;
+	isc_boolean_t exiting;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -172,12 +173,21 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx, unsigned int quantum,
 	INIT_LINK(task, link);
 	INIT_LINK(task, ready_link);
 
+	exiting = ISC_FALSE;
 	LOCK(&manager->lock);
-	/* XXX Should disallow if task manager is exiting. */
-	if (task->quantum == 0)
-		task->quantum = manager->default_quantum;
-	APPEND(manager->tasks, task, link);
+	if (!manager->exiting) {
+		if (task->quantum == 0)
+			task->quantum = manager->default_quantum;
+		APPEND(manager->tasks, task, link);
+	} else
+		exiting = ISC_TRUE;
 	UNLOCK(&manager->lock);
+
+	if (exiting) {
+		isc_mutex_destroy(&task->lock);
+		isc_mem_put(mctx, task, sizeof *task);
+		return (ISC_R_SHUTTINGDOWN);
+	}
 
 	task->magic = TASK_MAGIC;
 	*taskp = task;

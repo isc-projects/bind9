@@ -76,7 +76,7 @@ isc_result_t
 isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx,
 		unsigned int quantum, isc_task_t **taskp);
 /*
- * Create a task running.
+ * Create a task.
  *
  * Notes:
  *
@@ -106,6 +106,7 @@ isc_task_create(isc_taskmgr_t *manager, isc_mem_t *mctx,
  *     	ISC_R_SUCCESS
  *	ISC_R_NOMEMORY
  *	ISC_R_UNEXPECTED
+ *	ISC_R_SHUTTINGDOWN
  */
 
 void
