@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.57 2000/08/31 12:15:13 marka Exp $ */
+/* $Id: db.h,v 1.58 2000/08/31 13:00:57 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -140,9 +140,9 @@ typedef struct dns_dbmethods {
 					  dns_rdatatype_t type,
 					  dns_rdatatype_t covers);
 	isc_boolean_t	(*issecure)(dns_db_t *db);
-	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 	unsigned int	(*nodecount)(dns_db_t *db);
 	isc_boolean_t	(*ispersistent)(dns_db_t *db);
+	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 } dns_dbmethods_t;
 
 #define DNS_DB_MAGIC		0x444E5344U		/* DNSD. */
