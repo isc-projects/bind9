@@ -59,6 +59,7 @@
 #include <dns/tsig.h>
 #include <dns/tkey.h>
 
+#include <named/client.h>
 #include <named/globals.h>
 #include <named/interfacemgr.h>
 #include <named/listenlist.h>
@@ -363,7 +364,8 @@ load_zone(dns_c_ctx_t *ctx, dns_c_zone_t *czone, dns_c_view_t *cview,
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
 
-			result = dns_zonemgr_managezone(ns_g_zonemgr, zone);
+			result = dns_zonemgr_managezone(ns_g_server->zonemgr,
+							zone);
 			if (result != DNS_R_SUCCESS)
 				goto cleanup;
 		}
@@ -562,7 +564,7 @@ load_configuration(const char *filename, ns_server_t *server) {
 	 * so that we know when we need to force AXFR of
 	 * slave zones whose master files are missing.
 	 */
-	dns_zonemgr_forcemaint(ns_g_zonemgr);
+	dns_zonemgr_forcemaint(server->zonemgr);
 		
 	/*
 	 * Put the configuration into production.
@@ -625,10 +627,32 @@ load_configuration(const char *filename, ns_server_t *server) {
 
 static void
 run_server(isc_task_t *task, isc_event_t *event) {
+	isc_result_t result;
 	ns_server_t *server = (ns_server_t *) event->arg;
 	(void)task;
 
 	isc_event_free(&event);
+
+	result = ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
+				     &server->clientmgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_clientmgr_create() failed: %s\n",
+				 isc_result_totext(result));
+		/* XXX cleanup */
+		return;
+	}
+	
+	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
+					ns_g_socketmgr, server->clientmgr,
+					&server->interfacemgr);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_interfacemgr_create() failed: %s",
+				 isc_result_totext(result));
+		/* XXX cleanup */
+		return;
+	}
 
 	load_configuration(ns_g_conffile, server);
 
@@ -661,9 +685,10 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_tkey_destroy();
 	dns_tsig_destroy();
 
+	ns_clientmgr_destroy(&server->clientmgr);
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);	
-	dns_zonemgr_destroy(&ns_g_zonemgr);
+	dns_zonemgr_destroy(&server->zonemgr);
 
 	isc_task_detach(&server->task);
 	
@@ -697,21 +722,12 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 
 	
 	/* Initialize server data structures. */
+	server->zonemgr = NULL;
+	server->clientmgr = NULL;
+	server->interfacemgr = NULL;
 	ISC_LIST_INIT(server->viewlist);
 	result = isc_rwlock_init(&server->viewlock, 0, 0);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); 	
-
-	server->interfacemgr = NULL;
-	result = ns_interfacemgr_create(ns_g_mctx, ns_g_taskmgr,
-					ns_g_socketmgr, ns_g_clientmgr,
-					&server->interfacemgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_interfacemgr_create() failed: %s",
-				 isc_result_totext(result));
-		/* XXX cleanup */
-		return (ISC_R_UNEXPECTED);
-	}
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -779,7 +795,7 @@ ns_server_setup(void) {
 		return (result);
 
 	result = dns_zonemgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				    ns_g_socketmgr, &ns_g_zonemgr);
+				    ns_g_socketmgr, &ns_g_server->zonemgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 

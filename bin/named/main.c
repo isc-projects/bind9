@@ -40,7 +40,6 @@
 #define NS_MAIN 1
 
 #include <named/globals.h>
-#include <named/client.h>
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/os.h>
@@ -210,15 +209,6 @@ create_managers() {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = ns_clientmgr_create(ns_g_mctx, ns_g_taskmgr, ns_g_timermgr,
-				     &ns_g_clientmgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_clientmgr_create() failed: %s\n",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -230,7 +220,6 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&ns_g_taskmgr);
 	isc_timermgr_destroy(&ns_g_timermgr);
 	isc_socketmgr_destroy(&ns_g_socketmgr);
-	ns_clientmgr_destroy(&ns_g_clientmgr);
 }
 
 static void

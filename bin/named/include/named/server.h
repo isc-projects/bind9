@@ -45,6 +45,8 @@ struct ns_server {
 	isc_quota_t		recursionquota;
 
 	/* Server data structures. */
+	dns_zonemgr_t *		zonemgr;
+	ns_clientmgr_t *	clientmgr;
 	dns_viewlist_t		viewlist;
 	isc_rwlock_t		viewlock;
 	ns_interfacemgr_t *	interfacemgr;
