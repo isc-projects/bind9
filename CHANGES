@@ -1,3 +1,6 @@
+ 479.	[func]		The test suite can now be run by typing "make check"
+			or "make test" at the top level.
+
  478.	[bug]		"make install" failed if the directory specified with
 			--prefix did not already exist.
 
