@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: str.h,v 1.3 2000/02/03 23:07:54 halley Exp $ */
+/* $Id: str.h,v 1.4 2000/03/21 00:37:36 gson Exp $ */
 
 #ifndef ISC_STR_H
 #define ISC_STR_H 1

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: base64.h,v 1.3 2000/02/03 23:07:48 halley Exp $ */
+/* $Id: base64.h,v 1.4 2000/03/21 00:37:35 gson Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
