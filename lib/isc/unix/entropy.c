@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.57 2001/02/05 23:00:18 bwelling Exp $ */
+/* $Id: entropy.c,v 1.58 2001/04/04 20:57:35 bwelling Exp $ */
 
 #include <config.h>
 
@@ -395,7 +395,7 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		n = read(fd, buf, ndesired);
 		if (n < 0) {
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == EINTR)
 				goto out;
 			close(fd);
 			source->bad = ISC_TRUE;

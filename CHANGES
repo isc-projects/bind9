@@ -1,3 +1,7 @@
+ 804.	[bug]		Attempting to obtain entropy could fail in some
+ 			situations.  This would be most common on systems
+			with user-space threads. [RT #1131]
+
  803.	[bug]		Treat all SIG queries as if they have the CD bit set,
  			otherwise no data will be returned [RT #749]
 
