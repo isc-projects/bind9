@@ -568,11 +568,9 @@ findname(dns_name_t **foundname, dns_name_t *target, dns_namelist_t *section)
 {
 	dns_name_t *curr;
 
-	printf("-----\n");
 	for (curr = ISC_LIST_TAIL(*section) ;
 	     curr != NULL ;
 	     curr = ISC_LIST_PREV(curr, link)) {
-		printf("curr = %p\n", curr);
 		if (dns_name_compare(curr, target) == 0) {
 			if (foundname != NULL)
 				*foundname = curr;
@@ -1085,12 +1083,20 @@ dns_message_renderreserve(dns_message_t *msg, unsigned int space)
 }
 
 dns_result_t
-dns_message_rendersection(dns_message_t *msg, dns_section_t section,
+dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int priority, unsigned int flags)
 {
+	isc_region_t r;
+	unsigned int used;
+	unsigned int startused;
+	dns_namelist_t *section;
+
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(msg->buffer != NULL);
-	REQUIRE(VALID_NAMED_SECTION(section));
+	REQUIRE(VALID_NAMED_SECTION(sectionid));
+
+	section = &msg->sections[sectionid];
+	startused = msg->buffer->used;
 
 	/* XXX implement */
 	return (ISC_R_NOTIMPLEMENTED);
@@ -1180,7 +1186,9 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 	 * Search through, looking for the name.
 	 */
 	result = findname(&foundname, target, &msg->sections[section]);
-	if (result != DNS_R_SUCCESS)
+	if (result == DNS_R_NOTFOUND)
+		return (DNS_R_NXDOMAIN);
+	else if (result != DNS_R_SUCCESS)
 		return (result);
 
 	if (name != NULL)
@@ -1193,6 +1201,9 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 		return (DNS_R_SUCCESS);
 
 	result = findtype(rdataset, foundname, type);
+	if (result == DNS_R_NOTFOUND)
+		return (DNS_R_NXRDATASET);
+
 	return (result);
 }
 
