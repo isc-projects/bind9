@@ -25,6 +25,7 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/event.h>
+#include <isc/log.h>
 
 #include <dns/a6.h>
 #include <dns/db.h>
@@ -48,6 +49,7 @@
 #include <named/globals.h>
 #include <named/query.h>
 #include <named/xfrout.h>
+#include <named/log.h>
 
 #include "../../isc/util.h"		/* XXX */
 
@@ -433,7 +435,7 @@ query_simplefind(void *arg, dns_name_t *name, dns_rdatatype_t type,
 
 	if (result == ISC_R_NOTFOUND && USECACHE(client))
 		dns_db_attach(client->view->cachedb, &db);
-	else if (result != DNS_R_SUCCESS)
+	else if (result != DNS_R_SUCCESS && result == DNS_R_PARTIALMATCH)
 		goto cleanup;
 
 	/*
@@ -2446,6 +2448,9 @@ ns_query_start(ns_client_t *client) {
 	dns_message_t *message = client->message;
 	dns_rdataset_t *rdataset;
 	isc_boolean_t set_ra = ISC_TRUE;
+	isc_buffer_t b;
+	char text[1024];
+	isc_region_t r;
 
 	/*
 	 * Ensure that appropriate cleanups occur.
@@ -2503,6 +2508,30 @@ ns_query_start(ns_client_t *client) {
 			ns_client_error(client, result);
 		return;
 	}
+
+#if 0
+	isc_buffer_init(&b, (unsigned char *)text, sizeof text,
+			ISC_BUFFERTYPE_TEXT);
+	result = dns_name_totext(client->query.qname, ISC_TRUE, &b);
+	if (result != ISC_R_SUCCESS)
+		goto keep_going;
+	for (rdataset = ISC_LIST_HEAD(client->query.qname->list);
+	     rdataset != NULL;
+	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
+		isc_buffer_available(&b, &r);
+		if (r.length < 1)
+			goto keep_going;
+		*r.base = ' ';
+		isc_buffer_add(&b, 1);
+		result = dns_rdatatype_totext(rdataset->type, &b);
+		if (result != ISC_R_SUCCESS)
+			goto keep_going;
+	}
+	isc_buffer_used(&b, &r);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_QUERY,
+		      ISC_LOG_INFO, "XX: %.*s", (int)r.length, (char *)r.base);
+ keep_going:
+#endif
 
 	/*
 	 * Check for illegal meta-classes and meta-types in
