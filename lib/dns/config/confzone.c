@@ -142,7 +142,9 @@ isc_result_t
 dns_c_zonelist_delete(isc_log_t *lctx, dns_c_zonelist_t **zlist)
 {
 	dns_c_zonelist_t *list;
-	dns_c_zone_t *zone, *tmpzone;
+	dns_c_zonelem_t *zoneelem;
+	dns_c_zonelem_t *tmpelem;
+	dns_c_zone_t *zone;
 	isc_result_t res;
 
 	REQUIRE(zlist != NULL);
@@ -152,17 +154,20 @@ dns_c_zonelist_delete(isc_log_t *lctx, dns_c_zonelist_t **zlist)
 		return (ISC_R_SUCCESS);
 	}
 
-	zone = ISC_LIST_HEAD(list->zones);
-	while (zone != NULL) {
-		tmpzone = ISC_LIST_NEXT(zone, next);
-		ISC_LIST_UNLINK(list->zones, zone, next);
+	zoneelem = ISC_LIST_HEAD(list->zones);
+	while (zoneelem != NULL) {
+		tmpelem = ISC_LIST_NEXT(zoneelem, next);
+		ISC_LIST_UNLINK(list->zones, zoneelem, next);
 
+		zone = zoneelem->thezone;
+		isc_mem_put(list->mem, zoneelem, sizeof *zoneelem);
+		
 		res = zone_delete(lctx, &zone);
 		if (res != ISC_R_SUCCESS) {
 			return (res);
 		}
 
-		zone = tmpzone;
+		zoneelem = tmpelem;
 	}
 
 	isc_mem_put(list->mem, list, sizeof *list);
@@ -170,12 +175,56 @@ dns_c_zonelist_delete(isc_log_t *lctx, dns_c_zonelist_t **zlist)
 	return (ISC_R_SUCCESS);
 }
 
+isc_result_t
+dns_c_zonelist_addzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
+		       dns_c_zone_t *zone)
+{
+	dns_c_zonelem_t *zoneelem;
+	
+	(void) lctx;
+
+	REQUIRE(zlist != NULL);
+	REQUIRE(zone != NULL);
+	REQUIRE(zone->refcount > 0);
+
+	zoneelem = isc_mem_get(zlist->mem, sizeof *zoneelem);
+	if (zoneelem == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+	
+	dns_c_zone_attach(lctx, zone, &zoneelem->thezone);
+	ISC_LINK_INIT(zoneelem, next);
+
+	ISC_LIST_APPEND(zlist->zones, zoneelem, next);
+
+	return (ISC_R_SUCCESS);
+}
+	
+	
+#if 0					/* XXXJAB drop this function */
+dns_c_zone_t *
+dns_c_zonelist_currzone(isc_log_t *lctx, dns_c_zonelist_t *zlist)
+{
+	dns_c_zonelem_t *zelem;
+	
+	REQUIRE(zlist != NULL);
+	REQUIRE(!ISC_LIST_EMPTY(zlist->zones));
+
+	zelem = ISC_LIST_TAIL(zlist->zones);
+
+	INSIST(zelem->thezone != NULL);
+	
+	return (zelem->thezone);
+}
+#endif
+
+	
 
 isc_result_t
 dns_c_zonelist_find(isc_log_t *lctx, dns_c_zonelist_t *zlist, const char *name,
 		    dns_c_zone_t **retval)
 {
-	dns_c_zone_t *zone;
+	dns_c_zonelem_t *zoneelem;
 
 	(void)lctx;
 	
@@ -184,18 +233,20 @@ dns_c_zonelist_find(isc_log_t *lctx, dns_c_zonelist_t *zlist, const char *name,
 	REQUIRE(strlen(name) > 0);
 	REQUIRE(retval != NULL);
 
-	zone = ISC_LIST_HEAD(zlist->zones);
-	while (zone != NULL) {
-		if (strcmp(name, zone->name) == 0) {
+	zoneelem = ISC_LIST_HEAD(zlist->zones);
+	while (zoneelem != NULL) {
+		REQUIRE(zoneelem->thezone != NULL);
+		
+		if (strcmp(name, zoneelem->thezone->name) == 0) {
 			break;
 		}
 	}
 
-	if (zone != NULL) {
-		*retval = zone;
+	if (zoneelem != NULL) {
+		*retval = zoneelem->thezone;
 	}
 
-	return (zone == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	return (zoneelem == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 
 
@@ -203,13 +254,29 @@ isc_result_t
 dns_c_zonelist_rmbyname(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 			const char *name)
 {
-	dns_c_zone_t *zone;
+	dns_c_zonelem_t *zoneelem;
 	isc_result_t res;
 
-	res = dns_c_zonelist_find(lctx, zlist, name, &zone);
-	if (res == ISC_R_SUCCESS) {
-		ISC_LIST_UNLINK(zlist->zones, zone, next);
-		res = zone_delete(lctx, &zone);
+	(void) lctx;
+	
+	REQUIRE(zlist != NULL);
+	REQUIRE(name != NULL);
+
+	zoneelem = ISC_LIST_HEAD(zlist->zones);
+	while (zoneelem != NULL) {
+		REQUIRE(zoneelem->thezone != NULL);
+		
+		if (strcmp(name, zoneelem->thezone->name) == 0) {
+			break;
+		}
+	}
+
+	if (zoneelem != NULL) {
+		ISC_LIST_UNLINK(zlist->zones, zoneelem, next);
+		res = dns_c_zone_delete(lctx, &zoneelem->thezone);
+		isc_mem_put(zlist->mem, zoneelem, sizeof *zoneelem);
+	} else {
+		res = ISC_R_NOTFOUND;
 	}
 
 	return (res);
@@ -220,13 +287,28 @@ isc_result_t
 dns_c_zonelist_rmzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 		      dns_c_zone_t *zone)
 {
+	dns_c_zonelem_t *zoneelem;
 	isc_result_t res;
 	
 	REQUIRE(zlist != NULL);
 	REQUIRE(zone != NULL);
 
-	ISC_LIST_UNLINK(zlist->zones, zone, next);
-	res = zone_delete(lctx, &zone);
+	zoneelem = ISC_LIST_HEAD(zlist->zones);
+	while (zoneelem != NULL) {
+		REQUIRE(zoneelem->thezone != NULL);
+		
+		if (zone == zoneelem->thezone) {
+			break;
+		}
+	}
+
+	if (zoneelem != NULL) {
+		ISC_LIST_UNLINK(zlist->zones, zoneelem, next);
+		res = dns_c_zone_delete(lctx, &zoneelem->thezone);
+		isc_mem_put(zlist->mem, zoneelem, sizeof *zoneelem);
+	} else {
+		res = ISC_R_NOTFOUND;
+	}
 
 	return (res);
 }
@@ -261,7 +343,7 @@ static void
 zone_list_print(isc_log_t *lctx, zone_print_type zpt, FILE *fp, int indent,
 		dns_c_zonelist_t *list) 
 {
-	dns_c_zone_t *zone;
+	dns_c_zonelem_t *zoneelem;
 	
 	REQUIRE(fp != NULL);
 	REQUIRE(indent >= 0);
@@ -275,14 +357,14 @@ zone_list_print(isc_log_t *lctx, zone_print_type zpt, FILE *fp, int indent,
 	 (zpt == zones_postopts && zone->afteropts == ISC_TRUE) ||	\
 	 zpt == zones_all)
 			    
-	zone = ISC_LIST_HEAD(list->zones);
-	while (zone != NULL) {
-		if (PRINTIT(zone, zpt)) {
-			dns_c_zone_print(lctx, fp, indent, zone);
+	zoneelem = ISC_LIST_HEAD(list->zones);
+	while (zoneelem != NULL) {
+		if (PRINTIT(zoneelem->thezone, zpt)) {
+			dns_c_zone_print(lctx, fp, indent, zoneelem->thezone);
 		}
 		
-		zone = ISC_LIST_NEXT(zone, next);
-		if (zone != NULL && PRINTIT(zone, zpt)) {
+		zoneelem = ISC_LIST_NEXT(zoneelem, next);
+		if (zoneelem != NULL && PRINTIT(zoneelem->thezone, zpt)) {
 			fprintf(fp, "\n");
 		}
 	}
@@ -298,27 +380,32 @@ zone_list_print(isc_log_t *lctx, zone_print_type zpt, FILE *fp, int indent,
 /* ************************************************************************ */
 
 isc_result_t
-dns_c_zone_new(isc_log_t *lctx, dns_c_zonelist_t *zlist,
-	       dns_c_zonetype_t ztype,
-	       dns_rdataclass_t zclass, const char *name, dns_c_zone_t **zone)
+dns_c_zone_new(isc_log_t *lctx, isc_mem_t *mem,
+	       dns_c_zonetype_t ztype, dns_rdataclass_t zclass,
+	       const char *name, const char *internalname,
+	       dns_c_zone_t **zone)
 {
 	dns_c_zone_t *newzone;
 	isc_result_t res;
 
-	REQUIRE(zlist != NULL);
+	REQUIRE(mem != NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(strlen(name) > 0);
 
-	newzone = isc_mem_get(zlist->mem, sizeof *newzone);
+	newzone = isc_mem_get(mem, sizeof *newzone);
 	if (newzone == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
 
-	newzone->mylist = zlist;
+	newzone->mem = mem;
+	newzone->refcount = 1;
 	newzone->ztype = ztype;
 	newzone->zclass = zclass;
 	newzone->afteropts = ISC_FALSE;
-	newzone->name = isc_mem_strdup(zlist->mem, name);
+	newzone->name = isc_mem_strdup(mem, name);
+	newzone->internalname = (internalname == NULL ?
+				 isc_mem_strdup(mem, name) :
+				 isc_mem_strdup(mem, internalname));
 
 	switch (ztype) {
 	case dns_c_zone_master:
@@ -342,12 +429,45 @@ dns_c_zone_new(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 		break;
 	}
 	
-	ISC_LIST_APPEND(zlist->zones, newzone, next);
-	
 	*zone = newzone;
 
 	return (ISC_R_SUCCESS);
 }
+
+
+isc_result_t
+dns_c_zone_delete(isc_log_t *lctx, dns_c_zone_t **zone)
+{
+	dns_c_zone_t *zoneptr = *zone;
+	isc_result_t res = ISC_R_SUCCESS;
+
+	*zone = NULL;
+
+	REQUIRE(zoneptr->refcount > 0);
+	zoneptr->refcount--;
+
+	if (zoneptr->refcount == 0) {
+		res = zone_delete(lctx, &zoneptr);
+	}
+
+	return (res);
+}
+
+
+void
+dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *zone,
+		  dns_c_zone_t **newzone)
+{
+	REQUIRE(zone != NULL);
+	REQUIRE(newzone != NULL);
+
+	(void) lctx;
+	
+	zone->refcount++;
+
+	*newzone = zone;
+}
+		
 
 
 void
@@ -438,13 +558,13 @@ dns_c_zone_setfile(isc_log_t *lctx, dns_c_zone_t *zone, const char *newfile)
 	}
 
 	if (*p != NULL) {
-		isc_mem_free(zone->mylist->mem, *p);
+		isc_mem_free(zone->mem, *p);
 		res = ISC_R_EXISTS;
 	} else {
 		res = ISC_R_SUCCESS;
 	}
 
-	*p = isc_mem_strdup(zone->mylist->mem, newfile);
+	*p = isc_mem_strdup(zone->mem, newfile);
 	if (*p == NULL) {
 		res = ISC_R_NOMEMORY;
 	}
@@ -552,7 +672,7 @@ dns_c_zone_setallowupd(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
 	
-	res = set_ipmatch_list_field(lctx, zone->mylist->mem, p,
+	res = set_ipmatch_list_field(lctx, zone->mem, p,
 				     ipml, deepcopy);
 	if (res == ISC_R_SUCCESS && existed) {
 		res = ISC_R_EXISTS;
@@ -603,7 +723,7 @@ dns_c_zone_setallowquery(isc_log_t *lctx, dns_c_zone_t *zone,
 
 	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
 	
-	res = set_ipmatch_list_field(lctx, zone->mylist->mem, p,
+	res = set_ipmatch_list_field(lctx, zone->mem, p,
 				     ipml, deepcopy);
 	if (res == ISC_R_SUCCESS && existed) {
 		res = ISC_R_EXISTS;
@@ -654,7 +774,7 @@ dns_c_zone_setallowtransfer(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-	res = set_ipmatch_list_field(lctx, zone->mylist->mem, p,
+	res = set_ipmatch_list_field(lctx, zone->mem, p,
 				     ipml, deepcopy);
 
 	if (res == ISC_R_SUCCESS && existed) {
@@ -843,7 +963,7 @@ dns_c_zone_setalsonotify(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-	res = set_iplist_field(lctx, zone->mylist->mem, p, newval, deepcopy);
+	res = set_iplist_field(lctx, zone->mem, p, newval, deepcopy);
 	if (res == ISC_R_SUCCESS && existed) {
 		res = ISC_R_EXISTS;
 	}
@@ -890,12 +1010,12 @@ dns_c_zone_setixfrbase(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 
 	if (*p != NULL) {
 		existed = ISC_TRUE;
-		isc_mem_free(zone->mylist->mem, *p);
+		isc_mem_free(zone->mem, *p);
 	} else {
 		existed = ISC_FALSE;
 	}
 
-	*p = isc_mem_strdup(zone->mylist->mem, newval);
+	*p = isc_mem_strdup(zone->mem, newval);
 	if (*p == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
@@ -942,12 +1062,12 @@ dns_c_zone_setixfrtmp(isc_log_t *lctx, dns_c_zone_t *zone, const char *newval)
 
 	if (*p != NULL) {
 		existed = ISC_TRUE;
-		isc_mem_free(zone->mylist->mem, *p);
+		isc_mem_free(zone->mem, *p);
 	} else {
 		existed = ISC_FALSE;
 	}
 
-	*p = isc_mem_strdup(zone->mylist->mem, newval);
+	*p = isc_mem_strdup(zone->mem, newval);
 	if (*p == NULL) {
 		return (ISC_R_NOMEMORY);
 	}
@@ -1001,7 +1121,7 @@ dns_c_zone_setpubkey(isc_log_t *lctx, dns_c_zone_t *zone,
 	}
 
 	if (deepcopy) {
-		res = dns_c_pubkey_copy(lctx, zone->mylist->mem, p, pubkey);
+		res = dns_c_pubkey_copy(lctx, zone->mem, p, pubkey);
 	} else {
 		*p = pubkey;
 		res = ISC_R_SUCCESS;
@@ -1087,7 +1207,7 @@ dns_c_zone_setmasterips(isc_log_t *lctx, dns_c_zone_t *zone,
 		}
 		
 		existed = (*p != NULL ? ISC_TRUE : ISC_FALSE);
-		res = set_iplist_field(lctx, zone->mylist->mem, p,
+		res = set_iplist_field(lctx, zone->mem, p,
 				       newval, deepcopy);
 		if (res == ISC_R_SUCCESS && existed) {
 			res = ISC_R_EXISTS;
@@ -1353,7 +1473,7 @@ dns_c_zone_setforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
 		break;
 	}
 
-	res = set_iplist_field(lctx, zone->mylist->mem, p, ipl, deepcopy);
+	res = set_iplist_field(lctx, zone->mem, p, ipl, deepcopy);
 	if (res == ISC_R_SUCCESS && existed) {
 		res = ISC_R_EXISTS;
 	}
@@ -1371,6 +1491,21 @@ dns_c_zone_getname(isc_log_t *lctx, dns_c_zone_t *zone, const char **retval)
 	REQUIRE(retval != NULL);
 
 	*retval = zone->name;
+
+	return (ISC_R_SUCCESS);
+}
+
+
+isc_result_t
+dns_c_zone_getinternalname(isc_log_t *lctx, dns_c_zone_t *zone,
+			   const char **retval)
+{
+	(void) lctx;
+	
+	REQUIRE(zone != NULL);
+	REQUIRE(retval != NULL);
+
+	*retval = zone->internalname;
 
 	return (ISC_R_SUCCESS);
 }
@@ -2733,30 +2868,32 @@ zone_delete(isc_log_t *lctx, dns_c_zone_t **zone)
 
 	z = *zone;
 
-	isc_mem_free(z->mylist->mem, z->name);
+	isc_mem_free(z->mem, z->name);
+	isc_mem_free(z->mem, z->internalname);
+	
 	switch(z->ztype) {
 	case dns_c_zone_master:
-		res = master_zone_clear(lctx, z->mylist->mem, &z->u.mzone);
+		res = master_zone_clear(lctx, z->mem, &z->u.mzone);
 		break;
 
 	case dns_c_zone_slave:
-		res = slave_zone_clear(lctx, z->mylist->mem, &z->u.szone);
+		res = slave_zone_clear(lctx, z->mem, &z->u.szone);
 		break;
 		
 	case dns_c_zone_stub:
-		res = stub_zone_clear(lctx, z->mylist->mem, &z->u.tzone);
+		res = stub_zone_clear(lctx, z->mem, &z->u.tzone);
 		break;
 		
 	case dns_c_zone_hint:
-		res = hint_zone_clear(lctx, z->mylist->mem, &z->u.hzone);
+		res = hint_zone_clear(lctx, z->mem, &z->u.hzone);
 		break;
 		
 	case dns_c_zone_forward:
-		res = forward_zone_clear(lctx, z->mylist->mem, &z->u.fzone);
+		res = forward_zone_clear(lctx, z->mem, &z->u.fzone);
 		break;
 	}
 
-	isc_mem_put(z->mylist->mem, z, sizeof *z);
+	isc_mem_put(z->mem, z, sizeof *z);
 
 	return (res);
 }

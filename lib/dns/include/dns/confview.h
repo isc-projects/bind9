@@ -70,6 +70,8 @@
 #include <dns/confkeys.h>
 #include <dns/confacl.h>
 #include <dns/confip.h>
+#include <dns/conflsn.h>
+#include <dns/confrrset.h>
 
 
 /***
@@ -93,7 +95,47 @@ struct dns_c_view
 	isc_mem_t	       *mem;
 	
 	char 		       *name;
+
+	dns_c_forw_t		forward;
+	
 	dns_c_ipmatchlist_t    *allowquery;
+	dns_c_ipmatchlist_t    *blackhole;
+	dns_c_ipmatchlist_t    *forwarders;
+	dns_c_ipmatchlist_t    *queryacl;
+	dns_c_ipmatchlist_t    *sortlist;
+	dns_c_ipmatchlist_t    *topology;
+	dns_c_ipmatchlist_t    *transferacl;
+	
+	dns_c_lstnlist_t       *listens;
+	
+	dns_c_rrsolist_t       *ordering;
+	
+	dns_c_severity_t	check_names[DNS_C_TRANSCOUNT];
+	
+	dns_transfer_format_t	transfer_format;
+	
+	isc_boolean_t		auth_nx_domain;
+	isc_boolean_t		dialup;
+	isc_boolean_t		expert_mode;
+	isc_boolean_t		fetch_glue;
+	isc_boolean_t		has_old_clients;
+	isc_boolean_t		host_statistics;
+	isc_boolean_t		maintain_ixfr_base;
+	isc_boolean_t		multiple_cnames;
+	isc_boolean_t		notify;
+	isc_boolean_t		recursion;
+	isc_boolean_t		rfc2038type1;
+	isc_boolean_t		use_id_pool;
+
+	isc_int32_t		clean_interval;
+	isc_int32_t		lamettl;
+	isc_int32_t		max_log_size_ixfr;
+	isc_int32_t		max_ncache_ttl;
+	isc_int32_t		max_transfer_time_in;
+	isc_int32_t		stats_interval;
+	isc_int32_t		transfers_in;
+	isc_int32_t		transfers_out;
+	isc_int32_t		transfers_per_ns;
 
 	dns_c_setbits_t		setflags;
 
@@ -106,7 +148,7 @@ struct dns_c_view
  *** Functions
  ***/
 
-isc_result_t dns_c_viewtable_new(isc_mem_t *mem,
+isc_result_t dns_c_viewtable_new(isc_log_t *lctx, isc_mem_t *mem,
 				 dns_c_viewtable_t **viewtable);
 
 /*
@@ -124,7 +166,8 @@ isc_result_t dns_c_viewtable_new(isc_mem_t *mem,
  * 
  */
 
-isc_result_t dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
+isc_result_t dns_c_viewtable_delete(isc_log_t *lctx,
+				    dns_c_viewtable_t **viewtable);
 /*
  * Destroys the table pointed to by *VIEWTABLE and all the views in it. The
  * value of *VIEWTABLE can be NULL (which is a no-op).
@@ -139,7 +182,7 @@ isc_result_t dns_c_viewtable_delete(dns_c_viewtable_t **viewtable);
  */
 
 
-void dns_c_viewtable_addview(dns_c_viewtable_t *viewtable,
+void dns_c_viewtable_addview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
 			     dns_c_view_t *view);
 
 /*
@@ -152,7 +195,8 @@ void dns_c_viewtable_addview(dns_c_viewtable_t *viewtable,
  *
  */
 
-void dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view);
+void dns_c_viewtable_rmview(isc_log_t *lctx, dns_c_viewtable_t *viewtable,
+			    dns_c_view_t *view);
 
 /*
  * Removes the view from the given table. Does not memory
@@ -164,7 +208,8 @@ void dns_c_viewtable_rmview(dns_c_viewtable_t *viewtable, dns_c_view_t *view);
  *
  */
 
-isc_result_t dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
+isc_result_t dns_c_viewtable_viewbyname(isc_log_t *lctx,
+					dns_c_viewtable_t *viewtable,
 					const char *viewname,
 					dns_c_view_t **retval);
 
@@ -181,7 +226,8 @@ isc_result_t dns_c_viewtable_viewbyname(dns_c_viewtable_t *viewtable,
  * 
  */
 
-isc_result_t dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
+isc_result_t dns_c_viewtable_rmviewbyname(isc_log_t *lctx,
+					  dns_c_viewtable_t *viewtable,
 					  const char *name);
 /*
  * Removes a view from a view table. The view is looked up by name.
@@ -197,7 +243,8 @@ isc_result_t dns_c_viewtable_rmviewbyname(dns_c_viewtable_t *viewtable,
  */
 
 
-isc_result_t dns_c_viewtable_clear(dns_c_viewtable_t *viewtable);
+isc_result_t dns_c_viewtable_clear(isc_log_t *lctx,
+				   dns_c_viewtable_t *viewtable);
 /*
  * Removes (and deletes) all the views in the viewtable.
  *
@@ -208,7 +255,7 @@ isc_result_t dns_c_viewtable_clear(dns_c_viewtable_t *viewtable);
  *	ISC_R_SUCCESS		-- all is well
  */
 
-void dns_c_viewtable_print(FILE *fp, int indent,
+void dns_c_viewtable_print(isc_log_t *lctx, FILE *fp, int indent,
 			   dns_c_viewtable_t *table);
 
 /*
@@ -221,7 +268,7 @@ void dns_c_viewtable_print(FILE *fp, int indent,
  */
 
 
-isc_result_t dns_c_view_new(isc_mem_t *mem, const char *name,
+isc_result_t dns_c_view_new(isc_log_t *lctx, isc_mem_t *mem, const char *name,
 			    dns_c_view_t **newview);
 /*
  * Creates a new view. The view is placed in the given viewtable.
@@ -238,9 +285,9 @@ isc_result_t dns_c_view_new(isc_mem_t *mem, const char *name,
  * 
  */
 
-isc_result_t dns_c_view_delete(dns_c_view_t **view);
+isc_result_t dns_c_view_delete(isc_log_t *lctx, dns_c_view_t **view);
 /*
- * Deletes the view and it's contents.
+ * Deletes the view and its contents.
  *
  * Requires:
  *	view be a pointer to a valid view.
@@ -250,7 +297,7 @@ isc_result_t dns_c_view_delete(dns_c_view_t **view);
  * 
  */
 
-isc_result_t dns_c_view_setallowquery(dns_c_view_t *view,
+isc_result_t dns_c_view_setallowquery(isc_log_t *lctx, dns_c_view_t *view,
 				      dns_c_ipmatchlist_t *ipml,
 				      isc_boolean_t deepcopy);
 /*
@@ -272,7 +319,7 @@ isc_result_t dns_c_view_setallowquery(dns_c_view_t *view,
  * 
  */
 
-isc_result_t dns_c_view_getallowqueryexpanded(isc_mem_t *mem,
+isc_result_t dns_c_view_getallowqueryexpanded(isc_log_t *lctx, isc_mem_t *mem,
 					      dns_c_view_t *view,
 					      dns_c_acltable_t *acltable,
 					      dns_c_ipmatchlist_t **retval);
@@ -297,7 +344,8 @@ isc_result_t dns_c_view_getallowqueryexpanded(isc_mem_t *mem,
  */
 
 
-void dns_c_view_print(FILE *fp, int indent, dns_c_view_t *view);
+void dns_c_view_print(isc_log_t *lctx, FILE *fp, int indent,
+		      dns_c_view_t *view);
 
 /*	
  * Prints the view VIEW to the stdio stream FP. An INDENT number of

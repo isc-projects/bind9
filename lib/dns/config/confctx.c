@@ -148,7 +148,12 @@ dns_c_ctx_new(isc_log_t *lctx,
 	cfg->keydefs = NULL;
 	cfg->trusted_keys = NULL;
 	cfg->logging = NULL;
-	
+	cfg->resolver = NULL;
+	cfg->cache = NULL;
+	cfg->views = NULL;
+
+	cfg->currview = NULL;
+	cfg->currzone = NULL;
 	
 	r = acl_init(lctx, cfg);
 	if (r != ISC_R_SUCCESS) {
@@ -195,6 +200,7 @@ dns_c_ctx_delete(isc_log_t *lctx,
 	dns_c_zonelist_delete(lctx, &c->zlist);
 	dns_c_tkeylist_delete(lctx, &c->trusted_keys);
 	dns_c_logginglist_delete(lctx, &c->logging);
+	dns_c_viewtable_delete(lctx, &c->views);
 	
 	isc_mem_put(c->mem, c, sizeof *c);
 	*cfg = NULL;
@@ -283,6 +289,65 @@ dns_c_ctx_getoptions(isc_log_t *lctx,
 	return (cfg->options == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
 }
 
+
+
+isc_result_t
+dns_c_ctx_setcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		      dns_c_zone_t *zone)
+{
+	(void) lctx;
+
+	CHECK_CONFIG(cfg);
+
+	cfg->currzone = zone;
+
+	/* XXX should we validate that the zone is in our table? */
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+dns_c_zone_t *
+dns_c_ctx_getcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg)
+{
+	(void) lctx;
+
+	CHECK_CONFIG(cfg);
+
+	return (cfg->currzone);
+}
+
+	
+
+isc_result_t
+dns_c_ctx_setcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg,
+		      dns_c_view_t *view)
+{
+	(void) lctx;
+
+	CHECK_CONFIG(cfg);
+
+	cfg->currview = view;
+
+	/* XXX should we validate that the zone is in our table? */
+
+	return (ISC_R_SUCCESS);
+}
+
+
+
+dns_c_view_t *
+dns_c_ctx_getcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg)
+{
+	(void) lctx;
+
+	CHECK_CONFIG(cfg);
+
+	return (cfg->currview);
+}
+
+	
 
 isc_result_t
 dns_c_ctx_getlogging(isc_log_t *lctx,

@@ -80,12 +80,20 @@ typedef struct dns_c_forward_zone	dns_c_forwardzone_t;
 typedef struct dns_c_hint_zone		dns_c_hintzone_t;
 typedef struct dns_c_zone		dns_c_zone_t;
 typedef struct dns_c_zone_list		dns_c_zonelist_t;
+typedef struct dns_c_zonelem		dns_c_zonelem_t;
+
+struct dns_c_zonelem
+{
+	dns_c_zone_t	*thezone;
+	ISC_LINK(dns_c_zonelem_t) next;
+};
+
 
 struct dns_c_zone_list
 {
 	isc_mem_t	       *mem;
 
-	ISC_LIST(dns_c_zone_t)	zones;
+	ISC_LIST(dns_c_zonelem_t)	zones;
 };
 
 
@@ -173,9 +181,11 @@ struct dns_c_hint_zone
 
 struct dns_c_zone
 {
-	dns_c_zonelist_t	       *mylist;
-
-	char			       *name;
+	isc_mem_t		       *mem;
+	isc_uint8_t			refcount;
+	
+	char			       *name; /* e.g. "foo.com" */
+	char			       *internalname; /* e.g. "foo.com.ext" */
 	dns_rdataclass_t		zclass; 
 	
 	dns_c_zonetype_t		ztype;
@@ -189,8 +199,6 @@ struct dns_c_zone
 	} u;
 
 	isc_boolean_t			afteropts;
-
-	ISC_LINK(dns_c_zone_t)		next;
 };
 
 
@@ -202,11 +210,19 @@ isc_result_t	dns_c_zonelist_new(isc_log_t *lctx, isc_mem_t *mem,
 				   dns_c_zonelist_t **zlist);
 isc_result_t	dns_c_zonelist_delete(isc_log_t *lctx,
 				      dns_c_zonelist_t **zlist);
+#if 0
+dns_c_zone_t   *dns_c_zonelist_currzone(isc_log_t *lctx,
+					dns_c_zonelist_t *zlist);
+#endif
+
 isc_result_t	dns_c_zonelist_find(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 				    const char *name, dns_c_zone_t **retval);
 isc_result_t	dns_c_zonelist_rmbyname(isc_log_t *lctx,
 					dns_c_zonelist_t *zlist,
 					const char *name);
+isc_result_t	dns_c_zonelist_addzone(isc_log_t *lctx,
+				       dns_c_zonelist_t *zlist,
+				       dns_c_zone_t *zone);
 isc_result_t	dns_c_zonelist_rmzone(isc_log_t *lctx, dns_c_zonelist_t *zlist,
 				      dns_c_zone_t *zone);
 void		dns_c_zonelist_print(isc_log_t *lctx, FILE *fp, int indent,
@@ -217,10 +233,13 @@ void		dns_c_zonelist_printpostopts(isc_log_t *lctx, FILE *fp,
 void		dns_c_zonelist_printpreopts(isc_log_t *lctx, FILE *fp,
 					    int indent,
 					    dns_c_zonelist_t *list);
-isc_result_t	dns_c_zone_new(isc_log_t *lctx, dns_c_zonelist_t *zlist,
+isc_result_t	dns_c_zone_new(isc_log_t *lctx, isc_mem_t *mem,
 			       dns_c_zonetype_t ztype, dns_rdataclass_t zclass,
-			       const char *name,
+			       const char *name, const char *internalname,
 			       dns_c_zone_t **zone);
+isc_result_t	dns_c_zone_delete(isc_log_t *lctx, dns_c_zone_t **zone);
+void		dns_c_zone_attach(isc_log_t *lctx, dns_c_zone_t *zone,
+				  dns_c_zone_t **newzone);
 void		dns_c_zone_print(isc_log_t *lctx, FILE *fp, int indent,
 				 dns_c_zone_t *zone);
 isc_result_t	dns_c_zone_setfile(isc_log_t *lctx, dns_c_zone_t *zone,
@@ -274,6 +293,8 @@ isc_result_t	dns_c_zone_setforwarders(isc_log_t *lctx, dns_c_zone_t *zone,
 					 isc_boolean_t deepcopy);
 isc_result_t	dns_c_zone_getname(isc_log_t *lctx, dns_c_zone_t *zone,
 				   const char **retval);
+isc_result_t	dns_c_zone_getinternalname(isc_log_t *lctx, dns_c_zone_t *zone,
+					   const char **retval);
 isc_result_t	dns_c_zone_getfile(isc_log_t *lctx, dns_c_zone_t *zone,
 				   const char **retval);
 isc_result_t	dns_c_zone_getchecknames(isc_log_t *lctx, dns_c_zone_t *zone,

@@ -15,9 +15,16 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+#if 0
+/*
+	TODO:
+		use log context for yyerror if appropriate.
+		handle the L_VIEW options
+*/
+#endif
 
 #if !defined(lint) && !defined(SABER)
-static char rcsid[] = "$Id: confparser.y,v 1.8 1999/10/08 23:05:00 tale Exp $";
+static char rcsid[] = "$Id: confparser.y,v 1.9 1999/10/10 17:16:04 brister Exp $";
 #endif /* not lint */
 
 #include <config.h>
@@ -2304,12 +2311,11 @@ secret: L_SECRET any_string L_EOS
 
 view_stmt: L_VIEW any_string L_LBRACE 
         {
-#if 0
                 dns_c_view_t *view;
 
-                if (currcfg->viewlist == NULL) {
+                if (currcfg->views == NULL) {
                         tmpres = dns_c_viewtable_new(logcontext, currcfg->mem,
-                                                     &currcfg->viewlist);
+                                                     &currcfg->views);
                         if (tmpres != ISC_R_SUCCESS) {
                                 parser_error(ISC_FALSE,
                                              "Failed to create viewtable");
@@ -2324,12 +2330,17 @@ view_stmt: L_VIEW any_string L_LBRACE
                         YYABORT;
                 }
 
-                dns_c_viewtable_addview(logcontext, currcfg->viewlist, view);
-#endif  
-        } view_options_list L_RBRACE {
-                isc_mem_free(memctx, $2);
+                dns_c_viewtable_addview(logcontext, currcfg->views, view);
+		dns_c_ctx_setcurrview(logcontext, currcfg, view);
+
+		isc_mem_free(memctx, $2);
+        } optional_view_options_list L_RBRACE L_EOS {
+		dns_c_ctx_setcurrview(logcontext, currcfg, NULL);
         };
 
+optional_view_options_list:
+	| view_options_list
+	;
 
 view_options_list: view_option L_EOS
         | view_options_list view_option L_EOS;
@@ -2337,8 +2348,8 @@ view_options_list: view_option L_EOS
 
 view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
-#if 0
-                dns_c_view_t *view = ISC_LIST_TAIL(currcfg->viewlist->views);
+                dns_c_view_t *view = dns_c_ctx_getcurrview(logcontext,
+							   currcfg);
 
                 INSIST(view != NULL);
 
@@ -2358,7 +2369,6 @@ view_option: L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
                         parser_error(ISC_FALSE,
                                      "Failed to set view allow-query.");
                 }
-#endif
         };
 
 /* XXX other view statements need to go in here???. */
@@ -2423,8 +2433,9 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                         }
                 }
 
-                tmpres = dns_c_zone_new(logcontext, currcfg->zlist,
-                                        $6, $3, $2, &zone);
+		/* XXX internal name support needed! */
+                tmpres = dns_c_zone_new(logcontext, currcfg->mem,
+                                        $6, $3, $2, $2, &zone);
                 if (tmpres != ISC_R_SUCCESS) {
                         isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
                                       DNS_LOGMODULE_CONFIG,
@@ -2436,13 +2447,28 @@ zone_stmt: L_ZONE domain_name optional_class L_LBRACE L_TYPE zone_type L_EOS
                 if (currcfg->options != NULL) {
                         zone->afteropts = ISC_TRUE;
                 }
-                
+
+		tmpres = dns_c_zonelist_addzone(logcontext,
+						currcfg->zlist, zone);
+		if (tmpres != ISC_R_SUCCESS) {
+			dns_c_zone_delete(logcontext, &zone);
+                        isc_log_write(logcontext, DNS_LOGCATEGORY_CONFIG,
+                                      DNS_LOGMODULE_CONFIG,
+                                      ISC_LOG_CRITICAL,
+                                      "Error adding new zone to list.");
+                        YYABORT;
+		}
+
+		dns_c_ctx_setcurrzone(logcontext, currcfg, zone);
+		
                 isc_mem_free(memctx, $2);
         } optional_zone_options_list L_RBRACE L_EOS {
                 dns_c_zone_t *zone;
 
+		dns_c_ctx_setcurrzone(logcontext, currcfg, NULL);
+		
                 if (callbacks != NULL && callbacks->zonecbk != NULL) {
-                        zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                        zone = dns_c_ctx_getcurrzone(logcontext, currcfg);
                         tmpres = callbacks->zonecbk(currcfg,
                                                     zone,
                                                     callbacks->zonecbkuap);
@@ -2536,7 +2562,8 @@ zone_non_type_keywords: L_FILE | L_FILE_IXFR | L_IXFR_TMP | L_MASTERS |
 
 zone_option: L_FILE L_QSTRING
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							   currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2552,7 +2579,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FILE_IXFR L_QSTRING
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2568,7 +2596,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_IXFR_TMP L_QSTRING
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2584,7 +2613,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MASTERS maybe_zero_port L_LBRACE master_in_addr_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2623,7 +2653,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_TRANSFER_SOURCE maybe_wild_addr
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2645,7 +2676,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_CHECK_NAMES check_names_opt
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2667,7 +2699,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_UPDATE L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2690,7 +2723,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_QUERY L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2713,7 +2747,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALLOW_TRANSFER L_LBRACE address_match_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2736,7 +2771,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FORWARD zone_forward_opt
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2758,7 +2794,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_FORWARDERS L_LBRACE opt_zone_forwarders_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
                 dns_c_iplist_t *iplist;
                 
                 INSIST(zone != NULL);
@@ -2795,7 +2832,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MAX_TRANSFER_TIME_IN L_INTEGER
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2819,7 +2857,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MAX_LOG_SIZE_IXFR L_INTEGER
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2841,7 +2880,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_NOTIFY yea_or_nay
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2863,7 +2903,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_MAINTAIN_IXFR_BASE yea_or_nay
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2885,7 +2926,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_PUBKEY L_INTEGER L_INTEGER L_INTEGER L_QSTRING
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
                 dns_c_pubkey_t *pubkey;
                 
                 INSIST(zone != NULL);
@@ -2920,7 +2962,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_ALSO_NOTIFY L_LBRACE notify_in_addr_list L_RBRACE
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -2943,7 +2986,8 @@ zone_option: L_FILE L_QSTRING
         }
         | L_DIALUP yea_or_nay
         {
-                dns_c_zone_t *zone = ISC_LIST_TAIL(currcfg->zlist->zones);
+                dns_c_zone_t *zone = dns_c_ctx_getcurrzone(logcontext,
+							     currcfg);
 
                 INSIST(zone != NULL);
 
@@ -3319,6 +3363,7 @@ static struct token keyword_tokens [] = {
         { "use-ixfr",                   L_USE_IXFR },
         { "version",                    L_VERSION },
         { "versions",                   L_VERSIONS },
+	{ "view",			L_VIEW },
         { "warn",                       L_WARN },
         { "yes",                        L_YES },
         { "zone",                       L_ZONE },
@@ -3688,6 +3733,9 @@ parser_complain(isc_boolean_t is_warning, isc_boolean_t print_last_token,
 
         (void) is_warning;              /* lint happiness */
 
+	/* XXXJAB when isc_log_vwrite becomes public use that insead and drop
+	 * the above vsprintf
+	 */
         if (print_last_token) {
                 fprintf(stderr, "%s%s near ``%s''\n", where, message,
                         token_to_text(lasttoken, lastyylval));

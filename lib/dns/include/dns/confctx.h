@@ -66,6 +66,8 @@
 #include <dns/confctl.h>
 #include <dns/confserv.h>
 #include <dns/confview.h>
+#include <dns/confcache.h>
+#include <dns/confresolv.h>
 
 
 /***
@@ -89,6 +91,8 @@ struct dns_c_ctx
 	int			errors;	/* semantic error count */
 	
 	dns_c_options_t	       *options;
+	dns_c_cache_t	       *cache;
+	dns_c_resolv_t	       *resolver;
 	dns_c_ctrllist_t       *controls;
 	dns_c_srvlist_t	       *servers;
 	dns_c_acltable_t       *acls;
@@ -96,7 +100,10 @@ struct dns_c_ctx
 	dns_c_zonelist_t       *zlist;
 	dns_c_tkeylist_t       *trusted_keys;
 	dns_c_logginglist_t    *logging;
-	dns_c_viewtable_t      *viewlist;
+	dns_c_viewtable_t      *views;
+
+	dns_c_zone_t	       *currzone;
+	dns_c_view_t	       *currview;
 };
 
 
@@ -132,6 +139,8 @@ struct dns_c_options
 	isc_int32_t		heartbeat_interval;
 
 	isc_int32_t		max_transfer_time_in;
+	isc_int32_t		lamettl; /* XXX not implemented yet */
+	
 
 	isc_uint32_t		data_size;
 	isc_uint32_t		stack_size;
@@ -152,6 +161,7 @@ struct dns_c_options
 	isc_boolean_t		multiple_cnames;
 	isc_boolean_t		use_id_pool;
 	isc_boolean_t		dialup;
+	isc_boolean_t		rfc2038type1; /* XXX not implemented yet */
 	
 	isc_sockaddr_t		query_source_addr;
 	short			query_source_port;
@@ -260,6 +270,10 @@ void		dns_c_ctx_forwarderprint(isc_log_t *lctx,
  * functions.
  *
  */
+isc_result_t	dns_c_ctx_setcurrzone(isc_log_t *lctx,
+				      dns_c_ctx_t *cfg, dns_c_zone_t *zone);
+isc_result_t	dns_c_ctx_setcurrview(isc_log_t *lctx,
+				      dns_c_ctx_t *cfg, dns_c_view_t *view);
 isc_result_t	dns_c_ctx_setdirectory(isc_log_t *lctx,
 				       dns_c_ctx_t *cfg, const char *newval);
 isc_result_t	dns_c_ctx_setversion(isc_log_t *lctx,
@@ -425,6 +439,8 @@ isc_result_t	dns_c_ctx_settrustedkeys(isc_log_t *lctx,
  */
 
 
+dns_c_zone_t   *dns_c_ctx_getcurrzone(isc_log_t *lctx, dns_c_ctx_t *cfg);
+dns_c_view_t   *dns_c_ctx_getcurrview(isc_log_t *lctx, dns_c_ctx_t *cfg);
 isc_result_t	dns_c_ctx_getdirectory(isc_log_t *lctx,
 				       dns_c_ctx_t *cfg, char **retval);
 isc_result_t	dns_c_ctx_getversion(isc_log_t *lctx,
