@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.114 2000/08/09 19:10:54 gson Exp $ */
+/* $Id: dighost.c,v 1.115 2000/08/14 19:11:02 bwelling Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -292,6 +292,7 @@ make_empty_lookup(void) {
 	looknew->retries = tries;
 	looknew->nsfound = 0;
 	looknew->tcp_mode = ISC_FALSE;
+	looknew->nibble = ISC_FALSE;
 	looknew->comments = ISC_TRUE;
 	looknew->stats = ISC_TRUE;
 	looknew->section_question = ISC_TRUE;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.46 2000/08/03 17:43:04 mws Exp $ */
+/* $Id: host.c,v 1.47 2000/08/14 19:11:03 bwelling Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -25,10 +25,13 @@ extern int h_errno;
 
 #include <isc/app.h>
 #include <isc/commandline.h>
+#include <isc/netaddr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
 
+#include <dns/byaddr.h>
+#include <dns/fixedname.h>
 #include <dns/message.h>
 #include <dns/name.h>
 #include <dns/rdata.h>
@@ -210,13 +213,14 @@ static const char *rtypetext[] = {
 static void
 show_usage(void) {
 	fputs(
-"Usage: host [-aCdlrTwv] [-c class] [-N ndots] [-t type] [-W time]\n"
+"Usage: host [-aCdlrTwv] [-c class] [-n] [-N ndots] [-t type] [-W time]\n"
 "            [-R number] hostname [server]\n"
 "       -a is equivalent to -v -t *\n"
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authorative nameservers\n"
 "       -d is equivalent to -v\n"
 "       -l lists all hosts in a domain, using AXFR\n"
+"       -n Use the nibble form of IPv6 reverse lookup\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
@@ -542,7 +546,7 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 
 	lookup = make_empty_lookup();
 
-	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:D"))
+	while ((c = isc_commandline_parse(argc, argv, "lvwrdt:c:aTCN:R:W:Dn"))
 	       != EOF) {
 		switch (c) {
 		case 'l':
@@ -583,6 +587,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		case 'a':
 			lookup->rdtype = dns_rdatatype_any;
 			short_form = ISC_FALSE;
+			break;
+		case 'n':
+			lookup->nibble = ISC_TRUE;
 			break;
 		case 'w':
 			/*
@@ -633,10 +640,6 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	}
 
 	lookup->pending = ISC_FALSE;
-	/*
-	 * XXXMWS Add IPv6 translation here, probably using inet_pton
-	 * to extract the formatted text.
-	 */
 	if (strspn(hostname, "0123456789.") == strlen(hostname)) {
 		lookup->textname[0] = 0;
 		n = sscanf(hostname, "%d.%d.%d.%d", &adrs[0], &adrs[1],
@@ -651,7 +654,29 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		}
 		strncat(lookup->textname, "in-addr.arpa.", MXNAME);
 		lookup->rdtype = dns_rdatatype_ptr;
+	} else if (strspn(hostname, "0123456789abcdef.:") == strlen(hostname))
+	{
+		isc_netaddr_t addr;
+		dns_fixedname_t fname;
+		isc_buffer_t b;
+
+		addr.family = AF_INET6;
+		n = inet_pton(AF_INET6, hostname, &addr.type.in6);
+		if (n <= 0)
+			goto notv6;
+		dns_fixedname_init(&fname);
+		result = dns_byaddr_createptrname(&addr, lookup->nibble,
+						  dns_fixedname_name(&fname));
+		if (result != ISC_R_SUCCESS)
+			show_usage();
+		isc_buffer_init(&b, lookup->textname, sizeof lookup->textname);
+		result = dns_name_totext(dns_fixedname_name(&fname),
+					 ISC_FALSE, &b);
+		isc_buffer_putuint8(&b, 0);
+		if (result != ISC_R_SUCCESS)
+			show_usage();
 	} else {
+ notv6:
 		strncpy(lookup->textname, hostname, MXNAME);
 	}
 	lookup->new_search = ISC_TRUE;

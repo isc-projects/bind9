@@ -1,4 +1,6 @@
 
+ 388.	[func]		host can now do reverse ipv6 lookups.
+
  387.	[func]		Add dns_byaddr_createptrname(), which converts
 			an address into the name used by a PTR query.
 

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.42 2000/08/09 00:09:27 gson Exp $ */
+/* $Id: dig.h,v 1.43 2000/08/14 19:11:05 bwelling Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -84,6 +84,7 @@ struct dig_lookup {
 		trace_root,
 		defname,
 		tcp_mode,
+		nibble,
 		comments,
 		stats,
 		section_question,
