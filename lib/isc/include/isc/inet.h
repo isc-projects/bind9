@@ -25,11 +25,9 @@ ISC_LANG_BEGINDECLS
 
 /*
  * Provide missing functionality that functions internal to the isc/dns
- * library will need.
- *
- * This file will need to be generated if it will be installed, since it
- * depends on <config.h> being included.  This won't work outside our
- * controlled tree.
+ * library will need.  The #defines used in this file would need to be
+ * moved to net.h (and converted to the ISC_ name space) if this file were
+ * to be installed.
  */
 
 #ifdef NEED_INET_NTOP
