@@ -1184,13 +1184,19 @@ CLASS="command"
 >The <B
 CLASS="command"
 >options</B
-> statement has two clauses: <B
+> statement has three clauses:
+<B
 CLASS="command"
 >default-server</B
-> and <B
+>, <B
 CLASS="command"
 >default-key</B
->. <B
+>, 
+and <B
+CLASS="command"
+>default-port</B
+>.
+<B
 CLASS="command"
 >default-server</B
 > takes a
@@ -1199,7 +1205,8 @@ be contacted if no <TT
 CLASS="option"
 >-s</TT
 >
-option is provided on the command line.  <B
+option is provided on the command line.  
+<B
 CLASS="command"
 >default-key</B
 > takes
@@ -1207,15 +1214,19 @@ the name of key as its argument, as defined by a <B
 CLASS="command"
 >key</B
 > statement.
- In the future a <B
+<B
 CLASS="command"
 >default-port</B
-> clause will be
-added to specify the port to which <B
+> specifies the port to which
+<B
 CLASS="command"
 >rndc</B
-> should
-connect.</P
+> should connect if no
+port is given on the command line or in a
+<B
+CLASS="command"
+>server</B
+> statement.</P
 ><P
 >The <B
 CLASS="command"
@@ -1232,14 +1243,15 @@ CLASS="userinput"
 The <B
 CLASS="command"
 >key</B
-> statement has two clauses: <B
+> statement has two clauses:
+<B
 CLASS="command"
 >algorithm</B
 > and <B
 CLASS="command"
 >secret</B
 >.
- While the configuration parser will accept any string as the argument
+While the configuration parser will accept any string as the argument
 to algorithm, currently only the string "<TT
 CLASS="userinput"
 ><B
@@ -1263,7 +1275,7 @@ to associate a <B
 CLASS="command"
 >key</B
 >-defined key with a server.
- The argument to the <B
+The argument to the <B
 CLASS="command"
 >server</B
 > statement is a
@@ -1272,11 +1284,11 @@ to the key clause is the name of the key as defined by the <B
 CLASS="command"
 >key</B
 > statement.
- A <B
+The <B
 CLASS="command"
 >port</B
-> clause will be added to a future release
-to specify the port to which <B
+> clause can be used to 
+specify the port to which <B
 CLASS="command"
 >rndc</B
 > should connect
@@ -1336,7 +1348,7 @@ CLASS="sect2"
 ><H2
 CLASS="sect2"
 ><A
-NAME="AEN648"
+NAME="AEN650"
 >3.4.2. Signals</A
 ></H2
 ><P
@@ -1349,7 +1361,7 @@ CLASS="command"
 ><DIV
 CLASS="informaltable"
 ><A
-NAME="AEN652"
+NAME="AEN654"
 ></A
 ><P
 ></P

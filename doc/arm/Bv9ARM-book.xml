@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.140 2001/06/14 20:36:30 bwelling Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.141 2001/06/18 22:18:53 gson Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -825,33 +825,42 @@ of a server.</para>
               be shared.  The order of statements is not
               significant.</para>
 
-<para>The <command>options</command> statement has two clauses: <command>default-server</command> and <command>default-key</command>. <command>default-server</command> takes a
+<para>The <command>options</command> statement has three clauses:
+<command>default-server</command>, <command>default-key</command>, 
+and <command>default-port</command>.
+<command>default-server</command> takes a
 host name or address argument  and represents the server that will
 be contacted if no <option>-s</option>
-option is provided on the command line.  <command>default-key</command> takes
+option is provided on the command line.  
+<command>default-key</command> takes
 the name of key as its argument, as defined by a <command>key</command> statement.
- In the future a <command>default-port</command> clause will be
-added to specify the port to which <command>rndc</command> should
-connect.</para>
+<command>default-port</command> specifies the port to which
+<command>rndc</command> should connect if no
+port is given on the command line or in a
+<command>server</command> statement.</para>
+
 <para>The <command>key</command> statement names a key with its
 string argument. The string is required by the server to be a valid
 domain name, though it need not actually be hierarchical; thus,
 a string like "<userinput>rndc_key</userinput>" is a valid name.
-The <command>key</command> statement has two clauses: <command>algorithm</command> and <command>secret</command>.
- While the configuration parser will accept any string as the argument
+The <command>key</command> statement has two clauses:
+<command>algorithm</command> and <command>secret</command>.
+While the configuration parser will accept any string as the argument
 to algorithm, currently only the string "<userinput>hmac-md5</userinput>"
 has any meaning.  The secret is a base-64 encoded string, typically
 generated with either <command>dnssec-keygen</command> or <command>mmencode</command>.</para>
+
 <para>The <command>server</command> statement uses the key clause
 to associate a <command>key</command>-defined key with a server.
- The argument to the <command>server</command> statement is a
+The argument to the <command>server</command> statement is a
 host name or address (addresses must be double quoted).  The argument
 to the key clause is the name of the key as defined by the <command>key</command> statement.
- A <command>port</command> clause will be added to a future release
-to specify the port to which <command>rndc</command> should connect
+The <command>port</command> clause can be used to 
+specify the port to which <command>rndc</command> should connect
 on the given server.</para>
+
 <para>A sample minimal configuration file is as follows:</para>
-              <programlisting>
+<programlisting>
 key rndc_key {
      algorithm "hmac-md5";
      secret "c3Ryb25nIGVub3VnaCBmb3IgYSBtYW4gYnV0IG1hZGUgZm9yIGEgd29tYW4K";
@@ -861,6 +870,7 @@ options {
      default-key    rndc_key;
 };
 </programlisting>
+
 <para>This file, if installed as <filename>/etc/rndc.conf</filename>,
 would allow the command:</para>
               <para><prompt>$ </prompt><userinput>rndc reload</userinput></para>
