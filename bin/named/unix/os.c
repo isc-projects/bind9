@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.45 2001/08/29 04:21:51 marka Exp $ */
+/* $Id: os.c,v 1.46 2001/08/29 18:03:36 gson Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -107,7 +107,6 @@ static isc_boolean_t non_root_caps = ISC_FALSE;
  */
 #define _LINUX_FS_H
 
-#include <asm/unistd.h>
 #include <sys/syscall.h>	/* Required for syscall(). */
 #include <linux/capability.h>	/* Required for _LINUX_CAPABILITY_VERSION. */
 

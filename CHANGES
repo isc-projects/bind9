@@ -6,8 +6,7 @@
 			to interpret the error messages in the event log,
 			[RT #1668]
 
- 966.	[port]		#include <asm/unistd.h> is required on some Linux
-			ports.  [RT #1670]
+ 966.	[placeholder]
 
  965.	[bug]		Including data other than root server NS and A
 			records in the root hint file could cause a rbtdb
