@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.11.2.7 2003/09/24 03:47:13 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.11.2.8 2003/10/10 00:12:55 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1929,10 +1929,10 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev) {
 		/*
 		 * Call our cleanup routines.
 		 */
-		INSIST(cleanup_names(adb, adb->next_cleanbucket, now) ==
-			 ISC_FALSE);
-		INSIST(cleanup_entries(adb, adb->next_cleanbucket, now) ==
-			 ISC_FALSE);
+		RUNTIME_CHECK(cleanup_names(adb, adb->next_cleanbucket, now) ==
+			      ISC_FALSE);
+		RUNTIME_CHECK(cleanup_entries(adb, adb->next_cleanbucket, now)
+			      == ISC_FALSE);
 
 		/*
 		 * Set the next bucket to be cleaned.
