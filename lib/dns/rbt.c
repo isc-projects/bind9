@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.102 2001/02/09 18:48:57 bwelling Exp $ */
+/* $Id: rbt.c,v 1.103 2001/02/10 22:46:24 bwelling Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -911,7 +911,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					compared = dns_namereln_equal;
 					break;
 				} else {
-					common_labels = 1;
+					common_labels = tlabels;
 					common_bits = 0;
 					compared = dns_namereln_subdomain;
 					goto subdomain;
