@@ -103,8 +103,9 @@ ISC_LANG_BEGINDECLS
 #define DNS_R_NOIDENTITY		(ISC_RESULTCLASS_DNS + 55)
 #define DNS_R_NOJOURNAL			(ISC_RESULTCLASS_DNS + 56)
 #define DNS_R_ALIAS			(ISC_RESULTCLASS_DNS + 57)
+#define DNS_R_USETCP			(ISC_RESULTCLASS_DNS + 58)
 
-#define DNS_R_NRESULTS			58	/* Number of results */
+#define DNS_R_NRESULTS			59	/* Number of results */
 
 /*
  * DNS wire format rcodes

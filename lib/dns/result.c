@@ -85,6 +85,7 @@ static char *text[DNS_R_NRESULTS] = {
 	"no identity",				/* 55 */
 	"no journal",				/* 56 */
 	"alias",				/* 57 */
+	"use TCP",				/* 58 */
 };
 
 static char *rcode_text[DNS_R_NRCODERESULTS] = {
