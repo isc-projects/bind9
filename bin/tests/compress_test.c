@@ -21,8 +21,10 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
+
 #include <dns/compress.h>
 #include <dns/name.h>
 

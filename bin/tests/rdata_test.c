@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/lex.h>

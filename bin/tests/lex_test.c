@@ -25,6 +25,8 @@
 #include <isc/commandline.h>
 #include <isc/error.h>
 #include <isc/lex.h>
+#include <isc/mem.h>
+#include <isc/result.h>
 
 isc_mem_t *mctx;
 isc_lex_t *lex;
