@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.5 2000/12/20 03:40:20 bwelling Exp $ */
+/* $Id: lwdgrbn.c,v 1.6 2000/12/22 21:17:59 gson Exp $ */
 
 #include <config.h>
 
@@ -77,6 +77,8 @@ fill_array(int *pos, dns_rdataset_t *rdataset,
 	dns_rdata_t rdata;
 	isc_result_t result;
 	isc_region_t r;
+
+	UNUSED(size);
 
 	dns_rdata_init(&rdata);
 	for (result = dns_rdataset_first(rdataset);
