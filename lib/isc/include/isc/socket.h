@@ -1,4 +1,4 @@
-/* $Id: socket.h,v 1.8 1998/12/01 17:58:34 explorer Exp $ */
+/* $Id: socket.h,v 1.9 1998/12/01 23:59:39 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -153,15 +153,38 @@ isc_socket_create(isc_socketmgr_t manager,
  *	ISC_R_UNEXPECTED
  */
 
+int
+isc_socket_cancel(isc_socket_t socket, isc_task_t task,
+		  int how);
+/*
+ * Cancel pending I/O of the type specified by "how".
+ *
+ * Note: if "task" is NULL, then the cancel applies to all tasks using the
+ * socket.
+ *
+ * Requires:
+ *
+ *	"socket" is a valid socket
+ *
+ *	"task" is NULL or a valid task
+ *
+ * "how" is a bitmask describing the type of cancelation to perform.
+ * The type ISC_SOCKCANCEL_ALL will cancel all pending I/O on this
+ * socket.
+ *
+ * ISC_SOCKCANCEL_RECV:
+ *	Cancel pending isc_socket_recv() calls.
+ *
+ * ISC_SOCKCANCEL_SEND:
+ *	Cancel pending isc_socket_send() and isc_socket_sendto() calls.
+ *
+ * ISC_SOCKCANCEL_
+ */
 
 void 
-isc_socket_shutdown(isc_socket_t socket, isc_task_t task,
-		    isc_socketshutdown_t how);
+isc_socket_shutdown(isc_socket_t socket, isc_socketshutdown_t how);
 /*
  * Shutdown 'socket' according to 'how'.
- *
- * Note: if 'task' is NULL, then the shutdown applies to all tasks using the
- * socket.
  *
  * Requires:
  *
@@ -169,30 +192,17 @@ isc_socket_shutdown(isc_socket_t socket, isc_task_t task,
  *
  *	'task' is NULL or is a valid task.
  *
- * Ensures:
- *
  *	If 'how' is 'isc_sockshut_reading' or 'isc_sockshut_all' then
  *
- *		Any pending read completion events for the task are
- *		removed from the task's event queue.
- *
- *		No further read completion events will be delivered to the
- *		task.
+ *		The read queue must be empty.
  *
  *		No further read requests may be made.
  *
  *	If 'how' is 'isc_sockshut_writing' or 'isc_sockshut_all' then
  *
- *		Any pending write completion events for the task are
- *		removed from the task's event queue.
- *
- *		No further write completion events will be delivered to the
- *		task.
+ *		The write queue must be empty.
  *
  *		No further write requests may be made.
- *
- *		If 'socket' is a TCP socket, then when the last currently
- *		pending write completes, TCP FIN will sent to the remote peer.
  */
 
 void
@@ -357,8 +367,9 @@ isc_socket_getpeername(isc_socket_t socket, struct isc_sockaddr *addressp,
  *
  * Returns:
  *
- *	Success
- *	Address buffer too small
+ *	ISC_R_SUCCESS
+ *	ISC_R_TOOSMALL
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t
@@ -375,8 +386,9 @@ isc_socket_getsockname(isc_socket_t socket, struct isc_sockaddr *addressp,
  *
  * Returns:
  *
- *	Success
- *	Address buffer too small
+ *	ISC_R_SUCCESS
+ *	ISC_R_TOOSMALL
+ *	ISC_R_UNEXPECTED
  */
 
 isc_result_t

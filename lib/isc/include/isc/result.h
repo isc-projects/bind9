@@ -23,7 +23,9 @@ typedef unsigned int isc_result_t;
 #define ISC_R_TASKSHUTDOWN		16	/* task was shut down */
 #define ISC_R_LOCKBUSY			17
 #define ISC_R_EXISTS			18
-#define ISC_R_LASTENTRY			18	/* last entry in the list */
+#define ISC_R_TOOSMALL			19	/* buffer is too small */
+#define ISC_R_CANCELED			20
+#define ISC_R_LASTENTRY			20	/* last entry in the list */
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 

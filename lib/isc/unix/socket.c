@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.13 1998/12/01 21:39:00 explorer Exp $ */
+/* $Id: socket.c,v 1.14 1998/12/01 23:59:39 explorer Exp $ */
 
 #include "attribute.h"
 
@@ -110,7 +110,7 @@ struct isc_socket {
 	isc_socket_intev_t		wiev;
 	isc_socket_connintev_t		ciev;
 	struct isc_sockaddr		address;
-	unsigned int			addrlength;
+	int				addrlength;
 };
 
 #define SOCKET_MANAGER_MAGIC		0x494f6d67U	/* IOmg */
@@ -1982,4 +1982,45 @@ internal_connect(isc_task_t task, isc_event_t ev)
 	iev->done = NULL;
 
 	return (0);
+}
+
+/*
+ * Locking should not be necessary
+ */
+isc_result_t
+isc_socket_getpeername(isc_socket_t sock, struct isc_sockaddr *addressp,
+		       int *lengthp)
+{
+	if (*lengthp < sock->addrlength)
+		return (ISC_R_TOOSMALL);
+	memcpy(addressp, &sock->address, sock->addrlength);
+	*lengthp = sock->addrlength;
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * Locking should not be necessary
+ */
+isc_result_t
+isc_socket_getsockname(isc_socket_t sock, struct isc_sockaddr *addressp,
+		       int *lengthp)
+{
+	struct isc_sockaddr addr;
+	int len;
+
+	len = sizeof(addr);
+	if (getsockname(sock->fd, (struct sockaddr *)&addr, &len) < 0) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "getsockname: %s", strerror(errno));
+		return (ISC_R_UNEXPECTED);
+	}
+
+	if (*lengthp < sock->addrlength)
+		return (ISC_R_TOOSMALL);
+
+	memcpy(addressp, &sock->address, sock->addrlength);
+	*lengthp = sock->addrlength;
+
+	return (ISC_R_SUCCESS);
 }

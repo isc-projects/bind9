@@ -21,6 +21,8 @@ static char *text_table[ISC_R_LASTENTRY + 1] = {
 	"task was shut down",			/* 16 */
 	"lock busy",				/* 17 */
 	"already exists",			/* 18 */
+	"buffer too small",			/* 19 */
+	"operation canceled",			/* 20 */
 };
 
 char *
