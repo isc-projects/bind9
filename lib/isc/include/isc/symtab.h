@@ -104,6 +104,7 @@ typedef struct isc_symtab		isc_symtab_t;
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action,
+		  isc_boolean_t case_sensitive,
 		  isc_symtab_t **symtabp);
 
 void

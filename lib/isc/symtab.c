@@ -47,11 +47,13 @@ struct isc_symtab {
 	unsigned int			size;
 	eltlist_t *			table;
 	isc_symtabaction_t		undefine_action;
+	isc_boolean_t			case_sensitive;
 };
 
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action,
+		  isc_boolean_t case_sensitive,
 		  isc_symtab_t **symtabp)
 {
 	isc_symtab_t *symtab;
@@ -75,6 +77,7 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	symtab->mctx = mctx;
 	symtab->size = size;
 	symtab->undefine_action = undefine_action;
+	symtab->case_sensitive = case_sensitive;
 	symtab->magic = SYMTAB_MAGIC;
 
 	*symtabp = symtab;
@@ -111,7 +114,7 @@ isc_symtab_destroy(isc_symtab_t **symtabp) {
 }
 
 static inline unsigned int
-hash(const char *key) {
+hash(const char *key, isc_boolean_t case_sensitive) {
 	const char *s;
 	unsigned int h = 0;
 	unsigned int g;
@@ -123,14 +126,24 @@ hash(const char *key) {
 	 * and Ullman, Addison-Wesley, 1986, ISBN 0-201-10088-6.
 	 */
 
-	for (s = key; *s != '\0'; s++) {
-		c = *s;
-		if (isascii(c) && isupper(c))
-			c = tolower(c);
-		h = ( h << 4 ) + c;
-		if ((g = ( h & 0xf0000000 )) != 0) {
-			h = h ^ (g >> 24);
-			h = h ^ g;
+	if (case_sensitive) {
+		for (s = key; *s != '\0'; s++) {
+			h = ( h << 4 ) + *s;
+			if ((g = ( h & 0xf0000000 )) != 0) {
+				h = h ^ (g >> 24);
+				h = h ^ g;
+			}
+		}
+	} else {
+		for (s = key; *s != '\0'; s++) {
+			c = *s;
+			if (isascii(c) && isupper(c))
+				c = tolower(c);
+			h = ( h << 4 ) + c;
+			if ((g = ( h & 0xf0000000 )) != 0) {
+				h = h ^ (g >> 24);
+				h = h ^ g;
+			}
 		}
 	}
 
@@ -138,11 +151,19 @@ hash(const char *key) {
 }
 
 #define FIND(s, k, t, b, e) \
-	b = hash((k)) % (s)->size; \
-	for (e = HEAD((s)->table[b]); e != NULL; e = NEXT(e, link)) { \
-		if (((t) == 0 || e->type == (t)) && \
-		    strcasecmp(e->key, (k)) == 0) \
-			break; \
+	b = hash((k), (s)->case_sensitive) % (s)->size; \
+	if ((s)->case_sensitive) { \
+		for (e = HEAD((s)->table[b]); e != NULL; e = NEXT(e, link)) { \
+			if (((t) == 0 || e->type == (t)) && \
+			    strcmp(e->key, (k)) == 0) \
+				break; \
+		} \
+	} else { \
+		for (e = HEAD((s)->table[b]); e != NULL; e = NEXT(e, link)) { \
+			if (((t) == 0 || e->type == (t)) && \
+			    strcasecmp(e->key, (k)) == 0) \
+				break; \
+		} \
 	}
 
 isc_result_t

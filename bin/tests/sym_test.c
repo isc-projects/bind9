@@ -45,12 +45,9 @@ main(int argc, char *argv[]) {
 	int trace = 0;
 	int c;
 	isc_symexists_t exists_policy = isc_symexists_reject;
+	isc_boolean_t case_sensitive = ISC_FALSE;
 
-	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	INSIST(isc_symtab_create(mctx, 691, undefine_action, &st) ==
-	       ISC_R_SUCCESS);
-
-	while ((c = getopt(argc, argv, "tar")) != -1) {
+	while ((c = getopt(argc, argv, "tarc")) != -1) {
 		switch (c) {
 		case 't':
 			trace = 1;
@@ -61,8 +58,15 @@ main(int argc, char *argv[]) {
 		case 'r':
 			exists_policy = isc_symexists_replace;
 			break;
+		case 'c':
+			case_sensitive = ISC_TRUE;
+			break;
 		}
 	}
+
+	INSIST(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	INSIST(isc_symtab_create(mctx, 691, undefine_action, case_sensitive,
+				 &st) == ISC_R_SUCCESS);
 
 	while (gets(s) != NULL) {
 		len = strlen(s);
