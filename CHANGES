@@ -1,4 +1,8 @@
 
+ 350.	[bug]		Also-notify lists specified in the global options
+			block were not correctly reference counted, causing
+			a memory leak.
+
  349.	[func]		Processing a query with the CD bit set now works
 			as expected.
 
