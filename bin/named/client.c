@@ -528,11 +528,10 @@ ns_client_next(ns_client_t *client, isc_result_t result) {
 
 	CTRACE("next");
 	
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS)
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "request failed: %s", isc_result_totext(result));
-	}
 
 	/*
 	 * An error processing a TCP request may have left
@@ -564,6 +563,12 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 
 	CTRACE("senddone");
+
+	if (sevent->result != ISC_R_SUCCESS)
+		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_WARNING,
+			      "error sending response: %s",
+			      isc_result_totext(sevent->result));
 
 	INSIST(client->nsends > 0);
 	client->nsends--;
