@@ -1345,6 +1345,7 @@
 ./lib/isc/include/isc/quota.h			C	2000,2001
 ./lib/isc/include/isc/random.h			C	1999,2000,2001
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001
+./lib/isc/include/isc/refcount.h		C	2001
 ./lib/isc/include/isc/region.h			C	1998,1999,2000,2001
 ./lib/isc/include/isc/resource.h		C	2000,2001
 ./lib/isc/include/isc/result.h			C	1998,1999,2000,2001
