@@ -98,10 +98,16 @@ ns_client_destroy(ns_client_t *client);
 isc_result_t
 ns_client_newnamebuf(ns_client_t *client);
 
+isc_boolean_t
+ns_client_shuttingdown(ns_client_t *client);
+/*
+ * Return ISC_TRUE iff the client is currently shutting down.
+ */
+
 void
 ns_client_wait(ns_client_t *client);
 
-isc_boolean_t
+void
 ns_client_unwait(ns_client_t *client);
 
 isc_result_t

@@ -1627,8 +1627,7 @@ static void
 query_resume(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
-	isc_boolean_t want_find, client_shuttingdown;
-	isc_stdtime_t now;
+	isc_boolean_t fetch_cancelled, client_shuttingdown;
 
 	/*
 	 * Resume a query after recursion.
@@ -1640,49 +1639,48 @@ query_resume(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(task == client->task);
 	REQUIRE(RECURSING(client));
 
-	if (devent->fetch == client->query.fetch) {
+	if (devent->fetch != NULL) {
 		/*
 		 * This is the fetch we've been waiting for.
 		 */
+		INSIST(devent->fetch == client->query.fetch);
 		client->query.fetch = NULL;
-		want_find = ISC_TRUE;
+		fetch_cancelled = ISC_FALSE;
 		/*
-		 * Update client->now, if we can.
+		 * Update client->now.
 		 */
-		isc_stdtime_get(&now);
+		isc_stdtime_get(&client->now);
 	} else {
 		/*
 		 * This is a fetch completion event for a cancelled fetch.
 		 * Clean up and don't resume the find.
 		 */
+		fetch_cancelled = ISC_TRUE;
+	}
+	INSIST(client->query.fetch == NULL);
+
+	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
+	dns_resolver_destroyfetch(client->view->resolver, &devent->fetch);
+
+	/*
+	 * If this client is shutting down, or this transaction
+	 * has timed out, do not resume the find.
+	 */
+	client_shuttingdown = ns_client_shuttingdown(client);
+	if (fetch_cancelled || client_shuttingdown) {
 		if (devent->node != NULL)
 			dns_db_detachnode(devent->db, &devent->node);
 		if (devent->db != NULL)
 			dns_db_detach(&devent->db);
 		query_putrdataset(client, &devent->rdataset);
 		query_putrdataset(client, &devent->sigrdataset);
-		want_find = ISC_FALSE;
-	}
-
-	client->query.attributes &= ~NS_QUERYATTR_RECURSING;
-	dns_resolver_destroyfetch(client->view->resolver, &devent->fetch);
-
-	/*
-	 * XXXRTH  If this client is shutting down, or this transaction
-	 *         has timed out, do not resume the find.
-	 *
-	 *	   We should probably have a "unwait" function that
-	 *	   decrements waiting and tells us whether we should continue,
-	 * 	   do nothing, or reset the client (resetting would cause the
-	 *	   client to continue with shutdown if it was in shutdown
-	 *	   mode).
-	 */
-	client_shuttingdown = ns_client_unwait(client);
-	if (client_shuttingdown)
-		return;
-
-	if (want_find)
+		isc_event_free(&event);
+		/* This may destroy the client. */
+		ns_client_unwait(client);
+	} else {
+		ns_client_unwait(client);
 		query_find(client, devent);
+	}
 }
 
 static isc_result_t

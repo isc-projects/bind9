@@ -126,7 +126,6 @@ maybe_free(ns_client_t *client) {
 	/* We have received our last event. */
 	ns_query_free(client);
 	isc_mempool_destroy(&client->sendbufs);
-	dns_message_destroy(&client->message);
 	isc_timer_detach(&client->timer);
 	
 	if (client->dispentry != NULL) {
@@ -139,6 +138,14 @@ maybe_free(ns_client_t *client) {
 					   &client->dispentry,
 					   deventp);
 	}
+	if (client->view != NULL)
+		dns_view_detach(&client->view);
+	if (client->opt != NULL) {
+		INSIST(dns_rdataset_isassociated(client->opt));
+		dns_rdataset_disassociate(client->opt);
+		dns_message_puttemprdataset(client->message, &client->opt);
+	}
+	dns_message_destroy(&client->message);
 	if (client->tcpmsg_valid)
 		dns_tcpmsg_invalidate(&client->tcpmsg);		
 	if (client->dispatch != NULL)
@@ -488,6 +495,10 @@ client_addopt(ns_client_t *client) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Handle an incoming request event from the dispatch (UDP case)
+ * or tcpmsg (TCP case).
+ */
 static void
 client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_t *client;
@@ -898,13 +909,16 @@ ns_client_wait(ns_client_t *client) {
 }
 
 isc_boolean_t
+ns_client_shuttingdown(ns_client_t *client) {
+	return (client->shuttingdown);
+}
+
+void
 ns_client_unwait(ns_client_t *client) {
-	isc_boolean_t shuttingdown = client->shuttingdown;
 	client->nwaiting--;
 	INSIST(client->nwaiting >= 0);
-	if (shuttingdown)
+	if (client->shuttingdown)
 		maybe_free(client);
-	return (shuttingdown);
 }
 
 /***
