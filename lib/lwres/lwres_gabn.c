@@ -83,7 +83,8 @@ lwres_gabnrequest_render(lwres_context_t *ctx, lwres_gabnrequest_t *req,
 	 * just checked for it.
 	 */
 	lwres_buffer_putuint16(b, datalen);
-	lwres_buffer_putmem(b, req->name, datalen + 1); /* trailing NUL */
+	lwres_buffer_putmem(b, req->name, datalen);
+	lwres_buffer_putuint8(b, 0); /* trailing NUL */
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
 
@@ -149,14 +150,16 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	datalen = req->realnamelen;
 	INSIST(SPACE_OK(b, (unsigned int)(datalen + 2 + 1)));
 	lwres_buffer_putuint16(b, datalen);
-	lwres_buffer_putmem(b, req->realname, datalen + 1);
+	lwres_buffer_putmem(b, req->realname, datalen);
+	lwres_buffer_putuint8(b, 0);
 
 	/* encode the aliases */
 	for (x = 0 ; x < req->naliases ; x++) {
 		datalen = req->aliaslen[x];
 		INSIST(SPACE_OK(b, (unsigned int)(datalen + 2 + 1)));
 		lwres_buffer_putuint16(b, datalen);
-		lwres_buffer_putmem(b, req->aliases[x], datalen + 1);
+		lwres_buffer_putmem(b, req->aliases[x], datalen);
+		lwres_buffer_putuint8(b, 0);
 	}
 
 	/* encode the addresses */
@@ -171,6 +174,7 @@ lwres_gabnresponse_render(lwres_context_t *ctx, lwres_gabnresponse_t *req,
 	}
 
 	INSIST(LWRES_BUFFER_AVAILABLECOUNT(b) == 0);
+	INSIST(b->used == pkt->length);
 
 	return (LWRES_R_SUCCESS);
 }

@@ -145,6 +145,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 		goto out;
 
 	lwres_buffer_init(&b_in, buffer, recvlen);
+	b_in.used = recvlen;
 
 	/*
 	 * Parse the packet header.
@@ -252,6 +253,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, isc_uint32_t addrtype,
 		goto out;
 
 	lwres_buffer_init(&b_in, buffer, recvlen);
+	b_in.used = recvlen;
 
 	/*
 	 * Parse the packet header.
