@@ -377,6 +377,11 @@ sub testCheck {
 		}
 
 		if (/^E:(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/) {
+			if ($inresult == 0) {
+				# no reported result
+				$BadTest = 1;
+				$BadTestReason = "E$.";
+			}
 			$intest = 0;
 			printf(YYY "%s\n<BR>\n", $_);
 			next;
