@@ -1,10 +1,35 @@
 
-AC_REVISION($Revision: 1.13 $)
+AC_REVISION($Revision: 1.14 $)
 
 AC_INIT(lib/dns/name.c)
 AC_CONFIG_HEADER(config.h)
 
 AC_CANONICAL_HOST
+
+dnl
+dnl On these hosts, we really want to use cc, not gcc, even if it is
+dnl found.  The gcc that these systems have will not correctly handle
+dnl pthreads.
+dnl
+dnl However, if the user sets $CC to be something, let that override
+dnl our change.
+dnl
+if test "X$CC" = "X" ; then
+	case "$host" in
+		*-dec-osf*)
+			CC="cc"
+			;;
+		*-sun-solaris*)
+			CC="cc"
+			;;
+		*-hp-hpux*)
+			CC="cc"
+			;;
+		mips-sgi-irix*)
+			CC="cc"
+			;;
+	esac
+fi
 
 AC_PROG_CC
 
