@@ -627,6 +627,30 @@ dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
  *	*item == NULL
  */
 
+dns_result_t
+dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
+		       unsigned int *flagsp);
+/*
+ * Assume the remaining region of "source" is a DNS message.  Peek into
+ * it and fill in "*idp" with the message id, and "*flagsp" with the flags.
+ *
+ * Requires:
+ *
+ *	source != NULL
+ *
+ * Ensures:
+ *
+ *	if (idp != NULL) *idp == message id.
+ *
+ *	if (flagsp != NULL) *flagsp == message flags.
+ *
+ * Returns:
+ *
+ *	DNS_R_SUCCESS		-- all is well.
+ *
+ *	DNS_R_UNEXPECTEDEND	-- buffer doesn't contain enough for a header.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif	/* DNS_DNS_H */

@@ -1539,3 +1539,32 @@ dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
 	releaserdatalist(msg, *item);
 	*item = NULL;
 }
+
+dns_result_t
+dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
+		       unsigned int *flagsp)
+{
+	isc_region_t r;
+	isc_buffer_t buffer;
+	dns_messageid_t id;
+	unsigned int flags;
+
+	REQUIRE(source != NULL);
+
+	buffer = *source;
+
+	isc_buffer_remaining(&buffer, &r);
+	if (r.length < DNS_MESSAGE_HEADERLEN)
+		return (DNS_R_UNEXPECTEDEND);
+
+	id = isc_buffer_getuint16(source);
+	flags = isc_buffer_getuint16(source);
+	flags &= DNS_MESSAGE_FLAG_MASK;
+
+	if (flagsp != NULL)
+		*flagsp = flags;
+	if (idp != NULL)
+		*idp = id;
+
+	return (DNS_R_SUCCESS);
+}
