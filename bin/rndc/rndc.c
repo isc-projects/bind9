@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.1 2000/01/31 14:30:48 tale Exp $ */
+/* $Id: rndc.c,v 1.2 2000/01/31 21:59:15 tale Exp $ */
 
 /* 
  * Principal Author: DCL
@@ -204,20 +204,20 @@ ndc_signalhandler(omapi_object_t *handle, const char *name, va_list ap) {
 static void
 usage(void) {
 	fprintf(stderr, "\
-Usage: %s [-p port] [-m] server command [command ...]\n
-
-Where command is one of the following for named:
-
-  *status	Display ps(1) status of named.
-  *dumpdb	Dump database and cache to /var/tmp/named_dump.db.
-  reload	Reload configuration file and zones.
-  *stats	Dump statistics to /var/tmp/named.stats.
-  *trace	Increment debugging level by one.
-  *notrace	Set debugging level to 0.
-  *querylog	Toggle query logging.
-  *stop		Stop the server.
-  *restart	Restart the server.
-
+Usage: %s [-p port] [-m] server command [command ...]\n\
+\n\
+Where command is one of the following for named:\n\
+\n\
+  *status	Display ps(1) status of named.\n\
+  *dumpdb	Dump database and cache to /var/tmp/named_dump.db.\n\
+  reload	Reload configuration file and zones.\n\
+  *stats	Dump statistics to /var/tmp/named.stats.\n\
+  *trace	Increment debugging level by one.\n\
+  *notrace	Set debugging level to 0.\n\
+  *querylog	Toggle query logging.\n\
+  *stop		Stop the server.\n\
+  *restart	Restart the server.\n\
+\n\
 * == not yet implemented\n",
 		progname);
 }
