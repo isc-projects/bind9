@@ -13,12 +13,12 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.7.206.2 2004/12/06 21:51:32 marka Exp $
+# $Id: Makefile.in,v 1.7.206.3 2004/12/07 00:38:35 marka Exp $
 
 srcdir=		@srcdir@
 VPATH =         @srcdir@
 
-WANT_IRS_THREADS_OBJS=	gethostent_r.@O@ getnetgrent_r.@O@ \
+WANT_IRS_THREADS_OBJS=	gethostent_r.@O@ getnetent_r.@O@ getnetgrent_r.@O@ \
 	getprotoent_r.@O@ getservent_r.@O@
 
 WANT_IRS_NISGR_OBJS= nis_gr.@O@ 
@@ -34,10 +34,8 @@ WANT_IRS_PW_OBJS= dns_pw.@O@ gen_pw.@O@ getpwent.@O@ \
 WANT_IRS_NIS_OBJS= \
 	nis_ho.@O@ nis_ng.@O@ nis_nw.@O@ nis_pr.@O@ nis_sv.@O@
 
-WANT_THREADS_OBJS=getnetent_r.@O@
-
 OBJS=	@WANT_IRS_GR_OBJS@ @WANT_IRS_NIS_OBJS@ @WANT_IRS_THREADS_OBJS@ \
-	@WANT_IRS_PW_OBJS@ @WANT_THREADS_OBJS@ \
+	@WANT_IRS_PW_OBJS@ \
 	dns.@O@ dns_ho.@O@ dns_nw.@O@ dns_pr.@O@ \
 	dns_sv.@O@ gai_strerror.@O@ gen.@O@ gen_ho.@O@ \
 	gen_ng.@O@ gen_nw.@O@ gen_pr.@O@ gen_sv.@O@ \
