@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <isc/assertions.h>
+#include <isc/ondestroy.h>
 
 #include <dns/db.h>
 #include <dns/master.h>
@@ -117,6 +118,15 @@ dns_db_detach(dns_db_t **dbp) {
 
 	ENSURE(*dbp == NULL);
 }
+
+isc_result_t
+dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp)
+{
+	REQUIRE(DNS_DB_VALID(db));
+
+	return (isc_ondestroy_register(&db->ondest, task, eventp));
+}
+
 
 isc_boolean_t
 dns_db_iscache(dns_db_t *db) {

@@ -313,6 +313,7 @@ static void
 free_rbtdb(dns_rbtdb_t *rbtdb) {
 	unsigned int i;
 	isc_region_t r;
+	isc_ondestroy_t ondest;
 
 	REQUIRE(EMPTY(rbtdb->open_versions));
 	REQUIRE(rbtdb->future_version == NULL);
@@ -332,7 +333,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb) {
 	isc_mutex_destroy(&rbtdb->lock);
 	rbtdb->common.magic = 0;
 	rbtdb->common.impmagic = 0;
+	ondest = rbtdb->common.ondest;
 	isc_mem_put(rbtdb->common.mctx, rbtdb, sizeof *rbtdb);
+	isc_ondestroy_notify(&ondest, rbtdb);
 }
 
 static inline void
@@ -3924,6 +3927,8 @@ dns_rbtdb_create
 	rbtdb->future_version = NULL;
 	ISC_LIST_INIT(rbtdb->open_versions);
 
+	isc_ondestroy_init(&rbtdb->common.ondest);
+	
 	rbtdb->common.magic = DNS_DB_MAGIC;
 	rbtdb->common.impmagic = RBTDB_MAGIC;
 
