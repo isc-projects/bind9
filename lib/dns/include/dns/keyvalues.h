@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.12 2001/09/19 00:14:48 bwelling Exp $ */
+/* $Id: keyvalues.h,v 1.13 2001/09/25 22:45:02 bwelling Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
@@ -31,7 +31,7 @@
 #define DNS_KEYTYPE_NOAUTH	DNS_KEYTYPE_CONFONLY
 #define DNS_KEYTYPE_NOCONF	DNS_KEYTYPE_AUTHONLY
 
-#define DNS_KEYFLAG_RESERVED2	0x2000	/* Security is *mandatory* if bit=0 */
+#define DNS_KEYFLAG_RESERVED2	0x2000	/* reserved - must be zero */
 #define DNS_KEYFLAG_EXTENDED	0x1000	/* key has extended flags */
 #define DNS_KEYFLAG_RESERVED4	0x0800	/* reserved - must be zero */
 #define DNS_KEYFLAG_RESERVED5	0x0400	/* reserved - must be zero */
