@@ -1,0 +1,335 @@
+Network Working Group                                        J. Schlyter
+Internet-Draft                                      Carlstedt Research &
+Expires: May 3, 2002                                          Technology
+                                                            L. Johansson
+                                                    Stockholm University
+                                                        November 2, 2001
+
+
+                 DNS as X.509 PKIX Certificate Storage
+                       draft-schlyter-pkix-dns-00
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on May 3, 2002.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+Abstract
+
+   A major problem facing PKIX deployment and implementation is the
+   problem of constructing certificate paths for input to the path
+   validation algorithm.  This draft describes the use of the DNS as a
+   certificate store and it's implication for path validation in PKIX.
+
+
+
+
+
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 1]
+
+Internet-Draft              DNS PKIX storage               November 2001
+
+
+Table of Contents
+
+   1. Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . 3
+   2. Storing PKIX certificates in DNS . . . . . . . . . . . . . . . . 3
+   3. Certificate lookup algorithm . . . . . . . . . . . . . . . . . . 4
+   4. Security Considerations  . . . . . . . . . . . . . . . . . . . . 4
+      References . . . . . . . . . . . . . . . . . . . . . . . . . . . 4
+      Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . 5
+   A. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . . 5
+      Full Copyright Statement . . . . . . . . . . . . . . . . . . . . 6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 2]
+
+Internet-Draft              DNS PKIX storage               November 2001
+
+
+1. Introduction
+
+   A major problem facing PKIX deployment and implementation is the
+   problem of constructing certificate paths for input to the path
+   validation algorithm described in RFC 2459 [2].  This problem can be
+   solved by successively looking at the issuerAltName extension of each
+   certificate and using the information found there together with a
+   storage and transport protocol for certificates to find a set of
+   candidate certificates associated with the issuerAltName.
+
+   Using the CERT RR [5] a certificate can be published using DNS.  This
+   draft describes the use of DNS as a certificate store and it's
+   implication for path validation in PKIX.
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119 [1].
+
+2. Storing PKIX certificates in DNS
+
+   A PKIX certificate is published in DNS using the CERT RR [5] for a
+   given domain name which MUST be equal to the dnsName component of the
+   subjectAltName extension in the certificate.  Multiple certificates
+   may be present for each domain name and all SHOULD have the same
+   subject DN.
+
+   When constructing a certificate path for validation the client MAY
+   use the AuthorityKeyIdentifier and SubjectKeyIdentifier extensions to
+   select the (set of) certificates to use.
+
+   There are a few important cases when multiple CA certificates are
+   published in CERT RRs for given domain name:
+
+      Multiple certificates each signed by another member of the same
+      set.  This situation occurs when a self-signed certificate issues
+      a certificate under the same DN (for the purpose of adding policy
+      for instance).
+
+      Multiple certificates, either self-signed or issued by another CA,
+      with different validity periods.
+
+      Root key roll-over as described in section 2.4 of RFC 2510 [3]
+      where exactly 4 certificates would be published using DNS.
+
+
+
+
+
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 3]
+
+Internet-Draft              DNS PKIX storage               November 2001
+
+
+3. Certificate lookup algorithm
+
+   Given a certificate with a non-empty issuerAltName extension of type
+   dnsName, perform a DNS lookup of the corresponding domain name with
+   the class IN and type CERT.  For each of the certificates returned
+   that are of type PKIX, implementations MUST verify that the
+   subjectAltName in the certificate contains a component of type
+   dnsName with the same domain name as the one where the certificate
+   was published using the DNS.
+
+   If a certificate obtained by this algorithm is a self-signed
+   certificate and was successfully verified by DNSSEC [4], the user
+   SHOULD be given the opportunity to use this certificate as a trust
+   anchor.
+
+   The result of this algorithm is a set of of certificates suitable for
+   input to the PKIX path validation algorithm.
+
+4. Security Considerations
+
+   This document describes a mechanism for automated download of
+   certificates from DNS with special provision for bridging trust
+   between a PKIX PKI and DNSSEC.  However, if only self-signed end-
+   entity PKIX certificates are published using DNS the benefits of PKIX
+   policy and key usage management is lost.
+
+   The benefit of this mechanism is a potential for added protection of
+   certificate trust anchors in common use on the Internet by leveraging
+   DNSSEC infrastructure.
+
+References
+
+   [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
+        Levels", BCP 14, RFC 2119, March 1997.
+
+   [2]  Housley, R., Ford, W., Polk, T. and D. Solo, "Internet X.509
+        Public Key Infrastructure Certificate and CRL Profile", RFC
+        2459, January 1999.
+
+   [3]  Adams, C. and S. Farrell, "Internet X.509 Public Key
+        Infrastructure Certificate Management Protocols", RFC 2510,
+        March 1999.
+
+   [4]  Eastlake, D., "Domain Name System Security Extensions", RFC
+        2535, March 1999.
+
+   [5]  Eastlake, D. and O. Gudmundsson, "Storing Certificates in the
+        Domain Name System (DNS)", RFC 2538, March 1999.
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 4]
+
+Internet-Draft              DNS PKIX storage               November 2001
+
+
+Authors' Addresses
+
+   Jakob Schlyter
+   Carlstedt Research & Technology
+   Stora Badhusgatan 18-20
+   Goteborg  SE-411 21
+   Sweden
+
+   EMail: jakob@crt.se
+   URI:   http://www.crt.se/~jakob/
+
+
+   Leif Johansson
+   Stockholm University
+
+   Phone: +46 8 16 45 41
+   EMail: leifj@it.su.se
+
+Appendix A. Acknowledgements
+
+   The author gratefully acknowledges, in no particular order, the
+   contributions of the following persons:
+
+      Martin Fredriksson
+
+      Niklas Hallqvist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 5]
+
+Internet-Draft              DNS PKIX storage               November 2001
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2001).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Schlyter & Johansson       Expires May 3, 2002                  [Page 6]
+
+
