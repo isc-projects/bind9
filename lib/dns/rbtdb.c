@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.169 2001/09/18 14:30:10 marka Exp $ */
+/* $Id: rbtdb.c,v 1.170 2001/10/25 21:39:48 bwelling Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -1337,7 +1337,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	/*
 	 * If we have to set foundname, we do it before anything else.
 	 * If we were to set foundname after we had set nodep or bound the
-	 * rdataset, then we'd have to undo that work if dns_name_concatenate()
+	 * rdataset, then we'd have to undo that work if dns_name_copy()
 	 * failed.  By setting foundname first, there's nothing to undo if
 	 * we have trouble.
 	 */
