@@ -585,11 +585,8 @@ configure_server_querysource(dns_c_ctx_t *cctx, ns_server_t *server,
 
 	*dispatchp = NULL;
 
-	if (dns_c_ctx_getquerysourceaddr(cctx, &sa) != ISC_R_SUCCESS)
+	if (dns_c_ctx_getquerysource(cctx, &sa) != ISC_R_SUCCESS)
 		sa = any;
-	if (dns_c_ctx_getquerysourceport(cctx, &port) != ISC_R_SUCCESS)
-		port = 0;
-	isc_sockaddr_setport(&sa, port);
 
 	/*
 	 * XXX  We need to have separate query source options for v4 and v6,
