@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.99 2000/11/16 22:33:53 bwelling Exp $ */
+/* $Id: types.h,v 1.100 2001/01/04 00:16:41 bwelling Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -246,9 +246,7 @@ enum {
 #define dns_trust_authanswer		((dns_trust_t)dns_trust_authanswer)
 	dns_trust_secure = 7,
 #define dns_trust_secure		((dns_trust_t)dns_trust_secure)
-	dns_trust_authsecure = 8,
-#define dns_trust_authsecure		((dns_trust_t)dns_trust_authsecure)
-	dns_trust_ultimate = 9
+	dns_trust_ultimate = 8
 #define dns_trust_ultimate		((dns_trust_t)dns_trust_ultimate)
 };
 
