@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.195 2001/05/19 00:08:21 gson Exp $ */
+/* $Id: query.c,v 1.196 2001/06/15 23:28:27 gson Exp $ */
 
 #include <config.h>
 
@@ -625,14 +625,33 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
-		char msg[DNS_NAME_FORMATSIZE + DNS_RDATACLASS_FORMATSIZE
-			 + sizeof "query '/'"];
-		
-		ns_client_aclmsg("query", name, client->view->rdclass,
-				 msg, sizeof(msg));
-		result = ns_client_checkacl(client, msg, queryacl,
-					    ISC_TRUE,
-					    log ? ISC_LOG_INFO : ISC_LOG_DEBUG(3));
+
+		result = ns_client_checkaclsilent(client, queryacl, ISC_TRUE);
+		if (log) {
+			char msg[DNS_NAME_FORMATSIZE + DNS_RDATACLASS_FORMATSIZE
+				+ sizeof "query '/'"];
+			if (result == ISC_R_SUCCESS) {
+				if (isc_log_wouldlog(ns_g_lctx,
+						     ISC_LOG_DEBUG(3)))
+				{
+					ns_client_aclmsg("query", name,
+							 client->view->rdclass,
+							 msg, sizeof(msg));
+					ns_client_log(client,
+						      DNS_LOGCATEGORY_SECURITY,
+						      NS_LOGMODULE_QUERY,
+						      ISC_LOG_DEBUG(3),
+						      "%s approved", msg);
+				}
+		    	} else {
+				ns_client_aclmsg("query", name,
+						 client->view->rdclass,
+						 msg, sizeof(msg));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+					      "%s denied", msg);
+			}
+		}
 
 		if (queryacl == client->view->queryacl) {
 			if (result == ISC_R_SUCCESS) {

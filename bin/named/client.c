@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.172 2001/06/15 22:35:42 gson Exp $ */
+/* $Id: client.c,v 1.173 2001/06/15 23:28:26 gson Exp $ */
 
 #include <config.h>
 
@@ -2172,9 +2172,8 @@ ns_client_getsockaddr(ns_client_t *client) {
 }
 
 isc_result_t
-ns_client_checkacl(ns_client_t  *client,
-		   const char *opname, dns_acl_t *acl,
-		   isc_boolean_t default_allow, int log_level)
+ns_client_checkaclsilent(ns_client_t *client, dns_acl_t *acl,
+			 isc_boolean_t default_allow)
 {
 	isc_result_t result;
 	int match;
@@ -2199,16 +2198,29 @@ ns_client_checkacl(ns_client_t  *client,
 	goto deny; /* Negative match or no match. */
 
  allow:
-	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
-		      "%s approved", opname);
 	return (ISC_R_SUCCESS);
 
  deny:
-	ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-		      NS_LOGMODULE_CLIENT,
-		      log_level, "%s denied", opname);
 	return (DNS_R_REFUSED);
+}
+
+isc_result_t
+ns_client_checkacl(ns_client_t *client,
+		   const char *opname, dns_acl_t *acl,
+		   isc_boolean_t default_allow, int log_level)
+{
+	isc_result_t result =
+		ns_client_checkaclsilent(client, acl, default_allow);
+
+	if (result == ISC_R_SUCCESS) 
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
+			      "%s approved", opname);
+	else
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT,
+			      log_level, "%s denied", opname);
+	return (result);
 }
 
 static void

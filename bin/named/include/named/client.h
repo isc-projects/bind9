@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.57 2001/03/19 20:52:21 gson Exp $ */
+/* $Id: client.h,v 1.58 2001/06/15 23:28:29 gson Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -268,17 +268,14 @@ ns_client_getsockaddr(ns_client_t *client);
  */
 
 isc_result_t
-ns_client_checkacl(ns_client_t  *client,
-		   const char *opname, dns_acl_t *acl,
-		   isc_boolean_t default_allow,
-		   int log_level);
+ns_client_checkaclsilent(ns_client_t  *client,dns_acl_t *acl,
+			 isc_boolean_t default_allow);
+
 /*
  * Convenience function for client request ACL checking.
  *
  * Check the current client request against 'acl'.  If 'acl'
  * is NULL, allow the request iff 'default_allow' is ISC_TRUE.
- * Log the outcome of the check if deemed appropriate.
- * Log messages will refer to the request as an 'opname' request.
  *
  * Notes:
  *	This is appropriate for checking allow-update,
@@ -289,13 +286,29 @@ ns_client_checkacl(ns_client_t  *client,
  *
  * Requires:
  *	'client' points to a valid client.
- *	'opname' points to a null-terminated string.
  *	'acl' points to a valid ACL, or is NULL.
  *
  * Returns:
  *	ISC_R_SUCCESS	if the request should be allowed
  * 	ISC_R_REFUSED	if the request should be denied
  *	No other return values are possible.
+ */
+
+isc_result_t
+ns_client_checkacl(ns_client_t  *client,
+		   const char *opname, dns_acl_t *acl,
+		   isc_boolean_t default_allow,
+		   int log_level);
+/*
+ * Like ns_client_checkacl, but also logs the outcome of the
+ * check at log level 'log_level' if denied, and at debug 3
+ * if approved.  Log messages will refer to the request as
+ * an 'opname' request.
+ *
+ * Requires:
+ *	Those of ns_client_checkaclsilent(), and:
+ *
+ *	'opname' points to a null-terminated string.
  */
 
 void
