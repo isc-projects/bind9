@@ -219,7 +219,7 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials);
  */
 
 isc_result_t
-isc_lex_openfile(isc_lex_t *lex, char *filename);
+isc_lex_openfile(isc_lex_t *lex, const char *filename);
 /*
  * Open 'filename' and make it the current input source for 'lex'.
  *

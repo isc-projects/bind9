@@ -64,7 +64,7 @@ extern const dns_master_style_t dns_master_style_default;
 dns_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 		dns_dbversion_t *version,
-		const dns_master_style_t *style, char *filename);
+		const dns_master_style_t *style, const char *filename);
 /*
  * Dump the database 'db' to the file 'filename' in RFC1035 master 
  * file format, in the style defined by 'style'

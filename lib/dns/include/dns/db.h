@@ -78,7 +78,7 @@ typedef struct dns_dbmethods {
 				     dns_dbload_t **dbloadp);
 	dns_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
 	dns_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version, 
-				char *filename);
+				const char *filename);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
 	dns_result_t	(*newversion)(dns_db_t *db,
@@ -395,7 +395,7 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
  */
 
 dns_result_t
-dns_db_load(dns_db_t *db, char *filename);
+dns_db_load(dns_db_t *db, const char *filename);
 /*
  * Load master file 'filename' into 'db'.
  *
@@ -422,7 +422,7 @@ dns_db_load(dns_db_t *db, char *filename);
  */
 
 dns_result_t
-dns_db_dump(dns_db_t *db, dns_dbversion_t *version, char *filename);
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
 /*
  * Dump version 'version' of 'db' to master file 'filename'.
  *

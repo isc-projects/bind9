@@ -210,7 +210,7 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 }
 
 dns_result_t
-dns_db_load(dns_db_t *db, char *filename) {
+dns_db_load(dns_db_t *db, const char *filename) {
 	dns_result_t result, eresult;
 	int soacount, nscount;
 	dns_rdatacallbacks_t callbacks;
@@ -246,7 +246,7 @@ dns_db_load(dns_db_t *db, char *filename) {
 }
 
 dns_result_t
-dns_db_dump(dns_db_t *db, dns_dbversion_t *version, char *filename) {
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	/*
 	 * Dump 'db' into master file 'filename'.
 	 */

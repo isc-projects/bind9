@@ -3697,7 +3697,7 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 }
 
 static dns_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, char *filename) {
+dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
 	dns_rbtdb_t *rbtdb;
 
 	rbtdb = (dns_rbtdb_t *)db;

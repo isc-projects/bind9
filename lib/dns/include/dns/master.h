@@ -38,7 +38,7 @@ ISC_LANG_BEGINDECLS
  ***	Function
  ***/
 
-dns_result_t dns_master_loadfile(char *master_file,
+dns_result_t dns_master_loadfile(const char *master_file,
 				 dns_name_t *top,
 				 dns_name_t *origin,
 				 dns_rdataclass_t zclass,

@@ -776,7 +776,7 @@ dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 
 dns_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
-		const dns_master_style_t *style, char *filename)
+		const dns_master_style_t *style, const char *filename)
 {
 	FILE *f;
 	dns_result_t result;

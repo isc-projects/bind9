@@ -168,7 +168,7 @@ isc_lex_setspecials(isc_lex_t *lex, isc_lexspecials_t specials) {
 
 static inline isc_result_t
 new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
-	   void *input, char *name)
+	   void *input, const char *name)
 {
 	inputsource *source;
 
@@ -196,7 +196,7 @@ new_source(isc_lex_t *lex, isc_boolean_t is_file, isc_boolean_t need_close,
 }
 
 isc_result_t
-isc_lex_openfile(isc_lex_t *lex, char *filename) {
+isc_lex_openfile(isc_lex_t *lex, const char *filename) {
 	FILE *stream;
 
 	/*
