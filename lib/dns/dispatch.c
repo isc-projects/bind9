@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.81 2001/01/13 01:33:27 bwelling Exp $ */
+/* $Id: dispatch.c,v 1.82 2001/01/25 00:42:31 bwelling Exp $ */
 
 #include <config.h>
 
@@ -87,7 +87,7 @@ struct dns_dispatchmgr {
 struct dns_dispentry {
 	unsigned int			magic;
 	dns_dispatch_t		       *disp;
-	isc_uint32_t			id;
+	dns_messageid_t			id;
 	unsigned int			bucket;
 	isc_sockaddr_t			host;
 	isc_task_t		       *task;
@@ -160,7 +160,7 @@ static void destroy_disp(dns_dispatch_t **);
 static void udp_recv(isc_task_t *, isc_event_t *);
 static void tcp_recv(isc_task_t *, isc_event_t *);
 static inline void startrecv(dns_dispatch_t *);
-static isc_uint32_t dns_randomid(dns_qid_t *);
+static dns_messageid_t dns_randomid(dns_qid_t *);
 static isc_uint32_t dns_hash(dns_qid_t *, isc_sockaddr_t *, isc_uint32_t);
 static void free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len);
 static void *allocate_udp_buffer(dns_dispatch_t *disp);
@@ -281,24 +281,24 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 /*
  * Return an unpredictable message ID.
  */
-static isc_uint32_t
+static dns_messageid_t
 dns_randomid(dns_qid_t *qid) {
 	isc_uint32_t id;
 
 	id = isc_lfsr_generate32(&qid->qid_lfsr1, &qid->qid_lfsr2);
 
-	return (id & 0x0000ffffU);
+	return (dns_messageid_t)(id);
 }
 
 /*
  * Return a hash of the destination and message id.
  */
 static isc_uint32_t
-dns_hash(dns_qid_t *qid, isc_sockaddr_t *dest, isc_uint32_t id) {
+dns_hash(dns_qid_t *qid, isc_sockaddr_t *dest, dns_messageid_t id) {
 	unsigned int ret;
 
 	ret = isc_sockaddr_hash(dest, ISC_TRUE);
-	ret ^= (id & 0x0000ffff); /* important to mask off garbage bits */
+	ret ^= id;
 	ret %= qid->qid_nbuckets;
 
 	INSIST(ret < qid->qid_nbuckets);
