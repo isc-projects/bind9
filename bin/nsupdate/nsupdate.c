@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15.2.12 2004/03/06 10:21:31 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.13 2004/03/08 12:19:32 marka Exp $ */
 
 #include <config.h>
 
@@ -1647,6 +1647,27 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	check_result(result, "dns_message_create");
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
+	if (result == DNS_R_TSIGERRORSET && userserver != NULL) {
+		dns_message_destroy(&rcvmsg);
+		ddebug("Destroying request [%p]", request);
+		dns_request_destroy(&request);
+		reqinfo = isc_mem_get(mctx, sizeof(nsu_requestinfo_t));
+		if (reqinfo == NULL)
+			fatal("out of memory");
+		reqinfo->msg = soaquery;
+		reqinfo->addr = addr;
+		dns_message_renderreset(soaquery);
+		ddebug("retrying soa request without TSIG");
+		result = dns_request_createvia3(requestmgr, soaquery,
+						localaddr, addr, 0, NULL,
+						FIND_TIMEOUT * 20,
+						FIND_TIMEOUT * 20, 3,
+						global_task, recvsoa, reqinfo,
+						&request);
+		check_result(result, "dns_request_createvia");
+		requests++;
+		return;
+	}
 	check_result(result, "dns_request_getresponse");
 	section = DNS_SECTION_ANSWER;
 	if (debugging) {
