@@ -1,8 +1,7 @@
 INTERNET-DRAFT                                   Donald E. Eastlake, 3rd
                                                                      IBM
-Expires February 2000                                        August 1999
-
-draft-ietf-dnsind-kitchen-sink-01.txt
+Expires March 2000                                        September 1999
+draft-ietf-dnsind-kitchen-sink-02.txt
 
 
 
@@ -15,8 +14,8 @@ draft-ietf-dnsind-kitchen-sink-01.txt
 
 Status of This Document
 
-   This draft, file name draft-ietf-dnsind-kitchen-sink-01.txt, is
-   intended to be become a Proposed Standard RFC.  Distribution of this
+   This draft, file name draft-ietf-dnsind-kitchen-sink-02.txt, is
+   intended to be become an Experimental RFC.  Distribution of this
    document is unlimited. Comments should be sent to
    <namedroppers@internic.net> or to the author.
 
@@ -32,7 +31,6 @@ Status of This Document
    Drafts as reference material or to cite them other than as a
    ``working draft'' or ``work in progress.''
 
-
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/ietf/1id-abstracts.txt
 
@@ -40,9 +38,10 @@ Status of This Document
    http://www.ietf.org/shadow.html.
 
 
-   To view the entire list of current Internet-Drafts, please check the
-   "1id-abstracts.txt" listing contained in the Internet-Drafts Shadow
-   Directories as listed at <http://www.ietf.org/shadow.html>.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (1999).  All Rights Reserved
 
 
 
@@ -52,12 +51,6 @@ Abstract
    obscure data into the Domain Name System (DNS).  This draft defines a
    kitchen sink Resource Record that will satisfy this desire for the
    storage of miscellaneous structured information.
-
-
-
-
-
-
 
 
 
@@ -74,6 +67,7 @@ Acknowledgements
    improved this document and they are gratefully acknowledged:
 
             Rob Austein
+            Matt Crawford
             Johnny Eriksson
             Phillip H. Griffin
             Michael A. Patton
@@ -84,6 +78,7 @@ Acknowledgements
 Table of Contents
 
       Status of This Document....................................1
+      Copyright Notice...........................................1
       Abstract...................................................1
 
       Acknowledgements...........................................2
@@ -97,16 +92,14 @@ Table of Contents
       2.2.2 MIME Subcodings......................................7
       2.2.3 Text Subcodings......................................8
       3. Master File Representation..............................8
-      4. Performance Considerations..............................8
+      4. Performance Considerations..............................9
       5. Security Considerations.................................9
       6. IANA Considerations.....................................9
+      7. Full Copyright Statement................................9
 
-      References................................................10
-      Author's Address..........................................11
-      Expiration and File Name..................................11
-
-
-
+      References................................................11
+      Author's Address..........................................12
+      Expiration and File Name..................................12
 
 
 
@@ -143,14 +136,14 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
    New RRs that are reasonably simple and designed via the open IETF
    standards process are periodically added as new needs become
-   apparent.  But there are periodically people who want to put some
-   proprietary, complex and/or non-standard structured data in the DNS.
-   In the past they have frequently come up with some way of
-   reinterpreting the TXT RR, since that is one of the least constrained
-   RRs.  This is likely a bad idea since all previous ways to
-   reinterpreting the TXT RR have sunk without a trace.  (Well, if they
-   actually got an RFC out, it's still there, but, practically speaking,
-   almost nobody actually uses it.)
+   apparent.  But there are people who want to put some proprietary,
+   complex and/or non-standard structured data in the DNS.  In the past
+   they have frequently come up with some way of reinterpreting the TXT
+   RR, since that is one of the least constrained RRs.  This is likely a
+   bad idea since all previous ways to reinterpreting the TXT RR have
+   sunk without a trace.  (Well, if they actually got an RFC out, it's
+   still there, but, practically speaking, almost nobody actually uses
+   it.)
 
    If a new type of data is needed for a global interoperable use in the
    DNS, the best course is to design a new RR that meets the need
@@ -162,13 +155,13 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
 
-
 2. Kitchen Sink Resource Record
 
    The symbol for the kitchen sink resource record is SINK.  Its type
    number is 40.  This type is defined across all DNS classes.
 
    The RDATA portion of the SINK RR is structured as follows:
+
 
 
 
@@ -203,37 +196,37 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
    provides additional information depending on the value of the coding
    nibble.
 
-   All references to "domain name" in this document mean domain name in
-   the IP DNS class.
-
-   Although it is unlikely, it is noted that multiple popular uses of
-   SINK might develop that are not distinguished by using different
-   parts of the DNS name space or different DNS classes.  If this
-   occurs, retrievals may fetch large sets of SINK RRs which will likely
-   have to be sorted through at the application level.  Should this
-   occur, such popular uses of SINK should obtain and migrate to their
-   own RR number using normal RR number allocation procedures or it
-   would be possible to define an extended query operation that used a
-   more fine grained selection method than just the RR type.
+   All references to "domain name" in this document mean a domain name
+   in the DNS CLASS of the SINK RR.
 
 
 
 2.1 The Meaning Octet
 
-   The meaning octet indicates whether any semantic labeling appears at
+   The meaning octet indicates whether any semantic tagging appears at
    the beginning of the data field and the format of such semantic
-   labeling.  This contrasts with the coding and subcoding octets which
-   merely indicate format.
+   tagging.  This contrasts with the coding and subcoding octets which
+   merely indicate format.  The inclusion of such semantic tagging is
+   encouraged and it is expected to be the primary means by which
+   applications determine if a SINK RR is of the variety in which they
+   have interest.
 
-   The types of labels available are chosen to be globally unique and
+   It is noted that multiple popular uses of SINK could develop that are
+   not distinguished by using different parts of the DNS name space or
+   different DNS classes.  If this occurs, retrievals may fetch large
+   sets of SINK RR to be sorted through at the application level.
+   Should this occur, such popular uses of SINK should obtain and
+   migrate to their own RR number using normal RR number allocation
+   procedures.  In addition, it would be possible to define an extended
+   query operation that selects from among SINK RRs based on the
+   semantic tag.
+
+   The types of tags available are chosen to be globally unique and
    under the control of some "owner".  The owner designates the meaning
-   associated with the labels they control.  Where the label is a URI,
-   it is recommended that a retrieval from the URI fetch material that
-   would be helpful in determining this meaning.  No a priori method is
-   defined for determining the meaning of other labels beside an out of
-   band question to the owner.
-
-
+   associated with the tags they control.  Where the tag is a URI, it is
+   recommended that a retrieval from the URI fetch material that would
+   be helpful in determining this meaning.  No a priori method is
+   defined for determining the meaning of other tags beside an out of
 
 
 D. Eastlake 3rd                                                 [Page 4]
@@ -241,6 +234,8 @@ D. Eastlake 3rd                                                 [Page 4]
 
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
+
+   band question to the owner.
 
         INITIAL ASSIGNED MEANING VALUES
 
@@ -256,12 +251,12 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
      255 - reserved.
 
    A meaning octet value of 1 indicates that there is no semantic
-   labeling at the beginning of the data area.  The information,
-   whatever it is, starts at the beginning of the data field and is
-   coded according to the coding and subcoding octets.
+   tagging at the beginning of the data area.  The information, whatever
+   it is, starts at the beginning of the data field and is coded
+   according to the coding and subcoding octets.
 
    Meaning octet values of 2, 3, or 4, indicate, on the other hand, that
-   a semantic label is present.  A value of two indicates that a BER
+   a semantic tag is present.  A value of two indicates that a BER
    [X.690] encoded OID appears prefixed by a single unsigned octet of
    OID length count.  A value of three indicates that a DNS domain name
    appears in wire format with name compression prohibited.  And a value
@@ -280,10 +275,9 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
    subcoding octet MUST be ignored and SHOULD be zero.
 
    While not explicitly mentioned below, the data field will actually
-   start with a semantic label if indicated by the meaning octet.  If
-   such a semantic label is present, any data prefix required by the
-   coding or subcoding octet is placed after the semantic label and
-   before the data.
+   start with a semantic tag if indicated by the meaning octet.  If such
+   a semantic tag is present, any data prefix required by the coding or
+   subcoding octet is placed after the semantic tag and before the data.
 
    CODING OCTET VALUES
 
@@ -291,7 +285,6 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
         1 - DNS RRs. The data portion consists of DNS resource records
         as they would be transmitted in a DNS response section.  The
-        subcoding octet is the number of RRs in the data area as an
 
 
 D. Eastlake 3rd                                                 [Page 5]
@@ -300,6 +293,7 @@ D. Eastlake 3rd                                                 [Page 5]
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
+        subcoding octet is the number of RRs in the data area as an
         unsigned integer.  Domain names may be compressed via pointers
         as in DNS replies.  The origin for the pointers is the beginning
         of the RDATA section of the SINK RR.  Thus the SINK RR is safe
@@ -349,7 +343,6 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
         format of the data portion is indicated by an initial wire
         format domain name with compression prohibited.  (Such names are
         self delimiting.) The subcoding octet is available for whatever
-        use the private formating wishes to make of it.
 
 
 D. Eastlake 3rd                                                 [Page 6]
@@ -357,6 +350,8 @@ D. Eastlake 3rd                                                 [Page 6]
 
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
+
+        use the private formating wishes to make of it.
 
         254 - Private coding format indicated by a URI.  The format of
         the data portion is indicated by an initial URI [RFC 2396] which
@@ -406,8 +401,6 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
    0 - reserved, see section 6.
    1 - 7bit.
    2 - 8bit.
-   3 - binary.
-   4 - quoted-printable.
 
 
 D. Eastlake 3rd                                                 [Page 7]
@@ -416,10 +409,12 @@ D. Eastlake 3rd                                                 [Page 7]
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
+   3 - binary.
+   4 - quoted-printable.
    5 - base64.
    6 - 253 - available for assignment, see section 6.
-   254 - private.  The data portion must start with an "x-" token
-        denoting the private content-transfer-encoding immediately
+   254 - private.  The data portion must start with an "x-" or "X-"
+        token denoting the private content-transfer-encoding immediately
         followed by one null (zero) octet followed by the remainder of
         the MIME object.
    255 - reserved, see section 6.
@@ -440,8 +435,8 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
    4 - ASCII with MIME header escapes [RFC 2047].
    5 - 253 - available for assignment, see section 6.
    254 - private.  Each text item must start with a domain name [RFC
-        1034] denoting the private text encoding immediately followed by
-        one null (zero) octet followed by the remainder of the text
+        1034] in wire format without compression denoting the private
+        text encoding immediately followed by the remainder of the text
         item.
    255 - reserved, see section 6.
 
@@ -461,11 +456,9 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
 
-4. Performance Considerations
 
-   Currently DNS is optimized for small data transfers, generally not
-   exceeding 512 octets including overhead.  Larger transfers are less
-   efficient but do work correctly and efforts are underway to make them
+
+
 
 
 D. Eastlake 3rd                                                 [Page 8]
@@ -474,6 +467,11 @@ D. Eastlake 3rd                                                 [Page 8]
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
+4. Performance Considerations
+
+   Currently DNS is optimized for small data transfers, generally not
+   exceeding 512 octets including overhead.  Larger transfers are less
+   efficient but do work correctly and efforts are underway to make them
    more efficient.
 
    It is easy to create very large RRs or RR sets using SINK.  DNS
@@ -511,22 +509,75 @@ INTERNET-DRAFT                          The Kitchen Sink Resource Record
 
 
 
+7. Full Copyright Statement
 
+   Copyright (C) The Internet Society (1999).  All Rights Reserved.
 
-
-
-
-
-
-
-
-
-
-
-
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
 
 
 D. Eastlake 3rd                                                 [Page 9]
+
+
+INTERNET-DRAFT                          The Kitchen Sink Resource Record
+
+
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                [Page 10]
 
 
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
@@ -584,7 +635,7 @@ References
    Encoding Rules (BER), Canonical Encoding Rules (CER) and
 
 
-D. Eastlake 3rd                                                [Page 10]
+D. Eastlake 3rd                                                [Page 11]
 
 
 INTERNET-DRAFT                          The Kitchen Sink Resource Record
@@ -614,11 +665,9 @@ Author's Address
 
 Expiration and File Name
 
-   This draft expires February 2000.
+   This draft expires March 2000.
 
-   Its file name is draft-ietf-dnsind-kitchen-sink-01.txt.
-
-
+   Its file name is draft-ietf-dnsind-kitchen-sink-02.txt.
 
 
 
@@ -642,5 +691,7 @@ Expiration and File Name
 
 
 
-D. Eastlake 3rd                                                [Page 11]
+
+
+D. Eastlake 3rd                                                [Page 12]
 
