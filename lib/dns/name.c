@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.5 2003/10/14 03:48:00 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.6 2004/02/27 21:45:21 marka Exp $ */
 
 #include <config.h>
 
@@ -256,6 +256,110 @@ dns_name_isabsolute(const dns_name_t *name) {
 	if ((name->attributes & DNS_NAMEATTR_ABSOLUTE) != 0)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
+}
+
+#define hyphenchar(c) ((c) == 0x2d)
+#define asterchar(c) ((c) == 0x2a)
+#define alphachar(c) (((c) >= 0x41 && (c) <= 0x5a) \
+		      || ((c) >= 0x61 && (c) <= 0x7a))
+#define digitchar(c) ((c) >= 0x30 && (c) <= 0x39)
+#define borderchar(c) (alphachar(c) || digitchar(c))
+#define middlechar(c) (borderchar(c) || hyphenchar(c))
+#define domainchar(c) ((c) > 0x20 && (c) < 0x7f)
+
+isc_boolean_t
+dns_name_ismailbox(const dns_name_t *name) {
+	unsigned char *ndata, ch;
+	unsigned int n;
+	isc_boolean_t first;
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+	REQUIRE(name->attributes & DNS_NAMEATTR_ABSOLUTE);
+
+	/* 
+	 * Root label.
+	 */
+	if (name->length == 1)
+		return (ISC_TRUE);
+
+	ndata = name->ndata;
+	n = *ndata++;
+	INSIST(n < 63);
+	while (n--) {
+		ch = *ndata++;
+		if (!domainchar(ch))
+			return (ISC_FALSE);
+	}
+	
+	if (ndata == name->ndata + name->length)
+		return (ISC_FALSE);
+
+	/*
+	 * RFC292/RFC1123 hostname.
+	 */
+	while (ndata < (name->ndata + name->length)) {
+		n = *ndata++;
+		INSIST(n < 63);
+		first = ISC_TRUE;
+		while (n--) {
+			ch = *ndata++;
+			if (first || n == 0) {
+				if (!borderchar(ch))
+					return (ISC_FALSE);
+			} else {
+				if (!middlechar(ch))
+					return (ISC_FALSE);
+			}
+			first = ISC_FALSE;
+		}
+	}
+	return (ISC_TRUE);
+}
+
+isc_boolean_t
+dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard) {
+	unsigned char *ndata, ch;
+	unsigned int n;
+	isc_boolean_t first;
+
+	REQUIRE(VALID_NAME(name));
+	REQUIRE(name->labels > 0);
+	REQUIRE(name->attributes & DNS_NAMEATTR_ABSOLUTE);
+	
+	/* 
+	 * Root label.
+	 */
+	if (name->length == 1)
+		return (ISC_TRUE);
+
+	/*
+	 * Skip wildcard if this is a ownername.
+	 */
+	ndata = name->ndata;
+	if (wildcard && ndata[0] == 1 && ndata[1] == '*')
+		ndata += 2;
+
+	/*
+	 * RFC292/RFC1123 hostname.
+	 */
+	while (ndata < (name->ndata + name->length)) {
+		n = *ndata++;
+		INSIST(n < 63);
+		first = ISC_TRUE;
+		while (n--) {
+			ch = *ndata++;
+			if (first || n == 0) {
+				if (!borderchar(ch))
+					return (ISC_FALSE);
+			} else {
+				if (!middlechar(ch))
+					return (ISC_FALSE);
+			}
+			first = ISC_FALSE;
+		}
+	}
+	return (ISC_TRUE);
 }
 
 isc_boolean_t
@@ -873,7 +977,7 @@ dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
-		  dns_name_t *origin, isc_boolean_t downcase,
+		  dns_name_t *origin, unsigned int options,
 		  isc_buffer_t *target)
 {
 	unsigned char *ndata, *label;
@@ -885,6 +989,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	isc_boolean_t done;
 	unsigned char *offsets;
 	dns_offsets_t odata;
+	isc_boolean_t downcase;
 
 	/*
 	 * Convert the textual representation of a DNS name at source
@@ -900,6 +1005,8 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE(ISC_BUFFER_VALID(source));
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
+	
+	downcase = ISC_TF((options & DNS_NAME_DOWNCASE) != 0);
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -1505,7 +1612,7 @@ set_offsets(const dns_name_t *name, unsigned char *offsets,
 
 isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
-		  dns_decompress_t *dctx, isc_boolean_t downcase,
+		  dns_decompress_t *dctx, unsigned int options,
 		  isc_buffer_t *target)
 {
 	unsigned char *cdata, *ndata;
@@ -1517,6 +1624,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	unsigned int c;
 	unsigned char *offsets;
 	dns_offsets_t odata;
+	isc_boolean_t downcase;
 
 	/*
 	 * Copy the possibly-compressed name at source into target,
@@ -1526,6 +1634,8 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE(VALID_NAME(name));
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
+
+	downcase = ISC_TF((options & DNS_NAME_DOWNCASE) != 0);
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.15.2.6 2003/10/15 05:32:15 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.15.2.7 2004/02/27 21:45:16 marka Exp $ */
 
 #include <config.h>
 
@@ -758,7 +758,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
 		check_result(result, "isc_buffer_allocate");
 		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
-					    rn, ISC_FALSE, mctx, buf,
+					    rn, 0, mctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {

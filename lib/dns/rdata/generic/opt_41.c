@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.25.12.1 2003/08/12 14:16:13 marka Exp $ */
+/* $Id: opt_41.c,v 1.25.12.2 2004/02/27 21:45:30 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
@@ -40,7 +40,7 @@ fromtext_opt(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(lexer);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(target);
 	UNUSED(callbacks);
 
@@ -101,7 +101,7 @@ fromwire_opt(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sregion);
 	total = 0;
@@ -251,6 +251,30 @@ digest_opt(ARGS_DIGEST) {
 	UNUSED(arg);
 
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+static inline isc_boolean_t
+checkowner_opt(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 41);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (dns_name_equal(name, dns_rootname));
+}
+
+static inline isc_boolean_t
+checknames_opt(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 41);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_OPT_41_C */

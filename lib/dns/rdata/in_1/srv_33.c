@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: srv_33.c,v 1.36.2.1.2.1 2003/09/11 00:18:12 marka Exp $ */
+/* $Id: srv_33.c,v 1.36.2.1.2.2 2004/02/27 21:45:34 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
@@ -31,6 +31,7 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	isc_boolean_t ok;
 
 	REQUIRE(type == 33);
 	REQUIRE(rdclass == 1);
@@ -74,7 +75,14 @@ fromtext_in_srv(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	ok = ISC_TRUE;
+	if ((options & DNS_RDATA_CHECKNAMES) != 0)
+		ok = dns_name_ishostname(&name, ISC_FALSE);
+	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+		RETTOK(DNS_R_BADNAME);
+	if (!ok && callbacks != NULL)
+		warn_badname(&name, lexer, callbacks);
 	return (ISC_R_SUCCESS);
 }
 
@@ -157,7 +165,7 @@ fromwire_in_srv(ARGS_FROMWIRE) {
 	/*
 	 * Target.
 	 */
-	return (dns_name_fromwire(&name, source, dctx, downcase, target));
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -324,6 +332,42 @@ digest_in_srv(ARGS_DIGEST) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_in_srv(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 250);
+	REQUIRE(rdclass == 255);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_in_srv(ARGS_CHECKNAMES) {
+	isc_region_t region;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 33);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(owner);
+
+	dns_rdata_toregion(rdata, &region);
+	isc_region_consume(&region, 6);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+	if (!dns_name_ishostname(&name, ISC_FALSE)) {
+		if (bad != NULL)
+			dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_SRV_33_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap-ptr_23.c,v 1.32 2001/07/16 03:06:46 marka Exp $ */
+/* $Id: nsap-ptr_23.c,v 1.32.206.1 2004/02/27 21:45:33 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 10:16:02 PST 2000 by gson */
 
@@ -45,7 +45,7 @@ fromtext_in_nsap_ptr(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -84,7 +84,7 @@ fromwire_in_nsap_ptr(ARGS_FROMWIRE) {
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
         dns_name_init(&name, NULL);
-        return (dns_name_fromwire(&name, source, dctx, downcase, target));
+        return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -213,6 +213,33 @@ digest_in_nsap_ptr(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_in_nsap_ptr(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 23);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_in_nsap_ptr(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 23);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_NSAP_PTR_23_C */

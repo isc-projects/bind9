@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mb_7.c,v 1.41 2001/07/16 03:06:11 marka Exp $ */
+/* $Id: mb_7.c,v 1.41.206.1 2004/02/27 21:45:28 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 17:31:26 PST 2000 by bwelling */
 
@@ -42,7 +42,7 @@ fromtext_mb(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -79,7 +79,7 @@ fromwire_mb(ARGS_FROMWIRE) {
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
 
         dns_name_init(&name, NULL);
-        return (dns_name_fromwire(&name, source, dctx, downcase, target));
+        return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -205,6 +205,30 @@ digest_mb(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_mb(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 7);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (dns_name_ismailbox(name));
+}
+
+static inline isc_boolean_t
+checknames_mb(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 7);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_MB_7_C */

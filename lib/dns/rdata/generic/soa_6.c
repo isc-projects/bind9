@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa_6.c,v 1.53.12.3 2003/10/14 03:48:09 marka Exp $ */
+/* $Id: soa_6.c,v 1.53.12.4 2004/02/27 21:45:31 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:18:32 PST 2000 by explorer */
 
@@ -31,6 +31,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 	isc_buffer_t buffer;
 	int i;
 	isc_uint32_t n;
+	isc_boolean_t ok;
 
 	REQUIRE(type == 6);
 
@@ -48,7 +49,22 @@ fromtext_soa(ARGS_FROMTEXT) {
 		dns_name_init(&name, NULL);
 		buffer_fromregion(&buffer, &token.value.as_region);
 		RETTOK(dns_name_fromtext(&name, &buffer, origin,
-					 downcase, target));
+					 options, target));
+		ok = ISC_TRUE;
+		if ((options & DNS_RDATA_CHECKNAMES) != 0)
+			switch (i) {
+			case 0:
+				ok = dns_name_ishostname(&name, ISC_FALSE);
+				break;
+			case 1:
+				ok = dns_name_ismailbox(&name);
+				break;
+
+			}
+		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+			RETTOK(DNS_R_BADNAME);
+		if (!ok && callbacks != NULL)
+			warn_badname(&name, lexer, callbacks);
 	}
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
@@ -158,8 +174,8 @@ fromwire_soa(ARGS_FROMWIRE) {
         dns_name_init(&mname, NULL);
         dns_name_init(&rname, NULL);
 
-        RETERR(dns_name_fromwire(&mname, source, dctx, downcase, target));
-        RETERR(dns_name_fromwire(&rname, source, dctx, downcase, target));
+        RETERR(dns_name_fromwire(&mname, source, dctx, options, target));
+        RETERR(dns_name_fromwire(&rname, source, dctx, options, target));
 
 	isc_buffer_activeregion(source, &sregion);
 	isc_buffer_availableregion(target, &tregion);
@@ -382,6 +398,46 @@ digest_soa(ARGS_DIGEST) {
 	isc_region_consume(&r, name_length(&name));
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_soa(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 6);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_soa(ARGS_CHECKNAMES) {
+	isc_region_t region;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 6);
+
+	UNUSED(owner);
+
+	dns_rdata_toregion(rdata, &region);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+	if (!dns_name_ishostname(&name, ISC_FALSE)) {
+		if (bad != NULL)
+			dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	isc_region_consume(&region, name_length(&name));
+	dns_name_fromregion(&name, &region);
+	if (!dns_name_ismailbox(&name)) {
+		if (bad != NULL)
+			dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_SOA_6_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.36 2004/01/07 05:34:46 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.37 2004/02/27 21:45:23 marka Exp $ */
 
 #include <config.h>
 
@@ -48,6 +48,7 @@
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
+#include <dns/rdatatype.h>
 #include <dns/request.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
@@ -1104,6 +1105,10 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 		options |= DNS_MASTER_CHECKNS;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_FATALNS))
 		options |= DNS_MASTER_FATALNS;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNAMES))
+		options |= DNS_MASTER_CHECKNAMES;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNAMESFAIL))
+		options |= DNS_MASTER_CHECKNAMESFAIL;
 	result = dns_master_loadfileinc(load->zone->masterfile,
 					dns_db_origin(load->db),
 					dns_db_origin(load->db),
@@ -1170,6 +1175,10 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		options |= DNS_MASTER_FATALNS;
 	if (zone->type == dns_zone_slave)
 		options |= DNS_MASTER_SLAVE;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES))
+		options |= DNS_MASTER_CHECKNAMES;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL))
+		options |= DNS_MASTER_CHECKNAMESFAIL;
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->task != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
@@ -6693,4 +6702,49 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);
 
 	return (count);
+}
+
+isc_result_t
+dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
+	isc_boolean_t ok = ISC_TRUE;
+	isc_boolean_t fail = ISC_FALSE;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char namebuf2[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	unsigned int level = ISC_LOG_WARNING;
+	dns_name_t bad;
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMES))
+		return (ISC_R_SUCCESS);
+
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL)) {
+		level = ISC_LOG_ERROR;
+		fail = ISC_TRUE;
+	}
+
+	ok = dns_rdata_checkowner(name, rdata->rdclass, rdata->type, ISC_TRUE);
+	if (!ok) {
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		dns_rdatatype_format(rdata->type, typebuf, sizeof(typebuf));
+		dns_zone_log(zone, level, "%s/%s: %s", namebuf, typebuf,
+			     dns_result_totext(DNS_R_BADOWNERNAME));
+		if (fail)
+			return (DNS_R_BADOWNERNAME);
+	}
+
+	dns_name_init(&bad, NULL);
+	ok = dns_rdata_checknames(rdata, name, &bad);
+	if (!ok) {
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		dns_name_format(&bad, namebuf2, sizeof(namebuf2));
+		dns_rdatatype_format(rdata->type, typebuf, sizeof(typebuf));
+		dns_zone_log(zone, level, "%s/%s: %s: %s ", namebuf, typebuf,
+			     namebuf2, dns_result_totext(DNS_R_BADNAME));
+		if (fail)
+			return (DNS_R_BADNAME);
+	}
+
+	return (ISC_R_SUCCESS);
 }

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.c,v 1.52.2.1.2.3 2003/09/11 00:18:09 marka Exp $ */
+/* $Id: tsig_250.c,v 1.52.2.1.2.4 2004/02/27 21:45:25 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:39:43 PST 2000 by gson */
 
@@ -50,7 +50,7 @@ fromtext_any_tsig(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	/*
 	 * Time Signed: 48 bits.
@@ -260,7 +260,7 @@ fromwire_any_tsig(ARGS_FROMWIRE) {
 	 * Algorithm Name.
 	 */
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 
 	isc_buffer_activeregion(source, &sr);
 	/*
@@ -561,6 +561,33 @@ digest_any_tsig(ARGS_DIGEST) {
 	UNUSED(arg);
 
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+static inline isc_boolean_t
+checkowner_any_tsig(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 250);
+	REQUIRE(rdclass == 255);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_any_tsig(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 250);
+	REQUIRE(rdata->rdclass == 250);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_ANY_255_TSIG_250_C */

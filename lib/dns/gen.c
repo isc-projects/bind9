@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.5.2.2 2003/09/24 03:47:14 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.5.2.3 2004/02/27 21:45:20 marka Exp $ */
 
 #include <config.h>
 
@@ -34,7 +34,7 @@
 #include "gen-unix.h"
 #endif
 
-#define FROMTEXTARGS "rdclass, type, lexer, origin, downcase, target, callbacks"
+#define FROMTEXTARGS "rdclass, type, lexer, origin, options, target, callbacks"
 #define FROMTEXTCLASS "rdclass"
 #define FROMTEXTTYPE "type"
 #define FROMTEXTDEF "result = DNS_R_UNKNOWN"
@@ -44,7 +44,7 @@
 #define TOTEXTTYPE "rdata->type"
 #define TOTEXTDEF "use_default = ISC_TRUE"
 
-#define FROMWIREARGS "rdclass, type, source, dctx, downcase, target"
+#define FROMWIREARGS "rdclass, type, source, dctx, options, target"
 #define FROMWIRECLASS "rdclass"
 #define FROMWIRETYPE "type"
 #define FROMWIREDEF "use_default = ISC_TRUE"
@@ -83,6 +83,16 @@
 #define DIGESTCLASS "rdata->rdclass"
 #define DIGESTTYPE "rdata->type"
 #define DIGESTDEF "use_default = ISC_TRUE"
+
+#define CHECKOWNERARGS "name, rdclass, type, wildcard"
+#define CHECKOWNERCLASS "rdclass"
+#define CHECKOWNERTYPE "type"
+#define CHECKOWNERDEF "result = ISC_TRUE"
+
+#define CHECKNAMESARGS "rdata, owner, bad"
+#define CHECKNAMESCLASS "rdata->rdclass"
+#define CHECKNAMESTYPE "rdata->type"
+#define CHECKNAMESDEF "result = ISC_TRUE"
 
 const char copyright[] =
 "/*\n"
@@ -620,6 +630,12 @@ main(int argc, char **argv) {
 		doswitch("DIGESTSWITCH", "digest",
 			 DIGESTARGS, DIGESTTYPE,
 			 DIGESTCLASS, DIGESTDEF);
+		doswitch("CHECKOWNERSWITCH", "checkowner",
+			 CHECKOWNERARGS, CHECKOWNERTYPE,
+			 CHECKOWNERCLASS, CHECKOWNERDEF);
+		doswitch("CHECKNAMESSWITCH", "checknames",
+			 CHECKNAMESARGS, CHECKNAMESTYPE,
+			 CHECKNAMESCLASS, CHECKNAMESDEF);
 
 		/*
 		 * From here down, we are processing the rdata names and

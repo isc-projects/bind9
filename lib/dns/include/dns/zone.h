@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.106.2.7.4.12 2004/01/07 05:34:46 marka Exp $ */
+/* $Id: zone.h,v 1.106.2.7.4.13 2004/02/27 21:45:25 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -50,6 +50,8 @@ typedef enum {
 #define DNS_ZONEOPT_FATALNS	  0x00000100U	/* DNS_ZONEOPT_CHECKNS is fatal */
 #define DNS_ZONEOPT_MULTIMASTER	  0x00000200U	/* this zone has multiple masters */
 #define DNS_ZONEOPT_USEALTXFRSRC  0x00000400U	/* use alternate transfer sources */
+#define DNS_ZONEOPT_CHECKNAMES	  0x00000800U	/* check-names */
+#define DNS_ZONEOPT_CHECKNAMESFAIL 0x00001000U	/* fatal check-name failures */
 
 #ifndef NOMINUM_PUBLIC
 /*
@@ -1405,6 +1407,22 @@ dns_zone_name(dns_zone_t *zone, char *buf, size_t len);
  * Requires:
  *	'zone' to be valid.
  *	'buf' to be non NULL.
+ */
+
+isc_result_t
+dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata);
+/*
+ * Check if this record meets the check-names policy.
+ *
+ * Requires:
+ *	'zone' to be valid.
+ *	'name' to be valid.
+ *	'rdata' to be valid.
+ *
+ * Returns:
+ *	DNS_R_SUCCESS		passed checks.
+ *	DNS_R_BADOWNERNAME	failed ownername checks.
+ *	DNS_R_BADNAME		failed rdata checks.
  */
 
 ISC_LANG_ENDDECLS

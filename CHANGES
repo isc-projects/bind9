@@ -1,3 +1,5 @@
+1586.	[func]		"check-names" is now implemented.
+
 1582.	[bug]		rrset-order failed to work on RRsets with more
 			than 32 elements. [RT #10381]
 

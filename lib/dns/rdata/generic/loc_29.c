@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.30.2.3.2.4 2003/09/24 03:47:15 marka Exp $ */
+/* $Id: loc_29.c,v 1.30.2.3.2.5 2004/02/27 21:45:28 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
@@ -55,7 +55,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	/*
 	 * Defaults.
@@ -563,7 +563,7 @@ fromwire_loc(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 1)
@@ -764,6 +764,31 @@ digest_loc(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_loc(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 29);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_loc(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 29);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_LOC_29_C */

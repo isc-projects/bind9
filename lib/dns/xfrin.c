@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.4 2003/10/14 03:48:04 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.5 2004/02/27 21:45:23 marka Exp $ */
 
 #include <config.h>
 
@@ -275,6 +275,8 @@ axfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	isc_result_t result;
 
 	dns_difftuple_t *tuple = NULL;
+
+	CHECK(dns_zone_checknames(xfr->zone, name, rdata));
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
 				   name, ttl, rdata, &tuple));
 	dns_diff_append(&xfr->diff, &tuple);
@@ -351,6 +353,8 @@ ixfr_putdata(dns_xfrin_ctx_t *xfr, dns_diffop_t op,
 	isc_result_t result;
 
 	dns_difftuple_t *tuple = NULL;
+	if (op == DNS_DIFFOP_ADD)
+		CHECK(dns_zone_checknames(xfr->zone, name, rdata));
 	CHECK(dns_difftuple_create(xfr->diff.mctx, op,
 				   name, ttl, rdata, &tuple));
 	dns_diff_append(&xfr->diff, &tuple);

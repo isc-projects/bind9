@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.13.2.3.8.7 2004/01/07 05:34:46 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.13.2.3.8.8 2004/02/27 21:45:14 marka Exp $ */
 
 #include <config.h>
 
@@ -63,7 +63,7 @@ static void
 usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqvD] [-c class] [-o output] "
-		"[-t directory] [-w directory] zonename filename\n");
+		"[-t directory] [-w directory] [-k option] zonename filename\n");
 	exit(1);
 }
 
@@ -84,7 +84,7 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dijn:qst:o:vw:D")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv, "c:dijk:n:qst:o:vw:D")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -108,6 +108,16 @@ main(int argc, char **argv) {
 			} else if (!strcmp(isc_commandline_argument, "fail"))
 				zone_options |= DNS_ZONEOPT_CHECKNS|
 					        DNS_ZONEOPT_FATALNS;
+			break;
+
+		case 'k':
+			if (!strcmp(isc_commandline_argument, "check-names")) {
+				zone_options |= DNS_ZONEOPT_CHECKNAMES;
+			} else if (!strcmp(isc_commandline_argument,
+					   "check-names-fail")) {
+				zone_options |= DNS_ZONEOPT_CHECKNAMES |
+						DNS_ZONEOPT_CHECKNAMESFAIL;
+			}
 			break;
 
 		case 'q':

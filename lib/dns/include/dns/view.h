@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.73.2.4.2.8 2003/09/19 14:34:10 marka Exp $ */
+/* $Id: view.h,v 1.73.2.4.2.9 2004/02/27 21:45:25 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -122,6 +122,7 @@ struct dns_view {
 	dns_namelist_t *		delonly;
 	isc_boolean_t			rootdelonly;
 	dns_namelist_t *		rootexclude;
+	isc_boolean_t			checknames;
 
 	/*
 	 * Configurable data for server use only,

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.20 2003/10/21 05:49:19 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.21 2004/02/27 21:45:34 marka Exp $ */
 
 #include <config.h>
 
@@ -345,9 +345,22 @@ static cfg_type_t cfg_type_rrsetorderingelement = {
  * A global or view "check-names" option.  Note that the zone
  * "check-names" option has a different syntax.
  */
+
+static const char *checktype_enums[] = { "master", "slave", "response", NULL };
+static cfg_type_t cfg_type_checktype = {
+	"checktype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &checktype_enums
+};
+
+static const char *checkmode_enums[] = { "fail", "warn", "ignore", NULL };
+static cfg_type_t cfg_type_checkmode = {
+	"checkmode", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &checkmode_enums
+};
+
 static cfg_tuplefielddef_t checknames_fields[] = {
-	{ "type", &cfg_type_ustring, 0 },
-	{ "mode", &cfg_type_ustring, 0 },
+	{ "type", &cfg_type_checktype, 0 },
+	{ "mode", &cfg_type_checkmode, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_checknames = {
@@ -658,8 +671,7 @@ view_clauses[] = {
 	{ "max-cache-ttl", &cfg_type_uint32, 0 },
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "max-cache-size", &cfg_type_sizenodefault, 0 },
-	{ "check-names", &cfg_type_checknames,
-	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_NOTIMP },
+	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "preferred-glue", &cfg_type_astring, 0 },
@@ -742,7 +754,7 @@ zone_only_clauses[] = {
 	 * Note that the format of the check-names option is different between
 	 * the zone options and the global/view options.  Ugh.
 	 */
-	{ "check-names", &cfg_type_ustring, CFG_CLAUSEFLAG_NOTIMP },
+	{ "check-names", &cfg_type_checkmode, 0 },
 	{ NULL, NULL, 0 }
 };
 

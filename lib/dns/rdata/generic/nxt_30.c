@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.49.2.2.2.5 2003/09/24 03:47:15 marka Exp $ */
+/* $Id: nxt_30.c,v 1.49.2.2.2.6 2004/02/27 21:45:30 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
@@ -56,7 +56,7 @@ fromtext_nxt(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	memset(bm, 0, sizeof(bm));
 	do {
@@ -139,7 +139,7 @@ fromwire_nxt(ARGS_FROMWIRE) {
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length > 0 && (sr.base[0] & 0x80) == 0 &&
@@ -299,6 +299,31 @@ digest_nxt(ARGS_DIGEST) {
 	isc_region_consume(&r, name_length(&name));
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_nxt(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 30);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_nxt(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 30);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_NXT_30_C */

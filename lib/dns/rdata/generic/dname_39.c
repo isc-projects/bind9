@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dname_39.c,v 1.34 2001/07/16 03:06:04 marka Exp $ */
+/* $Id: dname_39.c,v 1.34.206.1 2004/02/27 21:45:26 marka Exp $ */
 
 /* Reviewed: Wed Mar 15 16:52:38 PST 2000 by explorer */
 
@@ -44,7 +44,7 @@ fromtext_dname(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -81,7 +81,7 @@ fromwire_dname(ARGS_FROMWIRE) {
 	dns_decompress_setmethods(dctx, DNS_COMPRESS_NONE);
 
 	dns_name_init(&name, NULL);
-	return(dns_name_fromwire(&name, source, dctx, downcase, target));
+	return(dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -203,6 +203,31 @@ digest_dname(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r);
 
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_dname(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 39);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_dname(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 39);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_DNAME_39_C */

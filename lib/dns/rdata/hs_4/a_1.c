@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.25.12.1 2003/08/13 00:36:55 marka Exp $ */
+/* $Id: a_1.c,v 1.25.12.2 2004/02/27 21:45:32 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:58:36 PST 2000 by brister */
 
@@ -37,7 +37,7 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -77,7 +77,7 @@ fromwire_hs_a(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
@@ -200,6 +200,33 @@ digest_hs_a(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_hs_a(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 1);
+	REQUIRE(rdclass == 4);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_hs_a(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->rdclass == 4);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_HS_4_A_1_C */

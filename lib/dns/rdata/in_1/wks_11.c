@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: wks_11.c,v 1.44.12.4 2003/09/24 03:47:16 marka Exp $ */
+/* $Id: wks_11.c,v 1.44.12.5 2004/02/27 21:45:34 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 15:01:49 PST 2000 by explorer */
 
@@ -52,7 +52,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	/*
@@ -181,7 +181,7 @@ fromwire_in_wks(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sr);
@@ -319,6 +319,31 @@ digest_in_wks(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_in_wks(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 11);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+
+	return (dns_name_ishostname(name, wildcard));
+}
+
+static inline isc_boolean_t
+checknames_in_wks(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 11);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_WKS_11_C */

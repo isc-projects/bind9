@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.20 2003/10/15 05:32:09 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.21 2004/02/27 21:45:15 marka Exp $ */
 
 #include <config.h>
 
@@ -120,8 +120,8 @@ options {\n\
 	max-cache-ttl 604800; /* 1 week */\n\
 	transfer-format many-answers;\n\
 	max-cache-size 0;\n\
-	check-names master ignore;\n\
-	check-names slave ignore;\n\
+	check-names master fail;\n\
+	check-names slave warn;\n\
 	check-names response ignore;\n\
 \n\
 	/* zone */\n\

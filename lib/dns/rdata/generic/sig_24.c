@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.54.2.1.2.3 2003/09/11 00:18:10 marka Exp $ */
+/* $Id: sig_24.c,v 1.54.2.1.2.4 2004/02/27 21:45:31 marka Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
@@ -116,7 +116,7 @@ fromtext_sig(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	/*
 	 * Sig.
@@ -267,7 +267,7 @@ fromwire_sig(ARGS_FROMWIRE) {
 	 * Signer.
 	 */
 	dns_name_init(&name, NULL);
-	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 
 	/*
 	 * Sig.
@@ -548,6 +548,31 @@ covers_sig(dns_rdata_t *rdata) {
 	type = uint16_fromregion(&r);
 
 	return (type);
+}
+
+static inline isc_boolean_t
+checkowner_sig(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 24);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_sig(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 24);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_SIG_24_C */

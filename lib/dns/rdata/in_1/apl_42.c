@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.4.200.4 2004/01/05 06:19:28 marka Exp $ */
+/* $Id: apl_42.c,v 1.4.200.5 2004/02/27 21:45:33 marka Exp $ */
 
 /* RFC 3123 */
 
@@ -41,7 +41,7 @@ fromtext_in_apl(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	do {
@@ -186,7 +186,7 @@ fromwire_in_apl(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_availableregion(target, &tr);
@@ -369,6 +369,34 @@ digest_in_apl(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_in_apl(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 42);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+
+static inline isc_boolean_t
+checknames_in_apl(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 42);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_APL_42_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.10 2003/10/14 03:48:00 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.11 2004/02/27 21:45:21 marka Exp $ */
 
 #include <config.h>
 
@@ -270,6 +270,44 @@ loadctx_destroy(dns_loadctx_t *lctx);
 		(*callbacks->error)(callbacks, "%s: %s:%lu: %s", \
 				    "dns_master_load", \
 				    source, line, dns_result_totext(result))
+
+
+static unsigned char in_addr_arpa_data[]  = "\007IN-ADDR\004ARPA";
+static unsigned char in_addr_arpa_offsets[] = { 0, 8, 13 };
+static const dns_name_t in_addr_arpa =
+{
+	DNS_NAME_MAGIC,
+	in_addr_arpa_data, 14, 3,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	in_addr_arpa_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
+static unsigned char ip6_int_data[]  = "\003IP6\003INT";
+static unsigned char ip6_int_offsets[] = { 0, 4, 8 };
+static const dns_name_t ip6_int =
+{
+	DNS_NAME_MAGIC,
+	ip6_int_data, 9, 3,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	ip6_int_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
+static unsigned char ip6_arpa_data[]  = "\003IP6\004ARPA";
+static unsigned char ip6_arpa_offsets[] = { 0, 4, 9 };
+static const dns_name_t ip6_arpa =
+{
+	DNS_NAME_MAGIC,
+	ip6_arpa_data, 10, 3,
+	DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE,
+	ip6_arpa_offsets, NULL,
+	{(void *)-1, (void *)-1},
+	{NULL, NULL}
+};
+
 
 static inline isc_result_t
 gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *token,
@@ -696,7 +734,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		isc_buffer_add(&buffer, strlen(lhsbuf));
 		isc_buffer_setactive(&buffer, strlen(lhsbuf));
 		result = dns_name_fromtext(owner, &buffer, ictx->origin,
-					   ISC_FALSE, NULL);
+					   0, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto error_cleanup;
 
@@ -726,7 +764,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 
 		isc_buffer_init(&target, target_mem, target_size);
 		result = dns_rdata_fromtext(&rdata, lctx->zclass, type,
-					    lctx->lex, ictx->origin, ISC_FALSE,
+					    lctx->lex, ictx->origin, 0,
 					    lctx->mctx, &target, callbacks);
 		RUNTIME_CHECK(isc_lex_close(lctx->lex) == ISC_R_SUCCESS);
 		if (result != ISC_R_SUCCESS)
@@ -871,6 +909,7 @@ load(dns_loadctx_t *lctx) {
 	isc_stdtime_t now;
 	char classname1[DNS_RDATACLASS_FORMATSIZE];
 	char classname2[DNS_RDATACLASS_FORMATSIZE];
+	unsigned int options = 0;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
 	callbacks = lctx->callbacks;
@@ -894,6 +933,10 @@ load(dns_loadctx_t *lctx) {
 	isc_buffer_init(&target, target_mem, target_size);
 	target_save = target;
 
+	if ((lctx->options & DNS_MASTER_CHECKNAMES) != 0)
+		options |= DNS_RDATA_CHECKNAMES;
+	if ((lctx->options & DNS_MASTER_CHECKNAMESFAIL) != 0)
+		options |= DNS_RDATA_CHECKNAMESFAIL;
 	source = isc_lex_getsourcename(lctx->lex);
 	do {
 		initialws = ISC_FALSE;
@@ -1519,13 +1562,54 @@ load(dns_loadctx_t *lctx) {
 		}
 
 		/*
+		 * Check owner name.
+		 */
+		options &= ~DNS_RDATA_CHECKREVERSE;
+		if ((lctx->options & DNS_MASTER_CHECKNAMES) != 0) {
+			isc_boolean_t ok;
+			dns_name_t *name;
+
+			name = (ictx->glue != NULL) ? ictx-> glue :
+						      ictx->current;
+			ok = dns_rdata_checkowner(name, lctx->zclass, type,
+						  ISC_TRUE);
+			if (!ok) {
+				char namebuf[DNS_NAME_FORMATSIZE];
+				const char *desc;
+				dns_name_format(name, namebuf, sizeof(namebuf));
+				result = DNS_R_BADOWNERNAME;
+				desc = dns_result_totext(result);
+			        if ((lctx->options & DNS_MASTER_CHECKNAMESFAIL) != 0) {
+					(*callbacks->error)(callbacks,
+							    "%s:%lu: %s: %s",
+							    source, line,
+							    namebuf, desc);
+					if (MANYERRS(lctx, result)) {
+						SETRESULT(lctx, result);
+					} else if (result != ISC_R_SUCCESS)
+						goto cleanup;
+				} else {
+					(*callbacks->warn)(callbacks,
+							   "%s:%lu: %s: %s",
+							   source, line,
+							   namebuf, desc);
+				}
+			}
+			if (type == dns_rdatatype_ptr &&
+			    (dns_name_issubdomain(name, &in_addr_arpa) ||
+			     dns_name_issubdomain(name, &ip6_arpa) ||
+			     dns_name_issubdomain(name, &ip6_int)))
+				options |= DNS_RDATA_CHECKREVERSE;
+		}
+
+		/*
 		 * Read rdata contents.
 		 */
 		dns_rdata_init(&rdata[rdcount]);
 		target_ft = target;
 		result = dns_rdata_fromtext(&rdata[rdcount], lctx->zclass,
 					    type, lctx->lex, ictx->origin,
-					    ISC_FALSE, lctx->mctx, &target,
+					    options, lctx->mctx, &target,
 					    callbacks);
 		if (MANYERRS(lctx, result)) {
 			SETRESULT(lctx, result);

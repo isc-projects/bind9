@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.46.12.2 2003/08/13 00:36:55 marka Exp $ */
+/* $Id: a_1.c,v 1.46.12.3 2004/02/27 21:45:32 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -39,7 +39,7 @@ fromtext_in_a(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
@@ -79,7 +79,7 @@ fromwire_in_a(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
@@ -206,6 +206,31 @@ digest_in_a(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_in_a(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 1);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+
+	return (dns_name_ishostname(name, wildcard));
+}
+
+static inline isc_boolean_t
+checknames_in_a(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 1);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_A_1_C */

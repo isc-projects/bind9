@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.31.2.3.2.4 2003/10/14 03:48:06 marka Exp $ */
+/* $Id: master.h,v 1.31.2.3.2.5 2004/02/27 21:45:24 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -43,6 +43,8 @@
 						 * they are an address */
 #define DNS_MASTER_FATALNS 	0x00000080	/* Treat DNS_MASTER_CHECKNS
 						 * matches as fatal */
+#define DNS_MASTER_CHECKNAMES   0x00000100
+#define DNS_MASTER_CHECKNAMESFAIL 0x00000200
 
 ISC_LANG_BEGINDECLS
 

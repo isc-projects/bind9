@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.37.2.1.2.1 2003/09/11 00:18:10 marka Exp $ */
+/* $Id: rt_21.c,v 1.37.2.1.2.2 2004/02/27 21:45:31 marka Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
@@ -31,6 +31,7 @@ fromtext_rt(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
+	isc_boolean_t ok;
 
 	REQUIRE(type == 21);
 
@@ -50,7 +51,14 @@ fromtext_rt(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
+	ok = ISC_TRUE;
+	if ((options & DNS_RDATA_CHECKNAMES) != 0)
+		ok = dns_name_ishostname(&name, ISC_FALSE);
+	if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
+		RETTOK(DNS_R_BADNAME);
+	if (!ok && callbacks != NULL)
+		warn_badname(&name, lexer, callbacks);
 	return (ISC_R_SUCCESS);
 }
 
@@ -104,7 +112,7 @@ fromwire_rt(ARGS_FROMWIRE) {
 	memcpy(tregion.base, sregion.base, 2);
 	isc_buffer_forward(source, 2);
 	isc_buffer_add(target, 2);
-	return (dns_name_fromwire(&name, source, dctx, downcase, target));
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -264,6 +272,40 @@ digest_rt(ARGS_DIGEST) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r2);
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_rt(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 21);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_rt(ARGS_CHECKNAMES) {
+	isc_region_t region;
+	dns_name_t name;
+
+	REQUIRE(rdata->type == 21);
+
+	UNUSED(owner);
+
+	dns_rdata_toregion(rdata, &region);
+	isc_region_consume(&region, 2);
+	dns_name_init(&name, NULL);
+	dns_name_fromregion(&name, &region);
+	if (dns_name_ishostname(&name, ISC_FALSE)) {
+		if (bad != NULL)
+			dns_name_clone(&name, bad);
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_RT_21_C */

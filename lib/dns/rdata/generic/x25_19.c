@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.31.12.1 2003/08/12 14:16:14 marka Exp $ */
+/* $Id: x25_19.c,v 1.31.12.2 2004/02/27 21:45:32 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
@@ -36,7 +36,7 @@ fromtext_x25(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
@@ -72,7 +72,7 @@ fromwire_x25(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	if (sr.length < 5)
@@ -189,6 +189,31 @@ digest_x25(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_x25(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 19);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_x25(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 19);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_X25_19_C */

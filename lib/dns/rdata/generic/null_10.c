@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: null_10.c,v 1.35.2.1.10.1 2003/08/12 14:16:13 marka Exp $ */
+/* $Id: null_10.c,v 1.35.2.1.10.2 2004/02/27 21:45:30 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 13:57:50 PST 2000 by explorer */
 
@@ -32,7 +32,7 @@ fromtext_null(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(lexer);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(target);
 	UNUSED(callbacks);
 
@@ -59,7 +59,7 @@ fromwire_null(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);
@@ -162,6 +162,31 @@ digest_null(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_null(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 10);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_null(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 10);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_NULL_10_C */

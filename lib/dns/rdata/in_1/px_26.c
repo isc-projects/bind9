@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.34.2.1.2.1 2003/09/11 00:18:11 marka Exp $ */
+/* $Id: px_26.c,v 1.34.2.1.2.2 2004/02/27 21:45:34 marka Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
@@ -56,7 +56,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 
 	/*
 	 * MAPX400.
@@ -66,7 +66,7 @@ fromtext_in_px(ARGS_FROMTEXT) {
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	RETTOK(dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	return (ISC_R_SUCCESS);
 }
 
@@ -140,12 +140,12 @@ fromwire_in_px(ARGS_FROMWIRE) {
 	/*
 	 * MAP822.
 	 */
-	RETERR(dns_name_fromwire(&name, source, dctx, downcase, target));
+	RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 
 	/*
 	 * MAPX400.
 	 */
-	return (dns_name_fromwire(&name, source, dctx, downcase, target));
+	return (dns_name_fromwire(&name, source, dctx, options, target));
 }
 
 static inline isc_result_t
@@ -342,6 +342,33 @@ digest_in_px(ARGS_DIGEST) {
 	dns_name_fromregion(&name, &r2);
 
 	return (dns_name_digest(&name, digest, arg));
+}
+
+static inline isc_boolean_t
+checkowner_in_px(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 250);
+	REQUIRE(rdclass == 255);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_in_px(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 26);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_PX_26_C */

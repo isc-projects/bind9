@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.21 2004/01/22 15:32:54 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.22 2004/02/27 21:45:15 marka Exp $ */
 
 #include <config.h>
 
@@ -2397,6 +2397,26 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	authoritative = ISC_FALSE;
 	version = NULL;
 	need_wildcardproof = ISC_FALSE;
+
+	if (client->view->checknames &&
+	    !dns_rdata_checkowner(client->query.qname,
+				  client->message->rdclass,
+				  qtype, ISC_FALSE)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		char typename[DNS_RDATATYPE_FORMATSIZE];
+		char classname[DNS_RDATACLASS_FORMATSIZE];
+
+		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
+		dns_rdatatype_format(qtype, typename, sizeof(typename));
+		dns_rdataclass_format(client->message->rdclass, classname,
+				      sizeof(classname));
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_QUERY, ISC_LOG_ERROR,
+			      "check-names failure %s/%s/%s", namebuf,
+			      typename, classname);
+		QUERY_ERROR(DNS_R_REFUSED);
+		goto cleanup;
+	}
 
 	/*
 	 * First we must find the right database.

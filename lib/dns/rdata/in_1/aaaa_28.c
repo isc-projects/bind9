@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.36.12.2 2003/08/13 00:36:55 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.36.12.3 2004/02/27 21:45:33 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
@@ -39,7 +39,7 @@ fromtext_in_aaaa(ARGS_FROMTEXT) {
 
 	UNUSED(type);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
@@ -80,7 +80,7 @@ fromwire_in_aaaa(ARGS_FROMWIRE) {
 
 	UNUSED(type);
 	UNUSED(dctx);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(rdclass);
 
 	isc_buffer_activeregion(source, &sregion);
@@ -203,6 +203,31 @@ digest_in_aaaa(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_in_aaaa(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 28);
+	REQUIRE(rdclass == 1);
+
+	UNUSED(type);
+	UNUSED(rdclass);
+
+	return (dns_name_ishostname(name, wildcard));
+}
+
+static inline isc_boolean_t
+checknames_in_aaaa(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 28);
+	REQUIRE(rdata->rdclass == 1);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_IN_1_AAAA_28_C */

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hinfo_13.c,v 1.37.12.2 2003/09/24 03:47:15 marka Exp $ */
+/* $Id: hinfo_13.c,v 1.37.12.3 2004/02/27 21:45:27 marka Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
@@ -34,7 +34,7 @@ fromtext_hinfo(ARGS_FROMTEXT) {
 	UNUSED(type);
 	UNUSED(rdclass);
 	UNUSED(origin);
-	UNUSED(downcase);
+	UNUSED(options);
 	UNUSED(callbacks);
 
 	REQUIRE(type == 13);
@@ -71,7 +71,7 @@ fromwire_hinfo(ARGS_FROMWIRE) {
 	UNUSED(type);
 	UNUSED(dctx);
 	UNUSED(rdclass);
-	UNUSED(downcase);
+	UNUSED(options);
 
 	RETERR(txt_fromwire(source, target));
 	return (txt_fromwire(source, target));
@@ -194,6 +194,31 @@ digest_hinfo(ARGS_DIGEST) {
 	dns_rdata_toregion(rdata, &r);
 
 	return ((digest)(arg, &r));
+}
+
+static inline isc_boolean_t
+checkowner_hinfo(ARGS_CHECKOWNER) {
+
+	REQUIRE(type == 13);
+
+	UNUSED(name);
+	UNUSED(type);
+	UNUSED(rdclass);
+	UNUSED(wildcard);
+
+	return (ISC_TRUE);
+}
+
+static inline isc_boolean_t
+checknames_hinfo(ARGS_CHECKNAMES) {
+
+	REQUIRE(rdata->type == 13);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(bad);
+
+	return (ISC_TRUE);
 }
 
 #endif	/* RDATA_GENERIC_HINFO_13_C */
