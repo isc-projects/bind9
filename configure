@@ -1,6 +1,6 @@
 #! /bin/sh
 
-# From configure.in Revision: 1.36 
+# From configure.in Revision: 1.38 
 
 
 
@@ -2040,7 +2040,7 @@ else
 			CC="$CC -mt"
 			;;
 		*-hp-hpux*)
-			CC="$CC"
+			CC="$CC -Ae -z +w1"
 			;;
 	esac
 fi
