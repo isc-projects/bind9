@@ -70,7 +70,7 @@ extern struct in6_addr in6addr_any;
 extern struct in6_addr in6addr_loopback;
 
 struct sockaddr_in6 {
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 	isc_uint8_t		sin6_len;
 	isc_uint8_t		sin6_family;
 #else
@@ -82,7 +82,7 @@ struct sockaddr_in6 {
 	isc_uint32_t		sin6_scope_id;
 };
 
-#ifdef ISC_NET_HAVESALEN
+#ifdef ISC_PLATFORM_HAVESALEN
 #define SIN6_LEN 1
 #endif
 

@@ -65,10 +65,10 @@
  ***/
 
 /*
- * If sockaddrs on this system have an sa_len field, ISC_NET_HAVESALEN will
- * be defined.
+ * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN
+ * will be defined.
  */
-#undef ISC_NET_HAVESALEN
+#undef ISC_PLATFORM_HAVESALEN
 
 /*
  * If this system has the IPv6 structure definitions, ISC_NET_HAVEIPV6
