@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.17 2001/11/20 21:28:41 gson Exp $
+ * $Id: opensslrsa_link.c,v 1.18 2001/12/12 16:43:24 bwelling Exp $
  */
 #ifdef OPENSSL
 
@@ -417,9 +417,11 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 	priv.nelements = i;
 	result =  dst__privstruct_writefile(key, &priv, directory);
  fail:
-	for (i = 0; i < 8; i++)
-		if (bufs[i] != NULL)
-			isc_mem_put(key->mctx, bufs[i], BN_num_bytes(rsa->n));
+	for (i = 0; i < 8; i++) {
+		if (bufs[i] == NULL)
+			break;
+		isc_mem_put(key->mctx, bufs[i], BN_num_bytes(rsa->n));
+	}
 	return (result);
 }
 
