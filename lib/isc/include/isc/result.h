@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.57.2.4 2004/03/09 06:12:01 marka Exp $ */
+/* $Id: result.h,v 1.57.2.5 2004/05/14 06:41:51 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
@@ -79,9 +79,9 @@
 #define ISC_R_INPROGRESS		53	/* operation in progress */
 #define ISC_R_CONNECTIONRESET		54	/* connection reset */
 #define ISC_R_SOFTQUOTA			55	/* soft quota reached */
-#define ISC_R_BADNUMBER			56	/* not a valid number */ 
-#define ISC_R_DISABLED			57	/* disabled */ 
-#define ISC_R_MAXSIZE			58	/* max size */ 
+#define ISC_R_BADNUMBER			56	/* not a valid number */
+#define ISC_R_DISABLED			57	/* disabled */
+#define ISC_R_MAXSIZE			58	/* max size */
 
 /*
  * Not a result code: the number of results.
