@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.8 2003/08/14 04:00:33 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.9 2003/08/27 07:22:34 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -780,11 +780,11 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 	TOTEXTSWITCH
 
 	if (use_default) {
-		sprintf(buf, "\\# ");
+		strlcpy(buf, "\\# ", sizeof(buf));
 		result = str_totext(buf, target);
 		dns_rdata_toregion(rdata, &sr);
 		INSIST(sr.length < 65536);
-		sprintf(buf, "%u", sr.length);
+		snprintf(buf, sizeof(buf), "%u", sr.length);
 		result = str_totext(buf, target);
 		if (sr.length != 0 && result == ISC_R_SUCCESS) {
 			if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
@@ -1027,14 +1027,14 @@ dns_mnemonic_totext(unsigned int value, isc_buffer_t *target,
 		    struct tbl *table)
 {
 	int i = 0;
-	char buf[sizeof "4294967296"];
+	char buf[sizeof("4294967296")];
 	while (table[i].name != NULL) {
 		if (table[i].value == value) {
 			return (str_totext(table[i].name, target));
 		}
 		i++;
 	}
-	sprintf(buf, "%u", value);
+	snprintf(buf, sizeof(buf), "%u", value);
 	return (str_totext(buf, target));
 }
 
@@ -1119,7 +1119,7 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target) {
 	case dns_rdataclass_reserved0:
 		return (str_totext("RESERVED0", target));
 	default:
-		sprintf(buf, "CLASS%u", rdclass);
+		snprintf(buf, sizeof(buf), "CLASS%u", rdclass);
 		return (str_totext(buf, target));
 	}
 }
@@ -1195,7 +1195,7 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target) {
 
 	if (type < (sizeof(typeattr)/sizeof(typeattr[0])))
 		return (str_totext(typeattr[type].name, target));
-	snprintf(buf, sizeof buf, "TYPE%u", type);
+	snprintf(buf, sizeof(buf), "TYPE%u", type);
 	return (str_totext(buf, target));
 }
 
@@ -1372,7 +1372,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 		if (*sp < 0x20 || *sp >= 0x7f) {
 			if (tl < 4)
 				return (ISC_R_NOSPACE);
-			sprintf(tp, "\\%03u", *sp++);
+			snprintf(tp, 5, "\\%03u", *sp++);
 			tp += 4;
 			tl -= 4;
 			continue;
@@ -1918,7 +1918,7 @@ static isc_result_t
 btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	int inc;
 	struct state statebuf, *state = &statebuf;
-	char buf[sizeof "x 2000000000 ffffffff ffffffff ffffffff"];
+	char buf[sizeof("x 2000000000 ffffffff ffffffff ffffffff")];
 
 	Ceor = Csum = Crot = word = bcount = 0;
 	for (inc = 0; inc < inbuflen; inbuf++, inc++)
@@ -1931,7 +1931,7 @@ btoa_totext(unsigned char *inbuf, int inbuflen, isc_buffer_t *target) {
 	 * Put byte count and checksum information at end of buffer,
 	 * delimited by 'x'
 	 */
-	sprintf(buf, "x %d %x %x %x", inbuflen, Ceor, Csum, Crot);
+	snprintf(buf, sizeof(buf), "x %d %x %x %x", inbuflen, Ceor, Csum, Crot);
 	return (str_totext(buf, target));
 }
 

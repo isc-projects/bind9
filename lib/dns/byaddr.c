@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.29.2.1.2.1 2003/08/20 05:33:15 marka Exp $ */
+/* $Id: byaddr.c,v 1.29.2.1.2.2 2003/08/27 07:22:33 marka Exp $ */
 
 #include <config.h>
 
@@ -98,11 +98,12 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 
 	bytes = (unsigned char *)(&address->type);
 	if (address->family == AF_INET) {
-		(void)sprintf(textname, "%u.%u.%u.%u.in-addr.arpa.",
-			      (bytes[3] & 0xff),
-			      (bytes[2] & 0xff),
-			      (bytes[1] & 0xff),
-			      (bytes[0] & 0xff));
+		(void)snprintf(textname, sizeof(textname),
+			       "%u.%u.%u.%u.in-addr.arpa.",
+			       (bytes[3] & 0xff),
+			       (bytes[2] & 0xff),
+			       (bytes[1] & 0xff),
+			       (bytes[0] & 0xff));
 	} else if (address->family == AF_INET6) {
 		cp = textname;
 		for (i = 15; i >= 0; i--) {

@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.1.2.3 2003/08/22 05:15:02 marka Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.1.2.4 2003/08/27 07:22:39 marka Exp $ */
 
 #include <config.h>
 
@@ -121,10 +121,10 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	 */
 	switch (sockaddr->type.sa.sa_family) {
 	case AF_INET:
-		sprintf(pbuf, "%u", ntohs(sockaddr->type.sin.sin_port));
+		snprintf(pbuf, sizeof(pbuf), "%u", ntohs(sockaddr->type.sin.sin_port));
 		break;
 	case AF_INET6:
-		sprintf(pbuf, "%u", ntohs(sockaddr->type.sin6.sin6_port));
+		snprintf(pbuf, sizeof(pbuf), "%u", ntohs(sockaddr->type.sin6.sin6_port));
 		break;
 	default:
 		return (ISC_R_FAILURE);

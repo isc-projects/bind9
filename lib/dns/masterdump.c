@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.2 2003/08/14 06:32:46 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.3 2003/08/27 07:22:33 marka Exp $ */
 
 #include <config.h>
 
@@ -377,8 +377,9 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			unsigned int length;
 
 			INDENT_TO(ttl_column);
-			length = sprintf(ttlbuf, "%u", rdataset->ttl);
-			INSIST(length <= sizeof ttlbuf);
+			length = snprintf(ttlbuf, sizeof(ttlbuf), "%u",
+					  rdataset->ttl);
+			INSIST(length <= sizeof(ttlbuf));
 			isc_buffer_availableregion(target, &r);
 			if (r.length < length)
 				return (ISC_R_NOSPACE);

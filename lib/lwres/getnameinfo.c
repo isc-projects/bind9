@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getnameinfo.c,v 1.30.2.3 2003/07/23 06:57:56 marka Exp $ */
+/* $Id: getnameinfo.c,v 1.30.2.3.2.1 2003/08/27 07:22:40 marka Exp $ */
 
 /*
  * Copyright (C) 1995, 1996, 1997, and 1998 WIDE Project.
@@ -168,7 +168,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		 */
 	} else if ((flags & NI_NUMERICSERV) != 0 ||
 		   (sp = getservbyport(port, proto)) == NULL) {
-		sprintf(numserv, "%d", ntohs(port));
+		snprintf(numserv, sizeof(numserv), "%d", ntohs(port));
 		if ((strlen(numserv) + 1) > servlen)
 			ERR(ENI_MEMORY);
 		strcpy(serv, numserv);

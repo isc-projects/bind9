@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.18 2003/08/27 02:13:48 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.19 2003/08/27 07:22:35 marka Exp $ */
 
 #include <config.h>
 
@@ -5104,7 +5104,7 @@ dns_resolver_create(dns_view_t *view,
 			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
-		sprintf(name, "res%u", i);
+		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
 		res->buckets[i].exiting = ISC_FALSE;
