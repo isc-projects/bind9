@@ -155,6 +155,7 @@ Building
 	Additionally, we have unverified reports of success building
 	previous versions of BIND 9 from users of the following systems:
 
+		AIX 5L
 		Slackware Linux 7.0 with 2.4.0-test6 kernel and glibc 2.1.3
 		Slackware Linux 7.0.1 with glibc 2.1.3
 		Red Hat Linux 7.1
