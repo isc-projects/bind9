@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.66.2.1 2001/01/09 22:44:54 bwelling Exp $ */
+/* $Id: confview.c,v 1.66.2.2 2001/01/18 21:46:25 bwelling Exp $ */
 
 #include <config.h>
 
@@ -1185,11 +1185,12 @@ dns_c_view_getforwarders(dns_c_view_t *view,
 	REQUIRE(DNS_C_VIEW_VALID(view));
 	REQUIRE(ipl != NULL);
 
-	*ipl = view->forwarders;
+	if (view->forwarders == NULL)
+		return (ISC_R_NOTFOUND);
 
-	return (*ipl == NULL ? ISC_R_NOTFOUND : ISC_R_SUCCESS);
+	dns_c_iplist_attach(view->forwarders, ipl);
+	return (ISC_R_SUCCESS);
 }
-
 
 
 /*

@@ -1,3 +1,5 @@
+ 691.	[bug]		Configuring per-view forwarders caused an assertion
+			failure. [RT #675]
 
 	--- 9.1.0 released ---
 
