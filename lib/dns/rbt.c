@@ -627,6 +627,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 	dns_rbtnode_t *node, *down, *parent, **rootp;
 	dns_result_t result;
 	node_chain_t chain;
+	int ancestor_memory_size;
 
 	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(dns_name_isabsolute(name));
@@ -647,8 +648,14 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 
 	node = dns_rbt_findnode(rbt, name, &chain);
 
-	if (node == NULL || DATA(node) == NULL)
+	ancestor_memory_size = chain.ancestor_maxitems *
+				sizeof(dns_rbtnode_t *);
+
+	if (node == NULL || DATA(node) == NULL) {
+		isc_mem_put(rbt->mctx, chain.ancestors,
+			    ancestor_memory_size); /* @@@ */
 		return (DNS_R_NOTFOUND);
+	}
 
 	down = DOWN(node);
 
@@ -662,7 +669,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 				rbt->data_deleter(DATA(node));
 			DATA(node) = NULL;
 
-			if (LEFT(down) != NULL || RIGHT(down) != NULL)
+			if (LEFT(down) != NULL || RIGHT(down) != NULL) {
 				/*
 				 * This node cannot be removed because it
 				 * points down to a level that has more than
@@ -670,7 +677,10 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 				 * as the root for that level.  All that
 				 * could be done was to blast its data.
 				 */
+				isc_mem_put(rbt->mctx, chain.ancestors,
+					    ancestor_memory_size); /* @@@ */
 				return (DNS_R_SUCCESS);
+			}
 
 			/*
 			 * There is a down pointer to a level with a single
@@ -684,6 +694,10 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 			parent = chain.ancestors[chain.ancestor_count - 1];
 
 			result = join_nodes(rbt, node, parent, rootp);
+
+			isc_mem_put(rbt->mctx, chain.ancestors,
+				    ancestor_memory_size); /* @@@ */
+
 			return (result);
 		}
 	}
@@ -739,6 +753,7 @@ dns_rbt_deletename(dns_rbt_t *rbt, dns_name_t *name, isc_boolean_t recurse) {
 		result = join_nodes(rbt, node, parent, rootp);
 	}
 
+	isc_mem_put(rbt->mctx, chain.ancestors, ancestor_memory_size);/* @@@ */
 	return (result);
 }
 
@@ -828,9 +843,6 @@ join_nodes(dns_rbt_t *rbt,
 
 		DOWN(newnode) = DOWN(down);
 		DATA(newnode) = DATA(down);
-
-		if (rbt->data_deleter != NULL)
-			rbt->data_deleter(DATA(down));
 
 		/*
 		 * Fix the pointers to the original node.
