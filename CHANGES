@@ -1,3 +1,8 @@
+1564.	[func]		Attempt to provide a fallback entropy source to be
+			used if named is running chrooted and named is unable
+			to open entropy source within the chroot area.
+			[RT #10133]
+
 1563.	[bug]		Gracefully fail when unable to obtain neither an IPv4
 			nor an IPv6 dispatch. [RT #10230]
 

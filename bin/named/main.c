@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.10 2004/01/12 04:28:43 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.11 2004/01/27 02:30:32 marka Exp $ */
 
 #include <config.h>
 
@@ -511,6 +511,9 @@ destroy_managers(void) {
 	ns_lwresd_shutdown();
 
 	isc_entropy_detach(&ns_g_entropy);
+	if (ns_g_fallbackentropy != NULL)
+		isc_entropy_detach(&ns_g_fallbackentropy);
+
 	/*
 	 * isc_taskmgr_destroy() will block until all tasks have exited,
 	 */
@@ -543,6 +546,29 @@ setup(void) {
 	ns_os_tzset();
 
 	ns_os_opendevnull();
+
+#ifdef PATH_RANDOMDEV
+	/*
+	 * Initialize system's random device as fallback entropy source
+	 * if running chroot'ed.
+	 */
+	if (ns_g_chrootdir != NULL) {
+		result = isc_entropy_create(ns_g_mctx, &ns_g_fallbackentropy);
+		if (result != ISC_R_SUCCESS)
+			ns_main_earlyfatal("isc_entropy_create() failed: %s",
+					   isc_result_totext(result));
+
+		result = isc_entropy_createfilesource(ns_g_fallbackentropy,
+						      PATH_RANDOMDEV);
+		if (result != ISC_R_SUCCESS) {
+			ns_main_earlywarning("could not open pre-chroot "
+					     "entropy source %s: %s",
+					     PATH_RANDOMDEV,
+					     isc_result_totext(result));
+			isc_entropy_detach(&ns_g_fallbackentropy);
+		}
+	}
+#endif
 
 	ns_os_chroot(ns_g_chrootdir);
 
