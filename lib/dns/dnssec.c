@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.10 1999/10/17 21:33:03 tale Exp $
+ * $Id: dnssec.c,v 1.11 1999/10/26 19:31:52 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -156,9 +156,6 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 		dns_rdataset_current(set, &data[i++]);
 	} while (dns_rdataset_next(set) == ISC_R_SUCCESS);
 
-	/* This better not change.  Should this be locked somehow? XXXBEW */
-	INSIST(i == n);
-
 	/* sort the array */
 	qsort(data, n, sizeof(dns_rdata_t), rdata_compare_wrapper);
 	*rdata = data;
@@ -240,6 +237,7 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	unsigned char data[300];
 	digestctx_t dctx;
 	isc_uint32_t flags;
+	unsigned int sigsize;
 
 	REQUIRE(name != NULL);
 	REQUIRE(set != NULL);
@@ -277,11 +275,10 @@ dns_dnssec_sign(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	sig.timesigned = *inception;
 	sig.timeexpire = *expire;
 	sig.keyid = dst_key_id(key);
-	if (dst_sig_size(key) < 0) {
-		/* close enough for now */
-		return (DNS_R_KEYUNAUTHORIZED);
-	}
-	sig.siglen = dst_sig_size(key);
+	ret = dst_sig_size(key, &sigsize);
+	if (ret != ISC_R_SUCCESS)
+		return (ret);
+	sig.siglen = sigsize;
 	sig.signature = isc_mem_get(mctx, sig.siglen);
 	if (sig.signature == NULL)
 		goto cleanup_name;

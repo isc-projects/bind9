@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.21 1999/10/25 20:55:31 bwelling Exp $
+ * $Id: tsig.c,v 1.22 1999/10/26 19:31:51 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -306,6 +306,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (!dns_tsigkey_empty(key)) {
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
+		unsigned int sigsize;
 
 		/* Digest the header */
 		isc_buffer_init(&headerbuf, header, sizeof header,
@@ -395,7 +396,10 @@ dns_tsig_sign(dns_message_t *msg) {
 			}
 		}
 
-		tsig->siglen = dst_sig_size(key->key);
+		ret = dst_sig_size(key->key, &sigsize);
+		if (ret != ISC_R_SUCCESS)
+			goto cleanup_other;
+		tsig->siglen = sigsize;
 		tsig->signature = (unsigned char *)
 				  isc_mem_get(mctx, tsig->siglen);
 		if (tsig->signature == NULL) {
