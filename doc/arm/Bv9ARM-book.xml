@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.53 2000/11/28 19:16:23 gson Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.54 2000/11/28 21:10:20 gson Exp $ -->
 
 <book>
 
@@ -3821,14 +3821,18 @@ The default is the empty list.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>database</command></para></entry>
-                <entry colname = "2"><para>The first string represents the
-type of database used to store the zone data in the server.  The default value
-is rbt, a red-black tree.  The other defined value is rbt64, a variant of rbt
-that allows 2^64 updates.  Additional databases may be implemented later or
-included.  Strings after the first string are optional arguments to
-the database driver initialization routine.  There are none defined for
-rbt or rbt64.
-</para></entry>
+<entry colname = "2"><para>Specify the type of database to be used for storing the
+zone data.  The string following the <command>database</command> keyword
+is interpreted as a list of whitespace-delimited words.  The first word
+identifies the database type, and any subsequent words are passed
+as arguments to the database to be interpreted in a way specific
+to the database type.</para>
+<para>The default is <userinput>"rbt"</userinput>, BIND 9's native in-memory
+red-black-tree database.  This database does not take arguments.</para>
+<para>Other values are possible if additional database drivers
+have been linked into the server.  Some sample drivers are included
+with the distribution but none are linked in by default.</para>
+</entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><command>dialup</command></para></entry>
