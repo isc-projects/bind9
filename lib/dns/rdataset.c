@@ -21,10 +21,6 @@
 
 #include <dns/rdataset.h>
 
-#define RDATASET_MAGIC			0x444E5352U	/* DNSR */
-#define VALID_RDATASET(rdataset)	((rdataset) != NULL && \
-					 (rdataset)->magic == RDATASET_MAGIC)
-
 void
 dns_rdataset_init(dns_rdataset_t *rdataset) {
 
@@ -34,7 +30,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 
 	REQUIRE(rdataset != NULL);
 
-	rdataset->magic = RDATASET_MAGIC;
+	rdataset->magic = DNS_RDATASET_MAGIC;
 	rdataset->methods = NULL;
 	ISC_LINK_INIT(rdataset, link);
 	rdataset->class = 0;
@@ -52,7 +48,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	 * Invalidate 'rdataset'.
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods == NULL);
 	
 	rdataset->magic = 0;
@@ -72,7 +68,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	 * Disassocate 'rdataset' from its rdata, allowing it to be reused.
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	(rdataset->methods->disassociate)(rdataset);
 	rdataset->methods = NULL;
@@ -92,7 +88,7 @@ dns_rdataset_first(dns_rdataset_t *rdataset) {
 	 * Move the rdata cursor to the first rdata in the rdataset (if any).
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	return ((rdataset->methods->first)(rdataset));
 }
@@ -104,7 +100,7 @@ dns_rdataset_next(dns_rdataset_t *rdataset) {
 	 * Move the rdata cursor to the next rdata in the rdataset (if any).
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	return ((rdataset->methods->next)(rdataset));
 }
@@ -116,7 +112,7 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	 * Make 'rdata' refer to the current rdata.
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	(rdataset->methods->current)(rdataset, rdata);
 }
@@ -132,7 +128,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 	 * Convert 'rdataset' to text format, storing the result in 'target'.
 	 */
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	/* XXX stop warnings. */
 	owner_name = NULL;
@@ -159,7 +155,7 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 	cctx = NULL;
 	target = NULL;
 
-	REQUIRE(VALID_RDATASET(rdataset));
+	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
 	return (DNS_R_NOTIMPLEMENTED);
 }
