@@ -36,4 +36,4 @@
 
 void xfrin_test(dns_dbtable_t *dbtable);
 
-#endif /* NS_XFROUT_H */
+#endif /* NS_XFRIN_H */
