@@ -1,7 +1,7 @@
 Copyright (C) 2000, 2001  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.35 2001/05/30 23:05:12 bwelling Exp $
+$Id: release,v 1.36 2001/06/08 23:45:50 gson Exp $
 
 Preparing a bind9 release
 
@@ -36,8 +36,11 @@ release.
    This will list all bug fixes on the mainline that are not
    on the 9.1 release branch.
 
- - Check that http://status.isc.org/bind9/bind9.html shows
-   a clean build and test status for all supported systems.
+ - Check that http://status.isc.org/bind9/bind9.html 
+   shows a clean build and test status for all supported 
+   systems and that the tests are actually being run on the
+   version being released (the version can be found in the
+   page behind the "Source tar build" link).
 
  - Check that running "make all_tests" in bin/tests does not
    produce compile errors.
