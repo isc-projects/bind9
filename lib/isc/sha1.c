@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: sha1.c,v 1.6 2000/06/07 19:41:49 explorer Exp $ */
+/* $Id: sha1.c,v 1.7 2000/06/08 05:26:00 explorer Exp $ */
 
 /*	$NetBSD: sha1.c,v 1.5 2000/01/22 22:19:14 mycroft Exp $	*/
 /*	$OpenBSD: sha1.c,v 1.9 1997/07/23 21:12:32 kstailey Exp $	*/
@@ -198,8 +198,8 @@ isc_sha1_update(isc_sha1_t *context, const unsigned char *data,
  * Add padding and return the message digest.
  */
 
-static const unsigned char final_200 = '\200';
-static const unsigned char final_0 = '\0';
+static const unsigned char final_200 = 128;
+static const unsigned char final_0 = 0;
 
 void
 isc_sha1_final(isc_sha1_t *context, unsigned char *digest) {
