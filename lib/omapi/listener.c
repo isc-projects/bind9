@@ -33,13 +33,32 @@ typedef struct omapi_listener_object {
 	isc_mutex_t mutex;
 	isc_task_t *task;
 	isc_socket_t *socket;	/* Listening socket. */
+	dns_acl_t *acl;
+	void (*callback)(void *);
+	void *callback_arg;
 	/*
 	 * Locked by mutex.
 	 */
-	isc_boolean_t accepting;
-	isc_condition_t waiter;
+	isc_boolean_t listening;
 	ISC_LIST(omapi_connection_t) connections;
 } omapi_listener_t;
+
+static void
+free_listener(omapi_listener_t *listener) {
+	/*
+	 * Break the link between the listener object and its parent
+	 * (usually a generic object); this is done so the server's
+	 * reference to its managing object does not prevent the
+	 * listener object from being destroyed.
+	 */
+	OBJECT_DEREF(&listener->inner->outer);
+	OBJECT_DEREF(&listener->inner);
+
+	/*
+	 * The listener object can now be freed.
+	 */
+	OBJECT_DEREF(&listener);
+}
 
 /*
  * Reader callback for a listener object.   Accept an incoming connection.
@@ -51,9 +70,12 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t *obuffer = NULL;
 	isc_task_t *connection_task = NULL;
 	isc_socket_t *socket;
+	isc_sockaddr_t sockaddr;
+	isc_netaddr_t netaddr;
 	omapi_connection_t *connection = NULL;
 	omapi_object_t *protocol = NULL;
 	omapi_listener_t *listener;
+	int match;
 
 	/*
 	 * XXXDCL audit error handling
@@ -71,14 +93,40 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	if (result == ISC_R_CANCELED) {
 		/*
-		 * omapi_listener_shutdown was called.  Stop accepting incoming
-		 * connection by not queuing another accept.
+		 * omapi_listener_shutdown was called.
 		 */
 		LOCK(&listener->mutex);
-		listener->accepting = ISC_FALSE;
 
-		SIGNAL(&listener->waiter);
-		UNLOCK(&listener->mutex);
+		listener->listening = ISC_FALSE;
+
+		if (ISC_LIST_HEAD(listener->connections) == NULL) {
+			UNLOCK(&listener->mutex);
+			free_listener(listener);
+
+		} else {
+			/*
+			 * All connections this listener was responsible for
+			 * must be removed.
+			 *
+			 * XXXDCL
+			 * Since it is possible that this shutdown was
+			 * triggered by one of the clients, it would be nice
+			 * to give it a little time to exit, as well as allow
+			 * any other connections to finish up cleanly.
+			 * Unfortunately, since this could be called in the
+			 * task/event thread of a program (as it is in named),
+			 * no other events can be delivered while this routine
+			 * blocks, so a loop to use isc_condition_waituntil
+			 * until all of the connections are gone is pointless.
+			 */
+			for (connection = ISC_LIST_HEAD(listener->connections);
+			     connection != NULL;
+			     connection = ISC_LIST_NEXT(connection, link))
+				omapi_connection_disconnect((omapi_object_t *)
+						       connection,
+						       OMAPI_FORCE_DISCONNECT);
+			UNLOCK(&listener->mutex);
+		}
 
 		return;
 	}
@@ -90,13 +138,33 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 
 	/*
 	 * Check for the validity of new connection event.
+	 * If the result is not ISC_R_SUCCESS, what can really
+	 * be done about it other than just flunking out of here?
 	 */
 	if (result != ISC_R_SUCCESS)
-		/*
-		 * The result is probably ISC_R_UNEXPECTED.  What can really
-		 * be done about it other than just * flunking out of here?
-		 */
 		return;
+	
+	/*
+	 * Is the connection from a valid host?
+	 */
+	result = isc_socket_getpeername(socket, &sockaddr);
+
+	if (result == ISC_R_SUCCESS) {
+		isc_netaddr_fromsockaddr(&netaddr, &sockaddr);
+
+		result = dns_acl_match(&netaddr, NULL, listener->acl,
+				       NULL, &match, NULL);
+	}
+
+	if (result != ISC_R_SUCCESS || match <= 0) {
+		/*
+		 * Permission denied.  Close the connection.
+		 * XXXDCL isc_log_write an error.
+		 */
+		isc_socket_detach(&socket);
+
+		return;
+	}
 
 	/*
 	 * The new connection is good to go.  Allocate the buffers for it and
@@ -166,7 +234,9 @@ listener_accept(isc_task_t *task, isc_event_t *event) {
 	 * object, but since there's no easy way to use omapi_object_reference
 	 * with the ISC_LIST macros, that reference is just not counted.
 	 */
+	LOCK(&listener->mutex);
 	ISC_LIST_APPEND(listener->connections, connection, link);
+	UNLOCK(&listener->mutex);
 
 	/*
 	 * Remember the listener that accepted the connection, so it
@@ -202,7 +272,10 @@ free_task:
 }
 
 isc_result_t
-omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
+omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr,
+		      dns_acl_t *acl, int max, void (*callback)(void *),
+		      void *callback_arg)
+{
 	isc_result_t result;
 	isc_task_t *task;
 	omapi_listener_t *listener;
@@ -229,9 +302,8 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
 
 	listener->task = task;
 
-	ISC_LIST_INIT(listener->connections);
 	RUNTIME_CHECK(isc_mutex_init(&listener->mutex) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_condition_init(&listener->waiter) == ISC_R_SUCCESS);
+	ISC_LIST_INIT(listener->connections);
 
 	/*
 	 * Create a socket on which to listen.
@@ -254,7 +326,8 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
 		 * Queue up the first accept event.  The listener object
 		 * will be passed to listener_accept() when it is called.
 		 */
-		listener->accepting = ISC_TRUE;
+		dns_acl_attach(acl, &listener->acl);
+		listener->listening = ISC_TRUE;
 		result = isc_socket_accept(listener->socket, task,
 					   listener_accept, listener);
 	}
@@ -266,11 +339,21 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
 		OBJECT_REF(&caller->outer, listener);
 		OBJECT_REF(&listener->inner, caller);
 
-	} else
+		/*
+		 * The callback is not set until here because it should
+		 * only be called if the listener was successfully set up.
+		 */
+		listener->callback = callback;
+		listener->callback_arg = callback_arg;
+
+
+	} else {
 		/*
 		 * Failed to set up the listener.  
 		 */
+		listener->listening = ISC_FALSE;
 		OBJECT_DEREF(&listener);
+	}
 
 	return (result);
 }
@@ -278,10 +361,6 @@ omapi_listener_listen(omapi_object_t *caller, isc_sockaddr_t *addr, int max) {
 void
 omapi_listener_shutdown(omapi_object_t *listener) {
 	omapi_listener_t *l;
-	omapi_connection_t *c;
-	isc_time_t timeout;
-	isc_interval_t interval;
-	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE((listener != NULL && listener->type == omapi_type_listener) ||
 		(listener->outer != NULL &&
@@ -302,82 +381,6 @@ omapi_listener_shutdown(omapi_object_t *listener) {
 	 * Stop accepting connections.
 	 */
 	isc_socket_cancel(l->socket, NULL, ISC_SOCKCANCEL_ACCEPT);
-
-	/*
-	 * All connections this listener was responsible for must be gone.
-	 * Since it is possible that this shutdown was triggered by one
-	 * of the clients, give it a little time to exit, as well as
-	 * allowing other connections to finish up cleanly.  The
-	 * cancelled accept event also needs to be received before
-	 * the listener task, socket and object can be destroyed.
-	 *
-	 * isc_time_nowplusinterval returns an isc_result_t; anything other
-	 * than ISC_R_SUCCESS is wildly unexpected because the Unix
-	 * implementation uses gettimeofday(), which is documented to only
-	 * return an error if its argument is an invalid memory address, and
-	 * the Win32 implementation always returns ISC_R_SUCCESS.  In any
-	 * event, if it fails, there is nothing to do but soldier on.
-	 * The waituntil would immediately timeout, and the connections
-	 * would be forcibly blown away.
-	 *
-	 * 5 seconds is an arbitrary constant.
-	 */
-	isc_interval_set(&interval, 5, 0);
-	isc_time_nowplusinterval(&timeout, &interval);
-
-	LOCK(&l->mutex);
-
-	while (! ISC_LIST_EMPTY(l->connections) && result == ISC_R_SUCCESS) {
-		ISC_UTIL_TRACE(fprintf(stderr, "WAIT %p LOCK %p %s %d\n",
-				       &l->waiter, &l->mutex,
-				       __FILE__, __LINE__));
-
-		result = isc_condition_waituntil(&l->waiter, &l->mutex,
-						 &timeout);
-
-		ISC_UTIL_TRACE(fprintf(stderr, "WAITED %p LOCKED %p %s %d\n",
-				       &l->waiter, &l->mutex,
-				       __FILE__, __LINE__));
-	}
-
-	/*
-	 * If there are still some connections hanging about,
-	 * they won't be for long.
-	 */
-	for (c = ISC_LIST_HEAD(l->connections); c != NULL;
-	     c = ISC_LIST_NEXT(c, link))
-		omapi_connection_disconnect((omapi_object_t *)c,
-					    OMAPI_FORCE_DISCONNECT);
-
-	/*
-	 * Again wait for any remaining connections to be destroyed, and
-	 * ensure the listen socket has received the cancelled accept event.
-	 * This will happen rapidly now because they were all cancelled.
-	 */
-	while (! ISC_LIST_EMPTY(l->connections) || l->accepting)
-		WAIT(&l->waiter, &l->mutex);
-
-	/*
-	 * The accept cancel event should now have been posted,
-	 * and the connections should be gone.
-	 */
-	INSIST(! l->accepting && ISC_LIST_EMPTY(l->connections));
-
-	UNLOCK(&l->mutex);
-
-	/*
-	 * Break the link between the listener object and its parent
-	 * (usually a generic object); this is done so the server's
-	 * reference to its managing object does not prevent the listener
-	 * object from being destroyed.
-	 */
-	OBJECT_DEREF(&l->inner->outer);
-	OBJECT_DEREF(&l->inner);
-
-	/*
-	 * The listener object can now be freed.
-	 */
-	OBJECT_DEREF(&l);
 }
 
 static isc_result_t
@@ -414,20 +417,27 @@ listener_destroy(omapi_object_t *listener) {
 
 	l = (omapi_listener_t *)listener;
 
+	LOCK(&l->mutex);
 	INSIST(ISC_LIST_EMPTY(l->connections));
-
-	if (l->task != NULL) {
-		isc_task_destroy(&l->task);
-		l->task = NULL;
-	}
-
-	if (l->socket != NULL) {
-		isc_socket_detach(&l->socket);
-		l->socket = NULL;
-	}
+	UNLOCK(&l->mutex);
 
 	RUNTIME_CHECK(isc_mutex_destroy(&l->mutex) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_condition_destroy(&l->waiter) == ISC_R_SUCCESS);
+
+	if (l->task != NULL)
+		isc_task_destroy(&l->task);
+
+	if (l->socket != NULL)
+		isc_socket_detach(&l->socket);
+
+	if (l->acl != NULL)
+		dns_acl_detach(&l->acl);
+
+	/*
+	 * XXDCL Technically, all the memory is not yet freed.  Hmm.
+	 * Somehow this callback stuff (or its "event" equivalent) needs to
+	 * go into object_dereference.
+	 */
+	(*l->callback)(l->callback_arg);
 }
 
 static isc_result_t
@@ -449,11 +459,18 @@ listener_signalhandler(omapi_object_t *listener, const char *name, va_list ap)
 		c = va_arg(ap, omapi_connection_t *);
 
 		LOCK(&l->mutex);
-
 		ISC_LIST_UNLINK(l->connections, c, link);
 
-		SIGNAL(&l->waiter);
-		UNLOCK(&l->mutex);
+		if (! l->listening && ISC_LIST_HEAD(l->connections) == NULL) {
+			/*
+			 * The listener has been shutdown and the last
+			 * connection was received.
+			 */
+			UNLOCK(&l->mutex);
+			free_listener(l);
+
+		} else
+			UNLOCK(&l->mutex);
 
 		result = ISC_R_SUCCESS;
 	} else
