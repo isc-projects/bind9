@@ -34,15 +34,15 @@ all: ${SUBDIRS} ${TARGETS}
 ALL_SUBDIRS = ${SUBDIRS} nulldir
 
 ${ALL_SUBDIRS}: FORCE
-	@echo "making all in `pwd`/$@"
 	@if [ "$@" != "nulldir" -a -d $@ ]; then \
+		echo "making all in `pwd`/$@"; \
 		(cd $@; ${MAKE} ${MAKEDEFS} all); \
 	fi
 
 install depend clean distclean::
 	@for i in ${ALL_SUBDIRS}; do \
-		echo "making $@ in `pwd`/$$i"; \
 		if [ "$$i" != "nulldir" -a -d $$i ]; then \
+			echo "making $@ in `pwd`/$$i"; \
 			(cd $$i; ${MAKE} ${MAKEDEFS} $@); \
 		fi \
 	done
