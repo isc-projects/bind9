@@ -15,8 +15,20 @@
  * SOFTWARE.
  */
 
-/* $Id: driver.h,v 1.1 2000/06/16 22:17:11 explorer Exp $ */
+/* $Id: driver.h,v 1.2 2000/06/16 23:12:37 explorer Exp $ */
 
+/*
+ * PASSED and FAILED mean the particular test passed or failed.
+ *
+ * UNKNOWN means that for one reason or another, the test process itself
+ * failed.  For instance, missing files, error when parsing files or
+ * IP addresses, etc.  That is, the test itself is broken, not what is
+ * being tested.
+ *
+ * UNTESTED means the test was unable to be run because a prerequisite test
+ * failed, the test is disabled, or the test needs a system component
+ * (for instance, Perl) and cannot run.
+ */
 typedef enum {
 	PASSED = 0,
 	FAILED = 1,
