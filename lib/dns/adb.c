@@ -25,6 +25,11 @@
  *
  */
 
+/*
+ * After we have cleaned all buckets, dump the database contents.
+ */
+#define DUMP_ADB_AFTER_CLEANING
+
 #include <config.h>
 
 #include <stdio.h>
@@ -352,6 +357,10 @@ static isc_result_t dbfind_a6(dns_adbname_t *, isc_stdtime_t, isc_boolean_t);
 #define CLEAN_LEVEL		100
 #define DEF_LEVEL		5
 
+#define NCACHE_RESULT(r)	((r) == DNS_R_NCACHENXDOMAIN || \
+				 (r) == DNS_R_NCACHENXRRSET)
+
+
 static void
 DP(int level, char *format, ...)
 {
@@ -462,12 +471,17 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
 	if (new_addresses_added) {
-		if (rdtype == dns_rdatatype_a)
+		if (rdtype == dns_rdatatype_a) {
+			DP(1, "expire_v4 set to MIN(%u,%u) import_rdataset",
+			   adbname->expire_v4, now + rdataset->ttl);
 			adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
 						     now + rdataset->ttl);
-		else
+		} else {
+			DP(1, "expire_v6 set to MIN(%u,%u) import_rdataset",
+			   adbname->expire_v6, now + rdataset->ttl);
 			adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
 						     now + rdataset->ttl);
+		}
 
 		/*
 		 * Lie a little here.  This is more or less so code that cares
@@ -538,6 +552,8 @@ import_a6(dns_a6context_t *a6ctx)
 	if (addr_bucket != DNS_ADB_INVALIDBUCKET)
 		UNLOCK(&adb->entrylocks[addr_bucket]);
 
+	DP(1, "expire_v6 set to MIN(%u,%u) in import_v6",
+	   name->expire_v6, a6ctx->expiration);
 	name->expire_v6 = ISC_MIN(name->expire_v6, a6ctx->expiration);
 
 	if (address_added)
@@ -1739,6 +1755,7 @@ cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now)
 	dns_adbname_t *next_name;
 
 	DP(CLEAN_LEVEL, "cleaning bucket %d", bucket);
+
 	LOCK(&adb->namelocks[bucket]);
 	if (adb->name_sd[bucket]) {
 		UNLOCK(&adb->namelocks[bucket]);
@@ -1785,8 +1802,12 @@ timer_cleanup(isc_task_t *task, isc_event_t *ev)
 	 * Set the next bucket to be cleaned.
 	 */
 	adb->next_namebucket++;
-	if (adb->next_namebucket >= NBUCKETS)
+	if (adb->next_namebucket >= NBUCKETS) {
 		adb->next_namebucket = 0;
+#ifdef DUMP_ADB_AFTER_CLEANING
+		dump_adb(adb, stdout);
+#endif
+	}
 
 #if 0
 	/*
@@ -2196,6 +2217,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 
 		/*
+		 * Listen to negative cache hints, and don't start
+		 * another query.
+		 */
+		if (NCACHE_RESULT(result))
+			goto v6;
+
+		/*
 		 * Try to start fetches for v4.
 		 */
 		result = fetch_name_v4(adbname, now);
@@ -2218,6 +2246,13 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 			   adbname);
 			goto copy;
 		}
+
+		/*
+		 * Listen to negative cache hints, and don't start
+		 * another query.
+		 */
+		if (NCACHE_RESULT(result))
+			goto copy;
 
 		/*
 		 * Try to start fetches for a6.
@@ -2899,10 +2934,10 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now,
 		 */
 		if (rdtype == dns_rdatatype_a) {
 			adbname->expire_v4 = rdataset.ttl + now;
-			DP(3, "adb name %p: Caching negative entry for A (ttl %u)",
+			DP(1, "adb name %p: Caching negative entry for A (ttl %u)",
 			   adbname, rdataset.ttl);
 		} else {
-			DP(3, "adb name %p: Caching negative entry for AAAA (ttl %u)",
+			DP(1, "adb name %p: Caching negative entry for AAAA (ttl %u)",
 			   adbname, rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
 		}
@@ -2954,7 +2989,10 @@ dbfind_a6(dns_adbname_t *adbname, isc_stdtime_t now, isc_boolean_t use_hints)
 		 * We found a negative cache entry.  Pull the TTL from it
 		 * so we won't ask again for a while.
 		 */
-		adbname->expire_v6 = rdataset.ttl + now;
+		DP(1, "adb name %p: Caching negative entry for A6 (ttl %u)",
+		   adbname, rdataset.ttl);
+		adbname->expire_v6 = ISC_MIN(rdataset.ttl + now,
+					     adbname->expire_v6);
 	}
 
 	if (dns_rdataset_isassociated(&rdataset))
@@ -3044,6 +3082,26 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 	}
 
 	/*
+	 * If we got a negative cache response, remember it.
+	 */
+	if (NCACHE_RESULT(dev->result)) {
+		if (address_type == DNS_ADBFIND_INET) {
+			DP(1, "adb fetch name %p: "
+			   "Caching negative entry for A (ttl %u)",
+			   name, dev->rdataset->ttl);
+			name->expire_v4 = ISC_MIN(name->expire_v4,
+						  dev->rdataset->ttl + now);
+		} else {
+			DP(1, "adb fetch name %p: "
+			   "Caching negative entry for AAAA (ttl %u)",
+			   name, dev->rdataset->ttl);
+			name->expire_v6 = ISC_MIN(name->expire_v6,
+						  dev->rdataset->ttl + now);
+		}
+		goto out;
+	}
+
+	/*
 	 * Did we get back junk?  If so, and there are no more fetches
 	 * sitting out there, tell all the finds about it.
 	 */
@@ -3053,6 +3111,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev)
 			name->expire_v4 = ISC_MIN(name->expire_v4, now + 300);
 		else
 			name->expire_v6 = ISC_MIN(name->expire_v6, now + 300);
+		DP(1, "got junk in fetch for name %p (%s)",
+		   name, isc_result_totext(dev->result));
 
 		goto out;
 	}
@@ -3163,6 +3223,17 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 		DP(DEF_LEVEL, "name %p: A6 failed, result %u",
 		   name, dev->result);
 
+		/*
+		 * If we got a negative cache response, remember it.
+		 */
+		if (NCACHE_RESULT(dev->result)) {
+			DP(1, "adb fetch name %p: "
+			   "Caching negative entry for A6 (ttl %u)",
+			   name, dev->rdataset->ttl);
+			name->expire_v6 = ISC_MIN(name->expire_v6,
+						  dev->rdataset->ttl + now);
+		}
+
 		if (FETCH_USEHINTS(fetch))
 			use_hints = ISC_TRUE;
 		else
@@ -3186,6 +3257,13 @@ fetch_callback_a6(isc_task_t *task, isc_event_t *ev)
 				name->flags |= NAME_NEEDS_POKE;
 				goto out;
 			}
+
+			/*
+			 * Listen to negative cache hints, and don't start
+			 * another query.
+			 */
+			if (NCACHE_RESULT(result))
+				goto out;
 
 			/*
 			 * Try to start fetches for AAAA.
