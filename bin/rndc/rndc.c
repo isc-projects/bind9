@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.56 2001/04/16 22:00:21 bwelling Exp $ */
+/* $Id: rndc.c,v 1.57 2001/04/16 23:07:34 bwelling Exp $ */
 
 /*
  * Principal Author: DCL
@@ -35,6 +35,7 @@
 #include <isc/stdtime.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <isccfg/cfg.h>
@@ -280,6 +281,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 		fatal("connect failed: %s", isc_result_totext(sevent->result));
 
 	isc_stdtime_get(&now);
+	srandom(now + isc_thread_self());
 	DO("create message", isccc_cc_createmessage(1, NULL, NULL, random(),
 						    now, now + 60, &request));
 	data = isccc_alist_lookup(request, "_data");
