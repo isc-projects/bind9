@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.137.2.1 2001/01/09 22:44:03 bwelling Exp $ */
+/* $Id: rdata.c,v 1.137.2.2 2001/09/21 20:48:06 gson Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1022,6 +1022,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		break;
 	case 'h':
 		COMPARE("hs", dns_rdataclass_hs);
+		COMPARE("hesiod", dns_rdataclass_hs);
 		break;
 	case 'i':
 		COMPARE("in", dns_rdataclass_in);

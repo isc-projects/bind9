@@ -8,6 +8,9 @@
 
 1004.	[port]		Deal with recvfrom() returning EHOSTDOWN. [RT #1770]
 
+1000.	[bug]		BIND 8 compatibility: accept "HESIOD" as an alias
+			for class "HS". [RT #1759]
+
  987.	[bug]		"dig -help" didn't show "+[no]stats".
 
  986.	[bug]		"dig +noall" failed to clear stats and command
