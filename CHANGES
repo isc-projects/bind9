@@ -1,4 +1,6 @@
 
+ 633.	[port]		Cope with rlim_t missing on BSD/OS systems. [RT #575]
+
 	--- 9.1.0b2 released ---
 
  632.	[bug]		The index array of the journal file was 
