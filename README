@@ -59,6 +59,8 @@ BIND 9.2
             lookups in domains that make use of these IPv6 DNS
             features.
 
+	  - Improved performance.
+
 	An IPv6 capable stub resolver based on the BIND 8 resolver
 	code base and fully backwards compatible with existing BIND 8
 	based resolvers is being developed and will be integrated into
@@ -213,7 +215,8 @@ Documentation
 	"make install".
 
 	If you are upgrading from BIND 8, please read the migration
-	notes in doc/misc/migration.
+	notes in doc/misc/migration.  If you are upgrading from
+	BIND 4, read doc/misc/migration-4to9.
 
 
 Bug Reports and Mailing Lists
