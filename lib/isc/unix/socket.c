@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.178.2.7 2001/04/27 21:59:31 gson Exp $ */
+/* $Id: socket.c,v 1.178.2.8 2001/09/19 02:36:34 marka Exp $ */
 
 #include <config.h>
 
@@ -610,6 +610,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
 #if defined(USE_CMSG)
+#ifdef ISC_PLATFORM_HAVEIPV6
 	if ((sock->type == isc_sockettype_udp)
 	    && ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0)) {
 		struct cmsghdr *cmsgp;
@@ -630,6 +631,7 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 		memcpy(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
 	}
+#endif
 #endif /* USE_CMSG */
 #else /* ISC_NET_BSD44MSGHDR */
 	msg->msg_accrights = NULL;
@@ -864,6 +866,7 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
 		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
 		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
+		SOFT_OR_HARD(EHOSTDOWN, ISC_R_HOSTDOWN);
 		ALWAYS_HARD(ENOBUFS, ISC_R_NORESOURCES);
 
 #undef SOFT_OR_HARD
