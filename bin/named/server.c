@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.211 2000/08/02 20:55:40 tale Exp $ */
+/* $Id: server.c,v 1.212 2000/08/08 00:44:21 gson Exp $ */
 
 #include <config.h>
 
@@ -834,7 +834,7 @@ create_version_zone(dns_c_ctx_t *cctx, dns_zonemgr_t *zmgr, dns_view_t *view)
 /*
  * Create the special view that handles queries for
  * "authors.bind. CH".   The strings returned list
- * the authors of bind.
+ * the BIND 9 authors.
  */
 static isc_result_t
 create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
@@ -885,6 +885,7 @@ create_authors_zone(dns_zonemgr_t *zmgr, dns_view_t *view) {
 	for (i = 0; authors[i] != NULL; i++) {
 		cr.base = authors[i];
 		cr.length = strlen(authors[i]);
+		INSIST(cr.length == cr.base[0] + 1);
 		dns_rdata_fromregion(&rdata, dns_rdataclass_ch,
 				     dns_rdatatype_txt, (isc_region_t *)&cr);
 		tuple = NULL;
