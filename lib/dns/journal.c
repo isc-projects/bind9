@@ -1155,7 +1155,7 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, isc_boolean_t write,
 	if (! write && JOURNAL_EMPTY(&j->header)) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "journal file %s is empty", j->filename);
-		FAIL(DNS_R_NOTFOUND);
+		FAIL(DNS_R_NOJOURNAL);
 	}
 	
 	/*
@@ -1820,7 +1820,7 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename) {
 	if (result == DNS_R_NOTFOUND) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "no journal file, but that's OK");
-		return (DNS_R_SUCCESS);
+		return (DNS_R_NOJOURNAL);
 	}
 	if (result != DNS_R_SUCCESS)
 		return (result);

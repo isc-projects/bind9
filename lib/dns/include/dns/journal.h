@@ -472,7 +472,12 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, const char *filename);
  *	'db' is a valid database which does not have a version
  *           open for writing.
  *      'filename' is the name of the journal file belonging to 'db'.
- * 
+ *
+ * Returns:
+ *	DNS_R_NOJOURNAL when journal does not exist.
+ *	DNS_R_NOTFOUND when current serial in not in journal.
+ *	DNS_R_SUCCESS journal has been applied successfully to database.
+ *	others
  */
 
 dns_result_t dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
