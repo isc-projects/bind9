@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: log.c,v 1.18 2000/04/28 02:08:00 tale Exp $ */
+/* $Id: log.c,v 1.19 2000/04/29 00:45:24 explorer Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -42,6 +42,7 @@ isc_logcategory_t dns_categories[] = {
 	{ "resolver",	0 },
 	{ "xfer-in",	0 },
 	{ "xfer-out",	0 },
+	{ "dispatch",	0 },
 	{ NULL, 	0 }
 };
 
@@ -67,6 +68,7 @@ isc_logmodule_t dns_modules[] = {
 	{ "dns/xfrout",		0 },
 	{ "dns/acl",		0 },
 	{ "dns/validator",	0 },
+	{ "dns/dispatch",	0 },
 	{ NULL, 		0 }
 };
 
