@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.40 2001/06/05 22:27:51 tale Exp $ */
+/* $Id: cache.c,v 1.41 2001/06/07 18:31:54 gson Exp $ */
 
 #include <config.h>
 
@@ -42,7 +42,7 @@
  * CLEANERINCREMENT is how many nodes are examined in one pass.
  * CLEANERINTERVAL is the minimum amount of time between passes.
  */
-#define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2mb */
+#define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
 #define DNS_CACHE_CLEANERINCREMENT	100	/* Number of nodes. */
 #define DNS_CACHE_CLEANERINTERVAL	6	/* Seconds. */
 
