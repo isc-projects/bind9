@@ -1272,7 +1272,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 	dns_name_t *wname;
 	dns_fixedname_t fwname;
 	dns_rbtdb_t *rbtdb;
-	isc_boolean_t wild, active;
+	isc_boolean_t done, wild, active;
 
 	/*
 	 * Caller must be holding the tree lock and MUST NOT be holding
@@ -1291,10 +1291,9 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 
 	rbtdb = search->rbtdb;
 	i = search->chain.level_matches;
-	while (i > 0) {
-		i--;
-		node = search->chain.levels[i];
-
+	done = ISC_FALSE;
+	node = *nodep;
+	do {
 		LOCK(&(rbtdb->node_locks[node->locknum].lock));
 
 		/*
@@ -1393,7 +1392,13 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep) {
 			result = DNS_R_NOTFOUND;
 			break;
 		}
-	}
+
+		if (i > 0) {
+			i--;
+			node = search->chain.levels[i];
+		} else
+			done = ISC_TRUE;
+	} while (!done);
 
 	return (result);
 }
@@ -1829,7 +1834,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	if (empty_node) {
 		/*
 		 * We have an exact match for the name, but there are no
-		 * active rdatasets the desired version.  That means that
+		 * active rdatasets in the desired version.  That means that
 		 * this node doesn't exist in the desired version, and that
 		 * we really have a partial match.
 		 *
