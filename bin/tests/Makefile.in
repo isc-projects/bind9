@@ -42,6 +42,8 @@ SUBDIRS = db dst master mem names rbt sockaddr tasks timers
 # Alphabetically
 TARGETS =	keygen sdig signer
 XTARGETS =	adb_test \
+		byaddr_test \
+		byname_test \
 		compress_test \
 		db_test \
 		dispatch_tcp_test \
@@ -79,6 +81,8 @@ XTARGETS =	adb_test \
 
 # Alphabetically
 SRCS =		adb_test.c \
+		byaddr_test.c \
+		byname_test.c \
 		compress_test.c \
 		db_test.c \
 		dispatch_tcp_test.c \
@@ -139,10 +143,6 @@ signer: signer.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 
 keygen: keygen.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL} ${CC} ${CFLAGS} -o $@ keygen.@O@ \
-		${DNSLIBS} ${ISCLIBS} ${LIBS}
-
-res_test: res_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL} ${CC} ${CFLAGS} -o $@ res_test.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 byaddr_test: byaddr_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
