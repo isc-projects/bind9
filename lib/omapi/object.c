@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: object.c,v 1.9 2000/01/24 15:20:18 tale Exp $ */
+/* $Id: object.c,v 1.10 2000/01/31 14:52:33 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
@@ -454,8 +454,13 @@ omapi_object_getvalue(omapi_object_t *h, const char *name,
 	for (outer = h; outer->outer != NULL; outer = outer->outer)
 		;
 	if (outer->type->get_value != NULL)
-		return (*(outer->type->get_value))(outer, nds, value);
-	return (ISC_R_NOTFOUND);
+		result = (*(outer->type->get_value))(outer, nds, value);
+	else
+		result = ISC_R_NOTFOUND;
+
+	omapi_string_dereference(&nds);
+
+	return (result);
 }
 
 isc_result_t
