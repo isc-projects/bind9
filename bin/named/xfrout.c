@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: xfrout.c,v 1.19 1999/10/26 19:40:18 gson Exp $ */
+ /* $Id: xfrout.c,v 1.20 1999/10/29 00:24:36 gson Exp $ */
 
 #include <config.h>
 
@@ -260,6 +260,10 @@ log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
 	result = dns_rdataset_totext(&rds, name,
 				     ISC_FALSE, ISC_FALSE, &buf);
 
+	/* Get rid of final newline. */
+	INSIST(buf.used >= 1 && ((char *) buf.base)[buf.used-1] == '\n');
+	buf.used--;
+	
 	if (result == DNS_R_SUCCESS) {
 		isc_buffer_used(&buf, &r);
 		isc_log_write(XFROUT_DEBUG_LOGARGS(8),
@@ -937,8 +941,14 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	CHECK(soa_rrstream_create(mctx, db, ver, &soa_stream));
 	CHECK(compound_rrstream_create(mctx, &soa_stream, &data_stream,
 				       &stream));
+	soa_stream = NULL;
+	data_stream = NULL;
 
  have_stream:
+	/*
+	 * Create the xfrout context object.  This transfers the ownership
+	 * of "stream", "db", and "ver" to the xfrout context object.
+	 */
 	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name, 
 				reqtype, db, ver, stream, request->tsigkey,
 				request->tsig, &xfr));
@@ -947,16 +957,20 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 	ver = NULL;
 	
 	CHECK(xfr->stream->methods->first(xfr->stream));
-	sendstream(xfr);
 
+	/*
+	 * Hand the context over to sendstream().  Set xfr to NULL;
+	 * sendstream() is responsible for either passing the
+	 * context on to a later event handler or destroying it.
+	 */
+	sendstream(xfr);
+	xfr = NULL;
+	
 	result = DNS_R_SUCCESS;
+
  failure:
 	if (current_soa_tuple != NULL)
 		dns_difftuple_free(&current_soa_tuple);
-	
-	if (result == DNS_R_SUCCESS)
-		return;
-
 	if (stream != NULL)
 		stream->methods->destroy(&stream);
 	if (soa_stream != NULL)
@@ -969,12 +983,11 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype)
 		dns_db_detach(&db);
 	if (zone != NULL)
 		dns_zone_detach(&zone);
-	
 	/* XXX kludge */
 	if (xfr != NULL) {
 		xfrout_fail(xfr, result, "setting up zone transfer");
-	} else {
-		isc_log_write(XFROUT_DEBUG_LOGARGS(5),
+	} else if (result != DNS_R_SUCCESS) {
+		isc_log_write(XFROUT_DEBUG_LOGARGS(3),
 			      "zone transfer setup failed"); 
 		ns_client_error(client, result);
 	}
@@ -1085,7 +1098,7 @@ sendstream(xfrout_ctx_t *xfr)
 	isc_buffer_clear(&xfr->buf);
 	isc_buffer_clear(&xfr->txlenbuf);
 	isc_buffer_clear(&xfr->txbuf);
-	
+
 	/*
 	 * Build a response dns_message_t, temporarily storing the raw, 
 	 * uncompressed owner names and RR data contiguously in xfr->buf.
@@ -1358,7 +1371,6 @@ xfrout_send_end(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	ns_client_next(xfr->client, DNS_R_SUCCESS);
 	xfrout_ctx_destroy(&xfr);
-
 }
 
 static void
