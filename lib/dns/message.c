@@ -294,6 +294,7 @@ msginittsig(dns_message_t *m)
 	m->sig0key = NULL;
 	m->sig0status = dns_rcode_noerror;
 	m->query = NULL;
+	m->saved = NULL;
 }
 
 /*
@@ -309,7 +310,6 @@ msginit(dns_message_t *m)
 	m->header_ok = 0;
 	m->question_ok = 0;
 	m->tcp_continuation = 0;
-	m->response_needs_sig0 = 0;
 	m->verified_sig0 = 0;
 }
 
@@ -453,6 +453,12 @@ msgreset(dns_message_t *msg, isc_boolean_t everything)
 		isc_mem_put(msg->mctx, msg->query->base, msg->query->length);
 		isc_mem_put(msg->mctx, msg->query, sizeof(isc_region_t));
 		msg->query = NULL;
+	}
+
+	if (msg->saved != NULL) {
+		isc_mem_put(msg->mctx, msg->saved->base, msg->saved->length);
+		isc_mem_put(msg->mctx, msg->saved, sizeof(isc_region_t));
+		msg->saved = NULL;
 	}
 
 	/*
@@ -1065,8 +1071,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			else if (covers == 0) {
 				msg->sigstart = recstart;
 				section = &msg->sections[DNS_SECTION_SIG0];
-				if ((msg->flags & DNS_MESSAGEFLAG_QR) == 0)
-					msg->response_needs_sig0 = 1;
 			}
 		} else
 			covers = 0;
@@ -1256,20 +1260,20 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 		if (ret != DNS_R_SUCCESS)
 			return ret;
 	}
-	else if (msg->response_needs_sig0 == 1) {
-		msg->query = isc_mem_get(msg->mctx, sizeof(isc_region_t));
-		if (msg->query == NULL)
+	else if (!ISC_LIST_EMPTY(msg->sections[DNS_SECTION_SIG0])) {
+		msg->saved = isc_mem_get(msg->mctx, sizeof(isc_region_t));
+		if (msg->saved == NULL)
 			return (ISC_R_NOMEMORY);
 		isc_buffer_used(&origsource, &r);
-		msg->query->length = msg->sigstart;
-		msg->query->base = isc_mem_get(msg->mctx, msg->query->length);
-		if (msg->query->base == NULL) {
-			isc_mem_put(msg->mctx, msg->query,
+		msg->saved->length = r.length;
+		msg->saved->base = isc_mem_get(msg->mctx, msg->saved->length);
+		if (msg->saved->base == NULL) {
+			isc_mem_put(msg->mctx, msg->saved,
 				    sizeof(isc_region_t));
-			msg->query = NULL;
+			msg->saved = NULL;
 			return (ISC_R_NOMEMORY);
 		}
-		memcpy(msg->query->base, r.base, msg->query->length);
+		memcpy(msg->saved->base, r.base, msg->saved->length);
 	}
 
 	return (DNS_R_SUCCESS);
@@ -1877,6 +1881,10 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section) {
 		msg->tsig = NULL;
 		msg->querytsigstatus = msg->tsigstatus;
 		msg->tsigstatus = dns_rcode_noerror;
+	}
+	if (msg->saved != NULL) {
+		msg->query = msg->saved;
+		msg->saved = NULL;
 	}
 
 	return (DNS_R_SUCCESS);

@@ -110,7 +110,6 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
  *	Returns:
  *		DNS_R_SUCCESS
  *		ISC_R_NOMEMORY
- *		DNS_R_RANGE - the SIG record has an invalid signature length
  *		DNS_R_SIGINVALID - the signature fails to verify
  *		DNS_R_SIGEXPIRED - the signature has expired
  *		DNS_R_SIGFUTURE - the signature's validity period has not begun
@@ -147,10 +146,40 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node,
 
 isc_result_t
 dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key);
+/*
+ *	Signs a message with a SIG(0) record.  This is implicitly called by
+ *	dns_message_renderend() if msg->sig0key is not NULL.
+ *
+ *	Requires:
+ *		'msg' is a valid message
+ *		'key' is a valid key that can be used for signing
+ *
+ *	Returns:
+ *		ISC_R_SUCCESS
+ *		ISC_R_NOMEMORY
+ *		DST_R_*
+ */
 
 isc_result_t
-dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
-                         dst_key_t *key);
+dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key);
+/*
+ *	Verifies a message signed by a SIG(0) record.  This is not
+ *	called implicitly by dns_message_parse().  If dns_message_signer()
+ *	is called before dns_dnssec_verifymessage(), it will return
+ *	DNS_R_SIGNOTVERIFIEDYET.  dns_dnssec_verifymessage() will set
+ *	the verified_sig0 flag in msg if the verify succeeds, and
+ *	the sig0status field otherwise.
+ *
+ *	Requires:
+ *		'msg' is a valid message
+ *		'key' is a valid key
+ *
+ *	Returns:
+ *		ISC_R_SUCCESS
+ *		ISC_R_NOMEMORY
+ *		ISC_R_NOTFOUND - no SIG(0) was found
+ *		DST_R_*
+ */
 
 ISC_LANG_ENDDECLS
 

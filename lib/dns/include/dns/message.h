@@ -164,7 +164,6 @@ struct dns_message {
 	unsigned int			header_ok : 1;
 	unsigned int			question_ok : 1;
 	unsigned int			tcp_continuation: 1;
-	unsigned int			response_needs_sig0: 1;
 	unsigned int			verified_sig0: 1;
 
 	unsigned int			reserved; /* reserved space (render) */
@@ -196,6 +195,7 @@ struct dns_message {
 	dst_key_t		       *sig0key;
 	dns_rcode_t			sig0status;
 	isc_region_t		       *query;
+	isc_region_t		       *saved;
 };
 
 dns_result_t

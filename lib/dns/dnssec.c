@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.12 1999/11/02 19:53:41 bwelling Exp $
+ * $Id: dnssec.c,v 1.13 1999/11/02 22:58:28 bwelling Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -733,9 +733,7 @@ failure:
 }
 
 isc_result_t
-dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
-			 dst_key_t *key)
-{
+dns_dnssec_verifymessage(dns_message_t *msg, dst_key_t *key) {
 	dns_rdata_generic_sig_t sig;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata;
@@ -749,8 +747,8 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	isc_uint16_t addcount;
 	isc_boolean_t signeedsfree = ISC_FALSE;
 
-	REQUIRE(source != NULL);
 	REQUIRE(msg != NULL);
+	REQUIRE(msg->saved != NULL);
 	REQUIRE(key != NULL);
 
 	if (is_response(msg))
@@ -798,9 +796,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 				  NULL));
 
 	/* Extract the header */
-	isc_buffer_used(source, &r);
-	memcpy(header, r.base, DNS_MESSAGE_HEADERLEN);
-	isc_region_consume(&r, DNS_MESSAGE_HEADERLEN);
+	memcpy(header, msg->saved->base, DNS_MESSAGE_HEADERLEN);
 
 	/* Decrement the additional field counter */
 	memcpy(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
@@ -813,6 +809,7 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &header_r, NULL));
 
 	/* Digest all non-SIG(0) records */
+	r.base = msg->saved->base + DNS_MESSAGE_HEADERLEN;
 	r.length = msg->sigstart - DNS_MESSAGE_HEADERLEN;
 	RETERR(dst_verify(DST_SIGMODE_UPDATE, key, &ctx, &r, NULL));
 
@@ -821,8 +818,8 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 	 * the name and 10 bytes for class, type, ttl, length to get to
 	 * the start of the rdata.
 	 */
-	isc_buffer_used(source, &r);
-	isc_region_consume(&r, msg->sigstart);
+	r.base = msg->saved->base + msg->sigstart;
+	r.length = msg->saved->length - msg->sigstart;
 	dns_name_init(&tname, NULL);
 	dns_name_fromregion(&tname, &r);
 	dns_name_toregion(&tname, &r2);
