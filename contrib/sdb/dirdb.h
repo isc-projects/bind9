@@ -15,11 +15,11 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.h,v 1.3 2000/11/18 01:29:12 bwelling Exp $ */
+/* $Id: dirdb.h,v 1.1 2000/11/18 01:29:11 bwelling Exp $ */
 
 #include <isc/types.h>
 
-isc_result_t tcldb_init(void);
+isc_result_t dirdb_init(void);
 
-void tcldb_clear(void);
+void dirdb_clear(void);
 

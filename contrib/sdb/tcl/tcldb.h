@@ -15,6 +15,8 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* $Id: tcldb.h,v 1.3 2000/11/18 01:29:12 bwelling Exp $ */
+
 #include <isc/types.h>
 
 isc_result_t tcldb_init(void);
