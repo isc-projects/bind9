@@ -1,4 +1,7 @@
 
+ 636.	[port]		Shut up MSVC++ about a possible loss of precision
+			in the ISC__BUFFER_PUTUINT*() macros. [RT #592]
+
  635.	[bug]		Reloading a server with a configured blackhole list
 			would cause an assertion. [RT #590]
 
