@@ -1,6 +1,6 @@
-Use util/kit.sh for building snapshots, taking care to set the version
-number to something that can be distinguished from release version
-numbers
+Revise the AXFR draft
+
+Write hex parsing/printing functions for unknown RR types
 
 Fix lwres man pages
 
@@ -10,8 +10,6 @@ RT #199  ""views" test failed on aa"
 
 handle incoming AXFR without using twice the memory by using
 RBT mark bit (with Brian)
-
-Revise the AXFR draft (waiting from input from Microsoft)
 
 Support 64-bit offsets and serials in the journal
 (RT #124 "journalling with large files)
