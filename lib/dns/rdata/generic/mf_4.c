@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: mf_4.c,v 1.19 2000/02/03 23:43:01 halley Exp $ */
+ /* $Id: mf_4.c,v 1.20 2000/03/16 01:37:14 brister Exp $ */
 
 #ifndef RDATA_GENERIC_MF_4_C
 #define RDATA_GENERIC_MF_4_C
@@ -31,7 +31,7 @@ fromtext_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 4);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	RETERR(gettoken(lexer, &token, isc_tokentype_string, ISC_FALSE));
 
@@ -39,7 +39,7 @@ fromtext_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	buffer_fromregion(&buffer, &token.value.as_region,
 			  ISC_BUFFERTYPE_TEXT);
 	origin = (origin != NULL) ? origin : dns_rootname;
-	return (dns_name_fromtext(&name, &buffer, origin, downcase, target));
+	return(dns_name_fromtext(&name, &buffer, origin, downcase, target));
 }
 
 static inline isc_result_t
@@ -61,7 +61,7 @@ totext_mf(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 
 	sub = name_prefix(&name, tctx->origin, &prefix);
 
-	return (dns_name_totext(&prefix, sub, target));
+	return(dns_name_totext(&prefix, sub, target));
 }
 
 static inline isc_result_t
@@ -73,7 +73,7 @@ fromwire_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 
 	REQUIRE(type == 4);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
 	if (dns_decompress_edns(dctx) >= 1 || !dns_decompress_strict(dctx))
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_ALL);
@@ -81,11 +81,12 @@ fromwire_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
         
         dns_name_init(&name, NULL);
-        return (dns_name_fromwire(&name, source, dctx, downcase, target));
+        return(dns_name_fromwire(&name, source, dctx, downcase, target));
 }
 
 static inline isc_result_t
-towire_mf(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
+towire_mf(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target)
+{
 	dns_name_t name;
 	isc_region_t region;
 
@@ -100,11 +101,12 @@ towire_mf(dns_rdata_t *rdata, dns_compress_t *cctx, isc_buffer_t *target) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return (dns_name_towire(&name, cctx, target));
+	return(dns_name_towire(&name, cctx, target));
 }
 
 static inline int
-compare_mf(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
+compare_mf(dns_rdata_t *rdata1, dns_rdata_t *rdata2)
+{
 	dns_name_t name1;
 	dns_name_t name2;
 	isc_region_t region1;
@@ -123,7 +125,7 @@ compare_mf(dns_rdata_t *rdata1, dns_rdata_t *rdata2) {
 	dns_name_fromregion(&name1, &region1);
 	dns_name_fromregion(&name2, &region2);
 
-	return (dns_name_rdatacompare(&name1, &name2));
+	return(dns_name_rdatacompare(&name1, &name2));
 }
 
 static inline isc_result_t
@@ -133,27 +135,29 @@ fromstruct_mf(dns_rdataclass_t rdclass, dns_rdatatype_t type, void *source,
 
 	REQUIRE(type == 4);
 
-	rdclass = rdclass;	/*unused*/
+	UNUSED(rdclass);
 
-	source = source;
-	target = target;
+	UNUSED(source);
+	UNUSED(target);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return(DNS_R_NOTIMPLEMENTED);
 }
 
 static inline isc_result_t
-tostruct_mf(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+tostruct_mf(dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+{
 
 	REQUIRE(rdata->type == 4);
 
-	target = target;
-	mctx = mctx;
+	UNUSED(target);
+	UNUSED(mctx);
 
-	return (DNS_R_NOTIMPLEMENTED);
+	return(DNS_R_NOTIMPLEMENTED);
 }
 
 static inline void
-freestruct_mf(void *source) {
+freestruct_mf(void *source)
+{
 	REQUIRE(source != NULL);
 	REQUIRE(ISC_FALSE);	/*XXX*/
 }
@@ -171,11 +175,12 @@ additionaldata_mf(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 
-	return ((add)(arg, &name, dns_rdatatype_a));
+	return((add)(arg, &name, dns_rdatatype_a));
 }
 
 static inline isc_result_t
-digest_mf(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
+digest_mf(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+{
 	isc_region_t r;
 	dns_name_t name;
 
@@ -185,7 +190,7 @@ digest_mf(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &r);
 
-	return (dns_name_digest(&name, digest, arg));
+	return(dns_name_digest(&name, digest, arg));
 }
 
 #endif	/* RDATA_GENERIC_MF_4_C */
