@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.9.12.4 2004/03/08 21:06:26 marka Exp $ */
+/* $Id: lookup.c,v 1.9.12.5 2004/04/15 02:10:40 marka Exp $ */
 
 #include <config.h>
 
@@ -316,7 +316,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 				dns_db_detachnode(event->db, &event->node);
 			if (event->db != NULL)
 				dns_db_detach(&event->db);
-			isc_event_free((isc_event_t **) (void *)&event);
+			isc_event_free(ISC_EVENT_PTR(&event));
 		}
 
 		/*

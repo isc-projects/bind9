@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.26 2004/03/10 02:55:52 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.27 2004/04/15 02:10:38 marka Exp $ */
 
 #include <config.h>
 
@@ -3276,7 +3276,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		dns_db_detach(&zdb);
 	}
 	if (event != NULL)
-		isc_event_free((isc_event_t **) (void*)&event);
+		isc_event_free(ISC_EVENT_PTR(&event));
 
 	/*
 	 * AA bit.

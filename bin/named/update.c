@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.5.2.16 2004/03/08 21:06:21 marka Exp $ */
+/* $Id: update.c,v 1.88.2.5.2.17 2004/04/15 02:10:39 marka Exp $ */
 
 #include <config.h>
 
@@ -1965,11 +1965,11 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **) (void *)&event);
+	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **) (void *)&event);
+		isc_event_free(ISC_EVENT_PTR(&event));
 	return (result);
 }
 
@@ -2723,7 +2723,7 @@ forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
 		uev->ev_action = forward_done;
 		uev->answer = answer;
 	}
-	isc_task_send(client->task, (isc_event_t **) (void *)&uev);
+	isc_task_send(client->task, ISC_EVENT_PTR(&uev));
 }
 
 static void
@@ -2777,10 +2777,10 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event->ev_arg = evclient;
 
 	dns_zone_gettask(zone, &zonetask);
-	isc_task_send(zonetask, (isc_event_t **) (void *)&event);
+	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
 
  failure:
 	if (event != NULL)
-		isc_event_free((isc_event_t **) (void *)&event);
+		isc_event_free(ISC_EVENT_PTR(&event));
 	return (result);
 }
