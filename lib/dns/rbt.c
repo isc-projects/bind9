@@ -469,7 +469,7 @@ dns_rbt_addnode(dns_rbt_t *rbt, dns_name_t *name, dns_rbtnode_t **nodep) {
 				OFFSETLEN(current) = keep_labels;
 				memcpy(OFFSETS(current), new_name.offsets,
 				       keep_labels);
-				PADBYTES(current) =
+				PADBYTES(current) +=
 					(current_name.length - new_name.length)
 				        + (current_labels - keep_labels);
 
