@@ -1,3 +1,7 @@
+
+ 472.	[bug]		Off-by-one error caused isc_time_add() to sometimes
+			produce invalid time values.
+
  471.	[bug]		nsupdate didn't compile on HP/UX 10.20
 
  470.	[feature]	$GENERATE is now supported.  See also
