@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.166 2001/05/14 21:12:32 gson Exp $ */
+/* $Id: client.c,v 1.167 2001/05/14 21:33:45 gson Exp $ */
 
 #include <config.h>
 
@@ -1263,11 +1263,14 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (TCP_CLIENT(client)) {
 			ns_client_next(client, result);
 		} else {
-			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-				      "UDP client handler shutting down "
-				      "due to fatal receive error: %s",
-				      isc_result_totext(result));
+			if  (result != ISC_R_CANCELED)
+				isc_log_write(ns_g_lctx, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_CLIENT,
+					      ISC_LOG_ERROR,
+					      "UDP client handler shutting "
+					      "down due to fatal receive "
+					      "error: %s",
+					      isc_result_totext(result));
 			isc_task_shutdown(client->task);
 		}
 		goto cleanup;
