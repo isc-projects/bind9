@@ -18,9 +18,9 @@ INETOBJS= inet/inet_addr.@O@ inet/inet_cidr_ntop.@O@ inet/inet_cidr_pton.@O@ \
 WANT_IRS_THREADS_OBJS=	irs/gethostent_r.@O@ irs/getnetgrent_r.@O@ \
 	irs/getprotoent_r.@O@ irs/getservent_r.@O@
 
-WANT_IRS_NISGR_OBJ= irs/nis_gr.@O@ 
-WANT_IRS_GR_OBJS= irs/dns_gr.@O@ irs/irp_gr.@O@ irs/lcl_gr.@O@ irs/gen_gr.@O@ irs/getgrent.@O@ \
-	@WANT_IRS_NISGR_OBJS@ @WANT_IRS_THREADSGR_OBJS@
+WANT_IRS_NISGR_OBJS= irs/nis_gr.@O@ 
+WANT_IRS_GR_OBJS= irs/dns_gr.@O@ irs/irp_gr.@O@ irs/lcl_gr.@O@ irs/gen_gr.@O@ \
+	irs/getgrent.@O@ @WANT_IRS_NISGR_OBJS@ @WANT_IRS_THREADSGR_OBJS@
 
 WANT_IRS_THREADSPW_OBJS=irs/getpwent_r.@O@
 WANT_IRS_NISPW_OBJS= irs/nis_pw.@O@
@@ -28,8 +28,8 @@ WANT_IRS_DBPW_OBJS=irs/irp_pw.@O@ irs/lcl_pw.@O@
 WANT_IRS_PW_OBJS= irs/dns_pw.@O@ irs/gen_pw.@O@ irs/getpwent.@O@ \
 	@WANT_IRS_DBPW_OBJS@ @WANT_IRS_NISPW_OBJS@ @WANT_IRS_THREADSPW_OBJS@
 
-WANT_IRS_NIS_OBJS= \
-	irs/nis_ho.@O@ irs/nis_ng.@O@ irs/nis_nw.@O@ irs/nis_pr.@O@ irs/nis_sv.@O@
+WANT_IRS_NIS_OBJS= irs/nis_ho.@O@ irs/nis_ng.@O@ irs/nis_nw.@O@ \
+	irs/nis_pr.@O@ irs/nis_sv.@O@
 
 IRSOBJS= @WANT_IRS_GR_OBJS@ @WANT_IRS_NIS_OBJS@ @WANT_IRS_THREADS_OBJS@ \
 	@WANT_IRS_PW_OBJS@ \

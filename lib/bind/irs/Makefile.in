@@ -1,7 +1,7 @@
 WANT_IRS_THREADS_OBJS=	gethostent_r.@O@ getnetgrent_r.@O@ \
 	getprotoent_r.@O@ getservent_r.@O@
 
-WANT_IRS_NISGR_OBJ= nis_gr.@O@ 
+WANT_IRS_NISGR_OBJS= nis_gr.@O@ 
 WANT_IRS_GR_OBJS= dns_gr.@O@ irp_gr.@O@ lcl_gr.@O@ gen_gr.@O@ getgrent.@O@ \
 	@WANT_IRS_NISGR_OBJS@ @WANT_IRS_THREADSGR_OBJS@
 
