@@ -73,6 +73,7 @@ struct isc_mem {
 	unsigned char *		highest;
 	struct stats *		stats;
 	size_t			quota;
+	size_t			total;
 };
 
 /* Forward. */
@@ -157,6 +158,7 @@ isc_mem_create(size_t init_max_size, size_t target_size,
 		return (ISC_R_UNEXPECTED);
 	}
 	ctx->quota = 0;
+	ctx->total = 0;
 	ctx->magic = MEM_MAGIC;
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
@@ -194,7 +196,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	unsigned char *first, *last;
 	unsigned char **table;
 	unsigned int table_size;
-	size_t total;
+	size_t increment;
 	int i;
 
 	/* Require: we hold the context lock. */
@@ -202,12 +204,9 @@ more_basic_blocks(isc_mem_t *ctx) {
 	/*
 	 * Did we hit the quota for this context?
 	 */
-	if (ctx->quota != 0) {
-		total = (size_t)(ctx->basic_table_count + 1) * 
-			NUM_BASIC_BLOCKS * ctx->mem_target;
-		if (total > ctx->quota)
-			return;
-	}
+	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
+	if (ctx->quota != 0 && ctx->total + increment > ctx->quota)
+		return;
 
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
 	if (ctx->basic_table_count == ctx->basic_table_size) {
@@ -228,6 +227,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	new = malloc(NUM_BASIC_BLOCKS * ctx->mem_target);
 	if (new == NULL)
 		return;
+	ctx->total += increment;
 	ctx->basic_table[ctx->basic_table_count] = new;
 	ctx->basic_table_count++;
 
@@ -263,8 +263,13 @@ __isc_mem_get(isc_mem_t *ctx, size_t size) {
 
 	if (size >= ctx->max_size || new_size >= ctx->max_size) {
 		/* memget() was called on something beyond our upper limit. */
+		if (ctx->quota != 0 && ctx->total + size > ctx->quota) {
+			ret = NULL;
+			goto done;
+		}
 		ret = malloc(size);
 		if (ret != NULL) {
+			ctx->total += size;
 			ctx->stats[ctx->max_size].gets++;
 			ctx->stats[ctx->max_size].totalgets++;
 		}
@@ -341,6 +346,8 @@ __isc_mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 		free(mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0);
 		ctx->stats[ctx->max_size].gets--;
+		INSIST(size <= ctx->total);
+		ctx->total -= size;
 		goto done;
 	}
 
