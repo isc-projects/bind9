@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.34 2000/03/30 17:21:13 brister Exp $ */
+/* $Id: confzone.c,v 1.35 2000/04/05 15:21:07 brister Exp $ */
 
 #include <config.h>
 
@@ -198,7 +198,7 @@ dns_c_zonelist_checkzones(dns_c_zonelist_t *list)
 	dns_ssutable_t *ssutable = NULL;
 	isc_result_t result;
 	const char *autherr = "zone `%s': allow-update is ignored when "
-		"specified with update-policy";
+		"update-policy is also used.";
 
 	REQUIRE(DNS_C_ZONELIST_VALID(list));
 
@@ -209,17 +209,24 @@ dns_c_zonelist_checkzones(dns_c_zonelist_t *list)
 		ipmlist = NULL;
 		ssutable = NULL;
 
-		result = dns_c_zone_getallowupd(zone, &ipmlist);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_c_zone_getssuauth(zone, &ssutable);
+		/*
+		 * Check for allow-update and update-policty together
+		 */
+		if (zone->ztype == dns_c_zone_master) {
+			result = dns_c_zone_getallowupd(zone, &ipmlist);
 			if (result == ISC_R_SUCCESS) {
-				isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
-					      DNS_LOGMODULE_CONFIG,
-					      ISC_LOG_WARNING, autherr,
-					      zone->name);
-				dns_c_zone_unsetallowupd(zone);
+				result = dns_c_zone_getssuauth(zone,
+							       &ssutable);
+				if (result == ISC_R_SUCCESS) {
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_CONFIG,
+						      DNS_LOGMODULE_CONFIG,
+						      ISC_LOG_WARNING, autherr,
+						      zone->name);
+					dns_c_zone_unsetallowupd(zone);
+				}
+				dns_c_ipmatchlist_detach(&ipmlist);
 			}
-			dns_c_ipmatchlist_detach(&ipmlist);
 		}
 		
 	}
