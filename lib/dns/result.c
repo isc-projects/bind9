@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.84.2.2 2001/03/01 20:58:16 bwelling Exp $ */
+/* $Id: result.c,v 1.84.2.3 2001/05/14 03:22:04 marka Exp $ */
 
 #include <config.h>
 
@@ -109,12 +109,16 @@ static const char *text[DNS_R_NRESULTS] = {
 	"not exact",		       	       /* 67 DNS_R_NOTEXACT	     */
 	"address blackholed",	       	       /* 68 DNS_R_BLACKHOLED	     */
 	"bad algorithm",		       /* 69 DNS_R_BADALG	     */
-	"invalid use of a meta type",	       /* 70 DNS_R_METATYPE	     */
 
+	"invalid use of a meta type",	       /* 70 DNS_R_METATYPE	     */
 	"CNAME and other data",		       /* 71 DNS_R_CNAMEANDOTHER     */
 	"multiple RRs of singleton type",      /* 72 DNS_R_SINGLETON	     */
 	"hint nxrrset",			       /* 73 DNS_R_HINTNXRRSET	     */
-	"no master file configured"	       /* 74 DNS_R_NOMASTERFILE      */
+	"no master file configured",	       /* 74 DNS_R_NOMASTERFILE      */
+	
+	"unknown protocol",		       /* 75 DNS_R_UNKNOWNPROTO      */
+	"clocks are unsynchronized",	       /* 76 DNS_R_CLOCKSKEW	     */
+	"IXFR failed"			       /* 77 DNS_R_BADIXFR	     */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

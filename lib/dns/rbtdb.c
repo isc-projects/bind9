@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.139.4.6 2001/03/27 00:12:30 bwelling Exp $ */
+/* $Id: rbtdb.c,v 1.139.4.7 2001/05/14 03:22:02 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -3677,7 +3677,10 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * to satisfy the deletion request.
 		 */
 		free_rdataset(rbtdb->common.mctx, newheader);
-		result = DNS_R_UNCHANGED;
+		if ((options & DNS_DBSUB_EXACT) != 0)
+			result = DNS_R_NOTEXACT;
+		else
+			result = DNS_R_UNCHANGED;			
 	}
 
 	if (result == ISC_R_SUCCESS && newrdataset != NULL)

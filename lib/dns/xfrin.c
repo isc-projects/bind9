@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.109.2.2 2001/04/11 19:21:32 gson Exp $ */
+/* $Id: xfrin.c,v 1.109.2.3 2001/05/14 03:22:05 marka Exp $ */
 
 #include <config.h>
 
@@ -382,7 +382,7 @@ static isc_result_t
 ixfr_commit(dns_xfrin_ctx_t *xfr) {
 	isc_result_t result;
 
-	ixfr_apply(xfr);
+	CHECK(ixfr_apply(xfr));
 	if (xfr->ver != NULL) {
 		/* XXX enter ready-to-commit state here */
 		if (xfr->ixfr.journal != NULL)
@@ -645,6 +645,9 @@ xfrin_fail(dns_xfrin_ctx_t *xfr, isc_result_t result, const char *msg) {
 	if (result != DNS_R_UPTODATE) {
 		xfrin_log(xfr, ISC_LOG_ERROR, "%s: %s",
 			  msg, isc_result_totext(result));
+		if (xfr->is_ixfr)
+			/* Pass special result code to force AXFR retry */
+			result = DNS_R_BADIXFR;
 	}
 	xfrin_cancelio(xfr);
 	if (xfr->done != NULL) {
@@ -723,8 +726,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->lasttsig = NULL;
 	xfr->tsigctx = NULL;
 	xfr->sincetsig = 0;
-
-	/* is_ixfr */
+	xfr->is_ixfr = ISC_FALSE;
 
 	/* ixfr.request_serial */
 	/* ixfr.end_serial */

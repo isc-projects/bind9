@@ -1,3 +1,7 @@
+ 827.	[bug]		When an IXFR protocol error occurs, the slave
+			should retry with AXFR.
+
+ 826.	[bug]		Some IXFR protocol errors were not detected.
 
  825.	[bug]		zone.c:ns_query() detached from the wrong zone
 			reference.  [RT #1264] 
