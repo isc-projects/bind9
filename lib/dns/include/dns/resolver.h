@@ -99,6 +99,9 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 void
 dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task);
 
+void
+dns_resolver_getanswer(isc_event_t *event, dns_message_t **msgp);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

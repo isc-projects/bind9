@@ -928,6 +928,7 @@ destroy(dns_resolver_t *res) {
 	}
 	isc_mem_put(res->mctx, res->tasks,
 		    res->ntasks * sizeof (isc_task_t *));
+	dns_dispatch_detach(&res->dispatch);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof *res);
 }
@@ -957,7 +958,8 @@ dns_resolver_create(isc_mem_t *mctx,
 	res->timermgr = timermgr;
 	res->ntasks = ntasks;
 	res->next_task = 0;
-	res->dispatch = dispatch;		/* XXXRTH: attach! */
+	res->dispatch = NULL;
+	dns_dispatch_attach(dispatch, &res->dispatch);
 	res->tasks = isc_mem_get(mctx, ntasks * sizeof (isc_task_t *));
 	if (res->tasks == NULL) {
 		result = DNS_R_NOMEMORY;
@@ -1228,4 +1230,16 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp, isc_task_t *task) {
 		fctx_destroy(fctx);
 	if (need_resolver_destroy)
 		destroy(res);
+}
+
+void
+dns_resolver_getanswer(isc_event_t *event, dns_message_t **msgp) {
+	fetchctx_t *fctx;
+
+	REQUIRE(msgp != NULL && *msgp == NULL);
+	REQUIRE(event != NULL);
+	fctx = event->sender;
+	REQUIRE(VALID_FCTX(fctx));
+
+	*msgp = fctx->rmessage;
 }
