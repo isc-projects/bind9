@@ -1,4 +1,8 @@
 
+ 339.	[bug]		DNSSEC validation of the response to an ANY
+			query at a name with a CNAME RR in a secure
+			zone triggered an assertion failure.
+
  338.	[bug]		lwresd logged to syslog as named, not lwresd.
 
  337.	[bug]		"dig" did not recognize "nsap-ptr" as an RR type
