@@ -52,8 +52,8 @@
 /*
  * size of entropy pool in 32-bit words.  This _MUST_ be a power of 2.
  */
-#define RND_POOLWORDS	128
-#define RND_POOLBITS     (RND_POOLWORDS * 32)
+#define RND_POOLWORDS	512
+#define RND_POOLBITS	(RND_POOLWORDS * 32)
 
 /*
  * Number of bytes returned per hash.  This must be true:
@@ -129,6 +129,9 @@ entropypool_add_word(isc_entropypool_t *, isc_uint32_t);
 
 static void
 fillpool(isc_entropy_t *, unsigned int, isc_boolean_t);
+
+static int
+wait_for_sources(isc_entropy_t *);
 
 /*
  * Add in entropy, even when the value we're adding in could be
@@ -275,9 +278,12 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 	int fd = source->sources.file.fd;
 	ssize_t n, ndesired;
 	isc_uint32_t added;
+	isc_boolean_t isdevice;
 
 	if (fd == -1)
 		return (0);
+
+	isdevice = ISC_TF((source->flags & ISC_ENTROPYSOURCE_ISDEVICE) != 0);
 
 	desired = desired / 8 + (((desired & 0x07) > 0) ? 1 : 0);
 
@@ -286,13 +292,17 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
 		ndesired = ISC_MIN(desired, sizeof(buf));
 		n = read(fd, buf, ndesired);
 		if (n < 0) {
-			if (errno == EAGAIN)
+			if (isdevice && (errno == EAGAIN))
 				goto out;
 			close(fd);
 			source->sources.file.fd = -1;
-		}
-		if (n == 0)
 			goto out;
+		}
+		if (n == 0) {
+			close(fd);
+			source->sources.file.fd = -1;
+			goto out;
+		}
 
 		entropypool_adddata(ent, buf, n, n * 8);
 		added += n * 8;
@@ -329,6 +339,10 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * Next, if we are asked to add a specific bit of entropy, make
 	 * certain that we will do so.  Clamp how much we try to add to
 	 * (DIGEST_SIZE * 8 < needed < POOLBITS - entropy).
+	 *
+	 * Note that if we are in a blocking mode, we will only try to
+	 * get as much data as we need, not as much as we might want
+	 * to build up.
 	 */
 	if (needed == 0) {
 		isc_uint32_t needed_ent, needed_ps;
@@ -351,6 +365,11 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	}
 
 	/*
+	 * In any case, clamp how much we need to how much we can add.
+	 */
+	needed = ISC_MIN(needed, RND_POOLBITS - ent->pool.entropy);
+
+	/*
 	 * Poll each file source to see if we can read anything useful from
 	 * it.  XXXMLG When where are multiple sources, we should keep a
 	 * record of which one we last used so we can start from it (or the
@@ -358,23 +377,65 @@ fillpool(isc_entropy_t *ent, unsigned int needed, isc_boolean_t blocking) {
 	 * others are always drained.
 	 */
 
+ again:
 	source = ISC_LIST_HEAD(ent->sources);
 	added = 0;
-	while (source != NULL) {
-		desired = ISC_MIN(needed, RND_POOLBITS - ent->pool.entropy);
+	while (source != NULL && needed > 0) {
 		if (source->type == ENTROPY_SOURCETYPE_FILE)
-			added += get_from_filesource(source, desired);
+			added += get_from_filesource(source, needed);
 
-		if (added > needed)
+		if (added >= needed)
 			break;
 
+		if (needed > added)
+			needed -= added;
+		else
+			needed = 0;
+
 		source = ISC_LIST_NEXT(source, link);
+	}
+
+	if (blocking && added < needed) {
+		if (wait_for_sources(ent) > 0)
+			goto again;
 	}
 
 	/*
 	 * Adjust counts.
 	 */
 	subtract_pseudo(ent, added);
+}
+
+static int
+wait_for_sources(isc_entropy_t *ent) {
+	isc_entropysource_t *source;
+	int maxfd, fd;
+	int cc;
+	fd_set reads;
+
+	maxfd = -1;
+	FD_ZERO(&reads);
+
+	source = ISC_LIST_HEAD(ent->sources);
+	while (source != NULL) {
+		if (source->type == ENTROPY_SOURCETYPE_FILE) {
+			fd = source->sources.file.fd;
+			if (fd >= 0) {
+				maxfd = ISC_MAX(maxfd, fd);
+				FD_SET(fd, &reads);
+			}
+		}
+		source = ISC_LIST_NEXT(source, link);
+	}
+
+	if (maxfd < 0)
+		return (-1);
+
+	cc = select(maxfd + 1, &reads, NULL, NULL, NULL);
+	if (cc < 0)
+		return (-1);
+
+	return (cc);
 }
 
 /*
@@ -444,11 +505,16 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		 * are not ok.
 		 */
 		if (goodonly) {
-			fillpool(ent, (length - remain) * 8, blocking);
-			if (!partial && !blocking
+			fillpool(ent, remain * 8, blocking);
+			if (!blocking && !partial
 			    && ((ent->pool.entropy < count * 8)
-				|| (ent->pool.entropy < RND_ENTROPY_THRESHOLD * 8)))
+				|| (ent->pool.entropy
+				    < RND_ENTROPY_THRESHOLD * 8)))
 				goto zeroize;
+			if (blocking
+			    && (ent->pool.entropy
+				<= RND_ENTROPY_THRESHOLD * 8))
+			    goto zeroize;
 		} else {
 			/*
 			 * If we've extracted half our pool size in bits
@@ -477,9 +543,8 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 		deltae = ISC_MIN(deltae, ent->pool.entropy);
 		total += deltae;
 		subtract_entropy(ent, deltae);
+		add_pseudo(ent, count * 8);
 	}
-
-	add_pseudo(ent, total);
 
 	memset(digest, 0, sizeof(digest));
 

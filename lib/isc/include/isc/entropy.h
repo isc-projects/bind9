@@ -96,15 +96,15 @@ ISC_LANG_BEGINDECLS
  *	Estimate the amount of entropy contained in the sample pool.
  *	If this is not set, the source will be gathered and perodically
  *	mixed into the entropy pool, but no increment in contained entropy
- *	will be assumed.
+ *	will be assumed.  This flag only makes sense on sample sources.
  *
- * _POLLABLE
- *	The entropy source is pollable for more data.  This is most useful
- *	for things like files and devices.  It should not be used for
- *	tty/keyboard data, device timings, etc.
+ * _ISDEVICE
+ *	The file named is really a device file, and blocking is possible.
+ *	Otherwise, the file is assumed to be a finite length file, and
+ *	any I/O error (including blocking) terminates the source.
  */
 #define ISC_ENTROPYSOURCE_ESTIMATE	0x00000001U
-#define ISC_ENTROPYSOURCE_POLLABLE	0x00000002U
+#define ISC_ENTROPYSOURCE_ISDEVICE	0x00000002U
 
 /***
  *** Functions

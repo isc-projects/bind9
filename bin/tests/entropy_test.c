@@ -26,14 +26,16 @@ static void
 hex_dump(char *msg, void *data, unsigned int length) {
         unsigned int len;
 	unsigned char *base;
+	isc_boolean_t first = ISC_TRUE;
 
 	base = data;
 
-        printf("DUMP of %d bytes:  %s\n", length, msg);
+        printf("DUMP of %d bytes:  %s\n\t", length, msg);
         for (len = 0 ; len < length ; len++) {
-                if (len % 16 == 0)
-                        printf("\n");
+                if (len % 16 == 0 && !first)
+			printf("\n\t");
                 printf("%02x ", base[len]);
+		first = ISC_FALSE;
         }
         printf("\n");
 }
@@ -69,10 +71,20 @@ main(int argc, char **argv) {
 
 	isc_entropy_stats(ent, stderr);
 
+#if 1
 	devrandom = NULL;
+	flags = 0;
+	flags |= ISC_ENTROPYSOURCE_ISDEVICE;
 	CHECK("isc_entropy_createfilesource()",
 	      isc_entropy_createfilesource(ent, "/dev/random",
-					   0, &devrandom));
+					   flags, &devrandom));
+#else
+	devrandom = NULL;
+	flags = 0;
+	CHECK("isc_entropy_createfilesource()",
+	      isc_entropy_createfilesource(ent, "/tmp/foo",
+					   flags, &devrandom));
+#endif
 
 	fprintf(stderr,
 		"Reading 32 bytes of GOOD random data only, partial OK\n");
@@ -83,18 +95,25 @@ main(int argc, char **argv) {
 	result = isc_entropy_getdata(ent, buffer, 32, &returned, flags);
 	if (result == ISC_R_NOENTROPY) {
 		fprintf(stderr, "No entropy.\n");
-		goto out;
+		goto any;
 	}
 	hex_dump("good data only:", buffer, returned);
 
+ any:
 	isc_entropy_stats(ent, stderr);
-
 	CHECK("isc_entropy_getdata()",
 	      isc_entropy_getdata(ent, buffer, 128, NULL, 0));
+	hex_dump("pseudorandom data", buffer, 128);
 
-	hex_dump("entropy data", buffer, 128);
+	isc_entropy_stats(ent, stderr);
+	flags = 0;
+	flags |= ISC_ENTROPY_GOODONLY;
+	flags |= ISC_ENTROPY_BLOCKING;
+	result = isc_entropy_getdata(ent, buffer, sizeof buffer, &returned,
+				     flags);
+	CHECK("good data only, blocking mode", result);
+	hex_dump("blocking mode data", buffer, sizeof buffer);
 
-out:
 	{
 		isc_entropy_t *entcopy1 = NULL;
 		isc_entropy_t *entcopy2 = NULL;
