@@ -959,14 +959,6 @@ isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
 {
 	isc_entropy_t *ent;
 
-	/*
-	 * XXXMLG Make warnings go away for the beta4 release.  This
-	 * will be fixed by implementing the function in the next
-	 * release.
-	 */
-	UNUSED(sample);
-	UNUSED(extra);
-
 	REQUIRE(VALID_SOURCE(source));
 	ent = source->ent;
 
