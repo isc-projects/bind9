@@ -233,7 +233,7 @@ parse_command_line(int argc, char *argv[]) {
 }
 
 static isc_result_t
-create_managers() {
+create_managers(void) {
 	isc_result_t result;
 
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
@@ -288,7 +288,7 @@ destroy_managers(void) {
 }
 
 static void
-setup() {
+setup(void) {
 	isc_result_t result;
 
 	ns_os_chroot(ns_g_chrootdir);
@@ -346,7 +346,7 @@ setup() {
 }
 
 static void
-cleanup() {
+cleanup(void) {
 	destroy_managers();
 	ns_server_destroy(&ns_g_server);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
