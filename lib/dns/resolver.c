@@ -1510,11 +1510,22 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * We haven't started this fctx yet, and we've been requested
 		 * to shut it down.
-		 *
-		 * The events list should be empty, so we INSIST on it.
 		 */
-		INSIST(ISC_LIST_EMPTY(fctx->events));
-		bucket_empty = fctx_destroy(fctx);
+		fctx->attributes |= FCTX_ATTR_SHUTTINGDOWN;
+		fctx->state = fetchstate_done;
+		fctx_sendevents(fctx, ISC_R_CANCELED);
+		/*
+		 * Since we haven't started, we INSIST that we have no
+		 * pending ADB finds and no pending validations.
+		 */
+		INSIST(fctx->pending == 0);
+		INSIST(fctx->validating == 0);
+		if (fctx->references == 0) {
+			/*
+			 * It's now safe to destroy this fctx.
+			 */
+			bucket_empty = fctx_destroy(fctx);
+		}
 		done = ISC_TRUE;
 	} else {
 		/*
