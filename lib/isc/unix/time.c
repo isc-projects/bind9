@@ -17,6 +17,7 @@
 
 #include <config.h>
 
+#include <sys/types.h>
 #include <sys/time.h>
 
 #include <stddef.h>
@@ -34,7 +35,7 @@
  ***/
 
 void
-isc_interval_set(isc_interval_t i,
+isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds) {
 
 	/*
@@ -51,7 +52,7 @@ isc_interval_set(isc_interval_t i,
 }
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t i) {
+isc_interval_iszero(isc_interval_t *i) {
 
 	/*
 	 * Returns ISC_TRUE iff. 'i' is the zero interval.
@@ -71,7 +72,7 @@ isc_interval_iszero(isc_interval_t i) {
  ***/
 
 void
-isc_time_settoepoch(isc_time_t t) {
+isc_time_settoepoch(isc_time_t *t) {
 	/*
 	 * Set 't' to the time of the epoch.
 	 */
@@ -83,7 +84,7 @@ isc_time_settoepoch(isc_time_t t) {
 }
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t t) {
+isc_time_isepoch(isc_time_t *t) {
 
 	/*
 	 * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
@@ -98,7 +99,7 @@ isc_time_isepoch(isc_time_t t) {
 }
 
 isc_result_t
-isc_time_get(isc_time_t t) {
+isc_time_get(isc_time_t *t) {
 	struct timeval tv;
 
 	/*
@@ -119,7 +120,7 @@ isc_time_get(isc_time_t t) {
 }
 
 int
-isc_time_compare(isc_time_t t1, isc_time_t t2) {
+isc_time_compare(isc_time_t *t1, isc_time_t *t2) {
 
 	/*
 	 * Compare the times referenced by 't1' and 't2'
@@ -139,7 +140,7 @@ isc_time_compare(isc_time_t t1, isc_time_t t2) {
 }
 
 void
-isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result)
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result)
 {
 	/*
 	 * Add 't' to 'i', storing the result in 'result'.
@@ -156,7 +157,7 @@ isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result)
 }
 
 void
-isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
+isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result) {
 	/*
 	 * Subtract 'i' from 't', storing the result in 'result'.
 	 */
@@ -171,62 +172,4 @@ isc_time_subtract(isc_time_t t, isc_interval_t i, isc_time_t result) {
 			t->nanoseconds;
 		result->seconds--;
 	}
-}
-
-
-/***
- *** UNIX-only
- ***/
-
-
-void
-isc_time_fromtimeval(isc_time_t t, struct timeval *tv) {
-
-	/*
-	 * Set 't' to the time given by 'ts'.
-	 */
-
-	REQUIRE(t != NULL && tv != NULL);
-
-	t->seconds = tv->tv_sec;
-	t->nanoseconds = tv->tv_usec * 1000;
-}
-
-void
-isc_time_totimeval(isc_time_t t, struct timeval *tv) {
-
-	/*
-	 * Convert 't' to a UNIX timeval.
-	 */
-
-	REQUIRE(t != NULL && tv != NULL);
-
-	tv->tv_sec = t->seconds;
-	tv->tv_usec = t->nanoseconds / 1000;
-}
-
-void
-isc_time_fromtimespec(isc_time_t t, struct timespec *ts) {
-
-	/*
-	 * Set 't' to the time given by 'ts'.
-	 */
-
-	REQUIRE(t != NULL && ts != NULL);
-
-	t->seconds = ts->tv_sec;
-	t->nanoseconds = ts->tv_nsec;
-}
-
-void
-isc_time_totimespec(isc_time_t t, struct timespec *ts) {
-
-	/*
-	 * Convert 't' to a UNIX timespec.
-	 */
-
-	REQUIRE(t != NULL && ts != NULL);
-
-	ts->tv_sec = t->seconds;
-	ts->tv_nsec = t->nanoseconds;
 }

@@ -80,8 +80,8 @@
  *** Types
  ***/
 
-typedef struct isc_timer	*isc_timer_t;
-typedef struct isc_timermgr	*isc_timermgr_t;
+typedef struct isc_timer	isc_timer_t;
+typedef struct isc_timermgr	isc_timermgr_t;
 
 typedef enum {
 	isc_timertype_ticker = 0, isc_timertype_once
@@ -90,7 +90,7 @@ typedef enum {
 typedef struct isc_timerevent {
 	struct isc_event	common;
 	/* XXX Anything else? XXX */
-} *isc_timerevent_t;
+} isc_timerevent_t;
 
 #define ISC_TIMEREVENT_TICK	(ISC_EVENTCLASS_TIMER + 1)
 #define ISC_TIMEREVENT_IDLE	(ISC_EVENTCLASS_TIMER + 2)
@@ -105,14 +105,14 @@ typedef struct isc_timerevent {
  ***/
 
 isc_result_t
-isc_timer_create(isc_timermgr_t manager,
+isc_timer_create(isc_timermgr_t *manager,
 		 isc_timertype_t type,
-		 isc_time_t expires,
-		 isc_interval_t interval,
-		 isc_task_t task,
+		 isc_time_t *expires,
+		 isc_interval_t *interval,
+		 isc_task_t *task,
 		 isc_taskaction_t action,
 		 void *arg,
-		 isc_timer_t *timerp);
+		 isc_timer_t **timerp);
 /*
  * Create a new 'type' timer managed by 'manager'.  The timers parameters
  * are specified by 'expires' and 'interval'.  Events will be posted to
@@ -160,10 +160,10 @@ isc_timer_create(isc_timermgr_t manager,
  */
 
 isc_result_t
-isc_timer_reset(isc_timer_t timer,
+isc_timer_reset(isc_timer_t *timer,
 		isc_timertype_t type,
-		isc_time_t expires,
-		isc_interval_t interval,
+		isc_time_t *expires,
+		isc_interval_t *interval,
 		isc_boolean_t purge);
 /*
  * Change the timer's type, expires, and interval values to the given
@@ -191,7 +191,7 @@ isc_timer_reset(isc_timer_t timer,
  */
 
 isc_result_t
-isc_timer_touch(isc_timer_t timer);
+isc_timer_touch(isc_timer_t *timer);
 /*
  * Set the last-touched time of 'timer' to the current time.
  *
@@ -212,7 +212,7 @@ isc_timer_touch(isc_timer_t timer);
  */
 
 void
-isc_timer_attach(isc_timer_t timer, isc_timer_t *timerp);
+isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp);
 /*
  * Attach *timerp to timer.
  *
@@ -228,7 +228,7 @@ isc_timer_attach(isc_timer_t timer, isc_timer_t *timerp);
  */
 
 void 
-isc_timer_detach(isc_timer_t *timerp);
+isc_timer_detach(isc_timer_t **timerp);
 /*
  * Detach *timerp from its timer.
  *
@@ -251,7 +251,7 @@ isc_timer_detach(isc_timer_t *timerp);
  */
 
 isc_result_t
-isc_timermgr_create(isc_memctx_t mctx, isc_timermgr_t *managerp);
+isc_timermgr_create(isc_memctx_t *mctx, isc_timermgr_t **managerp);
 /*
  * Create a timer manager.
  *
@@ -277,7 +277,7 @@ isc_timermgr_create(isc_memctx_t mctx, isc_timermgr_t *managerp);
  */
 
 void
-isc_timermgr_destroy(isc_timermgr_t *);
+isc_timermgr_destroy(isc_timermgr_t **managerp);
 /*
  * Destroy a timer manager.
  *

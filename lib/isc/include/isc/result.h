@@ -45,8 +45,6 @@ typedef unsigned int isc_result_t;
 
 #define ISC_R_UNEXPECTED		0xFFFFFFFFL
 
-#define isc_result_totext		__isc_result_totext
-
 char *					isc_result_totext(isc_result_t);
 
 #endif /* ISC_RESULT_H */

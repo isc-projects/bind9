@@ -28,6 +28,7 @@
 ./lib/isc/pthreads/include/isc/mutex.h		1998
 ./lib/isc/pthreads/include/isc/thread.h		1998
 ./lib/isc/pthreads/condition.c			1998
+./lib/isc/unix/include/isc/sockaddr.h		1998
 ./lib/isc/unix/include/isc/time.h		1998
 ./lib/isc/unix/time.c				1998
 ./lib/isc/win32/include/isc/condition.h		1998

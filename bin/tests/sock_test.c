@@ -37,14 +37,14 @@
 
 #include <arpa/inet.h>
 
-isc_memctx_t mctx = NULL;
+isc_memctx_t *mctx = NULL;
 int sockets_active = 0;
 
-static isc_boolean_t my_send(isc_task_t task, isc_event_t event);
-static isc_boolean_t my_recv(isc_task_t task, isc_event_t event);
+static isc_boolean_t my_send(isc_task_t *task, isc_event_t *event);
+static isc_boolean_t my_recv(isc_task_t *task, isc_event_t *event);
 
 static isc_boolean_t
-my_callback(isc_task_t task, isc_event_t event)
+my_callback(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 
@@ -56,7 +56,7 @@ my_callback(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_shutdown(isc_task_t task, isc_event_t event)
+my_shutdown(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 
@@ -68,15 +68,15 @@ my_shutdown(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_recv(isc_task_t task, isc_event_t event)
+my_recv(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t sock;
-	isc_socketevent_t dev;
-	struct isc_region region;
+	isc_socket_t *sock;
+	isc_socketevent_t *dev;
+	isc_region_t region;
 	char buf[1024];
 
 	sock = event->sender;
-	dev = (isc_socketevent_t)event;
+	dev = (isc_socketevent_t *)event;
 
 	printf("Socket %s (sock %p, base %p, length %d, n %d, result %d)\n",
 	       (char *)(event->arg), sock,
@@ -125,13 +125,13 @@ my_recv(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_send(isc_task_t task, isc_event_t event)
+my_send(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t sock;
-	isc_socketevent_t dev;
+	isc_socket_t *sock;
+	isc_socketevent_t *dev;
 
 	sock = event->sender;
-	dev = (isc_socketevent_t)event;
+	dev = (isc_socketevent_t *)event;
 
 	printf("my_send: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
 	       (char *)(event->arg), task, sock,
@@ -146,13 +146,13 @@ my_send(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_http_get(isc_task_t task, isc_event_t event)
+my_http_get(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t sock;
-	isc_socketevent_t dev;
+	isc_socket_t *sock;
+	isc_socketevent_t *dev;
 
 	sock = event->sender;
-	dev = (isc_socketevent_t)event;
+	dev = (isc_socketevent_t *)event;
 
 	printf("my_http_get: %s task %p\n\t(sock %p, base %p, length %d, n %d, result %d)\n",
 	       (char *)(event->arg), task, sock,
@@ -168,15 +168,15 @@ my_http_get(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_connect(isc_task_t task, isc_event_t event)
+my_connect(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t sock;
-	isc_socket_connev_t dev;
-	struct isc_region region;
+	isc_socket_t *sock;
+	isc_socket_connev_t *dev;
+	isc_region_t region;
 	char buf[1024];
 
 	sock = event->sender;
-	dev = (isc_socket_connev_t)event;
+	dev = (isc_socket_connev_t *)event;
 
 	printf("%s: Connection result:  %d\n", (char *)(event->arg),
 	       dev->result);
@@ -205,15 +205,15 @@ my_connect(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_listen(isc_task_t task, isc_event_t event)
+my_listen(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
-	isc_socket_newconnev_t dev;
-	struct isc_region region;
-	isc_socket_t oldsock;
+	isc_socket_newconnev_t *dev;
+	isc_region_t region;
+	isc_socket_t *oldsock;
 	int ret;
 
-	dev = (isc_socket_newconnev_t)event;
+	dev = (isc_socket_newconnev_t *)event;
 
 	printf("newcon %s (task %p, oldsock %p, newsock %p, result %d)\n",
 	       name, task, event->sender, dev->newsocket, dev->result);
@@ -252,14 +252,14 @@ my_listen(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-timeout(isc_task_t task, isc_event_t event)
+timeout(isc_task_t *task, isc_event_t *event)
 {
-	isc_socket_t sock = event->arg;
+	isc_socket_t *sock = event->arg;
 
 	printf("Timeout, canceling IO on socket %p (task %p)\n", sock, task);
 
 	isc_socket_cancel(sock, NULL, ISC_SOCKCANCEL_ALL);
-	isc_timer_detach((isc_timer_t *)&event->sender);
+	isc_timer_detach((isc_timer_t **)&event->sender);
 
 	return (0);
 }
@@ -267,17 +267,17 @@ timeout(isc_task_t task, isc_event_t event)
 int
 main(int argc, char *argv[])
 {
-	isc_taskmgr_t manager = NULL;
-	isc_task_t t1 = NULL, t2 = NULL;
-	isc_timermgr_t timgr = NULL;
-	struct isc_time expires, now;
-	struct isc_interval interval;
-	isc_timer_t ti1 = NULL;
-	isc_event_t event;
+	isc_taskmgr_t *manager = NULL;
+	isc_task_t *t1 = NULL, *t2 = NULL;
+	isc_timermgr_t *timgr = NULL;
+	isc_time_t expires, now;
+	isc_interval_t interval;
+	isc_timer_t *ti1 = NULL;
+	isc_event_t *event;
 	unsigned int workers;
-	isc_socketmgr_t socketmgr;
-	isc_socket_t so1, so2;
-	struct isc_sockaddr sockaddr;
+	isc_socketmgr_t *socketmgr;
+	isc_socket_t *so1, *so2;
+	isc_sockaddr_t sockaddr;
 	unsigned int addrlen;
 	
 

@@ -18,6 +18,8 @@
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
 
+#include <dns/types.h>
+
 /*****
  ***** Module Info
  *****/
@@ -93,7 +95,7 @@
  *** Properties
  ***/
 
-dns_labeltype_t dns_label_type(dns_label_t label);
+dns_labeltype_t dns_label_type(dns_label_t *label);
 /*
  * Get the type of 'label'.
  *
@@ -111,7 +113,7 @@ dns_labeltype_t dns_label_type(dns_label_t label);
  *** Bitstring Labels
  ***/
 
-unsigned int dns_label_countbits(dns_label_t label);
+unsigned int dns_label_countbits(dns_label_t *label);
 /*
  * The number of bits in a bitstring label.
  *
@@ -127,7 +129,7 @@ unsigned int dns_label_countbits(dns_label_t label);
  *	The number of bits in the bitstring label.
  */
 
-dns_bitlabel_t dns_label_getbit(dns_label_t label, unsigned int n);
+dns_bitlabel_t dns_label_getbit(dns_label_t *label, unsigned int n);
 /*
  * The 'n'th most significant bit of 'label'.
  *
@@ -179,13 +181,13 @@ struct dns_name {
 	unsigned char offsets[128];
 };
 
-extern dns_name_t dns_rootname;
+extern dns_name_t *dns_rootname;
 
 /***
  *** Initialization
  ***/
 
-void dns_name_init(dns_name_t name);
+void dns_name_init(dns_name_t *name);
 /*
  * Make 'name' empty.
  *
@@ -201,7 +203,7 @@ void dns_name_init(dns_name_t name);
  *** Properties
  ***/
 
-isc_boolean_t dns_name_isabsolute(dns_name_t name);
+isc_boolean_t dns_name_isabsolute(dns_name_t *name);
 /*
  * Does 'name' end in the root label?
  *
@@ -220,7 +222,7 @@ isc_boolean_t dns_name_isabsolute(dns_name_t name);
  *** Comparisons
  ***/
 
-int dns_name_compare(dns_name_t name1, dns_name_t name2);
+int dns_name_compare(dns_name_t *name1, dns_name_t *name2);
 /*
  * Determine the relative ordering under the DNSSEC order relation of
  * 'name1' and 'name2'.
@@ -241,7 +243,7 @@ int dns_name_compare(dns_name_t name1, dns_name_t name2);
  */
 
 isc_boolean_t
-dns_name_issubdomain(dns_name_t name1, dns_name_t name2);
+dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2);
 /*
  * Is 'name1' a subdomain of 'name2'?
  *
@@ -273,7 +275,7 @@ dns_name_issubdomain(dns_name_t name1, dns_name_t name2);
  *** Labels
  ***/
 	
-unsigned int dns_name_countlabels(dns_name_t name);
+unsigned int dns_name_countlabels(dns_name_t *name);
 /*
  * How many labels does 'name' have?
  *
@@ -292,7 +294,7 @@ unsigned int dns_name_countlabels(dns_name_t name);
  *	The number of labels in 'name'.
  */
 
-void dns_name_getlabel(dns_name_t name, unsigned int n, dns_label_t label);
+void dns_name_getlabel(dns_name_t *name, unsigned int n, dns_label_t *label);
 /*
  * Make 'label' refer to the 'n'th least significant label of 'name'.
  *
@@ -309,10 +311,10 @@ void dns_name_getlabel(dns_name_t name, unsigned int n, dns_label_t label);
  *	n < dns_label_countlabels(name)
  */
 
-void dns_name_getlabelsequence(dns_name_t source,
+void dns_name_getlabelsequence(dns_name_t *source,
 			       unsigned int first,
 			       unsigned int n,
-			       dns_name_t target);
+			       dns_name_t *target);
 /*
  * Make 'target' refer to the 'n' labels including and following 'first'
  * in 'source'.
@@ -332,7 +334,7 @@ void dns_name_getlabelsequence(dns_name_t source,
  *** Conversions
  ***/
 
-void dns_name_fromregion(dns_name_t name, isc_region_t r);
+void dns_name_fromregion(dns_name_t *name, isc_region_t *r);
 /*
  * Make 'name' refer to region 'r'.
  *
@@ -342,7 +344,7 @@ void dns_name_fromregion(dns_name_t name, isc_region_t r);
  *	The length of 'r' is <= 255.
  */
 
-void dns_name_toregion(dns_name_t name, isc_region_t r);
+void dns_name_toregion(dns_name_t *name, isc_region_t *r);
 /*
  * Make 'r' refer to 'name'.
  *
@@ -353,11 +355,11 @@ void dns_name_toregion(dns_name_t name, isc_region_t r);
  *	'r' is a valid region.
  */
 
-dns_result_t dns_name_fromwire(dns_name_t name,
-			       isc_region_t source,
-			       dns_decompression_t dctx,
+dns_result_t dns_name_fromwire(dns_name_t *name,
+			       isc_region_t *source,
+			       dns_decompression_t *dctx,
 			       isc_boolean_t downcase,
-			       isc_region_t target);
+			       isc_region_t *target);
 /*
  * Copy the possibly-compressed name at source into target, decompressing it.
  *
@@ -404,9 +406,9 @@ dns_result_t dns_name_fromwire(dns_name_t name,
  *	Resource Limit: Not enough space in buffer
  */
 
-dns_result_t dns_name_towire(dns_name_t name,
-			     dns_compression_t cctx,
-			     isc_region_t target, unsigned int *bytesp);
+dns_result_t dns_name_towire(dns_name_t *name,
+			     dns_compression_t *cctx,
+			     isc_region_t *target, unsigned int *bytesp);
 /*
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -439,11 +441,11 @@ dns_result_t dns_name_towire(dns_name_t name,
  *	Resource Limit: Not enough space in buffer
  */
 
-dns_result_t dns_name_fromtext(dns_name_t name,
-			       isc_region_t source,
-			       dns_name_t origin,
+dns_result_t dns_name_fromtext(dns_name_t *name,
+			       isc_region_t *source,
+			       dns_name_t *origin,
 			       isc_boolean_t downcase,
-			       isc_region_t target);
+			       isc_region_t *target);
 /*
  * Convert the textual representation of a DNS name at source
  * into uncompressed wire form stored in target.
@@ -483,9 +485,9 @@ dns_result_t dns_name_fromtext(dns_name_t name,
  *	Resource Limit: Not enough space in buffer
  */
 
-dns_result_t dns_name_totext(dns_name_t name,
+dns_result_t dns_name_totext(dns_name_t *name,
 			     isc_boolean_t omit_final_dot,
-			     isc_region_t target, unsigned int *bytesp);
+			     isc_region_t *target, unsigned int *bytesp);
 /*
  * Convert 'name' into text format, storing the result in 'target'.
  *	

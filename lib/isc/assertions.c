@@ -34,14 +34,14 @@ static void default_callback(char *, int, isc_assertiontype_t, char *);
  * Public.
  */
 
-isc_assertioncallback_t __isc_assertion_failed = default_callback;
+isc_assertioncallback_t isc_assertion_failed = default_callback;
 
 void
 isc_assertion_setcallback(isc_assertioncallback_t cb) {
 	if (cb == NULL)
-		__isc_assertion_failed = default_callback;
+		isc_assertion_failed = default_callback;
 	else
-		__isc_assertion_failed = cb;
+		isc_assertion_failed = cb;
 }
 
 char *

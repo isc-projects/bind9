@@ -18,7 +18,6 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
-#include <sys/time.h>
 #include <time.h>
 
 #include <isc/result.h>
@@ -32,16 +31,15 @@
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.
  *
- * The contents are exposed only so that callers may avoid dynamic allocation
- * and instead just declare a 'struct isc_interval'.
+ * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 typedef struct isc_interval {
 	unsigned int seconds;
 	unsigned int nanoseconds;
-} *isc_interval_t;
+} isc_interval_t;
 
 void
-isc_interval_set(isc_interval_t i,
+isc_interval_set(isc_interval_t *i,
 		 unsigned int seconds, unsigned int nanoseconds);
 /*
  * Set 'i' to a value representing an interval of 'seconds' seconds and
@@ -56,7 +54,7 @@ isc_interval_set(isc_interval_t i,
  */
 
 isc_boolean_t
-isc_interval_iszero(isc_interval_t i);
+isc_interval_iszero(isc_interval_t *i);
 /*
  * Returns ISC_TRUE iff. 'i' is the zero interval.
  *
@@ -74,17 +72,16 @@ isc_interval_iszero(isc_interval_t i);
  * The contents of this structure are private, and MUST NOT be accessed
  * directly by callers.
  *
- * The contents are exposed only so that callers may avoid dynamic allocation
- * and instead just declare a 'struct isc_time'.
+ * The contents are exposed only to allow callers to avoid dynamic allocation.
  */
 
 typedef struct isc_time {
 	time_t		seconds;
 	unsigned int	nanoseconds;
-} *isc_time_t;
+} isc_time_t;
 
 void
-isc_time_settoepoch(isc_time_t t);
+isc_time_settoepoch(isc_time_t *t);
 /*
  * Set 't' to the time of the epoch.
  *
@@ -95,7 +92,7 @@ isc_time_settoepoch(isc_time_t t);
  */
 
 isc_boolean_t
-isc_time_isepoch(isc_time_t t);
+isc_time_isepoch(isc_time_t *t);
 /*
  * Returns ISC_TRUE iff. 't' is the epoch ("time zero").
  *
@@ -106,7 +103,7 @@ isc_time_isepoch(isc_time_t t);
  */
 
 isc_result_t
-isc_time_get(isc_time_t t);
+isc_time_get(isc_time_t *t);
 /*
  * Set 't' to the current absolute time.
  *
@@ -121,7 +118,7 @@ isc_time_get(isc_time_t t);
  */
 
 int
-isc_time_compare(isc_time_t t1, isc_time_t t2);
+isc_time_compare(isc_time_t *t1, isc_time_t *t2);
 /*
  * Compare the times referenced by 't1' and 't2'
  *
@@ -137,7 +134,7 @@ isc_time_compare(isc_time_t t1, isc_time_t t2);
  */
 
 void
-isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result);
+isc_time_add(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
 /*
  * Add 'i' to 't', storing the result in 'result'.
  *
@@ -147,7 +144,7 @@ isc_time_add(isc_time_t t, isc_interval_t i, isc_time_t result);
  */
 
 void
-isc_time_subtract(isc_time_t t, isc_interval_t t2, isc_time_t result);
+isc_time_subtract(isc_time_t *t, isc_interval_t *i, isc_time_t *result);
 /*
  * Subtract 'i' from 't', storing the result in 'result'.
  *
@@ -156,54 +153,6 @@ isc_time_subtract(isc_time_t t, isc_interval_t t2, isc_time_t result);
  *	't', 'i', and 'result' are valid.
  *
  *	t >= epoch + i			(comparing times, not pointers)
- */
-
-/***
- *** UNIX-only
- ***/
-
-void
-isc_time_fromtimeval(isc_time_t t, struct timeval *tv);
-/*
- * Set 't' to the time given by 'ts'.
- *
- * Requires:
- *
- *	't' and 'tv' are a valid.
- *
- */
-
-void
-isc_time_totimeval(isc_time_t t, struct timeval *tv);
-/*
- * Convert 't' to a UNIX timeval.
- *
- * Requires:
- *
- *	't' and 'tv' are a valid.
- *
- */
-
-void
-isc_time_fromtimespec(isc_time_t t, struct timespec *ts);
-/*
- * Set 't' to the time given by 'ts'.
- *
- * Requires:
- *
- *	't' and 'ts' are a valid.
- *
- */
-
-void
-isc_time_totimespec(isc_time_t t, struct timespec *ts);
-/*
- * Convert 't' to a UNIX timespec.
- *
- * Requires:
- *
- *	't' and 'ts' are a valid.
- *
  */
 
 #endif /* ISC_TIME_H */

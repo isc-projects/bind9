@@ -115,10 +115,10 @@ static unsigned char maptolower[] = {
 
 static struct dns_name root = { "", 1, 1 };
 
-dns_name_t dns_rootname = &root;
+dns_name_t *dns_rootname = &root;
 
-static void set_offsets(dns_name_t, isc_boolean_t);
-static void compact(dns_name_t);
+static void set_offsets(dns_name_t *, isc_boolean_t);
+static void compact(dns_name_t *);
 
 /*
  * Yes, get_bit and set_bit are lame.  We define them here so they can
@@ -150,7 +150,7 @@ set_bit(unsigned char *array, unsigned int index, unsigned int bit) {
 }
 
 dns_labeltype_t
-dns_label_type(dns_label_t label) {
+dns_label_type(dns_label_t *label) {
 	/*
 	 * Get the type of 'label'.
 	 */
@@ -167,7 +167,7 @@ dns_label_type(dns_label_t label) {
 }
 
 unsigned int
-dns_label_countbits(dns_label_t label) {
+dns_label_countbits(dns_label_t *label) {
 	unsigned int count;
 
 	/*
@@ -186,7 +186,7 @@ dns_label_countbits(dns_label_t label) {
 }
 
 dns_bitlabel_t
-dns_label_getbit(dns_label_t label, unsigned int n) {
+dns_label_getbit(dns_label_t *label, unsigned int n) {
 	unsigned int count, bit;
 
 	/*
@@ -213,7 +213,7 @@ dns_label_getbit(dns_label_t label, unsigned int n) {
 }
 
 void
-dns_name_init(dns_name_t name) {
+dns_name_init(dns_name_t *name) {
 	/*
 	 * Make 'name' empty.
 	 */
@@ -224,7 +224,7 @@ dns_name_init(dns_name_t name) {
 }
 
 isc_boolean_t
-dns_name_isabsolute(dns_name_t name) {
+dns_name_isabsolute(dns_name_t *name) {
 	/*
 	 * Does 'name' end in the root label?
 	 */
@@ -237,7 +237,7 @@ dns_name_isabsolute(dns_name_t name) {
 }
 
 int
-dns_name_compare(dns_name_t name1, dns_name_t name2) {
+dns_name_compare(dns_name_t *name1, dns_name_t *name2) {
 	unsigned int l1, l2, l, count1, count2, count;
 	unsigned int b1, b2, n;
 	unsigned char c1, c2;
@@ -341,7 +341,7 @@ dns_name_compare(dns_name_t name1, dns_name_t name2) {
 }
 
 isc_boolean_t
-dns_name_issubdomain(dns_name_t name1, dns_name_t name2) {
+dns_name_issubdomain(dns_name_t *name1, dns_name_t *name2) {
 	isc_boolean_t a1, a2;
 	unsigned int l1, l2, count1, count2;
 	unsigned int b1, b2, n;
@@ -417,7 +417,7 @@ dns_name_issubdomain(dns_name_t name1, dns_name_t name2) {
 }
 
 unsigned int
-dns_name_countlabels(dns_name_t name) {
+dns_name_countlabels(dns_name_t *name) {
 	/*
 	 * How many labels does 'name' have?
 	 */
@@ -430,7 +430,7 @@ dns_name_countlabels(dns_name_t name) {
 }
 
 void
-dns_name_getlabel(dns_name_t name, unsigned int n, dns_label_t label) {
+dns_name_getlabel(dns_name_t *name, unsigned int n, dns_label_t *label) {
 	/*
 	 * Make 'label' refer to the 'n'th least significant label of 'name'.
 	 */
@@ -447,9 +447,9 @@ dns_name_getlabel(dns_name_t name, unsigned int n, dns_label_t label) {
 }
 
 void
-dns_name_getlabelsequence(dns_name_t source,
+dns_name_getlabelsequence(dns_name_t *source,
 			  unsigned int first, unsigned int n,
-			  dns_name_t target)
+			  dns_name_t *target)
 {
 	/*
 	 * Make 'target' refer to the 'n' labels including and following
@@ -473,7 +473,7 @@ dns_name_getlabelsequence(dns_name_t source,
 }
 
 void
-dns_name_fromregion(dns_name_t name, isc_region_t r) {
+dns_name_fromregion(dns_name_t *name, isc_region_t *r) {
 	/*
 	 * Make 'name' refer to region 'r'.
 	 */
@@ -492,7 +492,7 @@ dns_name_fromregion(dns_name_t name, isc_region_t r) {
 }
 
 void
-dns_name_toregion(dns_name_t name, isc_region_t r) {
+dns_name_toregion(dns_name_t *name, isc_region_t *r) {
 	/*
 	 * Make 'r' refer to 'name'.
 	 */
@@ -506,9 +506,9 @@ dns_name_toregion(dns_name_t name, isc_region_t r) {
 
 
 dns_result_t
-dns_name_fromtext(dns_name_t name, isc_region_t source,
-		  dns_name_t origin, isc_boolean_t downcase,
-		  isc_region_t target)
+dns_name_fromtext(dns_name_t *name, isc_region_t *source,
+		  dns_name_t *origin, isc_boolean_t downcase,
+		  isc_region_t *target)
 {
 	unsigned char *ndata, *label;
 	char *tdata;
@@ -957,8 +957,8 @@ dns_name_fromtext(dns_name_t name, isc_region_t source,
 }
 
 dns_result_t
-dns_name_totext(dns_name_t name, isc_boolean_t omit_final_dot,
-		isc_region_t target, unsigned int *bytesp)
+dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
+		isc_region_t *target, unsigned int *bytesp)
 {
 	unsigned char *ndata;
 	char *tdata;
@@ -1113,7 +1113,7 @@ dns_name_totext(dns_name_t name, isc_boolean_t omit_final_dot,
 }
 
 static void
-set_offsets(dns_name_t name, isc_boolean_t set_labels) {
+set_offsets(dns_name_t *name, isc_boolean_t set_labels) {
 	unsigned int offset, count, nlabels, nrem, n;
 	unsigned char *ndata;
 
@@ -1151,7 +1151,7 @@ set_offsets(dns_name_t name, isc_boolean_t set_labels) {
 }
 
 static void
-compact(dns_name_t name) {
+compact(dns_name_t *name) {
 	unsigned char *head, *curr, *last;
 	unsigned int count, n, bit;
 	unsigned int headbits, currbits, tailbits, newbits;

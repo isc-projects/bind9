@@ -21,12 +21,12 @@
 typedef struct isc_region {
 	unsigned char *	base;
 	unsigned int	length;
-} *isc_region_t;
+} isc_region_t;
 
 typedef struct isc_textregion {
 	char *		base;
 	unsigned int	length;
-} *isc_textregion_t;
+} isc_textregion_t;
 
 /*
  * There are no methods which operate on regions.  The structure is not

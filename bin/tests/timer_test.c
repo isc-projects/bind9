@@ -28,13 +28,13 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-isc_memctx_t mctx = NULL;
-isc_task_t t1, t2, t3;
-isc_timer_t ti1, ti2, ti3;
+isc_memctx_t *mctx = NULL;
+isc_task_t *t1, *t2, *t3;
+isc_timer_t *ti1, *ti2, *ti3;
 int tick_count = 0;
 
 static isc_boolean_t
-shutdown_task(isc_task_t task, isc_event_t event) {
+shutdown_task(isc_task_t *task, isc_event_t *event) {
 	char *name = event->arg;
 
 	printf("task %p shutdown %s\n", task, name);
@@ -44,7 +44,7 @@ shutdown_task(isc_task_t task, isc_event_t event) {
 }
 
 static isc_boolean_t
-tick(isc_task_t task, isc_event_t event)
+tick(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 
@@ -57,8 +57,8 @@ tick(isc_task_t task, isc_event_t event)
 		isc_timer_touch(ti3);
 
 	if (ti3 != NULL && tick_count == 7) {
-		struct isc_time expires, now;
-		struct isc_interval interval;
+		isc_time_t expires, now;
+		isc_interval_t interval;
 
 		(void)isc_time_get(&now);
 		isc_interval_set(&interval, 5, 0);
@@ -76,7 +76,7 @@ tick(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-timeout(isc_task_t task, isc_event_t event)
+timeout(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 	char *type;
@@ -103,11 +103,11 @@ timeout(isc_task_t task, isc_event_t event)
 
 void
 main(int argc, char *argv[]) {
-	isc_taskmgr_t manager = NULL;
-	isc_timermgr_t timgr = NULL;
+	isc_taskmgr_t *manager = NULL;
+	isc_timermgr_t *timgr = NULL;
 	unsigned int workers;
-	struct isc_time expires, now;
-	struct isc_interval interval;
+	isc_time_t expires, now;
+	isc_interval_t interval;
 
 	if (argc > 1)
 		workers = atoi(argv[1]);

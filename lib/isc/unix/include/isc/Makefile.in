@@ -5,7 +5,7 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_VERSION@
 
-HEADERS =	time.h
+HEADERS =	sockaddr.h time.h
 
 SUBDIRS =
 TARGETS =

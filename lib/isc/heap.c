@@ -49,7 +49,7 @@
 
 struct isc_heap {
 	unsigned int			magic;
-	isc_memctx_t			mctx;
+	isc_memctx_t *			mctx;
 	unsigned int			size;
 	unsigned int			size_increment;
 	unsigned int			last;
@@ -59,11 +59,11 @@ struct isc_heap {
 };
 
 isc_result_t
-isc_heap_create(isc_memctx_t mctx, isc_heapcompare_t compare,
+isc_heap_create(isc_memctx_t *mctx, isc_heapcompare_t compare,
 		isc_heapindex_t index, unsigned int size_increment,
-		isc_heap_t *heapp)
+		isc_heap_t **heapp)
 {
-	isc_heap_t heap;
+	isc_heap_t *heap;
 
 	REQUIRE(heapp != NULL && *heapp == NULL);
 	REQUIRE(compare != NULL);
@@ -89,8 +89,8 @@ isc_heap_create(isc_memctx_t mctx, isc_heapcompare_t compare,
 }
 
 void
-isc_heap_destroy(isc_heap_t *heapp) {
-	isc_heap_t heap;
+isc_heap_destroy(isc_heap_t **heapp) {
+	isc_heap_t *heap;
 
 	REQUIRE(heapp != NULL);
 	heap = *heapp;
@@ -106,7 +106,7 @@ isc_heap_destroy(isc_heap_t *heapp) {
 }
 
 static isc_boolean_t
-resize(isc_heap_t heap) {
+resize(isc_heap_t *heap) {
 	void **new_array;
 	size_t new_size;
 
@@ -128,7 +128,7 @@ resize(isc_heap_t heap) {
 }
 
 static void
-float_up(isc_heap_t heap, unsigned int i, void *elt) {
+float_up(isc_heap_t *heap, unsigned int i, void *elt) {
 	unsigned int p;
 
 	for ( p = heap_parent(i); 
@@ -144,7 +144,7 @@ float_up(isc_heap_t heap, unsigned int i, void *elt) {
 }
 
 static void
-sink_down(isc_heap_t heap, unsigned int i, void *elt) {
+sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 	unsigned int j, size, half_size;
 
 	size = heap->last;
@@ -168,7 +168,7 @@ sink_down(isc_heap_t heap, unsigned int i, void *elt) {
 }
 
 isc_result_t
-isc_heap_insert(isc_heap_t heap, void *elt) {
+isc_heap_insert(isc_heap_t *heap, void *elt) {
 	unsigned int i;
 
 	REQUIRE(VALID_HEAP(heap));
@@ -183,7 +183,7 @@ isc_heap_insert(isc_heap_t heap, void *elt) {
 }
 
 void
-isc_heap_delete(isc_heap_t heap, unsigned int i) {
+isc_heap_delete(isc_heap_t *heap, unsigned int i) {
 	void *elt;
 
 	REQUIRE(VALID_HEAP(heap));
@@ -195,7 +195,7 @@ isc_heap_delete(isc_heap_t heap, unsigned int i) {
 }
 
 void
-isc_heap_increased(isc_heap_t heap, unsigned int i) {
+isc_heap_increased(isc_heap_t *heap, unsigned int i) {
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
 	
@@ -203,7 +203,7 @@ isc_heap_increased(isc_heap_t heap, unsigned int i) {
 }
 
 void
-isc_heap_decreased(isc_heap_t heap, unsigned int i) {
+isc_heap_decreased(isc_heap_t *heap, unsigned int i) {
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
 	
@@ -211,7 +211,7 @@ isc_heap_decreased(isc_heap_t heap, unsigned int i) {
 }
 
 void *
-isc_heap_element(isc_heap_t heap, unsigned int i) {
+isc_heap_element(isc_heap_t *heap, unsigned int i) {
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(i >= 1 && i <= heap->last);
 
@@ -219,7 +219,7 @@ isc_heap_element(isc_heap_t heap, unsigned int i) {
 }
 
 void
-isc_heap_foreach(isc_heap_t heap, isc_heapaction_t action, void *uap) {
+isc_heap_foreach(isc_heap_t *heap, isc_heapaction_t action, void *uap) {
 	unsigned int i;
 
 	REQUIRE(VALID_HEAP(heap));

@@ -92,7 +92,7 @@ typedef struct isc_buffer {
 	unsigned char *	current;
 	unsigned int	length;
 	unsigned int	used;
-} *isc_buffer_t;
+} isc_buffer_t;
 
 
 /***
@@ -101,7 +101,7 @@ typedef struct isc_buffer {
 
 
 void
-isc_buffer_init(isc_buffer_t b,	unsigned char *base, unsigned int length);
+isc_buffer_init(isc_buffer_t *b, unsigned char *base, unsigned int length);
 /*
  * Make 'b' refer to the 'length'-byte region starting at base.
  *
@@ -114,7 +114,7 @@ isc_buffer_init(isc_buffer_t b,	unsigned char *base, unsigned int length);
  */
 					
 void
-isc_buffer_region(isc_buffer_t b, isc_region_t r);
+isc_buffer_region(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the region of 'b'.
  *
@@ -126,7 +126,7 @@ isc_buffer_region(isc_buffer_t b, isc_region_t r);
  */
 
 void
-isc_buffer_used(isc_buffer_t b, isc_region_t r);
+isc_buffer_used(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the used region of 'b'.
  *
@@ -138,7 +138,7 @@ isc_buffer_used(isc_buffer_t b, isc_region_t r);
  */
 
 void
-isc_buffer_available(isc_buffer_t b, isc_region_t r);
+isc_buffer_available(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the available region of 'b'.
  *
@@ -150,7 +150,7 @@ isc_buffer_available(isc_buffer_t b, isc_region_t r);
  */
 
 void
-isc_buffer_add(isc_buffer_t b, unsigned int n);
+isc_buffer_add(isc_buffer_t *b, unsigned int n);
 /*
  * Increase the 'used' region of 'b' by 'n' bytes.
  *
@@ -164,7 +164,7 @@ isc_buffer_add(isc_buffer_t b, unsigned int n);
 
 
 void
-isc_buffer_subtract(isc_buffer_t b, unsigned int n);
+isc_buffer_subtract(isc_buffer_t *b, unsigned int n);
 /*
  * Decrease the 'used' region of 'b' by 'n' bytes.
  *
@@ -177,7 +177,7 @@ isc_buffer_subtract(isc_buffer_t b, unsigned int n);
  */
 
 void
-isc_buffer_clear(isc_buffer_t b);
+isc_buffer_clear(isc_buffer_t *b);
 /*
  * Make the used region empty.
  *
@@ -192,7 +192,7 @@ isc_buffer_clear(isc_buffer_t b);
  */
 
 void
-isc_buffer_consumed(isc_buffer_t b, isc_region_t r);
+isc_buffer_consumed(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the consumed region of 'b'.
  *
@@ -204,7 +204,7 @@ isc_buffer_consumed(isc_buffer_t b, isc_region_t r);
  */
 
 void
-isc_buffer_remaining(isc_buffer_t b, isc_region_t r);
+isc_buffer_remaining(isc_buffer_t *b, isc_region_t *r);
 /*
  * Make 'r' refer to the remaining region of 'b'.
  *
@@ -216,7 +216,7 @@ isc_buffer_remaining(isc_buffer_t b, isc_region_t r);
  */
 
 void
-isc_buffer_first(isc_buffer_t b);
+isc_buffer_first(isc_buffer_t *b);
 /*
  * Make the consumed region empty.
  *
@@ -231,7 +231,7 @@ isc_buffer_first(isc_buffer_t b);
  */
 
 void
-isc_buffer_forward(isc_buffer_t b, unsigned int n);
+isc_buffer_forward(isc_buffer_t *b, unsigned int n);
 /*
  * Decrease the 'used' region of 'b' by 'n' bytes.
  *
@@ -244,7 +244,7 @@ isc_buffer_forward(isc_buffer_t b, unsigned int n);
  */
 
 void
-isc_buffer_back(isc_buffer_t b, unsigned int n);
+isc_buffer_back(isc_buffer_t *b, unsigned int n);
 /*
  * Decrease the 'consumed' region of 'b' by 'n' bytes.
  *
@@ -257,7 +257,7 @@ isc_buffer_back(isc_buffer_t b, unsigned int n);
  */
 
 void
-isc_buffer_compact(isc_buffer_t b);
+isc_buffer_compact(isc_buffer_t *b);
 /*
  * Compact the used region by moving the remaining region so it occurs
  * at the start of the buffer.  The used region is shrunk by the size of

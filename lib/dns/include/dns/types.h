@@ -22,10 +22,10 @@
 #include <isc/boolean.h>
 
 typedef isc_region_t				dns_label_t;
-typedef struct dns_name *			dns_name_t;
-typedef struct dns_lex *			dns_lex_t;
-typedef struct dns_compression *		dns_compression_t;
-typedef struct dns_decompression *		dns_decompression_t;
+typedef struct dns_name				dns_name_t;
+typedef struct dns_lex				dns_lex_t;
+typedef struct dns_compression			dns_compression_t;
+typedef struct dns_decompression		dns_decompression_t;
 
 typedef enum {
 	dns_labeltype_ordinary = 0,

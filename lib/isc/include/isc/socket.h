@@ -66,49 +66,36 @@
 #include <isc/task.h>
 #include <isc/region.h>
 #include <isc/mem.h>
-
-#include <netinet/in.h>
+#include <isc/sockaddr.h>
 
 /***
  *** Types
  ***/
 
-typedef struct isc_socket *isc_socket_t;
-typedef struct isc_socketmgr *isc_socketmgr_t;
-
-/*
- * XXX Export this as isc/sockaddr.h
- */
-typedef struct isc_sockaddr {
-	/*
-	 * XXX  Must be big enough for all sockaddr types we care about.
-	 */
-	union {
-		struct sockaddr_in sin;
-	} type;
-} *isc_sockaddr_t;
+typedef struct isc_socket isc_socket_t;
+typedef struct isc_socketmgr isc_socketmgr_t;
 
 typedef struct isc_socketevent {
-	struct isc_event	common;		/* Sender is the socket. */
+	isc_event_t		common;		/* Sender is the socket. */
 	isc_result_t		result;		/* OK, EOF, whatever else */
 	unsigned int		n;		/* bytes read or written */
-	struct isc_region	region;		/* the region info */
-	struct isc_sockaddr	address;	/* source address */
+	isc_region_t		region;		/* the region info */
+	isc_sockaddr_t		address;	/* source address */
 	unsigned int		addrlength;	/* length of address */
-} *isc_socketevent_t;
+} isc_socketevent_t;
 
 typedef struct isc_socket_newconnev {
-	struct isc_event	common;
-	isc_socket_t		newsocket;
+	isc_event_t		common;
+	isc_socket_t *		newsocket;
 	isc_result_t		result;		/* OK, EOF, whatever else */
-	struct isc_sockaddr	address;	/* source address */
+	isc_sockaddr_t		address;	/* source address */
 	unsigned int		addrlength;	/* length of address */
-} *isc_socket_newconnev_t;
+} isc_socket_newconnev_t;
 
 typedef struct isc_socket_connev {
-	struct isc_event	common;
+	isc_event_t		common;
 	isc_result_t		result;		/* OK, EOF, whatever else */
-} *isc_socket_connev_t;
+} isc_socket_connev_t;
 
 #define ISC_SOCKEVENT_ANYEVENT  (0)
 #define ISC_SOCKEVENT_RECVDONE	(ISC_EVENTCLASS_SOCKET + 1)
@@ -155,9 +142,9 @@ typedef enum {
  ***/
 
 isc_result_t
-isc_socket_create(isc_socketmgr_t manager,
+isc_socket_create(isc_socketmgr_t *manager,
 		  isc_sockettype_t type,
-		  isc_socket_t *socketp);
+		  isc_socket_t **socketp);
 /*
  * Create a new 'type' socket managed by 'manager'.
  *
@@ -180,7 +167,7 @@ isc_socket_create(isc_socketmgr_t manager,
  */
 
 void
-isc_socket_cancel(isc_socket_t sock, isc_task_t task,
+isc_socket_cancel(isc_socket_t *sock, isc_task_t *task,
 		  unsigned int how);
 /*
  * Cancel pending I/O of the type specified by "how".
@@ -212,7 +199,7 @@ isc_socket_cancel(isc_socket_t sock, isc_task_t task,
  */
 
 void 
-isc_socket_shutdown(isc_socket_t sock, unsigned int how);
+isc_socket_shutdown(isc_socket_t *sock, unsigned int how);
 /*
  * Shutdown 'socket' according to 'how'.
  *
@@ -236,7 +223,7 @@ isc_socket_shutdown(isc_socket_t sock, unsigned int how);
  */
 
 void
-isc_socket_attach(isc_socket_t sock, isc_socket_t *socketp);
+isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp);
 /*
  * Attach *socketp to socket.
  *
@@ -252,7 +239,7 @@ isc_socket_attach(isc_socket_t sock, isc_socket_t *socketp);
  */
 
 void 
-isc_socket_detach(isc_socket_t *socketp);
+isc_socket_detach(isc_socket_t **socketp);
 /*
  * Detach *socketp from its socket.
  *
@@ -279,7 +266,7 @@ isc_socket_detach(isc_socket_t *socketp);
  */
 
 isc_result_t
-isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *addressp,
+isc_socket_bind(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		int length);
 /*
  * Bind 'socket' to '*addressp'.
@@ -303,7 +290,7 @@ isc_socket_bind(isc_socket_t sock, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_listen(isc_socket_t sock, unsigned int backlog);
+isc_socket_listen(isc_socket_t *sock, unsigned int backlog);
 /*
  * Set listen mode on the socket.  After this call, the only function that
  * can be used (other than attach and detach) is isc_socket_accept().
@@ -327,8 +314,8 @@ isc_socket_listen(isc_socket_t sock, unsigned int backlog);
  */
 
 isc_result_t
-isc_socket_accept(isc_socket_t sock,
-		  isc_task_t task, isc_taskaction_t action, void *arg);
+isc_socket_accept(isc_socket_t *sock,
+		  isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Queue accept event.  When a new connection is received, the task will
  * get an ISC_SOCKEVENT_NEWCONN event with the sender set to the listen
@@ -350,8 +337,8 @@ isc_socket_accept(isc_socket_t sock,
  */
 
 isc_result_t
-isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addressp,
-		   int length, isc_task_t task, isc_taskaction_t action,
+isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addressp,
+		   int length, isc_task_t *task, isc_taskaction_t action,
 		   void *arg);
 /*
  * Connect 'socket' to peer with address *saddr.  When the connection
@@ -386,7 +373,7 @@ isc_socket_connect(isc_socket_t sock, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_getpeername(isc_socket_t sock, struct isc_sockaddr *addressp,
+isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		       int *lengthp);
 /*
  * Get the name of the peer connected to 'socket'.
@@ -405,7 +392,7 @@ isc_socket_getpeername(isc_socket_t sock, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_getsockname(isc_socket_t sock, struct isc_sockaddr *addressp,
+isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp,
 		       int *lengthp);
 /*
  * Get the name of 'socket'.
@@ -424,9 +411,9 @@ isc_socket_getsockname(isc_socket_t sock, struct isc_sockaddr *addressp,
  */
 
 isc_result_t
-isc_socket_recv(isc_socket_t sock, isc_region_t region,
+isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		isc_boolean_t partial,
-		isc_task_t task, isc_taskaction_t action, void *arg);
+		isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Receive from 'socket', storing the results in region.
  *
@@ -470,12 +457,12 @@ isc_socket_recv(isc_socket_t sock, isc_region_t region,
  */
 
 isc_result_t
-isc_socket_send(isc_socket_t sock, isc_region_t region,
-		isc_task_t task, isc_taskaction_t action, void *arg);
+isc_socket_send(isc_socket_t *sock, isc_region_t *region,
+		isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
-isc_socket_sendto(isc_socket_t sock, isc_region_t region,
-		  isc_task_t task, isc_taskaction_t action, void *arg,
-		  isc_sockaddr_t address, unsigned int addrlength);
+isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
+		  isc_task_t *task, isc_taskaction_t action, void *arg,
+		  isc_sockaddr_t *address, unsigned int addrlength);
 /*
  * Send the contents of 'region' to the socket's peer.
  *
@@ -516,11 +503,11 @@ isc_socket_sendto(isc_socket_t sock, isc_region_t region,
  */
 
 isc_result_t
-isc_socket_recvmark(isc_socket_t sock,
-		    isc_task_t task, isc_taskaction_t action, void *arg);
+isc_socket_recvmark(isc_socket_t *sock,
+		    isc_task_t *task, isc_taskaction_t action, void *arg);
 isc_result_t
-isc_socket_sendmark(isc_socket_t sock,
-		    isc_task_t task, isc_taskaction_t action, void *arg);
+isc_socket_sendmark(isc_socket_t *sock,
+		    isc_task_t *task, isc_taskaction_t action, void *arg);
 /*
  * Insert a recv/send marker for the socket.
  *
@@ -551,7 +538,7 @@ isc_socket_sendmark(isc_socket_t sock,
  */
 
 isc_result_t
-isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp);
+isc_socketmgr_create(isc_memctx_t *mctx, isc_socketmgr_t **managerp);
 /*
  * Create a socket manager.
  *
@@ -577,7 +564,7 @@ isc_socketmgr_create(isc_memctx_t mctx, isc_socketmgr_t *managerp);
  */
 
 void
-isc_socketmgr_destroy(isc_socketmgr_t *managerp);
+isc_socketmgr_destroy(isc_socketmgr_t **managerp);
 /*
  * Destroy a socket manager.
  *

@@ -15,30 +15,18 @@
  * SOFTWARE.
  */
 
-#include <config.h>
+#ifndef ISC_SOCKADDR_H
+#define ISC_SOCKADDR_H 1
 
-#include <errno.h>
-#include <string.h>
+#include <netinet/in.h>
 
-#include <isc/condition.h>
-#include <isc/error.h>
+typedef struct isc_sockaddr {
+	/*
+	 * XXX  Must be big enough for all sockaddr types we care about.
+	 */
+	union {
+		struct sockaddr_in sin;
+	} type;
+} isc_sockaddr_t;
 
-isc_result_t
-isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t)
-{
-	int presult;
-	struct timespec ts;
-
-	ts.tv_sec = t->seconds;
-	ts.tv_nsec = t->nanoseconds;
-	presult = pthread_cond_timedwait(c, m, &ts);
-	if (presult == 0)
-		return (ISC_R_SUCCESS);
-	if (presult == ETIMEDOUT)
-		return (ISC_R_TIMEDOUT);
-
-	UNEXPECTED_ERROR(__FILE__, __LINE__,
-			 "pthread_cond_timedwait() returned %s",
-			 strerror(presult));
-	return (ISC_R_UNEXPECTED);
-}
+#endif /* ISC_SOCKADDR_H */

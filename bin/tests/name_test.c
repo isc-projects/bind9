@@ -31,7 +31,7 @@
 #include <dns/name.h>
 
 static void
-print_wirename(isc_region_t name) {
+print_wirename(isc_region_t *name) {
 	unsigned char *ccurr, *cend;
 		
 	ccurr = name->base;
@@ -49,9 +49,9 @@ main(int argc, char *argv[]) {
 	unsigned char c[255];
 	unsigned int tbytes;
 	dns_result_t result;
-	struct dns_name name, oname, compname;
-	struct isc_region source, target, r;
-	dns_name_t origin, comp;
+	dns_name_t name, oname, compname;
+	isc_region_t source, target, r;
+	dns_name_t *origin, *comp;
 	isc_boolean_t downcase = ISC_FALSE;
 
 	argc--;

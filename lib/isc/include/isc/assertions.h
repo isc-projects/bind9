@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: assertions.h,v 1.2 1998/12/12 20:47:40 halley Exp $
+ * $Id: assertions.h,v 1.3 1998/12/13 23:45:03 halley Exp $
  */
 
 #ifndef ISC_ASSERTIONS_H
@@ -32,10 +32,7 @@ typedef enum {
 typedef void (*isc_assertioncallback_t)(char *, int, isc_assertiontype_t,
 					char *);
 
-extern isc_assertioncallback_t		__isc_assertion_failed;
-
-#define isc_assertion_setcallback	__isc_assertion_setcallback
-#define isc_assertion_typetotext	__isc_assertion_typetotext
+extern isc_assertioncallback_t isc_assertion_failed;
 
 void isc_assertion_setcallback(isc_assertioncallback_t);
 char *isc_assertion_typetotext(isc_assertiontype_t type);
@@ -73,9 +70,9 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 #if CHECK_REQUIRE != 0
 #define REQUIRE(cond) \
 	((void) ((cond) || \
-		 ((__isc_assertion_failed)(__FILE__, __LINE__, \
-					   isc_assertiontype_require, \
-					   #cond), 0)))
+		 ((isc_assertion_failed)(__FILE__, __LINE__, \
+					 isc_assertiontype_require, \
+					 #cond), 0)))
 #else
 #define REQUIRE(cond)		((void) 0)
 #endif /* CHECK_REQUIRE */
@@ -83,9 +80,9 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 #if CHECK_ENSURE != 0
 #define ENSURE(cond) \
 	((void) ((cond) || \
-		 ((__isc_assertion_failed)(__FILE__, __LINE__, \
-					   isc_assertiontype_ensure, \
-					   #cond), 0)))
+		 ((isc_assertion_failed)(__FILE__, __LINE__, \
+					 isc_assertiontype_ensure, \
+					 #cond), 0)))
 #else
 #define ENSURE(cond)		((void) 0)
 #endif /* CHECK_ENSURE */
@@ -93,9 +90,9 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 #if CHECK_INSIST != 0
 #define INSIST(cond) \
 	((void) ((cond) || \
-		 ((__isc_assertion_failed)(__FILE__, __LINE__, \
-					   isc_assertiontype_insist, \
-					   #cond), 0)))
+		 ((isc_assertion_failed)(__FILE__, __LINE__, \
+					 isc_assertiontype_insist, \
+					 #cond), 0)))
 #else
 #define INSIST(cond)		((void) 0)
 #endif /* CHECK_INSIST */
@@ -103,9 +100,9 @@ char *isc_assertion_typetotext(isc_assertiontype_t type);
 #if CHECK_INVARIANT != 0
 #define INVARIANT(cond) \
 	((void) ((cond) || \
-		 ((__isc_assertion_failed)(__FILE__, __LINE__, \
-					   isc_assertiontype_invariant, \
-					   #cond), 0)))
+		 ((isc_assertion_failed)(__FILE__, __LINE__, \
+					 isc_assertiontype_invariant, \
+					 #cond), 0)))
 #else
 #define INVARIANT(cond)		((void) 0)
 #endif /* CHECK_INVARIANT */

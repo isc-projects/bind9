@@ -30,8 +30,8 @@
 #include <isc/mutex.h>
 #include "util.h"
 #else
-#define LOCK(ctx)
-#define UNLOCK(ctx)
+#define LOCK(l)
+#define UNLOCK(l)
 #endif
 
 /*
@@ -47,7 +47,7 @@ typedef struct {
 	/*
 	 * This structure must be ALIGNMENT_SIZE bytes.
 	 */
-} *size_info;
+} size_info;
 
 struct stats {
 	unsigned long		gets;
@@ -113,9 +113,9 @@ quantize(size_t size) {
 
 isc_result_t
 isc_memctx_create(size_t init_max_size, size_t target_size,
-		  isc_memctx_t *ctxp)
+		  isc_memctx_t **ctxp)
 {
-	isc_memctx_t ctx;
+	isc_memctx_t *ctx;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
@@ -162,9 +162,9 @@ isc_memctx_create(size_t init_max_size, size_t target_size,
 }
 
 void
-isc_memctx_destroy(isc_memctx_t *ctxp) {
+isc_memctx_destroy(isc_memctx_t **ctxp) {
 	unsigned int i;
-	isc_memctx_t ctx;
+	isc_memctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
@@ -187,7 +187,7 @@ isc_memctx_destroy(isc_memctx_t *ctxp) {
 }
 
 static void
-more_basic_blocks(isc_memctx_t ctx) {
+more_basic_blocks(isc_memctx_t *ctx) {
 	void *new;
 	unsigned char *curr, *next;
 	unsigned char *first, *last;
@@ -240,7 +240,7 @@ more_basic_blocks(isc_memctx_t ctx) {
 }
 
 void *
-__isc_mem_get(isc_memctx_t ctx, size_t size) {
+isc_mem_get(isc_memctx_t *ctx, size_t size) {
 	size_t new_size = quantize(size);
 	void *ret;
 
@@ -320,7 +320,7 @@ __isc_mem_get(isc_memctx_t ctx, size_t size) {
  * so we want to count this as a user "put". 
  */
 void
-__isc_mem_put(isc_memctx_t ctx, void *mem, size_t size) {
+isc_mem_put(isc_memctx_t *ctx, void *mem, size_t size) {
 	size_t new_size = quantize(size);
 
 	REQUIRE(size > 0);
@@ -354,29 +354,29 @@ __isc_mem_put(isc_memctx_t ctx, void *mem, size_t size) {
 }
 
 void *
-__isc_mem_getdebug(isc_memctx_t ctx, size_t size, const char *file, int line) {
+isc_mem_getdebug(isc_memctx_t *ctx, size_t size, const char *file, int line) {
 	void *ptr;
 
-	ptr = __isc_mem_get(ctx, size);
+	ptr = isc_mem_get(ctx, size);
 	fprintf(stderr, "%s:%d: mem_get(%p, %lu) -> %p\n", file, line,
 		ctx, (unsigned long)size, ptr);
 	return (ptr);
 }
 
 void
-__isc_mem_putdebug(isc_memctx_t ctx, void *ptr, size_t size, const char *file,
-		   int line)
+isc_mem_putdebug(isc_memctx_t *ctx, void *ptr, size_t size, const char *file,
+		 int line)
 {
 	fprintf(stderr, "%s:%d: mem_put(%p, %p, %lu)\n", file, line, 
 		ctx, ptr, (unsigned long)size);
-	__isc_mem_put(ctx, ptr, size);
+	isc_mem_put(ctx, ptr, size);
 }
 
 /*
  * Print the stats[] on the stream "out" with suitable formatting.
  */
 void
-isc_mem_stats(isc_memctx_t ctx, FILE *out) {
+isc_mem_stats(isc_memctx_t *ctx, FILE *out) {
 	size_t i;
 
 	REQUIRE(VALID_CONTEXT(ctx));
@@ -402,7 +402,7 @@ isc_mem_stats(isc_memctx_t ctx, FILE *out) {
 }
 
 isc_boolean_t
-isc_mem_valid(isc_memctx_t ctx, void *ptr) {
+isc_mem_valid(isc_memctx_t *ctx, void *ptr) {
 	unsigned char *cp = ptr;
 	isc_boolean_t result = ISC_FALSE;
 
@@ -422,8 +422,8 @@ isc_mem_valid(isc_memctx_t ctx, void *ptr) {
  */
 
 void *
-isc_mem_allocate(isc_memctx_t ctx, size_t size) {
-	size_info si;
+isc_mem_allocate(isc_memctx_t *ctx, size_t size) {
+	size_info *si;
 
 	size += ALIGNMENT_SIZE;
 	si = isc_mem_get(ctx, size);
@@ -434,10 +434,10 @@ isc_mem_allocate(isc_memctx_t ctx, size_t size) {
 }
 
 void
-isc_mem_free(isc_memctx_t ctx, void *ptr) {
-	size_info si;
+isc_mem_free(isc_memctx_t *ctx, void *ptr) {
+	size_info *si;
 
-	si = &(((size_info)ptr)[-1]);
+	si = &(((size_info *)ptr)[-1]);
 	isc_mem_put(ctx, si, si->size);
 }
 
@@ -447,7 +447,7 @@ isc_mem_free(isc_memctx_t ctx, void *ptr) {
  * Public Legacy.
  */
 
-static isc_memctx_t 		default_context = NULL;
+static isc_memctx_t *default_context = NULL;
 
 int
 meminit(size_t init_max_size, size_t target_size) {

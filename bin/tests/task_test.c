@@ -28,10 +28,10 @@
 #include <isc/result.h>
 #include <isc/timer.h>
 
-isc_memctx_t mctx = NULL;
+isc_memctx_t *mctx = NULL;
 
 static isc_boolean_t
-my_callback(isc_task_t task, isc_event_t event)
+my_callback(isc_task_t *task, isc_event_t *event)
 {
 	int i, j;
 	char *name = event->arg;
@@ -46,7 +46,7 @@ my_callback(isc_task_t task, isc_event_t event)
 }
 
 static isc_boolean_t
-my_shutdown(isc_task_t task, isc_event_t event) {
+my_shutdown(isc_task_t *task, isc_event_t *event) {
 	char *name = event->arg;
 
 	printf("shutdown %s (%p)\n", name, task);
@@ -56,7 +56,7 @@ my_shutdown(isc_task_t task, isc_event_t event) {
 }
 
 static isc_boolean_t
-my_tick(isc_task_t task, isc_event_t event)
+my_tick(isc_task_t *task, isc_event_t *event)
 {
 	char *name = event->arg;
 
@@ -68,13 +68,13 @@ my_tick(isc_task_t task, isc_event_t event)
 
 void
 main(int argc, char *argv[]) {
-	isc_taskmgr_t manager = NULL;
-	isc_task_t t1 = NULL, t2 = NULL;
-	isc_task_t t3 = NULL, t4 = NULL;
-	isc_event_t event;
+	isc_taskmgr_t *manager = NULL;
+	isc_task_t *t1 = NULL, *t2 = NULL;
+	isc_task_t *t3 = NULL, *t4 = NULL;
+	isc_event_t *event;
 	unsigned int workers;
-	isc_timermgr_t timgr;
-	isc_timer_t ti1, ti2;
+	isc_timermgr_t *timgr;
+	isc_timer_t *ti1, *ti2;
 	struct isc_time absolute;
 	struct isc_interval interval;
 
