@@ -1,9 +1,9 @@
 Internet Draft                                   Marc Blanchet
-draft-ietf-idn-idne-01.txt                            Viagenie
-July 8, 2000                                     Paul  Hoffman
+draft-ietf-idn-idne-02.txt                            Viagenie
+March 19, 2001                                   Paul  Hoffman
 Expires in six months                               IMC & VPNC
 
-           Internationalized domain names using EDNS (IDNE)
+            Internationalized domain names using EDNS (IDNE)
 
 Status of this Memo
 
@@ -19,11 +19,11 @@ and may be updated, replaced, or obsoleted by other documents at any
 time. It is inappropriate to use Internet-Drafts as reference material
 or to cite them other than as "work in progress."
 
-     The list of current Internet-Drafts can be accessed at
-     http://www.ietf.org/ietf/1id-abstracts.txt
+      The list of current Internet-Drafts can be accessed at
+      http://www.ietf.org/ietf/1id-abstracts.txt
 
-     The list of Internet-Draft Shadow Directories can be accessed at
-     http://www.ietf.org/shadow.html.
+      The list of Internet-Draft Shadow Directories can be accessed at
+      http://www.ietf.org/shadow.html.
 
 
 Abstract
@@ -98,11 +98,11 @@ new extended label type for IDNE is used to identify an IDNE label. This
 document uses 0b000010 as the extended label type; however, the label
 type will be assigned by IANA and it may not be 0b000010.
 
-         0                   1                   2
+          0                   1                   2
 bits  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2     . . .
-        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-//+-+-+-+-+-+-+
-        |0 1|    ELT    |     Size      |        IDN label ...        |
-        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//-+-+-+-+-+-+-+
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-//+-+-+-+-+-+-+
+         |0 1|    ELT    |     Size      |        IDN label ...        |
+         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+//-+-+-+-+-+-+-+
 
 
 ELT: The six-bit extended label type to be assigned by the IANA for an
@@ -134,20 +134,20 @@ then transformed using UTF-8 [RFC2279] to 0x6DC3A9.
 Ignoring the other fields of the message, the domain name portion of the
 datagram could look like:
 
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      20 | 0  1  0  0  0  0  1  0| 0  0  0  0  0  0  1  1|
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      22 |         0x6D (m)      |       0xC3 (e'(1))    |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      24 |         0xA9 (e'(2))  |       3               |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      26 |         0x63 (c)      |       0x6F (o)        |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      28 |         0x6D (m)      |       0x00            |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       20 | 0  1  0  0  0  0  1  0| 0  0  0  0  0  0  1  1|
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       22 |         0x6D (m)      |       0xC3 (e'(1))    |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       24 |         0xA9 (e'(2))  |       3               |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       26 |         0x63 (c)      |       0x6F (o)        |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       28 |         0x6D (m)      |       0x00            |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
 Octet 20 means EDNS extended label type (0b01) using the IDN label
-       type (0b000010)
+        type (0b000010)
 Octet 21 means size of label is 3 octets following
 Octet 22-24 are the "m*" label encoded in UTF-8
 Octet 25-28 are "com" encoded as a STD13 label
@@ -161,25 +161,25 @@ Using the previous labels, one datagram might contain "www.m*.com" and
 Ignoring the other fields of the message, the domain name portions of
 the datagram could look like:
 
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      20 | 0  1  0  0  0  0  1  0| 0  0  0  0  0  0  1  1|
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      22 |         0x6D (m)      |       0xC3 (e'(1))    |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      24 |         0xA9 (e'(2))  |       3               |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      26 |         0x63 (c)      |       0x6F (o)        |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      28 |         0x6D (m)      |       0x00            |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-     .    .    .
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      40 |           3           |       0x77 (w)        |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      42 |       0x77 (w)        |       0x77 (w)        |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-      44 | 1  1|                20                       |
-         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       20 | 0  1  0  0  0  0  1  0| 0  0  0  0  0  0  1  1|
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       22 |         0x6D (m)      |       0xC3 (e'(1))    |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       24 |         0xA9 (e'(2))  |       3               |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       26 |         0x63 (c)      |       0x6F (o)        |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       28 |         0x6D (m)      |       0x00            |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      .    .    .
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       40 |           3           |       0x77 (w)        |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       42 |       0x77 (w)        |       0x77 (w)        |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+       44 | 1  1|                20                       |
+          +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
 The domain name "m*.com" is shown at offset 20. The domain name
 "www.m*.com" is shown at offset 40; this definition uses a pointer to
@@ -405,23 +405,9 @@ Bill Sommerfeld
 Francois Yergeau
 
 
-B. Changes from -00 to -01
+B. Changes from -01 to -02
 
-1.1: Added reference to Unicode names.
-
-3: Clarified that a size of zero is not allowed.
-
-3.1.1 and 3.1.2: Fixed two very serious errors in the examples.
-
-6: Removed second paragraph, which was redundant with 7.3.
-
-12: Beefed up the security considerations.
-
-13: Added [ISO10646] and [UNICODE3].
-
-Added Appendix A.
-
-Added Appendex B.
+None.
 
 
 C. Authors' Addresses
@@ -437,5 +423,4 @@ Internet Mail Consortium and VPN Consortium
 127 Segre Place
 Santa Cruz, CA  95060 USA
 phoffman@imc.org
-
 

@@ -1,7 +1,7 @@
-Internet Draft                                                James SENG
-<draft-ietf-idn-cjk-00.txt>                               Yoshiro YONEYA
-12th Sep 2000                                                Kenny HUANG
-Expires 12 Mar 2001                                         KIM Kyongsok
+è©¿Internet Draft                                                James SENG
+<draft-ietf-idn-cjk-01.txt>                               Yoshiro YONEYA
+11th Apr 2001                                                Kenny HUANG
+Expires 11 Oct 2001                                         KIM Kyongsok
 
         Han Ideograph (CJK) for Internationalized Domain Names
 
@@ -54,11 +54,6 @@ for reference for the ideograph described.
 
 Han ideographs are defined as the Chinese ideographs starting from
 U+3400 to U+9FFF or commonly known as CJK Unification Ideographs. This
-
-                    Expires 12th March 2001 [Page  1]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 covers Chinese 'hanzi' {U+6F22 U+5B57/U+6C49 U+5B57}, Japanese 'kanji'
 (U+6F22 U+5B57) and Korean 'hanja' {U+6F22 U+5B57/U+D55C U+C790}.
 Additional Han ideographs will appear in other location (not necessary
@@ -113,11 +108,6 @@ points in Unicode.
 Chinese ideographs or hanzi {U+6F22 U+5B57/U+6C49 U+5B57} originated
 from pictograph. They are 'pictures' which evolved into ideographs
 during several thousand years. For instance, the ideograph for "hill"
-
-                    Expires 12th March 2001 [Page  2]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 {U+5C71} still bears some resembles to 3 peaks of a hill.
 
 Not all ideographs are pictograph. There are other classifications such
@@ -172,11 +162,6 @@ match with TC {U+81FA U+5F4E} or TC {U+53F0 U+5F4E}.
 The side effect of this method is that comparing SC {U+53D1} to TC
 {U+667C} or TC {U+9AEE} will both be positive. This implies that SC
 'hair' SC ÖÒ≥Ö≈Ê {U+5934 U+53D1} will match TC
-
-                    Expires 12th March 2001 [Page  3]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 (U+982D U+9AEE). It will also match TC {U+982D U+9AEE} that does not
 have any meaning in Chinese.
 
@@ -231,11 +216,6 @@ the 5th century. Chinese ideographs in Japanese are known as 'kanji'
 {U+6F22 U+5B57}. They also developed their own syllabary hiragana
 {U+5E73 U+4EEE U+540D} (U+3040-U+309F) and katakana {U+7247 U+4EEE
 U+540D} (U+30A0-U+30FF), both are derivative of kanji that has same
-
-                    Expires 12th March 2001 [Page  4]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 pronunciation. Hiragana is a simplified cursive form, for example, 'a'
 {U+3042} was derived from 'an' {U+5B89}. Katakana is a simplified part
 form, for example, 'a' {U+30A2} was derived from 'a' {U+963F}. However,
@@ -290,11 +270,6 @@ Hence, Han folding here is not recommended.
 4. Vietnamese
 
 While Vietnamese also adopted Chinese ideographs ('chu han') and created
-
-                    Expires 12th March 2001 [Page  5]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 their own ideographs ('chu nom'), they were now replaced by romanized
 'quoc ngu' today. Hence, this document does not attempt to address any
 issues with 'chu han' or 'chu nom'.
@@ -349,11 +324,6 @@ or removing radical from standard ideographs.
 
 7. Mechanism
 
-
-                    Expires 12th March 2001 [Page  6]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 The implicit proposal in this document is that CJKV ideographs may or
 may not be "folded" for the purposes of comparison of domain names.
 
@@ -405,14 +375,6 @@ If conservative safety is really required, then
    are made on x-axis characters, but the license of that domain name
    can pick which y or z variants they wish to use..
 
-
-
-
-
-                    Expires 12th March 2001 [Page  7]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
 Acknowledgement
 
 The editor gratefully acknowledge the contributions of:
@@ -424,7 +386,7 @@ Karlsson Kent <keka@im.se>
 
 Author(s)
 
-James SENG 
+James SENG àƒËÜÓØÖ´≈
 i-DNS.net International Pte Ltd.
 8 Temasek Boulevard
 Suntec Tower 3 #24-02
@@ -439,7 +401,7 @@ Shinagawa IntercityBldg., B-13F
 Email: yone@po.ntts.co.jp
 Tel: +81-3-5782-7291
 
-Kenny HUANG 
+Kenny HUANG â©‚ÖÔ•â¢‰
 Geotempo International Ltd; TWNIC
 3F, No 16 Kang Hwa Street, Nei Hu
 Taipei 114, Taiwan
@@ -468,11 +430,6 @@ References
 [KANJIDIC]  SanseidoÇ«÷s Unicode Kanji Information Dictionary
             ISBN 4-385-13690-4
 
-                    Expires 12th March 2001 [Page  8]
-
-Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
-
-
 [UNICHART]  Unicode chart http://charts.unicode.org/
 
 [ZONGBIAO]  Simplified Characters Standard Chart 2nd Edition, 1986
@@ -495,36 +452,3 @@ Internet Draft         Han Ideograph (CJK) for IDN         12th Mar 2001
 
 [KimK 1999] A Hangeul story inside computers.  KIM, Kyongsok.  Busan
             National University  Press.  1999. [in Hangeul]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    Expires 12th March 2001 [Page  9]

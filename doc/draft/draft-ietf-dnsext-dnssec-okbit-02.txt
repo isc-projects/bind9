@@ -5,8 +5,8 @@
 
 
 INTERNET-DRAFT                                            David Conrad
-draft-ietf-dnsext-dnssec-okbit-01.txt                     Nominum Inc.
-                                                        November, 2000
+draft-ietf-dnsext-dnssec-okbit-02.txt                     Nominum Inc.
+                                                             May, 2001
 
                  Indicating Resolver Support of DNSSEC
 
@@ -55,9 +55,9 @@ Abstract
 
 
 
-Expires May, 2001                                               [Page 1]
+Expires October, 2001                                           [Page 1]
 
-draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
+draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
 
 
    This document discusses a method to avoid these negative impacts,
@@ -74,15 +74,15 @@ draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
 
 2. Rationale
 
-   As DNSSEC is deployed, the vast majority of queries will be from
-   resolvers that are not DNSSEC aware and thus do not understand or
-   support the DNSSEC security RRs.  When a query from such a resolver
-   is received for a DNSSEC signed zone, the DNSSEC specification
-   indicates the nameserver must respond with the appropriate DNSSEC
-   security RRs.  As DNS UDP datagrams are limited to 512 bytes
-   [RFC1035], responses including DNSSEC security RRs have a high
-   probability of resulting in a truncated response being returned and
-   the resolver retrying the query using TCP.
+   Initially, as DNSSEC is deployed, the vast majority of queries will
+   be from resolvers that are not DNSSEC aware and thus do not
+   understand or support the DNSSEC security RRs.  When a query from
+   such a resolver is received for a DNSSEC signed zone, the DNSSEC
+   specification indicates the nameserver must respond with the
+   appropriate DNSSEC security RRs.  As DNS UDP datagrams are limited to
+   512 bytes [RFC1035], responses including DNSSEC security RRs have a
+   high probability of resulting in a truncated response being returned
+   and the resolver retrying the query using TCP.
 
    TCP DNS queries result in significant overhead due to connection
    setup and teardown.  Operationally, the impact of these TCP queries
@@ -111,9 +111,9 @@ draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
 
 
 
-Expires May, 2001                                               [Page 2]
+Expires October, 2001                                           [Page 2]
 
-draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
+draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
 
 
    non-compliant caching or forwarding servers inappropriately copy data
@@ -167,9 +167,9 @@ draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
 
 
 
-Expires May, 2001                                               [Page 3]
+Expires October, 2001                                           [Page 3]
 
-draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
+draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
 
 
    DNSSEC security RRs and SHOULD retry the query without the EDNS0 in
@@ -182,16 +182,28 @@ Security Considerations
    that zone as the response may be forged or a non-forged response of
    an altered (DO bit cleared) query.
 
-IANA Considerations
+IANA considerations:
 
-   Allocation of the most significant bit of the Z field in the EDNS0
-   OPT meta-RR is required.
+   EDNS0[RFC2761] defines 16 bits as extened flags in the OPT record,
+   these bits are encoded into the TTL field of the OPT record (RFC2761
+   section 4.6).
+
+   This document reserves one of these bits as the OK bit. It is
+   requested that the left most bit be allocated. Thus the USE of the
+   OPT record TTL field would look like
+
+                +0 (MSB)                +1 (LSB)
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      0: |   EXTENDED-RCODE      |       VERSION         |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+      2: |DO|                    Z                       |
+         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
 Acknowledgements
 
    This document is based on a rough draft by Bob Halley with input from
    Olafur Gudmundsson, Andreas Gustafsson, Brian Wellington, Randy Bush,
-   Rob Austein, and Steve Bellovin.
+   Rob Austein, Steve Bellovin, and Erik Nordmark.
 
 References
 
@@ -208,6 +220,14 @@ References
    2535, March 1999.
 
    [RFC2671] Vixie, P., Extension Mechanisms for DNS (EDNS0)", RFC 2671,
+
+
+
+Expires October, 2001                                           [Page 4]
+
+draft-ietf-dnsext-dnssec-okbit-02.txt                          May, 2001
+
+
    August 1999
 
 Author's Address
@@ -219,14 +239,6 @@ Author's Address
    USA
 
    Phone: +1 650 779 6003
-
-
-
-
-Expires May, 2001                                               [Page 4]
-
-draft-ietf-dnsext-dnssec-okbit-01.txt                     November, 2000
-
 
    Email: david.conrad@nominum.com
 
@@ -267,17 +279,5 @@ Full Copyright Statement
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Expires May, 2001                                               [Page 5]
+Expires October, 2001                                           [Page 5]
 
