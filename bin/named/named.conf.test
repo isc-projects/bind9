@@ -1,0 +1,9 @@
+options {
+		directory "/var/named";
+	};
+
+zone "vix.com" {
+	type master;
+	file "whatever";
+};
+
