@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.86 2000/05/08 16:12:23 tale Exp $ */
+/* $Id: rdata.c,v 1.87 2000/05/09 12:07:32 tale Exp $ */
 
 #include <config.h>
 
@@ -751,7 +751,7 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source) {
 		return (ISC_R_SUCCESS); \
 	}
 
-	switch (tolower(source->base[0])) {
+	switch (tolower((unsigned char)source->base[0])) {
 	case 'a':
 		COMPARE("any", META, dns_rdataclass_any);
 		break;
