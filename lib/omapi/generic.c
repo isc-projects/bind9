@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1996-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: generic.c,v 1.14 2000/05/24 18:43:29 tale Exp $ */
+/* $Id: generic.c,v 1.15 2000/06/21 22:01:17 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 

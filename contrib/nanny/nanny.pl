@@ -14,7 +14,7 @@
 # PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
-#
+
 # A simple nanny to make sure named stays running.
 
 $pid_file_location = '/var/run/named.pid';

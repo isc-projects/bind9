@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1996-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: connection.c,v 1.29 2000/06/02 18:59:24 bwelling Exp $ */
+/* $Id: connection.c,v 1.30 2000/06/21 22:01:14 tale Exp $ */
 
 /* Principal Author: DCL */
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1996, 1997, 1998, 1999, 2000  Internet Software Consortium.
+ * Copyright (C) 1996-2000  Internet Software Consortium.
  * 
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: handle.c,v 1.12 2000/05/14 03:51:39 tale Exp $ */
+/* $Id: handle.c,v 1.13 2000/06/21 22:01:18 tale Exp $ */
 
 /* Principal Author: Ted Lemon */
 
