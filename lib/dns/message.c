@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.210 2002/02/28 05:13:57 marka Exp $ */
+/* $Id: message.c,v 1.211 2002/03/11 01:59:15 marka Exp $ */
 
 /***
  *** Imports
@@ -2411,7 +2411,6 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt) {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	REQUIRE(opt->type == dns_rdatatype_opt);
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
-	REQUIRE(msg->buffer != NULL);
 	REQUIRE(msg->state == DNS_SECTION_ANY);
 
 	msgresetopt(msg);
