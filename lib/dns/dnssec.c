@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.79 2004/01/14 02:06:50 marka Exp $
+ * $Id: dnssec.c,v 1.80 2004/03/04 02:44:54 marka Exp $
  */
 
 
@@ -689,7 +689,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	RETERR(dns_message_gettemprdata(msg, &rdata));
 	RETERR(isc_buffer_allocate(msg->mctx, &dynbuf, 1024));
 	RETERR(dns_rdata_fromstruct(rdata, dns_rdataclass_any,
-				    dns_rdatatype_rrsig, &sig, dynbuf));
+				    dns_rdatatype_sig /* SIG(0) */,
+				    &sig, dynbuf));
 
 	isc_mem_put(mctx, sig.signature, sig.siglen);
 	signeedsfree = ISC_FALSE;
@@ -699,7 +700,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 	datalist = NULL;
 	RETERR(dns_message_gettemprdatalist(msg, &datalist));
 	datalist->rdclass = dns_rdataclass_any;
-	datalist->type = dns_rdatatype_rrsig;
+	datalist->type = dns_rdatatype_sig;	/* SIG(0) */
 	datalist->covers = 0;
 	datalist->ttl = 0;
 	ISC_LIST_INIT(datalist->rdata);
@@ -727,7 +728,7 @@ isc_result_t
 dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 			 dst_key_t *key)
 {
-	dns_rdata_rrsig_t sig;
+	dns_rdata_sig_t sig;	/* SIG(0) */
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r, source_r, sig_r, header_r;
