@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.165 2000/07/22 00:40:39 mws Exp $ */
+/* $Id: zone.c,v 1.166 2000/07/24 22:59:31 explorer Exp $ */
 
 #include <config.h>
 
@@ -126,6 +126,7 @@ struct dns_zone {
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
+	dns_notifytype_t	notifytype;
 	isc_sockaddr_t		*notify;
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
@@ -355,6 +356,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
+	zone->notifytype = dns_notifytype_yes;
 	zone->notifycnt = 0;
 	zone->task = NULL;
 	zone->update_acl = NULL;
@@ -473,6 +475,15 @@ dns_zone_getclass(dns_zone_t *zone){
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->rdclass);
+}
+
+void
+dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK(&zone->lock);
+	zone->notifytype = notifytype;
+	UNLOCK(&zone->lock);
 }
 
 /*
@@ -1944,16 +1955,17 @@ dns_zone_notify(dns_zone_t *zone) {
 	unsigned int i;
 	isc_sockaddr_t dst;
 	isc_boolean_t isqueued;
+	dns_notifytype_t notifytype;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK(&zone->lock);
 	zone->flags &= ~DNS_ZONEFLG_NEEDNOTIFY;
+	notifytype = zone->notifytype;
 	UNLOCK(&zone->lock);
 
-	if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOTIFY)) {
+	if (notifytype == dns_notifytype_no)
 		return;
-	}
 
 	origin = &zone->origin;
 
@@ -1982,6 +1994,9 @@ dns_zone_notify(dns_zone_t *zone) {
 		notify = NULL;
 	}
 	UNLOCK(&zone->lock);
+
+	if (notifytype == dns_notifytype_explicit)
+		return;
 
 	/*
 	 * Process NS RRset to generate notifies.

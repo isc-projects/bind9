@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.60 2000/07/21 18:47:23 mws Exp $ */
+/* $Id: zone.h,v 1.61 2000/07/24 22:59:44 explorer Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -895,6 +895,12 @@ dns_zone_getsigvalidityinterval(dns_zone_t *zone);
  *
  * Requires:
  *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
+/*
+ * Sets zone notify method to "notifytype"
  */
 
 isc_result_t

@@ -16,7 +16,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confparser.y,v 1.103 2000/07/21 21:24:57 brister Exp $ */
+/* $Id: confparser.y,v 1.104 2000/07/24 22:59:35 explorer Exp $ */
 
 #include <config.h>
 
@@ -214,6 +214,7 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 	dns_severity_t		severity;
 	dns_c_trans_t		transport;
 	dns_transfer_format_t	tformat;
+	dns_notifytype_t	notifytype;
 
 	dns_c_ipmatchelement_t	*ime;
 	dns_c_ipmatchlist_t	*iml;
@@ -394,11 +395,13 @@ static isc_boolean_t	int_too_big(isc_uint32_t base, isc_uint32_t mult);
 %token		L_WILDCARD
 %token		L_YES
 %token		L_ZONE
+%token		L_EXPLICIT
 
 
 %type <addata>		additional_data
 %type <boolean>		grantp
 %type <boolean>		yea_or_nay
+%type <notifytype>	notify_setting
 %type <forward>		forward_opt
 %type <forward>		zone_forward_opt
 %type <ime>		address_match_element
@@ -755,7 +758,7 @@ option: /* Empty */
 			YYABORT;
 		}
 	}
-	| L_NOTIFY yea_or_nay
+	| L_NOTIFY notify_setting
 	{
 		tmpres = dns_c_ctx_setnotify(currcfg, $2);
 		if (tmpres == ISC_R_EXISTS) {
@@ -1910,6 +1913,39 @@ yea_or_nay: L_YES
 			parser_warning(ISC_TRUE,
 				       "number should be 0 or 1, assuming 1");
 			$$ = isc_boolean_true;
+		}
+	}
+
+notify_setting: L_YES
+	{
+		$$ = dns_notifytype_yes;
+	}
+	| L_TRUE
+	{
+		$$ = dns_notifytype_yes;
+	}
+	| L_NO
+	{
+		$$ = dns_notifytype_no;
+	}
+	| L_FALSE
+	{
+		$$ = dns_notifytype_no;
+	}
+	| L_EXPLICIT
+	{
+		$$ = dns_notifytype_explicit;
+	}
+	| L_INTEGER
+	{
+		if ($1 == 1) {
+			$$ = dns_notifytype_yes;
+		} else if ($1 == 0) {
+			$$ = dns_notifytype_no;
+		} else {
+			parser_warning(ISC_TRUE,
+				       "number should be 0 or 1, assuming 1");
+			$$ = dns_notifytype_yes;
 		}
 	}
 	;
@@ -3613,7 +3649,7 @@ view_option: L_FORWARD zone_forward_opt
 			YYABORT;
 		}
 	}
-	| L_NOTIFY yea_or_nay
+	| L_NOTIFY notify_setting
 	{
 		dns_c_view_t *view = dns_c_ctx_getcurrview(currcfg);
 
@@ -4783,7 +4819,7 @@ zone_option: L_FILE L_QSTRING
 			YYABORT;
 		}
 	}
-	| L_NOTIFY yea_or_nay
+	| L_NOTIFY notify_setting
 	{
 		dns_c_zone_t *zone = dns_c_ctx_getcurrzone(currcfg);
 
@@ -5312,6 +5348,7 @@ static struct token keyword_tokens [] = {
 	{ "warn",			L_WARN },
 	{ "yes",			L_YES },
 	{ "zone",			L_ZONE },
+	{ "explicit",			L_EXPLICIT },
 
 	{ NULL, 0 }
 };

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.c,v 1.48 2000/07/21 21:24:59 brister Exp $ */
+/* $Id: confzone.c,v 1.49 2000/07/24 22:59:38 explorer Exp $ */
 
 #include <config.h>
 
@@ -433,7 +433,7 @@ dns_c_zone_new(isc_mem_t *mem,
 	case dns_c_zone_master:
 		master_zone_init(&newzone->u.mzone);
 		break;
-		
+
 	case dns_c_zone_slave:
 		slave_zone_init(&newzone->u.szone);
 		break;
@@ -441,11 +441,11 @@ dns_c_zone_new(isc_mem_t *mem,
 	case dns_c_zone_stub:
 		stub_zone_init(&newzone->u.tzone);
 		break;
-		
+
 	case dns_c_zone_hint:
 		hint_zone_init(&newzone->u.hzone);
 		break;
-		
+
 	case dns_c_zone_forward:
 		forward_zone_init(&newzone->u.fzone);
 		break;
@@ -1475,7 +1475,7 @@ dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval) {
  */
 
 isc_result_t
-dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval) {
+dns_c_zone_setnotify(dns_c_zone_t *zone, dns_notifytype_t newval) {
 	isc_boolean_t existed = ISC_FALSE;
 	
 	REQUIRE(DNS_C_ZONE_VALID(zone));
@@ -1523,12 +1523,12 @@ dns_c_zone_setnotify(dns_c_zone_t *zone, isc_boolean_t newval) {
  */
 
 isc_result_t
-dns_c_zone_getnotify(dns_c_zone_t *zone, isc_boolean_t *retval) {
+dns_c_zone_getnotify(dns_c_zone_t *zone, dns_notifytype_t *retval) {
 	isc_result_t res;
 	dns_c_setbits_t *bits = NULL;
-	isc_boolean_t val = ISC_FALSE;
+	dns_notifytype_t val = dns_notifytype_no;
 	int bit = 0;
-	
+
 	REQUIRE(DNS_C_ZONE_VALID(zone));
 	REQUIRE(retval != NULL);
 
@@ -1538,25 +1538,25 @@ dns_c_zone_getnotify(dns_c_zone_t *zone, isc_boolean_t *retval) {
 		bit = MZ_NOTIFY_BIT;
 		bits = &zone->u.mzone.setflags;
 		break;
-			
+
 	case dns_c_zone_slave:
 		val = zone->u.szone.notify;
 		bit = SZ_NOTIFY_BIT;
 		bits = &zone->u.szone.setflags;
 		break;
-		
+
 	case dns_c_zone_stub:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Stub zones do not have a notify field");
 		return (ISC_R_FAILURE);
-			
+
 	case dns_c_zone_hint:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
 			      "Hint zones do not have a notify field");
 		return (ISC_R_FAILURE);
-			
+
 	case dns_c_zone_forward:
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_CONFIG,
 			      DNS_LOGMODULE_CONFIG, ISC_LOG_CRITICAL,
@@ -1570,7 +1570,7 @@ dns_c_zone_getnotify(dns_c_zone_t *zone, isc_boolean_t *retval) {
 	} else {
 		res = ISC_R_NOTFOUND;
 	}
-	
+
 	return (res);
 }
 
@@ -3758,8 +3758,12 @@ master_zone_print(FILE *fp, int indent, dns_c_masterzone_t *mzone) {
 
 	if (DNS_C_CHECKBIT(MZ_NOTIFY_BIT, &mzone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "notify %s;\n",
-			(mzone->notify ? "true" : "false"));
+		if (mzone->notify == dns_notifytype_no)
+			fprintf(fp, "notify no;\n");
+		if (mzone->notify == dns_notifytype_yes)
+			fprintf(fp, "notify yes;\n");
+		if (mzone->notify == dns_notifytype_explicit)
+			fprintf(fp, "notify explicit;\n");
 	}
 
 	if (mzone->also_notify != NULL) {
@@ -3971,8 +3975,12 @@ slave_zone_print(FILE *fp, int indent, dns_c_slavezone_t *szone) {
 
 	if (DNS_C_CHECKBIT(SZ_NOTIFY_BIT, &szone->setflags)) {
 		dns_c_printtabs(fp, indent);
-		fprintf(fp, "notify %s;\n",
-			(szone->notify ? "true" : "false"));
+		if (szone->notify == dns_notifytype_no)
+			fprintf(fp, "notify no;\n");
+		if (szone->notify == dns_notifytype_yes)
+			fprintf(fp, "notify yes;\n");
+		if (szone->notify == dns_notifytype_explicit)
+			fprintf(fp, "notify explicit;\n");
 	}
 
 	if (szone->also_notify != NULL) {

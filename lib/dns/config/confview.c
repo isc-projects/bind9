@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.c,v 1.36 2000/06/09 22:13:23 brister Exp $ */
+/* $Id: confview.c,v 1.37 2000/07/24 22:59:37 explorer Exp $ */
 
 #include <config.h>
 
@@ -42,6 +42,10 @@
 #define SETBOOL(FUNC, FIELD) SETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define GETBOOL(FUNC, FIELD) GETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define UNSETBOOL(FUNC, FIELD) UNSETBYTYPE(isc_boolean_t, FUNC, FIELD)
+
+#define SETNOTIFYTYPE(FUNC, FIELD) SETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define GETNOTIFYTYPE(FUNC, FIELD) GETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define UNSETNOTIFYTYPE(FUNC, FIELD) UNSETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 
 #define SETUINT32(FUNC, FIELD) SETBYTYPE(isc_uint32_t, FUNC, FIELD)
 #define GETUINT32(FUNC, FIELD) GETBYTYPE(isc_uint32_t, FUNC, FIELD)
@@ -336,6 +340,7 @@ isc_result_t
 dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 	dns_c_view_t *elem;
 	isc_boolean_t bbval;
+	dns_notifytype_t notifytype;
 	isc_uint32_t buival;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_c_rrsolist_t *boval;
@@ -351,7 +356,7 @@ dns_c_viewtable_checkviews(dns_c_viewtable_t *viewtable) {
 				      "implemented");
 
 
-		if (dns_c_view_getnotify(elem, &bbval) != ISC_R_NOTFOUND)
+		if (dns_c_view_getnotify(elem, &notifytype) != ISC_R_NOTFOUND)
 			isc_log_write(dns_lctx,DNS_LOGCATEGORY_CONFIG,
 				      DNS_LOGMODULE_CONFIG, ISC_LOG_WARNING,
 				      "view 'notify' is not yet "
@@ -1456,9 +1461,9 @@ SETBOOL(fetchglue, fetch_glue)
 GETBOOL(fetchglue, fetch_glue)
 UNSETBOOL(fetchglue, fetch_glue)
 
-SETBOOL(notify, notify)
-GETBOOL(notify, notify)
-UNSETBOOL(notify, notify)
+GETNOTIFYTYPE(notify, notify)
+SETNOTIFYTYPE(notify, notify)
+UNSETNOTIFYTYPE(notify, notify)
 
 SETBOOL(rfc2308type1, rfc2308_type1)
 GETBOOL(rfc2308type1, rfc2308_type1)

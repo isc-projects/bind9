@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.h,v 1.43 2000/06/22 21:55:20 tale Exp $ */
+/* $Id: confctx.h,v 1.44 2000/07/24 22:59:39 explorer Exp $ */
 
 #ifndef DNS_CONFCTX_H
 #define DNS_CONFCTX_H 1
@@ -154,7 +154,6 @@ struct dns_c_options {
 	isc_boolean_t	       *fake_iquery;
 	isc_boolean_t	       *recursion;
 	isc_boolean_t	       *fetch_glue;
-	isc_boolean_t	       *notify;
 	isc_boolean_t	       *host_statistics;
 	isc_boolean_t	       *dealloc_on_exit;
 	isc_boolean_t	       *use_ixfr;
@@ -182,6 +181,7 @@ struct dns_c_options {
 	isc_uint32_t		tkeydhkeyi;
 	char 		       *tkeydomain;
 	
+	dns_notifytype_t       *notify;
 	dns_c_iplist_t	       *also_notify;
 
 	dns_severity_t 	       *check_names[DNS_C_TRANSCOUNT];
@@ -500,8 +500,8 @@ isc_result_t dns_c_ctx_getfetchglue(dns_c_ctx_t *cfg, isc_boolean_t *retval);
 isc_result_t dns_c_ctx_unsetfetchglue(dns_c_ctx_t *cfg);
 
 
-isc_result_t dns_c_ctx_setnotify(dns_c_ctx_t *cfg, isc_boolean_t newval);
-isc_result_t dns_c_ctx_getnotify(dns_c_ctx_t *cfg, isc_boolean_t *retval);
+isc_result_t dns_c_ctx_setnotify(dns_c_ctx_t *cfg, dns_notifytype_t newval);
+isc_result_t dns_c_ctx_getnotify(dns_c_ctx_t *cfg, dns_notifytype_t *retval);
 isc_result_t dns_c_ctx_unsetnotify(dns_c_ctx_t *cfg);
 
 

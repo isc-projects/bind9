@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confctx.c,v 1.73 2000/07/11 19:09:04 brister Exp $ */
+/* $Id: confctx.c,v 1.74 2000/07/24 22:59:34 explorer Exp $ */
 
 #include <config.h>
 
@@ -32,6 +32,10 @@
 #define SETBOOL(FUNC, FIELD) SETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define GETBOOL(FUNC, FIELD) GETBYTYPE(isc_boolean_t, FUNC, FIELD)
 #define UNSETBOOL(FUNC, FIELD) UNSETBYTYPE(isc_boolean_t, FUNC, FIELD)
+
+#define SETNOTIFYTYPE(FUNC, FIELD) SETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define GETNOTIFYTYPE(FUNC, FIELD) GETBYTYPE(dns_notifytype_t, FUNC, FIELD)
+#define UNSETNOTIFYTYPE(FUNC, FIELD) UNSETBYTYPE(dns_notifytype_t, FUNC, FIELD)
 
 #define SETINT32(FUNC, FIELD) SETBYTYPE(isc_int32_t, FUNC, FIELD)
 #define GETINT32(FUNC, FIELD) GETBYTYPE(isc_int32_t, FUNC, FIELD)
@@ -835,6 +839,12 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 			(unsigned long)(*options->FIELD / 60));	\
 	}
 
+#define PRINT_IF_EQUAL(VAL, STRVAL, FIELD, NAME)		\
+	if (options->FIELD != NULL) {				\
+		dns_c_printtabs(fp, indent + 1);		\
+		fprintf(fp, "%s %s;\n", NAME, STRVAL);		\
+	}
+
 #define PRINT_AS_BOOLEAN(FIELD, NAME)				\
 	if (options->FIELD != NULL) {				\
 		dns_c_printtabs(fp, indent + 1);		\
@@ -955,7 +965,9 @@ dns_c_ctx_optionsprint(FILE *fp, int indent, dns_c_options_t *options)
 	PRINT_AS_BOOLEAN(fake_iquery, "fake-iquery");
 	PRINT_AS_BOOLEAN(recursion, "recursion");
 	PRINT_AS_BOOLEAN(fetch_glue, "fetch-glue");
-	PRINT_AS_BOOLEAN(notify, "notify");
+	PRINT_IF_EQUAL(dns_notifytype_no, "no", notify, "notify");
+	PRINT_IF_EQUAL(dns_notifytype_yes, "yes", notify, "notify");
+	PRINT_IF_EQUAL(dns_notifytype_explicit, "explicit", notify, "notify");
 	PRINT_AS_BOOLEAN(host_statistics, "host-statistics");
 	PRINT_AS_BOOLEAN(dealloc_on_exit, "deallocate-on-exit");
 	PRINT_AS_BOOLEAN(use_ixfr, "use-ixfr");
@@ -1887,9 +1899,9 @@ SETBOOL(fetchglue, fetch_glue)
 UNSETBOOL(fetchglue, fetch_glue)
 
 
-GETBOOL(notify, notify)
-SETBOOL(notify, notify)
-UNSETBOOL(notify, notify)
+GETNOTIFYTYPE(notify, notify)
+SETNOTIFYTYPE(notify, notify)
+UNSETNOTIFYTYPE(notify, notify)
 
 
 GETBOOL(hoststatistics, host_statistics)

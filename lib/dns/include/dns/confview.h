@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confview.h,v 1.30 2000/06/22 21:55:30 tale Exp $ */
+/* $Id: confview.h,v 1.31 2000/07/24 22:59:41 explorer Exp $ */
 
 #ifndef DNS_CONFVIEW_H
 #define DNS_CONFVIEW_H 1
@@ -336,8 +336,8 @@ isc_result_t dns_c_view_unsetfetchglue(dns_c_view_t *view);
 
 
 
-isc_result_t dns_c_view_getnotify(dns_c_view_t *view, isc_boolean_t *retval);
-isc_result_t dns_c_view_setnotify(dns_c_view_t *view, isc_boolean_t newval);
+isc_result_t dns_c_view_getnotify(dns_c_view_t *view, dns_notifytype_t *retval);
+isc_result_t dns_c_view_setnotify(dns_c_view_t *view, dns_notifytype_t newval);
 isc_result_t dns_c_view_unsetnotify(dns_c_view_t *view);
 
 

@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: confzone.h,v 1.36 2000/07/21 21:25:01 brister Exp $ */
+/* $Id: confzone.h,v 1.37 2000/07/24 22:59:42 explorer Exp $ */
 
 #ifndef DNS_CONFZONE_H
 #define DNS_CONFZONE_H 1
@@ -309,8 +309,9 @@ isc_result_t dns_c_zone_getdialup(dns_c_zone_t *zone, isc_boolean_t *retval);
 
 
 isc_result_t dns_c_zone_setnotify(dns_c_zone_t *zone,
-				  isc_boolean_t newval);
-isc_result_t dns_c_zone_getnotify(dns_c_zone_t *zone, isc_boolean_t *retval);
+				  dns_notifytype_t newval);
+isc_result_t dns_c_zone_getnotify(dns_c_zone_t *zone,
+				  dns_notifytype_t *retval);
 
 
 isc_result_t dns_c_zone_setalsonotify(dns_c_zone_t *zone,

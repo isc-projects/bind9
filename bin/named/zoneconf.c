@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.45 2000/07/21 23:13:59 mws Exp $ */
+/* $Id: zoneconf.c,v 1.46 2000/07/24 22:59:32 explorer Exp $ */
 
 #include <config.h>
 
@@ -113,6 +113,7 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	isc_result_t result;
 	isc_boolean_t boolean;
 	const char *filename = NULL;
+	dns_notifytype_t notifytype;
 #ifdef notyet
 	dns_c_severity_t severity;
 #endif
@@ -174,14 +175,14 @@ dns_zone_configure(dns_c_ctx_t *cctx, dns_c_view_t *cview,
 	 * acting as masters (type "slave"), but not to stubs.
 	 */
 	if (czone->ztype != dns_c_zone_stub) {
-		result = dns_c_zone_getnotify(czone, &boolean);
+		result = dns_c_zone_getnotify(czone, &notifytype);
 		if (result != ISC_R_SUCCESS && cview != NULL)
-			result = dns_c_view_getnotify(cview, &boolean);
+			result = dns_c_view_getnotify(cview, &notifytype);
 		if (result != ISC_R_SUCCESS)
-			result = dns_c_ctx_getnotify(cctx, &boolean);
+			result = dns_c_ctx_getnotify(cctx, &notifytype);
 		if (result != ISC_R_SUCCESS)
-			boolean = ISC_TRUE;
-		dns_zone_setoption(zone, DNS_ZONEOPT_NOTIFY, boolean);
+			notifytype = dns_notifytype_yes;
+		dns_zone_setnotifytype(zone, notifytype);
 
 		iplist = NULL;
 		result = dns_c_zone_getalsonotify(czone, &iplist);
