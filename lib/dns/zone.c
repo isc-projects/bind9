@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: zone.c,v 1.5 1999/09/09 23:25:51 marka Exp $ */
+ /* $Id: zone.c,v 1.6 1999/09/14 03:07:07 marka Exp $ */
 
 #include <config.h>
 
@@ -23,6 +23,7 @@
 #include <isc/error.h>
 #include <../isc/util.h> /* XXX MPA */
 #include <isc/timer.h>
+#include <isc/print.h>
 #include <isc/serial.h>
 
 #include <dns/db.h>
@@ -36,7 +37,7 @@
 #include <dns/rcode.h>
 
 /* XXX remove once config changes are in place */
-#define dns_zone_uptodate(x) dns_zone_log_error(x, "dns_zone_uptodate")
+#define dns_zone_uptodate(x) dns_zone_logerror(x, "dns_zone_uptodate")
 #define referral(x) ISC_FALSE
 
 #include <dns/zone.h>
@@ -169,7 +170,7 @@ static dns_result_t dns_notify(dns_name_t *, isc_sockaddr_t *, dns_rdatatype_t,
 		       dns_rdataclass_t, isc_sockaddr_t *, isc_mem_t *);
 static void checkservers_callback(isc_task_t *task, isc_event_t *event);
 
-static void dns_zone_log_error(dns_zone_t *zone, const char *msg, ...);
+static void dns_zone_logerror(dns_zone_t *zone, const char *msg, ...);
 static int message_count(dns_message_t *msg, dns_section_t section,
 			 dns_rdatatype_t type);
 static void sockaddr_fromaddr(isc_sockaddr_t *sockaddr, dns_c_addr_t *a,
@@ -725,12 +726,12 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 		case get_a6:
 		case get_aaaa:
 		case get_a:
-			dns_zone_log_error(zone,
+			dns_zone_logerror(zone,
 				       "unable to obtain address for (%s)");
 			break;
 		case get_ns:
 		case get_soa:
-			dns_zone_log_error(zone,
+			dns_zone_logerror(zone,
 				"unable to obtain %s RRset from %s"
 				);
 		}
@@ -777,22 +778,22 @@ checkservers_callback(isc_task_t *task, isc_event_t *event) {
 			isc_buffer_init(&rb, rcode, sizeof rcode,
 					ISC_BUFFERTYPE_TEXT);
 			dns_rcode_totext(msg->rcode, &rb);
-			dns_zone_log_error(zone,
+			dns_zone_logerror(zone,
 				"server %s (%s) unexpected rcode = %.*s",
 				rb.used, rcode);
 			break;
 		}
 		if (msg->counts[DNS_SECTION_ANSWER] == 0) {
 			if (referral(msg))
-				dns_zone_log_error(zone,
+				dns_zone_logerror(zone,
 					"server %s (%s) referral response");
 			else
-				dns_zone_log_error(zone,
+				dns_zone_logerror(zone,
 				   "server %s (%s) type = %s NODATA response");
 		}
 
 		if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
-			dns_zone_log_error(zone,
+			dns_zone_logerror(zone,
 				"server %s (%s) not authorative");
 		}
 		if (state == get_ns) {
@@ -849,7 +850,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 				      dns_rdatatype_soa,
 				      dns_rdatatype_none, NULL, &rdataset);
 	if (result != DNS_R_SUCCESS) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 				   "Unable to extract SOA from answer: %s",
 				   server);
 		return;
@@ -863,7 +864,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 		return;
 	result = dns_rdataset_next(rdataset);
 	if (DNS_R_NOMORE != result) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 				   "More that one SOA record returned: %s",
 				   server);
 		goto cleanup_msgsoa;
@@ -893,7 +894,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 		return;
 	result = dns_rdataset_next(&zonerdataset);
 	if (DNS_R_NOMORE != result) {
-		dns_zone_log_error(zone, "More that one SOA in zone");
+		dns_zone_logerror(zone, "More that one SOA in zone");
 		goto cleanup_msgsoa;
 	}
 	dns_rdataset_disassociate(&zonerdataset);
@@ -908,7 +909,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	 */
 	if (msgsoa.serial != zonesoa.serial) {
 		if (!isc_serial_lt(msgsoa.serial, zonesoa.serial)) {
-			dns_zone_log_error(zone,
+			dns_zone_logerror(zone,
 		   "slave serial not less than or equal to zone serial: %s",
 					   server);
 			goto cleanup_zonesoa;
@@ -924,7 +925,7 @@ cmp_soa(dns_message_t *msg, dns_zone_t *zone, char *server) {
 	    dns_name_compare(&msgsoa.origin, &zonesoa.origin) != 0 ||
 	    dns_name_compare(&msgsoa.mname, &zonesoa.mname) != 0) {
 
-		dns_zone_log_error(zone, "SOA contents differ: %s",
+		dns_zone_logerror(zone, "SOA contents differ: %s",
 				   server);
 	}
  cleanup_zonesoa:
@@ -1689,7 +1690,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		master = unknown;
 		
 	if (devent->result != DNS_R_SUCCESS) {
-		dns_zone_log_error(zone, "refresh: failure for %s: %s",
+		dns_zone_logerror(zone, "refresh: failure for %s: %s",
 				   master, dns_result_totext(devent->result));
 		goto next_master;
 	}
@@ -1706,7 +1707,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_init(&rb, rcode, sizeof rcode, ISC_BUFFERTYPE_TEXT);
 		dns_rcode_totext(msg->rcode, &rb);
 
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 				   "refresh: unexpected rcode (%.*s) from %s\n",
 			           rb.used, rcode, master);
 		goto next_master;
@@ -1715,7 +1716,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * if non-auth log and next master;
 	 */
 	if ((msg->flags & DNS_MESSAGEFLAG_AA) == 0) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 			"refresh: non-authorative answer from %s", master);
 		goto next_master;
 	}
@@ -1726,13 +1727,13 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	soacnt = message_count(msg, DNS_SECTION_ANSWER, dns_rdatatype_soa);
 
 	if (cnamecnt != 0) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 			"refresh: CNAME discovered: master %s", master);
 		goto next_master;
 	}
 
 	if (soacnt != 1) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 				   "refresh: SOA count (%d) != 1: master %s",
 				   soacnt, master);
 		goto next_master;
@@ -1745,7 +1746,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * if referral log and next master;
 	 */
 	if (soacnt == 0 && soacount == 0 && nscount != 0) {
-		dns_zone_log_error(zone,
+		dns_zone_logerror(zone,
 			"refresh: referral: master %s", master);
 		goto next_master;
 	}
@@ -1754,7 +1755,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	 * if nodata log and next master;
 	 */
 	if (soacnt == 0 && nscount == 0) {
-		dns_zone_log_error(zone, "refresh: NODATA: master %s", master);
+		dns_zone_logerror(zone, "refresh: NODATA: master %s", master);
 		goto next_master;
 	}
 
@@ -1767,20 +1768,20 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				      dns_rdatatype_soa,
 				      dns_rdatatype_none, NULL, &rdataset);
 	if (result != DNS_R_SUCCESS) {
-		dns_zone_log_error(zone, "refresh: unable to get soa record");
+		dns_zone_logerror(zone, "refresh: unable to get soa record");
 		goto next_master;
 	}
 
 	result = dns_rdataset_first(rdataset);
 	if (result != DNS_R_SUCCESS) {
-		dns_zone_log_error(zone, "refresh: dns_rdataset_first failed");
+		dns_zone_logerror(zone, "refresh: dns_rdataset_first failed");
 		goto next_master;
 	}
 
 	dns_rdataset_current(rdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &soa, zone->mctx);
 	if (result != DNS_R_SUCCESS) {
-		dns_zone_log_error(zone, "refresh: dns_rdata_tostruct failed");
+		dns_zone_logerror(zone, "refresh: dns_rdata_tostruct failed");
 		goto next_master;
 	}
 
@@ -2589,7 +2590,7 @@ dns_zone_getmasterport(dns_zone_t *zone) {
 }
 
 static void
-dns_zone_log_error(dns_zone_t *zone, const char *fmt, ...) {
+dns_zone_logerror(dns_zone_t *zone, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
 	char namebuf[1024];
