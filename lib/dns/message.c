@@ -655,12 +655,6 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 
 	scratch = currentbuffer(msg);
 
-	/* XXXMLG Can this be done just once? */
-	if (dns_decompress_edns(dctx) > 1 || !dns_decompress_strict(dctx))
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL);
-	else
-		dns_decompress_setmethods(dctx, DNS_COMPRESS_GLOBAL14);
-
 	/*
 	 * First try:  use current buffer.
 	 * Second try:  allocate a new buffer and use that.
@@ -999,7 +993,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			return (result);
 
 		/*
-		 * XXX Perform a totally ugly hack here to pull
+		 * XXXMLG Perform a totally ugly hack here to pull
 		 * the rdatalist out of the private field in the rdataset,
 		 * and append this rdata to the rdatalist's linked list
 		 * of rdata.
@@ -1047,7 +1041,16 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source)
 	msg->counts[DNS_SECTION_AUTHORITY] = isc_buffer_getuint16(source);
 	msg->counts[DNS_SECTION_ADDITIONAL] = isc_buffer_getuint16(source);
 
+	/*
+	 * -1 means no EDNS.
+	 */
 	dns_decompress_init(&dctx, -1, ISC_FALSE);
+
+	if (dns_decompress_edns(&dctx) > 1 || !dns_decompress_strict(&dctx))
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL);
+	else
+		dns_decompress_setmethods(&dctx, DNS_COMPRESS_GLOBAL14);
+
 
 	ret = getquestions(source, msg, &dctx);
 	if (ret != DNS_R_SUCCESS)
@@ -1179,13 +1182,16 @@ dns_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			  unsigned int priority, unsigned int options)
 {
-	unsigned int used;
 	dns_namelist_t *section;
 	dns_name_t *name, *next_name;
 	dns_rdataset_t *rdataset, *next_rdataset;
 	unsigned int count, total;
 	isc_boolean_t no_render_rdata;
 	dns_result_t result;
+	isc_buffer_t st; /* for rollbacks */
+
+	(void)priority; /* XXXMLG implement */
+	(void)options;  /* XXXMLG implement */
 
 	REQUIRE(VALID_MESSAGE(msg));
 	REQUIRE(msg->buffer != NULL);
@@ -1213,7 +1219,13 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		rdataset = ISC_LIST_HEAD(name->list);
 		while (rdataset != NULL) {
 			next_rdataset = ISC_LIST_NEXT(rdataset, link);
-			used = msg->buffer->used;
+
+			if (rdataset->attributes & DNS_RDATASETATTR_RENDERED) {
+				rdataset = next_rdataset;
+				continue;
+			}
+
+			st = *(msg->buffer);
 
 			count = 0;
 			result = dns_rdataset_towire(rdataset, name,
@@ -1226,16 +1238,25 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 			/*
 			 * If out of space, record stats on what we rendered
 			 * so far, and return that status.
+			 *
+			 * XXXMLG Need to change this when
+			 * dns_rdataset_towire() can render partial
+			 * sets starting at some arbitary point in the set.
+			 * This will include setting a bit in the
+			 * rdataset to indicate that a partial rendering
+			 * was done, and some state saved somewhere
+			 * (probably in the message struct)
+			 * to indicate where to continue from.
 			 */
 			if (result != DNS_R_SUCCESS) {
+				dns_compress_rollback(&msg->cctx, st.used);
+				*(msg->buffer) = st;  /* rollback */
 				msg->buffer->length += msg->reserved;
 				msg->counts[sectionid] += total;
 				return (result);
 			}
 
-			ISC_LIST_UNLINK(name->list, rdataset, link);
-
-			dns_rdataset_disassociate(rdataset);
+			rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 
 			rdataset = next_rdataset;
 		}
