@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.44 1999/04/20 18:11:07 tale Exp $ */
+/* $Id: rbt.c,v 1.45 1999/04/20 22:01:00 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -803,6 +803,22 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 					*node = current;
 
 				/*
+				 * Point the chain to the next level.   This
+				 * needs to be done before 'current' is pointed
+				 * there because the callback in the next
+				 * block of code needs the current 'current',
+				 * but in the event the callback requests that
+				 * the search be stopped then the
+				 * DNS_R_PARTIALMATCH code at the end of this
+				 * function needs the chain pointed to the
+				 * next level.
+				 */
+
+				ADD_ANCESTOR(chain, NULL);
+				ADD_LEVEL(chain, current);
+				chain->level_matches++;
+
+				/*
 				 * The caller may want to interrupt the
 				 * downward search when certain special nodes
 				 * are traversed.  If this is a special node,
@@ -810,15 +826,13 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * caller wants to do.
 				 */
 				if (callback != NULL && CALLBACK(current)) {
-					chain->end = current;
 					result = chain_name(chain,
 							    callback_name,
-							    ISC_TRUE);
+							    ISC_FALSE);
 					if (result != DNS_R_SUCCESS) {
 						dns_rbtnodechain_reset(chain);
 						return (result);
 					}
-					chain->end = NULL;
 
 					result = (callback)(current,
 							    callback_name,
@@ -835,12 +849,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				}
 
 				/*
-				 * Search in the next tree level.
+				 * Finally, head to the next tree level.
 				 */
-				ADD_ANCESTOR(chain, NULL);
-				ADD_LEVEL(chain, current);
-				chain->level_matches++;
-
 				current = DOWN(current);
 
 			} else {
@@ -888,8 +898,10 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				unsigned int saved_count = chain->level_count;
 
 				while (chain->levels[chain->level_count - 1] !=
-				       *node)
+				       *node) {
+					INSIST(chain->level_count > 1);
 					chain->level_count--;
+				}
 
 				result = chain_name(chain, foundname,
 						    ISC_FALSE);
@@ -915,6 +927,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 			 * history.
 			 */
 
+			INSIST(chain->ancestor_count > 0);
 			current = chain->ancestors[--chain->ancestor_count];
 
 			if (current == NULL) {
@@ -926,6 +939,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, dns_name_t *name, dns_name_t *foundname,
 				 * order against, the terminal name is the
 				 * predecessor.
 				 */
+				INSIST(chain->level_count > 0 &&
+				       chain->level_matches > 0);
 				chain->end =
 					chain->levels[--chain->level_count];
 				chain->level_matches--;
@@ -1115,6 +1130,7 @@ zapnode_and_fixlevels(dns_rbt_t *rbt, dns_rbtnode_t *node,
 			 * item.  That item's name can be joined with the name
 			 * on this level.
 			 */
+			INSIST(chain->ancestor_count > 0);
 			rootp = chain->level_count > 0 ?
 				&DOWN(chain->levels[chain->level_count - 1]) :
 				&rbt->root;
@@ -1852,16 +1868,14 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	REQUIRE(VALID_CHAIN(chain));
 
+	if (node != NULL)
+		*node = chain->end;
+
+	if (chain->end == NULL)
+		return (DNS_R_NOTFOUND);
+
 	if (name != NULL) {
-		if (chain->end != NULL)
-			NODENAME(chain->end, name);
-		else
-			/*
-			 * Any offsets are zapped by this call, but they
-			 * would have been redirected anyway if there
-			 * was a chain_end.
-			 */
-			dns_name_init(name, NULL);
+		NODENAME(chain->end, name);
 
 		if (chain->level_count == 0) {
 			/*
@@ -1889,11 +1903,7 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	}
 
-	if (node != NULL)
-		*node = chain->end;
-
 	return (result);
-
 }
 
 dns_result_t
@@ -1923,6 +1933,7 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	} else {
 		while (chain->ancestors[chain->ancestor_count - 1] != NULL) {
+			INSIST(chain->ancestor_count > 1);
 			previous = current;
 			current = chain->ancestors[--chain->ancestor_count];
 
@@ -1970,6 +1981,8 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 		 * Got to the root of this level without having traversed
 		 * any right links.  Ascend the tree one level.
 		 */
+		INSIST(chain->level_count > 0 &&
+		       chain->ancestor_count > 0);
 		predecessor = chain->levels[--chain->level_count];
 		chain->ancestor_count--;
 
@@ -2052,6 +2065,7 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 		do {
 			while (chain->ancestors[chain->ancestor_count - 1] !=
 			       NULL) {
+				INSIST(chain->ancestor_count > 1);
 				previous = current;
 				current =
 				     chain->ancestors[--chain->ancestor_count];
@@ -2067,8 +2081,10 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 				 * Reached the root without having traversed
 				 * any left pointers, so this level is done.
 				 */
-				chain->ancestor_count--;
+				INSIST(chain->level_count > 0 &&
+				       chain->ancestor_count > 0);
 				current = chain->levels[--chain->level_count];
+				chain->ancestor_count--;
 				new_origin = ISC_TRUE;
 
 				if (RIGHT(current) != NULL)
