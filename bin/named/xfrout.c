@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.5.2.3 2003/08/26 05:14:24 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.5.2.4 2003/09/10 05:28:40 marka Exp $ */
 
 #include <config.h>
 
@@ -829,6 +829,7 @@ typedef struct {
 	isc_boolean_t		many_answers;
 	int			sends;		/* Send in progress */
 	isc_boolean_t		shuttingdown;
+	const char		*mnemonic;	/* Style of transfer */
 } xfrout_ctx_t;
 
 static isc_result_t
@@ -1139,6 +1140,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 				(format == dns_many_answers) ?
 					ISC_TRUE : ISC_FALSE,
 				&xfr));
+	xfr->mnemonic = mnemonic;
 	stream = NULL;
 	db = NULL;
 	ver = NULL;
@@ -1236,6 +1238,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->many_answers = many_answers,
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
+	xfr->mnemonic = NULL;
 
 	/*
 	 * Allocate a temporary buffer for the uncompressed response
@@ -1619,8 +1622,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 		sendstream(xfr);
 	} else {
 		/* End of zone transfer stream. */
-		xfrout_log(xfr, ISC_LOG_DEBUG(6),
-			   "end of transfer");
+		xfrout_log(xfr, ISC_LOG_INFO, "%s ended", xfr->mnemonic);
 		ns_client_next(xfr->client, ISC_R_SUCCESS);
 		xfrout_ctx_destroy(&xfr);
 	}
