@@ -32,14 +32,16 @@
 
 isc_result_t
 dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
-		     dns_c_ipmatchlist_t *aml,
-		     dns_c_acltable_t *acltable, 
-		     const char *opname, isc_boolean_t default_allow)
+		     dns_c_acltable_t *acltable, const char *opname,
+		     dns_c_ipmatchlist_t *main_aml,
+		     dns_c_ipmatchlist_t *fallback_aml,
+		     isc_boolean_t default_allow)
 {
 	isc_result_t result, sig_result;
 	dns_name_t signer;
 	dns_name_t *ok_signer = NULL;
 	int match;
+	dns_c_ipmatchlist_t *aml = NULL;
 
 	dns_name_init(&signer, NULL);
 	
@@ -67,32 +69,34 @@ dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
 			      isc_result_totext(result));
 	}
 
-	/* If there is no AML, use the default. */
-	if (aml == NULL)
-		goto use_default;
-	
+	if (main_aml != NULL)
+		aml = main_aml;
+	else if (fallback_aml != NULL)
+		aml = fallback_aml;
+	else if (default_allow)
+		goto allow;
+	else
+		goto deny;
+
 	result = dns_aml_match(reqaddr, ok_signer, aml,
 			       acltable, &match, NULL);
 	if (result != DNS_R_SUCCESS)
-		goto use_default;
-	if (match <= 0)
-		goto use_default;
+		goto deny; /* Internal error, already logged. */
+	if (match > 0)
+		goto allow;
+	goto deny; /* Negative match or no match. */
+
  allow:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
 		      DNS_LOGMODULE_AML, ISC_LOG_DEBUG(3),
 		      "%s approved", opname);
 	return (DNS_R_SUCCESS);
+
  deny:
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_SECURITY,
 		      DNS_LOGMODULE_AML, ISC_LOG_ERROR,
 		      "%s denied", opname);
 	return (DNS_R_REFUSED);
- use_default:
-	if (default_allow)
-		goto allow;
-	else
-		goto deny;
-
 }
 
 static isc_result_t

@@ -43,17 +43,41 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_aml_checkrequest(dns_message_t *request, isc_sockaddr_t *reqaddr,
-		     dns_c_ipmatchlist_t *aml,
-		     dns_c_acltable_t *acltable, 
-		     const char *opname, isc_boolean_t default_allow);
+		     dns_c_acltable_t *acltable, const char *opname,
+		     dns_c_ipmatchlist_t *main_aml,
+		     dns_c_ipmatchlist_t *fallback_aml,
+		     isc_boolean_t default_allow);
 /*
- * Check a request against an address match list.
- * This is appropriate for checking allow-update, 
- * allow-query, allow-axfr, etc.  It is not appropriate
- * for checking the blackhole list because
- * we log positive matches as "allow" and negative
- * matches as "deny"; in the case of the blackhole list
- * this would all be backwards.
+ * Convenience function for "typical" DNS request permission checking.
+ *
+ * Check the DNS request 'request', from IP address 'reqaddr',
+ * against the address match list 'main_aml'.  If main_aml is NULL,
+ * check against 'fallback_aml' instead.  If fallback_aml
+ * is also NULL, allow the request iff 'default_allow' is ISC_TRUE.
+ * Log the outcome of the check if deemed appropriate.
+ * 
+ * Any ACL references in the address match lists are resolved against 
+ * 'acltable'. Log messages will refer to the request as an 'opname' request.
+ *
+ * Notes:
+ *	This is appropriate for checking allow-update, 
+ * 	allow-query, allow-transfer, etc.  It is not appropriate
+ * 	for checking the blackhole list because we treat positive
+ * 	matches as "allow" and negative matches as "deny"; in
+ *	the case of the blackhole list this would be backwards.
+ *
+ * Requires:
+ *	'request' points to a valid DNS message.
+ *	'reqaddr' points to a valid socket address.
+ *	'acltable' points to a valid ACL table.
+ *	'opname' points to a null-terminated string.
+ *	'main_aml' points to a valid address match list, or is NULL.
+ *	'fallback_aml' points to a valid address match list, or is NULL.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS	if the request should be allowed
+ * 	ISC_R_REFUSED	if the request should be denied
+ *	No other return values are possible.
  */
 
 isc_result_t
