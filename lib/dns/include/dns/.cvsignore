@@ -1,3 +1,4 @@
 Makefile
 enumtype.h
 enumclass.h
+rdatastruct.h

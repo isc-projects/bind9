@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: rdata.c,v 1.40 1999/05/03 19:56:53 halley Exp $ */
+ /* $Id: rdata.c,v 1.41 1999/05/05 01:55:08 marka Exp $ */
 
 #include <config.h>
 
@@ -38,6 +38,7 @@
 #include <dns/cert.h>
 #include <dns/secalg.h>
 #include <dns/fixedname.h>
+#include <dns/rdatastruct.h>
 
 #define RETERR(x) do { \
 	dns_result_t __r = (x); \

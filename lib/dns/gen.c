@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
- /* $Id: gen.c,v 1.17 1999/04/29 06:10:27 explorer Exp $ */
+ /* $Id: gen.c,v 1.18 1999/05/05 01:55:07 marka Exp $ */
 
 #include <sys/types.h>
 
@@ -112,7 +112,7 @@ char *	funname(char *, char *);
 void	doswitch(char *, char *, char *, char *, char *, char *);
 void	dodecl(char *, char *, char *);
 void	add(int, char *, int, char *, char *);
-void	sd(int, char *, char *);
+void	sd(int, char *, char *, char);
 
 char *
 upper(char *s) {
@@ -284,8 +284,9 @@ add(int class, char *classname, int type, char *typename, char *dirname) {
 }
 
 void
-sd(int class, char *classname, char *dir) {
+sd(int class, char *classname, char *dir, char filetype) {
 	char buf[sizeof "0123456789_65535.h"];
+	char fmt[sizeof "%10[-0-9a-z]_%d.h"];
 	DIR *d;
 	int type;
 	char typename[11];
@@ -294,14 +295,14 @@ sd(int class, char *classname, char *dir) {
 	if ((d = opendir(dir)) == NULL)
 		return;
 
+	sprintf(fmt,"%s%c", "%10[-0-9a-z]_%d.", filetype);
 	while ((dp = readdir(d)) != NULL) {
-		if (sscanf(dp->d_name, "%10[-0-9a-z]_%d.h",
-			   typename, &type) != 2)
+		if (sscanf(dp->d_name, fmt, typename, &type) != 2)
 			continue;
 		if ((type > 65535) || (type < 0))
 			continue;
 
-		sprintf(buf, "%s_%d.h", typename, type);
+		sprintf(buf, "%s_%d.%c", typename, type, filetype);
 		if (strcmp(buf, dp->d_name) != 0)
 			continue;
 		add(class, classname, type, typename, dir);
@@ -326,21 +327,35 @@ main(int argc, char **argv) {
 	int code = 1;
 	int class_enum = 0;
 	int type_enum = 0;
+	int structs = 0;
 	int c;
 	char buf1[11];
+	char filetype = 'c';
+	FILE *fd;
 
 	strcpy(srcdir, "");
-	while ((c = getopt(argc, argv, "cts:")) != -1)
+	while ((c = getopt(argc, argv, "ctis:")) != -1)
 		switch (c) {
 		case 'c':
 			code = 0;
 			type_enum = 0;
 			class_enum = 1;
+			filetype = 'c';
+			structs = 0;
 			break;
 		case 't':
 			code = 0;
 			class_enum = 0;
 			type_enum = 1;
+			filetype = 'c';
+			structs = 0;
+			break;
+		case 'i':
+			code = 0;
+			class_enum = 0;
+			type_enum = 0;
+			structs = 1;
+			filetype = 'h';
 			break;
 		case 's':
 			sprintf(srcdir, "%s/", optarg);
@@ -363,11 +378,11 @@ main(int argc, char **argv) {
 		sprintf(buf, "%srdata/%s_%d", srcdir, classname, class);
 		if (strcmp(buf + 6 + strlen(srcdir), dp->d_name) != 0)
 			continue;
-		sd(class, classname, buf);
+		sd(class, classname, buf, filetype);
 	}
-	sprintf(buf, "%srdata/generic", srcdir);
-	sd(0, "", buf);
 	closedir(d);
+	sprintf(buf, "%srdata/generic", srcdir);
+	sd(0, "", buf, filetype);
 
 	if (time(&now) != -1) {
 		if ((tm = localtime(&now)) != NULL && tm->tm_year > 98)
@@ -426,7 +441,7 @@ main(int argc, char **argv) {
 
 		fputs("\n", stdout);
 		for (tt = types; tt != NULL ; tt = tt->next)
-			fprintf(stdout, "#include \"%s/%s_%d.h\"\n",
+			fprintf(stdout, "#include \"%s/%s_%d.c\"\n",
 				tt->dirname, tt->typename, tt->type);
 	} else if (type_enum) {
 		fprintf(stdout, "#ifndef TYPEENUM\n");
@@ -452,8 +467,16 @@ main(int argc, char **argv) {
 				cc->class,
 				cc->next != NULL ? " \\" : "");
 		fprintf(stdout, "#endif /* CLASSENUM */\n");
-
-
+	} else if (structs) {
+		for (tt = types; tt != NULL ; tt = tt->next) {
+			sprintf(buf, "%s/%s_%d.h",
+				tt->dirname, tt->typename, tt->type);
+			if ((fd = fopen(buf,"r")) != NULL) {
+				while (fgets(buf, sizeof buf, fd) != NULL)
+					fputs(buf, stdout);
+				fclose(fd);
+			}
+		}
 	}
 
 	if (ferror(stdout) != 0)
