@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.44 2001/12/12 16:43:23 bwelling Exp $
+ * $Id: openssldh_link.c,v 1.45 2001/12/12 17:09:37 bwelling Exp $
  */
 
 #ifdef OPENSSL
@@ -168,7 +168,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 static isc_boolean_t
 openssldh_isprivate(const dst_key_t *key) {
 	DH *dh = (DH *) key->opaque;
-        return (ISC_TF(dh != NULL && dh->priv_key != NULL));
+	return (ISC_TF(dh != NULL && dh->priv_key != NULL));
 }
 
 static void
@@ -389,7 +389,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 		}
 	}
 
-        i = 0;
+	i = 0;
 
 	priv.elements[i].tag = TAG_DH_PRIME;
 	priv.elements[i].length = BN_num_bytes(dh->p);
@@ -469,7 +469,7 @@ openssldh_fromfile(dst_key_t *key, const char *filename) {
 			case TAG_DH_PUBLIC:
 				dh->pub_key = bn;
 				break;
-                }
+		}
 	}
 	dst__privstruct_free(&priv, mctx);
 

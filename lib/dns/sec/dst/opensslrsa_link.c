@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.18 2001/12/12 16:43:24 bwelling Exp $
+ * $Id: opensslrsa_link.c,v 1.19 2001/12/12 17:09:39 bwelling Exp $
  */
 #ifdef OPENSSL
 
@@ -240,7 +240,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 static isc_boolean_t
 opensslrsa_isprivate(const dst_key_t *key) {
 	RSA *rsa = (RSA *) key->opaque;
-        return (ISC_TF(rsa != NULL && rsa->d != NULL));
+	return (ISC_TF(rsa != NULL && rsa->d != NULL));
 }
 
 static void
@@ -478,7 +478,7 @@ opensslrsa_fromfile(dst_key_t *key, const char *filename) {
 			case TAG_RSA_COEFFICIENT:
 				rsa->iqmp = bn;
 				break;
-                }
+		}
 	}
 	dst__privstruct_free(&priv, mctx);
 

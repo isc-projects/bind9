@@ -19,7 +19,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.56 2001/11/06 22:50:56 bwelling Exp $
+ * $Id: hmac_link.c,v 1.57 2001/12/12 17:09:35 bwelling Exp $
  */
 
 #include <config.h>
@@ -153,7 +153,7 @@ hmacmd5_generate(dst_key_t *key, int pseudorandom_ok) {
 static isc_boolean_t
 hmacmd5_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-        return (ISC_TRUE);
+	return (ISC_TRUE);
 }
 
 static void
