@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.c,v 1.11 2001/01/09 21:56:21 bwelling Exp $ */
+/* $Id: quota.c,v 1.11.12.1 2003/08/07 03:39:25 marka Exp $ */
 
 #include <config.h>
 
@@ -28,6 +28,7 @@ isc_result_t
 isc_quota_init(isc_quota_t *quota, int max) {
 	quota->max = max;
 	quota->used = 0;
+	quota->soft = ISC_FALSE;
 	return (isc_mutex_init(&quota->lock));
 }
 
@@ -36,7 +37,13 @@ isc_quota_destroy(isc_quota_t *quota) {
 	INSIST(quota->used == 0);
 	quota->max = -1;
 	quota->used = -1;
+	quota->soft = ISC_FALSE;
 	DESTROYLOCK(&quota->lock);
+}
+
+void
+isc_quota_soft(isc_quota_t *quota, isc_boolean_t soft) {
+	quota->soft = soft;
 }
 
 isc_result_t
@@ -47,7 +54,11 @@ isc_quota_reserve(isc_quota_t *quota) {
 		quota->used++;
 		result = ISC_R_SUCCESS;
 	} else {
-		result = ISC_R_QUOTA;
+		if (quota->soft) {
+			quota->used++;
+			result = ISC_R_SOFTQUOTA;
+		} else
+			result = ISC_R_QUOTA;
 	}
 	UNLOCK(&quota->lock);
 	return (result);
@@ -67,10 +78,9 @@ isc_quota_attach(isc_quota_t *quota, isc_quota_t **p)
 	isc_result_t result;
 	INSIST(p != NULL && *p == NULL);
 	result = isc_quota_reserve(quota);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	*p = quota;
-	return (ISC_R_SUCCESS);
+	if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA)
+		*p = quota;
+	return (result);
 }
 
 void
