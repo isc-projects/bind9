@@ -15,16 +15,18 @@
 # ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
 # SOFTWARE.
 
-# $Id: testsock.pl,v 1.2 2000/06/22 21:51:31 tale Exp $
+# $Id: testsock.pl,v 1.3 2000/06/24 23:09:44 gson Exp $
 
 # Test whether the interfaces on 10.53.0.* are up.
 
+require 5.001;
+
+use Socket;
 
 for ($id = 1 ; $id < 6 ; $id++) {
-  $sockaddr= 'S n a4 x8';
-  ($name,$aliases,$type,$len,$thisaddr)=gethostbyname("10.53.0.$id");
-  $this=pack($sockaddr,2,0,$thisaddr);
-  
-  socket(IRCSOCK,2,1,0) || die $!;
-  bind(IRCSOCK,$this) || die $!;
+	$sa = pack_sockaddr_in(0, pack("C4", 10, 53, 0, $id));
+	socket(SOCK, PF_INET, SOCK_STREAM, getprotobyname("tcp"))
+      		or die "$0: socket: $!\n";
+	bind(SOCK, $sa)
+	    	or die "$0: bind: $!\n";
 }
