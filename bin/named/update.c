@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.82 2001/01/22 18:59:06 gson Exp $ */
+/* $Id: update.c,v 1.83 2001/02/15 19:38:09 gson Exp $ */
 
 #include <config.h>
 
@@ -2067,7 +2067,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		} else if (update_class == dns_rdataclass_none) {
 			if (rdata.length != 0)
 				FAILC(DNS_R_FORMERR,
-				      "class NONE prerequisite"
+				      "class NONE prerequisite "
 				      "RDATA is not empty");
 			if (rdata.type == dns_rdatatype_any) {
 				CHECK(name_exists(db, ver, name, &flag));
