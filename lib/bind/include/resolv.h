@@ -50,7 +50,7 @@
 
 /*
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.1 2001/03/29 06:31:34 marka Exp $
+ *	$Id: resolv.h,v 1.2 2001/04/02 07:53:19 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -148,25 +148,7 @@ struct res_sym {
 #define	RES_DFLRETRY		2	/* Default #/tries. */
 #define	RES_MAXTIME		65535	/* Infinity, in milliseconds. */
 
-union __res_sockaddr_union {
-	struct sockaddr_in	sin;
-#if 1 /*def INET6*/
-	struct sockaddr_in6	sin6;
-#endif
-	int64_t			__align;	/* 64bit alignment */
-	char			__space[128];	/* max size */
-};
-
-struct __res_state_ext {
-	union __res_sockaddr_union nsaddrs[MAXNS];
-	struct sort_list {
-		int	af;
-		union {
-			struct in_addr	ina;
-			struct in6_addr	in6a;
-		} addr, mask;
-	} sort_list[MAXRESOLVSORT];
-};
+struct __res_state_ext;
 
 struct __res_state {
 	int	retrans;	 	/* retransmition time interval */
