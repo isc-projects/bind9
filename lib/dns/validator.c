@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.107 2002/07/15 02:57:14 marka Exp $ */
+/* $Id: validator.c,v 1.108 2002/07/15 03:25:28 marka Exp $ */
 
 #include <config.h>
 
@@ -392,7 +392,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 
 static isc_boolean_t
 nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
-		      dns_rdataset_t *nxtset, dns_rdataset_t *signxtset)
+		      dns_rdataset_t *nxtset)
 {
 	int order;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -459,23 +459,7 @@ nxtprovesnonexistence(dns_validator_t *val, dns_name_t *nxtname,
 			 * name.  This is only ok if the next name is the zone
 			 * name.
 			 */
-			dns_rdata_sig_t siginfo;
-			result = dns_rdataset_first(signxtset);
-			if (result != ISC_R_SUCCESS) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					"failure processing SIG NXT set");
-				dns_rdata_freestruct(&nxt);
-				return (ISC_FALSE);
-			}
-			dns_rdataset_current(signxtset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &siginfo, NULL);
-			if (result != ISC_R_SUCCESS) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					"failure processing SIG NXT set");
-				dns_rdata_freestruct(&nxt);
-				return (ISC_FALSE);
-			}
-			if (!dns_name_equal(&siginfo.signer, &nxt.next)) {
+			if (!dns_name_equal(val->soaname, &nxt.next)) {
 				validator_log(val, ISC_LOG_DEBUG(3),
 					"next name is not greater");
 				dns_rdata_freestruct(&nxt);
@@ -532,9 +516,9 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 				validator_done(val, result);
 		}
 	} else {
-		if (rdataset->type == dns_rdatatype_nxt &&
-		    nxtprovesnonexistence(val, devent->name, rdataset,
-			    		  sigrdataset))
+		if (val->soaname != NULL && val->nxtset != NULL &&
+		    (val->attributes & VALATTR_FOUNDNONEXISTENCE) == 0 &&
+		    nxtprovesnonexistence(val, devent->name, rdataset))
 			val->attributes |= VALATTR_FOUNDNONEXISTENCE;
 
 		result = nxtvalidate(val, ISC_TRUE);
@@ -1364,8 +1348,11 @@ nxtvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (rdataset->type == dns_rdatatype_sig)
 				continue;
 
-			if (rdataset->type == dns_rdatatype_soa)
+			if (rdataset->type == dns_rdatatype_soa) {
 				val->soaset = rdataset;
+				val->soaname = name;
+			} else if (rdataset->type == dns_rdatatype_nxt)
+				val->nxtset = rdataset;
 
 			for (sigrdataset = ISC_LIST_HEAD(name->list);
 			     sigrdataset != NULL;
@@ -1723,6 +1710,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->keyset = NULL;
 	val->dsset = NULL;
 	val->soaset = NULL;
+	val->nxtset = NULL;
+	val->soaname = NULL;
 	val->seensig = ISC_FALSE;
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);

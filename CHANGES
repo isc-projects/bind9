@@ -1,3 +1,6 @@
+1248.	[bug]		The validator could incorrectly verify an invalid
+			negative proof.
+
 1247.	[bug]		The validator would incorrectly mark data as insecure
 			when seeing a bogus signature before a correct
 			signature.
