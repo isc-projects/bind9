@@ -1,3 +1,5 @@
+ 363.	[doc]		doc/html was not being maintained so has been removed.
+
  362.	[bug]		rndc no longer aborts if the configuration file is
 			missing an options statement. [RT #209]
 
