@@ -15,7 +15,7 @@
  * SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.82 2000/06/06 23:25:29 tale Exp $ */
+/* $Id: rbt.c,v 1.83 2000/06/19 22:55:42 tale Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -179,8 +179,7 @@ dns_rbt_addonlevel(dns_rbtnode_t *node, dns_rbtnode_t *current, int order,
 		   dns_rbtnode_t **rootp, dns_rbtnodechain_t *chain);
 
 static void
-dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
-			dns_rbtnode_t **rootp);
+dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp);
 
 static void
 dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node);
@@ -1195,8 +1194,8 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 	 * have one to start, or because it was recursively removed).
 	 * So now the node needs to be removed from this level.
 	 */
-	dns_rbt_deletefromlevel(rbt, node,
-				parent == NULL ? &rbt->root : &DOWN(parent));
+	dns_rbt_deletefromlevel(node, parent == NULL ? &rbt->root :
+						       &DOWN(parent));
 
 	if (rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
@@ -1563,13 +1562,10 @@ dns_rbt_addonlevel(dns_rbtnode_t *node,
  * true red/black tree on a single level.
  */
 static void
-dns_rbt_deletefromlevel(dns_rbt_t *rbt, dns_rbtnode_t *delete,
-			dns_rbtnode_t **rootp)
-{
+dns_rbt_deletefromlevel(dns_rbtnode_t *delete, dns_rbtnode_t **rootp) {
 	dns_rbtnode_t *child, *sibling, *parent;
 	dns_rbtnode_t *successor;
 
-	REQUIRE(VALID_RBT(rbt));
 	REQUIRE(delete != NULL);
 
 	/*
