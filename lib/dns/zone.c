@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.181 2000/08/10 19:34:49 bwelling Exp $ */
+/* $Id: zone.c,v 1.182 2000/08/10 19:50:02 gson Exp $ */
 
 #include <config.h>
 
@@ -1523,10 +1523,9 @@ dns_zone_maintenance(dns_zone_t *zone) {
 	switch (zone->type) {
 	case dns_zone_master:
 	case dns_zone_slave:
-		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
-		    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY)) {
+		if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NEEDNOTIFY))
 			dns_zone_notify(zone);
-		}
+		break;
 	default:
 		break;
 	}
@@ -2091,6 +2090,9 @@ dns_zone_notify(dns_zone_t *zone) {
 	zone->flags &= ~DNS_ZONEFLG_NEEDNOTIFY;
 	notifytype = zone->notifytype;
 	UNLOCK(&zone->lock);
+
+	if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
+		return;
 
 	if (notifytype == dns_notifytype_no)
 		return;
