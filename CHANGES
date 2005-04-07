@@ -1,3 +1,6 @@
+1849.	[doc]		All forms of the man pages (docbook, man, html) should
+			have consistant copyright dates.
+
 1848.	[bug]		Improve SMF integration. [RT #13238]
 
 1847.	[bug]		isc_ondestroy_init() is called too late in
