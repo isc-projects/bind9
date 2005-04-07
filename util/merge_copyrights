@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.16.2.2.8.3 2004/08/16 23:58:57 marka Exp $
+# $Id: merge_copyrights,v 1.16.2.2.8.4 2005/04/07 03:22:51 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -107,6 +107,8 @@ while (<FILES>) {
         }
 
 	next if $file_types{$_} eq "X";
+	next if ($file_years{$_} =~ /^PARENT:/);
+	next if ($file_years{$_} eq "DOCBOOK");
 
 	@years = split(/,/, $file_years{$_});
 	$has_current = 0;
