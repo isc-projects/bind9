@@ -2,7 +2,7 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.265 2005/04/08 04:42:46 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.266 2005/04/08 04:51:21 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -693,6 +693,7 @@ of a server.</para>
                 <arg>-w <replaceable>directory</replaceable></arg>
                 <arg>-k <replaceable>(ignore|warn|fail)</replaceable></arg>
                 <arg>-n <replaceable>(ignore|warn|fail)</replaceable></arg>
+                <arg>-W <replaceable>(ignore|warn)</replaceable></arg>
                 <arg choice="plain"><replaceable>zone</replaceable></arg>
                 <arg><replaceable>filename</replaceable></arg>
               </cmdsynopsis>
