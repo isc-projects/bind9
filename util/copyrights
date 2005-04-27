@@ -87,13 +87,11 @@
 ./bin/dnssec/win32/signzone.mak			X	2001
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005
-./bin/named/aclconf.c				C	1999,2000,2001,2002,2004
 ./bin/named/builtin.c				C	2001,2002,2003,2004
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/config.c				C	2001,2002,2003,2004,2005
 ./bin/named/control.c				C	2001,2002,2003,2004,2005
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005
-./bin/named/include/named/aclconf.h		C	1999,2000,2001,2004
 ./bin/named/include/named/builtin.h		C	2001,2004
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/include/named/config.h		C	2001,2002,2004
@@ -1354,8 +1352,6 @@
 ./lib/bind/isc/movefile.c			X	2001
 ./lib/bind/isc/tree.c				X	2001
 ./lib/bind/isc/tree.mdoc			X	2001
-./lib/bind/libtool.m4				X	2001
-./lib/bind/ltmain.sh				X	2001
 ./lib/bind/make/.cvsignore			X	2001
 ./lib/bind/make/includes.in			MAKE	2001,2004
 ./lib/bind/make/mkdep.in			X	2001
