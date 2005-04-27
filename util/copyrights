@@ -1349,8 +1349,6 @@
 ./lib/bind/isc/movefile.c			X	2001
 ./lib/bind/isc/tree.c				X	2001
 ./lib/bind/isc/tree.mdoc			X	2001
-./lib/bind/libtool.m4				X	2001
-./lib/bind/ltmain.sh				X	2001
 ./lib/bind/make/.cvsignore			X	2001
 ./lib/bind/make/includes.in			MAKE	2001,2004
 ./lib/bind/make/mkdep.in			X	2001
