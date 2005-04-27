@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getipnode.c,v 1.37 2004/03/05 05:12:45 marka Exp $ */
+/* $Id: getipnode.c,v 1.38 2005/04/27 00:24:02 marka Exp $ */
 
 #include <config.h>
 
@@ -331,6 +331,8 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
 	if (n != 0) {
+		lwres_conf_clear(lwrctx);
+		lwres_context_destroy(&lwrctx);
 		*error_num = HOST_NOT_FOUND;
 		return (NULL);
 	}
@@ -338,6 +340,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	lwres_gnbaresponse_free(lwrctx, &by);
 	if (he1 == NULL)
 		*error_num = NO_RECOVERY;
+	lwres_conf_clear(lwrctx);
 	lwres_context_destroy(&lwrctx);
 	return (he1);
 }

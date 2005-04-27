@@ -1,3 +1,5 @@
+1850.	[bug]		Memory leak in lwres_getipnodebyaddr(). [RT #14591]
+
 1849.	[doc]		All forms of the man pages (docbook, man, html) should
 			have consistant copyright dates.
 
