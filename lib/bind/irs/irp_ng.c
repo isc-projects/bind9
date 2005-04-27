@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp_ng.c,v 1.2 2004/03/09 06:30:03 marka Exp $";
+static const char rcsid[] = "$Id: irp_ng.c,v 1.2.18.1 2005/04/27 05:01:00 sra Exp $";
 #endif
 
 /* Imports */
@@ -62,13 +62,7 @@ static void		ng_minimize(struct irs_ng *);
 
 /* Public */
 
-
-
-/*
- * struct irs_ng * irs_irp_ng(struct irs_acc *this)
- *
- * Notes:
- *
+/*%
  *	Intialize the irp netgroup module.
  *
  */
@@ -155,15 +149,7 @@ ng_rewind(struct irs_ng *this, const char *group) {
 	return;
 }
 
-
-
-
 /*
- * int ng_next(struct irs_ng *this, const char **host, const char **user,
- *	       const char **domain)
- *
- * Notes:
- *
  *	Get the next netgroup item from the cache.
  *
  */
@@ -205,14 +191,7 @@ ng_next(struct irs_ng *this, const char **host, const char **user,
 	return (rval);
 }
 
-
-
 /*
- * int ng_test(struct irs_ng *this, const char *name, const char *host,
- *		const char *user, const char *domain)
- *
- * Notes:
- *
  *	Search for a match in a netgroup.
  *
  */
@@ -270,3 +249,5 @@ ng_minimize(struct irs_ng *this) {
 
 /* Private */
 
+
+/*! \file */

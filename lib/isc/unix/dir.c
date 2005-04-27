@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.20 2004/03/05 05:11:43 marka Exp $ */
+/* $Id: dir.c,v 1.20.18.1 2005/04/27 05:02:34 sra Exp $ */
 
-/* Principal Authors: DCL */
+/*! \file
+ * \author  Principal Authors: DCL */
 
 #include <config.h>
 
@@ -50,8 +51,8 @@ isc_dir_init(isc_dir_t *dir) {
 	dir->magic = ISC_DIR_MAGIC;
 }
 
-/*
- * Allocate workspace and open directory stream. If either one fails,
+/*!
+ * \brief Allocate workspace and open directory stream. If either one fails,
  * NULL will be returned.
  */
 isc_result_t
@@ -72,8 +73,10 @@ isc_dir_open(isc_dir_t *dir, const char *dirname) {
 	return (result);
 }
 
-/*
- * Return previously retrieved file or get next one.  Unix's dirent has
+/*!
+ * \brief Return previously retrieved file or get next one.  
+
+ * Unix's dirent has
  * separate open and read functions, but the Win32 and DOS interfaces open
  * the dir stream and reads the first file in one operation.
  */
@@ -107,8 +110,8 @@ isc_dir_read(isc_dir_t *dir) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * Close directory stream.
+/*!
+ * \brief Close directory stream.
  */
 void
 isc_dir_close(isc_dir_t *dir) {
@@ -118,8 +121,8 @@ isc_dir_close(isc_dir_t *dir) {
        dir->handle = NULL;
 }
 
-/*
- * Reposition directory stream at start.
+/*!
+ * \brief Reposition directory stream at start.
  */
 isc_result_t
 isc_dir_reset(isc_dir_t *dir) {
@@ -132,8 +135,8 @@ isc_dir_reset(isc_dir_t *dir) {
 
 isc_result_t
 isc_dir_chdir(const char *dirname) {
-	/*
-	 * Change the current directory to 'dirname'.
+	/*!
+	 * \brief Change the current directory to 'dirname'.
 	 */
 
 	REQUIRE(dirname != NULL);
@@ -165,8 +168,8 @@ isc_dir_createunique(char *templet) {
 
 	REQUIRE(templet != NULL);
 
-	/*
-	 * mkdtemp is not portable, so this emulates it.
+	/*!
+	 * \brief mkdtemp is not portable, so this emulates it.
 	 */
 
 	pid = getpid();

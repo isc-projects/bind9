@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.21 2005/03/15 00:24:25 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.22 2005/04/27 05:01:29 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -80,7 +82,7 @@
 #define IO_MAGIC			ISC_MAGIC('Z', 'm', 'I', 'O')
 #define DNS_IO_VALID(load)		ISC_MAGIC_VALID(load, IO_MAGIC)
 
-/*
+/*%
  * Ensure 'a' is at least 'min' but not more than 'max'.
  */
 #define RANGE(a, min, max) \
@@ -89,16 +91,16 @@
 /*
  * Default values.
  */
-#define DNS_DEFAULT_IDLEIN 3600		/* 1 hour */
-#define DNS_DEFAULT_IDLEOUT 3600	/* 1 hour */
-#define MAX_XFER_TIME (2*3600)		/* Documented default is 2 hours */
+#define DNS_DEFAULT_IDLEIN 3600		/*%< 1 hour */
+#define DNS_DEFAULT_IDLEOUT 3600	/*%< 1 hour */
+#define MAX_XFER_TIME (2*3600)		/*%< Documented default is 2 hours */
 
 #ifndef DNS_MAX_EXPIRE
-#define DNS_MAX_EXPIRE	14515200	/* 24 weeks */
+#define DNS_MAX_EXPIRE	14515200	/*%< 24 weeks */
 #endif
 
 #ifndef DNS_DUMP_DELAY
-#define DNS_DUMP_DELAY 900		/* 15 minutes */
+#define DNS_DUMP_DELAY 900		/*%< 15 minutes */
 #endif
 
 typedef struct dns_notify dns_notify_t;
@@ -209,7 +211,7 @@ struct dns_zone {
 	isc_uint32_t		sigvalidityinterval;
 	dns_view_t		*view;
 	dns_acache_t		*acache;
-	/*
+	/*%
 	 * Zones in certain states such as "waiting for zone transfer"
 	 * or "zone transfer in progress" are kept on per-state linked lists
 	 * in the zone manager using the 'statelink' field.  The 'statelist'
@@ -218,7 +220,7 @@ struct dns_zone {
 	 */
 	ISC_LINK(dns_zone_t)	statelink;
 	dns_zonelist_t		*statelist;
-	/*
+	/*%
 	 * Optional per-zone statistics counters (NULL if not present).
 	 */
 	isc_uint64_t	    	*counters;
@@ -237,35 +239,35 @@ struct dns_zone {
 		(z)->flags &= ~(f); \
 		} while (0)
 	/* XXX MPA these may need to go back into zone.h */
-#define DNS_ZONEFLG_REFRESH	0x00000001U	/* refresh check in progress */
-#define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/* zone need consolidation */
-#define DNS_ZONEFLG_USEVC	0x00000004U	/* use tcp for refresh query */
-#define DNS_ZONEFLG_DUMPING	0x00000008U	/* a dump is in progress */
-#define DNS_ZONEFLG_HASINCLUDE	0x00000010U	/* $INCLUDE in zone file */
-#define DNS_ZONEFLG_LOADED	0x00000020U	/* database has loaded */
-#define DNS_ZONEFLG_EXITING	0x00000040U	/* zone is being destroyed */
-#define DNS_ZONEFLG_EXPIRED	0x00000080U	/* zone has expired */
-#define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/* refresh check needed */
-#define DNS_ZONEFLG_UPTODATE	0x00000200U	/* zone contents are
+#define DNS_ZONEFLG_REFRESH	0x00000001U	/*%< refresh check in progress */
+#define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/*%< zone need consolidation */
+#define DNS_ZONEFLG_USEVC	0x00000004U	/*%< use tcp for refresh query */
+#define DNS_ZONEFLG_DUMPING	0x00000008U	/*%< a dump is in progress */
+#define DNS_ZONEFLG_HASINCLUDE	0x00000010U	/*%< $INCLUDE in zone file */
+#define DNS_ZONEFLG_LOADED	0x00000020U	/*%< database has loaded */
+#define DNS_ZONEFLG_EXITING	0x00000040U	/*%< zone is being destroyed */
+#define DNS_ZONEFLG_EXPIRED	0x00000080U	/*%< zone has expired */
+#define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/*%< refresh check needed */
+#define DNS_ZONEFLG_UPTODATE	0x00000200U	/*%< zone contents are
 						 * uptodate */
-#define DNS_ZONEFLG_NEEDNOTIFY	0x00000400U	/* need to send out notify
+#define DNS_ZONEFLG_NEEDNOTIFY	0x00000400U	/*%< need to send out notify
 						 * messages */
-#define DNS_ZONEFLG_DIFFONRELOAD 0x00000800U	/* generate a journal diff on
+#define DNS_ZONEFLG_DIFFONRELOAD 0x00000800U	/*%< generate a journal diff on
 						 * reload */
-#define DNS_ZONEFLG_NOMASTERS	0x00001000U	/* an attempt to refresh a
+#define DNS_ZONEFLG_NOMASTERS	0x00001000U	/*%< an attempt to refresh a
 						 * zone with no masters
 						 * occured */
-#define DNS_ZONEFLG_LOADING	0x00002000U	/* load from disk in progress*/
-#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/* timer values have been set
+#define DNS_ZONEFLG_LOADING	0x00002000U	/*%< load from disk in progress*/
+#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/*%< timer values have been set
 						 * from SOA (if not set, we
 						 * are still using
 						 * default timer values) */
-#define DNS_ZONEFLG_FORCEXFER   0x00008000U     /* Force a zone xfer */
+#define DNS_ZONEFLG_FORCEXFER   0x00008000U     /*%< Force a zone xfer */
 #define DNS_ZONEFLG_NOREFRESH	0x00010000U
 #define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
 #define DNS_ZONEFLG_DIALREFRESH	0x00040000U
 #define DNS_ZONEFLG_SHUTDOWN	0x00080000U
-#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/* IXFR failed, force AXFR */
+#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/*%< IXFR failed, force AXFR */
 #define DNS_ZONEFLG_FLUSH	0x00200000U
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
 #define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
@@ -305,7 +307,7 @@ struct dns_zonemgr {
 	dns_iolist_t		low;
 };
 
-/*
+/*%
  * Hold notify state.
  */
 struct dns_notify {
@@ -322,7 +324,7 @@ struct dns_notify {
 
 #define DNS_NOTIFY_NOSOA	0x0001U
 
-/*
+/*%
  *	dns_stub holds state while performing a 'stub' transfer.
  *	'db' is the zone's 'db' or a new one if this is the initial
  *	transfer.
@@ -336,7 +338,7 @@ struct dns_stub {
 	dns_dbversion_t		*version;
 };
 
-/*
+/*%
  *	Hold load state.
  */
 struct dns_load {
@@ -348,7 +350,7 @@ struct dns_load {
 	dns_rdatacallbacks_t	callbacks;
 };
 
-/*
+/*%
  *	Hold forward state.
  */
 struct dns_forward {
@@ -363,7 +365,7 @@ struct dns_forward {
 	void			*callback_arg;
 };
 
-/*
+/*%
  *	Hold IO request state.
  */
 struct dns_io {
@@ -4771,7 +4773,7 @@ dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
 	 * If type != T_SOA return DNS_R_REFUSED.  We don't yet support
 	 * ROLLOVER.
 	 *
-	 * SOA:	RFC 1996
+	 * SOA:	RFC1996
 	 * Check that 'from' is a valid notify source, (zone->masters).
 	 *	Return DNS_R_REFUSED if not.
 	 *

@@ -16,9 +16,10 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.81.18.1 2004/06/11 00:30:14 marka Exp $
+ * $Id: dnssec.c,v 1.81.18.2 2005/04/27 05:01:15 sra Exp $
  */
 
+/*! \file */
 
 #include <config.h>
 

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb64.c,v 1.7 2004/03/05 05:09:22 marka Exp $ */
+/* $Id: rbtdb64.c,v 1.7.18.1 2005/04/27 05:01:24 sra Exp $ */
+
+/*! \file */
 
 #define DNS_RBTDB_VERSION64 1
 #include "rbtdb.c"

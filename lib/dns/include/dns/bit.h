@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bit.h,v 1.8 2004/03/05 05:09:40 marka Exp $ */
+/* $Id: bit.h,v 1.8.18.1 2005/04/27 05:01:30 sra Exp $ */
 
 #ifndef DNS_BIT_H
 #define DNS_BIT_H 1
+
+/*! \file */
 
 #include <isc/int.h>
 #include <isc/boolean.h>

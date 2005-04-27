@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.c,v 1.13 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: quota.c,v 1.13.18.1 2005/04/27 05:02:05 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

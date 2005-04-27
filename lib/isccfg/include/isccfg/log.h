@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.6 2004/03/05 05:12:27 marka Exp $ */
+/* $Id: log.h,v 1.6.18.1 2005/04/27 05:02:43 sra Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/log.h>
@@ -34,17 +36,17 @@ ISC_LANG_BEGINDECLS
 
 void
 cfg_log_init(isc_log_t *lctx);
-/*
+/*%<
  * Make the libisccfg categories and modules available for use with the
  * ISC logging library.
  *
  * Requires:
- *	lctx is a valid logging context.
+ *\li	lctx is a valid logging context.
  *
- *	cfg_log_init() is called only once.
+ *\li	cfg_log_init() is called only once.
  *
  * Ensures:
- * 	The catgories and modules defined above are available for
+ * \li	The catgories and modules defined above are available for
  * 	use by isc_log_usechannnel() and isc_log_write().
  */
 

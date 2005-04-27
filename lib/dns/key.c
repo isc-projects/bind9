@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.1 2004/12/09 01:41:03 marka Exp $ */
+/* $Id: key.c,v 1.1.6.2 2005/04/27 05:01:20 sra Exp $ */
 
 #include <config.h>
 
@@ -124,3 +124,5 @@ dst_key_isnullkey(const dst_key_t *key) {
 		return (ISC_FALSE);
 	return (ISC_TRUE);
 }
+
+/*! \file */

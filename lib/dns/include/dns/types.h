@@ -15,15 +15,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109.18.4 2005/02/11 00:01:16 marka Exp $ */
+/* $Id: types.h,v 1.109.18.5 2005/04/27 05:01:40 sra Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 
-/*
+/*! \file
+ * \brief
  * Including this file gives you type declarations suitable for use in
  * .h files, which lets us avoid circular type reference problems.
- *
+ * \brief
  * To actually use a type or get declarations of its methods, you must
  * include the appropriate .h file too.
  */
@@ -157,7 +158,7 @@ typedef enum {
 #include <dns/enumtype.h>	/* Provides dns_rdatatype_t. */
 #include <dns/enumclass.h>	/* Provides dns_rdataclass_t. */
 
-/*
+/*%
  * rcodes.
  */
 enum {
@@ -193,7 +194,7 @@ enum {
 #define dns_rcode_badvers		((dns_rcode_t)dns_rcode_badvers)
 };
 
-/*
+/*%
  * TSIG errors.
  */
 enum {
@@ -205,7 +206,7 @@ enum {
 	dns_tsigerror_badalg = 21
 };
 
-/*
+/*%
  * Opcodes.
  */
 enum {
@@ -221,7 +222,7 @@ enum {
 #define dns_opcode_update		((dns_opcode_t)dns_opcode_update)
 };
 
-/*
+/*%
  * Trust levels.  Must be kept in sync with trustnames[] in masterdump.c.
  */
 enum {
@@ -229,11 +230,11 @@ enum {
 	dns_trust_none = 0,
 #define dns_trust_none			((dns_trust_t)dns_trust_none)
 
-	/* Subject to DNSSEC validation but has not yet been validated */
+	/*% Subject to DNSSEC validation but has not yet been validated */
 	dns_trust_pending = 1,
 #define dns_trust_pending		((dns_trust_t)dns_trust_pending)
 
-	/* Received in the additional section of a response. */
+	/*% Received in the additional section of a response. */
 	dns_trust_additional = 2,
 #define dns_trust_additional		((dns_trust_t)dns_trust_additional)
 
@@ -263,7 +264,7 @@ enum {
 #define dns_trust_ultimate		((dns_trust_t)dns_trust_ultimate)
 };
 
-/*
+/*%
  * Name checking severites.
  */
 typedef enum {

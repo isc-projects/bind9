@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.2 2005/03/03 06:33:28 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.3 2005/04/27 05:00:26 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -52,6 +54,7 @@ isc_log_t *logc = NULL;
 			goto cleanup; \
 	} while (0)
 
+/*% usage */
 static void
 usage(void) {
         fprintf(stderr, "usage: named-checkconf [-j] [-v] [-z] [-t directory] "
@@ -59,6 +62,7 @@ usage(void) {
         exit(1);
 }
 
+/*% directory callback */
 static isc_result_t
 directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
@@ -84,6 +88,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	return (ISC_R_SUCCESS);
 }
 
+/*% configure the zone */
 static isc_result_t
 configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	       isc_mem_t *mctx)
@@ -124,6 +129,7 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	return(result);
 }
 
+/*% configure a view */
 static isc_result_t
 configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 	       cfg_obj_t *vconfig, isc_mem_t *mctx)
@@ -157,6 +163,7 @@ configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 }
 
 
+/*% load zones from the configuration */
 static isc_result_t
 load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 	cfg_listelt_t *element;
@@ -197,6 +204,7 @@ load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
 	return (result);
 }
 
+/*% The main processing routine */
 int
 main(int argc, char **argv) {
 	int c;

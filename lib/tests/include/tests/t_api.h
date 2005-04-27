@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.h,v 1.15.18.1 2004/06/21 06:45:19 marka Exp $ */
+/* $Id: t_api.h,v 1.15.18.2 2005/04/27 05:02:59 sra Exp $ */
 
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1
+
+/*! \file */
 
 #include <stdio.h>
 

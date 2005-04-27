@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_openssl.h,v 1.1 2004/12/09 01:41:01 marka Exp $ */
+/* $Id: dst_openssl.h,v 1.1.4.2 2005/04/27 05:01:18 sra Exp $ */
 
 #ifndef DST_OPENSSL_H
 #define DST_OPENSSL_H 1
@@ -31,3 +31,4 @@ dst__openssl_toresult(isc_result_t fallback);
 ISC_LANG_ENDDECLS
 
 #endif /* DST_OPENSSL_H */
+/*! \file */

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.36.18.1 2004/12/21 10:58:58 jinmei Exp $ */
+/* $Id: log.c,v 1.36.18.2 2005/04/27 05:01:20 sra Exp $ */
+
+/*! \file */
 
 /* Principal Authors: DCL */
 
@@ -25,7 +27,7 @@
 
 #include <dns/log.h>
 
-/*
+/*%
  * When adding a new category, be sure to add the appropriate
  * #define to <dns/log.h>.
  */
@@ -44,7 +46,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ NULL, 	0 }
 };
 
-/*
+/*%
  * When adding a new module, be sure to add the appropriate
  * #define to <dns/log.h>.
  */

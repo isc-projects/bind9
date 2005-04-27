@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.25.18.3 2005/02/23 01:02:16 marka Exp $ */
+/* $Id: netaddr.h,v 1.25.18.4 2005/04/27 05:02:26 sra Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/net.h>
@@ -49,40 +51,40 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b);
 isc_boolean_t
 isc_netaddr_eqprefix(const isc_netaddr_t *a, const isc_netaddr_t *b,
 		     unsigned int prefixlen);
-/*
+/*%<
  * Compare the 'prefixlen' most significant bits of the network
- * addresses 'a' and 'b'.  Return ISC_TRUE if they are equal,
- * ISC_FALSE if not.
+ * addresses 'a' and 'b'.  Return #ISC_TRUE if they are equal,
+ * #ISC_FALSE if not.
  */
 
 isc_result_t
 isc_netaddr_masktoprefixlen(const isc_netaddr_t *s, unsigned int *lenp);
-/*
+/*%<
  * Convert a netmask in 's' into a prefix length in '*lenp'.
  * The mask should consist of zero or more '1' bits in the most
  * most significant part of the address, followed by '0' bits.
- * If this is not the case, ISC_R_MASKNONCONTIG is returned.
+ * If this is not the case, #ISC_R_MASKNONCONTIG is returned.
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_MASKNONCONTIG
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_MASKNONCONTIG
  */
 
 isc_result_t
 isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target);
-/*
+/*%<
  * Append a text representation of 'sockaddr' to the buffer 'target'.
  * The text is NOT null terminated.  Handles IPv4 and IPv6 addresses.
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE	The text or the null termination did not fit.
- *	ISC_R_FAILURE	Unspecified failure
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOSPACE	The text or the null termination did not fit.
+ *\li	#ISC_R_FAILURE	Unspecified failure
  */
 
 void
 isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size);
-/*
+/*%<
  * Format a human-readable representation of the network address '*na'
  * into the character array 'array', which is of size 'size'.
  * The resulting string is guaranteed to be null-terminated.
@@ -90,7 +92,7 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size);
 
 #define ISC_NETADDR_FORMATSIZE \
 	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX")
-/*
+/*%<
  * Minimum size of array to pass to isc_netaddr_format().
  */
 
@@ -114,43 +116,43 @@ isc_netaddr_getzone(const isc_netaddr_t *netaddr);
 
 void
 isc_netaddr_any(isc_netaddr_t *netaddr);
-/*
+/*%<
  * Return the IPv4 wildcard address.
  */
 
 void
 isc_netaddr_any6(isc_netaddr_t *netaddr);
-/*
+/*%<
  * Return the IPv6 wildcard address.
  */
 
 isc_boolean_t
 isc_netaddr_ismulticast(isc_netaddr_t *na);
-/*
+/*%<
  * Returns ISC_TRUE if the address is a multicast address.
  */
 
 isc_boolean_t
 isc_netaddr_isexperimental(isc_netaddr_t *na);
-/*
+/*%<
  * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */
 
 isc_boolean_t
 isc_netaddr_islinklocal(isc_netaddr_t *na);
-/*
- * Returns ISC_TRUE if the address is a link local address.
+/*%<
+ * Returns #ISC_TRUE if the address is a link local address.
  */
 
 isc_boolean_t
 isc_netaddr_issitelocal(isc_netaddr_t *na);
-/*
- * Returns ISC_TRUE if the address is a site local address.
+/*%<
+ * Returns #ISC_TRUE if the address is a site local address.
  */
 
 void
 isc_netaddr_fromv4mapped(isc_netaddr_t *t, const isc_netaddr_t *s);
-/*
+/*%<
  * Convert an IPv6 v4mapped address into an IPv4 address.
  */
 

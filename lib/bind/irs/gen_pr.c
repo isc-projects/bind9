@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gen_pr.c,v 1.2 2004/03/09 06:30:00 marka Exp $";
+static const char rcsid[] = "$Id: gen_pr.c,v 1.2.18.1 2005/04/27 05:00:56 sra Exp $";
 #endif
 
 /* Imports */
@@ -224,3 +224,5 @@ pr_res_set(struct irs_pr *this, struct __res_state *res,
 			(*pr->res_set)(pr, pvt->res, NULL);
 	}
 }
+
+/*! \file */

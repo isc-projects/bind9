@@ -16,7 +16,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.10 2005/03/22 02:32:12 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.11 2005/04/27 05:00:28 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -257,7 +259,7 @@ iszonekey(signer_key_t *key) {
 		       dst_key_iszonekey(key->key)));
 }
 
-/*
+/*%
  * Finds the key that generated a RRSIG, if possible.  First look at the keys
  * that we've loaded already, and then see if there's a key on disk.
  */
@@ -295,7 +297,7 @@ keythatsigned(dns_rdata_rrsig_t *rrsig) {
 	return (key);
 }
 
-/*
+/*%
  * Check to see if we expect to find a key at this name.  If we see a RRSIG
  * and can't find the signing key that we expect to find, we drop the rrsig.
  * I'm not sure if this is completely correct, but it seems to work.
@@ -341,7 +343,7 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, signer_key_t *key,
 	}
 }
 
-/*
+/*%
  * Signs a set.  Goes through contortions to decide if each RRSIG should
  * be dropped or retained, and then determines if any new SIGs need to
  * be generated.
@@ -602,7 +604,7 @@ opendb(const char *prefix, dns_name_t *name, dns_rdataclass_t rdclass,
 		dns_db_detach(dbp);
 }
 
-/*
+/*%
  * Loads the key set for a child zone, if there is one, and builds DS records.
  */
 static isc_result_t
@@ -779,7 +781,7 @@ delegation(dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp) {
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
-/*
+/*%
  * Signs all records at a name.  This mostly just signs each set individually,
  * but also adds the RRSIG bit to any NSECs generated earlier, deals with
  * parent/child KEY signatures, and handles other exceptional cases.
@@ -964,7 +966,7 @@ active_node(dns_dbnode_t *node) {
 		      isc_result_totext(result));
 
 	if (!active) {
-		/*
+		/*%
 		 * The node is empty of everything but NSEC / RRSIG records.
 		 */
 		for (result = dns_rdatasetiter_first(rdsiter);
@@ -1028,7 +1030,7 @@ active_node(dns_dbnode_t *node) {
 	return (active);
 }
 
-/*
+/*%
  * Extracts the TTL from the SOA.
  */
 static dns_ttl_t
@@ -1060,7 +1062,7 @@ soattl(void) {
 	return (ttl);
 }
 
-/*
+/*%
  * Delete any RRSIG records at a node.
  */
 static void
@@ -1096,7 +1098,7 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	dns_rdatasetiter_destroy(&rdsiter);
 }
 
-/*
+/*%
  * Set up the iterator and global state before starting the tasks.
  */
 static void
@@ -1111,7 +1113,7 @@ presign(void) {
 	check_result(result, "dns_dbiterator_first()");
 }
 
-/*
+/*%
  * Clean up the iterator and global state after the tasks complete.
  */
 static void
@@ -1119,7 +1121,7 @@ postsign(void) {
 	dns_dbiterator_destroy(&gdbiter);
 }
 
-/*
+/*%
  * Assigns a node to a worker thread.  This is protected by the master task's
  * lock.
  */
@@ -1199,7 +1201,7 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	assigned++;
 }
 
-/*
+/*%
  * Start a worker task
  */
 static void
@@ -1211,7 +1213,7 @@ startworker(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-/*
+/*%
  * Write a node to the output file, and restart the worker task.
  */
 static void
@@ -1229,7 +1231,7 @@ writenode(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-/*
+/*%
  *  Sign a database node.
  */
 static void
@@ -1254,7 +1256,7 @@ sign(isc_task_t *task, isc_event_t *event) {
 	isc_task_send(master, ISC_EVENT_PTR(&wevent));
 }
 
-/*
+/*%
  * Generate NSEC records for the zone.
  */
 static void
@@ -1329,7 +1331,7 @@ nsecify(void) {
 	dns_dbiterator_destroy(&dbiter);
 }
 
-/*
+/*%
  * Load the zone file from disk
  */
 static void
@@ -1361,7 +1363,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 		      file, isc_result_totext(result));
 }
 
-/*
+/*%
  * Finds all public zone keys in the zone, and attempts to load the
  * private keys from disk.
  */
@@ -1400,7 +1402,7 @@ loadzonekeys(dns_db_t *db) {
 	dns_db_closeversion(db, &currentversion, ISC_FALSE);
 }
 
-/*
+/*%
  * Finds all public zone keys in the zone.
  */
 static void

@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: int.h,v 1.12 2004/03/05 05:11:52 marka Exp $ */
+/* $Id: int.h,v 1.12.18.1 2005/04/27 05:02:36 sra Exp $ */
 
 #ifndef ISC_INT_H
 #define ISC_INT_H 1
+
+/*! \file */
 
 typedef char				isc_int8_t;
 typedef unsigned char			isc_uint8_t;
@@ -37,7 +39,7 @@ typedef unsigned long long		isc_uint64_t;
 #define ISC_INT16_MAX	32767
 #define ISC_UINT16_MAX	65535
 
-/*
+/*%
  * Note that "int" is 32 bits on all currently supported Unix-like operating
  * systems, but "long" can be either 32 bits or 64 bits, thus the 32 bit
  * constants are not qualified with "L".

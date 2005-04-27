@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.6.18.1 2004/04/14 05:14:04 marka Exp $ */
+/* $Id: refcount.h,v 1.6.18.2 2005/04/27 05:02:29 sra Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -26,8 +26,10 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-/*
- * Implements a locked reference counter.  These functions may actually be
+/*! \file
+ * \brief Implements a locked reference counter.  
+ *
+ * These functions may actually be
  * implemented using macros, and implementations of these macros are below.
  * The isc_refcount_t type should not be accessed directly, as its contents
  * depend on the implementation.
@@ -39,9 +41,7 @@ ISC_LANG_BEGINDECLS
  * Function prototypes
  */
 
-/*
- * void
- * isc_refcount_init(isc_refcount_t *ref, unsigned int n);
+/* void isc_refcount_init(isc_refcount_t *ref, unsigned int n);
  *
  * Initialize the reference counter.  There will be 'n' initial references.
  *
@@ -93,6 +93,7 @@ typedef struct isc_refcount {
 	isc_mutex_t lock;
 } isc_refcount_t;
 
+/*% Initialize the reference counter.  There will be 'n' initial references. */
 #define isc_refcount_init(rp, n) 			\
 	do {						\
 		isc_result_t _r;			\
@@ -101,6 +102,7 @@ typedef struct isc_refcount {
 		RUNTIME_CHECK(_r == ISC_R_SUCCESS);	\
 	} while (0)
 
+/*% Destroys a reference counter. */
 #define isc_refcount_destroy(rp)			\
 	do {						\
 		REQUIRE((rp)->refs == 0);		\
@@ -109,6 +111,7 @@ typedef struct isc_refcount {
 
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
+/*% Increments the reference count, returning the new value in targetp if it's not NULL. */
 #define isc_refcount_increment(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
@@ -120,6 +123,7 @@ typedef struct isc_refcount {
 		UNLOCK(&(rp)->lock);				\
 	} while (0)
 
+/*% Decrements the reference count,  returning the new value in targetp if it's not NULL. */
 #define isc_refcount_decrement(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\

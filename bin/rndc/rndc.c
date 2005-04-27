@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.8 2005/03/14 23:55:50 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.9 2005/04/27 05:00:39 sra Exp $ */
+
+/*! \file */
 
 /*
  * Principal Author: DCL

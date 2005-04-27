@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.c,v 1.35.18.1 2004/12/21 10:58:59 jinmei Exp $ */
+/* $Id: rdataslab.c,v 1.35.18.2 2005/04/27 05:01:25 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -31,7 +33,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdataslab.h>
 
-/* Note: the "const void *" are just to make qsort happy. */
+/*% Note: the "const void *" are just to make qsort happy.  */
 static int
 compare_rdata(const void *p1, const void *p2) {
 	const dns_rdata_t *rdata1 = p1;

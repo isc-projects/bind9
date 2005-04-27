@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.19.18.2 2005/01/12 01:54:56 marka Exp $ */
+/* $Id: zoneconf.h,v 1.19.18.3 2005/04/27 05:00:37 sra Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -31,7 +33,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		  cfg_aclconfctx_t *ac, dns_zone_t *zone);
-/*
+/*%<
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.
  *
@@ -39,16 +41,16 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
  * at zone creation time.
  *
  * Require:
- *	'lctx' to be initialized or NULL.
- *	'cctx' to be initialized or NULL.
- *	'ac' to point to an initialized ns_aclconfctx_t.
- *	'czone' to be initialized.
- *	'zone' to be initialized.
+ * \li	'lctx' to be initialized or NULL.
+ * \li	'cctx' to be initialized or NULL.
+ * \li	'ac' to point to an initialized ns_aclconfctx_t.
+ * \li	'czone' to be initialized.
+ * \li	'zone' to be initialized.
  */
 
 isc_boolean_t
 ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig);
-/*
+/*%<
  * If 'zone' can be safely reconfigured according to the configuration
  * data in 'zconfig', return ISC_TRUE.  If the configuration data is so
  * different from the current zone state that the zone needs to be destroyed

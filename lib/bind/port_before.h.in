@@ -136,3 +136,5 @@ struct timezone;        /* silence warning */
 #endif
 
 #endif
+
+/*! \file */

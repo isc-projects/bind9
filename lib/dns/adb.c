@@ -15,19 +15,18 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215.18.5 2005/03/16 00:56:25 marka Exp $ */
+/* $Id: adb.c,v 1.215.18.6 2005/04/27 05:01:14 sra Exp $ */
 
-/*
- * Implementation notes
- * --------------------
+/*! \file 
  *
+ * \note
  * In finds, if task == NULL, no events will be generated, and no events
  * have been sent.  If task != NULL but taskaction == NULL, an event has been
  * posted but not yet freed.  If neither are NULL, no event was posted.
  *
  */
 
-/*
+/*%
  * After we have cleaned all buckets, dump the database contents.
  */
 #if 0
@@ -71,37 +70,39 @@
 #define DNS_ADBFETCH6_MAGIC	  ISC_MAGIC('a', 'd', 'F', '6')
 #define DNS_ADBFETCH6_VALID(x)	  ISC_MAGIC_VALID(x, DNS_ADBFETCH6_MAGIC)
 
-/*
+/*! 
  * The number of buckets needs to be a prime (for good hashing).
  *
  * XXXRTH  How many buckets do we need?
  */
-#define NBUCKETS	       1009	/* how many buckets for names/addrs */
+#define NBUCKETS	       1009	/*%< how many buckets for names/addrs */
 
-/*
+/*!
  * For type 3 negative cache entries, we will remember that the address is
  * broken for this long.  XXXMLG This is also used for actual addresses, too.
  * The intent is to keep us from constantly asking about A/AAAA records
  * if the zone has extremely low TTLs.
  */
-#define ADB_CACHE_MINIMUM	10	/* seconds */
-#define ADB_CACHE_MAXIMUM	86400	/* seconds (86400 = 24 hours) */
-#define ADB_ENTRY_WINDOW	1800	/* seconds */
+#define ADB_CACHE_MINIMUM	10	/*%< seconds */
+#define ADB_CACHE_MAXIMUM	86400	/*%< seconds (86400 = 24 hours) */
+#define ADB_ENTRY_WINDOW	1800	/*%< seconds */
 
-/*
+/*%
  * Wake up every CLEAN_SECONDS and clean CLEAN_BUCKETS buckets, so that all
  * buckets are cleaned in CLEAN_PERIOD seconds.
  */
 #define CLEAN_PERIOD		3600
+/*% See #CLEAN_PERIOD */
 #define CLEAN_SECONDS		30
+/*% See #CLEAN_PERIOD */
 #define CLEAN_BUCKETS		((NBUCKETS * CLEAN_SECONDS) / CLEAN_PERIOD)
 
-#define FREE_ITEMS		64	/* free count for memory pools */
-#define FILL_COUNT		16	/* fill count for memory pools */
+#define FREE_ITEMS		64	/*%< free count for memory pools */
+#define FILL_COUNT		16	/*%< fill count for memory pools */
 
-#define DNS_ADB_INVALIDBUCKET (-1)	/* invalid bucket address */
+#define DNS_ADB_INVALIDBUCKET (-1)	/*%< invalid bucket address */
 
-#define DNS_ADB_MINADBSIZE	(1024*1024)	/* 1 Megabyte */
+#define DNS_ADB_MINADBSIZE	(1024*1024)	/*%< 1 Megabyte */
 
 typedef ISC_LIST(dns_adbname_t) dns_adbnamelist_t;
 typedef struct dns_adbnamehook dns_adbnamehook_t;
@@ -111,11 +112,12 @@ typedef ISC_LIST(dns_adbentry_t) dns_adbentrylist_t;
 typedef struct dns_adbfetch dns_adbfetch_t;
 typedef struct dns_adbfetch6 dns_adbfetch6_t;
 
+/*% dns adb structure */
 struct dns_adb {
 	unsigned int			magic;
 
 	isc_mutex_t			lock;
-	isc_mutex_t			reflock; /* Covers irefcnt, erefcnt */
+	isc_mutex_t			reflock; /*%< Covers irefcnt, erefcnt */
 	isc_mem_t		       *mctx;
 	dns_view_t		       *view;
 	isc_timermgr_t		       *timermgr;
@@ -131,32 +133,35 @@ struct dns_adb {
 	unsigned int			erefcnt;
 
 	isc_mutex_t			mplock;
-	isc_mempool_t		       *nmp;	/* dns_adbname_t */
-	isc_mempool_t		       *nhmp;	/* dns_adbnamehook_t */
-	isc_mempool_t		       *zimp;	/* dns_adbzoneinfo_t */
-	isc_mempool_t		       *emp;	/* dns_adbentry_t */
-	isc_mempool_t		       *ahmp;	/* dns_adbfind_t */
-	isc_mempool_t		       *aimp;	/* dns_adbaddrinfo_t */
-	isc_mempool_t		       *afmp;	/* dns_adbfetch_t */
+	isc_mempool_t		       *nmp;	/*%< dns_adbname_t */
+	isc_mempool_t		       *nhmp;	/*%< dns_adbnamehook_t */
+	isc_mempool_t		       *zimp;	/*%< dns_adbzoneinfo_t */
+	isc_mempool_t		       *emp;	/*%< dns_adbentry_t */
+	isc_mempool_t		       *ahmp;	/*%< dns_adbfind_t */
+	isc_mempool_t		       *aimp;	/*%< dns_adbaddrinfo_t */
+	isc_mempool_t		       *afmp;	/*%< dns_adbfetch_t */
 
-	/*
+	/*!
 	 * Bucketized locks and lists for names.
 	 *
 	 * XXXRTH  Have a per-bucket structure that contains all of these?
 	 */
 	dns_adbnamelist_t		names[NBUCKETS];
+	/*% See dns_adbnamelist_t */
 	isc_mutex_t			namelocks[NBUCKETS];
+	/*% See dns_adbnamelist_t */
 	isc_boolean_t			name_sd[NBUCKETS];
+	/*% See dns_adbnamelist_t */
 	unsigned int			name_refcnt[NBUCKETS];
 
-	/*
+	/*!
 	 * Bucketized locks for entries.
 	 *
 	 * XXXRTH  Have a per-bucket structure that contains all of these?
 	 */
 	dns_adbentrylist_t		entries[NBUCKETS];
 	isc_mutex_t			entrylocks[NBUCKETS];
-	isc_boolean_t			entry_sd[NBUCKETS]; /* shutting down */
+	isc_boolean_t			entry_sd[NBUCKETS]; /*%< shutting down */
 	unsigned int			entry_refcnt[NBUCKETS];
 
 	isc_event_t			cevent;
@@ -169,6 +174,7 @@ struct dns_adb {
  * XXXMLG  Document these structures.
  */
 
+/*% dns_adbname structure */
 struct dns_adbname {
 	unsigned int			magic;
 	dns_name_t			name;
@@ -191,6 +197,7 @@ struct dns_adbname {
 	ISC_LINK(dns_adbname_t)		plink;
 };
 
+/*% The adbfetch structure */
 struct dns_adbfetch {
 	unsigned int			magic;
 	dns_adbnamehook_t	       *namehook;
@@ -199,9 +206,7 @@ struct dns_adbfetch {
 	dns_rdataset_t			rdataset;
 };
 
-/*
- * dns_adbnamehook_t
- *
+/*%
  * This is a small widget that dangles off a dns_adbname_t.  It contains a
  * pointer to the address information about this host, and a link to the next
  * namehook that will contain the next address this host has.
@@ -212,9 +217,7 @@ struct dns_adbnamehook {
 	ISC_LINK(dns_adbnamehook_t)	plink;
 };
 
-/*
- * dns_adbzoneinfo_t
- *
+/*%
  * This is a small widget that holds zone-specific information about an
  * address.  Currently limited to lameness, but could just as easily be
  * extended to other types of information about zones.
@@ -228,7 +231,7 @@ struct dns_adbzoneinfo {
 	ISC_LINK(dns_adbzoneinfo_t)	plink;
 };
 
-/*
+/*%
  * An address entry.  It holds quite a bit of information about addresses,
  * including edns state (in "flags"), rtt, and of course the address of
  * the host.
@@ -244,7 +247,7 @@ struct dns_adbentry {
 	isc_sockaddr_t			sockaddr;
 
 	isc_stdtime_t			expires;
-	/*
+	/*%<
 	 * A nonzero 'expires' field indicates that the entry should
 	 * persist until that time.  This allows entries found
 	 * using dns_adb_findaddrinfo() to persist for a limited time

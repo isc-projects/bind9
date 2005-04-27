@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.27 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: compress_test.c,v 1.27.18.1 2005/04/27 05:00:40 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

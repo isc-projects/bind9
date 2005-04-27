@@ -16,10 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: alist.h,v 1.3 2004/03/05 05:12:15 marka Exp $ */
+/* $Id: alist.h,v 1.3.18.1 2005/04/27 05:02:39 sra Exp $ */
 
 #ifndef ISCCC_ALIST_H
 #define ISCCC_ALIST_H 1
+
+/*! \file */
 
 #include <stdio.h>
 

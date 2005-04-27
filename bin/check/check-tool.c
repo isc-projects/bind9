@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.4 2005/01/11 01:39:26 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.5 2005/04/27 05:00:25 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -94,6 +96,7 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	return (ISC_R_SUCCESS);
 }
 
+/*% load the zone */
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	  const char *classname, dns_zone_t **zonep)
@@ -146,6 +149,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	return (result);
 }
 
+/*% dump the zone */
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename)
 {

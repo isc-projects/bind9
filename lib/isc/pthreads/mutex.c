@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.8.18.2 2005/03/17 03:57:11 marka Exp $ */
+/* $Id: mutex.c,v 1.8.18.3 2005/04/27 05:02:33 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -28,7 +30,8 @@
 
 #if ISC_MUTEX_PROFILE
 
-/* Operations on timevals; adapted from FreeBSD's sys/time.h */
+/*@{*/
+/*% Operations on timevals; adapted from FreeBSD's sys/time.h */
 #define timevalclear(tvp)      ((tvp)->tv_sec = (tvp)->tv_usec = 0)
 #define timevaladd(vvp, uvp)                                            \
         do {                                                            \
@@ -49,6 +52,8 @@
                 }                                                       \
         } while (0)
 
+/*@}*/
+
 #define ISC_MUTEX_MAX_LOCKERS 32
 
 typedef struct {
@@ -60,8 +65,8 @@ typedef struct {
 } isc_mutexlocker_t;
 
 struct isc_mutexstats {
-	const char *		file;	/* File mutex was created in. */
-	int 			line;	/* Line mutex was created on. */
+	const char *		file;	/*%< File mutex was created in. */
+	int 			line;	/*%< Line mutex was created on. */
 	unsigned		count;
 	struct timeval		lock_t;
 	struct timeval		locked_total;

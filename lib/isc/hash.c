@@ -15,14 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.6 2004/03/05 05:10:45 marka Exp $ */
+/* $Id: hash.c,v 1.6.18.1 2005/04/27 05:02:00 sra Exp $ */
 
-/*
+/*! \file
  * Some portion of this code was derived from universal hash function
  * libraries of Rice University. 
- */
-
-/*  "UH Universal Hashing Library"
+\section license UH Universal Hashing Library
 
 Copyright ((c)) 2002, Rice University
 All rights reserved.
@@ -75,28 +73,31 @@ if advised of the possibility of such damage.
 #define HASH_MAGIC		ISC_MAGIC('H', 'a', 's', 'h')
 #define VALID_HASH(h)		ISC_MAGIC_VALID((h), HASH_MAGIC)
 
-/*
+/*%
  * A large 32-bit prime number that specifies the range of the hash output.
  */
 #define PRIME32 0xFFFFFFFB              /* 2^32 -  5 */
 
-/*
+/*@{*/
+/*%
  * Types of random seed and hash accumulator.  Perhaps they can be system
  * dependent.
  */
 typedef isc_uint32_t hash_accum_t;
 typedef isc_uint16_t hash_random_t;
+/*@}*/
 
+/*% isc hash structure */
 struct isc_hash {
 	unsigned int	magic;
 	isc_mem_t	*mctx;
 	isc_mutex_t	lock;
 	isc_boolean_t	initialized;
 	isc_refcount_t	refcnt;
-	isc_entropy_t	*entropy; /* entropy source */
-	unsigned int	limit;	/* upper limit of key length */
-	size_t		vectorlen; /* size of the vector below */
-	hash_random_t	*rndvector; /* random vector for universal hashing */
+	isc_entropy_t	*entropy; /*%< entropy source */
+	unsigned int	limit;	/*%< upper limit of key length */
+	size_t		vectorlen; /*%< size of the vector below */
+	hash_random_t	*rndvector; /*%< random vector for universal hashing */
 };
 
 static isc_rwlock_t createlock;

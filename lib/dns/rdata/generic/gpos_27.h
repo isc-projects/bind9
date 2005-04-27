@@ -18,9 +18,10 @@
 #ifndef GENERIC_GPOS_27_H
 #define GENERIC_GPOS_27_H 1
 
-/* $Id: gpos_27.h,v 1.13 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: gpos_27.h,v 1.13.18.1 2005/04/27 05:01:45 sra Exp $ */
 
-/* RFC 1712 */
+/*!
+ *  \brief per RFC1712 */
 
 typedef struct dns_rdata_gpos {
 	dns_rdatacommon_t	common;

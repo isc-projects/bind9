@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.21.18.4 2005/02/24 00:32:23 marka Exp $ */
+/* $Id: net.h,v 1.21.18.5 2005/04/27 05:02:38 sra Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -72,7 +72,7 @@
  *
  * Standards:
  *	BSD Socket API
- *	RFC 2553
+ *	RFC2553
  */
 
 /***

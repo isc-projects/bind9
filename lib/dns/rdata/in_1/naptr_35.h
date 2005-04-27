@@ -18,9 +18,10 @@
 #ifndef IN_1_NAPTR_35_H
 #define IN_1_NAPTR_35_H 1
 
-/* $Id: naptr_35.h,v 1.19 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: naptr_35.h,v 1.19.18.1 2005/04/27 05:01:56 sra Exp $ */
 
-/* RFC 2915 */
+/*! 
+ *  \brief Per RFC2915 */
 
 typedef struct dns_rdata_in_naptr {
 	dns_rdatacommon_t	common;

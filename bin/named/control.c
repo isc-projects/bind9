@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20.10.4 2005/04/07 04:08:45 marka Exp $ */
+/* $Id: control.c,v 1.20.10.5 2005/04/27 05:00:30 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -52,7 +54,7 @@ command_compare(const char *text, const char *command) {
 	return (ISC_FALSE);
 }
 
-/*
+/*%
  * This function is called to process the incoming command
  * when a control channel message is received.  
  */

@@ -18,9 +18,10 @@
 #ifndef GENERIC_TKEY_249_H
 #define GENERIC_TKEY_249_H 1
 
-/* $Id: tkey_249.h,v 1.20 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: tkey_249.h,v 1.20.18.1 2005/04/27 05:01:53 sra Exp $ */
 
-/* draft-ietf-dnsind-tkey-00.txt */
+/*!
+ *  \brief Per draft-ietf-dnsind-tkey-00.txt */
 
 typedef struct dns_rdata_tkey {
         dns_rdatacommon_t	common;

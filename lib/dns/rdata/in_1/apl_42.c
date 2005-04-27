@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: apl_42.c,v 1.8 2004/03/18 02:58:04 marka Exp $ */
+/* $Id: apl_42.c,v 1.8.18.1 2005/04/27 05:01:55 sra Exp $ */
 
-/* RFC 3123 */
+/* RFC3123 */
 
 #ifndef RDATA_IN_1_APL_42_C
 #define RDATA_IN_1_APL_42_C

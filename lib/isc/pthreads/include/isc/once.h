@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.h,v 1.9 2004/03/05 05:11:41 marka Exp $ */
+/* $Id: once.h,v 1.9.18.1 2005/04/27 05:02:34 sra Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1
+
+/*! \file */
 
 #include <pthread.h>
 
@@ -28,12 +30,12 @@
 typedef pthread_once_t isc_once_t;
 
 #ifdef ISC_PLATFORM_BRACEPTHREADONCEINIT
-/*
+/*!
  * This accomodates systems that define PTHRAD_ONCE_INIT improperly.
  */
 #define ISC_ONCE_INIT { PTHREAD_ONCE_INIT }
 #else
-/*
+/*!
  * This is the usual case.
  */
 #define ISC_ONCE_INIT PTHREAD_ONCE_INIT

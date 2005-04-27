@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.h,v 1.16 2004/03/05 05:10:10 marka Exp $ */
+/* $Id: cert_37.h,v 1.16.18.1 2005/04/27 05:01:44 sra Exp $ */
 
-/* RFC 2538 */
 #ifndef GENERIC_CERT_37_H
 #define GENERIC_CERT_37_H 1
 
+/*% RFC2538 */
 typedef struct dns_rdata_cert {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;

@@ -18,9 +18,10 @@
 #ifndef IN_1_A6_38_H
 #define IN_1_A6_38_H 1
 
-/* $Id: a6_38.h,v 1.20 2004/03/05 05:10:23 marka Exp $ */
+/* $Id: a6_38.h,v 1.20.18.1 2005/04/27 05:01:54 sra Exp $ */
 
-/* RFC2874 */
+/*! 
+ *  \brief Per RFC2874 */
 
 typedef struct dns_rdata_in_a6 {
         dns_rdatacommon_t	common;

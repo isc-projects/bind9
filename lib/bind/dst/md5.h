@@ -99,3 +99,5 @@ unsigned char *MD5();
 #endif
 
 #endif
+
+/*! \file */

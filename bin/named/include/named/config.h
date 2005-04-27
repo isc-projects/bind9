@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.6.18.1 2004/04/20 14:12:44 marka Exp $ */
+/* $Id: config.h,v 1.6.18.2 2005/04/27 05:00:35 sra Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
+
+/*! \file */
 
 #include <isccfg/cfg.h>
 

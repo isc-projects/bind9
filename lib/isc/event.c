@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.c,v 1.17 2004/03/05 05:10:44 marka Exp $ */
+/* $Id: event.c,v 1.17.18.1 2005/04/27 05:01:59 sra Exp $ */
 
-/*
- * Principal Author: Bob Halley
+/*!
+ * \file
+ * \author Principal Author: Bob Halley
  */
 
 #include <config.h>

@@ -15,15 +15,21 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: formatcheck.h,v 1.7 2004/03/05 05:10:57 marka Exp $ */
+/* $Id: formatcheck.h,v 1.7.18.1 2005/04/27 05:02:15 sra Exp $ */
 
 #ifndef ISC_FORMATCHECK_H
 #define ISC_FORMATCHECK_H 1
 
-/*
- * fmt is the location of the format string parameter.
- * args is the location of the first argument (or 0 for no argument checking).
- * Note: the first parameter is 1, not 0.
+/*! \file */
+
+/*%
+ * ISC_FORMAT_PRINTF().
+ *
+ * \li fmt is the location of the format string parameter.
+ * \li args is the location of the first argument (or 0 for no argument checking).
+ * 
+ * Note:
+ * \li The first parameter is 1, not 0.
  */
 #ifdef __GNUC__
 #define ISC_FORMAT_PRINTF(fmt, args) __attribute__((__format__(__printf__, fmt, args)))

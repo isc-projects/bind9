@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.h,v 1.3.20.2 2005/03/06 15:31:38 marka Exp $ */
+/* $Id: ds.h,v 1.3.20.3 2005/04/27 05:01:32 sra Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
@@ -37,17 +37,17 @@ isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		  unsigned int digest_type, unsigned char *buffer,
 		  dns_rdata_t *rdata);
-/*
+/*%<
  * Build the rdata of a DS record.
  *
  * Requires:
- *	key	Points to a valid DNS KEY record.
- *	buffer	Points to a temporary buffer of at least
- * 		DNS_DS_BUFFERSIZE bytes.
- *	rdata	Points to an initialized dns_rdata_t.
+ *\li	key	Points to a valid DNS KEY record.
+ *\li	buffer	Points to a temporary buffer of at least
+ * 		#DNS_DS_BUFFERSIZE bytes.
+ *\li	rdata	Points to an initialized dns_rdata_t.
  *
  * Ensures:
- *      *rdata	Contains a valid DS rdata.  The 'data' member refers
+ *  \li    *rdata	Contains a valid DS rdata.  The 'data' member refers
  *		to 'buffer'.
  */
 

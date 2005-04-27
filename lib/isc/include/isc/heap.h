@@ -15,17 +15,19 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.h,v 1.17 2004/03/05 05:10:57 marka Exp $ */
+/* $Id: heap.h,v 1.17.18.1 2005/04/27 05:02:16 sra Exp $ */
 
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
 
-/*
+/*%
  * The comparision function returns ISC_TRUE if the first argument has
  * higher priority than the second argument, and ISC_FALSE otherwise.
  */

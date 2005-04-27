@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.20.18.1 2004/06/11 00:30:09 marka Exp $ */
+/* $Id: tkeyconf.c,v 1.20.18.2 2005/04/27 05:00:33 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

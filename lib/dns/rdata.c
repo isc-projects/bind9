@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.184.18.3 2005/03/20 22:34:32 marka Exp $ */
+/* $Id: rdata.c,v 1.184.18.4 2005/04/27 05:01:24 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 #include <ctype.h>
@@ -100,16 +102,16 @@
 #define ARGS_CHECKNAMES dns_rdata_t *rdata, dns_name_t *owner, dns_name_t *bad
 
 
-/*
+/*%
  * Context structure for the totext_ functions.
  * Contains formatting options for rdata-to-text
  * conversion.
  */
 typedef struct dns_rdata_textctx {
-	dns_name_t *origin;	/* Current origin, or NULL. */
-	unsigned int flags;	/* DNS_STYLEFLAG_* */
-	unsigned int width;	/* Width of rdata column. */
-  	const char *linebreak;	/* Line break string. */
+	dns_name_t *origin;	/*%< Current origin, or NULL. */
+	unsigned int flags;	/*%< DNS_STYLEFLAG_*  */
+	unsigned int width;	/*%< Width of rdata column. */
+  	const char *linebreak;	/*%< Line break string. */
 } dns_rdata_textctx_t;
 
 static isc_result_t

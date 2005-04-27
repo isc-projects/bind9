@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.c,v 1.50 2004/03/05 05:11:43 marka Exp $ */
+/* $Id: app.c,v 1.50.18.1 2005/04/27 05:02:34 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -54,7 +56,7 @@ static isc_eventlist_t		on_run;
 static isc_mutex_t		lock;
 static isc_boolean_t		shutdown_requested = ISC_FALSE;
 static isc_boolean_t		running = ISC_FALSE;
-/*
+/*!
  * We assume that 'want_shutdown' can be read and written atomically.
  */
 static isc_boolean_t		want_shutdown = ISC_FALSE;
@@ -69,14 +71,14 @@ static pthread_t		blockedthread;
 #endif /* ISC_PLATFORM_USETHREADS */
 
 #ifdef HAVE_LINUXTHREADS
-/*
+/*!
  * Linux has sigwait(), but it appears to prevent signal handlers from
  * running, even if they're not in the set being waited for.  This makes
  * it impossible to get the default actions for SIGILL, SIGSEGV, etc.
  * Instead of messing with it, we just use sigsuspend() instead.
  */
 #undef HAVE_SIGWAIT
-/*
+/*!
  * We need to remember which thread is the main thread...
  */
 static pthread_t		main_thread;
@@ -291,7 +293,7 @@ isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 }
 
 #ifndef ISC_PLATFORM_USETHREADS
-/*
+/*!
  * Event loop for nonthreaded programs.
  */
 static isc_result_t
@@ -371,14 +373,14 @@ evloop() {
  * is set by isc_condition_signal().
  */
 
-/*
- * True iff we are currently executing in the recursive
+/*!
+ * \brief True if we are currently executing in the recursive
  * event loop.
  */
 static isc_boolean_t in_recursive_evloop = ISC_FALSE;
 
-/*
- * True iff we are exiting the event loop as the result of
+/*!
+ * \brief True if we are exiting the event loop as the result of
  * a call to isc_condition_signal() rather than a shutdown
  * or reload.
  */

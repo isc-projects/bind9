@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.14.18.4 2005/01/12 01:54:56 marka Exp $ */
+/* $Id: control.h,v 1.14.18.5 2005/04/27 05:00:35 sra Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
 
-/*
+/*! \file
+ * \brief
  * The name server command channel.
  */
 
@@ -56,13 +57,13 @@
 
 isc_result_t
 ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp);
-/*
+/*%<
  * Create an initial, empty set of command channels for 'server'.
  */
 
 void
 ns_controls_destroy(ns_controls_t **ctrlsp);
-/*
+/*%<
  * Destroy a set of command channels.
  *
  * Requires:
@@ -72,7 +73,7 @@ ns_controls_destroy(ns_controls_t **ctrlsp);
 isc_result_t
 ns_controls_configure(ns_controls_t *controls, cfg_obj_t *config,
 		      cfg_aclconfctx_t *aclconfctx);
-/*
+/*%<
  * Configure zero or more command channels into 'controls'
  * as defined in the configuration parse tree 'config'.
  * The channels will evaluate ACLs in the context of
@@ -81,7 +82,7 @@ ns_controls_configure(ns_controls_t *controls, cfg_obj_t *config,
 
 void
 ns_controls_shutdown(ns_controls_t *controls);
-/*
+/*%<
  * Initiate shutdown of all the command channels in 'controls'.
  */
 

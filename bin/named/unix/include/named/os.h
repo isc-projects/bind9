@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.22.18.1 2004/09/29 06:43:54 marka Exp $ */
+/* $Id: os.h,v 1.22.18.2 2005/04/27 05:00:38 sra Exp $ */
 
 #ifndef NS_OS_H
 #define NS_OS_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 

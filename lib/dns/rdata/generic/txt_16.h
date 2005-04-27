@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_TXT_16_H
 #define GENERIC_TXT_16_H 1
 
-/* $Id: txt_16.h,v 1.24 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: txt_16.h,v 1.24.18.1 2005/04/27 05:01:53 sra Exp $ */
 
 typedef struct dns_rdata_txt_string {
                 isc_uint8_t    length;

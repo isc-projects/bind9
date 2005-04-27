@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.148.18.3 2005/01/11 01:39:38 marka Exp $ */
+/* $Id: master.c,v 1.148.18.4 2005/04/27 05:01:21 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -46,33 +48,34 @@
 #include <dns/time.h>
 #include <dns/ttl.h>
 
-/*
- * Grow the number of dns_rdatalist_t (RDLSZ) and dns_rdata_t (RDSZ) structures
+/*!
+ * Grow the number of dns_rdatalist_t (#RDLSZ) and dns_rdata_t (#RDSZ) structures
  * by these sizes when we need to.
  *
- * RDLSZ reflects the number of different types with the same name expected.
+ */
+/*% RDLSZ reflects the number of different types with the same name expected. */
+#define RDLSZ 32
+/*%
  * RDSZ reflects the number of rdata expected at a give name that can fit into
  * 64k.
  */
-
-#define RDLSZ 32
 #define RDSZ 512
 
 #define NBUFS 4
 #define MAXWIRESZ 255
 
-/*
+/*%
  * Target buffer size and minimum target size.
  * MINTSIZ must be big enough to hold the largest rdata record.
- *
+ * \brief
  * TSIZ >= MINTSIZ
  */
 #define TSIZ (128*1024)
-/*
+/*%
  * max message size - header - root - type - class - ttl - rdlen
  */
 #define MINTSIZ (65535 - 12 - 1 - 2 - 2 - 4 - 2)
-/*
+/*%
  * Size for tokens in the presentation format,
  * The largest tokens are the base64 blocks in KEY and CERT records,
  * Largest key allowed is about 1372 bytes but
@@ -87,7 +90,7 @@ typedef ISC_LIST(dns_rdatalist_t) rdatalist_head_t;
 
 typedef struct dns_incctx dns_incctx_t;
 
-/*
+/*%
  * Master file load state.
  */
 
@@ -111,9 +114,9 @@ struct dns_loadctx {
 	isc_uint32_t		default_ttl;
 	dns_rdataclass_t	zclass;
 	dns_fixedname_t		fixed_top;
-	dns_name_t		*top;			/* top of zone */
+	dns_name_t		*top;			/*%< top of zone */
 	/* Which fixed buffers we are using? */
-	unsigned int		loop_cnt;		/* records per quantum,
+	unsigned int		loop_cnt;		/*% records per quantum,
 							 * 0 => all. */
 	isc_boolean_t		canceled;
 	isc_mutex_t		lock;
@@ -1533,7 +1536,7 @@ load(dns_loadctx_t *lctx) {
 			current_has_delegation = ISC_TRUE;
 
 		/*
-		 * RFC 1123: MD and MF are not allowed to be loaded from
+		 * RFC1123: MD and MF are not allowed to be loaded from
 		 * master files.
 		 */
 		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
@@ -1711,7 +1714,7 @@ load(dns_loadctx_t *lctx) {
 		} else if (!explicit_ttl && lctx->warn_1035) {
 			(*callbacks->warn)(callbacks,
 					   "%s:%lu: "
-					   "using RFC 1035 TTL semantics",
+					   "using RFC1035 TTL semantics",
 					   source, line);
 			lctx->warn_1035 = ISC_FALSE;
 		}

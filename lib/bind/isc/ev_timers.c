@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_timers.c,v 1.5 2004/03/18 02:58:00 marka Exp $";
+static const char rcsid[] = "$Id: ev_timers.c,v 1.5.18.1 2005/04/27 05:01:06 sra Exp $";
 #endif
 
 /* Import. */
@@ -495,3 +495,5 @@ idle_timeout(evContext opaqueCtx,
 		this->timer->inter = evSubTime(this->max_idle, idle);
 	}
 }
+
+/*! \file */

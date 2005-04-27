@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.21 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: rwlock.h,v 1.21.18.1 2005/04/27 05:02:30 sra Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
+
+/*! \file */
 
 #include <isc/condition.h>
 #include <isc/lang.h>
@@ -38,15 +40,15 @@ struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
-	/* Locked by lock. */
+	/*%< Locked by lock. */
 	isc_condition_t		readable;
 	isc_condition_t		writeable;
 	isc_rwlocktype_t	type;
 
-	/* The number of threads that have the lock. */
+	/*% The number of threads that have the lock. */
 	unsigned int		active;
 
-	/*
+	/*%
 	 * The number of lock grants made since the lock was last switched
 	 * from reading to writing or vice versa; used in determining
 	 * when the quota is reached and it is time to switch.

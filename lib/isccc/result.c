@@ -16,7 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.5 2004/03/05 05:12:10 marka Exp $ */
+/* $Id: result.c,v 1.5.18.1 2005/04/27 05:02:39 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

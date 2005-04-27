@@ -16,7 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.10.18.1 2004/08/28 06:17:34 marka Exp $ */
+/* $Id: cc.c,v 1.10.18.2 2005/04/27 05:02:38 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -44,12 +46,12 @@
 typedef isccc_sexpr_t *sexpr_ptr;
 
 static unsigned char auth_hmd5[] = {
-	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/* len + _auth */
-	ISCCC_CCMSGTYPE_TABLE,				/* message type */
-	0x00, 0x00, 0x00, 0x20,				/* length == 32 */
-	0x04, 0x68, 0x6d, 0x64, 0x35,			/* len + hmd5 */
-	ISCCC_CCMSGTYPE_BINARYDATA,			/* message type */
-	0x00, 0x00, 0x00, 0x16,				/* length == 22 */
+	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
+	ISCCC_CCMSGTYPE_TABLE,				/*%< message type */
+	0x00, 0x00, 0x00, 0x20,				/*%< length == 32 */
+	0x04, 0x68, 0x6d, 0x64, 0x35,			/*%< len + hmd5 */
+	ISCCC_CCMSGTYPE_BINARYDATA,			/*%< message type */
+	0x00, 0x00, 0x00, 0x16,				/*%< length == 22 */
 	/*
 	 * The base64 encoding of one of our HMAC-MD5 signatures is
 	 * 22 bytes.
@@ -59,7 +61,7 @@ static unsigned char auth_hmd5[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-#define HMD5_OFFSET	21		/* 6 + 1 + 4 + 5 + 1 + 4 */
+#define HMD5_OFFSET	21		/*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 */
 #define HMD5_LENGTH	22
 
 static isc_result_t

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.135.18.2 2004/10/13 22:28:31 marka Exp $ */
+/* $Id: xfrin.c,v 1.135.18.3 2005/04/27 05:01:28 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -51,7 +53,7 @@
  * Incoming AXFR and IXFR.
  */
 
-/*
+/*%
  * It would be non-sensical (or at least obtuse) to use FAIL() with an
  * ISC_R_SUCCESS code, but the test is there to keep the Solaris compiler
  * from complaining about "end-of-loop code not reached".
@@ -66,7 +68,7 @@
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
-/*
+/*%
  * The states of the *XFR state machine.  We handle both IXFR and AXFR
  * with a single integrated state machine because they cannot be distinguished
  * immediately - an AXFR response to an IXFR request can only be detected
@@ -83,7 +85,7 @@ typedef enum {
 	XFRST_END
 } xfrin_state_t;
 
-/*
+/*%
  * Incoming zone transfer context.
  */
 
@@ -98,18 +100,18 @@ struct dns_xfrin_ctx {
 	isc_timer_t		*timer;
 	isc_socketmgr_t 	*socketmgr;
 
-	int			connects; 	/* Connect in progress */
-	int			sends;		/* Send in progress */
-	int			recvs;	  	/* Receive in progress */
+	int			connects; 	/*%< Connect in progress */
+	int			sends;		/*%< Send in progress */
+	int			recvs;	  	/*%< Receive in progress */
 	isc_boolean_t		shuttingdown;
 
-	dns_name_t 		name; 		/* Name of zone to transfer */
+	dns_name_t 		name; 		/*%< Name of zone to transfer */
 	dns_rdataclass_t 	rdclass;
 
 	isc_boolean_t		checkid;
 	dns_messageid_t		id;
 
-	/*
+	/*%
 	 * Requested transfer type (dns_rdatatype_axfr or
 	 * dns_rdatatype_ixfr).  The actual transfer type
 	 * may differ due to IXFR->AXFR fallback.
@@ -120,32 +122,32 @@ struct dns_xfrin_ctx {
 	isc_sockaddr_t		sourceaddr;
 	isc_socket_t 		*socket;
 
-	/* Buffer for IXFR/AXFR request message */
+	/*% Buffer for IXFR/AXFR request message */
 	isc_buffer_t 		qbuffer;
 	unsigned char 		qbuffer_data[512];
 
-	/* Incoming reply TCP message */
+	/*% Incoming reply TCP message */
 	dns_tcpmsg_t		tcpmsg;
 	isc_boolean_t		tcpmsg_valid;
 
 	dns_db_t 		*db;
 	dns_dbversion_t 	*ver;
-	dns_diff_t 		diff;		/* Pending database changes */
-	int 			difflen;	/* Number of pending tuples */
+	dns_diff_t 		diff;		/*%< Pending database changes */
+	int 			difflen;	/*%< Number of pending tuples */
 
 	xfrin_state_t 		state;
 	isc_uint32_t 		end_serial;
 	isc_boolean_t 		is_ixfr;
 
-	unsigned int		nmsg;		/* Number of messages recvd */
+	unsigned int		nmsg;		/*%< Number of messages recvd */
 
-	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
-	isc_buffer_t		*lasttsig;	/* The last TSIG */
-	dst_context_t		*tsigctx;	/* TSIG verification context */
-	unsigned int		sincetsig;	/* recvd since the last TSIG */
+	dns_tsigkey_t		*tsigkey;	/*%< Key used to create TSIG */
+	isc_buffer_t		*lasttsig;	/*%< The last TSIG */
+	dst_context_t		*tsigctx;	/*%< TSIG verification context */
+	unsigned int		sincetsig;	/*%< recvd since the last TSIG */
 	dns_xfrindone_t		done;
 
-	/*
+	/*%
 	 * AXFR- and IXFR-specific data.  Only one is used at a time
 	 * according to the is_ixfr flag, so this could be a union,
 	 * but keeping them separate makes it a bit simpler to clean
@@ -431,7 +433,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 			FAIL(DNS_R_FORMERR);
 		}
 		/*
-		 * Remember the serial number in the intial SOA.
+		 * Remember the serial number in the initial SOA.
 		 * We need it to recognize the end of an IXFR.
 		 */
 		xfr->end_serial = dns_soa_getserial(rdata);

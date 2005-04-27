@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.76.18.4 2005/02/11 00:01:15 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.76.18.5 2005/04/27 05:00:30 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -37,19 +39,20 @@
 #define IFMGR_COMMON_LOGARGS \
 	ns_g_lctx, NS_LOGCATEGORY_NETWORK, NS_LOGMODULE_INTERFACEMGR
 
+/*% nameserver interface manager structure */
 struct ns_interfacemgr {
-	unsigned int		magic;		/* Magic number. */
+	unsigned int		magic;		/*%< Magic number. */
 	int			references;
 	isc_mutex_t		lock;
-	isc_mem_t *		mctx;		/* Memory context. */
-	isc_taskmgr_t *		taskmgr;	/* Task manager. */
-	isc_socketmgr_t *	socketmgr;	/* Socket manager. */
+	isc_mem_t *		mctx;		/*%< Memory context. */
+	isc_taskmgr_t *		taskmgr;	/*%< Task manager. */
+	isc_socketmgr_t *	socketmgr;	/*%< Socket manager. */
 	dns_dispatchmgr_t *	dispatchmgr;
-	unsigned int		generation;	/* Current generation no. */
+	unsigned int		generation;	/*%< Current generation no. */
 	ns_listenlist_t *	listenon4;
 	ns_listenlist_t *	listenon6;
-	dns_aclenv_t		aclenv;		/* Localhost/localnets ACLs */
-	ISC_LIST(ns_interface_t) interfaces;	/* List of interfaces. */
+	dns_aclenv_t		aclenv;		/*%< Localhost/localnets ACLs */
+	ISC_LIST(ns_interface_t) interfaces;	/*%< List of interfaces. */
 	ISC_LIST(isc_sockaddr_t) listenon;
 };
 
@@ -164,7 +167,7 @@ void
 ns_interfacemgr_shutdown(ns_interfacemgr_t *mgr) {
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
-	/*
+	/*%
 	 * Shut down and detach all interfaces.
 	 * By incrementing the generation count, we make purge_old_interfaces()
 	 * consider all interfaces "old".
@@ -437,7 +440,7 @@ ns_interface_detach(ns_interface_t **targetp) {
 	*targetp = NULL;
 }
 
-/*
+/*%
  * Search the interface list for an interface whose address and port
  * both match those of 'addr'.  Return a pointer to it, or NULL if not found.
  */
@@ -452,7 +455,7 @@ find_matching_interface(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr) {
 	return (ifp);
 }
 
-/*
+/*%
  * Remove any interfaces whose generation number is not the current one.
  */
 static void

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assertions.c,v 1.17 2004/03/05 05:10:43 marka Exp $ */
+/* $Id: assertions.c,v 1.17.18.1 2005/04/27 05:01:58 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -25,20 +27,20 @@
 #include <isc/assertions.h>
 #include <isc/msgs.h>
 
-/*
+/*%
  * Forward.
  */
-
 static void
 default_callback(const char *, int, isc_assertiontype_t, const char *);
 
-/*
+/*%
  * Public.
  */
 
 LIBISC_EXTERNAL_DATA isc_assertioncallback_t isc_assertion_failed =
 					     default_callback;
 
+/*% Set callback. */
 void
 isc_assertion_setcallback(isc_assertioncallback_t cb) {
 	if (cb == NULL)
@@ -47,6 +49,7 @@ isc_assertion_setcallback(isc_assertioncallback_t cb) {
 		isc_assertion_failed = cb;
 }
 
+/*% Type to Text */
 const char *
 isc_assertion_typetotext(isc_assertiontype_t type) {
 	const char *result;

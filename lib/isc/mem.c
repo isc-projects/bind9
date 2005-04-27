@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.2 2005/03/16 00:56:28 marka Exp $ */
+/* $Id: mem.c,v 1.116.18.3 2005/04/27 05:02:03 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -39,7 +41,7 @@
 #endif
 LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
-/*
+/*!
  * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
  * implementation in preference to the system one.  The internal malloc()
  * is very space-efficient, and quite fast on uniprocessor systems.  It
@@ -55,8 +57,8 @@ LIBISC_EXTERNAL_DATA unsigned int isc_mem_debugging = ISC_MEM_DEBUGGING;
 
 #define DEF_MAX_SIZE		1100
 #define DEF_MEM_TARGET		4096
-#define ALIGNMENT_SIZE		8		/* must be a power of 2 */
-#define NUM_BASIC_BLOCKS	64		/* must be > 1 */
+#define ALIGNMENT_SIZE		8		/*%< must be a power of 2 */
+#define NUM_BASIC_BLOCKS	64		/*%< must be > 1 */
 #define TABLE_INCREMENT		1024
 #define DEBUGLIST_COUNT		1024
 
@@ -87,7 +89,7 @@ struct element {
 };
 
 typedef struct {
-	/*
+	/*!
 	 * This structure must be ALIGNMENT_SIZE bytes.
 	 */
 	union {
@@ -157,24 +159,24 @@ struct isc_mem {
 
 struct isc_mempool {
 	/* always unlocked */
-	unsigned int	magic;		/* magic number */
-	isc_mutex_t    *lock;		/* optional lock */
-	isc_mem_t      *mctx;		/* our memory context */
-	/* locked via the memory context's lock */
-	ISC_LINK(isc_mempool_t)	link;	/* next pool in this mem context */
-	/* optionally locked from here down */
-	element	       *items;		/* low water item list */
-	size_t		size;		/* size of each item on this pool */
-	unsigned int	maxalloc;	/* max number of items allowed */
-	unsigned int	allocated;	/* # of items currently given out */
-	unsigned int	freecount;	/* # of items on reserved list */
-	unsigned int	freemax;	/* # of items allowed on free list */
-	unsigned int	fillcount;	/* # of items to fetch on each fill */
-	/* Stats only. */
-	unsigned int	gets;		/* # of requests to this pool */
-	/* Debugging only. */
+	unsigned int	magic;		/*%< magic number */
+	isc_mutex_t    *lock;		/*%< optional lock */
+	isc_mem_t      *mctx;		/*%< our memory context */
+	/*%< locked via the memory context's lock */
+	ISC_LINK(isc_mempool_t)	link;	/*%< next pool in this mem context */
+	/*%< optionally locked from here down */
+	element	       *items;		/*%< low water item list */
+	size_t		size;		/*%< size of each item on this pool */
+	unsigned int	maxalloc;	/*%< max number of items allowed */
+	unsigned int	allocated;	/*%< # of items currently given out */
+	unsigned int	freecount;	/*%< # of items on reserved list */
+	unsigned int	freemax;	/*%< # of items allowed on free list */
+	unsigned int	fillcount;	/*%< # of items to fetch on each fill */
+	/*%< Stats only. */
+	unsigned int	gets;		/*%< # of requests to this pool */
+	/*%< Debugging only. */
 #if ISC_MEMPOOL_NAMES
-	char		name[16];	/* printed name in stats reports */
+	char		name[16];	/*%< printed name in stats reports */
 #endif
 };
 
@@ -198,7 +200,7 @@ struct isc_mempool {
 static void
 print_active(isc_mem_t *ctx, FILE *out);
 
-/*
+/*!
  * mctx must be locked.
  */
 static inline void
@@ -320,7 +322,7 @@ rmsize(size_t size) {
 
 static inline size_t
 quantize(size_t size) {
-	/*
+	/*!
 	 * Round up the result in order to get a size big
 	 * enough to satisfy the request and be aligned on ALIGNMENT_SIZE
 	 * byte boundaries.
@@ -408,7 +410,7 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 	void *new;
 	unsigned char *curr, *next;
 
-	/*
+	/*!
 	 * Try to get more fragments by chopping up a basic block.
 	 */
 
@@ -591,7 +593,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
 
-/*
+/*!
  * Perform a malloc, doing memory filling and overrun detection as necessary.
  */
 static inline void *
@@ -619,7 +621,7 @@ mem_get(isc_mem_t *ctx, size_t size) {
 	return (ret);
 }
 
-/*
+/*!
  * Perform a free, doing memory filling and overrun detection as necessary.
  */
 static inline void
@@ -635,7 +637,7 @@ mem_put(isc_mem_t *ctx, void *mem, size_t size) {
 	(ctx->memfree)(ctx->arg, mem);
 }
 
-/*
+/*!
  * Update internal counters after a memory get.
  */
 static inline void
@@ -652,7 +654,7 @@ mem_getstats(isc_mem_t *ctx, size_t size) {
 	}
 }
 
-/*
+/*!
  * Update internal counters after a memory put.
  */
 static inline void

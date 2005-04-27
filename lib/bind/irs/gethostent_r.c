@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gethostent_r.c,v 1.5.18.2 2004/09/01 02:03:59 marka Exp $";
+static const char rcsid[] = "$Id: gethostent_r.c,v 1.5.18.3 2005/04/27 05:00:57 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -86,7 +86,7 @@ gethostbyaddr_r(const char *addr, int len, int type,
 #endif
 }
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -151,7 +151,7 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	int nptr, len;
 
 	/* Find out the amount of space required to store the answer. */
-	nptr = 2; /* NULL ptrs */
+	nptr = 2; /*%< NULL ptrs */
 	len = (char *)ALIGN(buf) - buf;
 	for (i = 0; he->h_addr_list[i]; i++, nptr++) {
 		len += he->h_length;
@@ -260,3 +260,4 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	static int gethostent_r_unknown_system = 0;
 #endif /* HOST_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
+/*! \file */

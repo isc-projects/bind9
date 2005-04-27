@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.h,v 1.9.18.2 2005/02/07 23:56:42 marka Exp $ */
+/* $Id: rootns.h,v 1.9.18.3 2005/04/27 05:01:38 sra Exp $ */
 
 #ifndef DNS_ROOTNS_H
 #define DNS_ROOTNS_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 

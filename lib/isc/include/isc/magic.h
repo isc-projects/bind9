@@ -15,20 +15,21 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: magic.h,v 1.12 2004/03/05 05:10:58 marka Exp $ */
+/* $Id: magic.h,v 1.12.18.1 2005/04/27 05:02:24 sra Exp $ */
 
 #ifndef ISC_MAGIC_H
 #define ISC_MAGIC_H 1
+
+/*! \file */
 
 typedef struct {
 	unsigned int magic;
 } isc__magic_t;
 
 
-/*
+/*%
  * To use this macro the magic number MUST be the first thing in the
  * structure, and MUST be of type "unsigned int".
- *
  * The intent of this is to allow magic numbers to be checked even though
  * the object is otherwise opaque.
  */

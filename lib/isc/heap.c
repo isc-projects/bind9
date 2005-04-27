@@ -15,15 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.c,v 1.30 2004/03/05 05:10:45 marka Exp $ */
+/* $Id: heap.c,v 1.30.18.1 2005/04/27 05:02:00 sra Exp $ */
 
-/*
+/*! \file
  * Heap implementation of priority queues adapted from the following:
  *
- *	_Introduction to Algorithms_, Cormen, Leiserson, and Rivest,
+ *	\li "Introduction to Algorithms," Cormen, Leiserson, and Rivest,
  *	MIT Press / McGraw Hill, 1990, ISBN 0-262-03141-8, chapter 7.
  *
- *	_Algorithms_, Second Edition, Sedgewick, Addison-Wesley, 1988,
+ *	\li "Algorithms," Second Edition, Sedgewick, Addison-Wesley, 1988,
  *	ISBN 0-201-06673-4, chapter 11.
  */
 
@@ -35,20 +35,22 @@
 #include <isc/string.h>		/* Required for memcpy. */
 #include <isc/util.h>
 
-/*
+/*@{*/
+/*%
  * Note: to make heap_parent and heap_left easy to compute, the first
  * element of the heap array is not used; i.e. heap subscripts are 1-based,
  * not 0-based.
  */
 #define heap_parent(i)			((i) >> 1)
 #define heap_left(i)			((i) << 1)
+/*@}*/
 
 #define SIZE_INCREMENT			1024
 
 #define HEAP_MAGIC			ISC_MAGIC('H', 'E', 'A', 'P')
 #define VALID_HEAP(h)			ISC_MAGIC_VALID(h, HEAP_MAGIC)
 
-/*
+/*%
  * When the heap is in a consistent state, the following invariant
  * holds true: for every element i > 1, heap_parent(i) has a priority
  * higher than or equal to that of i.
@@ -57,6 +59,7 @@
 			  ! heap->compare(heap->array[(i)], \
 					  heap->array[heap_parent(i)]))
 
+/*% ISC heap structure. */
 struct isc_heap {
 	unsigned int			magic;
 	isc_mem_t *			mctx;
@@ -68,6 +71,7 @@ struct isc_heap {
 	isc_heapindex_t			index;
 };
 
+/*% Create a heap. */
 isc_result_t
 isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 		isc_heapindex_t index, unsigned int size_increment,
@@ -98,6 +102,7 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	return (ISC_R_SUCCESS);
 }
 
+/*% Destroy a heap. */
 void
 isc_heap_destroy(isc_heap_t **heapp) {
 	isc_heap_t *heap;
@@ -180,6 +185,7 @@ sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 	INSIST(HEAPCONDITION(i));
 }
 
+/*% Insert a heap. */
 isc_result_t
 isc_heap_insert(isc_heap_t *heap, void *elt) {
 	unsigned int i;
@@ -195,6 +201,7 @@ isc_heap_insert(isc_heap_t *heap, void *elt) {
 	return (ISC_R_SUCCESS);
 }
 
+/*% Delete a heap. */
 void
 isc_heap_delete(isc_heap_t *heap, unsigned int i) {
 	void *elt;

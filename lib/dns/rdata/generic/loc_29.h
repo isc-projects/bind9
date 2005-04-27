@@ -18,9 +18,10 @@
 #ifndef GENERIC_LOC_29_H
 #define GENERIC_LOC_29_H 1
 
-/* $Id: loc_29.h,v 1.15 2004/03/05 05:10:13 marka Exp $ */
+/* $Id: loc_29.h,v 1.15.18.1 2005/04/27 05:01:46 sra Exp $ */
 
-/* RFC 1876 */
+/*!
+ * \brief Per RFC1876 */
 
 typedef struct dns_rdata_loc_0 {
 	isc_uint8_t	version;	/* must be first and zero */

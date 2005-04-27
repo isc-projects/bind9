@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Id: writev.c,v 1.2 2003/06/03 04:39:27 marka Exp $";
+static const char rcsid[] = "$Id: writev.c,v 1.2.164.1 2005/04/27 05:00:47 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -85,3 +85,5 @@ __writev(fd, vp, vpcount)
 #endif /*_CRAY*/
 
 #endif /*NEED_WRITEV*/
+
+/*! \file */

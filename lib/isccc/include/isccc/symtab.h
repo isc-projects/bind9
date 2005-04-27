@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.3 2004/03/05 05:12:16 marka Exp $ */
+/* $Id: symtab.h,v 1.3.18.1 2005/04/27 05:02:41 sra Exp $ */
 
 #ifndef ISCCC_SYMTAB_H
 #define ISCCC_SYMTAB_H 1
@@ -25,9 +25,8 @@
  ***** Module Info
  *****/
 
-/*
- * Symbol Table
- *
+/*! \file 
+ * \brief
  * Provides a simple memory-based symbol table.
  *
  * Keys are C strings.  A type may be specified when looking up,
@@ -39,11 +38,11 @@
  * exists in the table.  What to do in this case is specified by the
  * client.  Possible policies are:
  *
- *	isccc_symexists_reject	Disallow the define, returning ISC_R_EXISTS
- *	isccc_symexists_replace	Replace the old value with the new.  The
+ *\li	isccc_symexists_reject	Disallow the define, returning #ISC_R_EXISTS
+ *\li	isccc_symexists_replace	Replace the old value with the new.  The
  *				undefine action (if provided) will be called
  *				with the old <key, type, value> tuple.
- *	isccc_symexists_add	Add the new tuple, leaving the old tuple in
+ *\li	isccc_symexists_add	Add the new tuple, leaving the old tuple in
  *				the table.  Subsequent lookups will retrieve
  *				the most-recently-defined tuple.
  *

@@ -18,9 +18,10 @@
 #ifndef GENERIC_NXT_30_H
 #define GENERIC_NXT_30_H 1
 
-/* $Id: nxt_30.h,v 1.21 2004/03/05 05:10:16 marka Exp $ */
+/* $Id: nxt_30.h,v 1.21.18.1 2005/04/27 05:01:51 sra Exp $ */
 
-/* RFC 2535 */
+/*!
+ *  \brief RFC2535 */
 
 typedef struct dns_rdata_nxt {
 	dns_rdatacommon_t	common;

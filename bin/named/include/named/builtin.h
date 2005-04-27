@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.h,v 1.2 2004/03/05 04:57:55 marka Exp $ */
+/* $Id: builtin.h,v 1.2.18.1 2005/04/27 05:00:34 sra Exp $ */
 
 #ifndef NAMED_BUILTIN_H
 #define NAMED_BUILTIN_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 

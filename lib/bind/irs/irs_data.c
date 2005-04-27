@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.7.18.1 2004/11/30 01:18:07 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.7.18.2 2005/04/27 05:01:01 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -113,7 +113,8 @@ net_data_destroy(void *p) {
 	memput(net_data, sizeof *net_data);
 }
 
-/* applications that need a specific config file other than
+/*%
+ *  applications that need a specific config file other than
  * _PATH_IRS_CONF should call net_data_init directly rather than letting
  *   the various wrapper functions make the first call. - brister
  */
@@ -231,3 +232,5 @@ __h_errno_set(struct __res_state *res, int err) {
 }
 
 #endif /*__BIND_NOSTATIC*/
+
+/*! \file */

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.144.18.5 2005/03/04 02:57:29 marka Exp $ */
+/* $Id: name.c,v 1.144.18.6 2005/04/27 05:01:21 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -122,7 +124,7 @@ static unsigned char maptolower[] = {
 		set_offsets(name, var, NULL); \
 	}
 
-/*
+/*%
  * Note:  If additional attributes are added that should not be set for
  *	  empty names, MAKE_EMPTY() must be changed so it clears them.
  */
@@ -134,7 +136,7 @@ do { \
 	name->attributes &= ~DNS_NAMEATTR_ABSOLUTE; \
 } while (0);
 
-/*
+/*%
  * A name is "bindable" if it can be set to point to a new value, i.e.
  * name->ndata and name->length may be changed.
  */
@@ -142,7 +144,7 @@ do { \
 	((name->attributes & (DNS_NAMEATTR_READONLY|DNS_NAMEATTR_DYNAMIC)) \
 	 == 0)
 
-/*
+/*%
  * Note that the name data must be a char array, not a string
  * literal, to avoid compiler warnings about discarding
  * the const attribute of a string.

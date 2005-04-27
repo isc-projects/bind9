@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.c,v 1.3 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: region.c,v 1.3.18.1 2005/04/27 05:02:06 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

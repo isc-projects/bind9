@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bufferlist.c,v 1.13 2004/03/05 05:10:44 marka Exp $ */
+/* $Id: bufferlist.c,v 1.13.18.1 2005/04/27 05:01:59 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

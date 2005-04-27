@@ -18,11 +18,12 @@
 #ifndef IN_1_SRV_33_H
 #define IN_1_SRV_33_H 1
 
-/* $Id: srv_33.h,v 1.15 2004/03/05 05:10:25 marka Exp $ */
+/* $Id: srv_33.h,v 1.15.18.1 2005/04/27 05:01:57 sra Exp $ */
 
 /* Reviewed: Fri Mar 17 13:01:00 PST 2000 by bwelling */
 
-/* RFC 2782 */
+/*! 
+ *  \brief Per RFC2782 */
 
 typedef struct dns_rdata_in_srv {
 	dns_rdatacommon_t	common;

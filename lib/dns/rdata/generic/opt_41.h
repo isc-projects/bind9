@@ -18,9 +18,10 @@
 #ifndef GENERIC_OPT_41_H
 #define GENERIC_OPT_41_H 1
 
-/* $Id: opt_41.h,v 1.14 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: opt_41.h,v 1.14.18.1 2005/04/27 05:01:51 sra Exp $ */
 
-/* RFC 2671 */
+/*!
+ *  \brief Per RFC2671 */
 
 typedef struct dns_rdata_opt_opcode {
 		isc_uint16_t	opcode;

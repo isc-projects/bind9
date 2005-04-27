@@ -15,15 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.h,v 1.9 2004/03/05 05:11:53 marka Exp $ */
+/* $Id: stdtime.h,v 1.9.18.1 2005/04/27 05:02:37 sra Exp $ */
 
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1
 
+/*! \file */
+
 #include <isc/lang.h>
 #include <isc/int.h>
 
-/*
+/*%
  * It's public information that 'isc_stdtime_t' is an unsigned integral type.
  * Applications that want maximum portability should not assume anything
  * about its size.
@@ -31,15 +33,15 @@
 typedef isc_uint32_t isc_stdtime_t;
 
 ISC_LANG_BEGINDECLS
-
+/* */
 void
 isc_stdtime_get(isc_stdtime_t *t);
-/*
+/*%<
  * Set 't' to the number of seconds since 00:00:00 UTC, January 1, 1970.
  *
  * Requires:
  *
- *	't' is a valid pointer.
+ *\li	't' is a valid pointer.
  */
 
 ISC_LANG_ENDDECLS

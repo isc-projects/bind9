@@ -15,10 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.91.18.1 2004/10/15 00:45:21 marka Exp $ */
+/* $Id: task.c,v 1.91.18.2 2005/04/27 05:02:08 sra Exp $ */
 
-/*
- * Principal Author: Bob Halley
+/*! \file
+ * \author Principal Author: Bob Halley
  */
 
 /*

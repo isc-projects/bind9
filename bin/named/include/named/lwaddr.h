@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.h,v 1.4 2004/03/05 04:57:56 marka Exp $ */
+/* $Id: lwaddr.h,v 1.4.18.1 2005/04/27 05:00:35 sra Exp $ */
+
+/*! \file */
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>

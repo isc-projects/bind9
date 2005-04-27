@@ -18,9 +18,10 @@
 #ifndef GENERIC_AFSDB_18_H
 #define GENERIC_AFSDB_18_H 1
 
-/* $Id: afsdb_18.h,v 1.16 2004/03/05 05:10:10 marka Exp $ */
+/* $Id: afsdb_18.h,v 1.16.18.1 2005/04/27 05:01:44 sra Exp $ */
 
-/* RFC 1183 */
+/*!
+ *  \brief Per RFC1183 */
 
 typedef struct dns_rdata_afsdb {
 	dns_rdatacommon_t	common;

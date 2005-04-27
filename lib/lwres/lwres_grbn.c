@@ -15,7 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_grbn.c,v 1.6 2004/03/05 05:12:46 marka Exp $ */
+/* $Id: lwres_grbn.c,v 1.6.18.1 2005/04/27 05:02:53 sra Exp $ */
+
+/*! \file lwres_grbn.c
+
+ */
 
 #include <config.h>
 
@@ -31,6 +35,7 @@
 #include "context_p.h"
 #include "assert_p.h"
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 lwres_result_t
 lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
 			 lwres_lwpacket_t *pkt, lwres_buffer_t *b)
@@ -103,6 +108,7 @@ lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 lwres_result_t
 lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 			  lwres_lwpacket_t *pkt, lwres_buffer_t *b)
@@ -190,6 +196,7 @@ lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 	return (LWRES_R_SUCCESS);
 }
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 lwres_result_t
 lwres_grbnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_grbnrequest_t **structp)
@@ -243,6 +250,7 @@ lwres_grbnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	return (LWRES_R_SUCCESS);
 }
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 lwres_result_t
 lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			lwres_lwpacket_t *pkt, lwres_grbnresponse_t **structp)
@@ -376,6 +384,7 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	return (ret);
 }
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 void
 lwres_grbnrequest_free(lwres_context_t *ctx, lwres_grbnrequest_t **structp)
 {
@@ -390,6 +399,7 @@ lwres_grbnrequest_free(lwres_context_t *ctx, lwres_grbnrequest_t **structp)
 	CTXFREE(grbn, sizeof(lwres_grbnrequest_t));
 }
 
+/*% Thread-save equivalent to \link lwres_gabn.c lwres_gabn* \endlink routines. */
 void
 lwres_grbnresponse_free(lwres_context_t *ctx, lwres_grbnresponse_t **structp)
 {

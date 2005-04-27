@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.104.10.2 2004/05/14 05:07:12 marka Exp $ */
+/* $Id: result.h,v 1.104.10.3 2005/04/27 05:01:38 sra Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/resultclass.h>
@@ -144,7 +146,7 @@
 #define DNS_R_MUSTBESECURE		(ISC_RESULTCLASS_DNS + 100)
 #define DNS_R_COVERINGNSEC		(ISC_RESULTCLASS_DNS + 101)
 
-#define DNS_R_NRESULTS			102	/* Number of results */
+#define DNS_R_NRESULTS			102	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.
@@ -165,7 +167,7 @@
 #define DNS_R_NOTZONE			(ISC_RESULTCLASS_DNSRCODE + 10)
 #define DNS_R_BADVERS			(ISC_RESULTCLASS_DNSRCODE + 16)
 
-#define DNS_R_NRCODERESULTS		17	/* Number of rcode results */
+#define DNS_R_NRCODERESULTS		17	/*%< Number of rcode results */
 
 #define DNS_RESULT_ISRCODE(result) \
 	(ISC_RESULTCLASS_INCLASS(ISC_RESULTCLASS_DNSRCODE, (result)))

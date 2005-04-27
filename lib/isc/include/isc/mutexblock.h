@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutexblock.h,v 1.11 2004/03/05 05:10:59 marka Exp $ */
+/* $Id: mutexblock.h,v 1.11.18.1 2005/04/27 05:02:25 sra Exp $ */
 
 #ifndef ISC_MUTEXBLOCK_H
 #define ISC_MUTEXBLOCK_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/mutex.h>
@@ -28,39 +30,39 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_mutexblock_init(isc_mutex_t *block, unsigned int count);
-/*
+/*%<
  * Initialize a block of locks.  If an error occurs all initialized locks
  * will be destroyed, if possible.
  *
  * Requires:
  *
- *	block != NULL
+ *\li	block != NULL
  *
- *	count > 0
+ *\li	count > 0
  *
  * Returns:
  *
- *	Any code isc_mutex_init() can return is a valid return for this
+ *\li	Any code isc_mutex_init() can return is a valid return for this
  *	function.
  */
 
 isc_result_t
 isc_mutexblock_destroy(isc_mutex_t *block, unsigned int count);
-/*
+/*%<
  * Destroy a block of locks.
  *
  * Requires:
  *
- *	block != NULL
+ *\li	block != NULL
  *
- *	count > 0
+ *\li	count > 0
  *
- *	Each lock in the block be initialized via isc_mutex_init() or
+ *\li	Each lock in the block be initialized via isc_mutex_init() or
  * 	the whole block was initialized via isc_mutex_initblock().
  *
  * Returns:
  *
- *	Any code isc_mutex_init() can return is a valid return for this
+ *\li	Any code isc_mutex_init() can return is a valid return for this
  *	function.
  */
 

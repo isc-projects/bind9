@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb64.h,v 1.13 2004/03/05 05:09:23 marka Exp $ */
+/* $Id: rbtdb64.h,v 1.13.18.1 2005/04/27 05:01:24 sra Exp $ */
 
 #ifndef DNS_RBTDB64_H
 #define DNS_RBTDB64_H 1
@@ -26,7 +26,8 @@
  ***** Module Info
  *****/
 
-/*
+/*! \file
+ * \brief
  * DNS Red-Black Tree DB Implementation with 64-bit version numbers
  */
 

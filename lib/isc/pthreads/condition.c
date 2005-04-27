@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.32 2004/03/05 05:11:16 marka Exp $ */
+/* $Id: condition.c,v 1.32.18.1 2005/04/27 05:02:33 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -44,7 +46,7 @@ isc_condition_waituntil(isc_condition_t *c, isc_mutex_t *m, isc_time_t *t) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/*
+	/*!
 	 * POSIX defines a timespec's tv_nsec as long.  isc_time_nanoseconds
 	 * ensures its return value is < 1 billion, which will fit in a long.
 	 */

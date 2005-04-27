@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: kx_36.c,v 1.41 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: kx_36.c,v 1.41.18.1 2005/04/27 05:01:55 sra Exp $ */
 
 /* Reviewed: Thu Mar 16 17:24:54 PST 2000 by explorer */
 
-/* RFC 2230 */
+/* RFC2230 */
 
 #ifndef RDATA_IN_1_KX_36_C
 #define RDATA_IN_1_KX_36_C

@@ -18,9 +18,10 @@
 #ifndef GENERIC_ISDN_20_H
 #define GENERIC_ISDN_20_H 1
 
-/* $Id: isdn_20.h,v 1.14 2004/03/05 05:10:12 marka Exp $ */
+/* $Id: isdn_20.h,v 1.14.18.1 2005/04/27 05:01:46 sra Exp $ */
 
-/* RFC 1183 */
+/*!
+ * \brief Per RFC1183 */
 
 typedef struct dns_rdata_isdn {
 	dns_rdatacommon_t	common;

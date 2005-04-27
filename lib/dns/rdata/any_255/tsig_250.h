@@ -15,13 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig_250.h,v 1.21 2004/03/05 05:10:07 marka Exp $ */
-
-/* RFC 2845 */
+/* $Id: tsig_250.h,v 1.21.18.1 2005/04/27 05:01:43 sra Exp $ */
 
 #ifndef ANY_255_TSIG_250_H
 #define ANY_255_TSIG_250_H 1
 
+/*% RFC2845 */
 typedef struct dns_rdata_any_tsig {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;

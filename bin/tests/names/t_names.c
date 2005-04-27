@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.36 2004/03/05 04:58:56 marka Exp $ */
+/* $Id: t_names.c,v 1.36.18.1 2005/04/27 05:00:42 sra Exp $ */
 
 #include <config.h>
 
@@ -38,15 +38,16 @@
 
 static char	*Tokens[MAXTOKS + 1];
 
-/*
+
+#ifdef	NEED_PBUF
+
+/*%
  * get a hex formatted dns message from a data
  * file into an isc_buffer_t
  * caller supplies data storage and the isc_buffer
  * we read the file, convert, setup the buffer
  * and return the data length
  */
-
-#ifdef	NEED_PBUF
 
 static char *
 ctoh(unsigned char c) {
@@ -85,7 +86,7 @@ pbuf(isc_buffer_t *pbuf) {
 
 #endif	/* NEED_PBUF */
 
-/*
+/*%
  * Compare data at buf with data in hex representation at exp_data,
  * of length exp_data_len, for equality.
  * Return 0 if equal, else non-zero.
@@ -167,7 +168,7 @@ chkdata(unsigned char *buf, size_t buflen, char *exp_data,
 	return (result);
 }
 
-/*
+/*%
  * Get a hex formatted dns message from a data file into an isc_buffer_t.
  * Caller supplies data storage and the isc_buffer.  We read the file, convert,
  * setup the buffer and return the data length.
@@ -256,13 +257,14 @@ bustline(char *line, char **toks) {
 	return (cnt);
 }
 
-/*
+
+#ifdef	NEED_HNAME_TO_TNAME
+
+/*%
  * convert a name from hex representation to text form
  * format of hex notation is:
  * %xXXXXXXXX
  */
-
-#ifdef	NEED_HNAME_TO_TNAME
 
 static int
 hname_to_tname(char *src, char *target, size_t len) {
@@ -317,7 +319,7 @@ hname_to_tname(char *src, char *target, size_t len) {
 
 #endif	/* NEED_HNAME_TO_TNAME */
 
-/*
+/*%
  * initialize a dns_name_t from a text name, hiding all
  * buffer and other object initialization from the caller
  *
@@ -598,7 +600,7 @@ static const char *a8 =	"dns_name_hash(name, case_sensitive) returns "
 		"a hash of 'name' which is case_sensitive if case_sensitive "
 		"is true";
 
-/*
+/*%
  * a9 merged with a8.
  */
 
@@ -718,7 +720,7 @@ static const char *a10 =
 		"and sets nbitsp to the number of bits name1 and name2 "
 		"have in common";
 
-/*
+/*%
  * a11 thru a22 merged into a10.
  */
 static const char *
@@ -880,7 +882,7 @@ static const char *a23 =
 		"the relative ordering under the DNSSEC ordering relationship "
 		"of name1 and name2";
 
-/*
+/*%
  * a24 thru a29 merged into a23.
  */
 
@@ -981,7 +983,7 @@ static const char *a30 =
 		"about the relative ordering of name1 and name2 as if they "
 		"are part of rdata in DNSSEC canonical form";
 
-/*
+/*%
  * a31, a32 merged into a30.
  */
 
@@ -1082,7 +1084,7 @@ static const char *a33 =
 		"dns_name_issubdomain(name1, name2) returns true, "
 		"otherwise it returns false.";
 
-/*
+/*%
  * a34 merged into a33.
  */
 
@@ -1255,7 +1257,7 @@ static const char *a36 =
 		"dns_name_getlabel(name, n, labelp) initializes labelp "
 		"to point to the nth label in name";
 
-/*
+/*%
  * The strategy here is two take two dns names with a shared label in
  * different positions, get the two labels and compare them for equality.
  * If they don't match, dns_name_getlabel failed.
@@ -1368,7 +1370,7 @@ static const char *a37 =
 		"initializes target to point to the n label sequence of "
 		"labels in source starting with first";
 
-/*
+/*%
  * We adopt a similiar strategy to that used by the dns_name_getlabel test.
  */
 

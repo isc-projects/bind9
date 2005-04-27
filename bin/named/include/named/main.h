@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.h,v 1.11 2004/03/05 04:57:56 marka Exp $ */
+/* $Id: main.h,v 1.11.18.1 2005/04/27 05:00:36 sra Exp $ */
 
 #ifndef NAMED_MAIN_H
 #define NAMED_MAIN_H 1
+
+/*! \file */
 
 void
 ns_main_earlyfatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);

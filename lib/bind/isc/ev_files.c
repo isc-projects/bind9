@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_files.c,v 1.5 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ev_files.c,v 1.5.18.1 2005/04/27 05:01:06 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -60,8 +60,7 @@ evSelectFD(evContext opaqueCtx,
 		EV_ERR(EINVAL);
 	if (fd > ctx->highestFD)
 		EV_ERR(EINVAL);
-	OK(mode = fcntl(fd, F_GETFL, NULL));	/* side effect: validate fd. */
-
+	OK(mode = fcntl(fd, F_GETFL, NULL));	/*%< side effect: validate fd. */
 	/*
 	 * The first time we touch a file descriptor, we need to check to see
 	 * if the application already had it in O_NONBLOCK mode and if so, all
@@ -281,3 +280,5 @@ FindFD(const evContext_p *ctx, int fd, int eventmask) {
 			break;
 	return (id);
 }
+
+/*! \file */

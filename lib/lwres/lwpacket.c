@@ -15,7 +15,46 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwpacket.c,v 1.14 2004/03/05 05:12:46 marka Exp $ */
+/* $Id: lwpacket.c,v 1.14.18.1 2005/04/27 05:02:49 sra Exp $ */
+
+/*! \file */
+
+/**
+ *    These functions rely on a struct lwres_lwpacket which is defined in
+ *    \link lwpacket.h lwres/lwpacket.h.\endlink
+ * 
+ *    The following opcodes are currently defined:   
+ * 
+ * \li   #LWRES_OPCODE_NOOP
+ *           Success is always returned and the packet contents are
+ *           echoed. The \link lwres_noop.c lwres_noop_*()\endlink functions should be used for this
+ *           type.
+ * 
+ * \li   #LWRES_OPCODE_GETADDRSBYNAME
+ *           returns all known addresses for a given name. The
+ *           \link lwres_gabn.c lwres_gabn_*()\endlink functions should be used for this type.
+ * 
+ * \li   #LWRES_OPCODE_GETNAMEBYADDR
+ *           return the hostname for the given address. The
+ *           \link lwres_gnba.c lwres_gnba_*() \endlink functions should be used for this type.     
+ * 
+ *    lwres_lwpacket_renderheader() transfers the contents of lightweight
+ *    resolver packet structure #lwres_lwpacket_t *pkt in network byte
+ *    order to the lightweight resolver buffer, *b.
+ * 
+ *    lwres_lwpacket_parseheader() performs the converse operation. It
+ *    transfers data in network byte order from buffer *b to resolver
+ *    packet *pkt. The contents of the buffer b should correspond to a   
+ *    #lwres_lwpacket_t.
+ * 
+ * \section lwpacket_return Return Values
+ * 
+ *    Successful calls to lwres_lwpacket_renderheader() and
+ *    lwres_lwpacket_parseheader() return #LWRES_R_SUCCESS. If there is
+ *    insufficient space to copy data between the buffer *b and
+ *    lightweight resolver packet *pkt both functions return
+ *    #LWRES_R_UNEXPECTEDEND.
+ */
 
 #include <config.h>
 
@@ -29,8 +68,11 @@
 
 #include "assert_p.h"
 
+/*% Length of Packet */
 #define LWPACKET_LENGTH \
 	(sizeof(lwres_uint16_t) * 4 + sizeof(lwres_uint32_t) * 5)
+
+/*% transfers the contents of lightweight resolver packet structure lwres_lwpacket_t *pkt in network byte order to the lightweight resolver buffer, *b. */
 
 lwres_result_t
 lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {
@@ -52,6 +94,8 @@ lwres_lwpacket_renderheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {
 
 	return (LWRES_R_SUCCESS);
 }
+
+/*% transfers data in network byte order from buffer *b to resolver packet *pkt. The contents of the buffer b should correspond to a lwres_lwpacket_t. */
 
 lwres_result_t
 lwres_lwpacket_parseheader(lwres_buffer_t *b, lwres_lwpacket_t *pkt) {

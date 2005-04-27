@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gpos_27.c,v 1.37 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: gpos_27.c,v 1.37.18.1 2005/04/27 05:01:45 sra Exp $ */
 
 /* reviewed: Wed Mar 15 16:48:45 PST 2000 by brister */
 
-/* RFC 1712 */
+/* RFC1712 */
 
 #ifndef RDATA_GENERIC_GPOS_27_C
 #define RDATA_GENERIC_GPOS_27_C

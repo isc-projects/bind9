@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.14 2004/03/05 05:10:46 marka Exp $ */
+/* $Id: lfsr.c,v 1.14.18.1 2005/04/27 05:02:01 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -49,7 +51,7 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 		lfsr->state = 0xffffffffU >> (32 - lfsr->bits);
 }
 
-/*
+/*!
  * Return the next state of the lfsr.
  */
 static inline isc_uint32_t

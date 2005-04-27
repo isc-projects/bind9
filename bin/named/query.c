@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.7 2005/03/16 00:56:24 marka Exp $ */
+/* $Id: query.c,v 1.257.18.8 2005/04/27 05:00:33 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -51,24 +53,34 @@
 #include <named/sortlist.h>
 #include <named/xfrout.h>
 
+/*% Partial answer? */
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
+/*% Use Cache? */
 #define USECACHE(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_CACHEOK) != 0)
+/*% Recursion OK? */
 #define RECURSIONOK(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_RECURSIONOK) != 0)
+/*% Recursing? */
 #define RECURSING(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_RECURSING) != 0)
+/*% Cache glue ok? */
 #define CACHEGLUEOK(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_CACHEGLUEOK) != 0)
+/*% Want Recursion? */
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
+/*% Want DNSSEC? */
 #define WANTDNSSEC(c)		(((c)->attributes & \
 				  NS_CLIENTATTR_WANTDNSSEC) != 0)
+/*% No authority? */
 #define NOAUTHORITY(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOAUTHORITY) != 0)
+/*% No additional? */
 #define NOADDITIONAL(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_NOADDITIONAL) != 0)
+/*% Secure? */
 #define SECURE(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_SECURE) != 0)
 
@@ -100,7 +112,7 @@ typedef struct client_additionalctx {
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
 
-/*
+/*%
  * Increment query statistics counters.
  */
 static inline void
@@ -204,7 +216,7 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	isc_buffer_t *dbuf, *dbuf_next;
 	ns_dbversion_t *dbversion, *dbversion_next;
 
-	/*
+	/*%
 	 * Reset the query state of a client to its default state.
 	 */
 
@@ -277,7 +289,7 @@ query_newnamebuf(ns_client_t *client) {
 	isc_result_t result;
 
 	CTRACE("query_newnamebuf");
-	/*
+	/*%
 	 * Allocate a name buffer.
 	 */
 
@@ -300,7 +312,7 @@ query_getnamebuf(ns_client_t *client) {
 	isc_region_t r;
 
 	CTRACE("query_getnamebuf");
-	/*
+	/*%
 	 * Return a name buffer with space for a maximal name, allocating
 	 * a new one if necessary.
 	 */
@@ -336,7 +348,7 @@ query_keepname(ns_client_t *client, dns_name_t *name, isc_buffer_t *dbuf) {
 	isc_region_t r;
 
 	CTRACE("query_keepname");
-	/*
+	/*%
 	 * 'name' is using space in 'dbuf', but 'dbuf' has not yet been
 	 * adjusted to take account of that.  We do the adjustment.
 	 */
@@ -353,7 +365,7 @@ static inline void
 query_releasename(ns_client_t *client, dns_name_t **namep) {
 	dns_name_t *name = *namep;
 
-	/*
+	/*%
 	 * 'name' is no longer needed.  Return it to our pool of temporary
 	 * names.  If it is using a name buffer, relinquish its exclusive
 	 * rights on the buffer.
@@ -510,7 +522,7 @@ query_findversion(ns_client_t *client, dns_db_t *db,
 {
 	ns_dbversion_t *dbversion;
 
-	/*
+	/*%
 	 * We may already have done a query related to this
 	 * database.  If so, we must be sure to make subsequent
 	 * queries from the same version.
@@ -751,7 +763,7 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	/*
+	/*%
 	 * Find a cache database to answer the query.
 	 * This may fail with DNS_R_REFUSED if the client
 	 * is not allowed to use the cache.
@@ -1232,7 +1244,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa) {
 		/*
-		 * RFC 2535 section 3.5 says that when A or AAAA records are
+		 * RFC2535 section 3.5 says that when A or AAAA records are
 		 * retrieved as additional data, any KEY RRs for the owner name
 		 * should be added to the additional data section.
 		 *
@@ -1806,7 +1818,7 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	(void)dns_rdataset_additionaldata(rdataset, query_addadditional2,
 					  &additionalctx);
 	/*
-	 * RFC 2535 section 3.5 says that when NS, SOA, A, or AAAA records
+	 * RFC2535 section 3.5 says that when NS, SOA, A, or AAAA records
 	 * are retrieved, any KEY RRs for the owner name should be added
 	 * to the additional data section.  We treat A6 records the same way.
 	 *
@@ -1833,7 +1845,7 @@ query_addrrset(ns_client_t *client, dns_name_t **namep,
 	dns_rdataset_t *rdataset, *mrdataset, *sigrdataset;
 	isc_result_t result;
 
-	/*
+	/*%
 	 * To the current response for 'client', add the answer RRset
 	 * '*rdatasetp' and an optional signature set '*sigrdatasetp', with
 	 * owner name '*namep', to section 'section', unless they are
@@ -3671,7 +3683,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			dns_message_puttempname(client->message, &tname);
 			if (result == ISC_R_NOSPACE) {
 				/*
-				 * RFC 2672, section 4.1, subsection 3c says
+				 * RFC2672, section 4.1, subsection 3c says
 				 * we should return YXDOMAIN if the constructed
 				 * name would be too long.
 				 */

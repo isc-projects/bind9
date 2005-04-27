@@ -15,8 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex_test.c,v 1.19 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: lex_test.c,v 1.19.18.1 2005/04/27 05:00:42 sra Exp $ */
 
+/*! \file */
 #include <config.h>
 
 #include <isc/commandline.h>

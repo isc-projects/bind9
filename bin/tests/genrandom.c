@@ -15,8 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: genrandom.c,v 1.11 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: genrandom.c,v 1.11.18.1 2005/04/27 05:00:41 sra Exp $ */
 
+/*! \file */
 #include <config.h>
 
 #include <stdio.h>

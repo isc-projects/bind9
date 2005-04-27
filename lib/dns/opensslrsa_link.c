@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1 2004/12/09 01:41:04 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.6.2 2005/04/27 05:01:22 sra Exp $
  */
 #ifdef OPENSSL
 
@@ -306,7 +306,7 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	e_bytes = BN_num_bytes(rsa->e);
 	mod_bytes = BN_num_bytes(rsa->n);
 
-	if (e_bytes < 256) {	/* key exponent is <= 2040 bits */
+	if (e_bytes < 256) {	/*%< key exponent is <= 2040 bits */
 		if (r.length < 1)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint8(data, (isc_uint8_t) e_bytes);
@@ -537,9 +537,9 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_adddata,
 	opensslrsa_sign,
 	opensslrsa_verify,
-	NULL, /* computesecret */
+	NULL, /*%< computesecret */
 	opensslrsa_compare,
-	NULL, /* paramcompare */
+	NULL, /*%< paramcompare */
 	opensslrsa_generate,
 	opensslrsa_isprivate,
 	opensslrsa_destroy,
@@ -547,7 +547,7 @@ static dst_func_t opensslrsa_functions = {
 	opensslrsa_fromdns,
 	opensslrsa_tofile,
 	opensslrsa_parse,
-	NULL, /* cleanup */
+	NULL, /*%< cleanup */
 };
 
 isc_result_t
@@ -565,3 +565,4 @@ dst__opensslrsa_init(dst_func_t **funcp) {
 EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */
+/*! \file */

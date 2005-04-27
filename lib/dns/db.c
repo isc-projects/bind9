@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.74.18.1 2004/12/21 10:58:58 jinmei Exp $ */
+/* $Id: db.c,v 1.74.18.2 2005/04/27 05:01:15 sra Exp $ */
+
+/*! \file */
 
 /***
  *** Imports

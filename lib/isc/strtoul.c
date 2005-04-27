@@ -48,11 +48,12 @@
  * SUCH DAMAGE.
  */
 
+/*! \file */
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 
-/* $Id: strtoul.c,v 1.3 2004/03/05 05:10:49 marka Exp $ */
+/* $Id: strtoul.c,v 1.3.18.1 2005/04/27 05:02:08 sra Exp $ */
 
 #include <config.h>
 
@@ -63,7 +64,7 @@ static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #include <isc/stdlib.h>
 #include <isc/util.h>
 
-/*
+/*!
  * Convert a string to an unsigned long integer.
  *
  * Ignores `locale' stuff.  Assumes that the upper and lower case

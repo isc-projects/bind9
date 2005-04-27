@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.3 2004/03/05 05:11:02 marka Exp $ */
+/* $Id: version.h,v 1.3.18.1 2005/04/27 05:02:32 sra Exp $ */
+
+/*! \file */
 
 #include <isc/platform.h>
 

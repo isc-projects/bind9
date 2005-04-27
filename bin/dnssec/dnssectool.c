@@ -15,7 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.40 2004/03/05 04:57:41 marka Exp $ */
+/* $Id: dnssectool.c,v 1.40.18.1 2005/04/27 05:00:29 sra Exp $ */
+
+/*! \file */
+
+/*%
+ * DNSSEC Support Routines.
+ */
 
 #include <config.h>
 

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.4 2004/03/05 05:09:04 marka Exp $ */
+/* $Id: version.c,v 1.4.18.1 2005/04/27 05:01:12 sra Exp $ */
+
+/*! \file */
 
 #include <bind9/version.h>
 

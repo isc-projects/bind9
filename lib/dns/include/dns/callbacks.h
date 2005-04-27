@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.18 2004/03/05 05:09:41 marka Exp $ */
+/* $Id: callbacks.h,v 1.18.18.1 2005/04/27 05:01:30 sra Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
+
+/*! \file */
 
 /***
  ***	Imports
@@ -35,19 +37,19 @@ ISC_LANG_BEGINDECLS
  ***/
 
 struct dns_rdatacallbacks {
-	/*
+	/*%
 	 * dns_load_master calls this when it has rdatasets to commit.
 	 */
 	dns_addrdatasetfunc_t add;
-	/*
+	/*%
 	 * dns_load_master / dns_rdata_fromtext call this to issue a error.
 	 */
 	void	(*error)(struct dns_rdatacallbacks *, const char *, ...);
-	/*
+	/*%
 	 * dns_load_master / dns_rdata_fromtext call this to issue a warning.
 	 */
 	void	(*warn)(struct dns_rdatacallbacks *, const char *, ...);
-	/*
+	/*%
 	 * Private data handles for use by the above callback functions.
 	 */
 	void	*add_private;
@@ -61,20 +63,22 @@ struct dns_rdatacallbacks {
 
 void
 dns_rdatacallbacks_init(dns_rdatacallbacks_t *callbacks);
-/*
+/*%<
  * Initialize 'callbacks'.
- * 	'error' and 'warn' are set to default callbacks that print the
+ *
+ *
+ * \li	'error' and 'warn' are set to default callbacks that print the
  *	error message through the DNS library log context.
  *
- *	All other elements are initialized to NULL.
+ *\li	All other elements are initialized to NULL.
  *
  * Requires:
- *      'callbacks' is a valid dns_rdatacallbacks_t,
+ *  \li    'callbacks' is a valid dns_rdatacallbacks_t,
  */
 
 void
 dns_rdatacallbacks_init_stdio(dns_rdatacallbacks_t *callbacks);
-/*
+/*%<
  * Like dns_rdatacallbacks_init, but logs to stdio.
  */
 

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.9 2005/02/10 05:50:49 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.10 2005/04/27 05:00:34 sra Exp $ */
+
+/*% */
 
 #include <config.h>
 
@@ -42,7 +44,7 @@
 #include <named/server.h>
 #include <named/zoneconf.h>
 
-/*
+/*%
  * These are BIND9 server defaults, not necessarily identical to the
  * library defaults defined in zone.c.
  */
@@ -52,7 +54,7 @@
 		return (_r); \
 	} while (0)
 
-/*
+/*%
  * Convenience function for configuring a single zone ACL.
  */
 static isc_result_t
@@ -95,7 +97,7 @@ configure_zone_acl(cfg_obj_t *zconfig, cfg_obj_t *vconfig, cfg_obj_t *config,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Parse the zone update-policy statement.
  */
 static isc_result_t
@@ -234,7 +236,7 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 	return (result);
 }
 
-/*
+/*%
  * Convert a config file zone type into a server zone type.
  */
 static inline dns_zonetype_t
@@ -247,7 +249,7 @@ zonetype_fromconfig(cfg_obj_t *map) {
 	return (ns_config_getzonetype(obj));
 }
 
-/*
+/*%
  * Helper function for strtoargv().  Pardon the gratuitous recursion.
  */
 static isc_result_t
@@ -281,7 +283,7 @@ strtoargvsub(isc_mem_t *mctx, char *s, unsigned int *argcp,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Tokenize the string "s" into whitespace-separated words,
  * return the number of words in '*argcp' and an array
  * of pointers to the words in '*argvp'.  The caller

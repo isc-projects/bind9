@@ -18,8 +18,10 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1.6.1 2004/12/09 04:41:43 marka Exp $
+ * $Id: dst_api.c,v 1.1.6.2 2005/04/27 05:01:16 sra Exp $
  */
+
+/*! \file */
 
 #include <config.h>
 
@@ -486,7 +488,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 						    & 0xffff));
 	}
 
-	if (key->opaque == NULL) /* NULL KEY */
+	if (key->opaque == NULL) /*%< NULL KEY */
 		return (ISC_R_SUCCESS);
 
 	return (key->func->todns(key, target));
@@ -633,7 +635,7 @@ dst_key_generate(dns_name_t *name, unsigned int alg,
 	if (key == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (bits == 0) { /* NULL KEY */
+	if (bits == 0) { /*%< NULL KEY */
 		key->key_flags |= DNS_KEYTYPE_NOKEY;
 		*keyp = key;
 		return (ISC_R_SUCCESS);
@@ -758,7 +760,7 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 		*n = 16;
 		break;
 	case DST_ALG_GSSAPI:
-		*n = 128; /* XXX */
+		*n = 128; /*%< XXX */
 		break;
 	case DST_ALG_DH:
 	default:
@@ -784,7 +786,7 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n) {
  *** Static methods
  ***/
 
-/*
+/*%
  * Allocates a key structure and fills in some of the fields.
  */
 static dst_key_t *
@@ -826,7 +828,7 @@ get_key_struct(dns_name_t *name, unsigned int alg,
 	return (key);
 }
 
-/*
+/*%
  * Reads a public key from disk
  */
 isc_result_t
@@ -913,7 +915,7 @@ dst_key_read_public(const char *filename, int type,
 	if (strcasecmp(DST_AS_STR(token), "DNSKEY") == 0)
 		keytype = dns_rdatatype_dnskey;
 	else if (strcasecmp(DST_AS_STR(token), "KEY") == 0)
-		keytype = dns_rdatatype_key; /* SIG(0), TKEY */
+		keytype = dns_rdatatype_key; /*%< SIG(0), TKEY */
 	else
 		BADTOKEN();
 
@@ -960,7 +962,7 @@ issymmetric(const dst_key_t *key) {
 	}
 }
 
-/*
+/*%
  * Writes a public key to disk in DNS format.
  */
 static isc_result_t

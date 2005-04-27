@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112.18.4 2005/01/17 23:57:38 marka Exp $ */
+/* $Id: parser.c,v 1.112.18.5 2005/04/27 05:02:42 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -125,7 +127,7 @@ cfg_rep_t cfg_rep_void = { "void", free_noop };
  * Configuration type definitions.
  */
 
-/*
+/*%
  * An implicit list.  These are formed by clauses that occur multiple times.
  */
 static cfg_type_t cfg_type_implicitlist = {

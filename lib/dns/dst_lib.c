@@ -17,8 +17,10 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_lib.c,v 1.1 2004/12/09 01:41:01 marka Exp $
+ * $Id: dst_lib.c,v 1.1.6.2 2005/04/27 05:01:18 sra Exp $
  */
+
+/*! \file */
 
 #include <config.h>
 

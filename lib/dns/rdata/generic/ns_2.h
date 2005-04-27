@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_NS_2_H
 #define GENERIC_NS_2_H 1
 
-/* $Id: ns_2.h,v 1.23 2004/03/05 05:10:15 marka Exp $ */
+/* $Id: ns_2.h,v 1.23.18.1 2005/04/27 05:01:50 sra Exp $ */
 
 typedef struct dns_rdata_ns {
 	dns_rdatacommon_t	common;

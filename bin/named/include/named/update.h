@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.h,v 1.9 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: update.h,v 1.9.18.1 2005/04/27 05:00:37 sra Exp $ */
 
 #ifndef NAMED_UPDATE_H
 #define NAMED_UPDATE_H 1
@@ -24,7 +24,8 @@
  ***** Module Info
  *****/
 
-/*
+/*! \file
+ * \brief
  * RFC2136 Dynamic Update
  */
 

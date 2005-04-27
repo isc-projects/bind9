@@ -68,9 +68,11 @@
  * SOFTWARE.
  */
 
+/*! \file lwinetaton.c
+ */
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: lwinetaton.c,v 1.12 2004/03/05 05:12:46 marka Exp $";
+static char rcsid[] = "$Id: lwinetaton.c,v 1.12.18.1 2005/04/27 05:02:48 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -84,7 +86,7 @@ static char rcsid[] = "$Id: lwinetaton.c,v 1.12 2004/03/05 05:12:46 marka Exp $"
 
 #include "assert_p.h"
 
-/*
+/*!
  * Check whether "cp" is a valid ascii representation
  * of an Internet address and convert to a binary address.
  * Returns 1 if the address is valid, 0 if not.

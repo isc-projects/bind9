@@ -16,10 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.3 2004/03/05 05:12:15 marka Exp $ */
+/* $Id: base64.h,v 1.3.18.1 2005/04/27 05:02:39 sra Exp $ */
 
 #ifndef ISCCC_BASE64_H
 #define ISCCC_BASE64_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isccc/types.h>
@@ -33,36 +35,36 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isccc_base64_encode(isccc_region_t *source, int wordlength,
 		  const char *wordbreak, isccc_region_t *target);
-/*
+/*%<
  * Convert data into base64 encoded text.
  *
  * Notes:
- *	The base64 encoded text in 'target' will be divided into
+ *\li	The base64 encoded text in 'target' will be divided into
  *	words of at most 'wordlength' characters, separated by
  * 	the 'wordbreak' string.  No parentheses will surround
  *	the text.
  *
  * Requires:
- *	'source' is a region containing binary data.
- *	'target' is a text region containing available space.
- *	'wordbreak' points to a null-terminated string of
+ *\li	'source' is a region containing binary data.
+ *\li	'target' is a text region containing available space.
+ *\li	'wordbreak' points to a null-terminated string of
  *		zero or more whitespace characters.
  */
 
 isc_result_t
 isccc_base64_decode(const char *cstr, isccc_region_t *target);
-/*
+/*%<
  * Decode a null-terminated base64 string.
  *
  * Requires:
- *	'cstr' is non-null.
- *	'target' is a valid region.
+ *\li	'cstr' is non-null.
+ *\li	'target' is a valid region.
  *
  * Returns:
- *	ISC_R_SUCCESS	-- the entire decoded representation of 'cstring'
+ *\li	#ISC_R_SUCCESS	-- the entire decoded representation of 'cstring'
  *			   fit in 'target'.
- *	ISC_R_BADBASE64 -- 'cstr' is not a valid base64 encoding.
- *	ISC_R_NOSPACE	-- 'target' is not big enough.
+ *\li	#ISC_R_BADBASE64 -- 'cstr' is not a valid base64 encoding.
+ *\li	#ISC_R_NOSPACE	-- 'target' is not big enough.
  */
 
 ISC_LANG_ENDDECLS

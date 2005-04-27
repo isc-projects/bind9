@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.94.18.7 2005/03/16 00:56:23 marka Exp $ */
+/* $Id: host.c,v 1.94.18.8 2005/04/27 05:00:27 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 #include <limits.h>

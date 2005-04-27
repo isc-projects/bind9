@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.c,v 1.26 2004/03/05 05:10:49 marka Exp $ */
+/* $Id: symtab.c,v 1.26.18.1 2005/04/27 05:02:08 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

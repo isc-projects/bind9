@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.h,v 1.10 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: tkeyconf.h,v 1.10.18.1 2005/04/27 05:00:37 sra Exp $ */
 
 #ifndef NS_TKEYCONF_H
 #define NS_TKEYCONF_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -30,20 +32,20 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
 		      dns_tkeyctx_t **tctxp);
-/*
+/*%<
  * 	Create a TKEY context and configure it, including the default DH key
  *	and default domain, according to 'options'.
  *
  *	Requires:
- *		'cfg' is a valid configuration options object.
- *		'mctx' is not NULL
- *		'ectx' is not NULL
- *		'tctx' is not NULL
- *		'*tctx' is NULL
+ *\li		'cfg' is a valid configuration options object.
+ *\li		'mctx' is not NULL
+ *\li		'ectx' is not NULL
+ *\li		'tctx' is not NULL
+ *\li		'*tctx' is NULL
  *
  *	Returns:
- *		ISC_R_SUCCESS
- *		ISC_R_NOMEMORY
+ *\li		ISC_R_SUCCESS
+ *\li		ISC_R_NOMEMORY
  */
 
 ISC_LANG_ENDDECLS

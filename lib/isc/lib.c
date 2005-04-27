@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.10 2004/03/05 05:10:46 marka Exp $ */
+/* $Id: lib.c,v 1.10.18.1 2005/04/27 05:02:02 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -53,7 +55,7 @@ void
 isc_lib_initmsgcat(void) {
 	isc_result_t result;
 
-	/*
+	/*!
 	 * Initialize the ISC library's message catalog, isc_msgcat, if it
 	 * has not already been initialized.
 	 */

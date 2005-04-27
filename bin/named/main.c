@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.136.18.8 2005/04/07 04:08:45 marka Exp $ */
+/* $Id: main.c,v 1.136.18.9 2005/04/27 05:00:32 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

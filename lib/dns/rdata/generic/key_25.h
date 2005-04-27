@@ -18,9 +18,10 @@
 #ifndef GENERIC_KEY_25_H
 #define GENERIC_KEY_25_H 1
 
-/* $Id: key_25.h,v 1.15 2004/03/05 05:10:12 marka Exp $ */
+/* $Id: key_25.h,v 1.15.18.1 2005/04/27 05:01:46 sra Exp $ */
 
-/* RFC 2535 */
+/*!
+ * \brief Per RFC2535 */
 
 typedef struct dns_rdata_key_t {
         dns_rdatacommon_t	common;

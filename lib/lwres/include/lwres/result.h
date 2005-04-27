@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.15 2004/03/05 05:12:53 marka Exp $ */
+/* $Id: result.h,v 1.15.18.1 2005/04/27 05:02:57 sra Exp $ */
 
 #ifndef LWRES_RESULT_H
 #define LWRES_RESULT_H 1
+
+/*! \file */
 
 typedef unsigned int lwres_result_t;
 

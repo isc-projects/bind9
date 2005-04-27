@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdlib.h,v 1.2 2004/03/05 05:11:01 marka Exp $ */
+/* $Id: stdlib.h,v 1.2.18.1 2005/04/27 05:02:31 sra Exp $ */
 
 #ifndef ISC_STDLIB_H
 #define ISC_STDLIB_H 1
+
+/*! \file */
 
 #include <stdlib.h>
 

@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: offset.h,v 1.11 2004/03/05 05:11:53 marka Exp $ */
+/* $Id: offset.h,v 1.11.18.1 2005/04/27 05:02:37 sra Exp $ */
 
 #ifndef ISC_OFFSET_H
 #define ISC_OFFSET_H 1
 
-/*
+/*! \file
+ * \brief
  * File offsets are operating-system dependent.
  */
 #include <limits.h>             /* Required for CHAR_BIT. */
@@ -28,7 +29,7 @@
 
 typedef off_t isc_offset_t;
 
-/*
+/*%
  * POSIX says "Additionally, blkcnt_t and off_t are extended signed integral
  * types", so the maximum value is all 1s except for the high bit.
  * This definition is more complex than it really needs to be because it was

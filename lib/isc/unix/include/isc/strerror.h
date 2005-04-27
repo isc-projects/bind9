@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.h,v 1.4 2004/03/05 05:11:53 marka Exp $ */
+/* $Id: strerror.h,v 1.4.18.1 2005/04/27 05:02:37 sra Exp $ */
 
 #ifndef ISC_STRERROR_H
 #define ISC_STRERROR_H
+
+/*! \file */
 
 #include <sys/types.h>
 
@@ -26,9 +28,10 @@
 
 ISC_LANG_BEGINDECLS
 
+/*% String Error Size */
 #define ISC_STRERRORSIZE 128
 
-/*
+/*%
  * Provide a thread safe wrapper to strerrror().
  *
  * Requires:

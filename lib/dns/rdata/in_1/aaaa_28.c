@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aaaa_28.c,v 1.41 2004/03/05 05:10:23 marka Exp $ */
+/* $Id: aaaa_28.c,v 1.41.18.1 2005/04/27 05:01:55 sra Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
-/* RFC 1886 */
+/* RFC1886 */
 
 #ifndef RDATA_IN_1_AAAA_28_C
 #define RDATA_IN_1_AAAA_28_C

@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.20 2004/03/05 05:11:41 marka Exp $ */
+/* $Id: thread.h,v 1.20.18.1 2005/04/27 05:02:34 sra Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
+
+/*! \file */
 
 #include <pthread.h>
 

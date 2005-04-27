@@ -15,17 +15,19 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.25 2004/03/05 05:11:41 marka Exp $ */
+/* $Id: mutex.h,v 1.25.18.1 2005/04/27 05:02:34 sra Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
+
+/*! \file */
 
 #include <pthread.h>
 #include <stdio.h>
 
 #include <isc/result.h>		/* for ISC_R_ codes */
 
-/*
+/*!
  * Supply mutex attributes that enable deadlock detection
  * (helpful when debugging).  This is system dependent and
  * currently only supported on NetBSD.
@@ -39,7 +41,7 @@ extern pthread_mutexattr_t isc__mutex_attrs;
 
 /* XXX We could do fancier error handling... */
 
-/*
+/*!
  * Define ISC_MUTEX_PROFILE to turn on profiling of mutexes by line.  When
  * enabled, isc_mutex_stats() can be used to print a table showing the
  * number of times each type of mutex was locked and the amount of time
@@ -53,8 +55,8 @@ extern pthread_mutexattr_t isc__mutex_attrs;
 typedef struct isc_mutexstats isc_mutexstats_t;
 
 typedef struct {
-	pthread_mutex_t		mutex;	/* The actual mutex. */
-	isc_mutexstats_t *	stats;	/* Mutex statistics. */
+	pthread_mutex_t		mutex;	/*%< The actual mutex. */
+	isc_mutexstats_t *	stats;	/*%< Mutex statistics. */
 } isc_mutex_t;
 #else
 typedef pthread_mutex_t	isc_mutex_t;

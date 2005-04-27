@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.4 2005/01/11 01:39:26 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.5 2005/04/27 05:00:26 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -77,6 +79,7 @@ destroy(void) {
 		dns_zone_detach(&zone);
 }
 
+/*% main processing routine */
 int
 main(int argc, char **argv) {
 	int c;

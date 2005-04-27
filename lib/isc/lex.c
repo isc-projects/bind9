@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.78.18.1 2004/08/28 06:17:33 marka Exp $ */
+/* $Id: lex.c,v 1.78.18.2 2005/04/27 05:02:01 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

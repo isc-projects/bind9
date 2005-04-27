@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.10 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: quota.h,v 1.10.18.1 2005/04/27 05:02:28 sra Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
@@ -24,10 +24,9 @@
  ***** Module Info
  *****/
 
-/*
- * Quota
+/*! \file isc/quota.h
  *
- * The isc_quota_t object is a simple helper object for implementing
+ * \brief The isc_quota_t object is a simple helper object for implementing
  * quotas on things like the number of simultaneous connections to
  * a server.  It keeps track of the amount of quota in use, and
  * encapsulates the locking necessary to allow multiple tasks to
@@ -48,9 +47,9 @@
 
 ISC_LANG_BEGINDECLS
 
+/*% isc_quota structure */
 struct isc_quota {
-	isc_mutex_t	lock;
-	/* Locked by lock. */
+	isc_mutex_t	lock; /*%< Locked by lock. */
 	int 		max;
 	int 		used;
 	isc_boolean_t	soft;
@@ -58,7 +57,7 @@ struct isc_quota {
 
 isc_result_t
 isc_quota_init(isc_quota_t *quota, int max);
-/*
+/*%<
  * Initialize a quota object.
  *
  * Returns:
@@ -68,43 +67,43 @@ isc_quota_init(isc_quota_t *quota, int max);
 
 void
 isc_quota_destroy(isc_quota_t *quota);
-/*
+/*%<
  * Destroy a quota object.
  */
 
 void
 isc_quota_soft(isc_quota_t *quota, isc_boolean_t soft);
-/*
+/*%<
  * Turn on/off soft quotas.
  */
 
 isc_result_t
 isc_quota_reserve(isc_quota_t *quota);
-/*
+/*%<
  * Attempt to reserve one unit of 'quota'.
  *
  * Returns:
- * 	ISC_R_SUCCESS	Success
- *	ISC_R_SOFTQUOTA	Success soft quota reached
- *	ISC_R_QUOTA	Quota is full
+ *\li 	#ISC_R_SUCCESS	Success
+ *\li	#ISC_R_SOFTQUOTA	Success soft quota reached
+ *\li	#ISC_R_QUOTA	Quota is full
  */
 
 void
 isc_quota_release(isc_quota_t *quota);
-/*
+/*%<
  * Release one unit of quota.
  */
 
 isc_result_t
 isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
-/*
+/*%<
  * Like isc_quota_reserve, and also attaches '*p' to the
  * quota if successful (ISC_R_SUCCESS or ISC_R_SOFTQUOTA).
  */
 
 void
 isc_quota_detach(isc_quota_t **p);
-/*
+/*%<
  * Like isc_quota_release, and also detaches '*p' from the
  * quota.
  */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.6 2005/03/15 00:46:40 marka Exp $ */
+/* $Id: client.c,v 1.219.18.7 2005/04/27 05:00:30 sra Exp $ */
 
 #include <config.h>
 
@@ -53,7 +53,9 @@
  *** Client
  ***/
 
-/*
+/*! \file
+ * Client Routines
+ *
  * Important note!
  *
  * All client state changes, other than that from idle to listening, occur
@@ -87,6 +89,7 @@
 #define SEND_BUFFER_SIZE		4096
 #define RECV_BUFFER_SIZE		4096
 
+/*% nameserver client manager structure */
 struct ns_clientmgr {
 	/* Unlocked. */
 	unsigned int			magic;
@@ -96,15 +99,15 @@ struct ns_clientmgr {
 	isc_mutex_t			lock;
 	/* Locked by lock. */
 	isc_boolean_t			exiting;
-	client_list_t			active; 	/* Active clients */
-	client_list_t			recursing; 	/* Recursing clients */
-	client_list_t 			inactive;	/* To be recycled */
+	client_list_t			active; 	/*%< Active clients */
+	client_list_t			recursing; 	/*%< Recursing clients */
+	client_list_t 			inactive;	/*%< To be recycled */
 };
 
 #define MANAGER_MAGIC			ISC_MAGIC('N', 'S', 'C', 'm')
 #define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, MANAGER_MAGIC)
 
-/*
+/*! 
  * Client object states.  Ordering is significant: higher-numbered
  * states are generally "more active", meaning that the client can
  * have more dynamically allocated data, outstanding events, etc.
@@ -117,12 +120,12 @@ struct ns_clientmgr {
  */
 
 #define NS_CLIENTSTATE_FREED    0
-/*
+/*%<
  * The client object no longer exists.
  */
 
 #define NS_CLIENTSTATE_INACTIVE 1
-/*
+/*%<
  * The client object exists and has a task and timer.
  * Its "query" struct and sendbuf are initialized.
  * It is on the client manager's list of inactive clients.
@@ -130,7 +133,7 @@ struct ns_clientmgr {
  */
 
 #define NS_CLIENTSTATE_READY    2
-/*
+/*%<
  * The client object is either a TCP or a UDP one, and
  * it is associated with a network interface.  It is on the
  * client manager's list of active clients.
@@ -143,7 +146,7 @@ struct ns_clientmgr {
  */
 
 #define NS_CLIENTSTATE_READING  3
-/*
+/*%<
  * The client object is a TCP client object that has received
  * a connection.  It has a tcpsocket, tcpmsg, TCP quota, and an
  * outstanding TCP read request.  This state is not used for
@@ -151,14 +154,14 @@ struct ns_clientmgr {
  */
 
 #define NS_CLIENTSTATE_WORKING  4
-/*
+/*%<
  * The client object has received a request and is working
  * on it.  It has a view, and it may have any of a non-reset OPT,
  * recursion quota, and an outstanding write request.
  */
 
 #define NS_CLIENTSTATE_MAX      9
-/*
+/*%<
  * Sentinel value used to indicate "no state".  When client->newstate
  * has this value, we are not attempting to exit the current state.
  * Must be greater than any valid state.
@@ -215,7 +218,7 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds) {
 	}
 }
 
-/*
+/*%
  * Check for a deactivation or shutdown request and take appropriate
  * action.  Returns ISC_TRUE if either is in progress; in this case
  * the caller must no longer use the client object as it may have been
@@ -489,7 +492,7 @@ exit_check(ns_client_t *client) {
 	return (ISC_TRUE);
 }
 
-/*
+/*%
  * The client's task has received the client's control event
  * as part of the startup process.
  */
@@ -515,7 +518,7 @@ client_start(isc_task_t *task, isc_event_t *event) {
 }
 
 
-/*
+/*%
  * The client's task has received a shutdown event.
  */
 static void
@@ -684,7 +687,7 @@ client_senddone(isc_task_t *task, isc_event_t *event) {
 	ns_client_next(client, ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * We only want to fail with ISC_R_NOSPACE when called from
  * ns_client_sendraw() and not when called from ns_client_send(),
  * tcpbuffer is NULL when called from ns_client_sendraw() and

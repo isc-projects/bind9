@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.c,v 1.7 2004/03/05 05:10:45 marka Exp $ */
+/* $Id: hmacmd5.c,v 1.7.18.1 2005/04/27 05:02:00 sra Exp $ */
 
-/*
+/*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm
- * described in RFC 2104.
+ * described in RFC2104.
  */
 
 #include "config.h"
@@ -35,7 +35,7 @@
 #define IPAD 0x36
 #define OPAD 0x5C
 
-/*
+/*!
  * Start HMAC-MD5 process.  Initialize an md5 context and digest the key.
  */
 void
@@ -68,7 +68,7 @@ isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 	memset(ctx, 0, sizeof(ctx));
 }
 
-/*
+/*!
  * Update context to reflect the concatenation of another buffer full
  * of bytes.
  */
@@ -79,7 +79,7 @@ isc_hmacmd5_update(isc_hmacmd5_t *ctx, const unsigned char *buf,
 	isc_md5_update(&ctx->md5ctx, buf, len);
 }
 
-/*
+/*!
  * Compute signature - finalize MD5 operation and reapply MD5.
  */
 void
@@ -100,7 +100,7 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
 	isc_hmacmd5_invalidate(ctx);
 }
 
-/*
+/*!
  * Verify signature - finalize MD5 operation and reapply MD5, then
  * compare to the supplied digest.
  */

@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.6 2004/03/05 05:10:59 marka Exp $ */
+/* $Id: os.h,v 1.6.18.1 2005/04/27 05:02:27 sra Exp $ */
 
 #ifndef ISC_OS_H
 #define ISC_OS_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 
@@ -26,7 +28,7 @@ ISC_LANG_BEGINDECLS
 
 unsigned int
 isc_os_ncpus(void);
-/*
+/*%<
  * Return the number of CPUs available on the system, or 1 if this cannot
  * be determined.
  */

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.13 2004/03/05 05:11:44 marka Exp $ */
+/* $Id: errno2result.c,v 1.13.18.1 2005/04/27 05:02:35 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -25,7 +27,7 @@
 
 #include "errno2result.h"
 
-/*
+/*%
  * Convert a POSIX errno value into an isc_result_t.  The
  * list of supported errno values is not complete; new users
  * of this function should add any expected errors that are

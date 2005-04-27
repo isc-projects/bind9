@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.c,v 1.35.18.3 2004/08/28 06:17:34 marka Exp $ */
+/* $Id: interfaceiter.c,v 1.35.18.4 2005/04/27 05:02:35 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -51,9 +53,9 @@
 
 /* Common utility functions */
 
-/*
+/*%
  * Extract the network address part from a "struct sockaddr".
- *
+ * \brief
  * The address family is given explicitly
  * instead of using src->sa_family, because the latter does not work
  * for copying a network mask obtained by SIOCGIFNETMASK (it does

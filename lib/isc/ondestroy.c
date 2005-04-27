@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ondestroy.c,v 1.12 2004/03/05 05:10:47 marka Exp $ */
+/* $Id: ondestroy.c,v 1.12.18.1 2005/04/27 05:02:04 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

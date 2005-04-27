@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.12 2004/03/05 05:11:01 marka Exp $ */
+/* $Id: string.h,v 1.12.18.1 2005/04/27 05:02:31 sra Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
+
+/*! \file */
 
 #include <string.h>
 
@@ -30,7 +32,7 @@ ISC_LANG_BEGINDECLS
 
 isc_uint64_t
 isc_string_touint64(char *source, char **endp, int base);
-/*
+/*%<
  * Convert the string pointed to by 'source' to isc_uint64_t.
  *
  * On successful conversion 'endp' points to the first character

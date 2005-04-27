@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MD_3_H
 #define GENERIC_MD_3_H 1
 
-/* $Id: md_3.h,v 1.24 2004/03/05 05:10:13 marka Exp $ */
+/* $Id: md_3.h,v 1.24.18.1 2005/04/27 05:01:48 sra Exp $ */
 
 typedef struct dns_rdata_md {
 	dns_rdatacommon_t	common;

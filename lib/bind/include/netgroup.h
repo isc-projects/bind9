@@ -16,5 +16,8 @@ void setnetgrent __P((const char *));
 void endnetgrent __P((void));
 
 int innetgr __P((const char *, const char *, const char *, const char *));
+
 #endif
 #endif
+
+/*! \file */

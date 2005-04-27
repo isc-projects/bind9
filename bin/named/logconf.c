@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.35 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: logconf.c,v 1.35.18.1 2005/04/27 05:00:31 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -36,7 +38,7 @@
 	       if (result != ISC_R_SUCCESS) goto cleanup; 	 \
 	} while (0)
 
-/*
+/*%
  * Set up a logging category according to the named.conf data
  * in 'ccat' and add it to 'lctx'.
  */
@@ -84,7 +86,7 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Set up a logging channel according to the named.conf data
  * in 'cchan' and add it to 'lctx'.
  */

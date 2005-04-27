@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.116.18.6 2005/02/24 00:32:20 marka Exp $ */
+/* $Id: dispatch.c,v 1.116.18.7 2005/04/27 05:01:15 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -43,12 +45,12 @@ typedef ISC_LIST(dns_dispentry_t)	dns_displist_t;
 
 typedef struct dns_qid {
 	unsigned int	magic;
-	unsigned int	qid_nbuckets;	/* hash table size */
-	unsigned int	qid_increment;	/* id increment on collision */
+	unsigned int	qid_nbuckets;	/*%< hash table size */
+	unsigned int	qid_increment;	/*%< id increment on collision */
 	isc_mutex_t	lock;
-	isc_lfsr_t	qid_lfsr1;	/* state generator info */
-	isc_lfsr_t	qid_lfsr2;	/* state generator info */
-	dns_displist_t	*qid_table;	/* the table itself */
+	isc_lfsr_t	qid_lfsr1;	/*%< state generator info */
+	isc_lfsr_t	qid_lfsr2;	/*%< state generator info */
+	dns_displist_t	*qid_table;	/*%< the table itself */
 } dns_qid_t;
 
 struct dns_dispatchmgr {
@@ -66,18 +68,18 @@ struct dns_dispatchmgr {
 	/* locked by buffer lock */
 	dns_qid_t			*qid;
 	isc_mutex_t			buffer_lock;
-	unsigned int			buffers;    /* allocated buffers */
-	unsigned int			buffersize; /* size of each buffer */
-	unsigned int			maxbuffers; /* max buffers */
+	unsigned int			buffers;    /*%< allocated buffers */
+	unsigned int			buffersize; /*%< size of each buffer */
+	unsigned int			maxbuffers; /*%< max buffers */
 
 	/* Locked internally. */
 	isc_mutex_t			pool_lock;
-	isc_mempool_t		       *epool;	/* memory pool for events */
-	isc_mempool_t		       *rpool;	/* memory pool for replies */
-	isc_mempool_t		       *dpool;  /* dispatch allocations */
-	isc_mempool_t		       *bpool;	/* memory pool for buffers */
+	isc_mempool_t		       *epool;	/*%< memory pool for events */
+	isc_mempool_t		       *rpool;	/*%< memory pool for replies */
+	isc_mempool_t		       *dpool;  /*%< dispatch allocations */
+	isc_mempool_t		       *bpool;	/*%< memory pool for buffers */
 
-	isc_entropy_t		       *entropy; /* entropy source */
+	isc_entropy_t		       *entropy; /*%< entropy source */
 };
 
 #define MGR_SHUTTINGDOWN		0x00000001U
@@ -103,32 +105,32 @@ struct dns_dispentry {
 
 struct dns_dispatch {
 	/* Unlocked. */
-	unsigned int		magic;		/* magic */
-	dns_dispatchmgr_t      *mgr;		/* dispatch manager */
-	isc_task_t	       *task;		/* internal task */
-	isc_socket_t	       *socket;		/* isc socket attached to */
-	isc_sockaddr_t		local;		/* local address */
-	unsigned int		maxrequests;	/* max requests */
+	unsigned int		magic;		/*%< magic */
+	dns_dispatchmgr_t      *mgr;		/*%< dispatch manager */
+	isc_task_t	       *task;		/*%< internal task */
+	isc_socket_t	       *socket;		/*%< isc socket attached to */
+	isc_sockaddr_t		local;		/*%< local address */
+	unsigned int		maxrequests;	/*%< max requests */
 	isc_event_t	       *ctlevent;
 
-	/* Locked by mgr->lock. */
+	/*% Locked by mgr->lock. */
 	ISC_LINK(dns_dispatch_t) link;
 
 	/* Locked by "lock". */
-	isc_mutex_t		lock;		/* locks all below */
+	isc_mutex_t		lock;		/*%< locks all below */
 	isc_sockettype_t	socktype;
 	unsigned int		attributes;
-	unsigned int		refcount;	/* number of users */
-	dns_dispatchevent_t    *failsafe_ev;	/* failsafe cancel event */
+	unsigned int		refcount;	/*%< number of users */
+	dns_dispatchevent_t    *failsafe_ev;	/*%< failsafe cancel event */
 	unsigned int		shutting_down : 1,
 				shutdown_out : 1,
 				connected : 1,
 				tcpmsg_valid : 1,
-				recv_pending : 1; /* is a recv() pending? */
+				recv_pending : 1; /*%< is a recv() pending? */
 	isc_result_t		shutdown_why;
-	unsigned int		requests;	/* how many requests we have */
-	unsigned int		tcpbuffers;	/* allocated buffers */
-	dns_tcpmsg_t		tcpmsg;		/* for tcp streams */
+	unsigned int		requests;	/*%< how many requests we have */
+	unsigned int		tcpbuffers;	/*%< allocated buffers */
+	dns_tcpmsg_t		tcpmsg;		/*%< for tcp streams */
 	dns_qid_t		*qid;
 };
 

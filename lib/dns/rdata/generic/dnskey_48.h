@@ -18,9 +18,10 @@
 #ifndef GENERIC_DNSKEY_48_H
 #define GENERIC_DNSKEY_48_H 1
 
-/* $Id: dnskey_48.h,v 1.3 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: dnskey_48.h,v 1.3.20.1 2005/04/27 05:01:45 sra Exp $ */
 
-/* RFC 2535 */
+/*!
+ *  \brief per RFC2535 */
 
 typedef struct dns_rdata_dnskey {
         dns_rdatacommon_t	common;

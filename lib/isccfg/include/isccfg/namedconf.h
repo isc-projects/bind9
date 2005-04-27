@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.3 2004/03/05 05:12:27 marka Exp $ */
+/* $Id: namedconf.h,v 1.3.18.1 2005/04/27 05:02:44 sra Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1
 
-/*
+/*! \file
+ * \brief
  * This module defines the named.conf, rndc.conf, and rndc.key grammars.
  */
 
@@ -30,15 +31,15 @@
  * Configuration object types.
  */
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_namedconf;
-/* A complete named.conf file. */
+/*%< A complete named.conf file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndcconf;
-/* A complete rndc.conf file. */
+/*%< A complete rndc.conf file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_rndckey;
-/* A complete rndc.key file. */
+/*%< A complete rndc.key file. */
 
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
-/* A key reference, used as an ACL element */
+/*%< A key reference, used as an ACL element */
 
 #endif /* ISCCFG_CFG_H */

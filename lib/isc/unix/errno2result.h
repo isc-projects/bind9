@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.h,v 1.8 2004/03/05 05:11:44 marka Exp $ */
+/* $Id: errno2result.h,v 1.8.18.1 2005/04/27 05:02:35 sra Exp $ */
 
 #ifndef UNIX_ERRNO2RESULT_H
 #define UNIX_ERRNO2RESULT_H 1
+
+/*! \file */
 
 /* XXXDCL this should be moved to lib/isc/include/isc/errno2result.h. */
 

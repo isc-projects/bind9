@@ -16,9 +16,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
+/*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.1 2004/12/09 01:41:02 marka Exp $
+ * $Id: dst_parse.c,v 1.1.6.2 2005/04/27 05:01:18 sra Exp $
  */
 
 #include <config.h>
@@ -410,3 +410,5 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	fclose(fp);
 	return (ISC_R_SUCCESS);
 }
+
+/*! \file */
