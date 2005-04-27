@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nxt_30.c,v 1.59 2004/03/05 05:10:16 marka Exp $ */
+/* $Id: nxt_30.c,v 1.60 2005/04/27 04:57:05 sra Exp $ */
 
 /* reviewed: Wed Mar 15 18:21:15 PST 2000 by brister */
 
-/* RFC 2535 */
+/* RFC2535 */
 
 #ifndef RDATA_GENERIC_NXT_30_C
 #define RDATA_GENERIC_NXT_30_C

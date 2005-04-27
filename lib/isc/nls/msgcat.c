@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.13 2004/03/05 05:11:06 marka Exp $ */
+/* $Id: msgcat.c,v 1.14 2005/04/27 04:57:22 sra Exp $ */
 
-/*
- * Principal Author: Bob Halley
+/*! \file msgcat.c
+ *
+ * \author Principal Author: Bob Halley
  */
 
 #include <config.h>

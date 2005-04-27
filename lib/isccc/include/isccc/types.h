@@ -16,20 +16,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.3 2004/03/05 05:12:16 marka Exp $ */
+/* $Id: types.h,v 1.4 2005/04/27 04:57:27 sra Exp $ */
 
 #ifndef ISCCC_TYPES_H
 #define ISCCC_TYPES_H 1
+
+/*! \file */
 
 #include <isc/boolean.h>
 #include <isc/int.h>
 #include <isc/result.h>
 
+/*% isccc_time_t typedef */
 typedef isc_uint32_t isccc_time_t;
+
+/*% isccc_sexpr_t typedef */
 typedef struct isccc_sexpr isccc_sexpr_t;
+/*% isccc_dottedpair_t typedef */
 typedef struct isccc_dottedpair isccc_dottedpair_t;
+/*% isccc_symtab_t typedef */
 typedef struct isccc_symtab isccc_symtab_t;
 
+/*% iscc region structure */
 typedef struct isccc_region {
 	unsigned char *		rstart;
 	unsigned char *		rend;

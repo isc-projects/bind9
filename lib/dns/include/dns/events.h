@@ -15,14 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: events.h,v 1.43 2004/12/21 10:45:19 jinmei Exp $ */
+/* $Id: events.h,v 1.44 2005/04/27 04:56:55 sra Exp $ */
 
 #ifndef DNS_EVENTS_H
 #define DNS_EVENTS_H 1
 
 #include <isc/eventclass.h>
 
-/*
+/*! \file 
+ * \brief
  * Registry of DNS event numbers.
  */
 

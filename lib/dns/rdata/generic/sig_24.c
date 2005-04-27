@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sig_24.c,v 1.62 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: sig_24.c,v 1.63 2005/04/27 04:57:06 sra Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
-/* RFC 2535 */
+/* RFC2535 */
 
 #ifndef RDATA_GENERIC_SIG_24_C
 #define RDATA_GENERIC_SIG_24_C

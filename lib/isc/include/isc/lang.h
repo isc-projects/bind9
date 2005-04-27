@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lang.h,v 1.7 2004/03/05 05:10:58 marka Exp $ */
+/* $Id: lang.h,v 1.8 2005/04/27 04:57:18 sra Exp $ */
 
 #ifndef ISC_LANG_H
 #define ISC_LANG_H 1
+
+/*! \file */
 
 #ifdef __cplusplus
 #define ISC_LANG_BEGINDECLS	extern "C" {

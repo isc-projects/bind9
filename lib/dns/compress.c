@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.54 2005/03/06 15:30:37 marka Exp $ */
+/* $Id: compress.c,v 1.55 2005/04/27 04:56:45 sra Exp $ */
+
+/*! \file */
 
 #define DNS_NAME_USEINLINE 1
 

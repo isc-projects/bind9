@@ -16,14 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: events.h,v 1.3 2004/03/05 05:12:15 marka Exp $ */
+/* $Id: events.h,v 1.4 2005/04/27 04:57:26 sra Exp $ */
 
 #ifndef ISCCC_EVENTS_H
 #define ISCCC_EVENTS_H 1
 
+/*! \file */
+
 #include <isc/eventclass.h>
 
-/*
+/*%
  * Registry of ISCCC event numbers.
  */
 

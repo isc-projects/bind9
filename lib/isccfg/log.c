@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.5 2004/03/05 05:12:22 marka Exp $ */
+/* $Id: log.c,v 1.6 2005/04/27 04:57:27 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -23,7 +25,7 @@
 
 #include <isccfg/log.h>
 
-/*
+/*%
  * When adding a new category, be sure to add the appropriate
  * #define to <isccfg/log.h>.
  */
@@ -32,7 +34,7 @@ LIBISCCFG_EXTERNAL_DATA isc_logcategory_t cfg_categories[] = {
 	{ NULL, 	0 }
 };
 
-/*
+/*%
  * When adding a new module, be sure to add the appropriate
  * #define to <isccfg/log.h>.
  */

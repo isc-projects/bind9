@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: naptr_35.c,v 1.47 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: naptr_35.c,v 1.48 2005/04/27 04:57:07 sra Exp $ */
 
 /* Reviewed: Thu Mar 16 16:52:50 PST 2000 by bwelling */
 
-/* RFC 2915 */
+/* RFC2915 */
 
 #ifndef RDATA_IN_1_NAPTR_35_C
 #define RDATA_IN_1_NAPTR_35_C

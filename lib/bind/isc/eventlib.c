@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: eventlib.c,v 1.7 2004/12/09 01:40:58 marka Exp $";
+static const char rcsid[] = "$Id: eventlib.c,v 1.8 2005/04/27 04:56:36 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -85,7 +85,7 @@ evCreate(evContext *opaqueCtx) {
 	FD_ZERO(&ctx->nonblockBefore);
 	ctx->fdMax = -1;
 	ctx->fdNext = NULL;
-	ctx->fdCount = 0;	/* Invalidate {rd,wr,ex}Last. */
+	ctx->fdCount = 0;	/*%< Invalidate {rd,wr,ex}Last. */
 	ctx->highestFD = FD_SETSIZE - 1;
 #ifdef EVENTLIB_TIME_CHECKS
 	ctx->lastFdCount = 0;
@@ -126,7 +126,7 @@ evSetDebug(evContext opaqueCtx, int level, FILE *output) {
 int
 evDestroy(evContext opaqueCtx) {
 	evContext_p *ctx = opaqueCtx.opaque;
-	int revs = 424242;	/* Doug Adams. */
+	int revs = 424242;	/*%< Doug Adams. */
 	evWaitList *this_wl, *next_wl;
 	evWait *this_wait, *next_wait;
 
@@ -242,8 +242,7 @@ evGetNext(evContext opaqueCtx, evEvent *opaqueEv, int options) {
 		nextTime = nextTimer->due;
 		timerPast = (evCmpTime(nextTime, ctx->lastEventTime) <= 0);
 	} else
-		timerPast = 0;	/* Make gcc happy. */
-
+		timerPast = 0;	/*%< Make gcc happy. */
 	evPrintf(ctx, 9, "evGetNext: fdCount %d\n", ctx->fdCount);
 	if (ctx->fdCount == 0) {
 		static const struct timespec NoTime = {0, 0L};
@@ -730,3 +729,5 @@ pselect(int nfds, void *rfds, void *wfds, void *efds,
 	return (n);
 }
 #endif
+
+/*! \file */

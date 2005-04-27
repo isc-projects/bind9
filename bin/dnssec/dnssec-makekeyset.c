@@ -16,7 +16,31 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-makekeyset.c,v 1.63 2004/08/28 06:16:50 marka Exp $ */
+/* $Id: dnssec-makekeyset.c,v 1.64 2005/04/27 04:55:47 sra Exp $ */
+
+/*! \file */
+
+/**
+ * \brief   dnssec-makekeyset - DNSSEC zone signing tool
+ * 
+ * \section dnssec-makekeyset-synopsis SYNOPSIS
+ * \par
+ * 	dnssec-makekeyset [ -a ]  [ -s start-time ]  [ -e end-time ]  [ -h ]  [
+ *        -p ]  [ -r randomdev ]  [ -tttl ]  [ -v level ]  key...
+ * 
+ * \section dnssec-makekeyset-description DESCRIPTION
+ * \par
+ *        dnssec-makekeyset generates a key set from one or more keys created  by
+ *        dnssec-keygen.  It creates a file containing a KEY record for each key,
+ *        and self-signs the key set with each zone key. The output  file  is  of
+ *        the form keyset-nnnn., where nnnn is the zone name.
+ * 
+ * \link org.isc.doc.0037 More ... \endlink
+ */
+
+/** \page org.isc.doc.0037 dnssec-makekeyset
+ *  \htmlinclude org.isc.doc.0037.html
+ */
 
 #include <config.h>
 

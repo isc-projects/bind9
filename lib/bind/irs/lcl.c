@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: lcl.c,v 1.3 2004/03/18 02:57:59 marka Exp $";
+static const char rcsid[] = "$Id: lcl.c,v 1.4 2005/04/27 04:56:30 sra Exp $";
 #endif
 
 /* Imports */
@@ -138,3 +138,5 @@ lcl_close(struct irs_acc *this) {
 	}
 	memput(this, sizeof *this);
 }
+
+/*! \file */

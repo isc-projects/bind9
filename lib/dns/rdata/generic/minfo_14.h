@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MINFO_14_H
 #define GENERIC_MINFO_14_H 1
 
-/* $Id: minfo_14.h,v 1.23 2004/03/05 05:10:15 marka Exp $ */
+/* $Id: minfo_14.h,v 1.24 2005/04/27 04:57:04 sra Exp $ */
 
 typedef struct dns_rdata_minfo {
 	dns_rdatacommon_t	common;

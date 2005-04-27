@@ -16,9 +16,9 @@
  */
 
 /*
- * $Id: tkey.c,v 1.77 2004/06/11 00:27:00 marka Exp $
+ * $Id: tkey.c,v 1.78 2005/04/27 04:56:52 sra Exp $
  */
-
+/*! \file */
 #include <config.h>
 
 #include <isc/buffer.h>

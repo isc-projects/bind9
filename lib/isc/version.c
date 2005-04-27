@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.c,v 1.11 2004/03/05 05:10:50 marka Exp $ */
+/* $Id: version.c,v 1.12 2005/04/27 04:57:15 sra Exp $ */
+
+/*! \file */
 
 #include <isc/version.h>
 

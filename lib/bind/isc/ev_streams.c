@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_streams.c,v 1.4 2004/03/18 02:58:00 marka Exp $";
+static const char rcsid[] = "$Id: ev_streams.c,v 1.5 2005/04/27 04:56:36 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -304,3 +304,5 @@ readable(evContext opaqueCtx, void *uap, int fd, int evmask) {
 	if (str->ioDone <= 0 || str->ioDone == str->ioTotal)
 		done(opaqueCtx, str);
 }
+
+/*! \file */

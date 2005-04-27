@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rootns.c,v 1.28 2005/02/07 23:57:02 marka Exp $ */
+/* $Id: rootns.c,v 1.29 2005/04/27 04:56:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

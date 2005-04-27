@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.55 2005/01/11 23:10:04 marka Exp $ */
+/* $Id: config.c,v 1.56 2005/04/27 04:55:49 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -42,6 +44,7 @@
 #include <named/config.h>
 #include <named/globals.h>
 
+/*% default configuration */
 static char defaultconf[] = "\
 options {\n\
 #	blackhole {none;};\n"

@@ -1,5 +1,5 @@
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: ctl_srvr.c,v 1.6 2004/03/18 02:58:00 marka Exp $";
+static const char rcsid[] = "$Id: ctl_srvr.c,v 1.7 2005/04/27 04:56:35 sra Exp $";
 #endif /* not lint */
 
 /*
@@ -158,7 +158,7 @@ static const struct ctl_verb	fakehelpverb = {
 
 /* Public. */
 
-/*
+/*%
  * void
  * ctl_server()
  *	create, condition, and start a listener on the control port.
@@ -263,7 +263,7 @@ ctl_server(evContext lev, const struct sockaddr *sap, size_t sap_len,
 	return (ctx);
 }
 
-/*
+/*%
  * void
  * ctl_endserver(ctx)
  *	if the control listener is open, close it.  clean out all eventlib
@@ -291,7 +291,7 @@ ctl_endserver(struct ctl_sctx *ctx) {
 	memput(ctx, sizeof *ctx);
 }
 
-/*
+/*%
  * If body is non-NULL then it we add a "." line after it.
  * Caller must have  escaped lines with leading ".".
  */
@@ -778,3 +778,5 @@ ctl_signal_done(struct ctl_sctx *ctx, struct ctl_sess *sess) {
 		sess->donefunc = NULL;
 	}
 }
+
+/*! \file */

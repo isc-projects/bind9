@@ -18,9 +18,10 @@
 #ifndef GENERIC_SIG_24_H
 #define GENERIC_SIG_24_H 1
 
-/* $Id: sig_24.h,v 1.22 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: sig_24.h,v 1.23 2005/04/27 04:57:06 sra Exp $ */
 
-/* RFC 2535 */
+/*!
+ *  \brief Per RFC2535 */
 
 typedef struct dns_rdata_sig_t {
 	dns_rdatacommon_t	common;

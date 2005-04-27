@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task_p.h,v 1.7 2004/03/05 05:10:50 marka Exp $ */
+/* $Id: task_p.h,v 1.8 2005/04/27 04:57:15 sra Exp $ */
 
 #ifndef ISC_TASK_P_H
 #define ISC_TASK_P_H
+
+/*! \file */
 
 isc_boolean_t
 isc__taskmgr_ready(void);

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.9 2004/11/30 01:08:51 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.10 2005/04/27 04:56:26 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -51,7 +51,7 @@ innetgr_r(const char *netgroup, const char *host, const char *user,
 	return (innetgr(ng, ho, us, dom));
 }
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -164,3 +164,4 @@ copy_protoent(char **machinep, char **userp, char **domainp,
 	static int getnetgrent_r_unknown_system = 0;
 #endif /* NGR_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
+/*! \file */

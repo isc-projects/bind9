@@ -16,11 +16,13 @@
  */
 
 /*
- * $Id: misc.h,v 1.4 2004/03/09 06:29:56 marka Exp $
+ * $Id: misc.h,v 1.5 2005/04/27 04:56:18 sra Exp $
  */
 
 #ifndef _ISC_MISC_H
 #define _ISC_MISC_H
+
+/*! \file */
 
 #include <stdio.h>
 
@@ -37,3 +39,5 @@ extern void		isc_puthexstring(FILE *, const unsigned char *, size_t,
 extern void		isc_tohex(const unsigned char *, size_t, char *);
 
 #endif /*_ISC_MISC_H*/
+
+/*! \file */

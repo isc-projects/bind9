@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rp_17.c,v 1.38 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rp_17.c,v 1.39 2005/04/27 04:57:05 sra Exp $ */
 
-/* RFC 1183 */
+/* RFC1183 */
 
 #ifndef RDATA_GENERIC_RP_17_C
 #define RDATA_GENERIC_RP_17_C

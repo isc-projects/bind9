@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MG_8_H
 #define GENERIC_MG_8_H 1
 
-/* $Id: mg_8.h,v 1.22 2004/03/05 05:10:14 marka Exp $ */
+/* $Id: mg_8.h,v 1.23 2005/04/27 04:57:04 sra Exp $ */
 
 typedef struct dns_rdata_mg {
 	dns_rdatacommon_t	common;

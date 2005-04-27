@@ -67,10 +67,11 @@
  * ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
  * SOFTWARE.
  */
+/*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "@(#)inet_addr.c	8.1 (Berkeley) 6/17/93";
-static char rcsid[] = "$Id: inet_aton.c,v 1.17 2004/03/05 05:10:45 marka Exp $";
+static char rcsid[] = "$Id: inet_aton.c,v 1.18 2005/04/27 04:57:12 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>
@@ -81,7 +82,7 @@ static char rcsid[] = "$Id: inet_aton.c,v 1.17 2004/03/05 05:10:45 marka Exp $";
 #include <isc/types.h>
 #include <isc/net.h>
 
-/*
+/*%
  * Check whether "cp" is a valid ascii representation
  * of an Internet address and convert to a binary address.
  * Returns 1 if the address is valid, 0 if not.

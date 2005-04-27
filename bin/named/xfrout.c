@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.118 2005/03/06 15:30:36 marka Exp $ */
+/* $Id: xfrout.c,v 1.119 2005/04/27 04:55:55 sra Exp $ */
 
 #include <config.h>
 
@@ -48,7 +48,8 @@
 #include <named/server.h>
 #include <named/xfrout.h>
 
-/*
+/*! \file 
+ * \brief
  * Outgoing AXFR and IXFR.
  */
 
@@ -71,7 +72,7 @@
 
 #define XFROUT_RR_LOGLEVEL	ISC_LOG_DEBUG(8)
 
-/*
+/*%
  * Fail unconditionally and log as a client error.
  * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
  * from complaining about "end-of-loop code not reached".
@@ -106,13 +107,14 @@
 	} while (0)
 
 /**************************************************************************/
-/*
+/*%
  * A db_rr_iterator_t is an iterator that iterates over an entire database,
  * returning one RR at a time, in some arbitrary order.
  */
 
 typedef struct db_rr_iterator db_rr_iterator_t;
 
+/*% db_rr_iterator structure */
 struct db_rr_iterator {
 	isc_result_t		result;
 	dns_db_t		*db;
@@ -283,7 +285,7 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 
 /**************************************************************************/
 
-/* Log an RR (for debugging) */
+/*% Log an RR (for debugging) */
 
 static void
 log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {

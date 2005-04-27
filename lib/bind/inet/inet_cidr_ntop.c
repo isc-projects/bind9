@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: inet_cidr_ntop.c,v 1.4 2004/03/18 02:57:56 marka Exp $";
+static const char rcsid[] = "$Id: inet_cidr_ntop.c,v 1.5 2005/04/27 04:56:19 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -45,7 +45,7 @@ static char *	inet_cidr_ntop_ipv4 __P((const u_char *src, int bits,
 static char *	inet_cidr_ntop_ipv6 __P((const u_char *src, int bits,
 					 char *dst, size_t size));
 
-/*
+/*%
  * char *
  * inet_cidr_ntop(af, src, bits, dst, size)
  *	convert network address from network to presentation format.
@@ -92,7 +92,7 @@ decoct(const u_char *src, int bytes, char *dst, size_t size) {
 	return (dst - odst);
 }
 
-/*
+/*%
  * static char *
  * inet_cidr_ntop_ipv4(src, bits, dst, size)
  *	convert IPv4 network address from network to presentation format.
@@ -257,3 +257,5 @@ inet_cidr_ntop_ipv6(const u_char *src, int bits, char *dst, size_t size) {
 	strcpy(dst, tmp);
 	return (dst);
 }
+
+/*! \file */

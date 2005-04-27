@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.2 2004/03/05 05:09:10 marka Exp $ */
+/* $Id: check.h,v 1.3 2005/04/27 04:56:44 sra Exp $ */
 
 #ifndef BIND9_CHECK_H
 #define BIND9_CHECK_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -29,24 +31,24 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
-/*
+/*%<
  * Check the syntactic validity of a configuration parse tree generated from
  * a named.conf file.
  *
  * Requires:
- *	config is a valid parse tree
+ *\li	config is a valid parse tree
  *
- *	logctx is a valid logging context.
+ *\li	logctx is a valid logging context.
  *
  * Returns:
- * 	ISC_R_SUCCESS
- * 	ISC_R_FAILURE
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_FAILURE
  */
 
 isc_result_t
 bind9_check_key(cfg_obj_t *config, isc_log_t *logctx);
-/*
- * As above, but for a single 'key' statement.
+/*%<
+ * Same as bind9_check_namedconf(), but for a single 'key' statement.
  */
 
 ISC_LANG_ENDDECLS

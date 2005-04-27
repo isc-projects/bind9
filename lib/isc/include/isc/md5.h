@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.h,v 1.9 2004/03/05 05:10:58 marka Exp $ */
+/* $Id: md5.h,v 1.10 2005/04/27 04:57:18 sra Exp $ */
 
-/*
- * This is the header file for the MD5 message-digest algorithm.
+/*! \file 
+ * \brief This is the header file for the MD5 message-digest algorithm.
+ *
  * The algorithm is due to Ron Rivest.  This code was
  * written by Colin Plumb in 1993, no copyright is claimed.
  * This code is in the public domain; do with it what you wish.

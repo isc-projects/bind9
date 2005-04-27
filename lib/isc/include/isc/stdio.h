@@ -15,10 +15,21 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.h,v 1.7 2004/03/05 05:11:01 marka Exp $ */
+/* $Id: stdio.h,v 1.8 2005/04/27 04:57:21 sra Exp $ */
 
 #ifndef ISC_STDIO_H
 #define ISC_STDIO_H 1
+
+/*! \file */
+
+/*% 
+ * These functions are wrappers around the corresponding stdio functions.
+ *
+ * They return a detailed error code in the form of an an isc_result_t.  ANSI C
+ * does not guarantee that stdio functions set errno, hence these functions
+ * must use platform dependent methods (e.g., the POSIX errno) to construct the
+ * error code.
+ */
 
 #include <stdio.h>
 
@@ -27,36 +38,35 @@
 
 ISC_LANG_BEGINDECLS
 
+/*% Open */
 isc_result_t
 isc_stdio_open(const char *filename, const char *mode, FILE **fp);
 
+/*% Close */
 isc_result_t
 isc_stdio_close(FILE *f);
 
+/*% Seek */
 isc_result_t
 isc_stdio_seek(FILE *f, long offset, int whence);
 
+/*% Read */
 isc_result_t
 isc_stdio_read(void *ptr, size_t size, size_t nmemb, FILE *f,
 	       size_t *nret);
 
+/*% Write */
 isc_result_t
 isc_stdio_write(const void *ptr, size_t size, size_t nmemb, FILE *f,
 		size_t *nret);
 
+/*% Flush */
 isc_result_t
 isc_stdio_flush(FILE *f);
-/*
- * These functions are wrappers around the corresponding stdio functions,
- * returning a detailed error code in the form of an an isc_result_t.  ANSI C
- * does not guarantee that stdio functions set errno, hence these functions
- * must use platform dependent methods (e.g., the POSIX errno) to construct the
- * error code.
- */
 
 isc_result_t
 isc_stdio_sync(FILE *f);
-/*
+/*%<
  * Invoke fsync() on the file descriptor underlying an stdio stream, or an
  * equivalent system-dependent operation.  Note that this function has no
  * direct counterpart in the stdio library.

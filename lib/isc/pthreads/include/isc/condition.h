@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.h,v 1.22 2004/03/05 05:11:40 marka Exp $ */
+/* $Id: condition.h,v 1.23 2005/04/27 04:57:22 sra Exp $ */
 
 #ifndef ISC_CONDITION_H
 #define ISC_CONDITION_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/mutex.h>

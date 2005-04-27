@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.11 2004/09/16 01:01:26 marka Exp $ */
+/* $Id: string.c,v 1.12 2005/04/27 04:57:15 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

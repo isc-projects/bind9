@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.31 2004/08/28 06:16:52 marka Exp $ */
+/* $Id: notify.c,v 1.32 2005/04/27 04:55:53 sra Exp $ */
 
 #include <config.h>
 
@@ -32,8 +32,9 @@
 #include <named/log.h>
 #include <named/notify.h>
 
-/*
- * This module implements notify as in RFC 1996.
+/*! \file
+ * \brief
+ * This module implements notify as in RFC1996.
  */
 
 static void

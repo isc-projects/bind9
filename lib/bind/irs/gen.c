@@ -16,10 +16,11 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: gen.c,v 1.6 2004/09/16 00:56:12 marka Exp $";
+static const char rcsid[] = "$Id: gen.c,v 1.7 2005/04/27 04:56:23 sra Exp $";
 #endif
 
-/*
+/*! \file
+ * \brief
  * this is the top level dispatcher
  *
  * The dispatcher is implemented as an accessor class; it is an

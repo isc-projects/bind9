@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.120 2005/01/10 23:43:17 marka Exp $ */
+/* $Id: update.c,v 1.121 2005/04/27 04:55:55 sra Exp $ */
 
 #include <config.h>
 
@@ -47,7 +47,8 @@
 #include <named/log.h>
 #include <named/update.h>
 
-/*
+/*! \file
+ * \brief
  * This module implements dynamic update as in RFC2136.
  */
 
@@ -58,17 +59,17 @@
 
 /**************************************************************************/
 
-/*
+/*%
  * Log level for tracing dynamic update protocol requests.
  */
 #define LOGLEVEL_PROTOCOL	ISC_LOG_INFO
 
-/*
+/*%
  * Log level for low-level debug tracing.
  */
 #define LOGLEVEL_DEBUG 		ISC_LOG_DEBUG(8)
 
-/*
+/*%
  * Check an operation for failure.  These macros all assume that
  * the function using them has a 'result' variable and a 'failure'
  * label.
@@ -78,7 +79,7 @@
 	       if (result != ISC_R_SUCCESS) goto failure; 	 \
 	} while (0)
 
-/*
+/*%
  * Fail unconditionally with result 'code', which must not
  * be ISC_R_SUCCESS.  The reason for failure presumably has
  * been logged already.
@@ -93,7 +94,7 @@
 		if (result != ISC_R_SUCCESS) goto failure;	\
 	} while (0)
 
-/*
+/*%
  * Fail unconditionally and log as a client error.
  * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
  * from complaining about "end-of-loop code not reached".
@@ -159,7 +160,7 @@
 		}							\
 		if (result != ISC_R_SUCCESS) goto failure;		\
 	} while (0)
-/*
+/*%
  * Fail unconditionally and log as a server error.
  * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
  * from complaining about "end-of-loop code not reached".
@@ -269,12 +270,12 @@ checkupdateacl(ns_client_t *client, dns_acl_t *acl, const char *message,
 	return (result);
 }
 
-/*
+/*%
  * Update a single RR in version 'ver' of 'db' and log the
  * update in 'diff'.
  *
  * Ensures:
- *   '*tuple' == NULL.  Either the tuple is freed, or its
+ * \li  '*tuple' == NULL.  Either the tuple is freed, or its
  *         ownership has been transferred to the diff.
  */
 static isc_result_t
@@ -312,12 +313,12 @@ do_one_tuple(dns_difftuple_t **tuple,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Perform the updates in 'updates' in version 'ver' of 'db' and log the
  * update in 'diff'.
  *
  * Ensures:
- *   'updates' is empty.
+ * \li  'updates' is empty.
  */
 static isc_result_t
 do_diff(dns_diff_t *updates, dns_db_t *db, dns_dbversion_t *ver,
@@ -370,17 +371,17 @@ update_one_rr(dns_db_t *db, dns_dbversion_t *ver, dns_diff_t *diff,
  * XXXRTH  We might want to make this public somewhere in libdns.
  */
 
-/*
+/*%
  * Function type for foreach_rrset() iterator actions.
  */
 typedef isc_result_t rrset_func(void *data, dns_rdataset_t *rrset);
 
-/*
+/*%
  * Function type for foreach_rr() iterator actions.
  */
 typedef isc_result_t rr_func(void *data, rr_t *rr);
 
-/*
+/*%
  * Internal context struct for foreach_node_rr().
  */
 typedef struct {
@@ -388,7 +389,7 @@ typedef struct {
 	void *		rr_action_data;
 } foreach_node_rr_ctx_t;
 
-/*
+/*%
  * Internal helper function for foreach_node_rr().
  */
 static isc_result_t
@@ -412,7 +413,7 @@ foreach_node_rr_action(void *data, dns_rdataset_t *rdataset) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * For each rdataset of 'name' in 'ver' of 'db', call 'action'
  * with the rdataset and 'action_data' as arguments.  If the name
  * does not exist, do nothing.
@@ -470,7 +471,7 @@ foreach_rrset(dns_db_t *db,
 	return (result);
 }
 
-/*
+/*%
  * For each RR of 'name' in 'ver' of 'db', call 'action'
  * with the RR and 'action_data' as arguments.  If the name
  * does not exist, do nothing.
@@ -493,7 +494,7 @@ foreach_node_rr(dns_db_t *db,
 }
 
 
-/*
+/*%
  * For each of the RRs specified by 'db', 'ver', 'name', 'type',
  * (which can be dns_rdatatype_any to match any type), and 'covers', call
  * 'action' with the RR and 'action_data' as arguments. If the name
@@ -565,13 +566,13 @@ foreach_rr(dns_db_t *db,
  * Various tests on the database contents (for prerequisites, etc).
  */
 
-/*
+/*%
  * Function type for predicate functions that compare a database RR 'db_rr'
  * against an update RR 'update_rr'.
  */
 typedef isc_boolean_t rr_predicate(dns_rdata_t *update_rr, dns_rdata_t *db_rr);
 
-/*
+/*%
  * Helper function for rrset_exists().
  */
 static isc_result_t
@@ -581,7 +582,7 @@ rrset_exists_action(void *data, rr_t *rr) {
 	return (ISC_R_EXISTS);
 }
 
-/*
+/*%
  * Utility macro for RR existence checking functions.
  *
  * If the variable 'result' has the value ISC_R_EXISTS or
@@ -601,7 +602,7 @@ rrset_exists_action(void *data, rr_t *rr) {
 		 (*exists = ISC_FALSE, ISC_R_SUCCESS) :	\
 		 result))
 
-/*
+/*%
  * Set '*exists' to true iff an rrset of the given type exists,
  * to false otherwise.
  */
@@ -616,7 +617,7 @@ rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 	RETURN_EXISTENCE_FLAG;
 }
 
-/*
+/*%
  * Helper function for cname_incompatible_rrset_exists.
  */
 static isc_result_t
@@ -628,7 +629,7 @@ cname_compatibility_action(void *data, dns_rdataset_t *rrset) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Check whether there is an rrset incompatible with adding a CNAME RR,
  * i.e., anything but another CNAME (which can be replaced) or a
  * DNSSEC RR (which can coexist).
@@ -645,7 +646,7 @@ cname_incompatible_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 	RETURN_EXISTENCE_FLAG;
 }
 
-/*
+/*%
  * Helper function for rr_count().
  */
 static isc_result_t
@@ -656,7 +657,7 @@ count_rr_action(void *data, rr_t *rr) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Count the number of RRs of 'type' belonging to 'name' in 'ver' of 'db'.
  */
 static isc_result_t
@@ -668,7 +669,7 @@ rr_count(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			   count_rr_action, countp));
 }
 
-/*
+/*%
  * Context struct and helper function for name_exists().
  */
 
@@ -679,7 +680,7 @@ name_exists_action(void *data, dns_rdataset_t *rrset) {
 	return (ISC_R_EXISTS);
 }
 
-/*
+/*%
  * Set '*exists' to true iff the given name exists, to false otherwise.
  */
 static isc_result_t
@@ -740,7 +741,7 @@ ssu_checkall(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 
 
-/*
+/*%
  * Append a tuple asserting the existence of the RR with
  * 'name' and 'rdata' to 'diff'.
  */
@@ -757,7 +758,7 @@ temp_append(dns_diff_t *diff, dns_name_t *name, dns_rdata_t *rdata) {
 	return (result);
 }
 
-/*
+/*%
  * Compare two rdatasets represented as sorted lists of tuples.
  * All list elements must have the same owner name and type.
  * Return ISC_R_SUCCESS if the rdatasets are equal, rcode(dns_rcode_nxrrset)
@@ -782,7 +783,7 @@ temp_check_rrset(dns_difftuple_t *a, dns_difftuple_t *b) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * A comparison function defining the sorting order for the entries
  * in the "temp" data structure.  The major sort key is the owner name,
  * followed by the type and rdata.
@@ -804,7 +805,7 @@ temp_order(const void *av, const void *bv) {
 	return (r);
 }
 
-/*
+/*%
  * Check the "RRset exists (value dependent)" prerequisite information
  * in 'temp' against the contents of the database 'db'.
  *
@@ -947,7 +948,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
  * Conditional deletion of RRs.
  */
 
-/*
+/*%
  * Context structure for delete_if().
  */
 
@@ -960,11 +961,11 @@ typedef struct {
 	dns_rdata_t *update_rr;
 } conditional_delete_ctx_t;
 
-/*
+/*%
  * Predicate functions for delete_if().
  */
 
-/*
+/*%
  * Return true iff 'db_rr' is neither a SOA nor an NS RR nor
  * an RRSIG nor a NSEC.
  */
@@ -989,7 +990,7 @@ type_not_dnssec(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		ISC_TRUE : ISC_FALSE);
 }
 
-/*
+/*%
  * Return true always.
  */
 static isc_boolean_t
@@ -999,7 +1000,7 @@ true_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	return (ISC_TRUE);
 }
 
-/*
+/*%
  * Return true iff the two RRs have identical rdata.
  */
 static isc_boolean_t
@@ -1013,7 +1014,7 @@ rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		ISC_TRUE : ISC_FALSE);
 }
 
-/*
+/*%
  * Return true iff 'update_rr' should replace 'db_rr' according
  * to the special RFC2136 rules for CNAME, SOA, and WKS records.
  *
@@ -1047,7 +1048,7 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	return (ISC_FALSE);
 }
 
-/*
+/*%
  * Internal helper function for delete_if().
  */
 static isc_result_t
@@ -1064,7 +1065,7 @@ delete_if_action(void *data, rr_t *rr) {
 	}
 }
 
-/*
+/*%
  * Conditionally delete RRs.  Apply 'predicate' to the RRs
  * specified by 'db', 'ver', 'name', and 'type' (which can
  * be dns_rdatatype_any to match any type).  Delete those
@@ -1093,7 +1094,7 @@ delete_if(rr_predicate *predicate,
 }
 
 /**************************************************************************/
-/*
+/*%
  * Prepare an RR for the addition of the new RR 'ctx->update_rr',
  * with TTL 'ctx->update_rr_ttl', to its rdataset, by deleting
  * the RRs if it is replaced by the new RR or has a conflicting TTL.
@@ -1174,7 +1175,7 @@ add_rr_prepare_action(void *data, rr_t *rr) {
  * Miscellaneous subroutines.
  */
 
-/*
+/*%
  * Extract a single update RR from 'section' of dynamic update message
  * 'msg', with consistency checking.
  *
@@ -1204,7 +1205,7 @@ get_current_rr(dns_message_t *msg, dns_section_t section,
 	rdata->rdclass = zoneclass;
 }
 
-/*
+/*%
  * Increment the SOA serial number of database 'db', version 'ver'.
  * Replace the SOA record in the database, and log the
  * change in 'diff'.
@@ -1249,7 +1250,7 @@ increment_soa_serial(dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
-/*
+/*%
  * Check that the new SOA record at 'update_rdata' does not
  * illegally cause the SOA serial number to decrease or stay
  * unchanged relative to the existing SOA in 'db'.
@@ -1299,9 +1300,9 @@ check_soa_increment(dns_db_t *db, dns_dbversion_t *ver,
  * Incremental updating of NSECs and RRSIGs.
  */
 
-#define MAXZONEKEYS 32	/* Maximum number of zone keys supported. */
+#define MAXZONEKEYS 32	/*%< Maximum number of zone keys supported. */
 
-/*
+/*%
  * We abuse the dns_diff_t type to represent a set of domain names
  * affected by the update.
  */
@@ -1352,7 +1353,7 @@ namelist_append_subdomain(dns_db_t *db, dns_name_t *name, dns_diff_t *affected)
 
 
 
-/*
+/*%
  * Helper function for non_nsec_rrset_exists().
  */
 static isc_result_t
@@ -1365,7 +1366,7 @@ is_non_nsec_action(void *data, dns_rdataset_t *rrset) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Check whether there is an rrset other than a NSEC or RRSIG NSEC,
  * i.e., anything that justifies the continued existence of a name
  * after a secure update.
@@ -1383,7 +1384,7 @@ non_nsec_rrset_exists(dns_db_t *db, dns_dbversion_t *ver,
 	RETURN_EXISTENCE_FLAG;
 }
 
-/*
+/*%
  * A comparison function for sorting dns_diff_t:s by name.
  */
 static int
@@ -1448,7 +1449,7 @@ is_glue(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	}
 }
 
-/*
+/*%
  * Find the next/previous name that has a NSEC record.
  * In other words, skip empty database nodes and names that
  * have had their NSECs removed because they are obscured by
@@ -1511,7 +1512,7 @@ next_active(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	return (result);
 }
 
-/*
+/*%
  * Add a NSEC record for "name", recording the change in "diff".
  * The existing NSEC is removed.
  */
@@ -1563,7 +1564,7 @@ add_nsec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	return (result);
 }
 
-/*
+/*%
  * Add a placeholder NSEC record for "name", recording the change in "diff".
  */
 static isc_result_t
@@ -1602,7 +1603,7 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
-/*
+/*%
  * Add RRSIG records for an RRset, recording the change in "diff".
  */
 static isc_result_t
@@ -1650,7 +1651,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	return (result);
 }
 
-/*
+/*%
  * Update RRSIG and NSEC records affected by an update.  The original
  * update, including the SOA serial update but exluding the RRSIG & NSEC
  * changes, is in "diff" and has already been applied to "newver" of "db".
@@ -1964,7 +1965,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 
 
 /**************************************************************************/
-/*
+/*%
  * The actual update code in all its glory.  We try to follow
  * the RFC2136 pseudocode as closely as possible.
  */
@@ -2093,7 +2094,7 @@ ns_update_start(ns_client_t *client, isc_result_t sigresult) {
 		dns_zone_detach(&zone);
 }
 
-/*
+/*%
  * DS records are not allowed to exist without corresponding NS records,
  * draft-ietf-dnsext-delegation-signer-11.txt, 2.2 Protocol Change,
  * "DS RRsets MUST NOT appear at non-delegation points or at a zone's apex".
@@ -2400,7 +2401,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		if (update_class == zoneclass) {
 
 			/*
-			 * RFC 1123 doesn't allow MF and MD in master zones.				 */
+			 * RFC1123 doesn't allow MF and MD in master zones.				 */
 			if (rdata.type == dns_rdatatype_md ||
 			    rdata.type == dns_rdatatype_mf) {
 				char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -2738,7 +2739,7 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-/*
+/*%
  * Update forwarding support.
  */
 

@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.h,v 1.3 2004/03/05 05:10:11 marka Exp $ */
+/* $Id: ds_43.h,v 1.4 2005/04/27 04:57:03 sra Exp $ */
 
-/* draft-ietf-dnsext-delegation-signer-05.txt */
 #ifndef GENERIC_DS_43_H
 #define GENERIC_DS_43_H 1
 
+/*!
+ *  \brief per draft-ietf-dnsext-delegation-signer-05.txt */
 typedef struct dns_rdata_ds {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;

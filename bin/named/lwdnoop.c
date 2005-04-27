@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdnoop.c,v 1.7 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: lwdnoop.c,v 1.8 2005/04/27 04:55:52 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

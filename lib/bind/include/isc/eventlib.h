@@ -18,7 +18,7 @@
 /* eventlib.h - exported interfaces for eventlib
  * vix 09sep95 [initial]
  *
- * $Id: eventlib.h,v 1.3 2004/03/09 06:29:55 marka Exp $
+ * $Id: eventlib.h,v 1.4 2005/04/27 04:56:17 sra Exp $
  */
 
 #ifndef _EVENTLIB_H
@@ -198,3 +198,5 @@ int evDefer __P((evContext, evWaitFunc, void *));
 #endif
 
 #endif /*_EVENTLIB_H*/
+
+/*! \file */

@@ -18,9 +18,10 @@
 #ifndef IN_1_KX_36_H
 #define IN_1_KX_36_H 1
 
-/* $Id: kx_36.h,v 1.16 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: kx_36.h,v 1.17 2005/04/27 04:57:07 sra Exp $ */
 
-/* RFC 2230 */
+/*! 
+ *  \brief Per RFC2230 */
 
 typedef struct dns_rdata_in_kx {
 	dns_rdatacommon_t	common;

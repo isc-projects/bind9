@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_pr.c,v 1.4 2004/03/09 06:29:59 marka Exp $";
+static const char rcsid[] = "$Id: dns_pr.c,v 1.5 2005/04/27 04:56:22 sra Exp $";
 #endif
 
 /* Imports */
@@ -264,3 +264,5 @@ parse_hes_list(struct irs_pr *this, char **hes_list) {
 	}
 	return (NULL);
 }
+
+/*! \file */

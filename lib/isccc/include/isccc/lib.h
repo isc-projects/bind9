@@ -16,10 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.4 2004/03/05 05:12:15 marka Exp $ */
+/* $Id: lib.h,v 1.5 2005/04/27 04:57:27 sra Exp $ */
 
 #ifndef ISCCC_LIB_H
 #define ISCCC_LIB_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -30,7 +32,7 @@ LIBISCCC_EXTERNAL_DATA extern isc_msgcat_t *isccc_msgcat;
 
 void
 isccc_lib_initmsgcat(void);
-/*
+/*%
  * Initialize the ISCCC library's message catalog, isccc_msgcat, if it
  * has not already been initialized.
  */

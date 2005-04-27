@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.c,v 1.4 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: lwaddr.c,v 1.5 2005/04/27 04:55:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -29,7 +31,7 @@
 
 #include <named/lwaddr.h>
 
-/*
+/*%
  * Convert addresses from lwres to isc format.
  */
 isc_result_t
@@ -63,7 +65,7 @@ lwaddr_sockaddr_fromlwresaddr(isc_sockaddr_t *sa, lwres_addr_t *la,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * Convert addresses from isc to lwres format.
  */
 

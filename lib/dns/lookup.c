@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.15 2004/04/15 01:58:24 marka Exp $ */
+/* $Id: lookup.c,v 1.16 2005/04/27 04:56:47 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

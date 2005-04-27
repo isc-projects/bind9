@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.8 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: lwsearch.c,v 1.9 2005/04/27 04:55:53 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

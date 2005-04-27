@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.63 2004/03/05 04:58:36 marka Exp $ */
+/* $Id: adb_test.c,v 1.64 2005/04/27 04:56:05 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

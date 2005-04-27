@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.56 2005/02/23 01:06:37 marka Exp $ */
+/* $Id: check.c,v 1.57 2005/04/27 04:56:43 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

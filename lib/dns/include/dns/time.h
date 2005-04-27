@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.11 2004/03/05 05:09:47 marka Exp $ */
+/* $Id: time.h,v 1.12 2005/04/27 04:57:00 sra Exp $ */
 
 #ifndef DNS_TIME_H
 #define DNS_TIME_H 1
+
+/*! \file */
 
 /***
  ***	Imports
@@ -35,7 +37,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_time64_fromtext(const char *source, isc_int64_t *target);
-/*
+/*%<
  * Convert a date and time in YYYYMMDDHHMMSS text format at 'source'
  * into to a 64-bit count of seconds since Jan 1 1970 0:00 GMT.
  * Store the count at 'target'.
@@ -43,7 +45,7 @@ dns_time64_fromtext(const char *source, isc_int64_t *target);
 
 isc_result_t
 dns_time32_fromtext(const char *source, isc_uint32_t *target);
-/*
+/*%<
  * Like dns_time64_fromtext, but returns the second count modulo 2^32
  * as per RFC2535.
  */
@@ -51,14 +53,14 @@ dns_time32_fromtext(const char *source, isc_uint32_t *target);
 
 isc_result_t
 dns_time64_totext(isc_int64_t value, isc_buffer_t *target);
-/*
+/*%<
  * Convert a 64-bit count of seconds since Jan 1 1970 0:00 GMT into
  * a YYYYMMDDHHMMSS text representation and append it to 'target'.
  */
 
 isc_result_t
 dns_time32_totext(isc_uint32_t value, isc_buffer_t *target);
-/*
+/*%<
  * Like dns_time64_totext, but for a 32-bit cyclic time value.
  * Of those dates whose counts of seconds since Jan 1 1970 0:00 GMT
  * are congruent with 'value' modulo 2^32, the one closest to the

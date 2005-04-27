@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_connects.c,v 1.5 2004/03/09 06:30:07 marka Exp $";
+static const char rcsid[] = "$Id: ev_connects.c,v 1.6 2005/04/27 04:56:35 sra Exp $";
 #endif
 
 /* Import. */
@@ -69,7 +69,7 @@ evListen(evContext opaqueCtx, int fd, int maxconn,
 
 	OKNEW(new);
 	new->flags = EV_CONN_LISTEN;
-	OK(mode = fcntl(fd, F_GETFL, NULL));	/* side effect: validate fd. */
+	OK(mode = fcntl(fd, F_GETFL, NULL));	/*%< side effect: validate fd. */
 	/*
 	 * Remember the nonblocking status.  We assume that either evSelectFD
 	 * has not been done to this fd, or that if it has then the caller
@@ -359,9 +359,11 @@ connector(evContext opaqueCtx, void *uap, int fd, int evmask) {
 	    GETXXXNAME(getpeername, fd, ra.sa, ralen) < 0) {
 		int save = errno;
 
-		(void) close(fd);	/* XXX closing caller's fd */
+		(void) close(fd);	/*%< XXX closing caller's fd */
 		errno = save;
 		fd = -1;
 	}
 	(*conn_func)(opaqueCtx, conn_uap, fd, &la.sa, lalen, &ra.sa, ralen);
 }
+
+/*! \file */

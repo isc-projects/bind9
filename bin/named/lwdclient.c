@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.17 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: lwdclient.c,v 1.18 2005/04/27 04:55:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

@@ -16,7 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.3 2004/03/05 05:12:09 marka Exp $ */
+/* $Id: base64.c,v 1.4 2005/04/27 04:57:25 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

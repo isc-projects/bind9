@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Id: readv.c,v 1.1 2001/03/29 06:30:35 marka Exp $";
+static const char rcsid[] = "$Id: readv.c,v 1.2 2005/04/27 04:56:11 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -36,3 +36,4 @@ __readv(fd, vp, vpcount)
 	return (count);
 }
 #endif /* NEED_READV */
+/*! \file */

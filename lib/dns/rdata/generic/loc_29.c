@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: loc_29.c,v 1.41 2004/03/05 05:10:12 marka Exp $ */
+/* $Id: loc_29.c,v 1.42 2005/04/27 04:57:04 sra Exp $ */
 
 /* Reviewed: Wed Mar 15 18:13:09 PST 2000 by explorer */
 
-/* RFC 1876 */
+/* RFC1876 */
 
 #ifndef RDATA_GENERIC_LOC_29_C
 #define RDATA_GENERIC_LOC_29_C

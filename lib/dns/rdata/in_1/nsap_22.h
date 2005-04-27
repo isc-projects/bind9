@@ -18,9 +18,10 @@
 #ifndef IN_1_NSAP_22_H
 #define IN_1_NSAP_22_H 1
 
-/* $Id: nsap_22.h,v 1.14 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: nsap_22.h,v 1.15 2005/04/27 04:57:10 sra Exp $ */
 
-/* RFC 1706 */
+/*! 
+ *  \brief Per RFC1706 */
 
 typedef struct dns_rdata_in_nsap {
 	dns_rdatacommon_t	common;

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.43 2005/02/23 01:06:36 marka Exp $ */
+/* $Id: controlconf.c,v 1.44 2005/04/27 04:55:50 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

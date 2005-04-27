@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: x25_19.c,v 1.35 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: x25_19.c,v 1.36 2005/04/27 04:57:06 sra Exp $ */
 
 /* Reviewed: Thu Mar 16 16:15:57 PST 2000 by bwelling */
 
-/* RFC 1183 */
+/* RFC1183 */
 
 #ifndef RDATA_GENERIC_X25_19_C
 #define RDATA_GENERIC_X25_19_C

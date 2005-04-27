@@ -15,8 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.14 2005/03/17 03:56:11 marka Exp $ */
+/* $Id: hash_test.c,v 1.15 2005/04/27 04:56:08 sra Exp $ */
 
+/*! \file */
 #include <config.h>
 
 #include <stdio.h>
@@ -78,7 +79,7 @@ main(int argc, char **argv) {
 	print_digest(buffer, "md5", digest, 4);
 
 	/*
-	 * The 3 HMAC-MD5 examples from RFC 2104
+	 * The 3 HMAC-MD5 examples from RFC2104
 	 */
 	s = "Hi There";
 	memset(key, 0x0b, 16);

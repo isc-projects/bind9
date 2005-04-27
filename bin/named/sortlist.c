@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.c,v 1.9 2004/03/05 04:57:49 marka Exp $ */
+/* $Id: sortlist.c,v 1.10 2005/04/27 04:55:54 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

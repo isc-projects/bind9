@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.59 2005/03/16 00:55:17 marka Exp $ */
+/* $Id: cache.c,v 1.60 2005/04/27 04:56:44 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -39,13 +41,18 @@
 #define CACHE_MAGIC		ISC_MAGIC('$', '$', '$', '$')
 #define VALID_CACHE(cache)	ISC_MAGIC_VALID(cache, CACHE_MAGIC)
 
-/*
- * The following two variables control incremental cleaning.
- * MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
- * CLEANERINCREMENT is how many nodes are examined in one pass.
+/*! 
+ * Control incremental cleaning.
+ * DNS_CACHE_MINSIZE is how many bytes is the floor for dns_cache_setcachesize().
+ * See also DNS_CACHE_CLEANERINCREMENT
  */
-#define DNS_CACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
-#define DNS_CACHE_CLEANERINCREMENT	1000	/* Number of nodes. */
+#define DNS_CACHE_MINSIZE 		2097152	/*%< Bytes.  2097152 = 2 MB */
+/*! 
+ * Control incremental cleaning.
+ * CLEANERINCREMENT is how many nodes are examined in one pass.
+ * See also DNS_CACHE_MINSIZE 
+ */
+#define DNS_CACHE_CLEANERINCREMENT	1000	/*%< Number of nodes. */
 
 /***
  ***	Types
@@ -59,9 +66,9 @@
 typedef struct cache_cleaner cache_cleaner_t;
 
 typedef enum {
-	cleaner_s_idle,	/* Waiting for cleaning-interval to expire. */
-	cleaner_s_busy,	/* Currently cleaning. */
-	cleaner_s_done  /* Freed enough memory after being overmem. */
+	cleaner_s_idle,	/*%< Waiting for cleaning-interval to expire. */
+	cleaner_s_busy,	/*%< Currently cleaning. */
+	cleaner_s_done  /*%< Freed enough memory after being overmem. */
 } cleaner_state_t;
 
 /*
@@ -74,13 +81,13 @@ typedef enum {
 			 (c)->iterator != NULL && \
 			 (c)->resched_event == NULL)
 
-/*
+/*%
  * Accesses to a cache cleaner object are synchronized through
  * task/event serialization, or locked from the cache object.
  */
 struct cache_cleaner {
 	isc_mutex_t	lock;
-	/*
+	/*%<
 	 * Locks overmem_event, overmem.  Note: never allocate memory
 	 * while holding this lock - that could lead to deadlock since
 	 * the lock is take by water() which is called from the memory
@@ -89,21 +96,21 @@ struct cache_cleaner {
 
 	dns_cache_t	*cache;
 	isc_task_t 	*task;
-	unsigned int	cleaning_interval; /* The cleaning-interval from
+	unsigned int	cleaning_interval; /*% The cleaning-interval from
 					      named.conf, in seconds. */
 	isc_timer_t 	*cleaning_timer;
-	isc_event_t	*resched_event;	/* Sent by cleaner task to
+	isc_event_t	*resched_event;	/*% Sent by cleaner task to
 					   itself to reschedule */
 	isc_event_t	*overmem_event;
 
 	dns_dbiterator_t *iterator;
-	int 		 increment;	/* Number of names to
+	int 		 increment;	/*% Number of names to
 					   clean in one increment */
-	cleaner_state_t  state;		/* Idle/Busy. */
-	isc_boolean_t	 overmem;	/* The cache is in an overmem state. */
+	cleaner_state_t  state;		/*% Idle/Busy. */
+	isc_boolean_t	 overmem;	/*% The cache is in an overmem state. */
 };
 
-/*
+/*%
  * The actual cache object.
  */
 

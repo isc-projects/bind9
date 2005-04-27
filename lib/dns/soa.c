@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.c,v 1.4 2004/03/05 05:09:24 marka Exp $ */
+/* $Id: soa.c,v 1.5 2005/04/27 04:56:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

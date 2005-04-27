@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.11 2004/03/05 05:09:20 marka Exp $ */
+/* $Id: lib.c,v 1.12 2005/04/27 04:56:47 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

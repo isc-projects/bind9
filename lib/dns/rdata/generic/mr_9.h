@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MR_9_H
 #define GENERIC_MR_9_H 1
 
-/* $Id: mr_9.h,v 1.22 2004/03/05 05:10:15 marka Exp $ */
+/* $Id: mr_9.h,v 1.23 2005/04/27 04:57:04 sra Exp $ */
 
 typedef struct dns_rdata_mr {
 	dns_rdatacommon_t	common;

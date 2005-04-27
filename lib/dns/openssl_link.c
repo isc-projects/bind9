@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1 2004/12/09 01:41:03 marka Exp $
+ * $Id: openssl_link.c,v 1.2 2005/04/27 04:56:48 sra Exp $
  */
 #ifdef OPENSSL
 
@@ -217,3 +217,4 @@ dst__openssl_toresult(isc_result_t fallback) {
 EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */
+/*! \file */

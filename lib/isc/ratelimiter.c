@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.c,v 1.21 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: ratelimiter.c,v 1.22 2005/04/27 04:57:14 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

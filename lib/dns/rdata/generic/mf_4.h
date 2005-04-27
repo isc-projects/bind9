@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MF_4_H
 #define GENERIC_MF_4_H 1
 
-/* $Id: mf_4.h,v 1.22 2004/03/05 05:10:14 marka Exp $ */
+/* $Id: mf_4.h,v 1.23 2005/04/27 04:57:04 sra Exp $ */
 
 typedef struct dns_rdata_mf {
 	dns_rdatacommon_t	common;

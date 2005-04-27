@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.64 2004/03/05 04:57:55 marka Exp $ */
+/* $Id: globals.h,v 1.65 2005/04/27 04:55:57 sra Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
+
+/*! \file */
 
 #include <isc/rwlock.h>
 #include <isc/log.h>

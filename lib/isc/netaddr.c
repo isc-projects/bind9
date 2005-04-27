@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.c,v 1.34 2005/03/16 23:39:05 marka Exp $ */
+/* $Id: netaddr.c,v 1.35 2005/04/27 04:57:13 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

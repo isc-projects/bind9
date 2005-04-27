@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: assert_p.h,v 1.10 2004/03/05 05:12:45 marka Exp $ */
+/* $Id: assert_p.h,v 1.11 2005/04/27 04:57:29 sra Exp $ */
 
 #ifndef LWRES_ASSERT_P_H
 #define LWRES_ASSERT_P_H 1
+
+/*! \file */
 
 #include <assert.h>		/* Required for assert() prototype. */
 

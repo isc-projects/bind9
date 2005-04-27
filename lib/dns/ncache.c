@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.c,v 1.37 2004/12/21 10:45:17 jinmei Exp $ */
+/* $Id: ncache.c,v 1.38 2005/04/27 04:56:48 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -184,7 +186,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		 *
 		 * We trust that the caller wants negative caching, so this
 		 * means we have a "type 3 nxdomain" or "type 3 nodata"
-		 * response (see RFC 2308 for details).
+		 * response (see RFC2308 for details).
 		 *
 		 * We will now build a suitable negative cache rdataset that
 		 * will cause zero bytes to be emitted when converted to
@@ -208,7 +210,7 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		isc_buffer_putuint16(&buffer, 0);
 		isc_buffer_putuint16(&buffer, 0);
 		/*
-		 * RFC 2308, section 5, says that negative answers without
+		 * RFC2308, section 5, says that negative answers without
 		 * SOAs should not be cached.
 		 */
 		ttl = 0;

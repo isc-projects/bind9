@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parseint.c,v 1.4 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: parseint.c,v 1.5 2005/04/27 04:57:14 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

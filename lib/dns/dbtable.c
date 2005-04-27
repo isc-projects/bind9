@@ -16,10 +16,11 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.28 2004/03/05 05:09:19 marka Exp $
+ * $Id: dbtable.c,v 1.29 2005/04/27 04:56:45 sra Exp $
  */
 
-/*
+/*! \file
+ * \author
  * Principal Author: DCL
  */
 

@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.90 2005/03/31 23:54:45 marka Exp $ */
+/* $Id: dig.h,v 1.91 2005/04/27 04:55:45 sra Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
+
+/*! \file */
 
 #include <dns/rdatalist.h>
 
@@ -38,36 +40,43 @@
 #define MXSERV 20
 #define MXNAME (DNS_NAME_MAXTEXT+1)
 #define MXRD 32
+/*% Buffer Size */
 #define BUFSIZE 512
 #define COMMSIZE 0xffff
 #ifndef RESOLV_CONF
+/*% location of resolve.conf */
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif
+/*% output buffer */
 #define OUTPUTBUF 32767
+/*% Max RR Limit */
 #define MAXRRLIMIT 0xffffffff
 #define MAXTIMEOUT 0xffff
+/*% Max number of tries */
 #define MAXTRIES 0xffffffff
+/*% Max number of dots */
 #define MAXNDOTS 0xffff
+/*% Max number of ports */
 #define MAXPORT 0xffff
+/*% Max serial number */
 #define MAXSERIAL 0xffffffff
 
-/*
- * Default timeout values
- */
+/*% Default TCP Timeout */
 #define TCP_TIMEOUT 10
+/*% Default UDP Timeout */
 #define UDP_TIMEOUT 5
 
 #define SERVER_TIMEOUT 1
 
 #define LOOKUP_LIMIT 64
-/*
+/*%
  * Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away
  * in a tight loop of constant lookups.  It's value is arbitrary.
  */
 
 #define ROOTNS 1
-/*
+/*%
  * Set the number of root servers to ask for information when running in
  * trace mode.
  * XXXMWS -- trace mode is currently semi-broken, and this number *MUST*
@@ -98,22 +107,23 @@ typedef struct dig_message dig_message_t;
 typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
 
+/*% The dig_lookup structure */
 struct dig_lookup {
 	isc_boolean_t
-	        pending, /* Pending a successful answer */
+	        pending, /*%< Pending a successful answer */
 		waiting_connect,
 		doing_xfr,
-		ns_search_only, /* dig +nssearch, host -C */
-		identify, /* Append an "on server <foo>" message */
-		identify_previous_line, /* Prepend a "Nameserver <foo>:"
+		ns_search_only, /*%< dig +nssearch, host -C */
+		identify, /*%< Append an "on server <foo>" message */
+		identify_previous_line, /*% Prepend a "Nameserver <foo>:"
 					   message, with newline and tab */
 		ignore,
 		recurse,
 		aaonly,
 		adflag,
 		cdflag,
-		trace, /* dig +trace */
-		trace_root, /* initial query for either +trace or +nssearch */
+		trace, /*% dig +trace */
+		trace_root, /*% initial query for either +trace or +nssearch */
 		tcp_mode,
 		ip6_int,
 		comments,
@@ -138,7 +148,7 @@ isc_boolean_t	sigchase;
 #endif
 #endif
 	
-	char textname[MXNAME]; /* Name we're going to be looking up */
+	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdatatype_t qrdtype;
@@ -179,6 +189,7 @@ isc_boolean_t	sigchase;
 	dns_fixedname_t fdomain;
 };
 
+/*% The dig_query structure */
 struct dig_query {
 	dig_lookup_t *lookup;
 	isc_boolean_t waiting_connect,
@@ -313,13 +324,13 @@ printrdataset(dns_name_t *owner_name, dns_rdataset_t *rdataset,
 
 isc_result_t
 printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers);
-/*
+/*%<
  * Print the final result of the lookup.
  */
 
 void
 received(int bytes, isc_sockaddr_t *from, dig_query_t *query);
-/*
+/*%<
  * Print a message about where and when the response
  * was received from, like the final comment in the
  * output of "dig".

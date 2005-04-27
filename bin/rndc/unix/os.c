@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.6 2004/03/05 04:58:29 marka Exp $ */
+/* $Id: os.c,v 1.7 2005/04/27 04:56:05 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

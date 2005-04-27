@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.43 2005/03/16 00:55:18 marka Exp $ */
+/* $Id: rt_21.c,v 1.44 2005/04/27 04:57:05 sra Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
-/* RFC 1183 */
+/* RFC1183 */
 
 #ifndef RDATA_GENERIC_RT_21_C
 #define RDATA_GENERIC_RT_21_C

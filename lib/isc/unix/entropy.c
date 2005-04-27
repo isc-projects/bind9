@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.71 2004/03/16 05:52:21 marka Exp $ */
+/* $Id: entropy.c,v 1.72 2005/04/27 04:57:23 sra Exp $ */
 
-/*
- * This is the system depenedent part of the ISC entropy API.
+/* \file unix/entropy.c
+ * \brief
+ * This is the system dependent part of the ISC entropy API.
  */
 
 #include <config.h>
@@ -41,7 +42,7 @@
 
 #include "errno2result.h"
 
-/*
+/*%
  * There is only one variable in the entropy data structures that is not
  * system independent, but pulling the structure that uses it into this file
  * ultimately means pulling several other independent structures here also to

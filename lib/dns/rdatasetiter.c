@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatasetiter.c,v 1.12 2004/03/05 05:09:23 marka Exp $ */
+/* $Id: rdatasetiter.c,v 1.13 2005/04/27 04:56:50 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

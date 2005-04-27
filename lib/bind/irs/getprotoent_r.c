@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getprotoent_r.c,v 1.4 2004/03/09 06:30:02 marka Exp $";
+static const char rcsid[] = "$Id: getprotoent_r.c,v 1.5 2005/04/27 04:56:26 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -76,7 +76,7 @@ getprotobynumber_r(int proto, struct protoent *pptr, PROTO_R_ARGS) {
 #endif
 }
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -136,7 +136,7 @@ copy_protoent(struct protoent *pe, struct protoent *pptr, PROTO_R_COPY_ARGS) {
 	int numptr, len;
 
 	/* Find out the amount of space required to store the answer. */
-	numptr = 1; /* NULL ptr */
+	numptr = 1; /*%< NULL ptr */
 	len = (char *)ALIGN(buf) - buf;
 	for (i = 0; pe->p_aliases[i]; i++, numptr++) {
 		len += strlen(pe->p_aliases[i]) + 1;
@@ -214,3 +214,4 @@ copy_protoent(struct protoent *pe, struct protoent *pptr, PROTO_R_COPY_ARGS) {
 	static int getprotoent_r_unknown_system = 0;
 #endif /* PROTO_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
+/*! \file */

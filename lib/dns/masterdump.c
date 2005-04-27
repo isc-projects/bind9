@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.75 2004/08/28 06:16:56 marka Exp $ */
+/* $Id: masterdump.c,v 1.76 2005/04/27 04:56:48 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -65,7 +67,7 @@ struct dns_master_style {
 	unsigned int tab_width;
 };
 
-/*
+/*%
  * The maximum length of the newline+indentation that is output
  * when inserting a line break in an RR.  This effectively puts an
  * upper limits on the value of "rdata_column", because if it is
@@ -73,7 +75,7 @@ struct dns_master_style {
  */
 #define DNS_TOTEXT_LINEBREAK_MAXLEN 100
 
-/*
+/*%
  * Context structure for a masterfile dump in progress.
  */
 typedef struct dns_totext_ctx {
@@ -134,7 +136,7 @@ dns_master_style_simple = {
 	24, 32, 32, 40, 80, 8
 };
 
-/*
+/*%
  * A style suitable for dns_rdataset_totext().
  */
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
@@ -175,7 +177,7 @@ struct dns_dumpctx {
 
 #define NXDOMAIN(x) (((x)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0) 
 
-/*
+/*%
  * Output tabs and spaces to go from column '*current' to
  * column 'to', and update '*current' to reflect the new
  * current column.

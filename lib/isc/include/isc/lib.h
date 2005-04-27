@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.8 2004/03/05 05:10:58 marka Exp $ */
+/* $Id: lib.h,v 1.9 2005/04/27 04:57:18 sra Exp $ */
 
 #ifndef ISC_LIB_H
 #define ISC_LIB_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -29,8 +31,8 @@ LIBISC_EXTERNAL_DATA extern isc_msgcat_t *isc_msgcat;
 
 void
 isc_lib_initmsgcat(void);
-/*
- * Initialize the ISC library's message catalog, isc_msgcat, if it
+/*!<
+ * \brief Initialize the ISC library's message catalog, isc_msgcat, if it
  * has not already been initialized.
  */
 

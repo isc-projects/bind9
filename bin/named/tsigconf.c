@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.22 2004/03/05 04:57:49 marka Exp $ */
+/* $Id: tsigconf.c,v 1.23 2005/04/27 04:55:55 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

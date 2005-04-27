@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.306 2005/03/16 03:50:47 marka Exp $ */
+/* $Id: resolver.c,v 1.307 2005/04/27 04:56:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -99,12 +101,12 @@
 #define QTRACE(m)
 #endif
 
-/*
+/*%
  * Maximum EDNS0 input packet size.
  */
 #define RECV_BUFFER_SIZE		4096		/* XXXRTH  Constant. */
 
-/*
+/*%
  * This defines the maximum number of timeouts we will permit before we
  * disable EDNS0 on the query.
  */
@@ -146,13 +148,13 @@ typedef struct query {
 #define RESQUERY_SENDING(q)		((q)->sends > 0)
 
 typedef enum {
-	fetchstate_init = 0,		/* Start event has not run yet. */
+	fetchstate_init = 0,		/*%< Start event has not run yet. */
 	fetchstate_active,
-	fetchstate_done			/* FETCHDONE events posted. */
+	fetchstate_done			/*%< FETCHDONE events posted. */
 } fetchstate;
 
 struct fetchctx {
-	/* Not locked. */
+	/*% Not locked. */
 	unsigned int			magic;
 	dns_resolver_t *		res;
 	dns_name_t			name;
@@ -160,7 +162,7 @@ struct fetchctx {
 	unsigned int			options;
 	unsigned int			bucketnum;
 	char *				info;
-	/* Locked by appropriate bucket lock. */
+	/*% Locked by appropriate bucket lock. */
 	fetchstate			state;
 	isc_boolean_t			want_shutdown;
 	isc_boolean_t			cloned;
@@ -168,7 +170,7 @@ struct fetchctx {
 	isc_event_t			control_event;
 	ISC_LINK(struct fetchctx)	link;
 	ISC_LIST(dns_fetchevent_t)	events;
-	/* Locked by task event serialization. */
+	/*% Locked by task event serialization. */
 	dns_name_t			domain;
 	dns_rdataset_t			nameservers;
 	unsigned int			attributes;
@@ -191,12 +193,12 @@ struct fetchctx {
 	dns_db_t *			cache;
 	dns_adb_t *			adb;
 
-	/*
+	/*%
 	 * The number of events we're waiting for.
 	 */
 	unsigned int			pending;
 
-	/*
+	/*%
 	 * The number of times we've "restarted" the current
 	 * nameserver set.  This acts as a failsafe to prevent
 	 * us from pounding constantly on a particular set of
@@ -206,13 +208,13 @@ struct fetchctx {
 	 */
 	unsigned int			restarts;
 
-	/*
+	/*%
 	 * The number of timeouts that have occurred since we 
 	 * last successfully received a response packet.  This
 	 * is used for EDNS0 black hole detection.
 	 */
 	unsigned int			timeouts;
-	/*
+	/*%
 	 * Look aside state for DS lookups.
 	 */
 	dns_name_t 			nsname; 
@@ -319,7 +321,7 @@ struct dns_resolver {
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
 #define VALID_RESOLVER(res)		ISC_MAGIC_VALID(res, RES_MAGIC)
 
-/*
+/*%
  * Private addrinfo flags.  These must not conflict with DNS_FETCHOPT_NOEDNS0,
  * which we also use as an addrinfo flag.
  */

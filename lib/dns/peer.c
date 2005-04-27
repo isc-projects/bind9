@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.21 2005/01/17 23:58:32 marka Exp $ */
+/* $Id: peer.c,v 1.22 2005/04/27 04:56:49 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -29,7 +31,7 @@
 #include <dns/name.h>
 #include <dns/peer.h>
 
-/*
+/*%
  * Bit positions in the dns_peer_t structure flags field
  */
 #define BOGUS_BIT			0

@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: hmac_link.c,v 1.1 2004/12/09 01:41:03 marka Exp $
+ * $Id: hmac_link.c,v 1.2 2005/04/27 04:56:47 sra Exp $
  */
 
 #include <config.h>
@@ -260,9 +260,9 @@ static dst_func_t hmacmd5_functions = {
 	hmacmd5_adddata,
 	hmacmd5_sign,
 	hmacmd5_verify,
-	NULL, /* computesecret */
+	NULL, /*%< computesecret */
 	hmacmd5_compare,
-	NULL, /* paramcompare */
+	NULL, /*%< paramcompare */
 	hmacmd5_generate,
 	hmacmd5_isprivate,
 	hmacmd5_destroy,
@@ -270,7 +270,7 @@ static dst_func_t hmacmd5_functions = {
 	hmacmd5_fromdns,
 	hmacmd5_tofile,
 	hmacmd5_parse,
-	NULL, /* cleanup */
+	NULL, /*%< cleanup */
 };
 
 isc_result_t
@@ -280,3 +280,5 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 		*funcp = &hmacmd5_functions;
 	return (ISC_R_SUCCESS);
 }
+
+/*! \file */

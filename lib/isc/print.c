@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.27 2004/03/05 05:10:48 marka Exp $ */
+/* $Id: print.c,v 1.28 2005/04/27 04:57:14 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -41,7 +43,7 @@ isc_print_sprintf(char *str, const char *format, ...) {
 	return (strlen(str));
 }
 
-/*
+/*!
  * Return length of string that would have been written if not truncated.
  */
 
@@ -57,7 +59,7 @@ isc_print_snprintf(char *str, size_t size, const char *format, ...) {
 
 }
 
-/*
+/*!
  * Return length of string that would have been written if not truncated.
  */
 

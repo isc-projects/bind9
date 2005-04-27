@@ -48,7 +48,9 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: file.c,v 1.47 2004/03/18 02:58:06 marka Exp $ */
+/* $Id: file.c,v 1.48 2005/04/27 04:57:23 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -154,7 +156,7 @@ isc_file_settime(const char *file, isc_time_t *time) {
 }
 
 #undef TEMPLATE
-#define TEMPLATE "tmp-XXXXXXXXXX" /* 14 characters. */
+#define TEMPLATE "tmp-XXXXXXXXXX" /*%< 14 characters. */
 
 isc_result_t
 isc_file_mktemplate(const char *path, char *buf, size_t buflen) {

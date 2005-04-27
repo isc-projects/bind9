@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_nw.c,v 1.3 2004/03/18 02:57:59 marka Exp $";
+static const char rcsid[] = "$Id: lcl_nw.c,v 1.4 2005/04/27 04:56:31 sra Exp $";
 /* from getgrent.c 8.2 (Berkeley) 3/21/94"; */
 /* from BSDI Id: getgrent.c,v 2.8 1996/05/28 18:15:14 bostic Exp $	*/
 #endif /* LIBC_SCCS and not lint */
@@ -369,3 +369,5 @@ init(struct irs_nw *this) {
 		return (-1);
 	return (0);
 }
+
+/*! \file */

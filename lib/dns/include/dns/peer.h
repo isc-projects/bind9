@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.22 2005/01/17 23:58:32 marka Exp $ */
+/* $Id: peer.h,v 1.23 2005/04/27 04:56:57 sra Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -24,7 +24,8 @@
  ***** Module Info
  *****/
 
-/*
+/*! \file
+ * \brief
  * Data structures for peers (e.g. a 'server' config file statement)
  */
 

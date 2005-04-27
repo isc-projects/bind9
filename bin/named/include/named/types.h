@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.21 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: types.h,v 1.22 2005/04/27 04:56:01 sra Exp $ */
 
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
+
+/*! \file */
 
 #include <dns/types.h>
 

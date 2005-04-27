@@ -14,10 +14,11 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+/*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: netscope.c,v 1.7 2004/03/16 05:52:20 marka Exp $";
+	"$Id: netscope.c,v 1.8 2005/04/27 04:57:13 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <isc/string.h>

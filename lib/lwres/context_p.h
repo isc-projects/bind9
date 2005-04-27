@@ -15,42 +15,48 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context_p.h,v 1.13 2004/03/05 05:12:45 marka Exp $ */
+/* $Id: context_p.h,v 1.14 2005/04/27 04:57:29 sra Exp $ */
 
 #ifndef LWRES_CONTEXT_P_H
 #define LWRES_CONTEXT_P_H 1
 
-/*
+/*! \file */
+
+/*@{*/
+/**
  * Helper functions, assuming the context is always called "ctx" in
  * the scope these functions are called from.
  */
 #define CTXMALLOC(len)		ctx->malloc(ctx->arg, (len))
 #define CTXFREE(addr, len)	ctx->free(ctx->arg, (addr), (len))
+/*@}*/
 
 #define LWRES_DEFAULT_TIMEOUT	120	/* 120 seconds for a reply */
 
-/*
+/**
  * Not all the attributes here are actually settable by the application at
  * this time.
  */
 struct lwres_context {
-	unsigned int		timeout;	/* time to wait for reply */
-	lwres_uint32_t		serial;		/* serial number state */
+	unsigned int		timeout;	/*%< time to wait for reply */
+	lwres_uint32_t		serial;		/*%< serial number state */
 
 	/*
 	 * For network I/O.
 	 */
-	int			sock;		/* socket to send on */
-	lwres_addr_t		address;	/* address to send to */
+	int			sock;		/*%< socket to send on */
+	lwres_addr_t		address;	/*%< address to send to */
 
+	/*@{*/
 	/*
 	 * Function pointers for allocating memory.
 	 */
 	lwres_malloc_t		malloc;
 	lwres_free_t		free;
 	void		       *arg;
+	/*@}*/
 
-	/*
+	/*%
 	 * resolv.conf-like data
 	 */
 	lwres_conf_t		confdata;

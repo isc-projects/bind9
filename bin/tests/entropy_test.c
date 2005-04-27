@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy_test.c,v 1.19 2004/03/05 04:58:37 marka Exp $ */
+/* $Id: entropy_test.c,v 1.20 2005/04/27 04:56:07 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

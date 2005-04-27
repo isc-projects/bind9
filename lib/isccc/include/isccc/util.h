@@ -16,17 +16,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.4 2004/03/05 05:12:16 marka Exp $ */
+/* $Id: util.h,v 1.5 2005/04/27 04:57:27 sra Exp $ */
 
 #ifndef ISCCC_UTIL_H
 #define ISCCC_UTIL_H 1
 
 #include <isc/util.h>
 
-/*
+/*! \file
+ * \brief
  * Macros for dealing with unaligned numbers.
  *
- * Note: no side effects are allowed when invoking these macros!
+ * \note no side effects are allowed when invoking these macros!
  */
 
 #define GET8(v, w) \
@@ -193,7 +194,7 @@
 	(r).rend = (r).rstart + strlen(s); \
 } while (0)
 
-/*
+/*%
  * Use this to remove the const qualifier of a variable to assign it to
  * a non-const variable or pass it as a non-const function argument ...
  * but only when you are sure it won't then be changed!

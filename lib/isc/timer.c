@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73 2004/03/05 05:10:50 marka Exp $ */
+/* $Id: timer.c,v 1.74 2005/04/27 04:57:15 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -57,14 +59,14 @@
 #define VALID_TIMER(t)			ISC_MAGIC_VALID(t, TIMER_MAGIC)
 
 struct isc_timer {
-	/* Not locked. */
+	/*! Not locked. */
 	unsigned int			magic;
 	isc_timermgr_t *		manager;
 	isc_mutex_t			lock;
-	/* Locked by timer lock. */
+	/*! Locked by timer lock. */
 	unsigned int			references;
 	isc_time_t			idle;
-	/* Locked by manager lock. */
+	/*! Locked by manager lock. */
 	isc_timertype_t			type;
 	isc_time_t			expires;
 	isc_interval_t			interval;
@@ -99,7 +101,7 @@ struct isc_timermgr {
 };
 
 #ifndef ISC_PLATFORM_USETHREADS
-/*
+/*!
  * If threads are not in use, there can be only one.
  */
 static isc_timermgr_t *timermgr = NULL;
@@ -115,7 +117,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	isc_boolean_t timedwait;
 #endif
 
-	/*
+	/*!
 	 * Note: the caller must ensure locking.
 	 */
 
@@ -128,7 +130,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	manager = timer->manager;
 
 #ifdef ISC_PLATFORM_USETHREADS
-	/*
+	/*!
 	 * If the manager was timed wait, we may need to signal the
 	 * manager to force a wakeup.
 	 */
@@ -580,7 +582,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 	isc_timer_t *timer;
 	isc_result_t result;
 
-	/*
+	/*!
 	 * The caller must be holding the manager lock.
 	 */
 

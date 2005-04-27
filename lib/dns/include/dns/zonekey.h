@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonekey.h,v 1.4 2004/03/05 05:09:48 marka Exp $ */
+/* $Id: zonekey.h,v 1.5 2005/04/27 04:57:01 sra Exp $ */
 
 #ifndef DNS_ZONEKEY_H
 #define DNS_ZONEKEY_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 
@@ -28,7 +30,7 @@ ISC_LANG_BEGINDECLS
 
 isc_boolean_t
 dns_zonekey_iszonekey(dns_rdata_t *keyrdata);
-/*
+/*%<
  *	Determines if the key record contained in the rdata is a zone key.
  *
  *	Requires:

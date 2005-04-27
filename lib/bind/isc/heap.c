@@ -15,7 +15,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/*
+/*%
  * Heap implementation of priority queues adapted from the following:
  *
  *	_Introduction to Algorithms_, Cormen, Leiserson, and Rivest,
@@ -26,7 +26,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: heap.c,v 1.2 2004/03/09 06:30:08 marka Exp $";
+static const char rcsid[] = "$Id: heap.c,v 1.3 2005/04/27 04:56:38 sra Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -39,7 +39,7 @@ static const char rcsid[] = "$Id: heap.c,v 1.2 2004/03/09 06:30:08 marka Exp $";
 
 #include <isc/heap.h>
 
-/*
+/*%
  * Note: to make heap_parent and heap_left easy to compute, the first
  * element of the heap array is not used; i.e. heap subscripts are 1-based,
  * not 0-based.
@@ -228,3 +228,5 @@ heap_for_each(heap_context ctx, heap_for_each_func action, void *uap) {
 		(action)(ctx->heap[i], uap);
 	return (0);
 }
+
+/*! \file */

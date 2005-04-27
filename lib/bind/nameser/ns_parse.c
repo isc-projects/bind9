@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_parse.c,v 1.5 2004/03/09 06:30:09 marka Exp $";
+static const char rcsid[] = "$Id: ns_parse.c,v 1.6 2005/04/27 04:56:40 sra Exp $";
 #endif
 
 /* Import. */
@@ -46,22 +46,22 @@ static void	setsection(ns_msg *msg, ns_sect sect);
 
 /* These need to be in the same order as the nres.h:ns_flag enum. */
 struct _ns_flagdata _ns_flagdata[16] = {
-	{ 0x8000, 15 },		/* qr. */
-	{ 0x7800, 11 },		/* opcode. */
-	{ 0x0400, 10 },		/* aa. */
-	{ 0x0200, 9 },		/* tc. */
-	{ 0x0100, 8 },		/* rd. */
-	{ 0x0080, 7 },		/* ra. */
-	{ 0x0040, 6 },		/* z. */
-	{ 0x0020, 5 },		/* ad. */
-	{ 0x0010, 4 },		/* cd. */
-	{ 0x000f, 0 },		/* rcode. */
-	{ 0x0000, 0 },		/* expansion (1/6). */
-	{ 0x0000, 0 },		/* expansion (2/6). */
-	{ 0x0000, 0 },		/* expansion (3/6). */
-	{ 0x0000, 0 },		/* expansion (4/6). */
-	{ 0x0000, 0 },		/* expansion (5/6). */
-	{ 0x0000, 0 },		/* expansion (6/6). */
+	{ 0x8000, 15 },		/*%< qr. */
+	{ 0x7800, 11 },		/*%< opcode. */
+	{ 0x0400, 10 },		/*%< aa. */
+	{ 0x0200, 9 },		/*%< tc. */
+	{ 0x0100, 8 },		/*%< rd. */
+	{ 0x0080, 7 },		/*%< ra. */
+	{ 0x0040, 6 },		/*%< z. */
+	{ 0x0020, 5 },		/*%< ad. */
+	{ 0x0010, 4 },		/*%< cd. */
+	{ 0x000f, 0 },		/*%< rcode. */
+	{ 0x0000, 0 },		/*%< expansion (1/6). */
+	{ 0x0000, 0 },		/*%< expansion (2/6). */
+	{ 0x0000, 0 },		/*%< expansion (3/6). */
+	{ 0x0000, 0 },		/*%< expansion (4/6). */
+	{ 0x0000, 0 },		/*%< expansion (5/6). */
+	{ 0x0000, 0 },		/*%< expansion (6/6). */
 };
 
 int ns_msg_getflag(ns_msg handle, int flag) {
@@ -201,3 +201,5 @@ setsection(ns_msg *msg, ns_sect sect) {
 		msg->_msg_ptr = msg->_sections[(int)sect];
 	}
 }
+
+/*! \file */

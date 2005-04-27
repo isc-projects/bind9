@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getnetent.c,v 1.6 2004/03/18 02:57:59 marka Exp $";
+static const char rcsid[] = "$Id: getnetent.c,v 1.7 2005/04/27 04:56:25 sra Exp $";
 #endif
 
 /* Imports */
@@ -321,7 +321,7 @@ nw_to_net(struct nwent *nwent, struct net_data *net_data) {
 	pvt->netent.n_aliases = nwent->n_aliases;
 	pvt->netent.n_addrtype = nwent->n_addrtype;
 
-/*
+/*%
  * What this code does: Converts net addresses from network to host form.
  *
  * msbyte: the index of the most significant byte in the n_addr array.
@@ -341,3 +341,5 @@ nw_to_net(struct nwent *nwent, struct net_data *net_data) {
 }
 
 #endif /*__BIND_NOSTATIC*/
+
+/*! \file */

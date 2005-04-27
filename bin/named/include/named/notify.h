@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.h,v 1.10 2004/03/05 04:57:56 marka Exp $ */
+/* $Id: notify.h,v 1.11 2005/04/27 04:55:59 sra Exp $ */
 
 #ifndef NAMED_NOTIFY_H
 #define NAMED_NOTIFY_H 1
@@ -27,8 +27,9 @@
  ***	Module Info
  ***/
 
-/*
- *	RFC 1996
+/*! \file
+ * \brief
+ *	RFC1996
  *	A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)
  */
 
@@ -39,7 +40,7 @@
 void
 ns_notify_start(ns_client_t *client);
 
-/*
+/*%<
  *	Examines the incoming message to determine apporiate zone.
  *	Returns FORMERR if there is not exactly one question.
  *	Returns REFUSED if we do not serve the listed zone.
@@ -47,7 +48,7 @@ ns_notify_start(ns_client_t *client);
  *	and returns the return status.
  *
  * Requires
- *	client to be valid.
+ *\li	client to be valid.
  */
 
 #endif /* NAMED_NOTIFY_H */

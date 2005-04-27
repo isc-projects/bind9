@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.h,v 1.36 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: query.h,v 1.37 2005/04/27 04:56:00 sra Exp $ */
 
 #ifndef NAMED_QUERY_H
 #define NAMED_QUERY_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/buffer.h>
@@ -28,6 +30,7 @@
 
 #include <named/types.h>
 
+/*% nameserver database version structure */
 typedef struct ns_dbversion {
 	dns_db_t			*db;
 	dns_dbversion_t			*version;
@@ -35,6 +38,7 @@ typedef struct ns_dbversion {
 	ISC_LINK(struct ns_dbversion)	link;
 } ns_dbversion_t;
 
+/*% nameserver query structure */
 struct ns_query {
 	unsigned int			attributes;
 	unsigned int			restarts;

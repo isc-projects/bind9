@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.205 2005/04/01 07:00:34 marka Exp $ */
+/* $Id: rbtdb.c,v 1.206 2005/04/27 04:56:49 sra Exp $ */
+
+/*! \file */
 
 /*
  * Principal Author: Bob Halley
@@ -63,7 +65,7 @@
 #define RBTDB_MAGIC			ISC_MAGIC('R', 'B', 'D', '4')
 #endif
 
-/*
+/*%
  * Note that "impmagic" is not the first four bytes of the struct, so
  * ISC_MAGIC_VALID cannot be used.
  */
@@ -72,7 +74,7 @@
 
 #ifdef DNS_RBTDB_VERSION64
 typedef isc_uint64_t			rbtdb_serial_t;
-/*
+/*%
  * Make casting easier in symbolic debuggers by using different names
  * for the 64 bit version.
  */
@@ -109,7 +111,7 @@ struct noqname {
 typedef struct acachectl acachectl_t;  
 
 typedef struct rdatasetheader {
-	/*
+	/*%
 	 * Locked by the owning node's lock.
 	 */
 	rbtdb_serial_t			serial;
@@ -118,13 +120,13 @@ typedef struct rdatasetheader {
 	isc_uint16_t			attributes;
 	dns_trust_t			trust;
 	struct noqname			*noqname;
-	/*
+	/*%<
 	 * We don't use the LIST macros, because the LIST structure has
 	 * both head and tail pointers, and is doubly linked.
 	 */
 
 	struct rdatasetheader		*next;
-	/*
+	/*%<
 	 * If this is the top header for an rdataset, 'next' points
 	 * to the top header for the next rdataset (i.e., the next type).
 	 * Otherwise, it points up to the header whose down pointer points
@@ -132,13 +134,13 @@ typedef struct rdatasetheader {
 	 */
 	  
 	struct rdatasetheader		*down;
-	/*
+	/*%<
 	 * Points to the header for the next older version of
 	 * this rdataset.
 	 */
 
 	isc_uint32_t			count;
-	/*
+	/*%<
 	 * Monotonously increased every time this rdataset is bound so that
 	 * it is used as the base of the starting point in DNS responses
 	 * when the "cyclic" rrset-order is required.  Since the ordering
@@ -190,7 +192,7 @@ struct acachectl {
 #define NXDOMAIN(header) \
 	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 
-#define DEFAULT_NODE_LOCK_COUNT		7		/* Should be prime. */
+#define DEFAULT_NODE_LOCK_COUNT		7		/*%< Should be prime. */
 
 typedef struct {
 	isc_mutex_t			lock;
@@ -250,7 +252,7 @@ typedef struct {
 #define RBTDB_ATTR_LOADED		0x01
 #define RBTDB_ATTR_LOADING		0x02
 
-/*
+/*%
  * Search Context
  */
 typedef struct {
@@ -269,7 +271,7 @@ typedef struct {
 	isc_stdtime_t		now;
 } rbtdb_search_t;
 
-/*
+/*%
  * Load Context
  */
 typedef struct {
@@ -2265,7 +2267,7 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC 2535, section 2.3.5).
+	 * (RFC2535, section 2.3.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
@@ -2998,7 +3000,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	/*
 	 * Certain DNSSEC types are not subject to CNAME matching
-	 * (RFC 2535, section 2.3.5).
+	 * (RFC2535, section 2.3.5).
 	 *
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.

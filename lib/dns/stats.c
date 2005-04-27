@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.6 2004/03/05 05:09:25 marka Exp $ */
+/* $Id: stats.c,v 1.7 2005/04/27 04:56:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

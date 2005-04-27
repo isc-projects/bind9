@@ -15,13 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key_25.c,v 1.47 2004/03/05 05:10:12 marka Exp $ */
+/* $Id: key_25.c,v 1.48 2005/04/27 04:57:03 sra Exp $ */
 
 /*
  * Reviewed: Wed Mar 15 16:47:10 PST 2000 by halley.
  */
 
-/* RFC 2535 */
+/* RFC2535 */
 
 #ifndef RDATA_GENERIC_KEY_25_C
 #define RDATA_GENERIC_KEY_25_C

@@ -16,9 +16,9 @@
  */
 
 /*
- * $Id: tsig.c,v 1.119 2005/03/17 03:56:12 marka Exp $
+ * $Id: tsig.c,v 1.120 2005/04/27 04:56:52 sra Exp $
  */
-
+/*! \file */
 #include <config.h>
 #include <stdlib.h>
 

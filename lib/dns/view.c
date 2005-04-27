@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.130 2005/01/17 04:11:33 marka Exp $ */
+/* $Id: view.c,v 1.131 2005/04/27 04:56:53 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

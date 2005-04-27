@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.h,v 1.2 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: sshfp_44.h,v 1.3 2005/04/27 04:57:06 sra Exp $ */
 
-/* draft-ietf-secsh-dns-05.txt */
+/*!
+ *  \brief Per draft-ietf-secsh-dns-05.txt */
 
 #ifndef GENERIC_SSHFP_44_H
 #define GENERIC_SSHFP_44_H 1

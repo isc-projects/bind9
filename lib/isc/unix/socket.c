@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.248 2005/03/30 05:37:08 marka Exp $ */
+/* $Id: socket.c,v 1.249 2005/04/27 04:57:23 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -61,7 +63,7 @@
 #include "socket_p.h"
 #endif /* ISC_PLATFORM_USETHREADS */
 
-/*
+/*%
  * Some systems define the socket length argument as an int, some as size_t,
  * some as socklen_t.  This is here so it can be easily changed if needed.
  */
@@ -69,7 +71,7 @@
 #define ISC_SOCKADDR_LEN_T unsigned int
 #endif
 
-/*
+/*%
  * Define what the possible "soft" errors can be.  These are non-fatal returns
  * of various network related functions, like recv() and so on.
  *
@@ -84,7 +86,7 @@
 
 #define DLVL(x) ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(x)
 
-/*
+/*!<
  * DLVL(90)  --  Function entry/exit and other tracing.
  * DLVL(70)  --  Socket "correctness" -- including returning of events, etc.
  * DLVL(60)  --  Socket data send/receive
@@ -108,7 +110,7 @@ typedef isc_event_t intev_t;
 #define SOCKET_MAGIC		ISC_MAGIC('I', 'O', 'i', 'o')
 #define VALID_SOCKET(t)		ISC_MAGIC_VALID(t, SOCKET_MAGIC)
 
-/*
+/*!
  * IPv6 control information.  If the socket is an IPv6 socket we want
  * to collect the destination address and interface so the client can
  * set them on outgoing packets.
@@ -119,7 +121,7 @@ typedef isc_event_t intev_t;
 #endif
 #endif
 
-/*
+/*%
  * NetBSD and FreeBSD can timestamp packets.  XXXMLG Should we have
  * a setsockopt() like interface to request timestamps, and if the OS
  * doesn't do it for us, call gettimeofday() on every UDP receive?
@@ -130,7 +132,7 @@ typedef isc_event_t intev_t;
 #endif
 #endif
 
-/*
+/*%
  * The number of times a send operation is repeated if the result is EINTR.
  */
 #define NRETRIES 10
@@ -242,9 +244,9 @@ static void build_msghdr_recv(isc_socket_t *, isc_socketevent_t *,
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
 #define SELECT_POKE_READ		(-3)
-#define SELECT_POKE_ACCEPT		(-3) /* Same as _READ */
+#define SELECT_POKE_ACCEPT		(-3) /*%< Same as _READ */
 #define SELECT_POKE_WRITE		(-4)
-#define SELECT_POKE_CONNECT		(-4) /* Same as _WRITE */
+#define SELECT_POKE_CONNECT		(-4) /*%< Same as _WRITE */
 #define SELECT_POKE_CLOSE		(-5)
 
 #define SOCK_DEAD(s)			((s)->references == 0)

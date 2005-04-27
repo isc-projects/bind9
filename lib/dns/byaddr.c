@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.c,v 1.35 2004/08/28 06:16:55 marka Exp $ */
+/* $Id: byaddr.c,v 1.36 2005/04/27 04:56:44 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

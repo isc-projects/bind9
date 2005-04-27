@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.13 2004/03/05 04:57:47 marka Exp $ */
+/* $Id: lwdgrbn.c,v 1.14 2005/04/27 04:55:52 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

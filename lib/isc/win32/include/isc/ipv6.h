@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.15 2005/02/09 05:19:30 marka Exp $ */
+/* $Id: ipv6.h,v 1.16 2005/04/27 04:57:25 sra Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -40,7 +40,7 @@
  *	No anticipated impact.
  *
  * Standards:
- *	RFC 2553.
+ *	RFC2553.
  */
 
 #if _MSC_VER < 1300

@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_ttl.c,v 1.2 2004/03/09 06:30:10 marka Exp $";
+static const char rcsid[] = "$Id: ns_ttl.c,v 1.3 2005/04/27 04:56:40 sra Exp $";
 #endif
 
 /* Import. */
@@ -157,3 +157,5 @@ fmt1(int t, char s, char **buf, size_t *buflen) {
 	*buflen -= len;
 	return (0);
 }
+
+/*! \file */

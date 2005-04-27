@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.47 2004/12/21 10:45:18 jinmei Exp $ */
+/* $Id: sdb.c,v 1.48 2005/04/27 04:56:51 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -99,7 +101,7 @@ typedef struct sdb_rdatasetiter {
 
 #define SDB_MAGIC		ISC_MAGIC('S', 'D', 'B', '-')
 
-/*
+/*%
  * Note that "impmagic" is not the first four bytes of the struct, so
  * ISC_MAGIC_VALID cannot be used.
  */
@@ -110,7 +112,7 @@ typedef struct sdb_rdatasetiter {
 #define VALID_SDBLOOKUP(sdbl)	ISC_MAGIC_VALID(sdbl, SDBLOOKUP_MAGIC)
 #define VALID_SDBNODE(sdbn)	VALID_SDBLOOKUP(sdbn)
 
-/* These values are taken from RFC 1537 */
+/* These values are taken from RFC1537 */
 #define SDB_DEFAULT_REFRESH	(60 * 60 * 8)
 #define SDB_DEFAULT_RETRY	(60 * 60 * 2)
 #define SDB_DEFAULT_EXPIRE	(60 * 60 * 24 * 7)

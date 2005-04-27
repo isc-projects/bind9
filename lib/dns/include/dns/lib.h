@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.8 2004/03/05 05:09:43 marka Exp $ */
+/* $Id: lib.h,v 1.9 2005/04/27 04:56:56 sra Exp $ */
 
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -29,7 +31,7 @@ LIBDNS_EXTERNAL_DATA extern isc_msgcat_t *dns_msgcat;
 
 void
 dns_lib_initmsgcat(void);
-/*
+/*%<
  * Initialize the DNS library's message catalog, dns_msgcat, if it
  * has not already been initialized.
  */

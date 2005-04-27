@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket_p.h,v 1.7 2004/03/05 05:11:47 marka Exp $ */
+/* $Id: socket_p.h,v 1.8 2005/04/27 04:57:24 sra Exp $ */
 
 #ifndef ISC_SOCKET_P_H
 #define ISC_SOCKET_P_H
+
+/*! \file */
 
 #ifdef ISC_PLATFORM_NEEDSYSSELECTH
 #include <sys/select.h>

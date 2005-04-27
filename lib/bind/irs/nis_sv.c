@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nis_sv.c,v 1.3 2004/03/09 06:30:05 marka Exp $";
+static const char rcsid[] = "$Id: nis_sv.c,v 1.4 2005/04/27 04:56:34 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -306,3 +306,5 @@ nisfree(struct pvt *pvt, enum do_what do_what) {
 }
 
 #endif /*WANT_IRS_NIS*/
+
+/*! \file */

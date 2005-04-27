@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.15 2004/08/28 06:17:00 marka Exp $ */
+/* $Id: platform.h.in,v 1.16 2005/04/27 04:57:31 sra Exp $ */
+
+/*! \file */
 
 #ifndef LWRES_PLATFORM_H
 #define LWRES_PLATFORM_H 1
@@ -97,5 +99,12 @@
 #define LIBLWRES_EXTERNAL_DATA __declspec(dllimport)
 #endif
 #endif
+
+/*
+ * Tell Emacs to use C mode on this file.
+ * Local Variables:
+ * mode: c
+ * End:
+ */
 
 #endif /* LWRES_PLATFORM_H */

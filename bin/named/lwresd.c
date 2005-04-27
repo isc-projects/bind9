@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.46 2004/03/05 04:57:48 marka Exp $ */
+/* $Id: lwresd.c,v 1.47 2005/04/27 04:55:52 sra Exp $ */
 
-/*
+/*! \file 
+ * \brief
  * Main program for the Lightweight Resolver Daemon.
  *
  * To paraphrase the old saying about X11, "It's not a lightweight deamon
@@ -59,11 +60,11 @@
 #define LWRESLISTENER_MAGIC	ISC_MAGIC('L', 'W', 'R', 'L')
 #define VALID_LWRESLISTENER(l)	ISC_MAGIC_VALID(l, LWRESLISTENER_MAGIC)
 
-/*
+/*!
  * The total number of clients we can handle will be NTASKS * NRECVS.
  */
-#define NTASKS		2	/* tasks to create to handle lwres queries */
-#define NRECVS		2	/* max clients per task */
+#define NTASKS		2	/*%< tasks to create to handle lwres queries */
+#define NRECVS		2	/*%< max clients per task */
 
 typedef ISC_LIST(ns_lwreslistener_t) ns_lwreslistenerlist_t;
 
@@ -78,7 +79,7 @@ initialize_mutex(void) {
 }
 
 
-/*
+/*%
  * Wrappers around our memory management stuff, for the lwres functions.
  */
 void *

@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.1 2004/12/09 01:41:03 marka Exp $
+ * $Id: openssldh_link.c,v 1.2 2005/04/27 04:56:48 sra Exp $
  */
 
 #ifdef OPENSSL
@@ -564,11 +564,11 @@ openssldh_cleanup(void) {
 }
 
 static dst_func_t openssldh_functions = {
-	NULL, /* createctx */
-	NULL, /* destroyctx */
-	NULL, /* adddata */
-	NULL, /* openssldh_sign */
-	NULL, /* openssldh_verify */
+	NULL, /*%< createctx */
+	NULL, /*%< destroyctx */
+	NULL, /*%< adddata */
+	NULL, /*%< openssldh_sign */
+	NULL, /*%< openssldh_verify */
 	openssldh_computesecret,
 	openssldh_compare,
 	openssldh_paramcompare,
@@ -606,3 +606,4 @@ dst__openssldh_init(dst_func_t **funcp) {
 EMPTY_TRANSLATION_UNIT
 
 #endif /* OPENSSL */
+/*! \file */

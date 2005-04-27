@@ -18,9 +18,10 @@
 #ifndef GENERIC_X25_19_H
 #define GENERIC_X25_19_H 1
 
-/* $Id: x25_19.h,v 1.14 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: x25_19.h,v 1.15 2005/04/27 04:57:06 sra Exp $ */
 
-/* RFC 1183 */
+/*!
+ *  \brief Per RFC1183 */
 
 typedef struct dns_rdata_x25 {
 	dns_rdatacommon_t	common;

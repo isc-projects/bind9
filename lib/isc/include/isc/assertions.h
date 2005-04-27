@@ -16,7 +16,9 @@
  */
 
 /*
- * $Id: assertions.h,v 1.18 2004/03/05 05:10:55 marka Exp $
+ * $Id: assertions.h,v 1.19 2005/04/27 04:57:16 sra Exp $
+ */
+/*! \file assertions.h
  */
 
 #ifndef ISC_ASSERTIONS_H
@@ -27,6 +29,7 @@
 
 ISC_LANG_BEGINDECLS
 
+/*% isc assertion type */
 typedef enum {
 	isc_assertiontype_require,
 	isc_assertiontype_ensure,

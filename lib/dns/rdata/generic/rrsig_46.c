@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rrsig_46.c,v 1.6 2004/06/24 00:43:15 marka Exp $ */
+/* $Id: rrsig_46.c,v 1.7 2005/04/27 04:57:05 sra Exp $ */
 
 /* Reviewed: Fri Mar 17 09:05:02 PST 2000 by gson */
 
-/* RFC 2535 */
+/* RFC2535 */
 
 #ifndef RDATA_GENERIC_RRSIG_46_C
 #define RDATA_GENERIC_RRSIG_46_C

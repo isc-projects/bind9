@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.76 2004/12/21 10:45:15 jinmei Exp $ */
+/* $Id: server.h,v 1.77 2005/04/27 04:56:00 sra Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
+
+/*! \file */
 
 #include <isc/log.h>
 #include <isc/sockaddr.h>
@@ -35,7 +37,7 @@
 #define NS_EVENT_RELOAD		(NS_EVENTCLASS + 0)
 #define NS_EVENT_CLIENTCONTROL	(NS_EVENTCLASS + 1)
 
-/*
+/*%
  * Name server state.  Better here than in lots of separate global variables.
  */
 struct ns_server {
@@ -49,21 +51,21 @@ struct ns_server {
 	isc_quota_t		tcpquota;
 	isc_quota_t		recursionquota;
 	dns_acl_t		*blackholeacl;
-	char *			statsfile;	/* Statistics file name */
-	char *			dumpfile;	/* Dump file name */
-	char *			recfile;	/* Recursive file name */
-	isc_boolean_t		version_set;	/* User has set version */
-	char *			version;	/* User-specified version */
-	isc_boolean_t		hostname_set;	/* User has set hostname */
-	char *			hostname;	/* User-specified hostname */
-	/* Use hostname for server id */
+	char *			statsfile;	/*%< Statistics file name */
+	char *			dumpfile;	/*%< Dump file name */
+	char *			recfile;	/*%< Recursive file name */
+	isc_boolean_t		version_set;	/*%< User has set version */
+	char *			version;	/*%< User-specified version */
+	isc_boolean_t		hostname_set;	/*%< User has set hostname */
+	char *			hostname;	/*%< User-specified hostname */
+	/*% Use hostname for server id */
 	isc_boolean_t		server_usehostname;
-	char *			server_id;	/* User-specified server id */
+	char *			server_id;	/*%< User-specified server id */
 
-	/* Empty zone SOA ORIGIN and CONTACT */
+	/*% Empty zone SOA ORIGIN and CONTACT */
 	char *			empty_contact;
 	char *			empty_server;
-        /*
+        /*%
 	 * Current ACL environment.  This defines the
 	 * current values of the localhost and localnets
 	 * ACLs.
@@ -87,11 +89,11 @@ struct ns_server {
 	isc_event_t *		reload_event;
 
 	isc_boolean_t		flushonshutdown;
-	isc_boolean_t		log_queries;	/* For BIND 8 compatibility */
+	isc_boolean_t		log_queries;	/*%< For BIND 8 compatibility */
 
-	isc_uint64_t *		querystats;	/* Query statistics counters */
+	isc_uint64_t *		querystats;	/*%< Query statistics counters */
 
-	ns_controls_t *		controls;	/* Control channels */
+	ns_controls_t *		controls;	/*%< Control channels */
 	unsigned int		dispatchgen;
 	ns_dispatchlist_t	dispatches;
 
@@ -103,7 +105,7 @@ struct ns_server {
 
 void
 ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);
-/*
+/*%<
  * Create a server object with default settings.
  * This function either succeeds or causes the program to exit
  * with a fatal error.
@@ -111,13 +113,13 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp);
 
 void
 ns_server_destroy(ns_server_t **serverp);
-/*
+/*%<
  * Destroy a server object, freeing its memory.
  */
 
 void
 ns_server_reloadwanted(ns_server_t *server);
-/*
+/*%<
  * Inform a server that a reload is wanted.  This function
  * may be called asynchronously, from outside the server's task.
  * If a reload is already scheduled or in progress, the call
@@ -126,95 +128,95 @@ ns_server_reloadwanted(ns_server_t *server);
 
 void
 ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
-/*
+/*%<
  * Inform the server that the zones should be flushed to disk on shutdown.
  */
 
 isc_result_t
 ns_server_reloadcommand(ns_server_t *server, char *args, isc_buffer_t *text);
-/*
+/*%<
  * Act on a "reload" command from the command channel.
  */
 
 isc_result_t
 ns_server_reconfigcommand(ns_server_t *server, char *args);
-/*
+/*%<
  * Act on a "reconfig" command from the command channel.
  */
 
 isc_result_t
 ns_server_notifycommand(ns_server_t *server, char *args, isc_buffer_t *text);
-/*
+/*%<
  * Act on a "notify" command from the command channel.
  */
 
 isc_result_t
 ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text);
-/*
+/*%<
  * Act on a "refresh" command from the command channel.
  */
 
 isc_result_t
 ns_server_retransfercommand(ns_server_t *server, char *args);
-/*
+/*%<
  * Act on a "retransfer" command from the command channel.
  */
 
 isc_result_t
 ns_server_togglequerylog(ns_server_t *server);
-/*
+/*%<
  * Toggle logging of queries, as in BIND 8.
  */
 
-/*
+/*%
  * Dump the current statistics to the statistics file.
  */
 isc_result_t
 ns_server_dumpstats(ns_server_t *server);
 
-/*
+/*%
  * Dump the current cache to the dump file.
  */
 isc_result_t
 ns_server_dumpdb(ns_server_t *server, char *args);
 
-/*
+/*%
  * Change or increment the server debug level.
  */
 isc_result_t
 ns_server_setdebuglevel(ns_server_t *server, char *args);
 
-/*
+/*%
  * Flush the server's cache(s)
  */
 isc_result_t
 ns_server_flushcache(ns_server_t *server, char *args);
 
-/*
+/*%
  * Flush a particular name from the server's cache(s)
  */
 isc_result_t
 ns_server_flushname(ns_server_t *server, char *args);
 
-/*
+/*%
  * Report the server's status.
  */
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text);
 
-/*
+/*%
  * Enable or disable updates for a zone.
  */
 isc_result_t
 ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args);
 
-/*
+/*%
  * Dump the current recursive queries.
  */
 isc_result_t
 ns_server_dumprecursing(ns_server_t *server);
 
-/*
+/*%
  * Maintain a list of dispatches that require reserved ports.
  */
 void

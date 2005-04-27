@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.1 2004/12/09 01:41:02 marka Exp $
+ * $Id: gssapi_link.c,v 1.2 2005/04/27 04:56:47 sra Exp $
  */
 
 #ifdef GSSAPI
@@ -194,17 +194,17 @@ static dst_func_t gssapi_functions = {
 	gssapi_adddata,
 	gssapi_sign,
 	gssapi_verify,
-	NULL, /* computesecret */
+	NULL, /*%< computesecret */
 	gssapi_compare,
-	NULL, /* paramcompare */
+	NULL, /*%< paramcompare */
 	gssapi_generate,
 	gssapi_isprivate,
 	gssapi_destroy,
-	NULL, /* todns */
-	NULL, /* fromdns */
-	NULL, /* tofile */
-	NULL, /* parse */
-	NULL, /* cleanup */
+	NULL, /*%< todns */
+	NULL, /*%< fromdns */
+	NULL, /*%< tofile */
+	NULL, /*%< parse */
+	NULL, /*%< cleanup */
 };
 
 isc_result_t
@@ -218,3 +218,5 @@ dst__gssapi_init(dst_func_t **funcp) {
 #else
 int  gssapi_link_unneeded = 1;
 #endif
+
+/*! \file */

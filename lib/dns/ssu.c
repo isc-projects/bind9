@@ -14,9 +14,9 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*! \file */
 /*
- * $Id: ssu.c,v 1.24 2004/03/05 05:09:25 marka Exp $
+ * $Id: ssu.c,v 1.25 2005/04/27 04:56:51 sra Exp $
  * Principal Author: Brian Wellington
  */
 
@@ -38,13 +38,13 @@
 
 struct dns_ssurule {
 	unsigned int magic;
-	isc_boolean_t grant;	/* is this a grant or a deny? */
-	unsigned int matchtype;	/* which type of pattern match? */
-	dns_name_t *identity;	/* the identity to match */
-	dns_name_t *name;	/* the name being updated */
-	unsigned int ntypes;	/* number of data types covered */
-	dns_rdatatype_t *types;	/* the data types.  Can include ANY, */
-				/* defaults to all but SIG,SOA,NS if NULL*/
+	isc_boolean_t grant;	/*%< is this a grant or a deny? */
+	unsigned int matchtype;	/*%< which type of pattern match? */
+	dns_name_t *identity;	/*%< the identity to match */
+	dns_name_t *name;	/*%< the name being updated */
+	unsigned int ntypes;	/*%< number of data types covered */
+	dns_rdatatype_t *types;	/*%< the data types.  Can include ANY, */
+				/*%< defaults to all but SIG,SOA,NS if NULL */
 	ISC_LINK(dns_ssurule_t) link;
 };
 

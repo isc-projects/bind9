@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.202 2005/03/31 23:54:45 marka Exp $ */
+/* $Id: dig.c,v 1.203 2005/04/27 04:55:44 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 #include <stdlib.h>
@@ -94,6 +96,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	ip6_int = ISC_FALSE, plusquest = ISC_FALSE, pluscomm = ISC_FALSE,
 	multiline = ISC_FALSE, nottl = ISC_FALSE, noclass = ISC_FALSE;
 
+/*% opcode text */
 static const char *opcodetext[] = {
 	"QUERY",
 	"IQUERY",
@@ -113,6 +116,7 @@ static const char *opcodetext[] = {
 	"RESERVED15"
 };
 
+/*% return code text */
 static const char *rcodetext[] = {
 	"NOERROR",
 	"FORMERR",
@@ -135,6 +139,7 @@ static const char *rcodetext[] = {
 
 extern char *progname;
 
+/*% print usage */
 static void
 print_usage(FILE *fp) {
 	fputs(
@@ -151,11 +156,13 @@ usage(void) {
 	exit(1);
 }
 
+/*% version */
 static void
 version(void) {
 	fputs("DiG " VERSION "\n", stderr);
 }
 
+/*% help */
 static void
 help(void) {
 	print_usage(stdout);
@@ -227,7 +234,7 @@ help(void) {
 	stdout);
 }
 
-/*
+/*%
  * Callback from dighost.c to print the received message.
  */
 void
@@ -287,7 +294,7 @@ trying(char *frm, dig_lookup_t *lookup) {
 	UNUSED(lookup);
 }
 
-/*
+/*%
  * Internal print routine used to print short form replies.
  */
 static isc_result_t
@@ -317,7 +324,7 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * short_form message print handler.  Calls above say_message()
  */
 static isc_result_t
@@ -611,7 +618,7 @@ cleanup:
 	return (result);
 }
 
-/*
+/*%
  * print the greeting message when the program first starts up.
  */
 static void
@@ -658,7 +665,7 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 	}
 }
 
-/*
+/*%
  * Reorder an argument list so that server names all come at the end.
  * This is a bit of a hack, to allow batch-mode processing to properly
  * handle the server options.
@@ -707,7 +714,7 @@ parse_uint(char *arg, const char *desc, isc_uint32_t max) {
 	return (tmp);
 }
 
-/*
+/*%
  * We're not using isc_commandline_parse() here since the command line
  * syntax of dig is quite a bit different from that which can be described
  * by that routine.
@@ -1080,8 +1087,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 	return;
 }
 
-/*
- * ISC_TRUE returned if value was used
+/*%
+ * #ISC_TRUE returned if value was used
  */
 static const char *single_dash_opts = "46dhimnv";
 static const char *dash_opts = "46bcdfhikmnptvyx";
@@ -1306,10 +1313,11 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	return (ISC_FALSE);
 }
 
-/*
+/*%
  * Because we may be trying to do memory allocation recording, we're going
  * to need to parse the arguments for the -m *before* we start the main
  * argument parsing routine.
+ *
  * I'd prefer not to have to do this, but I am not quite sure how else to
  * fix the problem.  Argument parsing in dig involves memory allocation
  * by its nature, so it can't be done in the main argument parser.
@@ -1654,6 +1662,7 @@ dighost_shutdown(void) {
 	}
 }
 
+/*% Main processing routine for dig */
 int
 main(int argc, char **argv) {
 	isc_result_t result;

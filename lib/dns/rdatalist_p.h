@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist_p.h,v 1.5 2004/03/05 05:09:23 marka Exp $ */
+/* $Id: rdatalist_p.h,v 1.6 2005/04/27 04:56:50 sra Exp $ */
 
 #ifndef DNS_RDATALIST_P_H
 #define DNS_RDATALIST_P_H
+
+/*! \file */
 
 #include <isc/result.h>
 #include <dns/types.h>

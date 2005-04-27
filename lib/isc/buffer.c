@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.40 2004/03/05 05:10:44 marka Exp $ */
+/* $Id: buffer.c,v 1.41 2005/04/27 04:57:11 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

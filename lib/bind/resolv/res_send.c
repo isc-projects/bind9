@@ -70,10 +70,11 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.12 2004/08/09 07:47:01 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.13 2005/04/27 04:56:42 sra Exp $";
 #endif /* LIBC_SCCS and not lint */
 
-/*
+/*! \file
+ * \brief
  * Send query to name server and wait for reply.
  */
 
@@ -136,14 +137,15 @@ static const int niflags = NI_NUMERICHOST | NI_NUMERICSERV;
 
 /* Public. */
 
-/* int
- * res_isourserver(ina)
+/*%
  *	looks up "ina" in _res.ns_addr_list[]
+ *
  * returns:
- *	0  : not found
- *	>0 : found
+ *\li	0  : not found
+ *\li	>0 : found
+ *
  * author:
- *	paul vixie, 29may94
+ *\li	paul vixie, 29may94
  */
 int
 res_ourserver_p(const res_state statp, const struct sockaddr *sa) {
@@ -186,17 +188,19 @@ res_ourserver_p(const res_state statp, const struct sockaddr *sa) {
 	return (0);
 }
 
-/* int
- * res_nameinquery(name, type, class, buf, eom)
+/*%
  *	look for (name,type,class) in the query section of packet (buf,eom)
+ *
  * requires:
- *	buf + HFIXEDSZ <= eom
+ *\li	buf + HFIXEDSZ <= eom
+ *
  * returns:
- *	-1 : format error
- *	0  : not found
- *	>0 : found
+ *\li	-1 : format error
+ *\li	0  : not found
+ *\li	>0 : found
+ *
  * author:
- *	paul vixie, 29may94
+ *\li	paul vixie, 29may94
  */
 int
 res_nameinquery(const char *name, int type, int class,
@@ -224,16 +228,17 @@ res_nameinquery(const char *name, int type, int class,
 	return (0);
 }
 
-/* int
- * res_queriesmatch(buf1, eom1, buf2, eom2)
+/*%
  *	is there a 1:1 mapping of (name,type,class)
  *	in (buf1,eom1) and (buf2,eom2)?
+ *
  * returns:
- *	-1 : format error
- *	0  : not a 1:1 mapping
- *	>0 : is a 1:1 mapping
+ *\li	-1 : format error
+ *\li	0  : not a 1:1 mapping
+ *\li	>0 : is a 1:1 mapping
+ *
  * author:
- *	paul vixie, 29may94
+ *\li	paul vixie, 29may94
  */
 int
 res_queriesmatch(const u_char *buf1, const u_char *eom1,
@@ -508,9 +513,9 @@ res_nsend(res_state statp,
 	res_nclose(statp);
 	if (!v_circuit) {
 		if (!gotsomewhere)
-			errno = ECONNREFUSED;	/* no nameservers found */
+			errno = ECONNREFUSED;	/*%< no nameservers found */
 		else
-			errno = ETIMEDOUT;	/* no answer obtained */
+			errno = ETIMEDOUT;	/*%< no answer obtained */
 	} else
 		errno = terrno;
 	return (-1);
@@ -537,10 +542,10 @@ get_salen(sa)
 	else if (sa->sa_family == AF_INET6)
 		return (sizeof(struct sockaddr_in6));
 	else
-		return (0);	/* unknown, die on connect */
+		return (0);	/*%< unknown, die on connect */
 }
 
-/*
+/*%
  * pick appropriate nsaddr_list for use.  see res_init() for initialization.
  */
 static struct sockaddr *

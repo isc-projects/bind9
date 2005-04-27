@@ -15,10 +15,37 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.16 2004/03/05 05:12:45 marka Exp $ */
+/* $Id: gai_strerror.c,v 1.17 2005/04/27 04:57:29 sra Exp $ */
 
+/*! \file gai_strerror.c
+ * lwres_gai_strerror() returns an error message corresponding to an
+ * error code returned by getaddrinfo(). The following error codes and
+ * their meaning are defined in \link netdb.h include/lwres/netdb.h.\endlink
+ *
+ * \li #EAI_ADDRFAMILY address family for hostname not supported
+ * \li #EAI_AGAIN temporary failure in name resolution
+ * \li #EAI_BADFLAGS invalid value for #ai_flags
+ * \li #EAI_FAIL non-recoverable failure in name resolution
+ * \li #EAI_FAMILY ai_family not supported
+ * \li #EAI_MEMORY memory allocation failure
+ * \li #EAI_NODATA no address associated with hostname
+ * \li #EAI_NONAME hostname or servname not provided, or not known
+ * \li #EAI_SERVICE servname not supported for ai_socktype
+ * \li #EAI_SOCKTYPE ai_socktype not supported
+ * \li #EAI_SYSTEM system error returned in errno
+ *
+ * The message invalid error code is returned if ecode is out of range.
+ *
+ * ai_flags, ai_family and ai_socktype are elements of the struct
+ * addrinfo used by lwres_getaddrinfo().
+ *
+ * \section gai_strerror_see See Also
+ *
+ * strerror, lwres_getaddrinfo(), getaddrinfo(), RFC2133.
+ */
 #include <lwres/netdb.h>
 
+/*% Text of error messages. */
 static const char *gai_messages[] = {
 	"no error",
 	"address family for hostname not supported",
@@ -36,6 +63,7 @@ static const char *gai_messages[] = {
 	"bad protocol"
 };
 
+/*% Returns an error message corresponding to an error code returned by getaddrinfo() */
 char *
 lwres_gai_strerror(int ecode) {
 	union {

@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opt_41.c,v 1.29 2004/03/05 05:10:16 marka Exp $ */
+/* $Id: opt_41.c,v 1.30 2005/04/27 04:57:05 sra Exp $ */
 
 /* Reviewed: Thu Mar 16 14:06:44 PST 2000 by gson */
 
-/* RFC 2671 */
+/* RFC2671 */
 
 #ifndef RDATA_GENERIC_OPT_41_C
 #define RDATA_GENERIC_OPT_41_C

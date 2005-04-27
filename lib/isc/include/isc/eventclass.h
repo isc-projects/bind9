@@ -15,25 +15,28 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: eventclass.h,v 1.14 2004/03/05 05:10:56 marka Exp $ */
+/* $Id: eventclass.h,v 1.15 2005/04/27 04:57:17 sra Exp $ */
 
 #ifndef ISC_EVENTCLASS_H
 #define ISC_EVENTCLASS_H 1
 
-/*****
+/*! \file isc/eventclass.h
  ***** Registry of Predefined Event Type Classes
  *****/
 
-/*
+/*%
  * An event class is an unsigned 16 bit number.  Each class may contain up
  * to 65536 events.  An event type is formed by adding the event number
  * within the class to the class number.
+ *
  */
 
 #define ISC_EVENTCLASS(eclass)		((eclass) << 16)
 
-/*
+/*@{*/
+/*!
  * Classes < 1024 are reserved for ISC use.
+ * Event classes >= 1024 and <= 65535 are reserved for application use.
  */
 
 #define	ISC_EVENTCLASS_TASK		ISC_EVENTCLASS(0)
@@ -45,9 +48,6 @@
 #define	ISC_EVENTCLASS_OMAPI		ISC_EVENTCLASS(6)
 #define	ISC_EVENTCLASS_RATELIMITER	ISC_EVENTCLASS(7)
 #define	ISC_EVENTCLASS_ISCCC		ISC_EVENTCLASS(8)
-
-/*
- * Event classes >= 1024 and <= 65535 are reserved for application use.
- */
+/*@}*/
 
 #endif /* ISC_EVENTCLASS_H */

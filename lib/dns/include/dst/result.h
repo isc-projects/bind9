@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.1 2004/12/09 01:41:06 marka Exp $ */
+/* $Id: result.h,v 1.2 2005/04/27 04:57:02 sra Exp $ */
 
 #ifndef DST_RESULT_H
 #define DST_RESULT_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/resultclass.h>

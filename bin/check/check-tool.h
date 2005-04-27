@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.7 2004/03/05 04:57:20 marka Exp $ */
+/* $Id: check-tool.h,v 1.8 2005/04/27 04:55:43 sra Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
+
+/*! \file */
 
 #include <isc/lang.h>
 

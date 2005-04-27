@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.6 2004/03/05 04:58:20 marka Exp $ */
+/* $Id: util.h,v 1.7 2005/04/27 04:56:04 sra Exp $ */
 
 #ifndef RNDC_UTIL_H
 #define RNDC_UTIL_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 

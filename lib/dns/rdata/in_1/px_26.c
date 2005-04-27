@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: px_26.c,v 1.39 2004/03/05 05:10:25 marka Exp $ */
+/* $Id: px_26.c,v 1.40 2005/04/27 04:57:10 sra Exp $ */
 
 /* Reviewed: Mon Mar 20 10:44:27 PST 2000 */
 
-/* RFC 2163 */
+/* RFC2163 */
 
 #ifndef RDATA_IN_1_PX_26_C
 #define RDATA_IN_1_PX_26_C

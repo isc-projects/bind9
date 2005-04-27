@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.440 2005/04/05 00:58:15 marka Exp $ */
+/* $Id: server.c,v 1.441 2005/04/27 04:55:54 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -87,7 +89,7 @@
 #include <stdlib.h>
 #endif
 
-/*
+/*%
  * Check an operation for failure.  Assumes that the function
  * using it has a 'result' variable and a 'cleanup' label.
  */
@@ -192,7 +194,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 static void
 end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
 
-/*
+/*%
  * Configure a single view ACL at '*aclp'.  Get its configuration by
  * calling 'getvcacl' (for per-view configuration) and maybe 'getscacl'
  * (for a global default).
@@ -328,7 +330,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 	return (result);
 }
 
-/*
+/*%
  * Configure DNSSEC keys for a view.  Currently used only for
  * the security roots.
  *
@@ -416,7 +418,7 @@ mustbesecure(cfg_obj_t *mbs, dns_resolver_t *resolver)
 	return (result);
 }
 
-/*
+/*%
  * Get a dispatch appropriate for the resolver of a given view.
  */
 static isc_result_t

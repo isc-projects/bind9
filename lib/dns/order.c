@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.c,v 1.5 2004/03/05 05:09:22 marka Exp $ */
+/* $Id: order.c,v 1.6 2005/04/27 04:56:49 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

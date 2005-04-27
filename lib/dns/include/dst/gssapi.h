@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapi.h,v 1.1 2004/12/09 01:41:06 marka Exp $ */
+/* $Id: gssapi.h,v 1.2 2005/04/27 04:57:02 sra Exp $ */
 
 #ifndef DST_GSSAPI_H
 #define DST_GSSAPI_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 

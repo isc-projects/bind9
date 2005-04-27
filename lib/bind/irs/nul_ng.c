@@ -16,10 +16,11 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nul_ng.c,v 1.2 2004/03/09 06:30:05 marka Exp $";
+static const char rcsid[] = "$Id: nul_ng.c,v 1.3 2005/04/27 04:56:34 sra Exp $";
 #endif
 
-/*
+/*! \file
+ * \brief
  * nul_ng.c - the netgroup accessor null map
  */
 

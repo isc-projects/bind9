@@ -24,7 +24,7 @@
 #include "res_debug.h"
 
 
-/* res_nsendsigned */
+/*% res_nsendsigned */
 int
 res_nsendsigned(res_state statp, const u_char *msg, int msglen,
 		ns_tsig_key *key, u_char *answer, int anslen)
@@ -157,3 +157,5 @@ retry:
 	dst_free_key(dstkey);
 	return (len);
 }
+
+/*! \file */

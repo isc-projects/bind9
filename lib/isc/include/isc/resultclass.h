@@ -15,19 +15,21 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resultclass.h,v 1.12 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: resultclass.h,v 1.13 2005/04/27 04:57:20 sra Exp $ */
 
 #ifndef ISC_RESULTCLASS_H
 #define ISC_RESULTCLASS_H 1
 
-/*****
- ***** Registry of Predefined Result Type Classes
- *****/
 
-/*
+/*! \file
+ * \brief Registry of Predefined Result Type Classes
+ *
  * A result class number is an unsigned 16 bit number.  Each class may
  * contain up to 65536 results.  A result code is formed by adding the
  * result number within the class to the class number multiplied by 65536.
+ *
+ * Classes < 1024 are reserved for ISC use.
+ * Result classes >= 1024 and <= 65535 are reserved for application use.
  */
 
 #define ISC_RESULTCLASS_FROMNUM(num)		((num) << 16)
@@ -36,9 +38,6 @@
 #define ISC_RESULTCLASS_INCLASS(rclass, result) \
 	((rclass) == ((result) & 0xFFFF0000))
 
-/*
- * Classes < 1024 are reserved for ISC use.
- */
 
 #define	ISC_RESULTCLASS_ISC		ISC_RESULTCLASS_FROMNUM(0)
 #define	ISC_RESULTCLASS_DNS		ISC_RESULTCLASS_FROMNUM(1)
@@ -47,8 +46,5 @@
 #define	ISC_RESULTCLASS_OMAPI		ISC_RESULTCLASS_FROMNUM(4)
 #define	ISC_RESULTCLASS_ISCCC		ISC_RESULTCLASS_FROMNUM(5)
 
-/*
- * Result classes >= 1024 and <= 65535 are reserved for application use.
- */
 
 #endif /* ISC_RESULTCLASS_H */

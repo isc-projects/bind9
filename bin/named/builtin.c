@@ -15,9 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.5 2004/03/05 04:57:46 marka Exp $ */
+/* $Id: builtin.c,v 1.6 2005/04/27 04:55:48 sra Exp $ */
 
-/*
+/*! \file
+ * \brief
  * The built-in "version", "hostname", "id" and "authors" databases.
  */
 

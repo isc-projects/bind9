@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsap_22.c,v 1.38 2004/03/05 05:10:24 marka Exp $ */
+/* $Id: nsap_22.c,v 1.39 2005/04/27 04:57:10 sra Exp $ */
 
 /* Reviewed: Fri Mar 17 10:41:07 PST 2000 by gson */
 
-/* RFC 1706 */
+/* RFC1706 */
 
 #ifndef RDATA_IN_1_NSAP_22_C
 #define RDATA_IN_1_NSAP_22_C

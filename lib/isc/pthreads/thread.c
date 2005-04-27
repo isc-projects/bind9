@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.13 2004/12/04 06:47:03 marka Exp $ */
+/* $Id: thread.c,v 1.14 2005/04/27 04:57:22 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

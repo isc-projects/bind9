@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_PROFORMA_H
 #define GENERIC_PROFORMA_H 1
 
-/* $Id: proforma.h,v 1.19 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: proforma.h,v 1.20 2005/04/27 04:57:05 sra Exp $ */
 
 typedef struct dns_rdata_# {
 	dns_rdatacommon_t	common;

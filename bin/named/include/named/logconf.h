@@ -15,16 +15,18 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.h,v 1.11 2004/03/05 04:57:56 marka Exp $ */
+/* $Id: logconf.h,v 1.12 2005/04/27 04:55:58 sra Exp $ */
 
 #ifndef NAMED_LOGCONF_H
 #define NAMED_LOGCONF_H 1
+
+/*! \file */
 
 #include <isc/log.h>
 
 isc_result_t
 ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt);
-/*
+/*%<
  * Set up the logging configuration in '*logconf' according to
  * the named.conf data in 'logstmt'.
  */

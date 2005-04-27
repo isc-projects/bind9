@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: syslog.h,v 1.3 2004/03/05 05:11:53 marka Exp $ */
+/* $Id: syslog.h,v 1.4 2005/04/27 04:57:24 sra Exp $ */
 
 #ifndef ISC_SYSLOG_H
 #define ISC_SYSLOG_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/types.h>
@@ -27,17 +29,17 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 isc_syslog_facilityfromstring(const char *str, int *facilityp);
-/*
+/*%<
  * Convert 'str' to the appropriate syslog facility constant.
  *
  * Requires:
  *
- *	'str' is not NULL
- *	'facilityp' is not NULL
+ *\li	'str' is not NULL
+ *\li	'facilityp' is not NULL
  *
  * Returns:
- * 	ISC_R_SUCCESS
- * 	ISC_R_NOTFOUND
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND
  */
 
 ISC_LANG_ENDDECLS

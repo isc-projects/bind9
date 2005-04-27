@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.47 2004/03/05 05:11:48 marka Exp $ */
+/* $Id: time.c,v 1.48 2005/04/27 04:57:24 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -33,9 +35,9 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#define NS_PER_S	1000000000	/* Nanoseconds per second. */
-#define NS_PER_US	1000		/* Nanoseconds per microsecond. */
-#define US_PER_S	1000000		/* Microseconds per second. */
+#define NS_PER_S	1000000000	/*%< Nanoseconds per second. */
+#define NS_PER_US	1000		/*%< Nanoseconds per microsecond. */
+#define US_PER_S	1000000		/*%< Microseconds per second. */
 
 /*
  * All of the INSIST()s checks of nanoseconds < NS_PER_S are for
@@ -48,7 +50,7 @@
 #define ISC_FIX_TV_USEC 1
 #endif
 
-/***
+/*%
  *** Intervals
  ***/
 

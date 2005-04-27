@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.c,v 1.28 2004/03/05 05:10:43 marka Exp $ */
+/* $Id: base64.c,v 1.29 2005/04/27 04:57:11 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -32,7 +34,8 @@
 	} while (0)
 
 
-/*
+/*@{*/
+/*!
  * These static functions are also present in lib/dns/rdata.c.  I'm not
  * sure where they should go. -- bwelling
  */
@@ -44,6 +47,7 @@ mem_tobuffer(isc_buffer_t *target, void *base, unsigned int length);
 
 static const char base64[] =
 	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+/*@}*/
 
 isc_result_t
 isc_base64_totext(isc_region_t *source, int wordlength,
@@ -90,14 +94,14 @@ isc_base64_totext(isc_region_t *source, int wordlength,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * State of a base64 decoding process in progress.
  */
 typedef struct {
-	int length;		/* Desired length of binary data or -1 */
-	isc_buffer_t *target;	/* Buffer for resulting binary data */
-	int digits;		/* Number of buffered base64 digits */
-	isc_boolean_t seen_end;	/* True if "=" end marker seen */
+	int length;		/*%< Desired length of binary data or -1 */
+	isc_buffer_t *target;	/*%< Buffer for resulting binary data */
+	int digits;		/*%< Number of buffered base64 digits */
+	isc_boolean_t seen_end;	/*%< True if "=" end marker seen */
 	int val[4];
 } base64_decode_ctx_t;
 

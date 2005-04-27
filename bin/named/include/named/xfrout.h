@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.h,v 1.8 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: xfrout.h,v 1.9 2005/04/27 04:56:01 sra Exp $ */
 
 #ifndef NAMED_XFROUT_H
 #define NAMED_XFROUT_H 1
@@ -24,7 +24,8 @@
  ***** Module Info
  *****/
 
-/*
+/*! \file 
+ * \brief
  * Outgoing zone transfers (AXFR + IXFR).
  */
 

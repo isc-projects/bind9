@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator.c,v 1.14 2004/03/05 05:09:18 marka Exp $ */
+/* $Id: dbiterator.c,v 1.15 2005/04/27 04:56:45 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

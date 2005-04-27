@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.c,v 1.14 2004/03/05 05:10:45 marka Exp $ */
+/* $Id: hex.c,v 1.15 2005/04/27 04:57:12 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -73,13 +75,13 @@ isc_hex_totext(isc_region_t *source, int wordlength,
 	return (ISC_R_SUCCESS);
 }
 
-/*
+/*%
  * State of a hex decoding process in progress.
  */
 typedef struct {
-	int length;		/* Desired length of binary data or -1 */
-	isc_buffer_t *target;	/* Buffer for resulting binary data */
-	int digits;		/* Number of buffered hex digits */
+	int length;		/*%< Desired length of binary data or -1 */
+	isc_buffer_t *target;	/*%< Buffer for resulting binary data */
+	int digits;		/*%< Number of buffered hex digits */
 	int val[2];
 } hex_decode_ctx_t;
 

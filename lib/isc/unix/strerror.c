@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: strerror.c,v 1.4 2004/03/05 05:11:47 marka Exp $ */
+/* $Id: strerror.c,v 1.5 2005/04/27 04:57:24 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -29,7 +31,7 @@
 #include <isc/util.h>
 
 #ifdef HAVE_STRERROR
-/*
+/*%
  * We need to do this this way for profiled locks.
  */
 static isc_mutex_t isc_strerror_lock;

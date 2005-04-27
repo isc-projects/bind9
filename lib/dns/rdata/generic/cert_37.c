@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.c,v 1.46 2004/03/05 05:10:10 marka Exp $ */
+/* $Id: cert_37.c,v 1.47 2005/04/27 04:57:03 sra Exp $ */
 
 /* Reviewed: Wed Mar 15 21:14:32 EST 2000 by tale */
 
-/* RFC 2538 */
+/* RFC2538 */
 
 #ifndef RDATA_GENERIC_CERT_37_C
 #define RDATA_GENERIC_CERT_37_C

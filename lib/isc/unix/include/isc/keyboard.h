@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyboard.h,v 1.7 2004/03/05 05:11:52 marka Exp $ */
+/* $Id: keyboard.h,v 1.8 2005/04/27 04:57:24 sra Exp $ */
 
 #ifndef ISC_KEYBOARD_H
 #define ISC_KEYBOARD_H 1
+
+/*! \file */
 
 #include <termios.h>
 

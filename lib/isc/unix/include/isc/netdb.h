@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.7 2004/03/05 05:11:53 marka Exp $ */
+/* $Id: netdb.h,v 1.8 2005/04/27 04:57:24 sra Exp $ */
 
 #ifndef ISC_NETDB_H
 #define ISC_NETDB_H 1
@@ -24,25 +24,26 @@
  ***** Module Info
  *****/
 
-/*
+/*! \file
+ * \brief
  * Portable netdb.h support.
  *
  * This module is responsible for defining the get<x>by<y> APIs.
  *
  * MP:
- *	No impact.
+ *\li	No impact.
  *
  * Reliability:
- *	No anticipated impact.
+ *\li	No anticipated impact.
  *
  * Resources:
- *	N/A.
+ *\li	N/A.
  *
  * Security:
- *	No anticipated impact.
+ *\li	No anticipated impact.
  *
  * Standards:
- *	BSD API
+ *\li	BSD API
  */
 
 /***

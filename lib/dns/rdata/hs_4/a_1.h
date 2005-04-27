@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef HS_4_A_1_H
 #define HS_4_A_1_H 1
 
-/* $Id: a_1.h,v 1.8 2004/03/05 05:10:21 marka Exp $ */
+/* $Id: a_1.h,v 1.9 2005/04/27 04:57:07 sra Exp $ */
 
 typedef struct dns_rdata_hs_a {
 	dns_rdatacommon_t	common;

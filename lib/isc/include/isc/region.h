@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.h,v 1.19 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: region.h,v 1.20 2005/04/27 04:57:20 sra Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 
@@ -45,7 +47,8 @@ struct isc_consttextregion {
 	unsigned int	length;
 };
 
-/*
+/*@{*/
+/*!
  * The region structure is not opaque, and is usually directly manipulated.
  * Some macros are defined below for convenience.
  */
@@ -76,20 +79,21 @@ struct isc_consttextregion {
 		_r->base += _l; \
 		_r->length -= _l; \
 	} while (0)
+/*@}*/
 
 int
 isc_region_compare(isc_region_t *r1, isc_region_t *r2);
-/*
+/*%<
  * Compares the contents of two regions 
  *
  * Requires: 
- *	'r1' is a valid region
- *	'r2' is a valid region
+ *\li	'r1' is a valid region
+ *\li	'r2' is a valid region
  *
  * Returns:
- *	 < 0 if r1 is lexicographically less than r2
- *	 = 0 if r1 is lexicographically identical to r2
- *	 > 0 if r1 is lexicographically greater than r2
+ *\li	 < 0 if r1 is lexicographically less than r2
+ *\li	 = 0 if r1 is lexicographically identical to r2
+ *\li	 > 0 if r1 is lexicographically greater than r2
  */
 
 #endif /* ISC_REGION_H */

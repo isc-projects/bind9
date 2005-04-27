@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.7 2004/03/05 05:11:44 marka Exp $ */
+/* $Id: fsaccess.c,v 1.8 2005/04/27 04:57:23 sra Exp $ */
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -24,7 +24,8 @@
 
 #include "errno2result.h"
 
-/*
+/*! \file
+ * \brief
  * The OS-independent part of the API is in lib/isc.
  */
 #include "../fsaccess.c"

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.c,v 1.6 2005/03/06 15:30:37 marka Exp $ */
+/* $Id: ds.c,v 1.7 2005/04/27 04:56:45 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

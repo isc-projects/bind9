@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.c,v 1.3 2004/03/05 04:58:20 marka Exp $ */
+/* $Id: util.c,v 1.4 2005/04/27 04:56:04 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

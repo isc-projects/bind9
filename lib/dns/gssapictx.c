@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.1 2004/12/09 01:41:03 marka Exp $ */
+/* $Id: gssapictx.c,v 1.2 2005/04/27 04:56:47 sra Exp $ */
 
 #include <config.h>
 
@@ -260,3 +260,5 @@ dst_gssapi_acceptctx(dns_name_t *name, void *cred,
 }
 
 #endif
+
+/*! \file */

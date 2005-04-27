@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_pw.c,v 1.2 2004/03/09 06:29:59 marka Exp $";
+static const char rcsid[] = "$Id: dns_pw.c,v 1.3 2005/04/27 04:56:22 sra Exp $";
 #endif
 
 #include "port_before.h"
@@ -229,3 +229,4 @@ getpwcommon(struct irs_pw *this, const char *arg, const char *type) {
 }
 
 #endif /* WANT_IRS_PW */
+/*! \file */

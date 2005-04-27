@@ -15,16 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.6 2004/03/05 05:10:45 marka Exp $ */
+/* $Id: fsaccess.c,v 1.7 2005/04/27 04:57:12 sra Exp $ */
 
-/*
+/*! \file
+ * \brief
  * This file contains the OS-independent functionality of the API.
  */
 #include <isc/fsaccess.h>
 #include <isc/result.h>
 #include <isc/util.h>
 
-/*
+/*!
  * Shorthand.  Maybe ISC__FSACCESS_PERMISSIONBITS should not even be in
  * <isc/fsaccess.h>.  Could check consistency with sizeof(isc_fsaccess_t)
  * and the number of bits in each function.

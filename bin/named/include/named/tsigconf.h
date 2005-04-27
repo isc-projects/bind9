@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.10 2004/03/05 04:57:57 marka Exp $ */
+/* $Id: tsigconf.h,v 1.11 2005/04/27 04:56:01 sra Exp $ */
 
 #ifndef NS_TSIGCONF_H
 #define NS_TSIGCONF_H 1
+
+/*! \file */
 
 #include <isc/types.h>
 #include <isc/lang.h>
@@ -28,18 +30,18 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 ns_tsigkeyring_fromconfig(cfg_obj_t *config, cfg_obj_t *vconfig,
 			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
-/*
+/*%<
  * Create a TSIG key ring and configure it according to the 'key'
  * statements in the global and view configuration objects.
  *
  *	Requires:
- *		'config' is not NULL.
- *		'mctx' is not NULL
- *		'ring' is not NULL, and '*ring' is NULL
+ *	\li	'config' is not NULL.
+ *	\li	'mctx' is not NULL
+ *	\li	'ring' is not NULL, and '*ring' is NULL
  *
  *	Returns:
- *		ISC_R_SUCCESS
- *		ISC_R_NOMEMORY
+ *	\li	ISC_R_SUCCESS
+ *	\li	ISC_R_NOMEMORY
  */
 
 ISC_LANG_ENDDECLS

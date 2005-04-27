@@ -18,9 +18,10 @@
 #ifndef GENERIC_DNSSIG_46_H
 #define GENERIC_DNSSIG_46_H 1
 
-/* $Id: rrsig_46.h,v 1.3 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rrsig_46.h,v 1.4 2005/04/27 04:57:05 sra Exp $ */
 
-/* RFC 2535 */
+/*!
+ *  \brief Per RFC2535 */
 typedef struct dns_rdata_rrsig {
 	dns_rdatacommon_t	common;
 	isc_mem_t *		mctx;

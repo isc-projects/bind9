@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.64 2005/03/16 23:39:05 marka Exp $ */
+/* $Id: sockaddr.c,v 1.65 2005/04/27 04:57:15 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatalist.c,v 1.29 2004/12/21 10:45:17 jinmei Exp $ */
+/* $Id: rdatalist.c,v 1.30 2005/04/27 04:56:50 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 

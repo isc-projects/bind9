@@ -16,14 +16,15 @@
  */
 
 /*
- * $Id: nis_p.h,v 1.2 2004/03/09 06:30:05 marka Exp $
+ * $Id: nis_p.h,v 1.3 2005/04/27 04:56:33 sra Exp $
  */
 
-/*
+/*! \file
+ * \brief
  * nis_p.h - private include file for the NIS functions.
  */
 
-/*
+/*%
  * Object state.
  */
 struct nis_p {

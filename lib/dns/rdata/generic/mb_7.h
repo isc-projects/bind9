@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* */
 #ifndef GENERIC_MB_7_H
 #define GENERIC_MB_7_H 1
 
-/* $Id: mb_7.h,v 1.23 2004/03/05 05:10:13 marka Exp $ */
+/* $Id: mb_7.h,v 1.24 2005/04/27 04:57:04 sra Exp $ */
 
 typedef struct dns_rdata_mb {
 	dns_rdatacommon_t	common;

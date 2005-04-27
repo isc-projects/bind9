@@ -16,10 +16,11 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns.c,v 1.3 2004/03/18 02:57:58 marka Exp $";
+static const char rcsid[] = "$Id: dns.c,v 1.4 2005/04/27 04:56:21 sra Exp $";
 #endif
 
-/*
+/*! \file
+ * \brief
  * dns.c --- this is the top-level accessor function for the dns
  */
 

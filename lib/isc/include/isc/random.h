@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.h,v 1.12 2004/03/05 05:11:00 marka Exp $ */
+/* $Id: random.h,v 1.13 2005/04/27 04:57:20 sra Exp $ */
 
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
@@ -23,9 +23,11 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-/*
- * Implements a random state pool which will let the caller return a
- * series of possibly non-reproducable random values.  Note that the
+/*! \file
+ * \brief Implements a random state pool which will let the caller return a
+ * series of possibly non-reproducable random values.  
+ *
+ * Note that the
  * strength of these numbers is not all that high, and should not be
  * used in cryptography functions.  It is useful for jittering values
  * a bit here and there, such as timeouts, etc.
@@ -35,13 +37,13 @@ ISC_LANG_BEGINDECLS
 
 void
 isc_random_seed(isc_uint32_t seed);
-/*
+/*%<
  * Set the initial seed of the random state.
  */
 
 void
 isc_random_get(isc_uint32_t *val);
-/*
+/*%<
  * Get a random value.
  *
  * Requires:
@@ -50,7 +52,7 @@ isc_random_get(isc_uint32_t *val);
 
 isc_uint32_t
 isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter);
-/*
+/*%<
  * Get a random value between (max - jitter) and (max).
  * This is useful for jittering timer values.
  */

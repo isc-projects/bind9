@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.72 2004/03/05 05:09:24 marka Exp $ */
+/* $Id: request.c,v 1.73 2005/04/27 04:56:50 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -91,10 +93,10 @@ struct dns_request {
 
 #define DNS_REQUEST_F_CONNECTING 0x0001
 #define DNS_REQUEST_F_SENDING 0x0002
-#define DNS_REQUEST_F_CANCELED 0x0004	/* ctlevent received, or otherwise
+#define DNS_REQUEST_F_CANCELED 0x0004	/*%< ctlevent received, or otherwise
 					   synchronously canceled */
-#define DNS_REQUEST_F_TIMEDOUT 0x0008	/* cancelled due to a timeout */
-#define DNS_REQUEST_F_TCP 0x0010	/* This request used TCP */
+#define DNS_REQUEST_F_TIMEDOUT 0x0008	/*%< cancelled due to a timeout */
+#define DNS_REQUEST_F_TCP 0x0010	/*%< This request used TCP */
 #define DNS_REQUEST_CANCELED(r) \
 	(((r)->flags & DNS_REQUEST_F_CANCELED) != 0)
 #define DNS_REQUEST_CONNECTING(r) \

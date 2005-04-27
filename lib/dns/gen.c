@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.73 2004/03/16 05:52:18 marka Exp $ */
+/* $Id: gen.c,v 1.74 2005/04/27 04:56:46 sra Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -118,6 +120,8 @@ const char copyright[] =
 " ***************   DO NOT EDIT!\n"
 " ***************\n"
 " ***************/\n"
+"\n"
+"/*! \\file */\n"
 "\n";
 
 #define TYPENAMES 256
@@ -163,7 +167,7 @@ sd(int, const char *, const char *, char);
 void
 insert_into_typenames(int, const char *, const char *);
 
-/*
+/*%
  * If you use more than 10 of these in, say, a printf(), you'll have problems.
  */
 char *

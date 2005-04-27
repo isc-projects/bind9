@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.5 2004/03/05 04:58:25 marka Exp $ */
+/* $Id: os.h,v 1.6 2005/04/27 04:56:04 sra Exp $ */
+
+/*! \file */
 
 #ifndef RNDC_OS_H
 #define RNDC_OS_H 1
@@ -26,13 +28,13 @@
 ISC_LANG_BEGINDECLS
 
 FILE *safe_create(const char *filename);
-/*
+/*%<
  * Open 'filename' for writing, truncate if necessary.  If the file was
  * created ensure that only the owner can read/write it.
  */
 
 int set_user(FILE *fd, const char *user);
-/*
+/*%<
  * Set the owner of the file refernced by 'fd' to 'user'.
  * Returns:
  *   0 		success

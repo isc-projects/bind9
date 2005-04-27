@@ -15,27 +15,32 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_getifaddrs.c,v 1.4 2004/03/05 05:11:45 marka Exp $ */
+/* $Id: ifiter_getifaddrs.c,v 1.5 2005/04/27 04:57:23 sra Exp $ */
 
-/*
+/*! \file
+ * \brief
  * Obtain the list of network interfaces using the getifaddrs(3) library.
  */
 
 #include <ifaddrs.h>
 
+/*% Iterator Magic */
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'G')
+/*% Valid Iterator */
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
+/*% Iterator structure */
 struct isc_interfaceiter {
-	unsigned int		magic;		/* Magic number. */
+	unsigned int		magic;		/*%< Magic number. */
 	isc_mem_t		*mctx;
-	void			*buf;		/* (unused) */
-	unsigned int		bufsize;	/* (always 0) */
-	struct ifaddrs		*ifaddrs;	/* List of ifaddrs */
-	struct ifaddrs		*pos;		/* Ptr to current ifaddr */
-	isc_interface_t		current;	/* Current interface data. */
-	isc_result_t		result;		/* Last result code. */
+	void			*buf;		/*%< (unused) */
+	unsigned int		bufsize;	/*%< (always 0) */
+	struct ifaddrs		*ifaddrs;	/*%< List of ifaddrs */
+	struct ifaddrs		*pos;		/*%< Ptr to current ifaddr */
+	isc_interface_t		current;	/*%< Current interface data. */
+	isc_result_t		result;		/*%< Last result code. */
 };
+
 
 isc_result_t
 isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
