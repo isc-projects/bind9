@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ns_smf_globals.h,v 1.2.4.2 2005/04/07 03:22:25 marka Exp $ */
+/* $Id: ns_smf_globals.h,v 1.2.4.3 2005/04/29 01:04:48 marka Exp $ */
 
 #ifndef NS_SMF_GLOBALS_H
 #define NS_SMF_GLOBALS_H 1
@@ -33,10 +33,10 @@
                 
 EXTERN unsigned int	ns_smf_got_instance	INIT(0);
 EXTERN unsigned int	ns_smf_chroot		INIT(0);
+EXTERN unsigned int	ns_smf_want_disable	INIT(0);
 
 isc_result_t ns_smf_add_message(isc_buffer_t *text);
 isc_result_t ns_smf_get_instance(char **name, int debug, isc_mem_t *mctx);
-isc_result_t ns_smf_disable(const char *name);
 
 #undef EXTERN
 #undef INIT

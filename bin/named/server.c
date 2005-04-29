@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.62 2005/04/05 01:13:44 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.63 2005/04/29 01:04:47 marka Exp $ */
 
 #include <config.h>
 
@@ -4140,20 +4140,6 @@ ns_smf_add_message(isc_buffer_t *text) {
 	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-ns_smf_disable(const char *ins_name) {
-
-	if (ins_name == NULL)
-		return (ISC_R_UNEXPECTED);
-	if (smf_disable_instance(ins_name, 0) != 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-			"smf_disable_instance() failed: %s",
-			scf_strerror(scf_error()));
-		return (ISC_R_FAILURE);
-	}
 	return (ISC_R_SUCCESS);
 }
 #endif /* HAVE_LIBSCF */
