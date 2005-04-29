@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.136.18.9 2005/04/27 05:00:32 sra Exp $ */
+/* $Id: main.c,v 1.136.18.10 2005/04/29 00:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -779,6 +779,9 @@ ns_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	char *instance = NULL;
+#endif
 
 	/*
 	 * Record version in core image.
@@ -848,6 +851,22 @@ main(int argc, char *argv[]) {
 			result = ISC_R_SUCCESS;
 		}
 	} while (result != ISC_R_SUCCESS);
+
+#ifdef HAVE_LIBSCF
+	if (ns_smf_want_disable == 1) {
+		result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
+		if (result == ISC_R_SUCCESS && instance != NULL) {
+			if (smf_disable_instance(instance, 0) != 0)
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 "smf_disable_instance() ",
+						 "failed for %s : %s",
+						 instance,
+						 scf_strerror(scf_error()));
+		}
+		if (instance != NULL)
+			isc_mem_free(ns_g_mctx, instance);
+	}
+#endif /* HAVE_LIBSCF */
 
 	cleanup();
 

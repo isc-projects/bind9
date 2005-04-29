@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.20.10.5 2005/04/27 05:00:30 sra Exp $ */
+/* $Id: control.c,v 1.20.10.6 2005/04/29 00:55:52 marka Exp $ */
 
 /*! \file */
 
@@ -64,7 +64,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	char *command;
 	isc_result_t result;
 #ifdef HAVE_LIBSCF
-	char *instance = NULL;
+	ns_smf_want_disable = 0;
 #endif
 
 	data = isccc_alist_lookup(message, "_data");
@@ -114,17 +114,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		 * If we are managed by smf(5) but not in chroot,
 		 * try to disable ourselves the smf way.
 		 */
-		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0) {
-			result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
-			if (result == ISC_R_SUCCESS && instance != NULL) {
-				ns_server_flushonshutdown(ns_g_server,
-					ISC_FALSE);
-				result = ns_smf_disable(instance);
-			}
-			if (instance != NULL)
-				isc_mem_free(ns_g_mctx, instance);
-			return (result);
-		}
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0)
+			ns_smf_want_disable = 1;
 		/*
 		 * If ns_smf_got_instance = 0, ns_smf_chroot
 		 * is not relevant and we fall through to
@@ -141,17 +132,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 			result = ns_smf_add_message(text);
 			return (result);
 		}
-		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0) {
-			result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
-			if (result == ISC_R_SUCCESS && instance != NULL) {
-				ns_server_flushonshutdown(ns_g_server,
-					ISC_TRUE);
-				result = ns_smf_disable(instance);
-			}
-			if (instance != NULL)
-				isc_mem_free(ns_g_mctx, instance);
-			return (result);
-		}
+		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0)
+			ns_smf_want_disable = 1;
 #endif
 		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
 		ns_os_shutdownmsg(command, text);
