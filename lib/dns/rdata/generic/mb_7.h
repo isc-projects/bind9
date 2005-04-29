@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef GENERIC_MB_7_H
 #define GENERIC_MB_7_H 1
 
-/* $Id: mb_7.h,v 1.23.18.1 2005/04/27 05:01:46 sra Exp $ */
+/* $Id: mb_7.h,v 1.23.18.2 2005/04/29 00:16:34 marka Exp $ */
 
 typedef struct dns_rdata_mb {
 	dns_rdatacommon_t	common;

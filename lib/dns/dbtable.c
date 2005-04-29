@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.28.18.1 2005/04/27 05:01:15 sra Exp $
+ * $Id: dbtable.c,v 1.28.18.2 2005/04/29 00:15:50 marka Exp $
  */
 
 /*! \file

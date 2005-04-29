@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_ISDN_20_H
 #define GENERIC_ISDN_20_H 1
 
-/* $Id: isdn_20.h,v 1.14.18.1 2005/04/27 05:01:46 sra Exp $ */
+/* $Id: isdn_20.h,v 1.14.18.2 2005/04/29 00:16:33 marka Exp $ */
 
 /*!
  * \brief Per RFC1183 */

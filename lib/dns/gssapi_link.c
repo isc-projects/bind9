@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: gssapi_link.c,v 1.1.6.2 2005/04/27 05:01:19 sra Exp $
+ * $Id: gssapi_link.c,v 1.1.6.3 2005/04/29 00:15:53 marka Exp $
  */
 
 #ifdef GSSAPI

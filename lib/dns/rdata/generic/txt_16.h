@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef GENERIC_TXT_16_H
 #define GENERIC_TXT_16_H 1
 
-/* $Id: txt_16.h,v 1.24.18.1 2005/04/27 05:01:53 sra Exp $ */
+/* $Id: txt_16.h,v 1.24.18.2 2005/04/29 00:16:40 marka Exp $ */
 
 typedef struct dns_rdata_txt_string {
                 isc_uint8_t    length;

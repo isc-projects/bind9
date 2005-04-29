@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -14,9 +14,10 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
 /*! \file */
 /*
- * $Id: ssu.c,v 1.24.18.1 2005/04/27 05:01:26 sra Exp $
+ * $Id: ssu.c,v 1.24.18.2 2005/04/29 00:16:05 marka Exp $
  * Principal Author: Brian Wellington
  */
 

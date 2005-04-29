@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres_gabn.c,v 1.29.18.1 2005/04/27 05:02:53 sra Exp $ */
+/* $Id: lwres_gabn.c,v 1.29.18.2 2005/04/29 00:17:19 marka Exp $ */
 
 /*! \file lwres_gabn.c
    These are low-level routines for creating and parsing lightweight

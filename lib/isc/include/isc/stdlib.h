@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdlib.h,v 1.2.18.1 2005/04/27 05:02:31 sra Exp $ */
+/* $Id: stdlib.h,v 1.2.18.2 2005/04/29 00:17:03 marka Exp $ */
 
 #ifndef ISC_STDLIB_H
 #define ISC_STDLIB_H 1

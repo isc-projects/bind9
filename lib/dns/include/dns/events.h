@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: events.h,v 1.42.18.2 2005/04/27 05:01:33 sra Exp $ */
+/* $Id: events.h,v 1.42.18.3 2005/04/29 00:16:13 marka Exp $ */
 
 #ifndef DNS_EVENTS_H
 #define DNS_EVENTS_H 1

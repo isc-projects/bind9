@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.15.18.1 2005/04/27 05:01:38 sra Exp $ */
+/* $Id: sdb.h,v 1.15.18.2 2005/04/29 00:16:21 marka Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
