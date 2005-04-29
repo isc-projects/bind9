@@ -53,7 +53,7 @@
 ./bin/dig/win32/nslookup.dsw			X	2001
 ./bin/dig/win32/nslookup.mak			X	2001
 ./bin/dnssec/.cvsignore				X	2000,2001
-./bin/dnssec/Makefile.in			MAKE	2000,2001,2004
+./bin/dnssec/Makefile.in			MAKE	2000,2001,2004,2005
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2004
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2004,2005
