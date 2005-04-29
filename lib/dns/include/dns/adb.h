@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.77 2005/04/27 04:56:53 sra Exp $ */
+/* $Id: adb.h,v 1.78 2005/04/29 00:22:54 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1

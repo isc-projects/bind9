@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001  Internet Software Consortium.
  * Portions Copyright (C) 2001  Nominum, Inc.
  *
@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtype.h,v 1.4 2005/04/27 04:57:27 sra Exp $ */
+/* $Id: symtype.h,v 1.5 2005/04/29 00:24:01 marka Exp $ */
 
 #ifndef ISCCC_SYMTYPE_H
 #define ISCCC_SYMTYPE_H 1

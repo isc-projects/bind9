@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef IN_1_KX_36_H
 #define IN_1_KX_36_H 1
 
-/* $Id: kx_36.h,v 1.17 2005/04/27 04:57:07 sra Exp $ */
+/* $Id: kx_36.h,v 1.18 2005/04/29 00:23:20 marka Exp $ */
 
 /*! 
  *  \brief Per RFC2230 */

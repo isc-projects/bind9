@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -53,7 +53,7 @@
 static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 
-/* $Id: strtoul.c,v 1.4 2005/04/27 04:57:15 sra Exp $ */
+/* $Id: strtoul.c,v 1.5 2005/04/29 00:23:31 marka Exp $ */
 
 #include <config.h>
 

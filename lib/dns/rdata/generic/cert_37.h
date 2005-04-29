@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert_37.h,v 1.17 2005/04/27 04:57:03 sra Exp $ */
+/* $Id: cert_37.h,v 1.18 2005/04/29 00:23:08 marka Exp $ */
 
 #ifndef GENERIC_CERT_37_H
 #define GENERIC_CERT_37_H 1

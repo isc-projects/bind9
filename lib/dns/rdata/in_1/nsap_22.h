@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef IN_1_NSAP_22_H
 #define IN_1_NSAP_22_H 1
 
-/* $Id: nsap_22.h,v 1.15 2005/04/27 04:57:10 sra Exp $ */
+/* $Id: nsap_22.h,v 1.16 2005/04/29 00:23:21 marka Exp $ */
 
 /*! 
  *  \brief Per RFC1706 */

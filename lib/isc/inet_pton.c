@@ -14,11 +14,12 @@
  * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  */
+
 /*! \file */
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: inet_pton.c,v 1.16 2005/04/27 04:57:12 sra Exp $";
+	"$Id: inet_pton.c,v 1.17 2005/04/29 00:23:25 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

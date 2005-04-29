@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: once.h,v 1.10 2005/04/27 04:57:22 sra Exp $ */
+/* $Id: once.h,v 1.11 2005/04/29 00:23:48 marka Exp $ */
 
 #ifndef ISC_ONCE_H
 #define ISC_ONCE_H 1

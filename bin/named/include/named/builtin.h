@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.h,v 1.3 2005/04/27 04:55:56 sra Exp $ */
+/* $Id: builtin.h,v 1.4 2005/04/29 00:22:29 marka Exp $ */
 
 #ifndef NAMED_BUILTIN_H
 #define NAMED_BUILTIN_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbtable.h,v 1.18 2005/04/27 04:56:54 sra Exp $ */
+/* $Id: dbtable.h,v 1.19 2005/04/29 00:22:55 marka Exp $ */
 
 #ifndef DNS_DBTABLE_H
 #define DNS_DBTABLE_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_AFSDB_18_H
 #define GENERIC_AFSDB_18_H 1
 
-/* $Id: afsdb_18.h,v 1.17 2005/04/27 04:57:02 sra Exp $ */
+/* $Id: afsdb_18.h,v 1.18 2005/04/29 00:23:08 marka Exp $ */
 
 /*!
  *  \brief Per RFC1183 */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.26 2005/04/27 04:57:22 sra Exp $ */
+/* $Id: mutex.h,v 1.27 2005/04/29 00:23:48 marka Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1

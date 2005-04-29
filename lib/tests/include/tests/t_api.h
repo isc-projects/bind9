@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.h,v 1.17 2005/04/27 04:57:32 sra Exp $ */
+/* $Id: t_api.h,v 1.18 2005/04/29 00:24:12 marka Exp $ */
 
 #ifndef TESTS_T_API_H
 #define TESTS_T_API_H 1

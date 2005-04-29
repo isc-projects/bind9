@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.8 2005/04/27 04:55:43 sra Exp $ */
+/* $Id: check-tool.h,v 1.9 2005/04/29 00:22:24 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H

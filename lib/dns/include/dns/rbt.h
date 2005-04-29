@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.61 2005/04/27 04:56:58 sra Exp $ */
+/* $Id: rbt.h,v 1.62 2005/04/29 00:23:00 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1

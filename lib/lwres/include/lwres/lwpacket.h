@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwpacket.h,v 1.19 2005/04/27 04:57:31 sra Exp $ */
+/* $Id: lwpacket.h,v 1.20 2005/04/29 00:24:10 marka Exp $ */
 
 #ifndef LWRES_LWPACKET_H
 #define LWRES_LWPACKET_H 1

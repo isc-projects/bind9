@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef GENERIC_MD_3_H
 #define GENERIC_MD_3_H 1
 
-/* $Id: md_3.h,v 1.25 2005/04/27 04:57:04 sra Exp $ */
+/* $Id: md_3.h,v 1.26 2005/04/29 00:23:12 marka Exp $ */
 
 typedef struct dns_rdata_md {
 	dns_rdatacommon_t	common;

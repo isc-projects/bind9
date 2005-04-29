@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: listenlist.h,v 1.12 2005/04/27 04:55:58 sra Exp $ */
+/* $Id: listenlist.h,v 1.13 2005/04/29 00:22:30 marka Exp $ */
 
 #ifndef NAMED_LISTENLIST_H
 #define NAMED_LISTENLIST_H 1

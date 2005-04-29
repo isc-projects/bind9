@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.c,v 1.11 2005/04/27 04:57:13 sra Exp $ */
+/* $Id: md5.c,v 1.12 2005/04/29 00:23:28 marka Exp $ */
 
 /*! \file
  * This code implements the MD5 message-digest algorithm.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_TKEY_249_H
 #define GENERIC_TKEY_249_H 1
 
-/* $Id: tkey_249.h,v 1.21 2005/04/27 04:57:06 sra Exp $ */
+/* $Id: tkey_249.h,v 1.22 2005/04/29 00:23:17 marka Exp $ */
 
 /*!
  *  \brief Per draft-ietf-dnsind-tkey-00.txt */

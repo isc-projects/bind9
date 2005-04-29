@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.44 2005/04/27 04:57:00 sra Exp $ */
+/* $Id: tsig.h,v 1.45 2005/04/29 00:23:05 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1

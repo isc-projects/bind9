@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.29 2005/04/27 04:57:17 sra Exp $ */
+/* $Id: event.h,v 1.30 2005/04/29 00:23:35 marka Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1

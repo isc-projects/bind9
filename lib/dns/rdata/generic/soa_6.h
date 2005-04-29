@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef GENERIC_SOA_6_H
 #define GENERIC_SOA_6_H 1
 
-/* $Id: soa_6.h,v 1.29 2005/04/27 04:57:06 sra Exp $ */
+/* $Id: soa_6.h,v 1.30 2005/04/29 00:23:16 marka Exp $ */
 
 typedef struct dns_rdata_soa {
 	dns_rdatacommon_t	common;

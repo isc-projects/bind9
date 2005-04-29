@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.h,v 1.12 2005/04/27 04:55:59 sra Exp $ */
+/* $Id: main.h,v 1.13 2005/04/29 00:22:32 marka Exp $ */
 
 #ifndef NAMED_MAIN_H
 #define NAMED_MAIN_H 1

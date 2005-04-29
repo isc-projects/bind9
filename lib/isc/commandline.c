@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: commandline.c,v 1.17 2005/04/27 04:57:11 sra Exp $ */
+/* $Id: commandline.c,v 1.18 2005/04/29 00:23:23 marka Exp $ */
 
 /*! \file
  * This file was adapted from the NetBSD project's source tree, RCS ID:

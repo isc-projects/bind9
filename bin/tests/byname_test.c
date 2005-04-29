@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.27 2005/04/27 04:56:07 sra Exp $ */
+/* $Id: byname_test.c,v 1.28 2005/04/29 00:22:37 marka Exp $ */
 
 /*! \file
  * \author

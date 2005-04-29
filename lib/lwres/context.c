@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.c,v 1.47 2005/04/27 04:57:29 sra Exp $ */
+/* $Id: context.c,v 1.48 2005/04/29 00:24:04 marka Exp $ */
 
 /*! \file context.c 
    lwres_context_create() creates a #lwres_context_t structure for use in

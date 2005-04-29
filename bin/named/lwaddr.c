@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwaddr.c,v 1.5 2005/04/27 04:55:51 sra Exp $ */
+/* $Id: lwaddr.c,v 1.6 2005/04/29 00:22:27 marka Exp $ */
 
 /*! \file */
 

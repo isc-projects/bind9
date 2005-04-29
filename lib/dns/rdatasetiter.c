@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatasetiter.c,v 1.13 2005/04/27 04:56:50 sra Exp $ */
+/* $Id: rdatasetiter.c,v 1.14 2005/04/29 00:22:51 marka Exp $ */
 
 /*! \file */
 

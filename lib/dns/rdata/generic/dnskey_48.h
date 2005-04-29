@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_DNSKEY_48_H
 #define GENERIC_DNSKEY_48_H 1
 
-/* $Id: dnskey_48.h,v 1.4 2005/04/27 04:57:03 sra Exp $ */
+/* $Id: dnskey_48.h,v 1.5 2005/04/29 00:23:10 marka Exp $ */
 
 /*!
  *  \brief per RFC2535 */

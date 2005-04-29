@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef IN_1_A_1_H
 #define IN_1_A_1_H 1
 
-/* $Id: a_1.h,v 1.25 2005/04/27 04:57:07 sra Exp $ */
+/* $Id: a_1.h,v 1.26 2005/04/29 00:23:18 marka Exp $ */
 
 typedef struct dns_rdata_in_a {
 	dns_rdatacommon_t	common;

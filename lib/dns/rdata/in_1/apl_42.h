@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -19,7 +19,7 @@
 #ifndef IN_1_APL_42_H
 #define IN_1_APL_42_H 1
 
-/* $Id: apl_42.h,v 1.3 2005/04/27 04:57:07 sra Exp $ */
+/* $Id: apl_42.h,v 1.4 2005/04/29 00:23:19 marka Exp $ */
 
 typedef struct dns_rdata_apl_ent {
 	isc_boolean_t	negative;
