@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.26.18.2 2005/04/29 04:29:35 marka Exp $
+# $Id: Makefile.in,v 1.26.18.3 2005/04/29 05:24:15 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -56,6 +56,10 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 dnssec-keygen@EXEEXT@: dnssec-keygen.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 	dnssec-keygen.@O@ ${OBJS} ${LIBS}
+
+dnssec-signzone.@O@: dnssec-signzone.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} -DVERSION=\"${VERSION}\" \
+		-c ${srcdir}/dnssec-signzone.c
 
 dnssec-signzone@EXEEXT@: dnssec-signzone.@O@ ${OBJS} ${DEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
