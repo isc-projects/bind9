@@ -1,3 +1,6 @@
+1852.	[cleanup]	Remove last vestiges of dnssec-signkey and
+			dnssec-makekeyset (removed from Makefile years ago).
+
 1851.	[doc]		Doxygen comment markup. [RT #11398]
 
 1850.	[bug]		Memory leak in lwres_getipnodebyaddr(). [RT #14591]
