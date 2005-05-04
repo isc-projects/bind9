@@ -58,14 +58,6 @@
 ./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2002,2003,2004
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
-./bin/dnssec/dnssec-makekeyset.8		MAN	DOCBOOK
-./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000,2001,2002,2003,2004
-./bin/dnssec/dnssec-makekeyset.docbook		SGML	2000,2001,2003,2004,2005
-./bin/dnssec/dnssec-makekeyset.html		HTML	DOCBOOK
-./bin/dnssec/dnssec-signkey.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signkey.c			C.NAI	2000,2001,2002,2003,2004
-./bin/dnssec/dnssec-signkey.docbook		SGML	2000,2001,2003,2004,2005
-./bin/dnssec/dnssec-signkey.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005
