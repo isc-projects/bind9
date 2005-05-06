@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.16 2005/03/16 03:17:39 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.17 2005/05/06 01:58:48 marka Exp $ */
 
 #include <config.h>
 
@@ -2345,9 +2345,10 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 					       val->event->name,
 					       dns_fixedname_name(&secroot));
 	/*
-	 * If the name is not under a security root, it must be insecure.
+	 * If the name is not under a security root look for a dlv record.
 	 */
-	if (val->view->dlv != NULL && !DLVSEPTRIED(val) && 
+	if (result == ISC_R_NOTFOUND &&
+	    val->view->dlv != NULL && !DLVSEPTRIED(val) && 
 	    !dns_name_issubdomain(val->event->name, val->view->dlv)) {
 		tresult = finddlvsep(val, ISC_FALSE);
 		if (tresult != ISC_R_NOTFOUND && tresult != ISC_R_SUCCESS) {
@@ -2358,6 +2359,11 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		}
 	}
 
+	/*
+	 * If there is no security root and a dlv record was not found we are
+	 * done.  If a dlv record was found use that as the secure entry point,
+	 * if no security root was found.
+	 */
 	if (result == ISC_R_NOTFOUND) {
 		if (!val->havedlvsep) {
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -2428,7 +2434,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		if (result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) {
 			/*
 			 * There is no DS.  If this is a delegation,
-			 * we're done.
+			 * we maybe done.
 			 */
 			if (val->frdataset.trust < dns_trust_secure) {
 				/*
@@ -2441,6 +2447,25 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				goto out;
 			}
 			if (isdelegation(tname, &val->frdataset, result)) {
+				/*
+				 * If we havn't looked for a dlvsep look for
+				 * one now.  If found restart the proof.
+				 */
+				if (val->view->dlv != NULL &&
+				    !DLVSEPTRIED(val) && 
+				    !dns_name_issubdomain(val->event->name,
+							  val->view->dlv)) {
+					tresult = finddlvsep(val, ISC_FALSE);
+					if (tresult != ISC_R_NOTFOUND &&
+					    tresult != ISC_R_SUCCESS) {
+						validator_log(val,
+							      ISC_LOG_DEBUG(3),
+						    "finddlvsep returned: %s",
+						    dns_result_totext(tresult));
+						return (tresult);
+					}
+					return (proveunsecure(val, ISC_FALSE));
+				}
 				if (val->mustbesecure) {
 					validator_log(val, ISC_LOG_WARNING,
 						      "must be secure failure");

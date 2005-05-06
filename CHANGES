@@ -1,3 +1,6 @@
+1853.	[bug]		Rework how DLV interacts with proveunsecure().
+			[RT #13605]
+
 1852.	[cleanup]	Remove last vestiges of dnssec-signkey and
 			dnssec-makekeyset (removed from Makefile years ago).
 
