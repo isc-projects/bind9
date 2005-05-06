@@ -1,3 +1,6 @@
+1854.	[bug]		lwres also needs to know the print format for
+			(long long).  [RT #13754]
+
 1853.	[bug]		Rework how DLV interacts with proveunsecure().
 			[RT #13605]
 

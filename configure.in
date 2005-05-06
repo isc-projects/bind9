@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.374 $)
+AC_REVISION($Revision: 1.375 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1608,6 +1608,9 @@ AC_SUBST(ISC_EXTRA_SRCS)
 # will produce a inconsistant result in the later case.  If the compiler
 # fails due to seeing "%lld" we fall back to "l".
 #
+# Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
+# %ld even for (long long)/
+#
 # Win32 uses "%I64d", but that's defined elsewhere since we don't use
 # configure on Win32.
 #
@@ -1624,12 +1627,16 @@ main() {
 } 
 ],
 	[AC_MSG_RESULT(ll)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'],
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'],
 	[AC_MSG_RESULT(l)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'],
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "l"'],
 	[AC_MSG_RESULT(assuming target platform uses ll)
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'])
+	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
+	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'])
 AC_SUBST(ISC_PLATFORM_QUADFORMAT)
+AC_SUBST(LWRES_PLATFORM_QUADFORMAT)
 
 #
 # Security Stuff
