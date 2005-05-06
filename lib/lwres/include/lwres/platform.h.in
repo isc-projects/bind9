@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.14.18.3 2005/04/29 00:17:23 marka Exp $ */
+/* $Id: platform.h.in,v 1.14.18.4 2005/05/06 02:09:05 marka Exp $ */
 
 /*! \file */
 
@@ -89,6 +89,11 @@
  * If this system need a modern sprintf() that returns (int) not (char*).
  */
 @LWRES_PLATFORM_NEEDSPRINTF@
+
+/*
+ * The printf format string modifier to use with lwres_uint64_t values.
+ */
+@LWRES_PLATFORM_QUADFORMAT@
 
 #ifndef LWRES_PLATFORM_USEDECLSPEC
 #define LIBLWRES_EXTERNAL_DATA
