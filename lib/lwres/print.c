@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.1.6.3 2004/09/16 07:01:54 marka Exp $ */
+/* $Id: print.c,v 1.1.6.4 2005/05/06 02:16:24 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,8 @@
 /*
  * Return length of string that would have been written if not truncated.
  */
+
+#define LWRES_PRINT_QUADFORMAT LWRES_PLATFORM_QUADFORMAT
 
 int
 lwres__print_snprintf(char *str, size_t size, const char *format, ...) {
@@ -232,7 +234,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
-				sprintf(buf, "%llu",
+				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "u",
 					tmpui);
 				goto printint;
 			case 'o':
@@ -244,7 +246,9 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				else
 					tmpui = va_arg(ap, int);
 				sprintf(buf,
-					alt ? "%#llo" : "%llo", tmpui);
+					alt ? "%#" LWRES_PRINT_QUADFORMAT "o"
+					    : "%" LWRES_PRINT_QUADFORMAT "o",
+					tmpui);
 				goto printint;
 			case 'u':
 				if (q)
@@ -254,7 +258,8 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, unsigned long int);
 				else
 					tmpui = va_arg(ap, unsigned int);
-				sprintf(buf, "%llu", tmpui);
+				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "u",
+					tmpui);
 				goto printint;
 			case 'x':
 				if (q)
@@ -269,7 +274,8 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%llx", tmpui);
+				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "x",
+					tmpui);
 				goto printint;
 			case 'X':
 				if (q)
@@ -284,7 +290,8 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%llX", tmpui);
+				sprintf(buf, "%" LWRES_PRINT_QUADFORMAT "X",
+					tmpui);
 				goto printint;
 			printint:
 				if (precision != 0U || width != 0U) {

@@ -1,3 +1,6 @@
+1854.	[bug]		lwres also needs to know the print format for
+			(long long).  [RT #13754]
+
 1850.	[bug]		Memory leak in lwres_getipnodebyaddr(). [RT #14591]
 
 1849.	[doc]		All forms of the man pages (docbook, man, html) should
