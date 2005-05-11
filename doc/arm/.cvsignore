@@ -1,8 +1,9 @@
 Makefile
-gendvi.sh
-genhtml.sh
-genpdf.sh
-validate.sh
-nominum-docbook-html.dsl
-nominum-docbook-print.dsl
 catalog
+Bv9ARM.aux
+Bv9ARM.brf
+Bv9ARM.glo
+Bv9ARM.idx
+Bv9ARM.log
+Bv9ARM.out
+Bv9ARM.tex

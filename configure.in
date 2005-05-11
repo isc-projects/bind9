@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.20 $)
+AC_REVISION($Revision: 1.355.18.21 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1836,25 +1836,29 @@ AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 # a developer editing the documentation source.
 #
 
-# Directory trees where SGML files are commonly found.
-sgmltrees="/usr/pkg/share/sgml /usr/local/share/sgml /usr/share/sgml"
-
-#
-# Look for openjade.  Plain jade is no longer supported.
-#
-
-AC_PATH_PROGS(OPENJADE, openjade, openjade)
-AC_SUBST(OPENJADE)
-
 #
 # Look for TeX.
 #
 
-AC_PATH_PROGS(JADETEX, jadetex, jadetex)
-AC_SUBST(JADETEX)
+AC_PATH_PROGS(LATEX, latex, latex)
+AC_SUBST(LATEX)
 
-AC_PATH_PROGS(PDFJADETEX, pdfjadetex, pdfjadetex)
-AC_SUBST(PDFJADETEX)
+AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
+AC_SUBST(PDFLATEX)
+
+#
+# Look for xsltproc (libxslt)
+#
+
+AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
+AC_SUBST(XSLTPROC)
+
+#
+# Look for xmllint (libxml2)
+#
+
+AC_PATH_PROG(XMLLINT, xmllint, xmllint)
+AC_SUBST(XMLLINT)
 
 #
 # Subroutine for searching for an ordinary file (e.g., a stylesheet)
@@ -1891,74 +1895,60 @@ AC_SUBST($1)
 ])
 
 #
-# Look for the SGML catalog.
-# Its location varies, so far we have seen:
+# Look for Docbook-XSL stylesheets.  Location probably varies by
+# system.  Guessing where it might be found, based on where SGML stuff
+# lives on some systems.  FreeBSD is the only one I'm sure of at the
+# moment.
 #
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/catalog
-# 	FreeBSD	/usr/local/share/sgml/docbook/catalog
-#	Linux	/usr/local/share/dsssl/docbook/catalog
-#		/usr/share/sgml/docbook/dsssl-stylesheets/catalog
+
+docbook_xsl_trees="/usr/pkg/share/xsl /usr/local/share/xsl /usr/share/xsl"
+
 #
-catalogpath=""
-for d in $sgmltrees 
+# Look for stylesheets we need.
+#
+
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_HTML, docbook/html/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_XHTML, docbook/xhtml/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_MAN, docbook/manpages/docbook.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_HTML, docbook/html/chunk.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_XHTML, docbook/xhtml/chunk.xsl, $docbook_xsl_trees)
+
+#
+# Same dance for db2latex
+#
+# No idea where this lives except on FreeBSD.
+#
+
+db2latex_xsl_trees="/usr/local/share"
+
+#
+# Look for stylesheets we need.
+#
+
+NOM_PATH_FILE(XSLT_DB2LATEX_STYLE, db2latex/xsl/docbook.xsl, $db2latex_xsl_trees)
+
+#
+# Look for "admonition" image directory.  Can't use NOM_PATH_FILE()
+# because it's a directory, so just do the same things, inline.
+#
+
+AC_MSG_CHECKING(for db2latex/xsl/figures)
+for d in $db2latex_xsl_trees
 do
-	catalogpath="$catalogpath $d"
-	for s in docbook/dsssl-stylesheets
-	do
-		catalogpath="$catalogpath $d/$s"
-	done
+	dd=$d/db2latex/xsl/figures
+	if test -d $dd
+	then
+		XSLT_DB2LATEX_ADMONITIONS=$dd
+		AC_MSG_RESULT($dd)
+		break
+	fi
 done
-NOM_PATH_FILE(SGMLCATALOG, catalog, $catalogpath)
-
-#
-# Look for the HTML stylesheet html/docbook.dsl, used for
-# formatting man pages in HTML.  Its location varies,
-# so far we have seen:
-#
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/
-# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/
-#	Linux	/usr/local/share/dsssl/docbook/
-#		/usr/share/sgml/docbook/dsssl-stylesheets/
-#
-# Ditto for the print stylesheet print/docbook.dsl.
-#
-
-stylepath=""
-for d in $sgmltrees 
-do
-	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
-	do
-		stylepath="$stylepath $d/$s"
-	done
-done
-NOM_PATH_FILE(HTMLSTYLE, html/docbook.dsl, $stylepath)
-NOM_PATH_FILE(PRINTSTYLE, print/docbook.dsl, $stylepath)
-
-#
-# Look for XML declarations.
-# Its location varies, so far we have seen:
-#
-# 	NetBSD 	/usr/pkg/share/sgml/docbook/dsssl/modular/dtds/decls/
-# 	FreeBSD	/usr/local/share/sgml/docbook/dsssl/modular/dtds/decls/
-#	Linux	/usr/local/share/dsssl/docbook/dtds/decls/
-#		/usr/share/sgml/docbook/dsssl-stylesheets/dtds/decls/
-#
-
-xmlpath=""
-for d in $sgmltrees 
-do
-	for s in docbook/dsssl/modular dsssl/docbook docbook/dsssl-stylesheets
-	do
-		xmlpath="$xmlpath $d/$s"
-	done
-done
-NOM_PATH_FILE(XMLDCL, dtds/decls/xml.dcl, $xmlpath)
-
-#
-# Look for docbook2man-spec.pl
-#
-
-NOM_PATH_FILE(DOCBOOK2MANSPEC, docbook2X/docbook2man-spec.pl, $sgmltrees)
+if test "X$XSLT_DB2LATEX_ADMONITIONS" = "X"
+then
+	AC_MSG_RESULT(not found)
+	XSLT_DB2LATEX_ADMONITIONS=db2latex/xsl/figures
+fi
+AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
 
 #
 # Substitutions
@@ -2015,6 +2005,20 @@ LIBBIND9_API=$srcdir/lib/bind9/api
 
 AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API=$srcdir/lib/lwres/api
+
+#
+# Commands to run at the end of config.status.
+# Don't just put these into configure, it won't work right if somebody
+# runs config.status directly (which autoconf allows).
+#
+
+AC_CONFIG_COMMANDS(
+	[chmod],
+	[chmod a+x isc-config.sh])
+
+#
+# Do it
+#
 
 AC_OUTPUT(
 	make/rules
@@ -2086,14 +2090,13 @@ AC_OUTPUT(
 	bin/dnssec/Makefile
 	doc/Makefile
 	doc/arm/Makefile
-	doc/arm/nominum-docbook-html.dsl
-	doc/arm/nominum-docbook-print.dsl
-	doc/arm/validate.sh
 	doc/misc/Makefile
-	docutil/docbook2man-wrapper.sh
 	isc-config.sh
+	doc/xsl/isc-docbook-chunk.xsl
+	doc/xsl/isc-docbook-html.xsl
+	doc/xsl/isc-docbook-latex.xsl
+	doc/xsl/isc-manpage.xsl
 )
-chmod a+x isc-config.sh
 
 # Tell Emacs to edit this file in shell mode.
 # Local Variables:
