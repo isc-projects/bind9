@@ -1,3 +1,6 @@
+1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
+			[RT #11398]
+
 1855.	[placeholder]	rt14616
 
 1854.	[bug]		lwres also needs to know the print format for

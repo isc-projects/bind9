@@ -1,2679 +1,505 @@
 <!--
- - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- -
+ - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- -
+ - 
  - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
- - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
  - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
  - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: named.conf.html,v 1.10 2005/04/03 03:31:33 marka Exp $ -->
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->named.conf</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
-><BODY
-CLASS="REFENTRY"
-BGCOLOR="#FFFFFF"
-TEXT="#000000"
-LINK="#0000FF"
-VLINK="#840084"
-ALINK="#0000FF"
-><H1
-><A
-NAME="AEN1"
-></A
-><TT
-CLASS="FILENAME"
->named.conf</TT
-></H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN9"
-></A
-><H2
->Name</H2
-><TT
-CLASS="FILENAME"
->named.conf</TT
->&nbsp;--&nbsp;configuration file for named</DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN13"
-></A
-><H2
->Synopsis</H2
-><P
-><B
-CLASS="COMMAND"
->named.conf</B
-> </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN16"
-></A
-><H2
->DESCRIPTION</H2
-><P
->	<TT
-CLASS="FILENAME"
->named.conf</TT
-> is the configuration file for
-	<B
-CLASS="COMMAND"
->named</B
->.  Statements are enclosed
-	in braces and terminated with a semi-colon.  Clauses in
-	the statements are also semi-colon terminated.  The usual
-	comment styles are supported:
-    </P
-><P
->	C style: /* */
-    </P
-><P
->	C++ style: // to end of line
-    </P
-><P
->	Unix style: # to end of line
-    </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN24"
-></A
-><H2
->ACL</H2
-><P
-CLASS="LITERALLAYOUT"
->acl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>&#13;</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN29"
-></A
-><H2
->KEY</H2
-><P
-CLASS="LITERALLAYOUT"
->key&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->domain_name</I
-></TT
->&nbsp;{<br>
-	algorithm&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	secret&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN35"
-></A
-><H2
->MASTERS</H2
-><P
-CLASS="LITERALLAYOUT"
->masters&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-	(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->masters</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-	<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> key <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->];&nbsp;...<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN50"
-></A
-><H2
->SERVER</H2
-><P
-CLASS="LITERALLAYOUT"
->server&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address[<SPAN
-CLASS="OPTIONAL"
->/prefixlen</SPAN
->]</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address[<SPAN
-CLASS="OPTIONAL"
->/prefixlen</SPAN
->]</I
-></TT
->&nbsp;)&nbsp;{<br>
-	bogus&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	edns&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	provide-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	request-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	keys&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->server_key</I
-></TT
->;<br>
-	transfers&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfer-format&nbsp;(&nbsp;many-answers&nbsp;|&nbsp;one-answer&nbsp;);<br>
-	transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>named.conf</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.68.1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
+<a name="id2456618"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2>Name</h2>
+<p><code class="filename">named.conf</code> &#8212; configuration file for named</p>
+</div>
+<div class="refsynopsisdiv">
+<h2>Synopsis</h2>
+<div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514019"></a><h2>DESCRIPTION</h2>
+<p><code class="filename">named.conf</code> is the configuration file
+      for
+      <span><strong class="command">named</strong></span>.  Statements are enclosed
+      in braces and terminated with a semi-colon.  Clauses in
+      the statements are also semi-colon terminated.  The usual
+      comment styles are supported:
+    </p>
+<p>
+      C style: /* */
+    </p>
+<p>
+      C++ style: // to end of line
+    </p>
+<p>
+      Unix style: # to end of line
+    </p>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514046"></a><h2>ACL</h2>
+<div class="literallayout"><p><br>
+acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	support-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN70"
-></A
-><H2
->TRUSTED-KEYS</H2
-><P
-CLASS="LITERALLAYOUT"
->trusted-keys&nbsp;{<br>
-	<TT
-CLASS="REPLACEABLE"
-><I
->domain_name</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->flags</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->protocol</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->algorithm</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->key</I
-></TT
->;&nbsp;...&nbsp;<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN78"
-></A
-><H2
->CONTROLS</H2
-><P
-CLASS="LITERALLAYOUT"
->controls&nbsp;{<br>
-	inet&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->]<br>
-		allow&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;}<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> keys { <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->; ... } </SPAN
->];<br>
-	unix&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->unsupported</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN89"
-></A
-><H2
->LOGGING</H2
-><P
-CLASS="LITERALLAYOUT"
->logging&nbsp;{<br>
-	channel&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{<br>
-		file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->log_file</I
-></TT
->;<br>
-		syslog&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_facility</I
-></TT
->;<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514062"></a><h2>KEY</h2>
+<div class="literallayout"><p><br>
+key <em class="replaceable"><code>domain_name</code></em> {<br>
+	algorithm <em class="replaceable"><code>string</code></em>;<br>
+	secret <em class="replaceable"><code>string</code></em>;<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514082"></a><h2>MASTERS</h2>
+<div class="literallayout"><p><br>
+masters <em class="replaceable"><code>string</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+	( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+	<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ) [<span class="optional"> key <em class="replaceable"><code>string</code></em> </span>]; ...<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514128"></a><h2>SERVER</h2>
+<div class="literallayout"><p><br>
+server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
+	bogus <em class="replaceable"><code>boolean</code></em>;<br>
+	edns <em class="replaceable"><code>boolean</code></em>;<br>
+	provide-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	keys <em class="replaceable"><code>server_key</code></em>;<br>
+	transfers <em class="replaceable"><code>integer</code></em>;<br>
+	transfer-format ( many-answers | one-answer );<br>
+	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+<br>
+	support-ixfr <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514189"></a><h2>TRUSTED-KEYS</h2>
+<div class="literallayout"><p><br>
+trusted-keys {<br>
+	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514215"></a><h2>CONTROLS</h2>
+<div class="literallayout"><p><br>
+controls {<br>
+	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>]<br>
+		allow { <em class="replaceable"><code>address_match_element</code></em>; ... }<br>
+		[<span class="optional"> keys { <em class="replaceable"><code>string</code></em>; ... } </span>];<br>
+	unix <em class="replaceable"><code>unsupported</code></em>; // not implemented<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514250"></a><h2>LOGGING</h2>
+<div class="literallayout"><p><br>
+logging {<br>
+	channel <em class="replaceable"><code>string</code></em> {<br>
+		file <em class="replaceable"><code>log_file</code></em>;<br>
+		syslog <em class="replaceable"><code>optional_facility</code></em>;<br>
 		null;<br>
 		stderr;<br>
-		severity&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->log_severity</I
-></TT
->;<br>
-		print-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-		print-severity&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-		print-category&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+		severity <em class="replaceable"><code>log_severity</code></em>;<br>
+		print-time <em class="replaceable"><code>boolean</code></em>;<br>
+		print-severity <em class="replaceable"><code>boolean</code></em>;<br>
+		print-category <em class="replaceable"><code>boolean</code></em>;<br>
 	};<br>
-	category&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...&nbsp;};<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN101"
-></A
-><H2
->LWRES</H2
-><P
-CLASS="LITERALLAYOUT"
->lwres&nbsp;{<br>
-	listen-on&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...<br>
+	category <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514289"></a><h2>LWRES</h2>
+<div class="literallayout"><p><br>
+lwres {<br>
+	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ...<br>
 	};<br>
-	view&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_class</I
-></TT
->;<br>
-	search&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	ndots&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN114"
-></A
-><H2
->OPTIONS</H2
-><P
-CLASS="LITERALLAYOUT"
->options&nbsp;{<br>
-	avoid-v4-udp-ports&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->port</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	avoid-v6-udp-ports&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->port</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	blackhole&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	coresize&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;<br>
-	datasize&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;<br>
-	directory&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	dump-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	files&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;<br>
-	heartbeat-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	host-statistics&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-	host-statistics-max&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->number</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-	hostname&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;|&nbsp;none&nbsp;);<br>
-	interface-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	listen-on&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	listen-on-v6&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	match-mapped-addresses&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	memstatistics-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	pid-file&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;|&nbsp;none&nbsp;);<br>
-	port&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	querylog&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	recursing-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	random-device&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	recursive-clients&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	serial-query-rate&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	server-id&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;|&nbsp;none&nbsp;|;<br>
-	stacksize&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;<br>
-	statistics-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	statistics-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;yet&nbsp;implemented<br>
-	tcp-clients&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	tcp-listen-queue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	tkey-dhkey&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	tkey-gssapi-credential&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	tkey-domain&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	transfers-per-ns&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfers-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfers-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	use-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	version&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;|&nbsp;none&nbsp;);<br>
-	allow-recursion&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	sortlist&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	topology&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;not&nbsp;implemented<br>
-	auth-nxdomain&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;default&nbsp;changed<br>
-	minimal-responses&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	recursion&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	rrset-order&nbsp;{<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> class <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->]&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> type <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->]<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> name <TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
-> </SPAN
->]&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...<br>
+	view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em>;<br>
+	search { <em class="replaceable"><code>string</code></em>; ... };<br>
+	ndots <em class="replaceable"><code>integer</code></em>;<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514330"></a><h2>OPTIONS</h2>
+<div class="literallayout"><p><br>
+options {<br>
+	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
+	avoid-v6-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
+	blackhole { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	coresize <em class="replaceable"><code>size</code></em>;<br>
+	datasize <em class="replaceable"><code>size</code></em>;<br>
+	directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	dump-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	files <em class="replaceable"><code>size</code></em>;<br>
+	heartbeat-interval <em class="replaceable"><code>integer</code></em>;<br>
+	host-statistics <em class="replaceable"><code>boolean</code></em>; // not implemented<br>
+	host-statistics-max <em class="replaceable"><code>number</code></em>; // not implemented<br>
+	hostname ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
+	interface-interval <em class="replaceable"><code>integer</code></em>;<br>
+	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	listen-on-v6 [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	match-mapped-addresses <em class="replaceable"><code>boolean</code></em>;<br>
+	memstatistics-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	pid-file ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
+	port <em class="replaceable"><code>integer</code></em>;<br>
+	querylog <em class="replaceable"><code>boolean</code></em>;<br>
+	recursing-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	random-device <em class="replaceable"><code>quoted_string</code></em>;<br>
+	recursive-clients <em class="replaceable"><code>integer</code></em>;<br>
+	serial-query-rate <em class="replaceable"><code>integer</code></em>;<br>
+	server-id ( <em class="replaceable"><code>quoted_string</code></em> | none |;<br>
+	stacksize <em class="replaceable"><code>size</code></em>;<br>
+	statistics-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	statistics-interval <em class="replaceable"><code>integer</code></em>; // not yet implemented<br>
+	tcp-clients <em class="replaceable"><code>integer</code></em>;<br>
+	tcp-listen-queue <em class="replaceable"><code>integer</code></em>;<br>
+	tkey-dhkey <em class="replaceable"><code>quoted_string</code></em> <em class="replaceable"><code>integer</code></em>;<br>
+	tkey-gssapi-credential <em class="replaceable"><code>quoted_string</code></em>;<br>
+	tkey-domain <em class="replaceable"><code>quoted_string</code></em>;<br>
+	transfers-per-ns <em class="replaceable"><code>integer</code></em>;<br>
+	transfers-in <em class="replaceable"><code>integer</code></em>;<br>
+	transfers-out <em class="replaceable"><code>integer</code></em>;<br>
+	use-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	version ( <em class="replaceable"><code>quoted_string</code></em> | none );<br>
+	allow-recursion { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
+	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
+	minimal-responses <em class="replaceable"><code>boolean</code></em>;<br>
+	recursion <em class="replaceable"><code>boolean</code></em>;<br>
+	rrset-order {<br>
+		[<span class="optional"> class <em class="replaceable"><code>string</code></em> </span>] [<span class="optional"> type <em class="replaceable"><code>string</code></em> </span>]<br>
+		[<span class="optional"> name <em class="replaceable"><code>quoted_string</code></em> </span>] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ...<br>
 	};<br>
-	provide-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	request-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	rfc2308-type1&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;yet&nbsp;implemented<br>
-	additional-from-auth&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	additional-from-cache&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	query-source&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->querysource4</I
-></TT
->;<br>
-	query-source-v6&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->querysource6</I
-></TT
->;<br>
-	cleaning-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-roots&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-	lame-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-ncache-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-cache-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfer-format&nbsp;(&nbsp;many-answers&nbsp;|&nbsp;one-answer&nbsp;);<br>
-	max-cache-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size_no_default</I
-></TT
->;<br>
-	check-names&nbsp;(&nbsp;master&nbsp;|&nbsp;slave&nbsp;|&nbsp;response&nbsp;)<br>
-		(&nbsp;fail&nbsp;|&nbsp;warn&nbsp;|&nbsp;ignore&nbsp;);<br>
-	cache-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	suppress-initial-notify&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;yet&nbsp;implemented<br>
-	preferred-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	dual-stack-servers&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;);&nbsp;...<br>
+	provide-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	rfc2308-type1 <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
+	additional-from-auth <em class="replaceable"><code>boolean</code></em>;<br>
+	additional-from-cache <em class="replaceable"><code>boolean</code></em>;<br>
+	query-source <em class="replaceable"><code>querysource4</code></em>;<br>
+	query-source-v6 <em class="replaceable"><code>querysource6</code></em>;<br>
+	cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
+	min-roots <em class="replaceable"><code>integer</code></em>; // not implemented<br>
+	lame-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	max-ncache-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	max-cache-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	transfer-format ( many-answers | one-answer );<br>
+	max-cache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	check-names ( master | slave | response )<br>
+		( fail | warn | ignore );<br>
+	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
+	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
+	dual-stack-servers [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>quoted_string</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+		<em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+		<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ); ...<br>
 	}<br>
-	edns-udp-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	root-delegation-only&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> exclude { <TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->; ... } </SPAN
->];<br>
-	disable-algorithms&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	dnssec-enable&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	dnssec-lookaside&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;trust-anchor&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	dnssec-must-be-secure&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
+	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
+	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
+	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
-	dialup&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->dialuptype</I
-></TT
->;<br>
-	ixfr-from-differences&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ixfrdiff</I
-></TT
->;<br>
+	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
+	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
-	allow-query&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-query-cache&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-transfer&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update-forwarding&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-cache { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	notify&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->notifytype</I
-></TT
->;<br>
-	notify-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-delay&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->seconds</I
-></TT
->;<br>
-	also-notify&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...&nbsp;};<br>
-	allow-notify&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+	notify <em class="replaceable"><code>notifytype</code></em>;<br>
+	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-delay <em class="replaceable"><code>seconds</code></em>;<br>
+	also-notify [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> )<br>
+		[<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ... };<br>
+	allow-notify { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	forward&nbsp;(&nbsp;first&nbsp;|&nbsp;only&nbsp;);<br>
-	forwarders&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...<br>
+	forward ( first | only );<br>
+	forwarders [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ...<br>
 	};<br>
 <br>
-	max-journal-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size_no_default</I
-></TT
->;<br>
-	max-transfer-time-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-time-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	multi-master&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	sig-validity-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
+	max-journal-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
+	sig-validity-interval <em class="replaceable"><code>integer</code></em>;<br>
 <br>
-	transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
+	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
 <br>
-	alt-transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	alt-transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	use-alt-transfer-source&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+	alt-transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	alt-transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
-	zone-statistics&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	key-directory&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
+	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
+	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
-	allow-v6-synthesis&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
-	deallocate-on-exit&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	fake-iquery&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	fetch-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	has-old-clients&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	maintain-ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	max-ixfr-log-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	multiple-cnames&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	named-xfer&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	serial-queries&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	treat-cr-as-space&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	use-id-pool&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN277"
-></A
-><H2
->VIEW</H2
-><P
-CLASS="LITERALLAYOUT"
->view&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_class</I
-></TT
->&nbsp;{<br>
-	match-clients&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	match-destinations&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	match-recursive-only&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
+	deallocate-on-exit <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	fake-iquery <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	fetch-glue <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	has-old-clients <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	maintain-ixfr-base <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	max-ixfr-log-size <em class="replaceable"><code>size</code></em>; // obsolete<br>
+	multiple-cnames <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	named-xfer <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
+	serial-queries <em class="replaceable"><code>integer</code></em>; // obsolete<br>
+	treat-cr-as-space <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	use-id-pool <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2515001"></a><h2>VIEW</h2>
+<div class="literallayout"><p><br>
+view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
+	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	match-destinations { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	match-recursive-only <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
-	key&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{<br>
-		algorithm&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-		secret&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
+	key <em class="replaceable"><code>string</code></em> {<br>
+		algorithm <em class="replaceable"><code>string</code></em>;<br>
+		secret <em class="replaceable"><code>string</code></em>;<br>
 	};<br>
 <br>
-	zone&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_class</I
-></TT
->&nbsp;{<br>
+	zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 		...<br>
 	};<br>
 <br>
-	server&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address[<SPAN
-CLASS="OPTIONAL"
->/prefixlen</SPAN
->]</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address[<SPAN
-CLASS="OPTIONAL"
->/prefixlen</SPAN
->]</I
-></TT
->&nbsp;)&nbsp;{<br>
+	server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
 		...<br>
 	};<br>
 <br>
-	trusted-keys&nbsp;{<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;...<br>
+	trusted-keys {<br>
+		<em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ...<br>
 	};<br>
 <br>
-	allow-recursion&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	sortlist&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	topology&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;not&nbsp;implemented<br>
-	auth-nxdomain&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;default&nbsp;changed<br>
-	minimal-responses&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	recursion&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	rrset-order&nbsp;{<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> class <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->]&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> type <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->]<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> name <TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
-> </SPAN
->]&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...<br>
+	allow-recursion { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	sortlist { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	topology { <em class="replaceable"><code>address_match_element</code></em>; ... }; // not implemented<br>
+	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
+	minimal-responses <em class="replaceable"><code>boolean</code></em>;<br>
+	recursion <em class="replaceable"><code>boolean</code></em>;<br>
+	rrset-order {<br>
+		[<span class="optional"> class <em class="replaceable"><code>string</code></em> </span>] [<span class="optional"> type <em class="replaceable"><code>string</code></em> </span>]<br>
+		[<span class="optional"> name <em class="replaceable"><code>quoted_string</code></em> </span>] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ...<br>
 	};<br>
-	provide-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	request-ixfr&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	rfc2308-type1&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;yet&nbsp;implemented<br>
-	additional-from-auth&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	additional-from-cache&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	query-source&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->querysource4</I
-></TT
->;<br>
-	query-source-v6&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->querysource6</I
-></TT
->;<br>
-	cleaning-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-roots&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;implemented<br>
-	lame-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-ncache-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-cache-ttl&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	transfer-format&nbsp;(&nbsp;many-answers&nbsp;|&nbsp;one-answer&nbsp;);<br>
-	max-cache-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size_no_default</I
-></TT
->;<br>
-	check-names&nbsp;(&nbsp;master&nbsp;|&nbsp;slave&nbsp;|&nbsp;response&nbsp;)<br>
-		(&nbsp;fail&nbsp;|&nbsp;warn&nbsp;|&nbsp;ignore&nbsp;);<br>
-	cache-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
-	suppress-initial-notify&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;not&nbsp;yet&nbsp;implemented<br>
-	preferred-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	dual-stack-servers&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;);&nbsp;...<br>
+	provide-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
+	rfc2308-type1 <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
+	additional-from-auth <em class="replaceable"><code>boolean</code></em>;<br>
+	additional-from-cache <em class="replaceable"><code>boolean</code></em>;<br>
+	query-source <em class="replaceable"><code>querysource4</code></em>;<br>
+	query-source-v6 <em class="replaceable"><code>querysource6</code></em>;<br>
+	cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
+	min-roots <em class="replaceable"><code>integer</code></em>; // not implemented<br>
+	lame-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	max-ncache-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	max-cache-ttl <em class="replaceable"><code>integer</code></em>;<br>
+	transfer-format ( many-answers | one-answer );<br>
+	max-cache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	check-names ( master | slave | response )<br>
+		( fail | warn | ignore );<br>
+	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
+	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
+	dual-stack-servers [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>quoted_string</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+		<em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+		<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ); ...<br>
 	};<br>
-	edns-udp-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	root-delegation-only&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> exclude { <TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->; ... } </SPAN
->];<br>
-	disable-algorithms&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	dnssec-enable&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	dnssec-lookaside&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;trust-anchor&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
+	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
+	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
+	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
 <br>
-	dnssec-must-be-secure&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	dialup&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->dialuptype</I
-></TT
->;<br>
-	ixfr-from-differences&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ixfrdiff</I
-></TT
->;<br>
+	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
+	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
-	allow-query&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-query-cache&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-transfer&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update-forwarding&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-query-cache { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	notify&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->notifytype</I
-></TT
->;<br>
-	notify-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-delay&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->seconds</I
-></TT
->;<br>
-	also-notify&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...&nbsp;};<br>
-	allow-notify&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+	notify <em class="replaceable"><code>notifytype</code></em>;<br>
+	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-delay <em class="replaceable"><code>seconds</code></em>;<br>
+	also-notify [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> )<br>
+		[<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ... };<br>
+	allow-notify { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	forward&nbsp;(&nbsp;first&nbsp;|&nbsp;only&nbsp;);<br>
-	forwarders&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...<br>
+	forward ( first | only );<br>
+	forwarders [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ...<br>
 	};<br>
 <br>
-	max-journal-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size_no_default</I
-></TT
->;<br>
-	max-transfer-time-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-time-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	multi-master&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	sig-validity-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
+	max-journal-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
+	sig-validity-interval <em class="replaceable"><code>integer</code></em>;<br>
 <br>
-	transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
+	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
 <br>
-	alt-transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	alt-transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	use-alt-transfer-source&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+	alt-transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	alt-transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
-	zone-statistics&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	key-directory&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
+	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
+	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
-	allow-v6-synthesis&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};&nbsp;//&nbsp;obsolete<br>
-	fetch-glue&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	maintain-ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	max-ixfr-log-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN408"
-></A
-><H2
->ZONE</H2
-><P
-CLASS="LITERALLAYOUT"
->zone&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->optional_class</I
-></TT
->&nbsp;{<br>
-	type&nbsp;(&nbsp;master&nbsp;|&nbsp;slave&nbsp;|&nbsp;stub&nbsp;|&nbsp;hint&nbsp;|<br>
-		forward&nbsp;|&nbsp;delegation-only&nbsp;);<br>
-	file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
+	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
+	fetch-glue <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	maintain-ixfr-base <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	max-ixfr-log-size <em class="replaceable"><code>size</code></em>; // obsolete<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2515494"></a><h2>ZONE</h2>
+<div class="literallayout"><p><br>
+zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
+	type ( master | slave | stub | hint |<br>
+		forward | delegation-only );<br>
+	file <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
-	masters&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->masters</I
-></TT
->&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
->port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-></SPAN
->]&nbsp;|<br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> key <TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-> </SPAN
->];&nbsp;...<br>
+	masters [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>masters</code></em> |<br>
+		<em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
+		<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] ) [<span class="optional"> key <em class="replaceable"><code>string</code></em> </span>]; ...<br>
 	};<br>
 <br>
-	database&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
->;<br>
-	delegation-only&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	check-names&nbsp;(&nbsp;fail&nbsp;|&nbsp;warn&nbsp;|&nbsp;ignore&nbsp;);<br>
-	dialup&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->dialuptype</I
-></TT
->;<br>
-	ixfr-from-differences&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	journal&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
+	database <em class="replaceable"><code>string</code></em>;<br>
+	delegation-only <em class="replaceable"><code>boolean</code></em>;<br>
+	check-names ( fail | warn | ignore );<br>
+	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
+	ixfr-from-differences <em class="replaceable"><code>boolean</code></em>;<br>
+	journal <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
-	allow-query&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-transfer&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	allow-update-forwarding&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
-	update-policy&nbsp;{<br>
-		(&nbsp;grant&nbsp;|&nbsp;deny&nbsp;)&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-><br>
-		(&nbsp;name&nbsp;|&nbsp;subdomain&nbsp;|&nbsp;wildcard&nbsp;|&nbsp;self&nbsp;)&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->string</I
-></TT
-><br>
-		<TT
-CLASS="REPLACEABLE"
-><I
->rrtypelist</I
-></TT
->;&nbsp;...<br>
+	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	update-policy {<br>
+		( grant | deny ) <em class="replaceable"><code>string</code></em><br>
+		( name | subdomain | wildcard | self ) <em class="replaceable"><code>string</code></em><br>
+		<em class="replaceable"><code>rrtypelist</code></em>; ...<br>
 	};<br>
 <br>
-	notify&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->notifytype</I
-></TT
->;<br>
-	notify-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	notify-delay&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->seconds</I
-></TT
->;<br>
-	also-notify&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...&nbsp;};<br>
-	allow-notify&nbsp;{&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->address_match_element</I
-></TT
->;&nbsp;...&nbsp;};<br>
+	notify <em class="replaceable"><code>notifytype</code></em>;<br>
+	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	notify-delay <em class="replaceable"><code>seconds</code></em>;<br>
+	also-notify [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] { ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> )<br>
+		[<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ... };<br>
+	allow-notify { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
-	forward&nbsp;(&nbsp;first&nbsp;|&nbsp;only&nbsp;);<br>
-	forwarders&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->]&nbsp;{<br>
-		(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;)&nbsp;[<SPAN
-CLASS="OPTIONAL"
-> port <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> </SPAN
->];&nbsp;...<br>
+	forward ( first | only );<br>
+	forwarders [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
+		( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> ) [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>]; ...<br>
 	};<br>
 <br>
-	max-journal-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size_no_default</I
-></TT
->;<br>
-	max-transfer-time-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-time-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-in&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-transfer-idle-out&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-retry-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	max-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	min-refresh-time&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
-	multi-master&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	sig-validity-interval&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->;<br>
+	max-journal-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	max-transfer-time-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-time-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-in <em class="replaceable"><code>integer</code></em>;<br>
+	max-transfer-idle-out <em class="replaceable"><code>integer</code></em>;<br>
+	max-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
+	max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
+	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
+	sig-validity-interval <em class="replaceable"><code>integer</code></em>;<br>
 <br>
-	transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
+	transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
 <br>
-	alt-transfer-source&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv4_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	alt-transfer-source-v6&nbsp;(&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->ipv6_address</I
-></TT
->&nbsp;|&nbsp;*&nbsp;)<br>
-		[<SPAN
-CLASS="OPTIONAL"
-> port ( <TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
-> | * ) </SPAN
->];<br>
-	use-alt-transfer-source&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
+	alt-transfer-source ( <em class="replaceable"><code>ipv4_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	alt-transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
+		[<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
+	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
-	zone-statistics&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;<br>
-	key-directory&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;<br>
+	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
+	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
-	ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	ixfr-tmp-file&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	maintain-ixfr-base&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->boolean</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	max-ixfr-log-size&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->size</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-	pubkey&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->integer</I
-></TT
->&nbsp;<TT
-CLASS="REPLACEABLE"
-><I
->quoted_string</I
-></TT
->;&nbsp;//&nbsp;obsolete<br>
-};</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN492"
-></A
-><H2
->FILES</H2
-><P
-><TT
-CLASS="FILENAME"
->/etc/named.conf</TT
-></P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN496"
-></A
-><H2
->SEE ALSO</H2
-><P
-><SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->named</SPAN
->(8)</SPAN
->,
-<SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->rndc</SPAN
->(8)</SPAN
->,
-<SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->BIND 9 Adminstrators Reference Manual</SPAN
-></SPAN
->.</P
-></DIV
-></BODY
-></HTML
->
+	ixfr-base <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
+	ixfr-tmp-file <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
+	maintain-ixfr-base <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
+	max-ixfr-log-size <em class="replaceable"><code>size</code></em>; // obsolete<br>
+	pubkey <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
+};<br>
+</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2515837"></a><h2>FILES</h2>
+<p><code class="filename">/etc/named.conf</code>
+    </p>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2515849"></a><h2>SEE ALSO</h2>
+<p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.
+    </p>
+</div>
+</div></body>
+</html>
