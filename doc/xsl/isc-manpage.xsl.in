@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-manpage.xsl.in,v 1.2 2005/05/11 05:55:38 sra Exp $ -->
+<!-- $Id: isc-manpage.xsl.in,v 1.3 2005/05/11 23:15:18 sra Exp $ -->
 
 <!-- ISC customizations for Docbook-XSL manual page generator. -->
 
@@ -112,6 +112,7 @@
     <xsl:value-of select="string-length (normalize-space (command)) + 1"/>
     <xsl:text>&#10;</xsl:text>
     <xsl:apply-templates/>
+    <xsl:text>&#10;</xsl:text>
   </xsl:template>
 
   <!--
