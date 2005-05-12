@@ -1,397 +1,148 @@
 <!--
- - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
- -
+ - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000, 2001, 2003 Internet Software Consortium.
+ - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- -
+ - 
  - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
- - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
  - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
  - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-
-<!-- $Id: dnssec-signkey.html,v 1.4.2.6 2005/04/07 02:22:06 marka Exp $ -->
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->dnssec-signkey</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"></HEAD
-><BODY
-CLASS="REFENTRY"
-BGCOLOR="#FFFFFF"
-TEXT="#000000"
-LINK="#0000FF"
-VLINK="#840084"
-ALINK="#0000FF"
-><H1
-><A
-NAME="AEN1"
-></A
-><SPAN
-CLASS="APPLICATION"
->dnssec-signkey</SPAN
-></H1
-><DIV
-CLASS="REFNAMEDIV"
-><A
-NAME="AEN9"
-></A
-><H2
->Name</H2
-><SPAN
-CLASS="APPLICATION"
->dnssec-signkey</SPAN
->&nbsp;--&nbsp;DNSSEC key set signing tool</DIV
-><DIV
-CLASS="REFSYNOPSISDIV"
-><A
-NAME="AEN13"
-></A
-><H2
->Synopsis</H2
-><P
-><B
-CLASS="COMMAND"
->dnssec-signkey</B
->  [<CODE
-CLASS="OPTION"
->-a</CODE
->] [<CODE
-CLASS="OPTION"
->-c <TT
-CLASS="REPLACEABLE"
-><I
->class</I
-></TT
-></CODE
->] [<CODE
-CLASS="OPTION"
->-s <TT
-CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></CODE
->] [<CODE
-CLASS="OPTION"
->-e <TT
-CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
-></CODE
->] [<CODE
-CLASS="OPTION"
->-h</CODE
->] [<CODE
-CLASS="OPTION"
->-p</CODE
->] [<CODE
-CLASS="OPTION"
->-r <TT
-CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
-></CODE
->] [<CODE
-CLASS="OPTION"
->-v <TT
-CLASS="REPLACEABLE"
-><I
->level</I
-></TT
-></CODE
->] {keyset} {key...}</P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN39"
-></A
-><H2
->DESCRIPTION</H2
-><P
->        <B
-CLASS="COMMAND"
->dnssec-signkey</B
-> signs a keyset.  Typically
+<!-- $Id: dnssec-signkey.html,v 1.4.2.7 2005/05/12 23:55:37 sra Exp $ -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>dnssec-signkey</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.68.1">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
+<a name="id2456694"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2>Name</h2>
+<p><span class="application">dnssec-signkey</span> &#8212; DNSSEC key set signing tool</p>
+</div>
+<div class="refsynopsisdiv">
+<h2>Synopsis</h2>
+<div class="cmdsynopsis"><p><code class="command">dnssec-signkey</code>  [<code class="option">-a</code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-s <em class="replaceable"><code>start-time</code></em></code>] [<code class="option">-e <em class="replaceable"><code>end-time</code></em></code>] [<code class="option">-h</code>] [<code class="option">-p</code>] [<code class="option">-r <em class="replaceable"><code>randomdev</code></em></code>] [<code class="option">-v <em class="replaceable"><code>level</code></em></code>] {keyset} {key...}</p></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514109"></a><h2>DESCRIPTION</h2>
+<p>
+        <span><strong class="command">dnssec-signkey</strong></span> signs a keyset.  Typically
 	the keyset will be for a child zone, and will have been generated
-	by <B
-CLASS="COMMAND"
->dnssec-makekeyset</B
->.  The child zone's keyset
+	by <span><strong class="command">dnssec-makekeyset</strong></span>.  The child zone's keyset
 	is signed with the zone keys for its parent zone.  The output file
-	is of the form <TT
-CLASS="FILENAME"
->signedkey-nnnn.</TT
->, where
-	<TT
-CLASS="FILENAME"
->nnnn</TT
-> is the zone name.
-    </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN46"
-></A
-><H2
->OPTIONS</H2
-><P
-></P
-><DIV
-CLASS="VARIABLELIST"
-><DL
-><DT
->-a</DT
-><DD
-><P
->	      Verify all generated signatures.
-	  </P
-></DD
-><DT
->-c <TT
-CLASS="REPLACEABLE"
-><I
->class</I
-></TT
-></DT
-><DD
-><P
->	       Specifies the DNS class of the key sets.
-	  </P
-></DD
-><DT
->-s <TT
-CLASS="REPLACEABLE"
-><I
->start-time</I
-></TT
-></DT
-><DD
-><P
->	       Specify the date and time when the generated SIG records
+	is of the form <code class="filename">signedkey-nnnn.</code>, where
+	<code class="filename">nnnn</code> is the zone name.
+    </p>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514200"></a><h2>OPTIONS</h2>
+<div class="variablelist"><dl>
+<dt><span class="term">-a</span></dt>
+<dd><p>
+	      Verify all generated signatures.
+	  </p></dd>
+<dt><span class="term">-c <em class="replaceable"><code>class</code></em></span></dt>
+<dd><p>
+	       Specifies the DNS class of the key sets.
+	  </p></dd>
+<dt><span class="term">-s <em class="replaceable"><code>start-time</code></em></span></dt>
+<dd><p>
+	       Specify the date and time when the generated SIG records
 	       become valid.  This can be either an absolute or relative
 	       time.  An absolute start time is indicated by a number
 	       in YYYYMMDDHHMMSS notation; 20000530144500 denotes
 	       14:45:00 UTC on May 30th, 2000.  A relative start time is
 	       indicated by +N, which is N seconds from the current time.
-	       If no <CODE
-CLASS="OPTION"
->start-time</CODE
-> is specified, the current
+	       If no <code class="option">start-time</code> is specified, the current
 	       time is used.
-	  </P
-></DD
-><DT
->-e <TT
-CLASS="REPLACEABLE"
-><I
->end-time</I
-></TT
-></DT
-><DD
-><P
->	       Specify the date and time when the generated SIG records
-	       expire.  As with <CODE
-CLASS="OPTION"
->start-time</CODE
->, an absolute
+	  </p></dd>
+<dt><span class="term">-e <em class="replaceable"><code>end-time</code></em></span></dt>
+<dd><p>
+	       Specify the date and time when the generated SIG records
+	       expire.  As with <code class="option">start-time</code>, an absolute
 	       time is indicated in YYYYMMDDHHMMSS notation.  A time relative
 	       to the start time is indicated with +N, which is N seconds from
 	       the start time.  A time relative to the current time is
-	       indicated with now+N.  If no <CODE
-CLASS="OPTION"
->end-time</CODE
-> is
+	       indicated with now+N.  If no <code class="option">end-time</code> is
 	       specified, 30 days from the start time is used as a default.
-	  </P
-></DD
-><DT
->-h</DT
-><DD
-><P
->	       Prints a short summary of the options and arguments to
-	       <B
-CLASS="COMMAND"
->dnssec-signkey</B
->.
-	  </P
-></DD
-><DT
->-p</DT
-><DD
-><P
->	       Use pseudo-random data when signing the zone.  This is faster,
+	  </p></dd>
+<dt><span class="term">-h</span></dt>
+<dd><p>
+	       Prints a short summary of the options and arguments to
+	       <span><strong class="command">dnssec-signkey</strong></span>.
+	  </p></dd>
+<dt><span class="term">-p</span></dt>
+<dd><p>
+	       Use pseudo-random data when signing the zone.  This is faster,
 	       but less secure, than using real random data.  This option
 	       may be useful when signing large zones or when the entropy
 	       source is limited.
-	  </P
-></DD
-><DT
->-r <TT
-CLASS="REPLACEABLE"
-><I
->randomdev</I
-></TT
-></DT
-><DD
-><P
->	       Specifies the source of randomness.  If the operating
-	       system does not provide a <TT
-CLASS="FILENAME"
->/dev/random</TT
->
+	  </p></dd>
+<dt><span class="term">-r <em class="replaceable"><code>randomdev</code></em></span></dt>
+<dd><p>
+	       Specifies the source of randomness.  If the operating
+	       system does not provide a <code class="filename">/dev/random</code>
 	       or equivalent device, the default source of randomness
-	       is keyboard input.  <TT
-CLASS="FILENAME"
->randomdev</TT
-> specifies
+	       is keyboard input.  <code class="filename">randomdev</code> specifies
 	       the name of a character device or file containing random
 	       data to be used instead of the default.  The special value
-	       <TT
-CLASS="FILENAME"
->keyboard</TT
-> indicates that keyboard
+	       <code class="filename">keyboard</code> indicates that keyboard
 	       input should be used.
-	  </P
-></DD
-><DT
->-v <TT
-CLASS="REPLACEABLE"
-><I
->level</I
-></TT
-></DT
-><DD
-><P
->	       Sets the debugging level.
-	  </P
-></DD
-><DT
->keyset</DT
-><DD
-><P
->	        The file containing the child's keyset.
-	  </P
-></DD
-><DT
->key</DT
-><DD
-><P
->	        The keys used to sign the child's keyset.
-	  </P
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN101"
-></A
-><H2
->EXAMPLE</H2
-><P
->        The DNS administrator for a DNSSEC-aware <KBD
-CLASS="USERINPUT"
->.com</KBD
->
+	  </p></dd>
+<dt><span class="term">-v <em class="replaceable"><code>level</code></em></span></dt>
+<dd><p>
+	       Sets the debugging level.
+	  </p></dd>
+<dt><span class="term">keyset</span></dt>
+<dd><p>
+	        The file containing the child's keyset.
+	  </p></dd>
+<dt><span class="term">key</span></dt>
+<dd><p>
+	        The keys used to sign the child's keyset.
+	  </p></dd>
+</dl></div>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514457"></a><h2>EXAMPLE</h2>
+<p>
+        The DNS administrator for a DNSSEC-aware <strong class="userinput"><code>.com</code></strong>
 	zone would use the following command to sign the
-	<TT
-CLASS="FILENAME"
->keyset</TT
-> file for <KBD
-CLASS="USERINPUT"
->example.com</KBD
->
-	created by <B
-CLASS="COMMAND"
->dnssec-makekeyset</B
-> with a key generated
-	by <B
-CLASS="COMMAND"
->dnssec-keygen</B
->:
-    </P
-><P
->        <KBD
-CLASS="USERINPUT"
->dnssec-signkey keyset-example.com. Kcom.+003+51944</KBD
->
-    </P
-><P
->        In this example, <B
-CLASS="COMMAND"
->dnssec-signkey</B
-> creates
-	the file <TT
-CLASS="FILENAME"
->signedkey-example.com.</TT
->, which
-	contains the <KBD
-CLASS="USERINPUT"
->example.com</KBD
-> keys and the
-	signatures by the <KBD
-CLASS="USERINPUT"
->.com</KBD
-> keys.
-    </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN116"
-></A
-><H2
->SEE ALSO</H2
-><P
->      <SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->dnssec-keygen</SPAN
->(8)</SPAN
->,
-      <SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->dnssec-makekeyset</SPAN
->(8)</SPAN
->,
-      <SPAN
-CLASS="CITEREFENTRY"
-><SPAN
-CLASS="REFENTRYTITLE"
->dnssec-signzone</SPAN
->(8)</SPAN
->.
-    </P
-></DIV
-><DIV
-CLASS="REFSECT1"
-><A
-NAME="AEN128"
-></A
-><H2
->AUTHOR</H2
-><P
->        Internet Systems Consortium
-    </P
-></DIV
-></BODY
-></HTML
->
+	<code class="filename">keyset</code> file for <strong class="userinput"><code>example.com</code></strong>
+	created by <span><strong class="command">dnssec-makekeyset</strong></span> with a key generated
+	by <span><strong class="command">dnssec-keygen</strong></span>:
+    </p>
+<p>
+        <strong class="userinput"><code>dnssec-signkey keyset-example.com. Kcom.+003+51944</code></strong>
+    </p>
+<p>
+        In this example, <span><strong class="command">dnssec-signkey</strong></span> creates
+	the file <code class="filename">signedkey-example.com.</code>, which
+	contains the <strong class="userinput"><code>example.com</code></strong> keys and the
+	signatures by the <strong class="userinput"><code>.com</code></strong> keys.
+    </p>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514509"></a><h2>SEE ALSO</h2>
+<p>
+      <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">dnssec-makekeyset</span>(8)</span>,
+      <span class="citerefentry"><span class="refentrytitle">dnssec-signzone</span>(8)</span>.
+    </p>
+</div>
+<div class="refsect1" lang="en">
+<a name="id2514548"></a><h2>AUTHOR</h2>
+<p>
+        <span class="corpauthor">Internet Systems Consortium</span>
+    </p>
+</div>
+</div></body>
+</html>
