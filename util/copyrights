@@ -1090,7 +1090,7 @@
 ./doc/.cvsignore				X	2000,2001
 ./doc/Makefile.in				MAKE	2000,2001,2004
 ./doc/arm/.cvsignore				X	2000,2001
-./doc/arm/Bv9ARM-book.xml			X	2000,2001
+./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001
 ./doc/arm/Bv9ARM.ch02.html			X	2000,2001
 ./doc/arm/Bv9ARM.ch03.html			X	2000,2001

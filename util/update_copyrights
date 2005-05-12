@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.35 2005/05/12 02:26:51 marka Exp $
+# $Id: update_copyrights,v 1.36 2005/05/12 07:42:35 marka Exp $
 
 require 5.002;
 
@@ -73,6 +73,25 @@ sub docbook {
 	$parent = $_[0];
 	$parent =~ s/\.[^.]*$/.docbook/;
 	$years_list = $file_years{$parent};
+}
+
+sub copyright {
+	my $holder = shift;
+	my $result = "";
+	return $result unless (@_);
+	$result = "$result    <copyright>\n";
+	$result = "$result      <year>$_</year>\n" foreach (@_);
+	$result = "$result      <holder>$holder</holder>\n";
+	$result = "$result    </copyright>\n";
+	return $result;
+}
+
+sub copyrights {
+	my $a = copyright("Internet Systems Consortium, Inc. (\"ISC\")",
+		   grep({ $_ >= 2004} @_));
+	my $b = copyright("Internet Software Consortium.",
+		   grep({ $_ < 2004} @_));
+	return "$a$b";
 }
 
 foreach $file (keys %file_types) {
@@ -395,6 +414,17 @@ foreach $file (keys %file_types) {
                 undef $/;
                 $_ = <SOURCE>;
                 $/ = "\n";
+
+		if ($type eq 'SGML' && m:<docinfo>.*?</docinfo>:s) {
+			print "docinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<docinfo>.*?></docinfo>:<docinfo>\n$r  </docinfo>:s;
+		}
+		if ($type eq 'SGML' && m:<bookinfo>.*?</bookinfo>:s) {
+			print "bookinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<bookinfo>.*?</bookinfo>:<bookinfo>\n$r  </bookinfo>:s;
+		}
 
                 my ($start, $end);
                 if ($start_comment ne "") {
