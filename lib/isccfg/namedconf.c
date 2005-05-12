@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.18 2005/04/27 05:02:42 sra Exp $ */
+/* $Id: namedconf.c,v 1.30.18.19 2005/05/12 04:35:13 marka Exp $ */
 
 /*! \file */
 
@@ -623,6 +623,7 @@ options_clauses[] = {
 	{ "use-id-pool", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "use-ixfr", &cfg_type_boolean, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
+	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
