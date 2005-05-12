@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26.2.4 2005/04/07 02:22:34 marka Exp $
+# $Id: update_copyrights,v 1.26.2.5 2005/05/12 01:44:31 marka Exp $
 
 require 5.002;
 
@@ -222,6 +222,10 @@ foreach $file (keys %file_types) {
                 if (/^<!DOCTYPE/) {
                         $before_copyright = $_;
                         $_ = <SOURCE>;
+			while (! /^<!/ ) {
+				$before_copyright = "$before_copyright$_";
+				$_ = <SOURCE>;
+			}
                 }
                 if (/^<!/) {
                         $_ = <SOURCE> if $_ eq "<!--\n";
