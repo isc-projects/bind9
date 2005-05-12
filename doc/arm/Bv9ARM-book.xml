@@ -1,24 +1,44 @@
-
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
-               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
+	       [<!ENTITY mdash "&#8212;">]>
+<!--
+ - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2003  Internet Software Consortium.
+ -
+ - Permission to use, copy, modify, and distribute this software for any
+ - purpose with or without fee is hereby granted, provided that the above
+ - copyright notice and this permission notice appear in all copies.
+ -
+ - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ - PERFORMANCE OF THIS SOFTWARE.
+-->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.39 2005/03/16 02:51:58 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.40 2005/05/12 21:35:13 sra Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
 
-<bookinfo>
-<copyright>
-<year>2004</year>
-<holder>Internet Systems Consortium, Inc. ("ISC")</holder>
-</copyright>
-<copyright>
-<year>2000-2003</year>
-<holder>Internet Software Consortium</holder>
-</copyright>
-</bookinfo>
+  <bookinfo>
+    <copyright>
+      <year>2004</year>
+      <year>2005</year>
+      <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
+    </copyright>
+    <copyright>
+      <year>2000</year>
+      <year>2001</year>
+      <year>2002</year>
+      <year>2003</year>
+      <holder>Internet Software Consortium.</holder>
+    </copyright>
+  </bookinfo>
 
-  <chapter id="ch01">
+  <chapter id="Bv9ARM.ch01">
   <title>Introduction </title>
   <para>The Internet Domain Name System (<acronym>DNS</acronym>) consists of the syntax
   to specify the names of entities in the Internet in a hierarchical
@@ -366,7 +386,7 @@ be placed inside a firewall.</para>
 
 </chapter>
 
-<chapter id="ch02"><title><acronym>BIND</acronym> Resource Requirements</title>
+<chapter id="Bv9ARM.ch02"><title><acronym>BIND</acronym> Resource Requirements</title>
 
 <sect1>
 <title>Hardware requirements</title>
@@ -444,7 +464,7 @@ systems:</para>
   </sect1>
   </chapter>
 
-  <chapter id="ch03">
+  <chapter id="Bv9ARM.ch03">
   <title>Nameserver Configuration</title>
 <para>In this section we provide some suggested configurations along
 with guidelines for their use. We also address the topic of reasonable
@@ -950,7 +970,7 @@ reload the database. </para></entry>
   </sect1>
   </chapter>
 
-  <chapter id="ch04">
+  <chapter id="Bv9ARM.ch04">
   <title>Advanced Concepts</title>
 
 <sect1 id="dynamic_update">
@@ -1091,7 +1111,7 @@ to those internal hosts. With the wildcard records, the mail will
 be delivered to the bastion host, which can then forward it on to
 internal hosts.</para>
 <para>Here's an example of a wildcard MX record:</para>
-<programlisting><literal>*   IN MX 10 external1.example.com.</literal></programlisting>
+<programlisting>*   IN MX 10 external1.example.com.</programlisting>
 <para>Now that they accept mail on behalf of anything in the internal
 network, the bastion hosts will need to know how to deliver mail
 to internal hosts. In order for this to work properly, the resolvers on
@@ -1593,7 +1613,7 @@ statement, as described later in this document. </para>
     <para><acronym>BIND</acronym> 9 includes a new lightweight resolver library and
     resolver daemon which new applications may choose to use to avoid
     the complexities of A6 chain following and bitstring labels, see <xref
-    linkend="ch05"/>.</para>
+    linkend="Bv9ARM.ch05"/>.</para>
 
     <para>For an overview of the format and structure of IPv6 addresses,
     see <xref linkend="ipv6addresses"/>.</para>
@@ -1629,7 +1649,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
   </sect1>
   </chapter>
 
-  <chapter id="ch05"><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title>
+  <chapter id="Bv9ARM.ch05"><title>The <acronym>BIND</acronym> 9 Lightweight Resolver</title>
 <sect1><title>The Lightweight Resolver Library</title>
 <para>Traditionally applications have been linked with a stub resolver
 library that sends recursive DNS queries to a local caching name
@@ -1673,7 +1693,7 @@ be configured to act as a lightweight resolver daemon using the
 
 </sect1></chapter>
 
-<chapter id="ch06"><title><acronym>BIND</acronym> 9 Configuration Reference</title>
+<chapter id="Bv9ARM.ch06"><title><acronym>BIND</acronym> 9 Configuration Reference</title>
 <para><acronym>BIND</acronym> 9 configuration is broadly similar to <acronym>BIND</acronym> 8.x; however,
 there are a few new areas of configuration, such as views. <acronym>BIND</acronym>
 8.x configuration files should work with few alterations in <acronym>BIND</acronym>
@@ -2146,7 +2166,7 @@ installed.
 
 <para>
 To disable the command channel, use an empty <command>controls</command>
-statement: <command>controls { };</command>.
+statement: <command>controls { };</command>.
 </para>
 
     </sect2>
@@ -2212,7 +2232,7 @@ string.</para>
       <programlisting><command>logging</command> {
    [ <command>channel</command> <replaceable>channel_name</replaceable> {
      ( <command>file</command> <replaceable>path name</replaceable>
-         [ <command>versions</command> ( <replaceable>number</replaceable> | <literal>unlimited</literal> ) ]
+         [ <command>versions</command> ( <replaceable>number</replaceable> | <command>unlimited</command> ) ]
          [ <command>size</command> <replaceable>size spec</replaceable> ]
        | <command>syslog</command> <replaceable>syslog_facility</replaceable>
        | <command>stderr</command>
@@ -5067,10 +5087,10 @@ be appended to any unqualified records. When a zone is first read
 in there is an implicit <command>$ORIGIN</command> &#60;<varname>zone-name</varname>><command>.</command> The
 current <command>$ORIGIN</command> is appended to the domain specified
 in the <command>$ORIGIN</command> argument if it is not absolute.</para>
-<programlisting><literal>$ORIGIN example.com.
-WWW     CNAME   MAIN-SERVER</literal></programlisting>
+<programlisting>$ORIGIN example.com.
+WWW     CNAME   MAIN-SERVER</programlisting>
 <para>is equivalent to</para>
-<programlisting><literal>WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.</literal></programlisting></sect3>
+<programlisting>WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.</programlisting></sect3>
 <sect3><title>The <command>$INCLUDE</command> Directive</title>
 <para>Syntax: <command>$INCLUDE</command>
 <replaceable>filename</replaceable> <optional>
@@ -5104,17 +5124,17 @@ resource records that only differ from each other by an iterator. <command>$GENE
 be used to easily generate the sets of records required to support
 sub /24 reverse delegations described in RFC 2317: Classless IN-ADDR.ARPA
 delegation.</para>
-<programlisting><literal>$ORIGIN 0.0.192.IN-ADDR.ARPA.
+<programlisting>$ORIGIN 0.0.192.IN-ADDR.ARPA.
 $GENERATE 1-2 0 NS SERVER$.EXAMPLE.
-$GENERATE 1-127 $ CNAME $.0</literal></programlisting>
+$GENERATE 1-127 $ CNAME $.0</programlisting>
 <para>is equivalent to</para>
-<programlisting><literal>0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
+<programlisting>0.0.0.192.IN-ADDR.ARPA NS SERVER1.EXAMPLE.
 0.0.0.192.IN-ADDR.ARPA. NS SERVER2.EXAMPLE.
 1.0.0.192.IN-ADDR.ARPA. CNAME 1.0.0.0.192.IN-ADDR.ARPA.
 2.0.0.192.IN-ADDR.ARPA. CNAME 2.0.0.0.192.IN-ADDR.ARPA.
 ...
 127.0.0.192.IN-ADDR.ARPA. CNAME 127.0.0.0.192.IN-ADDR.ARPA.
-</literal></programlisting>
+</programlisting>
       <informaltable colsep = "0" rowsep = "0">
         <tgroup cols = "2" colsep = "0" rowsep = "0" tgroupstyle = "3Level-table">
           <colspec colname = "1" colnum = "1" colsep = "0" colwidth = "0.875in"/>
@@ -5166,7 +5186,7 @@ and not part of the standard zone file format.</para>
     </sect2>
   </sect1>
 </chapter>
-<chapter id="ch07"><title><acronym>BIND</acronym> 9 Security Considerations</title>
+<chapter id="Bv9ARM.ch07"><title><acronym>BIND</acronym> 9 Security Considerations</title>
 <sect1 id="Access_Control_Lists"><title>Access Control Lists</title>
 <para>Access Control Lists (ACLs), are address match lists that
 you can set up and nickname for future use in <command>allow-notify</command>,
@@ -5289,7 +5309,7 @@ all.</para>
 
 </sect1></chapter>
 
-<chapter id="ch08">
+<chapter id="Bv9ARM.ch08">
   <title>Troubleshooting</title>
   <sect1>
     <title>Common Problems</title>
@@ -5348,7 +5368,7 @@ all.</para>
     to read more.</para>
   </sect1>
 </chapter>
-<appendix id="ch09">
+<appendix id="Bv9ARM.ch09">
   <title>Appendices</title>
   <sect1>
     <title>Acknowledgements</title>
