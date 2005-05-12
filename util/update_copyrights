@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26.206.6 2005/05/12 01:22:55 marka Exp $
+# $Id: update_copyrights,v 1.26.206.7 2005/05/12 02:30:38 marka Exp $
 
 require 5.002;
 
@@ -335,12 +335,12 @@ foreach $file (keys %file_types) {
 	#
 	# Internet Systems Consortium: 2004 onwards.
 	#
-        $last_year = 2004;
-        $anchor_year = 2004;
-	$years = "2004";
+        $last_year = 0;
+        $anchor_year = 0;
+	$years = "";
 	$anchor_end = length($years);
         foreach $year (@years) {
-		if ($year < 2005) { next; }
+		if ($year < 2004) { next; }
                 if ($last_year != 0 && $year == $last_year + 1) {
                         if ($year > $anchor_year + 1) {
                                 substr($years, $anchor_end) = "-$year";
