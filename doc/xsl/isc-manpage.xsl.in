@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-manpage.xsl.in,v 1.3 2005/05/11 23:15:18 sra Exp $ -->
+<!-- $Id: isc-manpage.xsl.in,v 1.4 2005/05/12 20:21:27 sra Exp $ -->
 
 <!-- ISC customizations for Docbook-XSL manual page generator. -->
 
@@ -40,6 +40,9 @@
 
   <!-- Stuff we want in our nroff preamble. -->
   <xsl:variable name="isc.nroff.preamble">
+    <xsl:text>.\"&#10;</xsl:text>
+    <xsl:text>.\" &#36;Id&#36;&#10;</xsl:text>
+    <xsl:text>.\"&#10;</xsl:text>
     <xsl:text>.hy 0&#10;</xsl:text>
     <xsl:text>.ad l&#10;</xsl:text>
   </xsl:variable>
@@ -54,7 +57,6 @@
       <xsl:call-template name="isc.no.blanks">
         <xsl:with-param name="text" select="
 		concat($isc.copyright,
-		       $isc.copyright.leader, '&#10;',
 		       $isc.nroff.preamble,
 		       $content)"/>
       </xsl:call-template>
