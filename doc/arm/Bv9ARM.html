@@ -1,851 +1,222 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<HTML
-><HEAD
-><TITLE
->BIND 9 Administrator Reference Manual</TITLE
-><META
-NAME="GENERATOR"
-CONTENT="Modular DocBook HTML Stylesheet Version 1.79"><LINK
-REL="NEXT"
-TITLE="Introduction "
-HREF="Bv9ARM.ch01.html"></HEAD
-><BODY
-CLASS="book"
-BGCOLOR="#FFFFFF"
-TEXT="#000000"
-LINK="#0000FF"
-VLINK="#840084"
-ALINK="#0000FF"
-><DIV
-CLASS="BOOK"
-><A
-NAME="AEN1"
-></A
-><DIV
-CLASS="TITLEPAGE"
-><H1
-CLASS="title"
-><A
-NAME="AEN1"
->BIND 9 Administrator Reference Manual</A
-></H1
-><P
-CLASS="copyright"
->Copyright &copy; 2004 Internet Systems Consortium, Inc. ("ISC")</P
-><P
-CLASS="copyright"
->Copyright &copy; 2000-2003 Internet Software Consortium</P
-><HR></DIV
-><DIV
-CLASS="TOC"
-><DL
-><DT
-><B
->Table of Contents</B
-></DT
-><DT
->1. <A
-HREF="Bv9ARM.ch01.html"
->Introduction</A
-></DT
-><DD
-><DL
-><DT
->1.1. <A
-HREF="Bv9ARM.ch01.html#AEN15"
->Scope of Document</A
-></DT
-><DT
->1.2. <A
-HREF="Bv9ARM.ch01.html#AEN22"
->Organization of This Document</A
-></DT
-><DT
->1.3. <A
-HREF="Bv9ARM.ch01.html#AEN42"
->Conventions Used in This Document</A
-></DT
-><DT
->1.4. <A
-HREF="Bv9ARM.ch01.html#AEN107"
->The Domain Name System (<ACRONYM
-CLASS="acronym"
->DNS</ACRONYM
->)</A
-></DT
-><DD
-><DL
-><DT
->1.4.1. <A
-HREF="Bv9ARM.ch01.html#AEN114"
->DNS Fundamentals</A
-></DT
-><DT
->1.4.2. <A
-HREF="Bv9ARM.ch01.html#AEN124"
->Domains and Domain Names</A
-></DT
-><DT
->1.4.3. <A
-HREF="Bv9ARM.ch01.html#AEN148"
->Zones</A
-></DT
-><DT
->1.4.4. <A
-HREF="Bv9ARM.ch01.html#AEN171"
->Authoritative Name Servers</A
-></DT
-><DT
->1.4.5. <A
-HREF="Bv9ARM.ch01.html#AEN200"
->Caching Name Servers</A
-></DT
-><DT
->1.4.6. <A
-HREF="Bv9ARM.ch01.html#AEN218"
->Name Servers in Multiple Roles</A
-></DT
-></DL
-></DD
-></DL
-></DD
-><DT
->2. <A
-HREF="Bv9ARM.ch02.html"
-><ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> Resource Requirements</A
-></DT
-><DD
-><DL
-><DT
->2.1. <A
-HREF="Bv9ARM.ch02.html#AEN228"
->Hardware requirements</A
-></DT
-><DT
->2.2. <A
-HREF="Bv9ARM.ch02.html#AEN236"
->CPU Requirements</A
-></DT
-><DT
->2.3. <A
-HREF="Bv9ARM.ch02.html#AEN240"
->Memory Requirements</A
-></DT
-><DT
->2.4. <A
-HREF="Bv9ARM.ch02.html#AEN245"
->Name Server Intensive Environment Issues</A
-></DT
-><DT
->2.5. <A
-HREF="Bv9ARM.ch02.html#AEN248"
->Supported Operating Systems</A
-></DT
-></DL
-></DD
-><DT
->3. <A
-HREF="Bv9ARM.ch03.html"
->Name Server Configuration</A
-></DT
-><DD
-><DL
-><DT
->3.1. <A
-HREF="Bv9ARM.ch03.html#sample_configuration"
->Sample Configurations</A
-></DT
-><DD
-><DL
-><DT
->3.1.1. <A
-HREF="Bv9ARM.ch03.html#AEN257"
->A Caching-only Name Server</A
-></DT
-><DT
->3.1.2. <A
-HREF="Bv9ARM.ch03.html#AEN262"
->An Authoritative-only Name Server</A
-></DT
-></DL
-></DD
-><DT
->3.2. <A
-HREF="Bv9ARM.ch03.html#AEN268"
->Load Balancing</A
-></DT
-><DT
->3.3. <A
-HREF="Bv9ARM.ch03.html#AEN345"
->Name Server Operations</A
-></DT
-><DD
-><DL
-><DT
->3.3.1. <A
-HREF="Bv9ARM.ch03.html#AEN347"
->Tools for Use With the Name Server Daemon</A
-></DT
-><DT
->3.3.2. <A
-HREF="Bv9ARM.ch03.html#AEN718"
->Signals</A
-></DT
-></DL
-></DD
-></DL
-></DD
-><DT
->4. <A
-HREF="Bv9ARM.ch04.html"
->Advanced DNS Features</A
-></DT
-><DD
-><DL
-><DT
->4.1. <A
-HREF="Bv9ARM.ch04.html#notify"
->Notify</A
-></DT
-><DT
->4.2. <A
-HREF="Bv9ARM.ch04.html#dynamic_update"
->Dynamic Update</A
-></DT
-><DD
-><DL
-><DT
->4.2.1. <A
-HREF="Bv9ARM.ch04.html#journal"
->The journal file</A
-></DT
-></DL
-></DD
-><DT
->4.3. <A
-HREF="Bv9ARM.ch04.html#incremental_zone_transfers"
->Incremental Zone Transfers (IXFR)</A
-></DT
-><DT
->4.4. <A
-HREF="Bv9ARM.ch04.html#AEN796"
->Split DNS</A
-></DT
-><DT
->4.5. <A
-HREF="Bv9ARM.ch04.html#tsig"
->TSIG</A
-></DT
-><DD
-><DL
-><DT
->4.5.1. <A
-HREF="Bv9ARM.ch04.html#AEN887"
->Generate Shared Keys for Each Pair of Hosts</A
-></DT
-><DT
->4.5.2. <A
-HREF="Bv9ARM.ch04.html#AEN908"
->Copying the Shared Secret to Both Machines</A
-></DT
-><DT
->4.5.3. <A
-HREF="Bv9ARM.ch04.html#AEN911"
->Informing the Servers of the Key's Existence</A
-></DT
-><DT
->4.5.4. <A
-HREF="Bv9ARM.ch04.html#AEN923"
->Instructing the Server to Use the Key</A
-></DT
-><DT
->4.5.5. <A
-HREF="Bv9ARM.ch04.html#AEN939"
->TSIG Key Based Access Control</A
-></DT
-><DT
->4.5.6. <A
-HREF="Bv9ARM.ch04.html#AEN952"
->Errors</A
-></DT
-></DL
-></DD
-><DT
->4.6. <A
-HREF="Bv9ARM.ch04.html#AEN956"
->TKEY</A
-></DT
-><DT
->4.7. <A
-HREF="Bv9ARM.ch04.html#AEN971"
->SIG(0)</A
-></DT
-><DT
->4.8. <A
-HREF="Bv9ARM.ch04.html#DNSSEC"
->DNSSEC</A
-></DT
-><DD
-><DL
-><DT
->4.8.1. <A
-HREF="Bv9ARM.ch04.html#AEN991"
->Generating Keys</A
-></DT
-><DT
->4.8.2. <A
-HREF="Bv9ARM.ch04.html#AEN1011"
->Signing the Zone</A
-></DT
-><DT
->4.8.3. <A
-HREF="Bv9ARM.ch04.html#AEN1033"
->Configuring Servers</A
-></DT
-></DL
-></DD
-><DT
->4.9. <A
-HREF="Bv9ARM.ch04.html#AEN1040"
->IPv6 Support in <ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> 9</A
-></DT
-><DD
-><DL
-><DT
->4.9.1. <A
-HREF="Bv9ARM.ch04.html#AEN1058"
->Address Lookups Using AAAA Records</A
-></DT
-><DT
->4.9.2. <A
-HREF="Bv9ARM.ch04.html#AEN1064"
->Address to Name Lookups Using Nibble Format</A
-></DT
-></DL
-></DD
-></DL
-></DD
-><DT
->5. <A
-HREF="Bv9ARM.ch05.html"
->The <ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> 9 Lightweight Resolver</A
-></DT
-><DD
-><DL
-><DT
->5.1. <A
-HREF="Bv9ARM.ch05.html#AEN1073"
->The Lightweight Resolver Library</A
-></DT
-><DT
->5.2. <A
-HREF="Bv9ARM.ch05.html#lwresd"
->Running a Resolver Daemon</A
-></DT
-></DL
-></DD
-><DT
->6. <A
-HREF="Bv9ARM.ch06.html"
-><ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> 9 Configuration Reference</A
-></DT
-><DD
-><DL
-><DT
->6.1. <A
-HREF="Bv9ARM.ch06.html#configuration_file_elements"
->Configuration File Elements</A
-></DT
-><DD
-><DL
-><DT
->6.1.1. <A
-HREF="Bv9ARM.ch06.html#address_match_lists"
->Address Match Lists</A
-></DT
-><DT
->6.1.2. <A
-HREF="Bv9ARM.ch06.html#AEN1319"
->Comment Syntax</A
-></DT
-></DL
-></DD
-><DT
->6.2. <A
-HREF="Bv9ARM.ch06.html#Configuration_File_Grammar"
->Configuration File Grammar</A
-></DT
-><DD
-><DL
-><DT
->6.2.1. <A
-HREF="Bv9ARM.ch06.html#AEN1440"
-><B
-CLASS="command"
->acl</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.2. <A
-HREF="Bv9ARM.ch06.html#acl"
-><B
-CLASS="command"
->acl</B
-> Statement Definition and
-Usage</A
-></DT
-><DT
->6.2.3. <A
-HREF="Bv9ARM.ch06.html#AEN1484"
-><B
-CLASS="command"
->controls</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.4. <A
-HREF="Bv9ARM.ch06.html#controls_statement_definition_and_usage"
-><B
-CLASS="command"
->controls</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.5. <A
-HREF="Bv9ARM.ch06.html#AEN1563"
-><B
-CLASS="command"
->include</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.6. <A
-HREF="Bv9ARM.ch06.html#AEN1568"
-><B
-CLASS="command"
->include</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.7. <A
-HREF="Bv9ARM.ch06.html#AEN1575"
-><B
-CLASS="command"
->key</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.8. <A
-HREF="Bv9ARM.ch06.html#AEN1582"
-><B
-CLASS="command"
->key</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.9. <A
-HREF="Bv9ARM.ch06.html#AEN1602"
-><B
-CLASS="command"
->logging</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.10. <A
-HREF="Bv9ARM.ch06.html#AEN1642"
-><B
-CLASS="command"
->logging</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.11. <A
-HREF="Bv9ARM.ch06.html#AEN1912"
-><B
-CLASS="command"
->lwres</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.12. <A
-HREF="Bv9ARM.ch06.html#AEN1936"
-><B
-CLASS="command"
->lwres</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.13. <A
-HREF="Bv9ARM.ch06.html#AEN1955"
-><B
-CLASS="command"
->masters</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.14. <A
-HREF="Bv9ARM.ch06.html#AEN1970"
-><B
-CLASS="command"
->masters</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.15. <A
-HREF="Bv9ARM.ch06.html#AEN1975"
-><B
-CLASS="command"
->options</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.16. <A
-HREF="Bv9ARM.ch06.html#options"
-><B
-CLASS="command"
->options</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.17. <A
-HREF="Bv9ARM.ch06.html#server_statement_grammar"
-><B
-CLASS="command"
->server</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.18. <A
-HREF="Bv9ARM.ch06.html#server_statement_definition_and_usage"
-><B
-CLASS="command"
->server</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.19. <A
-HREF="Bv9ARM.ch06.html#AEN3462"
-><B
-CLASS="command"
->trusted-keys</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.20. <A
-HREF="Bv9ARM.ch06.html#AEN3478"
-><B
-CLASS="command"
->trusted-keys</B
-> Statement Definition
-and Usage</A
-></DT
-><DT
->6.2.21. <A
-HREF="Bv9ARM.ch06.html#view_statement_grammar"
-><B
-CLASS="command"
->view</B
-> Statement Grammar</A
-></DT
-><DT
->6.2.22. <A
-HREF="Bv9ARM.ch06.html#AEN3500"
-><B
-CLASS="command"
->view</B
-> Statement Definition and Usage</A
-></DT
-><DT
->6.2.23. <A
-HREF="Bv9ARM.ch06.html#zone_statement_grammar"
-><B
-CLASS="command"
->zone</B
->
-Statement Grammar</A
-></DT
-><DT
->6.2.24. <A
-HREF="Bv9ARM.ch06.html#AEN3674"
-><B
-CLASS="command"
->zone</B
-> Statement Definition and Usage</A
-></DT
-></DL
-></DD
-><DT
->6.3. <A
-HREF="Bv9ARM.ch06.html#AEN4079"
->Zone File</A
-></DT
-><DD
-><DL
-><DT
->6.3.1. <A
-HREF="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them"
->Types of Resource Records and When to Use Them</A
-></DT
-><DT
->6.3.2. <A
-HREF="Bv9ARM.ch06.html#AEN4399"
->Discussion of MX Records</A
-></DT
-><DT
->6.3.3. <A
-HREF="Bv9ARM.ch06.html#Setting_TTLs"
->Setting TTLs</A
-></DT
-><DT
->6.3.4. <A
-HREF="Bv9ARM.ch06.html#AEN4520"
->Inverse Mapping in IPv4</A
-></DT
-><DT
->6.3.5. <A
-HREF="Bv9ARM.ch06.html#AEN4547"
->Other Zone File Directives</A
-></DT
-><DT
->6.3.6. <A
-HREF="Bv9ARM.ch06.html#AEN4605"
-><ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> Master File Extension: the  <B
-CLASS="command"
->$GENERATE</B
-> Directive</A
-></DT
-></DL
-></DD
-></DL
-></DD
-><DT
->7. <A
-HREF="Bv9ARM.ch07.html"
-><ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-> 9 Security Considerations</A
-></DT
-><DD
-><DL
-><DT
->7.1. <A
-HREF="Bv9ARM.ch07.html#Access_Control_Lists"
->Access Control Lists</A
-></DT
-><DT
->7.2. <A
-HREF="Bv9ARM.ch07.html#AEN4722"
-><B
-CLASS="command"
->chroot</B
-> and <B
-CLASS="command"
->setuid</B
-> (for
-UNIX servers)</A
-></DT
-><DD
-><DL
-><DT
->7.2.1. <A
-HREF="Bv9ARM.ch07.html#AEN4745"
->The <B
-CLASS="command"
->chroot</B
-> Environment</A
-></DT
-><DT
->7.2.2. <A
-HREF="Bv9ARM.ch07.html#AEN4763"
->Using the <B
-CLASS="command"
->setuid</B
-> Function</A
-></DT
-></DL
-></DD
-><DT
->7.3. <A
-HREF="Bv9ARM.ch07.html#dynamic_update_security"
->Dynamic Update Security</A
-></DT
-></DL
-></DD
-><DT
->8. <A
-HREF="Bv9ARM.ch08.html"
->Troubleshooting</A
-></DT
-><DD
-><DL
-><DT
->8.1. <A
-HREF="Bv9ARM.ch08.html#AEN4784"
->Common Problems</A
-></DT
-><DD
-><DL
-><DT
->8.1.1. <A
-HREF="Bv9ARM.ch08.html#AEN4786"
->It's not working; how can I figure out what's wrong?</A
-></DT
-></DL
-></DD
-><DT
->8.2. <A
-HREF="Bv9ARM.ch08.html#AEN4789"
->Incrementing and Changing the Serial Number</A
-></DT
-><DT
->8.3. <A
-HREF="Bv9ARM.ch08.html#AEN4794"
->Where Can I Get Help?</A
-></DT
-></DL
-></DD
-><DT
->A. <A
-HREF="Bv9ARM.ch09.html"
->Appendices</A
-></DT
-><DD
-><DL
-><DT
->A.1. <A
-HREF="Bv9ARM.ch09.html#AEN4810"
->Acknowledgments</A
-></DT
-><DD
-><DL
-><DT
->A.1.1. <A
-HREF="Bv9ARM.ch09.html#AEN4812"
->A Brief History of the <ACRONYM
-CLASS="acronym"
->DNS</ACRONYM
-> and <ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-></A
-></DT
-></DL
-></DD
-><DT
->A.2. <A
-HREF="Bv9ARM.ch09.html#historical_dns_information"
->General <ACRONYM
-CLASS="acronym"
->DNS</ACRONYM
-> Reference Information</A
-></DT
-><DD
-><DL
-><DT
->A.2.1. <A
-HREF="Bv9ARM.ch09.html#ipv6addresses"
->IPv6 addresses (AAAA)</A
-></DT
-></DL
-></DD
-><DT
->A.3. <A
-HREF="Bv9ARM.ch09.html#bibliography"
->Bibliography (and Suggested Reading)</A
-></DT
-><DD
-><DL
-><DT
->A.3.1. <A
-HREF="Bv9ARM.ch09.html#rfcs"
->Request for Comments (RFCs)</A
-></DT
-><DT
->A.3.2. <A
-HREF="Bv9ARM.ch09.html#internet_drafts"
->Internet Drafts</A
-></DT
-><DT
->A.3.3. <A
-HREF="Bv9ARM.ch09.html#AEN5407"
->Other Documents About <ACRONYM
-CLASS="acronym"
->BIND</ACRONYM
-></A
-></DT
-></DL
-></DD
-></DL
-></DD
-></DL
-></DIV
-></DIV
-><DIV
-CLASS="NAVFOOTER"
-><HR
-ALIGN="LEFT"
-WIDTH="100%"><TABLE
-SUMMARY="Footer navigation table"
-WIDTH="100%"
-BORDER="0"
-CELLPADDING="0"
-CELLSPACING="0"
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
-><A
-HREF="Bv9ARM.ch01.html"
-ACCESSKEY="N"
->Next</A
-></TD
-></TR
-><TR
-><TD
-WIDTH="33%"
-ALIGN="left"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="34%"
-ALIGN="center"
-VALIGN="top"
->&nbsp;</TD
-><TD
-WIDTH="33%"
-ALIGN="right"
-VALIGN="top"
->Introduction</TD
-></TR
-></TABLE
-></DIV
-></BODY
-></HTML
->
+<!--
+ - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2003 Internet Software Consortium.
+ - 
+ - Permission to use, copy, modify, and distribute this software for any
+ - purpose with or without fee is hereby granted, provided that the above
+ - copyright notice and this permission notice appear in all copies.
+ - 
+ - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+ - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+ - AND FITNESS. IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+ - INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ - LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+ - PERFORMANCE OF THIS SOFTWARE.
+-->
+<!-- $Id: Bv9ARM.html,v 1.60.2.9.2.19 2005/05/12 23:57:08 sra Exp $ -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>BIND 9 Administrator Reference Manual</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.68.1">
+<link rel="start" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
+<link rel="next" href="Bv9ARM.ch01.html" title="Chapter 1. Introduction ">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<div class="navheader">
+<table width="100%" summary="Navigation header">
+<tr><th colspan="3" align="center">BIND 9 Administrator Reference Manual</th></tr>
+<tr>
+<td width="20%" align="left"> </td>
+<th width="60%" align="center"> </th>
+<td width="20%" align="right"> <a accesskey="n" href="Bv9ARM.ch01.html">Next</a>
+</td>
+</tr>
+</table>
+<hr>
+</div>
+<div class="book" lang="en">
+<div class="titlepage">
+<div>
+<div><h1 class="title">
+<a name="id2456738"></a>BIND 9 Administrator Reference Manual</h1></div>
+<div><p class="copyright">Copyright © 2004, 2005 Internet Systems Consortium, Inc. ("ISC")</p></div>
+<div><p class="copyright">Copyright © 2000-2003 Internet Software Consortium.</p></div>
+</div>
+<hr>
+</div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl>
+<dt><span class="chapter"><a href="Bv9ARM.ch01.html">1. Introduction </a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch01.html#id2533236">Scope of Document</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch01.html#id2533739">Organization of This Document</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch01.html#id2533811">Conventions Used in This Document</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch01.html#id2534410">The Domain Name System (<span class="acronym">DNS</span>)</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534430">DNS Fundamentals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534466">Domains and Domain Names</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534550">Zones</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534693">Authoritative Name Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534785">Caching Name Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch01.html#id2534842">Name Servers in Multiple Roles</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch02.html">2. <span class="acronym">BIND</span> Resource Requirements</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2534874">Hardware requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2534967">CPU Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2534978">Memory Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2534993">Name Server Intensive Environment Issues</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2535001">Supported Operating Systems</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch03.html">3. Name Server Configuration</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2535032">A Caching-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2535048">An Authoritative-only Name Server</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2535070">Load Balancing</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2535422">Name Server Operations</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2535428">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2536749">Signals</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch04.html">4. Advanced DNS Features</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#notify">Notify</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#dynamic_update">Dynamic Update</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch04.html#journal">The journal file</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#incremental_zone_transfers">Incremental Zone Transfers (IXFR)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2537106">Split DNS</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537598">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537665">Copying the Shared Secret to Both Machines</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537673">Informing the Servers of the Key's Existence</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537781">Instructing the Server to Use the Key</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537833">TSIG Key Based Access Control</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2537877">Errors</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2537891">TKEY</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2537940">SIG(0)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2538006">Generating Keys</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2538210">Signing the Zone</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2538284">Configuring Servers</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2538308">IPv6 Support in <span class="acronym">BIND</span> 9</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2538435">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2538455">Address to Name Lookups Using Nibble Format</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch05.html">5. The <span class="acronym">BIND</span> 9 Lightweight Resolver</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch05.html#id2538487">The Lightweight Resolver Library</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch05.html#lwresd">Running a Resolver Daemon</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch06.html">6. <span class="acronym">BIND</span> 9 Configuration Reference</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#configuration_file_elements">Configuration File Elements</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#address_match_lists">Address Match Lists</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2539720">Comment Syntax</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#Configuration_File_Grammar">Configuration File Grammar</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540137"><span><strong class="command">acl</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#acl"><span><strong class="command">acl</strong></span> Statement Definition and
+Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540374"><span><strong class="command">controls</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#controls_statement_definition_and_usage"><span><strong class="command">controls</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540779"><span><strong class="command">include</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540794"><span><strong class="command">include</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540817"><span><strong class="command">key</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540838"><span><strong class="command">key</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2540909"><span><strong class="command">logging</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2541104"><span><strong class="command">logging</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2542377"><span><strong class="command">lwres</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2542450"><span><strong class="command">lwres</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2542513"><span><strong class="command">masters</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2542556"><span><strong class="command">masters</strong></span> Statement Definition and Usage </a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2542571"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2550135"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2550183"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2550251"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
+Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2551001"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2552468">Zone File</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553832">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554329">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554503">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554740"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+</dl></dd>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch07.html">7. <span class="acronym">BIND</span> 9 Security Considerations</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2555201"><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span> (for
+UNIX servers)</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2555276">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2555334">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
+</dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
+</dl></dd>
+<dt><span class="chapter"><a href="Bv9ARM.ch08.html">8. Troubleshooting</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch08.html#id2555404">Common Problems</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch08.html#id2555410">It's not working; how can I figure out what's wrong?</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch08.html#id2555421">Incrementing and Changing the Serial Number</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch08.html#id2555438">Where Can I Get Help?</a></span></dt>
+</dl></dd>
+<dt><span class="appendix"><a href="Bv9ARM.ch09.html">A. Appendices</a></span></dt>
+<dd><dl>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2555569">Acknowledgments</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2555574">A Brief History of the <span class="acronym">DNS</span> and <span class="acronym">BIND</span></a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#historical_dns_information">General <span class="acronym">DNS</span> Reference Information</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#ipv6addresses">IPv6 addresses (AAAA)</a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#bibliography">Bibliography (and Suggested Reading)</a></span></dt>
+<dd><dl>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#rfcs">Request for Comments (RFCs)</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#internet_drafts">Internet Drafts</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2557929">Other Documents About <span class="acronym">BIND</span></a></span></dt>
+</dl></dd>
+</dl></dd>
+</dl>
+</div>
+</div>
+<div class="navfooter">
+<hr>
+<table width="100%" summary="Navigation footer">
+<tr>
+<td width="40%" align="left"> </td>
+<td width="20%" align="center"> </td>
+<td width="40%" align="right"> <a accesskey="n" href="Bv9ARM.ch01.html">Next</a>
+</td>
+</tr>
+<tr>
+<td width="40%" align="left" valign="top"> </td>
+<td width="20%" align="center"> </td>
+<td width="40%" align="right" valign="top"> Chapter 1. Introduction </td>
+</tr>
+</table>
+</div>
+</body>
+</html>
