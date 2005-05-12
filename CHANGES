@@ -1,3 +1,6 @@
+1858.	[bug]		The flush-zones-on-shutdown option wasn't being
+			parsed. [RT #14686]
+
 1857.	[placeholder]	rt14673
 
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
