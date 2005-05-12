@@ -1060,9 +1060,10 @@
 ./doc/arm/Bv9ARM.ch08.html			X	2000,2001
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001
 ./doc/arm/Bv9ARM.html				X	2000,2001
-./doc/arm/Makefile.in				MAKE	2001,2002,2004
+./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc.color.gif				X	2000,2001
+./doc/arm/latex-fixup.pl			PERL	2005
 ./doc/arm/nominum-docbook-html.dsl.in		X	2000,2001
 ./doc/arm/nominum-docbook-print.dsl.in		X	2001
 ./doc/arm/validate.sh.in			SH	2000,2001,2004
@@ -1115,6 +1116,13 @@
 ./doc/todo/mws/todo				X	2000,2001
 ./doc/todo/tale/todo				X	2000,2001
 ./doc/todo/unassigned				X	2000,2001
+./doc/xsl/.cvsignore				X	2005
+./doc/xsl/copyright.xsl				SGML	2005
+./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005
+./doc/xsl/isc-docbook-html.xsl.in		SGML	2005
+./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005
+./doc/xsl/isc-manpage.xsl.in			SGML	2005
+./doc/xsl/pre-latex.xsl				SGML	2005
 ./docutil/.cvsignore				X	2001
 ./docutil/HTML_COPYRIGHT			X	2001
 ./docutil/MAN_COPYRIGHT				X	2001
@@ -2143,7 +2151,7 @@
 ./lib/lwres/man/lwres_getaddrinfo.docbook	SGML	2000,2001,2003,2004,2005
 ./lib/lwres/man/lwres_getaddrinfo.html		HTML	DOCBOOK
 ./lib/lwres/man/lwres_gethostent.3		MAN	DOCBOOK
-./lib/lwres/man/lwres_gethostent.docbook	SGML	2001,2004
+./lib/lwres/man/lwres_gethostent.docbook	SGML	2001,2004,2005
 ./lib/lwres/man/lwres_gethostent.html		HTML	DOCBOOK
 ./lib/lwres/man/lwres_getipnode.3		MAN	DOCBOOK
 ./lib/lwres/man/lwres_getipnode.docbook		SGML	2000,2001,2003,2004,2005
