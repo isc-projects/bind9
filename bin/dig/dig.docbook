@@ -1,4 +1,6 @@
-<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN">
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
+               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
+	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
@@ -16,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.9 2004/06/23 04:19:41 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.10 2005/05/12 21:35:57 sra Exp $ -->
 
 <refentry>
 
@@ -30,6 +32,20 @@
 <refmiscinfo>BIND9</refmiscinfo>
 </refmeta>
 
+  <docinfo>
+    <copyright>
+      <year>2004</year>
+      <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
+    </copyright>
+    <copyright>
+      <year>2000</year>
+      <year>2001</year>
+      <year>2002</year>
+      <year>2003</year>
+      <holder>Internet Software Consortium.</holder>
+    </copyright>
+  </docinfo>
+
 <refnamediv>
 <refname>dig</refname>
 <refpurpose>DNS lookup utility</refpurpose>
@@ -38,7 +54,7 @@
 <refsynopsisdiv>
 <cmdsynopsis>
 <command>dig</command>
-<arg choice=opt>@server</arg>
+<arg choice="opt">@server</arg>
 <arg><option>-b <replaceable class="parameter">address</replaceable></option></arg>
 <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
 <arg><option>-f <replaceable class="parameter">filename</replaceable></option></arg>
@@ -49,10 +65,10 @@
 <arg><option>-y <replaceable class="parameter">name:key</replaceable></option></arg>
 <arg><option>-4</option></arg>
 <arg><option>-6</option></arg>
-<arg choice=opt>name</arg>
-<arg choice=opt>type</arg>
-<arg choice=opt>class</arg>
-<arg choice=opt rep=repeat>queryopt</arg>
+<arg choice="opt">name</arg>
+<arg choice="opt">type</arg>
+<arg choice="opt">class</arg>
+<arg choice="opt" rep="repeat">queryopt</arg>
 </cmdsynopsis>
 
 <cmdsynopsis>
@@ -62,8 +78,8 @@
 
 <cmdsynopsis>
 <command>dig</command>
-<arg choice=opt rep=repeat>global-queryopt</arg>
-<arg choice=opt rep=repeat>query</arg>
+<arg choice="opt" rep="repeat">global-queryopt</arg>
+<arg choice="opt" rep="repeat">query</arg>
 </cmdsynopsis>
 </refsynopsisdiv>
 
