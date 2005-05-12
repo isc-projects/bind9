@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: isc-docbook-html.xsl.in,v 1.2 2005/05/11 05:55:38 sra Exp $ -->
+<!-- $Id: isc-docbook-html.xsl.in,v 1.2.2.2 2005/05/12 20:21:33 sra Exp $ -->
 
 <!-- ISC customizations for Docbook-XSL HTML generator --> 
 
@@ -44,6 +44,8 @@
       <xsl:text>&#10;</xsl:text>
       <xsl:value-of select="$isc.copyright"/>
     </xsl:comment>
+    <xsl:text>&#10;</xsl:text>
+    <xsl:comment> &#36;Id&#36; </xsl:comment>
     <xsl:text>&#10;</xsl:text>
   </xsl:template>
 
