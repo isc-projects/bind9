@@ -17,7 +17,8 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwres_gabn.docbook,v 1.6 2005/05/11 05:55:39 sra Exp $ -->
+
+<!-- $Id: lwres_gabn.docbook,v 1.7 2005/05/13 01:35:45 marka Exp $ -->
 <refentry>
 
   <refentryinfo>
@@ -39,7 +40,7 @@
     <copyright>
       <year>2000</year>
       <year>2001</year>
-      <holder>Internet Software Consortium</holder>
+      <holder>Internet Software Consortium.</holder>
     </copyright>
   </docinfo>
 

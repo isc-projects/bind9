@@ -17,7 +17,8 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: nsupdate.docbook,v 1.20 2005/05/11 05:55:36 sra Exp $ -->
+
+<!-- $Id: nsupdate.docbook,v 1.21 2005/05/13 01:35:41 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -43,7 +44,7 @@
       <year>2001</year>
       <year>2002</year>
       <year>2003</year>
-      <holder>Internet Software Consortium</holder>
+      <holder>Internet Software Consortium.</holder>
     </copyright>
   </docinfo>
 

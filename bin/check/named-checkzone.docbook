@@ -17,7 +17,8 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named-checkzone.docbook,v 1.17 2005/05/11 05:55:35 sra Exp $ -->
+
+<!-- $Id: named-checkzone.docbook,v 1.18 2005/05/13 01:35:38 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -39,7 +40,7 @@
       <year>2000</year>
       <year>2001</year>
       <year>2002</year>
-      <holder>Internet Software Consortium</holder>
+      <holder>Internet Software Consortium.</holder>
     </copyright>
   </docinfo>
 

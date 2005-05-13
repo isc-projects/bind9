@@ -1,10 +1,10 @@
 <!--
  - Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
- - 
+ -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
  - copyright notice and this permission notice appear in all copies.
- - 
+ -
  - THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
  - REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
  - AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pre-latex.xsl,v 1.2 2005/05/11 05:55:38 sra Exp $ -->
+<!-- $Id: pre-latex.xsl,v 1.3 2005/05/13 01:35:44 marka Exp $ -->
 
 <!--
   - Whack &mdash; into something that won't choke LaTeX.

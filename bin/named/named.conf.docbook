@@ -16,7 +16,8 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.docbook,v 1.9 2005/05/11 05:55:36 sra Exp $ -->
+
+<!-- $Id: named.conf.docbook,v 1.10 2005/05/13 01:35:40 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
