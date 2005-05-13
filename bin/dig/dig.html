@@ -1,6 +1,6 @@
 <!--
- - Copyright (C) 2004 Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000-2003 Internet Software Consortium
+ - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.21 2005/05/12 23:54:22 sra Exp $ -->
+<!-- $Id: dig.html,v 1.22 2005/05/13 03:14:04 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -22,7 +22,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.68.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2456693"></a><div class="titlepage"></div>
+<a name="id2456836"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>dig &#8212; DNS lookup utility</p>
@@ -34,7 +34,7 @@
 <div class="cmdsynopsis"><p><code class="command">dig</code>  [global-queryopt...] [query...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2514178"></a><h2>DESCRIPTION</h2>
+<a name="id2514317"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dig</strong></span>
       (domain information groper) is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
@@ -73,7 +73,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2514233"></a><h2>SIMPLE USAGE</h2>
+<a name="id2514373"></a><h2>SIMPLE USAGE</h2>
 <p>
       A typical invocation of <span><strong class="command">dig</strong></span> looks like:
       </p>
@@ -119,7 +119,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2514392"></a><h2>OPTIONS</h2>
+<a name="id2514532"></a><h2>OPTIONS</h2>
 <p>
       The <code class="option">-b</code> option sets the source IP address of the query
       to <em class="parameter"><code>address</code></em>.  This must be a valid
@@ -213,7 +213,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2514576"></a><h2>QUERY OPTIONS</h2>
+<a name="id2514715"></a><h2>QUERY OPTIONS</h2>
 <p><span><strong class="command">dig</strong></span>
       provides a number of query options which affect
       the way in which lookups are made and the results displayed.  Some of
@@ -511,7 +511,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515716"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2515856"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -557,14 +557,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515846"></a><h2>FILES</h2>
+<a name="id2515986"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515863"></a><h2>SEE ALSO</h2>
+<a name="id2516003"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -572,7 +572,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515900"></a><h2>BUGS</h2>
+<a name="id2516040"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
