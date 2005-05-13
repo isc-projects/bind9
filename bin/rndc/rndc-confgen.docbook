@@ -2,7 +2,7 @@
                "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
- - Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2001, 2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc-confgen.docbook,v 1.3.2.1.4.4 2005/05/12 21:36:04 sra Exp $ -->
+<!-- $Id: rndc-confgen.docbook,v 1.3.2.1.4.5 2005/05/13 01:22:34 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -34,6 +34,7 @@
   <docinfo>
     <copyright>
       <year>2004</year>
+      <year>2005</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>
