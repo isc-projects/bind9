@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.25 2005/05/11 05:56:06 sra Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.26 2005/05/13 01:32:47 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -33,7 +33,7 @@
       <year>2001</year>
       <year>2002</year>
       <year>2003</year>
-      <holder>Internet Software Consortium</holder>
+      <holder>Internet Software Consortium.</holder>
     </copyright>
   </bookinfo>
 
