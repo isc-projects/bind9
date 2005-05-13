@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.19.18.3 2005/05/12 02:11:20 marka Exp $
+# $Id: merge_copyrights,v 1.19.18.4 2005/05/13 01:47:14 marka Exp $
 
 %file_types = ();
 %file_years = ();
@@ -107,7 +107,9 @@ while (<FILES>) {
             next;
         }
 
-	next if $file_types{$_} eq "X";
+	# track the modification years even if we are not going to be
+	# updating the copyrights.
+	# next if $file_types{$_} eq "X";
 	next if ($file_years{$_} =~ /^PARENT:/);
 	next if ($file_years{$_} eq "DOCBOOK");
 
