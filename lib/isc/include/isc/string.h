@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.14 2005/04/29 00:23:45 marka Exp $ */
+/* $Id: string.h,v 1.15 2005/05/14 22:11:56 jakob Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
@@ -27,6 +27,9 @@
 #include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
+#include <isc/types.h>
+
+#define ISC_STRING_MAGIC 0x5e
 
 ISC_LANG_BEGINDECLS
 
@@ -45,6 +48,149 @@ isc_string_touint64(char *source, char **endp, int base);
  * On error 'endp' points to 'source'.
  */
 
+isc_result_t
+isc_string_copy(char *target, size_t size, const char *source);
+/*
+ * Copy the string pointed to by 'source' to 'target' which is a
+ * pointer to a string of at least 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a char[] of at least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'source' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	If result == ISC_R_SUCCESS
+ *		'target' will be a NUL terminated string of no more
+ *		than 'size' bytes (including NUL).
+ *
+ *	If result == ISC_R_NOSPACE
+ *		'target' is undefined.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS  -- 'source' was successfully copied to 'target'.
+ *	ISC_R_NOSPACE  -- 'source' could not be copied since 'target'
+ *	                  is too small.
+ */
+
+void
+isc_string_copy_truncate(char *target, size_t size, const char *source);
+/*
+ * Copy the string pointed to by 'source' to 'target' which is a
+ * pointer to a string of at least 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a char[] of at least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'source' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	'target' will be a NUL terminated string of no more
+ *	than 'size' bytes (including NUL).
+ */
+
+isc_result_t
+isc_string_append(char *target, size_t size, const char *source);
+/*
+ * Append the string pointed to by 'source' to 'target' which is a
+ * pointer to a NUL terminated string of at least 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a NUL terminated char[] of at
+ *	least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'source' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	If result == ISC_R_SUCCESS
+ *		'target' will be a NUL terminated string of no more
+ *		than 'size' bytes (including NUL).
+ *
+ *	If result == ISC_R_NOSPACE
+ *		'target' is undefined.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS  -- 'source' was successfully appended to 'target'.
+ *	ISC_R_NOSPACE  -- 'source' could not be appended since 'target'
+ *	                  is too small.
+ */
+
+void
+isc_string_append_truncate(char *target, size_t size, const char *source);
+/*
+ * Append the string pointed to by 'source' to 'target' which is a
+ * pointer to a NUL terminated string of at least 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a NUL terminated char[] of at
+ *	least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'source' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	'target' will be a NUL terminated string of no more
+ *	than 'size' bytes (including NUL).
+ */
+
+isc_result_t
+isc_string_printf(char *target, size_t size, const char *format, ...);
+/*
+ * Print 'format' to 'target' which is a pointer to a string of at least
+ * 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a char[] of at least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'format' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	If result == ISC_R_SUCCESS
+ *		'target' will be a NUL terminated string of no more
+ *		than 'size' bytes (including NUL).
+ *
+ *	If result == ISC_R_NOSPACE
+ *		'target' is undefined.
+ *
+ * Returns:
+ *	ISC_R_SUCCESS  -- 'format' was successfully printed to 'target'.
+ *	ISC_R_NOSPACE  -- 'format' could not be printed to 'target' since it
+ *	                  is too small.
+ */
+
+void
+isc_string_printf_truncate(char *target, size_t size, const char *format, ...);
+/*
+ * Print 'format' to 'target' which is a pointer to a string of at least
+ * 'size' bytes.
+ *
+ * Requires:
+ *	'target' is a pointer to a char[] of at least 'size' bytes.
+ *	'size' an integer > 0.
+ *	'format' == NULL or points to a NUL terminated string.
+ *
+ * Ensures:
+ *	'target' will be a NUL terminated string of no more
+ *	than 'size' bytes (including NUL).
+ */
+
+
+char *
+isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source);
+/*
+ * Copy the region pointed to by r to a NUL terminated string
+ * allocated from the memory context pointed to by mctx.
+ *
+ * The result should be deallocated using isc_mem_free()
+ *
+ * Requires:
+ *	'mctx' is a point to a valid memory context.
+ *	'source' is a pointer to a valid region.
+ *
+ * Returns:
+ *	a pointer to a NUL terminated string or
+ *	NULL if memory for the copy could not be allocated
+ *
+ */
 
 char *
 isc_string_separate(char **stringp, const char *delim);
