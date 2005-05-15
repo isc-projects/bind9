@@ -1103,11 +1103,7 @@
 ./doc/arm/Bv9ARM.html				X	2000,2001,2005
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
-./doc/arm/isc.color.gif				X	2000,2001
 ./doc/arm/latex-fixup.pl			PERL	2005
-./doc/arm/nominum-docbook-html.dsl.in		X	2000,2001
-./doc/arm/nominum-docbook-print.dsl.in		X	2001
-./doc/arm/validate.sh.in			SH	2000,2001,2004
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
 ./doc/design/compression			TXT.BRIEF	1999,2000,2001,2004
 ./doc/design/database				TXT.BRIEF	1999,2000,2001,2004
@@ -1169,7 +1165,6 @@
 ./docutil/.cvsignore				X	2001
 ./docutil/HTML_COPYRIGHT			X	2001
 ./docutil/MAN_COPYRIGHT				X	2001
-./docutil/docbook2man-wrapper.sh.in		SH	2001,2002,2004
 ./install-sh					X	1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001,2003,2004
 ./lib/.cvsignore				X	1999,2000,2001
