@@ -14,7 +14,22 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.7 2005/05/16 07:03:47 marka Exp $
+# $Id: update_branches,v 1.8 2005/05/16 23:35:37 marka Exp $
+
+#
+#  Track which branches are still open or not in the bind9 cvs repository.
+#  This is done so that work that is "in progress" (active) doesn't get
+#  so easily forgotten about.
+#
+#  This script updates doc/private/branches by adding new branches and moving
+#  closed branches to the end of the file.  New branches are found by walking
+#  the cvs repository and extracting the new branches from the header fields
+#  of the files there.
+#
+#  doc/private/branches has one line per branch in the following field order:
+#  name, status, to whom the branch belongs and comments.  Comments are
+#  in '(',')'.  The first three field are single words.
+#
 
 %branches = ();
 %whom = ();
