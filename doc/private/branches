@@ -1,73 +1,373 @@
-Name		Status		Whom
-------------------------------------
-additional_cache review			(additional RRs caching for performance)
-rt8753		review			(support IPv6-scoped addr in dig)
-queryperf-v6	review			(IPv6 transport support for queryperf)
-compiled_zonefile open			(wire format zone file, under development)
+
+Branch				Status	Whom
+-------------------------------------------------------
+
+additional_cache		review		(additional RRs caching for performance)
+additional_cache_rt6496		new	
+avoid_gettimeofday		new	
+bind9-gss-tsig			new	
+bind9-gsstsig			new	
+compiled_zonefile		open		(wire format zone file, under development)
+da				new	
+delegation_only			new	
+dlz				new	
+ds				new	
+ds13				new	
+edns1				new	
+gsstsig2			new	
+jinmei-mmapzone-test		new	
+libbind_clean			open	jinmei
+mlg-20000518			new	
+newconfig			new	
+openssl_stub			open	marka
+optin				new	
+peter				private	peter	(hostname.bind for 9.2.x)
+queryperf-v6			review		(IPv6 transport support for queryperf)
+rdata_split			new	
+rt10038				new	
+rt10049				new	
+rt10105				new	
+rt10114				new	
+rt10115				new	
+rt10131				new	
+rt10147				new	
+rt10148				new	
+rt10150				new	
+rt10194				new	
+rt10202				new	
+rt10208				new	
+rt10221				new	
+rt10236				new	
+rt10272				new	
+rt10272a			new	
+rt10331				new	
+rt10345				new	
+rt10346				new	
+rt10381				new	
+rt10440				new	
+rt10440a			new	
+rt10452				new	
+rt10461				new	
+rt10497				new	
+rt10508				new	
+rt10565				new	
+rt10590				new	
+rt10642				new	
+rt10704				new	
+rt10764				new	
+rt10838				new	
+rt10847				new	
+rt10861				new	
+rt10864				new	
+rt10920				new	
+rt10925				new	
+rt10929				new	
+rt10991				new	
+rt11013				new	
+rt11065				new	
+rt11069				new	
+rt11069_v9_2			new	
+rt11101				new	
+rt11116				new	
+rt11117				new	
+rt11118				new	
+rt11119				new	
+rt11127				new	
+rt11132				new	
+rt11149				new	
+rt11156				new	
+rt11156_v9_2			new	
+rt11163				new	
+rt11163_1			new	
+rt11177				new	
+rt11179				new	
+rt11206				new	
+rt11208				new	
+rt11237				new	
+rt11280				new	
+rt11288				new	
+rt11331				new	
+rt113347			new	
+rt11360				new	
+rt11398				new	
+rt11398a			new	
+rt11398b			new	
+rt11398c			new	
+rt11432				new	
+rt11436				new	
+rt11439				new	
+rt11445				new	
+rt11446				new	
+rt11486				new	
+rt11541				new	
+rt11542				new	
+rt11543				new	
+rt11582				new	
+rt11595				new	
+rt11600				new	
+rt11681				new	
+rt11697				new	
+rt11706				new	
+rt11714				new	
+rt11733				new	
+rt11733b			new	
+rt11742				new	
+rt11943				new	
+rt12023				new	
+rt12024				new	
+rt12133				new	
+rt12154				new	
+rt12281				new	
+rt12286				new	
+rt12321				new	
+rt12321a			new	
+rt12321b			new	
+rt12322				new	
+rt12323				new	
+rt12327				new	
+rt12328				new	
+rt12352				new	
+rt12375				new	
+rt12376				new	
+rt12404				new	
+rt12410				new	
+rt12416				new	
+rt12467				new	
+rt12492				new	
+rt12493				new	
+rt12498				new	
+rt12505a			new	
+rt12505b			new	
+rt12519				new	
+rt12541				new	
+rt12557				new	
+rt12581				new	
+rt12634				new	
+rt12658				new	
+rt12695				new	
+rt12729				new	
+rt12729a			new	
+rt12745				new	
+rt12745a			new	
+rt12774				new	
+rt12788				new	
+rt12790				new	
+rt12810				new	
+rt12810a			new	
+rt12838				new	
+rt12866				new	
+rt12894				new	
+rt12907				new	
+rt12919				new	
+rt12933				new	
+rt12937				new	
+rt12942				new	
+rt12970				new	
+rt12971				new	
+rt12995				new	
+rt13002				new	
+rt13009				new	
+rt13015				new	
+rt13016				new	
+rt13062				new	
+rt13077				new	
+rt13086				new	
+rt13101				new	
+rt13124				new	
+rt13153				new	
+rt13154				new	
+rt13205				new	
+rt13212				new	
+rt13219				new	
+rt13230				new	
+rt13238				new	
+rt13239				new	
+rt13378				new	
+rt13382				new	
+rt13396				new	
+rt13428				new	
+rt13438				new	
+rt13455				new	
+rt13463				new	
+rt13483				new	
+rt13489				new	
+rt13501				new	
+rt13505				new	
+rt13511				new	
+rt13526				new	
+rt13547				new	
+rt13555				new	
+rt13562				new	
+rt13587				new	
+rt13593				new	
+rt13593a			new	
+rt13597				new	
+rt13605				new	
+rt13606				new	
+rt13609				new	
+rt13620				new	
+rt13659				new	
+rt13662				new	
+rt13694				new	
+rt13707				new	
+rt13714				new	
+rt13745				new	
+rt13753				new	
+rt13754				new	
+rt13771				new	
+rt14616				new	
+rt14673				new	
+rt14686				new	
+rt14695				new	
+rt1471				new	
+rt1572a				new	
+rt288				new	
+rt3469				new	
+rt3517				new	
+rt3746				open	marka
+rt3746_lidl			new	
+rt4389				new	
+rt4404				new	
+rt4441				new	
+rt4706				new	
+rt4940				new	
+rt5066a				new	
+rt5182				new	
+rt5192				new	
+rt5204				new	
+rt5206_1			new	
+rt5228				new	
+rt5299				open	marka
+rt5318				new	
+rt5397				new	
+rt5456				review	explorer
+rt5528				new	
+rt5577				new	
+rt5586				new	
+rt5599				new	
+rt5746a				new	
+rt5764				new	
+rt6189				new	
+rt6206				new	
+rt6225				new	
+rt6229				new	
+rt6427				new	
+rt6432				new	
+rt6496				new	
+rt6496a				new	
+rt6539				review	???
+rt6636				new	
+rt6813				new	
+rt7391				new	
+rt8138				new	
+rt8358				new	
+rt8373				new	
+rt8534				new	
+rt8753				review		(support IPv6-scoped addr in dig)
+rt8934				new	
+rt9091				new	
+rt9099				new	
+rt9099x				new	
+rt9164				new	
+rt9189				new	
+rt9239				new	
+rt9239_base			new	
+rt9319				new	
+rt9341				new	
+rt9442				new	
+rt9475				new	
+rt9479				new	
+rt9479_v9_2			new	
+rt9940				new	
+rt9941				new	
+rt9976				review	jakob
+rt9979				new	
+rt9989				new	
+rt9997				new	
+rt9997a				new	
+rt9998				new	
+skan				new	
+skan-metazones1			new	
+skan-tcr			new	
+skan-typecode-roll		new	
+skan-typecode-roll2		new	
+skan_implicit_update1		new	
+skan_stats1			new	
+stats_lidl			new	
+v6source			new	
+v9_0				new	
+v9_1				new	
+v9_1_1_base			new	
+v9_1_1_patch			new	
+v9_1_3_delegation_only		new	
+v9_1_3_do_base			new	
+v9_1_4_base			new	
+v9_2				new	
+v9_2_0_patch			new	
+v9_2_2_delegation_only		new	
+v9_2_2base			new	
+v9_2_4base			new	
+v9_3				new	
+v9_3_0base			new	
+v9_3_0beta2_dlv			new	
+v9_4				new	
+ws20030120			new	
+ws20030120_tcr			new	
+ws20030312_optin		new	
+ws20030312_tcr			new	
 
 
-rt6539		review		???
-libbind_clean	open		jinmei
-rt3746		open		marka
-v6source
-peter		private		peter		(hostname.bind for 9.2.x)
-openssl_stub	open		marka
-chroot		open		marka
-rt5299		open		marka
-rt5456		review		explorer
-rt9976		review		jakob
-
-a6_remove	closed
-adb_race	closed		explorer
-blabel-cleanup	closed
-chroot		closed
-ds_12		closed
-edns_size	closed
-ifiter_getifaddrs closed
-ipl		closed
-ipv6-improvements closed
-ipv6-scope	closed
-ipv6_6to4	closed
-ksk		closed
-marka_google	closed
-rt3445		closed
-rt3502		closed
-rt3507		closed		ogud (pull down by explorer)
-rt3536(ixfr)	closed
-rt3588		closed
-rt3598		closed		explorer
-rt3625		closed		explorer
-rt3653		closed
-rt3666		closed
-rt3892		closed		explorer
-rt3907		closed		explorer
-rt4090		closed		explorer
-rt4112		closed		explorer
-rt4268		closed
-rt4319		closed		explorer
-rt4347		closed
-rt4398		closed
-rt4425		closed
-rt4463		closed
-rt4663		closed
-rt4675		closed
-rt4687		closed
-rt4715		closed
-rt4764		closed
-rt4796		closed
-rt4802		closed
-rt4898		closed
-rt5033		closed
-rt5041		closed
-rt5042		closed
-rt5044		closed
-rt5066		closed
-rt5084		closed
-rt5099		closed
-rt5124		closed
-rt5127		closed
-slavefix	closed
-rt7572		closed
-rt10132		closed
-rt10133		closed
-rt10134		closed
+a6_remove			closed
+adb_race			closed
+blabel-cleanup			closed
+chroot				closed
+ds_12				closed
+edns_size			closed
+ifiter_getifaddrs		closed
+ipl				closed
+ipv6-improvements		closed
+ipv6-scope			closed
+ipv6_6to4			closed
+ksk				closed
+marka_google			closed
+rt10132				closed
+rt10133				closed
+rt10134				closed
+rt3445				closed
+rt3502				closed
+rt3507				closed		(pull down by explorer)
+rt3536				closed		(ixfr)
+rt3588				closed
+rt3598				closed
+rt3625				closed
+rt3653				closed
+rt3666				closed
+rt3892				closed
+rt3907				closed
+rt4090				closed
+rt4112				closed
+rt4268				closed
+rt4319				closed
+rt4347				closed
+rt4398				closed
+rt4425				closed
+rt4463				closed
+rt4663				closed
+rt4675				closed
+rt4687				closed
+rt4715				closed
+rt4764				closed
+rt4796				closed
+rt4802				closed
+rt4898				closed
+rt5033				closed
+rt5041				closed
+rt5042				closed
+rt5044				closed
+rt5066				closed
+rt5084				closed
+rt5099				closed
+rt5124				closed
+rt5127				closed
+rt7572				closed
+slavefix			closed
