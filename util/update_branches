@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.8 2005/05/16 23:35:37 marka Exp $
+# $Id: update_branches,v 1.9 2005/05/16 23:38:45 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -35,7 +35,11 @@
 %whom = ();
 %comments = ();
 
-!system("cvs", "-d", "/proj/cvs/prod", "update", "doc/private/branches") || die "cannot update doc/private/branches: $!";
+#
+# Make sure we have a up to date copy.  If the previous ran failed for
+# any reason remove it (-C).
+#
+!system("cvs", "-d", "/proj/cvs/prod", "update", "-C", "doc/private/branches") || die "cannot update doc/private/branches: $!";
 
 #
 # load existing content
