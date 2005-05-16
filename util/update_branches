@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.3 2005/05/16 04:28:59 marka Exp $
+# $Id: update_branches,v 1.4 2005/05/16 06:39:39 marka Exp $
 
 %branches = ();
 %whom = ();
@@ -28,8 +28,8 @@
 open(BRANCHES, "<doc/private/branches") || die "can't open util/branches: $!";
 while (<BRANCHES>) {
 	chomp;
-	next if (/----------/);
-	next if (/Whom/);
+	next if (/^-*$/
+	next if (/^Branch/);
 	$c = "";
 	if (m/\(.*\)/) {
 		$c = $_;
@@ -80,8 +80,8 @@ close(FILES);
 # Write out updated version.
 #
 open(BRANCHES, ">doc/private/newbranches") || die "can't open doc/private/branches: $!";
-print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\n";
-print BRANCHES "-------------------------------------------------------\n\n";
+print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\t(Comments)\n";
+print BRANCHES "----------------------------------------------------------\n\n";
 foreach $key (sort keys %branches) {
 	next if ($branches{$key} eq "closed");
 	print BRANCHES "$key";
