@@ -10,7 +10,7 @@ bind9-gsstsig			new
 compiled_zonefile		open		(wire format zone file, under development)
 da				new	
 delegation_only			closed	
-dlz				new	
+dlz				open	sra	(dynamicly loadable zones)
 ds				new	
 ds13				new	
 edns1				new	
@@ -89,9 +89,9 @@ rt11288				closed
 rt11331				closed	
 rt113347			closed	(rt11347)
 rt11360				closed	
-rt11398				new	
-rt11398a			new	
-rt11398b			new	
+rt11398				closed
+rt11398a			open	sra	(doxygen dev)
+rt11398b			closed
 rt11398c			closed	
 rt11432				closed	
 rt11436				closed	
