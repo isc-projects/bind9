@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.32 2005/03/17 03:58:25 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.33 2005/05/16 05:30:35 marka Exp $ */
 
 #include <config.h>
 
@@ -2903,7 +2903,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Add SOA.  If the query was for a SOA record force the
 		 * ttl to zero so that it is possible for clients to find
-		 * the containing zone of a arbitary name with a stub
+		 * the containing zone of an arbitrary name with a stub
 		 * resolver and not have it cached.
 		 */
 		if (qtype == dns_rdatatype_soa)
