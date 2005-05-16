@@ -2352,6 +2352,7 @@
 ./util/spacewhack.pl				PERL	2000,2001,2004
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
+./util/update_branches				PERL	2005
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005
 ./version					X	1999,2000,2001
 ./win32utils/BINDBuild.dsw			X	2001
