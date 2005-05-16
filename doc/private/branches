@@ -1,5 +1,5 @@
 
-Branch				Status	Whom
+Branch				Status	Whom	(Comments)
 -------------------------------------------------------
 
 additional_cache		review		(additional RRs caching for performance)
@@ -278,14 +278,14 @@ rt9442				new
 rt9475				new	
 rt9479				new	
 rt9479_v9_2			new	
-rt9940				new	
-rt9941				new	
+rt9940				closed	
+rt9941				closed	
 rt9976				review	jakob
-rt9979				new	
-rt9989				new	
-rt9997				new	
-rt9997a				new	
-rt9998				new	
+rt9979				closed	
+rt9989				closed	
+rt9997				closed	
+rt9997a				closed	
+rt9998				closed	
 skan				new	
 skan-metazones1			new	
 skan-tcr			closed	
