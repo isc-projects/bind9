@@ -1,0 +1,135 @@
+#!/usr/local/bin/perl -w
+#
+# Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND ISC DISCLAIMS ALL WARRANTIES WITH
+# REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+# AND FITNESS.  IN NO EVENT SHALL ISC BE LIABLE FOR ANY SPECIAL, DIRECT,
+# INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+# LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+# OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+# PERFORMANCE OF THIS SOFTWARE.
+
+# $Id: update_branches,v 1.1 2005/05/16 04:21:29 marka Exp $
+
+%branches = ();
+%whom = ();
+%comments = ();
+
+#
+# load existing content
+#
+open(BRANCHES, "<doc/private/branches") || die "can't open util/branches: $!";
+while (<BRANCHES>) {
+	chomp;
+	next if (/----------/);
+	next if (/Whom/);
+	$c = "";
+	if (m/\(.*\)/) {
+		$c = $_;
+		$c =~ s/.*(\(.*\)).*$/$1/;
+		s/\(.*\)//;
+	}
+	next if (/^\s*$/);
+	($branch, $status, $who) = split;
+	#$status = "new" if (!defined($status));
+	$branches{$branch} = $status;
+	#$who = "-" if (!defined($who));
+	$whom{$branch} = $who;
+	$comments{$branch} = $c;
+}
+close (BRANCHES);
+
+#
+# Search repository for new branches.
+#
+open(FILES, "find /proj/cvs/prod/bind9 -type f -name *,v -print |") || die "can't start find: $!";
+while (<FILES>) {
+	chomp;
+	# print "file: $_\n"; # debug
+	# $file = $_; # save for branch debug below.
+	open(FILE, "<$_") || die "can't open $_: $!";
+	while (<FILE>) {
+		chomp;
+		next unless m/^symbols$/;	# skip until we find the tags
+		while (<FILE>) {
+			chomp;
+			last if (m/^locks;/);	# we are past the tags
+			next unless m/\.0\.\d$/; # skip if not a branch
+			s/\s(.*):.*/$1/;	# extract label
+			if (!$branches{$_}) {
+				$branches{$_} = "new";
+				$whom{$_} =  "";
+				$comments{$_} =  "";
+				# print "branch: $_ $file\n"; # debug
+			}
+		}
+		last;
+	}
+	close(FILE);
+}
+close(FILES);
+
+#
+# Write out updated version.
+#
+open(BRANCHES, ">doc/private/newbranches") || die "can't open doc/private/branches: $!";
+print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\n";
+print BRANCHES "-------------------------------------------------------\n\n";
+foreach $key (sort keys %branches) {
+	next if ($branches{$key} eq "closed");
+	print BRANCHES "$key";
+	$len = length($key);
+	if ($len >= 32) {
+		$tabs = 1;
+	} else {
+		$needed = int (32 - $len);
+		$tabs = int ($needed / 8);
+		if ($needed % 8 != 0) {
+			$tabs++;
+		}
+	}
+	for ($i = 0; $i < $tabs; $i++) {
+		printf	BRANCHES "\t";
+	}
+	print BRANCHES "$branches{$key}\t";
+	print BRANCHES "$whom{$key}";
+	print BRANCHES "\t$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\n";
+}
+
+print BRANCHES "\n\n";
+
+foreach $key (sort keys %branches) {
+	next if ($branches{$key} ne "closed");
+	print BRANCHES "$key";
+	$len = length($key);
+	if ($len >= 32) {
+		$tabs = 1;
+	} else {
+		$needed = int (32 - $len);
+		$tabs = int ($needed / 8);
+		if ($needed % 8 != 0) {
+			$tabs++;
+		}
+	}
+	for ($i = 0; $i < $tabs; $i++) {
+		printf	BRANCHES "\t";
+	}
+	print BRANCHES "$branches{$key}";
+	print BRANCHES "\t\t$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\n";
+}
+close(BRANCHES);
+
+#
+# Update if changed.
+#
+if (system("cmp", "-s", "doc/private/newbranches", "doc/private/branches")) {
+	rename("doc/private/newbranches", "doc/private/branches") || die "Cannot rename: doc/private/newbranches -> doc/private/branches: $!";
+	system("cvs", "-d", "/proj/cvs/prod", "commit", "-m", "auto update", "doc/private/branches") || die "cvs commit failed: $!";
+}
