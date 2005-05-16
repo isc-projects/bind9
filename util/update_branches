@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.6 2005/05/16 07:02:22 marka Exp $
+# $Id: update_branches,v 1.7 2005/05/16 07:03:47 marka Exp $
 
 %branches = ();
 %whom = ();
@@ -41,7 +41,7 @@ while (<BRANCHES>) {
 	($branch, $status, $who) = split;
 	$status = "new" if (!defined($status));
 	$branches{$branch} = $status;
-	$who = "-" if (!defined($who));
+	$who = "" if (!defined($who));
 	$whom{$branch} = $who;
 	$comments{$branch} = $c;
 }
