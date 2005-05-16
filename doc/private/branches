@@ -9,7 +9,7 @@ bind9-gss-tsig			new
 bind9-gsstsig			new	
 compiled_zonefile		open		(wire format zone file, under development)
 da				new	
-delegation_only			new	
+delegation_only			closed	
 dlz				new	
 ds				new	
 ds13				new	
@@ -288,33 +288,33 @@ rt9997a				new
 rt9998				new	
 skan				new	
 skan-metazones1			new	
-skan-tcr			new	
-skan-typecode-roll		new	
-skan-typecode-roll2		new	
+skan-tcr			closed	
+skan-typecode-roll		closed	
+skan-typecode-roll2		closed	
 skan_implicit_update1		new	
 skan_stats1			new	
 stats_lidl			new	
 v6source			new	
-v9_0				new	
-v9_1				new	
+v9_0				closed	
+v9_1				active	(security fixes only)
 v9_1_1_base			new	
 v9_1_1_patch			new	
-v9_1_3_delegation_only		new	
+v9_1_3_delegation_only		closed	
 v9_1_3_do_base			new	
 v9_1_4_base			new	
-v9_2				new	
+v9_2				active
 v9_2_0_patch			new	
 v9_2_2_delegation_only		new	
 v9_2_2base			new	
 v9_2_4base			new	
-v9_3				new	
+v9_3				active	
 v9_3_0base			new	
 v9_3_0beta2_dlv			new	
-v9_4				new	
-ws20030120			new	
-ws20030120_tcr			new	
-ws20030312_optin		new	
-ws20030312_tcr			new	
+v9_4				active	
+ws20030120			closed	(workshop branch)	
+ws20030120_tcr			closed	(workshop branch)	
+ws20030312_optin		closed	(workshop branch)	
+ws20030312_tcr			closed	(workshop branch)	
 
 
 a6_remove			closed
