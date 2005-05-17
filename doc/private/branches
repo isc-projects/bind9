@@ -2,12 +2,12 @@
 Branch				Status	Whom	// Comments
 ----------------------------------------------------------
 
-//					new	// not yet clasified
-//					open	// developement branch
-//					active	// not a development branch
-//					review	// ready for review
-//					private	// private branch
-//					closed	// finished with
+//				new	not yet clasified
+//				open	developement branch
+//				active	not a development branch
+//				review	ready for review
+//				private	private branch
+//				closed	finished with
 
 additional_cache		review		// additional RRs caching for performance
 additional_cache_rt6496		new	
