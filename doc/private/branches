@@ -197,7 +197,7 @@ rt8138				new
 rt8358				new	
 rt8373				new	
 rt8534				new	
-rt8753				review		// support IPv6-scoped addr in dig
+rt8753				closed		// support IPv6-scoped addr in dig
 rt8934				new	
 rt9091				new	
 rt9099				new	
