@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.11 2005/05/17 00:57:31 marka Exp $
+# $Id: update_branches,v 1.12 2005/05/17 00:58:41 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -134,7 +134,7 @@ foreach $key (sort keys %branches) {
 	}
 	print BRANCHES "$branches{$key}\t";
 	print BRANCHES "$whom{$key}";
-	print BRANCHES "\t$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\t//$comments{$key}" if ($comments{$key} ne "");
 	print BRANCHES "\n";
 }
 
@@ -157,7 +157,7 @@ foreach $key (sort keys %branches) {
 		printf	BRANCHES "\t";
 	}
 	print BRANCHES "$branches{$key}";
-	print BRANCHES "\t\t$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\t\t//$comments{$key}" if ($comments{$key} ne "");
 	print BRANCHES "\n";
 }
 close(BRANCHES);
