@@ -9,26 +9,26 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-additional_cache		review		// additional RRs caching for performance
-additional_cache_rt6496		new	
-avoid_gettimeofday		new	
+additional_cache		closed		// additional RRs caching for performance
+additional_cache_rt6496		closed	
+avoid_gettimeofday		closed	
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
-compiled_zonefile		open		// wire format zone file, under development
+compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
 da				closed		// aborted DNSSEC DA flag
 dlz				open	sra	// dynamicly loadable zones
 ds				new	
 ds13				closed	
 edns1				new	
 gsstsig2			new	
-jinmei-mmapzone-test		new	
+jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
 mlg-20000518			new	
 newconfig			closed	
 openssl_stub			open	marka
 optin				closed		// aborted DNSSEC OPTIN code
 peter				private	peter	// hostname.bind for 9.2.x
-queryperf-v6			review		// IPv6 transport support for queryperf
+queryperf-v6			closed		// IPv6 transport support for queryperf
 rdata_split			closed	
 rt10038				closed	
 rt10272				closed	
@@ -127,13 +127,13 @@ rt13463				new
 rt13483				new	
 rt13489				new	
 rt13501				new	
-rt13505				new	
+rt13505				review	
 rt13511				new	
 rt13526				new	
 rt13547				new	
 rt13555				new	
 rt13562				new	
-rt13587				new	
+rt13587				review	
 rt13593				new	
 rt13593a			new	
 rt13597				new	
