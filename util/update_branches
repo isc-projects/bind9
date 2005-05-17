@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.9 2005/05/16 23:38:45 marka Exp $
+# $Id: update_branches,v 1.10 2005/05/17 00:45:16 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -74,13 +74,21 @@ while (<FILES>) {
 	chomp;
 	# print "file: $_\n"; # debug
 	# $file = $_; # save for branch debug below.
-	open(FILE, "<$_") || die "can't open $_: $!";
+	s:/proj/cvs/prod/bind9/::;
+	s:/Attic/([^/]*)$:/$1:;
+	s:^Attic/([^/]*)$:$1:;
+	s:,v$::;
+	#
+	# use cvs so that the file is locked.
+	#
+	open(FILE, "cvs log -h $_|") || die "can't start cvs log -h $_: $!";
 	while (<FILE>) {
 		chomp;
 		next unless m/^symbols$/;	# skip until we find the tags
 		while (<FILE>) {
 			chomp;
 			last if (m/^locks;/);	# we are past the tags
+			last if (m/^keyword/);	# we are past the tags
 			next unless m/\.0\.\d$/; # skip if not a branch
 			s/\s(.*):.*/$1/;	# extract label
 			if (!$branches{$_}) {
