@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.12 2005/05/17 00:58:41 marka Exp $
+# $Id: update_branches,v 1.13 2005/05/17 03:31:44 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -34,12 +34,14 @@
 %branches = ();
 %whom = ();
 %comments = ();
+$repository = "/proj/cvs/prod";
+$module = "bind9";
 
 #
 # Make sure we have a up to date copy.  If the previous ran failed for
 # any reason remove it (-C).
 #
-!system("cvs", "-d", "/proj/cvs/prod", "update", "-C", "doc/private/branches") || die "cannot update doc/private/branches: $!";
+!system("cvs", "-d", $repository, "update", "-C", "doc/private/branches") || die "cannot update doc/private/branches: $!";
 
 #
 # load existing content
@@ -52,9 +54,12 @@ while (<BRANCHES>) {
 	$c = "";
 	if (m://.*:) {
 		$c = $_;
-		$c =~ s:.*?//(.*)$:$1:;
+		$c =~ s:.*?//\s*(.*)$:$1:;
 		s:(.*?)//.*:$1:;
 	} else {
+		#
+		# look for old style comment
+		#
 		if (m/\(.*\)/) {
 			$c = $_;
 			$c =~ s/.*\((.*)\).*$/$1/;
@@ -75,19 +80,19 @@ close (BRANCHES);
 #
 # Search repository for new branches.
 #
-open(FILES, "find /proj/cvs/prod/bind9 -type f -name *,v -print |") || die "can't start find: $!";
+open(FILES, "find $repository/$module -type f -name *,v -print |") || die "can't start find: $!";
 while (<FILES>) {
 	chomp;
 	# print "file: $_\n"; # debug
 	# $file = $_; # save for branch debug below.
-	s:/proj/cvs/prod/bind9/::;
+	s:^$repository/::;
 	s:/Attic/([^/]*)$:/$1:;
-	s:^Attic/([^/]*)$:$1:;
 	s:,v$::;
 	#
 	# use cvs so that the file is locked.
 	#
-	open(FILE, "cvs log -h $_|") || die "can't start cvs log -h $_: $!";
+	#print "cvs -d $repository rlog -h $_\n";
+	open(FILE, "cvs -d $repository rlog -h $_|") || die "can't start cvs rlog -h $_: $!";
 	while (<FILE>) {
 		chomp;
 		next unless m/^symbols$/;	# skip until we find the tags
@@ -104,7 +109,7 @@ while (<FILES>) {
 				# print "branch: $_ $file\n"; # debug
 			}
 		}
-		last;
+		chomp while (<FILE>);	# let cvs rlog exit normally.
 	}
 	close(FILE);
 }
@@ -114,8 +119,15 @@ close(FILES);
 # Write out updated version.
 #
 open(BRANCHES, ">doc/private/newbranches") || die "can't open doc/private/branches: $!";
-print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\t(Comments)\n";
+print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\t// Comments\n";
 print BRANCHES "----------------------------------------------------------\n\n";
+print BRANCHES "//\t\t\t\tnew\tnot yet clasified\n";
+print BRANCHES "//\t\t\t\topen\tdevelopement branch\n";
+print BRANCHES "//\t\t\t\tactive\tnot a development branch\n";
+print BRANCHES "//\t\t\t\treview\tready for review\n";
+print BRANCHES "//\t\t\t\tprivate\tprivate branch\n";
+print BRANCHES "//\t\t\t\tclosed\tfinished with\n";
+print BRANCHES "\n";
 foreach $key (sort keys %branches) {
 	next if ($branches{$key} eq "closed");
 	print BRANCHES "$key";
@@ -134,7 +146,7 @@ foreach $key (sort keys %branches) {
 	}
 	print BRANCHES "$branches{$key}\t";
 	print BRANCHES "$whom{$key}";
-	print BRANCHES "\t//$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\t// $comments{$key}" if ($comments{$key} ne "");
 	print BRANCHES "\n";
 }
 
@@ -157,7 +169,7 @@ foreach $key (sort keys %branches) {
 		printf	BRANCHES "\t";
 	}
 	print BRANCHES "$branches{$key}";
-	print BRANCHES "\t\t//$comments{$key}" if ($comments{$key} ne "");
+	print BRANCHES "\t\t// $comments{$key}" if ($comments{$key} ne "");
 	print BRANCHES "\n";
 }
 close(BRANCHES);
@@ -167,7 +179,7 @@ close(BRANCHES);
 #
 if (system("cmp", "-s", "doc/private/newbranches", "doc/private/branches")) {
 	rename("doc/private/newbranches", "doc/private/branches") || die "Cannot rename: doc/private/newbranches -> doc/private/branches: $!";
-	!system("cvs", "-d", "/proj/cvs/prod", "commit", "-m", "auto update", "doc/private/branches") || die "cvs commit failed: $!";
+	!system("cvs", "-d", $repository, "commit", "-m", "auto update", "doc/private/branches") || die "cvs commit failed: $!";
 } else {
 	unlink("doc/private/newbranches");
 }
