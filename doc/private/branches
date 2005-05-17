@@ -15,45 +15,45 @@ avoid_gettimeofday		new
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
 compiled_zonefile		open		// wire format zone file, under development
-da				new	
+da				closed		// aborted DNSSEC DA flag
 dlz				open	sra	// dynamicly loadable zones
 ds				new	
-ds13				new	
+ds13				closed	
 edns1				new	
 gsstsig2			new	
 jinmei-mmapzone-test		new	
 libbind_clean			open	jinmei
 mlg-20000518			new	
-newconfig			new	
+newconfig			closed	
 openssl_stub			open	marka
-optin				new	
+optin				closed		// aborted DNSSEC OPTIN code
 peter				private	peter	// hostname.bind for 9.2.x
 queryperf-v6			review		// IPv6 transport support for queryperf
-rdata_split			new	
-rt10038				new	
-rt10272				new	
-rt10272a			new	
-rt10440				new	
-rt10440a			new	
+rdata_split			closed	
+rt10038				closed	
+rt10272				closed	
+rt10272a			closed	
+rt10440				closed	
+rt10440a			closed	
 rt10864				open	marka
-rt11069				new	
-rt11069_v9_2			new	
-rt11156				new	
-rt11156_v9_2			new	
-rt11163				new	
-rt11163_1			new	
-rt11206				new	
+rt11069				closed	
+rt11069_v9_2			closed	
+rt11156				closed	
+rt11156_v9_2			closed	
+rt11163				closed	
+rt11163_1			closed	
+rt11206				closed	
 rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
-rt11733				new	
-rt11733b			new	
-rt11943				new	
-rt12023				new	
-rt12024				new	
-rt12133				new	
-rt12154				new	
-rt12281				new	
-rt12286				new	
+rt11733				open	jakob
+rt11733b			open	jakob
+rt11943				closed	
+rt12023				closed	
+rt12024				closed	
+rt12133				closed	
+rt12154				closed	
+rt12281				closed	
+rt12286				closed	
 rt12321				new	
 rt12321a			new	
 rt12321b			new	
