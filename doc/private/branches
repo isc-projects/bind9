@@ -1,15 +1,22 @@
 
-Branch				Status	Whom	(Comments)
+Branch				Status	Whom	// Comments
 ----------------------------------------------------------
 
-additional_cache		review		(additional RRs caching for performance)
+//					new	// not yet clasified
+//					open	// developement branch
+//					active	// not a development branch
+//					review	// ready for review
+//					private	// private branch
+//					closed	// finished with
+
+additional_cache		review		// additional RRs caching for performance
 additional_cache_rt6496		new	
 avoid_gettimeofday		new	
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
-compiled_zonefile		open		(wire format zone file, under development)
+compiled_zonefile		open		// wire format zone file, under development
 da				new	
-dlz				open	sra	(dynamicly loadable zones)
+dlz				open	sra	// dynamicly loadable zones
 ds				new	
 ds13				new	
 edns1				new	
@@ -20,8 +27,8 @@ mlg-20000518			new
 newconfig			new	
 openssl_stub			open	marka
 optin				new	
-peter				private	peter	(hostname.bind for 9.2.x)
-queryperf-v6			review		(IPv6 transport support for queryperf)
+peter				private	peter	// hostname.bind for 9.2.x
+queryperf-v6			review		// IPv6 transport support for queryperf
 rdata_split			new	
 rt10038				new	
 rt10272				new	
@@ -36,7 +43,7 @@ rt11156_v9_2			new
 rt11163				new	
 rt11163_1			new	
 rt11206				new	
-rt11398a			open	sra	(doxygen dev)
+rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				new	
 rt11733b			new	
@@ -190,7 +197,7 @@ rt8138				new
 rt8358				new	
 rt8373				new	
 rt8534				new	
-rt8753				review		(support IPv6-scoped addr in dig)
+rt8753				review		// support IPv6-scoped addr in dig
 rt8934				new	
 rt9091				new	
 rt9099				new	
@@ -212,7 +219,7 @@ skan_implicit_update1		new
 skan_stats1			new	
 stats_lidl			new	
 v6source			new	
-v9_1				active		(security fixes only)
+v9_1				active		// security fixes only
 v9_1_1_base			new	
 v9_1_1_patch			new	
 v9_1_3_do_base			new	
@@ -270,7 +277,7 @@ rt10565				closed
 rt10590				closed
 rt10642				closed
 rt10704				closed
-rt10764				closed		(empty)
+rt10764				closed		// empty
 rt10838				closed
 rt10847				closed
 rt10861				closed
@@ -295,7 +302,7 @@ rt11237				closed
 rt11280				closed
 rt11288				closed
 rt11331				closed
-rt113347			closed		(rt11347)
+rt113347			closed		// rt11347
 rt11360				closed
 rt11398				closed
 rt11398b			closed
@@ -318,8 +325,8 @@ rt11714				closed
 rt11742				closed
 rt3445				closed
 rt3502				closed
-rt3507				closed		(pull down by explorer)
-rt3536				closed		(ixfr)
+rt3507				closed		// pull down by explorer
+rt3536				closed		// ixfr
 rt3588				closed
 rt3598				closed
 rt3625				closed
@@ -367,7 +374,7 @@ skan-typecode-roll2		closed
 slavefix			closed
 v9_0				closed
 v9_1_3_delegation_only		closed
-ws20030120			closed		(workshop branch)
-ws20030120_tcr			closed		(workshop branch)
-ws20030312_optin		closed		(workshop branch)
-ws20030312_tcr			closed		(workshop branch)
+ws20030120			closed		// workshop branch
+ws20030120_tcr			closed		// workshop branch
+ws20030312_optin		closed		// workshop branch
+ws20030312_tcr			closed		// workshop branch
