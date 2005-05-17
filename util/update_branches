@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.13 2005/05/17 03:31:44 marka Exp $
+# $Id: update_branches,v 1.14 2005/05/17 03:36:44 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -121,7 +121,7 @@ close(FILES);
 open(BRANCHES, ">doc/private/newbranches") || die "can't open doc/private/branches: $!";
 print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\t// Comments\n";
 print BRANCHES "----------------------------------------------------------\n\n";
-print BRANCHES "//\t\t\t\tnew\tnot yet clasified\n";
+print BRANCHES "//\t\t\t\tnew\tnot yet classified\n";
 print BRANCHES "//\t\t\t\topen\tdevelopement branch\n";
 print BRANCHES "//\t\t\t\tactive\tnot a development branch\n";
 print BRANCHES "//\t\t\t\treview\tready for review\n";
