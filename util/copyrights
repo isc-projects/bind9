@@ -1143,7 +1143,7 @@
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/private/CHANGES				X	2000,2001
-./doc/private/branches				X	2002
+./doc/private/branches				X	2002,2005
 ./doc/private/bugfix-by-assertion		X	2001
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
 ./doc/todo/brister/todo				X	2000,2001
