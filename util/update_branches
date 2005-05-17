@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.14 2005/05/17 03:36:44 marka Exp $
+# $Id: update_branches,v 1.15 2005/05/17 03:50:55 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -51,6 +51,7 @@ while (<BRANCHES>) {
 	chomp;
 	next if (/^-/);
 	next if (/^Branch/);
+	next if (/^\s/);
 	$c = "";
 	if (m://.*:) {
 		$c = $_;
@@ -66,7 +67,7 @@ while (<BRANCHES>) {
 			s/\(.*\)//;
 		}
 	}
-	s/\s$//;
+	s/\s*$//;
 	next if (/^\s*$/);
 	($branch, $status, $who) = split;
 	$status = "new" if (!defined($status));
@@ -79,6 +80,9 @@ close (BRANCHES);
 
 #
 # Search repository for new branches.
+#
+# New branches have the following format "name:<revision>.0.#"
+# where # is the number of potential branches from this the revision.
 #
 open(FILES, "find $repository/$module -type f -name *,v -print |") || die "can't start find: $!";
 while (<FILES>) {
@@ -120,13 +124,13 @@ close(FILES);
 #
 open(BRANCHES, ">doc/private/newbranches") || die "can't open doc/private/branches: $!";
 print BRANCHES "\nBranch\t\t\t\tStatus\tWhom\t// Comments\n";
-print BRANCHES "----------------------------------------------------------\n\n";
-print BRANCHES "//\t\t\t\tnew\tnot yet classified\n";
-print BRANCHES "//\t\t\t\topen\tdevelopement branch\n";
-print BRANCHES "//\t\t\t\tactive\tnot a development branch\n";
-print BRANCHES "//\t\t\t\treview\tready for review\n";
-print BRANCHES "//\t\t\t\tprivate\tprivate branch\n";
-print BRANCHES "//\t\t\t\tclosed\tfinished with\n";
+print BRANCHES "-----------------------------------------------------------\n\n";
+print BRANCHES "\t\t\t\tnew\t\tnot yet classified\n";
+print BRANCHES "\t\t\t\topen\t\tdevelopement branch\n";
+print BRANCHES "\t\t\t\tactive\t\tnot a development branch\n";
+print BRANCHES "\t\t\t\treview\t\tready for review\n";
+print BRANCHES "\t\t\t\tprivate\t\tprivate branch\n";
+print BRANCHES "\t\t\t\tclosed\t\tfinished with\n";
 print BRANCHES "\n";
 foreach $key (sort keys %branches) {
 	next if ($branches{$key} eq "closed");
