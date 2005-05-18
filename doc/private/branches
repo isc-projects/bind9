@@ -12,8 +12,8 @@ Branch				Status	Whom	// Comments
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
 dlz				open	sra	// dynamicly loadable zones
-ds				new	
-edns1				new	
+ds				closed	
+edns1				open	marka
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
@@ -25,29 +25,29 @@ rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt12321				new	
-rt12321a			new	
-rt12321b			new	
-rt12322				new	
-rt12323				new	
-rt12327				new	
-rt12328				new	
-rt12352				new	
-rt12375				new	
-rt12376				new	
-rt12404				new	
-rt12410				new	
-rt12416				new	
-rt12467				new	
-rt12492				new	
-rt12493				new	
-rt12498				new	
-rt12505a			new	
-rt12505b			new	
-rt12519				new	
-rt12541				new	
-rt12557				new	
-rt12581				new	
+rt12321				closed	
+rt12321a			closed	
+rt12321b			closed	
+rt12322				closed	
+rt12323				closed	
+rt12327				closed	
+rt12328				closed	
+rt12352				closed	
+rt12375				closed	
+rt12376				closed	
+rt12404				closed	
+rt12410				closed	
+rt12416				closed	
+rt12467				closed	
+rt12492				closed	
+rt12493				closed	
+rt12498				closed	
+rt12505a			closed	
+rt12505b			closed	
+rt12519				closed	
+rt12541				closed	
+rt12557				closed	
+rt12581				closed	
 rt12634				new	
 rt12658				new	
 rt12695				new	
