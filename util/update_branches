@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.16 2005/05/17 03:54:26 marka Exp $
+# $Id: update_branches,v 1.17 2005/05/18 03:31:31 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -101,7 +101,7 @@ while (<FILES>) {
 	open(FILE, "cvs -d $repository rlog -h $_|") || die "can't start cvs rlog -h $_: $!";
 	while (<FILE>) {
 		chomp;
-		next unless m/^symbols$/;	# skip until we find the tags
+		next unless m/^symbolic names:$/; # skip until we find the tags
 		while (<FILE>) {
 			chomp;
 			last if (m/^locks;/);	# we are past the tags
