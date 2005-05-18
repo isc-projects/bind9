@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.17 2005/05/18 03:31:31 marka Exp $
+# $Id: update_branches,v 1.18 2005/05/18 04:15:55 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -106,7 +106,7 @@ while (<FILES>) {
 			chomp;
 			last if (m/^locks;/);	# we are past the tags
 			last if (m/^keyword/);	# we are past the tags
-			next unless m/\.0\.\d$/; # skip if not a branch
+			next unless m/\.0\.\d+$/; # skip if not a branch
 			s/\s(.*):.*/$1/;	# extract label
 			if (!$branches{$_}) {
 				$branches{$_} = "new";
