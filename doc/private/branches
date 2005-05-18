@@ -12,7 +12,6 @@ Branch				Status	Whom	// Comments
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
 dlz				open	sra	// dynamicly loadable zones
-ds				closed	
 edns1				open	marka
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
@@ -25,29 +24,6 @@ rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt12321				closed	
-rt12321a			closed	
-rt12321b			closed	
-rt12322				closed	
-rt12323				closed	
-rt12327				closed	
-rt12328				closed	
-rt12352				closed	
-rt12375				closed	
-rt12376				closed	
-rt12404				closed	
-rt12410				closed	
-rt12416				closed	
-rt12467				closed	
-rt12492				closed	
-rt12493				closed	
-rt12498				closed	
-rt12505a			closed	
-rt12505b			closed	
-rt12519				closed	
-rt12541				closed	
-rt12557				closed	
-rt12581				closed	
 rt12634				new	
 rt12658				new	
 rt12695				new	
@@ -126,6 +102,7 @@ rt14673				new
 rt14686				new	
 rt14695				new	
 rt1471				new	
+rt14775				new	
 rt1572a				new	
 rt288				new	
 rt3469				new	
@@ -203,6 +180,7 @@ v9_3				active
 v9_3_0base			new	
 v9_3_0beta2_dlv			new	
 v9_4				active	
+ws20030312			new	
 
 
 a6_remove			closed
@@ -215,6 +193,7 @@ chroot				closed
 compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
 da				closed		// aborted DNSSEC DA flag
 delegation_only			closed
+ds				closed
 ds13				closed
 ds_12				closed
 edns_size			closed
@@ -322,6 +301,29 @@ rt12133				closed
 rt12154				closed
 rt12281				closed
 rt12286				closed
+rt12321				closed
+rt12321a			closed
+rt12321b			closed
+rt12322				closed
+rt12323				closed
+rt12327				closed
+rt12328				closed
+rt12352				closed
+rt12375				closed
+rt12376				closed
+rt12404				closed
+rt12410				closed
+rt12416				closed
+rt12467				closed
+rt12492				closed
+rt12493				closed
+rt12498				closed
+rt12505a			closed
+rt12505b			closed
+rt12519				closed
+rt12541				closed
+rt12557				closed
+rt12581				closed
 rt3445				closed
 rt3502				closed
 rt3507				closed		// pull down by explorer
