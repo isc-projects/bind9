@@ -9,51 +9,22 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-additional_cache		closed		// additional RRs caching for performance
-additional_cache_rt6496		closed	
-avoid_gettimeofday		closed	
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
-compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
-da				closed		// aborted DNSSEC DA flag
 dlz				open	sra	// dynamicly loadable zones
 ds				new	
-ds13				closed	
 edns1				new	
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
 mlg-20000518			new	
-newconfig			closed	
 openssl_stub			open	marka
-optin				closed		// aborted DNSSEC OPTIN code
 peter				private	peter	// hostname.bind for 9.2.x
-queryperf-v6			closed		// IPv6 transport support for queryperf
-rdata_split			closed	
-rt10038				closed	
-rt10272				closed	
-rt10272a			closed	
-rt10440				closed	
-rt10440a			closed	
 rt10864				open	marka
-rt11069				closed	
-rt11069_v9_2			closed	
-rt11156				closed	
-rt11156_v9_2			closed	
-rt11163				closed	
-rt11163_1			closed	
-rt11206				closed	
 rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt11943				closed	
-rt12023				closed	
-rt12024				closed	
-rt12133				closed	
-rt12154				closed	
-rt12281				closed	
-rt12286				closed	
 rt12321				new	
 rt12321a			new	
 rt12321b			new	
@@ -197,7 +168,6 @@ rt8138				new
 rt8358				new	
 rt8373				new	
 rt8534				new	
-rt8753				closed		// support IPv6-scoped addr in dig
 rt8934				new	
 rt9091				new	
 rt9099				new	
@@ -237,9 +207,15 @@ v9_4				active
 
 a6_remove			closed
 adb_race			closed
+additional_cache		closed		// additional RRs caching for performance
+additional_cache_rt6496		closed
+avoid_gettimeofday		closed
 blabel-cleanup			closed
 chroot				closed
+compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
+da				closed		// aborted DNSSEC DA flag
 delegation_only			closed
+ds13				closed
 ds_12				closed
 edns_size			closed
 ifiter_getifaddrs		closed
@@ -249,6 +225,11 @@ ipv6-scope			closed
 ipv6_6to4			closed
 ksk				closed
 marka_google			closed
+newconfig			closed
+optin				closed		// aborted DNSSEC OPTIN code
+queryperf-v6			closed		// IPv6 transport support for queryperf
+rdata_split			closed
+rt10038				closed
 rt10049				closed
 rt10105				closed
 rt10114				closed
@@ -265,10 +246,14 @@ rt10202				closed
 rt10208				closed
 rt10221				closed
 rt10236				closed
+rt10272				closed
+rt10272a			closed
 rt10331				closed
 rt10345				closed
 rt10346				closed
 rt10381				closed
+rt10440				closed
+rt10440a			closed
 rt10452				closed
 rt10461				closed
 rt10497				closed
@@ -287,6 +272,8 @@ rt10929				closed
 rt10991				closed
 rt11013				closed
 rt11065				closed
+rt11069				closed
+rt11069_v9_2			closed
 rt11101				closed
 rt11116				closed
 rt11117				closed
@@ -295,8 +282,13 @@ rt11119				closed
 rt11127				closed
 rt11132				closed
 rt11149				closed
+rt11156				closed
+rt11156_v9_2			closed
+rt11163				closed
+rt11163_1			closed
 rt11177				closed
 rt11179				closed
+rt11206				closed
 rt11208				closed
 rt11237				closed
 rt11280				closed
@@ -323,6 +315,13 @@ rt11697				closed
 rt11706				closed
 rt11714				closed
 rt11742				closed
+rt11943				closed
+rt12023				closed
+rt12024				closed
+rt12133				closed
+rt12154				closed
+rt12281				closed
+rt12286				closed
 rt3445				closed
 rt3502				closed
 rt3507				closed		// pull down by explorer
@@ -361,6 +360,7 @@ rt5099				closed
 rt5124				closed
 rt5127				closed
 rt7572				closed
+rt8753				closed		// support IPv6-scoped addr in dig
 rt9940				closed
 rt9941				closed
 rt9979				closed
