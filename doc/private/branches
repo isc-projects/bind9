@@ -78,17 +78,17 @@ rt13505				review
 rt13511				closed	
 rt13526				closed	
 rt13547				closed	
-rt13555				new	
-rt13562				new	
+rt13555				open	marka	
+rt13562				open	marka	
 rt13587				review	
-rt13593				new	
-rt13593a			new	
-rt13597				new	
-rt13605				new	
-rt13606				new	
-rt13609				new	
-rt13620				new	
-rt13659				new	
+rt13593				closed	
+rt13593a			closed	
+rt13597				closed	
+rt13605				closed	
+rt13606				open	marka	// TSIG SHA256
+rt13609				closed	
+rt13620				closed	
+rt13659				closed	
 rt13662				new	
 rt13694				new	
 rt13707				new	
