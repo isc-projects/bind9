@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.18 2005/03/30 05:48:32 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.19 2005/05/19 02:41:23 marka Exp $ */
 
 #include <config.h>
 
@@ -363,7 +363,7 @@ select_poke(isc_socketmgr_t *mgr, int fd, int msg) {
 		}
 #endif
 	} while (cc < 0 && SOFT_ERROR(errno));
-			        
+
 	if (cc < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
@@ -1352,6 +1352,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	int on = 1;
 #endif
 	char strbuf[ISC_STRERRORSIZE];
+	const char *err = "socket";
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
@@ -1371,23 +1372,24 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 
 #ifdef F_DUPFD
-        /*
-         * Leave a space for stdio to work in.
-         */
-        if (sock->fd >= 0 && sock->fd < 20) {
-                int new, tmp;
-                new = fcntl(sock->fd, F_DUPFD, 20);
-                tmp = errno;
-                (void)close(sock->fd);
-                errno = tmp;
-                sock->fd = new;
-        }
+	/*
+	 * Leave a space for stdio to work in.
+	 */
+	if (sock->fd >= 0 && sock->fd < 20) {
+		int new, tmp;
+		new = fcntl(sock->fd, F_DUPFD, 20);
+		tmp = errno;
+		(void)close(sock->fd);
+		errno = tmp;
+		sock->fd = new;
+		err = "isc_socket_create: fcntl";
+	}
 #endif
 
 	if (sock->fd >= (int)FD_SETSIZE) {
 		(void)close(sock->fd);
 		isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+			       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 			       isc_msgcat, ISC_MSGSET_SOCKET,
 			       ISC_MSG_TOOMANYFDS,
 			       "%s: too many open file descriptors", "socket");
@@ -1417,7 +1419,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		default:
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() %s: %s",
+					 "%s() %s: %s", err,
 					 isc_msgcat_get(isc_msgcat,
 							ISC_MSGSET_GENERAL,
 							ISC_MSG_FAILED,
@@ -1768,6 +1770,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
+	const char *err = "accept";
 
 	UNUSED(me);
 
@@ -1821,17 +1824,18 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		    (void *)&addrlen);
 
 #ifdef F_DUPFD
-        /*
-         * Leave a space for stdio to work in.
-         */
-        if (fd >= 0 && fd < 20) {
-                int new, tmp;
-                new = fcntl(fd, F_DUPFD, 20);
-                tmp = errno;
-                (void)close(fd);
-                errno = tmp;
-                fd = new;
-        }
+	/*
+	 * Leave a space for stdio to work in.
+	 */
+	if (fd >= 0 && fd < 20) {
+		int new, tmp;
+		new = fcntl(fd, F_DUPFD, 20);
+		tmp = errno;
+		(void)close(fd);
+		errno = tmp;
+		fd = new;
+		err = "fcntl";
+	}
 #endif
 
 	if (fd < 0) {
@@ -1860,7 +1864,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		}
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "internal_accept: accept() %s: %s",
+				 "internal_accept: %s() %s: %s", err,
 				 isc_msgcat_get(isc_msgcat,
 						ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED,
@@ -2201,7 +2205,7 @@ watcher(void *uap) {
 			cc = select(maxfd, &readfds, &writefds, NULL, NULL);
 			if (cc < 0) {
 				if (!SOFT_ERROR(errno)) {
-				        isc__strerror(errno, strbuf,
+					isc__strerror(errno, strbuf,
 						      sizeof(strbuf));
 					FATAL_ERROR(__FILE__, __LINE__,
 						    "select() %s: %s",
@@ -3245,7 +3249,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 			ERROR_MATCH(EPERM, ISC_R_HOSTUNREACH);
 			ERROR_MATCH(EPIPE, ISC_R_NOTCONNECTED);
 			ERROR_MATCH(ETIMEDOUT, ISC_R_TIMEDOUT);
-		        ERROR_MATCH(ECONNRESET, ISC_R_CONNECTIONRESET);
+			ERROR_MATCH(ECONNRESET, ISC_R_CONNECTIONRESET);
 #undef ERROR_MATCH
 		default:
 			dev->result = ISC_R_UNEXPECTED;
@@ -3416,7 +3420,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 				dev->result = ISC_R_CANCELED;
 				dev->ev_sender = sock;
 				isc_task_sendanddetach(&current_task,
-					        ISC_EVENT_PTR(&dev));
+						       ISC_EVENT_PTR(&dev));
 			}
 
 			dev = next;
