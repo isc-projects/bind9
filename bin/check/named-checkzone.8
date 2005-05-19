@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.18.18.9 2005/05/13 03:11:59 marka Exp $
+.\" $Id: named-checkzone.8,v 1.18.18.10 2005/05/19 07:42:03 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -41,7 +41,7 @@
 named-checkzone \- zone file validity checking tool
 .SH "SYNOPSIS"
 .HP 16
-\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-k\ \fImode\fR\fR] [\fB\-n\ \fImode\fR\fR] [\fB\-o\ \fIfilename\fR\fR] [\fB\-t\ \fIdirectory\fR\fR] [\fB\-w\ \fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fImode\fR\fR] {zonename} {filename}
+\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-i\ \fImode\fR\fR] [\fB\-k\ \fImode\fR\fR] [\fB\-m\ \fImode\fR\fR] [\fB\-n\ \fImode\fR\fR] [\fB\-o\ \fIfilename\fR\fR] [\fB\-t\ \fIdirectory\fR\fR] [\fB\-w\ \fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fImode\fR\fR] {zonename} {filename}
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-checkzone\fR checks the syntax and integrity of a zone file\&. It performs the same checks as \fBnamed\fR does when loading a zone\&. This makes \fBnamed\-checkzone\fR useful for checking zone files before configuring them into a name server\&.
@@ -62,8 +62,18 @@ When loading the zone file read the journal if it exists\&.
 \-c \fIclass\fR
 Specify the class of the zone\&. If not specified "IN" is assumed\&.
 .TP
+\-i \fImode\fR
+Perform post load zone integrity checks\&. Possible modes are \fB"full"\fR (default), \fB"local"\fR and \fB"none"\fR\&.
+Mode \fB"full"\fR checks that MX records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. Mode \fB"local"\fR only checks MX records which refer to in\-zone hostnames\&.
+Mode \fB"full"\fR checks that SRV records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. Mode \fB"local"\fR only checks SRV records which refer to in\-zone hostnames\&.
+Mode \fB"full"\fR checks that delegation NS records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. It also checks that glue addresses records in the zone match those advertised by the child\&. Mode \fB"local"\fR only checks NS records which refer to in\-zone hostnames or that some required glue exists, that is when the nameserver is in a child zone\&.
+Mode \fB"none"\fR disables the checks\&.
+.TP
 \-k \fImode\fR
 Perform \fB"check\-name"\fR checks with the specified failure mode\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.
+.TP
+\-m \fImode\fR
+Specify whether MX records should be checked to see if they are addresses\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.
 .TP
 \-n \fImode\fR
 Specify whether NS records should be checked to see if they are addresses\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.

@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.10 2005/05/12 23:58:12 sra Exp $
+.\" $Id: named.conf.5,v 1.1.2.11 2005/05/19 07:42:04 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -195,6 +195,8 @@ options {
 	max\-cache\-size \fIsize_no_default\fR;
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
+	check\-mx ( fail | warn | ignore );
+	integrity\-check \fIboolean\fR;
 	cache\-file \fIquoted_string\fR;
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
@@ -308,6 +310,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	max\-cache\-size \fIsize_no_default\fR;
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
+	check\-mx ( fail | warn | ignore );
+	integrity\-check \fIboolean\fR;
 	cache\-file \fIquoted_string\fR;
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
@@ -382,6 +386,8 @@ zone \fIstring\fR \fIoptional_class\fR {
 	database \fIstring\fR;
 	delegation\-only \fIboolean\fR;
 	check\-names ( fail | warn | ignore );
+	check\-mx ( fail | warn | ignore );
+	integrity\-check \fIboolean\fR;
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIboolean\fR;
 	journal \fIquoted_string\fR;
