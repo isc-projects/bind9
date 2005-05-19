@@ -129,6 +129,8 @@ options {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
+        integrity-check <boolean>;
+        check-mx ( fail | warn | ignore );
 };
 
 controls {
@@ -224,6 +226,8 @@ view <string> <optional_class> {
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
                 check-wildcard <boolean>;
+                integrity-check <boolean>;
+                check-mx ( fail | warn | ignore );
         };
         server <netprefix> {
                 bogus <boolean>;
@@ -320,6 +324,8 @@ view <string> <optional_class> {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
+        integrity-check <boolean>;
+        check-mx ( fail | warn | ignore );
 };
 
 lwres {
@@ -388,6 +394,8 @@ zone <string> <optional_class> {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
+        integrity-check <boolean>;
+        check-mx ( fail | warn | ignore );
 };
 
 server <netprefix> {
