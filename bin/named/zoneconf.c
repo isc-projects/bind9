@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.10 2005/04/27 05:00:34 sra Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.11 2005/05/19 04:59:51 marka Exp $ */
 
 /*% */
 
@@ -613,6 +613,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			}
 			RETERR(dns_zone_setkeydirectory(zone, filename));
 		}
+
 		obj = NULL;
 		result = ns_config_get(maps, "check-wildcard", &obj);
 		if (result == ISC_R_SUCCESS)
@@ -620,6 +621,69 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		else
 			check = ISC_FALSE;
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKWILDCARD, check);
+
+		obj = NULL;
+		result = ns_config_get(maps, "check-mx", &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			fail = ISC_FALSE;
+			check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			fail = check = ISC_TRUE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			fail = check = ISC_FALSE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKMX, check);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKMXFAIL, fail);
+
+		obj = NULL;
+		result = ns_config_get(maps, "integrity-check", &obj);
+		INSIST(obj != NULL);
+		dns_zone_setoption(zone, DNS_ZONEOPT_INTEGRITYCHECK, 
+				   cfg_obj_asboolean(obj));
+	}
+
+	/*
+	 * Configure update-related options.  These apply to
+	 * primary masters only.
+	 */
+	if (ztype == dns_zone_master) {
+		dns_acl_t *updateacl;
+		RETERR(configure_zone_acl(zconfig, vconfig, config,
+					  "allow-update", ac, zone,
+					  dns_zone_setupdateacl,
+					  dns_zone_clearupdateacl));
+		
+		updateacl = dns_zone_getupdateacl(zone);
+		if (updateacl != NULL  && dns_acl_isinsecure(updateacl))
+			isc_log_write(ns_g_lctx, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
+				      "zone '%s' allows updates by IP "
+				      "address, which is insecure",
+				      zname);
+		
+		RETERR(configure_zone_ssutable(zoptions, zone));
+
+		obj = NULL;
+		result = ns_config_get(maps, "sig-validity-interval", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setsigvalidityinterval(zone,
+						cfg_obj_asuint32(obj) * 86400);
+
+		obj = NULL;
+		result = ns_config_get(maps, "key-directory", &obj);
+		if (result == ISC_R_SUCCESS) {
+			filename = cfg_obj_asstring(obj);
+			if (!isc_file_isabsolute(filename)) {
+				cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+					    "key-directory '%s' "
+					    "is not absolute", filename);
+				return (ISC_R_FAILURE);
+			}
+			RETERR(dns_zone_setkeydirectory(zone, filename));
+		}
+
 	} else if (ztype == dns_zone_slave) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  "allow-update-forwarding", ac, zone,

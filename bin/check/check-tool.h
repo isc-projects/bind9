@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.7.18.2 2005/04/29 00:15:20 marka Exp $ */
+/* $Id: check-tool.h,v 1.7.18.3 2005/05/19 04:59:49 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -41,6 +41,9 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename);
 
 extern int debug;
 extern isc_boolean_t nomerge;
+extern isc_boolean_t docheckmx;
+extern isc_boolean_t docheckns;
+extern isc_boolean_t dochecksrv;
 extern unsigned int zone_options;
 
 ISC_LANG_ENDDECLS

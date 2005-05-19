@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.12 2005/04/27 05:00:34 sra Exp $ */
+/* $Id: update.c,v 1.109.18.13 2005/05/19 04:59:51 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
@@ -2129,6 +2130,112 @@ remove_orphaned_ds(dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff) {
 	return (result);
 }
 
+/*
+ * This implements the post load integrity checks for mx records.
+ */
+static isc_result_t
+check_mx(ns_client_t *client, dns_zone_t *zone,
+	 dns_db_t *db, dns_dbversion_t *newver, dns_diff_t *diff)
+{
+	char tmp[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:123.123.123.123.")];
+	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char altbuf[DNS_NAME_FORMATSIZE];
+	dns_difftuple_t *t;
+	dns_fixedname_t fixed;
+	dns_name_t *foundname;
+	dns_rdata_mx_t mx;
+	dns_rdata_t rdata;
+	isc_boolean_t ok = ISC_TRUE;
+	isc_boolean_t isaddress;
+	isc_result_t result;
+	struct in6_addr addr6;
+	struct in_addr addr;
+	unsigned int options;
+
+	dns_fixedname_init(&fixed);
+	foundname = dns_fixedname_name(&fixed);
+	dns_rdata_init(&rdata);
+	options = dns_zone_getoptions(zone);
+
+	for (t = ISC_LIST_HEAD(diff->tuples);
+	     t != NULL;
+	     t = ISC_LIST_NEXT(t, link)) {
+		if (t->op != DNS_DIFFOP_DEL ||
+		    t->rdata.type != dns_rdatatype_mx)
+			continue;
+
+		result = dns_rdata_tostruct(&t->rdata, &mx, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		/*
+		 * Check if we will error out if we attempt to reload the
+		 * zone.
+		 */
+		dns_name_format(&mx.mx, namebuf, sizeof(namebuf));
+		dns_name_format(&t->name, ownerbuf, sizeof(ownerbuf));
+		isaddress = ISC_FALSE;
+		if ((options & DNS_RDATA_CHECKMX) != 0 &&
+		    strlcpy(tmp, namebuf, sizeof(tmp)) < sizeof(tmp)) {
+			if (tmp[strlen(tmp) - 1] == '.')
+				tmp[strlen(tmp) - 1] = '\0';
+			if (inet_aton(tmp, &addr) == 1 ||
+			    inet_pton(AF_INET6, tmp, &addr6) == 1)
+				isaddress = ISC_TRUE;
+		}
+
+		if (isaddress && (options & DNS_RDATA_CHECKMXFAIL) != 0) {
+			update_log(client, zone, ISC_LOG_ERROR,
+				   "%s/MX: '%s': %s",
+				   ownerbuf, namebuf,
+				   dns_result_totext(DNS_R_MXISADDRESS));
+			ok = ISC_FALSE;
+		} else if (isaddress) {
+			update_log(client, zone, ISC_LOG_WARNING,
+				   "%s/MX: warning: '%s': %s",
+				   ownerbuf, namebuf,
+				   dns_result_totext(DNS_R_MXISADDRESS));
+		}
+		
+		/*
+		 * Check zone integrity checks.
+		 */
+		if ((options & DNS_ZONEOPT_INTEGRITYCHECK) == 0)
+			continue;
+		result = dns_db_find(db, &mx.mx, newver, dns_rdatatype_a,
+				     0, 0, NULL, foundname, NULL, NULL);
+		if (result == ISC_R_SUCCESS)
+			continue;
+
+		if (result == DNS_R_NXRRSET) {
+			result = dns_db_find(db, &mx.mx, newver,
+					     dns_rdatatype_aaaa,
+					     0, 0, NULL, foundname,
+					     NULL, NULL);
+			if (result == ISC_R_SUCCESS)
+				continue;
+		}
+
+		if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN) {
+			update_log(client, zone, ISC_LOG_ERROR,
+				   "%s/MX '%s' has no address records "
+				   "(A or AAAA)", ownerbuf, namebuf);
+			ok = ISC_FALSE;
+		} else if (result == DNS_R_CNAME) {
+			update_log(client, zone, ISC_LOG_ERROR,
+				   "%s/MX '%s' is a CNAME (illegal)",
+				   ownerbuf, namebuf);
+			ok = ISC_FALSE;
+		} else if (result == DNS_R_DNAME) {
+			dns_name_format(foundname, altbuf, sizeof altbuf);
+			update_log(client, zone, ISC_LOG_ERROR,
+				   "%s/MX '%s' is below a DNAME '%s' (illegal)",
+				   ownerbuf, namebuf, altbuf);
+			ok = ISC_FALSE;
+		}
+	}
+	return (ok ? ISC_R_SUCCESS : DNS_R_REFUSED);
+}
+
 static void
 update_action(isc_task_t *task, isc_event_t *event) {
 	update_event_t *uev = (update_event_t *) event;
@@ -2627,6 +2734,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 		if (! soa_serial_changed) {
 			CHECK(increment_soa_serial(db, ver, &diff, mctx));
 		}
+
+		CHECK(check_mx(client, zone, db, ver, &diff));
 
 		CHECK(remove_orphaned_ds(db, ver, &diff));
 

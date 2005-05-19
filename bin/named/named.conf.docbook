@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.10 2005/05/13 01:32:45 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.11 2005/05/19 04:59:51 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -240,6 +240,8 @@ options {
 	max-cache-size <replaceable>size_no_default</replaceable>;
 	check-names ( master | slave | response )
 		( fail | warn | ignore );
+	check-mx ( fail | warn | ignore );
+	integrity-check <replaceable>boolean</replaceable>;
 	cache-file <replaceable>quoted_string</replaceable>;
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
 	preferred-glue <replaceable>string</replaceable>;
@@ -370,6 +372,8 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	max-cache-size <replaceable>size_no_default</replaceable>;
 	check-names ( master | slave | response )
 		( fail | warn | ignore );
+	check-mx ( fail | warn | ignore );
+	integrity-check <replaceable>boolean</replaceable>;
 	cache-file <replaceable>quoted_string</replaceable>;
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
 	preferred-glue <replaceable>string</replaceable>;
@@ -458,6 +462,8 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	database <replaceable>string</replaceable>;
 	delegation-only <replaceable>boolean</replaceable>;
 	check-names ( fail | warn | ignore );
+	check-mx ( fail | warn | ignore );
+	integrity-check <replaceable>boolean</replaceable>;
 	dialup <replaceable>dialuptype</replaceable>;
 	ixfr-from-differences <replaceable>boolean</replaceable>;
 	journal <replaceable>quoted_string</replaceable>;

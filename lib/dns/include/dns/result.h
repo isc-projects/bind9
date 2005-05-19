@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.104.10.4 2005/04/29 00:16:20 marka Exp $ */
+/* $Id: result.h,v 1.104.10.5 2005/05/19 04:59:56 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
@@ -145,8 +145,9 @@
 #define DNS_R_UNKNOWNCOMMAND		(ISC_RESULTCLASS_DNS + 99)
 #define DNS_R_MUSTBESECURE		(ISC_RESULTCLASS_DNS + 100)
 #define DNS_R_COVERINGNSEC		(ISC_RESULTCLASS_DNS + 101)
+#define DNS_R_MXISADDRESS		(ISC_RESULTCLASS_DNS + 102)
 
-#define DNS_R_NRESULTS			102	/*%< Number of results */
+#define DNS_R_NRESULTS			103	/*%< Number of results */
 
 /*
  * DNS wire format rcodes.

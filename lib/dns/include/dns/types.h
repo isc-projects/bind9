@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109.18.5 2005/04/27 05:01:40 sra Exp $ */
+/* $Id: types.h,v 1.109.18.6 2005/05/19 04:59:56 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -298,7 +298,17 @@ typedef void
 (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
 
 typedef int 
-(*dns_rdatasetorderfunc_t)(dns_rdata_t *rdata, void *arg);
+(*dns_rdatasetorderfunc_t)(dns_rdata_t *, void *);
+
+typedef isc_boolean_t
+(*dns_checkmxfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *);
+
+typedef isc_boolean_t
+(*dns_checksrvfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *);
+
+typedef isc_boolean_t
+(*dns_checknsfunc_t)(dns_zone_t *, dns_name_t *, dns_name_t *,
+		     dns_rdataset_t *, dns_rdataset_t *);
 
 typedef isc_boolean_t
 (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, isc_sockaddr_t *,

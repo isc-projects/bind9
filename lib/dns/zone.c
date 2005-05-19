@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.22 2005/04/27 05:01:29 sra Exp $ */
+/* $Id: zone.c,v 1.410.18.23 2005/05/19 04:59:54 marka Exp $ */
 
 /*! \file */
 
@@ -38,6 +38,7 @@
 #include <dns/adb.h>
 #include <dns/callbacks.h>
 #include <dns/db.h>
+#include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/journal.h>
 #include <dns/log.h>
@@ -179,13 +180,13 @@ struct dns_zone {
 	unsigned int		notifycnt;
 	isc_sockaddr_t		notifyfrom;
 	isc_task_t		*task;
-	isc_sockaddr_t	 	notifysrc4;
-	isc_sockaddr_t	 	notifysrc6;
-	isc_sockaddr_t	 	xfrsource4;
-	isc_sockaddr_t	 	xfrsource6;
-	isc_sockaddr_t	 	altxfrsource4;
-	isc_sockaddr_t	 	altxfrsource6;
-	isc_sockaddr_t	 	sourceaddr;
+	isc_sockaddr_t		notifysrc4;
+	isc_sockaddr_t		notifysrc6;
+	isc_sockaddr_t		xfrsource4;
+	isc_sockaddr_t		xfrsource6;
+	isc_sockaddr_t		altxfrsource4;
+	isc_sockaddr_t		altxfrsource6;
+	isc_sockaddr_t		sourceaddr;
 	dns_xfrin_ctx_t		*xfr;		/* task locked */
 	dns_tsigkey_t		*tsigkey;	/* key used for xfr */
 	/* Access Control Lists */
@@ -211,6 +212,9 @@ struct dns_zone {
 	isc_uint32_t		sigvalidityinterval;
 	dns_view_t		*view;
 	dns_acache_t		*acache;
+	dns_checkmxfunc_t	checkmx;
+	dns_checksrvfunc_t	checksrv;
+	dns_checknsfunc_t	checkns;
 	/*%
 	 * Zones in certain states such as "waiting for zone transfer"
 	 * or "zone transfer in progress" are kept on per-state linked lists
@@ -586,6 +590,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->view = NULL;
 	zone->acache = NULL;
+	zone->checkmx = NULL;
+	zone->checksrv = NULL;
+	zone->checkns = NULL;
 	ISC_LINK_INIT(zone, statelink);
 	zone->statelist = NULL;
 	zone->counters = NULL;
@@ -1025,24 +1032,34 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 		goto cleanup;
 	}
 
+
+	/*
+	 * Store the current time before the zone is loaded, so that if the
+	 * file changes between the time of the load and the time that
+	 * zone->loadtime is set, then the file will still be reloaded
+	 * the next time dns_zone_load is called.
+	 */
+	TIME_NOW(&loadtime);
+
 	/*
 	 * Don't do the load if the file that stores the zone is older
 	 * than the last time the zone was loaded.  If the zone has not
 	 * been loaded yet, zone->loadtime will be the epoch.
 	 */
-	if (zone->masterfile != NULL && ! isc_time_isepoch(&zone->loadtime)) {
+	if (zone->masterfile != NULL) {
 		/*
 		 * The file is already loaded.  If we are just doing a
 		 * "rndc reconfig", we are done.
 		 */
-		if ((flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
+		if (!isc_time_isepoch(&zone->loadtime) &&
+		    (flags & DNS_ZONELOADFLAG_NOSTAT) != 0) {
 			result = ISC_R_SUCCESS;
 			goto cleanup;
 		}
-		if (! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE)) {
-			result = isc_file_getmodtime(zone->masterfile,
-						     &filetime);
-			if (result == ISC_R_SUCCESS &&
+
+		result = isc_file_getmodtime(zone->masterfile, &filetime);
+		if (result == ISC_R_SUCCESS) {
+			if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
 			    isc_time_compare(&filetime, &zone->loadtime) < 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file older "
@@ -1050,6 +1067,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 				result = DNS_R_UPTODATE;
 				goto cleanup;
 			}
+			loadtime = filetime;
 		}
 	}
 
@@ -1072,14 +1090,6 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	}
 
 	dns_zone_log(zone, ISC_LOG_DEBUG(1), "starting load");
-
-	/*
-	 * Store the current time before the zone is loaded, so that if the
-	 * file changes between the time of the load and the time that
-	 * zone->loadtime is set, then the file will still be reloaded
-	 * the next time dns_zone_load is called.
-	 */
-	TIME_NOW(&loadtime);
 
 	result = dns_db_create(zone->mctx, zone->db_argv[0],
 			       &zone->origin, (zone->type == dns_zone_stub) ?
@@ -1161,6 +1171,10 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 		options |= DNS_MASTER_CHECKNAMES;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKNAMESFAIL))
 		options |= DNS_MASTER_CHECKNAMESFAIL;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKMX))
+		options |= DNS_MASTER_CHECKMX;
+	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKMXFAIL))
+		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
 	result = dns_master_loadfileinc(load->zone->masterfile,
@@ -1233,6 +1247,10 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		options |= DNS_MASTER_CHECKNAMES;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKNAMESFAIL))
 		options |= DNS_MASTER_CHECKNAMESFAIL;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKMX))
+		options |= DNS_MASTER_CHECKMX;
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKMXFAIL))
+		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
 
@@ -1291,6 +1309,375 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 	isc_mem_detach(&load->mctx);
 	isc_mem_put(zone->mctx, load, sizeof(*load));
 	return (result);
+}
+
+static isc_boolean_t
+zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
+	      dns_name_t *owner)
+{
+	isc_result_t result;
+	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char altbuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *foundname;
+	int level;
+	
+	/*
+	 * Outside of zone.
+	 */
+	if (!dns_name_issubdomain(name, &zone->origin)) {
+		if (zone->checkmx != NULL)
+			return ((zone->checkmx)(zone, name, owner));
+		return (ISC_TRUE);
+	}
+
+	if (zone->type == dns_zone_master)
+		level = ISC_LOG_ERROR;
+	else
+		level = ISC_LOG_WARNING;
+
+	dns_fixedname_init(&fixed);
+	foundname = dns_fixedname_name(&fixed);
+
+	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+			     0, 0, NULL, foundname, NULL, NULL);
+	if (result == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	if (result == DNS_R_NXRRSET) {
+		result = dns_db_find(db, name, NULL, dns_rdatatype_aaaa,
+				     0, 0, NULL, foundname, NULL, NULL);
+		if (result == ISC_R_SUCCESS)
+			return (ISC_TRUE);
+	}
+
+	dns_name_format(owner, ownerbuf, sizeof ownerbuf);
+	dns_name_format(name, namebuf, sizeof namebuf);
+	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
+	    result == DNS_R_EMPTYNAME) {
+		dns_zone_log(zone, level,
+			     "%s/MX '%s' has no address records (A or AAAA)",
+			     ownerbuf, namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_CNAME) {
+		dns_zone_log(zone, level, "%s/MX '%s' is a CNAME (illegal)",
+			     ownerbuf, namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_DNAME) {
+		dns_name_format(foundname, altbuf, sizeof altbuf);
+		dns_zone_log(zone, level,
+			     "%s/MX '%s' is below a DNAME '%s' (illegal)",
+			     ownerbuf, namebuf, altbuf);
+		return (ISC_FALSE);
+	}
+
+	if (zone->checkmx != NULL && result == DNS_R_DELEGATION)
+		return ((zone->checkmx)(zone, name, owner));
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
+	       dns_name_t *owner)
+{
+	isc_result_t result;
+	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char altbuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *foundname;
+	int level;
+	
+	/*
+	 * Outside of zone.
+	 */
+	if (!dns_name_issubdomain(name, &zone->origin)) {
+		if (zone->checksrv != NULL)
+			return ((zone->checksrv)(zone, name, owner));
+		return (ISC_TRUE);
+	}
+
+	if (zone->type == dns_zone_master)
+		level = ISC_LOG_ERROR;
+	else
+		level = ISC_LOG_WARNING;
+
+	dns_fixedname_init(&fixed);
+	foundname = dns_fixedname_name(&fixed);
+
+	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+			     0, 0, NULL, foundname, NULL, NULL);
+	if (result == ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	if (result == DNS_R_NXRRSET) {
+		result = dns_db_find(db, name, NULL, dns_rdatatype_aaaa,
+				     0, 0, NULL, foundname, NULL, NULL);
+		if (result == ISC_R_SUCCESS)
+			return (ISC_TRUE);
+	}
+
+	dns_name_format(owner, ownerbuf, sizeof ownerbuf);
+	dns_name_format(name, namebuf, sizeof namebuf);
+	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
+	    result == DNS_R_EMPTYNAME) {
+		dns_zone_log(zone, level,
+			     "%s/SRV '%s' has no address records (A or AAAA)",
+			     ownerbuf, namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_CNAME) {
+		dns_zone_log(zone, level, "%s/SRV '%s' is a CNAME (illegal)",
+			     ownerbuf, namebuf);
+		return (ISC_FALSE);
+	}
+
+	if (result == DNS_R_DNAME) {
+		dns_name_format(foundname, altbuf, sizeof altbuf);
+		dns_zone_log(zone, level,
+			     "%s/SRV '%s' is below a DNAME '%s' (illegal)",
+			     ownerbuf, namebuf, altbuf);
+		return (ISC_FALSE);
+	}
+
+	if (zone->checksrv != NULL && result == DNS_R_DELEGATION)
+		return ((zone->checksrv)(zone, name, owner));
+
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
+	        dns_name_t *owner)
+{
+	isc_boolean_t answer = ISC_TRUE;
+	isc_result_t result, tresult;
+	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char altbuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *foundname;
+	dns_rdataset_t a;
+	dns_rdataset_t aaaa;
+	int level;
+	
+	/*
+	 * Outside of zone.
+	 */
+	if (!dns_name_issubdomain(name, &zone->origin)) {
+		if (zone->checkns != NULL)
+			return ((zone->checkns)(zone, name, owner, NULL, NULL));
+		return (ISC_TRUE);
+	}
+
+	if (zone->type == dns_zone_master)
+		level = ISC_LOG_ERROR;
+	else
+		level = ISC_LOG_WARNING;
+
+	dns_fixedname_init(&fixed);
+	foundname = dns_fixedname_name(&fixed);
+	dns_rdataset_init(&a);
+	dns_rdataset_init(&aaaa);
+
+	result = dns_db_find(db, name, NULL, dns_rdatatype_a,
+			     DNS_DBFIND_GLUEOK, 0, NULL,
+			     foundname, &a, NULL);
+
+	if (result == ISC_R_SUCCESS) {
+		dns_rdataset_disassociate(&a);
+		return (ISC_TRUE);
+	} else if (result == DNS_R_DELEGATION)
+		dns_rdataset_disassociate(&a);
+
+	if (result == DNS_R_NXRRSET || result == DNS_R_DELEGATION ||
+	    result == DNS_R_GLUE) {
+		tresult = dns_db_find(db, name, NULL, dns_rdatatype_aaaa,
+				     DNS_DBFIND_GLUEOK, 0, NULL,
+				     foundname, &aaaa, NULL);
+		if (tresult == ISC_R_SUCCESS) {
+			dns_rdataset_disassociate(&aaaa);
+			return (ISC_TRUE);
+		} 
+		if (tresult == DNS_R_DELEGATION)
+			dns_rdataset_disassociate(&aaaa);
+		if (result == DNS_R_GLUE || tresult == DNS_R_GLUE) {
+			/*
+			 * Check glue against child zone.
+			 */
+			if (zone->checkns != NULL)
+				answer = (zone->checkns)(zone, name, owner,
+							 &a, &aaaa);
+			if (dns_rdataset_isassociated(&a))
+				dns_rdataset_disassociate(&a);
+			if (dns_rdataset_isassociated(&aaaa))
+				dns_rdataset_disassociate(&aaaa);
+			return (answer);
+		}
+	} else
+		tresult = result;
+
+	dns_name_format(owner, ownerbuf, sizeof ownerbuf);
+	dns_name_format(name, namebuf, sizeof namebuf);
+	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
+	    result == DNS_R_EMPTYNAME || result == DNS_R_DELEGATION) {
+		const char *what;
+		if (dns_name_issubdomain(name, owner))
+			what = "REQUIRED GLUE ";
+		else if (result == DNS_R_DELEGATION)
+			what = "SIBLING GLUE ";
+		else
+			what = "";
+		dns_zone_log(zone, level,
+			     "%s/NS '%s' has no %saddress records (A or AAAA)",
+			     ownerbuf, namebuf, what);
+		/*
+		 * Log missing address record.
+		 */
+		if (result == DNS_R_DELEGATION && zone->checkns != NULL)
+			answer = (zone->checkns)(zone, name, owner, &a, &aaaa);
+		answer = ISC_FALSE;
+	} else if (result == DNS_R_CNAME) {
+		dns_zone_log(zone, level, "%s/NS '%s' is a CNAME (illegal)",
+			     ownerbuf, namebuf);
+		answer = ISC_FALSE;
+	} else if (result == DNS_R_DNAME) {
+		dns_name_format(foundname, altbuf, sizeof altbuf);
+		dns_zone_log(zone, level,
+			     "%s/NS '%s' is below a DNAME '%s' (illegal)",
+			     ownerbuf, namebuf, altbuf);
+		answer = ISC_FALSE;
+	}
+
+	if (dns_rdataset_isassociated(&a))
+		dns_rdataset_disassociate(&a);
+	if (dns_rdataset_isassociated(&aaaa))
+		dns_rdataset_disassociate(&aaaa);
+	return (answer);
+}
+
+static isc_boolean_t
+integrity_checks(dns_zone_t *zone, dns_db_t *db) {
+	dns_dbiterator_t *dbiterator = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_fixedname_t fixed;
+	dns_fixedname_t fixedbottom;
+	dns_rdata_mx_t mx;
+	dns_rdata_ns_t ns;
+	dns_rdata_in_srv_t srv;
+	dns_rdata_t rdata;
+	dns_name_t *name;
+	dns_name_t *bottom;
+	isc_result_t result;
+	isc_boolean_t ok = ISC_TRUE;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	dns_fixedname_init(&fixedbottom);
+	bottom = dns_fixedname_name(&fixedbottom);
+	dns_rdataset_init(&rdataset);
+	dns_rdata_init(&rdata);
+
+	result = dns_db_createiterator(db, ISC_FALSE, &dbiterator);
+	if (result != ISC_R_SUCCESS)
+		return (ISC_TRUE);
+
+	result = dns_dbiterator_first(dbiterator);
+	while (result == ISC_R_SUCCESS) {
+		result = dns_dbiterator_current(dbiterator, &node, name);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+
+		/*
+		 * Is this name visible in the zone?
+		 */
+		if (!dns_name_issubdomain(name, &zone->origin) ||
+		    (dns_name_countlabels(bottom) > 0 &&
+		     dns_name_issubdomain(name, bottom)))
+			goto next;
+
+		/*
+		 * Don't check the NS records at the origin.
+		 */
+		if (dns_name_equal(name, &zone->origin))
+			goto checkmx;
+
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_ns, 
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto checkmx;
+		/*
+		 * Remember bottom of zone.
+		 */
+		dns_name_dup(name, NULL, bottom);
+
+		result = dns_rdataset_first(&rdataset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&rdataset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &ns, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			if (!zone_check_glue(zone, db, &ns.name, name))
+				ok = ISC_FALSE;
+			dns_rdata_reset(&rdata);
+			result = dns_rdataset_next(&rdataset);
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+ checkmx:
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_mx, 
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto checksrv;
+		result = dns_rdataset_first(&rdataset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&rdataset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &mx, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			if (!zone_check_mx(zone, db, &mx.mx, name))
+				ok = ISC_FALSE;
+			dns_rdata_reset(&rdata);
+			result = dns_rdataset_next(&rdataset);
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+ checksrv:
+		if (zone->rdclass != dns_rdataclass_in)
+			goto next;
+		result = dns_db_findrdataset(db, node, NULL, dns_rdatatype_srv, 
+					     0, 0, &rdataset, NULL);
+		if (result != ISC_R_SUCCESS)
+			goto next;
+		result = dns_rdataset_first(&rdataset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&rdataset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &srv, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			if (!zone_check_srv(zone, db, &srv.target, name))
+				ok = ISC_FALSE;
+			dns_rdata_reset(&rdata);
+			result = dns_rdataset_next(&rdataset);
+		}
+		dns_rdataset_disassociate(&rdataset);
+
+ next:
+		dns_db_detachnode(db, &node);
+		result = dns_dbiterator_next(dbiterator);
+	}
+
+ cleanup:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	dns_dbiterator_destroy(&dbiterator);
+
+	return (ok);
 }
 
 static isc_result_t
@@ -1410,6 +1797,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
+		if (zone->type == dns_zone_master &&
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_INTEGRITYCHECK) &&
+		    !integrity_checks(zone, db)) {
+			result = DNS_R_BADZONE;
+			goto cleanup;
+		}
+
 		if (zone->db != NULL) {
 			if (!isc_serial_ge(serial, zone->serial)) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
@@ -1555,7 +1949,8 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 	}
 
 	dns_name_format(name, namebuf, sizeof namebuf);
-	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN) {
+	if (result == DNS_R_NXRRSET || result == DNS_R_NXDOMAIN ||
+	    result == DNS_R_EMPTYNAME) {
 		dns_zone_log(zone, level,
 			     "NS '%s' has no address records (A or AAAA)",
 			     namebuf);
@@ -7060,6 +7455,24 @@ dns_zone_checknames(dns_zone_t *zone, dns_name_t *name, dns_rdata_t *rdata) {
 	}
 
 	return (ISC_R_SUCCESS);
+}
+
+void
+dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->checkmx = checkmx;
+}
+
+void
+dns_zone_setchecksrv(dns_zone_t *zone, dns_checksrvfunc_t checksrv) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->checksrv = checksrv;
+}
+
+void
+dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->checkns = checkns;
 }
 
 void

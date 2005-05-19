@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.7 2005/04/27 05:01:41 sra Exp $ */
+/* $Id: zone.h,v 1.126.18.8 2005/05/19 04:59:56 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -55,6 +55,9 @@ typedef enum {
 #define DNS_ZONEOPT_CHECKNAMES	  0x00000800U	/*%< check-names */
 #define DNS_ZONEOPT_CHECKNAMESFAIL 0x00001000U	/*%< fatal check-name failures */
 #define DNS_ZONEOPT_CHECKWILDCARD 0x00002000U	/*%< check for internal wildcards */
+#define DNS_ZONEOPT_CHECKMX	  0x00004000U	/*%< check-mx */
+#define DNS_ZONEOPT_CHECKMXFAIL   0x00008000U	/*%< fatal check-mx failures */
+#define DNS_ZONEOPT_INTEGRITYCHECK 0x00010000U	/*%< perform integrity checks */
 
 #ifndef NOMINUM_PUBLIC
 /*
@@ -1446,6 +1449,36 @@ dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache);
  *
  * Ensures:
  *	'zone' will have a reference to 'acache'
+ */
+
+void
+dns_zone_setcheckmx(dns_zone_t *zone, dns_checkmxfunc_t checkmx);
+/*
+ *	Set the post load integrity callback function 'checkmx'.
+ *	'checkmx' will be called if the MX is not within the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setchecksrv(dns_zone_t *zone, dns_checkmxfunc_t checksrv);
+/*
+ *	Set the post load integrity callback function 'checksrv'.
+ *	'checksrv' will be called if the SRV TARGET is not within the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setcheckns(dns_zone_t *zone, dns_checknsfunc_t checkns);
+/*
+ *	Set the post load integrity callback function 'checkmx'.
+ *	'checkmx' will be called if the MX is not within the zone.
+ *
+ * Require:
+ *	'zone' to be a valid zone.
  */
 
 void
