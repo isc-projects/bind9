@@ -604,7 +604,7 @@
 ./bin/tests/system/nsupdate/knowngood.ns1.before	X	2000,2001
 ./bin/tests/system/nsupdate/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/nsupdate/ns1/example1.db	ZONE	2000,2001,2002,2004
-./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004
+./bin/tests/system/nsupdate/ns1/named.conf	CONF-C	2000,2001,2004,2005
 ./bin/tests/system/nsupdate/ns2/.cvsignore	X	2000,2001
 ./bin/tests/system/nsupdate/ns2/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/nsupdate/setup.sh		SH	2000,2001,2004
@@ -1780,7 +1780,7 @@
 ./lib/dns/rdata/generic/minfo_14.h		C	1998,1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/mr_9.c			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/mr_9.h			C	1998,1999,2000,2001,2004,2005
-./lib/dns/rdata/generic/mx_15.c			C	1998,1999,2000,2001,2003,2004
+./lib/dns/rdata/generic/mx_15.c			C	1998,1999,2000,2001,2003,2004,2005
 ./lib/dns/rdata/generic/mx_15.h			C	1998,1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/ns_2.c			C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/ns_2.h			C	1998,1999,2000,2001,2004,2005
