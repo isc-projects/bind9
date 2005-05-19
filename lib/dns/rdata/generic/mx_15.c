@@ -15,14 +15,36 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mx_15.c,v 1.52 2004/03/05 05:10:15 marka Exp $ */
+/* $Id: mx_15.c,v 1.53 2005/05/19 04:59:05 marka Exp $ */
 
 /* reviewed: Wed Mar 15 18:05:46 PST 2000 by brister */
 
 #ifndef RDATA_GENERIC_MX_15_C
 #define RDATA_GENERIC_MX_15_C
 
+#include <string.h>
+
+#include <isc/net.h>
+
 #define RRTYPE_MX_ATTRIBUTES (0)
+
+static isc_boolean_t
+check_mx(isc_token_t *token) {
+	char tmp[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:123.123.123.123.")];
+	struct in_addr addr;
+	struct in6_addr addr6;
+
+	if (strlcpy(tmp, DNS_AS_STR(*token), sizeof(tmp)) >= sizeof(tmp))
+		return (ISC_TRUE);
+
+	if (tmp[strlen(tmp) - 1] == '.')
+		tmp[strlen(tmp) - 1] = '\0';
+	if (inet_aton(tmp, &addr) == 1 ||
+	    inet_pton(AF_INET6, tmp, &addr6) == 1)
+		return (ISC_FALSE);
+
+	return (ISC_TRUE);
+}
 
 static inline isc_result_t
 fromtext_mx(ARGS_FROMTEXT) {
@@ -45,6 +67,15 @@ fromtext_mx(ARGS_FROMTEXT) {
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
+
+	ok = ISC_TRUE;
+	if ((options & DNS_RDATA_CHECKMX) != 0)
+		ok = check_mx(&token);
+	if (!ok && (options & DNS_RDATA_CHECKMXFAIL) != 0)
+		RETTOK(DNS_R_MXISADDRESS);
+	if (!ok && callbacks != NULL)
+		warn_badmx(&token, lexer, callbacks);
+
 	dns_name_init(&name, NULL);
 	buffer_fromregion(&buffer, &token.value.as_region);
 	origin = (origin != NULL) ? origin : dns_rootname;

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.18 2005/05/13 01:35:38 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.19 2005/05/19 04:58:59 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -57,7 +57,9 @@
       <arg><option>-q</option></arg>
       <arg><option>-v</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
+      <arg><option>-i <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">mode</replaceable></option></arg>
+      <arg><option>-m <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">mode</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">directory</replaceable></option></arg>
@@ -130,12 +132,60 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-i <replaceable class="parameter">mode</replaceable></term>
+	<listitem>
+	  <para>
+	      Perform post load zone integrity checks.  Possible modes are
+	      <command>"full"</command> (default),
+	      <command>"local"</command> and
+	      <command>"none"</command>.
+	  </para>
+	  <para>
+	      Mode <command>"full"</command> checks that MX records
+	      refer to A or AAAA record (both in-zone and out-of-zone
+	      hostnames).  Mode <command>"local"</command> only
+	      checks MX records which refer to in-zone hostnames.
+	  </para>
+	  <para>
+	      Mode <command>"full"</command> checks that SRV records
+	      refer to A or AAAA record (both in-zone and out-of-zone
+	      hostnames).  Mode <command>"local"</command> only
+	      checks SRV records which refer to in-zone hostnames.
+	  </para>
+	  <para>
+	      Mode <command>"full"</command> checks that delegation NS
+	      records refer to A or AAAA record (both in-zone and out-of-zone
+	      hostnames).  It also checks that glue addresses records
+	      in the zone match those advertised by the child.
+	      Mode <command>"local"</command> only checks NS records which
+	      refer to in-zone hostnames or that some required glue exists,
+	      that is when the nameserver is in a child zone.
+	  </para>
+	  <para>
+	      Mode <command>"none"</command> disables the checks.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-k <replaceable class="parameter">mode</replaceable></term>
         <listitem>
           <para>
             Perform <command>"check-name"</command> checks with
             the specified failure mode.
             Possible modes are <command>"fail"</command>,
+            <command>"warn"</command> (default) and
+            <command>"ignore"</command>.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-m <replaceable class="parameter">mode</replaceable></term>
+        <listitem>
+          <para>
+            Specify whether MX records should be checked to see if they
+            are addresses.  Possible modes are <command>"fail"</command>,
             <command>"warn"</command> (default) and
             <command>"ignore"</command>.
           </para>

@@ -1,3 +1,10 @@
+1862.	[func]		Add additional zone data constancy checks.
+			named-checkzone has extended checking of NS, MX and 
+			SRV record and the hosts they reference.
+			named has extended post zone load checks.
+			New zone options: check-mx and integrity-check. 
+			[RT #4940]
+
 1861.	[placeholder]	rt14801
 
 1860.	[placeholder]	rt14775

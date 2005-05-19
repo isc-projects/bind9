@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.188 2005/04/27 04:56:50 sra Exp $ */
+/* $Id: rdata.c,v 1.189 2005/05/19 04:59:03 marka Exp $ */
 
 /*! \file */
 
@@ -196,6 +196,10 @@ rdata_totext(dns_rdata_t *rdata, dns_rdata_textctx_t *tctx,
 static void
 warn_badname(dns_name_t *name, isc_lex_t *lexer,
 	     dns_rdatacallbacks_t *callbacks);
+
+static void
+warn_badmx(isc_token_t *token, isc_lex_t *lexer,
+	   dns_rdatacallbacks_t *callbacks);
 
 static inline int
 getquad(const void *src, struct in_addr *dst,
@@ -1575,6 +1579,22 @@ fromtext_warneof(isc_lex_t *lexer, dns_rdatacallbacks_t *callbacks) {
 		(*callbacks->warn)(callbacks,
 				   "%s:%lu: file does not end with newline",
 				   name, isc_lex_getsourceline(lexer));
+	}
+}
+
+static void
+warn_badmx(isc_token_t *token, isc_lex_t *lexer,
+	   dns_rdatacallbacks_t *callbacks)
+{
+	const char *file;
+	unsigned long line;
+
+	if (lexer != NULL) {
+		file = isc_lex_getsourcename(lexer);
+		line = isc_lex_getsourceline(lexer);
+		(*callbacks->warn)(callbacks, "%s:%u: warning: '%s': %s", 
+				   file, line, DNS_AS_STR(*token),
+				   dns_result_totext(DNS_R_MXISADDRESS));
 	}
 }
 

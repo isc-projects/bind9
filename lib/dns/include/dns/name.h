@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.115 2005/04/27 04:56:57 sra Exp $ */
+/* $Id: name.h,v 1.116 2005/05/19 04:59:04 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -145,6 +145,8 @@ struct dns_name {
 #define DNS_NAME_CHECKNAMES		0x0002		/*%< Used by rdata. */
 #define DNS_NAME_CHECKNAMESFAIL		0x0004		/*%< Used by rdata. */
 #define DNS_NAME_CHECKREVERSE		0x0008		/*%< Used by rdata. */
+#define DNS_NAME_CHECKMX		0x0010		/*%< Used by rdata. */
+#define DNS_NAME_CHECKMXFAIL		0x0020		/*%< Used by rdata. */
 
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_rootname;
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;

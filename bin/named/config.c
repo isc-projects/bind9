@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.56 2005/04/27 04:55:49 sra Exp $ */
+/* $Id: config.c,v 1.57 2005/05/19 04:59:00 marka Exp $ */
 
 /*! \file */
 
@@ -128,10 +128,12 @@ options {\n\
 	check-names master fail;\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
+	check-mx warn;\n\
 	use-additional-cache true;\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 0;\n\
 	dnssec-enable no; /* Make yes for 9.4. */ \n\
+	integrity-check yes;\n\
 "
 
 "	/* zone */\n\

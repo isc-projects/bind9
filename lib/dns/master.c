@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.152 2005/04/27 04:56:47 sra Exp $ */
+/* $Id: master.c,v 1.153 2005/05/19 04:59:02 marka Exp $ */
 
 /*! \file */
 
@@ -959,11 +959,16 @@ load(dns_loadctx_t *lctx) {
 		options |= DNS_RDATA_CHECKNAMES;
 	if ((lctx->options & DNS_MASTER_CHECKNAMESFAIL) != 0)
 		options |= DNS_RDATA_CHECKNAMESFAIL;
+	if ((lctx->options & DNS_MASTER_CHECKMX) != 0)
+		options |= DNS_RDATA_CHECKMX;
+	if ((lctx->options & DNS_MASTER_CHECKMXFAIL) != 0)
+		options |= DNS_RDATA_CHECKMXFAIL;
 	source = isc_lex_getsourcename(lctx->lex);
 	do {
 		initialws = ISC_FALSE;
 		line = isc_lex_getsourceline(lctx->lex);
-		GETTOKEN(lctx->lex, ISC_LEXOPT_INITIALWS, &token, ISC_TRUE);
+		GETTOKEN(lctx->lex, ISC_LEXOPT_INITIALWS | ISC_LEXOPT_QSTRING,
+			 &token, ISC_TRUE);
 		line = isc_lex_getsourceline(lctx->lex);
 
 		if (token.type == isc_tokentype_eof) {
@@ -999,7 +1004,8 @@ load(dns_loadctx_t *lctx) {
 			 * Still working on the same name.
 			 */
 			initialws = ISC_TRUE;
-		} else if (token.type == isc_tokentype_string) {
+		} else if (token.type == isc_tokentype_string ||
+			   token.type == isc_tokentype_qstring) {
 
 			/*
 			 * "$" Support.

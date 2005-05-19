@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.268 2005/05/13 01:35:42 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.269 2005/05/19 04:59:01 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4307,7 +4307,9 @@ category notify { null; };
     <optional> forwarders { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> { ( <replaceable>domain_name</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> | <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ) ; ... }; </optional>
     <optional> check-names ( <replaceable>master</replaceable> | <replaceable>slave</replaceable> | <replaceable>response</replaceable> )( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-mx ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> integrity-checks <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-cache { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5423,6 +5425,18 @@ options {
               </listitem>
             </varlistentry>
 
+	    <varlistentry>
+	      <term><command>check-mx</command></term>
+	      <listitem>
+		<para>
+		  Check whether the MX record appears to refer to a IP address.
+		  The default is to <command>warn</command>.  Other possible
+		  values are <command>fail</command> and
+		  <command>ignore</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
             <varlistentry>
               <term><command>check-wildcard</command></term>
               <listitem>
@@ -5437,6 +5451,24 @@ options {
                 </para>
               </listitem>
             </varlistentry>
+
+	    <varlistentry>
+	      <term><command>integrity-check</command></term>
+	      <listitem>
+		<para>
+		  Perform post load zone integrity checks on master
+		  zones.  This checks that MX and SRV records refer
+		  to address (A or AAAA) records and that glue
+		  address records exist for delegated zones.  For
+		  MX and SRV records only in-zone hostnames are
+		  checked (for out-of-zone hostnames use named-checkzone).
+		  For NS records only names below top of zone are
+		  checked (for out-of-zone names and glue consistancy
+		  checks use named-checkzone).  The default is
+		  <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
           </variablelist>
 
@@ -7497,7 +7529,9 @@ view "external" {
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
+    <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> integrity-checks <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -7885,11 +7919,31 @@ view "external" {
               </varlistentry>
 
               <varlistentry>
+                <term><command>check-mx</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>check-mx</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
                 <term><command>check-wildcard</command></term>
                 <listitem>
                   <para>
                     See the description of
                     <command>check-wildcard</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>integrity-check</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>integrity-check</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

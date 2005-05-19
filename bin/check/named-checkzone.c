@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.34 2005/04/27 04:55:43 sra Exp $ */
+/* $Id: named-checkzone.c,v 1.35 2005/05/19 04:58:59 marka Exp $ */
 
 /*! \file */
 
@@ -39,6 +39,7 @@
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
+#include <dns/name.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
@@ -69,7 +70,9 @@ usage(void) {
 	fprintf(stderr,
 		"usage: named-checkzone [-djqvD] [-c class] [-o output] "
 		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
-		"[-n (ignore|warn|fail)] [-W (ignore|warn)] zonename filename\n");
+		"[-n (ignore|warn|fail)] [-m (ignore|warn|fail)] "
+		"[-i (full|local|none)] [-W (ignore|warn)] "
+		"zonename filename\n");
 	exit(1);
 }
 
@@ -91,7 +94,8 @@ main(int argc, char **argv) {
 	char *classname = classname_in;
 	const char *workdir = NULL;
 
-	while ((c = isc_commandline_parse(argc, argv, "c:dijk:n:qst:o:vw:DW:")) != EOF) {
+	while ((c = isc_commandline_parse(argc, argv,
+					  "c:di:jk:m:n:qst:o:vw:DW:")) != EOF) {
 		switch (c) {
 		case 'c':
 			classname = isc_commandline_argument;
@@ -101,20 +105,33 @@ main(int argc, char **argv) {
 			debug++;
 			break;
 
-		case 'j':
-			nomerge = ISC_FALSE;
+		case 'i':
+			if (!strcmp(isc_commandline_argument, "full")) {
+				zone_options |= DNS_ZONEOPT_INTEGRITYCHECK;
+				docheckmx = ISC_TRUE;
+				docheckns = ISC_TRUE;
+				dochecksrv = ISC_TRUE;
+			} else if (!strcmp(isc_commandline_argument,
+					   "local")) {
+				zone_options |= DNS_ZONEOPT_INTEGRITYCHECK;
+				docheckmx = ISC_FALSE;
+				docheckns = ISC_FALSE;
+				dochecksrv = ISC_FALSE;
+			} else if (!strcmp(isc_commandline_argument,
+					   "none")) {
+				zone_options &= ~DNS_ZONEOPT_INTEGRITYCHECK;
+				docheckmx = ISC_FALSE;
+				docheckns = ISC_FALSE;
+				dochecksrv = ISC_FALSE;
+			} else {
+				fprintf(stderr, "invalid argument to -i: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
 			break;
 
-		case 'n':
-			if (!strcmp(isc_commandline_argument, "ignore"))
-				zone_options &= ~(DNS_ZONEOPT_CHECKNS|
-						  DNS_ZONEOPT_FATALNS);
-			else if (!strcmp(isc_commandline_argument, "warn")) {
-				zone_options |= DNS_ZONEOPT_CHECKNS;
-				zone_options &= ~DNS_ZONEOPT_FATALNS;
-			} else if (!strcmp(isc_commandline_argument, "fail"))
-				zone_options |= DNS_ZONEOPT_CHECKNS|
-					        DNS_ZONEOPT_FATALNS;
+		case 'j':
+			nomerge = ISC_FALSE;
 			break;
 
 		case 'k':
@@ -129,6 +146,46 @@ main(int argc, char **argv) {
 					   "ignore")) {
 				zone_options &= ~(DNS_ZONEOPT_CHECKNAMES |
 						  DNS_ZONEOPT_CHECKNAMESFAIL);
+			} else {
+				fprintf(stderr, "invalid argument to -k: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+
+		case 'n':
+			if (!strcmp(isc_commandline_argument, "ignore")) {
+				zone_options &= ~(DNS_ZONEOPT_CHECKNS|
+						  DNS_ZONEOPT_FATALNS);
+			} else if (!strcmp(isc_commandline_argument, "warn")) {
+				zone_options |= DNS_ZONEOPT_CHECKNS;
+				zone_options &= ~DNS_ZONEOPT_FATALNS;
+			} else if (!strcmp(isc_commandline_argument, "fail")) {
+				zone_options |= DNS_ZONEOPT_CHECKNS|
+					        DNS_ZONEOPT_FATALNS;
+			} else {
+				fprintf(stderr, "invalid argument to -n: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+
+		case 'm':
+			if (!strcmp(isc_commandline_argument, "warn")) {
+				zone_options |= DNS_ZONEOPT_CHECKMX;
+				zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
+			} else if (!strcmp(isc_commandline_argument,
+					   "fail")) {
+				zone_options |= DNS_ZONEOPT_CHECKMX |
+						DNS_ZONEOPT_CHECKMXFAIL;
+			} else if (!strcmp(isc_commandline_argument,
+					   "ignore")) {
+				zone_options &= ~(DNS_ZONEOPT_CHECKMX |
+						  DNS_ZONEOPT_CHECKMXFAIL);
+			} else {
+				fprintf(stderr, "invalid argument to -m: %s\n",
+					isc_commandline_argument);
+				exit(1);
 			}
 			break;
 
