@@ -34,7 +34,6 @@ rt13662				new
 rt13694				new	
 rt13707				new	
 rt13714				new	
-rt13745				closed	
 rt13753				new	
 rt13754				new	
 rt13771				new	
@@ -44,6 +43,7 @@ rt14686				new
 rt14695				new	
 rt1471				new	
 rt14775				new	
+rt14801				new	
 rt1572a				new	
 rt288				new	
 rt3469				new	
@@ -324,6 +324,7 @@ rt13605				closed
 rt13609				closed
 rt13620				closed
 rt13659				closed
+rt13745				closed
 rt3445				closed
 rt3502				closed
 rt3507				closed		// pull down by explorer
