@@ -1,4 +1,3 @@
-1858.	[bug]		The flush-zones-on-shutdown option wasn't being
 1862.	[func]		Add additional zone data constancy checks.
 			named-checkzone has extended checking of NS, MX and 
 			SRV record and the hosts they reference.
@@ -6,6 +5,7 @@
 			New zone options: check-mx and integrity-check. 
 			[RT #4940]
 
+1858.	[bug]		The flush-zones-on-shutdown option wasn't being
 			parsed. [RT #14686]
 
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
