@@ -61,6 +61,9 @@
 
 1839.	[bug]		<isc/hash.h> was not being installed.
 
+1838.	[cleanup]	Don't allow Linux capabilities to be inherited.
+			[RT #13707]
+
 1837.	[bug]		Compile time option ISC_FACILITY was not effective
 			for 'named -u <user>'.  [RT #13714]
 
