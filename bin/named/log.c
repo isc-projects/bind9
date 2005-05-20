@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.33.2.1.10.4 2004/03/08 09:04:14 marka Exp $ */
+/* $Id: log.c,v 1.33.2.1.10.5 2005/05/20 01:21:37 marka Exp $ */
 
 #include <config.h>
 
@@ -154,6 +154,9 @@ ns_log_setdefaultchannels(isc_logconfig_t *lcfg) {
 isc_result_t
 ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 	isc_result_t result;
+#if ISC_FACILITY != LOG_DAEMON
+	isc_logdestination_t destination;
+#endif
 
 	if (! ns_g_logstderr) {
 		result = isc_log_createchannel(lcfg, "default_debug",
@@ -171,6 +174,15 @@ ns_log_setsafechannels(isc_logconfig_t *lcfg) {
 	} else {
 		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
 	}
+
+#if ISC_FACILITY != LOG_DAEMON
+	destination.facility = ISC_FACILITY;
+	result = isc_log_createchannel(lcfg, "default_syslog",
+				       ISC_LOG_TOSYSLOG, ISC_LOG_INFO,
+				       &destination, 0);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+#endif
 
 	result = ISC_R_SUCCESS;
 
