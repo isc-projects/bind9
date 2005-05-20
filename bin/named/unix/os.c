@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.21 2005/04/07 03:22:25 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.22 2005/05/20 01:37:19 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -162,7 +162,7 @@ linux_setcaps(unsigned int caps) {
 	memset(&cap, 0, sizeof(cap));
 	cap.effective = caps;
 	cap.permitted = caps;
-	cap.inheritable = caps;
+	cap.inheritable = 0;
 	if (syscall(SYS_capset, &caphead, &cap) < 0) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ns_main_earlyfatal("capset failed: %s:"
