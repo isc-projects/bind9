@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.23 2005/05/19 04:59:54 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.24 2005/05/24 04:44:36 marka Exp $ */
 
 /*! \file */
 
@@ -1617,7 +1617,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		/*
 		 * Remember bottom of zone.
 		 */
-		dns_name_dup(name, NULL, bottom);
+		dns_name_copy(name, bottom, NULL);
 
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
