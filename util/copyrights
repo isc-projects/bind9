@@ -1588,7 +1588,7 @@
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004
 ./lib/bind9/api					X	2001,2005
-./lib/bind9/check.c				C	2001,2002,2003,2004
+./lib/bind9/check.c				C	2001,2002,2003,2004,2005
 ./lib/bind9/getaddresses.c			C	2001,2002,2004
 ./lib/bind9/include/.cvsignore			X	2001
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004
