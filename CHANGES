@@ -1,3 +1,5 @@
+1863.	[bug]		rrset-order "fixed" error messages not complete.
+
 1858.	[bug]		The flush-zones-on-shutdown option wasn't being
 			parsed. [RT #14686]
 
