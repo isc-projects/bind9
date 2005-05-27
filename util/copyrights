@@ -417,7 +417,7 @@
 ./bin/tests/system/cacheclean/knowngood.dig.out	X	2001
 ./bin/tests/system/cacheclean/ns1/.cvsignore	X	2001
 ./bin/tests/system/cacheclean/ns1/example.db	ZONE	2001,2004
-./bin/tests/system/cacheclean/ns1/named.conf	CONF-C	2001,2004
+./bin/tests/system/cacheclean/ns1/named.conf	CONF-C	2001,2004,2005
 ./bin/tests/system/cacheclean/ns2/.cvsignore	X	2001
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004
@@ -426,7 +426,7 @@
 ./bin/tests/system/checknames/ns1/fail.update.db.in	ZONE	2004
 ./bin/tests/system/checknames/ns1/ignore.example.db.in	ZONE	2004
 ./bin/tests/system/checknames/ns1/ignore.update.db.in	ZONE	2004
-./bin/tests/system/checknames/ns1/named.conf	CONF-C	2004
+./bin/tests/system/checknames/ns1/named.conf	CONF-C	2004,2005
 ./bin/tests/system/checknames/ns1/root.db	ZONE	2004
 ./bin/tests/system/checknames/ns1/warn.example.db.in	ZONE	2004
 ./bin/tests/system/checknames/ns1/warn.update.db.in	ZONE	2004
@@ -530,7 +530,7 @@
 ./bin/tests/system/glue/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/glue/ns1/cache.in		ZONE	2000,2001,2004
 ./bin/tests/system/glue/ns1/mil.db		ZONE	2000,2001,2004
-./bin/tests/system/glue/ns1/named.conf		CONF-C	2000,2001,2004
+./bin/tests/system/glue/ns1/named.conf		CONF-C	2000,2001,2004,2005
 ./bin/tests/system/glue/ns1/net.db		ZONE	2000,2001,2004
 ./bin/tests/system/glue/ns1/root-servers.nil.db	ZONE	2000,2001,2004
 ./bin/tests/system/glue/ns1/root.db		ZONE	2000,2001,2004
@@ -750,7 +750,7 @@
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/xfer/ns1/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/xfer/ns2/.cvsignore		X	2000,2001
-./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004
+./bin/tests/system/xfer/ns2/named.conf		CONF-C	2000,2001,2004,2005
 ./bin/tests/system/xfer/ns3/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004
