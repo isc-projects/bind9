@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.14 2005/05/19 04:59:53 marka Exp $ */
+/* $Id: check.c,v 1.44.18.15 2005/05/27 00:50:32 marka Exp $ */
 
 /*! \file */
 
@@ -123,7 +123,7 @@ check_orderent(cfg_obj_t *ent, isc_log_t *logctx) {
 		result = ISC_R_FAILURE;
 	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
 		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "rrset-order: order 'fixed' not implemented");
+			    "rrset-order: order 'fixed' not fully implemented");
 	} else if (/* strcasecmp(cfg_obj_asstring(obj), "fixed") != 0 && */
 		   strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {
