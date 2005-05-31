@@ -31,76 +31,19 @@ rt13562				open	marka
 rt13587				review	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt13694				closed
 rt13753				review	
-rt13754				closed	
 rt13771				review	
 rt14616				review	
 rt14673				review	
-rt14686				closed	
 rt14695				review	
-rt1471				closed	
 rt14775				review	
 rt14801				review	
+rt14802				new	
 rt14814				review	
-rt14815				open	marka	
-rt1572a				closed		// bad rt#
-rt288				closed	
-rt3469				closed	
-rt3517				closed	
-rt3746_lidl			closed	
-rt4389				closed	
-rt4404				closed	
-rt4441				closed	
-rt4706				closed	
-rt4940				closed	
-rt5066a				closed	
-rt5182				closed	
-rt5192				closed	
-rt5204				closed	
-rt5206_1			open	marka	
-rt5228				closed	
-rt5299				closed	marka
-rt5318				closed	
-rt5397				closed	
-rt5456				closed	explorer
-rt5528				closed	
-rt5577				closed	
-rt5586				closed	
-rt5599				closed	
-rt5746a				closed		// rt3746
-rt5764				closed	
-rt6189				closed	
-rt6206				closed	
-rt6225				closed	
-rt6229				closed	
-rt6427				closed	
-rt6432				open	marka	
-rt6496				closed	
-rt6496a				open	marka	
-rt6539				closed
-rt6636				closed	
-rt6813				closed	
-rt7391				closed	
-rt8138				closed	
-rt8358				closed	
-rt8373				closed	
-rt8534				closed	
-rt8934				closed	
-rt9091				closed	
-rt9099				closed	
-rt9099x				closed	
-rt9164				closed	
-rt9189				closed	
-rt9239				closed	
-rt9239_base			closed
-rt9319				closed	
-rt9341				closed	
-rt9442				closed	
-rt9475				closed	
-rt9479				closed	
-rt9479_v9_2			closed	
-rt9976				closed
+rt14815				open	marka
+rt5206_1			open	marka
+rt6432				open	marka
+rt6496a				open	marka
 skan				new	
 skan-metazones1			new	
 skan_implicit_update1		new	
@@ -121,7 +64,6 @@ v9_3				active
 v9_3_0base			new	
 v9_3_0beta2_dlv			new	
 v9_4				active	
-ws20030312			closed	
 
 
 a6_remove			closed
@@ -324,12 +266,20 @@ rt13605				closed
 rt13609				closed
 rt13620				closed
 rt13659				closed
+rt13694				closed
 rt13707				closed
 rt13714				closed
 rt13745				closed
+rt13754				closed
+rt14686				closed
+rt1471				closed
+rt1572a				closed		// bad rt#
+rt288				closed
 rt3445				closed
+rt3469				closed
 rt3502				closed
 rt3507				closed		// pull down by explorer
+rt3517				closed
 rt3536				closed		// ixfr
 rt3588				closed
 rt3598				closed
@@ -337,6 +287,7 @@ rt3625				closed
 rt3653				closed
 rt3666				closed
 rt3746				closed
+rt3746_lidl			closed
 rt3892				closed
 rt3907				closed
 rt4090				closed
@@ -344,30 +295,79 @@ rt4112				closed
 rt4268				closed
 rt4319				closed
 rt4347				closed
+rt4389				closed
 rt4398				closed
+rt4404				closed
 rt4425				closed
+rt4441				closed
 rt4463				closed
 rt4663				closed
 rt4675				closed
 rt4687				closed
+rt4706				closed
 rt4715				closed
 rt4764				closed
 rt4796				closed
 rt4802				closed
 rt4898				closed
+rt4940				closed
 rt5033				closed
 rt5041				closed
 rt5042				closed
 rt5044				closed
 rt5066				closed
+rt5066a				closed
 rt5084				closed
 rt5099				closed
 rt5124				closed
 rt5127				closed
+rt5182				closed
+rt5192				closed
+rt5204				closed
+rt5228				closed
+rt5299				closed
+rt5318				closed
+rt5397				closed
+rt5456				closed
+rt5528				closed
+rt5577				closed
+rt5586				closed
+rt5599				closed
+rt5746a				closed		// rt3746
+rt5764				closed
+rt6189				closed
+rt6206				closed
+rt6225				closed
+rt6229				closed
+rt6427				closed
+rt6496				closed
+rt6539				closed
+rt6636				closed
+rt6813				closed
+rt7391				closed
 rt7572				closed
+rt8138				closed
+rt8358				closed
+rt8373				closed
+rt8534				closed
 rt8753				closed		// support IPv6-scoped addr in dig
+rt8934				closed
+rt9091				closed
+rt9099				closed
+rt9099x				closed
+rt9164				closed
+rt9189				closed
+rt9239				closed
+rt9239_base			closed
+rt9319				closed
+rt9341				closed
+rt9442				closed
+rt9475				closed
+rt9479				closed
+rt9479_v9_2			closed
 rt9940				closed
 rt9941				closed
+rt9976				closed
 rt9979				closed
 rt9989				closed
 rt9997				closed
@@ -381,5 +381,6 @@ v9_0				closed
 v9_1_3_delegation_only		closed
 ws20030120			closed		// workshop branch
 ws20030120_tcr			closed		// workshop branch
+ws20030312			closed
 ws20030312_optin		closed		// workshop branch
 ws20030312_tcr			closed		// workshop branch
