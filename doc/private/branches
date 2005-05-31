@@ -30,48 +30,48 @@ rt13555				open	marka
 rt13562				open	marka
 rt13587				review	
 rt13606				open	marka	// TSIG SHA256
-rt13662				new	
-rt13694				new	
-rt13753				new	
-rt13754				new	
-rt13771				new	
-rt14616				new	
-rt14673				new	
-rt14686				new	
-rt14695				new	
-rt1471				new	
-rt14775				new	
-rt14801				new	
-rt14814				new	
-rt14815				new	
-rt1572a				new	
-rt288				new	
-rt3469				new	
-rt3517				new	
-rt3746_lidl			new	
-rt4389				new	
-rt4404				new	
-rt4441				new	
-rt4706				new	
-rt4940				new	
-rt5066a				new	
-rt5182				new	
-rt5192				new	
-rt5204				new	
-rt5206_1			new	
-rt5228				new	
-rt5299				open	marka
-rt5318				new	
-rt5397				new	
-rt5456				review	explorer
-rt5528				new	
-rt5577				new	
-rt5586				new	
-rt5599				new	
-rt5746a				new	
-rt5764				new	
-rt6189				new	
-rt6206				new	
+rt13662				open	marka	// rrset-order fixed
+rt13694				closed
+rt13753				review	
+rt13754				closed	
+rt13771				review	
+rt14616				review	
+rt14673				review	
+rt14686				closed	
+rt14695				review	
+rt1471				closed	
+rt14775				review	
+rt14801				review	
+rt14814				review	
+rt14815				open	marka	
+rt1572a				closed		// bad rt#
+rt288				closed	
+rt3469				closed	
+rt3517				closed	
+rt3746_lidl			closed	
+rt4389				closed	
+rt4404				closed	
+rt4441				closed	
+rt4706				closed	
+rt4940				closed	
+rt5066a				closed	
+rt5182				closed	
+rt5192				closed	
+rt5204				closed	
+rt5206_1			open	marka	
+rt5228				closed	
+rt5299				closed	marka
+rt5318				closed	
+rt5397				closed	
+rt5456				closed	explorer
+rt5528				closed	
+rt5577				closed	
+rt5586				closed	
+rt5599				closed	
+rt5746a				closed		// rt3746
+rt5764				closed	
+rt6189				closed	
+rt6206				closed	
 rt6225				new	
 rt6229				new	
 rt6427				new	
