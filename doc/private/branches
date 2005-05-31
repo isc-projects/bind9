@@ -72,35 +72,35 @@ rt5746a				closed		// rt3746
 rt5764				closed	
 rt6189				closed	
 rt6206				closed	
-rt6225				new	
-rt6229				new	
-rt6427				new	
-rt6432				new	
-rt6496				new	
-rt6496a				new	
-rt6539				review	???
-rt6636				new	
-rt6813				new	
-rt7391				new	
-rt8138				new	
-rt8358				new	
-rt8373				new	
-rt8534				new	
-rt8934				new	
-rt9091				new	
-rt9099				new	
-rt9099x				new	
-rt9164				new	
-rt9189				new	
-rt9239				new	
-rt9239_base			new	
-rt9319				new	
-rt9341				new	
-rt9442				new	
-rt9475				new	
-rt9479				new	
-rt9479_v9_2			new	
-rt9976				review	jakob
+rt6225				closed	
+rt6229				closed	
+rt6427				closed	
+rt6432				open	marka	
+rt6496				closed	
+rt6496a				open	marka	
+rt6539				closed
+rt6636				closed	
+rt6813				closed	
+rt7391				closed	
+rt8138				closed	
+rt8358				closed	
+rt8373				closed	
+rt8534				closed	
+rt8934				closed	
+rt9091				closed	
+rt9099				closed	
+rt9099x				closed	
+rt9164				closed	
+rt9189				closed	
+rt9239				closed	
+rt9239_base			closed
+rt9319				closed	
+rt9341				closed	
+rt9442				closed	
+rt9475				closed	
+rt9479				closed	
+rt9479_v9_2			closed	
+rt9976				closed
 skan				new	
 skan-metazones1			new	
 skan_implicit_update1		new	
@@ -121,7 +121,7 @@ v9_3				active
 v9_3_0base			new	
 v9_3_0beta2_dlv			new	
 v9_4				active	
-ws20030312			new	
+ws20030312			closed	
 
 
 a6_remove			closed
