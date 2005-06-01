@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.275 2005/04/27 04:55:44 sra Exp $ */
+/* $Id: dighost.c,v 1.276 2005/06/01 01:56:49 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2937,7 +2937,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				printmessage(query, msg, ISC_TRUE);
 		} 
 #ifdef DIG_SIGCHASE
-		if ( do_sigchase) {	     
+		if (do_sigchase) {	     
 			chase_msg = isc_mem_allocate(mctx,
 						     sizeof(dig_message_t));
 			if (chase_msg == NULL) {
