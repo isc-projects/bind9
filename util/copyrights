@@ -1880,7 +1880,8 @@
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005
 ./lib/isc/.cvsignore				X	1999,2000,2001
-./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
+./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005
+./lib/isc/alpha/include/isc/atomic.h		C	2005
 ./lib/isc/api					X	1999,2000,2001
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005
@@ -1978,6 +1979,7 @@
 ./lib/isc/nls/.cvsignore			X	1999,2000,2001
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000,2001,2004
 ./lib/isc/nls/msgcat.c				C	1999,2000,2001,2004,2005
+./lib/isc/noatomic/include/isc/atomic.h		C	2005
 ./lib/isc/nothreads/.cvsignore			X	2000,2001
 ./lib/isc/nothreads/Makefile.in			MAKE	2000,2001,2004
 ./lib/isc/nothreads/condition.c			C	2000,2001,2004
@@ -2016,6 +2018,7 @@
 ./lib/isc/serial.c				C	1999,2000,2001,2004,2005
 ./lib/isc/sha1.c				C	2000,2001,2003,2004,2005
 ./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005
+./lib/isc/sparc64/include/isc/atomic.h		C	2005
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005
 ./lib/isc/strtoul.c				C	2003,2004,2005
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005
@@ -2096,7 +2099,7 @@
 ./lib/isc/win32/include/isc/once.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/platform.h		C	2001,2004,2005
 ./lib/isc/win32/include/isc/stat.h		C	2000,2001,2003,2004
-./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004
+./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004
@@ -2127,6 +2130,7 @@
 ./lib/isc/win32/unistd.h			C	2000,2001,2004
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/isc/win32/win32os.c			C	2002,2004
+./lib/isc/x86_32/include/isc/atomic.h		C	2005
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005
@@ -2325,7 +2329,7 @@
 ./ltmain.sh					X	1999,2000,2001
 ./make/.cvsignore				X	1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004
-./make/includes.in				MAKE	1999,2000,2001,2004
+./make/includes.in				MAKE	1999,2000,2001,2004,2005
 ./make/mkdep.in					X	1999,2000,2001
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005
 ./mkinstalldirs					X	1996
