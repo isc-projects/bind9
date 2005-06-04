@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.128.18.4 2005/04/29 00:16:01 marka Exp $ */
+/* $Id: rbt.c,v 1.128.18.5 2005/06/04 06:23:38 jinmei Exp $ */
 
 /*! \file */
 
@@ -26,6 +26,7 @@
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -62,6 +63,7 @@ struct dns_rbt {
 	isc_mem_t *		mctx;
 	dns_rbtnode_t *		root;
 	void			(*data_deleter)(void *, void *);
+	void			(*data_deleter2)(void *, void *);
 	void *			deleter_arg;
 	unsigned int		nodecount;
 	unsigned int		hashsize;
@@ -96,7 +98,6 @@ struct dns_rbt {
 #define DIRTY(node)	((node)->dirty)
 #define WILD(node)	((node)->wild)
 #define LOCKNUM(node)	((node)->locknum)
-#define REFS(node)	((node)->references)
 
 /*%
  * The variable length stuff stored after the node.
@@ -220,8 +221,9 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
  * Initialize a red/black tree of trees.
  */
 isc_result_t
-dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
-	       void *deleter_arg, dns_rbt_t **rbtp)
+dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
+		void (*deleter2)(void *, void *),
+		void *deleter_arg, dns_rbt_t **rbtp)
 {
 #ifdef DNS_RBT_USEHASH
 	isc_result_t result;
@@ -231,7 +233,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
-	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
+	REQUIRE((deleter == NULL && deleter2 == NULL) ? deleter_arg == NULL : 1);
 
 	rbt = (dns_rbt_t *)isc_mem_get(mctx, sizeof(*rbt));
 	if (rbt == NULL)
@@ -239,6 +241,7 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 
 	rbt->mctx = mctx;
 	rbt->data_deleter = deleter;
+	rbt->data_deleter2 = deleter2;
 	rbt->deleter_arg = deleter_arg;
 	rbt->root = NULL;
 	rbt->nodecount = 0;
@@ -256,6 +259,13 @@ dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	*rbtp = rbt;
 
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+	       void *deleter_arg, dns_rbt_t **rbtp)
+{
+	return (dns_rbt_create2(mctx, deleter, NULL, deleter_arg, rbtp));
 }
 
 /*
@@ -1276,6 +1286,9 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node),
 						  rbt->deleter_arg);
+			if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
+				rbt->data_deleter2(node,
+						   rbt->deleter_arg);
 			DATA(node) = NULL;
 
 			/*
@@ -1307,11 +1320,14 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
+	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
+		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC
 	node->magic = 0;
 #endif
+	dns_rbtnode_refdestroy(node);
 	isc_mem_put(rbt->mctx, node, NODE_SIZE(node));
 	rbt->nodecount--;
 
@@ -1436,9 +1452,9 @@ create_node(isc_mem_t *mctx, dns_name_t *name, dns_rbtnode_t **nodep) {
 #endif
 
 	LOCKNUM(node) = 0;
-	REFS(node) = 0;
 	WILD(node) = 0;
 	DIRTY(node) = 0;
+	dns_rbtnode_refinit(node, 0);
 	node->find_callback = 0;
 
 	MAKE_BLACK(node);
@@ -2021,6 +2037,8 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
+	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
+		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC
@@ -2061,6 +2079,8 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
+	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
+		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC

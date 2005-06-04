@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.h,v 1.8 2004/03/05 05:12:06 marka Exp $ */
+/* $Id: stdtime.h,v 1.8.18.1 2005/06/04 06:23:46 jinmei Exp $ */
 
 #ifndef ISC_STDTIME_H
 #define ISC_STDTIME_H 1
@@ -29,6 +29,12 @@
  * about its size.
  */
 typedef isc_uint32_t isc_stdtime_t;
+/*
+ * isc_stdtime32_t is a 32-bit version of isc_stdtime_t.  A variable of this
+ * type should only be used as an opaque integer (e.g.,) to compare two
+ * time values.
+ */
+typedef isc_uint32_t isc_stdtime32_t;
 
 ISC_LANG_BEGINDECLS
 
@@ -40,6 +46,11 @@ isc_stdtime_get(isc_stdtime_t *t);
  * Requires:
  *
  *	't' is a valid pointer.
+ */
+
+#define isc_stdtime_convert32(t, t32p) (*(t32p) = t)
+/*
+ * Convert the standard time to its 32-bit version.
  */
 
 ISC_LANG_ENDDECLS

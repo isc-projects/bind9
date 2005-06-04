@@ -124,6 +124,13 @@
 
 1814.	[func]		UNIX domain controls are now supported.
 
+1813.	[func]		Restructured the data locking framework using
+			architecture dependent atomic operations (when
+			available), improving response performance on
+			multi-processor machines significantly.
+			x86, x86_64, alpha, and sparc64 are currently
+			supported.
+
 1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
 			[RT #13453]
 

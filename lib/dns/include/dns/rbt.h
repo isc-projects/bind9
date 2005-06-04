@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.59.18.3 2005/04/29 00:16:17 marka Exp $ */
+/* $Id: rbt.h,v 1.59.18.4 2005/06/04 06:23:40 jinmei Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -24,6 +24,7 @@
 
 #include <isc/lang.h>
 #include <isc/magic.h>
+#include <isc/refcount.h>
 
 #include <dns/types.h>
 
@@ -41,6 +42,12 @@ ISC_LANG_BEGINDECLS
 #define DNS_RBTFIND_NOEXACT			0x02
 #define DNS_RBTFIND_NOPREDECESSOR		0x04
 /*@}*/
+
+#ifndef DNS_RBT_USEISCREFCOUNT
+#ifdef ISC_REFCOUNT_HAVEATOMIC
+#define DNS_RBT_USEISCREFCOUNT 1
+#endif
+#endif
 
 /*
  * These should add up to 30.
@@ -108,7 +115,11 @@ typedef struct dns_rbtnode {
 	unsigned int dirty:1;
 	unsigned int wild:1;
 	unsigned int locknum:DNS_RBT_LOCKLENGTH;
+#ifndef DNS_RBT_USEISCREFCOUNT
 	unsigned int references:DNS_RBT_REFLENGTH;
+#else
+	isc_refcount_t references; /* note that this is not in the bitfield */
+#endif
 	/*@}*/
 } dns_rbtnode_t;
 
@@ -211,7 +222,10 @@ typedef struct dns_rbtnodechain {
 /*****
  ***** Public interfaces.
  *****/
-
+isc_result_t
+dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
+		void (*deleter2)(void *, void *),
+		void *deleter_arg, dns_rbt_t **rbtp);
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	       void *deleter_arg, dns_rbt_t **rbtp);
@@ -843,6 +857,63 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
  *\li	#ISC_R_NOMORE		There was no successor.
  *\li	&lt;something_else>	Any error result from dns_name_concatenate.
  */
+
+/*
+ * Wrapper macros for manipulating the rbtnode reference counter:
+ *   Since we selectively use isc_refcount_t for the reference counter of
+ *   a rbtnode, operations on the counter depend on the actual type of it.
+ *   The following macros provide a common interface to these operations,
+ *   hiding the back-end.  The usage is the same as that of isc_refcount_xxx().
+ */
+#ifdef DNS_RBT_USEISCREFCOUNT
+#define dns_rbtnode_refinit(node, n)				\
+	do {							\
+ 		isc_refcount_init(&(node)->references, (n));	\
+	} while (0) 
+#define dns_rbtnode_refdestroy(node)				\
+	do {							\
+		isc_refcount_destroy(&(node)->references);	\
+	} while (0) 
+#define dns_rbtnode_refcurrent(node)				\
+	isc_refcount_current(&(node)->references)
+#define dns_rbtnode_refincrement0(node, refs)			\
+	do {							\
+		isc_refcount_increment0(&(node)->references, (refs)); \
+	} while (0) 
+#define dns_rbtnode_refincrement(node, refs)			\
+	do {							\
+		isc_refcount_increment(&(node)->references, (refs)); \
+	} while (0) 
+#define dns_rbtnode_refdecrement(node, refs)			\
+	do {							\
+		isc_refcount_decrement(&(node)->references, (refs)); \
+	} while (0) 
+#else  /* DNS_RBT_USEISCREFCOUNT */
+#define dns_rbtnode_refinit(node, n)	((node)->references = (n))
+#define dns_rbtnode_refdestroy(node)	(REQUIRE((node)->references == 0))
+#define dns_rbtnode_refcurrent(node)	((node)->references)
+#define dns_rbtnode_refincrement0(node, refs)			\
+	do {							\
+		unsigned int *_tmp = (unsigned int *)(refs);	\
+		(node)->references++;				\
+		if ((_tmp) != NULL)				\
+			(*_tmp) = (node)->references;		\
+	} while (0) 
+#define dns_rbtnode_refincrement(node, refs)			\
+	do {							\
+		REQUIRE((node)->references > 0);		\
+		(node)->references++;				\
+		if ((refs) != NULL)				\
+			(*refs) = (node)->references;		\
+	} while (0) 
+#define dns_rbtnode_refdecrement(node, refs)			\
+	do {							\
+		REQUIRE((node)->references > 0);		\
+		(node)->references--;				\
+		if ((refs) != NULL)				\
+			(*refs) = (node)->references;		\
+	} while (0) 
+#endif /* DNS_RBT_USEISCREFCOUNT */
 
 ISC_LANG_ENDDECLS
 

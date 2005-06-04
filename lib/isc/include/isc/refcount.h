@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.6.18.3 2005/04/29 00:17:01 marka Exp $ */
+/* $Id: refcount.h,v 1.6.18.4 2005/06/04 06:23:43 jinmei Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
+#include <isc/atomic.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
@@ -63,9 +64,14 @@ ISC_LANG_BEGINDECLS
 /*
  * void
  * isc_refcount_increment(isc_refcount_t *ref, unsigned int *targetp);
+ * isc_refcount_increment0(isc_refcount_t *ref, unsigned int *targetp);
  *
  * Increments the reference count, returning the new value in targetp if it's
- * not NULL.
+ * not NULL.  The reference counter typically begins with the initial counter
+ * of 1, and will be destroyed once the counter reaches 0.  Thus,
+ * isc_refcount_increment() additionally requires the previous counter be
+ * larger than 0 so that an error which violates the usage can be easily
+ * caught.  isc_refcount_increment0() does not have this restriction.
  *
  * Requires:
  *	ref != NULL.
@@ -87,6 +93,48 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 #ifdef ISC_PLATFORM_USETHREADS
+#ifdef ISC_PLATFORM_HAVEXADD
+
+#define ISC_REFCOUNT_HAVEATOMIC 1
+
+typedef struct isc_refcount {
+	isc_int32_t refs;
+} isc_refcount_t;
+
+#define isc_refcount_init(rp, n) ((rp)->refs = (n))
+#define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
+#define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
+
+#define isc_refcount_increment0(rp, tp)				\
+	do {							\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
+		isc_int32_t prev;				\
+		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
+		if (_tmp != NULL)				\
+			*_tmp = prev + 1;			\
+	} while (0)
+
+#define isc_refcount_increment(rp, tp)				\
+	do {							\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
+		isc_int32_t prev;				\
+		prev = isc_atomic_xadd(&(rp)->refs, 1);		\
+		REQUIRE(prev > 0);				\
+		if (_tmp != NULL)				\
+			*_tmp = prev + 1;			\
+	} while (0)
+
+#define isc_refcount_decrement(rp, tp)				\
+	do {							\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
+		isc_int32_t prev;				\
+		prev = isc_atomic_xadd(&(rp)->refs, -1);	\
+		REQUIRE(prev > 0);				\
+		if (_tmp != NULL)				\
+			*_tmp = prev - 1;			\
+	} while (0)
+
+#else  /* ISC_PLATFORM_HAVEXADD */
 
 typedef struct isc_refcount {
 	int refs;
@@ -112,6 +160,16 @@ typedef struct isc_refcount {
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
 /*% Increments the reference count, returning the new value in targetp if it's not NULL. */
+#define isc_refcount_increment0(rp, tp)				\
+	do {							\
+		unsigned int *_tmp = (unsigned int *)(tp);	\
+		LOCK(&(rp)->lock);				\
+		++((rp)->refs);					\
+		if (_tmp != NULL)				\
+			*_tmp = ((rp)->refs);			\
+		UNLOCK(&(rp)->lock);				\
+	} while (0)
+
 #define isc_refcount_increment(rp, tp)				\
 	do {							\
 		unsigned int *_tmp = (unsigned int *)(tp);	\
@@ -135,7 +193,8 @@ typedef struct isc_refcount {
 		UNLOCK(&(rp)->lock);				\
 	} while (0)
 
-#else
+#endif /* ISC_PLATFORM_HAVEXADD */
+#else  /* ISC_PLATFORM_USETHREADS */
 
 typedef struct isc_refcount {
 	int refs;
@@ -145,7 +204,7 @@ typedef struct isc_refcount {
 #define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
-#define isc_refcount_increment(rp, tp)					\
+#define isc_refcount_increment0(rp, tp)					\
 	do {								\
 		unsigned int *_tmp = (unsigned int *)(tp);		\
 		int _n = ++(rp)->refs;					\
@@ -153,15 +212,27 @@ typedef struct isc_refcount {
 			*_tmp = _n;					\
 	} while (0)
 
-#define isc_refcount_decrement(rp, tp)					\
+#define isc_refcount_increment(rp, tp)					\
 	do {								\
 		unsigned int *_tmp = (unsigned int *)(tp);		\
-		int _n = --(rp)->refs;					\
+		int _n;							\
+		REQUIRE((rp)->refs > 0);				\
+		_n = ++(rp)->refs;					\
 		if (_tmp != NULL)					\
 			*_tmp = _n;					\
 	} while (0)
 
-#endif
+#define isc_refcount_decrement(rp, tp)					\
+	do {								\
+		unsigned int *_tmp = (unsigned int *)(tp);		\
+		int _n;							\
+		REQUIRE((rp)->refs > 0);				\
+		_n = --(rp)->refs;					\
+		if (_tmp != NULL)					\
+			*_tmp = _n;					\
+	} while (0)
+
+#endif /* ISC_PLATFORM_USETHREADS */
 
 ISC_LANG_ENDDECLS
 

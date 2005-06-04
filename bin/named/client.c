@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.7 2005/04/27 05:00:30 sra Exp $ */
+/* $Id: client.c,v 1.219.18.8 2005/06/04 06:23:38 jinmei Exp $ */
 
 #include <config.h>
 
 #include <isc/formatcheck.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -471,7 +472,7 @@ exit_check(ns_client_t *client) {
 
 		CTRACE("free");
 		client->magic = 0;
-		isc_mem_put(client->mctx, client, sizeof(*client));
+		isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
 
 		goto unlock;
 	}
@@ -1667,6 +1668,7 @@ static isc_result_t
 client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ns_client_t *client;
 	isc_result_t result;
+	isc_mem_t *mctx = NULL;
 
 	/*
 	 * Caller must be holding the manager lock.
@@ -1678,9 +1680,31 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
-	client = isc_mem_get(manager->mctx, sizeof(*client));
-	if (client == NULL)
+#ifdef ISC_PLATFORM_USETHREADS
+	/*
+	 * When enabling threads, we use a separate memory context for each
+	 * client, since concurrent access to a shared context would cause
+	 * heavy contentions.  We also specify the NOLOCK flag on creation,
+	 * since we are very sure that multiple threads will never get access
+	 * to the context simultaneously.
+	 */
+	result = isc_mem_create2(0, 0, &mctx, ISC_MEMFLAG_NOLOCK);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+#else
+	/*
+	 * Otherwise, simply share manager's context.  Using a separate context
+	 * in this case would simply waste memory.
+	 */
+	isc_mem_attach(manager->mctx, &mctx);
+#endif
+
+	client = isc_mem_get(mctx, sizeof(*client));
+	if (client == NULL) {
+		isc_mem_detach(&mctx);
 		return (ISC_R_NOMEMORY);
+	}
+	client->mctx = mctx;
 
 	client->task = NULL;
 	result = isc_task_create(manager->taskmgr, 0, &client->task);
@@ -1697,7 +1721,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->timerset = ISC_FALSE;
 
 	client->message = NULL;
-	result = dns_message_create(manager->mctx, DNS_MESSAGE_INTENTPARSE,
+	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
 				    &client->message);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_timer;
@@ -1705,7 +1729,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	/* XXXRTH  Hardwired constants */
 
 	client->sendevent = (isc_socketevent_t *)
-			    isc_event_allocate(manager->mctx, client,
+			    isc_event_allocate(client->mctx, client,
 					       ISC_SOCKEVENT_SENDDONE,
 					       client_senddone, client,
 					       sizeof(isc_socketevent_t));
@@ -1714,14 +1738,14 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 		goto cleanup_message;
 	}
 
-	client->recvbuf = isc_mem_get(manager->mctx, RECV_BUFFER_SIZE);
+	client->recvbuf = isc_mem_get(client->mctx, RECV_BUFFER_SIZE);
 	if  (client->recvbuf == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_sendevent;
 	}
 
 	client->recvevent = (isc_socketevent_t *)
-			    isc_event_allocate(manager->mctx, client,
+			    isc_event_allocate(client->mctx, client,
 					       ISC_SOCKEVENT_RECVDONE,
 					       client_request, client,
 					       sizeof(isc_socketevent_t));
@@ -1731,7 +1755,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	}
 
 	client->magic = NS_CLIENT_MAGIC;
-	client->mctx = manager->mctx;
 	client->manager = NULL;
 	client->state = NS_CLIENTSTATE_INACTIVE;
 	client->newstate = NS_CLIENTSTATE_MAX;
@@ -1801,7 +1824,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	isc_event_free((isc_event_t **)&client->recvevent);
 
  cleanup_recvbuf:
-	isc_mem_put(manager->mctx, client->recvbuf, RECV_BUFFER_SIZE);
+	isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 
  cleanup_sendevent:
 	isc_event_free((isc_event_t **)&client->sendevent);
@@ -1818,7 +1841,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	isc_task_detach(&client->task);
 
  cleanup_client:
-	isc_mem_put(manager->mctx, client, sizeof(*client));
+	isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
 
 	return (result);
 }

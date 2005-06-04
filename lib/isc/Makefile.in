@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.81.18.1 2004/07/20 07:03:29 marka Exp $
+# $Id: Makefile.in,v 1.81.18.2 2005/06/04 06:23:41 jinmei Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -25,6 +25,7 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_THREAD_DIR@/include \
+		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
 		-I${srcdir}/include
 CDEFINES =

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.34.18.3 2005/04/27 05:02:27 sra Exp $ */
+/* $Id: platform.h.in,v 1.34.18.4 2005/06/04 06:23:43 jinmei Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -216,6 +216,29 @@
  * Define if the platform has <sys/un.h>.
  */
 @ISC_PLATFORM_HAVESYSUNH@
+
+/*
+ * If the "xadd" operation is available on this architecture,
+ * ISC_PLATFORM_HAVEXADD will be defined. 
+ */
+@ISC_PLATFORM_HAVEXADD@
+
+/*
+ * If the "atomic swap" operation is available on this architecture,
+ * ISC_PLATFORM_HAVEATOMICSTORE" will be defined. 
+ */
+@ISC_PLATFORM_HAVEATOMICSTORE@
+
+/*
+ * If the "compare-and-exchange" operation is available on this architecture,
+ * ISC_PLATFORM_HAVECMPXCHG will be defined. 
+ */
+@ISC_PLATFORM_HAVECMPXCHG@
+
+/*
+ * Define if Tru64 style ASM syntax must be used.
+ */
+@ISC_PLATFORM_USEOSFASM@
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA

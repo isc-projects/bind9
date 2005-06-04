@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.23 2005/04/27 05:01:25 sra Exp $ */
+/* $Id: resolver.c,v 1.284.18.24 2005/06/04 06:23:39 jinmei Exp $ */
 
 /*! \file */
 
@@ -262,6 +262,7 @@ typedef struct fctxbucket {
 	isc_mutex_t			lock;
 	ISC_LIST(fetchctx_t)		fctxs;
 	isc_boolean_t			exiting;
+	isc_mem_t *			mctx;
 } fctxbucket_t;
 
 typedef struct alternate {
@@ -943,12 +944,13 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	dns_message_reset(fctx->rmessage, DNS_MESSAGE_INTENTPARSE);
 
-	query = isc_mem_get(res->mctx, sizeof(*query));
+	query = isc_mem_get(res->buckets[fctx->bucketnum].mctx,
+			    sizeof(*query));
 	if (query == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto stop_idle_timer;
 	}
-	query->mctx = res->mctx;
+	query->mctx = res->buckets[fctx->bucketnum].mctx;
 	query->options = options;
 	query->attributes = 0;
 	query->sends = 0;
@@ -1066,7 +1068,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
  cleanup_query:
 	query->magic = 0;
-	isc_mem_put(res->mctx, query, sizeof(*query));
+	isc_mem_put(res->buckets[fctx->bucketnum].mctx,
+		    query, sizeof(*query));
 
  stop_idle_timer:
 	RUNTIME_CHECK(fctx_stopidletimer(fctx) == ISC_R_SUCCESS);
@@ -1625,7 +1628,8 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 
 	FCTXTRACE("add_bad");
 
-	sa = isc_mem_get(fctx->res->mctx, sizeof(*sa));
+	sa = isc_mem_get(fctx->res->buckets[fctx->bucketnum].mctx,
+			 sizeof(*sa));
 	if (sa == NULL)
 		return;
 	*sa = *address;
@@ -2374,21 +2378,21 @@ fctx_destroy(fetchctx_t *fctx) {
 	     sa = next_sa) {
 		next_sa = ISC_LIST_NEXT(sa, link);
 		ISC_LIST_UNLINK(fctx->bad, sa, link);
-		isc_mem_put(res->mctx, sa, sizeof(*sa));
+		isc_mem_put(res->buckets[bucketnum].mctx, sa, sizeof(*sa));
 	}
 
 	isc_timer_detach(&fctx->timer);
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
 	if (dns_name_countlabels(&fctx->domain) > 0)
-		dns_name_free(&fctx->domain, res->mctx);
+		dns_name_free(&fctx->domain, res->buckets[bucketnum].mctx);
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
-	dns_name_free(&fctx->name, res->mctx);
+	dns_name_free(&fctx->name, res->buckets[bucketnum].mctx);
 	dns_db_detach(&fctx->cache);
 	dns_adb_detach(&fctx->adb);
-	isc_mem_free(res->mctx, fctx->info);
-	isc_mem_put(res->mctx, fctx, sizeof(*fctx));
+	isc_mem_free(res->buckets[bucketnum].mctx, fctx->info);
+	isc_mem_put(res->buckets[bucketnum].mctx, fctx, sizeof(*fctx));
 
 	LOCK(&res->nlock);
 	res->nfctx--;
@@ -2633,8 +2637,8 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	clone = NULL;
 	isc_task_attach(task, &clone);
 	event = (dns_fetchevent_t *)
-		isc_event_allocate(fctx->res->mctx, clone,
-				   DNS_EVENT_FETCHDONE,
+		isc_event_allocate(fctx->res->buckets[fctx->bucketnum].mctx,
+				   clone, DNS_EVENT_FETCHDONE,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		isc_task_detach(&clone);
@@ -2685,19 +2689,19 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	 */
 	REQUIRE(fctxp != NULL && *fctxp == NULL);
 
-	fctx = isc_mem_get(res->mctx, sizeof(*fctx));
+	fctx = isc_mem_get(res->buckets[bucketnum].mctx, sizeof(*fctx));
 	if (fctx == NULL)
 		return (ISC_R_NOMEMORY);
 	dns_name_format(name, buf, sizeof(buf));
 	dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 	strcat(buf, "/");	/* checked */
 	strcat(buf, typebuf);	/* checked */
-	fctx->info = isc_mem_strdup(res->mctx, buf);
+	fctx->info = isc_mem_strdup(res->buckets[bucketnum].mctx, buf);
 	if (fctx->info == NULL)
 		goto cleanup_fetch;
 	FCTXTRACE("create");
 	dns_name_init(&fctx->name, NULL);
-	result = dns_name_dup(name, res->mctx, &fctx->name);
+	result = dns_name_dup(name, res->buckets[bucketnum].mctx, &fctx->name);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_info;
 	dns_name_init(&fctx->domain, NULL);
@@ -2772,7 +2776,9 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 						      NULL);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_name;
-			result = dns_name_dup(domain, res->mctx, &fctx->domain);
+			result = dns_name_dup(domain,
+					      res->buckets[bucketnum].mctx,
+					      &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
 				dns_rdataset_disassociate(&fctx->nameservers);
 				goto cleanup_name;
@@ -2781,12 +2787,16 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 			/*
 			 * We're in forward-only mode.  Set the query domain.
 			 */
-			result = dns_name_dup(domain, res->mctx, &fctx->domain);
+			result = dns_name_dup(domain,
+					      res->buckets[bucketnum].mctx,
+					      &fctx->domain);
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_name;
 		}
 	} else {
-		result = dns_name_dup(domain, res->mctx, &fctx->domain);
+		result = dns_name_dup(domain,
+				      res->buckets[bucketnum].mctx,
+				      &fctx->domain);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_name;
 		dns_rdataset_clone(nameservers, &fctx->nameservers);
@@ -2795,14 +2805,16 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	INSIST(dns_name_issubdomain(&fctx->name, &fctx->domain));
 
 	fctx->qmessage = NULL;
-	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTRENDER,
+	result = dns_message_create(res->buckets[bucketnum].mctx,
+				    DNS_MESSAGE_INTENTRENDER,
 				    &fctx->qmessage);
 
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_domain;
 
 	fctx->rmessage = NULL;
-	result = dns_message_create(res->mctx, DNS_MESSAGE_INTENTPARSE,
+	result = dns_message_create(res->buckets[bucketnum].mctx,
+				    DNS_MESSAGE_INTENTPARSE,
 				    &fctx->rmessage);
 
 	if (result != ISC_R_SUCCESS)
@@ -2875,18 +2887,19 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 
  cleanup_domain:
 	if (dns_name_countlabels(&fctx->domain) > 0)
-		dns_name_free(&fctx->domain, res->mctx);
+		dns_name_free(&fctx->domain, res->buckets[bucketnum].mctx);
 	if (dns_rdataset_isassociated(&fctx->nameservers))
 		dns_rdataset_disassociate(&fctx->nameservers);
 
  cleanup_name:
-	dns_name_free(&fctx->name, res->mctx);
+	dns_name_free(&fctx->name, res->buckets[bucketnum].mctx);
 
  cleanup_info:
-	isc_mem_free(res->mctx, fctx->info);
+	isc_mem_free(res->buckets[bucketnum].mctx, fctx->info);
 
  cleanup_fetch:
-	isc_mem_put(res->mctx, fctx, sizeof(*fctx));
+	isc_mem_putanddetach(&res->buckets[bucketnum].mctx,
+			     fctx, sizeof(*fctx));
 
 	return (result);
 }
@@ -4424,11 +4437,14 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 		 *	   if so we should bail out.
 		 */
 		INSIST(dns_name_countlabels(&fctx->domain) > 0);
-		dns_name_free(&fctx->domain, fctx->res->mctx);
+		dns_name_free(&fctx->domain,
+			      fctx->res->buckets[fctx->bucketnum].mctx);
 		if (dns_rdataset_isassociated(&fctx->nameservers))
 			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_name_init(&fctx->domain, NULL);
-		result = dns_name_dup(ns_name, fctx->res->mctx, &fctx->domain);
+		result = dns_name_dup(ns_name,
+				      fctx->res->buckets[fctx->bucketnum].mctx,
+				      &fctx->domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		fctx->attributes |= FCTX_ATTR_WANTCACHE;
@@ -4883,9 +4899,11 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		if (dns_rdataset_isassociated(&fctx->nameservers))
 			dns_rdataset_disassociate(&fctx->nameservers);
 		dns_rdataset_clone(fevent->rdataset, &fctx->nameservers);
-		dns_name_free(&fctx->domain, fctx->res->mctx);
+		dns_name_free(&fctx->domain,
+			      fctx->res->buckets[bucketnum].mctx);
 		dns_name_init(&fctx->domain, NULL);
-		result = dns_name_dup(&fctx->nsname, fctx->res->mctx,
+		result = dns_name_dup(&fctx->nsname,
+				      fctx->res->buckets[bucketnum].mctx,
 				      &fctx->domain);
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, DNS_R_SERVFAIL);
@@ -5510,9 +5528,11 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
 				return;
 			}
-			dns_name_free(&fctx->domain, fctx->res->mctx);
+			dns_name_free(&fctx->domain,
+				      fctx->res->buckets[fctx->bucketnum].mctx);
 			dns_name_init(&fctx->domain, NULL);
-			result = dns_name_dup(fname, fctx->res->mctx,
+			result = dns_name_dup(fname,
+					      fctx->res->buckets[fctx->bucketnum].mctx,
 					      &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
 				fctx_done(fctx, DNS_R_SERVFAIL);
@@ -5610,6 +5630,7 @@ destroy(dns_resolver_t *res) {
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
 		DESTROYLOCK(&res->buckets[i].lock);
+		isc_mem_detach(&res->buckets[i].mctx);
 	}
 	isc_mem_put(res->mctx, res->buckets,
 		    res->nbuckets * sizeof(fctxbucket_t));
@@ -5731,6 +5752,9 @@ dns_resolver_create(dns_view_t *view,
 			DESTROYLOCK(&res->buckets[i].lock);
 			goto cleanup_buckets;
 		}
+		res->buckets[i].mctx = NULL;
+		result = isc_mem_create(0, 0, &res->buckets[i].mctx);
+		INSIST(result == ISC_R_SUCCESS); /* XXXJT: need care */
 		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
@@ -6130,7 +6154,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 	if (fetch == NULL)
 		return (ISC_R_NOMEMORY);
 
-	bucketnum = dns_name_hash(name, ISC_FALSE) % res->nbuckets;
+	bucketnum = dns_name_fullhash(name, ISC_FALSE) % res->nbuckets;
 
 	LOCK(&res->buckets[bucketnum].lock);
 

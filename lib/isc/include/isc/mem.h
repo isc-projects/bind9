@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.59.18.3 2005/04/29 00:16:59 marka Exp $ */
+/* $Id: mem.h,v 1.59.18.4 2005/06/04 06:23:43 jinmei Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -115,6 +115,11 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define _ISC_MEM_FLARG
 #endif
 
+/*
+ * Flags for isc_mem_create2()calls.
+ */
+#define ISC_MEMFLAG_NOLOCK	0x00000001	 /* no lock is necessary */
+
 #define isc_mem_get(c, s)	isc__mem_get((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s)	isc__mem_allocate((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_strdup(c, p)	isc__mem_strdup((c), (p) _ISC_MEM_FILELINE)
@@ -183,10 +188,20 @@ isc_result_t
 isc_mem_create(size_t max_size, size_t target_size,
 	       isc_mem_t **mctxp);
 
+isc_result_t
+isc_mem_create2(size_t max_size, size_t target_size,
+		isc_mem_t **mctxp, unsigned int flags);
+
 isc_result_t 
 isc_mem_createx(size_t max_size, size_t target_size,
 		isc_memalloc_t memalloc, isc_memfree_t memfree,
 		void *arg, isc_mem_t **mctxp);
+
+isc_result_t 
+isc_mem_createx2(size_t max_size, size_t target_size,
+		 isc_memalloc_t memalloc, isc_memfree_t memfree,
+		 void *arg, isc_mem_t **mctxp, unsigned int flags);
+
 /*!<
  * \brief Create a memory context.
  *
@@ -208,6 +223,12 @@ isc_mem_createx(size_t max_size, size_t target_size,
  * passing them the argument 'arg'.  A memory context created
  * using isc_mem_create() will use the standard library malloc()
  * and free().
+ *
+ * If ISC_MEMFLAG_NOLOCK is set in 'flags', the corresponding memory context
+ * will be accessed without locking.  The user who creates the context must
+ * ensure there be no race.  Since this can be a source of bug, it is generally
+ * inadvisable to use this flag unless the user is very sure about the race
+ * condition and the access to the object is highly performance sensitive.
  *
  * Requires:
  * mctxp != NULL && *mctxp == NULL */

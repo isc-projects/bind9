@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.21.18.2 2005/04/29 00:17:02 marka Exp $ */
+/* $Id: rwlock.h,v 1.21.18.3 2005/06/04 06:23:44 jinmei Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
@@ -36,10 +36,47 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #ifdef ISC_PLATFORM_USETHREADS
+#if defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG)
+#define ISC_RWLOCK_USEATOMIC 1
+#endif
+
 struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
+
+#if defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG)
+	/*
+	 * When some atomic instructions with hardware assistance are
+	 * available, rwlock will use those so that concurrent readers do not
+	 * interfere with each other through mutex as long as no writers
+	 * appear, massively reducing the lock overhead in the typical case.
+	 *
+	 * The basic algorithm of this approach is the "simple
+	 * writer-preference lock" shown in the following URL:
+	 * http://www.cs.rochester.edu/u/scott/synchronization/pseudocode/rw.html
+	 * but our implementation does not rely on the spin lock unlike the
+	 * original algorithm to be more portable as a user space application.
+	 */
+
+	/* Read or modified atomically. */
+	isc_int32_t		write_requests;
+	isc_int32_t		write_completions;
+	isc_int32_t		cnt_and_flag;
+
+	/* Locked by lock. */
+	isc_condition_t		readable;
+	isc_condition_t		writeable;
+	unsigned int		readers_waiting;
+
+	/* Locked by rwlock itself. */
+	unsigned int		write_granted;
+
+	/* Unlocked. */
+	unsigned int		write_quota;
+
+#else  /* ISC_PLATFORM_HAVEXADD && ISC_PLATFORM_HAVECMPXCHG */
+
 	/*%< Locked by lock. */
 	isc_condition_t		readable;
 	isc_condition_t		writeable;
@@ -60,6 +97,7 @@ struct isc_rwlock {
 	unsigned int		read_quota;
 	unsigned int		write_quota;
 	isc_rwlocktype_t	original;
+#endif  /* ISC_PLATFORM_HAVEXADD && ISC_PLATFORM_HAVECMPXCHG */
 };
 #else /* ISC_PLATFORM_USETHREADS */
 struct isc_rwlock {
