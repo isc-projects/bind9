@@ -7,6 +7,8 @@
 			New zone options: check-mx and integrity-check. 
 			[RT #4940]
 
+1859.	[func]		Add support for CH A record. [RT #14695]
+
 1858.	[bug]		The flush-zones-on-shutdown option wasn't being
 			parsed. [RT #14686]
 

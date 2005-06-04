@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.148.18.5 2005/05/19 04:59:53 marka Exp $ */
+/* $Id: master.c,v 1.148.18.6 2005/06/04 00:39:03 marka Exp $ */
 
 /*! \file */
 
@@ -714,6 +714,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 	case dns_rdatatype_a:
 	case dns_rdatatype_aaaa:
 		if (lctx->zclass == dns_rdataclass_in ||
+		    lctx->zclass == dns_rdataclass_ch ||
 		    lctx->zclass == dns_rdataclass_hs)
 			break;
 		/* FALLTHROUGH */

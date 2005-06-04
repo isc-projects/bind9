@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.h,v 1.30.18.2 2005/04/29 00:16:56 marka Exp $ */
+/* $Id: lex.h,v 1.30.18.3 2005/06/04 00:39:05 marka Exp $ */
 
 #ifndef ISC_LEX_H
 #define ISC_LEX_H 1
@@ -86,9 +86,10 @@ ISC_LANG_BEGINDECLS
 #define ISC_LEXOPT_DNSMULTILINE		0x20	/*%< Handle '(' and ')'. */
 #define ISC_LEXOPT_NOMORE		0x40	/*%< Want "no more" token. */
 
-#define ISC_LEXOPT_CNUMBER		0x80    /*%< Regognize octal and hex */
+#define ISC_LEXOPT_CNUMBER		0x80    /*%< Regognize octal and hex. */
 #define ISC_LEXOPT_ESCAPE		0x100	/*%< Recognize escapes. */
 #define ISC_LEXOPT_QSTRINGMULTILINE	0x200	/*%< Allow multiline "" strings */
+#define ISC_LEXOPT_OCTAL		0x400	/*%< Expect a octal number. */
 /*@}*/
 /*@{*/
 /*!
@@ -312,6 +313,23 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
  * convenience function that sets appropriate options and handles quoted
  * strings and end of line correctly for master files.  It also ungets
  * unexpected tokens.
+ *
+ * Requires:
+ *\li	'lex' is a valid lexer.
+ *
+ *\li	'token' is a valid pointer
+ *
+ * Returns:
+ *
+ * \li	any return code from isc_lex_gettoken().
+ */
+
+isc_result_t
+isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, isc_boolean_t eol);
+/*%<
+ * Get the next token from a DNS master file type stream.  This is a
+ * convenience function that sets appropriate options and handles end
+ * of line correctly for master files.  It also ungets unexpected tokens.
  *
  * Requires:
  *\li	'lex' is a valid lexer.

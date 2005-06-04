@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.73.18.2 2005/04/29 00:15:53 marka Exp $ */
+/* $Id: gen.c,v 1.73.18.3 2005/06/04 00:39:03 marka Exp $ */
 
 /*! \file */
 
@@ -831,13 +831,10 @@ main(int argc, char **argv) {
 	} while (0)
 
 		for (cc = classes; cc != NULL; cc = cc->next) {
-			if (cc->rdclass == 4) {
-				PRINTCLASS("ch", 3);
+			if (cc->rdclass == 3)
 				PRINTCLASS("chaos", 3);
-
-			} else if (cc->rdclass == 255) {
+			else if (cc->rdclass == 255)
 				PRINTCLASS("none", 254);
-			}
 			PRINTCLASS(cc->classname, cc->rdclass);
 		}
 
