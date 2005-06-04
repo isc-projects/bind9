@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.435 2005/05/24 04:30:10 marka Exp $ */
+/* $Id: zone.c,v 1.436 2005/06/04 05:32:47 jinmei Exp $ */
 
 /*! \file */
 
@@ -27,6 +27,7 @@
 #include <isc/random.h>
 #include <isc/ratelimiter.h>
 #include <isc/refcount.h>
+#include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
@@ -127,6 +128,18 @@ typedef ISC_LIST(dns_io_t) dns_iolist_t;
 #define LOCKED_ZONE(z) ISC_TRUE
 #endif
 
+#ifdef ISC_RWLOCK_USEATOMIC
+#define ZONEDB_INITLOCK(l)	isc_rwlock_init((l), 0, 0)
+#define ZONEDB_DESTROYLOCK(l)	isc_rwlock_destroy(l)
+#define ZONEDB_LOCK(l, t)	RWLOCK((l), (t))
+#define ZONEDB_UNLOCK(l, t)	RWUNLOCK((l), (t))
+#else
+#define ZONEDB_INITLOCK(l)	isc_mutex_init(l)
+#define ZONEDB_DESTROYLOCK(l)	DESTROYLOCK(l)
+#define ZONEDB_LOCK(l, t)	LOCK(l)
+#define ZONEDB_UNLOCK(l, t)	UNLOCK(l)
+#endif
+
 struct dns_zone {
 	/* Unlocked */
 	unsigned int		magic;
@@ -137,8 +150,14 @@ struct dns_zone {
 	isc_mem_t		*mctx;
 	isc_refcount_t		erefs;
 
+#ifdef ISC_RWLOCK_USEATOMIC
+	isc_rwlock_t		dblock;
+#else
+	isc_mutex_t		dblock;
+#endif
+	dns_db_t		*db;		/* Locked by dblock */
+
 	/* Locked */
-	dns_db_t		*db;
 	dns_zonemgr_t		*zmgr;
 	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timer_t		*timer;
@@ -507,21 +526,31 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	if (zone == NULL)
 		return (ISC_R_NOMEMORY);
 
+	zone->mctx = NULL;
+	isc_mem_attach(mctx, &zone->mctx);
+
 	result = isc_mutex_init(&zone->lock);
 	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, zone, sizeof(*zone));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_mutex_init() failed: %s",
 				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		result = ISC_R_UNEXPECTED;
+		goto free_zone;
+	}
+
+	result = ZONEDB_INITLOCK(&zone->dblock);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "isc_mutex_init() failed: %s",
+				 isc_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto free_mutex;
 	}
 
 	/* XXX MPA check that all elements are initialised */
-	zone->mctx = NULL;
 #ifdef DNS_ZONE_CHECKLOCK
 	zone->locked = ISC_FALSE;
 #endif
-	isc_mem_attach(mctx, &zone->mctx);
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
@@ -605,7 +634,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 	if (result != ISC_R_SUCCESS)
-		goto free_mutex;
+		goto free_dblock;
 
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
@@ -613,8 +642,13 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
 
+ free_dblock:
+	ZONEDB_DESTROYLOCK(&zone->dblock);
+
  free_mutex:
 	DESTROYLOCK(&zone->lock);
+
+ free_zone:
 	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
 	return (result);
 }
@@ -686,6 +720,7 @@ zone_free(dns_zone_t *zone) {
 		dns_ssutable_detach(&zone->ssutable);
 
 	/* last stuff */
+	ZONEDB_DESTROYLOCK(&zone->dblock);
 	DESTROYLOCK(&zone->lock);
 	isc_refcount_destroy(&zone->erefs);
 	zone->magic = 0;
@@ -857,6 +892,7 @@ dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache) {
 	if (zone->acache != NULL)
 		dns_acache_detach(&zone->acache);
 	dns_acache_attach(acache, &zone->acache);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL) {
 		isc_result_t result;
 
@@ -873,6 +909,7 @@ dns_zone_setacache(dns_zone_t *zone, dns_acache_t *acache) {
 					 isc_result_totext(result));
 		}
 	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
 }
 
@@ -1212,12 +1249,14 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 		goto fail;
 
 	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	dns_db_currentversion(zone->db, &version);
 	result = dns_master_dumpinc(zone->mctx, zone->db, version,
 				    &dns_master_style_default,
 				    zone->masterfile, zone->task,
 				    dump_done, zone, &zone->dctx);
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
 	if (result != DNS_R_CONTINUE)
 		goto fail;
@@ -1863,12 +1902,15 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	}
 #endif
 
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	if (zone->db != NULL) {
 		result = zone_replacedb(zone, db, ISC_FALSE);
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 	} else {
 		zone_attachdb(zone, db);
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		DNS_ZONE_SETFLAG(zone,
 				 DNS_ZONEFLG_LOADED|DNS_ZONEFLG_NEEDNOTIFY);
 	}
@@ -2565,12 +2607,12 @@ dns_zone_getdb(dns_zone_t *zone, dns_db_t **dpb) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db == NULL)
 		result = DNS_R_NOTLOADED;
 	else
 		dns_db_attach(zone->db, dpb);
-	UNLOCK_ZONE(zone);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
 	return (result);
 }
@@ -2950,9 +2992,11 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	ENTER;
 
  redo:
-	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	LOCK_ZONE(zone);
 	if (zone->masterfile != NULL)
 		masterfile = isc_mem_strdup(zone->mctx, zone->masterfile);
 	UNLOCK_ZONE(zone);
@@ -3026,10 +3070,10 @@ dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL)
 		dns_db_attach(zone->db, &db);
-	UNLOCK_ZONE(zone);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	if (db == NULL)
 		return (DNS_R_NOTLOADED);
 
@@ -3088,7 +3132,9 @@ zone_unload(dns_zone_t *zone) {
 
 	REQUIRE(LOCKED_ZONE(zone));
 
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	zone_detachdb(zone);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADED);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
 }
@@ -3469,6 +3515,7 @@ dns_zone_notify(dns_zone_t *zone) {
 static void
 zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_dbnode_t *node = NULL;
+	dns_db_t *zonedb = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_name_t *origin = NULL;
 	dns_name_t master;
@@ -3486,7 +3533,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	dns_notifytype_t notifytype;
 	unsigned int flags = 0;
 	isc_boolean_t loggednotify = ISC_FALSE;
-	dns_db_t *db = NULL;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -3506,13 +3552,6 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	    zone->type != dns_zone_master)
 		return;
 
-	LOCK_ZONE(zone);
-	if (zone->db != NULL)
-		dns_db_attach(zone->db, &db);
-	UNLOCK_ZONE(zone);
-	if (db == NULL)
-		return;
-
 	origin = &zone->origin;
 
 	/*
@@ -3525,13 +3564,19 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	/*
 	 * Get SOA RRset.
 	 */
-	dns_db_currentversion(db, &version);
-	result = dns_db_findnode(db, origin, ISC_FALSE, &node);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL)
+		dns_db_attach(zone->db, &zonedb);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zonedb == NULL)
+		return;
+	dns_db_currentversion(zonedb, &version);
+	result = dns_db_findnode(zonedb, origin, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup1;
 
 	dns_rdataset_init(&soardset);
-	result = dns_db_findrdataset(db, node, version, dns_rdatatype_soa,
+	result = dns_db_findrdataset(zonedb, node, version, dns_rdatatype_soa,
 				     dns_rdatatype_none, 0, &soardset, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup2;
@@ -3588,7 +3633,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	 */
 
 	dns_rdataset_init(&nsrdset);
-	result = dns_db_findrdataset(db, node, version, dns_rdatatype_ns,
+	result = dns_db_findrdataset(zonedb, node, version, dns_rdatatype_ns,
 				     dns_rdatatype_none, 0, &nsrdset, NULL);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup3;
@@ -3645,10 +3690,10 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	if (dns_name_dynamic(&master))
 		dns_name_free(&master, zone->mctx);
  cleanup2:
-	dns_db_detachnode(db, &node);
+	dns_db_detachnode(zonedb, &node);
  cleanup1:
-	dns_db_closeversion(db, &version, ISC_FALSE);
-	dns_db_detach(&db);
+	dns_db_closeversion(zonedb, &version, ISC_FALSE);
+	dns_db_detach(&zonedb);
 }
 
 /***
@@ -3895,10 +3940,10 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	 * Tidy up.
 	 */
 	dns_db_closeversion(stub->db, &stub->version, ISC_TRUE);
-	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	if (zone->db == NULL)
 		zone_attachdb(zone, stub->db);
-	UNLOCK_ZONE(zone);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	dns_db_detach(&stub->db);
 
 	if (zone->masterfile != NULL) {
@@ -4637,9 +4682,13 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 		 * new one and attach it to the zone once we have the NS
 		 * RRset and glue.
 		 */
-		if (zone->db != NULL)
+		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+		if (zone->db != NULL) {
 			dns_db_attach(zone->db, &stub->db);
-		else {
+			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+		} else {
+			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+
 			INSIST(zone->db_argc >= 1);
 			result = dns_db_create(zone->mctx, zone->db_argv[0],
 					       &zone->origin, dns_dbtype_stub,
@@ -5006,6 +5055,7 @@ static isc_result_t
 notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		     dns_message_t **messagep)
 {
+	dns_db_t *zonedb = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_dbversion_t *version = NULL;
 	dns_message_t *message = NULL;
@@ -5071,15 +5121,20 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	if (result != ISC_R_SUCCESS)
 		goto soa_cleanup;
 
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	INSIST(zone->db != NULL); /* XXXJT: is this assumption correct? */
+	dns_db_attach(zone->db, &zonedb);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
+
 	dns_name_init(tempname, NULL);
 	dns_name_clone(&zone->origin, tempname);
-	dns_db_currentversion(zone->db, &version);
-	result = dns_db_findnode(zone->db, tempname, ISC_FALSE, &node);
+	dns_db_currentversion(zonedb, &version);
+	result = dns_db_findnode(zonedb, tempname, ISC_FALSE, &node);
 	if (result != ISC_R_SUCCESS)
 		goto soa_cleanup;
 
 	dns_rdataset_init(&rdataset);
-	result = dns_db_findrdataset(zone->db, node, version,
+	result = dns_db_findrdataset(zonedb, node, version,
 				     dns_rdatatype_soa,
 				     dns_rdatatype_none, 0, &rdataset,
 				     NULL);
@@ -5123,9 +5178,11 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 
  soa_cleanup:
 	if (node != NULL)
-		dns_db_detachnode(zone->db, &node);
+		dns_db_detachnode(zonedb, &node);
 	if (version != NULL)
-		dns_db_closeversion(zone->db, &version, ISC_FALSE);
+		dns_db_closeversion(zonedb, &version, ISC_FALSE);
+	if (zonedb != NULL)
+		dns_db_detach(&zonedb);
 	if (tempname != NULL)
 		dns_message_puttempname(message, &tempname);
 	if (temprdata != NULL)
@@ -5689,8 +5746,10 @@ dns_zone_settask(dns_zone_t *zone, isc_task_t *task) {
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
 	isc_task_attach(task, &zone->task);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	if (zone->db != NULL)
 		dns_db_settask(zone->db, zone->task);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
 }
 
@@ -5795,7 +5854,9 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	LOCK_ZONE(zone);
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	result = zone_replacedb(zone, db, dump);
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	UNLOCK_ZONE(zone);
 	return (result);
 }
@@ -5808,7 +5869,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	unsigned int nscount = 0;
 
 	/*
-	 * 'zone' locked by caller.
+	 * 'zone' and 'zonedb' locked by caller.
 	 */
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(LOCKED_ZONE(zone));
@@ -5935,6 +5996,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	return (result);
 }
 
+/* The caller must hold the dblock as a writer. */
 static inline void
 zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
 	REQUIRE(zone->db == NULL && db != NULL);
@@ -5951,6 +6013,7 @@ zone_attachdb(dns_zone_t *zone, dns_db_t *db) {
 	}
 }
 
+/* The caller must hold the dblock as a writer. */
 static inline void
 zone_detachdb(dns_zone_t *zone) {
 	REQUIRE(zone->db != NULL);
@@ -5989,8 +6052,11 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		/*
 		 * Has the zone expired underneath us?
 		 */
-		if (zone->db == NULL)
+		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+		if (zone->db == NULL) {
+			ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 			goto same_master;
+		}
 
 		/*
 		 * Update the zone structure's data from the actual
@@ -6002,6 +6068,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		result = zone_get_from_db(zone, zone->db, &nscount,
 					  &soacount, &serial, &refresh,
 					  &retry, &expire, &minimum, NULL);
+		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 		if (result == ISC_R_SUCCESS) {
 			if (soacount != 1)
 				dns_zone_log(zone, ISC_LOG_ERROR,

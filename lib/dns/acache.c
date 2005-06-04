@@ -14,10 +14,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.8 2005/02/07 00:04:05 marka Exp $ */
+/* $Id: acache.c,v 1.9 2005/06/04 05:32:46 jinmei Exp $ */
 
 #include <config.h>
 
+#include <isc/atomic.h>
 #include <isc/event.h>
 #include <isc/hash.h>
 #include <isc/magic.h>
@@ -25,6 +26,7 @@
 #include <isc/mutex.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
+#include <isc/rwlock.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -72,6 +74,26 @@
  */
 #define DNS_ACACHE_MINSIZE 		2097152	/* Bytes.  2097152 = 2 MB */
 #define DNS_ACACHE_CLEANERINCREMENT	1000	/* Number of entries. */
+
+#if defined(ISC_RWLOCK_USEATOMIC) && defined(ISC_PLATFORM_HAVEATOMICSTORE)
+#define ACACHE_USE_RWLOCK 1
+#endif
+
+#ifdef ACACHE_USE_RWLOCK
+#define ACACHE_INITLOCK(l)	isc_rwlock_init((l), 0, 0)
+#define ACACHE_DESTROYLOCK(l)	isc_rwlock_destroy(l)
+#define ACACHE_LOCK(l, t)	RWLOCK((l), (t))
+#define ACACHE_UNLOCK(l, t)	RWUNLOCK((l), (t))
+
+#define acache_storetime(entry, t) (isc_atomic_store(&(entry)->lastused, (t)))
+#else
+#define ACACHE_INITLOCK(l)	isc_mutex_init(l)
+#define ACACHE_DESTROYLOCK(l)	DESTROYLOCK(l)
+#define ACACHE_LOCK(l, t)	LOCK(l)
+#define ACACHE_UNLOCK(l, t)	UNLOCK(l)
+
+#define acache_storetime(entry, t) ((entry)->lastused = (t))
+#endif
 
 /* Locked by acache lock */
 typedef struct dbentry {
@@ -157,7 +179,11 @@ struct dns_acache {
 struct dns_acacheentry {
 	unsigned int 		magic;
 
+#ifdef ACACHE_USE_RWLOCK
+	isc_rwlock_t 		lock;
+#else
 	isc_mutex_t 		lock;
+#endif
 	isc_refcount_t 		references;
 
 	dns_acache_t 		*acache;
@@ -185,7 +211,7 @@ struct dns_acacheentry {
 	void 			*cbarg;
 
 	/* Timestamp of the last time this entry is referred to */
-	isc_stdtime_t 		lastused;
+	isc_stdtime32_t		lastused;
 };
 
 /*
@@ -242,7 +268,7 @@ shutdown_entries(dns_acache_t *acache) {
 	     entry = entry_next) {
 		entry_next = ISC_LIST_NEXT(entry, link);
 
-		LOCK(&entry->lock);
+		ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 		/*
 		 * If the cleaner holds this entry, it will be unlinked and
@@ -256,7 +282,7 @@ shutdown_entries(dns_acache_t *acache) {
 			entry->callback = NULL;
 		}
 
-		UNLOCK(&entry->lock);
+		ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 
 		if (acache->cleaner.current_entry != entry)
 			dns_acache_detachentry(&entry);
@@ -352,7 +378,7 @@ destroy_entry(dns_acacheentry_t *entry) {
 	 */
 	clear_entry(acache, entry);
 
-	DESTROYLOCK(&entry->lock);
+	ACACHE_DESTROYLOCK(&entry->lock);
 
 	isc_mem_put(acache->mctx, entry, sizeof(*entry));
 
@@ -666,6 +692,7 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	    isc_stdtime_t now)
 {
 	unsigned int interval = cleaner->cleaning_interval;
+	isc_stdtime32_t now32;
 
 	/*
 	 * If the callback has been canceled, we definitely do not need the
@@ -674,7 +701,8 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	if (entry->callback == NULL)
 		return (ISC_TRUE);
 
-	if (entry->lastused + interval < now)
+	isc_stdtime_convert32(now, &now32);
+	if (entry->lastused + interval < now32)
 		return (ISC_TRUE);
 
 	/*
@@ -683,7 +711,8 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	 * use and the cleaning interval.
 	 */
 	if (cleaner->overmem) {
-		unsigned int passed = now - entry->lastused; /* <= interval */
+		unsigned int passed =
+			now32 - entry->lastused; /* <= interval */
 		isc_uint32_t val, r;
 
 		isc_random_get(&val);
@@ -734,7 +763,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 		next = ISC_LIST_NEXT(entry, link);
 
-		LOCK(&entry->lock);
+		ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 		is_stale = entry_stale(cleaner, entry, now);
 		if (is_stale) {
@@ -747,7 +776,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			cleaner->ncleaned++;
 		}
 
-		UNLOCK(&entry->lock);
+		ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 
 		if (is_stale)
 			dns_acache_detachentry(&entry);
@@ -1129,7 +1158,7 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 	 * original holder has canceled callback,) destroy it here.
 	 */
 	while ((entry = ISC_LIST_HEAD(dbentry->originlist)) != NULL) {
-		LOCK(&entry->lock);
+		ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 		/*
 		 * Releasing olink first would avoid finddbent() in
@@ -1144,13 +1173,13 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 			(entry->callback)(entry, &entry->cbarg);
 		entry->callback = NULL;
 
-		UNLOCK(&entry->lock);
+		ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 
 		if (acache->cleaner.current_entry != entry)
 			dns_acache_detachentry(&entry);
 	}
 	while ((entry = ISC_LIST_HEAD(dbentry->referlist)) != NULL) {
-		LOCK(&entry->lock);
+		ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 		ISC_LIST_UNLINK(dbentry->referlist, entry, rlink);
 		if (acache->cleaner.current_entry != entry)
@@ -1161,7 +1190,7 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 			(entry->callback)(entry, &entry->cbarg);
 		entry->callback = NULL;
 
-		UNLOCK(&entry->lock);
+		ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 
 		if (acache->cleaner.current_entry != entry)
 			dns_acache_detachentry(&entry);
@@ -1200,7 +1229,7 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	if (newentry == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&newentry->lock);
+	result = ACACHE_INITLOCK(&newentry->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(acache->mctx, newentry, sizeof(*newentry));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -1246,6 +1275,7 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdataset_t *erdataset;
+	isc_stdtime32_t	now32;
 
 	REQUIRE(DNS_ACACHEENTRY_VALID(entry));
 	REQUIRE(zonep == NULL || *zonep == NULL);
@@ -1254,10 +1284,11 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 	REQUIRE(nodep != NULL && *nodep == NULL);
 	REQUIRE(fname != NULL);
 	REQUIRE(msg != NULL);
+	
+	ACACHE_LOCK(&entry->lock, isc_rwlocktype_read);
 
-	LOCK(&entry->lock);
-
-	entry->lastused = now;
+	isc_stdtime_convert32(now, &now32);
+	acache_storetime(entry, now32);
 
 	if (entry->zone != NULL && zonep != NULL)
 		dns_zone_attach(entry->zone, zonep);
@@ -1284,7 +1315,8 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 			ardataset = NULL;
 			result = dns_message_gettemprdataset(msg, &ardataset);
 			if (result != ISC_R_SUCCESS) {
-				UNLOCK(&entry->lock);
+				ACACHE_UNLOCK(&entry->lock,
+					      isc_rwlocktype_read);
 				goto fail;
 			}
 
@@ -1300,7 +1332,7 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 		}
 	}
 
-	UNLOCK(&entry->lock);
+	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_read);
 
 	return (result);
 
@@ -1337,7 +1369,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	REQUIRE(DNS_ACACHEENTRY_VALID(entry));
 
 	LOCK(&acache->lock);	/* XXX: need to lock it here for ordering */
-	LOCK(&entry->lock);
+	ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 	/* Set zone */
 	if (zone != NULL)
@@ -1429,7 +1461,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	 */
 	dns_acache_attachentry(entry, &dummy_entry);
 
-	UNLOCK(&entry->lock);
+	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 	UNLOCK(&acache->lock);
 
 	return (ISC_R_SUCCESS);
@@ -1437,7 +1469,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
  fail:
 	clear_entry(acache, entry);
 
-	UNLOCK(&entry->lock);
+	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 	UNLOCK(&acache->lock);
 
 	return (result);
@@ -1451,7 +1483,7 @@ dns_acache_cancelentry(dns_acacheentry_t *entry) {
 	INSIST(DNS_ACACHE_VALID(acache));
 
 	LOCK(&acache->lock);
-	LOCK(&entry->lock);
+	ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
 	/*
 	 * Release dependencies stored in this entry as much as possible.
@@ -1465,7 +1497,7 @@ dns_acache_cancelentry(dns_acacheentry_t *entry) {
 	entry->callback = NULL;
 	entry->cbarg = NULL;
 
-	UNLOCK(&entry->lock);
+	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
 	UNLOCK(&acache->lock);
 }
 
