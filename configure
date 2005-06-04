@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.362 2005/05/12 23:54:19 sra Exp $
+# $Id: configure,v 1.363 2005/06/04 05:38:48 jinmei Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -495,7 +495,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS subdirs build build_cpu build_vendor build_os host host_cpu host_vendor host_os SET_MAKE RANLIB ac_ct_RANLIB INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STD_CINCLUDES STD_CDEFINES STD_CWARNINGS CCOPT AR ARFLAGS LN ETAGS PERL CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP ISC_SOCKADDR_LEN_T ISC_PLATFORM_HAVELONGLONG ISC_PLATFORM_HAVELIFCONF ISC_PLATFORM_NEEDSYSSELECTH LWRES_PLATFORM_NEEDSYSSELECTH USE_OPENSSL DST_OPENSSL_INC USE_GSSAPI DST_GSSAPI_INC DNS_CRYPTO_LIBS ALWAYS_DEFINES ISC_PLATFORM_USETHREADS ISC_THREAD_DIR MKDEPCC MKDEPCFLAGS MKDEPPROG IRIX_DNSSEC_WARNINGS_HACK purify_path PURIFY LN_S ECHO ac_ct_AR STRIP ac_ct_STRIP CXX CXXFLAGS ac_ct_CXX CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL O A SA LIBTOOL_MKDEP_SED LIBTOOL_MODE_COMPILE LIBTOOL_MODE_INSTALL LIBTOOL_MODE_LINK LIBTOOL_ALLOW_UNDEFINED LIBTOOL_IN_MAIN LIBBIND ISC_PLATFORM_HAVEIPV6 LWRES_PLATFORM_HAVEIPV6 ISC_PLATFORM_NEEDNETINETIN6H LWRES_PLATFORM_NEEDNETINETIN6H ISC_PLATFORM_NEEDNETINET6IN6H LWRES_PLATFORM_NEEDNETINET6IN6H ISC_PLATFORM_HAVEINADDR6 LWRES_PLATFORM_HAVEINADDR6 ISC_PLATFORM_NEEDIN6ADDRANY LWRES_PLATFORM_NEEDIN6ADDRANY ISC_PLATFORM_NEEDIN6ADDRLOOPBACK LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK ISC_PLATFORM_HAVEIN6PKTINFO ISC_PLATFORM_FIXIN6ISADDR ISC_IPV6_H ISC_IPV6_O ISC_ISCIPV6_O ISC_IPV6_C LWRES_HAVE_SIN6_SCOPE_ID ISC_PLATFORM_HAVESCOPEID ISC_PLATFORM_HAVEIF_LADDRREQ ISC_PLATFORM_HAVEIF_LADDRCONF ISC_PLATFORM_NEEDNTOP ISC_PLATFORM_NEEDPTON ISC_PLATFORM_NEEDATON ISC_PLATFORM_HAVESALEN LWRES_PLATFORM_HAVESALEN ISC_PLATFORM_MSGHDRFLAVOR ISC_PLATFORM_NEEDPORTT ISC_LWRES_NEEDADDRINFO ISC_LWRES_NEEDRRSETINFO ISC_LWRES_SETHOSTENTINT ISC_LWRES_ENDHOSTENTINT ISC_LWRES_GETNETBYADDRINADDR ISC_LWRES_SETNETENTINT ISC_LWRES_ENDNETENTINT ISC_LWRES_GETHOSTBYADDRVOID ISC_LWRES_NEEDHERRNO ISC_LWRES_GETIPNODEPROTO ISC_LWRES_GETADDRINFOPROTO ISC_LWRES_GETNAMEINFOPROTO ISC_PLATFORM_NEEDSTRSEP ISC_PLATFORM_NEEDMEMMOVE ISC_PLATFORM_NEEDSTRTOUL ISC_PLATFORM_NEEDSTRLCPY ISC_PLATFORM_NEEDSTRLCAT ISC_PLATFORM_NEEDSPRINTF LWRES_PLATFORM_NEEDSPRINTF ISC_PLATFORM_NEEDVSNPRINTF LWRES_PLATFORM_NEEDVSNPRINTF ISC_EXTRA_OBJS ISC_EXTRA_SRCS ISC_PLATFORM_QUADFORMAT LWRES_PLATFORM_QUADFORMAT ISC_PLATFORM_HAVESYSUNH ISC_PLATFORM_RLIMITTYPE ISC_PLATFORM_USEDECLSPEC LWRES_PLATFORM_USEDECLSPEC ISC_PLATFORM_BRACEPTHREADONCEINIT ISC_PLATFORM_HAVEIFNAMETOINDEX LATEX PDFLATEX XSLTPROC XMLLINT XSLT_DOCBOOK_STYLE_HTML XSLT_DOCBOOK_STYLE_XHTML XSLT_DOCBOOK_STYLE_MAN XSLT_DOCBOOK_CHUNK_HTML XSLT_DOCBOOK_CHUNK_XHTML XSLT_DB2LATEX_STYLE XSLT_DB2LATEX_ADMONITIONS BIND9_TOP_BUILDDIR BIND9_ISC_BUILDINCLUDE BIND9_ISCCC_BUILDINCLUDE BIND9_ISCCFG_BUILDINCLUDE BIND9_DNS_BUILDINCLUDE BIND9_LWRES_BUILDINCLUDE BIND9_BIND9_BUILDINCLUDE BIND9_VERSION LIBOBJS LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS subdirs build build_cpu build_vendor build_os host host_cpu host_vendor host_os SET_MAKE RANLIB ac_ct_RANLIB INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA STD_CINCLUDES STD_CDEFINES STD_CWARNINGS CCOPT AR ARFLAGS LN ETAGS PERL CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT CPP EGREP ISC_SOCKADDR_LEN_T ISC_PLATFORM_HAVELONGLONG ISC_PLATFORM_HAVELIFCONF ISC_PLATFORM_NEEDSYSSELECTH LWRES_PLATFORM_NEEDSYSSELECTH USE_OPENSSL DST_OPENSSL_INC USE_GSSAPI DST_GSSAPI_INC DNS_CRYPTO_LIBS ALWAYS_DEFINES ISC_PLATFORM_USETHREADS ISC_THREAD_DIR MKDEPCC MKDEPCFLAGS MKDEPPROG IRIX_DNSSEC_WARNINGS_HACK purify_path PURIFY LN_S ECHO ac_ct_AR STRIP ac_ct_STRIP CXX CXXFLAGS ac_ct_CXX CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL O A SA LIBTOOL_MKDEP_SED LIBTOOL_MODE_COMPILE LIBTOOL_MODE_INSTALL LIBTOOL_MODE_LINK LIBTOOL_ALLOW_UNDEFINED LIBTOOL_IN_MAIN LIBBIND ISC_PLATFORM_HAVEIPV6 LWRES_PLATFORM_HAVEIPV6 ISC_PLATFORM_NEEDNETINETIN6H LWRES_PLATFORM_NEEDNETINETIN6H ISC_PLATFORM_NEEDNETINET6IN6H LWRES_PLATFORM_NEEDNETINET6IN6H ISC_PLATFORM_HAVEINADDR6 LWRES_PLATFORM_HAVEINADDR6 ISC_PLATFORM_NEEDIN6ADDRANY LWRES_PLATFORM_NEEDIN6ADDRANY ISC_PLATFORM_NEEDIN6ADDRLOOPBACK LWRES_PLATFORM_NEEDIN6ADDRLOOPBACK ISC_PLATFORM_HAVEIN6PKTINFO ISC_PLATFORM_FIXIN6ISADDR ISC_IPV6_H ISC_IPV6_O ISC_ISCIPV6_O ISC_IPV6_C LWRES_HAVE_SIN6_SCOPE_ID ISC_PLATFORM_HAVESCOPEID ISC_PLATFORM_HAVEIF_LADDRREQ ISC_PLATFORM_HAVEIF_LADDRCONF ISC_PLATFORM_NEEDNTOP ISC_PLATFORM_NEEDPTON ISC_PLATFORM_NEEDATON ISC_PLATFORM_HAVESALEN LWRES_PLATFORM_HAVESALEN ISC_PLATFORM_MSGHDRFLAVOR ISC_PLATFORM_NEEDPORTT ISC_LWRES_NEEDADDRINFO ISC_LWRES_NEEDRRSETINFO ISC_LWRES_SETHOSTENTINT ISC_LWRES_ENDHOSTENTINT ISC_LWRES_GETNETBYADDRINADDR ISC_LWRES_SETNETENTINT ISC_LWRES_ENDNETENTINT ISC_LWRES_GETHOSTBYADDRVOID ISC_LWRES_NEEDHERRNO ISC_LWRES_GETIPNODEPROTO ISC_LWRES_GETADDRINFOPROTO ISC_LWRES_GETNAMEINFOPROTO ISC_PLATFORM_NEEDSTRSEP ISC_PLATFORM_NEEDMEMMOVE ISC_PLATFORM_NEEDSTRTOUL ISC_PLATFORM_NEEDSTRLCPY ISC_PLATFORM_NEEDSTRLCAT ISC_PLATFORM_NEEDSPRINTF LWRES_PLATFORM_NEEDSPRINTF ISC_PLATFORM_NEEDVSNPRINTF LWRES_PLATFORM_NEEDVSNPRINTF ISC_EXTRA_OBJS ISC_EXTRA_SRCS ISC_PLATFORM_QUADFORMAT LWRES_PLATFORM_QUADFORMAT ISC_PLATFORM_HAVESYSUNH ISC_PLATFORM_RLIMITTYPE ISC_PLATFORM_USEDECLSPEC LWRES_PLATFORM_USEDECLSPEC ISC_PLATFORM_BRACEPTHREADONCEINIT ISC_PLATFORM_HAVEIFNAMETOINDEX ISC_PLATFORM_HAVEXADD ISC_PLATFORM_HAVECMPXCHG ISC_PLATFORM_HAVEATOMICSTORE ISC_PLATFORM_USEOSFASM ISC_ARCH_DIR LATEX PDFLATEX XSLTPROC XMLLINT XSLT_DOCBOOK_STYLE_HTML XSLT_DOCBOOK_STYLE_XHTML XSLT_DOCBOOK_STYLE_MAN XSLT_DOCBOOK_CHUNK_HTML XSLT_DOCBOOK_CHUNK_XHTML XSLT_DB2LATEX_STYLE XSLT_DB2LATEX_ADMONITIONS BIND9_TOP_BUILDDIR BIND9_ISC_BUILDINCLUDE BIND9_ISCCC_BUILDINCLUDE BIND9_ISCCFG_BUILDINCLUDE BIND9_DNS_BUILDINCLUDE BIND9_LWRES_BUILDINCLUDE BIND9_BIND9_BUILDINCLUDE BIND9_VERSION LIBOBJS LTLIBOBJS'
 ac_subst_files='BIND9_MAKE_INCLUDES BIND9_MAKE_RULES LIBISC_API LIBISCCC_API LIBISCCFG_API LIBDNS_API LIBBIND9_API LIBLWRES_API'
 
 # Initialize some variables set by options.
@@ -1064,6 +1064,8 @@ Optional Features:
   --enable-getifaddrs    Enable the use of getifaddrs() [yes|no|glibc].
              glibc: Use getifaddrs() in glibc if you know it supports IPv6.
   --disable-linux-caps	disable linux capabilities
+  --enable-atomic	enable machine specific atomic operations
+                        [default=autodetect]
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -8066,7 +8068,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 8069 "configure"' > conftest.$ac_ext
+  echo '#line 8071 "configure"' > conftest.$ac_ext
   if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -9063,7 +9065,7 @@ fi
 
 
 # Provide some information about the compiler.
-echo "$as_me:9066:" \
+echo "$as_me:9068:" \
      "checking for Fortran 77 compiler version" >&5
 ac_compiler=`set X $ac_compile; echo $2`
 { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
@@ -10124,11 +10126,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:10127: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:10129: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:10131: \$? = $ac_status" >&5
+   echo "$as_me:10133: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -10367,11 +10369,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:10370: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:10372: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:10374: \$? = $ac_status" >&5
+   echo "$as_me:10376: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -10427,11 +10429,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:10430: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:10432: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:10434: \$? = $ac_status" >&5
+   echo "$as_me:10436: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -12612,7 +12614,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12615 "configure"
+#line 12617 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -12710,7 +12712,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 12713 "configure"
+#line 12715 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -14907,11 +14909,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14910: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14912: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:14914: \$? = $ac_status" >&5
+   echo "$as_me:14916: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -14967,11 +14969,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:14970: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:14972: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:14974: \$? = $ac_status" >&5
+   echo "$as_me:14976: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -16328,7 +16330,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 16331 "configure"
+#line 16333 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -16426,7 +16428,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 16429 "configure"
+#line 16431 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17263,11 +17265,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17266: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17268: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17270: \$? = $ac_status" >&5
+   echo "$as_me:17272: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -17323,11 +17325,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17326: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17328: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17330: \$? = $ac_status" >&5
+   echo "$as_me:17332: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19362,11 +19364,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19365: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19367: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:19369: \$? = $ac_status" >&5
+   echo "$as_me:19371: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -19605,11 +19607,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19608: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19610: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:19612: \$? = $ac_status" >&5
+   echo "$as_me:19614: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings
@@ -19665,11 +19667,11 @@ else
    -e 's:.*FLAGS}? :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:19668: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:19670: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:19672: \$? = $ac_status" >&5
+   echo "$as_me:19674: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -21850,7 +21852,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 21853 "configure"
+#line 21855 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -21948,7 +21950,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<EOF
-#line 21951 "configure"
+#line 21953 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -27373,6 +27375,80 @@ esac
 
 
 #
+# Machine architecture dependent features
+#
+# Check whether --enable-atomic or --disable-atomic was given.
+if test "${enable_atomic+set}" = set; then
+  enableval="$enable_atomic"
+  enable_atomic="$enableval"
+else
+  enable_atomic="autodetect"
+fi;
+case "$enable_atomic" in
+	yes|''|autodetect)
+		use_atomic=yes
+		;;
+	no)
+		use_atomic=no
+		;;
+esac
+
+ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
+if test "$use_atomic" = "yes"; then
+	echo "$as_me:$LINENO: checking architecture type for atomic operations" >&5
+echo $ECHO_N "checking architecture type for atomic operations... $ECHO_C" >&6
+	case "$host" in
+	i[3456]86-*|x86_64-*)
+		# XXX: also need to check portability of the "asm" keyword?
+		# XXX: some old x86 architectures actualy do not support
+		#      (some of) these operations.  Do we need stricter checks?
+		# Note: We currently use the same code for both the x86_32 and
+		#       x86_64 architectures, but there may be a better
+		# implementation for the latter.
+		have_atomic=yes
+		arch=x86_32
+	;;
+	alpha*-*)
+		have_atomic=yes
+		arch=alpha
+		if test "X$GCC" != "Xyes"; then
+			case "$host" in
+			*-dec-osf*)
+			# Tru64 compiler has its own syntax for inline
+			# assembly.
+			ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
+			;;
+			esac
+		fi
+	;;
+	*)
+		have_atomic=no
+		arch=noatomic
+	;;
+	esac
+	echo "$as_me:$LINENO: result: $arch" >&5
+echo "${ECHO_T}$arch" >&6
+fi
+
+if test "$have_atomic" = "yes"; then
+	ISC_PLATFORM_HAVEXADD="#define ISC_PLATFORM_HAVEXADD 1"
+	ISC_PLATFORM_HAVECMPXCHG="#define ISC_PLATFORM_HAVECMPXCHG 1"
+	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
+else
+	ISC_PLATFORM_HAVEXADD="#undef ISC_PLATFORM_HAVEXADD"
+	ISC_PLATFORM_HAVECMPXCHG="#undef ISC_PLATFORM_HAVECMPXCHG"
+	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
+fi
+
+
+
+
+
+
+ISC_ARCH_DIR=$arch
+
+
+#
 # The following sections deal with tools used for formatting
 # the documentation.  They are all optional, unless you are
 # a developer editing the documentation source.
@@ -28669,6 +28745,11 @@ s,@ISC_PLATFORM_USEDECLSPEC@,$ISC_PLATFORM_USEDECLSPEC,;t t
 s,@LWRES_PLATFORM_USEDECLSPEC@,$LWRES_PLATFORM_USEDECLSPEC,;t t
 s,@ISC_PLATFORM_BRACEPTHREADONCEINIT@,$ISC_PLATFORM_BRACEPTHREADONCEINIT,;t t
 s,@ISC_PLATFORM_HAVEIFNAMETOINDEX@,$ISC_PLATFORM_HAVEIFNAMETOINDEX,;t t
+s,@ISC_PLATFORM_HAVEXADD@,$ISC_PLATFORM_HAVEXADD,;t t
+s,@ISC_PLATFORM_HAVECMPXCHG@,$ISC_PLATFORM_HAVECMPXCHG,;t t
+s,@ISC_PLATFORM_HAVEATOMICSTORE@,$ISC_PLATFORM_HAVEATOMICSTORE,;t t
+s,@ISC_PLATFORM_USEOSFASM@,$ISC_PLATFORM_USEOSFASM,;t t
+s,@ISC_ARCH_DIR@,$ISC_ARCH_DIR,;t t
 s,@LATEX@,$LATEX,;t t
 s,@PDFLATEX@,$PDFLATEX,;t t
 s,@XSLTPROC@,$XSLTPROC,;t t
