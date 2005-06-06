@@ -34,7 +34,7 @@
 1848.	[bug]		Improve SMF integration. [RT #13238]
 
 1847.	[bug]		isc_ondestroy_init() is called too late in
-			in dns_rbtdb_create()/dns_rbtdb_create(). 
+			dns_rbtdb_create()/dns_rbtdb64_create(). 
 			[RT #13661]
 			
 1846.	[contrib]	query-loc-0.3.0 from Stephane Bortzmeyer
