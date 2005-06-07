@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signkey.c,v 1.50.2.4 2004/03/09 06:09:15 marka Exp $ */
+/* $Id: dnssec-signkey.c,v 1.50.2.5 2005/06/07 02:12:27 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <isc/string.h>
 #include <isc/commandline.h>
 #include <isc/entropy.h>
+#include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -244,6 +245,11 @@ main(int argc, char *argv[]) {
 	eflags = ISC_ENTROPY_BLOCKING;
 	if (!pseudorandom)
 		eflags |= ISC_ENTROPY_GOODONLY;
+
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	if (result != ISC_R_SUCCESS)
+		fatal("could not create hash context");
+
 	result = dst_lib_init(mctx, ectx, eflags);
 	if (result != ISC_R_SUCCESS)
 		fatal("could not initialize dst: %s", 
@@ -462,6 +468,7 @@ main(int argc, char *argv[]) {
 	cleanup_logging(&log);
 
 	isc_mem_free(mctx, output);
+	isc_hash_destroy();
 	cleanup_entropy(&ectx);
 	dst_lib_destroy();
 	if (verbose > 10)
