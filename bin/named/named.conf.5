@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.11 2005/05/19 07:42:04 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.12 2005/06/07 03:05:50 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -73,6 +73,7 @@ masters \fIstring\fR [ port \fIinteger\fR ] {
 server ( \fIipv4_address[/prefixlen]\fR | \fIipv6_address[/prefixlen]\fR ) {
 	bogus \fIboolean\fR;
 	edns \fIboolean\fR;
+	edns\-udp\-size \fIinteger\fR;
 	provide\-ixfr \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
 	keys \fIserver_key\fR;

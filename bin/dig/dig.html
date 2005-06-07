@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.13.18.9 2005/05/13 03:12:00 marka Exp $ -->
+<!-- $Id: dig.html,v 1.13.18.10 2005/06/07 03:05:50 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -456,12 +456,18 @@
 <dt><span class="term"><code class="option">+bufsize=B</code></span></dt>
 <dd><p>
               Set the UDP message buffer size advertised using EDNS0 to
-              <em class="parameter"><code>B</code></em> bytes.  The maximum and
-              minimum sizes of this
-              buffer are 65535 and 0 respectively.  Values outside this range
-              are
-              rounded up or down appropriately.
+              <em class="parameter"><code>B</code></em> bytes.  The maximum and minimum sizes
+	      of this buffer are 65535 and 0 respectively.  Values outside
+	      this range are rounded up or down appropriately.  
+	      Values other than zero will cause a EDNS query to be sent.
             </p></dd>
+<dt><span class="term"><code class="option">+edns=#</code></span></dt>
+<dd><p>
+	       Specify the EDNS version to query with.  Valid values
+	       are 0 to 255.  Setting the EDNS version will cause a
+	       EDNS query to be sent.  <code class="option">+noedns</code> clears the
+	       remembered EDNS version.
+	    </p></dd>
 <dt><span class="term"><code class="option">+[no]multiline</code></span></dt>
 <dd><p>
               Print records like the SOA records in a verbose multi-line
@@ -511,7 +517,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515856"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2515874"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -557,14 +563,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515986"></a><h2>FILES</h2>
+<a name="id2515936"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516003"></a><h2>SEE ALSO</h2>
+<a name="id2515953"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -572,7 +578,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516040"></a><h2>BUGS</h2>
+<a name="id2515990"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
