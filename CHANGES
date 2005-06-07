@@ -1,7 +1,11 @@
 1879.	[func]		Added framework for handling multiple EDNS versions.
+			[RT #14873]
 
 1878.	[func]		dig can now specify the EDNS version when making
-			a query.
+			a query. [RT #14873]
+
+1867.	[bug]		It was possible to trigger a INSIST in
+			dlv_validatezonekey(). [RT #14846]
 
 1868.	[func]		edns-udp-size can now be overridden on a per
 			server basis. [RT #14851]
