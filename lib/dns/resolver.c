@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.309 2005/06/07 00:16:00 marka Exp $ */
+/* $Id: resolver.c,v 1.310 2005/06/07 00:27:33 marka Exp $ */
 
 /*! \file */
 
@@ -841,7 +841,8 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 static inline isc_result_t
-fctx_addopt(dns_message_t *message, unsigned int version, dns_resolver_t *res) {
+fctx_addopt(dns_message_t *message, unsigned int version, isc_uint16_t udpsize)
+{ 
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
@@ -867,7 +868,7 @@ fctx_addopt(dns_message_t *message, unsigned int version, dns_resolver_t *res) {
 	/*
 	 * Set Maximum UDP buffer size.
 	 */
-	rdatalist->rdclass = res->udpsize;
+	rdatalist->rdclass = udpsize;
 
 	/*
 	 * Set EXTENDED-RCODE and Z to 0, DO to 1.
@@ -1236,12 +1237,16 @@ resquery_send(resquery_t *query) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
 			unsigned int version = 0;	/* Default version. */
 			unsigned int flags;
+			isc_uint16_t udpsize = res->udpsize;
+
 			flags = query->addrinfo->flags;
 			if ((flags & DNS_FETCHOPT_EDNSVERSIONSET) != 0) {
 				version = flags & DNS_FETCHOPT_EDNSVERSIONMASK;
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
-			result = fctx_addopt(fctx->qmessage, version, res);
+			if (peer != NULL)
+				(void)dns_peer_getudpsize(peer, &udpsize);
+			result = fctx_addopt(fctx->qmessage, version, udpsize);
 			if (result != ISC_R_SUCCESS) {
 				/*
 				 * We couldn't add the OPT, but we'll press on.

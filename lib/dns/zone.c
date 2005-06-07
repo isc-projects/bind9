@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.436 2005/06/04 05:32:47 jinmei Exp $ */
+/* $Id: zone.c,v 1.437 2005/06/07 00:27:33 marka Exp $ */
 
 /*! \file */
 
@@ -4430,7 +4430,7 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 }
 
 static isc_result_t
-add_opt(dns_message_t *message) {
+add_opt(dns_message_t *message, isc_uint16_t udpsize) {
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
@@ -4453,7 +4453,7 @@ add_opt(dns_message_t *message) {
 	/*
 	 * Set Maximum UDP buffer size.
 	 */
-	rdatalist->rdclass = SEND_BUFFER_SIZE;
+	rdatalist->rdclass = udpsize;
 
 	/*
 	 * Set EXTENDED-RCODE, VERSION, DO and Z to 0.
@@ -4500,6 +4500,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 	isc_boolean_t cancel = ISC_TRUE;
 	int timeout;
 	isc_boolean_t have_xfrsource;
+	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -4563,6 +4564,10 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 							    &zone->sourceaddr);
 			if (result == ISC_R_SUCCESS)
 				have_xfrsource = ISC_TRUE;
+			if (zone->view->resolver != NULL)
+				udpsize =
+				  dns_resolver_getudpsize(zone->view->resolver);
+			(void)dns_peer_getudpsize(peer, &udpsize);
 		}
 	}
 
@@ -4594,7 +4599,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 		  DNS_REQUESTOPT_TCP : 0;
 
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message);
+		result = add_opt(message, udpsize);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",
@@ -4653,6 +4658,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	dns_dbnode_t *node = NULL;
 	int timeout;
 	isc_boolean_t have_xfrsource = ISC_FALSE;
+	isc_uint16_t udpsize = SEND_BUFFER_SIZE;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE((soardataset != NULL && stub == NULL) ||
@@ -4776,11 +4782,15 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 							    &zone->sourceaddr);
 			if (result == ISC_R_SUCCESS)
 				have_xfrsource = ISC_TRUE;
+			if (zone->view->resolver != NULL)
+				udpsize =
+				  dns_resolver_getudpsize(zone->view->resolver);
+			(void)dns_peer_getudpsize(peer, &udpsize);
 		}
 		
 	}
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS)) {
-		result = add_opt(message);
+		result = add_opt(message, udpsize);
 		if (result != ISC_R_SUCCESS)
 			zone_debuglog(zone, me, 1,
 				      "unable to add opt record: %s",

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.442 2005/04/29 00:36:15 marka Exp $ */
+/* $Id: server.c,v 1.443 2005/06/07 00:27:32 marka Exp $ */
 
 /*! \file */
 
@@ -619,6 +619,17 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	(void)cfg_map_get(cpeer, "edns", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_setsupportedns(peer, cfg_obj_asboolean(obj)));
+
+	obj = NULL;
+	(void)cfg_map_get(cpeer, "edns-udp-size", &obj);
+	if (obj != NULL) {
+		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
+		if (udpsize < 512)
+			udpsize = 512;
+		if (udpsize > 4096)
+			udpsize = 4096;
+		CHECK(dns_peer_setudpsize(peer, (isc_uint16_t)udpsize));
+	}
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);

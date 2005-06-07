@@ -3,7 +3,8 @@
 1878.	[func]		dig can now specify the EDNS version when making
 			a query.
 
-1868.	[placeholder]	rt14851
+1868.	[func]		edns-udp-size can now be overridden on a per
+			server basis. [RT #14851]
 
 1867.	[placeholder]	rt14846
 

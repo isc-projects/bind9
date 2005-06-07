@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.22 2005/04/27 04:56:49 sra Exp $ */
+/* $Id: peer.c,v 1.23 2005/06/07 00:27:33 marka Exp $ */
 
 /*! \file */
 
@@ -40,6 +40,7 @@
 #define PROVIDE_IXFR_BIT		3
 #define REQUEST_IXFR_BIT		4
 #define SUPPORT_EDNS_BIT		5
+#define SERVER_UDPSIZE_BIT		6
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -557,4 +558,32 @@ dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
 		return (ISC_R_NOTFOUND);
 	*transfer_source = *peer->transfer_source;
 	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_setudpsize(dns_peer_t *peer, isc_uint16_t udpsize) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(SERVER_UDPSIZE_BIT, &peer->bitflags);
+
+	peer->udpsize = udpsize;
+	DNS_BIT_SET(SERVER_UDPSIZE_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize) {
+
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(udpsize != NULL);
+
+	if (DNS_BIT_CHECK(SERVER_UDPSIZE_BIT, &peer->bitflags)) {
+                *udpsize = peer->udpsize;
+                return (ISC_R_SUCCESS);
+        } else {
+                return (ISC_R_NOTFOUND);
+        }
 }

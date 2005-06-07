@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.269 2005/05/19 04:59:01 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.270 2005/06/07 00:27:32 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7181,6 +7181,7 @@ query-source-v6 address * port *;
     <optional> provide-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
     <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
@@ -7271,10 +7272,18 @@ query-source-v6 address * port *;
 
           <para>
             The <command>edns</command> clause determines whether
-            the local server
-            will attempt to use EDNS when communicating with the remote
-            server.  The
-            default is <command>yes</command>.
+            the local server will attempt to use EDNS when communicating
+	    with the remote server.  The default is <command>yes</command>.
+          </para>
+
+          <para>
+            The <command>edns-udp-size</command> option sets the EDNS UDP size
+	    that is advertised by named when querying the remote server.
+	    Valid values are 512 to 4096 (values outside this range will be
+	    silently adjusted).  This option is useful when you wish to
+	    advertises a different value to this server than the value you
+	    advertise globally, for example, when there is a firewall at the
+	    remote site that is blocking large replies.
           </para>
 
           <para>
