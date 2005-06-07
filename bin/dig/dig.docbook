@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.22 2005/05/13 01:35:38 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.23 2005/06/07 00:15:58 marka Exp $ -->
 <refentry>
 
   <refentryinfo>
@@ -695,14 +695,25 @@
           <listitem>
             <para>
               Set the UDP message buffer size advertised using EDNS0 to
-              <parameter>B</parameter> bytes.  The maximum and
-              minimum sizes of this
-              buffer are 65535 and 0 respectively.  Values outside this range
-              are
-              rounded up or down appropriately.
+              <parameter>B</parameter> bytes.  The maximum and minimum sizes
+	      of this buffer are 65535 and 0 respectively.  Values outside
+	      this range are rounded up or down appropriately.  
+	      Values other than zero will cause a EDNS query to be sent.
             </para>
           </listitem>
         </varlistentry>
+
+	<varlistentry>
+	  <term><option>+edns=#</option></term>
+	  <listitem>
+	    <para>
+	       Specify the EDNS version to query with.  Valid values
+	       are 0 to 255.  Setting the EDNS version will cause a
+	       EDNS query to be sent.  <option>+noedns</option> clears the
+	       remembered EDNS version.
+	    </para>
+	  </listitem>
+	</varlistentry>
 
         <varlistentry>
           <term><option>+[no]multiline</option></term>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.276 2005/06/01 01:56:49 marka Exp $ */
+/* $Id: dighost.c,v 1.277 2005/06/07 00:15:58 marka Exp $ */
 
 /*! \file
  *  \note
@@ -702,6 +702,7 @@ make_empty_lookup(void) {
 #endif
 #endif
 	looknew->udpsize = 0;
+	looknew->edns = -1;
 	looknew->recurse = ISC_TRUE;
 	looknew->aaonly = ISC_FALSE;
 	looknew->adflag = ISC_FALSE;
@@ -778,6 +779,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 #endif
 #endif
 	looknew->udpsize = lookold->udpsize;
+	looknew->edns = lookold->edns;
 	looknew->recurse = lookold->recurse;
 	looknew->aaonly = lookold->aaonly;
 	looknew->adflag = lookold->adflag;
@@ -1085,7 +1087,9 @@ setup_libs(void) {
  * options are UDP buffer size and the DO bit.
  */
 static void
-add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec) {
+add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_uint16_t edns,
+	isc_boolean_t dnssec)
+{
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdatalist_t *rdatalist = NULL;
 	dns_rdata_t *rdata = NULL;
@@ -1104,9 +1108,9 @@ add_opt(dns_message_t *msg, isc_uint16_t udpsize, isc_boolean_t dnssec) {
 	rdatalist->type = dns_rdatatype_opt;
 	rdatalist->covers = 0;
 	rdatalist->rdclass = udpsize;
-	rdatalist->ttl = 0;
+	rdatalist->ttl = edns << 16;
 	if (dnssec)
-		rdatalist->ttl = DNS_MESSAGEEXTFLAG_DO;
+		rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
 	rdata->data = NULL;
 	rdata->length = 0;
 	ISC_LIST_INIT(rdatalist->rdata);
@@ -1829,10 +1833,13 @@ setup_lookup(dig_lookup_t *lookup) {
 	result = dns_message_renderbegin(lookup->sendmsg, &cctx,
 					 &lookup->sendbuf);
 	check_result(result, "dns_message_renderbegin");
-	if (lookup->udpsize > 0 || lookup->dnssec) {
+	if (lookup->udpsize > 0 || lookup->dnssec || lookup->edns > -1) {
 		if (lookup->udpsize == 0)
 			lookup->udpsize = 2048;
-		add_opt(lookup->sendmsg, lookup->udpsize, lookup->dnssec);
+		if (lookup->edns < 0)
+			lookup->edns = 0;
+		add_opt(lookup->sendmsg, lookup->udpsize,
+			lookup->edns, lookup->dnssec);
 	}
 
 	result = dns_message_rendersection(lookup->sendmsg,

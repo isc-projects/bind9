@@ -1,3 +1,8 @@
+1879.	[func]		Added framework for handling multiple EDNS versions.
+
+1878.	[func]		dig can now specify the EDNS version when making
+			a query.
+
 1868.	[placeholder]	rt14851
 
 1867.	[placeholder]	rt14846

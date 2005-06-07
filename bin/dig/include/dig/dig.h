@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.91 2005/04/27 04:55:45 sra Exp $ */
+/* $Id: dig.h,v 1.92 2005/06/07 00:15:59 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -180,6 +180,7 @@ isc_boolean_t	sigchase;
 	isc_uint32_t retries;
 	int nsfound;
 	isc_uint16_t udpsize;
+	isc_int16_t edns;
 	isc_uint32_t ixfr_serial;
 	isc_buffer_t rdatabuf;
 	char rdatastore[MXNAME];
