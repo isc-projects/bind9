@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.56 2005/05/12 21:36:05 sra Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.57 2005/06/07 01:22:34 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3752,11 +3752,25 @@ in the configuration file.</para>
 except zone transfers are performed using IPv6.</para>
               </listitem></varlistentry>
 
-<varlistentry><term><command>alt-transfer-source</command></term>
-<listitem><para>An alternate transfer source if the one listed in
-<command>transfer-source</command> fails and
-<command>use-alt-transfer-source</command> is set.</para>
-              </listitem></varlistentry>
+	    <varlistentry>
+	      <term><command>alt-transfer-source</command></term>
+	      <listitem>
+		<para>
+		  An alternate transfer source if the one listed in
+		  <command>transfer-source</command> fails and
+		  <command>use-alt-transfer-source</command> is
+		  set.
+		</para>
+		<note>
+		  If you do not wish the alternate transfer source
+		  to be used you should set
+		  <command>use-alt-transfer-source</command>
+		  appropriately and you should not depend upon
+		  getting a answer back to the first refresh
+		  query.
+		</note>
+              </listitem>
+	    </varlistentry>
 
 <varlistentry><term><command>alt-transfer-source-v6</command></term>
 <listitem><para>An alternate transfer source if the one listed in

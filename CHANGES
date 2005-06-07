@@ -7,6 +7,10 @@
 1865.	[bug]		Silently ignore nameservers in /etc/resolv.conf with
 			bad addresses. [RT #14841]
 
+1864.	[bug]		Don't try the alternative transfer source if you
+			got a answer / transfer with the main source
+			address. [RT #14802]
+
 1863.	[bug]		rrset-order "fixed" error messages not complete.
 
 1858.	[bug]		The flush-zones-on-shutdown option wasn't being
