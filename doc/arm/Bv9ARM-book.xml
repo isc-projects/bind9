@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.28 2005/06/07 00:30:39 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.29 2005/06/07 01:21:58 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6109,6 +6109,14 @@ query-source-v6 address * port *;
                   <command>use-alt-transfer-source</command> is
                   set.
                 </para>
+		<note>
+		  If you do not wish the alternate transfer source
+		  to be used you should set
+		  <command>use-alt-transfer-source</command>
+		  appropriately and you should not depend upon
+		  getting a answer back to the first refresh
+		  query.
+		</note>
               </listitem>
             </varlistentry>
 

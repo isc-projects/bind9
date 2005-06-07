@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.26 2005/06/07 00:30:41 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.27 2005/06/07 01:22:01 marka Exp $ */
 
 /*! \file */
 
@@ -191,6 +191,7 @@ struct dns_zone {
 
 	isc_sockaddr_t		*masters;
 	dns_name_t		**masterkeynames;
+	isc_boolean_t		*mastersok;
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
@@ -583,6 +584,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->minretry = DNS_ZONE_MINRETRY;
 	zone->masters = NULL;
 	zone->masterkeynames = NULL;
+	zone->mastersok = NULL;
 	zone->masterscnt = 0;
 	zone->curmaster = 0;
 	zone->notify = NULL;
@@ -2505,6 +2507,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	isc_sockaddr_t *new;
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_name_t **newname;
+	isc_boolean_t *newok;
 	unsigned int i;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -2534,10 +2537,15 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 			    zone->masterscnt * sizeof(dns_name_t *));
 		zone->masterkeynames = NULL;
 	}
+	if (zone->mastersok != NULL) {
+		isc_mem_put(zone->mctx, zone->mastersok,
+			    zone->masterscnt * sizeof(isc_boolean_t));
+		zone->mastersok = NULL;
+	}
 	zone->masterscnt = 0;
 	/*
-	 * If count == 0, don't allocate any space for masters or keynames
-	 * so internally, those pointers are NULL if count == 0
+	 * If count == 0, don't allocate any space for masters, mastersok or
+	 * keynames so internally, those pointers are NULL if count == 0
 	 */
 	if (count == 0)
 		goto unlock;
@@ -2545,27 +2553,35 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	/*
 	 * masters must countain count elements!
 	 */
-	new = isc_mem_get(zone->mctx,
-			  count * sizeof(isc_sockaddr_t));
+	new = isc_mem_get(zone->mctx, count * sizeof(*new));
 	if (new == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto unlock;
 	}
 	memcpy(new, masters, count * sizeof(*new));
-	zone->masters = new;
-	zone->masterscnt = count;
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
+	
+	/*
+	 * Similarly for mastersok.
+	 */
+	newok = isc_mem_get(zone->mctx, count * sizeof(newok));
+	if (newok == NULL) {
+		result = ISC_R_NOMEMORY;
+		isc_mem_put(zone->mctx, new, count * sizeof(*new));
+		goto unlock;
+	};
+	for (i = 0; i < count; i++)
+		newok[i] = ISC_FALSE;
 
 	/*
 	 * if keynames is non-NULL, it must contain count elements!
 	 */
+	newname = NULL;
 	if (keynames != NULL) {
-		newname = isc_mem_get(zone->mctx,
-				      count * sizeof(dns_name_t *));
+		newname = isc_mem_get(zone->mctx, count * sizeof(*newname));
 		if (newname == NULL) {
 			result = ISC_R_NOMEMORY;
-			isc_mem_put(zone->mctx, zone->masters,
-				    count * sizeof(*new));
+			isc_mem_put(zone->mctx, new, count * sizeof(*new));
+			isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
 			goto unlock;
 		}
 		for (i = 0; i < count; i++)
@@ -2586,16 +2602,27 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 							dns_name_free(
 							       newname[i],
 							       zone->mctx);
-					isc_mem_put(zone->mctx, zone->masters,
+					isc_mem_put(zone->mctx, new,
 						    count * sizeof(*new));
+					isc_mem_put(zone->mctx, newok,
+						    count * sizeof(*newok));
 					isc_mem_put(zone->mctx, newname,
 						    count * sizeof(*newname));
 					goto unlock;
 				}
 			}
 		}
-		zone->masterkeynames = newname;
 	}
+
+	/*
+	 * Everything is ok so attach to the zone.
+	 */
+	zone->masters = new;
+	zone->mastersok = newok;
+	zone->masterkeynames = newname;
+	zone->masterscnt = count;
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOMASTERS);
+
  unlock:
 	UNLOCK_ZONE(zone);
 	return (result);
@@ -2785,6 +2812,7 @@ void
 dns_zone_refresh(dns_zone_t *zone) {
 	isc_interval_t i;
 	isc_uint32_t oldflags;
+	unsigned int j;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2829,6 +2857,8 @@ dns_zone_refresh(dns_zone_t *zone) {
 		zone->retry = ISC_MIN(zone->retry * 2, 6 * 3600);
 
 	zone->curmaster = 0;
+	for (j = 0; j < zone->masterscnt; j++)
+		zone->mastersok[j] = ISC_FALSE;
 	/* initiate soa query */
 	queue_soa_query(zone);
  unlock:
@@ -3799,6 +3829,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_time_t now;
 	isc_boolean_t exiting = ISC_FALSE;
 	isc_interval_t i;
+	unsigned int j;
 
 	stub = revent->ev_arg;
 	INSIST(DNS_STUB_VALID(stub));
@@ -3973,13 +4004,37 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
-	zone->curmaster++;
+	/*
+	 * Skip to next failed / untried master.
+	 */
+	do {
+		zone->curmaster++;
+	} while (zone->curmaster < zone->masterscnt &&
+		 zone->mastersok[zone->curmaster]);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (exiting || zone->curmaster >= zone->masterscnt) {
+		isc_boolean_t done = ISC_TRUE;
 		if (!exiting &&
 		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			/*
+			 * Did we get a good answer from all the masters?
+			 */
+			for (j = 0; j < zone->masterscnt; j++)
+				if (zone->mastersok[j] == ISC_FALSE) {
+					done = ISC_FALSE;
+					break;
+				}
+		} else
+			done = ISC_TRUE;
+		if (!done) {
 			zone->curmaster = 0;
+			/*
+			 * Find the next failed master.
+			 */
+			while (zone->curmaster < zone->masterscnt &&
+			       zone->mastersok[zone->curmaster])
+				zone->curmaster++;
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 		} else {
 			DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
@@ -4033,6 +4088,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_soa_t soa;
 	isc_result_t result;
 	isc_uint32_t serial;
+	unsigned int j;
 
 	zone = revent->ev_arg;
 	INSIST(DNS_ZONE_VALID(zone));
@@ -4281,6 +4337,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		}
 		DNS_ZONE_JITTER_ADD(&now, zone->refresh, &zone->refreshtime);
 		DNS_ZONE_TIME_ADD(&now, zone->expire, &zone->expiretime);
+		zone->mastersok[zone->curmaster] = ISC_TRUE;
 		goto next_master;
 	} else {
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MULTIMASTER))
@@ -4289,6 +4346,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     soa.serial, master, zone->serial);
 		else
 			zone_debuglog(zone, me, 1, "ahead");
+		zone->mastersok[zone->curmaster] = ISC_TRUE;
 		goto next_master;
 	}
 	if (msg != NULL)
@@ -4301,13 +4359,37 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 	LOCK_ZONE(zone);
 	dns_request_destroy(&zone->request);
-	zone->curmaster++;
+	/*
+	 * Skip to next failed / untried master.
+	 */
+	do {
+		zone->curmaster++;
+	} while (zone->curmaster < zone->masterscnt &&
+		 zone->mastersok[zone->curmaster]);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NOEDNS);
 	if (zone->curmaster >= zone->masterscnt) {
+		isc_boolean_t done = ISC_TRUE;
 		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_USEALTXFRSRC) &&
 		    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
+			/*
+			 * Did we get a good answer from all the masters?
+			 */
+			for (j = 0; j < zone->masterscnt; j++)
+				if (zone->mastersok[j] == ISC_FALSE) {
+					done = ISC_FALSE;
+					break;
+				}
+		} else
+			done = ISC_TRUE;
+		if (!done) {
 			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
 			zone->curmaster = 0;
+			/*
+			 * Find the next failed master.
+			 */
+			while (zone->curmaster < zone->masterscnt &&
+			       zone->mastersok[zone->curmaster])
+				zone->curmaster++;
 			goto requeue;
 		}
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
@@ -4641,7 +4723,13 @@ soa_query(isc_task_t *task, isc_event_t *event) {
  skip_master:
 	if (key != NULL)
 		dns_tsigkey_detach(&key);
-	zone->curmaster++;
+	/*
+	 * Skip to next failed / untried master.
+	 */
+	do {
+		zone->curmaster++;
+	} while (zone->curmaster < zone->masterscnt &&
+		 zone->mastersok[zone->curmaster]);
 	if (zone->curmaster < zone->masterscnt)
 		goto again;
 	zone->curmaster = 0;
@@ -6173,7 +6261,14 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 
 	default:
 	next_master:
-		zone->curmaster++;
+		/*
+		 * Skip to next failed / untried master.
+		 */
+		do {
+			zone->curmaster++;
+		} while (zone->curmaster < zone->masterscnt &&
+			 zone->mastersok[zone->curmaster]);
+		/* FALLTHROUGH */
 	same_master:
 		if (zone->curmaster >= zone->masterscnt) {
 			zone->curmaster = 0;
@@ -6181,6 +6276,9 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 			    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_USEALTXFRSRC)) {
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_REFRESH);
 				DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
+				while (zone->curmaster < zone->masterscnt &&
+				       zone->mastersok[zone->curmaster])
+					zone->curmaster++;
 				again = ISC_TRUE;
 			} else
 				DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_USEALTXFRSRC);
