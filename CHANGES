@@ -1,6 +1,9 @@
 1865.	[bug]		Silently ignore nameservers in /etc/resolv.conf with
 			bad addresses. [RT #14841]
 
+1861.	[bug]		dig could trigger a INSIST on certain malformed
+			responses. [RT #14801]
+
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
 			[RT #11398]
 
