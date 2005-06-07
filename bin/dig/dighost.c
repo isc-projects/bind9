@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.23 2005/06/01 01:58:05 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.24 2005/06/07 01:00:18 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -944,7 +944,10 @@ setup_system(void) {
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
-	(void)lwres_conf_parse(lwctx, RESOLV_CONF);
+	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
+	if (lwresult != LWRES_R_SUCCESS)
+		fatal("parse of %s failed", RESOLV_CONF);
+
 	lwconf = lwres_conf_get(lwctx);
 
 	/* Make the search list */
