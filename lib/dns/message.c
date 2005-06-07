@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.19 2005/03/17 03:58:30 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.20 2005/06/07 01:42:23 marka Exp $ */
 
 /***
  *** Imports
@@ -1476,6 +1476,13 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			free_name = ISC_FALSE;
 		}
 
+		if (seen_problem) {
+			if (free_name)
+				isc_mempool_put(msg->namepool, name);
+			if (free_rdataset)
+				isc_mempool_put(msg->rdspool, rdataset);
+			free_name = free_rdataset = ISC_FALSE;
+		}
 		INSIST(free_name == ISC_FALSE);
 		INSIST(free_rdataset == ISC_FALSE);
 	}
