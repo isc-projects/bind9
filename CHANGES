@@ -10,9 +10,11 @@
 1867.	[bug]		It was possible to trigger a INSIST in
 			dlv_validatezonekey(). [RT #14846]
 
-1866.	[placeholder]	rt14841
+1866.	[bug]		resolv.conf parse errors were being ignored by
+			dig/host/nslookup. [RT #14841]
 
-1865.	[placeholder]	rt14841
+1865.	[bug]		Silently ignore nameservers in /etc/resolv.conf with
+			bad addresses. [RT #14841]
 
 1864.	[placeholder]	rt14802
 
