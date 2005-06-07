@@ -43,6 +43,10 @@
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
 			[RT #11398]
 
+1855.	[bug]		ixfr-from-differences was failing to detect changes
+			of ttl due to dns_diff_subtract() was ignoring the ttl
+			of records.  [RT #14616]
+
 1848.	[bug]		lwres also needs to know the print format for
 			(long long).  [RT #13754]
 
