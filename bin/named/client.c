@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.8 2005/06/04 06:23:38 jinmei Exp $ */
+/* $Id: client.c,v 1.219.18.9 2005/06/07 00:18:05 marka Exp $ */
 
 #include <config.h>
 
@@ -574,6 +574,7 @@ ns_client_endrequest(ns_client_t *client) {
 
 	client->udpsize = 512;
 	client->extflags = 0;
+	client->ednsversion = -1;
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
 	if (client->recursionquota != NULL)
@@ -1363,8 +1364,6 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 */
 	opt = dns_message_getopt(client->message);
 	if (opt != NULL) {
-		unsigned int version;
-
 		/*
 		 * Set the client's UDP buffer size.
 		 */
@@ -1383,22 +1382,24 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		client->extflags = (isc_uint16_t)(opt->ttl & 0xFFFF);
 
 		/*
+		 * Do we understand this version of EDNS?
+		 *
+		 * XXXRTH need library support for this!
+		 */
+		client->ednsversion = (opt->ttl & 0x00FF0000) >> 16;
+		if (client->ednsversion > 0) {
+			result = client_addopt(client);
+			if (result == ISC_R_SUCCESS)
+				result = DNS_R_BADVERS;
+			ns_client_error(client, result);
+			goto cleanup;
+		}
+		/*
 		 * Create an OPT for our reply.
 		 */
 		result = client_addopt(client);
 		if (result != ISC_R_SUCCESS) {
 			ns_client_error(client, result);
-			goto cleanup;
-		}
-
-		/*
-		 * Do we understand this version of ENDS?
-		 *
-		 * XXXRTH need library support for this!
-		 */
-		version = (opt->ttl & 0x00FF0000) >> 16;
-		if (version != 0) {
-			ns_client_error(client, DNS_R_BADVERS);
 			goto cleanup;
 		}
 	}
@@ -1776,6 +1777,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->opt = NULL;
 	client->udpsize = 512;
 	client->extflags = 0;
+	client->ednsversion = -1;
 	client->next = NULL;
 	client->shutdown = NULL;
 	client->shutdown_arg = NULL;

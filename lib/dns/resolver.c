@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.24 2005/06/04 06:23:39 jinmei Exp $ */
+/* $Id: resolver.c,v 1.284.18.25 2005/06/07 00:18:07 marka Exp $ */
 
 /*! \file */
 
@@ -841,7 +841,7 @@ resquery_senddone(isc_task_t *task, isc_event_t *event) {
 }
 
 static inline isc_result_t
-fctx_addopt(dns_message_t *message, dns_resolver_t *res) {
+fctx_addopt(dns_message_t *message, unsigned int version, dns_resolver_t *res) {
 	dns_rdataset_t *rdataset;
 	dns_rdatalist_t *rdatalist;
 	dns_rdata_t *rdata;
@@ -870,9 +870,10 @@ fctx_addopt(dns_message_t *message, dns_resolver_t *res) {
 	rdatalist->rdclass = res->udpsize;
 
 	/*
-	 * Set EXTENDED-RCODE, VERSION, and Z to 0, and the DO bit to 1.
+	 * Set EXTENDED-RCODE and Z to 0, DO to 1.
 	 */
-	rdatalist->ttl = DNS_MESSAGEEXTFLAG_DO;
+	rdatalist->ttl = (version << 16);
+	rdatalist->ttl |= DNS_MESSAGEEXTFLAG_DO;
 
 	/*
 	 * No EDNS options.
@@ -1233,7 +1234,14 @@ resquery_send(resquery_t *query) {
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) == 0) {
-			result = fctx_addopt(fctx->qmessage, res);
+			unsigned int version = 0;	/* Default version. */
+			unsigned int flags;
+			flags = query->addrinfo->flags;
+			if ((flags & DNS_FETCHOPT_EDNSVERSIONSET) != 0) {
+				version = flags & DNS_FETCHOPT_EDNSVERSIONMASK;
+				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
+			}
+			result = fctx_addopt(fctx->qmessage, version, res);
 			if (result != ISC_R_SUCCESS) {
 				/*
 				 * We couldn't add the OPT, but we'll press on.
@@ -5277,6 +5285,28 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * for this fetch.
 			 */
 			result = DNS_R_YXDOMAIN;
+		} else if (message->rcode == dns_rcode_badvers) {
+			dns_rdataset_t *opt;
+			unsigned int flags, mask;
+			unsigned int version;
+
+			resend = ISC_TRUE;
+			opt = dns_message_getopt(message);
+			version = (opt->ttl >> 16) & 0xff;
+			flags = (version << DNS_FETCHOPT_EDNSVERSIONSHIFT) |
+				DNS_FETCHOPT_EDNSVERSIONSET;
+			mask = DNS_FETCHOPT_EDNSVERSIONMASK |
+			       DNS_FETCHOPT_EDNSVERSIONSET;
+			switch (version) {
+			case 0:
+				dns_adb_changeflags(fctx->adb, query->addrinfo,
+						    flags, mask);
+				break;
+			default:
+				broken_server = DNS_R_BADVERS;
+				keep_trying = ISC_TRUE;
+				break;
+			}
 		} else {
 			/*
 			 * XXXRTH log.

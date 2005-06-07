@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.69.18.4 2005/04/27 05:00:34 sra Exp $ */
+/* $Id: client.h,v 1.69.18.5 2005/06/07 00:18:06 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -116,6 +116,7 @@ struct ns_client {
 	dns_rdataset_t *	opt;
 	isc_uint16_t		udpsize;
 	isc_uint16_t		extflags;
+	isc_int16_t		ednsversion;	/* -1 noedns */
 	void			(*next)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;

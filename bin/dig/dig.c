@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.16 2005/04/27 05:00:26 sra Exp $ */
+/* $Id: dig.c,v 1.186.18.17 2005/06/07 00:18:03 marka Exp $ */
 
 /*! \file */
 
@@ -192,6 +192,7 @@ help(void) {
 "                 +domain=###         (Set default domainname)\n"
 "                 +bufsize=###        (Set EDNS0 Max UDP packet size)\n"
 "                 +ndots=###          (Set NDOTS value)\n"
+"                 +edns=###           (Set EDNS version)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
 "                 +[no]defname        (Ditto)\n"
 "                 +[no]recurse        (Recursive mode)\n"
@@ -854,6 +855,8 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'n': /* dnssec */	
 			FULLCHECK("dnssec");
+			if (state && lookup->edns == -1)
+				lookup->edns = 0;
 			lookup->dnssec = state;
 			break;
 		case 'o': /* domain */	
@@ -868,6 +871,16 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 		default:
 			goto invalid_option;
 		}
+		break;
+	case 'e':
+		FULLCHECK("edns");
+		if (!state) {
+			lookup->edns = -1;
+			break;
+		}
+		if (value == NULL)
+			goto need_value;
+		lookup->edns = (isc_int16_t) parse_uint(value, "edns", 255);
 		break;
 	case 'f': /* fail */
 		FULLCHECK("fail");

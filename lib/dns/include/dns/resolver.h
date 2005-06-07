@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.40.18.4 2005/04/27 05:01:38 sra Exp $ */
+/* $Id: resolver.h,v 1.40.18.5 2005/06/07 00:18:08 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -90,6 +90,10 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_NOEDNS0		0x08	     /*%< Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY	0x10	     /*%< Only use forwarders. */
 #define DNS_FETCHOPT_NOVALIDATE		0x20	     /*%< Disable validation. */
+
+#define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
+#define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
+#define	DNS_FETCHOPT_EDNSVERSIONSHIFT	24
 
 /*
  * XXXRTH  Should this API be made semi-private?  (I.e.

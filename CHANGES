@@ -1,3 +1,8 @@
+1879.	[func]		Added framework for handling multiple EDNS versions.
+
+1878.	[func]		dig can now specify the EDNS version when making
+			a query.
+
 1863.	[bug]		rrset-order "fixed" error messages not complete.
 
 1862.	[func]		Add additional zone data constancy checks.
