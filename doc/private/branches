@@ -12,7 +12,6 @@ Branch				Status	Whom	// Comments
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
 dlz				open	sra	// dynamicly loadable zones
-edns1				closed	marka
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
@@ -32,20 +31,10 @@ rt13587				review
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
 rt13753				review	
-rt13771				closed	
-rt14616				closed	
-rt14673				closed	
-rt14695				closed	
 rt14775				review	
-rt14801				closed	
-rt14802				closed	
 rt14814				review	
 rt14815				open	marka
-rt14841				closed	
-rt14846				closed	
-rt14851				closed	
 rt14855				open		// 9.4 ARM review	
-rt14873				closed	
 rt5206_1			open	marka
 rt6432				open	marka
 rt6496a				open	marka
@@ -84,6 +73,7 @@ delegation_only			closed
 ds				closed
 ds13				closed
 ds_12				closed
+edns1				closed
 edns_size			closed
 ifiter_getifaddrs		closed
 ipl				closed
@@ -276,8 +266,18 @@ rt13707				closed
 rt13714				closed
 rt13745				closed
 rt13754				closed
+rt13771				closed
+rt14616				closed
+rt14673				closed
 rt14686				closed
+rt14695				closed
 rt1471				closed
+rt14801				closed
+rt14802				closed
+rt14841				closed
+rt14846				closed
+rt14851				closed
+rt14873				closed
 rt1572a				closed		// bad rt#
 rt288				closed
 rt3445				closed
