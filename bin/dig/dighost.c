@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.17 2005/06/07 00:18:04 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.18 2005/06/07 01:00:55 marka Exp $ */
 
 /*! \file
  *  \note
@@ -948,7 +948,10 @@ setup_system(void) {
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
-	(void)lwres_conf_parse(lwctx, RESOLV_CONF);
+	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
+	if (lwresult != LWRES_R_SUCCESS)
+		fatal("parse of %s failed", RESOLV_CONF);
+
 	lwconf = lwres_conf_get(lwctx);
 
 	/* Make the search list */
