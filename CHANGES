@@ -1,3 +1,5 @@
+1880.	[placeholder]
+
 1879.	[func]		Added framework for handling multiple EDNS versions.
 			[RT #14873]
 
