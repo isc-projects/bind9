@@ -12,7 +12,7 @@ Branch				Status	Whom	// Comments
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
 dlz				open	sra	// dynamicly loadable zones
-edns1				open	marka
+edns1				closed	marka
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
@@ -42,10 +42,10 @@ rt14802				new
 rt14814				review	
 rt14815				open	marka
 rt14841				new	
-rt14846				new	
-rt14851				new	
+rt14846				closed	
+rt14851				closed	
 rt14855				new	
-rt14873				new	
+rt14873				closed	
 rt5206_1			open	marka
 rt6432				open	marka
 rt6496a				open	marka
