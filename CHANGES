@@ -3,6 +3,9 @@
 1878.	[func]		dig can now specify the EDNS version when making
 			a query.
 
+1868.	[func]		edns-udp-size can now be overridden on a per
+			server basis. [RT #14851]
+
 1863.	[bug]		rrset-order "fixed" error messages not complete.
 
 1862.	[func]		Add additional zone data constancy checks.

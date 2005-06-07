@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.20 2005/05/19 04:59:57 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.21 2005/06/07 00:30:42 marka Exp $ */
 
 /*! \file */
 
@@ -907,6 +907,7 @@ server_clauses[] = {
 	{ "transfer-format", &cfg_type_transferformat, 0 },
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
+	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ NULL, NULL, 0 }

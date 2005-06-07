@@ -238,6 +238,7 @@ view <string> <optional_class> {
                 transfer-format ( many-answers | one-answer );
                 keys <server_key>;
                 edns <boolean>;
+                edns-udp-size <integer>;
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
                     * ) ];
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
@@ -407,6 +408,7 @@ server <netprefix> {
         transfer-format ( many-answers | one-answer );
         keys <server_key>;
         edns <boolean>;
+        edns-udp-size <integer>;
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
 };

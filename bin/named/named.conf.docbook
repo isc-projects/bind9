@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.11 2005/05/19 04:59:51 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.12 2005/06/07 00:30:38 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -102,6 +102,7 @@ masters <replaceable>string</replaceable> <optional> port <replaceable>integer</
 server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> | <replaceable>ipv6_address<optional>/prefixlen</optional></replaceable> ) {
 	bogus <replaceable>boolean</replaceable>;
 	edns <replaceable>boolean</replaceable>;
+	edns-udp-size <replaceable>integer</replaceable>;
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	keys <replaceable>server_key</replaceable>;
