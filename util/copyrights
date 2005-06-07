@@ -59,11 +59,11 @@
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-makekeyset.8		MAN	DOCBOOK
-./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000,2001,2004
+./bin/dnssec/dnssec-makekeyset.c		C.NAI	2000,2001,2004,2005
 ./bin/dnssec/dnssec-makekeyset.docbook		SGML	2000,2001,2003,2004,2005
 ./bin/dnssec/dnssec-makekeyset.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signkey.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signkey.c			C.NAI	2000,2001,2003,2004
+./bin/dnssec/dnssec-signkey.c			C.NAI	2000,2001,2003,2004,2005
 ./bin/dnssec/dnssec-signkey.docbook		SGML	2000,2001,2003,2004,2005
 ./bin/dnssec/dnssec-signkey.html		HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -2113,7 +2113,7 @@
 ./lib/lwres/include/lwres/platform.h.in		C	2000,2001,2004,2005
 ./lib/lwres/include/lwres/result.h		C	2000,2001,2004
 ./lib/lwres/lwbuffer.c				C	2000,2001,2004
-./lib/lwres/lwconfig.c				C	2000,2001,2003,2004
+./lib/lwres/lwconfig.c				C	2000,2001,2003,2004,2005
 ./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004
 ./lib/lwres/lwinetntop.c			C	1996,1997,1998,1999,2000,2001,2004
 ./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004,2005
