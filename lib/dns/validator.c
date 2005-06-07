@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.17 2005/05/06 01:58:48 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.18 2005/06/07 00:39:35 marka Exp $ */
 
 #include <config.h>
 
@@ -1481,7 +1481,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 			/*
 			 * We have DLV records.
 			 */
-			val->dsset = &val->frdataset;
+			val->dlv = &val->frdataset;
 			if (val->frdataset.trust == dns_trust_pending &&
 			    dns_rdataset_isassociated(&val->fsigrdataset))
 			{

@@ -1,3 +1,6 @@
+1867.	[bug]		It was possible to trigger a INSIST in
+			dlv_validatezonekey(). [RT #14846]
+
 1863.	[bug]		rrset-order "fixed" error messages not complete.
 
 1858.	[bug]		The flush-zones-on-shutdown option wasn't being
