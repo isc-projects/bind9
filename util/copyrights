@@ -1712,7 +1712,7 @@
 ./lib/dns/include/dst/gssapi.h			C	2000,2001,2004
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004
-./lib/dns/journal.c				C	1999,2000,2001,2002,2004
+./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/key.c					C	2001,2004
 ./lib/dns/keytable.c				C	2000,2001,2004
 ./lib/dns/lib.c					C	1999,2000,2001,2004
@@ -2208,7 +2208,7 @@
 ./lib/lwres/include/lwres/result.h		C	2000,2001,2004
 ./lib/lwres/include/lwres/version.h		C	2001,2004
 ./lib/lwres/lwbuffer.c				C	2000,2001,2004
-./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004
+./lib/lwres/lwconfig.c				C	2000,2001,2002,2003,2004,2005
 ./lib/lwres/lwinetaton.c			C.PORTION	1996,1997,1998,1999,2000,2001,2003,2004
 ./lib/lwres/lwinetntop.c			C	1996,1997,1998,1999,2000,2001,2003,2004
 ./lib/lwres/lwinetpton.c			C	1996,1997,1998,1999,2000,2001,2004,2005
