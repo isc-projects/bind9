@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.63 2005/04/29 01:04:47 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.64 2005/06/07 01:53:21 marka Exp $ */
 
 #include <config.h>
 
@@ -1941,9 +1941,13 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 		 * At this point the zone list may contain a stale zone
 		 * just removed from the configuration.  To see the validity,
 		 * check if the corresponding view is in our current view list.
+		 * There may also be old zones that are still in the process
+		 * of shutting down and have detached from their old view
+		 * (zoneview == NULL).
 		 */
 		zoneview = dns_zone_getview(zone);
-		INSIST(zoneview != NULL);
+		if (zoneview == NULL)
+			continue;
 		for (view = ISC_LIST_HEAD(server->viewlist);
 		     view != NULL && view != zoneview;
 		     view = ISC_LIST_NEXT(view, link))

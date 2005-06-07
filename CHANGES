@@ -19,6 +19,9 @@
 1858.	[bug]		The flush-zones-on-shutdown option wasn't being
 			parsed. [RT #14686]
 
+1857.	[bug]		named could trigger a INSIST() if reconfigured /
+			reloaded too fast.  [RT #14673]
+
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
 			[RT #11398]
 
