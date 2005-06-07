@@ -29,7 +29,8 @@
 			New zone options: check-mx and integrity-check. 
 			[RT #4940]
 
-1861.	[placeholder]	rt14801
+1861.	[bug]		dig could trigger a INSIST on certain malformed
+			responses. [RT #14801]
 
 1860.	[placeholder]	rt14775
 
