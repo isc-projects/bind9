@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.3 2004/03/09 06:12:34 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.4 2005/06/07 01:00:25 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -277,6 +277,7 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	char word[LWRES_CONFMAXLINELEN];
 	int res;
 	lwres_conf_t *confdata;
+	lwres_addr_t address;
 
 	confdata = &ctx->confdata;
 
@@ -292,10 +293,9 @@ lwres_conf_parsenameserver(lwres_context_t *ctx,  FILE *fp) {
 	if (res != EOF && res != '\n')
 		return (LWRES_R_FAILURE); /* Extra junk on line. */
 
-	res = lwres_create_addr(word,
-				&confdata->nameservers[confdata->nsnext++], 1);
-	if (res != LWRES_R_SUCCESS)
-		return (res);
+	res = lwres_create_addr(word, &address, 1);
+	if (res == LWRES_R_SUCCESS)
+		confdata->nameservers[confdata->nsnext++] = address;
 
 	return (LWRES_R_SUCCESS);
 }

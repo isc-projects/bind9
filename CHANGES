@@ -1,3 +1,6 @@
+1865.	[bug]		Silently ignore nameservers in /etc/resolv.conf with
+			bad addresses. [RT #14841]
+
 1856.	[doc]		Switch Docbook toolchain from DSSSL to XSL.
 			[RT #11398]
 
