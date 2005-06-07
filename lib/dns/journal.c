@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.1.10.9 2004/09/16 04:57:02 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.1.10.10 2005/06/07 02:02:31 marka Exp $ */
 
 #include <config.h>
 
@@ -1750,6 +1750,8 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 	isc_result_t result;
 	dns_difftuple_t *p[2];
 	int i, t;
+	isc_boolean_t append;
+
 	CHECK(dns_diff_sort(&diff[0], rdata_order));
 	CHECK(dns_diff_sort(&diff[1], rdata_order));
 
@@ -1778,11 +1780,17 @@ dns_diff_subtract(dns_diff_t diff[2], dns_diff_t *r) {
 		}
 		INSIST(t == 0);
 		/*
-		 * Identical RRs in both databases; skip them both.
+		 * Identical RRs in both databases; skip them both
+		 * if the ttl differs.
 		 */
+		append = ISC_TF(p[0]->ttl != p[1]->ttl);
 		for (i = 0; i < 2; i++) {
 			ISC_LIST_UNLINK(diff[i].tuples, p[i], link);
-			dns_difftuple_free(&p[i]);
+			if (append) {
+				ISC_LIST_APPEND(r->tuples, p[i], link);
+			} else {
+				dns_difftuple_free(&p[i]);
+			}
 		}
 	next: ;
 	}
