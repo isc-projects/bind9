@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.30 2005/05/13 03:14:03 marka Exp $
+.\" $Id: dig.1,v 1.31 2005/06/07 03:06:48 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -187,7 +187,10 @@ Sets the number of times to retry UDP queries to server to \fIT\fR instead of th
 Set the number of dots that have to appear in \fIname\fR to \fID\fR for it to be considered absolute\&. The default value is that defined using the ndots statement in \fI/etc/resolv\&.conf\fR, or 1 if no ndots statement is present\&. Names with fewer dots are interpreted as relative names and will be searched for in the domains listed in the \fBsearch\fR or \fBdomain\fR directive in \fI/etc/resolv\&.conf\fR\&.
 .TP
 \fB+bufsize=B\fR
-Set the UDP message buffer size advertised using EDNS0 to \fIB\fR bytes\&. The maximum and minimum sizes of this buffer are 65535 and 0 respectively\&. Values outside this range are rounded up or down appropriately\&.
+Set the UDP message buffer size advertised using EDNS0 to \fIB\fR bytes\&. The maximum and minimum sizes of this buffer are 65535 and 0 respectively\&. Values outside this range are rounded up or down appropriately\&. Values other than zero will cause a EDNS query to be sent\&.
+.TP
+\fB+edns=#\fR
+Specify the EDNS version to query with\&. Valid values are 0 to 255\&. Setting the EDNS version will cause a EDNS query to be sent\&. \fB+noedns\fR clears the remembered EDNS version\&.
 .TP
 \fB+[no]multiline\fR
 Print records like the SOA records in a verbose multi\-line format with human\-readable comments\&. The default is to print each record on a single line, to facilitate machine parsing of the \fBdig\fR output\&.
