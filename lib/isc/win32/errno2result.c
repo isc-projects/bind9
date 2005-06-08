@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.9 2004/03/05 05:11:56 marka Exp $ */
+/* $Id: errno2result.c,v 1.9.18.1 2005/06/08 01:05:14 marka Exp $ */
 
 #include <config.h>
 
@@ -32,7 +32,7 @@
  * not already there.
  */
 isc_result_t
-isc__errno2result(int posixerrno) {
+isc__errno2resultx(int posixerrno, const char *file, int line) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	switch (posixerrno) {
@@ -63,10 +63,8 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_TOOMANYOPENFILES);
 	default:
 		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "unable to convert errno "
-				 "to isc_result: %d: %s",
-				 posixerrno, strbuf);
+		UNEXPECTED_ERROR(file, line, "unable to convert errno "
+				 "to isc_result: %d: %s", posixerrno, strbuf);
 		/*
 		 * XXXDCL would be nice if perhaps this function could
 		 * return the system's error string, so the caller
@@ -76,4 +74,3 @@ isc__errno2result(int posixerrno) {
 		return (ISC_R_UNEXPECTED);
 	}
 }
-

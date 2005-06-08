@@ -1,3 +1,8 @@
+1882.	[port]		win32: isc__errno2result() now reports its caller.
+			[RT #13753]
+
+1881.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
+
 1879.	[func]		Added framework for handling multiple EDNS versions.
 			[RT #14873]
 
