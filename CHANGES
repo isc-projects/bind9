@@ -1,3 +1,8 @@
+1882.	[port]		win32: isc__errno2result() now reports its caller.
+			[RT #13753]
+
+1881.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
+
 1867.	[bug]		It was possible to trigger a INSIST in
 			dlv_validatezonekey(). [RT #14846]
 
