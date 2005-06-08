@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.1.2.6 2005/06/07 01:00:19 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.1.2.7 2005/06/08 00:13:16 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
