@@ -31,7 +31,7 @@ rt13587				review
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
 rt13753				review	
-rt14775				review	
+rt14775				closed	
 rt14814				review	
 rt14815				open	marka
 rt14855				open		// 9.4 ARM review	
