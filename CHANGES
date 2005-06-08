@@ -1,3 +1,8 @@
+1882.	[port]		win32: isc__errno2result() now reports its caller.
+			[RT #13753]
+
+1881.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
+
 1880.	[bug]		dnssec_makekeyset and dnssec-signkey failed to
 			initalize the hash context. [RT #13771]
 
