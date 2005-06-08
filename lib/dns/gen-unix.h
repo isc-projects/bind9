@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.12.12.3 2004/03/08 09:04:29 marka Exp $ */
+/* $Id: gen-unix.h,v 1.12.12.4 2005/06/08 02:08:27 marka Exp $ */
 
 /*
  * This file is responsible for defining two operations that are not
@@ -39,6 +39,10 @@
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
+
+#ifdef NEED_OPTARG
+extern char *optarg;
+#endif
 
 #define isc_commandline_parse		getopt
 #define isc_commandline_argument 	optarg

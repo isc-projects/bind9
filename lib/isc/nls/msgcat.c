@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.10.12.4 2004/03/08 09:04:54 marka Exp $ */
+/* $Id: msgcat.c,v 1.10.12.5 2005/06/08 02:08:30 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -23,6 +23,7 @@
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/magic.h>

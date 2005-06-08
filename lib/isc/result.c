@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.56.2.2.8.7 2004/06/11 00:31:01 marka Exp $ */
+/* $Id: result.c,v 1.56.2.2.8.8 2005/06/08 02:08:28 marka Exp $ */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/lib.h>
