@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.14.18.2 2005/04/29 00:15:53 marka Exp $ */
+/* $Id: gen-unix.h,v 1.14.18.3 2005/06/08 02:07:54 marka Exp $ */
 
 /*! \file
  * \brief
@@ -40,6 +40,10 @@
 
 #include <isc/boolean.h>
 #include <isc/lang.h>
+
+#ifdef NEED_OPTARG
+extern char *optarg;
+#endif
 
 #define isc_commandline_parse		getopt
 #define isc_commandline_argument 	optarg

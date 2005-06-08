@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.43.18.2 2005/04/29 00:17:17 marka Exp $ */
+/* $Id: getaddrinfo.c,v 1.43.18.3 2005/06/08 02:07:58 marka Exp $ */
 
 /*! \file */
 
@@ -135,11 +135,11 @@
 
 #include <string.h>
 #include <errno.h>
-#include <stdlib.h>
 
 #include <lwres/lwres.h>
 #include <lwres/net.h>
 #include <lwres/netdb.h>
+#include <lwres/stdlib.h>
 
 #define SA(addr)	((struct sockaddr *)(addr))
 #define SIN(addr)	((struct sockaddr_in *)(addr))

@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.14.18.2 2005/04/29 00:16:47 marka Exp $ */
+/* $Id: lfsr.c,v 1.14.18.3 2005/06/08 02:07:56 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/assertions.h>

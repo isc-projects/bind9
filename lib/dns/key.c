@@ -15,10 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.1.6.3 2005/04/29 00:15:55 marka Exp $ */
+/* $Id: key.c,v 1.1.6.4 2005/06/08 02:07:55 marka Exp $ */
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/region.h>

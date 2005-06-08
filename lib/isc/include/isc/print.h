@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.19.18.2 2005/04/29 00:17:01 marka Exp $ */
+/* $Id: print.h,v 1.19.18.3 2005/06/08 02:07:56 marka Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
@@ -57,6 +57,10 @@
 #include <stdarg.h>
 #include <stddef.h>
 #endif
+#ifdef ISC_PLATFORM_NEEDSPRINTF
+#include <stdio.h>
+#endif
+
 
 ISC_LANG_BEGINDECLS
 
