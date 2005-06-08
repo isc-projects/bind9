@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.18 2005/05/06 02:09:51 marka Exp $ */
+/* $Id: platform.h.in,v 1.19 2005/06/08 02:07:03 marka Exp $ */
 
 /*! \file */
 
@@ -94,6 +94,11 @@
  * The printf format string modifier to use with lwres_uint64_t values.
  */
 @LWRES_PLATFORM_QUADFORMAT@
+
+/*! \brief
+ * Define if this system needs strtoul.
+ */
+@LWRES_PLATFORM_NEEDSTRTOUL@
 
 #ifndef LWRES_PLATFORM_USEDECLSPEC
 #define LIBLWRES_EXTERNAL_DATA

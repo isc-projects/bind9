@@ -1,3 +1,5 @@
+1883.	[port]		sunos: portability fixes. [RT #14814]
+
 1882.	[port]		win32: isc__errno2result() now reports its caller.
 			[RT #13753]
 

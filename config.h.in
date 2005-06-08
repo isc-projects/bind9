@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.66 2005/05/11 06:05:28 sra Exp $ */
+/* $Id: config.h.in,v 1.67 2005/06/08 02:09:18 marka Exp $ */
 
 /*! \file */
 
@@ -230,6 +230,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Defined if extern char *optarg is not declared. */
+#undef NEED_OPTARG
 
 /* Define if connect does not honour the permission on the UNIX domain socket.
    */

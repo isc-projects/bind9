@@ -15,11 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.92 2005/06/07 02:02:05 marka Exp $ */
+/* $Id: journal.c,v 1.93 2005/06/08 02:06:58 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
+#include <unistd.h>
 
 #include <isc/file.h>
 #include <isc/mem.h>

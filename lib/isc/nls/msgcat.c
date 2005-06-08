@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.15 2005/04/29 00:23:47 marka Exp $ */
+/* $Id: msgcat.c,v 1.16 2005/06/08 02:07:00 marka Exp $ */
 
 /*! \file msgcat.c
  *
@@ -24,6 +24,7 @@
 
 #include <config.h>
 
+#include <stddef.h>
 #include <stdlib.h>
 
 #include <isc/magic.h>

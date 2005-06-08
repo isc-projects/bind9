@@ -15,12 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.16 2005/04/29 00:23:51 marka Exp $ */
+/* $Id: stdtime.c,v 1.17 2005/06/08 02:07:01 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
+#include <stddef.h>	/* NULL */
 #include <stdlib.h>	/* NULL */
 #include <syslog.h>
 
