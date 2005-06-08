@@ -30566,7 +30566,6 @@ case "$host" in
 		hack_shutup_in6addr_init_macros=yes
 		;;
 	*-solaris2.8)
-		hack_shutup_pthreadmutexinit=yes
 		hack_shutup_in6addr_init_macros=yes
 		;;
 	*-solaris2.9)
