@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdtime.c,v 1.11.2.1.10.4 2005/06/08 02:08:30 marka Exp $ */
+/* $Id: stdtime.c,v 1.11.2.1.10.5 2005/06/09 23:54:31 marka Exp $ */
 
 #include <config.h>
 

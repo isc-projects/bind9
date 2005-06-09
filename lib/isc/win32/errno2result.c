@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4.2.5.2.4 2005/06/08 01:04:53 marka Exp $ */
+/* $Id: errno2result.c,v 1.4.2.5.2.5 2005/06/09 23:54:31 marka Exp $ */
 
 #include <config.h>
 
