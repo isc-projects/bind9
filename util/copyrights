@@ -1628,7 +1628,7 @@
 ./lib/dns/dst_parse.h				C.NAI	2000,2001,2002,2004
 ./lib/dns/dst_result.c				C	1999,2000,2001,2004
 ./lib/dns/forward.c				C	2000,2001,2004,2005
-./lib/dns/gen-unix.h				C	1999,2000,2001,2004
+./lib/dns/gen-unix.h				C	1999,2000,2001,2004,2005
 ./lib/dns/gen-win32.h				C	1999,2000,2001,2004
 ./lib/dns/gen.c					C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004
@@ -1713,7 +1713,7 @@
 ./lib/dns/include/dst/lib.h			C	1999,2000,2001,2004
 ./lib/dns/include/dst/result.h			C	1999,2000,2001,2004
 ./lib/dns/journal.c				C	1999,2000,2001,2002,2004,2005
-./lib/dns/key.c					C	2001,2004
+./lib/dns/key.c					C	2001,2004,2005
 ./lib/dns/keytable.c				C	2000,2001,2004
 ./lib/dns/lib.c					C	1999,2000,2001,2004
 ./lib/dns/log.c					C	1999,2000,2001,2003,2004
@@ -1933,7 +1933,7 @@
 ./lib/isc/include/isc/os.h			C	2000,2001,2004
 ./lib/isc/include/isc/parseint.h		C	2001,2002,2004
 ./lib/isc/include/isc/platform.h.in		C	1999,2000,2001,2002,2003,2004
-./lib/isc/include/isc/print.h			C	1999,2000,2001,2003,2004
+./lib/isc/include/isc/print.h			C	1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/quota.h			C	2000,2001,2004
 ./lib/isc/include/isc/random.h			C	1999,2000,2001,2004
 ./lib/isc/include/isc/ratelimiter.h		C	1999,2000,2001,2002,2004
@@ -1961,7 +1961,7 @@
 ./lib/isc/inet_ntop.c				C	1996,1997,1998,1999,2000,2001,2004
 ./lib/isc/inet_pton.c				C	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004
-./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004
+./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isc/lib.c					C	1999,2000,2001,2004
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004
 ./lib/isc/md5.c					C	2000,2001,2004
@@ -1971,7 +1971,7 @@
 ./lib/isc/netscope.c				C	2002,2004
 ./lib/isc/nls/.cvsignore			X	1999,2000,2001
 ./lib/isc/nls/Makefile.in			MAKE	1999,2000,2001,2004
-./lib/isc/nls/msgcat.c				C	1999,2000,2001,2004
+./lib/isc/nls/msgcat.c				C	1999,2000,2001,2004,2005
 ./lib/isc/nothreads/.cvsignore			X	2000,2001
 ./lib/isc/nothreads/Makefile.in			MAKE	2000,2001,2004
 ./lib/isc/nothreads/condition.c			C	2000,2001,2004
@@ -2005,7 +2005,7 @@
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004
 ./lib/isc/region.c				C	2002,2004
-./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004
+./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/serial.c				C	1999,2000,2001,2004
 ./lib/isc/sha1.c				C	2000,2001,2003,2004
@@ -2054,7 +2054,7 @@
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
-./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004
+./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005
 ./lib/isc/unix/strerror.c			C	2001,2004
 ./lib/isc/unix/syslog.c				C	2001,2004
 ./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004
@@ -2066,8 +2066,8 @@
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2004
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004
-./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004
-./lib/isc/win32/errno2result.h			C	2000,2001,2004
+./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004,2005
+./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005
 ./lib/isc/win32/file.c				C	2000,2001,2002,2004
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004
 ./lib/isc/win32/include/.cvsignore		X	1999,2000,2001
@@ -2110,7 +2110,7 @@
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004
 ./lib/isc/win32/os.c				C	2000,2001,2002,2004
 ./lib/isc/win32/resource.c			C	2000,2001,2004
-./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004
+./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005
 ./lib/isc/win32/stdio.c				C	2000,2001,2004
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004
 ./lib/isc/win32/strerror.c			C	2001,2002,2004
@@ -2179,13 +2179,13 @@
 ./lib/isccfg/win32/libisccfg.mak		X	2001
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
-./lib/lwres/Makefile.in				MAKE	2000,2001,2004
+./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
 ./lib/lwres/api					X	2000,2001,2005
 ./lib/lwres/assert_p.h				C	2000,2001,2004
 ./lib/lwres/context.c				C	2000,2001,2003,2004
 ./lib/lwres/context_p.h				C	2000,2001,2004
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004
-./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004
+./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005
 ./lib/lwres/gethost.c				C	2000,2001,2004
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004
