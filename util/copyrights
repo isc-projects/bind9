@@ -1975,8 +1975,8 @@
 ./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2004
 ./lib/isc/win32/entropy.c			C	2000,2001,2004
-./lib/isc/win32/errno2result.c			C	2000,2001,2002,2003,2004
-./lib/isc/win32/errno2result.h			C	2000,2001,2004
+./lib/isc/win32/errno2result.c			C	2000,2001,2002,2003,2004,2005
+./lib/isc/win32/errno2result.h			C	2000,2001,2004,2005
 ./lib/isc/win32/file.c				C	2000,2001,2002,2004
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2004
 ./lib/isc/win32/include/.cvsignore		X	1999,2000,2001
@@ -2019,7 +2019,7 @@
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004
 ./lib/isc/win32/os.c				C	2000,2001,2004
 ./lib/isc/win32/resource.c			C	2000,2001,2004
-./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004
+./lib/isc/win32/socket.c			C	2000,2001,2002,2003,2004,2005
 ./lib/isc/win32/stdio.c				C	2000,2001,2004
 ./lib/isc/win32/stdtime.c			C	1999,2000,2001,2004
 ./lib/isc/win32/strerror.c			C	2002,2003,2004
