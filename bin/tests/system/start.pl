@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.5 2004/03/10 02:19:52 marka Exp $
+# $Id: start.pl,v 1.6 2005/06/10 07:00:19 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -129,7 +129,7 @@ sub start_server {
 		if ($options) {
 			$command .= "$options";
 		} else {
-			$command .= "-m record -c named.conf -d 99 -g";
+			$command .= "-m record,size,mctx -c named.conf -d 99 -g";
 		}
 		$command .= " >named.run 2>&1 &";
 		$pid_file = "named.pid";
@@ -139,7 +139,7 @@ sub start_server {
 		if ($options) {
 			$command .= "$options";
 		} else {
-			$command .= "-m record -C resolv.conf -d 99 -g -i lwresd.pid -P 9210 -p 5300";
+			$command .= "-m record,size,mctx -C resolv.conf -d 99 -g -i lwresd.pid -P 9210 -p 5300";
 		}
 		$command .= " >lwresd.run 2>&1 &";
 		$pid_file = "lwresd.pid";

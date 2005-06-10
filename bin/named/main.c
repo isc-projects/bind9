@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.146 2005/04/29 00:36:15 marka Exp $ */
+/* $Id: main.c,v 1.147 2005/06/10 07:00:19 marka Exp $ */
 
 /*! \file */
 
@@ -228,7 +228,7 @@ lwresd_usage(void) {
 		"              [-f|-g] [-n number_of_cpus] [-p port] "
 		"[-P listen-port] [-s]\n"
 		"              [-t chrootdir] [-u username] [-i pidfile]\n"
-		"              [-m {usage|trace|record}]\n");
+		"              [-m {usage|trace|record|size|mctx}]\n");
 }
 
 static void
@@ -241,7 +241,7 @@ usage(void) {
 		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
-		"             [-m {usage|trace|record}]\n");
+		"             [-m {usage|trace|record|size|mctx}]\n");
 }
 
 static void
@@ -309,6 +309,8 @@ static struct flag_def {
 	{ "trace",  ISC_MEM_DEBUGTRACE },
 	{ "record", ISC_MEM_DEBUGRECORD },
 	{ "usage", ISC_MEM_DEBUGUSAGE },
+	{ "size", ISC_MEM_DEBUGSIZE },
+	{ "mctx", ISC_MEM_DEBUGCTX },
 	{ NULL, 0 }
 };
 
