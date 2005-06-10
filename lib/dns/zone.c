@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.57 2005/06/07 01:22:35 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.58 2005/06/10 07:47:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2002,7 +2002,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
 	/*
 	 * Similarly for mastersok.
 	 */
-	newok = isc_mem_get(zone->mctx, count * sizeof(newok));
+	newok = isc_mem_get(zone->mctx, count * sizeof(*newok));
 	if (newok == NULL) {
 		result = ISC_R_NOMEMORY;
 		isc_mem_put(zone->mctx, new, count * sizeof(*new));
