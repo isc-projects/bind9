@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.59.18.4 2005/06/04 06:23:43 jinmei Exp $ */
+/* $Id: mem.h,v 1.59.18.5 2005/06/10 07:10:08 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -87,6 +87,9 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define ISC_MEM_DEBUGTRACE		0x00000001U
 #define ISC_MEM_DEBUGRECORD		0x00000002U
 #define ISC_MEM_DEBUGUSAGE		0x00000004U
+#define ISC_MEM_DEBUGSIZE		0x00000008U
+#define ISC_MEM_DEBUGCTX		0x00000010U
+#define ISC_MEM_DEBUGALL		0x0000001FU
 /*!<
  * The variable isc_mem_debugging holds a set of flags for
  * turning certain memory debugging options on or off at
@@ -104,6 +107,14 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
  * \li #ISC_MEM_DEBUGUSAGE
  *	If a hi_water mark is set, print the maximium inuse memory
  *	every time it is raised once it exceeds the hi_water mark.
+ *
+ * \li #ISC_MEM_DEBUGSIZE
+ *	Check the size arguement being passed to isc_mem_put() matches
+ *	that passed to isc_mem_get().
+ *
+ * \li #ISC_MEM_DEBUGCTX
+ *	Check the mctx arguement being passed to isc_mem_put() matches
+ *	that passed to isc_mem_get().
  */
 /*@}*/
 

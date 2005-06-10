@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.4 2005/06/04 06:23:41 jinmei Exp $ */
+/* $Id: mem.c,v 1.116.18.5 2005/06/10 07:10:08 marka Exp $ */
 
 /*! \file */
 
@@ -99,6 +99,7 @@ typedef struct {
 	 */
 	union {
 		size_t		size;
+		isc_mem_t	*ctx;
 		char		bytes[ALIGNMENT_SIZE];
 	} u;
 } size_info;
@@ -976,6 +977,8 @@ void
 isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	isc_mem_t *ctx;
 	isc_boolean_t want_destroy = ISC_FALSE;
+	size_info *si;
+	size_t oldsize;
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
@@ -988,6 +991,26 @@ isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	 */
 	*ctxp = NULL;
 
+	if ((isc_mem_debugging & (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0) {
+		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
+			si = &(((size_info *)ptr)[-1]);
+			oldsize = si->u.size - ALIGNMENT_SIZE;
+			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
+				oldsize -= ALIGNMENT_SIZE;
+			INSIST(oldsize == size);
+		}
+		isc__mem_free(ctx, ptr FLARG_PASS);
+
+		MCTXLOCK(ctx, &ctx->lock);
+		ctx->references--;
+		if (ctx->references == 0)
+			want_destroy = ISC_TRUE;
+		MCTXUNLOCK(ctx, &ctx->lock);
+		if (want_destroy)
+			destroy(ctx);
+
+		return;
+	}
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	MCTXLOCK(ctx, &ctx->lock);
 	mem_putunlocked(ctx, ptr, size);
@@ -1055,6 +1078,8 @@ isc__mem_get(isc_mem_t *ctx, size_t size FLARG) {
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
+	if ((isc_mem_debugging & (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0)
+		return (isc__mem_allocate(ctx, size FLARG_PASS));
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	MCTXLOCK(ctx, &ctx->lock);
 	ptr = mem_getunlocked(ctx, size);
@@ -1090,9 +1115,23 @@ void
 isc__mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG)
 {
 	isc_boolean_t call_water = ISC_FALSE;
+	size_info *si;
+	size_t oldsize;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
+
+	if ((isc_mem_debugging & (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0) {
+		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
+			si = &(((size_info *)ptr)[-1]);
+			oldsize = si->u.size - ALIGNMENT_SIZE;
+			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
+				oldsize -= ALIGNMENT_SIZE;
+			INSIST(oldsize == size);
+		}
+		isc__mem_free(ctx, ptr FLARG_PASS);
+		return;
+	}
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	MCTXLOCK(ctx, &ctx->lock);
@@ -1249,6 +1288,8 @@ isc__mem_allocateunlocked(isc_mem_t *ctx, size_t size) {
 	size_info *si;
 
 	size += ALIGNMENT_SIZE;
+	if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
+		size += ALIGNMENT_SIZE;
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	si = mem_getunlocked(ctx, size);
 #else /* ISC_MEM_USE_INTERNAL_MALLOC */
@@ -1256,6 +1297,10 @@ isc__mem_allocateunlocked(isc_mem_t *ctx, size_t size) {
 #endif /* ISC_MEM_USE_INTERNAL_MALLOC */
 	if (si == NULL)
 		return (NULL);
+	if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0) {
+		si->u.ctx = ctx;
+		si++;
+	}
 	si->u.size = size;
 	return (&si[1]);
 }
@@ -1263,6 +1308,7 @@ isc__mem_allocateunlocked(isc_mem_t *ctx, size_t size) {
 void *
 isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 	size_info *si;
+	isc_boolean_t call_water = ISC_FALSE;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 
@@ -1279,8 +1325,22 @@ isc__mem_allocate(isc_mem_t *ctx, size_t size FLARG) {
 #if ISC_MEM_TRACKLINES
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 #endif
-
+	if (ctx->hi_water != 0U && !ctx->hi_called &&
+	    ctx->inuse > ctx->hi_water) {
+		ctx->hi_called = ISC_TRUE;
+		call_water = ISC_TRUE;
+	}
+	if (ctx->inuse > ctx->maxinuse) {
+		ctx->maxinuse = ctx->inuse;
+		if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
+		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
+			fprintf(stderr, "maxinuse = %lu\n",
+				(unsigned long)ctx->inuse);
+	}
 	MCTXUNLOCK(ctx, &ctx->lock);
+
+	if (call_water)
+		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
 
 	return (si);
 }
@@ -1289,12 +1349,19 @@ void
 isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 	size_info *si;
 	size_t size;
+	isc_boolean_t call_water= ISC_FALSE;
 
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(ptr != NULL);
 
-	si = &(((size_info *)ptr)[-1]);
-	size = si->u.size;
+	if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0) {
+		si = &(((size_info *)ptr)[-2]);
+		REQUIRE(si->u.ctx == ctx);
+		size = si[1].u.size;
+	} else {
+		si = &(((size_info *)ptr)[-1]);
+		size = si->u.size;
+	}
 
 #if ISC_MEM_USE_INTERNAL_MALLOC
 	MCTXLOCK(ctx, &ctx->lock);
@@ -1307,7 +1374,22 @@ isc__mem_free(isc_mem_t *ctx, void *ptr FLARG) {
 
 	DELETE_TRACE(ctx, ptr, size, file, line);
 
+	/*
+	 * The check against ctx->lo_water == 0 is for the condition
+	 * when the context was pushed over hi_water but then had
+	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
+	 */
+	if (ctx->hi_called && 
+	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
+		ctx->hi_called = ISC_FALSE;
+
+		if (ctx->water != NULL)
+			call_water = ISC_TRUE;
+	}
 	MCTXUNLOCK(ctx, &ctx->lock);
+
+	if (call_water)
+		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
 }
 
 
