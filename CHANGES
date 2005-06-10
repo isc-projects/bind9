@@ -1,3 +1,6 @@
+1884.	[bug]		process_dhtkey() was using the wrong memory context
+			to free some memory. [RT #14890]
+
 1883.	[port]		sunos: portability fixes. [RT #14814]
 
 1882.	[port]		win32: isc__errno2result() now reports its caller.
