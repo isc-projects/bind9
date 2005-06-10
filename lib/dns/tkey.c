@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.79 2005/04/29 00:22:53 marka Exp $
+ * $Id: tkey.c,v 1.80 2005/06/10 06:58:27 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -356,7 +356,7 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 
 	isc_buffer_init(&secret, secretdata, sizeof(secretdata));
 
-	randomdata = isc_mem_get(tctx->mctx, TKEY_RANDOM_AMOUNT);
+	randomdata = isc_mem_get(tkeyout->mctx, TKEY_RANDOM_AMOUNT);
 	if (randomdata == NULL)
 		goto failure;
 
@@ -397,8 +397,8 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 		isc_buffer_free(&shared);
 	if (pubkey != NULL)
 		dst_key_free(&pubkey);
-	if (randomdata == NULL)
-		isc_mem_put(tctx->mctx, randomdata, TKEY_RANDOM_AMOUNT);
+	if (randomdata != NULL)
+		isc_mem_put(tkeyout->mctx, randomdata, TKEY_RANDOM_AMOUNT);
 	return (result);
 }
 
