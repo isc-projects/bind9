@@ -1772,7 +1772,7 @@
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004
 ./lib/dns/time.c				C	1998,1999,2000,2001,2003,2004
 ./lib/dns/timer.c				C	2000,2001,2004
-./lib/dns/tkey.c				C	1999,2000,2001,2004
+./lib/dns/tkey.c				C	1999,2000,2001,2004,2005
 ./lib/dns/tsig.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/ttl.c					C	1999,2000,2001,2004
 ./lib/dns/validator.c				C	2000,2001,2002,2004
