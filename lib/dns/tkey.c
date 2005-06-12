@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.71.2.3 2005/06/10 07:06:42 marka Exp $
+ * $Id: tkey.c,v 1.71.2.4 2005/06/12 00:02:01 marka Exp $
  */
 
 #include <config.h>
