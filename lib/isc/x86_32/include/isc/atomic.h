@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2 2005/06/04 05:32:50 jinmei Exp $ */
+/* $Id: atomic.h,v 1.3 2005/06/16 21:58:00 jinmei Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -22,6 +22,7 @@
 #include <isc/platform.h>
 #include <isc/types.h>
 
+#ifdef ISC_PLATFORM_USEGCCASM
 /*
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
@@ -55,6 +56,7 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		 */
 		"lock;"		
 #endif
+
 		"xchgl %1, %0"
 		:
 		: "r"(val), "m"(*p)
@@ -80,4 +82,79 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	return (cmpval);
 }
 
+#elif defined(ISC_PLATFORM_USESTDASM)
+/*
+ * The followings are "generic" assembly code which implements the same
+ * functionality in case the gcc extension cannot be used.  It should be
+ * better to avoid inlining below, since we directly refer to specific
+ * positions of the stack frame, which would not actually point to the
+ * intended address in the embedded mnemonic.
+ *
+ * XXX: this code may also not work on a 64-bit (w/o gcc) machine.
+ */
+#include <isc/util.h>		/* for 'UNUSED' macro */
+
+static isc_int32_t
+isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+	UNUSED(p);
+	UNUSED(val);
+
+	__asm (
+		"movl 8(%ebp), %ecx\n"
+		"movl 12(%ebp), %edx\n"
+#ifdef ISC_PLATFORM_USETHREADS
+		"lock;"
+#endif
+		"xadd %edx, (%ecx)\n"
+
+		/*
+		 * set the return value directly in the register so that we
+		 * can avoid guessing the correct position in the stack for a
+		 * local variable.
+		 */
+		"movl %edx, %eax"
+		);
+}
+
+static void
+isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+	UNUSED(p);
+	UNUSED(val);
+
+	__asm (
+		"movl 8(%ebp), %ecx\n"
+		"movl 12(%ebp), %edx\n"
+#ifdef ISC_PLATFORM_USETHREADS
+		"lock;"
+#endif
+		"xchgl (%ecx), %edx\n"
+		);
+}
+
+static isc_int32_t
+isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+	UNUSED(p);
+	UNUSED(cmpval);
+	UNUSED(val);
+
+	__asm (
+		"movl 8(%ebp), %ecx\n"
+		"movl 12(%ebp), %eax\n"	/* must be %eax for cmpxchgl */
+		"movl 16(%ebp), %edx\n"
+#ifdef ISC_PLATFORM_USETHREADS
+		"lock;"
+#endif
+
+		/*
+		 * If (%ecx) == %eax then (%ecx) := %edx.
+		 % %eax is set to old (%ecx), which will be the return value.
+		 */
+		"cmpxchgl %edx, (%ecx)"
+		);
+}
+#else /* !ISC_PLATFORM_USEGCCASM && !ISC_PLATFORM_USESTDASM */
+
+#error "unsupported compiler.  disable atomic ops by --disable-atomic"
+
+#endif
 #endif /* ISC_ATOMIC_H */

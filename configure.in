@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.378 $)
+AC_REVISION($Revision: 1.379 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1867,7 +1867,6 @@ if test "$use_atomic" = "yes"; then
 	AC_MSG_CHECKING([architecture type for atomic operations])
 	case "$host" in
 	[i[3456]86-*]|x86_64-*)
-		# XXX: also need to check portability of the "asm" keyword?
 		# XXX: some old x86 architectures actualy do not support
 		#      (some of) these operations.  Do we need stricter checks?
 		# Note: We currently use the same code for both the x86_32 and
@@ -1879,15 +1878,6 @@ if test "$use_atomic" = "yes"; then
 	alpha*-*)
 		have_atomic=yes
 		arch=alpha
-		if test "X$GCC" != "Xyes"; then
-			case "$host" in
-			*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline
-			# assembly.
-			ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
-			;;
-			esac
-		fi
 	;;
 	*)
 		have_atomic=no
@@ -1895,6 +1885,52 @@ if test "$use_atomic" = "yes"; then
 	;;
 	esac
 	AC_MSG_RESULT($arch)
+fi
+
+if test "$have_atomic" = "yes"; then
+	AC_MSG_CHECKING([compiler support for inline assembly code])
+
+	compiler=generic
+	# Check whehter the compiler supports the assembly syntax we provide.
+	if test "X$GCC" = "Xyes"; then
+		# GCC's ASM extension always works
+		compiler=gcc
+	else
+		case "$host" in
+		alpha*-dec-osf*)
+			# Tru64 compiler has its own syntax for inline 
+			# assembly.
+			AC_TRY_COMPILE(, [
+#ifndef __DECC
+#error "unexpected compiler"
+#endif
+				return (0);],
+				[compiler=osf],)
+		;;
+		esac
+	fi
+	case "$compiler" in
+	gcc)
+		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
+		;;
+	osf)
+		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
+		;;
+	*)
+		# See if the generic __asm function works.  If not,
+		# we need to disable the atomic operations.
+		AC_TRY_LINK(, [
+					__asm("nop")
+				],
+		[compiler="standard"
+		ISC_PLATFORM_USESTDASM="#define ISC_PLATFORM_USESTDASM 1"],
+		[compiler="not supported (atomic operations disabled)"
+		have_atomic=no
+		arch=noatomic ]);
+		;;
+	esac
+
+	AC_MSG_RESULT($compiler)
 fi
 
 if test "$have_atomic" = "yes"; then
@@ -1910,7 +1946,10 @@ fi
 AC_SUBST(ISC_PLATFORM_HAVEXADD)
 AC_SUBST(ISC_PLATFORM_HAVECMPXCHG)
 AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
+
+AC_SUBST(ISC_PLATFORM_USEGCCASM)
 AC_SUBST(ISC_PLATFORM_USEOSFASM)
+AC_SUBST(ISC_PLATFORM_USESTDASM)
 
 ISC_ARCH_DIR=$arch
 AC_SUBST(ISC_ARCH_DIR)

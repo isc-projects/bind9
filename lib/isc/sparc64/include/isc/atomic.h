@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2 2005/06/04 05:32:49 jinmei Exp $ */
+/* $Id: atomic.h,v 1.3 2005/06/16 21:58:00 jinmei Exp $ */
 
 /*
  * This code was written based on FreeBSD's kernel source whose copyright
@@ -58,6 +58,8 @@
 #include <isc/types.h>
 
 #define	ASI_P	0x80		/* Primary Address Space Identifier */
+
+#ifdef ISC_PLATFORM_USEGCCASM
 
 /*
  * This routine atomically increments the value stored in 'p' by 'val', and
@@ -115,5 +117,11 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 
 	return (temp);
 }
+
+#else  /* ISC_PLATFORM_USEGCCASM */
+
+#error "unsupported compiler.  disable atomic ops by --disable-atomic"
+
+#endif /* ISC_PLATFORM_USEGCCASM */
 
 #endif /* ISC_ATOMIC_H */

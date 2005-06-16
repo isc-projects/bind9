@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.38 2005/06/04 05:32:48 jinmei Exp $ */
+/* $Id: platform.h.in,v 1.39 2005/06/16 21:57:59 jinmei Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -236,9 +236,19 @@
 @ISC_PLATFORM_HAVECMPXCHG@
 
 /*
+ * Define if gcc ASM extension is available
+ */
+@ISC_PLATFORM_USEGCCASM@
+
+/*
  * Define if Tru64 style ASM syntax must be used.
  */
 @ISC_PLATFORM_USEOSFASM@
+
+/*
+ * Define if the standard __asm function must be used.
+ */
+@ISC_PLATFORM_USESTDASM@
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA

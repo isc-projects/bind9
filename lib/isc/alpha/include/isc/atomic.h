@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2 2005/06/04 05:32:48 jinmei Exp $ */
+/* $Id: atomic.h,v 1.3 2005/06/16 21:57:59 jinmei Exp $ */
 
 /*
  * This code was written based on FreeBSD's kernel source whose copyright
@@ -107,7 +107,7 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		   "2:",
 		   p, cmpval, val));
 }
-#else  /* ISC_PLATFORM_USEOSFASM */
+#elif defined (ISC_PLATFORM_USEGCCASM)
 static inline isc_int32_t 
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	isc_int32_t temp, prev;
@@ -161,6 +161,10 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 
 	return (prev);
 }
-#endif /* ISC_PLATFORM_USEOSFASM */
+#else
+
+#error "unsupported compiler.  disable atomic ops by --disable-atomic"
+
+#endif
 
 #endif /* ISC_ATOMIC_H */
