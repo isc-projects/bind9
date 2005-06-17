@@ -1731,7 +1731,7 @@
 ./lib/dns/order.c				C	2002,2004
 ./lib/dns/peer.c				C	2000,2001,2003,2004
 ./lib/dns/portlist.c				C	2003,2004
-./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004
+./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
@@ -2309,7 +2309,7 @@
 ./lib/tests/include/tests/.cvsignore		X	1999,2000,2001
 ./lib/tests/include/tests/Makefile.in		MAKE	1999,2000,2001,2004
 ./lib/tests/include/tests/t_api.h		C	1999,2000,2001,2004
-./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004
+./lib/tests/t_api.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/win32/bindevt/bindevt.c			C	2000,2001,2004
 ./lib/win32/bindevt/bindevt.dsp			X	2001
 ./lib/win32/bindevt/bindevt.dsw			X	2001
