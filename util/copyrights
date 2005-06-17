@@ -1664,7 +1664,7 @@
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2004
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2003,2004
 ./lib/dns/peer.c				C	2000,2001,2004
-./lib/dns/rbt.c					C	1999,2000,2001,2003,2004
+./lib/dns/rbt.c					C	1999,2000,2001,2003,2004,2005
 ./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
