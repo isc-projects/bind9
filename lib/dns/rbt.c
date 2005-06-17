@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.2.2.11 2004/10/25 01:36:07 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.2.2.12 2005/06/17 01:05:40 marka Exp $ */
 
 /* Principal Authors: DCL */
 
@@ -2060,7 +2060,10 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
 
-	unhash_node(rbt, node);
+	/*
+	 * Note: we don't call unhash_node() here as we are destroying
+	 * the complete rbt tree. 
+         */
 #if DNS_RBT_USEMAGIC
 	node->magic = 0;
 #endif

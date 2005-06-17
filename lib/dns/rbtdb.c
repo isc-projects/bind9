@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.19 2005/04/01 07:08:18 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.20 2005/06/17 01:05:40 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -413,7 +413,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
  again:
 	if (rbtdb->tree != NULL) {
 		result = dns_rbt_destroy2(&rbtdb->tree,
-					  (rbtdb->task != NULL) ? 5 : 0);
+					  (rbtdb->task != NULL) ? 1000 : 0);
 		if (result == ISC_R_QUOTA) {
 			INSIST(rbtdb->task != NULL);
 			if (event == NULL)
