@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.3 2005/04/29 00:22:49 marka Exp $
+ * $Id: openssldh_link.c,v 1.4 2005/06/17 02:22:44 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -149,7 +149,7 @@ openssldh_generate(dst_key_t *key, int generator) {
 		{
 			dh = DH_new();
 			if (dh == NULL)
-				return (ISC_R_NOMEMORY);
+				return (dst__openssl_toresult(ISC_R_NOMEMORY));
 			if (key->key_size == 768)
 				dh->p = &bn768;
 			else if (key->key_size == 1024)
@@ -285,7 +285,7 @@ openssldh_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	dh = DH_new();
 	if (dh == NULL)
-		return (ISC_R_NOMEMORY);
+		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	dh->flags &= ~DH_FLAG_CACHE_MONT_P;
 
 	/*

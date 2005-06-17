@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.64 2005/06/10 07:00:20 marka Exp $ */
+/* $Id: mem.h,v 1.65 2005/06/17 02:22:44 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -126,10 +126,30 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
 #define _ISC_MEM_FLARG
 #endif
 
+/*!
+ * Define ISC_MEM_USE_INTERNAL_MALLOC=1 to use the internal malloc()
+ * implementation in preference to the system one.  The internal malloc()
+ * is very space-efficient, and quite fast on uniprocessor systems.  It
+ * performs poorly on multiprocessor machines.
+ * JT: we can overcome the performance issue on multiprocessor machines
+ * by carefully separating memory contexts.
+ */
+
+#ifndef ISC_MEM_USE_INTERNAL_MALLOC
+#define ISC_MEM_USE_INTERNAL_MALLOC 1
+#endif
+
 /*
  * Flags for isc_mem_create2()calls.
  */
 #define ISC_MEMFLAG_NOLOCK	0x00000001	 /* no lock is necessary */
+#define ISC_MEMFLAG_INTERNAL	0x00000002	 /* use internal malloc */
+#if ISC_MEM_USE_INTERNAL_MALLOC
+#define ISC_MEMFLAG_DEFAULT 	ISC_MEMFLAG_INTERNAL
+#else
+#define ISC_MEMFLAG_DEFAULT 	0
+#endif
+
 
 #define isc_mem_get(c, s)	isc__mem_get((c), (s) _ISC_MEM_FILELINE)
 #define isc_mem_allocate(c, s)	isc__mem_allocate((c), (s) _ISC_MEM_FILELINE)
@@ -217,13 +237,12 @@ isc_mem_createx2(size_t max_size, size_t target_size,
  * \brief Create a memory context.
  *
  * 'max_size' and 'target_size' are tuning parameters.  When
- * ISC_MEM_USE_INTERNAL_MALLOC is true, allocations smaller than
- * 'max_size' will be satisfied by getting blocks of size
- * 'target_size' from the system allocator and breaking them up into
- * pieces; larger allocations will use the system allocator directly.
- * If 'max_size' and/or 'target_size' are zero, default values will be
- * used.  When ISC_MEM_USE_INTERNAL_MALLOC is false, 'target_size' is
- * ignored.
+ * ISC_MEMFLAG_INTERNAL is set, allocations smaller than 'max_size'
+ * will be satisfied by getting blocks of size 'target_size' from the
+ * system allocator and breaking them up into pieces; larger allocations
+ * will use the system allocator directly. If 'max_size' and/or
+ * 'target_size' are zero, default values will be * used.  When
+ * ISC_MEMFLAG_INTERNAL is not set, 'target_size' is ignored.
  *
  * 'max_size' is also used to size the statistics arrays and the array
  * used to record active memory when ISC_MEM_DEBUGRECORD is set.  Settin

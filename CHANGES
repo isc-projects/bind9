@@ -1,6 +1,9 @@
+1888.	[func]		"USE INTERNAL MALLOC" is now runtime selectable.
+			[RT #14892]
+
 1887.	[func]		Detect duplicates of UDP queries we are recursing on
 			and drop them.  New stats category "duplicates".
-			[RT #14892]
+			[RT #2471]
 
 1886.	[bug]		Fix unreasonably low quantum on call to
 			dns_rbt_destroy2().  Remove unnecessay unhash_node()

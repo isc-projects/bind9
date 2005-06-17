@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.3 2005/04/29 00:22:45 marka Exp $
+ * $Id: dst_api.c,v 1.4 2005/06/17 02:22:43 marka Exp $
  */
 
 /*! \file */
@@ -109,6 +109,20 @@ static isc_result_t	addsuffix(char *filename, unsigned int len,
 			return (_r);		\
 	} while (0);				\
 
+static void *
+default_memalloc(void *arg, size_t size) {
+        UNUSED(arg);
+        if (size == 0U)
+                size = 1;
+        return (malloc(size));
+}
+
+static void
+default_memfree(void *arg, void *ptr) {
+        UNUSED(arg);
+        free(ptr);
+}
+
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	isc_result_t result;
@@ -124,9 +138,12 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 	 * When using --with-openssl, there seems to be no good way of not
 	 * leaking memory due to the openssl error handling mechanism.
 	 * Avoid assertions by using a local memory context and not checking
-	 * for leaks on exit.
+	 * for leaks on exit.  Note: as there are leaks we cannot use
+	 * ISC_MEMFLAG_INTERNAL as it will free up memory still being used
+	 * by libcrypto.
 	 */
-	result = isc_mem_create(0, 0, &dst__memory_pool);
+	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+				  NULL, &dst__memory_pool, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setdestroycheck(dst__memory_pool, ISC_FALSE);
