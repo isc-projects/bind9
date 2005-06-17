@@ -1,3 +1,7 @@
+1886.	[bug]		Fix unreasonably low quantum on call to
+			dns_rbt_destroy2().  Remove unnecessay unhash_node()
+			call. [RT #14919]
+
 1884.	[bug]		process_dhtkey() was using the wrong memory context
 			to free some memory. [RT #14890]
 
