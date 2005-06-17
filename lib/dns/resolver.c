@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.310 2005/06/07 00:27:33 marka Exp $ */
+/* $Id: resolver.c,v 1.311 2005/06/17 01:58:22 marka Exp $ */
 
 /*! \file */
 
@@ -2633,8 +2633,9 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
  */
 
 static inline isc_result_t
-fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
-	  void *arg, dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
+fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
+	  dns_messageid_t id, isc_taskaction_t action, void *arg,
+	  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 	  dns_fetch_t *fetch)
 {
 	isc_task_t *clone;
@@ -2664,6 +2665,8 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_taskaction_t action,
 	event->rdataset = rdataset;
 	event->sigrdataset = sigrdataset;
 	event->fetch = fetch;
+	event->client = client;
+	event->id = id;
 	dns_fixedname_init(&event->foundname);
 
 	/*
@@ -6157,6 +6160,24 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp)
 {
+	return (dns_resolver_createfetch2(res, name, type, domain,
+					  nameservers, forwarders, NULL, 0,
+					  options, task, action, arg,
+					  rdataset, sigrdataset, fetchp));
+}
+
+isc_result_t
+dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
+			  dns_rdatatype_t type,
+			  dns_name_t *domain, dns_rdataset_t *nameservers,
+			  dns_forwarders_t *forwarders,
+			  isc_sockaddr_t *client, dns_messageid_t id,
+			  unsigned int options, isc_task_t *task,
+			  isc_taskaction_t action, void *arg,
+			  dns_rdataset_t *rdataset,
+			  dns_rdataset_t *sigrdataset,
+			  dns_fetch_t **fetchp)
+{
 	dns_fetch_t *fetch;
 	fetchctx_t *fctx = NULL;
 	isc_result_t result;
@@ -6206,6 +6227,22 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 				break;
 		}
 	}
+	
+	/*
+	 * Is this a duplicate?
+	 */
+	if (fctx != NULL && client != NULL) {
+		dns_fetchevent_t *fevent;
+		for (fevent = ISC_LIST_HEAD(fctx->events);
+		     fevent != NULL;
+		     fevent = ISC_LIST_NEXT(fevent, ev_link)) {
+			if (fevent->client != NULL && fevent->id == id &&
+			    isc_sockaddr_equal(fevent->client, client)) {
+				result = DNS_R_DUPLICATE;
+				goto unlock;
+			}
+		}
+	}
 
 	/*
 	 * If we didn't have a fetch, would attach to a done fetch, this
@@ -6225,7 +6262,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 		new_fctx = ISC_TRUE;
 	}
 
-	result = fctx_join(fctx, task, action, arg,
+	result = fctx_join(fctx, task, client, id, action, arg,
 			   rdataset, sigrdataset, fetch);
 	if (new_fctx) {
 		if (result == ISC_R_SUCCESS) {

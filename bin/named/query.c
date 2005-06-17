@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.266 2005/05/16 05:33:42 marka Exp $ */
+/* $Id: query.c,v 1.267 2005/06/17 01:58:21 marka Exp $ */
 
 /*! \file */
 
@@ -161,7 +161,10 @@ query_error(ns_client_t *client, isc_result_t result) {
 
 static void
 query_next(ns_client_t *client, isc_result_t result) {
-	inc_stats(client, dns_statscounter_failure);
+	if (result == DNS_R_DUPLICATE)
+		inc_stats(client, dns_statscounter_duplicate);
+	else
+		inc_stats(client, dns_statscounter_failure);
 	ns_client_next(client, result);
 }
 
@@ -2681,6 +2684,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 {
 	isc_result_t result;
 	dns_rdataset_t *rdataset, *sigrdataset;
+	isc_sockaddr_t *peeraddr;
 
 	inc_stats(client, dns_statscounter_recursion);
 
@@ -2744,14 +2748,19 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 
 	if (client->query.timerset == ISC_FALSE)
 		ns_client_settimeout(client, 60);
-	result = dns_resolver_createfetch(client->view->resolver,
-					  client->query.qname,
-					  qtype, qdomain, nameservers,
-					  NULL, client->query.fetchoptions,
-					  client->task,
-					  query_resume, client,
-					  rdataset, sigrdataset,
-					  &client->query.fetch);
+	if ((client->attributes & NS_CLIENTATTR_TCP) == 0)
+		peeraddr = &client->peeraddr;
+	else
+		peeraddr = NULL;
+	result = dns_resolver_createfetch2(client->view->resolver,
+					   client->query.qname,
+					   qtype, qdomain, nameservers,
+					   NULL, peeraddr, client->message->id,
+					   client->query.fetchoptions,
+					   client->task,
+					   query_resume, client,
+					   rdataset, sigrdataset,
+					   &client->query.fetch);
 
 	if (result == ISC_R_SUCCESS) {
 		/*
@@ -3219,7 +3228,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				else {
+				else if (result == DNS_R_DUPLICATE) {
+					/* Duplicate query. */
+					QUERY_ERROR(result);
+				} else {
 					/* Unable to recurse. */
 					QUERY_ERROR(DNS_R_SERVFAIL);
 				}
@@ -3389,6 +3401,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
+				else if (result == DNS_R_DUPLICATE)
+					QUERY_ERROR(result);
 				else
 					QUERY_ERROR(DNS_R_SERVFAIL);
 			} else {
@@ -3930,13 +3944,22 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (eresult != ISC_R_SUCCESS &&
 	    (!PARTIALANSWER(client) || WANTRECURSION(client))) {
-		/*
-		 * If we don't have any answer to give the client,
-		 * or if the client requested recursion and thus wanted
-		 * the complete answer, send an error response.
-		 */
-		 query_error(client, eresult);
-		 ns_client_detach(&client);
+		if (eresult == DNS_R_DUPLICATE) {
+			/*
+			 * This was a duplicate query that we are
+			 * recursing on.  Don't send a response now.
+			 * The original query will still cause a response.
+			 */
+			query_next(client, eresult);
+		} else {
+			/*
+			 * If we don't have any answer to give the client,
+			 * or if the client requested recursion and thus wanted
+			 * the complete answer, send an error response.
+			 */
+			query_error(client, eresult);
+		}
+		ns_client_detach(&client);
 	} else if (!RECURSING(client)) {
 		/*
 		 * We are done.  Set up sortlist data for the message
