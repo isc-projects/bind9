@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.40.18.5 2005/06/07 00:18:08 marka Exp $ */
+/* $Id: resolver.h,v 1.40.18.6 2005/06/17 02:04:32 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -65,9 +65,9 @@ ISC_LANG_BEGINDECLS
  * 'node', 'rdataset', and 'sigrdataset' may be bound.  It is the
  * receiver's responsibility to detach before freeing the event.
  * \brief
- * 'rdataset' and 'sigrdataset' are the values that were supplied when
- * dns_resolver_createfetch() was called.  They are returned to the
- * caller so that they may be freed.
+ * 'rdataset', 'sigrdataset', 'client' and 'id' are the values that were
+ * supplied when dns_resolver_createfetch() was called.  They are returned
+ *  to the caller so that they may be freed.
  */
 typedef struct dns_fetchevent {
 	ISC_EVENT_COMMON(struct dns_fetchevent);
@@ -79,6 +79,8 @@ typedef struct dns_fetchevent {
 	dns_rdataset_t *		rdataset;
 	dns_rdataset_t *		sigrdataset;
 	dns_fixedname_t			foundname;
+	isc_sockaddr_t *		client;
+	dns_messageid_t			id;
 } dns_fetchevent_t;
 
 /*
@@ -240,6 +242,18 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset,
 			 dns_fetch_t **fetchp);
+
+isc_result_t
+dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
+			  dns_rdatatype_t type,
+			  dns_name_t *domain, dns_rdataset_t *nameservers,
+			  dns_forwarders_t *forwarders,
+			  isc_sockaddr_t *client, isc_uint16_t id,
+			  unsigned int options, isc_task_t *task,
+			  isc_taskaction_t action, void *arg,
+			  dns_rdataset_t *rdataset,
+			  dns_rdataset_t *sigrdataset,
+			  dns_fetch_t **fetchp);
 /*%<
  * Recurse to answer a question.
  *
@@ -262,6 +276,10 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *\li	The values of 'rdataset' and 'sigrdataset' will be returned in
  *	the FETCHDONE event.
  *
+ *\li	'client' and 'id' are used for duplicate query detection.  '*client'
+ *	must remain stable until after 'action' has been called or
+ *	dns_resolver_cancelfetch() is called.
+ *
  * Requires:
  *
  *\li	'res' is a valid resolver that has been frozen.
@@ -277,6 +295,8 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  *
  *\li	'forwarders' is NULL.
  *
+ *\li	'client' is a valid sockaddr or NULL.
+ *
  *\li	'options' contains valid options.
  *
  *\li	'rdataset' is a valid, disassociated rdataset.
@@ -288,6 +308,7 @@ dns_resolver_createfetch(dns_resolver_t *res, dns_name_t *name,
  * Returns:
  *
  *\li	#ISC_R_SUCCESS					Success
+ *\li	#DNS_R_DUPLICATE
  *
  *\li	Many other values are possible, all of which indicate failure.
  */

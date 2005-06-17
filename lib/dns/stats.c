@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.c,v 1.6.18.2 2005/04/29 00:16:05 marka Exp $ */
+/* $Id: stats.c,v 1.6.18.3 2005/06/17 02:04:31 marka Exp $ */
 
 /*! \file */
 
@@ -32,7 +32,8 @@ LIBDNS_EXTERNAL_DATA const char *dns_statscounter_names[DNS_STATS_NCOUNTERS] =
 	"nxrrset",
 	"nxdomain",
 	"recursion",
-	"failure"
+	"failure",
+	"duplicate"
 	};
 
 isc_result_t

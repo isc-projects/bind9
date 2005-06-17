@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.c,v 1.115.10.6 2005/05/19 05:21:11 marka Exp $ */
+/* $Id: result.c,v 1.115.10.7 2005/06/17 02:04:31 marka Exp $ */
 
 /*! \file */
 
@@ -154,7 +154,8 @@ static const char *text[DNS_R_NRESULTS] = {
 
 	"must-be-secure",		       /*%< 100 DNS_R_MUSTBESECURE */
 	"covering NSEC record returned",       /*%< 101 DNS_R_COVERINGNSEC */
-	"MX is an address"		       /*%< 102 DNS_R_MXISADDRESS */
+	"MX is an address",		       /*%< 102 DNS_R_MXISADDRESS */
+	"duplicate query"		       /*%< 103 DNS_R_DUPLICATE */
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {
