@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1.6.4 2005/06/17 02:27:13 marka Exp $
+ * $Id: openssl_link.c,v 1.1.6.5 2005/06/17 03:58:27 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -37,6 +37,8 @@
 
 #include <openssl/err.h>
 #include <openssl/rand.h>
+#include <openssl/evp.h>
+#include <openssl/conf.h>
 #include <openssl/crypto.h>
 
 #if defined(CRYPTO_LOCK_ENGINE) && (OPENSSL_VERSION_NUMBER < 0x00907000L)
