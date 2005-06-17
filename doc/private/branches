@@ -30,16 +30,11 @@ rt13562				open	marka
 rt13587				review	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt14815a			open	marka	// statistics blind spots
-rt14815a			closed		// abandoned	
+rt14815				new	
 rt14855				open		// 9.4 ARM review	
-rt14890				closed	
-rt14892				closed
-rt14895				open	jinmei	
+rt14895				open	jinmei
 rt14916				open	marka	// lame cache to <qname,qtype>
 rt14918				open	marka	// clients-per-query	
-rt14919				closed	
-rt2471				closed	
 rt5206_1			open	marka
 rt6432				open	marka
 rt6496a				open	marka
@@ -282,11 +277,16 @@ rt14775				closed
 rt14801				closed
 rt14802				closed
 rt14814				closed
+rt14815a			closed		// abandoned	
 rt14841				closed
 rt14846				closed
 rt14851				closed
 rt14873				closed
+rt14890				closed
+rt14892				closed
+rt14919				closed
 rt1572a				closed		// bad rt#
+rt2471				closed
 rt288				closed
 rt3445				closed
 rt3469				closed
