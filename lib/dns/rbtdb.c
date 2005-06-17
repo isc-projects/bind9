@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.207 2005/06/04 05:32:46 jinmei Exp $ */
+/* $Id: rbtdb.c,v 1.208 2005/06/17 01:00:08 marka Exp $ */
 
 /*! \file */
 
@@ -566,7 +566,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
  again:
 	if (rbtdb->tree != NULL) {
 		result = dns_rbt_destroy2(&rbtdb->tree,
-					  (rbtdb->task != NULL) ? 5 : 0);
+					  (rbtdb->task != NULL) ? 1000 : 0);
 		if (result == ISC_R_QUOTA) {
 			INSIST(rbtdb->task != NULL);
 			if (event == NULL)
