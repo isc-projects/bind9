@@ -1,3 +1,7 @@
+1886.	[bug]		Fix unreasonably low quantum on call to
+			dns_rbt_destroy2().  Remove unnecessay unhash_node()
+			call. [RT #14919]
+
 1885.	[func]		Additional memory debugging support to track size
 			and mctx arguements. [RT #14814]
 
