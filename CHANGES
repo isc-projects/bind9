@@ -1,3 +1,6 @@
+1888.	[func]		"USE INTERNAL MALLOC" is now runtime selectable.
+			[RT #14892]
+
 1887.	[func]		Detect duplicates of UDP queries we are recursing on
 			and drop them.  New stats category "duplicates".
 			[RT #2471]

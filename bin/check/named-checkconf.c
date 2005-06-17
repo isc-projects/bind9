@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.4 2005/05/19 04:59:50 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.5 2005/06/17 02:27:12 marka Exp $ */
 
 /*! \file */
 
@@ -48,7 +48,6 @@
 #include "check-tool.h"
 
 isc_log_t *logc = NULL;
-static isc_entropy_t *ectx = NULL;
 
 #define CHECK(r)\
 	do { \

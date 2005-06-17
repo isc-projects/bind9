@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.6.3 2005/04/29 00:16:00 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.6.4 2005/06/17 02:27:14 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -342,7 +342,7 @@ opensslrsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 
 	rsa = RSA_new();
 	if (rsa == NULL)
-		return (ISC_R_NOMEMORY);
+		return (dst__openssl_toresult(ISC_R_NOMEMORY));
 	SET_FLAGS(rsa);
 
 	if (r.length < 1) {

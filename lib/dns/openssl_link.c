@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1.6.3 2005/04/29 00:16:00 marka Exp $
+ * $Id: openssl_link.c,v 1.1.6.4 2005/06/17 02:27:13 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -132,6 +132,11 @@ isc_result_t
 dst__openssl_init() {
 	isc_result_t result;
 
+#ifdef  DNS_CRYPTO_LEAKS
+	CRYPTO_malloc_debug_init();
+	CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
+	CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
+#endif
 	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
 	nlocks = CRYPTO_num_locks();
 	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks);
@@ -179,6 +184,29 @@ dst__openssl_init() {
 
 void
 dst__openssl_destroy() {
+
+	/*
+	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
+	 */
+	CONF_modules_unload(1);
+	EVP_cleanup();
+#ifdef USE_ENGINE
+	ENGINE_cleanup();
+#endif
+	CRYPTO_cleanup_all_ex_data();
+	ERR_clear_error();
+	ERR_free_strings();
+	ERR_remove_state(0);
+
+#ifdef  DNS_CRYPTO_LEAKS
+	CRYPTO_mem_leaks_fp(stderr);
+#endif
+
+#if 0
+	/*
+	 * The old error sequence that leaked.  Remove for 9.4.1 if
+	 * there are no issues by then.
+	 */
 	ERR_clear_error();
 #ifdef USE_ENGINE
 	if (e != NULL) {
@@ -186,12 +214,15 @@ dst__openssl_destroy() {
 		e = NULL;
 	}
 #endif
+#endif
 	if (locks != NULL) {
 		DESTROYMUTEXBLOCK(locks, nlocks);
 		mem_free(locks);
 	}
-	if (rm != NULL)
+	if (rm != NULL) {
+		RAND_cleanup();
 		mem_free(rm);
+	}
 }
 
 isc_result_t
