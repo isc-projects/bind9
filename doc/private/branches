@@ -25,21 +25,21 @@ rt11733				open	jakob
 rt11733b			open	jakob
 rt13489				review	marka
 rt13505				review	
-rt13555				open	marka
+rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13587				review	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt14815				open	marka
-rt14815a			new	
+rt14815a			open	marka	// statistics blind spots
+rt14815a			closed		// abandoned	
 rt14855				open		// 9.4 ARM review	
-rt14890				new	
-rt14892				new	
-rt14895				new	
-rt14916				new	
-rt14918				new	
-rt14919				new	
-rt2471				new	
+rt14890				closed	
+rt14892				closed
+rt14895				open	jinmei	
+rt14916				open	marka	// lame cache to <qname,qtype>
+rt14918				open	marka	// clients-per-query	
+rt14919				closed	
+rt2471				closed	
 rt5206_1			open	marka
 rt6432				open	marka
 rt6496a				open	marka
