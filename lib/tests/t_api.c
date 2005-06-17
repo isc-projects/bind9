@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.48.2.1.2.6 2004/08/28 06:25:27 marka Exp $ */
+/* $Id: t_api.c,v 1.48.2.1.2.7 2005/06/17 02:35:58 marka Exp $ */
 
 #include <config.h>
 
@@ -35,6 +35,7 @@
 #include <isc/commandline.h>
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/mem.h>
 
 #include <dns/compress.h>
 #include <dns/result.h>
@@ -119,6 +120,7 @@ main(int argc, char **argv) {
 	testspec_t		*pts;
 	struct sigaction	sa;
 
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	first = ISC_TRUE;
 	subprocs = 1;
 	T_timeout = T_TCTOUT;
