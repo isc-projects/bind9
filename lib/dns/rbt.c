@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.115.2.10 2005/06/17 01:05:47 marka Exp $ */
+/* $Id: rbt.c,v 1.115.2.11 2005/06/18 01:02:59 marka Exp $ */
 
 /* Principal Authors: DCL */
 
