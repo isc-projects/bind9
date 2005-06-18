@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.1.6.5 2005/06/17 03:58:27 marka Exp $
+ * $Id: openssl_link.c,v 1.1.6.6 2005/06/18 00:51:07 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -190,12 +190,16 @@ dst__openssl_destroy() {
 	/*
 	 * Sequence taken from apps_shutdown() in <apps/apps.h>.
 	 */
+#if (OPENSSL_VERSION_NUMBER > 0x0090607fL)
 	CONF_modules_unload(1);
+#endif
 	EVP_cleanup();
-#ifdef USE_ENGINE
+#if defined(USE_ENGINE) && OPENSSL_VERSION_NUMBER > 0x0090607fL
 	ENGINE_cleanup();
 #endif
+#if (OPENSSL_VERSION_NUMBER > 0x0090607fL)
 	CRYPTO_cleanup_all_ex_data();
+#endif
 	ERR_clear_error();
 	ERR_free_strings();
 	ERR_remove_state(0);
