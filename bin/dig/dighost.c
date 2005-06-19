@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.24 2005/06/07 01:00:18 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.25 2005/06/19 22:18:10 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -2848,9 +2848,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!l->doing_xfr || l->xfr_q == query) {
-#ifdef DIG_SIGCHASE
-		int count = 0;
-#endif
 		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
 			if (!next_origin(msg, query)) {
 				printmessage(query, msg, ISC_TRUE);
@@ -2863,11 +2860,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				printmessage(query, msg, ISC_TRUE);
 		} else if (l->trace) {
 			int n = 0;
-#ifdef DIG_SIGCHASE
-			count = msg->counts[DNS_SECTION_ANSWER];
-#else
 			int count = msg->counts[DNS_SECTION_ANSWER];
-#endif
 
 			debug("in TRACE code");
 			if (!l->ns_search_only)
