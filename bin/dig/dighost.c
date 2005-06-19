@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.18 2005/06/07 01:00:55 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.19 2005/06/19 22:17:14 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2881,9 +2881,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!l->doing_xfr || l->xfr_q == query) {
-#ifdef DIG_SIGCHASE
-		int count = 0;
-#endif
 		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
 			if (!next_origin(msg, query)) {
 				printmessage(query, msg, ISC_TRUE);
@@ -2896,11 +2893,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				printmessage(query, msg, ISC_TRUE);
 		} else if (l->trace) {
 			int n = 0;
-#ifdef DIG_SIGCHASE
-			count = msg->counts[DNS_SECTION_ANSWER];
-#else
 			int count = msg->counts[DNS_SECTION_ANSWER];
-#endif
 
 			debug("in TRACE code");
 			if (!l->ns_search_only)
