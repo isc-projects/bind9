@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.14 2005/05/14 22:11:56 jakob Exp $ */
+/* $Id: string.c,v 1.15 2005/06/19 22:56:03 marka Exp $ */
 
 /*! \file */
 
@@ -95,8 +95,7 @@ isc_string_touint64(char *source, char **end, int base) {
 }
 
 isc_result_t
-isc_string_copy(char *target, size_t size, const char *source)
-{
+isc_string_copy(char *target, size_t size, const char *source) {
 	REQUIRE(size > 0);
 
 	if (strlcpy(target, source, size) >= size) {
@@ -110,8 +109,7 @@ isc_string_copy(char *target, size_t size, const char *source)
 }
 
 void
-isc_string_copy_truncate(char *target, size_t size, const char *source)
-{
+isc_string_copy_truncate(char *target, size_t size, const char *source) {
 	REQUIRE(size > 0);
 
 	strlcpy(target, source, size);
@@ -120,8 +118,7 @@ isc_string_copy_truncate(char *target, size_t size, const char *source)
 }
 
 isc_result_t
-isc_string_append(char *target, size_t size, const char *source)
-{
+isc_string_append(char *target, size_t size, const char *source) {
 	REQUIRE(size > 0);
 	REQUIRE(strlen(target) < size);
 
@@ -136,8 +133,7 @@ isc_string_append(char *target, size_t size, const char *source)
 }
 
 void
-isc_string_append_truncate(char *target, size_t size, const char *source)
-{
+isc_string_append_truncate(char *target, size_t size, const char *source) {
 	REQUIRE(size > 0);
 	REQUIRE(strlen(target) < size);
 
@@ -147,8 +143,7 @@ isc_string_append_truncate(char *target, size_t size, const char *source)
 }
 
 isc_result_t
-isc_string_printf(char *target, size_t size, const char *format, ...)
-{
+isc_string_printf(char *target, size_t size, const char *format, ...) {
 	va_list args;
 	size_t n;
 
@@ -169,8 +164,7 @@ isc_string_printf(char *target, size_t size, const char *format, ...)
 }
 
 void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
-{
+isc_string_printf_truncate(char *target, size_t size, const char *format, ...) {
 	va_list args;
 	size_t n;
 
@@ -184,8 +178,7 @@ isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
 }
 
 char *
-isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source)
-{
+isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
 	char *target;
 
 	REQUIRE(mctx != NULL);
