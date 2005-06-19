@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.92 2005/06/07 00:15:59 marka Exp $ */
+/* $Id: dig.h,v 1.93 2005/06/19 22:45:22 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -73,14 +73,6 @@
  * Lookup_limit is just a limiter, keeping too many lookups from being
  * created.  It's job is mainly to prevent the program from running away
  * in a tight loop of constant lookups.  It's value is arbitrary.
- */
-
-#define ROOTNS 1
-/*%
- * Set the number of root servers to ask for information when running in
- * trace mode.
- * XXXMWS -- trace mode is currently semi-broken, and this number *MUST*
- * be 1.
  */
 
 /*
