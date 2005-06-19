@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.15 2005/05/14 22:11:56 jakob Exp $ */
+/* $Id: string.h,v 1.16 2005/06/19 22:57:59 marka Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
@@ -24,6 +24,7 @@
 
 #include <string.h>
 
+#include <isc/formatcheck.h>
 #include <isc/int.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
@@ -158,7 +159,8 @@ isc_string_printf(char *target, size_t size, const char *format, ...);
  */
 
 void
-isc_string_printf_truncate(char *target, size_t size, const char *format, ...);
+isc_string_printf_truncate(char *target, size_t size, const char *format, ...)
+	ISC_FORMAT_PRINTF(3, 4);
 /*
  * Print 'format' to 'target' which is a pointer to a string of at least
  * 'size' bytes.
