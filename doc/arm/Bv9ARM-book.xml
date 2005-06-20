@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.272 2005/06/20 01:03:52 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.273 2005/06/20 01:11:57 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1061,6 +1061,7 @@ zone "eng.example.com" {
 		  it always dumps the zone content to a specified file
 		  (typically in a different format).
 		</para>
+	      </listitem>
 	    </varlistentry>
             <varlistentry id="rndc" xreflabel="Remote Name Daemon Control application">
 
