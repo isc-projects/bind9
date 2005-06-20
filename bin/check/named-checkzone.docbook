@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.20 2005/06/20 01:03:48 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.21 2005/06/20 01:09:42 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -115,6 +115,7 @@
 	When manaully specified otherwise, the check levels must at
         least be as strict as those specified in the
 	<command>named</command> configuration file.
+     </para>
   </refsect1>
 
   <refsect1>
