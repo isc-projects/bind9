@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.51 2005/06/07 00:27:34 marka Exp $ */
+/* $Id: namedconf.c,v 1.52 2005/06/20 01:03:55 marka Exp $ */
 
 /*! \file */
 
@@ -664,6 +664,12 @@ static cfg_type_t cfg_type_mustbesecure = {
 	&cfg_rep_tuple, mustbesecure_fields
 };
 
+static const char *masterformat_enums[] = { "text", "raw", NULL };
+static cfg_type_t cfg_type_masterformat = {
+	"masterformat", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &masterformat_enums
+};
+
 /*
  * dnssec-lookaside
  */
@@ -764,6 +770,7 @@ zone_clauses[] = {
 	{ "allow-update", &cfg_type_bracketed_aml, 0 },
 	{ "allow-update-forwarding", &cfg_type_bracketed_aml, 0 },
 	{ "allow-notify", &cfg_type_bracketed_aml, 0 },
+	{ "masterfile-format", &cfg_type_masterformat, 0 },
 	{ "notify", &cfg_type_notifytype, 0 },
 	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
 	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },

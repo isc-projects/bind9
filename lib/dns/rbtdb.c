@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.208 2005/06/17 01:00:08 marka Exp $ */
+/* $Id: rbtdb.c,v 1.209 2005/06/20 01:03:53 marka Exp $ */
 
 /*! \file */
 
@@ -5191,16 +5191,17 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 }
 
 static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
+dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
+     dns_masterformat_t masterformat) {
 	dns_rbtdb_t *rbtdb;
 
 	rbtdb = (dns_rbtdb_t *)db;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	return (dns_master_dump(rbtdb->common.mctx, db, version,
-				&dns_master_style_default,
-				filename));
+	return (dns_master_dump2(rbtdb->common.mctx, db, version,
+				 &dns_master_style_default,
+				 filename, masterformat));
 }
 
 static void

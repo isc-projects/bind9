@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.49 2005/04/29 00:22:51 marka Exp $ */
+/* $Id: sdb.c,v 1.50 2005/06/20 01:03:53 marka Exp $ */
 
 /*! \file */
 
@@ -601,10 +601,12 @@ endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 }
 
 static isc_result_t
-dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
+dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
+     dns_masterformat_t masterformat) {
 	UNUSED(db);
 	UNUSED(version);
 	UNUSED(filename);
+	UNUSED(masterformat);
 	return (ISC_R_NOTIMPLEMENTED);
 }
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.77 2005/04/29 00:22:44 marka Exp $ */
+/* $Id: db.c,v 1.78 2005/06/20 01:03:52 marka Exp $ */
 
 /*! \file */
 
@@ -339,13 +339,22 @@ dns_db_load(dns_db_t *db, const char *filename) {
 
 isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename) {
+	return ((db->methods->dump)(db, version, filename,
+				    dns_masterformat_text));
+}
+
+isc_result_t
+dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
+	     dns_masterformat_t masterformat) {
 	/*
-	 * Dump 'db' into master file 'filename'.
+	 * Dump 'db' into master file 'filename' in the 'masterformat' format.
+	 * XXXJT: is it okay to modify the interface to the existing "dump"
+	 * method?
 	 */
 
 	REQUIRE(DNS_DB_VALID(db));
 
-	return ((db->methods->dump)(db, version, filename));
+	return ((db->methods->dump)(db, version, filename, masterformat));
 }
 
 /***

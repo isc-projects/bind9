@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.h,v 1.10 2005/05/19 04:58:59 marka Exp $ */
+/* $Id: check-tool.h,v 1.11 2005/06/20 01:03:48 marka Exp $ */
 
 #ifndef CHECK_TOOL_H
 #define CHECK_TOOL_H
@@ -23,8 +23,9 @@
 /*! \file */
 
 #include <isc/lang.h>
-
 #include <isc/types.h>
+
+#include <dns/masterdump.h>
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -34,10 +35,12 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp);
 
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
-	  const char *classname, dns_zone_t **zonep);
+	  dns_masterformat_t fileformat, const char *classname,
+	  dns_zone_t **zonep);
 
 isc_result_t
-dump_zone(const char *zonename, dns_zone_t *zone, const char *filename);
+dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
+	  dns_masterformat_t fileformat, const dns_master_style_t *style);
 
 extern int debug;
 extern isc_boolean_t nomerge;

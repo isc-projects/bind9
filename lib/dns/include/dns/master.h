@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.43 2005/05/19 04:59:04 marka Exp $ */
+/* $Id: master.h,v 1.44 2005/06/20 01:03:54 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
@@ -57,6 +57,38 @@
 
 ISC_LANG_BEGINDECLS
 
+/*
+ * Structures that implement the "raw" format for master dump.
+ * These are provided for a reference purpose only; in the actual
+ * encoding, we directly read/write each field so that the encoded data
+ * is always "packed", regardless of the hardware architecture.
+ */
+#define DNS_RAWFORMAT_VERSION 0
+
+/* Common header */
+typedef struct {
+	isc_uint32_t		format;		/* must be
+						 * dns_masterformat_raw */
+	isc_uint32_t		version;	/* compatibility for future
+						 * extensions */
+	isc_uint32_t		dumptime;	/* timestamp on creation
+						 * (currently unused)
+						 */
+} dns_masterrawheader_t;
+
+/* The structure for each RRset */
+typedef struct {
+	isc_uint32_t		totallen;	/* length of the data for this
+						 * RRset, including the
+						 * "header" part */
+	dns_rdataclass_t	rdclass;	/* 16-bit class */
+	dns_rdatatype_t		type;		/* 16-bit type */
+	dns_rdatatype_t		covers;		/* same as type */
+	dns_ttl_t		ttl;		/* 32-bit TTL */
+	isc_uint32_t		nrdata;		/* number of RRs in this set */
+	/* followed by encoded owner name, and then rdata */
+} dns_masterrawrdataset_t;
+
 /***
  ***	Function
  ***/
@@ -69,6 +101,16 @@ dns_master_loadfile(const char *master_file,
 		    unsigned int options,
 		    dns_rdatacallbacks_t *callbacks,
 		    isc_mem_t *mctx);
+
+isc_result_t
+dns_master_loadfile2(const char *master_file,
+		     dns_name_t *top,
+		     dns_name_t *origin,
+		     dns_rdataclass_t zclass,
+		     unsigned int options,
+		     dns_rdatacallbacks_t *callbacks,
+		     isc_mem_t *mctx,
+		     dns_masterformat_t format);
 
 isc_result_t
 dns_master_loadstream(FILE *stream,
@@ -107,6 +149,18 @@ dns_master_loadfileinc(const char *master_file,
 		       isc_task_t *task,
 		       dns_loaddonefunc_t done, void *done_arg,
 		       dns_loadctx_t **ctxp, isc_mem_t *mctx);
+
+isc_result_t
+dns_master_loadfileinc2(const char *master_file,
+			dns_name_t *top,
+			dns_name_t *origin,
+			dns_rdataclass_t zclass,
+			unsigned int options,
+			dns_rdatacallbacks_t *callbacks,
+			isc_task_t *task,
+			dns_loaddonefunc_t done, void *done_arg,
+			dns_loadctx_t **ctxp, isc_mem_t *mctx,
+			dns_masterformat_t format);
 
 isc_result_t
 dns_master_loadstreaminc(FILE *stream,

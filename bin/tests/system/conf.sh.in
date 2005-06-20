@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.28 2004/11/23 05:23:35 marka Exp $
+# $Id: conf.sh.in,v 1.29 2005/06/20 01:03:49 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -43,7 +43,7 @@ CHECKZONE=$TOP/bin/check/named-checkzone
 # load on the machine to make it unusable to other users.
 # v6synth
 SUBDIRS="cacheclean checknames dnssec forward glue ixfr limits lwresd \
-    masterfile notify nsupdate resolver sortlist stub tkey \
+    masterfile masterformat notify nsupdate resolver sortlist stub tkey \
     unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.

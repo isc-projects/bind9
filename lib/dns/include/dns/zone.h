@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.134 2005/05/19 04:59:05 marka Exp $ */
+/* $Id: zone.h,v 1.135 2005/06/20 01:03:55 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -32,6 +32,7 @@
 #include <isc/lang.h>
 #include <isc/rwlock.h>
 
+#include <dns/masterdump.h>
 #include <dns/types.h>
 
 typedef enum {
@@ -193,13 +194,22 @@ dns_zone_getorigin(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file);
+
+isc_result_t
+dns_zone_setfile2(dns_zone_t *zone, const char *file,
+		  dns_masterformat_t format);
 /*%<
- *	Sets the name of the master file from which the zone
- *	loads its database to 'file'.  For zones that have
- *	no associated master file, 'file' will be NULL.
+ *    Sets the name of the master file in the format of 'format' from which
+ *    the zone loads its database to 'file'.
+ *
+ *    For zones that have no associated master file, 'file' will be NULL.
  *
  *	For zones with persistent databases, the file name
  *	setting is ignored.
+ *
+ *    dns_zone_setfile() is a backward-compatible form of
+ *    dns_zone_setfile2(), which always specifies the
+ *    dns_masterformat_text (RFC1035) format.
  *
  * Require:
  *\li	'zone' to be a valid zone.
@@ -390,8 +400,21 @@ dns_zone_dump(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_dumptostream(dns_zone_t *zone, FILE *fd);
+
+isc_result_t
+dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
+		       const dns_master_style_t *style);
 /*%<
- *	Write the zone to stream 'fd'.
+ *    Write the zone to stream 'fd' in the specified 'format'.
+ *    If the 'format' is dns_masterformat_text (RFC1035), 'style' also
+ *    specifies the file style (e.g., &dns_master_style_default).
+ *
+ *    dns_zone_dumptostream() is a backward-compatible form of
+ *    dns_zone_dumptostream2(), which always uses the dns_masterformat_text
+ *    format and the dns_master_style_default style.
+ *
+ *    Note that dns_zone_dumptostream2() is the most flexible form.  It
+ *    can also provide the functionality of dns_zone_fulldumptostream().
  *
  * Require:
  *\li	'zone' to be a valid zone.
