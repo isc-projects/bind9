@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.28 2005/06/10 07:49:44 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.29 2005/06/20 01:19:42 marka Exp $ */
 
 /*! \file */
 
@@ -164,6 +164,7 @@ struct dns_zone {
 	unsigned int		irefs;
 	dns_name_t		origin;
 	char			*masterfile;
+	dns_masterformat_t	masterformat;
 	char			*journal;
 	isc_int32_t		journalsize;
 	dns_rdataclass_t	rdclass;
@@ -559,6 +560,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->masterfile = NULL;
+	zone->masterformat =  dns_masterformat_none;
 	zone->keydirectory = NULL;
 	zone->journalsize = -1;
 	zone->journal = NULL;
@@ -936,14 +938,22 @@ dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
 
 isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file) {
+	return (dns_zone_setfile2(zone, file, dns_masterformat_text));
+}
+
+isc_result_t
+dns_zone_setfile2(dns_zone_t *zone, const char *file,
+		  dns_masterformat_t format) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 	result = dns_zone_setstring(zone, &zone->masterfile, file);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
+		zone->masterformat = format;
 		result = default_journal(zone);
+	}
 	UNLOCK_ZONE(zone);
 
 	return (result);
@@ -1101,8 +1111,8 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE) &&
 			    isc_time_compare(&filetime, &zone->loadtime) < 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
-					     "skipping load: master file older "
-					     "than last load");
+					     "skipping load: master file "
+					     "older than last load");
 				result = DNS_R_UPTODATE;
 				goto cleanup;
 			}
@@ -1117,9 +1127,10 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	     strcmp(zone->db_argv[0], "rbt64") == 0)) {
 		if (zone->masterfile == NULL ||
 		    !isc_file_exists(zone->masterfile)) {
-			if (zone->masterfile != NULL)
+			if (zone->masterfile != NULL) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "no master file");
+			}
 			zone->refreshtime = now;
 			if (zone->task != NULL)
 				zone_settimer(zone, &now);
@@ -1216,14 +1227,15 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
-	result = dns_master_loadfileinc(load->zone->masterfile,
-					dns_db_origin(load->db),
-					dns_db_origin(load->db),
-					load->zone->rdclass,
-					options,
-					&load->callbacks, task,
-					zone_loaddone, load,
-					&load->zone->lctx, load->zone->mctx);
+ 	result = dns_master_loadfileinc2(load->zone->masterfile,
+					 dns_db_origin(load->db),
+					 dns_db_origin(load->db),
+					 load->zone->rdclass,
+					 options,
+					 &load->callbacks, task,
+					 zone_loaddone, load,
+					 &load->zone->lctx, load->zone->mctx,
+					 load->zone->masterformat);
 	if (result != ISC_R_SUCCESS && result != DNS_R_CONTINUE &&
 	    result != DNS_R_SEENINCLUDE)
 		goto fail;
@@ -1253,10 +1265,10 @@ zone_gotwritehandle(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
 	dns_db_currentversion(zone->db, &version);
-	result = dns_master_dumpinc(zone->mctx, zone->db, version,
-				    &dns_master_style_default,
-				    zone->masterfile, zone->task,
-				    dump_done, zone, &zone->dctx);
+	result = dns_master_dumpinc2(zone->mctx, zone->db, version,
+				     &dns_master_style_default,
+				     zone->masterfile, zone->task, dump_done,
+				     zone, &zone->dctx, zone->masterformat);
 	dns_db_closeversion(zone->db, &version, ISC_FALSE);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	UNLOCK_ZONE(zone);
@@ -1333,9 +1345,10 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					  &callbacks.add_private);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		result = dns_master_loadfile(zone->masterfile, &zone->origin,
-					     &zone->origin, zone->rdclass,
-					     options, &callbacks, zone->mctx);
+		result = dns_master_loadfile2(zone->masterfile, &zone->origin,
+					      &zone->origin, zone->rdclass,
+					      options, &callbacks, zone->mctx,
+					      zone->masterformat);
 		tresult = dns_db_endload(db, &callbacks.add_private);
 		if (result == ISC_R_SUCCESS)
 			result = tresult;
@@ -3013,6 +3026,7 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 	isc_boolean_t again;
 	dns_db_t *db = NULL;
 	char *masterfile = NULL;
+	dns_masterformat_t masterformat = dns_masterformat_none;
 
 /*
  * 'compact' MUST only be set if we are task locked.
@@ -3027,8 +3041,10 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 		dns_db_attach(zone->db, &db);
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	LOCK_ZONE(zone);
-	if (zone->masterfile != NULL)
+	if (zone->masterfile != NULL) {
 		masterfile = isc_mem_strdup(zone->mctx, zone->masterfile);
+		masterformat = zone->masterformat;
+	}
 	UNLOCK_ZONE(zone);
 	if (db == NULL) {
 		result = DNS_R_NOTLOADED;
@@ -3053,9 +3069,9 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 		UNLOCK_ZONE(zone);
 	} else {
 		dns_db_currentversion(db, &version);
-		result = dns_master_dump(zone->mctx, db, version,
-					 &dns_master_style_default,
-					 masterfile);
+		result = dns_master_dump2(zone->mctx, db, version,
+					  &dns_master_style_default,
+					  masterfile, masterformat);
 		dns_db_closeversion(db, &version, ISC_FALSE);
 	}
  fail:
@@ -3093,7 +3109,9 @@ zone_dump(dns_zone_t *zone, isc_boolean_t compact) {
 }
 
 static isc_result_t
-dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style) {
+dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style,
+	     dns_masterformat_t format)
+{
 	isc_result_t result;
 	dns_dbversion_t *version = NULL;
 	dns_db_t *db = NULL;
@@ -3108,20 +3126,29 @@ dumptostream(dns_zone_t *zone, FILE *fd, const dns_master_style_t *style) {
 		return (DNS_R_NOTLOADED);
 
 	dns_db_currentversion(db, &version);
-	result = dns_master_dumptostream(zone->mctx, db, version, style, fd);
+	result = dns_master_dumptostream2(zone->mctx, db, version, style,
+					  format, fd);
 	dns_db_closeversion(db, &version, ISC_FALSE);
 	dns_db_detach(&db);
 	return (result);
 }
 
 isc_result_t
+dns_zone_dumptostream2(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
+		       const dns_master_style_t *style) {
+	return dumptostream(zone, fd, style, format);
+}
+
+isc_result_t
 dns_zone_dumptostream(dns_zone_t *zone, FILE *fd) {
-	return dumptostream(zone, fd, &dns_master_style_default);
+	return dumptostream(zone, fd, &dns_master_style_default,
+			    dns_masterformat_text);
 }
 
 isc_result_t
 dns_zone_fulldumptostream(dns_zone_t *zone, FILE *fd) {
-	return dumptostream(zone, fd, &dns_master_style_full);
+	return dumptostream(zone, fd, &dns_master_style_full,
+			    dns_masterformat_text);
 }
 
 void
@@ -6043,7 +6070,8 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 				      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 				      "dumping new zone version");
-			result = dns_db_dump(db, ver, zone->masterfile);
+			result = dns_db_dump2(db, ver, zone->masterfile,
+					      zone->masterformat);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
 

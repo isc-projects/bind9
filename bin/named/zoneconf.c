@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.11 2005/05/19 04:59:51 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.12 2005/06/20 01:19:28 marka Exp $ */
 
 /*% */
 
@@ -341,6 +341,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	dns_view_t *view;
 	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
+	dns_masterformat_t masterformat;
 
 	i = 0;
 	if (zconfig != NULL) {
@@ -395,7 +396,21 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	result = cfg_map_get(zoptions, "file", &obj);
 	if (result == ISC_R_SUCCESS)
 		filename = cfg_obj_asstring(obj);
-	RETERR(dns_zone_setfile(zone, filename));
+
+	masterformat = dns_masterformat_text;
+	obj = NULL;
+	result= ns_config_get(maps, "masterfile-format", &obj);
+	if (result == ISC_R_SUCCESS) {
+		char *masterformatstr = cfg_obj_asstring(obj);
+
+		if (strcasecmp(masterformatstr, "text") == 0)
+			masterformat = dns_masterformat_text;
+		else if (strcasecmp(masterformatstr, "raw") == 0)
+			masterformat = dns_masterformat_raw;
+		else
+			INSIST(0);
+	}
+	RETERR(dns_zone_setfile2(zone, filename, masterformat));
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "journal", &obj);

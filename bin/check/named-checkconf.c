@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.5 2005/06/17 02:27:12 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.6 2005/06/20 01:19:26 marka Exp $ */
 
 /*! \file */
 
@@ -134,23 +134,37 @@ get_checknames(cfg_obj_t **maps, cfg_obj_t **obj) {
 	}
 }
 
+static isc_result_t
+config_get(cfg_obj_t **maps, const char *name, cfg_obj_t **obj) {
+	int i;
+
+	for (i = 0;; i++) {
+		if (maps[i] == NULL)
+			return (ISC_R_NOTFOUND);
+		if (cfg_map_get(maps[i], name, obj) == ISC_R_SUCCESS)
+			return (ISC_R_SUCCESS);
+	}
+}
+
 /*% configure the zone */
 static isc_result_t
 configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	       cfg_obj_t *vconfig, cfg_obj_t *config, isc_mem_t *mctx)
 {
+	int i = 0;
 	isc_result_t result;
 	const char *zclass;
 	const char *zname;
 	const char *zfile;
+	cfg_obj_t *maps[4];
 	cfg_obj_t *zoptions = NULL;
 	cfg_obj_t *classobj = NULL;
 	cfg_obj_t *typeobj = NULL;
 	cfg_obj_t *fileobj = NULL;
 	cfg_obj_t *dbobj = NULL;
 	cfg_obj_t *obj = NULL;
-	cfg_obj_t *maps[4];
-	int i = 0;
+	cfg_obj_t *fmtobj = NULL;
+	dns_masterformat_t masterformat;
 
 	zone_options = DNS_ZONEOPT_CHECKNS |
 		       DNS_ZONEOPT_MANYERRORS |
@@ -223,7 +237,20 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
                zone_options |= DNS_ZONEOPT_CHECKNAMESFAIL;
 	}
 
-	result = load_zone(mctx, zname, zfile, zclass, NULL);
+	masterformat = dns_masterformat_text;
+	fmtobj = NULL;
+	result = config_get(maps, "masterfile-format", &fmtobj);
+	if (result == ISC_R_SUCCESS) {
+		char *masterformatstr = cfg_obj_asstring(fmtobj);
+		if (strcasecmp(masterformatstr, "text") == 0)
+			masterformat = dns_masterformat_text;
+		else if (strcasecmp(masterformatstr, "raw") == 0)
+			masterformat = dns_masterformat_raw;
+		else
+			INSIST(0);
+	}
+
+	result = load_zone(mctx, zname, zfile, masterformat, zclass, NULL);
 	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "%s/%s/%s: %s\n", view, zname, zclass,
 			dns_result_totext(result));

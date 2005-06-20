@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76.18.4 2005/04/29 00:16:10 marka Exp $ */
+/* $Id: db.h,v 1.76.18.5 2005/06/20 01:19:43 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -75,7 +75,8 @@ typedef struct dns_dbmethods {
 				     dns_dbload_t **dbloadp);
 	isc_result_t	(*endload)(dns_db_t *db, dns_dbload_t **dbloadp);
 	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version,
-				const char *filename);
+				const char *filename,
+				dns_masterformat_t masterformat);
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
 	isc_result_t	(*newversion)(dns_db_t *db,
@@ -473,6 +474,10 @@ dns_db_load(dns_db_t *db, const char *filename);
 
 isc_result_t
 dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
+
+isc_result_t
+dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
+	     dns_masterformat_t masterformat);
 /*%<
  * Dump version 'version' of 'db' to master file 'filename'.
  *

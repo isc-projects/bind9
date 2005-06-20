@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.6 2005/05/19 04:59:49 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.7 2005/06/20 01:19:25 marka Exp $ */
 
 /*! \file */
 
@@ -389,7 +389,8 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 /*% load the zone */
 isc_result_t
 load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
-	  const char *classname, dns_zone_t **zonep)
+	  dns_masterformat_t fileformat, const char *classname,
+	  dns_zone_t **zonep)
 {
 	isc_result_t result;
 	dns_rdataclass_t rdclass;
@@ -417,7 +418,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 				ISC_FALSE, NULL));
 	CHECK(dns_zone_setorigin(zone, origin));
 	CHECK(dns_zone_setdbtype(zone, 1, (const char * const *) dbtype));
-	CHECK(dns_zone_setfile(zone, filename));
+	CHECK(dns_zone_setfile2(zone, filename, fileformat));
 
 	DE_CONST(classname, region.base);
 	region.length = strlen(classname);
@@ -447,7 +448,8 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 
 /*% dump the zone */
 isc_result_t
-dump_zone(const char *zonename, dns_zone_t *zone, const char *filename)
+dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
+	  dns_masterformat_t fileformat, const dns_master_style_t *style)
 {
 	isc_result_t result;
 	FILE *output = stdout;
@@ -470,7 +472,7 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename)
 		}
 	}
 
-	result = dns_zone_fulldumptostream(zone, output);
+	result = dns_zone_dumptostream2(zone, output, fileformat, style);
 
 	if (filename != NULL)
 		(void)isc_stdio_close(output);

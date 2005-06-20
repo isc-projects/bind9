@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.31.14.2 2005/04/29 00:16:15 marka Exp $ */
+/* $Id: masterdump.h,v 1.31.14.3 2005/06/20 01:19:44 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -211,10 +211,19 @@ isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
 			const dns_master_style_t *style, FILE *f);
+
+isc_result_t
+dns_master_dumptostream2(isc_mem_t *mctx, dns_db_t *db,
+			 dns_dbversion_t *version,
+			 const dns_master_style_t *style,
+			 dns_masterformat_t format, FILE *f);
 /*%<
- * Dump the database 'db' to the steam 'f' in RFC1035 master
- * file format, in the style defined by 'style'
- * (e.g., &dns_default_master_style_default)
+ * Dump the database 'db' to the steam 'f' in the specified format by
+ * 'format'.  If the format is dns_masterformat_text (the RFC1035 format),
+ * 'style' specifies the file style (e.g., &dns_master_style_default).
+ *
+ * dns_master_dumptostream() is an old form of dns_master_dumptostream2(),
+ * which always specifies the dns_masterformat_text format.
  *
  * Temporary dynamic memory may be allocated from 'mctx'.
  *
@@ -240,13 +249,29 @@ dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		   dns_dumpctx_t **dctxp);
 
 isc_result_t
+dns_master_dumpinc2(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
+		    const dns_master_style_t *style, const char *filename,
+		    isc_task_t *task, dns_dumpdonefunc_t done, void *done_arg,			    dns_dumpctx_t **dctxp, dns_masterformat_t format);
+
+isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 		dns_dbversion_t *version,
 		const dns_master_style_t *style, const char *filename);
+
+isc_result_t
+dns_master_dump2(isc_mem_t *mctx, dns_db_t *db,
+		 dns_dbversion_t *version,
+		 const dns_master_style_t *style, const char *filename,
+		 dns_masterformat_t format);
+
 /*%<
- * Dump the database 'db' to the file 'filename' in RFC1035 master
- * file format, in the style defined by 'style'
- * (e.g., &dns_default_master_style_default)
+ * Dump the database 'db' to the file 'filename' in the specified format by
+ * 'format'.  If the format is dns_masterformat_text (the RFC1035 format),
+ * 'style' specifies the file style (e.g., &dns_master_style_default).
+ *
+ * dns_master_dumpinc() and dns_master_dump() are old forms of _dumpinc2()
+ * and _dump2(), respectively, which always specify the dns_masterformat_text
+ * format.
  *
  * Temporary dynamic memory may be allocated from 'mctx'.
  *

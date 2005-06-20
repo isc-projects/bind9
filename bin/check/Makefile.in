@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.24.18.1 2004/07/20 07:03:19 marka Exp $
+# $Id: Makefile.in,v 1.24.18.2 2005/06/20 01:19:24 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -89,7 +89,9 @@ installdirs:
 install:: named-checkconf@EXEEXT@ named-checkzone@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-checkconf@EXEEXT@ ${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-checkzone@EXEEXT@ ${DESTDIR}${sbindir}
+	cd ${DESTDIR}${sbindir}; ${LINK_PROGRAM} named-checkzone@EXEEXT@ named-compilezone@EXEEXT@
 	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man8; done
+	cd ${DESTDIR}${mandir}/man8; ${LINK_PROGRAM} named-checkzone.8 named-compilezone.8
 
 clean distclean::
 	rm -f ${TARGETS} r1.htm
