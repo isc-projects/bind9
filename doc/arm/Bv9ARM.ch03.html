@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.9 2005/05/13 03:12:05 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.10 2005/06/20 02:44:25 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537906">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537911">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2539613">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2539635">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -414,6 +414,14 @@ zone "eng.example.com" {
 <div class="cmdsynopsis"><p><code class="command">named-checkzone</code>  [-djqvD] [-c <em class="replaceable"><code>class</code></em>] [-o <em class="replaceable"><code>output</code></em>] [-t <em class="replaceable"><code>directory</code></em>] [-w <em class="replaceable"><code>directory</code></em>] [-k <em class="replaceable"><code>(ignore|warn|fail)</code></em>] [-n <em class="replaceable"><code>(ignore|warn|fail)</code></em>] [-W <em class="replaceable"><code>(ignore|warn)</code></em>]  <em class="replaceable"><code>zone</code></em>  [<em class="replaceable"><code>filename</code></em>]</p></div>
 </dd>
 <dt>
+<a name="named-compilezone"></a><span class="term"><span><strong class="command">named-compilezone</strong></span></span>
+</dt>
+<dd><p>
+		  Similar to <span><strong class="command">named-checkzone,</strong></span> but
+		  it always dumps the zone content to a specified file
+		  (typically in a different format).
+		</p></dd>
+<dt>
 <a name="rndc"></a><span class="term"><span><strong class="command">rndc</strong></span></span>
 </dt>
 <dd>
@@ -742,7 +750,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2539613"></a>Signals</h3></div></div></div>
+<a name="id2539635"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can

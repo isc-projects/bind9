@@ -96,6 +96,7 @@ options {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
+        masterfile-format ( text | raw );
         notify <notifytype>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
@@ -189,6 +190,7 @@ view <string> <optional_class> {
                 allow-update { <address_match_element>; ... };
                 allow-update-forwarding { <address_match_element>; ... };
                 allow-notify { <address_match_element>; ... };
+                masterfile-format ( text | raw );
                 notify <notifytype>;
                 notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
                     ) ];
@@ -292,6 +294,7 @@ view <string> <optional_class> {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
+        masterfile-format ( text | raw );
         notify <notifytype>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
@@ -362,6 +365,7 @@ zone <string> <optional_class> {
         allow-update { <address_match_element>; ... };
         allow-update-forwarding { <address_match_element>; ... };
         allow-notify { <address_match_element>; ... };
+        masterfile-format ( text | raw );
         notify <notifytype>;
         notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];

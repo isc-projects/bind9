@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.18.18.10 2005/05/19 07:42:03 marka Exp $
+.\" $Id: named-checkzone.8,v 1.18.18.11 2005/06/20 02:44:24 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -38,13 +38,17 @@
 ..
 .TH "NAMED-CHECKZONE" 8 "June 13, 2000" "" ""
 .SH NAME
-named-checkzone \- zone file validity checking tool
+named-checkzone, named-compilezone \- zone file validity checking or converting tool
 .SH "SYNOPSIS"
 .HP 16
-\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-i\ \fImode\fR\fR] [\fB\-k\ \fImode\fR\fR] [\fB\-m\ \fImode\fR\fR] [\fB\-n\ \fImode\fR\fR] [\fB\-o\ \fIfilename\fR\fR] [\fB\-t\ \fIdirectory\fR\fR] [\fB\-w\ \fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fImode\fR\fR] {zonename} {filename}
+\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-f\ \fIformat\fR\fR] [\fB\-F\ \fIformat\fR\fR] [\fB\-i\ \fImode\fR\fR] [\fB\-k\ \fImode\fR\fR] [\fB\-m\ \fImode\fR\fR] [\fB\-n\ \fImode\fR\fR] [\fB\-o\ \fIfilename\fR\fR] [\fB\-s\ \fIstyle\fR\fR] [\fB\-t\ \fIdirectory\fR\fR] [\fB\-w\ \fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fImode\fR\fR] {zonename} {filename}
+.HP 18
+\fBnamed\-compilezone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-f\ \fIformat\fR\fR] [\fB\-F\ \fIformat\fR\fR] [\fB\-i\ \fImode\fR\fR] [\fB\-k\ \fImode\fR\fR] [\fB\-m\ \fImode\fR\fR] [\fB\-n\ \fImode\fR\fR] [\fB\-o\ \fIfilename\fR\fR] [\fB\-s\ \fIstyle\fR\fR] [\fB\-t\ \fIdirectory\fR\fR] [\fB\-w\ \fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fImode\fR\fR] {zonename} {filename}
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-checkzone\fR checks the syntax and integrity of a zone file\&. It performs the same checks as \fBnamed\fR does when loading a zone\&. This makes \fBnamed\-checkzone\fR useful for checking zone files before configuring them into a name server\&.
+.PP
+ \fBnamed\-compilezone\fR is similar to\fBnamed\-checkzone\fR, but it always dumps the zone contents to a specified file in a specified format\&. Additionally, it applies stricter check levels by default, since the dump output will be used as an actual zone file loaded by \fBnamed\fR\&. When manaully specified otherwise, the check levels must at least be as strict as those specified in the\fBnamed\fR configuration file\&.
 .SH "OPTIONS"
 .TP
 \-d
@@ -69,17 +73,26 @@ Mode \fB"full"\fR checks that SRV records refer to A or AAAA record (both in\-zo
 Mode \fB"full"\fR checks that delegation NS records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. It also checks that glue addresses records in the zone match those advertised by the child\&. Mode \fB"local"\fR only checks NS records which refer to in\-zone hostnames or that some required glue exists, that is when the nameserver is in a child zone\&.
 Mode \fB"none"\fR disables the checks\&.
 .TP
+\-f \fIformat\fR
+Specify the format of the zone file\&. Possible formats are \fB"text"\fR (default) and \fB"raw"\fR\&.
+.TP
+\-F \fIformat\fR
+Specify the format of the output file specified\&. Possible formats are \fB"text"\fR (default) and \fB"raw"\fR\&. For \fBnamed\-checkzone\fR, this does not cause any effects unless it dumps the zone contents\&.
+.TP
 \-k \fImode\fR
-Perform \fB"check\-name"\fR checks with the specified failure mode\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.
+Perform \fB"check\-name"\fR checks with the specified failure mode\&. Possible modes are \fB"fail"\fR (default for \fBnamed\-compilezone\fR), \fB"warn"\fR (default for \fBnamed\-checkzone\fR) and \fB"ignore"\fR\&.
 .TP
 \-m \fImode\fR
 Specify whether MX records should be checked to see if they are addresses\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.
 .TP
 \-n \fImode\fR
-Specify whether NS records should be checked to see if they are addresses\&. Possible modes are \fB"fail"\fR, \fB"warn"\fR (default) and \fB"ignore"\fR\&.
+Specify whether NS records should be checked to see if they are addresses\&. Possible modes are \fB"fail"\fR (default for \fBnamed\-compilezone\fR), \fB"warn"\fR (default for \fBnamed\-checkzone\fR) and \fB"ignore"\fR\&.
 .TP
 \-o \fIfilename\fR
-Write zone output to \fIfilename\fR\&.
+Write zone output to \fIfilename\fR\&. This is mandatory for \fBnamed\-compilezone\fR\&.
+.TP
+\-s \fIstyle\fR
+Specify the style of the dumped zone file\&. Possible styles are \fB"full"\fR (default) and \fB"default"\fR\&. The full format is most suitable for processing automatically by a separate script\&. On the other hand, the default format is more human\-readable and is thus suitable for editing by hand\&. For \fBnamed\-checkzone\fR this does not cause any effects unless it dumps the zone contents\&. It also does not have any meaning if the output format is not text\&.
 .TP
 \-t \fIdirectory\fR
 chroot to \fIdirectory\fR so that include directives in the configuration file are processed as if run by a similarly chrooted named\&.
@@ -88,7 +101,7 @@ chroot to \fIdirectory\fR so that include directives in the configuration file a
 chdir to \fIdirectory\fR so that relative filenames in master file $INCLUDE directives work\&. This is similar to the directory clause in \fInamed\&.conf\fR\&.
 .TP
 \-D
-Dump zone file in canonical format\&.
+Dump zone file in canonical format\&. This is always enabled for \fBnamed\-compilezone\fR\&.
 .TP
 \-W \fImode\fR
 Specify whether to check for non\-terminal wildcards\&. Non\-terminal wildcards are almost always the result of a failure to understand the wildcard matching algorithm (RFC 1034)\&. Possible modes are \fB"warn"\fR (default) and \fB"ignore"\fR\&.
