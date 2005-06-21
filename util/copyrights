@@ -9,7 +9,7 @@
 ./bin/.cvsignore				X	1999,2000,2001
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/check/.cvsignore				X	2000,2001
-./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004
+./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005
 ./bin/check/named-checkconf.8			MAN	DOCBOOK
@@ -315,7 +315,7 @@
 ./bin/tests/master/t_master.c			C	1998,1999,2000,2001,2003,2004
 ./bin/tests/master_test.c			C	1999,2000,2001,2004
 ./bin/tests/mem/.cvsignore			X	1999,2000,2001
-./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004
+./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2005
 ./bin/tests/mem/t_mem.c				C	1999,2000,2001,2004
 ./bin/tests/mempool_test.c			C	1999,2000,2001,2004
 ./bin/tests/name_test.c				C	1998,1999,2000,2001,2003,2004,2005
@@ -440,7 +440,7 @@
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004
-./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004
+./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005
 ./bin/tests/system/dialup/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dialup/ns1/example.db	ZONE	2000,2001,2004
 ./bin/tests/system/dialup/ns1/named.conf	CONF-C	2000,2001,2004
@@ -583,6 +583,13 @@
 ./bin/tests/system/masterfile/ns1/ttl1.db	ZONE	2001,2004
 ./bin/tests/system/masterfile/ns1/ttl2.db	ZONE	2001,2004
 ./bin/tests/system/masterfile/tests.sh		SH	2001,2004
+./bin/tests/system/masterformat/clean.sh	SH	2005
+./bin/tests/system/masterformat/ns1/compile.sh	SH	2005
+./bin/tests/system/masterformat/ns1/example.db	ZONE	2005
+./bin/tests/system/masterformat/ns1/named.conf	CONF-C	2005
+./bin/tests/system/masterformat/ns2/named.conf	CONF-C	2005
+./bin/tests/system/masterformat/setup.sh	SH	2005
+./bin/tests/system/masterformat/tests.sh	SH	2005
 ./bin/tests/system/notify/clean.sh		SH	2000,2001,2004
 ./bin/tests/system/notify/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/notify/ns1/named.conf	CONF-C	2000,2001,2004
