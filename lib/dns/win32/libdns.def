@@ -3,6 +3,20 @@ LIBRARY libdns
 ; Exported Functions
 EXPORTS
 
+dns_acache_attach
+dns_acache_attachentry
+dns_acache_cancelentry
+dns_acache_create
+dns_acache_createentry
+dns_acache_detach
+dns_acache_detachentry
+dns_acache_getentry
+dns_acache_putdb
+dns_acache_setcachesize
+dns_acache_setcleaninginterval
+dns_acache_setdb
+dns_acache_setentry
+dns_acache_shutdown
 dns_acl_any
 dns_acl_appendelement
 dns_acl_attach
@@ -85,6 +99,8 @@ dns_db_find
 dns_db_findnode
 dns_db_findrdataset
 dns_db_findzonecut
+dns_db_getnsnode
+dns_db_getsoanode
 dns_db_getsoaserial
 dns_db_iscache
 dns_db_ispersistent
@@ -99,6 +115,8 @@ dns_db_origin
 dns_db_overmem
 dns_db_printnode
 dns_db_register
+dns_db_setnsnode
+dns_db_setsoanode
 dns_db_subtractrdataset
 dns_db_unregister
 dns_dbiterator_current
@@ -291,6 +309,7 @@ dns_name_getlabelsequence
 dns_name_hasbuffer
 dns_name_hash
 dns_name_init
+dns_name_internalwildcard
 dns_name_invalidate
 dns_name_isabsolute
 dns_name_issubdomain
@@ -398,12 +417,15 @@ dns_rdataset_count
 dns_rdataset_current
 dns_rdataset_disassociate
 dns_rdataset_first
+dns_rdataset_getadditional
 dns_rdataset_getnoqname
 dns_rdataset_init
 dns_rdataset_invalidate
 dns_rdataset_isassociated
 dns_rdataset_makequestion
 dns_rdataset_next
+dns_rdataset_putadditional
+dns_rdataset_setadditional
 dns_rdataset_totext
 dns_rdataset_towire
 dns_rdataset_towiresorted
@@ -544,6 +566,7 @@ dns_view_flushanddetach
 dns_view_flushcache
 dns_view_flushname
 dns_view_freeze
+dns_view_freezezones
 dns_view_getpeertsig
 dns_view_gettsig
 dns_view_load
@@ -623,6 +646,7 @@ dns_zone_notify
 dns_zone_notifyreceive
 dns_zone_refresh
 dns_zone_replacedb
+dns_zone_setacache
 dns_zone_setalsonotify
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource6
@@ -648,6 +672,7 @@ dns_zone_setmaxxfrout
 dns_zone_setminrefreshtime
 dns_zone_setminretrytime
 dns_zone_setnotifyacl
+dns_zone_setnotifydelay
 dns_zone_setnotifysrc4
 dns_zone_setnotifysrc6
 dns_zone_setnotifytype

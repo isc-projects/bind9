@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.10 2005/06/17 02:04:30 marka Exp $ */
+/* $Id: query.c,v 1.257.18.11 2005/06/22 22:05:42 marka Exp $ */
 
 /*! \file */
 
@@ -717,7 +717,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	REQUIRE(zonep != NULL && *zonep == NULL);
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	/*
+	/*%
 	 * Find a zone database to answer the query.
 	 */
 	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?

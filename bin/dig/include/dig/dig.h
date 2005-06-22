@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.10 2005/06/19 22:46:19 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.11 2005/06/22 22:05:41 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -140,7 +140,7 @@ isc_boolean_t	sigchase;
 #endif
 #endif
 	
-	char textname[MXNAME]; /* Name we're going to be looking up */
+	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
 	dns_rdatatype_t qrdtype;

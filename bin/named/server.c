@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.25 2005/06/07 01:53:50 marka Exp $ */
+/* $Id: server.c,v 1.419.18.26 2005/06/22 22:05:42 marka Exp $ */
 
 /*! \file */
 
@@ -3900,7 +3900,6 @@ dumpdone(void *arg, isc_result_t result) {
 			      "dumpdb failed: %s", dns_result_totext(result));
 	dumpcontext_destroy(dctx);
 }
-
 
 isc_result_t
 ns_server_dumpdb(ns_server_t *server, char *args) {

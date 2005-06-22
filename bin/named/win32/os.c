@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.20.18.3 2005/03/16 00:56:24 marka Exp $ */
+/* $Id: os.c,v 1.20.18.4 2005/06/22 22:05:43 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -256,10 +256,6 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 }
 
 void
-ns_os_started(void) {
-}
-
-void
 ns_os_shutdown(void) {
 	closelog();
 	cleanup_pidfile();
@@ -285,4 +281,8 @@ ns_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
+}
+
+void
+ns_os_started(void) {
 }

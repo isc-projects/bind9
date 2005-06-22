@@ -98,6 +98,10 @@ LINK32=link.exe
 # PROP Default_Filter "h;hpp;hxx;hm;inl"
 # Begin Source File
 
+SOURCE=..\include\dns\acache.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\acl.h
 # End Source File
 # Begin Source File
@@ -396,6 +400,10 @@ SOURCE=..\include\dns\zt.h
 # Begin Group "Main Dns Lib"
 
 # PROP Default_Filter "c"
+# Begin Source File
+
+SOURCE=..\acache.c
+# End Source File
 # Begin Source File
 
 SOURCE=..\acl.c

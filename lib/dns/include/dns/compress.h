@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.32.18.3 2005/04/27 05:01:31 sra Exp $ */
+/* $Id: compress.h,v 1.32.18.4 2005/06/22 22:05:47 marka Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -32,7 +32,7 @@ ISC_LANG_BEGINDECLS
 #define DNS_COMPRESS_ALL		0x01	/*%< all compression. */
 #define DNS_COMPRESS_CASESENSITIVE	0x02	/*%< case sensitive compression. */
 
-/*! \file 
+/*! \file
  *	Direct manipulation of the structures is strongly discouraged.
  */
 

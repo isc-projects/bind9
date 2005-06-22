@@ -74,7 +74,7 @@
 			of ttl due to dns_diff_subtract() was ignoring the ttl
 			of records.  [RT #14616]
 
-1848.	[bug]		lwres also needs to know the print format for
+1854.	[bug]		lwres also needs to know the print format for
 			(long long).  [RT #13754]
 
 1853.	[bug]		Rework how DLV interacts with proveunsecure().
@@ -215,7 +215,7 @@
 
 1807.	[bug]		When forwarding (forward only) set the active domain
 			from the forward zone name. [RT #13526]
-			
+
 1806.	[bug]		The resolver returned the wrong result when a CNAME /
 			DNAME was encountered when fetching glue from a
 			secure namespace. [RT #13501]
@@ -640,7 +640,7 @@
 			unconditionally.  [RT #11595]
 
 1659.	[cleanup]	Cleanup some messages that were referring to KEY vs
-                        DNSKEY, NXT vs NSEC and SIG vs RRSIG.
+			DNSKEY, NXT vs NSEC and SIG vs RRSIG.
 
 1658.	[func]		Update dnssec-keygen to default to KEY for HMAC-MD5
 			and DH.  Tighten which options apply to KEY and
@@ -700,9 +700,6 @@
 
 1639.	[func]		Initial dlv system test.
 
-1638.	[bug]		"ixfr-from-differences" could generate a REQUIRE
-			failure if the journal open failed. [RT #11347]
-			
 1638.	[bug]		"ixfr-from-differences" could generate a REQUIRE
 			failure if the journal open failed. [RT #11347]
 			

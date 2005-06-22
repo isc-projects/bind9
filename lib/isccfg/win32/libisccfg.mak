@@ -102,12 +102,12 @@ ALL : "..\..\..\Build\Debug\libisccfg.dll" "$(OUTDIR)\libisccfg.bsc"
 
 !ELSE 
 
-ALL : "libdns - Win32 Debug" "libisc - Win32 Debug" "..\..\..\Build\Debug\libisccfg.dll" "$(OUTDIR)\libisccfg.bsc"
+ALL : "libisc - Win32 Debug" "..\..\..\Build\Debug\libisccfg.dll" "$(OUTDIR)\libisccfg.bsc"
 
 !ENDIF 
 
 !IF "$(RECURSE)" == "1" 
-CLEAN :"libdns - Win32 DebugCLEAN" "libisc - Win32 DebugCLEAN" 
+CLEAN :"libisc - Win32 DebugCLEAN" 
 !ELSE 
 CLEAN :
 !ENDIF 
@@ -141,6 +141,7 @@ BSC32=bscmake.exe
 BSC32_FLAGS=/nologo /o"$(OUTDIR)\libisccfg.bsc" 
 BSC32_SBRS= \
 	"$(INTDIR)\DLLMain.sbr" \
+	"$(INTDIR)\aclconf.sbr" \
 	"$(INTDIR)\log.sbr" \
 	"$(INTDIR)\parser.sbr" \
 	"$(INTDIR)\version.sbr" \
@@ -152,16 +153,17 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib  ../../dns/win32/debug/libdns.lib ../../isc/win32/debug/libisc.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libisccfg.pdb" /debug /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Debug/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../dns/win32/debug/libdns.lib ../../isc/win32/debug/libisc.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\libisccfg.pdb" /debug /machine:I386 /def:".\libisccfg.def" /out:"../../../Build/Debug/libisccfg.dll" /implib:"$(OUTDIR)\libisccfg.lib" /pdbtype:sept 
 DEF_FILE= \
 	".\libisccfg.def"
 LINK32_OBJS= \
 	"$(INTDIR)\DLLMain.obj" \
+	"$(INTDIR)\aclconf.obj" \
 	"$(INTDIR)\log.obj" \
 	"$(INTDIR)\parser.obj" \
 	"$(INTDIR)\version.obj" \
 	"$(INTDIR)\namedconf.obj" \
-	"..\..\dns\win32\Debug\libdns.lib" \
+	"..\..\dns\win32\Debug\libdns.lib"
 	"..\..\isc\win32\Debug\libisc.lib"
 
 "..\..\..\Build\Debug\libisccfg.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -224,6 +226,24 @@ SOURCE=.\DLLMain.c
 
 
 "$(INTDIR)\DLLMain.obj"	"$(INTDIR)\DLLMain.sbr" : $(SOURCE) "$(INTDIR)"
+
+
+!ENDIF 
+
+SOURCE=..\aclconf.c
+
+!IF  "$(CFG)" == "libisccfg - Win32 Release"
+
+
+"$(INTDIR)\aclconf.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisccfg - Win32 Debug"
+
+
+"$(INTDIR)\aclconf.obj"	"$(INTDIR)\aclconf.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
 !ENDIF 

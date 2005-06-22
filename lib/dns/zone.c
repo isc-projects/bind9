@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.29 2005/06/20 01:19:42 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.30 2005/06/22 22:05:46 marka Exp $ */
 
 /*! \file */
 
@@ -2018,7 +2018,7 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 		dns_zone_log(zone, level, "NS '%s' is a CNAME (illegal)",
 			     namebuf);
 		return (ISC_FALSE);
- 	}
+	}
 
 	if (result == DNS_R_DNAME) {
 		dns_name_format(foundname, altbuf, sizeof altbuf);
