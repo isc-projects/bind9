@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.23.2.3 2004/03/09 06:09:41 marka Exp $
+# $Id: conf.sh.in,v 1.23.2.4 2005/06/23 08:02:35 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -39,13 +39,14 @@ KEYGEN=$TOP/bin/dnssec/dnssec-keygen
 SIGNER=$TOP/bin/dnssec/dnssec-signzone
 KEYSIGNER=$TOP/bin/dnssec/dnssec-signkey
 KEYSETTOOL=$TOP/bin/dnssec/dnssec-makekeyset
+CHECKCONF=$TOP/bin/check/named-checkconf
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 #
 # dnssec is missing from SUBDIRS as RFC 2535 support is disabled
 # 
-SUBDIRS="cacheclean forward glue ixfr limits lwresd \
+SUBDIRS="cacheclean checkconf forward glue ixfr limits lwresd \
     masterfile notify nsupdate resolver sortlist stub tkey \
     unknown upforwd v6synth views xfer xferquota"
 
@@ -53,4 +54,4 @@ SUBDIRS="cacheclean forward glue ixfr limits lwresd \
 PERL=@PERL@
 
 export NAMED LWRESD DIG NSUPDATE KEYGEN SIGNER KEYSIGNER KEYSETTOOL PERL \
-    SUBDIRS RNDC
+    SUBDIRS RNDC CHECKCONF

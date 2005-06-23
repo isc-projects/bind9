@@ -432,6 +432,9 @@
 ./bin/tests/system/cacheclean/ns2/.cvsignore	X	2001
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004
+./bin/tests/system/checkconf/bad.conf		CONF-C	2005
+./bin/tests/system/checkconf/good.conf		CONF-C	2005
+./bin/tests/system/checkconf/tests.sh		SH	2005
 ./bin/tests/system/cleanall.sh			SH	2000,2001,2004
 ./bin/tests/system/common/controls.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/common/rndc.conf		CONF-C	2000,2001,2004
