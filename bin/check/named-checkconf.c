@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.6 2005/06/20 01:19:26 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.7 2005/06/23 07:04:30 marka Exp $ */
 
 /*! \file */
 
@@ -400,10 +400,6 @@ main(int argc, char **argv) {
 	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
 		      == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS); 
-	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
-		      == ISC_R_SUCCESS);
-
 	dns_result_register();
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
@@ -429,8 +425,6 @@ main(int argc, char **argv) {
 	cfg_obj_destroy(parser, &config);
 
 	cfg_parser_destroy(&parser);
-
-	isc_hash_destroy();
 
 	isc_log_destroy(&logc);
 

@@ -1,3 +1,5 @@
+1890.	[func]		Add a system test for named-checkconf. [RT #14931]
+
 1889.	[func]		The lame cache is now done on a <qname,qclass,qtype>
 			basis as some servers only appear to be lame for
 			certain query types.  [RT #14916]
