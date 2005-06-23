@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.15.18.2 2005/04/29 00:15:24 marka Exp $ */
+/* $Id: lwdgabn.c,v 1.15.18.3 2005/06/23 04:23:13 marka Exp $ */
 
 /*! \file */
 
@@ -434,7 +434,7 @@ restart_find(ns_lwdclient_t *client) {
 				    client->clientmgr->task,
 				    process_gabn_finddone, client,
 				    dns_fixedname_name(&client->target_name),
-				    dns_rootname, options, 0,
+				    dns_rootname, 0, options, 0,
 				    dns_fixedname_name(&client->target_name),
 				    client->clientmgr->view->dstport,
 				    &client->find);

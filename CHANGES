@@ -1,3 +1,7 @@
+1889.	[func]		The lame cache is now done on a <qname,qclass,qtype>
+			basis as some servers only appear to be lame for
+			certain query types.  [RT #14916]
+
 1888.	[func]		"USE INTERNAL MALLOC" is now runtime selectable.
 			[RT #14892]
 

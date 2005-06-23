@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.30 2005/06/22 22:05:46 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.31 2005/06/23 04:23:15 marka Exp $ */
 
 /*! \file */
 
@@ -3386,7 +3386,7 @@ notify_find_address(dns_notify_t *notify) {
 	result = dns_adb_createfind(notify->zone->view->adb,
 				    notify->zone->task,
 				    process_adb_event, notify,
-				    &notify->ns, dns_rootname,
+				    &notify->ns, dns_rootname, 0,
 				    options, 0, NULL,
 				    notify->zone->view->dstport,
 				    &notify->find);
