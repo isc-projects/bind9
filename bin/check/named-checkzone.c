@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.7 2005/06/20 01:19:26 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.8 2005/06/23 00:48:13 marka Exp $ */
 
 /*! \file */
 
@@ -109,6 +109,12 @@ main(int argc, char **argv) {
 		prog_name++;
 	else
 		prog_name = argv[0];
+	/*
+	 * Libtool doesn't preserve the program name prior to final
+	 * installation.  Remove the libtool prefix ("lt-").
+	 */
+	if (strncmp(prog_name, "lt-", 3) == 0)
+		prog_name += 3;
 	if (strcmp(prog_name, "named-checkzone") == 0)
 		progmode = progmode_check;
 	else if (strcmp(prog_name, "named-compilezone") == 0)
