@@ -1,3 +1,5 @@
+1890.	[func]		Add a system test for named-checkconf. [RT #14931]
+
 1886.	[bug]		Fix unreasonably low quantum on call to
 			dns_rbt_destroy2().  Remove unnecessay unhash_node()
 			call. [RT #14919]

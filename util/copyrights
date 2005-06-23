@@ -424,6 +424,9 @@
 ./bin/tests/system/cacheclean/ns2/.cvsignore	X	2001
 ./bin/tests/system/cacheclean/ns2/named.conf	CONF-C	2001,2004
 ./bin/tests/system/cacheclean/tests.sh		SH	2001,2004
+./bin/tests/system/checkconf/bad.conf		CONF-C	2005
+./bin/tests/system/checkconf/good.conf		CONF-C	2005
+./bin/tests/system/checkconf/tests.sh		SH	2005
 ./bin/tests/system/checknames/clean.sh		SH	2004
 ./bin/tests/system/checknames/ns1/fail.example.db.in	ZONE	2004
 ./bin/tests/system/checknames/ns1/fail.update.db.in	ZONE	2004
