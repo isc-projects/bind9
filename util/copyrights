@@ -478,7 +478,7 @@
 ./bin/tests/system/dlv/setup.sh			SH	2004
 ./bin/tests/system/dlv/tests.sh			SH	2004
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004
-./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004
+./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004,2005
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004
@@ -765,7 +765,7 @@
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/xfer/setup.sh		SH	2001,2002,2004
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004
-./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004
+./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xferquota/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004
 ./bin/tests/system/xferquota/ns1/changing2.db	ZONE	2000,2001,2004
@@ -1137,7 +1137,7 @@
 ./doc/dev/cvs-usage				TXT.BRIEF	2000,2001,2004
 ./doc/dev/magic_numbers				TXT.BRIEF	1999,2000,2001,2002,2004
 ./doc/dev/rdata.html				HTML	1999,2000,2001,2004
-./doc/dev/release				TXT.BRIEF	2000,2001,2002,2003,2004
+./doc/dev/release				TXT.BRIEF	2000,2001,2002,2003,2004,2005
 ./doc/dev/results				TXT.BRIEF	1999,2000,2001,2004
 ./doc/dev/tests					TXT.BRIEF	2000,2001,2004
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004
@@ -1881,9 +1881,9 @@
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001
 ./lib/dns/win32/libdns.def			X	2001,2005
-./lib/dns/win32/libdns.dsp			X	2001
+./lib/dns/win32/libdns.dsp			X	2001,2005
 ./lib/dns/win32/libdns.dsw			X	2001
-./lib/dns/win32/libdns.mak			X	2001
+./lib/dns/win32/libdns.mak			X	2001,2005
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005
@@ -2195,7 +2195,7 @@
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004
-./lib/isccfg/win32/libisccfg.def		X	2001
+./lib/isccfg/win32/libisccfg.def		X	2001,2005
 ./lib/isccfg/win32/libisccfg.dsp		X	2001,2005
 ./lib/isccfg/win32/libisccfg.dsw		X	2001
 ./lib/isccfg/win32/libisccfg.mak		X	2001,2005
@@ -2359,7 +2359,7 @@
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004
 ./util/check-sources.pl				PERL	2000,2001,2004
 ./util/copyrights				X	1999,2000,2001,2005
-./util/kit.sh					SH	2000,2001,2002,2003,2004
+./util/kit.sh					SH	2000,2001,2002,2003,2004,2005
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
 ./util/memleak.pl				PERL	1999,2000,2001,2004
