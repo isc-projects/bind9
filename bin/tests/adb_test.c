@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb_test.c,v 1.65 2005/04/29 00:22:37 marka Exp $ */
+/* $Id: adb_test.c,v 1.66 2005/06/23 23:49:35 marka Exp $ */
 
 /*! \file */
 
@@ -27,9 +27,11 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/entropy.h>
+#include <isc/hash.h>
+#include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>
-#include <isc/socket.h>
 #include <isc/util.h>
 
 #include <dns/adb.h>
@@ -48,21 +50,22 @@ struct client {
 	dns_adbfind_t	       *find;
 };
 
-isc_mem_t *mctx;
-isc_mempool_t *cmp;
-isc_log_t *lctx;
-isc_logconfig_t *lcfg;
-isc_taskmgr_t *taskmgr;
-isc_socketmgr_t *socketmgr;
-isc_timermgr_t *timermgr;
-dns_dispatchmgr_t *dispatchmgr;
-isc_task_t *t1, *t2;
-dns_view_t *view;
-dns_db_t *rootdb;
-ISC_LIST(client_t) clients;
-isc_mutex_t client_lock;
-isc_stdtime_t now;
-dns_adb_t *adb;
+static isc_mem_t *mctx = NULL;
+static isc_entropy_t *ectx = NULL;
+static isc_mempool_t *cmp;
+static isc_log_t *lctx;
+static isc_logconfig_t *lcfg;
+static isc_taskmgr_t *taskmgr;
+static isc_socketmgr_t *socketmgr;
+static isc_timermgr_t *timermgr;
+static dns_dispatchmgr_t *dispatchmgr;
+static isc_task_t *t1, *t2;
+static dns_view_t *view;
+static dns_db_t *rootdb;
+static ISC_LIST(client_t) clients;
+static isc_mutex_t client_lock;
+static isc_stdtime_t now;
+static dns_adb_t *adb;
 
 static void
 check_result(isc_result_t result, const char *format, ...)
@@ -260,7 +263,7 @@ lookup(const char *target) {
 	options |= DNS_ADBFIND_HINTOK;
 	options |= DNS_ADBFIND_GLUEOK;
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
-				    &client->name, dns_rootname, options,
+				    &client->name, dns_rootname, 0, options,
 				    now, NULL, view->dstport, &client->find);
 #if 0
 	check_result(result, "dns_adb_createfind()");
@@ -301,13 +304,17 @@ main(int argc, char **argv) {
 	/*
 	 * EVERYTHING needs a memory context.
 	 */
-	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
 	cmp = NULL;
 	RUNTIME_CHECK(isc_mempool_create(mctx, sizeof(client_t), &cmp)
 		      == ISC_R_SUCCESS);
 	isc_mempool_setname(cmp, "adb test clients");
+
+	result = isc_entropy_create(mctx, &ectx);
+	check_result(result, "isc_entropy_create()");
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	check_result(result, "isc_hash_create()");
 
 	result = isc_log_create(mctx, &lctx, &lcfg);
 	check_result(result, "isc_log_create()");
@@ -415,6 +422,9 @@ main(int argc, char **argv) {
 	isc_taskmgr_destroy(&taskmgr);
 
 	isc_log_destroy(&lctx);
+
+	isc_hash_destroy();
+	isc_entropy_detach(&ectx);
 
 	isc_mempool_destroy(&cmp);
 	isc_mem_stats(mctx, stdout);
