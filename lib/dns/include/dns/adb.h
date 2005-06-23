@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.78 2005/04/29 00:22:54 marka Exp $ */
+/* $Id: adb.h,v 1.79 2005/06/23 04:22:02 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -50,9 +50,9 @@
  * Records are stored internally until a timer expires. The timer is the
  * smaller of the TTL or signature validity period.
  *
- * Lameness is stored per-zone, and this data hangs off each address field.
- * When an address is marked lame for a given zone the address will not
- * be returned to a caller.
+ * Lameness is stored per <qname,qtype> tuple, and this data hangs off each
+ * address field.  When an address is marked lame for a given tuple the address
+ * will not be returned to a caller.
  *
  *
  * MP:
@@ -330,8 +330,9 @@ dns_adb_shutdown(dns_adb_t *adb);
 
 isc_result_t
 dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
-		   void *arg, dns_name_t *name, dns_name_t *zone,
-		   unsigned int options, isc_stdtime_t now, dns_name_t *target,
+		   void *arg, dns_name_t *name, dns_name_t *qname,
+		   dns_rdatatype_t qtype, unsigned int options,
+		   isc_stdtime_t now, dns_name_t *target,
 		   in_port_t port, dns_adbfind_t **find);
 /*%<
  * Main interface for clients. The adb will look up the name given in
@@ -385,7 +386,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  *\li	*name is a valid dns_name_t.
  *
- *\li	zone != NULL and *zone be a valid dns_name_t.
+ *\li	qname != NULL and *qname be a valid dns_name_t.
  *
  *\li	target == NULL or target is a valid name with a buffer.
  *
@@ -487,10 +488,10 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
  */
 
 isc_result_t
-dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
-		 isc_stdtime_t expire_time);
+dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *qname,
+		 dns_rdatatype_t type, isc_stdtime_t expire_time);
 /*%<
- * Mark the given address as lame for the zone "zone".  expire_time should
+ * Mark the given address as lame for the <qname,qtype>.  expire_time should
  * be set to the time when the entry should expire.  That is, if it is to
  * expire 10 minutes in the future, it should set it to (now + 10 * 60).
  *
@@ -500,7 +501,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  *
  *\li	addr be valid.
  *
- *\li	zone be the zone used in the dns_adb_createfind() call.
+ *\li	qname be the qname used in the dns_adb_createfind() call.
  *
  * Returns:
  *

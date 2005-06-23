@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.311 2005/06/17 01:58:22 marka Exp $ */
+/* $Id: resolver.c,v 1.312 2005/06/23 04:22:01 marka Exp $ */
 
 /*! \file */
 
@@ -1757,7 +1757,7 @@ sort_finds(fetchctx_t *fctx) {
 static void
 findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	 unsigned int options, unsigned int flags, isc_stdtime_t now,
-	 isc_boolean_t *pruned, isc_boolean_t *need_alternate)
+	 isc_boolean_t *need_alternate)
 {
 	dns_adbaddrinfo_t *ai;
 	dns_adbfind_t *find;
@@ -1786,7 +1786,8 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 	result = dns_adb_createfind(fctx->adb,
 				    res->buckets[fctx->bucketnum].task,
 				    fctx_finddone, fctx, name,
-				    &fctx->domain, options, now, NULL,
+				    &fctx->name, fctx->type,
+				    options, now, NULL,
 				    res->view->dstport, &find);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
@@ -1849,18 +1850,6 @@ findname(fetchctx_t *fctx, dns_name_t *name, in_port_t port,
 			     (res->dispatchv6 == NULL &&
 			      find->result_v4 == DNS_R_NXRRSET)))
 				*need_alternate = ISC_TRUE;
-			/*
-			 * And ADB isn't going to send us any events
-			 * either.  This find loses.
-			 */
-			if ((find->options & DNS_ADBFIND_LAMEPRUNED) != 0) {
-				/*
-				 * The ADB pruned lame servers for
-				 * this name.  Remember that in case
-				 * we get desperate later on.
-				 */
-				*pruned = ISC_TRUE;
-			}
 			dns_adb_destroyfind(&find);
 		}
 	}
@@ -1875,7 +1864,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	unsigned int stdoptions;
 	isc_sockaddr_t *sa;
 	dns_adbaddrinfo_t *ai;
-	isc_boolean_t pruned, all_bad;
+	isc_boolean_t all_bad;
 	dns_rdata_ns_t ns;
 	isc_boolean_t need_alternate = ISC_FALSE;
 	isc_boolean_t unshared;
@@ -1892,7 +1881,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	}
 
 	res = fctx->res;
-	pruned = ISC_FALSE;
 	stdoptions = 0;		/* Keep compiler happy. */
 	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
 
@@ -1985,7 +1973,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 		stdoptions |= DNS_ADBFIND_INET6;
 	isc_stdtime_get(&now);
 
- restart:
 	INSIST(ISC_LIST_EMPTY(fctx->finds));
 	INSIST(ISC_LIST_EMPTY(fctx->altfinds));
 
@@ -2002,7 +1989,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			continue;
 
 		findname(fctx, &ns.name, 0, stdoptions, 0, now,
-			 &pruned, &need_alternate);
+			 &need_alternate);
 		dns_rdata_reset(&rdata);
 		dns_rdata_freestruct(&ns);
 	}
@@ -2022,7 +2009,7 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			if (!a->isaddress) {
 				findname(fctx, &a->_u._n.name, a->_u._n.port,
 					 stdoptions, FCTX_ADDRINFO_FORWARDER,
-					 now, &pruned, NULL);
+					 now, NULL);
 				continue;
 			}
 			if (isc_sockaddr_pf(&a->_u.addr) != family)
@@ -2065,18 +2052,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 			 * yet.   Tell the caller to wait for an answer.
 			 */
 			result = DNS_R_WAIT;
-		} else if (pruned) {
-			/*
-			 * Some addresses were removed by lame pruning.
-			 * Turn pruning off and try again.
-			 */
-			FCTXTRACE("restarting with returnlame");
-			INSIST((stdoptions & DNS_ADBFIND_RETURNLAME) == 0);
-			stdoptions |= DNS_ADBFIND_RETURNLAME;
-			pruned = ISC_FALSE;
-			fctx_cleanupaltfinds(fctx);
-			fctx_cleanupfinds(fctx);
-			goto restart;
 		} else {
 			/*
 			 * We've lost completely.  We don't know any
@@ -5344,7 +5319,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    is_lame(fctx)) {
 		log_lame(fctx, query->addrinfo);
 		result = dns_adb_marklame(fctx->adb, query->addrinfo,
-					  &fctx->domain,
+					  &fctx->domain, fctx->type,
 					  now + fctx->res->lame_ttl);
 		if (result != ISC_R_SUCCESS)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
