@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.28 2005/06/23 04:23:14 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.29 2005/06/23 06:14:52 marka Exp $ */
 
 /*! \file */
 
@@ -5767,7 +5767,11 @@ dns_resolver_create(dns_view_t *view,
 		}
 		res->buckets[i].mctx = NULL;
 		result = isc_mem_create(0, 0, &res->buckets[i].mctx);
-		INSIST(result == ISC_R_SUCCESS); /* XXXJT: need care */
+		if (result != ISC_R_SUCCESS) {
+			isc_task_detach(&res->buckets[i].task);
+			DESTROYLOCK(&res->buckets[i].lock);
+			goto cleanup_buckets;
+		}
 		snprintf(name, sizeof(name), "res%u", i);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
@@ -5844,6 +5848,7 @@ dns_resolver_create(dns_view_t *view,
 
  cleanup_buckets:
 	for (i = 0; i < buckets_created; i++) {
+		isc_mem_detach(&res->buckets[i].mctx);
 		DESTROYLOCK(&res->buckets[i].lock);
 		isc_task_shutdown(res->buckets[i].task);
 		isc_task_detach(&res->buckets[i].task);
