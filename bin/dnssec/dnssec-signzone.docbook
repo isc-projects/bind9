@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.17 2005/05/13 01:35:39 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.18 2005/06/24 00:17:08 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -334,7 +334,6 @@
         <listitem>
           <para>
             The file containing the zone to be signed.
-            Sets the debugging level.
           </para>
         </listitem>
       </varlistentry>
