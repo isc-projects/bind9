@@ -195,11 +195,11 @@
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005
-./bin/tests/adb_test.c				C	1999,2000,2001,2004
+./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/b8t.mk				MAKE	1999,2000,2001,2004
 ./bin/tests/b9t.mk				MAKE	1999,2000,2001,2004
 ./bin/tests/byaddr_test.c			C	2000,2001,2002,2004
-./bin/tests/byname_test.c			C	2000,2001,2004
+./bin/tests/byname_test.c			C	2000,2001,2004,2005
 ./bin/tests/cfg_test.c				C	2001,2002,2004
 ./bin/tests/compress_test.c			C	1999,2000,2001,2004
 ./bin/tests/db/.cvsignore			X	1999,2000,2001
