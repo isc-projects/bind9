@@ -507,3 +507,15 @@ Q: How do I intergrate BIND 9 and Solaris SMF
 A: Sun has a blog entry describing how to do this.
 
 	http://blogs.sun.com/roller/page/anay/Weblog?catname=%2FSolaris
+
+
+Q: Can a NS record refer to a CNAME.
+
+A: No.  The rules for glue (copies of the *address* records in the parent
+   zones) and additional section processing do not allow it to work.
+
+   You would have to add both the CNAME and address records (A/AAAA)
+   as glue to the parent zone and have CNAMEs be followed when doing
+   additional section processing to make it work.  No namesever
+   implementation supports either of these requirements.
+
