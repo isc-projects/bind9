@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byname_test.c,v 1.25.206.2 2005/06/23 23:50:06 marka Exp $ */
+/* $Id: byname_test.c,v 1.25.206.3 2005/06/26 23:17:52 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
