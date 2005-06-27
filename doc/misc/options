@@ -91,6 +91,8 @@ options {
         use-additional-cache <boolean>;
         acache-cleaning-interval <integer>;
         max-acache-size <size_no_default>;
+        clients-per-query <integer>;
+        max-clients-per-query <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -289,6 +291,8 @@ view <string> <optional_class> {
         use-additional-cache <boolean>;
         acache-cleaning-interval <integer>;
         max-acache-size <size_no_default>;
+        clients-per-query <integer>;
+        max-clients-per-query <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
