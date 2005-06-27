@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.267 2005/06/17 01:58:21 marka Exp $ */
+/* $Id: query.c,v 1.268 2005/06/27 00:15:42 marka Exp $ */
 
 /*! \file */
 
@@ -163,6 +163,8 @@ static void
 query_next(ns_client_t *client, isc_result_t result) {
 	if (result == DNS_R_DUPLICATE)
 		inc_stats(client, dns_statscounter_duplicate);
+	else if (result == DNS_R_DROP)
+		inc_stats(client, dns_statscounter_dropped);
 	else
 		inc_stats(client, dns_statscounter_failure);
 	ns_client_next(client, result);
@@ -3228,7 +3230,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				else if (result == DNS_R_DUPLICATE) {
+				else if (result == DNS_R_DUPLICATE ||
+					 result == DNS_R_DROP) {
 					/* Duplicate query. */
 					QUERY_ERROR(result);
 				} else {
@@ -3401,7 +3404,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				if (result == ISC_R_SUCCESS)
 					client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				else if (result == DNS_R_DUPLICATE)
+				else if (result == DNS_R_DUPLICATE ||
+					 result == DNS_R_DROP)
 					QUERY_ERROR(result);
 				else
 					QUERY_ERROR(DNS_R_SERVFAIL);
@@ -3944,7 +3948,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (eresult != ISC_R_SUCCESS &&
 	    (!PARTIALANSWER(client) || WANTRECURSION(client))) {
-		if (eresult == DNS_R_DUPLICATE) {
+		if (eresult == DNS_R_DUPLICATE || eresult == DNS_R_DROP) {
 			/*
 			 * This was a duplicate query that we are
 			 * recursing on.  Don't send a response now.

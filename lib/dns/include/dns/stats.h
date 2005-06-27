@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.8 2005/06/17 01:58:23 marka Exp $ */
+/* $Id: stats.h,v 1.9 2005/06/27 00:15:44 marka Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
@@ -34,10 +34,11 @@ typedef enum {
 	dns_statscounter_nxdomain = 3,   /*%< NXDOMAIN result */
 	dns_statscounter_recursion = 4,  /*%< Recursion was used */
 	dns_statscounter_failure = 5,    /*%< Some other failure */
-	dns_statscounter_duplicate = 6   /*%< Duplicate query */
+	dns_statscounter_duplicate = 6,  /*%< Duplicate query */
+	dns_statscounter_dropped = 7     /*%< Duplicate query */
 } dns_statscounter_t;
 
-#define DNS_STATS_NCOUNTERS 7
+#define DNS_STATS_NCOUNTERS 8
 
 LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
 

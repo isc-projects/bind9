@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.52 2005/06/20 01:03:55 marka Exp $ */
+/* $Id: namedconf.c,v 1.53 2005/06/27 00:15:45 marka Exp $ */
 
 /*! \file */
 
@@ -745,6 +745,8 @@ view_clauses[] = {
 	{ "use-additional-cache", &cfg_type_boolean, 0 },
 	{ "acache-cleaning-interval", &cfg_type_uint32, 0 },
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
+	{ "clients-per-query", &cfg_type_uint32, 0 },
+	{ "max-clients-per-query", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 

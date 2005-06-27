@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.12 2005/06/07 00:27:31 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.13 2005/06/27 00:15:41 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -239,6 +239,9 @@ options {
 	max-cache-ttl <replaceable>integer</replaceable>;
 	transfer-format ( many-answers | one-answer );
 	max-cache-size <replaceable>size_no_default</replaceable>;
+	max-acache-size <replaceable>size_no_default</replaceable>;
+	clients-per-query <replaceable>number</replaceable>;
+	max-clients-per-query <replaceable>number</replaceable>;
 	check-names ( master | slave | response )
 		( fail | warn | ignore );
 	check-mx ( fail | warn | ignore );
@@ -371,6 +374,9 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	max-cache-ttl <replaceable>integer</replaceable>;
 	transfer-format ( many-answers | one-answer );
 	max-cache-size <replaceable>size_no_default</replaceable>;
+	max-acache-size <replaceable>size_no_default</replaceable>;
+	clients-per-query <replaceable>number</replaceable>;
+	max-clients-per-query <replaceable>number</replaceable>;
 	check-names ( master | slave | response )
 		( fail | warn | ignore );
 	check-mx ( fail | warn | ignore );

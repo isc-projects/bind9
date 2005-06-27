@@ -1,3 +1,8 @@
+1891.	[func]		Limit the number of recursive clients that can be
+			waiting for a single query (<qname,qtype,qclass>) to
+			resolve.  New options clients-per-query and
+			max-clients-per-query.
+
 1890.	[func]		Add a system test for named-checkconf. [RT #14931]
 
 1889.	[func]		The lame cache is now done on a <qname,qclass,qtype>
