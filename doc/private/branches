@@ -16,6 +16,7 @@ gsstsig2			new
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
 mlg-20000518			new	
+newresolver0			new	
 openssl_stub			open	marka
 peter				private	peter	// hostname.bind for 9.2.x
 rt10864				open	marka
@@ -38,6 +39,8 @@ rt14918				open	marka	// clients-per-query
 rt14931				new	
 rt14932				new	
 rt14933				new	
+rt14951				new	
+rt14953				new	
 rt5206_1			open	marka
 rt6432				open	marka
 rt6496a				open	marka
