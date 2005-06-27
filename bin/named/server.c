@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.26 2005/06/22 22:05:42 marka Exp $ */
+/* $Id: server.c,v 1.419.18.27 2005/06/27 00:19:57 marka Exp $ */
 
 /*! \file */
 
@@ -764,6 +764,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
 	unsigned int check = 0;
+	isc_uint32_t max_clients_per_query;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1243,6 +1244,18 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = ns_config_get(maps, "provide-ixfr", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->provideixfr = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "max-clients-per-query", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	max_clients_per_query = cfg_obj_asuint32(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "clients-per-query", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_resolver_setclientsperquery(view->resolver,
+					cfg_obj_asuint32(obj),
+					max_clients_per_query);
 			
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-enable", &obj);

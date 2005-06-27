@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.29 2005/06/23 06:14:52 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.30 2005/06/27 00:20:00 marka Exp $ */
 
 /*! \file */
 
@@ -166,6 +166,7 @@ struct fetchctx {
 	fetchstate			state;
 	isc_boolean_t			want_shutdown;
 	isc_boolean_t			cloned;
+	isc_boolean_t			spilled;
 	unsigned int			references;
 	isc_event_t			control_event;
 	ISC_LINK(struct fetchctx)	link;
@@ -307,12 +308,16 @@ struct dns_resolver {
 	isc_rwlock_t			mbslock;
 #endif
 	dns_rbt_t *			mustbesecure;
+	unsigned int			spillatmax;
+	unsigned int			spillatmin;
+	isc_timer_t *			spillattimer;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
 	isc_eventlist_t			whenshutdown;
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
+	unsigned int			spillat;
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
@@ -433,8 +438,7 @@ fctx_starttimer(fetchctx_t *fctx) {
 	 * no further idle events are delivered.
 	 */
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
-				&fctx->expires, NULL,
-				ISC_TRUE));
+				&fctx->expires, NULL, ISC_TRUE));
 }
 
 static inline void
@@ -713,6 +717,9 @@ static inline void
 fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 	dns_fetchevent_t *event, *next_event;
 	isc_task_t *task;
+	unsigned int count = 0;
+	isc_interval_t i;
+	isc_boolean_t logit = ISC_FALSE;
 
 	/*
 	 * Caller must be holding the appropriate bucket lock.
@@ -737,6 +744,31 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		       fctx->type == dns_rdatatype_rrsig);
 
 		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
+		count++;
+	}
+
+	if ((fctx->attributes & FCTX_ATTR_HAVEANSWER) != 0 &&
+	    fctx->spilled &&
+	    (count < fctx->res->spillatmax || fctx->res->spillatmax == 0)) {
+		LOCK(&fctx->res->lock);
+	    	if (count == fctx->res->spillat && !fctx->res->exiting) {
+			fctx->res->spillat += 5;
+			if (fctx->res->spillat > fctx->res->spillatmax &&
+			    fctx->res->spillatmax != 0)
+				fctx->res->spillat = fctx->res->spillatmax;
+			isc_interval_set(&i, 20 * 60, 0);
+			result = isc_timer_reset(fctx->res->spillattimer,
+						 isc_timertype_ticker, NULL,
+						 &i, ISC_TRUE);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			logit = ISC_TRUE;
+		}
+		UNLOCK(&fctx->res->lock);
+		if (logit)
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+				      "clients-per-query increased to %u",
+				      count + 1);
 	}
 }
 
@@ -2726,6 +2758,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	fctx->restarts = 0;
 	fctx->timeouts = 0;
 	fctx->attributes = 0;
+	fctx->spilled = ISC_FALSE;
 
 	dns_name_init(&fctx->nsname, NULL);
 	fctx->nsfetch = NULL;
@@ -5665,6 +5698,7 @@ destroy(dns_resolver_t *res) {
 #if USE_MBSLOCK
 	isc_rwlock_destroy(&res->mbslock);
 #endif
+	isc_timer_detach(&res->spillattimer);
 	res->magic = 0;
 	isc_mem_put(res->mctx, res, sizeof(*res));
 }
@@ -5703,11 +5737,42 @@ empty_bucket(dns_resolver_t *res) {
 	UNLOCK(&res->lock);
 }
 
+static void
+spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
+	dns_resolver_t *res = event->ev_arg;
+	isc_result_t result;
+	unsigned int count;
+	isc_boolean_t logit = ISC_FALSE;
+
+	REQUIRE(VALID_RESOLVER(res));
+
+	UNUSED(task);
+	
+	LOCK(&res->lock);
+	INSIST(!res->exiting);
+	if (res->spillat > res->spillatmin) {
+		res->spillat--;
+		logit = ISC_TRUE;
+	}
+	if (res->spillat <= res->spillatmin) {
+		result = isc_timer_reset(res->spillattimer,
+					 isc_timertype_inactive, NULL,
+					 NULL, ISC_TRUE);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
+	count = res->spillat;
+	UNLOCK(&res->lock);
+	if (logit)
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
+			      "clients-per-query decreased to %u", count);
+}
+
 isc_result_t
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, unsigned int ntasks,
 		    isc_socketmgr_t *socketmgr,
-		    isc_timermgr_t *timermgr,
+		    isc_timermgr_t *timermgr, 
 		    unsigned int options,
 		    dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4,
@@ -5717,6 +5782,7 @@ dns_resolver_create(dns_view_t *view,
 	dns_resolver_t *res;
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int i, buckets_created = 0;
+	isc_task_t *task = NULL;
 	char name[16];
 
 	/*
@@ -5746,6 +5812,9 @@ dns_resolver_create(dns_view_t *view,
 	res->udpsize = RECV_BUFFER_SIZE;
 	res->algorithms = NULL;
 	res->mustbesecure = NULL;
+	res->spillatmin = res->spillat = 10;
+	res->spillatmax = 100;
+	res->spillattimer = NULL;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -5806,10 +5875,22 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
+	task = NULL;
+	result = isc_task_create(taskmgr, 0, &task);
+	if (result != ISC_R_SUCCESS)
+		 goto cleanup_primelock;
+
+	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
+				  task, spillattimer_countdown, res,
+				  &res->spillattimer);
+	isc_task_detach(&task);
+	if (result != ISC_R_SUCCESS)
+		 goto cleanup_primelock;
+
 #if USE_ALGLOCK
 	result = isc_rwlock_init(&res->alglock, 0, 0);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_primelock;
+		goto cleanup_spillattimer;
 #endif
 #if USE_MBSLOCK
 	result = isc_rwlock_init(&res->mbslock, 0, 0);
@@ -5830,9 +5911,12 @@ dns_resolver_create(dns_view_t *view,
 #endif
 #endif
 #if USE_ALGLOCK || USE_MBSLOCK
+ cleanup_spillattimer:
+	isc_timer_detach(&res->spillattimer);
+#endif
+
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
-#endif
 
  cleanup_nlock:
 	DESTROYLOCK(&res->nlock);
@@ -6034,6 +6118,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 	unsigned int i;
 	fetchctx_t *fctx;
 	isc_socket_t *sock;
+	isc_result_t result;
 
 	REQUIRE(VALID_RESOLVER(res));
 
@@ -6070,6 +6155,10 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 		}
 		if (res->activebuckets == 0)
 			send_shutdown_events(res);
+		result = isc_timer_reset(res->spillattimer,
+					 isc_timertype_inactive, NULL,
+					 NULL, ISC_TRUE);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
 	UNLOCK(&res->lock);
@@ -6160,10 +6249,11 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 {
 	dns_fetch_t *fetch;
 	fetchctx_t *fctx = NULL;
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	unsigned int bucketnum;
 	isc_boolean_t new_fctx = ISC_FALSE;
 	isc_event_t *event;
+	unsigned int count = 0;
 
 	UNUSED(forwarders);
 
@@ -6221,6 +6311,19 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 				result = DNS_R_DUPLICATE;
 				goto unlock;
 			}
+			count++;
+		}
+	}
+	if (count >= res->spillatmin && res->spillatmin != 0) {
+		if (!fctx->spilled) {
+			LOCK(&fctx->res->lock);
+			if (count >= res->spillat)
+				fctx->spilled = ISC_TRUE;
+			UNLOCK(&fctx->res->lock);
+		}
+		if (fctx->spilled) {
+			result = DNS_R_DROP;
+			goto unlock;
 		}
 	}
 
@@ -6668,4 +6771,32 @@ dns_resolver_getmustbesecure(dns_resolver_t *resolver, dns_name_t *name) {
 	RWUNLOCK(&resolver->mbslock, isc_rwlocktype_read);
 #endif
 	return (value);
+}
+
+void
+dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
+				isc_uint32_t *min, isc_uint32_t *max)
+{
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	LOCK(&resolver->lock);
+	if (cur != NULL)
+		*cur = resolver->spillat;
+	if (min != NULL)
+		*min = resolver->spillatmin;
+	if (max != NULL)
+		*max = resolver->spillatmax;
+	UNLOCK(&resolver->lock);
+}
+
+void
+dns_resolver_setclientsperquery(dns_resolver_t *resolver, isc_uint32_t min,
+				isc_uint32_t max)
+{
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	LOCK(&resolver->lock);
+	resolver->spillatmin = resolver->spillat = min;
+	resolver->spillatmax = max;
+	UNLOCK(&resolver->lock);
 }

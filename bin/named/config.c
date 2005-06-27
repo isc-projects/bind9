@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.10 2005/05/19 04:59:50 marka Exp $ */
+/* $Id: config.c,v 1.47.18.11 2005/06/27 00:19:55 marka Exp $ */
 
 /*! \file */
 
@@ -134,6 +134,8 @@ options {\n\
 	max-acache-size 0;\n\
 	dnssec-enable no; /* Make yes for 9.4. */ \n\
 	integrity-check yes;\n\
+	clients-per-query 10;\n\
+	max-clients-per-query 100;\n\
 "
 
 "	/* zone */\n\

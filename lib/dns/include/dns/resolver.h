@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.40.18.6 2005/06/17 02:04:32 marka Exp $ */
+/* $Id: resolver.h,v 1.40.18.7 2005/06/27 00:20:02 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -309,6 +309,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
  *
  *\li	#ISC_R_SUCCESS					Success
  *\li	#DNS_R_DUPLICATE
+ *\li	#DNS_R_DROP
  *
  *\li	Many other values are possible, all of which indicate failure.
  */
@@ -457,6 +458,13 @@ dns_resolver_setmustbesecure(dns_resolver_t *resolver, dns_name_t *name,
 isc_boolean_t
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, dns_name_t *name);
 
+void
+dns_resolver_setclientsperquery(dns_resolver_t *resolver,
+				isc_uint32_t min, isc_uint32_t max);
+
+void
+dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
+				isc_uint32_t *min, isc_uint32_t *max);
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

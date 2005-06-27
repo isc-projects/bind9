@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.30 2005/06/20 01:19:33 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.31 2005/06/27 00:19:58 marka Exp $ -->
 <book>
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1522,6 +1522,42 @@ controls {
 
               </listitem>
             </varlistentry>
+
+	    <varlistentry>
+	      <term><command>clients-per-query</command></term>
+	      <term><command>max-clients-per-query</command></term>
+              <listitem>
+		<para><command>clients-per-query</command>
+		  and <command>max-clients-per-query</command> set the
+		  initial value (minimum) and maximum number of recursive
+		  simultanious clients for any given query
+		  (&lt;qname,qtype,qclass&gt;) that the server will accept
+		  before dropping additional clients.  named will attempt to
+		  self tune this value and changes will be logged.  The
+		  default values are 10 and 100.
+		</para>
+		<para>
+	          This value should reflect how many queries come in for
+		  a given name in the time it takes to resolve that name.
+		  If the number of queries exceed this value named will
+		  assume that it is dealing with a non-responsive zone
+		  and will drop additional queries.  If it gets a response
+		  after dropping queries it will raise the estimate.  The
+		  estimate will then be lowered in 20 minutes if it has
+		  remained unchanged.
+		</para>
+		<para>
+		  If <command>clients-per-query</command> is set to zero
+		  then there is no limit on the number of clients per query
+		  and no queries will be dropped.
+		</para>
+		<para>
+		  If <command>max-clients-per-query</command> is set to zero
+		  then there is no upper bound other than imposed by
+		  <command>recurive-clients</command>.
+		</para>
+              </listitem>
+	    </varlistentry>
           </variablelist>
 
         </sect3>
@@ -4396,6 +4432,8 @@ category notify { null; };
     <optional> use-additional-cache <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
     <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
+    <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
+    <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
 };
 </programlisting>
