@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.10 2005/06/20 02:44:25 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.11 2005/06/27 02:58:47 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537906">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537911">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2539635">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2539677">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -745,12 +745,46 @@ controls {
                   <code class="filename">named.conf</code> at all.
                 </p>
 </dd>
+<dt>
+<span class="term"><span><strong class="command">clients-per-query</strong></span>, </span><span class="term"><span><strong class="command">max-clients-per-query</strong></span></span>
+</dt>
+<dd>
+<p><span><strong class="command">clients-per-query</strong></span>
+		  and <span><strong class="command">max-clients-per-query</strong></span> set the
+		  initial value (minimum) and maximum number of recursive
+		  simultanious clients for any given query
+		  (&lt;qname,qtype,qclass&gt;) that the server will accept
+		  before dropping additional clients.  named will attempt to
+		  self tune this value and changes will be logged.  The
+		  default values are 10 and 100.
+		</p>
+<p>
+	          This value should reflect how many queries come in for
+		  a given name in the time it takes to resolve that name.
+		  If the number of queries exceed this value named will
+		  assume that it is dealing with a non-responsive zone
+		  and will drop additional queries.  If it gets a response
+		  after dropping queries it will raise the estimate.  The
+		  estimate will then be lowered in 20 minutes if it has
+		  remained unchanged.
+		</p>
+<p>
+		  If <span><strong class="command">clients-per-query</strong></span> is set to zero
+		  then there is no limit on the number of clients per query
+		  and no queries will be dropped.
+		</p>
+<p>
+		  If <span><strong class="command">max-clients-per-query</strong></span> is set to zero
+		  then there is no upper bound other than imposed by
+		  <span><strong class="command">recurive-clients</strong></span>.
+		</p>
+</dd>
 </dl></div>
 </div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2539635"></a>Signals</h3></div></div></div>
+<a name="id2539677"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can

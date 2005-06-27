@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.12 2005/06/07 03:05:50 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.13 2005/06/27 02:58:46 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -194,6 +194,9 @@ options {
 	max\-cache\-ttl \fIinteger\fR;
 	transfer\-format ( many\-answers | one\-answer );
 	max\-cache\-size \fIsize_no_default\fR;
+	max\-acache\-size \fIsize_no_default\fR;
+	clients\-per\-query \fInumber\fR;
+	max\-clients\-per\-query \fInumber\fR;
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
 	check\-mx ( fail | warn | ignore );
@@ -309,6 +312,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	max\-cache\-ttl \fIinteger\fR;
 	transfer\-format ( many\-answers | one\-answer );
 	max\-cache\-size \fIsize_no_default\fR;
+	max\-acache\-size \fIsize_no_default\fR;
+	clients\-per\-query \fInumber\fR;
+	max\-clients\-per\-query \fInumber\fR;
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
 	check\-mx ( fail | warn | ignore );

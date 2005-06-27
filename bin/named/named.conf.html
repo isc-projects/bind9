@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.1.2.15 2005/06/07 03:05:50 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.1.2.16 2005/06/27 02:58:46 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -212,6 +212,9 @@ options {<br>
 	max-cache-ttl <em class="replaceable"><code>integer</code></em>;<br>
 	transfer-format ( many-answers | one-answer );<br>
 	max-cache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	max-acache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	clients-per-query <em class="replaceable"><code>number</code></em>;<br>
+	max-clients-per-query <em class="replaceable"><code>number</code></em>;<br>
 	check-names ( master | slave | response )<br>
 		( fail | warn | ignore );<br>
 	check-mx ( fail | warn | ignore );<br>
@@ -295,7 +298,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515150"></a><h2>VIEW</h2>
+<a name="id2515160"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -343,6 +346,9 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	max-cache-ttl <em class="replaceable"><code>integer</code></em>;<br>
 	transfer-format ( many-answers | one-answer );<br>
 	max-cache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	max-acache-size <em class="replaceable"><code>size_no_default</code></em>;<br>
+	clients-per-query <em class="replaceable"><code>number</code></em>;<br>
+	max-clients-per-query <em class="replaceable"><code>number</code></em>;<br>
 	check-names ( master | slave | response )<br>
 		( fail | warn | ignore );<br>
 	check-mx ( fail | warn | ignore );<br>
@@ -418,7 +424,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515715"></a><h2>ZONE</h2>
+<a name="id2515734"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -498,12 +504,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516060"></a><h2>FILES</h2>
+<a name="id2516080"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516072"></a><h2>SEE ALSO</h2>
+<a name="id2516091"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.
