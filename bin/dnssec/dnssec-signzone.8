@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.28.18.10 2005/06/26 00:06:07 marka Exp $
+.\" $Id: dnssec-signzone.8,v 1.28.18.11 2005/06/28 06:04:29 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -41,7 +41,7 @@
 dnssec-signzone \- DNSSEC zone signing tool
 .SH "SYNOPSIS"
 .HP 16
-\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-d\ \fIdirectory\fR\fR] [\fB\-e\ \fIend\-time\fR\fR] [\fB\-f\ \fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-k\ \fIkey\fR\fR] [\fB\-l\ \fIdomain\fR\fR] [\fB\-i\ \fIinterval\fR\fR] [\fB\-j\ \fIjitter\fR\fR] [\fB\-n\ \fInthreads\fR\fR] [\fB\-o\ \fIorigin\fR\fR] [\fB\-p\fR] [\fB\-r\ \fIrandomdev\fR\fR] [\fB\-s\ \fIstart\-time\fR\fR] [\fB\-t\fR] [\fB\-v\ \fIlevel\fR\fR] [\fB\-z\fR] {zonefile} [key...]
+\fBdnssec\-signzone\fR [\fB\-a\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-d\ \fIdirectory\fR\fR] [\fB\-e\ \fIend\-time\fR\fR] [\fB\-f\ \fIoutput\-file\fR\fR] [\fB\-g\fR] [\fB\-h\fR] [\fB\-k\ \fIkey\fR\fR] [\fB\-l\ \fIdomain\fR\fR] [\fB\-i\ \fIinterval\fR\fR] [\fB\-I\ \fIinput\-format\fR\fR] [\fB\-j\ \fIjitter\fR\fR] [\fB\-n\ \fInthreads\fR\fR] [\fB\-o\ \fIorigin\fR\fR] [\fB\-O\ \fIoutput\-format\fR\fR] [\fB\-p\fR] [\fB\-r\ \fIrandomdev\fR\fR] [\fB\-s\ \fIstart\-time\fR\fR] [\fB\-t\fR] [\fB\-v\ \fIlevel\fR\fR] [\fB\-z\fR] {zonefile} [key...]
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-signzone\fR signs a zone\&. It generates NSEC and RRSIG records and produces a signed version of the zone\&. The security status of delegations from the signed zone (that is, whether the child zones are secure or not) is determined by the presence or absence of a \fIkeyset\fR file for each child zone\&.
@@ -81,6 +81,9 @@ Prints a short summary of the options and arguments to \fBdnssec\-signzone\fR\&.
 When a previously signed zone is passed as input, records may be resigned\&. The \fBinterval\fR option specifies the cycle interval as an offset from the current time (in seconds)\&. If a RRSIG record expires after the cycle interval, it is retained\&. Otherwise, it is considered to be expiring soon, and it will be replaced\&.
 The default cycle interval is one quarter of the difference between the signature end and start times\&. So if neither \fBend\-time\fR or \fBstart\-time\fR are specified, \fBdnssec\-signzone\fR generates signatures that are valid for 30 days, with a cycle interval of 7\&.5 days\&. Therefore, if any existing RRSIG records are due to expire in less than 7\&.5 days, they would be replaced\&.
 .TP
+\-I \fIinput\-format\fR
+The format of the input zone file\&. Possible formats are \fB"text"\fR (default) and \fB"raw"\fR\&. This option is primarily intended to be used for dynamic signed zones so that the dumped zone file in a non\-text format containing updates can be signed directly\&. The use of this option does not make much sense for non\-dynamic zones\&.
+.TP
 \-j \fIjitter\fR
 When signing a zone with a fixed signature lifetime, all RRSIG records issued at the time of signing expires simultaneously\&. If the zone is incrementally signed, i\&.e\&. a previously signed zone is passed as input to the signer, all expired signatures has to be regenerated at about the same time\&. The \fBjitter\fR option specifies a jitter window that will be used to randomize the signature expire time, thus spreading incremental signature regeneration over time\&.
 Signature lifetime jitter also to some extent benefits validators and servers by spreading out cache expiration, i\&.e\&. if large numbers of RRSIGs don't expire at the same time from all caches there will be less congestion than if all validators need to refetch at mostly the same time\&.
@@ -90,6 +93,9 @@ Specifies the number of threads to use\&. By default, one thread is started for 
 .TP
 \-o \fIorigin\fR
 The zone origin\&. If not specified, the name of the zone file is assumed to be the origin\&.
+.TP
+\-O \fIoutput\-format\fR
+The format of the output file containing the signed zone\&. Possible formats are \fB"text"\fR (default) and \fB"raw"\fR\&.
 .TP
 \-p
 Use pseudo\-random data when signing the zone\&. This is faster, but less secure, than using real random data\&. This option may be useful when signing large zones or when the entropy source is limited\&.
