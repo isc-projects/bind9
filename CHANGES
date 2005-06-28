@@ -189,12 +189,14 @@
 
 1818.	[bug]		'named-checkconf -z' triggered an INSIST. [RT #13599]
 
-1817.	[func]		add support for additional zone file formats for
+1817.	[func]		Add support for additional zone file formats for
 			improving loading performance.  The masterfile-format
 			option in named.conf can be used to specify a
-			non-default format.  A new separate command
+			non-default format.  A separate command
 			named-compilezone was provided to generate zone files
-			in a new format.
+			in the new format.  Additionally, the -I and -O options
+			for dnssec-signzone specify the input and output
+			formats.
 
 1816.	[port]		UnixWare: failed to compile lib/isc/unix/net.c.
 			[RT #13597]

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.18 2005/06/24 00:17:08 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.19 2005/06/28 02:55:09 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -63,9 +63,11 @@
       <arg><option>-k <replaceable class="parameter">key</replaceable></option></arg>
       <arg><option>-l <replaceable class="parameter">domain</replaceable></option></arg>
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
+      <arg><option>-I <replaceable class="parameter">input-format</replaceable></option></arg>
       <arg><option>-j <replaceable class="parameter">jitter</replaceable></option></arg>
       <arg><option>-n <replaceable class="parameter">nthreads</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
+      <arg><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg><option>-p</option></arg>
       <arg><option>-r <replaceable class="parameter">randomdev</replaceable></option></arg>
       <arg><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
@@ -230,6 +232,22 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-I <replaceable class="parameter">input-format</replaceable></term>
+        <listitem>
+          <para>
+            The format of the input zone file.
+	    Possible formats are <command>"text"</command> (default)
+	    and <command>"raw"</command>.
+	    This option is primarily intended to be used for dynamic
+            signed zones so that the dumped zone file in a non-text
+            format containing updates can be signed directly.
+	    The use of this option does not make much sense for
+	    non-dynamic zones.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-j <replaceable class="parameter">jitter</replaceable></term>
         <listitem>
           <para>
@@ -269,6 +287,17 @@
           <para>
             The zone origin.  If not specified, the name of the zone file
             is assumed to be the origin.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-O <replaceable class="parameter">output-format</replaceable></term>
+        <listitem>
+          <para>
+            The format of the output file containing the signed zone.
+	    Possible formats are <command>"text"</command> (default)
+	    and <command>"raw"</command>.
           </para>
         </listitem>
       </varlistentry>

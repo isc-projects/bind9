@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.c,v 1.78 2005/06/20 01:03:52 marka Exp $ */
+/* $Id: db.c,v 1.79 2005/06/28 02:55:09 marka Exp $ */
 
 /*! \file */
 
@@ -303,6 +303,11 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp) {
 
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename) {
+	return (dns_db_load2(db, filename, dns_masterformat_text));
+}
+
+isc_result_t
+dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format) {
 	isc_result_t result, eresult;
 	dns_rdatacallbacks_t callbacks;
 	unsigned int options = 0;
@@ -321,9 +326,9 @@ dns_db_load(dns_db_t *db, const char *filename) {
 	result = dns_db_beginload(db, &callbacks.add, &callbacks.add_private);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_master_loadfile(filename, &db->origin, &db->origin,
-				     db->rdclass, options,
-				     &callbacks, db->mctx);
+	result = dns_master_loadfile2(filename, &db->origin, &db->origin,
+				      db->rdclass, options,
+				      &callbacks, db->mctx, format);
 	eresult = dns_db_endload(db, &callbacks.add_private);
 	/*
 	 * We always call dns_db_endload(), but we only want to return its
