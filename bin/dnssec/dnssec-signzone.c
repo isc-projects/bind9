@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.11 2005/04/27 05:00:28 sra Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.12 2005/06/28 03:00:20 marka Exp $ */
 
 /*! \file */
 
@@ -108,6 +108,8 @@ static dns_ttl_t zonettl;
 static FILE *fp;
 static char *tempfile = NULL;
 static const dns_master_style_t *masterstyle;
+static dns_masterformat_t inputformat = dns_masterformat_text;
+static dns_masterformat_t outputformat = dns_masterformat_text;
 static unsigned int nsigned = 0, nretained = 0, ndropped = 0;
 static unsigned int nverified = 0, nverifyfailed = 0;
 static const char *directory;
@@ -158,40 +160,11 @@ static void
 dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	isc_result_t result;
 
+	if (outputformat != dns_masterformat_text)
+		return;
 	result = dns_master_dumpnodetostream(mctx, gdb, gversion, node, name,
 					     masterstyle, fp);
 	check_result(result, "dns_master_dumpnodetostream");
-}
-
-static void
-dumpdb(dns_db_t *db) {
-	dns_dbiterator_t *dbiter = NULL;
-	dns_dbnode_t *node;
-	dns_fixedname_t fname;
-	dns_name_t *name;
-	isc_result_t result;
-
-	dbiter = NULL;
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiter);
-	check_result(result, "dns_db_createiterator()");
-
-	dns_fixedname_init(&fname);
-	name = dns_fixedname_name(&fname);
-	node = NULL;
-
-	for (result = dns_dbiterator_first(dbiter);
-	     result == ISC_R_SUCCESS;
-	     result = dns_dbiterator_next(dbiter))
-	{
-		result = dns_dbiterator_current(dbiter, &node, name);
-		check_result(result, "dns_dbiterator_current()");
-		dumpnode(name, node);
-		dns_db_detachnode(db, &node);
-	}
-	if (result != ISC_R_NOMORE)
-		fatal("iterating database: %s", isc_result_totext(result));
-
-	dns_dbiterator_destroy(&dbiter);
 }
 
 static signer_key_t *
@@ -1357,7 +1330,7 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 			       rdclass, 0, NULL, db);
 	check_result(result, "dns_db_create()");
 
-	result = dns_db_load(*db, file);
+	result = dns_db_load2(*db, file, inputformat);
 	if (result != ISC_R_SUCCESS && result != DNS_R_SEENINCLUDE)
 		fatal("failed loading zone from '%s': %s",
 		      file, isc_result_totext(result));
@@ -1627,12 +1600,18 @@ static void
 print_time(FILE *fp) {
 	time_t currenttime;
 
+	if (outputformat != dns_masterformat_text)
+		return;
+
 	currenttime = time(NULL);
 	fprintf(fp, "; File written on %s", ctime(&currenttime));
 }
 
 static void
 print_version(FILE *fp) {
+	if (outputformat != dns_masterformat_text)
+		return;
+
 	fprintf(fp, "; dnssec_signzone version " VERSION "\n");
 }
 
@@ -1667,6 +1646,10 @@ usage(void) {
 	fprintf(stderr, "\t-f outfile:\n");
 	fprintf(stderr, "\t\tfile the signed zone is written in "
 				"(zonefile + .signed)\n");
+	fprintf(stderr, "\t-I format:\n");
+	fprintf(stderr, "\t\tfile format of input zonefile (text)\n");
+	fprintf(stderr, "\t-O format:\n");
+	fprintf(stderr, "\t\tfile format of signed zone file (text)\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr,	"\t\ta file containing random data\n");
 	fprintf(stderr, "\t-a:\t");
@@ -1725,6 +1708,7 @@ main(int argc, char *argv[]) {
 	int i, ch;
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
+	char *inputformatstr = NULL, *outputformatstr = NULL;
 	char *dskeyfile[MAXDSKEYS];
 	int ndskeys = 0;
 	char *endp;
@@ -1737,7 +1721,6 @@ main(int argc, char *argv[]) {
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen;
 	dns_rdataclass_t rdclass;
-	dns_db_t *udb = NULL;
 	isc_task_t **tasks = NULL;
 	isc_buffer_t b;
 	int len;
@@ -1753,7 +1736,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:d:e:f:ghi:j:k:l:n:o:pr:s:Stv:z"))
+					   "ac:d:e:f:ghi:I:j:k:l:n:o:O:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
@@ -1793,6 +1776,10 @@ main(int argc, char *argv[]) {
 				      "positive");
 			break;
 
+		case 'I':
+			inputformatstr = isc_commandline_argument;
+			break;
+
 		case 'j':
 			endp = NULL;
 			jitter = strtol(isc_commandline_argument, &endp, 0);
@@ -1828,6 +1815,10 @@ main(int argc, char *argv[]) {
 
 		case 'o':
 			origin = isc_commandline_argument;
+			break;
+
+		case 'O':
+			outputformatstr = isc_commandline_argument;
 			break;
 
 		case 'p':
@@ -1923,6 +1914,24 @@ main(int argc, char *argv[]) {
 		if (output == NULL)
 			fatal("out of memory");
 		sprintf(output, "%s.signed", file);
+	}
+
+	if (inputformatstr != NULL) {
+		if (strcasecmp(inputformatstr, "text") == 0)
+			inputformat = dns_masterformat_text;
+		else if (strcasecmp(inputformatstr, "raw") == 0)
+			inputformat = dns_masterformat_raw;
+		else
+			fatal("unknown file format: %s\n", inputformatstr);
+	}
+
+	if (outputformatstr != NULL) {
+		if (strcasecmp(outputformatstr, "text") == 0)
+			outputformat = dns_masterformat_text;
+		else if (strcasecmp(outputformatstr, "raw") == 0)
+			outputformat = dns_masterformat_raw;
+		else
+			fatal("unknown file format: %s\n", outputformatstr);
 	}
 
 	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
@@ -2098,9 +2107,11 @@ main(int argc, char *argv[]) {
 	isc_mem_put(mctx, tasks, ntasks * sizeof(isc_task_t *));
 	postsign();
 
-	if (udb != NULL) {
-		dumpdb(udb);
-		dns_db_detach(&udb);
+	if (outputformat != dns_masterformat_text) {
+		result = dns_master_dumptostream2(mctx, gdb, gversion,
+						  masterstyle, outputformat,
+						  fp);
+		check_result(result, "dns_master_dumptostream2");
 	}
 
 	result = isc_stdio_close(fp);

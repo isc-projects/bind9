@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.76.18.5 2005/06/20 01:19:43 marka Exp $ */
+/* $Id: db.h,v 1.76.18.6 2005/06/28 03:00:21 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -445,6 +445,9 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
 
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename);
+
+isc_result_t
+dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format);
 /*%<
  * Load master file 'filename' into 'db'.
  *
