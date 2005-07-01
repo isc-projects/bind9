@@ -62,7 +62,7 @@
 ./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
-./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004
+./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005
 ./bin/dnssec/dnssectool.h			C	2000,2001,2003,2004
 ./bin/dnssec/win32/keygen.dsp			X	2001
 ./bin/dnssec/win32/keygen.dsw			X	2001
