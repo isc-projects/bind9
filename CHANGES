@@ -1,3 +1,6 @@
+1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
+			levels. [RT #14962]
+
 1891.	[func]		Limit the number of recursive clients that can be
 			waiting for a single query (<qname,qtype,qclass>) to
 			resolve.  New options clients-per-query and
