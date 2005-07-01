@@ -1,3 +1,6 @@
+1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
+			levels. [RT #14962]
+
 1890.	[func]		Add a system test for named-checkconf. [RT #14931]
 
 1886.	[bug]		Fix unreasonably low quantum on call to

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssectool.c,v 1.31.2.3.2.4 2004/03/08 02:07:38 marka Exp $ */
+/* $Id: dnssectool.c,v 1.31.2.3.2.5 2005/07/01 03:57:18 marka Exp $ */
 
 #include <config.h>
 
@@ -145,6 +145,8 @@ setup_logging(int verbose, isc_mem_t *mctx, isc_log_t **logp) {
 	isc_log_t *log = NULL;
 	int level;
 
+	if (verbose < 0)
+		verbose = 0;
 	switch (verbose) {
 	case 0:
 		/*
