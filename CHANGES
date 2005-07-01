@@ -1,4 +1,4 @@
-1892.	[bug]		dnssec-signzone, dnssec-keygen, dnssec-sigkey,
+1892.	[bug]		dnssec-signzone, dnssec-keygen, dnssec-signkey,
 			dnssec-makekeyset: handle negative debug levels.
 			[RT #14962]
 
