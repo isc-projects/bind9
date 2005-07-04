@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.17 2005/06/07 00:18:03 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.18 2005/07/04 03:10:58 marka Exp $ */
 
 /*! \file */
 
@@ -47,10 +47,6 @@
 
 #include <dig/dig.h>
 
-extern ISC_LIST(dig_lookup_t) lookup_list;
-extern dig_serverlist_t server_list;
-extern ISC_LIST(dig_searchlist_t) search_list;
-
 #define ADD_STRING(b, s) { 				\
 	if (strlen(s) >= isc_buffer_availablelength(b)) \
  		return (ISC_R_NOSPACE); 		\
@@ -60,31 +56,8 @@ extern ISC_LIST(dig_searchlist_t) search_list;
 
 #define DIG_MAX_ADDRESSES 20
 
-extern isc_boolean_t have_ipv4, have_ipv6, specified_source,
-	usesearch, qr;
-extern in_port_t port;
-extern unsigned int timeout;
-extern isc_mem_t *mctx;
-extern dns_messageid_t id;
-extern int sendcount;
-extern int ndots;
-extern int lookup_counter;
-extern int exitcode;
-extern isc_sockaddr_t bind_address;
-extern char keynametext[MXNAME];
-extern char keyfile[MXNAME];
-extern char keysecret[MXNAME];
-#ifdef DIG_SIGCHASE
-extern char trustedkey[MXNAME];
-#endif
-extern dns_tsigkey_t *key;
-extern isc_boolean_t validated;
-extern isc_taskmgr_t *taskmgr;
-extern isc_task_t *global_task;
-extern isc_boolean_t free_now;
 dig_lookup_t *default_lookup = NULL;
 
-extern isc_boolean_t debugging, memdebugging;
 static char *batchname = NULL;
 static FILE *batchfp = NULL;
 static char *argv0;
@@ -136,8 +109,6 @@ static const char *rcodetext[] = {
 	"RESERVED15",
 	"BADVERS"
 };
-
-extern char *progname;
 
 /*% print usage */
 static void
@@ -518,6 +489,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       msg->counts[DNS_SECTION_AUTHORITY],
 			       msg->counts[DNS_SECTION_ADDITIONAL]);
 		}
+		if (msg != query->lookup->sendmsg && extrabytes != 0U)
+			printf(";; WARNING: Messages has %u extra byte%s at "
+			       "end\n", extrabytes, extrabytes != 0 ? "s" : "");
 	}
 
 repopulate_buffer:
@@ -606,6 +580,7 @@ buftoosmall:
 			}
 		}
 	}
+
 	if (headers && query->lookup->comments && !short_form)
 		printf("\n");
 
