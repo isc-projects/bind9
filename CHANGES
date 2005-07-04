@@ -1,3 +1,6 @@
+1895.	[bug]		fctx_create() could return success even though it
+			failed. [RT #14993]
+
 1894.	[func]		dig: report the number of extra bytes still left in
 			the packet after processing all the records.
 
