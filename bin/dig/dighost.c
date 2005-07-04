@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.25 2005/06/19 22:18:10 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.26 2005/07/04 03:29:44 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -90,9 +90,9 @@
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 
-ISC_LIST(dig_lookup_t) lookup_list;
+dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
-ISC_LIST(dig_searchlist_t) search_list;
+dig_searchlistlist_t search_list;
 
 isc_boolean_t
 	have_ipv4 = ISC_FALSE,

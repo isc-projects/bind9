@@ -1,3 +1,5 @@
+1893.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
+
 1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
 			levels. [RT #14962]
 

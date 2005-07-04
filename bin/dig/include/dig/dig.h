@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.71.2.6.2.10 2005/06/19 22:47:27 marka Exp $ */
+/* $Id: dig.h,v 1.71.2.6.2.11 2005/07/04 03:29:45 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -216,6 +216,46 @@ struct dig_message {
 		ISC_LINK(dig_message_t) link;
 };
 #endif
+
+typedef ISC_LIST(dig_searchlist_t) dig_searchlistlist_t;
+typedef ISC_LIST(dig_lookup_t) dig_lookuplist_t;
+
+/*
+ * Externals from dighost.c
+ */
+
+extern dig_lookuplist_t lookup_list;
+extern dig_serverlist_t server_list;
+extern dig_searchlistlist_t search_list;
+
+extern isc_boolean_t have_ipv4, have_ipv6, specified_source,
+        usesearch, qr;
+extern in_port_t port;
+extern unsigned int timeout;
+extern isc_mem_t *mctx;
+extern dns_messageid_t id;
+extern int sendcount;
+extern int ndots;
+extern int lookup_counter;
+extern int exitcode;
+extern isc_sockaddr_t bind_address;
+extern char keynametext[MXNAME];
+extern char keyfile[MXNAME];
+extern char keysecret[MXNAME];
+#ifdef DIG_SIGCHASE
+extern char trustedkey[MXNAME];
+#endif
+extern dns_tsigkey_t *key;
+extern isc_boolean_t validated;
+extern isc_taskmgr_t *taskmgr;
+extern isc_task_t *global_task;
+extern isc_boolean_t free_now;
+extern isc_boolean_t debugging, memdebugging;
+
+extern char *progname;
+extern int tries;
+extern int fatalexit;
+
 /*
  * Routines in dighost.c.
  */
