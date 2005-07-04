@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.76.2.9 2005/03/16 00:57:40 marka Exp $ */
+/* $Id: host.c,v 1.76.2.10 2005/07/04 03:22:04 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -38,20 +38,6 @@
 #include <dns/rdatatype.h>
 
 #include <dig/dig.h>
-
-extern ISC_LIST(dig_lookup_t) lookup_list;
-extern ISC_LIST(dig_server_t) server_list;
-extern ISC_LIST(dig_searchlist_t) search_list;
-
-extern isc_boolean_t usesearch;
-extern isc_boolean_t debugging;
-extern unsigned int timeout;
-extern isc_mem_t *mctx;
-extern int ndots;
-extern int tries;
-extern char *progname;
-extern isc_task_t *global_task;
-extern int fatalexit;
 
 static isc_boolean_t short_form = ISC_TRUE, listed_server = ISC_FALSE;
 static isc_boolean_t list_addresses = ISC_TRUE;

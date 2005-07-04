@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.26 2005/03/31 23:58:00 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.27 2005/07/04 03:22:03 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -78,9 +78,9 @@ extern int h_errno;
 #endif
 #endif
 
-ISC_LIST(dig_lookup_t) lookup_list;
+dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
-ISC_LIST(dig_searchlist_t) search_list;
+dig_searchlistlist_t search_list;
 
 isc_boolean_t
 	have_ipv4 = ISC_FALSE,
