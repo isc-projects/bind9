@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.41 2005/03/16 03:51:23 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.42 2005/07/04 23:19:17 marka Exp $ */
 
 #include <config.h>
 
@@ -2267,7 +2267,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	    unsigned int options, unsigned int bucketnum, fetchctx_t **fctxp)
 {
 	fetchctx_t *fctx;
-	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t result;
 	isc_result_t iresult;
 	isc_interval_t interval;
 	dns_fixedname_t fixed;
@@ -2284,8 +2284,10 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	FCTXTRACE("create");
 	dns_name_init(&fctx->name, NULL);
 	result = dns_name_dup(name, res->mctx, &fctx->name);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		result = ISC_R_NOMEMORY;
 		goto cleanup_fetch;
+	}
 	dns_name_init(&fctx->domain, NULL);
 	dns_rdataset_init(&fctx->nameservers);
 
