@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.13 2005/06/20 01:19:41 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.14 2005/07/04 03:58:20 marka Exp $ */
 
 /*! \file */
 
@@ -1565,7 +1565,9 @@ findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
 			return (result);
 		}
 	}
+	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
 	new_reference(rbtdb, node);
+	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 	RWUNLOCK(&rbtdb->tree_lock, locktype);
 
 	*nodep = (dns_dbnode_t *)node;
@@ -2967,9 +2969,9 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 	rbtdb = search->rbtdb;
 	i = search->chain.level_matches;
 	done = ISC_FALSE;
-	lock = &rbtdb->node_locks[node->locknum].lock;
 	do {
 		locktype = isc_rwlocktype_read;
+		lock = &rbtdb->node_locks[node->locknum].lock;
 		NODE_LOCK(lock, locktype);
 
 		/*
@@ -5935,7 +5937,9 @@ reference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 		return;
 
 	INSIST(rbtdbiter->tree_locked != isc_rwlocktype_none);
+	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
 	new_reference(rbtdb, node);
+	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 }
 
 static inline void
@@ -6267,7 +6271,9 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	} else
 		result = ISC_R_SUCCESS;
 
+	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
 	new_reference(rbtdb, node);
+	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*nodep = rbtdbiter->node;
 
