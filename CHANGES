@@ -1,3 +1,6 @@
+1895.	[bug]		fctx_create() could return success even though it
+			failed. [RT #14993]
+
 1893.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
 
 1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
