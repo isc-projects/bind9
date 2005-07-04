@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.279 2005/06/19 22:12:31 marka Exp $ */
+/* $Id: dighost.c,v 1.280 2005/07/04 03:03:20 marka Exp $ */
 
 /*! \file
  *  \note
@@ -91,9 +91,9 @@
 static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 
-ISC_LIST(dig_lookup_t) lookup_list;
+dig_lookuplist_t lookup_list;
 dig_serverlist_t server_list;
-ISC_LIST(dig_searchlist_t) search_list;
+dig_searchlistlist_t search_list;
 
 isc_boolean_t
 	have_ipv4 = ISC_FALSE,
@@ -106,6 +106,7 @@ isc_boolean_t
 	is_dst_up = ISC_FALSE;
 in_port_t port = 53;
 unsigned int timeout = 0;
+unsigned int extrabytes;
 isc_mem_t *mctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *global_task = NULL;
@@ -1906,6 +1907,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	}
 	/* XXX qrflag, print_query, etc... */
 	if (!ISC_LIST_EMPTY(lookup->q) && qr) {
+		extrabytes = 0;
 		printmessage(ISC_LIST_HEAD(lookup->q), lookup->sendmsg,
 			     ISC_TRUE);
 	}
@@ -2853,6 +2855,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		result = dns_message_getquerytsig(msg, mctx, &l->querysig);
 		check_result(result,"dns_message_getquerytsig");
 	}
+
+	extrabytes = isc_buffer_remaininglength(b);
 
 	debug("after parse");
 	if (l->doing_xfr && l->xfr_q == NULL) {

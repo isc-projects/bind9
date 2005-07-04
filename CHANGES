@@ -1,3 +1,8 @@
+1894.	[func]		dig: report the number of extra bytes still left in
+			the packet after processing all the records.
+
+1893.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
+
 1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
 			levels. [RT #14962]
 

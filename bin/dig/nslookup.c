@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.107 2004/09/06 01:24:43 marka Exp $ */
+/* $Id: nslookup.c,v 1.108 2005/07/04 03:03:21 marka Exp $ */
 
 #include <config.h>
 
@@ -43,19 +43,6 @@
 #include <dns/byaddr.h>
 
 #include <dig/dig.h>
-
-extern ISC_LIST(dig_lookup_t) lookup_list;
-extern dig_serverlist_t server_list;
-extern ISC_LIST(dig_searchlist_t) search_list;
-
-extern isc_boolean_t usesearch, debugging;
-extern in_port_t port;
-extern unsigned int timeout;
-extern isc_mem_t *mctx;
-extern int tries;
-extern int lookup_counter;
-extern isc_task_t *global_task;
-extern char *progname;
 
 static isc_boolean_t short_form = ISC_TRUE,
 	tcpmode = ISC_FALSE,
