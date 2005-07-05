@@ -40,7 +40,7 @@
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005
 ./bin/dig/nslookup.1				MAN	DOCBOOK
-./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004
+./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005
 ./bin/dig/nslookup.docbook			SGML	2004,2005
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp				X	2001
