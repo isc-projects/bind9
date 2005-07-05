@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.380 $)
+AC_REVISION($Revision: 1.381 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1860,6 +1860,7 @@ case "$enable_atomic" in
 		;;
 	no)
 		use_atomic=no
+		arch=noatomic
 		;;
 esac
 
@@ -1879,6 +1880,10 @@ if test "$use_atomic" = "yes"; then
 	alpha*-*)
 		have_atomic=yes
 		arch=alpha
+	;;
+	powerpc-*)
+		have_atomic=yes
+		arch=powerpc
 	;;
 	*)
 		have_atomic=no
