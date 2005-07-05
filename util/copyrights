@@ -39,7 +39,7 @@
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005
 ./bin/dig/nslookup.1				MAN	DOCBOOK
-./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004
+./bin/dig/nslookup.c				C	2000,2001,2002,2003,2004,2005
 ./bin/dig/nslookup.docbook			SGML	2004,2005
 ./bin/dig/nslookup.html				HTML	DOCBOOK
 ./bin/dig/win32/dig.dsp				X	2001
@@ -2005,6 +2005,7 @@
 ./lib/isc/nothreads/thread.c			C	2000,2001,2004
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005
+./lib/isc/powerpc/include/isc/atomic.h		C	2005
 ./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005
 ./lib/isc/pthreads/.cvsignore			X	1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004
