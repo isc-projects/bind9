@@ -1502,7 +1502,7 @@
 ./lib/bind/port/qnx/.cvsignore			X	2001
 ./lib/bind/port/qnx/Makefile.in			MAKE	2001,2004
 ./lib/bind/port/qnx/include/.cvsignore		X	2001
-./lib/bind/port/qnx/include/Makefile.in		MAKE	2001,2004
+./lib/bind/port/qnx/include/Makefile.in		MAKE	2001,2004,2005
 ./lib/bind/port/qnx/include/sys/bitypes.h	X	2001
 ./lib/bind/port/qnx/include/sys/cdefs.h		X	2001
 ./lib/bind/port/qnx/include/sys/ioctl.h		X	2001
