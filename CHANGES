@@ -1,3 +1,5 @@
+1897.	[func]		Support for IPSECKEY rdata type. [RT #14967]
+
 1896.	[bug]		The cache could delete expired records too fast for
 			clients with a virtual time in the past. [RT #14991]
 
