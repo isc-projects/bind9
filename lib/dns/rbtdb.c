@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.22 2005/06/17 01:05:47 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.23 2005/07/07 03:06:29 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -89,6 +89,12 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 		RBTDB_RDATATYPE_VALUE(dns_rdatatype_sig, dns_rdatatype_dname)
 #define RBTDB_RDATATYPE_NCACHEANY \
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
+
+/*
+ * Allow clients with a virtual time of upto 5 minutes in the past to see
+ * records that would have otherwise have expired.
+ */
+#define RBTDB_VIRTUAL 300
 
 typedef struct rdatasetheader {
 	/*
@@ -2464,7 +2470,9 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * the node as dirty, so it will get cleaned
 			 * up later.
 			 */
-			if (node->references == 0) {
+			if (header->ttl <= search->now - RBTDB_VIRTUAL)
+				header_prev = header;
+			else if (node->references == 0) {
 				INSIST(header->down == NULL);
 				if (header_prev != NULL)
 					header_prev->next =
@@ -2554,7 +2562,9 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 				 * the node as dirty, so it will get cleaned
 				 * up later.
 				 */
-				if (node->references == 0) {
+				if (header->ttl > search->now - RBTDB_VIRTUAL)
+					header_prev = header;
+				else if (node->references == 0) {
 					INSIST(header->down == NULL);
 					if (header_prev != NULL)
 						header_prev->next =
@@ -2744,7 +2754,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if (node->references == 0) {
+			if (header->ttl > now - RBTDB_VIRTUAL)
+				header_prev = header;
+			else if (node->references == 0) {
 				INSIST(header->down == NULL);
 				if (header_prev != NULL)
 					header_prev->next = header->next;
@@ -3012,7 +3024,9 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if (node->references == 0) {
+			if (header->ttl > now - RBTDB_VIRTUAL)
+				header_prev = header;
+			else if (node->references == 0) {
 				INSIST(header->down == NULL);
 				if (header_prev != NULL)
 					header_prev->next = header->next;
@@ -3200,7 +3214,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	for (header = rbtnode->data; header != NULL; header = header->next)
-		if (header->ttl <= now) {
+		if (header->ttl <= now - RBTDB_VIRTUAL) {
 			/*
 			 * We don't check if rbtnode->references == 0 and try
 			 * to free like we do in cache_find(), because
@@ -3443,8 +3457,10 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * rbtnode->references must be non-zero.  This is so
 			 * because 'node' is an argument to the function.
 			 */
-			header->attributes |= RDATASET_ATTR_STALE;
-			rbtnode->dirty = 1;
+			if (header->ttl <= now - RBTDB_VIRTUAL) {
+				header->attributes |= RDATASET_ATTR_STALE;
+				rbtnode->dirty = 1;
+			}
 		} else if ((header->attributes & RDATASET_ATTR_NONEXISTENT) ==
 			   0) {
 			if (header->type == matchtype)
