@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.211 2005/07/07 00:51:05 marka Exp $ */
+/* $Id: rbtdb.c,v 1.212 2005/07/07 02:51:52 marka Exp $ */
 
 /*! \file */
 
@@ -2884,7 +2884,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * the node as dirty, so it will get cleaned
 			 * up later.
 			 */
-			if ((header->ttl <= search->now + RBTDB_VIRTUAL) &&
+			if ((header->ttl <= search->now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -2999,7 +2999,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 				 * the node as dirty, so it will get cleaned
 				 * up later.
 				 */
-				if ((header->ttl <= search->now +
+				if ((header->ttl <= search->now -
 						    RBTDB_VIRTUAL) &&
 				    (locktype == isc_rwlocktype_write ||
 				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
@@ -3162,7 +3162,7 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * node as dirty, so it will get cleaned up 
 				 * later.
 				 */
-				if ((header->ttl <= now + RBTDB_VIRTUAL) &&
+				if ((header->ttl <= now - RBTDB_VIRTUAL) &&
 				    (locktype == isc_rwlocktype_write ||
 				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 					/*
@@ -3341,7 +3341,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if ((header->ttl <= now + RBTDB_VIRTUAL) &&
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -3634,7 +3634,7 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if ((header->ttl <= now + RBTDB_VIRTUAL) &&
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
@@ -3849,7 +3849,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		  isc_rwlocktype_write);
 
 	for (header = rbtnode->data; header != NULL; header = header->next)
-		if (header->ttl <= now + RBTDB_VIRTUAL) {
+		if (header->ttl <= now - RBTDB_VIRTUAL) {
 			/*
 			 * We don't check if refcurrent(rbtnode) == 0 and try
 			 * to free like we do in cache_find(), because
@@ -4095,7 +4095,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (header->ttl <= now) {
-			if ((header->ttl <= now + RBTDB_VIRTUAL) &&
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
 			    (locktype == isc_rwlocktype_write ||
 			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
