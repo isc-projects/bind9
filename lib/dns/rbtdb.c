@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.14 2005/07/04 03:58:20 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.15 2005/07/07 02:53:19 marka Exp $ */
 
 /*! \file */
 
@@ -181,6 +181,12 @@ typedef isc_mutex_t nodelock_t;
 #define NODE_WEAKLOCK(l, t)
 #define NODE_WEAKUNLOCK(l, t)
 #endif
+
+/*
+ * Allow clients with a virtual time of upto 5 minutes in the past to see
+ * records that would have otherwise have expired.
+ */
+#define RBTDB_VIRTUAL 300
 
 struct noqname {
 	dns_name_t name;
@@ -2878,8 +2884,9 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * the node as dirty, so it will get cleaned
 			 * up later.
 			 */
-			if (locktype == isc_rwlocktype_write ||
-			    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+			if ((header->ttl <= search->now - RBTDB_VIRTUAL) &&
+			    (locktype == isc_rwlocktype_write ||
+			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
 				 * We update the node's status only when we
 				 * can get write access; otherwise, we leave
@@ -2992,8 +2999,10 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 				 * the node as dirty, so it will get cleaned
 				 * up later.
 				 */
-				if (locktype == isc_rwlocktype_write ||
-				    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+				if ((header->ttl <= search->now -
+						    RBTDB_VIRTUAL) &&
+				    (locktype == isc_rwlocktype_write ||
+				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 					/*
 					 * We update the node's status only
 					 * when we can get write access.
@@ -3153,8 +3162,9 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 				 * node as dirty, so it will get cleaned up 
 				 * later.
 				 */
-				if (locktype == isc_rwlocktype_write ||
-				    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+				if ((header->ttl <= now - RBTDB_VIRTUAL) &&
+				    (locktype == isc_rwlocktype_write ||
+				     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 					/*
 					 * We update the node's status only
 					 * when we can get write access.
@@ -3331,8 +3341,9 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if (locktype == isc_rwlocktype_write ||
-			    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
+			    (locktype == isc_rwlocktype_write ||
+			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
 				 * We update the node's status only when we
 				 * can get write access.
@@ -3623,8 +3634,9 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 			 * mark it as stale, and the node as dirty, so it will
 			 * get cleaned up later.
 			 */
-			if (locktype == isc_rwlocktype_write ||
-			    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
+			    (locktype == isc_rwlocktype_write ||
+			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
 				 * We update the node's status only when we
 				 * can get write access.
@@ -3837,7 +3849,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		  isc_rwlocktype_write);
 
 	for (header = rbtnode->data; header != NULL; header = header->next)
-		if (header->ttl <= now) {
+		if (header->ttl <= now - RBTDB_VIRTUAL) {
 			/*
 			 * We don't check if refcurrent(rbtnode) == 0 and try
 			 * to free like we do in cache_find(), because
@@ -4083,8 +4095,9 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	for (header = rbtnode->data; header != NULL; header = header_next) {
 		header_next = header->next;
 		if (header->ttl <= now) {
-			if (locktype == isc_rwlocktype_write ||
-			    NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS) {
+			if ((header->ttl <= now - RBTDB_VIRTUAL) &&
+			    (locktype == isc_rwlocktype_write ||
+			     NODE_TRYUPGRADE(lock) == ISC_R_SUCCESS)) {
 				/*
 				 * We update the node's status only when we
 				 * can get write access.
