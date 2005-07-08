@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.60.2.3.8.9 2004/03/16 05:02:31 marka Exp $ */
+/* $Id: entropy.c,v 1.60.2.3.8.10 2005/07/08 04:52:54 marka Exp $ */
 
 /*
  * This is the system depenedent part of the ISC entropy API.
@@ -446,16 +446,25 @@ make_nonblock(int fd) {
 	int ret;
 	int flags;
 	char strbuf[ISC_STRERRORSIZE];
+#ifdef USE_FIONBIO_IOCTL
+	int on = 1;
 
+	ret = ioctl(fd, FIONBIO, (char *)&on);
+#else
 	flags = fcntl(fd, F_GETFL, 0);
-	flags |= O_NONBLOCK;
+	flags |= PORT_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
+#endif
 
 	if (ret == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "fcntl(%d, F_SETFL, %d): %s",
-				 fd, flags, strbuf);
+#ifdef USE_FIONBIO_IOCTL
+				 "ioctl(%d, FIONBIO, &on): %s", fd,
+#else
+				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+#endif
+				 strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}
@@ -501,7 +510,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	if (is_usocket)
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
 	else
-		fd = open(fname, O_RDONLY | O_NONBLOCK, 0);
+		fd = open(fname, O_RDONLY | PORT_NONBLOCK, 0);
 
 	if (fd < 0) {
 		ret = isc__errno2result(errno);
