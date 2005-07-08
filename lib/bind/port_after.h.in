@@ -27,9 +27,7 @@
 @INNETGR_ARGS@
 @SETNETGRENT_ARGS@
 @USE_IFNAMELINKID@
-
-/* XXX sunos and cygwin needs O_NDELAY */
-#define PORT_NONBLOCK O_NONBLOCK
+@PORT_NONBLOCK@
 
 /*! \brief
  * We need to know the IPv6 address family number even on IPv4-only systems.
