@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.250 2005/05/19 02:42:42 marka Exp $ */
+/* $Id: socket.c,v 1.251 2005/07/08 04:30:22 marka Exp $ */
 
 /*! \file */
 
@@ -435,16 +435,25 @@ make_nonblock(int fd) {
 	int ret;
 	int flags;
 	char strbuf[ISC_STRERRORSIZE];
+#ifdef USE_FIONBIO_IOCTL
+	int on = 1;
 
+	ret = ioctl(fd, FIONBIO, (char *)&on);
+#else
 	flags = fcntl(fd, F_GETFL, 0);
-	flags |= O_NONBLOCK;
+	flags |= PORT_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
+#endif
 
 	if (ret == -1) {
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "fcntl(%d, F_SETFL, %d): %s",
-				 fd, flags, strbuf);
+#ifdef USE_FIONBIO_IOCTL
+				 "ioctl(%d, FIONBIO, &on): %s", fd,
+#else
+				 "fcntl(%d, F_SETFL, %d): %s", fd, flags,
+#endif
+				 strbuf);
 
 		return (ISC_R_UNEXPECTED);
 	}

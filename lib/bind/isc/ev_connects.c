@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_connects.c,v 1.6 2005/04/27 04:56:35 sra Exp $";
+static const char rcsid[] = "$Id: ev_connects.c,v 1.7 2005/07/08 04:30:21 marka Exp $";
 #endif
 
 /* Import. */
@@ -168,10 +168,10 @@ evCancelConn(evContext opaqueCtx, evConnID id) {
 				return (-1);
 		} else {
 #ifdef USE_FIONBIO_IOCTL
-			int on = 1;
-			OK(ioctl(this->fd, FIONBIO, (char *)&on));
+			int off = 0;
+			OK(ioctl(this->fd, FIONBIO, (char *)&off));
 #else
-			OK(fcntl(this->fd, F_SETFL, mode | PORT_NONBLOCK));
+			OK(fcntl(this->fd, F_SETFL, mode & ~PORT_NONBLOCK));
 #endif
 		}
 	}

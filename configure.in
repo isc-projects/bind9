@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.381 $)
+AC_REVISION($Revision: 1.382 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1960,6 +1960,22 @@ AC_SUBST(ISC_PLATFORM_USESTDASM)
 ISC_ARCH_DIR=$arch
 AC_SUBST(ISC_ARCH_DIR)
 
+#
+#  The following sets up how non-blocking i/o is established.
+#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#
+case "$host" in
+*-sunos*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
+*-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
+*-solaris2.[[01234]]*)
+	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
+	AC_DEFINE(USE_FIONBIO_IOCTL, 1,
+		  [Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make non-blocking.])
+	;;
+*) AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK,
+	     [Sets which flag to pass to open/fcntl to make non-blocking (O_NDELAY/O_NONBLOCK).])
+	;;
+esac
 #
 # The following sections deal with tools used for formatting
 # the documentation.  They are all optional, unless you are
