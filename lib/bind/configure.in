@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.19 $)
+AC_REVISION($Revision: 1.83.2.20 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -996,6 +996,7 @@ PORT_DIR=port/unknown
 SOLARIS_BITTYPES="#undef NEED_SOLARIS_BITTYPES"
 BSD_COMP="#undef BSD_COMP"
 USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
+PORT_NONBLOCK="#define PORT_NONBLOCK O_NONBLOCK"
 case "$host" in
 	*aix3.2*)	PORT_DIR="port/aix32";;
 	*aix4*)		PORT_DIR="port/aix4";;
@@ -1003,7 +1004,9 @@ case "$host" in
 	*aux3*)		PORT_DIR="port/aux3";;
 	*-bsdi2*)	PORT_DIR="port/bsdos2";;
 	*-bsdi*)	PORT_DIR="port/bsdos";;
-	*-cygwin*)	PORT_DIR="port/cygwin";;
+	*-cygwin*)
+			PORT_NONBLOCK="#define PORT_NONBLOCK O_NDELAY"
+			PORT_DIR="port/cygwin";;
 	*-darwin*)	PORT_DIR="port/darwin";;
 	*-osf*)		PORT_DIR="port/decunix";;
 	*-freebsd*)	PORT_DIR="port/freebsd";;
@@ -1019,6 +1022,9 @@ case "$host" in
 	*-openbsd*)	PORT_DIR="port/openbsd";;
 	*-qnx*)		PORT_DIR="port/qnx";;
 	*-rhapsody*)	PORT_DIR="port/rhapsody";;
+	*-sunos4*)
+			PORT_NONBLOCK="#define PORT_NONBLOCK O_NDELAY"
+			PORT_DIR="port/sunos";;
 	*-solaris2.[[01234]]*)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
@@ -1038,6 +1044,7 @@ esac
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
 AC_SUBST(USE_FIONBIO_IOCTL)
+AC_SUBST(PORT_NONBLOCK)
 AC_SUBST(PORT_DIR)
 PORT_INCLUDE=${PORT_DIR}/include
 AC_SUBST(PORT_INCLUDE)

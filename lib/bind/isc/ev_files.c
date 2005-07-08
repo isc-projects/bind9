@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: ev_files.c,v 1.3.2.2 2004/03/09 09:17:35 marka Exp $";
+static const char rcsid[] = "$Id: ev_files.c,v 1.3.2.3 2005/07/08 05:02:54 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -204,7 +204,7 @@ evDeselectFD(evContext opaqueCtx, evFileID opaqueID) {
 		 * and (b) the caller didn't ask us anything about O_NONBLOCK.
 		 */
 #ifdef USE_FIONBIO_IOCTL
-		int off = 1;
+		int off = 0;
 		(void) ioctl(del->fd, FIONBIO, (char *)&off);
 #else
 		(void) fcntl(del->fd, F_SETFL, mode & ~PORT_NONBLOCK);
