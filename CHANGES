@@ -225,7 +225,7 @@
 			architecture dependent atomic operations (when
 			available), improving response performance on
 			multi-processor machines significantly.
-			x86, x86_64, alpha, and sparc64 are currently
+			x86, x86_64, alpha, powerpc, and mips are currently
 			supported.
 
 1812.	[port]		win32: IN6_IS_ADDR_UNSPECIFIED macro is incorrect.
