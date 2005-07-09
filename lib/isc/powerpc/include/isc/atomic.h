@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.1.6.1 2005/07/05 17:37:02 jinmei Exp $ */
+/* $Id: atomic.h,v 1.1.6.2 2005/07/09 06:44:28 jinmei Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -90,7 +90,7 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	return (orig);
 }
 
-#else /* !ISC_PLATFORM_USEGCCASM && !ISC_PLATFORM_USEGCCASM */
+#else /* !ISC_PLATFORM_USEGCCASM */
 
 #error "unsupported compiler.  disable atomic ops by --disable-atomic"
 
