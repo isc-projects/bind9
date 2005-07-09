@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.27 $)
+AC_REVISION($Revision: 1.355.18.28 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1869,7 +1869,7 @@ if test "$use_atomic" = "yes"; then
 	AC_MSG_CHECKING([architecture type for atomic operations])
 	case "$host" in
 	[i[3456]86-*]|x86_64-*)
-		# XXX: some old x86 architectures actualy do not support
+		# XXX: some old x86 architectures actually do not support
 		#      (some of) these operations.  Do we need stricter checks?
 		# Note: We currently use the same code for both the x86_32 and
 		#       x86_64 architectures, but there may be a better
@@ -1884,6 +1884,10 @@ if test "$use_atomic" = "yes"; then
 	powerpc-*)
 		have_atomic=yes
 		arch=powerpc
+	;;
+	mips-*)
+		have_atomic=yes
+		arch=mips
 	;;
 	*)
 		have_atomic=no
