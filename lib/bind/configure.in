@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.5.2.15 $)
+AC_REVISION($Revision: 1.83.2.5.2.16 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -1025,12 +1025,12 @@ case "$host" in
 	*-sunos4*)
 			PORT_NONBLOCK="#define PORT_NONBLOCK O_NDELAY"
 			PORT_DIR="port/sunos";;
-	*-solaris2.[[01234]]*)
+	*-solaris2.[[01234]])
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			USE_FIONBIO_IOCTL="#define USE_FIONBIO_IOCTL 1"
 			PORT_DIR="port/solaris";;
-	*-solaris2.5*)
+	*-solaris2.5)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			PORT_DIR="port/solaris";;

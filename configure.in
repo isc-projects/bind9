@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.45 $)
+AC_REVISION($Revision: 1.294.2.23.2.46 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1834,7 +1834,7 @@ AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 case "$host" in
 *-sunos*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
 *-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
-*-solaris2.[[01234]]*)
+*-solaris2.[[01234]])
 	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
 	AC_DEFINE(USE_FIONBIO_IOCTL, 1,
 		  [Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make non-blocking.])
