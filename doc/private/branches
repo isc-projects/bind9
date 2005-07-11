@@ -20,6 +20,7 @@ newresolver0			new
 openssl_stub			open	marka
 peter				private	peter	// hostname.bind for 9.2.x
 rt10864				open	marka
+rt11382				new	
 rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
@@ -31,9 +32,11 @@ rt13562				open	marka
 rt13587				review	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
+rt14666				new	
 rt14815				new	
 rt14855				open		// 9.4 ARM review	
 rt14895				open	jinmei
+rt14895b			new	
 rt14916				open	marka	// lame cache to <qname,qtype>
 rt14918				open	marka	// clients-per-query	
 rt14931				new	
