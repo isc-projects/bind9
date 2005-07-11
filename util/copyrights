@@ -1774,6 +1774,8 @@
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/hinfo_13.c		C	1998,1999,2000,2001,2002,2004
 ./lib/dns/rdata/generic/hinfo_13.h		C	1998,1999,2000,2001,2004
+./lib/dns/rdata/generic/ipseckey_45.c		C	2005
+./lib/dns/rdata/generic/ipseckey_45.h		C	2005
 ./lib/dns/rdata/generic/isdn_20.c		C	1999,2000,2001,2002,2004,2005
 ./lib/dns/rdata/generic/isdn_20.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/key_25.c		C	1999,2000,2001,2002,2003,2004,2005
@@ -1983,6 +1985,7 @@
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/md5.c					C	2000,2001,2004,2005
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005
+./lib/isc/mips/include/isc/atomic.h		C	2005
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isc/netscope.c				C	2002,2004,2005
