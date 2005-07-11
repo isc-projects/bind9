@@ -1289,8 +1289,8 @@
 ./lib/bind/isc/ctl_p.c				X	2001
 ./lib/bind/isc/ctl_p.h				X	2001
 ./lib/bind/isc/ctl_srvr.c			X	2001
-./lib/bind/isc/ev_connects.c			X	2001
-./lib/bind/isc/ev_files.c			X	2001
+./lib/bind/isc/ev_connects.c			X	2001,2005
+./lib/bind/isc/ev_files.c			X	2001,2005
 ./lib/bind/isc/ev_streams.c			X	2001
 ./lib/bind/isc/ev_timers.c			X	2001
 ./lib/bind/isc/ev_waits.c			X	2001
@@ -1528,7 +1528,7 @@
 ./lib/bind/port/unknown/Makefile.in		MAKE	2001,2004
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
 ./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005
-./lib/bind/port_after.h.in			X	2001
+./lib/bind/port_after.h.in			X	2001,2005
 ./lib/bind/port_before.h.in			X	2001
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004
@@ -1935,7 +1935,7 @@
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2004
 ./lib/isc/unix/dir.c				C	1999,2000,2001,2003,2004
-./lib/isc/unix/entropy.c			C	2000,2001,2002,2004
+./lib/isc/unix/entropy.c			C	2000,2001,2002,2004,2005
 ./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004
 ./lib/isc/unix/errno2result.h			C	2000,2001,2004
 ./lib/isc/unix/file.c				C	2000,2001,2004
