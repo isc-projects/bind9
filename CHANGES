@@ -1,3 +1,6 @@
+1899.	[func]		Raise the UDP recieve buffer size to 32k if it is
+			less than 32k. [RT #14953]
+
 1898.	[port]		sunos: non blocking i/o support. [RT #14951]
 
 1897.	[func]		Support for IPSECKEY rdata type. [RT #14967]
