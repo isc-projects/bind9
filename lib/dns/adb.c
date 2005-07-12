@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.222 2005/06/23 04:22:01 marka Exp $ */
+/* $Id: adb.c,v 1.223 2005/07/12 01:00:14 marka Exp $ */
 
 /*! \file 
  *
@@ -1442,8 +1442,6 @@ new_adbfind(dns_adb_t *adb) {
 	 */
 	result = isc_mutex_init(&h->lock);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init failed in new_adbfind()");
 		isc_mempool_put(adb->ahmp, h);
 		return (NULL);
 	}

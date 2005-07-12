@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.441 2005/06/23 04:22:02 marka Exp $ */
+/* $Id: zone.c,v 1.442 2005/07/12 01:00:16 marka Exp $ */
 
 /*! \file */
 
@@ -532,22 +532,12 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_mem_attach(mctx, &zone->mctx);
 
 	result = isc_mutex_init(&zone->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto free_zone;
-	}
 
 	result = ZONEDB_INITLOCK(&zone->dblock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto free_mutex;
-	}
 
 	/* XXX MPA check that all elements are initialised */
 #ifdef DNS_ZONE_CHECKLOCK
@@ -556,7 +546,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
+	result = isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
+	if (result != ISC_R_SUCCESS)
+		goto free_dblock;
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->masterfile = NULL;
@@ -638,13 +630,17 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 	if (result != ISC_R_SUCCESS)
-		goto free_dblock;
+		goto free_erefs;
 
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
 		       NULL, NULL);
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
+
+ free_erefs:
+	isc_refcount_decrement(&zone->erefs, NULL);
+	isc_refcount_destroy(&zone->erefs);
 
  free_dblock:
 	ZONEDB_DESTROYLOCK(&zone->dblock);
@@ -6833,13 +6829,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto free_mem;
-	}
+
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 
@@ -6870,12 +6862,9 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->low);
 
 	result = isc_mutex_init(&zmgr->iolock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
 		goto free_rl;
-	}
+
 	zmgr->magic = ZONEMGR_MAGIC;
 
 	*zmgrp = zmgr;

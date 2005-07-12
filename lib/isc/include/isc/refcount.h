@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.10 2005/06/04 05:32:48 jinmei Exp $ */
+/* $Id: refcount.h,v 1.11 2005/07/12 01:00:18 marka Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -42,7 +42,9 @@ ISC_LANG_BEGINDECLS
  * Function prototypes
  */
 
-/* void isc_refcount_init(isc_refcount_t *ref, unsigned int n);
+/* 
+ * isc_result_t
+ * isc_refcount_init(isc_refcount_t *ref, unsigned int n);
  *
  * Initialize the reference counter.  There will be 'n' initial references.
  *
@@ -101,7 +103,6 @@ typedef struct isc_refcount {
 	isc_int32_t refs;
 } isc_refcount_t;
 
-#define isc_refcount_init(rp, n) ((rp)->refs = (n))
 #define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
@@ -140,15 +141,6 @@ typedef struct isc_refcount {
 	int refs;
 	isc_mutex_t lock;
 } isc_refcount_t;
-
-/*% Initialize the reference counter.  There will be 'n' initial references. */
-#define isc_refcount_init(rp, n) 			\
-	do {						\
-		isc_result_t _r;			\
-		(rp)->refs = (n);			\
-		_r = isc_mutex_init(&(rp)->lock);	\
-		RUNTIME_CHECK(_r == ISC_R_SUCCESS);	\
-	} while (0)
 
 /*% Destroys a reference counter. */
 #define isc_refcount_destroy(rp)			\
@@ -200,7 +192,6 @@ typedef struct isc_refcount {
 	int refs;
 } isc_refcount_t;
 
-#define isc_refcount_init(rp, n) ((rp)->refs = (n))
 #define isc_refcount_destroy(rp) (REQUIRE((rp)->refs == 0))
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
@@ -233,6 +224,9 @@ typedef struct isc_refcount {
 	} while (0)
 
 #endif /* ISC_PLATFORM_USETHREADS */
+
+isc_result_t
+isc_refcount_init(isc_refcount_t *ref, unsigned int n);
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.123 2005/04/27 04:56:45 sra Exp $ */
+/* $Id: dispatch.c,v 1.124 2005/07/12 01:00:14 marka Exp $ */
 
 /*! \file */
 
@@ -1357,6 +1357,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 {
 	dns_qid_t *qid;
 	unsigned int i;
+	isc_result_t result;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(buckets < 2097169);  /* next prime > 65536 * 32 */
@@ -1374,12 +1375,12 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 		return (ISC_R_NOMEMORY);
 	}
 
-	if (isc_mutex_init(&qid->lock) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_mutex_init failed");
+	result = isc_mutex_init(&qid->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mgr->mctx, qid->qid_table,
 			    buckets * sizeof(dns_displist_t));
 		isc_mem_put(mgr->mctx, qid, sizeof(*qid));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 
 	for (i = 0; i < buckets; i++)
@@ -1432,7 +1433,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 		  dns_dispatch_t **dispp)
 {
 	dns_dispatch_t *disp;
-	isc_result_t res;
+	isc_result_t result;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(dispp != NULL && *dispp == NULL);
@@ -1463,15 +1464,13 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	disp->tcpbuffers = 0;
 	disp->qid = NULL;
 
-	if (isc_mutex_init(&disp->lock) != ISC_R_SUCCESS) {
-		res = ISC_R_UNEXPECTED;
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "isc_mutex_init failed");
+	result = isc_mutex_init(&disp->lock);
+	if (result != ISC_R_SUCCESS)
 		goto deallocate;
-	}
 
 	disp->failsafe_ev = allocate_event(disp);
 	if (disp->failsafe_ev == NULL) {
-		res = ISC_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto kill_lock;
 	}
 
@@ -1488,7 +1487,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
  deallocate:
 	isc_mempool_put(mgr->dpool, disp);
 
-	return (res);
+	return (result);
 }
 
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwsearch.c,v 1.10 2005/04/29 00:22:29 marka Exp $ */
+/* $Id: lwsearch.c,v 1.11 2005/07/12 01:00:13 marka Exp $ */
 
 /*! \file */
 
@@ -40,6 +40,7 @@
 isc_result_t
 ns_lwsearchlist_create(isc_mem_t *mctx, ns_lwsearchlist_t **listp) {
 	ns_lwsearchlist_t *list;
+	isc_result_t result;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(listp != NULL && *listp == NULL);
@@ -48,7 +49,11 @@ ns_lwsearchlist_create(isc_mem_t *mctx, ns_lwsearchlist_t **listp) {
 	if (list == NULL)
 		return (ISC_R_NOMEMORY);
 	
-	RUNTIME_CHECK(isc_mutex_init(&list->lock) == ISC_R_SUCCESS);
+	result = isc_mutex_init(&list->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, list, sizeof(ns_lwsearchlist_t));
+		return (result);
+	}
 	list->mctx = NULL;
 	isc_mem_attach(mctx, &list->mctx);
 	list->refs = 1;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.75 2005/04/29 00:23:32 marka Exp $ */
+/* $Id: timer.c,v 1.76 2005/07/12 01:00:18 marka Exp $ */
 
 /*! \file */
 
@@ -372,14 +372,11 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	 */
 	DE_CONST(arg, timer->arg);
 	timer->index = 0;
-	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&timer->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);
 		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	ISC_LINK_INIT(timer, link);
 	timer->magic = TIMER_MAGIC;
@@ -782,14 +779,11 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (ISC_R_NOMEMORY);
 	}
-	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&manager->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_heap_destroy(&manager->heap);
 		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	isc_mem_attach(mctx, &manager->mctx);
 #ifdef ISC_PLATFORM_USETHREADS

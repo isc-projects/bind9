@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.212 2005/07/07 02:51:52 marka Exp $ */
+/* $Id: rbtdb.c,v 1.213 2005/07/12 01:00:15 marka Exp $ */
 
 /*! \file */
 
@@ -713,13 +713,18 @@ static inline rbtdb_version_t *
 allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 		 unsigned int references, isc_boolean_t writer)
 {
+	isc_result_t result;
 	rbtdb_version_t *version;
 
 	version = isc_mem_get(mctx, sizeof(*version));
 	if (version == NULL)
 		return (NULL);
 	version->serial = serial;
-	isc_refcount_init(&version->references, references);
+	result = isc_refcount_init(&version->references, references);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, version, sizeof(*version));
+		return (NULL);
+	}
 	version->writer = writer;
 	version->commit_ok = ISC_FALSE;
 	ISC_LIST_INIT(version->changed_list);
@@ -5449,6 +5454,7 @@ dns_rbtdb_create
 	rbtdb = isc_mem_get(mctx, sizeof(*rbtdb));
 	if (rbtdb == NULL)
 		return (ISC_R_NOMEMORY);
+
 	memset(rbtdb, '\0', sizeof(*rbtdb));
 	dns_name_init(&rbtdb->common.origin, NULL);
 	rbtdb->common.attributes = 0;
@@ -5465,23 +5471,12 @@ dns_rbtdb_create
 	rbtdb->nodemctxs = NULL;
 
 	result = RBTDB_INITLOCK(&rbtdb->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, rbtdb, sizeof(*rbtdb));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "RBTDB_INITLOCK() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_rbtdb;
 
 	result = isc_rwlock_init(&rbtdb->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		RBTDB_DESTROYLOCK(&rbtdb->lock);
-		isc_mem_put(mctx, rbtdb, sizeof(*rbtdb));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_lock;
 
 	INSIST(rbtdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
 
@@ -5489,47 +5484,54 @@ dns_rbtdb_create
 		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
 					sizeof(rbtdb_nodelock_t));
+	if (rbtdb->node_locks == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup_tree_lock;
+	}
+
 	rbtdb->active = rbtdb->node_lock_count;
 
 	if (IS_CACHE(rbtdb)) {
 		rbtdb->nodemctxs = isc_mem_get(mctx,
 					       sizeof(isc_mem_t *) *
 					       rbtdb->node_lock_count);
-		if (rbtdb->nodemctxs == NULL)
-			INSIST(0); /* XXXJT: cleanup */
-		for (i = 0; i < (int)(rbtdb->node_lock_count); i++)
+		if (rbtdb->nodemctxs == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup_node_locks;
+		}
+		for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 			rbtdb->nodemctxs[i] = NULL;
-	}
+			result = isc_mem_create(0, 0, &rbtdb->nodemctxs[i]);
+			if (result != ISC_R_SUCCESS) {
+				while (i-- > 0)
+					isc_mem_detach(&rbtdb->nodemctxs[i]);
+				isc_mem_put(mctx, rbtdb->nodemctxs,
+					    sizeof(isc_mem_t *) *
+					    rbtdb->node_lock_count);
+				goto cleanup_node_locks;
+			}
+		}
+	} else
+		rbtdb->nodemctxs = NULL;
 
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		result = NODE_INITLOCK(&rbtdb->node_locks[i].lock);
-		if (result != ISC_R_SUCCESS) {
-			i--;
-			while (i >= 0) {
-				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
-				i--;
-			}
-			isc_mem_put(mctx, rbtdb->node_locks,
-				    rbtdb->node_lock_count *
-				    sizeof(rbtdb_nodelock_t));
-			isc_rwlock_destroy(&rbtdb->tree_lock);
-			RBTDB_DESTROYLOCK(&rbtdb->lock);
-			isc_mem_put(mctx, rbtdb, sizeof(*rbtdb));
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_mutex_init() failed: %s",
-					 isc_result_totext(result));
-			return (ISC_R_UNEXPECTED);
-		}
-		isc_refcount_init(&rbtdb->node_locks[i].references, 0);
-		rbtdb->node_locks[i].exiting = ISC_FALSE;
-
-		if (IS_CACHE(rbtdb)) {
-			result = isc_mem_create(0, 0, &rbtdb->nodemctxs[i]);
+		if (result == ISC_R_SUCCESS) {
+			result = isc_refcount_init(&rbtdb->node_locks[i].references, 0);
 			if (result != ISC_R_SUCCESS)
-				INSIST(0); /* XXXJT: cleanup */
+				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
 		}
+		if (result != ISC_R_SUCCESS) {
+			while (i-- > 0) {
+				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
+				isc_refcount_decrement(&rbtdb->node_locks[i].references, NULL);
+				isc_refcount_destroy(&rbtdb->node_locks[i].references);
+			}
+			goto cleanup_nodemctxs;
+		}
+		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
-
+	
 	/*
 	 * Attach to the mctx.  The database will persist so long as there
 	 * are references to it, and attaching to the mctx ensures that our
@@ -5573,7 +5575,7 @@ dns_rbtdb_create
 	 * the top-of-zone node can never be deleted, nor can its address
 	 * change.
 	 */
-	if (! IS_CACHE(rbtdb)) {
+	if (!IS_CACHE(rbtdb)) {
 		rbtdb->origin_node = NULL;
 		result = dns_rbt_addnode(rbtdb->tree, &rbtdb->common.origin,
 					 &rbtdb->origin_node);
@@ -5601,7 +5603,11 @@ dns_rbtdb_create
 	/*
 	 * Misc. Initialization.
 	 */
-	isc_refcount_init(&rbtdb->references, 1);
+	result = isc_refcount_init(&rbtdb->references, 1);
+	if (result != ISC_R_SUCCESS) {
+		free_rbtdb(rbtdb, ISC_FALSE, NULL);
+		return (result);
+	}
 	rbtdb->attributes = 0;
 	rbtdb->secure = ISC_FALSE;
 	rbtdb->overmem = ISC_FALSE;
@@ -5615,6 +5621,8 @@ dns_rbtdb_create
 	rbtdb->next_serial = 2;
 	rbtdb->current_version = allocate_version(mctx, 1, 1, ISC_FALSE);
 	if (rbtdb->current_version == NULL) {
+		isc_refcount_decrement(&rbtdb->references, NULL);
+		isc_refcount_destroy(&rbtdb->references);
 		free_rbtdb(rbtdb, ISC_FALSE, NULL);
 		return (ISC_R_NOMEMORY);
 	}
@@ -5632,6 +5640,28 @@ dns_rbtdb_create
 	*dbp = (dns_db_t *)rbtdb;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_nodemctxs:
+	if (rbtdb->nodemctxs != NULL) {
+		for (i = 0; i < (int)(rbtdb->node_lock_count); i++)
+			isc_mem_detach(&rbtdb->nodemctxs[i]);
+		isc_mem_put(mctx, rbtdb->nodemctxs,
+			    sizeof(isc_mem_t *) * rbtdb->node_lock_count);
+	}
+
+ cleanup_node_locks:
+	isc_mem_put(mctx, rbtdb->node_locks,
+		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
+
+ cleanup_tree_lock:
+	isc_rwlock_destroy(&rbtdb->tree_lock);
+
+ cleanup_lock:
+	RBTDB_DESTROYLOCK(&rbtdb->lock);
+
+ cleanup_rbtdb:
+	isc_mem_put(mctx, rbtdb,  sizeof(*rbtdb));
+	return (result);
 }
 
 

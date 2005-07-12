@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.155 2005/06/20 01:03:53 marka Exp $ */
+/* $Id: master.c,v 1.156 2005/07/12 01:00:15 marka Exp $ */
 
 /*! \file */
 
@@ -530,10 +530,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	result = isc_mutex_init(&lctx->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, lctx, sizeof(*lctx));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 
 	lctx->inc = NULL;

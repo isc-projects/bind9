@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.8 2005/04/29 00:23:24 marka Exp $ */
+/* $Id: hash.c,v 1.9 2005/07/12 01:00:17 marka Exp $ */
 
 /*! \file
  * Some portion of this code was derived from universal hash function
@@ -143,7 +143,7 @@ isc_result_t
 isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 		   unsigned int limit, isc_hash_t **hctxp)
 {
-	isc_result_t ret;
+	isc_result_t result;
 	isc_hash_t *hctx;
 	size_t vlen;
 	hash_random_t *rv;
@@ -169,17 +169,16 @@ isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 	vlen = sizeof(hash_random_t) * (limit + 1);
 	rv = isc_mem_get(mctx, vlen);
 	if (rv == NULL) {
-		ret = ISC_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto errout;
 	}
 
 	/*
 	 * We need a lock.
 	 */
-	if (isc_mutex_init(&hctx->lock) != ISC_R_SUCCESS) {
-		ret = ISC_R_UNEXPECTED;
+	result = isc_mutex_init(&hctx->lock);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
-	}
 
 	/*
 	 * From here down, no failures will/can occur.
@@ -188,7 +187,9 @@ isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 	hctx->mctx = NULL;
 	isc_mem_attach(mctx, &hctx->mctx);
 	hctx->initialized = ISC_FALSE;
-	isc_refcount_init(&hctx->refcnt, 1);
+	result = isc_refcount_init(&hctx->refcnt, 1);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_lock;
 	hctx->entropy = NULL;
 	hctx->limit = limit;
 	hctx->vectorlen = vlen;
@@ -200,12 +201,14 @@ isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 	*hctxp = hctx;
 	return (ISC_R_SUCCESS);
 
+ cleanup_lock:
+	DESTROYLOCK(&hctx->lock);
  errout:
 	isc_mem_put(mctx, hctx, sizeof(isc_hash_t));
 	if (rv != NULL)
 		isc_mem_put(mctx, rv, vlen);
 
-	return (ret);
+	return (result);
 }
 
 static void

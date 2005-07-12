@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dbtable.c,v 1.30 2005/04/29 00:22:44 marka Exp $
+ * $Id: dbtable.c,v 1.31 2005/07/12 01:00:14 marka Exp $
  */
 
 /*! \file
@@ -87,7 +87,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto clean3;
-	
 
 	dbtable->default_db = NULL;
 	dbtable->mctx = mctx;

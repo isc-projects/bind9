@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.122 2005/06/17 02:22:44 marka Exp $ */
+/* $Id: mem.c,v 1.123 2005/07/12 01:00:18 marka Exp $ */
 
 /*! \file */
 
@@ -712,16 +712,12 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if ((flags & ISC_MEMFLAG_NOLOCK) == 0 &&
-	    isc_mutex_init(&ctx->lock) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED,
-						"failed"));
-		(memfree)(arg, ctx);
-		return (ISC_R_UNEXPECTED);
+	if ((flags & ISC_MEMFLAG_NOLOCK) == 0) {
+		result = isc_mutex_init(&ctx->lock);
+		if (result != ISC_R_SUCCESS) {
+			(memfree)(arg, ctx);
+			return (result);
+		}
 	}
 
 	if (init_max_size == 0U)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.h,v 1.27 2005/04/29 00:23:48 marka Exp $ */
+/* $Id: mutex.h,v 1.28 2005/07/12 01:00:19 marka Exp $ */
 
 #ifndef ISC_MUTEX_H
 #define ISC_MUTEX_H 1
@@ -25,7 +25,10 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#include <isc/lang.h>
 #include <isc/result.h>		/* for ISC_R_ codes */
+
+ISC_LANG_BEGINDECLS
 
 /*!
  * Supply mutex attributes that enable deadlock detection
@@ -72,8 +75,8 @@ typedef pthread_mutex_t	isc_mutex_t;
         isc_mutex_init_errcheck((mp))
 #else
 #define isc_mutex_init(mp) \
-	((pthread_mutex_init((mp), ISC__MUTEX_ATTRS) == 0) ? \
-	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+	isc__mutex_init((mp), __FILE__, __LINE__)
+isc_result_t isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
 #endif
 #endif
 
@@ -138,4 +141,5 @@ isc_mutex_init_errcheck(isc_mutex_t *mp);
 
 #endif /* ISC_MUTEX_PROFILE */
 
+ISC_LANG_ENDDECLS
 #endif /* ISC_MUTEX_H */

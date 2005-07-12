@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.13 2005/04/29 00:23:23 marka Exp $ */
+/* $Id: entropy.c,v 1.14 2005/07/12 01:00:17 marka Exp $ */
 
 /*! \file
  * \brief
@@ -669,7 +669,7 @@ isc_entropypool_invalidate(isc_entropypool_t *pool) {
 
 isc_result_t
 isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
-	isc_result_t ret;
+	isc_result_t result;
 	isc_entropy_t *ent;
 
 	REQUIRE(mctx != NULL);
@@ -682,10 +682,9 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
 	/*
 	 * We need a lock.
 	 */
-	if (isc_mutex_init(&ent->lock) != ISC_R_SUCCESS) {
-		ret = ISC_R_UNEXPECTED;
+	result = isc_mutex_init(&ent->lock);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
-	}
 
 	/*
 	 * From here down, no failures will/can occur.
@@ -708,7 +707,7 @@ isc_entropy_create(isc_mem_t *mctx, isc_entropy_t **entp) {
  errout:
 	isc_mem_put(mctx, ent, sizeof(isc_entropy_t));
 
-	return (ret);
+	return (result);
 }
 
 /*!
@@ -859,7 +858,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 				 void *arg,
 				 isc_entropysource_t **sourcep)
 {
-	isc_result_t ret;
+	isc_result_t result;
 	isc_entropysource_t *source;
 	isc_cbsource_t *cbs;
 
@@ -871,15 +870,15 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 
 	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
 	if (source == NULL) {
-		ret = ISC_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto errout;
 	}
 	source->bad = ISC_FALSE;
 
 	cbs = &source->sources.callback;
 
-	ret = samplesource_allocate(ent, &cbs->samplequeue);
-	if (ret != ISC_R_SUCCESS)
+	result = samplesource_allocate(ent, &cbs->samplequeue);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
 
 	cbs->start_called = ISC_FALSE;
@@ -915,7 +914,7 @@ isc_entropy_createcallbacksource(isc_entropy_t *ent,
 
 	UNLOCK(&ent->lock);
 
-	return (ret);
+	return (result);
 }
 
 void
@@ -947,7 +946,7 @@ isc_result_t
 isc_entropy_createsamplesource(isc_entropy_t *ent,
 			       isc_entropysource_t **sourcep)
 {
-	isc_result_t ret;
+	isc_result_t result;
 	isc_entropysource_t *source;
 	sample_queue_t *sq;
 
@@ -958,13 +957,13 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 
 	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
 	if (source == NULL) {
-		ret = ISC_R_NOMEMORY;
+		result = ISC_R_NOMEMORY;
 		goto errout;
 	}
 
 	sq = &source->sources.sample.samplequeue;
-	ret = samplesource_allocate(ent, sq);
-	if (ret != ISC_R_SUCCESS)
+	result = samplesource_allocate(ent, sq);
+	if (result != ISC_R_SUCCESS)
 		goto errout;
 
 	/*
@@ -994,7 +993,7 @@ isc_entropy_createsamplesource(isc_entropy_t *ent,
 
 	UNLOCK(&ent->lock);
 
-	return (ret);
+	return (result);
 }
 
 /*!
