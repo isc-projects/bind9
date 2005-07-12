@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.117.18.3 2005/04/27 05:01:27 sra Exp $
+ * $Id: tsig.c,v 1.117.18.4 2005/07/12 01:22:25 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -137,6 +137,7 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
 	REQUIRE(mctx != NULL);
+	REQUIRE(key != NULL || ring != NULL);
 
 	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 	if (tkey == NULL)
@@ -202,26 +203,30 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 	tkey->key = dstkey;
 	tkey->ring = ring;
 
-	if (ring != NULL) {
-		RWLOCK(&ring->lock, isc_rwlocktype_write);
-		ret = dns_rbt_addname(ring->keys, name, tkey);
-		if (ret != ISC_R_SUCCESS) {
-			RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-			goto cleanup_algorithm;
-		}
-		refs++;
-		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-	}
-
 	if (key != NULL)
 		refs++;
-	isc_refcount_init(&tkey->refs, refs);
+	if (ring != NULL)
+		refs++;
+	ret = isc_refcount_init(&tkey->refs, refs);
+	if (ret != ISC_R_SUCCESS)
+		goto cleanup_creator;
+
 	tkey->generated = generated;
 	tkey->inception = inception;
 	tkey->expire = expire;
 	tkey->mctx = mctx;
 
 	tkey->magic = TSIG_MAGIC;
+
+	if (ring != NULL) {
+		RWLOCK(&ring->lock, isc_rwlocktype_write);
+		ret = dns_rbt_addname(ring->keys, name, tkey);
+		if (ret != ISC_R_SUCCESS) {
+			RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+			goto cleanup_refs;
+		}
+		RWUNLOCK(&ring->lock, isc_rwlocktype_write);
+	}
 
 	if (dstkey != NULL && dst_key_size(dstkey) < 64) {
 		char namestr[DNS_NAME_FORMATSIZE];
@@ -236,6 +241,16 @@ dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
 
 	return (ISC_R_SUCCESS);
 
+ cleanup_refs:
+	tkey->magic = 0;
+	while (refs-- > 0)
+		isc_refcount_decrement(&tkey->refs, NULL);
+	isc_refcount_destroy(&tkey->refs);
+ cleanup_creator:
+	if (tkey->creator != NULL) {
+		dns_name_free(tkey->creator, mctx);
+		isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
+	}
  cleanup_algorithm:
 	if (algname_is_allocated(tkey->algorithm)) {
 		if (dns_name_dynamic(tkey->algorithm))
@@ -1181,12 +1196,8 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 		return (ISC_R_NOMEMORY);
 
 	result = isc_rwlock_init(&ring->lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	ring->keys = NULL;
 	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);

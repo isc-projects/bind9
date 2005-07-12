@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.126.18.5 2005/04/27 05:01:28 sra Exp $ */
+/* $Id: view.c,v 1.126.18.6 2005/07/12 01:22:25 marka Exp $ */
 
 /*! \file */
 
@@ -79,13 +79,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_view;
 	}
 	result = isc_mutex_init(&view->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
-	}
+
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
 	if (result != ISC_R_SUCCESS) {
@@ -134,7 +130,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
-	isc_refcount_init(&view->references, 1);
+	result = isc_refcount_init(&view->references, 1);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_fwdtable;
 	view->weakrefs = 0;
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
@@ -145,7 +143,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->matchrecursiveonly = ISC_FALSE;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_fwdtable;
+		goto cleanup_references;
 	view->peers = NULL;
 	view->order = NULL;
 	view->delonly = NULL;
@@ -211,6 +209,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_dynkeys:
 	dns_tsigkeyring_destroy(&view->dynamickeys);
+
+ cleanup_references:
+	isc_refcount_destroy(&view->references);
 
  cleanup_fwdtable:
 	dns_fwdtable_destroy(&view->fwdtable);

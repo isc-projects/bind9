@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.25.18.2 2005/04/29 00:15:49 marka Exp $ */
+/* $Id: acl.c,v 1.25.18.3 2005/07/12 01:22:18 marka Exp $ */
 
 /*! \file */
 
@@ -43,7 +43,11 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 		return (ISC_R_NOMEMORY);
 	acl->mctx = mctx;
 	acl->name = NULL;
-	isc_refcount_init(&acl->refcount, 1);
+	result = isc_refcount_init(&acl->refcount, 1);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, acl, sizeof(*acl));
+		return (result);
+	}
 	acl->elements = NULL;
 	acl->alloc = 0;
 	acl->length = 0;

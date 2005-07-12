@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.45.18.5 2005/06/20 01:19:41 marka Exp $ */
+/* $Id: sdb.c,v 1.45.18.6 2005/07/12 01:22:24 marka Exp $ */
 
 /*! \file */
 
@@ -227,12 +227,8 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	imp->mctx = NULL;
 	isc_mem_attach(mctx, &imp->mctx);
 	result = isc_mutex_init(&imp->driverlock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_mctx;
-	}
 
 	imp->dbimp = NULL;
 	result = dns_db_register(drivername, dns_sdb_create, imp, mctx,
@@ -668,11 +664,8 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	node->name = NULL;
 	result = isc_mutex_init(&node->lock);
 	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
 		isc_mem_put(sdb->common.mctx, node, sizeof(dns_sdbnode_t));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
@@ -1278,13 +1271,8 @@ dns_sdb_create(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	isc_mem_attach(mctx, &sdb->common.mctx);
 
 	result = isc_mutex_init(&sdb->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_mctx;
-	}
 
 	result = dns_name_dupwithoffsets(origin, mctx, &sdb->common.origin);
 	if (result != ISC_R_SUCCESS)

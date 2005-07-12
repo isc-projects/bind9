@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.c,v 1.37.18.4 2005/06/04 06:23:42 jinmei Exp $ */
+/* $Id: rwlock.c,v 1.37.18.5 2005/07/12 01:22:30 marka Exp $ */
 
 /*! \file */
 
@@ -113,14 +113,9 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 #endif
 
 	result = isc_mutex_init(&rwl->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
 	result = isc_condition_init(&rwl->readable);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

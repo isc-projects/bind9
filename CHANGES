@@ -1,3 +1,6 @@
+1900.	[port]		freebsd: pthread_mutex_init can fail if it runs out
+			of memory. [RT #14995]
+
 1899.	[func]		Raise the UDP recieve buffer size to 32k if it is
 			less than 32k. [RT #14953]
 

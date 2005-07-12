@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.38.18.3 2005/04/27 05:01:29 sra Exp $ */
+/* $Id: zt.c,v 1.38.18.4 2005/07/12 01:22:27 marka Exp $ */
 
 /*! \file */
 
@@ -79,13 +79,8 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 		goto cleanup_zt;
 
 	result = isc_rwlock_init(&zt->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_rwlock_init() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_rbt;
-	}
 
 	zt->mctx = mctx;
 	zt->references = 1;

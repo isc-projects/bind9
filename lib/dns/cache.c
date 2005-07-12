@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.57.18.3 2005/04/27 05:01:14 sra Exp $ */
+/* $Id: cache.c,v 1.57.18.4 2005/07/12 01:22:19 marka Exp $ */
 
 /*! \file */
 
@@ -185,22 +185,12 @@ dns_cache_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_mem_attach(mctx, &cache->mctx);
 
 	result = isc_mutex_init(&cache->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 dns_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_mem;
-	}
 
 	result = isc_mutex_init(&cache->filelock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 dns_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
-	}
 
 	cache->references = 1;
 	cache->live_tasks = 0;
@@ -495,13 +485,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 
 	result = isc_mutex_init(&cleaner->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 dns_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto fail;
-	}
 
 	cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;

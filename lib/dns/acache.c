@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3.2.7 2005/06/04 06:23:38 jinmei Exp $ */
+/* $Id: acache.c,v 1.3.2.8 2005/07/12 01:22:18 marka Exp $ */
 
 #include <config.h>
 
@@ -495,13 +495,8 @@ acache_cleaner_init(dns_acache_t *acache, isc_timermgr_t *timermgr,
 	ATRACE("acache cleaner init");
 
 	result = isc_mutex_init(&cleaner->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 dns_result_totext(result));
-		result = ISC_R_UNEXPECTED;
+	if (result != ISC_R_SUCCESS)
 		goto fail;
-	}
 
 	cleaner->increment = DNS_ACACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
@@ -949,15 +944,18 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 
 	ATRACE("create");
 
-	isc_refcount_init(&acache->refs, 1);
+	result = isc_refcount_init(&acache->refs, 1);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, acache, sizeof(*acache));
+		return (result);
+	}
 
 	result = isc_mutex_init(&acache->lock);
 	if (result != ISC_R_SUCCESS) {
+		isc_refcount_decrement(&acache->refs, NULL);
+		isc_refcount_destroy(&acache->refs);
 		isc_mem_put(mctx, acache, sizeof(*acache));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 
 	acache->mctx = NULL;
@@ -999,6 +997,8 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 	if (acache->task != NULL)
 		isc_task_detach(&acache->task);
 	DESTROYLOCK(&acache->lock);
+	isc_refcount_decrement(&acache->refs, NULL);
+	isc_refcount_destroy(&acache->refs);
 	isc_mem_put(mctx, acache, sizeof(*acache));
 	isc_mem_detach(&mctx);
 
@@ -1232,10 +1232,7 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	result = ACACHE_INITLOCK(&newentry->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(acache->mctx, newentry, sizeof(*newentry));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	};
 
 	isc_refcount_init(&newentry->references, 1);

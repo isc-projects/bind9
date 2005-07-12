@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.9 2005/07/12 00:47:36 marka Exp $ */
+/* $Id: socket.c,v 1.30.18.10 2005/07/12 01:22:34 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1722,14 +1722,14 @@ static isc_result_t
 allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		isc_socket_t **socketp) {
 	isc_socket_t *sock;
-	isc_result_t ret;
+	isc_result_t result;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
 	if (sock == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ret = ISC_R_UNEXPECTED;
+	result = ISC_R_UNEXPECTED;
 
 	sock->magic = 0;
 	sock->references = 0;
@@ -1765,13 +1765,9 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * initialize the lock
 	 */
-	if (isc_mutex_init(&sock->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&sock->lock);
+	if (result != ISC_R_SUCCESS) {
 		sock->magic = 0;
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		ret = ISC_R_UNEXPECTED;
 		goto error;
 	}
 
@@ -1793,7 +1789,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
  error:
 	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
-	return (ret);
+	return (result);
 }
 
 /*
@@ -2763,13 +2759,10 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 	manager->magic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	ISC_LIST_INIT(manager->socklist);
-	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&manager->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
 		DESTROYLOCK(&manager->lock);
@@ -3364,7 +3357,7 @@ isc_socket_accept(isc_socket_t *sock,
 	isc_socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
 	isc_socket_t *nsock;
-	isc_result_t ret;
+	isc_result_t result;
 
 	REQUIRE(VALID_SOCKET(sock));
 	manager = sock->manager;
@@ -3388,11 +3381,11 @@ isc_socket_accept(isc_socket_t *sock,
 	}
 	ISC_LINK_INIT(dev, ev_link);
 
-	ret = allocate_socket(manager, sock->type, &nsock);
-	if (ret != ISC_R_SUCCESS) {
+	result = allocate_socket(manager, sock->type, &nsock);
+	if (result != ISC_R_SUCCESS) {
 		isc_event_free((isc_event_t **)&dev);
 		UNLOCK(&sock->lock);
-		return (ret);
+		return (result);
 	}
 
 	/*
@@ -3561,7 +3554,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 
 isc_result_t
 isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
-	isc_result_t ret;
+	isc_result_t result;
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
@@ -3570,20 +3563,20 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 
 	if (sock->connected) {
 		*addressp = sock->address;
-		ret = ISC_R_SUCCESS;
+		result = ISC_R_SUCCESS;
 	} else {
-		ret = ISC_R_NOTCONNECTED;
+		result = ISC_R_NOTCONNECTED;
 	}
 
 	UNLOCK(&sock->lock);
 
-	return (ret);
+	return (result);
 }
 
 isc_result_t
 isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	ISC_SOCKADDR_LEN_T len;
-	isc_result_t ret;
+	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -3592,18 +3585,18 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	LOCK(&sock->lock);
 
 	if (!sock->bound) {
-		ret = ISC_R_NOTBOUND;
+		result = ISC_R_NOTBOUND;
 		goto out;
 	}
 
-	ret = ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
 
 	len = sizeof(addressp->type);
 	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
 		isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "getsockname: %s",
 				 strbuf);
-		ret = ISC_R_UNEXPECTED;
+		result = ISC_R_UNEXPECTED;
 		goto out;
 	}
 	addressp->length = (unsigned int)len;
@@ -3611,7 +3604,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
  out:
 	UNLOCK(&sock->lock);
 
-	return (ret);
+	return (result);
 }
 
 /*

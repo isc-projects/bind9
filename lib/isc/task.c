@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.91.18.3 2005/04/29 00:16:50 marka Exp $ */
+/* $Id: task.c,v 1.91.18.4 2005/07/12 01:22:30 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -174,6 +174,7 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 {
 	isc_task_t *task;
 	isc_boolean_t exiting;
+	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -183,13 +184,10 @@ isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
-	if (isc_mutex_init(&task->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&task->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(manager->mctx, task, sizeof(*task));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	task->state = task_state_idle;
 	task->references = 1;
@@ -1066,14 +1064,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		return (ISC_R_NOMEMORY);
 	manager->magic = TASK_MANAGER_MAGIC;
 	manager->mctx = NULL;
-	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
+	result = isc_mutex_init(&manager->lock);
+	if (result != ISC_R_SUCCESS)
 		goto cleanup_mgr;
-	}
+
 #ifdef ISC_PLATFORM_USETHREADS
 	manager->workers = 0;
 	manager->threads = isc_mem_allocate(mctx,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.46.18.2 2005/04/29 00:15:25 marka Exp $ */
+/* $Id: lwresd.c,v 1.46.18.3 2005/07/12 01:22:17 marka Exp $ */
 
 /*! \file 
  * \brief
@@ -511,13 +511,19 @@ listener_create(isc_mem_t *mctx, ns_lwresd_t *lwresd,
 		ns_lwreslistener_t **listenerp)
 {
 	ns_lwreslistener_t *listener;
+	isc_result_t result;
 
 	REQUIRE(listenerp != NULL && *listenerp == NULL);
 
 	listener = isc_mem_get(mctx, sizeof(ns_lwreslistener_t));
 	if (listener == NULL)
 		return (ISC_R_NOMEMORY);
-	RUNTIME_CHECK(isc_mutex_init(&listener->lock) == ISC_R_SUCCESS);
+
+	result = isc_mutex_init(&listener->lock);
+	if (result != ISC_R_SUCCESS) {
+		isc_mem_put(mctx, listener, sizeof(ns_lwreslistener_t));
+		return (result);
+	}
 
 	listener->magic = LWRESLISTENER_MAGIC;
 	listener->refs = 1;

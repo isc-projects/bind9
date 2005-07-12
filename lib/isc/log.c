@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.84.18.5 2005/04/29 00:16:47 marka Exp $ */
+/* $Id: log.c,v 1.84.18.6 2005/07/12 01:22:28 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -283,7 +283,11 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 		ISC_LIST_INIT(lctx->messages);
 
-		RUNTIME_CHECK(isc_mutex_init(&lctx->lock) == ISC_R_SUCCESS);
+		result = isc_mutex_init(&lctx->lock);
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(mctx, lctx, sizeof(*lctx));
+			return (result);
+		}
 
 		/*
 		 * Normally setting the magic number is the last step done

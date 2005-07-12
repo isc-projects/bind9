@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.8.18.3 2005/04/27 05:02:33 sra Exp $ */
+/* $Id: mutex.c,v 1.8.18.4 2005/07/12 01:22:32 marka Exp $ */
 
 /*! \file */
 
@@ -24,9 +24,11 @@
 #include <stdio.h>
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #include <isc/mutex.h>
 #include <isc/util.h>
+#include <isc/strerror.h>
 
 #if ISC_MUTEX_PROFILE
 
@@ -83,10 +85,13 @@ static pthread_mutex_t statslock = PTHREAD_MUTEX_INITIALIZER;
 
 isc_result_t
 isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
-	int i;
+	int i, err;
 
-	if (pthread_mutex_init(&mp->mutex, NULL) != 0)
-		return ISC_R_UNEXPECTED;
+	err = pthread_mutex_init(&mp->mutex, NULL);
+	if (err == ENOMEM)
+		return (ISC_R_NOMEMORY);
+	if (err != 0)
+		return (ISC_R_UNEXPECTED);
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
@@ -121,7 +126,7 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 		timevalclear(&mp->stats->lockers[i].wait_total);
 	}
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -164,7 +169,7 @@ isc_mutex_lock_profile(isc_mutex_t *mp, const char *file, int line) {
 
 	mp->stats->cur_locker = locker;
 
-	return ISC_R_SUCCESS;
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -224,17 +229,18 @@ isc_result_t
 isc_mutex_init_errcheck(isc_mutex_t *mp)
 {
 	pthread_mutexattr_t attr;
+	int err;
 
 	if (pthread_mutexattr_init(&attr) != 0)
-		return ISC_R_UNEXPECTED;
+		return (ISC_R_UNEXPECTED);
 
 	if (pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_ERRORCHECK) != 0)
-		return ISC_R_UNEXPECTED;
+		return (ISC_R_UNEXPECTED);
   
-	if (pthread_mutex_init(mp, &attr) != 0)
-		return ISC_R_UNEXPECTED;
-
-	return ISC_R_SUCCESS;
+	err = pthread_mutex_init(mp, &attr) != 0)
+	if (err == ENOMEM)
+		return (ISC_R_NOMEMORY);
+	return ((err == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED);
 }
 #endif
 
@@ -244,3 +250,21 @@ pthread_mutexattr_t isc__mutex_attrs = {
 	0				/* m_flags, which appears to be unused. */
 };
 #endif
+
+isc_result_t
+isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
+	char strbuf[ISC_STRERRORSIZE];
+	isc_result_t result = ISC_R_SUCCESS;
+	int err;
+
+	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
+	if (err == ENOMEM)
+		return (ISC_R_NOMEMORY);
+	if (err != 0) {
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
+				 strbuf);
+		result = ISC_R_UNEXPECTED;
+	}
+	return (result);
+}

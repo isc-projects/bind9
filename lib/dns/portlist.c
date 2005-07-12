@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.6.18.2 2005/04/29 00:16:01 marka Exp $ */
+/* $Id: portlist.c,v 1.6.18.3 2005/07/12 01:22:21 marka Exp $ */
 
 /*! \file */
 
@@ -81,12 +81,14 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
         result = isc_mutex_init(&portlist->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(mctx, portlist, sizeof(*portlist));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
-	isc_refcount_init(&portlist->refcount, 1);
+	result = isc_refcount_init(&portlist->refcount, 1);
+	if (result != ISC_R_SUCCESS) {
+		DESTROYLOCK(&portlist->lock);
+		isc_mem_put(mctx, portlist, sizeof(*portlist));
+		return (result);
+	}
 	portlist->list = NULL;
 	portlist->allocated = 0;
 	portlist->active = 0;
