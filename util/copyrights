@@ -2026,6 +2026,7 @@
 ./lib/isc/quota.c				C	2000,2001,2004,2005
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/ratelimiter.c				C	1999,2000,2001,2002,2004,2005
+./lib/isc/refcount.c				C	2005
 ./lib/isc/region.c				C	2002,2004,2005
 ./lib/isc/result.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005
