@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.251 2005/07/08 04:30:22 marka Exp $ */
+/* $Id: socket.c,v 1.252 2005/07/12 00:41:54 marka Exp $ */
 
 /*! \file */
 
@@ -131,6 +131,11 @@ typedef isc_event_t intev_t;
 #define USE_CMSG	1
 #endif
 #endif
+
+/*%
+ * The size to raise the recieve buffer to (from BIND 8).
+ */
+#define RCVBUFSIZE (32*1024)
 
 /*%
  * The number of times a send operation is repeated if the result is EINTR.
@@ -1366,6 +1371,10 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
 	int on = 1;
 #endif
+#if defined(SO_RCVBUF)
+	ISC_SOCKADDR_LEN_T optlen;
+	int size;
+#endif
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
 
@@ -1468,9 +1477,10 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 #endif
 
-#if defined(USE_CMSG)
+#if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (type == isc_sockettype_udp) {
 
+#if defined(USE_CMSG)
 #if defined(SO_TIMESTAMP)
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
 			       (void *)&on, sizeof(on)) < 0
@@ -1540,9 +1550,30 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
+#endif /* defined(USE_CMSG) */
 
+#if defined(SO_RCVBUF)
+		optlen = sizeof(size);
+		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
+			       (void *)&size, &optlen) >= 0 &&
+		     size < RCVBUFSIZE) {
+			size = RCVBUFSIZE;
+			if (setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
+				       (void *)&size, sizeof(size)) == -1) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"setsockopt(%d, SO_RCVBUF, %d) %s: %s",
+					sock->fd, size,
+					isc_msgcat_get(isc_msgcat,
+						       ISC_MSGSET_GENERAL,
+						       ISC_MSG_FAILED,
+						       "failed"),
+					strbuf);
+			}
+		}
+#endif
 	}
-#endif /* USE_CMSG */
+#endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
 
 	sock->references = 1;
 	*socketp = sock;

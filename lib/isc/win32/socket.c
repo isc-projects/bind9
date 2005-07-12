@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.38 2005/06/08 01:04:30 marka Exp $ */
+/* $Id: socket.c,v 1.39 2005/07/12 00:41:55 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -191,6 +191,11 @@ struct msghdr {
         int     msg_flags;              /* flags on received message */
 } msghdr;
 	
+/*%
+ * The size to raise the recieve buffer to.
+ */
+#define RCVBUFSIZE (32*1024)
+
 /*
  * The number of times a send operation is repeated if the result is EINTR.
  */
@@ -1834,6 +1839,10 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
 	int on = 1;
 #endif
+#if defined(SO_RCVBUF)
+	ISC_SOCKADDR_LEN_T optlen;
+	int size;
+#endif
 	int socket_errno;
 	char strbuf[ISC_STRERRORSIZE];
 
@@ -1896,9 +1905,10 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	}
 
 
-#if defined(USE_CMSG)
+#if defined(USE_CMSG) || defined(SO_RCVBUF)
 	if (type == isc_sockettype_udp) {
 
+#if defined(USE_CMSG)
 #if defined(ISC_PLATFORM_HAVEIPV6)
 #ifdef IPV6_RECVPKTINFO
 		/* 2292bis */
@@ -1940,9 +1950,21 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		}
 #endif
 #endif /* ISC_PLATFORM_HAVEIPV6 */
+#endif /* definef(USE_CMSG) */
+
+#if defined(SO_RCVBUF)
+	       optlen = sizeof(size);
+	       if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
+			      (void *)&size, &optlen) >= 0 &&
+		    size < RCVBUFSIZE) {
+		       size = RCVBUFSIZE;
+		       (void)setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
+					(void *)&size, sizeof(size));
+	       }
+#endif
 
 	}
-#endif /* USE_CMSG */
+#endif /* defined(USE_CMSG) || defined(SO_RCVBUF) */
 
 	sock->references = 1;
 	*socketp = sock;
