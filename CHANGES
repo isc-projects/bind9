@@ -1,3 +1,5 @@
+1901.	[func]		Support for SPF rdata type. [RT #15033]
+
 1900.	[port]		freebsd: pthread_mutex_init can fail if it runs out
 			of memory. [RT #14995]
 

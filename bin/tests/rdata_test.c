@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.41.18.2 2005/03/17 03:57:08 marka Exp $ */
+/* $Id: rdata_test.c,v 1.41.18.3 2005/07/14 06:51:02 marka Exp $ */
 
 #include <config.h>
 
@@ -267,6 +267,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_txt: {
 		dns_rdata_txt_t txt;
 		result = dns_rdata_tostruct(rdata, sp = &txt, NULL);
+		break;
+	}
+	case dns_rdatatype_spf: {
+		dns_rdata_spf_t spf;
+		result = dns_rdata_tostruct(rdata, sp = &spf, NULL);
 		break;
 	}
 	case dns_rdatatype_unspec: {
@@ -524,6 +529,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_txt: {
 		dns_rdata_txt_t txt;
 		result = dns_rdata_tostruct(rdata, sp = &txt, mctx);
+		break;
+	}
+	case dns_rdatatype_spf: {
+		dns_rdata_spf_t spf;
+		result = dns_rdata_tostruct(rdata, sp = &spf, mctx);
 		break;
 	}
 	case dns_rdatatype_unspec: {
@@ -811,6 +821,11 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 	case dns_rdatatype_txt: {
 		dns_rdata_txt_t txt;
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &txt, b);
+		break;
+	}
+	case dns_rdatatype_spf: {
+		dns_rdata_spf_t spf;
+		result = dns_rdata_fromstruct(rdata2, rdc, rdt, &spf, b);
 		break;
 	}
 	case dns_rdatatype_unspec: {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: spf_99.c,v 1.1 2005/07/14 06:46:44 marka Exp $ */
+/* $Id: spf_99.c,v 1.1.2.1 2005/07/14 06:51:03 marka Exp $ */
 
 /* Reviewed: Thu Mar 16 15:40:00 PST 2000 by bwelling */
 
