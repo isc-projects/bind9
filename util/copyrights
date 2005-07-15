@@ -1820,7 +1820,7 @@
 ./lib/dns/rdata/generic/sig_24.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/soa_6.c			C	1998,1999,2000,2001,2002,2004
 ./lib/dns/rdata/generic/soa_6.h			C	1998,1999,2000,2001,2004,2005
-./lib/dns/rdata/generic/spf_99.c		C	1998,1999,2000,2001,2002,2004
+./lib/dns/rdata/generic/spf_99.c		C	1998,1999,2000,2001,2002,2004,2005
 ./lib/dns/rdata/generic/spf_99.h		C	1998,1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/sshfp_44.c		C	2003,2004
 ./lib/dns/rdata/generic/sshfp_44.h		C	2003,2004,2005
