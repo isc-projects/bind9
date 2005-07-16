@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
 #ifndef GENERIC_SPF_99_H
 #define GENERIC_SPF_99_H 1
 
-/* $Id: spf_99.h,v 1.1.2.1 2005/07/14 06:51:03 marka Exp $ */
+/* $Id: spf_99.h,v 1.1.2.2 2005/07/16 00:40:54 marka Exp $ */
 
 typedef struct dns_rdata_spf_string {
                 isc_uint8_t    length;
