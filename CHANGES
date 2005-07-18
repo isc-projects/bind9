@@ -1,3 +1,5 @@
+1902.	[port]		Use uintptr_t if available. [RT #14606]
+
 1898.	[port]		sunos: non blocking i/o support. [RT #14951]
 
 1896.	[bug]		The cache could delete expired records too fast for

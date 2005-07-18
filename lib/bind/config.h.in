@@ -35,6 +35,8 @@
 
 #undef HAS_PW_CLASS
 
+#undef uintptr_t
+
 /* Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */ 
 #undef SHUTUP_SPUTAUX
 #ifdef SHUTUP_SPUTAUX
