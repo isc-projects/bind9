@@ -789,7 +789,7 @@
 ./bin/tests/task_test.c				C	1998,1999,2000,2001,2004
 ./bin/tests/tasks/.cvsignore			X	1999,2000,2001
 ./bin/tests/tasks/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004
-./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004
+./bin/tests/tasks/t_tasks.c			C	1998,1999,2000,2001,2004,2005
 ./bin/tests/timer_test.c			C	1998,1999,2000,2001,2004
 ./bin/tests/timers/.cvsignore			X	1999,2000,2001
 ./bin/tests/timers/Makefile.in			MAKE	1999,2000,2001,2002,2004
@@ -1202,7 +1202,7 @@
 ./lib/bind/bsd/strtoul.c			X	2001,2005
 ./lib/bind/bsd/utimes.c				X	2001,2005
 ./lib/bind/bsd/writev.c				X	2001,2005
-./lib/bind/config.h.in				X	2001
+./lib/bind/config.h.in				X	2001,2005
 ./lib/bind/configure				X	2001,2005
 ./lib/bind/configure.in				SH	2001,2004,2005
 ./lib/bind/dst/.cvsignore			X	2001
@@ -1617,7 +1617,7 @@
 ./lib/bind9/win32/libbind9.mak			X	2001
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/dns/.cvsignore				X	1999,2000,2001
-./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
+./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/acache.c				C	2004,2005
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005
