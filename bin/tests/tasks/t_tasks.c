@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.29.2.4 2005/07/18 05:27:28 marka Exp $ */
+/* $Id: t_tasks.c,v 1.29.2.5 2005/07/18 23:59:01 marka Exp $ */
 
 #include <config.h>
 
