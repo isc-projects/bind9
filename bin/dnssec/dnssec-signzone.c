@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.189 2005/06/28 02:55:09 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.190 2005/07/18 05:58:55 marka Exp $ */
 
 /*! \file */
 
@@ -939,7 +939,7 @@ active_node(dns_dbnode_t *node) {
 		      isc_result_totext(result));
 
 	if (!active) {
-		/*
+		/*%
 		 * The node is empty of everything but NSEC / RRSIG records.
 		 */
 		for (result = dns_rdatasetiter_first(rdsiter);

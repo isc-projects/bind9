@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.213 2005/07/12 01:00:15 marka Exp $ */
+/* $Id: rbtdb.c,v 1.214 2005/07/18 05:58:58 marka Exp $ */
 
 /*! \file */
 
@@ -6383,7 +6383,7 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	return (dns_name_copy(origin, name, NULL));
 }
 
-/*
+/*%
  * Additional cache routines.
  */
 static isc_result_t

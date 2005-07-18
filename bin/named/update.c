@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.122 2005/05/19 04:59:00 marka Exp $ */
+/* $Id: update.c,v 1.123 2005/07/18 05:58:56 marka Exp $ */
 
 #include <config.h>
 
@@ -980,7 +980,7 @@ type_not_soa_nor_ns_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		ISC_TRUE : ISC_FALSE);
 }
 
-/*
+/*%
  * Return true iff 'db_rr' is neither a RRSIG nor a NSEC.
  */
 static isc_boolean_t

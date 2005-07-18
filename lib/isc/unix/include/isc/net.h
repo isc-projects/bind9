@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.43 2005/04/27 04:57:24 sra Exp $ */
+/* $Id: net.h,v 1.44 2005/07/18 05:59:01 marka Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -301,9 +301,9 @@ isc_net_probe_ipv6pktinfo(void);
  *
  * Returns:
  *
- *	ISC_R_SUCCESS		the option is supported.
- *	ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
- *	ISC_R_UNEXPECTED
+ * \li	#ISC_R_SUCCESS		the option is supported.
+ * \li	#ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
+ * \li	#ISC_R_UNEXPECTED
  */
 
 void

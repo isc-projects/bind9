@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.h,v 1.30 2005/04/27 04:55:57 sra Exp $ */
+/* $Id: interfacemgr.h,v 1.31 2005/07/18 05:58:57 marka Exp $ */
 
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
@@ -64,7 +64,7 @@
 #define IFACE_MAGIC		ISC_MAGIC('I',':','-',')')
 #define NS_INTERFACE_VALID(t)	ISC_MAGIC_VALID(t, IFACE_MAGIC)
 
-#define NS_INTERFACEFLAG_ANYADDR	0x01U	/* bound to "any" address */
+#define NS_INTERFACEFLAG_ANYADDR	0x01U	/*%< bound to "any" address */
 
 /*% The nameserver interface structure */
 struct ns_interface {
@@ -78,7 +78,8 @@ struct ns_interface {
 	char 			name[32];	/*%< Null terminated. */
 	dns_dispatch_t *	udpdispatch;	/*%< UDP dispatcher. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
-	int			ntcptarget;	/*%< Desired number of concurrent TCP accepts */
+	int			ntcptarget;	/*%< Desired number of concurrent
+						     TCP accepts */
 	int			ntcpcurrent;	/*%< Current ditto, locked */
 	ns_clientmgr_t *	clientmgr;	/*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;

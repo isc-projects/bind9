@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.53 2005/06/27 00:15:45 marka Exp $ */
+/* $Id: namedconf.c,v 1.54 2005/07/18 05:59:01 marka Exp $ */
 
 /*! \file */
 
@@ -670,7 +670,7 @@ static cfg_type_t cfg_type_masterformat = {
 	&cfg_rep_string, &masterformat_enums
 };
 
-/*
+/*%
  * dnssec-lookaside
  */
 

@@ -498,7 +498,7 @@
 1727.	[bug]		named-checkzone: check-names support didn't match
 			documentation.
 
-1726.	[port]		aix5: add support for aix5
+1726.	[port]		aix5: add support for aix5.
 
 1725.	[port]		linux: update error message on interaction of threads,
 			capabilities and setuid support (named -u). [RT #12541]
@@ -853,7 +853,7 @@
 
 1604.	[bug]		A xfrout_ctx_create() failure would result in
 			xfrout_ctx_destroy() being called with a
-			partially initaliased structure.
+			partially initialized structure.
 			
 1603.	[bug]		nsupdate: set interactive based on isatty().
 			[RT# 10929]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.82 2005/06/28 02:55:09 marka Exp $ */
+/* $Id: db.h,v 1.83 2005/07/18 05:58:58 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -34,20 +34,20 @@
  * XXX more XXX
  *
  * MP:
- *\li	The module ensures appropriate synchronization of data structures it
+ * \li	The module ensures appropriate synchronization of data structures it
  *	creates and manipulates.
  *
  * Reliability:
- *\li	No anticipated impact.
+ * \li	No anticipated impact.
  *
  * Resources:
- *\li	TBS
+ * \li	TBS
  *
  * Security:
- *\li	No anticipated impact.
+ * \li	No anticipated impact.
  *
  * Standards:
- *\li	None.
+ * \li	None.
  */
 
 /*****
@@ -227,34 +227,34 @@ dns_db_create(isc_mem_t *mctx, const char *db_type, dns_name_t *origin,
  * Create a new database using implementation 'db_type'.
  *
  * Notes:
- *\li	All names in the database must be subdomains of 'origin' and in class
+ * \li	All names in the database must be subdomains of 'origin' and in class
  *	'rdclass'.  The database makes its own copy of the origin, so the
  *	caller may do whatever they like with 'origin' and its storage once the
  *	call returns.
  *
- *\li	DB implementation-specific parameters are passed using argc and argv.
+ * \li	DB implementation-specific parameters are passed using argc and argv.
  *
  * Requires:
  *
- *\li	dbp != NULL and *dbp == NULL
+ * \li	dbp != NULL and *dbp == NULL
  *
- *\li	'origin' is a valid absolute domain name.
+ * \li	'origin' is a valid absolute domain name.
  *
- *\li	mctx is a valid memory context
+ * \li	mctx is a valid memory context
  *
  * Ensures:
  *
- *\li	A copy of 'origin' has been made for the databases use, and the
+ * \li	A copy of 'origin' has been made for the databases use, and the
  *	caller is free to do whatever they want with the name and storage
  *	associated with 'origin'.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_NOTFOUND				db_type not found
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_NOTFOUND				db_type not found
  *
- *\li	Many other errors are possible, depending on what db_type was
+ * \li	Many other errors are possible, depending on what db_type was
  *	specified.
  */
 
@@ -265,13 +265,13 @@ dns_db_attach(dns_db_t *source, dns_db_t **targetp);
  *
  * Requires:
  *
- *\li	'source' is a valid database.
+ * \li	'source' is a valid database.
  *
- *\li	'targetp' points to a NULL dns_db_t *.
+ * \li	'targetp' points to a NULL dns_db_t *.
  *
  * Ensures:
  *
- *\li	*targetp is attached to source.
+ * \li	*targetp is attached to source.
  */
 
 void
@@ -281,13 +281,13 @@ dns_db_detach(dns_db_t **dbp);
  *
  * Requires:
  *
- *\li	'dbp' points to a valid database.
+ * \li	'dbp' points to a valid database.
  *
  * Ensures:
  *
- *\li	*dbp is NULL.
+ * \li	*dbp is NULL.
  *
- *\li	If '*dbp' is the last reference to the database,
+ * \li	If '*dbp' is the last reference to the database,
  *		all resources used by the database will be freed
  */
 
@@ -309,11 +309,11 @@ dns_db_iscache(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
- *\li	#ISC_TRUE	'db' has cache semantics
- *\li	#ISC_FALSE	otherwise
+ * \li	#ISC_TRUE	'db' has cache semantics
+ * \li	#ISC_FALSE	otherwise
  */
 
 isc_boolean_t
@@ -323,11 +323,11 @@ dns_db_iszone(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
- *\li	#ISC_TRUE	'db' has zone semantics
- *\li	#ISC_FALSE	otherwise
+ * \li	#ISC_TRUE	'db' has zone semantics
+ * \li	#ISC_FALSE	otherwise
  */
 
 isc_boolean_t
@@ -337,11 +337,11 @@ dns_db_isstub(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
- *\li	#ISC_TRUE	'db' has zone semantics
- *\li	#ISC_FALSE	otherwise
+ * \li	#ISC_TRUE	'db' has zone semantics
+ * \li	#ISC_FALSE	otherwise
  */
 
 isc_boolean_t
@@ -351,11 +351,11 @@ dns_db_issecure(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database with zone semantics.
+ * \li	'db' is a valid database with zone semantics.
  *
  * Returns:
- *\li	#ISC_TRUE	'db' is secure.
- *\li	#ISC_FALSE	'db' is not secure.
+ * \li	#ISC_TRUE	'db' is secure.
+ * \li	#ISC_FALSE	'db' is not secure.
  */
 
 dns_name_t *
@@ -367,11 +367,11 @@ dns_db_origin(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
  *
- *\li	The origin of the database.
+ * \li	The origin of the database.
  */
 
 dns_rdataclass_t
@@ -381,11 +381,11 @@ dns_db_class(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
  *
- *\li	The class of the database.
+ * \li	The class of the database.
  */
 
 isc_result_t
@@ -396,26 +396,26 @@ dns_db_beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp,
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	This is the first attempt to load 'db'.
+ * \li	This is the first attempt to load 'db'.
  *
- *\li	addp != NULL && *addp == NULL
+ * \li	addp != NULL && *addp == NULL
  *
- *\li	dbloadp != NULL && *dbloadp == NULL
+ * \li	dbloadp != NULL && *dbloadp == NULL
  *
  * Ensures:
  *
- *\li	On success, *addp will be a valid dns_addrdatasetfunc_t suitable
+ * \li	On success, *addp will be a valid dns_addrdatasetfunc_t suitable
  *	for loading 'db'.  *dbloadp will be a valid DB load context which
  *	should be used as 'arg' when *addp is called.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
  */
 
@@ -426,20 +426,20 @@ dns_db_endload(dns_db_t *db, dns_dbload_t **dbloadp);
  *
  * Requires:
  *
- *\li	'db' is a valid database that is being loaded.
+ * \li	'db' is a valid database that is being loaded.
  *
- *\li	dbloadp != NULL and *dbloadp is a valid database load context.
+ * \li	dbloadp != NULL and *dbloadp is a valid database load context.
  *
  * Ensures:
  *
- *\li	*dbloadp == NULL
+ * \li	*dbloadp == NULL
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
  */
 
@@ -452,7 +452,7 @@ dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format);
  * Load master file 'filename' into 'db'.
  *
  * Notes:
- *\li	This routine is equivalent to calling
+ * \li	This routine is equivalent to calling
  *
  *\code
  *		dns_db_beginload();
@@ -462,16 +462,16 @@ dns_db_load2(dns_db_t *db, const char *filename, dns_masterformat_t format);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	This is the first attempt to load 'db'.
+ * \li	This is the first attempt to load 'db'.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used, syntax errors in the master file, etc.
  */
 
@@ -486,16 +486,16 @@ dns_db_dump2(dns_db_t *db, dns_dbversion_t *version, const char *filename,
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'version' is a valid version.
+ * \li	'version' is a valid version.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used, OS file errors, etc.
  */
 
@@ -510,13 +510,13 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * Requires:
  *
- *\li	'db' is a valid database with zone semantics.
+ * \li	'db' is a valid database with zone semantics.
  *
- *\li	versionp != NULL && *verisonp == NULL
+ * \li	versionp != NULL && *verisonp == NULL
  *
  * Ensures:
  *
- *\li	On success, '*versionp' is attached to the current version.
+ * \li	On success, '*versionp' is attached to the current version.
  *
  */
 
@@ -527,20 +527,20 @@ dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
  *
  * Requires:
  *
- *\li	'db' is a valid database with zone semantics.
+ * \li	'db' is a valid database with zone semantics.
  *
- *\li	versionp != NULL && *verisonp == NULL
+ * \li	versionp != NULL && *verisonp == NULL
  *
  * Ensures:
  *
- *\li	On success, '*versionp' is attached to the current version.
+ * \li	On success, '*versionp' is attached to the current version.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -552,15 +552,15 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
  *
  * Requires:
  *
- *\li	'db' is a valid database with zone semantics.
+ * \li	'db' is a valid database with zone semantics.
  *
- *\li	source is a valid open version
+ * \li	source is a valid open version
  *
- *\li	targetp != NULL && *targetp == NULL
+ * \li	targetp != NULL && *targetp == NULL
  *
  * Ensures:
  *
- *\li	'*targetp' is attached to source.
+ * \li	'*targetp' is attached to source.
  */
 
 void
@@ -576,25 +576,25 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *
  * Requires:
  *
- *\li	'db' is a valid database with zone semantics.
+ * \li	'db' is a valid database with zone semantics.
  *
- *\li	'*versionp' refers to a valid version.
+ * \li	'*versionp' refers to a valid version.
  *
- *\li	If committing a writable version, then there must be no other
+ * \li	If committing a writable version, then there must be no other
  *	outstanding references to the version (e.g. an active rdataset
  *	iterator).
  *
  * Ensures:
  *
- *\li	*versionp == NULL
+ * \li	*versionp == NULL
  *
- *\li	If *versionp is a read-write version, and commit is ISC_TRUE, then
+ * \li	If *versionp is a read-write version, and commit is ISC_TRUE, then
  *	the version will become the current version.  If !commit, then all
  *	changes made in the version will be undone, and the version will
  *	not become the current version.
  */
 
-/*%<**
+/***
  *** Node Methods
  ***/
 
@@ -605,33 +605,33 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
  * Find the node with name 'name'.
  *
  * Notes:
- *\li	If 'create' is ISC_TRUE and no node with name 'name' exists, then
+ * \li	If 'create' is ISC_TRUE and no node with name 'name' exists, then
  *	such a node will be created.
  *
- *\li	This routine is for finding or creating a node with the specified
+ * \li	This routine is for finding or creating a node with the specified
  *	name.  There are no partial matches.  It is not suitable for use
  *	in building responses to ordinary DNS queries; clients which wish
  *	to do that should use dns_db_find() instead.
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'name' is a valid, non-empty, absolute name.
+ * \li	'name' is a valid, non-empty, absolute name.
  *
- *\li	nodep != NULL && *nodep == NULL
+ * \li	nodep != NULL && *nodep == NULL
  *
  * Ensures:
  *
- *\li	On success, *nodep is attached to the node with name 'name'.
+ * \li	On success, *nodep is attached to the node with name 'name'.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTFOUND			If !create and name not found.
- *\li	#ISC_R_NOMEMORY		        Can only happen if create is ISC_TRUE.
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND			If !create and name not found.
+ * \li	#ISC_R_NOMEMORY		        Can only happen if create is ISC_TRUE.
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -645,39 +645,39 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  * Notes:
  *
- *\li	If type == dns_rdataset_any, then rdataset will not be bound.
+ * \li	If type == dns_rdataset_any, then rdataset will not be bound.
  *
- *\li	If 'options' does not have #DNS_DBFIND_GLUEOK set, then no glue will
+ * \li	If 'options' does not have #DNS_DBFIND_GLUEOK set, then no glue will
  *	be returned.  For zone databases, glue is as defined in RFC2181.
  *	For cache databases, glue is any rdataset with a trust of
  *	dns_trust_glue.
  *
- *\li	If 'options' does not have #DNS_DBFIND_PENDINGOK set, then no
+ * \li	If 'options' does not have #DNS_DBFIND_PENDINGOK set, then no
  *	pending data will be returned.  This option is only meaningful for
  *	cache databases.
  *
- *\li	If the #DNS_DBFIND_NOWILD option is set, then wildcard matching will
+ * \li	If the #DNS_DBFIND_NOWILD option is set, then wildcard matching will
  *	be disabled.  This option is only meaningful for zone databases.
  *
- *\li	If the #DNS_DBFIND_FORCENSEC option is set, the database is assumed to
+ * \li	If the #DNS_DBFIND_FORCENSEC option is set, the database is assumed to
  *	have NSEC records, and these will be returned when appropriate.  This
  *	is only necessary when querying a database that was not secure
  *	when created.
  *
- *\li	If the DNS_DBFIND_COVERINGNSEC option is set, then look for a
+ * \li	If the DNS_DBFIND_COVERINGNSEC option is set, then look for a
  *	NSEC record that potentially covers 'name' if a answer cannot
  *	be found.  Note the returned NSEC needs to be checked to ensure
  *	that it is correct.  This only affects answers returned from the
  *	cache.
  *
- *\li	To respond to a query for SIG records, the caller should create a
+ * \li	To respond to a query for SIG records, the caller should create a
  *	rdataset iterator and extract the signatures from each rdataset.
  *
- *\li	Making queries of type ANY with #DNS_DBFIND_GLUEOK is not recommended,
+ * \li	Making queries of type ANY with #DNS_DBFIND_GLUEOK is not recommended,
  *	because the burden of determining whether a given rdataset is valid
  *	glue or not falls upon the caller.
  *
- *\li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
  *	'now'.  Any ANY query will not match unless at least one rdataset at
  *	the node expires after 'now'.  If 'now' is zero, then the current time
@@ -685,15 +685,15 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'type' is not SIG, or a meta-RR type other than 'ANY' (e.g. 'OPT').
+ * \li	'type' is not SIG, or a meta-RR type other than 'ANY' (e.g. 'OPT').
  *
- *\li	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
+ * \li	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
  *
- *\li	'foundname' is a valid name with a dedicated buffer.
+ * \li	'foundname' is a valid name with a dedicated buffer.
  *
- *\li	'rdataset' is NULL, or is a valid unassociated rdataset.
+ * \li	'rdataset' is NULL, or is a valid unassociated rdataset.
  *
  * Ensures,
  *	on a non-error completion:
@@ -708,10 +708,10 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *
  *	Non-error results are:
  *
- *\li		#ISC_R_SUCCESS			The desired node and type were
+ *	\li	#ISC_R_SUCCESS			The desired node and type were
  *						found.
  *
- *\li		#DNS_R_WILDCARD			The desired node and type were
+ *	\li	#DNS_R_WILDCARD			The desired node and type were
  *						found after performing
  *						wildcard matching.  This is
  *						only returned if the
@@ -719,7 +719,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						option is set; otherwise
  *						#ISC_R_SUCCESS is returned.
  *
- *\li		#DNS_R_GLUE			The desired node and type were
+ *	\li	#DNS_R_GLUE			The desired node and type were
  *						found, but are glue.  This
  *						result can only occur if
  *						the DNS_DBFIND_GLUEOK option
@@ -734,7 +734,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						take care not to return invalid
  *						glue to a client.
  *
- *\li		#DNS_R_DELEGATION		The data requested is beneath
+ *	\li	#DNS_R_DELEGATION		The data requested is beneath
  *						a zone cut.  node, foundname,
  *						and rdataset reference the
  *						NS RRset of the zone cut.
@@ -742,7 +742,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						then this is the deepest known
  *						delegation.
  *
- *\li		#DNS_R_ZONECUT			type == dns_rdatatype_any, and
+ *	\li	#DNS_R_ZONECUT			type == dns_rdatatype_any, and
  *						the desired node is a zonecut.
  *						The caller must take care not
  *						to return inappropriate glue
@@ -751,24 +751,24 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						database and DNS_DBFIND_GLUEOK
  *						is set.
  *
- *\li		#DNS_R_DNAME			The data requested is beneath
+ *	\li	#DNS_R_DNAME			The data requested is beneath
  *						a DNAME.  node, foundname,
  *						and rdataset reference the
  *						DNAME RRset.
  *
- *\li		#DNS_R_CNAME			The rdataset requested was not
+ *	\li	#DNS_R_CNAME			The rdataset requested was not
  *						found, but there is a CNAME
  *						at the desired name.  node,
  *						foundname, and rdataset
  *						reference the CNAME RRset.
  *
- *\li		#DNS_R_NXDOMAIN			The desired name does not
+ *	\li	#DNS_R_NXDOMAIN			The desired name does not
  *						exist.
  *
- *\li		#DNS_R_NXRRSET			The desired name exists, but
+ *	\li	#DNS_R_NXRRSET			The desired name exists, but
  *						the desired type does not.
  *
- *\li		#ISC_R_NOTFOUND			The desired name does not
+ *	\li	#ISC_R_NOTFOUND			The desired name does not
  *						exist, and no delegation could
  *						be found.  This result can only
  *						occur if 'db' is a cache
@@ -776,34 +776,34 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
  *						use its nameserver(s) of last
  *						resort (e.g. root hints).
  *
- *\li		#DNS_R_NCACHENXDOMAIN		The desired name does not
+ *	\li	#DNS_R_NCACHENXDOMAIN		The desired name does not
  *						exist.  'node' is bound to the
  *						cache node with the desired
  *						name, and 'rdataset' contains
  *						the negative caching proof.
  *
- *\li		#DNS_R_NCACHENXRRSET		The desired type does not
+ *	\li	#DNS_R_NCACHENXRRSET		The desired type does not
  *						exist.  'node' is bound to the
  *						cache node with the desired
  *						name, and 'rdataset' contains
  *						the negative caching proof.
  *
- *\li		#DNS_R_EMPTYNAME			The name exists but there is
+ *	\li	#DNS_R_EMPTYNAME			The name exists but there is
  *						no data at the name. 
  *
- *		DNS_R_COVERINGNSEC		The returned data is a NSEC
+ *	\li	#DNS_R_COVERINGNSEC		The returned data is a NSEC
  *						that potentially covers 'name'.
  *
  *	Error results:
  *
- *\li		#ISC_R_NOMEMORY
+ *	\li	#ISC_R_NOMEMORY
  *
- *\li		#DNS_R_BADDB			Data that is required to be
+ *	\li	#DNS_R_BADDB			Data that is required to be
  *						present in the DB, e.g. an NSEC
  *						record in a secure zone, is not
  *						present.
  *
- *\li		Other results are possible, and should all be treated as
+ *	\li	Other results are possible, and should all be treated as
  *		errors.
  */
 
@@ -817,39 +817,39 @@ dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
  *
  * Notes:
  *
- *\li	If the #DNS_DBFIND_NOEXACT option is set, then the zonecut returned
+ * \li	If the #DNS_DBFIND_NOEXACT option is set, then the zonecut returned
  *	(if any) will be the deepest known ancestor of 'name'.
  *
- *\li	If 'now' is zero, then the current time will be used.
+ * \li	If 'now' is zero, then the current time will be used.
  *
  * Requires:
  *
- *\li	'db' is a valid database with cache semantics.
+ * \li	'db' is a valid database with cache semantics.
  *
- *\li	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
+ * \li	'nodep' is NULL, or nodep is a valid pointer and *nodep == NULL.
  *
- *\li	'foundname' is a valid name with a dedicated buffer.
+ * \li	'foundname' is a valid name with a dedicated buffer.
  *
- *\li	'rdataset' is NULL, or is a valid unassociated rdataset.
+ * \li	'rdataset' is NULL, or is a valid unassociated rdataset.
  *
- *	Ensures, on a non-error completion:
+ * Ensures, on a non-error completion:
  *
- *\li		If nodep != NULL, then it is bound to the found node.
+ * \li	If nodep != NULL, then it is bound to the found node.
  *
- *\li		If foundname != NULL, then it contains the full name of the
- *		found node.
+ * \li	If foundname != NULL, then it contains the full name of the
+ *	found node.
  *
- *\li		If rdataset != NULL and type != dns_rdatatype_any, then
- *		rdataset is bound to the found rdataset.
+ * \li	If rdataset != NULL and type != dns_rdatatype_any, then
+ *	rdataset is bound to the found rdataset.
  *
- *	Non-error results are:
+ * Non-error results are:
  *
- *	\li	#ISC_R_SUCCESS
+ * \li	#ISC_R_SUCCESS
  *
- *	\li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_NOTFOUND
  *
- *	\li	Other results are possible, and should all be treated as
- *		errors.
+ * \li	Other results are possible, and should all be treated as
+ *	errors.
  */
 
 void
@@ -859,15 +859,15 @@ dns_db_attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'source' is a valid node.
+ * \li	'source' is a valid node.
  *
- *\li	'targetp' points to a NULL dns_node_t *.
+ * \li	'targetp' points to a NULL dns_node_t *.
  *
  * Ensures:
  *
- *\li	*targetp is attached to source.
+ * \li	*targetp is attached to source.
  */
 
 void
@@ -877,13 +877,13 @@ dns_db_detachnode(dns_db_t *db, dns_dbnode_t **nodep);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'nodep' points to a valid node.
+ * \li	'nodep' points to a valid node.
  *
  * Ensures:
  *
- *\li	*nodep is NULL.
+ * \li	*nodep is NULL.
  */
 
 isc_result_t
@@ -895,9 +895,9 @@ dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now);
  *
  * Requires:
  *
- *\li	'db' is a valid cache database.
+ * \li	'db' is a valid cache database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  */
 
 void
@@ -910,12 +910,12 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  */
 
-/*%<**
+/***
  *** DB Iterator Creation
  ***/
 
@@ -927,31 +927,31 @@ dns_db_createiterator(dns_db_t *db, isc_boolean_t relative_names,
  *
  * Notes:
  *
- *\li	If 'relative_names' is ISC_TRUE, then node names returned by the
+ * \li	If 'relative_names' is ISC_TRUE, then node names returned by the
  *	iterator will be relative to the iterator's current origin.  If
  *	#ISC_FALSE, then the node names will be absolute.
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	iteratorp != NULL && *iteratorp == NULL
+ * \li	iteratorp != NULL && *iteratorp == NULL
  *
  * Ensures:
  *
- *\li	On success, *iteratorp will be a valid database iterator.
+ * \li	On success, *iteratorp will be a valid database iterator.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  */
 
-/*%<**
+/***
  *** Rdataset Methods
  ***/
 
-/*%<
+/*
  * XXXRTH  Should we check for glue and pending data in dns_db_findrdataset()?
  */
 
@@ -966,41 +966,41 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Notes:
  *
- *\li	If 'version' is NULL, then the current version will be used.
+ * \li	If 'version' is NULL, then the current version will be used.
  *
- *\li	Care must be used when using this routine to build a DNS response:
+ * \li	Care must be used when using this routine to build a DNS response:
  *	'node' should have been found with dns_db_find(), not
  *	dns_db_findnode().  No glue checking is done.  No checking for
  *	pending data is done.
  *
- *\li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
  *	'now'.  If 'now' is zero, then the current time will be used.
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  *
- *\li	'rdataset' is a valid, disassociated rdataset.
+ * \li	'rdataset' is a valid, disassociated rdataset.
  *
- *\li	'sigrdataset' is a valid, disassociated rdataset, or it is NULL.
+ * \li	'sigrdataset' is a valid, disassociated rdataset, or it is NULL.
  *
- *\li	If 'covers' != 0, 'type' must be SIG.
+ * \li	If 'covers' != 0, 'type' must be SIG.
  *
- *\li	'type' is not a meta-RR type such as 'ANY' or 'OPT'.
+ * \li	'type' is not a meta-RR type such as 'ANY' or 'OPT'.
  *
  * Ensures:
  *
- *\li	On success, 'rdataset' is associated with the found rdataset.
+ * \li	On success, 'rdataset' is associated with the found rdataset.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -1013,9 +1013,9 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Notes:
  *
- *\li	If 'version' is NULL, then the current version will be used.
+ * \li	If 'version' is NULL, then the current version will be used.
  *
- *\li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
+ * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is a
  *	cache database, an rdataset will not be found unless it expires after
  *	'now'.  Any ANY query will not match unless at least one rdataset at
  *	the node expires after 'now'.  If 'now' is zero, then the current time
@@ -1023,22 +1023,22 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  *
- *\li	iteratorp != NULL && *iteratorp == NULL
+ * \li	iteratorp != NULL && *iteratorp == NULL
  *
  * Ensures:
  *
- *\li	On success, '*iteratorp' is a valid rdataset iterator.
+ * \li	On success, '*iteratorp' is a valid rdataset iterator.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -1051,7 +1051,7 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * Notes:
  *
- *\li	If the database has zone semantics, the #DNS_DBADD_MERGE option is set,
+ * \li	If the database has zone semantics, the #DNS_DBADD_MERGE option is set,
  *	and an rdataset of the same type as 'rdataset' already exists at
  *	'node' then the contents of 'rdataset' will be merged with the existing
  *	rdataset.  If the option is not set, then rdataset will replace any
@@ -1064,40 +1064,40 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *	the old and new rdata sets.  If #DNS_DBADD_EXACTTTL is set then both
  *	the old and new rdata sets must have the same ttl.
  *
- *\li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
+ * \li	The 'now' field is ignored if 'db' is a zone database.  If 'db' is
  *	a cache database, then the added rdataset will expire no later than
  *	now + rdataset->ttl.
  *
- *\li	If 'addedrdataset' is not NULL, then it will be attached to the
+ * \li	If 'addedrdataset' is not NULL, then it will be attached to the
  *	resulting new rdataset in the database, or to the existing data if
  *	the existing data was better.
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  *
- *\li	'rdataset' is a valid, associated rdataset with the same class
+ * \li	'rdataset' is a valid, associated rdataset with the same class
  *	as 'db'.
  *
- *\li	'addedrdataset' is NULL, or a valid, unassociated rdataset.
+ * \li	'addedrdataset' is NULL, or a valid, unassociated rdataset.
  *
- *\li	The database has zone semantics and 'version' is a valid
+ * \li	The database has zone semantics and 'version' is a valid
  *	read-write version, or the database has cache semantics
  *	and version is NULL.
  *
- *\li	If the database has cache semantics, the #DNS_DBADD_MERGE option must
+ * \li	If the database has cache semantics, the #DNS_DBADD_MERGE option must
  *	not be set.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#DNS_R_UNCHANGED			The operation did not change anything.
- *\li	#ISC_R_NOMEMORY
- *\li	#DNS_R_NOTEXACT
+ * \li	#ISC_R_SUCCESS
+ * \li	#DNS_R_UNCHANGED			The operation did not change anything.
+ * \li	#ISC_R_NOMEMORY
+ * \li	#DNS_R_NOTEXACT
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -1111,35 +1111,35 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * Notes:
  *
- *\li	If 'newrdataset' is not NULL, then it will be attached to the
+ * \li	If 'newrdataset' is not NULL, then it will be attached to the
  *	resulting new rdataset in the database, unless the rdataset has
  *	become nonexistent.  If DNS_DBSUB_EXACT is set then all elements
  *	of 'rdataset' must exist at 'node'.
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  *
- *\li	'rdataset' is a valid, associated rdataset with the same class
+ * \li	'rdataset' is a valid, associated rdataset with the same class
  *	as 'db'.
  *
- *\li	'newrdataset' is NULL, or a valid, unassociated rdataset.
+ * \li	'newrdataset' is NULL, or a valid, unassociated rdataset.
  *
- *\li	The database has zone semantics and 'version' is a valid
+ * \li	The database has zone semantics and 'version' is a valid
  *	read-write version.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#DNS_R_UNCHANGED			The operation did not change anything.
- *\li	#DNS_R_NXRRSET			All rdata of the same type as those
+ * \li	#ISC_R_SUCCESS
+ * \li	#DNS_R_UNCHANGED			The operation did not change anything.
+ * \li	#DNS_R_NXRRSET			All rdata of the same type as those
  *					in 'rdataset' have been deleted.
- *\li	#DNS_R_NOTEXACT			Some part of 'rdataset' did not
+ * \li	#DNS_R_NOTEXACT			Some part of 'rdataset' did not
  *					exist and DNS_DBSUB_EXACT was set.
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -1153,32 +1153,32 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  *
  * Notes:
  *
- *\li	If 'type' is dns_rdatatype_any, then no rdatasets will exist in
+ * \li	If 'type' is dns_rdatatype_any, then no rdatasets will exist in
  *	'version' (provided that the dns_db_deleterdataset() isn't followed
  *	by one or more dns_db_addrdataset() calls).
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
- *\li	'node' is a valid node.
+ * \li	'node' is a valid node.
  *
- *\li	The database has zone semantics and 'version' is a valid
+ * \li	The database has zone semantics and 'version' is a valid
  *	read-write version, or the database has cache semantics
  *	and version is NULL.
  *
- *\li	'type' is not a meta-RR type, except for dns_rdatatype_any, which is
+ * \li	'type' is not a meta-RR type, except for dns_rdatatype_any, which is
  *	allowed.
  *
- *\li	If 'covers' != 0, 'type' must be SIG.
+ * \li	If 'covers' != 0, 'type' must be SIG.
  *
  * Returns:
  *
- *\li	#ISC_R_SUCCESS
- *\li	#DNS_R_UNCHANGED			No rdatasets of 'type' existed before
+ * \li	#ISC_R_SUCCESS
+ * \li	#DNS_R_UNCHANGED			No rdatasets of 'type' existed before
  *					the operation was attempted.
  *
- *\li	Other results are possible, depending upon the database
+ * \li	Other results are possible, depending upon the database
  *	implementation used.
  */
 
@@ -1188,8 +1188,8 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
  * Get the current SOA serial number from a zone database.
  *
  * Requires:
- * \li     'db' is a valid database with zone semantics.
- *  \li    'ver' is a valid version.
+ * \li	'db' is a valid database with zone semantics.
+ * \li	'ver' is a valid version.
  */
 
 void
@@ -1205,7 +1205,7 @@ dns_db_nodecount(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
  * \li	The number of nodes in the database
@@ -1213,12 +1213,12 @@ dns_db_nodecount(dns_db_t *db);
 
 void
 dns_db_settask(dns_db_t *db, isc_task_t *task);
-/*
+/*%<
  * If task is set then the final detach maybe performed asynchronously.
  *
  * Requires:
- *	'db' is a valid database.
- *	'task' to be valid or NULL.
+ * \li	'db' is a valid database.
+ * \li	'task' to be valid or NULL.
  */
 
 isc_boolean_t
@@ -1229,11 +1229,11 @@ dns_db_ispersistent(dns_db_t *db);
  *
  * Requires:
  *
- *\li	'db' is a valid database.
+ * \li	'db' is a valid database.
  *
  * Returns:
- *\li	#ISC_TRUE	'db' is persistent.
- *\li	#ISC_FALSE	'db' is not persistent.
+ * \li	#ISC_TRUE	'db' is persistent.
+ * \li	#ISC_FALSE	'db' is not persistent.
  */
 
 isc_result_t
@@ -1246,7 +1246,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
  *
  * Requires:
  *
- *\li 	'name' is not NULL
+ * \li 	'name' is not NULL
  * \li	'order' is a valid function pointer
  * \li	'mctx' is a valid memory context
  * \li	dbimp != NULL && *dbimp == NULL
@@ -1258,7 +1258,7 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
  *
  * Ensures:
  *
- *\li	*dbimp points to an opaque structure which must be passed to
+ * \li	*dbimp points to an opaque structure which must be passed to
  *	dns_db_unregister().
  */
 
@@ -1270,7 +1270,7 @@ dns_db_unregister(dns_dbimplementation_t **dbimp);
  * is called.
  *
  * Requires:
- *\li 	dbimp != NULL && *dbimp == NULL
+ * \li 	dbimp != NULL && *dbimp == NULL
  *
  * Ensures:
  *
@@ -1279,80 +1279,80 @@ dns_db_unregister(dns_dbimplementation_t **dbimp);
 
 isc_result_t
 dns_db_getsoanode(dns_db_t *db, dns_dbnode_t **nodep);
-/*
+/*%<
  * Get a cached SOA DB node corresponding to the DB's zone.
  *
  * Requires:
  *
- *	'db' is a valid zone database.
- *	'nodep' != NULL && '*nodep' == NULL
+ * \li	'db' is a valid zone database.
+ * \li	'nodep' != NULL && '*nodep' == NULL
  *
  * Ensures:
- * 	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
+ * \li	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOTFOUND - an SOA RR node has not been cached in 'db' or SOA RR
- *			 caching is not supported for 'db'
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND - an SOA RR node has not been cached in 'db' or SOA RR
+ *			  caching is not supported for 'db'
  */
 
 isc_result_t
 dns_db_setsoanode(dns_db_t *db, dns_dbnode_t *node);
-/*
+/*%<
  * Set an SOA DB node as cache corresponding to the DB's zone.  If there is
  * already a node set in the DB, it will be detached and replaced with the
  * new one.
  *
  * Requires:
  *
- *	'db' is a valid zone database.
- *	'node' is a valid DB node.
+ * \li	'db' is a valid zone database.
+ * \li	'node' is a valid DB node.
  *
  * Ensures:
- * 	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
+ * \li 	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_FAILURE - SOA RR caching is not supported for 'db'
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_FAILURE - SOA RR caching is not supported for 'db'
  */
 
 isc_result_t
 dns_db_getnsnode(dns_db_t *db, dns_dbnode_t **nodep);
-/*
+/*%<
  * Get a cached NS DB node corresponding to the DB's zone.
  *
  * Requires:
  *
- *	'db' is a valid zone database.
- *	'nodep' != NULL && '*nodep' == NULL
+ * \li	'db' is a valid zone database.
+ * \li	'nodep' != NULL && '*nodep' == NULL
  *
  * Ensures:
- * 	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
+ * \li	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOTFOUND - an NS RR node has not been cached in 'db' or NS RR
- *			 caching is not supported for 'db'
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOTFOUND - an NS RR node has not been cached in 'db' or NS RR
+ *			  caching is not supported for 'db'
  */
 
 isc_result_t
 dns_db_setnsnode(dns_db_t *db, dns_dbnode_t *node);
-/*
+/*%<
  * Set an NS DB node as cache corresponding to the DB's zone.  If there is
  * already a node set in the DB, it will be detached and replaced with the
  * new one.
  *
  * Requires:
  *
- *	'db' is a valid zone database.
- *	'node' is a valid DB node.
+ * \li	'db' is a valid zone database.
+ * \li	'node' is a valid DB node.
  *
  * Ensures:
- * 	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
+ * \li	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_FAILURE - NS RR caching is not supported for 'db'
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_FAILURE - NS RR caching is not supported for 'db'
  */
 
 ISC_LANG_ENDDECLS

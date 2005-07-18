@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.60 2005/04/27 04:57:20 sra Exp $ */
+/* $Id: socket.h,v 1.61 2005/07/18 05:59:01 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -713,7 +713,7 @@ isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes);
 void
 isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
 
-/*
+/*%<
  * Cleanup UNIX domain sockets in the file-system.  If 'active' is true
  * then just unlink the socket.  If 'active' is false try to determine
  * if there is a listener of the socket or not.  If no listener is found
@@ -731,7 +731,7 @@ isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
 isc_boolean_t
 isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
                     isc_uint32_t owner, isc_uint32_t group);
-/*
+/*%<
  * Set ownership and file permissions on the UNIX domain socket.
  *
  * Note: On Solaris and SunOS this secures the directory containing
@@ -739,11 +739,11 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
  *	 permissions on the socket.
  *
  * Requires:
- *	'sockaddr' to be a valid UNIX domain sockaddr.
+ * \li	'sockaddr' to be a valid UNIX domain sockaddr.
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_FAILURE
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_FAILURE
  */
 
 ISC_LANG_ENDDECLS

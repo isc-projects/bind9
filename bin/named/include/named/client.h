@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.74 2005/06/07 00:16:00 marka Exp $ */
+/* $Id: client.h,v 1.75 2005/07/18 05:58:57 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -342,7 +342,7 @@ isc_boolean_t
 ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
                  isc_sockaddr_t *srcaddr, isc_sockaddr_t *destaddr,
                  dns_rdataclass_t rdclass, void *arg);
-/*
+/*%
  * Isself callback.
  */
 

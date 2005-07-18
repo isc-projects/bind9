@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.33 2005/04/27 04:57:01 sra Exp $ */
+/* $Id: zt.h,v 1.34 2005/07/18 05:59:00 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
@@ -39,8 +39,8 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
  * \li	'mctx' to be initialized.
  *
  * Returns:
- *\li	#ISC_R_SUCCESS on success.
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS on success.
+ * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t
@@ -49,14 +49,14 @@ dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
  * Mounts the zone on the zone table.
  *
  * Requires:
- *\li	'zt' to be valid
- *\li	'zone' to be valid
+ * \li	'zt' to be valid
+ * \li	'zone' to be valid
  *
  * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_EXISTS
- *\li	#ISC_R_NOSPACE
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_EXISTS
+ * \li	#ISC_R_NOSPACE
+ * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t
@@ -66,12 +66,12 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
  *
  * Requires:
  * 	'zt' to be valid
- *\li	'zone' to be valid
+ * \li	'zone' to be valid
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOTFOUND
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t
@@ -82,20 +82,20 @@ dns_zt_find(dns_zt_t *zt, dns_name_t *name, unsigned int options,
  * then the name of the zone found is returned.
  *
  * Notes:
- *\li	If the DNS_ZTFIND_NOEXACT is set, the best partial match (if any)
+ * \li	If the DNS_ZTFIND_NOEXACT is set, the best partial match (if any)
  *	to 'name' will be returned.
  *
  * Requires:
- *\li	'zt' to be valid
- *\li	'name' to be valid
- *\li	'foundname' to be initialized and associated with a fixedname or NULL
- *\li	'zone' to be non NULL and '*zone' to be NULL
+ * \li	'zt' to be valid
+ * \li	'name' to be valid
+ * \li	'foundname' to be initialized and associated with a fixedname or NULL
+ * \li	'zone' to be non NULL and '*zone' to be NULL
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
- *\li	#DNS_R_PARTIALMATCH
- *\li	#ISC_R_NOTFOUND
- *\li	#ISC_R_NOSPACE
+ * \li	#DNS_R_PARTIALMATCH
+ * \li	#ISC_R_NOTFOUND
+ * \li	#ISC_R_NOSPACE
  */
 
 void
@@ -105,7 +105,7 @@ dns_zt_detach(dns_zt_t **ztp);
  * zonetable will be freed.  In either case 'ztp' is set to NULL.
  *
  * Requires:
- *\li	'*ztp' to be valid
+ * \li	'*ztp' to be valid
  */
 
 void
@@ -116,7 +116,7 @@ dns_zt_flushanddetach(dns_zt_t **ztp);
  * set to NULL.
  *
  * Requires:
- *\li	'*ztp' to be valid
+ * \li	'*ztp' to be valid
  */
 
 void
@@ -125,8 +125,8 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
  * Attach 'zt' to '*ztp'.
  *
  * Requires:
- *\li	'zt' to be valid
- *\li	'*ztp' to be NULL
+ * \li	'zt' to be valid
+ * \li	'*ztp' to be NULL
  */
 
 isc_result_t

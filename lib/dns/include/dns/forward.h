@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.h,v 1.6 2005/04/27 04:56:55 sra Exp $ */
+/* $Id: forward.h,v 1.7 2005/07/18 05:58:59 marka Exp $ */
 
 #ifndef DNS_FORWARD_H
 #define DNS_FORWARD_H 1
@@ -44,8 +44,8 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep);
  * \li	fwdtablep != NULL && *fwdtablep == NULL
  *
  * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
+ * \li	#ISC_R_SUCCESS
+ * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t

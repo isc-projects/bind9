@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.81 2005/04/27 04:55:50 sra Exp $ */
+/* $Id: interfacemgr.c,v 1.82 2005/07/18 05:58:56 marka Exp $ */
 
 /*! \file */
 
@@ -41,18 +41,18 @@
 
 /*% nameserver interface manager structure */
 struct ns_interfacemgr {
-	unsigned int		magic;		/*% Magic number. */
+	unsigned int		magic;		/*%< Magic number. */
 	int			references;
 	isc_mutex_t		lock;
-	isc_mem_t *		mctx;		/*% Memory context. */
-	isc_taskmgr_t *		taskmgr;	/*% Task manager. */
-	isc_socketmgr_t *	socketmgr;	/*% Socket manager. */
+	isc_mem_t *		mctx;		/*%< Memory context. */
+	isc_taskmgr_t *		taskmgr;	/*%< Task manager. */
+	isc_socketmgr_t *	socketmgr;	/*%< Socket manager. */
 	dns_dispatchmgr_t *	dispatchmgr;
-	unsigned int		generation;	/*% Current generation no. */
+	unsigned int		generation;	/*%< Current generation no. */
 	ns_listenlist_t *	listenon4;
 	ns_listenlist_t *	listenon6;
-	dns_aclenv_t		aclenv;		/*% Localhost/localnets ACLs */
-	ISC_LIST(ns_interface_t) interfaces;	/*% List of interfaces. */
+	dns_aclenv_t		aclenv;		/*%< Localhost/localnets ACLs */
+	ISC_LIST(ns_interface_t) interfaces;	/*%< List of interfaces. */
 	ISC_LIST(isc_sockaddr_t) listenon;
 };
 

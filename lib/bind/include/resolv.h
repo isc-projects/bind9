@@ -50,7 +50,7 @@
 
 /*%
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.21 2005/04/27 04:56:16 sra Exp $
+ *	$Id: resolv.h,v 1.22 2005/07/18 05:58:57 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -229,7 +229,7 @@ union res_sockaddr_union {
 #define	RES_IPV4ONLY	0x00000002	/*%< IPv4 only */
 #define	RES_IPV6ONLY	0x00000004	/*%< IPv6 only */
 
-/*
+/*%
  * Resolver options (keep these in synch with res_debug.c, please)
  */
 #define RES_INIT	0x00000001	/*%< address initialized */

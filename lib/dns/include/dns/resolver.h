@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.47 2005/06/27 00:15:44 marka Exp $ */
+/* $Id: resolver.h,v 1.48 2005/07/18 05:58:59 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -444,7 +444,7 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver, dns_name_t *name,
 
 isc_boolean_t
 dns_resolver_digest_supported(dns_resolver_t *resolver, unsigned int digest_type);
-/*
+/*%<
  * Is this digest type supported.
  */
 

@@ -15,13 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.47 2005/04/27 04:57:20 sra Exp $ */
-
-/*! \file
- */
+/* $Id: sockaddr.h,v 1.48 2005/07/18 05:59:00 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
+
+/*! \file */
 
 #include <isc/lang.h>
 #include <isc/net.h>
@@ -45,21 +44,21 @@ struct isc_sockaddr {
 
 typedef ISC_LIST(struct isc_sockaddr)	isc_sockaddrlist_t;
 
-#define ISC_SOCKADDR_CMPADDR	  0x0001	/* compare the address
-						 * sin_addr/sin6_addr */
-#define ISC_SOCKADDR_CMPPORT 	  0x0002	/* compare the port
-						 * sin_port/sin6_port */
-#define ISC_SOCKADDR_CMPSCOPE     0x0004	/* compare the scope
-						 * sin6_scope */
-#define ISC_SOCKADDR_CMPSCOPEZERO 0x0008	/* when comparing scopes
-						 * zero scopes always match */
+#define ISC_SOCKADDR_CMPADDR	  0x0001	/*%< compare the address
+						 *   sin_addr/sin6_addr */
+#define ISC_SOCKADDR_CMPPORT 	  0x0002	/*%< compare the port
+						 *   sin_port/sin6_port */
+#define ISC_SOCKADDR_CMPSCOPE     0x0004	/*%< compare the scope
+						 *   sin6_scope */
+#define ISC_SOCKADDR_CMPSCOPEZERO 0x0008	/*%< when comparing scopes
+						 *   zero scopes always match */
 
 ISC_LANG_BEGINDECLS
 
 isc_boolean_t
 isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 		     unsigned int flags);
-/*
+/*%<
  * Compare the elements of the two address ('a' and 'b') as specified
  * by 'flags' and report if they are equal or not.
  *
@@ -116,7 +115,7 @@ isc_sockaddr_anyofpf(isc_sockaddr_t *sockaddr, int family);
  * 'family'.
  *
  * Requires:
- *	'family' is AF_INET or AF_INET6.
+ * \li	'family' is AF_INET or AF_INET6.
  */
 
 void
@@ -183,8 +182,8 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
  * part of the buffer's used region.
  *
  * Returns:
- *	ISC_R_SUCCESS
- *	ISC_R_NOSPACE	The text or the null termination did not fit.
+ * \li	ISC_R_SUCCESS
+ * \li	ISC_R_NOSPACE	The text or the null termination did not fit.
  */
 
 void
@@ -221,13 +220,13 @@ isc_sockaddr_issitelocal(isc_sockaddr_t *sa);
 
 isc_result_t
 isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
-/*%<
+/*
  *  Create a UNIX domain sockaddr that refers to path.
  *
  * Returns:
- *	ISC_R_NOSPACE
- *	ISC_R_NOTIMPLEMENTED
- *	ISC_R_SUCCESS
+ * \li	ISC_R_NOSPACE
+ * \li	ISC_R_NOTIMPLEMENTED
+ * \li	ISC_R_SUCCESS
  */
 
 #define ISC_SOCKADDR_FORMATSIZE \
