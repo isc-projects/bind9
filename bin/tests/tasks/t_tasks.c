@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.34 2004/09/21 02:12:08 marka Exp $ */
+/* $Id: t_tasks.c,v 1.35 2005/07/18 05:03:09 marka Exp $ */
 
 #include <config.h>
 
@@ -442,7 +442,7 @@ t2_callback(isc_task_t *task, isc_event_t *event) {
 
 	if (event->ev_arg) {
 
-		event->ev_arg = (void *)(((int) event->ev_arg) - 1);
+		event->ev_arg = (void *)(((uintptr_t) event->ev_arg) - 1);
 
 		/*
 		 * Create a new task and forward the message.
@@ -475,7 +475,7 @@ t2_callback(isc_task_t *task, isc_event_t *event) {
 
 static int
 t_tasks2(void) {
-	int			ntasks;
+	uintptr_t		ntasks;
 	int			result;
 	char			*p;
 	isc_event_t		*event;
@@ -502,12 +502,13 @@ t_tasks2(void) {
 		ntasks = atoi(p);
 	else
 		ntasks = T2_NTASKS;
-	if (ntasks == 0) {
-		t_info("Bad config value for ISC_TASKS_MIN, %d\n", ntasks);
+	if (ntasks == 0U) {
+		t_info("Bad config value for ISC_TASKS_MIN, %lu\n",
+		       (unsigned long)ntasks);
 		return(T_UNRESOLVED);
 	}
 
-	t_info("Testing with %d tasks\n", ntasks);
+	t_info("Testing with %lu tasks\n", (unsigned long)ntasks);
 
 	isc_result = isc_mutex_init(&T2_mx);
 	if (isc_result != ISC_R_SUCCESS) {
@@ -1516,7 +1517,7 @@ t_taskpurge_x(int sender, int type, int tag, void *purge_sender,
 					    t10_event2, NULL, sizeof(*event));
 
 				eventtab[event_cnt]->ev_tag =
-					(void *)((int)tag + tag_cnt);
+					(void *)((uintptr_t)tag + tag_cnt);
 
 				/*
 				 * Make all odd message non-purgable.
