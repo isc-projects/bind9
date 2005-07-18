@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.5.2.16 $)
+AC_REVISION($Revision: 1.83.2.5.2.17 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -175,6 +175,7 @@ AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/selec
 AC_C_CONST
 AC_C_INLINE
 AC_TYPE_SIZE_T
+AC_CHECK_TYPE(uintptr_t,unsigned long)
 AC_HEADER_TIME
 #
 # check if we need to #include sys/select.h explicitly
