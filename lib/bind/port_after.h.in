@@ -252,7 +252,7 @@ char * strsep(char **stringp, const char *delim);
 #endif
 
 #ifndef ALIGN
-#define ALIGN(p) (((unsigned int)(p) + (sizeof(int) - 1)) & ~(sizeof(int) - 1))
+#define ALIGN(p) (((uintptr_t)(p) + (sizeof(long) - 1)) & ~(sizeof(long) - 1))
 #endif
 
 #ifdef NEED_SETGROUPENT
