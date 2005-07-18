@@ -1,0 +1,672 @@
+
+
+Network Working Group                                       S. Josefsson
+Internet-Draft                                              RSA Security
+Expires: August 23, 2002                                      W. Griffin
+                                                                NAI Labs
+                                                       February 22, 2002
+
+
+                 Notes on Application Key Distribution
+                   draft-josefsson-siked-framework-00
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups.  Note that
+   other groups may also distribute working documents as Internet-
+   Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/ietf/1id-abstracts.txt.
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html.
+
+   This Internet-Draft will expire on August 23, 2002.
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   The debate over whether to store cryptographic keys used by
+   applications in the Domain Name System or not has been going on for
+   some time.  There are arguments for and against [6].  This document
+   tries to take a step further and provides some initial terminology,
+   problem statement and use cases for storing application keys in DNS,
+   in order to enable more substantiated input to the discussion.  We
+   mention some proposed solutions so far.  We also give some
+   requirements on a solution (be it DNS based or not) that would
+   satisfy the use cases.
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 1]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+Table of Contents
+
+   1. Introduction . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   2. Terminology  . . . . . . . . . . . . . . . . . . . . . . . . .   3
+   3. Problem Statement  . . . . . . . . . . . . . . . . . . . . . .   4
+   4. Applications . . . . . . . . . . . . . . . . . . . . . . . . .   5
+   5. Use cases  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   6. Survey of Proposals  . . . . . . . . . . . . . . . . . . . . .   7
+   7. Requirements on a Solution . . . . . . . . . . . . . . . . . .   9
+      References . . . . . . . . . . . . . . . . . . . . . . . . . .   9
+      Authors' Addresses . . . . . . . . . . . . . . . . . . . . . .  11
+      Full Copyright Statement . . . . . . . . . . . . . . . . . . .  12
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 2]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+1. Introduction
+
+   The intention of this draft is to document some of the discussions
+   that have taken place on a number of mailing lists, including the
+   DNSSEC mailing list [8], the DNSEXT mailing list [9], and the KEYDIST
+   mailing list [10], regarding (primarily) distributing keys for
+   Internet applications without additional end-user configuration.
+
+   The goal of this draft is not to advocate one single solution.
+   Instead, the goal is to be a first step towards more well-defined
+   terminology and a framework in which proposed solutions can be
+   discussed.
+
+   A few suggested proposals are discussed in this document.
+
+   We acknowledge that all areas discussed in this document need further
+   work.
+
+   Comments and feedback is requested, preferably to the keydist mailing
+   list [10].
+
+2. Terminology
+
+      "Application" or "Internet Application"
+
+         Network software that uses Domain names or IP addresses to
+         communicate with other entities.  To operate securely, these
+         applications usually need cryptographic key material.  Examples
+         of applications under considerations are secure IP-based
+         communication (IPSEC [12], SSH [13]) and secure email (OpenPGP
+         [4], S/MIME [14]).
+
+         A note on "infrastructure" vs "application" is appropriate as
+         well, as there has been some confusion about calling IPSEC an
+         "application".  IPSEC is often considered "infrastructure", and
+         applications are something you build on top of IPSEC.  However,
+         from the point of view of looking up keys for use with IPSEC,
+         IPSEC behaves like all other clients to the "lookup keys"
+         system.  Hence, we consider the system that provides lookup and
+         retrieval of application keys the "infrastructure" and all
+         clients of this infrastructure are "applications".  From this
+         point of view, IPSEC is an application.
+
+      "Application Keys"
+
+         The piece of information an application needs to establish
+         secure communication with an entity.  This usually includes
+         cryptographic (public) keys, but may also include other
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 3]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         information such as an address to the security gateway.
+
+         Note that the format of the keys is not fixed, it ranges from
+         PKIX certificates to raw RSA public keys.
+
+         The reason for including "application" in this term is due the
+         DNS-centered origins of these discussions.  Keys in DNS often
+         refer to DNSSEC [3] keys which are used by DNS itself.
+         Applications keys, on the other hand, are used by "applications
+         of DNS", thus "application keys".
+
+      "Application Key Infrastructure"
+
+         This is the mechanism that provides application key
+         distribution.  The discussions have so far been centered around
+         using DNS for this purpose.  One solution is to simply store
+         the application keys within DNS, another is to only store a
+         pointer in DNS, pointing to where the keys can retrieved.  The
+         rationale behind this is that DNS provides name to address
+         mapping on the Internet, and most applications need to find
+         keys based on such names.  Involving DNS is natural, unless one
+         aims at replacing or amending the DNS name space.
+
+         Note that the infrastructure is in general not assumed to be
+         secured.  That is, e.g., DNSSEC is not assumed to be deployed.
+         However, some problems and use cases may assume partial or full
+         deployment of DNSSEC.  Also, some problems and use cases may
+         assume usage of secure peer to peer DNS communication using
+         TSIG [16].
+
+
+3. Problem Statement
+
+   At least the following two problems has been discussed:
+
+      "Opportunistic Encryption" or "Zero configuration security"
+
+         Certain applications have a need to find cryptographic keying
+         material for entities which they have no prior arrangement
+         with.  Examples includes IPSEC and secure email.  In both cases
+         the user only know the address of the remote machine or person,
+         and need to locate and retrieve the keying material for this
+         entity.
+
+      "Campus-based application key distribution"
+
+         Secure remote machine administration requires that keys are
+         distributed somehow.  Mechanisms used by, e.g., SSH include
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 4]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         retrieving the key from the remote machine and asking the user
+         if she wants to trust it or not (including a fingerprint of the
+         key for verification purposes), and later store the keys in a
+         local file.  Other applications have other mechanisms.
+
+   The solution to these two problems can be related to DNS.  People
+   ultimately trust names of machines (hostnames) or persons (email
+   addresses).  Making the trust point relate to DNS thus makes sense,
+   because DNS is used to lookup hostnames and mail servers for email
+   addresses.
+
+4. Applications
+
+   This section discusses how some applications and how they currently
+   use keys/certificates.
+
+      Opportunistic Encryption in IPsec
+
+         [17] discusses a protocol for opportunistic encryption in
+         IPsec.  That protocol currently uses a TXT record to store a
+         Gateway IP address and the public key associated with the
+         gateway.  This TXT record is placed in the reverse map at the
+         label of the host that is authorizing the gateway to perform
+         opportunistic IPsec on its behalf.
+
+      Opportunistic S/MIME and OpenPGP
+
+         S/MIME uses X.509 public key certificates and OpenPGP uses
+         public key certificates defined by RFC2440.  In practice,
+         S/MIME uses pre-configured CAs in mail readers and OpenPGP
+         implementations uses web of trust verification possibly aided
+         by online databases such as pgp.net or keyserver.net.  However,
+         these models are not required by S/MIME or OpenPGP per se, but
+         this is what is currently deployed.
+
+      Secure Shell (SSH)
+
+         Secure Shell currently uses a client-side "local database that
+         associates each host name (as typed by the user) with the
+         corresponding public host key" [18].  [18] also describes a
+         heirarchy model of trust, where the clients are configured with
+         a trusted CA root key, and the "host name-to-key association is
+         certified by some trusted certification authority."
+
+      STIME
+
+         [19] defines how NTP uses Public Key Cryptography to
+         authenticate servers.  The protocol assumes, "public encryption
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 5]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         keys and certificates must be retrievable directly from servers
+         without requiring secured channels; however, the fundamental
+         security of identification credentials and public values bound
+         to those credentials must be a function of external certificate
+         authorities and/or webs of trust."
+
+
+5. Use cases
+
+      Opportunistic IPSEC
+
+         See [17].
+
+      Binding Updates for Mobile IP
+
+         Assuming DNSSEC is deployed, attaching KEY records for Internet
+         hosts to achieve secure Binding Updates in Mobile IP is
+         compelling.  It would make it possible for a Mobile Node to
+         prove that it owns the IP address it claims to do, by providing
+         a signed statement to a Correspondent Node.  The Correspondent
+         Node would use DNS and DNSSEC to retrieve the hosts' public key
+         and verify the signed statement.  This needs to be combined
+         with DNS Dynamic Update (authorized by, e.g., a DHCP server) to
+         allow the Mobile Node to insert its own KEY record into the DNS
+         space in the visiting network.
+
+         Binding Updates for Mobile IP achieved in this manner can be
+         seen as a special case of Opportunistic IPSEC.
+
+      Opportunistic S/MIME and OpenPGP
+
+         Storing PGP keys in DNS would be possible using the CERT RR
+         [5].  The naming standard used could be the suggested one (SOA
+         translation of email address), or based on the PGP KeyId, e.g.,
+         0x47114711.dnskeys.net.
+
+      SSH with improved DNS public key verification using [20]:
+
+         A campus runs SSH and either DNSSEC or TSIG (clients configured
+         with DNSSEC key or TSIG key) to protect from people that plug
+         in their laptops and tries to gain unauthorized access using
+         spoofing techniques.  When contacting SSH hosts the first time,
+         instead of receiving:
+
+   The authenticity of host 'cc (195.42.214.244)' can't be established.
+   RSA key fingerprint is 6b:9a:84:7b:1c:8f:a2:7c:51:e9:2a:a4:04:86:6d:b2.
+   Are you sure you want to continue connecting (yes/no)?
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 6]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         which most users is not able to answer correctly, the SSH host
+         key is retrieved from DNS, verified using the DNSSEC or TSIG,
+         and the following question might be presented:
+
+   The host key of 'cc (195.42.214.244)' authenticated by DNSSEC root 'kth.se'.
+   RSA key fingerprint is 6b:9a:84:7b:1c:8f:a2:7c:51:e9:2a:a4:04:86:6d:b2.
+   Are you sure you want to continue connecting (yes/no)?
+
+         This enables the user to relate the question to something she
+         might already trust (the "kth.se" DNS zone).  In practice,
+         administrators will probably configure the SSH client to always
+         trust certain SSH zone keys and thereby removing the user
+         interaction completely.
+
+
+6. Survey of Proposals
+
+      "Store application keys in the CERT RR, subtyping for every
+      applications"
+
+         This proposal re-uses the already defined CERT RR, but
+         clarifies it to be used for non-certificate lookups as well.
+         Given that the CERT RR allows for PKIX CRLs (which isn't a
+         certificate), and that from the DNS software's point of view
+         there is no difference between a certificate and a raw key,
+         this interpretation have some bearing in the specification.
+
+         This would not require any changes to DNS software.  It would
+         make it easy for applications that support more than one format
+         of applications keys, e.g.  both raw key and X.509 certificate.
+
+         This proposal may be amended with owner name guidelines, such
+         as [7] for email applications.
+
+         For certificates, no additional security infrastructure is
+         required.  For raw keys DNSSEC, TSIG or similar is required.
+
+      "Use APPKEY for raw keys and CERT for certificates, subtyping for
+      every application"
+
+         This is similar to the previous, but that it separates raw keys
+         from certificate like formats.
+
+         This has the same advantages and disadvantages than the
+         previous proposal, but it does add complexity in case software
+         supports both raw keys and certificates.  It also requires that
+         DNS administrators and DNS software knows if a certain blob is
+         a key or certificate when storing it in DNS.
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 7]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         All APPKEYs must be protected with DNSSEC, TSIG or similar.
+         All CERT RR do not in principle require DNSSEC, TSIG or similar
+         but may benefit from it.
+
+      "Store referral in DNS, retrieve keys via other protocols"
+
+         This is possible now using, e.g., SRV and LDAP.
+
+         If raw keys are used, DNSSEC and LDAP over TLS or something
+         similar is required.  If certs are used, plain DNS and LDAP
+         would work.
+
+         However, since there isn't one global PKI, the security offered
+         by this is not sufficient in general.  Consider Alice asking
+         for Bob's certificate using SRV and LDAP, and receiving a
+         certificate signed by a CA which Alice does not know or trust.
+         This model does work well in situations where Alice and Bob
+         share the same CA or uses cross certified CAs.
+
+      "Store referral with fingerprint in DNS, retrieve keys via other
+      protocols"
+
+         This is similar to the previous proposal, but it makes it
+         possible to chose the security infrastructure that should be
+         used.  Either leverage on DNSSEC, TSIG or similar, or protect
+         the other protocol with, e.g., TLS, or use certificates (this
+         assumes that involved entities has a trust relationship with a
+         common CA).
+
+      "Define RR for each application"
+
+         This pushes everything onto application designers, forcing them
+         to write the specification.  Then this effort would change into
+         simply giving recommendations on how to write such
+         specifications.
+
+         Security-wise it gives total flexibility, however each
+         application need to write a document similar to this discussing
+         if they need raw keys, certificates etc, and if they will store
+         the key or certificate in DNS or use a separate protocol.  It
+         also requires that DNS software handles unknown RRs correctly
+         (or that all new RRs are supported by DNS software directly,
+         which is unlikely to happen).
+
+
+
+
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 8]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+7. Requirements on a Solution
+
+   "MUST be possible to locate application keys given only IP address or
+   hostname, and access to standard Internet infrastructure"
+
+   Interpretation: This acknowledge that IP addresses and hostnames are
+   used to find application keys, not X.400 DN or OpenPGP key IDs.  It
+   also acknowledge that user configuration (of e.g.  LDAP servers)
+   should not be necessary.  The mechanism should require "zero
+   configuration" by the end user.
+
+   "MUST be possible to secure locating and retrival of the key"
+
+   Interpretation: This could be achieved with DNSSEC, DNS TSIG, or
+   referral from DNS with a key fingerprint in DNS similar to WPKI [14],
+   or using CMS [14] or TLS [15] with PKIX certificates [11].
+
+   "SHOULD be efficient"
+
+   Interpretation: UDP would be an advantage, but this is subject to the
+   size of keying material.  Raw keys might fit into UDP, but
+   certificates will not in general.
+
+   "MUST not create operational problems"
+
+   Interpretation: E.g., the DNS system should not have operational
+   problems resulting from this use.
+
+Acknowledgement
+
+   Thanks to members of the Namedroppers, DNSSEC and KEYDIST mailing
+   list.
+
+References
+
+   [1]   Mockapetris, P., "Domain Names - Concepts and Facilities", RFC
+         1034, November 1987.
+
+   [2]   Mockapetris, P., "Domain Names - Implementation and
+         Specification", RFC 1035, November 1987.
+
+   [3]   Eastlake, D., "Domain Name System Security Extensions", RFC
+         2535, March 1999.
+
+   [4]   Callas, J., Donnerhacke, L., Finney, H. and R. Thayer, "OpenPGP
+         Message Format", RFC 2440, November 1998.
+
+   [5]   Eastlake, D. and O. Gudmundsson, "Storing Certificates in the
+
+
+
+Josefsson & Griffin      Expires August 23, 2002                [Page 9]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         Domain Name System (DNS)", RFC 2538, March 1999.
+
+   [6]   Lewis, E., "Discussing Application Public Keys in the DNS", I-D
+         draft-lewis-siked-dnsargs, February 2002.
+
+   [7]   Schlyter, J., Josefsson, S. and R. Arends, "Storing
+         certificates in DNS for email applications", I-D draft-
+         schlyter-mailcert-dns-00.txt, November 2001.
+
+   [8]   "DNSSEC Mailing List", Email dnssec@cafax.se.
+
+   [9]   "DNSEXT Mailing List", Email namedroppers@ops.ietf.org.
+
+   [10]  "KEYDIST Mailing List", Email keydist@cafax.se.
+
+   [11]  Housley, R., Ford, W., Polk, W. and D. Solo, "Internet X.509
+         Public Key Infrastructure Certificate and CRL Profile", RFC
+         2459, January 1999.
+
+   [12]  Kent, S. and R. Atkinson, "Security Architecture for the
+         Internet Protocol", RFC 2401, November 1998.
+
+   [13]  "Secure Shell Working Group", WWW
+         http://www.ietf.org/html.charters/secsh-charter.html.
+
+   [14]  Housley, R., "Cryptographic Message Syntax", RFC 2630, June
+         1999.
+
+   [15]  Dierks, T. and C. Allen, "The TLS Protocol Version 1.0", RFC
+         2246, January 1999.
+
+   [16]  Vixie, P., Gudmundsson, O., Eastlake 3rd, D. and B. Wellington,
+         "Secret Key Transaction Authentication for DNS (TSIG)", RFC
+         2845, May 2000.
+
+   [17]  Richardsson, M., Redelmeier, D. and H. Spencer, "A method for
+         doing opportunistic encryption with IKE", I-D draft-richardson-
+         ipsec-opportunistic-02.txt, September 2001.
+
+   [18]  Ylonen, T., Kivinen, T., Saarinen, M., Rinne, T. and S.
+         Lehtinen, "SSH Protocol Architecture", I-D draft-ietf-secsh-
+         architecture-12.txt, January 2002.
+
+   [19]  Mills, D., "Public key Cryptography for the Network Time
+         Protocol Version 2", I-D draft-ietf-stime-ntpauth-03.txt,
+         February 2002.
+
+   [20]  Griffin, W., "Storing SSH Host Keys in DNS", I-D draft-ietf-
+
+
+
+Josefsson & Griffin      Expires August 23, 2002               [Page 10]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+         secsh-dns-key-format-00.txt, May 2001.
+
+   [21]  WAP Forum, "WAP Public Key Infrastructure Definition", WAP 217-
+         WPKI, April 2001.
+
+
+Authors' Addresses
+
+   Simon Josefsson
+   RSA Security
+   Arenav„gen 29
+   Stockholm  121 29
+   Sweden
+
+   Phone: +46 8 7250914
+   EMail: sjosefsson@rsasecurity.com
+
+
+   Wesley Griffin
+   NAI Labs
+
+   EMail: wgriffin@tislabs.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002               [Page 11]
+
+Internet-Draft    Notes on Application Key Distribution    February 2002
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Josefsson & Griffin      Expires August 23, 2002               [Page 12]
+

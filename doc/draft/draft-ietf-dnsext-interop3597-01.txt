@@ -1,39 +1,39 @@
+
 DNS Extensions Working Group                                 J. Schlyter
-Internet-Draft                                              May 19, 2005
-Expires: November 20, 2005
+Internet-Draft                                           August 24, 2004
+Expires: February 22, 2005
 
 
                      RFC 3597 Interoperability Report
-                   draft-ietf-dnsext-interop3597-02.txt
+                   draft-ietf-dnsext-interop3597-01.txt
 
 Status of this Memo
 
-    By submitting this Internet-Draft, each author represents that any
-    applicable patent or other IPR claims of which he or she is aware
-    have been or will be disclosed, and any of which he or she becomes
-    aware will be disclosed, in accordance with Section 6 of BCP 79.
+    By submitting this Internet-Draft, I certify that any applicable
+    patent or other IPR claims of which I am aware have been disclosed,
+    and any of which I become aware will be disclosed, in accordance with
+    RFC 3667.
 
     Internet-Drafts are working documents of the Internet Engineering
-    Task Force (IETF), its areas, and its working groups.  Note that
-    other groups may also distribute working documents as Internet-
-    Drafts.
+    Task Force (IETF), its areas, and its working groups. Note that other
+    groups may also distribute working documents as Internet-Drafts.
 
     Internet-Drafts are draft documents valid for a maximum of six months
     and may be updated, replaced, or obsoleted by other documents at any
-    time.  It is inappropriate to use Internet-Drafts as reference
+    time. It is inappropriate to use Internet-Drafts as reference
     material or to cite them other than as "work in progress."
 
-    The list of current Internet-Drafts can be accessed at
-    http://www.ietf.org/ietf/1id-abstracts.txt.
+    The list of current Internet-Drafts can be accessed at http://
+    www.ietf.org/ietf/1id-abstracts.txt.
 
     The list of Internet-Draft Shadow Directories can be accessed at
     http://www.ietf.org/shadow.html.
 
-    This Internet-Draft will expire on November 20, 2005.
+    This Internet-Draft will expire on February 22, 2005.
 
 Copyright Notice
 
-    Copyright (C) The Internet Society (2005).
+    Copyright (C) The Internet Society (2004). All Rights Reserved.
 
 Abstract
 
@@ -49,9 +49,11 @@ Abstract
 
 
 
-Schlyter                Expires November 20, 2005               [Page 1]
 
-Internet-Draft      RFC 3597 Interoperability Report            May 2005
+
+Schlyter               Expires February 22, 2005                [Page 1]
+
+Internet-Draft      RFC 3597 Interoperability Report         August 2004
 
 
 Table of Contents
@@ -59,14 +61,14 @@ Table of Contents
     1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
     2.  Implementations  . . . . . . . . . . . . . . . . . . . . . . .  3
     3.  Tests  . . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
-      3.1   Authoritative Primary Name Server  . . . . . . . . . . . .  3
-      3.2   Authoritative Secondary Name Server  . . . . . . . . . . .  3
-      3.3   Full Recursive Resolver  . . . . . . . . . . . . . . . . .  4
-      3.4   Stub Resolver  . . . . . . . . . . . . . . . . . . . . . .  4
-      3.5   DNSSEC Signer  . . . . . . . . . . . . . . . . . . . . . .  4
+    3.1 Authoritative Primary Name Server  . . . . . . . . . . . . . .  3
+    3.2 Authoritative Secondary Name Server  . . . . . . . . . . . . .  3
+    3.3 Full Recursive Resolver  . . . . . . . . . . . . . . . . . . .  3
+    3.4 Stub Resolver  . . . . . . . . . . . . . . . . . . . . . . . .  3
+    3.5 DNSSEC Signer  . . . . . . . . . . . . . . . . . . . . . . . .  4
     4.  Problems found . . . . . . . . . . . . . . . . . . . . . . . .  4
     5.  Summary  . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
-    6.  Normative References . . . . . . . . . . . . . . . . . . . . .  4
+        Normative References . . . . . . . . . . . . . . . . . . . . .  4
         Author's Address . . . . . . . . . . . . . . . . . . . . . . .  4
     A.  Test zone data . . . . . . . . . . . . . . . . . . . . . . . .  5
         Intellectual Property and Copyright Statements . . . . . . . .  6
@@ -105,26 +107,26 @@ Table of Contents
 
 
 
-Schlyter                Expires November 20, 2005               [Page 2]
+Schlyter               Expires February 22, 2005                [Page 2]
 
-Internet-Draft      RFC 3597 Interoperability Report            May 2005
+Internet-Draft      RFC 3597 Interoperability Report         August 2004
 
 
-1.  Introduction
+1. Introduction
 
     This memo documents the result from the RFC 3597 (Handling of Unknown
     DNS Resource Record Types) interoperability testing.  The test was
     performed during June and July 2004 by request of the IETF DNS
     Extensions Working Group.
 
-2.  Implementations
+2. Implementations
 
-    The following is a list, in alphabetic order, of implementations
-    tested for compliance with RFC 3597:
+    The following is a list, in alphabetic order, of implementations for
+    compliance of RFC 3597:
 
        DNSJava 1.6.4
-       ISC BIND 8.4.5
-       ISC BIND 9.3.0
+       ISC BIND 8.4.5rc4
+       ISC BIND 9.3.0rc2
        NSD 2.1.1
        Net::DNS 0.47 patchlevel 1
        Nominum ANS 2.2.1.0.d
@@ -137,51 +139,43 @@ Internet-Draft      RFC 3597 Interoperability Report            May 2005
        Stub Resolver (4)
        DNSSEC Zone Signers (2)
 
-    All listed implementations are genetically different.
+3. Tests
 
-3.  Tests
-
-    The following tests was been performed to validate compliance with
-    RFC 3597 section 3 ("Transparency"), 4 ("Domain Name Compression")
-    and 5 ("Text Representation").
-
-3.1  Authoritative Primary Name Server
+3.1 Authoritative Primary Name Server
 
     The test zone data (Appendix A) was loaded into the name server
     implementation and the server was queried for the loaded information.
 
-3.2  Authoritative Secondary Name Server
+3.2 Authoritative Secondary Name Server
 
     The test zone data (Appendix A) was transferred using AXFR from
     another name server implementation and the server was queried for the
     transferred information.
 
-
-
-
-
-
-Schlyter                Expires November 20, 2005               [Page 3]
-
-Internet-Draft      RFC 3597 Interoperability Report            May 2005
-
-
-3.3  Full Recursive Resolver
+3.3 Full Recursive Resolver
 
     A recursive resolver was queried for resource records from a domain
     with the test zone data (Appendix A).
 
-3.4  Stub Resolver
+3.4 Stub Resolver
 
     A stub resolver was used to query resource records from a domain with
+
+
+
+Schlyter               Expires February 22, 2005                [Page 3]
+
+Internet-Draft      RFC 3597 Interoperability Report         August 2004
+
+
     the test zone data (Appendix A).
 
-3.5  DNSSEC Signer
+3.5 DNSSEC Signer
 
-    A DNSSEC signer was used to sign a zone with test zone data
-    (Appendix A).
+    A DNSSEC signer was used to sign a zone with test zone data (Appendix
+    A).
 
-4.  Problems found
+4. Problems found
 
     Two implementations had problems with text presentation of zero
     length RDATA.
@@ -191,14 +185,14 @@ Internet-Draft      RFC 3597 Interoperability Report            May 2005
 
     Bug reports were filed for problems found.
 
-5.  Summary
+5. Summary
 
     Unknown type codes works in the tested authoritative servers,
     recursive resolvers and stub clients.
 
     No changes are needed to advance RFC 3597 to draft standard.
 
-6.  Normative References
+Normative References
 
     [1]  Gustafsson, A., "Handling of Unknown DNS Resource Record (RR)
          Types", RFC 3597, September 2003.
@@ -208,7 +202,7 @@ Author's Address
 
     Jakob Schlyter
 
-    Email: jakob@rfc.se
+    EMail: jakob@rfc.se
 
 
 
@@ -217,12 +211,20 @@ Author's Address
 
 
 
-Schlyter                Expires November 20, 2005               [Page 4]
-
-Internet-Draft      RFC 3597 Interoperability Report            May 2005
 
 
-Appendix A.  Test zone data
+
+
+
+
+
+
+Schlyter               Expires February 22, 2005                [Page 4]
+
+Internet-Draft      RFC 3597 Interoperability Report         August 2004
+
+
+Appendix A. Test zone data
 
     ; A-record encoded as TYPE1
     a  TYPE1  \# 4 7f000001
@@ -273,9 +275,9 @@ Appendix A.  Test zone data
 
 
 
-Schlyter                Expires November 20, 2005               [Page 5]
+Schlyter               Expires February 22, 2005                [Page 5]
 
-Internet-Draft      RFC 3597 Interoperability Report            May 2005
+Internet-Draft      RFC 3597 Interoperability Report         August 2004
 
 
 Intellectual Property Statement
@@ -285,9 +287,9 @@ Intellectual Property Statement
     pertain to the implementation or use of the technology described in
     this document or the extent to which any license under such rights
     might or might not be available; nor does it represent that it has
-    made any independent effort to identify any such rights.  Information
-    on the procedures with respect to rights in RFC documents can be
-    found in BCP 78 and BCP 79.
+    made any independent effort to identify any such rights. Information
+    on the IETF's procedures with respect to rights in IETF Documents can
+    be found in BCP 78 and BCP 79.
 
     Copies of IPR disclosures made to the IETF Secretariat and any
     assurances of licenses to be made available, or the result of an
@@ -299,7 +301,7 @@ Intellectual Property Statement
     The IETF invites any interested party to bring to its attention any
     copyrights, patents or patent applications, or other proprietary
     rights that may cover technology that may be required to implement
-    this standard.  Please address the information to the IETF at
+    this standard. Please address the information to the IETF at
     ietf-ipr@ietf.org.
 
 
@@ -316,7 +318,7 @@ Disclaimer of Validity
 
 Copyright Statement
 
-    Copyright (C) The Internet Society (2005).  This document is subject
+    Copyright (C) The Internet Society (2004). This document is subject
     to the rights, licenses and restrictions contained in BCP 78, and
     except as set forth therein, the authors retain all their rights.
 
@@ -329,6 +331,5 @@ Acknowledgment
 
 
 
-Schlyter                Expires November 20, 2005               [Page 6]
-
+Schlyter               Expires February 22, 2005                [Page 6]
 
