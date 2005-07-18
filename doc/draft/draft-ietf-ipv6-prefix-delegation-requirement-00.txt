@@ -1,0 +1,360 @@
+Internet Engineering Task Force                           Shin Miyakawa
+INTERNET-DRAFT                                       NTT Communications
+<draft-ietf-ipv6-prefix-delegation-requirement-00.txt>
+
+Expires: May 1, 2003
+                                                          Nov 1, 2002
+
+
+                Requirements for IPv6 prefix delegation
+
+
+Status of this Memo
+
+This document is an Internet-Draft and is in full conformance with all
+provisions of Section 10 of RFC2026.
+
+Internet-Drafts are working documents of the Internet Engineering Task
+Force (IETF), its areas, and its working groups.  Note that other groups
+may also distribute working documents as Internet-Drafts.
+
+Internet-Drafts are draft documents valid for a maximum of six months
+and may be updated, replaced, or obsoleted by other documents at any
+time.  It is inappropriate to use Internet-Drafts as reference material
+or to cite them other than as ``work in progress.''
+
+To view the list Internet-Draft Shadow Directories, see
+http://www.ietf.org/shadow.html.
+
+Distribution of this memo is unlimited.
+
+The internet-draft will expire in 6 months.  The date of expiration will
+be May 1, 2003.
+
+
+Abstract
+
+
+   This document describes requirements about how an IPv6 address prefix
+   should be delegated to an IPv6 subscriber's  network (or "site").
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Motivation
+
+   With the deployment of IPv6 [Deering, 1998] ,several commercial ISPs
+   are ready to offer their services to the public in conjunction with
+   widely deployed IP subscription method such as ADSL and so on.  But,
+   thinking about following situation of IPv6 commercial service as one
+   of the most likely examples,
+
+           IPv6 ISP router
+             |
+             | point-to-point link
+             |
+           User's Site router
+             |
+         ----+----- User's Site Network
+
+   though it is needed a standardized way to delegate one or more IPv6
+   address prefix(es) from the IPv6 ISP to the User's site
+   automatically, it is not identified clearly yet.
+
+   Originally, it seemed that just RA (Router Avertisement) considered
+   as good enough to be used for P-P link between ISP and User's site,
+   but according to the NCCs' recommendations, one site should be
+   delegated /48 usually.
+
+   So, ISP which now would like to start its own IPv6 commercial service
+   TODAY, need to have some method other than RA protocol which only can
+   handle one signle /64 prefix but something else or enhanced
+
+   - to delegate not just one signle /64 prefix to the user - to satisfy
+   all the other (standard) requirements which is needed to realize
+   commercial service
+
+   Therefore, this documents clarifies requirements for IPv6 address
+   prefix delegation from the ISP to the site, especially from the
+   (commercial) ISP point of view to boost IPv6 business quick as
+   possible.
+
+   Requirements for prefix delegation management
+   Focusing commercial IPv6 ISP service, there are several kinds of
+   category of requirements for the mechanism / protocol to delegate one
+   or more IPv6 prefixes from ISP to a site.
+
+   - layer 2 consideration
+
+   The method should work on any layer 2 technologies.  In other words,
+   it should be layer 2 technology independent.  Though, at the same
+   time, it should be noted that now ISP would like to have a solution
+   for Point-to-Point link which has own authentication mechanism first.
+   PPP link with CHAP authentication is a good example.  (Simulated)
+   Ethernet and IEEE802.11 (wireless LAN) should be covered in near
+   future, but they have low priority (just) for now.  It should be
+   clarified that the method should work with all L2 protocols either
+   with authentication mechanism or without, but ISP would like to take
+   advantage of a L2 protocol's authentication mechanism if it exits.
+
+   - accounting
+
+   It should provide accounting capability such as logging about by
+   whom, when and what prefix(es) is used for the service with proper
+   authentication techniques.
+
+   - kinds of prefixes
+
+   It should be able to delegate both statically and dynamically
+   assigned prefix assignment by authenticated identification, depended
+   by resources and/or any reasons.
+
+   - negotiation between ISP and site
+
+   ISP may deny the service, due to various reasons such as there is no
+   contract or bad financial credit etc.  Also ISP should be able to use
+   one single technique to pass parameters of the prefix such as scope
+   (global and/or site), prefix length (/48, /64 or any other length)
+   and any other appropriate related information to the site.  On the
+   other hand, a site should be able to request multiple prefixes to the
+   ISP.  Also a site should be able to pass parameters of the prefix
+   such as scope (global and/or site), prefix length (/48, /64 or any
+   other length), number of prefixes and so on to the ISP to negotiate.
+
+   - less impact on ISP equipments
+
+   ISP usualy use some kind of equipment to provide subscription service
+   to the users such as access concentrating router, PPP server and so
+   on.  This may aggregate thousands or more connections toward the
+   ISP's backbone.  Prefix delegation mechanism must be compatible with
+   this situation.
+
+   References Deering, 1998.  S. Deering and R. Hinden, "Internet
+   Protocol, Version 6 (IPv6) Specification", RFC2460 (December 1998).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+History
+   Jun 2002, first draft was presented as personal submission.
+   At the IETF-54th at Yokohama, it became a working group draft.
+   Nov 2003, the draft published as -01 draft.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Acknowledgements
+   People in Internet Association of Japan have gave me a lot of good input.
+   Team members of NTT Communications IPv6 project, especially Toshi Yamasaki
+   and Yasuhiro Shirasaki, gave me quite useful suggestions for this
+   document. Chairs of IETF IPv6 working group especially Bob Hinden
+   who gave me a good suggestions before I submitted this draft.
+   Also communications with other folks in the IPv6 community, such
+   as WIDE/KAME project, IPv6 and DHCP teams in Cisco systems and so on have
+   been quite helpful. Thanks a lot.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Author's address
+   Shin Miyakawa, Ph.D
+   Innovative IP Architecture Center, NTT Communications Corporation
+   Tokyo, Japan
+   Tel: +81-3-6800-3262
+   Fax: +81-3-5265-2990
+   Email: miyakawa@nttv6.jp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

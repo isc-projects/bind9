@@ -1,0 +1,899 @@
+
+
+
+
+
+
+INTERNET-DRAFT                                                Y. Arrouye
+February 15, 2002                                        RealNames Corp.
+Expires August 15, 2002                                        T. W. Tan
+                                        National University of Singapore
+                                                                  X. Lee
+                                     Chinese Academy of Sciences & CNNIC
+
+             Keywords Systems - Definition and Requirements
+                   draft-arrouye-keywords-reqs-01.txt
+
+Status of this Memo
+
+   This document is an Internet-Draft and is in full conformance with
+   all provisions of Section 10 of RFC2026.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF), its areas, and its working groups. Note that other
+   groups may also distribute working documents as Internet-Drafts.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time. It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   The list of current Internet-Drafts can be accessed at
+   http://www.ietf.org/1id-abstracts.html
+
+   The list of Internet-Draft Shadow Directories can be accessed at
+   http://www.ietf.org/shadow.html
+
+Copyright Notice
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+Abstract
+
+   The DNS (Domain Name System), which was designed as a network
+   resource naming layer, is not able to serve today's Internet users
+   naming needs anymore. Attempts to change the DNS to adapt to those
+   needs, such as the IDN (Internationalized Domain Name) IETF effort,
+   are not only proving themselves unsatisfactory in many ways, they are
+   also limited by the nature of DNS itself. There is now strong
+   consensus that the solution for naming for the Internet requires
+   layers above DNS.  For example, John Klensin has advocated a multi-
+   layered model that undertakes to address the naming needs of the
+   modern Internet. In Klensin's model, the layer immediately above DNS
+   is fully multilingual and user-friendly. It is expected that this
+   layer will support a variety of distinct services. This document
+
+
+
+Arrouye and Tan                                                 [Page 1]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   presents the requirements of one class of naming service called
+   Keywords systems, of which there are several deployed today. These
+   requirements are presented from the perspective of Internet users,
+   for whom there exists no satisfactory standard naming system.
+
+1.  Introduction
+
+   The Internet has evolved from a simple interconnection of networks to
+   a global infrastructure supporting academic, personal, governmental,
+   and commercial communications. As a result, the Internet's main
+   naming system, the DNS, has seen its use change dramatically. As the
+   number of names in demand has increased, so has the realization that
+   there is a profound mismatch between a name meant to be used by
+   humans and one meant to be used by applications. Because they have
+   been the only names available for use on the Internet, domain names
+   could not remain simply resource names, but rather were pushed to
+   became the labels that every Internet user would ideally associate
+   with the content they sought to access. That push has not happened
+   smoothly. Attempts to change the nature of DNS names by
+   internationalizing them do not solve the main problem of the
+   awkwardness of DNS names in a versatile, multilingual, human-friendly
+   naming scheme for the global Internet.
+
+   As result of the apparent inadequacy of approaches that try to
+   improve the ability of the DNS to serve as a universal, human-
+   friendly naming scheme, there is now strong consensus for
+   establishing a new layer of naming on top of the DNS [DNSROLE,
+   DNSSEARCH]. This new layer will allow the Internet community to
+   redefine naming in light of actual needs, without having to change
+   the DNS or rely on its evolution. The community stresses the
+   necessity for the new layer to go beyond the needs of the Domain Name
+   System to realize an architecture capable of accommodating diverse
+   services, with separate ownerships, different scopes and distinct
+   operating models.
+
+   One of the operating and addressing models proposed as a component of
+   this new layer is Keywords systems. These systems offer a
+   multilingual naming layer that is human-friendly and simple to use.
+   Many Keywords systems that offer similar user experiences are in
+   existence today: RealNames, worldwide; CNNIC, in China; 3721, in
+   China; TWNIC in Taiwan; Netpia, in Korea; Nipa, in Thailand, and AOL,
+   within its own network.  The proliferation of Keywords systems in the
+   Asia-Pacific region emphasizes the DNS's lack of support for non-
+   Latin scripts.
+
+   This document presents the requirements that define Keywords systems
+   that will be able to interoperate and expand their usefulness.
+
+
+
+
+Arrouye and Tan                                                 [Page 2]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   The goals of this document are:
+
+   1. To present a clear list of Keywords requirements.
+
+   2. To document the Keywords user experience. This defines how
+      Keywords are being and should be used by Internet users.
+
+   3. To document properties of Keywords systems or Keywords objects
+      that are deemed useful in every Keywords system.
+
+   4. To provide a framework for discussion of Keywords systems and
+      their standardization.
+
+   In this document, the terms Keyword or Keyword name have the same
+   meaning, which is the name of a Keyword. The term Keyword object, or
+   Keyword resource descriptor, refers to a more complex object
+   containing properties, or facets, of which the Keyword name is one.
+   The Keyword object is described in detail in this document.
+
+   The definition of terms related to internationalization are those
+   introduced in [I18NTERMS].
+
+2.  User Requirements that are Met by Keyword Systems
+
+   Keywords systems should be architected to meet user expectations. The
+   industry generally agrees that the following are the basic
+   requirements of any successful Keywords system.
+
+2.1.  Unique Names and Identities
+
+   The Keyword name is the only element of the Keyword object that the
+   users manipulate. In order for Keywords to function as an effective
+   addressing system (see Direct Navigation Using Keywords), a name must
+   be associated with only one destination in a given context (cf.
+   context below).
+
+   The importance of the uniqueness of the names is reinforced by the
+   need to support the notion of online identity. One's identity needs
+   to be clearly and unambiguously defined, and thus unique.
+
+2.2.  Above DNS
+
+   The DNS in its current form cannot accommodate the Internet's current
+   naming requirements. Neither can it be changed significantly.
+   Keywords systems must exist separately from the DNS to offer
+   applications an independent naming interface. The common view of DNS
+   and other addressing system is to place the low level systems below
+   others, so DNS is viewed as above IP addresses, and Keywords systems
+
+
+
+Arrouye and Tan                                                 [Page 3]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   would be viewed as above DNS and URIs.
+
+2.3.  Multilingual
+
+   Keywords must be available in all languages and scripts. Because
+   Keywords systems are implemented electronically, and because it is
+   agreed that it is practical to use a single encoding for the names,
+   the languages and scripts that Keywords must support are those of
+   that encoding that will be picked.
+
+2.4.  Context-Based
+
+   While the name is the most important element of a Keyword object, it
+   benefits from being supplemented by other attributes such as country,
+   language, type of application (also called service type in [SLS] and
+   [KLS]), etc. These attributes are also referred to as facets. (See
+   "Benefits of Direct Navigation" for a further discussion of context.)
+
+2.5.  Applicable Across Multiple Applications
+
+   Keywords must function in a broad variety of applications and
+   devices, such as the World Wide Web, mobile phones, e-mail, etc.
+
+2.6.  Multiple Interoperable Namespaces
+
+   Due to the complexities of languages, local usage and policy
+   differences in countries or application domains, it is neither
+   feasible nor practical to implement a single, worldwide Keywords
+   system. A differentiated, interoperable federation of Keywords
+   systems will provide the flexibility and depth needed. These Keywords
+   systems will be unified by a single resolution protocol that will
+   guarantee interoperability of the Keywords systems for applications.
+
+3.  Keywords User Experiences
+
+   There are two common user experiences associated with Keywords. The
+   most common one, and the one that makes Keywords appealing, is
+   navigation. The second one is discovery. These experiences are
+   described below.
+
+3.1.  Direct Navigation Using Keywords
+
+   The goal of all Keywords systems is to make it as simple as possible
+   to reach a given physical destination by using a simple human-
+   friendly name. A physical destination is anything that can be
+   described by a URI [RFC2396], so for example a Web page, an e-mail
+   address, or a WAP page on a mobile phone are all physical
+   destinations. Internet destinations are one kind of physical
+
+
+
+Arrouye and Tan                                                 [Page 4]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   destinations.
+
+   The typical experience of a user of a Keywords system is as follows:
+
+   1. The user enters a Keyword in her own language in her application,
+      and eventually selects an action (e.g. "go" in a Web browser, or
+      simply hitting the "enter" key).
+
+   2. The application transparently uses a Keywords system to map the
+      Keyword to a physical address that is appropriate to its domain
+      (e.g. a Web address for a Web browser, an e-mail address for a
+      mail user agent, etc.).
+
+   3. The physical address that has just been obtained is used to
+      perform the user-specified action (e.g. load a Web page, send e-
+      mail to a specific mailbox, etc.).
+
+   This is called direct navigation, as it lets a user go directly to a
+   destination using this simple name.
+
+3.1.1.  Benefits of Direct Navigation
+
+   Direct navigation is what makes Keywords systems appealing to users
+   as an addressing system.  Keywords systems are designed with the
+   objective of providing the best user experience: intuitive names that
+   deliver expected results. This section looks at a few benefits of
+   Keyword systems.
+
+   1. Users see Keywords as actual Internet addresses, and they work
+      just like any other addressing system. Contrarily to traditional
+      Internet addresses, they are easy to remember.  The critical part
+      of the Keywords navigation experience is in the second step, where
+      the application uses the Keyword input by the user to obtain a
+      physical address. This can be done today using proprietary
+      protocols or CNRP (Common Name Resolution protocol) [CNRP],
+      although it is likely that if Keywords systems are deployed on a
+      large scale a more compact protocol will be designed. What is
+      important to understand is how the application uses the Keyword as
+      well as other data to make a query to a Keywords system.
+
+   2. A given Keyword object may contain different physical addresses
+      for different applications, which is akin to saying that Keyword
+      objects are identified by a combination of name and application
+      type. That application type (also called service type in [SLS] and
+      [KLS]) makes up some of the context that is passed to a Keywords
+      system, along with a name (also part of that context), in order to
+      identify a given Keyword object. Whenever the context is fully
+      specified, a Keywords system will return at most one matching
+
+
+
+Arrouye and Tan                                                 [Page 5]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+      Keyword object. This notion of context is key to the resolution of
+      a Keyword query into a physical address.
+
+   3. The more context is available, the more powerful a Keywords system
+      can be, and the better user experience it can provide.  For
+      example, just by introducing the language as an element of
+      context, one can then use a global name like BMW, or Coca-Cola,
+      and access content in the appropriate language. Obviously, such a
+      language facet contributes to the human-friendliness of the system
+      by allowing not only the Keyword names, but also the content they
+      refer to, to be in the user's language. Such a language context is
+      also quite easy to obtain, since operating systems as well as
+      applications already support the notion of a user-selected
+      language (such as one's browser language setting) or locale.
+
+   Note that direct navigation does not mean that the only thing that
+   can happen to a Keywords user is either to get to a destination or
+   get nowhere. A Keywords service, when there is no matching Keyword
+   object for the user's query, may return a list of approximate
+   matches. It is up to the application to use that list and interact
+   with the user as needed to pick between these matches if desired.
+   Applications may also choose alternate behaviors such as using a
+   search engine, or combining the approximate matches with other
+   heuristics, etc...
+
+3.1.2.  Definition of the Context
+
+   It is very tempting to make a long list of desirable facets of a
+   Keyword object. Location and industry category, for example, are two
+   properties that are often mentioned, and more facets are regularly
+   offered for consideration.
+
+   An important lesson learned from operating Keywords system so far is
+   that it is very difficult to ask users to supply context that is not
+   already available to the application. Not only does this usually
+   bring up user interface issues, it changes the user experience from a
+   "type the name, get what you want" to a less direct, much more
+   painful experience that drives users away from the system. It is also
+   worth noting that asking for determination after the user has input a
+   partial context that can match a number of Keyword objects, has the
+   same effect of breaking the user experience and discouraging her. The
+   key to context information in a Keywords system is that context must
+   be implicit (i.e. known a priori to the application) in order to
+   offer a good user experience.
+
+   As a result, one must be very careful in introducing facets that need
+   to be part of the context. On the other hand, one should always ask
+   the registrant of a Keyword to provide as many facets as possible, in
+
+
+
+Arrouye and Tan                                                 [Page 6]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   order to be able to use them later, as applications improve and
+   become able to supply meaningful values for those facets as part of a
+   query to a Keywords system.
+
+3.1.3.  Manipulation of the Context
+
+   While the user should only be required to enter a name in order to
+   reach a destination, it is desirable that the hidden parts of the
+   context can be manipulated by the user. This is usually done by
+   providing settings that can be used to do these manipulations. For
+   example, a Web browser typically offers a way to set language
+   preferences, from which the language context can be drawn.
+
+3.2.  Discovery of Keywords
+
+   We have so far described the experience of a user who uses a Keyword
+   in order to get to a physical address. There is also a need for users
+   to discover Keywords. Discovery may happen either when a user is not
+   able to supply all the facets necessary to make a single
+   determination, or when she only has partial data such as a few words
+   of a multi-word Keyword.
+
+   Discovery services are valuable because they offer users a way to
+   browse a Keywords namespace and explore its content. They need to be
+   separate from direct navigation in order to preserve the directness
+   of the navigation experience. It is however possible to offer
+   discovery as a fallback after a failed navigation experience, as long
+   as the two experiences are clearly distinct.
+
+3.3.  Other Variations
+
+   In some environments, such as mobile phones, typing a full Keyword
+   may prove cumbersome. It is thus a good experience, in these
+   environments, to support some form of automatic completion of partial
+   Keywords. The navigation may not be direct then, because confirmation
+   from the user is needed, but the overall experience of using Keywords
+   is improved because of the diminished pain factor in entering the
+   names.
+
+
+4.  The Keyword Object
+
+   We have so far described the Keywords user experience and looked at
+   two of its aspects. We have said that Keywords system contain
+   Keywords objects that contain a number of facets. This section
+   describes facets that make up a Keyword object. There are two kinds
+   of facets, depending on whether they are used as part of the context
+   or not:
+
+
+
+Arrouye and Tan                                                 [Page 7]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   1. Key facets are part of the context that is necessary to establish
+      a one-to-one mapping between context and a physical address. The
+      name and the service type are good example of such facets.
+
+   2. Informational facets carry information that is useful but not
+      required as part of the context. A description of a Keyword is a
+      good example of such a facet.
+
+   Key facets are always required. Some informational facets may be
+   optional, and others may be required. In this section, the facets are
+   listed with an indication of their kind.
+
+   One should note that some facets may make sense for some service
+   types and not for others. The categorization of facets below is
+   intended to ensure that the facets that are key are required for all
+   service types. Also, it may be interesting to allow optional context
+   facets, whose presence can improve the user experience.
+
+4.1.  Name (Key Facet)
+
+   The name is the most visible part of a Keyword system, as it is what
+   users see, remember, and then use in order to navigate. It is also
+   what defines one's online identity.
+
+   It is widely agreed that DNS and other Web-addressing systems (such
+   as the URI) cannot create human-friendly names. To be human-friendly,
+   a name must satisfy a number of conditions. It should be easy to
+   remember.  Familiar brand names should be transferable to the
+   Internet naming system with no change if possible. Names should be
+   available for the whole user population, and should be available in a
+   user's native languages and scripts. Finally, the syntax of names
+   should be flexible enough to allow for desirable names. One will note
+   that that lack of syntax not only makes the names easier to remember
+   and use, it also opens the door to the use of Keywords through voice
+   recognition technology available today.
+
+   Issues pertaining to names are discussed further in the "Multilingual
+   Support" section.
+
+   While it is useful to have syntax free names, some restrictions can
+   be placed on name availability in order to preserve existing
+   namespaces. For instance, if a Keywords system offers a transparent
+   interface to namespaces like DNS, ENUM, etc... it can prevent the
+   subscription of Keywords that follow the syntax of these namespaces
+   in order to avoid confusion between the different namespaces.
+
+4.2.  Service Type (Key Facet)
+
+
+
+
+Arrouye and Tan                                                 [Page 8]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   The service type is used to describe a class of applications that
+   provide a given service to users. For example, tentative service
+   types are "web,"  "e-mail," "mobile web," and even "dns" or "phone."
+   The service type is a primary mechanism to support the reuse of one
+   given name to denote different bits of information (which are
+   accessed through a given physical address).
+
+4.3.  Service Provider (Key Facet)
+
+   Because there are many different Keywords systems in existence, there
+   is a need to be able to refer to them to determine which system a
+   Keyword belongs too. That is the purpose of a service provider facet.
+   The facet is part of the context that defines the uniqueness of a
+   Keyword, allowing distinct Keywords provider to have their own
+   Keyword object for a given Keyword.
+
+4.4.  Language (Key Facet)
+
+   The language facet denotes the language of the Keyword. It can be
+   used, for example, to enable language-specific rules of
+   normalization, or simply to determine how to display a CJK name made
+   of unified Han characters.
+
+   There are many standards or would-be standards for the identification
+   of languages. The IETF standard for languages is defined in
+   [RFC3066], which obsoletes [RFC1766], still cited by many protocols
+   and IETF work documents. Also note that [RFC2277] says that language
+   tagging in IETF protocols should be done using this standard. The
+   biggest advantage of using language tags as defined in [RFC1766] is
+   that existing protocols and applications support them, which makes it
+   easy to obtain a language facet value as part of the Keyword request
+   context without user interaction.
+
+   An oft-cited categorization of languages is the one produced by SIL
+   International. Known as the Ethnologue [ETHNOLOGUE] their work
+   categorizes and uniquely identifies more than 6,700 languages used in
+   228 countries. There have been proposals to make the Ethnologue
+   categorization available as an Internet categorization, and one could
+   indeed use i-sil-xxx to refer to the Ethnologue language code xxx in
+   perfect conformance with [RFC1766], but today's applications are not
+   aware of Ethnologue language codes.
+
+4.5.  Content-Language (Key Facet)
+
+   The content-language facet describes the language of the content that
+   is accessed through the physical address. For instance, if the
+   Keyword named "Deutsche Telekom" has the Web physical address
+   http://www.telekom.de/dtag/ipl2e/cda/t1/ then the content language
+
+
+
+Arrouye and Tan                                                 [Page 9]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   should be English since that is the language of the content.
+
+   This facet can be used for language negotiation, which is supported
+   in some protocols already. he facet uses the same standard as the
+   language facet to identify the language.
+
+4.6.  Country (Key Facet)
+
+   The country facet refers to the country for which the content
+   accessed through the physical address is intended. Countries are
+   indicated by using country codes from ISO 3166 [ISO3166]. ISO 3166 is
+   a three-part standard. The part relevant to current countries is ISO
+   3166-1. It standardizes names of countries and associates them with 2
+   and 3 letter codes referred to as alpha-2 and alpha-3, respectively.
+   Internet usage, primarily stemming from RFC3066, is to use the
+   alpha-2 variant.
+
+   Applications are only starting to support separation between language
+   and countries. Such a separation is very important, because it
+   enables to offer a good service to ethnic groups in a given location.
+   When language and country are mixed, only the populations large
+   enough to have a recognized dialect in that country can be serviced.
+   In order to provide backwards compatibility, it is permissible to use
+   the country component of an RFC3066 language tag in order to
+   determine the value of the country facet.
+
+4.7.  Physical Address (Informational Facet, Required)
+
+   This facet contains the address that the Keyword overlays, i.e. the
+   real name of the data that are accessed using the Keyword. It is
+   proposed that this facet always be a URI, which may require the
+   definition of new URI schemes for existing addressing systems. The
+   URI was designed as an extensible addressing system, and it would be
+   nice to take advantage of its properties for the physical addressing
+   component of Keywords systems.
+
+4.8.  Description (Informational Facet)
+
+   While key facets are necessary for querying a Keywords system,
+   informational facets are useful when displaying Keywords in listings,
+   such as the ones that a discovery service may provide. The
+   description facets describes a Keyword in a few sentences, in such a
+   way that its meaning is obvious to a reader.
+
+   There must be one description for the language of the Keyword, i.e.
+   if the Keyword is associated to Korean content, there must be a
+   Korean description. It may be desirable to support additional
+   descriptions in other languages.
+
+
+
+Arrouye and Tan                                                [Page 10]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+4.9.  Location (Informational Facet)
+
+   This facet is often mentioned as something that is very useful. One
+   of the main problem is to decide what kind of location to use. Valid
+   suggestions include: a system like country, province, zip code, or a
+   subset thereof; ISO 3166-2; latitude, longitude, altitude; ECEF
+   (Earth-Centered, Earth-Fixed); and probably others. Note that it is
+   possible to go from one of the fine-grain systems to the coarser-
+   grain ones, but that the (lack of) availability of mapping tables may
+   be a factor. It is also possible to support more than one location
+   notation at the same time.
+
+   For applications like mobile phones, the location of the user
+   relative to cell towers (whose locations on or above Earth are
+   themselves known) is known by the mobile phone operator and could be
+   made part of the context. Note that this particular example raises
+   some privacy issues that the operator or service need to take care
+   of.
+
+4.10. Category (Informational Facet)
+
+   There has been talk of the necessity of having some sort of industry
+   category facet in the next Internet naming layer, and of making it
+   part of the facets that determine the uniqueness of records in this
+   layer. While we agree that such information is useful meta-data that
+   can be used in a discovery service, there are some problems with
+   making such a category part of the context:
+
+   - Even though one may argue that the categories listed in WIPO's Nice
+   agreement [WIPO-NICE] are encompassing enough for industry
+   categories, there is no established standard for non-industry
+   categories. The development and ratification of such standard is a
+   very big task in itself.
+
+   - Applications do not support categories. If they did, it is doubtful
+   that a typical user could come to grasp with the big tree of
+   categories. And if only the top-level classes were to be offered to
+   users for selections, they would be lost even more since those
+   classes mix things such as computer software design and animal
+   grooming. And the fact that our [Ed.: RealNames'] marketing lady
+   calls us monkeys does not make that really clearer for everyone.
+
+   As a consequence of these problems, Keywords systems do not support
+   such data as a key facet, but only as an informational one.
+
+
+5.  Multilingual Support
+
+
+
+
+Arrouye and Tan                                                [Page 11]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   It is understood that today, the best way to manipulate names for
+   multiple scripts is to rely on encoding those names using Unicode
+   [UNICODE]. This is the proposed encoding of names for Keywords
+   system. References to characters or character sequences in this
+   document are made using Unicode.
+
+5.1.   Human-friendliness can also be achieved by helping users get the
+   desired result through some normalization of the names that are used.
+   For example, it is desirable to treat the sequence <U+0065 LATIN
+   SMALL LETTER e><U+0301 COMBINING ACUTE ACCENT> as equivalent as
+   <U+00E9 LATIN SMALL LETTER E WITH ACUTE> (the former sequence being a
+   canonical decomposition of the second one [UTR15]). But other
+   features of human-friendliness, for example respecting alternate
+   spelling rules for German, or handling traditional versus simplified
+   Chinese writing systems, are not always understood, or simply agreed
+   on. There is a need to define the requirements necessary for the
+   interoperability of Keywords systems, and what features can be used
+   to distinguish different services between each other. These issues
+   are discussed at a further point in this document.
+
+   Note that the discussion of normalization above is not a discussion
+   of Unicode normalization. It is a discussion of string normalization
+   that may use Unicode normalization as a tool. A better term may be
+   string preparation, and it would be desirable to use the framework
+   defined in [STRINGPREP] for such a normalization, if possible. Note
+   that there may be a need for different Stringprep profiles for
+   different languages, something that Keywords systems can support
+   thanks to their rich set of facets.
+
+   Different names normalization on top of the default normalization may
+   be an interesting service differentiator.
+
+5.2.  Traditional and Simplified Chinese
+
+   The Chinese language can be written in two forms: Simplified Chinese
+   (SC), used in the People's Republic of China (PRC) and Singapore; and
+   Traditional Chinese (TC) used in Taiwan, Hong Kong, Macau, and by
+   most Chinese people overseas. One of the issues that face naming
+   systems is that one name registered in one form may be used by users
+   writing the other form. Also, mixed form names may be an issue for
+   the same reason.
+
+   A common fallacy is to believe that there is a straightforward 1-to-1
+   mapping between the forms. Some of the Chinese characters of one form
+   have 1-to-many mappings, others have many-to-1 mappings, and others,
+   when in groups, cannot be easily converted without risking changes in
+   the meaning of the converted sequence. Also, some characters are used
+   in both traditional and simplified Chinese. As a result, the problem
+
+
+
+Arrouye and Tan                                                [Page 12]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   of matching Chinese input to registered Chinese names is complex.
+   However, Keywords systems may be able to offer a better solution than
+   existing systems to the problem of handling traditional and
+   simplified Chinese names.
+
+   First of all, Keywords systems fully support the notions of country
+   and language. Because the choice of using traditional and simplified
+   Chinese was dictated by countries, that support will help solving
+   that problem. For example, one common objection to mapping between
+   Traditional and Simplified Chinese forms is that the Unicode code
+   points for Traditional Chinese are also used in Japanese and Korean.
+   Having the language available prevents unwanted alteration of names
+   in these languages. Also, the availability of the country could lead
+   to different mapping rules agreeable to that particular country.
+
+6.  Conclusion
+
+   We have presented the requirements for Keywords systems, the Keywords
+   user experience, as well as some design and architecture
+   considerations.
+
+   Keywords systems, which are already deployed worldwide,  will
+   represent an important component of the next Internet naming
+   architecture.
+
+7.  References
+
+   [CNRP] N. Popp, M. Mealling, and M. Moseley, Common Name Resolution
+   Protocol (CNRP), draft-ietf-cnrp-10.txt, June 2001.
+
+   [CONTLANG] H. Alvestrand, Content Language Headers, draft-alvestrand-
+   content-language-02.txt, May 2001.
+
+   [DNSROLE] J. Klensin, Role of the Domain Name System, draft-klensin-
+   dns-role-01.txt, May 2001.
+
+   [DNSSEARCH] J. Klensin, A Search-based access model for the DNS,
+   draft-klensin-dns-search-01.txt, July 2001.
+
+   [ETHNOLOGUE] SIL International, The Ethnologue,
+   http://www.ethnologue.org/.
+
+   [I18NTERMS] P. Hoffman, Terminology Used in Internationalization in
+   the IETF, draft-hoffman-i18n-terms-05.txt, January 2002.
+
+   [IDNWG] IETF IDN Working group,
+   http://www.ietf.org/html.charters/idn-charter.html.
+
+
+
+
+Arrouye and Tan                                                [Page 13]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   [ISO3166] ISO 3166 Maintenance Agency, ISO 3166 Standard,
+   http://www.din.de/gremien/nas/nabd/iso3166ma/.
+
+   [KLS] Y. Arrouye, V. Parikh, and N. Popp, Keyword Lookup Systems As a
+   Class of Naming Systems, draft-arrouye-kls-00.txt, August 2001.
+
+   [NAMEPREP] P. Hoffman and M. Blanchet, Stringprep Profile for
+   Internationalized Domain Name, draft-ietf-idn-nameprep-07.txt,
+   January 2002.
+
+   [PROVREGWG] IETF Provreg Working Group,
+   http://www.ietf.org/html.charters/provreg-charter.html.
+
+   [RFC1766] H. Alvestrand, Tags for the Identification of Languages,
+   RFC 1766, March 1995.
+
+   [RFC2277] H. Alvestrand, IETF Policy on Character Sets and Languages,
+   RFC 2277, January 1998.
+
+   [RFC2396] T. Berners-Lee, R. Fielding, L. Masinter, Uniform Resource
+   Identifiers (URI): Generic Syntax, RFC 2396, August 1998.
+
+   [RFC2916] P. Faltstrom, E.164 number and DNS, RFC 2916, September
+   2000.
+
+   [RFC3066] H. Alvestrand, Tags for the Identification of Languages,
+   RFC 1766, January 2001.
+
+   [SLS] M. Mealling and L. Daigle, Service Lookup System (SLS), draft-
+   mealling-sls-00.txt, July 2001.
+
+   [STRINGPREP] P. Hoffman and M. Blanchet, Preparation of
+   Internationalized Strings ("stringprep"), draft-hoffman-
+   stringprep-00.txt, Septermber 2001.
+
+   [UAX15] M. Davis and M. Duerst, Unicode Standard Annex #15: Unicode
+   Normalization Forms, March 2001
+   (http://www.unicode.org/reports/tr15/).
+
+   [UNICODE] The Unicode Consortium, The Unicode Standard, Version 3.0,
+   Addison-Wesley, Reading, MA, January 2000 (ISBN 0-201-61633-5).
+   Amended by the Unicode Standard Annex #27: Unicode 3.1, May 2001
+   (http://www.unicode.org/reports/tr27/), and by the Unicode Standard
+   Annex #28: Unicode 3.2, December 2001
+   (http://www.unicode.org/reports/tr28/).
+
+   [WIPO-NICE] World Intellectual Property Organization, "Nice Agreement
+   concerning the International Classification of Goods and Services for
+
+
+
+Arrouye and Tan                                                [Page 14]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   the Purposes of the Registration of Mark," June 1957.
+   http://classifications.wipo.int/fulltext/nice/ennnic.htm.
+
+Authors' Addresses
+
+   Yves Arrouye
+   RealNames Corporation
+   150 Shoreline Drive
+   Redwood City, CA 94065
+
+   Phone: +1 (650) 486-5503
+
+   E-mail: yves@realnames.com
+
+
+   Tan Tin Wee
+   Bioinformatics Centre
+   National University of Singapore
+   10 Kent Ridge Crescent
+   Singapore 119260
+
+   E-mail: tinwee@pobox.org.sg
+
+
+   Xiaodong Lee
+   Chinese Academy of Sciences & China Network Information Center
+   4 South 4th Street
+   ZhongGuanCun
+   Beijing
+   P.R. China 100080
+
+   Phone: +86 10 62619750 3020
+
+   E-mail: lee@cnnic.net.cn
+
+
+Full Copyright Statement
+
+   Copyright (C) The Internet Society (2002).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+
+
+
+Arrouye and Tan                                                [Page 15]
+
+draft-arrouye-keywords-reqs-01.txt                       4 February 2002
+
+
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+Acknowledgement
+
+   Funding for the RFC Editor function is currently provided by the
+   Internet Society.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Arrouye and Tan                                                [Page 16]
+
