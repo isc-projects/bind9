@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.46 2005/06/27 03:00:03 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.47 2005/07/18 02:57:50 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -47,14 +47,14 @@
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537305">A Caching-only Name Server</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537321">An Authoritative-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537715">A Caching-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537731">An Authoritative-only Name Server</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537412">Load Balancing</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537906">Name Server Operations</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537821">Load Balancing</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2538315">Name Server Operations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537911">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2539677">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2538321">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2540087">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -68,7 +68,7 @@
 <a name="sample_configuration"></a>Sample Configurations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2537305"></a>A Caching-only Name Server</h3></div></div></div>
+<a name="id2537715"></a>A Caching-only Name Server</h3></div></div></div>
 <p>
           The following sample configuration is appropriate for a caching-only
           name server for use by clients internal to a corporation.  All
@@ -95,7 +95,7 @@ zone "0.0.127.in-addr.arpa" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2537321"></a>An Authoritative-only Name Server</h3></div></div></div>
+<a name="id2537731"></a>An Authoritative-only Name Server</h3></div></div></div>
 <p>
           This sample configuration is for an authoritative-only server
           that is the master server for "<code class="filename">example.com</code>"
@@ -137,7 +137,7 @@ zone "eng.example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2537412"></a>Load Balancing</h2></div></div></div>
+<a name="id2537821"></a>Load Balancing</h2></div></div></div>
 <p>
         A primitive form of load balancing can be achieved in
         the <span class="acronym">DNS</span> by using multiple A records for
@@ -284,10 +284,10 @@ zone "eng.example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2537906"></a>Name Server Operations</h2></div></div></div>
+<a name="id2538315"></a>Name Server Operations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2537911"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
+<a name="id2538321"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
 <p>
           There are several indispensable diagnostic, administrative
           and monitoring tools available to the system administrator for
@@ -784,7 +784,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2539677"></a>Signals</h3></div></div></div>
+<a name="id2540087"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
