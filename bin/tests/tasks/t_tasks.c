@@ -15,13 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_tasks.c,v 1.29.12.8 2005/07/18 23:59:12 marka Exp $ */
+/* $Id: t_tasks.c,v 1.29.12.9 2005/07/19 07:08:36 marka Exp $ */
 
 #include <config.h>
 
 #include <stdlib.h>
 #include <unistd.h>
-
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h> 	/* uintptr_t */
+#endif
 #include <isc/condition.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
@@ -31,6 +33,7 @@
 #include <isc/util.h>
 
 #include <tests/t_api.h>
+
 
 #ifdef ISC_PLATFORM_USETHREADS
 isc_boolean_t threaded = ISC_TRUE;
