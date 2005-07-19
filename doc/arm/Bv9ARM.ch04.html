@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.14 2005/07/18 02:32:20 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.15 2005/07/19 06:14:36 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -51,18 +51,18 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2539357">Split DNS</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#tsig">TSIG</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2539851">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2539920">Generate Shared Keys for Each Pair of Hosts</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2533910">Copying the Shared Secret to Both Machines</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2533918">Informing the Servers of the Key's Existence</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2533958">Instructing the Server to Use the Key</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540222">TSIG Key Based Access Control</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540266">Errors</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540291">TSIG Key Based Access Control</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540334">Errors</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2540280">TKEY</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2540329">SIG(0)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2540348">TKEY</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2540397">SIG(0)</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540451">Generating Keys</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540519">Generating Keys</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540656">Creating a Keyset</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540694">Signing the Child's Keyset</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2540736">Signing the Zone</a></span></dt>
@@ -352,7 +352,7 @@ for TSIG.</p>
     <code class="option">-y</code> command line options.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2539851"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
+<a name="id2539920"></a>Generate Shared Keys for Each Pair of Hosts</h3></div></div></div>
 <p>A shared secret is generated to be shared between <span class="emphasis"><em>host1</em></span> and <span class="emphasis"><em>host2</em></span>.
 An arbitrary key name is chosen: "host1-host2.". The key name must
 be the same on both hosts.</p>
@@ -436,7 +436,7 @@ sign request messages to <span class="emphasis"><em>host1</em></span>.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2540222"></a>TSIG Key Based Access Control</h3></div></div></div>
+<a name="id2540291"></a>TSIG Key Based Access Control</h3></div></div></div>
 <p><span class="acronym">BIND</span> allows IP addresses and ranges to be specified in ACL
 definitions and
 <span><strong class="command">allow-{ query | transfer | update }</strong></span> directives.
@@ -454,7 +454,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2540266"></a>Errors</h3></div></div></div>
+<a name="id2540334"></a>Errors</h3></div></div></div>
 <p>The processing of TSIG signed messages can result in
       several errors. If a signed message is sent to a non-TSIG aware
       server, a FORMERR will be returned, since the server will not
@@ -476,7 +476,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2540280"></a>TKEY</h2></div></div></div>
+<a name="id2540348"></a>TKEY</h2></div></div></div>
 <p><span><strong class="command">TKEY</strong></span> is a mechanism for automatically
     generating a shared secret between two hosts.  There are several
     "modes" of <span><strong class="command">TKEY</strong></span> that specify how the key is
@@ -502,7 +502,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2540329"></a>SIG(0)</h2></div></div></div>
+<a name="id2540397"></a>SIG(0)</h2></div></div></div>
 <p><span class="acronym">BIND</span> 9 partially supports DNSSEC SIG(0) transaction
     signatures as specified in RFC 2535.  SIG(0) uses public/private
     keys to authenticate messages.  Access control is performed in the
@@ -541,7 +541,7 @@ allow-update { key host1-host2. ;};
     zone key of another zone above this one in the DNS tree.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2540451"></a>Generating Keys</h3></div></div></div>
+<a name="id2540519"></a>Generating Keys</h3></div></div></div>
 <p>The <span><strong class="command">dnssec-keygen</strong></span> program is used to
       generate keys.</p>
 <p>A secure zone must contain one or more zone keys.  The
