@@ -8,6 +8,9 @@
 #if (!defined(BSD)) || (BSD < 199306)
 #include <sys/bitypes.h>
 #endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 
 @NEED_PSELECT@
 @HAVE_SA_LEN@
