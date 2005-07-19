@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.47 2005/07/18 02:57:50 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.48 2005/07/19 06:12:17 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -47,28 +47,28 @@
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537715">A Caching-only Name Server</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537731">An Authoritative-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537924">A Caching-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2537940">An Authoritative-only Name Server</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2537821">Load Balancing</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2538315">Name Server Operations</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2538030">Load Balancing</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2538454">Name Server Operations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2538321">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2540087">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2538459">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2540208">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
 <p>
       In this section we provide some suggested configurations along
-      with guidelines for their use. We also address the topic of reasonable
-      option setting.
+      with guidelines for their use.  We suggest reasonable values for
+      certain option settings.
     </p>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="sample_configuration"></a>Sample Configurations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2537715"></a>A Caching-only Name Server</h3></div></div></div>
+<a name="id2537924"></a>A Caching-only Name Server</h3></div></div></div>
 <p>
           The following sample configuration is appropriate for a caching-only
           name server for use by clients internal to a corporation.  All
@@ -95,7 +95,7 @@ zone "0.0.127.in-addr.arpa" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2537731"></a>An Authoritative-only Name Server</h3></div></div></div>
+<a name="id2537940"></a>An Authoritative-only Name Server</h3></div></div></div>
 <p>
           This sample configuration is for an authoritative-only server
           that is the master server for "<code class="filename">example.com</code>"
@@ -137,7 +137,7 @@ zone "eng.example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2537821"></a>Load Balancing</h2></div></div></div>
+<a name="id2538030"></a>Load Balancing</h2></div></div></div>
 <p>
         A primitive form of load balancing can be achieved in
         the <span class="acronym">DNS</span> by using multiple A records for
@@ -276,24 +276,19 @@ zone "eng.example.com" {
         <span><strong class="command">rrset-order</strong></span> substatement in the
         <span><strong class="command">options</strong></span> statement, see
         <a href="Bv9ARM.ch06.html#rrset_ordering">RRset Ordering</a>.
-        This substatement is not supported in
-        <span class="acronym">BIND</span> 9, and only the ordering scheme
-        described above is
-        available.
       </p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2538315"></a>Name Server Operations</h2></div></div></div>
+<a name="id2538454"></a>Name Server Operations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2538321"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
+<a name="id2538459"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
 <p>
-          There are several indispensable diagnostic, administrative
-          and monitoring tools available to the system administrator for
-          controlling
-          and debugging the name server daemon. We describe several in this
-          section
+          This section describes several indispensable diagnostic,
+          administrative and monitoring tools available to the system
+          administrator for controlling and debugging the name server
+          daemon.
         </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
@@ -351,7 +346,7 @@ zone "eng.example.com" {
 <dt><span class="term"><span><strong class="command">nslookup</strong></span></span></dt>
 <dd>
 <p><span><strong class="command">nslookup</strong></span>
-		  has two modes: interactive and
+                  has two modes: interactive and
                   non-interactive. Interactive mode allows the user to
                   query name servers for information about various
                   hosts and domains or to print a list of hosts in a
@@ -417,10 +412,10 @@ zone "eng.example.com" {
 <a name="named-compilezone"></a><span class="term"><span><strong class="command">named-compilezone</strong></span></span>
 </dt>
 <dd><p>
-		  Similar to <span><strong class="command">named-checkzone,</strong></span> but
-		  it always dumps the zone content to a specified file
-		  (typically in a different format).
-		</p></dd>
+                  Similar to <span><strong class="command">named-checkzone,</strong></span> but
+                  it always dumps the zone content to a specified file
+                  (typically in a different format).
+                </p></dd>
 <dt>
 <a name="rndc"></a><span class="term"><span><strong class="command">rndc</strong></span></span>
 </dt>
@@ -436,7 +431,7 @@ zone "eng.example.com" {
                 </p>
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [-c <em class="replaceable"><code>config</code></em>] [-s <em class="replaceable"><code>server</code></em>] [-p <em class="replaceable"><code>port</code></em>] [-y <em class="replaceable"><code>key</code></em>]  <em class="replaceable"><code>command</code></em>  [<em class="replaceable"><code>command</code></em>...]</p></div>
 <p><span><strong class="command">command</strong></span>
-		  is one of the following:
+                  is one of the following:
                 </p>
 <div class="variablelist"><dl>
 <dt><span class="term"><strong class="userinput"><code>reload</code></strong></span></dt>
@@ -497,7 +492,7 @@ zone "eng.example.com" {
                         [<span class="optional"><em class="replaceable"><code>class</code></em>
            [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd><p>
-                        Resend NOTIFY messages for the zone
+                        Resend NOTIFY messages for the zone.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>reconfig</code></strong></span></dt>
 <dd><p>
@@ -515,11 +510,14 @@ zone "eng.example.com" {
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>querylog</code></strong></span></dt>
 <dd><p>
-                        Toggle query logging. Query logging can also be
-                        enabled
+                        Toggle query logging. Query logging can also be enabled
                         by explicitly directing the <span><strong class="command">queries</strong></span>
-                        <span><strong class="command">category</strong></span> to a <span><strong class="command">channel</strong></span> in the
+                        <span><strong class="command">category</strong></span> to a
+                        <span><strong class="command">channel</strong></span> in the
                         <span><strong class="command">logging</strong></span> section of
+                        <code class="filename">named.conf</code> or by specifying
+                        <span><strong class="command">querylog yes;</strong></span> in the
+                        <span><strong class="command">options</strong></span> section of
                         <code class="filename">named.conf</code>.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>dumpdb
@@ -536,19 +534,20 @@ zone "eng.example.com" {
 <dd><p>
                         Stop the server, making sure any recent changes
                         made through dynamic update or IXFR are first saved to
-                        the master files
-                        of the updated zones.  If -p is specified named's
-                        process id is returned.
+                        the master files of the updated zones.
+                        If -p is specified named's process id is returned.
+                        This allows a external process to determine when named
+                        had completed stopping.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>halt [<span class="optional">-p</span>]</code></strong></span></dt>
 <dd><p>
                         Stop the server immediately.  Recent changes
                         made through dynamic update or IXFR are not saved to
-                        the master files,
-                        but will be rolled forward from the journal files when
-                        the server
-                        is restarted.  If -p is specified named's process id
-                        is returned.
+                        the master files, but will be rolled forward from the
+                        journal files when the server is restarted.
+                        If -p is specified named's process id is returned.
+                        This allows a external process to determine when named
+                        had completed halting.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>trace</code></strong></span></dt>
 <dd><p>
@@ -571,10 +570,6 @@ zone "eng.example.com" {
 <dd><p>
                         Flushes the given name from the server's cache.
                       </p></dd>
-<dt><span class="term"><strong class="userinput"><code>flushname</code></strong> <em class="replaceable"><code>name</code></em></span></dt>
-<dd><p>
-                        Flushes the given name from the server's cache.
-                      </p></dd>
 <dt><span class="term"><strong class="userinput"><code>status</code></strong></span></dt>
 <dd><p>
                         Display status of the server.
@@ -582,11 +577,6 @@ zone "eng.example.com" {
                         and the default <span><strong class="command">./IN</strong></span>
                         hint zone if there is not a
                         explicit root zone configured.
-                      </p></dd>
-<dt><span class="term"><strong class="userinput"><code>recursing</code></strong></span></dt>
-<dd><p>
-                        Dump the list of queries named is currently recursing
-                        on.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>recursing</code></strong></span></dt>
 <dd><p>
@@ -676,7 +666,8 @@ zone "eng.example.com" {
                   While the configuration parser will accept any string as the
                   argument
                   to algorithm, currently only the string "<strong class="userinput"><code>hmac-md5</code></strong>"
-                  has any meaning.  The secret is a base-64 encoded string.
+                  has any meaning.  The secret is a base-64 encoded string
+                  as specified in RFC 3548.
                 </p>
 <p>
                   The <span><strong class="command">server</strong></span> statement
@@ -750,41 +741,41 @@ controls {
 </dt>
 <dd>
 <p><span><strong class="command">clients-per-query</strong></span>
-		  and <span><strong class="command">max-clients-per-query</strong></span> set the
-		  initial value (minimum) and maximum number of recursive
-		  simultanious clients for any given query
-		  (&lt;qname,qtype,qclass&gt;) that the server will accept
-		  before dropping additional clients.  named will attempt to
-		  self tune this value and changes will be logged.  The
-		  default values are 10 and 100.
-		</p>
+                  and <span><strong class="command">max-clients-per-query</strong></span> set the
+                  initial value (minimum) and maximum number of recursive
+                  simultanious clients for any given query
+                  (&lt;qname,qtype,qclass&gt;) that the server will accept
+                  before dropping additional clients.  named will attempt to
+                  self tune this value and changes will be logged.  The
+                  default values are 10 and 100.
+                </p>
 <p>
-	          This value should reflect how many queries come in for
-		  a given name in the time it takes to resolve that name.
-		  If the number of queries exceed this value named will
-		  assume that it is dealing with a non-responsive zone
-		  and will drop additional queries.  If it gets a response
-		  after dropping queries it will raise the estimate.  The
-		  estimate will then be lowered in 20 minutes if it has
-		  remained unchanged.
-		</p>
+                  This value should reflect how many queries come in for
+                  a given name in the time it takes to resolve that name.
+                  If the number of queries exceed this value named will
+                  assume that it is dealing with a non-responsive zone
+                  and will drop additional queries.  If it gets a response
+                  after dropping queries it will raise the estimate.  The
+                  estimate will then be lowered in 20 minutes if it has
+                  remained unchanged.
+                </p>
 <p>
-		  If <span><strong class="command">clients-per-query</strong></span> is set to zero
-		  then there is no limit on the number of clients per query
-		  and no queries will be dropped.
-		</p>
+                  If <span><strong class="command">clients-per-query</strong></span> is set to zero
+                  then there is no limit on the number of clients per query
+                  and no queries will be dropped.
+                </p>
 <p>
-		  If <span><strong class="command">max-clients-per-query</strong></span> is set to zero
-		  then there is no upper bound other than imposed by
-		  <span><strong class="command">recurive-clients</strong></span>.
-		</p>
+                  If <span><strong class="command">max-clients-per-query</strong></span> is set to zero
+                  then there is no upper bound other than imposed by
+                  <span><strong class="command">recurive-clients</strong></span>.
+                </p>
 </dd>
 </dl></div>
 </div>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2540087"></a>Signals</h3></div></div></div>
+<a name="id2540208"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
