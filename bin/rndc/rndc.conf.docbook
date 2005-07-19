@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: rndc.conf.docbook,v 1.5.18.6 2005/05/13 01:32:47 marka Exp $ -->
-<refentry>
+<!-- $Id: rndc.conf.docbook,v 1.5.18.7 2005/07/19 05:55:43 marka Exp $ -->
+<refentry id="man.rndc.conf">
   <refentryinfo>
     <date>June 30, 2000</date>
   </refentryinfo>

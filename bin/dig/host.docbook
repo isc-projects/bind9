@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.5.18.4 2005/05/13 01:32:44 marka Exp $ -->
-<refentry>
+<!-- $Id: host.docbook,v 1.5.18.5 2005/07/19 05:55:42 marka Exp $ -->
+<refentry id="man.host">
 
   <refentryinfo>
     <date>Jun 30, 2000</date>

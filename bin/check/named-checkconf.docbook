@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkconf.docbook,v 1.8.18.4 2005/05/13 01:32:43 marka Exp $ -->
-<refentry>
+<!-- $Id: named-checkconf.docbook,v 1.8.18.5 2005/07/19 05:55:41 marka Exp $ -->
+<refentry id="man.named-checkconf">
   <refentryinfo>
     <date>June 14, 2000</date>
   </refentryinfo>

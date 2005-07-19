@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.17.18.6 2005/06/07 00:18:03 marka Exp $ -->
-<refentry>
+<!-- $Id: dig.docbook,v 1.17.18.7 2005/07/19 05:55:42 marka Exp $ -->
+<refentry id="man.dig">
 
   <refentryinfo>
     <date>Jun 30, 2000</date>
