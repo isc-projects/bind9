@@ -1,13 +1,12 @@
 
-
 INTERNET-DRAFT                                       ECC Keys in the DNS
-Expires: June 2005                                         December 2004
+Expires: January 2006                                          July 2005
 
 
 
                      Elliptic Curve KEYs in the DNS
                      -------- ----- ---- -- --- ---
-                   <draft-ietf-dnsext-ecc-key-06.txt>
+                   <draft-ietf-dnsext-ecc-key-07.txt>
 
                          Richard C. Schroeppel
                           Donald Eastlake 3rd
@@ -15,10 +14,10 @@ Expires: June 2005                                         December 2004
 
 Status of This Document
 
-   By submitting this Internet-Draft, I certify that any applicable
-   patent or other IPR claims of which I am aware have been disclosed,
-   or will be disclosed, and any of which I become aware will be
-   disclosed, in accordance with RFC 3668.
+   By submitting this Internet-Draft, each author represents that any
+   applicable patent or other IPR claims of which he or she is aware
+   have been or will be disclosed, and any of which he or she becomes
+   aware will be disclosed, in accordance with Section 6 of BCP 79.
 
    This draft is intended to be become a Proposed Standard RFC.
    Distribution of this document is unlimited. Comments should be sent
@@ -49,7 +48,7 @@ Abstract
 
 Copyright Notice
 
-   Copyright (C) The Internet Society. All Rights Reserved.
+   Copyright (C) The Internet Society (2005). All Rights Reserved.
 
 
 
@@ -124,8 +123,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
    The Domain Name System (DNS) is the global hierarchical replicated
    distributed database system for Internet addressing, mail proxy, and
    other information. The DNS has been extended to include digital
-   signatures and cryptographic keys as described in [RFC intro,
-   protocol, records].
+   signatures and cryptographic keys as described in [RFC 4033, 4034,
+   4035].
 
    This document describes how to store elliptic curve cryptographic
    (ECC) keys and signatures in the DNS so they can be used for a
@@ -141,8 +140,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 2. Elliptic Curve Data in Resource Records
 
    Elliptic curve public keys are stored in the DNS within the RDATA
-   portions of key RRs, such as RRKEY and KEY [RFC records] RRs, with
-   the structure shown below.
+   portions of key RRs, such as RRKEY and KEY [RFC 4034] RRs, with the
+   structure shown below.
 
    The research world continues to work on the issue of which is the
    best elliptic curve system, which finite field to use, and how to
@@ -624,7 +623,7 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
      hash = SHA-1 ( data )
 
-     Generate random [RFC 1750] K such that 0 < K < Q.  (Never sign two
+     Generate random [RFC 4086] K such that 0 < K < Q.  (Never sign two
           different messages with the same K.  K should be chosen from a
           very large space: If an opponent learns a K value for a single
           signature, the user's signing key is compromised, and a forger
@@ -759,8 +758,8 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
   Copyright and Disclaimer
 
-     Copyright (C) The Internet Society 2004.  This document is subject
-     to the rights, licenses and restrictions contained in BCP 78 and
+     Copyright (C) The Internet Society 2005.  This document is subject
+     to the rights, licenses and restrictions contained in BCP 78, and
      except as set forth therein, the authors retain all their rights.
 
 
@@ -823,19 +822,20 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
      [RFC 1035] - P. Mockapetris, "Domain names - implementation and
      specification", 11/01/1987.
 
-     [RFC 1750] - D. Eastlake, S. Crocker, J. Schiller, "Randomness
-     Recommendations for Security", 12/29/1994.
-
-     [RFC intro] - "DNS Security Introduction and Requirements", R.
-     Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in
-     progress, draft-ietf-dnsext-dnssec-intro-*.txt.
-
-     [RFC protocol] - "Protocol Modifications for the DNS Security
-     Extensions", R. Arends, M. Larson, R. Austein, D. Massey, S. Rose,
-     work in progress, draft-ietf-dnsext-dnssec-protocol-*.txt.
-
      [RFC 2671] - P. Vixie, "Extension Mechanisms for DNS (EDNS0)",
      August 1999.
+
+     [RFC 4033] - Arends, R., Austein, R., Larson, M., Massey, D., and
+     S. Rose, "DNS Security Introduction and Requirements", RFC 4033,
+     March 2005.
+
+     [RFC 4035] - Arends, R., Austein, R., Larson, M., Massey, D., and
+     S. Rose, "Protocol Modifications for the DNS Security Extensions",
+     RFC 4035, March 2005.
+
+     [RFC 4086] - Eastlake, D., 3rd, Schiller, J., and S. Crocker,
+     "Randomness Requirements for Security", BCP 106, RFC 4086, June
+     2005.
 
      [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
      Algorithms, and Source Code in C", 1996, John Wiley and Sons
@@ -856,10 +856,9 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
      [RFC 2434] - T. Narten, H. Alvestrand, "Guidelines for Writing an
      IANA Considerations Section in RFCs", October 1998.
 
-     [RFC records] - "Resource Records for the DNS Security Extensions",
-     R. Arends, R. Austein, M. Larson, D. Massey, S. Rose, work in
-     progress, draft-ietf-dnsext-dnssec-records- *.txt.
-
+     [RFC 4034] - Arends, R., Austein, R., Larson, M., Massey, D., and
+     S. Rose, "Resource Records for the DNS Security Extensions", RFC
+     4034, March 2005.
 
 
 
@@ -880,7 +879,6 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
      Woodland Hills, UT 84653 USA
 
      Telephone:   +1-505-844-9079(w)
-                  +1-801-423-7998(h)
      Email:       rschroe@sandia.gov
 
 
@@ -890,16 +888,17 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
      Milford, MA 01757 USA
 
      Telephone:   +1 508-786-7554 (w)
-                  +1 508-634-2066 (h)
      EMail:       Donald.Eastlake@motorola.com
 
 
 
   Expiration and File Name
 
-     This draft expires in June 2004.
+     This draft expires in January 2006.
 
-     Its file name is draft-ietf-dnsext-ecc-key-06.txt.
+     Its file name is draft-ietf-dnsext-ecc-key-07.txt.
+
+
 
 
 
@@ -927,4 +926,3 @@ INTERNET-DRAFT                                       ECC Keys in the DNS
 
 R. Schroeppel, et al                                           [Page 16]
 
-

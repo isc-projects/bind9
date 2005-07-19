@@ -1,23 +1,22 @@
 
-
 INTERNET-DRAFT                                DSA Information in the DNS
 OBSOLETES: RFC 2536                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: September 2005                                       March 2005
+Expires: January 2006                                          July 2005
 
 
             DSA Keying and Signature Information in the DNS
             --- ------ --- --------- ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2536bis-dsa-05.txt>
+               <draft-ietf-dnsext-rfc2536bis-dsa-06.txt>
                          Donald E. Eastlake 3rd
 
 
 Status of This Document
 
-   By submitting this Internet-Draft, I certify that any applicable
-   patent or other IPR claims of which I am aware have been disclosed,
-   or will be disclosed, and any of which I become aware will be
-   disclosed, in accordance with RFC 3668.
+   By submitting this Internet-Draft, each author represents that any
+   applicable patent or other IPR claims of which he or she is aware
+   have been or will be disclosed, and any of which he or she becomes
+   aware will be disclosed, in accordance with Section 6 of BCP 79.
 
    Distribution of this document is unlimited. Comments should be sent
    to the DNS extensions working group mailing list
@@ -79,9 +78,9 @@ Table of Contents
 
       Normative References.......................................7
       Informative References.....................................7
+
       Authors Address............................................8
       Expiration and File Name...................................8
-
 
 
 
@@ -125,9 +124,8 @@ INTERNET-DRAFT                                DSA Information in the DNS
    distributed database system for Internet addressing, mail proxy, and
    other information [RFC 1034, 1035]. The DNS has been extended to
    include digital signatures and cryptographic keys as described in
-   [RFC intro, proto, records] and additional work is underway which
-   would require the storage of keying and signature information in the
-   DNS.
+   [RFC 4033, 4034, 4035] and additional work is underway which would
+   require the storage of keying and signature information in the DNS.
 
    This document describes how to encode US Government Digital Signature
    Algorithm (DSA) keys and signatures in the DNS.  Familiarity with the
@@ -171,6 +169,7 @@ INTERNET-DRAFT                                DSA Information in the DNS
    in the final step of public key generation where Y is computed as
 
 
+
 D. Eastlake 3rd                                                 [Page 3]
 
 
@@ -206,7 +205,7 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
         S = ( K**(-1) * (hash + X*R) ) mod Q
 
-   For information on the SHA-1 hash function see [FIPS 180-1] and [RFC
+   For information on the SHA-1 hash function see [FIPS 180-2] and [RFC
    3174].
 
    Since Q is 160 bits long, R and S can not be larger than 20 octets,
@@ -282,8 +281,8 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
 Copyright and Disclaimer
 
-   Copyright (C) The Internet Society 2005.  This document is subject to
-   the rights, licenses and restrictions contained in BCP 78 and except
+   Copyright (C) The Internet Society (2005).  This document is subject to
+   the rights, licenses and restrictions contained in BCP 78, and except
    as set forth therein, the authors retain all their rights.
 
 
@@ -353,37 +352,22 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
 Normative References
 
-   [FIPS 180-1] - U.S. Federal Information Processing Standard: Secure
-   Hash Standard, April 1995.
-
    [FIPS 186-2] - U.S. Federal Information Processing Standard: Digital
    Signature Standard, 27 January 2000.
 
-   [RFC records] - "Resource Records for the DNS Security Extensions",
-   R. Arends, R. Austein, M. Larson, D. Massey, S. Rose, work in
-   progress, draft-ietf-dnsext-dnssec-records- *.txt.
+   [RFC 4034] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "Resource Records for the DNS Security Extensions", RFC 4034,
+   March 2005.
 
 
 
 Informative References
-
-   [random] - "Randomness Recommendations for Security", D. Eastlake, S.
-   Crocker, J. Schiller, work in progress, draft-eastlake-
-   randomness2-*.txt currently in RFC Editor's queue.
 
    [RFC 1034] - "Domain names - concepts and facilities", P.
    Mockapetris, 11/01/1987.
 
    [RFC 1035] - "Domain names - implementation and specification", P.
    Mockapetris, 11/01/1987.
-
-   [RFC intro] - "DNS Security Introduction and Requirements", R.
-   Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in progress,
-   draft-ietf-dnsext-dnssec-intro-*.txt.
-
-   [RFC protocol] - "Protocol Modifications for the DNS Security
-   Extensions", R. Arends, M. Larson, R. Austein, D. Massey, S. Rose,
-   work in progress, draft-ietf-dnsext-dnssec-protocol-*.txt.
 
    [RFC 2671] - "Extension Mechanisms for DNS (EDNS0)", P. Vixie, August
    1999.
@@ -394,9 +378,24 @@ Informative References
    [RFC 3174] - "US Secure Hash Algorithm 1 (SHA1)", D. Eastlake, P.
    Jones, September 2001.
 
+   [RFC 4033] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "DNS Security Introduction and Requirements", RFC 4033, March
+   2005.
+
+   [RFC 4035] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "Protocol Modifications for the DNS Security Extensions", RFC
+   4035, March 2005.
+
+   [RFC 4086] - Eastlake, D., 3rd, Schiller, J., and S. Crocker,
+   "Randomness Requirements for Security", BCP 106, RFC 4086, June 2005.
+
    [Schneier] - "Applied Cryptography Second Edition: protocols,
    algorithms, and source code in C" (second edition), Bruce Schneier,
    1996, John Wiley and Sons, ISBN 0-471-11709-9.
+
+
+
+
 
 
 
@@ -423,9 +422,9 @@ Authors Address
 
 Expiration and File Name
 
-   This draft expires in September 2005.
+   This draft expires in January 2006.
 
-   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-05.txt.
+   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-06.txt.
 
 
 
@@ -463,4 +462,3 @@ Expiration and File Name
 
 D. Eastlake 3rd                                                 [Page 8]
 
-

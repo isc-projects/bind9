@@ -2,23 +2,23 @@
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 OBSOLETES: RFC 2539                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: September 2005                                       March 2005
+Expires: January 2006                                          July 2005
 
 
 
 
         Storage of Diffie-Hellman Keying Information in the DNS
         ------- -- -------------- ------ ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2539bis-dhk-05.txt>
+               <draft-ietf-dnsext-rfc2539bis-dhk-06.txt>
 
 
 
 Status of This Document
 
-   By submitting this Internet-Draft, I certify that any applicable
-   patent or other IPR claims of which I am aware have been disclosed,
-   or will be disclosed, and any of which I become aware will be
-   disclosed, in accordance with RFC 3668.
+   By submitting this Internet-Draft, each author represents that any
+   applicable patent or other IPR claims of which he or she is aware
+   have been or will be disclosed, and any of which he or she becomes
+   aware will be disclosed, in accordance with Section 6 of BCP 79.
 
    Distribution of this document is unlimited. Comments should be sent
    to the DNS extensions working group mailing list
@@ -90,14 +90,14 @@ Table of Contents
 
       Normative References.......................................7
       Informative Refences.......................................7
-      Author Address.............................................7
+
+      Author Address.............................................8
       Expiration and File Name...................................8
 
       Appendix A: Well known prime/generator pairs...............9
       A.1. Well-Known Group 1:  A 768 bit prime..................9
       A.2. Well-Known Group 2:  A 1024 bit prime.................9
       A.3. Well-Known Group 3:  A 1536 bit prime................10
-
 
 
 
@@ -124,8 +124,8 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    distributed database system for Internet addressing, mail proxy, and
    similar information [RFC 1034, 1035]. The DNS has been extended to
    include digital signatures and cryptographic keys as described in
-   [RFC intro, proto, records] and additonal work is underway which
-   would use the storage of keying information in the DNS.
+   [RFC 4033, 4034, 4035] and additonal work is underway which would use
+   the storage of keying information in the DNS.
 
 
 
@@ -281,8 +281,8 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 Copyright and Disclaimer
 
-   Copyright (C) The Internet Society 2005.  This document is subject to
-   the rights, licenses and restrictions contained in BCP 78 and except
+   Copyright (C) The Internet Society (2005).  This document is subject to
+   the rights, licenses and restrictions contained in BCP 78, and except
    as set forth therein, the authors retain all their rights.
 
 
@@ -358,9 +358,9 @@ Normative References
    [RFC 2434] - "Guidelines for Writing an IANA Considerations Section
    in RFCs", T.  Narten, H. Alvestrand, October 1998.
 
-   [RFC records] - "Resource Records for the DNS Security Extensions",
-   R. Arends, R. Austein, M. Larson, D. Massey, S. Rose, work in
-   progress, draft-ietf-dnsext-dnssec-records- *.txt.
+   [RFC 4034] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "Resource Records for the DNS Security Extensions", RFC 4034,
+   March 2005.
 
 
 
@@ -378,18 +378,34 @@ Informative Refences
    [RFC 2671] - "Extension Mechanisms for DNS (EDNS0)", P. Vixie, August
    1999.
 
-   [RFC intro] - "DNS Security Introduction and Requirements", R.
-   Arends, M. Larson, R. Austein, D. Massey, S. Rose, work in progress,
-   draft-ietf-dnsext-dnssec-intro-*.txt.
+   [RFC 4033] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "DNS Security Introduction and Requirements", RFC 4033, March
+   2005.
 
-   [RFC protocol] - "Protocol Modifications for the DNS Security
-   Extensions", R. Arends, M. Larson, R. Austein, D. Massey, S. Rose,
-   work in progress, draft-ietf-dnsext-dnssec-protocol-*.txt.
+   [RFC 4035] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
+   Rose, "Protocol Modifications for the DNS Security Extensions", RFC
+   4035, March 2005.
 
    [Schneier] - Bruce Schneier, "Applied Cryptography: Protocols,
    Algorithms, and Source Code in C" (Second Edition), 1996, John Wiley
    and Sons.
 
+
+
+
+
+
+
+
+
+
+
+
+
+D. Eastlake 3rd                                                 [Page 7]
+
+
+INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
 Author Address
@@ -400,31 +416,15 @@ Author Address
    Milford, MA 01757 USA
 
    Telephone:   +1-508-786-7554
-
-
-D. Eastlake 3rd                                                 [Page 7]
-
-
-INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
-
-
    EMail:       Donald.Eastlake@motorola.com
 
 
 
 Expiration and File Name
 
-   This draft expires in September 2005.
+   This draft expires in January 2006.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-05.txt.
-
-
-
-
-
-
-
-
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-06.txt.
 
 
 
@@ -578,4 +578,3 @@ A.3. Well-Known Group 3:  A 1536 bit prime
 
 D. Eastlake 3rd                                                [Page 10]
 
-
