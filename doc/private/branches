@@ -18,7 +18,6 @@ libbind_clean			open	jinmei
 mlg-20000518			new	
 newresolver0			new	
 openssl_stub			open	marka
-peter				closed	peter	// hostname.bind for 9.2.x
 rt10864				open	marka	// NSEC caching @ delegation
 rt11382				open		// dlz	
 rt11398a			open	sra	// doxygen dev
@@ -26,36 +25,21 @@ rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
 rt13489				review	marka
-rt13505				closed	
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt13587				closed	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt14606				closed	
 rt14666				open	
 rt14815				open		// stats blind spots	
-rt14855				closed
 rt14895				open	jinmei
 rt14895b			open	
-rt14916				closed	marka
-rt14918				closed	marka	
-rt14931				closed	
-rt14932				closed	
 rt14933				open		// DLV	
-rt14951				closed	
-rt14953				closed	
-rt14959				closed	
 rt14963				open		// bad wildcard grants	
 rt14965				open		// windows fixes	
-rt14967				closed	
-rt14991				closed	
-rt14995				closed	
 rt14996				open		// tune based on request load	
 rt15036				open		// ixfr-from-differences serial
 rt1727				new		// ixfr-from-differences workfile
 rt5206_1			open	marka	// master from last notify
-rt6432				closed	marka
 rt6496a				open	marka
 skan				new	
 skan-metazones1			new	
@@ -103,6 +87,7 @@ ksk				closed
 marka_google			closed
 newconfig			closed
 optin				closed		// aborted DNSSEC OPTIN code
+peter				closed		// hostname.bind for 9.2.x
 queryperf-v6			closed		// IPv6 transport support for queryperf
 rdata_split			closed
 rt10038				closed
@@ -270,9 +255,11 @@ rt13455				closed
 rt13463				closed
 rt13483				closed
 rt13501				closed
+rt13505				closed
 rt13511				closed
 rt13526				closed
 rt13547				closed
+rt13587				closed
 rt13593				closed
 rt13593a			closed
 rt13597				closed
@@ -287,6 +274,7 @@ rt13745				closed
 rt13753				closed
 rt13754				closed
 rt13771				closed
+rt14606				closed
 rt14616				closed
 rt14673				closed
 rt14686				closed
@@ -300,11 +288,22 @@ rt14815a			closed		// abandoned
 rt14841				closed
 rt14846				closed
 rt14851				closed
+rt14855				closed
 rt14873				closed
 rt14890				closed
 rt14892				closed
+rt14916				closed
+rt14918				closed
 rt14919				closed
+rt14931				closed
+rt14932				closed
+rt14951				closed
+rt14953				closed
+rt14959				closed
 rt14962				closed
+rt14967				closed
+rt14991				closed
+rt14995				closed
 rt1572a				closed		// bad rt#
 rt2471				closed
 rt288				closed
@@ -373,6 +372,7 @@ rt6206				closed
 rt6225				closed
 rt6229				closed
 rt6427				closed
+rt6432				closed
 rt6496				closed
 rt6539				closed
 rt6636				closed
