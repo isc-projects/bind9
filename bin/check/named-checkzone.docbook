@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.21 2005/06/20 01:09:42 marka Exp $ -->
-<refentry>
+<!-- $Id: named-checkzone.docbook,v 1.22 2005/07/19 04:55:19 marka Exp $ -->
+<refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
   </refentryinfo>

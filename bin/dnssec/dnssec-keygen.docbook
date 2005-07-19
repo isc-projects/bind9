@@ -18,8 +18,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.12 2005/05/13 01:35:39 marka Exp $ -->
-<refentry>
+<!-- $Id: dnssec-keygen.docbook,v 1.13 2005/07/19 04:55:20 marka Exp $ -->
+<refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
   </refentryinfo>

@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.385 $)
+AC_REVISION($Revision: 1.386 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -2063,6 +2063,10 @@ NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_XHTML, docbook/xhtml/docbook.xsl, $docbook_xsl_
 NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_MAN, docbook/manpages/docbook.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_HTML, docbook/html/chunk.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_XHTML, docbook/xhtml/chunk.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_HTML, docbook/html/chunktoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_XHTML, docbook/xhtml/chunktoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, docbook/html/maketoc.xsl, $docbook_xsl_trees)
+NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, docbook/xhtml/maketoc.xsl, $docbook_xsl_trees)
 
 #
 # Same dance for db2latex
@@ -2243,6 +2247,7 @@ AC_OUTPUT(
 	doc/arm/Makefile
 	doc/misc/Makefile
 	isc-config.sh
+	doc/xsl/Makefile
 	doc/xsl/isc-docbook-chunk.xsl
 	doc/xsl/isc-docbook-html.xsl
 	doc/xsl/isc-docbook-latex.xsl
