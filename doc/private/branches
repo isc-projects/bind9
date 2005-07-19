@@ -18,44 +18,44 @@ libbind_clean			open	jinmei
 mlg-20000518			new	
 newresolver0			new	
 openssl_stub			open	marka
-peter				private	peter	// hostname.bind for 9.2.x
-rt10864				open	marka
-rt11382				new	
+peter				closed	peter	// hostname.bind for 9.2.x
+rt10864				open	marka	// NSEC caching @ delegation
+rt11382				open		// dlz	
 rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
 rt13489				review	marka
-rt13505				review	
+rt13505				closed	
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt13587				review	
+rt13587				closed	
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt14606				new	
-rt14666				new	
-rt14815				new	
-rt14855				open		// 9.4 ARM review	
+rt14606				closed	
+rt14666				open	
+rt14815				open		// stats blind spots	
+rt14855				closed
 rt14895				open	jinmei
-rt14895b			new	
-rt14916				open	marka	// lame cache to <qname,qtype>
-rt14918				open	marka	// clients-per-query	
-rt14931				new	
-rt14932				new	
-rt14933				new	
-rt14951				new	
-rt14953				new	
-rt14959				new	
-rt14963				new	
-rt14965				new	
-rt14967				new	
-rt14991				new	
-rt14995				new	
-rt14996				new	
-rt15036				new	
-rt1727				new	
-rt5206_1			open	marka
-rt6432				open	marka
+rt14895b			open	
+rt14916				closed	marka
+rt14918				closed	marka	
+rt14931				closed	
+rt14932				closed	
+rt14933				open		// DLV	
+rt14951				closed	
+rt14953				closed	
+rt14959				closed	
+rt14963				open		// bad wildcard grants	
+rt14965				open		// windows fixes	
+rt14967				closed	
+rt14991				closed	
+rt14995				closed	
+rt14996				open		// tune based on request load	
+rt15036				open		// ixfr-from-differences serial
+rt1727				new		// ixfr-from-differences workfile
+rt5206_1			open	marka	// master from last notify
+rt6432				closed	marka
 rt6496a				open	marka
 skan				new	
 skan-metazones1			new	
