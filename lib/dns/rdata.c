@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.11.2.18 2005/03/20 22:34:00 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.11.2.19 2005/07/20 01:50:47 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -986,11 +986,14 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 		if (*sp < 0x20 || *sp >= 0x7f) {
 			if (tl < 4)
 				return (ISC_R_NOSPACE);
-			snprintf(tp, 5, "\\%03u", *sp++);
-			tp += 4;
+			*tp++ = 0x5c;
+			*tp++ = 0x30 + ((*sp / 100) % 10);
+			*tp++ = 0x30 + ((*sp / 10) % 10);
+			*tp++ = 0x30 + (*sp % 10);
 			tl -= 4;
 			continue;
 		}
+		/* double quote, semi-colon, backslash */
 		if (*sp == 0x22 || *sp == 0x3b || *sp == 0x5c) {
 			if (tl < 2)
 				return (ISC_R_NOSPACE);
