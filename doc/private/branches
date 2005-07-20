@@ -11,7 +11,7 @@ Branch				Status	Whom	// Comments
 
 bind9-gss-tsig			new	
 bind9-gsstsig			new	
-dlz				open	sra	// dynamicly loadable zones
+dlz				closed		// old version of dlz patch, merge never completed
 gsstsig2			new	
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 libbind_clean			open	jinmei
@@ -19,7 +19,7 @@ mlg-20000518			new
 newresolver0			new	
 openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
-rt11382				open		// dlz	
+rt11382				open	sra	// dlz
 rt11398a			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
