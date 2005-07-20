@@ -1,3 +1,6 @@
+1904.	[bug]		A escaped character is, potentially, converted to
+			the output character set too early. [RT #14666]
+
 1903.	[doc]		Review ARM for BIND 9.4.
 
 1902.	[port]		Use uintptr_t if available. [RT #14606]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.144.18.6 2005/04/27 05:01:21 sra Exp $ */
+/* $Id: name.c,v 1.144.18.7 2005/07/20 01:49:27 marka Exp $ */
 
 /*! \file */
 
@@ -1371,13 +1371,14 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 						trem--;
 						nlen--;
 					} else {
-						char buf[5];
 						if (trem < 4)
 							return (ISC_R_NOSPACE);
-						snprintf(buf, sizeof(buf),
-							 "\\%03u", c);
-						memcpy(tdata, buf, 4);
-						tdata += 4;
+						*tdata++ = 0x5c;
+						*tdata++ = 0x30 +
+							   ((c / 100) % 10);
+						*tdata++ = 0x30 +
+							   ((c / 10) % 10);
+						*tdata++ = 0x30 + (c % 10);
 						trem -= 4;
 						ndata++;
 						nlen--;
