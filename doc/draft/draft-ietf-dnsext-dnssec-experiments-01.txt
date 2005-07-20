@@ -1,26 +1,25 @@
 
 
-Network Working Group                                          D. Blacka
+
+DNSEXT                                                         D. Blacka
 Internet-Draft                                            Verisign, Inc.
-Expires: August 3, 2005                                 February 2, 2005
+Expires: January 19, 2006                                  July 18, 2005
 
 
                            DNSSEC Experiments
-                draft-ietf-dnsext-dnssec-experiments-00
+                draft-ietf-dnsext-dnssec-experiments-01
 
 Status of this Memo
 
-   This document is an Internet-Draft and is subject to all provisions
-   of section 3 of RFC 3667.  By submitting this Internet-Draft, each
-   author represents that any applicable patent or other IPR claims of
-   which he or she is aware have been or will be disclosed, and any of
-   which he or she become aware will be disclosed, in accordance with
-   RFC 3668.
+   By submitting this Internet-Draft, each author represents that any
+   applicable patent or other IPR claims of which he or she is aware
+   have been or will be disclosed, and any of which he or she becomes
+   aware will be disclosed, in accordance with Section 6 of BCP 79.
 
    Internet-Drafts are working documents of the Internet Engineering
    Task Force (IETF), its areas, and its working groups.  Note that
-   other groups may also distribute working documents as
-   Internet-Drafts.
+   other groups may also distribute working documents as Internet-
+   Drafts.
 
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
@@ -33,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on August 3, 2005.
+   This Internet-Draft will expire on January 19, 2006.
 
 Copyright Notice
 
@@ -41,20 +40,21 @@ Copyright Notice
 
 Abstract
 
-   In the long history of the development of the DNS security [1]
-   extensions (DNSSEC), a number of alternate methodologies and
-   modifications have been proposed and rejected for practical, rather
-   than strictly technical, reasons.  There is a desire to be able to
-   experiment with these alternate methods in the public DNS.  This
-   document describes a methodology for deploying alternate,
-   non-backwards-compatible, DNSSEC methodologies in an experimental
-   fashion without disrupting the deployment of standard DNSSEC.
+   In the long history of the development of the DNS security extensions
+   [1] (DNSSEC), a number of alternate methodologies and modifications
+   have been proposed and rejected for practical, rather than strictly
+   technical, reasons.  There is a desire to be able to experiment with
+   these alternate methods in the public DNS.  This document describes a
+   methodology for deploying alternate, non-backwards-compatible, DNSSEC
+   methodologies in an experimental fashion without disrupting the
+   deployment of standard DNSSEC.
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 1]
+
+Blacka                  Expires January 19, 2006                [Page 1]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 Table of Contents
@@ -69,11 +69,10 @@ Table of Contents
    8.   Security Considerations  . . . . . . . . . . . . . . . . . .  11
    9.   IANA Considerations  . . . . . . . . . . . . . . . . . . . .  12
    10.  References . . . . . . . . . . . . . . . . . . . . . . . . .  13
-   10.1   Normative References . . . . . . . . . . . . . . . . . . .  13
-   10.2   Informative References . . . . . . . . . . . . . . . . . .  13
-        Editorial Comments . . . . . . . . . . . . . . . . . . . . .  14
-        Author's Address . . . . . . . . . . . . . . . . . . . . . .  14
-        Intellectual Property and Copyright Statements . . . . . . .  15
+     10.1   Normative References . . . . . . . . . . . . . . . . . .  13
+     10.2   Informative References . . . . . . . . . . . . . . . . .  13
+        Author's Address . . . . . . . . . . . . . . . . . . . . . .  13
+        Intellectual Property and Copyright Statements . . . . . . .  14
 
 
 
@@ -108,9 +107,10 @@ Table of Contents
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 2]
+
+Blacka                  Expires January 19, 2006                [Page 2]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 1.  Definitions and Terminology
@@ -164,9 +164,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 3]
+Blacka                  Expires January 19, 2006                [Page 3]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 2.  Overview
@@ -176,12 +176,12 @@ Internet-Draft             DNSSEC Experiments              February 2005
    introduce non-backwards-compatible changes to DNSSEC, and to try
    these changes on real zones in the public DNS.  This creates a
    problem when the change to DNSSEC would make all or part of the zone
-   using those changes appear bogus or otherwise broken to existing
-   DNSSEC-aware resolvers.
+   using those changes appear bogus (bad) or otherwise broken to
+   existing DNSSEC-aware resolvers.
 
    This document describes a standard methodology for setting up public
-   DNSSEC experiments.  This methodology addresses the issue of
-   co-existence with standard DNSSEC and DNS by using unknown algorithm
+   DNSSEC experiments.  This methodology addresses the issue of co-
+   existence with standard DNSSEC and DNS by using unknown algorithm
    identifiers to hide the experimental DNSSEC protocol modifications
    from standard DNSSEC-aware resolvers.
 
@@ -220,9 +220,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 4]
+Blacka                  Expires January 19, 2006                [Page 4]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 3.  Experiments
@@ -234,6 +234,7 @@ Internet-Draft             DNSSEC Experiments              February 2005
       strictly adhering to the DNSSEC standard, are nonetheless
       interoperable with clients and server that do implement the DNSSEC
       standard.
+
    Non-Backwards-Compatible: describes experiments that would cause a
       standard DNSSEC-aware resolver to (incorrectly) determine that all
       or part of a zone is bogus, or to otherwise not interoperable with
@@ -275,18 +276,17 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-
-Blacka                   Expires August 3, 2005                 [Page 5]
+Blacka                  Expires January 19, 2006                [Page 5]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 4.  Method
 
-   The core of the methodology is the use of only "unknown" algorithms
-   to sign the experimental zone, and more importantly, having only
-   unknown algorithm DS records for the delegation to the zone at the
-   parent.
+   The core of the methodology is the use of strictly "unknown"
+   algorithms to sign the experimental zone, and more importantly,
+   having only unknown algorithm DS records for the delegation to the
+   zone at the parent.
 
    This technique works because of the way DNSSEC-compliant validators
    are expected to work in the presence of a DS set with only unknown
@@ -311,31 +311,33 @@ Internet-Draft             DNSSEC Experiments              February 2005
    more to the point, it will not violate this behavior in an unsafe way
    (see below (Section 6).)
 
-   Because we are talking about experiments, it is recommended that
-   private algorithm numbers be used (see [2], appendix A.1.1
-   [Comment.1].) Normally, instead of actually inventing new signing
-   algorithms, the recommended path is to create alternate algorithm
-   identifiers that are aliases for the existing, known algorithms.
-   While, strictly speaking, it is only necessary to create an alternate
-   identifier for the mandatory algorithms (currently, this is only
-   algorithm 5, RSASHA1), it is RECOMMENDED that all OPTIONAL defined
-   algorithms be aliased as well.
+   Because we are talking about experiments, it is RECOMMENDED that
+   private algorithm numbers be used (see [2], appendix A.1.1.  Note
+   that secure handling of private algorithms requires special handing
+   by the validator logic.  See [6] for futher details.)  Normally,
+   instead of actually inventing new signing algorithms, the recommended
+   path is to create alternate algorithm identifiers that are aliases
+   for the existing, known algorithms.  While, strictly speaking, it is
+   only necessary to create an alternate identifier for the mandatory
+   algorithms, it is RECOMMENDED that all OPTIONAL defined algorithms be
+   aliased as well.
 
    It is RECOMMENDED that for a particular DNSSEC experiment, a
    particular domain name base is chosen for all new algorithms, then
    the algorithm number (or name) is prepended to it.  For example, for
    experiment A, the base name of "dnssec-experiment-a.example.com" is
    chosen.  Then, aliases for algorithms 3 (DSA) and 5 (RSASHA1) are
-   defined to be "3.dnssec-experiment-a.example.com" and
-   "5.dnssec-experiment-a.example.com".  However, any unique identifier
-   will suffice.
+   defined to be "3.dnssec-experiment-a.example.com" and "5.dnssec-
+   experiment-a.example.com".  However, any unique identifier will
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 6]
+Blacka                  Expires January 19, 2006                [Page 6]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
+
+   suffice.
 
    Using this method, resolvers (or, more specificially, DNSSEC
    validators) essentially indicate their ability to understand the
@@ -348,6 +350,10 @@ Internet-Draft             DNSSEC Experiments              February 2005
    experimental semantics), and servers and resolvers that are unware of
    the experiment.
 
+   This method also precludes any zone from being both in an experiment
+   and in a classic DNSSEC island of security.  That is, a zone is
+   either in an experiment and only experimentally validatable, or it
+   isn't.
 
 
 
@@ -382,15 +388,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-
-
-
-
-
-
-Blacka                   Expires August 3, 2005                 [Page 7]
+Blacka                  Expires January 19, 2006                [Page 7]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 5.  Defining an Experiment
@@ -402,7 +402,7 @@ Internet-Draft             DNSSEC Experiments              February 2005
    this will be a mapping of private algorithm identifiers to existing,
    known algorithms.
 
-   Typically, the experiment will choose a DNS name as the algorithm
+   Normally the experiment will choose a DNS name as the algorithm
    identifier base.  This DNS name SHOULD be under the control of the
    authors of the experiment.  Then the experiment will define a mapping
    between known mandatory and optional algorithms into this private
@@ -422,8 +422,7 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
    In general, however, resolvers involved in the experiment are
    expected to understand both standard DNSSEC and the defined
-   experimental DNSSEC protocol, although this isn't, strictly speaking,
-   required.
+   experimental DNSSEC protocol, although this isn't required.
 
 
 
@@ -444,9 +443,10 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                 [Page 8]
+
+Blacka                  Expires January 19, 2006                [Page 8]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 6.  Considerations
@@ -460,7 +460,8 @@ Internet-Draft             DNSSEC Experiments              February 2005
        conclude that the response is bogus, either due to local policy
        or implementation details.  This is not expected to be the common
        case, however.
-   2.  It will, in general, not be possible for DNSSEC-aware resolvers
+
+   2.  In general, it will not be possible for DNSSEC-aware resolvers
        not aware of the experiment to build a chain of trust through an
        experimental zone.
 
@@ -499,10 +500,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-
-Blacka                   Expires August 3, 2005                 [Page 9]
+Blacka                  Expires January 19, 2006                [Page 9]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 7.  Transitions
@@ -556,9 +556,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                [Page 10]
+Blacka                  Expires January 19, 2006               [Page 10]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 8.  Security Considerations
@@ -612,9 +612,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                [Page 11]
+Blacka                  Expires January 19, 2006               [Page 11]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 9.  IANA Considerations
@@ -668,27 +668,26 @@ Internet-Draft             DNSSEC Experiments              February 2005
 
 
 
-Blacka                   Expires August 3, 2005                [Page 12]
+Blacka                  Expires January 19, 2006               [Page 12]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 10.  References
 
 10.1  Normative References
 
-   [1]  Arends, R., Austein, R., Massey, D., Larson, M. and S. Rose,
-        "DNS Security Introduction and Requirements",
-        draft-ietf-dnsext-dnssec-intro-13 (work in progress), October
-        2004.
+   [1]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+        "DNS Security Introduction and Requirements", RFC 4033,
+        March 2005.
 
-   [2]  Arends, R., "Resource Records for the DNS Security Extensions",
-        draft-ietf-dnsext-dnssec-records-11 (work in progress), October
-        2004.
+   [2]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+        "Resource Records for the DNS Security Extensions", RFC 4034,
+        March 2005.
 
-   [3]  Arends, R., "Protocol Modifications for the DNS Security
-        Extensions", draft-ietf-dnsext-dnssec-protocol-09 (work in
-        progress), October 2004.
+   [3]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+        "Protocol Modifications for the DNS Security Extensions",
+        RFC 4035, March 2005.
 
 10.2  Informative References
 
@@ -698,43 +697,9 @@ Internet-Draft             DNSSEC Experiments              February 2005
    [5]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Blacka                   Expires August 3, 2005                [Page 13]
-
-Internet-Draft             DNSSEC Experiments              February 2005
-
-
-Editorial Comments
-
-   [Comment.1]  Note: how private algorithms work in DNSSEC is not well
-                explained in the DNSSECbis RFCs.  In particular, how to
-                validate that the DS records contain only unknown
-                algorithms is not explained at all.
+   [6]  Weiler, S., "Clarifications and Implementation Notes for
+        DNSSECbis", draft-weiler-dnsext-dnssec-bis-updates-00 (work in
+        progress), March 2005.
 
 
 Author's Address
@@ -746,7 +711,7 @@ Author's Address
    US
 
    Phone: +1 703 948 3200
-   EMail: davidb@verisign.com
+   Email: davidb@verisign.com
    URI:   http://www.verisignlabs.com
 
 
@@ -759,30 +724,9 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Blacka                   Expires August 3, 2005                [Page 14]
+Blacka                  Expires January 19, 2006               [Page 13]
 
-Internet-Draft             DNSSEC Experiments              February 2005
+Internet-Draft             DNSSEC Experiments                  July 2005
 
 
 Intellectual Property Statement
@@ -836,6 +780,5 @@ Acknowledgment
 
 
 
-Blacka                   Expires August 3, 2005                [Page 15]
+Blacka                  Expires January 19, 2006               [Page 14]
 
-
