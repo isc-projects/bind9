@@ -86,7 +86,7 @@
 ./bin/dnssec/win32/signzone.dsp			X	2001
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001
-./bin/named/.cvsignore				X	1999,2000,2001
+./bin/named/.cvsignore				X	1999,2000,2001,2005
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/named/aclconf.c				C	1999,2000,2001,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005
@@ -1659,7 +1659,7 @@
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/masterdump.c				C	1999,2000,2001,2003,2004
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004
+./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004
 ./lib/dns/nxt.c					C	1999,2000,2001,2003,2004
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2003,2004
