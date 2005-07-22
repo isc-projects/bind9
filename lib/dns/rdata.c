@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.15 2005/07/20 01:55:34 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.16 2005/07/22 05:26:44 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1370,6 +1370,7 @@ txt_totext(isc_region_t *source, isc_buffer_t *target) {
 			*tp++ = 0x30 + ((*sp / 100) % 10);
 			*tp++ = 0x30 + ((*sp / 10) % 10);
 			*tp++ = 0x30 + (*sp % 10);
+			sp++;
 			tl -= 4;
 			continue;
 		}
