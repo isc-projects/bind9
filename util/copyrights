@@ -1183,7 +1183,7 @@
 ./doc/xsl/copyright.xsl				SGML	2005
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005
-./doc/xsl/isc-docbook-latex-mappings.xml	?	2005
+./doc/xsl/isc-docbook-latex-mappings.xml	SGML	2005
 ./doc/xsl/isc-docbook-latex.xsl.in		SGML	2005
 ./doc/xsl/isc-manpage.xsl.in			SGML	2005
 ./doc/xsl/pre-latex.xsl				SGML	2005
