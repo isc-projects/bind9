@@ -38,6 +38,7 @@ rt14965				open		// windows fixes
 rt14996				open		// tune based on request load	
 rt15036				open		// ixfr-from-differences serial
 rt1727				new		// ixfr-from-differences workfile
+rt1727b				new	
 rt5206_1			open	marka	// master from last notify
 rt6496a				open	marka
 skan				new	
