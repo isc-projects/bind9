@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.c,v 1.2.2.1 2005/07/12 01:22:29 marka Exp $ */
+/* $Id: refcount.c,v 1.2.2.2 2005/07/25 00:51:46 marka Exp $ */
 
 #include <config.h>
 
@@ -30,7 +30,7 @@ isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
 
 	ref->refs = n;
 #if defined(ISC_PLATFORM_USETHREADS) && !defined(ISC_PLATFORM_HAVEXADD)
-	return (isc_mutex_init(&rep->lock));
+	return (isc_mutex_init(&ref->lock));
 #else
 	return (ISC_R_SUCCESS);
 #endif
