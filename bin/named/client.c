@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.228 2005/06/07 00:15:59 marka Exp $ */
+/* $Id: client.c,v 1.229 2005/07/27 02:28:58 marka Exp $ */
 
 #include <config.h>
 
@@ -181,23 +181,29 @@ static void client_request(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 
 void
-ns_client_recursing(ns_client_t *client, isc_boolean_t killoldest) {
+ns_client_recursing(ns_client_t *client) {
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	LOCK(&client->manager->lock);
+	ISC_LIST_UNLINK(*client->list, client, link);
+	ISC_LIST_APPEND(client->manager->recursing, client, link);
+	client->list = &client->manager->recursing;
+	UNLOCK(&client->manager->lock);
+}
+
+void
+ns_client_killoldestquery(ns_client_t *client) {
 	ns_client_t *oldest;
 	REQUIRE(NS_CLIENT_VALID(client));
 
 	LOCK(&client->manager->lock);
-	if (killoldest) {
-		oldest = ISC_LIST_HEAD(client->manager->recursing);
-		if (oldest != NULL) {
-			ns_query_cancel(oldest);
-			ISC_LIST_UNLINK(*oldest->list, oldest, link);
-			ISC_LIST_APPEND(client->manager->active, oldest, link);
-			oldest->list = &client->manager->active;
-		}
+	oldest = ISC_LIST_HEAD(client->manager->recursing);
+	if (oldest != NULL) {
+		ns_query_cancel(oldest);
+		ISC_LIST_UNLINK(*oldest->list, oldest, link);
+		ISC_LIST_APPEND(client->manager->active, oldest, link);
+		oldest->list = &client->manager->active;
 	}
-	ISC_LIST_UNLINK(*client->list, client, link);
-	ISC_LIST_APPEND(client->manager->recursing, client, link);
-	client->list = &client->manager->recursing;
 	UNLOCK(&client->manager->lock);
 }
 

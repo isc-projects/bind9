@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.445 2005/06/27 00:15:42 marka Exp $ */
+/* $Id: server.c,v 1.446 2005/07/27 02:28:58 marka Exp $ */
 
 /*! \file */
 
@@ -1882,7 +1882,7 @@ configure_server_quota(cfg_obj_t **maps, const char *name, isc_quota_t *quota)
 
 	result = ns_config_get(maps, name, &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	quota->max = cfg_obj_asuint32(obj);
+	isc_quota_max(quota, cfg_obj_asuint32(obj));
 }
 
 /*
@@ -2309,6 +2309,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	configure_server_quota(maps, "tcp-clients", &server->tcpquota);
 	configure_server_quota(maps, "recursive-clients",
 			       &server->recursionquota);
+	if (server->recursionquota.max > 1000)
+		isc_quota_soft(&server->recursionquota,
+			       server->recursionquota.max - 100);
+	else
+		isc_quota_soft(&server->recursionquota, 0);
 
 	CHECK(configure_view_acl(NULL, config, "blackhole", &aclconfctx,
 				 ns_g_mctx, &server->blackholeacl));
@@ -3036,7 +3041,6 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = isc_quota_init(&server->recursionquota, 100);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_quota_soft(&server->recursionquota, ISC_FALSE);
 
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
@@ -4147,12 +4151,13 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "xfers deferred: %u\n"
 		     "soa queries in progress: %u\n"
 		     "query logging is %s\n"
-		     "recursive clients: %d/%d\n"
+		     "recursive clients: %d/%d/%d\n"
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF",
-		     server->recursionquota.used, server->recursionquota.max,
+		     server->recursionquota.used, server->recursionquota.soft,
+		     server->recursionquota.max,
 		     server->tcpquota.used, server->tcpquota.max);
 	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
