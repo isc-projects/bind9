@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.10.18.2 2005/04/29 00:17:01 marka Exp $ */
+/* $Id: quota.h,v 1.10.18.3 2005/07/27 02:44:22 marka Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
@@ -72,9 +72,15 @@ isc_quota_destroy(isc_quota_t *quota);
  */
 
 void
-isc_quota_soft(isc_quota_t *quota, isc_boolean_t soft);
+isc_quota_soft(isc_quota_t *quota, int soft);
 /*%<
- * Turn on/off soft quotas.
+ * Set a soft quota.
+ */
+
+void
+isc_quota_max(isc_quota_t *quota, int max);
+/*%<
+ * Re-set a maximum quota.
  */
 
 isc_result_t
@@ -83,9 +89,9 @@ isc_quota_reserve(isc_quota_t *quota);
  * Attempt to reserve one unit of 'quota'.
  *
  * Returns:
- *\li 	#ISC_R_SUCCESS	Success
- *\li	#ISC_R_SOFTQUOTA	Success soft quota reached
- *\li	#ISC_R_QUOTA	Quota is full
+ * \li 	#ISC_R_SUCCESS		Success
+ * \li	#ISC_R_SOFTQUOTA	Success soft quota reached
+ * \li	#ISC_R_QUOTA		Quota is full
  */
 
 void

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.12 2005/06/27 00:19:57 marka Exp $ */
+/* $Id: query.c,v 1.257.18.13 2005/07/27 02:44:19 marka Exp $ */
 
 /*! \file */
 
@@ -2701,33 +2701,37 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 	 * connection was accepted (if allowed by the TCP quota).
 	 */
 	if (client->recursionquota == NULL) {
-		isc_boolean_t killoldest = ISC_FALSE;
 		result = isc_quota_attach(&ns_g_server->recursionquota,
 					  &client->recursionquota);
-		if (result == ISC_R_SOFTQUOTA) {
+		if  (result == ISC_R_SOFTQUOTA) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "recursive-clients limit exceeded, "
+				      "recursive-clients soft limit exceeded, "
 				      "aborting oldest query");
-			killoldest = ISC_TRUE;
-			result = ISC_R_SUCCESS;
-		}
-		if (dns_resolver_nrunning(client->view->resolver) >
-		    (unsigned int)ns_g_server->recursionquota.max)
-			result = ISC_R_QUOTA;
-		if (result == ISC_R_SUCCESS && !client->mortal &&
-		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
-			result = ns_client_replace(client);
-		if (result != ISC_R_SUCCESS) {
+			ns_client_killoldestquery(client);
+			result == ISC_R_SUCCESS;
+		} else if (result == ISC_R_QUOTA) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "no more recursive clients: %s",
 				      isc_result_totext(result));
-			if (client->recursionquota != NULL)
-				isc_quota_detach(&client->recursionquota);
-			return (result);
+			ns_client_killoldestquery(client);
 		}
-		ns_client_recursing(client, killoldest);
+		if (result == ISC_R_SUCCESS && !client->mortal &&
+		    (client->attributes & NS_CLIENTATTR_TCP) == 0) {
+			result = ns_client_replace(client);
+			if (result != ISC_R_SUCCESS) {
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_WARNING,
+					      "ns_client_replace() failed: %s",
+					      isc_result_totext(result));
+				isc_quota_detach(&client->recursionquota);
+			}
+		}
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		ns_client_recursing(client);
 	}
 
 	/*
