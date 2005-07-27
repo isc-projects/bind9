@@ -1,3 +1,6 @@
+1906.	[func]		x86 and x86_64 now have seperate atomic locking
+			implementations.
+
 1905.	[bug]		Recursive clients soft quota support wasn't working
 			as expected. [RT #15103]
 

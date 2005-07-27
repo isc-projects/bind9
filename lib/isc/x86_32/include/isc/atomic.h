@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2.2.2 2005/06/16 22:01:02 jinmei Exp $ */
+/* $Id: atomic.h,v 1.2.2.3 2005/07/27 04:23:33 marka Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -89,8 +89,6 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
  * better to avoid inlining below, since we directly refer to specific
  * positions of the stack frame, which would not actually point to the
  * intended address in the embedded mnemonic.
- *
- * XXX: this code may also not work on a 64-bit (w/o gcc) machine.
  */
 #include <isc/util.h>		/* for 'UNUSED' macro */
 
