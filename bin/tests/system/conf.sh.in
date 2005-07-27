@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: conf.sh.in,v 1.31 2005/06/23 06:52:22 marka Exp $
+# $Id: conf.sh.in,v 1.32 2005/07/27 04:12:00 marka Exp $
 
 #
 # Common configuration data for system tests, to be sourced into
@@ -43,8 +43,8 @@ CHECKCONF=$TOP/bin/check/named-checkconf
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # v6synth
-SUBDIRS="cacheclean checkconf checknames dnssec forward glue ixfr limits \ 
-    lwresd masterfile masterformat notify nsupdate resolver sortlist stub \     
+SUBDIRS="cacheclean checkconf checknames dnssec forward glue ixfr limits \
+    lwresd masterfile masterformat notify nsupdate resolver sortlist stub \
     tkey unknown upforwd views xfer xferquota zonechecks"
 
 # PERL will be an empty string if no perl interpreter was found.
