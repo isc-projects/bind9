@@ -2163,6 +2163,7 @@
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/isc/win32/win32os.c			C	2002,2004
 ./lib/isc/x86_32/include/isc/atomic.h		C	2005
+./lib/isc/x86_64/include/isc/atomic.h		C	2005
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005
