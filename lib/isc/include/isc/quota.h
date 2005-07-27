@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.8.12.3 2004/03/08 09:04:52 marka Exp $ */
+/* $Id: quota.h,v 1.8.12.4 2005/07/27 02:53:16 marka Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
@@ -73,9 +73,15 @@ isc_quota_destroy(isc_quota_t *quota);
  */
 
 void
-isc_quota_soft(isc_quota_t *quota, isc_boolean_t soft);
+isc_quota_soft(isc_quota_t *quota, int soft);
 /*
  * Turn on/off soft quotas.
+ */
+
+void
+isc_quota_max(isc_quota_t *quota, int max);
+/*
+ * Re-set a maximum quota.
  */
 
 isc_result_t
