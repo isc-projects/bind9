@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.4 2005/07/27 04:20:43 marka Exp $ */
+/* $Id: atomic.h,v 1.2 2005/07/27 04:20:43 marka Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -23,72 +23,17 @@
 #include <isc/types.h>
 
 #ifdef ISC_PLATFORM_USEGCCASM
-/*
- * This routine atomically increments the value stored in 'p' by 'val', and
- * returns the previous value.
- */
-static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t prev = val;
 
-	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
-#endif
-		"xadd %0, %1"
-		:"=q"(prev)
-		:"m"(*p), "0"(prev)
-		:"memory", "cc");
-
-	return (prev);
-}
-
-/*
- * This routine atomically stores the value 'val' in 'p'.
- */
-static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
-	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
-		/*
-		 * xchg should automatically lock memory, but we add it
-		 * explicitly just in case (it at least doesn't harm)
-		 */
-		"lock;"		
-#endif
-
-		"xchgl %1, %0"
-		:
-		: "r"(val), "m"(*p)
-		: "memory");
-}
-
-/*
- * This routine atomically replaces the value in 'p' with 'val', if the
- * original value is equal to 'cmpval'.  The original value is returned in any
- * case.
- */
-static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
-	__asm__ volatile(
-#ifdef ISC_PLATFORM_USETHREADS
-		"lock;"
-#endif
-		"cmpxchgl %1, %2"
-		: "=a"(cmpval)
-		: "r"(val), "m"(*p), "a"(cmpval)
-		: "memory");
-
-	return (cmpval);
-}
+/* We share the gcc-version with x86_32 */
+#error "impossible case.  check build configuration"
 
 #elif defined(ISC_PLATFORM_USESTDASM)
 /*
  * The followings are "generic" assembly code which implements the same
  * functionality in case the gcc extension cannot be used.  It should be
  * better to avoid inlining below, since we directly refer to specific
- * positions of the stack frame, which would not actually point to the
- * intended address in the embedded mnemonic.
+ * registers for arguments, which would not actually correspond to the
+ * intended address or value in the embedded mnemonic.
  */
 #include <isc/util.h>		/* for 'UNUSED' macro */
 
@@ -98,19 +43,18 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	UNUSED(val);
 
 	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %edx\n"
+		"movq %rdi, %rdx\n"
+		"movl %esi, %eax\n"
 #ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
 #endif
-		"xadd %edx, (%ecx)\n"
+		"xadd %eax, (%rdx)\n"
 
 		/*
 		 * set the return value directly in the register so that we
 		 * can avoid guessing the correct position in the stack for a
 		 * local variable.
 		 */
-		"movl %edx, %eax"
 		);
 }
 
@@ -120,12 +64,12 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 	UNUSED(val);
 
 	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %edx\n"
+		"movq %rdi, %rax\n"
+		"movl %esi, %edx\n"
 #ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
 #endif
-		"xchgl (%ecx), %edx\n"
+		"xchgl (%rax), %edx\n"
 		);
 }
 
@@ -136,20 +80,21 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	UNUSED(val);
 
 	__asm (
-		"movl 8(%ebp), %ecx\n"
-		"movl 12(%ebp), %eax\n"	/* must be %eax for cmpxchgl */
-		"movl 16(%ebp), %edx\n"
+		"movl %edx, %ecx\n"
+		"movl %esi, %eax\n"
+		"movq %rdi, %rdx\n"
+
 #ifdef ISC_PLATFORM_USETHREADS
 		"lock;"
 #endif
-
 		/*
-		 * If (%ecx) == %eax then (%ecx) := %edx.
+		 * If (%rdi) == %eax then (%rdi) := %edx.
 		 % %eax is set to old (%ecx), which will be the return value.
 		 */
-		"cmpxchgl %edx, (%ecx)"
+		"cmpxchgl %ecx, (%rdx)"
 		);
 }
+
 #else /* !ISC_PLATFORM_USEGCCASM && !ISC_PLATFORM_USESTDASM */
 
 #error "unsupported compiler.  disable atomic ops by --disable-atomic"

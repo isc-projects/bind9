@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.386 $)
+AC_REVISION($Revision: 1.387 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1868,26 +1868,29 @@ esac
 ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 if test "$use_atomic" = "yes"; then
 	AC_MSG_CHECKING([architecture type for atomic operations])
+	have_atomic=yes		# set default
 	case "$host" in
-	[i[3456]86-*]|x86_64-*)
+	[i[3456]86-*])
 		# XXX: some old x86 architectures actually do not support
 		#      (some of) these operations.  Do we need stricter checks?
-		# Note: We currently use the same code for both the x86_32 and
-		#       x86_64 architectures, but there may be a better
-		# implementation for the latter.
-		have_atomic=yes
-		arch=x86_32
+AC_TRY_RUN([
+main() {
+	exit((sizeof(void *) == 8) ? 0 : 1);
+}
+],
+		[arch=x86_64],
+		[arch=x86_32])
+	;;
+	x86_64-*)
+		arch=x86_64
 	;;
 	alpha*-*)
-		have_atomic=yes
 		arch=alpha
 	;;
 	powerpc-*)
-		have_atomic=yes
 		arch=powerpc
 	;;
 	mips-*)
-		have_atomic=yes
 		arch=mips
 	;;
 	*)
@@ -1906,6 +1909,10 @@ if test "$have_atomic" = "yes"; then
 	if test "X$GCC" = "Xyes"; then
 		# GCC's ASM extension always works
 		compiler=gcc
+		if test $arch = "x86_64"; then
+			# We can share the same code for gcc with x86_32
+			arch=x86_32
+		fi
 	else
 		case "$host" in
 		alpha*-dec-osf*)
