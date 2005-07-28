@@ -1195,7 +1195,7 @@
 ./lib/.cvsignore				X	1999,2000,2001
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
 ./lib/bind/.cvsignore				X	2001
-./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004
+./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004,2005
 ./lib/bind/README				X	2001
 ./lib/bind/aclocal.m4				X	2001
 ./lib/bind/api					X	2001
@@ -1253,6 +1253,7 @@
 ./lib/bind/include/netgroup.h			X	2001,2005
 ./lib/bind/include/res_update.h			X	2001,2005
 ./lib/bind/include/resolv.h			X	2001,2005
+./lib/bind/include/resolv_mt.h			C	2005
 ./lib/bind/inet/.cvsignore			X	2001
 ./lib/bind/inet/Makefile.in			MAKE	2001,2004
 ./lib/bind/inet/inet_addr.c			X	2001,2005
@@ -1596,8 +1597,9 @@
 ./lib/bind/port_after.h.in			X	2001,2005
 ./lib/bind/port_before.h.in			X	2001,2005
 ./lib/bind/resolv/.cvsignore			X	2001
-./lib/bind/resolv/Makefile.in			MAKE	2001,2004
+./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005
 ./lib/bind/resolv/herror.c			X	2001,2005
+./lib/bind/resolv/mtctxres.c			C	2005
 ./lib/bind/resolv/res_comp.c			X	2001,2005
 ./lib/bind/resolv/res_data.c			X	2001,2005
 ./lib/bind/resolv/res_debug.c			X	2001,2005
