@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.107 $)
+AC_REVISION($Revision: 1.108 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -998,6 +998,8 @@ SOLARIS_BITTYPES="#undef NEED_SOLARIS_BITTYPES"
 BSD_COMP="#undef BSD_COMP"
 USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
 PORT_NONBLOCK="#define PORT_NONBLOCK O_NONBLOCK"
+HAVE_MD5="#undef HAVE_MD5"
+USE_POLL="#undef HAVE_POLL"
 case "$host" in
 	*aix3.2*)	PORT_DIR="port/aix32";;
 	*aix4*)		PORT_DIR="port/aix4";;
@@ -1035,21 +1037,28 @@ case "$host" in
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			PORT_DIR="port/solaris";;
+	*-solaris2.[[67]])
+			BSD_COMP="#define BSD_COMP 1"
+			PORT_DIR="port/solaris";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
+			USE_POLL="#define USE_POLL 1"
+			HAVE_MD5="#define HAVE_MD5 1"
 			PORT_DIR="port/solaris";;
 	*-ultrix*)	PORT_DIR="port/ultrix";;
 	*-sco-sysv*uw2.0*)	PORT_DIR="port/unixware20";;
 	*-sco-sysv*uw2.1.2*)	PORT_DIR="port/unixware212";;
 	*-sco-sysv*uw7*)	PORT_DIR="port/unixware7";;
 esac
+
 AC_SUBST(BSD_COMP)
 AC_SUBST(SOLARIS_BITTYPES)
 AC_SUBST(USE_FIONBIO_IOCTL)
 AC_SUBST(PORT_NONBLOCK)
 AC_SUBST(PORT_DIR)
+AC_SUBST(USE_POLL)
+AC_SUBST(HAVE_MD5)
 PORT_INCLUDE=${PORT_DIR}/include
 AC_SUBST(PORT_INCLUDE)
-
 
 #
 # Look for a 4.4BSD or 4.3BSD struct msghdr

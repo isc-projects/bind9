@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.17 2005/04/27 04:56:42 sra Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.18 2005/07/28 06:51:51 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -101,6 +101,10 @@ static const char rcsid[] = "$Id: res_init.c,v 1.17 2005/04/27 04:56:42 sra Exp 
 /*% Options.  Should all be left alone. */
 #define RESOLVSORT
 #define DEBUG
+
+#ifdef SOLARIS2
+#include <sys/systeminfo.h>
+#endif
 
 static void res_setoptions __P((res_state, const char *, const char *));
 
@@ -217,6 +221,35 @@ __res_vinit(res_state statp, int preinit) {
 	statp->nsort = 0;
 #endif
 	res_setservers(statp, u, nserv);
+
+#ifdef	SOLARIS2
+	/*
+	 * The old libresolv derived the defaultdomain from NIS/NIS+.
+	 * We want to keep this behaviour
+	 */
+	{
+		char buf[sizeof(statp->defdname)], *cp;
+		int ret;
+
+		if ((ret = sysinfo(SI_SRPC_DOMAIN, buf, sizeof(buf))) > 0 &&
+			(unsigned int)ret <= sizeof(buf)) {
+			if (buf[0] == '+')
+				buf[0] = '.';
+			cp = strchr(buf, '.');
+			if (cp == NULL) {
+				if (strlcpy(statp->defdname, buf,
+					sizeof(statp->defdname))
+					>= sizeof(statp->defdname))
+					return (-1);
+			} else {
+				if (strlcpy(statp->defdname, cp+1,
+					sizeof(statp->defdname))
+					 >= sizeof(statp->defdname))
+					return (-1);
+			}
+		}
+	}
+#endif	/* SOLARIS2 */
 
 	/* Allow user to override the local domain definition */
 	if ((cp = getenv("LOCALDOMAIN")) != NULL) {
@@ -495,6 +528,22 @@ res_setoptions(res_state statp, const char *options, const char *source)
 			if (statp->options & RES_DEBUG)
 				printf(";;\ttimeout=%d\n", statp->retrans);
 #endif
+#ifdef	SOLARIS2
+		} else if (!strncmp(cp, "retrans:", sizeof("retrans:") - 1)) {
+			/*
+		 	 * For backward compatibility, 'retrans' is
+		 	 * supported as an alias for 'timeout', though
+		 	 * without an imposed maximum.
+		 	 */
+			statp->retrans = atoi(cp + sizeof("retrans:") - 1);
+		} else if (!strncmp(cp, "retry:", sizeof("retry:") - 1)){
+			/*
+			 * For backward compatibility, 'retry' is
+			 * supported as an alias for 'attempts', though
+			 * without an imposed maximum.
+			 */
+			statp->retry = atoi(cp + sizeof("retry:") - 1);
+#endif	/* SOLARIS2 */
 		} else if (!strncmp(cp, "attempts:", sizeof("attempts:") - 1)){
 			i = atoi(cp + sizeof("attempts:") - 1);
 			if (i <= RES_MAXRETRY)

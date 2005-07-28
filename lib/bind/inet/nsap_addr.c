@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: nsap_addr.c,v 1.4 2005/04/27 04:56:21 sra Exp $";
+static const char rcsid[] = "$Id: nsap_addr.c,v 1.5 2005/07/28 06:51:48 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -31,6 +31,7 @@ static const char rcsid[] = "$Id: nsap_addr.c,v 1.4 2005/04/27 04:56:21 sra Exp 
 
 #include <ctype.h>
 #include <resolv.h>
+#include <resolv_mt.h>
 
 #include "port_after.h"
 
@@ -79,7 +80,7 @@ char *
 inet_nsap_ntoa(int binlen, const u_char *binary, char *ascii) {
 	int nib;
 	int i;
-	static char tmpbuf[2+255*3];
+	char *tmpbuf = inet_nsap_ntoa_tmpbuf;
 	char *start;
 
 	if (ascii)

@@ -13,16 +13,16 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.4 2004/03/16 05:22:30 marka Exp $
+# $Id: Makefile.in,v 1.5 2005/07/28 06:51:50 marka Exp $
 
 srcdir=		@srcdir@
 VPATH =         @srcdir@
 
-OBJS=	herror.@O@ res_comp.@O@ res_data.@O@ res_debug.@O@ \
+OBJS=	herror.@O@ mtctxres.@O@ res_comp.@O@ res_data.@O@ res_debug.@O@ \
 	res_findzonecut.@O@ res_init.@O@ res_mkquery.@O@ res_mkupdate.@O@ \
 	res_query.@O@ res_send.@O@ res_sendsigned.@O@ res_update.@O@
 
-SRCS=	herror.c res_comp.c res_data.c res_debug.c \
+SRCS=	herror.c mtctxres.c res_comp.c res_data.c res_debug.c \
 	res_findzonecut.c res_init.c res_mkquery.c res_mkupdate.c \
 	res_query.c res_send.c res_sendsigned.c res_update.c
 
