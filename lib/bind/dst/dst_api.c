@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.1 2004/09/16 00:57:33 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.2 2005/07/28 07:43:16 marka Exp $";
 #endif
 
 /*
@@ -336,7 +336,10 @@ dst_read_key(const char *in_keyname, const u_int16_t in_id,
 	if (in_keyname == NULL) {
 		EREPORT(("dst_read_private_key(): Null key name passed in\n"));
 		return (NULL);
-	} else
+	} else if (strlen(in_keyname) >= sizeof(keyname)) {
+		EREPORT(("dst_read_private_key(): keyname too big\n"));
+		return (NULL);
+	} else 
 		strcpy(keyname, in_keyname);
 
 	/* before I read in the public key, check if it is allowed to sign */
@@ -347,7 +350,7 @@ dst_read_key(const char *in_keyname, const u_int16_t in_id,
 		return pubkey; 
 
 	if (!(dg_key = dst_s_get_key_struct(keyname, pubkey->dk_alg,
-					 pubkey->dk_flags, pubkey->dk_proto,
+					    pubkey->dk_flags, pubkey->dk_proto,
 					    0)))
 		return (dg_key);
 	/* Fill in private key and some fields in the general key structure */
