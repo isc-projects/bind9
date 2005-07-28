@@ -17,6 +17,7 @@ libbind_clean			open	jinmei
 mlg-20000518			new	
 newresolver0			new	
 openssl_stub			open	marka
+rt10718				new	
 rt10864				open	marka	// NSEC caching @ delegation
 rt11382				open	sra	// dlz
 rt11398a			open	sra	// doxygen dev
