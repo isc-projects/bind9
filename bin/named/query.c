@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.269 2005/07/27 02:28:58 marka Exp $ */
+/* $Id: query.c,v 1.270 2005/07/28 05:46:12 marka Exp $ */
 
 /*! \file */
 
@@ -2709,7 +2709,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 				      "recursive-clients soft limit exceeded, "
 				      "aborting oldest query");
 			ns_client_killoldestquery(client);
-			result == ISC_R_SUCCESS;
+			result = ISC_R_SUCCESS;
 		} else if (result == ISC_R_QUOTA) {
 			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
