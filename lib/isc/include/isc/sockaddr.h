@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.42.18.5 2005/04/27 05:02:30 sra Exp $ */
+/* $Id: sockaddr.h,v 1.42.18.6 2005/07/28 04:58:47 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -230,7 +230,7 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
  */
 
 #define ISC_SOCKADDR_FORMATSIZE \
-	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX#YYYYY")
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS#YYYYY")
 /*%<
  * Minimum size of array to pass to isc_sockaddr_format().
  */

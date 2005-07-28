@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.25.18.4 2005/04/27 05:02:26 sra Exp $ */
+/* $Id: netaddr.h,v 1.25.18.5 2005/07/28 04:58:47 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
@@ -91,7 +91,7 @@ isc_netaddr_format(const isc_netaddr_t *na, char *array, unsigned int size);
  */
 
 #define ISC_NETADDR_FORMATSIZE \
-	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX")
+	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS")
 /*%<
  * Minimum size of array to pass to isc_netaddr_format().
  */
