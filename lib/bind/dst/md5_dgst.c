@@ -58,6 +58,7 @@
 
 #ifdef USE_MD5 /*%< Added by ogud@tis.com 1998/1/26 */
 #include <port_before.h>
+#ifndef HAVE_MD5
 #include <stdio.h>
 #include "md5_locl.h"
 #include <port_after.h>
@@ -369,4 +370,5 @@ unsigned long *l;
 		}
 	}
 #endif
+#endif /* HAVE_MD5 */
 #endif /* USE_MD5 */

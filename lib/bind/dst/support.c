@@ -1,4 +1,4 @@
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.3.332.1 2005/04/27 05:00:48 sra Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.3.332.2 2005/07/28 07:38:06 marka Exp $";
 
 
 /*
@@ -305,19 +305,15 @@ dst_s_fopen(const char *filename, const char *mode, int perm)
 {
 	FILE *fp;
 	char pathname[PATH_MAX];
-	size_t plen = sizeof(pathname);
+
+	if (strlen(filename) + strlen(dst_path) >= sizeof(pathname))
+		return (NULL);
 
 	if (*dst_path != '\0') {
 		strcpy(pathname, dst_path);
-		plen -= strlen(pathname);
-	}
-	else 
-		pathname[0] = '\0';
-
-	if (plen > strlen(filename))
-		strncpy(&pathname[PATH_MAX - plen], filename, plen-1);
-	else 
-		return (NULL);
+		strcat(pathname, filename);
+	} else
+		strcpy(pathname, filename);
 	
 	fp = fopen(pathname, mode);
 	if (perm)

@@ -59,6 +59,8 @@
 #ifndef HEADER_MD5_H
 #define HEADER_MD5_H
 
+#ifndef	HAVE_MD5
+
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -99,5 +101,8 @@ unsigned char *MD5();
 #endif
 
 #endif
+#else 
+#include <sys/md5.h>
+#endif /* HAVE_MD5 */
 
 /*! \file */

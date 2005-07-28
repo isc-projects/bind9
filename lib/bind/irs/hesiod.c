@@ -1,5 +1,5 @@
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: hesiod.c,v 1.4.18.2 2005/04/27 05:00:59 sra Exp $";
+static const char rcsid[] = "$Id: hesiod.c,v 1.4.18.3 2005/07/28 07:38:08 marka Exp $";
 #endif
 
 /*
@@ -83,9 +83,7 @@ hesiod_init(void **context) {
 		return (-1);
 	}
 
-	ctx->LHS = NULL;
-	ctx->RHS = NULL;
-	ctx->res = NULL;
+	memset(ctx, 0, sizeof (*ctx));
 
 	if (parse_config_file(ctx, _PATH_HESIOD_CONF) < 0) {
 #ifdef DEF_RHS
