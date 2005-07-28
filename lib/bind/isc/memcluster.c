@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004 by Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (c) 2005 by Internet Systems Consortium, Inc. ("ISC")
  * Copyright (c) 1997,1999 by Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.3.2.4 2004/09/16 00:57:50 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.3.2.5 2005/07/28 07:48:20 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -89,6 +89,20 @@ struct stats {
 	u_long			blocks;
 	u_long			freefrags;
 };
+
+#ifdef DO_PTHREADS
+#include <pthread.h>
+static pthread_mutex_t	memlock = PTHREAD_MUTEX_INITIALIZER;
+#define MEMLOCK		(void)pthread_mutex_lock(&memlock)
+#define MEMUNLOCK	(void)pthread_mutex_unlock(&memlock)
+#else
+/*
+ * Catch bad lock usage in non threaded build.
+ */
+static unsigned int	memlock = 0;
+#define MEMLOCK		do { INSIST(memlock == 0); memlock = 1; } while (0)
+#define MEMUNLOCK	do { INSIST(memlock == 1); memlock = 0; } while (0)
+#endif  /* DO_PTHEADS */
 
 /* Private data. */
 
@@ -173,14 +187,19 @@ __memget_record(size_t size, const char *file, int line) {
 #endif
 	void *ret;
 
+	MEMLOCK;
+
 #if !defined(MEMCLUSTER_RECORD)
 	UNUSED(file);
 	UNUSED(line);
 #endif
-	if (freelists == NULL)
+	if (freelists == NULL) {
+		MEMUNLOCK;
 		if (meminit(0, 0) == -1)
 			return (NULL);
+	}
 	if (size == 0U) {
+		MEMUNLOCK;
 		errno = EINVAL;
 		return (NULL);
 	}
@@ -191,6 +210,7 @@ __memget_record(size_t size, const char *file, int line) {
 #if defined(DEBUGGING_MEMCLUSTER)
 		e = malloc(new_size);
 		if (e == NULL) {
+			MEMUNLOCK;
 			errno = ENOMEM;
 			return (NULL);
 		}
@@ -202,11 +222,13 @@ __memget_record(size_t size, const char *file, int line) {
 		e->next = activelists[max_size];
 		activelists[max_size] = e;
 #endif
+		MEMUNLOCK;
 		e->fencepost = FRONT_FENCEPOST;
 		p = (char *)e + sizeof *e + size;
 		memcpy(p, &fp, sizeof fp);
 		return ((char *)e + sizeof *e);
 #else
+		MEMUNLOCK;
 		return (malloc(size));
 #endif
 	}
@@ -226,6 +248,7 @@ __memget_record(size_t size, const char *file, int line) {
 		if (basic_blocks == NULL) {
 			new = malloc(NUM_BASIC_BLOCKS * mem_target);
 			if (new == NULL) {
+				MEMUNLOCK;
 				errno = ENOMEM;
 				return (NULL);
 			}
@@ -253,6 +276,7 @@ __memget_record(size_t size, const char *file, int line) {
 			total_size = mem_target;
 		new = malloc(total_size);
 		if (new == NULL) {
+			MEMUNLOCK;
 			errno = ENOMEM;
 			return (NULL);
 		}
@@ -318,6 +342,7 @@ __memget_record(size_t size, const char *file, int line) {
 	stats[size].gets++;
 	stats[size].totalgets++;
 	stats[new_size].freefrags--;
+	MEMUNLOCK;
 #if defined(DEBUGGING_MEMCLUSTER)
 	return ((char *)e + sizeof *e);
 #else
@@ -347,6 +372,8 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 	char *p;
 #endif
 
+	MEMLOCK;
+
 #if !defined (MEMCLUSTER_RECORD)
 	UNUSED(file);
 	UNUSED(line);
@@ -355,6 +382,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 	REQUIRE(freelists != NULL);
 
 	if (size == 0U) {
+		MEMUNLOCK;
 		errno = EINVAL;
 		return;
 	}
@@ -398,6 +426,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 
 		INSIST(stats[max_size].gets != 0U);
 		stats[max_size].gets--;
+		MEMUNLOCK;
 		return;
 	}
 
@@ -436,6 +465,7 @@ __memput_record(void *mem, size_t size, const char *file, int line) {
 	INSIST(stats[size].gets != 0U);
 	stats[size].gets--;
 	stats[new_size].freefrags++;
+	MEMUNLOCK;
 }
 
 void *
@@ -464,8 +494,12 @@ memstats(FILE *out) {
 	memcluster_element *e;
 #endif
 
-	if (freelists == NULL)
+	MEMLOCK;
+
+	if (freelists == NULL) {
+		MEMUNLOCK;
 		return;
+	}
 	for (i = 1; i <= max_size; i++) {
 		const struct stats *s = &stats[i];
 
@@ -492,6 +526,7 @@ memstats(FILE *out) {
 			}
 	}
 #endif
+	MEMUNLOCK;
 }
 
 int

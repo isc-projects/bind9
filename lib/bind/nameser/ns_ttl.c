@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_ttl.c,v 1.1.2.1 2004/03/09 09:17:37 marka Exp $";
+static const char rcsid[] = "$Id: ns_ttl.c,v 1.1.2.2 2005/07/28 07:48:20 marka Exp $";
 #endif
 
 /* Import. */
@@ -133,7 +133,8 @@ ns_parse_ttl(const char *src, u_long *dst) {
 			goto einval;
 		else
 			ttl += tmp;
-	}
+	} else if (!dirty)
+		goto einval;
 	*dst = ttl;
 	return (0);
 
