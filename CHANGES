@@ -1,3 +1,6 @@
+1908.	[func]		named-checkconf now validates update-policy entries.
+			[RT #14963]
+
 1907.	[bug]		Extend ISC_SOCKADDR_FORMATSIZE and
 			ISC_NETADDR_FORMATSIZE to allow for scope details.
 

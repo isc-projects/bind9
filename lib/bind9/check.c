@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.60 2005/06/20 01:03:52 marka Exp $ */
+/* $Id: check.c,v 1.61 2005/07/28 05:42:20 marka Exp $ */
 
 /*! \file */
 
@@ -731,6 +731,81 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 	return (result);
 }
 
+static isc_result_t
+check_update_policy(cfg_obj_t *policy, isc_log_t *logctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
+	cfg_listelt_t *element;
+	cfg_listelt_t *element2;
+	dns_fixedname_t fixed;
+	char *str;
+	isc_buffer_t b;
+
+	for (element = cfg_list_first(policy);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		cfg_obj_t *stmt = cfg_listelt_value(element);
+		cfg_obj_t *identity = cfg_tuple_get(stmt, "identity");
+		cfg_obj_t *matchtype = cfg_tuple_get(stmt, "matchtype");
+		cfg_obj_t *dname = cfg_tuple_get(stmt, "name");
+		cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
+
+		dns_fixedname_init(&fixed);
+		str = cfg_obj_asstring(identity);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+                                            dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+				    "'%s' is not a valid name", str);
+			result = tresult;
+		}
+		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(cfg_obj_asstring(matchtype), "wildcard") == 0 &&
+		    !dns_name_iswildcard(dns_fixedname_name(&fixed))) {
+			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+				    "'%s' is not a wildcard", str);
+			result = ISC_R_FAILURE;
+		}
+
+		dns_fixedname_init(&fixed);
+		str = cfg_obj_asstring(dname);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+					    dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
+				    "'%s' is not a valid name", str);
+			result = tresult;
+		}
+
+		for (element2 = cfg_list_first(typelist);
+		     element2 != NULL;
+		     element2 = cfg_list_next(element2))
+		{
+			cfg_obj_t *typeobj;
+			isc_textregion_t r;
+			dns_rdatatype_t type;
+			
+			typeobj = cfg_listelt_value(element2);
+			str = cfg_obj_asstring(typeobj);
+			r.base = str;
+			r.length = strlen(str);
+
+			tresult = dns_rdatatype_fromtext(&type, &r);
+			if (tresult != ISC_R_SUCCESS) {
+				cfg_obj_log(typeobj, logctx, ISC_LOG_ERROR,
+                                            "'%s' is not a valid type", str);
+				result = tresult;
+			}
+		}
+	}
+	return (result);
+}
+
 #define MASTERZONE	1
 #define SLAVEZONE	2
 #define STUBZONE	4
@@ -966,7 +1041,9 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 				    "when 'update-policy' is present",
 				    zname);
 			result = ISC_R_FAILURE;
-		}
+		} else if (res2 == ISC_R_SUCCESS &&
+			   check_update_policy(obj, logctx) != ISC_R_SUCCESS)
+			result = ISC_R_FAILURE;
 	}
 
 	/*
