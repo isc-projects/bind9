@@ -1,3 +1,6 @@
+1907.	[bug]		Extend ISC_SOCKADDR_FORMATSIZE and
+			ISC_NETADDR_FORMATSIZE to allow for scope details.
+
 1905.	[bug]		Recursive clients soft quota support wasn't working
 			as expected. [RT #15103]
 
