@@ -1,3 +1,6 @@
+1909.	[bug]		ixfr-from-differences failed to ensure that the
+			serial number increased. [RT #15036]
+
 1908.	[func]		named-checkconf now validates update-policy entries.
 			[RT #14963]
 

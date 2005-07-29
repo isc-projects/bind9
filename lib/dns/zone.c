@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.32 2005/07/12 01:22:26 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.33 2005/07/29 00:35:16 marka Exp $ */
 
 /*! \file */
 
@@ -1740,6 +1740,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_time_t now;
 	isc_boolean_t needdump = ISC_FALSE;
+	isc_boolean_t hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 
 	TIME_NOW(&now);
 
@@ -1855,10 +1856,32 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 
 		if (zone->db != NULL) {
-			if (!isc_serial_ge(serial, zone->serial)) {
+			/*
+			 * This is checked in zone_replacedb() for slave zones
+			 * as they don't reload from disk.
+			 */
+			if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
+			    !isc_serial_gt(serial, zone->serial)) {
+				isc_uint32_t serialmin, serialmax;
+
+				INSIST(zone->type == dns_zone_master);
+
+				serialmin = (zone->serial + 1) & 0xffffffffU;
+				serialmax = (zone->serial + 0x7fffffffU) &
+					     0xffffffffU;
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "ixfr-from-differences: "
+					     "new serial (%u) out of range "
+					     "[%u - %u]", serial, serialmin,
+					     serialmax);
+				result = DNS_R_BADZONE;
+				goto cleanup;
+			} else if (!isc_serial_ge(serial, zone->serial))
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "zone serial has gone backwards");
-			}
+			else if (serial == zone->serial && !hasinclude) 
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "zone serial unchanged");
 		}
 		zone->serial = serial;
 		zone->refresh = RANGE(refresh,
@@ -6025,40 +6048,58 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 	 * is enabled in the configuration.
 	 */
 	if (zone->db != NULL && zone->journal != NULL &&
-	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
-			      "generating diffs");
-		result = dns_db_diff(zone->mctx, db, ver,
-				     zone->db, NULL /* XXX */,
+	    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS) &&
+	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
+		isc_uint32_t serial;
+
+		dns_zone_log(zone, ISC_LOG_DEBUG(3), "generating diffs");
+
+		result = dns_db_getsoaserial(db, ver, &serial);
+		if (result != ISC_R_SUCCESS) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "ixfr-from-differences: unable to get "
+				     "new serial");
+			goto fail;
+		}
+
+		/*
+		 * This is checked in zone_postload() for master zones.
+		 */
+		if (zone->type == dns_zone_slave &&
+		    !isc_serial_gt(serial, zone->serial)) {
+			isc_uint32_t serialmin, serialmax;
+			serialmin = (zone->serial + 1) & 0xffffffffU;
+			serialmax = (zone->serial + 0x7fffffffU) & 0xffffffffU;
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "ixfr-from-differences: failed: "
+				     "new serial (%u) out of range [%u - %u]",
+				     serial, serialmin, serialmax);
+			result = ISC_R_RANGE;
+			goto fail;
+		}
+
+		result = dns_db_diff(zone->mctx, db, ver, zone->db, NULL,
 				     zone->journal);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 		if (dump)
 			zone_needdump(zone, DNS_DUMP_DELAY);
 		else if (zone->journalsize != -1) {
-			isc_uint32_t serial;
-
-			result = dns_db_getsoaserial(db, ver, &serial);
-			if (result == ISC_R_SUCCESS) {
-				result = dns_journal_compact(zone->mctx,
-							     zone->journal,
-							     serial,
-							     zone->journalsize);
-				switch (result) {
-				case ISC_R_SUCCESS:
-				case ISC_R_NOSPACE:
-				case ISC_R_NOTFOUND:
-					dns_zone_log(zone, ISC_LOG_DEBUG(3),
-						     "dns_journal_compact: %s",
-						     dns_result_totext(result));
-					break;
-				default:
-					dns_zone_log(zone, ISC_LOG_ERROR,
+			result = dns_journal_compact(zone->mctx, zone->journal,
+						     serial, zone->journalsize);
+			switch (result) {
+			case ISC_R_SUCCESS:
+			case ISC_R_NOSPACE:
+			case ISC_R_NOTFOUND:
+				dns_zone_log(zone, ISC_LOG_DEBUG(3),
+					     "dns_journal_compact: %s",
+					     dns_result_totext(result));
+				break;
+			default:
+				dns_zone_log(zone, ISC_LOG_ERROR,
 					     "dns_journal_compact failed: %s",
-						     dns_result_totext(result));
-					break;
-				}
+					     dns_result_totext(result));
+				break;
 			}
 		}
 	} else {
@@ -6489,7 +6530,11 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 			     "requesting AXFR of "
 			     "initial version from %s", mastertext);
 		xfrtype = dns_rdatatype_axfr;
-	} else if (dns_zone_isforced(zone)) {
+	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1), "ixfr-from-differences "
+			     "set, requesting AXFR from %s", mastertext);
+		xfrtype = dns_rdatatype_axfr;
+	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "forced reload, requesting AXFR of "
 			     "initial version from %s", mastertext);
@@ -7447,6 +7492,9 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr) {
 void
 dns_zone_forcereload(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
+
+	if (zone->type == dns_zone_master)
+		return;
 
 	LOCK_ZONE(zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_FORCEXFER);
