@@ -1253,7 +1253,7 @@
 ./lib/bind/include/netgroup.h			X	2001,2005
 ./lib/bind/include/res_update.h			X	2001,2005
 ./lib/bind/include/resolv.h			X	2001,2005
-./lib/bind/include/resolv_mt.h			C	2005
+./lib/bind/include/resolv_mt.h			X	2005
 ./lib/bind/inet/.cvsignore			X	2001
 ./lib/bind/inet/Makefile.in			MAKE	2001,2004
 ./lib/bind/inet/inet_addr.c			X	2001,2005
@@ -1599,7 +1599,7 @@
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005
 ./lib/bind/resolv/herror.c			X	2001,2005
-./lib/bind/resolv/mtctxres.c			C	2005
+./lib/bind/resolv/mtctxres.c			X	2005
 ./lib/bind/resolv/res_comp.c			X	2001,2005
 ./lib/bind/resolv/res_data.c			X	2001,2005
 ./lib/bind/resolv/res_debug.c			X	2001,2005
