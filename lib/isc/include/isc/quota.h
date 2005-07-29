@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.8.12.4 2005/07/27 02:53:16 marka Exp $ */
+/* $Id: quota.h,v 1.8.12.5 2005/07/29 00:13:10 marka Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
