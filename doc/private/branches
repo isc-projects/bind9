@@ -38,6 +38,9 @@ rt14933a			new
 rt14963				open		// bad wildcard grants	
 rt14965				open		// windows fixes	
 rt14996				open		// tune based on request load	
+rt15005				new	
+rt15006				new	
+rt15034				new	
 rt15036				open		// ixfr-from-differences serial
 rt15103				new	
 rt1727				new		// ixfr-from-differences workfile
