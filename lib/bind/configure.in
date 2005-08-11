@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.16 $)
+AC_REVISION($Revision: 1.90.18.17 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -169,8 +169,7 @@ AC_PROG_CC
 AC_HEADER_STDC
 
 
-AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/timers.h)
-
+AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/timers.h stropts.h)
 
 AC_C_CONST
 AC_C_INLINE
@@ -1000,6 +999,7 @@ USE_FIONBIO_IOCTL="#undef USE_FIONBIO_IOCTL"
 PORT_NONBLOCK="#define PORT_NONBLOCK O_NONBLOCK"
 HAVE_MD5="#undef HAVE_MD5"
 USE_POLL="#undef HAVE_POLL"
+SOLARIS2="#undef SOLARIS2"
 case "$host" in
 	*aix3.2*)	PORT_DIR="port/aix32";;
 	*aix4*)		PORT_DIR="port/aix4";;
@@ -1032,17 +1032,21 @@ case "$host" in
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
 			USE_FIONBIO_IOCTL="#define USE_FIONBIO_IOCTL 1"
+			SOLARIS2="#define SOLARIS2 1"
 			PORT_DIR="port/solaris";;
 	*-solaris2.5)
 			BSD_COMP="#define BSD_COMP 1"
 			SOLARIS_BITTYPES="#define NEED_SOLARIS_BITTYPES 1"
+			SOLARIS2="#define SOLARIS2 1"
 			PORT_DIR="port/solaris";;
 	*-solaris2.[[67]])
 			BSD_COMP="#define BSD_COMP 1"
+			SOLARIS2="#define SOLARIS2 1"
 			PORT_DIR="port/solaris";;
 	*-solaris2*)	BSD_COMP="#define BSD_COMP 1"
 			USE_POLL="#define USE_POLL 1"
 			HAVE_MD5="#define HAVE_MD5 1"
+			SOLARIS2="#define SOLARIS2 1"
 			PORT_DIR="port/solaris";;
 	*-ultrix*)	PORT_DIR="port/ultrix";;
 	*-sco-sysv*uw2.0*)	PORT_DIR="port/unixware20";;
@@ -1057,6 +1061,7 @@ AC_SUBST(PORT_NONBLOCK)
 AC_SUBST(PORT_DIR)
 AC_SUBST(USE_POLL)
 AC_SUBST(HAVE_MD5)
+AC_SUBST(SOLARIS2)
 PORT_INCLUDE=${PORT_DIR}/include
 AC_SUBST(PORT_INCLUDE)
 
