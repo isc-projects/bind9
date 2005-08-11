@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.270 2005/07/28 05:46:12 marka Exp $ */
+/* $Id: query.c,v 1.271 2005/08/11 04:45:38 marka Exp $ */
 
 /*! \file */
 
@@ -1247,17 +1247,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * recursing to add address records, which in turn can cause
 	 * recursion to add KEYs.
 	 */
-	if (type == dns_rdatatype_a || type == dns_rdatatype_aaaa) {
-		/*
-		 * RFC2535 section 3.5 says that when A or AAAA records are
-		 * retrieved as additional data, any KEY RRs for the owner name
-		 * should be added to the additional data section.
-		 *
-		 * XXXRTH  We should lower the priority here.  Alternatively,
-		 * we could raise the priority of glue records.
-		 */
-		eresult = query_addadditional(client, name, dns_rdatatype_dnskey);
- 	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
+ 	if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
 		 * section, it's helpful if we add the SRV additional data
@@ -1794,7 +1784,6 @@ static inline void
 query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		  dns_rdataset_t *rdataset)
 {
-	dns_rdatatype_t type = rdataset->type;
 	client_additionalctx_t additionalctx;
 
 	/*
@@ -1822,22 +1811,6 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 	additionalctx.rdataset = rdataset;
 	(void)dns_rdataset_additionaldata(rdataset, query_addadditional2,
 					  &additionalctx);
-	/*
-	 * RFC2535 section 3.5 says that when NS, SOA, A, or AAAA records
-	 * are retrieved, any KEY RRs for the owner name should be added
-	 * to the additional data section.  We treat A6 records the same way.
-	 *
-	 * We don't care if query_addadditional() fails.
-	 */
-	if (type == dns_rdatatype_ns || type == dns_rdatatype_soa ||
-	    type == dns_rdatatype_a || type == dns_rdatatype_aaaa ||
-	    type == dns_rdatatype_a6) {
-		/*
-		 * XXXRTH  We should lower the priority here.  Alternatively,
-		 * we could raise the priority of glue records.
-		 */
-		(void)query_addadditional(client, fname, dns_rdatatype_dnskey);
-	}
 	CTRACE("query_addrdataset: done");
 }
 
