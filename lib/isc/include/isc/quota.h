@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: quota.h,v 1.13 2005/07/27 02:29:01 marka Exp $ */
+/* $Id: quota.h,v 1.14 2005/08/11 15:03:20 marka Exp $ */
 
 #ifndef ISC_QUOTA_H
 #define ISC_QUOTA_H 1
@@ -52,7 +52,7 @@ struct isc_quota {
 	isc_mutex_t	lock; /*%< Locked by lock. */
 	int 		max;
 	int 		used;
-	isc_boolean_t	soft;
+	int		soft;
 };
 
 isc_result_t
