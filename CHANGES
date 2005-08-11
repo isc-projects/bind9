@@ -1,3 +1,5 @@
+1910.	[cleanup]	Don't add DNSKEY records to the additional section.
+
 1909.	[bug]		ixfr-from-differences failed to ensure that the
 			serial number increased. [RT #15036]
 
