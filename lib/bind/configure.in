@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.110 $)
+AC_REVISION($Revision: 1.111 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -169,7 +169,7 @@ AC_PROG_CC
 AC_HEADER_STDC
 
 
-AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/timers.h, stropts.h)
+AC_CHECK_HEADERS(fcntl.h db.h paths.h sys/time.h unistd.h sys/sockio.h sys/select.h sys/timers.h stropts.h)
 
 AC_C_CONST
 AC_C_INLINE
