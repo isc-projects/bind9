@@ -20,6 +20,7 @@ struct timezone;        /* silence warning */
 @BSD_COMP@
 @USE_POLL@
 @HAVE_MD5@
+@SOLARIS2@
 
 @DO_PTHREADS@
 @GETGROUPLIST_ARGS@
