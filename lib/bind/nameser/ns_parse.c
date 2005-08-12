@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_parse.c,v 1.5.18.1 2005/04/27 05:01:08 sra Exp $";
+static const char rcsid[] = "$Id: ns_parse.c,v 1.5.18.2 2005/08/12 01:36:03 marka Exp $";
 #endif
 
 /* Import. */
@@ -40,7 +40,12 @@ static void	setsection(ns_msg *msg, ns_sect sect);
 
 /* Macros. */
 
+#ifndef SOLARIS2
 #define RETERR(err) do { errno = (err); return (-1); } while (0)
+#else
+#define RETERR(err) \
+	do { errno = (err); if (errno == errno) return (-1); } while (0)
+#endif
 
 /* Public. */
 
