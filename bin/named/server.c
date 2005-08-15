@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.28 2005/07/27 02:44:20 marka Exp $ */
+/* $Id: server.c,v 1.419.18.29 2005/08/15 01:46:48 marka Exp $ */
 
 /*! \file */
 
@@ -51,6 +51,7 @@
 #include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
+#include <dns/lib.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
 #include <dns/order.h>
@@ -2099,6 +2100,21 @@ heartbeat_timer_tick(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
+static void
+pps_timer_tick(isc_task_t *task, isc_event_t *event) {
+	static unsigned int oldrequests = 0;
+	unsigned int requests = ns_client_requests;
+
+	UNUSED(task);
+	isc_event_free(&event);
+
+	/*
+	 * Don't worry about wrapping as the overflow result will be right.
+	 */
+	dns_pps = (requests - oldrequests) / 1200;
+	oldrequests = requests;
+}
+
 /*
  * Replace the current value of '*field', a dynamically allocated
  * string or NULL, with a dynamically allocated copy of the
@@ -2204,6 +2220,7 @@ load_configuration(const char *filename, ns_server_t *server,
 		   isc_boolean_t first_time)
 {
 	isc_result_t result;
+	isc_interval_t interval;
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config;
 	cfg_obj_t *options;
@@ -2479,7 +2496,6 @@ load_configuration(const char *filename, ns_server_t *server,
 				      isc_timertype_inactive,
 				      NULL, NULL, ISC_TRUE));
 	} else if (server->interface_interval != interface_interval) {
-		isc_interval_t interval;
 		isc_interval_set(&interval, interface_interval, 0);
 		CHECK(isc_timer_reset(server->interface_timer,
 				      isc_timertype_ticker,
@@ -2499,13 +2515,16 @@ load_configuration(const char *filename, ns_server_t *server,
 				      isc_timertype_inactive,
 				      NULL, NULL, ISC_TRUE));
 	} else if (server->heartbeat_interval != heartbeat_interval) {
-		isc_interval_t interval;
 		isc_interval_set(&interval, heartbeat_interval, 0);
 		CHECK(isc_timer_reset(server->heartbeat_timer,
 				      isc_timertype_ticker,
 				      NULL, &interval, ISC_FALSE));
 	}
 	server->heartbeat_interval = heartbeat_interval;
+	
+	isc_interval_set(&interval, 1200, 0);
+	CHECK(isc_timer_reset(server->pps_timer, isc_timertype_ticker, NULL,
+			      &interval, ISC_FALSE));
 
 	/*
 	 * Configure and freeze all explicit views.  Explicit
@@ -2938,6 +2957,12 @@ run_server(isc_task_t *task, isc_event_t *event) {
 				    server, &server->heartbeat_timer),
 		   "creating heartbeat timer");
 
+	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
+				    NULL, NULL, server->task,
+				    heartbeat_timer_tick,
+				    server, &server->pps_timer),
+		   "creating pps timer");
+
 	CHECKFATAL(cfg_parser_create(ns_g_mctx, NULL, &ns_g_parser),
 		   "creating default configuration parser");
 
@@ -3002,6 +3027,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_timer_detach(&server->interface_timer);
 	isc_timer_detach(&server->heartbeat_timer);
+	isc_timer_detach(&server->pps_timer);
 
 	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);
@@ -3090,6 +3116,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 
 	server->interface_timer = NULL;
 	server->heartbeat_timer = NULL;
+	server->pps_timer = NULL;
 	
 	server->interface_interval = 0;
 	server->heartbeat_interval = 0;

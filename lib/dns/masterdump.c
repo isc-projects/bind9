@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.5 2005/06/20 01:19:40 marka Exp $ */
+/* $Id: masterdump.c,v 1.73.18.6 2005/08/15 01:46:50 marka Exp $ */
 
 /*! \file */
 
@@ -31,12 +31,14 @@
 #include <isc/stdio.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/log.h>
 #include <dns/master.h>
 #include <dns/masterdump.h>
@@ -1261,6 +1263,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 	unsigned int nodes;
 	dns_masterrawheader_t rawheader;
 	isc_uint32_t now32;
+	isc_time_t start;
 
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
 	if (bufmem == NULL)
@@ -1333,6 +1336,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		result = ISC_R_SUCCESS;
 
 	nodes = dctx->nodes;
+	isc_time_now(&start);
 	while (result == ISC_R_SUCCESS && (dctx->nodes == 0 || nodes--)) {
 		dns_rdatasetiter_t *rdsiter = NULL;
 		dns_dbnode_t *node = NULL;
@@ -1367,6 +1371,30 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 	}
 
 	if (dctx->nodes != 0 && result == ISC_R_SUCCESS) {
+		unsigned int pps = dns_pps;
+		unsigned int interval;
+		isc_uint64_t usecs;
+		isc_time_t end;
+
+		isc_time_now(&end);
+		if (pps < 100)
+			pps = 100;
+		interval = 1000000 / pps;
+		if (interval == 0)
+			interval = 1;
+		usecs = isc_time_microdiff(&end, &start);
+		if (usecs == 0) {
+			dctx->nodes = dctx->nodes * 2;
+			if (dctx->nodes > 1000)
+				dctx->nodes = 1000;
+		} else {
+			dctx->nodes = dctx->nodes * interval;
+			dctx->nodes /= usecs;
+			if (dctx->nodes == 0)
+				dctx->nodes = 1;
+			else if (dctx->nodes > 1000)
+				dctx->nodes = 1000;
+		}
 		dns_dbiterator_pause(dctx->dbiter);
 		result = DNS_R_CONTINUE;
 	} else if (result == ISC_R_NOMORE)

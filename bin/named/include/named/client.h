@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.69.18.6 2005/07/27 02:44:21 marka Exp $ */
+/* $Id: client.h,v 1.69.18.7 2005/08/15 01:46:49 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -160,6 +160,7 @@ struct ns_client {
 #define NS_CLIENTATTR_MULTICAST		0x08 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x10 /*%< include dnssec records */
 
+extern unsigned int ns_client_requests;
 
 /***
  *** Functions

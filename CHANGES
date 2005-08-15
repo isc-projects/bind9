@@ -1,3 +1,10 @@
+1911.	[func]		Attempt to make the amount of work performed in a
+			iteration self tuning.  The covers nodes clean from
+			the cache per iteration, nodes written to disk when
+			rewriting a master file and nodes destroyed per
+			iteration when destroying a zone or a cache.
+			[RT #14996]
+
 1910.	[cleanup]	Don't add DNSKEY records to the additional section.
 
 1909.	[bug]		ixfr-from-differences failed to ensure that the

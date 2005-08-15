@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.16 2005/07/12 01:22:24 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.17 2005/08/15 01:46:50 marka Exp $ */
 
 /*! \file */
 
@@ -34,6 +34,7 @@
 #include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/task.h>
+#include <isc/time.h>
 #include <isc/util.h>
 
 #include <dns/acache.h>
@@ -41,6 +42,7 @@
 #include <dns/dbiterator.h>
 #include <dns/events.h>
 #include <dns/fixedname.h>
+#include <dns/lib.h>
 #include <dns/log.h>
 #include <dns/masterdump.h>
 #include <dns/rbt.h>
@@ -346,6 +348,7 @@ typedef struct {
 
 	/* Unlocked */
 	isc_mem_t **			nodemctxs;
+	unsigned int			quantum;
 } dns_rbtdb_t;
 
 #define RBTDB_ATTR_LOADED		0x01
@@ -548,12 +551,43 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 	free_rbtdb(rbtdb, ISC_TRUE, event);
 }
 
+static unsigned int
+adjust_quantum(unsigned int old, isc_time_t *start) {
+	unsigned int pps = dns_pps;
+	unsigned int interval;
+	isc_uint64_t usecs;
+	isc_time_t end;
+
+	if (pps < 100)
+		pps = 100;
+	isc_time_now(&end);
+
+	interval = 1000000 / pps;
+	if (interval == 0)
+		interval = 1;
+	usecs = isc_time_microdiff(&end, start);
+	if (usecs == 0) {
+		old *= 2;
+		if (old > 1000)
+			old = 1000;
+		return (old);
+	}
+	old = old * interval;
+	old /= usecs;
+	if (old == 0)
+		old = 1;
+	else if (old > 1000)
+		old = 1000;
+	return (old);
+}
+		
 static void
 free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	unsigned int i;
 	isc_ondestroy_t ondest;
 	isc_result_t result;
 	char buf[DNS_NAME_FORMATSIZE];
+	isc_time_t start;
 
 	REQUIRE(rbtdb->current_version != NULL || EMPTY(rbtdb->open_versions));
 	REQUIRE(rbtdb->future_version == NULL);
@@ -569,12 +603,17 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
 			    sizeof(rbtdb_version_t));
 	}
+	if (event == NULL)
+		rbtdb->quantum = (rbtdb->task != NULL) ? 100 : 0;
  again:
 	if (rbtdb->tree != NULL) {
-		result = dns_rbt_destroy2(&rbtdb->tree,
-					  (rbtdb->task != NULL) ? 1000 : 0);
+		isc_time_now(&start);
+		result = dns_rbt_destroy2(&rbtdb->tree, rbtdb->quantum);
 		if (result == ISC_R_QUOTA) {
 			INSIST(rbtdb->task != NULL);
+			if (rbtdb->quantum != 0)
+				rbtdb->quantum = adjust_quantum(rbtdb->quantum,
+								&start);
 			if (event == NULL)
 				event = isc_event_allocate(rbtdb->common.mctx,
 							   NULL,

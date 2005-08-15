@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.73.18.4 2005/04/29 00:15:37 marka Exp $ */
+/* $Id: server.h,v 1.73.18.5 2005/08/15 01:46:49 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -79,6 +79,8 @@ struct ns_server {
 
 	isc_timer_t *		interface_timer;
 	isc_timer_t *		heartbeat_timer;
+	isc_timer_t *		pps_timer;
+
 	isc_uint32_t		interface_interval;
 	isc_uint32_t		heartbeat_interval;
 
