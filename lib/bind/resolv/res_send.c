@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_send.c	8.1 (Berkeley) 6/4/93";
-static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2.4.6 2005/07/28 07:43:23 marka Exp $";
+static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2.4.7 2005/08/15 02:04:41 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /*
@@ -108,7 +108,6 @@ static const char rcsid[] = "$Id: res_send.c,v 1.5.2.2.4.6 2005/07/28 07:43:23 m
 #include <stropts.h>
 #endif
 #include <poll.h>
-#define pselect Pselect
 #endif /* USE_POLL */
 
 /* Options.  Leave them on. */
@@ -137,7 +136,7 @@ static void		Aerror(const res_state, FILE *, const char *, int,
 			       const struct sockaddr *, int);
 static void		Perror(const res_state, FILE *, const char *, int);
 static int		sock_eq(struct sockaddr *, struct sockaddr *);
-#ifdef NEED_PSELECT
+#if defined(NEED_PSELECT) && !defined(USE_POLL)
 static int		pselect(int, void *, void *, void *,
 				struct timespec *,
 				const sigset_t *);
@@ -1062,7 +1061,7 @@ sock_eq(struct sockaddr *a, struct sockaddr *b) {
 	}
 }
 
-#ifdef NEED_PSELECT
+#if defined(NEED_PSELECT) && !defined(USE_POLL)
 /* XXX needs to move to the porting library. */
 static int
 pselect(int nfds, void *rfds, void *wfds, void *efds,
