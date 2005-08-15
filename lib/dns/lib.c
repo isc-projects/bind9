@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.c,v 1.13 2005/04/29 00:22:48 marka Exp $ */
+/* $Id: lib.c,v 1.14 2005/08/15 01:21:06 marka Exp $ */
 
 /*! \file */
 
@@ -33,6 +33,7 @@
  *** Globals
  ***/
 
+LIBDNS_EXTERNAL_DATA unsigned int			dns_pps = 0U;
 LIBDNS_EXTERNAL_DATA isc_msgcat_t *			dns_msgcat = NULL;
 
 

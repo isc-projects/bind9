@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.229 2005/07/27 02:28:58 marka Exp $ */
+/* $Id: client.c,v 1.230 2005/08/15 01:21:03 marka Exp $ */
 
 #include <config.h>
 
@@ -168,6 +168,7 @@ struct ns_clientmgr {
  * Must be greater than any valid state.
  */
 
+unsigned int ns_client_requests;
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
@@ -1212,6 +1213,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	       TCP_CLIENT(client) ?
 	       NS_CLIENTSTATE_READING :
 	       NS_CLIENTSTATE_READY);
+
+	ns_client_requests++;
 
 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
