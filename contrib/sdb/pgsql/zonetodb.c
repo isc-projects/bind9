@@ -15,12 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonetodb.c,v 1.13 2004/03/05 05:04:33 marka Exp $ */
+/* $Id: zonetodb.c,v 1.14 2005/08/16 04:22:37 marka Exp $ */
 
 #include <stdlib.h>
 #include <string.h>
 
 #include <isc/buffer.h>
+#include <isc/entropy.h>
+#include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -140,6 +142,7 @@ main(int argc, char **argv) {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_mem_t *mctx = NULL;
+	isc_entropy_t *ectx = NULL;
 	isc_buffer_t b;
 	isc_result_t result;
 	PGresult *res;
@@ -160,6 +163,12 @@ main(int argc, char **argv) {
 	mctx = NULL;
 	result = isc_mem_create(0, 0, &mctx);
 	check_result(result, "isc_mem_create");
+
+	result = isc_entropy_create(mctx, &ectx);
+	result_check (result, "isc_entropy_create");
+
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	check_result (result, "isc_hash_create");
 
 	isc_buffer_init(&b, porigin, strlen(porigin));
 	isc_buffer_add(&b, strlen(porigin));
@@ -275,6 +284,8 @@ main(int argc, char **argv) {
 	PQclear(res);
 	dns_dbiterator_destroy(&dbiter);
 	dns_db_detach(&db);
+	isc_hash_destroy();
+	isc_entropy_detach(&ectx);
 	isc_mem_destroy(&mctx);
 	closeandexit(0);
 	exit(0);
