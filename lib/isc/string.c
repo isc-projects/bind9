@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.10.18.3 2005/04/29 00:16:50 marka Exp $ */
+/* $Id: string.c,v 1.10.18.4 2005/08/16 04:39:05 marka Exp $ */
 
 /*! \file */
 
@@ -23,7 +23,10 @@
 
 #include <ctype.h>
 
+#include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 static char digits[] = "0123456789abcdefghijklmnoprstuvwxyz";
 
@@ -89,6 +92,105 @@ isc_string_touint64(char *source, char **end, int base) {
 	}
 	*end = s;
 	return (tmp);
+}
+
+isc_result_t
+isc_string_copy(char *target, size_t size, const char *source) {
+	REQUIRE(size > 0);
+
+	if (strlcpy(target, source, size) >= size) {
+		memset(target, ISC_STRING_MAGIC, size);
+		return (ISC_R_NOSPACE);
+	}
+
+	ENSURE(strlen(target) < size);
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_string_copy_truncate(char *target, size_t size, const char *source) {
+	REQUIRE(size > 0);
+
+	strlcpy(target, source, size);
+
+	ENSURE(strlen(target) < size);
+}
+
+isc_result_t
+isc_string_append(char *target, size_t size, const char *source) {
+	REQUIRE(size > 0);
+	REQUIRE(strlen(target) < size);
+
+	if (strlcat(target, source, size) >= size) {
+		memset(target, ISC_STRING_MAGIC, size);
+		return (ISC_R_NOSPACE);
+	}
+
+	ENSURE(strlen(target) < size);
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_string_append_truncate(char *target, size_t size, const char *source) {
+	REQUIRE(size > 0);
+	REQUIRE(strlen(target) < size);
+
+	strlcat(target, source, size);
+
+	ENSURE(strlen(target) < size);
+}
+
+isc_result_t
+isc_string_printf(char *target, size_t size, const char *format, ...) {
+	va_list args;
+	size_t n;
+
+	REQUIRE(size > 0);
+
+	va_start(args, format);
+	n = vsnprintf(target, size, format, args);
+	va_end(args);
+
+	if (n >= size) {
+		memset(target, ISC_STRING_MAGIC, size);
+		return (ISC_R_NOSPACE);
+	}
+
+	ENSURE(strlen(target) < size);
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+isc_string_printf_truncate(char *target, size_t size, const char *format, ...) {
+	va_list args;
+	size_t n;
+
+	REQUIRE(size > 0);
+
+	va_start(args, format);
+	n = vsnprintf(target, size, format, args);
+	va_end(args);
+
+	ENSURE(strlen(target) < size);
+}
+
+char *
+isc_string_regiondup(isc_mem_t *mctx, const isc_region_t *source) {
+	char *target;
+
+	REQUIRE(mctx != NULL);
+	REQUIRE(source != NULL);
+
+	target = (char *) isc_mem_allocate(mctx, source->length + 1);
+	if (target != NULL) {
+		memcpy(source->base, target, source->length);
+		target[source->length] = '\0';
+	}
+
+	return (target);
 }
 
 char *
