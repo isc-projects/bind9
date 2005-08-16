@@ -1,3 +1,5 @@
+1912.	[func]		ISC string copy API.
+
 1911.	[func]		Attempt to make the amount of work performed in a
 			iteration self tuning.  The covers nodes clean from
 			the cache per iteration, nodes written to disk when
