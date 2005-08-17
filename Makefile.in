@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.43 2004/03/05 04:56:57 marka Exp $
+# $Id: Makefile.in,v 1.44 2005/08/17 22:55:56 sra Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -57,3 +57,11 @@ check: test
 
 test:
 	(cd bin/tests && ${MAKE} ${MAKEDEFS} test)
+
+FAQ: FAQ.xml
+	${XSLTPROC} doc/xsl/isc-docbook-text.xsl FAQ.xml | \
+	${W3M} -T text/html -dump >$@.tmp
+	mv $@.tmp $@
+
+clean::
+	rm -f FAQ.tmp

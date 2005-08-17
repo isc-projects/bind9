@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.387 $)
+AC_REVISION($Revision: 1.388 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -2003,6 +2003,13 @@ AC_SUBST(LATEX)
 
 AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
 AC_SUBST(PDFLATEX)
+
+#
+# Look for w3m
+#
+
+AC_PATH_PROGS(W3M, w3m, w3m)
+AC_SUBST(W3M)
 
 #
 # Look for xsltproc (libxslt)
