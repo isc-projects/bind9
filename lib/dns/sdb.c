@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.45.18.6 2005/07/12 01:22:24 marka Exp $ */
+/* $Id: sdb.c,v 1.45.18.7 2005/08/18 01:03:01 marka Exp $ */
 
 /*! \file */
 
@@ -267,10 +267,11 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
 static inline unsigned int
 initial_size(unsigned int len) {
 	unsigned int size;
-	for (size = 64; size < (64 * 1024); size *= 2)
+
+	for (size = 1024; size < (64 * 1024); size *= 2)
 		if (len < size)
 			return (size);
-	return (64 * 1024);
+	return (65535);
 }
 
 isc_result_t
@@ -381,6 +382,8 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		if (result != ISC_R_SUCCESS)
 			goto failure;
 
+		if (size >= 65535)
+			size = 65535;
 		p = isc_mem_get(mctx, size);
 		if (p == NULL) {
 			result = ISC_R_NOMEMORY;
@@ -396,6 +399,11 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 		if (result != ISC_R_NOSPACE)
 			break;
 
+		/*
+		 * Is the RR too big?
+		 */
+		if (size >= 65535)
+			break;
 		isc_mem_put(mctx, p, size);
 		p = NULL;
 		size *= 2;
