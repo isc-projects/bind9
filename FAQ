@@ -469,3 +469,48 @@ A: No. The rules for glue (copies of the *address* records in the parent zones)
    processing to make it work. No namesever implementation supports either of
    these requirements.
 
+Q: What does "RFC 1918 response from Internet for 0.0.0.10.IN-ADDR.ARPA" mean?
+
+A: If the IN-ADDR.ARPA name covered refers to a internal address space you are
+   using then you have failed to follow RFC 1918 usage rules and are leaking
+   queries to the Internet. You should establish your own zones for these
+   addresses to prevent you quering the Internet's name servers for these
+   addresses. Please see http://as112.net/ for details of the problems you are
+   causing and the counter measures that have had to be deployed.
+
+   If you are not using these private addresses then a client has queried for
+   them. You can just ignore the messages, get the offending client to stop
+   sending you these messages as they are most probably leaking them or setup
+   your own zones empty zones to serve answers to these queries.
+
+   zone "10.IN-ADDR.ARPA" {
+           type master;
+           file "empty";
+   };
+
+   zone "16.172.IN-ADDR.ARPA" {
+           type master;
+           file "empty";
+   };
+
+   ...
+
+   zone "31.172.IN-ADDR.ARPA" {
+           type master;
+           file "empty";
+   };
+
+   zone "168.192.IN-ADDR.ARPA" {
+           type master;
+           file "empty";
+   };
+
+   empty:
+   @ 10800 IN SOA <name-of-server>. <contact-email>. (
+                  1 3600 1200 604800 10800 )
+   @ 10800 IN NS <name-of-server>.
+
+   Note
+
+   Future versions of named are likely to do this automatically.
+
