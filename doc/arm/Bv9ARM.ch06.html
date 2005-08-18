@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.33 2005/07/20 00:12:02 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.34 2005/08/18 02:55:58 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -77,23 +77,23 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554189"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554238"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554464"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554513"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554377"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554583"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2555108"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2555382"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2557093">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2557435">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2559182">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2559457">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2559802">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2559929">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2560118"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2560008">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2560135">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2560324"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -1843,6 +1843,10 @@ category notify { null; };
     [<span class="optional"> clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> max-clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
     [<span class="optional"> masterfile-format (<code class="constant">text</code>|<code class="constant">raw</code>) ; </span>]
+    [<span class="optional"> empty-server <em class="replaceable"><code>name</code></em> ; </span>]
+    [<span class="optional"> empty-contact <em class="replaceable"><code>name</code></em> ; </span>]
+    [<span class="optional"> empty-zones-enable <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
+    [<span class="optional"> disable-empty-zone <em class="replaceable"><code>zone_name</code></em> ; </span>]
 };
 </pre>
 </div>
@@ -2696,7 +2700,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550096"></a>Forwarding</h4></div></div></div>
+<a name="id2550189"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -2740,7 +2744,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550222"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2550248"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -2905,7 +2909,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550632"></a>Interfaces</h4></div></div></div>
+<a name="id2550658"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -2985,7 +2989,7 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550721"></a>Query Address</h4></div></div></div>
+<a name="id2550746"></a>Query Address</h4></div></div></div>
 <p>
             If the server doesn't know the answer to a question, it will
             query other name servers. <span><strong class="command">query-source</strong></span> specifies
@@ -3240,7 +3244,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551516"></a>Bad UDP Port Lists</h4></div></div></div>
+<a name="id2551678"></a>Bad UDP Port Lists</h4></div></div></div>
 <p><span><strong class="command">avoid-v4-udp-ports</strong></span>
             and <span><strong class="command">avoid-v6-udp-ports</strong></span> specify a list
             of IPv4 and IPv6 UDP ports that will not be used as system
@@ -3254,7 +3258,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551531"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2551693"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -3314,7 +3318,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551715"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2551809"></a>Server  Resource Limits</h4></div></div></div>
 <p>
             The following options set limits on the server's
             resource consumption that are enforced internally by the
@@ -3392,7 +3396,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551848"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2551942"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -3875,6 +3879,109 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
+<a name="empty"></a>Built-in Empty Zones</h4></div></div></div>
+<p>
+            Named has some built-in empty zones (SOA and NS records only).
+            These are for zones that should normally be answered locally
+            and which queries should not be sent to the Internet's root
+            servers.  The offical servers which cover these namespaces
+            return NXDOMAIN responses to these queries.  In particular
+            these cover the reverse namespace for addresses from RFC 1918 and
+            RFC 3330.  They also include the reverse namespace for IPv6 local
+            address (locally assigned), IPv6 link local addresses, the IPv6
+            loopback address and the IPv6 unknown addresss.
+          </p>
+<p>
+            Named will attempt to determine if a built in zone already exists
+            or is active (covered by a forward-only forwarding declaration)
+            and will not not create a empty zone in that case.
+          </p>
+<p>
+            The current list of empty zones is:
+            </p>
+<div class="itemizedlist"><ul type="disc">
+<li>10.IN-ADDR.ARPA</li>
+<li>127.IN-ADDR.ARPA</li>
+<li>254.169.IN-ADDR.ARPA</li>
+<li>16.172.IN-ADDR.ARPA</li>
+<li>17.172.IN-ADDR.ARPA</li>
+<li>18.172.IN-ADDR.ARPA</li>
+<li>19.172.IN-ADDR.ARPA</li>
+<li>20.172.IN-ADDR.ARPA</li>
+<li>21.172.IN-ADDR.ARPA</li>
+<li>22.172.IN-ADDR.ARPA</li>
+<li>23.172.IN-ADDR.ARPA</li>
+<li>24.172.IN-ADDR.ARPA</li>
+<li>25.172.IN-ADDR.ARPA</li>
+<li>26.172.IN-ADDR.ARPA</li>
+<li>27.172.IN-ADDR.ARPA</li>
+<li>28.172.IN-ADDR.ARPA</li>
+<li>29.172.IN-ADDR.ARPA</li>
+<li>30.172.IN-ADDR.ARPA</li>
+<li>31.172.IN-ADDR.ARPA</li>
+<li>168.192.IN-ADDR.ARPA</li>
+<li>2.0.192.IN-ADDR.ARPA</li>
+<li>0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</li>
+<li>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</li>
+<li>D.F.IP6.ARPA</li>
+<li>8.E.F.IP6.ARPA</li>
+<li>9.E.F.IP6.ARPA</li>
+<li>A.E.F.IP6.ARPA</li>
+<li>B.E.F.IP6.ARPA</li>
+</ul></div>
+<p>
+          </p>
+<p>
+            Empty zones are settable at the view level and only apply to
+            views of class IN.  Disabled empty zones are only inherited
+            from options if there are no disabled empty zones specified
+            at the view level.  To override the options list of disabled
+            zones you can disable the root zone at the view level
+            (disable-empty-zone ".";).
+          </p>
+<p>
+            If you are using the address ranges covered here you should
+            already have reverse zones covering the addresses you use.
+            In practice this appears to not be the case with many queries
+            being made to the infrustucture servers for names in these
+            spaces.  So many in fact that sacrificial servers were needed
+            to be deployed to channel the query load away from the
+            infrustucture servers.
+          </p>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+            The real parent servers for these zones should disable all
+            empty zone under the parent zone they serve.  For the real
+            root servers this is all built in empty zones.  This will
+            enable them to return referrals to deeper in the tree.
+          </div>
+<div class="variablelist"><dl>
+<dt><span class="term"><span><strong class="command">empty-server</strong></span></span></dt>
+<dd><p>
+                  Specify what server name will appear in the returned
+                  SOA record for empty zones.  If none is specified then
+                  the zone's name will be used.
+                </p></dd>
+<dt><span class="term"><span><strong class="command">empty-contact</strong></span></span></dt>
+<dd><p>
+                  Specify what contact name will appear in the returned
+                  SOA record for empty zones.  If none is specified then
+                  "." will be used.
+                </p></dd>
+<dt><span class="term"><span><strong class="command">empty-zones-enable</strong></span></span></dt>
+<dd><p>
+                  Enable / disable all empty zones.  By default they
+                  are enabled.
+                </p></dd>
+<dt><span class="term"><span><strong class="command">disable-empty-zone</strong></span></span></dt>
+<dd><p>
+                  Disable a indiviual empty zones.  By default none are
+                  disabled.  This option can be specified multiple times.
+                </p></dd>
+</dl></div>
+</div>
+<div class="sect3" lang="en">
+<div class="titlepage"><div><div><h4 class="title">
 <a name="statsfile"></a>The Statistics File</h4></div></div></div>
 <p>
             The statistics file generated by <span class="acronym">BIND</span> 9
@@ -4248,7 +4355,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2554189"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2554464"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">trusted-keys {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4257,7 +4364,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2554238"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2554513"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4296,7 +4403,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2554377"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2554583"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -4469,10 +4576,10 @@ view "external" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2555108"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2555382"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2555115"></a>Zone Types</h4></div></div></div>
+<a name="id2555389"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -4681,7 +4788,7 @@ view "external" {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2555603"></a>Class</h4></div></div></div>
+<a name="id2555740"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -4703,7 +4810,7 @@ view "external" {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2555636"></a>Zone Options</h4></div></div></div>
+<a name="id2555842"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">journal</strong></span></span></dt>
 <dd><p>
@@ -5142,7 +5249,7 @@ view "external" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2557093"></a>Zone File</h2></div></div></div>
+<a name="id2557435"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5155,7 +5262,7 @@ view "external" {
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2557111"></a>Resource Records</h4></div></div></div>
+<a name="id2557453"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -5806,7 +5913,7 @@ view "external" {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2558662"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2558868"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6009,7 +6116,7 @@ view "external" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2559182"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2559457"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6267,7 +6374,7 @@ view "external" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2559802"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2560008"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6328,7 +6435,7 @@ view "external" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2559929"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2560135"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6343,7 +6450,7 @@ view "external" {
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2559952"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2560157"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -6371,7 +6478,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2560012"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2560218"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -6407,7 +6514,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2560082"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2560288"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -6426,7 +6533,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2560118"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2560324"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>

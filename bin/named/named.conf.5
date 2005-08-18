@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.13 2005/06/27 02:58:46 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.14 2005/08/18 02:55:56 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -215,6 +215,10 @@ options {
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	empty\-server \fIstring\fR;
+	empty\-contact \fIstring\fR;
+	empty\-zones\-enable \fIboolean\fR;
+	disable\-empty\-zone \fIstring\fR;
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIixfrdiff\fR;
 	allow\-query { \fIaddress_match_element\fR; \&.\&.\&. };
@@ -333,6 +337,10 @@ view \fIstring\fR \fIoptional_class\fR {
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	empty\-server \fIstring\fR;
+	empty\-contact \fIstring\fR;
+	empty\-zones\-enable \fIboolean\fR;
+	disable\-empty\-zone \fIstring\fR;
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIixfrdiff\fR;
 	allow\-query { \fIaddress_match_element\fR; \&.\&.\&. };

@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.1.2.18 2005/07/19 07:14:30 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.1.2.19 2005/08/18 02:55:57 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -234,6 +234,11 @@ options {<br>
 	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
+	empty-server <em class="replaceable"><code>string</code></em>;<br>
+	empty-contact <em class="replaceable"><code>string</code></em>;<br>
+	empty-zones-enable <em class="replaceable"><code>boolean</code></em>;<br>
+	disable-empty-zone <em class="replaceable"><code>string</code></em>;<br>
+<br>
 	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
 	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
@@ -298,7 +303,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2515578"></a><h2>VIEW</h2>
+<a name="id2515591"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -368,6 +373,12 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
 <br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+<br>
+	empty-server <em class="replaceable"><code>string</code></em>;<br>
+	empty-contact <em class="replaceable"><code>string</code></em>;<br>
+	empty-zones-enable <em class="replaceable"><code>boolean</code></em>;<br>
+	disable-empty-zone <em class="replaceable"><code>string</code></em>;<br>
+<br>
 	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
 	ixfr-from-differences <em class="replaceable"><code>ixfrdiff</code></em>;<br>
 <br>
@@ -424,7 +435,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516152"></a><h2>ZONE</h2>
+<a name="id2516178"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -504,12 +515,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516498"></a><h2>FILES</h2>
+<a name="id2516523"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516509"></a><h2>SEE ALSO</h2>
+<a name="id2516535"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.

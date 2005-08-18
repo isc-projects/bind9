@@ -93,6 +93,10 @@ options {
         max-acache-size <size_no_default>;
         clients-per-query <integer>;
         max-clients-per-query <integer>;
+        empty-server <string>;
+        empty-contact <string>;
+        empty-zones-enable <boolean>;
+        disable-empty-zone <string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -293,6 +297,10 @@ view <string> <optional_class> {
         max-acache-size <size_no_default>;
         clients-per-query <integer>;
         max-clients-per-query <integer>;
+        empty-server <string>;
+        empty-contact <string>;
+        empty-zones-enable <boolean>;
+        disable-empty-zone <string>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
