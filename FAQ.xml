@@ -867,7 +867,7 @@ zone "example.net" {
 	type slave;
 	file "sl/example.net";
 	masters { 192.168.4.12; };
-}</programlisting>
+};</programlisting>
 	</informalexample>
       </answer>
     </qandaentry>
