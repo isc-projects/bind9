@@ -17,7 +17,6 @@ libbind_clean			open	jinmei
 mlg-20000518			new	
 newresolver0			new	
 openssl_stub			open	marka
-rt10718				closed	
 rt10864				open	marka	// NSEC caching @ delegation
 rt11382				open	sra	// dlz
 rt11398a			open	sra	// doxygen dev
@@ -29,20 +28,15 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt14666				closed	
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
 rt14895b			open	
 rt14933				open		// DLV	
 rt14933a			open	
-rt14963				closed		// bad wildcard grants	
 rt14965				open		// windows fixes	
-rt14996				closed		// tune based on request load	
 rt15005				review	
 rt15006				review	
 rt15034				review	
-rt15036				closed		// ixfr-from-differences serial
-rt15103				closed	
 rt15216				review	
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
@@ -132,6 +126,7 @@ rt10565				closed
 rt10590				closed
 rt10642				closed
 rt10704				closed
+rt10718				closed
 rt10764				closed		// empty
 rt10838				closed
 rt10847				closed
@@ -285,6 +280,7 @@ rt13754				closed
 rt13771				closed
 rt14606				closed
 rt14616				closed
+rt14666				closed
 rt14673				closed
 rt14686				closed
 rt14695				closed
@@ -310,9 +306,13 @@ rt14951				closed
 rt14953				closed
 rt14959				closed
 rt14962				closed
+rt14963				closed		// bad wildcard grants	
 rt14967				closed
 rt14991				closed
 rt14995				closed
+rt14996				closed		// tune based on request load	
+rt15036				closed		// ixfr-from-differences serial
+rt15103				closed
 rt1572a				closed		// bad rt#
 rt2471				closed
 rt288				closed
