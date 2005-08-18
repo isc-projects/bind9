@@ -451,7 +451,7 @@ A: These indicate a filesystem permission error preventing named creating /
            type slave;
            file "sl/example.net";
            masters { 192.168.4.12; };
-   }
+   };
 
 Q: How do I intergrate BIND 9 and Solaris SMF
 
