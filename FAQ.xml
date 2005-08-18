@@ -913,5 +913,65 @@ zone "example.net" {
       </answer>
     </qandaentry>
 
+    <qandaentry>
+      <question>
+	<para>
+	  What does <quote>RFC 1918 response from Internet for
+	  0.0.0.10.IN-ADDR.ARPA</quote> mean?
+	</para>
+      </question>
+      <answer>
+	<para>
+	  If the IN-ADDR.ARPA name covered refers to a internal address
+	  space you are using then you have failed to follow RFC 1918
+	  usage rules and are leaking queries to the Internet.  You
+	  should establish your own zones for these addresses to prevent
+	  you quering the Internet's name servers for these addresses.
+	  Please see <ulink url="http://as112.net/">http://as112.net/</ulink>
+	  for details of the problems you are causing and the counter
+	  measures that have had to be deployed.
+	</para>
+	<para>
+	  If you are not using these private addresses then a client
+	  has queried for them.  You can just ignore the messages,
+	  get the offending client to stop sending you these messages
+	  as they are most probably leaking them or setup your own zones
+	  empty zones to serve answers to these queries.
+	</para>
+	<informalexample>
+	  <programlisting>
+zone "10.IN-ADDR.ARPA" {
+	type master;
+	file "empty";
+};
+
+zone "16.172.IN-ADDR.ARPA" {
+	type master;
+	file "empty";
+};
+
+...
+
+zone "31.172.IN-ADDR.ARPA" {
+	type master;
+	file "empty";
+};
+
+zone "168.192.IN-ADDR.ARPA" {
+	type master;
+	file "empty";
+};
+
+empty:
+@ 10800 IN SOA &lt;name-of-server&gt;. &lt;contact-email&gt;. (
+	       1 3600 1200 604800 10800 )
+@ 10800 IN NS &lt;name-of-server&gt;.</programlisting>
+	</informalexample>
+	<note>
+	  Future versions of named are likely to do this automatically.
+	</note>
+      </answer>
+    </qandaentry>
+
   </qandaset>
 </article>
