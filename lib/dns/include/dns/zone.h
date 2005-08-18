@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.135 2005/06/20 01:03:55 marka Exp $ */
+/* $Id: zone.h,v 1.136 2005/08/18 00:57:30 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -59,6 +59,7 @@ typedef enum {
 #define DNS_ZONEOPT_CHECKMX	  0x00004000U	/*%< check-mx */
 #define DNS_ZONEOPT_CHECKMXFAIL   0x00008000U	/*%< fatal check-mx failures */
 #define DNS_ZONEOPT_INTEGRITYCHECK 0x00010000U	/*%< perform integrity checks */
+#define DNS_ZONEOPT_NOCHECKNS	  0x00020000U	/*%< disable IN NS address checks */
 
 #ifndef NOMINUM_PUBLIC
 /*

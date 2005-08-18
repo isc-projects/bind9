@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.54 2005/07/18 05:59:01 marka Exp $ */
+/* $Id: namedconf.c,v 1.55 2005/08/18 00:57:31 marka Exp $ */
 
 /*! \file */
 
@@ -409,8 +409,8 @@ static cfg_type_t cfg_type_forwardtype = {
 static const char *zonetype_enums[] = {
 	"master", "slave", "stub", "hint", "forward", "delegation-only", NULL };
 static cfg_type_t cfg_type_zonetype = {
-	"zonetype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum, &cfg_rep_string,
-	&zonetype_enums
+	"zonetype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &zonetype_enums
 };
 
 static const char *loglevel_enums[] = {
@@ -747,6 +747,10 @@ view_clauses[] = {
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
+	{ "empty-server", &cfg_type_astring, 0 },
+	{ "empty-contact", &cfg_type_astring, 0 },
+	{ "empty-zones-enable", &cfg_type_boolean, 0 },
+	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 

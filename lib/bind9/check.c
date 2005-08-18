@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.61 2005/07/28 05:42:20 marka Exp $ */
+/* $Id: check.c,v 1.62 2005/08/18 00:57:28 marka Exp $ */
 
 /*! \file */
 
@@ -413,6 +413,10 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 	cfg_obj_t *obj = NULL;
 	cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
+	dns_fixedname_t fixed;
+	const char *str;
+	dns_name_t *name;
+	isc_buffer_t b;
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -512,6 +516,9 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 	}
 
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+
 	/*
 	 * Check the DLV zone name.
 	 */
@@ -526,16 +533,11 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		     element != NULL;
 		     element = cfg_list_next(element))
 		{
-			dns_fixedname_t fixedname;
-			dns_name_t *name;
 			const char *dlv;
-			isc_buffer_t b;
 
 			obj = cfg_listelt_value(element);
 
 			dlv = cfg_obj_asstring(cfg_tuple_get(obj, "domain"));
-			dns_fixedname_init(&fixedname);
-			name = dns_fixedname_name(&fixedname);
 			isc_buffer_init(&b, dlv, strlen(dlv));
 			isc_buffer_add(&b, strlen(dlv));
 			tresult = dns_name_fromtext(name, &b, dns_rootname,
@@ -568,7 +570,6 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 			}
 			dlv = cfg_obj_asstring(cfg_tuple_get(obj,
 					       "trust-anchor"));
-			dns_fixedname_init(&fixedname);
 			isc_buffer_init(&b, dlv, strlen(dlv));
 			isc_buffer_add(&b, strlen(dlv));
 			tresult = dns_name_fromtext(name, &b, dns_rootname,
@@ -606,6 +607,59 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		}
 		if (symtab != NULL)
 			isc_symtab_destroy(&symtab);
+	}
+
+	/*
+	 * Check empty zone configuration.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "empty-server", &obj);
+	if (obj != NULL) {
+		str = cfg_obj_asstring(obj);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+					    dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "empty-server: invalid name '%s'", str);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(options, "empty-contact", &obj);
+	if (obj != NULL) {
+		str = cfg_obj_asstring(obj);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+					    dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "empty-contact: invalid name '%s'", str);
+			result = ISC_R_FAILURE;
+		}
+	}
+
+	obj = NULL;
+	(void)cfg_map_get(options, "disable-empty-zone", &obj);
+	for (element = cfg_list_first(obj);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		obj = cfg_listelt_value(element);
+		str = cfg_obj_asstring(obj);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		tresult = dns_name_fromtext(dns_fixedname_name(&fixed), &b,
+					    dns_rootname, ISC_FALSE, NULL);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "disable-empty-zone: invalid name '%s'",
+				    str);
+			result = ISC_R_FAILURE;
+		}
 	}
 
 	return (result);

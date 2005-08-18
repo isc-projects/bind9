@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.276 2005/07/19 06:12:16 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.277 2005/08/18 00:57:28 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4445,6 +4445,10 @@ category notify { null; };
     <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> max-clients-per-query <replaceable>number</replaceable> ; </optional>
     <optional> masterfile-format (<constant>text</constant>|<constant>raw</constant>) ; </optional>
+    <optional> empty-server <replaceable>name</replaceable> ; </optional>
+    <optional> empty-contact <replaceable>name</replaceable> ; </optional>
+    <optional> empty-zones-enable <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> disable-empty-zone <replaceable>zone_name</replaceable> ; </optional>
 };
 </programlisting>
 
@@ -7018,6 +7022,125 @@ query-source-v6 address * port *;
 
         </sect3>
 
+        <sect3 id="empty">
+          <title>Built-in Empty Zones</title>
+	  <para>
+	    Named has some built-in empty zones (SOA and NS records only).
+	    These are for zones that should normally be answered locally
+	    and which queries should not be sent to the Internet's root
+	    servers.  The offical servers which cover these namespaces
+	    return NXDOMAIN responses to these queries.  In particular
+	    these cover the reverse namespace for addresses from RFC 1918 and
+	    RFC 3330.  They also include the reverse namespace for IPv6 local
+	    address (locally assigned), IPv6 link local addresses, the IPv6
+	    loopback address and the IPv6 unknown addresss.
+	  </para>
+	  <para>
+	    Named will attempt to determine if a built in zone already exists
+	    or is active (covered by a forward-only forwarding declaration)
+	    and will not not create a empty zone in that case.
+	  </para>
+	  <para>
+	    The current list of empty zones is:
+	    <itemizedlist>
+	      <listitem>10.IN-ADDR.ARPA</listitem>
+	      <listitem>127.IN-ADDR.ARPA</listitem>
+	      <listitem>254.169.IN-ADDR.ARPA</listitem>
+	      <listitem>16.172.IN-ADDR.ARPA</listitem>
+	      <listitem>17.172.IN-ADDR.ARPA</listitem>
+	      <listitem>18.172.IN-ADDR.ARPA</listitem>
+	      <listitem>19.172.IN-ADDR.ARPA</listitem>
+	      <listitem>20.172.IN-ADDR.ARPA</listitem>
+	      <listitem>21.172.IN-ADDR.ARPA</listitem>
+	      <listitem>22.172.IN-ADDR.ARPA</listitem>
+	      <listitem>23.172.IN-ADDR.ARPA</listitem>
+	      <listitem>24.172.IN-ADDR.ARPA</listitem>
+	      <listitem>25.172.IN-ADDR.ARPA</listitem>
+	      <listitem>26.172.IN-ADDR.ARPA</listitem>
+	      <listitem>27.172.IN-ADDR.ARPA</listitem>
+	      <listitem>28.172.IN-ADDR.ARPA</listitem>
+	      <listitem>29.172.IN-ADDR.ARPA</listitem>
+	      <listitem>30.172.IN-ADDR.ARPA</listitem>
+	      <listitem>31.172.IN-ADDR.ARPA</listitem>
+	      <listitem>168.192.IN-ADDR.ARPA</listitem>
+	      <listitem>2.0.192.IN-ADDR.ARPA</listitem>
+	      <listitem>0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
+	      <listitem>1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA</listitem>
+	      <listitem>D.F.IP6.ARPA</listitem>
+	      <listitem>8.E.F.IP6.ARPA</listitem>
+	      <listitem>9.E.F.IP6.ARPA</listitem>
+	      <listitem>A.E.F.IP6.ARPA</listitem>
+	      <listitem>B.E.F.IP6.ARPA</listitem>
+	    </itemizedlist>
+	  </para>
+	  <para>
+	    Empty zones are settable at the view level and only apply to
+	    views of class IN.  Disabled empty zones are only inherited
+	    from options if there are no disabled empty zones specified
+	    at the view level.  To override the options list of disabled
+	    zones you can disable the root zone at the view level
+	    (disable-empty-zone ".";).
+	  </para>
+	  <para>
+	    If you are using the address ranges covered here you should
+	    already have reverse zones covering the addresses you use.
+	    In practice this appears to not be the case with many queries
+	    being made to the infrustucture servers for names in these
+	    spaces.  So many in fact that sacrificial servers were needed
+	    to be deployed to channel the query load away from the
+	    infrustucture servers.
+	  </para>
+	  <note>
+	    The real parent servers for these zones should disable all
+	    empty zone under the parent zone they serve.  For the real
+	    root servers this is all built in empty zones.  This will
+	    enable them to return referrals to deeper in the tree.
+	  </note>
+          <variablelist>
+	    <varlistentry>
+	      <term><command>empty-server</command></term>
+	      <listitem>
+	        <para>
+		  Specify what server name will appear in the returned
+		  SOA record for empty zones.  If none is specified then
+		  the zone's name will be used.
+	        </para>
+	       </listitem>
+	    </varlistentry>
+	      
+	    <varlistentry>
+	      <term><command>empty-contact</command></term>
+	      <listitem>
+	        <para>
+		  Specify what contact name will appear in the returned
+		  SOA record for empty zones.  If none is specified then
+		  "." will be used.
+	        </para>
+	      </listitem>
+	    </varlistentry>
+  
+	    <varlistentry>
+	      <term><command>empty-zones-enable</command></term>
+	      <listitem>
+	        <para>
+		  Enable / disable all empty zones.  By default they
+		  are enabled.
+	        </para>
+	      </listitem>
+	    </varlistentry>
+  
+	    <varlistentry>
+	    <term><command>disable-empty-zone</command></term>
+	      <listitem>
+	        <para>
+		  Disable a indiviual empty zones.  By default none are
+		  disabled.  This option can be specified multiple times.
+	        </para>
+	      </listitem>
+	    </varlistentry>
+          </variablelist>
+        </sect3>
+  
         <sect3 id="statsfile">
           <title>The Statistics File</title>
 

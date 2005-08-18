@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.13 2005/06/27 00:15:41 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.14 2005/08/18 00:57:26 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -261,6 +261,11 @@ options {
 	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 
+	empty-server <replaceable>string</replaceable>;
+	empty-contact <replaceable>string</replaceable>;
+	empty-zones-enable <replaceable>boolean</replaceable>;
+	disable-empty-zone <replaceable>string</replaceable>;
+
 	dialup <replaceable>dialuptype</replaceable>;
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 
@@ -396,6 +401,12 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
+
+	empty-server <replaceable>string</replaceable>;
+	empty-contact <replaceable>string</replaceable>;
+	empty-zones-enable <replaceable>boolean</replaceable>;
+	disable-empty-zone <replaceable>string</replaceable>;
+
 	dialup <replaceable>dialuptype</replaceable>;
 	ixfr-from-differences <replaceable>ixfrdiff</replaceable>;
 

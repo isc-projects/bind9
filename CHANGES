@@ -1,3 +1,10 @@
+1913.	[func]		Automatic empty zone creation for D.F.IP6.ARPA and
+			friends.  Note: RFC 1918 zones are not yet covered by
+			this but are likely to be in a future release.
+
+			New options: empty-server, empty-contact,
+			empty-zones-enable and disable-empty-zone.
+
 1912.	[func]		ISC string copy API.
 
 1911.	[func]		Attempt to make the amount of work performed in a

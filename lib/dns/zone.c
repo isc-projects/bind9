@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.443 2005/07/29 00:32:53 marka Exp $ */
+/* $Id: zone.c,v 1.444 2005/08/18 00:57:29 marka Exp $ */
 
 /*! \file */
 
@@ -2004,6 +2004,9 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 	dns_name_t *foundname;
 	int level;
 	
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOCHECKNS))
+		return (ISC_TRUE);
+
 	if (zone->type == dns_zone_master)
 		level = ISC_LOG_ERROR;
 	else

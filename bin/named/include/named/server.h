@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.79 2005/08/15 01:21:05 marka Exp $ */
+/* $Id: server.h,v 1.80 2005/08/18 00:57:27 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -62,9 +62,6 @@ struct ns_server {
 	isc_boolean_t		server_usehostname;
 	char *			server_id;	/*%< User-specified server id */
 
-	/*% Empty zone SOA ORIGIN and CONTACT */
-	char *			empty_contact;
-	char *			empty_server;
         /*%
 	 * Current ACL environment.  This defines the
 	 * current values of the localhost and localnets

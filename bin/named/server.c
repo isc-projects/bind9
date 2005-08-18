@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.447 2005/08/15 01:21:04 marka Exp $ */
+/* $Id: server.c,v 1.448 2005/08/18 00:57:27 marka Exp $ */
 
 /*! \file */
 
@@ -163,6 +163,58 @@ struct zonelistentry {
 	dns_zone_t			*zone;
 	ISC_LINK(struct zonelistentry)	link;
 };
+
+/*
+ * These zones should not leak onto the Internet.
+ */
+static const struct {
+	const char	*zone;
+	isc_boolean_t	rfc1918;
+} empty_zones[] = {
+#ifdef notyet
+	/* RFC 1918 */
+	{ "10.IN-ADDR.ARPA", ISC_TRUE },
+	{ "16.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "17.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "18.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "19.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "20.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "21.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "22.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "23.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "24.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "25.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "26.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "27.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "28.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "29.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "30.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "31.172.IN-ADDR.ARPA", ISC_TRUE },
+	{ "168.192.IN-ADDR.ARPA", ISC_TRUE },
+#endif
+
+	/* RFC 3330 */
+	{ "127.IN-ADDR.ARPA", ISC_FALSE },	/* LOOPBACK */
+	{ "254.169.IN-ADDR.ARPA", ISC_FALSE },	/* LINK LOCAL */
+	{ "2.0.192.IN-ADDR.ARPA", ISC_FALSE },	/* TEST NET */
+	{ "255.255.255.255.IN-ADDR.ARPA", ISC_FALSE },	/* BROADCAST */
+
+	/* Local IPv6 Unicast Addresses */
+	{ "0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
+	{ "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.IP6.ARPA", ISC_FALSE },
+	/* LOCALLY ASSIGNED LOCAL ADDRES S SCOPE */
+	{ "D.F.IP6.ARPA", ISC_FALSE },
+	{ "8.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+	{ "9.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+	{ "A.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+	{ "B.E.F.IP6.ARPA", ISC_FALSE },	/* LINK LOCAL */
+
+	{ NULL, ISC_FALSE }
+};
+
+static const char *empty_dbtype[] = { "_builtin", "empty", NULL, NULL };
+static unsigned int empty_dbtypec = 
+		(sizeof(empty_dbtype) / sizeof(empty_dbtype[0]));
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -724,6 +776,36 @@ disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	return (result);
 }
 
+static isc_boolean_t
+on_disable_list(cfg_obj_t *disablelist, dns_name_t *zonename) {
+	cfg_listelt_t *element;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_result_t result;
+	cfg_obj_t *value;
+	const char *str;
+	isc_buffer_t b;
+
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	
+	for (element = cfg_list_first(disablelist);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		value = cfg_listelt_value(element);
+		str = cfg_obj_asstring(value);
+		isc_buffer_init(&b, str, strlen(str));
+		isc_buffer_add(&b, strlen(str));
+		result = dns_name_fromtext(name, &b, dns_rootname,
+					   ISC_TRUE, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		if (dns_name_equal(name, zonename))
+			return (ISC_TRUE);
+	}
+	return (ISC_FALSE);
+}
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -765,7 +847,14 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
 	unsigned int check = 0;
+	dns_zone_t *zone = NULL;
 	isc_uint32_t max_clients_per_query;
+	const char *sep = ": view ";
+	const char *viewname = view->name;
+	const char *forview = " for view ";
+	isc_boolean_t rfc1918;
+	isc_boolean_t empty_zones_enable;
+	cfg_obj_t *disablelist = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -790,6 +879,12 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (config != NULL)
 		cfgmaps[i++] = config;
 	cfgmaps[i] = NULL;
+
+	if (!strcmp(viewname, "_default")) {
+		sep = "";
+		viewname = "";
+		forview = "";
+	}
 
 	/*
 	 * Set the view's port number for outgoing queries.
@@ -1218,20 +1313,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (!view->recursion && view->recursionacl != NULL &&
 	    (view->recursionacl->length != 1 ||
 	     view->recursionacl->elements[0].type != dns_aclelementtype_any ||
-	     view->recursionacl->elements[0].negative != ISC_TRUE)) {
-		const char *forview = " for view ";
-		const char *viewname = view->name;
-
-		if (!strcmp(view->name, "_bind") ||
-		    !strcmp(view->name, "_default")) {
-			forview = "";
-			viewname = "";
-		}
+	     view->recursionacl->elements[0].negative != ISC_TRUE))
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "both \"recursion no;\" and \"allow-recursion\" "
 			      "active%s%s", forview, viewname);
-	}
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));
@@ -1373,9 +1459,153 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	} else
 		dns_view_setrootdelonly(view, ISC_FALSE);
 
+	/*
+	 * Setup automatic empty zones.  If recursion is off then
+	 * they are disabled by default.
+	 */
+	obj = NULL;
+	(void)ns_config_get(maps, "empty-zones-enable", &obj);
+	(void)ns_config_get(maps, "disable-empty-zone", &disablelist);
+	if (obj == NULL && disablelist == NULL &&
+	    view->rdclass == dns_rdataclass_in) {
+		rfc1918 = ISC_FALSE;
+		empty_zones_enable = view->recursion;
+	} else if (view->rdclass == dns_rdataclass_in) {
+		rfc1918 = ISC_TRUE;
+		if (obj != NULL)
+			empty_zones_enable = cfg_obj_asboolean(obj);
+		else
+			empty_zones_enable = view->recursion;
+	} else {
+		rfc1918 = ISC_FALSE;
+		empty_zones_enable = ISC_FALSE;
+	}
+	if (empty_zones_enable) {
+		const char *empty;
+		int empty_zone = 0;
+		dns_fixedname_t fixed;
+		dns_name_t *name;
+		isc_buffer_t buffer;
+		char *str;
+		char server[DNS_NAME_FORMATSIZE + 1];
+		char contact[DNS_NAME_FORMATSIZE + 1];
+		isc_boolean_t logit;
+
+		dns_fixedname_init(&fixed);
+		name = dns_fixedname_name(&fixed);
+
+		obj = NULL;
+		result = ns_config_get(maps, "empty-server", &obj);
+		if (result == ISC_R_SUCCESS) {
+			str = cfg_obj_asstring(obj);
+			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_add(&buffer, strlen(str));
+			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
+						ISC_FALSE, NULL));
+			isc_buffer_init(&buffer, server, sizeof(server) - 1);
+			CHECK(dns_name_totext(name, ISC_FALSE, &buffer));
+			server[isc_buffer_usedlength(&buffer)] = 0;
+			empty_dbtype[2] = server;
+		} else
+			empty_dbtype[2] = "@";
+
+		obj = NULL;
+		result = ns_config_get(maps, "empty-contact", &obj);
+		if (result == ISC_R_SUCCESS) {
+			str = cfg_obj_asstring(obj);
+			isc_buffer_init(&buffer, str, strlen(str));
+			isc_buffer_add(&buffer, strlen(str));
+			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
+						ISC_FALSE, NULL));
+			isc_buffer_init(&buffer, contact, sizeof(contact) - 1);
+			CHECK(dns_name_totext(name, ISC_FALSE, &buffer));
+			contact[isc_buffer_usedlength(&buffer)] = 0;
+			empty_dbtype[3] = contact;
+		} else
+			empty_dbtype[3] = ".";
+
+		logit = ISC_TRUE;
+		for (empty = empty_zones[empty_zone].zone;
+		     empty != NULL;
+		     empty = empty_zones[++empty_zone].zone)
+		{
+			dns_forwarders_t *forwarders = NULL;
+
+			isc_buffer_init(&buffer, empty, strlen(empty));
+			isc_buffer_add(&buffer, strlen(empty));
+			/*
+			 * Look for zone on drop list.
+			 */
+			CHECK(dns_name_fromtext(name, &buffer, dns_rootname,
+						ISC_FALSE, NULL));
+			if (disablelist != NULL &&
+			    on_disable_list(disablelist, name))
+				continue;
+
+			/*
+			 * This zone already exists.
+			 */
+			(void)dns_view_findzone(view, name, &zone);
+			if (zone != NULL) {
+				dns_zone_detach(&zone);
+				continue;
+			}
+
+			/*
+			 * If we would forward this name don't add a
+			 * empty zone for it.
+			 */
+			result = dns_fwdtable_find(view->fwdtable, name,
+						   &forwarders);
+			if (result == ISC_R_SUCCESS &&
+			    forwarders->fwdpolicy == dns_fwdpolicy_only)
+				continue;
+						
+			if (!rfc1918 && empty_zones[empty_zone].rfc1918) {
+				if (logit) {
+					isc_log_write(ns_g_lctx,
+						      NS_LOGCATEGORY_GENERAL,
+						      NS_LOGMODULE_SERVER,
+						      ISC_LOG_WARNING,
+					              "Warning%s%s: "
+						      "'empty-zones-enable/"
+						      "disable-empty-zone' "
+						      "not set: disabling "
+						      "RFC 1918 empty zones",
+						      sep, viewname);
+					logit = ISC_FALSE;
+				}
+				continue;
+			}
+
+			CHECK(dns_zone_create(&zone, mctx));
+			CHECK(dns_zone_setorigin(zone, name));
+			dns_zone_setview(zone, view);
+			CHECK(dns_zonemgr_managezone(ns_g_server->zonemgr, zone));
+			dns_zone_setclass(zone, view->rdclass);
+			dns_zone_settype(zone, dns_zone_master);
+			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
+					 	 empty_dbtype));
+			if (view->queryacl != NULL)
+				dns_zone_setqueryacl(zone, view->queryacl);
+			dns_zone_setdialup(zone, dns_dialuptype_no);
+			dns_zone_setnotifytype(zone, dns_notifytype_no);
+			dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS,
+					   ISC_TRUE);
+			CHECK(dns_view_addzone(view, zone));
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "automatic empty zone%s%s: %s",
+				      sep, viewname,  empty);
+			dns_zone_detach(&zone);
+		}
+	}
+	
 	result = ISC_R_SUCCESS;
 
  cleanup:
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	if (dispatch4 != NULL)
 		dns_dispatch_detach(&dispatch4);
 	if (dispatch6 != NULL)
@@ -2813,7 +3043,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	} else if (result == ISC_R_SUCCESS) {
 		CHECKM(setoptstring(server, &server->server_id, obj), "strdup");
 	} else {
-		result = setoptstring(server, &server->server_id, NULL);
+		result = setstring(server, &server->server_id, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 

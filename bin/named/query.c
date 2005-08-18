@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.271 2005/08/11 04:45:38 marka Exp $ */
+/* $Id: query.c,v 1.272 2005/08/18 00:57:26 marka Exp $ */
 
 /*! \file */
 
@@ -31,6 +31,7 @@
 #include <dns/db.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/ncache.h>
 #include <dns/order.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
@@ -2914,6 +2915,109 @@ answer_in_glue(ns_client_t *client, dns_rdatatype_t qtype) {
 	}
 }
 
+#define NS_NAME_INIT(A,B) \
+	 { \
+		DNS_NAME_MAGIC, \
+		A, sizeof(A), sizeof(B), \
+		DNS_NAMEATTR_READONLY | DNS_NAMEATTR_ABSOLUTE, \
+		B, NULL, { (void *)-1, (void *)-1}, \
+		{NULL, NULL} \
+	}
+
+static unsigned char inaddr10_offsets[] = { 0, 3, 11, 16 };
+static unsigned char inaddr172_offsets[] = { 0, 3, 7, 15, 20 };
+static unsigned char inaddr192_offsets[] = { 0, 4, 8, 16, 21 };
+
+static unsigned char inaddr10[] = "\00210\007IN-ADDR\004ARPA";
+
+static unsigned char inaddr16172[] = "\00216\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr17172[] = "\00217\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr18172[] = "\00218\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr19172[] = "\00219\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr20172[] = "\00220\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr21172[] = "\00221\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr22172[] = "\00222\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr23172[] = "\00223\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr24172[] = "\00224\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr25172[] = "\00225\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr26172[] = "\00226\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr27172[] = "\00227\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr28172[] = "\00228\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr29172[] = "\00229\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr30172[] = "\00230\003172\007IN-ADDR\004ARPA";
+static unsigned char inaddr31172[] = "\00231\003172\007IN-ADDR\004ARPA";
+
+static unsigned char inaddr168192[] = "\003168\003192\007IN-ADDR\004ARPA";
+
+static dns_name_t rfc1918names[] = {
+	NS_NAME_INIT(inaddr10, inaddr10_offsets),
+	NS_NAME_INIT(inaddr16172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr17172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr18172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr19172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr20172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr21172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr22172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr23172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr24172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr25172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr26172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr27172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr28172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr29172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr30172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr31172, inaddr172_offsets),
+	NS_NAME_INIT(inaddr168192, inaddr192_offsets)
+};
+
+
+static unsigned char prisoner_data[] = "\010prisoner\004iana\003org";
+static unsigned char hostmaster_data[] = "\012hostmaster\014root-servers\003org";
+
+static unsigned char prisoner_offsets[] = { 0, 9, 14, 18 };
+static unsigned char hostmaster_offsets[] = { 0, 11, 24, 28 };
+
+static dns_name_t prisoner = NS_NAME_INIT(prisoner_data, prisoner_offsets);
+static dns_name_t hostmaster = NS_NAME_INIT(hostmaster_data, hostmaster_offsets);
+
+static void
+warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
+	unsigned int i;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_soa_t soa;
+	dns_rdataset_t found;
+	isc_result_t result;
+	
+	for (i = 0; i < (sizeof(rfc1918names)/sizeof(*rfc1918names)); i++) {
+		if (dns_name_issubdomain(fname, &rfc1918names[i])) {
+			dns_rdataset_init(&found);
+			result = dns_ncache_getrdataset(rdataset,
+						        &rfc1918names[i],
+							dns_rdatatype_soa,
+							&found);
+			if (result != ISC_R_SUCCESS)
+				return;
+
+			result = dns_rdataset_first(&found);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			dns_rdataset_current(&found, &rdata);
+			dns_rdata_tostruct(&rdata, &soa, NULL);
+			if (dns_name_equal(&soa.origin, &prisoner) &&
+			    dns_name_equal(&soa.contact, &hostmaster)) {
+				char buf[DNS_NAME_FORMATSIZE];
+				dns_name_format(fname, buf, sizeof(buf));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_WARNING,
+					      "RFC 1918 response from "
+					      "Internet for %s", buf);
+			}
+			dns_rdataset_disassociate(&found);
+			return;
+		}
+	}
+}
+
 /*
  * Do the bulk of query processing for the current query of 'client'.
  * If 'event' is non-NULL, we are returning from recursion and 'qtype'
@@ -3518,6 +3622,14 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 */
 		if (result == DNS_R_NCACHENXDOMAIN)
 			client->message->rcode = dns_rcode_nxdomain;
+		/*
+		 * Look for RFC 1918 leakage from Internet.
+		 */
+		if (result == DNS_R_NCACHENXDOMAIN &&
+		    qtype == dns_rdatatype_ptr &&
+		    client->message->rdclass == dns_rdataclass_in &&
+		    dns_name_countlabels(fname) == 7)
+			warn_rfc1918(client, fname, rdataset);
 		/*
 		 * We don't call query_addrrset() because we don't need any
 		 * of its extra features (and things would probably break!).
