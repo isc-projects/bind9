@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.37 2005/06/22 23:29:07 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.38 2005/08/22 00:58:18 marka Exp $ */
 
 /*! \file */
 
@@ -343,11 +343,8 @@ main(int argc, char **argv) {
 		usage();
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	if (!quiet) {
+	if (!quiet)
 		RUNTIME_CHECK(setup_logging(mctx, &lctx) == ISC_R_SUCCESS);
-		dns_log_init(lctx);
-		dns_log_setcontext(lctx);
-	}
 	RUNTIME_CHECK(isc_entropy_create(mctx, &ectx) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE)
 		      == ISC_R_SUCCESS);

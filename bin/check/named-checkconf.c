@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.35 2005/06/23 06:52:22 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.36 2005/08/22 00:58:18 marka Exp $ */
 
 /*! \file */
 
@@ -415,8 +415,6 @@ main(int argc, char **argv) {
 		exit_status = 1;
 
 	if (result == ISC_R_SUCCESS && load_zones) {
-		dns_log_init(logc);
-                dns_log_setcontext(logc);
 		result = load_zones_fromconfig(config, mctx);
 		if (result != ISC_R_SUCCESS)
 			exit_status = 1;
