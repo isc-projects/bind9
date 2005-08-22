@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.5.18.3 2005/07/28 07:38:09 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.5.18.4 2005/08/22 01:34:11 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -194,9 +194,10 @@ __memget_record(size_t size, const char *file, int line) {
 	UNUSED(line);
 #endif
 	if (freelists == NULL) {
-		MEMUNLOCK;
-		if (meminit(0, 0) == -1)
+		if (meminit(0, 0) == -1) {
+			MEMUNLOCK;
 			return (NULL);
+		}
 	}
 	if (size == 0U) {
 		MEMUNLOCK;
