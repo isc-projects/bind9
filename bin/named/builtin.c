@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.5.18.4 2005/08/23 03:02:19 marka Exp $ */
+/* $Id: builtin.c,v 1.5.18.5 2005/08/23 04:12:38 marka Exp $ */
 
 /*! \file
  * \brief
@@ -239,7 +239,7 @@ builtin_create(const char *zone, int argc, char **argv,
 		char *contact;
 		/*
 		 * We don't want built-in zones to fail.  Fallback to
-		 * to the static configuration if memory allocation fails.
+		 * the static configuration if memory allocation fails.
 		 */
 		empty = isc_mem_get(ns_g_mctx, sizeof(*empty));
 		server = isc_mem_strdup(ns_g_mctx, argv[1]);
