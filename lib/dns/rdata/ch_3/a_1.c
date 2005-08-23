@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: a_1.c,v 1.3 2005/06/05 00:01:54 marka Exp $ */
+/* $Id: a_1.c,v 1.4 2005/08/23 04:05:49 marka Exp $ */
 
 /* by Bjorn.Victor@it.uu.se, 2005-05-07 */
 /* Based on generic/soa_6.c and generic/mx_15.c */
@@ -58,7 +58,7 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 
 	/* 16-bit octal address */
 	RETERR(isc_lex_getoctaltoken(lexer, &token, ISC_FALSE));
-	if (token.value.as_ulong > 0xffff)
+	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	return (uint16_tobuffer(token.value.as_ulong, target));
 }

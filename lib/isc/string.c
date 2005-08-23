@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.15 2005/06/19 22:56:03 marka Exp $ */
+/* $Id: string.c,v 1.16 2005/08/23 04:05:50 marka Exp $ */
 
 /*! \file */
 
@@ -96,7 +96,7 @@ isc_string_touint64(char *source, char **end, int base) {
 
 isc_result_t
 isc_string_copy(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 
 	if (strlcpy(target, source, size) >= size) {
 		memset(target, ISC_STRING_MAGIC, size);
@@ -110,7 +110,7 @@ isc_string_copy(char *target, size_t size, const char *source) {
 
 void
 isc_string_copy_truncate(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 
 	strlcpy(target, source, size);
 
@@ -119,7 +119,7 @@ isc_string_copy_truncate(char *target, size_t size, const char *source) {
 
 isc_result_t
 isc_string_append(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 	REQUIRE(strlen(target) < size);
 
 	if (strlcat(target, source, size) >= size) {
@@ -134,7 +134,7 @@ isc_string_append(char *target, size_t size, const char *source) {
 
 void
 isc_string_append_truncate(char *target, size_t size, const char *source) {
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 	REQUIRE(strlen(target) < size);
 
 	strlcat(target, source, size);
@@ -147,7 +147,7 @@ isc_string_printf(char *target, size_t size, const char *format, ...) {
 	va_list args;
 	size_t n;
 
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 
 	va_start(args, format);
 	n = vsnprintf(target, size, format, args);
@@ -168,7 +168,7 @@ isc_string_printf_truncate(char *target, size_t size, const char *format, ...) {
 	va_list args;
 	size_t n;
 
-	REQUIRE(size > 0);
+	REQUIRE(size > 0U);
 
 	va_start(args, format);
 	n = vsnprintf(target, size, format, args);
