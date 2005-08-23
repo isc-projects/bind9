@@ -1,3 +1,6 @@
+1914.	[bug]		Strings returned from cfg_obj_asstring() should be
+                        treated as read-only.  [RT #15256]
+
 1904.	[bug]		A escaped character is, potentially, converted to
 			the output character set too early. [RT #14666]
 
