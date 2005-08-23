@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.4 2005/03/16 03:34:45 marka Exp $ */
+/* $Id: aclconf.c,v 1.5 2005/08/23 02:36:10 marka Exp $ */
 
 #include <config.h>
 
@@ -53,7 +53,7 @@ cfg_aclconfctx_destroy(cfg_aclconfctx_t *ctx) {
  * Find the definition of the named acl whose name is "name".
  */
 static isc_result_t
-get_acl_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
+get_acl_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *acls = NULL;
 	cfg_listelt_t *elt;
@@ -83,7 +83,7 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 	cfg_obj_t *cacl = NULL;
 	dns_acl_t *dacl;
 	dns_acl_t loop;
-	char *aclname = cfg_obj_asstring(nameobj);
+	const char *aclname = cfg_obj_asstring(nameobj);
 
 	/* Look for an already-converted version. */
 	for (dacl = ISC_LIST_HEAD(ctx->named_acl_cache);
@@ -112,7 +112,7 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 	 */
 	memset(&loop, 0, sizeof(loop));
 	ISC_LINK_INIT(&loop, nextincache);
-	loop.name = aclname;
+	DE_CONST(aclname, loop.name);
 	loop.magic = LOOP_MAGIC;
 	ISC_LIST_APPEND(ctx->named_acl_cache, &loop, nextincache);
 	result = cfg_acl_fromconfig(cacl, cctx, lctx, ctx, mctx, &dacl);
@@ -218,7 +218,7 @@ cfg_acl_fromconfig(cfg_obj_t *caml,
 				goto cleanup;
 		} else if (cfg_obj_isstring(ce)) {
 			/* ACL name */
-			char *name = cfg_obj_asstring(ce);
+			const char *name = cfg_obj_asstring(ce);
 			if (strcasecmp(name, "localhost") == 0) {
 				de->type = dns_aclelementtype_localhost;
 			} else if (strcasecmp(name, "localnets") == 0) {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.62 2005/08/18 00:57:28 marka Exp $ */
+/* $Id: check.c,v 1.63 2005/08/23 02:36:08 marka Exp $ */
 
 /*! \file */
 
@@ -162,7 +162,7 @@ check_dual_stack(cfg_obj_t *options, isc_log_t *logctx) {
 	cfg_obj_t *alternates = NULL;
 	cfg_obj_t *value;
 	cfg_obj_t *obj;
-	char *str;
+	const char *str;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	isc_buffer_t buffer;
@@ -266,7 +266,7 @@ disabled_algorithms(cfg_obj_t *disabled, isc_log_t *logctx) {
 		dns_secalg_t alg;
 		isc_result_t tresult;
 
-		r.base = cfg_obj_asstring(cfg_listelt_value(element));
+		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
 		r.length = strlen(r.base);
 
 		tresult = dns_secalg_fromtext(&alg, &r);
@@ -276,7 +276,8 @@ disabled_algorithms(cfg_obj_t *disabled, isc_log_t *logctx) {
 		}
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(cfg_listelt_value(element), logctx,
-				    ISC_LOG_ERROR, "invalid algorithm");
+				    ISC_LOG_ERROR, "invalid algorithm '%s'",
+				    r.base);
 			result = tresult;
 		}
 	}
@@ -472,7 +473,7 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 		if (!cfg_obj_isvoid(obj)) {
 			cfg_listelt_t *element;
 			cfg_obj_t *exclude;
-			char *str;
+			const char *str;
 			dns_fixedname_t fixed;
 			dns_name_t *name;
 			isc_buffer_t b;
@@ -666,7 +667,7 @@ check_options(cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx) {
 }
 
 static isc_result_t
-get_masters_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
+get_masters_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *masters = NULL;
 	cfg_listelt_t *elt;
@@ -718,7 +719,7 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		char *listname;
+		const char *listname;
 		cfg_obj_t *addr;
 		cfg_obj_t *key;
 
@@ -792,7 +793,7 @@ check_update_policy(cfg_obj_t *policy, isc_log_t *logctx) {
 	cfg_listelt_t *element;
 	cfg_listelt_t *element2;
 	dns_fixedname_t fixed;
-	char *str;
+	const char *str;
 	isc_buffer_t b;
 
 	for (element = cfg_list_first(policy);
@@ -845,14 +846,13 @@ check_update_policy(cfg_obj_t *policy, isc_log_t *logctx) {
 			dns_rdatatype_t type;
 			
 			typeobj = cfg_listelt_value(element2);
-			str = cfg_obj_asstring(typeobj);
-			r.base = str;
-			r.length = strlen(str);
+			DE_CONST(cfg_obj_asstring(typeobj), r.base);
+			r.length = strlen(r.base);
 
 			tresult = dns_rdatatype_fromtext(&type, &r);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(typeobj, logctx, ISC_LOG_ERROR,
-                                            "'%s' is not a valid type", str);
+                                            "'%s' is not a valid type", r.base);
 				result = tresult;
 			}
 		}
@@ -1107,7 +1107,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 		cfg_obj_t *dialup = NULL;
 		(void)cfg_map_get(zoptions, "dialup", &dialup);
 		if (dialup != NULL && cfg_obj_isstring(dialup)) {
-			char *str = cfg_obj_asstring(dialup);
+			const char *str = cfg_obj_asstring(dialup);
 			for (i = 0;
 			     i < sizeof(dialups) / sizeof(dialups[0]);
 			     i++)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.62 2005/08/15 01:21:05 marka Exp $ */
+/* $Id: cache.c,v 1.63 2005/08/23 02:36:09 marka Exp $ */
 
 /*! \file */
 
@@ -443,7 +443,7 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 }
 
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cache, char *filename) {
+dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	char *newname;
 
 	REQUIRE(VALID_CACHE(cache));

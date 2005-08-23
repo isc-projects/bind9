@@ -1,3 +1,8 @@
+1914.	[bug]		Strings returned from cfg_obj_asstring() should be
+			treated as read-only.  The prototype for 
+			cfg_obj_asstring() has been updated to reflect this.
+			[RT #15256]
+
 1913.	[func]		Automatic empty zone creation for D.F.IP6.ARPA and
 			friends.  Note: RFC 1918 zones are not yet covered by
 			this but are likely to be in a future release.

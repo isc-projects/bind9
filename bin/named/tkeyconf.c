@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.23 2005/04/29 00:22:29 marka Exp $ */
+/* $Id: tkeyconf.c,v 1.24 2005/08/23 02:36:07 marka Exp $ */
 
 /*! \file */
 
@@ -49,7 +49,7 @@ ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
 {
 	isc_result_t result;
 	dns_tkeyctx_t *tctx = NULL;
-	char *s;
+	const char *s;
 	isc_uint32_t n;
 	dns_fixedname_t fname;
 	dns_name_t *name;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.24 2005/04/29 00:22:29 marka Exp $ */
+/* $Id: tsigconf.c,v 1.25 2005/08/23 02:36:07 marka Exp $ */
 
 /*! \file */
 
@@ -40,7 +40,7 @@ static isc_result_t
 add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 	cfg_listelt_t *element;
 	cfg_obj_t *key = NULL;
-	char *keyid = NULL;
+	const char *keyid = NULL;
 	unsigned char *secret = NULL;
 	int secretalloc = 0;
 	int secretlen = 0;
@@ -55,10 +55,10 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		cfg_obj_t *secretobj = NULL;
 		dns_name_t keyname;
 		dns_name_t *alg;
-		char *algstr;
+		const char *algstr;
 		char keynamedata[1024];
 		isc_buffer_t keynamesrc, keynamebuf;
-		char *secretstr;
+		const char *secretstr;
 		isc_buffer_t secretbuf;
 
 		key = cfg_listelt_value(element);

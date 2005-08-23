@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.44 2005/04/27 04:55:50 sra Exp $ */
+/* $Id: controlconf.c,v 1.45 2005/08/23 02:36:06 marka Exp $ */
 
 /*! \file */
 
@@ -747,8 +747,8 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 		} else {
 			cfg_obj_t *algobj = NULL;
 			cfg_obj_t *secretobj = NULL;
-			char *algstr = NULL;
-			char *secretstr = NULL;
+			const char *algstr = NULL;
+			const char *secretstr = NULL;
 
 			(void)cfg_map_get(keydef, "algorithm", &algobj);
 			(void)cfg_map_get(keydef, "secret", &secretobj);
@@ -817,8 +817,8 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	cfg_obj_t *key = NULL;
 	cfg_obj_t *algobj = NULL;
 	cfg_obj_t *secretobj = NULL;
-	char *algstr = NULL;
-	char *secretstr = NULL;
+	const char *algstr = NULL;
+	const char *secretstr = NULL;
 	controlkey_t *keyid = NULL;
 	char secret[1024];
 	isc_buffer_t b;

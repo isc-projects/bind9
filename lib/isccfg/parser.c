@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.117 2005/04/27 04:57:28 sra Exp $ */
+/* $Id: parser.c,v 1.118 2005/08/23 02:36:10 marka Exp $ */
 
 /*! \file */
 
@@ -806,7 +806,7 @@ cfg_obj_isstring(cfg_obj_t *obj) {
 	return (ISC_TF(obj->type->rep == &cfg_rep_string));
 }
 
-char *
+const char *
 cfg_obj_asstring(cfg_obj_t *obj) {
 	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_string);
 	return (obj->value.string.base);

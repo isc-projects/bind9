@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.49 2005/07/12 01:00:13 marka Exp $ */
+/* $Id: lwresd.c,v 1.50 2005/08/23 02:36:07 marka Exp $ */
 
 /*! \file 
  * \brief
@@ -358,7 +358,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 		     element = cfg_list_next(element))
 		{
 			cfg_obj_t *search;
-			char *searchstr;
+			const char *searchstr;
 			isc_buffer_t namebuf;
 			dns_fixedname_t fname;
 			dns_name_t *name;
