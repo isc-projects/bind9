@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.148.18.8 2005/07/12 01:22:21 marka Exp $ */
+/* $Id: master.c,v 1.148.18.9 2005/08/23 04:10:08 marka Exp $ */
 
 /*! \file */
 
@@ -2017,7 +2017,7 @@ read_and_check(isc_boolean_t do_read, isc_buffer_t *buffer,
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+static isc_result_t
 load_raw(dns_loadctx_t *lctx) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_boolean_t done = ISC_FALSE;

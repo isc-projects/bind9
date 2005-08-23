@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.7 2005/07/12 01:22:29 marka Exp $ */
+/* $Id: mem.c,v 1.116.18.8 2005/08/23 04:10:10 marka Exp $ */
 
 /*! \file */
 
@@ -319,7 +319,7 @@ quantize(size_t size) {
 	 * byte boundaries.
 	 */
 
-	if (size == 0)
+	if (size == 0U)
 		return (ALIGNMENT_SIZE);
 	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
@@ -340,7 +340,7 @@ more_basic_blocks(isc_mem_t *ctx) {
 	 * Did we hit the quota for this context?
 	 */
 	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->quota != 0 && ctx->total + increment > ctx->quota)
+	if (ctx->quota != 0U && ctx->total + increment > ctx->quota)
 		return (ISC_FALSE);
 
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
@@ -441,7 +441,7 @@ more_frags(isc_mem_t *ctx, size_t new_size) {
 	 * Add the remaining fragment of the basic block to a free list.
 	 */
 	total_size = rmsize(total_size);
-	if (total_size > 0) {
+	if (total_size > 0U) {
 		((element *)next)->next = ctx->freelists[total_size];
 		ctx->freelists[total_size] = (element *)next;
 		ctx->stats[total_size].freefrags++;
@@ -465,7 +465,7 @@ mem_getunlocked(isc_mem_t *ctx, size_t size) {
 		/*
 		 * memget() was called on something beyond our upper limit.
 		 */
-		if (ctx->quota != 0 && ctx->total + size > ctx->quota) {
+		if (ctx->quota != 0U && ctx->total + size > ctx->quota) {
 			ret = NULL;
 			goto done;
 		}
@@ -549,7 +549,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
 #endif
 		(ctx->memfree)(ctx->arg, mem);
-		INSIST(ctx->stats[ctx->max_size].gets != 0);
+		INSIST(ctx->stats[ctx->max_size].gets != 0U);
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->total);
 		ctx->inuse -= size;
@@ -576,7 +576,7 @@ mem_putunlocked(isc_mem_t *ctx, void *mem, size_t size) {
 	 * max. size (max_size) ends up getting recorded as a call to
 	 * max_size.
 	 */
-	INSIST(ctx->stats[size].gets != 0);
+	INSIST(ctx->stats[size].gets != 0U);
 	ctx->stats[size].gets--;
 	ctx->stats[new_size].freefrags++;
 	ctx->inuse -= new_size;
@@ -763,7 +763,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof(struct stats));
 
 	if ((flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		if (target_size == 0)
+		if (target_size == 0U)
 			ctx->mem_target = DEF_MEM_TARGET;
 		else
 			ctx->mem_target = target_size;
@@ -1192,7 +1192,7 @@ isc_mem_stats(isc_mem_t *ctx, FILE *out) {
 			(i == ctx->max_size) ? ">=" : "  ",
 			(unsigned long) i, s->totalgets, s->gets);
 		if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0 &&
-		    (s->blocks != 0 || s->freefrags != 0))
+		    (s->blocks != 0U || s->freefrags != 0U))
 			fprintf(out, " (%lu bl, %lu ff)",
 				s->blocks, s->freefrags);
 		fputc('\n', out);
