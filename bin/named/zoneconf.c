@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.12 2005/06/20 01:19:28 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.13 2005/08/23 02:31:35 marka Exp $ */
 
 /*% */
 
@@ -126,7 +126,7 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 		cfg_obj_t *matchtype = cfg_tuple_get(stmt, "matchtype");
 		cfg_obj_t *dname = cfg_tuple_get(stmt, "name");
 		cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
-		char *str;
+		const char *str;
 		isc_boolean_t grant = ISC_FALSE;
 		unsigned int mtype = DNS_SSUMATCHTYPE_NAME;
 		dns_fixedname_t fname, fident;
@@ -201,7 +201,7 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 
 			typeobj = cfg_listelt_value(element2);
 			str = cfg_obj_asstring(typeobj);
-			r.base = str;
+			DE_CONST(str, r.base);
 			r.length = strlen(str);
 
 			result = dns_rdatatype_fromtext(&types[i++], &r);
@@ -315,7 +315,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		  cfg_aclconfctx_t *ac, dns_zone_t *zone)
 {
 	isc_result_t result;
-	char *zname;
+	const char *zname;
 	dns_rdataclass_t zclass;
 	dns_rdataclass_t vclass;
 	cfg_obj_t *maps[5];
@@ -380,17 +380,30 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	obj = NULL;
 	result = cfg_map_get(zoptions, "database", &obj);
 	if (result == ISC_R_SUCCESS)
-		cpval = cfg_obj_asstring(obj);
+		cpval = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
 	else
 		cpval = default_dbtype;
-	RETERR(strtoargv(mctx, cpval, &dbargc, &dbargv));
+
+	if (cpval == NULL)
+		return(ISC_R_NOMEMORY);
+
+	result = strtoargv(mctx, cpval, &dbargc, &dbargv);
+	if (result != ISC_R_SUCCESS && cpval != default_dbtype) {
+		isc_mem_free(mctx, cpval);
+		return (result);
+	}
+
 	/*
 	 * ANSI C is strange here.  There is no logical reason why (char **)
 	 * cannot be promoted automatically to (const char * const *) by the
 	 * compiler w/o generating a warning.
 	 */
-	RETERR(dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv));
+	result = dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
+	if (cpval != default_dbtype)
+		isc_mem_free(mctx, cpval);
+	if (result != ISC_R_SUCCESS)
+		return (result);
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "file", &obj);
@@ -401,7 +414,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	obj = NULL;
 	result= ns_config_get(maps, "masterfile-format", &obj);
 	if (result == ISC_R_SUCCESS) {
-		char *masterformatstr = cfg_obj_asstring(obj);
+		const char *masterformatstr = cfg_obj_asstring(obj);
 
 		if (strcasecmp(masterformatstr, "text") == 0)
 			masterformat = dns_masterformat_text;
@@ -439,7 +452,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		else
 			dialup = dns_dialuptype_no;
 	} else {
-		char *dialupstr = cfg_obj_asstring(obj);
+		const char *dialupstr = cfg_obj_asstring(obj);
 		if (strcasecmp(dialupstr, "notify") == 0)
 			dialup = dns_dialuptype_notify;
 		else if (strcasecmp(dialupstr, "notify-passive") == 0)
@@ -473,7 +486,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 			else
 				notifytype = dns_notifytype_no;
 		} else {
-			char *notifystr = cfg_obj_asstring(obj);
+			const char *notifystr = cfg_obj_asstring(obj);
 			if (strcasecmp(notifystr, "explicit") == 0)
 				notifytype = dns_notifytype_explicit;
 			else if (strcasecmp(notifystr, "master-only") == 0)

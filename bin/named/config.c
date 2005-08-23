@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.11 2005/06/27 00:19:55 marka Exp $ */
+/* $Id: config.c,v 1.47.18.12 2005/08/23 02:31:30 marka Exp $ */
 
 /*! \file */
 
@@ -268,7 +268,6 @@ ns_config_listcount(cfg_obj_t *list) {
 isc_result_t
 ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		   dns_rdataclass_t *classp) {
-	char *str;
 	isc_textregion_t r;
 	isc_result_t result;
 
@@ -276,20 +275,18 @@ ns_config_getclass(cfg_obj_t *classobj, dns_rdataclass_t defclass,
 		*classp = defclass;
 		return (ISC_R_SUCCESS);
 	}
-	str = cfg_obj_asstring(classobj);
-	r.base = str;
-	r.length = strlen(str);
+	DE_CONST(cfg_obj_asstring(classobj), r.base);
+	r.length = strlen(r.base);
 	result = dns_rdataclass_fromtext(classp, &r);
 	if (result != ISC_R_SUCCESS)
 		cfg_obj_log(classobj, ns_g_lctx, ISC_LOG_ERROR,
-			    "unknown class '%s'", str);
+			    "unknown class '%s'", r.base);
 	return (result);
 }
 
 isc_result_t
 ns_config_gettype(cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 		   dns_rdatatype_t *typep) {
-	char *str;
 	isc_textregion_t r;
 	isc_result_t result;
 
@@ -297,20 +294,19 @@ ns_config_gettype(cfg_obj_t *typeobj, dns_rdatatype_t deftype,
 		*typep = deftype;
 		return (ISC_R_SUCCESS);
 	}
-	str = cfg_obj_asstring(typeobj);
-	r.base = str;
-	r.length = strlen(str);
+	DE_CONST(cfg_obj_asstring(typeobj), r.base);
+	r.length = strlen(r.base);
 	result = dns_rdatatype_fromtext(typep, &r);
 	if (result != ISC_R_SUCCESS)
 		cfg_obj_log(typeobj, ns_g_lctx, ISC_LOG_ERROR,
-			    "unknown type '%s'", str);
+			    "unknown type '%s'", r.base);
 	return (result);
 }
 
 dns_zonetype_t
 ns_config_getzonetype(cfg_obj_t *zonetypeobj) {
 	dns_zonetype_t ztype = dns_zone_none;
-	char *str;
+	const char *str;
 
 	str = cfg_obj_asstring(zonetypeobj);
 	if (strcasecmp(str, "master") == 0)
@@ -392,7 +388,7 @@ ns_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 }
 
 static isc_result_t
-get_masters_def(cfg_obj_t *cctx, char *name, cfg_obj_t **ret) {
+get_masters_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *masters = NULL;
 	cfg_listelt_t *elt;
@@ -433,7 +429,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	dns_name_t **keys = NULL;
-	char **lists = NULL;
+	const char **lists = NULL;
 	struct {
 		cfg_listelt_t *element;
 		in_port_t port;
@@ -470,7 +466,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	{
 		cfg_obj_t *addr;
 		cfg_obj_t *key;
-		char *keystr;
+		const char *keystr;
 		isc_buffer_t b;
 
 		addr = cfg_tuple_get(cfg_listelt_value(element),
@@ -478,7 +474,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 		key = cfg_tuple_get(cfg_listelt_value(element), "key");
 
 		if (!cfg_obj_issockaddr(addr)) {
-			char *listname = cfg_obj_asstring(addr);
+			const char *listname = cfg_obj_asstring(addr);
 			isc_result_t tresult;
 
 			/* Grow lists? */

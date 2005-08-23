@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.34.18.2 2005/04/29 00:17:15 marka Exp $ */
+/* $Id: cfg.h,v 1.34.18.3 2005/08/23 02:31:40 marka Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -245,7 +245,7 @@ cfg_obj_isstring(cfg_obj_t *obj);
  * Return true iff 'obj' is of string type.
  */
 
-char *
+const char *
 cfg_obj_asstring(cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of a string type

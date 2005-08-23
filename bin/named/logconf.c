@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.35.18.2 2005/04/29 00:15:23 marka Exp $ */
+/* $Id: logconf.c,v 1.35.18.3 2005/08/23 02:31:31 marka Exp $ */
 
 /*! \file */
 
@@ -71,7 +71,7 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 	     element = cfg_list_next(element))
 	{
 		cfg_obj_t *channel = cfg_listelt_value(element);
-		char *channelname = cfg_obj_asstring(channel);
+		const char *channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(lctx, channelname, category,
 					    module);
@@ -159,7 +159,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 		type = ISC_LOG_TOSYSLOG;
 
 		if (cfg_obj_isstring(syslogobj)) {
-			char *facilitystr = cfg_obj_asstring(syslogobj);
+			const char *facilitystr = cfg_obj_asstring(syslogobj);
 			(void)isc_syslog_facilityfromstring(facilitystr,
 							    &facility);
 		}
@@ -195,7 +195,7 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	level = ISC_LOG_INFO;
 	if (cfg_map_get(channel, "severity", &severity) == ISC_R_SUCCESS) {
 		if (cfg_obj_isstring(severity)) {
-			char *str = cfg_obj_asstring(severity);
+			const char *str = cfg_obj_asstring(severity);
 			if (strcasecmp(str, "critical") == 0)
 				level = ISC_LOG_CRITICAL;
 			else if (strcasecmp(str, "error") == 0)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.8 2005/08/22 01:02:09 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.9 2005/08/23 02:31:29 marka Exp $ */
 
 /*! \file */
 
@@ -68,7 +68,7 @@ usage(void) {
 static isc_result_t
 directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
-	char *directory;
+	const char *directory;
 
 	REQUIRE(strcasecmp("directory", clausename) == 0);
 
@@ -241,7 +241,7 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	fmtobj = NULL;
 	result = config_get(maps, "masterfile-format", &fmtobj);
 	if (result == ISC_R_SUCCESS) {
-		char *masterformatstr = cfg_obj_asstring(fmtobj);
+		const char *masterformatstr = cfg_obj_asstring(fmtobj);
 		if (strcasecmp(masterformatstr, "text") == 0)
 			masterformat = dns_masterformat_text;
 		else if (strcasecmp(masterformatstr, "raw") == 0)

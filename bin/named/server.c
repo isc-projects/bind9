@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.30 2005/08/18 01:02:58 marka Exp $ */
+/* $Id: server.c,v 1.419.18.31 2005/08/23 02:31:34 marka Exp $ */
 
 /*! \file */
 
@@ -294,7 +294,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 	dns_rdataclass_t viewclass;
 	dns_rdata_dnskey_t keystruct;
 	isc_uint32_t flags, proto, alg;
-	char *keystr, *keynamestr;
+	const char *keystr, *keynamestr;
 	unsigned char keydata[4096];
 	isc_buffer_t keydatabuf;
 	unsigned char rrdata[4096];
@@ -642,7 +642,7 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	isc_netaddr_t na;
 	dns_peer_t *peer;
 	cfg_obj_t *obj;
-	char *str;
+	const char *str;
 	isc_result_t result;
 	unsigned int prefixlen;
 
@@ -755,7 +755,7 @@ disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
 		isc_textregion_t r;
 		dns_secalg_t alg;
 
-		r.base = cfg_obj_asstring(cfg_listelt_value(element));
+		DE_CONST(cfg_obj_asstring(cfg_listelt_value(element)), r.base);
 		r.length = strlen(r.base);
 
 		result = dns_secalg_fromtext(&alg, &r);
@@ -1438,7 +1438,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			dns_fixedname_t fixed;
 			dns_name_t *name;
 			isc_buffer_t b;
-			char *str;
+			const char *str;
 			cfg_obj_t *exclude;
 
 			dns_fixedname_init(&fixed);
@@ -1486,7 +1486,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		dns_fixedname_t fixed;
 		dns_name_t *name;
 		isc_buffer_t buffer;
-		char *str;
+		const char *str;
 		char server[DNS_NAME_FORMATSIZE + 1];
 		char contact[DNS_NAME_FORMATSIZE + 1];
 		isc_boolean_t logit;
@@ -1681,8 +1681,8 @@ configure_alternates(cfg_obj_t *config, dns_view_t *view,
 		if (!cfg_obj_issockaddr(alternate)) {
 			dns_fixedname_t fixed;
 			dns_name_t *name;
-			char *str = cfg_obj_asstring(cfg_tuple_get(alternate,
-								   "name"));
+			const char *str = cfg_obj_asstring(cfg_tuple_get(
+							   alternate, "name"));
 			isc_buffer_t buffer;
 			in_port_t myport = port;
 
@@ -1788,7 +1788,7 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 		if (forwardtype == NULL)
 			fwdpolicy = dns_fwdpolicy_first;
 		else {
-			char *forwardstr = cfg_obj_asstring(forwardtype);
+			const char *forwardstr = cfg_obj_asstring(forwardtype);
 			if (strcasecmp(forwardstr, "first") == 0)
 				fwdpolicy = dns_fwdpolicy_first;
 			else if (strcasecmp(forwardstr, "only") == 0)
@@ -1946,7 +1946,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 			goto cleanup;
 		}
 		if (dns_name_equal(origin, dns_rootname)) {
-			char *hintsfile = cfg_obj_asstring(fileobj);
+			const char *hintsfile = cfg_obj_asstring(fileobj);
 
 			result = configure_hints(view, hintsfile);
 			if (result != ISC_R_SUCCESS) {
@@ -2123,7 +2123,7 @@ configure_server_quota(cfg_obj_t **maps, const char *name, isc_quota_t *quota)
 static isc_result_t
 directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
-	char *directory;
+	const char *directory;
 
 	REQUIRE(strcasecmp("directory", clausename) == 0);
 
@@ -2387,7 +2387,7 @@ set_limit(cfg_obj_t **maps, const char *configname, const char *description,
 	  isc_resource_t resourceid, isc_resourcevalue_t defaultvalue)
 {
 	cfg_obj_t *obj = NULL;
-	char *resource;
+	const char *resource;
 	isc_resourcevalue_t value;
 	isc_result_t result;
 
@@ -2969,7 +2969,7 @@ load_configuration(const char *filename, ns_server_t *server,
 				     element = cfg_list_next(element))
 				{
 					cfg_obj_t *catobj;
-					char *str;
+					const char *str;
 
 					obj = cfg_listelt_value(element);
 					catobj = cfg_tuple_get(obj, "name");
@@ -3188,8 +3188,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 		   "creating heartbeat timer");
 
 	CHECKFATAL(isc_timer_create(ns_g_timermgr, isc_timertype_inactive,
-				    NULL, NULL, server->task,
-				    heartbeat_timer_tick,
+				    NULL, NULL, server->task, pps_timer_tick,
 				    server, &server->pps_timer),
 		   "creating pps timer");
 
