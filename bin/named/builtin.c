@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: builtin.c,v 1.5.18.3 2005/08/18 01:02:57 marka Exp $ */
+/* $Id: builtin.c,v 1.5.18.4 2005/08/23 03:02:19 marka Exp $ */
 
 /*! \file
  * \brief
@@ -214,11 +214,15 @@ static isc_result_t
 builtin_create(const char *zone, int argc, char **argv,
 	       void *driverdata, void **dbdata)
 {
+	REQUIRE(argc >= 1);
+
 	UNUSED(zone);
 	UNUSED(driverdata);
 
-	if ((argc != 1 && strcmp(argv[0], "empty") != 0) ||
-	    argc != 3)
+	if (strcmp(argv[0], "empty") == 0) {
+		if (argc != 3)
+			return (DNS_R_SYNTAX);
+	} else if (argc != 1)
 		return (DNS_R_SYNTAX);
 
 	if (strcmp(argv[0], "version") == 0)
