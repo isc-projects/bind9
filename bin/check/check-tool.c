@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.18 2005/06/20 01:03:48 marka Exp $ */
+/* $Id: check-tool.c,v 1.19 2005/08/24 23:53:54 marka Exp $ */
 
 /*! \file */
 
@@ -70,7 +70,7 @@ unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_CHECKMX |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES |
-			    DNS_ZONEOPT_INTEGRITYCHECK |
+			    DNS_ZONEOPT_CHECKINTEGRITY |
 			    DNS_ZONEOPT_CHECKWILDCARD;
 
 /*

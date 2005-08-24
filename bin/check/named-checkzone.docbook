@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.22 2005/07/19 04:55:19 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.23 2005/08/24 23:53:55 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -174,7 +174,9 @@
 	  <para>
 	      Perform post load zone integrity checks.  Possible modes are
 	      <command>"full"</command> (default),
-	      <command>"local"</command> and
+	      <command>"full-sibling"</command>,
+	      <command>"local"</command>,
+	      <command>"local-sibling"</command> and
 	      <command>"none"</command>.
 	  </para>
 	  <para>
@@ -197,6 +199,12 @@
 	      Mode <command>"local"</command> only checks NS records which
 	      refer to in-zone hostnames or that some required glue exists,
 	      that is when the nameserver is in a child zone.
+	  </para>
+	  <para>
+	      Mode <command>"full-sibling"</command> and
+	      <command>"local-sibling"</command> disable sibling glue
+	      checks but are otherwise the same as <command>"full"</command>
+	      and <command>"local"</command> respectively.
 	  </para>
 	  <para>
 	      Mode <command>"none"</command> disables the checks.

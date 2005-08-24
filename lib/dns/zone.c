@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.444 2005/08/18 00:57:29 marka Exp $ */
+/* $Id: zone.c,v 1.445 2005/08/24 23:54:02 marka Exp $ */
 
 /*! \file */
 
@@ -1585,15 +1585,20 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 			what = "SIBLING GLUE ";
 		else
 			what = "";
-		dns_zone_log(zone, level,
-			     "%s/NS '%s' has no %saddress records (A or AAAA)",
-			     ownerbuf, namebuf, what);
-		/*
-		 * Log missing address record.
-		 */
-		if (result == DNS_R_DELEGATION && zone->checkns != NULL)
-			answer = (zone->checkns)(zone, name, owner, &a, &aaaa);
-		answer = ISC_FALSE;
+
+		if (result != DNS_R_DELEGATION ||
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKSIBLING)) {
+			dns_zone_log(zone, level, "%s/NS '%s' has no %s"
+				     "address records (A or AAAA)",
+				     ownerbuf, namebuf, what);
+			/*
+			 * Log missing address record.
+			 */
+			if (result == DNS_R_DELEGATION && zone->checkns != NULL)
+				(void)(zone->checkns)(zone, name, owner,
+						      &a, &aaaa);
+			answer = ISC_FALSE;
+		}
 	} else if (result == DNS_R_CNAME) {
 		dns_zone_log(zone, level, "%s/NS '%s' is a CNAME (illegal)",
 			     ownerbuf, namebuf);
@@ -1849,7 +1854,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			goto cleanup;
 		}
 		if (zone->type == dns_zone_master &&
-		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_INTEGRITYCHECK) &&
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_CHECKINTEGRITY) &&
 		    !integrity_checks(zone, db)) {
 			result = DNS_R_BADZONE;
 			goto cleanup;

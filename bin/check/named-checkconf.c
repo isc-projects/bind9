@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.37 2005/08/23 02:36:05 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.38 2005/08/24 23:53:54 marka Exp $ */
 
 /*! \file */
 
@@ -166,9 +166,7 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	cfg_obj_t *fmtobj = NULL;
 	dns_masterformat_t masterformat;
 
-	zone_options = DNS_ZONEOPT_CHECKNS |
-		       DNS_ZONEOPT_MANYERRORS |
-		       DNS_ZONEOPT_INTEGRITYCHECK;
+	zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_MANYERRORS;
 
 	zname = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
 	classobj = cfg_tuple_get(zconfig, "class");
@@ -217,6 +215,22 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 	} else {
 		zone_options |= DNS_ZONEOPT_CHECKMX;
 		zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
+	}
+
+	obj = NULL;
+	if (get_maps(maps, "check-integrity", &obj)) {
+		if (cfg_obj_asboolean(obj))
+			zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+		else
+			zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
+	}
+
+	obj = NULL;
+	if (get_maps(maps, "check-sibling", &obj)) {
+		if (cfg_obj_asboolean(obj))
+			zone_options |= DNS_ZONEOPT_CHECKSIBLING;
+		else
+			zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 	}
 
 	obj = NULL;

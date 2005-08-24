@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.277 2005/08/18 00:57:28 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.278 2005/08/24 23:54:01 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4359,7 +4359,8 @@ category notify { null; };
         ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-mx ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> integrity-checks <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-integrity <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query-cache { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5507,7 +5508,7 @@ options {
             </varlistentry>
 
 	    <varlistentry>
-	      <term><command>integrity-check</command></term>
+	      <term><command>check-integrity</command></term>
 	      <listitem>
 		<para>
 		  Perform post load zone integrity checks on master
@@ -5524,6 +5525,15 @@ options {
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
+	      <term><command>check-sibling</command></term>
+	      <listitem>
+		<para>
+		  When performing integrity checks also check that
+		  sibling glue exists.  The default is <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
           </variablelist>
 
         </sect3>
@@ -7749,7 +7759,7 @@ view "external" {
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-mx (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
-    <optional> integrity-checks <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> check-integrity <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
     <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
@@ -8160,11 +8170,21 @@ view "external" {
               </varlistentry>
 
               <varlistentry>
-                <term><command>integrity-check</command></term>
+                <term><command>check-integrity</command></term>
                 <listitem>
                   <para>
                     See the description of
-                    <command>integrity-check</command> in <xref linkend="boolean_options"/>.
+                    <command>check-integrity</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+              <varlistentry>
+                <term><command>check-sibling</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>check-sibling</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

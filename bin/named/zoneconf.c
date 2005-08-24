@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.123 2005/08/23 02:36:08 marka Exp $ */
+/* $Id: zoneconf.c,v 1.124 2005/08/24 23:53:57 marka Exp $ */
 
 /*% */
 
@@ -600,6 +600,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setnotifydelay(zone, cfg_obj_asuint32(obj));
 
+		obj = NULL;
+		result = ns_config_get(maps, "check-sibling", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSIBLING, 
+				   cfg_obj_asboolean(obj));
 	}
 
 	/*
@@ -666,9 +671,9 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKMXFAIL, fail);
 
 		obj = NULL;
-		result = ns_config_get(maps, "integrity-check", &obj);
+		result = ns_config_get(maps, "check-integrity", &obj);
 		INSIST(obj != NULL);
-		dns_zone_setoption(zone, DNS_ZONEOPT_INTEGRITYCHECK, 
+		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKINTEGRITY, 
 				   cfg_obj_asboolean(obj));
 	}
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.38 2005/08/22 00:58:18 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.39 2005/08/24 23:53:55 marka Exp $ */
 
 /*! \file */
 
@@ -145,19 +145,36 @@ main(int argc, char **argv) {
 
 		case 'i':
 			if (!strcmp(isc_commandline_argument, "full")) {
-				zone_options |= DNS_ZONEOPT_INTEGRITYCHECK;
+				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY |
+						DNS_ZONEOPT_CHECKSIBLING;
+				docheckmx = ISC_TRUE;
+				docheckns = ISC_TRUE;
+				dochecksrv = ISC_TRUE;
+			} else if (!strcmp(isc_commandline_argument,
+					   "full-sibling")) {
+				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_TRUE;
 				docheckns = ISC_TRUE;
 				dochecksrv = ISC_TRUE;
 			} else if (!strcmp(isc_commandline_argument,
 					   "local")) {
-				zone_options |= DNS_ZONEOPT_INTEGRITYCHECK;
+				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+				zone_options |= DNS_ZONEOPT_CHECKSIBLING;
+				docheckmx = ISC_FALSE;
+				docheckns = ISC_FALSE;
+				dochecksrv = ISC_FALSE;
+			} else if (!strcmp(isc_commandline_argument,
+					   "local-sibling")) {
+				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
+				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_FALSE;
 				docheckns = ISC_FALSE;
 				dochecksrv = ISC_FALSE;
 			} else if (!strcmp(isc_commandline_argument,
 					   "none")) {
-				zone_options &= ~DNS_ZONEOPT_INTEGRITYCHECK;
+				zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
+				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_FALSE;
 				docheckns = ISC_FALSE;
 				dochecksrv = ISC_FALSE;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.55 2005/08/18 00:57:31 marka Exp $ */
+/* $Id: namedconf.c,v 1.56 2005/08/24 23:54:04 marka Exp $ */
 
 /*! \file */
 
@@ -806,8 +806,9 @@ zone_clauses[] = {
 	{ "zone-statistics", &cfg_type_boolean, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
 	{ "check-wildcard", &cfg_type_boolean, 0 },
-	{ "integrity-check", &cfg_type_boolean, 0 },
+	{ "check-integrity", &cfg_type_boolean, 0 },
 	{ "check-mx", &cfg_type_checkmode, 0 },
+	{ "check-sibling", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
