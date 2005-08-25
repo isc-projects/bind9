@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.280 2005/07/04 03:03:20 marka Exp $ */
+/* $Id: dighost.c,v 1.281 2005/08/25 00:17:46 marka Exp $ */
 
 /*! \file
  *  \note
@@ -102,6 +102,7 @@ isc_boolean_t
 	free_now = ISC_FALSE,
 	cancel_now = ISC_FALSE,
 	usesearch = ISC_FALSE,
+	showsearch = ISC_FALSE,
 	qr = ISC_FALSE,
 	is_dst_up = ISC_FALSE;
 in_port_t port = 53;
@@ -2893,7 +2894,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
-			if (!next_origin(msg, query)) {
+			if (!next_origin(msg, query) || showsearch) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
 			}

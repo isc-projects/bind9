@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.24 2005/07/19 04:55:19 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.25 2005/08/25 00:17:46 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -60,6 +60,7 @@
       <arg><option>-f <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-k <replaceable class="parameter">filename</replaceable></option></arg>
       <arg><option>-p <replaceable class="parameter">port#</replaceable></option></arg>
+      <arg><option>-q <replaceable class="parameter">name</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
       <arg><option>-x <replaceable class="parameter">addr</replaceable></option></arg>
       <arg><option>-y <replaceable class="parameter">name:key</replaceable></option></arg>
@@ -251,6 +252,12 @@
     </para>
 
     <para>
+      The <option>-q</option> option sets the query name to 
+      <parameter>name</parameter>.  This useful do distingish the
+      <parameter>name</parameter> from other arguements.
+    </para>
+
+    <para>
       Reverse lookups - mapping addresses to names - are simplified by the
       <option>-x</option> option.  <parameter>addr</parameter> is
       an IPv4
@@ -380,6 +387,16 @@
               directive in <filename>resolv.conf</filename> (if
               any).
               The search list is not used by default.
+            </para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term><option>+[no]showsearch</option></term>
+          <listitem>
+            <para>
+              Perform [do not perform] a search showing intermediate
+	      results.
             </para>
           </listitem>
         </varlistentry>

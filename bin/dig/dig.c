@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.205 2005/07/04 03:03:20 marka Exp $ */
+/* $Id: dig.c,v 1.206 2005/08/25 00:17:45 marka Exp $ */
 
 /*! \file */
 
@@ -148,6 +148,7 @@ help(void) {
 "                 -f filename         (batch mode)\n"
 "                 -b address[#port]   (bind to source address/port)\n"
 "                 -p port             (specify port number)\n"
+"                 -q name             (specify query name)\n"
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
 "                 -k keyfile          (specify tsig key file)\n"
@@ -165,6 +166,7 @@ help(void) {
 "                 +ndots=###          (Set NDOTS value)\n"
 "                 +edns=###           (Set EDNS version)\n"
 "                 +[no]search         (Set whether to use searchlist)\n"
+"                 +[no]showsearch     (Search with intermediate results)\n"
 "                 +[no]defname        (Ditto)\n"
 "                 +[no]recurse        (Recursive mode)\n"
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)"
@@ -956,17 +958,30 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			FULLCHECK("search");
 			usesearch = state;
 			break;
-		case 'h': /* short */
-			FULLCHECK("short");
-			short_form = state;
-			if (state) {
-				printcmd = ISC_FALSE;
-				lookup->section_additional = ISC_FALSE;
-				lookup->section_answer = ISC_TRUE;
-				lookup->section_authority = ISC_FALSE;
-				lookup->section_question = ISC_FALSE;
-				lookup->comments = ISC_FALSE;
-				lookup->stats = ISC_FALSE;
+		case 'h':
+			if (cmd[2] != 'o')
+				goto invalid_option;
+			switch (cmd[3]) {
+			case 'r': /* short */
+				FULLCHECK("short");
+				short_form = state;
+				if (state) {
+					printcmd = ISC_FALSE;
+					lookup->section_additional = ISC_FALSE;
+					lookup->section_answer = ISC_TRUE;
+					lookup->section_authority = ISC_FALSE;
+					lookup->section_question = ISC_FALSE;
+					lookup->comments = ISC_FALSE;
+					lookup->stats = ISC_FALSE;
+				}
+				break;
+			case 'w': /* showsearch */
+				FULLCHECK("showsearch");
+				showsearch = state;
+				usesearch = state;
+				break;
+			default:
+				goto invalid_option;
 			}
 			break;
 #ifdef DIG_SIGCHASE
@@ -1082,7 +1097,7 @@ static const char *single_dash_opts = "46dhimnv";
 static const char *dash_opts = "46bcdfhikmnptvyx";
 static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
-	    isc_boolean_t *open_type_class)
+	    isc_boolean_t *open_type_class, isc_boolean_t config_only)
 {
 	char opt, *value, *ptr;
 	isc_result_t result;
@@ -1216,6 +1231,20 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 		return (value_from_next);
 	case 'p':
 		port = (in_port_t) parse_uint(value, "port number", MAXPORT);
+		return (value_from_next);
+	case 'q':
+		if (!config_only) {
+			(*lookup) = clone_lookup(default_lookup,
+					         ISC_TRUE);
+			strncpy((*lookup)->textname, value, 
+				sizeof((*lookup)->textname));
+			(*lookup)->textname[sizeof((*lookup)->textname)-1]=0;
+			(*lookup)->trace_root = ISC_TF((*lookup)->trace  ||
+						     (*lookup)->ns_search_only);
+			(*lookup)->new_search = ISC_TRUE;
+			ISC_LIST_APPEND(lookup_list, (*lookup), link);
+			debug("looking up %s", (*lookup)->textname);
+		}
 		return (value_from_next);
 	case 't':
 		*open_type_class = ISC_FALSE;
@@ -1450,13 +1479,15 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 		} else if (rv[0][0] == '-') {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL,
-						&lookup, &open_type_class)) {
+						&lookup, &open_type_class,
+						config_only)) {
 					rc--;
 					rv++;
 				}
 			} else {
 				if (dash_option(&rv[0][1], rv[1],
-						&lookup, &open_type_class)) {
+						&lookup, &open_type_class,
+						config_only)) {
 					rc--;
 					rv++;
 				}
