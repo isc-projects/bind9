@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.101.18.7 2005/07/12 05:47:28 marka Exp $ */
+/* $Id: nslookup.c,v 1.101.18.8 2005/08/25 00:33:36 marka Exp $ */
 
 #include <config.h>
 
@@ -50,7 +50,8 @@ static isc_boolean_t short_form = ISC_TRUE,
 	comments = ISC_TRUE, section_question = ISC_TRUE,
 	section_answer = ISC_TRUE, section_authority = ISC_TRUE,
 	section_additional = ISC_TRUE, recurse = ISC_TRUE,
-	aaonly = ISC_FALSE;
+	aaonly = ISC_FALSE, nofail = ISC_TRUE;
+
 static isc_boolean_t in_use = ISC_FALSE;
 static char defclass[MXRD] = "IN";
 static char deftype[MXRD] = "A";
@@ -631,6 +632,10 @@ setoption(char *opt) {
 		usesearch = ISC_FALSE;
 	} else if (strncasecmp(opt, "sil", 3) == 0) {
 		/* deprecation_msg = ISC_FALSE; */
+	} else if (strncasecmp(opt, "fail", 3) == 0) {
+		nofail=ISC_FALSE;
+	} else if (strncasecmp(opt, "nofail", 3) == 0) {
+		nofail=ISC_TRUE;
 	} else {
 		printf("*** Invalid option: %s\n", opt);	
 	}
@@ -689,6 +694,8 @@ addlookup(char *opt) {
 	lookup->section_authority = section_authority;
 	lookup->section_additional = section_additional;
 	lookup->new_search = ISC_TRUE;
+	if (nofail)
+		lookup->servfail_stops = ISC_FALSE;
 	ISC_LIST_INIT(lookup->q);
 	ISC_LINK_INIT(lookup, link);
 	ISC_LIST_APPEND(lookup_list, lookup, link);
