@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.16 2005/07/12 01:22:33 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.17 2005/08/25 04:31:58 marka Exp $ */
 
 /*! \file */
 
@@ -1246,7 +1246,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	cmsgbuflen += cmsg_space(sizeof(struct timeval));
 #endif
 	sock->recvcmsgbuflen = cmsgbuflen;
-	if (sock->recvcmsgbuflen != 0) {
+	if (sock->recvcmsgbuflen != 0U) {
 		sock->recvcmsgbuf = isc_mem_get(manager->mctx, cmsgbuflen);
 		if (sock->recvcmsgbuf == NULL)
 			goto error;
@@ -1257,7 +1257,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	cmsgbuflen = cmsg_space(sizeof(struct in6_pktinfo));
 #endif
 	sock->sendcmsgbuflen = cmsgbuflen;
-	if (sock->sendcmsgbuflen != 0) {
+	if (sock->sendcmsgbuflen != 0U) {
 		sock->sendcmsgbuf = isc_mem_get(manager->mctx, cmsgbuflen);
 		if (sock->sendcmsgbuf == NULL)
 			goto error;
@@ -1495,7 +1495,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 #endif /* SO_TIMESTAMP */
 
 #if defined(ISC_PLATFORM_HAVEIPV6)
-		if (pf == AF_INET6 && sock->recvcmsgbuflen == 0) {
+		if (pf == AF_INET6 && sock->recvcmsgbuflen == 0U) {
 			/*
 			 * Warn explicitly because this anomaly can be hidden
 			 * in usual operation (and unexpectedly appear later).
@@ -1919,7 +1919,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		fd = -1;
 		result = ISC_R_UNEXPECTED;
 	} else {
-		if (addrlen == 0) {
+		if (addrlen == 0U) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
 					 "accept() failed to return "
