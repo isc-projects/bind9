@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.206 2005/08/25 00:17:45 marka Exp $ */
+/* $Id: dig.c,v 1.207 2005/08/25 00:40:49 marka Exp $ */
 
 /*! \file */
 
@@ -490,6 +490,11 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       msg->counts[DNS_SECTION_ANSWER],
 			       msg->counts[DNS_SECTION_AUTHORITY],
 			       msg->counts[DNS_SECTION_ADDITIONAL]);
+
+			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0 &&
+			    (msg->flags & DNS_MESSAGEFLAG_RA) == 0)
+				printf(";; WARNING: recusion requested "
+				       "but not available\n");
 		}
 		if (msg != query->lookup->sendmsg && extrabytes != 0U)
 			printf(";; WARNING: Messages has %u extra byte%s at "

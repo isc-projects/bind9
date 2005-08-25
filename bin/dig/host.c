@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.105 2005/08/25 00:31:31 marka Exp $ */
+/* $Id: host.c,v 1.106 2005/08/25 00:40:49 marka Exp $ */
 
 /*! \file */
 
@@ -748,7 +748,8 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 		set_nameserver(argv[isc_commandline_index+1]);
 		debug("server is %s", argv[isc_commandline_index+1]);
 		listed_server = ISC_TRUE;
-	}
+	} else
+		check_ra = ISC_TRUE;
 
 	lookup->pending = ISC_FALSE;
 	if (get_reverse(store, sizeof(store), hostname,

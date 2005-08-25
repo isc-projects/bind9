@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.110 2005/08/25 00:31:32 marka Exp $ */
+/* $Id: nslookup.c,v 1.111 2005/08/25 00:40:50 marka Exp $ */
 
 #include <config.h>
 
@@ -734,6 +734,7 @@ get_next_command(void) {
 		 (strcasecmp(ptr, "lserver") == 0)) {
 		isc_app_block();
 		set_nameserver(arg);
+		check_ra = ISC_FALSE;
 		isc_app_unblock();
 		show_settings(ISC_TRUE, ISC_TRUE);
 	} else if (strcasecmp(ptr, "exit") == 0) {
@@ -772,9 +773,10 @@ parse_args(int argc, char **argv) {
 				have_lookup = ISC_TRUE;
 				in_use = ISC_TRUE;
 				addlookup(argv[0]);
-			}
-			else
+			} else {
 				set_nameserver(argv[0]);
+				check_ra = ISC_FALSE;
+			}
 		}
 	}
 }
@@ -849,6 +851,8 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(lookup_list);
 	ISC_LIST_INIT(server_list);
 	ISC_LIST_INIT(search_list);
+
+	check_ra = ISC_TRUE;
 
 	result = isc_app_start();
 	check_result(result, "isc_app_start");
