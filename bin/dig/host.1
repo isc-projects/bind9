@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: host.1,v 1.14.18.7 2005/05/13 03:12:00 marka Exp $
+.\" $Id: host.1,v 1.14.18.8 2005/08/25 02:54:35 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -41,7 +41,7 @@
 host \- DNS lookup utility
 .SH "SYNOPSIS"
 .HP 5
-\fBhost\fR [\fB\-aCdlnrTwv\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-N\ \fIndots\fR\fR] [\fB\-R\ \fInumber\fR\fR] [\fB\-t\ \fItype\fR\fR] [\fB\-W\ \fIwait\fR\fR] [\fB\-m\ \fIflag\fR\fR] [\fB\-4\fR] [\fB\-6\fR] {name} [server]
+\fBhost\fR [\fB\-aCdlnrsTwv\fR] [\fB\-c\ \fIclass\fR\fR] [\fB\-N\ \fIndots\fR\fR] [\fB\-R\ \fInumber\fR\fR] [\fB\-t\ \fItype\fR\fR] [\fB\-W\ \fIwait\fR\fR] [\fB\-m\ \fIflag\fR\fR] [\fB\-4\fR] [\fB\-6\fR] {name} [server]
 .SH "DESCRIPTION"
 .PP
 \fBhost\fR is a simple utility for performing DNS lookups\&. It is normally used to convert names to IP addresses and vice versa\&. When no arguments or options are given, \fBhost\fR prints a short summary of its command line arguments and options\&.
@@ -73,6 +73,8 @@ The \fB\-4\fR option forces \fBhost\fR to only use IPv4 query transport\&. The \
 The \fB\-t\fR option is used to select the query type\&. \fItype\fR can be any recognised query type: CNAME, NS, SOA, SIG, KEY, AXFR, etc\&. When no query type is specified, \fBhost\fR automatically selects an appropriate query type\&. By default it looks for A records, but if the \fB\-C\fR option was given, queries will be made for SOA records, and if \fIname\fR is a dotted\-decimal IPv4 address or colon\-delimited IPv6 address, \fBhost\fR will query for PTR records\&. If a query type of IXFR is chosen the starting serial number can be specified by appending an equal followed by the starting serial number (e\&.g\&. \-t IXFR=12345678)\&.
 .PP
 The time to wait for a reply can be controlled through the \fB\-W\fR and \fB\-w\fR options\&. The \fB\-W\fR option makes \fBhost\fR wait for \fIwait\fR seconds\&. If \fIwait\fR is less than one, the wait interval is set to one second\&. When the \fB\-w\fR option is used, \fBhost\fR will effectively wait forever for a reply\&. The time to wait for a response will be set to the number of seconds given by the hardware's maximum value for an integer quantity\&.
+.PP
+The \fB\-s\fR option tells \fBhost\fR  \fInot\fR to send the query to the next nameserver if any server responds with a SERVFAIL response, which is the reverse of normal stub resolver behaviour\&.
 .PP
 The \fB\-m\fR can be used to set the memory usage debugging flags \fIrecord\fR, \fIusage\fR and \fItrace\fR\&.
 .SH "FILES"

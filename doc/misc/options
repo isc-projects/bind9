@@ -136,8 +136,9 @@ options {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
-        integrity-check <boolean>;
+        check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-sibling <boolean>;
 };
 
 controls {
@@ -234,8 +235,9 @@ view <string> <optional_class> {
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
                 check-wildcard <boolean>;
-                integrity-check <boolean>;
+                check-integrity <boolean>;
                 check-mx ( fail | warn | ignore );
+                check-sibling <boolean>;
         };
         server <netprefix> {
                 bogus <boolean>;
@@ -340,8 +342,9 @@ view <string> <optional_class> {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
-        integrity-check <boolean>;
+        check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-sibling <boolean>;
 };
 
 lwres {
@@ -411,8 +414,9 @@ zone <string> <optional_class> {
         zone-statistics <boolean>;
         key-directory <quoted_string>;
         check-wildcard <boolean>;
-        integrity-check <boolean>;
+        check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-sibling <boolean>;
 };
 
 server <netprefix> {
