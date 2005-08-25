@@ -1,3 +1,8 @@
+1919.	[bug]		dig's +sigchase code overhauled. [RT #14933]
+
+1918.	[bug]		The DLV code has been re-worked to make no longer
+			query order sensitive. [RT #14933]
+
 1914.	[bug]		Strings returned from cfg_obj_asstring() should be
                         treated as read-only.  [RT #15256]
 
