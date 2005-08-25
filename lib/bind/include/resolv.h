@@ -50,7 +50,7 @@
 
 /*%
  *	@(#)resolv.h	8.1 (Berkeley) 6/2/93
- *	$Id: resolv.h,v 1.22 2005/07/18 05:58:57 marka Exp $
+ *	$Id: resolv.h,v 1.23 2005/08/25 04:41:46 marka Exp $
  */
 
 #ifndef _RESOLV_H_
@@ -289,6 +289,11 @@ extern struct __res_state *__res_state(void);
 __END_DECLS
 #define _res (*__res_state())
 #else
+#ifdef __linux
+__BEGIN_DECLS
+extern struct __res_state * __res_state(void);
+__END_DECLS
+#endif
 #ifndef __BIND_NOSTATIC
 extern struct __res_state _res;
 #endif
