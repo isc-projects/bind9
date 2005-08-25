@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.339.18.34 2005/08/25 06:15:32 marka Exp $
+# $Id: configure,v 1.339.18.35 2005/08/25 06:33:35 marka Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -27583,8 +27583,14 @@ fi
 	powerpc-*)
 		case $host in
 		*-ibm-aix*)
-		if test "X$GCC" = "Xyes" -a "X$use_libtool" != "Xyes"; then
-			arch=powerpc
+		if test "X$GCC" = "Xyes"; then
+			if test "$use_libtool" = yes -a "$use_threads" = yes
+			then
+				have_atomic=no
+				arch=noatomic
+			else
+				arch=powerpc
+			fi
 		else
 			have_atomic=no
 			arch=noatomic
