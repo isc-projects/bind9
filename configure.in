@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.389 $)
+AC_REVISION($Revision: 1.390 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1890,8 +1890,14 @@ main() {
 	powerpc-*)
 		case $host in
 		*-ibm-aix*)
-		if test "X$GCC" = "Xyes" -a "X$use_libtool" != "Xyes"; then
-			arch=powerpc
+		if test "X$GCC" = "Xyes"; then
+			if test "$use_libtool" = yes -a "$use_threads" = yes
+			then
+				have_atomic=no
+				arch=noatomic
+			else
+				arch=powerpc
+			fi
 		else
 			have_atomic=no
 			arch=noatomic
