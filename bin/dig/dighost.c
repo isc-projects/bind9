@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.21 2005/08/25 00:20:59 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.22 2005/08/25 00:43:25 marka Exp $ */
 
 /*! \file
  *  \note
@@ -96,6 +96,7 @@ dig_serverlist_t server_list;
 dig_searchlistlist_t search_list;
 
 isc_boolean_t
+	check_ra = ISC_FALSE,
 	have_ipv4 = ISC_FALSE,
 	have_ipv6 = ISC_FALSE,
 	specified_source = ISC_FALSE,
@@ -2789,8 +2790,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0
-	    && !l->ignore && !l->tcp_mode) {
+	if ((msg->flags & DNS_MESSAGEFLAG_TC) != 0 &&
+            !l->ignore && !l->tcp_mode) {
 		printf(";; Truncated, retrying in TCP mode.\n");
 		n = requeue_lookup(l, ISC_TRUE);
 		n->tcp_mode = ISC_TRUE;
@@ -2803,7 +2804,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}			
-	if (msg->rcode == dns_rcode_servfail && !l->servfail_stops) {
+	if ((msg->rcode == dns_rcode_servfail && !l->servfail_stops) ||
+	    (check_ra && (msg->flags & DNS_MESSAGEFLAG_RA) == 0 && l->recurse))
+	{
 		dig_query_t *next = ISC_LIST_NEXT(query, link);
 		if (l->current_query == query)
 			l->current_query = NULL;
@@ -2821,9 +2824,13 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		 */
 		if ((ISC_LIST_HEAD(l->q) != query) ||
 		    (ISC_LIST_NEXT(query, link) != NULL)) {
-			printf(";; Got SERVFAIL reply from %s, "
-			       "trying next server\n",
-			       query->servname);
+			if( l->comments == ISC_TRUE )
+				printf(";; Got %s from %s, "
+				       "trying next server\n",
+				       msg->rcode == dns_rcode_servfail ?
+				       "SERVFAIL reply" :
+				       "recursion not available",
+				       query->servname);
 			clear_query(query);
 			check_next_lookup(l);
 			dns_message_destroy(&msg);

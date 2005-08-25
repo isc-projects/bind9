@@ -1,3 +1,8 @@
+1917.	[func]		dig now warns if 'RA' is not set in the answer when
+			'RD' was set in the query.  host/nslookup skip servers
+			that fail to set 'RA' when 'RD' is set unless a server
+			is explicitly set.  [RT #15005]
+
 1916.	[func]		host/nslookup now continue (default)/fail on SERVFAIL.
 			[RT #15006]
 

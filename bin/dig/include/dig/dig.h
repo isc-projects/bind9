@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.13 2005/08/25 00:21:01 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.14 2005/08/25 00:43:26 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -243,7 +243,7 @@ extern dig_serverlist_t server_list;
 extern dig_searchlistlist_t search_list;
 extern unsigned int extrabytes;
 
-extern isc_boolean_t have_ipv4, have_ipv6, specified_source,
+extern isc_boolean_t check_ra, have_ipv4, have_ipv6, specified_source,
         usesearch, showsearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
