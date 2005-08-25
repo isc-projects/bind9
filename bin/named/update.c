@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.109.18.13 2005/05/19 04:59:51 marka Exp $ */
+/* $Id: update.c,v 1.109.18.14 2005/08/25 00:05:42 marka Exp $ */
 
 #include <config.h>
 
@@ -2199,7 +2199,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		/*
 		 * Check zone integrity checks.
 		 */
-		if ((options & DNS_ZONEOPT_INTEGRITYCHECK) == 0)
+		if ((options & DNS_ZONEOPT_CHECKINTEGRITY) == 0)
 			continue;
 		result = dns_db_find(db, &mx.mx, newver, dns_rdatatype_a,
 				     0, 0, NULL, foundname, NULL, NULL);

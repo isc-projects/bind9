@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.12 2005/08/23 02:31:30 marka Exp $ */
+/* $Id: config.c,v 1.47.18.13 2005/08/25 00:05:42 marka Exp $ */
 
 /*! \file */
 
@@ -133,7 +133,6 @@ options {\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 0;\n\
 	dnssec-enable no; /* Make yes for 9.4. */ \n\
-	integrity-check yes;\n\
 	clients-per-query 10;\n\
 	max-clients-per-query 100;\n\
 "
@@ -167,6 +166,8 @@ options {\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
 	check-wildcard yes;\n\
+	check-sibling yes;\n\
+	check-integrity yes;\n\
 };\n\
 "
 
