@@ -1,3 +1,6 @@
+1916.	[func]		host/nslookup now continue (default)/fail on SERVFAIL.
+			[RT #15006]
+
 1915.	[func]		dig now has a '-q queryname' and '+showsearch' options.
 			[RT #15034]
 

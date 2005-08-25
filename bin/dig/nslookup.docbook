@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nslookup.docbook,v 1.7 2005/05/13 01:35:39 marka Exp $ -->
+<!-- $Id: nslookup.docbook,v 1.8 2005/08/25 00:31:32 marka Exp $ -->
 <!--
  - Copyright (c) 1985, 1989
  -    The Regents of the University of California.  All rights reserved.
@@ -440,6 +440,21 @@ nslookup -query=hinfo  -timeout=10
                   </para>
                 </listitem>
               </varlistentry>
+
+              <varlistentry>
+                <term><constant>
+                    <replaceable><optional>no</optional></replaceable>fail</constant></term>
+                <listitem>
+                  <para>
+		    Try the next nameserver if a nameserver responds with
+		    SERVFAIL or a referral (nofail) or terminate query
+		    (fail) on such a response.
+		  </para>
+		  <para>
+                    (Default = nofail)
+                  </para>
+	        </listitem>
+	      </varlistentry>
 
             </variablelist>
           </para>

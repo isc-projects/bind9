@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.104 2005/07/04 03:03:20 marka Exp $ */
+/* $Id: host.c,v 1.105 2005/08/25 00:31:31 marka Exp $ */
 
 /*! \file */
 
@@ -124,6 +124,7 @@ show_usage(void) {
 "       -N changes the number of dots allowed before root lookup is done\n"
 "       -r disables recursive processing\n"
 "       -R specifies number of retries for UDP packets\n"
+"       -s a SERVFAIL response should stop query\n"
 "       -t specifies the query type\n"
 "       -T enables TCP/IP mode\n"
 "       -v enables verbose output\n"
@@ -525,7 +526,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	return (result);
 }
 
-static const char * optstring = "46ac:dilnm:rt:vwCDN:R:TW:";
+static const char * optstring = "46ac:dilnm:rst:vwCDN:R:TW:";
 
 static void
 pre_parse_args(int argc, char **argv) {
@@ -553,6 +554,7 @@ pre_parse_args(int argc, char **argv) {
 		case 'l': break;
 		case 'n': break;
 		case 'r': break;
+		case 's': break;
 		case 't': break;
 		case 'v': break;
 		case 'w': break;
@@ -585,6 +587,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 	UNUSED(is_batchfile);
 
 	lookup = make_empty_lookup();
+
+	lookup->servfail_stops = ISC_FALSE;
+	lookup->comments = ISC_FALSE;
 
 	while ((c = isc_commandline_parse(argc, argv, optstring)) != -1) {
 		switch (c) {
@@ -725,6 +730,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 				have_ipv4 = ISC_FALSE;
 			} else
 				fatal("can't find IPv6 networking");
+			break;
+		case 's':
+			lookup->servfail_stops = ISC_TRUE;
 			break;
 		}
 	}

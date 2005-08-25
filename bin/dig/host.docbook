@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.10 2005/07/19 04:55:20 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.11 2005/08/25 00:31:32 marka Exp $ -->
 <refentry id="man.host">
 
   <refentryinfo>
@@ -53,7 +53,7 @@
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>host</command>
-      <arg><option>-aCdlnrTwv</option></arg>
+      <arg><option>-aCdlnrsTwv</option></arg>
       <arg><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg><option>-N <replaceable class="parameter">ndots</replaceable></option></arg>
       <arg><option>-R <replaceable class="parameter">number</replaceable></option></arg>
@@ -220,6 +220,13 @@
       effectively wait forever for a reply.  The time to wait for a response
       will be set to the number of seconds given by the hardware's maximum
       value for an integer quantity.
+    </para>
+
+    <para>
+      The <option>-s</option> option tells <command>host</command> 
+      <emphasis>not</emphasis> to send the query to the next nameserver
+      if any server responds with a SERVFAIL response, which is the
+      reverse of normal stub resolver behaviour.
     </para>
 
     <para>
