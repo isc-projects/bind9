@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.44.18.1 2004/05/05 01:32:35 marka Exp $
+# $Id: tests.sh,v 1.44.18.2 2005/08/25 01:54:00 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -441,6 +441,12 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#
+# private.secure.example is served by the same server as its
+# grand parent and there is not a secure delegation from secure.example
+# to private.secure.example.  In addition secure.example is using a
+# algorithm which the validation does not support.
+#
 echo "I:checking dnssec-lookaside-validation works ($n)"
 ret=0
 $DIG $DIGOPTS private.secure.example. SOA @10.53.0.6 \
