@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.29 2005/06/20 03:30:26 marka Exp $
+.\" $Id: named-checkzone.8,v 1.30 2005/08/25 03:12:42 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -67,10 +67,11 @@ When loading the zone file read the journal if it exists\&.
 Specify the class of the zone\&. If not specified "IN" is assumed\&.
 .TP
 \-i \fImode\fR
-Perform post load zone integrity checks\&. Possible modes are \fB"full"\fR (default), \fB"local"\fR and \fB"none"\fR\&.
+Perform post load zone integrity checks\&. Possible modes are \fB"full"\fR (default), \fB"full\-sibling"\fR, \fB"local"\fR, \fB"local\-sibling"\fR and \fB"none"\fR\&.
 Mode \fB"full"\fR checks that MX records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. Mode \fB"local"\fR only checks MX records which refer to in\-zone hostnames\&.
 Mode \fB"full"\fR checks that SRV records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. Mode \fB"local"\fR only checks SRV records which refer to in\-zone hostnames\&.
 Mode \fB"full"\fR checks that delegation NS records refer to A or AAAA record (both in\-zone and out\-of\-zone hostnames)\&. It also checks that glue addresses records in the zone match those advertised by the child\&. Mode \fB"local"\fR only checks NS records which refer to in\-zone hostnames or that some required glue exists, that is when the nameserver is in a child zone\&.
+Mode \fB"full\-sibling"\fR and \fB"local\-sibling"\fR disable sibling glue checks but are otherwise the same as \fB"full"\fR and \fB"local"\fR respectively\&.
 Mode \fB"none"\fR disables the checks\&.
 .TP
 \-f \fIformat\fR
