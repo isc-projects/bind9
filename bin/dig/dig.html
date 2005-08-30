@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.26 2005/08/25 03:12:43 marka Exp $ -->
+<!-- $Id: dig.html,v 1.27 2005/08/30 04:18:54 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -510,11 +510,21 @@
               -DDIG_SIGCHASE.
             </p></dd>
 <dt><span class="term"><code class="option">+trusted-key=####</code></span></dt>
-<dd><p>
-              Specify a trusted key to be used with
-              <code class="option">+sigchase</code>.
+<dd>
+<p>
+              Specifies a file containing trusted keys to be used with
+	      <code class="option">+sigchase</code>.  Each DNSKEY record must be
+	      on its own line.
+            </p>
+<p>
+	      If not specified <span><strong class="command">dig</strong></span> will look for
+	      <code class="filename">/etc/trusted-key.key</code> then
+	      <code class="filename">trusted-key.key</code> in the current directory.
+	    </p>
+<p>
               Requires dig be compiled with -DDIG_SIGCHASE.
-            </p></dd>
+	    </p>
+</dd>
 <dt><span class="term"><code class="option">+[no]topdown</code></span></dt>
 <dd><p>
               When chasing DNSSEC signature chains perform a top down
@@ -527,7 +537,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516400"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2516417"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -573,14 +583,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516461"></a><h2>FILES</h2>
+<a name="id2516478"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516478"></a><h2>SEE ALSO</h2>
+<a name="id2516496"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -588,7 +598,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2516516"></a><h2>BUGS</h2>
+<a name="id2516533"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>

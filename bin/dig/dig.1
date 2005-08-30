@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.32 2005/08/25 03:12:43 marka Exp $
+.\" $Id: dig.1,v 1.33 2005/08/30 04:18:54 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -213,7 +213,9 @@ Requests DNSSEC records be sent by setting the DNSSEC OK bit (DO) in the OPT rec
 Chase DNSSEC signature chains\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
 .TP
 \fB+trusted\-key=####\fR
-Specify a trusted key to be used with \fB+sigchase\fR\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
+Specifies a file containing trusted keys to be used with \fB+sigchase\fR\&. Each DNSKEY record must be on its own line\&.
+If not specified \fBdig\fR will look for \fI/etc/trusted\-key\&.key\fR then \fItrusted\-key\&.key\fR in the current directory\&.
+Requires dig be compiled with \-DDIG_SIGCHASE\&.
 .TP
 \fB+[no]topdown\fR
 When chasing DNSSEC signature chains perform a top down validation\&. Requires dig be compiled with \-DDIG_SIGCHASE\&.
