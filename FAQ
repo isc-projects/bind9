@@ -380,7 +380,8 @@ A: You are running chrooted (-t) and have not supplied local timzone
 Q: I get the error message "named: capset failed: Operation not permitted" when
    starting named.
 
-A: The capset module has not been loaded into the kernel. See insmod(8).
+A: The capability module, part of "Linux Security Modules/LSM", has not been
+   loaded into the kernel. See insmod(8).
 
 Q: I get "rndc: connect failed: connection refused" when I try to run rndc.
 
