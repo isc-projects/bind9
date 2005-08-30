@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.3.12.8 2005/05/12 21:35:59 sra Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.3.12.9 2005/08/30 01:41:41 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -261,8 +261,7 @@
         When <command>dnssec-keygen</command> completes successfully,
 	it prints a string of the form <filename>Knnnn.+aaa+iiiii</filename>
 	to the standard output.  This is an identification string for
-	the key it has generated.  These strings can be used as arguments
-	to <command>dnssec-makekeyset</command>.
+	the key it has generated.
     </para>
     <itemizedlist>
       <listitem>
