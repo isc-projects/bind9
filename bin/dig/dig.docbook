@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.4.2.7.4.11 2005/05/13 01:22:32 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.4.2.7.4.12 2005/08/30 00:50:29 marka Exp $ -->
 
 <refentry>
 
@@ -530,11 +530,24 @@ Chase DNSSEC signature chains.  Requires dig be compiled with
 -DDIG_SIGCHASE.
 </para></listitem></varlistentry>
 
-<varlistentry><term><option>+trusted-key=####</option></term>
-<listitem><para>
-Specify a trusted key to be used with <option>+sigchase</option>.
-Requires dig be compiled with -DDIG_SIGCHASE.
-</para></listitem></varlistentry>
+	<varlistentry>
+	  <term><option>+trusted-key=####</option></term>
+	  <listitem>
+	    <para>
+	      Specifies a file containing trusted keys to be used with
+	      <option>+sigchase</option>.  Each DNSKEY record must be
+	      on its own line.
+	    </para>
+	    <para>
+	      If not specified <command>dig</command> will look for
+	      <filename>/etc/trusted-key.key</filename> then
+	      <filename>trusted-key.key</filename> in the current directory.
+	    </para>
+	    <para>
+	      Requires dig be compiled with -DDIG_SIGCHASE.
+	    </para>
+	  </listitem>
+	</varlistentry>
 
 <varlistentry><term><option>+[no]topdown</option></term>
 <listitem><para>
