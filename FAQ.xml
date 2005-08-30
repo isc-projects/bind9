@@ -735,8 +735,8 @@ Master 10.0.1.1:
       </question>
       <answer>
 	<para>
-	  The capset module has not been loaded into the kernel.  See
-	  insmod(8).
+	  The capability module, part of "Linux Security Modules/LSM",
+	  has not been loaded into the kernel.  See insmod(8).
 	</para>
       </answer>
     </qandaentry>
