@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-keygen.docbook,v 1.13 2005/07/19 04:55:20 marka Exp $ -->
+<!-- $Id: dnssec-keygen.docbook,v 1.14 2005/08/30 01:50:05 marka Exp $ -->
 <refentry id="man.dnssec-keygen">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -265,8 +265,7 @@
       successfully,
       it prints a string of the form <filename>Knnnn.+aaa+iiiii</filename>
       to the standard output.  This is an identification string for
-      the key it has generated.  These strings can be used as arguments
-      to <command>dnssec-makekeyset</command>.
+      the key it has generated.
     </para>
     <itemizedlist>
       <listitem>
