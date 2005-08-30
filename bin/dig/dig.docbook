@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.17.18.8 2005/08/25 00:20:59 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.17.18.9 2005/08/30 00:47:49 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -792,10 +792,18 @@
           <term><option>+trusted-key=####</option></term>
           <listitem>
             <para>
-              Specify a trusted key to be used with
-              <option>+sigchase</option>.
-              Requires dig be compiled with -DDIG_SIGCHASE.
+              Specifies a file containing trusted keys to be used with
+	      <option>+sigchase</option>.  Each DNSKEY record must be
+	      on its own line.
             </para>
+	    <para>
+	      If not specified <command>dig</command> will look for
+	      <filename>/etc/trusted-key.key</filename> then
+	      <filename>trusted-key.key</filename> in the current directory.
+	    </para>
+	    <para>
+              Requires dig be compiled with -DDIG_SIGCHASE.
+	    </para>
           </listitem>
         </varlistentry>
 
