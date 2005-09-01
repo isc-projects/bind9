@@ -1,3 +1,5 @@
+1921.	[port]		aix: atomic locking for powerpc. [RT #15020]
+
 1920.	[bug]		Update windows socket code. [RT #14965]
 
 1919.	[bug]		dig's +sigchase code overhauled. [RT #14933]

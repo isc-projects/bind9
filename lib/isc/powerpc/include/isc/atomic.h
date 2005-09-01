@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: atomic.h,v 1.2 2005/07/09 06:43:57 jinmei Exp $ */
+/* $Id: atomic.h,v 1.3 2005/09/01 03:34:29 marka Exp $ */
 
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
@@ -22,11 +22,52 @@
 #include <isc/platform.h>
 #include <isc/types.h>
 
-#ifdef ISC_PLATFORM_USEGCCASM
-/*
+/*!\file
+ * static inline isc_int32_t
+ * isc_atomic_xadd(isc_int32_t *p, isc_int32_t val);
+ *
  * This routine atomically increments the value stored in 'p' by 'val', and
  * returns the previous value.
+ *
+ * static inline void
+ * isc_atomic_store(void *p, isc_int32_t val);
+ *
+ * This routine atomically stores the value 'val' in 'p'.
+ *
+ * static inline isc_int32_t
+ * isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val);
+ *
+ * This routine atomically replaces the value in 'p' with 'val', if the
+ * original value is equal to 'cmpval'.  The original value is returned in any
+ * case.
  */
+
+#if defined(_AIX)
+
+#include <sys/atomic_op.h>
+
+#define isc_atomic_xadd(p, v) fetch_and_add(p, v)
+#define isc_atomic_store(p, v) _clear_lock(p, v)
+
+#ifdef __GNUC__
+static inline int
+#else
+static int
+#endif
+isc_atomic_cmpxchg(atomic_p p, int old, int new) {
+        int orig = old;
+
+#ifdef __GNUC__
+        asm("ics");
+#else
+         __isync();
+#endif
+        if (compare_and_swap(p, &orig, new))
+		return (old);
+        return (orig);
+}
+
+#elif ISC_PLATFORM_USEGCCASM
 static inline isc_int32_t
 isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	isc_int32_t orig;
@@ -46,9 +87,6 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 	return (orig);
 }
 
-/*
- * This routine atomically stores the value 'val' in 'p'.
- */
 static inline void
 isc_atomic_store(void *p, isc_int32_t val) {
 	__asm__ volatile (
@@ -63,11 +101,6 @@ isc_atomic_store(void *p, isc_int32_t val) {
 		);
 }
 
-/*
- * This routine atomically replaces the value in 'p' with 'val', if the
- * original value is equal to 'cmpval'.  The original value is returned in any
- * case.
- */
 static inline isc_int32_t
 isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	isc_int32_t orig;
@@ -90,7 +123,7 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 	return (orig);
 }
 
-#else /* !ISC_PLATFORM_USEGCCASM */
+#else
 
 #error "unsupported compiler.  disable atomic ops by --disable-atomic"
 
