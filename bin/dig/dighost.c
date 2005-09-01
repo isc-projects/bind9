@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.27 2005/08/25 01:54:31 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.28 2005/09/01 03:16:10 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -37,7 +37,6 @@
 #include <dns/dnssec.h>
 #include <dns/ds.h>
 #include <dns/nsec.h>
-#include <isc/file.h>
 #include <isc/random.h>
 #include <ctype.h>
 #endif
@@ -58,6 +57,7 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/lang.h>
 #include <isc/netaddr.h>
 #ifdef DIG_SIGCHASE
@@ -945,7 +945,8 @@ setup_system(void) {
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
-	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
+	if (isc_file_exists(RESOLV_CONF))
+		lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("parse of %s failed", RESOLV_CONF);
 
