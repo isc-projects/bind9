@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: errno2result.c,v 1.4.2.8 2005/06/09 23:53:30 marka Exp $ */
+/* $Id: errno2result.c,v 1.4.2.9 2005/09/01 03:15:40 marka Exp $ */
 
 #include <config.h>
 
@@ -56,6 +56,24 @@ isc__errno2resultx(int posixerrno, const char *file, int line) {
 	case ENFILE:
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
+	case ERROR_OPERATION_ABORTED:
+		return (ISC_R_CONNECTIONRESET);
+	case ERROR_PORT_UNREACHABLE:
+		return (ISC_R_HOSTUNREACH);
+	case ERROR_HOST_UNREACHABLE:
+		return (ISC_R_HOSTUNREACH);
+	case ERROR_NETWORK_UNREACHABLE:
+		return (ISC_R_NETUNREACH);
+	case WSAEADDRNOTAVAIL:
+		return (ISC_R_ADDRNOTAVAIL);
+	case WSAEHOSTUNREACH:
+		return (ISC_R_HOSTUNREACH);
+	case WSAEHOSTDOWN:
+		return (ISC_R_HOSTUNREACH);
+	case WSAENETUNREACH:
+		return (ISC_R_NETUNREACH);
+	case WSAENOBUFS:
+		return (ISC_R_NORESOURCES);
 	default:
 		isc__strerror(posixerrno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(file, line, "unable to convert errno "

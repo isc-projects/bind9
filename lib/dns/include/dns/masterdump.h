@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22.2.1 2004/03/09 06:11:18 marka Exp $ */
+/* $Id: masterdump.h,v 1.22.2.2 2005/09/01 03:15:39 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -64,7 +64,7 @@ LIBDNS_EXTERNAL_DATA extern const dns_master_style_t dns_master_style_default;
  * stop of its own, but the class and type share one.
  */
 LIBDNS_EXTERNAL_DATA extern const dns_master_style_t
-				  dns_master_style_explicitttl;
+					dns_master_style_explicitttl;
 
 /*
  * A master style format designed for cache files.  It prints explicit TTL

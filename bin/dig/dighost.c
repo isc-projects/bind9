@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.27 2005/07/04 03:22:03 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.28 2005/09/01 03:15:38 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -50,6 +50,7 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/entropy.h>
+#include <isc/file.h>
 #include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/netdb.h>
