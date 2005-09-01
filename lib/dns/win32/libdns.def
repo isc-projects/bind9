@@ -75,6 +75,7 @@ dns_compress_init
 dns_compress_invalidate
 dns_compress_rollback
 dns_compress_setmethods
+dns_compress_setsensitive
 dns_counter_fromtext
 dns_db_addrdataset
 dns_db_allrdatasets
@@ -108,6 +109,7 @@ dns_db_issecure
 dns_db_isstub
 dns_db_iszone
 dns_db_load
+dns_db_load2
 dns_db_newversion
 dns_db_nodecount
 dns_db_ondestroy
@@ -224,6 +226,7 @@ dns_master_dump
 dns_master_dumpnode
 dns_master_dumpnodetostream
 dns_master_dumptostream
+dns_master_dumptostream2
 dns_master_dumptostreaminc
 dns_master_loadbuffer
 dns_master_loadbufferinc
@@ -353,6 +356,7 @@ dns_peer_setsupportedns
 dns_peer_settransferformat
 dns_peer_settransfers
 dns_peer_settransfersource
+dns_peer_setudpsize
 dns_peerlist_addpeer
 dns_peerlist_attach
 dns_peerlist_currpeer
@@ -468,6 +472,7 @@ dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
 dns_resolver_createfetch
+dns_resolver_createfetch2
 dns_resolver_destroyfetch
 dns_resolver_detach
 dns_resolver_disable_algorithm
@@ -481,6 +486,7 @@ dns_resolver_nrunning
 dns_resolver_prime
 dns_resolver_reset_algorithms
 dns_resolver_resetmustbesecure
+dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
 dns_resolver_setudpsize
@@ -596,6 +602,7 @@ dns_zone_detach
 dns_zone_dialup
 dns_zone_dump
 dns_zone_dumptostream
+dns_zone_dumptostream2
 dns_zone_expire
 dns_zone_first
 dns_zone_flush
@@ -650,11 +657,15 @@ dns_zone_setacache
 dns_zone_setalsonotify
 dns_zone_setaltxfrsource4
 dns_zone_setaltxfrsource6
+dns_zone_setcheckmx
 dns_zone_setchecknames
+dns_zone_setcheckns
+dns_zone_setchecksrv
 dns_zone_setclass
 dns_zone_setdbtype
 dns_zone_setdialup
 dns_zone_setfile
+dns_zone_setfile2
 dns_zone_setflag
 dns_zone_setforwardacl
 dns_zone_setidlein
@@ -759,3 +770,9 @@ dst_lib_initmsgcat
 dst_region_computeid
 dst_result_register
 dst_result_totext
+
+; Exported Data
+
+EXPORTS
+
+dns_master_style_full	DATA

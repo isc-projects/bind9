@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.10 2005/08/25 00:05:41 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.11 2005/09/01 03:04:14 marka Exp $ */
 
 /*! \file */
 
@@ -57,7 +57,7 @@ dns_zonetype_t zonetype = dns_zone_master;
 static int dumpzone = 0;
 static const char *output_filename;
 static char *prog_name = NULL;
-static const dns_master_style_t *outputstyle = &dns_master_style_full;
+static const dns_master_style_t *outputstyle = NULL;
 static enum { progmode_check, progmode_compile } progmode;
 
 #define ERRRET(result, function) \
@@ -103,6 +103,8 @@ main(int argc, char **argv) {
 	const char *outputformatstr = NULL;
 	dns_masterformat_t inputformat = dns_masterformat_text;
 	dns_masterformat_t outputformat = dns_masterformat_text;
+
+	outputstyle = &dns_master_style_full;
 
 	prog_name = strrchr(argv[0], '/');
 	if (prog_name != NULL)
