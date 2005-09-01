@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.157 2005/08/23 04:05:49 marka Exp $ */
+/* $Id: master.c,v 1.158 2005/09/01 02:24:58 marka Exp $ */
 
 /*! \file */
 
@@ -2103,7 +2103,6 @@ load_raw(dns_loadctx_t *lctx) {
 	for (loop_cnt = 0;
 	     (lctx->loop_cnt == 0 || loop_cnt < lctx->loop_cnt);
 	     loop_cnt++) {
-		dns_masterrawrdataset_t rawrrset;
 		unsigned int i, rdcount, consumed_name;
 		isc_uint16_t namelen;
 		isc_uint32_t totallen;
@@ -2262,7 +2261,7 @@ load_raw(dns_loadctx_t *lctx) {
 			isc_buffer_setactive(&target, (unsigned int)rdlen);
 			isc_buffer_activeregion(&target, &r);
 			isc_buffer_forward(&target, (unsigned int)rdlen);
-			dns_rdata_fromregion(&rdata[i], rawrrset.rdclass,
+			dns_rdata_fromregion(&rdata[i], rdatalist.rdclass,
 					     rdatalist.type, &r);
 
 			ISC_LIST_APPEND(rdatalist.rdata, &rdata[i], link);
