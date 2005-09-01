@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.34 $)
+AC_REVISION($Revision: 1.355.18.35 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1888,30 +1888,7 @@ main() {
 		arch=alpha
 	;;
 	powerpc-*)
-		case $host in
-		*-ibm-aix*)
-		if test "X$GCC" = "Xyes"; then
-			if test "$use_libtool" = yes -a "$use_threads" = yes
-			then
-				have_atomic=no
-				arch=noatomic
-			else
-				arch=powerpc
-			fi
-		else
-			have_atomic=no
-			arch=noatomic
-		fi
-		;;
-		*)
-		if test "X$GCC" = "Xyes"; then
-			arch=powerpc
-		else
-			have_atomic=no
-			arch=noatomic
-		fi
-		;;
-		esac
+		arch=powerpc
 	;;
 	mips-*)
 		arch=mips
@@ -1928,7 +1905,7 @@ if test "$have_atomic" = "yes"; then
 	AC_MSG_CHECKING([compiler support for inline assembly code])
 
 	compiler=generic
-	# Check whehter the compiler supports the assembly syntax we provide.
+	# Check whether the compiler supports the assembly syntax we provide.
 	if test "X$GCC" = "Xyes"; then
 		# GCC's ASM extension always works
 		compiler=gcc
@@ -1948,6 +1925,9 @@ if test "$have_atomic" = "yes"; then
 				return (0);],
 				[compiler=osf],)
 		;;
+		powerpc-ibm-aix*)
+			compiler=aix
+		;;
 		esac
 	fi
 	case "$compiler" in
@@ -1956,6 +1936,8 @@ if test "$have_atomic" = "yes"; then
 		;;
 	osf)
 		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
+		;;
+	aix)
 		;;
 	*)
 		# See if the generic __asm function works.  If not,

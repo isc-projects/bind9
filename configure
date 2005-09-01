@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.339.18.35 2005/08/25 06:33:35 marka Exp $
+# $Id: configure,v 1.339.18.36 2005/09/01 03:40:48 marka Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -27581,30 +27581,7 @@ fi
 		arch=alpha
 	;;
 	powerpc-*)
-		case $host in
-		*-ibm-aix*)
-		if test "X$GCC" = "Xyes"; then
-			if test "$use_libtool" = yes -a "$use_threads" = yes
-			then
-				have_atomic=no
-				arch=noatomic
-			else
-				arch=powerpc
-			fi
-		else
-			have_atomic=no
-			arch=noatomic
-		fi
-		;;
-		*)
-		if test "X$GCC" = "Xyes"; then
-			arch=powerpc
-		else
-			have_atomic=no
-			arch=noatomic
-		fi
-		;;
-		esac
+		arch=powerpc
 	;;
 	mips-*)
 		arch=mips
@@ -27623,7 +27600,7 @@ if test "$have_atomic" = "yes"; then
 echo $ECHO_N "checking compiler support for inline assembly code... $ECHO_C" >&6
 
 	compiler=generic
-	# Check whehter the compiler supports the assembly syntax we provide.
+	# Check whether the compiler supports the assembly syntax we provide.
 	if test "X$GCC" = "Xyes"; then
 		# GCC's ASM extension always works
 		compiler=gcc
@@ -27685,6 +27662,9 @@ sed 's/^/| /' conftest.$ac_ext >&5
 fi
 rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
+		powerpc-ibm-aix*)
+			compiler=aix
+		;;
 		esac
 	fi
 	case "$compiler" in
@@ -27693,6 +27673,8 @@ rm -f conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
 	osf)
 		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
+		;;
+	aix)
 		;;
 	*)
 		# See if the generic __asm function works.  If not,
