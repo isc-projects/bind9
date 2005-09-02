@@ -66,14 +66,8 @@
 ./bin/dnssec/win32/keygen.dsp			X	2001
 ./bin/dnssec/win32/keygen.dsw			X	2001
 ./bin/dnssec/win32/keygen.mak			X	2001
-./bin/dnssec/win32/makekeyset.dsp		X	2001
-./bin/dnssec/win32/makekeyset.dsw		X	2001
-./bin/dnssec/win32/makekeyset.mak		X	2001
 ./bin/dnssec/win32/nsupdate.dsp			X	2001
 ./bin/dnssec/win32/nsupdate.dsw			X	2001
-./bin/dnssec/win32/signkey.dsp			X	2001
-./bin/dnssec/win32/signkey.dsw			X	2001
-./bin/dnssec/win32/signkey.mak			X	2001
 ./bin/dnssec/win32/signzone.dsp			X	2001
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001
