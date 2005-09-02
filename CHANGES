@@ -1,57 +1,57 @@
-1920.	[bug]		Update windows socket code. [RT #14965]
+1911.	[bug]		Update windows socket code. [RT #14965]
 
-1919.	[bug]		dig's +sigchase code overhauled. [RT #14933]
+1910.	[bug]		dig's +sigchase code overhauled. [RT #14933]
 
-1918.	[bug]		The DLV code has been re-worked to make no longer
+1909.	[bug]		The DLV code has been re-worked to make no longer
 			query order sensitive. [RT #14933]
 
-1914.	[bug]		Strings returned from cfg_obj_asstring() should be
+1905.	[bug]		Strings returned from cfg_obj_asstring() should be
                         treated as read-only.  [RT #15256]
 
-1910.	[cleanup]	Don't add DNSKEY records to the additional section.
+1901.	[cleanup]	Don't add DNSKEY records to the additional section.
 
-1909.	[bug]		ixfr-from-differences failed to ensure that the
+1900.	[bug]		ixfr-from-differences failed to ensure that the
 			serial number increased. [RT #15036]
 
-1907.	[bug]		Extend ISC_SOCKADDR_FORMATSIZE and
+1896.	[bug]		Extend ISC_SOCKADDR_FORMATSIZE and
 			ISC_NETADDR_FORMATSIZE to allow for scope details.
 
-1905.	[bug]		Recursive clients soft quota support wasn't working
+1894.	[bug]		Recursive clients soft quota support wasn't working
 			as expected. [RT #15103]
 
-1904.	[bug]		A escaped character is, potentially, converted to
+1893.	[bug]		A escaped character is, potentially, converted to
 			the output character set too early. [RT #14666]
 
-1902.	[port]		Use uintptr_t if available. [RT #14606]
+1892.	[port]		Use uintptr_t if available. [RT #14606]
 
-1898.	[port]		sunos: non blocking i/o support. [RT #14951]
+1889.	[port]		sunos: non blocking i/o support. [RT #14951]
 
-1896.	[bug]		The cache could delete expired records too fast for
+1887.	[bug]		The cache could delete expired records too fast for
 			clients with a virtual time in the past. [RT #14991]
 
-1895.	[bug]		fctx_create() could return success even though it
+1886.	[bug]		fctx_create() could return success even though it
 			failed. [RT #14993]
 
-1893.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
+1884.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
 
-1892.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
+1883.	[bug]		dnssec-signzone, dnssec-keygen: handle negative debug
 			levels. [RT #14962]
 
-1890.	[func]		Add a system test for named-checkconf. [RT #14931]
+1881.	[func]		Add a system test for named-checkconf. [RT #14931]
 
-1886.	[bug]		Fix unreasonably low quantum on call to
+1877.	[bug]		Fix unreasonably low quantum on call to
 			dns_rbt_destroy2().  Remove unnecessay unhash_node()
 			call. [RT #14919]
 
-1884.	[bug]		process_dhtkey() was using the wrong memory context
+1875.	[bug]		process_dhtkey() was using the wrong memory context
 			to free some memory. [RT #14890]
 
-1883.	[port]		sunos: portability fixes. [RT #14814]
+1874.	[port]		sunos: portability fixes. [RT #14814]
 
-1882.	[port]		win32: isc__errno2result() now reports its caller.
+1873.	[port]		win32: isc__errno2result() now reports its caller.
 			[RT #13753]
 
-1881.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
+1872.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
 
 1867.	[bug]		It was possible to trigger a INSIST in
 			dlv_validatezonekey(). [RT #14846]
