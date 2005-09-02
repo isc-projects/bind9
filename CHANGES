@@ -1,42 +1,42 @@
-1920.	[bug]		Update windows socket code. [RT #14965]
+1911.	[bug]		Update windows socket code. [RT #14965]
 
-1914.	[bug]		Strings returned from cfg_obj_asstring() should be
+1905.	[bug]		Strings returned from cfg_obj_asstring() should be
                         treated as read-only.  [RT #15256]
 
-1904.	[bug]		A escaped character is, potentially, converted to
+1895.	[bug]		A escaped character is, potentially, converted to
 			the output character set too early. [RT #14666]
 
-1902.	[port]		Use uintptr_t if available. [RT #14606]
+1893.	[port]		Use uintptr_t if available. [RT #14606]
 
-1898.	[port]		sunos: non blocking i/o support. [RT #14951]
+1889.	[port]		sunos: non blocking i/o support. [RT #14951]
 
-1896.	[bug]		The cache could delete expired records too fast for
+1887.	[bug]		The cache could delete expired records too fast for
 			clients with a virtual time in the past. [RT #14991]
 
-1895.	[bug]		fctx_create() could return success even though it
+1886.	[bug]		fctx_create() could return success even though it
 			failed. [RT #14993]
 
-1893.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
+1884.	[cleanup]	dighost.c: move external declarations into <dig/dig.h>.
 
-1892.	[bug]		dnssec-signzone, dnssec-keygen, dnssec-signkey,
+1883.	[bug]		dnssec-signzone, dnssec-keygen, dnssec-signkey,
 			dnssec-makekeyset: handle negative debug levels.
 			[RT #14962]
 
-1890.	[func]		Add a system test for named-checkconf. [RT #14931]
+1881.	[func]		Add a system test for named-checkconf. [RT #14931]
 
-1886.	[bug]		Fix unreasonably low quantum on call to
+1877.	[bug]		Fix unreasonably low quantum on call to
 			dns_rbt_destroy2().  Remove unnecessay unhash_node()
 			call. [RT #14919]
 
-1884.	[bug]		process_dhtkey() was using the wrong memory context
+1875.	[bug]		process_dhtkey() was using the wrong memory context
 			to free some memory. [RT #14890]
 
-1882.	[port]		win32: isc__errno2result() now reports its caller.
+1873.	[port]		win32: isc__errno2result() now reports its caller.
 			[RT #13753]
 
-1881.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
+1872.	[port]		win32: Handle ERROR_NETNAME_DELETED.  [RT #13753]
 
-1880.	[bug]		dnssec_makekeyset and dnssec-signkey failed to
+1871.	[bug]		dnssec_makekeyset and dnssec-signkey failed to
 			initalize the hash context. [RT #13771]
 
 1865.	[bug]		Silently ignore nameservers in /etc/resolv.conf with
