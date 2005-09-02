@@ -43,6 +43,13 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.3.2
+
+        BIND 9.3.2 is a maintenance release, containing fixes for
+        a number of bugs in 9.3.1.
+
+        libbind: corresponds to that from BIND 8.4.7-REL.
+
 BIND 9.3.1
 
         BIND 9.3.1 is a maintenance release, containing fixes for
