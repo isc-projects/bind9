@@ -138,4 +138,9 @@ struct timezone;        /* silence warning */
 #define ISC_FORMAT_PRINTF(fmt, args)
 #endif
 
+/* Pull in host order macros when _XOPEN_SOURCE_EXTENDED is defined. */
+#if defined(__hpux) && defined(_XOPEN_SOURCE_EXTENDED)
+#include <sys/byteorder.h>
+#endif
+
 #endif
