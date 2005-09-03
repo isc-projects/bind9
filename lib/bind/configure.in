@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.111 $)
+AC_REVISION($Revision: 1.112 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -372,6 +372,7 @@ then
 			AC_DEFINE(POSIX_GETGRNAM_R)
 			;;
 		*hpux11*)
+			AC_DEFINE(NEED_ENDNETGRENT_R)
 			AC_DEFINE(_PTHREADS_DRAFT4)
 			;;
 		#
@@ -424,6 +425,7 @@ then
 			;;
 		esac
 	fi
+	AC_DEFINE(_REENTRANT)
 	ALWAYS_DEFINES="-D_REENTRANT"
 	DO_PTHREADS="#define DO_PTHREADS 1"
 	WANT_IRS_THREADSGR_OBJS="\${WANT_IRS_THREADSGR_OBJS}"
@@ -1396,6 +1398,26 @@ NET_R_RETURN="#define NET_R_RETURN int"
 GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T long"
 NETENT_DATA="#define NETENT_DATA 1"
 ],
+AC_TRY_COMPILE(
+#undef __USE_MISC
+#define __USE_MISC
+[#include <netdb.h>
+int getnetbyaddr_r (uint32_t, int, struct netent *,
+                    char *, size_t, struct netent **, int *);
+],
+[return (0)],
+[
+NET_R_ARGS="#define NET_R_ARGS char *buf, size_t buflen, struct netent **answerp, int *h_errnop"
+NET_R_BAD="#define NET_R_BAD ERANGE"
+NET_R_COPY="#define NET_R_COPY buf, buflen"
+NET_R_COPY_ARGS="#define NET_R_COPY_ARGS char *buf, size_t buflen"
+NET_R_OK="#define NET_R_OK 0"
+NET_R_SETANSWER="#define NET_R_SETANSWER 1"
+NET_R_RETURN="#define NET_R_RETURN int"
+GETNETBYADDR_ADDR_T="#define GETNETBYADDR_ADDR_T unsigned long int"
+NETENT_DATA="#undef NETENT_DATA"
+],
+)
 )
 )
 )
@@ -1589,7 +1611,7 @@ HOST_R_ARGS="#define HOST_R_ARGS struct hostent_data *hdptr"
 HOST_R_BAD="#define HOST_R_BAD (-1)"
 HOST_R_COPY="#define HOST_R_COPY hdptr"
 HOST_R_COPY_ARGS="#define HOST_R_COPY_ARGS HOST_R_ARGS"
-HOST_R_ERRNO="#define HOST_R_ERRNO NULL"
+HOST_R_ERRNO="#undef HOST_R_ERRNO"
 HOST_R_OK="#define HOST_R_OK 0"
 HOST_R_RETURN="#define HOST_R_RETURN int"
 HOST_R_SETANSWER="#undef HOST_R_SETANSWER"
