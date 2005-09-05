@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.12 2005/08/25 01:54:01 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.13 2005/09/05 03:01:48 marka Exp $ */
 
 /*! \file */
 
@@ -2129,7 +2129,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t noroot;
 	isc_result_t result;
 	unsigned int labels;
-		
+
 	INSIST(val->view->dlv != NULL);
 
 	if (!resume) {
