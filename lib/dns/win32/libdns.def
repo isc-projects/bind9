@@ -175,7 +175,6 @@ dns_dispatchmgr_destroy
 dns_dispatchmgr_getblackhole
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
-dns_dlzallowzonexfer
 dns_dlzallowzonexfr
 dns_dlzcreate
 dns_dlzdestroy
