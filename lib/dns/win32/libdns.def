@@ -335,6 +335,7 @@ dns_name_toregion
 dns_name_totext
 dns_name_towire
 dns_ncache_add
+dns_ncache_getrdataset
 dns_ncache_towire
 dns_nsec_build
 dns_nsec_buildrdata

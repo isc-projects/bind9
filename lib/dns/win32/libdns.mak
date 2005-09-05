@@ -57,6 +57,7 @@ CLEAN :
 	-@erase "$(INTDIR)\dbtable.obj"
 	-@erase "$(INTDIR)\diff.obj"
 	-@erase "$(INTDIR)\dispatch.obj"
+	-@erase "$(INTDIR)\dlz.obj"
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\dnssec.obj"
 	-@erase "$(INTDIR)\ds.obj"
@@ -101,6 +102,7 @@ CLEAN :
 	-@erase "$(INTDIR)\result.obj"
 	-@erase "$(INTDIR)\rootns.obj"
 	-@erase "$(INTDIR)\sdb.obj"
+	-@erase "$(INTDIR)\sdlz.obj"
 	-@erase "$(INTDIR)\soa.obj"
 	-@erase "$(INTDIR)\ssu.obj"
 	-@erase "$(INTDIR)\stats.obj"
@@ -182,6 +184,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dbtable.obj" \
 	"$(INTDIR)\diff.obj" \
 	"$(INTDIR)\dispatch.obj" \
+	"$(INTDIR)\dlz.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
@@ -214,6 +217,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rootns.obj" \
 	"$(INTDIR)\sdb.obj" \
+	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
 	"$(INTDIR)\ssu.obj" \
 	"$(INTDIR)\stats.obj" \
@@ -296,6 +300,8 @@ CLEAN :
 	-@erase "$(INTDIR)\diff.sbr"
 	-@erase "$(INTDIR)\dispatch.obj"
 	-@erase "$(INTDIR)\dispatch.sbr"
+	-@erase "$(INTDIR)\dlz.obj"
+	-@erase "$(INTDIR)\dlz.sbr"
 	-@erase "$(INTDIR)\DLLMain.obj"
 	-@erase "$(INTDIR)\DLLMain.sbr"
 	-@erase "$(INTDIR)\dnssec.obj"
@@ -384,6 +390,8 @@ CLEAN :
 	-@erase "$(INTDIR)\rootns.sbr"
 	-@erase "$(INTDIR)\sdb.obj"
 	-@erase "$(INTDIR)\sdb.sbr"
+	-@erase "$(INTDIR)\sdlz.obj"
+	-@erase "$(INTDIR)\sdlz.sbr"
 	-@erase "$(INTDIR)\soa.obj"
 	-@erase "$(INTDIR)\soa.sbr"
 	-@erase "$(INTDIR)\ssu.obj"
@@ -480,6 +488,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\dbtable.sbr" \
 	"$(INTDIR)\diff.sbr" \
 	"$(INTDIR)\dispatch.sbr" \
+	"$(INTDIR)\dlz.sbr" \
 	"$(INTDIR)\DLLMain.sbr" \
 	"$(INTDIR)\dnssec.sbr" \
 	"$(INTDIR)\ds.sbr" \
@@ -512,6 +521,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\result.sbr" \
 	"$(INTDIR)\rootns.sbr" \
 	"$(INTDIR)\sdb.sbr" \
+	"$(INTDIR)\sdlz.sbr" \
 	"$(INTDIR)\soa.sbr" \
 	"$(INTDIR)\ssu.sbr" \
 	"$(INTDIR)\stats.sbr" \
@@ -563,6 +573,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dbtable.obj" \
 	"$(INTDIR)\diff.obj" \
 	"$(INTDIR)\dispatch.obj" \
+	"$(INTDIR)\dlz.obj" \
 	"$(INTDIR)\DLLMain.obj" \
 	"$(INTDIR)\dnssec.obj" \
 	"$(INTDIR)\ds.obj" \
@@ -595,6 +606,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rootns.obj" \
 	"$(INTDIR)\sdb.obj" \
+	"$(INTDIR)\sdlz.obj" \
 	"$(INTDIR)\soa.obj" \
 	"$(INTDIR)\ssu.obj" \
 	"$(INTDIR)\stats.obj" \
@@ -858,6 +870,30 @@ CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/ope
 CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\dispatch.obj"	"$(INTDIR)\dispatch.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) @<<
+  $(CPP_SWITCHES) $(SOURCE)
+<<
+
+
+!ENDIF 
+
+SOURCE=..\dlz.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../../../../openssl-0.9.6k/inc32/openssl/include" /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "NDEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+
+"$(INTDIR)\dlz.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) @<<
+  $(CPP_SWITCHES) $(SOURCE)
+<<
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+CPP_SWITCHES=/nologo /MDd /W3 /Gm /GX /ZI /Od /I "./" /I "../../../" /I "include" /I "../include" /I "../../isc/win32" /I "../../isc/win32/include" /I "../../isc/include" /I "../../../../openssl-0.9.6k/inc32" /D "_DEBUG" /D "WIN32" /D "_WINDOWS" /D "__STDC__" /D "_MBCS" /D "_USRDLL" /D "USE_MD5" /D "OPENSSL" /D "DST_USE_PRIVATE_OPENSSL" /D "LIBDNS_EXPORTS" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\libdns.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+
+"$(INTDIR)\dlz.obj"	"$(INTDIR)\dlz.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
   $(CPP_SWITCHES) $(SOURCE)
 <<
@@ -1435,6 +1471,24 @@ SOURCE=..\sdb.c
 
 
 "$(INTDIR)\sdb.obj"	"$(INTDIR)\sdb.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\sdlz.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\sdlz.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\sdlz.obj"	"$(INTDIR)\sdlz.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

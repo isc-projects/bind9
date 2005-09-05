@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.60 2005/08/24 23:53:56 marka Exp $ */
+/* $Id: config.c,v 1.61 2005/09/05 02:54:36 marka Exp $ */
 
 /*! \file */
 
@@ -430,7 +430,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	dns_name_t **keys = NULL;
-	const char **lists = NULL;
+	struct { const char *name; } *lists = NULL;
 	struct {
 		cfg_listelt_t *element;
 		in_port_t port;
@@ -498,7 +498,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			}
 			/* Seen? */
 			for (j = 0; j < l; j++)
-				if (strcasecmp(lists[j], listname) == 0)
+				if (strcasecmp(lists[j].name, listname) == 0)
 					break;
 			if (j < l)
 				continue;
@@ -512,7 +512,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			}
 			if (tresult != ISC_R_SUCCESS)
 				goto cleanup;
-			lists[l++] = listname;
+			lists[l++].name = listname;
 			/* Grow stack? */
 			if (stackcount == pushed) {
 				void * new;

@@ -158,6 +158,10 @@ SOURCE=..\include\dns\dispatch.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\dlz.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\dnssec.h
 # End Source File
 # Begin Source File
@@ -318,6 +322,10 @@ SOURCE=..\include\dns\sdb.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\dns\sdlz.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\dns\secalg.h
 # End Source File
 # Begin Source File
@@ -450,6 +458,10 @@ SOURCE=..\dispatch.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\dlz.c
+# End Source File
+# Begin Source File
+
 SOURCE=.\DLLMain.c
 # End Source File
 # Begin Source File
@@ -579,6 +591,10 @@ SOURCE=..\sdb.c
 # Begin Source File
 
 SOURCE=..\soa.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\sdlz.c
 # End Source File
 # Begin Source File
 

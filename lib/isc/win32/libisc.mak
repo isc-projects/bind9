@@ -83,6 +83,7 @@ CLEAN :
 	-@erase "$(INTDIR)\quota.obj"
 	-@erase "$(INTDIR)\random.obj"
 	-@erase "$(INTDIR)\ratelimiter.obj"
+	-@erase "$(INTDIR)\refcount.obj"
 	-@erase "$(INTDIR)\region.obj"
 	-@erase "$(INTDIR)\resource.obj"
 	-@erase "$(INTDIR)\result.obj"
@@ -177,6 +178,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
+	"$(INTDIR)\refcount.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\serial.obj" \
@@ -297,6 +299,8 @@ CLEAN :
 	-@erase "$(INTDIR)\random.sbr"
 	-@erase "$(INTDIR)\ratelimiter.obj"
 	-@erase "$(INTDIR)\ratelimiter.sbr"
+	-@erase "$(INTDIR)\refcount.obj"
+	-@erase "$(INTDIR)\refcount.sbr"
 	-@erase "$(INTDIR)\region.obj"
 	-@erase "$(INTDIR)\region.sbr"
 	-@erase "$(INTDIR)\resource.obj"
@@ -411,6 +415,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\quota.sbr" \
 	"$(INTDIR)\random.sbr" \
 	"$(INTDIR)\ratelimiter.sbr" \
+	"$(INTDIR)\refcount.sbr" \
 	"$(INTDIR)\result.sbr" \
 	"$(INTDIR)\rwlock.sbr" \
 	"$(INTDIR)\serial.sbr" \
@@ -488,6 +493,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\quota.obj" \
 	"$(INTDIR)\random.obj" \
 	"$(INTDIR)\ratelimiter.obj" \
+	"$(INTDIR)\refcount.obj" \
 	"$(INTDIR)\result.obj" \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\serial.obj" \
@@ -1484,6 +1490,24 @@ SOURCE=..\ratelimiter.c
 
 
 "$(INTDIR)\ratelimiter.obj"	"$(INTDIR)\ratelimiter.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\refcount.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\refcount.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\refcount.obj"	"$(INTDIR)\refcount.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.215 2005/08/15 01:21:06 marka Exp $ */
+/* $Id: rbtdb.c,v 1.216 2005/09/05 02:54:37 marka Exp $ */
 
 /*! \file */
 
@@ -573,7 +573,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 		return (old);
 	}
 	old = old * interval;
-	old /= usecs;
+	old /= (unsigned int)usecs;
 	if (old == 0)
 		old = 1;
 	else if (old > 1000)

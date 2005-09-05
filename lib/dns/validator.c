@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.131 2005/08/25 00:56:07 marka Exp $ */
+/* $Id: validator.c,v 1.132 2005/09/05 02:54:37 marka Exp $ */
 
 /*! \file */
 
@@ -550,7 +550,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 			      "nsec proves name exists (owner) data=%d",
 			      *data);
 		return (ISC_R_SUCCESS);
-	} 
+	}
 
 	if (relation == dns_namereln_subdomain &&
 	    dns_nsec_typepresent(&rdata, dns_rdatatype_ns) &&
@@ -2129,7 +2129,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 	dns_name_t noroot;
 	isc_result_t result;
 	unsigned int labels;
-		    
+
 	INSIST(val->view->dlv != NULL);
 
 	if (!resume) {
@@ -2140,7 +2140,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 			return (DNS_R_MUSTBESECURE);
 		}
 
-		dns_fixedname_init(&val->dlvsep); 
+		dns_fixedname_init(&val->dlvsep);
 		dlvsep = dns_fixedname_name(&val->dlvsep);
 		dns_name_copy(val->event->name, dlvsep, NULL);
 		if (val->event->type == dns_rdatatype_ds) {
@@ -2263,7 +2263,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming proveunsecure");
 		if (val->frdataset.trust >= dns_trust_secure &&
 		    !check_ds(val, dns_fixedname_name(&val->fname),
-			       &val->frdataset)) {
+			      &val->frdataset)) {
 			dns_name_format(dns_fixedname_name(&val->fname),
 					namebuf, sizeof(namebuf));
 			if (val->mustbesecure) {
@@ -2281,7 +2281,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 				result = ISC_R_SUCCESS;
 				goto out;
 			}
-			result = startfinddlvsep(val, 
+			result = startfinddlvsep(val,
 					      dns_fixedname_name(&val->fname));
 			goto out;
 		}
