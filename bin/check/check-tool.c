@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.8 2005/08/25 00:05:41 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.9 2005/09/05 00:18:09 marka Exp $ */
 
 /*! \file */
 
@@ -435,7 +435,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 		dns_zone_setchecksrv(zone, checksrv);
 
 	CHECK(dns_zone_load(zone));
-	if (zonep != NULL){
+	if (zonep != NULL) {
 		*zonep = zone;
 		zone = NULL;
 	}

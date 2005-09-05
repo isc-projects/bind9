@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.107.18.9 2005/05/19 04:59:55 marka Exp $ */
+/* $Id: name.h,v 1.107.18.10 2005/09/05 00:18:27 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -263,7 +263,6 @@ dns_name_hasbuffer(const dns_name_t *name);
  * \li	ISC_TRUE	'name' has a dedicated buffer.
  * \li	ISC_FALSE	'name' does not have a dedicated buffer.
  */
-
 
 /***
  *** Properties
@@ -958,9 +957,9 @@ dns_name_split(dns_name_t *name, unsigned int suffixlabels,
  * Requires:
  *\li	'name' is a valid name.
  *
- * \li	'suffixlabels' cannot exceed the number of labels in 'name'.
+ *\li	'suffixlabels' cannot exceed the number of labels in 'name'.
  *
- *\li	'prefix' is a valid name or NULL, and cannot be read-only.
+ * \li	'prefix' is a valid name or NULL, and cannot be read-only.
  *
  *\li	'suffix' is a valid name or NULL, and cannot be read-only.
  *

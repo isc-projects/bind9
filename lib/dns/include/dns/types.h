@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109.18.7 2005/06/20 01:19:44 marka Exp $ */
+/* $Id: types.h,v 1.109.18.8 2005/09/05 00:18:28 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -53,6 +53,9 @@ typedef void					dns_dbload_t;
 typedef void					dns_dbnode_t;
 typedef struct dns_dbtable			dns_dbtable_t;
 typedef void					dns_dbversion_t;
+typedef struct dns_dlzimplementation		dns_dlzimplementation_t;
+typedef struct dns_dlzdb			dns_dlzdb_t;
+typedef struct dns_sdlzimplementation		dns_sdlzimplementation_t;
 typedef struct dns_decompress			dns_decompress_t;
 typedef struct dns_dispatch			dns_dispatch_t;
 typedef struct dns_dispatchevent		dns_dispatchevent_t;

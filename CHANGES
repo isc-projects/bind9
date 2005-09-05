@@ -1,3 +1,5 @@
+1913.	[func]		Integrate contibuted DLZ code into named. [RT #11382]
+
 1912.	[port]		aix: atomic locking for powerpc. [RT #15020]
 
 1911.	[bug]		Update windows socket code. [RT #14965]

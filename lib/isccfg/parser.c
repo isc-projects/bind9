@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112.18.6 2005/08/23 02:31:39 marka Exp $ */
+/* $Id: parser.c,v 1.112.18.7 2005/09/05 00:18:31 marka Exp $ */
 
 /*! \file */
 
@@ -1086,7 +1086,6 @@ cfg_print_spacelist(cfg_printer_t *pctx, cfg_obj_t *obj) {
 			cfg_print_chars(pctx, " ", 1);
 	}
 }
-
 
 isc_boolean_t
 cfg_obj_islist(cfg_obj_t *obj) {

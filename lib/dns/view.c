@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.126.18.6 2005/07/12 01:22:25 marka Exp $ */
+/* $Id: view.c,v 1.126.18.7 2005/09/05 00:18:25 marka Exp $ */
 
 /*! \file */
 
@@ -31,6 +31,7 @@
 #include <dns/adb.h>
 #include <dns/cache.h>
 #include <dns/db.h>
+#include <dns/dlz.h>
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
@@ -122,6 +123,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->acache = NULL;
 	view->cache = NULL;
 	view->cachedb = NULL;
+	view->dlzdatabase = NULL;
 	view->hints = NULL;
 	view->resolver = NULL;
 	view->adb = NULL;
@@ -269,6 +271,8 @@ destroy(dns_view_t *view) {
 		isc_task_detach(&view->task);
 	if (view->hints != NULL)
 		dns_db_detach(&view->hints);
+	if (view->dlzdatabase != NULL)
+		dns_dlzdestroy(&view->dlzdatabase);
 	if (view->cachedb != NULL)
 		dns_db_detach(&view->cachedb);
 	if (view->cache != NULL)

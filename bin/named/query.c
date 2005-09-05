@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.16 2005/08/18 01:02:58 marka Exp $ */
+/* $Id: query.c,v 1.257.18.17 2005/09/05 00:18:11 marka Exp $ */
 
 /*! \file */
 
@@ -29,6 +29,9 @@
 #include <dns/adb.h>
 #include <dns/byaddr.h>
 #include <dns/db.h>
+#ifdef DLZ
+#include <dns/dlz.h>
+#endif
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
@@ -508,7 +511,7 @@ ns_query_init(ns_client_t *client) {
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
 	client->query.authdbset = ISC_FALSE;
-	client->query.isreferral = ISC_FALSE;	
+	client->query.isreferral = ISC_FALSE;
 	query_reset(client, ISC_FALSE);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS) {
@@ -577,7 +580,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 	/*
 	 * This limits our searching to the zone where the first name
 	 * (the query target) was looked for.  This prevents following
-	 * CNAMES or DNAMES into other zones and prevents returning 
+	 * CNAMES or DNAMES into other zones and prevents returning
 	 * additional data from other zones.
 	 */
 	if (!client->view->additionalfromauth &&
@@ -654,7 +657,7 @@ query_validatezonedb(ns_client_t *client, dns_name_t *name,
 						      ISC_LOG_DEBUG(3),
 						      "%s approved", msg);
 				}
-		    	} else {
+			} else {
 				ns_client_aclmsg("query", name, qtype,
 						 client->view->rdclass,
 						 msg, sizeof(msg));
@@ -733,7 +736,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
 		result = dns_zone_getdb(zone, &db);
 
-	if (result != ISC_R_SUCCESS)		
+	if (result != ISC_R_SUCCESS)
 		goto fail;
 
 	result = query_validatezonedb(client, name, qtype, options, zone, db,
@@ -801,7 +804,7 @@ query_getcachedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
-		
+
 		result = ns_client_checkaclsilent(client,
 						  client->view->queryacl,
 						  ISC_TRUE);
@@ -867,9 +870,85 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 {
 	isc_result_t result;
 
+#ifdef DLZ
+	isc_result_t tresult;
+	unsigned int namelabels;
+	unsigned int zonelabels;
+	dns_zone_t *zone = NULL;
+	dns_db_t *tdbp;
+
+	REQUIRE(zonep != NULL && *zonep == NULL);
+
+	tdbp = NULL;
+
+	/* Calculate how many labels are in name. */
+	namelabels = dns_name_countlabels(name);
+	zonelabels = 0;
+
+	/* Try to find name in bind's standard database. */
+	result = query_getzonedb(client, name, qtype, options, &zone,
+				 dbp, versionp);
+
+	/* See how many labels are in the zone's name.	  */
+	if (result == ISC_R_SUCCESS && zone != NULL)
+		zonelabels = dns_name_countlabels(dns_zone_getorigin(zone));
+	/*
+	 * If # zone labels < # name labels, try to find an even better match
+	 * Only try if a DLZ driver is loaded for this view
+	 */
+	if (zonelabels < namelabels && client->view->dlzdatabase != NULL) {
+		tresult = dns_dlzfindzone(client->view, name,
+					  zonelabels, &tdbp);
+		 /* If we successful, we found a better match. */
+		if (tresult == ISC_R_SUCCESS) {
+			/*
+			 * If the previous search returned a zone, detach it.
+			 */
+			if (zone != NULL)
+				dns_zone_detach(&zone);
+
+			/*
+			 * If the previous search returned a database,
+			 * detach it.
+			 */
+			if (*dbp != NULL)
+				dns_db_detach(dbp);
+
+			/*
+			 * If the previous search returned a version, clear it.
+			 */
+			*versionp = NULL;
+
+			/*
+			 * Get our database version.
+			 */
+			dns_db_currentversion(tdbp, versionp);
+
+			/*
+			 * Be sure to return our database.
+			 */
+			*dbp = tdbp;
+
+			/*
+			 * We return a null zone, No stats for DLZ zones.
+			 */
+			zone = NULL;
+			result = tresult;
+		}
+	}
+#else
 	result = query_getzonedb(client, name, qtype, options,
 				 zonep, dbp, versionp);
+#endif
+
+	/* If successfull, Transfer ownership of zone. */
 	if (result == ISC_R_SUCCESS) {
+#ifdef DLZ
+		*zonep = zone;
+#endif
+		/*
+		 * If neither attempt above succeeded, return the cache instead
+		 */
 		*is_zonep = ISC_TRUE;
 	} else if (result == ISC_R_NOTFOUND) {
 		result = query_getcachedb(client, name, qtype, dbp, options);
@@ -1032,7 +1111,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 */
 		goto try_glue;
 
-	result = dns_db_find(db, name, version, type,  client->query.dboptions,
+	result = dns_db_find(db, name, version, type, client->query.dboptions,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
 	if (result == ISC_R_SUCCESS)
@@ -1248,7 +1327,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * recursing to add address records, which in turn can cause
 	 * recursion to add KEYs.
 	 */
- 	if (type == dns_rdatatype_srv && trdataset != NULL) {
+	if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
 		 * section, it's helpful if we add the SRV additional data
@@ -1325,7 +1404,7 @@ query_iscachevalid(dns_zone_t *zone, dns_db_t *db, dns_db_t *db0,
 	dns_db_closeversion(db_current, &version_current, ISC_FALSE);
 	if (db0 == NULL && db_current != NULL)
 		dns_db_detach(&db_current);
-	
+
 	return (result);
 }
 
@@ -1391,7 +1470,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * lookup and iterate over the node.
 	 * XXXJT: this approach can cause a suboptimal result when the cache
 	 * DB only has partial address types and the glue DB has remaining
-	 * ones. 
+	 * ones.
 	 */
 	type = dns_rdatatype_any;
 
@@ -1682,7 +1761,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
  setcache:
 	/*
 	 * Set the new result in the cache if required.  We do not support
-	 * caching additional data from a cache DB. 
+	 * caching additional data from a cache DB.
 	 */
 	if (needadditionalcache == ISC_TRUE &&
 	    (additionaltype == dns_rdatasetadditional_fromauth ||
@@ -2429,20 +2508,20 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	 *   Given:
 	 *	example SOA
 	 *	example NSEC b.example
-	 * 	b.example A
-	 * 	b.example NSEC a.d.example
-	 * 	a.d.example A
-	 * 	a.d.example NSEC g.f.example
-	 * 	g.f.example A
-	 * 	g.f.example NSEC z.i.example
-	 * 	z.i.example A
-	 * 	z.i.example NSEC example
+	 *	b.example A
+	 *	b.example NSEC a.d.example
+	 *	a.d.example A
+	 *	a.d.example NSEC g.f.example
+	 *	g.f.example A
+	 *	g.f.example NSEC z.i.example
+	 *	z.i.example A
+	 *	z.i.example NSEC example
 	 *
 	 *   QNAME:
 	 *   a.example -> example NSEC b.example
-	 * 	owner common example
-	 * 	next common example
-	 * 	wild *.example
+	 *	owner common example
+	 *	next common example
+	 *	wild *.example
 	 *   d.b.example -> b.example NSEC a.d.example
 	 *	owner common b.example
 	 *	next common example
@@ -2453,7 +2532,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 	 *	wild *.f.example
 	 *  j.example -> z.i.example NSEC example
 	 *	owner common example
-	 * 	next common example
+	 *	next common example
 	 *	wild *.f.example
 	 */
 	options = client->query.dboptions | DNS_DBFIND_NOWILD;
@@ -2514,7 +2593,7 @@ query_addwildcardproof(ns_client_t *client, dns_db_t *db,
 			name = wname;
 			goto again;
 		}
-	} 
+	}
  cleanup:
 	if (rdataset != NULL)
 		query_putrdataset(client, &rdataset);
@@ -2777,7 +2856,7 @@ static isc_result_t
 rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 	struct in_addr ina;
 	struct in6_addr in6a;
-	
+
 	switch (rdata->type) {
 	case dns_rdatatype_a:
 		INSIST(rdata->length == 4);
@@ -2830,7 +2909,7 @@ setup_query_sortlist(ns_client_t *client) {
 	isc_netaddr_t netaddr;
 	dns_rdatasetorderfunc_t order = NULL;
 	void *order_arg = NULL;
-	
+
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (ns_sortlist_setup(client->view->sortlist,
 			       &netaddr, &order_arg)) {
@@ -3121,7 +3200,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 		goto resume;
 	}
-	
+
 	/*
 	 * Not returning from recursion.
 	 */
@@ -3216,7 +3295,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 
 	if (event == NULL && client->query.restarts == 0) {
 		if (is_zone) {
-			dns_zone_attach(zone, &client->query.authzone);
+#ifdef DLZ
+			if (zone != NULL) {
+				/*
+				 * if is_zone = true, zone = NULL then this is
+				 * a DLZ zone.  Don't attempt to attach zone.
+				 */
+#endif
+				dns_zone_attach(zone, &client->query.authzone);
+#ifdef DLZ
+			}
+#endif
 			dns_db_attach(db, &client->query.authdb);
 		}
 		client->query.authdbset = ISC_TRUE;
@@ -4131,10 +4220,10 @@ ns_query_start(ns_client_t *client) {
 
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		client->query.attributes |= NS_QUERYATTR_WANTRECURSION;
-	
+
 	if ((client->extflags & DNS_MESSAGEEXTFLAG_DO) != 0)
 		client->attributes |= NS_CLIENTATTR_WANTDNSSEC;
-	
+
 	if (client->view->minimalresponses)
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);

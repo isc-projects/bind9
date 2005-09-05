@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.136.18.11 2005/06/10 07:10:07 marka Exp $ */
+/* $Id: main.c,v 1.136.18.12 2005/09/05 00:18:10 marka Exp $ */
 
 /*! \file */
 
@@ -72,6 +72,13 @@
  * Include header files for database drivers here.
  */
 /* #include "xxdb.h" */
+
+/*
+ * Include DLZ drivers if appropriate.
+ */
+#ifdef DLZ
+#include <dlz/dlz_drivers.h>
+#endif
 
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
@@ -675,6 +682,16 @@ setup(void) {
 	 */
 	/* xxdb_init(); */
 
+#ifdef DLZ
+	/*
+	 * Registyer any DLZ drivers.
+	 */
+	result = dlz_drivers_init();
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("dlz_drivers_init() failed: %s",
+				   isc_result_totext(result));
+#endif
+
 	ns_server_create(ns_g_mctx, &ns_g_server);
 }
 
@@ -690,6 +707,13 @@ cleanup(void) {
 	 * Add calls to unregister sdb drivers here.
 	 */
 	/* xxdb_clear(); */
+
+#ifdef DLZ
+	/*
+	 * Unregister any DLZ drivers.
+	 */
+	dlz_drivers_clear();
+#endif
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.25 2005/08/25 00:05:47 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.26 2005/09/05 00:18:31 marka Exp $ */
 
 /*! \file */
 
@@ -108,6 +108,33 @@ static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
 static cfg_type_t cfg_type_zoneopts;
+static cfg_type_t cfg_type_dynamically_loadable_zones;
+static cfg_type_t cfg_type_dynamically_loadable_zones_opts;
+
+/*
+ * Clauses that can be found in a 'dynamically loadable zones' statement
+ */
+static cfg_clausedef_t
+dynamically_loadable_zones_clauses[] = {
+	{ "database", &cfg_type_astring, 0 },
+	{ NULL, NULL, 0 }
+};
+
+/*
+ * A dynamically loadable zones statement.
+ */
+static cfg_tuplefielddef_t dynamically_loadable_zones_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "options", &cfg_type_dynamically_loadable_zones_opts, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_dynamically_loadable_zones = {
+	"dlz", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple,
+	dynamically_loadable_zones_fields
+	};
+
 
 /*% tkey-dhkey */
 
@@ -567,6 +594,8 @@ static cfg_clausedef_t
 namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
+	/* only 1 DLZ per view allowed */
+ 	{ "dlz", &cfg_type_dynamically_loadable_zones, 0 },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
@@ -873,6 +902,7 @@ view_clausesets[] = {
 	namedconf_or_view_clauses,
 	view_clauses,
 	zone_clauses,
+ 	dynamically_loadable_zones_clauses,
 	NULL
 };
 static cfg_type_t cfg_type_viewopts = {
@@ -887,8 +917,22 @@ zone_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_zoneopts = {
-	"zoneopts", cfg_parse_map, cfg_print_map, cfg_doc_map, &cfg_rep_map, zone_clausesets };
-
+	"zoneopts", cfg_parse_map, cfg_print_map, 
+	cfg_doc_map, &cfg_rep_map, zone_clausesets };
+ 
+/*% The "dynamically loadable zones" statement syntax. */
+ 
+static cfg_clausedef_t *
+dynamically_loadable_zones_clausesets[] = {
+	dynamically_loadable_zones_clauses,
+ 	NULL
+};
+static cfg_type_t cfg_type_dynamically_loadable_zones_opts = {
+	"dynamically_loadable_zones_opts", cfg_parse_map, 
+	cfg_print_map, cfg_doc_map, &cfg_rep_map,
+	dynamically_loadable_zones_clausesets 
+};
+ 
 /*%
  * Clauses that can be found within the 'key' statement.
  */
@@ -905,7 +949,9 @@ key_clausesets[] = {
 	NULL
 };
 static cfg_type_t cfg_type_key = {
-	"key", cfg_parse_named_map, cfg_print_map, cfg_doc_map, &cfg_rep_map, key_clausesets };
+	"key", cfg_parse_named_map, cfg_print_map,
+	cfg_doc_map, &cfg_rep_map, key_clausesets 
+};
 
 
 /*%

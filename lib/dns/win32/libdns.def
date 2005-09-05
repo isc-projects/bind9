@@ -175,6 +175,13 @@ dns_dispatchmgr_destroy
 dns_dispatchmgr_getblackhole
 dns_dispatchmgr_setblackhole
 dns_dispatchmgr_setblackportlist
+dns_dlzallowzonexfr
+dns_dlzcreate
+dns_dlzdestroy
+dns_dlzfindzone
+dns_dlzregister
+dns_dlzstrtoargv
+dns_dlzunregister
 dns_dnssec_findzonekeys
 dns_dnssec_findzonekeys2
 dns_dnssec_keyfromrdata
@@ -504,6 +511,11 @@ dns_sdb_putrr
 dns_sdb_putsoa
 dns_sdb_register
 dns_sdb_unregister
+dns_sdlz_putnamedrr
+dns_sdlz_putrr
+dns_sdlz_putsoa
+dns_sdlzregister
+dns_sdlzunregister
 dns_secalg_fromtext
 dns_secalg_totext
 dns_secproto_fromtext
