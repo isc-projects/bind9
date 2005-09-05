@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.96 2005/07/18 05:58:59 marka Exp $ */
+/* $Id: view.h,v 1.97 2005/09/05 00:11:04 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -84,6 +84,7 @@ struct dns_view {
 	dns_rdataclass_t		rdclass;
 	char *				name;
 	dns_zt_t *			zonetable;
+	dns_dlzdb_t *			dlzdatabase;
 	dns_resolver_t *		resolver;
 	dns_adb_t *			adb;
 	dns_requestmgr_t *		requestmgr;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dir.c,v 1.22 2005/04/29 00:23:49 marka Exp $ */
+/* $Id: dir.c,v 1.23 2005/09/05 00:11:04 marka Exp $ */
 
 /*! \file
  * \author  Principal Authors: DCL */
@@ -57,10 +57,29 @@ isc_dir_init(isc_dir_t *dir) {
  */
 isc_result_t
 isc_dir_open(isc_dir_t *dir, const char *dirname) {
+	char *p;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_DIR(dir));
 	REQUIRE(dirname != NULL);
+
+	/*
+	 * Copy directory name.  Need to have enough space for the name,
+	 * a possible path separator, the wildcard, and the final NUL.
+	 */
+	if (strlen(dirname) + 3 > sizeof(dir->dirname))
+		/* XXXDCL ? */
+		return (ISC_R_NOSPACE);
+	strcpy(dir->dirname, dirname);
+
+	/*
+	 * Append path separator, if needed, and "*".
+	 */
+	p = dir->dirname + strlen(dir->dirname);
+	if (dir->dirname < p && *(p - 1) != '/')
+		*p++ = '/';
+	*p++ = '*';
+	*p++ = '\0';
 
 	/*
 	 * Open stream.

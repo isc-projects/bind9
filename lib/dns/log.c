@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.39 2005/04/29 00:22:48 marka Exp $ */
+/* $Id: log.c,v 1.40 2005/09/05 00:11:01 marka Exp $ */
 
 /*! \file */
 
@@ -77,6 +77,7 @@ LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/diff",		0 },
 	{ "dns/hints",		0 },
 	{ "dns/acache",		0 },
+	{ "dns/dlz",		0 },
 	{ NULL, 		0 }
 };
 

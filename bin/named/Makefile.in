@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.86 2005/01/12 01:56:06 marka Exp $
+# $Id: Makefile.in,v 1.87 2005/09/05 00:10:51 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -31,12 +31,20 @@ DBDRIVER_SRCS =
 DBDRIVER_INCLUDES =
 DBDRIVER_LIBS =
 
+DLZ_DRIVER_DIR =	${top_srcdir}/contrib/dlz/drivers
+
+DLZDRIVER_OBJS =	@DLZ_DRIVER_OBJS@
+DLZDRIVER_SRCS =	@DLZ_DRIVER_SRCS@
+DLZDRIVER_INCLUDES =	@DLZ_DRIVER_INCLUDES@
+DLZDRIVER_LIBS =	@DLZ_DRIVER_LIBS@
+
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include \
 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
-		${DBDRIVER_INCLUDES}
+		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES}
 
-CDEFINES =
+CDEFINES =      @USE_DLZ@
+
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
@@ -57,7 +65,8 @@ DEPLIBS =	${LWRESDEPLIBS} ${DNSDEPLIBS} ${BIND9DEPLIBS} \
 		${ISCCFGDEPLIBS} ${ISCCCDEPLIBS} ${ISCDEPLIBS}
 
 LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} \
-		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} ${DBDRIVER_LIBS} @LIBS@
+		${ISCCFGLIBS} ${ISCCCLIBS} ${ISCLIBS} \
+		${DLZDRIVER_LIBS} ${DBDRIVER_LIBS} @LIBS@
 
 SUBDIRS =	unix
 
@@ -71,7 +80,7 @@ OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
 		zoneconf.@O@ \
 		lwaddr.@O@ lwresd.@O@ lwdclient.@O@ lwderror.@O@ lwdgabn.@O@ \
 		lwdgnba.@O@ lwdgrbn.@O@ lwdnoop.@O@ lwsearch.@O@ \
-		$(DBDRIVER_OBJS)
+		${DLZDRIVER_OBJS} ${DBDRIVER_OBJS}
 
 UOBJS =		unix/os.@O@
 
@@ -83,7 +92,7 @@ SRCS =		builtin.c client.c config.c control.c \
 		zoneconf.c \
 		lwaddr.c lwresd.c lwdclient.c lwderror.c lwdgabn.c \
 		lwdgnba.c lwdgrbn.c lwdnoop.c lwsearch.c \
-		$(DBDRIVER_SRCS)
+		${DLZDRIVER_SRCS} ${DBDRIVER_SRCS}
 
 MANPAGES =	named.8 lwresd.8 named.conf.5
 
@@ -133,3 +142,4 @@ install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
 	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
 	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 
+@DLZ_DRIVER_RULES@

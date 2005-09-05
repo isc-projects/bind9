@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.119 2005/04/27 04:55:55 sra Exp $ */
+/* $Id: xfrout.c,v 1.120 2005/09/05 00:10:53 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,9 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#ifdef DLZ
+#include <dns/dlz.h>
+#endif
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/message.h>
@@ -905,6 +908,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	char msg[NS_CLIENT_ACLMSGSIZE("zone transfer")];
 	char keyname[DNS_NAME_FORMATSIZE];
 	isc_boolean_t is_poll = ISC_FALSE;
+#ifdef DLZ
+	isc_boolean_t is_dlz = ISC_FALSE;
+#endif
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -955,19 +961,71 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
 			     &zone);
+
 	if (result != ISC_R_SUCCESS)
-		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
-		      question_name, question_class);
-	switch(dns_zone_gettype(zone)) {
-	case dns_zone_master:
-	case dns_zone_slave:
-		break;	/* Master and slave zones are OK for transfer. */
-	default:
-		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
-		      question_name, question_class);
+#ifdef DLZ
+	{
+		/*
+		 * Normal zone table does not have a match.  Try the DLZ database
+		 */
+	    	if (client->view->dlzdatabase != NULL) {
+			result = dns_dlzallowzonexfr(client->view,
+						     question_name, &client->peeraddr,
+						     &db);
+
+			if (result == ISC_R_NOPERM) {
+				char _buf1[DNS_NAME_FORMATSIZE];
+				char _buf2[DNS_RDATACLASS_FORMATSIZE];
+
+				result = DNS_R_REFUSED;
+				dns_name_format(question_name, _buf1,
+						sizeof(_buf1));
+				dns_rdataclass_format(question_class,
+						      _buf2, sizeof(_buf2));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_XFER_OUT,
+					      ISC_LOG_ERROR,
+					      "zone transfer '%s/%s' denied",
+					      _buf1, _buf2);
+				goto failure;
+			}
+			if (result != ISC_R_SUCCESS)
+#endif
+			FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+				  question_name, question_class);
+#ifdef DLZ
+			is_dlz = ISC_TRUE;
+			/*
+			 * DLZ only support full zone transfer, not incremental
+			 */
+			if (reqtype != dns_rdatatype_axfr) {
+				mnemonic = "AXFR-style IXFR";
+				reqtype = dns_rdatatype_axfr;
+			}
+
+		} else {
+			/*
+		 	 * not DLZ and not in normal zone table, we are
+			 * not authoritative
+			 */
+			FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+			      question_name, question_class);
+		}
+	} else {
+		/* zone table has a match */
+#endif
+		switch(dns_zone_gettype(zone)) {
+			case dns_zone_master:
+			case dns_zone_slave:
+				break;	/* Master and slave zones are OK for transfer. */
+			default:
+				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone", question_name, question_class);
+			}
+		CHECK(dns_zone_getdb(zone, &db));
+		dns_db_currentversion(db, &ver);
+#ifdef DLZ
 	}
-	CHECK(dns_zone_getdb(zone, &db));
-	dns_db_currentversion(db, &ver);
+#endif
 
 	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
 		    "%s question section OK", mnemonic);
@@ -1023,11 +1081,20 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Decide whether to allow this transfer.
 	 */
-	ns_client_aclmsg("zone transfer", question_name, reqtype,
-			 client->view->rdclass, msg, sizeof(msg));
-	CHECK(ns_client_checkacl(client, msg,
-				 dns_zone_getxfracl(zone), ISC_TRUE,
-				 ISC_LOG_ERROR));
+#ifdef DLZ
+	/*
+	 * if not a DLZ zone decide whether to allow this transfer.
+	 */
+	if (!is_dlz) {
+#endif
+		ns_client_aclmsg("zone transfer", question_name, reqtype,
+				 client->view->rdclass, msg, sizeof(msg));
+		CHECK(ns_client_checkacl(client, msg,
+					 dns_zone_getxfracl(zone), ISC_TRUE,
+					 ISC_LOG_ERROR));
+#ifdef DLZ
+	}
+#endif
 
 	/*
 	 * AXFR over UDP is not possible.
@@ -1051,6 +1118,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Get a dynamically allocated copy of the current SOA.
 	 */
+#ifdef DLZ
+	if (is_dlz)
+		dns_db_currentversion(db, &ver);
+#endif
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
 
@@ -1133,15 +1204,32 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * Create the xfrout context object.  This transfers the ownership
 	 * of "stream", "db", "ver", and "quota" to the xfrout context object.
 	 */
-	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
-				reqtype, question_class, db, ver, quota,
-				stream, dns_message_gettsigkey(request),
-				tsigbuf,
-				dns_zone_getmaxxfrout(zone),
-				dns_zone_getidleout(zone),
-				(format == dns_many_answers) ?
-					ISC_TRUE : ISC_FALSE,
-				&xfr));
+
+
+
+#ifdef DLZ
+	if (is_dlz)
+ 		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
+ 					reqtype, question_class, db, ver, quota,
+ 					stream, dns_message_gettsigkey(request),
+ 					tsigbuf,
+ 					3600,
+ 					3600,
+ 					(format == dns_many_answers) ?
+  					ISC_TRUE : ISC_FALSE,
+ 					&xfr));
+ 	else
+#endif
+ 		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
+ 					reqtype, question_class, db, ver, quota,
+ 					stream, dns_message_gettsigkey(request),
+ 					tsigbuf,
+ 					dns_zone_getmaxxfrout(zone),
+ 					dns_zone_getidleout(zone),
+ 					(format == dns_many_answers) ?
+ 					ISC_TRUE : ISC_FALSE,
+ 					&xfr));
+
 	xfr->mnemonic = mnemonic;
 	stream = NULL;
 	quota = NULL;

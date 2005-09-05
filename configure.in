@@ -18,10 +18,10 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.391 $)
+AC_REVISION($Revision: 1.392 $)
 
 AC_INIT(lib/dns/name.c)
-AC_PREREQ(2.13)
+AC_PREREQ(2.59)
 
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_SUBDIRS(lib/bind)
@@ -37,6 +37,13 @@ AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
 AC_SUBST(STD_CWARNINGS)
 AC_SUBST(CCOPT)
+
+#
+# Make very sure that these are the first files processed by
+# config.status, since we use the processed output as the input for
+# AC_SUBST_FILE() subsitutions in other files.
+#
+AC_CONFIG_FILES([make/rules make/includes])
 
 AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
@@ -354,6 +361,7 @@ AC_SUBST(LWRES_PLATFORM_NEEDSYSSELECTH)
 # Find the machine's endian flavor.
 #
 AC_C_BIGENDIAN
+
 
 #
 # was --with-openssl specified?
@@ -978,6 +986,7 @@ case "$enable_libbind" in
 	no|'')
 		;;
 esac
+
 
 #
 # Here begins a very long section to determine the system's networking
@@ -2181,6 +2190,46 @@ AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API=$srcdir/lib/lwres/api
 
 #
+# Configure any DLZ drivers.
+#
+# If config.dlz.in selects one or more DLZ drivers, it will set
+# USE_DLZ to a non-empty value, which will be our clue to
+# enable the DLZ core functions.
+#
+# This section has to come after the libtool stuff because it needs to
+# know how to name the driver object files.
+#
+
+USE_DLZ=""
+DLZ_DRIVER_INCLUDES=""
+DLZ_DRIVER_LIBS=""
+DLZ_DRIVER_SRCS=""
+DLZ_DRIVER_OBJS=""
+
+sinclude(contrib/dlz/config.dlz.in)
+
+AC_MSG_CHECKING(for DLZ)
+
+if test -n "$USE_DLZ"
+then
+	AC_MSG_RESULT(yes)
+	USE_DLZ="-DDLZ $USE_DLZ"
+	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
+	AC_CONFIG_FILES([$DLZ_DRIVER_RULES])
+else
+	AC_MSG_RESULT(no)
+	DLZ_DRIVER_RULES=/dev/null
+fi
+
+AC_SUBST(USE_DLZ)
+AC_SUBST(DLZ_DRIVER_INCLUDES)
+AC_SUBST(DLZ_DRIVER_LIBS)
+AC_SUBST(DLZ_DRIVER_SRCS)
+AC_SUBST(DLZ_DRIVER_OBJS)
+AC_SUBST_FILE(DLZ_DRIVER_RULES)
+
+
+#
 # Commands to run at the end of config.status.
 # Don't just put these into configure, it won't work right if somebody
 # runs config.status directly (which autoconf allows).
@@ -2191,12 +2240,12 @@ AC_CONFIG_COMMANDS(
 	[chmod a+x isc-config.sh])
 
 #
-# Do it
+# Files to configure.  These are listed here because we used to
+# specify them as arguments to AC_OUTPUT.  It's (now) ok to move these
+# elsewhere if there's a good reason for doing so.
 #
 
-AC_OUTPUT(
-	make/rules
-	make/includes
+AC_CONFIG_FILES([
 	Makefile
 	make/Makefile
 	make/mkdep
@@ -2271,7 +2320,13 @@ AC_OUTPUT(
 	doc/xsl/isc-docbook-html.xsl
 	doc/xsl/isc-docbook-latex.xsl
 	doc/xsl/isc-manpage.xsl
-)
+])
+
+#
+# Do it
+#
+
+AC_OUTPUT
 
 # Tell Emacs to edit this file in shell mode.
 # Local Variables:

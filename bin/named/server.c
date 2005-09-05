@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.449 2005/08/23 02:36:07 marka Exp $ */
+/* $Id: server.c,v 1.450 2005/09/05 00:10:52 marka Exp $ */
 
 /*! \file */
 
@@ -48,6 +48,9 @@
 #include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#ifdef DLZ
+#include <dns/dlz.h>
+#endif
 #include <dns/forward.h>
 #include <dns/journal.h>
 #include <dns/keytable.h>
@@ -826,6 +829,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	cfg_obj_t *forwarders;
 	cfg_obj_t *alternates;
 	cfg_obj_t *zonelist;
+#ifdef DLZ
+ 	cfg_obj_t *dlz;
+ 	unsigned int dlzargc;
+ 	char **dlzargv;
+#endif
 	cfg_obj_t *disabled;
 	cfg_obj_t *obj;
 	cfg_listelt_t *element;
@@ -953,6 +961,45 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
 				     actx));
 	}
+
+#ifdef DLZ
+	/*
+	 * Create Dynamically Loadable Zone driver.
+	 */
+	dlz = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "dlz", &dlz);
+	else
+		(void)cfg_map_get(config, "dlz", &dlz);
+
+	obj = NULL;
+	if (dlz != NULL) {
+		(void)cfg_map_get(cfg_tuple_get(dlz, "options"),
+				  "database", &obj);
+		if (obj != NULL) {
+			char *s = isc_mem_strdup(mctx, cfg_obj_asstring(obj));
+			if (s == NULL) {
+				result = ISC_R_NOMEMORY;
+				goto cleanup;
+			}
+			
+			result = dns_dlzstrtoargv(mctx, s, &dlzargc, &dlzargv);
+			if (result != ISC_R_SUCCESS) {
+				isc_mem_free(mctx, s);
+				goto cleanup;
+			}
+
+			obj = cfg_tuple_get(dlz, "name");
+			result = dns_dlzcreate(mctx, cfg_obj_asstring(obj),
+					       dlzargv[0], dlzargc, dlzargv,
+					       &view->dlzdatabase);
+			isc_mem_free(mctx, s);
+			isc_mem_put(mctx, dlzargv, dlzargc * sizeof(*dlzargv));
+			if (result == ISC_R_SUCCESS)
+				goto cleanup;
+		}
+	}
+#endif
 
 	/*
 	 * Configure the view's cache.  Try to reuse an existing
