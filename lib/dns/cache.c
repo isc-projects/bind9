@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.57.18.6 2005/08/23 02:31:37 marka Exp $ */
+/* $Id: cache.c,v 1.57.18.7 2005/09/05 02:30:51 marka Exp $ */
 
 /*! \file */
 
@@ -209,7 +209,7 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 	else if (new > DNS_CACHE_CLEANERINCREMENT)
 		new = DNS_CACHE_CLEANERINCREMENT;
 
-	cleaner->increment = new;
+	cleaner->increment = (unsigned int)new;
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_INFO, "new clear->increment = %u\n",
 		      cleaner->increment);

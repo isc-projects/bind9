@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.6 2005/08/15 01:46:50 marka Exp $ */
+/* $Id: masterdump.c,v 1.73.18.7 2005/09/05 02:30:51 marka Exp $ */
 
 /*! \file */
 
@@ -1389,7 +1389,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 				dctx->nodes = 1000;
 		} else {
 			dctx->nodes = dctx->nodes * interval;
-			dctx->nodes /= usecs;
+			dctx->nodes /= (unsigned int)usecs;
 			if (dctx->nodes == 0)
 				dctx->nodes = 1;
 			else if (dctx->nodes > 1000)

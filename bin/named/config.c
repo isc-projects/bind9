@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.14 2005/09/05 02:07:45 marka Exp $ */
+/* $Id: config.c,v 1.47.18.15 2005/09/05 02:30:50 marka Exp $ */
 
 /*! \file */
 
@@ -414,8 +414,6 @@ get_masters_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 	return (ISC_R_NOTFOUND);
 }
 
-typedef const char *dns_ccharp_t;
-
 isc_result_t
 ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			  isc_sockaddr_t **addrsp, dns_name_t ***keysp,
@@ -432,7 +430,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 	dns_fixedname_t fname;
 	isc_sockaddr_t *addrs = NULL;
 	dns_name_t **keys = NULL;
-	dns_ccharp_t *lists = NULL;
+	struct { const char *name; } *lists = NULL;
 	struct {
 		cfg_listelt_t *element;
 		in_port_t port;
@@ -500,7 +498,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			}
 			/* Seen? */
 			for (j = 0; j < l; j++)
-				if (strcasecmp(lists[j], listname) == 0)
+				if (strcasecmp(lists[j].name, listname) == 0)
 					break;
 			if (j < l)
 				continue;
@@ -514,7 +512,7 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			}
 			if (tresult != ISC_R_SUCCESS)
 				goto cleanup;
-			lists[l++] = listname;
+			lists[l++].name = listname;
 			/* Grow stack? */
 			if (stackcount == pushed) {
 				void * new;
