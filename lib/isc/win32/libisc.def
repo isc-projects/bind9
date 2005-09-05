@@ -296,6 +296,7 @@ isc_ratelimiter_enqueue
 isc_ratelimiter_setinterval
 isc_ratelimiter_setpertic
 isc_ratelimiter_shutdown
+isc_refcount_init
 isc_region_compare
 isc_resource_getlimit
 isc_resource_setlimit
