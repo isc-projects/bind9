@@ -1811,7 +1811,7 @@
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005
 ./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004,2005
-./lib/dns/rdata/generic/ds_43.c			C	2002,2004
+./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005
 ./lib/dns/rdata/generic/ds_43.h			C	2002,2004,2005
 ./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002,2004,2005
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004,2005
