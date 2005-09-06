@@ -1134,6 +1134,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2005
 ./doc/arm/Bv9ARM.ch10.html			X	2005
 ./doc/arm/Bv9ARM.html				X	2000,2001,2005
+./doc/arm/Bv9ARM.pdf				X	2005
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005
