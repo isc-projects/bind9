@@ -3,6 +3,7 @@
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
 ./EXCLUDED					X	2001,2002,2003
 ./FAQ						X	2000,2001,2005
+./FAQ.xml					SGML	2005
 ./Makefile.in					MAKE	1998,1999,2000,2001,2003,2004
 ./README					X	1999,2000,2001,2005
 ./acconfig.h					C	1999,2000,2001,2003,2004
@@ -160,7 +161,7 @@
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2004
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004
 ./bin/named/xfrout.c				C	1999,2000,2001,2003,2004
-./bin/named/zoneconf.c				C	1999,2000,2001,2004
+./bin/named/zoneconf.c				C	1999,2000,2001,2004,2005
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2004
 ./bin/nsupdate/nsupdate.8			MAN	DOCBOOK
@@ -925,6 +926,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.3rc1-patch	X	2003
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.4-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.5-patch	X	2004
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.6-patch	X	2005
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
@@ -1040,10 +1042,10 @@
 ./contrib/sdb/ldap/ldapdb.c			X	2001
 ./contrib/sdb/ldap/ldapdb.h			X	2001
 ./contrib/sdb/ldap/zone2ldap.1			X	2001
-./contrib/sdb/ldap/zone2ldap.c			X	2001
+./contrib/sdb/ldap/zone2ldap.c			X	2001,2005
 ./contrib/sdb/pgsql/pgsqldb.c			C	2000,2001,2002,2004
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2002,2004
-./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004
+./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001,2002,2004
 ./contrib/sdb/tcl/tcldb.c			C	2002,2004
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001,2002,2004
@@ -1188,7 +1190,7 @@
 ./lib/bind/include/netdb.h			X	2001
 ./lib/bind/include/netgroup.h			X	2001
 ./lib/bind/include/res_update.h			X	2001
-./lib/bind/include/resolv.h			X	2001
+./lib/bind/include/resolv.h			X	2001,2005
 ./lib/bind/include/resolv_mt.h			X	2005
 ./lib/bind/inet/.cvsignore			X	2001
 ./lib/bind/inet/Makefile.in			MAKE	2001,2004
@@ -1231,12 +1233,12 @@
 ./lib/bind/irs/getgrent.c			X	2001
 ./lib/bind/irs/getgrent_r.c			X	2001
 ./lib/bind/irs/gethostent.c			X	2001
-./lib/bind/irs/gethostent_r.c			X	2001
+./lib/bind/irs/gethostent_r.c			X	2001,2005
 ./lib/bind/irs/getnameinfo.c			X	2001
 ./lib/bind/irs/getnetent.c			X	2001
-./lib/bind/irs/getnetent_r.c			X	2001
+./lib/bind/irs/getnetent_r.c			X	2001,2005
 ./lib/bind/irs/getnetgrent.c			X	2001
-./lib/bind/irs/getnetgrent_r.c			X	2001
+./lib/bind/irs/getnetgrent_r.c			X	2001,2005
 ./lib/bind/irs/getprotoent.c			X	2001
 ./lib/bind/irs/getprotoent_r.c			X	2001
 ./lib/bind/irs/getpwent.c			X	2001
@@ -1319,7 +1321,7 @@
 ./lib/bind/nameser/ns_date.c			X	2001
 ./lib/bind/nameser/ns_name.c			X	2001
 ./lib/bind/nameser/ns_netint.c			X	2001
-./lib/bind/nameser/ns_parse.c			X	2001
+./lib/bind/nameser/ns_parse.c			X	2001,2005
 ./lib/bind/nameser/ns_print.c			X	2001
 ./lib/bind/nameser/ns_samedomain.c		X	2001
 ./lib/bind/nameser/ns_sign.c			X	2001
@@ -1608,7 +1610,7 @@
 ./lib/dns/include/dns/log.h			C	1999,2000,2001,2003,2004
 ./lib/dns/include/dns/lookup.h			C	2000,2001,2004
 ./lib/dns/include/dns/master.h			C	1999,2000,2001,2003,2004
-./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2004
+./lib/dns/include/dns/masterdump.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/message.h			C	1999,2000,2001,2002,2004
 ./lib/dns/include/dns/name.h			C	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/ncache.h			C	1999,2000,2001,2004
