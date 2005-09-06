@@ -1672,7 +1672,7 @@
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/dlz.c					C	2005
+./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/ds.c					C	2002,2003,2004,2005
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005
@@ -1707,7 +1707,7 @@
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005
 ./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/include/dns/dlz.h			C	2005
+./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005
 ./lib/dns/include/dns/events.h			C	1999,2000,2001,2002,2004,2005
@@ -1744,7 +1744,7 @@
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005
-./lib/dns/include/dns/sdlz.h			C	2005
+./lib/dns/include/dns/sdlz.h			C.PORTION	1999,2000,2001,2005
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/soa.h			C	2000,2001,2004,2005
@@ -1912,7 +1912,7 @@
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005
-./lib/dns/sdlz.c				C	2005
+./lib/dns/sdlz.c				C.PORTION	1991,2000,2001.2005
 ./lib/dns/soa.c					C	2000,2001,2004,2005
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005
 ./lib/dns/stats.c				C	2000,2001,2004,2005
