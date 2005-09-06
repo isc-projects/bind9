@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.7 2004/03/18 02:58:04 marka Exp $ */
+/* $Id: ds_43.c,v 1.7.18.1 2005/09/06 06:48:39 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -28,6 +28,7 @@
 static inline isc_result_t
 fromtext_ds(ARGS_FROMTEXT) {
 	isc_token_t token;
+	unsigned char c;
 
 	REQUIRE(type == 43);
 
@@ -49,11 +50,10 @@ fromtext_ds(ARGS_FROMTEXT) {
 	/*
 	 * Algorithm.
 	 */
-	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
+	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      ISC_FALSE));
-	if (token.value.as_ulong > 0xffU)
-		RETTOK(ISC_R_RANGE);
-	RETERR(uint8_tobuffer(token.value.as_ulong, target));
+	RETTOK(dns_secalg_fromtext(&c, &token.value.as_textregion));
+	RETERR(mem_tobuffer(target, &c, 1));
 
 	/*
 	 * Digest type.
