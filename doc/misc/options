@@ -239,6 +239,9 @@ view <string> <optional_class> {
                 check-mx ( fail | warn | ignore );
                 check-sibling <boolean>;
         };
+        dlz <string> {
+                database <string>;
+        };
         server <netprefix> {
                 bogus <boolean>;
                 provide-ixfr <boolean>;
@@ -345,6 +348,7 @@ view <string> <optional_class> {
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-sibling <boolean>;
+        database <string>;
 };
 
 lwres {
@@ -417,6 +421,10 @@ zone <string> <optional_class> {
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
         check-sibling <boolean>;
+};
+
+dlz <string> {
+        database <string>;
 };
 
 server <netprefix> {
