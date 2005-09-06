@@ -19,7 +19,7 @@ and install.
 Index: README.idnkit
 --- /dev/null	Tue Sep  6 10:40:08 2005
 +++ README.idnkit	Tue Sep  6 10:24:31 2005
-@@ -0,0 +1,226 @@
+@@ -0,0 +1,112 @@
 +
 +			BIND-9 IDN patch
 +
