@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl -w
 #
 # Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 1998-2001, 2003  Internet Software Consortium.
+# Copyright (C) 1998-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: merge_copyrights,v 1.16.2.9 2005/09/06 01:17:56 marka Exp $
+# $Id: merge_copyrights,v 1.16.2.10 2005/09/06 02:11:55 marka Exp $
 
 %file_types = ();
 %file_years = ();
