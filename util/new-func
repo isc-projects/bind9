@@ -1,7 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2001-2003  Internet Software Consortium.
+# Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: new-func,v 1.1 2005/09/02 06:15:42 marka Exp $
+# $Id: new-func,v 1.2 2005/09/06 03:51:37 marka Exp $
 
 # Given two CHANGES files, list [bug] entries present in the
 # first one but not in the second one.
