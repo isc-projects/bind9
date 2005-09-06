@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.28 2005/09/01 03:16:10 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.29 2005/09/06 00:54:53 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -5066,6 +5066,5 @@ prove_nx(dns_message_t *msg, dns_name_t *name, dns_rdataclass_t class,
 				      rdataset, sigrdataset);
 		return (ret);
 	}
-:q: Command not found.
 }
 #endif
