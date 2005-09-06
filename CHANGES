@@ -1,3 +1,6 @@
+
+	--- 9.2.6b1 released ---
+
 1911.	[bug]		Update windows socket code. [RT #14965]
 
 1905.	[bug]		Strings returned from cfg_obj_asstring() should be
