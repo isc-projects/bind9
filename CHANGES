@@ -1,3 +1,6 @@
+
+	--- 9.3.2b1 released ---
+
 1911.	[bug]		Update windows socket code. [RT #14965]
 
 1910.	[bug]		dig's +sigchase code overhauled. [RT #14933]
