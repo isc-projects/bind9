@@ -20,6 +20,7 @@ openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
 rt11382				open	sra	// dlz
 rt11398a			open	sra	// doxygen dev
+rt11398d			new	
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
