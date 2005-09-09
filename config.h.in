@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.60.18.9 2005/07/18 05:19:42 marka Exp $ */
+/* $Id: config.h.in,v 1.60.18.11 2005/09/09 06:22:03 marka Exp $ */
 
 /*! \file */
 
@@ -180,11 +180,17 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <linux/capability.h> header file. */
 #undef HAVE_LINUX_CAPABILITY_H
 
+/* Define to 1 if you have the <locale.h> header file. */
+#undef HAVE_LOCALE_H
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
 /* Define to 1 if you have the <net/if6.h> header file. */
 #undef HAVE_NET_IF6_H
+
+/* Define to 1 if you have the `setlocale' function. */
+#undef HAVE_SETLOCALE
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -266,6 +272,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
+
+/* define if idnkit support is to be included. */
+#undef WITH_IDN
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
