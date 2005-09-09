@@ -5,6 +5,7 @@
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005
 ./README					X	1999,2000,2001,2005
+./README.idnkit					X	2005
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005
 ./aclocal.m4					X	1999,2000,2001
 ./bin/.cvsignore				X	1999,2000,2001
@@ -28,7 +29,7 @@
 ./bin/check/win32/namedcheckzone.dsw		X	2001
 ./bin/check/win32/namedcheckzone.mak		X	2001,2005
 ./bin/dig/.cvsignore				X	2000,2001
-./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004
+./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005
@@ -2164,7 +2165,7 @@
 ./lib/isc/win32/include/isc/stdtime.h		C	1999,2000,2001,2004,2005
 ./lib/isc/win32/include/isc/strerror.h		C	2001,2004
 ./lib/isc/win32/include/isc/syslog.h		C	1999,2000,2001,2004
-./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004
+./lib/isc/win32/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005
 ./lib/isc/win32/include/isc/time.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/win32os.h		C	2002,2004
 ./lib/isc/win32/interfaceiter.c			C	1999,2000,2001,2004
@@ -2187,7 +2188,7 @@
 ./lib/isc/win32/strerror.c			C	2001,2002,2004
 ./lib/isc/win32/syslog.c			C	2001,2002,2003,2004
 ./lib/isc/win32/syslog.h			C	2001,2002,2004
-./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004
+./lib/isc/win32/thread.c			C	1998,1999,2000,2001,2004,2005
 ./lib/isc/win32/time.c				C	1998,1999,2000,2001,2003,2004
 ./lib/isc/win32/unistd.h			C	2000,2001,2004
 ./lib/isc/win32/version.c			C	1998,1999,2000,2001,2004
