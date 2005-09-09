@@ -139,6 +139,10 @@ isc_interfaceiter_first
 isc_interfaceiter_next
 isc_interval_iszero
 isc_interval_set
+isc_key_create
+isc_key_destroy
+isc_key_getspecific
+isc_key_setspecific
 isc_keyboard_canceled
 isc_keyboard_close
 isc_keyboard_getchar

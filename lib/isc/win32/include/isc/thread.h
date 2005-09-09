@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.16 2004/03/05 05:12:06 marka Exp $ */
+/* $Id: thread.h,v 1.16.18.1 2005/09/09 12:31:53 marka Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -68,6 +68,7 @@ typedef HANDLE isc_thread_t;
 typedef unsigned int isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (WINAPI *isc_threadfunc_t)(isc_threadarg_t);
+typedef DWORD isc_thread_key_t;
 
 #define isc_thread_self (unsigned long)GetCurrentThreadId
 
@@ -81,6 +82,18 @@ isc_thread_join(isc_thread_t, isc_threadresult_t *);
 
 void
 isc_thread_setconcurrency(unsigned int level);
+
+int
+isc_key_create(isc_thread_key_t *key, void (*func)(void *));
+
+int
+isc_key_destroy(isc_thread_key_t key);
+
+void *
+isc_key_getspecific(isc_thread_key);
+
+int
+isc_key_setspecific(isc_thread_key_t key, void *value);
 
 ISC_LANG_ENDDECLS
 

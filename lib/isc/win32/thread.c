@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.18 2004/03/05 05:11:59 marka Exp $ */
+/* $Id: thread.c,v 1.18.18.1 2005/09/09 12:31:53 marka Exp $ */
 
 #include <config.h>
 
@@ -66,3 +66,26 @@ isc_thread_setconcurrency(unsigned int level) {
 	 * call exists
 	 */
 }
+
+void *
+isc_key_getspecific(isc_thread_key_t key) {
+	return(TlsGetValue(key));
+}
+
+int
+isc_key_setspecific(isc_thread_key_t key, void *value) {
+	return (TlsSetValue(key, value) ? 0 : GetLastError());
+}
+
+int
+isc_key_create(isc_thread_key_t *key, void (*func)(void *)) {
+	*key = TlsAlloc();
+
+	return ((*key == -1) ? 0 : GetLastError());
+}
+
+int
+isc_key_destroy(isc_thread_key_t key) {
+	return (TlsFree(key) ? 0 : GetLastError());
+}
+			
