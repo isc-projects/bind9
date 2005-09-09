@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.29 2005/09/06 00:54:53 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.30 2005/09/09 00:29:10 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -963,8 +963,10 @@ setup_system(void) {
 		}
 	}
 			
-	ndots = lwconf->ndots;
-	debug("ndots is %d.", ndots);
+	if (ndots == -1) {
+		ndots = lwconf->ndots;
+		debug("ndots is %d.", ndots);
+	}
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (lwconf->nsnext == 0) {
