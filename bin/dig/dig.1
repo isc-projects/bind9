@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.33 2005/08/30 04:18:54 marka Exp $
+.\" $Id: dig.1,v 1.34 2005/09/09 13:40:37 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -230,6 +230,9 @@ A global set of query options, which should be applied to all queries, can also 
 dig +qr www\&.isc\&.org any \-x 127\&.0\&.0\&.1 isc\&.org ns +noqr
 .fi
  shows how \fBdig\fR could be used from the command line to make three lookups: an ANY query for www\&.isc\&.org, a reverse lookup of 127\&.0\&.0\&.1 and a query for the NS records of isc\&.org\&. A global query option of \fI+qr\fR is applied, so that \fBdig\fR shows the initial query it made for each lookup\&. The final query has a local query option of \fI+noqr\fR which means that \fBdig\fR will not print the initial query when it looks up the NS records for isc\&.org\&.
+.SH "IDN SUPPORT"
+.PP
+If \fBdig\fR has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names\&. \fBdig\fR appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you'd like to turn off the IDN support for some reason, defines the \fBIDN_DISABLE\fR environment variable\&. The IDN support is disabled if the variable is set when \fBdig\fR runs\&.
 .SH "FILES"
 .PP
 \fI/etc/resolv\&.conf\fR 
