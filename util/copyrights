@@ -992,7 +992,6 @@
 ./contrib/idn/idnkit-1.0-src/mkinstalldirs	X	2003
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.1-patch	X	2003
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.2-patch	X	2003
-./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.4.0-patch	X	2005
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
