@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: host.1,v 1.14.18.8 2005/08/25 02:54:35 marka Exp $
+.\" $Id: host.1,v 1.14.18.9 2005/09/09 13:29:52 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -77,6 +77,9 @@ The time to wait for a reply can be controlled through the \fB\-W\fR and \fB\-w\
 The \fB\-s\fR option tells \fBhost\fR  \fInot\fR to send the query to the next nameserver if any server responds with a SERVFAIL response, which is the reverse of normal stub resolver behaviour\&.
 .PP
 The \fB\-m\fR can be used to set the memory usage debugging flags \fIrecord\fR, \fIusage\fR and \fItrace\fR\&.
+.SH "IDN SUPPORT"
+.PP
+If \fBhost\fR has been built with IDN (internationalized domain name) support, it can accept and display non\-ASCII domain names\&. \fBhost\fR appropriately converts character encoding of domain name before sending a request to DNS server or displaying a reply from the server\&. If you'd like to turn off the IDN support for some reason, defines the \fBIDN_DISABLE\fR environment variable\&. The IDN support is disabled if the variable is set when \fBhost\fR runs\&.
 .SH "FILES"
 .PP
 \fI/etc/resolv\&.conf\fR 
