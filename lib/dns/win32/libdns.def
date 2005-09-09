@@ -329,6 +329,7 @@ dns_name_print
 dns_name_rdatacompare
 dns_name_reset
 dns_name_setbuffer
+dns_name_settotextfilter
 dns_name_split
 dns_name_tofilenametext
 dns_name_toregion

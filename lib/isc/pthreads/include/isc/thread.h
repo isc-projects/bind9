@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.22 2005/04/29 00:23:49 marka Exp $ */
+/* $Id: thread.h,v 1.23 2005/09/09 06:14:00 marka Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -33,6 +33,7 @@ typedef pthread_t isc_thread_t;
 typedef void * isc_threadresult_t;
 typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
+typedef pthread_key_t isc_thread_key_t;
 
 isc_result_t
 isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
@@ -48,6 +49,11 @@ isc_thread_setconcurrency(unsigned int level);
 
 #define isc_thread_self \
 	(unsigned long)pthread_self
+
+#define isc_key_create pthread_key_create
+#define isc_key_getspecific pthread_getspecific
+#define isc_key_setspecific pthread_setspecific
+#define isc_key_delete pthread_key_delete
 
 ISC_LANG_ENDDECLS
 

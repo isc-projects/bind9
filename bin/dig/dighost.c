@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.285 2005/09/08 23:59:45 marka Exp $ */
+/* $Id: dighost.c,v 1.286 2005/09/09 06:13:59 marka Exp $ */
 
 /*! \file
  *  \note
@@ -32,6 +32,17 @@
 #include <unistd.h>
 #include <string.h>
 #include <limits.h>
+
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
+#ifdef WITH_IDN
+#include <idn/result.h>
+#include <idn/log.h>
+#include <idn/resconf.h>
+#include <idn/api.h>
+#endif
 
 #include <dns/byaddr.h>
 #ifdef DIG_SIGCHASE
@@ -122,6 +133,18 @@ int sockcount = 0;
 int ndots = -1;
 int tries = 3;
 int lookup_counter = 0;
+
+#ifdef WITH_IDN
+static void		initialize_idn(void);
+static isc_result_t	output_filter(isc_buffer_t *buffer,
+				      unsigned int used_org,
+				      isc_boolean_t absolute);
+static idn_result_t	append_textname(char *name, const char *origin,
+					size_t namesize);
+static void		idn_check_result(idn_result_t r, const char *msg);
+
+#define MAXDLEN		256
+#endif
 
 /*%
  * Exit Codes:
@@ -992,6 +1015,10 @@ setup_system(void) {
 	if (ISC_LIST_EMPTY(server_list))
 		copy_server_list(lwconf, &server_list);
 
+#ifdef WITH_IDN
+	initialize_idn();
+#endif
+
 	if (keyfile[0] != 0)
 		setup_file_key();
 	else if (keysecret[0] != 0)
@@ -1650,6 +1677,15 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_t b;
 	dns_compress_t cctx;
 	char store[MXNAME];
+#ifdef WITH_IDN
+	idn_result_t mr;
+	char utf8_textname[MXNAME], utf8_origin[MXNAME], idn_textname[MXNAME];
+#endif
+
+#ifdef WITH_IDN
+	result = dns_name_settotextfilter(output_filter);
+	check_result(result, "dns_name_settotextfilter");
+#endif
 
 	REQUIRE(lookup != NULL);
 	INSIST(!free_now);
@@ -1678,6 +1714,17 @@ setup_lookup(dig_lookup_t *lookup) {
 	isc_buffer_init(&lookup->onamebuf, lookup->onamespace,
 			sizeof(lookup->onamespace));
 
+#ifdef WITH_IDN
+	/*
+	 * We cannot convert `textname' and `origin' separately.
+	 * `textname' doesn't contain TLD, but local mapping needs
+	 * TLD.
+	 */
+	mr = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP, lookup->textname,
+			    utf8_textname, sizeof(utf8_textname));
+	idn_check_result(mr, "convert textname to UTF-8");
+#endif
+
 	/*
 	 * If the name has too many dots, force the origin to be NULL
 	 * (which produces an absolute lookup).  Otherwise, take the origin
@@ -1686,11 +1733,33 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
 	/* XXX New search here? */
+#ifdef WITH_IDN
+	if ((count_dots(utf8_textname) >= ndots) || !usesearch)
+		lookup->origin = NULL; /* Force abs lookup */
+	else if (lookup->origin == NULL && lookup->new_search && usesearch)
+               lookup->origin = ISC_LIST_HEAD(search_list);
+#else
 	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
 		lookup->origin = NULL; /* Force abs lookup */
 	else if (lookup->origin == NULL && lookup->new_search && usesearch)
 		lookup->origin = ISC_LIST_HEAD(search_list);
+#endif
 
+#ifdef WITH_IDN
+	if (lookup->origin != NULL) {
+		mr = idn_encodename(IDN_LOCALCONV | IDN_DELIMMAP,
+				    lookup->origin->origin, utf8_origin,
+				    sizeof(utf8_origin));
+		idn_check_result(mr, "convert origin to UTF-8");
+		mr = append_textname(utf8_textname, utf8_origin,
+				     sizeof(utf8_textname));
+		idn_check_result(mr, "append origin to textname");
+	}
+	mr = idn_encodename(IDN_LOCALMAP | IDN_NAMEPREP | IDN_ASCCHECK |
+			    IDN_IDNCONV | IDN_LENCHECK, utf8_textname,
+			    idn_textname, sizeof(idn_textname));
+	idn_check_result(mr, "convert UTF-8 textname to IDN encoding");
+#else
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
 		result = dns_message_gettempname(lookup->sendmsg,
@@ -1731,11 +1800,22 @@ setup_lookup(dig_lookup_t *lookup) {
 			      lookup->textname, isc_result_totext(result));
 		}
 		dns_message_puttempname(lookup->sendmsg, &lookup->oname);
-	} else {
+	} else
+#endif
+	{
 		debug("using root origin");
 		if (lookup->trace && lookup->trace_root)
 			dns_name_clone(dns_rootname, lookup->name);
 		else {
+#ifdef WITH_IDN
+			len = strlen(idn_textname);
+			isc_buffer_init(&b, idn_textname, len);
+			isc_buffer_add(&b, len);
+			result = dns_name_fromtext(lookup->name, &b,
+						   dns_rootname,
+						   ISC_FALSE,
+						   &lookup->namebuf);
+#else
 			len = strlen(lookup->textname);
 			isc_buffer_init(&b, lookup->textname, len);
 			isc_buffer_add(&b, len);
@@ -1743,6 +1823,7 @@ setup_lookup(dig_lookup_t *lookup) {
 						   dns_rootname,
 						   ISC_FALSE,
 						   &lookup->namebuf);
+#endif
 		}
 		if (result != ISC_R_SUCCESS) {
 			dns_message_puttempname(lookup->sendmsg,
@@ -3249,8 +3330,104 @@ destroy_libs(void) {
 		isc_mem_destroy(&mctx);
 }
 
- 
+#ifdef WITH_IDN
+static void
+initialize_idn(void) {
+	idn_result_t r;
+	isc_result_t result;
 
+#ifdef HAVE_SETLOCALE
+	/* Set locale */
+	(void)setlocale(LC_ALL, "");
+#endif
+	/* Create configuration context. */
+	r = idn_nameinit(1);
+	if (r != idn_success)
+		fatal("idn api initialization failed: %s",
+		      idn_result_tostring(r));
+
+	/* Set domain name -> text post-conversion filter. */
+	result = dns_name_settotextfilter(output_filter);
+	check_result(result, "dns_name_settotextfilter");
+}
+
+static isc_result_t
+output_filter(isc_buffer_t *buffer, unsigned int used_org,
+	      isc_boolean_t absolute)
+{
+	char tmp1[MAXDLEN], tmp2[MAXDLEN];
+	size_t fromlen, tolen;
+	isc_boolean_t end_with_dot;
+
+	/*
+	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
+	 * if 'absolute' is true, and terminate with NUL.
+	 */
+	fromlen = isc_buffer_usedlength(buffer) - used_org;
+	if (fromlen >= MAXDLEN)
+		return (ISC_R_SUCCESS);
+	memcpy(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
+	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
+	if (absolute && !end_with_dot) {
+		fromlen++;
+		if (fromlen >= MAXDLEN)
+			return (ISC_R_SUCCESS);
+		tmp1[fromlen - 1] = '.';
+	}
+	tmp1[fromlen] = '\0';
+
+	/*
+	 * Convert contents of 'tmp1' to local encoding.
+	 */
+	if (idn_decodename(IDN_DECODE_APP, tmp1, tmp2, MAXDLEN) != idn_success)
+		return (ISC_R_SUCCESS);
+	strcpy(tmp1, tmp2);
+
+	/*
+	 * Copy the converted contents in 'tmp1' back to 'buffer'.
+	 * If we have appended trailing dot, remove it.
+	 */
+	tolen = strlen(tmp1);
+	if (absolute && !end_with_dot && tmp1[tolen - 1] == '.')
+		tolen--;
+
+	if (isc_buffer_length(buffer) < used_org + tolen)
+		return (ISC_R_NOSPACE);
+
+	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
+	memcpy(isc_buffer_used(buffer), tmp1, tolen);
+	isc_buffer_add(buffer, tolen);
+
+	return (ISC_R_SUCCESS);
+}
+
+static idn_result_t
+append_textname(char *name, const char *origin, size_t namesize) {
+	size_t namelen = strlen(name);
+	size_t originlen = strlen(origin);
+
+	/* Already absolute? */
+	if (namelen > 0 && name[namelen - 1] == '.')
+		return idn_success;
+
+	/* Append dot and origin */
+
+	if (namelen + 1 + originlen >= namesize)
+		return idn_buffer_overflow;
+
+	name[namelen++] = '.';
+	(void)strcpy(name + namelen, origin);
+	return idn_success;
+}
+ 
+static void
+idn_check_result(idn_result_t r, const char *msg) {
+	if (r != idn_success) {
+		exitcode = 1;
+		fatal("%s: %s", msg, idn_result_tostring(r));
+	}
+}
+#endif /* WITH_IDN */
 
 #ifdef DIG_SIGCHASE
 void

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: host.docbook,v 1.11 2005/08/25 00:31:32 marka Exp $ -->
+<!-- $Id: host.docbook,v 1.12 2005/09/09 06:13:59 marka Exp $ -->
 <refentry id="man.host">
 
   <refentryinfo>
@@ -234,6 +234,21 @@
       flags
       <parameter>record</parameter>, <parameter>usage</parameter> and
       <parameter>trace</parameter>.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>IDN SUPPORT</title>
+    <para>
+      If <command>host</command> has been built with IDN (internationalized
+      domain name) support, it can accept and display non-ASCII domain names. 
+      <command>host</command> appropriately converts character encoding of
+      domain name before sending a request to DNS server or displaying a
+      reply from the server.
+      If you'd like to turn off the IDN support for some reason, defines
+      the <envar>IDN_DISABLE</envar> environment variable.
+      The IDN support is disabled if the variable is set when
+      <command>host</command> runs.
     </para>
   </refsect1>
 

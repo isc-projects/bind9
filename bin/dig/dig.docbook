@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.26 2005/08/30 00:45:08 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.27 2005/09/09 06:13:58 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -872,6 +872,21 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       <literal>isc.org</literal>.
     </para>
 
+  </refsect1>
+
+  <refsect1>
+    <title>IDN SUPPORT</title>
+    <para>
+      If <command>dig</command> has been built with IDN (internationalized
+      domain name) support, it can accept and display non-ASCII domain names.
+      <command>dig</command> appropriately converts character encoding of
+      domain name before sending a request to DNS server or displaying a
+      reply from the server.
+      If you'd like to turn off the IDN support for some reason, defines
+      the <envar>IDN_DISABLE</envar> environment variable.
+      The IDN support is disabled if the variable is set when 
+      <command>dig</command> runs.
+    </para>
   </refsect1>
 
   <refsect1>

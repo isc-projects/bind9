@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.392 $)
+AC_REVISION($Revision: 1.393 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2132,6 +2132,82 @@ then
 	XSLT_DB2LATEX_ADMONITIONS=db2latex/xsl/figures
 fi
 AC_SUBST(XSLT_DB2LATEX_ADMONITIONS)
+
+#
+# IDN support
+#
+AC_ARG_WITH(idn,
+	[  --with-idn[=MPREFIX]   enable IDN support using idnkit [default PREFIX]],
+	use_idn="$withval", use_idn="no")
+case "$use_idn" in
+yes)
+	if test X$prefix = XNONE ; then
+		idn_path=/usr/local
+	else
+		idn_path=$prefix
+	fi
+	;;
+no)
+	;;
+*)
+	idn_path="$use_idn"
+	;;
+esac
+
+iconvinc=
+iconvlib=
+AC_ARG_WITH(libiconv,
+	[  --with-libiconv[=IPREFIX]   GNU libiconv are in IPREFIX [default PREFIX]],
+	use_libiconv="$withval", use_libiconv="no")
+case "$use_libiconv" in
+yes)
+	if test X$prefix = XNONE ; then
+		iconvlib="-L/usr/local/lib -R/usr/local/lib -liconv"
+	else
+		iconvlib="-L$prefix/lib -R$prefix/lib -liconv"
+	fi
+	;;
+no)
+	iconvlib=
+	;;
+*)
+	iconvlib="-L$use_libiconv/lib -R$use_libiconv/lib -liconv"
+	;;
+esac
+
+AC_ARG_WITH(iconv,
+	[  --with-iconv[=LIBSPEC]   specify iconv library [default -liconv]],
+	iconvlib="$withval")
+case "$iconvlib" in
+no)
+	iconvlib=
+	;;
+yes)
+	iconvlib=-liconv
+	;;
+esac
+
+AC_ARG_WITH(idnlib,
+	[  --with-idnlib=ARG    specify libidnkit],
+	idnlib="$withval", idnlib="no")
+if test "$idnlib" = yes; then
+	AC_MSG_ERROR([You must specify ARG for --with-idnlib.])
+fi
+
+IDNLIBS=
+if test "$use_idn" != no; then
+	AC_DEFINE(WITH_IDN, 1, [define if idnkit support is to be included.])
+	STD_CINCLUDES="$STD_CINCLUDES -I$idn_path/include"
+	if test "$idnlib" != no; then
+		IDNLIBS="$idnlib $iconvlib"
+	else
+		IDNLIBS="-L$idn_path/lib -lidnkit $iconvlib"
+	fi
+fi
+AC_SUBST(IDNLIBS)
+
+AC_CHECK_HEADERS(locale.h)
+AC_CHECK_FUNCS(setlocale)
 
 #
 # Substitutions

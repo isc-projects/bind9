@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.151 2005/07/20 01:46:49 marka Exp $ */
+/* $Id: name.c,v 1.152 2005/09/09 06:13:59 marka Exp $ */
 
 /*! \file */
 
@@ -26,8 +26,10 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
+#include <isc/once.h>
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
 #include <dns/compress.h>
@@ -183,6 +185,15 @@ LIBDNS_EXTERNAL_DATA dns_name_t *dns_wildcardname = &wild;
 
 unsigned int
 dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
+
+/*
+ * dns_name_t to text post-conversion procedure.
+ */
+#ifdef ISC_PLATFORM_USETHREADS
+static isc_thread_key_t totext_filter_proc_key;
+#else
+static dns_name_totextfilter_t totext_filter_proc = NULL;
+#endif
 
 static void
 set_offsets(const dns_name_t *name, unsigned char *offsets,
@@ -1273,6 +1284,10 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	unsigned int trem, count;
 	unsigned int labels;
 	isc_boolean_t saw_root = ISC_FALSE;
+	unsigned int oused = target->used;
+#ifdef ISC_PLATFORM_USETHREADS
+	dns_name_totextfilter_t totext_filter_proc;
+#endif
 
 	/*
 	 * This function assumes the name is in proper uncompressed
@@ -1411,6 +1426,12 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		trem++;
 
 	isc_buffer_add(target, tlen - trem);
+
+#ifdef ISC_PLATFORM_USETHREADS
+	totext_filter_proc = isc_key_getspecific(totext_filter_proc_key);
+#endif
+	if (totext_filter_proc != NULL)
+		return ((*totext_filter_proc)(target, oused, saw_root));
 
 	return (ISC_R_SUCCESS);
 }
@@ -2191,6 +2212,31 @@ dns_name_print(dns_name_t *name, FILE *stream) {
 	fprintf(stream, "%.*s", (int)r.length, (char *)r.base);
 
 	return (ISC_R_SUCCESS);
+}
+
+#ifdef ISC_PLATFORM_USETHREADS
+static void
+totext_filter_proc_key_init(void) {
+	RUNTIME_CHECK(isc_key_create(&totext_filter_proc_key, NULL) == 0);
+}
+#endif
+
+isc_result_t
+dns_name_settotextfilter(dns_name_totextfilter_t proc) {
+#ifdef ISC_PLATFORM_USETHREADS
+	static isc_once_t once = ISC_ONCE_INIT;
+	isc_result_t result;
+
+	result = isc_once_do(&once, totext_filter_proc_key_init);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+	if (isc_key_setspecific(totext_filter_proc_key, proc) != 0)
+		result = ISC_R_UNEXPECTED;
+	return (result);
+#else
+	totext_filter_proc = proc;
+	return (ISC_R_SUCCESS);
+#endif
 }
 
 void

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.117 2005/09/05 00:11:03 marka Exp $ */
+/* $Id: name.h,v 1.118 2005/09/09 06:14:00 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -155,6 +155,15 @@ LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
  * Standard size of a wire format name
  */
 #define DNS_NAME_MAXWIRE 255
+
+/*
+ * Text output filter procedure.
+ * 'target' is the buffer to be converted.  The region to be converted
+ * is from 'buffer'->base + 'used_org' to the end of the used region.
+ */
+typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
+						unsigned int used_org,
+						isc_boolean_t absolute);
 
 /***
  *** Initialization
@@ -1115,6 +1124,17 @@ dns_name_format(dns_name_t *name, char *cp, unsigned int size);
  *
  *\li	'size' > 0.
  *
+ */
+
+isc_result_t
+dns_name_settotextfilter(dns_name_totextfilter_t proc);
+/*%<
+ * Set / clear a thread specific function 'proc' to be called at the
+ * end of dns_name_totext().
+ *
+ * Returns
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_UNEXPECTED
  */
 
 #define DNS_NAME_FORMATSIZE (DNS_NAME_MAXTEXT + 1)
