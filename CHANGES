@@ -1,3 +1,5 @@
+1916.	[func]		Integrate contibuted IDN code from JPNIC. [RT #15383]
+
 1915.	[bug]		dig +ndots was broken. [RT #15215]
 
 1914.	[protocol]	DS is required to accept mnemonic algorithms
