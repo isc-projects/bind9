@@ -70,7 +70,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static const char sccsid[] = "@(#)res_init.c	8.1 (Berkeley) 6/7/93";
-static const char rcsid[] = "$Id: res_init.c,v 1.9.2.8 2005/07/28 07:48:22 marka Exp $";
+static const char rcsid[] = "$Id: res_init.c,v 1.9.2.9 2005/09/09 00:41:57 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include "port_before.h"
@@ -167,15 +167,15 @@ __res_vinit(res_state statp, int preinit) {
 	int dots;
 	union res_sockaddr_union u[2];
 
+	if (statp->_u._ext.ext != NULL)
+		res_ndestroy(statp);
+
 	if (!preinit) {
 		statp->retrans = RES_TIMEOUT;
 		statp->retry = RES_DFLRETRY;
 		statp->options = RES_DEFAULT;
 		statp->id = res_randomid();
 	}
-
-	if ((statp->options & RES_INIT) != 0U)
-		res_ndestroy(statp);
 
 	memset(u, 0, sizeof(u));
 #ifdef USELOOPBACK
@@ -240,12 +240,12 @@ __res_vinit(res_state statp, int preinit) {
 				if (strlcpy(statp->defdname, buf,
 					sizeof(statp->defdname))
 					>= sizeof(statp->defdname))
-					return (-1);
+					goto freedata;
 			} else {
 				if (strlcpy(statp->defdname, cp+1,
 					sizeof(statp->defdname))
 					 >= sizeof(statp->defdname))
-					return (-1);
+					goto freedata;
 			}
 		}
 	}
@@ -489,6 +489,15 @@ __res_vinit(res_state statp, int preinit) {
 		res_setoptions(statp, cp, "env");
 	statp->options |= RES_INIT;
 	return (0);
+
+#ifdef	SOLARIS2
+ freedata:
+	if (statp->_u._ext.ext != NULL) {
+		free(statp->_u._ext.ext);
+		statp->_u._ext.ext = NULL;
+	}
+	return (-1);
+#endif
 }
 
 static void
