@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.24 2005/09/01 03:04:16 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.25 2005/09/09 00:24:39 marka Exp $ */
 
 /*! \file
  *  \note
@@ -970,8 +970,10 @@ setup_system(void) {
 		}
 	}
 			
-	ndots = lwconf->ndots;
-	debug("ndots is %d.", ndots);
+	if (ndots == -1) {
+		ndots = lwconf->ndots;
+		debug("ndots is %d.", ndots);
+	}
 
 	/* If we don't find a nameserver fall back to localhost */
 	if (lwconf->nsnext == 0) {

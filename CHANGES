@@ -1,6 +1,8 @@
 
 	--- 9.4.0a1 released ---
 
+1915.	[bug]		dig +ndots was broken. [RT #15215]
+
 1914.	[protocol]	DS is required to accept mnemonic algorithms
 			(RFC 4034).  Still emit numeric algorithms for
 			compatability with RFC 3658. [RT #15354]
