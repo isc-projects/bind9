@@ -1,8 +1,8 @@
-Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.63 2005/09/09 01:00:04 marka Exp $
+$Id: release,v 1.64 2005/09/09 14:11:37 marka Exp $
 
 Preparing a bind9 release
 
