@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.152 2005/09/09 06:13:59 marka Exp $ */
+/* $Id: name.c,v 1.153 2005/09/10 00:31:25 marka Exp $ */
 
 /*! \file */
 
@@ -191,6 +191,7 @@ dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  */
 #ifdef ISC_PLATFORM_USETHREADS
 static isc_thread_key_t totext_filter_proc_key;
+static isc_once_t once = ISC_ONCE_INIT;
 #else
 static dns_name_totextfilter_t totext_filter_proc = NULL;
 #endif
@@ -1273,6 +1274,13 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	return (ISC_R_SUCCESS);
 }
 
+#ifdef ISC_PLATFORM_USETHREADS
+static void
+totext_filter_proc_key_init(void) {
+	RUNTIME_CHECK(isc_key_create(&totext_filter_proc_key, NULL) == 0);
+}
+#endif
+
 isc_result_t
 dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 		isc_buffer_t *target)
@@ -1287,6 +1295,7 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	unsigned int oused = target->used;
 #ifdef ISC_PLATFORM_USETHREADS
 	dns_name_totextfilter_t totext_filter_proc;
+	isc_result_t result;
 #endif
 
 	/*
@@ -1296,6 +1305,11 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(ISC_BUFFER_VALID(target));
 
+#ifdef ISC_PLATFORM_USETHREADS
+	result = isc_once_do(&once, totext_filter_proc_key_init);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+#endif
 	ndata = name->ndata;
 	nlen = name->length;
 	labels = name->labels;
@@ -2214,17 +2228,9 @@ dns_name_print(dns_name_t *name, FILE *stream) {
 	return (ISC_R_SUCCESS);
 }
 
-#ifdef ISC_PLATFORM_USETHREADS
-static void
-totext_filter_proc_key_init(void) {
-	RUNTIME_CHECK(isc_key_create(&totext_filter_proc_key, NULL) == 0);
-}
-#endif
-
 isc_result_t
 dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 #ifdef ISC_PLATFORM_USETHREADS
-	static isc_once_t once = ISC_ONCE_INIT;
 	isc_result_t result;
 
 	result = isc_once_do(&once, totext_filter_proc_key_init);
