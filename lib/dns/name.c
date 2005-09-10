@@ -15,13 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.144.18.9 2005/09/10 01:04:22 marka Exp $ */
+/* $Id: name.c,v 1.144.18.10 2005/09/10 01:09:29 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <ctype.h>
+#include <stdlib.h>
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
@@ -1277,7 +1278,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 #ifdef ISC_PLATFORM_USETHREADS
 static void
 totext_filter_proc_key_init(void) {
-	RUNTIME_CHECK(isc_key_create(&totext_filter_proc_key, NULL) == 0);
+	RUNTIME_CHECK(isc_key_create(&totext_filter_proc_key, free) == 0);
 }
 #endif
 
@@ -1294,7 +1295,8 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	isc_boolean_t saw_root = ISC_FALSE;
 	unsigned int oused = target->used;
 #ifdef ISC_PLATFORM_USETHREADS
-	dns_name_totextfilter_t totext_filter_proc;
+	dns_name_totextfilter_t *mem;
+	dns_name_totextfilter_t totext_filter_proc = NULL;
 	isc_result_t result;
 #endif
 
@@ -1442,7 +1444,10 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	isc_buffer_add(target, tlen - trem);
 
 #ifdef ISC_PLATFORM_USETHREADS
-	totext_filter_proc = isc_key_getspecific(totext_filter_proc_key);
+	
+	mem = isc_key_getspecific(totext_filter_proc_key);
+	if (mem)
+		totext_filter_proc = *mem;
 #endif
 	if (totext_filter_proc != NULL)
 		return ((*totext_filter_proc)(target, oused, saw_root));
@@ -2232,11 +2237,37 @@ isc_result_t
 dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 #ifdef ISC_PLATFORM_USETHREADS
 	isc_result_t result;
+	dns_name_totextfilter_t *mem;
 
 	result = isc_once_do(&once, totext_filter_proc_key_init);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	if (isc_key_setspecific(totext_filter_proc_key, proc) != 0)
+
+	/*
+	 * If we already have been here set / clear as appropriate.
+	 * Otherwise allocate memory.
+	 */
+	mem = isc_key_getspecific(totext_filter_proc_key);
+	if (mem != NULL && proc != NULL) {
+		*mem = proc;
+		return (ISC_R_SUCCESS);
+	}
+	if (proc == NULL) {
+		free(mem);
+		if (isc_key_setspecific(totext_filter_proc_key, NULL) != 0)
+			result = ISC_R_UNEXPECTED;
+		return (result);
+	}
+	
+	/*
+	 * We use malloc because Windows can't automatically free the
+	 * memory and we don't want to trigger a INSIST at exit.
+	 */
+	mem =  malloc(sizeof(dns_name_totextfilter_t));
+	if (mem == NULL)
+		return (ISC_R_NOMEMORY);
+	*mem = proc;
+	if (isc_key_setspecific(totext_filter_proc_key, mem) != 0)
 		result = ISC_R_UNEXPECTED;
 	return (result);
 #else
