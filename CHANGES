@@ -1,6 +1,9 @@
 
 	--- 9.3.2b1 released ---
 
+1917.	[doc]		funcsynopsisinfo wasn't being treated as verbatim
+			when generating man pages. [RT #15385]
+
 1915.	[bug]		dig +ndots was broken. [RT #15215]
 
 1914.	[protocol]	DS is required to accept mnemonic algorithms
