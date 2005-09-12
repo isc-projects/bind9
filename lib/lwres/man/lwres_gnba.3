@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gnba.3,v 1.13.2.1.8.3 2005/05/12 23:57:13 sra Exp $
+.\" $Id: lwres_gnba.3,v 1.13.2.1.8.4 2005/09/12 00:47:28 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_gnbarequest_render, lwres_gnbaresponse_render, lwres_gnbarequest_parse, lwres_gnbaresponse_parse, lwres_gnbaresponse_free, lwres_gnbarequest_free \- lightweight resolver getnamebyaddress message handling
 .SH "SYNOPSIS"
+.nf
 #include <lwres/lwres\&.h>
-.sp
+.fi
 .HP 41
 lwres_result_t\ \fBlwres_gnbarequest_render\fR\ (lwres_context_t\ *\fIctx\fR, lwres_gnbarequest_t\ *\fIreq\fR, lwres_lwpacket_t\ *\fIpkt\fR, lwres_buffer_t\ *\fIb\fR);
 .HP 42

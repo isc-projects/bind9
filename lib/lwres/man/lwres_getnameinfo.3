@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getnameinfo.3,v 1.15.2.1.8.3 2005/05/12 23:57:13 sra Exp $
+.\" $Id: lwres_getnameinfo.3,v 1.15.2.1.8.4 2005/09/12 00:47:28 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_getnameinfo \- lightweight resolver socket address structure to hostname and service name
 .SH "SYNOPSIS"
+.nf
 #include <lwres/netdb\&.h>
-.sp
+.fi
 .HP 23
 int\ \fBlwres_getnameinfo\fR\ (const\ struct\ sockaddr\ *sa, size_t\ salen, char\ *host, size_t\ hostlen, char\ *serv, size_t\ servlen, int\ flags);
 .SH "DESCRIPTION"

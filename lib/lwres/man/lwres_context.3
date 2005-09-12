@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_context.3,v 1.13.2.2.2.4 2005/05/12 23:57:10 sra Exp $
+.\" $Id: lwres_context.3,v 1.13.2.2.2.5 2005/09/12 00:47:26 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_context_initserial, lwres_context_freemem, lwres_context_allocmem, lwres_context_sendrecv \- lightweight resolver context management
 .SH "SYNOPSIS"
+.nf
 #include <lwres/lwres\&.h>
-.sp
+.fi
 .HP 37
 lwres_result_t\ \fBlwres_context_create\fR\ (lwres_context_t\ **contextp, void\ *arg, lwres_malloc_t\ malloc_function, lwres_free_t\ free_function);
 .HP 38

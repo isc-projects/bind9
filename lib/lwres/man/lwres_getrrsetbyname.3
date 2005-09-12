@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getrrsetbyname.3,v 1.11.2.1.8.3 2005/05/12 23:57:13 sra Exp $
+.\" $Id: lwres_getrrsetbyname.3,v 1.11.2.1.8.4 2005/09/12 00:47:28 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_getrrsetbyname, lwres_freerrset \- retrieve DNS records
 .SH "SYNOPSIS"
+.nf
 #include <lwres/netdb\&.h>
-.sp
+.fi
 .HP 26
 int\ \fBlwres_getrrsetbyname\fR\ (const\ char\ *hostname, unsigned\ int\ rdclass, unsigned\ int\ rdtype, unsigned\ int\ flags, struct\ rrsetinfo\ **res);
 .HP 22

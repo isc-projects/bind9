@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getipnode.3,v 1.13.2.2.4.4 2005/05/12 23:57:12 sra Exp $
+.\" $Id: lwres_getipnode.3,v 1.13.2.2.4.5 2005/09/12 00:47:27 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_getipnodebyname, lwres_getipnodebyaddr, lwres_freehostent \- lightweight resolver nodename / address translation API
 .SH "SYNOPSIS"
+.nf
 #include <lwres/netdb\&.h>
-.sp
+.fi
 .HP 42
 struct\ hostent\ *\ \fBlwres_getipnodebyname\fR\ (const\ char\ *name, int\ af, int\ flags, int\ *error_num);
 .HP 42
