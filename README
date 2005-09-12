@@ -200,6 +200,10 @@ BIND 9.4.0
 	to set 'RA' when 'RD' is set unless a server is explicitly
 	set.
 
+	Integrate contibuted DLZ code into named.
+
+	Integrate contibuted IDN code from JPNIC.
+
 	libbind: corresponds to that from BIND 8.4.7.
 
 BIND 9.3.0
