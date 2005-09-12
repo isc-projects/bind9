@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gabn.3,v 1.22 2005/05/13 03:14:13 marka Exp $
+.\" $Id: lwres_gabn.3,v 1.23 2005/09/12 01:13:27 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free \- lightweight resolver getaddrbyname message handling
 .SH "SYNOPSIS"
+.nf
 #include <lwres/lwres\&.h>
-.sp
+.fi
 .HP 41
 lwres_result_t\ \fBlwres_gabnrequest_render\fR\ (lwres_context_t\ *\fIctx\fR, lwres_gabnrequest_t\ *\fIreq\fR, lwres_lwpacket_t\ *\fIpkt\fR, lwres_buffer_t\ *\fIb\fR);
 .HP 42

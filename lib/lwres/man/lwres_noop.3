@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_noop.3,v 1.23 2005/05/13 03:14:16 marka Exp $
+.\" $Id: lwres_noop.3,v 1.24 2005/09/12 01:13:27 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free \- lightweight resolver no-op message handling
 .SH "SYNOPSIS"
+.nf
 #include <lwres/lwres\&.h>
-.sp
+.fi
 .HP 41
 lwres_result_t\ \fBlwres_nooprequest_render\fR\ (lwres_context_t\ *\fIctx\fR, lwres_nooprequest_t\ *\fIreq\fR, lwres_lwpacket_t\ *\fIpkt\fR, lwres_buffer_t\ *\fIb\fR);
 .HP 42
