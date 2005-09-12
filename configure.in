@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.49 $)
+AC_REVISION($Revision: 1.294.2.50 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1838,6 +1838,7 @@ AC_OUTPUT(
 	doc/Makefile
 	doc/arm/Makefile
 	doc/misc/Makefile
+	doc/xsl/Makefile
 	isc-config.sh
 	doc/xsl/isc-docbook-chunk.xsl
 	doc/xsl/isc-docbook-html.xsl
