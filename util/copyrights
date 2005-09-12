@@ -733,7 +733,7 @@
 ./bin/tests/system/v6synth/ns3/named.conf	CONF-C	2001,2004
 ./bin/tests/system/v6synth/tests.sh		SH	2001,2004
 ./bin/tests/system/views/.cvsignore		X	2000,2001
-./bin/tests/system/views/clean.sh		SH	2000,2001,2004
+./bin/tests/system/views/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/views/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/views/ns1/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/views/ns1/root.db		ZONE	2000,2001,2004
