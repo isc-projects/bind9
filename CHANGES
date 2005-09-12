@@ -1,6 +1,9 @@
 
 	--- 9.4.0a1 released ---
 
+1917.	[doc]		funcsynopsisinfo wasn't being treated as verbatim
+			when generating man pages. [RT #15385]
+
 1916.	[func]		Integrate contibuted IDN code from JPNIC. [RT #15383]
 
 1915.	[bug]		dig +ndots was broken. [RT #15215]
