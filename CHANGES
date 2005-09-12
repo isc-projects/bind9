@@ -1,6 +1,9 @@
 
 	--- 9.2.6b1 released ---
 
+1917.	[doc]		funcsynopsisinfo wasn't being treated as verbatim
+			when generating man pages. [RT #15385]
+
 1911.	[bug]		Update windows socket code. [RT #14965]
 
 1905.	[bug]		Strings returned from cfg_obj_asstring() should be
