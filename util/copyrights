@@ -700,7 +700,7 @@
 ./bin/tests/system/v6synth/ns3/named.conf	CONF-C	2001,2004
 ./bin/tests/system/v6synth/tests.sh		SH	2001,2004
 ./bin/tests/system/views/.cvsignore		X	2000,2001
-./bin/tests/system/views/clean.sh		SH	2000,2001,2004
+./bin/tests/system/views/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/views/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/views/ns1/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/views/ns1/root.db		ZONE	2000,2001,2004
@@ -716,7 +716,7 @@
 ./bin/tests/system/views/ns3/named2.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/views/setup.sh		SH	2000,2001,2004
 ./bin/tests/system/views/tests.sh		SH	2000,2001,2004
-./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004
+./bin/tests/system/xfer/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xfer/knowngood.dig.out	X	2000,2001
 ./bin/tests/system/xfer/ns1/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns1/named.conf		CONF-C	2000,2001,2004
@@ -728,7 +728,7 @@
 ./bin/tests/system/xfer/ns3/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001,2004
 ./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004
-./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004
+./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xferquota/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004
 ./bin/tests/system/xferquota/ns1/changing2.db	ZONE	2000,2001,2004
@@ -1052,7 +1052,7 @@
 ./contrib/sdb/time/timedb.c			C	2000,2001,2002,2004
 ./contrib/sdb/time/timedb.h			C	2000,2001,2002,2004
 ./doc/.cvsignore				X	2000,2001
-./doc/Makefile.in				MAKE	2000,2001,2004
+./doc/Makefile.in				MAKE	2000,2001,2004,2005
 ./doc/arm/.cvsignore				X	2000,2001,2005
 ./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001,2005
@@ -1119,6 +1119,7 @@
 ./doc/todo/tale/todo				X	2000,2001
 ./doc/todo/unassigned				X	2000,2001
 ./doc/xsl/.cvsignore				X	2005
+./doc/xsl/Makefile.in				MAKE	2005
 ./doc/xsl/copyright.xsl				SGML	2005
 ./doc/xsl/isc-docbook-chunk.xsl.in		SGML	2005
 ./doc/xsl/isc-docbook-html.xsl.in		SGML	2005
