@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.18.18.2 2005/09/09 14:11:05 marka Exp $ */
+/* $Id: thread.c,v 1.18.18.3 2005/09/12 07:10:41 marka Exp $ */
 
 #include <config.h>
 
@@ -81,7 +81,7 @@ int
 isc_key_create(isc_thread_key_t *key, void (*func)(void *)) {
 	*key = TlsAlloc();
 
-	return ((*key == -1) ? 0 : GetLastError());
+	return ((*key != -1) ? 0 : GetLastError());
 }
 
 int
