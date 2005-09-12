@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.63 2005/08/23 02:36:08 marka Exp $ */
+/* $Id: check.c,v 1.64 2005/09/12 02:04:41 marka Exp $ */
 
 /*! \file */
 
@@ -350,14 +350,14 @@ mustbesecure(cfg_obj_t *secure, isc_symtab_t *symtab, isc_log_t *logctx,
 }
 
 static isc_result_t
-checkacl(const char *aclname, cfg_obj_t *zconfig, cfg_obj_t *voptions,
-	 cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx)
+checkacl(const char *aclname, cfg_aclconfctx_t *actx, cfg_obj_t *zconfig,
+	 cfg_obj_t *voptions, cfg_obj_t *config, isc_log_t *logctx,
+	 isc_mem_t *mctx)
 {
 	isc_result_t result;
 	cfg_obj_t *aclobj = NULL;
 	cfg_obj_t *options;
 	dns_acl_t *acl = NULL;
-	cfg_aclconfctx_t actx;
 
 	if (zconfig != NULL) {
 		options = cfg_tuple_get(zconfig, "options");
@@ -373,15 +373,14 @@ checkacl(const char *aclname, cfg_obj_t *zconfig, cfg_obj_t *voptions,
 	}
 	if (aclobj == NULL)
 		return (ISC_R_SUCCESS);
-	cfg_aclconfctx_init(&actx);
-	result = cfg_acl_fromconfig(aclobj, config, logctx, &actx, mctx, &acl);
+	result = cfg_acl_fromconfig(aclobj, config, logctx, actx, mctx, &acl);
 	if (acl != NULL)
 		dns_acl_detach(&acl);
 	return (result);
 }
 
 static isc_result_t
-check_viewacls(cfg_obj_t *voptions, cfg_obj_t *config,
+check_viewacls(cfg_aclconfctx_t *actx, cfg_obj_t *voptions, cfg_obj_t *config,
 	      isc_log_t *logctx, isc_mem_t *mctx)
 {
 	isc_result_t result = ISC_R_SUCCESS, tresult;
@@ -392,7 +391,7 @@ check_viewacls(cfg_obj_t *voptions, cfg_obj_t *config,
 		"match-destinations", "sortlist", NULL };
 
 	while (acls[i] != NULL) {
-		tresult = checkacl(acls[i++], NULL, voptions, config,
+		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
 				   logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = tresult;  
@@ -876,7 +875,7 @@ typedef struct {
 static isc_result_t
 check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 	       isc_symtab_t *symtab, dns_rdataclass_t defclass,
-	       isc_log_t *logctx, isc_mem_t *mctx)
+	       cfg_aclconfctx_t *actx, isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const char *zname;
 	const char *typestr;
@@ -1047,7 +1046,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 		if ((options[i].allowed & ztype) != 0 &&
 		    (options[i].allowed & CHECKACL) != 0) {
 
-			tresult = checkacl(options[i].name, zconfig,
+			tresult = checkacl(options[i].name, actx, zconfig,
 				           voptions, config, logctx, mctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
@@ -1315,6 +1314,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *voptions, dns_rdataclass_t vclass,
 	isc_symtab_t *symtab = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult = ISC_R_SUCCESS;
+	cfg_aclconfctx_t actx;
 
 	/*
 	 * Check that all zone statements are syntactically correct and
@@ -1324,6 +1324,8 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *voptions, dns_rdataclass_t vclass,
 				    ISC_FALSE, &symtab);
 	if (tresult != ISC_R_SUCCESS)
 		return (ISC_R_NOMEMORY);
+
+	cfg_aclconfctx_init(&actx);
 
 	if (voptions != NULL)
 		(void)cfg_map_get(voptions, "zone", &zones);
@@ -1338,7 +1340,7 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *voptions, dns_rdataclass_t vclass,
 		cfg_obj_t *zone = cfg_listelt_value(element);
 
 		tresult = check_zoneconf(zone, voptions, config, symtab,
-					 vclass, logctx, mctx);
+					 vclass, &actx, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
@@ -1425,9 +1427,11 @@ check_viewconf(cfg_obj_t *config, cfg_obj_t *voptions, dns_rdataclass_t vclass,
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	tresult = check_viewacls(voptions, config, logctx, mctx);
+	tresult = check_viewacls(&actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
+
+	cfg_aclconfctx_destroy(&actx);
 
 	return (result);
 }
@@ -1619,6 +1623,8 @@ bind9_check_controls(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 
 	(void)cfg_map_get(config, "key", &keylist);
 
+	cfg_aclconfctx_init(&actx);
+
 	/*
 	 * INET: Check allow clause.
 	 * UNIX: Check "perm" for sanity, check path length.
@@ -1636,9 +1642,8 @@ bind9_check_controls(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 		     element2 = cfg_list_next(element2)) {
 			control = cfg_listelt_value(element2);
 			allow = cfg_tuple_get(control, "allow");
-			cfg_aclconfctx_init(&actx);
 			tresult = cfg_acl_fromconfig(allow, config, logctx,
-						    &actx, mctx, &acl);
+						     &actx, mctx, &acl);
 			if (acl != NULL)
 				dns_acl_detach(&acl);
 			if (tresult != ISC_R_SUCCESS)
@@ -1685,6 +1690,7 @@ bind9_check_controls(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx) {
 				result = tresult;
 		}
 	}
+	cfg_aclconfctx_destroy(&actx);
 	return (result);
 }
 

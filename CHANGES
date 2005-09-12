@@ -1,3 +1,5 @@
+1918.	[bug]		Memory leak when checking acls. [RT #15391]
+
 1917.	[doc]		funcsynopsisinfo wasn't being treated as verbatim
 			when generating man pages. [RT #15385]
 
