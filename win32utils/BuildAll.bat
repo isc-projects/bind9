@@ -100,6 +100,7 @@ cd ..\..
 cd check\win32
 nmake /nologo -f namedcheckconf.mak CFG="namedcheckconf - Win32 Release"  NO_EXTERNAL_DEPS="1"
 nmake /nologo -f namedcheckzone.mak CFG="namedcheckzone - Win32 Release"  NO_EXTERNAL_DEPS="1"
+copy /Y ..\..\..\Build\Release\named-checkzone.exe ..\..\..\Build\Release\named-compilezone.exe
 copy ..\*.html ..\..\..\Build\Release
 cd ..\..
 
