@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_getaddrinfo.3,v 1.20.18.6 2005/05/13 03:12:12 marka Exp $
+.\" $Id: lwres_getaddrinfo.3,v 1.20.18.7 2005/09/12 00:59:08 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_getaddrinfo, lwres_freeaddrinfo \- socket address structure to host and service name
 .SH "SYNOPSIS"
+.nf
 #include <lwres/netdb\&.h>
-.sp
+.fi
 .HP 23
 int\ \fBlwres_getaddrinfo\fR\ (const\ char\ *\fIhostname\fR, const\ char\ *\fIservname\fR, const\ struct\ addrinfo\ *\fIhints\fR, struct\ addrinfo\ **\fIres\fR);
 .HP 25

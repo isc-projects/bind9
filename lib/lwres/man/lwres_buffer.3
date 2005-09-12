@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_buffer.3,v 1.15.18.6 2005/05/13 03:12:09 marka Exp $
+.\" $Id: lwres_buffer.3,v 1.15.18.7 2005/09/12 00:59:09 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_buffer_init, lwres_buffer_invalidate, lwres_buffer_add, lwres_buffer_subtract, lwres_buffer_clear, lwres_buffer_first, lwres_buffer_forward, lwres_buffer_back, lwres_buffer_getuint8, lwres_buffer_putuint8, lwres_buffer_getuint16, lwres_buffer_putuint16, lwres_buffer_getuint32, lwres_buffer_putuint32, lwres_buffer_putmem, lwres_buffer_getmem \- lightweight resolver buffer management
 .SH "SYNOPSIS"
+.nf
 #include <lwres/lwbuffer\&.h>
-.sp
+.fi
 .HP 24
 void\ \fBlwres_buffer_init\fR\ (lwres_buffer_t\ *\fIb\fR, void\ *\fIbase\fR, unsigned\ int\ \fIlength\fR);
 .HP 30

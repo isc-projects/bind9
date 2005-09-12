@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gethostent.3,v 1.19.18.5 2005/05/13 03:12:12 marka Exp $
+.\" $Id: lwres_gethostent.3,v 1.19.18.6 2005/09/12 00:59:08 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -40,8 +40,9 @@
 .SH NAME
 lwres_gethostbyname, lwres_gethostbyname2, lwres_gethostbyaddr, lwres_gethostent, lwres_sethostent, lwres_endhostent, lwres_gethostbyname_r, lwres_gethostbyaddr_r, lwres_gethostent_r, lwres_sethostent_r, lwres_endhostent_r \- lightweight resolver get network host entry
 .SH "SYNOPSIS"
+.nf
 #include <lwres/netdb\&.h>
-.sp
+.fi
 .HP 40
 struct\ hostent\ *\ \fBlwres_gethostbyname\fR\ (const\ char\ *\fIname\fR);
 .HP 41
