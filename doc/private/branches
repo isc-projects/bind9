@@ -18,8 +18,6 @@ mlg-20000518			new
 newresolver0			new	
 openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
-rt11382				closed		// DLZ
-rt11398a			closed		// old doxygen dev
 rt11398d			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
@@ -30,6 +28,7 @@ rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
 rt14815				open		// stats blind spots	
+rt14852				new	
 rt14895				open	jinmei
 rt14895b			open	
 rt14933				open		// DLV	
@@ -39,6 +38,7 @@ rt15005				review
 rt15006				review	
 rt15020				new	
 rt15034				review	
+rt15148				new	
 rt15215				new	
 rt15216				review	
 rt15256				new	
@@ -46,6 +46,7 @@ rt15327				new
 rt15347				new	
 rt15383				new	
 rt15391				new	
+rt15402				new	
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
@@ -169,7 +170,9 @@ rt11288				closed
 rt11331				closed
 rt113347			closed		// rt11347
 rt11360				closed
+rt11382				closed		// DLZ
 rt11398				closed
+rt11398a			closed		// old doxygen dev
 rt11398b			closed
 rt11398c			closed
 rt11432				closed
