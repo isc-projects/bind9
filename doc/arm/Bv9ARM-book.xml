@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.57 2005/06/07 01:22:34 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.58 2005/09/13 06:06:44 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2996,7 +2996,7 @@ record does) the DNSKEY RRset is deemed to be trusted.
 
 <varlistentry><term><command>dnssec-must-be-secure</command></term>
 <listitem><para>
-Specify heirachies which must / may not be secure (signed and validated).
+Specify heirarchies which must / may not be secure (signed and validated).
 If <userinput>yes</userinput> then named will only accept answers if they
 are secure.
 If <userinput>no</userinput> then normal dnssec validation applies
