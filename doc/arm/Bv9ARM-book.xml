@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.278 2005/08/24 23:54:01 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.279 2005/09/13 01:37:13 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4725,7 +4725,7 @@ options {
             <term><command>dnssec-must-be-secure</command></term>
             <listitem>
               <para>
-                Specify heirachies which must / may not be secure (signed and
+                Specify hierarchies which must / may not be secure (signed and
                 validated).
                 If <userinput>yes</userinput> then named will only accept
                 answers if they
