@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: pre-latex.xsl,v 1.2.8.2 2005/05/13 01:21:58 marka Exp $ -->
+<!-- $Id: pre-latex.xsl,v 1.2.8.3 2005/09/15 02:28:43 marka Exp $ -->
 
 <!--
   - Whack &mdash; into something that won't choke LaTeX.
@@ -25,7 +25,7 @@
 
   <xsl:variable name="mdash" select="'&#8212;'"/>
 
-  <xsl:template name="fix-mdash" match="text()[contains(., $mdash)]">
+  <xsl:template name="fix-mdash" match="text()[contains(., '&#8212;')]">
     <xsl:param name="s" select="."/>
     <xsl:choose>
       <xsl:when test="contains($s, $mdash)">
