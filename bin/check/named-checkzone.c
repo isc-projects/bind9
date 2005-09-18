@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.40 2005/09/01 02:24:45 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.41 2005/09/18 07:16:17 marka Exp $ */
 
 /*! \file */
 
@@ -86,6 +86,7 @@ static void
 destroy(void) {
 	if (zone != NULL)
 		dns_zone_detach(&zone);
+	dns_name_destroy();
 }
 
 /*% main processing routine */

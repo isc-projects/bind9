@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.138 2005/04/27 04:56:03 sra Exp $ */
+/* $Id: nsupdate.c,v 1.139 2005/09/18 07:16:20 marka Exp $ */
 
 /*! \file */
 
@@ -1926,6 +1926,9 @@ cleanup(void) {
 
 	ddebug("Destroying hash context");
 	isc_hash_destroy();
+
+	ddebug("Destroying name state");
+	dns_name_destroy();
 
 	ddebug("Destroying memory context");
 	if (memdebugging)
