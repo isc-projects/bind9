@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.107.18.11 2005/09/09 06:22:08 marka Exp $ */
+/* $Id: name.h,v 1.107.18.12 2005/09/18 07:58:07 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1132,6 +1132,11 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc);
  * Set / clear a thread specific function 'proc' to be called at the
  * end of dns_name_totext().
  *
+ * Note: Under Windows you need to call "dns_name_settotextfilter(NULL);"
+ * prior to exiting the thread otherwise memory will be leaked.
+ * For other platforms, which are pthreads based, this is still a good
+ * idea but not required.
+ *
  * Returns
  *\li	#ISC_R_SUCCESS
  *\li	#ISC_R_UNEXPECTED
@@ -1169,7 +1174,7 @@ dns_name_copy(dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
 
 isc_boolean_t
 dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard);
-/*
+/*%<
  * Return if 'name' is a valid hostname.  RFC 952 / RFC 1123.
  * If 'wildcard' is ISC_TRUE then allow the first label of name to
  * be a wildcard.
@@ -1182,20 +1187,32 @@ dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard);
 
 isc_boolean_t
 dns_name_ismailbox(const dns_name_t *name);
-/*
+/*%<
  * Return if 'name' is a valid mailbox.  RFC 821.
  *
  * Requires:
- *	'name' to be valid.
+ * \li	'name' to be valid.
  */
 
 isc_boolean_t
 dns_name_internalwildcard(const dns_name_t *name);
-/*
+/*%<
  * Return if 'name' contains a internal wildcard name.
  *
  * Requires:
- *	'name' to be valid.
+ * \li	'name' to be valid.
+ */
+
+void
+dns_name_destroy(void);
+/*%<
+ * Cleanup dns_name_settotextfilter() / dns_name_totext() state.
+ *
+ * This should be called as part of the final cleanup process.
+ *
+ * Note: dns_name_settotextfilter(NULL); should be called for all
+ * threads which have called dns_name_settotextfilter() with a
+ * non-NULL arguement prior to calling dns_name_destroy();
  */
 
 ISC_LANG_ENDDECLS

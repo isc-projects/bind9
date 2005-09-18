@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.28.18.10 2005/08/25 00:05:41 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.28.18.11 2005/09/18 07:58:03 marka Exp $ */
 
 /*! \file */
 
@@ -437,6 +437,8 @@ main(int argc, char **argv) {
 	cfg_obj_destroy(parser, &config);
 
 	cfg_parser_destroy(&parser);
+
+	dns_name_destroy();
 
 	isc_log_destroy(&logc);
 

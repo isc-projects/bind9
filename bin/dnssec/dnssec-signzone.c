@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.12 2005/06/28 03:00:20 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.13 2005/09/18 07:58:05 marka Exp $ */
 
 /*! \file */
 
@@ -2150,6 +2150,7 @@ main(int argc, char *argv[]) {
 	dst_lib_destroy();
 	isc_hash_destroy();
 	cleanup_entropy(&ectx);
+	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

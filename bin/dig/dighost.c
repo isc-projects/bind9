@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.26 2005/09/09 06:22:05 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.27 2005/09/18 07:58:04 marka Exp $ */
 
 /*! \file
  *  \note
@@ -3223,6 +3223,9 @@ destroy_libs(void) {
 	void * ptr;
 	dig_message_t *chase_msg;
 #endif
+#ifdef WITH_IDN
+	isc_result_t result;
+#endif
 
 	debug("destroy_libs()");
 	if (global_task != NULL) {
@@ -3254,6 +3257,13 @@ destroy_libs(void) {
 	flush_server_list();
 
 	clear_searchlist();
+
+#ifdef WITH_IDN
+        result = dns_name_settotextfilter(NULL);
+        check_result(result, "dns_name_settotextfilter");
+#endif
+	dns_name_destroy();
+
 	if (commctx != NULL) {
 		debug("freeing commctx");
 		isc_mempool_destroy(&commctx);

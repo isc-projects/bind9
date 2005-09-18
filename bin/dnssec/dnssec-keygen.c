@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.66.18.3 2005/04/29 00:15:20 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.66.18.4 2005/09/18 07:58:05 marka Exp $ */
 
 /*! \file */
 
@@ -409,6 +409,7 @@ main(int argc, char **argv) {
 	cleanup_logging(&log);
 	cleanup_entropy(&ectx);
 	dst_lib_destroy();
+	dns_name_destroy();
 	if (verbose > 10)
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);

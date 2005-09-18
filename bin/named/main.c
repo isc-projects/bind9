@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.136.18.12 2005/09/05 00:18:10 marka Exp $ */
+/* $Id: main.c,v 1.136.18.13 2005/09/18 07:58:05 marka Exp $ */
 
 /*! \file */
 
@@ -714,6 +714,8 @@ cleanup(void) {
 	 */
 	dlz_drivers_clear();
 #endif
+
+	dns_name_destroy();
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
