@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.316 2005/08/25 00:56:07 marka Exp $ */
+/* $Id: resolver.c,v 1.317 2005/09/18 07:04:41 marka Exp $ */
 
 /*! \file */
 
@@ -2960,8 +2960,7 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	isc_mem_free(res->buckets[bucketnum].mctx, fctx->info);
 
  cleanup_fetch:
-	isc_mem_putanddetach(&res->buckets[bucketnum].mctx,
-			     fctx, sizeof(*fctx));
+	isc_mem_put(res->buckets[bucketnum].mctx, fctx, sizeof(*fctx));
 
 	return (result);
 }
