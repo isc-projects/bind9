@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.107 2005/09/19 00:11:05 marka Exp $ */
+/* $Id: rndc.c,v 1.108 2005/09/19 00:18:00 marka Exp $ */
 
 /*! \file */
 
@@ -52,6 +52,8 @@
 #include <isccc/sexpr.h>
 #include <isccc/types.h>
 #include <isccc/util.h>
+
+#include <dns/name.h>
 
 #include <bind9/getaddresses.h>
 
@@ -823,6 +825,8 @@ main(int argc, char **argv) {
 
 	isc_mem_put(mctx, args, argslen);
 	isccc_ccmsg_invalidate(&ccmsg);
+
+	dns_name_destroy();
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
