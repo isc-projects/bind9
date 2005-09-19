@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.10 2005/09/18 07:58:07 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.11 2005/09/19 00:10:33 marka Exp $ */
 
 /*! \file */
 
@@ -823,8 +823,6 @@ main(int argc, char **argv) {
 
 	isc_mem_put(mctx, args, argslen);
 	isccc_ccmsg_invalidate(&ccmsg);
-
-	dns_name_destroy();
 
 	if (show_final_mem)
 		isc_mem_stats(mctx, stderr);
