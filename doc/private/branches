@@ -28,30 +28,30 @@ rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
 rt14815				open		// stats blind spots	
-rt14816				new	
-rt14852				new	
+rt14816				open	
+rt14852				review	
 rt14895				open	jinmei
 rt14895b			open	
-rt14933				open		// DLV	
-rt14933a			open	
-rt14965				open		// windows fixes	
-rt14998				new	
-rt15005				review	
-rt15006				review	
-rt15020				new	
-rt15034				review	
-rt15148				new	
-rt15215				new	
-rt15216				review	
-rt15256				new	
-rt15327				new	
-rt15347				new	
-rt15383				new	
-rt15391				new	
-rt15402				new	
-rt15404				new	
-rt15408				new	
-rt15412				new	
+rt14933				closed		// DLV	
+rt14933a			closed	
+rt14965				closed		// windows fixes	
+rt14998				open
+rt15005				closed	
+rt15006				closed	
+rt15020				closed	
+rt15034				closed	
+rt15148				review	
+rt15215				closed	
+rt15216				closed	
+rt15256				closed	
+rt15327				open	
+rt15347				closed	
+rt15383				closed	
+rt15391				closed	
+rt15402				review	
+rt15404				review	
+rt15408				closed	
+rt15412				review
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
