@@ -302,6 +302,7 @@ dns_name_compare
 dns_name_concatenate
 dns_name_copy
 dns_name_countlabels
+dns_name_destroy
 dns_name_digest
 dns_name_downcase
 dns_name_dup
