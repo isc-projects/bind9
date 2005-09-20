@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.18.18.5 2005/09/20 05:38:37 marka Exp $ */
+/* $Id: thread.c,v 1.18.18.6 2005/09/20 06:02:12 marka Exp $ */
 
 #include <config.h>
 
@@ -85,6 +85,6 @@ isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *)) {
 }
 
 int
-isc_thread_key_destroy(isc_thread_key_t key) {
+isc_thread_key_delete(isc_thread_key_t key) {
 	return (TlsFree(key) ? 0 : GetLastError());
 }
