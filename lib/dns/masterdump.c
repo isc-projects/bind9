@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.80 2005/09/05 02:54:37 marka Exp $ */
+/* $Id: masterdump.c,v 1.81 2005/09/20 04:22:44 marka Exp $ */
 
 /*! \file */
 
@@ -1370,8 +1370,14 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		result = dns_dbiterator_next(dctx->dbiter);
 	}
 
+	/*
+	 * Work out how many nodes can be written in the time between
+	 * two requests to the nameserver.  Smooth the resulting number and
+	 * use it as a estimate for the number of nodes to be written in the
+	 * next iteration.
+	 */
 	if (dctx->nodes != 0 && result == ISC_R_SUCCESS) {
-		unsigned int pps = dns_pps;
+		unsigned int pps = dns_pps;	/* packets per second */
 		unsigned int interval;
 		isc_uint64_t usecs;
 		isc_time_t end;
@@ -1379,7 +1385,7 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 		isc_time_now(&end);
 		if (pps < 100)
 			pps = 100;
-		interval = 1000000 / pps;
+		interval = 1000000 / pps;	/* interval in usecs */
 		if (interval == 0)
 			interval = 1;
 		usecs = isc_time_microdiff(&end, &start);
@@ -1388,12 +1394,20 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			if (dctx->nodes > 1000)
 				dctx->nodes = 1000;
 		} else {
-			dctx->nodes = dctx->nodes * interval;
-			dctx->nodes /= (unsigned int)usecs;
-			if (dctx->nodes == 0)
-				dctx->nodes = 1;
-			else if (dctx->nodes > 1000)
-				dctx->nodes = 1000;
+			nodes = dctx->nodes * interval;
+			nodes /= (unsigned int)usecs;
+			if (nodes == 0)
+				nodes = 1;
+			else if (nodes > 1000)
+				nodes = 1000;
+
+			/* Smooth and assign. */
+			dctx->nodes = (nodes + dctx->nodes * 7) / 8;
+
+			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_INFO,
+				      "dumptostreaminc(%p) new nodes -> %d\n",
+				      dctx, dctx->nodes);
 		}
 		dns_dbiterator_pause(dctx->dbiter);
 		result = DNS_R_CONTINUE;

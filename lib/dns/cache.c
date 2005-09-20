@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.64 2005/09/05 02:54:37 marka Exp $ */
+/* $Id: cache.c,v 1.65 2005/09/20 04:22:44 marka Exp $ */
 
 /*! \file */
 
@@ -157,6 +157,12 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event);
 static void
 overmem_cleaning_action(isc_task_t *task, isc_event_t *event);
 
+/*%
+ * Work out how many nodes can be cleaned in the time between two
+ * requests to the nameserver.  Smooth the resulting number and use
+ * it as a estimate for the number of nodes to be cleaned in the next
+ * iteration.
+ */
 static void
 adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 		 isc_time_t *start)
@@ -169,14 +175,14 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 	unsigned int names;
 	
 	/*
-	 * Tune for minumum of 100 pps.
+	 * Tune for minumum of 100 packets per second (pps).
 	 */
 	if (pps < 100)
 		pps = 100;
 
 	isc_time_now(&end);
 
-	interval = 1000000 / pps;
+	interval = 1000000 / pps; /* Interval between packets in usecs. */
 	if (interval == 0)
 		interval = 1;
 
@@ -190,14 +196,18 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 		      interval, names, usecs);
 	
 	if (usecs == 0) {
+		/*
+		 * If we cleaned all the nodes in unmeasurable time
+		 * double the number of nodes to be cleaned next time.
+		 */
 		if (names == cleaner->increment) {
 			cleaner->increment *= 2;
 			if (cleaner->increment > DNS_CACHE_CLEANERINCREMENT)
 				cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_INFO,
-				      "new clear->increment = %d\n",
-				      cleaner->increment);
+				      "%p:new clear->increment = %d\n",
+				      cleaner, cleaner->increment);
 		}
 		return;
 	}
@@ -209,10 +219,14 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 	else if (new > DNS_CACHE_CLEANERINCREMENT)
 		new = DNS_CACHE_CLEANERINCREMENT;
 
+	/* Smooth */
+	new = (new + cleaner->increment * 7) / 8;
+
 	cleaner->increment = (unsigned int)new;
+
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_INFO, "new clear->increment = %u\n",
-		      cleaner->increment);
+		      ISC_LOG_INFO, "%p:new clear->increment = %u\n",
+		      cleaner, cleaner->increment);
 }
 
 static inline isc_result_t

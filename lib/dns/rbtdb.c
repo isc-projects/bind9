@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.216 2005/09/05 02:54:37 marka Exp $ */
+/* $Id: rbtdb.c,v 1.217 2005/09/20 04:22:45 marka Exp $ */
 
 /*! \file */
 
@@ -551,34 +551,52 @@ free_rbtdb_callback(isc_task_t *task, isc_event_t *event) {
 	free_rbtdb(rbtdb, ISC_TRUE, event);
 }
 
+/*%
+ * Work out how many nodes can be deleted in the time between two
+ * requests to the nameserver.  Smooth the resulting number and use it
+ * as a estimate for the number of nodes to be deleted in the next
+ * iteration.
+ */
 static unsigned int
 adjust_quantum(unsigned int old, isc_time_t *start) {
-	unsigned int pps = dns_pps;
+	unsigned int pps = dns_pps;	/* packets per second */
 	unsigned int interval;
 	isc_uint64_t usecs;
 	isc_time_t end;
+	unsigned int new;
 
 	if (pps < 100)
 		pps = 100;
 	isc_time_now(&end);
 
-	interval = 1000000 / pps;
+	interval = 1000000 / pps;	/* interval in usec */
 	if (interval == 0)
 		interval = 1;
 	usecs = isc_time_microdiff(&end, start);
 	if (usecs == 0) {
+		/*
+		 * We were unable to measure the amount of time taken.
+		 * Double the nodes deleted next time.
+		 */
 		old *= 2;
 		if (old > 1000)
 			old = 1000;
 		return (old);
 	}
-	old = old * interval;
-	old /= (unsigned int)usecs;
-	if (old == 0)
-		old = 1;
-	else if (old > 1000)
-		old = 1000;
-	return (old);
+	new = old * interval;
+	new /= (unsigned int)usecs;
+	if (new == 0)
+		new = 1;
+	else if (new > 1000)
+		new = 1000;
+
+	/* Smooth */
+	new = (new + old * 3) / 4;
+	
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
+		      ISC_LOG_INFO, "adjust_quantum -> %d\n", new);
+
+	return (new);
 }
 		
 static void
