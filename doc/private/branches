@@ -32,26 +32,12 @@ rt14816				open
 rt14852				review	
 rt14895				open	jinmei
 rt14895b			open	
-rt14933				closed		// DLV	
-rt14933a			closed	
-rt14965				closed		// windows fixes	
-rt14998				open
-rt15005				closed	
-rt15006				closed	
-rt15020				closed	
-rt15034				closed	
+rt14998				open	
 rt15148				review	
-rt15215				closed	
-rt15216				closed	
-rt15256				closed	
 rt15327				open	
-rt15347				closed	
-rt15383				closed	
-rt15391				closed	
 rt15402				review	
 rt15404				review	
-rt15408				closed	
-rt15412				review
+rt15412				review	
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
@@ -318,17 +304,31 @@ rt14918				closed
 rt14919				closed
 rt14931				closed
 rt14932				closed
+rt14933				closed		// DLV	
+rt14933a			closed
 rt14951				closed
 rt14953				closed
 rt14959				closed
 rt14962				closed
 rt14963				closed		// bad wildcard grants	
+rt14965				closed		// windows fixes	
 rt14967				closed
 rt14991				closed
 rt14995				closed
 rt14996				closed		// tune based on request load	
+rt15005				closed
+rt15006				closed
+rt15020				closed
+rt15034				closed
 rt15036				closed		// ixfr-from-differences serial
 rt15103				closed
+rt15215				closed
+rt15216				closed
+rt15256				closed
+rt15347				closed
+rt15383				closed
+rt15391				closed
+rt15408				closed
 rt1572a				closed		// bad rt#
 rt2471				closed
 rt288				closed
