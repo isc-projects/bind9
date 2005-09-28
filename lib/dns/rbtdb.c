@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.20 2005/09/28 04:42:50 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.21 2005/09/28 22:45:52 marka Exp $ */
 
 /*! \file */
 
@@ -281,7 +281,7 @@ struct acachectl {
 	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7	/*%< Should be prime. */
-#define DEFAULT_CACHE_NODE_LOCK_COUNT	1009	/*%< Should be prime. */
+#define DEFAULT_CACHE_NODE_LOCK_COUNT	7 /*1009*/	/*%< Should be prime. */
 
 typedef struct {
 	nodelock_t			lock;
