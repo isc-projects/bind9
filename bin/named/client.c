@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.230 2005/08/15 01:21:03 marka Exp $ */
+/* $Id: client.c,v 1.231 2005/09/28 04:50:15 marka Exp $ */
 
 #include <config.h>
 
@@ -1698,7 +1698,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	 * since we are very sure that multiple threads will never get access
 	 * to the context simultaneously.
 	 */
-	result = isc_mem_create2(0, 0, &mctx, ISC_MEMFLAG_NOLOCK);
+	result = isc_mem_create2(0, 0, &mctx,
+				 ISC_MEMFLAG_DEFAULT | ISC_MEMFLAG_NOLOCK);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 #else

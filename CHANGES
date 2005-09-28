@@ -1,3 +1,6 @@
+1920.	[bug]		Client memory contexts were not using internal
+			malloc. [RT# 15434]
+
 1919.	[bug]		The cache memory context array was too small to
 			have the desired performance characteristics.
 			[RT #15454]
