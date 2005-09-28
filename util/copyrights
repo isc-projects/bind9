@@ -654,7 +654,7 @@
 ./bin/tests/system/sortlist/tests.sh		SH	2000,2001,2004
 ./bin/tests/system/start.pl			SH	2001,2004,2005
 ./bin/tests/system/start.sh			SH	2001,2004
-./bin/tests/system/stop.pl			SH	2001,2004
+./bin/tests/system/stop.pl			SH	2001,2004,2005
 ./bin/tests/system/stop.sh			SH	2001,2004
 ./bin/tests/system/stress/clean.sh		SH	2000,2001,2004
 ./bin/tests/system/stress/ns1/.cvsignore	X	2000,2001
