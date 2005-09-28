@@ -1,3 +1,6 @@
+1919.	[bug]		The cache memory context array was too small to
+			have the desired performance characteristics.
+			[RT #15454]
 
 	--- 9.4.0a1 released ---
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.19 2005/09/20 04:33:46 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.20 2005/09/28 04:42:50 marka Exp $ */
 
 /*! \file */
 
@@ -280,7 +280,8 @@ struct acachectl {
 #define NXDOMAIN(header) \
 	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 
-#define DEFAULT_NODE_LOCK_COUNT		7		/*%< Should be prime. */
+#define DEFAULT_NODE_LOCK_COUNT		7	/*%< Should be prime. */
+#define DEFAULT_CACHE_NODE_LOCK_COUNT	1009	/*%< Should be prime. */
 
 typedef struct {
 	nodelock_t			lock;
@@ -594,7 +595,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	new = (new + old * 3) / 4;
 	
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_INFO, "adjust_quantum -> %d\n", new);
+		      ISC_LOG_INFO, "adjust_quantum -> %d", new);
 
 	return (new);
 }
@@ -5535,10 +5536,13 @@ dns_rbtdb_create
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
+	if (rbtdb->node_lock_count == 0) {
+		if (IS_CACHE(rbtdb))
+			rbtdb->node_lock_count = DEFAULT_CACHE_NODE_LOCK_COUNT;
+		else
+			rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
+	}
 	INSIST(rbtdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
-
-	if (rbtdb->node_lock_count == 0)
-		rbtdb->node_lock_count = DEFAULT_NODE_LOCK_COUNT;
 	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
 					sizeof(rbtdb_nodelock_t));
 	if (rbtdb->node_locks == NULL) {
