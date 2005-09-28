@@ -1,3 +1,7 @@
+1919.	[bug]		The cache memory context array was too small to
+			have the desired performance characteristics.
+			[RT #15454]
+
 1919.	[placeholder]	rt15441
 
 1918.	[bug]		Memory leak when checking acls. [RT #15391]

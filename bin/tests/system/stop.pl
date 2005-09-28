@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.pl,v 1.6 2004/03/05 04:59:13 marka Exp $
+# $Id: stop.pl,v 1.7 2005/09/28 04:36:05 marka Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
@@ -80,7 +80,7 @@ if ($use_rndc) {
 		stop_rndc($server);
 	}
 
-	wait_for_servers(5, grep /^ns/, @servers);
+	wait_for_servers(30, grep /^ns/, @servers);
 }
 
 
@@ -88,8 +88,8 @@ if ($use_rndc) {
 foreach my $server (@servers) {
 	stop_signal($server, "TERM");
 }
-wait_for_servers(5, @servers);
 
+wait_for_servers(60, @servers);
 
 # Pass 3: SIGABRT
 foreach my $server (@servers) {
