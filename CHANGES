@@ -1,3 +1,6 @@
+1922.	[bug]		check-tool.c:setup_logging() missing call to
+			dns_log_setcontext().
+
 1921.	[bug]		Client memory contexts were not using internal
 			malloc. [RT# 15434]
 
