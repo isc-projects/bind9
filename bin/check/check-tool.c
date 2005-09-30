@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.20 2005/09/05 00:10:51 marka Exp $ */
+/* $Id: check-tool.c,v 1.21 2005/09/30 08:25:38 marka Exp $ */
 
 /*! \file */
 
@@ -370,6 +370,7 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	isc_log_registercategories(log, categories);
 	isc_log_setcontext(log);
 	dns_log_init(log);
+	dns_log_setcontext(log);
 
 	destination.file.stream = stdout;
 	destination.file.name = NULL;
