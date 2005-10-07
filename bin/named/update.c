@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.15 2004/10/21 01:35:12 marka Exp $ */
+/* $Id: update.c,v 1.88.2.16 2005/10/07 04:21:38 marka Exp $ */
 
 #include <config.h>
 
@@ -2546,8 +2546,8 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->nupdates > 0);
 	client->nupdates--;
 	respond(client, uev->result);
-	ns_client_detach(&client);
 	isc_event_free(&event);
+	ns_client_detach(&client);
 }
 
 /*
@@ -2563,8 +2563,8 @@ forward_fail(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->nupdates > 0);
 	client->nupdates--;
 	respond(client, DNS_R_SERVFAIL);
-	ns_client_detach(&client);
 	isc_event_free(&event);
+	ns_client_detach(&client);
 }
 
 
