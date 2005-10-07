@@ -1,3 +1,4 @@
+1923.	[bug]		ns_client_detach() called too early. [RT #15499]
 
 	--- 9.3.2b1 released ---
 
