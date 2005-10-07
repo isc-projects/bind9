@@ -152,7 +152,7 @@
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004
 ./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005
-./bin/named/update.c				C	1999,2000,2001,2002,2003,2004
+./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2004
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004
 ./bin/named/win32/named.dsp			X	2001
