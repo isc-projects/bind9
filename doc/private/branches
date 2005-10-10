@@ -28,6 +28,7 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
+rt14685				new	
 rt14815				open		// stats blind spots	
 rt14816				open	
 rt14852				review	
