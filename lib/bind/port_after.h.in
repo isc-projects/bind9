@@ -299,7 +299,7 @@ GROUP_R_SET_RETURN setgrent_r(GROUP_R_ENT_ARGS);
 GROUP_R_END_RETURN endgrent_r(GROUP_R_ENT_ARGS);
 #endif
 
-#ifdef NEED_INNETGR_R
+#if defined(NEED_INNETGR_R) && defined(NGR_R_RETURN)
 NGR_R_RETURN
 innetgr_r(const char *, const char *, const char *, const char *);
 #endif
@@ -382,7 +382,9 @@ int isc__gettimeofday(struct timeval *tp, struct timezone *tzp);
 
 int getnetgrent(char **machinep, char **userp, char **domainp);
 
+#ifdef NGR_R_ARGS
 int getnetgrent_r(char **machinep, char **userp, char **domainp, NGR_R_ARGS);
+#endif
 
 #ifdef SETNETGRENT_ARGS
 void setnetgrent(SETNETGRENT_ARGS);

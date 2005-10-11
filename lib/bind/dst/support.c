@@ -1,4 +1,4 @@
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.2.2.2 2005/07/28 07:48:17 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/support.c,v 1.2.2.3 2005/10/11 00:56:04 marka Exp $";
 
 
 /*
@@ -103,7 +103,7 @@ dst_s_id_calc(const u_char *key, const int keysize)
 	int size = keysize;
 
 	if (!key || (keysize <= 0))
-		return (-1);
+		return (0xffffU);
  
 	for (ac = 0; size > 1; size -= 2, kp += 2)
 		ac += ((*kp) << 8) + *(kp + 1);
