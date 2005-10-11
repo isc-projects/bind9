@@ -1,3 +1,5 @@
+1924.	[port]		libbind: hpux ia64 support. [RT #15473]
+
 1923.	[bug]		ns_client_detach() called too early. [RT #15499]
 
 1922.	[bug]		check-tool.c:setup_logging() missing call to
