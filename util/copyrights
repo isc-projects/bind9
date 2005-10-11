@@ -803,7 +803,7 @@
 ./bin/win32/BINDInstall/BINDInstall.dsw		X	2001
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/BINDInstall.mak		X	2001
-./bin/win32/BINDInstall/BINDInstall.rc		X	2001
+./bin/win32/BINDInstall/BINDInstall.rc		X	2001,2005
 ./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004
@@ -814,7 +814,7 @@
 ./bin/win32/BINDInstall/VersionInfo.h		X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
-./bin/win32/BINDInstall/resource.h		X	2001
+./bin/win32/BINDInstall/resource.h		X	2001,2005
 ./config.guess					X	1999,2000,2001
 ./config.h.in					X	1999,2000,2001,2005
 ./config.h.win32				C	1999,2000,2001,2004
