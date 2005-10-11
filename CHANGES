@@ -1,3 +1,6 @@
+
+	--- 9.3.2b2 released ---
+
 1926.	[bug]		The Windows installer did not check for empty
 			passwords.  BINDinstall was being installed in
 			the wrong place. [RT #15483]
