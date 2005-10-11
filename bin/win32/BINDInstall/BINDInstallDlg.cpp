@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.12 2004/05/18 01:26:41 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.13 2005/10/11 23:05:50 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -426,16 +426,17 @@ void CBINDInstallDlg::OnInstall()
 
 		
 		SetCurrent(IDS_ADD_REMOVE);
-		if(RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY, &hKey) == ERROR_SUCCESS)
+		if(RegCreateKey(HKEY_LOCAL_MACHINE, BIND_UNINSTALL_SUBKEY,
+				&hKey) == ERROR_SUCCESS)
 		{
-			char winDir[MAX_PATH];
 			CString buf(BIND_DISPLAY_NAME);
-			GetWindowsDirectory(winDir, MAX_PATH);
 
-			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			RegSetValueEx(hKey, "DisplayName", 0, REG_SZ,
+				      (LPBYTE)(LPCTSTR)buf, buf.GetLength());
 
-			buf.Format("%s\\BINDInstall.exe", winDir);
-			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ, (LPBYTE)(LPCTSTR)buf, buf.GetLength());
+			buf.Format("%s\\BINDInstall.exe", m_binDir);
+			RegSetValueEx(hKey, "UninstallString", 0, REG_SZ,
+				      (LPBYTE)(LPCTSTR)buf, buf.GetLength());
 			RegCloseKey(hKey);
 		}
 	
