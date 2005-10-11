@@ -761,7 +761,7 @@
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/BINDInstall.mak		X	2001
 ./bin/win32/BINDInstall/BINDInstall.rc		X	2001
-./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2002,2003,2004
+./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2002,2003,2004,2005
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001,2004
@@ -1215,7 +1215,7 @@
 ./lib/bind/irs/Makefile.in			MAKE	2001,2004
 ./lib/bind/irs/dns.c				X	2001
 ./lib/bind/irs/dns_gr.c				X	2001
-./lib/bind/irs/dns_ho.c				X	2001
+./lib/bind/irs/dns_ho.c				X	2001,2005
 ./lib/bind/irs/dns_nw.c				X	2001
 ./lib/bind/irs/dns_p.h				X	2001
 ./lib/bind/irs/dns_pr.c				X	2001
@@ -1328,7 +1328,7 @@
 ./lib/bind/nameser/ns_samedomain.c		X	2001
 ./lib/bind/nameser/ns_sign.c			X	2001
 ./lib/bind/nameser/ns_ttl.c			X	2001,2005
-./lib/bind/nameser/ns_verify.c			X	2001
+./lib/bind/nameser/ns_verify.c			X	2001,2005
 ./lib/bind/port/.cvsignore			X	2001
 ./lib/bind/port/Makefile.in			MAKE	2001,2004
 ./lib/bind/port/aix32/.cvsignore		X	2001
@@ -1543,10 +1543,10 @@
 ./lib/bind/resolv/res_data.c			X	2001
 ./lib/bind/resolv/res_debug.c			X	2001,2005
 ./lib/bind/resolv/res_debug.h			X	2001
-./lib/bind/resolv/res_findzonecut.c		X	2001
+./lib/bind/resolv/res_findzonecut.c		X	2001,2005
 ./lib/bind/resolv/res_init.c			X	2001,2005
 ./lib/bind/resolv/res_mkquery.c			X	2001
-./lib/bind/resolv/res_mkupdate.c		X	2001
+./lib/bind/resolv/res_mkupdate.c		X	2001,2005
 ./lib/bind/resolv/res_mkupdate.h		X	2001
 ./lib/bind/resolv/res_private.h			X	2001
 ./lib/bind/resolv/res_query.c			X	2001
