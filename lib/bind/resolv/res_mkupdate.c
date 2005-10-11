@@ -22,7 +22,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_mkupdate.c,v 1.4.18.2 2005/04/27 05:01:11 sra Exp $";
+static const char rcsid[] = "$Id: res_mkupdate.c,v 1.4.18.3 2005/10/11 00:25:12 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -81,7 +81,7 @@ int
 res_nmkupdate(res_state statp, ns_updrec *rrecp_in, u_char *buf, int buflen) {
 	ns_updrec *rrecp_start = rrecp_in;
 	HEADER *hp;
-	u_char *cp, *sp1, *sp2, *startp, *endp;
+	u_char *cp, *sp2, *startp, *endp;
 	int n, i, soanum, multiline;
 	ns_updrec *rrecp;
 	struct in_addr ina;
@@ -104,7 +104,6 @@ res_nmkupdate(res_state statp, ns_updrec *rrecp_in, u_char *buf, int buflen) {
 	hp->id = htons(++statp->id);
 	hp->opcode = ns_o_update;
 	hp->rcode = NOERROR;
-	sp1 = buf + 2*INT16SZ;  /*%< save pointer to zocount */
 	cp = buf + HFIXEDSZ;
 	buflen -= HFIXEDSZ;
 	dpp = dnptrs;
