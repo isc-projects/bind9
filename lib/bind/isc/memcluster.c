@@ -24,7 +24,7 @@
 
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: memcluster.c,v 1.3.206.6 2005/08/22 01:34:30 marka Exp $";
+static const char rcsid[] = "$Id: memcluster.c,v 1.3.206.7 2005/10/11 00:48:15 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -108,8 +108,10 @@ static unsigned int	memlock = 0;
 
 static size_t			max_size;
 static size_t			mem_target;
+#ifndef MEMCLUSTER_BIG_MALLOC
 static size_t			mem_target_half;
 static size_t			mem_target_fudge;
+#endif
 static memcluster_element **	freelists;
 #ifdef MEMCLUSTER_RECORD
 static memcluster_element **	activelists;
@@ -146,8 +148,10 @@ meminit(size_t init_max_size, size_t target_size) {
 		mem_target = DEF_MEM_TARGET;
 	else
 		mem_target = target_size;
+#ifndef MEMCLUSTER_BIG_MALLOC
 	mem_target_half = mem_target / 2;
 	mem_target_fudge = mem_target + mem_target / 4;
+#endif
 	freelists = malloc(max_size * sizeof (memcluster_element *));
 	stats = malloc((max_size+1) * sizeof (struct stats));
 	if (freelists == NULL || stats == NULL) {

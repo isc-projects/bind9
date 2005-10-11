@@ -1,5 +1,5 @@
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.2 2005/07/28 07:43:16 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/dst_api.c,v 1.4.2.6.8.3 2005/10/11 00:48:14 marka Exp $";
 #endif
 
 /*
@@ -956,7 +956,6 @@ dst_generate_key(const char *name, const int bits, const int exp,
 		 const int flags, const int protocol, const int alg)
 {
 	DST_KEY *new_key = NULL;
-	int res;
 	int dnslen;
 	u_char dns[2048];
 
@@ -978,7 +977,7 @@ dst_generate_key(const char *name, const int bits, const int exp,
 			 alg));
 		return (dst_free_key(new_key));
 	}
-	if ((res = new_key->dk_func->generate(new_key, exp)) <= 0) {
+	if (new_key->dk_func->generate(new_key, exp) <= 0) {
 		EREPORT(("dst_generate_key_pair(): Key generation failure %s %d %d %d\n",
 			 new_key->dk_key_name, new_key->dk_alg,
 			 new_key->dk_key_size, exp));
