@@ -1,3 +1,6 @@
+
+	--- 9.2.6b2 released ---
+
 1926.	[bug]		BINDinstall was being installed in the wrong place.
 			[RT #15483]
 
