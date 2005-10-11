@@ -1,5 +1,6 @@
 1926.	[bug]		The Windows installer did not check for empty
-			passwords. [RT #15483]
+			passwords.  BINDinstall was being installed in
+			the wrong place. [RT #15483]
 
 1925.	[port]		All outer level AC_TRY_RUNs need cross compiling
 			defaults. [RT #15469]
