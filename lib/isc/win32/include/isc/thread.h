@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.h,v 1.19 2005/09/18 07:16:24 marka Exp $ */
+/* $Id: thread.h,v 1.20 2005/10/11 22:54:45 marka Exp $ */
 
 #ifndef ISC_THREAD_H
 #define ISC_THREAD_H 1
@@ -87,7 +87,7 @@ int
 isc_thread_key_create(isc_thread_key_t *key, void (*func)(void *));
 
 int
-isc_thread_key_destroy(isc_thread_key_t key);
+isc_thread_key_delete(isc_thread_key_t key);
 
 void *
 isc_thread_key_getspecific(isc_thread_key);
