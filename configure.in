@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.48 $)
+AC_REVISION($Revision: 1.294.2.23.2.49 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1263,6 +1263,10 @@ char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
         [AC_MSG_RESULT(no)
         ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
+        [AC_MSG_RESULT(assuming inet_ntop needed)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
 
 
@@ -1286,7 +1290,13 @@ main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
         ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
 	[AC_MSG_RESULT(assuming target platform has working inet_pton)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
+	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
+        [AC_MSG_RESULT(assuming inet_pton needed)
+        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
+        [AC_MSG_RESULT(assuming target platform has working inet_pton)
+        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
 
 AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
@@ -1714,7 +1724,9 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
 [AC_MSG_ERROR([unable to determine sizeof rlim_cur])
 ],[AC_MSG_ERROR(this cannot happen)])
 ],[AC_MSG_ERROR(this cannot happen)])
-],[AC_MSG_ERROR(cannot determine type of rlim_cur when cross compiling - define rlim_t)])
+],[
+ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
+AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming long long int)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
 
