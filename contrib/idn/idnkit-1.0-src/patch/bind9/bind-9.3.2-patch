@@ -17,8 +17,8 @@ and install.
 
 
 Index: README.idnkit
---- /dev/null	Tue Sep  6 10:40:08 2005
-+++ README.idnkit	Tue Sep  6 10:24:31 2005
+--- /dev/null	Wed Oct 12 11:29:18 2005
++++ README.idnkit	Wed Oct 12 10:51:47 2005
 @@ -0,0 +1,112 @@
 +
 +			BIND-9 IDN patch
@@ -135,10 +135,17 @@ Index: README.idnkit
 Index: config.h.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/config.h.in,v
-retrieving revision 1.47.2.3.2.17
-diff -U2 -r1.47.2.3.2.17 config.h.in
---- config.h.in	18 Jul 2005 05:26:11 -0000	1.47.2.3.2.17
-+++ config.h.in	6 Sep 2005 00:40:48 -0000
+retrieving revision 1.47.2.3.2.18
+diff -U2 -r1.47.2.3.2.18 config.h.in
+--- config.h.in	11 Oct 2005 22:29:23 -0000	1.47.2.3.2.18
++++ config.h.in	12 Oct 2005 01:04:40 -0000
+@@ -17,5 +17,5 @@
+  */
+ 
+-/* $Id: config.h.in,v 1.47.2.3.2.18 2005/10/11 22:29:23 marka Exp $ */
++/* $Id: acconfig.h,v 1.35.2.4.2.10 2004/12/04 06:50:02 marka Exp $ */
+ 
+ /***
 @@ -177,4 +177,7 @@
  #undef HAVE_LINUX_CAPABILITY_H
  
@@ -155,25 +162,25 @@ diff -U2 -r1.47.2.3.2.17 config.h.in
 +
  /* Define to 1 if you have the <stdint.h> header file. */
  #undef HAVE_STDINT_H
-@@ -253,4 +259,7 @@
- #undef TIME_WITH_SYS_TIME
+@@ -257,4 +263,7 @@
+ #undef USE_FIONBIO_IOCTL
  
 +/* define if idnkit support is to be included. */
 +#undef WITH_IDN
 +
- /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
-    non-blocking. */
+ /* Define to 1 if your processor stores words with the most significant byte
+    first (like Motorola and SPARC, unlike Intel and VAX). */
 Index: configure
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure,v
-retrieving revision 1.284.2.19.2.43
-diff -U2 -r1.284.2.19.2.43 configure
---- configure	18 Jul 2005 05:26:11 -0000	1.284.2.19.2.43
-+++ configure	6 Sep 2005 00:41:54 -0000
+retrieving revision 1.284.2.19.2.45
+diff -U2 -r1.284.2.19.2.45 configure
+--- configure	11 Oct 2005 22:29:23 -0000	1.284.2.19.2.45
++++ configure	12 Oct 2005 01:07:11 -0000
 @@ -15,5 +15,5 @@
  # PERFORMANCE OF THIS SOFTWARE.
  #
--# $Id: configure,v 1.284.2.19.2.43 2005/07/18 05:26:11 marka Exp $
+-# $Id: configure,v 1.284.2.19.2.45 2005/10/11 22:29:23 marka Exp $
 +# $Id: COPYRIGHT,v 1.6.2.2.8.3 2005/01/10 23:51:37 marka Exp $
  #
  # Portions Copyright (C) 1996-2001  Nominum, Inc.
@@ -369,7 +376,7 @@ diff -U2 -r1.284.2.19.2.43 configure
 +#line 22021 "configure"
  #include "confdefs.h"
  
-@@ -27763,4 +27767,354 @@
+@@ -27764,4 +27768,354 @@
  
  #
 +# IDN support
@@ -724,7 +731,7 @@ diff -U2 -r1.284.2.19.2.43 configure
 +#
  # Substitutions
  #
-@@ -28651,4 +29005,5 @@
+@@ -28653,4 +29007,5 @@
  s,@XSLT_DB2LATEX_STYLE@,$XSLT_DB2LATEX_STYLE,;t t
  s,@XSLT_DB2LATEX_ADMONITIONS@,$XSLT_DB2LATEX_ADMONITIONS,;t t
 +s,@IDNLIBS@,$IDNLIBS,;t t
@@ -733,11 +740,11 @@ diff -U2 -r1.284.2.19.2.43 configure
 Index: configure.in
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/configure.in,v
-retrieving revision 1.294.2.23.2.47
-diff -U2 -r1.294.2.23.2.47 configure.in
---- configure.in	18 Jul 2005 05:22:57 -0000	1.294.2.23.2.47
-+++ configure.in	6 Sep 2005 00:41:57 -0000
-@@ -1966,4 +1966,80 @@
+retrieving revision 1.294.2.23.2.49
+diff -U2 -r1.294.2.23.2.49 configure.in
+--- configure.in	11 Oct 2005 22:27:54 -0000	1.294.2.23.2.49
++++ configure.in	12 Oct 2005 01:07:19 -0000
+@@ -1978,4 +1978,80 @@
  
  #
 +# IDN support
@@ -824,7 +831,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/Makefile.in,v
 retrieving revision 1.25.12.12
 diff -U2 -r1.25.12.12 Makefile.in
 --- bin/dig/Makefile.in	18 Aug 2004 23:25:57 -0000	1.25.12.12
-+++ bin/dig/Makefile.in	6 Sep 2005 00:41:57 -0000
++++ bin/dig/Makefile.in	12 Oct 2005 01:07:19 -0000
 @@ -46,5 +46,5 @@
  
  LIBS =		${LWRESLIBS} ${DNSLIBS} ${BIND9LIBS} ${ISCLIBS} \
@@ -838,7 +845,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.1,v
 retrieving revision 1.14.2.4.2.9
 diff -U2 -r1.14.2.4.2.9 dig.1
 --- bin/dig/dig.1	30 Aug 2005 02:34:59 -0000	1.14.2.4.2.9
-+++ bin/dig/dig.1	6 Sep 2005 00:41:58 -0000
++++ bin/dig/dig.1	12 Oct 2005 01:07:21 -0000
 @@ -14,5 +14,5 @@
  .\" PERFORMANCE OF THIS SOFTWARE.
  .\"
@@ -860,7 +867,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/dig.docbook,v
 retrieving revision 1.4.2.7.4.12
 diff -U2 -r1.4.2.7.4.12 dig.docbook
 --- bin/dig/dig.docbook	30 Aug 2005 00:50:29 -0000	1.4.2.7.4.12
-+++ bin/dig/dig.docbook	6 Sep 2005 00:42:00 -0000
++++ bin/dig/dig.docbook	12 Oct 2005 01:07:26 -0000
 @@ -608,4 +608,19 @@
  
  <refsect1>
@@ -884,10 +891,10 @@ diff -U2 -r1.4.2.7.4.12 dig.docbook
 Index: bin/dig/dighost.c
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/dighost.c,v
-retrieving revision 1.221.2.19.2.28
-diff -U2 -r1.221.2.19.2.28 dighost.c
---- bin/dig/dighost.c	1 Sep 2005 03:16:10 -0000	1.221.2.19.2.28
-+++ bin/dig/dighost.c	6 Sep 2005 00:42:10 -0000
+retrieving revision 1.221.2.19.2.30
+diff -U2 -r1.221.2.19.2.30 dighost.c
+--- bin/dig/dighost.c	9 Sep 2005 00:29:10 -0000	1.221.2.19.2.30
++++ bin/dig/dighost.c	12 Oct 2005 01:07:50 -0000
 @@ -33,4 +33,15 @@
  #include <limits.h>
  
@@ -921,7 +928,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +
  /*
   * Exit Codes:
-@@ -984,4 +1007,8 @@
+@@ -986,4 +1009,8 @@
  		copy_server_list(lwconf, &server_list);
  
 +#ifdef WITH_IDN
@@ -930,7 +937,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +
  	if (keyfile[0] != 0)
  		setup_file_key();
-@@ -1600,4 +1627,12 @@
+@@ -1602,4 +1629,12 @@
  	dns_compress_t cctx;
  	char store[MXNAME];
 +#ifdef WITH_IDN
@@ -943,7 +950,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +#endif
  
  	REQUIRE(lookup != NULL);
-@@ -1628,4 +1663,15 @@
+@@ -1630,4 +1665,15 @@
  			sizeof(lookup->onamespace));
  
 +#ifdef WITH_IDN
@@ -959,7 +966,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +
  	/*
  	 * If the name has too many dots, force the origin to be NULL
-@@ -1636,4 +1682,11 @@
+@@ -1638,4 +1684,11 @@
  	 */
  	/* XXX New search here? */
 +#ifdef WITH_IDN
@@ -971,7 +978,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +#else
  	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
  		lookup->origin = NULL; /* Force abs lookup */
-@@ -1641,5 +1694,27 @@
+@@ -1643,5 +1696,27 @@
  		lookup->origin = ISC_LIST_HEAD(search_list);
  
 +#endif
@@ -999,7 +1006,7 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +#endif
  		debug("trying origin %s", lookup->origin->origin);
  		result = dns_message_gettempname(lookup->sendmsg,
-@@ -1686,4 +1761,13 @@
+@@ -1688,4 +1763,13 @@
  			dns_name_clone(dns_rootname, lookup->name);
  		else {
 +#ifdef WITH_IDN
@@ -1013,13 +1020,13 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +#else
  			len = strlen(lookup->textname);
  			isc_buffer_init(&b, lookup->textname, len);
-@@ -1693,4 +1777,5 @@
+@@ -1695,4 +1779,5 @@
  						   ISC_FALSE,
  						   &lookup->namebuf);
 +#endif
  		}
  		if (result != ISC_R_SUCCESS) {
-@@ -3196,6 +3281,101 @@
+@@ -3198,6 +3283,101 @@
  }
  
 +#ifdef WITH_IDN
@@ -1121,19 +1128,13 @@ diff -U2 -r1.221.2.19.2.28 dighost.c
 +#endif /* WITH_IDN */
  
  #ifdef DIG_SIGCHASE
-@@ -5067,5 +5247,4 @@
- 		return (ret);
- 	}
--:q: Command not found.
- }
- #endif
 Index: bin/dig/host.1
 ===================================================================
 RCS file: /proj/cvs/prod/bind9/bin/dig/host.1,v
 retrieving revision 1.11.2.1.4.6
 diff -U2 -r1.11.2.1.4.6 host.1
 --- bin/dig/host.1	13 May 2005 02:43:18 -0000	1.11.2.1.4.6
-+++ bin/dig/host.1	6 Sep 2005 00:42:11 -0000
++++ bin/dig/host.1	12 Oct 2005 01:07:54 -0000
 @@ -14,5 +14,5 @@
  .\" PERFORMANCE OF THIS SOFTWARE.
  .\"
@@ -1155,7 +1156,7 @@ RCS file: /proj/cvs/prod/bind9/bin/dig/host.docbook,v
 retrieving revision 1.2.2.2.4.7
 diff -U2 -r1.2.2.2.4.7 host.docbook
 --- bin/dig/host.docbook	13 May 2005 01:22:32 -0000	1.2.2.2.4.7
-+++ bin/dig/host.docbook	6 Sep 2005 00:42:11 -0000
++++ bin/dig/host.docbook	12 Oct 2005 01:07:54 -0000
 @@ -208,4 +208,19 @@
  
  <refsect1>
@@ -1182,7 +1183,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/name.c,v
 retrieving revision 1.127.2.7.2.13
 diff -U2 -r1.127.2.7.2.13 name.c
 --- lib/dns/name.c	23 Jul 2005 04:34:37 -0000	1.127.2.7.2.13
-+++ lib/dns/name.c	6 Sep 2005 00:42:14 -0000
++++ lib/dns/name.c	12 Oct 2005 01:07:59 -0000
 @@ -183,4 +183,11 @@
  dns_fullname_hash(dns_name_t *name, isc_boolean_t case_sensitive);
  
@@ -1228,7 +1229,7 @@ RCS file: /proj/cvs/prod/bind9/lib/dns/include/dns/name.h,v
 retrieving revision 1.95.2.3.2.12
 diff -U2 -r1.95.2.3.2.12 name.h
 --- lib/dns/include/dns/name.h	8 Sep 2004 00:29:34 -0000	1.95.2.3.2.12
-+++ lib/dns/include/dns/name.h	6 Sep 2005 00:42:16 -0000
++++ lib/dns/include/dns/name.h	12 Oct 2005 01:08:04 -0000
 @@ -156,4 +156,15 @@
  #define DNS_NAME_MAXWIRE 255
  
