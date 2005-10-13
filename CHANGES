@@ -1,3 +1,5 @@
+1928.	[bug]		Race in rbtdb.c:currentversion(). [RT #15517]
+
 1926.	[bug]		The Windows installer did not check for empty
 			passwords.  BINDinstall was being installed in
 			the wrong place. [RT #15483]

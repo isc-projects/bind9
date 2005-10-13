@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.21 2005/09/28 22:45:52 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.22 2005/10/13 01:22:56 marka Exp $ */
 
 /*! \file */
 
@@ -105,25 +105,18 @@ typedef isc_uint32_t			rbtdb_rdatatype_t;
 		RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_any)
 
 /*
- * We use rwlock for DB lock only when DNS_RBTDB_USERWLOCK is non 0.
+ * We use rwlock for DB lock only when ISC_RWLOCK_USEATOMIC is non 0.
  * Using rwlock is effective with regard to lookup performance only when
- * it is implemented in an efficient way and the server receives a massive
- * number of queries for non-existent names (which cause calls to getsoanode()
- * below).
+ * it is implemented in an efficient way.
  * Otherwise, it is generally wise to stick to the simple locking since rwlock
  * would require more memory or can even make lookups slower due to its own
  * overhead (when it internally calls mutex locks).
- * By default, DNS_RBTDB_USERWLOCK is 0.  It is only set to 1 when
- * both DNS_RBTDB_ALLOWUSERWLOCK and ISC_RWLOCK_USEATOMIC is defined at
- * compilation time (the latter is automatically defined when available).
  */
-#ifndef DNS_RBTDB_USERWLOCK
-#if defined(ISC_RWLOCK_USEATOMIC) && defined(DNS_RBTDB_ALLOWUSERWLOCK)
+#ifdef ISC_RWLOCK_USEATOMIC
 #define DNS_RBTDB_USERWLOCK 1
 #else
 #define DNS_RBTDB_USERWLOCK 0
 #endif
-#endif /* DNS_RBTDB_USERWLOCK */
 
 #if DNS_RBTDB_USERWLOCK
 #define RBTDB_INITLOCK(l)	isc_rwlock_init((l), 0, 0)
@@ -756,13 +749,10 @@ currentversion(dns_db_t *db, dns_dbversion_t **versionp) {
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
+	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
 	version = rbtdb->current_version;
 	isc_refcount_increment(&version->references, &refs);
-	if (refs == 1) {
-		RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-		PREPEND(rbtdb->open_versions, version, link);
-		RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-	}
+	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
 
 	*versionp = (dns_dbversion_t *)version;
 }
