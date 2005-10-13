@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.63 2005/06/04 05:32:47 jinmei Exp $ */
+/* $Id: rbt.h,v 1.64 2005/10/13 01:19:15 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
@@ -222,10 +222,6 @@ typedef struct dns_rbtnodechain {
 /*****
  ***** Public interfaces.
  *****/
-isc_result_t
-dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
-		void (*deleter2)(void *, void *),
-		void *deleter_arg, dns_rbt_t **rbtp);
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	       void *deleter_arg, dns_rbt_t **rbtp);

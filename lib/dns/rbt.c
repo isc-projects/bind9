@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.c,v 1.134 2005/06/17 01:00:08 marka Exp $ */
+/* $Id: rbt.c,v 1.135 2005/10/13 01:19:12 marka Exp $ */
 
 /*! \file */
 
@@ -63,7 +63,6 @@ struct dns_rbt {
 	isc_mem_t *		mctx;
 	dns_rbtnode_t *		root;
 	void			(*data_deleter)(void *, void *);
-	void			(*data_deleter2)(void *, void *);
 	void *			deleter_arg;
 	unsigned int		nodecount;
 	unsigned int		hashsize;
@@ -221,9 +220,8 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
  * Initialize a red/black tree of trees.
  */
 isc_result_t
-dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
-		void (*deleter2)(void *, void *),
-		void *deleter_arg, dns_rbt_t **rbtp)
+dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
+	       void *deleter_arg, dns_rbt_t **rbtp)
 {
 #ifdef DNS_RBT_USEHASH
 	isc_result_t result;
@@ -233,7 +231,7 @@ dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
-	REQUIRE((deleter == NULL && deleter2 == NULL) ? deleter_arg == NULL : 1);
+	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
 
 	rbt = (dns_rbt_t *)isc_mem_get(mctx, sizeof(*rbt));
 	if (rbt == NULL)
@@ -241,7 +239,6 @@ dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
 
 	rbt->mctx = mctx;
 	rbt->data_deleter = deleter;
-	rbt->data_deleter2 = deleter2;
 	rbt->deleter_arg = deleter_arg;
 	rbt->root = NULL;
 	rbt->nodecount = 0;
@@ -259,13 +256,6 @@ dns_rbt_create2(isc_mem_t *mctx, void (*deleter)(void *, void *),
 	*rbtp = rbt;
 
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_rbt_create(isc_mem_t *mctx, void (*deleter)(void *, void *),
-	       void *deleter_arg, dns_rbt_t **rbtp)
-{
-	return (dns_rbt_create2(mctx, deleter, NULL, deleter_arg, rbtp));
 }
 
 /*
@@ -1286,9 +1276,6 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 			if (DATA(node) != NULL && rbt->data_deleter != NULL)
 				rbt->data_deleter(DATA(node),
 						  rbt->deleter_arg);
-			if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
-				rbt->data_deleter2(node,
-						   rbt->deleter_arg);
 			DATA(node) = NULL;
 
 			/*
@@ -1320,8 +1307,6 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
-	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
-		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC
@@ -2037,8 +2022,6 @@ dns_rbt_deletetree(dns_rbt_t *rbt, dns_rbtnode_t *node) {
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
-	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
-		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	unhash_node(rbt, node);
 #if DNS_RBT_USEMAGIC
@@ -2079,8 +2062,6 @@ dns_rbt_deletetreeflat(dns_rbt_t *rbt, unsigned int quantum,
 
 	if (DATA(node) != NULL && rbt->data_deleter != NULL)
 		rbt->data_deleter(DATA(node), rbt->deleter_arg);
-	if (DATA(node) != NULL && rbt->data_deleter2 != NULL)
-		rbt->data_deleter2(node, rbt->deleter_arg);
 
 	/*
 	 * Note: we don't call unhash_node() here as we are destroying
