@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.45.18.7 2005/08/18 01:03:01 marka Exp $ */
+/* $Id: sdb.c,v 1.45.18.8 2005/10/13 02:12:25 marka Exp $ */
 
 /*! \file */
 
@@ -1240,9 +1240,6 @@ static dns_dbmethods_t sdb_methods = {
 	ispersistent,
 	overmem,
 	settask,
-	NULL,
-	NULL,
-	NULL,
 	NULL
 };
 

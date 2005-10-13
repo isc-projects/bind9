@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.17 2005/09/05 00:18:11 marka Exp $ */
+/* $Id: query.c,v 1.257.18.18 2005/10/13 02:12:23 marka Exp $ */
 
 /*! \file */
 
@@ -2013,7 +2013,7 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 	/*
 	 * Find the SOA.
 	 */
-	result = dns_db_getsoanode(db, &node);
+	result = dns_db_getoriginnode(db, &node);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_soa,
@@ -2029,9 +2029,6 @@ query_addsoa(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version,
 		result = dns_db_find(db, name, version, dns_rdatatype_soa,
 				     client->query.dboptions, 0, &node,
 				     fname, rdataset, sigrdataset);
-
-		if (result == ISC_R_SUCCESS)
-			(void)dns_db_setsoanode(db, node);
 	}
 	if (result != ISC_R_SUCCESS) {
 		/*
@@ -2135,7 +2132,7 @@ query_addns(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version) {
 	/*
 	 * Find the NS rdataset.
 	 */
-	result = dns_db_getnsnode(db, &node);
+	result = dns_db_getoriginnode(db, &node);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_ns,
@@ -2147,9 +2144,6 @@ query_addns(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version) {
 				     client->query.dboptions, 0, &node,
 				     fname, rdataset, sigrdataset);
 		CTRACE("query_addns: dns_db_find complete");
-
-		if (result == ISC_R_SUCCESS)
-			(void)dns_db_setnsnode(db, node);
 	}
 	if (result != ISC_R_SUCCESS) {
 		CTRACE("query_addns: "
