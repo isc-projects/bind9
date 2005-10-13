@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.22 2005/10/13 01:22:56 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.23 2005/10/13 01:26:06 marka Exp $ */
 
 /*! \file */
 
@@ -274,7 +274,7 @@ struct acachectl {
 	(((header)->attributes & RDATASET_ATTR_NXDOMAIN) != 0)
 
 #define DEFAULT_NODE_LOCK_COUNT		7	/*%< Should be prime. */
-#define DEFAULT_CACHE_NODE_LOCK_COUNT	7 /*1009*/	/*%< Should be prime. */
+#define DEFAULT_CACHE_NODE_LOCK_COUNT	1009	/*%< Should be prime. */
 
 typedef struct {
 	nodelock_t			lock;
@@ -341,7 +341,6 @@ typedef struct {
 	isc_boolean_t			secure;
 
 	/* Unlocked */
-	isc_mem_t **			nodemctxs;
 	unsigned int			quantum;
 } dns_rbtdb_t;
 
@@ -657,13 +656,7 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 	for (i = 0; i < rbtdb->node_lock_count; i++) {
 		isc_refcount_destroy(&rbtdb->node_locks[i].references);
 		NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
-
-		if (rbtdb->nodemctxs != NULL)
-			isc_mem_detach(&rbtdb->nodemctxs[i]);
 	}
-	if (rbtdb->nodemctxs != NULL)
-		isc_mem_put(rbtdb->common.mctx, rbtdb->nodemctxs,
-			    sizeof(isc_mem_t *) * rbtdb->node_lock_count);
 	isc_mem_put(rbtdb->common.mctx, rbtdb->node_locks,
 		    rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 	isc_rwlock_destroy(&rbtdb->tree_lock);
@@ -954,13 +947,11 @@ rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 static inline void
 clean_cache_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	rdatasetheader_t *current, *dcurrent, *top_prev, *top_next, *down_next;
-	isc_mem_t *mctx;
+	isc_mem_t *mctx = rbtdb->common.mctx;
 
 	/*
 	 * Caller must be holding the node lock.
 	 */
-	REQUIRE(rbtdb->nodemctxs != NULL);
-	mctx = rbtdb->nodemctxs[node->locknum];
 
 	top_prev = NULL;
 	for (current = node->data; current != NULL; current = top_next) {
@@ -2952,18 +2943,13 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 				locktype = isc_rwlocktype_write;
 
 				if (dns_rbtnode_refcurrent(node) == 0) {
-					isc_mem_t *mctx;
-
 					INSIST(header->down == NULL);
 					if (header_prev != NULL)
 						header_prev->next =
 							header->next;
 					else
 						node->data = header->next;
-					INSIST(search->rbtdb->nodemctxs
-					       != NULL);
-					mctx = search->rbtdb->nodemctxs[node->locknum];
-					free_rdataset(mctx,
+					free_rdataset(search->rbtdb->common.mctx,
 						      header);
 				} else {
 					header->attributes |=
@@ -3064,8 +3050,6 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 
 					if (dns_rbtnode_refcurrent(node)
 					    == 0) {
-						isc_mem_t *mctx;
-
 						INSIST(header->down == NULL);
 						if (header_prev != NULL)
 							header_prev->next =
@@ -3073,13 +3057,7 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 						else
 							node->data =
 								header->next;
-
-						if (search->rbtdb->nodemctxs !=
-						    NULL)
-							mctx = search->rbtdb->nodemctxs[node->locknum];
-						else
-							mctx = search->rbtdb->common.mctx;
-						free_rdataset(mctx,
+						free_rdataset(search->rbtdb->common.mctx,
 							      header);
 					} else {
 						header->attributes |=
@@ -3226,20 +3204,13 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 
 					if (dns_rbtnode_refcurrent(node)
 					    == 0) {
-						isc_mem_t *mctx;
-
 						INSIST(header->down == NULL);
 						if (header_prev != NULL)
 							header_prev->next =
 								header->next;
 						else
 							node->data = header->next;
-						if (search->rbtdb->nodemctxs !=
-						    NULL)
-							mctx = search->rbtdb->nodemctxs[node->locknum];
-						else
-							mctx = search->rbtdb->common.mctx;
-						free_rdataset(mctx,
+						free_rdataset(search->rbtdb->common.mctx,
 							      header);
 					} else {
 						header->attributes |=
@@ -3404,17 +3375,13 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				locktype = isc_rwlocktype_write;
 
 				if (dns_rbtnode_refcurrent(node) == 0) {
-					isc_mem_t *mctx;
-
 					INSIST(header->down == NULL);
 					if (header_prev != NULL)
 						header_prev->next =
 							header->next;
 					else
 						node->data = header->next;
-					INSIST(search.rbtdb->nodemctxs != NULL);
-					mctx = search.rbtdb->nodemctxs[node->locknum];
-					free_rdataset(mctx,
+					free_rdataset(search.rbtdb->common.mctx,
 						      header);
 				} else {
 					header->attributes |=
@@ -3697,17 +3664,13 @@ cache_findzonecut(dns_db_t *db, dns_name_t *name, unsigned int options,
 				locktype = isc_rwlocktype_write;
 
 				if (dns_rbtnode_refcurrent(node) == 0) {
-					isc_mem_t *mctx;
-					
 					INSIST(header->down == NULL);
 					if (header_prev != NULL)
 						header_prev->next =
 							header->next;
 					else
 						node->data = header->next;
-					INSIST(search.rbtdb->nodemctxs != NULL);
-					mctx = search.rbtdb->nodemctxs[node->locknum];
-					free_rdataset(mctx,
+					free_rdataset(search.rbtdb->common.mctx,
 						      header);
 				} else {
 					header->attributes |=
@@ -4354,7 +4317,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t merge;
 	dns_rdatatype_t nsectype, rdtype, covers;
 	dns_trust_t trust;
-	isc_mem_t *mctx;
 
 	/*
 	 * Add an rdatasetheader_t to a node.
@@ -4375,11 +4337,6 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	else
 		trust = newheader->trust;
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-
 	if (rbtversion != NULL && !loading) {
 		/*
 		 * We always add a changed record, even if no changes end up
@@ -4388,7 +4345,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 */
 		changed = add_changed(rbtdb, rbtversion, rbtnode);
 		if (changed == NULL) {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			return (ISC_R_NOMEMORY);
 		}
 	}
@@ -4446,7 +4403,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					 * The NXDOMAIN is more trusted.
 					 */
 					
-					free_rdataset(mctx,
+					free_rdataset(rbtdb->common.mctx,
 						      newheader);
 					if (addedrdataset != NULL)
 						bind_rdataset(rbtdb, rbtnode,
@@ -4493,7 +4450,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * Deleting an already non-existent rdataset has no effect.
 		 */
 		if (header_nx && newheader_nx) {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			return (DNS_R_UNCHANGED);
 		}
 
@@ -4503,7 +4460,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 */
 		if (rbtversion == NULL && trust < header->trust &&
 		    (header->ttl > now || header_nx)) {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
 					      addedrdataset);
@@ -4538,7 +4495,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					     (unsigned char *)header,
 					     (unsigned char *)newheader,
 					     (unsigned int)(sizeof(*newheader)),
-					     mctx,
+					     rbtdb->common.mctx,
 					     rbtdb->common.rdclass,
 					     (dns_rdatatype_t)header->type,
 					     flags, &merged);
@@ -4551,10 +4508,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 * alone.  It will get cleaned up when
 				 * clean_zone_node() runs.
 				 */
-				free_rdataset(mctx, newheader);
+				free_rdataset(rbtdb->common.mctx, newheader);
 				newheader = (rdatasetheader_t *)merged;
 			} else {
-				free_rdataset(mctx, newheader);
+				free_rdataset(rbtdb->common.mctx, newheader);
 				return (result);
 			}
 		}
@@ -4585,7 +4542,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
 					      addedrdataset);
@@ -4610,7 +4567,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				header->noqname = newheader->noqname;
 				newheader->noqname = NULL;
 			}
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			if (addedrdataset != NULL)
 				bind_rdataset(rbtdb, rbtnode, header, now,
 					      addedrdataset);
@@ -4631,7 +4588,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			 * loading, we MUST clean up 'header' now.
 			 */
 			newheader->down = NULL;
-			free_rdataset(mctx, header);
+			free_rdataset(rbtdb->common.mctx, header);
 		} else {
 			newheader->down = topheader;
 			topheader->next = newheader;
@@ -4649,7 +4606,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 		 * If we're trying to delete the type, don't bother.
 		 */
 		if (newheader_nx) {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			return (DNS_R_UNCHANGED);
 		}
 
@@ -4775,7 +4732,6 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	rdatasetheader_t *newheader;
 	isc_result_t result;
 	isc_boolean_t delegating;
-	isc_mem_t *mctx;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -4785,12 +4741,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	} else
 		now = 0;
 
-	if (rbtdb->nodemctxs != NULL) 
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-
-	result = dns_rdataslab_fromrdataset(rdataset, mctx,
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
 					    &region,
 					    sizeof(rdatasetheader_t));
 	if (result != ISC_R_SUCCESS)
@@ -4816,7 +4767,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		if ((rdataset->attributes & DNS_RDATASETATTR_NOQNAME) != 0) {
 			result = addnoqname(rbtdb, newheader, rdataset);
 			if (result != ISC_R_SUCCESS) {
-				free_rdataset(mctx, newheader);
+				free_rdataset(rbtdb->common.mctx, newheader);
 				return (result);
 			}
 		}
@@ -4864,16 +4815,10 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	isc_region_t region;
 	isc_result_t result;
 	rbtdb_changed_t *changed;
-	isc_mem_t *mctx;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-
-	result = dns_rdataslab_fromrdataset(rdataset, mctx,
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
 					    &region,
 					    sizeof(rdatasetheader_t));
 	if (result != ISC_R_SUCCESS)
@@ -4931,12 +4876,12 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 					(unsigned char *)header,
 					(unsigned char *)newheader,
 					(unsigned int)(sizeof(*newheader)),
-					mctx,
+					rbtdb->common.mctx,
 					rbtdb->common.rdclass,
 					(dns_rdatatype_t)header->type,
 					flags, &subresult);
 		if (result == ISC_R_SUCCESS) {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			newheader = (rdatasetheader_t *)subresult;
 			/*
 			 * We have to set the serial since the rdataslab
@@ -4956,8 +4901,8 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			 * This subtraction would remove all of the rdata;
 			 * add a nonexistent header instead.
 			 */
-			free_rdataset(mctx, newheader);
-			newheader = isc_mem_get(mctx,
+			free_rdataset(rbtdb->common.mctx, newheader);
+			newheader = isc_mem_get(rbtdb->common.mctx,
 						sizeof(*newheader));
 			if (newheader == NULL) {
 				result = ISC_R_NOMEMORY;
@@ -4973,7 +4918,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			newheader->additional_auth = NULL;
 			newheader->additional_glue = NULL;
 		} else {
-			free_rdataset(mctx, newheader);
+			free_rdataset(rbtdb->common.mctx, newheader);
 			goto unlock;
 		}
 
@@ -4996,7 +4941,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		 * The rdataset doesn't exist, so we don't need to do anything
 		 * to satisfy the deletion request.
 		 */
-		free_rdataset(mctx, newheader);
+		free_rdataset(rbtdb->common.mctx, newheader);
 		if ((options & DNS_DBSUB_EXACT) != 0)
 			result = DNS_R_NOTEXACT;
 		else
@@ -5022,7 +4967,6 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	rbtdb_version_t *rbtversion = version;
 	isc_result_t result;
 	rdatasetheader_t *newheader;
-	isc_mem_t *mctx;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
@@ -5031,12 +4975,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (type == dns_rdatatype_rrsig && covers == 0)
 		return (ISC_R_NOTIMPLEMENTED);
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-
-	newheader = isc_mem_get(mctx, sizeof(*newheader));
+	newheader = isc_mem_get(rbtdb->common.mctx, sizeof(*newheader));
 	if (newheader == NULL)
 		return (ISC_R_NOMEMORY);
 	newheader->ttl = 0;
@@ -5072,7 +5011,6 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_result_t result;
 	isc_region_t region;
 	rdatasetheader_t *newheader;
-	isc_mem_t *mctx;
 
 	/*
 	 * This routine does no node locking.  See comments in
@@ -5117,11 +5055,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 #endif
 	}
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[node->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-	result = dns_rdataslab_fromrdataset(rdataset, mctx,
+	result = dns_rdataslab_fromrdataset(rdataset, rbtdb->common.mctx,
 					    &region,
 					    sizeof(rdatasetheader_t));
 	if (result != ISC_R_SUCCESS)
@@ -5275,17 +5209,11 @@ dump(dns_db_t *db, dns_dbversion_t *version, const char *filename,
 static void
 delete_callback(void *data, void *arg) {
 	dns_rbtdb_t *rbtdb = arg;
-	dns_rbtnode_t *rbtnode = data;
 	rdatasetheader_t *current, *next;
-	isc_mem_t *mctx;
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-	for (current = rbtnode->data; current != NULL; current = next) {
+	for (current = data; current != NULL; current = next) {
 		next = current->next;
-		free_rdataset(mctx, current);
+		free_rdataset(rbtdb->common.mctx, current);
 	}
 }
 
@@ -5516,7 +5444,6 @@ dns_rbtdb_create
 		rbtdb->common.methods = &zone_methods;
 	rbtdb->common.rdclass = rdclass;
 	rbtdb->common.mctx = NULL;
-	rbtdb->nodemctxs = NULL;
 
 	result = RBTDB_INITLOCK(&rbtdb->lock);
 	if (result != ISC_R_SUCCESS)
@@ -5542,29 +5469,6 @@ dns_rbtdb_create
 
 	rbtdb->active = rbtdb->node_lock_count;
 
-	if (IS_CACHE(rbtdb)) {
-		rbtdb->nodemctxs = isc_mem_get(mctx,
-					       sizeof(isc_mem_t *) *
-					       rbtdb->node_lock_count);
-		if (rbtdb->nodemctxs == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_node_locks;
-		}
-		for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
-			rbtdb->nodemctxs[i] = NULL;
-			result = isc_mem_create(0, 0, &rbtdb->nodemctxs[i]);
-			if (result != ISC_R_SUCCESS) {
-				while (i-- > 0)
-					isc_mem_detach(&rbtdb->nodemctxs[i]);
-				isc_mem_put(mctx, rbtdb->nodemctxs,
-					    sizeof(isc_mem_t *) *
-					    rbtdb->node_lock_count);
-				goto cleanup_node_locks;
-			}
-		}
-	} else
-		rbtdb->nodemctxs = NULL;
-
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		result = NODE_INITLOCK(&rbtdb->node_locks[i].lock);
 		if (result == ISC_R_SUCCESS) {
@@ -5578,7 +5482,7 @@ dns_rbtdb_create
 				isc_refcount_decrement(&rbtdb->node_locks[i].references, NULL);
 				isc_refcount_destroy(&rbtdb->node_locks[i].references);
 			}
-			goto cleanup_nodemctxs;
+			goto cleanup_node_locks;
 		}
 		rbtdb->node_locks[i].exiting = ISC_FALSE;
 	}
@@ -5607,8 +5511,7 @@ dns_rbtdb_create
 	/*
 	 * Make the Red-Black Tree.
 	 */
-	result = dns_rbt_create2(mctx, NULL, delete_callback, rbtdb,
-				 &rbtdb->tree);
+	result = dns_rbt_create(mctx, delete_callback, rbtdb, &rbtdb->tree);
 	if (result != ISC_R_SUCCESS) {
 		free_rbtdb(rbtdb, ISC_FALSE, NULL);
 		return (result);
@@ -5691,14 +5594,6 @@ dns_rbtdb_create
 	*dbp = (dns_db_t *)rbtdb;
 
 	return (ISC_R_SUCCESS);
-
- cleanup_nodemctxs:
-	if (rbtdb->nodemctxs != NULL) {
-		for (i = 0; i < (int)(rbtdb->node_lock_count); i++)
-			isc_mem_detach(&rbtdb->nodemctxs[i]);
-		isc_mem_put(mctx, rbtdb->nodemctxs,
-			    sizeof(isc_mem_t *) * rbtdb->node_lock_count);
-	}
 
  cleanup_node_locks:
 	isc_mem_put(mctx, rbtdb->node_locks,
@@ -6516,7 +6411,6 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 	acachectl_t *acarray = NULL;
 	acache_cbarg_t *cbarg;
 	unsigned int count;
-	isc_mem_t *mctx;
 
 	REQUIRE(arg != NULL);
 	cbarg = *arg;
@@ -6546,11 +6440,7 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 	if (acarray[count].entry == entry)
 		acarray[count].entry = NULL;
 	INSIST(acarray[count].cbarg != NULL);
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-	isc_mem_put(mctx, acarray[count].cbarg,
+	isc_mem_put(rbtdb->common.mctx, acarray[count].cbarg,
 		    sizeof(acache_cbarg_t));
 	acarray[count].cbarg = NULL;
 
@@ -6599,7 +6489,6 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	rdatasetheader_t *header;
 	unsigned int total_count, count;
 	nodelock_t *nodelock;
-	isc_mem_t *mctx;
 	isc_result_t result;
 	acachectl_t *acarray;
 	dns_acacheentry_t *newentry, *oldentry = NULL;
@@ -6616,12 +6505,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	INSIST(total_count > current_count);
 	count = total_count - current_count - 1; /* should be private data */
 
-	if (rbtdb->nodemctxs != NULL)
-		mctx = rbtdb->nodemctxs[rbtnode->locknum];
-	else
-		mctx = rbtdb->common.mctx;
-
-	newcbarg = isc_mem_get(mctx, sizeof(*newcbarg));
+	newcbarg = isc_mem_get(rbtdb->common.mctx, sizeof(*newcbarg));
 	if (newcbarg == NULL)
 		return (ISC_R_NOMEMORY);
 	newcbarg->type = type;
@@ -6661,7 +6545,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	if (acarray == NULL) {
 		unsigned int i;
 
-		acarray = isc_mem_get(mctx, total_count *
+		acarray = isc_mem_get(rbtdb->common.mctx, total_count *
 				      sizeof(acachectl_t));
 
 		if (acarray == NULL) {
@@ -6701,7 +6585,8 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 
 	if (oldentry != NULL) {
 		if (oldcbarg != NULL)
-			acache_cancelentry(mctx, oldentry, &oldcbarg); 
+			acache_cancelentry(rbtdb->common.mctx, oldentry,
+					   &oldcbarg); 
 		dns_acache_detachentry(&oldentry);
 	}
 
@@ -6710,7 +6595,8 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
   fail:
 	if (newentry != NULL) {
 		if (newcbarg != NULL)
-			acache_cancelentry(mctx, newentry, &newcbarg);
+			acache_cancelentry(rbtdb->common.mctx, newentry,
+					   &newcbarg);
 		dns_acache_detachentry(&newentry);
 	}
 
@@ -6779,16 +6665,8 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 	NODE_UNLOCK(nodelock, isc_rwlocktype_write);
 
 	if (entry != NULL) {
-		if(cbarg != NULL) {
-			isc_mem_t *mctx;
-
-			if (rbtdb->nodemctxs != NULL)
-				mctx = rbtdb->nodemctxs[rbtnode->locknum];
-			else
-				mctx = rbtdb->common.mctx;
-
-			acache_cancelentry(mctx, entry, &cbarg);
-		}
+		if(cbarg != NULL)
+			acache_cancelentry(rbtdb->common.mctx, entry, &cbarg);
 		dns_acache_detachentry(&entry);
 	}
 
