@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.83 2005/07/18 05:58:58 marka Exp $ */
+/* $Id: db.h,v 1.84 2005/10/13 01:58:32 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -145,10 +145,7 @@ typedef struct dns_dbmethods {
 	isc_boolean_t	(*ispersistent)(dns_db_t *db);
 	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 	void		(*settask)(dns_db_t *db, isc_task_t *);
-	isc_result_t	(*getsoanode)(dns_db_t *db, dns_dbnode_t **nodep);
-	isc_result_t	(*setsoanode)(dns_db_t *db, dns_dbnode_t *nodep);
-	isc_result_t	(*getnsnode)(dns_db_t *db, dns_dbnode_t **nodep);
-	isc_result_t	(*setnsnode)(dns_db_t *db, dns_dbnode_t *nodep);
+	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 } dns_dbmethods_t;
 
 typedef isc_result_t
@@ -1278,9 +1275,11 @@ dns_db_unregister(dns_dbimplementation_t **dbimp);
  */
 
 isc_result_t
-dns_db_getsoanode(dns_db_t *db, dns_dbnode_t **nodep);
+dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
 /*%<
- * Get a cached SOA DB node corresponding to the DB's zone.
+ * Get the origin DB node corresponding to the DB's zone.  This function
+ * should typically succeed unless the underlying DB implementation doesn't
+ * support the feature.
  *
  * Requires:
  *
@@ -1288,71 +1287,11 @@ dns_db_getsoanode(dns_db_t *db, dns_dbnode_t **nodep);
  * \li	'nodep' != NULL && '*nodep' == NULL
  *
  * Ensures:
- * \li	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
+ * \li	On success, '*nodep' will point to the DB node of the zone's origin.
  *
  * Returns:
  * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOTFOUND - an SOA RR node has not been cached in 'db' or SOA RR
- *			  caching is not supported for 'db'
- */
-
-isc_result_t
-dns_db_setsoanode(dns_db_t *db, dns_dbnode_t *node);
-/*%<
- * Set an SOA DB node as cache corresponding to the DB's zone.  If there is
- * already a node set in the DB, it will be detached and replaced with the
- * new one.
- *
- * Requires:
- *
- * \li	'db' is a valid zone database.
- * \li	'node' is a valid DB node.
- *
- * Ensures:
- * \li 	On sucess, '*nodep' will point to a DB node for the SOA RR of 'db.'
- *
- * Returns:
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_FAILURE - SOA RR caching is not supported for 'db'
- */
-
-isc_result_t
-dns_db_getnsnode(dns_db_t *db, dns_dbnode_t **nodep);
-/*%<
- * Get a cached NS DB node corresponding to the DB's zone.
- *
- * Requires:
- *
- * \li	'db' is a valid zone database.
- * \li	'nodep' != NULL && '*nodep' == NULL
- *
- * Ensures:
- * \li	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
- *
- * Returns:
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOTFOUND - an NS RR node has not been cached in 'db' or NS RR
- *			  caching is not supported for 'db'
- */
-
-isc_result_t
-dns_db_setnsnode(dns_db_t *db, dns_dbnode_t *node);
-/*%<
- * Set an NS DB node as cache corresponding to the DB's zone.  If there is
- * already a node set in the DB, it will be detached and replaced with the
- * new one.
- *
- * Requires:
- *
- * \li	'db' is a valid zone database.
- * \li	'node' is a valid DB node.
- *
- * Ensures:
- * \li	On sucess, '*nodep' will point to a DB node for the NS RR of 'db.'
- *
- * Returns:
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_FAILURE - NS RR caching is not supported for 'db'
+ * \li	#ISC_R_NOTFOUND - the DB implementation does not support this feature.
  */
 
 ISC_LANG_ENDDECLS

@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.4 2005/09/20 06:16:26 marka Exp $ */
+/* $Id: sdlz.c,v 1.5 2005/10/13 01:58:32 marka Exp $ */
 
 /*! \file */
 
@@ -1043,9 +1043,6 @@ static dns_dbmethods_t sdlzdb_methods = {
 	overmem,
 	settask,
 	NULL,
-	NULL,
-	NULL,
-	NULL
 };
 
 /*

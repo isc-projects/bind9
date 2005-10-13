@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.221 2005/10/13 01:19:14 marka Exp $ */
+/* $Id: rbtdb.c,v 1.222 2005/10/13 01:58:31 marka Exp $ */
 
 /*! \file */
 
@@ -5272,71 +5272,28 @@ ispersistent(dns_db_t *db) {
 }
 
 static isc_result_t
-getsoanode(dns_db_t *db, dns_dbnode_t **nodep) {
+getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
+	dns_rbtnode_t *onode;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
-	if (rbtdb->soanode != NULL) {
-		attachnode(db, rbtdb->soanode, nodep);
-	} else
+	/* Note that the access to origin_node doesn't require a DB lock */
+	onode = (dns_rbtnode_t *)rbtdb->origin_node;
+	if (onode != NULL) {
+		NODE_STRONGLOCK(&rbtdb->node_locks[onode->locknum].lock);
+		new_reference(rbtdb, onode);
+		NODE_STRONGUNLOCK(&rbtdb->node_locks[onode->locknum].lock);
+
+		*nodep = rbtdb->origin_node;
+	} else {
+		INSIST(!IS_CACHE(rbtdb));
 		result = ISC_R_NOTFOUND;
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
+	}
 
 	return (result);
-}
-
-static isc_result_t
-setsoanode(dns_db_t *db, dns_dbnode_t *node) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(node != NULL);
-
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-	if (rbtdb->soanode != NULL)
-		detachnode(db, &rbtdb->soanode);
-	attachnode(db, node, &rbtdb->soanode);
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-
-	return (ISC_R_SUCCESS);
-}
-
-static isc_result_t
-getnsnode(dns_db_t *db, dns_dbnode_t **nodep) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(nodep != NULL && *nodep == NULL);
-
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_read);
-	if (rbtdb->nsnode != NULL) {
-		attachnode(db, rbtdb->nsnode, nodep);
-	} else
-		result = ISC_R_NOTFOUND;
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_read);
-
-	return (result);
-}
-
-static isc_result_t
-setnsnode(dns_db_t *db, dns_dbnode_t *node) {
-	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
-
-	REQUIRE(VALID_RBTDB(rbtdb));
-	REQUIRE(node != NULL);
-
-	RBTDB_LOCK(&rbtdb->lock, isc_rwlocktype_write);
-	if (rbtdb->nsnode != NULL)
-		detachnode(db, &rbtdb->nsnode);
-	attachnode(db, node, &rbtdb->nsnode);
-	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
-
-	return (ISC_R_SUCCESS);
 }
 
 static dns_dbmethods_t zone_methods = {
@@ -5367,10 +5324,7 @@ static dns_dbmethods_t zone_methods = {
 	ispersistent,
 	overmem,
 	settask,
-	getsoanode,
-	setsoanode,
-	getnsnode,
-	setnsnode
+	getoriginnode
 };
 
 static dns_dbmethods_t cache_methods = {
@@ -5401,10 +5355,7 @@ static dns_dbmethods_t cache_methods = {
 	ispersistent,
 	overmem,
 	settask,
-	getsoanode,
-	setsoanode,
-	getnsnode,
-	setnsnode
+	getoriginnode
 };
 
 isc_result_t
