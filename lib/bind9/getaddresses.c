@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001, 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.13.126.7 2005/10/14 01:38:47 marka Exp $ */
+/* $Id: getaddresses.c,v 1.13.126.8 2005/10/14 02:13:06 marka Exp $ */
 
 #include <config.h>
 #include <string.h>
