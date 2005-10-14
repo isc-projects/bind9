@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.c,v 1.15.18.4 2005/04/29 00:15:47 marka Exp $ */
+/* $Id: getaddresses.c,v 1.15.18.5 2005/10/14 01:28:24 marka Exp $ */
 
 /*! \file */
 
@@ -67,8 +67,8 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	REQUIRE(addrcount != NULL);
 	REQUIRE(addrsize > 0);
 
-	have_ipv4 = (isc_net_probeipv4() == ISC_R_SUCCESS);
-	have_ipv6 = (isc_net_probeipv6() == ISC_R_SUCCESS);
+	have_ipv4 = ISC_TF((isc_net_probeipv4() == ISC_R_SUCCESS));
+	have_ipv6 = ISC_TF((isc_net_probeipv6() == ISC_R_SUCCESS));
 
 	/*
 	 * Try IPv4, then IPv6.  In order to handle the extended format

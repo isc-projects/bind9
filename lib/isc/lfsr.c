@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.c,v 1.14.18.3 2005/06/08 02:07:56 marka Exp $ */
+/* $Id: lfsr.c,v 1.14.18.4 2005/10/14 01:28:29 marka Exp $ */
 
 /*! \file */
 
@@ -58,9 +58,6 @@ isc_lfsr_init(isc_lfsr_t *lfsr, isc_uint32_t state, unsigned int bits,
 static inline isc_uint32_t
 lfsr_generate(isc_lfsr_t *lfsr)
 {
-	unsigned int highbit;
-
-	highbit = 1 << (lfsr->bits - 1);
 
 	/*
 	 * If the previous state is zero, we must fill it with something
