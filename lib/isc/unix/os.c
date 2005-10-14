@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.11.2.2 2004/05/18 01:38:39 marka Exp $ */
+/* $Id: os.c,v 1.11.2.3 2005/10/14 01:37:56 marka Exp $ */
 
 #include <config.h>
 
@@ -26,6 +26,7 @@
 
 #include <unistd.h>
 
+#ifndef __hpux
 static inline long
 sysconf_ncpus(void) {
 #if defined(_SC_NPROCESSORS_ONLN)
@@ -36,6 +37,7 @@ sysconf_ncpus(void) {
 	return (0);
 #endif
 }
+#endif
 #endif /* HAVE_SYSCONF */
 
 

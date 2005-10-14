@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.181.2.20 2005/03/16 00:57:42 marka Exp $ */
+/* $Id: adb.c,v 1.181.2.21 2005/10/14 01:37:53 marka Exp $ */
 
 /*
  * Implementation notes
@@ -1994,7 +1994,7 @@ shutdown_task(isc_task_t *task, isc_event_t *ev) {
 static isc_boolean_t
 check_expire_name(dns_adbname_t **namep, isc_stdtime_t now) {
 	dns_adbname_t *name;
-	isc_result_t result = ISC_FALSE;
+	isc_boolean_t result = ISC_FALSE;
 
 	INSIST(namep != NULL && DNS_ADBNAME_VALID(*namep));
 	name = *namep;
@@ -3957,7 +3957,7 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *zone,
  unlock:
 	UNLOCK(&adb->entrylocks[bucket]);
 
-	return (ISC_R_SUCCESS);
+	return (result);
 }
 
 void
