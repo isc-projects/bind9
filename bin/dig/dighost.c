@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.27 2005/09/18 07:58:04 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.28 2005/10/14 01:28:19 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2227,7 +2227,7 @@ send_udp(dig_query_t *query) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *l = NULL, *n;
+	dig_lookup_t *l = NULL;
 	dig_query_t *query = NULL, *cq;
 
 	UNUSED(task);
@@ -2263,7 +2263,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			debug("making new TCP request, %d tries left",
 			      l->retries);
 			l->retries--;
-			n = requeue_lookup(l, ISC_TRUE);
+			requeue_lookup(l, ISC_TRUE);
 			cancel_lookup(l);
 			check_next_lookup(l);
 		}

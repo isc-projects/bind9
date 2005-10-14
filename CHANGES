@@ -1,3 +1,7 @@
+1930.	[port]		HPUX: ia64 support. [RT #15473]
+
+1929.	[port]		FreeBSD: extend use of PTHREAD_SCOPE_SYSTEM.
+
 1928.	[bug]		Race in rbtdb.c:currentversion(). [RT #15517]
 
 1927.	[bug]		Access to soanode or nsnode in rbtdb violated the

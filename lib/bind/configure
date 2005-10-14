@@ -6423,7 +6423,7 @@ else
 			;;
 		*)
 			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193"
+			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
