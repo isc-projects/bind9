@@ -148,7 +148,7 @@
 ./bin/named/win32/named.mak			X	2001
 ./bin/named/win32/ntservice.c			C	1999,2000,2001,2002,2004
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005
-./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004
+./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005
 ./bin/nsupdate/.cvsignore			X	2000,2001
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004
@@ -1592,7 +1592,7 @@
 ./lib/bind9/Makefile.in				MAKE	2001,2004
 ./lib/bind9/api					X	2001,2005
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005
-./lib/bind9/getaddresses.c			C	2001,2002,2004
+./lib/bind9/getaddresses.c			C	2001,2002,2004,2005
 ./lib/bind9/include/.cvsignore			X	2001
 ./lib/bind9/include/Makefile.in			MAKE	2001,2004
 ./lib/bind9/include/bind9/.cvsignore		X	2001
@@ -1872,7 +1872,7 @@
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004
-./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004
+./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/zonekey.c				C	2001,2003,2004
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004
@@ -2031,7 +2031,7 @@
 ./lib/isc/unix/file.c				C	2000,2001,2002,2004
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004
-./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004
+./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/include/.cvsignore		X	1999,2000,2001
 ./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004
@@ -2052,7 +2052,7 @@
 ./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005
-./lib/isc/unix/os.c				C	2000,2001,2004
+./lib/isc/unix/os.c				C	2000,2001,2004,2005
 ./lib/isc/unix/resource.c			C	2000,2001,2004
 ./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004
