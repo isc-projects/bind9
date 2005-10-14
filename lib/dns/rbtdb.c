@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.222 2005/10/13 01:58:31 marka Exp $ */
+/* $Id: rbtdb.c,v 1.223 2005/10/14 01:14:08 marka Exp $ */
 
 /*! \file */
 
@@ -3155,12 +3155,11 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	isc_result_t result;
 	dns_fixedname_t fname, forigin;
 	dns_name_t *name, *origin;
-	rbtdb_rdatatype_t matchtype, sigmatchtype, nsectype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype;
 	nodelock_t *lock;
 	isc_rwlocktype_t locktype;
 
 	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
-	nsectype = RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_nsec);
 	sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
 					     dns_rdatatype_nsec);
 	

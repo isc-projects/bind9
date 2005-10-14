@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.7 2005/06/08 02:07:02 marka Exp $ */
+/* $Id: print.c,v 1.8 2005/10/14 01:14:10 marka Exp $ */
 
 #include <config.h>
 
@@ -72,7 +72,6 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 	int left;
 	int plus;
 	int space;
-	int neg;
 	long long tmpi;
 	unsigned long long tmpui;
 	unsigned long width;
@@ -112,7 +111,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 		/*
 		 * Reset flags.
 		 */
-		dot = neg = space = plus = left = zero = alt = h = l = q = 0;
+		dot = space = plus = left = zero = alt = h = l = q = 0;
 		width = precision = 0;
 		head = "";
 		length = pad = zeropad = 0;
