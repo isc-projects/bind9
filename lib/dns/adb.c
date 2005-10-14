@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.224 2005/10/14 01:14:08 marka Exp $ */
+/* $Id: adb.c,v 1.225 2005/10/14 05:27:12 marka Exp $ */
 
 /*! \file 
  *
@@ -1867,7 +1867,7 @@ static isc_boolean_t
 cleanup_names(dns_adb_t *adb, int bucket, isc_stdtime_t now) {
 	dns_adbname_t *name;
 	dns_adbname_t *next_name;
-	isc_result_t result = ISC_FALSE;
+	isc_boolean_t result = ISC_FALSE;
 
 	DP(CLEAN_LEVEL, "cleaning name bucket %d", bucket);
 
