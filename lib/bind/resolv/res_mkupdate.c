@@ -21,7 +21,7 @@
  */
 
 #if !defined(lint) && !defined(SABER)
-static const char rcsid[] = "$Id: res_mkupdate.c,v 1.1.2.1.4.4 2005/10/11 00:48:16 marka Exp $";
+static const char rcsid[] = "$Id: res_mkupdate.c,v 1.1.2.1.4.5 2005/10/14 05:43:47 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -921,10 +921,10 @@ res_mkupdrec(int section, const char *dname,
 	}
 	INIT_LINK(rrecp, r_link);
 	INIT_LINK(rrecp, r_glink);
- 	rrecp->r_class = class;
-	rrecp->r_type = type;
+ 	rrecp->r_class = (ns_class)class;
+	rrecp->r_type = (ns_type)type;
 	rrecp->r_ttl = ttl;
-	rrecp->r_section = section;
+	rrecp->r_section = (ns_sect)section;
 	return (rrecp);
 }
 
