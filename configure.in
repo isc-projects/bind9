@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.394 $)
+AC_REVISION($Revision: 1.395 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -649,7 +649,11 @@ then
 		*-freebsd*)
 			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 			case $host in
-			*-freebsd5.3|*-freebsd5.3.*)
+			*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
+			*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
+				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				;;
+			*-freebsd6.*)
 				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
 				;;
 			esac
@@ -819,7 +823,7 @@ else
 			;;
 		*)
 			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530"
+			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
