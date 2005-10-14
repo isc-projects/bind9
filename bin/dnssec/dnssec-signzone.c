@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.8 2005/03/17 03:59:29 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.9 2005/10/14 01:37:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1412,7 +1412,6 @@ loadzonepubkeys(dns_db_t *db) {
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first");
 	while (result == ISC_R_SUCCESS) {
-		pubkey = NULL;
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_dnssec_keyfromrdata(gorigin, &rdata, mctx,

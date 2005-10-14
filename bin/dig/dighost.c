@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.28 2005/09/01 03:15:38 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.29 2005/10/14 01:37:48 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1753,7 +1753,7 @@ send_udp(dig_query_t *query) {
  */
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
-	dig_lookup_t *l=NULL, *n;
+	dig_lookup_t *l=NULL;
 	dig_query_t *query=NULL, *cq;
 
 	UNUSED(task);
@@ -1789,7 +1789,7 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			debug("making new TCP request, %d tries left",
 			      l->retries);
 			l->retries--;
-			n = requeue_lookup(l, ISC_TRUE);
+			requeue_lookup(l, ISC_TRUE);
 			cancel_lookup(l);
 			check_next_lookup(l);
 		}
@@ -2587,8 +2587,8 @@ get_addresses(const char *hostname, in_port_t port,
 	REQUIRE(addrcount != NULL);
 	REQUIRE(addrsize > 0);
 
-	have_ipv4 = (isc_net_probeipv4() == ISC_R_SUCCESS);
-	have_ipv6 = (isc_net_probeipv6() == ISC_R_SUCCESS);
+	have_ipv4 = ISC_TF(isc_net_probeipv4() == ISC_R_SUCCESS);
+	have_ipv6 = ISC_TF(isc_net_probeipv6() == ISC_R_SUCCESS);
 
 	/*
 	 * Try IPv4, then IPv6.  In order to handle the extended format

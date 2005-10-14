@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.101.2.8 2004/04/15 01:38:05 marka Exp $ */
+/* $Id: xfrout.c,v 1.101.2.9 2005/10/14 01:37:49 marka Exp $ */
 
 #include <config.h>
 
@@ -866,7 +866,7 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename,
 	    const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...)
 	   ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
@@ -1701,7 +1701,7 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename,
  * Logging function for use when there is a xfrout_ctx_t.
  */
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...) {
+xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(xfr->client, xfr->qname, xfr->qclass, level, fmt, ap);

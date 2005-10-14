@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.26 $)
+AC_REVISION($Revision: 1.83.2.27 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -533,7 +533,7 @@ else
 			;;
 		*)
 			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193"
+			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
