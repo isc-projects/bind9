@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.9 2004/10/13 22:28:42 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.10 2005/10/14 01:38:50 marka Exp $ */
 
 #include <config.h>
 
@@ -232,7 +232,7 @@ xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
      ISC_FORMAT_PRINTF(5, 6);
 
 static void
-xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
      ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
@@ -1391,7 +1391,7 @@ xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
  */
 
 static void
-xfrin_log(dns_xfrin_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
 {
 	va_list ap;
 

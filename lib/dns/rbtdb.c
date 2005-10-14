@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.21 2005/07/07 02:58:53 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.22 2005/10/14 01:38:48 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -2758,10 +2758,9 @@ find_coveringnsec(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	isc_result_t result;
 	dns_fixedname_t fname, forigin;
 	dns_name_t *name, *origin;
-	rbtdb_rdatatype_t matchtype, sigmatchtype, nsectype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype;
 
 	matchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_nsec, 0);
-	nsectype = RBTDB_RDATATYPE_VALUE(0, dns_rdatatype_nsec);
 	sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig,
 					     dns_rdatatype_nsec);
 	

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.139.2.2.4.20 2005/03/17 03:58:24 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.139.2.2.4.21 2005/10/14 01:38:41 marka Exp $ */
 
 #include <config.h>
 
@@ -787,15 +787,12 @@ signname(dns_dbnode_t *node, dns_name_t *name) {
 	dns_rdatasetiter_t *rdsiter;
 	isc_boolean_t isdelegation = ISC_FALSE;
 	isc_boolean_t hasds = ISC_FALSE;
-	isc_boolean_t atorigin;
 	isc_boolean_t changed = ISC_FALSE;
 	dns_diff_t del, add;
 	char namestr[DNS_NAME_FORMATSIZE];
 	isc_uint32_t nsttl = 0;
 
 	dns_name_format(name, namestr, sizeof(namestr));
-
-	atorigin = dns_name_equal(name, gorigin);
 
 	/*
 	 * Determine if this is a delegation point.
@@ -1453,7 +1450,6 @@ warnifallksk(dns_db_t *db) {
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dst_key_t *pubkey;
 	isc_result_t result;
 	dns_rdata_key_t key;
 	isc_boolean_t have_non_ksk = ISC_FALSE;
@@ -1474,7 +1470,6 @@ warnifallksk(dns_db_t *db) {
 	result = dns_rdataset_first(&rdataset);
 	check_result(result, "dns_rdataset_first");
 	while (result == ISC_R_SUCCESS) {
-		pubkey = NULL;
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &key, NULL);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.7.2.13 2005/07/23 04:34:37 marka Exp $ */
+/* $Id: name.c,v 1.127.2.7.2.14 2005/10/14 01:38:48 marka Exp $ */
 
 #include <config.h>
 
@@ -945,9 +945,9 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	unsigned char *ndata, *label;
 	char *tdata;
 	char c;
-	ft_state state, kind;
-	unsigned int value, count, tbcount, bitlength, maxlength;
-	unsigned int n1, n2, vlen, tlen, nrem, nused, digits, labels, tused;
+	ft_state state;
+	unsigned int value, count;
+	unsigned int n1, n2, tlen, nrem, nused, digits, labels, tused;
 	isc_boolean_t done;
 	unsigned char *offsets;
 	dns_offsets_t odata;
@@ -985,15 +985,10 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	 */
 	n1 = 0;
 	n2 = 0;
-	vlen = 0;
 	label = NULL;
 	digits = 0;
 	value = 0;
 	count = 0;
-	tbcount = 0;
-	bitlength = 0;
-	maxlength = 0;
-	kind = ft_init;
 
 	/*
 	 * Make 'name' empty in case of failure.
@@ -1051,7 +1046,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				state = ft_initialescape;
 				break;
 			}
-			kind = ft_ordinary;
 			state = ft_ordinary;
 			if (nrem == 0)
 				return (ISC_R_NOSPACE);
@@ -1094,7 +1088,6 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 				 */
 				return (DNS_R_BADLABELTYPE);
 			}
-			kind = ft_ordinary;
 			state = ft_escape;
 			/* FALLTHROUGH */
 		case ft_escape:

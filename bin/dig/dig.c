@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.157.2.13.2.28 2005/07/04 03:29:44 marka Exp $ */
+/* $Id: dig.c,v 1.157.2.13.2.29 2005/10/14 01:38:40 marka Exp $ */
 
 #include <config.h>
 #include <stdlib.h>
@@ -790,7 +790,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			break;
 		case 'l': /* cl */
 			FULLCHECK("cl");
-			noclass = !state;
+			noclass = ISC_TF(!state);
 			break;
 		case 'm': /* cmd */
 			FULLCHECK("cmd");
@@ -1026,7 +1026,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 			break;
 		case 't': /* ttlid */
 			FULLCHECK("ttlid");
-			nottl = !state;
+			nottl = ISC_TF(!state);
 			break;
 		default:
 			goto invalid_option;

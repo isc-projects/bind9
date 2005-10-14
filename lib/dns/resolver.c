@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.55 2005/08/25 01:54:32 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.56 2005/10/14 01:38:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1890,7 +1890,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	isc_boolean_t pruned, all_bad;
 	dns_rdata_ns_t ns;
 	isc_boolean_t need_alternate = ISC_FALSE;
-	isc_boolean_t unshared;
 
 	FCTXTRACE("getaddresses");
 
@@ -1906,7 +1905,6 @@ fctx_getaddresses(fetchctx_t *fctx) {
 	res = fctx->res;
 	pruned = ISC_FALSE;
 	stdoptions = 0;		/* Keep compiler happy. */
-	unshared = ISC_TF((fctx->options | DNS_FETCHOPT_UNSHARED) != 0);
 
 	/*
 	 * Forwarders.
@@ -3483,7 +3481,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Cache or validate each cacheable rdataset.
 	 */
-	fail = (fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0;
+	fail = ISC_TF((fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0);
 	for (rdataset = ISC_LIST_HEAD(name->list);
 	     rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {

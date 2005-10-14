@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.19 2005/08/25 01:54:33 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.20 2005/10/14 01:38:49 marka Exp $ */
 
 #include <config.h>
 
@@ -323,7 +323,6 @@ static void
 dsfetched2(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
-	dns_rdataset_t *rdataset;
 	dns_name_t *tname;
 	isc_boolean_t want_destroy;
 	isc_result_t result;
@@ -333,7 +332,6 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
 	devent = (dns_fetchevent_t *)event;
 	val = devent->ev_arg;
-	rdataset = &val->frdataset;
 	eresult = devent->result;
 
 	dns_resolver_destroyfetch(&val->fetch);
@@ -622,7 +620,7 @@ static void
 authvalidated(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
-	dns_rdataset_t *rdataset, *sigrdataset;
+	dns_rdataset_t *rdataset;
 	isc_boolean_t want_destroy;
 	isc_result_t result;
 	isc_boolean_t exists, data;
@@ -632,7 +630,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	devent = (dns_validatorevent_t *)event;
 	rdataset = devent->rdataset;
-	sigrdataset = devent->sigrdataset;
 	val = devent->ev_arg;
 	result = devent->result;
 	dns_validator_destroy(&val->subvalidator);

@@ -1,6 +1,10 @@
 
 	--- 9.3.2b2 released ---
 
+1930.	[port]		HPUX: ia64 support. [RT #15473]
+
+1929.	[port]		FreeBSD: extend use of PTHREAD_SCOPE_SYSTEM.
+
 1926.	[bug]		The Windows installer did not check for empty
 			passwords.  BINDinstall was being installed in
 			the wrong place. [RT #15483]
