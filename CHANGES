@@ -1,4 +1,5 @@
-1931.	[placeholder]	rt15519
+1931.	[bug]		Per-client mctx could require a huge amount of memory,
+			particularly for a busy caching server. [RT #15519]
 
 1930.	[port]		HPUX: ia64 support. [RT #15473]
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.231 2005/09/28 04:50:15 marka Exp $ */
+/* $Id: client.c,v 1.232 2005/10/16 23:21:25 marka Exp $ */
 
 #include <config.h>
 
@@ -90,6 +90,24 @@
 #define SEND_BUFFER_SIZE		4096
 #define RECV_BUFFER_SIZE		4096
 
+#ifdef ISC_PLATFORM_USETHREADS
+#define NMCTXS				100
+/*%<
+ * Number of 'mctx pools' for clients. (Should this be configurable?)
+ * When enabling threads, we use a pool of memory contexts shared by
+ * client objects, since concurrent access to a shared context would cause
+ * heavy contentions.  The above constant is expected to be enough for
+ * completely avoiding contentions among threads for an authoritative-only
+ * server.
+ */
+#else
+#define NMCTXS				0
+/*%<
+ * If named with built without thread, simply share manager's context.  Using
+ * a separate context in this case would simply waste memory.
+ */
+#endif
+
 /*% nameserver client manager structure */
 struct ns_clientmgr {
 	/* Unlocked. */
@@ -103,6 +121,11 @@ struct ns_clientmgr {
 	client_list_t			active; 	/*%< Active clients */
 	client_list_t			recursing; 	/*%< Recursing clients */
 	client_list_t 			inactive;	/*%< To be recycled */
+#if NMCTXS > 0
+	/*%< mctx pool for clients. */
+	unsigned int			nextmctx;
+	isc_mem_t *			mctxpool[NMCTXS];
+#endif
 };
 
 #define MANAGER_MAGIC			ISC_MAGIC('N', 'S', 'C', 'm')
@@ -1675,6 +1698,38 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 static isc_result_t
+get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
+	isc_mem_t *clientmctx;
+#if NMCTX > 0
+	isc_result_t result;
+#endif
+
+	/*
+	 * Caller must be holding the manager lock.
+	 */
+#if NMCTX > 0
+	INSIST(manager->nextmctx < NMCTXS);
+	clientmctx = manager->mctxpool[manager->nextmctx];
+	if (clientmctx == NULL) {
+		result = isc_mem_create(0, 0, &clientmctx);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+
+		manager->mctxpool[manager->nextmctx] = clientmctx;
+		manager->nextmctx++;
+		if (manager->nextmctx == NMCTXS)
+			manager->nextmctx = 0;
+	}
+#else
+	clientmctx = manager->mctx;
+#endif
+
+	isc_mem_attach(clientmctx, mctxp);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
 client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ns_client_t *client;
 	isc_result_t result;
@@ -1690,25 +1745,9 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
-#ifdef ISC_PLATFORM_USETHREADS
-	/*
-	 * When enabling threads, we use a separate memory context for each
-	 * client, since concurrent access to a shared context would cause
-	 * heavy contentions.  We also specify the NOLOCK flag on creation,
-	 * since we are very sure that multiple threads will never get access
-	 * to the context simultaneously.
-	 */
-	result = isc_mem_create2(0, 0, &mctx,
-				 ISC_MEMFLAG_DEFAULT | ISC_MEMFLAG_NOLOCK);
+	result = get_clientmctx(manager, &mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#else
-	/*
-	 * Otherwise, simply share manager's context.  Using a separate context
-	 * in this case would simply waste memory.
-	 */
-	isc_mem_attach(manager->mctx, &mctx);
-#endif
 
 	client = isc_mem_get(mctx, sizeof(*client));
 	if (client == NULL) {
@@ -2106,11 +2145,22 @@ ns_client_replace(ns_client_t *client) {
 
 static void
 clientmgr_destroy(ns_clientmgr_t *manager) {
+#if NMCTXS > 0
+	int i;
+#endif
+
 	REQUIRE(ISC_LIST_EMPTY(manager->active));
 	REQUIRE(ISC_LIST_EMPTY(manager->inactive));
 	REQUIRE(ISC_LIST_EMPTY(manager->recursing));
 
 	MTRACE("clientmgr_destroy");
+
+#if NMCTXS > 0
+	for (i = 0; i < NMCTXS; i++) {
+		if (manager->mctxpool[i] != NULL)
+			isc_mem_detach(&manager->mctxpool[i]);
+	}
+#endif
 
 	DESTROYLOCK(&manager->lock);
 	manager->magic = 0;
@@ -2123,6 +2173,9 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 {
 	ns_clientmgr_t *manager;
 	isc_result_t result;
+#if NMCTXS > 0
+	int i;
+#endif
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
@@ -2139,6 +2192,11 @@ ns_clientmgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(manager->active);
 	ISC_LIST_INIT(manager->inactive);
 	ISC_LIST_INIT(manager->recursing);
+#if NMCTXS > 0
+	manager->nextmctx = 0;
+	for (i = 0; i < NMCTXS; i++)
+		manager->mctxpool[i] = NULL; /* will be created on-demand */
+#endif
 	manager->magic = MANAGER_MAGIC;
 
 	MTRACE("create");
