@@ -57,6 +57,7 @@ rt15519				new
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
+rt42143				new	
 rt5206_1			open	marka	// master from last notify
 rt6496a				open	marka
 skan				new	
