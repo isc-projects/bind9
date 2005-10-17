@@ -100,8 +100,7 @@ dns_db_find
 dns_db_findnode
 dns_db_findrdataset
 dns_db_findzonecut
-dns_db_getnsnode
-dns_db_getsoanode
+dns_db_getoriginnode
 dns_db_getsoaserial
 dns_db_iscache
 dns_db_ispersistent
@@ -117,8 +116,6 @@ dns_db_origin
 dns_db_overmem
 dns_db_printnode
 dns_db_register
-dns_db_setnsnode
-dns_db_setsoanode
 dns_db_subtractrdataset
 dns_db_unregister
 dns_dbiterator_current
