@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.61 2005/07/18 05:59:01 marka Exp $ */
+/* $Id: socket.h,v 1.62 2005/10/17 03:47:10 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -728,7 +728,7 @@ isc_socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active);
  *	 stat() and unlink()).
  */
 
-isc_boolean_t
+isc_result_t
 isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
                     isc_uint32_t owner, isc_uint32_t group);
 /*%<
