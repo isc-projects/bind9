@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.17 2005/08/25 04:31:58 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.18 2005/10/17 03:50:11 marka Exp $ */
 
 /*! \file */
 
@@ -3026,7 +3026,7 @@ isc_socket_cleanunix(isc_sockaddr_t *sockaddr, isc_boolean_t active) {
 #endif
 }
 
-isc_boolean_t
+isc_result_t
 isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
 		    isc_uint32_t owner, isc_uint32_t group)
 {
