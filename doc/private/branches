@@ -29,31 +29,27 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
+rt14623				new	
+rt14654				new	
 rt14685				review	marka
 rt14815				open		// stats blind spots	
-rt14816				review	marka	
+rt14816				review	marka
 rt14852				review	marka
 rt14895				open	jinmei
 rt14895b			open	
-rt14998				review	marka	
+rt14998				review	marka
 rt15148				review	marka
 rt15327				open	
 rt15402				review	marka
-rt15404				closed
 rt15412				review	marka
 rt15430				review	
-rt15441				review	marka	
-rt15460				review	marka	
-rt15465				review	marka	
-rt15469				closed	
-rt15473				review	marka	
-rt15473b			review	marka	
+rt15441				review	marka
+rt15460				review	marka
+rt15465				review	marka
+rt15473				review	marka
+rt15473b			review	marka
 rt15474				review	marka
-rt15483				closed	
-rt15491				review	marka	
-rt15516				closed	
-rt15518				closed	
-rt15519				closed	
+rt15491				review	marka
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
@@ -344,7 +340,13 @@ rt15256				closed
 rt15347				closed
 rt15383				closed
 rt15391				closed
+rt15404				closed
 rt15408				closed
+rt15469				closed
+rt15483				closed
+rt15516				closed
+rt15518				closed
+rt15519				closed
 rt1572a				closed		// bad rt#
 rt2471				closed
 rt288				closed
