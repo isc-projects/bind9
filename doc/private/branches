@@ -29,6 +29,7 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
+rt13780				new	
 rt14623				new	
 rt14654				new	
 rt14685				review	marka
@@ -50,6 +51,7 @@ rt15473				review	marka
 rt15473b			review	marka
 rt15474				review	marka
 rt15491				review	marka
+rt15529				new	
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
