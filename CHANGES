@@ -1,3 +1,5 @@
+1932.	[bug]		hpux: LDFLAGS was getting corrupted. [RT #15530]
+
 1931.	[bug]		Per-client mctx could require a huge amount of memory,
 			particularly for a busy caching server. [RT #15519]
 
