@@ -1,3 +1,4 @@
+1932.	[bug]		hpux: LDFLAGS was getting corrupted. [RT #15530]
 
 	--- 9.2.6b2 released ---
 
