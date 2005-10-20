@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.50 $)
+AC_REVISION($Revision: 1.294.2.23.2.51 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -792,7 +792,7 @@ if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat"
 	case "$host" in
 	*-hp-hpux*)
-		LDFLAGS="-Wl,+vnocompatwarnings $LDFALGS"
+		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
 		;;
 	esac
 else
@@ -818,7 +818,7 @@ else
 			;;
 		esac
 		CCOPT="$CCOPT -Ae -z"
-		LDFLAGS="-Wl,+vnocompatwarnings $LDFALGS"
+		LDFLAGS="-Wl,+vnocompatwarnings $LDFLAGS"
 		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
