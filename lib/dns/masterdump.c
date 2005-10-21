@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.73.18.8 2005/09/20 04:33:46 marka Exp $ */
+/* $Id: masterdump.c,v 1.73.18.9 2005/10/21 03:19:35 marka Exp $ */
 
 /*! \file */
 
@@ -910,7 +910,7 @@ dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 
 		dns_rdataset_current(rdataset, &rdata);
 		dns_rdata_toregion(&rdata, &r);
-		INSIST(r.length <= DNS_NAME_MAXWIRE);
+		INSIST(r.length <= 0xffffU);
 		dlen = (isc_uint16_t)r.length;
 
 		/*
@@ -919,7 +919,8 @@ dump_rdataset_raw(isc_mem_t *mctx, dns_name_t *name, dns_rdataset_t *rdataset,
 		 * entire procedure (or should we copy the old data and
 		 * continue?).
 		 */
-		if (isc_buffer_availablelength(buffer) < dlen + r.length) {
+		if (isc_buffer_availablelength(buffer) <
+						 sizeof(dlen) + r.length) {
 			int newlength;
 			void *newmem;
 
