@@ -1,3 +1,5 @@
+1932.	[bug]		dump_rdataset_raw() had a incorrect INSIST. [RT #15534]
+
 1932.	[bug]		hpux: LDFLAGS was getting corrupted. [RT #15530]
 
 1931.	[bug]		Per-client mctx could require a huge amount of memory,
