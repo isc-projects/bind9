@@ -150,7 +150,7 @@ BIND 9.4.0
 	Added framework for handling multiple EDNS versions.
 
 	Additional memory debugging support to track size and mctx
-	arguements.
+	arguments.
 
 	Detect duplicates of UDP queries we are recursing on and
 	drop them.  New stats category "duplicates".

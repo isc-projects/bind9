@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.17.18.10 2005/09/09 06:22:05 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.17.18.11 2005/10/26 04:57:21 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -254,7 +254,7 @@
     <para>
       The <option>-q</option> option sets the query name to 
       <parameter>name</parameter>.  This useful do distingish the
-      <parameter>name</parameter> from other arguements.
+      <parameter>name</parameter> from other arguments.
     </para>
 
     <para>
