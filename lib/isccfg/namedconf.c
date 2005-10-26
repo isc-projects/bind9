@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.31 2005/05/13 01:22:36 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.32 2005/10/26 05:06:40 marka Exp $ */
 
 #include <config.h>
 
@@ -479,7 +479,7 @@ static cfg_type_t cfg_type_hostname = {
 };
 
 /*
- * "server-id" arguement.
+ * "server-id" argument.
  */
 
 static isc_result_t
