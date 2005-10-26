@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.65 2005/06/17 02:22:44 marka Exp $ */
+/* $Id: mem.h,v 1.66 2005/10/26 04:35:55 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -109,11 +109,11 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_debugging;
  *	every time it is raised once it exceeds the hi_water mark.
  *
  * \li #ISC_MEM_DEBUGSIZE
- *	Check the size arguement being passed to isc_mem_put() matches
+ *	Check the size argument being passed to isc_mem_put() matches
  *	that passed to isc_mem_get().
  *
  * \li #ISC_MEM_DEBUGCTX
- *	Check the mctx arguement being passed to isc_mem_put() matches
+ *	Check the mctx argument being passed to isc_mem_put() matches
  *	that passed to isc_mem_get().
  */
 /*@}*/

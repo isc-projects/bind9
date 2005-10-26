@@ -167,7 +167,7 @@
 			call. [RT #14919]
 
 1876.	[func]		Additional memory debugging support to track size
-			and mctx arguements. [RT #14814]
+			and mctx arguments. [RT #14814]
 
 1875.	[bug]		process_dhtkey() was using the wrong memory context
 			to free some memory. [RT #14890]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.119 2005/09/18 07:16:22 marka Exp $ */
+/* $Id: name.h,v 1.120 2005/10/26 04:35:54 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -1212,7 +1212,7 @@ dns_name_destroy(void);
  *
  * Note: dns_name_settotextfilter(NULL); should be called for all
  * threads which have called dns_name_settotextfilter() with a
- * non-NULL arguement prior to calling dns_name_destroy();
+ * non-NULL argument prior to calling dns_name_destroy();
  */
 
 ISC_LANG_ENDDECLS

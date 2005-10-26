@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.137 2005/08/24 23:54:03 marka Exp $ */
+/* $Id: zone.h,v 1.138 2005/10/26 04:35:54 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1527,7 +1527,7 @@ dns_zone_getnotifydelay(dns_zone_t *zone);
 void
 dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
 /*
- * Set the isself callback function and arguement.
+ * Set the isself callback function and argument.
  *
  * isc_boolean_t
  * isself(dns_view_t *myview, dns_tsigkey_t *mykey, isc_netaddr_t *srcaddr,

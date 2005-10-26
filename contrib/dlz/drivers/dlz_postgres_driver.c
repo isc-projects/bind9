@@ -1015,7 +1015,7 @@ postgres_lookup(const char *zone, const char *name, void *driverarg,
 /*%
  * create an instance of the driver.  Remember, only 1 copy of the driver's
  * code is ever loaded, the driver has to remember which context it's
- * operating in.  This is done via use of the dbdata arguement which is
+ * operating in.  This is done via use of the dbdata argument which is
  * passed into all query functions.
  */
 static isc_result_t
@@ -1239,7 +1239,7 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 /*%
  * destroy an instance of the driver.  Remember, only 1 copy of the driver's
  * code is ever loaded, the driver has to remember which context it's
- * operating in.  This is done via use of the dbdata arguement.
+ * operating in.  This is done via use of the dbdata argument.
  * so we really only need to clean it up since we are not using driverarg.
  */
 static void
