@@ -1956,7 +1956,7 @@
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004
 ./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004
-./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004
+./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004
 ./lib/isc/include/isc/util.h			C	1998,1999,2000,2001,2004
 ./lib/isc/include/isc/version.h			C	2001,2004
@@ -2019,7 +2019,7 @@
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004
 ./lib/isc/task_p.h				C	2000,2001,2004
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004
-./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004
+./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/timer_p.h				C	2000,2001,2004
 ./lib/isc/unix/.cvsignore			X	1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004
