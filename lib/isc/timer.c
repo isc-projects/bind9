@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.12.9 2004/03/08 09:04:50 marka Exp $ */
+/* $Id: timer.c,v 1.64.12.10 2005/10/26 06:52:52 marka Exp $ */
 
 #include <config.h>
 
@@ -487,7 +487,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	return (result);
 }
 
-isc_result_t
+isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer) {
 	isc_timertype_t t;
 
