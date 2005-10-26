@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73.18.3 2005/07/12 01:22:31 marka Exp $ */
+/* $Id: timer.c,v 1.73.18.4 2005/10/26 06:50:49 marka Exp $ */
 
 /*! \file */
 
@@ -486,7 +486,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	return (result);
 }
 
-isc_result_t
+isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer) {
 	isc_timertype_t t;
 

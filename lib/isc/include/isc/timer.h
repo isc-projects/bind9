@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.31.18.2 2005/04/29 00:17:04 marka Exp $ */
+/* $Id: timer.h,v 1.31.18.3 2005/10/26 06:50:50 marka Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -276,8 +276,15 @@ isc_timer_detach(isc_timer_t **timerp);
  *\endcode
  */
 
-isc_result_t
+isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer);
+/*%<
+ * Return the timer type.
+ *
+ * Requires:
+ *
+ *\li	'timer' to be a valid timer.
+ */
 
 isc_result_t
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
