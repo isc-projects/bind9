@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.47.18.7 2005/09/05 03:01:49 marka Exp $
+# $Id: rules.in,v 1.47.18.8 2005/10/28 01:53:28 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -131,7 +131,7 @@ cleandir: distclean
 superclean: maintainer-clean
 
 clean distclean maintainer-clean::
-	rm -f *.@O@ *.lo *.la core *.core .depend
+	rm -f *.@O@ *.o *.lo *.la core *.core .depend
 	rm -rf .libs
 
 distclean maintainer-clean::
