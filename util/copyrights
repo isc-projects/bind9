@@ -1096,7 +1096,7 @@
 ./contrib/queryperf/missing/addrinfo.h		X	2004
 ./contrib/queryperf/missing/getaddrinfo.c	X	2004
 ./contrib/queryperf/missing/getnameinfo.c	X	2004
-./contrib/queryperf/queryperf.c			X	2001
+./contrib/queryperf/queryperf.c			X	2001,2005
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003
 ./contrib/sdb/bdb/README			X	2002
 ./contrib/sdb/bdb/bdb.c				X	2002
