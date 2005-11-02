@@ -1,3 +1,5 @@
+1936.	[bug]		The validator could leak memory. [RT #5544]
+
 1935.	[bug]		'acache' was DO sensitive. [RT #15430]
 
 1934.	[func]		Validate pending NS RRsets, in the authority section,
