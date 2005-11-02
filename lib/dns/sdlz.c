@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.5 2005/10/13 01:58:32 marka Exp $ */
+/* $Id: sdlz.c,v 1.6 2005/11/02 23:22:33 marka Exp $ */
 
 /*! \file */
 
@@ -736,7 +736,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(now);
 	UNUSED(sigrdataset);
 
-	if (type == dns_rdatatype_sig)
+	if (type == dns_rdatatype_sig || type == dns_rdatatype_rrsig)
 		return (ISC_R_NOTIMPLEMENTED);
 
 	list = ISC_LIST_HEAD(sdlznode->lists);

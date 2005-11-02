@@ -1,3 +1,5 @@
+1937.	[bug]		sdlz doesn't handle RRSIG records. [RT #15564]
+
 1936.	[bug]		The validator could leak memory. [RT #15544]
 
 1935.	[bug]		'acache' was DO sensitive. [RT #15430]
