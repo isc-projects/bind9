@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.24.2.1 2004/03/09 06:10:27 marka Exp $
+# $Id: tests.sh,v 1.24.2.2 2005/11/02 04:44:55 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -23,26 +23,53 @@ SYSTEMTESTTOP=..
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd"
 
 status=0
+
+echo "I:testing basic zone transfer functionality"
 $DIG $DIGOPTS example. \
 	@10.53.0.2 axfr -p 5300 > dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
+#
+# Spin to allow the zone to tranfer.
+#
+for i in 1 2 3 4 5
+do
+tmp=0
 $DIG $DIGOPTS example. \
-	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || status=1
+	@10.53.0.3 axfr -p 5300 > dig.out.ns3 || tmp=1
+	grep ";" dig.out.ns3 > /dev/null
+	if test $? -ne 0 ; then break; fi
+	echo "I: plain zone re-transfer"
+	sleep 5
+done
+if test $tmp -eq 1 ; then status=1; fi
 grep ";" dig.out.ns3
 
 $PERL ../digcomp.pl knowngood.dig.out dig.out.ns2 || status=1
 
 $PERL ../digcomp.pl knowngood.dig.out dig.out.ns3 || status=1
 
+echo "I:testing TSIG signed zone transfers"
 $DIG $DIGOPTS tsigzone. \
     	@10.53.0.2 axfr -y tsigzone.:1234abcd8765 -p 5300 \
 	> dig.out.ns2 || status=1
 grep ";" dig.out.ns2
 
+#
+# Spin to allow the zone to tranfer.
+#
+for i in 1 2 3 4 5
+do
+tmp=0
 $DIG $DIGOPTS tsigzone. \
     	@10.53.0.3 axfr -y tsigzone.:1234abcd8765 -p 5300 \
-	> dig.out.ns3 || status=1
+	> dig.out.ns3 || tmp=1
+	grep ";" dig.out.ns3 > /dev/null
+	if test $? -ne 0 ; then break; fi
+	echo "I: TSIG zone re-transfer"
+	sleep 5
+done
+if test $tmp -eq 1 ; then status=1; fi
 grep ";" dig.out.ns3
 
 $PERL ../digcomp.pl dig.out.ns2 dig.out.ns3 || status=1
