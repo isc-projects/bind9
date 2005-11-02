@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.274 2005/10/13 01:58:31 marka Exp $ */
+/* $Id: query.c,v 1.275 2005/11/02 01:28:45 marka Exp $ */
 
 /*! \file */
 
@@ -32,6 +32,7 @@
 #ifdef DLZ
 #include <dns/dlz.h>
 #endif
+#include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
@@ -115,6 +116,10 @@ typedef struct client_additionalctx {
 
 static void
 query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype);
+
+static isc_boolean_t
+validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
+	 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
 
 /*%
  * Increment query statistics counters.
@@ -1110,10 +1115,23 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * Most likely the client isn't allowed to query the cache.
 		 */
 		goto try_glue;
-
-	result = dns_db_find(db, name, version, type, client->query.dboptions,
+	/*
+	 * Attempt to validate glue.
+	 */
+	if (sigrdataset == NULL) {
+		sigrdataset = query_newrdataset(client);
+		if (sigrdataset == NULL)
+			goto cleanup;
+	}
+	result = dns_db_find(db, name, version, type,
+			     client->query.dboptions | DNS_DBFIND_GLUEOK,
 			     client->now, &node, fname, rdataset,
 			     sigrdataset);
+	if (result == DNS_R_GLUE &&
+	    validate(client, db, fname, rdataset, sigrdataset))
+		result = ISC_R_SUCCESS;
+	if (!WANTDNSSEC(client))
+		query_putrdataset(client, &sigrdataset);
 	if (result == ISC_R_SUCCESS)
 		goto found;
 
@@ -1590,7 +1608,8 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 */
 		goto try_glue;
 
-	result = dns_db_find(db, name, version, type,  client->query.dboptions,
+	result = dns_db_find(db, name, version, type,
+			     client->query.dboptions | DNS_DBFIND_GLUEOK,
 			     client->now, &node, fname, NULL, NULL);
 	if (result == ISC_R_SUCCESS)
 		goto found;
@@ -1688,11 +1707,10 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	rdataset = query_newrdataset(client);
 	if (rdataset == NULL)
 		goto cleanup;
-	if (WANTDNSSEC(client)) {
-		sigrdataset = query_newrdataset(client);
-		if (sigrdataset == NULL)
-			goto cleanup;
-	}
+
+	sigrdataset = query_newrdataset(client);
+	if (sigrdataset == NULL)
+		goto cleanup;
 
 	/*
 	 * Find A RRset with sig RRset.  Even if we don't find a sig RRset
@@ -1703,6 +1721,20 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_a, 0,
 				     client->now, rdataset, sigrdataset);
+	/*
+	 * If we can't promote glue/pending from the cache to secure
+	 * then drop it.
+	 */
+	if (result == ISC_R_SUCCESS &&
+	    additionaltype == dns_rdatasetadditional_fromcache &&
+	    (rdataset->trust == dns_trust_pending ||
+	     rdataset->trust == dns_trust_glue) &&
+	    !validate(client, db, fname, rdataset, sigrdataset)) {
+		dns_rdataset_disassociate(rdataset);
+		if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+		result = ISC_R_NOTFOUND;
+	}
 	if (result == DNS_R_NCACHENXDOMAIN)
 		goto setcache;
 	if (result == DNS_R_NCACHENXRRSET) {
@@ -1710,50 +1742,53 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		/*
 		 * Negative cache entries don't have sigrdatasets.
 		 */
-		INSIST(sigrdataset == NULL ||
-		       ! dns_rdataset_isassociated(sigrdataset));
+		INSIST(! dns_rdataset_isassociated(sigrdataset));
 	}
 	if (result == ISC_R_SUCCESS) {
 		/* Remember the result as a cache */
 		ISC_LIST_APPEND(cfname.list, rdataset, link);
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset)) {
-			ISC_LIST_APPEND(cfname.list, sigrdataset,
-					link);
-			sigrdataset =
-				query_newrdataset(client);
-			if (sigrdataset == NULL)
-				needadditionalcache = ISC_FALSE;
+		if (dns_rdataset_isassociated(sigrdataset)) {
+			ISC_LIST_APPEND(cfname.list, sigrdataset, link);
+			sigrdataset = query_newrdataset(client);
 		}
 		rdataset = query_newrdataset(client);
-		if (rdataset == NULL) {
+		if (sigrdataset == NULL || rdataset == NULL) {
 			/* do not cache incomplete information */
 			goto foundcache;
 		}
 	}
 
 	/* Find AAAA RRset with sig RRset */
-	result = dns_db_findrdataset(db, node, version,
-				     dns_rdatatype_aaaa, 0,
-				     client->now, rdataset,
-				     sigrdataset);
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_aaaa,
+				     0, client->now, rdataset, sigrdataset);
 	/* The NXDOMAIN case should be covered above */
 	INSIST(result != DNS_R_NCACHENXDOMAIN);
+	/*
+	 * If we can't promote glue/pending from the cache to secure
+	 * then drop it.
+	 */
+	if (result == ISC_R_SUCCESS &&
+	    additionaltype == dns_rdatasetadditional_fromcache &&
+	    (rdataset->trust == dns_trust_pending ||
+	     rdataset->trust == dns_trust_glue) &&
+	    !validate(client, db, fname, rdataset, sigrdataset)) {
+		dns_rdataset_disassociate(rdataset);
+		if (dns_rdataset_isassociated(sigrdataset))
+			dns_rdataset_disassociate(sigrdataset);
+		result = ISC_R_NOTFOUND;
+	}
 	if (result == DNS_R_NCACHENXRRSET) {
 		dns_rdataset_disassociate(rdataset);
 		/*
 		 * Negative cache entries don't have sigrdatasets.
 		 */
-		INSIST(sigrdataset == NULL ||
-		       ! dns_rdataset_isassociated(sigrdataset));
+		INSIST(! dns_rdataset_isassociated(sigrdataset));
 	}
 	if (result == ISC_R_SUCCESS) {
 		ISC_LIST_APPEND(cfname.list, rdataset, link);
 		rdataset = NULL;
-		if (sigrdataset != NULL &&
-		    dns_rdataset_isassociated(sigrdataset)) {
-			ISC_LIST_APPEND(cfname.list, sigrdataset,
-					link);
+		if (dns_rdataset_isassociated(sigrdataset)) {
+			ISC_LIST_APPEND(cfname.list, sigrdataset, link);
 			sigrdataset = NULL;
 		}
 	}
@@ -1809,7 +1844,7 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 				need_sigrrset = ISC_TRUE;
 			} else
 				need_sigrrset = ISC_FALSE;
-		} else if (crdataset->type == dns_rdatatype_sig &&
+		} else if (crdataset->type == dns_rdatatype_rrsig &&
 			   need_sigrrset && WANTDNSSEC(client)) {
 			ISC_LIST_UNLINK(cfname.list, crdataset, link);
 			ISC_LIST_APPEND(fname->list, crdataset, link);
@@ -2240,6 +2275,152 @@ query_addcnamelike(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * Mark the RRsets as secure.  Update the cache (db) to reflect the
+ * change in trust level.
+ */
+static void
+mark_secure(ns_client_t *client, dns_db_t *db, dns_name_t *name,
+	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+
+	rdataset->trust = dns_trust_secure;
+	sigrdataset->trust = dns_trust_secure;
+
+	/*
+	 * Save the updated secure state.  Ignore failures.
+	 */
+	result = dns_db_findnode(db, name, ISC_TRUE, &node);
+	if (result != ISC_R_SUCCESS)
+		return;
+	(void)dns_db_addrdataset(db, node, NULL, client->now, rdataset,
+				 0, NULL);
+	(void)dns_db_addrdataset(db, node, NULL, client->now, sigrdataset,
+				 0, NULL);
+	dns_db_detachnode(db, &node);
+}
+
+/*
+ * Find the secure key that corresponds to rrsig.
+ * Note: 'keyrdataset' maintains state between sucessive calls,
+ * there may be multiple keys with the same keyid.
+ * Return ISC_FALSE if we have exhausted all the possible keys.
+ */
+static isc_boolean_t
+get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
+	dns_rdataset_t *keyrdataset, dst_key_t **keyp)
+{ 
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	isc_boolean_t secure = ISC_FALSE;
+
+	if (!dns_rdataset_isassociated(keyrdataset)) {
+		result = dns_db_findnode(db, &rrsig->signer, ISC_FALSE, &node);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_FALSE);
+
+		result = dns_db_findrdataset(db, node, NULL,
+					     dns_rdatatype_dnskey, 0,
+					     client->now, keyrdataset, NULL);
+		dns_db_detachnode(db, &node);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_FALSE);
+
+		if (keyrdataset->trust != dns_trust_secure)
+			return (ISC_FALSE);
+
+		result = dns_rdataset_first(keyrdataset);
+	} else
+		result = dns_rdataset_next(keyrdataset);
+
+	for ( ; result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(keyrdataset)) {
+		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_buffer_t b;
+
+		dns_rdataset_current(keyrdataset, &rdata);
+		isc_buffer_init(&b, rdata.data, rdata.length);
+		isc_buffer_add(&b, rdata.length);
+		result = dst_key_fromdns(&rrsig->signer, rdata.rdclass, &b,
+                                         client->mctx, keyp);
+		if (result != ISC_R_SUCCESS)
+			continue;
+		if (rrsig->algorithm == (dns_secalg_t)dst_key_alg(*keyp) &&
+                    rrsig->keyid == (dns_keytag_t)dst_key_id(*keyp) &&
+                    dst_key_iszonekey(*keyp)) {
+			secure = ISC_TRUE;
+			break;
+		}
+		dst_key_free(keyp);
+	}
+	return (secure);
+}
+
+static isc_boolean_t
+verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
+       dns_rdata_t *rdata, isc_mem_t *mctx)
+{
+	isc_result_t result;
+	dns_fixedname_t fixed;
+	dns_fixedname_init(&fixed);
+	result = dns_dnssec_verify2(name, rdataset, key, ISC_FALSE,
+				    mctx, rdata, NULL);
+	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD)
+		return (ISC_TRUE);
+	return (ISC_FALSE);
+}
+
+/*
+ * Validate the rdataset if possible with available records.
+ */
+static isc_boolean_t
+validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
+	 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_rrsig_t rrsig;
+	dst_key_t *key = NULL;
+	dns_rdataset_t keyrdataset;
+
+	if (sigrdataset == NULL || !dns_rdataset_isassociated(sigrdataset))
+		return (ISC_FALSE);
+	
+	for (result = dns_rdataset_first(sigrdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(sigrdataset)) {
+
+		dns_rdata_reset(&rdata);
+		dns_rdataset_current(sigrdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_FALSE);
+		if (!dns_resolver_algorithm_supported(client->view->resolver,
+						      name, rrsig.algorithm))
+			continue;
+		if (!dns_name_issubdomain(name, &rrsig.signer))
+			continue;
+		dns_rdataset_init(&keyrdataset);
+		do {
+			if (!get_key(client, db, &rrsig, &keyrdataset, &key))
+				break;
+			if (verify(key, name, rdataset, &rdata, client->mctx)) {
+				dst_key_free(&key);
+				dns_rdataset_disassociate(&keyrdataset);
+				mark_secure(client, db, name, rdataset,
+					    sigrdataset);
+				return (ISC_TRUE);
+			}
+			dst_key_free(&key);
+		} while (1);
+		if (dns_rdataset_isassociated(&keyrdataset))
+			dns_rdataset_disassociate(&keyrdataset);
+	}
+	return (ISC_FALSE);
+}
+
 static void
 query_addbestns(ns_client_t *client) {
 	dns_db_t *db, *zdb;
@@ -2287,7 +2468,11 @@ query_addbestns(ns_client_t *client) {
 	rdataset = query_newrdataset(client);
 	if (fname == NULL || rdataset == NULL)
 		goto cleanup;
-	if (WANTDNSSEC(client)) {
+	/*
+	 * Get the RRSIGs if the client requested them or if we may
+	 * need to validate answers from the cache.
+	 */
+	if (WANTDNSSEC(client) || !is_zone) {
 		sigrdataset = query_newrdataset(client);
 		if (sigrdataset == NULL)
 			goto cleanup;
@@ -2363,16 +2548,27 @@ query_addbestns(ns_client_t *client) {
 		zsigrdataset = NULL;
 	}
 
-	if ((client->query.dboptions & DNS_DBFIND_PENDINGOK) == 0 &&
-	    (rdataset->trust == dns_trust_pending ||
-	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_pending)))
+	/*
+	 * Attempt to validate RRsets that are pending or that are glue.
+	 */
+	if ((rdataset->trust == dns_trust_pending ||
+	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_pending))
+	    && !validate(client, db, fname, rdataset, sigrdataset) &&
+	    (client->query.dboptions & DNS_DBFIND_PENDINGOK) == 0)
 		goto cleanup;
 
-	if (WANTDNSSEC(client) && SECURE(client) &&
-	    (rdataset->trust == dns_trust_glue ||
-	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_glue)))
+	if ((rdataset->trust == dns_trust_glue ||
+	     (sigrdataset != NULL && sigrdataset->trust == dns_trust_glue)) &&
+	    !validate(client, db, fname, rdataset, sigrdataset) &&
+	    SECURE(client) && WANTDNSSEC(client))
 		goto cleanup;
 
+	/*
+	 * If the client doesn't want DNSSEC we can discard the sigrdataset
+	 * now.
+	 */
+	if (!WANTDNSSEC(client))
+		query_putrdataset(client, &sigrdataset);
 	query_addrrset(client, &fname, &rdataset, &sigrdataset, dbuf,
 		       DNS_SECTION_AUTHORITY);
 
