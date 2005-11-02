@@ -1,3 +1,9 @@
+1935.	[bug]		'acache' was DO sensitive. [RT #15430]
+
+1934.	[func]		Validate pending NS RRsets, in the authority section,
+			prior to returning them if it can be done without 
+			requiring DNSKEYs to be fetched.  [RT #15430]
+
 1919.	[contrib]	queryperf: a set of new features: collecting/printing
 			response delays, printing intermediate results, and
 			adjusting query rate for the "target" qps.
