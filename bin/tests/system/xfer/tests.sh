@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.24.12.5 2005/11/02 04:50:55 marka Exp $
+# $Id: tests.sh,v 1.24.12.6 2005/11/02 04:54:42 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -66,7 +66,7 @@ $DIG $DIGOPTS tsigzone. \
 	> dig.out.ns3 || tmp=1
 	grep ";" dig.out.ns3 > /dev/null
 	if test $? -ne 0 ; then break; fi
-	echo "I: plain zone re-transfer"
+	echo "I: TSIG zone re-transfer"
 	sleep 5
 done
 if test $tmp -eq 1 ; then status=1; fi
