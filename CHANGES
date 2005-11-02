@@ -1,3 +1,5 @@
+1936.	[bug]		The validator could leak memory. [RT #15544]
+
 1932.	[bug]		hpux: LDFLAGS was getting corrupted. [RT #15530]
 
 	--- 9.3.2b2 released ---

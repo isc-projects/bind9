@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.20 2005/10/14 01:38:49 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.21 2005/11/02 02:07:47 marka Exp $ */
 
 #include <config.h>
 
@@ -226,6 +226,13 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	rdataset = &val->frdataset;
 	eresult = devent->result;
 
+	/* Free resources which are not of interest. */
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (dns_rdataset_isassociated(&val->fsigrdataset))
+		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
@@ -278,6 +285,13 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	rdataset = &val->frdataset;
 	eresult = devent->result;
 
+	/* Free resources which are not of interest. */
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (dns_rdataset_isassociated(&val->fsigrdataset))
+		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
@@ -334,6 +348,13 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 	val = devent->ev_arg;
 	eresult = devent->result;
 
+	/* Free resources which are not of interest. */
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (dns_rdataset_isassociated(&val->fsigrdataset))
+		dns_rdataset_disassociate(&val->fsigrdataset);
 	dns_resolver_destroyfetch(&val->fetch);
 
 	INSIST(val->event != NULL);
@@ -2023,6 +2044,13 @@ dlvfetched(isc_task_t *task, isc_event_t *event) {
 	val = devent->ev_arg;
 	eresult = devent->result;
 
+	/* Free resources which are not of interest. */
+	if (devent->node != NULL)
+		dns_db_detachnode(devent->db, &devent->node);
+	if (devent->db != NULL)
+		dns_db_detach(&devent->db);
+	if (dns_rdataset_isassociated(&val->fsigrdataset))
+		dns_rdataset_disassociate(&val->fsigrdataset);
 	isc_event_free(&event);
 	dns_resolver_destroyfetch(&val->fetch);
 
@@ -2657,6 +2685,10 @@ destroy(dns_validator_t *val) {
 		dns_validator_destroy(&val->subvalidator);
 	if (val->havedlvsep)
 		dns_rdataset_disassociate(&val->dlv);
+	if (dns_rdataset_isassociated(&val->frdataset))
+		dns_rdataset_disassociate(&val->frdataset);
+	if (dns_rdataset_isassociated(&val->fsigrdataset))
+		dns_rdataset_disassociate(&val->fsigrdataset);
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
