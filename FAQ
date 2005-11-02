@@ -296,6 +296,14 @@ A: These indicate a malformed master zone. You can identify the exact records
    dig axfr example.com @master-server > tmp
    named-checkzone example.com tmp
 
+   A CNAME record cannot exist with the same name as another record except for
+   the DNSSEC records which prove its existance (NSEC).
+
+   RFC 1034, Section 3.6.2: "If a CNAME RR is present at a node, no other data
+   should be present; this ensures that the data for a canonical name and its
+   aliases cannot be different. This rule also insures that a cached CNAME can
+   be used without checking with an authoritative server for other RR types."
+
 Q: I get error messages like "named.conf:99: unexpected end of input" where 99
    is the last line of named.conf.
 
