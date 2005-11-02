@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.6 2005/09/06 02:57:42 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.7 2005/11/02 23:32:40 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -602,6 +602,17 @@ rand_irqs="3 14 15"</programlisting>
 dig axfr example.com @master-server &gt; tmp
 named-checkzone example.com tmp</programlisting>
 	</informalexample>
+	<para>
+	  A CNAME record cannot exist with the same name as another record
+	  except for the DNSSEC records which prove its existance (NSEC).
+	</para>
+	<para>
+	  RFC 1034, Section 3.6.2: <quote>If a CNAME RR is present at a node,
+	  no other data should be present; this ensures that the data for a
+	  canonical name and its aliases cannot be different.  This rule also
+	  insures that a cached CNAME can be used without checking with an
+	  authoritative server for other RR types.</quote>
+	</para>
       </answer>
     </qandaentry>
 
