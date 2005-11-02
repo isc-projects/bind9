@@ -727,7 +727,7 @@
 ./bin/tests/system/xfer/ns2/tsigzone.db		ZONE	2000,2001,2004
 ./bin/tests/system/xfer/ns3/.cvsignore		X	2000,2001
 ./bin/tests/system/xfer/ns3/named.conf		CONF-C	2000,2001,2004
-./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004
+./bin/tests/system/xfer/tests.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xferquota/clean.sh		SH	2000,2001,2004,2005
 ./bin/tests/system/xferquota/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/xferquota/ns1/changing1.db	ZONE	2000,2001,2004
