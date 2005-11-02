@@ -1,4 +1,4 @@
-1936.	[bug]		The validator could leak memory. [RT #5544]
+1936.	[bug]		The validator could leak memory. [RT #15544]
 
 1935.	[bug]		'acache' was DO sensitive. [RT #15430]
 
