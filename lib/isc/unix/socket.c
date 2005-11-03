@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.255 2005/10/17 03:47:10 marka Exp $ */
+/* $Id: socket.c,v 1.256 2005/11/03 22:59:53 marka Exp $ */
 
 /*! \file */
 
@@ -400,6 +400,7 @@ select_readmsg(isc_socketmgr_t *mgr, int *fd, int *msg) {
 	cc = read(mgr->pipe_fds[0], buf, sizeof(buf));
 	if (cc < 0) {
 		*msg = SELECT_POKE_NOTHING;
+		*fd = -1;	/* Silence compiler. */
 		if (SOFT_ERROR(errno))
 			return;
 
