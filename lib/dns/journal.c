@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.c,v 1.77.2.3 2004/09/16 04:55:37 marka Exp $ */
+/* $Id: journal.c,v 1.77.2.4 2005/11/03 23:41:22 marka Exp $ */
 
 #include <config.h>
 
@@ -1569,7 +1569,7 @@ read_one_rr(dns_journal_t *j) {
 	/*
 	 * Read an RR.
 	 */
-	result = journal_read_rrhdr(j, &rrhdr);
+	CHECK(journal_read_rrhdr(j, &rrhdr));
 	/*
 	 * Perform a sanity check on the journal RR size.
 	 * The smallest possible RR has a 1-byte owner name
