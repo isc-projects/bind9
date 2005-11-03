@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.38 2005/11/02 22:24:51 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.39 2005/11/03 00:57:58 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7581,19 +7581,22 @@ query-source-v6 address * port *;
           <title><command>trusted-keys</command> Statement Definition
             and Usage</title>
           <para>
-            The <command>trusted-keys</command> statement defines
-            DNSSEC
+            The <command>trusted-keys</command> statement defines DNSSEC
             security roots. DNSSEC is described in <xref linkend="DNSSEC"/>. A
             security root is defined when the public key for a
             non-authoritative
             zone is known, but cannot be securely obtained through DNS, either
-            because it is the  DNS root zone or because its parent zone is
+            because it is the DNS root zone or because its parent zone is
             unsigned.
             Once a key has been configured as a trusted key, it is treated as
             if it had been validated and proven secure. The resolver attempts
             DNSSEC validation on all DNS data in subdomains of a security
             root.
-          </para>
+	  </para>
+	  <para>
+	    All zones listed in <command>trusted-keys</command> are deemed
+	    to exist regardless of what parent zones say.
+	  </para>
           <para>
             The <command>trusted-keys</command> statement can
             contain

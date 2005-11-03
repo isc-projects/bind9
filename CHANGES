@@ -1,3 +1,10 @@
+1939.	[bug]		The resolver could dereference a null pointer after
+			validation if all the queries have timed out.
+			[RT #15528]
+
+1938.	[bug]		The validator was not correctly handling unsecure
+			negative responses at or below a SEP. [RT #15528]
+
 1937.	[bug]		sdlz doesn't handle RRSIG records. [RT #15564]
 
 1936.	[bug]		The validator could leak memory. [RT #15544]
