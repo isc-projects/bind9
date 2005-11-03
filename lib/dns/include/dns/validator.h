@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.32 2005/08/25 00:56:08 marka Exp $ */
+/* $Id: validator.h,v 1.33 2005/11/03 00:51:55 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -25,10 +25,18 @@
  *****/
 
 /*! \file
+ *
  * \brief
  * DNS Validator
+ * This is the BIND 9 validator, the module responsible for validating the
+ * rdatasets and negative responses (messages).  It makes use of zones in
+ * the view and may fetch RRset to complete trust chains.  It implements
+ * DNSSEC as specified in RFC 4033, 4034 and 4035.
  *
- * XXX TBS XXX
+ * It can also optionally implement ISC's DNSSEC look-aside validation.
+ *
+ * Correct operation is critical to preventing spoofed answers from secure
+ * zones being accepted.
  *
  * MP:
  *\li	The module ensures appropriate synchronization of data structures it
@@ -44,8 +52,7 @@
  *\li	No anticipated impact.
  *
  * Standards:
- *\li	RFCs:	1034, 1035, 2181, 2535, TBS
- *\li	Drafts:	TBS
+ *\li	RFCs:	1034, 1035, 2181, 4033, 4034, 4035.
  */
 
 #include <isc/lang.h>
@@ -65,6 +72,10 @@
  * 'name', 'rdataset', 'sigrdataset', and 'message' are the values that were
  * supplied when dns_validator_create() was called.  They are returned to the
  * caller so that they may be freed.
+ *
+ * If the RESULT is ISC_R_SUCCESS and the answer is secure then
+ * proofs[] will contain the the names of the NSEC records that hold the
+ * various proofs.  Note the same name may appear multiple times.
  */
 typedef struct dns_validatorevent {
 	ISC_EVENT_COMMON(struct dns_validatorevent);
@@ -129,7 +140,10 @@ struct dns_validator {
 	unsigned int			depth;
 };
 
-#define DNS_VALIDATOR_DLV 1
+/*%
+ * dns_validator_create() options.
+ */
+#define DNS_VALIDATOR_DLV 1U
 
 ISC_LANG_BEGINDECLS
 
@@ -164,13 +178,17 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * arguments must be provided.
  *
  * The validation is performed in the context of 'view'.
- * 'options' must be zero.
  *
  * When the validation finishes, a dns_validatorevent_t with
  * the given 'action' and 'arg' are sent to 'task'.
  * Its 'result' field will be ISC_R_SUCCESS iff the
  * response was successfully proven to be either secure or
  * part of a known insecure domain.
+ *
+ * options:
+ * If DNS_VALIDATOR_DLV is set the caller knows there is not a
+ * trusted key and the validator should immediately attempt to validate
+ * the answer by looking for a appopriate DLV RRset.
  */
 
 void

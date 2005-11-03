@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.318 2005/10/14 01:14:09 marka Exp $ */
+/* $Id: resolver.c,v 1.319 2005/11/03 00:51:54 marka Exp $ */
 
 /*! \file */
 
@@ -3809,21 +3809,20 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	isc_result_t result;
 	result = dns_ncache_add(message, cache, node, covers, now,
 				maxttl, ardataset);
-	if (result == DNS_R_UNCHANGED) {
+	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
-		 * The data in the cache are better than the negative cache
-		 * entry we're trying to add.
+		 * If the cache now contains a negative entry and we
+		 * care about whether it is DNS_R_NCACHENXDOMAIN or
+		 * DNS_R_NCACHENXRRSET then extract it.
 		 */
 		if (ardataset != NULL && ardataset->type == 0) {
 			/*
-			 * The cache data is also a negative cache
-			 * entry.
+			 * The cache data is a negative cache entry.
 			 */
 			if (NXDOMAIN(ardataset))
 				*eresultp = DNS_R_NCACHENXDOMAIN;
 			else
 				*eresultp = DNS_R_NCACHENXRRSET;
-			result = ISC_R_SUCCESS;
 		} else {
 			/*
 			 * Either we don't care about the nature of the
@@ -3835,13 +3834,8 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			 * XXXRTH  There's a CNAME/DNAME problem here.
 			 */
 			*eresultp = ISC_R_SUCCESS;
-			result = ISC_R_SUCCESS;
 		}
-	} else if (result == ISC_R_SUCCESS) {
-		if (NXDOMAIN(ardataset))
-			*eresultp = DNS_R_NCACHENXDOMAIN;
-		else
-			*eresultp = DNS_R_NCACHENXRRSET;
+		result = ISC_R_SUCCESS;
 	}
 
 	return (result);
