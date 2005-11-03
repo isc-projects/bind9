@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.11 2005/10/14 02:13:07 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.12 2005/11/03 23:08:41 marka Exp $ */
 
 #include <config.h>
 
@@ -581,7 +581,7 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		  isc_task_t *task, dns_xfrindone_t done, dns_xfrin_ctx_t **xfrp)
 {
 	dns_name_t *zonename = dns_zone_getorigin(zone);
-	dns_xfrin_ctx_t *xfr;
+	dns_xfrin_ctx_t *xfr = NULL;
 	isc_result_t result;
 	dns_db_t *db = NULL;
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.31 2005/05/30 01:59:25 marka Exp $ */
+/* $Id: check.c,v 1.37.6.32 2005/11/03 23:08:41 marka Exp $ */
 
 #include <config.h>
 
@@ -598,8 +598,10 @@ validate_masters(cfg_obj_t *obj, cfg_obj_t *config, isc_uint32_t *countp,
 
 	REQUIRE(countp != NULL);
 	result = isc_symtab_create(mctx, 100, NULL, NULL, ISC_FALSE, &symtab);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		*countp = count;
 		return (result);
+	}
 
  newlist:
 	list = cfg_tuple_get(obj, "addresses");
