@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.36 2005/11/30 03:44:39 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.37 2005/11/30 22:56:21 marka Exp $ */
 
 /*! \file */
 
@@ -3808,6 +3808,12 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  isc_result_t *eresultp)
 {
 	isc_result_t result;
+	dns_rdataset_t rdataset;
+
+	if (ardataset == NULL) {
+		dns_rdataset_init(&rdataset);
+		ardataset = &rdataset;
+	}
 	result = dns_ncache_add(message, cache, node, covers, now,
 				maxttl, ardataset);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
@@ -3816,7 +3822,7 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		 * care about whether it is DNS_R_NCACHENXDOMAIN or
 		 * DNS_R_NCACHENXRRSET then extract it.
 		 */
-		if (ardataset != NULL && ardataset->type == 0) {
+		if (ardataset->type == 0) {
 			/*
 			 * The cache data is a negative cache entry.
 			 */
@@ -3838,6 +3844,8 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		}
 		result = ISC_R_SUCCESS;
 	}
+	if (ardataset == &rdataset && dns_rdataset_isassociated(ardataset))
+		dns_rdataset_disassociate(ardataset);
 
 	return (result);
 }
