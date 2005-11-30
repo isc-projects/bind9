@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.27 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: t_rbt.c,v 1.28 2005/11/30 23:52:54 marka Exp $ */
 
 #include <config.h>
 

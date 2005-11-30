@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keycreate.c,v 1.12 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: keycreate.c,v 1.13 2005/11/30 23:52:54 marka Exp $ */
 
 #include <config.h>
 
