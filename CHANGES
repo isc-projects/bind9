@@ -1,3 +1,6 @@
+1941.	[bug]		ncache_adderesult() should set eresult even if no
+			rdataset is passed to it. [RT #15642]
+
 1940.	[bug]		Fixed a number of error conditions reported by
 			Coverity.
 
