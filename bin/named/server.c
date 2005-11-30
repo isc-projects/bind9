@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.450 2005/09/05 00:10:52 marka Exp $ */
+/* $Id: server.c,v 1.451 2005/11/30 03:33:48 marka Exp $ */
 
 /*! \file */
 
@@ -277,7 +277,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	}
 	maps[i] = NULL;
 
-	result = ns_config_get(maps, aclname, &aclobj);
+	(void)ns_config_get(maps, aclname, &aclobj);
 	if (aclobj == NULL)
 		/*
 		 * No value available.  *aclp == NULL.
@@ -496,7 +496,6 @@ get_view_querysource_dispatch(cfg_obj_t **maps,
 	case AF_INET:
 		result = ns_config_get(maps, "query-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-
 		break;
 	case AF_INET6:
 		result = ns_config_get(maps, "query-source-v6", &obj);
@@ -905,7 +904,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * unless explicitly disabled.
 	 */
 	obj = NULL;
-	ns_config_get(maps, "use-additional-cache", &obj);
+	(void)ns_config_get(maps, "use-additional-cache", &obj);
 	if (obj == NULL || cfg_obj_asboolean(obj)) {
 		cmctx = NULL;
 		CHECK(isc_mem_create(0, 0, &cmctx));
@@ -1282,7 +1281,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * Configure the "match-recursive-only" option.
 	 */
 	obj = NULL;
-	(void) ns_config_get(maps, "match-recursive-only", &obj);
+	(void)ns_config_get(maps, "match-recursive-only", &obj);
 	if (obj != NULL && cfg_obj_asboolean(obj))
 		view->matchrecursiveonly = ISC_TRUE;
 	else
@@ -2249,8 +2248,7 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr) {
 
  clean:
 	INSIST(lelt == NULL);
-	if (src_acl != NULL)
-		dns_acl_detach(&src_acl);
+	dns_acl_detach(&src_acl);
 
 	return (result);
 }
@@ -4229,6 +4227,11 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 	char *ptr;
 	const char *sep;
 
+	/* Skip the command name. */
+	ptr = next_token(&args, " \t");
+	if (ptr == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+
 	dctx = isc_mem_get(server->mctx, sizeof(*dctx));
 	if (dctx == NULL)
 		return (ISC_R_NOMEMORY);
@@ -4250,11 +4253,6 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 
 	CHECKMF(isc_stdio_open(server->dumpfile, "w", &dctx->fp),
 		"could not open dump file", server->dumpfile);
-
-	/* Skip the command name. */
-	ptr = next_token(&args, " \t");
-	if (ptr == NULL)
-		return (ISC_R_UNEXPECTEDEND);
 
 	sep = (args == NULL) ? "" : ": ";
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,

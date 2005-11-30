@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.50 2005/08/23 02:36:07 marka Exp $ */
+/* $Id: lwresd.c,v 1.51 2005/11/30 03:33:48 marka Exp $ */
 
 /*! \file 
  * \brief
@@ -408,6 +408,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 		ns_lwsearchlist_detach(&lwresd->search);
 	if (lwresd->mctx != NULL)
 		isc_mem_detach(&lwresd->mctx);
+	isc_mem_put(mctx, lwresd, sizeof(ns_lwresd_t));
 	return (result);
 }
 

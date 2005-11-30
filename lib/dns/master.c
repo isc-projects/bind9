@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.158 2005/09/01 02:24:58 marka Exp $ */
+/* $Id: master.c,v 1.159 2005/11/30 03:33:49 marka Exp $ */
 
 /*! \file */
 
@@ -2172,6 +2172,10 @@ load_raw(dns_loadctx_t *lctx) {
 		rdatalist.covers = isc_buffer_getuint16(&target);
 		rdatalist.ttl =  isc_buffer_getuint32(&target);
 		rdcount = isc_buffer_getuint32(&target);
+		if (rdcount == 0) {
+			result = ISC_R_RANGE;
+			goto cleanup;
+		}
 		INSIST(isc_buffer_consumedlength(&target) <= readlen);
 
 		/* Owner name: length followed by name */

@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.192 2005/10/14 01:14:06 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.193 2005/11/30 03:33:48 marka Exp $ */
 
 /*! \file */
 
@@ -1270,10 +1270,6 @@ nsecify(void) {
 				dns_db_detachnode(gdb, &nextnode);
 				result = dns_dbiterator_next(dbiter);
 				continue;
-			}
-			if (result != ISC_R_SUCCESS) {
-				dns_db_detachnode(gdb, &nextnode);
-				break;
 			}
 			if (!dns_name_issubdomain(nextname, gorigin) ||
 			    (zonecut != NULL &&

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.10 2005/07/12 01:00:13 marka Exp $ */
+/* $Id: acache.c,v 1.11 2005/11/30 03:33:48 marka Exp $ */
 
 #include <config.h>
 
@@ -1235,7 +1235,12 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 		return (result);
 	};
 
-	isc_refcount_init(&newentry->references, 1);
+	result = isc_refcount_init(&newentry->references, 1);
+	if (result != ISC_R_SUCCESS) {
+		ACACHE_DESTROYLOCK(&newentry->lock);
+		isc_mem_put(acache->mctx, newentry, sizeof(*newentry));
+		return (result);
+	};
 
 	ISC_LINK_INIT(newentry, link);
 	ISC_LINK_INIT(newentry, olink);

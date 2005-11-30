@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.124 2005/08/24 23:53:57 marka Exp $ */
+/* $Id: zoneconf.c,v 1.125 2005/11/30 03:33:48 marka Exp $ */
 
 /*% */
 
@@ -730,6 +730,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	switch (ztype) {
 	case dns_zone_slave:
 	case dns_zone_stub:
+		count = 0;
 		obj = NULL;
 		result = cfg_map_get(zoptions, "masters", &obj);
 		if (obj != NULL) {

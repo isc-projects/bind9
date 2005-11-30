@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lex.c,v 1.82 2005/06/04 00:18:55 marka Exp $ */
+/* $Id: lex.c,v 1.83 2005/11/30 03:33:49 marka Exp $ */
 
 /*! \file */
 
@@ -374,9 +374,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 	source = HEAD(lex->sources);
 	REQUIRE(tokenp != NULL);
 
-	lex->saved_paren_count = lex->paren_count;
-	source->saved_line = source->line;
-
 	if (source == NULL) {
 		if ((options & ISC_LEXOPT_NOMORE) != 0) {
 			tokenp->type = isc_tokentype_nomore;
@@ -387,6 +384,9 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 
 	if (source->result != ISC_R_SUCCESS)
 		return (source->result);
+
+	lex->saved_paren_count = lex->paren_count;
+	source->saved_line = source->line;
 
 	if (isc_buffer_remaininglength(source->pushback) == 0 &&
 	    source->at_eof)
@@ -627,10 +627,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					   (lex->data[0] != '0'))) {
 					/* Above test supports hex numbers */
 					state = lexstate_string;
-				} else if ((options & ISC_LEXOPT_OCTAL) != 0 &&
-					   (c == '8' || c == '9')) {
-					state = lexstate_string;
 				}
+			} else if ((options & ISC_LEXOPT_OCTAL) != 0 &&
+				   (c == '8' || c == '9')) {
+				state = lexstate_string;
 			}
 			if (remaining == 0U) {
 				result = grow_data(lex, &remaining,
@@ -644,9 +644,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			remaining--;
 			break;
 		case lexstate_string:
-			if ((!escaped &&
-			     (c == ' ' || c == '\t' || lex->specials[c])) ||
-			    c == '\r' || c == '\n' || c == EOF) {
+			/*
+			 * EOF needs to be checked before lex->specials[c]
+			 * as lex->specials[EOF] is not a good idea.
+			 */
+			if (c == '\r' || c == '\n' || c == EOF ||
+			    (!escaped &&
+			     (c == ' ' || c == '\t' || lex->specials[c]))) {
 				pushback(source, c);
 				if (source->result != ISC_R_SUCCESS) {
 					result = source->result;

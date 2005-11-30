@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.82 2005/10/21 03:13:59 marka Exp $ */
+/* $Id: masterdump.c,v 1.83 2005/11/30 03:33:49 marka Exp $ */
 
 /*! \file */
 
@@ -1448,9 +1448,8 @@ dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
 		dns_dumpctx_attach(dctx, dctxp);
 		return (DNS_R_CONTINUE);
 	}
-	if (dctx != NULL)
-		dns_dumpctx_detach(&dctx);
 
+	dns_dumpctx_detach(&dctx);
 	return (result);
 }
 

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.80 2005/06/10 06:58:27 marka Exp $
+ * $Id: tkey.c,v 1.81 2005/11/30 03:33:49 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -441,15 +441,17 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 					   dstkey, ISC_TRUE, signer,
 					   tkeyin->inception, tkeyin->expire,
 					   msg->mctx, ring, NULL);
+#if 1
 	if (result != ISC_R_SUCCESS)
 		goto failure;
-
+#else
 	if (result == ISC_R_NOTFOUND) {
 		tkeyout->error = dns_tsigerror_badalg;
 		return (ISC_R_SUCCESS);
 	}
 	if (result != ISC_R_SUCCESS)
 		goto failure;
+#endif
 
 	/* This key is good for a long time */
 	isc_stdtime_get(&now);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.445 2005/08/24 23:54:02 marka Exp $ */
+/* $Id: zone.c,v 1.446 2005/11/30 03:33:49 marka Exp $ */
 
 /*! \file */
 
@@ -832,12 +832,10 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
  nomem:
 	if (new != NULL) {
-		for (i = 0; i < dbargc; i++) {
-			if (zone->db_argv[i] != NULL)
+		for (i = 0; i < dbargc; i++)
+			if (new[i] != NULL)
 				isc_mem_free(zone->mctx, new[i]);
-			isc_mem_put(zone->mctx, new,
-				    dbargc * sizeof(*new));
-		}
+		isc_mem_put(zone->mctx, new, dbargc * sizeof(*new));
 	}
 	result = ISC_R_NOMEMORY;
 
@@ -1326,10 +1324,12 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 				       zone_gotreadhandle, load,
 				       &zone->readio);
 		if (result != ISC_R_SUCCESS) {
-			tresult = dns_db_endload(load->db,
-						 &load->callbacks.add_private);
-			if (result == ISC_R_SUCCESS)
-				result = tresult;
+			/*
+			 * We can't report multiple errors so ignore
+			 * the result of dns_db_endload().
+			 */
+			(void)dns_db_endload(load->db,
+					     &load->callbacks.add_private);
 			goto cleanup;
 		} else
 			result = DNS_R_CONTINUE;
@@ -2853,6 +2853,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	isc_interval_t i;
 	isc_uint32_t oldflags;
 	unsigned int j;
+	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
@@ -2886,7 +2887,11 @@ dns_zone_refresh(dns_zone_t *zone) {
 	 */
 	isc_interval_set(&i, isc_random_jitter(zone->retry, zone->retry / 4),
 			 0);
-	isc_time_nowplusinterval(&zone->refreshtime, &i);
+	result = isc_time_nowplusinterval(&zone->refreshtime, &i);
+	if (result |= ISC_R_SUCCESS)
+		dns_zone_log(zone, ISC_LOG_WARNING,
+			     "isc_time_nowplusinterval() failed: %s",
+			     dns_result_totext(result));
 
 	/*
 	 * When lacking user-specified timer values from the SOA,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.135 2005/11/03 00:51:55 marka Exp $ */
+/* $Id: validator.c,v 1.136 2005/11/30 03:33:49 marka Exp $ */
 
 /*! \file */
 
@@ -2819,7 +2819,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
  cleanup_event:
 	isc_task_detach(&tclone);
-	isc_event_free((isc_event_t **)&val->event);
+	isc_event_free((isc_event_t **)&event);
 
  cleanup_val:
 	dns_view_weakdetach(&val->view);
