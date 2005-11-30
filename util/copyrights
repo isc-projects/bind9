@@ -247,7 +247,7 @@
 ./bin/tests/db/dns_db_newversion_data		X	1999,2000,2001
 ./bin/tests/db/dns_db_origin_1.data		X	1999,2000,2001
 ./bin/tests/db/dns_db_origin_data		X	1999,2000,2001
-./bin/tests/db/t_db.c				C	1999,2000,2001,2004
+./bin/tests/db/t_db.c				C	1999,2000,2001,2004,2005
 ./bin/tests/db_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/dst/.cvsignore			X	1999,2000,2001
 ./bin/tests/dst/Kdh.+002+18602.key		X	2001
@@ -262,12 +262,12 @@
 ./bin/tests/dst/Ktest.+003+49667.key		X	2001
 ./bin/tests/dst/Makefile.in			MAKE	1999,2000,2001,2002,2004
 ./bin/tests/dst/dst_2_data			X	1999,2000,2001
-./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004
+./bin/tests/dst/dst_test.c			C	1999,2000,2001,2004,2005
 ./bin/tests/dst/t2_data_1			X	1999,2000,2001
 ./bin/tests/dst/t2_data_2			X	1999,2000,2001
 ./bin/tests/dst/t2_dsasig			X	1999,2000,2001
 ./bin/tests/dst/t2_rsasig			X	1999,2000,2001
-./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004
+./bin/tests/dst/t_dst.c				C	1999,2000,2001,2004,2005
 ./bin/tests/entropy2_test.c			C	2000,2001,2004,2005
 ./bin/tests/entropy_test.c			C	2000,2001,2004,2005
 ./bin/tests/fsaccess_test.c			C	2000,2001,2004,2005
@@ -308,7 +308,7 @@
 ./bin/tests/master/master7.data			X	1999,2000,2001
 ./bin/tests/master/master8.data			X	2000,2001
 ./bin/tests/master/master9.data			X	2000,2001
-./bin/tests/master/t_master.c			C	1998,1999,2000,2001,2003,2004
+./bin/tests/master/t_master.c			C	1998,1999,2000,2001,2003,2004,2005
 ./bin/tests/master_test.c			C	1999,2000,2001,2004
 ./bin/tests/mem/.cvsignore			X	1999,2000,2001
 ./bin/tests/mem/Makefile.in			MAKE	1998,1999,2000,2001,2002,2004,2005
@@ -390,7 +390,7 @@
 ./bin/tests/rbt/dns_rbtnodechain_next_data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev.data	X	1999,2000,2001
 ./bin/tests/rbt/dns_rbtnodechain_prev_data	X	1999,2000,2001
-./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004
+./bin/tests/rbt/t_rbt.c				C	1998,1999,2000,2001,2003,2004,2005
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004
@@ -686,8 +686,8 @@
 ./bin/tests/system/tkey/.cvsignore		X	2001
 ./bin/tests/system/tkey/Makefile.in		MAKE	2001,2002,2004
 ./bin/tests/system/tkey/clean.sh		SH	2001,2004
-./bin/tests/system/tkey/keycreate.c		C	2001,2004
-./bin/tests/system/tkey/keydelete.c		C	2001,2004
+./bin/tests/system/tkey/keycreate.c		C	2001,2004,2005
+./bin/tests/system/tkey/keydelete.c		C	2001,2004,2005
 ./bin/tests/system/tkey/ns1/.cvsignore		X	2001
 ./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004
 ./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004
