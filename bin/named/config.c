@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.15 2005/09/05 02:30:50 marka Exp $ */
+/* $Id: config.c,v 1.47.18.16 2005/11/30 03:44:38 marka Exp $ */
 
 /*! \file */
 
@@ -448,13 +448,14 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 		if (val > ISC_UINT16_MAX) {
 			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
-			return (ISC_R_RANGE);
+			result = ISC_R_RANGE;
+			goto cleanup;
 		}
 		port = (in_port_t) val;
 	} else {
 		result = ns_config_getport(config, &port);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
 	}
 
 	result = ISC_R_NOMEMORY;
@@ -615,9 +616,9 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			if (new == NULL)
 				goto cleanup;
 			memcpy(new, addrs, newsize);
-			isc_mem_put(mctx, addrs, oldsize);
 		} else
 			new = NULL;
+		isc_mem_put(mctx, addrs, oldsize);
 		addrs = new;
 		addrcount = i;
 
@@ -628,9 +629,9 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 			if (new == NULL)
 				goto cleanup;
 			memcpy(new, keys,  newsize);
-			isc_mem_put(mctx, keys, oldsize);
 		} else
 			new = NULL;
+		isc_mem_put(mctx, keys, oldsize);
 		keys = new;
 		keycount = i;
 	}

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73.18.4 2005/10/26 06:50:49 marka Exp $ */
+/* $Id: timer.c,v 1.73.18.5 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -214,9 +214,10 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		isc_time_t then;
 
 		isc_interval_set(&fifteen, 15, 0);
-		isc_time_add(&manager->due, &fifteen, &then);
+		result = isc_time_add(&manager->due, &fifteen, &then);
 
-		if (isc_time_compare(&then, now) < 0) {
+		if (result == ISC_R_SUCCESS &&
+		    isc_time_compare(&then, now) < 0) {
 			SIGNAL(&manager->wakeup);
 			signal_ok = ISC_FALSE;
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -349,8 +350,10 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 
 	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
 		result = isc_time_add(&now, interval, &timer->idle);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(manager->mctx, timer, sizeof(*timer));
 			return (result);
+		}
 	} else
 		isc_time_settoepoch(&timer->idle);
 

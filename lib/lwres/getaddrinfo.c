@@ -18,7 +18,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddrinfo.c,v 1.43.18.3 2005/06/08 02:07:58 marka Exp $ */
+/* $Id: getaddrinfo.c,v 1.43.18.4 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -438,8 +438,10 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 						      NULL, 0,
 						      NI_NUMERICHOST) == 0) {
 					ai->ai_canonname = strdup(nbuf);
-					if (ai->ai_canonname == NULL)
+					if (ai->ai_canonname == NULL) {
+						lwres_freeaddrinfo(ai_list);
 						return (EAI_MEMORY);
+					}
 				} else {
 					/* XXX raise error? */
 					ai->ai_canonname = NULL;

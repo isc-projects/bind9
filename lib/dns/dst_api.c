@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1.6.4 2005/06/17 02:27:13 marka Exp $
+ * $Id: dst_api.c,v 1.1.6.5 2005/11/30 03:44:39 marka Exp $
  */
 
 /*! \file */
@@ -416,6 +416,7 @@ dst_key_fromnamedfile(const char *filename, int type, isc_mem_t *mctx,
 
 	result = dst_key_read_public(newfilename, type, mctx, &pubkey);
 	isc_mem_put(mctx, newfilename, newfilenamelen);
+	newfilename = NULL;
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -1039,8 +1040,10 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	ret = dns_name_print(key->key_name, fp);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
+		fclose(fp);
 		return (ret);
+	}
 
 	fprintf(fp, " ");
 

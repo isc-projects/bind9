@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_db.c,v 1.31.18.1 2004/10/25 01:32:24 marka Exp $ */
+/* $Id: t_db.c,v 1.31.18.2 2005/11/30 03:44:38 marka Exp $ */
 
 #include <config.h>
 
@@ -403,8 +403,10 @@ test_dns_db_zc_x(const char *filename, dns_dbtype_t dbtype,
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, tokens);
 			if (cnt == 4) {

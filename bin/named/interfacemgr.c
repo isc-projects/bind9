@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.76.18.5 2005/04/27 05:00:30 sra Exp $ */
+/* $Id: interfacemgr.c,v 1.76.18.6 2005/11/30 03:44:38 marka Exp $ */
 
 /*! \file */
 
@@ -766,9 +766,8 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 			 * See if the address matches the listen-on statement;
 			 * if not, ignore the interface.
 			 */
-			result = dns_acl_match(&listen_netaddr, NULL,
-					       le->acl, &mgr->aclenv,
-					       &match, NULL);
+			(void)dns_acl_match(&listen_netaddr, NULL, le->acl,
+					    &mgr->aclenv, &match, NULL);
 			if (match <= 0)
 				continue;
 
@@ -799,9 +798,9 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 				for (ele = ISC_LIST_HEAD(ext_listen->elts);
 				     ele != NULL;
 				     ele = ISC_LIST_NEXT(ele, link)) {
-					dns_acl_match(&listen_netaddr, NULL,
-						      ele->acl, NULL,
-						      &match, NULL);
+					(void)dns_acl_match(&listen_netaddr,
+							    NULL, ele->acl,
+							    NULL, &match, NULL);
 					if (match > 0 && ele->port == le->port)
 						break;
 					else

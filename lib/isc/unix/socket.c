@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.237.18.19 2005/11/03 23:02:23 marka Exp $ */
+/* $Id: socket.c,v 1.237.18.20 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -2716,8 +2716,8 @@ socket_send(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		dev->attributes |= ISC_SOCKEVENTATTR_PKTINFO;
 		dev->pktinfo = *pktinfo;
 
-		if (!isc_sockaddr_issitelocal(address) &&
-		    !isc_sockaddr_islinklocal(address)) {
+		if (!isc_sockaddr_issitelocal(&dev->address) &&
+		    !isc_sockaddr_islinklocal(&dev->address)) {
 			socket_log(sock, NULL, TRACE, isc_msgcat,
 				   ISC_MSGSET_SOCKET, ISC_MSG_PKTINFOPROVIDED,
 				   "pktinfo structure provided, ifindex %u "

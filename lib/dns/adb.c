@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215.18.10 2005/10/14 05:26:54 marka Exp $ */
+/* $Id: adb.c,v 1.215.18.11 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file 
  *
@@ -2594,8 +2594,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		}
 	}
 
-	if (bucket != DNS_ADB_INVALIDBUCKET)
-		UNLOCK(&adb->namelocks[bucket]);
+	UNLOCK(&adb->namelocks[bucket]);
 
 	return (result);
 }

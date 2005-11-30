@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.40.18.5 2005/08/23 02:31:30 marka Exp $ */
+/* $Id: controlconf.c,v 1.40.18.6 2005/11/30 03:44:38 marka Exp $ */
 
 /*! \file */
 
@@ -364,6 +364,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	{
 		ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
 		ccregion.rend = isc_buffer_used(&conn->ccmsg.buffer);
+		if (secret.rstart != NULL)
+			isc_mem_put(listener->mctx, secret.rstart,
+				    REGION_SIZE(secret));
 		secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
 		if (secret.rstart == NULL)
 			goto cleanup;
@@ -379,8 +382,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 			 */
 			if (request != NULL)
 				isccc_sexpr_free(&request);
-			isc_mem_put(listener->mctx, secret.rstart,
-				    REGION_SIZE(secret));
 		} else {
 			log_invalid(&conn->ccmsg, result);
 			goto cleanup;
@@ -987,18 +988,25 @@ update_listener(ns_controls_t *cp,
 		result = get_rndckey(listener->mctx, &listener->keys);
 	}
 
-	if (result != ISC_R_SUCCESS && global_keylist != NULL)
+	if (result != ISC_R_SUCCESS && global_keylist != NULL) {
 		/*
 		 * This message might be a little misleading since the
 		 * "new keys" might in fact be identical to the old ones,
 		 * but tracking whether they are identical just for the
 		 * sake of avoiding this message would be too much trouble.
 		 */
-		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
-			    "couldn't install new keys for "
-			    "command channel %s: %s",
-			    socktext, isc_result_totext(result));
-
+		if (control != NULL)
+			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+				    "couldn't install new keys for "
+				    "command channel %s: %s",
+				    socktext, isc_result_totext(result));
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+				      "couldn't install new keys for "
+				      "command channel %s: %s",
+				      socktext, isc_result_totext(result));
+	}
 
 	/*
 	 * Now, keep the old access list unless a new one can be made.
@@ -1016,12 +1024,18 @@ update_listener(ns_controls_t *cp,
 		dns_acl_detach(&listener->acl);
 		dns_acl_attach(new_acl, &listener->acl);
 		dns_acl_detach(&new_acl);
-	} else
 		/* XXXDCL say the old acl is still used? */
+	} else if (control != NULL)
 		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "command channel %s: %s",
 			    socktext, isc_result_totext(result));
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+			      "couldn't install new acl for "
+			      "command channel %s: %s",
+			      socktext, isc_result_totext(result));
 
 	if (result == ISC_R_SUCCESS && type == isc_sockettype_unix) {
 		isc_uint32_t perm, owner, group;
@@ -1037,7 +1051,7 @@ update_listener(ns_controls_t *cp,
 			listener->perm = perm;
 			listener->owner = owner;
 			listener->group = group;
-		} else
+		} else if (control != NULL)
 			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
 				    "couldn't update ownership/permission for "
 				    "command channel %s", socktext);

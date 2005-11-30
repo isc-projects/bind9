@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.38.18.4 2005/07/12 01:22:27 marka Exp $ */
+/* $Id: zt.c,v 1.38.18.5 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -380,9 +380,8 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
 				tresult = result;
 				goto cleanup;	/* don't break */
 			} else if (result != ISC_R_SUCCESS &&
-				 tresult != ISC_R_SUCCESS)
+				   tresult == ISC_R_SUCCESS)
 				tresult = result;
-				
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 	}

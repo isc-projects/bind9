@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.222.18.5 2005/06/07 01:43:52 marka Exp $ */
+/* $Id: message.c,v 1.222.18.6 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -808,6 +808,7 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 {
 	dns_rdataset_t *curr;
 
+	REQUIRE(name != NULL);
 	if (rdataset != NULL) {
 		REQUIRE(*rdataset == NULL);
 	}

@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.2.2.4 2005/11/02 23:29:50 marka Exp $ */
+/* $Id: sdlz.c,v 1.2.2.5 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -1471,7 +1471,7 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 	dns_rdatatype_t typeval;
 	isc_consttextregion_t r;
 	isc_buffer_t b;
-	isc_buffer_t *rdatabuf;
+	isc_buffer_t *rdatabuf = NULL;
 	isc_lex_t *lex;
 	isc_result_t result;
 	unsigned int size;

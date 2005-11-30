@@ -1,3 +1,6 @@
+1940.	[bug]		Fixed a number of error conditions reported by
+			Coverity.
+
 1939.	[bug]		The resolver could dereference a null pointer after
 			validation if all the queries have timed out.
 			[RT #15528]

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_api.c,v 1.52.18.5 2005/06/17 02:27:16 marka Exp $ */
+/* $Id: t_api.c,v 1.52.18.6 2005/11/30 03:44:39 marka Exp $ */
 
 /*! \file */
 
@@ -542,7 +542,11 @@ t_fgetbs(FILE *fp) {
 			}
 		}
 		*p = '\0';
-		return(((c == EOF) && (n == 0U)) ? NULL : buf);
+		if (c == EOF && n == 0U) {
+			free(buf);
+			return (NULL);
+		}
+		return (buf);
 	} else {
 		fprintf(stderr, "malloc failed %d", errno);
 		return(NULL);
@@ -749,8 +753,10 @@ t_eval(const char *filename, int (*func)(char **), int nargs) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, tokens);
 			if (cnt == nargs) {
