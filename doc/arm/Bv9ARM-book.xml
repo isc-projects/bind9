@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.282 2005/11/03 00:51:54 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.283 2005/12/04 23:54:00 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -2410,19 +2410,95 @@ allow-update { key host1-host2. ;};
       <sect2>
         <title>Configuring Servers</title>
 
-        <para>
-          Unlike <acronym>BIND</acronym> 8,
-          <acronym>BIND</acronym> 9 does not verify signatures on
-          load,
-          so zone keys for authoritative zones do not need to be specified
-          in the configuration file.
+	<para>
+	  To enable <command>named</command> to respond appropriately
+	  to DNS requests from DNSSEC aware clients
+	  <command>dnssec-enable</command> must be set to yes.
         </para>
 
-        <para>
-          The public key for any security root must be present in
-          the configuration file's <command>trusted-keys</command>
-          statement, as described later in this document.
+	<para>
+	  To enable <command>named</command> to validate answers from
+	  other servers both <command>dnssec-enable</command> and
+	  <command>dnssec-validate</command> must be set and some
+	  some <command>trusted-keys</command> must be configured
+	  into <filename>named.conf</filename>.
         </para>
+	  
+	<para>
+	  <command>trusted-keys</command> are copies of DNSKEY RRs
+	  for zones that are used to form the first link the the
+	  cryptographic chain of trust.  All keys listed in
+	  <command>trusted-keys</command> (and corresponding zones)
+	  are deemed to exist and only the listed keys will be used
+	  to validated the DNSKEY RRset that they are from.
+	</para>
+
+	<para>
+	  <command>trusted-keys</command> are described in more detail
+	  later in this document.
+	</para>
+
+	<para>
+	  Unlike <acronym>BIND</acronym> 8, <acronym>BIND</acronym>
+	  9 does not verify signatures on load, so zone keys for
+	  authoritative zones do not need to be specified in the
+	  configuration file.
+	</para>
+
+	<para>
+	  After DNSSEC gets established, a typical DNSSEC configuration
+	  will look something like the following.  It has a one or
+	  more public keys for the root.  This allows answers from
+	  outside the organization to be validated.  It will also
+	  have several keys for parts of the namespace the organization
+	  controls.  These are here to ensure that named is immune
+	  to compromises in the DNSSEC components of the security
+	  of parent zones.
+	</para>
+
+<programlisting>
+trusted-keys {
+
+	/* Root Key */
+"." 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwSJxrGkxJWoZu6I7PzJu/
+	     E9gx4UC1zGAHlXKdE4zYIpRhaBKnvcC2U9mZhkdUpd1Vso/HAdjNe8LmMlnzY3
+	     zy2Xy4klWOADTPzSv9eamj8V18PHGjBLaVtYvk/ln5ZApjYghf+6fElrmLkdaz
+	     MQ2OCnACR817DF4BBa7UR/beDHyp5iWTXWSi6XmoJLbG9Scqc7l70KDqlvXR3M
+	     /lUUVRbkeg1IPJSidmK3ZyCllh4XSKbje/45SKucHgnwU5jefMtq66gKodQj+M
+	     iA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ97S+LKUTpQcq27R7AT3/V5hRQxScI
+	     Nqwcz4jYqZD2fQdgxbcDTClU0CRBdiieyLMNzXG3";
+
+/* Key for out organizations forward zone */
+example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM65KbhTjrW1ZaARmPhEZZe
+                      3Y9ifgEuq7vZ/zGZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb4JKUbb
+	              OTcM8pwXlj0EiX3oDFVmjHO444gLkBO UKUf/mC7HvfwYH/Be22GnC
+		      lrinKJp1Og4ywzO9WglMk7jbfW33gUKvirTHr25GL7STQUzBb5Usxt
+		      8lgnyTUHs1t3JwCY5hKZ6CqFxmAVZP20igTixin/1LcrgX/KMEGd/b
+		      iuvF4qJCyduieHukuY3H4XMAcR+xia2 nIUPvm/oyWR8BW/hWdzOvn
+		      SCThlHf3xiYleDbt/o1OTQ09A0=";
+
+/* Key for our reverse zone. */
+2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwcxOdNax071L18QqZnQQQA
+                                VVr+iLhGTnNGp3HoWQLUIzKrJVZ3zggy3WwNT6kZo6c0
+				tszYqbtvchmgQC8CzKojM/W16i6MG/ea fGU3siaOdS0
+				yOI6BgPsw+YZdzlYMaIJGf4M4dyoKIhzdZyQ2bYQrjyQ
+				4LB0lC7aOnsMyYKHHYeRv PxjIQXmdqgOJGq+vsevG06
+			        zW+1xgYJh9rCIfnm1GX/KMgxLPG2vXTD/RnLX+D3T3UL
+				7HJYHJhAZD5L59VvjSPsZJHeDCUyWYrvPZesZDIRvhDD
+				52SKvbheeTJUm6EhkzytNN2SN96QRk8j/iI8ib";
+};
+
+options {
+	...
+	dnssec-enable yes;
+	dnssec-validation yes;
+};
+</programlisting>
+
+	<note>
+	  None of the keys listed in this example are valid.  In particular
+	  the root key is not valid.
+	</note>
 
       </sect2>
 
@@ -7577,34 +7653,36 @@ query-source-v6 address * port *;
 </programlisting>
 
         </sect2>
-        <sect2>
-          <title><command>trusted-keys</command> Statement Definition
-            and Usage</title>
-          <para>
-            The <command>trusted-keys</command> statement defines DNSSEC
-            security roots. DNSSEC is described in <xref linkend="DNSSEC"/>. A
-            security root is defined when the public key for a
-            non-authoritative
-            zone is known, but cannot be securely obtained through DNS, either
-            because it is the DNS root zone or because its parent zone is
-            unsigned.
-            Once a key has been configured as a trusted key, it is treated as
-            if it had been validated and proven secure. The resolver attempts
-            DNSSEC validation on all DNS data in subdomains of a security
-            root.
+	<sect2>
+	  <title><command>trusted-keys</command> Statement Definition
+	    and Usage</title>
+	  <para>
+	    The <command>trusted-keys</command> statement defines
+	    DNSSEC security roots. DNSSEC is described in <xref
+	    linkend="DNSSEC"/>. A security root is defined when the
+	    public key for a non-authoritative zone is known, but
+	    cannot be securely obtained through DNS, either because
+	    it is the DNS root zone or because its parent zone is
+	    unsigned.  Once a key has been configured as a trusted
+	    key, it is treated as if it had been validated and
+	    proven secure. The resolver attempts DNSSEC validation
+	    on all DNS data in subdomains of a security root.
 	  </para>
 	  <para>
-	    All zones listed in <command>trusted-keys</command> are deemed
-	    to exist regardless of what parent zones say.
+	    All keys (and corresponding zones) listed in
+	    <command>trusted-keys</command> are deemed to exist regardless
+	    of what parent zones say.  Similarly for all keys listed in
+	    <command>trusted-keys</command> only those keys are
+	    used to validate the DNSKEY RRset.  The parents DS RRset
+	    will not be used.
 	  </para>
-          <para>
-            The <command>trusted-keys</command> statement can
-            contain
-            multiple key entries, each consisting of the key's domain name,
-            flags, protocol, algorithm, and the Base-64 representation of the
-            key data.
-          </para>
-        </sect2>
+	  <para>
+	    The <command>trusted-keys</command> statement can contain
+	    multiple key entries, each consisting of the key's
+	    domain name, flags, protocol, algorithm, and the Base-64
+	    representation of the key data.
+	  </para>
+	</sect2>
 
         <sect2 id="view_statement_grammar">
           <title><command>view</command> Statement Grammar</title>

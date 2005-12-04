@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keytable.c,v 1.31 2005/07/12 01:00:15 marka Exp $ */
+/* $Id: keytable.c,v 1.32 2005/12/04 23:54:00 marka Exp $ */
 
 /*! \file */
 
@@ -236,6 +236,13 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 
+	/*
+	 * Note we don't want the DNS_R_PARTIALMATCH from dns_rbt_findname()
+	 * as that indicates that 'name' was not found.
+	 *
+	 * DNS_R_PARTIALMATCH indicates that the name was found but we
+	 * didn't get a match on algorithm and key id arguments.
+	 */
 	knode = NULL;
 	data = NULL;
 	result = dns_rbt_findname(keytable->table, name, 0, NULL, &data);
@@ -253,7 +260,7 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, dns_name_t *name,
 			UNLOCK(&keytable->lock);
 			*keynodep = knode;
 		} else
-			result = ISC_R_NOTFOUND;
+			result = DNS_R_PARTIALMATCH;
 	} else if (result == DNS_R_PARTIALMATCH)
 		result = ISC_R_NOTFOUND;
 
