@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.18 2005/11/30 04:58:32 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.19 2005/12/05 00:00:03 marka Exp $ */
 
 /*! \file */
 
@@ -1623,12 +1623,14 @@ validatezonekey(dns_validator_t *val) {
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	dns_rdata_t sigrdata = DNS_RDATA_INIT;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_keytag_t keytag;
 	dns_rdata_ds_t ds;
 	dns_rdata_dnskey_t key;
 	dns_rdata_rrsig_t sig;
 	dst_key_t *dstkey;
 	isc_boolean_t supported_algorithm;
+	isc_boolean_t atsep = ISC_FALSE;
 
 	/*
 	 * Caller must be holding the validator lock.
@@ -1659,6 +1661,9 @@ validatezonekey(dns_validator_t *val) {
 							  sig.algorithm,
 							  sig.keyid,
 							  &keynode);
+			if (result == DNS_R_PARTIALMATCH ||
+			    result == ISC_R_SUCCESS)
+				atsep = ISC_TRUE;
 			while (result == ISC_R_SUCCESS) {
 				dstkey = dns_keynode_key(keynode);
 				result = verify(val, dstkey, &sigrdata,
@@ -1695,6 +1700,22 @@ validatezonekey(dns_validator_t *val) {
 				return (DNS_R_NOVALIDSIG);
 			else
 				return (DNS_R_NOVALIDDS);
+		}
+
+		if (atsep) {
+			/*
+			 * We have not found a key to verify this DNSKEY
+			 * RRset.  As this is a SEP we have to assume that
+			 * the RRset is invalid.
+			 */
+			dns_name_format(val->event->name, namebuf,
+				        sizeof(namebuf));
+			validator_log(val, ISC_LOG_DEBUG(2),
+				      "unable to find a DNSKEY which verifies "
+				      "the DNSKEY RRset and also matches one "
+				      "of specified trusted-keys for '%s'",
+				      namebuf);
+			return (DNS_R_NOVALIDKEY);
 		}
 
 		/*

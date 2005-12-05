@@ -1,3 +1,7 @@
+1942.	[bug]		If the name of a DNSKEY match that of one in
+			trusted-keys do not attempt to validate the DNSKEY
+			using the parents DS RRset. [RT #15649]
+
 1941.	[bug]		ncache_adderesult() should set eresult even if no
 			rdataset is passed to it. [RT #15642]
 
