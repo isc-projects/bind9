@@ -185,6 +185,7 @@ dns_dnssec_keyfromrdata
 dns_dnssec_sign
 dns_dnssec_signmessage
 dns_dnssec_verify
+dns_dnssec_verify2
 dns_dnssec_verifymessage
 dns_ds_buildrdata
 dns_dumpctx_detach
@@ -475,6 +476,7 @@ dns_requestmgr_detach
 dns_requestmgr_shutdown
 dns_requestmgr_whenshutdown
 dns_resolver_addalternate
+dns_resolver_algorithm_supported
 dns_resolver_attach
 dns_resolver_cancelfetch
 dns_resolver_create
