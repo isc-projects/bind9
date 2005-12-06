@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.62 2005/10/17 03:47:10 marka Exp $ */
+/* $Id: socket.h,v 1.63 2005/12/06 16:54:49 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -143,7 +143,8 @@ struct isc_socket_connev {
 typedef enum {
 	isc_sockettype_udp = 1,
 	isc_sockettype_tcp = 2,
-	isc_sockettype_unix = 3
+	isc_sockettype_unix = 3,
+	isc_sockettype_fdwatch = 4,
 } isc_sockettype_t;
 
 /*@{*/
@@ -174,12 +175,59 @@ typedef enum {
 #define ISC_SOCKFLAG_NORETRY	0x00000002	/*%< drop failed UDP sends */
 /*@}*/
 
+/*@{*/
+/*!
+ * Flags for fdwatchcreate.
+ */
+#define ISC_SOCKFDWATCH_READ	0x00000001	/*%< watch for readable */
+#define ISC_SOCKFDWATCH_WRITE	0x00000002	/*%< watch for writable */
+/*@}*/
+
 /***
  *** Socket and Socket Manager Functions
  ***
  *** Note: all Ensures conditions apply only if the result is success for
  *** those functions which return an isc_result.
  ***/
+
+isc_result_t
+isc_socket_fdwatchcreate(isc_socketmgr_t *manager,
+			 int fd,
+			 int flags,
+			 isc_sockfdwatch_t callback,
+			 void *cbarg,
+			 isc_task_t *task,
+			 isc_socket_t **socketp);
+/*%<
+ * Create a new file descriptor watch socket managed by 'manager'.
+ *
+ * Note:
+ *
+ *\li   'fd' is the already-opened file descriptor.
+ *\li	This function is not available on Windows.
+ *\li	The callback function is called "in-line" - this means the function
+ *	needs to return as fast as possible, as all other I/O will be suspended
+ *	until the callback completes.
+ *
+ * Requires:
+ *
+ *\li	'manager' is a valid manager
+ *
+ *\li	'socketp' is a valid pointer, and *socketp == NULL
+ *
+ *\li	'fd' be opened.
+ *
+ * Ensures:
+ *
+ *	'*socketp' is attached to the newly created fdwatch socket
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOMEMORY
+ *\li	#ISC_R_NORESOURCES
+ *\li	#ISC_R_UNEXPECTED
+ */
 
 isc_result_t
 isc_socket_create(isc_socketmgr_t *manager,

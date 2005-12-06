@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.257 2005/11/30 03:33:49 marka Exp $ */
+/* $Id: socket.c,v 1.258 2005/12/06 16:54:49 explorer Exp $ */
 
 /*! \file */
 
@@ -186,6 +186,11 @@ struct isc_socket {
 	ISC_SOCKADDR_LEN_T	recvcmsgbuflen;
 	char			*sendcmsgbuf;
 	ISC_SOCKADDR_LEN_T	sendcmsgbuflen;
+
+	void			*fdwatcharg;
+	isc_sockfdwatch_t	fdwatchcb;
+	int			fdwatchflags;
+	isc_task_t		*fdwatchtask;
 };
 
 #define SOCKET_MANAGER_MAGIC	ISC_MAGIC('I', 'O', 'm', 'g')
@@ -240,6 +245,8 @@ static void internal_accept(isc_task_t *, isc_event_t *);
 static void internal_connect(isc_task_t *, isc_event_t *);
 static void internal_recv(isc_task_t *, isc_event_t *);
 static void internal_send(isc_task_t *, isc_event_t *);
+static void internal_fdwatch_write(isc_task_t *, isc_event_t *);
+static void internal_fdwatch_read(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc_socket_t *, struct msghdr *, isc_socketevent_t *);
 static void build_msghdr_send(isc_socket_t *, isc_socketevent_t *,
 			      struct msghdr *, struct iovec *, size_t *);
@@ -1393,6 +1400,9 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	case isc_sockettype_unix:
 		sock->fd = socket(pf, SOCK_STREAM, 0);
 		break;
+	case isc_sockettype_fdwatch:
+		INSIST(type != isc_sockettype_fdwatch);
+		break;
 	}
 
 #ifdef F_DUPFD
@@ -1597,6 +1607,62 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 }
 
 /*
+ * Create a new 'type' socket managed by 'manager'.  Events
+ * will be posted to 'task' and when dispatched 'action' will be
+ * called with 'arg' as the arg value.  The new socket is returned
+ * in 'socketp'.
+ */
+isc_result_t
+isc_socket_fdwatchcreate(isc_socketmgr_t *manager, int fd, int flags,
+			 isc_sockfdwatch_t callback, void *cbarg,
+			 isc_task_t *task, isc_socket_t **socketp)
+{
+	isc_socket_t *sock = NULL;
+	isc_result_t result;
+
+	REQUIRE(VALID_MANAGER(manager));
+	REQUIRE(socketp != NULL && *socketp == NULL);
+
+	result = allocate_socket(manager, isc_sockettype_fdwatch, &sock);
+	if (result != ISC_R_SUCCESS)
+		return (result);
+
+	sock->fd = fd;
+	sock->fdwatcharg = cbarg;
+	sock->fdwatchcb = callback;
+	sock->fdwatchflags = flags;
+	sock->fdwatchtask = task;
+
+	sock->references = 1;
+	*socketp = sock;
+
+	LOCK(&manager->lock);
+
+	/*
+	 * Note we don't have to lock the socket like we normally would because
+	 * there are no external references to it yet.
+	 */
+
+	manager->fds[sock->fd] = sock;
+	manager->fdstate[sock->fd] = MANAGED;
+	ISC_LIST_APPEND(manager->socklist, sock, link);
+	if (manager->maxfd < sock->fd)
+		manager->maxfd = sock->fd;
+
+	UNLOCK(&manager->lock);
+
+	if (flags & ISC_SOCKFDWATCH_READ)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
+	if (flags & ISC_SOCKFDWATCH_WRITE)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+
+	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
+		   ISC_MSG_CREATED, "fdwatch-created");
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
  * Attach to a socket.  Caller must explicitly detach when it is done.
  */
 void
@@ -1649,25 +1715,37 @@ static void
 dispatch_recv(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
+	isc_task_t *sender;
 
 	INSIST(!sock->pending_recv);
 
-	ev = ISC_LIST_HEAD(sock->recv_list);
-	if (ev == NULL)
-		return;
+	if (sock->type != isc_sockettype_fdwatch) {
+		ev = ISC_LIST_HEAD(sock->recv_list);
+		if (ev == NULL) {
+			socket_log(sock, NULL, EVENT, NULL, 0, 0,
+				   "dispatch_recv: no pending reads");
+			return;
+		}
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "dispatch_recv:  event %p -> task %p",
+			   ev, ev->ev_sender);
+		sender = ev->ev_sender;
+	} else {
+		sender = sock->fdwatchtask;
+	}
 
 	sock->pending_recv = 1;
 	iev = &sock->readable_ev;
 
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "dispatch_recv:  event %p -> task %p", ev, ev->ev_sender);
-
 	sock->references++;
 	iev->ev_sender = sock;
-	iev->ev_action = internal_recv;
+	if (sock->type == isc_sockettype_fdwatch)
+		iev->ev_action = internal_fdwatch_read;
+	else
+		iev->ev_action = internal_recv;
 	iev->ev_arg = sock;
 
-	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
+	isc_task_send(sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -1689,7 +1767,10 @@ dispatch_send(isc_socket_t *sock) {
 
 	sock->references++;
 	iev->ev_sender = sock;
-	iev->ev_action = internal_send;
+	if (sock->type == isc_sockettype_fdwatch)
+		iev->ev_action = internal_fdwatch_write;
+	else
+		iev->ev_action = internal_send;
 	iev->ev_arg = sock;
 
 	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
@@ -2145,6 +2226,86 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 }
 
 static void
+internal_fdwatch_write(isc_task_t *me, isc_event_t *ev) {
+	isc_socket_t *sock;
+	int more_data;
+
+	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
+
+	/*
+	 * Find out what socket this is and lock it.
+	 */
+	sock = (isc_socket_t *)ev->ev_sender;
+	INSIST(VALID_SOCKET(sock));
+
+	LOCK(&sock->lock);
+	socket_log(sock, NULL, IOEVENT,
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
+		   "internal_fdwatch_write: task %p got event %p", me, ev);
+
+	INSIST(sock->pending_send == 1);
+
+	UNLOCK(&sock->lock);
+	more_data = (sock->fdwatchcb)(me, sock, sock->fdwatcharg);
+	LOCK(&sock->lock);
+
+	sock->pending_send = 0;
+
+	INSIST(sock->references > 0);
+	sock->references--;  /* the internal event is done with this socket */
+	if (sock->references == 0) {
+		UNLOCK(&sock->lock);
+		destroy(&sock);
+		return;
+	}
+
+	if (more_data)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+
+	UNLOCK(&sock->lock);
+}
+
+static void
+internal_fdwatch_read(isc_task_t *me, isc_event_t *ev) {
+	isc_socket_t *sock;
+	int more_data;
+
+	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
+
+	/*
+	 * Find out what socket this is and lock it.
+	 */
+	sock = (isc_socket_t *)ev->ev_sender;
+	INSIST(VALID_SOCKET(sock));
+
+	LOCK(&sock->lock);
+	socket_log(sock, NULL, IOEVENT,
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
+		   "internal_fdwatch_read: task %p got event %p", me, ev);
+
+	INSIST(sock->pending_recv == 1);
+
+	UNLOCK(&sock->lock);
+	more_data = (sock->fdwatchcb)(me, sock, sock->fdwatcharg);
+	LOCK(&sock->lock);
+
+	sock->pending_recv = 0;
+
+	INSIST(sock->references > 0);
+	sock->references--;  /* the internal event is done with this socket */
+	if (sock->references == 0) {
+		UNLOCK(&sock->lock);
+		destroy(&sock);
+		return;
+	}
+
+	if (more_data)
+		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
+
+	UNLOCK(&sock->lock);
+}
+
+static void
 process_fds(isc_socketmgr_t *manager, int maxfd,
 	    fd_set *readfds, fd_set *writefds)
 {
@@ -2164,6 +2325,9 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 			continue;
 #endif /* ISC_PLATFORM_USETHREADS */
 
+		/*
+		 * If we need to close the socket, do it now.
+		 */
 		if (manager->fdstate[i] == CLOSE_PENDING) {
 			manager->fdstate[i] = CLOSED;
 			FD_CLR(i, &manager->read_fds);
@@ -2173,6 +2337,8 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 
 			continue;
 		}
+		if (manager->fdstate[i] != MANAGED)
+			continue;
 
 		sock = manager->fds[i];
 		unlock_sock = ISC_FALSE;
@@ -2279,8 +2445,9 @@ watcher(void *uap) {
 					    isc_msgcat_get(isc_msgcat,
 						     ISC_MSGSET_SOCKET,
 						     ISC_MSG_WATCHERMSG,
-						     "watcher got message %d"),
-						     msg);
+						     "watcher got message %d"
+						     " for socket %d"),
+						     msg, fd);
 
 				/*
 				 * Nothing to read?

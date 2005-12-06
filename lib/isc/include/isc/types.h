@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.37 2005/04/29 00:23:46 marka Exp $ */
+/* $Id: types.h,v 1.38 2005/12/06 16:54:49 explorer Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -86,6 +86,7 @@ typedef struct isc_timer		isc_timer_t;		/*%< Timer */
 typedef struct isc_timermgr		isc_timermgr_t;		/*%< Timer Manager */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
+typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *);
 
 /*% Resource */
 typedef enum {
