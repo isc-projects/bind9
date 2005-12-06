@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.258 2005/12/06 16:54:49 explorer Exp $ */
+/* $Id: socket.c,v 1.259 2005/12/06 18:11:54 explorer Exp $ */
 
 /*! \file */
 
@@ -221,9 +221,10 @@ struct isc_socketmgr {
 static isc_socketmgr_t *socketmgr = NULL;
 #endif /* ISC_PLATFORM_USETHREADS */
 
-#define CLOSED		0	/* this one must be zero */
-#define MANAGED		1
-#define CLOSE_PENDING	2
+#define CLOSED			0	/* this one must be zero */
+#define MANAGED			1
+#define CLOSE_PENDING		2
+#define MANAGER_CLOSE_PENDING	3
 
 /*
  * send() and recv() iovec counts
@@ -332,11 +333,13 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 
 	INSIST(fd >= 0 && fd < (int)FD_SETSIZE);
 
-	if (manager->fdstate[fd] == CLOSE_PENDING) {
+	if (manager->fdstate[fd] == CLOSE_PENDING
+	    || manager->fdstate[fd] == MANAGER_CLOSE_PENDING) {
 		manager->fdstate[fd] = CLOSED;
 		FD_CLR(fd, &manager->read_fds);
 		FD_CLR(fd, &manager->write_fds);
-		(void)close(fd);
+		if (manager->fdstate[fd] == CLOSE_PENDING)
+			(void)close(fd);
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED)
@@ -1198,7 +1201,10 @@ destroy(isc_socket_t **sockp) {
 	 * poked, and the socket doesn't have to be locked.
 	 */
 	manager->fds[sock->fd] = NULL;
-	manager->fdstate[sock->fd] = CLOSE_PENDING;
+	if (sock->type == isc_sockettype_fdwatch)
+		manager->fdstate[sock->fd] = MANAGER_CLOSE_PENDING;
+	else
+		manager->fdstate[sock->fd] = CLOSE_PENDING;
 	select_poke(manager, sock->fd, SELECT_POKE_CLOSE);
 	ISC_LIST_UNLINK(manager->socklist, sock, link);
 
