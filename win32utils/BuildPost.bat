@@ -19,7 +19,7 @@ rem This script does the final stages if BINDBuild.dsw is used.
 
 echo Copying named-checkzone.exe to named-compilezone.exe
 
-copy /Y ..\..\..\Build\Release\named-checkzone.exe ..\..\..\Build\Release\named-compilezone.exe
+copy /Y ..\Build\Release\named-checkzone.exe ..\Build\Release\named-compilezone.exe
 
 echo Done.
 
