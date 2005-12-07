@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.260 2005/12/07 03:55:06 explorer Exp $ */
+/* $Id: socket.c,v 1.261 2005/12/07 04:21:27 explorer Exp $ */
 
 /*! \file */
 
@@ -335,11 +335,11 @@ wakeup_socket(isc_socketmgr_t *manager, int fd, int msg) {
 
 	if (manager->fdstate[fd] == CLOSE_PENDING
 	    || manager->fdstate[fd] == MANAGER_CLOSE_PENDING) {
-		manager->fdstate[fd] = CLOSED;
 		FD_CLR(fd, &manager->read_fds);
 		FD_CLR(fd, &manager->write_fds);
 		if (manager->fdstate[fd] == CLOSE_PENDING)
 			(void)close(fd);
+		manager->fdstate[fd] = CLOSED;
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED)
@@ -2339,13 +2339,11 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 		 */
 		if (manager->fdstate[i] == CLOSE_PENDING
 		    || manager->fdstate[i] == MANAGER_CLOSE_PENDING) {
-			manager->fdstate[i] = CLOSED;
 			FD_CLR(i, &manager->read_fds);
 			FD_CLR(i, &manager->write_fds);
-
 			if (manager->fdstate[i] == CLOSE_PENDING)
 				(void)close(i);
-
+			manager->fdstate[i] = CLOSED;
 			continue;
 		}
 
