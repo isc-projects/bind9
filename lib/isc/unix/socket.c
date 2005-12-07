@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.259 2005/12/06 18:11:54 explorer Exp $ */
+/* $Id: socket.c,v 1.260 2005/12/07 03:55:06 explorer Exp $ */
 
 /*! \file */
 
@@ -1727,11 +1727,8 @@ dispatch_recv(isc_socket_t *sock) {
 
 	if (sock->type != isc_sockettype_fdwatch) {
 		ev = ISC_LIST_HEAD(sock->recv_list);
-		if (ev == NULL) {
-			socket_log(sock, NULL, EVENT, NULL, 0, 0,
-				   "dispatch_recv: no pending reads");
+		if (ev == NULL)
 			return;
-		}
 		socket_log(sock, NULL, EVENT, NULL, 0, 0,
 			   "dispatch_recv:  event %p -> task %p",
 			   ev, ev->ev_sender);
@@ -1758,18 +1755,24 @@ static void
 dispatch_send(isc_socket_t *sock) {
 	intev_t *iev;
 	isc_socketevent_t *ev;
+	isc_task_t *sender;
 
 	INSIST(!sock->pending_send);
 
-	ev = ISC_LIST_HEAD(sock->send_list);
-	if (ev == NULL)
-		return;
+	if (sock->type != isc_sockettype_fdwatch) {
+		ev = ISC_LIST_HEAD(sock->send_list);
+		if (ev == NULL)
+			return;
+		socket_log(sock, NULL, EVENT, NULL, 0, 0,
+			   "dispatch_send:  event %p -> task %p",
+			   ev, ev->ev_sender);
+		sender = ev->ev_sender;
+	} else {
+		sender = sock->fdwatchtask;
+	}
 
 	sock->pending_send = 1;
 	iev = &sock->writable_ev;
-
-	socket_log(sock, NULL, EVENT, NULL, 0, 0,
-		   "dispatch_send:  event %p -> task %p", ev, ev->ev_sender);
 
 	sock->references++;
 	iev->ev_sender = sock;
@@ -1779,7 +1782,7 @@ dispatch_send(isc_socket_t *sock) {
 		iev->ev_action = internal_send;
 	iev->ev_arg = sock;
 
-	isc_task_send(ev->ev_sender, (isc_event_t **)&iev);
+	isc_task_send(sender, (isc_event_t **)&iev);
 }
 
 /*
@@ -2334,17 +2337,17 @@ process_fds(isc_socketmgr_t *manager, int maxfd,
 		/*
 		 * If we need to close the socket, do it now.
 		 */
-		if (manager->fdstate[i] == CLOSE_PENDING) {
+		if (manager->fdstate[i] == CLOSE_PENDING
+		    || manager->fdstate[i] == MANAGER_CLOSE_PENDING) {
 			manager->fdstate[i] = CLOSED;
 			FD_CLR(i, &manager->read_fds);
 			FD_CLR(i, &manager->write_fds);
 
-			(void)close(i);
+			if (manager->fdstate[i] == CLOSE_PENDING)
+				(void)close(i);
 
 			continue;
 		}
-		if (manager->fdstate[i] != MANAGED)
-			continue;
 
 		sock = manager->fds[i];
 		unlock_sock = ISC_FALSE;
