@@ -1,4 +1,6 @@
 
+	--- 9.2.6 released ---
+
 	--- 9.2.6rc1 released ---
 
 1932.	[bug]		hpux: LDFLAGS was getting corrupted. [RT #15530]
