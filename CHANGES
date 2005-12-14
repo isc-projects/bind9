@@ -1,4 +1,6 @@
 
+	--- 9.3.2 released ---
+
 	--- 9.3.2rc1 released ---
 
 1936.	[bug]		The validator could leak memory. [RT #15544]
