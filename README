@@ -50,6 +50,19 @@ BIND 9.3.2
 
         libbind: corresponds to that from BIND 8.4.7-REL.
 
+	Known Issues:
+
+	The following INSIST can be triggered with DNSSEC enabled.
+
+resolver.c:762: INSIST(result != 0 || dns_rdataset_isassociated(event->rdataset) || fctx->type == ((dns_rdatatype_t)dns_rdatatype_any) || fctx->type == ((dns_rdatatype_t)dns_rdatatype_rrsig)) failed
+
+	We are still trying to isolate the cause.  If you have core
+	dump please send a bug report to bind9-bugs@isc.org with
+	the location of the core, named executable and OS details.
+	
+	Note: contrib/nanny contains a perl script to restart named
+	in the event of a INSIST/REQUIRE/ENSURE failure.
+
 BIND 9.3.1
 
         BIND 9.3.1 is a maintenance release, containing fixes for
