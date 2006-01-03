@@ -1,3 +1,6 @@
+1944.	[cleanup]	isc_hash_create() does not need a read/write lock.
+			[RT #15522]
+
 1943.	[bug]		Set the loadtime after rolling forward the journal.
 			[RT #15647]
 
