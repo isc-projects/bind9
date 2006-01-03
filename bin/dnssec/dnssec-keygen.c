@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-keygen.c,v 1.66.18.4 2005/09/18 07:58:05 marka Exp $ */
+/* $Id: dnssec-keygen.c,v 1.66.18.5 2006/01/03 07:19:32 marka Exp $ */
 
 /*! \file */
 
@@ -213,7 +213,12 @@ main(int argc, char **argv) {
 
 	if (algname == NULL)
 		fatal("no algorithm was specified");
-	if (strcasecmp(algname, "HMAC-MD5") == 0) {
+	if (strcasecmp(algname, "RSA") == 0) {
+		fprintf(stderr, "The use of RSA (RSAMD5) is not recommended.\n"
+				"If you still wish to use RSA (RSAMD5) please "
+				"specify \"-a RSAMD5\"\n");
+		return (1);
+	} else if (strcasecmp(algname, "HMAC-MD5") == 0) {
 		options |= DST_TYPE_KEY;
 		alg = DST_ALG_HMACMD5;
 	} else {

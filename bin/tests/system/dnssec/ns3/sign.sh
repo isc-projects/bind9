@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: sign.sh,v 1.18 2004/03/05 05:00:21 marka Exp $
+# $Id: sign.sh,v 1.18.18.1 2006/01/03 07:19:32 marka Exp $
 
 RANDFILE=../random.data
 
@@ -33,7 +33,7 @@ zone=bogus.example.
 infile=bogus.example.db.in
 zonefile=bogus.example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -43,7 +43,7 @@ zone=dynamic.example.
 infile=dynamic.example.db.in
 zonefile=dynamic.example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 
@@ -53,7 +53,7 @@ zone=keyless.example.
 infile=keyless.example.db.in
 zonefile=keyless.example.db
 
-keyname=`$KEYGEN -r $RANDFILE -a RSA -b 768 -n zone $zone`
+keyname=`$KEYGEN -r $RANDFILE -a RSAMD5 -b 768 -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 

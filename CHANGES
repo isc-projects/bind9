@@ -1,3 +1,7 @@
+1945.	[cleanup]	dnssec-keygen: RSA (RSAMD5) is nolonger recommended.
+			To generate a RSAMD5 key you must explictly request
+			RSAMD5. [RT #13780]
+			
 1944.	[cleanup]	isc_hash_create() does not need a read/write lock.
 			[RT #15522]
 
