@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.37 2005/11/30 22:56:21 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.38 2006/01/03 07:23:41 marka Exp $ */
 
 /*! \file */
 
@@ -4966,6 +4966,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		fctx_try(fctx);
 	} else {
 		unsigned int n;
+		dns_rdataset_t *nsrdataset = NULL;
 
 		/*
 		 * Retrieve state from fctx->nsfetch before we destroy it.
@@ -4973,13 +4974,20 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		dns_fixedname_init(&fixed);
 		domain = dns_fixedname_name(&fixed);
 		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
-		dns_rdataset_clone(&fctx->nsfetch->private->nameservers,
-				   &nameservers);
-		dns_resolver_destroyfetch(&fctx->nsfetch);
 		if (dns_name_equal(&fctx->nsname, domain)) {
 			fctx_done(fctx, DNS_R_SERVFAIL);
+			dns_resolver_destroyfetch(&fctx->nsfetch);
 			goto cleanup;
 		}
+		if (dns_rdataset_isassociated(
+		    &fctx->nsfetch->private->nameservers)) {
+			dns_rdataset_clone(
+			    &fctx->nsfetch->private->nameservers,
+			    &nameservers);
+			nsrdataset = &nameservers;
+		} else
+			domain = NULL;
+		dns_resolver_destroyfetch(&fctx->nsfetch);
 		n = dns_name_countlabels(&fctx->nsname);
 		dns_name_getlabelsequence(&fctx->nsname, 1, n - 1,
 					  &fctx->nsname);
@@ -4989,7 +4997,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		FCTXTRACE("continuing to look for parent's NS records");
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  &nameservers, NULL, 0, task,
+						  nsrdataset, NULL, 0, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
 						  &fctx->nsfetch);
