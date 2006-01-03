@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.446 2005/11/30 03:33:49 marka Exp $ */
+/* $Id: zone.c,v 1.447 2006/01/03 05:26:29 marka Exp $ */
 
 /*! \file */
 
@@ -1777,14 +1777,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	dns_zone_log(zone, ISC_LOG_DEBUG(2),
 		     "number of nodes in database: %u",
 		     dns_db_nodecount(db));
-	zone->loadtime = loadtime;
-
-	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
 
 	if (result == DNS_R_SEENINCLUDE)
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	else
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HASINCLUDE);
+
 	/*
 	 * Apply update log, if any, on initial load.
 	 */
@@ -1815,6 +1813,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		if (result == ISC_R_SUCCESS)
 			needdump = ISC_TRUE;
 	}
+
+	zone->loadtime = loadtime;
+
+	dns_zone_log(zone, ISC_LOG_DEBUG(1), "loaded");
 
 	/*
 	 * Obtain ns, soa and cname counts for top of zone.
