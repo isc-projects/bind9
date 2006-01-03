@@ -1,4 +1,4 @@
-1943.	[bug]		Set the loadtime after rollimg forward the journal.
+1943.	[bug]		Set the loadtime after rolling forward the journal.
 			[RT #15647]
 
 	--- 9.4.0a3 released ---
