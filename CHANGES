@@ -1,3 +1,5 @@
+1943.	[bug]		Set the loadtime after rollimg forward the journal.
+			[RT #15647]
 
 	--- 9.2.6 released ---
 
