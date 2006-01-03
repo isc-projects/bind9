@@ -1,6 +1,6 @@
 ./.cvsignore					X	1999,2000,2001
-./CHANGES					X	2000,2001,2005
-./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005
+./CHANGES					X	2000,2001,2005,2006
+./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./FAQ						X	2000,2001,2002,2003,2004,2005
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005
@@ -56,7 +56,7 @@
 ./bin/dnssec/.cvsignore				X	2000,2001
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2002,2003,2004,2005
+./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2002,2003,2004,2005,2006
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -479,7 +479,7 @@
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004
-./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004
+./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006
 ./bin/tests/system/dnssec/ns2/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns2/dlv.db.in		ZONE	2004
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004
@@ -488,7 +488,7 @@
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns2/rfc2335.example.db	ZONE	2004
-./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004
+./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006
 ./bin/tests/system/dnssec/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004
@@ -496,14 +496,14 @@
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004
 ./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004
-./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004
+./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/ns4/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004
 ./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004
-./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004
+./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005
 ./bin/tests/system/forward/clean.sh		SH	2000,2001,2004
@@ -691,7 +691,7 @@
 ./bin/tests/system/tkey/ns1/.cvsignore		X	2001
 ./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004
 ./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004
-./bin/tests/system/tkey/prereq.sh		SH	2001,2004
+./bin/tests/system/tkey/prereq.sh		SH	2001,2004,2006
 ./bin/tests/system/tkey/setup.sh		SH	2001,2004
 ./bin/tests/system/tkey/tests.sh		SH	2001,2004
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004
@@ -1188,7 +1188,7 @@
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
 ./doc/private/CHANGES				X	2000,2001
-./doc/private/branches				X	2002,2005
+./doc/private/branches				X	2002,2005,2006
 ./doc/private/bugfix-by-assertion		X	2001
 ./doc/private/delete-list			X	2005
 ./doc/private/options				TXT.BRIEF	2000,2001,2004
@@ -1908,7 +1908,7 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004,2005
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005
-./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005
@@ -1935,7 +1935,7 @@
 ./lib/dns/win32/libdns.mak			X	2001,2005
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005
 ./lib/isc/.cvsignore				X	1999,2000,2001
@@ -1952,7 +1952,7 @@
 ./lib/isc/error.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005
-./lib/isc/hash.c				C	2003,2004,2005
+./lib/isc/hash.c				C	2003,2004,2005,2006
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005
