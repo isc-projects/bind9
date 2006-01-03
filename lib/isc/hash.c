@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.6.18.3 2005/07/12 01:22:28 marka Exp $ */
+/* $Id: hash.c,v 1.6.18.4 2006/01/03 05:55:01 marka Exp $ */
 
 /*! \file
  * Some portion of this code was derived from universal hash function
@@ -66,7 +66,6 @@ if advised of the possibility of such damage.
 #include <isc/once.h>
 #include <isc/random.h>
 #include <isc/refcount.h>
-#include <isc/rwlock.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -100,7 +99,7 @@ struct isc_hash {
 	hash_random_t	*rndvector; /*%< random vector for universal hashing */
 };
 
-static isc_rwlock_t createlock;
+static isc_mutex_t createlock;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_hash_t *hash = NULL;
 
@@ -213,7 +212,7 @@ isc_hash_ctxcreate(isc_mem_t *mctx, isc_entropy_t *entropy,
 
 static void
 initialize_lock(void) {
-	RUNTIME_CHECK(isc_rwlock_init(&createlock, 0, 0) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -225,12 +224,12 @@ isc_hash_create(isc_mem_t *mctx, isc_entropy_t *entropy, size_t limit) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_lock) == ISC_R_SUCCESS);
 
-	RWLOCK(&createlock, isc_rwlocktype_write);
+	LOCK(&createlock);
 
 	if (hash == NULL)
 		result = isc_hash_ctxcreate(mctx, entropy, limit, &hash);
 
-	RWUNLOCK(&createlock, isc_rwlocktype_write);
+	UNLOCK(&createlock);
 
 	return (result);
 }
