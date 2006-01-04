@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.20 2006/01/04 05:13:30 marka Exp $ */
+/* $Id: client.c,v 1.176.2.21 2006/01/04 21:37:04 marka Exp $ */
 
 #include <config.h>
 
@@ -33,6 +33,7 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
