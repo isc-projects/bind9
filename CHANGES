@@ -8,6 +8,9 @@
 1943.	[bug]		Set the loadtime after rolling forward the journal.
 			[RT #15647]
 
+1940.	[bug]		Fixed a number of error conditions reported by
+			Coverity.
+
 	--- 9.2.6 released ---
 
 	--- 9.2.6rc1 released ---

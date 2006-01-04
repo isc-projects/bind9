@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.6 2004/04/19 23:15:38 marka Exp $ */
+/* $Id: config.c,v 1.11.2.7 2006/01/04 04:08:13 marka Exp $ */
 
 #include <config.h>
 
@@ -308,13 +308,14 @@ ns_config_getipandkeylist(cfg_obj_t *config, cfg_obj_t *list, isc_mem_t *mctx,
 		if (val > ISC_UINT16_MAX) {
 			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "port '%u' out of range", val);
-			return (ISC_R_RANGE);
+			result = ISC_R_RANGE;
+			goto cleanup;
 		}
 		port = (in_port_t) val;
 	} else {
 		result = ns_config_getport(config, &port);
 		if (result != ISC_R_SUCCESS)
-			return (result);
+			goto cleanup;
 	}
 
 	result = ISC_R_NOMEMORY;

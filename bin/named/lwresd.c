@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.37.2.3 2004/03/09 06:09:19 marka Exp $ */
+/* $Id: lwresd.c,v 1.37.2.4 2006/01/04 04:08:13 marka Exp $ */
 
 /*
  * Main program for the Lightweight Resolver Daemon.
@@ -407,6 +407,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 		ns_lwsearchlist_detach(&lwresd->search);
 	if (lwresd->mctx != NULL)
 		isc_mem_detach(&lwresd->mctx);
+	isc_mem_put(mctx, lwresd, sizeof(ns_lwresd_t));
 	return (result);
 }
 

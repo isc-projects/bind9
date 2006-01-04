@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.32.2.3 2004/03/09 06:09:38 marka Exp $ */
+/* $Id: t_names.c,v 1.32.2.4 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -406,8 +406,10 @@ t_dns_label_countbits(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			/*
 			 * testname, labelpos, bitpos, expected val.
@@ -490,8 +492,10 @@ t_dns_label_getbit(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -731,8 +735,10 @@ t_dns_name_isabsolute(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -842,8 +848,10 @@ t_dns_name_hash(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -1003,8 +1011,10 @@ t_dns_name_fullcompare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 6) {
@@ -1122,8 +1132,10 @@ t_dns_name_compare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -1222,8 +1234,10 @@ t_dns_name_rdatacompare(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -1318,8 +1332,10 @@ t_dns_name_issubdomain(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 3) {
@@ -1399,8 +1415,10 @@ t_dns_name_countlabels(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -1509,8 +1527,10 @@ t_dns_name_getlabel(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -1637,8 +1657,10 @@ t_dns_name_getlabelsequence(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 5) {
@@ -1726,8 +1748,10 @@ t_dns_name_fromregion(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 1) {
@@ -1774,8 +1798,10 @@ t_dns_name_toregion(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 1) {
@@ -1910,8 +1936,10 @@ t_dns_name_fromtext(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 4) {
@@ -2045,8 +2073,10 @@ t_dns_name_totext(void) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 2) {
@@ -2206,8 +2236,10 @@ t_dns_name_fromwire_x(const char *testfile, size_t buflen) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 6) {
@@ -2399,8 +2431,10 @@ t_dns_name_towire_x(const char *testfile, size_t buflen) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = bustline(p, Tokens);
 			if (cnt == 5) {

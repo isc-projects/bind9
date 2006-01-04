@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keydelete.c,v 1.4.2.2 2004/03/09 06:10:18 marka Exp $ */
+/* $Id: keydelete.c,v 1.4.2.3 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -118,7 +118,9 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	inet_pton(AF_INET, "10.53.0.1", &inaddr);
+	result = ISC_R_FAILURE;
+	if (inet_pton(AF_INET, "10.53.0.1", &inaddr) != 1)
+		CHECK("inet_pton", result);
 	isc_sockaddr_fromin(&address, &inaddr, PORT);
 
 	query = NULL;

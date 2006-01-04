@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.34 2005/04/07 02:22:12 marka Exp $ */
+/* $Id: server.c,v 1.339.2.35 2006/01/04 04:08:13 marka Exp $ */
 
 #include <config.h>
 
@@ -166,7 +166,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	}
 	maps[i] = NULL;
 
-	result = ns_config_get(maps, aclname, &aclobj);
+	(void)ns_config_get(maps, aclname, &aclobj);
 	if (aclobj == NULL)
 		/*
 		 * No value available.  *aclp == NULL.
@@ -359,7 +359,6 @@ get_view_querysource_dispatch(cfg_obj_t **maps,
 	case AF_INET:
 		result = ns_config_get(maps, "query-source", &obj);
 		INSIST(result == ISC_R_SUCCESS);
-
 		break;
 	case AF_INET6:
 		result = ns_config_get(maps, "query-source-v6", &obj);
@@ -781,7 +780,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * Configure the "match-recursive-only" option.
 	 */
 	obj = NULL;
-	(void) ns_config_get(maps, "match-recursive-only", &obj);
+	(void)ns_config_get(maps, "match-recursive-only", &obj);
 	if (obj != NULL && cfg_obj_asboolean(obj))
 		view->matchrecursiveonly = ISC_TRUE;
 	else

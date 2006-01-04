@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.10.2.1 2004/03/09 06:11:52 marka Exp $ */
+/* $Id: taskpool.c,v 1.10.2.2 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -52,6 +52,10 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 	pool->mctx = mctx;
 	pool->ntasks = ntasks;
 	pool->tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
+	if (pool->tasks == NULL) {
+		isc_mem_put(mctx, pool, sizeof(*pool));
+		return (ISC_R_NOMEMORY);
+	}
 	for (i = 0; i < ntasks; i++)
 		pool->tasks[i] = NULL;
 	for (i = 0; i < ntasks; i++) {

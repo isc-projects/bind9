@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgrbn.c,v 1.11.2.1 2004/03/09 06:09:18 marka Exp $ */
+/* $Id: lwdgrbn.c,v 1.11.2.2 2006/01/04 04:08:13 marka Exp $ */
 
 #include <config.h>
 
@@ -358,7 +358,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	client->sendlength = r.length;
 	result = ns_lwdclient_sendreply(client, &r);
 	if (result != ISC_R_SUCCESS)
-		goto out;
+		goto out2;
 
 	NS_LWDCLIENT_SETSEND(client);
 
@@ -378,7 +378,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	if (grbn->siglen != NULL)
 		isc_mem_put(cm->mctx, grbn->siglen,
 			    grbn->nsigs * sizeof(lwres_uint16_t));
-
+ out2:
 	if (client->lookup != NULL)
 		dns_lookup_destroy(&client->lookup);
 	if (lwb.base != NULL)

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.9.2.3 2004/04/15 02:16:27 marka Exp $ */
+/* $Id: lookup.c,v 1.9.2.4 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -154,11 +154,6 @@ build_event(dns_lookup_t *lookup) {
 			dns_rdataset_disassociate(rdataset);
 		isc_mem_put(lookup->mctx, rdataset, sizeof(dns_rdataset_t));
 	}
-	if (sigrdataset != NULL) {
-		if (dns_rdataset_isassociated(sigrdataset))
-			dns_rdataset_disassociate(sigrdataset);
-		isc_mem_put(lookup->mctx, sigrdataset, sizeof(dns_rdataset_t));
-	}
 	return (result);
 }
 
@@ -229,13 +224,14 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 					send_event = ISC_TRUE;
 				goto done;
 			}
-		} else {
+		} else if (event != NULL) {
 			result = event->result;
 			fname = dns_fixedname_name(&event->foundname);
 			dns_resolver_destroyfetch(&lookup->fetch);
 			INSIST(event->rdataset == &lookup->rdataset);
 			INSIST(event->sigrdataset == &lookup->sigrdataset);
-		}
+		} else
+			fname = NULL;	/* Silence compiler warning. */
 
 		/*
 		 * If we've been canceled, forget about the result.

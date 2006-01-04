@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_rbt.c,v 1.23.2.2 2004/10/25 01:45:26 marka Exp $ */
+/* $Id: t_rbt.c,v 1.23.2.3 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -127,6 +127,7 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 	isc_result_t	result;
 	isc_buffer_t	source;
 	isc_buffer_t	target;
+	dns_name_t	*name;
 
 	nfails = 0;
 
@@ -141,22 +142,26 @@ create_name(char *s, isc_mem_t *mctx, dns_name_t **dns_name) {
 		 * The buffer for the actual name will immediately follow the
 		 * name structure.
 		 */
-		*dns_name = isc_mem_get(mctx, sizeof(**dns_name) + DNSNAMELEN);
-		if (*dns_name == NULL) {
+		name = isc_mem_get(mctx, sizeof(*name) + DNSNAMELEN);
+		if (name == NULL) {
 			t_info("isc_mem_get failed\n");
 			++nfails;
-		}
+		} else {
 
-		dns_name_init(*dns_name, NULL);
-		isc_buffer_init(&target, *dns_name + 1, DNSNAMELEN);
+			dns_name_init(name, NULL);
+			isc_buffer_init(&target, name + 1, DNSNAMELEN);
 
-		result = dns_name_fromtext(*dns_name, &source, dns_rootname,
-					   ISC_FALSE, &target);
+			result = dns_name_fromtext(name, &source, dns_rootname,
+						   ISC_FALSE, &target);
 
-		if (result != ISC_R_SUCCESS) {
-			++nfails;
-			t_info("dns_name_fromtext(%s) failed %s\n",
-			       s, dns_result_totext(result));
+			if (result != ISC_R_SUCCESS) {
+				++nfails;
+				t_info("dns_name_fromtext(%s) failed %s\n",
+				       s, dns_result_totext(result));
+				 isc_mem_put(mctx, name,
+					     sizeof(*name) + DNSNAMELEN);
+			} else
+				*dns_name = name;
 		}
 	} else {
 		++nfails;
@@ -182,15 +187,17 @@ t1_add(char *name, dns_rbt_t *rbt, isc_mem_t *mctx, isc_result_t *dns_result) {
 
 	nprobs = 0;
 	if (name && dns_result) {
-		*dns_result = create_name(name, mctx, &dns_name);
-		if (*dns_result == ISC_R_SUCCESS) {
+		if (create_name(name, mctx, &dns_name) == 0) {
 			if (T_debug)
 				t_info("dns_rbt_addname succeeded\n");
 			*dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
+			if (*dns_result != ISC_R_SUCCESS) {
+				delete_name(dns_name, mctx);
+				t_info("dns_rbt_addname failed %s\n",
+		       		       dns_result_totext(*dns_result));
+				++nprobs;
+			}
 		} else {
-			t_info("dns_rbt_addname failed %s\n",
-		       			dns_result_totext(*dns_result));
-			delete_name(dns_name, mctx);
 			++nprobs;
 		}
 	} else {
@@ -208,8 +215,7 @@ t1_delete(char *name, dns_rbt_t *rbt, isc_mem_t *mctx,
 
 	nprobs = 0;
 	if (name && dns_result) {
-		*dns_result = create_name(name, mctx, &dns_name);
-		if (*dns_result == ISC_R_SUCCESS) {
+		if (create_name(name, mctx, &dns_name) == 0) {
 			*dns_result = dns_rbt_deletename(rbt, dns_name,
 							 ISC_FALSE);
 			delete_name(dns_name, mctx);
@@ -234,8 +240,7 @@ t1_search(char *name, dns_rbt_t *rbt, isc_mem_t *mctx,
 
 	nprobs = 0;
 	if (name && dns_result) {
-		*dns_result = create_name(name, mctx, &dns_searchname);
-		if (*dns_result == ISC_R_SUCCESS) {
+		if (create_name(name, mctx, &dns_searchname) == 0) {
 			dns_fixedname_init(&dns_fixedname);
 			dns_foundname = dns_fixedname_name(&dns_fixedname);
 			data = NULL;
@@ -281,7 +286,7 @@ rbt_init(char *filename, dns_rbt_t **rbt, isc_mem_t *mctx) {
 		 * Skip any comment lines.
 		 */
 		if ((*p == '#') || (*p == '\0') || (*p == ' ')) {
-			free(p);
+			(void)free(p);
 			continue;
 		}
 
@@ -362,8 +367,7 @@ test_rbt_gen(char *filename, char *command, char *testname,
 	if (strcmp(command, "create") == 0) {
 		result = T_PASS;
 	} else if (strcmp(command, "add") == 0) {
-		dns_result = create_name(testname, mctx, &dns_name);
-		if (dns_result == ISC_R_SUCCESS) {
+		if (create_name(testname, mctx, &dns_name) == 0) {
 			dns_result = dns_rbt_addname(rbt, dns_name, dns_name);
 
 			if (dns_result != ISC_R_SUCCESS)
@@ -466,8 +470,10 @@ test_dns_rbt_x(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			/*
 			 * Name of db file, command, testname,
@@ -977,8 +983,10 @@ test_dns_rbtnodechain_init(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 10) {
@@ -1164,8 +1172,10 @@ test_dns_rbtnodechain_first(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 5) {
@@ -1355,8 +1365,10 @@ test_dns_rbtnodechain_last(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 5) {
@@ -1561,8 +1573,10 @@ test_dns_rbtnodechain_next(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 4) {
@@ -1766,8 +1780,10 @@ test_dns_rbtnodechain_prev(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace((unsigned char)*p)) || (*p == '#'))
+			if ((isspace((unsigned char)*p)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			cnt = t_bustline(p, Tokens);
 			if (cnt == 4) {

@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.69.2.7 2004/03/09 06:11:01 marka Exp $
+ * $Id: dnssec.c,v 1.69.2.8 2006/01/04 04:08:14 marka Exp $
  */
 
 
@@ -325,8 +325,7 @@ cleanup_array:
 cleanup_context:
 	dst_context_destroy(&ctx);
 cleanup_databuf:
-	if (databuf != NULL)
-		isc_buffer_free(&databuf);
+	isc_buffer_free(&databuf);
 cleanup_signature:
 	isc_mem_put(mctx, sig.signature, sig.siglen);
 

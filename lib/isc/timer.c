@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.64.2.1 2004/03/09 06:11:52 marka Exp $ */
+/* $Id: timer.c,v 1.64.2.2 2006/01/04 04:08:14 marka Exp $ */
 
 #include <config.h>
 
@@ -309,8 +309,10 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 
 	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
 		result = isc_time_add(&now, interval, &timer->idle);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(manager->mctx, timer, sizeof(*timer));
 			return (result);
+		}
 	} else
 		isc_time_settoepoch(&timer->idle);
 
