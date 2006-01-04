@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.95 2005/07/12 01:00:18 marka Exp $ */
+/* $Id: task.c,v 1.96 2006/01/04 03:16:47 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -1229,6 +1229,8 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	UNLOCK(&manager->lock);
 	while (isc__taskmgr_ready())
 		(void)isc__taskmgr_dispatch();
+	if (!ISC_LIST_EMPTY(manager->tasks))
+		isc_mem_printallactive(stderr);
 	INSIST(ISC_LIST_EMPTY(manager->tasks));
 #endif /* ISC_PLATFORM_USETHREADS */
 

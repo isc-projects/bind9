@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.124 2005/08/23 04:05:50 marka Exp $ */
+/* $Id: mem.c,v 1.125 2006/01/04 03:16:47 marka Exp $ */
 
 /*! \file */
 
@@ -30,6 +30,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
+#include <isc/once.h>
 #include <isc/ondestroy.h>
 #include <isc/string.h>
 
@@ -106,6 +107,12 @@ struct stats {
 typedef ISC_LIST(debuglink_t)	debuglist_t;
 #endif
 
+/* List of all active memory contexts. */
+
+static ISC_LIST(isc_mem_t)	contexts;
+static isc_once_t		once = ISC_ONCE_INIT;
+static isc_mutex_t		lock;
+
 struct isc_mem {
 	unsigned int		magic;
 	isc_ondestroy_t		ondestroy;
@@ -144,6 +151,7 @@ struct isc_mem {
 #endif
 
 	unsigned int		memalloc_failures;
+	ISC_LINK(isc_mem_t)	link;
 };
 
 #define MEMPOOL_MAGIC		ISC_MAGIC('M', 'E', 'M', 'p')
@@ -680,6 +688,11 @@ default_memfree(void *arg, void *ptr) {
 	free(ptr);
 }
 
+static void
+initialize_action(void) {
+        RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+}
+
 /*
  * Public.
  */
@@ -707,6 +720,8 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	REQUIRE(memfree != NULL);
 
 	INSIST((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0);
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
 	ctx = (memalloc)(arg, sizeof(*ctx));
 	if (ctx == NULL)
@@ -794,6 +809,10 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 
 	ctx->memalloc_failures = 0;
 
+	LOCK(&lock);
+	ISC_LIST_INITANDAPPEND(contexts, ctx, link);
+	UNLOCK(&lock);
+
 	*ctxp = ctx;
 	return (ISC_R_SUCCESS);
 
@@ -839,6 +858,10 @@ destroy(isc_mem_t *ctx) {
 	isc_ondestroy_t ondest;
 
 	ctx->magic = 0;
+
+	LOCK(&lock);
+	ISC_LIST_UNLINK(contexts, ctx, link);
+	UNLOCK(&lock);
 
 	INSIST(ISC_LIST_EMPTY(ctx->pools));
 
@@ -1857,4 +1880,61 @@ isc_mempool_getfillcount(isc_mempool_t *mpctx) {
 		UNLOCK(mpctx->lock);
 
 	return (fillcount);
+}
+
+void
+isc_mem_printactive(isc_mem_t *ctx, FILE *file) {
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(file != NULL);
+
+#if !ISC_MEM_TRACKLINES
+	UNUSED(ctx);
+	UNUSED(file);
+#else
+	print_active(ctx, file);
+#endif
+}
+
+void
+isc_mem_printallactive(FILE *file) {
+#if !ISC_MEM_TRACKLINES
+	UNUSED(file);
+#else
+	isc_mem_t *ctx;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+
+	LOCK(&lock);
+	for (ctx = ISC_LIST_HEAD(contexts);
+	     ctx != NULL;
+	     ctx = ISC_LIST_NEXT(ctx, link)) {
+		fprintf(file, "context: %p\n", ctx);
+		print_active(ctx, file);
+	}
+	UNLOCK(&lock);
+#endif
+}
+
+void    
+isc_mem_checkdestroyed(FILE *file) {
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
+
+	LOCK(&lock);
+	if (!ISC_LIST_EMPTY(contexts))  {
+#if ISC_MEM_TRACKLINES
+		isc_mem_t *ctx;
+
+		for (ctx = ISC_LIST_HEAD(contexts);
+		     ctx != NULL;
+		     ctx = ISC_LIST_NEXT(ctx, link)) {
+			fprintf(file, "context: %p\n", ctx);
+			print_active(ctx, file);
+		}
+		fflush(file);
+#endif
+		INSIST(1);
+	}
+	UNLOCK(&lock);
 }

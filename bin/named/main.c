@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.149 2005/09/18 07:16:19 marka Exp $ */
+/* $Id: main.c,v 1.150 2006/01/04 03:16:47 marka Exp $ */
 
 /*! \file */
 
@@ -912,6 +912,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_mem_destroy(&ns_g_mctx);
+	isc_mem_checkdestroyed(stderr);
 
 	ns_main_setmemstats(NULL);
 

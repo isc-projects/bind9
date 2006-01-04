@@ -1,3 +1,5 @@
+1949.	[func]		Addition memory leakage checks. [RT #15544]
+
 1948.	[bug]		If was possible to trigger a REQUIRE failure in
 			xfrin.c:maybe_free() if named ran out of memory.
 			[RT #15568]
