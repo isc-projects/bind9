@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.41 2005/10/10 00:23:46 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.42 2006/01/04 04:25:26 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3283,6 +3283,12 @@ unprivileged port.</para></note>
 <note>
 <para>See also <command>transfer-source</command> and
 <command>notify-source</command>.</para></note>
+	<note>
+	  <para>
+	    Solaris 2.5.1 and earlier does not support setting the source
+	    address for TCP sockets.
+	  </para>
+        </note>
 </sect3>
 
 <sect3 id="zone_transfers"><title>Zone Transfers</title>
@@ -3428,6 +3434,12 @@ This statement sets the <command>notify-source</command> for all zones,
 but can be overridden on a per-zone / per-view basis by including a
 <command>notify-source</command> statement within the <command>zone</command>
 or <command>view</command> block in the configuration file.</para>
+               <note>
+                 <para>
+                   Solaris 2.5.1 and earlier does not support setting the
+                   source address for TCP sockets.
+                 </para>
+                 </note>
 </listitem></varlistentry>
 
 <varlistentry><term><command>notify-source-v6</command></term>
