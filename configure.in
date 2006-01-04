@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.41 $)
+AC_REVISION($Revision: 1.355.18.42 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2017,6 +2017,16 @@ case "$host" in
 	;;
 *) AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK,
 	     [Sets which flag to pass to open/fcntl to make non-blocking (O_NDELAY/O_NONBLOCK).])
+	;;
+esac
+#
+# Solaris 2.5.1 and earlier cannot bind() then connect() a TCP socket.
+# This prevents the source address being set.
+#
+case "$host" in
+*-solaris2.[[012345]]|*-solaris2.5.1)
+	AC_DEFINE(BROKEN_TCP_BIND_BEFORE_CONNECT, 1,
+		  [Define if you cannot bind() before connect() for TCP sockets.])
 	;;
 esac
 #
