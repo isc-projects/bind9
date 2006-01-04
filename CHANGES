@@ -1,3 +1,6 @@
+1952.	[port]		hpux: tell the linker to build a runtime link
+			path "-Wl,+b:". [RT #14816].
+
 1951.	[security]	Drop queries from particular well known ports.
 			Don't return FORMERR to queries from particular
 			well known ports.  [RT #15636]
