@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.207.2.19.2.23 2006/01/04 03:43:20 marka Exp $ */
+/* $Id: socket.c,v 1.207.2.19.2.24 2006/01/04 23:50:21 marka Exp $ */
 
 #include <config.h>
 

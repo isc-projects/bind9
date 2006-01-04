@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.59.2.5.8.16 2006/01/04 03:43:18 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.59.2.5.8.17 2006/01/04 23:50:19 marka Exp $ */
 
 #include <config.h>
 

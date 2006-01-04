@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.10.2.21 2006/01/04 03:43:19 marka Exp $ */
+/* $Id: message.c,v 1.194.2.10.2.22 2006/01/04 23:50:20 marka Exp $ */
 
 /***
  *** Imports

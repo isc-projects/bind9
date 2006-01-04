@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.23 2006/01/04 21:43:15 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.24 2006/01/04 23:50:20 marka Exp $ */
 
 #include <config.h>
 

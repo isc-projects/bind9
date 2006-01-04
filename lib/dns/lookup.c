@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lookup.c,v 1.9.12.6 2006/01/04 03:43:19 marka Exp $ */
+/* $Id: lookup.c,v 1.9.12.7 2006/01/04 23:50:20 marka Exp $ */
 
 #include <config.h>
 
