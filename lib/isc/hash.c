@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.c,v 1.2.2.6 2006/01/03 05:54:51 marka Exp $ */
+/* $Id: hash.c,v 1.2.2.7 2006/01/04 00:37:21 marka Exp $ */
 
 /*
  * Some portion of this code was derived from universal hash function
