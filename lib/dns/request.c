@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.64.2.1.10.6 2004/03/08 09:04:31 marka Exp $ */
+/* $Id: request.c,v 1.64.2.1.10.7 2006/01/04 04:24:09 marka Exp $ */
 
 #include <config.h>
 
@@ -512,6 +512,7 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 				   isc_sockettype_tcp, &socket);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+#ifndef BROKEN_TCP_BIND_BEFORE_CONNECT
 	if (srcaddr == NULL) {
 		isc_sockaddr_anyofpf(&bind_any,
 				     isc_sockaddr_pf(destaddr));
@@ -523,6 +524,7 @@ create_tcp_dispatch(dns_requestmgr_t *requestmgr, isc_sockaddr_t *srcaddr,
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
+#endif
 	attrs = 0;
 	attrs |= DNS_DISPATCHATTR_TCP;
 	attrs |= DNS_DISPATCHATTR_PRIVATE;
