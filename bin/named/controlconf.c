@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.11 2006/01/04 04:08:13 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.12 2006/01/04 21:38:26 marka Exp $ */
 
 #include <config.h>
 
@@ -984,7 +984,7 @@ update_listener(ns_controls_t *cp,
 		result = get_rndckey(listener->mctx, &listener->keys);
 	}
 
-	if (result != ISC_R_SUCCESS && global_keylist != NULL)
+	if (result != ISC_R_SUCCESS && global_keylist != NULL) {
 		/*
 		 * This message might be a little misleading since the
 		 * "new keys" might in fact be identical to the old ones,
@@ -1002,6 +1002,7 @@ update_listener(ns_controls_t *cp,
 				      "couldn't install new keys for "
 				      "command channel %s: %s",
 				      socktext, isc_result_totext(result));
+	}
 
 	/*
 	 * Now, keep the old access list unless a new one can be made.
