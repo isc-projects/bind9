@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.284 2006/01/04 02:35:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.285 2006/01/04 04:14:39 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5977,6 +5977,12 @@ query-source-v6 address * port *;
               unprivileged port.
             </para>
           </note>
+	  <note>
+	    <para>
+	      Solaris 2.5.1 and earlier does not support setting the source
+	      address for TCP sockets.
+	    </para>
+	  </note>
           <note>
             <para>
               See also <command>transfer-source</command> and
@@ -6202,6 +6208,12 @@ query-source-v6 address * port *;
                   <command>zone</command> block in the configuration
                   file.
                 </para>
+	        <note>
+	          <para>
+	            Solaris 2.5.1 and earlier does not support setting the
+		    source address for TCP sockets.
+	          </para>
+                </note>
               </listitem>
             </varlistentry>
 
@@ -6277,6 +6289,12 @@ query-source-v6 address * port *;
                   <command>view</command> block in the configuration
                   file.
                 </para>
+	        <note>
+	          <para>
+	            Solaris 2.5.1 and earlier does not support setting the
+		    source address for TCP sockets.
+	          </para>
+                </note>
               </listitem>
             </varlistentry>
 

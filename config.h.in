@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.75 2005/10/20 23:50:53 marka Exp $ */
+/* $Id: config.h.in,v 1.77 2006/01/05 00:30:34 marka Exp $ */
 
 /*! \file */
 
@@ -149,6 +149,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if threads need PTHREAD_SCOPE_SYSTEM */
 #undef NEED_PTHREAD_SCOPE_SYSTEM
+
+/* Define if you cannot bind() before connect() for TCP sockets. */
+#undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
