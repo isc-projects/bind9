@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.1.4.1 2004/12/09 04:07:16 marka Exp $
+ * $Id: dst_api.c,v 1.1.4.2 2006/01/04 03:43:19 marka Exp $
  */
 
 #include <config.h>
@@ -1027,8 +1027,10 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	}
 
 	ret = dns_name_print(key->key_name, fp);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
+		fclose(fp);
 		return (ret);
+	}
 
 	fprintf(fp, " ");
 

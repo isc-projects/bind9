@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.4.1 2004/12/09 04:07:18 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.4.2 2006/01/04 03:43:19 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -87,12 +87,16 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		isc_md5_t *md5ctx;
 
 		md5ctx = isc_mem_get(dctx->mctx, sizeof(isc_md5_t));
+		if (md5ctx == NULL)
+			return (ISC_R_NOMEMORY);
 		isc_md5_init(md5ctx);
 		dctx->opaque = md5ctx;
 	} else {
 		isc_sha1_t *sha1ctx;
 
 		sha1ctx = isc_mem_get(dctx->mctx, sizeof(isc_sha1_t));
+		if (sha1ctx == NULL)
+			return (ISC_R_NOMEMORY);
 		isc_sha1_init(sha1ctx);
 		dctx->opaque = sha1ctx;
 	}

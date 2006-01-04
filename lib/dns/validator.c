@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.21 2005/11/02 02:07:47 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.22 2006/01/04 03:43:20 marka Exp $ */
 
 #include <config.h>
 
@@ -2640,7 +2640,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
  cleanup_event:
 	isc_task_detach(&tclone);
-	isc_event_free((isc_event_t **)&val->event);
+	isc_event_free((isc_event_t **)&event);
 
  cleanup_val:
 	dns_view_weakdetach(&val->view);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.28.2.9.2.6 2004/03/08 09:04:14 marka Exp $ */
+/* $Id: controlconf.c,v 1.28.2.9.2.7 2006/01/04 03:43:18 marka Exp $ */
 
 #include <config.h>
 
@@ -356,6 +356,9 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	{
 		ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
 		ccregion.rend = isc_buffer_used(&conn->ccmsg.buffer);
+		if (secret.rstart != NULL)
+			isc_mem_put(listener->mctx, secret.rstart,
+				    REGION_SIZE(secret));
 		secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
 		if (secret.rstart == NULL)
 			goto cleanup;
@@ -371,8 +374,6 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 			 */
 			if (request != NULL)
 				isccc_sexpr_free(&request);
-			isc_mem_put(listener->mctx, secret.rstart,
-				    REGION_SIZE(secret));
 		} else {
 			log_invalid(&conn->ccmsg, result);
 			goto cleanup;
@@ -984,11 +985,17 @@ update_listener(ns_controls_t *cp,
 		 * but tracking whether they are identical just for the
 		 * sake of avoiding this message would be too much trouble.
 		 */
-		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
-			    "couldn't install new keys for "
-			    "command channel %s: %s",
-			    socktext, isc_result_totext(result));
-
+		if (control != NULL)
+			cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
+				    "couldn't install new keys for "
+				    "command channel %s: %s",
+				    socktext, isc_result_totext(result));
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+				      "couldn't install new keys for "
+				      "command channel %s: %s",
+				      socktext, isc_result_totext(result));
 
 	/*
 	 * Now, keep the old access list unless a new one can be made.
@@ -1005,12 +1012,18 @@ update_listener(ns_controls_t *cp,
 		dns_acl_detach(&listener->acl);
 		dns_acl_attach(new_acl, &listener->acl);
 		dns_acl_detach(&new_acl);
-	} else
 		/* XXXDCL say the old acl is still used? */
+	} else if (control != NULL)
 		cfg_obj_log(control, ns_g_lctx, ISC_LOG_WARNING,
 			    "couldn't install new acl for "
 			    "command channel %s: %s",
 			    socktext, isc_result_totext(result));
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
+			      "couldn't install new acl for "
+			      "command channel %s: %s",
+			      socktext, isc_result_totext(result));
 
 	*listenerp = listener;
 }

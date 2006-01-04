@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_master.c,v 1.30.206.3 2004/03/08 04:04:29 marka Exp $ */
+/* $Id: t_master.c,v 1.30.206.4 2006/01/04 03:43:19 marka Exp $ */
 
 #include <config.h>
 
@@ -153,8 +153,10 @@ test_master_x(const char *filename) {
 			/*
 			 * Skip comment lines.
 			 */
-			if ((isspace(*p & 0xff)) || (*p == '#'))
+			if ((isspace(*p & 0xff)) || (*p == '#')) {
+				(void)free(p);
 				continue;
+			}
 
 			/*
 			 * Name of data file, origin, zclass, expected result.

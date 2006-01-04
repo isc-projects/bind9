@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.58 2006/01/04 00:37:22 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.59 2006/01/04 03:43:19 marka Exp $ */
 
 #include <config.h>
 
@@ -3265,6 +3265,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = dns_rdataset_addnoqname(vevent->rdataset,
 				   vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF]);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		INSIST(vevent->sigrdataset != NULL);
 		vevent->sigrdataset->ttl = vevent->rdataset->ttl;
 	}
 

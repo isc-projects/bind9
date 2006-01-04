@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.70.2.20.2.18 2004/05/15 03:46:13 jinmei Exp $ */
+/* $Id: parser.c,v 1.70.2.20.2.19 2006/01/04 03:43:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1556,12 +1556,19 @@ parse_token(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_lex_getlasttokentext(pctx->lexer, &pctx->token, &r);
 
 	obj->value.string.base = isc_mem_get(pctx->mctx, r.length + 1);
+	if (obj->value.string.base == NULL) {
+		result = ISC_R_NOMEMORY;
+		goto cleanup;
+	}
 	obj->value.string.length = r.length;
 	memcpy(obj->value.string.base, r.base, r.length);
 	obj->value.string.base[r.length] = '\0';
 	*ret = obj;
+	return (result);
 
  cleanup:
+	if (obj != NULL)
+		isc_mem_put(pctx->mctx, obj, sizeof(*obj));
 	return (result);
 }
 
@@ -1929,8 +1936,6 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 	int n = 0;
 	cfg_print_chars(pctx, "( ", 2);
 	if (*flagp & CFG_ADDR_V4OK) {
-		if (n != 0)
-			cfg_print_chars(pctx, " | ", 3);
 		cfg_print_cstr(pctx, "<ipv4_address>");
 		n++;
 	}
@@ -2223,7 +2228,6 @@ create_map(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	CHECK(isc_symtab_create(pctx->mctx, 5, /* XXX */
 				map_symtabitem_destroy,
 				pctx, ISC_FALSE, &symtab));
-
 	obj->value.map.symtab = symtab;
 	obj->value.map.id = NULL;
 
