@@ -1,3 +1,7 @@
+1948.	[bug]		If was possible to trigger a REQUIRE failure in
+			xfrin.c:maybe_free() if named ran out of memory.
+			[RT #15568]
+
 1946.	[bug]		resume_dslookup() could trigger a REQUIRE failure
 			when using forwarders. [RT #15549]
 
