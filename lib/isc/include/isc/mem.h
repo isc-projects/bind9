@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1997-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.59.18.8 2006/01/04 03:20:27 marka Exp $ */
+/* $Id: mem.h,v 1.59.18.9 2006/01/04 23:50:23 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
