@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.59.18.7 2005/10/26 04:57:25 marka Exp $ */
+/* $Id: mem.h,v 1.59.18.8 2006/01/04 03:20:27 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -350,6 +350,30 @@ isc_mem_setwater(isc_mem_t *mctx, isc_mem_water_t water, void *water_arg,
  *
  *	'water' is not NULL.
  *	hi_water >= lo_water
+ */
+
+void
+isc_mem_printactive(isc_mem_t *mctx, FILE *file);
+/*%<
+ * Print to 'file' all active memory in 'mctx'.
+ *
+ * Requires ISC_MEM_DEBUGRECORD to have been set.
+ */
+
+void
+isc_mem_printallactive(FILE *file);
+/*%<
+ * Print to 'file' all active memory in all contexts.
+ *
+ * Requires ISC_MEM_DEBUGRECORD to have been set.
+ */
+
+void
+isc_mem_checkdestroyed(FILE *file);
+/*%<
+ * Check that all memory contexts have been destroyed.
+ * Prints out those that have not been.
+ * Fatally fails if there are still active contexts.
  */
 
 /*
