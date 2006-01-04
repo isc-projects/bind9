@@ -1,3 +1,7 @@
+1951.	[security]	Drop queries from particular well known ports.
+			Don't return FORMERR to queries from particular
+			well known ports.  [RT #15636]
+			
 1950.	[port]		Solaris 2.5.1 and earlier cannot bind() then connect()
 			a TCP socket. This prevents the source address being
 			set for TCP connections. [RT #15628]

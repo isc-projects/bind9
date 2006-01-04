@@ -401,6 +401,8 @@ Building
 		Enable DNSSEC signature chasing support in dig.
 		  -DDIG_SIGCHASE=1 (sets -DDIG_SIGCHASE_TD=1 and
 				    -DDIG_SIGCHASE_BU=1)
+		Disable dropping queries from particular well known ports.
+		  -DNS_CLIENT_DROPPORT=0
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.
