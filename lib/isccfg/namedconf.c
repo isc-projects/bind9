@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.27 2005/10/26 04:57:25 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.28 2006/01/04 02:58:42 marka Exp $ */
 
 /*! \file */
 
@@ -770,6 +770,7 @@ view_clauses[] = {
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	   CFG_CLAUSEFLAG_MULTI },
+	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
 	{ "use-additional-cache", &cfg_type_boolean, 0 },
 	{ "acache-cleaning-interval", &cfg_type_uint32, 0 },
