@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.135.18.6 2005/11/03 23:02:23 marka Exp $ */
+/* $Id: xfrin.c,v 1.135.18.7 2006/01/04 03:08:40 marka Exp $ */
 
 /*! \file */
 
@@ -799,7 +799,18 @@ xfrin_create(isc_mem_t *mctx,
 	return (ISC_R_SUCCESS);
 
  failure:
-	xfrin_fail(xfr, result, "failed creating transfer context");
+	if (xfr->timer != NULL)
+		isc_timer_detach(&xfr->timer);
+	if (dns_name_dynamic(&xfr->name))
+		dns_name_free(&xfr->name, xfr->mctx);
+	if (xfr->tsigkey != NULL)
+		dns_tsigkey_detach(&xfr->tsigkey);
+	if (xfr->db != NULL)
+		dns_db_detach(&xfr->db);
+	isc_task_detach(&xfr->task);
+	dns_zone_idetach(&xfr->zone);
+	isc_mem_put(mctx, xfr, sizeof(*xfr));
+
 	return (result);
 }
 
