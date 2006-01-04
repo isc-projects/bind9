@@ -252,6 +252,9 @@ Building
 			is incompatable with the upcoming DS support
 			and SHOULD NOT be set unless you are currently
 			making use of it.
+		-DNS_CLIENT_DROPPORT=0
+			Disable dropping queries from particular well
+			known ports.
 
 	    LDFLAGS
 		Linker flags. Defaults to empty string.

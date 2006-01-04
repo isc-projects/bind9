@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.19 2005/03/16 00:57:40 marka Exp $ */
+/* $Id: client.c,v 1.176.2.20 2006/01/04 05:13:30 marka Exp $ */
 
 #include <config.h>
 
@@ -161,6 +161,12 @@ struct ns_clientmgr {
  * Must be greater than any valid state.
  */
 
+/*
+ * Enable ns_client_dropport() by default.
+ */
+#ifndef NS_CLIENT_DROPPORT
+#define NS_CLIENT_DROPPORT 1
+#endif
 
 static void client_read(ns_client_t *client);
 static void client_accept(ns_client_t *client);
@@ -923,6 +929,34 @@ ns_client_send(ns_client_t *client) {
 	ns_client_next(client, result);
 }
 
+#if NS_CLIENT_DROPPORT
+#define DROPPORT_NO		0
+#define DROPPORT_REQUEST	1
+#define DROPPORT_RESPONSE	2
+/*%
+ * ns_client_dropport determines if certain requests / responses
+ * should be dropped based on the port number.
+ *
+ * Returns:
+ * \li	0:	Don't drop.
+ * \li	1:	Drop request.
+ * \li	2:	Drop (error) response.
+ */
+static int
+ns_client_dropport(in_port_t port) {
+	switch (port) {
+	case 7: /* echo */
+	case 13: /* daytime */
+	case 19: /* chargen */
+	case 37: /* time */
+		return (DROPPORT_REQUEST);
+	case 464: /* kpasswd */
+		return (DROPPORT_RESPONSE);
+	}
+	return (DROPPORT_NO);
+}
+#endif
+
 void
 ns_client_error(ns_client_t *client, isc_result_t result) {
 	dns_rcode_t rcode;
@@ -934,6 +968,28 @@ ns_client_error(ns_client_t *client, isc_result_t result) {
 
 	message = client->message;
 	rcode = dns_result_torcode(result);
+
+#if NS_CLIENT_DROPPORT
+	/*
+	 * Don't send FORMERR to ports on the drop port list.
+	 */
+	if (rcode == dns_rcode_formerr &&
+	    ns_client_dropport(isc_sockaddr_getport(&client->peeraddr)) !=
+	    DROPPORT_NO) {
+		char buf[64];
+		isc_buffer_t b;
+
+		isc_buffer_init(&b, buf, sizeof(buf) - 1);
+		if (dns_rcode_totext(rcode, &b) != ISC_R_SUCCESS)
+			isc_buffer_putstr(&b, "UNKNOWN RCODE");
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+			      "dropped error (%.*s) response: suspicious port",
+			      (int)isc_buffer_usedlength(&b), buf);
+		ns_client_next(client, ISC_R_SUCCESS);
+		return;
+	}
+#endif
 
 	/*
 	 * Message may be an in-progress reply that we had trouble
@@ -1154,6 +1210,17 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	}
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
+
+#if NS_CLIENT_DROPPORT
+	if (ns_client_dropport(isc_sockaddr_getport(&client->peeraddr)) ==
+	    DROPPORT_REQUEST) {
+		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
+			      "dropped request: suspicious port");
+		ns_client_next(client, ISC_R_SUCCESS);
+		goto cleanup;
+	}
+#endif
 
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),

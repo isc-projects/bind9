@@ -1,9 +1,13 @@
-1948.	[bug]		If was possible to trigger a REQUIRE failure in
-			xfrin.c:maybe_free() if named ran out of memory.
+1951.	[security]	Drop queries from particular well known ports.
+			Don't return FORMERR to queries from particular
+			well known ports.  [RT #15636]
+			
 1950.	[port]		Solaris 2.5.1 and earlier cannot bind() then connect()
 			a TCP socket. This prevents the source address being
 			set for TCP connections. [RT #15628]
 
+1948.	[bug]		If was possible to trigger a REQUIRE failure in
+			xfrin.c:maybe_free() if named ran out of memory.
 			[RT #15568]
 
 1944.	[cleanup]	isc_hash_create() does not need a read/write lock.
