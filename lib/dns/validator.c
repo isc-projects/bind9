@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.138 2005/12/04 23:54:00 marka Exp $ */
+/* $Id: validator.c,v 1.139 2006/01/04 02:35:49 marka Exp $ */
 
 /*! \file */
 
@@ -1287,15 +1287,27 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 {
 	isc_result_t result;
 	dns_fixedname_t fixed;
+	isc_boolean_t ignore = ISC_FALSE;
 
 	val->attributes |= VALATTR_TRIEDVERIFY;
 	dns_fixedname_init(&fixed);
+ again:
 	result = dns_dnssec_verify2(val->event->name, val->event->rdataset,
-				    key, ISC_FALSE, val->view->mctx, rdata,
+				    key, ignore, val->view->mctx, rdata,
 				    dns_fixedname_name(&fixed));
-	validator_log(val, ISC_LOG_DEBUG(3),
-		      "verify rdataset (keyid=%u): %s",
-		      keyid, isc_result_totext(result));
+	if (result == DNS_R_SIGEXPIRED && val->view->acceptexpired) {
+		ignore = ISC_TRUE;
+		goto again;
+	}
+	if (ignore && (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD))
+		validator_log(val, ISC_LOG_INFO,
+			      "accepted expired %sRRSIG (keyid=%u)",
+			      (result == DNS_R_FROMWILDCARD) ?
+			      "" : "wildcard ", keyid);
+	else
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "verify rdataset (keyid=%u): %s",
+			      keyid, isc_result_totext(result));
 	if (result == DNS_R_FROMWILDCARD) {
 		if (!dns_name_equal(val->event->name,
 				    dns_fixedname_name(&fixed)))

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.283 2005/12/04 23:54:00 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.284 2006/01/04 02:35:49 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4389,6 +4389,7 @@ category notify { null; };
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-lookaside <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable>; </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
+    <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
     <optional> forward ( <replaceable>only</replaceable> | <replaceable>first</replaceable> ); </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> dual-stack-servers <optional>port <replaceable>ip_port</replaceable></optional> {
@@ -5471,6 +5472,16 @@ options {
                 <para>
                   Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
                   named behaves as if it does not support DNSSEC.
+                  The default is <userinput>no</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>dnssec-accept-expired</command></term>
+              <listitem>
+                <para>
+		  When verifying DNSSEC signatures accept expired signatures.
                   The default is <userinput>no</userinput>.
                 </para>
               </listitem>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.276 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: query.c,v 1.277 2006/01/04 02:35:49 marka Exp $ */
 
 /*! \file */
 
@@ -2360,13 +2360,21 @@ get_key(ns_client_t *client, dns_db_t *db, dns_rdata_rrsig_t *rrsig,
 
 static isc_boolean_t
 verify(dst_key_t *key, dns_name_t *name, dns_rdataset_t *rdataset,
-       dns_rdata_t *rdata, isc_mem_t *mctx)
+       dns_rdata_t *rdata, isc_mem_t *mctx, isc_boolean_t acceptexpired)
 {
 	isc_result_t result;
 	dns_fixedname_t fixed;
+	isc_boolean_t ignore = ISC_FALSE;
+
 	dns_fixedname_init(&fixed);
-	result = dns_dnssec_verify2(name, rdataset, key, ISC_FALSE,
-				    mctx, rdata, NULL);
+	
+again:
+	result = dns_dnssec_verify2(name, rdataset, key, ignore, mctx,
+				    rdata, NULL);
+	if (result == DNS_R_SIGEXPIRED && acceptexpired) {
+		ignore = ISC_TRUE;
+		goto again;
+	}
 	if (result == ISC_R_SUCCESS || result == DNS_R_FROMWILDCARD)
 		return (ISC_TRUE);
 	return (ISC_FALSE);
@@ -2406,7 +2414,8 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		do {
 			if (!get_key(client, db, &rrsig, &keyrdataset, &key))
 				break;
-			if (verify(key, name, rdataset, &rdata, client->mctx)) {
+			if (verify(key, name, rdataset, &rdata, client->mctx,
+				   client->view->acceptexpired)) {
 				dst_key_free(&key);
 				dns_rdataset_disassociate(&keyrdataset);
 				mark_secure(client, db, name, rdataset,

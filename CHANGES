@@ -1,3 +1,8 @@
+1947.	[func]		It is now possible to configure named to accept
+			expired RRSIGs.  Default "dnssec-accept-expired no;".
+			Setting "dnssec-accept-expired yes;" leaves named
+			vulnerable to replay attacks.  [RT #14685]
+
 1946.	[bug]		resume_dslookup() could trigger a REQUIRE failure
 			when using forwarders. [RT #15549]
 

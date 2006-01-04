@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.133 2005/09/05 00:11:02 marka Exp $ */
+/* $Id: view.c,v 1.134 2006/01/04 02:35:49 marka Exp $ */
 
 /*! \file */
 
@@ -160,6 +160,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->additionalfromcache = ISC_TRUE;
 	view->additionalfromauth = ISC_TRUE;
 	view->enablednssec = ISC_TRUE;
+	view->acceptexpired = ISC_FALSE;
 	view->minimalresponses = ISC_FALSE;
 	view->transfer_format = dns_one_answer;
 	view->queryacl = NULL;
