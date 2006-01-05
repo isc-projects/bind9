@@ -1,3 +1,5 @@
+1955.	[bug]		Pre-allocate the cache cleaning interator. [RT #14998]
+
 1952.	[port]		hpux: tell the linker to build a runtime link
 			path "-Wl,+b:". [RT #14816].
 

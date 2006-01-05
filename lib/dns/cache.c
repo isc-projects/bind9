@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.7 2004/03/09 06:10:59 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.8 2006/01/05 00:18:58 marka Exp $ */
 
 #include <config.h>
 
@@ -491,6 +491,11 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->resched_event = NULL;
 	cleaner->overmem_event = NULL;
 
+	result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
+				       &cleaner->iterator);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
 	if (taskmgr != NULL && timermgr != NULL) {
 		result = isc_task_create(taskmgr, 1, &cleaner->task);
 		if (result != ISC_R_SUCCESS) {
@@ -559,6 +564,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_timer_detach(&cleaner->cleaning_timer);
 	if (cleaner->task != NULL)
 		isc_task_detach(&cleaner->task);
+	if (cleaner->iterator != NULL)
+		dns_dbiterator_destroy(&cleaner->iterator);
 	DESTROYLOCK(&cleaner->lock);
  fail:
 	return (result);
@@ -566,15 +573,17 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 
 static void
 begin_cleaning(cache_cleaner_t *cleaner) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(CLEANER_IDLE(cleaner));
 
 	/*
-	 * Create an iterator and position it at the beginning of the cache.
+	 * Create an iterator, if it does not already exist, and
+         * position it at the beginning of the cache.
 	 */
-	result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
-				       &cleaner->iterator);
+	if (cleaner->iterator == NULL)
+		result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
+					       &cleaner->iterator);
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
@@ -584,20 +593,21 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 		dns_dbiterator_setcleanmode(cleaner->iterator, ISC_TRUE);
 		result = dns_dbiterator_first(cleaner->iterator);
 	}
-
 	if (result != ISC_R_SUCCESS) {
 		/*
 		 * If the result is ISC_R_NOMORE, the database is empty,
 		 * so there is nothing to be cleaned.
 		 */
-		if (result != ISC_R_NOMORE)
+		if (result != ISC_R_NOMORE && cleaner->iterator != NULL) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: "
 					 "dns_dbiterator_first() failed: %s",
 					 dns_result_totext(result));
-
-		if (cleaner->iterator != NULL)
 			dns_dbiterator_destroy(&cleaner->iterator);
+		} else if (cleaner->iterator != NULL) {
+			result = dns_dbiterator_pause(cleaner->iterator);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
 	} else {
 		/*
 		 * Pause the iterator to free its lock.
@@ -618,10 +628,14 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 
 static void
 end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
+	isc_result_t result;
+
 	REQUIRE(CLEANER_BUSY(cleaner));
 	REQUIRE(event != NULL);
 
-	dns_dbiterator_destroy(&cleaner->iterator);
+	result = dns_dbiterator_pause(cleaner->iterator);
+	if (result != ISC_R_SUCCESS)
+		dns_dbiterator_destroy(&cleaner->iterator);
 
 	dns_cache_setcleaninginterval(cleaner->cache,
 				      cleaner->cleaning_interval);
