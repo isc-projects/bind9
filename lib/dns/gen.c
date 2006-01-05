@@ -15,11 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.76 2005/06/04 00:18:53 marka Exp $ */
+/* $Id: gen.c,v 1.77 2006/01/05 00:26:45 marka Exp $ */
 
 /*! \file */
-
-#include <config.h>
 
 #include <sys/types.h>
 
