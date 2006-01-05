@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.286 2006/01/04 23:50:24 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.287 2006/01/05 00:01:46 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4479,6 +4479,7 @@ category notify { null; };
     <optional> match-mapped-addresses <replaceable>yes_or_no</replaceable>; </optional>
     <optional> preferred-glue ( <replaceable>A</replaceable> | <replaceable>AAAA</replaceable> | <replaceable>NONE</replaceable> ); </optional>
     <optional> edns-udp-size <replaceable>number</replaceable>; </optional>
+    <optional> max-udp-size <replaceable>number</replaceable>; </optional>
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
@@ -6989,6 +6990,22 @@ query-source-v6 address * port *;
               </listitem>
             </varlistentry>
 
+            <varlistentry>
+              <term><command>max-udp-size</command></term>
+              <listitem>
+                <para>
+		  Sets the maximum EDNS UDP message size named will
+		  send.  Valid values are 512 to 4096 (values outside
+		  this range will be silently adjusted).  The default
+		  value is 4096.  The usual reason for setting
+		  max-udp-size to a non default value it to get UDP
+		  answers to pass through broken firewalls that
+		  block fragmented packets and/or block UDP packets
+		  that are greater than 512 bytes.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
 	    <varlistentry>
 	      <term><command>masterfile-format</command></term>
 	      <listitem>
@@ -7507,6 +7524,7 @@ query-source-v6 address * port *;
     <optional> request-ixfr <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> edns-udp-size <replaceable>number</replaceable> ; </optional>
+    <optional> max-udp-size <replaceable>number</replaceable> ; </optional>
     <optional> transfers <replaceable>number</replaceable> ; </optional>
     <optional> transfer-format <replaceable>( one-answer | many-answers )</replaceable> ; ]</optional>
     <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
@@ -7610,6 +7628,15 @@ query-source-v6 address * port *;
 	    advertise globally, for example, when there is a firewall at the
 	    remote site that is blocking large replies.
           </para>
+
+          <para>
+	    The <command>max-udp-size</command> option sets the
+	    maximum EDNS UDP message size named will send.  Valid
+	    values are 512 to 4096 (values outside this range will
+	    be silently adjusted).  This option is useful when you
+	    know that there is a firewall that is blocking large
+	    replies from named.
+	  </para>
 
           <para>
             The server supports two zone transfer methods. The first, <command>one-answer</command>,

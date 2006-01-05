@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.60 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: namedconf.c,v 1.61 2006/01/05 00:01:46 marka Exp $ */
 
 /*! \file */
 
@@ -763,6 +763,7 @@ view_clauses[] = {
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "dual-stack-servers", &cfg_type_nameportiplist, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
+	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
@@ -969,6 +970,7 @@ server_clauses[] = {
 	{ "keys", &cfg_type_server_key_kludge, 0 },
 	{ "edns", &cfg_type_boolean, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
+	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ NULL, NULL, 0 }

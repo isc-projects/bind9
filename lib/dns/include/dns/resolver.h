@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.48 2005/07/18 05:58:59 marka Exp $ */
+/* $Id: resolver.h,v 1.49 2006/01/05 00:01:46 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -92,6 +92,8 @@ typedef struct dns_fetchevent {
 #define DNS_FETCHOPT_NOEDNS0		0x08	     /*%< Do not use EDNS. */
 #define DNS_FETCHOPT_FORWARDONLY	0x10	     /*%< Only use forwarders. */
 #define DNS_FETCHOPT_NOVALIDATE		0x20	     /*%< Disable validation. */
+#define DNS_FETCHOPT_EDNS512		0x40	     /*%< Advertise a 512 byte
+						          UDP buffer. */
 
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
 #define	DNS_FETCHOPT_EDNSVERSIONMASK	0xff000000
