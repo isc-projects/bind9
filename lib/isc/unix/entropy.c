@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.71.18.3 2005/07/08 04:40:17 marka Exp $ */
+/* $Id: entropy.c,v 1.71.18.4 2006/01/05 03:46:26 marka Exp $ */
 
 /* \file unix/entropy.c
  * \brief
@@ -128,7 +128,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 		switch ( source->sources.usocket.status ) {
 		case isc_usocketsource_ndesired:
 			buf[0] = ndesired;
-			if ((n = send(fd, buf, 1, 0)) < 0) {
+			if ((n = sendto(fd, buf, 1, 0, NULL, 0)) < 0) {
 				if (errno == EWOULDBLOCK || errno == EINTR ||
 				    errno == ECONNRESET)
 					goto out;
@@ -143,7 +143,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 		case isc_usocketsource_connected:
 			buf[0] = 1;
 			buf[1] = ndesired;
-			if ((n = send(fd, buf, 2, 0)) < 0) {
+			if ((n = sendto(fd, buf, 2, 0, NULL, 0)) < 0) {
 				if (errno == EWOULDBLOCK || errno == EINTR ||
 				    errno == ECONNRESET)
 					goto out;
@@ -160,12 +160,12 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 			/*FALLTHROUGH*/
 		
 		case isc_usocketsource_wrote:
-			if (recv(fd, buf, 1, 0) != 1) {
+			if (recvfrom(fd, buf, 1, 0, NULL, NULL) != 1) {
 				if (errno == EAGAIN) {
 					/*
 					 * The problem of EAGAIN (try again
 					 * later) is a major issue on HP-UX.
-					 * Solaris actually tries the recv
+					 * Solaris actually tries the recvfrom
 					 * call again, while HP-UX just dies. 
 					 * This code is an attempt to let the
 					 * entropy pool fill back up (at least

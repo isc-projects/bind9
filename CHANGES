@@ -1,3 +1,6 @@
+1963.	[port]		Tru64 4.0E doesn't support send() and recv(). 
+			[RT #15586]
+
 1962.	[bug]		Named failed to clear old update-policy when it
 			was removed. [RT #15491]
 
