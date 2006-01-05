@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nslookup.docbook,v 1.4.2.5 2005/08/25 00:33:36 marka Exp $ -->
+<!-- $Id: nslookup.docbook,v 1.4.2.6 2006/01/05 03:49:10 marka Exp $ -->
 <!--
  - Copyright (c) 1985, 1989
  -    The Regents of the University of California.  All rights reserved.
@@ -385,7 +385,7 @@ nslookup -query=hinfo  -timeout=10
                 <term><constant>type=</constant><replaceable>value</replaceable></term>
                 <listitem>
                   <para>
-                    Change the top of the information query.
+                    Change the type of the information query.
                   </para>
 		  <para>
                     (Default = A; abbreviations = q, ty)
