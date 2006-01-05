@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.38 2006/01/04 00:37:23 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.39 2006/01/05 02:24:27 marka Exp $ */
 
 /*! \file */
 
@@ -217,6 +217,7 @@ struct dns_zone {
 	dns_acl_t		*query_acl;
 	dns_acl_t		*xfr_acl;
 	isc_boolean_t		update_disabled;
+	isc_boolean_t		zero_no_soa_ttl;
 	dns_severity_t		check_names;
 	ISC_LIST(dns_notify_t)	notifies;
 	dns_request_t		*request;
@@ -591,6 +592,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->query_acl = NULL;
 	zone->xfr_acl = NULL;
 	zone->update_disabled = ISC_FALSE;
+	zone->zero_no_soa_ttl = ISC_TRUE;
 	zone->check_names = dns_severity_ignore;
 	zone->request = NULL;
 	zone->lctx = NULL;
@@ -5686,6 +5688,19 @@ dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state) {
 	zone->update_disabled = state;
 }
 
+isc_boolean_t
+dns_zone_getzeronosoattl(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->zero_no_soa_ttl);
+
+}
+
+void
+dns_zone_setzeronosoattl(dns_zone_t *zone, isc_boolean_t state) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	zone->zero_no_soa_ttl = state;
+}
+
 void
 dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity) {
 
@@ -7620,6 +7635,7 @@ dns_zone_getkeydirectory(dns_zone_t *zone) {
 
 	return (zone->keydirectory);
 }
+
 unsigned int
 dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 	dns_zone_t *zone;

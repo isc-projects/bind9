@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.12 2005/10/26 04:57:24 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.13 2006/01/05 02:24:27 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -817,9 +817,27 @@ dns_zone_clearxfracl(dns_zone_t *zone);
 
 isc_boolean_t
 dns_zone_getupdatedisabled(dns_zone_t *zone);
+/*%<
+ * Return update disabled.
+ */
 
 void
 dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state);
+/*%<
+ * Set update disabled.
+ */
+
+isc_boolean_t
+dns_zone_getzeronosoattl(dns_zone_t *zone);
+/*%<
+ * Return zero-no-soa-ttl status.
+ */
+
+void
+dns_zone_setzeronosoattl(dns_zone_t *zone, isc_boolean_t state);
+/*%<
+ * Set zero-no-soa-ttl status.
+ */
 
 void
 dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);

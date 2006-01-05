@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.41 2006/01/05 00:10:43 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.42 2006/01/05 02:24:27 marka Exp $ */
 
 /*! \file */
 
@@ -316,6 +316,7 @@ struct dns_resolver {
 	unsigned int			spillatmax;
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
+	isc_boolean_t			zero_no_soa_ttl;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -3300,7 +3301,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 */
 		ttl = fctx->res->view->maxncachettl;
 		if (fctx->type == dns_rdatatype_soa &&
-		    covers == dns_rdatatype_any)
+		    covers == dns_rdatatype_any &&
+		    fctx->res->zero_no_soa_ttl)
 			ttl = 0;
 
 		result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
@@ -5901,6 +5903,7 @@ dns_resolver_create(dns_view_t *view,
 	res->spillatmin = res->spillat = 10;
 	res->spillatmax = 100;
 	res->spillattimer = NULL;
+	res->zero_no_soa_ttl = ISC_FALSE;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -6885,4 +6888,18 @@ dns_resolver_setclientsperquery(dns_resolver_t *resolver, isc_uint32_t min,
 	resolver->spillatmin = resolver->spillat = min;
 	resolver->spillatmax = max;
 	UNLOCK(&resolver->lock);
+}
+
+isc_boolean_t
+dns_resolver_getzeronosoattl(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	return (resolver->zero_no_soa_ttl);
+}
+
+void
+dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state) {
+	REQUIRE(VALID_RESOLVER(resolver));
+
+	resolver->zero_no_soa_ttl = state;
 }

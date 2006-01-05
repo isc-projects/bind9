@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.19 2006/01/05 00:10:43 marka Exp $ */
+/* $Id: config.c,v 1.47.18.20 2006/01/05 02:24:26 marka Exp $ */
 
 /*! \file */
 
@@ -137,6 +137,7 @@ options {\n\
 	dnssec-accept-expired no;\n\
 	clients-per-query 10;\n\
 	max-clients-per-query 100;\n\
+	zero-no-soa-ttl-cache no;\n\
 "
 
 "	/* zone */\n\
@@ -170,6 +171,7 @@ options {\n\
 	check-wildcard yes;\n\
 	check-sibling yes;\n\
 	check-integrity yes;\n\
+	zero-no-soa-ttl yes;\n\
 };\n\
 "
 
