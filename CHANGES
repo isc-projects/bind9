@@ -46,6 +46,10 @@
 1943.	[bug]		Set the loadtime after rolling forward the journal.
 			[RT #15647]
 
+1942.	[bug]		If the name of a DNSKEY match that of one in
+			trusted-keys do not attempt to validate the DNSKEY
+			using the parents DS RRset. [RT #15649]
+
 1940.	[bug]		Fixed a number of error conditions reported by
 			Coverity.
 
