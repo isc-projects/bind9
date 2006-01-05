@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.25 2005/10/14 01:28:26 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.26 2006/01/05 01:33:55 marka Exp $ */
 
 /*! \file */
 
@@ -1300,6 +1300,47 @@ cleanup_nondirty(rbtdb_version_t *version, rbtdb_changedlist_t *cleanup_list) {
 	}
 }
 
+static isc_boolean_t
+iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
+	dns_rdataset_t keyset;
+	dns_rdataset_t nsecset, signsecset;
+	isc_boolean_t haszonekey = ISC_FALSE;
+	isc_boolean_t hasnsec = ISC_FALSE;
+	isc_result_t result;
+
+	dns_rdataset_init(&keyset);
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_dnskey, 0,
+				     0, &keyset, NULL);
+	if (result == ISC_R_SUCCESS) {
+		dns_rdata_t keyrdata = DNS_RDATA_INIT;
+		result = dns_rdataset_first(&keyset);
+		while (result == ISC_R_SUCCESS) {
+			dns_rdataset_current(&keyset, &keyrdata);
+			if (dns_zonekey_iszonekey(&keyrdata)) {
+				haszonekey = ISC_TRUE;
+				break;
+			}
+			result = dns_rdataset_next(&keyset);
+		}
+		dns_rdataset_disassociate(&keyset);
+	}
+	if (!haszonekey)
+		return (ISC_FALSE);
+
+	dns_rdataset_init(&nsecset);
+	dns_rdataset_init(&signsecset);
+	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_nsec, 0,
+				     0, &nsecset, &signsecset);
+	if (result == ISC_R_SUCCESS) {
+		if (dns_rdataset_isassociated(&signsecset)) {
+			hasnsec = ISC_TRUE;
+			dns_rdataset_disassociate(&signsecset);
+		}
+		dns_rdataset_disassociate(&nsecset);
+	}
+	return (hasnsec);
+}
+
 static void
 closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
@@ -1457,6 +1498,12 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 	}
 	least_serial = rbtdb->least_serial;
 	RBTDB_UNLOCK(&rbtdb->lock, isc_rwlocktype_write);
+
+	/*
+	 * Update the zone's secure status.
+	 */
+	if (version->writer && commit && !IS_CACHE(rbtdb))
+		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
 
 	if (cleanup_version != NULL) {
 		INSIST(EMPTY(cleanup_version->changed_list));
@@ -4798,6 +4845,13 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (delegating)
 		RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
+	/*
+	 * Update the zone's secure status.  If version is non-NULL
+	 * this is defered until closeversion() is called.
+	 */
+	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
+		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
+
 	return (result);
 }
 
@@ -4954,6 +5008,13 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
 
+	/*
+	 * Update the zone's secure status.  If version is non-NULL
+	 * this is defered until closeversion() is called.
+	 */
+	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
+		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
+
 	return (result);
 }
 
@@ -4998,6 +5059,13 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	NODE_UNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		    isc_rwlocktype_write);
+
+	/*
+	 * Update the zone's secure status.  If version is non-NULL
+	 * this is defered until closeversion() is called.
+	 */
+	if (result == ISC_R_SUCCESS && version == NULL && !IS_CACHE(rbtdb))
+		rbtdb->secure = iszonesecure(db, rbtdb->origin_node);
 
 	return (result);
 }
@@ -5113,48 +5181,6 @@ beginload(dns_db_t *db, dns_addrdatasetfunc_t *addp, dns_dbload_t **dbloadp) {
 	*dbloadp = loadctx;
 
 	return (ISC_R_SUCCESS);
-}
-
-static isc_boolean_t
-iszonesecure(dns_db_t *db, dns_dbnode_t *origin) {
-	dns_rdataset_t keyset;
-	dns_rdataset_t nsecset, signsecset;
-	isc_boolean_t haszonekey = ISC_FALSE;
-	isc_boolean_t hasnsec = ISC_FALSE;
-	isc_result_t result;
-
-	dns_rdataset_init(&keyset);
-	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_dnskey, 0,
-				     0, &keyset, NULL);
-	if (result == ISC_R_SUCCESS) {
-		dns_rdata_t keyrdata = DNS_RDATA_INIT;
-		result = dns_rdataset_first(&keyset);
-		while (result == ISC_R_SUCCESS) {
-			dns_rdataset_current(&keyset, &keyrdata);
-			if (dns_zonekey_iszonekey(&keyrdata)) {
-				haszonekey = ISC_TRUE;
-				break;
-			}
-			result = dns_rdataset_next(&keyset);
-		}
-		dns_rdataset_disassociate(&keyset);
-	}
-	if (!haszonekey)
-		return (ISC_FALSE);
-
-	dns_rdataset_init(&nsecset);
-	dns_rdataset_init(&signsecset);
-	result = dns_db_findrdataset(db, origin, NULL, dns_rdatatype_nsec, 0,
-				     0, &nsecset, &signsecset);
-	if (result == ISC_R_SUCCESS) {
-		if (dns_rdataset_isassociated(&signsecset)) {
-			hasnsec = ISC_TRUE;
-			dns_rdataset_disassociate(&signsecset);
-		}
-		dns_rdataset_disassociate(&nsecset);
-	}
-	return (hasnsec);
-
 }
 
 static isc_result_t
