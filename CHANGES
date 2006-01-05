@@ -1,3 +1,6 @@
+1960.	[bug]		Update code should set NSEC ttls from SOA MINIMUM.
+			[RT #15465]
+
 1958.	[bug]		Named failed to update the zone's secure state
 			until the zone was reloaded. [RT #15412]
 
