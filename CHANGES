@@ -1,3 +1,6 @@
+1962.	[bug]		Named failed to clear old update-policy when it
+			was removed. [RT #15491]
+
 1961.	[bug]		Check the port and address of responses forwarded
 			to dispatch. [RT #15474]
 
