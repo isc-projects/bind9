@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.87.2.10 2006/01/04 23:50:16 marka Exp $ */
+/* $Id: zoneconf.c,v 1.87.2.11 2006/01/05 03:38:35 marka Exp $ */
 
 #include <config.h>
 
@@ -103,8 +103,10 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 	isc_result_t result;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
-	if (updatepolicy == NULL)
+	if (updatepolicy == NULL) {
+		dns_zone_setssutable(zone, NULL);
 		return (ISC_R_SUCCESS);
+	}
 
 	result = dns_ssutable_create(mctx, &table);
 	if (result != ISC_R_SUCCESS)
