@@ -1,3 +1,6 @@
+1957.	[bug]		Dig mishandled responses to class ANY queries.
+			[RT #15402]
+
 1956.	[bug]		Improve cross compile support, 'gen' is now built
 			by native compiler.  See README for additional
 			cross compile support information. [RT #15148]
