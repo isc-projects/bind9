@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.126.18.9 2006/01/04 23:50:23 marka Exp $ */
+/* $Id: view.c,v 1.126.18.10 2006/01/05 00:10:43 marka Exp $ */
 
 /*! \file */
 
@@ -174,6 +174,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->preferred_glue = 0;
 	view->flush = ISC_FALSE;
 	view->dlv = NULL;
+	view->maxudp = 0;
 	dns_fixedname_init(&view->dlv_fixed);
 
 	result = dns_order_create(view->mctx, &view->order);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.35 2006/01/04 23:50:23 marka Exp $ */
+/* $Id: server.c,v 1.419.18.36 2006/01/05 00:10:43 marka Exp $ */
 
 /*! \file */
 
@@ -687,6 +687,17 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	}
 
 	obj = NULL;
+	(void)cfg_map_get(cpeer, "max-udp-size", &obj);
+	if (obj != NULL) {
+		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
+		if (udpsize < 512)
+			udpsize = 512;
+		if (udpsize > 4096)
+			udpsize = 4096;
+		CHECK(dns_peer_setmaxudp(peer, (isc_uint16_t)udpsize));
+	}
+
+	obj = NULL;
 	(void)cfg_map_get(cpeer, "transfers", &obj);
 	if (obj != NULL)
 		CHECK(dns_peer_settransfers(peer, cfg_obj_asuint32(obj)));
@@ -1149,6 +1160,19 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		udpsize = 4096;
 	dns_resolver_setudpsize(view->resolver, (isc_uint16_t)udpsize);
 	
+	/*
+	 * Set the maximum UDP response size.
+	 */
+	obj = NULL;
+	result = ns_config_get(maps, "max-udp-size", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	udpsize = cfg_obj_asuint32(obj);
+	if (udpsize < 512)
+		udpsize = 512;
+	if (udpsize > 4096)
+		udpsize = 4096;
+	view->maxudp = udpsize;
+
 	/*
 	 * Set supported DNSSEC algorithms.
 	 */

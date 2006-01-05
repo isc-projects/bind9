@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.40 2006/01/04 04:26:26 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.41 2006/01/05 00:10:43 marka Exp $ */
 
 /*! \file */
 
@@ -1297,10 +1297,15 @@ resquery_send(resquery_t *query) {
 	 * Use EDNS0, unless the caller doesn't want it, or we know that
 	 * the remote server doesn't like it.
 	 */
-	if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS &&
+
+	if (fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2) &&
 	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 		FCTXTRACE("too many timeouts, disabling EDNS0");
+	} else if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS &&
+	    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
+		query->options |= DNS_FETCHOPT_EDNS512;
+		FCTXTRACE("too many timeouts, setting EDNS size to 512");
 	}
 
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
@@ -1314,7 +1319,9 @@ resquery_send(resquery_t *query) {
 				version = flags & DNS_FETCHOPT_EDNSVERSIONMASK;
 				version >>= DNS_FETCHOPT_EDNSVERSIONSHIFT;
 			}
-			if (peer != NULL)
+			if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
+				udpsize = 512;
+			else if (peer != NULL)
 				(void)dns_peer_getudpsize(peer, &udpsize);
 			result = fctx_addopt(fctx->qmessage, version, udpsize);
 			if (result != ISC_R_SUCCESS) {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.15 2006/01/04 23:50:23 marka Exp $ */
+/* $Id: client.c,v 1.219.18.16 2006/01/05 00:10:42 marka Exp $ */
 
 #include <config.h>
 
@@ -34,12 +34,13 @@
 #include <dns/dispatch.h>
 #include <dns/events.h>
 #include <dns/message.h>
+#include <dns/peer.h>
 #include <dns/rcode.h>
-#include <dns/resolver.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
+#include <dns/resolver.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
@@ -1704,6 +1705,19 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(3), ra ? "recursion available" :
 		      			     "recursion not available");
+
+	/*
+	 * Adjust maximum UDP response size for this client.
+	 */
+	if (client->udpsize > 512) {
+		dns_peer_t *peer = NULL;
+		isc_uint16_t udpsize = view->maxudp;
+		(void) dns_peerlist_peerbyaddr(view->peers, &netaddr, &peer);
+		if (peer != NULL)
+			dns_peer_getmaxudp(peer, &udpsize);
+		if (client->udpsize > udpsize)
+			client->udpsize = udpsize;
+	}
 
 	/*
 	 * Dispatch the request.

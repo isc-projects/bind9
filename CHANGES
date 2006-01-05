@@ -1,3 +1,12 @@
+1954.	[func]		Named now falls back to advertising EDNS with a
+			512 byte receive buffer if the initial EDNS queries
+			fail.  [RT #14852]
+
+1953.	[func]		The maximum EDNS UDP response named will send can
+			now be set in named.conf (max-udp-size).  This is
+			independent of the advertised receive buffer
+			(edns-udp-size). [RT #14852]
+
 1952.	[port]		hpux: tell the linker to build a runtime link
 			path "-Wl,+b:". [RT #14816].
 

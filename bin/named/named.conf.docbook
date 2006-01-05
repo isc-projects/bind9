@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.16 2006/01/04 23:50:23 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.17 2006/01/05 00:10:43 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -104,6 +104,7 @@ server ( <replaceable>ipv4_address<optional>/prefixlen</optional></replaceable> 
 	bogus <replaceable>boolean</replaceable>;
 	edns <replaceable>boolean</replaceable>;
 	edns-udp-size <replaceable>integer</replaceable>;
+	max-udp-size <replaceable>integer</replaceable>;
 	provide-ixfr <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	keys <replaceable>server_key</replaceable>;
@@ -256,6 +257,7 @@ options {
 		<replaceable>ipv6_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> ); ...
 	};
 	edns-udp-size <replaceable>integer</replaceable>;
+	max-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
@@ -397,6 +399,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		<replaceable>ipv6_address</replaceable> <optional>port <replaceable>integer</replaceable></optional> ); ...
 	};
 	edns-udp-size <replaceable>integer</replaceable>;
+	max-udp-size <replaceable>integer</replaceable>;
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.19.18.4 2005/06/07 00:30:40 marka Exp $ */
+/* $Id: peer.c,v 1.19.18.5 2006/01/05 00:10:43 marka Exp $ */
 
 /*! \file */
 
@@ -41,6 +41,7 @@
 #define REQUEST_IXFR_BIT		4
 #define SUPPORT_EDNS_BIT		5
 #define SERVER_UDPSIZE_BIT		6
+#define SERVER_MAXUDP_BIT		7
 
 static void
 peerlist_delete(dns_peerlist_t **list);
@@ -67,7 +68,6 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 
 	return (ISC_R_SUCCESS);
 }
-
 
 void
 dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target) {
@@ -582,6 +582,34 @@ dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize) {
 
 	if (DNS_BIT_CHECK(SERVER_UDPSIZE_BIT, &peer->bitflags)) {
                 *udpsize = peer->udpsize;
+                return (ISC_R_SUCCESS);
+        } else {
+                return (ISC_R_NOTFOUND);
+        }
+}
+
+isc_result_t
+dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp) {
+	isc_boolean_t existed;
+
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	existed = DNS_BIT_CHECK(SERVER_MAXUDP_BIT, &peer->bitflags);
+
+	peer->maxudp = maxudp;
+	DNS_BIT_SET(SERVER_MAXUDP_BIT, &peer->bitflags);
+
+	return (existed ? ISC_R_EXISTS : ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp) {
+
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(maxudp != NULL);
+
+	if (DNS_BIT_CHECK(SERVER_MAXUDP_BIT, &peer->bitflags)) {
+                *maxudp = peer->maxudp;
                 return (ISC_R_SUCCESS);
         } else {
                 return (ISC_R_NOTFOUND);
