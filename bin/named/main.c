@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.15 2005/04/07 02:22:10 marka Exp $ */
+/* $Id: main.c,v 1.119.2.16 2006/01/05 01:41:15 marka Exp $ */
 
 #include <config.h>
 
@@ -410,7 +410,7 @@ create_managers(void) {
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_taskmgr_create() failed: %s",
+				 "isc_taskmgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -418,7 +418,7 @@ create_managers(void) {
 	result = isc_timermgr_create(ns_g_mctx, &ns_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_timermgr_create() failed: %s",
+				 "isc_timermgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
