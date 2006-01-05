@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.54 $)
+AC_REVISION($Revision: 1.294.2.23.2.55 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1689,6 +1689,7 @@ AC_TRY_COMPILE([
 [optarg = 0;],
 [AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)
+GEN_NEED_OPTARG="-DNEED_OPTARG=1"
 AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])])
 
 #
@@ -2048,6 +2049,28 @@ LIBBIND9_API=$srcdir/lib/bind9/api
 
 AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API=$srcdir/lib/lwres/api
+
+if test "cross_compiling" = "yes"; then
+	if test -z "$BUILD_CC"; then
+		AC_ERROR([BUILD_CC not set])
+	fi
+	BUILD_CFLAGS="$BUILD_CFLAGS"
+	BUILD_CPPFLAGS="$BUILD_CPPFLAGS"
+	BUILD_LDFLAGS="$BUILD_LDFLAGS"
+	BUILD_LIBS="$BUILD_LIBS"
+else
+	BUILD_CC="$CC" 
+	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
+	BUILD_LDFLAGS="$LDFLAGS"
+	BUILD_LIBS="$LIBS"
+fi
+
+AC_SUBST(BUILD_CC)
+AC_SUBST(BUILD_CFLAGS)
+AC_SUBST(BUILD_CPPFLAGS)
+AC_SUBST(BUILD_LDFLAGS)
+AC_SUBST(BUILD_LIBS)
 
 AC_OUTPUT(
 	make/rules

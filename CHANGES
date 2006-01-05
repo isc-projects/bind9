@@ -1,3 +1,7 @@
+1956.	[bug]		Improve cross compile support, 'gen' is now built
+			by native compiler.  See README for additional
+			cross compile support information. [RT #15148]
+
 1955.	[bug]		Pre-allocate the cache cleaning interator. [RT #14998]
 
 1952.	[port]		hpux: tell the linker to build a runtime link
