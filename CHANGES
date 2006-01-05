@@ -1,3 +1,7 @@
+1959.	[func]		Control the zeroing of the negative response TTL to
+			a soa query.  Defaults "zero-no-soa-ttl yes;" and
+			"zero-no-soa-ttl-cache no;". [RT #15460]
+
 1958.	[bug]		Named failed to update the zone's secure state
 			until the zone was reloaded. [RT #15412]
 

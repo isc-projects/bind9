@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.278 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: query.c,v 1.279 2006/01/05 02:19:01 marka Exp $ */
 
 /*! \file */
 
@@ -3874,7 +3874,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		 * the containing zone of an arbitrary name with a stub
 		 * resolver and not have it cached.
 		 */
-		if (qtype == dns_rdatatype_soa)
+		if (qtype == dns_rdatatype_soa &&
+		    dns_zone_getzeronosoattl(zone))
 			result = query_addsoa(client, db, version, ISC_TRUE);
 		else
 			result = query_addsoa(client, db, version, ISC_FALSE);

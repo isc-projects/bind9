@@ -492,6 +492,7 @@ dns_resolver_dispatchv6
 dns_resolver_freeze
 dns_resolver_getlamettl
 dns_resolver_getudpsize
+dns_resolver_getzeronosoattl
 dns_resolver_nrunning
 dns_resolver_prime
 dns_resolver_reset_algorithms
@@ -500,6 +501,7 @@ dns_resolver_setclientsperquery
 dns_resolver_setlamettl
 dns_resolver_setmustbesecure
 dns_resolver_setudpsize
+dns_resolver_setzeronosoattl
 dns_resolver_shutdown
 dns_resolver_socketmgr
 dns_resolver_taskmgr
@@ -655,6 +657,7 @@ dns_zone_getview
 dns_zone_getxfracl
 dns_zone_getxfrsource4
 dns_zone_getxfrsource6
+dns_zone_getzeronosoattl
 dns_zone_iattach
 dns_zone_idetach
 dns_zone_isforced
@@ -716,6 +719,7 @@ dns_zone_setview
 dns_zone_setxfracl
 dns_zone_setxfrsource4
 dns_zone_setxfrsource6
+dns_zone_setzeronosoattl
 dns_zone_unload
 dns_zonekey_iszonekey
 dns_zonemgr_attach

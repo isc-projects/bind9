@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.125 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: zoneconf.c,v 1.126 2006/01/05 02:19:02 marka Exp $ */
 
 /*% */
 
@@ -605,6 +605,11 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(result == ISC_R_SUCCESS);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSIBLING, 
 				   cfg_obj_asboolean(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "zero-no-soa-ttl", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setzeronosoattl(zone, cfg_obj_asboolean(obj));
 	}
 
 	/*

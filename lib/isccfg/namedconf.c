@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.61 2006/01/05 00:01:46 marka Exp $ */
+/* $Id: namedconf.c,v 1.62 2006/01/05 02:19:02 marka Exp $ */
 
 /*! \file */
 
@@ -782,6 +782,7 @@ view_clauses[] = {
 	{ "empty-contact", &cfg_type_astring, 0 },
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
+	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -840,6 +841,7 @@ zone_clauses[] = {
 	{ "check-integrity", &cfg_type_boolean, 0 },
 	{ "check-mx", &cfg_type_checkmode, 0 },
 	{ "check-sibling", &cfg_type_boolean, 0 },
+	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

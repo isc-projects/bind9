@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.49 2006/01/05 00:01:46 marka Exp $ */
+/* $Id: resolver.h,v 1.50 2006/01/05 02:19:02 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -467,6 +467,13 @@ dns_resolver_setclientsperquery(dns_resolver_t *resolver,
 void
 dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
 				isc_uint32_t *min, isc_uint32_t *max);
+
+isc_boolean_t
+dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
+ 
+void
+dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_RESOLVER_H */

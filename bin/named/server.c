@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.454 2006/01/05 00:01:46 marka Exp $ */
+/* $Id: server.c,v 1.455 2006/01/05 02:19:02 marka Exp $ */
 
 /*! \file */
 
@@ -1146,6 +1146,11 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
+
+	obj = NULL;
+	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	dns_resolver_setzeronosoattl(view->resolver, cfg_obj_asboolean(obj));
 	
 	/*
 	 * Set the resolver's EDNS UDP size.
