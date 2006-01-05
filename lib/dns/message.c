@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.18 2006/01/04 23:50:17 marka Exp $ */
+/* $Id: message.c,v 1.194.2.19 2006/01/05 01:04:30 marka Exp $ */
 
 /***
  *** Imports
@@ -800,6 +800,31 @@ findname(dns_name_t **foundname, dns_name_t *target,
 }
 
 isc_result_t
+dns_message_find(dns_name_t *name, dns_rdataclass_t rdclass,
+		 dns_rdatatype_t type, dns_rdatatype_t covers,
+		 dns_rdataset_t **rdataset)
+{
+	dns_rdataset_t *curr;
+
+	if (rdataset != NULL) {
+		REQUIRE(*rdataset == NULL);
+	}
+
+	for (curr = ISC_LIST_TAIL(name->list);
+	     curr != NULL;
+	     curr = ISC_LIST_PREV(curr, link)) {
+		if (curr->rdclass == rdclass &&
+		    curr->type == type && curr->covers == covers) {
+			if (rdataset != NULL)
+				*rdataset = curr;
+			return (ISC_R_SUCCESS);
+		}
+	}
+
+	return (ISC_R_NOTFOUND);
+}
+
+isc_result_t
 dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_rdataset_t **rdataset)
 {
@@ -1030,7 +1055,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		/*
 		 * Can't ask the same question twice.
 		 */
-		result = dns_message_findtype(name, rdtype, 0, NULL);
+		result = dns_message_find(name, rdclass, rdtype, 0, NULL);
 		if (result == ISC_R_SUCCESS)
 			DO_FORMERR;
 
@@ -1190,6 +1215,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		    && rdtype != dns_rdatatype_key /* in a TKEY query */
 		    && rdtype != dns_rdatatype_sig /* SIG(0) */
 		    && rdtype != dns_rdatatype_tkey /* Win2000 TKEY */
+		    && msg->rdclass != dns_rdataclass_any
 		    && msg->rdclass != rdclass)
 			DO_FORMERR;
 
@@ -1279,11 +1305,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			rdata->type = rdtype;
 			rdata->flags = DNS_RDATA_UPDATE;
 			result = ISC_R_SUCCESS;
-		} else if (rdtype == dns_rdatatype_tsig)
+		} else
 			result = getrdata(source, msg, dctx, rdclass,
-					  rdtype, rdatalen, rdata);
-		else
-			result = getrdata(source, msg, dctx, msg->rdclass,
 					  rdtype, rdatalen, rdata);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
@@ -1354,8 +1377,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				DO_FORMERR;
 
 			rdataset = NULL;
-			result = dns_message_findtype(name, rdtype, covers,
-						      &rdataset);
+			result = dns_message_find(name, rdclass, rdtype,
+						   covers, &rdataset);
 		}
 
 		/*

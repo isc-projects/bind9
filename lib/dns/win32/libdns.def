@@ -242,6 +242,7 @@ dns_message_renderreset
 dns_message_firstname
 dns_message_nextname
 dns_message_currentname
+dns_message_find
 dns_message_findname
 dns_message_findtype
 dns_message_movename
