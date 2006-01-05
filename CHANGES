@@ -1,3 +1,5 @@
+1955.	[bug]		Pre-allocate the cache cleaning interator. [RT #14998]
+
 1954.	[func]		Named now falls back to advertising EDNS with a
 			512 byte receive buffer if the initial EDNS queries
 			fail.  [RT #14852]
