@@ -37,6 +37,10 @@
 1940.	[bug]		Fixed a number of error conditions reported by
 			Coverity.
 
+1919.	[contrib]	queryperf: a set of new features: collecting/printing
+			response delays, printing intermediate results, and
+			adjusting query rate for the "target" qps.
+
 	--- 9.3.2 released ---
 
 	--- 9.3.2rc1 released ---
