@@ -1,3 +1,5 @@
+1964.	[func]		Seperate out MX and SRV to CNAME checks. [RT #15723]
+
 1963.	[port]		Tru64 4.0E doesn't support send() and recv(). 
 			[RT #15586]
 

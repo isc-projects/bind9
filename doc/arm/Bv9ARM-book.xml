@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.289 2006/01/05 11:52:32 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.290 2006/01/05 23:45:33 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4402,6 +4402,8 @@ category notify { null; };
     <optional> check-mx ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-wildcard <replaceable>yes_or_no</replaceable>; </optional>
     <optional> check-integrity <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> check-mx-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
+    <optional> check-srv-cname ( <replaceable>warn</replaceable> | <replaceable>fail</replaceable> | <replaceable>ignore</replaceable> ); </optional>
     <optional> check-sibling <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-notify { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
@@ -5576,6 +5578,28 @@ options {
 		  checked (for out-of-zone names and glue consistancy
 		  checks use named-checkzone).  The default is
 		  <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>check-mx-cname</command></term>
+	      <listitem>
+		<para>
+		  If <command>check-integrity</command> is set then
+		  fail, warn or ignore MX records that refer
+		  to CNAMES.  The default is to <command>warn</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>check-srv-cname</command></term>
+	      <listitem>
+		<para>
+		  If <command>check-integrity</command> is set then
+		  fail, warn or ignore SRV records that refer
+		  to CNAMES.  The default is to <command>warn</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>

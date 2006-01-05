@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.39 2005/09/18 07:16:17 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.40 2006/01/05 23:45:33 marka Exp $ */
 
 /*! \file */
 
@@ -223,6 +223,42 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 			zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 		else
 			zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
+	}
+
+	obj = NULL;
+	if (get_maps(maps, "check-mx-cname", &obj)) {
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			zone_options |= DNS_ZONEOPT_WARNMXCNAME;
+			zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			zone_options &= ~DNS_ZONEOPT_WARNMXCNAME;
+			zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			zone_options |= DNS_ZONEOPT_WARNMXCNAME;
+			zone_options |= DNS_ZONEOPT_IGNOREMXCNAME;
+		} else
+			INSIST(0);
+	} else {
+		zone_options |= DNS_ZONEOPT_WARNMXCNAME;
+		zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+	}
+
+	obj = NULL;
+	if (get_maps(maps, "check-srv-cname", &obj)) {
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
+			zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			zone_options &= ~DNS_ZONEOPT_WARNSRVCNAME;
+			zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
+			zone_options |= DNS_ZONEOPT_IGNORESRVCNAME;
+		} else
+			INSIST(0);
+	} else {
+		zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
+		zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
 	}
 
 	obj = NULL;

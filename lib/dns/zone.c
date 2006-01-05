@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.449 2006/01/05 02:19:02 marka Exp $ */
+/* $Id: zone.c,v 1.450 2006/01/05 23:45:33 marka Exp $ */
 
 /*! \file */
 
@@ -468,7 +468,7 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		 unsigned int *soacount, isc_uint32_t *serial,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
 		 isc_uint32_t *expire, isc_uint32_t *minimum,
-		 unsigned int *cnames);
+		 unsigned int *errors);
 
 static void zone_freedbargs(dns_zone_t *zone);
 static void forward_callback(isc_task_t *task, isc_event_t *event);
@@ -1411,21 +1411,32 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		dns_zone_log(zone, level,
 			     "%s/MX '%s' has no address records (A or AAAA)",
 			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		/* XXX950 make fatal for 9.5.0. */
+		return (ISC_TRUE);
 	}
 
 	if (result == DNS_R_CNAME) {
-		dns_zone_log(zone, level, "%s/MX '%s' is a CNAME (illegal)",
-			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNMXCNAME) ||
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+			level = ISC_LOG_WARNING;
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+			dns_zone_log(zone, level,
+				     "%s/MX '%s' is a CNAME (illegal)",
+				     ownerbuf, namebuf);
+		return ((level == ISC_LOG_WARNING) ? ISC_TRUE : ISC_FALSE);
 	}
 
 	if (result == DNS_R_DNAME) {
-		dns_name_format(foundname, altbuf, sizeof altbuf);
-		dns_zone_log(zone, level,
-			     "%s/MX '%s' is below a DNAME '%s' (illegal)",
-			     ownerbuf, namebuf, altbuf);
-		return (ISC_FALSE);
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNMXCNAME) ||
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME))
+			level = ISC_LOG_WARNING;
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME)) {
+			dns_name_format(foundname, altbuf, sizeof altbuf);
+			dns_zone_log(zone, level, "%s/MX '%s' is below a DNAME"
+			             " '%s' (illegal)", ownerbuf, namebuf,
+				     altbuf);
+		}
+		return ((level == ISC_LOG_WARNING) ? ISC_TRUE : ISC_FALSE);
 	}
 
 	if (zone->checkmx != NULL && result == DNS_R_DELEGATION)
@@ -1446,6 +1457,12 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 	dns_name_t *foundname;
 	int level;
 	
+	/*
+	 * "." means the services does not exist.
+	 */
+	if (dns_name_equal(name, dns_rootname))
+		return (ISC_TRUE);
+
 	/*
 	 * Outside of zone.
 	 */
@@ -1482,21 +1499,32 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		dns_zone_log(zone, level,
 			     "%s/SRV '%s' has no address records (A or AAAA)",
 			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		/* XXX950 make fatal for 9.5.0. */
+		return (ISC_TRUE);
 	}
 
 	if (result == DNS_R_CNAME) {
-		dns_zone_log(zone, level, "%s/SRV '%s' is a CNAME (illegal)",
-			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNSRVCNAME) ||
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+			level = ISC_LOG_WARNING;
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+			dns_zone_log(zone, level,
+				     "%s/SRV '%s' is a CNAME (illegal)",
+				     ownerbuf, namebuf);
+		return ((level == ISC_LOG_WARNING) ? ISC_TRUE : ISC_FALSE);
 	}
 
 	if (result == DNS_R_DNAME) {
-		dns_name_format(foundname, altbuf, sizeof altbuf);
-		dns_zone_log(zone, level,
-			     "%s/SRV '%s' is below a DNAME '%s' (illegal)",
-			     ownerbuf, namebuf, altbuf);
-		return (ISC_FALSE);
+		if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_WARNSRVCNAME) ||
+		    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME))
+			level = ISC_LOG_WARNING;
+		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNORESRVCNAME)) {
+			dns_name_format(foundname, altbuf, sizeof altbuf);
+			dns_zone_log(zone, level, "%s/SRV '%s' is below a "
+				     "DNAME '%s' (illegal)", ownerbuf, namebuf,
+				     altbuf);
+		}
+		return ((level == ISC_LOG_WARNING) ? ISC_TRUE : ISC_FALSE);
 	}
 
 	if (zone->checksrv != NULL && result == DNS_R_DELEGATION)
@@ -1599,18 +1627,21 @@ zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 			if (result == DNS_R_DELEGATION && zone->checkns != NULL)
 				(void)(zone->checkns)(zone, name, owner,
 						      &a, &aaaa);
-			answer = ISC_FALSE;
+			/* XXX950 make fatal for 9.5.0. */
+			/* answer = ISC_FALSE; */
 		}
 	} else if (result == DNS_R_CNAME) {
 		dns_zone_log(zone, level, "%s/NS '%s' is a CNAME (illegal)",
 			     ownerbuf, namebuf);
-		answer = ISC_FALSE;
+		/* XXX950 make fatal for 9.5.0. */
+		/* answer = ISC_FALSE; */
 	} else if (result == DNS_R_DNAME) {
 		dns_name_format(foundname, altbuf, sizeof altbuf);
 		dns_zone_log(zone, level,
 			     "%s/NS '%s' is below a DNAME '%s' (illegal)",
 			     ownerbuf, namebuf, altbuf);
-		answer = ISC_FALSE;
+		/* XXX950 make fatal for 9.5.0. */
+		/* answer = ISC_FALSE; */
 	}
 
 	if (dns_rdataset_isassociated(&a))
@@ -1743,7 +1774,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 {
 	unsigned int soacount = 0;
 	unsigned int nscount = 0;
-	unsigned int cnames = 0;
+	unsigned int errors = 0;
 	isc_uint32_t serial, refresh, retry, expire, minimum;
 	isc_time_t now;
 	isc_boolean_t needdump = ISC_FALSE;
@@ -1826,7 +1857,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	INSIST(db != NULL);
 	result = zone_get_from_db(zone, db, &nscount, &soacount, &serial,
 				  &refresh, &retry, &expire, &minimum,
-				  &cnames);
+				  &errors);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "could not find NS and/or SOA records");
@@ -1853,7 +1884,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		}
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		if (zone->type == dns_zone_master && cnames != 0) {
+		if (zone->type == dns_zone_master && errors != 0) {
 			result = DNS_R_BADZONE;
 			goto cleanup;
 		}
@@ -2042,13 +2073,15 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 		dns_zone_log(zone, level,
 			     "NS '%s' has no address records (A or AAAA)",
 			     namebuf);
-		return (ISC_FALSE);
+		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
+		return (ISC_TRUE);
 	}
 
 	if (result == DNS_R_CNAME) {
 		dns_zone_log(zone, level, "NS '%s' is a CNAME (illegal)",
 			     namebuf);
-		return (ISC_FALSE);
+		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
+		return (ISC_TRUE);
 	}
 
 	if (result == DNS_R_DNAME) {
@@ -2056,7 +2089,8 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 		dns_zone_log(zone, level,
 			     "NS '%s' is below a DNAME '%s' (illegal)",
 			     namebuf, altbuf);
-		return (ISC_FALSE);
+		/* XXX950 Make fatal ISC_FALSE for 9.5.0. */
+		return (ISC_TRUE);
 	}
 
 	return (ISC_TRUE);
@@ -2065,11 +2099,11 @@ zone_check_ns(dns_zone_t *zone, dns_db_t *db, dns_name_t *name) {
 static isc_result_t
 zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 		 dns_dbversion_t *version, unsigned int *nscount,
-		 unsigned int *cnames)
+		 unsigned int *errors)
 {
 	isc_result_t result;
 	unsigned int count = 0;
-	unsigned int ccount = 0;
+	unsigned int ecount = 0;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata;
 	dns_rdata_ns_t ns;
@@ -2084,7 +2118,7 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 
 	result = dns_rdataset_first(&rdataset);
 	while (result == ISC_R_SUCCESS) {
-		if (cnames != NULL && zone->rdclass == dns_rdataclass_in &&
+		if (errors != NULL && zone->rdclass == dns_rdataclass_in &&
 		    (zone->type == dns_zone_master ||
 		     zone->type == dns_zone_slave)) {
 			dns_rdata_init(&rdata);
@@ -2093,7 +2127,7 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (dns_name_issubdomain(&ns.name, &zone->origin) &&
 			    !zone_check_ns(zone, db, &ns.name))
-				ccount++;
+				ecount++;
 		}
 		count++;
 		result = dns_rdataset_next(&rdataset);
@@ -2103,8 +2137,8 @@ zone_count_ns_rr(dns_zone_t *zone, dns_db_t *db, dns_dbnode_t *node,
  success:
 	if (nscount != NULL)
 		*nscount = count;
-	if (cnames != NULL)
-		*cnames = ccount;
+	if (errors != NULL)
+		*errors = ecount;
 
 	result = ISC_R_SUCCESS;
 
@@ -2197,7 +2231,7 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		 unsigned int *soacount, isc_uint32_t *serial,
 		 isc_uint32_t *refresh, isc_uint32_t *retry,
 		 isc_uint32_t *expire, isc_uint32_t *minimum,
-		 unsigned int *cnames)
+		 unsigned int *errors)
 {
 	dns_dbversion_t *version;
 	isc_result_t result;
@@ -2217,9 +2251,9 @@ zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
 		goto closeversion;
 	}
 
-	if (nscount != NULL || cnames != NULL) {
+	if (nscount != NULL || errors != NULL) {
 		result = zone_count_ns_rr(zone, db, node, version,
-					  nscount, cnames);
+					  nscount, errors);
 		if (result != ISC_R_SUCCESS)
 			answer = result;
 	}
