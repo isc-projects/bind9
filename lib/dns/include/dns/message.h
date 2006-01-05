@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.100.2.3.8.7 2004/03/08 02:08:00 marka Exp $ */
+/* $Id: message.h,v 1.100.2.3.8.8 2006/01/05 01:04:10 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -708,6 +708,27 @@ dns_message_findtype(dns_name_t *name, dns_rdatatype_t type,
  * Returns:
  *	ISC_R_SUCCESS		-- all is well.
  *	ISC_R_NOTFOUND		-- the desired type does not exist.
+ */
+
+isc_result_t
+dns_message_find(dns_name_t *name, dns_rdataclass_t rdclass,
+		 dns_rdatatype_t type, dns_rdatatype_t covers,
+		 dns_rdataset_t **rdataset);
+/*%<
+ * Search the name for the specified rdclass and type.  If it is found,
+ * *rdataset is filled in with a pointer to that rdataset.
+ *
+ * Requires:
+ *\li	if '**rdataset' is non-NULL, *rdataset needs to be NULL.
+ *
+ *\li	'type' be a valid type, and NOT dns_rdatatype_any.
+ *
+ *\li	If 'type' is dns_rdatatype_rrsig, 'covers' must be a valid type.
+ *	Otherwise it should be 0.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS		-- all is well.
+ *\li	#ISC_R_NOTFOUND		-- the desired type does not exist.
  */
 
 void
