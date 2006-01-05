@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.56 $)
+AC_REVISION($Revision: 1.294.2.57 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1166,6 +1166,27 @@ char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
         ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
         ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
 
+if test "cross_compiling" = "yes"; then
+	if test -z "$BUILD_CC"; then
+		AC_ERROR([BUILD_CC not set])
+	fi
+	BUILD_CFLAGS="$BUILD_CFLAGS"
+	BUILD_CPPFLAGS="$BUILD_CPPFLAGS"
+	BUILD_LDFLAGS="$BUILD_LDFLAGS"
+	BUILD_LIBS="$BUILD_LIBS"
+else
+	BUILD_CC="$CC" 
+	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
+	BUILD_LDFLAGS="$LDFLAGS"
+	BUILD_LIBS="$LIBS"
+fi
+
+AC_SUBST(BUILD_CC)
+AC_SUBST(BUILD_CFLAGS)
+AC_SUBST(BUILD_CPPFLAGS)
+AC_SUBST(BUILD_LDFLAGS)
+AC_SUBST(BUILD_LIBS)
 
 # On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
 # addresses with less than four octets, like "1.2.3".  Also leading
