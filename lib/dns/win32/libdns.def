@@ -248,6 +248,7 @@ dns_message_checksig
 dns_message_create
 dns_message_currentname
 dns_message_destroy
+dns_message_find
 dns_message_findname
 dns_message_findtype
 dns_message_firstname
