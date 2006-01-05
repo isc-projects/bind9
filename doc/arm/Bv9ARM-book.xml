@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.45 2006/01/05 02:24:27 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.46 2006/01/05 11:42:36 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -5591,7 +5591,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>zero-no-soa-ttl</command><term>
+	      <term><command>zero-no-soa-ttl</command></term>
 	      <listitem>
 	        <para>
 		  When returning authoritative negative responses to
@@ -5602,7 +5602,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>zero-no-soa-ttl-cache</command><term>
+	      <term><command>zero-no-soa-ttl-cache</command></term>
 	      <listitem>
 	        <para>
 		  When caching a negative response to a SOA query
