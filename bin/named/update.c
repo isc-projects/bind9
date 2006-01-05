@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.88.2.17 2005/10/08 00:20:53 marka Exp $ */
+/* $Id: update.c,v 1.88.2.18 2006/01/05 03:21:24 marka Exp $ */
 
 #include <config.h>
 
@@ -36,6 +36,7 @@
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatasetiter.h>
+#include <dns/rdatastruct.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
 #include <dns/view.h>
@@ -1440,7 +1441,8 @@ next_active(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *oldname,
  * The existing NXT is removed.
  */
 static isc_result_t
-add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
+add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
+	dns_ttl_t nxtttl, dns_diff_t *diff)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1475,8 +1477,7 @@ add_nxt(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name, dns_diff_t *diff)
 	 * Add the new NXT and record the change.
 	 */
 	CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD, name,
-				   3600,	/* XXXRTH */
-				   &rdata, &tuple));
+				   nxtttl, &rdata, &tuple));
 	CHECK(do_one_tuple(&tuple, db, ver, diff));
 	INSIST(tuple == NULL);
 
@@ -1599,6 +1600,11 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	unsigned int nkeys = 0;
 	unsigned int i;
 	isc_stdtime_t now, inception, expire;
+	dns_ttl_t nxtttl;
+	dns_rdata_soa_t soa;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t rdataset;
+	dns_dbnode_t *node = NULL;
 
 	dns_diff_init(mctx, &diffnames);
 	dns_diff_init(mctx, &affected);
@@ -1620,6 +1626,20 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 	isc_stdtime_get(&now);
 	inception = now - 3600; /* Allow for some clock skew. */
 	expire = now + sigvalidityinterval;
+
+	/*
+	 * Get the NXT's TTL from the SOA MINIMUM field.
+	 */
+	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
+	dns_rdataset_init(&rdataset);
+	CHECK(dns_db_findrdataset(db, node, newver, dns_rdatatype_soa, 0,
+                                  (isc_stdtime_t) 0, &rdataset, NULL));
+	CHECK(dns_rdataset_first(&rdataset));
+	dns_rdataset_current(&rdataset, &rdata);
+	CHECK(dns_rdata_tostruct(&rdata, &soa, NULL));
+	nxtttl = soa.minimum;
+	dns_rdataset_disassociate(&rdataset);
+	dns_db_detachnode(db, &node);
 
 	/*
 	 * Find all RRsets directly affected by the update, and
@@ -1823,7 +1843,8 @@ update_signatures(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *oldver,
 			 * there is other data, and if there is other data,
 			 * there are other SIGs.
 			 */
-			CHECK(add_nxt(db, newver, &t->name, &nxt_diff));
+			CHECK(add_nxt(db, newver, &t->name, nxtttl,
+				      &nxt_diff));
 		}
 	}
 
