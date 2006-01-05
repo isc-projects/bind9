@@ -50,8 +50,18 @@
 			trusted-keys do not attempt to validate the DNSKEY
 			using the parents DS RRset. [RT #15649]
 
+1941.	[bug]		ncache_adderesult() should set eresult even if no
+			rdataset is passed to it. [RT #15642]
+
 1940.	[bug]		Fixed a number of error conditions reported by
 			Coverity.
+
+1939.	[bug]           The resolver could dereference a null pointer after
+			validation if all the queries have timed out.
+			[RT #15528]
+
+1938.	[bug]		The validator was not correctly handling unsecure
+			negative responses at or below a SEP. [RT #15528]
 
 1919.	[contrib]	queryperf: a set of new features: collecting/printing
 			response delays, printing intermediate results, and

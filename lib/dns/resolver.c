@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.60 2006/01/04 04:24:09 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.61 2006/01/05 05:38:47 marka Exp $ */
 
 #include <config.h>
 
@@ -27,8 +27,10 @@
 
 #include <dns/acl.h>
 #include <dns/adb.h>
+#include <dns/cache.h>
 #include <dns/db.h>
 #include <dns/dispatch.h>
+#include <dns/ds.h>
 #include <dns/events.h>
 #include <dns/forward.h>
 #include <dns/keytable.h>
@@ -47,6 +49,7 @@
 #include <dns/rdatatype.h>
 #include <dns/resolver.h>
 #include <dns/result.h>
+#include <dns/rootns.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
 
@@ -461,8 +464,7 @@ fctx_starttimer(fetchctx_t *fctx) {
 	 * no further idle events are delivered.
 	 */
 	return (isc_timer_reset(fctx->timer, isc_timertype_once,
-				&fctx->expires, NULL,
-				ISC_TRUE));
+				&fctx->expires, NULL, ISC_TRUE));
 }
 
 static inline void
@@ -3766,23 +3768,28 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 		  isc_result_t *eresultp)
 {
 	isc_result_t result;
+	dns_rdataset_t rdataset;
+
+	if (ardataset == NULL) {
+		dns_rdataset_init(&rdataset);
+		ardataset = &rdataset;
+	}
 	result = dns_ncache_add(message, cache, node, covers, now,
 				maxttl, ardataset);
-	if (result == DNS_R_UNCHANGED) {
+	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
-		 * The data in the cache are better than the negative cache
-		 * entry we're trying to add.
+		 * If the cache now contains a negative entry and we
+		 * care about whether it is DNS_R_NCACHENXDOMAIN or
+		 * DNS_R_NCACHENXRRSET then extract it.
 		 */
-		if (ardataset != NULL && ardataset->type == 0) {
+		if (ardataset->type == 0) {
 			/*
-			 * The cache data is also a negative cache
-			 * entry.
+			 * The cache data is a negative cache entry.
 			 */
 			if (NXDOMAIN(ardataset))
 				*eresultp = DNS_R_NCACHENXDOMAIN;
 			else
 				*eresultp = DNS_R_NCACHENXRRSET;
-			result = ISC_R_SUCCESS;
 		} else {
 			/*
 			 * Either we don't care about the nature of the
@@ -3794,14 +3801,11 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 			 * XXXRTH  There's a CNAME/DNAME problem here.
 			 */
 			*eresultp = ISC_R_SUCCESS;
-			result = ISC_R_SUCCESS;
 		}
-	} else if (result == ISC_R_SUCCESS) {
-		if (NXDOMAIN(ardataset))
-			*eresultp = DNS_R_NCACHENXDOMAIN;
-		else
-			*eresultp = DNS_R_NCACHENXRRSET;
+		result = ISC_R_SUCCESS;
 	}
+	if (ardataset == &rdataset && dns_rdataset_isassociated(ardataset))
+		dns_rdataset_disassociate(ardataset);
 
 	return (result);
 }
