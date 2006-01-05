@@ -1,3 +1,6 @@
+1958.	[bug]		Named failed to update the zone's secure state
+			until the zone was reloaded. [RT #15412]
+
 1957.	[bug]		Dig mishandled responses to class ANY queries.
 			[RT #15402]
 
