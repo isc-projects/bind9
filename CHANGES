@@ -1,3 +1,6 @@
+1961.	[bug]		Check the port and address of responses forwarded
+			to dispatch. [RT #15474]
+
 1960.	[bug]		Update code should set NXT ttls from SOA MINIMUM.
 			[RT #15465]
 

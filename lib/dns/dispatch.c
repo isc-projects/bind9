@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.12 2004/09/01 04:29:00 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.13 2006/01/05 03:31:00 marka Exp $ */
 
 #include <config.h>
 
@@ -639,6 +639,50 @@ udp_recv(isc_task_t *task, isc_event_t *ev_in) {
 		free_buffer(disp, ev->region.base, ev->region.length);
 		goto unlock;
 	} 
+
+	/*
+	 * Now that we have the original dispatch the query was sent
+	 * from check that the address and port the response was
+	 * sent to make sense.
+	 */
+	if (disp != resp->disp) {
+		isc_sockaddr_t a1;
+		isc_sockaddr_t a2;
+		
+		/*
+		 * Check that the socket types and ports match.
+		 */
+		if (disp->socktype != resp->disp->socktype ||
+		    isc_sockaddr_getport(&disp->local) !=
+		    isc_sockaddr_getport(&resp->disp->local)) {
+			free_buffer(disp, ev->region.base, ev->region.length);
+			goto unlock;
+		}
+
+		/*
+		 * If both dispatches are bound to an address then fail as
+		 * the addresses can't be equal (enforced by the IP stack).  
+		 *
+		 * Note under Linux a packet can be sent out via IPv4 socket
+		 * and the response be received via a IPv6 socket.
+		 * 
+		 * Requests sent out via IPv6 should always come back in
+		 * via IPv6.
+		 */
+		if (isc_sockaddr_pf(&resp->disp->local) == PF_INET6 &&
+		    isc_sockaddr_pf(&disp->local) != PF_INET6) {
+			free_buffer(disp, ev->region.base, ev->region.length);
+			goto unlock;
+		}
+		isc_sockaddr_anyofpf(&a1, isc_sockaddr_pf(&resp->disp->local));
+		isc_sockaddr_anyofpf(&a2, isc_sockaddr_pf(&disp->local));
+		if (!isc_sockaddr_eqaddr(&a1, &resp->disp->local) &&
+		    !isc_sockaddr_eqaddr(&a2, &disp->local)) {
+			free_buffer(disp, ev->region.base, ev->region.length);
+			goto unlock;
+		}
+	}
+
 	queue_response = resp->item_out;
 	rev = allocate_event(resp->disp);
 	if (rev == NULL) {
