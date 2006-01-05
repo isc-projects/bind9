@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.144.18.8 2005/09/05 00:18:23 marka Exp $
+# $Id: Makefile.in,v 1.144.18.9 2006/01/05 00:30:10 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -158,7 +158,8 @@ code.h:	gen
 	./gen -s ${srcdir} > code.h
 
 gen: gen.c
-	${CC} ${ALL_CFLAGS} ${LDFLAGS} -o $@ ${srcdir}/gen.c ${LIBS}
+	${BUILD_CC} ${BUILD_CFLAGS} -I${top_srcdir}/lib/isc/include \
+	${BUILD_CPPFLAGS} ${BUILD_LDFLAGS} -o $@ ${srcdir}/gen.c ${BUILD_LIBS}
 
 rbtdb64.@O@: rbtdb.c
 
