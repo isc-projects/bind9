@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.62 2006/01/05 04:45:24 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.63 2006/01/06 04:19:14 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4811,7 +4811,7 @@ configured.</para>
 <para>Stub zones can also be used as a way of forcing the resolution
 of a given domain to use a particular set of authoritative servers.
 For example, the caching name servers on a private network using
-RFC1981 addressing may be configured with stub zones for
+RFC1918 addressing may be configured with stub zones for
 <literal>10.in-addr.arpa</literal>
 to use a set of internal name servers as the authoritative
 servers for that domain.</para>
