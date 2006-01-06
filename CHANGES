@@ -1,3 +1,6 @@
+1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
+			[RT #15727]
+
 1962.	[bug]		Named failed to clear old update-policy when it
 			was removed. [RT #15491]
 
