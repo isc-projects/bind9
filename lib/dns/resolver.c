@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.43 2006/01/06 00:43:07 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.44 2006/01/06 01:13:05 marka Exp $ */
 
 /*! \file */
 
@@ -3215,9 +3215,11 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 * so, destroy the fctx.
 	 */
 	if (SHUTTINGDOWN(fctx) && !sentresponse) {
-		maybe_destroy(fctx);
+		maybe_destroy(fctx);	/* Locks bucket. */
 		goto cleanup_event;
 	}
+
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 
 	/*
 	 * If chaining, we need to make sure that the right result code is
@@ -3277,10 +3279,11 @@ validated(isc_task_t *task, isc_event_t *event) {
 		result = vevent->result;
 		add_bad(fctx, &addrinfo->sockaddr, result);
 		isc_event_free(&event);
+		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		if (sentresponse)
-			fctx_done(fctx, result);
+			fctx_done(fctx, result);	/* Locks bucket. */
 		else
-			fctx_try(fctx);
+			fctx_try(fctx);			/* Locks bucket. */
 		return;
 	}
 
@@ -3359,9 +3362,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * If we only deferred the destroy because we wanted to cache
 		 * the data, destroy now.
 		 */
+		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		if (SHUTTINGDOWN(fctx))
-			maybe_destroy(fctx);
-
+			maybe_destroy(fctx);	/* Locks bucket. */
 		goto cleanup_event;
 	}
 
@@ -3374,6 +3377,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * more rdatasets that still need to
 		 * be validated.
 		 */
+		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		goto cleanup_event;
 	}
 
@@ -3446,7 +3450,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (node != NULL)
 		dns_db_detachnode(fctx->cache, &node);
 
-	fctx_done(fctx, result);
+	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+
+	fctx_done(fctx, result);	/* Locks bucket. */
 
  cleanup_event:
 	isc_event_free(&event);
