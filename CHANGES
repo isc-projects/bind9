@@ -1,3 +1,6 @@
+1970.	[bug]		nsupdate: adjust UDP timeout when falling back to
+			unsigned SOA query. [RT #15775]
+
 1969.	[bug]		win32: the socket code was freeing the socket
 			structure too early. [RT #15776]
 
