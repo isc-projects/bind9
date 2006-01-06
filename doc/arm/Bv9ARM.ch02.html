@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2006 Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and distribute this software for any
@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.1.8.8 2005/10/13 02:33:59 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.1.8.9 2006/01/06 01:47:24 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -45,16 +45,16 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547108">Hardware requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547132">CPU Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547143">Memory Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547158">Name Server Intensive Environment Issues</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547303">Supported Operating Systems</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547111">Hardware requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547136">CPU Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547146">Memory Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547161">Name Server Intensive Environment Issues</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2547238">Supported Operating Systems</a></span></dt>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547108"></a>Hardware requirements</h2></div></div></div>
+<a name="id2547111"></a>Hardware requirements</h2></div></div></div>
 <p><span class="acronym">DNS</span> hardware requirements have traditionally been quite modest.
 For many installations, servers that have been pensioned off from
 active duty have performed admirably as <span class="acronym">DNS</span> servers.</p>
@@ -66,7 +66,7 @@ multiprocessor systems for installations that need it.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547132"></a>CPU Requirements</h2></div></div></div>
+<a name="id2547136"></a>CPU Requirements</h2></div></div></div>
 <p>CPU requirements for <span class="acronym">BIND</span> 9 range from i486-class machines
 for serving of static zones without caching, to enterprise-class
 machines if you intend to process many dynamic updates and DNSSEC
@@ -74,7 +74,7 @@ signed zones, serving many thousands of queries per second.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547143"></a>Memory Requirements</h2></div></div></div>
+<a name="id2547146"></a>Memory Requirements</h2></div></div></div>
 <p>The memory of the server has to be large enough to fit the
 cache and zones loaded off disk.  The <span><strong class="command">max-cache-size</strong></span>
 option can be used to limit the amount of memory used by the cache,
@@ -88,7 +88,7 @@ fast as they are being inserted.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547158"></a>Name Server Intensive Environment Issues</h2></div></div></div>
+<a name="id2547161"></a>Name Server Intensive Environment Issues</h2></div></div></div>
 <p>For name server intensive environments, there are two alternative
 configurations that may be used. The first is where clients and
 any second-level internal name servers query a main name server, which
@@ -102,7 +102,7 @@ as none of the name servers share their cached data.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547303"></a>Supported Operating Systems</h2></div></div></div>
+<a name="id2547238"></a>Supported Operating Systems</h2></div></div></div>
 <p>ISC <span class="acronym">BIND</span> 9 compiles and runs on a large number
 of Unix-like operating system and on Windows NT / 2000.  For an up-to-date
 list of supported systems, see the README file in the top level directory
