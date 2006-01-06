@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.28 2005/10/14 01:28:19 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.29 2006/01/06 00:56:00 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2798,6 +2798,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			printf(";; Warning: short "
 			       "(< header size) message received\n");
 	}
+
+	if (result == ISC_R_SUCCESS && (msgflags & DNS_MESSAGEFLAG_QR) == 0)
+		printf(";; Warning: query response not set\n");
 
 	if (!match) {
 		isc_buffer_invalidate(&query->recvbuf);
