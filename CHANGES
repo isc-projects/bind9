@@ -1,3 +1,6 @@
+1969.	[bug]		win32: the socket code was freeing the socket
+			structure too early. [RT #15776]
+
 1968.	[bug]		Missing lock in resolver.c:validated(). [RT #15739]
 
 1967.	[func]		dig/nslookup/host: warn about missing "QR". [RT #15779]
