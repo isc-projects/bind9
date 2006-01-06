@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.43 2006/01/04 23:50:17 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.44 2006/01/06 04:21:11 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4249,7 +4249,7 @@ configured.</para>
 <para>Stub zones can also be used as a way of forcing the resolution
 of a given domain to use a particular set of authoritative servers.
 For example, the caching name servers on a private network using
-RFC1981 addressing may be configured with stub zones for
+RFC1918 addressing may be configured with stub zones for
 <literal>10.in-addr.arpa</literal>
 to use a set of internal name servers as the authoritative
 servers for that domain.</para>
@@ -6024,15 +6024,6 @@ Conformant Global Address Mapping</title>
             </author>
             <title>Common <acronym>DNS</acronym> Data File Configuration Errors</title>
             <pubdate>October 1993</pubdate>
-          </biblioentry>
-          <biblioentry>
-            <abbrev>RFC1912</abbrev>
-            <author>
-              <surname>Barr</surname>
-              <firstname>D.</firstname>
-            </author>
-            <title>Common <acronym>DNS</acronym> Operational and Configuration Errors</title>
-            <pubdate>February 1996</pubdate>
           </biblioentry>
           <biblioentry>
             <abbrev>RFC1912</abbrev>
