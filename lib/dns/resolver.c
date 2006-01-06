@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.61 2006/01/05 05:38:47 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.62 2006/01/06 00:47:31 marka Exp $ */
 
 #include <config.h>
 
@@ -1289,6 +1289,12 @@ resquery_send(resquery_t *query) {
 		result = DNS_R_SERVFAIL;
 		goto cleanup_message;
 	}
+
+	/*
+	 * Clear CD if EDNS is not in use.
+	 */
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) != 0)
+		fctx->qmessage->flags &= ~DNS_MESSAGEFLAG_CD;
 
 	/*
 	 * Add TSIG record tailored to the current recipient.

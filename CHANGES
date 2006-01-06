@@ -1,3 +1,6 @@
+1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
+			[RT #15727]
+
 1963.	[port]		Tru64 4.0E doesn't support send() and recv(). 
 			[RT #15586]
 
