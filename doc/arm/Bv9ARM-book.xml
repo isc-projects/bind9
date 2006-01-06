@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.63 2006/01/06 04:19:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.64 2006/01/06 04:23:44 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1476,9 +1476,10 @@ allow-update { key host1-host2. ;};
     <title>DNSSEC</title>
 
     <para>Cryptographic authentication of DNS information is possible
-    through the DNS Security (<emphasis>DNSSEC-bis</emphasis>) extensions,
-    defined in RFC &lt;TBA&gt;. This section describes the creation and use
-    of DNSSEC signed zones.</para>
+    through the DNS Security (<emphasis>DNSSEC-bis</emphasis>)
+    extensions, defined in RFC 4033, RFC4034 and RFC4035.  This
+    section describes the creation and use of DNSSEC signed
+    zones.</para>
 
     <para>In order to set up a DNSSEC secure zone, there are a series
     of steps which must be followed.  <acronym>BIND</acronym> 9 ships
