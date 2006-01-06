@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2006 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.1.2.21 2005/10/13 02:53:02 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.1.2.22 2006/01/06 01:48:03 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -31,7 +31,7 @@
 <div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525897"></a><h2>DESCRIPTION</h2>
+<a name="id2525900"></a><h2>DESCRIPTION</h2>
 <p><code class="filename">named.conf</code> is the configuration file
       for
       <span><strong class="command">named</strong></span>.  Statements are enclosed
@@ -50,14 +50,14 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525925"></a><h2>ACL</h2>
+<a name="id2525928"></a><h2>ACL</h2>
 <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525941"></a><h2>KEY</h2>
+<a name="id2525944"></a><h2>KEY</h2>
 <div class="literallayout"><p><br>
 key <em class="replaceable"><code>domain_name</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
@@ -66,7 +66,7 @@ key <em class="replaceable"><code>domain_name</code></em> {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525960"></a><h2>MASTERS</h2>
+<a name="id2525963"></a><h2>MASTERS</h2>
 <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
 	( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
@@ -75,12 +75,13 @@ masters <em class="replaceable"><code>string</code></em> [<span class="optional"
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526006"></a><h2>SERVER</h2>
+<a name="id2526009"></a><h2>SERVER</h2>
 <div class="literallayout"><p><br>
 server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
 	edns <em class="replaceable"><code>boolean</code></em>;<br>
 	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	provide-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 	request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 	keys <em class="replaceable"><code>server_key</code></em>;<br>
@@ -96,7 +97,7 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526071"></a><h2>TRUSTED-KEYS</h2>
+<a name="id2526077"></a><h2>TRUSTED-KEYS</h2>
 <div class="literallayout"><p><br>
 trusted-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
@@ -104,7 +105,7 @@ trusted-keys {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526097"></a><h2>CONTROLS</h2>
+<a name="id2526103"></a><h2>CONTROLS</h2>
 <div class="literallayout"><p><br>
 controls {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
@@ -116,7 +117,7 @@ controls {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526132"></a><h2>LOGGING</h2>
+<a name="id2526138"></a><h2>LOGGING</h2>
 <div class="literallayout"><p><br>
 logging {<br>
 	channel <em class="replaceable"><code>string</code></em> {<br>
@@ -134,7 +135,7 @@ logging {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526170"></a><h2>LWRES</h2>
+<a name="id2526177"></a><h2>LWRES</h2>
 <div class="literallayout"><p><br>
 lwres {<br>
 	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -147,7 +148,7 @@ lwres {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526212"></a><h2>OPTIONS</h2>
+<a name="id2526218"></a><h2>OPTIONS</h2>
 <div class="literallayout"><p><br>
 options {<br>
 	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
@@ -218,7 +219,9 @@ options {<br>
 	check-names ( master | slave | response )<br>
 		( fail | warn | ignore );<br>
 	check-mx ( fail | warn | ignore );<br>
-	integrity-check <em class="replaceable"><code>boolean</code></em>;<br>
+	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
+	check-mx-cname ( fail | warn | ignore );<br>
+	check-srv-cname ( fail | warn | ignore );<br>
 	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
 	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
@@ -226,13 +229,15 @@ options {<br>
 		( <em class="replaceable"><code>quoted_string</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
 		<em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
 		<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ); ...<br>
-	}<br>
+	};<br>
 	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
 	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-accept-expired <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	empty-server <em class="replaceable"><code>string</code></em>;<br>
 	empty-contact <em class="replaceable"><code>string</code></em>;<br>
@@ -286,6 +291,8 @@ options {<br>
 <br>
 	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
+	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
 	deallocate-on-exit <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
@@ -303,7 +310,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526908"></a><h2>VIEW</h2>
+<a name="id2526928"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -357,7 +364,9 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	check-names ( master | slave | response )<br>
 		( fail | warn | ignore );<br>
 	check-mx ( fail | warn | ignore );<br>
-	integrity-check <em class="replaceable"><code>boolean</code></em>;<br>
+	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
+	check-mx-cname ( fail | warn | ignore );<br>
+	check-srv-cname ( fail | warn | ignore );<br>
 	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
 	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
@@ -367,12 +376,13 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 		<em class="replaceable"><code>ipv6_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] ); ...<br>
 	};<br>
 	edns-udp-size <em class="replaceable"><code>integer</code></em>;<br>
+	max-udp-size <em class="replaceable"><code>integer</code></em>;<br>
 	root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } </span>];<br>
 	disable-algorithms <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>string</code></em>; ... };<br>
 	dnssec-enable <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-lookaside <em class="replaceable"><code>string</code></em> trust-anchor <em class="replaceable"><code>string</code></em>;<br>
-<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
+	dnssec-accept-expired <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	empty-server <em class="replaceable"><code>string</code></em>;<br>
 	empty-contact <em class="replaceable"><code>string</code></em>;<br>
@@ -426,6 +436,8 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 <br>
 	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
+	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	allow-v6-synthesis { <em class="replaceable"><code>address_match_element</code></em>; ... }; // obsolete<br>
 	fetch-glue <em class="replaceable"><code>boolean</code></em>; // obsolete<br>
@@ -435,7 +447,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527358"></a><h2>ZONE</h2>
+<a name="id2527390"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -452,10 +464,13 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	delegation-only <em class="replaceable"><code>boolean</code></em>;<br>
 	check-names ( fail | warn | ignore );<br>
 	check-mx ( fail | warn | ignore );<br>
-	integrity-check <em class="replaceable"><code>boolean</code></em>;<br>
+	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
+	check-mx-cname ( fail | warn | ignore );<br>
+	check-srv-cname ( fail | warn | ignore );<br>
 	dialup <em class="replaceable"><code>dialuptype</code></em>;<br>
 	ixfr-from-differences <em class="replaceable"><code>boolean</code></em>;<br>
 	journal <em class="replaceable"><code>quoted_string</code></em>;<br>
+	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	allow-query { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -515,12 +530,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527772"></a><h2>FILES</h2>
+<a name="id2527808"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527784"></a><h2>SEE ALSO</h2>
+<a name="id2527819"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.

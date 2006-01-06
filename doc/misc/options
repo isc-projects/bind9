@@ -82,11 +82,13 @@ options {
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
+        max-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
+        dnssec-accept-expired <boolean>;
         ixfr-from-differences <ixfrdiff>;
         use-additional-cache <boolean>;
         acache-cleaning-interval <integer>;
@@ -97,6 +99,7 @@ options {
         empty-contact <string>;
         empty-zones-enable <boolean>;
         disable-empty-zone <string>;
+        zero-no-soa-ttl-cache <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -138,7 +141,10 @@ options {
         check-wildcard <boolean>;
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-mx-cname ( fail | warn | ignore );
+        check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
+        zero-no-soa-ttl <boolean>;
 };
 
 controls {
@@ -237,7 +243,10 @@ view <string> <optional_class> {
                 check-wildcard <boolean>;
                 check-integrity <boolean>;
                 check-mx ( fail | warn | ignore );
+                check-mx-cname ( fail | warn | ignore );
+                check-srv-cname ( fail | warn | ignore );
                 check-sibling <boolean>;
+                zero-no-soa-ttl <boolean>;
         };
         dlz <string> {
                 database <string>;
@@ -252,6 +261,7 @@ view <string> <optional_class> {
                 keys <server_key>;
                 edns <boolean>;
                 edns-udp-size <integer>;
+                max-udp-size <integer>;
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
                     * ) ];
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
@@ -291,11 +301,13 @@ view <string> <optional_class> {
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [port
             <integer>] | <ipv4_address> [port <integer>] | <ipv6_address> [port <integer>] ); ... };
         edns-udp-size <integer>;
+        max-udp-size <integer>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
+        dnssec-accept-expired <boolean>;
         ixfr-from-differences <ixfrdiff>;
         use-additional-cache <boolean>;
         acache-cleaning-interval <integer>;
@@ -306,6 +318,7 @@ view <string> <optional_class> {
         empty-contact <string>;
         empty-zones-enable <boolean>;
         disable-empty-zone <string>;
+        zero-no-soa-ttl-cache <boolean>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -347,7 +360,10 @@ view <string> <optional_class> {
         check-wildcard <boolean>;
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-mx-cname ( fail | warn | ignore );
+        check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
+        zero-no-soa-ttl <boolean>;
         database <string>;
 };
 
@@ -420,7 +436,10 @@ zone <string> <optional_class> {
         check-wildcard <boolean>;
         check-integrity <boolean>;
         check-mx ( fail | warn | ignore );
+        check-mx-cname ( fail | warn | ignore );
+        check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
+        zero-no-soa-ttl <boolean>;
 };
 
 dlz <string> {
@@ -437,6 +456,7 @@ server <netprefix> {
         keys <server_key>;
         edns <boolean>;
         edns-udp-size <integer>;
+        max-udp-size <integer>;
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
 };
