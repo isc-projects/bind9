@@ -1,3 +1,5 @@
+1968.	[bug]		Missing lock in resolver.c:validated(). [RT #15739]
+
 1967.	[func]		dig/nslookup/host: warn about missing "QR". [RT #15779]
 
 1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
