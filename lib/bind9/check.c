@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.21 2005/11/03 23:02:22 marka Exp $ */
+/* $Id: check.c,v 1.44.18.22 2006/01/06 00:10:00 marka Exp $ */
 
 /*! \file */
 
@@ -931,6 +931,8 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 	{ "check-wildcard", MASTERZONE },
 	{ "check-mx", MASTERZONE },
 	{ "integrity-check", MASTERZONE },
+	{ "check-mx-cname", MASTERZONE },
+	{ "check-srv-cname", MASTERZONE },
 	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
 	};
 

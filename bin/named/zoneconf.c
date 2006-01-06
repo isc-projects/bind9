@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.18 2006/01/06 00:01:43 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.19 2006/01/06 00:09:59 marka Exp $ */
 
 /*% */
 
@@ -342,6 +342,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 	isc_boolean_t alt;
 	dns_view_t *view;
 	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
+	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
 	isc_boolean_t ixfrdiff;
 	dns_masterformat_t masterformat;
 
@@ -682,6 +683,36 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
 		INSIST(obj != NULL);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKINTEGRITY, 
 				   cfg_obj_asboolean(obj));
+
+		obj = NULL;
+		result = ns_config_get(maps, "check-mx-cname", &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			warn = ISC_TRUE;
+			ignore = ISC_FALSE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			warn = ignore = ISC_FALSE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			warn = ignore = ISC_TRUE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_WARNMXCNAME, warn);
+		dns_zone_setoption(zone, DNS_ZONEOPT_IGNOREMXCNAME, ignore);
+
+		obj = NULL;
+		result = ns_config_get(maps, "check-srv-cname", &obj);
+		INSIST(obj != NULL);
+		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
+			warn = ISC_TRUE;
+			ignore = ISC_FALSE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
+			warn = ignore = ISC_FALSE;
+		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
+			warn = ignore = ISC_TRUE;
+		} else
+			INSIST(0);
+		dns_zone_setoption(zone, DNS_ZONEOPT_WARNSRVCNAME, warn);
+		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.126.18.14 2006/01/06 00:01:43 marka Exp $ */
+/* $Id: zone.h,v 1.126.18.15 2006/01/06 00:10:00 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -59,8 +59,12 @@ typedef enum {
 #define DNS_ZONEOPT_CHECKMX	  0x00004000U	/*%< check-mx */
 #define DNS_ZONEOPT_CHECKMXFAIL   0x00008000U	/*%< fatal check-mx failures */
 #define DNS_ZONEOPT_CHECKINTEGRITY 0x00010000U	/*%< perform integrity checks */
-#define DNS_ZONEOPT_CHECKSIBLING 0x00020000U	/*%< perform sibling glue checks */
+#define DNS_ZONEOPT_CHECKSIBLING  0x00020000U	/*%< perform sibling glue checks */
 #define DNS_ZONEOPT_NOCHECKNS	  0x00040000U	/*%< disable IN NS address checks */
+#define DNS_ZONEOPT_WARNMXCNAME	  0x00080000U	/*%< warn on MX CNAME check */
+#define DNS_ZONEOPT_IGNOREMXCNAME 0x00100000U	/*%< ignore MX CNAME check */
+#define DNS_ZONEOPT_WARNSRVCNAME  0x00200000U	/*%< warn on SRV CNAME check */
+#define DNS_ZONEOPT_IGNORESRVCNAME 0x00400000U	/*%< ignore SRV CNAME check */
 
 #ifndef NOMINUM_PUBLIC
 /*

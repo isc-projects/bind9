@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.20 2006/01/05 02:24:26 marka Exp $ */
+/* $Id: config.c,v 1.47.18.21 2006/01/06 00:09:59 marka Exp $ */
 
 /*! \file */
 
@@ -171,6 +171,8 @@ options {\n\
 	check-wildcard yes;\n\
 	check-sibling yes;\n\
 	check-integrity yes;\n\
+	check-mx-cname warn;\n\
+	check-srv-cname warn;\n\
 	zero-no-soa-ttl yes;\n\
 };\n\
 "

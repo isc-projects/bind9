@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.31 2006/01/05 02:24:27 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.32 2006/01/06 00:10:00 marka Exp $ */
 
 /*! \file */
 
@@ -840,6 +840,8 @@ zone_clauses[] = {
 	{ "check-wildcard", &cfg_type_boolean, 0 },
 	{ "check-integrity", &cfg_type_boolean, 0 },
 	{ "check-mx", &cfg_type_checkmode, 0 },
+	{ "check-mx-cname", &cfg_type_checkmode, 0 },
+	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-sibling", &cfg_type_boolean, 0 },
 	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }

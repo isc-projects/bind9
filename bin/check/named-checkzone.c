@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.12 2005/09/18 07:58:03 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.13 2006/01/06 00:09:59 marka Exp $ */
 
 /*! \file */
 
@@ -77,7 +77,8 @@ usage(void) {
 		"[-f inputformat] [-F outputformat] "
 		"[-t directory] [-w directory] [-k (ignore|warn|fail)] "
 		"[-n (ignore|warn|fail)] [-m (ignore|warn|fail)] "
-		"[-i (full|local|none)] [-W (ignore|warn)] "
+		"[-i (full|local|none)] [-M (ignore|warn|fail)] "
+		"[-S (ignore|warn|fail)] [-W (ignore|warn)] "
 		"zonename filename\n", prog_name);
 	exit(1);
 }
@@ -134,8 +135,10 @@ main(int argc, char **argv) {
 				 DNS_ZONEOPT_CHECKWILDCARD);
 	}
 
+#define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
+
 	while ((c = isc_commandline_parse(argc, argv,
-					  "c:df:i:jk:m:n:qst:o:vw:DF:W:"))
+					  "c:df:i:jk:m:n:qst:o:vw:DF:M:S:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'c':
@@ -147,35 +150,31 @@ main(int argc, char **argv) {
 			break;
 
 		case 'i':
-			if (!strcmp(isc_commandline_argument, "full")) {
+			if (ARGCMP("full")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY |
 						DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_TRUE;
 				docheckns = ISC_TRUE;
 				dochecksrv = ISC_TRUE;
-			} else if (!strcmp(isc_commandline_argument,
-					   "full-sibling")) {
+			} else if (ARGCMP("full-sibling")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_TRUE;
 				docheckns = ISC_TRUE;
 				dochecksrv = ISC_TRUE;
-			} else if (!strcmp(isc_commandline_argument,
-					   "local")) {
+			} else if (ARGCMP("local")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options |= DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_FALSE;
 				docheckns = ISC_FALSE;
 				dochecksrv = ISC_FALSE;
-			} else if (!strcmp(isc_commandline_argument,
-					   "local-sibling")) {
+			} else if (ARGCMP("local-sibling")) {
 				zone_options |= DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_FALSE;
 				docheckns = ISC_FALSE;
 				dochecksrv = ISC_FALSE;
-			} else if (!strcmp(isc_commandline_argument,
-					   "none")) {
+			} else if (ARGCMP("none")) {
 				zone_options &= ~DNS_ZONEOPT_CHECKINTEGRITY;
 				zone_options &= ~DNS_ZONEOPT_CHECKSIBLING;
 				docheckmx = ISC_FALSE;
@@ -201,15 +200,13 @@ main(int argc, char **argv) {
 			break;
 
 		case 'k':
-			if (!strcmp(isc_commandline_argument, "warn")) {
+			if (ARGCMP("warn")) {
 				zone_options |= DNS_ZONEOPT_CHECKNAMES;
 				zone_options &= ~DNS_ZONEOPT_CHECKNAMESFAIL;
-			} else if (!strcmp(isc_commandline_argument,
-					   "fail")) {
+			} else if (ARGCMP("fail")) {
 				zone_options |= DNS_ZONEOPT_CHECKNAMES |
 						DNS_ZONEOPT_CHECKNAMESFAIL;
-			} else if (!strcmp(isc_commandline_argument,
-					   "ignore")) {
+			} else if (ARGCMP("ignore")) {
 				zone_options &= ~(DNS_ZONEOPT_CHECKNAMES |
 						  DNS_ZONEOPT_CHECKNAMESFAIL);
 			} else {
@@ -220,13 +217,13 @@ main(int argc, char **argv) {
 			break;
 
 		case 'n':
-			if (!strcmp(isc_commandline_argument, "ignore")) {
+			if (ARGCMP("ignore")) {
 				zone_options &= ~(DNS_ZONEOPT_CHECKNS|
 						  DNS_ZONEOPT_FATALNS);
-			} else if (!strcmp(isc_commandline_argument, "warn")) {
+			} else if (ARGCMP("warn")) {
 				zone_options |= DNS_ZONEOPT_CHECKNS;
 				zone_options &= ~DNS_ZONEOPT_FATALNS;
-			} else if (!strcmp(isc_commandline_argument, "fail")) {
+			} else if (ARGCMP("fail")) {
 				zone_options |= DNS_ZONEOPT_CHECKNS|
 					        DNS_ZONEOPT_FATALNS;
 			} else {
@@ -237,15 +234,13 @@ main(int argc, char **argv) {
 			break;
 
 		case 'm':
-			if (!strcmp(isc_commandline_argument, "warn")) {
+			if (ARGCMP("warn")) {
 				zone_options |= DNS_ZONEOPT_CHECKMX;
 				zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
-			} else if (!strcmp(isc_commandline_argument,
-					   "fail")) {
+			} else if (ARGCMP("fail")) {
 				zone_options |= DNS_ZONEOPT_CHECKMX |
 						DNS_ZONEOPT_CHECKMXFAIL;
-			} else if (!strcmp(isc_commandline_argument,
-					   "ignore")) {
+			} else if (ARGCMP("ignore")) {
 				zone_options &= ~(DNS_ZONEOPT_CHECKMX |
 						  DNS_ZONEOPT_CHECKMXFAIL);
 			} else {
@@ -276,10 +271,9 @@ main(int argc, char **argv) {
 			break;
 
 		case 's':
-			if (strcmp(isc_commandline_argument, "full") == 0)
+			if (ARGCMP("full"))
 				outputstyle = &dns_master_style_full;
-			else if (strcmp(isc_commandline_argument,
-					"default") == 0) {
+			else if (ARGCMP("default")) {
 				outputstyle = &dns_master_style_default;
 			} else {
 				fprintf(stderr,
@@ -305,10 +299,44 @@ main(int argc, char **argv) {
 			dumpzone++;
 			break;
 
+		case 'M':
+			if (ARGCMP("fail")) {
+				zone_options &= ~DNS_ZONEOPT_WARNMXCNAME;
+				zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+			} else if (ARGCMP("warn")) {
+				zone_options |= DNS_ZONEOPT_WARNMXCNAME;
+				zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
+			} else if (ARGCMP("ignore")) {
+				zone_options |= DNS_ZONEOPT_WARNMXCNAME;
+				zone_options |= DNS_ZONEOPT_IGNOREMXCNAME;
+			} else {
+				fprintf(stderr, "invalid argument to -M: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+
+		case 'S':
+			if (ARGCMP("fail")) {
+				zone_options &= ~DNS_ZONEOPT_WARNSRVCNAME;
+				zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+			} else if (ARGCMP("warn")) {
+				zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
+				zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
+			} else if (ARGCMP("ignore")) {
+				zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
+				zone_options |= DNS_ZONEOPT_IGNORESRVCNAME;
+			} else {
+				fprintf(stderr, "invalid argument to -S: %s\n",
+					isc_commandline_argument);
+				exit(1);
+			}
+			break;
+
 		case 'W':
-			if (!strcmp(isc_commandline_argument, "warn"))
+			if (ARGCMP("warn"))
 				zone_options |= DNS_ZONEOPT_CHECKWILDCARD;
-			else if (!strcmp(isc_commandline_argument, "ignore"))
+			else if (ARGCMP("ignore"))
 				zone_options &= ~DNS_ZONEOPT_CHECKWILDCARD;
 			break;
 

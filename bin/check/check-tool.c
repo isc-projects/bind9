@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.10 2005/09/30 08:22:58 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.11 2006/01/06 00:09:59 marka Exp $ */
 
 /*! \file */
 
@@ -71,7 +71,9 @@ unsigned int zone_options = DNS_ZONEOPT_CHECKNS |
 			    DNS_ZONEOPT_MANYERRORS |
 			    DNS_ZONEOPT_CHECKNAMES |
 			    DNS_ZONEOPT_CHECKINTEGRITY |
-			    DNS_ZONEOPT_CHECKWILDCARD;
+			    DNS_ZONEOPT_CHECKWILDCARD |
+			    DNS_ZONEOPT_WARNMXCNAME |
+			    DNS_ZONEOPT_WARNSRVCNAME;
 
 /*
  * This needs to match the list in bin/named/log.c.
@@ -128,10 +130,11 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 	case 0:
 		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "%s/NS '%s' (out of zone) "
+				     "%s/NS '%s' (out of zone) "
 				     "is a CNAME (illegal)",
 				     ownerbuf, namebuf);
-			answer = ISC_FALSE;
+			/* XXX950 make fatal for 9.5.0 */
+			/* answer = ISC_FALSE; */
 		}
 		break;
 	case EAI_NONAME:
@@ -141,7 +144,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 		dns_zone_log(zone, ISC_LOG_ERROR, "%s/NS '%s' (out of zone) "
 			     "has no addresses records (A or AAAA)",
 			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		/* XXX950 make fatal for 9.5.0 */
+		return (ISC_TRUE);
 
 	default:
 		dns_zone_log(zone, ISC_LOG_WARNING,
@@ -175,7 +179,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 				     ownerbuf, namebuf,
 				     inet_ntop(AF_INET, rdata.data,
 					       addrbuf, sizeof(addrbuf)));
-			answer = ISC_FALSE;
+			/* XXX950 make fatal for 9.5.0 */
+			/* answer = ISC_FALSE; */
 		}
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(a);
@@ -203,7 +208,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 				     ownerbuf, namebuf,
 				     inet_ntop(AF_INET6, rdata.data,
 					       addrbuf, sizeof(addrbuf)));
-			answer = ISC_FALSE;
+			/* XXX950 make fatal for 9.5.0. */
+			/* answer = ISC_FALSE; */
 		}
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(aaaa);
@@ -246,7 +252,8 @@ checkns(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner,
 				     ownerbuf, namebuf, type,
 				     inet_ntop(cur->ai_family, ptr,
 					       addrbuf, sizeof(addrbuf)));
-			answer = ISC_FALSE;
+			/* XXX950 make fatal for 9.5.0. */
+			/* answer = ISC_FALSE; */
 		}
 	}
 	freeaddrinfo(ai);
@@ -263,6 +270,8 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
 	int result;
+	int level = ISC_LOG_ERROR;
+	isc_boolean_t answer = ISC_TRUE;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_CANONNAME;
@@ -282,13 +291,21 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		if (strcasecmp(ai->ai_canonname, namebuf) != 0)
-			dns_zone_log(zone, ISC_LOG_WARNING,
-			             "%s/MX '%s' (out of zone) "
-				     "is a CNAME (illegal)",
-				     ownerbuf, namebuf);
+		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
+			if ((zone_options & DNS_ZONEOPT_WARNMXCNAME) != 0)
+				level = ISC_LOG_WARNING;
+			if ((zone_options & DNS_ZONEOPT_IGNOREMXCNAME) == 0) {
+				dns_zone_log(zone, ISC_LOG_WARNING,
+					     "%s/MX '%s' (out of zone) "
+					     "is a CNAME (illegal)",
+					     ownerbuf, namebuf);
+				if (level == ISC_LOG_ERROR)
+					answer = ISC_FALSE;
+			}
+		}
 		freeaddrinfo(ai);
-		break;
+		return (answer);
+
 	case EAI_NONAME:
 #if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME)
 	case EAI_NODATA:
@@ -296,7 +313,8 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "%s/MX '%s' (out of zone) "
 			     "has no addresses records (A or AAAA)",
 			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		/* XXX950 make fatal for 9.5.0. */
+		return (ISC_TRUE);
 
 	default:
 		dns_zone_log(zone, ISC_LOG_WARNING,
@@ -315,6 +333,8 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
 	int result;
+	int level = ISC_LOG_ERROR;
+	isc_boolean_t answer = ISC_TRUE;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_flags = AI_CANONNAME;
@@ -334,13 +354,21 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		if (strcasecmp(ai->ai_canonname, namebuf) != 0)
-			dns_zone_log(zone, ISC_LOG_WARNING,
-			             "%s/SRV '%s' (out of zone) "
-				     "is a CNAME (illegal)",
-				     ownerbuf, namebuf);
+		if (strcasecmp(ai->ai_canonname, namebuf) != 0) {
+			if ((zone_options & DNS_ZONEOPT_WARNSRVCNAME) != 0)
+				level = ISC_LOG_WARNING;
+			if ((zone_options & DNS_ZONEOPT_IGNORESRVCNAME) == 0) {
+				dns_zone_log(zone, level,
+					     "%s/SRV '%s' (out of zone) "
+					     "is a CNAME (illegal)",
+					     ownerbuf, namebuf);
+				if (level == ISC_LOG_ERROR)
+					answer = ISC_FALSE;
+			}
+		}
 		freeaddrinfo(ai);
-		break;
+		return (answer);
+
 	case EAI_NONAME:
 #if defined(EAI_NODATA) && (EAI_NODATA != EAI_NONAME)
 	case EAI_NODATA:
@@ -348,7 +376,8 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 		dns_zone_log(zone, ISC_LOG_ERROR, "%s/SRV '%s' (out of zone) "
 			     "has no addresses records (A or AAAA)",
 			     ownerbuf, namebuf);
-		return (ISC_FALSE);
+		/* XXX950 make fatal for 9.5.0. */
+		return (ISC_TRUE);
 
 	default:
 		dns_zone_log(zone, ISC_LOG_WARNING,
