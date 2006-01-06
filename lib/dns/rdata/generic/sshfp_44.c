@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sshfp_44.c,v 1.3 2004/03/05 05:10:18 marka Exp $ */
+/* $Id: sshfp_44.c,v 1.4 2006/01/06 23:16:00 marka Exp $ */
 
-/* draft-ietf-secsh-dns-05.txt */
+/* RFC 4255 */
 
 #ifndef RDATA_GENERIC_SSHFP_44_C
 #define RDATA_GENERIC_SSHFP_44_C
