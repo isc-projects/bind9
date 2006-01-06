@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.10.18.11 2006/01/06 00:09:59 marka Exp $ */
+/* $Id: check-tool.c,v 1.10.18.12 2006/01/06 02:04:09 marka Exp $ */
 
 /*! \file */
 
@@ -322,8 +322,9 @@ checkmx(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 			     namebuf, gai_strerror(result));
 		return (ISC_TRUE);
 	}
-#endif
+#else
 	return (ISC_TRUE);
+#endif
 }
 
 static isc_boolean_t
@@ -385,8 +386,9 @@ checksrv(dns_zone_t *zone, dns_name_t *name, dns_name_t *owner) {
 			     namebuf, gai_strerror(result));
 		return (ISC_TRUE);
 	}
-#endif
+#else
 	return (ISC_TRUE);
+#endif
 }
 
 isc_result_t
