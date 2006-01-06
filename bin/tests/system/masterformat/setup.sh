@@ -12,8 +12,9 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2 2005/06/20 01:03:50 marka Exp $
+# $Id: setup.sh,v 1.3 2006/01/06 06:53:57 marka Exp $
 
 ln -s $CHECKZONE named-compilezone
+rm -f ns1/example.db.raw
 cp ns1/example.db ns2/
 cd ns1 && sh compile.sh
