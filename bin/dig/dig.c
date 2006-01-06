@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.21 2005/10/14 01:28:19 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.22 2006/01/06 00:25:41 marka Exp $ */
 
 /*! \file */
 
@@ -491,7 +491,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			       msg->counts[DNS_SECTION_AUTHORITY],
 			       msg->counts[DNS_SECTION_ADDITIONAL]);
 
-			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0 &&
+			if (msg != query->lookup->sendmsg &&
+			    (msg->flags & DNS_MESSAGEFLAG_RD) != 0 &&
 			    (msg->flags & DNS_MESSAGEFLAG_RA) == 0)
 				printf(";; WARNING: recusion requested "
 				       "but not available\n");

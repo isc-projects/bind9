@@ -1,3 +1,6 @@
+1965.	[func]		Suppress spurious "recusion requested but not
+			available" warning with 'dig +qr'. [RT #15780].
+
 1964.	[func]		Seperate out MX and SRV to CNAME checks. [RT #15723]
 
 1963.	[port]		Tru64 4.0E doesn't support send() and recv(). 
