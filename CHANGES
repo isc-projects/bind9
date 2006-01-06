@@ -1,4 +1,4 @@
-1966.	[interop]	Don't set CD when we have fallen back to plain DNS.
+1966.	[bug]		Don't set CD when we have fallen back to plain DNS.
 			[RT #15727]
 
 1965.	[func]		Suppress spurious "recusion requested but not
