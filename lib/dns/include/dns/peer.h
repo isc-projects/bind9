@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.20.18.5 2006/01/05 00:10:44 marka Exp $ */
+/* $Id: peer.h,v 1.20.18.6 2006/01/06 00:01:43 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
