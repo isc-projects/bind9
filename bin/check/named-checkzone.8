@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.31 2005/10/13 03:13:56 marka Exp $
+.\" $Id: named-checkzone.8,v 1.32 2006/01/06 01:55:38 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -30,9 +30,9 @@
 named\-checkzone, named\-compilezone \- zone file validity checking or converting tool
 .SH "SYNOPSIS"
 .HP 16
-\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIformat\fR\fR] [\fB\-F\ \fR\fB\fIformat\fR\fR] [\fB\-i\ \fR\fB\fImode\fR\fR] [\fB\-k\ \fR\fB\fImode\fR\fR] [\fB\-m\ \fR\fB\fImode\fR\fR] [\fB\-n\ \fR\fB\fImode\fR\fR] [\fB\-o\ \fR\fB\fIfilename\fR\fR] [\fB\-s\ \fR\fB\fIstyle\fR\fR] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] [\fB\-w\ \fR\fB\fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fR\fB\fImode\fR\fR] {zonename} {filename}
+\fBnamed\-checkzone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIformat\fR\fR] [\fB\-F\ \fR\fB\fIformat\fR\fR] [\fB\-i\ \fR\fB\fImode\fR\fR] [\fB\-k\ \fR\fB\fImode\fR\fR] [\fB\-m\ \fR\fB\fImode\fR\fR] [\fB\-M\ \fR\fB\fImode\fR\fR] [\fB\-n\ \fR\fB\fImode\fR\fR] [\fB\-o\ \fR\fB\fIfilename\fR\fR] [\fB\-s\ \fR\fB\fIstyle\fR\fR] [\fB\-S\ \fR\fB\fImode\fR\fR] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] [\fB\-w\ \fR\fB\fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fR\fB\fImode\fR\fR] {zonename} {filename}
 .HP 18
-\fBnamed\-compilezone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIformat\fR\fR] [\fB\-F\ \fR\fB\fIformat\fR\fR] [\fB\-i\ \fR\fB\fImode\fR\fR] [\fB\-k\ \fR\fB\fImode\fR\fR] [\fB\-m\ \fR\fB\fImode\fR\fR] [\fB\-n\ \fR\fB\fImode\fR\fR] [\fB\-o\ \fR\fB\fIfilename\fR\fR] [\fB\-s\ \fR\fB\fIstyle\fR\fR] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] [\fB\-w\ \fR\fB\fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fR\fB\fImode\fR\fR] {zonename} {filename}
+\fBnamed\-compilezone\fR [\fB\-d\fR] [\fB\-j\fR] [\fB\-q\fR] [\fB\-v\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-C\ \fR\fB\fImode\fR\fR] [\fB\-f\ \fR\fB\fIformat\fR\fR] [\fB\-F\ \fR\fB\fIformat\fR\fR] [\fB\-i\ \fR\fB\fImode\fR\fR] [\fB\-k\ \fR\fB\fImode\fR\fR] [\fB\-m\ \fR\fB\fImode\fR\fR] [\fB\-n\ \fR\fB\fImode\fR\fR] [\fB\-o\ \fR\fB\fIfilename\fR\fR] [\fB\-s\ \fR\fB\fIstyle\fR\fR] [\fB\-t\ \fR\fB\fIdirectory\fR\fR] [\fB\-w\ \fR\fB\fIdirectory\fR\fR] [\fB\-D\fR] [\fB\-W\ \fR\fB\fImode\fR\fR] {zonename} {filename}
 .SH "DESCRIPTION"
 .PP
 \fBnamed\-checkzone\fR
@@ -141,6 +141,13 @@ Specify whether MX records should be checked to see if they are addresses. Possi
 (default) and
 \fB"ignore"\fR.
 .TP
+\-M \fImode\fR
+Check if a MX record refers to a CNAME. Possible modes are
+\fB"fail"\fR,
+\fB"warn"\fR
+(default) and
+\fB"ignore"\fR.
+.TP
 \-n \fImode\fR
 Specify whether NS records should be checked to see if they are addresses. Possible modes are
 \fB"fail"\fR
@@ -163,6 +170,13 @@ Specify the style of the dumped zone file. Possible styles are
 \fB"default"\fR. The full format is most suitable for processing automatically by a separate script. On the other hand, the default format is more human\-readable and is thus suitable for editing by hand. For
 \fBnamed\-checkzone\fR
 this does not cause any effects unless it dumps the zone contents. It also does not have any meaning if the output format is not text.
+.TP
+\-S \fImode\fR
+Check if a SRV record refers to a CNAME. Possible modes are
+\fB"fail"\fR,
+\fB"warn"\fR
+(default) and
+\fB"ignore"\fR.
 .TP
 \-t \fIdirectory\fR
 chroot to

@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2006 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.15 2005/10/13 03:13:58 marka Exp $
+.\" $Id: named.conf.5,v 1.16 2006/01/06 01:55:38 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -69,6 +69,7 @@ server ( \fIipv4_address\fR\fI[/prefixlen]\fR | \fIipv6_address\fR\fI[/prefixlen
 	bogus \fIboolean\fR;
 	edns \fIboolean\fR;
 	edns\-udp\-size \fIinteger\fR;
+	max\-udp\-size \fIinteger\fR;
 	provide\-ixfr \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
 	keys \fIserver_key\fR;
@@ -200,7 +201,9 @@ options {
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
 	check\-mx ( fail | warn | ignore );
-	integrity\-check \fIboolean\fR;
+	check\-integrity \fIboolean\fR;
+	check\-mx\-cname ( fail | warn | ignore );
+	check\-srv\-cname ( fail | warn | ignore );
 	cache\-file \fIquoted_string\fR;
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
@@ -208,13 +211,15 @@ options {
 		( \fIquoted_string\fR [port \fIinteger\fR] |
 		\fIipv4_address\fR [port \fIinteger\fR] |
 		\fIipv6_address\fR [port \fIinteger\fR] ); ...
-	}
+	};
 	edns\-udp\-size \fIinteger\fR;
+	max\-udp\-size \fIinteger\fR;
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	dnssec\-accept\-expired \fIboolean\fR;
 	empty\-server \fIstring\fR;
 	empty\-contact \fIstring\fR;
 	empty\-zones\-enable \fIboolean\fR;
@@ -259,6 +264,8 @@ options {
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zone\-statistics \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
+	zero\-no\-soa\-ttl \fIboolean\fR;
+	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	deallocate\-on\-exit \fIboolean\fR; // obsolete
 	fake\-iquery \fIboolean\fR; // obsolete
@@ -323,7 +330,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	check\-names ( master | slave | response )
 		( fail | warn | ignore );
 	check\-mx ( fail | warn | ignore );
-	integrity\-check \fIboolean\fR;
+	check\-integrity \fIboolean\fR;
+	check\-mx\-cname ( fail | warn | ignore );
+	check\-srv\-cname ( fail | warn | ignore );
 	cache\-file \fIquoted_string\fR;
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
@@ -333,11 +342,13 @@ view \fIstring\fR \fIoptional_class\fR {
 		\fIipv6_address\fR [port \fIinteger\fR] ); ...
 	};
 	edns\-udp\-size \fIinteger\fR;
+	max\-udp\-size \fIinteger\fR;
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
+	dnssec\-accept\-expired \fIboolean\fR;
 	empty\-server \fIstring\fR;
 	empty\-contact \fIstring\fR;
 	empty\-zones\-enable \fIboolean\fR;
@@ -382,6 +393,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zone\-statistics \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
+	zero\-no\-soa\-ttl \fIboolean\fR;
+	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
 	fetch\-glue \fIboolean\fR; // obsolete
 	maintain\-ixfr\-base \fIboolean\fR; // obsolete
@@ -404,10 +417,13 @@ zone \fIstring\fR \fIoptional_class\fR {
 	delegation\-only \fIboolean\fR;
 	check\-names ( fail | warn | ignore );
 	check\-mx ( fail | warn | ignore );
-	integrity\-check \fIboolean\fR;
+	check\-integrity \fIboolean\fR;
+	check\-mx\-cname ( fail | warn | ignore );
+	check\-srv\-cname ( fail | warn | ignore );
 	dialup \fIdialuptype\fR;
 	ixfr\-from\-differences \fIboolean\fR;
 	journal \fIquoted_string\fR;
+	zero\-no\-soa\-ttl \fIboolean\fR;
 	allow\-query { \fIaddress_match_element\fR; ... };
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
