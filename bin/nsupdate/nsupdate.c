@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.139 2005/09/18 07:16:20 marka Exp $ */
+/* $Id: nsupdate.c,v 1.140 2006/01/06 04:45:11 marka Exp $ */
 
 /*! \file */
 
@@ -1667,7 +1667,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		result = dns_request_createvia3(requestmgr, soaquery,
 						localaddr, addr, 0, NULL,
 						FIND_TIMEOUT * 20,
-						FIND_TIMEOUT * 20, 3,
+						FIND_TIMEOUT, 3,
 						global_task, recvsoa, reqinfo,
 						&request);
 		check_result(result, "dns_request_createvia");
