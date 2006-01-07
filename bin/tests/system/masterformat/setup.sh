@@ -1,4 +1,4 @@
-# Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005, 2006  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.3 2006/01/06 06:53:57 marka Exp $
+# $Id: setup.sh,v 1.4 2006/01/07 00:23:35 marka Exp $
 
 ln -s $CHECKZONE named-compilezone
 rm -f ns1/example.db.raw
