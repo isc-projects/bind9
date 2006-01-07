@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.6.2.15 2006/01/06 01:47:24 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.6.2.16 2006/01/07 03:40:15 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -67,7 +67,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2550378">Signing the Zone</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2550453">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2550522">IPv6 Support in <span class="acronym">BIND</span> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2550590">IPv6 Support in <span class="acronym">BIND</span> 9</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2550717">Address Lookups Using AAAA Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2550738">Address to Name Lookups Using Nibble Format</a></span></dt>
@@ -541,9 +541,10 @@ allow-update { key host1-host2. ;};
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="DNSSEC"></a>DNSSEC</h2></div></div></div>
 <p>Cryptographic authentication of DNS information is possible
-    through the DNS Security (<span class="emphasis"><em>DNSSEC-bis</em></span>) extensions,
-    defined in RFC &lt;TBA&gt;. This section describes the creation and use
-    of DNSSEC signed zones.</p>
+    through the DNS Security (<span class="emphasis"><em>DNSSEC-bis</em></span>)
+    extensions, defined in RFC 4033, RFC4034 and RFC4035.  This
+    section describes the creation and use of DNSSEC signed
+    zones.</p>
 <p>In order to set up a DNSSEC secure zone, there are a series
     of steps which must be followed.  <span class="acronym">BIND</span> 9 ships
     with several tools
@@ -711,7 +712,7 @@ options {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2550522"></a>IPv6 Support in <span class="acronym">BIND</span> 9</h2></div></div></div>
+<a name="id2550590"></a>IPv6 Support in <span class="acronym">BIND</span> 9</h2></div></div></div>
 <p><span class="acronym">BIND</span> 9 fully supports all currently defined forms of IPv6
     name to address and address to name lookups.  It will also use
     IPv6 addresses to make queries when running on an IPv6 capable
