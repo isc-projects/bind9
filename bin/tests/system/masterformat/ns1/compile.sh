@@ -1,4 +1,4 @@
-# Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005, 2006  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -12,6 +12,6 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: compile.sh,v 1.2.2.2 2006/01/06 06:57:13 marka Exp $
+# $Id: compile.sh,v 1.2.2.3 2006/01/07 00:23:34 marka Exp $
 
 ../named-compilezone -D -F raw -o example.db.raw example example.db
