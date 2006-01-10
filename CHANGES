@@ -1,3 +1,6 @@
+1971.	[port]		linux: make detection of missing IF_NAMESIZE more
+                        robust. [RT #15443]
+
 1970.	[bug]		nsupdate: adjust UDP timeout when falling back to
 			unsigned SOA query. [RT #15775]
 
