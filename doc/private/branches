@@ -29,60 +29,60 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt13780				new	
+rt13780				closed	
 rt14623				new	
 rt14654				new	
-rt14685				review	marka
+rt14685				closed
 rt14815				open		// stats blind spots	
-rt14816				review	marka
-rt14852				review	marka
+rt14816				closed
+rt14852				closed
 rt14895				open	jinmei
 rt14895b			open	
-rt14998				review	marka
-rt15148				review	marka
+rt14998				closed
+rt15148				closed
 rt15327				open	
-rt15402				review	marka
-rt15412				review	marka
-rt15430				review	
-rt15441				review	marka
-rt15460				review	marka
-rt15465				review	marka
+rt15402				closed
+rt15412				closed
+rt15430				closed
+rt15441				closed
+rt15460				closed
+rt15465				closed
 rt15473				review	marka
 rt15473b			review	marka
-rt15474				review	marka
-rt15491				review	marka
-rt15529				new	
-rt15544				new	
-rt15544b			new	
-rt15562				new	
-rt15568				new	
-rt15586				new	
-rt15592				new	
-rt15608				new	
-rt15613				new	
-rt15620				new	
-rt15628				new	
-rt15633				new	
-rt15636				new	
-rt15642				new	
-rt15647				new	
-rt15649				new	
-rt15674				new	
-rt15694				new	
-rt15695				new	
-rt15702				new	
-rt15704				new	
-rt15709				new	
-rt15723				new	
-rt15727				new	
-rt15739				new	
-rt15742				new	
-rt15758				new	
-rt15765				new	
-rt15776				new	
-rt15779				new	
-rt15780				new	
-rt15795				new	
+rt15474				closed
+rt15491				closed
+rt15529				closed
+rt15544				closed
+rt15544b			closed
+rt15562				closed	
+rt15568				closed
+rt15586				closed
+rt15592				review
+rt15608				review
+rt15613				closed
+rt15620				review	
+rt15628				closed	
+rt15633				review
+rt15636				closed
+rt15642				closed
+rt15647				closed
+rt15649				closed
+rt15674				review
+rt15694				review
+rt15695				review
+rt15702				review
+rt15704				review
+rt15709				review
+rt15723				closed
+rt15727				closed	
+rt15739				closed
+rt15742				review
+rt15758				review
+rt15765				open
+rt15776				closed
+rt15779				closed
+rt15780				closed
+rt15795				review
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
