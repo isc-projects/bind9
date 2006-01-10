@@ -1,3 +1,6 @@
+1971.	[port]		linux: make detection of missing IF_NAMESIZE more
+                        robust. [RT #15443]
+
 1969.	[bug]		win32: the socket code was freeing the socket
 			structure too early. [RT #15776]
 
