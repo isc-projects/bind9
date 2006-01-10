@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.156 2005/10/14 01:14:08 marka Exp $ */
+/* $Id: name.c,v 1.157 2006/01/10 02:59:56 marka Exp $ */
 
 /*! \file */
 
@@ -1481,9 +1481,8 @@ dns_name_totext(dns_name_t *name, isc_boolean_t omit_final_dot,
 	isc_buffer_add(target, tlen - trem);
 
 #ifdef ISC_PLATFORM_USETHREADS
-	
 	mem = isc_thread_key_getspecific(totext_filter_proc_key);
-	if (mem)
+	if (mem != NULL)
 		totext_filter_proc = *mem;
 #endif
 	if (totext_filter_proc != NULL)
