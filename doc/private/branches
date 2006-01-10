@@ -29,60 +29,28 @@ rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				open	marka	// TSIG SHA256
 rt13662				open	marka	// rrset-order fixed
-rt13780				closed	
 rt14623				new	
 rt14654				new	
-rt14685				closed
 rt14815				open		// stats blind spots	
-rt14816				closed
-rt14852				closed
 rt14895				open	jinmei
 rt14895b			open	
-rt14998				closed
-rt15148				closed
 rt15327				open	
-rt15402				closed
-rt15412				closed
-rt15430				closed
-rt15441				closed
-rt15460				closed
-rt15465				closed
 rt15473				review	marka
 rt15473b			review	marka
-rt15474				closed
-rt15491				closed
-rt15529				closed
-rt15544				closed
-rt15544b			closed
-rt15562				closed	
-rt15568				closed
-rt15586				closed
-rt15592				review
-rt15608				review
-rt15613				closed
+rt15592				review	
+rt15608				review	
 rt15620				review	
-rt15628				closed	
-rt15633				review
-rt15636				closed
-rt15642				closed
-rt15647				closed
-rt15649				closed
-rt15674				review
-rt15694				review
-rt15695				review
-rt15702				review
-rt15704				review
-rt15709				review
-rt15723				closed
-rt15727				closed	
-rt15739				closed
-rt15742				review
-rt15758				review
-rt15765				open
-rt15776				closed
-rt15779				closed
-rt15780				closed
-rt15795				review
+rt15633				review	
+rt15674				review	
+rt15694				review	
+rt15695				review	
+rt15702				review	
+rt15704				review	
+rt15709				review	
+rt15742				review	
+rt15758				review	
+rt15765				open	
+rt15795				review	
 rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
@@ -325,10 +293,12 @@ rt13745				closed
 rt13753				closed
 rt13754				closed
 rt13771				closed
+rt13780				closed
 rt14606				closed
 rt14616				closed
 rt14666				closed
 rt14673				closed
+rt14685				closed
 rt14686				closed
 rt14695				closed
 rt1471				closed
@@ -337,9 +307,11 @@ rt14801				closed
 rt14802				closed
 rt14814				closed
 rt14815a			closed		// abandoned	
+rt14816				closed
 rt14841				closed
 rt14846				closed
 rt14851				closed
+rt14852				closed
 rt14855				closed
 rt14873				closed
 rt14890				closed
@@ -361,26 +333,54 @@ rt14967				closed
 rt14991				closed
 rt14995				closed
 rt14996				closed		// tune based on request load	
+rt14998				closed
 rt15005				closed
 rt15006				closed
 rt15020				closed
 rt15034				closed
 rt15036				closed		// ixfr-from-differences serial
 rt15103				closed
+rt15148				closed
 rt15215				closed
 rt15216				closed
 rt15256				closed
 rt15347				closed
 rt15383				closed
 rt15391				closed
+rt15402				closed
 rt15404				closed
 rt15408				closed
+rt15412				closed
+rt15430				closed
+rt15441				closed
+rt15460				closed
+rt15465				closed
 rt15469				closed
+rt15474				closed
 rt15483				closed
+rt15491				closed
 rt15516				closed
 rt15518				closed
 rt15519				closed
+rt15529				closed
+rt15544				closed
+rt15544b			closed
+rt15562				closed
+rt15568				closed
+rt15586				closed
+rt15613				closed
+rt15628				closed
+rt15636				closed
+rt15642				closed
+rt15647				closed
+rt15649				closed
+rt15723				closed
+rt15727				closed
 rt1572a				closed		// bad rt#
+rt15739				closed
+rt15776				closed
+rt15779				closed
+rt15780				closed
 rt2471				closed
 rt288				closed
 rt3445				closed
