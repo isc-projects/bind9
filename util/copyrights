@@ -1318,9 +1318,9 @@
 ./lib/bind/irs/getaddrinfo.c			X	2001,2005
 ./lib/bind/irs/getgrent.c			X	2001,2005
 ./lib/bind/irs/getgrent_r.c			X	2001,2005
-./lib/bind/irs/gethostent.c			X	2001,2005
+./lib/bind/irs/gethostent.c			X	2001,2005,2006
 ./lib/bind/irs/gethostent_r.c			X	2001,2005
-./lib/bind/irs/getnameinfo.c			X	2001,2005
+./lib/bind/irs/getnameinfo.c			X	2001,2005,2006
 ./lib/bind/irs/getnetent.c			X	2001,2005
 ./lib/bind/irs/getnetent_r.c			X	2001,2005
 ./lib/bind/irs/getnetgrent.c			X	2001,2005
@@ -1779,7 +1779,7 @@
 ./lib/dns/master.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/masterdump.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/message.c				C	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005
+./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
