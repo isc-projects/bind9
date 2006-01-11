@@ -4,11 +4,11 @@
 
 Network Working Group                                         M. StJohns
 Internet-Draft                                             Nominum, Inc.
-Expires: February 16, 2006                               August 15, 2005
+Expires: July 14, 2006                                  January 10, 2006
 
 
                Automated Updates of DNSSEC Trust Anchors
-                draft-ietf-dnsext-trustupdate-timers-01
+                draft-ietf-dnsext-trustupdate-timers-02
 
 Status of this Memo
 
@@ -33,11 +33,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on February 16, 2006.
+   This Internet-Draft will expire on July 14, 2006.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2005).
+   Copyright (C) The Internet Society (2006).
 
 Abstract
 
@@ -53,45 +53,48 @@ Abstract
 
 
 
-StJohns                 Expires February 16, 2006               [Page 1]
+StJohns                   Expires July 14, 2006                 [Page 1]
 
-Internet-Draft             trustanchor-update                August 2005
+Internet-Draft             trustanchor-update               January 2006
 
 
    addition of a single flag bit to the DNSKEY record.
 
+
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.1   Compliance Nomenclature  . . . . . . . . . . . . . . . . .  3
-     1.2   Changes since -00  . . . . . . . . . . . . . . . . . . . .  3
+     1.1.  Compliance Nomenclature  . . . . . . . . . . . . . . . . .  3
+     1.2.  Changes since -00  . . . . . . . . . . . . . . . . . . . .  3
    2.  Theory of Operation  . . . . . . . . . . . . . . . . . . . . .  4
-     2.1   Revocation . . . . . . . . . . . . . . . . . . . . . . . .  4
-     2.2   Add Hold-Down  . . . . . . . . . . . . . . . . . . . . . .  4
-     2.3   Remove Hold-down . . . . . . . . . . . . . . . . . . . . .  5
-     2.4   Active Refresh . . . . . . . . . . . . . . . . . . . . . .  6
-     2.5   Resolver Parameters  . . . . . . . . . . . . . . . . . . .  6
-       2.5.1   Add Hold-Down Time . . . . . . . . . . . . . . . . . .  6
-       2.5.2   Remove Hold-Down Time  . . . . . . . . . . . . . . . .  6
-       2.5.3   Minimum Trust Anchors per Trust Point  . . . . . . . .  6
+     2.1.  Revocation . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.2.  Add Hold-Down  . . . . . . . . . . . . . . . . . . . . . .  5
+     2.3.  Remove Hold-down . . . . . . . . . . . . . . . . . . . . .  5
+     2.4.  Active Refresh . . . . . . . . . . . . . . . . . . . . . .  6
+     2.5.  Resolver Parameters  . . . . . . . . . . . . . . . . . . .  6
+       2.5.1.  Add Hold-Down Time . . . . . . . . . . . . . . . . . .  6
+       2.5.2.  Remove Hold-Down Time  . . . . . . . . . . . . . . . .  6
+       2.5.3.  Minimum Trust Anchors per Trust Point  . . . . . . . .  6
    3.  Changes to DNSKEY RDATA Wire Format  . . . . . . . . . . . . .  6
-   4.  State Table  . . . . . . . . . . . . . . . . . . . . . . . . .  6
-     4.1   Events . . . . . . . . . . . . . . . . . . . . . . . . . .  7
-     4.2   States . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+   4.  State Table  . . . . . . . . . . . . . . . . . . . . . . . . .  7
+     4.1.  Events . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+     4.2.  States . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+     4.3.  Trust Point Deletion . . . . . . . . . . . . . . . . . . .  8
    5.  Scenarios  . . . . . . . . . . . . . . . . . . . . . . . . . .  8
-     5.1   Adding A Trust Anchor  . . . . . . . . . . . . . . . . . .  8
-     5.2   Deleting a Trust Anchor  . . . . . . . . . . . . . . . . .  9
-     5.3   Key Roll-Over  . . . . . . . . . . . . . . . . . . . . . .  9
-     5.4   Active Key Compromised . . . . . . . . . . . . . . . . . .  9
-     5.5   Stand-by Key Compromised . . . . . . . . . . . . . . . . .  9
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
-     6.1   Key Ownership vs Acceptance Policy . . . . . . . . . . . . 10
-     6.2   Multiple Key Compromise  . . . . . . . . . . . . . . . . . 10
-     6.3   Dynamic Updates  . . . . . . . . . . . . . . . . . . . . . 10
-   7.  Normative References . . . . . . . . . . . . . . . . . . . . . 10
-       Editorial Comments . . . . . . . . . . . . . . . . . . . . . . 11
-       Author's Address . . . . . . . . . . . . . . . . . . . . . . . 11
-       Intellectual Property and Copyright Statements . . . . . . . . 12
+     5.1.  Adding A Trust Anchor  . . . . . . . . . . . . . . . . . .  9
+     5.2.  Deleting a Trust Anchor  . . . . . . . . . . . . . . . . .  9
+     5.3.  Key Roll-Over  . . . . . . . . . . . . . . . . . . . . . .  9
+     5.4.  Active Key Compromised . . . . . . . . . . . . . . . . . .  9
+     5.5.  Stand-by Key Compromised . . . . . . . . . . . . . . . . . 10
+   6.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
+   7.  Security Considerations  . . . . . . . . . . . . . . . . . . . 10
+     7.1.  Key Ownership vs Acceptance Policy . . . . . . . . . . . . 10
+     7.2.  Multiple Key Compromise  . . . . . . . . . . . . . . . . . 10
+     7.3.  Dynamic Updates  . . . . . . . . . . . . . . . . . . . . . 11
+   8.  Normative References . . . . . . . . . . . . . . . . . . . . . 11
+   Editorial Comments . . . . . . . . . . . . . . . . . . . . . . . .
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 12
+   Intellectual Property and Copyright Statements . . . . . . . . . . 13
 
 
 
@@ -106,12 +109,9 @@ Table of Contents
 
 
 
-
-
-
-StJohns                 Expires February 16, 2006               [Page 2]
+StJohns                   Expires July 14, 2006                 [Page 2]
 
-Internet-Draft             trustanchor-update                August 2005
+Internet-Draft             trustanchor-update               January 2006
 
 
 1.  Introduction
@@ -153,26 +153,31 @@ Internet-Draft             trustanchor-update                August 2005
    document DOES NOT discuss the general problem of the initial
    configuration of trust anchors for the resolver.
 
-1.1  Compliance Nomenclature
+1.1.  Compliance Nomenclature
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in BCP 14, [RFC2119].
 
-1.2  Changes since -00
+1.2.  Changes since -00
 
    Added the concept of timer triggered resolver queries to refresh the
 
 
 
-StJohns                 Expires February 16, 2006               [Page 3]
+StJohns                   Expires July 14, 2006                 [Page 3]
 
-Internet-Draft             trustanchor-update                August 2005
+Internet-Draft             trustanchor-update               January 2006
 
 
    resolvers view of the trust anchor key RRSet.
 
    Re-submitted expired draft as -01.  Updated DNSSEC RFC References.
+
+   Draft -02.  Added the IANA Considerations section.  Added text to
+   describe what happens if all trust anchors at a trust point are
+   deleted.
+
 
 2.  Theory of Operation
 
@@ -190,7 +195,7 @@ Internet-Draft             trustanchor-update                August 2005
    compromise, an attacker could add a new key and revoke all the other
    old keys.
 
-2.1  Revocation
+2.1.  Revocation
 
    Assume two trust anchor keys A and B. Assume that B has been
    compromised.  Without a specific revocation bit, B could invalidate A
@@ -199,13 +204,13 @@ Internet-Draft             trustanchor-update                August 2005
    of the private key of a DNSKEY to revoke that DNSKEY.
 
    A key is considered revoked when the resolver sees the key in a self-
-   signed RRSet and the key has the REVOKE bit set to '1'.  Once the
-   resolver sees the REVOKE bit, it MUST NOT use this key as a trust
-   anchor or for any other purposes except validating the RRSIG over the
-   DNSKEY RRSet specifically for the purpose of validating the
-   revocation.  Unlike the 'Add' operation below, revocation is
-   immediate and permanent upon receipt of a valid revocation at the
-   resolver.
+   signed RRSet and the key has the REVOKE bit (see Section 6 below) set
+   to '1'.  Once the resolver sees the REVOKE bit, it MUST NOT use this
+   key as a trust anchor or for any other purposes except validating the
+   RRSIG over the DNSKEY RRSet specifically for the purpose of
+   validating the revocation.  Unlike the 'Add' operation below,
+   revocation is immediate and permanent upon receipt of a valid
+   revocation at the resolver.
 
    N.B. A DNSKEY with the REVOKE bit set has a different fingerprint
    than one without the bit set.  This affects the matching of a DNSKEY
@@ -213,19 +218,19 @@ Internet-Draft             trustanchor-update                August 2005
    used to configure a trust point. [msj3]
 
    In the given example, the attacker could revoke B because it has
+
+
+
+StJohns                   Expires July 14, 2006                 [Page 4]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
    knowledge of B's private key, but could not revoke A.
 
-2.2  Add Hold-Down
+2.2.  Add Hold-Down
 
    Assume two trust point keys A and B. Assume that B has been
-
-
-
-StJohns                 Expires February 16, 2006               [Page 4]
-
-Internet-Draft             trustanchor-update                August 2005
-
-
    compromised.  An attacker could generate and add a new trust anchor
    key - C (by adding C to the DNSKEY RRSet and signing it with B), and
    then invalidate the compromised key.  This would result in the both
@@ -265,24 +270,23 @@ Internet-Draft             trustanchor-update                August 2005
    their own (e.g. using the example, signed only by B).  This is no
    worse than the current situation assuming a compromised key.
 
-2.3  Remove Hold-down
+2.3.  Remove Hold-down
 
    A new key which has been seen by the resolver, but hasn't reached
    it's add hold-down time, MAY be removed from the DNSKEY RRSet by the
+
+
+
+StJohns                   Expires July 14, 2006                 [Page 5]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
    zone owner.  If the resolver sees a validated DNSKEY RRSet without
    this key, it waits for the remove hold-down time and then, if the key
    hasn't reappeared, SHOULD discard any information about the key.
 
-
-
-
-
-StJohns                 Expires February 16, 2006               [Page 5]
-
-Internet-Draft             trustanchor-update                August 2005
-
-
-2.4  Active Refresh
+2.4.  Active Refresh
 
    A resolver which has been configured for automatic update of keys
    from a particular trust point MUST query that trust point (e.g. do a
@@ -297,9 +301,9 @@ Internet-Draft             trustanchor-update                August 2005
    lesser of 1 day or 10% of the original TTL or 10% of the original
    expiration interval.
 
-2.5  Resolver Parameters
+2.5.  Resolver Parameters
 
-2.5.1  Add Hold-Down Time
+2.5.1.  Add Hold-Down Time
 
    The add hold-down time is 30 days or the expiration time of the TTL
    of the first trust point DNSKEY RRSet which contained the key,
@@ -307,14 +311,15 @@ Internet-Draft             trustanchor-update                August 2005
    DNSKEY RRSets which contain the new key MUST be seen by the resolver
    prior to the key's acceptance.
 
-2.5.2  Remove Hold-Down Time
+2.5.2.  Remove Hold-Down Time
 
    The remove hold-down time is 30 days.
 
-2.5.3  Minimum Trust Anchors per Trust Point
+2.5.3.  Minimum Trust Anchors per Trust Point
 
    A compliant resolver MUST be able to manage at least five SEP keys
    per trust point.
+
 
 3.  Changes to DNSKEY RDATA Wire Format
 
@@ -324,20 +329,21 @@ Internet-Draft             trustanchor-update                August 2005
    consider this key permanently invalid for all purposes except for
    validing the revocation.
 
+
+
+
+
+StJohns                   Expires July 14, 2006                 [Page 6]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
 4.  State Table
 
    The most important thing to understand is the resolver's view of any
    key at a trust point.  The following state table describes that view
    at various points in the key's lifetime.  The table is a normative
    part of this specification.  The initial state of the key is 'Start'.
-
-
-
-StJohns                 Expires February 16, 2006               [Page 6]
-
-Internet-Draft             trustanchor-update                August 2005
-
-
    The resolver's view of the state of the key changes as various events
    occur.
 
@@ -364,8 +370,7 @@ Internet-Draft             trustanchor-update                August 2005
    Removed |       |        |       |       |       |       |
    ----------------------------------------------------------
 
-
-4.1  Events
+4.1.  Events
    NewKey The resolver sees a valid DNSKEY RRSet with a new SEP key.
       That key will become a new trust anchor for the named trust point
       after its been present in the RRSet for at least 'add time'.
@@ -380,20 +385,19 @@ Internet-Draft             trustanchor-update                August 2005
       "REVOKED" bit set, and there is an RRSig over the DNSKEY RRSet
       signed by this key.
 
-4.2  States
+
+
+
+
+StJohns                   Expires July 14, 2006                 [Page 7]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
+4.2.  States
    Start The key doesn't yet exist as a trust anchor at the resolver.
       It may or may not exist at the zone server, but hasn't yet been
       seen at the resolver.
-
-
-
-
-
-StJohns                 Expires February 16, 2006               [Page 7]
-
-Internet-Draft             trustanchor-update                August 2005
-
-
    AddPend The key has been seen at the resolver, has its 'SEP' bit set,
       and has been included in a validated DNSKEY RRSet.  There is a
       hold-down time for the key before it can be used as a trust
@@ -401,17 +405,17 @@ Internet-Draft             trustanchor-update                August 2005
    Valid The key has been seen at the resolver and has been included in
       all validated DNSKEY RRSets from the time it was first seen up
       through the hold-down time.  It is now valid for verifying RRSets
-      that arrive after the hold down time.  Clarification:  The DNSKEY
+      that arrive after the hold down time.  Clarification: The DNSKEY
       RRSet does not need to be continuously present at the resolver
       (e.g. its TTL might expire).  If the RRSet is seen, and is
       validated (i.e. verifies against an existing trust anchor), this
-      key MUST be in the RRSet otherwise  a 'KeyRem' event is triggered.
+      key MUST be in the RRSet otherwise a 'KeyRem' event is triggered.
    Missing This is an abnormal state.  The key remains as a valid trust
       point key, but was not seen at the resolver in the last validated
       DNSKEY RRSet.  This is an abnormal state because the zone operator
       should be using the REVOKE bit prior to removal.  [Discussion
-      item:  Should a missing key be considered revoked after some
-      period of time?]
+      item: Should a missing key be considered revoked after some period
+      of time?]
    Revoked This is the state a key moves to once the resolver sees an
       RRSIG(DNSKEY) signed by this key where that DNSKEY RRSet contains
       this key with its REVOKE bit set to '1'.  Once in this state, this
@@ -419,6 +423,16 @@ Internet-Draft             trustanchor-update                August 2005
    Removed After a fairly long hold-down time, information about this
       key may be purged from the resolver.  A key in the removed state
       MUST NOT be considered a valid trust anchor.
+
+4.3.  Trust Point Deletion
+
+   A trust point which has all of its trust anchors revoked is
+   considered deleted and is treated as if the trust point was never
+   configured.  If there are no superior trust points, data at and below
+   the deleted trust point are considered insecure.  If there there ARE
+   superior trust points, data at and below the deleted trust point are
+   evaluated with respect to the superior trust point.
+
 
 5.  Scenarios
 
@@ -428,6 +442,14 @@ Internet-Draft             trustanchor-update                August 2005
    RRSet, but the resolver will accept it as a trust anchor if/when it
    sees the signature on the trust point DNSKEY RRSet.
 
+
+
+
+StJohns                   Expires July 14, 2006                 [Page 8]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
    Since the stand-by key is not in active signing use, the associated
    private key may (and SHOULD) be provided with additional protections
    not normally available to a key that must be used frequently.  E.g.
@@ -436,28 +458,18 @@ Internet-Draft             trustanchor-update                August 2005
    but that will be dependent on operational concerns not addressed
    here.
 
-5.1  Adding A Trust Anchor
+5.1.  Adding A Trust Anchor
 
    Assume an existing trust anchor key 'A'.
    1.  Generate a new key pair.
-
-
-
-
-
-StJohns                 Expires February 16, 2006               [Page 8]
-
-Internet-Draft             trustanchor-update                August 2005
-
-
    2.  Create a DNSKEY record from the key pair and set the SEP and Zone
-       Key  bits.
+       Key bits.
    3.  Add the DNSKEY to the RRSet.
    4.  Sign the DNSKEY RRSet ONLY with the existing trust anchor key -
        'A'.
    5.  Wait a while.
 
-5.2  Deleting a Trust Anchor
+5.2.  Deleting a Trust Anchor
 
    Assume existing trust anchors 'A' and 'B' and that you want to revoke
    and delete 'A'.
@@ -467,7 +479,7 @@ Internet-Draft             trustanchor-update                August 2005
    the RRSet for at least the remove hold-down time, but then may remove
    it from the DNSKEY RRSet.
 
-5.3  Key Roll-Over
+5.3.  Key Roll-Over
 
    Assume existing keys A and B. 'A' is actively in use (i.e. has been
    signing the DNSKEY RRSet.)  'B' was the stand-by key. (i.e. has been
@@ -477,17 +489,24 @@ Internet-Draft             trustanchor-update                August 2005
    2.  Add 'C' to the DNSKEY RRSet.
    3.  Set the revocation bit on key 'A'.
    4.  Sign the RRSet with 'A' and 'B'.
-   'A' is now revoked, 'B' is now the active key, and 'C' will be  the
+   'A' is now revoked, 'B' is now the active key, and 'C' will be the
    stand-by key once the hold-down expires.  The operator SHOULD include
    the revoked 'A' in the RRSet for at least the remove hold-down time,
    but may then remove it from the DNSKEY RRSet.
 
-5.4  Active Key Compromised
+5.4.  Active Key Compromised
 
    This is the same as the mechanism for Key Roll-Over (Section 5.3)
    above assuming 'A' is the active key.
 
-5.5  Stand-by Key Compromised
+
+
+StJohns                   Expires July 14, 2006                 [Page 9]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
+5.5.  Stand-by Key Compromised
 
    Using the same assumptions and naming conventions as Key Roll-Over
    (Section 5.3) above:
@@ -500,15 +519,16 @@ Internet-Draft             trustanchor-update                August 2005
    included in the RRSet for the remove hold-down time.
 
 
+6.  IANA Considerations
 
-StJohns                 Expires February 16, 2006               [Page 9]
-
-Internet-Draft             trustanchor-update                August 2005
+   The IANA will need to assign a bit in the DNSKEY flags field (see
+   section 4.3 of [RFC3755]) for the REVOKE bit.  There are no other
+   IANA actions required.
 
 
-6.  Security Considerations
+7.  Security Considerations
 
-6.1  Key Ownership vs Acceptance Policy
+7.1.  Key Ownership vs Acceptance Policy
 
    The reader should note that, while the zone owner is responsible
    creating and distributing keys, it's wholly the decision of the
@@ -523,7 +543,7 @@ Internet-Draft             trustanchor-update                August 2005
    will need to establish a mechanism for manual or other out-of-band
    updates outside the scope of this document.
 
-6.2  Multiple Key Compromise
+7.2.  Multiple Key Compromise
 
    This scheme permits recovery as long as at least one valid trust
    anchor key remains uncompromised.  E.g. if there are three keys, you
@@ -534,7 +554,15 @@ Internet-Draft             trustanchor-update                August 2005
    manual or other out-of-band update of all resolvers will be required
    if all trust anchor keys at a trust point are compromised.
 
-6.3  Dynamic Updates
+
+
+
+StJohns                   Expires July 14, 2006                [Page 10]
+
+Internet-Draft             trustanchor-update               January 2006
+
+
+7.3.  Dynamic Updates
 
    Allowing a resolver to update its trust anchor set based in-band key
    information is potentially less secure than a manual process.
@@ -543,7 +571,7 @@ Internet-Draft             trustanchor-update                August 2005
    lack of a standard management framework for DNS, this approach is no
    worse than the existing situation.
 
-7.  Normative References
+8.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
@@ -551,16 +579,12 @@ Internet-Draft             trustanchor-update                August 2005
    [RFC2535]  Eastlake, D., "Domain Name System Security Extensions",
               RFC 2535, March 1999.
 
+   [RFC3755]  Weiler, S., "Legacy Resolver Compatibility for Delegation
+              Signer (DS)", RFC 3755, May 2004.
+
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, March 2005.
-
-
-
-StJohns                 Expires February 16, 2006              [Page 10]
-
-Internet-Draft             trustanchor-update                August 2005
-
 
    [RFC4034]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "Resource Records for the DNS Security Extensions",
@@ -583,6 +607,15 @@ Editorial Comments
            resolvers currently with respect to the non-assigned flag
            bits?  If they consider the flag bit when doing key matching
            at the trust anchor, they won't be able to match.
+
+
+
+
+
+
+StJohns                   Expires July 14, 2006                [Page 11]
+
+Internet-Draft             trustanchor-update               January 2006
 
 
 Author's Address
@@ -613,9 +646,32 @@ Author's Address
 
 
 
-StJohns                 Expires February 16, 2006              [Page 11]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+StJohns                   Expires July 14, 2006                [Page 12]
 
-Internet-Draft             trustanchor-update                August 2005
+Internet-Draft             trustanchor-update               January 2006
 
 
 Intellectual Property Statement
@@ -642,11 +698,6 @@ Intellectual Property Statement
    this standard.  Please address the information to the IETF at
    ietf-ipr@ietf.org.
 
-   The IETF has been notified of intellectual property rights claimed in
-   regard to some or all of the specification contained in this
-   document.  For more information consult the online list of claimed
-   rights.
-
 
 Disclaimer of Validity
 
@@ -661,17 +712,9 @@ Disclaimer of Validity
 
 Copyright Statement
 
-   Copyright (C) The Internet Society (2005).  This document is subject
+   Copyright (C) The Internet Society (2006).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
-
-
-
-
-
-StJohns                 Expires February 16, 2006              [Page 12]
-
-Internet-Draft             trustanchor-update                August 2005
 
 
 Acknowledgment
@@ -682,49 +725,6 @@ Acknowledgment
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-StJohns                 Expires February 16, 2006              [Page 13]
+StJohns                   Expires July 14, 2006                [Page 13]
 
 
