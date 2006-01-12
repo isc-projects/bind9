@@ -3,11 +3,11 @@
 
 Network Working Group                                         R. Austein
 Internet-Draft                                                       ISC
-Expires: March 13, 2006                                September 9, 2005
+Expires: July 15, 2006                                  January 11, 2006
 
 
                 DNS Name Server Identifier Option (NSID)
-                       draft-ietf-dnsext-nsid-00
+                       draft-ietf-dnsext-nsid-01
 
 Status of this Memo
 
@@ -32,11 +32,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on March 13, 2006.
+   This Internet-Draft will expire on July 15, 2006.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2005).
+   Copyright (C) The Internet Society (2006).
 
 Abstract
 
@@ -52,31 +52,33 @@ Abstract
 
 
 
-Austein                  Expires March 13, 2006                 [Page 1]
+Austein                   Expires July 15, 2006                 [Page 1]
 
-Internet-Draft                  DNS NSID                  September 2005
+Internet-Draft                  DNS NSID                    January 2006
 
 
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     1.1   Reserved Words . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Protocol . . . . . . . . . . . . . . . . . . . . . . . . . . .  3
-     2.1   The SI Flag  . . . . . . . . . . . . . . . . . . . . . . .  3
-     2.2   The NSID Option  . . . . . . . . . . . . . . . . . . . . .  4
-     2.3   Presentation Format  . . . . . . . . . . . . . . . . . . .  4
-   3.  Discussion . . . . . . . . . . . . . . . . . . . . . . . . . .  4
-     3.1   The NSID Payload . . . . . . . . . . . . . . . . . . . . .  5
-     3.2   SI and NSID Are Not Transitive . . . . . . . . . . . . . .  7
-     3.3   User Interface Issues  . . . . . . . . . . . . . . . . . .  7
-   4.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  8
-   5.  Security Considerations  . . . . . . . . . . . . . . . . . . .  8
-   6.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . .  8
-   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . .  8
-     7.1   Normative References . . . . . . . . . . . . . . . . . . .  8
-     7.2   Informative References . . . . . . . . . . . . . . . . . .  9
-       Author's Address . . . . . . . . . . . . . . . . . . . . . . .  9
-       Intellectual Property and Copyright Statements . . . . . . . . 10
+     1.1.  Reserved Words . . . . . . . . . . . . . . . . . . . . . .  3
+   2.  Protocol . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.1.  Resolver Behavior  . . . . . . . . . . . . . . . . . . . .  4
+     2.2.  Name Server Behavior . . . . . . . . . . . . . . . . . . .  4
+     2.3.  The NSID Option  . . . . . . . . . . . . . . . . . . . . .  4
+     2.4.  Presentation Format  . . . . . . . . . . . . . . . . . . .  5
+   3.  Discussion . . . . . . . . . . . . . . . . . . . . . . . . . .  6
+     3.1.  The NSID Payload . . . . . . . . . . . . . . . . . . . . .  6
+     3.2.  NSID Is Not Transitive . . . . . . . . . . . . . . . . . .  8
+     3.3.  User Interface Issues  . . . . . . . . . . . . . . . . . .  8
+     3.4.  Truncation . . . . . . . . . . . . . . . . . . . . . . . .  9
+   4.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 10
+   5.  Security Considerations  . . . . . . . . . . . . . . . . . . . 11
+   6.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 12
+   7.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+     7.1.  Normative References . . . . . . . . . . . . . . . . . . . 13
+     7.2.  Informative References . . . . . . . . . . . . . . . . . . 13
+   Author's Address . . . . . . . . . . . . . . . . . . . . . . . . . 14
+   Intellectual Property and Copyright Statements . . . . . . . . . . 15
 
 
 
@@ -106,11 +108,9 @@ Table of Contents
 
 
 
-
-
-Austein                  Expires March 13, 2006                 [Page 2]
+Austein                   Expires July 15, 2006                 [Page 2]
 
-Internet-Draft                  DNS NSID                  September 2005
+Internet-Draft                  DNS NSID                    January 2006
 
 
 1.  Introduction
@@ -136,70 +136,100 @@ Internet-Draft                  DNS NSID                  September 2005
    information in the response itself.  This note defines a protocol
    enhancement to achieve this.
 
-1.1  Reserved Words
+1.1.  Reserved Words
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in [RFC2119].
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                 [Page 3]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
 2.  Protocol
 
-   This note uses an EDNS [RFC2671] flag bit to signal the resolver's
-   desire for information identifying the name server, and an EDNS
-   option to hold the name server's response, if any.
+   This note uses an EDNS [RFC2671] option to signal the resolver's
+   desire for information identifying the name server and to hold the
+   name server's response, if any.
 
-2.1  The SI Flag
+2.1.  Resolver Behavior
 
-   A resolver signals its desire for information identifying the server
-   by setting the SI (Send Identification) flag in the extended flags
-   field of the OPT pseudo-RR.
+   A resolver signals its desire for information identifying a name
+   server by sending an empty NSID option (Section 2.3) in an EDNS OPT
+   pseudo-RR in the query message.
 
-   The value of the SI flag is [TBD].
+   The resolver MUST NOT include any NSID payload data in the query
+   message.
 
-   The semantics of the SI flag are not transitive.  That is: the SI
-   flag is a request that the name server which receives the query
-   identify itself.  If the name server side of a recursive name server
-   receives the SI bit, the client is asking the recursive name server
-   to identify itself; if the resolver side of the recursive name server
+   The semantics of an NSID request are not transitive.  That is: the
+   presence of an NSID option in a query is a request that the name
+   server which receives the query identify itself.  If the name server
+   side of a recursive name server receives an NSID request, the client
+   is asking the recursive name server to identify itself; if the
+   resolver side of the recursive name server wishes to receive
+   identifying information, it is free to add NSID requests in its own
+   queries, but that is a separate matter.
 
+2.2.  Name Server Behavior
 
+   A name server which understands the NSID option and chooses to honor
+   a particular NSID request responds by including identifying
+   information in a NSID option (Section 2.3) in an EDNS OPT pseudo-RR
+   in the response message.
 
-Austein                  Expires March 13, 2006                 [Page 3]
-
-Internet-Draft                  DNS NSID                  September 2005
-
-
-   wishes to receive identifying information, it is free to set the SI
-   flag in its own queries, but that is a separate matter.
-
-   A name server which understands the SI flag SHOULD echo its value
-   back in the response message, regardless of whether the name server
-   chose to honor the request.
-
-2.2  The NSID Option
-
-   A name server which understands the SI flag and chooses to honor it
-   responds by including identifying information in a NSID option in an
-   EDNS OPT pseudo-RR in the response message.
-
-   The OPTION-CODE for the NSID option is [TBD].
-
-   The OPTION-DATA for the NSID option is an opaque byte string the
-   semantics of which are deliberately left outside the protocol.  See
-   Section 3.1 for discussion.
+   The name server MUST ignore any NSID payload data that might be
+   present in the query message.
 
    The NSID option is not transitive.  A name server MUST NOT send an
    NSID option back to a resolver which did not request it.  In
-   particular, while a recursive name server may choose to set the SI
-   bit when sending a query, this has no effect on the setting of the SI
-   bit or the presence or absence of the NSID option in the recursive
-   name server's response to the original client.
+   particular, while a recursive name server may choose to add an NSID
+   option when sending a query, this has no effect on the presence or
+   absence of the NSID option in the recursive name server's response to
+   the original client.
 
    As stated in Section 2.1, this mechanism is not restricted to
    authoritative name servers; the semantics are intended to be equally
    applicable to recursive name servers.
 
-2.3  Presentation Format
+2.3.  The NSID Option
+
+   The OPTION-CODE for the NSID option is [TBD].
+
+
+
+Austein                   Expires July 15, 2006                 [Page 4]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
+   The OPTION-DATA for the NSID option is an opaque byte string the
+   semantics of which are deliberately left outside the protocol.  See
+   Section 3.1 for discussion.
+
+2.4.  Presentation Format
 
    User interfaces MUST read and write the content of the NSID option as
    a sequence of hexadecimal digits, two digits per payload octet.
@@ -213,19 +243,50 @@ Internet-Draft                  DNS NSID                  September 2005
 
    See Section 3.3 for discussion.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                 [Page 5]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
 3.  Discussion
 
    This section discusses certain aspects of the protocol and explains
    considerations that led to the chosen design.
 
-
-
-Austein                  Expires March 13, 2006                 [Page 4]
-
-Internet-Draft                  DNS NSID                  September 2005
-
-
-3.1  The NSID Payload
+3.1.  The NSID Payload
 
    The syntax and semantics of the content of the NSID option is
    deliberately left outside the scope of this specification.  This
@@ -234,56 +295,69 @@ Internet-Draft                  DNS NSID                  September 2005
    explains the reasoning behind choosing a simple opaque byte string.
 
    There are several possibilities for the payload of the NSID option:
+
    o  It could be the "real" name of the specific name server within the
       name server pool.
+
    o  It could be the "real" IP address (IPv4 or IPv6) of the name
       server within the name server pool.
+
    o  It could be some sort of pseudo-random number generated in a
       predictable fashion somehow using the server's IP address or name
       as a seed value.
+
    o  It could be some sort of probabilisticly unique identifier
       initially derived from some sort of random number generator then
       preserved across reboots of the name server.
+
    o  It could be some sort of dynamicly generated identifier so that
       only the name server operator could tell whether or not any two
       queries had been answered by the same server.
+
    o  It could be a blob of signed data, with a corresponding key which
       might (or might not) be available via DNS lookups.
+
    o  It could be a blob of encrypted data, the key for which could be
       restricted to parties with a need to know (in the opinion of the
       server operator).
+
    o  It could be an arbitrary string of octets chosen at the discretion
       of the name server operator.
 
    Each of these options has advantages and disadvantages:
+
    o  Using the "real" name is simple, but the name server may not have
       a "real" name.
+
+
+
+
+Austein                   Expires July 15, 2006                 [Page 6]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
    o  Using the "real" address is also simple, and the name server
       almost certainly does have at least one non-anycast IP address for
       maintenance operations, but the operator of the name server may
       not be willing to divulge its non-anycast address.
+
    o  Given that one common reason for using anycast DNS techniques is
       an attempt to harden a critical name server against denial of
       service attacks, some name server operators are likely to want an
       identifier other than the "real" name or "real" address of the
       name server instance.
+
    o  Using a hash or pseudo-random number can provide a fixed length
       value that the resolver can use to tell two name servers apart
       without necessarily being able to tell where either one of them
       "really" is, but makes debugging more difficult if one happens to
       be in a friendly open environment.  Furthermore, hashing might not
       add much value, since a hash based on an IPv4 address still only
-
-
-
-Austein                  Expires March 13, 2006                 [Page 5]
-
-Internet-Draft                  DNS NSID                  September 2005
-
-
       involves a 32-bit search space, and DNS names used for servers
       that operators might have to debug at 4am tend not to be very
       random.
+
    o  Probabilisticly unique identifiers have similar properties to
       hashed identifiers, but (given a sufficiently good random number
       generator) are immune to the search space issues.  However, the
@@ -298,6 +372,7 @@ Internet-Draft                  DNS NSID                  September 2005
       of a name server that does not have any way to store such an
       identifier, nothing terrible will happen if the name server just
       generates a new identifier every time it reboots.
+
    o  Using an arbitrary octet string gives name server operators yet
       another thing to configure, or mis-configure, or forget to
       configure.  Having all the nodes in an anycast name server
@@ -305,18 +380,29 @@ Internet-Draft                  DNS NSID                  September 2005
       particularly useful.
 
    Given all of the issues listed above, there does not appear to be a
-   single solution that will meet all needs.  Section 2.2 therefore
+   single solution that will meet all needs.  Section 2.3 therefore
    defines the NSID payload to be an opaque byte string and leaves the
    choice up to the implementor and name server operator.  The following
    guidelines may be useful to implementors and server operators:
+
+
+
+
+Austein                   Expires July 15, 2006                 [Page 7]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
    o  Operators for whom divulging the unicast address is an issue could
       use the raw binary representation of a probabilisticly unique
       random number.  This should probably be the default implementation
       behavior.
+
    o  Operators for whom divulging the unicast address is not an issue
       could just use the raw binary representation of a unicast address
       for simplicity.  This should only be done via an explicit
       configuration choice by the operator.
+
    o  Operators who really need or want the ability to set the NSID
       payload to an arbitrary value could do so, but this should only be
       done via an explicit configuration choice by the operator.
@@ -327,20 +413,10 @@ Internet-Draft                  DNS NSID                  September 2005
    server operators who do not find such leakage threatening to provide
    more information at their own discretion.
 
+3.2.  NSID Is Not Transitive
 
-
-
-
-
-Austein                  Expires March 13, 2006                 [Page 6]
-
-Internet-Draft                  DNS NSID                  September 2005
-
-
-3.2  SI and NSID Are Not Transitive
-
-   As specified in Section 2.1 and Section 2.2, the SI flag and NSID
-   option are not transitive.  This is strictly a hop-by-hop mechanism.
+   As specified in Section 2.1 and Section 2.2, the NSID option is not
+   transitive.  This is strictly a hop-by-hop mechanism.
 
    Most of the discussion of name server identification to date has
    focused on identifying authoritative name servers, since the best
@@ -357,7 +433,7 @@ Internet-Draft                  DNS NSID                  September 2005
    such a variant would be more complicated, and are left for future
    work.
 
-3.3  User Interface Issues
+3.3.  User Interface Issues
 
    Given the range of possible payload contents described in
    Section 3.1, it is not possible to define a single presentation
@@ -365,13 +441,22 @@ Internet-Draft                  DNS NSID                  September 2005
    unambiguous, and aesthetically pleasing.  In particular, while it is
    tempting to use a presentation format that uses some form of textual
    strings, attempting to support this would significantly complicate
+
+
+
+Austein                   Expires July 15, 2006                 [Page 8]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
    what's intended to be a very simple debugging mechanism.
 
-   In some cases the content of the NSID payload may binary data only be
-   meaningful to the name server operator, and may not be meaningful to
-   the user or application, but the user or application must be able to
-   capture the entire content anyway in order for it to be useful.
-   Thus, the presentation format must support arbitrary binary data.
+   In some cases the content of the NSID payload may be binary data
+   meaningful only to the name server operator, and may not be
+   meaningful to the user or application, but the user or application
+   must be able to capture the entire content anyway in order for it to
+   be useful.  Thus, the presentation format must support arbitrary
+   binary data.
 
    In cases where the name server operator derives the NSID payload from
    textual data, a textual form such as US-ASCII or UTF-8 strings might
@@ -382,28 +467,99 @@ Internet-Draft                  DNS NSID                  September 2005
    [RFC2277] for an overview of some of these issues.
 
    It is much more important for the NSID payload data to be passed
-   unambiguously from server administrator to user than it is for the
-   payload data data to be pretty while in transit.  In particular, it's
-   critical that it be straightforward for a user to cut and paste an
+   unambiguously from server administrator to user and back again than
+   it is for the payload data data to be pretty while in transit.  In
+   particular, it's critical that it be straightforward for a user to
+   cut and paste an exact copy of the NSID payload output by a debugging
+   tool into other formats such as email messages or web forms without
+   distortion.  Hexadecimal strings, while ugly, are also robust.
+
+3.4.  Truncation
+
+   In some cases, adding the NSID option to a response message may
+   trigger message truncation.  This specification does not change the
+   rules for DNS message truncation in any way, but implementors will
+   need to pay attention to this issue.
+
+   Including the NSID option in a response is always optional, so this
+   specification never requires name servers to truncate response
+   messages.
+
+   By definition, a resolver that requests NSID responses also supports
+   EDNS, so a resolver that requests NSID responses can also use the
+   "sender's UDP payload size" field of the OPT pseudo-RR to signal a
+   receive buffer size large enough to make truncation unlikely.
 
 
 
-Austein                  Expires March 13, 2006                 [Page 7]
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                 [Page 9]
 
-Internet-Draft                  DNS NSID                  September 2005
+Internet-Draft                  DNS NSID                    January 2006
 
-
-   exact copy of the NSID payload output by a debugging tool into other
-   formats such as email messages or web forms without distortion.
-   Hexadecimal strings, while ugly, are also robust.
 
 4.  IANA Considerations
 
-   This mechanism requires allocation of one EDNS flag bit for the SI
-   flag (Section 2.1).
-
    This mechanism requires allocation of one ENDS option code for the
-   NSID option (Section 2.2).
+   NSID option (Section 2.3).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                [Page 10]
+
+Internet-Draft                  DNS NSID                    January 2006
+
 
 5.  Security Considerations
 
@@ -420,39 +576,157 @@ Internet-Draft                  DNS NSID                  September 2005
    leaves the syntax and semantics of the NSID option content up to the
    implementation and the name server operator.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                [Page 11]
+
+Internet-Draft                  DNS NSID                    January 2006
+
+
 6.  Acknowledgements
 
    Joe Abley, Harald Alvestrand, Mark Andrews, Roy Arends, Steve
    Bellovin, Randy Bush, David Conrad, Johan Ihren, Daniel Karrenberg,
-   Mike Patton, Paul Vixie, Sam Weiler, and Suzanne Woolf.  Apologies to
-   anyone inadvertently omitted from the above list.
+   Peter Koch, Mike Patton, Mike StJohns, Paul Vixie, Sam Weiler, and
+   Suzanne Woolf.  Apologies to anyone inadvertently omitted from the
+   above list.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                [Page 12]
+
+Internet-Draft                  DNS NSID                    January 2006
+
 
 7.  References
 
-7.1  Normative References
+7.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119, March 1997.
+              Requirement Levels", RFC 2119, BCP 14, March 1997.
 
    [RFC2671]  Vixie, P., "Extension Mechanisms for DNS (EDNS0)",
               RFC 2671, August 1999.
 
-   [RFC2845]  Vixie, P., Gudmundsson, O., Eastlake, D., and B.
+   [RFC2845]  Vixie, P., Gudmundsson, O., Eastlake 3rd, D., and B.
               Wellington, "Secret Key Transaction Authentication for DNS
               (TSIG)", RFC 2845, May 2000.
 
-
-
-
-Austein                  Expires March 13, 2006                 [Page 8]
-
-Internet-Draft                  DNS NSID                  September 2005
-
-
-7.2  Informative References
+7.2.  Informative References
 
    [RFC2277]  Alvestrand, H., "IETF Policy on Character Sets and
-              Languages", BCP 18, RFC 2277, January 1998.
+              Languages", RFC 2277, BCP 18, January 1998.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                [Page 13]
+
+Internet-Draft                  DNS NSID                    January 2006
 
 
 Author's Address
@@ -500,9 +774,15 @@ Author's Address
 
 
 
-Austein                  Expires March 13, 2006                 [Page 9]
+
+
+
+
+
+
+Austein                   Expires July 15, 2006                [Page 14]
 
-Internet-Draft                  DNS NSID                  September 2005
+Internet-Draft                  DNS NSID                    January 2006
 
 
 Intellectual Property Statement
@@ -543,7 +823,7 @@ Disclaimer of Validity
 
 Copyright Statement
 
-   Copyright (C) The Internet Society (2005).  This document is subject
+   Copyright (C) The Internet Society (2006).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
 
@@ -556,5 +836,5 @@ Acknowledgment
 
 
 
-Austein                  Expires March 13, 2006                [Page 10]
+Austein                   Expires July 15, 2006                [Page 15]
 
