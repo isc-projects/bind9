@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.5.98.5 2005/05/13 01:22:33 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.5.98.6 2006/01/17 00:01:46 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -365,6 +365,10 @@
 	  <refentrytitle>lwresd</refentrytitle>
 	  <manvolnum>8</manvolnum>
         </citerefentry>,
+	<citerefentry>
+	  <refentrytitle>named.conf</refentrytitle>
+	  <manvolnum>5</manvolnum>
+	</citerefentry>,
 	<citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
   </refsect1>
