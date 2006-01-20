@@ -9,10 +9,10 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-bind9-gss-tsig			new	
-bind9-gsstsig			new	
+bind9-gss-tsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
+bind9-gsstsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
 custom_WFB_v9_3_1		new	
-gsstsig2			new	
+gsstsig2			open	sra	// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			new	
 libbind_clean			open	jinmei
