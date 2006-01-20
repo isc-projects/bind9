@@ -58,8 +58,8 @@ rt15807				review
 rt15808				review	
 rt15812				review	
 rt1727				open		// ixfr-from-differences workfile
-rt1727b				open	
-rt1727c				open	
+rt1727b				closed	
+rt1727c				closed	
 rt5206_1			closed
 rt6496a				review	marka
 skan				new	
@@ -69,18 +69,17 @@ skan_stats1			new
 stats_lidl			new	
 v6source			new	
 v9_1				active		// security fixes only
-v9_1_1_base			new	
-v9_1_1_patch			new	
-v9_1_3_do_base			new	
-v9_1_4_base			new	
+v9_1_1_patch			active		// security fixes 9.1.1 only	
+v9_1_3_do_base			closed	
+v9_1_4_base			closed	
 v9_2				active	
-v9_2_0_patch			new	
-v9_2_2_delegation_only		new	
-v9_2_2base			new	
-v9_2_4base			new	
+v9_2_0_patch			active		// security fixes 9.2.0 only
+v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
+v9_2_2base			active          // security fixes 9.2.2 only 
+v9_2_4base			active		// security fixes 9.2.4 only
 v9_3				active	
-v9_3_0base			new	
-v9_3_0beta2_dlv			new	
+v9_3_0base			active		// security fixes 9.3.0 only
+v9_3_0beta2_dlv			closed
 v9_4				active	
 
 
