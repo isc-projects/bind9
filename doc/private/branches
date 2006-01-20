@@ -61,7 +61,7 @@ rt1727				open		// ixfr-from-differences workfile
 rt1727b				open	
 rt1727c				open	
 rt5206_1			open	marka	// master from last notify
-rt6496a				open	marka
+rt6496a				review	marka
 skan				new	
 skan-metazones1			new	
 skan_implicit_update1		new	
