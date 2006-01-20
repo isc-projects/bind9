@@ -9,8 +9,6 @@ Branch				Status	Whom	// Comments
 				private		private branch
 				closed		finished with
 
-bind9-gss-tsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
-bind9-gsstsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
 custom_WFB_v9_3_1		private	
 gsstsig2			open	sra	// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
@@ -28,8 +26,6 @@ rt13489				review	marka
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
 rt13606				review	marka	// TSIG SHA256
-rt13662				closed	marka	// abandoned
-rt13662_alt			closed		// abandoned
 rt13662_alt2			review	marka	// rrset-order fixed
 rt14623				open	
 rt14654				open	
@@ -58,9 +54,6 @@ rt15807				review
 rt15808				review	
 rt15812				review	
 rt1727				open		// ixfr-from-differences workfile
-rt1727b				closed	
-rt1727c				closed	
-rt5206_1			closed
 rt6496a				review	marka
 skan				new	
 skan-metazones1			private	
@@ -70,16 +63,13 @@ stats_lidl			new
 v6source			new	
 v9_1				active		// security fixes only
 v9_1_1_patch			active		// security fixes 9.1.1 only	
-v9_1_3_do_base			closed	
-v9_1_4_base			closed	
 v9_2				active	
 v9_2_0_patch			active		// security fixes 9.2.0 only
 v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
-v9_2_2base			active          // security fixes 9.2.2 only 
+v9_2_2base			active		// security fixes 9.2.2 only 
 v9_2_4base			active		// security fixes 9.2.4 only
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
-v9_3_0beta2_dlv			closed
 v9_4				active	
 
 
@@ -88,6 +78,8 @@ adb_race			closed
 additional_cache		closed		// additional RRs caching for performance
 additional_cache_rt6496		closed
 avoid_gettimeofday		closed
+bind9-gss-tsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
+bind9-gsstsig			closed		// ancient (circa 9.2.3) gss-tsig attempt, never worked
 blabel-cleanup			closed
 chroot				closed
 compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
@@ -291,6 +283,8 @@ rt13605				closed
 rt13609				closed
 rt13620				closed
 rt13659				closed
+rt13662				closed		// abandoned
+rt13662_alt			closed		// abandoned
 rt13694				closed
 rt13707				closed
 rt13714				closed
@@ -386,6 +380,8 @@ rt15739				closed
 rt15776				closed
 rt15779				closed
 rt15780				closed
+rt1727b				closed
+rt1727c				closed
 rt2471				closed
 rt288				closed
 rt3445				closed
@@ -437,6 +433,7 @@ rt5127				closed
 rt5182				closed
 rt5192				closed
 rt5204				closed
+rt5206_1			closed
 rt5228				closed
 rt5299				closed
 rt5318				closed
@@ -493,6 +490,9 @@ skan-typecode-roll2		closed
 slavefix			closed
 v9_0				closed
 v9_1_3_delegation_only		closed
+v9_1_3_do_base			closed
+v9_1_4_base			closed
+v9_3_0beta2_dlv			closed
 ws20030120			closed		// workshop branch
 ws20030120_tcr			closed		// workshop branch
 ws20030312			closed
