@@ -1,3 +1,6 @@
+1972.	[contrib]	DBUS dynamic forwarders integation from
+			Jason Vas Dias <jvdias@redhat.com>.
+
 1971.	[port]		linux: make detection of missing IF_NAMESIZE more
                         robust. [RT #15443]
 
