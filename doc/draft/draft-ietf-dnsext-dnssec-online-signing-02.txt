@@ -4,12 +4,12 @@
 Network Working Group                                          S. Weiler
 Internet-Draft                                               SPARTA, Inc
 Updates: 4034, 4035 (if approved)                               J. Ihren
-Expires: November 13, 2005                                 Autonomica AB
-                                                            May 12, 2005
+Expires: July 24, 2006                                     Autonomica AB
+                                                        January 20, 2006
 
 
        Minimally Covering NSEC Records and DNSSEC On-line Signing
-               draft-ietf-dnsext-dnssec-online-signing-00
+               draft-ietf-dnsext-dnssec-online-signing-02
 
 Status of this Memo
 
@@ -34,11 +34,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on November 13, 2005.
+   This Internet-Draft will expire on July 24, 2006.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2005).
+   Copyright (C) The Internet Society (2006).
 
 Abstract
 
@@ -52,10 +52,38 @@ Abstract
 
 
 
-Weiler & Ihren          Expires November 13, 2005               [Page 1]
+Weiler & Ihren            Expires July 24, 2006                 [Page 1]
 
-Internet-Draft                NSEC Epsilon                      May 2005
+Internet-Draft                NSEC Epsilon                  January 2006
 
+
+Changes from ietf-01 to ietf-02
+
+   Clarified that a generated NSEC RR's type bitmap MUST have the RRSIG
+   and NSEC bits set, to be consistent with DNSSECbis -- previous text
+   said SHOULD.
+
+   Made the applicability statement a little less oppressive.
+
+Changes from ietf-00 to ietf-01
+
+   Added an applicability statement, making reference to ongoing work on
+   NSEC3.
+
+   Added the phrase "epsilon functions", which has been commonly used to
+   describe the technique and already appeared in the header of each
+   page, in place of "increment and decrement functions".  Also added an
+   explanatory sentence.
+
+   Corrected references from 4034 section 6.2 to section 6.1.
+
+   Fixed an out-of-date reference to [-bis] and other typos.
+
+   Replaced IANA Considerations text.
+
+   Escaped close parentheses in examples.
+
+   Added some more acknowledgements.
 
 Changes from weiler-01 to ietf-00
 
@@ -80,50 +108,23 @@ Changes from weiler-00 to weiler-01
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Weiler & Ihren          Expires November 13, 2005               [Page 2]
+Weiler & Ihren            Expires July 24, 2006                 [Page 2]
 
-Internet-Draft                NSEC Epsilon                      May 2005
+Internet-Draft                NSEC Epsilon                  January 2006
 
 
 Table of Contents
 
-   1.   Introduction and Terminology . . . . . . . . . . . . . . . .   4
-   2.   Minimally Covering NSEC Records  . . . . . . . . . . . . . .   4
-   3.   Better Increment & Decrement Functions . . . . . . . . . . .   6
-   4.   IANA Considerations  . . . . . . . . . . . . . . . . . . . .   7
-   5.   Security Considerations  . . . . . . . . . . . . . . . . . .   7
-   6.   Normative References . . . . . . . . . . . . . . . . . . . .   8
-        Authors' Addresses . . . . . . . . . . . . . . . . . . . . .   8
-   A.   Acknowledgments  . . . . . . . . . . . . . . . . . . . . . .   8
-        Intellectual Property and Copyright Statements . . . . . . .  10
+   1.  Introduction and Terminology . . . . . . . . . . . . . . . . .  4
+   2.  Applicability of This Technique  . . . . . . . . . . . . . . .  4
+   3.  Minimally Covering NSEC Records  . . . . . . . . . . . . . . .  5
+   4.  Better Epsilon Functions . . . . . . . . . . . . . . . . . . .  6
+   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . .  7
+   6.  Security Considerations  . . . . . . . . . . . . . . . . . . .  7
+   7.  Normative References . . . . . . . . . . . . . . . . . . . . .  8
+   Appendix A.  Acknowledgments . . . . . . . . . . . . . . . . . . .  8
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 10
+   Intellectual Property and Copyright Statements . . . . . . . . . . 11
 
 
 
@@ -163,10 +164,9 @@ Table of Contents
 
 
 
-
-Weiler & Ihren          Expires November 13, 2005               [Page 3]
+Weiler & Ihren            Expires July 24, 2006                 [Page 3]
 
-Internet-Draft                NSEC Epsilon                      May 2005
+Internet-Draft                NSEC Epsilon                  January 2006
 
 
 1.  Introduction and Terminology
@@ -190,17 +190,42 @@ Internet-Draft                NSEC Epsilon                      May 2005
    these records must be created and signed on demand, which requires
    on-line private keys.  Anyone contemplating use of this technique is
    strongly encouraged to review the discussion of the risks of on-line
-   signing in Section 5.
-
-   The technique presented here may be useful to a zone owner that wants
-   to use DNSSEC, is concerned about exposure of its zone contents via
-   zone walking, and is willing to bear the costs of on-line signing.
+   signing in Section 6.
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in RFC 2119 [4].
 
-2.  Minimally Covering NSEC Records
+
+2.  Applicability of This Technique
+
+   The technique presented here may be useful to a zone owner that wants
+   to use DNSSEC, is concerned about exposure of its zone contents via
+   zone walking, and is willing to bear the costs of on-line signing.
+
+   As discussed in Section 6, on-line signing has several security
+   risks, including an increased likelihood of private keys being
+   disclosed and an increased risk of denial of service attack.  Anyone
+   contemplating use of this technique is strongly encouraged to review
+   the discussion of the risks of on-line signing in Section 6.
+
+   Furthermore, at the time this document was published, the DNSEXT
+   working group was actively working on a mechanism to prevent zone
+   walking that does not require on-line signing (tentatively called
+   NSEC3).  The new mechanism is likely to expose slightly more
+   information about the zone than this technique (e.g. the number of
+   instantiated names), but it may be preferable to this technique.
+
+
+
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 4]
+
+Internet-Draft                NSEC Epsilon                  January 2006
+
+
+3.  Minimally Covering NSEC Records
 
    This mechanism involves changes to NSEC records for instantiated
    names, which can still be generated and signed in advance, as well as
@@ -211,19 +236,12 @@ Internet-Draft                NSEC Epsilon                      May 2005
    than list the next instantiated name in the zone, list any name that
    falls lexically after the NSEC's owner name and before the next
    instantiated name in the zone, according to the ordering function in
-   RFC4034 [2] section 6.2.  This relaxes the requirement in section
+   RFC4034 [2] section 6.1.  This relaxes the requirement in section
    4.1.1 of RFC4034 that the 'next name' field contains the next owner
    name in the zone.  This change is expected to be fully compatible
    with all existing DNSSEC validators.  These NSEC records are returned
    whenever proving something specifically about the owner name (e.g.
    that no resource records of a given type appear at that name).
-
-
-
-Weiler & Ihren          Expires November 13, 2005               [Page 4]
-
-Internet-Draft                NSEC Epsilon                      May 2005
-
 
    Whenever an NSEC record is needed to prove the non-existence of a
    name, a new NSEC record is dynamically produced and signed.  The new
@@ -231,16 +249,19 @@ Internet-Draft                NSEC Epsilon                      May 2005
    lexically following any existing name and a 'next name' lexically
    following the QNAME but before any existing name.
 
-   The generated NSEC record's type bitmap SHOULD have the RRSIG and
-   NSEC bits set and SHOULD NOT have any other bits set.  This relaxes
-   the requirement in Section 2.3 of RFC4035 that NSEC RRs not appear at
-   names that did not exist before the zone wsa signed.
+   The generated NSEC record's type bitmap MUST have the RRSIG and NSEC
+   bits set and SHOULD NOT have any other bits set.  This relaxes the
+   requirement in Section 2.3 of RFC4035 that NSEC RRs not appear at
+   names that did not exist before the zone was signed.
 
    The functions to generate the lexically following and proceeding
    names need not be perfect nor consistent, but the generated NSEC
    records must not cover any existing names.  Furthermore, this
    technique works best when the generated NSEC records cover as few
-   names as possible.
+   names as possible.  In this document, the functions that generate the
+   nearby names are called 'epsilon' functions, a reference to the
+   mathematical convention of using the greek letter epsilon to
+   represent small deviations.
 
    An NSEC record denying the existence of a wildcard may be generated
    in the same way.  Since the NSEC record covering a non-existent
@@ -253,19 +274,26 @@ Internet-Draft                NSEC Epsilon                      May 2005
    denying the existence of the name example.com and the second denying
    the existence of a wildcard:
 
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 5]
+
+Internet-Draft                NSEC Epsilon                  January 2006
+
+
              exampld.com 3600 IN NSEC example-.com ( RRSIG NSEC )
 
-             ).com 3600 IN NSEC +.com ( RRSIG NSEC )
+             \).com 3600 IN NSEC +.com ( RRSIG NSEC )
 
    Before answering a query with these records, an authoritative server
    must test for the existence of names between these endpoints.  If the
    generated NSEC would cover existing names (e.g. exampldd.com or
-   *bizarre.example.com), a better increment or decrement function may
-   be used or the covered name closest to the QNAME could be used as the
-   NSEC owner name or next name, as appropriate.  If an existing name is
-   used as the NSEC owner name, that name's real NSEC record MUST be
-   returned.  Using the same example, assuming an exampldd.com
-   delegation exists, this record might be returned from the parent:
+   *bizarre.example.com), a better epsilon function may be used or the
+   covered name closest to the QNAME could be used as the NSEC owner
+   name or next name, as appropriate.  If an existing name is used as
+   the NSEC owner name, that name's real NSEC record MUST be returned.
+   Using the same example, assuming an exampldd.com delegation exists,
+   this record might be returned from the parent:
 
              exampldd.com 3600 IN NSEC example-.com ( NS DS RRSIG NSEC )
 
@@ -273,27 +301,20 @@ Internet-Draft                NSEC Epsilon                      May 2005
    record MUST have corresponding RRSIGs generated using each algorithm
    (but not necessarily each DNSKEY) in the zone's DNSKEY RRset, as
    described in RFC4035 [3] section 2.2.  To minimize the number of
-
-
-
-Weiler & Ihren          Expires November 13, 2005               [Page 5]
-
-Internet-Draft                NSEC Epsilon                      May 2005
-
-
    signatures that must be generated, a zone may wish to limit the
    number of algorithms in its DNSKEY RRset.
 
-3.  Better Increment & Decrement Functions
 
-   Section 6.2 of RFC4034 defines a strict ordering of DNS names.
+4.  Better Epsilon Functions
+
+   Section 6.1 of RFC4034 defines a strict ordering of DNS names.
    Working backwards from that definition, it should be possible to
-   define increment and decrement functions that generate the
-   immediately following and preceding names, respectively.  This
-   document does not define such functions.  Instead, this section
-   presents functions that come reasonably close to the perfect ones.
-   As described above, an authoritative server should still ensure than
-   no generated NSEC covers any existing name.
+   define epsilon functions that generate the immediately following and
+   preceding names, respectively.  This document does not define such
+   functions.  Instead, this section presents functions that come
+   reasonably close to the perfect ones.  As described above, an
+   authoritative server should still ensure than no generated NSEC
+   covers any existing name.
 
    To increment a name, add a leading label with a single null (zero-
    value) octet.
@@ -308,13 +329,21 @@ Internet-Draft                NSEC Epsilon                      May 2005
    In response to a query for the non-existent name foo.example.com,
    these functions produce NSEC records of:
 
+
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 6]
+
+Internet-Draft                NSEC Epsilon                  January 2006
+
+
      fon\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255.example.com 3600 IN NSEC \000.foo.example.com ( NSEC RRSIG )
 
-     )\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
+     \)\255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
      \255\255\255\255\255\255\255\255\255\255\255\255\255\255\255
@@ -327,26 +356,18 @@ Internet-Draft                NSEC Epsilon                      May 2005
    Both of these functions are imperfect: they don't take into account
    constraints on number of labels in a name nor total length of a name.
    As noted in the previous section, though, this technique does not
-   depend on the use of perfect increment or decrement functions: it is
-   sufficient to test whether any instantiated names fall into the span
+   depend on the use of perfect epsilon functions: it is sufficient to
+   test whether any instantiated names fall into the span covered by the
+   generated NSEC and, if so, substitute those instantiated owner names
+   for the NSEC owner name or next name, as appropriate.
 
 
+5.  IANA Considerations
 
-Weiler & Ihren          Expires November 13, 2005               [Page 6]
-
-Internet-Draft                NSEC Epsilon                      May 2005
+   This document specifies no IANA Actions.
 
 
-   covered by the generated NSEC and, if so, substitute those
-   instantiated owner names for the NSEC owner name or next name, as
-   appropriate.
-
-4.  IANA Considerations
-
-   Per RFC4041, IANA should think carefully about the protection of
-   their immortal souls.
-
-5.  Security Considerations
+6.  Security Considerations
 
    This approach requires on-demand generation of RRSIG records.  This
    creates several new vulnerabilities.
@@ -356,51 +377,49 @@ Internet-Draft                NSEC Epsilon                      May 2005
    internet-accessible servers may make them more vulnerable to
    unintended disclosure.
 
-   Second, since generation of public key signatures tends to be
+   Second, since generation of digital signatures tends to be
    computationally demanding, the requirement for on-demand signing
    makes authoritative servers vulnerable to a denial of service attack.
 
-   Lastly, if the increment and decrement functions are predictable, on-
-   demand signing may enable a chosen-plaintext attack on a zone's
-   private keys.  Zones using this approach should attempt to use
-   cryptographic algorithms that are resistant to chosen-plaintext
-   attacks.  It's worth noting that while DNSSEC has a "mandatory to
-   implement" algorithm, that is a requirement on resolvers and
-   validators -- there is no requirement that a zone be signed with any
-   given algorithm.
+   Lastly, if the epsilon functions are predictable, on-demand signing
+   may enable a chosen-plaintext attack on a zone's private keys.  Zones
+   using this approach should attempt to use cryptographic algorithms
+   that are resistant to chosen-plaintext attacks.  It's worth noting
+
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 7]
+
+Internet-Draft                NSEC Epsilon                  January 2006
+
+
+   that while DNSSEC has a "mandatory to implement" algorithm, that is a
+   requirement on resolvers and validators -- there is no requirement
+   that a zone be signed with any given algorithm.
 
    The success of using minimally covering NSEC record to prevent zone
-   walking depends greatly on the quality of the increment and decrement
-   functions chosen.  An increment function that chooses a name
-   obviously derived from the next instantiated name may be easily
-   reverse engineered, destroying the value of this technique.  An
-   increment function that always returns a name close to the next
-   instantiated name is likewise a poor choice.  Good choices of
-   increment and decrement functions are the ones that produce the
-   immediately following and preceding names, respectively, though zone
-   administrators may wish to use less perfect functions that return
-   more human-friendly names than the functions described in Section 3
-   above.
+   walking depends greatly on the quality of the epsilon functions
+   chosen.  An increment function that chooses a name obviously derived
+   from the next instantiated name may be easily reverse engineered,
+   destroying the value of this technique.  An increment function that
+   always returns a name close to the next instantiated name is likewise
+   a poor choice.  Good choices of epsilon functions are the ones that
+   produce the immediately following and preceding names, respectively,
+   though zone administrators may wish to use less perfect functions
+   that return more human-friendly names than the functions described in
+   Section 4 above.
 
    Another obvious but misguided concern is the danger from synthesized
    NSEC records being replayed.  It's possible for an attacker to replay
    an old but still validly signed NSEC record after a new name has been
-
-
-
-Weiler & Ihren          Expires November 13, 2005               [Page 7]
-
-Internet-Draft                NSEC Epsilon                      May 2005
-
-
    added in the span covered by that NSEC, incorrectly proving that
    there is no record at that name.  This danger exists with DNSSEC as
-   defined in [-bis].  The techniques described here actually decrease
-   the danger, since the span covered by any NSEC record is smaller than
-   before.  Choosing better increment and decrement functions will
-   further reduce this danger.
+   defined in [3].  The techniques described here actually decrease the
+   danger, since the span covered by any NSEC record is smaller than
+   before.  Choosing better epsilon functions will further reduce this
+   danger.
 
-6.  Normative References
+7.  Normative References
 
    [1]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
         "DNS Security Introduction and Requirements", RFC 4033,
@@ -416,6 +435,74 @@ Internet-Draft                NSEC Epsilon                      May 2005
 
    [4]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
+
+
+Appendix A.  Acknowledgments
+
+   Many individuals contributed to this design.  They include, in
+   addition to the authors of this document, Olaf Kolkman, Ed Lewis,
+
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 8]
+
+Internet-Draft                NSEC Epsilon                  January 2006
+
+
+   Peter Koch, Matt Larson, David Blacka, Suzanne Woolf, Jaap Akkerhuis,
+   Jakob Schlyter, Bill Manning, and Joao Damas.
+
+   In addition, the editors would like to thank Ed Lewis, Scott Rose,
+   and David Blacka for their careful review of the document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Weiler & Ihren            Expires July 24, 2006                 [Page 9]
+
+Internet-Draft                NSEC Epsilon                  January 2006
 
 
 Authors' Addresses
@@ -437,72 +524,41 @@ Authors' Addresses
 
    Email: johani@autonomica.se
 
-Appendix A.  Acknowledgments
-
-   Many individuals contributed to this design.  They include, in
-   addition to the authors of this document, Olaf Kolkman, Ed Lewis,
 
 
 
-Weiler & Ihren          Expires November 13, 2005               [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Weiler & Ihren            Expires July 24, 2006                [Page 10]
 
-Internet-Draft                NSEC Epsilon                      May 2005
-
-
-   Peter Koch, Matt Larson, David Blacka, Suzanne Woolf, Jaap Akkerhuis,
-   Jakob Schlyter, Bill Manning, and Joao Damas.
-
-   The key innovation of this document, namely that perfect increment
-   and decrement functions are not necessary, arose during a discussion
-   among the above-listed people at the RIPE49 meeting in September
-   2004.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Weiler & Ihren          Expires November 13, 2005               [Page 9]
-
-Internet-Draft                NSEC Epsilon                      May 2005
+Internet-Draft                NSEC Epsilon                  January 2006
 
 
 Intellectual Property Statement
@@ -543,7 +599,7 @@ Disclaimer of Validity
 
 Copyright Statement
 
-   Copyright (C) The Internet Society (2005).  This document is subject
+   Copyright (C) The Internet Society (2006).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
 
@@ -556,5 +612,5 @@ Acknowledgment
 
 
 
-Weiler & Ihren          Expires November 13, 2005              [Page 10]
+Weiler & Ihren            Expires July 24, 2006                [Page 11]
 
