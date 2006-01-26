@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.9 2006/01/06 00:01:41 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.10 2006/01/26 23:11:39 marka Exp $ */
 
 #include <config.h>
 
@@ -65,7 +65,6 @@ typedef enum {
  * Convenience macros for comprehensive assertion checking.
  */
 #define CLEANER_IDLE(c) ((c)->state == cleaner_s_idle && \
-			 (c)->iterator == NULL && \
 			 (c)->resched_event != NULL)
 #define CLEANER_BUSY(c) ((c)->state == cleaner_s_busy && \
 			 (c)->iterator != NULL && \
