@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dig.1,v 1.23.18.13 2005/10/26 06:02:01 marka Exp $
+.\" $Id: dig.1,v 1.23.18.14 2006/01/27 05:16:43 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -30,7 +30,7 @@
 dig \- DNS lookup utility
 .SH "SYNOPSIS"
 .HP 4
-\fBdig\fR [@server] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIfilename\fR\fR] [\fB\-k\ \fR\fB\fIfilename\fR\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-q\ \fR\fB\fIname\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [\fB\-y\ \fR\fB\fIname:key\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [name] [type] [class] [queryopt...]
+\fBdig\fR [@server] [\fB\-b\ \fR\fB\fIaddress\fR\fR] [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-f\ \fR\fB\fIfilename\fR\fR] [\fB\-k\ \fR\fB\fIfilename\fR\fR] [\fB\-p\ \fR\fB\fIport#\fR\fR] [\fB\-q\ \fR\fB\fIname\fR\fR] [\fB\-t\ \fR\fB\fItype\fR\fR] [\fB\-x\ \fR\fB\fIaddr\fR\fR] [\fB\-y\ \fR\fB\fI[hmac:]\fR\fIname:key\fR\fR] [\fB\-4\fR] [\fB\-6\fR] [name] [type] [class] [queryopt...]
 .HP 4
 \fBdig\fR [\fB\-h\fR]
 .HP 4
@@ -180,6 +180,8 @@ and their responses using transaction signatures (TSIG), specify a TSIG key file
 option. You can also specify the TSIG key itself on the command line using the
 \fB\-y\fR
 option;
+\fIhmac\fR
+is the type of the TSIG, default HMAC\-MD5,
 \fIname\fR
 is the name of the TSIG key and
 \fIkey\fR

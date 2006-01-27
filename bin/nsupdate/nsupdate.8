@@ -13,7 +13,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: nsupdate.8,v 1.30.18.7 2005/10/13 02:53:02 marka Exp $
+.\" $Id: nsupdate.8,v 1.30.18.8 2006/01/27 05:16:43 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -30,7 +30,7 @@
 nsupdate \- Dynamic DNS update utility
 .SH "SYNOPSIS"
 .HP 9
-\fBnsupdate\fR [\fB\-d\fR] [[\fB\-y\ \fR\fB\fIkeyname:secret\fR\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-v\fR] [filename]
+\fBnsupdate\fR [\fB\-d\fR] [[\fB\-y\ \fR\fB\fI[hmac:]\fR\fIkeyname:secret\fR\fR] [\fB\-k\ \fR\fB\fIkeyfile\fR\fR]] [\fB\-t\ \fR\fB\fItimeout\fR\fR] [\fB\-u\ \fR\fB\fIudptimeout\fR\fR] [\fB\-r\ \fR\fB\fIudpretries\fR\fR] [\fB\-v\fR] [filename]
 .SH "DESCRIPTION"
 .PP
 \fBnsupdate\fR
@@ -68,7 +68,7 @@ uses the
 \fB\-y\fR
 or
 \fB\-k\fR
-option (with an HMAC\-MD5 key) to provide the shared secret needed to generate a TSIG record for authenticating Dynamic DNS update requests. These options are mutually exclusive. With the
+option to provide the shared secret needed to generate a TSIG record for authenticating Dynamic DNS update requests, default type HMAC\-MD5. These options are mutually exclusive. With the
 \fB\-k\fR
 option,
 \fBnsupdate\fR
@@ -79,7 +79,7 @@ reads the shared secret from the file
 must also be present. When the
 \fB\-y\fR
 option is used, a signature is generated from
-\fIkeyname:secret.\fR\fIkeyname\fR
+[\fIhmac:\fR]\fIkeyname:secret.\fR\fIkeyname\fR
 is the name of the key, and
 \fIsecret\fR
 is the base64 encoded shared secret. Use of the

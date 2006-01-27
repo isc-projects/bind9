@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.13.18.17 2005/10/26 06:02:01 marka Exp $ -->
+<!-- $Id: dig.html,v 1.13.18.18 2006/01/27 05:16:43 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -29,12 +29,12 @@
 </div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">dig</code>  [@server] [<code class="option">-b <em class="replaceable"><code>address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-f <em class="replaceable"><code>filename</code></em></code>] [<code class="option">-k <em class="replaceable"><code>filename</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port#</code></em></code>] [<code class="option">-q <em class="replaceable"><code>name</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-x <em class="replaceable"><code>addr</code></em></code>] [<code class="option">-y <em class="replaceable"><code>name:key</code></em></code>] [<code class="option">-4</code>] [<code class="option">-6</code>] [name] [type] [class] [queryopt...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">dig</code>  [@server] [<code class="option">-b <em class="replaceable"><code>address</code></em></code>] [<code class="option">-c <em class="replaceable"><code>class</code></em></code>] [<code class="option">-f <em class="replaceable"><code>filename</code></em></code>] [<code class="option">-k <em class="replaceable"><code>filename</code></em></code>] [<code class="option">-p <em class="replaceable"><code>port#</code></em></code>] [<code class="option">-q <em class="replaceable"><code>name</code></em></code>] [<code class="option">-t <em class="replaceable"><code>type</code></em></code>] [<code class="option">-x <em class="replaceable"><code>addr</code></em></code>] [<code class="option">-y <em class="replaceable"><code>[<span class="optional">hmac:</span>]name:key</code></em></code>] [<code class="option">-4</code>] [<code class="option">-6</code>] [name] [type] [class] [queryopt...]</p></div>
 <div class="cmdsynopsis"><p><code class="command">dig</code>  [<code class="option">-h</code>]</p></div>
 <div class="cmdsynopsis"><p><code class="command">dig</code>  [global-queryopt...] [query...]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525995"></a><h2>DESCRIPTION</h2>
+<a name="id2525997"></a><h2>DESCRIPTION</h2>
 <p><span><strong class="command">dig</strong></span>
       (domain information groper) is a flexible tool
       for interrogating DNS name servers.  It performs DNS lookups and
@@ -73,7 +73,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526051"></a><h2>SIMPLE USAGE</h2>
+<a name="id2526053"></a><h2>SIMPLE USAGE</h2>
 <p>
       A typical invocation of <span><strong class="command">dig</strong></span> looks like:
       </p>
@@ -119,7 +119,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526210"></a><h2>OPTIONS</h2>
+<a name="id2526212"></a><h2>OPTIONS</h2>
 <p>
       The <code class="option">-b</code> option sets the source IP address of the query
       to <em class="parameter"><code>address</code></em>.  This must be a valid
@@ -200,6 +200,7 @@
       responses using transaction signatures (TSIG), specify a TSIG key file
       using the <code class="option">-k</code> option.  You can also specify the TSIG
       key itself on the command line using the <code class="option">-y</code> option;
+      <em class="parameter"><code>hmac</code></em> is the type of the TSIG, default HMAC-MD5,
       <em class="parameter"><code>name</code></em> is the name of the TSIG key and
       <em class="parameter"><code>key</code></em> is the actual key.  The key is a
       base-64
@@ -218,7 +219,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526408"></a><h2>QUERY OPTIONS</h2>
+<a name="id2526414"></a><h2>QUERY OPTIONS</h2>
 <p><span><strong class="command">dig</strong></span>
       provides a number of query options which affect
       the way in which lookups are made and the results displayed.  Some of
@@ -537,7 +538,7 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527734"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2527672"></a><h2>MULTIPLE QUERIES</h2>
 <p>
       The BIND 9 implementation of <span><strong class="command">dig </strong></span>
       supports
@@ -583,7 +584,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527796"></a><h2>IDN SUPPORT</h2>
+<a name="id2527734"></a><h2>IDN SUPPORT</h2>
 <p>
       If <span><strong class="command">dig</strong></span> has been built with IDN (internationalized
       domain name) support, it can accept and display non-ASCII domain names.
@@ -597,14 +598,14 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527818"></a><h2>FILES</h2>
+<a name="id2527756"></a><h2>FILES</h2>
 <p><code class="filename">/etc/resolv.conf</code>
     </p>
 <p><code class="filename">${HOME}/.digrc</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527835"></a><h2>SEE ALSO</h2>
+<a name="id2527773"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
       <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">dnssec-keygen</span>(8)</span>,
@@ -612,7 +613,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527873"></a><h2>BUGS</h2>
+<a name="id2527811"></a><h2>BUGS</h2>
 <p>
       There are probably too many query options.
     </p>
