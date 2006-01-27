@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: dst_api.c,v 1.5 2005/11/30 03:33:49 marka Exp $
+ * $Id: dst_api.c,v 1.6 2006/01/27 02:35:15 marka Exp $
  */
 
 /*! \file */
@@ -31,6 +31,7 @@
 #include <isc/dir.h>
 #include <isc/entropy.h>
 #include <isc/fsaccess.h>
+#include <isc/hmacsha.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -157,6 +158,11 @@ dst_lib_init(isc_mem_t *mctx, isc_entropy_t *ectx, unsigned int eflags) {
 
 	memset(dst_t_func, 0, sizeof(dst_t_func));
 	RETERR(dst__hmacmd5_init(&dst_t_func[DST_ALG_HMACMD5]));
+	RETERR(dst__hmacsha1_init(&dst_t_func[DST_ALG_HMACSHA1]));
+	RETERR(dst__hmacsha224_init(&dst_t_func[DST_ALG_HMACSHA224]));
+	RETERR(dst__hmacsha256_init(&dst_t_func[DST_ALG_HMACSHA256]));
+	RETERR(dst__hmacsha384_init(&dst_t_func[DST_ALG_HMACSHA384]));
+	RETERR(dst__hmacsha512_init(&dst_t_func[DST_ALG_HMACSHA512]));
 #ifdef OPENSSL
 	RETERR(dst__openssl_init());
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5]));
@@ -776,6 +782,21 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 		break;
 	case DST_ALG_HMACMD5:
 		*n = 16;
+		break;
+	case DST_ALG_HMACSHA1:
+		*n = ISC_SHA1_DIGESTLENGTH;
+		break;
+	case DST_ALG_HMACSHA224:
+		*n = ISC_SHA224_DIGESTLENGTH;
+		break;
+	case DST_ALG_HMACSHA256:
+		*n = ISC_SHA256_DIGESTLENGTH;
+		break;
+	case DST_ALG_HMACSHA384:
+		*n = ISC_SHA384_DIGESTLENGTH;
+		break;
+	case DST_ALG_HMACSHA512:
+		*n = ISC_SHA512_DIGESTLENGTH;
 		break;
 	case DST_ALG_GSSAPI:
 		*n = 128; /*%< XXX */

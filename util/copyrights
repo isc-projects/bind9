@@ -32,7 +32,7 @@
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006
-./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005
+./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/host.1				MAN	DOCBOOK
@@ -694,6 +694,10 @@
 ./bin/tests/system/tkey/prereq.sh		SH	2001,2004,2006
 ./bin/tests/system/tkey/setup.sh		SH	2001,2004
 ./bin/tests/system/tkey/tests.sh		SH	2001,2004
+./bin/tests/system/tsig/clean.sh		SH	2005,2006
+./bin/tests/system/tsig/tests.sh		SH	2005,2006
+./bin/tests/system/tsig/ns1/example.db		ZONE	2005,2006
+./bin/tests/system/tsig/ns1/named.conf		CONF-C	2005,2006
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004
 ./bin/tests/system/unknown/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/unknown/ns1/broken1.db	ZONE	2000,2001,2004
@@ -1968,6 +1972,7 @@
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005
+./lib/isc/hmacsha.c				C	2005,2006
 ./lib/isc/include/.cvsignore			X	1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/include/isc/.cvsignore		X	1999,2000,2001
@@ -1991,6 +1996,7 @@
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005
+./lib/isc/include/isc/hmacsha.h			C	2005,2006
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/ipv6.h			C	1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/lang.h			C	1999,2000,2001,2004,2005
@@ -2023,6 +2029,7 @@
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005
+./lib/isc/include/isc/sha2.h			C	2004,2005
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005

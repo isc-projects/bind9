@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.c,v 1.2 2004/03/16 05:52:18 marka Exp $ */
+/* $Id: rcode.c,v 1.3 2006/01/27 02:35:15 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -76,6 +76,7 @@
 	{ dns_tsigerror_badmode, "BADMODE", 0}, \
 	{ dns_tsigerror_badname, "BADNAME", 0}, \
 	{ dns_tsigerror_badalg, "BADALG", 0}, \
+	{ dns_tsigerror_badtrunc, "BADTRUNC", 0}, \
 	{ 0, NULL, 0 }
 
 /* RFC2538 section 2.1 */

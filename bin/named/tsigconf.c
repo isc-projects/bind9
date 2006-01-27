@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.25 2005/08/23 02:36:07 marka Exp $ */
+/* $Id: tsigconf.c,v 1.26 2006/01/27 02:35:14 marka Exp $ */
 
 /*! \file */
 
@@ -38,6 +38,7 @@
 
 static isc_result_t
 add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
+	dns_tsigkey_t *tsigkey = NULL;
 	cfg_listelt_t *element;
 	cfg_obj_t *key = NULL;
 	const char *keyid = NULL;
@@ -46,6 +47,7 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 	int secretlen = 0;
 	isc_result_t ret;
 	isc_stdtime_t now;
+	isc_uint16_t bits;
 
 	for (element = cfg_list_first(list);
 	     element != NULL;
@@ -86,10 +88,11 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		 * Create the algorithm.
 		 */
 		algstr = cfg_obj_asstring(algobj);
-		if (ns_config_getkeyalgorithm(algstr, &alg) != ISC_R_SUCCESS) {
+		if (ns_config_getkeyalgorithm(algstr, &alg, &bits)
+		    != ISC_R_SUCCESS) {
 			cfg_obj_log(algobj, ns_g_lctx, ISC_LOG_ERROR,
-				    "key '%s': the only supported algorithm "
-				    "is hmac-md5", keyid);
+				    "key '%s': has a unsupported algorithm '%s'",
+				    keyid, algstr);
 			ret = DNS_R_BADALG;
 			goto failure;
 		}
@@ -110,11 +113,16 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 		isc_stdtime_get(&now);
 		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen,
 					 ISC_FALSE, NULL, now, now,
-					 mctx, ring, NULL);
+					 mctx, ring, &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;
 		if (ret != ISC_R_SUCCESS)
 			goto failure;
+		/*
+		 * Set digest bits.
+		 */
+		dst_key_setbits(tsigkey->key, bits);
+		dns_tsigkey_detach(&tsigkey);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -127,7 +135,6 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 	if (secret != NULL)
 		isc_mem_put(mctx, secret, secretalloc);
 	return (ret);
-
 }
 
 isc_result_t

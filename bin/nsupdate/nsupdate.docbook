@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: nsupdate.docbook,v 1.21 2005/05/13 01:35:41 marka Exp $ -->
+<!-- $Id: nsupdate.docbook,v 1.22 2006/01/27 02:35:14 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Jun 30, 2000</date>
@@ -53,7 +53,7 @@
       <command>nsupdate</command>
       <arg><option>-d</option></arg>
       <group>
-        <arg><option>-y <replaceable class="parameter">keyname:secret</replaceable></option></arg>
+        <arg><option>-y <replaceable class="parameter"><optional>hmac:</optional>keyname:secret</replaceable></option></arg>
         <arg><option>-k <replaceable class="parameter">keyfile</replaceable></option></arg>
       </group>
       <arg><option>-t <replaceable class="parameter">timeout</replaceable></option></arg>
@@ -126,40 +126,29 @@
       <filename>/etc/named.conf</filename>.
     </para>
     <para><command>nsupdate</command>
-      uses the <option>-y</option> or <option>-k</option>
-      option (with an HMAC-MD5 key) to provide the shared secret needed to
-      generate
-      a TSIG record for authenticating Dynamic DNS update requests.
-      These options are mutually exclusive.
-      With the
-      <option>-k</option>
-      option,
-      <command>nsupdate</command>
-      reads the shared secret from the file
-      <parameter>keyfile</parameter>,
+      uses the <option>-y</option> or <option>-k</option> option
+      to provide the shared secret needed to generate a TSIG record
+      for authenticating Dynamic DNS update requests, default type
+      HMAC-MD5.  These options are mutually exclusive.  With the
+      <option>-k</option> option, <command>nsupdate</command> reads
+      the shared secret from the file <parameter>keyfile</parameter>,
       whose name is of the form
-      <filename>K{name}.+157.+{random}.private</filename>.
-      For historical
-      reasons, the file
-      <filename>K{name}.+157.+{random}.key</filename>
-      must also be present.  When the
-      <option>-y</option>
-      option is used, a signature is generated from
-      <parameter>keyname:secret.</parameter>
-      <parameter>keyname</parameter>
-      is the name of the key,
-      and
-      <parameter>secret</parameter>
-      is the base64 encoded shared secret.
-      Use of the
-      <option>-y</option>
-      option is discouraged because the shared secret is supplied as a command
-      line argument in clear text.
-      This may be visible in the output from
+      <filename>K{name}.+157.+{random}.private</filename>.  For
+      historical reasons, the file
+      <filename>K{name}.+157.+{random}.key</filename> must also be
+      present.  When the <option>-y</option> option is used, a
+      signature is generated from
+      <optional><parameter>hmac:</parameter></optional><parameter>keyname:secret.</parameter>
+      <parameter>keyname</parameter> is the name of the key, and
+      <parameter>secret</parameter> is the base64 encoded shared
+      secret.  Use of the <option>-y</option> option is discouraged
+      because the shared secret is supplied as a command line
+      argument in clear text.  This may be visible in the output
+      from
       <citerefentry>
-        <refentrytitle>ps</refentrytitle><manvolnum>1</manvolnum>
-      </citerefentry>
-      or in a history file maintained by the user's shell.
+	<refentrytitle>ps</refentrytitle><manvolnum>1</manvolnum>
+      </citerefentry> or in a history file maintained by the user's
+      shell.
     </para>
     <para>
       The <option>-k</option> may also be used to specify a SIG(0) key used

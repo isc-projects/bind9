@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.3 2005/04/29 00:22:45 marka Exp $ */
+/* $Id: dst_internal.h,v 1.4 2006/01/27 02:35:15 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -55,6 +55,7 @@ struct dst_key {
 	unsigned int	key_alg;	/*%< algorithm of the key */
 	isc_uint32_t	key_flags;	/*%< flags of the public key */
 	isc_uint16_t	key_id;		/*%< identifier of the key */
+	isc_uint16_t	key_bits;	/*%< hmac digest bits */
 	dns_rdataclass_t key_class;	/*%< class of the key record */
 	isc_mem_t	*mctx;		/*%< memory context */
 	void *		opaque;		/*%< pointer to key in crypto pkg fmt */
@@ -107,6 +108,11 @@ struct dst_func {
 isc_result_t dst__openssl_init(void);
 
 isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
+isc_result_t dst__hmacsha1_init(struct dst_func **funcp);
+isc_result_t dst__hmacsha224_init(struct dst_func **funcp);
+isc_result_t dst__hmacsha256_init(struct dst_func **funcp);
+isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
+isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);

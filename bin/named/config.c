@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.67 2006/01/05 23:45:33 marka Exp $ */
+/* $Id: config.c,v 1.68 2006/01/27 02:35:14 marka Exp $ */
 
 /*! \file */
 
@@ -27,6 +27,7 @@
 #include <isc/buffer.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/parseint.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
@@ -724,16 +725,65 @@ ns_config_getport(cfg_obj_t *config, in_port_t *portp) {
 	return (ISC_R_SUCCESS);
 }
 
+struct keyalgorithms {
+	const char *str;
+	enum { hmacnone, hmacmd5, hmacsha1, hmacsha224,
+	       hmacsha256, hmacsha384, hmacsha512 } hmac;
+	isc_uint16_t size;
+} algorithms[] = {
+	{ "hmac-md5", hmacmd5, 128 },
+	{ "hmac-md5.sig-alg.reg.int", hmacmd5, 0 },
+	{ "hmac-md5.sig-alg.reg.int.", hmacmd5, 0 },
+	{ "hmac-sha1", hmacsha1, 160 },
+	{ "hmac-sha224", hmacsha224, 224 },
+	{ "hmac-sha256", hmacsha256, 256 },
+	{ "hmac-sha384", hmacsha384, 384 },
+	{ "hmac-sha512", hmacsha512, 512 },
+	{  NULL, hmacnone, 0 }
+};
+
 isc_result_t
-ns_config_getkeyalgorithm(const char *str, dns_name_t **name)
+ns_config_getkeyalgorithm(const char *str, dns_name_t **name,
+			  isc_uint16_t *digestbits)
 {
-	if (strcasecmp(str, "hmac-md5") == 0 ||
-	    strcasecmp(str, "hmac-md5.sig-alg.reg.int") == 0 ||
-	    strcasecmp(str, "hmac-md5.sig-alg.reg.int.") == 0)
-	{
-		if (name != NULL)
-			*name = dns_tsig_hmacmd5_name;
-		return (ISC_R_SUCCESS);
+	int i;
+	size_t len = 0;
+	isc_uint16_t bits;
+	isc_result_t result;
+
+	for (i = 0; algorithms[i].str != NULL; i++) {
+		len = strlen(algorithms[i].str);
+		if (strncasecmp(algorithms[i].str, str, len) == 0 &&
+		    (str[len] == '\0' ||
+		     (algorithms[i].size != 0 && str[len] == '-')))
+			break;
 	}
-	return (ISC_R_NOTFOUND);
+	if (algorithms[i].str == NULL)
+		return (ISC_R_NOTFOUND);
+	if (str[len] == '-') {
+		result = isc_parse_uint16(&bits, str + len + 1, 10);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+		if (bits > algorithms[i].size)
+			return (ISC_R_RANGE);
+	} else if (algorithms[i].size == 0)
+		bits = 128;
+	else
+		bits = algorithms[i].size;
+
+	if (name != NULL) {
+		switch (algorithms[i].hmac) {
+		case hmacmd5: *name = dns_tsig_hmacmd5_name; break;
+		case hmacsha1: *name = dns_tsig_hmacsha1_name; break;
+		case hmacsha224: *name = dns_tsig_hmacsha224_name; break;
+		case hmacsha256: *name = dns_tsig_hmacsha256_name; break;
+		case hmacsha384: *name = dns_tsig_hmacsha384_name; break;
+		case hmacsha512: *name = dns_tsig_hmacsha512_name; break;
+		default:
+			INSIST(0);
+		}
+	}
+	if (digestbits != NULL)
+		*digestbits = bits;
+	return (ISC_R_SUCCESS);
 }

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dig.docbook,v 1.28 2005/10/26 04:35:53 marka Exp $ -->
+<!-- $Id: dig.docbook,v 1.29 2006/01/27 02:35:14 marka Exp $ -->
 <refentry id="man.dig">
 
   <refentryinfo>
@@ -63,7 +63,7 @@
       <arg><option>-q <replaceable class="parameter">name</replaceable></option></arg>
       <arg><option>-t <replaceable class="parameter">type</replaceable></option></arg>
       <arg><option>-x <replaceable class="parameter">addr</replaceable></option></arg>
-      <arg><option>-y <replaceable class="parameter">name:key</replaceable></option></arg>
+      <arg><option>-y <replaceable class="parameter"><optional>hmac:</optional>name:key</replaceable></option></arg>
       <arg><option>-4</option></arg>
       <arg><option>-6</option></arg>
       <arg choice="opt">name</arg>
@@ -281,6 +281,7 @@
       responses using transaction signatures (TSIG), specify a TSIG key file
       using the <option>-k</option> option.  You can also specify the TSIG
       key itself on the command line using the <option>-y</option> option;
+      <parameter>hmac</parameter> is the type of the TSIG, default HMAC-MD5,
       <parameter>name</parameter> is the name of the TSIG key and
       <parameter>key</parameter> is the actual key.  The key is a
       base-64

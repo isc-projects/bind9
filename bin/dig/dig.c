@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.210 2006/01/07 00:23:35 marka Exp $ */
+/* $Id: dig.c,v 1.211 2006/01/27 02:35:14 marka Exp $ */
 
 /*! \file */
 
@@ -42,6 +42,7 @@
 #include <dns/rdatatype.h>
 #include <dns/rdataclass.h>
 #include <dns/result.h>
+#include <dns/tsig.h>
 
 #include <bind9/getaddresses.h>
 
@@ -152,7 +153,7 @@ help(void) {
 "                 -t type             (specify query type)\n"
 "                 -c class            (specify query class)\n"
 "                 -k keyfile          (specify tsig key file)\n"
-"                 -y name:key         (specify named base64 tsig key)\n"
+"                 -y [hmac:]name:key  (specify named base64 tsig key)\n"
 "                 -4                  (use IPv4 query transport only)\n"
 "                 -6                  (use IPv6 query transport only)\n"
 "        d-opt    is of the form +keyword[=value], where keyword is:\n"
@@ -1105,7 +1106,7 @@ static isc_boolean_t
 dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    isc_boolean_t *open_type_class, isc_boolean_t config_only)
 {
-	char opt, *value, *ptr;
+	char opt, *value, *ptr, *ptr2, *ptr3;
 	isc_result_t result;
 	isc_boolean_t value_from_next;
 	isc_textregion_t tr;
@@ -1295,16 +1296,83 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 				 value);
 		return (value_from_next);
 	case 'y':
-		ptr = next_token(&value,":");
+		ptr = next_token(&value,":");	/* hmac type or name */
 		if (ptr == NULL) {
 			usage();
 		}
+		ptr2 = next_token(&value, ":");	/* name or secret */
+		if (ptr2 == NULL)
+			usage();
+		ptr3 = next_token(&value,":"); /* secret or NULL */
+		if (ptr3 != NULL) {	
+			if (strcasecmp(ptr, "hmac-md5") == 0) {
+				hmacname = DNS_TSIG_HMACMD5_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-md5-", 9) == 0) {
+				hmacname = DNS_TSIG_HMACMD5_NAME;
+				digestbits = parse_uint(&ptr[9],
+							"digest-bits [0..128]",
+							128);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else if (strcasecmp(ptr, "hmac-sha1") == 0) {
+				hmacname = DNS_TSIG_HMACSHA1_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-sha1-", 10) == 0) {
+				hmacname = DNS_TSIG_HMACSHA1_NAME;
+				digestbits = parse_uint(&ptr[10],
+							"digest-bits [0..160]",
+							160);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else if (strcasecmp(ptr, "hmac-sha224") == 0) {
+				hmacname = DNS_TSIG_HMACSHA224_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-sha224-", 12) == 0) {
+				hmacname = DNS_TSIG_HMACSHA224_NAME;
+				digestbits = parse_uint(&ptr[12],
+							"digest-bits [0..224]",
+							224);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else if (strcasecmp(ptr, "hmac-sha256") == 0) {
+				hmacname = DNS_TSIG_HMACSHA256_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-sha256-", 12) == 0) {
+				hmacname = DNS_TSIG_HMACSHA256_NAME;
+				digestbits = parse_uint(&ptr[12],
+							"digest-bits [0..256]",
+							256);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else if (strcasecmp(ptr, "hmac-sha384") == 0) {
+				hmacname = DNS_TSIG_HMACSHA384_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-sha384-", 12) == 0) {
+				hmacname = DNS_TSIG_HMACSHA384_NAME;
+				digestbits = parse_uint(&ptr[12],
+							"digest-bits [0..384]",
+							384);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else if (strcasecmp(ptr, "hmac-sha512") == 0) {
+				hmacname = DNS_TSIG_HMACSHA512_NAME;
+				digestbits = 0;
+			} else if (strncasecmp(ptr, "hmac-sha512-", 12) == 0) {
+				hmacname = DNS_TSIG_HMACSHA512_NAME;
+				digestbits = parse_uint(&ptr[12],
+							"digest-bits [0..512]",
+							512);
+				digestbits = (digestbits + 7) & ~0x7U;
+			} else {
+				fprintf(stderr, ";; Warning, ignoring "
+					"invalid TSIG algorithm %s\n", ptr);
+				return (value_from_next);
+			}
+			ptr = ptr2;
+			ptr2 = ptr3;
+		} else  {
+			hmacname = DNS_TSIG_HMACMD5_NAME;
+			digestbits = 0;
+		}
 		strncpy(keynametext, ptr, sizeof(keynametext));
 		keynametext[sizeof(keynametext)-1]=0;
-		ptr = next_token(&value, "");
-		if (ptr == NULL)
-			usage();
-		strncpy(keysecret, ptr, sizeof(keysecret));
+		strncpy(keysecret, ptr2, sizeof(keysecret));
 		keysecret[sizeof(keysecret)-1]=0;
 		return (value_from_next);
 	case 'x':

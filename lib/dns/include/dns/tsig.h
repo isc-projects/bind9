@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.45 2005/04/29 00:23:05 marka Exp $ */
+/* $Id: tsig.h,v 1.46 2006/01/27 02:35:15 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
@@ -41,6 +41,16 @@ LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapi_name;
 #define DNS_TSIG_GSSAPI_NAME		dns_tsig_gssapi_name
 LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_gssapims_name;
 #define DNS_TSIG_GSSAPIMS_NAME		dns_tsig_gssapims_name
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha1_name;
+#define DNS_TSIG_HMACSHA1_NAME		dns_tsig_hmacsha1_name
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha224_name;
+#define DNS_TSIG_HMACSHA224_NAME	dns_tsig_hmacsha224_name
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha256_name;
+#define DNS_TSIG_HMACSHA256_NAME	dns_tsig_hmacsha256_name
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha384_name;
+#define DNS_TSIG_HMACSHA384_NAME	dns_tsig_hmacsha384_name
+LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_tsig_hmacsha512_name;
+#define DNS_TSIG_HMACSHA512_NAME	dns_tsig_hmacsha512_name
 
 /*%
  * Default fudge value.

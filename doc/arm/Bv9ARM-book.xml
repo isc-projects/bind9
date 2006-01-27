@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.290 2006/01/05 23:45:33 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.291 2006/01/27 02:35:14 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3639,16 +3639,20 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
           matching this name, algorithm, and secret.
         </para>
 
-        <para>
-          The <replaceable>algorithm_id</replaceable> is a string
-          that specifies a security/authentication algorithm. The only
-          algorithm currently supported with TSIG authentication is
-          <literal>hmac-md5</literal>.  The
-          <replaceable>secret_string</replaceable> is the secret
-          to be
-          used by the algorithm, and is treated as a base-64 encoded
-          string.
-        </para>
+	<para>
+	  The <replaceable>algorithm_id</replaceable> is a string
+	  that specifies a security/authentication algorithm.  Named
+	  supports <literal>hmac-md5</literal>,
+	  <literal>hmac-sha1</literal>, <literal>hmac-sha224</literal>,
+	  <literal>hmac-sha256</literal>, <literal>hmac-sha384</literal>
+	  and <literal>hmac-sha512</literal> TSIG authentication.
+	  Truncated hashes are supported by appending the minimum
+	  number of required bits preceeded by a dash, e.g.
+	  <literal>hmac-sha1-80</literal>.  The
+	  <replaceable>secret_string</replaceable> is the secret
+	  to be used by the algorithm, and is treated as a base-64
+	  encoded string.
+	</para>
 
       </sect2>
       <sect2>
