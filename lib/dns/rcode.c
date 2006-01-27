@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.c,v 1.2.18.1 2006/01/27 02:50:51 marka Exp $ */
+/* $Id: rcode.c,v 1.2.18.2 2006/01/27 23:57:44 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
