@@ -1810,7 +1810,7 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004,2005
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004,2005
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004,2005
-./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2006
+./lib/dns/rcode.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004,2005
@@ -2029,7 +2029,7 @@
 ./lib/isc/include/isc/rwlock.h			C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/include/isc/serial.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005
-./lib/isc/include/isc/sha2.h			C	2004,2005,2006
+./lib/isc/include/isc/sha2.h			C	2005,2006
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005
@@ -2098,7 +2098,7 @@
 ./lib/isc/rwlock.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/serial.c				C	1999,2000,2001,2004,2005
 ./lib/isc/sha1.c				C	2000,2001,2003,2004,2005
-./lib/isc/sha2.c				C	2006
+./lib/isc/sha2.c				C	2005,2006
 ./lib/isc/sockaddr.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/sparc64/include/isc/atomic.h		C	2005
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005
