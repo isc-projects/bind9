@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.4 2006/01/27 02:35:15 marka Exp $ */
+/* $Id: dst.h,v 1.5 2006/01/27 23:57:46 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1

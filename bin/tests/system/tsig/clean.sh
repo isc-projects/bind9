@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2005, 2006  Internet Systems Consortium, Inc. ("ISC")
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: clean.sh,v 1.2 2006/01/27 02:35:14 marka Exp $
+# $Id: clean.sh,v 1.3 2006/01/27 23:57:46 marka Exp $
 
 #
 # Clean up after tsig tests.
