@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.c,v 1.7.18.2 2005/04/29 00:16:46 marka Exp $ */
+/* $Id: hmacmd5.c,v 1.7.18.3 2006/01/27 02:50:51 marka Exp $ */
 
 /*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm
@@ -106,8 +106,14 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest) {
  */
 isc_boolean_t
 isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest) {
+	return (isc_hmacmd5_verify2(ctx, digest, ISC_MD5_DIGESTLENGTH));
+}
+
+isc_boolean_t
+isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len) {
 	unsigned char newdigest[ISC_MD5_DIGESTLENGTH];
 
+	REQUIRE(len <= ISC_MD5_DIGESTLENGTH);
 	isc_hmacmd5_sign(ctx, newdigest);
-	return (ISC_TF(memcmp(digest, newdigest, ISC_MD5_DIGESTLENGTH) == 0));
+	return (ISC_TF(memcmp(digest, newdigest, len) == 0));
 }

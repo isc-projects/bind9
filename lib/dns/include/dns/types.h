@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109.18.8 2005/09/05 00:18:28 marka Exp $ */
+/* $Id: types.h,v 1.109.18.9 2006/01/27 02:50:51 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -212,7 +212,8 @@ enum {
 	dns_tsigerror_badtime = 18,
 	dns_tsigerror_badmode = 19,
 	dns_tsigerror_badname = 20,
-	dns_tsigerror_badalg = 21
+	dns_tsigerror_badalg = 21,
+	dns_tsigerror_badtrunc = 22
 };
 
 /*%

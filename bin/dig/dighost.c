@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.30 2006/01/07 00:23:34 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.31 2006/01/27 02:50:50 marka Exp $ */
 
 /*! \file
  *  \note
@@ -161,6 +161,8 @@ int fatalexit = 0;
 char keynametext[MXNAME];
 char keyfile[MXNAME] = "";
 char keysecret[MXNAME] = "";
+dns_name_t *hmacname = NULL;
+unsigned int digestbits = 0;
 isc_buffer_t *namebuf = NULL;
 dns_tsigkey_t *key = NULL;
 isc_boolean_t validated = ISC_TRUE;
@@ -890,14 +892,15 @@ setup_text_key(void) {
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
-	result = dns_tsigkey_create(&keyname, dns_tsig_hmacmd5_name,
-				    secretstore, secretsize,
-				    ISC_FALSE, NULL, 0, 0, mctx,
+	result = dns_tsigkey_create(&keyname, hmacname, secretstore,
+				    secretsize, ISC_FALSE, NULL, 0, 0, mctx,
 				    NULL, &key);
  failure:
 	if (result != ISC_R_SUCCESS)
 		printf(";; Couldn't create key %s: %s\n",
 		       keynametext, isc_result_totext(result));
+	else
+		dst_key_setbits(key->key, digestbits);
 
 	isc_mem_free(mctx, secretstore);
 	dns_name_invalidate(&keyname);
@@ -918,8 +921,31 @@ setup_file_key(void) {
 		goto failure;
 	}
 
-	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
-					   dns_tsig_hmacmd5_name,
+	switch (dst_key_alg(dstkey)) {
+	case DST_ALG_HMACMD5:
+		hmacname = DNS_TSIG_HMACMD5_NAME;
+		break;
+	case DST_ALG_HMACSHA1:
+		hmacname = DNS_TSIG_HMACSHA1_NAME;
+		break;
+	case DST_ALG_HMACSHA224:
+		hmacname = DNS_TSIG_HMACSHA224_NAME;
+		break;
+	case DST_ALG_HMACSHA256:
+		hmacname = DNS_TSIG_HMACSHA256_NAME;
+		break;
+	case DST_ALG_HMACSHA384:
+		hmacname = DNS_TSIG_HMACSHA384_NAME;
+		break;
+	case DST_ALG_HMACSHA512:
+		hmacname = DNS_TSIG_HMACSHA512_NAME;
+		break;
+	default:
+		printf(";; Couldn't create key %s: bad algorithm\n",
+		       keynametext);
+		goto failure;
+	}
+	result = dns_tsigkey_createfromkey(dst_key_name(dstkey), hmacname,
 					   dstkey, ISC_FALSE, NULL, 0, 0,
 					   mctx, NULL, &key);
 	if (result != ISC_R_SUCCESS) {

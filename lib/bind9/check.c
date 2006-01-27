@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.23 2006/01/07 00:23:34 marka Exp $ */
+/* $Id: check.c,v 1.44.18.24 2006/01/27 02:50:51 marka Exp $ */
 
 /*! \file */
 
@@ -1174,11 +1174,31 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *voptions, cfg_obj_t *config,
 	return (result);
 }
 
+
+typedef struct keyalgorithms {
+	const char *name;
+	isc_uint16_t size;
+} algorithmtable;
+
 isc_result_t
 bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 	cfg_obj_t *algobj = NULL;
 	cfg_obj_t *secretobj = NULL;
 	const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
+	const char *algorithm;
+	int i;
+	size_t len = 0;
+	static const algorithmtable algorithms[] = {
+		{ "hmac-md5", 128 },
+		{ "hmac-md5.sig-alg.reg.int", 0 },
+		{ "hmac-md5.sig-alg.reg.int.", 0 },
+		{ "hmac-sha1", 160 },
+		{ "hmac-sha224", 224 },
+		{ "hmac-sha256", 256 },
+		{ "hmac-sha384", 384 },
+		{ "hmac-sha512", 512 },
+		{  NULL, 0 }
+	};
 	
 	(void)cfg_map_get(key, "algorithm", &algobj);
 	(void)cfg_map_get(key, "secret", &secretobj);
@@ -1188,6 +1208,56 @@ bind9_check_key(cfg_obj_t *key, isc_log_t *logctx) {
 			    "'algorithm' defined",
 			    keyname);
 		return (ISC_R_FAILURE);
+	}
+
+	algorithm = cfg_obj_asstring(algobj);
+	for (i = 0; algorithms[i].name != NULL; i++) {
+		len = strlen(algorithms[i].name);
+		if (strncasecmp(algorithms[i].name, algorithm, len) == 0 &&
+		    (algorithm[len] == '\0' ||
+		     (algorithms[i].size != 0 && algorithm[len] == '-')))
+			break;
+	}
+	if (algorithms[i].name == NULL) {
+		cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
+			    "unknown algorithm '%s'", algorithm);
+		return (ISC_R_NOTFOUND);
+	}
+	if (algorithm[len] == '-') {
+		isc_uint16_t digestbits;
+		isc_result_t result;
+		result = isc_parse_uint16(&digestbits, algorithm + len + 1, 10);
+		if (result == ISC_R_SUCCESS || result == ISC_R_RANGE) {
+			if (result == ISC_R_RANGE ||
+			    digestbits > algorithms[i].size) {
+				cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
+					    "key '%s' digest-bits too large "
+					    "[%u..%u]", keyname,
+					    algorithms[i].size / 2,
+					    algorithms[i].size);
+				return (ISC_R_RANGE);
+			}
+			if ((digestbits % 8) != 0) {
+				cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
+					    "key '%s' digest-bits not multiple"
+					    " of 8", keyname);
+				return (ISC_R_RANGE);
+			}
+			/*
+			 * Recommended minima for hmac algorithms.
+			 */
+			if ((digestbits < (algorithms[i].size / 2U) ||
+			     (digestbits < 80U)))
+				cfg_obj_log(algobj, logctx, ISC_LOG_WARNING,
+					    "key '%s' digest-bits too small "
+					    "[<%u]", keyname, 
+					    algorithms[i].size/2);
+		} else {
+			cfg_obj_log(algobj, logctx, ISC_LOG_ERROR,
+				    "key '%s': unable to parse digest-bits",
+				    keyname);
+			return (result);
+		}
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -1205,6 +1275,10 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 		cfg_obj_t *key = cfg_listelt_value(element);
 		const char *keyname = cfg_obj_asstring(cfg_map_getname(key));
 		isc_symvalue_t symvalue;
+
+		tresult = bind9_check_key(key, logctx);
+		if (tresult != ISC_R_SUCCESS)
+			return (tresult);
 
 		symvalue.as_pointer = key;
 		tresult = isc_symtab_define(symtab, keyname, 1,
@@ -1226,10 +1300,6 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 				    keyname, file, line);
 			result = tresult;
 		} else if (tresult != ISC_R_SUCCESS)
-			return (tresult);
-
-		tresult = bind9_check_key(key, logctx);
-		if (tresult != ISC_R_SUCCESS)
 			return (tresult);
 	}
 	return (result);

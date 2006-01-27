@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h,v 1.6.18.3 2005/04/29 00:15:34 marka Exp $ */
+/* $Id: config.h,v 1.6.18.4 2006/01/27 02:50:51 marka Exp $ */
 
 #ifndef NAMED_CONFIG_H
 #define NAMED_CONFIG_H 1
@@ -72,6 +72,7 @@ isc_result_t
 ns_config_getport(cfg_obj_t *config, in_port_t *portp);
 
 isc_result_t
-ns_config_getkeyalgorithm(const char *str, dns_name_t **name);
+ns_config_getkeyalgorithm(const char *str, dns_name_t **name,
+			  isc_uint16_t *digestbits);
 
 #endif /* NAMED_CONFIG_H */

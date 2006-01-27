@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: key.c,v 1.1.6.4 2005/06/08 02:07:55 marka Exp $ */
+/* $Id: key.c,v 1.1.6.5 2006/01/27 02:50:51 marka Exp $ */
 
 #include <config.h>
 
@@ -124,6 +124,24 @@ dst_key_isnullkey(const dst_key_t *key) {
 	    key->key_proto != DNS_KEYPROTO_ANY)
 		return (ISC_FALSE);
 	return (ISC_TRUE);
+}
+
+void
+dst_key_setbits(dst_key_t *key, isc_uint16_t bits) {
+	unsigned int maxbits;
+	REQUIRE(VALID_KEY(key));
+	if (bits != 0) {
+		RUNTIME_CHECK(dst_key_sigsize(key, &maxbits) == ISC_R_SUCCESS);
+		maxbits *= 8;
+		REQUIRE(bits <= maxbits);
+	}
+	key->key_bits = bits;
+}
+
+isc_uint16_t
+dst_key_getbits(const dst_key_t *key) {
+	REQUIRE(VALID_KEY(key));
+	return (key->key_bits);
 }
 
 /*! \file */

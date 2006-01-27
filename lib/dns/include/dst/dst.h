@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst.h,v 1.1.6.3 2005/04/29 00:16:26 marka Exp $ */
+/* $Id: dst.h,v 1.1.6.4 2006/01/27 02:50:51 marka Exp $ */
 
 #ifndef DST_DST_H
 #define DST_DST_H 1
@@ -51,6 +51,11 @@ typedef struct dst_context 	dst_context_t;
 #define DST_ALG_RSASHA1		5
 #define DST_ALG_HMACMD5		157
 #define DST_ALG_GSSAPI		160
+#define DST_ALG_HMACSHA1	161	/* XXXMPA */
+#define DST_ALG_HMACSHA224	162	/* XXXMPA */
+#define DST_ALG_HMACSHA256	163	/* XXXMPA */
+#define DST_ALG_HMACSHA384	164	/* XXXMPA */
+#define DST_ALG_HMACSHA512	165	/* XXXMPA */
 #define DST_ALG_PRIVATE		254
 #define DST_ALG_EXPAND		255
 #define DST_MAX_ALGS		255
@@ -590,6 +595,24 @@ dst_region_computeid(const isc_region_t *source, unsigned int alg);
  *
  * Returns:
  *\li 	the key id
+ */
+
+isc_uint16_t
+dst_key_getbits(const dst_key_t *key);
+/*
+ * Get the number of digest bits required (0 == MAX).
+ *
+ * Requires:
+ *	"key" is a valid key.
+ */
+
+void
+dst_key_setbits(dst_key_t *key, isc_uint16_t bits);
+/*
+ * Set the number of digest bits required (0 == MAX).
+ *
+ * Requires:
+ *	"key" is a valid key.
  */
 
 ISC_LANG_ENDDECLS

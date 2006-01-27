@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.14 2005/08/25 00:43:26 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.15 2006/01/27 02:50:50 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -257,6 +257,8 @@ extern isc_sockaddr_t bind_address;
 extern char keynametext[MXNAME];
 extern char keyfile[MXNAME];
 extern char keysecret[MXNAME];
+extern dns_name_t *hmacname;
+extern unsigned int digestbits;
 #ifdef DIG_SIGCHASE
 extern char trustedkey[MXNAME];
 #endif

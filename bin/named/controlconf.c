@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.40.18.6 2005/11/30 03:44:38 marka Exp $ */
+/* $Id: controlconf.c,v 1.40.18.7 2006/01/27 02:50:51 marka Exp $ */
 
 /*! \file */
 
@@ -758,7 +758,7 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 			algstr = cfg_obj_asstring(algobj);
 			secretstr = cfg_obj_asstring(secretobj);
 
-			if (ns_config_getkeyalgorithm(algstr, NULL) !=
+			if (ns_config_getkeyalgorithm(algstr, NULL, NULL) !=
 			    ISC_R_SUCCESS)
 			{
 				cfg_obj_log(control, ns_g_lctx,
@@ -848,7 +848,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	algstr = cfg_obj_asstring(algobj);
 	secretstr = cfg_obj_asstring(secretobj);
 
-	if (ns_config_getkeyalgorithm(algstr, NULL) != ISC_R_SUCCESS) {
+	if (ns_config_getkeyalgorithm(algstr, NULL, NULL) != ISC_R_SUCCESS) {
 		cfg_obj_log(key, ns_g_lctx,
 			    ISC_LOG_WARNING,
 			    "unsupported algorithm '%s' in "

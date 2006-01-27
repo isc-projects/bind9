@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.81.18.4 2005/07/12 01:22:27 marka Exp $
+# $Id: Makefile.in,v 1.81.18.5 2006/01/27 02:50:51 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -53,25 +53,25 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/file.@O@ \
 OBJS =		@ISC_EXTRA_OBJS@ \
 		assertions.@O@ base64.@O@ bitstring.@O@ buffer.@O@ \
 		bufferlist.@O@ commandline.@O@ error.@O@ event.@O@ \
-		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ \
+		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ hmacsha.@O@\
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ md5.@O@ \
 		mem.@O@ mutexblock.@O@ netaddr.@O@ netscope.@O@ ondestroy.@O@ \
 		parseint.@O@ quota.@O@ random.@O@ \
 		ratelimiter.@O@ refcount.@O@ region.@O@ result.@O@ rwlock.@O@ \
-		serial.@O@ sha1.@O@ sockaddr.@O@ string.@O@ strtoul.@O@ \
-		symtab.@O@ task.@O@ taskpool.@O@ timer.@O@ version.@O@ \
-		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
+		serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ string.@O@ \
+	        strtoul.@O@ symtab.@O@ task.@O@ taskpool.@O@ timer.@O@ \
+	        version.@O@ ${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 
 # Alphabetically
 SRCS =		@ISC_EXTRA_SRCS@ \
 		assertions.c base64.c bitstring.c buffer.c \
 		bufferlist.c commandline.c error.c event.c \
-		heap.c hex.c hmacmd5.c \
+		heap.c hex.c hmacmd5.c hmacsha.c \
 		lex.c lfsr.c lib.c log.c \
 		md5.c mem.c mutexblock.c netaddr.c netscope.c ondestroy.c \
 		parseint.c quota.c random.c \
 		ratelimiter.c refcount.c region.c result.c rwlock.c \
-		serial.c sha1.c sockaddr.c string.c strtoul.c symtab.c \
+		serial.c sha1.c sha2.c sockaddr.c string.c strtoul.c symtab.c \
 		task.c taskpool.c timer.c version.c
 
 LIBS =		@LIBS@

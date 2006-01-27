@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.h,v 1.5.18.2 2005/04/29 00:16:55 marka Exp $ */
+/* $Id: hmacmd5.h,v 1.5.18.3 2006/01/27 02:50:51 marka Exp $ */
 
 /*! \file
  * \brief This is the header file for the HMAC-MD5 keyed hash algorithm
@@ -54,6 +54,9 @@ isc_hmacmd5_sign(isc_hmacmd5_t *ctx, unsigned char *digest);
 
 isc_boolean_t
 isc_hmacmd5_verify(isc_hmacmd5_t *ctx, unsigned char *digest);
+
+isc_boolean_t
+isc_hmacmd5_verify2(isc_hmacmd5_t *ctx, unsigned char *digest, size_t len);
 
 ISC_LANG_ENDDECLS
 
