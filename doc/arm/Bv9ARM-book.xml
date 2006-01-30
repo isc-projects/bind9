@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.44 2006/01/06 04:21:11 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.45 2006/01/30 01:19:12 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -4146,18 +4146,46 @@ view "external" {
 </sect2>
 <sect2 id="zone_statement_grammar"><title><command>zone</command>
 Statement Grammar</title>
-      <programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> <optional>{ 
-    type ( master | slave | hint | stub | forward | delegation-only ) ;
-    <optional> allow-notify { <replaceable>address_match_list</replaceable> } ; </optional>
+<programlisting>zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type master;
     <optional> allow-query { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> update-policy { <replaceable>update_policy_rule</replaceable> <optional>...</optional> } ; </optional>
+    <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
+    <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
+    <optional> file <replaceable>string</replaceable> ; </optional>
+    <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
+    <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> ixfr-base <replaceable>string</replaceable> ; </optional>
+    <optional> ixfr-tmp-file <replaceable>string</replaceable> ; </optional>
+    <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> max-ixfr-log-size <replaceable>number</replaceable> ; </optional>
+    <optional> max-transfer-idle-out <replaceable>number</replaceable> ; </optional>
+    <optional> max-transfer-time-out <replaceable>number</replaceable> ; </optional>
+    <optional> notify <replaceable>yes_or_no</replaceable> | <replaceable>explicit</replaceable> ; </optional>
+    <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
+    <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
+    <optional> database <replaceable>string</replaceable> ; </optional>
+    <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+};
+
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type slave;
+    <optional> allow-notify { <replaceable>address_match_list</replaceable> } ; </optional>
+    <optional> allow-query { <replaceable>address_match_list</replaceable> } ; </optional>
+    <optional> allow-transfer { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
-    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> file <replaceable>string</replaceable> ; </optional>
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
@@ -4177,14 +4205,54 @@ Statement Grammar</title>
     <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
-    <optional> sig-validity-interval <replaceable>number</replaceable> ; </optional>
     <optional> database <replaceable>string</replaceable> ; </optional>
     <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
     <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
     <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+};
 
-}</optional>;
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type hint;
+    <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
+    <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
+};
+
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type stub;
+    <optional> allow-query { <replaceable>address_match_list</replaceable> } ; </optional>
+    <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
+    <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
+    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> file <replaceable>string</replaceable> ; </optional>
+    <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
+    <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> masters <optional>port <replaceable>ip_port</replaceable></optional> { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> <optional>key <replaceable>key</replaceable></optional>; <optional>...</optional> } ; </optional>
+    <optional> max-transfer-idle-in <replaceable>number</replaceable> ; </optional>
+    <optional> max-transfer-time-in <replaceable>number</replaceable> ; </optional>
+    <optional> pubkey <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>number</replaceable> <replaceable>string</replaceable> ; </optional>
+    <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> zone-statistics <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> database <replaceable>string</replaceable> ; </optional>
+    <optional> min-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-refresh-time <replaceable>number</replaceable> ; </optional>
+    <optional> min-retry-time <replaceable>number</replaceable> ; </optional>
+    <optional> max-retry-time <replaceable>number</replaceable> ; </optional>
+};
+
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type forward;
+    <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
+    <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
+};
+
+zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
+    type delegation-only;
+};
 </programlisting>
 </sect2>
 <sect2><title><command>zone</command> Statement Definition and Usage</title>

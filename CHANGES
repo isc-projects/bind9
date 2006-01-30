@@ -1,3 +1,6 @@
+1974.	[doc]		List each of the zone types and associated zone
+			options seperately in the ARM.
+
 1972.	[contrib]	DBUS dynamic forwarders integation from
 			Jason Vas Dias <jvdias@redhat.com>.
 
