@@ -1,3 +1,6 @@
+1974.	[doc]		List each of the zone types and associated zone
+			options seperately in the ARM.
+
 1973.	[func]		TSIG HMACSHA1, HMACSHA224, HMACSHA256, HMACSHA384 and
 			HMACSHA512 support. [RT #13606]
 
