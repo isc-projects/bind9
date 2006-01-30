@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.49 2006/01/30 00:30:04 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.50 2006/01/30 00:39:39 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8055,6 +8055,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     type forward;
     <optional> forward (<constant>only</constant>|<constant>first</constant>) ; </optional>
     <optional> forwarders { <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
+    <optional> delegation-only <replaceable>yes_or_no</replaceable> ; </optional>
 };
 
 zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replaceable></optional> {
