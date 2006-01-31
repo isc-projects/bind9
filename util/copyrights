@@ -1316,7 +1316,7 @@
 ./lib/bind/isc/eventlib_p.h			X	2001,2005
 ./lib/bind/isc/heap.c				X	2001
 ./lib/bind/isc/heap.mdoc			X	2001
-./lib/bind/isc/hex.c				X	2001
+./lib/bind/isc/hex.c				X	2001,2006
 ./lib/bind/isc/logging.c			X	2001
 ./lib/bind/isc/logging.mdoc			X	2001
 ./lib/bind/isc/logging_p.h			X	2001
