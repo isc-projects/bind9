@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.3 2006/01/31 00:13:15 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.4 2006/01/31 00:38:06 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -327,7 +327,8 @@ isc_sha224_init(isc_sha224_t *context) {
 	if (context == (isc_sha256_t *)0) {
 		return;
 	}
-	memcpy(context->state, sha224_initial_hash_value, ISC_SHA256_DIGESTLENGTH);
+	memcpy(context->state, sha224_initial_hash_value,
+	       ISC_SHA256_DIGESTLENGTH);
 	memset(context->buffer, 0, ISC_SHA256_BLOCK_LENGTH);
 	context->bitcount = 0;
 }
@@ -348,7 +349,7 @@ isc_sha224_final(isc_uint8_t digest[], isc_sha256_t *context) {
 char *
 isc_sha224_end(isc_sha224_t *context, char buffer[]) {
 	isc_uint8_t	digest[ISC_SHA224_DIGESTLENGTH], *d = digest;
-	int		i;
+	unsigned int	i;
 
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha224_t *)0);
@@ -386,7 +387,8 @@ isc_sha256_init(isc_sha256_t *context) {
 	if (context == (isc_sha256_t *)0) {
 		return;
 	}
-	memcpy(context->state, sha256_initial_hash_value, ISC_SHA256_DIGESTLENGTH);
+	memcpy(context->state, sha256_initial_hash_value,
+	       ISC_SHA256_DIGESTLENGTH);
 	memset(context->buffer, 0, ISC_SHA256_BLOCK_LENGTH);
 	context->bitcount = 0;
 }
@@ -683,7 +685,7 @@ isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 char *
 isc_sha256_end(isc_sha256_t *context, char buffer[]) {
 	isc_uint8_t	digest[ISC_SHA256_DIGESTLENGTH], *d = digest;
-	int		i;
+	unsigned int	i;
 
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha256_t *)0);
@@ -722,7 +724,8 @@ isc_sha512_init(isc_sha512_t *context) {
 	if (context == (isc_sha512_t *)0) {
 		return;
 	}
-	memcpy(context->state, sha512_initial_hash_value, ISC_SHA512_DIGESTLENGTH);
+	memcpy(context->state, sha512_initial_hash_value,
+	       ISC_SHA512_DIGESTLENGTH);
 	memset(context->buffer, 0, ISC_SHA512_BLOCK_LENGTH);
 	context->bitcount[0] = context->bitcount[1] =  0;
 }
@@ -1018,7 +1021,7 @@ void isc_sha512_final(isc_uint8_t digest[], isc_sha512_t *context) {
 char *
 isc_sha512_end(isc_sha512_t *context, char buffer[]) {
 	isc_uint8_t	digest[ISC_SHA512_DIGESTLENGTH], *d = digest;
-	int		i;
+	unsigned int	i;
 
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0);
@@ -1057,7 +1060,8 @@ isc_sha384_init(isc_sha384_t *context) {
 	if (context == (isc_sha384_t *)0) {
 		return;
 	}
-	memcpy(context->state, sha384_initial_hash_value, ISC_SHA512_DIGESTLENGTH);
+	memcpy(context->state, sha384_initial_hash_value,
+	       ISC_SHA512_DIGESTLENGTH);
 	memset(context->buffer, 0, ISC_SHA384_BLOCK_LENGTH);
 	context->bitcount[0] = context->bitcount[1] = 0;
 }
