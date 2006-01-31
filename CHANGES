@@ -1,3 +1,6 @@
+1975.	[bug]		libbind: isc_gethexstring() could misparse multi-line
+			hex strings with comments. [RT #15814]
+
 1974.	[doc]		List each of the zone types and associated zone
 			options seperately in the ARM.
 
