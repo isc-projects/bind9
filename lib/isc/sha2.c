@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.4 2006/01/31 00:38:06 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.5 2006/01/31 01:58:39 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -1104,7 +1104,7 @@ isc_sha384_final(isc_uint8_t digest[], isc_sha384_t *context) {
 char *
 isc_sha384_end(isc_sha384_t *context, char buffer[]) {
 	isc_uint8_t	digest[ISC_SHA384_DIGESTLENGTH], *d = digest;
-	int		i;
+	unsigned int	i;
 
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha384_t *)0);
