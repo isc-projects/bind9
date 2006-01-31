@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.5 2006/01/31 01:58:39 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.6 2006/01/31 23:03:52 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -573,7 +573,7 @@ void
 isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 	unsigned int	freespace, usedspace;
 
-	if (len == 0) {
+	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
 	}
@@ -609,7 +609,7 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 		len -= ISC_SHA256_BLOCK_LENGTH;
 		data += ISC_SHA256_BLOCK_LENGTH;
 	}
-	if (len > 0) {
+	if (len > 0U) {
 		/* There's left-overs, so save 'em */
 		memcpy(context->buffer, data, len);
 		context->bitcount += len << 3;
@@ -639,16 +639,20 @@ isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 
 			if (usedspace <= ISC_SHA256_SHORT_BLOCK_LENGTH) {
 				/* Set-up for the last transform: */
-				memset(&context->buffer[usedspace], 0, ISC_SHA256_SHORT_BLOCK_LENGTH - usedspace);
+				memset(&context->buffer[usedspace], 0,
+				       ISC_SHA256_SHORT_BLOCK_LENGTH - usedspace);
 			} else {
 				if (usedspace < ISC_SHA256_BLOCK_LENGTH) {
-					memset(&context->buffer[usedspace], 0, ISC_SHA256_BLOCK_LENGTH - usedspace);
+					memset(&context->buffer[usedspace], 0,
+					       ISC_SHA256_BLOCK_LENGTH -
+					       usedspace);
 				}
 				/* Do second-to-last transform: */
 				isc_sha256_transform(context, (isc_uint32_t*)context->buffer);
 
 				/* And set-up for the last transform: */
-				memset(context->buffer, 0, ISC_SHA256_SHORT_BLOCK_LENGTH);
+				memset(context->buffer, 0,
+				       ISC_SHA256_SHORT_BLOCK_LENGTH);
 			}
 		} else {
 			/* Set-up for the last transform: */
@@ -903,7 +907,7 @@ isc_sha512_transform(isc_sha512_t *context, const isc_uint64_t* data) {
 void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t len) {
 	unsigned int	freespace, usedspace;
 
-	if (len == 0) {
+	if (len == 0U) {
 		/* Calling with no data is valid - we do nothing */
 		return;
 	}
@@ -939,7 +943,7 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 		len -= ISC_SHA512_BLOCK_LENGTH;
 		data += ISC_SHA512_BLOCK_LENGTH;
 	}
-	if (len > 0) {
+	if (len > 0U) {
 		/* There's left-overs, so save 'em */
 		memcpy(context->buffer, data, len);
 		ADDINC128(context->bitcount, len << 3);
@@ -963,10 +967,12 @@ void isc_sha512_last(isc_sha512_t *context) {
 
 		if (usedspace <= ISC_SHA512_SHORT_BLOCK_LENGTH) {
 			/* Set-up for the last transform: */
-			memset(&context->buffer[usedspace], 0, ISC_SHA512_SHORT_BLOCK_LENGTH - usedspace);
+			memset(&context->buffer[usedspace], 0,
+			       ISC_SHA512_SHORT_BLOCK_LENGTH - usedspace);
 		} else {
 			if (usedspace < ISC_SHA512_BLOCK_LENGTH) {
-				memset(&context->buffer[usedspace], 0, ISC_SHA512_BLOCK_LENGTH - usedspace);
+				memset(&context->buffer[usedspace], 0,
+				       ISC_SHA512_BLOCK_LENGTH - usedspace);
 			}
 			/* Do second-to-last transform: */
 			isc_sha512_transform(context, (isc_uint64_t*)context->buffer);
