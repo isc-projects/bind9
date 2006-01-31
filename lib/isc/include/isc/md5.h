@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.h,v 1.9.18.2 2005/04/29 00:16:59 marka Exp $ */
+/* $Id: md5.h,v 1.9.18.3 2006/01/31 00:25:46 marka Exp $ */
 
 /*! \file 
  * \brief This is the header file for the MD5 message-digest algorithm.
@@ -46,7 +46,7 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#define ISC_MD5_DIGESTLENGTH 16
+#define ISC_MD5_DIGESTLENGTH 16U
 
 typedef struct {
 	isc_uint32_t buf[4];
