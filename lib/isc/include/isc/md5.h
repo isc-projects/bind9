@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.h,v 1.9.18.3 2006/01/31 00:25:46 marka Exp $ */
+/* $Id: md5.h,v 1.9.18.4 2006/02/01 00:10:34 marka Exp $ */
 
 /*! \file 
  * \brief This is the header file for the MD5 message-digest algorithm.
