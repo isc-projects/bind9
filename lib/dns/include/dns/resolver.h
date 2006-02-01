@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.51 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: resolver.h,v 1.52 2006/02/01 22:38:56 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -144,7 +144,7 @@ dns_resolver_create(dns_view_t *view,
  *
  *\li	'dispatchv6' is a valid dispatcher with an IPv6 UDP socket, or is NULL.
  *
- *\li	*resp != NULL && *resp == NULL.
+ *\li	resp != NULL && *resp == NULL.
  *
  * Returns:
  *
