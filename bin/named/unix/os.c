@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.15 2005/05/20 01:37:08 marka Exp $ */
+/* $Id: os.c,v 1.46.2.16 2006/02/02 23:37:51 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -492,6 +492,13 @@ ns_os_changeuser(void) {
 
 #if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
+#endif
+#if defined(HAVE_SYS_PRCTL_H) && defined(PR_SET_DUMPABLE)
+	/*
+	 * Restore the ability of named to drop core after the setuid()
+	 * call has disabled it.
+	 */
+	prctl(PR_SET_DUMPABLE,1,0,0,0);
 #endif
 }
 
