@@ -1,3 +1,6 @@
+1979.	[port]		linux: allow named to drop core after changing
+			user ids. [RT #15753]
+
 1978.	[port]		Handle systems which have a broken recvmsg().
 			[RT #15742]
 
