@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.22 2005/05/16 05:30:01 marka Exp $ */
+/* $Id: query.c,v 1.198.2.23 2006/02/02 22:57:39 marka Exp $ */
 
 #include <config.h>
 
@@ -2410,6 +2410,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	dns_zone_t *zone;
 	dns_rdata_cname_t cname;
 	dns_rdata_dname_t dname;
+	unsigned int options;
 	isc_boolean_t empty_wild;
 
 	CTRACE("query_find");
@@ -2434,6 +2435,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	version = NULL;
 	zone = NULL;
 	empty_wild = ISC_FALSE;
+	options = 0;
 
 	if (event != NULL) {
 		/*
@@ -2501,7 +2503,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	/*
 	 * First we must find the right database.
 	 */
-	result = query_getdb(client, client->query.qname, 0, &zone, &db,
+	options &= DNS_GETDB_NOLOG; /* Preserve DNS_GETDB_NOLOG. */
+	result = query_getdb(client, client->query.qname, options, &zone, &db,
 			     &version, &is_zone);
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_REFUSED)
@@ -2986,6 +2989,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		query_maybeputqname(client);
 		client->query.qname = tname;
 		want_restart = ISC_TRUE;
+		if (!WANTRECURSION(client))
+			options |= DNS_GETDB_NOLOG;
 		goto addauth;
 	case DNS_R_DNAME:
 		/*
@@ -3099,6 +3104,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 		client->query.qname = fname;
 		fname = NULL;
 		want_restart = ISC_TRUE;
+		if (!WANTRECURSION(client))
+			options |= DNS_GETDB_NOLOG;
 		goto addauth;
 	default:
 		/*
