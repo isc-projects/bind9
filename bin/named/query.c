@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.36 2005/08/11 05:25:20 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.37 2006/02/02 22:52:44 marka Exp $ */
 
 #include <config.h>
 
@@ -2469,7 +2469,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	/*
 	 * First we must find the right database.
 	 */
-	options = 0;
+	options &= DNS_GETDB_NOLOG; /* Preserve DNS_GETDB_NOLOG. */
 	if (dns_rdatatype_atparent(qtype) &&
 	    !dns_name_equal(client->query.qname, dns_rootname))
 		options |= DNS_GETDB_NOEXACT;
@@ -2998,6 +2998,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		query_maybeputqname(client);
 		client->query.qname = tname;
 		want_restart = ISC_TRUE;
+		if (!WANTRECURSION(client))
+			options |= DNS_GETDB_NOLOG;
 		goto addauth;
 	case DNS_R_DNAME:
 		/*
@@ -3115,6 +3117,8 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		client->query.qname = fname;
 		fname = NULL;
 		want_restart = ISC_TRUE;
+		if (!WANTRECURSION(client))
+			options |= DNS_GETDB_NOLOG;
 		goto addauth;
 	default:
 		/*
