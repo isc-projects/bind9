@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.261 2005/12/07 04:21:27 explorer Exp $ */
+/* $Id: socket.c,v 1.262 2006/02/02 23:06:45 marka Exp $ */
 
 /*! \file */
 
@@ -768,8 +768,26 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 
 	if (sock->type == isc_sockettype_udp) {
 		memset(&dev->address, 0, sizeof(dev->address));
+#ifdef BROKEN_RECVMSG
+		if (sock->pf == AF_INET) {
+			msg->msg_name = (void *)&dev->address.type.sin;
+			msg->msg_namelen = sizeof(dev->address.type.sin6);
+		} else if (sock->pf == AF_INET6) {
+			msg->msg_name = (void *)&dev->address.type.sin6;
+			msg->msg_namelen = sizeof(dev->address.type.sin6);
+#ifdef ISC_PLATFORM_HAVESYSUNH
+		} else if (sock->pf == AF_UNIX) {
+			msg->msg_name = (void *)&dev->address.type.sunix;
+			msg->msg_namelen = sizeof(dev->address.type.sunix);
+#endif
+		} else {
+			msg->msg_name = (void *)&dev->address.type.sa;
+			msg->msg_namelen = sizeof(dev->address.type);
+		}
+#else
 		msg->msg_name = (void *)&dev->address.type.sa;
 		msg->msg_namelen = sizeof(dev->address.type);
+#endif
 #ifdef ISC_NET_RECVOVERFLOW
 		/* If needed, steal one iovec for overflow detection. */
 		maxiov--;
@@ -941,6 +959,10 @@ doio_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 
 	cc = recvmsg(sock->fd, &msghdr, 0);
 	recv_errno = errno;
+
+#if defined(ISC_SOCKET_DEBUG)
+	dump_msg(&msghdr);
+#endif
 
 	if (cc < 0) {
 		if (SOFT_ERROR(recv_errno))

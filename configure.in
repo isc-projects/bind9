@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.400 $)
+AC_REVISION($Revision: 1.401 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1778,6 +1778,17 @@ case "$host" in
 		;;
 	*)
 		;;
+esac
+
+#
+# Some hosts need msg_namelen to match the size of the socket stucture.
+# Some hosts don't set msg_namelen appropriately on return from recvmsg().
+#
+case $host in
+*os2*|*hp-mpeix*)
+	AC_DEFINE(BROKEN_RECVMSG, 1,
+		  [Define if recvmsg() does not meet all of the BSD socket API specifications.])
+	;;
 esac
 
 #
