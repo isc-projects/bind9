@@ -1,3 +1,6 @@
+1978.	[port]		Handle systems which have a broken recvmsg().
+			[RT #15742]
+
 1977.	[bug]		Silence noisy log message. [RT #15704]
 
 1976.	[bug]		Handle systems with no IPv4 addresses. [RT #15695]
