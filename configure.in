@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.294.2.57 $)
+AC_REVISION($Revision: 1.294.2.58 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1552,6 +1552,17 @@ ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
 AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming long long int)])
 ])
 AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
+
+#
+# Some hosts need msg_namelen to match the size of the socket stucture.
+# Some hosts don't set msg_namelen appropriately on return from recvmsg().
+#
+case $host in
+*os2*|*hp-mpeix*)
+	AC_DEFINE(BROKEN_RECVMSG, 1,
+		  [Define if recvmsg() does not meet all of the BSD socket API specifications.])
+	;;
+esac
 
 #
 # Microsoft has their own way of handling shared libraries that requires
