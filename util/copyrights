@@ -60,7 +60,7 @@
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
+./bin/dnssec/dnssec-signzone.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/dnssec/dnssec-signzone.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-signzone.html		HTML	DOCBOOK
 ./bin/dnssec/dnssectool.c			C	2000,2001,2003,2004,2005
@@ -137,7 +137,7 @@
 ./bin/named/unix/.cvsignore			X	1999,2000,2001
 ./bin/named/unix/Makefile.in			MAKE	1999,2000,2001,2004
 ./bin/named/unix/include/named/os.h		C	1999,2000,2001,2002,2004,2005
-./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005
+./bin/named/unix/os.c				C	1999,2000,2001,2002,2004,2005,2006
 ./bin/named/update.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/win32/include/named/ntservice.h	C	1999,2000,2001,2002,2003,2004
 ./bin/named/win32/include/named/os.h		C	1999,2000,2001,2002,2004
