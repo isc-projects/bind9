@@ -1,3 +1,6 @@
+1980.	[func]		dnssec-signzone: output the SOA record as the
+			first record in the signed zone. [RT #15758]
+
 1979.	[port]		linux: allow named to drop core after changing
 			user ids. [RT #15753]
 

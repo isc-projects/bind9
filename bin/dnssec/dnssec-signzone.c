@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.15 2005/11/30 03:44:38 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.16 2006/02/03 00:15:43 marka Exp $ */
 
 /*! \file */
 
@@ -1092,6 +1092,32 @@ postsign(void) {
 }
 
 /*%
+ * Sign the apex of the zone.
+ */
+static void
+signapex(void) {
+	dns_dbnode_t *node = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_result_t result;
+	
+	dns_fixedname_init(&fixed);
+	name = dns_fixedname_name(&fixed);
+	result = dns_dbiterator_current(gdbiter, &node, name);
+	check_result(result, "dns_dbiterator_current()");
+	signname(node, name);
+	dumpnode(name, node);
+	cleannode(gdb, gversion, node);
+	dns_db_detachnode(gdb, &node);
+	result = dns_dbiterator_next(gdbiter);
+	if (result == ISC_R_NOMORE)
+		finished = ISC_TRUE;
+	else if (result != ISC_R_SUCCESS)
+		fatal("failure iterating database: %s",
+		      isc_result_totext(result));
+}
+
+/*%
  * Assigns a node to a worker thread.  This is protected by the master task's
  * lock.
  */
@@ -2088,6 +2114,7 @@ main(int argc, char *argv[]) {
 		RUNTIME_CHECK(isc_mutex_init(&statslock) == ISC_R_SUCCESS);
 
 	presign();
+	signapex();
 	(void)isc_app_run();
 	if (!finished)
 		fatal("process aborted by user");
