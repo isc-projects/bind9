@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ifiter_ioctl.c,v 1.19.2.8 2006/02/03 23:51:36 marka Exp $ */
+/* $Id: ifiter_ioctl.c,v 1.19.2.9 2006/02/06 06:23:48 marka Exp $ */
 
 /*
  * Obtain the list of network interfaces using the SIOCGLIFCONF ioctl.
@@ -233,10 +233,10 @@ internal_current(isc_interfaceiter_t *iter) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(VALID_IFITER(iter));
-	REQUIRE(iter->ifc.ifc_len == 0 ||
-		iter->pos < (unsigned int) iter->ifc.ifc_len);
+	REQUIRE(iter->ifc.lifc_len == 0 ||
+		iter->pos < (unsigned int) iter->ifc.lifc_len);
 
-	if (iter->ifc.ifc_len == 0)
+	if (iter->ifc.lifc_len == 0)
 		return (ISC_R_NOMORE);
 
 	ifrp = (struct lifreq *)((char *) iter->ifc.lifc_req + iter->pos);
