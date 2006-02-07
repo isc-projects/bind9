@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.195 2006/02/03 23:51:39 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.196 2006/02/07 21:53:36 marka Exp $ */
 
 /*! \file */
 
@@ -2103,10 +2103,6 @@ main(int argc, char *argv[]) {
 		if (result != ISC_R_SUCCESS)
 			fatal("failed to create task: %s",
 			      isc_result_totext(result));
-		result = isc_app_onrun(mctx, master, startworker, tasks[i]);
-		if (result != ISC_R_SUCCESS)
-			fatal("failed to start task: %s",
-			      isc_result_totext(result));
 	}
 
 	RUNTIME_CHECK(isc_mutex_init(&namelock) == ISC_R_SUCCESS);
@@ -2115,9 +2111,23 @@ main(int argc, char *argv[]) {
 
 	presign();
 	signapex();
-	(void)isc_app_run();
-	if (!finished)
-		fatal("process aborted by user");
+	if (!finished) {
+		/*
+		 * There is more work to do.  Spread it out over multiple
+		 * processors if possible.
+		 */
+		for (i = 0; i < (int)ntasks; i++) {
+			result = isc_app_onrun(mctx, master, startworker,
+					       tasks[i]);
+			if (result != ISC_R_SUCCESS)
+				fatal("failed to start task: %s",
+				      isc_result_totext(result));
+		}
+		(void)isc_app_run();
+		if (!finished)
+			fatal("process aborted by user");
+	} else
+		isc_task_detach(&master);
 	shuttingdown = ISC_TRUE;
 	for (i = 0; i < (int)ntasks; i++)
 		isc_task_detach(&tasks[i]);
