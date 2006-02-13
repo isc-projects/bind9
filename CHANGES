@@ -1,3 +1,6 @@
+1981.	[bug]		win32: condition.c:wait() could fail to reattain
+			the mutex lock.
+
 1979.	[port]		linux: allow named to drop core after changing
 			user ids. [RT #15753]
 
