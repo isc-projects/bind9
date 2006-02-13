@@ -2154,7 +2154,7 @@
 ./lib/isc/win32/DLLMain.c			C	2001,2004
 ./lib/isc/win32/Makefile.in			MAKE	1999,2000,2001,2004
 ./lib/isc/win32/app.c				C	1999,2000,2001,2004
-./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004
+./lib/isc/win32/condition.c			C	1998,1999,2000,2001,2004,2006
 ./lib/isc/win32/dir.c				C	1999,2000,2001,2004
 ./lib/isc/win32/entropy.c			C	2000,2001,2002,2004
 ./lib/isc/win32/errno2result.c			C	2000,2001,2002,2004,2005
