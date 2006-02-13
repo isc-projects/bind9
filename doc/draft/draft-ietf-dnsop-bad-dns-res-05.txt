@@ -3,12 +3,12 @@
 
 DNS Operations                                                 M. Larson
 Internet-Draft                                                 P. Barber
-Expires: January 18, 2006                                       VeriSign
-                                                           July 17, 2005
+Expires: August 14, 2006                                        VeriSign
+                                                       February 10, 2006
 
 
                   Observed DNS Resolution Misbehavior
-                    draft-ietf-dnsop-bad-dns-res-04
+                    draft-ietf-dnsop-bad-dns-res-05
 
 Status of this Memo
 
@@ -33,11 +33,11 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on January 18, 2006.
+   This Internet-Draft will expire on August 14, 2006.
 
 Copyright Notice
 
-   Copyright (C) The Internet Society (2005).
+   Copyright (C) The Internet Society (2006).
 
 Abstract
 
@@ -52,48 +52,50 @@ Abstract
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 1]
+Larson & Barber          Expires August 14, 2006                [Page 1]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
    document are to be interpreted as described in RFC 2119 [1].
 
+
 Table of Contents
 
-   1.   Introduction . . . . . . . . . . . . . . . . . . . . . . . .   3
-     1.1  A note about terminology in this memo  . . . . . . . . . .   3
-   2.   Observed iterative resolver misbehavior  . . . . . . . . . .   5
-     2.1  Aggressive requerying for delegation information . . . . .   5
-       2.1.1  Recommendation . . . . . . . . . . . . . . . . . . . .   6
-     2.2  Repeated queries to lame servers . . . . . . . . . . . . .   7
-       2.2.1  Recommendation . . . . . . . . . . . . . . . . . . . .   7
-     2.3  Inability to follow multiple levels of indirection . . . .   8
-       2.3.1  Recommendation . . . . . . . . . . . . . . . . . . . .   9
-     2.4  Aggressive retransmission when fetching glue . . . . . . .   9
-       2.4.1  Recommendation . . . . . . . . . . . . . . . . . . . .  10
-     2.5  Aggressive retransmission behind firewalls . . . . . . . .  10
-       2.5.1  Recommendation . . . . . . . . . . . . . . . . . . . .  11
-     2.6  Misconfigured NS records . . . . . . . . . . . . . . . . .  11
-       2.6.1  Recommendation . . . . . . . . . . . . . . . . . . . .  12
-     2.7  Name server records with zero TTL  . . . . . . . . . . . .  12
-       2.7.1  Recommendation . . . . . . . . . . . . . . . . . . . .  13
-     2.8  Unnecessary dynamic update messages  . . . . . . . . . . .  13
-       2.8.1  Recommendation . . . . . . . . . . . . . . . . . . . .  14
-     2.9  Queries for domain names resembling IPv4 addresses . . . .  14
-       2.9.1  Recommendation . . . . . . . . . . . . . . . . . . . .  14
-     2.10   Misdirected recursive queries  . . . . . . . . . . . . .  15
-       2.10.1   Recommendation . . . . . . . . . . . . . . . . . . .  15
-     2.11   Suboptimal name server selection algorithm . . . . . . .  15
-       2.11.1   Recommendation . . . . . . . . . . . . . . . . . . .  16
-   3.   IANA considerations  . . . . . . . . . . . . . . . . . . . .  17
-   4.   Security considerations  . . . . . . . . . . . . . . . . . .  18
-   5.   Internationalization considerations  . . . . . . . . . . . .  19
-   6.   Informative References . . . . . . . . . . . . . . . . . . .  19
-        Authors' Addresses . . . . . . . . . . . . . . . . . . . . .  19
-        Intellectual Property and Copyright Statements . . . . . . .  21
+   1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     1.1.  A note about terminology in this memo  . . . . . . . . . .  3
+   2.  Observed iterative resolver misbehavior  . . . . . . . . . . .  5
+     2.1.  Aggressive requerying for delegation information . . . . .  5
+       2.1.1.  Recommendation . . . . . . . . . . . . . . . . . . . .  6
+     2.2.  Repeated queries to lame servers . . . . . . . . . . . . .  7
+       2.2.1.  Recommendation . . . . . . . . . . . . . . . . . . . .  7
+     2.3.  Inability to follow multiple levels of indirection . . . .  8
+       2.3.1.  Recommendation . . . . . . . . . . . . . . . . . . . .  9
+     2.4.  Aggressive retransmission when fetching glue . . . . . . .  9
+       2.4.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 10
+     2.5.  Aggressive retransmission behind firewalls . . . . . . . . 10
+       2.5.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 11
+     2.6.  Misconfigured NS records . . . . . . . . . . . . . . . . . 11
+       2.6.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 12
+     2.7.  Name server records with zero TTL  . . . . . . . . . . . . 12
+       2.7.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 13
+     2.8.  Unnecessary dynamic update messages  . . . . . . . . . . . 13
+       2.8.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 14
+     2.9.  Queries for domain names resembling IPv4 addresses . . . . 14
+       2.9.1.  Recommendation . . . . . . . . . . . . . . . . . . . . 14
+     2.10. Misdirected recursive queries  . . . . . . . . . . . . . . 15
+       2.10.1. Recommendation . . . . . . . . . . . . . . . . . . . . 15
+     2.11. Suboptimal name server selection algorithm . . . . . . . . 15
+       2.11.1. Recommendation . . . . . . . . . . . . . . . . . . . . 16
+   3.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 17
+   4.  IANA considerations  . . . . . . . . . . . . . . . . . . . . . 18
+   5.  Security considerations  . . . . . . . . . . . . . . . . . . . 19
+   6.  Internationalization considerations  . . . . . . . . . . . . . 20
+   7.  Informative References . . . . . . . . . . . . . . . . . . . . 20
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 21
+   Intellectual Property and Copyright Statements . . . . . . . . . . 22
 
 
 
@@ -106,11 +108,9 @@ Table of Contents
 
 
 
-
-
-Larson & Barber         Expires January 18, 2006                [Page 2]
+Larson & Barber          Expires August 14, 2006                [Page 2]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
 1.  Introduction
@@ -142,7 +142,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    specification; instead, this document consists of guidelines to
    implementors of iterative resolvers.
 
-1.1  A note about terminology in this memo
+1.1.  A note about terminology in this memo
 
    To recast an old saying about standards, the nice thing about DNS
    terms is that there are so many of them to choose from.  Writing or
@@ -164,9 +164,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 3]
+Larson & Barber          Expires August 14, 2006                [Page 3]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    because the focus is usually on that component.  In instances where
@@ -220,14 +220,14 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 4]
+Larson & Barber          Expires August 14, 2006                [Page 4]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
 2.  Observed iterative resolver misbehavior
 
-2.1  Aggressive requerying for delegation information
+2.1.  Aggressive requerying for delegation information
 
    There can be times when every name server in a zone's NS RRset is
    unreachable (e.g., during a network outage), unavailable (e.g., the
@@ -276,9 +276,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 5]
+Larson & Barber          Expires August 14, 2006                [Page 5]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    to contain the same list of name servers.  The chance of discovering
@@ -325,16 +325,16 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    Note, however, that such a query would not have QTYPE=NS according to
    the standard resolution algorithm.
 
-2.1.1  Recommendation
+2.1.1.  Recommendation
 
    An iterative resolver MUST NOT send a query for the NS RRset of a
    non-responsive zone to any of the name servers for that zone's parent
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 6]
+Larson & Barber          Expires August 14, 2006                [Page 6]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    zone.  For the purposes of this injunction, a non-responsive zone is
@@ -347,8 +347,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
    3.  is dead or unreachable according to section 7.2 of RFC 2308 [4].
 
-
-2.2  Repeated queries to lame servers
+2.2.  Repeated queries to lame servers
 
    Section 2.1 describes a catastrophic failure: when every name server
    for a zone is unable to provide an answer for one reason or another.
@@ -378,22 +377,22 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    the "lame" servers for other types of queries, particularly when all
    known authoritative name servers appear to be "lame".
 
-2.2.1  Recommendation
+2.2.1.  Recommendation
 
    Iterative resolvers SHOULD cache name servers that they discover are
    not authoritative for zones delegated to them (i.e. lame servers).
    If this caching is performed, lame servers MUST be cached against the
    specific query tuple <zone name, class, server IP address>.  Zone
    name can be derived from the owner name of the NS record that was
-
-
-
-Larson & Barber         Expires January 18, 2006                [Page 7]
-
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
-
-
    referenced to query the name server that was discovered to be lame.
+
+
+
+Larson & Barber          Expires August 14, 2006                [Page 7]
+
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
+
+
    Implementations that perform lame server caching MUST refrain from
    sending queries to known lame servers based on a time interval from
    when the server is discovered to be lame.  A minimum interval of
@@ -414,7 +413,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    it should be queried for QNAMEs at or below "sub.example.com" if an
    NS record indicates it should be authoritative for that zone.
 
-2.3  Inability to follow multiple levels of indirection
+2.3.  Inability to follow multiple levels of indirection
 
    Some iterative resolver implementations are unable to follow
    sufficient levels of indirection.  For example, consider the
@@ -444,12 +443,13 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 8]
+
+Larson & Barber          Expires August 14, 2006                [Page 8]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
-2.3.1  Recommendation
+2.3.1.  Recommendation
 
    Clearly constructing a delegation that relies on multiple levels of
    indirection is not a good administrative practice.  However, the
@@ -465,7 +465,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    example, if the zone is named "example.com", consider naming some of
    the name servers "ns{1,2,...}.example.com" (or similar).
 
-2.4  Aggressive retransmission when fetching glue
+2.4.  Aggressive retransmission when fetching glue
 
    When an authoritative name server responds with a referral, it
    includes NS records in the authority section of the response.
@@ -500,9 +500,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006                [Page 9]
+Larson & Barber          Expires August 14, 2006                [Page 9]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    prevents it from receiving responses.  If this is the case, all glue-
@@ -515,14 +515,14 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    specific queries received and based on additional analysis, we
    believe these queries result from overly aggressive glue fetching.
 
-2.4.1  Recommendation
+2.4.1.  Recommendation
 
    Implementers whose name servers support glue fetching SHOULD take
    care to avoid sending queries at excessive rates.  Implementations
    SHOULD support throttling logic to detect when queries are sent but
    no responses are received.
 
-2.5  Aggressive retransmission behind firewalls
+2.5.  Aggressive retransmission behind firewalls
 
    A common occurrence and one of the largest sources of repeated
    queries at the com/net and root name servers appears to result from
@@ -556,15 +556,15 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 10]
+Larson & Barber          Expires August 14, 2006               [Page 10]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    servers, which could explain how such a situation could persist
    without being detected.
 
-2.5.1  Recommendation
+2.5.1.  Recommendation
 
    The most obvious recommendation is that administrators SHOULD take
    care not to place iterative resolvers behind a firewall that allows
@@ -574,7 +574,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    excessive rates.  Implementations SHOULD support throttling logic to
    detect when queries are sent but no responses are received.
 
-2.6  Misconfigured NS records
+2.6.  Misconfigured NS records
 
    Sometimes a zone administrator forgets to add the trailing dot on the
    domain names in the RDATA of a zone's NS records.  Consider this
@@ -612,9 +612,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 11]
+Larson & Barber          Expires August 14, 2006               [Page 11]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    authoritative server.
@@ -633,7 +633,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    obviously bogus glue address records occur frequently at the com/net
    name servers.
 
-2.6.1  Recommendation
+2.6.1.  Recommendation
 
    An authoritative server can detect this situation.  A trailing dot
    missing from an NS record's RDATA always results by definition in a
@@ -647,7 +647,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    a corresponding address record does not exist in the zone AND there
    are no delegated subzones where the address record could exist.
 
-2.7  Name server records with zero TTL
+2.7.  Name server records with zero TTL
 
    Sometimes a popular com/net subdomain's zone is configured with a TTL
    of zero on the zone's NS records, which prohibits these records from
@@ -668,9 +668,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 12]
+Larson & Barber          Expires August 14, 2006               [Page 12]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    zone parent/child relationships we are aware of, there is typically
@@ -684,14 +684,14 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    want iterative resolvers throughout the Internet to cache the NS
    RRset for a long period of time, a low TTL is reasonable.
 
-2.7.1  Recommendation
+2.7.1.  Recommendation
 
    Because of the additional load placed on a zone's parent's
    authoritative servers resulting from a zero TTL on a zone's NS RRset,
    under such circumstances authoritative name servers SHOULD issue a
    warning when loading a zone.
 
-2.8  Unnecessary dynamic update messages
+2.8.  Unnecessary dynamic update messages
 
    The UPDATE message specified in RFC 2136 [6] allows an authorized
    agent to update a zone's data on an authoritative name server using a
@@ -724,9 +724,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 13]
+Larson & Barber          Expires August 14, 2006               [Page 13]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    public TLD or root zones that would be the appropriate targets for a
@@ -746,7 +746,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    up the tree with queries yields cacheable information, whereas
    walking up the tree by sending UPDATE messages does not.
 
-2.8.1  Recommendation
+2.8.1.  Recommendation
 
    Dynamic update agents SHOULD send SOA or NS queries to progressively
    higher-level names to find the closest enclosing zone for a given
@@ -755,7 +755,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    servers.  Update clients SHOULD NOT "probe" using UPDATE messages by
    walking up the tree to progressively higher-level zones.
 
-2.9  Queries for domain names resembling IPv4 addresses
+2.9.  Queries for domain names resembling IPv4 addresses
 
    The root name servers receive a significant number of A record
    queries where the QNAME looks like an IPv4 address.  The source of
@@ -773,16 +773,16 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    domain name "192.0.2.1" does not prevent a subsequent query for the
    domain name "192.0.2.2".
 
-2.9.1  Recommendation
+2.9.1.  Recommendation
 
    It would be desirable for the root name servers not to have to answer
    these queries: they unnecessarily consume CPU resources and network
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 14]
+Larson & Barber          Expires August 14, 2006               [Page 14]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    bandwidth.  A possible solution is to delegate these numeric TLDs
@@ -794,7 +794,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    change procedures would have to be followed to make such a change to
    the root zone.
 
-2.10  Misdirected recursive queries
+2.10.  Misdirected recursive queries
 
    The root name servers receive a significant number of recursive
    queries (i.e., queries with the RD bit set in the header).  Since
@@ -809,7 +809,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    stub resolver implementation that offers any feedback to the user
    when so configured, aside from simply "not working".
 
-2.10.1  Recommendation
+2.10.1.  Recommendation
 
    When the IP address of a name server that supposedly offers recursion
    is configured in a stub resolver using an interactive user interface,
@@ -824,7 +824,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    notification or log message for every response from a non-recursive
    server.
 
-2.11  Suboptimal name server selection algorithm
+2.11.  Suboptimal name server selection algorithm
 
    An entire document could be devoted to the topic of problems with
    different implementations of the recursive resolution algorithm.  The
@@ -836,9 +836,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 15]
+Larson & Barber          Expires August 14, 2006               [Page 15]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
    Some deficiencies cause significant operational impact and are
@@ -850,7 +850,7 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    among a zone's authoritative servers.  The details of the selection
    mechanism are up to the implementor, but we offer some suggestions.
 
-2.11.1  Recommendation
+2.11.1.  Recommendation
 
    This list is not conclusive, but reflects the changes that would
    produce the most impact in terms of reducing disproportionate query
@@ -892,12 +892,68 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 16]
+Larson & Barber          Expires August 14, 2006               [Page 16]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
-3.  IANA considerations
+3.  Acknowledgments
+
+   The authors would like to thank the following people for their
+   comments that improved this document: Andras Salamon, Dave Meyer,
+   Doug Barton, Jaap Akkerhuis, Jinmei Tatuya, John Brady, Kevin Darcy,
+   Olafur Gudmundsson, Pekka Savola, Peter Koch and Rob Austein.  We
+   apologize if we have omitted anyone; any oversight was unintentional.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Larson & Barber          Expires August 14, 2006               [Page 17]
+
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
+
+
+4.  IANA considerations
 
    There are no new IANA considerations introduced by this memo.
 
@@ -948,12 +1004,12 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 17]
+Larson & Barber          Expires August 14, 2006               [Page 18]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
-4.  Security considerations
+5.  Security considerations
 
    The iterative resolver misbehavior discussed in this document exposes
    the root and TLD name servers to increased risk of both intentional
@@ -1004,17 +1060,17 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 18]
+Larson & Barber          Expires August 14, 2006               [Page 19]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
-5.  Internationalization considerations
+6.  Internationalization considerations
 
    There are no new internationalization considerations introduced by
    this memo.
 
-6.  Informative References
+7.  Informative References
 
    [1]  Bradner, S., "Key words for use in RFCs to Indicate Requirement
         Levels", BCP 14, RFC 2119, March 1997.
@@ -1042,6 +1098,29 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
    [8]  <http://www.as112.net>
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Larson & Barber          Expires August 14, 2006               [Page 20]
+
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
+
+
 Authors' Addresses
 
    Matt Larson
@@ -1051,18 +1130,6 @@ Authors' Addresses
    USA
 
    Email: mlarson@verisign.com
-
-
-
-
-
-
-
-
-
-Larson & Barber         Expires January 18, 2006               [Page 19]
-
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
    Piet Barber
@@ -1105,20 +1172,9 @@ Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Larson & Barber         Expires January 18, 2006               [Page 20]
+Larson & Barber          Expires August 14, 2006               [Page 21]
 
-Internet-Draft     Observed DNS Resolution Misbehavior         July 2005
+Internet-Draft     Observed DNS Resolution Misbehavior     February 2006
 
 
 Intellectual Property Statement
@@ -1159,7 +1215,7 @@ Disclaimer of Validity
 
 Copyright Statement
 
-   Copyright (C) The Internet Society (2005).  This document is subject
+   Copyright (C) The Internet Society (2006).  This document is subject
    to the rights, licenses and restrictions contained in BCP 78, and
    except as set forth therein, the authors retain all their rights.
 
@@ -1172,5 +1228,5 @@ Acknowledgment
 
 
 
-Larson & Barber         Expires January 18, 2006               [Page 21]
+Larson & Barber          Expires August 14, 2006               [Page 22]
 
