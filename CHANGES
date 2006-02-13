@@ -1,3 +1,6 @@
+1981.	[bug]		win32: condition.c:wait() could fail to reattain
+			the mutex lock.
+
 1980.	[func]		dnssec-signzone: output the SOA record as the
 			first record in the signed zone. [RT #15758]
 

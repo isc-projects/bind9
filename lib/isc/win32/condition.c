@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.18 2004/03/05 05:11:56 marka Exp $ */
+/* $Id: condition.c,v 1.19 2006/02/13 03:35:47 marka Exp $ */
 
 #include <config.h>
 
@@ -91,6 +91,7 @@ isc_result_t
 isc_condition_destroy(isc_condition_t *cond) {
 
 	REQUIRE(cond != NULL);
+	REQUIRE(cond->waiters == 0);
 
 	(void)CloseHandle(cond->events[LSIGNAL]);
 	(void)CloseHandle(cond->events[LBROADCAST]);
@@ -98,6 +99,15 @@ isc_condition_destroy(isc_condition_t *cond) {
 	return (ISC_R_SUCCESS);
 }
 
+/*
+ * This is always called when the mutex (lock) is held, but because
+ * we are waiting we need to release it and reacquire it as soon as the wait
+ * is over. This allows other threads to make use of the object guarded
+ * by the mutex but it should never try to delete it as long as the
+ * number of waiters > 0. Always reacquire the mutex regardless of the
+ * result of the wait. Note that EnterCriticalSection will wait to acquire
+ * the mutex.
+ */
 static isc_result_t
 wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	DWORD result;
@@ -105,16 +115,15 @@ wait(isc_condition_t *cond, isc_mutex_t *mutex, DWORD milliseconds) {
 	cond->waiters++;
 	LeaveCriticalSection(mutex);
 	result = WaitForMultipleObjects(2, cond->events, FALSE, milliseconds);
+	EnterCriticalSection(mutex);
+	cond->waiters--;
 	if (result == WAIT_FAILED) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-	EnterCriticalSection(mutex);
-	cond->waiters--;
 	if (cond->waiters == 0 &&
 	    !ResetEvent(cond->events[LBROADCAST])) {
 		/* XXX */
-		LeaveCriticalSection(mutex);
 		return (ISC_R_UNEXPECTED);
 	}
 
