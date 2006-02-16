@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.129 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: zoneconf.c,v 1.130 2006/02/16 01:34:24 marka Exp $ */
 
 /*% */
 
@@ -153,6 +153,10 @@ configure_zone_ssutable(cfg_obj_t *zconfig, dns_zone_t *zone) {
 			mtype = DNS_SSUMATCHTYPE_WILDCARD;
 		else if (strcasecmp(str, "self") == 0)
 			mtype = DNS_SSUMATCHTYPE_SELF;
+		else if (strcasecmp(str, "selfsub") == 0)
+			mtype = DNS_SSUMATCHTYPE_SELFSUB;
+		else if (strcasecmp(str, "selfwild") == 0)
+			mtype = DNS_SSUMATCHTYPE_SELFWILD;
 		else
 			INSIST(0);
 
