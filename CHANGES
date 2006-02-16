@@ -1,3 +1,6 @@
+1983.	[func]		Two new update policies.  "selfsub" and "selfwild".
+			[RT #12895]
+
 1982.	[bug]		DNSKEY was being accepted on the parent side of
 			a delegation.  KEY is still accepted there for
 			RFC 3007 validated updates. [RT #15620]

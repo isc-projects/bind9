@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.13.18.2 2005/04/29 00:16:22 marka Exp $ */
+/* $Id: ssu.h,v 1.13.18.3 2006/02/16 01:38:49 marka Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
@@ -32,6 +32,10 @@ ISC_LANG_BEGINDECLS
 #define DNS_SSUMATCHTYPE_SUBDOMAIN 1
 #define DNS_SSUMATCHTYPE_WILDCARD 2
 #define DNS_SSUMATCHTYPE_SELF 3
+#define DNS_SSUMATCHTYPE_SELFSUB 4
+#define DNS_SSUMATCHTYPE_SELFWILD 5
+#define DNS_SSUMATCHTYPE_MAX 5		/* maximum defined value */
+
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.50 2006/01/30 00:39:39 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.51 2006/02/16 01:38:49 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -8857,62 +8857,59 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
             </para>
 
             <para>
-              The <replaceable>nametype</replaceable> field has 4
+              The <replaceable>nametype</replaceable> field has 6
               values:
               <varname>name</varname>, <varname>subdomain</varname>,
-              <varname>wildcard</varname>, and <varname>self</varname>.
+              <varname>wildcard</varname>, <varname>self</varname>,
+	       <varname>selfsub</varname>, and <varname>selfwild</varname>.
             </para>
             <informaltable>
               <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="4Level-table">
                 <colspec colname="1" colnum="1" colsep="0" colwidth="0.819in"/>
                 <colspec colname="2" colnum="2" colsep="0" colwidth="3.681in"/>
                 <tbody>
-                  <row rowsep="0">
-                    <entry colname="1">
-                      <para>
-                        <varname>name</varname>
-                      </para>
-                    </entry>
-                    <entry colname="2">
-                      <para>
-                        Exact-match semantics.  This rule matches when the
-                        name being updated is identical to the contents of the
-                        <replaceable>name</replaceable> field.
-                      </para>
-                    </entry>
-                  </row>
-                  <row rowsep="0">
-                    <entry colname="1">
-                      <para>
-                        <varname>subdomain</varname>
-                      </para>
-                    </entry>
-                    <entry colname="2">
-                      <para>
-                        This rule matches when the name being updated
-                        is a subdomain of, or identical to, the contents of
-                        the
-                        <replaceable>name</replaceable> field.
-                      </para>
-                    </entry>
-                  </row>
-                  <row rowsep="0">
-                    <entry colname="1">
-                      <para>
-                        <varname>wildcard</varname>
-                      </para>
-                    </entry>
-                    <entry colname="2">
-                      <para>
-                        The <replaceable>name</replaceable> field
-                        is
-                        subject to DNS wildcard expansion, and this rule
-                        matches when the name
-                        being updated name is a valid expansion of the
-                        wildcard.
-                      </para>
-                    </entry>
-                  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>name</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			Exact-match semantics.  This rule matches
+			when the name being updated is identical
+			to the contents of the
+			<replaceable>name</replaceable> field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>subdomain</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule matches when the name being updated
+			is a subdomain of, or identical to, the
+			contents of the <replaceable>name</replaceable>
+			field.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>wildcard</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			The <replaceable>name</replaceable> field
+			is subject to DNS wildcard expansion, and
+			this rule matches when the name being updated
+			name is a valid expansion of the wildcard.
+		      </para>
+		    </entry>
+		  </row>
                   <row rowsep="0">
                     <entry colname="1">
                       <para>
@@ -8920,22 +8917,49 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                       </para>
                     </entry>
                     <entry colname="2">
-                      <para>
-                        This rule matches when the name being updated
-                        matches the contents of the <replaceable>identity</replaceable> field.
-                        The <replaceable>name</replaceable> field
-                        is ignored, but should be
-                        the same as the <replaceable>identity</replaceable> field.  The
-                        <varname>self</varname> nametype is most
-                        useful when allowing using
-                        one key per name to update, where the key has the same
-                        name as the name
-                        to be updated.  The <replaceable>identity</replaceable> would be
-                        specified as <constant>*</constant> in
-                        this case.
-                      </para>
-                    </entry>
-                  </row>
+		      <para>
+			This rule matches when the name being updated
+			matches the contents of the
+			<replaceable>identity</replaceable> field.
+			The <replaceable>name</replaceable> field
+			is ignored, but should be the same as the
+			<replaceable>identity</replaceable> field.
+			The <varname>self</varname> nametype is
+			most useful when allowing using one key per
+			name to update, where the key has the same
+			name as the name to be updated.  The
+			<replaceable>identity</replaceable> would
+			be specified as <constant>*</constant> in
+			this case.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>selfsub</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule is similar to <varname>self</varname>
+			except that subdomains of <varname>self</varname>
+			can also be updated.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>selfwild</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This rule is similar to <varname>self</varname>
+			except that only subdomains of
+			<varname>self</varname> can be updated.
+		      </para>
+		    </entry>
+		  </row>
                 </tbody>
               </tgroup>
             </informaltable>
