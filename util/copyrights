@@ -1764,7 +1764,7 @@
 ./lib/dns/include/dns/secalg.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/secproto.h		C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/soa.h			C	2000,2001,2004,2005
-./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005
+./lib/dns/include/dns/ssu.h			C	2000,2001,2003,2004,2005,2006
 ./lib/dns/include/dns/stats.h			C	2000,2001,2004,2005
 ./lib/dns/include/dns/tcpmsg.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/time.h			C	1999,2000,2001,2004,2005
@@ -1930,7 +1930,7 @@
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005
 ./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005
 ./lib/dns/soa.c					C	2000,2001,2004,2005
-./lib/dns/ssu.c					C	2000,2001,2003,2004,2005
+./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006
 ./lib/dns/stats.c				C	2000,2001,2004,2005
 ./lib/dns/tcpmsg.c				C	1999,2000,2001,2004,2005
 ./lib/dns/time.c				C	1998,1999,2000,2001,2002,2003,2004,2005
