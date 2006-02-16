@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.127 2006/01/30 02:27:03 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.128 2006/02/16 04:58:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -86,14 +86,14 @@
             Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2567982"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2570078">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2570154">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572100">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572107">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572720">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572846">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2573035"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572795">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572922">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2573111"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -5361,10 +5361,11 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
               contain a fully qualified domain name.
             </p>
 <p>
-              The <em class="replaceable"><code>nametype</code></em> field has 4
+              The <em class="replaceable"><code>nametype</code></em> field has 6
               values:
               <code class="varname">name</code>, <code class="varname">subdomain</code>,
-              <code class="varname">wildcard</code>, and <code class="varname">self</code>.
+              <code class="varname">wildcard</code>, <code class="varname">self</code>,
+               <code class="varname">selfsub</code>, and <code class="varname">selfwild</code>.
             </p>
 <div class="informaltable"><table border="1">
 <colgroup>
@@ -5380,8 +5381,9 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     </td>
 <td>
                       <p>
-                        Exact-match semantics.  This rule matches when the
-                        name being updated is identical to the contents of the
+                        Exact-match semantics.  This rule matches
+                        when the name being updated is identical
+                        to the contents of the
                         <em class="replaceable"><code>name</code></em> field.
                       </p>
                     </td>
@@ -5395,9 +5397,9 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <td>
                       <p>
                         This rule matches when the name being updated
-                        is a subdomain of, or identical to, the contents of
-                        the
-                        <em class="replaceable"><code>name</code></em> field.
+                        is a subdomain of, or identical to, the
+                        contents of the <em class="replaceable"><code>name</code></em>
+                        field.
                       </p>
                     </td>
 </tr>
@@ -5410,11 +5412,9 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <td>
                       <p>
                         The <em class="replaceable"><code>name</code></em> field
-                        is
-                        subject to DNS wildcard expansion, and this rule
-                        matches when the name
-                        being updated name is a valid expansion of the
-                        wildcard.
+                        is subject to DNS wildcard expansion, and
+                        this rule matches when the name being updated
+                        name is a valid expansion of the wildcard.
                       </p>
                     </td>
 </tr>
@@ -5427,17 +5427,46 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <td>
                       <p>
                         This rule matches when the name being updated
-                        matches the contents of the <em class="replaceable"><code>identity</code></em> field.
+                        matches the contents of the
+                        <em class="replaceable"><code>identity</code></em> field.
                         The <em class="replaceable"><code>name</code></em> field
-                        is ignored, but should be
-                        the same as the <em class="replaceable"><code>identity</code></em> field.  The
-                        <code class="varname">self</code> nametype is most
-                        useful when allowing using
-                        one key per name to update, where the key has the same
-                        name as the name
-                        to be updated.  The <em class="replaceable"><code>identity</code></em> would be
-                        specified as <code class="constant">*</code> in
+                        is ignored, but should be the same as the
+                        <em class="replaceable"><code>identity</code></em> field.
+                        The <code class="varname">self</code> nametype is
+                        most useful when allowing using one key per
+                        name to update, where the key has the same
+                        name as the name to be updated.  The
+                        <em class="replaceable"><code>identity</code></em> would
+                        be specified as <code class="constant">*</code> in
                         this case.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        <code class="varname">selfsub</code>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        This rule is similar to <code class="varname">self</code>
+                        except that subdomains of <code class="varname">self</code>
+                        can also be updated.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        <code class="varname">selfwild</code>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        This rule is similar to <code class="varname">self</code>
+                        except that only subdomains of
+                        <code class="varname">self</code> can be updated.
                       </p>
                     </td>
 </tr>
@@ -5463,7 +5492,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2570078"></a>Zone File</h2></div></div></div>
+<a name="id2570154"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5476,7 +5505,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2570097"></a>Resource Records</h4></div></div></div>
+<a name="id2570172"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -6127,7 +6156,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571511"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2571587"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6330,7 +6359,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572100"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2572107"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6588,7 +6617,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572720"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2572795"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6649,7 +6678,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572846"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2572922"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6664,7 +6693,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572869"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2572945"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -6692,7 +6721,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572930"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2573005"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -6728,7 +6757,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572999"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2573075"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -6747,7 +6776,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2573035"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2573111"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
