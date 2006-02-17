@@ -1,3 +1,6 @@
+1984.	[func]		dig, nslookup and host now advertise a 4096 byte
+			EDNS UDP buffer size by default. [RT #15855]
+
 1983.	[func]		Two new update policies.  "selfsub" and "selfwild".
 			[RT #12895]
 
