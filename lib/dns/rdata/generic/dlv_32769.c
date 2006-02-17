@@ -14,12 +14,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlv_65323.c,v 1.4 2004/03/18 02:58:04 marka Exp $ */
+/* $Id: dlv_32769.c,v 1.2 2006/02/17 01:04:14 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
-#ifndef RDATA_GENERIC_DLV_65323_C
-#define RDATA_GENERIC_DLV_65323_C
+#ifndef RDATA_GENERIC_DLV_32769_C
+#define RDATA_GENERIC_DLV_32769_C
 
 #define RRTYPE_DLV_ATTRIBUTES 0
 
@@ -27,7 +27,7 @@ static inline isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {
 	isc_token_t token;
 
-	REQUIRE(type == 65323);
+	REQUIRE(type == 32769);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -75,7 +75,7 @@ totext_dlv(ARGS_TOTEXT) {
 	char buf[sizeof("64000 ")];
 	unsigned int n;
 
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(tctx);
@@ -122,7 +122,7 @@ static inline isc_result_t
 fromwire_dlv(ARGS_FROMWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(type == 65323);
+	REQUIRE(type == 32769);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -141,7 +141,7 @@ static inline isc_result_t
 towire_dlv(ARGS_TOWIRE) {
 	isc_region_t sr;
 
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -157,7 +157,7 @@ compare_dlv(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == 65323);
+	REQUIRE(rdata1->type == 32769);
 	REQUIRE(rdata1->length != 0);
 	REQUIRE(rdata2->length != 0);
 
@@ -170,7 +170,7 @@ static inline isc_result_t
 fromstruct_dlv(ARGS_FROMSTRUCT) {
 	dns_rdata_dlv_t *dlv = source;
 
-	REQUIRE(type == 65323);
+	REQUIRE(type == 32769);
 	REQUIRE(source != NULL);
 	REQUIRE(dlv->common.rdtype == type);
 	REQUIRE(dlv->common.rdclass == rdclass);
@@ -190,7 +190,7 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	dns_rdata_dlv_t *dlv = target;
 	isc_region_t region;
 
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
@@ -221,7 +221,7 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 	dns_rdata_dlv_t *dlv = source;
 
 	REQUIRE(dlv != NULL);
-	REQUIRE(dlv->common.rdtype == 65323);
+	REQUIRE(dlv->common.rdtype == 32769);
 
 	if (dlv->mctx == NULL)
 		return;
@@ -233,7 +233,7 @@ freestruct_dlv(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_dlv(ARGS_ADDLDATA) {
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -246,7 +246,7 @@ static inline isc_result_t
 digest_dlv(ARGS_DIGEST) {
 	isc_region_t r;
 
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 
 	dns_rdata_toregion(rdata, &r);
 
@@ -256,7 +256,7 @@ digest_dlv(ARGS_DIGEST) {
 static inline isc_boolean_t
 checkowner_dlv(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == 65323);
+	REQUIRE(type == 32769);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -269,7 +269,7 @@ checkowner_dlv(ARGS_CHECKOWNER) {
 static inline isc_boolean_t
 checknames_dlv(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == 65323);
+	REQUIRE(rdata->type == 32769);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -278,4 +278,4 @@ checknames_dlv(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-#endif	/* RDATA_GENERIC_DLV_65323_C */
+#endif	/* RDATA_GENERIC_DLV_32769_C */

@@ -14,11 +14,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlv_65323.h,v 1.3 2004/03/16 05:22:31 marka Exp $ */
+/* $Id: dlv_32769.h,v 1.2 2006/02/17 01:04:14 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
-#ifndef GENERIC_DLV_65323_H
-#define GENERIC_DLV_65323_H 1
+#ifndef GENERIC_DLV_32769_H
+#define GENERIC_DLV_32769_H 1
 
 typedef struct dns_rdata_dlv {
 	dns_rdatacommon_t	common;
@@ -30,4 +30,4 @@ typedef struct dns_rdata_dlv {
 	unsigned char		*digest;
 } dns_rdata_dlv_t;
 
-#endif /* GENERIC_DLV_65323_H */
+#endif /* GENERIC_DLV_32769_H */
