@@ -1151,7 +1151,8 @@
 1598.	[func]		Specify that certain parts of the namespace must
 			be secure (dnssec-must-be-secure).
 
-1597.	[placeholder]	rt6496a
+1597.	[func]		Allow notify-source and query-source to be specified
+			on a per server basis similar to transfer-source.
 
 1596.	[func]		Accept 'notify-source' style syntax for query-source.
 

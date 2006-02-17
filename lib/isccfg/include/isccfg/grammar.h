@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.9 2005/04/27 04:57:28 sra Exp $ */
+/* $Id: grammar.h,v 1.10 2006/02/17 00:24:21 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
@@ -221,6 +221,7 @@ struct cfg_parser {
 #define CFG_ADDR_V4PREFIXOK 	0x00000002
 #define CFG_ADDR_V6OK 		0x00000004
 #define CFG_ADDR_WILDOK		0x00000008
+#define CFG_ADDR_MASK		(CFG_ADDR_V6OK|CFG_ADDR_V4OK)
 /*@}*/
 
 /*@{*/
