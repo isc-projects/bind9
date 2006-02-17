@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.291 2006/01/27 02:35:14 marka Exp $ */
+/* $Id: dighost.c,v 1.292 2006/02/17 00:10:42 marka Exp $ */
 
 /*! \file
  *  \note
@@ -1946,7 +1946,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_message_renderbegin");
 	if (lookup->udpsize > 0 || lookup->dnssec || lookup->edns > -1) {
 		if (lookup->udpsize == 0)
-			lookup->udpsize = 2048;
+			lookup->udpsize = 4096;
 		if (lookup->edns < 0)
 			lookup->edns = 0;
 		add_opt(lookup->sendmsg, lookup->udpsize,
