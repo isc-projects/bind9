@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.20.18.6 2006/01/06 00:01:43 marka Exp $ */
+/* $Id: peer.h,v 1.20.18.7 2006/02/17 00:42:10 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -75,6 +75,8 @@ struct dns_peer {
 	isc_boolean_t		support_edns;
 	dns_name_t	       *key;
 	isc_sockaddr_t	       *transfer_source;
+	isc_sockaddr_t	       *notify_source;  
+	isc_sockaddr_t	       *query_source;  
 	isc_uint16_t		udpsize;		/* recieve size */
 	isc_uint16_t		maxudp;			/* transmit size */
 
@@ -191,6 +193,18 @@ dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp);
 
 isc_result_t
 dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp);
+
+isc_result_t
+dns_peer_setnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source);
+
+isc_result_t
+dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source);
+
+isc_result_t
+dns_peer_setquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);
+
+isc_result_t
+dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);
 
 ISC_LANG_ENDDECLS
 

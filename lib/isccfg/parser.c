@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parser.c,v 1.112.18.8 2005/11/30 03:44:39 marka Exp $ */
+/* $Id: parser.c,v 1.112.18.9 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -1728,10 +1728,29 @@ token_addr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 isc_result_t
 cfg_parse_rawaddr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na) {
 	isc_result_t result;
+	const char *wild = "";
+	const char *prefix = "";
+
 	CHECK(cfg_gettoken(pctx, 0));
 	result = token_addr(pctx, flags, na);
-	if (result == ISC_R_UNEXPECTEDTOKEN)
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "expected IP address");
+	if (result == ISC_R_UNEXPECTEDTOKEN) {
+		if ((flags & CFG_ADDR_WILDOK) != 0)
+			wild = " or '*'";
+		if ((flags & CFG_ADDR_V4PREFIXOK) != 0)
+			wild = " or IPv4 prefix";
+		if ((flags & CFG_ADDR_MASK) == CFG_ADDR_V4OK)
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "expected IPv4 address%s%s",
+					 prefix, wild);
+		else if ((flags & CFG_ADDR_MASK) == CFG_ADDR_V6OK)
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "expected IPv6 address%s%s",
+					 prefix, wild);
+		else
+			cfg_parser_error(pctx, CFG_LOG_NEAR,
+					 "expected IP address%s%s",
+					 prefix, wild);
+	}
  cleanup:
 	return (result);
 }

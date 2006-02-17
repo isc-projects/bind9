@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.19.18.6 2006/01/06 00:01:43 marka Exp $ */
+/* $Id: peer.c,v 1.19.18.7 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -234,6 +234,8 @@ dns_peer_newprefix(isc_mem_t *mem, isc_netaddr_t *addr, unsigned int prefixlen,
 	peer->key = NULL;
 	peer->refs = 1;
 	peer->transfer_source = NULL;
+	peer->notify_source = NULL;
+	peer->query_source = NULL;
 
 	memset(&peer->bitflags, 0x0, sizeof(peer->bitflags));
 
@@ -557,6 +559,68 @@ dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
 	if (peer->transfer_source == NULL)
 		return (ISC_R_NOTFOUND);
 	*transfer_source = *peer->transfer_source;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_setnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	if (peer->notify_source != NULL) {
+		isc_mem_put(peer->mem, peer->notify_source,
+			    sizeof(*peer->notify_source));
+		peer->notify_source = NULL;
+	}
+	if (notify_source != NULL) {
+		peer->notify_source = isc_mem_get(peer->mem,
+					        sizeof(*peer->notify_source));
+		if (peer->notify_source == NULL)
+			return (ISC_R_NOMEMORY);
+
+		*peer->notify_source = *notify_source;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(notify_source != NULL);
+
+	if (peer->notify_source == NULL)
+		return (ISC_R_NOTFOUND);
+	*notify_source = *peer->notify_source;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_setquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+
+	if (peer->query_source != NULL) {
+		isc_mem_put(peer->mem, peer->query_source,
+			    sizeof(*peer->query_source));
+		peer->query_source = NULL;
+	}
+	if (query_source != NULL) {
+		peer->query_source = isc_mem_get(peer->mem,
+					        sizeof(*peer->query_source));
+		if (peer->query_source == NULL)
+			return (ISC_R_NOMEMORY);
+
+		*peer->query_source = *query_source;
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source) {
+	REQUIRE(DNS_PEER_VALID(peer));
+	REQUIRE(query_source != NULL);
+
+	if (peer->query_source == NULL)
+		return (ISC_R_NOTFOUND);
+	*query_source = *peer->query_source;
 	return (ISC_R_SUCCESS);
 }
 

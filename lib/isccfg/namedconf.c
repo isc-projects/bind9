@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.33 2006/02/16 01:38:49 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.34 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -975,6 +975,10 @@ server_clauses[] = {
 	{ "edns", &cfg_type_boolean, 0 },
 	{ "edns-udp-size", &cfg_type_uint32, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
+	{ "notify-source", &cfg_type_sockaddr4wild, 0 },
+	{ "notify-source-v6", &cfg_type_sockaddr6wild, 0 },
+	{ "query-source", &cfg_type_querysource4, 0 },
+	{ "query-source-v6", &cfg_type_querysource6, 0 },
 	{ "transfer-source", &cfg_type_sockaddr4wild, 0 },
 	{ "transfer-source-v6", &cfg_type_sockaddr6wild, 0 },
 	{ NULL, NULL, 0 }
@@ -1771,12 +1775,13 @@ static cfg_type_t cfg_type_logfile = {
 	&cfg_rep_tuple, logfile_fields
 };
 
-/*% An IPv4/IPv6 address with optional port, "*" accepted as wildcard. */
+/*% An IPv4 address with optional port, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr4wild = {
 	"sockaddr4wild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr4wild_flags
 };
 
+/*% An IPv6 address with optional port, "*" accepted as wildcard. */
 static cfg_type_t cfg_type_sockaddr6wild = {
 	"v6addrportwild", cfg_parse_sockaddr, cfg_print_sockaddr,
 	cfg_doc_sockaddr, &cfg_rep_sockaddr, &sockaddr6wild_flags

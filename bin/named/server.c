@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.37 2006/01/05 02:24:26 marka Exp $ */
+/* $Id: server.c,v 1.419.18.38 2006/02/17 00:42:09 marka Exp $ */
 
 /*! \file */
 
@@ -734,7 +734,35 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 						    cfg_obj_assockaddr(obj));
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
 	}
+
+	obj = NULL;
+	if (na.family == AF_INET)
+		(void)cfg_map_get(cpeer, "notify-source", &obj);
+	else
+		(void)cfg_map_get(cpeer, "notify-source-v6", &obj);
+	if (obj != NULL) {
+		result = dns_peer_setnotifysource(peer,
+						  cfg_obj_assockaddr(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
+	}
+
+	obj = NULL;
+	if (na.family == AF_INET)
+		(void)cfg_map_get(cpeer, "query-source", &obj);
+	else
+		(void)cfg_map_get(cpeer, "query-source-v6", &obj);
+	if (obj != NULL) {
+		result = dns_peer_setquerysource(peer,
+						 cfg_obj_assockaddr(obj));
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		ns_add_reserved_dispatch(ns_g_server, cfg_obj_assockaddr(obj));
+	}
+
 	*peerp = peer;
 	return (ISC_R_SUCCESS);
 

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.51 2006/02/16 01:38:49 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.52 2006/02/17 00:42:09 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7581,6 +7581,10 @@ query-source-v6 address * port *;
     <optional> keys <replaceable>{ string ; <optional> string ; <optional>...</optional></optional> }</replaceable> ; </optional>
     <optional> transfer-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
     <optional> transfer-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source (<replaceable>ip4_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> notify-source-v6 (<replaceable>ip6_addr</replaceable> | <constant>*</constant>) <optional>port <replaceable>ip_port</replaceable></optional> ; </optional>
+    <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
+    <optional> query-source-v6 <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
 };
 </programlisting>
 
@@ -7748,6 +7752,26 @@ query-source-v6 address * port *;
             <command>transfer-source-v6</command> in
             <xref linkend="zone_transfers"/>.
           </para>
+
+	  <para>
+	    The <command>notify-source</command> and
+	    <command>notify-source-v6</command> clauses specify the
+	    IPv4 and IPv6 source address to be used for notify
+	    messages sent to remote servers, respectively.  For an
+	    IPv4 remote server, only <command>notify-source</command>
+	    can be specified.  Similarly, for an IPv6 remote server,
+	    only <command>notify-source-v6</command> can be specified.
+	  </para>
+
+	  <para>
+	    The <command>query-source</command> and
+	    <command>query-source-v6</command> clauses specify the
+	    IPv4 and IPv6 source address to be used for queries
+	    sent to remote servers, respectively.  For an IPv4
+	    remote server, only <command>query-source</command> can
+	    be specified.  Similarly, for an IPv6 remote server,
+	    only <command>query-source-v6</command> can be specified.
+	  </para>
 
         </sect2>
 

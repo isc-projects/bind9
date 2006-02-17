@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.24 2006/01/27 02:50:51 marka Exp $ */
+/* $Id: check.c,v 1.44.18.25 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -1305,17 +1305,28 @@ check_keylist(cfg_obj_t *keys, isc_symtab_t *symtab, isc_log_t *logctx) {
 	return (result);
 }
 
+static struct {
+	const char *v4;
+	const char *v6;
+} sources[] = {
+	{ "transfer-source", "transfer-source-v6" },
+	{ "notify-source", "notify-source-v6" },
+	{ "query-source", "query-source-v6" },
+	{ NULL, NULL }
+};
+
 static isc_result_t
 check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_result_t tresult;
 	cfg_listelt_t *e1, *e2;
 	cfg_obj_t *v1, *v2;
 	isc_netaddr_t n1, n2;
 	unsigned int p1, p2;
-	cfg_obj_t *ts;
-	char buf[128];
+	cfg_obj_t *obj;
+	char buf[ISC_NETADDR_FORMATSIZE];
 	const char *xfr;
-	isc_buffer_t target;
+	int source;
 
 	for (e1 = cfg_list_first(servers); e1 != NULL; e1 = cfg_list_next(e1)) {
 		v1 = cfg_listelt_value(e1);
@@ -1323,33 +1334,31 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 		/*
 		 * Check that unused bits are zero.
 		 */
-		result = isc_netaddr_prefixok(&n1, p1);
-		if (result != ISC_R_SUCCESS) {
-			INSIST(result == ISC_R_FAILURE);
-			isc_buffer_init(&target, buf, sizeof(buf) - 1);
-			RUNTIME_CHECK(isc_netaddr_totext(&n1, &target)
-				      == ISC_R_SUCCESS);
-			buf[isc_buffer_usedlength(&target)] = '\0';
+		tresult = isc_netaddr_prefixok(&n1, p1);
+		if (tresult != ISC_R_SUCCESS) {
+			INSIST(tresult == ISC_R_FAILURE);
+			isc_netaddr_format(&n1, buf, sizeof(buf));
 			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
 				    "server '%s/%u': invalid prefix "
 				    "(extra bits specified)", buf, p1);
+			result = tresult;
 		}
-		ts = NULL;
-		if (n1.family == AF_INET)
-			xfr = "transfer-source-v6";
-		else
-			xfr = "transfer-source";
-		(void)cfg_map_get(v1, xfr, &ts);
-		if (ts != NULL) {
-			isc_buffer_init(&target, buf, sizeof(buf) - 1);
-			RUNTIME_CHECK(isc_netaddr_totext(&n1, &target)
-				      == ISC_R_SUCCESS);
-			buf[isc_buffer_usedlength(&target)] = '\0';
-			cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
-				    "server '%s/%u': %s not valid",
-				    buf, p1, xfr);
-			result = ISC_R_FAILURE;
-		}
+		source = 0;
+		do {
+			obj = NULL;
+			if (n1.family == AF_INET)
+				xfr = sources[source].v6;
+			else
+				xfr = sources[source].v4;
+			(void)cfg_map_get(v1, xfr, &obj);
+			if (obj != NULL) {
+				isc_netaddr_format(&n1, buf, sizeof(buf));
+				cfg_obj_log(v1, logctx, ISC_LOG_ERROR,
+					    "server '%s': %s not legal",
+					    buf, xfr);
+				result = ISC_R_FAILURE;
+			}
+		} while (sources[++source].v4 != NULL);
 		e2 = e1;
 		while ((e2 = cfg_list_next(e2)) != NULL) {
 			v2 = cfg_listelt_value(e2);
@@ -1361,11 +1370,7 @@ check_servers(cfg_obj_t *servers, isc_log_t *logctx) {
 				if (file == NULL)
 					file = "<unknown file>";
 
-				isc_buffer_init(&target, buf, sizeof(buf) - 1);
-				RUNTIME_CHECK(isc_netaddr_totext(&n2, &target)
-					      == ISC_R_SUCCESS);
-				buf[isc_buffer_usedlength(&target)] = '\0';
-
+				isc_netaddr_format(&n2, buf, sizeof(buf));
 				cfg_obj_log(v2, logctx, ISC_LOG_ERROR,
 					    "server '%s/%u': already exists "
 					    "previous definition: %s:%u",

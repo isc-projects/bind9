@@ -129,6 +129,10 @@
 1943.	[bug]		Set the loadtime after rolling forward the journal.
 			[RT #15647]
 
+1597.	[func]		Allow notify-source and query-source to be specified
+			on a per server basis similar to transfer-source.
+			[RT #6496]
+
 	--- 9.4.0a3 released ---
 
 1942.	[bug]		If the name of a DNSKEY match that of one in
@@ -1146,8 +1150,6 @@
 
 1598.	[func]		Specify that certain parts of the namespace must
 			be secure (dnssec-must-be-secure).
-
-1597.	[placeholder]	rt6496a
 
 1596.	[func]		Accept 'notify-source' style syntax for query-source.
 

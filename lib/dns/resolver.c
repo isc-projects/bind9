@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.44 2006/01/06 01:13:05 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.45 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -1002,6 +1002,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	isc_task_t *task;
 	isc_result_t result;
 	resquery_t *query;
+	isc_sockaddr_t addr;
+	isc_boolean_t have_addr = ISC_FALSE;
 
 	FCTXTRACE("query");
 
@@ -1041,28 +1043,42 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	query->dispatchmgr = res->dispatchmgr;
 	query->dispatch = NULL;
 	query->tcpsocket = NULL;
+	if (res->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		isc_netaddr_t dstip;
+		isc_netaddr_fromsockaddr(&dstip, &addrinfo->sockaddr);
+		result = dns_peerlist_peerbyaddr(res->view->peers,
+					         &dstip, &peer);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_peer_getquerysource(peer, &addr);
+			if (result == ISC_R_SUCCESS)
+				have_addr = ISC_TRUE;
+		}
+	}
+
 	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
-		isc_sockaddr_t addr;
 		int pf;
 
 		pf = isc_sockaddr_pf(&addrinfo->sockaddr);
-
-		switch (pf) {
-		case PF_INET:
-			result = dns_dispatch_getlocaladdress(res->dispatchv4,
-							      &addr);
-			break;
-		case PF_INET6:
-			result = dns_dispatch_getlocaladdress(res->dispatchv6,
-							      &addr);
-			break;
-		default:
-			result = ISC_R_NOTIMPLEMENTED;
-			break;
+		if (!have_addr) {
+			switch (pf) {
+			case PF_INET:
+				result =
+				  dns_dispatch_getlocaladdress(res->dispatchv4,
+							       &addr);
+				break;
+			case PF_INET6:
+				result =
+				  dns_dispatch_getlocaladdress(res->dispatchv6,
+							       &addr);
+				break;
+			default:
+				result = ISC_R_NOTIMPLEMENTED;
+				break;
+			}
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_query;
 		}
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_query;
-
 		isc_sockaddr_setport(&addr, 0);
 
 		result = isc_socket_create(res->socketmgr, pf,
@@ -1081,16 +1097,46 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		 * A dispatch will be created once the connect succeeds.
 		 */
 	} else {
-		switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
-		case PF_INET:
-			dns_dispatch_attach(res->dispatchv4, &query->dispatch);
-			break;
-		case PF_INET6:
-			dns_dispatch_attach(res->dispatchv6, &query->dispatch);
-			break;
-		default:
-			result = ISC_R_NOTIMPLEMENTED;
-			goto cleanup_query;
+		if (have_addr) {
+			unsigned int attrs, attrmask;
+			attrs = DNS_DISPATCHATTR_UDP;
+			switch (isc_sockaddr_pf(&addr)) {
+			case AF_INET:
+				attrs |= DNS_DISPATCHATTR_IPV4;
+				break;
+			case AF_INET6:
+				attrs |= DNS_DISPATCHATTR_IPV6;
+				break;
+			default:
+				result = ISC_R_NOTIMPLEMENTED;
+				goto cleanup_query;
+			}
+			attrmask = DNS_DISPATCHATTR_UDP;
+			attrmask |= DNS_DISPATCHATTR_TCP;
+			attrmask |= DNS_DISPATCHATTR_IPV4;
+			attrmask |= DNS_DISPATCHATTR_IPV6;
+			result = dns_dispatch_getudp(res->dispatchmgr,
+						     res->socketmgr,
+						     res->taskmgr, &addr,
+						     4096, 1000, 32768, 16411,
+						     16433, attrs, attrmask,
+						     &query->dispatch);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup_query;
+		} else {
+			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
+			case PF_INET:
+				dns_dispatch_attach(res->dispatchv4,
+						    &query->dispatch);
+				break;
+			case PF_INET6:
+				dns_dispatch_attach(res->dispatchv6,
+						    &query->dispatch);
+				break;
+			default:
+				result = ISC_R_NOTIMPLEMENTED;
+				goto cleanup_query;
+			}
 		}
 		/*
 		 * We should always have a valid dispatcher here.  If we

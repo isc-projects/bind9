@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.40 2006/01/06 00:10:00 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.41 2006/02/17 00:42:10 marka Exp $ */
 
 /*! \file */
 
@@ -3509,6 +3509,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t src;
 	int timeout;
+	isc_boolean_t have_notifysource = ISC_FALSE;
 
 	notify = event->ev_arg;
 	REQUIRE(DNS_NOTIFY_VALID(notify));
@@ -3554,12 +3555,24 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
 		   addrbuf);
+	if (notify->zone->view->peers != NULL) {
+		dns_peer_t *peer = NULL;
+		result = dns_peerlist_peerbyaddr(notify->zone->view->peers,
+						 &dstip, &peer);
+		if (result == ISC_R_SUCCESS) {
+			result = dns_peer_getnotifysource(peer, &src);
+			if (result == ISC_R_SUCCESS)
+				have_notifysource = ISC_TRUE;
+		}
+	}
 	switch (isc_sockaddr_pf(&notify->dst)) {
 	case PF_INET:
-		src = notify->zone->notifysrc4;
+		if (!have_notifysource)
+			src = notify->zone->notifysrc4;
 		break;
 	case PF_INET6:
-		src = notify->zone->notifysrc6;
+		if (!have_notifysource)
+			src = notify->zone->notifysrc6;
 		break;
 	default:
 		result = ISC_R_NOTIMPLEMENTED;
