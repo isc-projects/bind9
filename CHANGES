@@ -1,3 +1,14 @@
+1985.	[protocol]	DLV has now been assigned a official type code of
+			32769. [RT #15807]
+
+			Note: care should be taken to ensure you upgrade
+			both named and dnssec-signzone at the same time for
+			zones with DLV records where named is the master
+			server for the zone.  Also any zones that contain
+			DLV records should be removed when upgrading a slave
+			zone.  You do not however have to upgrade all
+			servers for a zone with DLV records simultaniously.
+
 1982.	[bug]		DNSKEY was being accepted on the parent side of
 			a delegation.  KEY is still accepted there for
 			RFC 3007 validated updates. [RT #15620]
