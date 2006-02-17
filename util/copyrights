@@ -1822,8 +1822,8 @@
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/cname_5.c		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/cname_5.h		C	1998,1999,2000,2001,2004
-./lib/dns/rdata/generic/dlv_32769.c		C	2004
-./lib/dns/rdata/generic/dlv_32769.h		C	2004
+./lib/dns/rdata/generic/dlv_32769.c		C	2004,2006
+./lib/dns/rdata/generic/dlv_32769.h		C	2004,2006
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004,2005
 ./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004,2005
@@ -2259,13 +2259,13 @@
 ./lib/isccfg/include/isccfg/Makefile.in		MAKE	2001,2002,2004,2005
 ./lib/isccfg/include/isccfg/aclconf.h		C	1999,2000,2001,2004,2005
 ./lib/isccfg/include/isccfg/cfg.h		C	2000,2001,2002,2004,2005
-./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005
+./lib/isccfg/include/isccfg/grammar.h		C	2002,2003,2004,2005,2006
 ./lib/isccfg/include/isccfg/log.h		C	2001,2004,2005
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005
 ./lib/isccfg/log.c				C	2001,2004,2005
 ./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006
-./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005
+./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004
 ./lib/isccfg/win32/libisccfg.def		X	2001,2005
