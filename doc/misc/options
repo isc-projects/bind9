@@ -262,6 +262,12 @@ view <string> <optional_class> {
                 edns <boolean>;
                 edns-udp-size <integer>;
                 max-udp-size <integer>;
+                notify-source ( <ipv4_address> | * ) [ port ( <integer> | *
+                    ) ];
+                notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer>
+                    | * ) ];
+                query-source <querysource4>;
+                query-source-v6 <querysource6>;
                 transfer-source ( <ipv4_address> | * ) [ port ( <integer> |
                     * ) ];
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
@@ -457,6 +463,10 @@ server <netprefix> {
         edns <boolean>;
         edns-udp-size <integer>;
         max-udp-size <integer>;
+        notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
+        notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
+        query-source <querysource4>;
+        query-source-v6 <querysource6>;
         transfer-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ];
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ];
 };
