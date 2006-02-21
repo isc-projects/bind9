@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.38 2006/02/17 00:42:09 marka Exp $ */
+/* $Id: server.c,v 1.419.18.39 2006/02/21 23:17:32 marka Exp $ */
 
 /*! \file */
 
@@ -214,10 +214,6 @@ static const struct {
 
 	{ NULL, ISC_FALSE }
 };
-
-static const char *empty_dbtype[] = { "_builtin", "empty", NULL, NULL };
-static unsigned int empty_dbtypec = 
-		(sizeof(empty_dbtype) / sizeof(empty_dbtype[0]));
 
 static void
 fatal(const char *msg, isc_result_t result);
@@ -846,6 +842,38 @@ on_disable_list(cfg_obj_t *disablelist, dns_name_t *zonename) {
 	}
 	return (ISC_FALSE);
 }
+
+static void
+check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
+	     isc_mem_t *mctx)
+{
+	char **argv = NULL;
+	unsigned int i;
+	isc_result_t result;
+
+	result = dns_zone_getdbtype(*zonep, &argv, mctx);
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_detach(zonep);
+		return;
+	}
+
+	/*
+	 * Check that all the arguments match.
+	 */
+	for (i = 0; i < dbtypec; i++)
+		if (argv[i] == NULL || strcmp(argv[i], dbargv[i]) != 0) {
+			dns_zone_detach(zonep);
+			break;
+		}
+
+	/*
+	 * Check that there are not extra arguments.
+	 */
+	if (i == dbtypec && argv[i] != NULL)
+		dns_zone_detach(zonep);
+	isc_mem_free(mctx, argv);
+}
+
 
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
@@ -1598,6 +1626,9 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		char server[DNS_NAME_FORMATSIZE + 1];
 		char contact[DNS_NAME_FORMATSIZE + 1];
 		isc_boolean_t logit;
+		const char *empty_dbtype[4] =
+				    { "_builtin", "empty", NULL, NULL };
+		int empty_dbtypec = 4;
 
 		dns_fixedname_init(&fixed);
 		name = dns_fixedname_name(&fixed);
@@ -1638,6 +1669,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		     empty = empty_zones[++empty_zone].zone)
 		{
 			dns_forwarders_t *forwarders = NULL;
+			dns_view_t *pview = NULL;
 
 			isc_buffer_init(&buffer, empty, strlen(empty));
 			isc_buffer_add(&buffer, strlen(empty));
@@ -1684,6 +1716,29 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 					logit = ISC_FALSE;
 				}
 				continue;
+			}
+
+			/*
+			 * See if we can re-use a existing zone.
+			 */
+			result = dns_viewlist_find(&ns_g_server->viewlist,
+						   view->name, view->rdclass,
+						   &pview);
+			if (result != ISC_R_NOTFOUND &&
+			    result != ISC_R_SUCCESS)
+				goto cleanup;
+
+			if (pview != NULL) {
+				(void)dns_view_findzone(pview, name, &zone);
+				dns_view_detach(&pview);
+				if (zone != NULL)
+					check_dbtype(&zone, empty_dbtypec,
+						     empty_dbtype, mctx);
+				if (zone != NULL) {
+					dns_zone_setview(zone, view);
+					dns_zone_detach(&zone);
+					continue;
+				}
 			}
 
 			CHECK(dns_zone_create(&zone, mctx));
@@ -2142,10 +2197,8 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 		result = dns_view_findzone(pview, origin, &zone);
 	if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
 		goto cleanup;
-	if (zone != NULL) {
-		if (! ns_zone_reusable(zone, zconfig))
-			dns_zone_detach(&zone);
-	}
+	if (zone != NULL && !ns_zone_reusable(zone, zconfig))
+		dns_zone_detach(&zone);
 
 	if (zone != NULL) {
 		/*
@@ -2550,6 +2603,31 @@ portlist_fromconf(dns_portlist_t *portlist, unsigned int family,
 			break;
 	}
 	return (result);
+}
+
+static isc_result_t
+removed(dns_zone_t *zone, void *uap) {
+	const char *type;
+
+        if (dns_zone_getview(zone) != uap)
+		return (ISC_R_SUCCESS);
+
+	switch (dns_zone_gettype(zone)) {
+	case dns_zone_master:
+		type = "master";
+		break;
+	case dns_zone_slave:
+		type = "slave";
+		break;
+	case dns_zone_stub:
+		type = "stub";
+		break;
+	default:
+		type = "other";
+		break;
+	}
+	dns_zone_log(zone, ISC_LOG_INFO, "(%s) removed", type);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t
@@ -3186,8 +3264,11 @@ load_configuration(const char *filename, ns_server_t *server,
 	     view = view_next) {
 		view_next = ISC_LIST_NEXT(view, link);
 		ISC_LIST_UNLINK(viewlist, view, link);
+		if (result == ISC_R_SUCCESS &&
+		    strcmp(view->name, "_bind") != 0)
+			(void)dns_zt_apply(view->zonetable, ISC_FALSE,
+					   removed, view);
 		dns_view_detach(&view);
-
 	}
 
 	/*

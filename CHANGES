@@ -1,3 +1,5 @@
+1986.	[func]		Report when a zone is removed. [RT #15849]
+
 1985.	[protocol]	DLV has now been assigned a official type code of
 			32769. [RT #15807]
 
