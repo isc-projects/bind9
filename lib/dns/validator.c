@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.140 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: validator.c,v 1.141 2006/02/21 23:49:51 marka Exp $ */
 
 /*! \file */
 
@@ -1499,6 +1499,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 	isc_boolean_t supported_algorithm;
 	isc_result_t result;
 	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
+	isc_uint8_t digest_type;
 
 	validator_log(val, ISC_LOG_DEBUG(3), "dlv_validatezonekey");
 
@@ -1508,6 +1509,31 @@ dlv_validatezonekey(dns_validator_t *val) {
 	 * verification.
 	 */
 	supported_algorithm = ISC_FALSE;
+
+	/*
+	 * If DNS_DSDIGEST_SHA256 is present we are required to prefer
+	 * it over DNS_DSDIGEST_SHA1.  This in practice means that we
+	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
+	 * is present.
+	 */
+	digest_type = DNS_DSDIGEST_SHA1;
+	for (result = dns_rdataset_first(val->dsset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(val->dsset)) {
+		dns_rdata_reset(&dlvrdata);
+		dns_rdataset_current(&val->dlv, &dlvrdata);
+		dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
+
+		if (!dns_resolver_algorithm_supported(val->view->resolver,
+						      val->event->name,
+						      dlv.algorithm))
+			continue;
+
+		if (dlv.digest_type == DNS_DSDIGEST_SHA256) {
+			digest_type = DNS_DSDIGEST_SHA256;
+			break;
+		}
+	}
 
 	for (result = dns_rdataset_first(&val->dlv);
 	     result == ISC_R_SUCCESS;
@@ -1520,6 +1546,10 @@ dlv_validatezonekey(dns_validator_t *val) {
 		if (!dns_resolver_digest_supported(val->view->resolver,
 						   dlv.digest_type))
 			continue;
+		
+		if (dlv.digest_type != digest_type)
+			continue;
+
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
 						      dlv.algorithm))
@@ -1643,6 +1673,7 @@ validatezonekey(dns_validator_t *val) {
 	dst_key_t *dstkey;
 	isc_boolean_t supported_algorithm;
 	isc_boolean_t atsep = ISC_FALSE;
+	isc_uint8_t digest_type;
 
 	/*
 	 * Caller must be holding the validator lock.
@@ -1812,6 +1843,31 @@ validatezonekey(dns_validator_t *val) {
 
 	supported_algorithm = ISC_FALSE;
 
+	/*
+	 * If DNS_DSDIGEST_SHA256 is present we are required to prefer
+	 * it over DNS_DSDIGEST_SHA1.  This in practice means that we
+	 * need to ignore DNS_DSDIGEST_SHA1 if a DNS_DSDIGEST_SHA256
+	 * is present.
+	 */
+	digest_type = DNS_DSDIGEST_SHA1;
+	for (result = dns_rdataset_first(val->dsset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(val->dsset)) {
+		dns_rdata_reset(&dsrdata);
+		dns_rdataset_current(val->dsset, &dsrdata);
+		dns_rdata_tostruct(&dsrdata, &ds, NULL);
+
+		if (!dns_resolver_algorithm_supported(val->view->resolver,
+						      val->event->name,
+						      ds.algorithm))
+			continue;
+
+		if (ds.digest_type == DNS_DSDIGEST_SHA256) {
+			digest_type = DNS_DSDIGEST_SHA256;
+			break;
+		}
+	}
+
 	for (result = dns_rdataset_first(val->dsset);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(val->dsset))
@@ -1822,6 +1878,9 @@ validatezonekey(dns_validator_t *val) {
 
 		if (!dns_resolver_digest_supported(val->view->resolver,
 						   ds.digest_type))
+			continue;
+
+		if (ds.digest_type != digest_type)
 			continue;
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
