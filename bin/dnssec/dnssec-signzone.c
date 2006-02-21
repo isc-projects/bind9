@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.177.18.18 2006/02/07 21:56:47 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.177.18.19 2006/02/21 23:53:34 marka Exp $ */
 
 /*! \file */
 
@@ -625,6 +625,16 @@ loadds(dns_name_t *name, isc_uint32_t ttl, dns_rdataset_t *dsset) {
 		dns_rdata_init(&ds);
 		dns_rdataset_current(&keyset, &key);
 		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA1,
+					   dsbuf, &ds);
+		check_result(result, "dns_ds_buildrdata");
+
+		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD, name,
+					      ttl, &ds, &tuple);
+		check_result(result, "dns_difftuple_create");
+		dns_diff_append(&diff, &tuple);
+
+		dns_rdata_reset(&ds);
+		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA256,
 					   dsbuf, &ds);
 		check_result(result, "dns_ds_buildrdata");
 
@@ -1585,6 +1595,19 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 				ds.type = dns_rdatatype_dlv;
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
 						      name, 0, &ds, &tuple);
+			check_result(result, "dns_difftuple_create");
+			dns_diff_append(&diff, &tuple);
+
+			dns_rdata_reset(&ds);
+			result = dns_ds_buildrdata(gorigin, &rdata,
+						   DNS_DSDIGEST_SHA256,
+						   dsbuf, &ds);
+			check_result(result, "dns_ds_buildrdata");
+			if (type == dns_rdatatype_dlv)
+				ds.type = dns_rdatatype_dlv;
+			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
+						      name, 0, &ds, &tuple);
+
 		} else
 			result = dns_difftuple_create(mctx, DNS_DIFFOP_ADD,
 						      gorigin, zonettl,

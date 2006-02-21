@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.h,v 1.3.20.3 2005/04/27 05:01:32 sra Exp $ */
+/* $Id: ds.h,v 1.3.20.4 2006/02/21 23:53:35 marka Exp $ */
 
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
@@ -25,11 +25,12 @@
 #include <dns/types.h>
 
 #define DNS_DSDIGEST_SHA1 (1)
+#define DNS_DSDIGEST_SHA256 (2)
 
 /*
- * Assuming SHA-1 digest type.
+ * Assuming SHA-256 digest type.
  */
-#define DNS_DS_BUFFERSIZE (24)
+#define DNS_DS_BUFFERSIZE (36)
 
 ISC_LANG_BEGINDECLS
 
@@ -53,7 +54,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 
 isc_boolean_t
 dns_ds_digest_supported(unsigned int digest_type);
-/*
+/*%<
  * Is this digest algorithm supported by dns_ds_buildrdata()?
  */
 

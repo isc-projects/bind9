@@ -188,6 +188,7 @@ dns_dnssec_verify
 dns_dnssec_verify2
 dns_dnssec_verifymessage
 dns_ds_buildrdata
+dns_ds_digest_supported
 dns_dumpctx_detach
 dns_fwdtable_add
 dns_fwdtable_create
