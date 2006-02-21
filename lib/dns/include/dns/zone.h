@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.141 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: zone.h,v 1.142 2006/02/21 23:12:27 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -350,6 +350,22 @@ dns_zone_setdbtype(dns_zone_t *zone,
  *\li	'database' to be non NULL.
  *\li	'dbargc' to be >= 1
  *\li	'dbargv' to point to dbargc NULL-terminated strings
+ *
+ * Returns:
+ *\li	#ISC_R_NOMEMORY
+ *\li	#ISC_R_SUCCESS
+ */
+
+isc_result_t
+dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx);
+/*%<
+ *	Returns the current dbtype.  isc_mem_free() should be used
+ * 	to free 'argv' after use.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ *\li	'argv' to be non NULL and *argv to be NULL.
+ *\li	'mctx' to be valid.
  *
  * Returns:
  *\li	#ISC_R_NOMEMORY

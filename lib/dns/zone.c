@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.451 2006/02/17 00:24:21 marka Exp $ */
+/* $Id: zone.c,v 1.452 2006/02/21 23:12:27 marka Exp $ */
 
 /*! \file */
 
@@ -797,6 +797,39 @@ zone_freedbargs(dns_zone_t *zone) {
 	}
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
+}
+
+isc_result_t
+dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
+	size_t size = 0;
+	unsigned int i;
+	isc_result_t result = ISC_R_SUCCESS;
+	void *mem;
+	char **tmp, *tmp2;
+	
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(argv != NULL && *argv == NULL);
+	
+	LOCK_ZONE(zone);
+	size = (zone->db_argc + 1) * sizeof(char *);
+	for (i = 0; i < zone->db_argc; i++)
+		size += strlen(zone->db_argv[i]) + 1;
+	mem = isc_mem_allocate(mctx, size);
+	if (mem != NULL) {
+		tmp = mem;
+		tmp2 = mem;
+		tmp2 += (zone->db_argc + 1) * sizeof(char *);
+		for (i = 0; i < zone->db_argc; i++) {
+			*tmp++ = tmp2;
+			strcpy(tmp2, zone->db_argv[i]);
+			tmp2 += strlen(tmp2) + 1;
+		}
+		*tmp = NULL;
+	} else
+		result = ISC_R_NOMEMORY;
+	UNLOCK_ZONE(zone);
+	*argv = mem;
+	return (result);
 }
 
 isc_result_t
@@ -5946,7 +5979,8 @@ dns_zone_getmaxxfrout(dns_zone_t *zone) {
 	return (zone->maxxfrout);
 }
 
-dns_zonetype_t dns_zone_gettype(dns_zone_t *zone) {
+dns_zonetype_t
+dns_zone_gettype(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (zone->type);
