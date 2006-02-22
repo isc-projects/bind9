@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.22 2006/02/21 23:53:35 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.23 2006/02/22 01:57:12 marka Exp $ */
 
 /*! \file */
 
@@ -1517,9 +1517,9 @@ dlv_validatezonekey(dns_validator_t *val) {
 	 * is present.
 	 */
 	digest_type = DNS_DSDIGEST_SHA1;
-	for (result = dns_rdataset_first(val->dsset);
+	for (result = dns_rdataset_first(&val->dlv);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(val->dsset)) {
+	     result = dns_rdataset_next(&val->dlv)) {
 		dns_rdata_reset(&dlvrdata);
 		dns_rdataset_current(&val->dlv, &dlvrdata);
 		dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
