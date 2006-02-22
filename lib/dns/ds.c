@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds.c,v 1.4.20.4 2006/02/21 23:53:35 marka Exp $ */
+/* $Id: ds.c,v 1.4.20.5 2006/02/22 23:50:09 marka Exp $ */
 
 /*! \file */
 
