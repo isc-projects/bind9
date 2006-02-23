@@ -3,11 +3,11 @@
 
 Network Working Group                                        W. Hardaker
 Internet-Draft                                                    Sparta
-Expires: July 17, 2006                                  January 13, 2006
+Expires: August 25, 2006                               February 21, 2006
 
 
  Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs)
-                   draft-ietf-dnsext-ds-sha256-04.txt
+                   draft-ietf-dnsext-ds-sha256-05.txt
 
 Status of this Memo
 
@@ -32,7 +32,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on July 17, 2006.
+   This Internet-Draft will expire on August 25, 2006.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Abstract
 
 
 
-Hardaker                  Expires July 17, 2006                 [Page 1]
+Hardaker                 Expires August 25, 2006                [Page 1]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
 Table of Contents
@@ -71,8 +71,8 @@ Table of Contents
      6.1.  Potential Digest Type Downgrade Attacks . . . . . . . . . . 5
      6.2.  SHA-1 vs SHA-256 Considerations for DS Records  . . . . . . 6
    7.  Acknowledgments . . . . . . . . . . . . . . . . . . . . . . . . 6
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 6
-     8.1.  Normative References  . . . . . . . . . . . . . . . . . . . 6
+   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . . . 7
+     8.1.  Normative References  . . . . . . . . . . . . . . . . . . . 7
      8.2.  Informative References  . . . . . . . . . . . . . . . . . . 7
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . . . 8
    Intellectual Property and Copyright Statements  . . . . . . . . . . 9
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Hardaker                  Expires July 17, 2006                 [Page 2]
+Hardaker                 Expires August 25, 2006                [Page 2]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
 1.  Introduction
@@ -123,14 +123,18 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
    record, owned by the same domain as the DS RRset and with a type
    covered of DS.
 
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
+
 
 2.  Implementing the SHA-256 algorithm for DS record support
 
    This document specifies that the digest type code [XXX: To be
-   assigned by IANA; likely 2] is to be assigned to SHA-256 [SHA256] for
-   use within DS records.  The results of the digest algorithm MUST NOT
-   be truncated and the entire 32 byte digest result is to be published
-   in the DS record.
+   assigned by IANA; likely 2] is to be assigned to SHA-256 [SHA256]
+   [SHA256CODE] for use within DS records.  The results of the digest
+   algorithm MUST NOT be truncated and the entire 32 byte digest result
+   is to be published in the DS record.
 
 2.1.  DS record field values
 
@@ -160,13 +164,9 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
 
 
-
-
-
-
-Hardaker                  Expires July 17, 2006                 [Page 3]
+Hardaker                 Expires August 25, 2006                [Page 3]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
                            1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
@@ -220,9 +220,9 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
 
 
-Hardaker                  Expires July 17, 2006                 [Page 4]
+Hardaker                 Expires August 25, 2006                [Page 4]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
    the validator has no supported authentication path leading from the
@@ -240,6 +240,8 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
 
 5.  IANA Considerations
+
+   Only one IANA action is required by this document:
 
    The Digest Type to be used for supporting SHA-256 within DS records
    needs to be assigned by IANA.  This document requests that the Digest
@@ -270,16 +272,17 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
    For example, if the following conditions are all true:
 
+
+
+
+
+Hardaker                 Expires August 25, 2006                [Page 5]
+
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
+
+
    o  Both SHA-1 and SHA-256 based digests are published in DS records
       within a parent zone for a given child zone's DNSKEY.
-
-
-
-
-Hardaker                  Expires July 17, 2006                 [Page 5]
-
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
-
 
    o  The DS record with the SHA-1 digest matches the digest computed
       using the child zone's DNSKEY.
@@ -293,9 +296,13 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
 6.2.  SHA-1 vs SHA-256 Considerations for DS Records
 
-   Because of the weaknesses recently discovered within the SHA-1
-   algorithm, users of DNSSEC are encouraged to deploy the use of SHA-
-   256 as soon as the software implementations in use allow for it.
+   Users of DNSSEC are encouraged to deploy SHA-256 as soon as software
+   implementations allow for it.  SHA-256 is widely believed to be more
+   resilient to attack than SHA-1, and confidence in SHA-1's strength is
+   being eroded by recently-announced attacks.  Regardless of whether or
+   not the attacks on SHA-1 will affect DNSSEC, it is believed (at the
+   time of this writing) that SHA-256 is the better choice for use in DS
+   records.
 
    At the time of this publication, the SHA-256 digest algorithm is
    considered sufficiently strong for the immediate future.  It is also
@@ -317,25 +324,29 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
    went into the base documents.
 
    The following people contributed to portions of this document in some
-   fashion: Mark Andrews, Roy Arends, Olafur Gudmundsson, Olaf M.
-   Kolkman, Edward Lewis, Scott Rose, Stuart E. Schechter, Sam Weiler.
+   fashion: Mark Andrews, Roy Arends, Olafur Gudmundsson, Paul Hoffman,
+   Olaf M. Kolkman, Edward Lewis, Scott Rose, Stuart E. Schechter, Sam
+   Weiler.
+
+
+
+
+
+Hardaker                 Expires August 25, 2006                [Page 6]
+
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
 8.  References
 
 8.1.  Normative References
 
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119, March 1997.
+
    [RFC4033]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "DNS Security Introduction and Requirements",
               RFC 4033, March 2005.
-
-
-
-
-Hardaker                  Expires July 17, 2006                 [Page 6]
-
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
-
 
    [RFC4034]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "Resource Records for the DNS Security Extensions",
@@ -351,7 +362,7 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 8.2.  Informative References
 
    [SHA256CODE]
-              Motorola Labs, "US Secure Hash Algorithms (SHA)",
+              Eastlake, D., "US Secure Hash Algorithms (SHA)",
               June 2005.
 
 
@@ -377,20 +388,9 @@ Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-Hardaker                  Expires July 17, 2006                 [Page 7]
+Hardaker                 Expires August 25, 2006                [Page 7]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
 Author's Address
@@ -398,7 +398,7 @@ Author's Address
    Wes Hardaker
    Sparta
    P.O. Box 382
-   Davis  95617
+   Davis, CA  95617
    US
 
    Email: hardaker@tislabs.com
@@ -444,9 +444,9 @@ Author's Address
 
 
 
-Hardaker                  Expires July 17, 2006                 [Page 8]
+Hardaker                 Expires August 25, 2006                [Page 8]
 
-Internet-Draft       Use of SHA-256 in DNSSEC DS RRs        January 2006
+Internet-Draft       Use of SHA-256 in DNSSEC DS RRs       February 2006
 
 
 Intellectual Property Statement
@@ -500,5 +500,5 @@ Acknowledgment
 
 
 
-Hardaker                  Expires July 17, 2006                 [Page 9]
+Hardaker                 Expires August 25, 2006                [Page 9]
 
