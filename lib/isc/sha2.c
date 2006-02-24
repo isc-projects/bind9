@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.6 2006/01/31 23:03:52 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.7 2006/02/24 00:06:32 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -592,7 +592,8 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 			context->bitcount += freespace << 3;
 			len -= freespace;
 			data += freespace;
-			isc_sha256_transform(context, (isc_uint32_t*)context->buffer);
+			isc_sha256_transform(context,
+					     (isc_uint32_t*)context->buffer);
 		} else {
 			/* The buffer is not yet full */
 			memcpy(&context->buffer[usedspace], data, len);
@@ -604,7 +605,8 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 	}
 	while (len >= ISC_SHA256_BLOCK_LENGTH) {
 		/* Process as many complete blocks as we can */
-		isc_sha256_transform(context, (const isc_uint32_t*)data);
+		memcpy(context->buffer, data, ISC_SHA256_BLOCK_LENGTH);
+		isc_sha256_transform(context, (isc_uint32_t*)context->buffer);
 		context->bitcount += ISC_SHA256_BLOCK_LENGTH << 3;
 		len -= ISC_SHA256_BLOCK_LENGTH;
 		data += ISC_SHA256_BLOCK_LENGTH;
@@ -648,7 +650,8 @@ isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 					       usedspace);
 				}
 				/* Do second-to-last transform: */
-				isc_sha256_transform(context, (isc_uint32_t*)context->buffer);
+				isc_sha256_transform(context,
+					       (isc_uint32_t*)context->buffer);
 
 				/* And set-up for the last transform: */
 				memset(context->buffer, 0,
@@ -926,7 +929,8 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 			ADDINC128(context->bitcount, freespace << 3);
 			len -= freespace;
 			data += freespace;
-			isc_sha512_transform(context, (isc_uint64_t*)context->buffer);
+			isc_sha512_transform(context,
+					     (isc_uint64_t*)context->buffer);
 		} else {
 			/* The buffer is not yet full */
 			memcpy(&context->buffer[usedspace], data, len);
@@ -938,7 +942,8 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 	}
 	while (len >= ISC_SHA512_BLOCK_LENGTH) {
 		/* Process as many complete blocks as we can */
-		isc_sha512_transform(context, (const isc_uint64_t*)data);
+		memcpy(context->buffer, data, ISC_SHA512_BLOCK_LENGTH);
+		isc_sha512_transform(context, (isc_uint64_t*)context->buffer);
 		ADDINC128(context->bitcount, ISC_SHA512_BLOCK_LENGTH << 3);
 		len -= ISC_SHA512_BLOCK_LENGTH;
 		data += ISC_SHA512_BLOCK_LENGTH;
@@ -975,7 +980,8 @@ void isc_sha512_last(isc_sha512_t *context) {
 				       ISC_SHA512_BLOCK_LENGTH - usedspace);
 			}
 			/* Do second-to-last transform: */
-			isc_sha512_transform(context, (isc_uint64_t*)context->buffer);
+			isc_sha512_transform(context,
+					    (isc_uint64_t*)context->buffer);
 
 			/* And set-up for the last transform: */
 			memset(context->buffer, 0, ISC_SHA512_BLOCK_LENGTH - 2);
