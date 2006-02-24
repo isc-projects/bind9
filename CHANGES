@@ -1,3 +1,6 @@
+1989.	[bug]		win32: don't check the service password when
+			re-installing. [RT #15882]
+
 1988.	[bug]		Remove a bus error from the SHA256/SHA512 support.
 			[RT #15878]
 
