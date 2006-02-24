@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.h,v 1.5 2006/01/31 23:01:23 marka Exp $ */
+/* $Id: sha2.h,v 1.6 2006/02/24 00:03:15 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.h,v 1.1.2.1 2001/07/03 11:01:36 ume Exp $	*/
 /*	$KAME: sha2.h,v 1.3 2001/03/12 08:27:48 itojun Exp $	*/
@@ -79,12 +79,18 @@ ISC_LANG_BEGINDECLS
 
 /*** SHA-256/384/512 Context Structures *******************************/
 
+/*
+ * Keep buffer immediately after bitcount to preserve alignment.
+ */
 typedef struct {
 	isc_uint32_t	state[8];
 	isc_uint64_t	bitcount;
 	isc_uint8_t	buffer[ISC_SHA256_BLOCK_LENGTH];
 } isc_sha256_t;
 
+/*
+ * Keep buffer immediately after bitcount to preserve alignment.
+ */
 typedef struct {
 	isc_uint64_t	state[8];
 	isc_uint64_t	bitcount[2];
