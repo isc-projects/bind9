@@ -1,3 +1,6 @@
+1989.	[bug]		win32: don't check the service password when
+			re-installing. [RT #15882]
+
 1985.	[protocol]	DLV has now been assigned a official type code of
 			32769. [RT #15807]
 

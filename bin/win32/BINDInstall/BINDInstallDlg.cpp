@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.6.2.12 2005/10/11 23:54:48 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.6.2.13 2006/02/24 03:53:20 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -416,25 +416,27 @@ void CBINDInstallDlg::OnInstall() {
 	}
 	
 	/*
-	 * Check that the Password is not null.
-	 */
-	if (m_accountPassword.GetLength() == 0) {
-		MsgBox(IDS_ERR_NULLPASSWORD);
-		return;
-	}
-
-	/*
 	 * Check the entered account name.
 	 */
 	if (ValidateServiceAccount() == FALSE)
 		return;
 
-
 	/*
 	 * For Registration we need to know if account was changed.
 	 */
-	if(m_accountName != m_currentAccount)
+	if (m_accountName != m_currentAccount)
 		m_accountUsed = FALSE;
+
+	if (m_accountUsed == FALSE && m_serviceExists == FALSE)
+	{
+	/*
+	 * Check that the Password is not null.
+	 */
+		if (m_accountPassword.GetLength() == 0) {
+			MsgBox(IDS_ERR_NULLPASSWORD);
+			return;
+		}
+	}
 
 	/* Directories */
 	m_etcDir = m_targetDir + "\\etc";
