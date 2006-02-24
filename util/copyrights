@@ -808,7 +808,7 @@
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/BINDInstall.mak		X	2001
 ./bin/win32/BINDInstall/BINDInstall.rc		X	2001,2005
-./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005
+./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2003,2004,2005,2006
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001,2004
