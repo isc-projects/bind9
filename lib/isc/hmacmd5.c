@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.c,v 1.11 2006/01/27 23:57:46 marka Exp $ */
+/* $Id: hmacmd5.c,v 1.12 2006/02/26 22:28:22 marka Exp $ */
 
 /*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm
@@ -65,7 +65,6 @@ void
 isc_hmacmd5_invalidate(isc_hmacmd5_t *ctx) {
 	isc_md5_invalidate(&ctx->md5ctx);
 	memset(ctx->key, 0, sizeof(ctx->key));
-	memset(ctx, 0, sizeof(ctx));
 }
 
 /*!
