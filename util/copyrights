@@ -196,7 +196,7 @@
 ./bin/tests/byaddr_test.c			C	2000,2001,2002,2004
 ./bin/tests/byname_test.c			C	2000,2001,2004,2005
 ./bin/tests/cfg_test.c				C	2001,2002,2004
-./bin/tests/compress_test.c			C	1999,2000,2001,2004
+./bin/tests/compress_test.c			C	1999,2000,2001,2004,2006
 ./bin/tests/db/.cvsignore			X	1999,2000,2001
 ./bin/tests/db/Makefile.in			MAKE	1999,2000,2001,2002,2004
 ./bin/tests/db/dns_db_class_1.data		X	1999,2000,2001
@@ -396,7 +396,7 @@
 ./bin/tests/rbt_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/rbt_test.out			X	1999,2000,2001
 ./bin/tests/rbt_test.txt			SH	1999,2000,2001,2004
-./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005
+./bin/tests/rdata_test.c			C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/tests/resolv.conf.sample			CONF-SH	2000,2001,2004
 ./bin/tests/rwlock_test.c			C	1998,1999,2000,2001,2004,2005
 ./bin/tests/serial_test.c			C	1999,2000,2001,2003,2004
@@ -507,7 +507,7 @@
 ./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004
-./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005
+./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006
 ./bin/tests/system/forward/clean.sh		SH	2000,2001,2004
 ./bin/tests/system/forward/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/forward/ns1/example.db	X	2000,2001
@@ -1295,7 +1295,7 @@
 ./lib/bind/irs/getservent_r.c			X	2001
 ./lib/bind/irs/hesiod.c				X	2001,2005
 ./lib/bind/irs/hesiod_p.h			X	2001
-./lib/bind/irs/irp.c				X	2001
+./lib/bind/irs/irp.c				X	2001,2006
 ./lib/bind/irs/irp_gr.c				X	2001
 ./lib/bind/irs/irp_ho.c				X	2001
 ./lib/bind/irs/irp_ng.c				X	2001
@@ -1904,7 +1904,7 @@
 ./lib/isc/hash.c				C	2003,2004,2006
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004
-./lib/isc/hmacmd5.c				C	2000,2001,2004
+./lib/isc/hmacmd5.c				C	2000,2001,2004,2006
 ./lib/isc/include/.cvsignore			X	1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/include/isc/.cvsignore		X	1999,2000,2001
@@ -2330,7 +2330,7 @@
 ./lib/win32/bindevt/bindevt.dsw			X	2001
 ./lib/win32/bindevt/bindevt.mak			X	2001
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004
-./libtool.m4					X	2000,2001
+./libtool.m4					X	2000,2001,2006
 ./ltmain.sh					X	1999,2000,2001
 ./make/.cvsignore				X	1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004
