@@ -4717,7 +4717,7 @@
 			<isc/bufferlist.h>, <isc/task.h>, <isc/mem.h> or
 			<isc/net.h>.
 
- 119.	[cleanup]	structure definitions for generic rdata stuctures do
+ 119.	[cleanup]	structure definitions for generic rdata structures do
 			not have _generic_ in their names.
 
  118.	[cleanup]	libdns.a is now namespace-clean, on NetBSD, excepting
