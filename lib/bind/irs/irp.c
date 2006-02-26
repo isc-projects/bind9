@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp.c,v 1.6.18.1 2005/04/27 05:01:00 sra Exp $";
+static const char rcsid[] = "$Id: irp.c,v 1.6.18.2 2006/02/26 22:59:56 marka Exp $";
 #endif
 
 /* Imports */
@@ -504,7 +504,7 @@ irs_irp_get_full_response(struct irp_p *pvt, int *code, char *text,
  * int irs_irp_send_command(struct irp_p *pvt, const char *fmt, ...);
  *
  *	Sends command to remote connected via the PVT
- *	struture. FMT and args after it are fprintf-like
+ *	structure. FMT and args after it are fprintf-like
  *	arguments for formatting.
  *
  * Returns:

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata_test.c,v 1.41.18.3 2005/07/14 06:51:02 marka Exp $ */
+/* $Id: rdata_test.c,v 1.41.18.4 2006/02/26 22:59:55 marka Exp $ */
 
 #include <config.h>
 
@@ -309,7 +309,7 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	if (result != ISC_R_SUCCESS)
-		fprintf(stdout, "viastruct: tostuct %d %d return %s\n",
+		fprintf(stdout, "viastruct: tostruct %d %d return %s\n",
 			rdata->type, rdata->rdclass,
 			dns_result_totext(result));
 	else
@@ -571,7 +571,7 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		break;
 	}
 	if (result != ISC_R_SUCCESS)
-		fprintf(stdout, "viastruct: tostuct %d %d return %s\n",
+		fprintf(stdout, "viastruct: tostruct %d %d return %s\n",
 			rdata->type, rdata->rdclass,
 			dns_result_totext(result));
 	else {
@@ -582,7 +582,7 @@ viastruct(dns_rdata_t *rdata, isc_mem_t *mctx,
 		result = dns_rdata_fromstruct(rdata2, rdc, rdt, sp, b);
 		if (result != ISC_R_SUCCESS)
 			fprintf(stdout,
-				"viastruct: fromstuct %d %d return %s\n",
+				"viastruct: fromstruct %d %d return %s\n",
 				rdata->type, rdata->rdclass,
 				dns_result_totext(result));
 		else if (rdata->length != rdata2->length ||
