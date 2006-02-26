@@ -1288,8 +1288,8 @@
 
 1414.	[func]		Support for KSK flag.
 
-1413.	[func]		Explictly request the (re-)generation of DS records from
-			keysets (dnssec-signzone -g).
+1413.	[func]		Explicitly request the (re-)generation of DS records
+			from keysets (dnssec-signzone -g).
 
 1412.	[func]		You can now specify servers to be tried if a nameserver
 			has IPv6 address and you only support IPv4 or the
@@ -5686,7 +5686,7 @@
 			<isc/bufferlist.h>, <isc/task.h>, <isc/mem.h> or
 			<isc/net.h>.
 
- 119.	[cleanup]	structure definitions for generic rdata stuctures do
+ 119.	[cleanup]	structure definitions for generic rdata structures do
 			not have _generic_ in their names.
 
  118.	[cleanup]	libdns.a is now namespace-clean, on NetBSD, excepting

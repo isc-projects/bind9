@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.26 2006/01/05 05:38:47 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.27 2006/02/26 23:03:52 marka Exp $ */
 
 #include <config.h>
 
@@ -732,7 +732,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 					       wild, NULL);
 		if (result != ISC_R_SUCCESS) {
 			validator_log(val, ISC_LOG_DEBUG(3),
-				    "failure generating wilcard name");
+				    "failure generating wildcard name");
 			return (result);
 		}
 	}

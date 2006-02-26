@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.67 2006/01/04 23:50:19 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.68 2006/02/26 23:03:52 marka Exp $ */
 
 #include <config.h>
 
@@ -566,7 +566,7 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 	/*
 	 * "*" should match everything including the root (BIND 8 compat).
 	 * As dns_name_matcheswildcard(".", "*.") returns FALSE add a
-	 * explict entry for "." when the name is "*".
+	 * explicit entry for "." when the name is "*".
 	 */
 	if (addroot) {
 		result = dns_order_add(order, dns_rootname,
