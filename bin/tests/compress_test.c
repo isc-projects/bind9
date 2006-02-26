@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress_test.c,v 1.29 2005/04/29 00:22:38 marka Exp $ */
+/* $Id: compress_test.c,v 1.30 2006/02/26 22:54:46 marka Exp $ */
 
 /*! \file */
 
@@ -133,7 +133,7 @@ test(unsigned int allowed, dns_name_t *name1, dns_name_t *name2,
 		case DNS_COMPRESS_NONE: s = "DNS_COMPRESS_NONE"; break;
 		case DNS_COMPRESS_GLOBAL14: s = "DNS_COMPRESS_GLOBAL14"; break;
 		/* case DNS_COMPRESS_ALL: s = "DNS_COMPRESS_ALL"; break; */
-		default: s = "UNKOWN"; break;
+		default: s = "UNKNOWN"; break;
 		}
 		fprintf(stdout, "Allowed = %s\n", s);
 	}

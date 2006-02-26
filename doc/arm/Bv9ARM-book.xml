@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.295 2006/02/17 00:24:20 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.296 2006/02/26 22:54:46 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -7269,10 +7269,10 @@ query-source-v6 address * port *;
 	    If you are using the address ranges covered here you should
 	    already have reverse zones covering the addresses you use.
 	    In practice this appears to not be the case with many queries
-	    being made to the infrustucture servers for names in these
+	    being made to the infrustructure servers for names in these
 	    spaces.  So many in fact that sacrificial servers were needed
 	    to be deployed to channel the query load away from the
-	    infrustucture servers.
+	    infrustructure servers.
 	  </para>
 	  <note>
 	    The real parent servers for these zones should disable all
