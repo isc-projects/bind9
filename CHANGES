@@ -1,3 +1,7 @@
+1990.	[bug]		libbind:  isc's override of broken gettimeofday()
+			implementions was not always effective.
+			[RT #15709]
+
 1989.	[bug]		win32: don't check the service password when
 			re-installing. [RT #15882]
 

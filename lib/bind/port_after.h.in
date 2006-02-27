@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/param.h>
+#include <sys/time.h>
 #if (!defined(BSD)) || (BSD < 199306)
 #include <sys/bitypes.h>
 #endif
