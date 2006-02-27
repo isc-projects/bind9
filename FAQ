@@ -54,6 +54,9 @@ A: Linux threads each show up as a process under ps. The approximate number of
    memory used is not cumulative; if each process is using 10M of memory, only a
    total of 10M is used.
 
+   Newer versions of Linux's ps command hide the individual threads and require -L
+   to display them.
+
 Q: Why does BIND 9 log "permission denied" errors accessing its configuration
    files or zones on my Linux system even though it is running as root?
 
