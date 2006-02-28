@@ -1,3 +1,7 @@
+1990.	[bug]		libbind:  isc's override of broken gettimeofday()
+			implementions was not always effective.
+			[RT #15709]
+
 1981.	[bug]		win32: condition.c:wait() could fail to reattain
 			the mutex lock.
 
