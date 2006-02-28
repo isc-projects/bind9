@@ -1545,7 +1545,7 @@
 ./lib/bind/port/unknown/Makefile.in		MAKE	2001,2004
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
 ./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005
-./lib/bind/port_after.h.in			X	2001,2005
+./lib/bind/port_after.h.in			X	2001,2005,2006
 ./lib/bind/port_before.h.in			X	2001,2005
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005
