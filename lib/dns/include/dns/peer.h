@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.16.2.1.10.3 2004/03/06 08:13:58 marka Exp $ */
+/* $Id: peer.h,v 1.16.2.1.10.4 2006/02/28 06:32:54 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -167,7 +167,8 @@ isc_result_t
 dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
 
 isc_result_t
-dns_peer_settransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
+dns_peer_settransfersource(dns_peer_t *peer,
+			   const isc_sockaddr_t *transfer_source);
 
 isc_result_t
 dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.h,v 1.9.208.1 2004/03/06 10:21:26 marka Exp $ */
+/* $Id: tsigconf.h,v 1.9.208.2 2006/02/28 06:32:53 marka Exp $ */
 
 #ifndef NS_TSIGCONF_H
 #define NS_TSIGCONF_H 1
@@ -26,7 +26,7 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_tsigkeyring_fromconfig(cfg_obj_t *config, cfg_obj_t *vconfig,
+ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*
  * Create a TSIG key ring and configure it according to the 'key'

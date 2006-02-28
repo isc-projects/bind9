@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.17.12.3 2004/03/08 09:04:34 marka Exp $ */
+/* $Id: cache.h,v 1.17.12.4 2006/02/28 06:32:54 marka Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -151,7 +151,7 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
 
 
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cahce, char *filename);
+dns_cache_setfilename(dns_cache_t *cahce, const char *filename);
 /*
  * If 'filename' is non-NULL, make the cache persistent.
  * The cache's data will be stored in the given file.

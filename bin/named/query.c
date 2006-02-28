@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.38 2006/02/03 23:51:37 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.39 2006/02/28 06:32:53 marka Exp $ */
 
 #include <config.h>
 
@@ -2182,7 +2182,7 @@ do { \
  *	ISC_R_NOTIMPLEMENTED	The rdata is not a known address type.
  */
 static isc_result_t
-rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
+rdata_tonetaddr(const dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
 	struct in_addr ina;
 	struct in6_addr in6a;
 	
@@ -2208,7 +2208,7 @@ rdata_tonetaddr(dns_rdata_t *rdata, isc_netaddr_t *netaddr) {
  * sortlist statement.
  */
 static int
-query_sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
+query_sortlist_order_2element(const dns_rdata_t *rdata, const void *arg) {
 	isc_netaddr_t netaddr;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
@@ -2221,7 +2221,7 @@ query_sortlist_order_2element(dns_rdata_t *rdata, void *arg) {
  * of a 1-element top-level sortlist statement.
  */
 static int
-query_sortlist_order_1element(dns_rdata_t *rdata, void *arg) {
+query_sortlist_order_1element(const dns_rdata_t *rdata, const void *arg) {
 	isc_netaddr_t netaddr;
 
 	if (rdata_tonetaddr(rdata, &netaddr) != ISC_R_SUCCESS)
@@ -2237,7 +2237,7 @@ static void
 setup_query_sortlist(ns_client_t *client) {
 	isc_netaddr_t netaddr;
 	dns_rdatasetorderfunc_t order = NULL;
-	void *order_arg = NULL;
+	const void *order_arg = NULL;
 	
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	switch (ns_sortlist_setup(client->view->sortlist,

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.c,v 1.58.2.2.2.10 2004/03/08 09:04:31 marka Exp $ */
+/* $Id: rdataset.c,v 1.58.2.2.2.11 2006/02/28 06:32:54 marka Exp $ */
 
 #include <config.h>
 
@@ -280,9 +280,9 @@ towire_compare(const void *av, const void *bv) {
 }
 
 static isc_result_t
-towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
+towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	     dns_compress_t *cctx, isc_buffer_t *target,
-	     dns_rdatasetorderfunc_t order, void *order_arg,
+	     dns_rdatasetorderfunc_t order, const void *order_arg,
 	     isc_boolean_t partial, unsigned int options,
 	     unsigned int *countp, void **state)
 {
@@ -528,11 +528,11 @@ towiresorted(dns_rdataset_t *rdataset, dns_name_t *owner_name,
 
 isc_result_t
 dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
-			  dns_name_t *owner_name,
+			  const dns_name_t *owner_name,
 			  dns_compress_t *cctx,
 			  isc_buffer_t *target,
 			  dns_rdatasetorderfunc_t order,
-			  void *order_arg,
+			  const void *order_arg,
 			  unsigned int options,
 			  unsigned int *countp)
 {
@@ -543,11 +543,11 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
-			   dns_name_t *owner_name,
+			   const dns_name_t *owner_name,
 			   dns_compress_t *cctx,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
-			   void *order_arg,
+			   const void *order_arg,
 			   unsigned int options,
 			   unsigned int *countp,
 			   void **state)

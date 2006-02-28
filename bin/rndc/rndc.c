@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.77.2.5.2.15 2005/03/17 03:58:27 marka Exp $ */
+/* $Id: rndc.c,v 1.77.2.5.2.16 2006/02/28 06:32:53 marka Exp $ */
 
 /*
  * Principal Author: DCL
@@ -378,17 +378,17 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
-	cfg_obj_t *defkey = NULL;
-	cfg_obj_t *options = NULL;
-	cfg_obj_t *servers = NULL;
-	cfg_obj_t *server = NULL;
-	cfg_obj_t *keys = NULL;
-	cfg_obj_t *key = NULL;
-	cfg_obj_t *defport = NULL;
-	cfg_obj_t *secretobj = NULL;
-	cfg_obj_t *algorithmobj = NULL;
+	const cfg_obj_t *defkey = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *servers = NULL;
+	const cfg_obj_t *server = NULL;
+	const cfg_obj_t *keys = NULL;
+	const cfg_obj_t *key = NULL;
+	const cfg_obj_t *defport = NULL;
+	const cfg_obj_t *secretobj = NULL;
+	const cfg_obj_t *algorithmobj = NULL;
 	cfg_obj_t *config = NULL;
-	cfg_listelt_t *elt;
+	const cfg_listelt_t *elt;
 	const char *secretstr;
 	const char *algorithm;
 	static char secretarray[1024];
@@ -420,7 +420,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	if (key_only && servername == NULL)
 		servername = "127.0.0.1";
 	else if (servername == NULL && options != NULL) {
-		cfg_obj_t *defserverobj = NULL;
+		const cfg_obj_t *defserverobj = NULL;
 		(void)cfg_map_get(options, "default-server", &defserverobj);
 		if (defserverobj != NULL)
 			servername = cfg_obj_asstring(defserverobj);

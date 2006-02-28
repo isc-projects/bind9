@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.1.2.10 2004/05/15 03:46:12 jinmei Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.1.2.11 2006/02/28 06:32:54 marka Exp $ */
 
 #include <config.h>
 
@@ -400,7 +400,7 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port) {
 }
 
 in_port_t
-isc_sockaddr_getport(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_getport(const isc_sockaddr_t *sockaddr) {
 	in_port_t port = 0;
 
 	switch (sockaddr->type.sa.sa_family) {
@@ -422,7 +422,7 @@ isc_sockaddr_getport(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_ismulticast(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
@@ -430,7 +430,7 @@ isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_isexperimental(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_isexperimental(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	if (sockaddr->type.sa.sa_family == AF_INET) {
@@ -441,7 +441,7 @@ isc_sockaddr_isexperimental(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_issitelocal(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_issitelocal(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	if (sockaddr->type.sa.sa_family == AF_INET6) {
@@ -452,7 +452,7 @@ isc_sockaddr_issitelocal(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_islinklocal(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_islinklocal(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	if (sockaddr->type.sa.sa_family == AF_INET6) {

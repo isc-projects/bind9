@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.4.8.12 2006/01/26 23:09:36 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.4.8.13 2006/02/28 06:32:54 marka Exp $ */
 
 #include <config.h>
 
@@ -386,7 +386,7 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp) {
 }
 
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cache, char *filename) {
+dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	char *newname;
 
 	REQUIRE(VALID_CACHE(cache));

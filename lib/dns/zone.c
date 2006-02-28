@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.62 2006/01/04 03:43:20 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.63 2006/02/28 06:32:54 marka Exp $ */
 
 #include <config.h>
 
@@ -805,7 +805,7 @@ dns_zone_getview(dns_zone_t *zone) {
 
 
 isc_result_t
-dns_zone_setorigin(dns_zone_t *zone, dns_name_t *origin) {
+dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	isc_result_t result;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1823,7 +1823,7 @@ dns_zone_getoptions(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setxfrsource4(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
+dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1840,7 +1840,7 @@ dns_zone_getxfrsource4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setxfrsource6(dns_zone_t *zone, isc_sockaddr_t *xfrsource) {
+dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1857,7 +1857,9 @@ dns_zone_getxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setaltxfrsource4(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+dns_zone_setaltxfrsource4(dns_zone_t *zone,
+			  const isc_sockaddr_t *altxfrsource)
+{
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1874,7 +1876,9 @@ dns_zone_getaltxfrsource4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setaltxfrsource6(dns_zone_t *zone, isc_sockaddr_t *altxfrsource) {
+dns_zone_setaltxfrsource6(dns_zone_t *zone,
+			  const isc_sockaddr_t *altxfrsource)
+{
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1891,7 +1895,7 @@ dns_zone_getaltxfrsource6(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setnotifysrc4(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
+dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1908,7 +1912,7 @@ dns_zone_getnotifysrc4(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setnotifysrc6(dns_zone_t *zone, isc_sockaddr_t *notifysrc) {
+dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
@@ -1925,7 +1929,7 @@ dns_zone_getnotifysrc6(dns_zone_t *zone) {
 }
 
 isc_result_t
-dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
+dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
 		       isc_uint32_t count)
 {
 	isc_sockaddr_t *new;
@@ -1955,7 +1959,7 @@ dns_zone_setalsonotify(dns_zone_t *zone, isc_sockaddr_t *notify,
 }
 
 isc_result_t
-dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
+dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
 		    isc_uint32_t count)
 {
 	isc_result_t result;
@@ -1965,8 +1969,10 @@ dns_zone_setmasters(dns_zone_t *zone, isc_sockaddr_t *masters,
 }
 
 isc_result_t
-dns_zone_setmasterswithkeys(dns_zone_t *zone, isc_sockaddr_t *masters,
-			    dns_name_t **keynames, isc_uint32_t count)
+dns_zone_setmasterswithkeys(dns_zone_t *zone,
+			    const isc_sockaddr_t *masters,
+			    dns_name_t **keynames,
+			    isc_uint32_t count)
 {
 	isc_sockaddr_t *new;
 	isc_result_t result = ISC_R_SUCCESS;
