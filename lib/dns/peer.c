@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.c,v 1.26 2006/02/17 00:24:21 marka Exp $ */
+/* $Id: peer.c,v 1.27 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file */
 
@@ -532,7 +532,9 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 }
 
 isc_result_t
-dns_peer_settransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
+dns_peer_settransfersource(dns_peer_t *peer,
+			   const isc_sockaddr_t *transfer_source)
+{
 	REQUIRE(DNS_PEER_VALID(peer));
 
 	if (peer->transfer_source != NULL) {
@@ -563,7 +565,9 @@ dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source) {
 }
 
 isc_result_t
-dns_peer_setnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source) {
+dns_peer_setnotifysource(dns_peer_t *peer,
+			 const isc_sockaddr_t *notify_source)
+{
 	REQUIRE(DNS_PEER_VALID(peer));
 
 	if (peer->notify_source != NULL) {
@@ -594,7 +598,7 @@ dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source) {
 }
 
 isc_result_t
-dns_peer_setquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source) {
+dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source) {
 	REQUIRE(DNS_PEER_VALID(peer));
 
 	if (peer->query_source != NULL) {

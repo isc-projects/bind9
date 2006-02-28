@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.h,v 1.22 2005/04/27 04:56:01 sra Exp $ */
+/* $Id: zoneconf.h,v 1.23 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef NS_ZONECONF_H
 #define NS_ZONECONF_H 1
@@ -31,8 +31,9 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
-		  cfg_aclconfctx_t *ac, dns_zone_t *zone);
+ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
+		  const cfg_obj_t *zconfig, cfg_aclconfctx_t *ac,
+		  dns_zone_t *zone);
 /*%<
  * Configure or reconfigure a zone according to the named.conf
  * data in 'cctx' and 'czone'.
@@ -49,7 +50,7 @@ ns_zone_configure(cfg_obj_t *config, cfg_obj_t *vconfig, cfg_obj_t *zconfig,
  */
 
 isc_boolean_t
-ns_zone_reusable(dns_zone_t *zone, cfg_obj_t *zconfig);
+ns_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig);
 /*%<
  * If 'zone' can be safely reconfigured according to the configuration
  * data in 'zconfig', return ISC_TRUE.  If the configuration data is so

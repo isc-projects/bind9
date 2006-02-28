@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.56 2005/07/18 05:58:59 marka Exp $ */
+/* $Id: rdataset.h,v 1.57 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -398,11 +398,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
-			  dns_name_t *owner_name,
+			  const dns_name_t *owner_name,
 			  dns_compress_t *cctx,
 			  isc_buffer_t *target,
 			  dns_rdatasetorderfunc_t order,
-			  void *order_arg,
+			  const void *order_arg,
 			  unsigned int options,
 			  unsigned int *countp);
 /*%<
@@ -417,11 +417,11 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
-			   dns_name_t *owner_name,
+			   const dns_name_t *owner_name,
 			   dns_compress_t *cctx,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
-			   void *order_arg,
+			   const void *order_arg,
 			   unsigned int options,
 			   unsigned int *countp,
 			   void **state);

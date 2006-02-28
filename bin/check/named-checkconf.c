@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.41 2006/01/07 00:23:35 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.42 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file */
 
@@ -66,7 +66,7 @@ usage(void) {
 
 /*% directory callback */
 static isc_result_t
-directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
+directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
 	const char *directory;
 
@@ -91,7 +91,7 @@ directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
 }
 
 static isc_boolean_t
-get_maps(cfg_obj_t **maps, const char *name, cfg_obj_t **obj) {
+get_maps(const cfg_obj_t **maps, const char *name, const cfg_obj_t **obj) {
 	int i;
 	for (i = 0;; i++) {
 		if (maps[i] == NULL)
@@ -102,11 +102,11 @@ get_maps(cfg_obj_t **maps, const char *name, cfg_obj_t **obj) {
 }
 
 static isc_boolean_t
-get_checknames(cfg_obj_t **maps, cfg_obj_t **obj) {
-	cfg_listelt_t *element;
-	cfg_obj_t *checknames;
-	cfg_obj_t *type;
-	cfg_obj_t *value;
+get_checknames(const cfg_obj_t **maps, const cfg_obj_t **obj) {
+	const cfg_listelt_t *element;
+	const cfg_obj_t *checknames;
+	const cfg_obj_t *type;
+	const cfg_obj_t *value;
 	isc_result_t result;
 	int i;
 
@@ -135,7 +135,7 @@ get_checknames(cfg_obj_t **maps, cfg_obj_t **obj) {
 }
 
 static isc_result_t
-config_get(cfg_obj_t **maps, const char *name, cfg_obj_t **obj) {
+config_get(const cfg_obj_t **maps, const char *name, const cfg_obj_t **obj) {
 	int i;
 
 	for (i = 0;; i++) {
@@ -148,22 +148,23 @@ config_get(cfg_obj_t **maps, const char *name, cfg_obj_t **obj) {
 
 /*% configure the zone */
 static isc_result_t
-configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
-	       cfg_obj_t *vconfig, cfg_obj_t *config, isc_mem_t *mctx)
+configure_zone(const char *vclass, const char *view,
+	       const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
+	       const cfg_obj_t *config, isc_mem_t *mctx)
 {
 	int i = 0;
 	isc_result_t result;
 	const char *zclass;
 	const char *zname;
 	const char *zfile;
-	cfg_obj_t *maps[4];
-	cfg_obj_t *zoptions = NULL;
-	cfg_obj_t *classobj = NULL;
-	cfg_obj_t *typeobj = NULL;
-	cfg_obj_t *fileobj = NULL;
-	cfg_obj_t *dbobj = NULL;
-	cfg_obj_t *obj = NULL;
-	cfg_obj_t *fmtobj = NULL;
+	const cfg_obj_t *maps[4];
+	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *classobj = NULL;
+	const cfg_obj_t *typeobj = NULL;
+	const cfg_obj_t *fileobj = NULL;
+	const cfg_obj_t *dbobj = NULL;
+	const cfg_obj_t *obj = NULL;
+	const cfg_obj_t *fmtobj = NULL;
 	dns_masterformat_t masterformat;
 
 	zone_options = DNS_ZONEOPT_CHECKNS | DNS_ZONEOPT_MANYERRORS;
@@ -309,12 +310,12 @@ configure_zone(const char *vclass, const char *view, cfg_obj_t *zconfig,
 
 /*% configure a view */
 static isc_result_t
-configure_view(const char *vclass, const char *view, cfg_obj_t *config,
-	       cfg_obj_t *vconfig, isc_mem_t *mctx)
+configure_view(const char *vclass, const char *view, const cfg_obj_t *config,
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx)
 {
-	cfg_listelt_t *element;
-	cfg_obj_t *voptions;
-	cfg_obj_t *zonelist;
+	const cfg_listelt_t *element;
+	const cfg_obj_t *voptions;
+	const cfg_obj_t *zonelist;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;
 
@@ -332,7 +333,7 @@ configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *zconfig = cfg_listelt_value(element);
+		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		tresult = configure_zone(vclass, view, zconfig, vconfig,
 					 config, mctx);
 		if (tresult != ISC_R_SUCCESS)
@@ -344,11 +345,11 @@ configure_view(const char *vclass, const char *view, cfg_obj_t *config,
 
 /*% load zones from the configuration */
 static isc_result_t
-load_zones_fromconfig(cfg_obj_t *config, isc_mem_t *mctx) {
-	cfg_listelt_t *element;
-	cfg_obj_t *classobj;
-	cfg_obj_t *views;
-	cfg_obj_t *vconfig;
+load_zones_fromconfig(const cfg_obj_t *config, isc_mem_t *mctx) {
+	const cfg_listelt_t *element;
+	const cfg_obj_t *classobj;
+	const cfg_obj_t *views;
+	const cfg_obj_t *vconfig;
 	const char *vclass;
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult;

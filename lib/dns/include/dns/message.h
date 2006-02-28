@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.118 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: message.h,v 1.119 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -240,7 +240,7 @@ struct dns_message {
 	isc_region_t			saved;
 
 	dns_rdatasetorderfunc_t		order;
-	void *				order_arg;
+	const void *			order_arg;
 };
 
 /***
@@ -1283,7 +1283,7 @@ dns_message_getrawmessage(dns_message_t *msg);
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 void *order_arg);
+			 const void *order_arg);
 /*%<
  * Define the order in which RR sets get rendered by
  * dns_message_rendersection() to be the ascending order

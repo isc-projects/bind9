@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.c,v 1.55 2005/04/27 04:56:45 sra Exp $ */
+/* $Id: compress.c,v 1.56 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file */
 
@@ -131,7 +131,7 @@ do { \
  * If no match is found return ISC_FALSE.
  */
 isc_boolean_t
-dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
+dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 			dns_name_t *prefix, isc_uint16_t *offset)
 {
 	dns_name_t tname, nname;
@@ -186,15 +186,15 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 }
 
 static inline unsigned int
-name_length(dns_name_t *name) {
+name_length(const dns_name_t *name) {
 	isc_region_t r;
 	dns_name_toregion(name, &r);
 	return (r.length);
 }
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
-		 isc_uint16_t offset)
+dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
+		 const dns_name_t *prefix, isc_uint16_t offset)
 {
 	dns_name_t tname;
 	unsigned int start;

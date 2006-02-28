@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.c,v 1.38 2005/08/23 02:36:06 marka Exp $ */
+/* $Id: logconf.c,v 1.39 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file */
 
@@ -43,13 +43,13 @@
  * in 'ccat' and add it to 'lctx'.
  */
 static isc_result_t
-category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
+category_fromconf(const cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 	isc_result_t result;
 	const char *catname;
 	isc_logcategory_t *category;
 	isc_logmodule_t *module;
-	cfg_obj_t *destinations = NULL;
-	cfg_listelt_t *element = NULL;
+	const cfg_obj_t *destinations = NULL;
+	const cfg_listelt_t *element = NULL;
 
 	catname = cfg_obj_asstring(cfg_tuple_get(ccat, "name"));
 	category = isc_log_categorybyname(ns_g_lctx, catname);
@@ -70,7 +70,7 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *channel = cfg_listelt_value(element);
+		const cfg_obj_t *channel = cfg_listelt_value(element);
 		const char *channelname = cfg_obj_asstring(channel);
 
 		result = isc_log_usechannel(lctx, channelname, category,
@@ -91,18 +91,18 @@ category_fromconf(cfg_obj_t *ccat, isc_logconfig_t *lctx) {
  * in 'cchan' and add it to 'lctx'.
  */
 static isc_result_t
-channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
+channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	isc_result_t result;
 	isc_logdestination_t dest;
 	unsigned int type;
 	unsigned int flags = 0;
 	int level;
 	const char *channelname;
-	cfg_obj_t *fileobj = NULL;
-	cfg_obj_t *syslogobj = NULL;
-	cfg_obj_t *nullobj = NULL;
-	cfg_obj_t *stderrobj = NULL;
-	cfg_obj_t *severity = NULL;
+	const cfg_obj_t *fileobj = NULL;
+	const cfg_obj_t *syslogobj = NULL;
+	const cfg_obj_t *nullobj = NULL;
+	const cfg_obj_t *stderrobj = NULL;
+	const cfg_obj_t *severity = NULL;
 	int i;
 
 	channelname = cfg_obj_asstring(cfg_map_getname(channel));
@@ -132,9 +132,10 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	type = ISC_LOG_TONULL;
 	
 	if (fileobj != NULL) {
-		cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
-		cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
-		cfg_obj_t *versionsobj = cfg_tuple_get(fileobj, "versions");
+		const cfg_obj_t *pathobj = cfg_tuple_get(fileobj, "file");
+		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
+		const cfg_obj_t *versionsobj =
+				 cfg_tuple_get(fileobj, "versions");
 		isc_int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_offset_t size = 0;
 
@@ -176,9 +177,9 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 	 * Munge flags.
 	 */
 	{
-		cfg_obj_t *printcat = NULL;
-		cfg_obj_t *printsev = NULL;
-		cfg_obj_t *printtime = NULL;
+		const cfg_obj_t *printcat = NULL;
+		const cfg_obj_t *printsev = NULL;
+		const cfg_obj_t *printtime = NULL;
 
 		(void)cfg_map_get(channel, "print-category", &printcat);
 		(void)cfg_map_get(channel, "print-severity", &printsev);
@@ -244,13 +245,14 @@ channel_fromconf(cfg_obj_t *channel, isc_logconfig_t *lctx) {
 }
 
 isc_result_t
-ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
+ns_log_configure(isc_logconfig_t *logconf, const cfg_obj_t *logstmt) {
 	isc_result_t result;
-	cfg_obj_t *channels = NULL;
-	cfg_obj_t *categories = NULL;
-	cfg_listelt_t *element;
+	const cfg_obj_t *channels = NULL;
+	const cfg_obj_t *categories = NULL;
+	const cfg_listelt_t *element;
 	isc_boolean_t default_set = ISC_FALSE;
 	isc_boolean_t unmatched_set = ISC_FALSE;
+	const cfg_obj_t *catname;
 
 	CHECK(ns_log_setdefaultchannels(logconf));
 
@@ -259,7 +261,7 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *channel = cfg_listelt_value(element);
+		const cfg_obj_t *channel = cfg_listelt_value(element);
 		CHECK(channel_fromconf(channel, logconf));
 	}
 
@@ -268,15 +270,15 @@ ns_log_configure(isc_logconfig_t *logconf, cfg_obj_t *logstmt) {
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *category = cfg_listelt_value(element);
+		const cfg_obj_t *category = cfg_listelt_value(element);
 		CHECK(category_fromconf(category, logconf));
 		if (!default_set) {
-			cfg_obj_t *catname = cfg_tuple_get(category, "name");
+			catname = cfg_tuple_get(category, "name");
 			if (strcmp(cfg_obj_asstring(catname), "default") == 0)
 				default_set = ISC_TRUE;
 		}
 		if (!unmatched_set) {
-			cfg_obj_t *catname = cfg_tuple_get(category, "name");
+			catname = cfg_tuple_get(category, "name");
 			if (strcmp(cfg_obj_asstring(catname), "unmatched") == 0)
 				unmatched_set = ISC_TRUE;
 		}

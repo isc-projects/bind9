@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.19 2005/04/27 04:55:57 sra Exp $ */
+/* $Id: control.h,v 1.20 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -71,7 +71,7 @@ ns_controls_destroy(ns_controls_t **ctrlsp);
  */
 
 isc_result_t
-ns_controls_configure(ns_controls_t *controls, cfg_obj_t *config,
+ns_controls_configure(ns_controls_t *controls, const cfg_obj_t *config,
 		      cfg_aclconfctx_t *aclconfctx);
 /*%<
  * Configure zero or more command channels into 'controls'

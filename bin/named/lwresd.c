@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.c,v 1.51 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: lwresd.c,v 1.52 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file 
  * \brief
@@ -286,14 +286,14 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
  * Handle lwresd manager objects
  */
 isc_result_t
-ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
+ns_lwdmanager_create(isc_mem_t *mctx, const cfg_obj_t *lwres,
 		     ns_lwresd_t **lwresdp)
 {
 	ns_lwresd_t *lwresd;
 	const char *vname;
 	dns_rdataclass_t vclass;
-	cfg_obj_t *obj, *viewobj, *searchobj;
-	cfg_listelt_t *element;
+	const cfg_obj_t *obj, *viewobj, *searchobj;
+	const cfg_listelt_t *element;
 	isc_result_t result;
 
 	INSIST(lwresdp != NULL && *lwresdp == NULL);
@@ -357,7 +357,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres,
 		     element != NULL;
 		     element = cfg_list_next(element))
 		{
-			cfg_obj_t *search;
+			const cfg_obj_t *search;
 			const char *searchstr;
 			isc_buffer_t namebuf;
 			dns_fixedname_t fname;
@@ -752,11 +752,11 @@ configure_listener(isc_sockaddr_t *address, ns_lwresd_t *lwresd,
 }
 
 isc_result_t
-ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config) {
-	cfg_obj_t *lwreslist = NULL;
-	cfg_obj_t *lwres = NULL;
-	cfg_obj_t *listenerslist = NULL;
-	cfg_listelt_t *element = NULL;
+ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config) {
+	const cfg_obj_t *lwreslist = NULL;
+	const cfg_obj_t *lwres = NULL;
+	const cfg_obj_t *listenerslist = NULL;
+	const cfg_listelt_t *element = NULL;
 	ns_lwreslistener_t *listener;
 	ns_lwreslistenerlist_t newlisteners;
 	isc_result_t result;

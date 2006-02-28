@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.49 2005/07/28 04:54:17 marka Exp $ */
+/* $Id: sockaddr.h,v 1.50 2006/02/28 02:39:52 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -168,7 +168,7 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port);
  */
 
 in_port_t
-isc_sockaddr_getport(isc_sockaddr_t *sockaddr);
+isc_sockaddr_getport(const isc_sockaddr_t *sockaddr);
 /*%<
  * Get the port stored in 'sockaddr'.
  */
@@ -195,25 +195,25 @@ isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size);
  */
 
 isc_boolean_t
-isc_sockaddr_ismulticast(isc_sockaddr_t *sa);
+isc_sockaddr_ismulticast(const isc_sockaddr_t *sa);
 /*%<
  * Returns #ISC_TRUE if the address is a multicast address.
  */
 
 isc_boolean_t
-isc_sockaddr_isexperimental(isc_sockaddr_t *sa);
+isc_sockaddr_isexperimental(const isc_sockaddr_t *sa);
 /*
  * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */
 
 isc_boolean_t
-isc_sockaddr_islinklocal(isc_sockaddr_t *sa);
+isc_sockaddr_islinklocal(const isc_sockaddr_t *sa);
 /*%<
  * Returns ISC_TRUE if the address is a link local addresss.
  */
 
 isc_boolean_t
-isc_sockaddr_issitelocal(isc_sockaddr_t *sa);
+isc_sockaddr_issitelocal(const isc_sockaddr_t *sa);
 /*%<
  * Returns ISC_TRUE if the address is a sitelocal address.
  */

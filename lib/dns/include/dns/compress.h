@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.35 2005/04/27 04:56:54 sra Exp $ */
+/* $Id: compress.h,v 1.36 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
@@ -157,7 +157,7 @@ dns_compress_getedns(dns_compress_t *cctx);
  */
 
 isc_boolean_t
-dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
+dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 			dns_name_t *prefix, isc_uint16_t *offset);
 /*%<
  *	Finds longest possible match of 'name' in the global compression table.
@@ -176,8 +176,8 @@ dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
  */
 
 void
-dns_compress_add(dns_compress_t *cctx, dns_name_t *name, dns_name_t *prefix,
-		 isc_uint16_t offset);
+dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
+		 const dns_name_t *prefix, isc_uint16_t offset);
 /*%<
  *	Add compression pointers for 'name' to the compression table,
  *	not replacing existing pointers.

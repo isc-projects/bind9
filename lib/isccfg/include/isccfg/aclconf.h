@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.4 2005/01/13 05:15:16 marka Exp $ */
+/* $Id: aclconf.h,v 1.5 2006/02/28 02:39:52 marka Exp $ */
 
 #ifndef ISCCFG_ACLCONF_H
 #define ISCCFG_ACLCONF_H 1
@@ -49,8 +49,8 @@ cfg_aclconfctx_destroy(cfg_aclconfctx_t *ctx);
  */
 
 isc_result_t
-cfg_acl_fromconfig(cfg_obj_t *caml,
-		   cfg_obj_t *cctx,
+cfg_acl_fromconfig(const cfg_obj_t *caml,
+		   const cfg_obj_t *cctx,
 		   isc_log_t *lctx,
 		   cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,

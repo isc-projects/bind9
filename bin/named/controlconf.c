@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.49 2006/01/27 23:57:46 marka Exp $ */
+/* $Id: controlconf.c,v 1.50 2006/02/28 02:39:51 marka Exp $ */
 
 /*! \file */
 
@@ -659,10 +659,12 @@ ns_controls_shutdown(ns_controls_t *controls) {
 }
 
 static isc_result_t
-cfgkeylist_find(cfg_obj_t *keylist, const char *keyname, cfg_obj_t **objp) {
-	cfg_listelt_t *element;
+cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
+	        const cfg_obj_t **objp)
+{
+	const cfg_listelt_t *element;
 	const char *str;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
 
 	for (element = cfg_list_first(keylist);
 	     element != NULL;
@@ -681,13 +683,13 @@ cfgkeylist_find(cfg_obj_t *keylist, const char *keyname, cfg_obj_t **objp) {
 }
 
 static isc_result_t
-controlkeylist_fromcfg(cfg_obj_t *keylist, isc_mem_t *mctx,
+controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		       controlkeylist_t *keyids)
 {
-	cfg_listelt_t *element;
+	const cfg_listelt_t *element;
 	char *newstr = NULL;
 	const char *str;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
 	controlkey_t *key = NULL;
 
 	for (element = cfg_list_first(keylist);
@@ -722,11 +724,11 @@ controlkeylist_fromcfg(cfg_obj_t *keylist, isc_mem_t *mctx,
 }
 
 static void
-register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
+register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 	      controlkeylist_t *keyids, isc_mem_t *mctx, const char *socktext)
 {
 	controlkey_t *keyid, *next;
-	cfg_obj_t *keydef;
+	const cfg_obj_t *keydef;
 	char secret[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -746,8 +748,8 @@ register_keys(cfg_obj_t *control, cfg_obj_t *keylist,
 			ISC_LIST_UNLINK(*keyids, keyid, link);
 			free_controlkey(keyid, mctx);
 		} else {
-			cfg_obj_t *algobj = NULL;
-			cfg_obj_t *secretobj = NULL;
+			const cfg_obj_t *algobj = NULL;
+			const cfg_obj_t *secretobj = NULL;
 			const char *algstr = NULL;
 			const char *secretstr = NULL;
 
@@ -815,9 +817,9 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	isc_result_t result;
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *config = NULL;
-	cfg_obj_t *key = NULL;
-	cfg_obj_t *algobj = NULL;
-	cfg_obj_t *secretobj = NULL;
+	const cfg_obj_t *key = NULL;
+	const cfg_obj_t *algobj = NULL;
+	const cfg_obj_t *secretobj = NULL;
 	const char *algstr = NULL;
 	const char *secretstr = NULL;
 	controlkey_t *keyid = NULL;
@@ -898,12 +900,13 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
  * valid or both are NULL.
  */
 static void
-get_key_info(cfg_obj_t *config, cfg_obj_t *control,
-	     cfg_obj_t **global_keylistp, cfg_obj_t **control_keylistp)
+get_key_info(const cfg_obj_t *config, const cfg_obj_t *control,
+	     const cfg_obj_t **global_keylistp,
+	     const cfg_obj_t **control_keylistp)
 {
 	isc_result_t result;
-	cfg_obj_t *control_keylist = NULL;
-	cfg_obj_t *global_keylist = NULL;
+	const cfg_obj_t *control_keylist = NULL;
+	const cfg_obj_t *global_keylist = NULL;
 
 	REQUIRE(global_keylistp != NULL && *global_keylistp == NULL);
 	REQUIRE(control_keylistp != NULL && *control_keylistp == NULL);
@@ -922,16 +925,15 @@ get_key_info(cfg_obj_t *config, cfg_obj_t *control,
 }
 
 static void
-update_listener(ns_controls_t *cp,
-		controllistener_t **listenerp, cfg_obj_t *control,
-		cfg_obj_t *config, isc_sockaddr_t *addr,
-		cfg_aclconfctx_t *aclconfctx, const char *socktext,
-		isc_sockettype_t type)
+update_listener(ns_controls_t *cp, controllistener_t **listenerp,
+		const cfg_obj_t *control, const cfg_obj_t *config,
+		isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
+	        const char *socktext, isc_sockettype_t type)
 {
 	controllistener_t *listener;
-	cfg_obj_t *allow;
-	cfg_obj_t *global_keylist = NULL;
-	cfg_obj_t *control_keylist = NULL;
+	const cfg_obj_t *allow;
+	const cfg_obj_t *global_keylist = NULL;
+	const cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
 	controlkeylist_t keys;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1062,15 +1064,15 @@ update_listener(ns_controls_t *cp,
 
 static void
 add_listener(ns_controls_t *cp, controllistener_t **listenerp,
-	     cfg_obj_t *control, cfg_obj_t *config, isc_sockaddr_t *addr,
-	     cfg_aclconfctx_t *aclconfctx, const char *socktext,
-	     isc_sockettype_t type)
+	     const cfg_obj_t *control, const cfg_obj_t *config,
+	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
+	     const char *socktext, isc_sockettype_t type)
 {
 	isc_mem_t *mctx = cp->server->mctx;
 	controllistener_t *listener;
-	cfg_obj_t *allow;
-	cfg_obj_t *global_keylist = NULL;
-	cfg_obj_t *control_keylist = NULL;
+	const cfg_obj_t *allow;
+	const cfg_obj_t *global_keylist = NULL;
+	const cfg_obj_t *control_keylist = NULL;
 	dns_acl_t *new_acl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
 
@@ -1200,13 +1202,13 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 }
 
 isc_result_t
-ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
+ns_controls_configure(ns_controls_t *cp, const cfg_obj_t *config,
 		      cfg_aclconfctx_t *aclconfctx)
 {
 	controllistener_t *listener;
 	controllistenerlist_t new_listeners;
-	cfg_obj_t *controlslist = NULL;
-	cfg_listelt_t *element, *element2;
+	const cfg_obj_t *controlslist = NULL;
+	const cfg_listelt_t *element, *element2;
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 
 	ISC_LIST_INIT(new_listeners);
@@ -1228,8 +1230,8 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 		for (element = cfg_list_first(controlslist);
 		     element != NULL;
 		     element = cfg_list_next(element)) {
-			cfg_obj_t *controls;
-			cfg_obj_t *inetcontrols = NULL;
+			const cfg_obj_t *controls;
+			const cfg_obj_t *inetcontrols = NULL;
 
 			controls = cfg_listelt_value(element);
 			(void)cfg_map_get(controls, "inet", &inetcontrols);
@@ -1239,9 +1241,9 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 			for (element2 = cfg_list_first(inetcontrols);
 			     element2 != NULL;
 			     element2 = cfg_list_next(element2)) {
-				cfg_obj_t *control;
-				cfg_obj_t *obj;
-				isc_sockaddr_t *addr;
+				const cfg_obj_t *control;
+				const cfg_obj_t *obj;
+				isc_sockaddr_t addr;
 
 				/*
 				 * The parser handles BIND 8 configuration file
@@ -1251,12 +1253,12 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 				control = cfg_listelt_value(element2);
 
 				obj = cfg_tuple_get(control, "address");
-				addr = cfg_obj_assockaddr(obj);
-				if (isc_sockaddr_getport(addr) == 0)
-					isc_sockaddr_setport(addr,
+				addr = *cfg_obj_assockaddr(obj);
+				if (isc_sockaddr_getport(&addr) == 0)
+					isc_sockaddr_setport(&addr,
 							     NS_CONTROL_PORT);
 
-				isc_sockaddr_format(addr, socktext,
+				isc_sockaddr_format(&addr, socktext,
 						    sizeof(socktext));
 
 				isc_log_write(ns_g_lctx,
@@ -1267,7 +1269,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 					      socktext);
 
 				update_listener(cp, &listener, control, config,
-						addr, aclconfctx, socktext,
+						&addr, aclconfctx, socktext,
 						isc_sockettype_tcp);
 
 				if (listener != NULL)
@@ -1282,7 +1284,7 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 					 * This is a new listener.
 					 */
 					add_listener(cp, &listener, control,
-						     config, addr, aclconfctx,
+						     config, &addr, aclconfctx,
 						     socktext,
 						     isc_sockettype_tcp);
 
@@ -1294,8 +1296,8 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 		for (element = cfg_list_first(controlslist);
 		     element != NULL;
 		     element = cfg_list_next(element)) {
-			cfg_obj_t *controls;
-			cfg_obj_t *unixcontrols = NULL;
+			const cfg_obj_t *controls;
+			const cfg_obj_t *unixcontrols = NULL;
 
 			controls = cfg_listelt_value(element);
 			(void)cfg_map_get(controls, "unix", &unixcontrols);
@@ -1305,8 +1307,8 @@ ns_controls_configure(ns_controls_t *cp, cfg_obj_t *config,
 			for (element2 = cfg_list_first(unixcontrols);
 			     element2 != NULL;
 			     element2 = cfg_list_next(element2)) {
-				cfg_obj_t *control;
-				cfg_obj_t *path;
+				const cfg_obj_t *control;
+				const cfg_obj_t *path;
 				isc_sockaddr_t addr;
 				isc_result_t result;
 

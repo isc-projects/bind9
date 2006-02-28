@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.h,v 1.12 2005/04/29 00:22:33 marka Exp $ */
+/* $Id: tkeyconf.h,v 1.13 2006/02/28 02:39:51 marka Exp $ */
 
 #ifndef NS_TKEYCONF_H
 #define NS_TKEYCONF_H 1
@@ -30,8 +30,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-ns_tkeyctx_fromconfig(cfg_obj_t *options, isc_mem_t *mctx, isc_entropy_t *ectx,
-		      dns_tkeyctx_t **tctxp);
+ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
+		      isc_entropy_t *ectx, dns_tkeyctx_t **tctxp);
 /*%<
  * 	Create a TKEY context and configure it, including the default DH key
  *	and default domain, according to 'options'.
