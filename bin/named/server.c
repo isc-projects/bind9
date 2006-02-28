@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.40 2006/02/26 22:59:55 marka Exp $ */
+/* $Id: server.c,v 1.419.18.41 2006/02/28 03:10:47 marka Exp $ */
 
 /*! \file */
 
@@ -222,25 +222,25 @@ static void
 ns_server_reload(isc_task_t *task, isc_event_t *event);
 
 static isc_result_t
-ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
+ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx,
 			isc_mem_t *mctx, ns_listenelt_t **target);
 static isc_result_t
-ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
+ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target);
 
 static isc_result_t
-configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
-		  cfg_obj_t *forwarders, cfg_obj_t *forwardtype);
+configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
+		  const cfg_obj_t *forwarders, const cfg_obj_t *forwardtype);
 
 static isc_result_t
-configure_alternates(cfg_obj_t *config, dns_view_t *view,
-		     cfg_obj_t *alternates);
+configure_alternates(const cfg_obj_t *config, dns_view_t *view,
+		     const cfg_obj_t *alternates);
 
 static isc_result_t
-configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
-	       isc_mem_t *mctx, dns_view_t *view,
+configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
 	       cfg_aclconfctx_t *aclconf);
 
 static void
@@ -252,13 +252,13 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all);
  * (for a global default).
  */
 static isc_result_t
-configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
+configure_view_acl(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 		   const char *aclname, cfg_aclconfctx_t *actx,
 		   isc_mem_t *mctx, dns_acl_t **aclp)
 {
 	isc_result_t result;
-	cfg_obj_t *maps[3];
-	cfg_obj_t *aclobj = NULL;
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *aclobj = NULL;
 	int i = 0;
 
 	if (*aclp != NULL)
@@ -266,7 +266,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 	if (vconfig != NULL)
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	if (config != NULL) {
-		cfg_obj_t *options = NULL;
+		const cfg_obj_t *options = NULL;
 		(void)cfg_map_get(config, "options", &options);
 		if (options != NULL)
 			maps[i++] = options;
@@ -287,7 +287,7 @@ configure_view_acl(cfg_obj_t *vconfig, cfg_obj_t *config,
 }
 
 static isc_result_t
-configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
+configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 			 dns_keytable_t *keytable, isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
@@ -314,7 +314,7 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
 	if (vconfig == NULL)
 		viewclass = dns_rdataclass_in;
 	else {
-		cfg_obj_t *classobj = cfg_tuple_get(vconfig, "class");
+		const cfg_obj_t *classobj = cfg_tuple_get(vconfig, "class");
 		CHECK(ns_config_getclass(classobj, dns_rdataclass_in,
 					 &viewclass));
 	}
@@ -390,15 +390,15 @@ configure_view_dnsseckey(cfg_obj_t *vconfig, cfg_obj_t *key,
  * from 'vconfig' and 'config'.  The variable to be configured is '*target'.
  */
 static isc_result_t
-configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
+configure_view_dnsseckeys(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			  isc_mem_t *mctx, dns_keytable_t **target)
 {
 	isc_result_t result;
-	cfg_obj_t *keys = NULL;
-	cfg_obj_t *voptions = NULL;
-	cfg_listelt_t *element, *element2;
-	cfg_obj_t *keylist;
-	cfg_obj_t *key;
+	const cfg_obj_t *keys = NULL;
+	const cfg_obj_t *voptions = NULL;
+	const cfg_listelt_t *element, *element2;
+	const cfg_obj_t *keylist;
+	const cfg_obj_t *key;
 	dns_keytable_t *keytable = NULL;
 
 	CHECK(dns_keytable_create(mctx, &keytable));
@@ -437,10 +437,10 @@ configure_view_dnsseckeys(cfg_obj_t *vconfig, cfg_obj_t *config,
 }
 
 static isc_result_t
-mustbesecure(cfg_obj_t *mbs, dns_resolver_t *resolver)
+mustbesecure(const cfg_obj_t *mbs, dns_resolver_t *resolver)
 {
-	cfg_listelt_t *element;
-	cfg_obj_t *obj;
+	const cfg_listelt_t *element;
+	const cfg_obj_t *obj;
 	const char *str;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
@@ -474,14 +474,14 @@ mustbesecure(cfg_obj_t *mbs, dns_resolver_t *resolver)
  * Get a dispatch appropriate for the resolver of a given view.
  */
 static isc_result_t
-get_view_querysource_dispatch(cfg_obj_t **maps,
+get_view_querysource_dispatch(const cfg_obj_t **maps,
 			      int af, dns_dispatch_t **dispatchp)
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
 	isc_sockaddr_t sa;
 	unsigned int attrs, attrmask;
-	cfg_obj_t *obj = NULL;
+	const cfg_obj_t *obj = NULL;
 
 	/*
 	 * Make compiler happy.
@@ -572,10 +572,10 @@ get_view_querysource_dispatch(cfg_obj_t **maps,
 }
 
 static isc_result_t
-configure_order(dns_order_t *order, cfg_obj_t *ent) {
+configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 	dns_rdataclass_t rdclass;
 	dns_rdatatype_t rdtype;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
 	dns_fixedname_t fixed;
 	unsigned int mode = 0;
 	const char *str;
@@ -636,10 +636,10 @@ configure_order(dns_order_t *order, cfg_obj_t *ent) {
 }
 
 static isc_result_t
-configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
+configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	isc_netaddr_t na;
 	dns_peer_t *peer;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
 	const char *str;
 	isc_result_t result;
 	unsigned int prefixlen;
@@ -768,10 +768,10 @@ configure_peer(cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 }
 
 static isc_result_t
-disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
+disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 	isc_result_t result;
-	cfg_obj_t *algorithms;
-	cfg_listelt_t *element;
+	const cfg_obj_t *algorithms;
+	const cfg_listelt_t *element;
 	const char *str;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
@@ -814,12 +814,12 @@ disable_algorithms(cfg_obj_t *disabled, dns_resolver_t *resolver) {
 }
 
 static isc_boolean_t
-on_disable_list(cfg_obj_t *disablelist, dns_name_t *zonename) {
-	cfg_listelt_t *element;
+on_disable_list(const cfg_obj_t *disablelist, dns_name_t *zonename) {
+	const cfg_listelt_t *element;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
 	isc_result_t result;
-	cfg_obj_t *value;
+	const cfg_obj_t *value;
 	const char *str;
 	isc_buffer_t b;
 
@@ -883,26 +883,26 @@ check_dbtype(dns_zone_t **zonep, unsigned int dbtypec, const char **dbargv,
  * global defaults in 'config' used exclusively.
  */
 static isc_result_t
-configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
-	       isc_mem_t *mctx, cfg_aclconfctx_t *actx,
-	       isc_boolean_t need_hints)
+configure_view(dns_view_t *view, const cfg_obj_t *config,
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx,
+	       cfg_aclconfctx_t *actx, isc_boolean_t need_hints)
 {
-	cfg_obj_t *maps[4];
-	cfg_obj_t *cfgmaps[3];
-	cfg_obj_t *options = NULL;
-	cfg_obj_t *voptions = NULL;
-	cfg_obj_t *forwardtype;
-	cfg_obj_t *forwarders;
-	cfg_obj_t *alternates;
-	cfg_obj_t *zonelist;
+	const cfg_obj_t *maps[4];
+	const cfg_obj_t *cfgmaps[3];
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *voptions = NULL;
+	const cfg_obj_t *forwardtype;
+	const cfg_obj_t *forwarders;
+	const cfg_obj_t *alternates;
+	const cfg_obj_t *zonelist;
 #ifdef DLZ
- 	cfg_obj_t *dlz;
+ 	const cfg_obj_t *dlz;
  	unsigned int dlzargc;
  	char **dlzargv;
 #endif
-	cfg_obj_t *disabled;
-	cfg_obj_t *obj;
-	cfg_listelt_t *element;
+	const cfg_obj_t *disabled;
+	const cfg_obj_t *obj;
+	const cfg_listelt_t *element;
 	in_port_t port;
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
@@ -928,7 +928,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const char *forview = " for view ";
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
-	cfg_obj_t *disablelist = NULL;
+	const cfg_obj_t *disablelist = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1023,7 +1023,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *zconfig = cfg_listelt_value(element);
+		const cfg_obj_t *zconfig = cfg_listelt_value(element);
 		CHECK(configure_zone(config, zconfig, vconfig, mctx, view,
 				     actx));
 	}
@@ -1306,8 +1306,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 * Configure the view's peer list.
 	 */
 	{
-		cfg_obj_t *peers = NULL;
-		cfg_listelt_t *element;
+		const cfg_obj_t *peers = NULL;
+		const cfg_listelt_t *element;
 		dns_peerlist_t *newpeers = NULL;
 
 		(void)ns_config_get(cfgmaps, "server", &peers);
@@ -1316,7 +1316,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		     element != NULL;
 		     element = cfg_list_next(element))
 		{
-			cfg_obj_t *cpeer = cfg_listelt_value(element);
+			const cfg_obj_t *cpeer = cfg_listelt_value(element);
 			dns_peer_t *peer;
 
 			CHECK(configure_peer(cpeer, mctx, &peer));
@@ -1331,8 +1331,8 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	 *	Configure the views rrset-order.
 	 */
 	{
-		cfg_obj_t *rrsetorder = NULL;
-		cfg_listelt_t *element;
+		const cfg_obj_t *rrsetorder = NULL;
+		const cfg_listelt_t *element;
 
 		(void)ns_config_get(maps, "rrset-order", &rrsetorder);
 		CHECK(dns_order_create(mctx, &order));
@@ -1340,7 +1340,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 		     element != NULL;
 		     element = cfg_list_next(element))
 		{
-			cfg_obj_t *ent = cfg_listelt_value(element);
+			const cfg_obj_t *ent = cfg_listelt_value(element);
 
 			CHECK(configure_order(order, ent));
 		}
@@ -1575,7 +1575,7 @@ configure_view(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			dns_name_t *name;
 			isc_buffer_t b;
 			const char *str;
-			cfg_obj_t *exclude;
+			const cfg_obj_t *exclude;
 
 			dns_fixedname_init(&fixed);
 			name = dns_fixedname_name(&fixed);
@@ -1800,12 +1800,12 @@ configure_hints(dns_view_t *view, const char *filename) {
 }
 
 static isc_result_t
-configure_alternates(cfg_obj_t *config, dns_view_t *view,
-		     cfg_obj_t *alternates)
+configure_alternates(const cfg_obj_t *config, dns_view_t *view,
+		     const cfg_obj_t *alternates)
 {
-	cfg_obj_t *portobj;
-	cfg_obj_t *addresses;
-	cfg_listelt_t *element;
+	const cfg_obj_t *portobj;
+	const cfg_obj_t *addresses;
+	const cfg_listelt_t *element;
 	isc_result_t result = ISC_R_SUCCESS;
 	in_port_t port;
 
@@ -1838,7 +1838,7 @@ configure_alternates(cfg_obj_t *config, dns_view_t *view,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *alternate = cfg_listelt_value(element);
+		const cfg_obj_t *alternate = cfg_listelt_value(element);
 		isc_sockaddr_t sa;
 
 		if (!cfg_obj_issockaddr(alternate)) {
@@ -1885,12 +1885,12 @@ configure_alternates(cfg_obj_t *config, dns_view_t *view,
 }
 
 static isc_result_t
-configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
-		  cfg_obj_t *forwarders, cfg_obj_t *forwardtype)
+configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
+		  const cfg_obj_t *forwarders, const cfg_obj_t *forwardtype)
 {
-	cfg_obj_t *portobj;
-	cfg_obj_t *faddresses;
-	cfg_listelt_t *element;
+	const cfg_obj_t *portobj;
+	const cfg_obj_t *faddresses;
+	const cfg_listelt_t *element;
 	dns_fwdpolicy_t fwdpolicy = dns_fwdpolicy_none;
 	isc_sockaddrlist_t addresses;
 	isc_sockaddr_t *sa;
@@ -1928,7 +1928,7 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *forwarder = cfg_listelt_value(element);
+		const cfg_obj_t *forwarder = cfg_listelt_value(element);
 		sa = isc_mem_get(view->mctx, sizeof(isc_sockaddr_t));
 		if (sa == NULL) {
 			result = ISC_R_NOMEMORY;
@@ -1993,14 +1993,16 @@ configure_forward(cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
  * The view created is attached to '*viewp'.
  */
 static isc_result_t
-create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
+create_view(const cfg_obj_t *vconfig, dns_viewlist_t *viewlist,
+	    dns_view_t **viewp)
+{
 	isc_result_t result;
 	const char *viewname;
 	dns_rdataclass_t viewclass;
 	dns_view_t *view = NULL;
 
 	if (vconfig != NULL) {
-		cfg_obj_t *classobj = NULL;
+		const cfg_obj_t *classobj = NULL;
 
 		viewname = cfg_obj_asstring(cfg_tuple_get(vconfig, "name"));
 		classobj = cfg_tuple_get(vconfig, "class");
@@ -2030,19 +2032,19 @@ create_view(cfg_obj_t *vconfig, dns_viewlist_t *viewlist, dns_view_t **viewp) {
  * Configure or reconfigure a zone.
  */
 static isc_result_t
-configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
-	       isc_mem_t *mctx, dns_view_t *view,
+configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
+	       const cfg_obj_t *vconfig, isc_mem_t *mctx, dns_view_t *view,
 	       cfg_aclconfctx_t *aclconf)
 {
 	dns_view_t *pview = NULL;	/* Production view */
 	dns_zone_t *zone = NULL;	/* New or reused zone */
 	dns_zone_t *dupzone = NULL;
-	cfg_obj_t *options = NULL;
-	cfg_obj_t *zoptions = NULL;
-	cfg_obj_t *typeobj = NULL;
-	cfg_obj_t *forwarders = NULL;
-	cfg_obj_t *forwardtype = NULL;
-	cfg_obj_t *only = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *zoptions = NULL;
+	const cfg_obj_t *typeobj = NULL;
+	const cfg_obj_t *forwarders = NULL;
+	const cfg_obj_t *forwardtype = NULL;
+	const cfg_obj_t *only = NULL;
 	isc_result_t result;
 	isc_result_t tresult;
 	isc_buffer_t buffer;
@@ -2099,7 +2101,7 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
 	 * configure it and return.
 	 */
 	if (strcasecmp(ztypestr, "hint") == 0) {
-		cfg_obj_t *fileobj = NULL;
+		const cfg_obj_t *fileobj = NULL;
 		if (cfg_map_get(zoptions, "file", &fileobj) != ISC_R_SUCCESS) {
 			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -2267,9 +2269,10 @@ configure_zone(cfg_obj_t *config, cfg_obj_t *zconfig, cfg_obj_t *vconfig,
  * Configure a single server quota.
  */
 static void
-configure_server_quota(cfg_obj_t **maps, const char *name, isc_quota_t *quota)
+configure_server_quota(const cfg_obj_t **maps, const char *name,
+		       isc_quota_t *quota)
 {
-	cfg_obj_t *obj = NULL;
+	const cfg_obj_t *obj = NULL;
 	isc_result_t result;
 
 	result = ns_config_get(maps, name, &obj);
@@ -2282,7 +2285,7 @@ configure_server_quota(cfg_obj_t **maps, const char *name, isc_quota_t *quota)
  * parsed.  This can be extended to support other options if necessary.
  */
 static isc_result_t
-directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
+directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
 	const char *directory;
 
@@ -2535,7 +2538,7 @@ setstring(ns_server_t *server, char **field, const char *value) {
  * or NULL if whether 'obj' is a string or void value, respectively.
  */
 static isc_result_t
-setoptstring(ns_server_t *server, char **field, cfg_obj_t *obj) {
+setoptstring(ns_server_t *server, char **field, const cfg_obj_t *obj) {
 	if (cfg_obj_isvoid(obj))
 		return (setstring(server, field, NULL));
 	else
@@ -2543,10 +2546,11 @@ setoptstring(ns_server_t *server, char **field, cfg_obj_t *obj) {
 }
 
 static void
-set_limit(cfg_obj_t **maps, const char *configname, const char *description,
-	  isc_resource_t resourceid, isc_resourcevalue_t defaultvalue)
+set_limit(const cfg_obj_t **maps, const char *configname,
+	  const char *description, isc_resource_t resourceid,
+	  isc_resourcevalue_t defaultvalue)
 {
-	cfg_obj_t *obj = NULL;
+	const cfg_obj_t *obj = NULL;
 	const char *resource;
 	isc_resourcevalue_t value;
 	isc_result_t result;
@@ -2578,7 +2582,7 @@ set_limit(cfg_obj_t **maps, const char *configname, const char *description,
 		  ns_g_init ## resource)
 
 static void
-set_limits(cfg_obj_t **maps) {
+set_limits(const cfg_obj_t **maps) {
 	SETLIMIT("stacksize", stacksize, "stack size");
 	SETLIMIT("datasize", datasize, "data size");
 	SETLIMIT("coresize", coresize, "core size");
@@ -2587,15 +2591,15 @@ set_limits(cfg_obj_t **maps) {
 
 static isc_result_t
 portlist_fromconf(dns_portlist_t *portlist, unsigned int family,
-		  cfg_obj_t *ports)
+		  const cfg_obj_t *ports)
 {
-	cfg_listelt_t *element;
+	const cfg_listelt_t *element;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	for (element = cfg_list_first(ports);
 	     element != NULL;
 	     element = cfg_list_next(element)) {
-		cfg_obj_t *obj = cfg_listelt_value(element);
+		const cfg_obj_t *obj = cfg_listelt_value(element);
 		in_port_t port = (in_port_t)cfg_obj_asuint32(obj);
 		
 		result = dns_portlist_add(portlist, family, port);
@@ -2638,13 +2642,13 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_interval_t interval;
 	cfg_parser_t *parser = NULL;
 	cfg_obj_t *config;
-	cfg_obj_t *options;
-	cfg_obj_t *views;
-	cfg_obj_t *obj;
-	cfg_obj_t *v4ports, *v6ports;
-	cfg_obj_t *maps[3];
-	cfg_obj_t *builtin_views;
-	cfg_listelt_t *element;
+	const cfg_obj_t *options;
+	const cfg_obj_t *views;
+	const cfg_obj_t *obj;
+	const cfg_obj_t *v4ports, *v6ports;
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *builtin_views;
+	const cfg_listelt_t *element;
 	dns_view_t *view = NULL;
 	dns_view_t *view_next;
 	dns_viewlist_t viewlist;
@@ -2831,7 +2835,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * statement.
 	 */
 	{
-		cfg_obj_t *clistenon = NULL;
+		const cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
 		clistenon = NULL;
@@ -2865,7 +2869,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * Ditto for IPv6.
 	 */
 	{
-		cfg_obj_t *clistenon = NULL;
+		const cfg_obj_t *clistenon = NULL;
 		ns_listenlist_t *listenon = NULL;
 
 		if (options != NULL)
@@ -2952,7 +2956,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *vconfig = cfg_listelt_value(element);
+		const cfg_obj_t *vconfig = cfg_listelt_value(element);
 		view = NULL;
 
 		CHECK(create_view(vconfig, &viewlist, &view));
@@ -2992,7 +2996,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *vconfig = cfg_listelt_value(element);
+		const cfg_obj_t *vconfig = cfg_listelt_value(element);
 		CHECK(create_view(vconfig, &viewlist, &view));
 		CHECK(configure_view(view, config, vconfig, ns_g_mctx,
 				     &aclconfctx, ISC_FALSE));
@@ -3096,7 +3100,7 @@ load_configuration(const char *filename, ns_server_t *server,
 			      "ignoring config file logging "
 			      "statement due to -g option");
 	} else {
-		cfg_obj_t *logobj = NULL;
+		const cfg_obj_t *logobj = NULL;
 		isc_logconfig_t *logc = NULL;
 
 		CHECKM(isc_logconfig_create(ns_g_lctx, &logc),
@@ -3135,8 +3139,8 @@ load_configuration(const char *filename, ns_server_t *server,
 	 * compatibility.
 	 */
 	if (first_time) {
-		cfg_obj_t *logobj = NULL;
-		cfg_obj_t *categories = NULL;
+		const cfg_obj_t *logobj = NULL;
+		const cfg_obj_t *categories = NULL;
 
 		obj = NULL;
 		if (ns_config_get(maps, "querylog", &obj) == ISC_R_SUCCESS) {
@@ -3148,12 +3152,12 @@ load_configuration(const char *filename, ns_server_t *server,
 				(void)cfg_map_get(logobj, "category",
 						  &categories);
 			if (categories != NULL) {
-				cfg_listelt_t *element;
+				const cfg_listelt_t *element;
 				for (element = cfg_list_first(categories);
 				     element != NULL;
 				     element = cfg_list_next(element))
 				{
-					cfg_obj_t *catobj;
+					const cfg_obj_t *catobj;
 					const char *str;
 
 					obj = cfg_listelt_value(element);
@@ -3657,7 +3661,7 @@ end_reserved_dispatches(ns_server_t *server, isc_boolean_t all) {
 }
 
 void
-ns_add_reserved_dispatch(ns_server_t *server, isc_sockaddr_t *addr) {
+ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr) {
 	ns_dispatch_t *dispatch;
 	in_port_t port;
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -4033,12 +4037,12 @@ ns_server_togglequerylog(ns_server_t *server) {
 }
 
 static isc_result_t
-ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
+ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx,
 			 isc_mem_t *mctx, ns_listenlist_t **target)
 {
 	isc_result_t result;
-	cfg_listelt_t *element;
+	const cfg_listelt_t *element;
 	ns_listenlist_t *dlist = NULL;
 
 	REQUIRE(target != NULL && *target == NULL);
@@ -4052,7 +4056,7 @@ ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
 	     element = cfg_list_next(element))
 	{
 		ns_listenelt_t *delt = NULL;
-		cfg_obj_t *listener = cfg_listelt_value(element);
+		const cfg_obj_t *listener = cfg_listelt_value(element);
 		result = ns_listenelt_fromconfig(listener, config, actx,
 						 mctx, &delt);
 		if (result != ISC_R_SUCCESS)
@@ -4072,12 +4076,12 @@ ns_listenlist_fromconfig(cfg_obj_t *listenlist, cfg_obj_t *config,
  * data structure.
  */
 static isc_result_t
-ns_listenelt_fromconfig(cfg_obj_t *listener, cfg_obj_t *config,
+ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx,
 			isc_mem_t *mctx, ns_listenelt_t **target)
 {
 	isc_result_t result;
-	cfg_obj_t *portobj;
+	const cfg_obj_t *portobj;
 	in_port_t port;
 	ns_listenelt_t *delt = NULL;
 	REQUIRE(target != NULL && *target == NULL);

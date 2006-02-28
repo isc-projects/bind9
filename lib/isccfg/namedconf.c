@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.34 2006/02/17 00:42:10 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.35 2006/02/28 03:10:49 marka Exp $ */
 
 /*! \file */
 
@@ -60,7 +60,7 @@ static isc_result_t
 parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
 static void
-print_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj);
+print_keyvalue(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 static void
 doc_keyvalue(cfg_printer_t *pctx, const cfg_type_t *type);
@@ -459,7 +459,7 @@ static cfg_type_t cfg_type_transferformat = {
  */
 
 static void
-print_none(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_none(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	UNUSED(obj);
 	cfg_print_chars(pctx, "none", 4);
 }
@@ -500,7 +500,7 @@ static cfg_type_t cfg_type_qstringornone = {
  */
 
 static void
-print_hostname(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_hostname(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	UNUSED(obj);
 	cfg_print_chars(pctx, "hostname", 4);
 }
@@ -1213,7 +1213,7 @@ parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **
 }
 
 static void
-print_keyvalue(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_keyvalue(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	const keyword_type_t *kw = obj->type->of;
 	cfg_print_cstr(pctx, kw->name);
 	cfg_print_chars(pctx, " ", 1);
@@ -1460,7 +1460,7 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 static void
-print_querysource(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	isc_netaddr_t na;
 	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
 	cfg_print_chars(pctx, "address ", 8);
@@ -1541,7 +1541,7 @@ static cfg_tuplefielddef_t negated_fields[] = {
 };
 
 static void
-print_negated(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_negated(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_chars(pctx, "!", 1);
 	cfg_print_tuple(pctx, obj);
 }
@@ -1758,7 +1758,7 @@ parse_logfile(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 }
 
 static void
-print_logfile(cfg_printer_t *pctx, cfg_obj_t *obj) {
+print_logfile(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 	cfg_print_obj(pctx, obj->value.tuple[0]); /* file */
 	if (obj->value.tuple[1]->type->print != cfg_print_void) {
 		cfg_print_chars(pctx, " versions ", 10);

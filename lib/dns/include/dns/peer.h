@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: peer.h,v 1.20.18.7 2006/02/17 00:42:10 marka Exp $ */
+/* $Id: peer.h,v 1.20.18.8 2006/02/28 03:10:48 marka Exp $ */
 
 #ifndef DNS_PEER_H
 #define DNS_PEER_H 1
@@ -177,7 +177,8 @@ isc_result_t
 dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
 
 isc_result_t
-dns_peer_settransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
+dns_peer_settransfersource(dns_peer_t *peer,
+			   const isc_sockaddr_t *transfer_source);
 
 isc_result_t
 dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
@@ -195,13 +196,13 @@ isc_result_t
 dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp);
 
 isc_result_t
-dns_peer_setnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source);
+dns_peer_setnotifysource(dns_peer_t *peer, const isc_sockaddr_t *notify_source);
 
 isc_result_t
 dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source);
 
 isc_result_t
-dns_peer_setquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);
+dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source);
 
 isc_result_t
 dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);

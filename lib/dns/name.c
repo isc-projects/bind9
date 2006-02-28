@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.144.18.14 2006/01/10 23:50:41 marka Exp $ */
+/* $Id: name.c,v 1.144.18.15 2006/02/28 03:10:48 marka Exp $ */
 
 /*! \file */
 
@@ -938,7 +938,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 }
 
 void
-dns_name_clone(dns_name_t *source, dns_name_t *target) {
+dns_name_clone(const dns_name_t *source, dns_name_t *target) {
 
 	/*
 	 * Make 'target' refer to the same name as 'source'.
@@ -1897,7 +1897,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 }
 
 isc_result_t
-dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
+dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
+		isc_buffer_t *target)
+{
 	unsigned int methods;
 	isc_uint16_t offset;
 	dns_name_t gp;	/* Global compression prefix */
@@ -2111,7 +2113,9 @@ dns_name_split(dns_name_t *name, unsigned int suffixlabels,
 }
 
 isc_result_t
-dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
+dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
+	     dns_name_t *target)
+{
 	/*
 	 * Make 'target' a dynamically allocated copy of 'source'.
 	 */

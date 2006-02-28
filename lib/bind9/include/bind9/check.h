@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.2.18.2 2005/04/29 00:15:48 marka Exp $ */
+/* $Id: check.h,v 1.2.18.3 2006/02/28 03:10:48 marka Exp $ */
 
 #ifndef BIND9_CHECK_H
 #define BIND9_CHECK_H 1
@@ -30,7 +30,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
+bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
+		      isc_mem_t *mctx);
 /*%<
  * Check the syntactic validity of a configuration parse tree generated from
  * a named.conf file.
@@ -46,7 +47,7 @@ bind9_check_namedconf(cfg_obj_t *config, isc_log_t *logctx, isc_mem_t *mctx);
  */
 
 isc_result_t
-bind9_check_key(cfg_obj_t *config, isc_log_t *logctx);
+bind9_check_key(const cfg_obj_t *config, isc_log_t *logctx);
 /*%<
  * Same as bind9_check_namedconf(), but for a single 'key' statement.
  */

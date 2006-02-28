@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.c,v 1.2.2.4 2005/08/23 02:31:38 marka Exp $ */
+/* $Id: aclconf.c,v 1.2.2.5 2006/02/28 03:10:49 marka Exp $ */
 
 #include <config.h>
 
@@ -53,10 +53,10 @@ cfg_aclconfctx_destroy(cfg_aclconfctx_t *ctx) {
  * Find the definition of the named acl whose name is "name".
  */
 static isc_result_t
-get_acl_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
+get_acl_def(const cfg_obj_t *cctx, const char *name, const cfg_obj_t **ret) {
 	isc_result_t result;
-	cfg_obj_t *acls = NULL;
-	cfg_listelt_t *elt;
+	const cfg_obj_t *acls = NULL;
+	const cfg_listelt_t *elt;
 	
 	result = cfg_map_get(cctx, "acl", &acls);
 	if (result != ISC_R_SUCCESS)
@@ -64,7 +64,7 @@ get_acl_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 	for (elt = cfg_list_first(acls);
 	     elt != NULL;
 	     elt = cfg_list_next(elt)) {
-		cfg_obj_t *acl = cfg_listelt_value(elt);
+		const cfg_obj_t *acl = cfg_listelt_value(elt);
 		const char *aclname = cfg_obj_asstring(cfg_tuple_get(acl, "name"));
 		if (strcasecmp(aclname, name) == 0) {
 			*ret = cfg_tuple_get(acl, "value");
@@ -75,12 +75,12 @@ get_acl_def(cfg_obj_t *cctx, const char *name, cfg_obj_t **ret) {
 }
 
 static isc_result_t
-convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
+convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 		  isc_log_t *lctx, cfg_aclconfctx_t *ctx,
 		  isc_mem_t *mctx, dns_acl_t **target)
 {
 	isc_result_t result;
-	cfg_obj_t *cacl = NULL;
+	const cfg_obj_t *cacl = NULL;
 	dns_acl_t *dacl;
 	dns_acl_t loop;
 	const char *aclname = cfg_obj_asstring(nameobj);
@@ -130,7 +130,7 @@ convert_named_acl(cfg_obj_t *nameobj, cfg_obj_t *cctx,
 }
 
 static isc_result_t
-convert_keyname(cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
+convert_keyname(const cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
 		dns_name_t *dnsname)
 {
 	isc_result_t result;
@@ -155,8 +155,8 @@ convert_keyname(cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
 }
 
 isc_result_t
-cfg_acl_fromconfig(cfg_obj_t *caml,
-		   cfg_obj_t *cctx,
+cfg_acl_fromconfig(const cfg_obj_t *caml,
+		   const cfg_obj_t *cctx,
 	 	   isc_log_t *lctx,
 		   cfg_aclconfctx_t *ctx,
 		   isc_mem_t *mctx,
@@ -166,7 +166,7 @@ cfg_acl_fromconfig(cfg_obj_t *caml,
 	unsigned int count;
 	dns_acl_t *dacl = NULL;
 	dns_aclelement_t *de;
-	cfg_listelt_t *elt;
+	const cfg_listelt_t *elt;
 
 	REQUIRE(target != NULL && *target == NULL);
 
@@ -185,7 +185,7 @@ cfg_acl_fromconfig(cfg_obj_t *caml,
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
-		cfg_obj_t *ce = cfg_listelt_value(elt);
+		const cfg_obj_t *ce = cfg_listelt_value(elt);
 		if (cfg_obj_istuple(ce)) {
 			/* This must be a negated element. */
 			ce = cfg_tuple_get(ce, "value");

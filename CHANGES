@@ -1,3 +1,7 @@
+1991.	[cleanup]	The configuration data, once read, should be treated
+			as readonly.  Expand the use of const to enforce this
+			at compile time. [RT #15813]
+
 1990.	[bug]		libbind:  isc's override of broken gettimeofday()
 			implementions was not always effective.
 			[RT #15709]

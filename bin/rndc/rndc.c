@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.12 2005/09/19 00:15:20 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.13 2006/02/28 03:10:48 marka Exp $ */
 
 /*! \file */
 
@@ -415,25 +415,25 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 {
 	isc_result_t result;
 	const char *conffile = admin_conffile;
-	cfg_obj_t *addresses = NULL;
-	cfg_obj_t *defkey = NULL;
-	cfg_obj_t *options = NULL;
-	cfg_obj_t *servers = NULL;
-	cfg_obj_t *server = NULL;
-	cfg_obj_t *keys = NULL;
-	cfg_obj_t *key = NULL;
-	cfg_obj_t *defport = NULL;
-	cfg_obj_t *secretobj = NULL;
-	cfg_obj_t *algorithmobj = NULL;
+	const cfg_obj_t *addresses = NULL;
+	const cfg_obj_t *defkey = NULL;
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *servers = NULL;
+	const cfg_obj_t *server = NULL;
+	const cfg_obj_t *keys = NULL;
+	const cfg_obj_t *key = NULL;
+	const cfg_obj_t *defport = NULL;
+	const cfg_obj_t *secretobj = NULL;
+	const cfg_obj_t *algorithmobj = NULL;
 	cfg_obj_t *config = NULL;
-	cfg_obj_t *address = NULL;
-	cfg_listelt_t *elt;
+	const cfg_obj_t *address = NULL;
+	const cfg_listelt_t *elt;
 	const char *secretstr;
 	const char *algorithm;
 	static char secretarray[1024];
 	const cfg_type_t *conftype = &cfg_type_rndcconf;
 	isc_boolean_t key_only = ISC_FALSE;
-	cfg_listelt_t *element;
+	const cfg_listelt_t *element;
 
 	if (! isc_file_exists(conffile)) {
 		conffile = admin_keyfile;
@@ -460,7 +460,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	if (key_only && servername == NULL)
 		servername = "127.0.0.1";
 	else if (servername == NULL && options != NULL) {
-		cfg_obj_t *defserverobj = NULL;
+		const cfg_obj_t *defserverobj = NULL;
 		(void)cfg_map_get(options, "default-server", &defserverobj);
 		if (defserverobj != NULL)
 			servername = cfg_obj_asstring(defserverobj);
@@ -570,7 +570,7 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 			if (!cfg_obj_issockaddr(address)) {
 				unsigned int myport;
 				const char *name;
-				cfg_obj_t *obj;
+				const cfg_obj_t *obj;
 
 				obj = cfg_tuple_get(address, "name");
 				name = cfg_obj_asstring(obj);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdgabn.c,v 1.15.18.3 2005/06/23 04:23:13 marka Exp $ */
+/* $Id: lwdgabn.c,v 1.15.18.4 2006/02/28 03:10:47 marka Exp $ */
 
 /*! \file */
 
@@ -122,7 +122,7 @@ sort_addresses(ns_lwdclient_t *client) {
 	rankedaddress *addrs;
 	isc_netaddr_t remote;
 	dns_addressorderfunc_t order;
-	void *arg;
+	const void *arg;
 	ns_lwresd_t *lwresd = client->clientmgr->listener->manager;
 	unsigned int i;
 	isc_result_t result;

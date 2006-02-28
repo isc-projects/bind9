@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsigconf.c,v 1.22.18.5 2006/01/27 23:57:44 marka Exp $ */
+/* $Id: tsigconf.c,v 1.22.18.6 2006/02/28 03:10:47 marka Exp $ */
 
 /*! \file */
 
@@ -37,10 +37,12 @@
 #include <named/tsigconf.h>
 
 static isc_result_t
-add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
+add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
+		 isc_mem_t *mctx)
+{
 	dns_tsigkey_t *tsigkey = NULL;
-	cfg_listelt_t *element;
-	cfg_obj_t *key = NULL;
+	const cfg_listelt_t *element;
+	const cfg_obj_t *key = NULL;
 	const char *keyid = NULL;
 	unsigned char *secret = NULL;
 	int secretalloc = 0;
@@ -53,8 +55,8 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		cfg_obj_t *algobj = NULL;
-		cfg_obj_t *secretobj = NULL;
+		const cfg_obj_t *algobj = NULL;
+		const cfg_obj_t *secretobj = NULL;
 		dns_name_t keyname;
 		dns_name_t *alg;
 		const char *algstr;
@@ -138,11 +140,11 @@ add_initial_keys(cfg_obj_t *list, dns_tsig_keyring_t *ring, isc_mem_t *mctx) {
 }
 
 isc_result_t
-ns_tsigkeyring_fromconfig(cfg_obj_t *config, cfg_obj_t *vconfig,
+ns_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			  isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
 {
-	cfg_obj_t *maps[3];
-	cfg_obj_t *keylist;
+	const cfg_obj_t *maps[3];
+	const cfg_obj_t *keylist;
 	dns_tsig_keyring_t *ring = NULL;
 	isc_result_t result;
 	int i;
