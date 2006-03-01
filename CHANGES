@@ -1,3 +1,7 @@
+1993.	[bug]		Log messsage, via syslog, were missing the space
+			after the timestamp if "print-time yes" was specified.
+			[RT #15844]
+
 1991.	[cleanup]	The configuration data, once read, should be treated
 			as readonly.  Expand the use of const to enforce this
 			at compile time. [RT #15813]
