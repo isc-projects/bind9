@@ -1,3 +1,5 @@
+1994.	[port]		OpenSSL 0.9.8 support. [RT #15694]
+
 1993.	[bug]		Log messsage, via syslog, were missing the space
 			after the timestamp if "print-time yes" was specified.
 			[RT #15844]
