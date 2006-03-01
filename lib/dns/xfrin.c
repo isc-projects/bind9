@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.145 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: xfrin.c,v 1.146 2006/03/01 02:05:11 marka Exp $ */
 
 /*! \file */
 
@@ -224,14 +224,14 @@ static isc_result_t
 render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf);
 
 static void
-xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap)
-     ISC_FORMAT_PRINTF(5, 0);
+xfrin_logv(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+	   const char *fmt, va_list ap)
+     ISC_FORMAT_PRINTF(4, 0);
 
 static void
-xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, ...)
-     ISC_FORMAT_PRINTF(5, 6);
+xfrin_log1(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+	   const char *fmt, ...)
+     ISC_FORMAT_PRINTF(4, 5);
 
 static void
 xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
@@ -604,9 +604,12 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  failure:
 	if (db != NULL)
 		dns_db_detach(&db);
-	if (result != ISC_R_SUCCESS)
-		xfrin_log1(ISC_LOG_ERROR, zonename, dns_zone_getclass(zone),
-			   masteraddr, "zone transfer setup failed");
+	if (result != ISC_R_SUCCESS) {
+		char zonetext[DNS_NAME_MAXTEXT+32];
+		dns_zone_name(zone, zonetext, sizeof(zonetext));
+		xfrin_log1(ISC_LOG_ERROR, zonetext, masteraddr,
+			   "zone transfer setup failed");
+	}
 	return (result);
 }
 
@@ -1364,23 +1367,19 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
  * transfer of <zone> from <address>: <message>
  */
 static void
-xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, va_list ap)
+xfrin_logv(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+	   const char *fmt, va_list ap)
 {
-	char zntext[DNS_NAME_FORMATSIZE];
 	char mastertext[ISC_SOCKADDR_FORMATSIZE];
-	char classtext[DNS_RDATACLASS_FORMATSIZE];
 	char msgtext[2048];
 
-	dns_name_format(zonename, zntext, sizeof(zntext));
-	dns_rdataclass_format(rdclass, classtext, sizeof(classtext));
 	isc_sockaddr_format(masteraddr, mastertext, sizeof(mastertext));
 	vsnprintf(msgtext, sizeof(msgtext), fmt, ap);
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_XFER_IN,
 		      DNS_LOGMODULE_XFER_IN, level,
-		      "transfer of '%s/%s' from %s: %s",
-		      zntext, classtext, mastertext, msgtext);
+		      "transfer of '%s' from %s: %s",
+		      zonetext, mastertext, msgtext);
 }
 
 /*
@@ -1388,8 +1387,8 @@ xfrin_logv(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
  */
 
 static void
-xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
-	   isc_sockaddr_t *masteraddr, const char *fmt, ...)
+xfrin_log1(int level, const char *zonetext, isc_sockaddr_t *masteraddr,
+           const char *fmt, ...)
 {
 	va_list ap;
 
@@ -1397,7 +1396,7 @@ xfrin_log1(int level, dns_name_t *zonename, dns_rdataclass_t rdclass,
 		return;
 
 	va_start(ap, fmt);
-	xfrin_logv(level, zonename, rdclass, masteraddr, fmt, ap);
+	xfrin_logv(level, zonetext, masteraddr, fmt, ap);
 	va_end(ap);
 }
 
@@ -1409,11 +1408,14 @@ static void
 xfrin_log(dns_xfrin_ctx_t *xfr, int level, const char *fmt, ...)
 {
 	va_list ap;
+	char zonetext[DNS_NAME_MAXTEXT+32];
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
 
+	dns_zone_name(xfr->zone, zonetext, sizeof(zonetext));
+
 	va_start(ap, fmt);
-	xfrin_logv(level, &xfr->name, xfr->rdclass, &xfr->masteraddr, fmt, ap);
+	xfrin_logv(level, zonetext, &xfr->masteraddr, fmt, ap);
 	va_end(ap);
 }

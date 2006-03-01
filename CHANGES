@@ -1,3 +1,6 @@
+1992.	[bug]		Not all incoming zone tranfer messages included the
+			view.  [RT #15825]
+
 1991.	[cleanup]	The configuration data, once read, should be treated
 			as readonly.  Expand the use of const to enforce this
 			at compile time. [RT #15813]
