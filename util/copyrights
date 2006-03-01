@@ -1799,9 +1799,9 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005
-./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005
-./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005
+./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
+./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
+./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/order.c				C	2002,2004,2005
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006
 ./lib/dns/portlist.c				C	2003,2004,2005
@@ -2048,7 +2048,7 @@
 ./lib/isc/lex.c					C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/lfsr.c				C	1999,2000,2001,2002,2004,2005
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005
-./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005
+./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/md5.c					C	2000,2001,2004,2005
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/mips/include/isc/atomic.h		C	2005
