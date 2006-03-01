@@ -1,4 +1,4 @@
-1992.	[bug]		Not all incoming zone tranfer messages included the
+1992.	[bug]		Not all incoming zone transfer messages included the
 			view.  [RT #15825]
 
 1991.	[cleanup]	The configuration data, once read, should be treated
