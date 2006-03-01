@@ -1,3 +1,5 @@
+1994.	[port]		OpenSSL 0.9.8 support. [RT #15694]
+
 1991.	[cleanup]	The configuration data, once read, should be treated
 			as readonly.  Expand the use of const to enforce this
 			at compile time. [RT #15813]
