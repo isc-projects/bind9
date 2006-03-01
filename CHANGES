@@ -1,3 +1,7 @@
+1993.	[bug]		Log messsage, via syslog, were missing the space
+			after the timestamp if "print-time yes" was specified.
+			[RT #15844]
+
 1992.	[bug]		Not all incoming zone transfer messages included the
 			view.  [RT #15825]
 
