@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: aclconf.h,v 1.12.2.1 2004/03/09 06:09:21 marka Exp $ */
+/* $Id: aclconf.h,v 1.12.2.2 2006/03/01 01:34:05 marka Exp $ */
 
 #ifndef NS_ACLCONF_H
 #define NS_ACLCONF_H 1
@@ -49,8 +49,8 @@ ns_aclconfctx_destroy(ns_aclconfctx_t *ctx);
  */
 
 isc_result_t
-ns_acl_fromconfig(cfg_obj_t *caml,
-		  cfg_obj_t *cctx,
+ns_acl_fromconfig(const cfg_obj_t *caml,
+		  const cfg_obj_t *cctx,
 		  ns_aclconfctx_t *ctx,
 		  isc_mem_t *mctx,
 		  dns_acl_t **target);

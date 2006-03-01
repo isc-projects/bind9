@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.41.2.8 2005/03/16 00:57:43 marka Exp $ */
+/* $Id: rdataset.h,v 1.41.2.9 2006/03/01 01:34:07 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -306,7 +306,7 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int *countp);
@@ -344,11 +344,11 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
-			  dns_name_t *owner_name,
+			  const dns_name_t *owner_name,
 			  dns_compress_t *cctx,
 			  isc_buffer_t *target,
 			  dns_rdatasetorderfunc_t order,
-			  void *order_arg,
+			  const void *order_arg,
 			  unsigned int *countp);
 /*
  * Like dns_rdataset_towire(), but sorting the rdatasets according to
@@ -362,11 +362,11 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
-			   dns_name_t *owner_name,
+			   const dns_name_t *owner_name,
 			   dns_compress_t *cctx,
 			   isc_buffer_t *target,
 			   dns_rdatasetorderfunc_t order,
-			   void *order_arg,
+			   const void *order_arg,
 			   unsigned int *countp,
 			   void **state);
 /*

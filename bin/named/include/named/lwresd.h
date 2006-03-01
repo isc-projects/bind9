@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwresd.h,v 1.12.2.1 2004/03/09 06:09:22 marka Exp $ */
+/* $Id: lwresd.h,v 1.12.2.2 2006/03/01 01:34:05 marka Exp $ */
 
 #ifndef NAMED_LWRESD_H
 #define NAMED_LWRESD_H 1
@@ -56,7 +56,7 @@ struct ns_lwreslistener {
  * Configure lwresd.
  */
 isc_result_t
-ns_lwresd_configure(isc_mem_t *mctx, cfg_obj_t *config);
+ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config);
 
 isc_result_t
 ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
@@ -72,7 +72,8 @@ ns_lwresd_shutdown(void);
  * Manager functions
  */
 isc_result_t
-ns_lwdmanager_create(isc_mem_t *mctx, cfg_obj_t *lwres, ns_lwresd_t **lwresdp);
+ns_lwdmanager_create(isc_mem_t *mctx, const cfg_obj_t *lwres,
+		      ns_lwresd_t **lwresdp);
 
 void
 ns_lwdmanager_attach(ns_lwresd_t *source, ns_lwresd_t **targetp);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.48.2.5 2004/03/09 06:11:51 marka Exp $ */
+/* $Id: sockaddr.c,v 1.48.2.6 2006/03/01 01:34:07 marka Exp $ */
 
 #include <config.h>
 
@@ -155,7 +155,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 }
 
 void
-isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size) {
+isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t buf;
 
@@ -388,7 +388,7 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port) {
 }
 
 in_port_t
-isc_sockaddr_getport(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_getport(const isc_sockaddr_t *sockaddr) {
 	in_port_t port = 0;
 
 	switch (sockaddr->type.sa.sa_family) {
@@ -410,7 +410,7 @@ isc_sockaddr_getport(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_ismulticast(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
@@ -418,7 +418,7 @@ isc_sockaddr_ismulticast(isc_sockaddr_t *sockaddr) {
 }
 
 isc_boolean_t
-isc_sockaddr_isexperimental(isc_sockaddr_t *sockaddr) {
+isc_sockaddr_isexperimental(const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
 
 	if (sockaddr->type.sa.sa_family == AF_INET) {

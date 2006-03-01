@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.194.2.19 2006/01/05 01:04:30 marka Exp $ */
+/* $Id: message.c,v 1.194.2.20 2006/03/01 01:34:05 marka Exp $ */
 
 /***
  *** Imports
@@ -1799,7 +1799,7 @@ dns_message_rendersection(dns_message_t *msg, dns_section_t sectionid,
 		if (rdataset != NULL &&
 		    (rdataset->attributes & DNS_RDATASETATTR_REQUIREDGLUE) != 0 &&
 		    (rdataset->attributes & DNS_RDATASETATTR_RENDERED) == 0) {
-			void *order_arg = msg->order_arg;
+			const void *order_arg = msg->order_arg;
 			st = *(msg->buffer);
 			count = 0;
 			if (partial)
@@ -3153,7 +3153,7 @@ dns_message_getrawmessage(dns_message_t *msg) {
 
 void
 dns_message_setsortorder(dns_message_t *msg, dns_rdatasetorderfunc_t order,
-			 void *order_arg)
+			 const void *order_arg)
 {
 	REQUIRE(DNS_MESSAGE_VALID(msg));
 	msg->order = order;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.58.2.3 2004/03/09 06:09:23 marka Exp $ */
+/* $Id: server.h,v 1.58.2.4 2006/03/01 01:34:05 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -177,6 +177,6 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text);
  * Maintain a list of dispatches that require reserved ports.
  */
 void
-ns_add_reserved_dispatch(ns_server_t *server, isc_sockaddr_t *addr);
+ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr);
 
 #endif /* NAMED_SERVER_H */

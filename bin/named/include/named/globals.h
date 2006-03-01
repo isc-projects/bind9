@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.59.2.1 2004/03/09 06:09:21 marka Exp $ */
+/* $Id: globals.h,v 1.59.2.2 2006/03/01 01:34:05 marka Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -73,7 +73,7 @@ EXTERN unsigned int		ns_g_debuglevel		INIT(0);
  * Current configuration information.
  */
 EXTERN cfg_obj_t *		ns_g_config		INIT(NULL);
-EXTERN cfg_obj_t *		ns_g_defaults		INIT(NULL);
+EXTERN const cfg_obj_t *	ns_g_defaults		INIT(NULL);
 EXTERN const char *		ns_g_conffile		INIT(NS_SYSCONFDIR
 							     "/named.conf");
 EXTERN const char *		ns_g_keyfile		INIT(NS_SYSCONFDIR

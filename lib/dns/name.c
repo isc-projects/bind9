@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.127.2.12 2005/07/23 04:34:21 marka Exp $ */
+/* $Id: name.c,v 1.127.2.13 2006/03/01 01:34:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1032,7 +1032,7 @@ dns_name_getlabelsequence(const dns_name_t *source,
 }
 
 void
-dns_name_clone(dns_name_t *source, dns_name_t *target) {
+dns_name_clone(const dns_name_t *source, dns_name_t *target) {
 
 	/*
 	 * Make 'target' refer to the same name as 'source'.
@@ -2545,7 +2545,9 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 }
 
 isc_result_t
-dns_name_towire(dns_name_t *name, dns_compress_t *cctx, isc_buffer_t *target) {
+dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
+		isc_buffer_t *target)
+{
 	unsigned int methods;
 	isc_uint16_t offset;
 	dns_name_t gp;	/* Global compression prefix */
@@ -3127,7 +3129,9 @@ dns_name_splitatdepth(dns_name_t *name, unsigned int depth,
 }
 
 isc_result_t
-dns_name_dup(dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
+dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
+	     dns_name_t *target)
+{
 	/*
 	 * Make 'target' a dynamically allocated copy of 'source'.
 	 */

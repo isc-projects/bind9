@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.16.2.1 2004/03/09 06:12:02 marka Exp $ */
+/* $Id: symtab.h,v 1.16.2.2 2006/03/01 01:34:07 marka Exp $ */
 
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1
@@ -88,6 +88,7 @@
 
 typedef union isc_symvalue {
 	void *				as_pointer;
+	const void *			as_cpointer;
 	int				as_integer;
 	unsigned int			as_uinteger;
 } isc_symvalue_t;

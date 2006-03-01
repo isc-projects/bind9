@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkconf.c,v 1.12.2.1 2004/03/09 06:09:09 marka Exp $ */
+/* $Id: named-checkconf.c,v 1.12.2.2 2006/03/01 01:34:04 marka Exp $ */
 
 #include <config.h>
 
@@ -45,9 +45,9 @@ usage(void) {
 }
 
 static isc_result_t
-directory_callback(const char *clausename, cfg_obj_t *obj, void *arg) {
+directory_callback(const char *clausename, const cfg_obj_t *obj, void *arg) {
 	isc_result_t result;
-	char *directory;
+	const char *directory;
 
 	REQUIRE(strcasecmp("directory", clausename) == 0);
 

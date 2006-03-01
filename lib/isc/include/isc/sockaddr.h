@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.35.2.2 2004/03/09 06:12:01 marka Exp $ */
+/* $Id: sockaddr.h,v 1.35.2.3 2006/03/01 01:34:07 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
@@ -138,7 +138,7 @@ isc_sockaddr_setport(isc_sockaddr_t *sockaddr, in_port_t port);
  */
 
 in_port_t
-isc_sockaddr_getport(isc_sockaddr_t *sockaddr);
+isc_sockaddr_getport(const isc_sockaddr_t *sockaddr);
 /*
  * Get the port stored in 'sockaddr'.
  */
@@ -157,7 +157,7 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target);
  */
 
 void
-isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
+isc_sockaddr_format(const isc_sockaddr_t *sa, char *array, unsigned int size);
 /*
  * Format a human-readable representation of the socket address '*sa'
  * into the character array 'array', which is of size 'size'.
@@ -165,13 +165,13 @@ isc_sockaddr_format(isc_sockaddr_t *sa, char *array, unsigned int size);
  */
 
 isc_boolean_t
-isc_sockaddr_ismulticast(isc_sockaddr_t *sa);
+isc_sockaddr_ismulticast(const isc_sockaddr_t *sa);
 /*
  * Returns ISC_TRUE if the address is a multicast address
  */
 
 isc_boolean_t
-isc_sockaddr_isexperimental(isc_sockaddr_t *sa);
+isc_sockaddr_isexperimental(const isc_sockaddr_t *sa);
 /*
  * Returns ISC_TRUE if the address is a experimental (CLASS E) address.
  */

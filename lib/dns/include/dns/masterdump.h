@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.22.2.3 2005/09/06 02:11:55 marka Exp $ */
+/* $Id: masterdump.h,v 1.22.2.4 2006/03/01 01:34:05 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
@@ -159,7 +159,7 @@ dns_master_questiontotext(dns_name_t *owner_name,
 
 isc_result_t
 dns_rdataset_towire(dns_rdataset_t *rdataset,
-		    dns_name_t *owner_name,
+		    const dns_name_t *owner_name,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int *countp);
