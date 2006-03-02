@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.28 2006/02/16 01:23:47 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.29 2006/03/02 23:19:20 marka Exp $ */
 
 /*! \file */
 
@@ -3331,7 +3331,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *nsheader;
 	rdatasetheader_t *foundsig, *nssig, *cnamesig;
-	rbtdb_rdatatype_t sigtype, nsectype;
+	rbtdb_rdatatype_t sigtype, negtype;
 
 	UNUSED(version);
 
@@ -3408,7 +3408,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	found = NULL;
 	foundsig = NULL;
 	sigtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
-	nsectype = RBTDB_RDATATYPE_VALUE(0, type);
+	negtype = RBTDB_RDATATYPE_VALUE(0, type);
 	nsheader = NULL;
 	nssig = NULL;
 	cnamesig = NULL;
@@ -3491,7 +3491,7 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 				 */
 				foundsig = header;
 			} else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				   header->type == nsectype) {
+				   header->type == negtype) {
 				/*
 				 * We've found a negative cache entry.
 				 */
@@ -4138,7 +4138,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = (dns_rbtnode_t *)node;
 	rdatasetheader_t *header, *header_next, *found, *foundsig;
-	rbtdb_rdatatype_t matchtype, sigmatchtype, nsectype;
+	rbtdb_rdatatype_t matchtype, sigmatchtype, negtype;
 	isc_result_t result;
 	nodelock_t *lock;
 	isc_rwlocktype_t locktype;
@@ -4160,7 +4160,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	found = NULL;
 	foundsig = NULL;
 	matchtype = RBTDB_RDATATYPE_VALUE(type, covers);
-	nsectype = RBTDB_RDATATYPE_VALUE(0, type);
+	negtype = RBTDB_RDATATYPE_VALUE(0, type);
 	if (covers == 0)
 		sigmatchtype = RBTDB_RDATATYPE_VALUE(dns_rdatatype_rrsig, type);
 	else
@@ -4192,7 +4192,7 @@ cache_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			if (header->type == matchtype)
 				found = header;
 			else if (header->type == RBTDB_RDATATYPE_NCACHEANY ||
-				 header->type == nsectype)
+				 header->type == negtype)
 				found = header;
 			else if (header->type == sigmatchtype)
 				foundsig = header;
@@ -4370,7 +4370,8 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	isc_boolean_t header_nx;
 	isc_boolean_t newheader_nx;
 	isc_boolean_t merge;
-	dns_rdatatype_t nsectype, rdtype, covers;
+	dns_rdatatype_t rdtype, covers;
+	rbtdb_rdatatype_t negtype;
 	dns_trust_t trust;
 
 	/*
@@ -4408,7 +4409,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	newheader_nx = NONEXISTENT(newheader) ? ISC_TRUE : ISC_FALSE;
 	topheader_prev = NULL;
 
-	nsectype = 0;
+	negtype = 0;
 	if (rbtversion == NULL && !newheader_nx) {
 		rdtype = RBTDB_RDATATYPE_BASE(newheader->type);
 		if (rdtype == 0) {
@@ -4418,12 +4419,13 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			covers = RBTDB_RDATATYPE_EXT(newheader->type);
 			if (covers == dns_rdatatype_any) {
 				/*
-				 * We're adding an NXDOMAIN negative cache
-				 * entry.
+				 * We're adding an negative cache entry
+				 * which covers all types (NXDOMAIN,
+				 * NODATA(QTYPE=ANY)).
 				 *
 				 * We make all other data stale so that the
 				 * only rdataset that can be found at this
-				 * node is the NXDOMAIN negative cache entry.
+				 * node is the negative cache entry.
 				 */
 				for (topheader = rbtnode->data;
 				     topheader != NULL;
@@ -4435,17 +4437,19 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				rbtnode->dirty = 1;
 				goto find_header;
 			}
-			nsectype = RBTDB_RDATATYPE_VALUE(covers, 0);
+			negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
 		} else {
 			/*
 			 * We're adding something that isn't a
 			 * negative cache entry.  Look for an extant
-			 * non-stale NXDOMAIN negative cache entry.
+			 * non-stale NXDOMAIN/NODATA(QTYPE=ANY) negative
+			 * cache entry.
 			 */
 			for (topheader = rbtnode->data;
 			     topheader != NULL;
 			     topheader = topheader->next) {
-				if (NXDOMAIN(topheader))
+				if (topheader->type == 
+				    RBTDB_RDATATYPE_NCACHEANY)
 					break;
 			}
 			if (topheader != NULL && EXISTS(topheader) &&
@@ -4455,7 +4459,8 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 */
 				if (trust < topheader->trust) {
 					/*
-					 * The NXDOMAIN is more trusted.
+					 * The NXDOMAIN/NODATA(QTYPE=ANY)
+					 * is more trusted.
 					 */
 					
 					free_rdataset(rbtdb->common.mctx,
@@ -4468,7 +4473,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				}
 				/*
 				 * The new rdataset is better.  Expire the
-				 * NXDOMAIN.
+				 * NXDOMAIN/NODATA(QTYPE=ANY).
 				 */
 				topheader->ttl = 0;
 				topheader->attributes |= RDATASET_ATTR_STALE;
@@ -4476,7 +4481,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				topheader = NULL;
 				goto find_header;
 			}
-			nsectype = RBTDB_RDATATYPE_VALUE(0, rdtype);
+			negtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 		}
 	}
 
@@ -4484,7 +4489,7 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	     topheader != NULL;
 	     topheader = topheader->next) {
 		if (topheader->type == newheader->type ||
-		    topheader->type == nsectype)
+		    topheader->type == negtype)
 			break;
 		topheader_prev = topheader;
 	}
@@ -4650,6 +4655,10 @@ add(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			rbtnode->dirty = 1;
 			if (changed != NULL)
 				changed->dirty = ISC_TRUE;
+			if (rbtversion == NULL) {
+				header->ttl = 0;
+				header->attributes |= RDATASET_ATTR_STALE;
+			}
 		}
 	} else {
 		/*
@@ -5819,7 +5828,8 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 	rdatasetheader_t *header, *top_next;
 	rbtdb_serial_t serial;
 	isc_stdtime_t now;
-	rbtdb_rdatatype_t type;
+	rbtdb_rdatatype_t type, negtype;
+	dns_rdatatype_t rdtype, covers;
 
 	header = rbtiterator->current;
 	if (header == NULL)
@@ -5837,9 +5847,18 @@ rdatasetiter_next(dns_rdatasetiter_t *iterator) {
 		  isc_rwlocktype_read);
 
 	type = header->type;
+	rdtype = RBTDB_RDATATYPE_BASE(header->type);
+	if (rdtype == 0) {
+		covers = RBTDB_RDATATYPE_EXT(header->type);
+		negtype = RBTDB_RDATATYPE_VALUE(covers, 0);
+	} else 
+		negtype = RBTDB_RDATATYPE_VALUE(0, rdtype);
 	for (header = header->next; header != NULL; header = top_next) {
 		top_next = header->next;
-		if (header->type != type) {
+		/*
+		 * If not walking back up the down list.
+		 */
+		if (header->type != type && header->type != negtype) {
 			do {
 				if (header->serial <= serial &&
 				    !IGNORE(header)) {

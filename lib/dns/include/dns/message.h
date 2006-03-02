@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.114.18.5 2006/02/28 03:10:48 marka Exp $ */
+/* $Id: message.h,v 1.114.18.6 2006/03/02 23:19:20 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -768,6 +768,25 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
  *
  *\li	'section' be a named section.
  */
+
+void
+dns_message_removename(dns_message_t *msg, dns_name_t *name,
+                       dns_section_t section);
+/*%<
+ * Remove a existing name from a given section.
+ *
+ * It is the caller's responsibility to ensure the name is part of the
+ * given section.
+ *
+ * Requires:
+ *
+ *\li	'msg' be valid, and be a renderable message.
+ *
+ *\li	'name' be a valid absolute name.
+ *
+ *\li	'section' be a named section.
+ */
+
 
 /*
  * LOANOUT FUNCTIONS

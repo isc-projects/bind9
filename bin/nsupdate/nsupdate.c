@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.130.18.12 2006/01/27 02:50:51 marka Exp $ */
+/* $Id: nsupdate.c,v 1.130.18.13 2006/03/02 23:19:20 marka Exp $ */
 
 /*! \file */
 
@@ -1422,12 +1422,50 @@ evaluate_update(char *cmdline) {
 }
 
 static void
+setzone(dns_name_t *zonename) {
+	isc_result_t result;
+	dns_name_t *name = NULL;
+	dns_rdataset_t *rdataset = NULL;
+
+	result = dns_message_firstname(updatemsg, DNS_SECTION_ZONE);
+	if (result == ISC_R_SUCCESS) {
+		dns_message_currentname(updatemsg, DNS_SECTION_ZONE, &name);
+		dns_message_removename(updatemsg, name, DNS_SECTION_ZONE);
+		for (rdataset = ISC_LIST_HEAD(name->list);
+		     rdataset != NULL;
+		     rdataset = ISC_LIST_HEAD(name->list)) {
+			ISC_LIST_UNLINK(name->list, rdataset, link);
+			dns_rdataset_disassociate(rdataset);
+			dns_message_puttemprdataset(updatemsg, &rdataset);
+		}
+		dns_message_puttempname(updatemsg, &name);
+	}
+
+	if (zonename != NULL) {
+		result = dns_message_gettempname(updatemsg, &name);
+		check_result(result, "dns_message_gettempname");
+		dns_name_init(name, NULL);
+		dns_name_clone(zonename, name);
+		result = dns_message_gettemprdataset(updatemsg, &rdataset);
+		check_result(result, "dns_message_gettemprdataset");
+		dns_rdataset_makequestion(rdataset, getzoneclass(),
+					  dns_rdatatype_soa);
+		ISC_LIST_INIT(name->list);
+		ISC_LIST_APPEND(name->list, rdataset, link);
+		dns_message_addname(updatemsg, name, DNS_SECTION_ZONE);
+	}
+}
+
+static void
 show_message(dns_message_t *msg) {
 	isc_result_t result;
 	isc_buffer_t *buf = NULL;
 	int bufsz;
 
 	ddebug("show_message()");
+
+	setzone(userzone);
+
 	bufsz = INITTEXT;
 	do { 
 		if (bufsz > MAXTEXT) {
@@ -1653,22 +1691,11 @@ send_update(dns_name_t *zonename, isc_sockaddr_t *master,
 {
 	isc_result_t result;
 	dns_request_t *request = NULL;
-	dns_name_t *name = NULL;
-	dns_rdataset_t *rdataset = NULL;
 	unsigned int options = 0;
 
 	ddebug("send_update()");
 
-	result = dns_message_gettempname(updatemsg, &name);
-	check_result(result, "dns_message_gettempname");
-	dns_name_init(name, NULL);
-	dns_name_clone(zonename, name);
-	result = dns_message_gettemprdataset(updatemsg, &rdataset);
-	check_result(result, "dns_message_gettemprdataset");
-	dns_rdataset_makequestion(rdataset, getzoneclass(), dns_rdatatype_soa);
-	ISC_LIST_INIT(name->list);
-	ISC_LIST_APPEND(name->list, rdataset, link);
-	dns_message_addname(updatemsg, name, DNS_SECTION_ZONE);
+	setzone(zonename);
 
 	if (usevc)
 		options |= DNS_REQUESTOPT_TCP;

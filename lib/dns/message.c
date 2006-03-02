@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.222.18.9 2006/02/28 03:10:48 marka Exp $ */
+/* $Id: message.c,v 1.222.18.10 2006/03/02 23:19:20 marka Exp $ */
 
 /*! \file */
 
@@ -2282,6 +2282,18 @@ dns_message_addname(dns_message_t *msg, dns_name_t *name,
 	REQUIRE(VALID_NAMED_SECTION(section));
 
 	ISC_LIST_APPEND(msg->sections[section], name, link);
+}
+
+void
+dns_message_removename(dns_message_t *msg, dns_name_t *name,
+		       dns_section_t section)
+{
+	REQUIRE(msg != NULL);
+	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTRENDER);
+	REQUIRE(name != NULL);
+	REQUIRE(VALID_NAMED_SECTION(section));
+
+	ISC_LIST_UNLINK(msg->sections[section], name, link);
 }
 
 isc_result_t
