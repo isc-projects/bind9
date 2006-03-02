@@ -1,3 +1,7 @@
+1997.	[bug]		Named was failing to replace negative cache entries
+			when a positive one for the type was learnt.
+			[RT #15818]
+
 1996.	[bug]		nsupdate: if a zone has been specified it should
 			appear in the output of 'show'. [RT #15797]
 
