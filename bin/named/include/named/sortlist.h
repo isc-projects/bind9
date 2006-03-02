@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sortlist.h,v 1.4.208.2 2006/02/28 06:32:53 marka Exp $ */
+/* $Id: sortlist.h,v 1.4.208.3 2006/03/02 00:37:20 marka Exp $ */
 
 #ifndef NAMED_SORTLIST_H
 #define NAMED_SORTLIST_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.70.2.8.2.13 2006/03/01 02:25:35 marka Exp $ */
+/* $Id: log.c,v 1.70.2.8.2.14 2006/03/02 00:37:20 marka Exp $ */
 
 /* Principal Authors: DCL */
 

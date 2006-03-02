@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: compress.h,v 1.29.2.2.8.2 2006/02/28 06:32:54 marka Exp $ */
+/* $Id: compress.h,v 1.29.2.2.8.3 2006/03/02 00:37:20 marka Exp $ */
 
 #ifndef DNS_COMPRESS_H
 #define DNS_COMPRESS_H 1
