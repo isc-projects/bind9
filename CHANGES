@@ -1,3 +1,7 @@
+1998.	[bug]		Restrict handling of fifos as sockets to just SunOS.
+			This allows named to connect to entropy gathering
+			daemons that use fifos instead of sockets. [RT #15840]
+
 1997.	[bug]		Named was failing to replace negative cache entries
 			when a positive one for the type was learnt.
 			[RT #15818]
