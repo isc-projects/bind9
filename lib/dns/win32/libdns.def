@@ -276,6 +276,7 @@ dns_message_puttemprdata
 dns_message_puttemprdatalist
 dns_message_puttemprdataset
 dns_message_rechecksig
+dns_message_removename
 dns_message_renderbegin
 dns_message_renderchangebuffer
 dns_message_renderend
