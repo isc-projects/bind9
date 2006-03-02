@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.76 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: entropy.c,v 1.77 2006/03/02 23:25:05 marka Exp $ */
 
 /* \file unix/entropy.c
  * \brief
@@ -504,7 +504,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	if (S_ISSOCK(_stat.st_mode))
 		is_usocket = ISC_TRUE;
 #endif
-#if defined(S_ISFIFO)
+#if defined(S_ISFIFO) && defined(sun)
 	if (S_ISFIFO(_stat.st_mode))
 		is_usocket = ISC_TRUE;
 #endif
