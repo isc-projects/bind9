@@ -36,7 +36,7 @@
 ./bin/dig/dig.html				HTML	DOCBOOK
 ./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/host.1				MAN	DOCBOOK
-./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005
+./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005
 ./bin/dig/host.html				HTML	DOCBOOK
 ./bin/dig/include/dig/dig.h			C	2000,2001,2002,2003,2004,2005,2006
