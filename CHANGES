@@ -1,3 +1,6 @@
+1995.	[bug]		'host' was reporting multiple "is an alias" messages.
+			[RT #15702]
+
 1994.	[port]		OpenSSL 0.9.8 support. [RT #15694]
 
 1993.	[bug]		Log messsage, via syslog, were missing the space
