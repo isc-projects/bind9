@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: logconf.h,v 1.11.18.3 2006/02/28 03:10:47 marka Exp $ */
+/* $Id: logconf.h,v 1.11.18.4 2006/03/02 00:37:21 marka Exp $ */
 
 #ifndef NAMED_LOGCONF_H
 #define NAMED_LOGCONF_H 1

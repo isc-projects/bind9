@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.h,v 1.2.18.3 2006/02/28 03:10:48 marka Exp $ */
+/* $Id: check.h,v 1.2.18.4 2006/03/02 00:37:21 marka Exp $ */
 
 #ifndef BIND9_CHECK_H
 #define BIND9_CHECK_H 1
