@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: start.pl,v 1.7 2005/06/12 00:03:20 marka Exp $
+# $Id: start.pl,v 1.8 2006/03/03 00:43:34 marka Exp $
 
 # Framework for starting test servers.
 # Based on the type of server specified, check for port availability, remove
@@ -47,8 +47,8 @@ if (!$test) {
 if (!-d $test) {
 	print "No test directory: \"$test\"\n";
 }
-if ($server && !-d $server) {
-	print "No server directory: \"$test\"\n";
+if ($server && !-d "$test/$server") {
+	print "No server directory: \"$test/$server\"\n";
 }
 
 # Global variables

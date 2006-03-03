@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.83 2005/11/30 03:33:49 marka Exp $ */
+/* $Id: masterdump.c,v 1.84 2006/03/03 00:43:35 marka Exp $ */
 
 /*! \file */
 
@@ -358,6 +358,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 
+	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 	result = dns_rdataset_first(rdataset);
 	REQUIRE(result == ISC_R_SUCCESS);
 

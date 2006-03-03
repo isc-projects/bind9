@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.127 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: update.c,v 1.128 2006/03/03 00:43:34 marka Exp $ */
 
 #include <config.h>
 
@@ -1311,8 +1311,8 @@ static isc_result_t
 namelist_append_name(dns_diff_t *list, dns_name_t *name) {
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
-	static dns_rdata_t dummy_rdata = { NULL, 0, 0, 0, 0,
-					   { (void*)(-1), (void*)(-1) } };
+	static dns_rdata_t dummy_rdata = DNS_RDATA_INIT;
+
 	CHECK(dns_difftuple_create(list->mctx, DNS_DIFFOP_EXISTS, name, 0,
 				   &dummy_rdata, &tuple));
 	dns_diff_append(list, &tuple);

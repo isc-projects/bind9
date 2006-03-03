@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.121 2005/10/14 01:14:07 marka Exp $ */
+/* $Id: xfrout.c,v 1.122 2006/03/03 00:43:34 marka Exp $ */
 
 #include <config.h>
 
@@ -200,7 +200,7 @@ db_rr_iterator_first(db_rr_iterator_t *it) {
 			continue;
 		}
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
-
+		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
 		return (it->result);
 	}
@@ -250,6 +250,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
+		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);

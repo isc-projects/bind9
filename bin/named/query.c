@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.281 2006/02/28 02:39:51 marka Exp $ */
+/* $Id: query.c,v 1.282 2006/03/03 00:43:34 marka Exp $ */
 
 /*! \file */
 
@@ -1914,6 +1914,8 @@ query_addrdataset(ns_client_t *client, dns_name_t *fname,
 		rdataset->attributes |= dns_order_find(client->view->order,
 						       fname, rdataset->type,
 						       rdataset->rdclass);
+	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
+
 	if (NOADDITIONAL(client))
 		return;
 

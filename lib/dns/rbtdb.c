@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.227 2006/03/02 23:00:32 marka Exp $ */
+/* $Id: rbtdb.c,v 1.228 2006/03/03 00:43:35 marka Exp $ */
 
 /*! \file */
 
@@ -856,7 +856,7 @@ free_acachearray(isc_mem_t *mctx, rdatasetheader_t *header,
 {
 	unsigned int count;
 	unsigned int i;
-	unsigned char *raw;
+	unsigned char *raw;	/* RDATASLAB */
 
 	/*
 	 * The caller must be holding the corresponding node lock.
@@ -1816,7 +1816,7 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	      rdatasetheader_t *header, isc_stdtime_t now,
 	      dns_rdataset_t *rdataset)
 {
-	unsigned char *raw;
+	unsigned char *raw;	/* RDATASLAB */
 
 	/*
 	 * Caller must be holding the node reader lock.
@@ -1924,7 +1924,7 @@ static inline isc_boolean_t
 valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	   dns_rbtnode_t *node)
 {
-	unsigned char *raw;
+	unsigned char *raw;	/* RDATASLAB */
 	unsigned int count, size;
 	dns_name_t ns_name;
 	isc_boolean_t valid = ISC_FALSE;
@@ -1953,12 +1953,12 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	header = search->zonecut_rdataset;
 	raw = (unsigned char *)header + sizeof(*header);
 	count = raw[0] * 256 + raw[1];
-	raw += 2;
+	raw += 2 + (4 * count);
 
 	while (count > 0) {
 		count--;
 		size = raw[0] * 256 + raw[1];
-		raw += 2;
+		raw += 4;
 		region.base = raw;
 		region.length = size;
 		raw += size;
@@ -5619,7 +5619,7 @@ rdataset_disassociate(dns_rdataset_t *rdataset) {
 
 static isc_result_t
 rdataset_first(dns_rdataset_t *rdataset) {
-	unsigned char *raw = rdataset->private3;
+	unsigned char *raw = rdataset->private3;	/* RDATASLAB */
 	unsigned int count;
 
 	count = raw[0] * 256 + raw[1];
@@ -5627,11 +5627,20 @@ rdataset_first(dns_rdataset_t *rdataset) {
 		rdataset->private5 = NULL;
 		return (ISC_R_NOMORE);
 	}
-	raw += 2;
+	
+	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0)
+		raw += 2 + (4 * count);
+	else
+		raw += 2;
+
 	/*
-	 * The privateuint4 field is the number of rdata beyond the cursor
-	 * position, so we decrement the total count by one before storing
-	 * it.
+	 * The privateuint4 field is the number of rdata beyond the
+	 * cursor position, so we decrement the total count by one
+	 * before storing it.
+	 *
+	 * If DNS_RDATASETATTR_LOADORDER is not set 'raw' points to the
+	 * first record.  If DNS_RDATASETATTR_LOADORDER is set 'raw' points
+	 * to the first entry in the offset table.
 	 */
 	count--;
 	rdataset->privateuint4 = count;
@@ -5644,30 +5653,40 @@ static isc_result_t
 rdataset_next(dns_rdataset_t *rdataset) {
 	unsigned int count;
 	unsigned int length;
-	unsigned char *raw;
+	unsigned char *raw;	/* RDATASLAB */
 
 	count = rdataset->privateuint4;
 	if (count == 0)
 		return (ISC_R_NOMORE);
 	count--;
 	rdataset->privateuint4 = count;
-	raw = rdataset->private5;
-	length = raw[0] * 256 + raw[1];
-	raw += length + 2;
-	rdataset->private5 = raw;
+
+	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0) {
+		raw = rdataset->private5;
+		length = raw[0] * 256 + raw[1];
+		raw += length + 4;
+		rdataset->private5 = raw;
+	} else
+		rdataset->private5 += 4;
 
 	return (ISC_R_SUCCESS);
 }
 
 static void
 rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
-	unsigned char *raw = rdataset->private5;
+	unsigned char *raw = rdataset->private5;	/* RDATASLAB */
+	unsigned int offset;
 	isc_region_t r;
 
 	REQUIRE(raw != NULL);
 
+	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) != 0) {
+		offset = (raw[0] << 24) + (raw[1] << 16) +
+			 (raw[2] << 8) + raw[3];
+		raw = rdataset->private3 + offset;
+	}
 	r.length = raw[0] * 256 + raw[1];
-	raw += 2;
+	raw += 4;
 	r.base = raw;
 	dns_rdata_fromregion(rdata, rdataset->rdclass, rdataset->type, &r);
 }
@@ -5690,7 +5709,7 @@ rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target) {
 
 static unsigned int
 rdataset_count(dns_rdataset_t *rdataset) {
-	unsigned char *raw = rdataset->private3;
+	unsigned char *raw = rdataset->private3;	/* RDATASLAB */
 	unsigned int count;
 
 	count = raw[0] * 256 + raw[1];
@@ -6346,7 +6365,7 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
-	unsigned char *raw = rdataset->private3;
+	unsigned char *raw = rdataset->private3;	/* RDATASLAB */
 	unsigned int current_count = rdataset->privateuint4;
 	unsigned int count;
 	rdatasetheader_t *header;
@@ -6361,7 +6380,7 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 
 	header = (struct rdatasetheader *)(raw - sizeof(*header));
 
-	total_count = rdataset_count(rdataset);
+	total_count = raw[0] * 256 + raw[1];
 	INSIST(total_count > current_count);
 	count = total_count - current_count - 1;
 
@@ -6488,7 +6507,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
-	unsigned char *raw = rdataset->private3;
+	unsigned char *raw = rdataset->private3;	/* RDATASLAB */
 	unsigned int current_count = rdataset->privateuint4;
 	rdatasetheader_t *header;
 	unsigned int total_count, count;
@@ -6505,7 +6524,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 
 	header = (struct rdatasetheader *)(raw - sizeof(*header));
 
-	total_count = rdataset_count(rdataset);
+	total_count = raw[0] * 256 + raw[1];
 	INSIST(total_count > current_count);
 	count = total_count - current_count - 1; /* should be private data */
 
@@ -6613,7 +6632,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 { 
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *rbtnode = rdataset->private2;
-	unsigned char *raw = rdataset->private3;
+	unsigned char *raw = rdataset->private3;	/* RDATASLAB */
 	unsigned int current_count = rdataset->privateuint4;
 	rdatasetheader_t *header;
 	nodelock_t *nodelock;
@@ -6630,7 +6649,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 
 	header = (struct rdatasetheader *)(raw - sizeof(*header));
 
-	total_count = rdataset_count(rdataset);
+	total_count = raw[0] * 256 + raw[1];
 	INSIST(total_count > current_count);
 	count = total_count - current_count - 1;
 
