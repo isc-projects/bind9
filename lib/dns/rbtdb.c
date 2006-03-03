@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.31 2006/03/03 03:05:20 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.32 2006/03/03 04:43:49 marka Exp $ */
 
 /*! \file */
 
@@ -5667,7 +5667,7 @@ rdataset_next(dns_rdataset_t *rdataset) {
 		raw += length + 4;
 		rdataset->private5 = raw;
 	} else
-		rdataset->private5 = (char*)rdataset->private5 + 4;
+		rdataset->private5 = (unsigned char *)rdataset->private5 + 4;
 
 	return (ISC_R_SUCCESS);
 }
@@ -5683,7 +5683,7 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) != 0) {
 		offset = (raw[0] << 24) + (raw[1] << 16) +
 			 (raw[2] << 8) + raw[3];
-		raw = (char *)rdataset->private3 + offset;
+		raw = (unsigned char *)rdataset->private3 + offset;
 	}
 	r.length = raw[0] * 256 + raw[1];
 	raw += 4;
