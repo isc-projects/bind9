@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.23 2006/02/28 03:10:47 marka Exp $ */
+/* $Id: config.c,v 1.47.18.24 2006/03/03 00:56:53 marka Exp $ */
 
 /*! \file */
 
@@ -80,7 +80,7 @@ options {\n\
 #endif
 "\
 	recursive-clients 1000;\n\
-	rrset-order {order cyclic;};\n\
+	rrset-order {type NS order random; order cyclic; };\n\
 	serial-queries 20;\n\
 	serial-query-rate 20;\n\
 	server-id none;\n\

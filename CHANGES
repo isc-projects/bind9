@@ -1,3 +1,5 @@
+1999.	[func]		Implement "rrset-order fixed". [RT #13662]
+
 1998.	[bug]		Restrict handling of fifos as sockets to just SunOS.
 			This allows named to connect to entropy gathering
 			daemons that use fifos instead of sockets. [RT #15840]

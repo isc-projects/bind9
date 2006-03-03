@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.26 2006/02/28 03:10:48 marka Exp $ */
+/* $Id: check.c,v 1.44.18.27 2006/03/03 00:56:53 marka Exp $ */
 
 /*! \file */
 
@@ -121,10 +121,7 @@ check_orderent(const cfg_obj_t *ent, isc_log_t *logctx) {
 	    cfg_obj_log(ent, logctx, ISC_LOG_ERROR,
 			"rrset-order: missing ordering");
 		result = ISC_R_FAILURE;
-	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") == 0) {
-		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "rrset-order: order 'fixed' not fully implemented");
-	} else if (/* strcasecmp(cfg_obj_asstring(obj), "fixed") != 0 && */
+	} else if (strcasecmp(cfg_obj_asstring(obj), "fixed") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "random") != 0 &&
 		   strcasecmp(cfg_obj_asstring(obj), "cyclic") != 0) {
 		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,

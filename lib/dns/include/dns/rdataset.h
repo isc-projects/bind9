@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.51.18.6 2006/03/02 00:37:22 marka Exp $ */
+/* $Id: rdataset.h,v 1.51.18.7 2006/03/03 00:56:53 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -161,6 +161,9 @@ struct dns_rdataset {
  * \def DNS_RDATASETATTR_TTLADJUSTED
  *	Used by message.c to indicate that the rdataset's rdata had differing
  *	TTL values, and the rdataset->ttl holds the smallest.
+ *
+ * \def DNS_RDATASETATTR_LOADORDER
+ *	Output the RRset in load order.
  */
 
 #define DNS_RDATASETATTR_QUESTION	0x00000001
@@ -180,6 +183,7 @@ struct dns_rdataset {
 #define DNS_RDATASETATTR_NOQNAME	0x00004000
 #define DNS_RDATASETATTR_CHECKNAMES	0x00008000	/*%< Used by resolver. */
 #define DNS_RDATASETATTR_REQUIREDGLUE	0x00010000
+#define DNS_RDATASETATTR_LOADORDER	0x00020000
 
 /*%
  * _OMITDNSSEC:

@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: stop.pl,v 1.6.18.2 2005/09/30 00:39:40 marka Exp $
+# $Id: stop.pl,v 1.6.18.3 2006/03/03 00:56:53 marka Exp $
 
 # Framework for stopping test servers
 # Based on the type of server specified, signal the server to stop, wait
@@ -50,7 +50,7 @@ my $errors = 0;
 
 die "$usage\n" unless defined($test);
 die "No test directory: \"$test\"\n" unless (-d $test);
-die "No server directory: \"$server\"\n" if (defined($server) && !-d $server);
+die "No server directory: \"$server\"\n" if (defined($server) && !-d "$test/$server");
     
 # Global variables
 my $testdir = abs_path($test);
