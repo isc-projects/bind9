@@ -1,3 +1,6 @@
+2002	[bug]		libbind: tighten the constraints on when
+			struct addrinfo._ai_pad exists.  [RT #15783]
+
 2001.	[func]		Check the KSK flag when updating a secure dynamic zone.
 			New zone option "update-check-ksk yes;".  [RT #15817]
 
