@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.22 2006/01/06 01:55:38 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.23 2006/03/06 02:23:19 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -252,6 +252,7 @@ options {<br>
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	notify <em class="replaceable"><code>notifytype</code></em>;<br>
 	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
@@ -310,7 +311,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526928"></a><h2>VIEW</h2>
+<a name="id2526931"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -397,6 +398,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	allow-transfer { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	allow-update-forwarding { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
+	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	notify <em class="replaceable"><code>notifytype</code></em>;<br>
 	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
@@ -447,7 +449,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527390"></a><h2>ZONE</h2>
+<a name="id2527397"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -481,6 +483,7 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 		( name | subdomain | wildcard | self ) <em class="replaceable"><code>string</code></em><br>
 		<em class="replaceable"><code>rrtypelist</code></em>; ...<br>
 	};<br>
+	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	notify <em class="replaceable"><code>notifytype</code></em>;<br>
 	notify-source ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [<span class="optional"> port ( <em class="replaceable"><code>integer</code></em> | * ) </span>];<br>
@@ -530,12 +533,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527808"></a><h2>FILES</h2>
+<a name="id2527817"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527819"></a><h2>SEE ALSO</h2>
+<a name="id2527829"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.

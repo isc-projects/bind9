@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.16 2006/01/06 01:55:38 marka Exp $
+.\" $Id: named.conf.5,v 1.17 2006/03/06 02:23:19 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -231,6 +231,7 @@ options {
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
+	update\-check\-ksk \fIboolean\fR;
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -360,6 +361,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	allow\-transfer { \fIaddress_match_element\fR; ... };
 	allow\-update { \fIaddress_match_element\fR; ... };
 	allow\-update\-forwarding { \fIaddress_match_element\fR; ... };
+	update\-check\-ksk \fIboolean\fR;
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
@@ -433,6 +435,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 		( name | subdomain | wildcard | self ) \fIstring\fR
 		\fIrrtypelist\fR; ...
 	};
+	update\-check\-ksk \fIboolean\fR;
 	notify \fInotifytype\fR;
 	notify\-source ( \fIipv4_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ];
