@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.19 2006/01/05 23:45:33 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.20 2006/03/06 01:27:51 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -280,6 +280,7 @@ options {
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
+	update-check-ksk <replaceable>boolean</replaceable>;
 
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
@@ -426,6 +427,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	allow-transfer { <replaceable>address_match_element</replaceable>; ... };
 	allow-update { <replaceable>address_match_element</replaceable>; ... };
 	allow-update-forwarding { <replaceable>address_match_element</replaceable>; ... };
+	update-check-ksk <replaceable>boolean</replaceable>;
 
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
@@ -511,6 +513,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 		( name | subdomain | wildcard | self ) <replaceable>string</replaceable>
 		<replaceable>rrtypelist</replaceable>; ...
 	};
+	update-check-ksk <replaceable>boolean</replaceable>;
 
 	notify <replaceable>notifytype</replaceable>;
 	notify-source ( <replaceable>ipv4_address</replaceable> | * ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.296 2006/02/26 22:54:46 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.297 2006/03/06 01:27:52 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4416,6 +4416,7 @@ category notify { null; };
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
@@ -5638,6 +5639,21 @@ options {
 	        </para>
 	      </listitem>
 	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>update-check-ksk</command></term>
+	      <listitem>
+	        <para>
+		  When regenerating the RRSIGs following a UPDATE
+		  request to a secure zone, check the KSK flag on
+		  the DNSKEY RR to determine if this key should be
+		  used to generate the RRSIG.  This flag is ignored
+		  if there are not DNSKEY RRs both with and without
+		  a KSK.  Default yes.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
           </variablelist>
 
         </sect3>
@@ -8004,6 +8020,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-query { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> update-check-ksk <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
@@ -8485,6 +8502,16 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     See the description of
                     <command>zero-no-soa-ttl</command> in <xref linkend="boolean_options"/>.
+                  </para>
+                </listitem>
+              </varlistentry>
+
+	      <varlistentry>
+	        <term><command>update-check-ksk</command></term>
+                <listitem>
+                  <para>
+                    See the description of
+                    <command>update-check-ksk</command> in <xref linkend="boolean_options"/>.
                   </para>
                 </listitem>
               </varlistentry>

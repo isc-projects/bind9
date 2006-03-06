@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: update.c,v 1.128 2006/03/03 00:43:34 marka Exp $ */
+/* $Id: update.c,v 1.129 2006/03/06 01:27:51 marka Exp $ */
 
 #include <config.h>
 
@@ -31,6 +31,7 @@
 #include <dns/events.h>
 #include <dns/fixedname.h>
 #include <dns/journal.h>
+#include <dns/keyvalues.h>
 #include <dns/message.h>
 #include <dns/nsec.h>
 #include <dns/rdataclass.h>
@@ -1604,6 +1605,44 @@ find_zone_keys(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	return (result);
 }
 
+static isc_boolean_t
+ksk_sanity(dns_db_t *db, dns_dbversion_t *ver) {
+	isc_boolean_t ret = ISC_FALSE;
+	isc_boolean_t have_ksk = ISC_FALSE, have_nonksk = ISC_FALSE;
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdata_dnskey_t dnskey;
+
+	dns_rdataset_init(&rdataset);
+	CHECK(dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node));
+	CHECK(dns_db_findrdataset(db, node, ver, dns_rdatatype_dnskey, 0, 0,
+				   &rdataset, NULL));
+	CHECK(dns_rdataset_first(&rdataset));
+	while (result == ISC_R_SUCCESS && (!have_ksk || !have_nonksk)) {
+		dns_rdataset_current(&rdataset, &rdata);
+		CHECK(dns_rdata_tostruct(&rdata, &dnskey, NULL));
+		if ((dnskey.flags & (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
+				 == DNS_KEYOWNER_ZONE) {
+			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0)
+				have_ksk = ISC_TRUE;
+			else
+				have_nonksk = ISC_TRUE;
+		}
+		dns_rdata_reset(&rdata);
+		result = dns_rdataset_next(&rdataset);
+	}
+	if (have_ksk && have_nonksk)
+		ret = ISC_TRUE;
+ failure:
+	if (dns_rdataset_isassociated(&rdataset))
+		dns_rdataset_disassociate(&rdataset);
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	return (ret);
+}
+
 /*%
  * Add RRSIG records for an RRset, recording the change in "diff".
  */
@@ -1611,7 +1650,7 @@ static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
 	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
-	 isc_stdtime_t expire)
+	 isc_stdtime_t expire, isc_boolean_t check_ksk)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1632,6 +1671,11 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	dns_db_detachnode(db, &node);
 
 	for (i = 0; i < nkeys; i++) {
+		
+		if (check_ksk && type != dns_rdatatype_dnskey &&
+		    (dst_key_flags(keys[i]) & DNS_KEYFLAG_KSK) != 0)
+			continue;
+		
 		/* Calculate the signature, creating a RRSIG RDATA. */
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
@@ -1685,6 +1729,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	dns_dbnode_t *node = NULL;
+	isc_boolean_t check_ksk;
 
 	dns_diff_init(client->mctx, &diffnames);
 	dns_diff_init(client->mctx, &affected);
@@ -1704,6 +1749,17 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 	isc_stdtime_get(&now);
 	inception = now - 3600; /* Allow for some clock skew. */
 	expire = now + sigvalidityinterval;
+
+	/*
+	 * Do we look at the KSK flag on the DNSKEY to determining which
+	 * keys sign which RRsets?  First check the zone option then
+	 * check the keys flags to make sure atleast one has a ksk set
+	 * and one doesn't.
+	 */
+	check_ksk = ISC_TF((dns_zone_getoptions(zone) &
+			    DNS_ZONEOPT_UPDATECHECKKSK) != 0);
+	if (check_ksk)
+		check_ksk = ksk_sanity(db, newver);
 
 	/*
 	 * Get the NSEC's TTL from the SOA MINIMUM field.
@@ -1764,7 +1820,7 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 				CHECK(add_sigs(db, newver, name, type,
 					       &sig_diff, zone_keys, nkeys,
 					       client->mctx, inception,
-					       expire));
+					       expire, check_ksk));
 			}
 		skip:
 			/* Skip any other updates to the same RRset. */
@@ -1949,7 +2005,8 @@ update_signatures(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		} else if (t->op == DNS_DIFFOP_ADD) {
 			CHECK(add_sigs(db, newver, &t->name, dns_rdatatype_nsec,
 				       &sig_diff, zone_keys, nkeys,
-				       client->mctx, inception, expire));
+				       client->mctx, inception, expire,
+				       check_ksk));
 		} else {
 			INSIST(0);
 		}
