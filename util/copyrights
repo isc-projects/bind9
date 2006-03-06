@@ -1235,7 +1235,7 @@
 ./lib/bind/include/isc/memcluster.h		X	2001
 ./lib/bind/include/isc/misc.h			X	2001
 ./lib/bind/include/isc/tree.h			X	2001
-./lib/bind/include/netdb.h			X	2001
+./lib/bind/include/netdb.h			X	2001,2006
 ./lib/bind/include/netgroup.h			X	2001
 ./lib/bind/include/res_update.h			X	2001
 ./lib/bind/include/resolv.h			X	2001,2005
@@ -1277,7 +1277,7 @@
 ./lib/bind/irs/gen_pr.c				X	2001
 ./lib/bind/irs/gen_pw.c				X	2001
 ./lib/bind/irs/gen_sv.c				X	2001
-./lib/bind/irs/getaddrinfo.c			X	2001,2005
+./lib/bind/irs/getaddrinfo.c			X	2001,2005,2006
 ./lib/bind/irs/getgrent.c			X	2001
 ./lib/bind/irs/getgrent_r.c			X	2001
 ./lib/bind/irs/gethostent.c			X	2001,2006
