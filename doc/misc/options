@@ -145,6 +145,7 @@ options {
         check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
+        update-check-ksk <boolean>;
 };
 
 controls {
@@ -247,6 +248,7 @@ view <string> <optional_class> {
                 check-srv-cname ( fail | warn | ignore );
                 check-sibling <boolean>;
                 zero-no-soa-ttl <boolean>;
+                update-check-ksk <boolean>;
         };
         dlz <string> {
                 database <string>;
@@ -370,6 +372,7 @@ view <string> <optional_class> {
         check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
+        update-check-ksk <boolean>;
         database <string>;
 };
 
@@ -446,6 +449,7 @@ zone <string> <optional_class> {
         check-srv-cname ( fail | warn | ignore );
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
+        update-check-ksk <boolean>;
 };
 
 dlz <string> {
