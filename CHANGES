@@ -1,3 +1,5 @@
+2000.	[bug]		memmove()/strtol() fix was incomplete. [#RT 15812]
+
 1998.	[bug]		Restrict handling of fifos as sockets to just SunOS.
 			This allows named to connect to entropy gathering
 			daemons that use fifos instead of sockets. [RT #15840]
