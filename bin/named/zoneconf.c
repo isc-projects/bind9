@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.110.18.21 2006/02/28 03:10:47 marka Exp $ */
+/* $Id: zoneconf.c,v 1.110.18.22 2006/03/06 01:38:00 marka Exp $ */
 
 /*% */
 
@@ -720,6 +720,12 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			INSIST(0);
 		dns_zone_setoption(zone, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(zone, DNS_ZONEOPT_IGNORESRVCNAME, ignore);
+
+		obj = NULL;
+		result = ns_config_get(maps, "update-check-ksk", &obj);
+		INSIST(result == ISC_R_SUCCESS);
+		dns_zone_setoption(zone, DNS_ZONEOPT_UPDATECHECKKSK, 
+				   cfg_obj_asboolean(obj));
 	}
 
 	/*

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.30.18.35 2006/02/28 03:10:49 marka Exp $ */
+/* $Id: namedconf.c,v 1.30.18.36 2006/03/06 01:38:01 marka Exp $ */
 
 /*! \file */
 
@@ -844,6 +844,7 @@ zone_clauses[] = {
 	{ "check-srv-cname", &cfg_type_checkmode, 0 },
 	{ "check-sibling", &cfg_type_boolean, 0 },
 	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
+	{ "update-check-ksk", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

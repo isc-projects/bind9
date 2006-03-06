@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.24 2006/03/03 00:56:53 marka Exp $ */
+/* $Id: config.c,v 1.47.18.25 2006/03/06 01:38:00 marka Exp $ */
 
 /*! \file */
 
@@ -175,6 +175,7 @@ options {\n\
 	check-mx-cname warn;\n\
 	check-srv-cname warn;\n\
 	zero-no-soa-ttl yes;\n\
+	update-check-ksk yes;\n\
 };\n\
 "
 

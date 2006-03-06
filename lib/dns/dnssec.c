@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: dnssec.c,v 1.81.18.4 2005/11/30 03:44:39 marka Exp $
+ * $Id: dnssec.c,v 1.81.18.5 2006/03/06 01:38:01 marka Exp $
  */
 
 /*! \file */
@@ -520,10 +520,10 @@ dns_dnssec_verify(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 
 isc_result_t
 dns_dnssec_findzonekeys2(dns_db_t *db, dns_dbversion_t *ver,
-			dns_dbnode_t *node, dns_name_t *name,
-			const char *directory, isc_mem_t *mctx,
-			unsigned int maxkeys, dst_key_t **keys,
-			unsigned int *nkeys)
+			 dns_dbnode_t *node, dns_name_t *name,
+			 const char *directory, isc_mem_t *mctx,
+			 unsigned int maxkeys, dst_key_t **keys,
+			 unsigned int *nkeys)
 {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;

@@ -1,4 +1,7 @@
-2000.	[bug]		memmove()/strtol() fix was incomplete. [#RT 15812]
+2001.	[func]		Check the KSK flag when updating a secure dynamic zone.
+			New zone option "update-check-ksk yes;".  [RT #15817]
+
+2000.	[bug]		memmove()/strtol() fix was incomplete. [RT #15812]
 
 1999.	[func]		Implement "rrset-order fixed". [RT #13662]
 
