@@ -1,4 +1,7 @@
-2000.	[bug]		memmove()/strtol() fix was incomplete. [#RT 15812]
+2002	[bug]		libbind: tighten the constraints on when
+			struct addrinfo._ai_pad exists.  [RT #15783]
+
+2000.	[bug]		memmove()/strtol() fix was incomplete. [RT #15812]
 
 1998.	[bug]		Restrict handling of fifos as sockets to just SunOS.
 			This allows named to connect to entropy gathering
