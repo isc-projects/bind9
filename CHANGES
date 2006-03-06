@@ -1,3 +1,5 @@
+2000.	[bug]		memmove()/strtol() fix was incomplete. [#RT 15812]
+
 1999.	[func]		Implement "rrset-order fixed". [RT #13662]
 
 1998.	[bug]		Restrict handling of fifos as sockets to just SunOS.
