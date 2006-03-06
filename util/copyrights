@@ -1324,7 +1324,7 @@
 ./lib/bind/include/isc/memcluster.h		X	2001,2005
 ./lib/bind/include/isc/misc.h			X	2001,2005
 ./lib/bind/include/isc/tree.h			X	2001,2005
-./lib/bind/include/netdb.h			X	2001,2005
+./lib/bind/include/netdb.h			X	2001,2005,2006
 ./lib/bind/include/netgroup.h			X	2001,2005
 ./lib/bind/include/res_update.h			X	2001,2005
 ./lib/bind/include/resolv.h			X	2001,2005
@@ -1366,7 +1366,7 @@
 ./lib/bind/irs/gen_pr.c				X	2001,2005
 ./lib/bind/irs/gen_pw.c				X	2001,2005
 ./lib/bind/irs/gen_sv.c				X	2001,2005
-./lib/bind/irs/getaddrinfo.c			X	2001,2005
+./lib/bind/irs/getaddrinfo.c			X	2001,2005,2006
 ./lib/bind/irs/getgrent.c			X	2001,2005
 ./lib/bind/irs/getgrent_r.c			X	2001,2005
 ./lib/bind/irs/gethostent.c			X	2001,2005,2006
@@ -1724,7 +1724,7 @@
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
-./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2002,2004,2005,2006
