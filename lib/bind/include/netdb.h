@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.12.2.6 2004/11/30 01:15:58 marka Exp $
+ *	$Id: netdb.h,v 1.12.2.7 2006/03/06 02:26:19 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -175,7 +175,7 @@ struct	addrinfo {
 	int		ai_socktype;	/* SOCK_xxx */
 	int		ai_protocol;	/* 0 or IPPROTO_xxx for IPv4 and IPv6 */
 #if defined(sun) && defined(_SOCKLEN_T)
-#ifdef __sparc9
+#ifdef __sparcv9
 	int		_ai_pad;
 #endif
 	socklen_t	ai_addrlen;

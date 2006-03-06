@@ -1,3 +1,6 @@
+2002	[bug]		libbind: tighten the constraints on when
+			struct addrinfo._ai_pad exists.  [RT #15783]
+
 1997.	[bug]		Named was failing to replace negative cache entries
 			when a positive one for the type was learnt.
 			[RT #15818]
