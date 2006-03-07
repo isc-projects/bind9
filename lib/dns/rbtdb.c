@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.230 2006/03/03 04:46:14 marka Exp $ */
+/* $Id: rbtdb.c,v 1.231 2006/03/07 04:58:51 marka Exp $ */
 
 /*! \file */
 
@@ -5661,13 +5661,15 @@ rdataset_next(dns_rdataset_t *rdataset) {
 	count--;
 	rdataset->privateuint4 = count;
 
+	/*
+	 * Skip forward one record (length + 4) or one offset (4).
+	 */
+	raw = rdataset->private5;
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0) {
-		raw = rdataset->private5;
 		length = raw[0] * 256 + raw[1];
-		raw += length + 4;
-		rdataset->private5 = raw;
-	} else
-		rdataset->private5 = (unsigned char *)rdataset->private5 + 4;
+		raw += length;
+	}
+	rdataset->private5 = raw + 4;
 
 	return (ISC_R_SUCCESS);
 }
@@ -5680,10 +5682,15 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 
 	REQUIRE(raw != NULL);
 
+	/*
+	 * Find the start of the record if not already in private5
+	 * then skip the length and order fields.
+	 */
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) != 0) {
 		offset = (raw[0] << 24) + (raw[1] << 16) +
 			 (raw[2] << 8) + raw[3];
-		raw = (unsigned char *)rdataset->private3 + offset;
+		raw = rdataset->private3;
+		raw += offset;
 	}
 	r.length = raw[0] * 256 + raw[1];
 	raw += 4;
