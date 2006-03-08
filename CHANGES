@@ -1,4 +1,8 @@
-2002	[bug]		libbind: tighten the constraints on when
+2003.	[bug]		libbind: The DNS name/address lookup functions could
+			occasionally follow a random pointer due to
+			structures not being completely zeroed. [RT #15806]
+
+2002.	[bug]		libbind: tighten the constraints on when
 			struct addrinfo._ai_pad exists.  [RT #15783]
 
 2001.	[func]		Check the KSK flag when updating a secure dynamic zone.

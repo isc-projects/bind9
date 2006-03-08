@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.14.18.4 2005/10/11 00:25:09 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.14.18.5 2006/03/08 03:43:18 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -258,7 +258,7 @@ ho_byname2(struct irs_ho *this, const char *name, int af)
 		errno = ENOMEM;
 		goto cleanup;
 	}
-	memset(q, 0, sizeof(q));
+	memset(q, 0, sizeof(*q));
 
 	switch (af) {
 	case AF_INET:
@@ -349,8 +349,8 @@ ho_byaddr(struct irs_ho *this, const void *addr, int len, int af)
 		errno = ENOMEM;
 		goto cleanup;
 	}
-	memset(q, 0, sizeof(q));
-	memset(q2, 0, sizeof(q2));
+	memset(q, 0, sizeof(*q));
+	memset(q2, 0, sizeof(*q2));
 
 	if (af == AF_INET6 && len == IN6ADDRSZ &&
 	    (!memcmp(uaddr, mapped, sizeof mapped) ||
@@ -574,8 +574,8 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		errno = ENOMEM;
 		goto cleanup;
 	}
-	memset(q, 0, sizeof(q2));
-	memset(q2, 0, sizeof(q2));
+	memset(q, 0, sizeof(*q2));
+	memset(q2, 0, sizeof(*q2));
 
 	switch (pai->ai_family) {
 	case AF_UNSPEC:
