@@ -1,3 +1,7 @@
+2005.	[bug]		libbind: Retransmission timeouts should be
+			based on which attempt it is to the nameserver
+			and not the nameserver itself. [RT #13548]
+
 2004.	[bug]		dns_tsig_sign() could pass a NULL pointer to
 			dst_context_destroy() when cleaning up after a
 			error. [RT #15835]
