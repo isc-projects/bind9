@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.3.8.8 2006/01/04 23:50:20 marka Exp $
+ * $Id: tsig.c,v 1.112.2.3.8.9 2006/03/08 03:55:54 marka Exp $
  */
 
 #include <config.h>
@@ -560,7 +560,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		goto cleanup_signature;
 	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_signature;
+		goto cleanup_rdata;
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, &tsig, dynbuf);
 	if (ret != ISC_R_SUCCESS)
@@ -576,7 +576,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	owner = NULL;
 	ret = dns_message_gettempname(msg, &owner);
 	if (ret != ISC_R_SUCCESS)
-		goto cleanup_context;
+		goto cleanup_rdata;
 	dns_name_init(owner, NULL);
 	ret = dns_name_dup(&key->name, msg->mctx, owner);
 	if (ret != ISC_R_SUCCESS)
@@ -608,18 +608,17 @@ dns_tsig_sign(dns_message_t *msg) {
 	dns_message_puttemprdatalist(msg, &datalist);
  cleanup_owner:
 	dns_message_puttempname(msg, &owner);
-	goto cleanup_context;
-
+	goto cleanup_rdata;
  cleanup_dynbuf:
 	isc_buffer_free(&dynbuf);
+ cleanup_rdata:
+	dns_message_puttemprdata(msg, &rdata);
  cleanup_signature:
 	if (tsig.signature != NULL)
 		isc_mem_put(mctx, tsig.signature, sigsize);
-
  cleanup_context:
-	if (rdata != NULL)
-		dns_message_puttemprdata(msg, &rdata);
-	dst_context_destroy(&ctx);
+	if (ctx != NULL)
+		dst_context_destroy(&ctx);
 	return (ret);
 }
 
