@@ -1261,7 +1261,7 @@
 ./lib/bind/irs/Makefile.in			MAKE	2001,2004
 ./lib/bind/irs/dns.c				X	2001
 ./lib/bind/irs/dns_gr.c				X	2001
-./lib/bind/irs/dns_ho.c				X	2001,2005
+./lib/bind/irs/dns_ho.c				X	2001,2005,2006
 ./lib/bind/irs/dns_nw.c				X	2001
 ./lib/bind/irs/dns_p.h				X	2001
 ./lib/bind/irs/dns_pr.c				X	2001
@@ -1597,7 +1597,7 @@
 ./lib/bind/resolv/res_mkupdate.h		X	2001
 ./lib/bind/resolv/res_private.h			X	2001
 ./lib/bind/resolv/res_query.c			X	2001
-./lib/bind/resolv/res_send.c			X	2001,2005
+./lib/bind/resolv/res_send.c			X	2001,2005,2006
 ./lib/bind/resolv/res_sendsigned.c		X	2001,2005
 ./lib/bind/resolv/res_update.c			X	2001
 ./lib/bind9/.cvsignore				X	2001
