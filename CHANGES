@@ -1,3 +1,7 @@
+2004.	[bug]		dns_tsig_sign() could pass a NULL pointer to
+			dst_context_destroy() when cleaning up after a
+			error. [RT #15835]
+
 2003.	[bug]		libbind: The DNS name/address lookup functions could
 			occasionally follow a random pointer due to
 			structures not being completely zeroed. [RT #15806]
