@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_verify.c,v 1.4 2005/10/11 00:10:15 marka Exp $";
+static const char rcsid[] = "$Id: ns_verify.c,v 1.5 2006/03/09 23:57:56 marka Exp $";
 #endif
 
 /* Import. */
@@ -344,7 +344,7 @@ ns_verify_tcp(u_char *msg, int *msglen, ns_tcp_tsig_state *state,
 	HEADER *hp = (HEADER *)msg;
 	u_char *recstart, *sigstart;
 	unsigned int sigfieldlen, otherfieldlen;
-	u_char *cp, *eom = msg + *msglen, *cp2;
+	u_char *cp, *eom, *cp2;
 	char name[MAXDNAME], alg[MAXDNAME];
 	u_char buf[MAXDNAME];
 	int n, type, length, fudge, error;
@@ -352,6 +352,8 @@ ns_verify_tcp(u_char *msg, int *msglen, ns_tcp_tsig_state *state,
 
 	if (msg == NULL || msglen == NULL || state == NULL)
 		return (-1);
+
+	eom = msg + *msglen;
 
 	state->counter++;
 	if (state->counter == 0)

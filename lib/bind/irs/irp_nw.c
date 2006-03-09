@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irp_nw.c,v 1.3 2005/04/27 04:56:28 sra Exp $";
+static const char rcsid[] = "$Id: irp_nw.c,v 1.4 2006/03/09 23:57:56 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #if 0
@@ -297,6 +297,8 @@ nw_next(struct irs_nw *this) {
 		nw = NULL;
 	}
 
+	if (body != NULL)
+		memput(body, bodylen);
 	return (nw);
 }
 

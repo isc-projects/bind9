@@ -20,7 +20,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: eventlib.c,v 1.9 2005/07/28 06:51:49 marka Exp $";
+static const char rcsid[] = "$Id: eventlib.c,v 1.10 2006/03/09 23:57:56 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -783,13 +783,10 @@ pselect(int nfds, void *rfds, void *wfds, void *efds,
 		pnfds = 0;
 	}
 	n = poll(fds, pnfds, polltimeout);
-	/*
-	 * pselect() should return the total number of events on the file
-	 * desriptors, not just the count of fd:s with activity. Hence,
-	 * traverse the pollfds array and count the events.
-	 */
 	if (n > 0) {
 		int     i, e;
+
+		INSIST(ctx != NULL);
 		for (e = 0, i = ctx->firstfd; i <= ctx->fdMax; i++) {
 			if (ctx->pollfds[i].fd < 0)
 				continue;

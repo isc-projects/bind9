@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp.c,v 1.8 2006/02/26 22:54:47 marka Exp $";
+static const char rcsid[] = "$Id: irp.c,v 1.9 2006/03/09 23:57:56 marka Exp $";
 #endif
 
 /* Imports */
@@ -413,6 +413,9 @@ irs_irp_read_body(struct irp_p *pvt, size_t *size) {
 	size_t len = LINEINCR;
 	char *buffer = memget(len);
 	int idx = 0;
+
+	if (buffer == NULL)
+		return (NULL);
 
 	for (;;) {
 		if (irs_irp_read_line(pvt, line, sizeof line) <= 0 ||

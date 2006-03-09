@@ -49,7 +49,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: irpmarshall.c,v 1.6 2005/04/27 04:56:29 sra Exp $";
+static const char rcsid[] = "$Id: irpmarshall.c,v 1.7 2006/03/09 23:57:56 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #if 0
@@ -994,7 +994,7 @@ irp_unmarshall_ho(struct hostent *ho, char *buffer) {
 	int hoaddrtype;
 	int holength;
 	long t;
-	char *name = NULL;
+	char *name;
 	char **aliases = NULL;
 	char **hohaddrlist = NULL;
 	size_t hoaddrsize;
@@ -1117,6 +1117,7 @@ irp_unmarshall_ho(struct hostent *ho, char *buffer) {
 	errno = myerrno;
 
 	if (name != NULL) free(name);
+	free_array(hohaddrlist, 0);
 	free_array(aliases, 0);
 
 	return (-1);
@@ -1285,7 +1286,6 @@ irp_unmarshall_ng(const char **hostp, const char **userp, const char **domainp,
 
 	if (host != NULL) free(host);
 	if (user != NULL) free(user);
-	if (domain != NULL) free(domain);
 
 	return (-1);
 }

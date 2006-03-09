@@ -26,7 +26,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: heap.c,v 1.3 2005/04/27 04:56:38 sra Exp $";
+static const char rcsid[] = "$Id: heap.c,v 1.4 2006/03/09 23:57:56 marka Exp $";
 #endif /* not lint */
 
 #include "port_before.h"
@@ -54,9 +54,13 @@ heap_new(heap_higher_priority_func higher_priority, heap_index_func index,
 	 int array_size_increment) {
 	heap_context ctx;
 
-	ctx = (heap_context)malloc(sizeof (struct heap_context));
-	if (ctx == NULL || higher_priority == NULL)
+	if (higher_priority == NULL)
 		return (NULL);
+
+	ctx = (heap_context)malloc(sizeof (struct heap_context));
+	if (ctx == NULL)
+		return (NULL);
+
 	ctx->array_size = 0;
 	if (array_size_increment == 0)
 		ctx->array_size_increment = ARRAY_SIZE_INCREMENT;

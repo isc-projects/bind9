@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.docbook,v 1.11 2005/07/19 04:55:21 marka Exp $ -->
+<!-- $Id: named.docbook,v 1.12 2006/03/09 23:57:56 marka Exp $ -->
 <refentry id="man.named">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -351,10 +351,16 @@
       <citetitle>RFC 1034</citetitle>,
       <citetitle>RFC 1035</citetitle>,
       <citerefentry>
-        <refentrytitle>rndc</refentrytitle><manvolnum>8</manvolnum>
+        <refentrytitle>rndc</refentrytitle>
+	<manvolnum>8</manvolnum>
       </citerefentry>,
       <citerefentry>
-        <refentrytitle>lwresd</refentrytitle><manvolnum>8</manvolnum>
+        <refentrytitle>lwresd</refentrytitle>
+	<manvolnum>8</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>named.conf</refentrytitle>
+	<manvolnum>5</manvolnum>
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>.
     </para>
