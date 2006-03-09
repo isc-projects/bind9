@@ -4,11 +4,11 @@
 DNSOP                                                         O. Kolkman
 Internet-Draft                                                 R. Gieben
 Obsoletes: 2541 (if approved)                                 NLnet Labs
-Expires: August 25, 2006                               February 21, 2006
+Expires: September 7, 2006                                 March 6, 2006
 
 
                       DNSSEC Operational Practices
-          draft-ietf-dnsop-dnssec-operational-practices-07.txt
+          draft-ietf-dnsop-dnssec-operational-practices-08.txt
 
 Status of this Memo
 
@@ -33,7 +33,7 @@ Status of this Memo
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html.
 
-   This Internet-Draft will expire on August 25, 2006.
+   This Internet-Draft will expire on September 7, 2006.
 
 Copyright Notice
 
@@ -52,9 +52,14 @@ Abstract
 
 
 
-Kolkman & Gieben         Expires August 25, 2006                [Page 1]
+Kolkman & Gieben        Expires September 7, 2006               [Page 1]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
+   This document obsoletes RFC 2541, as it covers more operational
+   ground and gives more up to date requirements with respect to key
+   sizes and the new DNSSEC specification.
 
 
 Table of Contents
@@ -66,67 +71,59 @@ Table of Contents
    3.  Keys Generation and Storage  . . . . . . . . . . . . . . . . .  6
      3.1.  Zone and Key Signing Keys  . . . . . . . . . . . . . . . .  6
        3.1.1.  Motivations for the KSK and ZSK Separation . . . . . .  7
-       3.1.2.  KSKs for High Level Zones  . . . . . . . . . . . . . .  7
+       3.1.2.  KSKs for High Level Zones  . . . . . . . . . . . . . .  8
      3.2.  Key Generation . . . . . . . . . . . . . . . . . . . . . .  8
-     3.3.  Key Effectivity Period . . . . . . . . . . . . . . . . . .  8
+     3.3.  Key Effectivity Period . . . . . . . . . . . . . . . . . .  9
      3.4.  Key Algorithm  . . . . . . . . . . . . . . . . . . . . . .  9
      3.5.  Key Sizes  . . . . . . . . . . . . . . . . . . . . . . . . 10
-     3.6.  Private Key Storage  . . . . . . . . . . . . . . . . . . . 11
+     3.6.  Private Key Storage  . . . . . . . . . . . . . . . . . . . 12
    4.  Signature generation, Key Rollover and Related Policies  . . . 12
      4.1.  Time in DNSSEC . . . . . . . . . . . . . . . . . . . . . . 12
-       4.1.1.  Time Considerations  . . . . . . . . . . . . . . . . . 12
+       4.1.1.  Time Considerations  . . . . . . . . . . . . . . . . . 13
      4.2.  Key Rollovers  . . . . . . . . . . . . . . . . . . . . . . 14
-       4.2.1.  Zone signing Key Rollovers . . . . . . . . . . . . . . 14
-       4.2.2.  Key signing Key Rollovers  . . . . . . . . . . . . . . 18
-       4.2.3.  Difference Between ZSK and KSK Rollovers . . . . . . . 19
-       4.2.4.  Automated Key Rollovers  . . . . . . . . . . . . . . . 20
-     4.3.  Planning for Emergency Key Rollover  . . . . . . . . . . . 21
-       4.3.1.  KSK Compromise . . . . . . . . . . . . . . . . . . . . 21
-       4.3.2.  ZSK Compromise . . . . . . . . . . . . . . . . . . . . 23
-       4.3.3.  Compromises of Keys Anchored in Resolvers  . . . . . . 23
-     4.4.  Parental Policies  . . . . . . . . . . . . . . . . . . . . 23
+       4.2.1.  Zone Signing Key Rollovers . . . . . . . . . . . . . . 15
+       4.2.2.  Key Signing Key Rollovers  . . . . . . . . . . . . . . 19
+       4.2.3.  Difference Between ZSK and KSK Rollovers . . . . . . . 20
+       4.2.4.  Automated Key Rollovers  . . . . . . . . . . . . . . . 21
+     4.3.  Planning for Emergency Key Rollover  . . . . . . . . . . . 22
+       4.3.1.  KSK Compromise . . . . . . . . . . . . . . . . . . . . 22
+       4.3.2.  ZSK Compromise . . . . . . . . . . . . . . . . . . . . 24
+       4.3.3.  Compromises of Keys Anchored in Resolvers  . . . . . . 24
+     4.4.  Parental Policies  . . . . . . . . . . . . . . . . . . . . 24
        4.4.1.  Initial Key Exchanges and Parental Policies
-               Considerations . . . . . . . . . . . . . . . . . . . . 23
-       4.4.2.  Storing Keys or Hashes?  . . . . . . . . . . . . . . . 24
-       4.4.3.  Security Lameness  . . . . . . . . . . . . . . . . . . 24
-       4.4.4.  DS Signature Validity Period . . . . . . . . . . . . . 25
-   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 25
-   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 26
-   7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 26
-   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 26
-     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 26
-     8.2.  Informative References . . . . . . . . . . . . . . . . . . 27
-   Appendix A.  Terminology . . . . . . . . . . . . . . . . . . . . . 28
-   Appendix B.  Zone signing Key Rollover Howto . . . . . . . . . . . 29
-   Appendix C.  Typographic Conventions . . . . . . . . . . . . . . . 29
-   Appendix D.  Document Details and Changes  . . . . . . . . . . . . 31
-     D.1.  draft-ietf-dnsop-dnssec-operational-practices-00 . . . . . 31
-     D.2.  draft-ietf-dnsop-dnssec-operational-practices-01 . . . . . 31
-     D.3.  draft-ietf-dnsop-dnssec-operational-practices-02 . . . . . 31
-     D.4.  draft-ietf-dnsop-dnssec-operational-practices-03 . . . . . 32
-     D.5.  draft-ietf-dnsop-dnssec-operational-practices-04 . . . . . 32
+               Considerations . . . . . . . . . . . . . . . . . . . . 24
+       4.4.2.  Storing Keys or Hashes?  . . . . . . . . . . . . . . . 25
+       4.4.3.  Security Lameness  . . . . . . . . . . . . . . . . . . 25
+       4.4.4.  DS Signature Validity Period . . . . . . . . . . . . . 26
+   5.  IANA Considerations  . . . . . . . . . . . . . . . . . . . . . 26
+   6.  Security Considerations  . . . . . . . . . . . . . . . . . . . 27
+   7.  Acknowledgments  . . . . . . . . . . . . . . . . . . . . . . . 27
+   8.  References . . . . . . . . . . . . . . . . . . . . . . . . . . 27
+     8.1.  Normative References . . . . . . . . . . . . . . . . . . . 27
+     8.2.  Informative References . . . . . . . . . . . . . . . . . . 28
+   Appendix A.  Terminology . . . . . . . . . . . . . . . . . . . . . 29
+   Appendix B.  Zone Signing Key Rollover Howto . . . . . . . . . . . 30
+   Appendix C.  Typographic Conventions . . . . . . . . . . . . . . . 31
+   Appendix D.  Document Details and Changes  . . . . . . . . . . . . 33
 
 
 
-Kolkman & Gieben         Expires August 25, 2006                [Page 2]
+Kolkman & Gieben        Expires September 7, 2006               [Page 2]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
-     D.6.  draft-ietf-dnsop-dnssec-operational-practices-05 . . . . . 32
-     D.7.  draft-ietf-dnsop-dnssec-operational-practices-06 . . . . . 32
-     D.8.  draft-ietf-dnsop-dnssec-operational-practices-07 . . . . . 32
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 33
-   Intellectual Property and Copyright Statements . . . . . . . . . . 34
-
-
-
-
-
-
-
-
-
+     D.1.  draft-ietf-dnsop-dnssec-operational-practices-00 . . . . . 33
+     D.2.  draft-ietf-dnsop-dnssec-operational-practices-01 . . . . . 33
+     D.3.  draft-ietf-dnsop-dnssec-operational-practices-02 . . . . . 33
+     D.4.  draft-ietf-dnsop-dnssec-operational-practices-03 . . . . . 33
+     D.5.  draft-ietf-dnsop-dnssec-operational-practices-04 . . . . . 34
+     D.6.  draft-ietf-dnsop-dnssec-operational-practices-05 . . . . . 34
+     D.7.  draft-ietf-dnsop-dnssec-operational-practices-06 . . . . . 34
+     D.8.  draft-ietf-dnsop-dnssec-operational-practices-07 . . . . . 34
+     D.9.  draft-ietf-dnsop-dnssec-operational-practices-08 . . . . . 34
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 35
+   Intellectual Property and Copyright Statements . . . . . . . . . . 36
 
 
 
@@ -164,12 +161,22 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
 
 
-Kolkman & Gieben         Expires August 25, 2006                [Page 3]
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 3]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
 1.  Introduction
+
+   This document describes how to run a DNSSEC (DNS SECure) enabled
+   environment.  It is intended for operators who have knowledge of the
+   DNS (see RFC 1034 [1] and RFC 1035 [2]) and want deploy DNSSEC.  See
+   RFC 4033 [4] for an introduction into DNSSEC and RFC 4034 [5] for the
+   newly introduced Resource Records and finally RFC 4035 [6] for the
+   protocol changes.
 
    During workshops and early operational deployment tests, operators
    and system administrators have gained experience about operating the
@@ -200,30 +207,29 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    Appendix C.
 
    Since this is a document with operational suggestions and there are
-   no protocol specifications, the RFC2119 [3] language does not apply.
+   no protocol specifications, the RFC 2119 [9] language does not apply.
 
-   This document obsoletes RFC2541 [6].
+   This document obsoletes RFC 2541 [12].
 
 1.1.  The Use of the Term 'key'
 
    It is assumed that the reader is familiar with the concept of
    asymmetric keys on which DNSSEC is based (Public Key Cryptography
-   [12]).  Therefore, this document will use the term 'key' rather
+   [18]).  Therefore, this document will use the term 'key' rather
    loosely.  Where it is written that 'a key is used to sign data' it is
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 4]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    assumed that the reader understands that it is the private part of
    the key pair that is used for signing.  It is also assumed that the
    reader understands that the public part of the key pair is published
    in the DNSKEY resource record and that it is the public part that is
    used in key exchanges.
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 4]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
 
 1.2.  Time Definitions
 
@@ -239,7 +245,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          replaced with a new signature (made with the same key).  This
          replacement takes place by publishing the relevant RRSIG in the
          master zone file.
-         After one stopped publishing an RRSIG in a zone it may take a
+         After one stops publishing an RRSIG in a zone it may take a
          while before the RRSIG has expired from caches and has actually
          been removed from the DNS.
    o  "Key effectivity period"
@@ -250,22 +256,31 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          the key.
          The key effectivity period can span multiple signature validity
          periods.
-   o  "Maximum/Minimum Zone TTL"
+   o  "Maximum/Minimum Zone Time to Live (TTL)"
          The maximum or minimum value of the TTLs from the complete set
          of RRs in a zone.  Note that the minimum TTL is not the same as
-         the MINIMUM field in the SOA RR.  See [5] for more information.
+         the MINIMUM field in the SOA RR.  See [11] for more
+         information.
 
 
 2.  Keeping the Chain of Trust Intact
 
    Maintaining a valid chain of trust is important because broken chains
-   of trust will result in data being marked as Bogus (as defined in [2]
+   of trust will result in data being marked as Bogus (as defined in [4]
    section 5), which may cause entire (sub)domains to become invisible
    to verifying clients.  The administrators of secured zones have to
    realize that their zone is, to verifying clients, part of a chain of
    trust.
 
    As mentioned in the introduction, the procedures herein are intended
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 5]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    to ensure that maintenance of zones, such as re-signing or key
    rollovers, will be transparent to the verifying clients on the
    Internet.
@@ -273,20 +288,12 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    Administrators of secured zones will have to keep in mind that data
    published on an authoritative primary server will not be immediately
    seen by verifying clients; it may take some time for the data to be
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 5]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    transferred to other secondary authoritative nameservers and clients
    may be fetching data from caching non-authoritative servers.  In this
    light it is good to note that the time for a zone transfer from
-   master to slave is negligible when using NOTIFY and IXFR, increasing
-   by reliance on AXFR, and more if you rely on the SOA timing
-   parameters for zone refresh.
+   master to slave is negligible when using NOTIFY [8] and IXFR [7],
+   increasing by reliance on AXFR, and more if you rely on the SOA
+   timing parameters for zone refresh.
 
    For the verifying clients it is important that data from secured
    zones can be used to build chains of trust regardless of whether the
@@ -317,11 +324,19 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    The DNSSEC validation protocol does not distinguish between different
    types of DNSKEYs.  All DNSKEYs can be used during the validation.  In
    practice operators use Key Signing and Zone Signing Keys and use the
-   so-called (Secure Entry Point) SEP [1] flag to distinguish between
+   so-called (Secure Entry Point) SEP [3] flag to distinguish between
    them during operations.  The dynamics and considerations are
    discussed below.
 
    To make zone re-signing and key rollover procedures easier to
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 6]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    implement, it is possible to use one or more keys as Key Signing Keys
    (KSK).  These keys will only sign the apex DNSKEY RRSet in a zone.
    Other keys can be used to sign all the RRSets in a zone and are
@@ -329,14 +344,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    that KSKs are the subset of keys that are used for key exchanges with
    the parent and potentially for configuration as trusted anchors - the
    SEP keys.  In this document we assume a one-to-one mapping between
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 6]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    KSK and SEP keys and we assume the SEP flag to be set on all KSKs.
 
 3.1.1.  Motivations for the KSK and ZSK Separation
@@ -378,6 +385,14 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    verifying resolvers that have the particular key configured as secure
    entry points.  Hence, the key effectivity period of these keys can
    and should be made much longer.  Although, given a long enough key,
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 7]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    the Key Effectivity Period can be on the order of years we suggest
    planning for a key effectivity of the order of a few months so that a
    key rollover remains an operational routine.
@@ -385,14 +400,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 3.1.2.  KSKs for High Level Zones
 
    Higher level zones are generally more sensitive than lower level
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 7]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    zones.  Anyone controlling or breaking the security of a zone thereby
    obtains authority over all of its sub domains (except in the case of
    resolvers that have locally configured the public key of a sub
@@ -422,8 +429,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    The strongest algorithms used with the longest keys are still of no
    use if an adversary can guess enough to lower the size of the likely
    key space so that it can be exhaustively searched.  Technical
-   suggestions for the generation of random keys will be found in
-   RFC4086 [9].  One should carefully assess if the random number
+   suggestions for the generation of random keys will be found in RFC
+   4086 [15].  One should carefully assess if the random number
    generator used during key generation adheres to these suggestions.
 
    Keys with a long effectivity period are particularly sensitive as
@@ -433,6 +440,15 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    from the network via an air gap or, at a minimum, high level secure
    hardware.
 
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 8]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
 3.3.  Key Effectivity Period
 
    For various reasons keys in DNSSEC need to be changed once in a
@@ -441,14 +457,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    espionage, or cryptanalysis.  Furthermore when key rollovers are too
    rare an event, they will not become part of the operational habit and
    there is risk that nobody on-site will remember the procedure for
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 8]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    rollover when the need is there.
 
    From a purely operational perspective a reasonable key effectivity
@@ -456,8 +464,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    them after 12 months.  An intended key effectivity period of a month
    is reasonable for Zone Signing Keys.
 
-   For a key sizes that matches these effectivity periods see
-   Section 3.5.
+   For key sizes that matches these effectivity periods see Section 3.5.
 
    As argued in Section 3.1.2 securely updating trust anchors will be
    extremely difficult.  On the other hand the "operational habit"
@@ -481,44 +488,45 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    RSA has been developed in an open and transparent manner.  As the
    patent on RSA expired in 2000, its use is now also free.
 
-   DSA has been developed by NIST.  The creation of signatures is
-   roughly done at the same speed as with RSA, but is 10 to 40 times as
-   slow for verification [12].
+   DSA has been developed by NIST.  The creation of signatures takes
+   roughly the same time as with RSA, but is 10 to 40 times as slow for
+   verification [18].
 
    We suggest the use of RSA/SHA-1 as the preferred algorithm for the
    key.  The current known attacks on RSA can be defeated by making your
    key longer.  As the MD5 hashing algorithm is showing (theoretical)
    cracks, we recommend the usage of SHA-1.
 
+
+
+
+Kolkman & Gieben        Expires September 7, 2006               [Page 9]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    At the time of publication it is known that the SHA-1 hash has
    cryptanalysis issues.  There is work in progress on addressing these
-   issues.  We recommend to use public key algorithms based on hashes
-   stronger than SHA-1, e.g.  SHA-256, as soon as these algorithms are
-   available in protocol specifications (See [14] and [15] ) and
-   implementations.
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006                [Page 9]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
+   issues.  We recommend the use of public key algorithms based on
+   hashes stronger than SHA-1, e.g.  SHA-256, as soon as these
+   algorithms are available in protocol specifications (See [20] and
+   [21] ) and implementations.
 
 3.5.  Key Sizes
 
    When choosing key sizes, zone administrators will need to take into
    account how long a key will be used, how much data will be signed
-   during the key publication period (See Section 8.10 of [12]) and,
+   during the key publication period (See Section 8.10 of [18]) and,
    optionally, how large the key size of the parent is.  As the chain of
-   trust really is "a chain", it does not make much sense in making one
-   of the keys in the chain several times larger then the others.  As
+   trust really is "a chain", there is not much sense in making one of
+   the keys in the chain several times larger then the others.  As
    always, it's the weakest link that defines the strength of the entire
    chain.  Also see Section 3.1.1 for a discussion of how keys serving
    different roles (ZSK v.  KSK) may need different key sizes.
 
-   Generating a key of the correct size is a difficult problem, RFC3766
-   [8] tries to deal with that problem.  Paragraph 1 of that RFC states:
+   Generating a key of the correct size is a difficult problem, RFC 3766
+   [14] tries to deal with that problem.  The first part of the
+   selection procedure in Section 1 of the RFC states:
 
       1. Determine the attack resistance necessary to satisfy the
          security requirements of the application.  Do this by
@@ -531,9 +539,26 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          for system security.  The 90 bit number should be increased
          by about 2/3 bit/year, or about 96 bits in 2005.
 
-   [8] goes on to explain how this number "n" can be used to calculate
+   [14] goes on to explain how this number "n" can be used to calculate
    the key sizes in public key cryptography.  This culminated in the
    table given below (slightly modified for our purpose):
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 10]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
       +-------------+-----------+--------------+
@@ -553,14 +578,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
       +-------------+-----------+--------------+
 
    The key sizes given are rather large.  This is because these keys are
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 10]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    resilient against a trillionaire attacker.  Assuming this rich
    attacker will not attack your key and that the key is rolled over
    once a year, we come to the following recommendations about KSK
@@ -580,7 +597,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
    Note that nobody can see into the future, and that these key sizes
    are only provided here as a guide.  Further information can be found
-   in [11] and Section 7.5 of [12].  It should be noted though that [11]
+   in [17] and Section 7.5 of [18].  It should be noted though that [17]
    is already considered overly optimistic about what key sizes are
    considered safe.
 
@@ -589,6 +606,16 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    chance of DNS UDP packet overflow.  Also the time it takes to
    validate and create RRSIGs increases with larger keys, so don't
    needlessly double your key sizes.
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 11]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
 
 3.6.  Private Key Storage
 
@@ -599,7 +626,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    zone by adding RRSIG and NSEC RRs.  Then the augmented file can be
    transferred.
 
-   When relying on dynamic update to manage a signed zone [4], be aware
+   When relying on dynamic update to manage a signed zone [10], be aware
    that at least one private key of the zone will have to reside on the
    master server.  This key is only as secure as the amount of exposure
    the server receives to unknown clients and the security of the host.
@@ -609,14 +636,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    set, although its name appears in the SOA RRs MNAME field.  The
    nameservers in the NS RR set are able to receive zone updates through
    NOTIFY, IXFR, AXFR or an out-of-band distribution mechanism.  This
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 11]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    approach is known as the "hidden master" setup.
 
    The ideal situation is to have a one way information flow to the
@@ -633,7 +652,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    network.  Operators are advised to take security measures to shield
    unauthorized access to the master copy.
 
-   For dynamically updated secured zones [4] both the master copy and
+   For dynamically updated secured zones [10] both the master copy and
    the private key that is used to update signatures on updated RRs will
    need to be on-line.
 
@@ -645,9 +664,17 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    Without DNSSEC all times in DNS are relative.  The SOA fields
    REFRESH, RETRY and EXPIRATION are timers used to determine the time
    elapsed after a slave server synchronized with a master server.  The
-   Time to Live (TTL) value and the SOA RR minimum TTL parameter [5] are
-   used to determine how long a forwarder should cache data after it has
-   been fetched from an authoritative server.  By using a signature
+   Time to Live (TTL) value and the SOA RR minimum TTL parameter [11]
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 12]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
+   are used to determine how long a forwarder should cache data after it
+   has been fetched from an authoritative server.  By using a signature
    validity period, DNSSEC introduces the notion of an absolute time in
    the DNS.  Signatures in DNSSEC have an expiration date after which
    the signature is marked as invalid and the signed data is to be
@@ -662,17 +689,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          If the TTL would be of similar order as the signature validity
          period, then all RRSets fetched during the validity period
          would be cached until the signature expiration time.  Section
-         7.1 of [2] suggests that "the resolver may use the time
+         7.1 of [4] suggests that "the resolver may use the time
          remaining before expiration of the signature validity period of
          a signed RRSet as an upper bound for the TTL".  As a result
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 12]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
          query load on authoritative servers would peak at signature
          expiration time, as this is also the time at which records
          simultaneously expire from caches.
@@ -687,8 +706,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          caches.  This in turn may lead to peaks in the load on
          authoritative servers.
    o  We suggest the minimum zone TTL to be long enough to both fetch
-      and verifying all the RRs in the trust chain.  In workshop
-      environments it has been demonstrated [13] that a low TTL (under 5
+      and verify all the RRs in the trust chain.  In workshop
+      environments it has been demonstrated [19] that a low TTL (under 5
       to 10 minutes) caused disruptions because of the following two
       problems:
          1.  During validation, some data may expire before the
@@ -700,6 +719,16 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          2.  Frequent verification causes load on recursive nameservers.
          Data at delegation points, DSs, DNSKEYs and RRSIGs benefit from
          caching.  The TTL on those should be relatively long.
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 13]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    o  Slave servers will need to be able to fetch newly signed zones
       well before the RRSIGs in the zone served by the slave server pass
       their signature expiration time.
@@ -719,16 +748,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
          the signatures expire well before the SOA expiration timer
          counts down to zero.  It is not possible to completely prevent
          this from happening by tweaking the SOA parameters.
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 13]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
          However, the effects can be minimized where the SOA expiration
          time is equal or shorter than the signature validity period.
          The consequence of an authoritative server not being able to
@@ -758,6 +777,14 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    rollovers -- or supercessions, as they are sometimes called -- are a
    fact of life when using DNSSEC.  Zone administrators who are in the
    process of rolling their keys have to take into account that data
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 14]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    published in previous versions of their zone still lives in caches.
    When deploying DNSSEC, this becomes an important consideration;
    ignoring data that may be in caches may lead to loss of service for
@@ -771,20 +798,12 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    signed with a new key against an old key that lives in a local cache,
    also resulting in data being marked Bogus.
 
-4.2.1.  Zone signing Key Rollovers
+4.2.1.  Zone Signing Key Rollovers
 
    For zone signing key rollovers there are two ways to make sure that
    during the rollover data still cached can be verified with the new
    key sets or newly generated signatures can be verified with the keys
    still in caches.  One schema, described in Section 4.2.1.2, uses
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 14]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    double signatures; the other uses key pre-publication
    (Section 4.2.1.1).  The pros, cons and recommendations are described
    in Section 4.2.1.3.
@@ -801,6 +820,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    as is the case with the double signature ZSK rollover.  A small
    "HOWTO" for this kind of rollover can be found in Appendix B.
 
+   Pre-publish Key Rollover involves four stages as follows:
+
     initial         new DNSKEY       new RRSIGs      DNSKEY removal
 
     SOA0            SOA1             SOA2            SOA3
@@ -811,6 +832,13 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
                     DNSKEY11         DNSKEY11
     RRSIG1 (DNSKEY) RRSIG1 (DNSKEY)  RRSIG1(DNSKEY)  RRSIG1 (DNSKEY)
     RRSIG10(DNSKEY) RRSIG10(DNSKEY)  RRSIG11(DNSKEY) RRSIG11(DNSKEY)
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 15]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
    initial: Initial version of the zone: DNSKEY 1 is the key signing
@@ -833,14 +861,6 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
       previous version of the zone to expire from old caches i.e. the
       time it takes for this zone to propagate to all authoritative
       servers plus the Maximum Zone TTL value of any of the data in the
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 15]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
       previous version of the zone.
    DNSKEY removal: DNSKEY 10 is removed from the zone.  The key set, now
       only containing DNSKEY 1 and DNSKEY 11 is re-signed with the
@@ -851,6 +871,30 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    (we show two rollovers); the future key is introduced in "new DNSKEY"
    as DNSKEY 12 and again a newer one, numbered 13, in "new DNSKEY
    (II)":
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 16]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
        initial             new RRSIGs          new DNSKEY
@@ -865,7 +909,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
        RRSIG10(DNSKEY)     RRSIG11(DNSKEY)     RRSIG11(DNSKEY)
 
 
-       new RRSIGs (II)       new DNSKEY (II)
+       new RRSIGs (II)     new DNSKEY (II)
 
        SOA3                SOA4
        RRSIG12(SOA3)       RRSIG12(SOA4)
@@ -877,28 +921,40 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
        RRSIG12(DNSKEY)     RRSIG12(DNSKEY)
 
 
+   Pre-Publish Key Rollover, showing two rollovers.
+
    Note that the key introduced in the "new DNSKEY" phase is not used
    for production yet; the private key can thus be stored in a
    physically secure manner and does not need to be 'fetched' every time
    a zone needs to be signed.
 
-4.2.1.2.  Double Signature Zone signing Key Rollover
+4.2.1.2.  Double Signature Zone Signing Key Rollover
 
    This section shows how to perform a ZSK key rollover using the double
    zone data signature scheme, aptly named "double sig rollover".
 
    During the "new DNSKEY" stage the new version of the zone file will
    need to propagate to all authoritative servers and the data that
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 16]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    exists in (distant) caches will need to expire, requiring at least
    the maximum Zone TTL.
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 17]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
+   Double Signature Zone Signing Key Rollover involves three stages as
+   follows:
 
        initial             new DNSKEY         DNSKEY removal
 
@@ -919,9 +975,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    new DNSKEY: At the "New DNSKEY" stage (SOA serial 1) DNSKEY 11 is
       introduced into the key set and all the data in the zone is signed
       with DNSKEY 10 and DNSKEY 11.  The rollover period will need to
-      exist until all data from version 0 of the zone has expired from
-      remote caches.  This will take at least the maximum Zone TTL of
-      version 0 of the zone.
+      continue until all data from version 0 of the zone has expired
+      from remote caches.  This will take at least the maximum Zone TTL
+      of version 0 of the zone.
    DNSKEY removal: DNSKEY 10 is removed from the zone.  All the
       signatures from DNSKEY 10 are removed from the zone.  The key set,
       now only containing DNSKEY 11, is re-signed with DNSKEY 1.
@@ -948,9 +1004,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
 
 
-Kolkman & Gieben         Expires August 25, 2006               [Page 17]
+Kolkman & Gieben        Expires September 7, 2006              [Page 18]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
 4.2.1.3.  Pros and Cons of the Schemes
@@ -967,7 +1023,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
       have very big zones.  An advantage is that it only requires three
       steps.
 
-4.2.2.  Key signing Key Rollovers
+4.2.2.  Key Signing Key Rollovers
 
    For the rollover of a key signing key the same considerations as for
    the rollover of a zone signing key apply.  However we can use a
@@ -996,19 +1052,23 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
                        RRSIG2 (DNSKEY)  -------->
        RRSIG10(DNSKEY) RRSIG10(DNSKEY)  -------->       RRSIG10(DNSKEY)
 
+   Stages of Deployment for Key Signing Key Rollover.
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 19]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    initial: Initial version of the zone.  The parental DS points to
       DNSKEY1.  Before the rollover starts the child will have to verify
       what the TTL is of the DS RR that points to DNSKEY1 - it is needed
       during the rollover and we refer to the value as TTL_DS.
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 18]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    new DNSKEY: During the "new DNSKEY" phase the zone administrator
       generates a second KSK, DNSKEY2.  The key is provided to the
       parent and the child will have to wait until a new DS RR has been
@@ -1043,10 +1103,11 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
    As the KSK is used to validate the key set and because the KSK is not
    changed during a ZSK rollover, a cache is able to validate the new
-   key set of the zone.  The pre-publish method would work for a KSK
-   rollover.  The records that are to be pre-published are the parental
-   DS RRs.  The pre-publish method has some drawbacks for KSKs.  We
-   first describe the rollover scheme and then indicate these drawbacks.
+   key set of the zone.  The pre-publish method would also work for a
+   KSK rollover.  The records that are to be pre-published are the
+   parental DS RRs.  The pre-publish method has some drawbacks for KSKs.
+   We first describe the rollover scheme and then indicate these
+   drawbacks.
 
 
 
@@ -1055,14 +1116,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
 
 
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 19]
+Kolkman & Gieben        Expires September 7, 2006              [Page 20]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
      initial         new DS           new DNSKEY      DS/DNSKEY removal
@@ -1084,6 +1140,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
      DNSKEY10        -------->        DNSKEY10        DNSKEY10
      RRSIG1 (DNSKEY) -------->        RRSIG2(DNSKEY)  RRSIG2 (DNSKEY)
      RRSIG10(DNSKEY) -------->        RRSIG10(DNSKEY) RRSIG10(DNSKEY)
+
+   Stages of Deployment for a Pre-publish Key Signing Key rollover.
 
    When the child zone wants to roll it notifies the parent during the
    "new DS" phase and submits the new key (or the corresponding DS) to
@@ -1111,15 +1169,15 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    o  A KSK rollover needs interaction between parent and child.  Data
       exchange is needed to provide the new keys to the parent,
       consequently, this data must be authenticated and integrity must
-      be guaranteed in order to avoid attacks on the rollover.
 
 
 
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 20]
+Kolkman & Gieben        Expires September 7, 2006              [Page 21]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
+
+      be guaranteed in order to avoid attacks on the rollover.
 
 4.3.  Planning for Emergency Key Rollover
 
@@ -1167,16 +1225,16 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    -- however the chain of trust of this particular key is broken).
 
    Note that an attacker's zone still uses the compromised KSK and the
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 22]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    presence of a parental DS would cause the data in this zone to appear
    as valid.  Removing the compromised key would cause the attacker's
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 21]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    zone to appear as valid and the child's zone as Bogus.  Therefore we
    advise not to remove the KSK before the parent has a DS to a new KSK
    in place.
@@ -1207,7 +1265,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    An additional danger of a key compromise is that the compromised key
    could be used to facilitate a legitimate DNSKEY/DS rollover and/or
    nameserver changes at the parent.  When that happens the domain may
-   be in dispute.  An authenticated out of band and secure notify
+   be in dispute.  An authenticated out-of-band and secure notify
    mechanism to contact a parent is needed in this case.
 
    Note that this is only a problem when the DNSKEY and or DS records
@@ -1223,15 +1281,16 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    In the method that causes the child zone to appear as 'Bogus' to
    validating resolvers, the child zone replaces the current KSK with a
    new one and resigns the key set.  Next it sends the DS of the new key
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 23]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    to the parent.  Only after the parent has placed the new DS in the
    zone, the child's chain of trust is repaired.
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 22]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
 
    An alternative method of breaking the chain of trust is by removing
    the DS RRs from the parent zone altogether.  As a result the child
@@ -1263,8 +1322,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    be authenticated e.g. by using digital signatures.
 
    End-users faced with the task of updating an anchored key should
-   always validate the new key.  New keys should be authenticated out of
-   band, for example, looking them up on an SSL secured announcement
+   always validate the new key.  New keys should be authenticated out-
+   of-band, for example, looking them up on an SSL secured announcement
    website.
 
 4.4.  Parental Policies
@@ -1278,29 +1337,29 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    authorization mechanisms used for the exchange of delegation
    information between parent and child.  I.e. there is no implicit need
    in DNSSEC to make the authentication process stronger than it was in
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 24]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    DNS.
 
    Using the DNS itself as the source for the actual DNSKEY material,
+   with an out-of-band check on the validity of the DNSKEY, has the
+   benefit that it reduces the chances of user error.  A DNSKEY query
+   tool can make use of the SEP bit [3] to select the proper key from a
+   DNSSEC key set; thereby reducing the chance that the wrong DNSKEY is
+   sent.  It can validate the self-signature over a key; thereby
+   verifying the ownership of the private key material.  Fetching the
+   DNSKEY from the DNS ensures that the chain of trust remains intact
+   once the parent publishes the DS RR indicating the child is secure.
 
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 23]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
-   with an off-band check on the validity of the DNSKEY, has the benefit
-   that it reduces the chances of user error.  A DNSKEY query tool can
-   make use of the SEP bit [1] to select the proper key from a DNSSEC
-   key set; thereby reducing the chance that the wrong DNSKEY is sent.
-   It can validate the self-signature over a key; thereby verifying the
-   ownership of the private key material.  Fetching the DNSKEY from the
-   DNS ensures that the chain of trust remains intact once the parent
-   publishes the DS RR indicating the child is secure.
-
-   Note: the off-band verification is still needed when the key-material
-   is fetched via the DNS.  The parent can never be sure whether the
-   DNSKEY RRs have been spoofed or not.
+   Note: the out-of-band verification is still needed when the key-
+   material is fetched via the DNS.  The parent can never be sure
+   whether the DNSKEY RRs have been spoofed or not.
 
 4.4.2.  Storing Keys or Hashes?
 
@@ -1324,7 +1383,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    registrant and registry; Will the child zone administrator be able to
    upload DS RRs with unknown hash algorithms or does the interface only
    allow DNSKEYs?  In the registry-registrar model one can use the
-   DNSSEC EPP protocol extension [10] which allows transfer of DS RRs
+   DNSSEC EPP protocol extension [16] which allows transfer of DS RRs
    and optionally DNSKEY RRs.
 
 4.4.3.  Security Lameness
@@ -1334,17 +1393,17 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    child's zone may be marked as "Bogus" by verifying DNS clients.
 
    As part of a comprehensive delegation check the parent could, at key
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 25]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    exchange time, verify that the child's key is actually configured in
    the DNS.  However if a parent does not understand the hashing
    algorithm used by child the parental checks are limited to only
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 24]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    comparing the key id.
 
    Child zones should be very careful removing DNSKEY material,
@@ -1393,12 +1452,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
 
 
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 25]
+Kolkman & Gieben        Expires September 7, 2006              [Page 26]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
 6.  Security Considerations
@@ -1423,8 +1479,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
    Olivier Courtay, Sam Weiler, Jelte Jansen, Niall O'Reilly, Holger
    Zuleger, Ed Lewis, Hilarie Orman, Marcos Sanz and Peter Koch.
 
-   Some material in this document has been shamelessly copied from
-   RFC2541 [6] by Donald Eastlake.
+   Some material in this document has been copied from RFC 2541 [12].
 
    Mike StJohns designed the key exchange between parent and child
    mentioned in the last paragraph of Section 4.2.2
@@ -1443,74 +1498,94 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
 8.1.  Normative References
 
-   [1]  Kolkman, O., Schlyter, J., and E. Lewis, "Domain Name System KEY
+   [1]  Mockapetris, P., "Domain names - concepts and facilities",
+        STD 13, RFC 1034, November 1987.
+
+   [2]  Mockapetris, P., "Domain names - implementation and
+        specification", STD 13, RFC 1035, November 1987.
+
+   [3]  Kolkman, O., Schlyter, J., and E. Lewis, "Domain Name System KEY
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 27]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
         (DNSKEY) Resource Record (RR) Secure Entry Point (SEP) Flag",
         RFC 3757, May 2004.
 
-   [2]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+   [4]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
         "DNS Security Introduction and Requirements", RFC 4033,
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 26]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
         March 2005.
+
+   [5]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+        "Resource Records for the DNS Security Extensions", RFC 4034,
+        March 2005.
+
+   [6]  Arends, R., Austein, R., Larson, M., Massey, D., and S. Rose,
+        "Protocol Modifications for the DNS Security Extensions",
+        RFC 4035, March 2005.
 
 8.2.  Informative References
 
-   [3]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
+   [7]   Ohta, M., "Incremental Zone Transfer in DNS", RFC 1995,
+         August 1996.
+
+   [8]   Vixie, P., "A Mechanism for Prompt Notification of Zone Changes
+         (DNS NOTIFY)", RFC 1996, August 1996.
+
+   [9]   Bradner, S., "Key words for use in RFCs to Indicate Requirement
          Levels", BCP 14, RFC 2119, March 1997.
 
-   [4]   Eastlake, D., "Secure Domain Name System Dynamic Update",
+   [10]  Eastlake, D., "Secure Domain Name System Dynamic Update",
          RFC 2137, April 1997.
 
-   [5]   Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)",
+   [11]  Andrews, M., "Negative Caching of DNS Queries (DNS NCACHE)",
          RFC 2308, March 1998.
 
-   [6]   Eastlake, D., "DNS Security Operational Considerations",
+   [12]  Eastlake, D., "DNS Security Operational Considerations",
          RFC 2541, March 1999.
 
-   [7]   Gudmundsson, O., "Delegation Signer (DS) Resource Record (RR)",
+   [13]  Gudmundsson, O., "Delegation Signer (DS) Resource Record (RR)",
          RFC 3658, December 2003.
 
-   [8]   Orman, H. and P. Hoffman, "Determining Strengths For Public
+   [14]  Orman, H. and P. Hoffman, "Determining Strengths For Public
          Keys Used For Exchanging Symmetric Keys", BCP 86, RFC 3766,
          April 2004.
 
-   [9]   Eastlake, D., Schiller, J., and S. Crocker, "Randomness
+   [15]  Eastlake, D., Schiller, J., and S. Crocker, "Randomness
          Requirements for Security", BCP 106, RFC 4086, June 2005.
 
-   [10]  Hollenbeck, S., "Domain Name System (DNS) Security Extensions
-         Mapping for the Extensible  Provisioning Protocol (EPP)",
-         draft-hollenbeck-epp-secdns-07 (work in progress), March 2005.
+   [16]  Hollenbeck, S., "Domain Name System (DNS) Security Extensions
+         Mapping for the Extensible Provisioning Protocol (EPP)",
+         RFC 4310, December 2005.
 
-   [11]  Lenstra, A. and E. Verheul, "Selecting Cryptographic Key
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 28]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
+   [17]  Lenstra, A. and E. Verheul, "Selecting Cryptographic Key
          Sizes", The Journal of Cryptology 14 (255-293), 2001.
 
-   [12]  Schneier, B., "Applied Cryptography: Protocols, Algorithms, and
-         Source Code in C", 1996.
+   [18]  Schneier, B., "Applied Cryptography: Protocols, Algorithms, and
+         Source Code in C", ISBN (hardcover) 0-471-12845-7, ISBN
+         (paperback) 0-471-59756-2, Published by John Wiley & Sons Inc.,
+         1996.
 
-   [13]  Rose, S., "NIST DNSSEC workshop notes", June 2001.
+   [19]  Rose, S., "NIST DNSSEC workshop notes", June 2001.
 
-   [14]  Jansen, J., "Use of RSA/SHA-256 DNSKEY and RRSIG Resource
+   [20]  Jansen, J., "Use of RSA/SHA-256 DNSKEY and RRSIG Resource
          Records in DNSSEC", draft-ietf-dnsext-dnssec-rsasha256-00.txt
          (work in progress), January 2006.
 
-   [15]  Hardaker, W., "Use of SHA-256 in DNSSEC Delegation Signer (DS)
+   [21]  Hardaker, W., "Use of SHA-256 in DNSSEC Delegation Signer (DS)
          Resource Records (RRs)", draft-ietf-dnsext-ds-sha256-04.txt
          (work in progress), January 2006.
-
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 27]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
 
 
 Appendix A.  Terminology
@@ -1523,33 +1598,44 @@ Appendix A.  Terminology
 
    Anchored Key: A DNSKEY configured in resolvers around the globe.
       This key is hard to update, hence the term anchored.
-   Bogus: Also see Section 5 of [2].  An RRSet in DNSSEC is marked
+   Bogus: Also see Section 5 of [4].  An RRSet in DNSSEC is marked
       "Bogus" when a signature of a RRSet does not validate against a
       DNSKEY.
    Key Signing Key or KSK: A Key Signing Key (KSK) is a key that is used
       exclusively for signing the apex key set.  The fact that a key is
       a KSK is only relevant to the signing tool.
    Key size: The term 'key size' can be substituted by 'modulus size'
-      throughout the document.  It is mathematical more correct to use
+      throughout the document.  It is mathematically more correct to use
       modulus size, but as this is a document directed at operators we
       feel more at ease with the term key size.
    Private and Public Keys: DNSSEC secures the DNS through the use of
       public key cryptography.  Public key cryptography is based on the
-      existence of two (mathematical related) keys, a public key and a
+      existence of two (mathematically related) keys, a public key and a
       private key.  The public keys are published in the DNS by use of
       the DNSKEY Resource Record (DNSKEY RR).  Private keys should
       remain private.
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 29]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    Key Rollover: A key rollover (also called key supercession in some
       environments) is the act of replacing one key pair by another at
       the end of a key effectivity period.
    Secure Entry Point key or SEP Key: A KSK that has a parental DS
       record pointing to it or is configured as a trust anchor.
       Although not required by the protocol we recommend that the SEP
-      flag [1] is set on these keys.
+      flag [3] is set on these keys.
    Self-signature: This is only applies to signatures over DNSKEYs; a
       signature made with DNSKEY x, over DNSKEY x is called a self-
       signature.  Note: without further information self-signatures
-      convey no trust, they are usefull to check the authenticity of the
+      convey no trust, they are useful to check the authenticity of the
       DNSKEY, i.e. they can be used as a hash.
    Singing the Zone File: The term used for the event where an
       administrator joyfully signs its zone file while producing melodic
@@ -1558,17 +1644,6 @@ Appendix A.  Terminology
       signs the Resource Record sets in a zone.  A signer may be
       configured to sign only parts of the zone e.g. only those RRSets
       for which existing signatures are about to expire.
-
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 28]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    Zone Signing Key or ZSK: A Zone Signing Key (ZSK) is a key that is
       used for signing all data in a zone.  The fact that a key is a ZSK
       is only relevant to the signing tool.
@@ -1576,7 +1651,7 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
       and publishing it on the primary authoritative server.
 
 
-Appendix B.  Zone signing Key Rollover Howto
+Appendix B.  Zone Signing Key Rollover Howto
 
    Using the pre-published signature scheme and the most conservative
    method to assure oneself that data does not live in caches, here
@@ -1596,6 +1671,16 @@ Appendix B.  Zone signing Key Rollover Howto
    Step 2: Then start using the key that was marked as "published" to
       sign your data i.e. mark it as "active".  Stop using the key that
       was marked as "active", mark it as "rolled".
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 30]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    Step 3: It is safe to engage in a new rollover (Step 1) after at
       least one "signature validity period".
 
@@ -1613,24 +1698,43 @@ Appendix C.  Typographic Conventions
       to just "A".
    Signature notation: Signatures are denoted as RRSIGx(RRSet), which
       means that RRSet is signed with DNSKEYx.
-
-
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 29]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
    Zone representation: Using the above notation we have simplified the
       representation of a signed zone by leaving out all unnecessary
       details such as the names and by representing all data by "SOAx"
    SOA representation: SOAs are represented as SOAx, where x is the
       serial number.
    Using this notation the following signed zone:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 31]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
    example.net.      86400  IN SOA  ns.example.net. bert.example.net. (
@@ -1648,11 +1752,9 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
                                   20130407213204 14 example.net.
                                   SO5epiJei19AjXoUpFnQ ... )
                      86400  DNSKEY  256 3 5 (
-                                  EtRB9MP5/AvOuVO0I8XDxy0... )
-                                    ; key id = 14
+                                  EtRB9MP5/AvOuVO0I8XDxy0... ) ; id = 14
                      86400  DNSKEY  257 3 5 (
-                                  gsPW/Yy19GzYIY+Gnr8HABU... )
-                                    ; key id = 15
+                                  gsPW/Yy19GzYIY+Gnr8HABU... ) ; id = 15
                      86400  RRSIG   DNSKEY 5 2 86400 20130522213204 (
                                   20130422213204 14 example.net.
                                   J4zCe8QX4tXVGjV4e1r9... )
@@ -1674,16 +1776,8 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
 
    is reduced to the following representation:
 
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 30]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
        SOA2006022100
        RRSIG14(SOA2006022100)
-
        DNSKEY14
        DNSKEY15
 
@@ -1691,6 +1785,14 @@ Internet-Draft        DNSSEC Operational Practices         February 2006
        RRSIG15(KEY)
 
    The rest of the zone data has the same signature as the SOA record,
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 32]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
+
    i.e a RRSIG created with DNSKEY 14.
 
 
@@ -1727,16 +1829,6 @@ D.3.  draft-ietf-dnsop-dnssec-operational-practices-02
    Added Automatic rollover requirements from I-D.ietf-dnsop-key-
    rollover-requirements.
 
-
-
-
-
-
-Kolkman & Gieben         Expires August 25, 2006               [Page 31]
-
-Internet-Draft        DNSSEC Operational Practices         February 2006
-
-
 D.4.  draft-ietf-dnsop-dnssec-operational-practices-03
 
    Added the definition of Key effectivity period and used that term
@@ -1745,10 +1837,17 @@ D.4.  draft-ietf-dnsop-dnssec-operational-practices-03
    Modified the order of the sections, based on a suggestion by Rip
    Loomis.
 
-   Included parts from RFC2541 [6].  Most of its ground was already
-   covered.  This document obsoletes RFC2541 [6].  Section 3.1.2
-   deserves some review as it in contrast to RFC2541 does _not_ give
+   Included parts from RFC 2541 [12].  Most of its ground was already
+   covered.  This document obsoletes RFC 2541 [12].  Section 3.1.2
+   deserves some review as it in contrast to RFC 2541 does _not_ give
    recomendations about root-zone keys.
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 33]
+
+Internet-Draft        DNSSEC Operational Practices            March 2006
+
 
    added a paragraph to Section 4.4.4
 
@@ -1784,13 +1883,26 @@ D.8.  draft-ietf-dnsop-dnssec-operational-practices-07
 
    SHA-1/SHA-256 remarks added
 
+D.9.  draft-ietf-dnsop-dnssec-operational-practices-08
+
+   IESG comments applied.  Added headers and some captions to the tables
+   and applied all the nits.
+
+   IESG DISCUSS comments applied
 
 
 
 
-Kolkman & Gieben         Expires August 25, 2006               [Page 32]
+
+
+
+
+
+
+
+Kolkman & Gieben        Expires September 7, 2006              [Page 34]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
 Authors' Addresses
@@ -1844,9 +1956,9 @@ Authors' Addresses
 
 
 
-Kolkman & Gieben         Expires August 25, 2006               [Page 33]
+Kolkman & Gieben        Expires September 7, 2006              [Page 35]
 
-Internet-Draft        DNSSEC Operational Practices         February 2006
+Internet-Draft        DNSSEC Operational Practices            March 2006
 
 
 Intellectual Property Statement
@@ -1900,5 +2012,5 @@ Acknowledgment
 
 
 
-Kolkman & Gieben         Expires August 25, 2006               [Page 34]
+Kolkman & Gieben        Expires September 7, 2006              [Page 36]
 
