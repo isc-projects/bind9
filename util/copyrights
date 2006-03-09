@@ -469,7 +469,7 @@
 ./bin/tests/system/dlv/ns4/hints		ZONE	2004
 ./bin/tests/system/dlv/ns4/named.conf		CONF-C	2004
 ./bin/tests/system/dlv/ns5/hints		ZONE	2004
-./bin/tests/system/dlv/ns5/named.conf		CONF-C	2004
+./bin/tests/system/dlv/ns5/named.conf		CONF-C	2004,2006
 ./bin/tests/system/dlv/ns5/rndc.conf		CONF-C	2004
 ./bin/tests/system/dlv/setup.sh			SH	2004
 ./bin/tests/system/dlv/tests.sh			SH	2004
@@ -477,7 +477,7 @@
 ./bin/tests/system/dnssec/clean.sh		SH	2000,2001,2002,2004
 ./bin/tests/system/dnssec/dnssec_update_test.pl	PERL	2002,2004
 ./bin/tests/system/dnssec/ns1/.cvsignore	X	2000,2001
-./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004
+./bin/tests/system/dnssec/ns1/named.conf	CONF-C	2000,2001,2004,2006
 ./bin/tests/system/dnssec/ns1/root.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns1/sign.sh		SH	2000,2001,2002,2003,2004,2006
 ./bin/tests/system/dnssec/ns2/.cvsignore	X	2000,2001
@@ -485,7 +485,7 @@
 ./bin/tests/system/dnssec/ns2/dst.example.db.in	ZONE	2004
 ./bin/tests/system/dnssec/ns2/example.db.in	ZONE	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004
-./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004
+./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns2/rfc2335.example.db	ZONE	2004
 ./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004,2006
@@ -494,15 +494,15 @@
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004
 ./bin/tests/system/dnssec/ns3/insecure.example.db	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns3/keyless.example.db.in	ZONE	2001,2002,2004
-./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004
+./bin/tests/system/dnssec/ns3/named.conf	CONF-C	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/ns3/secure.example.db.in	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns3/sign.sh		SH	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/ns4/.cvsignore	X	2000,2001
-./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004
+./bin/tests/system/dnssec/ns4/named.conf	CONF-C	2000,2001,2004,2006
 ./bin/tests/system/dnssec/ns5/.cvsignore	X	2000,2001
-./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004
+./bin/tests/system/dnssec/ns5/named.conf	CONF-C	2000,2001,2004,2006
 ./bin/tests/system/dnssec/ns5/trusted.conf.bad	CONF-C	2000,2001,2004
-./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004
+./bin/tests/system/dnssec/ns6/named.conf	CONF-C	2004,2006
 ./bin/tests/system/dnssec/prereq.sh		SH	2000,2001,2002,2004,2006
 ./bin/tests/system/dnssec/setup.sh		SH	2000,2001,2004
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006
@@ -568,7 +568,7 @@
 ./bin/tests/system/lwresd/ns1/example2.db	ZONE	2000,2001,2002,2004
 ./bin/tests/system/lwresd/ns1/ip6.arpa.db	ZONE	2000,2001,2002,2004
 ./bin/tests/system/lwresd/ns1/ip6.int.db	ZONE	2000,2001,2002,2004
-./bin/tests/system/lwresd/ns1/named.conf	CONF-C	2000,2001,2004
+./bin/tests/system/lwresd/ns1/named.conf	CONF-C	2000,2001,2004,2006
 ./bin/tests/system/lwresd/ns1/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/lwresd/resolv.conf		CONF-SH	2000,2001,2004
 ./bin/tests/system/lwresd/tests.sh		SH	2000,2001,2004
