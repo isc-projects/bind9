@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.119.18.24 2006/02/26 22:59:56 marka Exp $ */
+/* $Id: validator.c,v 1.119.18.25 2006/03/09 23:46:20 marka Exp $ */
 
 /*! \file */
 
@@ -71,9 +71,9 @@
  * validator_start -> nsecvalidate -> proveunsecure -> startfinddlvsep ->
  *	dlv_validator_start -> validator_start -> nsecvalidate -> proveunsecure
  *
- * \li When called without a rdataset and with DNS_VALIDATOR_DLV:
- * validator_start -> startfinddlvsep -> dlv_validator_start ->
- *	validator_start -> nsecvalidate -> proveunsecure
+ * Note: there isn't a case for DNS_VALIDATOR_DLV here as we want nsecvalidate()
+ * to always validate the authority section even when it does not contain
+ * signatures.
  *
  * validator_start: determines what type of validation to do.
  * validate: attempts to perform a positive validation.
@@ -92,7 +92,6 @@
 						 * have attempted a verify. */
 #define VALATTR_INSECURITY		0x0010	/*%< Attempting proveunsecure. */
 #define VALATTR_DLVTRIED		0x0020	/*%< Looked for a DLV record. */
-#define VALATTR_AUTHNONPENDING		0x0040	/*%< Tidy up pending auth. */
 
 /*!
  * NSEC proofs to be looked for.
@@ -157,18 +156,11 @@ dlv_validator_start(dns_validator_t *val);
 static isc_result_t
 finddlvsep(dns_validator_t *val, isc_boolean_t resume);
 
-static void
-auth_nonpending(dns_message_t *message);
-
 static isc_result_t
 startfinddlvsep(dns_validator_t *val, dns_name_t *unsecure);
 
 /*%
  * Mark the RRsets as a answer.
- *
- * If VALATTR_AUTHNONPENDING is set then this is a negative answer
- * in a insecure zone.  We need to mark any pending RRsets as
- * dns_trust_authauthority answers (this is deferred from resolver.c).
  */
 static inline void
 markanswer(dns_validator_t *val) {
@@ -177,9 +169,6 @@ markanswer(dns_validator_t *val) {
 		val->event->rdataset->trust = dns_trust_answer;
 	if (val->event->sigrdataset != NULL)
 		val->event->sigrdataset->trust = dns_trust_answer;
-	if (val->event->message != NULL &&
-	    (val->attributes & VALATTR_AUTHNONPENDING) != 0)
-		auth_nonpending(val->event->message);
 }
 
 static void
@@ -216,31 +205,6 @@ exit_check(dns_validator_t *val) {
 		return (ISC_FALSE);
 
 	return (ISC_TRUE);
-}
-
-/*%
- * Mark pending answers in the authority section as dns_trust_authauthority.
- */
-static void
-auth_nonpending(dns_message_t *message) {
-	isc_result_t result;
-	dns_name_t *name;
-	dns_rdataset_t *rdataset;
-
-	for (result = dns_message_firstname(message, DNS_SECTION_AUTHORITY);
-	     result == ISC_R_SUCCESS;
-	     result = dns_message_nextname(message, DNS_SECTION_AUTHORITY))
-	{
-		name = NULL;
-		dns_message_currentname(message, DNS_SECTION_AUTHORITY, &name);
-		for (rdataset = ISC_LIST_HEAD(name->list);
-		     rdataset != NULL;
-		     rdataset = ISC_LIST_NEXT(rdataset, link))
-		{
-			if (rdataset->trust == dns_trust_pending)
-				rdataset->trust = dns_trust_authauthority;
-		}
-	}
 }
 
 /*%
@@ -2136,8 +2100,6 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 				    sigrdataset->covers == rdataset->type)
 					break;
 			}
-			if (sigrdataset == NULL)
-				continue;
 			/*
 			 * If a signed zone is missing the zone key, bad
 			 * things could happen.  A query for data in the zone
@@ -2226,7 +2188,6 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 
 	validator_log(val, ISC_LOG_DEBUG(3),
 		      "nonexistence proof(s) not found");
-	val->attributes |= VALATTR_AUTHNONPENDING;
 	val->attributes |= VALATTR_INSECURITY;
 	return (proveunsecure(val, ISC_FALSE));
 }
@@ -2753,7 +2714,8 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 
 	LOCK(&val->lock);
 
-	if ((val->options & DNS_VALIDATOR_DLV) != 0) {
+	if ((val->options & DNS_VALIDATOR_DLV) != 0 &&
+	     val->event->rdataset != NULL) {
 		validator_log(val, ISC_LOG_DEBUG(3), "looking for DLV");
 		result = startfinddlvsep(val, dns_rootname);
 	} else if (val->event->rdataset != NULL &&

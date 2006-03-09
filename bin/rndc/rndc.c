@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.14 2006/03/02 00:37:21 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.15 2006/03/09 23:46:20 marka Exp $ */
 
 /*! \file */
 
@@ -132,6 +132,8 @@ command is one of the following:\n\
 		Flush the given name from the server's cache(s)\n\
   status	Display status of the server.\n\
   recursing	Dump the queries that are currently recursing (named.recursing)\n\
+  validation newstate [view]\n\
+		Enable / disable DNSSEC validation.\n\
   *restart	Restart the server.\n\
 \n\
 * == not yet implemented\n\
