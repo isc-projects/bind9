@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.25 2006/03/06 01:38:00 marka Exp $ */
+/* $Id: config.c,v 1.47.18.26 2006/03/09 03:40:33 marka Exp $ */
 
 /*! \file */
 
@@ -103,7 +103,8 @@ options {\n\
 	/* view */\n\
 	allow-notify {none;};\n\
 	allow-update-forwarding {none;};\n\
-	allow-recursion {any;};\n\
+	allow-query-cache { localnets; localhost; };\n\
+	allow-recursion { localnets; localhost; };\n\
 #	allow-v6-synthesis <obsolete>;\n\
 #	sortlist <none>\n\
 #	topology <none>\n\

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.41 2006/02/28 03:10:47 marka Exp $ */
+/* $Id: server.c,v 1.419.18.42 2006/03/09 03:40:33 marka Exp $ */
 
 /*! \file */
 
@@ -1430,8 +1430,9 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	CHECK(configure_view_acl(vconfig, config, "allow-query-cache",
 				 actx, ns_g_mctx, &view->queryacl));
 	if (view->queryacl == NULL)
-		CHECK(configure_view_acl(vconfig, config, "allow-query",
-					 actx, ns_g_mctx, &view->queryacl));
+		CHECK(configure_view_acl(NULL, ns_g_defaults,
+					 "allow-query-cache", actx,
+					 ns_g_mctx, &view->queryacl));
 
 	if (strcmp(view->name, "_bind") != 0)
 		CHECK(configure_view_acl(vconfig, config, "allow-recursion",
@@ -1449,6 +1450,13 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
 			      "both \"recursion no;\" and \"allow-recursion\" "
 			      "active%s%s", forview, viewname);
+
+	/*
+	 * Set default "allow-recursion" acl.
+	 */
+	if (view->recursionacl == NULL && view->recursion)
+		CHECK(configure_view_acl(NULL, ns_g_defaults, "allow-recursion",
+					 actx, ns_g_mctx, &view->recursionacl));
 
 	CHECK(configure_view_acl(vconfig, config, "sortlist",
 				 actx, ns_g_mctx, &view->sortlist));

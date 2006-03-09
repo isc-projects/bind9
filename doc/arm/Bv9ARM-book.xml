@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.54 2006/03/06 01:38:01 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.55 2006/03/09 03:40:33 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -3069,20 +3069,21 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             and whether the element was negated.
           </para>
 
-          <para>
-            When used as an access control list, a non-negated match allows
-            access and a negated match denies access. If there is no match,
-            access is denied. The clauses <command>allow-notify</command>,
-            <command>allow-query</command>, <command>allow-query-cache</command>,
-            <command>allow-transfer</command>,
-            <command>allow-update</command>, <command>allow-update-forwarding</command>,
-            and <command>blackhole</command> all use address match
-            lists.
-            Similarly, the listen-on option will cause the server to not
-            accept
-            queries on any of the machine's addresses which do not match the
-            list.
-          </para>
+	  <para>
+	    When used as an access control list, a non-negated match
+	    allows access and a negated match denies access. If
+	    there is no match, access is denied. The clauses
+	    <command>allow-notify</command>,
+	    <command>allow-query</command>,
+	    <command>allow-query-cache</command>,
+	    <command>allow-transfer</command>,
+	    <command>allow-update</command>,
+	    <command>allow-update-forwarding</command>, and
+	    <command>blackhole</command> all use address match
+	    lists.  Similarly, the listen-on option will cause the
+	    server to not accept queries on any of the machine's
+	    addresses which do not match the list.
+	  </para>
 
           <para>
             Because of the first-match aspect of the algorithm, an element
@@ -5772,64 +5773,57 @@ options {
               </listitem>
             </varlistentry>
 
-            <varlistentry>
-              <term><command>allow-query</command></term>
-              <listitem>
-                <para>
-                  Specifies which hosts are allowed to
-                  ask ordinary DNS questions. <command>allow-query</command> may also
-                  be specified in the <command>zone</command>
-                  statement, in which
-                  case it overrides the <command>options allow-query</command> statement.
-                  <command>allow-query-cache</command> may also be
-                  specified and will
-                  overrides access to the cache.
-                  If not specified, the default is to allow queries from all
-                  hosts.
-                </para>
-              </listitem>
-            </varlistentry>
+	    <varlistentry>
+	      <term><command>allow-query</command></term>
+	      <listitem>
+		<para>
+		  Specifies which hosts are allowed to ask ordinary
+		  DNS questions. <command>allow-query</command> may
+		  also be specified in the <command>zone</command>
+		  statement, in which case it overrides the
+		  <command>options allow-query</command> statement.
+		  If not specified, the default is to allow queries
+		  from all hosts.
+		</para>
+		<note>
+		  <para>
+		    <command>allow-query-cache</command> is now
+		    used to specify access to the cache.
+		  </para>
+		</note>
+	      </listitem>
+	    </varlistentry>
 
-            <varlistentry>
-              <term><command>allow-query-cache</command></term>
-              <listitem>
-                <para>
-                  Specifies which hosts are allowed to get answers
-                  from the cache.  If not set <command>allow-query</command> applies.
-                </para>
-                <para>
-                  The recommended way to set query access to the cache is now
-                  via
-                  <command>allow-query-cache</command> rather than
-                  <command>allow-query</command>.
-                  Inheritance from <command>allow-query</command>
-                  has been retained for
-                  backwards compatability.
-                </para>
-                <note>
-                  <para>
-                    If <command>allow-query-cache</command> is set
-                    at the options
-                    level and not set in the view it will still override a
-                    <command>allow-query</command> set at the view
-                    level.
-                  </para>
-                </note>
-              </listitem>
-            </varlistentry>
+	    <varlistentry>
+	      <term><command>allow-query-cache</command></term>
+	      <listitem>
+		<para>
+		  Specifies which hosts are allowed to get answers
+		  from the cache. The default is the builtin acls
+		  <command>localnets</command> and
+		  <command>localhost</command>.
+		</para>
+		<para>
+		  The way to set query access to the cache is now
+		  via <command>allow-query-cache</command>.
+		  This differs from earlier versions which used
+		  <command>allow-query</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
             <varlistentry>
               <term><command>allow-recursion</command></term>
               <listitem>
                 <para>
-                  Specifies which hosts are allowed to
-                  make recursive queries through this server. If not
-                  specified, the
-                  default is to allow recursive queries from all hosts.
-                  Note that disallowing recursive queries for a host does not
-                  prevent the
-                  host from retrieving data that is already in the server's
-                  cache.
+		  Specifies which hosts are allowed to make recursive
+		  queries through this server. If not specified,
+		  the default is to allow recursive queries from
+		  the builtin acls <command>localnets</command> and
+		  <command>localhost</command>.
+		  Note that disallowing recursive queries for a
+		  host does not prevent the host from retrieving
+		  data that is already in the server's cache.
                 </para>
               </listitem>
             </varlistentry>
