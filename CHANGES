@@ -1,3 +1,14 @@
+2006.	[security]	Allow-query-cache and allow-recursion now default
+			to the builtin acls "localnets" and "localhost".
+
+			This is being done to make caching servers less
+			attractive as reflective amplifying targets for
+			spoofed traffic.  This still leave authoritative
+			servers exposed.
+
+			The best fix is for full BCP 38 deployment to
+			remove spoofed traffic.
+
 2005.	[bug]		libbind: Retransmission timeouts should be
 			based on which attempt it is to the nameserver
 			and not the nameserver itself. [RT #13548]
