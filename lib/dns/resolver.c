@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.45 2006/02/17 00:42:10 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.46 2006/03/09 23:38:21 marka Exp $ */
 
 /*! \file */
 
@@ -3536,14 +3536,16 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	result = dns_keytable_issecuredomain(res->view->secroots, name,
-					     &secure_domain);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (res->view->enablevalidation) {
+		result = dns_keytable_issecuredomain(res->view->secroots, name,
+						     &secure_domain);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
-	if (!secure_domain && res->view->dlv != NULL) {
-		valoptions = DNS_VALIDATOR_DLV;
-		secure_domain = ISC_TRUE;
+		if (!secure_domain && res->view->dlv != NULL) {
+			valoptions = DNS_VALIDATOR_DLV;
+			secure_domain = ISC_TRUE;
+		}
 	}
 
 	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)
@@ -3955,14 +3957,16 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	result = dns_keytable_issecuredomain(res->view->secroots, name,
-					     &secure_domain);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	if (fctx->res->view->enablevalidation) {
+		result = dns_keytable_issecuredomain(res->view->secroots, name,
+						     &secure_domain);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 
-	if (!secure_domain && res->view->dlv != NULL) {
-		valoptions = DNS_VALIDATOR_DLV;
-		secure_domain = ISC_TRUE;
+		if (!secure_domain && res->view->dlv != NULL) {
+			valoptions = DNS_VALIDATOR_DLV;
+			secure_domain = ISC_TRUE;
+		}
 	}
 
 	if ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0)

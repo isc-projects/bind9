@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.55 2006/03/09 03:40:33 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.56 2006/03/09 23:38:20 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4393,6 +4393,7 @@ category notify { null; };
     <optional> use-id-pool <replaceable>yes_or_no</replaceable>; </optional>
     <optional> maintain-ixfr-base <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-enable <replaceable>yes_or_no</replaceable>; </optional>
+    <optional> dnssec-validation <replaceable>yes_or_no</replaceable>; </optional>
     <optional> dnssec-lookaside <replaceable>domain</replaceable> trust-anchor <replaceable>domain</replaceable>; </optional>
     <optional> dnssec-must-be-secure <replaceable>domain yes_or_no</replaceable>; </optional>
     <optional> dnssec-accept-expired <replaceable>yes_or_no</replaceable>; </optional>
@@ -5484,6 +5485,18 @@ options {
                 <para>
                   Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
                   named behaves as if it does not support DNSSEC.
+                  The default is <userinput>yes</userinput>.
+                </para>
+              </listitem>
+            </varlistentry>
+
+            <varlistentry>
+              <term><command>dnssec-validation</command></term>
+              <listitem>
+                <para>
+                  Enable DNSSEC validation in named.
+		  Note <command>dnssec-enable</command> also needs to be
+		  set to <userinput>yes</userinput> to be effective.
                   The default is <userinput>no</userinput>.
                 </para>
               </listitem>

@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.20 2006/03/06 01:38:00 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.21 2006/03/09 23:38:20 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -263,6 +263,7 @@ options {
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
+	dnssec-validation <replaceable>boolean</replaceable>;
 	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
@@ -410,6 +411,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	root-delegation-only <optional> exclude { <replaceable>quoted_string</replaceable>; ... } </optional>;
 	disable-algorithms <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
 	dnssec-enable <replaceable>boolean</replaceable>;
+	dnssec-validation <replaceable>boolean</replaceable>;
 	dnssec-lookaside <replaceable>string</replaceable> trust-anchor <replaceable>string</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-accept-expired <replaceable>boolean</replaceable>;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.28 2006/03/06 01:38:01 marka Exp $ */
+/* $Id: check.c,v 1.44.18.29 2006/03/09 23:38:21 marka Exp $ */
 
 /*! \file */
 
@@ -1394,6 +1394,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult = ISC_R_SUCCESS;
 	cfg_aclconfctx_t actx;
+	cfg_obj_t *obj;
+	isc_boolean_t enablednssec, enablevalidation;
 
 	/*
 	 * Check that all zone statements are syntactically correct and
@@ -1498,6 +1500,33 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		    check_servers(servers, logctx) != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}
+
+	/*
+	 * Check that dnssec-enable/dnssec-validation are sensible.
+	 */
+	obj = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "dnssec-enable", &obj);
+	if (obj == NULL)
+		(void)cfg_map_get(config, "dnssec-enable", &obj);
+	if (obj == NULL)
+		enablednssec = ISC_TRUE;
+	else
+		enablednssec = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	if (voptions != NULL)
+		(void)cfg_map_get(voptions, "dnssec-validation", &obj);
+	if (obj == NULL)
+		(void)cfg_map_get(config, "dnssec-validation", &obj);
+	if (obj == NULL)
+		enablevalidation = ISC_FALSE;	/* XXXMPA Change for 9.5. */
+	else
+		enablevalidation = cfg_obj_asboolean(obj);
+
+	if (enablevalidation && !enablednssec)
+		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
+			    "'dnssec-validation yes;' and 'dnssec-enable no;'");
 
 	if (voptions != NULL)
 		tresult = check_options(voptions, logctx, mctx);

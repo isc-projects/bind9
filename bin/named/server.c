@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.42 2006/03/09 03:40:33 marka Exp $ */
+/* $Id: server.c,v 1.419.18.43 2006/03/09 23:38:20 marka Exp $ */
 
 /*! \file */
 
@@ -1492,6 +1492,11 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "dnssec-accept-expired", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->acceptexpired = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-validation", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->enablevalidation = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = ns_config_get(maps, "dnssec-lookaside", &obj);
