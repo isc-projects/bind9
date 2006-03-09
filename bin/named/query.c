@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.282 2006/03/03 00:43:34 marka Exp $ */
+/* $Id: query.c,v 1.283 2006/03/09 23:21:53 marka Exp $ */
 
 /*! \file */
 
@@ -4527,13 +4527,17 @@ ns_query_start(ns_client_t *client) {
 	 * If the client has requested that DNSSEC checking be disabled,
 	 * allow lookups to return pending data and instruct the resolver
 	 * to return data before validation has completed.
+	 *
+	 * We don't need to set DNS_DBFIND_PENDINGOK when validation is
+	 * disabled as there will be no pending data.
 	 */
 	if (message->flags & DNS_MESSAGEFLAG_CD ||
 	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
 		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
-	}
+	} else if (!client->view->enablevalidation)
+		client->query.fetchoptions |= DNS_FETCHOPT_NOVALIDATE;
 
 	/*
 	 * Allow glue NS records to be added to the authority section

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.67 2006/03/06 01:27:52 marka Exp $ */
+/* $Id: namedconf.c,v 1.68 2006/03/09 23:21:54 marka Exp $ */
 
 /*! \file */
 
@@ -768,6 +768,7 @@ view_clauses[] = {
 	{ "disable-algorithms", &cfg_type_disablealgorithm,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-enable", &cfg_type_boolean, 0 },
+	{ "dnssec-validation", &cfg_type_boolean, 0 },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	   CFG_CLAUSEFLAG_MULTI },

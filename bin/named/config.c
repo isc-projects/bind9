@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.72 2006/03/09 03:30:18 marka Exp $ */
+/* $Id: config.c,v 1.73 2006/03/09 23:21:53 marka Exp $ */
 
 /*! \file */
 
@@ -135,7 +135,8 @@ options {\n\
 	use-additional-cache true;\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 0;\n\
-	dnssec-enable no; /* Make yes for 9.4. */ \n\
+	dnssec-enable yes;\n\
+	dnssec-validation no; /* Make yes for 9.5. */ \n\
 	dnssec-accept-expired no;\n\
 	clients-per-query 10;\n\
 	max-clients-per-query 100;\n\

@@ -1,3 +1,7 @@
+2007.	[func]		It is now possible to explicitly enable DNSSEC
+			validation.  default dnssec-validation no; to
+			be changed to yes in 9.5.0.  [RT #15674]
+
 2006.	[security]	Allow-query-cache and allow-recursion now default
 			to the builtin acls "localnets" and "localhost".
 
