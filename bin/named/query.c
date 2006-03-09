@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.283 2006/03/09 23:21:53 marka Exp $ */
+/* $Id: query.c,v 1.284 2006/03/09 23:39:00 marka Exp $ */
 
 /*! \file */
 
@@ -4424,6 +4424,8 @@ ns_query_start(ns_client_t *client) {
 	if (!client->view->enablednssec) {
 		message->flags &= ~DNS_MESSAGEFLAG_CD;
 		client->extflags &= ~DNS_MESSAGEEXTFLAG_DO;
+		if (client->opt != NULL)
+			client->opt->ttl &= ~DNS_MESSAGEEXTFLAG_DO;
 	}
 
 	if ((message->flags & DNS_MESSAGEFLAG_RD) != 0)

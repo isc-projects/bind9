@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.82 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: server.h,v 1.83 2006/03/09 23:39:00 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -220,5 +220,11 @@ ns_server_dumprecursing(ns_server_t *server);
  */
 void
 ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr);
+
+/*%
+ * Enable or disable dnssec validation.
+ */
+isc_result_t
+ns_server_validation(ns_server_t *server, char *args);
 
 #endif /* NAMED_SERVER_H */

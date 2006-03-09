@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.26 2005/04/29 00:36:15 marka Exp $ */
+/* $Id: control.c,v 1.27 2006/03/09 23:39:00 marka Exp $ */
 
 /*! \file */
 
@@ -172,6 +172,8 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		result = ISC_R_SUCCESS;
 	} else if (command_compare(command, NS_COMMAND_NOTIFY)) {
 		result = ns_server_notifycommand(ns_g_server, command, text);
+	} else if (command_compare(command, NS_COMMAND_VALIDATION)) {
+		result = ns_server_validation(ns_g_server, command);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
