@@ -16,7 +16,7 @@
  */
 
 #ifndef lint
-static const char rcsid[] = "$Id: ns_sign.c,v 1.4.18.1 2005/04/27 05:01:09 sra Exp $";
+static const char rcsid[] = "$Id: ns_sign.c,v 1.4.18.2 2006/03/10 00:20:08 marka Exp $";
 #endif
 
 /* Import. */
@@ -91,7 +91,7 @@ ns_sign2(u_char *msg, int *msglen, int msgsize, int error, void *k,
 {
 	HEADER *hp = (HEADER *)msg;
 	DST_KEY *key = (DST_KEY *)k;
-	u_char *cp = msg + *msglen, *eob = msg + msgsize;
+	u_char *cp, *eob;
 	u_char *lenp;
 	u_char *alg;
 	int n;
@@ -101,6 +101,9 @@ ns_sign2(u_char *msg, int *msglen, int msgsize, int error, void *k,
 	dst_init();
 	if (msg == NULL || msglen == NULL || sig == NULL || siglen == NULL)
 		return (-1);
+
+	cp = msg + *msglen;
+	eob = msg + msgsize;
 
 	/* Name. */
 	if (key != NULL && error != ns_r_badsig && error != ns_r_badkey) {

@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_ho.c,v 1.3.18.1 2005/04/27 05:01:02 sra Exp $";
+static const char rcsid[] = "$Id: lcl_ho.c,v 1.3.18.2 2006/03/10 00:20:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -541,7 +541,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		ai = hostent2addrinfo(hp, pai);
 		if (ai) {
 			cur->ai_next = ai;
-			while (cur && cur->ai_next)
+			while (cur->ai_next)
 				cur = cur->ai_next;
 		}
 	}

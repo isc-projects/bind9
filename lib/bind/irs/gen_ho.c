@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gen_ho.c,v 1.3.18.1 2005/04/27 05:00:56 sra Exp $";
+static const char rcsid[] = "$Id: gen_ho.c,v 1.3.18.2 2006/03/10 00:20:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -371,8 +371,6 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 	}
 	if (softerror != 0 && pvt->res->res_h_errno == HOST_NOT_FOUND)
 		RES_SET_H_ERRNO(pvt->res, therrno);
-	if (rval)
-		freeaddrinfo(rval);
 	return (NULL);
 }
 
