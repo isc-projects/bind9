@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.2.17 2006/03/06 08:06:46 marka Exp $
+.\" $Id: named.conf.5,v 1.1.2.18 2006/03/10 00:47:37 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -217,6 +217,7 @@ options {
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
+	dnssec\-validation \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-accept\-expired \fIboolean\fR;
@@ -347,6 +348,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; ... } ];
 	disable\-algorithms \fIstring\fR { \fIstring\fR; ... };
 	dnssec\-enable \fIboolean\fR;
+	dnssec\-validation \fIboolean\fR;
 	dnssec\-lookaside \fIstring\fR trust\-anchor \fIstring\fR;
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-accept\-expired \fIboolean\fR;

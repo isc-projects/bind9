@@ -86,6 +86,7 @@ options {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
+        dnssec-validation <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-accept-expired <boolean>;
@@ -313,6 +314,7 @@ view <string> <optional_class> {
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         disable-algorithms <string> { <string>; ... };
         dnssec-enable <boolean>;
+        dnssec-validation <boolean>;
         dnssec-lookaside <string> trust-anchor <string>;
         dnssec-must-be-secure <string> <boolean>;
         dnssec-accept-expired <boolean>;
