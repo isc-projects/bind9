@@ -366,7 +366,6 @@ dns_peer_setmaxudp
 dns_peer_setnotifysource
 dns_peer_setprovideixfr
 dns_peer_setquerysource
-dns_peer_setquerysourcev6
 dns_peer_setrequestixfr
 dns_peer_setsupportedns
 dns_peer_settransferformat

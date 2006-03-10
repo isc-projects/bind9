@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.10 2006/03/10 03:17:03 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.11 2006/03/10 03:22:02 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -662,7 +662,8 @@ isc_sha256_update(isc_sha256_t *context, const isc_uint8_t *data, size_t len) {
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha256_t *)0 && data != (isc_uint8_t*)0);
 
-	usedspace = (context->bitcount >> 3) % ISC_SHA256_BLOCK_LENGTH;
+	usedspace = (unsigned int)((context->bitcount >> 3) %
+				   ISC_SHA256_BLOCK_LENGTH);
 	if (usedspace > 0) {
 		/* Calculate how much free space is available in the buffer */
 		freespace = ISC_SHA256_BLOCK_LENGTH - usedspace;
@@ -711,7 +712,8 @@ isc_sha256_final(isc_uint8_t digest[], isc_sha256_t *context) {
 
 	/* If no digest buffer is passed, we don't bother doing this: */
 	if (digest != (isc_uint8_t*)0) {
-		usedspace = (context->bitcount >> 3) % ISC_SHA256_BLOCK_LENGTH;
+		usedspace = (unsigned int)((context->bitcount >> 3) %
+					   ISC_SHA256_BLOCK_LENGTH);
 #if BYTE_ORDER == LITTLE_ENDIAN
 		/* Convert FROM host byte order */
 		REVERSE64(context->bitcount,context->bitcount);
@@ -999,7 +1001,8 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 	/* Sanity check: */
 	REQUIRE(context != (isc_sha512_t *)0 && data != (isc_uint8_t*)0);
 
-	usedspace = (context->bitcount[0] >> 3) % ISC_SHA512_BLOCK_LENGTH;
+	usedspace = (unsigned int)((context->bitcount[0] >> 3) %
+				   ISC_SHA512_BLOCK_LENGTH);
 	if (usedspace > 0) {
 		/* Calculate how much free space is available in the buffer */
 		freespace = ISC_SHA512_BLOCK_LENGTH - usedspace;
@@ -1041,7 +1044,8 @@ void isc_sha512_update(isc_sha512_t *context, const isc_uint8_t *data, size_t le
 void isc_sha512_last(isc_sha512_t *context) {
 	unsigned int	usedspace;
 
-	usedspace = (context->bitcount[0] >> 3) % ISC_SHA512_BLOCK_LENGTH;
+	usedspace = (unsigned int)((context->bitcount[0] >> 3) %
+				    ISC_SHA512_BLOCK_LENGTH);
 #if BYTE_ORDER == LITTLE_ENDIAN
 	/* Convert FROM host byte order */
 	REVERSE64(context->bitcount[0],context->bitcount[0]);
