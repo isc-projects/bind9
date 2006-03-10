@@ -1184,7 +1184,7 @@
 ./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004,2005
 ./lib/bind/README				X	2001
 ./lib/bind/aclocal.m4				X	2001
-./lib/bind/api					X	2001,2005
+./lib/bind/api					X	2001,2005,2006
 ./lib/bind/bsd/.cvsignore			X	2001
 ./lib/bind/bsd/Makefile.in			MAKE	2001,2004
 ./lib/bind/bsd/daemon.c				X	2001
