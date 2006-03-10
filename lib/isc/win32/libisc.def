@@ -132,6 +132,27 @@ isc_hmacmd5_invalidate
 isc_hmacmd5_sign
 isc_hmacmd5_update
 isc_hmacmd5_verify
+isc_hmacmd5_verify2
+isc_hmacsha1_init
+isc_hmacsha1_invalidate
+isc_hmacsha1_sign
+isc_hmacsha1_update
+isc_hmacsha224_init
+isc_hmacsha224_invalidate
+isc_hmacsha224_sign
+isc_hmacsha224_update
+isc_hmacsha256_init
+isc_hmacsha256_invalidate
+isc_hmacsha256_sign
+isc_hmacsha256_update
+isc_hmacsha384_init
+isc_hmacsha384_invalidate
+isc_hmacsha384_sign
+isc_hmacsha384_update
+isc_hmacsha512_init
+isc_hmacsha512_invalidate
+isc_hmacsha512_sign
+isc_hmacsha512_update
 isc_interfaceiter_create
 isc_interfaceiter_current
 isc_interfaceiter_destroy
@@ -308,6 +329,9 @@ isc_sha1_final
 isc_sha1_init
 isc_sha1_invalidate
 isc_sha1_update
+isc_sha256_final
+isc_sha256_init
+isc_sha256_update
 isc_sockaddr_any
 isc_sockaddr_any6
 isc_sockaddr_anyofpf
@@ -427,6 +451,7 @@ isc_win32os_servicepackminor
 isc_win32os_versioncheck
 openlog
 syslog
+
 
 ; Exported Data
 
