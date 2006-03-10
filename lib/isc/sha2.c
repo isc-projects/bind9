@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.2.2.9 2006/03/10 03:14:28 marka Exp $ */
+/* $Id: sha2.c,v 1.2.2.10 2006/03/10 03:17:03 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -136,6 +136,16 @@
 	tmp = (tmp >> 16) | (tmp << 16); \
 	(x) = ((tmp & 0xff00ff00UL) >> 8) | ((tmp & 0x00ff00ffUL) << 8); \
 }
+#ifdef WIN32
+#define REVERSE64(w,x)	{ \
+	isc_uint64_t tmp = (w); \
+	tmp = (tmp >> 32) | (tmp << 32); \
+	tmp = ((tmp & 0xff00ff00ff00ff00UL) >> 8) | \
+	      ((tmp & 0x00ff00ff00ff00ffUL) << 8); \
+	(x) = ((tmp & 0xffff0000ffff0000UL) >> 16) | \
+	      ((tmp & 0x0000ffff0000ffffUL) << 16); \
+}
+#else
 #define REVERSE64(w,x)	{ \
 	isc_uint64_t tmp = (w); \
 	tmp = (tmp >> 32) | (tmp << 32); \
@@ -144,6 +154,7 @@
 	(x) = ((tmp & 0xffff0000ffff0000ULL) >> 16) | \
 	      ((tmp & 0x0000ffff0000ffffULL) << 16); \
 }
+#endif
 #endif /* BYTE_ORDER == LITTLE_ENDIAN */
 
 /*
