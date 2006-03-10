@@ -1,3 +1,5 @@
+2009.	[bug]		libbind: coverity fixes. [RT #15808]
+
 2005.	[bug]		libbind: Retransmission timeouts should be
 			based on which attempt it is to the nameserver
 			and not the nameserver itself. [RT #13548]

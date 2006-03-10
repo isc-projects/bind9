@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.14 2006/03/08 03:43:29 marka Exp $";
+static const char rcsid[] = "$Id: dns_ho.c,v 1.5.2.15 2006/03/10 00:18:22 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -218,8 +218,7 @@ ho_close(struct irs_ho *this) {
 	ho_minimize(this);
 	if (pvt->res && pvt->free_res)
 		(*pvt->free_res)(pvt->res);
-	if (pvt)
-		memput(pvt, sizeof *pvt);
+	memput(pvt, sizeof *pvt);
 	memput(this, sizeof *this);
 }
 
@@ -649,10 +648,9 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		if (ai) {
 			querystate = RESQRY_SUCCESS;
 			cur->ai_next = ai;
-			while (cur && cur->ai_next)
+			while (cur->ai_next)
 				cur = cur->ai_next;
-		}
-		else
+		} else
 			querystate = RESQRY_FAIL;
 	}
 
@@ -948,7 +946,7 @@ gethostans(struct irs_ho *this,
 				continue;
 			}
 			if (ret_aip) { /* need addrinfo. keep it. */
-				while (cur && cur->ai_next)
+				while (cur->ai_next)
 					cur = cur->ai_next;
 			} else if (cur->ai_next) { /* need hostent */
 				struct addrinfo *aip = cur->ai_next;

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: dns.c,v 1.1.2.2 2004/03/17 00:40:11 marka Exp $";
+static const char rcsid[] = "$Id: dns.c,v 1.1.2.3 2006/03/10 00:18:22 marka Exp $";
 #endif
 
 /*
@@ -114,7 +114,7 @@ dns_res_get(struct irs_acc *this) {
 		res = (struct __res_state *)malloc(sizeof *res);
 		if (res == NULL)
 			return (NULL);
-		memset(dns->res, 0, sizeof *dns->res);
+		memset(res, 0, sizeof *res);
 		dns_res_set(this, res, free);
 	}
 
