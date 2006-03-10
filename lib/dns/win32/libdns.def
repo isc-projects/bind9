@@ -352,6 +352,7 @@ dns_peer_attach
 dns_peer_detach
 dns_peer_getbogus
 dns_peer_getkey
+dns_peer_getmaxudp
 dns_peer_getprovideixfr
 dns_peer_getrequestixfr
 dns_peer_getsupportedns
@@ -361,7 +362,10 @@ dns_peer_new
 dns_peer_setbogus
 dns_peer_setkey
 dns_peer_setkeybycharp
+dns_peer_setmaxudp
+dns_peer_setnotifysource
 dns_peer_setprovideixfr
+dns_peer_setquerysource
 dns_peer_setrequestixfr
 dns_peer_setsupportedns
 dns_peer_settransferformat
@@ -631,6 +635,7 @@ dns_zone_fulldumptostream
 dns_zone_getchecknames
 dns_zone_getclass
 dns_zone_getdb
+dns_zone_getdbtype
 dns_zone_getfile
 dns_zone_getforwardacl
 dns_zone_getidlein
@@ -780,6 +785,7 @@ dst_key_name
 dst_key_paramcompare
 dst_key_proto
 dst_key_secretsize
+dst_key_setbits
 dst_key_sigsize
 dst_key_size
 dst_key_tobuffer
