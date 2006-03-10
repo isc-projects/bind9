@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.73 2006/03/09 23:21:54 marka Exp $ */
+/* $Id: check.c,v 1.74 2006/03/10 05:00:23 marka Exp $ */
 
 /*! \file */
 
@@ -1394,7 +1394,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_result_t tresult = ISC_R_SUCCESS;
 	cfg_aclconfctx_t actx;
-	cfg_obj_t *obj;
+	const cfg_obj_t *obj;
 	isc_boolean_t enablednssec, enablevalidation;
 
 	/*
