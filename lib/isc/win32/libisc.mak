@@ -1633,7 +1633,7 @@ SOURCE=..\sha1.c
 
 !ENDIF 
 
-SOURCE=..\sha1.c
+SOURCE=..\sha2.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
 
