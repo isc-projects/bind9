@@ -293,6 +293,10 @@ SOURCE=..\include\isc\hmacmd5.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\hmacsha.h
+# End Source File
+# Begin Source File
+
 SOURCE=.\include\isc\int.h
 # End Source File
 # Begin Source File
@@ -453,6 +457,10 @@ SOURCE=..\include\isc\sha1.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\include\isc\sha2.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\include\isc\sockaddr.h
 # End Source File
 # Begin Source File
@@ -589,6 +597,10 @@ SOURCE=..\hmacmd5.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\hmacsha.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\inet_aton.c
 # End Source File
 # Begin Source File
@@ -682,6 +694,10 @@ SOURCE=..\serial.c
 # Begin Source File
 
 SOURCE=..\sha1.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\sha2.c
 # End Source File
 # Begin Source File
 

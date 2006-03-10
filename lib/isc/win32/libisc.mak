@@ -58,6 +58,7 @@ CLEAN :
 	-@erase "$(INTDIR)\heap.obj"
 	-@erase "$(INTDIR)\hex.obj"
 	-@erase "$(INTDIR)\hmacmd5.obj"
+	-@erase "$(INTDIR)\hmacsha.obj"
 	-@erase "$(INTDIR)\inet_aton.obj"
 	-@erase "$(INTDIR)\inet_ntop.obj"
 	-@erase "$(INTDIR)\inet_pton.obj"
@@ -90,6 +91,7 @@ CLEAN :
 	-@erase "$(INTDIR)\rwlock.obj"
 	-@erase "$(INTDIR)\serial.obj"
 	-@erase "$(INTDIR)\sha1.obj"
+	-@erase "$(INTDIR)\sha2.obj"
 	-@erase "$(INTDIR)\sockaddr.obj"
 	-@erase "$(INTDIR)\socket.obj"
 	-@erase "$(INTDIR)\stdio.obj"
@@ -161,6 +163,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\heap.obj" \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
+	"$(INTDIR)\hmacsha.obj" \
 	"$(INTDIR)\inet_aton.obj" \
 	"$(INTDIR)\inet_ntop.obj" \
 	"$(INTDIR)\inet_pton.obj" \
@@ -183,6 +186,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
+	"$(INTDIR)\sha2.obj" \
 	"$(INTDIR)\sockaddr.obj" \
 	"$(INTDIR)\string.obj" \
 	"$(INTDIR)\symtab.obj" \
@@ -249,6 +253,8 @@ CLEAN :
 	-@erase "$(INTDIR)\hex.sbr"
 	-@erase "$(INTDIR)\hmacmd5.obj"
 	-@erase "$(INTDIR)\hmacmd5.sbr"
+	-@erase "$(INTDIR)\hmacsha.obj"
+	-@erase "$(INTDIR)\hmacsha.sbr"
 	-@erase "$(INTDIR)\inet_aton.obj"
 	-@erase "$(INTDIR)\inet_aton.sbr"
 	-@erase "$(INTDIR)\inet_ntop.obj"
@@ -313,6 +319,8 @@ CLEAN :
 	-@erase "$(INTDIR)\serial.sbr"
 	-@erase "$(INTDIR)\sha1.obj"
 	-@erase "$(INTDIR)\sha1.sbr"
+	-@erase "$(INTDIR)\sha2.obj"
+	-@erase "$(INTDIR)\sha2.sbr"
 	-@erase "$(INTDIR)\sockaddr.obj"
 	-@erase "$(INTDIR)\sockaddr.sbr"
 	-@erase "$(INTDIR)\socket.obj"
@@ -398,6 +406,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\heap.sbr" \
 	"$(INTDIR)\hex.sbr" \
 	"$(INTDIR)\hmacmd5.sbr" \
+	"$(INTDIR)\hmacsha.sbr" \
 	"$(INTDIR)\inet_aton.sbr" \
 	"$(INTDIR)\inet_ntop.sbr" \
 	"$(INTDIR)\inet_pton.sbr" \
@@ -420,6 +429,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\rwlock.sbr" \
 	"$(INTDIR)\serial.sbr" \
 	"$(INTDIR)\sha1.sbr" \
+	"$(INTDIR)\sha2.sbr" \
 	"$(INTDIR)\sockaddr.sbr" \
 	"$(INTDIR)\string.sbr" \
 	"$(INTDIR)\symtab.sbr" \
@@ -476,6 +486,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\heap.obj" \
 	"$(INTDIR)\hex.obj" \
 	"$(INTDIR)\hmacmd5.obj" \
+	"$(INTDIR)\hmacsha.obj" \
 	"$(INTDIR)\inet_aton.obj" \
 	"$(INTDIR)\inet_ntop.obj" \
 	"$(INTDIR)\inet_pton.obj" \
@@ -498,6 +509,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\rwlock.obj" \
 	"$(INTDIR)\serial.obj" \
 	"$(INTDIR)\sha1.obj" \
+	"$(INTDIR)\sha2.obj" \
 	"$(INTDIR)\sockaddr.obj" \
 	"$(INTDIR)\string.obj" \
 	"$(INTDIR)\symtab.obj" \
@@ -1171,6 +1183,24 @@ SOURCE=..\hmacmd5.c
 
 !ENDIF 
 
+SOURCE=..\hmacsha.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\hmacsha.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\hmacsha.obj"	"$(INTDIR)\hmacsha.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
 SOURCE=..\inet_aton.c
 
 !IF  "$(CFG)" == "libisc - Win32 Release"
@@ -1598,6 +1628,24 @@ SOURCE=..\sha1.c
 
 
 "$(INTDIR)\sha1.obj"	"$(INTDIR)\sha1.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\sha1.c
+
+!IF  "$(CFG)" == "libisc - Win32 Release"
+
+
+"$(INTDIR)\sha2.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
+
+
+"$(INTDIR)\sha2.obj"	"$(INTDIR)\sha2.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 
