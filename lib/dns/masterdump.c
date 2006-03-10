@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.56.2.5.2.14 2006/01/04 23:50:20 marka Exp $ */
+/* $Id: masterdump.c,v 1.56.2.5.2.15 2006/03/10 00:17:21 marka Exp $ */
 
 #include <config.h>
 
@@ -1160,7 +1160,8 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 	}
 
 	if (dctx->nodes != 0 && result == ISC_R_SUCCESS) {
-		dns_dbiterator_pause(dctx->dbiter);
+		result = dns_dbiterator_pause(dctx->dbiter);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		result = DNS_R_CONTINUE;
 	} else if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;

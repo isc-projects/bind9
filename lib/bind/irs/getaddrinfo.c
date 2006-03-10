@@ -576,10 +576,6 @@ getaddrinfo(hostname, servname, hints, res)
 
 	freeaddrinfo(afai);	/* afai must not be NULL at this point. */
 
-	/* we must not have got any errors. */
-	if (error != 0) /* just for diagnosis */
-		abort();
-
 	if (sentinel.ai_next) {
 good:
 		*res = sentinel.ai_next;
@@ -804,7 +800,7 @@ explore_numeric(pai, hostname, servname, res)
 			    pai->ai_family == PF_UNSPEC /*?*/) {
 				GET_AI(cur->ai_next, afd, pton);
 				GET_PORT(cur->ai_next, servname);
-				while (cur && cur->ai_next)
+				while (cur->ai_next)
 					cur = cur->ai_next;
 			} else
 				ERR(EAI_FAMILY);	/*xxx*/
@@ -817,7 +813,7 @@ explore_numeric(pai, hostname, servname, res)
 			    pai->ai_family == PF_UNSPEC /*?*/) {
 				GET_AI(cur->ai_next, afd, pton);
 				GET_PORT(cur->ai_next, servname);
-				while (cur && cur->ai_next)
+				while (cur->ai_next)
 					cur = cur->ai_next;
 			} else
 				ERR(EAI_FAMILY);	/*xxx*/
@@ -1202,7 +1198,7 @@ hostent2addrinfo(hp, pai)
 			 */
 			GET_CANONNAME(cur->ai_next, hp->h_name);
 		}
-		while (cur && cur->ai_next) /* no need to loop, actually. */
+		while (cur->ai_next) /* no need to loop, actually. */
 			cur = cur->ai_next;
 		continue;
 
