@@ -2110,7 +2110,7 @@
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005
 ./lib/isc/powerpc/include/isc/atomic.h		C	2005
-./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005
+./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006
 ./lib/isc/pthreads/.cvsignore			X	1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005
