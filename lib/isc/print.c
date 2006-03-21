@@ -15,14 +15,15 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.c,v 1.29 2005/04/29 00:23:29 marka Exp $ */
+/* $Id: print.c,v 1.30 2006/03/21 15:34:02 explorer Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <ctype.h>
-#include <stdio.h>		/* for sprintf */
+#include <stdio.h>		/* for sprintf() */
+#include <string.h>		/* for strlen() */
 
 #define	ISC__PRINT_SOURCE	/* Used to get the isc_print_* prototypes. */
 
