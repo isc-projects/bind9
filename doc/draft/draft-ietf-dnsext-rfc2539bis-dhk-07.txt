@@ -2,14 +2,14 @@
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 OBSOLETES: RFC 2539                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: January 2006                                          July 2005
+Expires: September 2006                                       March 2006
 
 
 
 
         Storage of Diffie-Hellman Keying Information in the DNS
         ------- -- -------------- ------ ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2539bis-dhk-06.txt>
+               <draft-ietf-dnsext-rfc2539bis-dhk-07.txt>
 
 
 
@@ -32,7 +32,7 @@ Status of This Document
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than a "work in progress."
+   material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/1id-abstracts.html
@@ -48,9 +48,9 @@ Abstract
 
 
 
-Copyright
 
-   Copyright (C) The Internet Society 2005.
+
+
 
 
 
@@ -72,9 +72,8 @@ Acknowledgements
 
 Table of Contents
 
-      Status of This Document....................................1
+          Status of This Document....................................1
       Abstract...................................................1
-      Copyright..................................................1
 
       Acknowledgements...........................................2
       Table of Contents..........................................2
@@ -86,18 +85,19 @@ Table of Contents
       3. Performance Considerations..............................5
       4. IANA Considerations.....................................5
       5. Security Considerations.................................5
-      Copyright and Disclaimer...................................5
+      Copyright, Disclaimer, and Additional IPR Provisions.......5
 
       Normative References.......................................7
       Informative Refences.......................................7
 
-      Author Address.............................................8
+      Author's Address...........................................8
       Expiration and File Name...................................8
 
       Appendix A: Well known prime/generator pairs...............9
       A.1. Well-Known Group 1:  A 768 bit prime..................9
       A.2. Well-Known Group 2:  A 1024 bit prime.................9
       A.3. Well-Known Group 3:  A 1536 bit prime................10
+
 
 
 
@@ -135,6 +135,10 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    Familiarity with the Diffie-Hellman key exchange algorithm is assumed
    [Schneier, RFC 2631].
 
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in RFC 2119.
+
 
 
 1.2 About Diffie-Hellman
@@ -164,10 +168,6 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    mod p which is hard for strong p and g).
 
    The private key for each party is their secret i (or j).  The public
-   key is the pair p and g, which must be the same for the parties, and
-   their individual X (or Y).
-
-   For further information about Diffie-Hellman and precautions to take
 
 
 D. Eastlake 3rd                                                 [Page 3]
@@ -176,6 +176,10 @@ D. Eastlake 3rd                                                 [Page 3]
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
+   key is the pair p and g, which is the same for both parties, and
+   their individual X (or Y).
+
+   For further information about Diffie-Hellman and precautions to take
    in deciding on a p and g, see [RFC 2631].
 
 
@@ -221,10 +225,6 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    Value (g**i (mod p)) in bytes.  PublicValue is the binary
    representation of the DH public value with most significant byte
    first.
-
-
-
-
 
 
 
@@ -274,14 +274,14 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    and dependent on security policy.
 
    In addition, the usual Diffie-Hellman key strength considerations
-   apply. (p-1)/2 should also be prime, g should be primitive mod p, p
-   should be "large", etc. See [RFC 2631, Schneier].
+   apply. (p-1)/2 SHOULD also be prime, g SHOULD be primitive mod p, p
+   SHOULD be "large", etc. See [RFC 2631, Schneier].
 
 
 
-Copyright and Disclaimer
+Copyright, Disclaimer, and Additional IPR Provisions
 
-   Copyright (C) The Internet Society (2005).  This document is subject to
+   Copyright (C) The Internet Society (2006).  This document is subject to
    the rights, licenses and restrictions contained in BCP 78, and except
    as set forth therein, the authors retain all their rights.
 
@@ -300,27 +300,27 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
    INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
    WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
 
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at ietf-
+   ipr@ietf.org.
 
 
 
@@ -352,11 +352,14 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 Normative References
 
-   [RFC 2631] - "Diffie-Hellman Key Agreement Method", E. Rescorla, June
-   1999.
+   [RFC 2119] - Bradner, S., "Key words for use in RFCs to Indicate
+   Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [RFC 2434] - "Guidelines for Writing an IANA Considerations Section
    in RFCs", T.  Narten, H. Alvestrand, October 1998.
+
+   [RFC 2631] - "Diffie-Hellman Key Agreement Method", E. Rescorla, June
+   1999.
 
    [RFC 4034] - Arends, R., Austein, R., Larson, M., Massey, D., and S.
    Rose, "Resource Records for the DNS Security Extensions", RFC 4034,
@@ -399,16 +402,13 @@ Informative Refences
 
 
 
-
-
-
 D. Eastlake 3rd                                                 [Page 7]
 
 
 INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 
-Author Address
+Author's Address
 
    Donald E. Eastlake 3rd
    Motorola Laboratories
@@ -422,9 +422,9 @@ Author Address
 
 Expiration and File Name
 
-   This draft expires in January 2006.
+   This draft expires in September 2006.
 
-   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-06.txt.
+   Its file name is draft-ietf-dnsext-rfc2539bis-dhk-07.txt.
 
 
 
@@ -468,11 +468,10 @@ INTERNET-DRAFT                     Diffie-Hellman Information in the DNS
 
 Appendix A: Well known prime/generator pairs
 
-   These numbers are copied from the IPSEC effort where the derivation of
-   these values is more fully explained and additional information is
-   available.
-   Richard Schroeppel performed all the mathematical and computational
-   work for this appendix.
+   These numbers are copied from the IPSEC effort where the derivation
+   of these values is more fully explained and additional information is
+   available.  Richard Schroeppel performed all the mathematical and
+   computational work for this appendix.
 
 
 
@@ -515,6 +514,7 @@ A.2. Well-Known Group 2:  A 1024 bit prime
             FFFFFFFF FFFFFFFF
 
    Generator: Length (32 bit words): 1, Data (hex): 2
+
 
 
 
