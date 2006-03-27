@@ -2,12 +2,12 @@
 INTERNET-DRAFT                                DSA Information in the DNS
 OBSOLETES: RFC 2536                               Donald E. Eastlake 3rd
                                                    Motorola Laboratories
-Expires: January 2006                                          July 2005
+Expires: September 2006                                       March 2006
 
 
             DSA Keying and Signature Information in the DNS
             --- ------ --- --------- ----------- -- --- ---
-               <draft-ietf-dnsext-rfc2536bis-dsa-06.txt>
+               <draft-ietf-dnsext-rfc2536bis-dsa-07.txt>
                          Donald E. Eastlake 3rd
 
 
@@ -30,13 +30,14 @@ Status of This Document
    Internet-Drafts are draft documents valid for a maximum of six months
    and may be updated, replaced, or obsoleted by other documents at any
    time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than a "work in progress."
+   material or to cite them other than as "work in progress."
 
    The list of current Internet-Drafts can be accessed at
    http://www.ietf.org/1id-abstracts.html
 
    The list of Internet-Draft Shadow Directories can be accessed at
    http://www.ietf.org/shadow.html
+
 
 
 Abstract
@@ -46,9 +47,8 @@ Abstract
    System is specified.
 
 
-Copyright Notice
 
-   Copyright (C) The Internet Society 2005. All Rights Reserved.
+
 
 
 
@@ -64,7 +64,6 @@ Table of Contents
 
       Status of This Document....................................1
       Abstract...................................................1
-      Copyright Notice...........................................1
 
       Table of Contents..........................................2
 
@@ -74,13 +73,14 @@ Table of Contents
       4. Performance Considerations..............................4
       5. Security Considerations.................................5
       6. IANA Considerations.....................................5
-      Copyright and Disclaimer...................................5
+      Copyright, Disclaimer, and Additional IPR Provisions.......5
 
       Normative References.......................................7
       Informative References.....................................7
 
-      Authors Address............................................8
+      Author's Address...........................................8
       Expiration and File Name...................................8
+
 
 
 
@@ -279,9 +279,9 @@ INTERNET-DRAFT                                DSA Information in the DNS
 
 
 
-Copyright and Disclaimer
+Copyright, Disclaimer, and Additional IPR Provisions
 
-   Copyright (C) The Internet Society (2005).  This document is subject to
+   Copyright (C) The Internet Society (2006).  This document is subject to
    the rights, licenses and restrictions contained in BCP 78, and except
    as set forth therein, the authors retain all their rights.
 
@@ -300,27 +300,27 @@ INTERNET-DRAFT                                DSA Information in the DNS
    INFORMATION HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED
    WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 
+   The IETF takes no position regarding the validity or scope of any
+   Intellectual Property Rights or other rights that might be claimed to
+   pertain to the implementation or use of the technology described in
+   this document or the extent to which any license under such rights
+   might or might not be available; nor does it represent that it has
+   made any independent effort to identify any such rights.  Information
+   on the procedures with respect to rights in RFC documents can be
+   found in BCP 78 and BCP 79.
 
+   Copies of IPR disclosures made to the IETF Secretariat and any
+   assurances of licenses to be made available, or the result of an
+   attempt made to obtain a general license or permission for the use of
+   such proprietary rights by implementers or users of this
+   specification can be obtained from the IETF on-line IPR repository at
+   http://www.ietf.org/ipr.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   The IETF invites any interested party to bring to its attention any
+   copyrights, patents or patent applications, or other proprietary
+   rights that may cover technology that may be required to implement
+   this standard.  Please address the information to the IETF at ietf-
+   ipr@ietf.org.
 
 
 
@@ -408,7 +408,7 @@ D. Eastlake 3rd                                                 [Page 7]
 INTERNET-DRAFT                                DSA Information in the DNS
 
 
-Authors Address
+Author's Address
 
    Donald E. Eastlake 3rd
    Motorola Labortories
@@ -422,9 +422,9 @@ Authors Address
 
 Expiration and File Name
 
-   This draft expires in January 2006.
+   This draft expires in September 2006.
 
-   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-06.txt.
+   Its file name is draft-ietf-dnsext-rfc2536bis-dsa-07.txt.
 
 
 
