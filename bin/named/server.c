@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.65 2005/07/27 02:53:15 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.65.4.1 2006/03/31 00:29:47 marka Exp $ */
 
 #include <config.h>
 
@@ -4048,12 +4048,13 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "xfers deferred: %u\n"
 		     "soa queries in progress: %u\n"
 		     "query logging is %s\n"
-		     "recursive clients: %d/%d\n"
+		     "recursive clients: %d/%d/%d\n"
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF",
-		     server->recursionquota.used, server->recursionquota.max,
+		     server->recursionquota.used, server->recursionquota.soft,
+		     server->recursionquota.max,
 		     server->tcpquota.used, server->tcpquota.max);
 	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
