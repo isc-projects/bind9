@@ -10,6 +10,7 @@ Branch				Status	Whom	// Comments
 				closed		finished with
 
 custom_WFB_v9_3_1		private	
+custom_WFB_v9_3_2		new	
 gssapi3-skan			new	
 gsstsig2			open	sra	// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
 gsstsig3			new	
