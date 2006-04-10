@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.36.4.2 2006/04/10 22:17:05 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.36.4.3 2006/04/10 22:50:55 marka Exp $ */
 
 #include <config.h>
 
@@ -2095,6 +2095,7 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
 			if (now != last) {
+				last = now;
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 					      NS_LOGMODULE_QUERY,
 					      ISC_LOG_WARNING,
