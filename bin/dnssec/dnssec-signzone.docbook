@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.10.18.10 2005/07/19 05:55:43 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.10.18.11 2006/04/13 18:09:46 dhankins Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -26,7 +26,7 @@
 
   <refmeta>
     <refentrytitle><application>dnssec-signzone</application></refentrytitle>
-    <manvolnum>8</manvolnum>
+   <manvolnum>8</manvolnum>
     <refmiscinfo>BIND9</refmiscinfo>
   </refmeta>
 
@@ -65,7 +65,7 @@
       <arg><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg><option>-I <replaceable class="parameter">input-format</replaceable></option></arg>
       <arg><option>-j <replaceable class="parameter">jitter</replaceable></option></arg>
-      <arg><option>-n <replaceable class="parameter">nthreads</replaceable></option></arg>
+      <arg><option>-N <replaceable class="parameter">soa-serial-format</replaceable></option></arg>
       <arg><option>-o <replaceable class="parameter">origin</replaceable></option></arg>
       <arg><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg><option>-p</option></arg>
@@ -278,6 +278,44 @@
             Specifies the number of threads to use.  By default, one
             thread is started for each detected CPU.
           </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
+        <term>-N <replaceable class="parameter">soa-serial-format</replaceable></term>
+        <listitem>
+          <para>
+            The SOA serial number format of the signed zone.
+	    Possible formats are <command>"keep"</command> (default),
+            <command>"increment"</commmand> and
+	    <command>"unixtime"</command>.
+          </para>
+
+          <variablelist>
+	    <varlistentry>
+	      <term><command>"keep"</command></term>
+              <listitem>
+                <para>Do not modify the SOA serial number.</para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+	      <term><command>"increment"</command></term>
+              <listitem>
+                <para>Increment the SOA serial number using RFC 1982
+                      arithmetics.</para>
+	      </listitem>
+            </varlistentry>
+
+	    <varlistentry>
+	      <term><command>"unixtime"</command></term>
+              <listitem>
+                <para>Set the SOA serial number to the number of seconds
+	        since epoch.</para>
+	      </listitem>
+            </varlistentry>
+	 </variablelist>
+
         </listitem>
       </varlistentry>
 
