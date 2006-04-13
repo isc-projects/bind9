@@ -1,3 +1,7 @@
+2011.	[func]		dnssec-signzone can now update the SOA record of
+			the signed zone, either as an increment or as the
+			system time(). [RT #15633]
+
 2010.	[placeholder]	rt15958
 
 2009.	[bug]		libbind: coverity fixes. [RT #15808]

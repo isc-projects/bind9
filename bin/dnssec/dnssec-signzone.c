@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.197 2006/02/21 23:49:50 marka Exp $ */
+/* $Id: dnssec-signzone.c,v 1.198 2006/04/13 18:09:56 dhankins Exp $ */
 
 /*! \file */
 
@@ -61,6 +61,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
+#include <dns/soa.h>
 #include <dns/time.h>
 
 #include <dst/dst.h>
@@ -87,6 +88,10 @@ struct signer_key_struct {
 #define SIGNER_EVENTCLASS	ISC_EVENTCLASS(0x4453)
 #define SIGNER_EVENT_WRITE	(SIGNER_EVENTCLASS + 0)
 #define SIGNER_EVENT_WORK	(SIGNER_EVENTCLASS + 1)
+
+#define SOA_SERIAL_KEEP		0
+#define SOA_SERIAL_INCREMENT	1
+#define SOA_SERIAL_UNIXTIME	2
 
 typedef struct signer_event sevent_t;
 struct signer_event {
@@ -131,6 +136,7 @@ static isc_boolean_t ignoreksk = ISC_FALSE;
 static dns_name_t *dlv = NULL;
 static dns_fixedname_t dlv_fixed;
 static dns_master_style_t *dsstyle = NULL;
+static unsigned int serialformat = SOA_SERIAL_KEEP;
 
 #define INCSTAT(counter)		\
 	if (printstats) {		\
@@ -1043,6 +1049,81 @@ soattl(void) {
 }
 
 /*%
+ * Increment (or set if nonzero) the SOA serial
+ */
+static isc_result_t
+setsoaserial(isc_uint32_t serial) {
+	isc_result_t result;
+	dns_dbnode_t *node = NULL;
+	dns_rdataset_t rdataset;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	isc_uint32_t old_serial, new_serial;
+
+	result = dns_db_getoriginnode(gdb, &node);
+	if (result != ISC_R_SUCCESS)
+		return result;
+
+	dns_rdataset_init(&rdataset);
+
+	result = dns_db_findrdataset(gdb, node, gversion,
+				     dns_rdatatype_soa, 0,
+				     0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_rdataset_first(&rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	dns_rdataset_current(&rdataset, &rdata);
+
+	old_serial = dns_soa_getserial(&rdata);
+
+	if (serial) {
+		/* Set SOA serial to the value provided. */
+		new_serial = serial;
+	} else {
+		/* Increment SOA serial using RFC 1982 arithmetics */
+		new_serial = (old_serial + 1) & 0xFFFFFFFF;
+		if (new_serial == 0)
+			new_serial = 1;
+	}
+
+	/* If the new serial is not likely to cause a zone transfer
+	 * (a/ixfr) from servers having the old serial, warn the user.
+	 *
+	 * RFC1982 section 7 defines the maximum increment to be
+	 * (2^(32-1))-1.  Using u_int32_t arithmetic, we can do a single
+	 * comparison.  (5 - 6 == (2^32)-1, not negative-one)
+	 */
+	if (new_serial == old_serial ||
+	    (new_serial - old_serial) > 0x7fffffffU)
+		fprintf(stderr, "%s: warning: Serial number not advanced, "
+			"zone may not transfer\n", program);
+
+	dns_soa_setserial(new_serial, &rdata);
+
+	result = dns_db_deleterdataset(gdb, node, gversion,
+				       dns_rdatatype_soa, 0);
+	check_result(result, "dns_db_deleterdataset");
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	result = dns_db_addrdataset(gdb, node, gversion,
+				    0, &rdataset, 0, NULL);
+	check_result(result, "dns_db_addrdataset");
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+cleanup:
+	dns_rdataset_disassociate(&rdataset);
+	if (node != NULL)
+		dns_db_detachnode(gdb, &node);
+	dns_rdata_reset(&rdata);
+
+	return (result);
+}
+
+/*%
  * Delete any RRSIG records at a node.
  */
 static void
@@ -1690,6 +1771,8 @@ usage(void) {
 	fprintf(stderr, "\t\tfile format of input zonefile (text)\n");
 	fprintf(stderr, "\t-O format:\n");
 	fprintf(stderr, "\t\tfile format of signed zone file (text)\n");
+	fprintf(stderr, "\t-N format:\n");
+	fprintf(stderr, "\t\tsoa serial format of signed zone file (keep)\n");
 	fprintf(stderr, "\t-r randomdev:\n");
 	fprintf(stderr,	"\t\ta file containing random data\n");
 	fprintf(stderr, "\t-a:\t");
@@ -1749,6 +1832,7 @@ main(int argc, char *argv[]) {
 	char *startstr = NULL, *endstr = NULL, *classname = NULL;
 	char *origin = NULL, *file = NULL, *output = NULL;
 	char *inputformatstr = NULL, *outputformatstr = NULL;
+	char *serialformatstr = NULL;
 	char *dskeyfile[MAXDSKEYS];
 	int ndskeys = 0;
 	char *endp;
@@ -1776,7 +1860,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	while ((ch = isc_commandline_parse(argc, argv,
-					   "ac:d:e:f:ghi:I:j:k:l:n:o:O:pr:s:Stv:z"))
+					   "ac:d:e:f:ghi:I:j:k:l:n:N:o:O:pr:s:Stv:z"))
 	       != -1) {
 		switch (ch) {
 		case 'a':
@@ -1851,6 +1935,10 @@ main(int argc, char *argv[]) {
 			ntasks = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0' || ntasks > ISC_INT32_MAX)
 				fatal("number of cpus must be numeric");
+			break;
+
+		case 'N':
+			serialformatstr = isc_commandline_argument;
 			break;
 
 		case 'o':
@@ -1974,6 +2062,18 @@ main(int argc, char *argv[]) {
 			fatal("unknown file format: %s\n", outputformatstr);
 	}
 
+	if (serialformatstr != NULL) {
+		if (strcasecmp(serialformatstr, "keep") == 0)
+			serialformat = SOA_SERIAL_KEEP;
+		else if (strcasecmp(serialformatstr, "increment") == 0 ||
+			 strcasecmp(serialformatstr, "incr") == 0)
+			serialformat = SOA_SERIAL_INCREMENT;
+		else if (strcasecmp(serialformatstr, "unixtime") == 0)
+			serialformat = SOA_SERIAL_UNIXTIME;
+		else
+			fatal("unknown soa serial format: %s\n", serialformatstr);
+	}
+
 	result = dns_master_stylecreate(&dsstyle,  DNS_STYLEFLAG_NO_TTL,
 					0, 24, 0, 0, 0, 8, mctx);
 	check_result(result, "dns_master_stylecreate");
@@ -2077,6 +2177,19 @@ main(int argc, char *argv[]) {
 	gversion = NULL;
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
+
+	switch (serialformat) {
+		case SOA_SERIAL_INCREMENT:
+			setsoaserial(0);
+			break;
+		case SOA_SERIAL_UNIXTIME:
+			setsoaserial(now);
+			break;
+		case SOA_SERIAL_KEEP:
+		default:
+			/* do nothing */
+			break;
+	}
 
 	nsecify();
 
