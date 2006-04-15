@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: dnssec-signzone.docbook,v 1.10.18.12 2006/04/15 01:30:15 marka Exp $ -->
+<!-- $Id: dnssec-signzone.docbook,v 1.10.18.13 2006/04/15 22:19:21 marka Exp $ -->
 <refentry id="man.dnssec-signzone">
   <refentryinfo>
     <date>June 30, 2000</date>
@@ -288,7 +288,7 @@
           <para>
             The SOA serial number format of the signed zone.
 	    Possible formats are <command>"keep"</command> (default),
-            <command>"increment"</commmand> and
+            <command>"increment"</command> and
 	    <command>"unixtime"</command>.
           </para>
 
