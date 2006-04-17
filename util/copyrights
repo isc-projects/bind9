@@ -2004,7 +2004,7 @@
 ./lib/isc/event.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isc/fsaccess.c				C	2000,2001,2004,2005
 ./lib/isc/hash.c				C	2003,2004,2005,2006
-./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005
+./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006
 ./lib/isc/hmacsha.c				C	2005,2006
@@ -2028,7 +2028,7 @@
 ./lib/isc/include/isc/formatcheck.h		C	2000,2001,2004,2005
 ./lib/isc/include/isc/fsaccess.h		C	2000,2001,2004,2005
 ./lib/isc/include/isc/hash.h			C	2003,2004,2005
-./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005
+./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005
 ./lib/isc/include/isc/hmacmd5.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/hmacsha.h			C	2005,2006
@@ -2110,7 +2110,7 @@
 ./lib/isc/ondestroy.c				C	2000,2001,2004,2005
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005
 ./lib/isc/powerpc/include/isc/atomic.h		C	2005
-./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005
+./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006
 ./lib/isc/pthreads/.cvsignore			X	1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005
