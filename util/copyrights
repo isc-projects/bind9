@@ -1317,7 +1317,7 @@
 ./lib/bind/include/isc/ctl.h			X	2001,2005
 ./lib/bind/include/isc/dst.h			X	2001,2005
 ./lib/bind/include/isc/eventlib.h		X	2001,2005
-./lib/bind/include/isc/heap.h			X	2001,2005,2006
+./lib/bind/include/isc/heap.h			X	2001,2005
 ./lib/bind/include/isc/irpmarshall.h		X	2001,2005
 ./lib/bind/include/isc/list.h			X	2001,2005
 ./lib/bind/include/isc/logging.h		X	2001,2005
