@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.14 2006/01/06 01:46:37 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.15 2006/04/23 10:10:09 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -47,15 +47,15 @@
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2547393">A Caching-only Nameserver</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2547405">An Authoritative-only Nameserver</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2546641">A Caching-only Nameserver</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2546653">An Authoritative-only Nameserver</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2547428">Load Balancing</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2546676">Load Balancing</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#notify">Notify</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2547750">Nameserver Operations</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2546998">Nameserver Operations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2547755">Tools for Use With the Nameserver Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2550670">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2547003">Tools for Use With the Nameserver Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2549918">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -67,7 +67,7 @@ option setting.</p>
 <a name="sample_configuration"></a>Sample Configurations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2547393"></a>A Caching-only Nameserver</h3></div></div></div>
+<a name="id2546641"></a>A Caching-only Nameserver</h3></div></div></div>
 <p>The following sample configuration is appropriate for a caching-only
 name server for use by clients internal to a corporation.  All queries
 from outside clients are refused.</p>
@@ -91,7 +91,7 @@ zone "0.0.127.in-addr.arpa" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2547405"></a>An Authoritative-only Nameserver</h3></div></div></div>
+<a name="id2546653"></a>An Authoritative-only Nameserver</h3></div></div></div>
 <p>This sample configuration is for an authoritative-only server
 that is the master server for "<code class="filename">example.com</code>"
 and a slave for the subdomain "<code class="filename">eng.example.com</code>".</p>
@@ -133,7 +133,7 @@ zone "eng.example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547428"></a>Load Balancing</h2></div></div></div>
+<a name="id2546676"></a>Load Balancing</h2></div></div></div>
 <p>Primitive load balancing can be achieved in <span class="acronym">DNS</span> using multiple
 A records for one name.</p>
 <p>For example, if you have three WWW servers with network addresses
@@ -208,10 +208,10 @@ of the time:</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2547750"></a>Nameserver Operations</h2></div></div></div>
+<a name="id2546998"></a>Nameserver Operations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2547755"></a>Tools for Use With the Nameserver Daemon</h3></div></div></div>
+<a name="id2547003"></a>Tools for Use With the Nameserver Daemon</h3></div></div></div>
 <p>There are several indispensable diagnostic, administrative
 and monitoring tools available to the system administrator for controlling
 and debugging the nameserver daemon. We describe several in this
@@ -451,7 +451,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2550670"></a>Signals</h3></div></div></div>
+<a name="id2549918"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
