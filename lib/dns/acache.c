@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3.2.10 2006/04/26 11:31:51 shane Exp $ */
+/* $Id: acache.c,v 1.3.2.11 2006/04/26 12:12:07 shane Exp $ */
 
 #include <config.h>
 
@@ -1246,6 +1246,21 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	REQUIRE(DNS_ACACHE_VALID(acache));
 	REQUIRE(entryp != NULL && *entryp == NULL);
 	REQUIRE(origdb != NULL);
+
+	/* 
+	 * Should we exceed our memory limit for some reason (for 
+	 * example, if the cleaner does not run aggressively enough), 
+	 * then we will not create additional entries.
+	 *
+	 * XXX: It might be better to lock the acache->cleaner->lock,
+	 * but locking may be an expensive bottleneck. If we misread 
+	 * the value, we will occasionally refuse to create a few 
+	 * cache entries, or create a few that we should not. I do not
+	 * expect this to happen often, and it will not have very bad
+	 * effects when it does. So no lock for now.
+	 */
+	if (acache->cleaner.overmem)
+		return (ISC_R_NORESOURCES);
 
 	newentry = isc_mem_get(acache->mctx, sizeof(*newentry));
 	if (newentry == NULL)
