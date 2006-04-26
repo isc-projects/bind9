@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.11 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: acache.c,v 1.12 2006/04/26 12:03:08 shane Exp $ */
 
 #include <config.h>
 
@@ -132,6 +132,8 @@ struct acache_cleaner {
 	unsigned int		cleaning_interval; /* The cleaning-interval
 						      from named.conf,
 						      in seconds. */
+	isc_stdtime_t		last_cleanup_time; /* The time when the last
+						      cleanup task completed */
 
 	isc_timer_t 		*cleaning_timer;
 	isc_event_t		*resched_event;	/* Sent by cleaner task to
@@ -523,6 +525,7 @@ acache_cleaner_init(dns_acache_t *acache, isc_timermgr_t *timermgr,
 		}
 
 		cleaner->cleaning_interval = 0; /* Initially turned off. */
+		isc_stdtime_get(&cleaner->last_cleanup_time);
 		result = isc_timer_create(timermgr, isc_timertype_inactive,
 					  NULL, NULL,
 					  acache->task,
@@ -636,6 +639,8 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 	}
 	dns_acache_detachentry(&cleaner->current_entry);
 
+	isc_stdtime_get(&cleaner->last_cleanup_time);
+
 	UNLOCK(&acache->lock);
 
 	dns_acache_setcleaninginterval(cleaner->acache,
@@ -646,13 +651,6 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 		      "%lu entries cleaned, mem inuse %lu",
 		      cleaner->ncleaned,
 		      (unsigned long)isc_mem_inuse(cleaner->acache->mctx));
-
-	if (cleaner->overmem) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_ACACHE, ISC_LOG_NOTICE,
-			      "acache is still in overmem state "
-			      "after cleaning");
-	}
 
 	cleaner->ncleaned = 0;
 	cleaner->state = cleaner_s_idle;
@@ -684,11 +682,8 @@ acache_cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 /* The caller must hold entry lock. */
 static inline isc_boolean_t
 entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
-	    isc_stdtime_t now)
+	    isc_stdtime32_t now32, unsigned int interval)
 {
-	unsigned int interval = cleaner->cleaning_interval;
-	isc_stdtime32_t now32;
-
 	/*
 	 * If the callback has been canceled, we definitely do not need the
 	 * entry.
@@ -696,25 +691,28 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	if (entry->callback == NULL)
 		return (ISC_TRUE);
 
-	isc_stdtime_convert32(now, &now32);
+	if (interval > cleaner->cleaning_interval)
+		interval = cleaner->cleaning_interval;
+
 	if (entry->lastused + interval < now32)
 		return (ISC_TRUE);
 
 	/*
-	 * If the acache is in an overmem state, probabilistically decide if
+	 * If the acache is in the overmem state, probabilistically decide if
 	 * the entry should be purged, based on the time passed from its last
 	 * use and the cleaning interval.
 	 */
 	if (cleaner->overmem) {
 		unsigned int passed =
 			now32 - entry->lastused; /* <= interval */
-		isc_uint32_t val, r;
+		isc_uint32_t val;
 
-		isc_random_get(&val);
-		r = val % interval;
-
-		if (r < passed)
+		if (passed > interval / 2)
 			return (ISC_TRUE);
+		isc_random_get(&val);
+		if (passed > interval / 4)
+			return (ISC_TF(val % 4 == 0));
+		return (ISC_TF(val % 8 == 0));
 	}
 
 	return (ISC_FALSE);
@@ -729,7 +727,9 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	dns_acache_t *acache = cleaner->acache;
 	dns_acacheentry_t *entry, *next = NULL;
 	int n_entries;
+	isc_stdtime32_t now32, last32;
 	isc_stdtime_t now;
+	unsigned int interval;
 
 	INSIST(DNS_ACACHE_VALID(acache));
 	INSIST(task == acache->task);
@@ -746,21 +746,25 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	n_entries = cleaner->increment;
 
 	isc_stdtime_get(&now);
+	isc_stdtime_convert32(now, &now32);
 
 	LOCK(&acache->lock);
 
 	entry = cleaner->current_entry;
+	isc_stdtime_convert32(cleaner->last_cleanup_time, &last32);
+	INSIST(now32 > last32);
+	interval = now32 - last32;
 
 	while (n_entries-- > 0) {
 		isc_boolean_t is_stale = ISC_FALSE;
-		
+
 		INSIST(entry != NULL);
 
 		next = ISC_LIST_NEXT(entry, link);
 
 		ACACHE_LOCK(&entry->lock, isc_rwlocktype_write);
 
-		is_stale = entry_stale(cleaner, entry, now);
+		is_stale = entry_stale(cleaner, entry, now32, interval);
 		if (is_stale) {
 			ISC_LIST_UNLINK(acache->entries, entry, link);
 			unlink_dbentries(acache, entry);
@@ -777,6 +781,24 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			dns_acache_detachentry(&entry);
 
 		if (next == NULL) {
+			if (cleaner->overmem) {
+				entry = ISC_LIST_HEAD(acache->entries);
+				if (entry != NULL) {
+					/*
+					 * If we are still in the overmem
+					 * state, keep cleaning.
+					 */
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_DATABASE,
+						      DNS_LOGMODULE_ACACHE,
+						      ISC_LOG_DEBUG(1),
+						      "acache cleaner: "
+						      "still overmem, "
+						      "reset and try again");
+					continue;
+				}
+			}
+
 			UNLOCK(&acache->lock);
 			end_cleaning(cleaner, event);
 			return;
