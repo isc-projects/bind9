@@ -1,3 +1,6 @@
+2013.	[bug]		Handle unexpected TSIGs on unsigned AXFR/IXFR
+			responses more gracefully. [RT #15941]
+
 2009.	[bug]		libbind: coverity fixes. [RT #15808]
 
 2005.	[bug]		libbind: Retransmission timeouts should be

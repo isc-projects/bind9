@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tsig.c,v 1.112.2.3.8.9 2006/03/08 03:55:54 marka Exp $
+ * $Id: tsig.c,v 1.112.2.3.8.10 2006/05/02 04:21:42 marka Exp $
  */
 
 #include <config.h>
@@ -648,8 +648,11 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 	msg->verify_attempted = 1;
 
-	if (msg->tcp_continuation)
+	if (msg->tcp_continuation) {
+		if (tsigkey == NULL || msg->querytsig == NULL)
+			return (DNS_R_UNEXPECTEDTSIG);
 		return (tsig_verify_tcp(source, msg));
+	}
 
 	/*
 	 * There should be a TSIG record...
