@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.109.18.11 2006/02/28 03:10:48 marka Exp $ */
+/* $Id: types.h,v 1.109.18.12 2006/05/02 12:55:31 shane Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -33,6 +33,7 @@
 
 typedef struct dns_acache			dns_acache_t;
 typedef struct dns_acacheentry			dns_acacheentry_t;
+typedef struct dns_acachestats			dns_acachestats_t;
 typedef struct dns_acl 				dns_acl_t;
 typedef struct dns_aclelement 			dns_aclelement_t;
 typedef struct dns_aclenv			dns_aclenv_t;
