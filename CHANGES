@@ -1,3 +1,6 @@
+2013.	[bug]		Handle unexpected TSIGs on unsigned AXFR/IXFR
+			responses more gracefully. [RT #15941]
+
 2012.	[func]		Don't insert new acache entries if acache is full.
 			[RT #15970]
 
