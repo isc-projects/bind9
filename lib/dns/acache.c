@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.14 2006/04/27 09:36:46 marka Exp $ */
+/* $Id: acache.c,v 1.15 2006/05/02 13:04:54 shane Exp $ */
 
 #include <config.h>
 
@@ -132,8 +132,9 @@ struct acache_cleaner {
 	unsigned int		cleaning_interval; /* The cleaning-interval
 						      from named.conf,
 						      in seconds. */
+
 	isc_stdtime_t		last_cleanup_time; /* The time when the last
-						      cleanup task completed */
+      						      cleanup task completed */
 
 	isc_timer_t 		*cleaning_timer;
 	isc_event_t		*resched_event;	/* Sent by cleaner task to
@@ -151,6 +152,19 @@ struct acache_cleaner {
 	cleaner_state_t  	state;		/* Idle/Busy/Done. */
 	isc_boolean_t	 	overmem;	/* The acache is in an overmem
 						   state. */
+};
+
+struct dns_acachestats {
+	unsigned int			hits;
+	unsigned int			queries;
+	unsigned int			misses;
+	unsigned int			adds;
+	unsigned int			deleted;
+	unsigned int			cleaned;
+	unsigned int			cleaner_runs;
+	unsigned int			overmem;
+	unsigned int			overmem_nocreates;
+	unsigned int			nomem;
 };
 
 /*
@@ -176,6 +190,8 @@ struct dns_acache {
 	isc_task_t 			*task;
 	isc_event_t			cevent;
 	isc_boolean_t			cevent_sent;
+
+	dns_acachestats_t		stats;
 };
 
 struct dns_acacheentry {
@@ -239,6 +255,23 @@ static void acache_overmem_cleaning_action(isc_task_t *task,
 					   isc_event_t *event);
 static void acache_cleaner_shutdown_action(isc_task_t *task,
 					   isc_event_t *event);
+
+/*
+ * acache should be locked.  If it is not, the stats can get out of whack,
+ * which is not a big deal for us since this is for debugging / stats
+ */
+static void
+reset_stats(dns_acache_t *acache) {
+	acache->stats.hits = 0;
+	acache->stats.queries = 0;
+	acache->stats.misses = 0;
+	acache->stats.adds = 0;
+	acache->stats.deleted = 0;
+	acache->stats.cleaned = 0;
+	acache->stats.overmem = 0;
+	acache->stats.overmem_nocreates = 0;
+	acache->stats.nomem = 0;
+}
 
 /*
  * The acache must be locked before calling.
@@ -639,6 +672,26 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 	}
 	dns_acache_detachentry(&cleaner->current_entry);
 
+	if (cleaner->overmem)
+		acache->stats.overmem++;
+	acache->stats.cleaned += cleaner->ncleaned;
+	acache->stats.cleaner_runs++;
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_ACACHE,
+		      ISC_LOG_NOTICE,
+		      "acache %p stats: hits=%d misses=%d queries=%d "
+		      "adds=%d deleted=%d "
+		      "cleaned=%d cleaner_runs=%d overmem=%d "
+		      "overmem_nocreates=%d nomem=%d",
+		      acache,
+		      acache->stats.hits, acache->stats.misses,
+		      acache->stats.queries,
+		      acache->stats.adds, acache->stats.deleted,
+		      acache->stats.cleaned, acache->stats.cleaner_runs,
+		      acache->stats.overmem, acache->stats.overmem_nocreates, 
+		      acache->stats.nomem);
+	reset_stats(acache);
+
 	isc_stdtime_get(&cleaner->last_cleanup_time);
 
 	UNLOCK(&acache->lock);
@@ -651,6 +704,13 @@ end_cleaning(acache_cleaner_t *cleaner, isc_event_t *event) {
 		      "%lu entries cleaned, mem inuse %lu",
 		      cleaner->ncleaned,
 		      (unsigned long)isc_mem_inuse(cleaner->acache->mctx));
+
+	if (cleaner->overmem) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_ACACHE, ISC_LOG_NOTICE,
+			      "acache is still in overmem state "
+			      "after cleaning");
+	}
 
 	cleaner->ncleaned = 0;
 	cleaner->state = cleaner_s_idle;
@@ -757,7 +817,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	while (n_entries-- > 0) {
 		isc_boolean_t is_stale = ISC_FALSE;
-
+		
 		INSIST(entry != NULL);
 
 		next = ISC_LIST_NEXT(entry, link);
@@ -1010,6 +1070,9 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
+	acache->stats.cleaner_runs = 0;
+	reset_stats(acache);
+
 	acache->magic = ACACHE_MAGIC;
 
 	*acachep = acache;
@@ -1037,6 +1100,12 @@ dns_acache_attach(dns_acache_t *source, dns_acache_t **targetp) {
 	isc_refcount_increment(&source->refs, NULL);
 
 	*targetp = source;
+}
+
+void
+dns_acache_countquerymiss(dns_acache_t *acache) {
+	acache->stats.misses++; 	/* XXXSK danger: unlocked! */
+	acache->stats.queries++;	/* XXXSK danger: unlocked! */
 }
 
 void
@@ -1230,6 +1299,8 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 
 	acache->dbentries--;
 
+	acache->stats.deleted++;
+
 	UNLOCK(&acache->lock);
 
 	return (ISC_R_SUCCESS);
@@ -1252,19 +1323,23 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 	 * example, if the cleaner does not run aggressively enough), 
 	 * then we will not create additional entries.
 	 *
-	 * XXX: It might be better to lock the acache->cleaner->lock,
+	 * XXXSK: It might be better to lock the acache->cleaner->lock,
 	 * but locking may be an expensive bottleneck. If we misread 
 	 * the value, we will occasionally refuse to create a few 
 	 * cache entries, or create a few that we should not. I do not
 	 * expect this to happen often, and it will not have very bad
 	 * effects when it does. So no lock for now.
 	 */
-	if (acache->cleaner.overmem)
+	if (acache->cleaner.overmem) {
+		acache->stats.overmem_nocreates++; /* XXXSK danger: unlocked! */
 		return (ISC_R_NORESOURCES);
+	}
 
 	newentry = isc_mem_get(acache->mctx, sizeof(*newentry));
-	if (newentry == NULL)
+	if (newentry == NULL) {
+		acache->stats.nomem++;  /* XXXMLG danger: unlocked! */
 		return (ISC_R_NOMEMORY);
+	}
 
 	result = ACACHE_INITLOCK(&newentry->lock);
 	if (result != ISC_R_SUCCESS) {
@@ -1370,6 +1445,9 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 			ISC_LIST_APPEND(fname->list, ardataset, link);
 		}
 	}
+
+	entry->acache->stats.hits++; /* XXXMLG danger: unlocked! */
+	entry->acache->stats.queries++;
 
 	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_read);
 
@@ -1501,6 +1579,8 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	dns_acache_attachentry(entry, &dummy_entry);
 
 	ACACHE_UNLOCK(&entry->lock, isc_rwlocktype_write);
+
+	acache->stats.adds++;
 	UNLOCK(&acache->lock);
 
 	return (ISC_R_SUCCESS);
@@ -1568,6 +1648,7 @@ dns_acache_detachentry(dns_acacheentry_t **entryp) {
 	 */
 	if (refs == 0) {
 		INSIST(!ISC_LINK_LINKED(entry, link));
+		(*entryp)->acache->stats.deleted++;
 		destroy_entry(entry);
 	}
 
@@ -1610,6 +1691,11 @@ dns_acache_setcleaninginterval(dns_acache_t *acache, unsigned int t) {
 			      DNS_LOGMODULE_ACACHE, ISC_LOG_WARNING,
 			      "could not set acache cleaning interval: %s",
 			      isc_result_totext(result));
+	else
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_ACACHE, ISC_LOG_NOTICE,
+			      "acache %p cleaning interval set to %d.",
+			      acache, t);
 
  unlock:
 	UNLOCK(&acache->lock);

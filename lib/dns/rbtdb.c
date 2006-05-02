@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.231 2006/03/07 04:58:51 marka Exp $ */
+/* $Id: rbtdb.c,v 1.232 2006/05/02 13:04:54 shane Exp $ */
 
 /*! \file */
 
@@ -6411,11 +6411,14 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	}
 
 	if (acarray == NULL) {
+		if (type != dns_rdatasetadditional_fromcache)
+			dns_acache_countquerymiss(acache);
 		NODE_UNLOCK(nodelock, isc_rwlocktype_read);
 		return (ISC_R_NOTFOUND);
 	}
 
 	if (acarray[count].entry == NULL) {
+		dns_acache_countquerymiss(acache);
 		NODE_UNLOCK(nodelock, isc_rwlocktype_read);
 		return (ISC_R_NOTFOUND);
 	}
@@ -6695,7 +6698,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 	NODE_UNLOCK(nodelock, isc_rwlocktype_write);
 
 	if (entry != NULL) {
-		if(cbarg != NULL)
+		if (cbarg != NULL)
 			acache_cancelentry(rbtdb->common.mctx, entry, &cbarg);
 		dns_acache_detachentry(&entry);
 	}

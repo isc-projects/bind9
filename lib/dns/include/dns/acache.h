@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.h,v 1.4 2004/12/23 00:13:17 marka Exp $ */
+/* $Id: acache.h,v 1.5 2006/05/02 13:04:54 shane Exp $ */
 
 #ifndef DNS_ACACHE_H
 #define DNS_ACACHE_H 1
@@ -432,6 +432,12 @@ dns_acache_detachentry(dns_acacheentry_t **entryp);
  *	If '*entryp' is the last reference to the entry, 
  *	cache does not have an outstanding task, all resources used by the
  *	entry (including the entry object itself) will be freed.
+ */
+
+void
+dns_acache_countquerymiss(dns_acache_t *acache);
+/*
+ * Count up a missed acache query.  XXXMLG need more docs.
  */
 
 ISC_LANG_ENDDECLS
