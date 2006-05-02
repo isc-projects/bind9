@@ -1,3 +1,6 @@
+2012.	[func]		Don't insert new acache entries if acache is full.
+			[RT #15970]
+
 2011.	[func]		dnssec-signzone can now update the SOA record of
 			the signed zone, either as an increment or as the
 			system time(). [RT #15633]
