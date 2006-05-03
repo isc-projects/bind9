@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.47.18.27 2006/03/09 23:38:20 marka Exp $ */
+/* $Id: config.c,v 1.47.18.28 2006/05/03 01:46:40 marka Exp $ */
 
 /*! \file */
 
@@ -132,7 +132,7 @@ options {\n\
 	check-names slave warn;\n\
 	check-names response ignore;\n\
 	check-mx warn;\n\
-	use-additional-cache true;\n\
+	acache-enable no;\n\
 	acache-cleaning-interval 60;\n\
 	max-acache-size 0;\n\
 	dnssec-enable yes;\n\

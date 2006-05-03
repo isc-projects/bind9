@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.56 2006/03/09 23:38:20 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.57 2006/05/03 01:46:40 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4492,7 +4492,7 @@ category notify { null; };
     <optional> root-delegation-only <optional> exclude { <replaceable>namelist</replaceable> } </optional> ; </optional>
     <optional> querylog <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> disable-algorithms <replaceable>domain</replaceable> { <replaceable>algorithm</replaceable>; <optional> <replaceable>algorithm</replaceable>; </optional> }; </optional>
-    <optional> use-additional-cache <replaceable>yes_or_no</replaceable> ; </optional>
+    <optional> acache-enable <replaceable>yes_or_no</replaceable> ; </optional>
     <optional> acache-cleaning-interval <replaceable>number</replaceable>; </optional>
     <optional> max-acache-size <replaceable>size_spec</replaceable> ; </optional>
     <optional> clients-per-query <replaceable>number</replaceable> ; </optional>
@@ -7508,7 +7508,7 @@ query-source-v6 address * port *;
             Thus, if the response performance does not matter and memory
             consumption is much more critical, the
             <command>acache</command> mechanism can be
-            disabled by setting <command>use-additional-cache</command> to
+            disabled by setting <command>acache-enable</command> to
             <command>no</command>.
             It is also possible to specify the upper limit of memory
             consumption
@@ -7540,11 +7540,11 @@ query-source-v6 address * port *;
           <variablelist>
 
             <varlistentry>
-              <term><command>use-additional-cache</command></term>
+              <term><command>acache-enable</command></term>
               <listitem>
                 <para>
-                  If <command>yes</command>, additional section caching is enabled.
-                  The default value is <command>yes</command>.
+                  If <command>yes</command>, additional section caching is
+		  enabled.  The default value is <command>no</command>.
                 </para>
               </listitem>
             </varlistentry>

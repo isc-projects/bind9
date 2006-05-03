@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.44 2006/03/09 23:46:20 marka Exp $ */
+/* $Id: server.c,v 1.419.18.45 2006/05/03 01:46:40 marka Exp $ */
 
 /*! \file */
 
@@ -968,11 +968,12 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 
 	/*
 	 * Create additional cache for this view and zones under the view
-	 * unless explicitly disabled.
+	 * if explicitly enabled.
+	 * XXX950 default to on.
 	 */
 	obj = NULL;
-	(void)ns_config_get(maps, "use-additional-cache", &obj);
-	if (obj == NULL || cfg_obj_asboolean(obj)) {
+	(void)ns_config_get(maps, "acache-enable", &obj);
+	if (obj != NULL && cfg_obj_asboolean(obj)) {
 		cmctx = NULL;
 		CHECK(isc_mem_create(0, 0, &cmctx));
 		CHECK(dns_acache_create(&view->acache, cmctx, ns_g_taskmgr,

@@ -1,3 +1,9 @@
+2015.	[cleanup]	use-additional-cache is now acache-enable for
+			consistancy.  Default acache-enable off in BIND 9.4
+			as it requires memory usage to be configured.
+			It may be enabled by default in BIND 9.5 once we
+			have more experience with it.
+
 2014.	[func]		Statistics about acache now recorded and sent
 			to log. [RT #15976]
 
