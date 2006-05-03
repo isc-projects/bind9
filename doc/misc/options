@@ -91,7 +91,7 @@ options {
         dnssec-must-be-secure <string> <boolean>;
         dnssec-accept-expired <boolean>;
         ixfr-from-differences <ixfrdiff>;
-        use-additional-cache <boolean>;
+        acache-enable <boolean>;
         acache-cleaning-interval <integer>;
         max-acache-size <size_no_default>;
         clients-per-query <integer>;
@@ -319,7 +319,7 @@ view <string> <optional_class> {
         dnssec-must-be-secure <string> <boolean>;
         dnssec-accept-expired <boolean>;
         ixfr-from-differences <ixfrdiff>;
-        use-additional-cache <boolean>;
+        acache-enable <boolean>;
         acache-cleaning-interval <integer>;
         max-acache-size <size_no_default>;
         clients-per-query <integer>;

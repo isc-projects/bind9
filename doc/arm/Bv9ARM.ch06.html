@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.52 2006/04/23 10:12:42 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.82.18.53 2006/05/03 02:26:57 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -91,7 +91,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2571557">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572177">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572245">Inverse Mapping in IPv4</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572372">Other Zone File Directives</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572629"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
@@ -1849,7 +1849,7 @@ category notify { null; };
     [<span class="optional"> root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>namelist</code></em> } </span>] ; </span>]
     [<span class="optional"> querylog <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> disable-algorithms <em class="replaceable"><code>domain</code></em> { <em class="replaceable"><code>algorithm</code></em>; [<span class="optional"> <em class="replaceable"><code>algorithm</code></em>; </span>] }; </span>]
-    [<span class="optional"> use-additional-cache <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
+    [<span class="optional"> acache-enable <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> acache-cleaning-interval <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-acache-size <em class="replaceable"><code>size_spec</code></em> ; </span>]
     [<span class="optional"> clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
@@ -4262,7 +4262,7 @@ query-source-v6 address * port *;
             Thus, if the response performance does not matter and memory
             consumption is much more critical, the
             <span><strong class="command">acache</strong></span> mechanism can be
-            disabled by setting <span><strong class="command">use-additional-cache</strong></span> to
+            disabled by setting <span><strong class="command">acache-enable</strong></span> to
             <span><strong class="command">no</strong></span>.
             It is also possible to specify the upper limit of memory
             consumption
@@ -4289,10 +4289,10 @@ query-source-v6 address * port *;
             <span><strong class="command">acache</strong></span>.
           </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><span><strong class="command">use-additional-cache</strong></span></span></dt>
+<dt><span class="term"><span><strong class="command">acache-enable</strong></span></span></dt>
 <dd><p>
-                  If <span><strong class="command">yes</strong></span>, additional section caching is enabled.
-                  The default value is <span><strong class="command">yes</strong></span>.
+                  If <span><strong class="command">yes</strong></span>, additional section caching is
+                  enabled.  The default value is <span><strong class="command">no</strong></span>.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">acache-cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -6659,7 +6659,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572177"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2572245"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
