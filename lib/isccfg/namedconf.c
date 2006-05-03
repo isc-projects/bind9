@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.68 2006/03/09 23:21:54 marka Exp $ */
+/* $Id: namedconf.c,v 1.69 2006/05/03 01:54:54 marka Exp $ */
 
 /*! \file */
 
@@ -774,7 +774,7 @@ view_clauses[] = {
 	   CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
-	{ "use-additional-cache", &cfg_type_boolean, 0 },
+	{ "acache-enable", &cfg_type_boolean, 0 },
 	{ "acache-cleaning-interval", &cfg_type_uint32, 0 },
 	{ "max-acache-size", &cfg_type_sizenodefault, 0 },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
