@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.134 2006/04/23 10:14:12 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.135 2006/05/03 02:27:23 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -84,15 +84,15 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566040"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2567411"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2567479"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2569604">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2571557">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2571625">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572245">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572372">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572177">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572304">Other Zone File Directives</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572629"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
@@ -1849,7 +1849,7 @@ category notify { null; };
     [<span class="optional"> root-delegation-only [<span class="optional"> exclude { <em class="replaceable"><code>namelist</code></em> } </span>] ; </span>]
     [<span class="optional"> querylog <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> disable-algorithms <em class="replaceable"><code>domain</code></em> { <em class="replaceable"><code>algorithm</code></em>; [<span class="optional"> <em class="replaceable"><code>algorithm</code></em>; </span>] }; </span>]
-    [<span class="optional"> use-additional-cache <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
+    [<span class="optional"> acache-enable <em class="replaceable"><code>yes_or_no</code></em> ; </span>]
     [<span class="optional"> acache-cleaning-interval <em class="replaceable"><code>number</code></em>; </span>]
     [<span class="optional"> max-acache-size <em class="replaceable"><code>size_spec</code></em> ; </span>]
     [<span class="optional"> clients-per-query <em class="replaceable"><code>number</code></em> ; </span>]
@@ -3047,7 +3047,7 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2561862"></a>Query Address</h4></div></div></div>
+<a name="id2561794"></a>Query Address</h4></div></div></div>
 <p>
             If the server doesn't know the answer to a question, it will
             query other name servers. <span><strong class="command">query-source</strong></span> specifies
@@ -3401,7 +3401,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2562944"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2562875"></a>Server  Resource Limits</h4></div></div></div>
 <p>
             The following options set limits on the server's
             resource consumption that are enforced internally by the
@@ -4262,7 +4262,7 @@ query-source-v6 address * port *;
             Thus, if the response performance does not matter and memory
             consumption is much more critical, the
             <span><strong class="command">acache</strong></span> mechanism can be
-            disabled by setting <span><strong class="command">use-additional-cache</strong></span> to
+            disabled by setting <span><strong class="command">acache-enable</strong></span> to
             <span><strong class="command">no</strong></span>.
             It is also possible to specify the upper limit of memory
             consumption
@@ -4289,10 +4289,10 @@ query-source-v6 address * port *;
             <span><strong class="command">acache</strong></span>.
           </p>
 <div class="variablelist"><dl>
-<dt><span class="term"><span><strong class="command">use-additional-cache</strong></span></span></dt>
+<dt><span class="term"><span><strong class="command">acache-enable</strong></span></span></dt>
 <dd><p>
-                  If <span><strong class="command">yes</strong></span>, additional section caching is enabled.
-                  The default value is <span><strong class="command">yes</strong></span>.
+                  If <span><strong class="command">yes</strong></span>, additional section caching is
+                  enabled.  The default value is <span><strong class="command">no</strong></span>.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">acache-cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -4817,10 +4817,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567411"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2567479"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2567418"></a>Zone Types</h4></div></div></div>
+<a name="id2567486"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -5029,7 +5029,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2567769"></a>Class</h4></div></div></div>
+<a name="id2567837"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -6401,7 +6401,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571557"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2571625"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6659,7 +6659,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572245"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2572177"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6720,7 +6720,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572372"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2572304"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6735,7 +6735,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572394"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2572326"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
