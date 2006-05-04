@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.45.2.4.8.13 2006/02/28 06:32:54 marka Exp $ */
+/* $Id: cache.c,v 1.45.2.4.8.14 2006/05/04 02:21:46 marka Exp $ */
 
 #include <config.h>
 
@@ -787,7 +787,7 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 			 * Either the end was reached (ISC_R_NOMORE) or
 			 * some error was signaled.  If the cache is still
 			 * overmem and no error was encountered,
-			 * keep trying to clean it, otherwise stop cleanng.
+			 * keep trying to clean it, otherwise stop cleaning.
 			 */
 			if (result != ISC_R_NOMORE)
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
