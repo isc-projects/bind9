@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.65 2006/01/30 01:04:43 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.66 2006/05/04 04:37:14 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -776,11 +776,6 @@ of a server.</para>
     after the load has completed.  After a zone is thawed, dynamic updates
     will no longer be refused.</para></listitem>
    </varlistentry>
-
-   <varlistentry><term><userinput>notify <replaceable>zone</replaceable>
-       <optional><replaceable>class</replaceable>
-           <optional><replaceable>view</replaceable></optional></optional></userinput></term>
-   <listitem><para>Resend NOTIFY messages for the zone</para></listitem></varlistentry>
 
    <varlistentry><term><userinput>reconfig</userinput></term>
    <listitem><para>Reload the configuration file and load new zones,
