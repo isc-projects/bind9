@@ -142,7 +142,6 @@ BIND 9.4.0
 	they reference.  named has extended post zone load checks.
 	New zone options: check-mx and integrity-check.
 
-
 	edns-udp-size can now be overridden on a per server basis.
 
 	dig can now specify the EDNS version when making a query.
@@ -155,7 +154,7 @@ BIND 9.4.0
 	Detect duplicates of UDP queries we are recursing on and
 	drop them.  New stats category "duplicates".
 
-	"USE INTERNAL MALLOC" is now runtime selectable.
+	Meory management. "USE INTERNAL MALLOC" is now runtime selectable.
 
 	The lame cache is now done on a <qname,qclass,qtype> basis
 	as some servers only appear to be lame for certain query
@@ -203,6 +202,66 @@ BIND 9.4.0
 	Integrate contibuted DLZ code into named.
 
 	Integrate contibuted IDN code from JPNIC.
+
+	Validate pending NS RRsets, in the authority section, prior
+	to returning them if it can be done without requiring DNSKEYs
+	to be fetched.
+
+	It is now possible to configure named to accept expired
+	RRSIGs.  Default "dnssec-accept-expired no;".  Setting
+	"dnssec-accept-expired yes;" leaves named vulnerable to
+	replay attacks.
+
+	Addition memory leakage checks.
+
+	The maximum EDNS UDP response named will send can now be
+	set in named.conf (max-udp-size).  This is independent of
+	the advertised receive buffer (edns-udp-size).
+
+	Named now falls back to advertising EDNS with a 512 byte
+	receive buffer if the initial EDNS queries fail.
+
+	Control the zeroing of the negative response TTL to a soa
+	query.  Defaults "zero-no-soa-ttl yes;" and
+	"zero-no-soa-ttl-cache no;".
+			
+	Seperate out MX and SRV to CNAME checks.
+
+	dig/nslookup/host: warn about missing "QR".
+
+	TSIG HMACSHA1, HMACSHA224, HMACSHA256, HMACSHA384 and
+	HMACSHA512 support.
+
+	dnssec-signzone: output the SOA record as the first record
+	in the signed zone.
+
+	Two new update policies.  "selfsub" and "selfwild".
+
+	dig, nslookup and host now advertise a 4096 byte EDNS UDP
+	buffer size by default.
+
+	Report when a zone is removed.
+
+	DS/DLV SHA256 digest algorithm support.
+
+	Implement "rrset-order fixed".
+
+	Check the KSK flag when updating a secure dynamic zone.
+	New zone option "update-check-ksk yes;".
+
+	It is now possible to explicitly enable DNSSEC validation.
+	default dnssec-validation no; to be changed to yes in 9.5.0.
+
+	It is now posssible to enable/disable DNSSEC validation
+	from rndc.  This is useful for the mobile hosts where the
+	current connection point breaks DNSSEC (firewall/proxy).
+
+		rndc validation newstate [view]
+
+	dnssec-signzone can now update the SOA record of the signed
+	zone, either as an increment or as the system time().
+
+	Statistics about acache now recorded and sent to log.
 
 	libbind: corresponds to that from BIND 8.4.7.
 
