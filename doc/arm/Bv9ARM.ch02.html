@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.11 2006/04/23 10:10:09 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.12 2006/05/08 15:45:49 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -45,16 +45,16 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546348">Hardware requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546373">CPU Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546384">Memory Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546398">Nameserver Intensive Environment Issues</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546407">Supported Operating Systems</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546347">Hardware requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546372">CPU Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546382">Memory Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546397">Nameserver Intensive Environment Issues</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546406">Supported Operating Systems</a></span></dt>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546348"></a>Hardware requirements</h2></div></div></div>
+<a name="id2546347"></a>Hardware requirements</h2></div></div></div>
 <p><span class="acronym">DNS</span> hardware requirements have traditionally been quite modest.
 For many installations, servers that have been pensioned off from
 active duty have performed admirably as <span class="acronym">DNS</span> servers.</p>
@@ -66,7 +66,7 @@ multiprocessor systems for installations that need it.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546373"></a>CPU Requirements</h2></div></div></div>
+<a name="id2546372"></a>CPU Requirements</h2></div></div></div>
 <p>CPU requirements for <span class="acronym">BIND</span> 9 range from i486-class machines
 for serving of static zones without caching, to enterprise-class
 machines if you intend to process many dynamic updates and DNSSEC
@@ -74,7 +74,7 @@ signed zones, serving many thousands of queries per second.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546384"></a>Memory Requirements</h2></div></div></div>
+<a name="id2546382"></a>Memory Requirements</h2></div></div></div>
 <p>The memory of the server has to be large enough to fit the
 cache and zones loaded off disk.  The <span><strong class="command">max-cache-size</strong></span>
 option can be used to limit the amount of memory used by the cache,
@@ -89,7 +89,7 @@ be set higher than this stable size.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546398"></a>Nameserver Intensive Environment Issues</h2></div></div></div>
+<a name="id2546397"></a>Nameserver Intensive Environment Issues</h2></div></div></div>
 <p>For nameserver intensive environments, there are two alternative
 configurations that may be used. The first is where clients and
 any second-level internal nameservers query a main nameserver, which
@@ -103,7 +103,7 @@ as none of the nameservers share their cached data.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546407"></a>Supported Operating Systems</h2></div></div></div>
+<a name="id2546406"></a>Supported Operating Systems</h2></div></div></div>
 <p>ISC <span class="acronym">BIND</span> 9 compiles and runs on the following operating
 systems:</p>
 <div class="itemizedlist"><ul type="disc">
