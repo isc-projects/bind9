@@ -10,10 +10,7 @@ Branch				Status	Whom	// Comments
 				closed		finished with
 
 custom_WFB_v9_3_1		private	
-custom_WFB_v9_3_2		private
-gssapi3-skan			closed	graff
-gsstsig2			closed	sra	// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
-gsstsig3			closed	sra
+custom_WFB_v9_3_2		private	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
@@ -78,6 +75,7 @@ rt15958				new
 rt15960				new	
 rt15970				new	
 rt15976				new	
+rt16034				new	
 rt1727				open		// ixfr-from-differences workfile
 rt6496a				review	marka
 rt6496b				new	
@@ -117,6 +115,9 @@ ds13				closed
 ds_12				closed
 edns1				closed
 edns_size			closed
+gssapi3-skan			closed
+gsstsig2			closed		// old (circa 9.3.0) gss-tsig, finally worked with hacked heimdal spnego
+gsstsig3			closed
 ifiter_getifaddrs		closed
 ipl				closed
 ipv6-improvements		closed
