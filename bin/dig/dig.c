@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.24 2006/01/27 02:50:50 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.25 2006/05/15 06:11:39 marka Exp $ */
 
 /*! \file */
 
@@ -495,7 +495,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 			if (msg != query->lookup->sendmsg &&
 			    (msg->flags & DNS_MESSAGEFLAG_RD) != 0 &&
 			    (msg->flags & DNS_MESSAGEFLAG_RA) == 0)
-				printf(";; WARNING: recusion requested "
+				printf(";; WARNING: recursion requested "
 				       "but not available\n");
 		}
 		if (msg != query->lookup->sendmsg && extrabytes != 0U)
