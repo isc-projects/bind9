@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.57 2006/05/03 01:46:40 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.58 2006/05/16 06:43:06 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1097,7 +1097,7 @@ zone "eng.example.com" {
                   <arg choice="plain"><replaceable>command</replaceable></arg>
                   <arg rep="repeat"><replaceable>command</replaceable></arg>
                 </cmdsynopsis>
-                <para><command>command</command>
+                <para>The <command>command</command>
 		  is one of the following:
                 </para>
 
@@ -1263,7 +1263,7 @@ zone "eng.example.com" {
                         made through dynamic update or IXFR are first saved to
                         the master files of the updated zones.
 			If -p is specified named's process id is returned.
-			This allows a external process to determine when named
+			This allows an external process to determine when named
 			had completed stopping.
                       </para>
                     </listitem>
@@ -1278,7 +1278,7 @@ zone "eng.example.com" {
                         the master files, but will be rolled forward from the
 			journal files when the server is restarted.
 			If -p is specified named's process id is returned.
-			This allows a external process to determine when named
+			This allows an external process to determine when named
 			had completed halting.
                       </para>
                     </listitem>
@@ -1599,7 +1599,7 @@ controls {
       </para>
 
       <note>
-	As slave zone can also be a master to other slaves, named,
+	As a slave zone can also be a master to other slaves, named,
         by default, sends <command>NOTIFY</command> messages for every zone
 	it loads.  Specifying <command>notify master-only;</command> will
 	cause named to only send <command>NOTIFY</command> for master
@@ -1880,7 +1880,7 @@ controls {
       <para>
         Here is an example configuration for the setup we just
         described above. Note that this is only configuration information;
-        for information on how to configure your zone files, see <xref linkend="sample_configuration"/>
+        for information on how to configure your zone files, see <xref linkend="sample_configuration"/>.
       </para>
 
       <para>
@@ -2170,7 +2170,7 @@ allow-update { key host1-host2. ;};
         <para>
           The processing of TSIG signed messages can result in
           several errors. If a signed message is sent to a non-TSIG aware
-          server, a FORMERR will be returned, since the server will not
+          server, a FORMERR (format error) will be returned, since the server will not
           understand the record. This is a result of misconfiguration,
           since the server must be explicitly configured to send a TSIG
           signed message to a specific server.
@@ -2187,7 +2187,7 @@ allow-update { key host1-host2. ;};
           the TSIG extended error code set to BADTIME, and the time values
           will be adjusted so that the response can be successfully
           verified. In any of these cases, the message's rcode is set to
-          NOTAUTH.
+          NOTAUTH (not authoritative).
         </para>
 
       </sect2>
@@ -2287,7 +2287,7 @@ allow-update { key host1-host2. ;};
         There must also be communication with the administrators of
         the parent and/or child zone to transmit keys.  A zone's security
         status must be indicated by the parent zone for a DNSSEC capable
-        resolver to trust its data.  This is done through the presense
+        resolver to trust its data.  This is done through the presence
         or absence of a <literal>DS</literal> record at the
         delegation
         point.
@@ -2421,13 +2421,13 @@ allow-update { key host1-host2. ;};
 	  To enable <command>named</command> to validate answers from
 	  other servers both <command>dnssec-enable</command> and
 	  <command>dnssec-validate</command> must be set and some
-	  some <command>trusted-keys</command> must be configured
+	  <command>trusted-keys</command> must be configured
 	  into <filename>named.conf</filename>.
         </para>
 	  
 	<para>
 	  <command>trusted-keys</command> are copies of DNSKEY RRs
-	  for zones that are used to form the first link the the
+	  for zones that are used to form the first link in the
 	  cryptographic chain of trust.  All keys listed in
 	  <command>trusted-keys</command> (and corresponding zones)
 	  are deemed to exist and only the listed keys will be used
@@ -2497,7 +2497,7 @@ options {
 </programlisting>
 
 	<note>
-	  None of the keys listed in this example are valid.  In particular
+	  None of the keys listed in this example are valid.  In particular,
 	  the root key is not valid.
 	</note>
 
@@ -3125,7 +3125,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <sect3>
           <title>Definition and Usage</title>
           <para>
-            Comments may appear anywhere that whitespace may appear in
+            Comments may appear anywhere that white space may appear in
             a <acronym>BIND</acronym> configuration file.
           </para>
           <para>
@@ -3278,7 +3278,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               <entry colname="2">
                 <para>
                   configures <command>named</command> to
-                  also act as a light weight resolver daemon (<command>lwresd</command>).
+                  also act as a light-weight resolver daemon (<command>lwresd</command>).
                 </para>
               </entry>
             </row>
@@ -3474,7 +3474,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
           An <command>inet</command> control channel is a TCP socket
 	  listening at the specified <command>ip_port</command> on the
 	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
-	  address.  An <command>ip_addr</command> of <literal>*</literal> is
+	  address.  An <command>ip_addr</command> of <literal>*</literal> (asterisk) is
 	  interpreted as the IPv4 wildcard address; connections will be
 	  accepted on any of the system's IPv4 addresses.
 	  To listen on the IPv6 wildcard address,
@@ -3485,7 +3485,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         </para>
 
         <para>
-          If no port is specified, port 953 is used.
+          If no port is specified, port 953 is used. The asterisk
 	  "<literal>*</literal>" cannot be used for <command>ip_port</command>.
         </para>
 
@@ -3501,7 +3501,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         </para>
 
 	<para>
-	  An <command>unix</command> control channel is a UNIX domain
+	  A <command>unix</command> control channel is a UNIX domain
 	  socket listening at the specified path in the file system.
 	  Access to the socket is specified by the <command>perm</command>,
 	  <command>owner</command> and <command>group</command> clauses.
@@ -3870,7 +3870,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             with the <option>-d</option> flag followed by a positive integer,
             or by running <command>rndc trace</command>.
             The global debug level
-            can be set to zero, and debugging mode turned off, by running <command>ndc
+            can be set to zero, and debugging mode turned off, by running <command>rndc
 notrace</command>. All debugging messages in the server have a debug
             level, and higher debug levels give more detailed output. Channels
             that specify a specific debug severity, for example:
@@ -4189,7 +4189,7 @@ category notify { null; };
                       Specify where queries should be logged to.
                     </para>
                     <para>
-                      At startup, specifing the category <command>queries</command> will also
+                      At startup, specifying the category <command>queries</command> will also
                       enable query logging unless <command>querylog</command> option has been
                       specified.
                     </para>
@@ -4287,8 +4287,8 @@ category notify { null; };
         <para>
           The <command>lwres</command> statement configures the
           name
-          server to also act as a lightweight resolver server, see
-          <xref linkend="lwresd"/>.  There may be be multiple
+          server to also act as a lightweight resolver server. (See
+          <xref linkend="lwresd"/>.)  There may be be multiple
           <command>lwres</command> statements configuring
           lightweight resolver servers with different properties.
         </para>
@@ -4721,7 +4721,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
             <term><command>root-delegation-only</command></term>
             <listitem>
               <para>
-                Turn on enforcement of delegation-only in TLDs and root zones
+                Turn on enforcement of delegation-only in TLDs (top level domains) and root zones
                 with an optional
                 exclude list.
               </para>
@@ -5086,7 +5086,7 @@ options {
               <listitem>
                 <para>
                   When the nameserver exits due receiving SIGTERM,
-                  flush / do not flush any pending zone writes.  The default
+                  flush or do not flush any pending zone writes.  The default
                   is
                   <command>flush-zones-on-shutdown</command> <userinput>no</userinput>.
                 </para>
@@ -5542,7 +5542,7 @@ options {
                   the default is <command>ignore</command>.
                 </para>
                 <para>
-                  The rules for legal hostnames / mail domains are derived
+                  The rules for legal hostnames or mail domains are derived
                   from RFC 952 and RFC 821 as modified by RFC 1123.
                 </para>
                 <para><command>check-names</command>
@@ -5741,7 +5741,7 @@ options {
               <term><command>dual-stack-servers</command></term>
               <listitem>
                 <para>
-                  Specifies host names / addresses of machines with access to
+                  Specifies host names or addresses of machines with access to
                   both IPv4 and IPv6 transports. If a hostname is used the
                   server must be able
                   to resolve the name using only the transport it has.  If the
@@ -6358,7 +6358,7 @@ query-source-v6 address * port *;
                   server's <command>masters</command> zone clause or
                   in an <command>allow-notify</command> clause.  This
                   statement sets the <command>notify-source</command>
-                  for all zones, but can be overridden on a per-zone /
+                  for all zones, but can be overridden on a per-zone or
                   per-view basis by including a
                   <command>notify-source</command> statement within
                   the <command>zone</command> or
@@ -6515,7 +6515,7 @@ query-source-v6 address * port *;
               <listitem>
                 <para>
                   Sets a maximum size for each journal file
-                  (<xref linkend="journal"/>).  When the journal file
+                  (see <xref linkend="journal"/>).  When the journal file
                   approaches
                   the specified size, some of the oldest transactions in the
                   journal
@@ -7101,7 +7101,7 @@ query-source-v6 address * port *;
 		  specified in the <command>named</command> configuration
 		  file.  This statement sets the
 		  <command>masterfile-format</command> for all zones,
-		  but can be overridden on a per-zone / per-view basis
+		  but can be overridden on a per-zone or per-view basis
 		  by including a <command>masterfile-format</command>
 		  statement within the <command>zone</command> or
 		  <command>view</command> block in the configuration
@@ -7236,7 +7236,7 @@ query-source-v6 address * port *;
 	    These are for zones that should normally be answered locally
 	    and which queries should not be sent to the Internet's root
 	    servers.  The offical servers which cover these namespaces
-	    return NXDOMAIN responses to these queries.  In particular
+	    return NXDOMAIN responses to these queries.  In particular,
 	    these cover the reverse namespace for addresses from RFC 1918 and
 	    RFC 3330.  They also include the reverse namespace for IPv6 local
 	    address (locally assigned), IPv6 link local addresses, the IPv6
@@ -8167,7 +8167,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         is changed,
                         and reloaded from this file on a server restart. Use
                         of a file is
-                        recommended, since it often speeds server start-up and
+                        recommended, since it often speeds server startup and
                         eliminates
                         a needless waste of bandwidth. Note that for large
                         numbers (in the
@@ -9377,7 +9377,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        Identifies a mail exchange for the domain.
+                        Identifies a mail exchange for the domain with
                         a 16 bit preference value (lower is better)
                         followed by the host name of the mail exchange.
                         Described in RFC 974, RFC 1035.
