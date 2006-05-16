@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.21 2006/03/09 23:21:53 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.22 2006/05/16 06:07:09 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -232,8 +232,8 @@ options {
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
 	additional-from-auth <replaceable>boolean</replaceable>;
 	additional-from-cache <replaceable>boolean</replaceable>;
-	query-source <replaceable>querysource4</replaceable>;
-	query-source-v6 <replaceable>querysource6</replaceable>;
+	query-source ( ( <replaceable>ipv4_address</replaceable> | * ) | <optional> address ( <replaceable>ipv4_address</replaceable> | * ) </optional> ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
+	query-source-v6 ( ( <replaceable>ipv6_address</replaceable> | * ) | <optional> address ( <replaceable>ipv6_address</replaceable> | * ) </optional> ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	min-roots <replaceable>integer</replaceable>; // not implemented
 	lame-ttl <replaceable>integer</replaceable>;
@@ -380,8 +380,8 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
 	additional-from-auth <replaceable>boolean</replaceable>;
 	additional-from-cache <replaceable>boolean</replaceable>;
-	query-source <replaceable>querysource4</replaceable>;
-	query-source-v6 <replaceable>querysource6</replaceable>;
+	query-source ( ( <replaceable>ipv4_address</replaceable> | * ) | <optional> address ( <replaceable>ipv4_address</replaceable> | * ) </optional> ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
+	query-source-v6 ( ( <replaceable>ipv6_address</replaceable> | * ) | <optional> address ( <replaceable>ipv6_address</replaceable> | * ) </optional> ) <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	min-roots <replaceable>integer</replaceable>; // not implemented
 	lame-ttl <replaceable>integer</replaceable>;
