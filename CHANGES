@@ -1,3 +1,5 @@
+2020.	[bug]		rdataset_setadditional() could leak memory. [RT #16034]
+
 2019.	[tuning]	Reduce the amount of work performed per quantum
 			when cleaning the cache. [RT #15986]
 
