@@ -1,3 +1,6 @@
+2016.	[bug]		Return a partial answer if recursion is not
+			allowed but requested and we had the answer
+			to the original qname. [RT #15945]
 
 	--- 9.4.0a5 released ---
 
@@ -159,7 +162,7 @@
 			Jason Vas Dias <jvdias@redhat.com>.
 
 1971.	[port]		linux: make detection of missing IF_NAMESIZE more
-                        robust. [RT #15443]
+			robust. [RT #15443]
 
 1970.	[bug]		nsupdate: adjust UDP timeout when falling back to
 			unsigned SOA query. [RT #15775]
@@ -748,14 +751,14 @@
 
 1779.	[port]		OSF 5.1: libtool didn't handle -pthread correctly.
 
-1778.   [port]   	HUX 11.11: fix broken IN6ADDR_ANY_INIT and
+1778.	[port]		HUX 11.11: fix broken IN6ADDR_ANY_INIT and
 			IN6ADDR_LOOPBACK_INIT macros.
 
-1777.   [port]   	OSF 5.1: fix broken IN6ADDR_ANY_INIT and
+1777.	[port]		OSF 5.1: fix broken IN6ADDR_ANY_INIT and
 			IN6ADDR_LOOPBACK_INIT macros.
 
-1776.   [port]   	Solaris 2.9: fix broken IN6ADDR_ANY_INIT and
-                        IN6ADDR_LOOPBACK_INIT macros.
+1776.	[port]		Solaris 2.9: fix broken IN6ADDR_ANY_INIT and
+			IN6ADDR_LOOPBACK_INIT macros.
 
 1775.	[bug]		Only compile getnetent_r.c when threaded. [RT #13205]
 
