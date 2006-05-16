@@ -18,7 +18,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.6 2006/05/16 03:44:54 marka Exp $
+ * $Id: dst_parse.c,v 1.7 2006/05/16 04:00:01 marka Exp $
  */
 
 #include <config.h>
@@ -163,7 +163,7 @@ check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 
 	if (priv->nelements != HMACMD5_NTAGS) {
 		/*
-		 * If this a good old format and we are accepting
+		 * If this is a good old format and we are accepting
 		 * the old format return success.
 		 */
 		if (old && priv->nelements == OLD_HMACMD5_NTAGS &&
