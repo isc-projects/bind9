@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.25 2006/03/01 01:34:05 marka Exp $ */
+/* $Id: query.c,v 1.198.2.26 2006/05/16 03:31:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2507,9 +2507,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 	result = query_getdb(client, client->query.qname, options, &zone, &db,
 			     &version, &is_zone);
 	if (result != ISC_R_SUCCESS) {
-		if (result == DNS_R_REFUSED)
-			QUERY_ERROR(DNS_R_REFUSED);
-		else
+		if (result == DNS_R_REFUSED) {
+			if (!PARTIALANSWER(client))
+				QUERY_ERROR(DNS_R_REFUSED);
+		} else
 			QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
