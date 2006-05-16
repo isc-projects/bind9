@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.45 2006/01/30 01:19:12 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.46 2006/05/16 22:39:53 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -754,7 +754,7 @@ of a server.</para>
                 <arg choice="plain"><replaceable>command</replaceable></arg>
                 <arg rep="repeat"><replaceable>command</replaceable></arg>
               </cmdsynopsis>
-              <para><command>command</command> is one of the following:</para>
+              <para>The <command>command</command> is one of the following:</para>
 
 <variablelist>
 
@@ -1148,7 +1148,7 @@ internal clients will now be able to:</para>
     <para>Here is an example configuration for the setup we just
     described above. Note that this is only configuration information;
     for information on how to configure your zone files, see <xref
-    linkend="sample_configuration"/></para>
+    linkend="sample_configuration"/>.</para>
 
 <para>Internal DNS server config:</para>
 <programlisting>
@@ -1353,11 +1353,12 @@ allow-update { key host1-host2. ;};
       <title>Errors</title>
 
       <para>The processing of TSIG signed messages can result in
-      several errors. If a signed message is sent to a non-TSIG aware
-      server, a FORMERR will be returned, since the server will not
-      understand the record. This is a result of misconfiguration,
-      since the server must be explicitly configured to send a TSIG
-      signed message to a specific server.</para>
+      several errors. If a signed message is sent to a non-TSIG
+      aware server, a FORMERR (format error) will be returned, since
+      the server will not understand the record. This is a result
+      of misconfiguration, since the server must be explicitly
+      configured to send a TSIG signed message to a specific
+      server.</para>
 
       <para>If a TSIG aware server receives a message signed by an
       unknown key, the response will be unsigned with the TSIG
@@ -1369,7 +1370,7 @@ allow-update { key host1-host2. ;};
       the TSIG extended error code set to BADTIME, and the time values
       will be adjusted so that the response can be successfully
       verified. In any of these cases, the message's rcode is set to
-      NOTAUTH.</para>
+      NOTAUTH (not authorised).</para>
 
     </sect2>
   </sect1>
@@ -1667,7 +1668,7 @@ that is distinct from and simpler than the full DNS protocol.</para></sect1>
 <sect1 id="lwresd"><title>Running a Resolver Daemon</title>
 <para>To use the lightweight resolver interface, the system must
 run the resolver daemon <command>lwresd</command>.</para>
-<para>By default, applications using the lightweight resolver library will make
+<para>By default, applications using the light-weight resolver library will make
 UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
 address can be overridden by <command>lwserver</command> lines in
 <filename>/etc/resolv.conf</filename>.
@@ -1898,7 +1899,7 @@ other 1.2.3.* hosts fall through.</para></sect3></sect2>
       </sect3>
       <sect3>
         <title>Definition and Usage</title>
-<para>Comments may appear anywhere that whitespace may appear in
+<para>Comments may appear anywhere that white space may appear in
 a <acronym>BIND</acronym> configuration file.</para>
 <para>C-style comments start with the two characters /* (slash,
 star) and end with */ (star, slash). Because they are completely
@@ -2089,7 +2090,7 @@ complete set of local IPv6 addresses for a host.
       <command>ip_port</command> on the specified
       <command>ip_addr</command>, which can be an IPv4 or IPv6
       address.  An <command>ip_addr</command>
-      of <literal>*</literal> is interpreted as the IPv4 wildcard
+      of <literal>*</literal> (asterisk) is interpreted as the IPv4 wildcard
       address; connections will be accepted on any of the system's
       IPv4 addresses.  To listen on the IPv6 wildcard address,
       use an <command>ip_addr</command> of <literal>::</literal>.
@@ -2160,8 +2161,9 @@ installed.
       that contains the users who should have access.</para>
 
       <para>The UNIX control channel type of <acronym>BIND</acronym> 8 is not supported
-      in <acronym>BIND</acronym> 9, and is not expected to be added in future
-      releases.  If it is present in the controls statement from a
+      in <acronym>BIND</acronym> 9.0, <acronym>BIND</acronym> 9.1,
+      <acronym>BIND</acronym> 9.2 and <acronym>BIND</acronym> 9.3.
+      If it is present in the controls statement from a
       <acronym>BIND</acronym> 8 configuration file, it is ignored
       and a warning is logged.</para>
 
@@ -2381,7 +2383,7 @@ level is set either by starting the <command>named</command> server
 with the <option>-d</option> flag followed by a positive integer,
 or by running <command>rndc trace</command>.
 The global debug level
-can be set to zero, and debugging mode turned off, by running <command>ndc
+can be set to zero, and debugging mode turned off, by running <command>rndc
 notrace</command>. All debugging messages in the server have a debug
 level, and higher debug levels give more detailed output. Channels
 that specify a specific debug severity, for example:</para>
@@ -2609,8 +2611,8 @@ statement in the <filename>named.conf</filename> file:</para>
 <title><command>lwres</command> Statement Definition and Usage</title>
 
 <para>The <command>lwres</command> statement configures the name
-server to also act as a lightweight resolver server, see
-<xref linkend="lwresd"/>.  There may be be multiple
+server to also act as a light-weight resolver daemon. (See
+<xref linkend="lwresd"/>.)  There may be be multiple
 <command>lwres</command> statements configuring
 lightweight resolver servers with different properties.</para>
 
@@ -3269,7 +3271,7 @@ the server will not listen on any IPv6 address.</para></sect3>
 query other nameservers. <command>query-source</command> specifies
 the address and port used for such queries. For queries sent over
 IPv6, there is a separate <command>query-source-v6</command> option.
-If <command>address</command> is <command>*</command> or is omitted,
+If <command>address</command> is <command>*</command> (asterisk) or is omitted,
 a wildcard IP address (<command>INADDR_ANY</command>) will be used.
 If <command>port</command> is <command>*</command> or is omitted,
 a random unprivileged port will be used. The defaults are</para>
@@ -3432,7 +3434,7 @@ send NOTIFY messages.
 This address must appear in the slave server's <command>masters</command>
 zone clause or in an <command>allow-notify</command> clause.
 This statement sets the <command>notify-source</command> for all zones,
-but can be overridden on a per-zone / per-view basis by including a
+but can be overridden on a per-zone or per-view basis by including a
 <command>notify-source</command> statement within the <command>zone</command>
 or <command>view</command> block in the configuration file.</para>
                <note>
@@ -4281,7 +4283,7 @@ Authentication to the master can also be done with per-server TSIG keys.
 If a file is specified, then the
 replica will be written to this file whenever the zone is changed,
 and reloaded from this file on a server restart. Use of a file is
-recommended, since it often speeds server start-up and eliminates
+recommended, since it often speeds server startup and eliminates
 a needless waste of bandwidth. Note that for large numbers (in the
 tens or hundreds of thousands) of zones per server, it is best to
 use a two level naming scheme for zone file names. For example,
