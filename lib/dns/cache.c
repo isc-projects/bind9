@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.57.18.12 2006/05/04 02:20:37 marka Exp $ */
+/* $Id: cache.c,v 1.57.18.13 2006/05/16 03:57:15 marka Exp $ */
 
 /*! \file */
 
@@ -212,14 +212,15 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 	}
 
 	new = (names * interval);
-	new /= usecs;
+	new /= (usecs * 2);
 	if (new == 0)
 		new = 1;
-	else if (new > DNS_CACHE_CLEANERINCREMENT)
-		new = DNS_CACHE_CLEANERINCREMENT;
 
 	/* Smooth */
 	new = (new + cleaner->increment * 7) / 8;
+
+	if (new > DNS_CACHE_CLEANERINCREMENT)
+		new = DNS_CACHE_CLEANERINCREMENT;
 
 	cleaner->increment = (unsigned int)new;
 
