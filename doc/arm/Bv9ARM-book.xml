@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.66 2006/05/04 04:37:14 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.67 2006/05/16 22:27:57 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -730,7 +730,7 @@ of a server.</para>
                 <arg choice="plain"><replaceable>command</replaceable></arg>
                 <arg rep="repeat"><replaceable>command</replaceable></arg>
               </cmdsynopsis>
-              <para><command>command</command> is one of the following:</para>
+              <para>The <command>command</command> is one of the following:</para>
 
 <variablelist>
 
@@ -805,13 +805,16 @@ of a server.</para>
    <varlistentry><term><userinput>stop <optional>-p</optional></userinput></term>
    <listitem><para>Stop the server, making sure any recent changes
    made through dynamic update or IXFR are first saved to the master files
-   of the updated zones.  If -p is specified named's process id is returned.</para></listitem></varlistentry>
+   of the updated zones.  If -p is specified named's process id is returned.
+   This allows an external process to determine when named had completed stopping.</para></listitem></varlistentry>
 
    <varlistentry><term><userinput>halt <optional>-p</optional></userinput></term>
    <listitem><para>Stop the server immediately.  Recent changes
    made through dynamic update or IXFR are not saved to the master files,
    but will be rolled forward from the journal files when the server
-   is restarted.  If -p is specified named's process id is returned.</para></listitem></varlistentry>
+   is restarted.  If -p is specified named's process id is returned.
+   This allows an external process to determine when named had completed
+   stopping.</para></listitem></varlistentry>
 
    <varlistentry><term><userinput>trace</userinput></term>
    <listitem><para>Increment the servers debugging level by one. </para></listitem></varlistentry>
@@ -1192,7 +1195,7 @@ internal clients will now be able to:</para>
     <para>Here is an example configuration for the setup we just
     described above. Note that this is only configuration information;
     for information on how to configure your zone files, see <xref
-    linkend="sample_configuration"/></para>
+    linkend="sample_configuration"/>.</para>
 
 <para>Internal DNS server config:</para>
 <programlisting>
@@ -1398,11 +1401,12 @@ allow-update { key host1-host2. ;};
       <title>Errors</title>
 
       <para>The processing of TSIG signed messages can result in
-      several errors. If a signed message is sent to a non-TSIG aware
-      server, a FORMERR will be returned, since the server will not
-      understand the record. This is a result of misconfiguration,
-      since the server must be explicitly configured to send a TSIG
-      signed message to a specific server.</para>
+      several errors. If a signed message is sent to a non-TSIG
+      aware server, a FORMERR (format error) will be returned, since
+      the server will not understand the record. This is a result
+      of misconfiguration, since the server must be explicitly
+      configured to send a TSIG signed message to a specific
+      server.</para>
 
       <para>If a TSIG aware server receives a message signed by an
       unknown key, the response will be unsigned with the TSIG
@@ -1414,7 +1418,7 @@ allow-update { key host1-host2. ;};
       the TSIG extended error code set to BADTIME, and the time values
       will be adjusted so that the response can be successfully
       verified. In any of these cases, the message's rcode is set to
-      NOTAUTH.</para>
+      NOTAUTH (not authorised).</para>
 
     </sect2>
   </sect1>
@@ -1490,7 +1494,7 @@ allow-update { key host1-host2. ;};
     <para>There must also be communication with the administrators of
     the parent and/or child zone to transmit keys.  A zone's security
     status must be indicated by the parent zone for a DNSSEC capable 
-    resolver to trust its data.  This is done through the presense
+    resolver to trust its data.  This is done through the presence
     or absence of a <literal>DS</literal> record at the delegation
     point.</para>
 
@@ -1589,7 +1593,7 @@ allow-update { key host1-host2. ;};
 
 	<para>
 	  <command>trusted-keys</command> are copies of DNSKEY RRs
-	  for zones that are used to form the first link the the
+	  for zones that are used to form the first link in the
 	  cryptographic chain of trust.  All keys listed in
 	  <command>trusted-keys</command> (and corresponding zones)
 	  are deemed to exist and only the listed keys will be used
@@ -1658,7 +1662,7 @@ options {
 </programlisting>
 
 	<note>
-	  None of the keys listed in this example are valid.  In particular
+	  None of the keys listed in this example are valid.  In particular,
 	  the root key is not valid.
 	</note>
 
@@ -2006,7 +2010,7 @@ in the C, C++, or shell/perl style.</para>
       </sect3>
       <sect3>
         <title>Definition and Usage</title>
-<para>Comments may appear anywhere that whitespace may appear in
+<para>Comments may appear anywhere that white space may appear in
 a <acronym>BIND</acronym> configuration file.</para>
 <para>C-style comments start with the two characters /* (slash,
 star) and end with */ (star, slash). Because they are completely
@@ -2094,7 +2098,7 @@ the log messages are sent.</para></entry>
           <row rowsep = "0">
             <entry colname = "1"><para><command>lwres</command></para></entry>
             <entry colname = "2"><para>configures <command>named</command> to
-also act as a light weight resolver daemon (<command>lwresd</command>).</para></entry>
+also act as a light-weight resolver daemon (<command>lwresd</command>).</para></entry>
           </row>
           <row rowsep = "0">
             <entry colname = "1"><para><command>masters</command></para></entry>
@@ -2208,7 +2212,7 @@ IPv6 addresses, just like <command>localhost</command>.
       <command>ip_port</command> on the specified
       <command>ip_addr</command>, which can be an IPv4 or IPv6
       address.  An <command>ip_addr</command>
-      of <literal>*</literal> is interpreted as the IPv4 wildcard
+      of <literal>*</literal> (asterisk) is interpreted as the IPv4 wildcard
       address; connections will be accepted on any of the system's
       IPv4 addresses.  To listen on the IPv6 wildcard address,
       use an <command>ip_addr</command> of <literal>::</literal>.
@@ -2220,7 +2224,7 @@ IPv6 addresses, just like <command>localhost</command>.
 
       <para>
       If no port is specified, port 953
-      is used.  "<literal>*</literal>" cannot be used for
+      is used.  The asterisk "<literal>*</literal>" cannot be used for
       <command>ip_port</command>.</para>
 
       <para>The ability to issue commands over the control channel is
@@ -2287,8 +2291,9 @@ installed.
       that contains the users who should have access.</para>
 
       <para>The UNIX control channel type of <acronym>BIND</acronym> 8 is not supported
-      in <acronym>BIND</acronym> 9, and is not expected to be added in future
-      releases.  If it is present in the controls statement from a
+      in <acronym>BIND</acronym> 9.0, <acronym>BIND</acronym> 9.1,
+      <acronym>BIND</acronym> 9.2 and <acronym>BIND</acronym> 9.3.
+      If it is present in the controls statement from a
       <acronym>BIND</acronym> 8 configuration file, it is ignored
       and a warning is logged.</para>
 
@@ -2512,7 +2517,7 @@ level is set either by starting the <command>named</command> server
 with the <option>-d</option> flag followed by a positive integer,
 or by running <command>rndc trace</command>.
 The global debug level
-can be set to zero, and debugging mode turned off, by running <command>ndc
+can be set to zero, and debugging mode turned off, by running <command>rndc
 notrace</command>. All debugging messages in the server have a debug
 level, and higher debug levels give more detailed output. Channels
 that specify a specific debug severity, for example:</para>
@@ -2695,7 +2700,7 @@ the <command>null</command> channel.</para></entry>
 <entry colname = "1"><para><command>queries</command></para></entry>
 <entry colname = "2"><para>Specify where queries should be logged to.</para>
 <para>
-At startup, specifing the category <command>queries</command> will also
+At startup, specifying the category <command>queries</command> will also
 enable query logging unless <command>querylog</command> option has been
 specified.
 </para>
@@ -2759,8 +2764,8 @@ statement in the <filename>named.conf</filename> file:</para>
 <title><command>lwres</command> Statement Definition and Usage</title>
 
 <para>The <command>lwres</command> statement configures the name
-server to also act as a lightweight resolver server, see
-<xref linkend="lwresd"/>.  There may be be multiple
+server to also act as a lightweight resolver server. (See
+<xref linkend="lwresd"/>.)  There may be be multiple
 <command>lwres</command> statements configuring
 lightweight resolver servers with different properties.</para>
 
@@ -3038,8 +3043,8 @@ The default is not to preference any type (NONE).
 
 <varlistentry><term><command>root-delegation-only</command></term>
 <listitem><para>
-Turn on enforcement of delegation-only in TLDs and root zones with an optional
-exclude list.
+Turn on enforcement of delegation-only in TLDs (top level domains)
+and root zones with an optional exclude list.
 </para>
 <para>
 Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US" and "MUSEUM").
@@ -3205,7 +3210,7 @@ and BIND 9 never does it.</para></listitem></varlistentry>
 
 <varlistentry><term><command>flush-zones-on-shutdown</command></term>
 <listitem><para>When the nameserver exits due receiving SIGTERM,
-flush / do not flush any pending zone writes.  The default is
+flush or do not flush any pending zone writes.  The default is
 <command>flush-zones-on-shutdown</command> <userinput>no</userinput>.
 </para></listitem></varlistentry>
 
@@ -3469,7 +3474,7 @@ For <command>slave</command> zones the default is <command>warn</command>.
 For answer received from the network (<command>response</command>)
 the default is <command>ignore</command>.
 </para>
-<para>The rules for legal hostnames / mail domains are derived from RFC 952
+<para>The rules for legal hostnames or mail domains are derived from RFC 952
 and RFC 821 as modified by RFC 1123.
 </para>
 <para><command>check-names</command> applies to the owner names of A, AAA and
@@ -3524,7 +3529,7 @@ on the host machine.</para>
 
 <variablelist>
 <varlistentry><term><command>dual-stack-servers</command></term>
-<listitem><para>Specifies host names / addresses of machines with access to
+<listitem><para>Specifies host names or addresses of machines with access to
 both IPv4 and IPv6 transports. If a hostname is used the server must be able
 to resolve the name using only the transport it has.  If the machine is dual
 stacked then the <command>dual-stack-servers</command> have no effect unless
@@ -3873,7 +3878,7 @@ send NOTIFY messages.
 This address must appear in the slave server's <command>masters</command>
 zone clause or in an <command>allow-notify</command> clause.
 This statement sets the <command>notify-source</command> for all zones,
-but can be overridden on a per-zone / per-view basis by including a
+but can be overridden on a per-zone or per-view basis by including a
 <command>notify-source</command> statement within the <command>zone</command>
 or <command>view</command> block in the configuration file.</para>
                <note>
@@ -3982,7 +3987,7 @@ function in BIND 8.
 
 <varlistentry><term><command>max-journal-size</command></term>
 <listitem><para>Sets a maximum size for each journal file
-(<xref linkend="journal"/>).  When the journal file approaches
+(see <xref linkend="journal"/>).  When the journal file approaches
 the specified size, some of the oldest transactions in the journal
 will be automatically removed.  The default is
 <literal>unlimited</literal>.</para>
@@ -4842,7 +4847,7 @@ Authentication to the master can also be done with per-server TSIG keys.
 If a file is specified, then the
 replica will be written to this file whenever the zone is changed,
 and reloaded from this file on a server restart. Use of a file is
-recommended, since it often speeds server start-up and eliminates
+recommended, since it often speeds server startup and eliminates
 a needless waste of bandwidth. Note that for large numbers (in the
 tens or hundreds of thousands) of zones per server, it is best to
 use a two level naming scheme for zone file names. For example,
@@ -5395,7 +5400,7 @@ Experimental.</para></entry>
 <row rowsep = "0">
 <entry colname = "1"><para>MX</para></entry>
 <entry colname = "2"><para>identifies a mail exchange for the domain.
-a 16 bit preference value (lower is better)
+A 16 bit preference value (lower is better)
 followed by the host name of the mail exchange.
 Described in RFC 974, RFC 1035.</para></entry>
 </row>
