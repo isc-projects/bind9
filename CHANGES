@@ -1,3 +1,5 @@
+2017.	[bug]		allow-query default was net correct. [RT #15946]
+
 2016.	[bug]		Return a partial answer if recursion is not
 			allowed but requested and we had the answer
 			to the original qname. [RT #15945]

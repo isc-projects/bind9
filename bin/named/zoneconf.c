@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.132 2006/03/06 01:27:52 marka Exp $ */
+/* $Id: zoneconf.c,v 1.133 2006/05/16 03:35:56 marka Exp $ */
 
 /*% */
 
@@ -65,7 +65,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		   void (*clearzacl)(dns_zone_t *))
 {
 	isc_result_t result;
-	const cfg_obj_t *maps[4];
+	const cfg_obj_t *maps[5];
 	const cfg_obj_t *aclobj = NULL;
 	int i = 0;
 	dns_acl_t *dacl = NULL;
@@ -80,6 +80,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		if (options != NULL)
 			maps[i++] = options;
 	}
+	maps[i++] = ns_g_defaults;
 	maps[i] = NULL;
 
 	result = ns_config_get(maps, aclname, &aclobj);
