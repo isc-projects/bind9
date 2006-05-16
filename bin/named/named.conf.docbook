@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.4.4 2005/05/13 01:22:33 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.4.5 2006/05/16 06:13:07 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -230,8 +230,8 @@ options {
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
 	additional-from-auth <replaceable>boolean</replaceable>;
 	additional-from-cache <replaceable>boolean</replaceable>;
-	query-source <replaceable>querysource4</replaceable>;
-	query-source-v6 <replaceable>querysource6</replaceable>;
+	query-source <optional> address ( <replaceable>ipv4_address</replaceable> | * ) </optional> <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
+	query-source-v6 <optional> address ( <replaceable>ipv6_address</replaceable> | * ) </optional> <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	min-roots <replaceable>integer</replaceable>; // not implemented
 	lame-ttl <replaceable>integer</replaceable>;
@@ -357,8 +357,8 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	rfc2308-type1 <replaceable>boolean</replaceable>; // not yet implemented
 	additional-from-auth <replaceable>boolean</replaceable>;
 	additional-from-cache <replaceable>boolean</replaceable>;
-	query-source <replaceable>querysource4</replaceable>;
-	query-source-v6 <replaceable>querysource6</replaceable>;
+	query-source <optional> address ( <replaceable>ipv4_address</replaceable> | * ) </optional> <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
+	query-source-v6 <optional> address ( <replaceable>ipv6_address</replaceable> | * ) </optional> <optional> port ( <replaceable>integer</replaceable> | * ) </optional>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	min-roots <replaceable>integer</replaceable>; // not implemented
 	lame-ttl <replaceable>integer</replaceable>;
