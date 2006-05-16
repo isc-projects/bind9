@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.284 2006/03/09 23:39:00 marka Exp $ */
+/* $Id: query.c,v 1.285 2006/05/16 03:10:23 marka Exp $ */
 
 /*! \file */
 
@@ -3486,9 +3486,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		}
 	}
 	if (result != ISC_R_SUCCESS) {
-		if (result == DNS_R_REFUSED)
-			QUERY_ERROR(DNS_R_REFUSED);
-		else
+		if (result == DNS_R_REFUSED) {
+			if (!PARTIALANSWER(client))
+				QUERY_ERROR(DNS_R_REFUSED);
+		} else
 			QUERY_ERROR(DNS_R_SERVFAIL);
 		goto cleanup;
 	}
