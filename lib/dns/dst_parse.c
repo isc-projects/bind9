@@ -18,7 +18,7 @@
 
 /*%
  * Principal Author: Brian Wellington
- * $Id: dst_parse.c,v 1.1.6.5 2006/01/27 23:57:44 marka Exp $
+ * $Id: dst_parse.c,v 1.1.6.6 2006/05/16 03:47:14 marka Exp $
  */
 
 #include <config.h>
@@ -161,15 +161,22 @@ static int
 check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
 	int i, j;
 
-	if (!((priv->nelements == HMACMD5_NTAGS) ||
-	      (old && (priv->nelements == OLD_HMACMD5_NTAGS))))
+	if (priv->nelements != HMACMD5_NTAGS) {
+		/*
+		 * If this a good old format and we are accepting
+		 * the old format return success.
+		 */
+		if (old && priv->nelements == OLD_HMACMD5_NTAGS &&
+		    priv->elements[0].tag == TAG_HMACMD5_KEY)
+			return (0);
 		return (-1);
-	if (priv->nelements == OLD_HMACMD5_NTAGS &&
-	    priv->elements[0].tag != TAG_HMACMD5_KEY)
-		return (-1);
-	for (i = 0; i < DSA_NTAGS; i++) {
+	}
+	/*
+	 * We must be new format at this point.
+	 */
+	for (i = 0; i < HMACMD5_NTAGS; i++) {
 		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(DST_ALG_DSA, i))
+			if (priv->elements[j].tag == TAG(DST_ALG_HMACMD5, i))
 				break;
 		if (j == priv->nelements)
 			return (-1);

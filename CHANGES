@@ -1,4 +1,7 @@
-2017.	[bug]		allow-query default was net correct. [RT #15946]
+2018.	[bug]		Checking if the HMAC MD5 private file was broken.
+			[RT #15960]
+
+2017.	[bug]		allow-query default was not correct. [RT #15946]
 
 2016.	[bug]		Return a partial answer if recursion is not
 			allowed but requested and we had the answer
