@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.18 2006/03/11 02:07:52 marka Exp $
+.\" $Id: named.conf.5,v 1.19 2006/05/17 02:39:15 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -186,8 +186,8 @@ options {
 	rfc2308\-type1 \fIboolean\fR; // not yet implemented
 	additional\-from\-auth \fIboolean\fR;
 	additional\-from\-cache \fIboolean\fR;
-	query\-source \fIquerysource4\fR;
-	query\-source\-v6 \fIquerysource6\fR;
+	query\-source ( ( \fIipv4_address\fR | * ) | [ address ( \fIipv4_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
+	query\-source\-v6 ( ( \fIipv6_address\fR | * ) | [ address ( \fIipv6_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
@@ -317,8 +317,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	rfc2308\-type1 \fIboolean\fR; // not yet implemented
 	additional\-from\-auth \fIboolean\fR;
 	additional\-from\-cache \fIboolean\fR;
-	query\-source \fIquerysource4\fR;
-	query\-source\-v6 \fIquerysource6\fR;
+	query\-source ( ( \fIipv4_address\fR | * ) | [ address ( \fIipv4_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
+	query\-source\-v6 ( ( \fIipv6_address\fR | * ) | [ address ( \fIipv6_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;

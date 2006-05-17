@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.54 2006/05/08 15:46:26 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.55 2006/05/17 02:39:16 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -54,7 +54,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2549264">Name Server Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2549269">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2550906">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2550907">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -430,7 +430,7 @@ zone "eng.example.com" {
                   it will display a usage message as follows:
                 </p>
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [-c <em class="replaceable"><code>config</code></em>] [-s <em class="replaceable"><code>server</code></em>] [-p <em class="replaceable"><code>port</code></em>] [-y <em class="replaceable"><code>key</code></em>]  <em class="replaceable"><code>command</code></em>  [<em class="replaceable"><code>command</code></em>...]</p></div>
-<p><span><strong class="command">command</strong></span>
+<p>The <span><strong class="command">command</strong></span>
                   is one of the following:
                 </p>
 <div class="variablelist"><dl>
@@ -536,7 +536,7 @@ zone "eng.example.com" {
                         made through dynamic update or IXFR are first saved to
                         the master files of the updated zones.
                         If -p is specified named's process id is returned.
-                        This allows a external process to determine when named
+                        This allows an external process to determine when named
                         had completed stopping.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>halt [<span class="optional">-p</span>]</code></strong></span></dt>
@@ -546,7 +546,7 @@ zone "eng.example.com" {
                         the master files, but will be rolled forward from the
                         journal files when the server is restarted.
                         If -p is specified named's process id is returned.
-                        This allows a external process to determine when named
+                        This allows an external process to determine when named
                         had completed halting.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>trace</code></strong></span></dt>
@@ -741,7 +741,7 @@ controls {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2550906"></a>Signals</h3></div></div></div>
+<a name="id2550907"></a>Signals</h3></div></div></div>
 <p>
           Certain UNIX signals cause the name server to take specific
           actions, as described in the following table.  These signals can
