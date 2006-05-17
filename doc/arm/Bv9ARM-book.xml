@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.302 2006/05/17 01:31:50 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.303 2006/05/17 02:00:15 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -6419,8 +6419,7 @@ query-source-v6 address * port *;
             maximum available amount. <command>default</command>
             uses the limit
             that was in force when the server was started. See the description
-            of
-            <command> issize_spec</command> in <xref linkend="configuration_file_elements"/>.
+            of <command>size_spec</command> in <xref linkend="configuration_file_elements"/>.
           </para>
 
           <para>
