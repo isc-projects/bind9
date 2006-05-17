@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2006 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.1.4.6 2005/10/13 02:33:47 marka Exp $
+.\" $Id: named.conf.5,v 1.1.4.7 2006/05/17 02:38:09 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -184,8 +184,8 @@ options {
 	rfc2308\-type1 \fIboolean\fR; // not yet implemented
 	additional\-from\-auth \fIboolean\fR;
 	additional\-from\-cache \fIboolean\fR;
-	query\-source \fIquerysource4\fR;
-	query\-source\-v6 \fIquerysource6\fR;
+	query\-source [ address ( \fIipv4_address\fR | * ) ] [ port ( \fIinteger\fR | * ) ];
+	query\-source\-v6 [ address ( \fIipv6_address\fR | * ) ] [ port ( \fIinteger\fR | * ) ];
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
@@ -295,8 +295,8 @@ view \fIstring\fR \fIoptional_class\fR {
 	rfc2308\-type1 \fIboolean\fR; // not yet implemented
 	additional\-from\-auth \fIboolean\fR;
 	additional\-from\-cache \fIboolean\fR;
-	query\-source \fIquerysource4\fR;
-	query\-source\-v6 \fIquerysource6\fR;
+	query\-source [ address ( \fIipv4_address\fR | * ) ] [ port ( \fIinteger\fR | * ) ];
+	query\-source\-v6 [ address ( \fIipv6_address\fR | * ) ] [ port ( \fIinteger\fR | * ) ];
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;

@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch07.html,v 1.50.2.9.2.28 2006/05/08 15:46:02 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch07.html,v 1.50.2.9.2.29 2006/05/17 02:38:10 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -46,11 +46,11 @@
 <p><b>Table of Contents</b></p>
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2567202"><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span> (for
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2567021"><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span> (for
 UNIX servers)</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2567346">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2567403">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2567234">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2567291">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
@@ -75,6 +75,7 @@ your server.</p>
 // Set up an ACL named "bogusnets" that will block RFC1918 space,
 // which is commonly used in spoofing attacks.
 acl bogusnets { 0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24; 224.0.0.0/3; 10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; };
+
 // Set up an ACL called our-nets. Replace this with the real IP numbers.
 acl our-nets { x.x.x.x/24; x.x.x.x/21; }; 
 options {
@@ -86,6 +87,7 @@ options {
   blackhole { bogusnets; };
   ...
 };
+
 zone "example.com" {
   type master;
   file "m/example.com";
@@ -100,7 +102,7 @@ see the <span class="emphasis"><em>AUSCERT</em></span> advisory at
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2567202"></a><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span> (for
+<a name="id2567021"></a><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span> (for
 UNIX servers)</h2></div></div></div>
 <p>On UNIX servers, it is possible to run <span class="acronym">BIND</span> in a <span class="emphasis"><em>chrooted</em></span> environment
 (<span><strong class="command">chroot()</strong></span>) by specifying the "<code class="option">-t</code>"
@@ -115,8 +117,8 @@ user 202:</p>
 <p><strong class="userinput"><code>/usr/local/bin/named -u 202 -t /var/named</code></strong></p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567346"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
-<p>In order for a <span><strong class="command">chroot()</strong></span> environment to
+<a name="id2567234"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
+<p>In order for a <span><strong class="command">chroot</strong></span> environment to
 work properly in a particular directory
 (for example, <code class="filename">/var/named</code>),
 you will need to set up an environment that includes everything
@@ -134,13 +136,13 @@ However, depending on your operating system, you may need
 to set up things like
 <code class="filename">/dev/zero</code>,
 <code class="filename">/dev/random</code>,
-<code class="filename">/dev/log</code>, and/or
+<code class="filename">/dev/log</code>, and
 <code class="filename">/etc/localtime</code>.
 </p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567403"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
+<a name="id2567291"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
 <p>Prior to running the <span><strong class="command">named</strong></span> daemon, use
 the <span><strong class="command">touch</strong></span> utility (to change file access and
 modification times) or the <span><strong class="command">chown</strong></span> utility (to
