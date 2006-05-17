@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch05.html,v 1.24.2.16 2006/05/08 15:45:49 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch05.html,v 1.24.2.17 2006/05/17 02:37:46 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -45,13 +45,13 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch05.html#id2551784">The Lightweight Resolver Library</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch05.html#id2551786">The Lightweight Resolver Library</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch05.html#lwresd">Running a Resolver Daemon</a></span></dt>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2551784"></a>The Lightweight Resolver Library</h2></div></div></div>
+<a name="id2551786"></a>The Lightweight Resolver Library</h2></div></div></div>
 <p>Traditionally applications have been linked with a stub resolver
 library that sends recursive DNS queries to a local caching name
 server.</p>
@@ -70,7 +70,7 @@ that is distinct from and simpler than the full DNS protocol.</p>
 <a name="lwresd"></a>Running a Resolver Daemon</h2></div></div></div>
 <p>To use the lightweight resolver interface, the system must
 run the resolver daemon <span><strong class="command">lwresd</strong></span>.</p>
-<p>By default, applications using the lightweight resolver library will make
+<p>By default, applications using the light-weight resolver library will make
 UDP requests to the IPv4 loopback address (127.0.0.1) on port 921.  The
 address can be overridden by <span><strong class="command">lwserver</strong></span> lines in
 <code class="filename">/etc/resolv.conf</code>.

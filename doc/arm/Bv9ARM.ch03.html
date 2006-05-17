@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.16 2006/05/08 15:45:49 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.17 2006/05/17 02:37:45 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -55,7 +55,7 @@
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2546997">Nameserver Operations</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2547002">Tools for Use With the Nameserver Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2549917">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2549918">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -299,7 +299,7 @@ of a server.</p>
               If you run <span><strong class="command">rndc</strong></span> without any options
               it will display a usage message as follows:</p>
 <div class="cmdsynopsis"><p><code class="command">rndc</code>  [-c <em class="replaceable"><code>config</code></em>] [-s <em class="replaceable"><code>server</code></em>] [-p <em class="replaceable"><code>port</code></em>] [-y <em class="replaceable"><code>key</code></em>]  <em class="replaceable"><code>command</code></em>  [<em class="replaceable"><code>command</code></em>...]</p></div>
-<p><span><strong class="command">command</strong></span> is one of the following:</p>
+<p>The <span><strong class="command">command</strong></span> is one of the following:</p>
 <div class="variablelist"><dl>
 <dt><span class="term"><strong class="userinput"><code>reload</code></strong></span></dt>
 <dd><p>Reload configuration file and zones.</p></dd>
@@ -451,7 +451,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2549917"></a>Signals</h3></div></div></div>
+<a name="id2549918"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
