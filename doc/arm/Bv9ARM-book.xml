@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.68 2006/05/17 01:52:27 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.69 2006/05/17 02:18:05 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -5876,7 +5876,7 @@ recognized as indicating a literal $ in the output.</para></entry>
 	</row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>class</command></para></entry>
-          <entry colname = "2">Specifies the
+          <entry colname = "2"><para>Specifies the
 	  class of the generated records.  This must match the zone class if
 	  it is specified.</para>
 	  <para><command>class</command> and <command>ttl</command> can be
