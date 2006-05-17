@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.67 2006/05/16 22:27:57 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.68 2006/05/17 01:52:27 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1418,7 +1418,7 @@ allow-update { key host1-host2. ;};
       the TSIG extended error code set to BADTIME, and the time values
       will be adjusted so that the response can be successfully
       verified. In any of these cases, the message's rcode is set to
-      NOTAUTH (not authorised).</para>
+      NOTAUTH (not authenticated).</para>
 
     </sect2>
   </sect1>
@@ -2580,7 +2580,7 @@ channel null {
 
 <para>The <command>default_debug</command> channel has the special
 property that it only produces output when the server's debug level is
-nonzero.  It normally writes to a file <filename>named.run</filename>
+nonzero.  It normally writes to a file called <filename>named.run</filename>
 in the server's working directory.</para>
 
 <para>For security reasons, when the "<option>-u</option>"
@@ -3006,7 +3006,7 @@ double quotes.</para>
 to when instructed to do so using <command>rndc stats</command>.
 If not specified, the default is <filename>named.stats</filename> in the
 server's current directory.  The format of the file is described
-in <xref linkend="statsfile"/></para>
+in <xref linkend="statsfile"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>port</command></term>
@@ -3319,7 +3319,7 @@ in <xref linkend="server_statement_definition_and_usage"/>. See also
 <para>
 See the description of
 <command>provide-ixfr</command> in
-<xref linkend="server_statement_definition_and_usage"/>
+<xref linkend="server_statement_definition_and_usage"/>.
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>request-ixfr</command></term>
@@ -3327,7 +3327,7 @@ See the description of
 <para>
 See the description of
 <command>request-ixfr</command> in
-<xref linkend="server_statement_definition_and_usage"/>
+<xref linkend="server_statement_definition_and_usage"/>.
 </para></listitem></varlistentry>
 
 <varlistentry><term><command>treat-cr-as-space</command></term>
@@ -3786,7 +3786,8 @@ resource record transferred.
 possible into a message. <command>many-answers</command> is more
 efficient, but is only supported by relatively new slave servers,
 such as <acronym>BIND</acronym> 9, <acronym>BIND</acronym> 8.x and patched
-versions of <acronym>BIND</acronym> 4.9.5. The default is
+versions of <acronym>BIND</acronym> 4.9.5. The <command>many-answers</command>
+format is also supported by recent Microsoft Windows nameservers. The default is
 <command>many-answers</command>. <command>transfer-format</command>
 may be overridden on a per-server basis by using the
 <command>server</command> statement.
@@ -3920,8 +3921,8 @@ example, <command>1G</command> can be used instead of
 <command>1073741824</command> to specify a limit of one
 gigabyte. <command>unlimited</command> requests unlimited use, or the
 maximum available amount. <command>default</command> uses the limit
-that was in force when the server was started. See the description of
-<command>size_spec</command> in <xref
+that was in force when the server was started. See the description
+of <command>size_spec</command> in <xref
 linkend="configuration_file_elements"/>.</para>
 
 <para>The following options set operating system resource limits for
@@ -4272,7 +4273,7 @@ be silently truncated to 7 days if set to a greater value.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>max-cache-ttl</command></term>
-<listitem><para><command>max-cache-ttl</command> sets
+<listitem><para>Sets
 the maximum time for which the server will cache ordinary (positive)
 answers. The default is one week (7 days).</para>
 </listitem></varlistentry>
@@ -4282,7 +4283,7 @@ answers. The default is one week (7 days).</para>
 is required for a request for the root servers to be accepted. Default
 is <userinput>2</userinput>.</para>
 <note>
-<simpara>Not implemented in <acronym>BIND</acronym>9.</simpara></note>
+<simpara>Not implemented in <acronym>BIND</acronym> 9.</simpara></note>
 </listitem></varlistentry>
 
 <varlistentry><term><command>sig-validity-interval</command></term>
@@ -4359,7 +4360,7 @@ disables processing of the queries.</para>
 the name <filename>hostname.bind</filename>
 with type <command>TXT</command>, class <command>CHAOS</command>.
 This defaults to the hostname of the machine hosting the name server as
-found by gethostname().  The primary purpose of such queries is to
+found by the gethostname() function.  The primary purpose of such queries is to
 identify which of a group of anycast servers is actually
 answering your queries.  Specifying <command>hostname none;</command>
 disables processing of the queries.</para> 
@@ -4374,7 +4375,7 @@ identify which of a group of anycast servers is actually
 answering your queries.  Specifying <command>server-id none;</command>
 disables processing of the queries.
 Specifying <command>server-id hostname;</command> will cause named to
-use the hostname as found by gethostname().
+use the hostname as found by the gethostname() function.
 The default <command>server-id</command> is <command>none</command>.
 </para> 
 </listitem></varlistentry>
@@ -4390,16 +4391,25 @@ The default <command>server-id</command> is <command>none</command>.
 is similar, but not identical, to that
 generated by <acronym>BIND</acronym> 8.
 </para>
-<para>The statistics dump begins with the line <command>+++ Statistics Dump
-+++ (973798949)</command>, where the number in parentheses is a standard
+<para>The statistics dump begins with a line, like:</para>
+ <para>
+ <command>+++ Statistics Dump +++ (973798949)</command>
+ </para>
+ <para>The numberr in parentheses is a standard
 Unix-style timestamp, measured as seconds since January 1, 1970.  Following
 that line are a series of lines containing a counter type, the value of the
 counter, optionally a zone name, and optionally a view name.
 The lines without view and zone listed are global statistics for the entire server.
 Lines with a zone and view name for the given view and zone (the view name is
-omitted for the default view).  The statistics dump ends
-with the line <command>--- Statistics Dump --- (973798949)</command>, where the
-number is identical to the number in the beginning line.</para>
+omitted for the default view).
+</para>
+<para>
+The statistics dump ends with the line where the
+number is identical to the number in the beginning line; for example:
+</para>
+<para>
+<command>--- Statistics Dump --- (973798949)</command>
+</para>
 <para>The following statistics counters are maintained:</para>
 <informaltable
     colsep = "0" rowsep = "0"><tgroup cols = "2"
@@ -4948,12 +4958,12 @@ in the mid-1970s. Zone data for it can be specified with the <literal>CHAOS</lit
 
 <varlistentry><term><command>allow-notify</command></term>
 <listitem><para>See the description of
-<command>allow-notify</command> in <xref linkend="access_control"/></para>
+<command>allow-notify</command> in <xref linkend="access_control"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-query</command></term>
 <listitem><para>See the description of
-<command>allow-query</command> in <xref linkend="access_control"/></para>
+<command>allow-query</command> in <xref linkend="access_control"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>allow-transfer</command></term>
@@ -5099,31 +5109,31 @@ information for this zone, which can be dumped to the
 
 <varlistentry><term><command>transfer-source</command></term>
 <listitem><para>See the description of
-<command>transfer-source</command> in <xref linkend="zone_transfers"/>
+<command>transfer-source</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>transfer-source-v6</command></term>
 <listitem><para>See the description of
-<command>transfer-source-v6</command> in <xref linkend="zone_transfers"/>
+<command>transfer-source-v6</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>alt-transfer-source</command></term>
 <listitem><para>See the description of
-<command>alt-transfer-source</command> in <xref linkend="zone_transfers"/>
+<command>alt-transfer-source</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>alt-transfer-source-v6</command></term>
 <listitem><para>See the description of
-<command>alt-transfer-source-v6</command> in <xref linkend="zone_transfers"/>
+<command>alt-transfer-source-v6</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>use-alt-transfer-source</command></term>
 <listitem><para>See the description of
-<command>use-alt-transfer-source</command> in <xref linkend="zone_transfers"/>
+<command>use-alt-transfer-source</command> in <xref linkend="zone_transfers"/>.
 </para>
 </listitem></varlistentry>
 
@@ -5156,7 +5166,7 @@ See the description in <xref linkend="tuning"/>.
 
 <varlistentry><term><command>key-directory</command></term>
 <listitem><para>See the description of
-<command>key-directory</command> in <xref linkend="options"/></para>
+<command>key-directory</command> in <xref linkend="options"/>.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>multi-master</command></term>
@@ -5845,8 +5855,8 @@ e.g. <command>\$</command>. The <command>$</command> may optionally be followed
 by modifiers which change the offset from the iterator, field width and base. 
 Modifiers are introduced by a <command>{</command> immediately following the
 <command>$</command> as <command>${offset[,width[,base]]}</command>.
-e.g. <command>${-20,3,d}</command> which subtracts 20 from the current value,
-prints the result as a decimal in a zero padded field of with 3.  Available
+For example, <command>${-20,3,d}</command> which subtracts 20 from the current value,
+prints the result as a decimal in a zero padded field of width 3.  Available
 output forms are decimal (<command>d</command>), octal (<command>o</command>)
 and hexadecimal (<command>x</command> or <command>X</command> for uppercase).
 The default modifier is <command>${0,0,d}</command>.
@@ -5854,11 +5864,11 @@ If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para>
 <para>For compatibility with earlier versions <command>$$</command> is still
-recognized a indicating a literal $ in the output.</para></entry>
+recognized as indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>ttl</command></para></entry>
-          <entry colname = "2"><para><command>ttl</command> specifies the
+          <entry colname = "2"><para>Specifies the
 	  ttl of the generated records. If not specified this will be
 	  inherited using the normal ttl inheritance rules.</para>
 	  <para><command>class</command> and <command>ttl</command> can be
@@ -5866,7 +5876,7 @@ recognized a indicating a literal $ in the output.</para></entry>
 	</row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>class</command></para></entry>
-          <entry colname = "2"><para><command>class</command> specifies the
+          <entry colname = "2">Specifies the
 	  class of the generated records.  This must match the zone class if
 	  it is specified.</para>
 	  <para><command>class</command> and <command>ttl</command> can be
@@ -5879,7 +5889,7 @@ PTR, CNAME, DNAME, A, AAAA and NS.</para></entry>
         </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>rhs</command></para></entry>
-          <entry colname = "2"><para>rhs is a domain name. It is processed
+          <entry colname = "2"><para>A domain name. It is processed
 similarly to lhs.</para></entry>
         </row>
       </tbody>
@@ -5909,6 +5919,7 @@ your server.</para>
 // Set up an ACL named "bogusnets" that will block RFC1918 space,
 // which is commonly used in spoofing attacks.
 acl bogusnets { 0.0.0.0/8; 1.0.0.0/8; 2.0.0.0/8; 192.0.2.0/24; 224.0.0.0/3; 10.0.0.0/8; 172.16.0.0/12; 192.168.0.0/16; };
+
 // Set up an ACL called our-nets. Replace this with the real IP numbers.
 acl our-nets { x.x.x.x/24; x.x.x.x/21; }; 
 options {
@@ -5920,6 +5931,7 @@ options {
   blackhole { bogusnets; };
   ...
 };
+
 zone "example.com" {
   type master;
   file "m/example.com";
@@ -5947,7 +5959,7 @@ user 202:</para>
 
 <sect2><title>The <command>chroot</command> Environment</title>
 
-<para>In order for a <command>chroot()</command> environment to
+<para>In order for a <command>chroot</command> environment to
 work properly in a particular directory
 (for example, <filename>/var/named</filename>),
 you will need to set up an environment that includes everything
@@ -5965,7 +5977,7 @@ However, depending on your operating system, you may need
 to set up things like
 <filename>/dev/zero</filename>,
 <filename>/dev/random</filename>,
-<filename>/dev/log</filename>, and/or
+<filename>/dev/log</filename>, and
 <filename>/etc/localtime</filename>.
 </para>
 </sect2>
@@ -6102,7 +6114,10 @@ Center (SRI-NIC). A <acronym>DNS</acronym> server for Unix machines, the Berkele
 Name Domain (<acronym>BIND</acronym>) package, was written soon after by a group of
 graduate students at the University of California at Berkeley under
 a grant from the US Defense Advanced Research Projects Administration
-(DARPA). Versions of <acronym>BIND</acronym> through 4.8.3 were maintained by the Computer
+(DARPA).
+</para>
+<para>
+Versions of <acronym>BIND</acronym> through 4.8.3 were maintained by the Computer
 Systems Research Group (CSRG) at UC Berkeley. Douglas Terry, Mark
 Painter, David Riggle and Songnian Zhou made up the initial <acronym>BIND</acronym>
 project team. After that, additional work on the software package
