@@ -1,3 +1,6 @@
+2023.	[bug]		"make install" should create ${localstatedir}/run and
+			${sysconfdir} if they do not exist. [RT #16033]
+
 2022.	[bug]		If dnssec validation is disabled only assert CD if
 			CD was requested. [RT #16037]
 
