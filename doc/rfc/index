@@ -107,3 +107,5 @@
 4367:	What's in a Name: False Assumptions about DNS Names
 4398:	Storing Certificates in the Domain Name System (DNS)
 4431:	The DNSSEC Lookaside Validation (DLV) DNS Resource Record
+4408:	Sender Policy Framework (SPF) for Authorizing Use of Domains
+	 in E-Mail, Version 1
