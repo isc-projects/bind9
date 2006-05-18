@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.46 2006/03/09 23:38:21 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.47 2006/05/18 00:54:41 marka Exp $ */
 
 /*! \file */
 
@@ -1284,7 +1284,9 @@ resquery_send(resquery_t *query) {
 	 * Set CD if the client says don't validate or the question is
 	 * under a secure entry point.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOVALIDATE) == 0) {
+	if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
+		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
+	} else if (res->view->enablevalidation) {
 		result = dns_keytable_issecuredomain(res->view->secroots,
 						     &fctx->name,
 						     &secure_domain);
@@ -1294,8 +1296,7 @@ resquery_send(resquery_t *query) {
 			secure_domain = ISC_TRUE;
 		if (secure_domain)
 			fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-	} else
-		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
+	}
 
 	/*
 	 * We don't have to set opcode because it defaults to query.

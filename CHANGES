@@ -1,3 +1,8 @@
+2022.	[bug]		If dnssec validation is disabled only assert CD if
+			CD was requested. [RT #16037]
+
+2021.	[bug]		dnssec-enable no; triggered a REQUIRE. [RT #16037]
+
 2020.	[bug]		rdataset_setadditional() could leak memory. [RT #16034]
 
 2019.	[tuning]	Reduce the amount of work performed per quantum
