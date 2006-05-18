@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.45 2006/05/03 01:46:40 marka Exp $ */
+/* $Id: server.c,v 1.419.18.46 2006/05/18 02:02:35 marka Exp $ */
 
 /*! \file */
 
@@ -1545,19 +1545,13 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	 * For now, there is only one kind of trusted keys, the
 	 * "security roots".
 	 */
-	if (view->enablednssec) {
-		CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
-						&view->secroots));
-		dns_resolver_resetmustbesecure(view->resolver);
-		obj = NULL;
-		result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
-		if (result == ISC_R_SUCCESS)
-			CHECK(mustbesecure(obj, view->resolver));
-	} else {
-		if (view->secroots != NULL)
-			dns_keytable_detach(&view->secroots);
-		dns_resolver_resetmustbesecure(view->resolver);
-	}
+	CHECK(configure_view_dnsseckeys(vconfig, config, mctx,
+					&view->secroots));
+	dns_resolver_resetmustbesecure(view->resolver);
+	obj = NULL;
+	result = ns_config_get(maps, "dnssec-must-be-secure", &obj);
+	if (result == ISC_R_SUCCESS)
+		CHECK(mustbesecure(obj, view->resolver));
 
 	obj = NULL;
 	result = ns_config_get(maps, "max-cache-ttl", &obj);
