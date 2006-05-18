@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.26 2006/05/16 03:31:09 marka Exp $ */
+/* $Id: query.c,v 1.198.2.27 2006/05/18 03:19:09 marka Exp $ */
 
 #include <config.h>
 
@@ -2117,10 +2117,17 @@ query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qdomain,
 		    (client->attributes & NS_CLIENTATTR_TCP) == 0)
 			result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
-			ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-				      "no more recursive clients: %s",
-				      isc_result_totext(result));
+			static isc_stdtime_t last = 0;
+			isc_stdtime_t now;
+			isc_stdtime_get(&now);
+			if (now != last) {
+				last = now;
+				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_WARNING,
+					      "no more recursive clients: %s",
+					      isc_result_totext(result));
+			}
 			return (result);
 		}
 	}
