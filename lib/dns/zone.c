@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.59.4.1 2006/05/18 02:15:20 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.59.4.2 2006/05/18 02:44:20 marka Exp $ */
 
 #include <config.h>
 
@@ -1394,7 +1394,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "zone serial has gone backwards");
 			else if (serial == zone->serial && !hasinclude) 
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial unchanged");
+					     "zone serial unchanged. "
+					     "zone may fail to transfer "
+					     "to slaves.");
 		}
 		zone->serial = serial;
 		zone->refresh = RANGE(refresh,
