@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.63 2006/02/28 06:32:54 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.64 2006/05/18 02:28:55 marka Exp $ */
 
 #include <config.h>
 
@@ -996,7 +996,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			result = isc_file_getmodtime(zone->masterfile,
 						     &filetime);
 			if (result == ISC_R_SUCCESS &&
-			    isc_time_compare(&filetime, &zone->loadtime) < 0) {
+			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file older "
 					     "than last load");
@@ -1007,6 +1007,16 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 	}
 
 	INSIST(zone->db_argc >= 1);
+
+	/*
+	 * Built in zones don't need to be reloaded.
+	 */
+	if (zone->type == dns_zone_master &&
+	    strcmp(zone->db_argv[0], "_builtin") == 0 &&
+	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED)) {
+		result = ISC_R_SUCCESS;
+		goto cleanup;
+	}
 
 	if ((zone->type == dns_zone_slave || zone->type == dns_zone_stub) &&
 	    (strcmp(zone->db_argv[0], "rbt") == 0 ||
