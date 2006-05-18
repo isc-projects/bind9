@@ -1,3 +1,6 @@
+2026.	[bug]		Rate limit the two recursive client exceeded messages.
+			[RT #16044]
+
 2025.	[func]		Update "zone serial unchanged" message. [RT #16026]
 
 2024.	[bug]		named emited spurious "zone serial unchanged"
