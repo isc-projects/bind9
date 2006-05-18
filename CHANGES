@@ -1,3 +1,6 @@
+2024.	[bug]		named emited spurious "zone serial unchanged"
+			messages on reload. [RT #16027]
+
 2023.	[bug]		"make install" should create ${localstatedir}/run and
 			${sysconfdir} if they do not exist. [RT #16033]
 
