@@ -1,7 +1,22 @@
+	--- 9.3.2-WFB-2 released ---
+
 2025.	[func]		Update "zone serial unchanged" message. [RT #16026]
 
 2024.	[bug]		named emited spurious "zone serial unchanged"
 			messages on reload. [RT #16027]
+
+	--- 9.3.2-WFB-1 released ---
+
+	rate limit "recursive-clients soft limit exceeded, aborting oldest
+	query" message.
+
+	--- 9.3.2-WFB released ---
+
+	rate limit "no more recursive clients" message.
+
+	report server->recursionquota.soft in "rndc status".
+
+	pulldown ncache_adderesult() changes.
 
 	--- 9.3.2 released ---
 
