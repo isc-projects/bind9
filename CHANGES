@@ -1,3 +1,6 @@
+2026.	[bug]		Rate limit the two recursive client exceeded messages.
+			[RT #16044]
+
 2024.	[bug]		named emited spurious "zone serial unchanged"
 			messages on reload. [RT #16027]
 
