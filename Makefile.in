@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.45 2005/09/06 03:51:34 marka Exp $
+# $Id: Makefile.in,v 1.46 2006/05/18 00:59:40 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -44,7 +44,8 @@ maintainer-clean::
 	rm -f configure
 
 installdirs:
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir} \
+	${DESTDIR}${localstatedir}/run ${DESTDIR}${sysconfdir}
 
 install:: isc-config.sh installdirs
 	${INSTALL_SCRIPT} isc-config.sh ${DESTDIR}${bindir}
