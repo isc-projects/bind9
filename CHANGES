@@ -1,4 +1,4 @@
-2026.	[port]		linux: socket.c compatability for old systems.
+2028.	[port]		linux: socket.c compatability for old systems.
 			[RT #16015]
 
 2027.	[port]		libbind: Solaris x68 support. [RT #16020]
