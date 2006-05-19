@@ -1,7 +1,7 @@
 2028.	[port]		linux: socket.c compatability for old systems.
 			[RT #16015]
 
-2027.	[port]		libbind: Solaris x68 support. [RT #16020]
+2027.	[port]		libbind: Solaris x86 support. [RT #16020]
 
 2026.	[bug]		Rate limit the two recursive client exceeded messages.
 			[RT #16044]
