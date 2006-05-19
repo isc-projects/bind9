@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.263 2006/02/03 23:51:39 marka Exp $ */
+/* $Id: socket.c,v 1.264 2006/05/19 02:47:18 marka Exp $ */
 
 /*! \file */
 
@@ -115,7 +115,7 @@ typedef isc_event_t intev_t;
  * to collect the destination address and interface so the client can
  * set them on outgoing packets.
  */
-#ifdef ISC_PLATFORM_HAVEIPV6
+#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifndef USE_CMSG
 #define USE_CMSG	1
 #endif
