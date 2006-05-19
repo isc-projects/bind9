@@ -1185,7 +1185,7 @@
 ./lib/bind/include/Makefile.in			MAKE	2001,2004
 ./lib/bind/include/arpa/inet.h			X	2001
 ./lib/bind/include/arpa/nameser.h		X	2001
-./lib/bind/include/arpa/nameser_compat.h	X	2001
+./lib/bind/include/arpa/nameser_compat.h	X	2001,2006
 ./lib/bind/include/fd_setsize.h			X	2001
 ./lib/bind/include/hesiod.h			X	2001
 ./lib/bind/include/irp.h			X	2001
