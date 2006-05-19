@@ -1,3 +1,5 @@
+2027.	[port]		libbind: Solaris x68 support. [RT #16020]
+
 2026.	[bug]		Rate limit the recursive client exceeded message.
 			[RT #16044]
 
