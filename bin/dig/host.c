@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.109 2006/05/23 04:37:28 marka Exp $ */
+/* $Id: host.c,v 1.110 2006/05/23 04:38:28 marka Exp $ */
 
 /*! \file */
 
@@ -48,7 +48,7 @@ static isc_boolean_t default_lookups = ISC_TRUE;
 static int seen_error = -1;
 static isc_boolean_t list_addresses = ISC_TRUE;
 static dns_rdatatype_t list_type = dns_rdatatype_a;
-static printed_server = ISC_FALSE;
+static isc_boolean_t printed_server = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
