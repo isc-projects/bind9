@@ -1833,7 +1833,7 @@
 ./lib/dns/name.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
-./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006
