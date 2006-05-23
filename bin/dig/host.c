@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.108 2006/03/02 23:48:50 marka Exp $ */
+/* $Id: host.c,v 1.109 2006/05/23 04:37:28 marka Exp $ */
 
 /*! \file */
 
@@ -48,6 +48,7 @@ static isc_boolean_t default_lookups = ISC_TRUE;
 static int seen_error = -1;
 static isc_boolean_t list_addresses = ISC_TRUE;
 static dns_rdatatype_t list_type = dns_rdatatype_a;
+static printed_server = ISC_FALSE;
 
 static const char *opcodetext[] = {
 	"QUERY",
@@ -398,7 +399,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 	 */
 	force_error = (seen_error == 1) ? 1 : 0;
 	seen_error = 1;
-	if (listed_server) {
+	if (listed_server && !printed_server) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 
 		printf("Using domain server:\n");
@@ -407,6 +408,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 				    sizeof(sockstr));
 		printf("Address: %s\n", sockstr);
 		printf("Aliases: \n\n");
+		printed_server = ISC_TRUE;
 	}
 
 	if (msg->rcode != 0) {
