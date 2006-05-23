@@ -1,3 +1,6 @@
+2030.	[bug]		We were being overly conservative when disabling
+			openssl engine support. [RT #16030]
+
 2029.	[bug]		host printed out the server multiple times when
 			specified on the command line. [RT #15992]
 
