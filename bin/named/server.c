@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.339.2.15.2.69 2006/02/28 06:32:53 marka Exp $ */
+/* $Id: server.c,v 1.339.2.15.2.70 2006/05/24 04:30:24 marka Exp $ */
 
 #include <config.h>
 
@@ -3460,20 +3460,29 @@ isc_result_t
 ns_server_refreshcommand(ns_server_t *server, char *args, isc_buffer_t *text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
-	const unsigned char msg[] = "zone refresh queued";
+	const unsigned char msg1[] = "zone refresh queued";
+	const unsigned char msg2[] = "not a slave or stub zone";
+	dns_zonetype_t type;
 
 	result = zone_from_args(server, args, &zone);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	if (zone == NULL)
 		return (ISC_R_UNEXPECTEDEND);
-	
-	dns_zone_refresh(zone);
-	dns_zone_detach(&zone);
-	if (sizeof(msg) <= isc_buffer_availablelength(text))
-		isc_buffer_putmem(text, msg, sizeof(msg));
 
-	return (ISC_R_SUCCESS);
+	type = dns_zone_gettype(zone);
+	if (type == dns_zone_slave || type == dns_zone_stub) {
+		dns_zone_refresh(zone);
+		dns_zone_detach(&zone);
+		if (sizeof(msg1) <= isc_buffer_availablelength(text))
+			isc_buffer_putmem(text, msg1, sizeof(msg1));
+		return (ISC_R_SUCCESS);
+	}
+		
+	dns_zone_detach(&zone);
+	if (sizeof(msg2) <= isc_buffer_availablelength(text))
+		isc_buffer_putmem(text, msg2, sizeof(msg2));
+	return (ISC_R_FAILURE);
 }	
 
 isc_result_t
