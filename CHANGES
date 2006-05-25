@@ -1,3 +1,6 @@
+
+	--- 9.2.7b1 released ---
+
 2030.	[bug]		We were being overly conservative when disabling
 			openssl engine support. [RT #16030]
 
