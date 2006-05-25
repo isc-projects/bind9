@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.6.2.4 2006/05/25 06:49:00 marka Exp $ */
+/* $Id: config.h.win32,v 1.6.2.5 2006/05/25 08:10:12 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -106,6 +106,12 @@
 
 /* Define if libcrypto has RSA_generate_key */
 #define HAVE_RSA_GENERATE_KEY
+
+/* Define if libcrypto has DSA_generate_parameters */
+#define HAVE_DSA_GENERATE_PARAMETERS
+
+/* Define if libcrypto has DH_generate_parameters */
+#define HAVE_DH_GENERATE_PARAMETERS
 
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
