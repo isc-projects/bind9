@@ -939,6 +939,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.4-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.5-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.6-patch	X	2005
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.7-patch	X	2006
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
@@ -1570,7 +1571,7 @@
 ./lib/dns/a6.c					C	1999,2000,2001,2004
 ./lib/dns/acl.c					C	1999,2000,2001,2004,2006
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/api					X	1999,2000,2001,2005
+./lib/dns/api					X	1999,2000,2001,2005,2006
 ./lib/dns/byaddr.c				C	2000,2001,2003,2004
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004
@@ -1814,7 +1815,7 @@
 ./lib/dns/zt.c					C	1999,2000,2001,2004
 ./lib/isc/.cvsignore				X	1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
-./lib/isc/api					X	1999,2000,2001,2005
+./lib/isc/api					X	1999,2000,2001,2005,2006
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004
@@ -2087,7 +2088,7 @@
 ./lib/isccc/win32/version.c			C	2001,2004
 ./lib/isccfg/.cvsignore				X	2001
 ./lib/isccfg/Makefile.in			MAKE	2001,2003,2004
-./lib/isccfg/api				X	2001,2005
+./lib/isccfg/api				X	2001,2005,2006
 ./lib/isccfg/check.c				C	2001,2002,2003,2004,2006
 ./lib/isccfg/include/.cvsignore			X	2001
 ./lib/isccfg/include/Makefile.in		MAKE	2001,2004
@@ -2107,7 +2108,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004
-./lib/lwres/api					X	2000,2001,2005
+./lib/lwres/api					X	2000,2001,2005,2006
 ./lib/lwres/assert_p.h				C	2000,2001,2004
 ./lib/lwres/context.c				C	2000,2001,2003,2004
 ./lib/lwres/context_p.h				C	2000,2001,2004
