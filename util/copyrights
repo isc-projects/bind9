@@ -969,6 +969,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.0-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.1-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.2-patch	X	2005
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.3.3-patch	X	2006
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
@@ -1602,7 +1603,7 @@
 ./lib/bind/resolv/res_update.c			X	2001
 ./lib/bind9/.cvsignore				X	2001
 ./lib/bind9/Makefile.in				MAKE	2001,2004
-./lib/bind9/api					X	2001,2005
+./lib/bind9/api					X	2001,2005,2006
 ./lib/bind9/check.c				C	2001,2002,2003,2004,2005,2006
 ./lib/bind9/getaddresses.c			C	2001,2002,2004,2005
 ./lib/bind9/include/.cvsignore			X	2001
@@ -1623,7 +1624,7 @@
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2006
 ./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/api					X	1999,2000,2001,2005
+./lib/dns/api					X	1999,2000,2001,2005,2006
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/callbacks.c				C	1999,2000,2001,2004
@@ -1890,7 +1891,7 @@
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004
 ./lib/isc/.cvsignore				X	1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004
-./lib/isc/api					X	1999,2000,2001,2005
+./lib/isc/api					X	1999,2000,2001,2005,2006
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004
@@ -2139,7 +2140,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004
 ./lib/isccc/alist.c				C.NOM	2001,2004
-./lib/isccc/api					X	2001
+./lib/isccc/api					X	2001,2006
 ./lib/isccc/base64.c				C.NOM	2001,2004
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004
@@ -2195,7 +2196,7 @@
 ./lib/isccfg/win32/version.c			C	1998,1999,2000,2001,2004
 ./lib/lwres/.cvsignore				X	2000,2001
 ./lib/lwres/Makefile.in				MAKE	2000,2001,2004,2005
-./lib/lwres/api					X	2000,2001,2005
+./lib/lwres/api					X	2000,2001,2005,2006
 ./lib/lwres/assert_p.h				C	2000,2001,2004
 ./lib/lwres/context.c				C	2000,2001,2003,2004
 ./lib/lwres/context_p.h				C	2000,2001,2004
