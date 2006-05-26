@@ -1,3 +1,6 @@
+
+	--- 9.4.0a6 released ---
+
 2031.	[bug]		Emit a error message when "rndc refresh" is called on
 			a non slave/stub zone. [RT # 16073]
 
