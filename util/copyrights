@@ -804,7 +804,7 @@
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
 ./config.guess					X	1999,2000,2001
 ./config.h.in					X	1999,2000,2001,2005,2006
-./config.h.win32				C	1999,2000,2001,2004
+./config.h.win32				C	1999,2000,2001,2004,2006
 ./config.sub					X	1999,2000,2001
 ./config.threads.in				X	2005
 ./configure					X	1998,1999,2000,2001,2005,2006
