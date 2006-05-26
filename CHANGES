@@ -1,3 +1,5 @@
+2032.	[bug]		Remove a INSIST in query_addadditional2(). [RT #16074]
+
 2031.	[bug]		Emit a error message when "rndc refresh" is called on
 			a non slave/stub zone. [RT # 16073]
 
