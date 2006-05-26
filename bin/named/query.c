@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.30 2006/05/18 03:14:03 marka Exp $ */
+/* $Id: query.c,v 1.257.18.31 2006/05/26 02:48:26 marka Exp $ */
 
 /*! \file */
 
@@ -1761,8 +1761,6 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	/* Find AAAA RRset with sig RRset */
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_aaaa,
 				     0, client->now, rdataset, sigrdataset);
-	/* The NXDOMAIN case should be covered above */
-	INSIST(result != DNS_R_NCACHENXDOMAIN);
 	/*
 	 * If we can't promote glue/pending from the cache to secure
 	 * then drop it.
@@ -1776,13 +1774,6 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		if (dns_rdataset_isassociated(sigrdataset))
 			dns_rdataset_disassociate(sigrdataset);
 		result = ISC_R_NOTFOUND;
-	}
-	if (result == DNS_R_NCACHENXRRSET) {
-		dns_rdataset_disassociate(rdataset);
-		/*
-		 * Negative cache entries don't have sigrdatasets.
-		 */
-		INSIST(! dns_rdataset_isassociated(sigrdataset));
 	}
 	if (result == ISC_R_SUCCESS) {
 		ISC_LIST_APPEND(cfname.list, rdataset, link);
