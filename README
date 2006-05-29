@@ -48,7 +48,7 @@ BIND 9.4.0
 	BIND 9.4.0 has a number of new features over 9.3,
 	including:
 
-	Implemented "additional section caching (or acache)", an
+	Implemented "additional section caching" (or "acache"), an
 	internal cache framework for additional section content to
 	improve response performance.  Several configuration options
 	were provided to control the behavior.
@@ -137,7 +137,7 @@ BIND 9.4.0
 
 	Add support for CH A record.
 
-	Add additional zone data constancy checks.  named-checkzone
+	Add additional zone data consistancy checks.  named-checkzone
 	has extended checking of NS, MX and SRV record and the hosts
 	they reference.  named has extended post zone load checks.
 	New zone options: check-mx and integrity-check.
@@ -154,7 +154,7 @@ BIND 9.4.0
 	Detect duplicates of UDP queries we are recursing on and
 	drop them.  New stats category "duplicates".
 
-	Meory management. "USE INTERNAL MALLOC" is now runtime selectable.
+	Memory management. "USE INTERNAL MALLOC" is now runtime selectable.
 
 	The lame cache is now done on a <qname,qclass,qtype> basis
 	as some servers only appear to be lame for certain query
@@ -169,9 +169,9 @@ BIND 9.4.0
 
 	Support for IPSECKEY rdata type.
 
-	Raise the UDP recieve buffer size to 32k if it is less than 32k.
+	Raise the UDP receive buffer size to 32k if it is less than 32k.
 
-	x86 and x86_64 now have seperate atomic locking implementations.
+	x86 and x86_64 now have separate atomic locking implementations.
 
 	named-checkconf now validates update-policy entries.
 
@@ -199,9 +199,9 @@ BIND 9.4.0
 	to set 'RA' when 'RD' is set unless a server is explicitly
 	set.
 
-	Integrate contibuted DLZ code into named.
+	Integrate contributed DLZ code into named.
 
-	Integrate contibuted IDN code from JPNIC.
+	Integrate contributed IDN code from JPNIC.
 
 	Validate pending NS RRsets, in the authority section, prior
 	to returning them if it can be done without requiring DNSKEYs
@@ -212,7 +212,7 @@ BIND 9.4.0
 	"dnssec-accept-expired yes;" leaves named vulnerable to
 	replay attacks.
 
-	Addition memory leakage checks.
+	Additional memory leakage checks.
 
 	The maximum EDNS UDP response named will send can now be
 	set in named.conf (max-udp-size).  This is independent of
@@ -225,7 +225,7 @@ BIND 9.4.0
 	query.  Defaults "zero-no-soa-ttl yes;" and
 	"zero-no-soa-ttl-cache no;".
 			
-	Seperate out MX and SRV to CNAME checks.
+	Separate out MX and SRV to CNAME checks.
 
 	dig/nslookup/host: warn about missing "QR".
 
@@ -252,7 +252,7 @@ BIND 9.4.0
 	It is now possible to explicitly enable DNSSEC validation.
 	default dnssec-validation no; to be changed to yes in 9.5.0.
 
-	It is now posssible to enable/disable DNSSEC validation
+	It is now possible to enable/disable DNSSEC validation
 	from rndc.  This is useful for the mobile hosts where the
 	current connection point breaks DNSSEC (firewall/proxy).
 
