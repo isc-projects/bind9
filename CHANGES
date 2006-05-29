@@ -1,3 +1,6 @@
+2033.	[bug]		We wern't creating multiple client memory contexts
+			on demand as expected. [RT #16095]
+
 2032.	[bug]		Remove a INSIST in query_addadditional2(). [RT #16074]
 
 2031.	[bug]		Emit a error message when "rndc refresh" is called on
