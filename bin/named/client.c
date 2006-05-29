@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.219.18.16 2006/01/05 00:10:42 marka Exp $ */
+/* $Id: client.c,v 1.219.18.17 2006/05/29 01:26:43 marka Exp $ */
 
 #include <config.h>
 
@@ -1782,14 +1782,14 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
-#if NMCTX > 0
+#if NMCTXS > 0
 	isc_result_t result;
 #endif
 
 	/*
 	 * Caller must be holding the manager lock.
 	 */
-#if NMCTX > 0
+#if NMCTXS > 0
 	INSIST(manager->nextmctx < NMCTXS);
 	clientmctx = manager->mctxpool[manager->nextmctx];
 	if (clientmctx == NULL) {
