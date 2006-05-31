@@ -24,74 +24,74 @@ rt11398d			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt12895				new	
+rt12895				closed	
 rt13489				review	marka
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt13606				review	marka	// TSIG SHA256
-rt13662_alt2			review	marka	// rrset-order fixed
+rt13606				closed	marka	// TSIG SHA256
+rt13662_alt2			closed	marka	// rrset-order fixed
 rt14623				open	
 rt14654				open	
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
-rt14895b			open	
+rt14895b			open	jinmei
 rt15327				open	
-rt15452				new	
+rt15452				open	marka	// NSEC3	
 rt15473				review	marka
 rt15473b			review	marka
-rt15592				review	
-rt15608				review	
-rt15620				review	
-rt15633				review	
-rt15674				review	
-rt15694				review	
-rt15695				review	
-rt15698				new	
-rt15702				review	
-rt15704				review	
-rt15709				review	
-rt15742				review	
-rt15753				review	
-rt15758				review	
-rt15758a			new	
+rt15592				closed	
+rt15608				closed
+rt15620				closed	
+rt15633				closed	
+rt15674				closed	
+rt15694				closed	
+rt15695				closed	
+rt15698				open	
+rt15702				closed	
+rt15704				closed	
+rt15709				closed	
+rt15742				closed	
+rt15753				closed	
+rt15758				closed	
+rt15758a			closed	
 rt15765				open	
-rt15795				review	
-rt15807				review	
-rt15808				review	
-rt15812				review	
-rt15813				new	
-rt15817				new	
-rt15818				new	
-rt15825				new	
-rt15835				new	
-rt15840				new	
-rt15844				new	
-rt15849				new	
-rt15855				new	
-rt15860				new	
-rt15878				new	
-rt15941				new	
-rt15958				new	
-rt15959				new	
-rt15960				new	
-rt15970				new	
-rt15976				new	
-rt15992				new	
-rt16020				new	
-rt16026				new	
-rt16027				new	
-rt16030				new	
-rt16034				new	
-rt16037				new	
-rt16073				new	
-rt16074				new	
-rt16075				new	
-rt16122				new	
-rt16123				new	
-rt16124				new	
+rt15795				closed	
+rt15807				closed	
+rt15808				closed	
+rt15812				closed	
+rt15813				closed	
+rt15817				closed	
+rt15818				closed	
+rt15825				closed	
+rt15835				closed	
+rt15840				closed	
+rt15844				closed	
+rt15849				closed	
+rt15855				closed	
+rt15860				open	
+rt15878				closed	
+rt15941				closed	
+rt15958				closed	
+rt15959				review	
+rt15960				closed	
+rt15970				closed	
+rt15976				closed	
+rt15992				closed	
+rt16020				closed	
+rt16026				closed	
+rt16027				closed	
+rt16030				closed	
+rt16034				closed	
+rt16037				closed	
+rt16073				closed	
+rt16074				closed	
+rt16075				review	
+rt16122				review	
+rt16123				review	
+rt16124				review	
 rt1727				open		// ixfr-from-differences workfile
-rt6496a				review	marka
-rt6496b				new	
+rt6496a				closed	marka
+rt6496b				closed	
 skan				new	
 skan-metazones1			private	
 skan_implicit_update1		new	
