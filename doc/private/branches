@@ -24,12 +24,9 @@ rt11398d			open	sra	// doxygen dev
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
-rt12895				closed	
 rt13489				review	marka
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt13606				closed	marka	// TSIG SHA256
-rt13662_alt2			closed	marka	// rrset-order fixed
 rt14623				open	
 rt14654				open	
 rt14815				open		// stats blind spots	
@@ -39,59 +36,15 @@ rt15327				open
 rt15452				open	marka	// NSEC3	
 rt15473				review	marka
 rt15473b			review	marka
-rt15592				closed	
-rt15608				closed
-rt15620				closed	
-rt15633				closed	
-rt15674				closed	
-rt15694				closed	
-rt15695				closed	
 rt15698				open	
-rt15702				closed	
-rt15704				closed	
-rt15709				closed	
-rt15742				closed	
-rt15753				closed	
-rt15758				closed	
-rt15758a			closed	
 rt15765				open	
-rt15795				closed	
-rt15807				closed	
-rt15808				closed	
-rt15812				closed	
-rt15813				closed	
-rt15817				closed	
-rt15818				closed	
-rt15825				closed	
-rt15835				closed	
-rt15840				closed	
-rt15844				closed	
-rt15849				closed	
-rt15855				closed	
 rt15860				open	
-rt15878				closed	
-rt15941				closed	
-rt15958				closed	
 rt15959				review	
-rt15960				closed	
-rt15970				closed	
-rt15976				closed	
-rt15992				closed	
-rt16020				closed	
-rt16026				closed	
-rt16027				closed	
-rt16030				closed	
-rt16034				closed	
-rt16037				closed	
-rt16073				closed	
-rt16074				closed	
 rt16075				review	
 rt16122				review	
 rt16123				review	
 rt16124				review	
 rt1727				open		// ixfr-from-differences workfile
-rt6496a				closed	marka
-rt6496b				closed	
 skan				new	
 skan-metazones1			private	
 skan_implicit_update1		new	
@@ -277,6 +230,7 @@ rt12810a			closed
 rt12838				closed
 rt12866				closed
 rt12894				closed
+rt12895				closed
 rt12907				closed
 rt12919				closed
 rt12933				closed
@@ -320,11 +274,13 @@ rt13593				closed
 rt13593a			closed
 rt13597				closed
 rt13605				closed
+rt13606				closed		// TSIG SHA256
 rt13609				closed
 rt13620				closed
 rt13659				closed
 rt13662				closed		// abandoned
 rt13662_alt			closed		// abandoned
+rt13662_alt2			closed		// rrset-order fixed
 rt13694				closed
 rt13707				closed
 rt13714				closed
@@ -407,19 +363,61 @@ rt15544b			closed
 rt15562				closed
 rt15568				closed
 rt15586				closed
+rt15592				closed
+rt15608				closed
 rt15613				closed
+rt15620				closed
 rt15628				closed
+rt15633				closed
 rt15636				closed
 rt15642				closed
 rt15647				closed
 rt15649				closed
+rt15674				closed
+rt15694				closed
+rt15695				closed
+rt15702				closed
+rt15704				closed
+rt15709				closed
 rt15723				closed
 rt15727				closed
 rt1572a				closed		// bad rt#
 rt15739				closed
+rt15742				closed
+rt15753				closed
+rt15758				closed
+rt15758a			closed
 rt15776				closed
 rt15779				closed
 rt15780				closed
+rt15795				closed
+rt15807				closed
+rt15808				closed
+rt15812				closed
+rt15813				closed
+rt15817				closed
+rt15818				closed
+rt15825				closed
+rt15835				closed
+rt15840				closed
+rt15844				closed
+rt15849				closed
+rt15855				closed
+rt15878				closed
+rt15941				closed
+rt15958				closed
+rt15960				closed
+rt15970				closed
+rt15976				closed
+rt15992				closed
+rt16020				closed
+rt16026				closed
+rt16027				closed
+rt16030				closed
+rt16034				closed
+rt16037				closed
+rt16073				closed
+rt16074				closed
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
@@ -492,6 +490,8 @@ rt6229				closed
 rt6427				closed
 rt6432				closed
 rt6496				closed
+rt6496a				closed
+rt6496b				closed
 rt6539				closed
 rt6636				closed
 rt6813				closed
