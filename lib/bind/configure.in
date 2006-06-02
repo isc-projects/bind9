@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.22 $)
+AC_REVISION($Revision: 1.90.18.23 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -513,7 +513,7 @@ MKDEPCFLAGS="-M"
 IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wpointer-arith"
+	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wpointer-arith -fno-strict-aliasing"
 else
 	case $host in
 	*-dec-osf*)
