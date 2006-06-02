@@ -1,3 +1,5 @@
+2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
+
 
 	--- 9.3.3b1 released ---
 
