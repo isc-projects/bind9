@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.27 2006/05/17 02:39:15 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.28 2006/06/04 23:38:17 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -293,6 +293,7 @@ options {<br>
 <br>
 	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
@@ -312,7 +313,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526208"></a><h2>VIEW</h2>
+<a name="id2526211"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -439,6 +440,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
+	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl-cache <em class="replaceable"><code>boolean</code></em>;<br>
@@ -451,7 +453,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526839"></a><h2>ZONE</h2>
+<a name="id2526845"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -524,6 +526,7 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 <br>
 	zone-statistics <em class="replaceable"><code>boolean</code></em>;<br>
+	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 <br>
 	ixfr-base <em class="replaceable"><code>quoted_string</code></em>; // obsolete<br>
@@ -535,12 +538,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527123"></a><h2>FILES</h2>
+<a name="id2527132"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527134"></a><h2>SEE ALSO</h2>
+<a name="id2527144"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.

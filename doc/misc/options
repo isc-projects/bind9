@@ -147,6 +147,7 @@ options {
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
         update-check-ksk <boolean>;
+        try-tcp-refresh <boolean>;
 };
 
 controls {
@@ -250,6 +251,7 @@ view <string> <optional_class> {
                 check-sibling <boolean>;
                 zero-no-soa-ttl <boolean>;
                 update-check-ksk <boolean>;
+                try-tcp-refresh <boolean>;
         };
         dlz <string> {
                 database <string>;
@@ -375,6 +377,7 @@ view <string> <optional_class> {
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
         update-check-ksk <boolean>;
+        try-tcp-refresh <boolean>;
         database <string>;
 };
 
@@ -452,6 +455,7 @@ zone <string> <optional_class> {
         check-sibling <boolean>;
         zero-no-soa-ttl <boolean>;
         update-check-ksk <boolean>;
+        try-tcp-refresh <boolean>;
 };
 
 dlz <string> {

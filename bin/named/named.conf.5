@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.19 2006/05/17 02:39:15 marka Exp $
+.\" $Id: named.conf.5,v 1.20 2006/06/04 23:38:17 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -266,6 +266,7 @@ options {
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zone\-statistics \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
+	try\-tcp\-refresh \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	allow\-v6\-synthesis { \fIaddress_match_element\fR; ... }; // obsolete
@@ -396,6 +397,7 @@ view \fIstring\fR \fIoptional_class\fR {
 		[ port ( \fIinteger\fR | * ) ];
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zone\-statistics \fIboolean\fR;
+	try\-tcp\-refresh \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
@@ -470,6 +472,7 @@ zone \fIstring\fR \fIoptional_class\fR {
 		[ port ( \fIinteger\fR | * ) ];
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zone\-statistics \fIboolean\fR;
+	try\-tcp\-refresh \fIboolean\fR;
 	key\-directory \fIquoted_string\fR;
 	ixfr\-base \fIquoted_string\fR; // obsolete
 	ixfr\-tmp\-file \fIquoted_string\fR; // obsolete
