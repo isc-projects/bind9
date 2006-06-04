@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.59.4.2 2006/05/18 02:44:20 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.59.4.3 2006/06/04 23:33:26 marka Exp $ */
 
 #include <config.h>
 
@@ -3547,7 +3547,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "master %s exceeded (source %s)",
 				     master, source);
 			/* Try with slave with TCP. */
-			if (zone->type == dns_zone_slave)
+			if (zone->type == dns_zone_slave &&
+			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH))
 				goto tcp_transfer;
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,

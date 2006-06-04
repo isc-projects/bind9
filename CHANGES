@@ -1,3 +1,7 @@
+2035.	[func]		Make falling back to TCP on UDP refresh failure
+			optional. Default "try-tcp-refresh yes;" for BIND 8
+			compatibility. [RT #16123]
+
 	--- 9.3.2-WFB-2 released ---
 
 2025.	[func]		Update "zone serial unchanged" message. [RT #16026]

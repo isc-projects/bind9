@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.4.4 2005/05/13 01:22:33 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.4.4.4.1 2006/06/04 23:33:27 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -299,6 +299,7 @@ options {
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 
 	zone-statistics <replaceable>boolean</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 
 	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
@@ -426,6 +427,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 
 	zone-statistics <replaceable>boolean</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 
 	allow-v6-synthesis { <replaceable>address_match_element</replaceable>; ... }; // obsolete
@@ -502,6 +504,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 
 	zone-statistics <replaceable>boolean</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 
 	ixfr-base <replaceable>quoted_string</replaceable>; // obsolete

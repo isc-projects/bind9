@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.37.6.32 2005/11/03 23:08:41 marka Exp $ */
+/* $Id: check.c,v 1.37.6.32.2.1 2006/06/04 23:33:26 marka Exp $ */
 
 #include <config.h>
 
@@ -742,6 +742,7 @@ check_zoneconf(cfg_obj_t *zconfig, cfg_obj_t *config, isc_symtab_t *symtab,
 	{ "update-policy", MASTERZONE },
 	{ "database", MASTERZONE | SLAVEZONE | STUBZONE },
 	{ "key-directory", MASTERZONE },
+	{ "try-tcp-refresh", SLAVEZONE },
 	};
 
 	static optionstable dialups[] = {
