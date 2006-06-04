@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.77 2005/08/15 01:21:04 marka Exp $ */
+/* $Id: client.h,v 1.78 2006/06/04 23:59:33 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -342,6 +342,12 @@ void
 ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager);
 /*%
  * Dump the outstanding recursive queries to 'f'.
+ */
+
+void
+ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
+/*%
+ * Replace the qname.
  */
 
 isc_boolean_t

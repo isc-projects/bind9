@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.287 2006/05/26 02:44:02 marka Exp $ */
+/* $Id: query.c,v 1.288 2006/06/04 23:59:33 marka Exp $ */
 
 /*! \file */
 
@@ -180,18 +180,6 @@ query_next(ns_client_t *client, isc_result_t result) {
 }
 
 static inline void
-query_maybeputqname(ns_client_t *client) {
-	if (client->query.restarts > 0) {
-		/*
-		 * client->query.qname was dynamically allocated.
-		 */
-		dns_message_puttempname(client->message,
-					&client->query.qname);
-		client->query.qname = NULL;
-	}
-}
-
-static inline void
 query_freefreeversions(ns_client_t *client, isc_boolean_t everything) {
 	ns_dbversion_t *dbversion, *dbversion_next;
 	unsigned int i;
@@ -271,8 +259,14 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 		}
 	}
 
-	query_maybeputqname(client);
-
+	if (client->query.restarts > 0) {
+		/*
+		 * client->query.qname was dynamically allocated.
+		 */
+		dns_message_puttempname(client->message,
+					&client->query.qname);
+	}
+	client->query.qname = NULL;
 	client->query.attributes = (NS_QUERYATTR_RECURSIONOK |
 				    NS_QUERYATTR_CACHEOK |
 				    NS_QUERYATTR_SECURE);
@@ -4004,8 +3998,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			goto cleanup;
 		}
 		dns_rdata_freestruct(&cname);
-		query_maybeputqname(client);
-		client->query.qname = tname;
+		ns_client_qnamereplace(client, tname);
 		want_restart = ISC_TRUE;
 		if (!WANTRECURSION(client))
 			options |= DNS_GETDB_NOLOG;
@@ -4122,8 +4115,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		/*
 		 * Switch to the new qname and restart.
 		 */
-		query_maybeputqname(client);
-		client->query.qname = fname;
+		ns_client_qnamereplace(client, fname);
 		fname = NULL;
 		want_restart = ISC_TRUE;
 		if (!WANTRECURSION(client))

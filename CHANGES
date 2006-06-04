@@ -1,3 +1,6 @@
+2036.	[bug]		'rndc recursing' could cause trigger a REQUIRE.
+			[RT #16075]
+
 2035.	[func]		Make falling back to TCP on UDP refresh failure
 			optional. Default "try-tcp-refresh yes;" for BIND 8
 			compatibility. [RT #16123]

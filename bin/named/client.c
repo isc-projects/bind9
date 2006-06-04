@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.236 2006/05/29 01:27:58 marka Exp $ */
+/* $Id: client.c,v 1.237 2006/06/04 23:59:33 marka Exp $ */
 
 #include <config.h>
 
@@ -321,8 +321,17 @@ exit_check(ns_client_t *client) {
 		}
 		/*
 		 * I/O cancel is complete.  Burn down all state
-		 * related to the current request.
+		 * related to the current request.  Ensure that
+		 * the client is on the active list and not the
+		 * recursing list.
 		 */
+		LOCK(&client->manager->lock);
+		if (client->list == &client->manager->recursing) {
+			ISC_LIST_UNLINK(*client->list, client, link);
+			ISC_LIST_APPEND(client->manager->active, client, link);
+			client->list = &client->manager->active;
+		}
+		UNLOCK(&client->manager->lock);
 		ns_client_endrequest(client);
 
 		client->state = NS_CLIENTSTATE_READING;
@@ -2593,4 +2602,21 @@ ns_client_dumprecursing(FILE *f, ns_clientmgr_t *manager) {
 		client = ISC_LIST_NEXT(client, link);
 	}
 	UNLOCK(&manager->lock);
+}
+
+void
+ns_client_qnamereplace(ns_client_t *client, dns_name_t *name) {
+
+	if (client->manager != NULL)
+		LOCK(&client->manager->lock);
+	if (client->query.restarts > 0) {
+		/*
+		 * client->query.qname was dynamically allocated.
+		 */
+		dns_message_puttempname(client->message,
+					&client->query.qname);
+	}
+	client->query.qname = name;
+	if (client->manager != NULL)
+		UNLOCK(&client->manager->lock);
 }
