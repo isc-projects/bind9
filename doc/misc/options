@@ -122,6 +122,7 @@ options {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        try-tcp-refresh <boolean>;
 };
 
 controls {
@@ -213,6 +214,7 @@ view <string> <optional_class> {
                 use-alt-transfer-source <boolean>;
                 zone-statistics <boolean>;
                 key-directory <quoted_string>;
+                try-tcp-refresh <boolean>;
         };
         server <netaddr> {
                 bogus <boolean>;
@@ -302,6 +304,7 @@ view <string> <optional_class> {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        try-tcp-refresh <boolean>;
 };
 
 lwres {
@@ -367,6 +370,7 @@ zone <string> <optional_class> {
         use-alt-transfer-source <boolean>;
         zone-statistics <boolean>;
         key-directory <quoted_string>;
+        try-tcp-refresh <boolean>;
 };
 
 server <netaddr> {
