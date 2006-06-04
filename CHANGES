@@ -1,3 +1,7 @@
+2035.	[func]		Make falling back to TCP on UDP refresh failure
+			optional. Default "try-tcp-refresh yes;" for BIND 8
+			compatibility. [RT #16123]
+
 2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
 
 2033.	[bug]		We wern't creating multiple client memory contexts

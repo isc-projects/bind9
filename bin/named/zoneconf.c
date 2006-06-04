@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zoneconf.c,v 1.133 2006/05/16 03:35:56 marka Exp $ */
+/* $Id: zoneconf.c,v 1.134 2006/06/04 23:17:06 marka Exp $ */
 
 /*% */
 
@@ -876,6 +876,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			alt = cfg_obj_asboolean(obj);
 		dns_zone_setoption(zone, DNS_ZONEOPT_USEALTXFRSRC, alt);
 
+		obj = NULL;
+		(void)ns_config_get(maps, "try-tcp-refresh", &obj);
+		dns_zone_setoption(zone, DNS_ZONEOPT_TRYTCPREFRESH,
+				   cfg_obj_asboolean(obj));
 		break;
 
 	default:

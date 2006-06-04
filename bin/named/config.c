@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.74 2006/05/03 01:54:53 marka Exp $ */
+/* $Id: config.c,v 1.75 2006/06/04 23:17:06 marka Exp $ */
 
 /*! \file */
 
@@ -178,6 +178,7 @@ options {\n\
 	check-srv-cname warn;\n\
 	zero-no-soa-ttl yes;\n\
 	update-check-ksk yes;\n\
+	try-tcp-refresh yes; /* BIND 8 compat */\n\
 };\n\
 "
 

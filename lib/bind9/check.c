@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.74 2006/03/10 05:00:23 marka Exp $ */
+/* $Id: check.c,v 1.75 2006/06/04 23:17:06 marka Exp $ */
 
 /*! \file */
 
@@ -934,6 +934,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	{ "check-srv-cname", MASTERZONE },
 	{ "masterfile-format", MASTERZONE | SLAVEZONE | STUBZONE | HINTZONE },
 	{ "update-check-ksk", MASTERZONE },
+	{ "try-tcp-refresh", SLAVEZONE },
 	};
 
 	static optionstable dialups[] = {

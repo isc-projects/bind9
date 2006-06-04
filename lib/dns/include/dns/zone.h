@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.144 2006/03/06 01:27:52 marka Exp $ */
+/* $Id: zone.h,v 1.145 2006/06/04 23:17:07 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -66,6 +66,7 @@ typedef enum {
 #define DNS_ZONEOPT_WARNSRVCNAME  0x00200000U	/*%< warn on SRV CNAME check */
 #define DNS_ZONEOPT_IGNORESRVCNAME 0x00400000U	/*%< ignore SRV CNAME check */
 #define DNS_ZONEOPT_UPDATECHECKKSK 0x00800000U	/*%< check dnskey KSK flag */
+#define DNS_ZONEOPT_TRYTCPREFRESH 0x01000000U	/*%< try tcp refresh on udp failure */
 
 #ifndef NOMINUM_PUBLIC
 /*

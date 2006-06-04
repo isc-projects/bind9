@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.22 2006/05/16 06:07:09 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.23 2006/06/04 23:17:06 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -321,6 +321,7 @@ options {
 
 	zone-statistics <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
 
@@ -468,6 +469,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 
 	zone-statistics <replaceable>boolean</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl-cache <replaceable>boolean</replaceable>;
@@ -554,6 +556,7 @@ zone <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 
 	zone-statistics <replaceable>boolean</replaceable>;
+	try-tcp-refresh <replaceable>boolean</replaceable>;
 	key-directory <replaceable>quoted_string</replaceable>;
 
 	ixfr-base <replaceable>quoted_string</replaceable>; // obsolete

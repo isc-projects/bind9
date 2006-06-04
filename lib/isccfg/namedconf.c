@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.69 2006/05/03 01:54:54 marka Exp $ */
+/* $Id: namedconf.c,v 1.70 2006/06/04 23:17:07 marka Exp $ */
 
 /*! \file */
 
@@ -846,6 +846,7 @@ zone_clauses[] = {
 	{ "check-sibling", &cfg_type_boolean, 0 },
 	{ "zero-no-soa-ttl", &cfg_type_boolean, 0 },
 	{ "update-check-ksk", &cfg_type_boolean, 0 },
+	{ "try-tcp-refresh", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 
