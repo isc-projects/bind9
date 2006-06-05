@@ -81,7 +81,7 @@
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
-./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005
+./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/config.h		C	2001,2002,2004,2005,2006
 ./bin/named/include/named/control.h		C	2001,2002,2003,2004,2005,2006
 ./bin/named/include/named/globals.h		C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -1319,7 +1319,7 @@
 ./lib/bind/include/isc/eventlib.h		X	2001,2005
 ./lib/bind/include/isc/heap.h			X	2001,2005
 ./lib/bind/include/isc/irpmarshall.h		X	2001,2005
-./lib/bind/include/isc/list.h			X	2001,2005
+./lib/bind/include/isc/list.h			X	2001,2005,2006
 ./lib/bind/include/isc/logging.h		X	2001,2005
 ./lib/bind/include/isc/memcluster.h		X	2001,2005
 ./lib/bind/include/isc/misc.h			X	2001,2005
@@ -2038,7 +2038,7 @@
 ./lib/isc/include/isc/lex.h			C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/lfsr.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/lib.h			C	1999,2000,2001,2004,2005
-./lib/isc/include/isc/list.h			C	1997,1998,1999,2000,2001,2002,2004
+./lib/isc/include/isc/list.h			C	1997,1998,1999,2000,2001,2002,2004,2006
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006
