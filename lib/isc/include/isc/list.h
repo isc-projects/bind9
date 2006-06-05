@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.18.2.3 2004/03/09 06:11:57 marka Exp $ */
+/* $Id: list.h,v 1.18.2.4 2006/06/05 00:40:01 marka Exp $ */
 
 #ifndef ISC_LIST_H
 #define ISC_LIST_H 1
@@ -90,12 +90,16 @@
 	do { \
 		if ((elt)->link.next != NULL) \
 			(elt)->link.next->link.prev = (elt)->link.prev; \
-		else \
+		else { \
+			ISC_INSIST((list).tail == (elt)); \
 			(list).tail = (elt)->link.prev; \
+		} \
 		if ((elt)->link.prev != NULL) \
 			(elt)->link.prev->link.next = (elt)->link.next; \
-		else \
+		else { \
+			ISC_INSIST((list).head == (elt)); \
 			(list).head = (elt)->link.next; \
+		} \
 		(elt)->link.prev = (type *)(-1); \
 		(elt)->link.next = (type *)(-1); \
 	} while (0)
