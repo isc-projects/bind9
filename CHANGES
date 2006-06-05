@@ -1,3 +1,7 @@
+2037.	[func]		When unlinking the first or last element in a list
+			check that the list head points to the element to
+			be unlinked. [RT #15959]
+
 2036.	[bug]		'rndc recursing' could cause trigger a REQUIRE.
 			[RT #16075]
 
