@@ -1,3 +1,6 @@
+2036.	[bug]		'rndc recursing' could cause trigger a REQUIRE.
+			[RT #16075]
+
 2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
 
 2033.	[bug]		We wern't creating multiple client memory contexts
