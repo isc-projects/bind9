@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.h,v 1.60.2.2.10.10 2005/07/29 00:13:08 marka Exp $ */
+/* $Id: client.h,v 1.60.2.2.10.11 2006/06/05 00:15:18 marka Exp $ */
 
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
@@ -196,6 +196,12 @@ ns_client_next(ns_client_t *client, isc_result_t result);
 /*
  * Finish processing the current client request,
  * return no response to the client.
+ */
+
+void
+ns_client_qnamereplace(ns_client_t *client, dns_name_t *name);
+/*%
+ * Replace the qname.
  */
 
 isc_boolean_t

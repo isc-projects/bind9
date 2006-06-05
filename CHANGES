@@ -1,5 +1,7 @@
-2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
+2036.	[bug]		'rndc recursing' could cause trigger a REQUIRE.
+			[RT #16075]
 
+2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
 
 	--- 9.3.3b1 released ---
 
