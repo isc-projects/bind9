@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.292 2006/02/17 00:10:42 marka Exp $ */
+/* $Id: dighost.c,v 1.293 2006/06/06 00:53:36 marka Exp $ */
 
 /*! \file
  *  \note
@@ -2026,11 +2026,19 @@ setup_lookup(dig_lookup_t *lookup) {
  */
 static void
 send_done(isc_task_t *_task, isc_event_t *event) {
+	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
+	isc_buffer_t *b = NULL;
+
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
 	UNUSED(_task);
 
 	LOCK_LOOKUP;
+
+	for  (b = ISC_LIST_HEAD(sevent->bufferlist);
+	      b != NULL;
+	      b = ISC_LIST_HEAD(sevent->bufferlist)) 
+		ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
 
 	isc_event_free(&event);
 
@@ -2332,6 +2340,10 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	recvcount--;
 	INSIST(recvcount >= 0);
 
+	b = ISC_LIST_HEAD(sevent->bufferlist);
+	INSIST(b ==  &query->lengthbuf);
+	ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
+
 	if (sevent->result == ISC_R_CANCELED) {
 		isc_event_free(&event);
 		l = query->lookup;
@@ -2357,8 +2369,6 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-	b = ISC_LIST_HEAD(sevent->bufferlist);
-	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->lengthbuf, link);
 	length = isc_buffer_getuint16(b);
 	if (length == 0) {
 		isc_event_free(&event);
@@ -2720,6 +2730,10 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
 	sevent = (isc_socketevent_t *)event;
 
+	b = ISC_LIST_HEAD(sevent->bufferlist);
+	INSIST(b == &query->recvbuf);
+	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
+
 	if ((l->tcp_mode) && (l->timer != NULL))
 		isc_timer_touch(l->timer);
 	if ((!l->pending && !l->ns_search_only) || cancel_now) {
@@ -2752,9 +2766,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
-
-	b = ISC_LIST_HEAD(sevent->bufferlist);
-	ISC_LIST_DEQUEUE(sevent->bufferlist, &query->recvbuf, link);
 
 	if (!l->tcp_mode &&
 	    !isc_sockaddr_compare(&sevent->address, &query->sockaddr,

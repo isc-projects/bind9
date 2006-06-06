@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.43 2006/01/07 00:23:35 marka Exp $ */
+/* $Id: socket.c,v 1.44 2006/06/06 00:53:36 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1304,6 +1304,15 @@ set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
 	}
 }
 
+static void
+destroy_socketevent(isc_event_t *event) {
+	isc_socketevent_t *ev = (isc_socketevent_t *)event;
+
+	INSIST(ISC_LIST_EMPTY(ev->bufferlist));
+
+	(ev->destroy)(event);
+}
+
 static isc_socketevent_t *
 allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 		     isc_taskaction_t action, const void *arg)
@@ -1324,6 +1333,8 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	ev->n = 0;
 	ev->offset = 0;
 	ev->attributes = 0;
+	ev->destroy = ev->ev_destroy;
+	ev->ev_destroy = destroy_socketevent;
 
 	return (ev);
 }

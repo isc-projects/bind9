@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.264 2006/05/19 02:47:18 marka Exp $ */
+/* $Id: socket.c,v 1.265 2006/06/06 00:53:36 marka Exp $ */
 
 /*! \file */
 
@@ -891,6 +891,15 @@ set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
 	}
 }
 
+static void
+destroy_socketevent(isc_event_t *event) {
+	isc_socketevent_t *ev = (isc_socketevent_t *)event;
+
+	INSIST(ISC_LIST_EMPTY(ev->bufferlist));
+
+	(ev->destroy)(event);
+}
+
 static isc_socketevent_t *
 allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 		     isc_taskaction_t action, const void *arg)
@@ -912,6 +921,8 @@ allocate_socketevent(isc_socket_t *sock, isc_eventtype_t eventtype,
 	ev->n = 0;
 	ev->offset = 0;
 	ev->attributes = 0;
+	ev->destroy = ev->ev_destroy;
+	ev->ev_destroy = destroy_socketevent;
 
 	return (ev);
 }
