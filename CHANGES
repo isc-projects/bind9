@@ -1,3 +1,6 @@
+2038.	[bug]		dig/nslookup/host was unlinking from wrong list
+			when handling errors. [RT #16122]
+
 2037.	[func]		When unlinking the first or last element in a list
 			check that the list head points to the element to
 			be unlinked. [RT #15959]
