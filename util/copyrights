@@ -882,7 +882,7 @@
 ./contrib/dlz/bin/dlzbdb/.cvsignore		X	2005
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005
-./contrib/dlz/config.dlz.in			X	2005
+./contrib/dlz/config.dlz.in			X	2005,2006
 ./contrib/dlz/drivers/.cvsignore		X	2005
 ./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005
