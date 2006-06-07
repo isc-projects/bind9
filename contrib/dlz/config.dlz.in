@@ -237,6 +237,8 @@ case "$use_dlz_bdb" in
 					if test "$dd" != "/usr"
 					then
 						dlz_bdb_libs="-L${dd}/lib "
+					else
+						dlz_bdb_libs=""
 					fi
 					dlz_bdb_libs="${dlz_bdb_libs}-l${d}"
 					break
