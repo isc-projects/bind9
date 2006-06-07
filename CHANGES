@@ -1,3 +1,6 @@
+2041.	[bug]		"configure --with-dlz-bdb=yes" produced a bad
+			set of libraries to be linked. [RT #16129]
+
 2039.	[func]		Check that all buffers passed to the socket code
 			have been retrieved when the socket event is freed.
 			[RT #16122]
