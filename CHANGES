@@ -1,5 +1,11 @@
+2042.	[bug]		named-checkconf was incorrectly rejecting the
+			logging category "config". [RT #16117]
+
 2041.	[bug]		"configure --with-dlz-bdb=yes" produced a bad
 			set of libraries to be linked. [RT #16129]
+
+2040.	[bug]		rbtdb no_references() could trigger an INSIST
+			failure with --enable-atomic.  [RT #16022]
 
 2039.	[func]		Check that all buffers passed to the socket code
 			have been retrieved when the socket event is freed.
