@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check-tool.c,v 1.24 2006/01/07 00:23:35 marka Exp $ */
+/* $Id: check-tool.c,v 1.25 2006/06/07 02:28:28 marka Exp $ */
 
 /*! \file */
 
@@ -43,6 +43,8 @@
 #include <dns/rdataset.h>
 #include <dns/types.h>
 #include <dns/zone.h>
+
+#include <isccfg/log.h>
 
 #ifdef HAVE_ADDRINFO
 #ifdef HAVE_GETADDRINFO
@@ -402,6 +404,7 @@ setup_logging(isc_mem_t *mctx, isc_log_t **logp) {
 	isc_log_setcontext(log);
 	dns_log_init(log);
 	dns_log_setcontext(log);
+	cfg_log_init(log);
 
 	destination.file.stream = stdout;
 	destination.file.name = NULL;

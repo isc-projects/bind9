@@ -1,3 +1,6 @@
+2042.	[bug]		named-checkconf was incorrectly rejecting the
+			logging category "config". [RT #16117]
+
 2041.	[bug]		"configure --with-dlz-bdb=yes" produced a bad
 			set of libraries to be linked. [RT #16129]
 
