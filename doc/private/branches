@@ -39,14 +39,8 @@ rt15473b			review	marka
 rt15698				open	
 rt15765				open	
 rt15860				open	
-rt15959				closed	
 rt15978				review	
 rt16022				review	
-rt16075				closed	
-rt16117				closed	
-rt16122				closed	
-rt16123				closed	
-rt16124				closed	
 rt1727				open		// ixfr-from-differences workfile
 skan				new	
 skan-metazones1			private	
@@ -409,6 +403,7 @@ rt15855				closed
 rt15878				closed
 rt15941				closed
 rt15958				closed
+rt15959				closed
 rt15960				closed
 rt15970				closed
 rt15976				closed
@@ -421,6 +416,11 @@ rt16034				closed
 rt16037				closed
 rt16073				closed
 rt16074				closed
+rt16075				closed
+rt16117				closed
+rt16122				closed
+rt16123				closed
+rt16124				closed
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
