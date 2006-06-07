@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.233 2006/05/16 04:06:55 marka Exp $ */
+/* $Id: rbtdb.c,v 1.234 2006/06/07 03:38:04 marka Exp $ */
 
 /*! \file */
 
@@ -1143,7 +1143,7 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	 * We cannot request the node reference be 0 at the moment, since
 	 * the reference counter can atomically be modified without a lock.
 	 * It should still be safe unless we actually try to delete the node,
-	 * at which point the operation is properly protected by locking.
+	 * at which point the condition is explicitly checked.
 	 */
 
 	locknum = node->locknum;
@@ -1161,7 +1161,7 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_read);
 
 	NODE_WEAKLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
-	if (node->dirty) {
+	if (node->dirty && dns_rbtnode_refcurrent(node) == 0) {
 		if (IS_CACHE(rbtdb))
 			clean_cache_node(rbtdb, node);
 		else {
@@ -1212,15 +1212,13 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = ISC_TRUE;
 
-	if (write_locked) {
+	if (write_locked && dns_rbtnode_refcurrent(node) == 0) {
 		/*
-		 * We are now ready for deleting the node.  The node and tree
-		 * locks must ensure there be no other users.  (Note that
-		 * dns_rbt_findnode() could find the node to be deleted while
-		 * we are in this function.  However, the tree lock would
-		 * prevent us from entering this section in that case.)
+		 * We can now delete the node if the reference counter must be
+		 * zero.  This should be typically the case, but a different
+		 * thread may still gain a (new) reference just before the
+		 * current thread locks the tree (e.g., in findnode()).
 		 */
-		INSIST(dns_rbtnode_refcurrent(node) == 0);
 
 		if (isc_log_wouldlog(dns_lctx, ISC_LOG_DEBUG(1))) {
 			char printname[DNS_NAME_FORMATSIZE];
