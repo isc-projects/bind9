@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.20 2006/05/17 02:38:42 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.35.18.21 2006/06/08 02:43:34 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -463,7 +463,7 @@ zone "eng.example.com" {
            [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</span>]</code></strong></span></dt>
 <dd><p>
                         Suspend updates to a dynamic zone.  If no zone is
-                        specified
+                        specified,
                         then all zones are suspended.  This allows manual
                         edits to be made to a zone normally updated by dynamic
                         update.  It
@@ -480,7 +480,7 @@ zone "eng.example.com" {
 <dd><p>
                         Enable updates to a frozen dynamic zone.  If no zone
                         is
-                        specified then all frozen zones are enabled.  This
+                        specified, then all frozen zones are enabled.  This
                         causes
                         the server to reload the zone from disk, and
                         re-enables dynamic updates
@@ -524,10 +524,10 @@ zone "eng.example.com" {
                         [<span class="optional">-all|-cache|-zone</span>]
                         [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
 <dd><p>
-                        Dump the server's caches (default) and / or zones to
+                        Dump the server's caches (default) and/or zones to
                         the
                         dump file for the specified views.  If no view is
-                        specified all
+                        specified, all
                         views are dumped.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>stop [<span class="optional">-p</span>]</code></strong></span></dt>
@@ -573,9 +573,9 @@ zone "eng.example.com" {
 <dt><span class="term"><strong class="userinput"><code>status</code></strong></span></dt>
 <dd><p>
                         Display status of the server.
-                        Note the number of zones includes the internal <span><strong class="command">bind/CH</strong></span> zone
+                        Note that the number of zones includes the internal <span><strong class="command">bind/CH</strong></span> zone
                         and the default <span><strong class="command">./IN</strong></span>
-                        hint zone if there is not a
+                        hint zone if there is not an
                         explicit root zone configured.
                       </p></dd>
 <dt><span class="term"><strong class="userinput"><code>recursing</code></strong></span></dt>
@@ -647,7 +647,7 @@ zone "eng.example.com" {
                   <span><strong class="command">server</strong></span> statement.
                 </p>
 <p>
-                  The <span><strong class="command">key</strong></span> statement defines an
+                  The <span><strong class="command">key</strong></span> statement defines a
                   key to be used
                   by <span><strong class="command">rndc</strong></span> when authenticating
                   with

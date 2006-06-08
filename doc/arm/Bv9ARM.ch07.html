@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch07.html,v 1.75.18.47 2006/05/17 02:38:43 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch07.html,v 1.75.18.48 2006/06/08 02:43:35 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -46,10 +46,10 @@
 <p><b>Table of Contents</b></p>
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#Access_Control_Lists">Access Control Lists</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2573323"><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span></a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch07.html#id2573258"><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span></a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2573399">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2573459">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2573335">The <span><strong class="command">chroot</strong></span> Environment</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch07.html#id2573395">Using the <span><strong class="command">setuid</strong></span> Function</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch07.html#dynamic_update_security">Dynamic Update Security</a></span></dt>
 </dl>
@@ -72,7 +72,7 @@
 <p>
           It is a <span class="emphasis"><em>good idea</em></span> to use ACLs, and to
           control access to your server. Limiting access to your server by
-          outside parties can help prevent spoofing and DoS attacks against
+          outside parties can help prevent spoofing and denial of service (DoS) attacks against
           your server.
         </p>
 <p>
@@ -118,10 +118,10 @@ zone "example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2573323"></a><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span></h2></div></div></div>
+<a name="id2573258"></a><span><strong class="command">chroot</strong></span> and <span><strong class="command">setuid</strong></span></h2></div></div></div>
 <p>
           On UNIX servers, it is possible to run <span class="acronym">BIND</span> in a <span class="emphasis"><em>chrooted</em></span> environment
-          (<span><strong class="command">chroot()</strong></span>) by specifying the "<code class="option">-t</code>"
+          (using the <span><strong class="command">chroot()</strong></span> function) by specifying the "<code class="option">-t</code>"
           option. This can help improve system security by placing <span class="acronym">BIND</span> in
           a "sandbox", which will limit the damage done if a server is
           compromised.
@@ -132,7 +132,7 @@ zone "example.com" {
           We suggest running as an unprivileged user when using the <span><strong class="command">chroot</strong></span> feature.
         </p>
 <p>
-          Here is an example command line to load <span class="acronym">BIND</span> in a <span><strong class="command">chroot()</strong></span> sandbox,
+          Here is an example command line to load <span class="acronym">BIND</span> in a <span><strong class="command">chroot</strong></span> sandbox,
           <span><strong class="command">/var/named</strong></span>, and to run <span><strong class="command">named</strong></span> <span><strong class="command">setuid</strong></span> to
           user 202:
         </p>
@@ -141,7 +141,7 @@ zone "example.com" {
         </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2573399"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
+<a name="id2573335"></a>The <span><strong class="command">chroot</strong></span> Environment</h3></div></div></div>
 <p>
             In order for a <span><strong class="command">chroot</strong></span> environment
             to
@@ -169,7 +169,7 @@ zone "example.com" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2573459"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
+<a name="id2573395"></a>Using the <span><strong class="command">setuid</strong></span> Function</h3></div></div></div>
 <p>
             Prior to running the <span><strong class="command">named</strong></span> daemon,
             use
@@ -195,7 +195,7 @@ zone "example.com" {
 <p>
           Access to the dynamic
           update facility should be strictly limited.  In earlier versions of
-          <span class="acronym">BIND</span> the only way to do this was
+          <span class="acronym">BIND</span>, the only way to do this was
           based on the IP
           address of the host requesting the update, by listing an IP address
           or
@@ -222,7 +222,7 @@ zone "example.com" {
           option can be used.
         </p>
 <p>
-          Some sites choose to keep all dynamically updated DNS data
+          Some sites choose to keep all dynamically-updated DNS data
           in a subdomain and delegate that subdomain to a separate zone. This
           way, the top-level zone containing critical data such as the IP
           addresses

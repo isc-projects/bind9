@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.40.18.27 2006/05/17 02:38:42 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.40.18.28 2006/06/08 02:43:34 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -56,21 +56,21 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2551890">Copying the Shared Secret to Both Machines</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2551900">Informing the Servers of the Key's Existence</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2551940">Instructing the Server to Use the Key</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2551997">TSIG Key Based Access Control</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552042">Errors</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2545102">TSIG Key Based Access Control</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2545147">Errors</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2552056">TKEY</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2552173">SIG(0)</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2545161">TKEY</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2552310">SIG(0)</a></span></dt>
 <dt><span class="sect1"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552310">Generating Keys</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552448">Signing the Zone</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552595">Configuring Servers</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552446">Generating Keys</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552584">Signing the Zone</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552731">Configuring Servers</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2552669">IPv6 Support in <span class="acronym">BIND</span> 9</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch04.html#id2552806">IPv6 Support in <span class="acronym">BIND</span> 9</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552800">Address Lookups Using AAAA Records</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552821">Address to Name Lookups Using Nibble Format</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552936">Address Lookups Using AAAA Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch04.html#id2552957">Address to Name Lookups Using Nibble Format</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -158,7 +158,7 @@
 <p>
           The zone files of dynamic zones cannot normally be edited by
           hand because they are not guaranteed to contain the most recent
-          dynamic changes - those are only in the journal file.
+          dynamic changes &#8212; those are only in the journal file.
           The only way to ensure that the zone file of a dynamic zone
           is up to date is to run <span><strong class="command">rndc stop</strong></span>.
         </p>
@@ -328,7 +328,7 @@
             <code class="literal">site2.internal</code> domains.
           </li>
 <li>Look up any hostnames on the Internet.</li>
-<li>Exchange mail with internal AND external people.</li>
+<li>Exchange mail with both internal and external people.</li>
 </ul></div>
 <p>
         Hosts on the Internet will be able to:
@@ -489,11 +489,11 @@ nameserver 172.16.72.4
 <div class="titlepage"><div><div><h4 class="title">
 <a name="id2551833"></a>Automatic Generation</h4></div></div></div>
 <p>
-            The following command will generate a 128 bit (16 byte) HMAC-MD5
+            The following command will generate a 128-bit (16 byte) HMAC-MD5
             key as described above. Longer keys are better, but shorter keys
             are easier to read. Note that the maximum key length is 512 bits;
-            keys longer than that will be digested with MD5 to produce a 128
-            bit key.
+            keys longer than that will be digested with MD5 to produce a
+            128-bit key.
           </p>
 <p>
             <strong class="userinput"><code>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</code></strong>
@@ -596,7 +596,7 @@ server 10.1.2.3 {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2551997"></a>TSIG Key Based Access Control</h3></div></div></div>
+<a name="id2545102"></a>TSIG Key Based Access Control</h3></div></div></div>
 <p>
           <span class="acronym">BIND</span> allows IP addresses and ranges
           to be specified in ACL
@@ -624,7 +624,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552042"></a>Errors</h3></div></div></div>
+<a name="id2545147"></a>Errors</h3></div></div></div>
 <p>
           The processing of TSIG signed messages can result in
           several errors. If a signed message is sent to a non-TSIG aware
@@ -650,7 +650,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2552056"></a>TKEY</h2></div></div></div>
+<a name="id2545161"></a>TKEY</h2></div></div></div>
 <p><span><strong class="command">TKEY</strong></span>
         is a mechanism for automatically generating a shared secret
         between two hosts.  There are several "modes" of
@@ -686,7 +686,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2552173"></a>SIG(0)</h2></div></div></div>
+<a name="id2552310"></a>SIG(0)</h2></div></div></div>
 <p>
         <span class="acronym">BIND</span> 9 partially supports DNSSEC SIG(0)
             transaction signatures as specified in RFC 2535 and RFC2931.
@@ -747,7 +747,7 @@ allow-update { key host1-host2. ;};
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552310"></a>Generating Keys</h3></div></div></div>
+<a name="id2552446"></a>Generating Keys</h3></div></div></div>
 <p>
           The <span><strong class="command">dnssec-keygen</strong></span> program is used to
           generate keys.
@@ -764,7 +764,7 @@ allow-update { key host1-host2. ;};
           the only one is RSASHA1.
         </p>
 <p>
-          The following command will generate a 768 bit RSASHA1 key for
+          The following command will generate a 768-bit RSASHA1 key for
           the <code class="filename">child.example</code> zone:
         </p>
 <p>
@@ -798,7 +798,7 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552448"></a>Signing the Zone</h3></div></div></div>
+<a name="id2552584"></a>Signing the Zone</h3></div></div></div>
 <p>
           The <span><strong class="command">dnssec-signzone</strong></span> program is used
           to
@@ -811,7 +811,7 @@ allow-update { key host1-host2. ;};
           records for the zone, as well as <code class="literal">DS</code>
           for
           the child zones if <code class="literal">'-d'</code> is specified.
-                If <code class="literal">'-d'</code> is not specified then
+                If <code class="literal">'-d'</code> is not specified, then
           DS RRsets for
           the secure child zones need to be added manually.
         </p>
@@ -842,10 +842,10 @@ allow-update { key host1-host2. ;};
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552595"></a>Configuring Servers</h3></div></div></div>
+<a name="id2552731"></a>Configuring Servers</h3></div></div></div>
 <p>
           To enable <span><strong class="command">named</strong></span> to respond appropriately
-          to DNS requests from DNSSEC aware clients
+          to DNS requests from DNSSEC aware clients,
           <span><strong class="command">dnssec-enable</strong></span> must be set to yes.
         </p>
 <p>
@@ -895,7 +895,7 @@ trusted-keys {
              iA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ97S+LKUTpQcq27R7AT3/V5hRQxScI
              Nqwcz4jYqZD2fQdgxbcDTClU0CRBdiieyLMNzXG3";
 
-/* Key for out organizations forward zone */
+/* Key for our organization's forward zone */
 example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM65KbhTjrW1ZaARmPhEZZe
                       3Y9ifgEuq7vZ/zGZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb4JKUbb
                       OTcM8pwXlj0EiX3oDFVmjHO444gLkBO UKUf/mC7HvfwYH/Be22GnC
@@ -930,7 +930,7 @@ options {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2552669"></a>IPv6 Support in <span class="acronym">BIND</span> 9</h2></div></div></div>
+<a name="id2552806"></a>IPv6 Support in <span class="acronym">BIND</span> 9</h2></div></div></div>
 <p>
         <span class="acronym">BIND</span> 9 fully supports all currently
         defined forms of IPv6
@@ -969,7 +969,7 @@ options {
       </p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552800"></a>Address Lookups Using AAAA Records</h3></div></div></div>
+<a name="id2552936"></a>Address Lookups Using AAAA Records</h3></div></div></div>
 <p>
           The IPv6 AAAA record is a parallel to the IPv4 A record,
           and, unlike the deprecated A6 record, specifies the entire
@@ -988,7 +988,7 @@ host            3600    IN      AAAA    2001:db8::1
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552821"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
+<a name="id2552957"></a>Address to Name Lookups Using Nibble Format</h3></div></div></div>
 <p>
           When looking up an address in nibble format, the address
           components are simply reversed, just as in IPv4, and
