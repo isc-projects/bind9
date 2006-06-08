@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.304 2006/06/04 23:17:06 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.305 2006/06/08 01:41:21 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -491,7 +491,7 @@
 
         <para>
           The length of time for which a record may be retained in
-          in the cache of a caching name server is controlled by the
+          the cache of a caching name server is controlled by the
           Time To Live (TTL) field associated with each resource record.
         </para>
 
@@ -1155,7 +1155,7 @@ zone "eng.example.com" {
                     <listitem>
                       <para>
                         Suspend updates to a dynamic zone.  If no zone is
-                        specified
+                        specified,
                         then all zones are suspended.  This allows manual
                         edits to be made to a zone normally updated by dynamic
                         update.  It
@@ -1177,7 +1177,7 @@ zone "eng.example.com" {
                       <para>
                         Enable updates to a frozen dynamic zone.  If no zone
                         is
-                        specified then all frozen zones are enabled.  This
+                        specified, then all frozen zones are enabled.  This
                         causes
                         the server to reload the zone from disk, and
                         re-enables dynamic updates
@@ -1246,10 +1246,10 @@ zone "eng.example.com" {
                         <optional><replaceable>view ...</replaceable></optional></userinput></term>
                     <listitem>
                       <para>
-                        Dump the server's caches (default) and / or zones to
+                        Dump the server's caches (default) and/or zones to
                         the
                         dump file for the specified views.  If no view is
-                        specified all
+                        specified, all
                         views are dumped.
                       </para>
                     </listitem>
@@ -1335,9 +1335,9 @@ zone "eng.example.com" {
                     <listitem>
                       <para>
                         Display status of the server.
-                        Note the number of zones includes the internal <command>bind/CH</command> zone
+                        Note that the number of zones includes the internal <command>bind/CH</command> zone
                         and the default <command>./IN</command>
-                        hint zone if there is not a
+                        hint zone if there is not an
                         explicit root zone configured.
                       </para>
                     </listitem>
@@ -1420,7 +1420,7 @@ zone "eng.example.com" {
                 </para>
 
                 <para>
-                  The <command>key</command> statement defines an
+                  The <command>key</command> statement defines a
                   key to be used
                   by <command>rndc</command> when authenticating
                   with
@@ -1672,7 +1672,7 @@ controls {
         <para>
           The zone files of dynamic zones cannot normally be edited by
           hand because they are not guaranteed to contain the most recent
-          dynamic changes - those are only in the journal file.
+          dynamic changes &mdash; those are only in the journal file.
           The only way to ensure that the zone file of a dynamic zone
           is up to date is to run <command>rndc stop</command>.
         </para>
@@ -1855,7 +1855,7 @@ controls {
           <simpara>Look up any hostnames on the Internet.</simpara>
         </listitem>
         <listitem>
-          <simpara>Exchange mail with internal AND external people.</simpara>
+          <simpara>Exchange mail with both internal and external people.</simpara>
         </listitem>
       </itemizedlist>
       <para>
@@ -2028,11 +2028,11 @@ nameserver 172.16.72.4
         <sect3>
           <title>Automatic Generation</title>
           <para>
-            The following command will generate a 128 bit (16 byte) HMAC-MD5
+            The following command will generate a 128-bit (16 byte) HMAC-MD5
             key as described above. Longer keys are better, but shorter keys
             are easier to read. Note that the maximum key length is 512 bits;
-            keys longer than that will be digested with MD5 to produce a 128
-            bit key.
+            keys longer than that will be digested with MD5 to produce a
+            128-bit key.
           </para>
           <para>
             <userinput>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</userinput>
@@ -2320,7 +2320,7 @@ allow-update { key host1-host2. ;};
         </para>
 
         <para>
-          The following command will generate a 768 bit RSASHA1 key for
+          The following command will generate a 768-bit RSASHA1 key for
           the <filename>child.example</filename> zone:
         </para>
 
@@ -2373,7 +2373,7 @@ allow-update { key host1-host2. ;};
           records for the zone, as well as <literal>DS</literal>
           for
           the child zones if <literal>'-d'</literal> is specified.
-                If <literal>'-d'</literal> is not specified then
+                If <literal>'-d'</literal> is not specified, then
           DS RRsets for
           the secure child zones need to be added manually.
         </para>
@@ -2413,7 +2413,7 @@ allow-update { key host1-host2. ;};
 
 	<para>
 	  To enable <command>named</command> to respond appropriately
-	  to DNS requests from DNSSEC aware clients
+	  to DNS requests from DNSSEC aware clients,
 	  <command>dnssec-enable</command> must be set to yes.
         </para>
 
@@ -2469,7 +2469,7 @@ trusted-keys {
 	     iA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ97S+LKUTpQcq27R7AT3/V5hRQxScI
 	     Nqwcz4jYqZD2fQdgxbcDTClU0CRBdiieyLMNzXG3";
 
-/* Key for out organizations forward zone */
+/* Key for our organization's forward zone */
 example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM65KbhTjrW1ZaARmPhEZZe
                       3Y9ifgEuq7vZ/zGZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb4JKUbb
 	              OTcM8pwXlj0EiX3oDFVmjHO444gLkBO UKUf/mC7HvfwYH/Be22GnC
@@ -2738,7 +2738,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               <entry colname="2">
                 <para>
                   A named list of one or more <varname>ip_addr</varname>
-		  with optional <varname>key_id</varname> and / or
+		  with optional <varname>key_id</varname> and/or
 		  <varname>ip_port</varname>.
 		  A <varname>masters_list</varname> may include other
 		  <varname>masters_lists</varname>.
@@ -2843,7 +2843,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
                   through 65535, with values
                   below 1024 typically restricted to use by processes running
                   as root.
-                  In some cases an asterisk (`*') character can be used as a
+                  In some cases, an asterisk (`*') character can be used as a
                   placeholder to
                   select a random high-numbered port.
                 </para>
@@ -2905,7 +2905,7 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
               </entry>
               <entry colname="2">
                 <para>
-                  A non-negative 32 bit integer
+                  A non-negative 32-bit integer
                   (i.e., a number between 0 and 4294967295, inclusive).
                   Its acceptable value might further
                   be limited by the context in which it is used.
@@ -3564,9 +3564,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
           <command>named</command> is running as) can access it.
           If you
           desire greater flexibility in allowing other users to access
-          <command>rndc</command> commands then you need to create
-          an
-          <filename>rndc.conf</filename> and make it group
+          <command>rndc</command> commands, then you need to create
+          a
+          <filename>rndc.conf</filename> file and make it group
           readable by a group
           that contains the users who should have access.
         </para>
@@ -3759,9 +3759,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
             option, then
             <command>named</command> will retain that many backup
             versions of the file by
-            renaming them when opening.  For example, if you choose to keep 3
-            old versions
-            of the file <filename>lamers.log</filename> then just
+            renaming them when opening.  For example, if you choose to keep
+            three old versions
+            of the file <filename>lamers.log</filename>, then just
             before it is opened
             <filename>lamers.log.1</filename> is renamed to
             <filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is renamed
@@ -4195,7 +4195,7 @@ category notify { null; };
                     </para>
                     <para>
                       The query log entry reports the client's IP address and
-                      port number.  The
+                      port number, and the
                       query name, class and type.  It also reports whether the
                       Recursion Desired
                       flag was set (+ if set, - if not set), EDNS was in use
@@ -4710,7 +4710,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
             <term><command>preferred-glue</command></term>
             <listitem>
               <para>
-                If specified the listed type (A or AAAA) will be emitted
+                If specified, the listed type (A or AAAA) will be emitted
                 before other glue
                 in the additional section of a query response.
                 The default is not to preference any type (NONE).
@@ -4727,7 +4727,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
                 exclude list.
               </para>
               <para>
-                Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US"
+                Note some TLDs are not delegation only (e.g. "DE", "LV", "US"
                 and "MUSEUM").
               </para>
 
@@ -4757,7 +4757,7 @@ options {
             <term><command>dnssec-lookaside</command></term>
             <listitem>
               <para>
-                When set <command>dnssec-lookaside</command>
+                When set, <command>dnssec-lookaside</command>
                 provides the
                 validator with an alternate method to validate DNSKEY records
                 at the
@@ -4780,12 +4780,12 @@ options {
             <term><command>dnssec-must-be-secure</command></term>
             <listitem>
               <para>
-                Specify hierarchies which must / may not be secure (signed and
+                Specify hierarchies which must be or may not be secure (signed and
                 validated).
-                If <userinput>yes</userinput> then named will only accept
+                If <userinput>yes</userinput>, then named will only accept
                 answers if they
                 are secure.
-                If <userinput>no</userinput> then normal dnssec validation
+                If <userinput>no</userinput>, then normal dnssec validation
                 applies
                 allowing for insecure answers to be accepted.
                 The specified domain must be under a <command>trusted-key</command> or
@@ -4837,7 +4837,7 @@ options {
                   If <userinput>yes</userinput>, then the
                   server treats all zones as if they are doing zone transfers
                   across
-                  a dial on demand dialup link, which can be brought up by
+                  a dial-on-demand dialup link, which can be brought up by
                   traffic
                   originating from this server. This has different effects
                   according
@@ -4856,7 +4856,7 @@ options {
                   option.
                 </para>
                 <para>
-                  If the zone is a master zone then the server will send out a
+                  If the zone is a master zone, then the server will send out a
                   NOTIFY
                   request to all the slaves (default). This should trigger the
                   zone serial
@@ -5434,7 +5434,7 @@ options {
               <term><command>ixfr-from-differences</command></term>
               <listitem>
                 <para>
-                  When 'yes' and the server loads a new version of a master
+                  When <userinput>yes</userinput> and the server loads a new version of a master
                   zone from its zone file or receives a new version of a slave
                   file by a non-incremental zone transfer, it will compare
                   the new version to the previous one and calculate a set
@@ -5471,7 +5471,7 @@ options {
                 <para>
                   This should be set when you have multiple masters for a zone
                   and the
-                  addresses refer to different machines.  If 'yes' named will
+                  addresses refer to different machines.  If <userinput>yes</userinput>, named will
                   not log
                   when the serial number on the master is less than what named
                   currently
@@ -5484,7 +5484,7 @@ options {
               <term><command>dnssec-enable</command></term>
               <listitem>
                 <para>
-                  Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>
+                  Enable DNSSEC support in named.  Unless set to <userinput>yes</userinput>,
                   named behaves as if it does not support DNSSEC.
                   The default is <userinput>yes</userinput>.
                 </para>
@@ -5507,7 +5507,7 @@ options {
               <term><command>dnssec-accept-expired</command></term>
               <listitem>
                 <para>
-		  When verifying DNSSEC signatures accept expired signatures.
+		  Accept expired signatures when verifying DNSSEC signatures.
                   The default is <userinput>no</userinput>.
                 </para>
               </listitem>
@@ -5518,8 +5518,8 @@ options {
               <listitem>
                 <para>
                   Specify whether query logging should be started when named
-                  start.
-                  If <command>querylog</command> is not specified
+                  starts.
+                  If <command>querylog</command> is not specified,
                   then the query logging
                   is determined by the presence of the logging category <command>queries</command>.
                 </para>
@@ -5539,11 +5539,11 @@ options {
                   <command>master</command> zones the default is <command>fail</command>.
                   For <command>slave</command> zones the default
                   is <command>warn</command>.
-                  For answer received from the network (<command>response</command>)
+                  For answers received from the network (<command>response</command>)
                   the default is <command>ignore</command>.
                 </para>
                 <para>
-                  The rules for legal hostnames or mail domains are derived
+                  The rules for legal hostnames and mail domains are derived
                   from RFC 952 and RFC 821 as modified by RFC 1123.
                 </para>
                 <para><command>check-names</command>
@@ -5628,7 +5628,7 @@ options {
 	      <term><command>check-sibling</command></term>
 	      <listitem>
 		<para>
-		  When performing integrity checks also check that
+		  When performing integrity checks, also check that
 		  sibling glue exists.  The default is <command>yes</command>.
 		</para>
 	      </listitem>
@@ -5707,8 +5707,8 @@ options {
                   This option is only meaningful if the
                   forwarders list is not empty. A value of <varname>first</varname>,
                   the default, causes the server to query the forwarders
-                  first, and
-                  if that doesn't answer the question the server will then
+                  first &mdash; and
+                  if that doesn't answer the question, the server will then
                   look for
                   the answer itself. If <varname>only</varname> is
                   specified, the
@@ -5756,11 +5756,11 @@ options {
               <listitem>
                 <para>
                   Specifies host names or addresses of machines with access to
-                  both IPv4 and IPv6 transports. If a hostname is used the
+                  both IPv4 and IPv6 transports. If a hostname is used, the
                   server must be able
                   to resolve the name using only the transport it has.  If the
                   machine is dual
-                  stacked then the <command>dual-stack-servers</command> have no effect unless
+                  stacked, then the <command>dual-stack-servers</command> have no effect unless
                   access to a transport has been disabled on the command line
                   (e.g. <command>named -4</command>).
                 </para>
@@ -6044,14 +6044,14 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
             query other name servers. <command>query-source</command> specifies
             the address and port used for such queries. For queries sent over
             IPv6, there is a separate <command>query-source-v6</command> option.
-            If <command>address</command> is <command>*</command> or is omitted,
+            If <command>address</command> is <command>*</command> (asterisk) or is omitted,
             a wildcard IP address (<command>INADDR_ANY</command>)
             will be used.
             If <command>port</command> is <command>*</command> or is omitted,
-            a random unprivileged port will be used, <command>avoid-v4-udp-ports</command>
-            and <command>avoid-v6-udp-ports</command> can be used
+            a random unprivileged port will be used. The <command>avoid-v4-udp-ports</command>
+            and <command>avoid-v6-udp-ports</command> options can be used
             to prevent named
-            from selecting certain ports. The defaults are
+            from selecting certain ports. The defaults are:
           </para>
 
 <programlisting>query-source address * port *;
@@ -6328,7 +6328,7 @@ query-source-v6 address * port *;
                 </para>
 		<note>
 		  If you do not wish the alternate transfer source
-		  to be used you should set
+		  to be used, you should set
 		  <command>use-alt-transfer-source</command>
 		  appropriately and you should not depend upon
 		  getting a answer back to the first refresh
@@ -6542,7 +6542,7 @@ query-source-v6 address * port *;
               <term><command>host-statistics-max</command></term>
               <listitem>
                 <para>
-                  In BIND 8, specifies the maximum number of host statistic
+                  In BIND 8, specifies the maximum number of host statistics
                   entries to be kept.
                   Not implemented in BIND 9.
                 </para>
@@ -6630,7 +6630,7 @@ query-source-v6 address * port *;
                   from the cache every <command>cleaning-interval</command> minutes.
                   The default is 60 minutes.  The maximum value is 28 days
                   (40320 minutes).
-                  If set to 0, no  periodic cleaning will occur.
+                  If set to 0, no periodic cleaning will occur.
                 </para>
               </listitem>
             </varlistentry>
@@ -6756,7 +6756,7 @@ query-source-v6 address * port *;
             other addresses.
             However, not all resolvers can do this or are correctly
             configured.
-            When a client is using a local server the sorting can be performed
+            When a client is using a local server, the sorting can be performed
             in the server, based on the client's address. This only requires
             configuring the name servers, not all the clients.
           </para>
@@ -6875,7 +6875,7 @@ query-source-v6 address * port *;
           <para>
             If no class is specified, the default is <command>ANY</command>.
             If no type is specified, the default is <command>ANY</command>.
-            If no name is specified, the default is "<command>*</command>".
+            If no name is specified, the default is "<command>*</command>" (asterisk).
           </para>
           <para>
             The legal values for <command>ordering</command> are:
@@ -6963,8 +6963,8 @@ query-source-v6 address * port *;
                   Sets the number of seconds to cache a
                   lame server indication. 0 disables caching. (This is
                   <emphasis role="bold">NOT</emphasis> recommended.)
-                  Default is <literal>600</literal> (10 minutes).
-                  Maximum value is
+                  The default is <literal>600</literal> (10 minutes) and the
+                  maximum value is
                   <literal>1800</literal> (30 minutes).
                 </para>
 
@@ -6975,7 +6975,7 @@ query-source-v6 address * port *;
               <term><command>max-ncache-ttl</command></term>
               <listitem>
                 <para>
-                  To reduce network traffic and increase performance
+                  To reduce network traffic and increase performance,
                   the server stores negative answers. <command>max-ncache-ttl</command> is
                   used to set a maximum retention time for these answers in
                   the server
@@ -7005,7 +7005,7 @@ query-source-v6 address * port *;
                 <para>
                   The minimum number of root servers that
                   is required for a request for the root servers to be
-                  accepted. Default
+                  accepted. The default
                   is <userinput>2</userinput>.
                 </para>
                 <note>
@@ -7065,11 +7065,11 @@ query-source-v6 address * port *;
               <term><command>edns-udp-size</command></term>
               <listitem>
                 <para>
-		  Sets the advertised EDNS UDP buffer size.  Valid
+		  Sets the advertised EDNS UDP buffer size in bytes.  Valid
                   values are 512 to 4096 (values outside this range
                   will be silently adjusted).  The default value is
                   4096.  The usual reason for setting edns-udp-size to
-                  a non default value it to get UDP answers to pass
+                  a non-default value it to get UDP answers to pass
                   through broken firewalls that block fragmented
                   packets and/or block UDP packets that are greater
                   than 512 bytes.
@@ -7082,10 +7082,10 @@ query-source-v6 address * port *;
               <listitem>
                 <para>
 		  Sets the maximum EDNS UDP message size named will
-		  send.  Valid values are 512 to 4096 (values outside
+		  send in bytes.  Valid values are 512 to 4096 (values outside
 		  this range will be silently adjusted).  The default
 		  value is 4096.  The usual reason for setting
-		  max-udp-size to a non default value it to get UDP
+		  max-udp-size to a non-default value is to get UDP
 		  answers to pass through broken firewalls that
 		  block fragmented packets and/or block UDP packets
 		  that are greater than 512 bytes.
@@ -7102,7 +7102,7 @@ query-source-v6 address * port *;
 	          The default value is <constant>text</constant>, which is the
 		  standard textual representation.  Files in other formats
 		  than <constant>text</constant> are typically expected
-		  to be generated by the <command>named-compilezone</command>.
+		  to be generated by the <command>named-compilezone</command> tool.
 		  Note that when a zone file in a different format than
 		  <constant>text</constant> is loaded, <command>named</command>
 	          may omit some of the checks which would be performed for a
@@ -7138,20 +7138,20 @@ query-source-v6 address * port *;
 		<para>
 	          This value should reflect how many queries come in for
 		  a given name in the time it takes to resolve that name.
-		  If the number of queries exceed this value named will
+		  If the number of queries exceed this value, named will
 		  assume that it is dealing with a non-responsive zone
 		  and will drop additional queries.  If it gets a response
-		  after dropping queries it will raise the estimate.  The
+		  after dropping queries, it will raise the estimate.  The
 		  estimate will then be lowered in 20 minutes if it has
 		  remained unchanged.
 		</para>
 		<para>
-		  If <command>clients-per-query</command> is set to zero
+		  If <command>clients-per-query</command> is set to zero,
 		  then there is no limit on the number of clients per query
 		  and no queries will be dropped.
 		</para>
 		<para>
-		  If <command>max-clients-per-query</command> is set to zero
+		  If <command>max-clients-per-query</command> is set to zero,
 		  then there is no upper bound other than imposed by
 		  <command>recursive-clients</command>.
 		</para>
@@ -7297,13 +7297,13 @@ query-source-v6 address * port *;
 	    views of class IN.  Disabled empty zones are only inherited
 	    from options if there are no disabled empty zones specified
 	    at the view level.  To override the options list of disabled
-	    zones you can disable the root zone at the view level, for example:
+	    zones, you can disable the root zone at the view level, for example:
 <programlisting>
 	    disable-empty-zone ".";
 </programlisting>
 	  </para>
 	  <para>
-	    If you are using the address ranges covered here you should
+	    If you are using the address ranges covered here, you should
 	    already have reverse zones covering the addresses you use.
 	    In practice this appears to not be the case with many queries
 	    being made to the infrustructure servers for names in these
@@ -7314,7 +7314,7 @@ query-source-v6 address * port *;
 	  <note>
 	    The real parent servers for these zones should disable all
 	    empty zone under the parent zone they serve.  For the real
-	    root servers this is all built in empty zones.  This will
+	    root servers, this is all built in empty zones.  This will
 	    enable them to return referrals to deeper in the tree.
 	  </note>
           <variablelist>
@@ -7323,7 +7323,7 @@ query-source-v6 address * port *;
 	      <listitem>
 	        <para>
 		  Specify what server name will appear in the returned
-		  SOA record for empty zones.  If none is specified then
+		  SOA record for empty zones.  If none is specified, then
 		  the zone's name will be used.
 	        </para>
 	       </listitem>
@@ -7334,7 +7334,7 @@ query-source-v6 address * port *;
 	      <listitem>
 	        <para>
 		  Specify what contact name will appear in the returned
-		  SOA record for empty zones.  If none is specified then
+		  SOA record for empty zones.  If none is specified, then
 		  "." will be used.
 	        </para>
 	      </listitem>
@@ -7344,7 +7344,7 @@ query-source-v6 address * port *;
 	      <term><command>empty-zones-enable</command></term>
 	      <listitem>
 	        <para>
-		  Enable / disable all empty zones.  By default they
+		  Enable or disable all empty zones.  By default they
 		  are enabled.
 	        </para>
 	      </listitem>
@@ -7354,7 +7354,7 @@ query-source-v6 address * port *;
 	    <term><command>disable-empty-zone</command></term>
 	      <listitem>
 	        <para>
-		  Disable a indiviual empty zones.  By default none are
+		  Disable individual empty zones.  By default none are
 		  disabled.  This option can be specified multiple times.
 	        </para>
 	      </listitem>
@@ -7581,7 +7581,7 @@ query-source-v6 address * port *;
                   based
                   algorithm, every <command>acache-cleaning-interval</command> minutes.
                   The default is 60 minutes.
-                  If set to 0, no  periodic cleaning will occur.
+                  If set to 0, no periodic cleaning will occur.
                 </para>
               </listitem>
             </varlistentry>
@@ -7590,11 +7590,10 @@ query-source-v6 address * port *;
               <term><command>max-acache-size</command></term>
               <listitem>
                 <para>
-                  The maximum amount of memory to use for the server's acache,
-                  in bytes.
+                  The maximum amount of memory in bytes to use for the server's acache.
                   When the amount of data in the acache reaches this limit,
                   the server
-                  will clean more aggressivly so that the limit is not
+                  will clean more aggressively so that the limit is not
                   exceeded.
                   In a server with multiple views, the limit applies
                   separately to the
@@ -7645,7 +7644,7 @@ query-source-v6 address * port *;
             The <command>server</command> statement defines
             characteristics
             to be associated with a remote name server.  If a prefix length is
-            specified then a range of servers is covered.  Only the most
+            specified, then a range of servers is covered.  Only the most
             specific
             server clause applies regardless of the order in
             <filename>named.conf</filename>.
@@ -7724,7 +7723,7 @@ query-source-v6 address * port *;
           <para>
             The <command>edns-udp-size</command> option sets the EDNS UDP size
 	    that is advertised by named when querying the remote server.
-	    Valid values are 512 to 4096 (values outside this range will be
+	    Valid values are 512 to 4096 bytes (values outside this range will be
 	    silently adjusted).  This option is useful when you wish to
 	    advertises a different value to this server than the value you
 	    advertise globally, for example, when there is a firewall at the
@@ -7734,7 +7733,7 @@ query-source-v6 address * port *;
           <para>
 	    The <command>max-udp-size</command> option sets the
 	    maximum EDNS UDP message size named will send.  Valid
-	    values are 512 to 4096 (values outside this range will
+	    values are 512 to 4096 bytes (values outside this range will
 	    be silently adjusted).  This option is useful when you
 	    know that there is a firewall that is blocking large
 	    replies from named.
@@ -7794,7 +7793,7 @@ query-source-v6 address * port *;
             Similarly, for an IPv6 remote server, only
             <command>transfer-source-v6</command> can be
             specified.
-            Form more details, see the description of
+            For more details, see the description of
             <command>transfer-source</command> and
             <command>transfer-source-v6</command> in
             <xref linkend="zone_transfers"/>.
@@ -7852,7 +7851,7 @@ query-source-v6 address * port *;
 	    <command>trusted-keys</command> are deemed to exist regardless
 	    of what parent zones say.  Similarly for all keys listed in
 	    <command>trusted-keys</command> only those keys are
-	    used to validate the DNSKEY RRset.  The parents DS RRset
+	    used to validate the DNSKEY RRset.  The parent's DS RRset
 	    will not be used.
 	  </para>
 	  <para>
@@ -7968,7 +7967,7 @@ query-source-v6 address * port *;
 
           <para>
             Here is an example of a typical split DNS setup implemented
-            using <command>view</command> statements.
+            using <command>view</command> statements:
           </para>
 
 <programlisting>view "internal" {
@@ -8198,7 +8197,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         numbers (in the
                         tens or hundreds of thousands) of zones per server, it
                         is best to
-                        use a two level naming scheme for zone file names. For
+                        use a two-level naming scheme for zone file names. For
                         example,
                         a slave server for the zone <literal>example.com</literal> might place
                         the zone contents into a file called
@@ -8293,8 +8292,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                         if you want to use this type of zone to change the
                         behavior of the
                         global <command>forward</command> option
-                        (that is, "forward first
-                        to", then "forward only", or vice versa, but want to
+                        (that is, "forward first"
+                        to, then "forward only", or vice versa, but want to
                         use the same
                         servers as set globally) you need to re-specify the
                         global forwarders.
@@ -8330,14 +8329,14 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        This is used to enforce the delegation only
+                        This is used to enforce the delegation-only
                         status of infrastructure zones (e.g. COM, NET, ORG).
                         Any answer that
-                        is received without a explicit or implicit delegation
+                        is received without an explicit or implicit delegation
                         in the authority
                         section will be treated as NXDOMAIN.  This does not
                         apply to the zone
-                        apex.  This SHOULD NOT be applied to leaf zones.
+                        apex.  This should not be applied to leaf zones.
                       </para>
                       <para>
                         <varname>delegation-only</varname> has no
@@ -8591,7 +8590,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                 <listitem>
                   <para>
                     The flag only applies to hint and stub zones.  If set
-                    to <userinput>yes</userinput> then the zone will also be
+                    to <userinput>yes</userinput>, then the zone will also be
                     treated as if it
                     is also a delegation-only type zone.
                   </para>
@@ -8617,7 +8616,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                   <para>
                     Used to override the list of global forwarders.
                     If it is not specified in a zone of type <command>forward</command>,
-                    no forwarding is done for the zone; the global options are
+                    no forwarding is done for the zone and the global options are
                     not used.
                   </para>
                 </listitem>
@@ -9022,7 +9021,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
 			name to update, where the key has the same
 			name as the name to be updated.  The
 			<replaceable>identity</replaceable> would
-			be specified as <constant>*</constant> in
+			be specified as <constant>*</constant> (an asterisk) in
 			this case.
 		      </para>
 		    </entry>
@@ -9129,7 +9128,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        An encoded 16 bit value that specifies
+                        An encoded 16-bit value that specifies
                         the type of the resource record.
                       </para>
                     </entry>
@@ -9142,8 +9141,8 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        The time to live of the RR. This field
-                        is a 32 bit integer in units of seconds, and is
+                        The time-to-live of the RR. This field
+                        is a 32-bit integer in units of seconds, and is
                         primarily used by
                         resolvers when they cache RRs. The TTL describes how
                         long a RR can
@@ -9159,7 +9158,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     </entry>
                     <entry colname="2">
                       <para>
-                        An encoded 16 bit value that identifies
+                        An encoded 16-bit value that identifies
                         a protocol family or instance of a protocol.
                       </para>
                     </entry>
@@ -9413,7 +9412,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
                     <entry colname="2">
                       <para>
                         Identifies a mail exchange for the domain with
-                        a 16 bit preference value (lower is better)
+                        a 16-bit preference value (lower is better)
                         followed by the host name of the mail exchange.
                         Described in RFC 974, RFC 1035.
                       </para>
@@ -9887,13 +9886,13 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               </tgroup>
             </informaltable>
             <para>
-              The MX RRs have an RDATA section which consists of a 16 bit
+              The MX RRs have an RDATA section which consists of a 16-bit
               number followed by a domain name.  The address RRs use a
               standard
-              IP address format to contain a 32 bit internet address.
+              IP address format to contain a 32-bit internet address.
             </para>
             <para>
-              This example shows six RRs, with two RRs at each of three
+              The above example shows six RRs, with two RRs at each of three
               domain names.
             </para>
             <para>
@@ -10132,7 +10131,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
         <sect2 id="Setting_TTLs">
           <title>Setting TTLs</title>
           <para>
-            The time to live of the RR field is a 32 bit integer represented
+            The time-to-live of the RR field is a 32-bit integer represented
             in units of seconds, and is primarily used by resolvers when they
             cache RRs. The TTL describes how long a RR can be cached before it
             should be discarded. The following three types of TTL are
@@ -10406,7 +10405,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                   <entry colname="2">
                     <para>
                       This can be one of two forms: start-stop
-                      or start-stop/step. If the first form is used then step
+                      or start-stop/step. If the first form is used, then step
                       is set to
                       1. All of start, stop and step must be positive.
                     </para>
@@ -10420,6 +10419,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                     <para><command>lhs</command>
 		      describes the owner name of the resource records
                       to be created.  Any single <command>$</command>
+                      (dollar sign)
                       symbols within the <command>lhs</command> side
                       are replaced by the iterator value.
 
@@ -10437,7 +10437,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                       <command>${offset[,width[,base]]}</command>.
                       For example, <command>${-20,3,d}</command>
                       subtracts 20 from the current value, prints the
-                      result as a decimal in a zero padded field of
+                      result as a decimal in a zero-padded field of
                       width 3.
 
 		      Available output forms are decimal
@@ -10451,7 +10451,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
                       to the name.
                     </para>
                     <para>
-                      For compatibility with earlier versions <command>$$</command> is still
+                      For compatibility with earlier versions, <command>$$</command> is still
                       recognized as indicating a literal $ in the output.
                     </para>
                   </entry>
@@ -10584,7 +10584,7 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
         <para>
           It is a <emphasis>good idea</emphasis> to use ACLs, and to
           control access to your server. Limiting access to your server by
-          outside parties can help prevent spoofing and DoS attacks against
+          outside parties can help prevent spoofing and denial of service (DoS) attacks against
           your server.
         </para>
         <para>
@@ -10635,7 +10635,7 @@ zone "example.com" {
         <title><command>chroot</command> and <command>setuid</command></title>
         <para>
           On UNIX servers, it is possible to run <acronym>BIND</acronym> in a <emphasis>chrooted</emphasis> environment
-          (<command>chroot()</command>) by specifying the "<option>-t</option>"
+          (using the <command>chroot()</command> function) by specifying the "<option>-t</option>"
           option. This can help improve system security by placing <acronym>BIND</acronym> in
           a "sandbox", which will limit the damage done if a server is
           compromised.
@@ -10646,7 +10646,7 @@ zone "example.com" {
           We suggest running as an unprivileged user when using the <command>chroot</command> feature.
         </para>
         <para>
-          Here is an example command line to load <acronym>BIND</acronym> in a <command>chroot()</command> sandbox,
+          Here is an example command line to load <acronym>BIND</acronym> in a <command>chroot</command> sandbox,
           <command>/var/named</command>, and to run <command>named</command> <command>setuid</command> to
           user 202:
         </para>
@@ -10711,7 +10711,7 @@ zone "example.com" {
         <para>
           Access to the dynamic
           update facility should be strictly limited.  In earlier versions of
-          <acronym>BIND</acronym> the only way to do this was
+          <acronym>BIND</acronym>, the only way to do this was
           based on the IP
           address of the host requesting the update, by listing an IP address
           or
@@ -10740,7 +10740,7 @@ zone "example.com" {
         </para>
 
         <para>
-          Some sites choose to keep all dynamically updated DNS data
+          Some sites choose to keep all dynamically-updated DNS data
           in a subdomain and delegate that subdomain to a separate zone. This
           way, the top-level zone containing critical data such as the IP
           addresses
@@ -10838,7 +10838,7 @@ zone "example.com" {
             core of the new system was described in 1983 in RFCs 882 and
             883. From 1984 to 1987, the ARPAnet (the precursor to today's
             Internet) became a testbed of experimentation for developing the
-            new naming/addressing scheme in an rapidly expanding,
+            new naming/addressing scheme in a rapidly expanding,
             operational network environment.  New RFCs were written and
             published in 1987 that modified the original documents to
             incorporate improvements based on the working model. RFC 1034,
@@ -10886,7 +10886,7 @@ zone "example.com" {
             released by Digital Equipment
             Corporation (now Compaq Computer Corporation). Paul Vixie, then
             a DEC employee, became <acronym>BIND</acronym>'s
-            primary caretaker. Paul was assisted
+            primary caretaker. He was assisted
             by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan
             Beecher, Andrew
             Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
@@ -10894,7 +10894,7 @@ zone "example.com" {
             Wolfhugel, and others.
           </para>
           <para>
-            <acronym>BIND</acronym> Version 4.9.2 was sponsored by
+            <acronym>BIND</acronym> version 4.9.2 was sponsored by
             Vixie Enterprises. Paul
             Vixie became <acronym>BIND</acronym>'s principal
             architect/programmer.
@@ -12044,7 +12044,7 @@ zone "example.com" {
               </biblioentry>
             </bibliodiv>
             <bibliodiv>
-              <title>Obsoleted DNS Security RFC</title>
+              <title>Obsoleted DNS Security RFCs</title>
 	      <note>
 		<para>
 		  Most of these have been consolidated into RFC4033,
