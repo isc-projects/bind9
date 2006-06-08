@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.138 2006/06/04 23:38:17 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.139 2006/06/08 02:44:05 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -55,7 +55,7 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2554882"><span><strong class="command">acl</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#acl"><span><strong class="command">acl</strong></span> Statement Definition and
           Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2555072"><span><strong class="command">controls</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2555140"><span><strong class="command">controls</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#controls_statement_definition_and_usage"><span><strong class="command">controls</strong></span> Statement Definition and
           Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2555432"><span><strong class="command">include</strong></span> Statement Grammar</a></span></dt>
@@ -77,23 +77,23 @@
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and
             Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2565882"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2565931"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2565889"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2565938"><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566011"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566018"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
             Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2567457"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2567395"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2569739">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2569676">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2571556">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2571629">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572244">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572371">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572696"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572317">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572444">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2572701"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zonefile_format">Additional File Formats</a></span></dt>
 </dl></dd>
 </dl>
@@ -165,7 +165,7 @@
 <td>
                 <p>
                   A named list of one or more <code class="varname">ip_addr</code>
-                  with optional <code class="varname">key_id</code> and / or
+                  with optional <code class="varname">key_id</code> and/or
                   <code class="varname">ip_port</code>.
                   A <code class="varname">masters_list</code> may include other
                   <code class="varname">masters_lists</code>.
@@ -270,7 +270,7 @@
                   through 65535, with values
                   below 1024 typically restricted to use by processes running
                   as root.
-                  In some cases an asterisk (`*') character can be used as a
+                  In some cases, an asterisk (`*') character can be used as a
                   placeholder to
                   select a random high-numbered port.
                 </p>
@@ -332,7 +332,7 @@
               </td>
 <td>
                 <p>
-                  A non-negative 32 bit integer
+                  A non-negative 32-bit integer
                   (i.e., a number between 0 and 4294967295, inclusive).
                   Its acceptable value might further
                   be limited by the context in which it is used.
@@ -857,7 +857,7 @@
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2555072"></a><span><strong class="command">controls</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2555140"></a><span><strong class="command">controls</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">controls</strong></span> {
    [ inet ( ip_addr | * ) [ port ip_port ] allow { <em class="replaceable"><code> address_match_list </code></em> }
                 keys { <em class="replaceable"><code>key_list</code></em> }; ]
@@ -965,9 +965,9 @@
           <span><strong class="command">named</strong></span> is running as) can access it.
           If you
           desire greater flexibility in allowing other users to access
-          <span><strong class="command">rndc</strong></span> commands then you need to create
-          an
-          <code class="filename">rndc.conf</code> and make it group
+          <span><strong class="command">rndc</strong></span> commands, then you need to create
+          a
+          <code class="filename">rndc.conf</code> file and make it group
           readable by a group
           that contains the users who should have access.
         </p>
@@ -1147,9 +1147,9 @@
             option, then
             <span><strong class="command">named</strong></span> will retain that many backup
             versions of the file by
-            renaming them when opening.  For example, if you choose to keep 3
-            old versions
-            of the file <code class="filename">lamers.log</code> then just
+            renaming them when opening.  For example, if you choose to keep
+            three old versions
+            of the file <code class="filename">lamers.log</code>, then just
             before it is opened
             <code class="filename">lamers.log.1</code> is renamed to
             <code class="filename">lamers.log.2</code>, <code class="filename">lamers.log.0</code> is renamed
@@ -1563,7 +1563,7 @@ category notify { null; };
                     </p>
                     <p>
                       The query log entry reports the client's IP address and
-                      port number.  The
+                      port number, and the
                       query name, class and type.  It also reports whether the
                       Recursion Desired
                       flag was set (+ if set, - if not set), EDNS was in use
@@ -2006,7 +2006,7 @@ digits</code>" + "<code class="varname">tkey-domain</code>". In most cases,
               </p></dd>
 <dt><span class="term"><span><strong class="command">preferred-glue</strong></span></span></dt>
 <dd><p>
-                If specified the listed type (A or AAAA) will be emitted
+                If specified, the listed type (A or AAAA) will be emitted
                 before other glue
                 in the additional section of a query response.
                 The default is not to preference any type (NONE).
@@ -2019,7 +2019,7 @@ digits</code>" + "<code class="varname">tkey-domain</code>". In most cases,
                 exclude list.
               </p>
 <p>
-                Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US"
+                Note some TLDs are not delegation only (e.g. "DE", "LV", "US"
                 and "MUSEUM").
               </p>
 <pre class="programlisting">
@@ -2038,7 +2038,7 @@ options {
               </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-lookaside</strong></span></span></dt>
 <dd><p>
-                When set <span><strong class="command">dnssec-lookaside</strong></span>
+                When set, <span><strong class="command">dnssec-lookaside</strong></span>
                 provides the
                 validator with an alternate method to validate DNSKEY records
                 at the
@@ -2056,12 +2056,12 @@ options {
               </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-must-be-secure</strong></span></span></dt>
 <dd><p>
-                Specify hierarchies which must / may not be secure (signed and
+                Specify hierarchies which must be or may not be secure (signed and
                 validated).
-                If <strong class="userinput"><code>yes</code></strong> then named will only accept
+                If <strong class="userinput"><code>yes</code></strong>, then named will only accept
                 answers if they
                 are secure.
-                If <strong class="userinput"><code>no</code></strong> then normal dnssec validation
+                If <strong class="userinput"><code>no</code></strong>, then normal dnssec validation
                 applies
                 allowing for insecure answers to be accepted.
                 The specified domain must be under a <span><strong class="command">trusted-key</strong></span> or
@@ -2097,7 +2097,7 @@ options {
                   If <strong class="userinput"><code>yes</code></strong>, then the
                   server treats all zones as if they are doing zone transfers
                   across
-                  a dial on demand dialup link, which can be brought up by
+                  a dial-on-demand dialup link, which can be brought up by
                   traffic
                   originating from this server. This has different effects
                   according
@@ -2116,7 +2116,7 @@ options {
                   option.
                 </p>
 <p>
-                  If the zone is a master zone then the server will send out a
+                  If the zone is a master zone, then the server will send out a
                   NOTIFY
                   request to all the slaves (default). This should trigger the
                   zone serial
@@ -2600,7 +2600,7 @@ options {
 <dt><span class="term"><span><strong class="command">ixfr-from-differences</strong></span></span></dt>
 <dd>
 <p>
-                  When 'yes' and the server loads a new version of a master
+                  When <strong class="userinput"><code>yes</code></strong> and the server loads a new version of a master
                   zone from its zone file or receives a new version of a slave
                   file by a non-incremental zone transfer, it will compare
                   the new version to the previous one and calculate a set
@@ -2633,7 +2633,7 @@ options {
 <dd><p>
                   This should be set when you have multiple masters for a zone
                   and the
-                  addresses refer to different machines.  If 'yes' named will
+                  addresses refer to different machines.  If <strong class="userinput"><code>yes</code></strong>, named will
                   not log
                   when the serial number on the master is less than what named
                   currently
@@ -2641,7 +2641,7 @@ options {
                 </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-enable</strong></span></span></dt>
 <dd><p>
-                  Enable DNSSEC support in named.  Unless set to <strong class="userinput"><code>yes</code></strong>
+                  Enable DNSSEC support in named.  Unless set to <strong class="userinput"><code>yes</code></strong>,
                   named behaves as if it does not support DNSSEC.
                   The default is <strong class="userinput"><code>yes</code></strong>.
                 </p></dd>
@@ -2654,14 +2654,14 @@ options {
                 </p></dd>
 <dt><span class="term"><span><strong class="command">dnssec-accept-expired</strong></span></span></dt>
 <dd><p>
-                  When verifying DNSSEC signatures accept expired signatures.
+                  Accept expired signatures when verifying DNSSEC signatures.
                   The default is <strong class="userinput"><code>no</code></strong>.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">querylog</strong></span></span></dt>
 <dd><p>
                   Specify whether query logging should be started when named
-                  start.
-                  If <span><strong class="command">querylog</strong></span> is not specified
+                  starts.
+                  If <span><strong class="command">querylog</strong></span> is not specified,
                   then the query logging
                   is determined by the presence of the logging category <span><strong class="command">queries</strong></span>.
                 </p></dd>
@@ -2677,11 +2677,11 @@ options {
                   <span><strong class="command">master</strong></span> zones the default is <span><strong class="command">fail</strong></span>.
                   For <span><strong class="command">slave</strong></span> zones the default
                   is <span><strong class="command">warn</strong></span>.
-                  For answer received from the network (<span><strong class="command">response</strong></span>)
+                  For answers received from the network (<span><strong class="command">response</strong></span>)
                   the default is <span><strong class="command">ignore</strong></span>.
                 </p>
 <p>
-                  The rules for legal hostnames or mail domains are derived
+                  The rules for legal hostnames and mail domains are derived
                   from RFC 952 and RFC 821 as modified by RFC 1123.
                 </p>
 <p><span><strong class="command">check-names</strong></span>
@@ -2737,7 +2737,7 @@ options {
                 </p></dd>
 <dt><span class="term"><span><strong class="command">check-sibling</strong></span></span></dt>
 <dd><p>
-                  When performing integrity checks also check that
+                  When performing integrity checks, also check that
                   sibling glue exists.  The default is <span><strong class="command">yes</strong></span>.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">zero-no-soa-ttl</strong></span></span></dt>
@@ -2772,7 +2772,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2561272"></a>Forwarding</h4></div></div></div>
+<a name="id2561278"></a>Forwarding</h4></div></div></div>
 <p>
             The forwarding facility can be used to create a large site-wide
             cache on a few servers, reducing traffic over links to external
@@ -2789,8 +2789,8 @@ options {
                   This option is only meaningful if the
                   forwarders list is not empty. A value of <code class="varname">first</code>,
                   the default, causes the server to query the forwarders
-                  first, and
-                  if that doesn't answer the question the server will then
+                  first &#8212; and
+                  if that doesn't answer the question, the server will then
                   look for
                   the answer itself. If <code class="varname">only</code> is
                   specified, the
@@ -2816,7 +2816,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2561331"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2561337"></a>Dual-stack Servers</h4></div></div></div>
 <p>
             Dual-stack servers are used as servers of last resort to work
             around
@@ -2828,11 +2828,11 @@ options {
 <dt><span class="term"><span><strong class="command">dual-stack-servers</strong></span></span></dt>
 <dd><p>
                   Specifies host names or addresses of machines with access to
-                  both IPv4 and IPv6 transports. If a hostname is used the
+                  both IPv4 and IPv6 transports. If a hostname is used, the
                   server must be able
                   to resolve the name using only the transport it has.  If the
                   machine is dual
-                  stacked then the <span><strong class="command">dual-stack-servers</strong></span> have no effect unless
+                  stacked, then the <span><strong class="command">dual-stack-servers</strong></span> have no effect unless
                   access to a transport has been disabled on the command line
                   (e.g. <span><strong class="command">named -4</strong></span>).
                 </p></dd>
@@ -2976,7 +2976,7 @@ options {
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2561670"></a>Interfaces</h4></div></div></div>
+<a name="id2561676"></a>Interfaces</h4></div></div></div>
 <p>
             The interfaces and ports that the server will answer queries
             from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
@@ -3056,20 +3056,20 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2561827"></a>Query Address</h4></div></div></div>
+<a name="id2561765"></a>Query Address</h4></div></div></div>
 <p>
             If the server doesn't know the answer to a question, it will
             query other name servers. <span><strong class="command">query-source</strong></span> specifies
             the address and port used for such queries. For queries sent over
             IPv6, there is a separate <span><strong class="command">query-source-v6</strong></span> option.
-            If <span><strong class="command">address</strong></span> is <span><strong class="command">*</strong></span> or is omitted,
+            If <span><strong class="command">address</strong></span> is <span><strong class="command">*</strong></span> (asterisk) or is omitted,
             a wildcard IP address (<span><strong class="command">INADDR_ANY</strong></span>)
             will be used.
             If <span><strong class="command">port</strong></span> is <span><strong class="command">*</strong></span> or is omitted,
-            a random unprivileged port will be used, <span><strong class="command">avoid-v4-udp-ports</strong></span>
-            and <span><strong class="command">avoid-v6-udp-ports</strong></span> can be used
+            a random unprivileged port will be used. The <span><strong class="command">avoid-v4-udp-ports</strong></span>
+            and <span><strong class="command">avoid-v6-udp-ports</strong></span> options can be used
             to prevent named
-            from selecting certain ports. The defaults are
+            from selecting certain ports. The defaults are:
           </p>
 <pre class="programlisting">query-source address * port *;
 query-source-v6 address * port *;
@@ -3281,7 +3281,7 @@ query-source-v6 address * port *;
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
                   If you do not wish the alternate transfer source
-                  to be used you should set
+                  to be used, you should set
                   <span><strong class="command">use-alt-transfer-source</strong></span>
                   appropriately and you should not depend upon
                   getting a answer back to the first refresh
@@ -3336,7 +3336,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2562710"></a>Bad UDP Port Lists</h4></div></div></div>
+<a name="id2562716"></a>Bad UDP Port Lists</h4></div></div></div>
 <p><span><strong class="command">avoid-v4-udp-ports</strong></span>
             and <span><strong class="command">avoid-v6-udp-ports</strong></span> specify a list
             of IPv4 and IPv6 UDP ports that will not be used as system
@@ -3350,7 +3350,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2562725"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2562800"></a>Operating System Resource Limits</h4></div></div></div>
 <p>
             The server's usage of many system resources can be limited.
             Scaled values are allowed when specifying resource limits.  For
@@ -3409,7 +3409,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2562977"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2562915"></a>Server  Resource Limits</h4></div></div></div>
 <p>
             The following options set limits on the server's
             resource consumption that are enforced internally by the
@@ -3435,7 +3435,7 @@ query-source-v6 address * port *;
                 </p></dd>
 <dt><span class="term"><span><strong class="command">host-statistics-max</strong></span></span></dt>
 <dd><p>
-                  In BIND 8, specifies the maximum number of host statistic
+                  In BIND 8, specifies the maximum number of host statistics
                   entries to be kept.
                   Not implemented in BIND 9.
                 </p></dd>
@@ -3487,7 +3487,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2563178"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2563116"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>
@@ -3495,7 +3495,7 @@ query-source-v6 address * port *;
                   from the cache every <span><strong class="command">cleaning-interval</strong></span> minutes.
                   The default is 60 minutes.  The maximum value is 28 days
                   (40320 minutes).
-                  If set to 0, no  periodic cleaning will occur.
+                  If set to 0, no periodic cleaning will occur.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">heartbeat-interval</strong></span></span></dt>
 <dd><p>
@@ -3600,7 +3600,7 @@ query-source-v6 address * port *;
             other addresses.
             However, not all resolvers can do this or are correctly
             configured.
-            When a client is using a local server the sorting can be performed
+            When a client is using a local server, the sorting can be performed
             in the server, based on the client's address. This only requires
             configuring the name servers, not all the clients.
           </p>
@@ -3714,7 +3714,7 @@ query-source-v6 address * port *;
 <p>
             If no class is specified, the default is <span><strong class="command">ANY</strong></span>.
             If no type is specified, the default is <span><strong class="command">ANY</strong></span>.
-            If no name is specified, the default is "<span><strong class="command">*</strong></span>".
+            If no name is specified, the default is "<span><strong class="command">*</strong></span>" (asterisk).
           </p>
 <p>
             The legal values for <span><strong class="command">ordering</strong></span> are:
@@ -3796,13 +3796,13 @@ query-source-v6 address * port *;
                   Sets the number of seconds to cache a
                   lame server indication. 0 disables caching. (This is
                   <span class="bold"><strong>NOT</strong></span> recommended.)
-                  Default is <code class="literal">600</code> (10 minutes).
-                  Maximum value is
+                  The default is <code class="literal">600</code> (10 minutes) and the
+                  maximum value is
                   <code class="literal">1800</code> (30 minutes).
                 </p></dd>
 <dt><span class="term"><span><strong class="command">max-ncache-ttl</strong></span></span></dt>
 <dd><p>
-                  To reduce network traffic and increase performance
+                  To reduce network traffic and increase performance,
                   the server stores negative answers. <span><strong class="command">max-ncache-ttl</strong></span> is
                   used to set a maximum retention time for these answers in
                   the server
@@ -3823,7 +3823,7 @@ query-source-v6 address * port *;
 <p>
                   The minimum number of root servers that
                   is required for a request for the root servers to be
-                  accepted. Default
+                  accepted. The default
                   is <strong class="userinput"><code>2</code></strong>.
                 </p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -3871,11 +3871,11 @@ query-source-v6 address * port *;
 </dd>
 <dt><span class="term"><span><strong class="command">edns-udp-size</strong></span></span></dt>
 <dd><p>
-                  Sets the advertised EDNS UDP buffer size.  Valid
+                  Sets the advertised EDNS UDP buffer size in bytes.  Valid
                   values are 512 to 4096 (values outside this range
                   will be silently adjusted).  The default value is
                   4096.  The usual reason for setting edns-udp-size to
-                  a non default value it to get UDP answers to pass
+                  a non-default value it to get UDP answers to pass
                   through broken firewalls that block fragmented
                   packets and/or block UDP packets that are greater
                   than 512 bytes.
@@ -3883,10 +3883,10 @@ query-source-v6 address * port *;
 <dt><span class="term"><span><strong class="command">max-udp-size</strong></span></span></dt>
 <dd><p>
                   Sets the maximum EDNS UDP message size named will
-                  send.  Valid values are 512 to 4096 (values outside
+                  send in bytes.  Valid values are 512 to 4096 (values outside
                   this range will be silently adjusted).  The default
                   value is 4096.  The usual reason for setting
-                  max-udp-size to a non default value it to get UDP
+                  max-udp-size to a non-default value is to get UDP
                   answers to pass through broken firewalls that
                   block fragmented packets and/or block UDP packets
                   that are greater than 512 bytes.
@@ -3898,7 +3898,7 @@ query-source-v6 address * port *;
                   The default value is <code class="constant">text</code>, which is the
                   standard textual representation.  Files in other formats
                   than <code class="constant">text</code> are typically expected
-                  to be generated by the <span><strong class="command">named-compilezone</strong></span>.
+                  to be generated by the <span><strong class="command">named-compilezone</strong></span> tool.
                   Note that when a zone file in a different format than
                   <code class="constant">text</code> is loaded, <span><strong class="command">named</strong></span>
                   may omit some of the checks which would be performed for a
@@ -3931,20 +3931,20 @@ query-source-v6 address * port *;
 <p>
                   This value should reflect how many queries come in for
                   a given name in the time it takes to resolve that name.
-                  If the number of queries exceed this value named will
+                  If the number of queries exceed this value, named will
                   assume that it is dealing with a non-responsive zone
                   and will drop additional queries.  If it gets a response
-                  after dropping queries it will raise the estimate.  The
+                  after dropping queries, it will raise the estimate.  The
                   estimate will then be lowered in 20 minutes if it has
                   remained unchanged.
                 </p>
 <p>
-                  If <span><strong class="command">clients-per-query</strong></span> is set to zero
+                  If <span><strong class="command">clients-per-query</strong></span> is set to zero,
                   then there is no limit on the number of clients per query
                   and no queries will be dropped.
                 </p>
 <p>
-                  If <span><strong class="command">max-clients-per-query</strong></span> is set to zero
+                  If <span><strong class="command">max-clients-per-query</strong></span> is set to zero,
                   then there is no upper bound other than imposed by
                   <span><strong class="command">recursive-clients</strong></span>.
                 </p>
@@ -4071,7 +4071,7 @@ query-source-v6 address * port *;
             views of class IN.  Disabled empty zones are only inherited
             from options if there are no disabled empty zones specified
             at the view level.  To override the options list of disabled
-            zones you can disable the root zone at the view level, for example:
+            zones, you can disable the root zone at the view level, for example:
 </p>
 <pre class="programlisting">
             disable-empty-zone ".";
@@ -4079,7 +4079,7 @@ query-source-v6 address * port *;
 <p>
           </p>
 <p>
-            If you are using the address ranges covered here you should
+            If you are using the address ranges covered here, you should
             already have reverse zones covering the addresses you use.
             In practice this appears to not be the case with many queries
             being made to the infrustructure servers for names in these
@@ -4091,30 +4091,30 @@ query-source-v6 address * port *;
 <h3 class="title">Note</h3>
             The real parent servers for these zones should disable all
             empty zone under the parent zone they serve.  For the real
-            root servers this is all built in empty zones.  This will
+            root servers, this is all built in empty zones.  This will
             enable them to return referrals to deeper in the tree.
           </div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">empty-server</strong></span></span></dt>
 <dd><p>
                   Specify what server name will appear in the returned
-                  SOA record for empty zones.  If none is specified then
+                  SOA record for empty zones.  If none is specified, then
                   the zone's name will be used.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">empty-contact</strong></span></span></dt>
 <dd><p>
                   Specify what contact name will appear in the returned
-                  SOA record for empty zones.  If none is specified then
+                  SOA record for empty zones.  If none is specified, then
                   "." will be used.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">empty-zones-enable</strong></span></span></dt>
 <dd><p>
-                  Enable / disable all empty zones.  By default they
+                  Enable or disable all empty zones.  By default they
                   are enabled.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">disable-empty-zone</strong></span></span></dt>
 <dd><p>
-                  Disable a indiviual empty zones.  By default none are
+                  Disable individual empty zones.  By default none are
                   disabled.  This option can be specified multiple times.
                 </p></dd>
 </dl></div>
@@ -4321,15 +4321,14 @@ query-source-v6 address * port *;
                   based
                   algorithm, every <span><strong class="command">acache-cleaning-interval</strong></span> minutes.
                   The default is 60 minutes.
-                  If set to 0, no  periodic cleaning will occur.
+                  If set to 0, no periodic cleaning will occur.
                 </p></dd>
 <dt><span class="term"><span><strong class="command">max-acache-size</strong></span></span></dt>
 <dd><p>
-                  The maximum amount of memory to use for the server's acache,
-                  in bytes.
+                  The maximum amount of memory in bytes to use for the server's acache.
                   When the amount of data in the acache reaches this limit,
                   the server
-                  will clean more aggressivly so that the limit is not
+                  will clean more aggressively so that the limit is not
                   exceeded.
                   In a server with multiple views, the limit applies
                   separately to the
@@ -4372,7 +4371,7 @@ query-source-v6 address * port *;
             The <span><strong class="command">server</strong></span> statement defines
             characteristics
             to be associated with a remote name server.  If a prefix length is
-            specified then a range of servers is covered.  Only the most
+            specified, then a range of servers is covered.  Only the most
             specific
             server clause applies regardless of the order in
             <code class="filename">named.conf</code>.
@@ -4445,7 +4444,7 @@ query-source-v6 address * port *;
 <p>
             The <span><strong class="command">edns-udp-size</strong></span> option sets the EDNS UDP size
             that is advertised by named when querying the remote server.
-            Valid values are 512 to 4096 (values outside this range will be
+            Valid values are 512 to 4096 bytes (values outside this range will be
             silently adjusted).  This option is useful when you wish to
             advertises a different value to this server than the value you
             advertise globally, for example, when there is a firewall at the
@@ -4454,7 +4453,7 @@ query-source-v6 address * port *;
 <p>
             The <span><strong class="command">max-udp-size</strong></span> option sets the
             maximum EDNS UDP message size named will send.  Valid
-            values are 512 to 4096 (values outside this range will
+            values are 512 to 4096 bytes (values outside this range will
             be silently adjusted).  This option is useful when you
             know that there is a firewall that is blocking large
             replies from named.
@@ -4509,7 +4508,7 @@ query-source-v6 address * port *;
             Similarly, for an IPv6 remote server, only
             <span><strong class="command">transfer-source-v6</strong></span> can be
             specified.
-            Form more details, see the description of
+            For more details, see the description of
             <span><strong class="command">transfer-source</strong></span> and
             <span><strong class="command">transfer-source-v6</strong></span> in
             <a href="Bv9ARM.ch06.html#zone_transfers" title="Zone Transfers">the section called &#8220;Zone Transfers&#8221;</a>.
@@ -4535,7 +4534,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2565882"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2565889"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">trusted-keys {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -4544,7 +4543,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2565931"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2565938"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -4562,7 +4561,7 @@ query-source-v6 address * port *;
             <span><strong class="command">trusted-keys</strong></span> are deemed to exist regardless
             of what parent zones say.  Similarly for all keys listed in
             <span><strong class="command">trusted-keys</strong></span> only those keys are
-            used to validate the DNSKEY RRset.  The parents DS RRset
+            used to validate the DNSKEY RRset.  The parent's DS RRset
             will not be used.
           </p>
 <p>
@@ -4587,7 +4586,7 @@ query-source-v6 address * port *;
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566011"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2566018"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>
             The <span><strong class="command">view</strong></span> statement is a powerful
             feature
@@ -4670,7 +4669,7 @@ query-source-v6 address * port *;
           </p>
 <p>
             Here is an example of a typical split DNS setup implemented
-            using <span><strong class="command">view</strong></span> statements.
+            using <span><strong class="command">view</strong></span> statements:
           </p>
 <pre class="programlisting">view "internal" {
       // This should match our internal networks.
@@ -4839,10 +4838,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567457"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2567395"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2567464"></a>Zone Types</h4></div></div></div>
+<a name="id2567402"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -4898,7 +4897,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                         numbers (in the
                         tens or hundreds of thousands) of zones per server, it
                         is best to
-                        use a two level naming scheme for zone file names. For
+                        use a two-level naming scheme for zone file names. For
                         example,
                         a slave server for the zone <code class="literal">example.com</code> might place
                         the zone contents into a file called
@@ -4993,8 +4992,8 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                         if you want to use this type of zone to change the
                         behavior of the
                         global <span><strong class="command">forward</strong></span> option
-                        (that is, "forward first
-                        to", then "forward only", or vice versa, but want to
+                        (that is, "forward first"
+                        to, then "forward only", or vice versa, but want to
                         use the same
                         servers as set globally) you need to re-specify the
                         global forwarders.
@@ -5030,14 +5029,14 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     </td>
 <td>
                       <p>
-                        This is used to enforce the delegation only
+                        This is used to enforce the delegation-only
                         status of infrastructure zones (e.g. COM, NET, ORG).
                         Any answer that
-                        is received without a explicit or implicit delegation
+                        is received without an explicit or implicit delegation
                         in the authority
                         section will be treated as NXDOMAIN.  This does not
                         apply to the zone
-                        apex.  This SHOULD NOT be applied to leaf zones.
+                        apex.  This should not be applied to leaf zones.
                       </p>
                       <p>
                         <code class="varname">delegation-only</code> has no
@@ -5051,7 +5050,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2567883"></a>Class</h4></div></div></div>
+<a name="id2567958"></a>Class</h4></div></div></div>
 <p>
               The zone's name may optionally be followed by a class. If
               a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
@@ -5073,7 +5072,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2567916"></a>Zone Options</h4></div></div></div>
+<a name="id2567991"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>
@@ -5203,7 +5202,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dt><span class="term"><span><strong class="command">delegation-only</strong></span></span></dt>
 <dd><p>
                     The flag only applies to hint and stub zones.  If set
-                    to <strong class="userinput"><code>yes</code></strong> then the zone will also be
+                    to <strong class="userinput"><code>yes</code></strong>, then the zone will also be
                     treated as if it
                     is also a delegation-only type zone.
                   </p></dd>
@@ -5219,7 +5218,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <dd><p>
                     Used to override the list of global forwarders.
                     If it is not specified in a zone of type <span><strong class="command">forward</strong></span>,
-                    no forwarding is done for the zone; the global options are
+                    no forwarding is done for the zone and the global options are
                     not used.
                   </p></dd>
 <dt><span class="term"><span><strong class="command">ixfr-base</strong></span></span></dt>
@@ -5506,7 +5505,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                         name to update, where the key has the same
                         name as the name to be updated.  The
                         <em class="replaceable"><code>identity</code></em> would
-                        be specified as <code class="constant">*</code> in
+                        be specified as <code class="constant">*</code> (an asterisk) in
                         this case.
                       </p>
                     </td>
@@ -5561,7 +5560,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2569739"></a>Zone File</h2></div></div></div>
+<a name="id2569676"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -5574,7 +5573,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2569757"></a>Resource Records</h4></div></div></div>
+<a name="id2569763"></a>Resource Records</h4></div></div></div>
 <p>
               A domain name identifies a node.  Each node has a set of
               resource information, which may be empty.  The set of resource
@@ -5614,7 +5613,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     </td>
 <td>
                       <p>
-                        An encoded 16 bit value that specifies
+                        An encoded 16-bit value that specifies
                         the type of the resource record.
                       </p>
                     </td>
@@ -5627,8 +5626,8 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     </td>
 <td>
                       <p>
-                        The time to live of the RR. This field
-                        is a 32 bit integer in units of seconds, and is
+                        The time-to-live of the RR. This field
+                        is a 32-bit integer in units of seconds, and is
                         primarily used by
                         resolvers when they cache RRs. The TTL describes how
                         long a RR can
@@ -5644,7 +5643,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
                     </td>
 <td>
                       <p>
-                        An encoded 16 bit value that identifies
+                        An encoded 16-bit value that identifies
                         a protocol family or instance of a protocol.
                       </p>
                     </td>
@@ -5898,7 +5897,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <td>
                       <p>
                         Identifies a mail exchange for the domain with
-                        a 16 bit preference value (lower is better)
+                        a 16-bit preference value (lower is better)
                         followed by the host name of the mail exchange.
                         Described in RFC 974, RFC 1035.
                       </p>
@@ -6225,7 +6224,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2571104"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2571109"></a>Textual expression of RRs</h4></div></div></div>
 <p>
               RRs are represented in binary form in the packets of the DNS
               protocol, and are usually represented in highly encoded form
@@ -6369,13 +6368,13 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </tbody>
 </table></div>
 <p>
-              The MX RRs have an RDATA section which consists of a 16 bit
+              The MX RRs have an RDATA section which consists of a 16-bit
               number followed by a domain name.  The address RRs use a
               standard
-              IP address format to contain a 32 bit internet address.
+              IP address format to contain a 32-bit internet address.
             </p>
 <p>
-              This example shows six RRs, with two RRs at each of three
+              The above example shows six RRs, with two RRs at each of three
               domain names.
             </p>
 <p>
@@ -6428,7 +6427,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2571556"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2571629"></a>Discussion of MX Records</h3></div></div></div>
 <p>
             As described above, domain servers store information as a
             series of resource records, each of which contains a particular
@@ -6615,7 +6614,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 <div class="titlepage"><div><div><h3 class="title">
 <a name="Setting_TTLs"></a>Setting TTLs</h3></div></div></div>
 <p>
-            The time to live of the RR field is a 32 bit integer represented
+            The time-to-live of the RR field is a 32-bit integer represented
             in units of seconds, and is primarily used by resolvers when they
             cache RRs. The TTL describes how long a RR can be cached before it
             should be discarded. The following three types of TTL are
@@ -6686,7 +6685,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572244"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2572317"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>
             Reverse name resolution (that is, translation from IP address
             to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
@@ -6747,7 +6746,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572371"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2572444"></a>Other Zone File Directives</h3></div></div></div>
 <p>
             The Master File Format was initially defined in RFC 1035 and
             has subsequently been extended. While the Master File Format
@@ -6762,7 +6761,7 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
           </p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572393"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2572467"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$ORIGIN</strong></span>
               <em class="replaceable"><code>domain-name</code></em>
@@ -6790,7 +6789,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572590"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2572596"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$INCLUDE</strong></span>
               <em class="replaceable"><code>filename</code></em>
@@ -6826,7 +6825,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2572660"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2572665"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>
               Syntax: <span><strong class="command">$TTL</strong></span>
               <em class="replaceable"><code>default-ttl</code></em>
@@ -6845,7 +6844,7 @@ WWW.EXAMPLE.COM. CNAME MAIN-SERVER.EXAMPLE.COM.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2572696"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2572701"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>
             Syntax: <span><strong class="command">$GENERATE</strong></span>
             <em class="replaceable"><code>range</code></em>
@@ -6890,7 +6889,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
 <td>
                     <p>
                       This can be one of two forms: start-stop
-                      or start-stop/step. If the first form is used then step
+                      or start-stop/step. If the first form is used, then step
                       is set to
                       1. All of start, stop and step must be positive.
                     </p>
@@ -6904,6 +6903,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                     <p><span><strong class="command">lhs</strong></span>
                       describes the owner name of the resource records
                       to be created.  Any single <span><strong class="command">$</strong></span>
+                      (dollar sign)
                       symbols within the <span><strong class="command">lhs</strong></span> side
                       are replaced by the iterator value.
 
@@ -6921,7 +6921,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                       <span><strong class="command">${offset[,width[,base]]}</strong></span>.
                       For example, <span><strong class="command">${-20,3,d}</strong></span>
                       subtracts 20 from the current value, prints the
-                      result as a decimal in a zero padded field of
+                      result as a decimal in a zero-padded field of
                       width 3.
 
                       Available output forms are decimal
@@ -6935,7 +6935,7 @@ $GENERATE 1-127 $ CNAME $.0</pre>
                       to the name.
                     </p>
                     <p>
-                      For compatibility with earlier versions <span><strong class="command">$$</strong></span> is still
+                      For compatibility with earlier versions, <span><strong class="command">$$</strong></span> is still
                       recognized as indicating a literal $ in the output.
                     </p>
                   </td>

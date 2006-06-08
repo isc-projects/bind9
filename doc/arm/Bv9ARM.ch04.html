@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.67 2006/05/17 02:39:16 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.68 2006/06/08 02:44:04 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -158,7 +158,7 @@
 <p>
           The zone files of dynamic zones cannot normally be edited by
           hand because they are not guaranteed to contain the most recent
-          dynamic changes - those are only in the journal file.
+          dynamic changes &#8212; those are only in the journal file.
           The only way to ensure that the zone file of a dynamic zone
           is up to date is to run <span><strong class="command">rndc stop</strong></span>.
         </p>
@@ -328,7 +328,7 @@
             <code class="literal">site2.internal</code> domains.
           </li>
 <li>Look up any hostnames on the Internet.</li>
-<li>Exchange mail with internal AND external people.</li>
+<li>Exchange mail with both internal and external people.</li>
 </ul></div>
 <p>
         Hosts on the Internet will be able to:
@@ -489,11 +489,11 @@ nameserver 172.16.72.4
 <div class="titlepage"><div><div><h4 class="title">
 <a name="id2551833"></a>Automatic Generation</h4></div></div></div>
 <p>
-            The following command will generate a 128 bit (16 byte) HMAC-MD5
+            The following command will generate a 128-bit (16 byte) HMAC-MD5
             key as described above. Longer keys are better, but shorter keys
             are easier to read. Note that the maximum key length is 512 bits;
-            keys longer than that will be digested with MD5 to produce a 128
-            bit key.
+            keys longer than that will be digested with MD5 to produce a
+            128-bit key.
           </p>
 <p>
             <strong class="userinput"><code>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</code></strong>
@@ -764,7 +764,7 @@ allow-update { key host1-host2. ;};
           the only one is RSASHA1.
         </p>
 <p>
-          The following command will generate a 768 bit RSASHA1 key for
+          The following command will generate a 768-bit RSASHA1 key for
           the <code class="filename">child.example</code> zone:
         </p>
 <p>
@@ -811,7 +811,7 @@ allow-update { key host1-host2. ;};
           records for the zone, as well as <code class="literal">DS</code>
           for
           the child zones if <code class="literal">'-d'</code> is specified.
-                If <code class="literal">'-d'</code> is not specified then
+                If <code class="literal">'-d'</code> is not specified, then
           DS RRsets for
           the secure child zones need to be added manually.
         </p>
@@ -845,7 +845,7 @@ allow-update { key host1-host2. ;};
 <a name="id2552595"></a>Configuring Servers</h3></div></div></div>
 <p>
           To enable <span><strong class="command">named</strong></span> to respond appropriately
-          to DNS requests from DNSSEC aware clients
+          to DNS requests from DNSSEC aware clients,
           <span><strong class="command">dnssec-enable</strong></span> must be set to yes.
         </p>
 <p>
@@ -895,7 +895,7 @@ trusted-keys {
              iA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ97S+LKUTpQcq27R7AT3/V5hRQxScI
              Nqwcz4jYqZD2fQdgxbcDTClU0CRBdiieyLMNzXG3";
 
-/* Key for out organizations forward zone */
+/* Key for our organization's forward zone */
 example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM65KbhTjrW1ZaARmPhEZZe
                       3Y9ifgEuq7vZ/zGZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb4JKUbb
                       OTcM8pwXlj0EiX3oDFVmjHO444gLkBO UKUf/mC7HvfwYH/Be22GnC
