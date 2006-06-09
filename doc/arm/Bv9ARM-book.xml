@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.47 2006/05/17 01:58:26 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.48 2006/06/09 00:52:36 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -333,7 +333,7 @@ caching are intimately connected, the terms
 <emphasis>caching server</emphasis> are often used synonymously.</para>
 
 <para>The length of time for which a record may be retained in
-in the cache of a caching name server is controlled by the 
+the cache of a caching name server is controlled by the 
 Time To Live (TTL) field associated with each resource record.
 </para>
 
@@ -824,8 +824,8 @@ of a server.</para>
 
    <varlistentry><term><userinput>status</userinput></term>
    <listitem><para>Display status of the server.
-Note the number of zones includes the internal <command>bind/CH</command> zone
-and the default <command>./IN</command> hint zone if there is not a
+Note that the number of zones includes the internal <command>bind/CH</command> zone
+and the default <command>./IN</command> hint zone if there is not an
 explicit root zone configured.</para></listitem></varlistentry>
 
 </variablelist>
@@ -1020,7 +1020,7 @@ reload the database. </para></entry>
 
     <para>The zone files of dynamic zones cannot normally be edited by
     hand because they are not guaranteed to contain the most recent
-    dynamic changes - those are only in the journal file.
+    dynamic changes &mdash; those are only in the journal file.
     The only way to ensure that the zone file of a dynamic zone
     is up to date is to run <command>rndc stop</command>.</para>
 
@@ -1136,7 +1136,7 @@ internal clients will now be able to:</para>
 <listitem>
         <simpara>Look up any hostnames on the Internet.</simpara></listitem>
 <listitem>
-        <simpara>Exchange mail with internal AND external people.</simpara></listitem></itemizedlist>
+        <simpara>Exchange mail with both internal AND external people.</simpara></listitem></itemizedlist>
 <para>Hosts on the Internet will be able to:</para>
 <itemizedlist><listitem>
         <simpara>Look up any hostnames in the <literal>site1</literal> and 
@@ -1270,11 +1270,11 @@ for TSIG.</para>
 An arbitrary key name is chosen: "host1-host2.". The key name must
 be the same on both hosts.</para>
 <sect3><title>Automatic Generation</title>
-<para>The following command will generate a 128 bit (16 byte) HMAC-MD5
+<para>The following command will generate a 128-bit (16 byte) HMAC-MD5
 key as described above. Longer keys are better, but shorter keys
 are easier to read. Note that the maximum key length is 512 bits;
-keys longer than that will be digested with MD5 to produce a 128
-bit key.</para>
+keys longer than that will be digested with MD5 to produce a
+128-bit key.</para>
         <para><userinput>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</userinput></para>
 <para>The key is in the file <filename>Khost1-host2.+157+00000.private</filename>.
 Nothing directly uses this file, but the base-64 encoded string
@@ -1413,7 +1413,7 @@ allow-update { key host1-host2. ;};
 
     <para>When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
-    will not attempt to locate and/or validate the key.</para>
+    will not attempt to locate and / or validate the key.</para>
 
     <para>SIG(0) signing of multiple-message TCP streams is not
     supported.</para>
@@ -1465,7 +1465,7 @@ allow-update { key host1-host2. ;};
       these are RSASHA1 (which is not yet supported in BIND 9.2)
       and DSA.</para>
 
-      <para>The following command will generate a 768 bit DSA key for
+      <para>The following command will generate a 768-bit DSA key for
       the <filename>child.example</filename> zone:</para>
 
       <para><userinput>dnssec-keygen -a DSA -b 768 -n ZONE child.example.</userinput></para>
@@ -1751,7 +1751,7 @@ in <varname>dotted_decimal</varname> notation.</para></entry>
 <entry colname = "2"><para>An IP port <varname>number</varname>.
  <varname>number</varname> is limited to 0 through 65535, with values
 below 1024 typically restricted to root-owned processes. In some
-cases an asterisk (`*') character can be used as a placeholder to
+cases, an asterisk (`*') character can be used as a placeholder to
 select a random high-numbered port.</para></entry>
 </row>
 <row rowsep = "0">
@@ -1775,7 +1775,7 @@ separated by semicolons and ending with a semicolon.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para><varname>number</varname></para></entry>
-<entry colname = "2"><para>A non-negative 32 bit unsigned integer
+<entry colname = "2"><para>A non-negative 32-bit unsigned integer
 (i.e., a number between 0 and 4294967295, inclusive).
 Its acceptable value might further
 be limited by the context in which it is used.</para></entry>
@@ -2156,8 +2156,8 @@ installed.
       permissions set such that only the owner of the file (the user that
       <command>named</command> is running as) can access it.  If you
       desire greater flexibility in allowing other users to access
-      <command>rndc</command> commands then you need to create an
-      <filename>rndc.conf</filename> and make it group readable by a group
+      <command>rndc</command> commands, then you need to create a
+      <filename>rndc.conf</filename> file and make it group readable by a group
       that contains the users who should have access.</para>
 
       <para>The UNIX control channel type of <acronym>BIND</acronym> 8 is not supported
@@ -2306,8 +2306,8 @@ of the file will be saved each time the file is opened.</para>
 
 <para>If you use the <command>versions</command> log file option, then
 <command>named</command> will retain that many backup versions of the file by
-renaming them when opening.  For example, if you choose to keep 3 old versions
-of the file <filename>lamers.log</filename> then just before it is opened
+renaming them when opening.  For example, if you choose to keep three old versions
+of the file <filename>lamers.log</filename>, then just before it is opened
 <filename>lamers.log.1</filename> is renamed to
 <filename>lamers.log.2</filename>, <filename>lamers.log.0</filename> is renamed
 to <filename>lamers.log.1</filename>, and <filename>lamers.log</filename> is
@@ -2856,7 +2856,7 @@ Turn on enforcment of delegation-only in TLDs and root zones with an optional
 exclude list.
 </para>
 <para>
-Note some TLDs are NOT delegation only (e.g. "DE", "LV", "US" and "MUSEUM").
+Note some TLDs are not delegation only (e.g. "DE", "LV", "US" and "MUSEUM").
 </para>
 <programlisting>
 options {
@@ -2886,7 +2886,7 @@ the checks.</para></listitem></varlistentry>
 <varlistentry><term><command>dialup</command></term>
 <listitem><para>If <userinput>yes</userinput>, then the
 server treats all zones as if they are doing zone transfers across
-a dial on demand dialup link, which can be brought up by traffic
+a dial-on-demand dialup link, which can be brought up by traffic
 originating from this server. This has different effects according
 to zone type and concentrates the zone maintenance so that it all
 happens in a short interval, once every <command>heartbeat-interval</command> and
@@ -3142,8 +3142,8 @@ its cache.</para>
 <varlistentry><term><command>forward</command></term>
 <listitem><para>This option is only meaningful if the
 forwarders list is not empty. A value of <varname>first</varname>,
-the default, causes the server to query the forwarders first, and
-if that doesn't answer the question the server will then look for
+the default, causes the server to query the forwarders first &mdash; and
+if that doesn't answer the question, the server will then look for
 the answer itself. If <varname>only</varname> is specified, the
 server will only query the forwarders.
 </para></listitem></varlistentry>
@@ -3565,7 +3565,7 @@ records are purged from the cache only when their TTLs expire.
 <listitem><para>The server will remove expired resource records
 from the cache every <command>cleaning-interval</command> minutes.
 The default is 60 minutes.
-If set to 0, no  periodic cleaning will occur.</para>
+If set to 0, no periodic cleaning will occur.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>heartbeat-interval</command></term>
@@ -3640,7 +3640,7 @@ statement in <xref linkend="rrset_ordering"/>).
 The client resolver code should rearrange the RRs as appropriate,
 that is, using any addresses on the local net in preference to other addresses.
 However, not all resolvers can do this or are correctly configured.
-When a client is using a local server the sorting can be performed
+When a client is using a local server, the sorting can be performed
 in the server, based on the client's address. This only requires
 configuring the nameservers, not all the clients.</para>
 
@@ -3720,7 +3720,7 @@ See also the <command>sortlist</command> statement,
 </programlisting>
 <para>If no class is specified, the default is <command>ANY</command>.
 If no type is specified, the default is <command>ANY</command>.
-If no name is specified, the default is "<command>*</command>".</para>
+If no name is specified, the default is "<command>*</command>" (asterisk).</para>
 <para>The legal values for <command>ordering</command> are:</para>
 <informaltable colsep = "0" rowsep = "0"><tgroup cols = "2"
     colsep = "0" rowsep = "0" tgroupstyle = "4Level-table">
@@ -3809,13 +3809,13 @@ clients that are supplied recursive service.</para></note>
 <listitem><para>Sets the number of seconds to cache a
 lame server indication. 0 disables caching. (This is
 <emphasis role="bold">NOT</emphasis> recommended.)
-Default is <literal>600</literal> (10 minutes). Maximum value is 
+The default is <literal>600</literal> (10 minutes) and the maximum value is 
 <literal>1800</literal> (30 minutes).</para>
 
 </listitem></varlistentry>
 
 <varlistentry><term><command>max-ncache-ttl</command></term>
-<listitem><para>To reduce network traffic and increase performance
+<listitem><para>To reduce network traffic and increase performance,
 the server stores negative answers. <command>max-ncache-ttl</command> is
 used to set a maximum retention time for these answers in the server
 in seconds. The default
@@ -3825,7 +3825,7 @@ be silently truncated to 7 days if set to a greater value.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>host-statistics-max</command></term>
-<listitem><para>In BIND 8, specifies the maximum number of host statistic
+<listitem><para>In BIND 8, specifies the maximum number of host statistics
 entries to be kept.
 Not implemented in BIND 9.
 </para></listitem></varlistentry>
@@ -3838,7 +3838,7 @@ answers. The default is one week (7 days).</para>
 
 <varlistentry><term><command>min-roots</command></term>
 <listitem><para>The minimum number of root servers that
-is required for a request for the root servers to be accepted. Default
+is required for a request for the root servers to be accepted. The default
 is <userinput>2</userinput>.</para>
 <note>
 <simpara>Not yet implemented in <acronym>BIND</acronym>9.</simpara></note>
@@ -4130,7 +4130,7 @@ are present, all <command>zone</command> statements must occur inside
 <command>view</command> statements.</para>
 
 <para>Here is an example of a typical split DNS setup implemented
-using <command>view</command> statements.</para>
+using <command>view</command> statements:</para>
 <programlisting>view "internal" {
                // This should match our internal networks.
       match-clients { 10.0.0.0/8; };
@@ -4296,7 +4296,7 @@ and reloaded from this file on a server restart. Use of a file is
 recommended, since it often speeds server startup and eliminates
 a needless waste of bandwidth. Note that for large numbers (in the
 tens or hundreds of thousands) of zones per server, it is best to
-use a two level naming scheme for zone file names. For example,
+use a two-level naming scheme for zone file names. For example,
 a slave server for the zone <literal>example.com</literal> might place
 the zone contents into a file called
 <filename>ex/example.com</filename> where <filename>ex/</filename> is
@@ -4346,8 +4346,8 @@ an empty list for <command>forwarders</command> is given, then no
 forwarding will be done for the domain, canceling the effects of
 any forwarders in the <command>options</command> statement. Thus
 if you want to use this type of zone to change the behavior of the
-global <command>forward</command> option (that is, "forward first
-to", then "forward only", or vice versa, but want to use the same
+global <command>forward</command> option (that is, "forward first"
+to, then "forward only", or vice versa, but want to use the same
 servers as set globally) you need to respecify the global forwarders.</para>
 </entry>
 </row>
@@ -4477,7 +4477,7 @@ with the distribution but none are linked in by default.</para>
 
 <varlistentry><term><command>delegation-only</command></term>
 <listitem><para>The flag only applies to hint and stub zones.  If set
-to <userinput>yes</userinput> then the zone will also be treated as if it
+to <userinput>yes</userinput>, then the zone will also be treated as if it
 is also a delegation-only type zone.
 </para>
 </listitem></varlistentry>
@@ -4492,7 +4492,7 @@ allow a normal lookup to be tried.</para>
 <varlistentry><term><command>forwarders</command></term>
 <listitem><para>Used to override the list of global forwarders.
 If it is not specified in a zone of type <command>forward</command>,
-no forwarding is done for the zone; the global options are not used.</para>
+no forwarding is done for the zone and the global options are not used.</para>
 </listitem></varlistentry>
 
 <varlistentry><term><command>ixfr-base</command></term>
@@ -4690,20 +4690,20 @@ and implemented in the DNS. These are also included.</para>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>type</para></entry>
-<entry colname = "2"><para>an encoded 16 bit value that specifies
+<entry colname = "2"><para>an encoded 16-bit value that specifies
 the type of the resource in this resource record. Types refer to
 abstract resources.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>TTL</para></entry>
-<entry colname = "2"><para>the time to live of the RR. This field
-is a 32 bit integer in units of seconds, and is primarily used by
+<entry colname = "2"><para>the time-to-live of the RR. This field
+is a 32-bit integer in units of seconds, and is primarily used by
 resolvers when they cache RRs. The TTL describes how long a RR can
 be cached before it should be discarded.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>class</para></entry>
-<entry colname = "2"><para>an encoded 16 bit value that identifies
+<entry colname = "2"><para>an encoded 16-bit value that identifies
 a protocol family or instance of a protocol.</para></entry>
 </row>
 <row rowsep = "0">
@@ -4882,7 +4882,7 @@ data that describes the resource:</para><informaltable colsep = "0"
 <tbody>
 <row rowsep = "0">
 <entry colname = "1"><para>A</para></entry>
-<entry colname = "2"><para>for the IN class, a 32 bit IP address.</para></entry>
+<entry colname = "2"><para>for the IN class, a 32-bit IP address.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>A6</para></entry>
@@ -4902,7 +4902,7 @@ a name from the DNAME record's RDATA.</para></entry>
 </row>
 <row rowsep = "0">
 <entry colname = "1"><para>MX</para></entry>
-<entry colname = "2"><para>a 16 bit preference value (lower is better)
+<entry colname = "2"><para>a 16-bit preference value (lower is better)
 followed by a host name willing to act as a mail exchange for the
 owner domain.</para></entry>
 </row>
@@ -4998,10 +4998,10 @@ knowledge of the typical representation for the data.</para>
 </row>
 </tbody>
 </tgroup></informaltable>
-<para>The MX RRs have an RDATA section which consists of a 16 bit
+<para>The MX RRs have an RDATA section which consists of a 16-bit
 number followed by a domain name.  The address RRs use a standard
-IP address format to contain a 32 bit internet address.</para>
-<para>This example shows six RRs, with two RRs at each of three
+IP address format to contain a 32-bit internet address.</para>
+<para>The above example shows six RRs, with two RRs at each of three
 domain names.</para>
 <para>Similarly we might see:</para><informaltable colsep = "0"
     rowsep = "0"><tgroup cols = "3" colsep = "0" rowsep = "0"
@@ -5099,7 +5099,7 @@ pointed to by the CNAME.</para>
 any order), and if neither of those succeed, delivery to <literal>mail.backup.org</literal> will
 be attempted.</para></sect2>
 <sect2 id="Setting_TTLs"><title>Setting TTLs</title>
-<para>The time to live of the RR field is a 32 bit integer represented
+<para>The time-to-live of the RR field is a 32-bit integer represented
 in units of seconds, and is primarily used by resolvers when they
 cache RRs. The TTL describes how long a RR can be cached before it
 should be discarded. The following three types of TTL are currently
@@ -5236,13 +5236,14 @@ $GENERATE 1-127 $ CNAME $.0</programlisting>
             <row rowsep = "0">
               <entry colname = "1"><para><command>range</command></para></entry>
               <entry colname = "2"><para>This can be one of two forms: start-stop
-or start-stop/step. If the first form is used then step is set to
+or start-stop/step. If the first form is used, then step is set to
         1. All of start, stop and step must be positive.</para></entry>
       </row>
         <row rowsep = "0">
           <entry colname = "1"><para><command>lhs</command></para></entry>
           <entry colname = "2"><para><command>lhs</command> describes the
-owner name of the resource records to be created.      Any single <command>$</command> symbols
+owner name of the resource records to be created. Any single
+<command>$</command> (dollar sign) symbols
 within the <command>lhs</command> side are replaced by the iterator
 value.
 To get a $ in the output you need to escape the <command>$</command>
@@ -5252,14 +5253,14 @@ by modifiers which change the offset from the interator, field width and base.
 Modifiers are introduced by a <command>{</command> immediately following the
 <command>$</command> as <command>${offset[,width[,base]]}</command>.
 For example, <command>${-20,3,d}</command> which subtracts 20 from the current value,
-prints the result as a decimal in a zero padded field of width 3.  Available
+prints the result as a decimal in a zero-padded field of width 3.  Available
 output forms are decimal (<command>d</command>), octal (<command>o</command>)
 and hexadecimal (<command>x</command> or <command>X</command> for uppercase).
 The default modifier is <command>${0,0,d}</command>.
 If the <command>lhs</command> is not
 absolute, the current <command>$ORIGIN</command> is appended to
 the name.</para>
-<para>For compatibility with earlier versions <command>$$</command> is still
+<para>For compatibility with earlier versions, <command>$$</command> is still
 recognised as indicating a literal $ in the output.</para></entry>
         </row>
         <row rowsep = "0">
@@ -5291,8 +5292,8 @@ your nameserver, without cluttering up your config files with huge
 lists of IP addresses.</para>
 <para>It is a <emphasis>good idea</emphasis> to use ACLs, and to
 control access to your server. Limiting access to your server by
-outside parties can help prevent spoofing and DoS attacks against
-your server.</para>
+outside parties can help prevent spoofing and denial of service (DoS)
+attacks against your server.</para>
 <para>Here is an example of how to properly apply ACLs:</para>
 <programlisting>
 // Set up an ACL named "bogusnets" that will block RFC1918 space,
@@ -5325,13 +5326,13 @@ see the <emphasis>AUSCERT</emphasis> advisory at
 <sect1><title><command>chroot</command> and <command>setuid</command> (for
 UNIX servers)</title>
 <para>On UNIX servers, it is possible to run <acronym>BIND</acronym> in a <emphasis>chrooted</emphasis> environment
-(<command>chroot()</command>) by specifying the "<option>-t</option>"
+(using the <command>chroot()</command> function) by specifying the "<option>-t</option>"
 option. This can help improve system security by placing <acronym>BIND</acronym> in
 a "sandbox," which will limit the damage done if a server is compromised.</para>
 <para>Another useful feature in the UNIX version of <acronym>BIND</acronym> is the
 ability to run the daemon as a nonprivileged user ( <option>-u</option> <replaceable>user</replaceable> ).
 We suggest running as a nonprivileged user when using the <command>chroot</command> feature.</para>
-<para>Here is an example command line to load <acronym>BIND</acronym> in a <command>chroot()</command> sandbox, 
+<para>Here is an example command line to load <acronym>BIND</acronym> in a <command>chroot</command> sandbox, 
 <command>/var/named</command>, and to run <command>named</command> <command>setuid</command> to
 user 202:</para>
 <para><userinput>/usr/local/bin/named -u 202 -t /var/named</userinput></para>
@@ -5378,7 +5379,7 @@ server is reloaded.</para>
 
 <para>Access to the dynamic
 update facility should be strictly limited.  In earlier versions of
-<acronym>BIND</acronym> the only way to do this was based on the IP
+<acronym>BIND</acronym>, the only way to do this was based on the IP
 address of the host requesting the update, by listing an IP address or
 network prefix in the <command>allow-update</command> zone option.
 This method is insecure since the source address of the update UDP packet
@@ -5396,7 +5397,7 @@ list only TSIG key names, not IP addresses or network
 prefixes. Alternatively, the new <command>update-policy</command>
 option can be used.</para>
 
-<para>Some sites choose to keep all dynamically updated DNS data
+<para>Some sites choose to keep all dynamically-updated DNS data
 in a subdomain and delegate that subdomain to a separate zone. This
 way, the top-level zone containing critical data such as the IP addresses
 of public web and mail servers need not allow dynamic update at
@@ -5475,7 +5476,7 @@ all.</para>
       core of the new system was described in 1983 in RFCs 882 and
       883. From 1984 to 1987, the ARPAnet (the precursor to today's
       Internet) became a testbed of experimentation for developing the
-      new naming/addressing scheme in an rapidly expanding,
+      new naming/addressing scheme in a rapidly expanding,
       operational network environment.  New RFCs were written and
       published in 1987 that modified the original documents to
       incorporate improvements based on the working model. RFC 1034,
@@ -5508,12 +5509,12 @@ Mike Muuss, Jim Bloom and Mike Schwartz. <acronym>BIND</acronym> maintenance was
 handled by Mike Karels and O. Kure.</para>
       <para><acronym>BIND</acronym> versions 4.9 and 4.9.1 were released by Digital Equipment
 Corporation (now Compaq Computer Corporation). Paul Vixie, then
-a DEC employee, became <acronym>BIND</acronym>'s primary caretaker. Paul was assisted
+a DEC employee, became <acronym>BIND</acronym>'s primary caretaker. He was assisted
 by Phil Almquist, Robert Elz, Alan Barrett, Paul Albitz, Bryan Beecher, Andrew
 Partan, Andy Cherenson, Tom Limoncelli, Berthold Paffrath, Fuat
 Baran, Anant Kumar, Art Harkin, Win Treese, Don Lewis, Christophe
 Wolfhugel, and others.</para>
-      <para><acronym>BIND</acronym> Version 4.9.2 was sponsored by Vixie Enterprises. Paul
+      <para><acronym>BIND</acronym> version 4.9.2 was sponsored by Vixie Enterprises. Paul
 Vixie became <acronym>BIND</acronym>'s principal architect/programmer.</para>
       <para><acronym>BIND</acronym> versions from 4.9.3 onward have been developed and maintained
 by the Internet Software Consortium with support being provided
