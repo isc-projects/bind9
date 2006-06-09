@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.15 2006/05/17 02:38:09 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.16 2006/06/09 07:14:11 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -302,7 +302,7 @@ of a server.</p>
 <dt><span class="term"><strong class="userinput"><code>freeze [<span class="optional"><em class="replaceable"><code>zone</code></em>
        [<span class="optional"><em class="replaceable"><code>class</code></em>
            [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</span>]</code></strong></span></dt>
-<dd><p>Suspend updates to a dynamic zone.  If no zone is specified
+<dd><p>Suspend updates to a dynamic zone.  If no zone is specified,
 	then all zones are suspended.  This allows manual
     edits to be made to a zone normally updated by dynamic update.  It
     also causes changes in the journal file to be synced into the master
@@ -312,7 +312,7 @@ of a server.</p>
        [<span class="optional"><em class="replaceable"><code>class</code></em>
            [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</span>]</code></strong></span></dt>
 <dd><p>Enable updates to a frozen dynamic zone.  If no zone is
-    specified then all frozen zones are enabled.  This causes
+    specified, then all frozen zones are enabled.  This causes
     the server to reload the zone from disk, and re-enables dynamic updates
     after the load has completed.  After a zone is thawed, dynamic updates
     will no longer be refused.</p></dd>
@@ -333,7 +333,7 @@ of a server.</p>
    <code class="filename">named.conf</code>.</p></dd>
 <dt><span class="term"><strong class="userinput"><code>dumpdb [<span class="optional">-all|-cache|-zone</span>] [<span class="optional"><em class="replaceable"><code>view ...</code></em></span>]</code></strong></span></dt>
 <dd><p>Dump the server's caches (default) and / or zones to the
-	 dump file for the specified views.  If no view is specified all
+	 dump file for the specified views.  If no view is specified, all
 	 views are dumped.</p></dd>
 <dt><span class="term"><strong class="userinput"><code>stop [<span class="optional">-p</span>]</code></strong></span></dt>
 <dd><p>Stop the server, making sure any recent changes
@@ -360,8 +360,8 @@ of a server.</p>
 <dd><p>Flushes the given name from the server's cache.</p></dd>
 <dt><span class="term"><strong class="userinput"><code>status</code></strong></span></dt>
 <dd><p>Display status of the server.
-Note the number of zones includes the internal <span><strong class="command">bind/CH</strong></span> zone
-and the default <span><strong class="command">./IN</strong></span> hint zone if there is not a
+Note that the number of zones includes the internal <span><strong class="command">bind/CH</strong></span> zone
+and the default <span><strong class="command">./IN</strong></span> hint zone if there is not an
 explicit root zone configured.</p></dd>
 <dt><span class="term"><strong class="userinput"><code>recursing</code></strong></span></dt>
 <dd><p>Dump the list of queries named is currently recursing
@@ -411,7 +411,7 @@ the name of a key as its argument, as defined by a <span><strong class="command"
 <span><strong class="command">rndc</strong></span> should connect if no
 port is given on the command line or in a
 <span><strong class="command">server</strong></span> statement.</p>
-<p>The <span><strong class="command">key</strong></span> statement defines an key to be used
+<p>The <span><strong class="command">key</strong></span> statement defines a key to be used
 by <span><strong class="command">rndc</strong></span> when authenticating with
 <span><strong class="command">named</strong></span>.  Its syntax is identical to the
 <span><strong class="command">key</strong></span> statement in named.conf.
