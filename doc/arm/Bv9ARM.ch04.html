@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.22 2006/05/17 02:37:45 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch04.html,v 1.30.2.23 2006/06/09 07:13:50 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -114,7 +114,7 @@
     journalled in a similar way.</p>
 <p>The zone files of dynamic zones cannot normally be edited by
     hand because they are not guaranteed to contain the most recent
-    dynamic changes - those are only in the journal file.
+    dynamic changes &#8212; those are only in the journal file.
     The only way to ensure that the zone file of a dynamic zone
     is up to date is to run <span><strong class="command">rndc stop</strong></span>.</p>
 <p>If you have to make changes to a dynamic zone
@@ -224,7 +224,7 @@ internal clients will now be able to:</p>
 <li>Look up any hostnames in the <code class="literal">site1.internal</code> and 
 <code class="literal">site2.internal</code> domains.</li>
 <li>Look up any hostnames on the Internet.</li>
-<li>Exchange mail with internal AND external people.</li>
+<li>Exchange mail with both internal AND external people.</li>
 </ul></div>
 <p>Hosts on the Internet will be able to:</p>
 <div class="itemizedlist"><ul type="disc">
@@ -359,11 +359,11 @@ be the same on both hosts.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="id2550874"></a>Automatic Generation</h4></div></div></div>
-<p>The following command will generate a 128 bit (16 byte) HMAC-MD5
+<p>The following command will generate a 128-bit (16 byte) HMAC-MD5
 key as described above. Longer keys are better, but shorter keys
 are easier to read. Note that the maximum key length is 512 bits;
-keys longer than that will be digested with MD5 to produce a 128
-bit key.</p>
+keys longer than that will be digested with MD5 to produce a
+128-bit key.</p>
 <p><strong class="userinput"><code>dnssec-keygen -a hmac-md5 -b 128 -n HOST host1-host2.</code></strong></p>
 <p>The key is in the file <code class="filename">Khost1-host2.+157+00000.private</code>.
 Nothing directly uses this file, but the base-64 encoded string
@@ -511,7 +511,7 @@ allow-update { key host1-host2. ;};
     based on the key name.</p>
 <p>When a SIG(0) signed message is received, it will only be
     verified if the key is known and trusted by the server; the server
-    will not attempt to locate and/or validate the key.</p>
+    will not attempt to locate and / or validate the key.</p>
 <p>SIG(0) signing of multiple-message TCP streams is not
     supported.</p>
 <p><span class="acronym">BIND</span> 9 does not ship with any tools that generate SIG(0)
@@ -554,7 +554,7 @@ allow-update { key host1-host2. ;};
       designated as "mandatory to implement" by the IETF; currently
       these are RSASHA1 (which is not yet supported in BIND 9.2)
       and DSA.</p>
-<p>The following command will generate a 768 bit DSA key for
+<p>The following command will generate a 768-bit DSA key for
       the <code class="filename">child.example</code> zone:</p>
 <p><strong class="userinput"><code>dnssec-keygen -a DSA -b 768 -n ZONE child.example.</code></strong></p>
 <p>Two output files will be produced:
