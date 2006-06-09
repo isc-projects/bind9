@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.90.2.4.2.10 2005/07/12 05:47:42 marka Exp $ */
+/* $Id: nslookup.c,v 1.90.2.4.2.11 2006/06/09 07:29:24 marka Exp $ */
 
 #include <config.h>
 
@@ -708,6 +708,7 @@ get_next_command(void) {
 	if (buf == NULL)
 		fatal("memory allocation failure");
 	fputs("> ", stderr);
+	fflush(stderr);
 	isc_app_block();
 	ptr = fgets(buf, COMMSIZE, stdin);
 	isc_app_unblock();

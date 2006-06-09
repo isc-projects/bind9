@@ -1,3 +1,6 @@
+2043.	[port]		nsupdate/nslookup: Force the flushing of the prompt
+			for interactive sessions. [RT#16148]
+
 2038.	[bug]		dig/nslookup/host was unlinking from wrong list
 			when handling errors. [RT #16122]
 
