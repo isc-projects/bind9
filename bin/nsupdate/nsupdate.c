@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsupdate.c,v 1.103.2.26 2005/03/17 03:59:30 marka Exp $ */
+/* $Id: nsupdate.c,v 1.103.2.27 2006/06/09 07:28:36 marka Exp $ */
 
 #include <config.h>
 
@@ -1357,8 +1357,10 @@ get_next_command(void) {
 	char *word;
 
 	ddebug("get_next_command()");
-	if (interactive)
+	if (interactive) {
 		fprintf(stdout, "> ");
+		fflush(stdout);
+	}
 	isc_app_block();
 	cmdline = fgets(cmdlinebuf, MAXCMD, input);
 	isc_app_unblock();
