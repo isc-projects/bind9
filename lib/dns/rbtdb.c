@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.196.18.36 2006/06/07 03:39:00 marka Exp $ */
+/* $Id: rbtdb.c,v 1.196.18.37 2006/06/13 04:54:39 marka Exp $ */
 
 /*! \file */
 
@@ -587,7 +587,7 @@ adjust_quantum(unsigned int old, isc_time_t *start) {
 	new = (new + old * 3) / 4;
 	
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_INFO, "adjust_quantum -> %d", new);
+		      ISC_LOG_DEBUG(1), "adjust_quantum -> %d", new);
 
 	return (new);
 }
