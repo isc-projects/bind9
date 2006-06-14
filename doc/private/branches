@@ -16,6 +16,7 @@ gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			new	
 libbind_clean			open	jinmei
+marka_libdnsng			new	
 mlg-20000518			new	
 newresolver0			new	
 openssl_stub			open	marka
@@ -42,6 +43,7 @@ rt15860				open
 rt15978				review	
 rt16022				review	
 rt16156				new	
+rt16157				new	
 rt1727				open		// ixfr-from-differences workfile
 skan				new	
 skan-metazones1			private	
