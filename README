@@ -194,6 +194,9 @@ BIND 9.2.0
 
 		--with-libtool does not work on AIX.
 
+		--with-libtool does not work on SunOS 4.  configure
+		requires "printf" which is not available.
+
 	A bug in the Windows 2000 DNS server can cause zone transfers
 	from a BIND 9 server to a W2K server to fail.  For details,
 	see the "Zone Transfers" section in doc/misc/migration.
