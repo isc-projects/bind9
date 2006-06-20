@@ -1215,7 +1215,7 @@
 ./lib/bind/inet/inet_data.c			X	2001
 ./lib/bind/inet/inet_lnaof.c			X	2001
 ./lib/bind/inet/inet_makeaddr.c			X	2001
-./lib/bind/inet/inet_net_ntop.c			X	2001
+./lib/bind/inet/inet_net_ntop.c			X	2001,2006
 ./lib/bind/inet/inet_net_pton.c			X	2001
 ./lib/bind/inet/inet_neta.c			X	2001
 ./lib/bind/inet/inet_netof.c			X	2001
