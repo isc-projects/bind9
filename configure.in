@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.61 $)
+AC_REVISION($Revision: 1.294.2.23.2.62 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1789,7 +1789,7 @@ AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
 ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
 
 case "$host" in
-	*-aix5.1.*)
+	*-aix5.[[123]].*)
 		hack_shutup_pthreadonceinit=yes
 		;;
 	*-bsdi3.1*)
