@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.355.18.52 $)
+AC_REVISION($Revision: 1.355.18.53 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -1942,6 +1942,9 @@ main() {
 	;;
 	mips-*)
 		arch=mips
+	;;
+	ia64-*)
+		arch=ia64
 	;;
 	*)
 		have_atomic=no
