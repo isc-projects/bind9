@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.c,v 1.67 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: sockaddr.c,v 1.68 2006/06/21 01:21:59 marka Exp $ */
 
 /*! \file */
 
@@ -490,7 +490,8 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
 	sockaddr->length = sizeof(sockaddr->type.sunix);
 	sockaddr->type.sunix.sun_family = AF_UNIX;
 #ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sunix.sun_len = sizeof(sockaddr->type.sunix);
+	sockaddr->type.sunix.sun_len =
+			(unsigned char)sizeof(sockaddr->type.sunix);
 #endif
 	strcpy(sockaddr->type.sunix.sun_path, path);
 	return (ISC_R_SUCCESS);
