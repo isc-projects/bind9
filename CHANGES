@@ -1,4 +1,5 @@
-2045.	[placeholder]	rt16183
+2045.	[func]		use lock buckets for acache entries to limit memory
+			consumption. [RT #16183]
 
 2044.	[port]		add support for atomic operations for Itanium.
 			[RT #16179]
