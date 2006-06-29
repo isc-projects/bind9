@@ -14,12 +14,12 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.12 2006/05/08 15:45:49 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch02.html,v 1.10.2.13 2006/06/29 13:02:07 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Chapter 2. BIND Resource Requirements</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 <link rel="start" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="prev" href="Bv9ARM.ch01.html" title="Chapter 1. Introduction ">
@@ -28,7 +28,7 @@
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Chapter 2. <span class="acronym">BIND</span> Resource Requirements</th></tr>
+<tr><th colspan="3" align="center">Chapter 2. <acronym class="acronym">BIND</acronym> Resource Requirements</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="Bv9ARM.ch01.html">Prev</a> </td>
@@ -41,44 +41,44 @@
 </div>
 <div class="chapter" lang="en">
 <div class="titlepage"><div><div><h2 class="title">
-<a name="Bv9ARM.ch02"></a>Chapter 2. <span class="acronym">BIND</span> Resource Requirements</h2></div></div></div>
+<a name="Bv9ARM.ch02"></a>Chapter 2. <acronym class="acronym">BIND</acronym> Resource Requirements</h2></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546347">Hardware requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546372">CPU Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546382">Memory Requirements</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546397">Nameserver Intensive Environment Issues</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2546406">Supported Operating Systems</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2570925">Hardware requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2570950">CPU Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2570961">Memory Requirements</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2570976">Nameserver Intensive Environment Issues</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch02.html#id2570984">Supported Operating Systems</a></span></dt>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546347"></a>Hardware requirements</h2></div></div></div>
-<p><span class="acronym">DNS</span> hardware requirements have traditionally been quite modest.
+<a name="id2570925"></a>Hardware requirements</h2></div></div></div>
+<p><acronym class="acronym">DNS</acronym> hardware requirements have traditionally been quite modest.
 For many installations, servers that have been pensioned off from
-active duty have performed admirably as <span class="acronym">DNS</span> servers.</p>
-<p>The DNSSEC and IPv6 features of <span class="acronym">BIND</span> 9 may prove to be quite
+active duty have performed admirably as <acronym class="acronym">DNS</acronym> servers.</p>
+<p>The DNSSEC and IPv6 features of <acronym class="acronym">BIND</acronym> 9 may prove to be quite
 CPU intensive however, so organizations that make heavy use of these
 features may wish to consider larger systems for these applications.
-<span class="acronym">BIND</span> 9 is now fully multithreaded, allowing full utilization of
+<acronym class="acronym">BIND</acronym> 9 is now fully multithreaded, allowing full utilization of
 multiprocessor systems for installations that need it.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546372"></a>CPU Requirements</h2></div></div></div>
-<p>CPU requirements for <span class="acronym">BIND</span> 9 range from i486-class machines
+<a name="id2570950"></a>CPU Requirements</h2></div></div></div>
+<p>CPU requirements for <acronym class="acronym">BIND</acronym> 9 range from i486-class machines
 for serving of static zones without caching, to enterprise-class
 machines if you intend to process many dynamic updates and DNSSEC
 signed zones, serving many thousands of queries per second.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546382"></a>Memory Requirements</h2></div></div></div>
+<a name="id2570961"></a>Memory Requirements</h2></div></div></div>
 <p>The memory of the server has to be large enough to fit the
 cache and zones loaded off disk.  The <span><strong class="command">max-cache-size</strong></span>
 option can be used to limit the amount of memory used by the cache,
-at the expense of reducing cache hit rates and causing more <span class="acronym">DNS</span>
+at the expense of reducing cache hit rates and causing more <acronym class="acronym">DNS</acronym>
 traffic. It is still good practice to have enough memory to load
 all zone and cache data into memory &#8212; unfortunately, the best way
 to determine this for a given installation is to watch the nameserver
@@ -89,7 +89,7 @@ be set higher than this stable size.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546397"></a>Nameserver Intensive Environment Issues</h2></div></div></div>
+<a name="id2570976"></a>Nameserver Intensive Environment Issues</h2></div></div></div>
 <p>For nameserver intensive environments, there are two alternative
 configurations that may be used. The first is where clients and
 any second-level internal nameservers query a main nameserver, which
@@ -103,8 +103,8 @@ as none of the nameservers share their cached data.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2546406"></a>Supported Operating Systems</h2></div></div></div>
-<p>ISC <span class="acronym">BIND</span> 9 compiles and runs on the following operating
+<a name="id2570984"></a>Supported Operating Systems</h2></div></div></div>
+<p>ISC <acronym class="acronym">BIND</acronym> 9 compiles and runs on the following operating
 systems:</p>
 <div class="itemizedlist"><ul type="disc">
 <li>IBM AIX 4.3</li>
