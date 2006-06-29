@@ -14,15 +14,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwres_resutil.html,v 1.21 2006/04/23 10:14:12 marka Exp $ -->
+<!-- $Id: lwres_resutil.html,v 1.22 2006/06/29 13:03:32 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_resutil</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2462968"></a><div class="titlepage"></div>
+<a name="id2482688"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>lwres_string_parse, lwres_addr_parse, lwres_getaddrsbyname, lwres_getnamebyaddr &#8212; lightweight resolver utility functions</p>
@@ -36,19 +36,25 @@
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_string_parse</b>(</code></td>
-<td>lwres_buffer_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>char ** </td>
+<td> </td>
+<td>
+<var class="pdparam">b</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">c</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint16_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">len</var><code>)</code>;</td>
 </tr>
@@ -58,13 +64,19 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_addr_parse</b>(</code></td>
-<td>lwres_buffer_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_addr_t * </td>
+<td> </td>
+<td>
+<var class="pdparam">b</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">addr</var><code>)</code>;</td>
 </tr>
@@ -74,25 +86,31 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_getaddrsbyname</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>const char * </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">name</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint32_t  </td>
+<td> </td>
 <td>
 <var class="pdparam">addrtypes</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_gabnresponse_t ** </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -102,31 +120,37 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_getnamebyaddr</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint32_t  </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">addrtype</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint16_t  </td>
+<td> </td>
 <td>
 <var class="pdparam">addrlen</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>const unsigned char * </td>
+<td> </td>
 <td>
 <var class="pdparam">addr</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_gnbaresponse_t ** </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -134,7 +158,7 @@ lwres_result_t
 </div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525275"></a><h2>DESCRIPTION</h2>
+<a name="id2549524"></a><h2>DESCRIPTION</h2>
 <p><code class="function">lwres_string_parse()</code>
       retrieves a DNS-encoded string starting the current pointer of
       lightweight resolver buffer <em class="parameter"><code>b</code></em>: i.e.
@@ -210,7 +234,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525414"></a><h2>RETURN VALUES</h2>
+<a name="id2549799"></a><h2>RETURN VALUES</h2>
 <p>
       Successful calls to
       <code class="function">lwres_string_parse()</code>
@@ -248,7 +272,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525485"></a><h2>SEE ALSO</h2>
+<a name="id2549870"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">lwres_buffer</span>(3)</span>,
 
       <span class="citerefentry"><span class="refentrytitle">lwres_gabn</span>(3)</span>.

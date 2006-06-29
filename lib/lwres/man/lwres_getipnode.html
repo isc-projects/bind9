@@ -14,15 +14,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwres_getipnode.html,v 1.21 2006/04/23 10:14:12 marka Exp $ -->
+<!-- $Id: lwres_getipnode.html,v 1.22 2006/06/29 13:03:32 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_getipnode</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2462968"></a><div class="titlepage"></div>
+<a name="id2482688"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>lwres_getipnodebyname, lwres_getipnodebyaddr, lwres_freehostent &#8212; lightweight resolver nodename / address translation API</p>
@@ -36,25 +36,31 @@
 <td><code class="funcdef">
 struct hostent *
 <b class="fsfunc">lwres_getipnodebyname</b>(</code></td>
-<td>const char * </td>
+<td> </td>
 <td>
 <var class="pdparam">name</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>int  </td>
+<td> </td>
+<td>
+<var class="pdparam">name</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">af</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>int  </td>
+<td> </td>
 <td>
 <var class="pdparam">flags</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>int * </td>
+<td> </td>
 <td>
 <var class="pdparam">error_num</var><code>)</code>;</td>
 </tr>
@@ -64,41 +70,55 @@ struct hostent *
 <td><code class="funcdef">
 struct hostent *
 <b class="fsfunc">lwres_getipnodebyaddr</b>(</code></td>
-<td>const void * </td>
+<td> </td>
 <td>
 <var class="pdparam">src</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>size_t  </td>
+<td> </td>
+<td>
+<var class="pdparam">src</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">len</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>int  </td>
+<td> </td>
 <td>
 <var class="pdparam">af</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>int * </td>
+<td> </td>
 <td>
 <var class="pdparam">error_num</var><code>)</code>;</td>
 </tr>
 </table>
-<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0"><tr>
+<table border="0" summary="Function synopsis" cellspacing="0" cellpadding="0">
+<tr>
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_freehostent</b>(</code></td>
-<td>struct hostent * </td>
+<td> </td>
 <td>
 <var class="pdparam">he</var><code>)</code>;</td>
-</tr></table>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
+<td>
+<var class="pdparam">he</var><code>)</code>;</td>
+</tr>
+</table>
 </div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525240"></a><h2>DESCRIPTION</h2>
+<a name="id2549489"></a><h2>DESCRIPTION</h2>
 <p>
       These functions perform thread safe, protocol independent
       nodename-to-address and address-to-nodename
@@ -217,7 +237,7 @@ struct  hostent {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525566"></a><h2>RETURN VALUES</h2>
+<a name="id2549883"></a><h2>RETURN VALUES</h2>
 <p>
       If an error occurs,
       <code class="function">lwres_getipnodebyname()</code>
@@ -261,7 +281,7 @@ struct  hostent {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525664"></a><h2>SEE ALSO</h2>
+<a name="id2549980"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">RFC2553</span></span>,
 
       <span class="citerefentry"><span class="refentrytitle">lwres</span>(3)</span>,

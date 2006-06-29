@@ -13,14 +13,17 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_inetntop.3,v 1.23 2005/10/13 03:14:01 marka Exp $
+.\" $Id: lwres_inetntop.3,v 1.24 2006/06/29 13:03:32 marka Exp $
 .\"
 .hy 0
 .ad l
-.\" ** You probably do not want to edit this file directly **
-.\" It was generated using the DocBook XSL Stylesheets (version 1.69.1).
-.\" Instead of manually editing it, you probably should edit the DocBook XML
-.\" source for it and then use the DocBook XSL Stylesheets to regenerate it.
+.\"     Title: lwres_inetntop
+.\"    Author: 
+.\" Generator: DocBook XSL Stylesheets v1.70.1 <http://docbook.sf.net/>
+.\"      Date: Jun 30, 2000
+.\"    Manual: BIND9
+.\"    Source: BIND9
+.\"
 .TH "LWRES_INETNTOP" "3" "Jun 30, 2000" "BIND9" "BIND9"
 .\" disable hyphenation
 .nh
@@ -33,7 +36,7 @@ lwres_net_ntop \- lightweight resolver IP address presentation
 #include <lwres/net.h>
 .fi
 .HP 28
-\fBconst\ char\ *\ \fBlwres_net_ntop\fR\fR\fB(\fR\fBint\ \fR\fB\fIaf\fR\fR\fB, \fR\fBconst\ void\ *\fR\fB\fIsrc\fR\fR\fB, \fR\fBchar\ *\fR\fB\fIdst\fR\fR\fB, \fR\fBsize_t\ \fR\fB\fIsize\fR\fR\fB);\fR
+.BI "const char * lwres_net_ntop(int\ " "af" ", const\ void\ *" "src" ", char\ *" "dst" ", size_t\ " "size" ");"
 .SH "DESCRIPTION"
 .PP
 \fBlwres_net_ntop()\fR
@@ -67,3 +70,5 @@ is not supported.
 \fBRFC1884\fR(),
 \fBinet_ntop\fR(3),
 \fBerrno\fR(3).
+.SH "COPYRIGHT"
+Copyright \(co 2004, 2005 Internet Systems Consortium, Inc. ("ISC")

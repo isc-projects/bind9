@@ -14,15 +14,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwres_noop.html,v 1.21 2006/04/23 10:14:12 marka Exp $ -->
+<!-- $Id: lwres_noop.html,v 1.22 2006/06/29 13:03:32 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_noop</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2462968"></a><div class="titlepage"></div>
+<a name="id2482688"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>lwres_nooprequest_render, lwres_noopresponse_render, lwres_nooprequest_parse, lwres_noopresponse_parse, lwres_noopresponse_free, lwres_nooprequest_free &#8212; lightweight resolver no-op message handling</p>
@@ -37,25 +37,31 @@
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_nooprequest_render</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_nooprequest_t * </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">req</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_lwpacket_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_buffer_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var><code>)</code>;</td>
 </tr>
@@ -65,25 +71,31 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_noopresponse_render</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_noopresponse_t * </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">req</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_lwpacket_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_buffer_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var><code>)</code>;</td>
 </tr>
@@ -93,25 +105,31 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_nooprequest_parse</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_buffer_t * </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_lwpacket_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_nooprequest_t ** </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -121,25 +139,31 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_noopresponse_parse</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_buffer_t * </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_lwpacket_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_noopresponse_t ** </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -149,13 +173,19 @@ lwres_result_t
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_noopresponse_free</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_noopresponse_t ** </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -165,13 +195,19 @@ void
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_nooprequest_free</b>(</code></td>
-<td>lwres_context_t * </td>
+<td> </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_nooprequest_t ** </td>
+<td> </td>
+<td>
+<var class="pdparam">ctx</var>, </td>
+</tr>
+<tr>
+<td> </td>
+<td> </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -179,7 +215,7 @@ void
 </div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525331"></a><h2>DESCRIPTION</h2>
+<a name="id2549579"></a><h2>DESCRIPTION</h2>
 <p>
       These are low-level routines for creating and parsing
       lightweight resolver no-op request and response messages.
@@ -270,7 +306,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525549"></a><h2>RETURN VALUES</h2>
+<a name="id2549866"></a><h2>RETURN VALUES</h2>
 <p>
       The no-op opcode functions
       <code class="function">lwres_nooprequest_render()</code>,
@@ -309,7 +345,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525616"></a><h2>SEE ALSO</h2>
+<a name="id2549932"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">lwres_packet</span>(3)</span>
     </p>
 </div>
