@@ -14,12 +14,12 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.38 2006/06/09 07:14:11 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch06.html,v 1.56.2.12.2.39 2006/06/29 13:02:31 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>Chapter 6. BIND 9 Configuration Reference</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 <link rel="start" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="up" href="Bv9ARM.html" title="BIND 9 Administrator Reference Manual">
 <link rel="prev" href="Bv9ARM.ch05.html" title="Chapter 5. The BIND 9 Lightweight Resolver">
@@ -28,7 +28,7 @@
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <div class="navheader">
 <table width="100%" summary="Navigation header">
-<tr><th colspan="3" align="center">Chapter 6. <span class="acronym">BIND</span> 9 Configuration Reference</th></tr>
+<tr><th colspan="3" align="center">Chapter 6. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</th></tr>
 <tr>
 <td width="20%" align="left">
 <a accesskey="p" href="Bv9ARM.ch05.html">Prev</a> </td>
@@ -41,70 +41,70 @@
 </div>
 <div class="chapter" lang="en">
 <div class="titlepage"><div><div><h2 class="title">
-<a name="Bv9ARM.ch06"></a>Chapter 6. <span class="acronym">BIND</span> 9 Configuration Reference</h2></div></div></div>
+<a name="Bv9ARM.ch06"></a>Chapter 6. <acronym class="acronym">BIND</acronym> 9 Configuration Reference</h2></div></div></div>
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#configuration_file_elements">Configuration File Elements</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#address_match_lists">Address Match Lists</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2551026">Comment Syntax</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2575672">Comment Syntax</a></span></dt>
 </dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch06.html#Configuration_File_Grammar">Configuration File Grammar</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2551511"><span><strong class="command">acl</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576157"><span><strong class="command">acl</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#acl"><span><strong class="command">acl</strong></span> Statement Definition and
 Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2551680"><span><strong class="command">controls</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576326"><span><strong class="command">controls</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#controls_statement_definition_and_usage"><span><strong class="command">controls</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552093"><span><strong class="command">include</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552108"><span><strong class="command">include</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552131"><span><strong class="command">key</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552220"><span><strong class="command">key</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552360"><span><strong class="command">logging</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2552486"><span><strong class="command">logging</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553692"><span><strong class="command">lwres</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553765"><span><strong class="command">lwres</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553828"><span><strong class="command">masters</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553940"><span><strong class="command">masters</strong></span> Statement Definition and Usage </a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2553955"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576672"><span><strong class="command">include</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576686"><span><strong class="command">include</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576709"><span><strong class="command">key</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576730"><span><strong class="command">key</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2576870"><span><strong class="command">logging</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2577064"><span><strong class="command">logging</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578270"><span><strong class="command">lwres</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578343"><span><strong class="command">lwres</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578406"><span><strong class="command">masters</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578518"><span><strong class="command">masters</strong></span> Statement Definition and Usage </a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2578533"><span><strong class="command">options</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#options"><span><strong class="command">options</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_grammar"><span><strong class="command">server</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#server_statement_definition_and_usage"><span><strong class="command">server</strong></span> Statement Definition and Usage</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2561554"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2561602"><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586064"><span><strong class="command">trusted-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586112"><span><strong class="command">trusted-keys</strong></span> Statement Definition
 	    and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#view_statement_grammar"><span><strong class="command">view</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2561684"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2586194"><span><strong class="command">view</strong></span> Statement Definition and Usage</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#zone_statement_grammar"><span><strong class="command">zone</strong></span>
 Statement Grammar</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2563035"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2587477"><span><strong class="command">zone</strong></span> Statement Definition and Usage</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2564369">Zone File</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch06.html#id2589015">Zone File</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#types_of_resource_records_and_when_to_use_them">Types of Resource Records and When to Use Them</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2565938">Discussion of MX Records</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2590379">Discussion of MX Records</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch06.html#Setting_TTLs">Setting TTLs</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566366">Inverse Mapping in IPv4</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566472">Other Zone File Directives</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2566641"><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2590945">Inverse Mapping in IPv4</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591118">Other Zone File Directives</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch06.html#id2591355"><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</a></span></dt>
 </dl></dd>
 </dl>
 </div>
-<p><span class="acronym">BIND</span> 9 configuration is broadly similar
-to <span class="acronym">BIND</span> 8; however, there are a few new areas
-of configuration, such as views. <span class="acronym">BIND</span>
-8 configuration files should work with few alterations in <span class="acronym">BIND</span>
+<p><acronym class="acronym">BIND</acronym> 9 configuration is broadly similar
+to <acronym class="acronym">BIND</acronym> 8; however, there are a few new areas
+of configuration, such as views. <acronym class="acronym">BIND</acronym>
+8 configuration files should work with few alterations in <acronym class="acronym">BIND</acronym>
 9, although more complex configurations should be reviewed to check
 if they can be more efficiently implemented using the new features
-found in <span class="acronym">BIND</span> 9.</p>
-<p><span class="acronym">BIND</span> 4 configuration files can be converted to the new format
+found in <acronym class="acronym">BIND</acronym> 9.</p>
+<p><acronym class="acronym">BIND</acronym> 4 configuration files can be converted to the new format
 using the shell script
 <code class="filename">contrib/named-bootconf/named-bootconf.sh</code>.</p>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="configuration_file_elements"></a>Configuration File Elements</h2></div></div></div>
-<p>Following is a list of elements used throughout the <span class="acronym">BIND</span> configuration
+<p>Following is a list of elements used throughout the <acronym class="acronym">BIND</acronym> configuration
 file documentation:</p>
 <div class="informaltable"><table border="1">
 <colgroup>
@@ -244,7 +244,7 @@ are restricted to slave and stub zones.</p></td>
 <a name="address_match_lists"></a>Address Match Lists</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550837"></a>Syntax</h4></div></div></div>
+<a name="id2575552"></a>Syntax</h4></div></div></div>
 <pre class="programlisting"><code class="varname">address_match_list</code> = address_match_list_element ;
   [<span class="optional"> address_match_list_element; ... </span>]
 <code class="varname">address_match_list_element</code> = [<span class="optional"> ! </span>] (ip_address [<span class="optional">/length</span>] |
@@ -253,7 +253,7 @@ are restricted to slave and stub zones.</p></td>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2550864"></a>Definition and Usage</h4></div></div></div>
+<a name="id2575578"></a>Definition and Usage</h4></div></div></div>
 <p>Address match lists are primarily used to determine access
 control for various server operations. They are also used in
 the <span><strong class="command">listen-on</strong></span> and <span><strong class="command">sortlist</strong></span>
@@ -303,29 +303,29 @@ other 1.2.3.* hosts fall through.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2551026"></a>Comment Syntax</h3></div></div></div>
-<p>The <span class="acronym">BIND</span> 9 comment syntax allows for comments to appear
-anywhere that white space may appear in a <span class="acronym">BIND</span> configuration
+<a name="id2575672"></a>Comment Syntax</h3></div></div></div>
+<p>The <acronym class="acronym">BIND</acronym> 9 comment syntax allows for comments to appear
+anywhere that white space may appear in a <acronym class="acronym">BIND</acronym> configuration
 file. To appeal to programmers of all kinds, they can be written
 in the C, C++, or shell/perl style.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551041"></a>Syntax</h4></div></div></div>
-<pre class="programlisting">/* This is a <span class="acronym">BIND</span> comment as in C */</pre>
+<a name="id2575687"></a>Syntax</h4></div></div></div>
+<pre class="programlisting">/* This is a <acronym class="acronym">BIND</acronym> comment as in C */</pre>
 <p>
 </p>
-<pre class="programlisting">// This is a <span class="acronym">BIND</span> comment as in C++</pre>
+<pre class="programlisting">// This is a <acronym class="acronym">BIND</acronym> comment as in C++</pre>
 <p>
 </p>
-<pre class="programlisting"># This is a <span class="acronym">BIND</span> comment as in common UNIX shells and perl</pre>
+<pre class="programlisting"># This is a <acronym class="acronym">BIND</acronym> comment as in common UNIX shells and perl</pre>
 <p>
       </p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2551138"></a>Definition and Usage</h4></div></div></div>
+<a name="id2575716"></a>Definition and Usage</h4></div></div></div>
 <p>Comments may appear anywhere that white space may appear in
-a <span class="acronym">BIND</span> configuration file.</p>
+a <acronym class="acronym">BIND</acronym> configuration file.</p>
 <p>C-style comments start with the two characters /* (slash,
 star) and end with */ (star, slash). Because they are completely
 delimited with these characters, they can be used to comment only
@@ -369,7 +369,7 @@ physical line, as in C++ comments.</p>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
 <a name="Configuration_File_Grammar"></a>Configuration File Grammar</h2></div></div></div>
-<p>A <span class="acronym">BIND</span> 9 configuration consists of statements and comments.
+<p>A <acronym class="acronym">BIND</acronym> 9 configuration consists of statements and comments.
     Statements end with a semicolon. Statements and comments are the
     only elements that can appear without enclosing braces. Many
     statements contain a block of sub-statements, which are also
@@ -444,7 +444,7 @@ a per-server basis.</p></td>
     configuration.</p>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2551511"></a><span><strong class="command">acl</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2576157"></a><span><strong class="command">acl</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">acl</strong></span> acl-name { 
     address_match_list 
 };
@@ -495,7 +495,7 @@ IPv6 addresses, just like <span><strong class="command">localhost</strong></span
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2551680"></a><span><strong class="command">controls</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2576326"></a><span><strong class="command">controls</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">controls</strong></span> {
    inet ( ip_addr | * ) [<span class="optional"> port ip_port </span>] allow { <em class="replaceable"><code> address_match_list </code></em> }
                 keys { <em class="replaceable"><code> key_list </code></em> };
@@ -557,17 +557,17 @@ is present but does not have a <span><strong class="command">keys</strong></span
 <span><strong class="command">named</strong></span> will attempt to load the command channel key
 from the file <code class="filename">rndc.key</code> in
 <code class="filename">/etc</code> (or whatever <code class="varname">sysconfdir</code>
-was specified as when <span class="acronym">BIND</span> was built).
+was specified as when <acronym class="acronym">BIND</acronym> was built).
 To create a <code class="filename">rndc.key</code> file, run
 <strong class="userinput"><code>rndc-confgen -a</code></strong>.
 </p>
 <p>The <code class="filename">rndc.key</code> feature was created to
-      ease the transition of systems from <span class="acronym">BIND</span> 8,
+      ease the transition of systems from <acronym class="acronym">BIND</acronym> 8,
       which did not have digital signatures on its command channel messages
       and thus did not have a <span><strong class="command">keys</strong></span> clause.
 
-It makes it possible to use an existing <span class="acronym">BIND</span> 8
-configuration file in <span class="acronym">BIND</span> 9 unchanged,
+It makes it possible to use an existing <acronym class="acronym">BIND</acronym> 8
+configuration file in <acronym class="acronym">BIND</acronym> 9 unchanged,
 and still have <span><strong class="command">rndc</strong></span> work the same way
 <span><strong class="command">ndc</strong></span> worked in BIND 8, simply by executing the
 command <strong class="userinput"><code>rndc-confgen -a</code></strong> after BIND 9 is
@@ -576,7 +576,7 @@ installed.
 <p>
       Since the <code class="filename">rndc.key</code> feature
       is only intended to allow the backward-compatible usage of
-      <span class="acronym">BIND</span> 8 configuration files, this feature does not
+      <acronym class="acronym">BIND</acronym> 8 configuration files, this feature does not
       have a high degree of configurability.  You cannot easily change
       the key name or the size of the secret, so you should make a
       <code class="filename">rndc.conf</code> with your own key if you wish to change
@@ -587,11 +587,11 @@ installed.
       <span><strong class="command">rndc</strong></span> commands, then you need to create a
       <code class="filename">rndc.conf</code> file and make it group readable by a group
       that contains the users who should have access.</p>
-<p>The UNIX control channel type of <span class="acronym">BIND</span> 8 is not supported
-      in <span class="acronym">BIND</span> 9.0, <span class="acronym">BIND</span> 9.1,
-      <span class="acronym">BIND</span> 9.2 and <span class="acronym">BIND</span> 9.3.
+<p>The UNIX control channel type of <acronym class="acronym">BIND</acronym> 8 is not supported
+      in <acronym class="acronym">BIND</acronym> 9.0, <acronym class="acronym">BIND</acronym> 9.1,
+      <acronym class="acronym">BIND</acronym> 9.2 and <acronym class="acronym">BIND</acronym> 9.3.
       If it is present in the controls statement from a
-      <span class="acronym">BIND</span> 8 configuration file, it is ignored
+      <acronym class="acronym">BIND</acronym> 8 configuration file, it is ignored
       and a warning is logged.</p>
 <p>
 To disable the command channel, use an empty <span><strong class="command">controls</strong></span>
@@ -600,12 +600,12 @@ statement: <span><strong class="command">controls { };</strong></span>.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552093"></a><span><strong class="command">include</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2576672"></a><span><strong class="command">include</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">include <em class="replaceable"><code>filename</code></em>;</pre>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552108"></a><span><strong class="command">include</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2576686"></a><span><strong class="command">include</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">include</strong></span> statement inserts the
       specified file at the point where the <span><strong class="command">include</strong></span>
       statement is encountered. The <span><strong class="command">include</strong></span>
@@ -616,7 +616,7 @@ statement: <span><strong class="command">controls { };</strong></span>.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552131"></a><span><strong class="command">key</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2576709"></a><span><strong class="command">key</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">key <em class="replaceable"><code>key_id</code></em> {
     algorithm <em class="replaceable"><code>string</code></em>;
     secret <em class="replaceable"><code>string</code></em>;
@@ -625,7 +625,7 @@ statement: <span><strong class="command">controls { };</strong></span>.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552220"></a><span><strong class="command">key</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2576730"></a><span><strong class="command">key</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">key</strong></span> statement defines a shared
 secret key for use with TSIG (see <a href="Bv9ARM.ch04.html#tsig" title="TSIG">the section called &#8220;TSIG&#8221;</a>)
 or the command channel
@@ -657,7 +657,7 @@ string.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552360"></a><span><strong class="command">logging</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2576870"></a><span><strong class="command">logging</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting"><span><strong class="command">logging</strong></span> {
    [ <span><strong class="command">channel</strong></span> <em class="replaceable"><code>channel_name</code></em> {
      ( <span><strong class="command">file</strong></span> <em class="replaceable"><code>path name</code></em>
@@ -681,7 +681,7 @@ string.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2552486"></a><span><strong class="command">logging</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2577064"></a><span><strong class="command">logging</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">logging</strong></span> statement configures a wide
 variety of logging options for the name server. Its <span><strong class="command">channel</strong></span> phrase
 associates output methods, format options and severity levels with
@@ -695,8 +695,8 @@ the logging configuration will be:</p>
      category unmatched { null; };
 };
 </pre>
-<p>In <span class="acronym">BIND</span> 9, the logging configuration is only established when
-the entire configuration file has been parsed.  In <span class="acronym">BIND</span> 8, it was
+<p>In <acronym class="acronym">BIND</acronym> 9, the logging configuration is only established when
+the entire configuration file has been parsed.  In <acronym class="acronym">BIND</acronym> 8, it was
 established as soon as the <span><strong class="command">logging</strong></span> statement
 was parsed. When the server is starting up, all logging messages
 regarding syntax errors in the configuration file go to the default
@@ -704,7 +704,7 @@ channels, or to standard error if the "<code class="option">-g</code>" option
 was specified.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2552538"></a>The <span><strong class="command">channel</strong></span> Phrase</h4></div></div></div>
+<a name="id2577116"></a>The <span><strong class="command">channel</strong></span> Phrase</h4></div></div></div>
 <p>All log output goes to one or more <span class="emphasis"><em>channels</em></span>;
 you can make as many of them as you want.</p>
 <p>Every channel definition must include a destination clause that
@@ -896,7 +896,7 @@ category notify { null; };
 </pre>
 <p>Following are the available categories and brief descriptions
 of the types of log information they contain. More
-categories may be added in future <span class="acronym">BIND</span> releases.</p>
+categories may be added in future <acronym class="acronym">BIND</acronym> releases.</p>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -1019,7 +1019,7 @@ a <span><strong class="command">delegation-only</strong></span> in a hint or stu
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2553692"></a><span><strong class="command">lwres</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2578270"></a><span><strong class="command">lwres</strong></span> Statement Grammar</h3></div></div></div>
 <p> This is the grammar of the <span><strong class="command">lwres</strong></span>
 statement in the <code class="filename">named.conf</code> file:</p>
 <pre class="programlisting"><span><strong class="command">lwres</strong></span> {
@@ -1032,7 +1032,7 @@ statement in the <code class="filename">named.conf</code> file:</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2553765"></a><span><strong class="command">lwres</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2578343"></a><span><strong class="command">lwres</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">lwres</strong></span> statement configures the name
 server to also act as a lightweight resolver server. (See
 <a href="Bv9ARM.ch05.html#lwresd" title="Running a Resolver Daemon">the section called &#8220;Running a Resolver Daemon&#8221;</a>.)  There may be be multiple
@@ -1060,20 +1060,20 @@ exact match lookup before search path elements are appended.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2553828"></a><span><strong class="command">masters</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2578406"></a><span><strong class="command">masters</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">
 <span><strong class="command">masters</strong></span> <em class="replaceable"><code>name</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] { ( <em class="replaceable"><code>masters_list</code></em> | <em class="replaceable"><code>ip_addr</code></em> [<span class="optional">port <em class="replaceable"><code>ip_port</code></em></span>] [<span class="optional">key <em class="replaceable"><code>key</code></em></span>] ) ; [<span class="optional">...</span>] } ; 
 </pre>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2553940"></a><span><strong class="command">masters</strong></span> Statement Definition and Usage </h3></div></div></div>
+<a name="id2578518"></a><span><strong class="command">masters</strong></span> Statement Definition and Usage </h3></div></div></div>
 <p><span><strong class="command">masters</strong></span> lists allow for a common set of masters
 to be easily used by multiple stub and slave zones.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2553955"></a><span><strong class="command">options</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2578533"></a><span><strong class="command">options</strong></span> Statement Grammar</h3></div></div></div>
 <p>This is the grammar of the <span><strong class="command">options</strong></span>
 statement in the <code class="filename">named.conf</code> file:</p>
 <pre class="programlisting">options {
@@ -1191,7 +1191,7 @@ statement in the <code class="filename">named.conf</code> file:</p>
 <div class="titlepage"><div><div><h3 class="title">
 <a name="options"></a><span><strong class="command">options</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">options</strong></span> statement sets up global options
-to be used by <span class="acronym">BIND</span>. This statement may appear only
+to be used by <acronym class="acronym">BIND</acronym>. This statement may appear only
 once in a configuration file. If there is no <span><strong class="command">options</strong></span>
 statement, an options block with each option set to its default will
 be used.</p>
@@ -1211,9 +1211,9 @@ if different than the current working directory.  The directory specified
 must be an absolute path.</p></dd>
 <dt><span class="term"><span><strong class="command">named-xfer</strong></span></span></dt>
 <dd><p><span class="emphasis"><em>This option is obsolete.</em></span>
-It was used in <span class="acronym">BIND</span> 8 to
+It was used in <acronym class="acronym">BIND</acronym> 8 to
 specify the pathname to the <span><strong class="command">named-xfer</strong></span> program.
-In <span class="acronym">BIND</span> 9, no separate <span><strong class="command">named-xfer</strong></span> program is
+In <acronym class="acronym">BIND</acronym> 9, no separate <span><strong class="command">named-xfer</strong></span> program is
 needed; its functionality is built into the name server.</p></dd>
 <dt><span class="term"><span><strong class="command">tkey-domain</strong></span></span></dt>
 <dd><p>The domain appended to the names of all
@@ -1333,11 +1333,11 @@ The specified domain must be under a <span><strong class="command">trusted-key</
 <dd><p>If <strong class="userinput"><code>yes</code></strong>, then the <span><strong class="command">AA</strong></span> bit
 is always set on NXDOMAIN responses, even if the server is not actually
 authoritative. The default is <strong class="userinput"><code>no</code></strong>; this is
-a change from <span class="acronym">BIND</span> 8. If you are using very old DNS software, you
+a change from <acronym class="acronym">BIND</acronym> 8. If you are using very old DNS software, you
 may need to set it to <strong class="userinput"><code>yes</code></strong>.</p></dd>
 <dt><span class="term"><span><strong class="command">deallocate-on-exit</strong></span></span></dt>
-<dd><p>This option was used in <span class="acronym">BIND</span> 8 to enable checking
-for memory leaks on exit. <span class="acronym">BIND</span> 9 ignores the option and always performs
+<dd><p>This option was used in <acronym class="acronym">BIND</acronym> 8 to enable checking
+for memory leaks on exit. <acronym class="acronym">BIND</acronym> 9 ignores the option and always performs
 the checks.</p></dd>
 <dt><span class="term"><span><strong class="command">dialup</strong></span></span></dt>
 <dd>
@@ -1429,9 +1429,9 @@ processing.</p>
 <span><strong class="command">dialup</strong></span>.</p>
 </dd>
 <dt><span class="term"><span><strong class="command">fake-iquery</strong></span></span></dt>
-<dd><p>In <span class="acronym">BIND</span> 8, this option
+<dd><p>In <acronym class="acronym">BIND</acronym> 8, this option
 enabled simulating the obsolete DNS query type
-IQUERY. <span class="acronym">BIND</span> 9 never does IQUERY simulation.
+IQUERY. <acronym class="acronym">BIND</acronym> 9 never does IQUERY simulation.
 </p></dd>
 <dt><span class="term"><span><strong class="command">fetch-glue</strong></span></span></dt>
 <dd><p>This option is obsolete.
@@ -1447,7 +1447,7 @@ flush or do not flush any pending zone writes.  The default is
 </p></dd>
 <dt><span class="term"><span><strong class="command">has-old-clients</strong></span></span></dt>
 <dd><p>This option was incorrectly implemented
-in <span class="acronym">BIND</span> 8, and is ignored by <span class="acronym">BIND</span> 9.
+in <acronym class="acronym">BIND</acronym> 8, and is ignored by <acronym class="acronym">BIND</acronym> 9.
 To achieve the intended effect
 of
 <span><strong class="command">has-old-clients</strong></span> <strong class="userinput"><code>yes</code></strong>, specify
@@ -1461,8 +1461,8 @@ Not implemented in BIND 9.
 </p></dd>
 <dt><span class="term"><span><strong class="command">maintain-ixfr-base</strong></span></span></dt>
 <dd><p><span class="emphasis"><em>This option is obsolete</em></span>.
- It was used in <span class="acronym">BIND</span> 8 to determine whether a transaction log was
-kept for Incremental Zone Transfer. <span class="acronym">BIND</span> 9 maintains a transaction
+ It was used in <acronym class="acronym">BIND</acronym> 8 to determine whether a transaction log was
+kept for Incremental Zone Transfer. <acronym class="acronym">BIND</acronym> 9 maintains a transaction
 log whenever possible.  If you need to disable outgoing incremental zone
 transfers, use <span><strong class="command">provide-ixfr</strong></span> <strong class="userinput"><code>no</code></strong>.
 </p></dd>
@@ -1474,9 +1474,9 @@ negative responses).  This may improve the performance of the server.
 The default is <strong class="userinput"><code>no</code></strong>.
 </p></dd>
 <dt><span class="term"><span><strong class="command">multiple-cnames</strong></span></span></dt>
-<dd><p>This option was used in <span class="acronym">BIND</span> 8 to allow
+<dd><p>This option was used in <acronym class="acronym">BIND</acronym> 8 to allow
 a domain name to have multiple CNAME records in violation of the
-DNS standards.  <span class="acronym">BIND</span> 9.2 always strictly
+DNS standards.  <acronym class="acronym">BIND</acronym> 9.2 always strictly
 enforces the CNAME rules both in master files and dynamic updates.
 </p></dd>
 <dt><span class="term"><span><strong class="command">notify</strong></span></span></dt>
@@ -1520,12 +1520,12 @@ cause the server to send NS records along with the SOA record for negative
 answers. The default is <strong class="userinput"><code>no</code></strong>.</p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-<p>Not yet implemented in <span class="acronym">BIND</span> 9.</p>
+<p>Not yet implemented in <acronym class="acronym">BIND</acronym> 9.</p>
 </div>
 </dd>
 <dt><span class="term"><span><strong class="command">use-id-pool</strong></span></span></dt>
 <dd><p><span class="emphasis"><em>This option is obsolete</em></span>.
-<span class="acronym">BIND</span> 9 always allocates query IDs from a pool.
+<acronym class="acronym">BIND</acronym> 9 always allocates query IDs from a pool.
 </p></dd>
 <dt><span class="term"><span><strong class="command">zone-statistics</strong></span></span></dt>
 <dd><p>If <strong class="userinput"><code>yes</code></strong>, the server will collect
@@ -1555,11 +1555,11 @@ See the description of
 <a href="Bv9ARM.ch06.html#server_statement_definition_and_usage" title="server Statement Definition and Usage">the section called &#8220;<span><strong class="command">server</strong></span> Statement Definition and Usage&#8221;</a>.
 </p></dd>
 <dt><span class="term"><span><strong class="command">treat-cr-as-space</strong></span></span></dt>
-<dd><p>This option was used in <span class="acronym">BIND</span> 8 to make
+<dd><p>This option was used in <acronym class="acronym">BIND</acronym> 8 to make
 the server treat carriage return ("<span><strong class="command">\r</strong></span>") characters the same way
 as a space or tab character,
 to facilitate loading of zone files on a UNIX system that were generated
-on an NT or DOS machine. In <span class="acronym">BIND</span> 9, both UNIX "<span><strong class="command">\n</strong></span>"
+on an NT or DOS machine. In <acronym class="acronym">BIND</acronym> 9, both UNIX "<span><strong class="command">\n</strong></span>"
 and NT/DOS "<span><strong class="command">\r\n</strong></span>" newlines are always accepted,
 and the option is ignored.</p></dd>
 <dt>
@@ -1697,7 +1697,7 @@ IN-ADDR.ARPA, IP6.ARPA, IP6.INT).
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2556576"></a>Forwarding</h4></div></div></div>
+<a name="id2581154"></a>Forwarding</h4></div></div></div>
 <p>The forwarding facility can be used to create a large site-wide
 cache on a few servers, reducing traffic over links to external
 name servers. It can also be used to allow queries by servers that
@@ -1729,7 +1729,7 @@ Statement Grammar&#8221;</a>.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2556626"></a>Dual-stack Servers</h4></div></div></div>
+<a name="id2581272"></a>Dual-stack Servers</h4></div></div></div>
 <p>Dual-stack servers are used as servers of last resort to work around
 problems in reachability due the lack of support for either IPv4 or IPv6
 on the host machine.</p>
@@ -1810,7 +1810,7 @@ from these addresses will not be responded to. The default is <strong class="use
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2556941"></a>Interfaces</h4></div></div></div>
+<a name="id2581520"></a>Interfaces</h4></div></div></div>
 <p>The interfaces and ports that the server will answer queries
 from may be specified using the <span><strong class="command">listen-on</strong></span> option. <span><strong class="command">listen-on</strong></span> takes
 an optional port, and an <code class="varname">address_match_list</code>.
@@ -1860,7 +1860,7 @@ the server will not listen on any IPv6 address.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2557098"></a>Query Address</h4></div></div></div>
+<a name="id2581676"></a>Query Address</h4></div></div></div>
 <p>If the server doesn't know the answer to a question, it will
 query other name servers. <span><strong class="command">query-source</strong></span> specifies
 the address and port used for such queries. For queries sent over
@@ -1897,7 +1897,7 @@ unprivileged port.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="zone_transfers"></a>Zone Transfers</h4></div></div></div>
-<p><span class="acronym">BIND</span> has mechanisms in place to facilitate zone transfers
+<p><acronym class="acronym">BIND</acronym> has mechanisms in place to facilitate zone transfers
 and set limits on the amount of load that transfers place on the
 system. The following options apply to zone transfers.</p>
 <div class="variablelist"><dl>
@@ -1957,8 +1957,8 @@ resource record transferred.
 <span><strong class="command">many-answers</strong></span> packs as many resource records as
 possible into a message. <span><strong class="command">many-answers</strong></span> is more
 efficient, but is only supported by relatively new slave servers,
-such as <span class="acronym">BIND</span> 9, <span class="acronym">BIND</span> 8.x and patched
-versions of <span class="acronym">BIND</span> 4.9.5. The <span><strong class="command">many-answers</strong></span>
+such as <acronym class="acronym">BIND</acronym> 9, <acronym class="acronym">BIND</acronym> 8.x and patched
+versions of <acronym class="acronym">BIND</acronym> 4.9.5. The <span><strong class="command">many-answers</strong></span>
 format is also supported by recent Microsoft Windows nameservers. The default is
 <span><strong class="command">many-answers</strong></span>. <span><strong class="command">transfer-format</strong></span>
 may be overridden on a per-server basis by using the
@@ -2051,7 +2051,7 @@ but applies to notify messages sent to IPv6 addresses.</p></dd>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2557708"></a>Bad UDP Port Lists</h4></div></div></div>
+<a name="id2582286"></a>Bad UDP Port Lists</h4></div></div></div>
 <p>
 <span><strong class="command">avoid-v4-udp-ports</strong></span> and <span><strong class="command">avoid-v6-udp-ports</strong></span>
 specify a list of IPv4 and IPv6 UDP ports that will not be used as system
@@ -2064,7 +2064,7 @@ to query again.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2557724"></a>Operating System Resource Limits</h4></div></div></div>
+<a name="id2582302"></a>Operating System Resource Limits</h4></div></div></div>
 <p>The server's usage of many system resources can be limited.
 Scaled values are allowed when specifying resource limits.  For
 example, <span><strong class="command">1G</strong></span> can be used instead of
@@ -2108,7 +2108,7 @@ may use. The default is <code class="literal">default</code>.</p></dd>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2545606"></a>Server  Resource Limits</h4></div></div></div>
+<a name="id2570184"></a>Server  Resource Limits</h4></div></div></div>
 <p>The following options set limits on the server's
 resource consumption that are enforced internally by the
 server rather than the operating system.</p>
@@ -2162,7 +2162,7 @@ silently raised.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2545787"></a>Periodic Task Intervals</h4></div></div></div>
+<a name="id2584565"></a>Periodic Task Intervals</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">cleaning-interval</strong></span></span></dt>
 <dd><p>The server will remove expired resource records
@@ -2193,7 +2193,7 @@ every <span><strong class="command">statistics-interval</strong></span> minutes.
 If set to 0, no statistics will be logged.</p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-<p>Not yet implemented in <span class="acronym">BIND</span>9.</p>
+<p>Not yet implemented in <acronym class="acronym">BIND</acronym>9.</p>
 </div>
 </dd>
 </dl></div>
@@ -2228,7 +2228,7 @@ is preferred least of all.</p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
 <p>The <span><strong class="command">topology</strong></span> option
-is not implemented in <span class="acronym">BIND</span> 9.
+is not implemented in <acronym class="acronym">BIND</acronym> 9.
 </p>
 </div>
 </div>
@@ -2297,7 +2297,7 @@ their directly connected networks.</p>
 };</pre>
 <p>The following example will give reasonable behavior for the
 local host and hosts on directly connected networks. It is similar
-to the behavior of the address sort in <span class="acronym">BIND</span> 4.9.x. Responses sent
+to the behavior of the address sort in <acronym class="acronym">BIND</acronym> 4.9.x. Responses sent
 to queries from the local host will favor any of the directly connected
 networks. Responses sent to queries from any other hosts on a directly
 connected network will prefer addresses on that same network. Responses
@@ -2362,7 +2362,7 @@ they are not combined &#8212; the last one applies.</p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
 <p>The <span><strong class="command">rrset-order</strong></span> statement
-is not yet fully implemented in <span class="acronym">BIND</span> 9.
+is not yet fully implemented in <acronym class="acronym">BIND</acronym> 9.
 BIND 9 currently does not support "fixed" ordering.
 </p>
 </div>
@@ -2396,7 +2396,7 @@ is required for a request for the root servers to be accepted. The default
 is <strong class="userinput"><code>2</code></strong>.</p>
 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
-<p>Not implemented in <span class="acronym">BIND</span> 9.</p>
+<p>Not implemented in <acronym class="acronym">BIND</acronym> 9.</p>
 </div>
 </dd>
 <dt><span class="term"><span><strong class="command">sig-validity-interval</strong></span></span></dt>
@@ -2485,9 +2485,9 @@ The default <span><strong class="command">server-id</strong></span> is <span><st
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="statsfile"></a>The Statistics File</h4></div></div></div>
-<p>The statistics file generated by <span class="acronym">BIND</span> 9
+<p>The statistics file generated by <acronym class="acronym">BIND</acronym> 9
 is similar, but not identical, to that
-generated by <span class="acronym">BIND</span> 8.
+generated by <acronym class="acronym">BIND</acronym> 8.
 </p>
 <p>The statistics dump begins with a line, like:</p>
 <p>
@@ -2623,8 +2623,8 @@ default is <span><strong class="command">yes</strong></span>.</p>
 <p>The server supports two zone transfer methods. The first, <span><strong class="command">one-answer</strong></span>,
 uses one DNS message per resource record transferred. <span><strong class="command">many-answers</strong></span> packs
 as many resource records as possible into a message. <span><strong class="command">many-answers</strong></span> is
-more efficient, but is only known to be understood by <span class="acronym">BIND</span> 9, <span class="acronym">BIND</span>
-8.x, and patched versions of <span class="acronym">BIND</span> 4.9.5. You can specify which method
+more efficient, but is only known to be understood by <acronym class="acronym">BIND</acronym> 9, <acronym class="acronym">BIND</acronym>
+8.x, and patched versions of <acronym class="acronym">BIND</acronym> 4.9.5. You can specify which method
 to use for a server with the <span><strong class="command">transfer-format</strong></span> option.
 If <span><strong class="command">transfer-format</strong></span> is not specified, the <span><strong class="command">transfer-format</strong></span> specified
 by the <span><strong class="command">options</strong></span> statement will be used.</p>
@@ -2657,7 +2657,7 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2561554"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="id2586064"></a><span><strong class="command">trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
 <pre class="programlisting">trusted-keys {
     <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ;
     [<span class="optional"> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>number</code></em> <em class="replaceable"><code>string</code></em> ; [<span class="optional">...</span>]</span>]
@@ -2666,7 +2666,7 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2561602"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
+<a name="id2586112"></a><span><strong class="command">trusted-keys</strong></span> Statement Definition
 	    and Usage</h3></div></div></div>
 <p>
 	    The <span><strong class="command">trusted-keys</strong></span> statement defines
@@ -2709,9 +2709,9 @@ For more details, see the description of
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2561684"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2586194"></a><span><strong class="command">view</strong></span> Statement Definition and Usage</h3></div></div></div>
 <p>The <span><strong class="command">view</strong></span> statement is a powerful new feature
-of <span class="acronym">BIND</span> 9 that lets a name server answer a DNS query differently
+of <acronym class="acronym">BIND</acronym> 9 that lets a name server answer a DNS query differently
 depending on who is asking. It is particularly useful for implementing
 split DNS setups without having to run multiple servers.</p>
 <p>Each <span><strong class="command">view</strong></span> statement defines a view of the
@@ -2911,10 +2911,10 @@ zone <em class="replaceable"><code>zone_name</code></em> [<span class="optional"
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2563035"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
+<a name="id2587477"></a><span><strong class="command">zone</strong></span> Statement Definition and Usage</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2563042"></a>Zone Types</h4></div></div></div>
+<a name="id2587483"></a>Zone Types</h4></div></div></div>
 <div class="informaltable"><table border="1">
 <colgroup>
 <col>
@@ -2957,7 +2957,7 @@ a single directory.)</p></td>
 <p>A stub zone is similar to a slave zone,
 except that it replicates only the NS records of a master zone instead
 of the entire zone. Stub zones are not a standard part of the DNS;
-they are a feature specific to the <span class="acronym">BIND</span> implementation.
+they are a feature specific to the <acronym class="acronym">BIND</acronym> implementation.
 </p>
 
 <p>Stub zones can be used to eliminate the need for glue NS record
@@ -2965,12 +2965,12 @@ in a parent zone at the expense of maintaining a stub zone entry and
 a set of name server addresses in <code class="filename">named.conf</code>.
 This usage is not recommended for new configurations, and BIND 9
 supports it only in a limited way.
-In <span class="acronym">BIND</span> 4/8, zone transfers of a parent zone
+In <acronym class="acronym">BIND</acronym> 4/8, zone transfers of a parent zone
 included the NS records from stub children of that zone. This meant
 that, in some cases, users could get away with configuring child stubs
-only in the master server for the parent zone. <span class="acronym">BIND</span>
+only in the master server for the parent zone. <acronym class="acronym">BIND</acronym>
 9 never mixes together zone data from different zones in this
-way. Therefore, if a <span class="acronym">BIND</span> 9 master serving a parent
+way. Therefore, if a <acronym class="acronym">BIND</acronym> 9 master serving a parent
 zone has child stub zones configured, all the slave servers for the
 parent zone also need to have the same child stub zones
 configured.</p>
@@ -3027,7 +3027,7 @@ from forwarders.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2563348"></a>Class</h4></div></div></div>
+<a name="id2587926"></a>Class</h4></div></div></div>
 <p>The zone's name may optionally be followed by a class. If
 a class is not specified, class <code class="literal">IN</code> (for <code class="varname">Internet</code>),
 is assumed. This is correct for the vast majority of cases.</p>
@@ -3042,7 +3042,7 @@ in the mid-1970s. Zone data for it can be specified with the <code class="litera
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2563379"></a>Zone Options</h4></div></div></div>
+<a name="id2587957"></a>Zone Options</h4></div></div></div>
 <div class="variablelist"><dl>
 <dt><span class="term"><span><strong class="command">allow-notify</strong></span></span></dt>
 <dd><p>See the description of
@@ -3116,14 +3116,14 @@ allow a normal lookup to be tried.</p></dd>
 If it is not specified in a zone of type <span><strong class="command">forward</strong></span>,
 no forwarding is done for the zone and the global options are not used.</p></dd>
 <dt><span class="term"><span><strong class="command">ixfr-base</strong></span></span></dt>
-<dd><p>Was used in <span class="acronym">BIND</span> 8 to specify the name
+<dd><p>Was used in <acronym class="acronym">BIND</acronym> 8 to specify the name
 of the transaction log (journal) file for dynamic update and IXFR.
-<span class="acronym">BIND</span> 9 ignores the option and constructs the name of the journal
+<acronym class="acronym">BIND</acronym> 9 ignores the option and constructs the name of the journal
 file by appending "<code class="filename">.jnl</code>" to the name of the
 zone file.</p></dd>
 <dt><span class="term"><span><strong class="command">ixfr-tmp-file</strong></span></span></dt>
-<dd><p>Was an undocumented option in <span class="acronym">BIND</span> 8.
-Ignored in <span class="acronym">BIND</span> 9.</p></dd>
+<dd><p>Was an undocumented option in <acronym class="acronym">BIND</acronym> 8.
+Ignored in <acronym class="acronym">BIND</acronym> 9.</p></dd>
 <dt><span class="term"><span><strong class="command">max-transfer-time-in</strong></span></span></dt>
 <dd><p>See the description of
 <span><strong class="command">max-transfer-time-in</strong></span> in <a href="Bv9ARM.ch06.html#zone_transfers" title="Zone Transfers">the section called &#8220;Zone Transfers&#8221;</a>.</p></dd>
@@ -3140,9 +3140,9 @@ Ignored in <span class="acronym">BIND</span> 9.</p></dd>
 <dd><p>See the description of
 <span><strong class="command">notify</strong></span> in <a href="Bv9ARM.ch06.html#boolean_options" title="Boolean Options">the section called &#8220;Boolean Options&#8221;</a>.</p></dd>
 <dt><span class="term"><span><strong class="command">pubkey</strong></span></span></dt>
-<dd><p>In <span class="acronym">BIND</span> 8, this option was intended for specifying
+<dd><p>In <acronym class="acronym">BIND</acronym> 8, this option was intended for specifying
 a public zone key for verification of signatures in DNSSEC signed
-zones when they are loaded from disk. <span class="acronym">BIND</span> 9 does not verify signatures
+zones when they are loaded from disk. <acronym class="acronym">BIND</acronym> 9 does not verify signatures
 on load and ignores the option.</p></dd>
 <dt><span class="term"><span><strong class="command">zone-statistics</strong></span></span></dt>
 <dd><p>If <strong class="userinput"><code>yes</code></strong>, the server will keep statistical
@@ -3199,14 +3199,14 @@ See the description in <a href="Bv9ARM.ch06.html#tuning" title="Tuning">the sect
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="dynamic_update_policies"></a>Dynamic Update Policies</h4></div></div></div>
-<p><span class="acronym">BIND</span> 9 supports two alternative methods of granting clients
+<p><acronym class="acronym">BIND</acronym> 9 supports two alternative methods of granting clients
 the right to perform dynamic updates to a zone, 
 configured by the <span><strong class="command">allow-update</strong></span> and
 <span><strong class="command">update-policy</strong></span> option, respectively.</p>
 <p>The <span><strong class="command">allow-update</strong></span> clause works the same
-way as in previous versions of <span class="acronym">BIND</span>. It grants given clients the
+way as in previous versions of <acronym class="acronym">BIND</acronym>. It grants given clients the
 permission to update any record of any name in the zone.</p>
-<p>The <span><strong class="command">update-policy</strong></span> clause is new in <span class="acronym">BIND</span>
+<p>The <span><strong class="command">update-policy</strong></span> clause is new in <acronym class="acronym">BIND</acronym>
 9 and allows more fine-grained control over what updates are allowed.
 A set of rules is specified, where each rule either grants or denies
 permissions for one or more names to be updated by one or more identities.
@@ -3290,7 +3290,7 @@ name, the rules are checked for each existing record type.
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2564369"></a>Zone File</h2></div></div></div>
+<a name="id2589015"></a>Zone File</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="types_of_resource_records_and_when_to_use_them"></a>Types of Resource Records and When to Use Them</h3></div></div></div>
@@ -3300,7 +3300,7 @@ Since the publication of RFC 1034, several new RRs have been identified
 and implemented in the DNS. These are also included.</p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2564387"></a>Resource Records</h4></div></div></div>
+<a name="id2589033"></a>Resource Records</h4></div></div></div>
 <p>A domain name identifies a node.  Each node has a set of
         resource information, which may be empty.  The set of resource
         information associated with a particular name is composed of
@@ -3559,7 +3559,7 @@ used as "pointers" to other data in the DNS.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2565580"></a>Textual expression of RRs</h4></div></div></div>
+<a name="id2590022"></a>Textual expression of RRs</h4></div></div></div>
 <p>RRs are represented in binary form in the packets of the DNS
 protocol, and are usually represented in highly encoded form when
 stored in a name server or resolver.  In the examples provided in
@@ -3649,7 +3649,7 @@ each of a different class.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2565938"></a>Discussion of MX Records</h3></div></div></div>
+<a name="id2590379"></a>Discussion of MX Records</h3></div></div></div>
 <p>As described above, domain servers store information as a
 series of resource records, each of which contains a particular
 piece of information about a given domain name (which is usually,
@@ -3766,7 +3766,7 @@ can be explicitly specified, for example, <code class="literal">1h30m</code>. </
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566366"></a>Inverse Mapping in IPv4</h3></div></div></div>
+<a name="id2590945"></a>Inverse Mapping in IPv4</h3></div></div></div>
 <p>Reverse name resolution (that is, translation from IP address
 to name) is achieved by means of the <span class="emphasis"><em>in-addr.arpa</em></span> domain
 and PTR records. Entries in the in-addr.arpa domain are made in
@@ -3804,7 +3804,7 @@ that the example is relative to the listed origin.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566472"></a>Other Zone File Directives</h3></div></div></div>
+<a name="id2591118"></a>Other Zone File Directives</h3></div></div></div>
 <p>The Master File Format was initially defined in RFC 1035 and
 has subsequently been extended. While the Master File Format itself
 is class independent all records in a Master File must be of the same
@@ -3813,7 +3813,7 @@ class.</p>
 and <span><strong class="command">$TTL.</strong></span></p>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2566491"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
+<a name="id2591138"></a>The <span><strong class="command">$ORIGIN</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$ORIGIN
 </strong></span><em class="replaceable"><code>domain-name</code></em> [<span class="optional"> <em class="replaceable"><code>comment</code></em></span>]</p>
 <p><span><strong class="command">$ORIGIN</strong></span> sets the domain name that will
@@ -3828,7 +3828,7 @@ WWW     CNAME   MAIN-SERVER</pre>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2566547"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
+<a name="id2591193"></a>The <span><strong class="command">$INCLUDE</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$INCLUDE</strong></span>
 <em class="replaceable"><code>filename</code></em> [<span class="optional">
 <em class="replaceable"><code>origin</code></em> </span>] [<span class="optional"> <em class="replaceable"><code>comment</code></em> </span>]</p>
@@ -3852,7 +3852,7 @@ This could be construed as a deviation from RFC 1035, a feature, or both.
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2566610"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
+<a name="id2591256"></a>The <span><strong class="command">$TTL</strong></span> Directive</h4></div></div></div>
 <p>Syntax: <span><strong class="command">$TTL</strong></span>
 <em class="replaceable"><code>default-ttl</code></em> [<span class="optional">
 <em class="replaceable"><code>comment</code></em> </span>]</p>
@@ -3863,7 +3863,7 @@ with undefined TTLs. Valid TTLs are of the range 0-2147483647 seconds.</p>
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566641"></a><span class="acronym">BIND</span> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
+<a name="id2591355"></a><acronym class="acronym">BIND</acronym> Master File Extension: the  <span><strong class="command">$GENERATE</strong></span> Directive</h3></div></div></div>
 <p>Syntax: <span><strong class="command">$GENERATE</strong></span> <em class="replaceable"><code>range</code></em> <em class="replaceable"><code>lhs</code></em> [<span class="optional"><em class="replaceable"><code>ttl</code></em></span>] [<span class="optional"><em class="replaceable"><code>class</code></em></span>] <em class="replaceable"><code>type</code></em> <em class="replaceable"><code>rhs</code></em> [<span class="optional"> <em class="replaceable"><code>comment</code></em> </span>]</p>
 <p><span><strong class="command">$GENERATE</strong></span> is used to create a series of
 resource records that only differ from each other by an iterator. <span><strong class="command">$GENERATE</strong></span> can
@@ -3951,7 +3951,7 @@ similarly to lhs.</p></td>
 </tr>
 </tbody>
 </table></div>
-<p>The <span><strong class="command">$GENERATE</strong></span> directive is a <span class="acronym">BIND</span> extension
+<p>The <span><strong class="command">$GENERATE</strong></span> directive is a <acronym class="acronym">BIND</acronym> extension
 and not part of the standard zone file format.</p>
 <p>BIND 8 does not support the optional TTL and CLASS fields.</p>
 </div>
@@ -3968,9 +3968,9 @@ and not part of the standard zone file format.</p>
 </td>
 </tr>
 <tr>
-<td width="40%" align="left" valign="top">Chapter 5. The <span class="acronym">BIND</span> 9 Lightweight Resolver </td>
+<td width="40%" align="left" valign="top">Chapter 5. The <acronym class="acronym">BIND</acronym> 9 Lightweight Resolver </td>
 <td width="20%" align="center"><a accesskey="h" href="Bv9ARM.html">Home</a></td>
-<td width="40%" align="right" valign="top"> Chapter 7. <span class="acronym">BIND</span> 9 Security Considerations</td>
+<td width="40%" align="right" valign="top"> Chapter 7. <acronym class="acronym">BIND</acronym> 9 Security Considerations</td>
 </tr>
 </table>
 </div>
