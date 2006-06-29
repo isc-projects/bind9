@@ -13,15 +13,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.1.2.27 2006/05/17 02:38:42 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.1.2.28 2006/06/29 13:03:01 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>named.conf</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.69.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2462968"></a><div class="titlepage"></div>
+<a name="id2482688"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p><code class="filename">named.conf</code> &#8212; configuration file for named</p>
@@ -31,7 +31,7 @@
 <div class="cmdsynopsis"><p><code class="command">named.conf</code> </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525217"></a><h2>DESCRIPTION</h2>
+<a name="id2549397"></a><h2>DESCRIPTION</h2>
 <p><code class="filename">named.conf</code> is the configuration file
       for
       <span><strong class="command">named</strong></span>.  Statements are enclosed
@@ -50,14 +50,14 @@
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525244"></a><h2>ACL</h2>
+<a name="id2549425"></a><h2>ACL</h2>
 <div class="literallayout"><p><br>
 acl <em class="replaceable"><code>string</code></em> { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 <br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525260"></a><h2>KEY</h2>
+<a name="id2549441"></a><h2>KEY</h2>
 <div class="literallayout"><p><br>
 key <em class="replaceable"><code>domain_name</code></em> {<br>
 	algorithm <em class="replaceable"><code>string</code></em>;<br>
@@ -66,7 +66,7 @@ key <em class="replaceable"><code>domain_name</code></em> {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525280"></a><h2>MASTERS</h2>
+<a name="id2549460"></a><h2>MASTERS</h2>
 <div class="literallayout"><p><br>
 masters <em class="replaceable"><code>string</code></em> [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
 	( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<span class="optional">port <em class="replaceable"><code>integer</code></em></span>] |<br>
@@ -75,7 +75,7 @@ masters <em class="replaceable"><code>string</code></em> [<span class="optional"
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525325"></a><h2>SERVER</h2>
+<a name="id2549506"></a><h2>SERVER</h2>
 <div class="literallayout"><p><br>
 server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/prefixlen</span>]</code></em> | <em class="replaceable"><code>ipv6_address[<span class="optional">/prefixlen</span>]</code></em> ) {<br>
 	bogus <em class="replaceable"><code>boolean</code></em>;<br>
@@ -97,7 +97,7 @@ server ( <em class="replaceable"><code>ipv4_address[<span class="optional">/pref
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525394"></a><h2>TRUSTED-KEYS</h2>
+<a name="id2549574"></a><h2>TRUSTED-KEYS</h2>
 <div class="literallayout"><p><br>
 trusted-keys {<br>
 	<em class="replaceable"><code>domain_name</code></em> <em class="replaceable"><code>flags</code></em> <em class="replaceable"><code>protocol</code></em> <em class="replaceable"><code>algorithm</code></em> <em class="replaceable"><code>key</code></em>; ... <br>
@@ -105,7 +105,7 @@ trusted-keys {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525419"></a><h2>CONTROLS</h2>
+<a name="id2549600"></a><h2>CONTROLS</h2>
 <div class="literallayout"><p><br>
 controls {<br>
 	inet ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> | * )<br>
@@ -117,7 +117,7 @@ controls {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525454"></a><h2>LOGGING</h2>
+<a name="id2549635"></a><h2>LOGGING</h2>
 <div class="literallayout"><p><br>
 logging {<br>
 	channel <em class="replaceable"><code>string</code></em> {<br>
@@ -135,7 +135,7 @@ logging {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525493"></a><h2>LWRES</h2>
+<a name="id2549673"></a><h2>LWRES</h2>
 <div class="literallayout"><p><br>
 lwres {<br>
 	listen-on [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -148,7 +148,7 @@ lwres {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2525534"></a><h2>OPTIONS</h2>
+<a name="id2549715"></a><h2>OPTIONS</h2>
 <div class="literallayout"><p><br>
 options {<br>
 	avoid-v4-udp-ports { <em class="replaceable"><code>port</code></em>; ... };<br>
@@ -312,7 +312,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526208"></a><h2>VIEW</h2>
+<a name="id2550456"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -451,7 +451,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2526839"></a><h2>ZONE</h2>
+<a name="id2551019"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -535,12 +535,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527123"></a><h2>FILES</h2>
+<a name="id2551371"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2527134"></a><h2>SEE ALSO</h2>
+<a name="id2551383"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.
