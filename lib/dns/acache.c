@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acache.c,v 1.3.2.14 2006/05/03 00:07:49 marka Exp $ */
+/* $Id: acache.c,v 1.3.2.15 2006/07/06 06:31:49 jinmei Exp $ */
 
 #include <config.h>
 
@@ -85,7 +85,8 @@
 #define ACACHE_LOCK(l, t)	RWLOCK((l), (t))
 #define ACACHE_UNLOCK(l, t)	RWUNLOCK((l), (t))
 
-#define acache_storetime(entry, t) (isc_atomic_store(&(entry)->lastused, (t)))
+#define acache_storetime(entry, t) \
+	(isc_atomic_store((isc_int32_t *)&(entry)->lastused, (t)))
 #else
 #define ACACHE_INITLOCK(l)	isc_mutex_init(l)
 #define ACACHE_DESTROYLOCK(l)	DESTROYLOCK(l)
