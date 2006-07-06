@@ -1,3 +1,6 @@
+2046.	[bug]		rbtdb.c:rdataset_setadditional() could cause duplicate
+			cleanup.
+
 2045.	[func]		use lock buckets for acache entries to limit memory
 			consumption. [RT #16183]
 
