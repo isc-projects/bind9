@@ -4,6 +4,9 @@
 2046.	[bug]		rbtdb.c:rdataset_setadditional() could cause duplicate
 			cleanup [RT #16247].
 
+2045.	[func]		use lock buckets for acache entries to limit memory
+			consumption. [RT #16183]
+
 2044.	[port]		add support for atomic operations for Itanium.
 			[RT #16179]
 
