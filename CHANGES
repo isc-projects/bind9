@@ -1,3 +1,8 @@
+2049.	[bug]		Restore SOA before AXFR when falling back from
+			a attempted IXFR when transfering in a zone.
+			Allow a initial SOA query before attempting
+			a AXFR to be requested. [RT #16156]
+
 2048.	[bug]		It was possible to loop forever when using
 			avoid-v4-udp-ports / avoid-v6-udp-ports when
 			the OS always returned the same local port.
