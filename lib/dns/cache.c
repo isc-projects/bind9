@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.c,v 1.71 2006/06/13 04:49:18 marka Exp $ */
+/* $Id: cache.c,v 1.72 2006/07/19 00:24:17 marka Exp $ */
 
 /*! \file */
 
@@ -205,7 +205,7 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 				cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-				      "%p:new clear->increment = %d\n",
+				      "%p:new cleaner->increment = %u\n",
 				      cleaner, cleaner->increment);
 		}
 		return;
@@ -225,7 +225,7 @@ adjust_increment(cache_cleaner_t *cleaner, unsigned int remaining,
 	cleaner->increment = (unsigned int)new;
 
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "%p:new clear->increment = %u\n",
+		      ISC_LOG_DEBUG(1), "%p:new cleaner->increment = %u\n",
 		      cleaner, cleaner->increment);
 }
 
