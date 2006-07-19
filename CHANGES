@@ -1,3 +1,6 @@
+2047.	[bug]		Failed to initialise the interface flags to zero.
+			[RT #16245]
+
 2043.	[port]		nsupdate/nslookup: Force the flushing of the prompt
 			for interactive sessions. [RT#16148]
 
