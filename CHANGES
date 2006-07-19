@@ -1,3 +1,6 @@
+2047.	[bug]		Failed to initialise the interface flags to zero.
+			[RT #16245]
+
 2046.	[bug]		rbtdb.c:rdataset_setadditional() could cause duplicate
 			cleanup [RT #16247].
 
