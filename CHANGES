@@ -1,3 +1,8 @@
+2048.	[bug]		It was possible to loop forever when using
+			avoid-v4-udp-ports / avoid-v6-udp-ports when
+			the OS always returned the same local port.
+			[RT #16182]
+
 2047.	[bug]		Failed to initialise the interface flags to zero.
 			[RT #16245]
 
