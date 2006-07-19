@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.64 2006/05/18 02:28:55 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.65 2006/07/19 01:04:24 marka Exp $ */
 
 #include <config.h>
 
@@ -264,6 +264,7 @@ struct dns_zone {
 #define DNS_ZONEFLG_FLUSH	0x00200000U
 #define DNS_ZONEFLG_NOEDNS	0x00400000U
 #define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
+#define DNS_ZONEFLG_SOABEFOREAXFR 0x01000000U
 
 #define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
 
@@ -3558,8 +3559,13 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "master %s exceeded (source %s)",
 				     master, source);
 			/* Try with slave with TCP. */
-			if (zone->type == dns_zone_slave)
+			if (zone->type == dns_zone_slave) {
+				LOCK_ZONE(zone);
+				DNS_ZONE_SETFLAG(zone,
+						 DNS_ZONEFLG_SOABEFOREAXFR);
+				UNLOCK_ZONE(zone);
 				goto tcp_transfer;
+			}
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
 				     "refresh: failure trying master "
@@ -3626,6 +3632,9 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "initiating TCP zone xfer "
 				     "for master %s (source %s)",
 				     master, source);
+			LOCK_ZONE(zone);
+			DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
+			UNLOCK_ZONE(zone);
 			goto tcp_transfer;
 		} else {
 			INSIST(zone->type == dns_zone_stub);
@@ -5538,6 +5547,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	LOCK_ZONE(zone);
 	INSIST((zone->flags & DNS_ZONEFLG_REFRESH) != 0);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
 
 	TIME_NOW(&now);
 	switch (result) {
@@ -5891,7 +5901,10 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 				     "IXFR disabled, "
 				     "requesting AXFR from %s",
 				     mastertext);
-			xfrtype = dns_rdatatype_axfr;
+			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
+				xfrtype = dns_rdatatype_soa;
+			else
+				xfrtype = dns_rdatatype_axfr;
 		} else {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
 				     "requesting IXFR from %s",

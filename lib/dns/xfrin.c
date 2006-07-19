@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.124.2.4.2.15 2006/01/04 23:50:20 marka Exp $ */
+/* $Id: xfrin.c,v 1.124.2.4.2.16 2006/07/19 01:04:24 marka Exp $ */
 
 #include <config.h>
 
@@ -73,6 +73,8 @@
  * when the first two (2) response RRs have already been received.
  */
 typedef enum {
+	XFRST_SOAQUERY,
+	XFRST_GOTSOA,
 	XFRST_INITIALSOA,
 	XFRST_FIRSTDATA,
 	XFRST_IXFR_DELSOA,
@@ -424,6 +426,30 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, isc_uint32_t ttl,
 
  redo:
 	switch (xfr->state) {
+	case XFRST_SOAQUERY:
+		if (rdata->type != dns_rdatatype_soa) {
+			xfrin_log(xfr, ISC_LOG_ERROR,
+				  "non-SOA response to SOA query");
+			FAIL(DNS_R_FORMERR);
+		}
+		xfr->end_serial = dns_soa_getserial(rdata);
+		if (!DNS_SERIAL_GT(xfr->end_serial, xfr->ixfr.request_serial) &&
+		    !dns_zone_isforced(xfr->zone)) {
+			xfrin_log(xfr, ISC_LOG_DEBUG(3),
+				  "requested serial %u, "
+				  "master has %u, not updating",
+				  xfr->ixfr.request_serial, xfr->end_serial);
+			FAIL(DNS_R_UPTODATE);
+		}
+		xfr->state = XFRST_GOTSOA;
+		break;
+
+	case XFRST_GOTSOA:
+		/*
+		 * Skip other records in the answer section.
+		 */
+		break;
+
 	case XFRST_INITIALSOA:
 		if (rdata->type != dns_rdatatype_soa) {
 			xfrin_log(xfr, ISC_LOG_ERROR,
@@ -588,6 +614,9 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 	REQUIRE(xfrp != NULL && *xfrp == NULL);
 
 	(void)dns_zone_getdb(zone, &db);
+
+	if (xfrtype == dns_rdatatype_soa || xfrtype == dns_rdatatype_ixfr)
+		REQUIRE(db != NULL);
 
 	CHECK(xfrin_create(mctx, zone, db, task, timermgr, socketmgr, zonename,
 			   dns_zone_getclass(zone), xfrtype, masteraddr,
@@ -754,7 +783,10 @@ xfrin_create(isc_mem_t *mctx,
 	dns_diff_init(xfr->mctx, &xfr->diff);
 	xfr->difflen = 0;
 
-	xfr->state = XFRST_INITIALSOA;
+	if (reqtype == dns_rdatatype_soa)
+		xfr->state = XFRST_SOAQUERY;
+	else
+		xfr->state = XFRST_INITIALSOA;
 	/* end_serial */
 
 	xfr->nmsg = 0;
@@ -1000,7 +1032,9 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 
 		CHECK(tuple2msgname(soatuple, msg, &msgsoaname));
 		dns_message_addname(msg, msgsoaname, DNS_SECTION_AUTHORITY);
-	}
+	} else if (xfr->reqtype == dns_rdatatype_soa)
+		CHECK(dns_db_getsoaserial(xfr->db, NULL,
+					  &xfr->ixfr.request_serial));
 
 	xfr->checkid = ISC_TRUE;
 	xfr->id++;
@@ -1161,8 +1195,8 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
  try_axfr:
 		dns_message_destroy(&msg);
 		xfrin_reset(xfr);
-		xfr->reqtype = dns_rdatatype_axfr;
-		xfr->state = XFRST_INITIALSOA;
+		xfr->reqtype = dns_rdatatype_soa;
+		xfr->state = XFRST_SOAQUERY;
 		(void)xfrin_start(xfr);
 		return;
 	}
@@ -1259,7 +1293,11 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	dns_message_destroy(&msg);
 
-	if (xfr->state == XFRST_END) {
+	if (xfr->state == XFRST_GOTSOA) {
+		xfr->reqtype = dns_rdatatype_axfr;
+		xfr->state = XFRST_INITIALSOA;
+		CHECK(xfrin_send_request(xfr));
+	} else if (xfr->state == XFRST_END) {
 		/*
 		 * Inform the caller we succeeded.
 		 */
