@@ -1718,7 +1718,7 @@
 ./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/include/dns/version.h			C	2001,2004
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004
-./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004
+./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2006
 ./lib/dns/include/dns/zone.h			C	1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/include/dns/zonekey.h			C	2001,2004
 ./lib/dns/include/dns/zt.h			C	1999,2000,2001,2002,2004
