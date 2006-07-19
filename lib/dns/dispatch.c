@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.126 2006/01/06 00:01:44 marka Exp $ */
+/* $Id: dispatch.c,v 1.127 2006/07/19 00:42:13 marka Exp $ */
 
 /*! \file */
 
@@ -1735,6 +1735,11 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 /*
  * mgr should be locked.
  */
+
+#ifndef DNS_DISPATCH_HELD
+#define DNS_DISPATCH_HELD 20U
+#endif
+
 static isc_result_t
 dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		   isc_taskmgr_t *taskmgr,
@@ -1745,7 +1750,9 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 {
 	isc_result_t result;
 	dns_dispatch_t *disp;
-	isc_socket_t *sock;
+	isc_socket_t *sock = NULL;
+	isc_socket_t *held[DNS_DISPATCH_HELD];
+	unsigned int i = 0, j = 0;
 
 	/*
 	 * dispatch_allocate() checks mgr for us.
@@ -1756,17 +1763,30 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		return (result);
 
 	/*
-	 * This assumes that the IP stack will *not* quickly reallocate
-	 * the same port.  If it does continually reallocate the same port
-	 * then we need a mechanism to hold all the blacklisted sockets
-	 * until we find a usable socket.
+	 * Try to allocate a socket that is not on the blacklist.
+	 * Hold up to DNS_DISPATCH_HELD sockets to prevent the OS
+	 * from returning the same port to us too quickly.
 	 */
+	memset(held, 0, sizeof(held));
  getsocket:
 	result = create_socket(sockmgr, localaddr, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
 	if (isc_sockaddr_getport(localaddr) == 0 && blacklisted(mgr, sock)) {
-		isc_socket_detach(&sock);
+		if (held[i] != NULL)
+			isc_socket_detach(&held[i]);
+		held[i++] = sock;
+		sock = NULL;
+		if (i == DNS_DISPATCH_HELD)
+			i = 0;
+		if (j++ == 0xffffU) {
+			mgr_log(mgr, ISC_LOG_ERROR, "avoid-v%s-udp-ports: "
+				"unable to allocate a non-blacklisted port",
+				isc_sockaddr_pf(localaddr) == AF_INET ?
+					"4" : "6");
+			result = ISC_R_FAILURE;
+			goto deallocate_dispatch;
+		}
 		goto getsocket;
 	}
 
@@ -1803,7 +1823,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	*dispp = disp;
 
-	return (ISC_R_SUCCESS);
+	goto cleanheld;
 
 	/*
 	 * Error returns.
@@ -1814,7 +1834,10 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	isc_socket_detach(&disp->socket);
  deallocate_dispatch:
 	dispatch_free(&disp);
-
+ cleanheld:
+	for (i = 0; i < DNS_DISPATCH_HELD; i++)
+		if (held[i] != NULL)
+			isc_socket_detach(&held[i]);
 	return (result);
 }
 
