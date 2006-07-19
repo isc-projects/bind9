@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.20.18.2 2005/04/29 00:16:25 marka Exp $ */
+/* $Id: xfrin.h,v 1.20.18.3 2006/07/19 00:58:01 marka Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -77,10 +77,12 @@ dns_xfrin_create2(dns_zone_t *zone, dns_rdatatype_t xfrtype,
  * code as arguments when the transfer finishes.
  *
  * Requires:
- *\li	'xfrtype' is dns_rdatatype_axfr or dns_rdatatype_ixfr.
+ *\li	'xfrtype' is dns_rdatatype_axfr, dns_rdatatype_ixfr
+ *	of dns_rdatatype_soa (soa query followed by axfr if
+ *	serial is greater than current serial).
  *
- *\li	If 'xfrtype' is dns_rdatatype_ixfr, the zone has a
- * 	database.
+ *\li	If 'xfrtype' is dns_rdatatype_ixfr or dns_rdatatype_soa,
+ *	the zone has a database.
  */
 
 void
