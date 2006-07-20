@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.147.2.16 2005/07/22 05:26:44 marka Exp $ */
+/* $Id: rdata.c,v 1.147.2.17 2006/07/20 03:24:59 marka Exp $ */
 
 #include <config.h>
 #include <ctype.h>
@@ -1659,7 +1659,7 @@ hexvalue(char value) {
 		return (-1);
 	if (isupper(c))
 		c = tolower(c);
-	if ((s = strchr(hexdigits, value)) == NULL)
+	if ((s = strchr(hexdigits, c)) == NULL)
 		return (-1);
 	return (s - hexdigits);
 }
