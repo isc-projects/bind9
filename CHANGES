@@ -1,3 +1,6 @@
+2054.	[port]		freebsd: do not explicitly link against -lpthread.
+			[RT #16170]
+
 2053.	[port]		netbsd:libbind: silence compiler warnings. [RT #16220]
 
 2052.	[bug]		'rndc' improve connect failed message to report

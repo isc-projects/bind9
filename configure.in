@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.63 $)
+AC_REVISION($Revision: 1.294.2.23.2.64 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -625,16 +625,61 @@ sinclude(config.threads.in)dnl
 
 if $use_threads
 then
+	if test "X$GCC" = "Xyes"; then
+		case "$host" in
+		*-freebsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-openbsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			;;
+		*-solaris*)
+			LIBS="$LIBS -lthread"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		esac
+	else
+		case $host in
+		*-dec-osf*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			;;
+		*-solaris*)
+			CC="$CC -mt"
+			CCOPT="$CCOPT -mt"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
+			CC="$CC -Kthread"
+			CCOPT="$CCOPT -Kthread"
+			;;
+		*-*-sysv*OpenUNIX*)
+			CC="$CC -Kpthread"
+			CCOPT="$CCOPT -Kpthread"
+			;;
+		esac
+	fi
+	ALWAYS_DEFINES="-D_REENTRANT"
+	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
+	thread_dir=pthreads
 	#
 	# We'd like to use sigwait() too
 	#
-	AC_CHECK_LIB(c, sigwait,
-		     AC_DEFINE(HAVE_SIGWAIT),
-		     AC_CHECK_LIB(pthread, sigwait,
-				  AC_DEFINE(HAVE_SIGWAIT),
-				  AC_CHECK_LIB(pthread, _Psigwait,
-					       AC_DEFINE(HAVE_SIGWAIT),))
-	)
+	AC_CHECK_FUNC(sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(c, sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(pthread, sigwait,
+				   AC_DEFINE(HAVE_SIGWAIT),
+				   AC_CHECK_LIB(pthread, _Psigwait,
+					        AC_DEFINE(HAVE_SIGWAIT),))))
 
 	AC_CHECK_FUNC(pthread_attr_getstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
@@ -698,50 +743,6 @@ then
 	#
 	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
-	if test "X$GCC" = "Xyes"; then
-		case "$host" in
-		*-freebsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-openbsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			;;
-		*-solaris*)
-			LIBS="$LIBS -lthread"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		esac
-	else
-		case $host in
-		*-dec-osf*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			;;
-		*-solaris*)
-			CC="$CC -mt"
-			CCOPT="$CCOPT -mt"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			;;
-		*-*-sysv*OpenUNIX*)
-			CC="$CC -Kpthread"
-			CCOPT="$CCOPT -Kpthread"
-			;;
-		esac
-	fi
-	ALWAYS_DEFINES="-D_REENTRANT"
-	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
-	thread_dir=pthreads
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
 	thread_dir=nothreads
