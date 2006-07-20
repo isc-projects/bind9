@@ -12,6 +12,9 @@
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif /* HAVE_SYS_SELECT_H */
 
 @NEED_PSELECT@
 @HAVE_SA_LEN@
