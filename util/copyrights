@@ -201,7 +201,7 @@
 ./bin/tests/.cvsignore				X	1999,2000,2001
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
-./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004
+./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2006
 ./bin/tests/adb_test.c				C	1999,2000,2001,2004,2005
 ./bin/tests/b8t.mk				MAKE	1999,2000,2001,2004
 ./bin/tests/b9t.mk				MAKE	1999,2000,2001,2004
@@ -776,7 +776,7 @@
 ./config.h.in					X	1999,2000,2001,2005,2006
 ./config.h.win32				C	1999,2000,2001,2004,2006
 ./config.sub					X	1999,2000,2001
-./config.threads.in				X	2005
+./config.threads.in				X	2005,2006
 ./configure					X	1998,1999,2000,2001,2005,2006
 ./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004
@@ -1170,7 +1170,7 @@
 ./lib/bind/bsd/strtoul.c			X	2001
 ./lib/bind/bsd/utimes.c				X	2001
 ./lib/bind/bsd/writev.c				X	2001
-./lib/bind/config.h.in				X	2001,2005
+./lib/bind/config.h.in				X	2001,2005,2006
 ./lib/bind/configure				X	2001,2005,2006
 ./lib/bind/configure.in				SH	2001,2004,2005,2006
 ./lib/bind/dst/.cvsignore			X	2001
@@ -1691,7 +1691,7 @@
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
-./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005
+./lib/dns/rdata.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/rdata/any_255/tsig_250.c		C	1999,2000,2001,2003,2004,2005
 ./lib/dns/rdata/any_255/tsig_250.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004
@@ -2240,7 +2240,7 @@
 ./lib/win32/bindevt/bindevt.mak			X	2001
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004
 ./libtool.m4					X	2000,2001,2006
-./ltmain.sh					X	1999,2000,2001
+./ltmain.sh					X	1999,2000,2001,2006
 ./make/.cvsignore				X	1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./make/includes.in				MAKE	1999,2000,2001,2004
