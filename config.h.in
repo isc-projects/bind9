@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.79 2006/03/01 02:32:46 marka Exp $ */
+/* $Id: config.h.in,v 1.82 2006/08/10 01:57:41 marka Exp $ */
 
 /*! \file */
 
@@ -189,6 +189,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
+
+/* Define to 1 if you have the `thr' library (-lthr). */
+#undef HAVE_LIBTHR
 
 /* Define to 1 if you have the <linux/capability.h> header file. */
 #undef HAVE_LINUX_CAPABILITY_H
