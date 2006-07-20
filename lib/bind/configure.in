@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.83.2.31 $)
+AC_REVISION($Revision: 1.83.2.32 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -319,16 +319,68 @@ sinclude(../../config.threads.in)dnl
 
 if $use_threads
 then
+	if test "X$GCC" = "Xyes"; then
+		case "$host" in
+		*-freebsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-openbsd*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			;;
+		*-solaris*)
+			LIBS="$LIBS -lthread"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		esac
+	else
+		case $host in
+		*-dec-osf*)
+			CC="$CC -pthread"
+			CCOPT="$CCOPT -pthread"
+			;;
+		*-solaris*)
+			CC="$CC -mt"
+			CCOPT="$CCOPT -mt"
+			;;
+		*-ibm-aix*)
+			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+			;;
+		*-UnixWare*)
+			CC="$CC -Kthread"
+			CCOPT="$CCOPT -Kthread"
+			;;
+		esac
+	fi
+	AC_DEFINE(_REENTRANT)
+	ALWAYS_DEFINES="-D_REENTRANT"
+	DO_PTHREADS="#define DO_PTHREADS 1"
+	WANT_IRS_THREADSGR_OBJS="\${WANT_IRS_THREADSGR_OBJS}"
+	WANT_IRS_THREADSPW_OBJS="\${WANT_IRS_THREADSPW_OBJS}"
+	case $host in
+	ia64-hp-hpux11.*)
+		WANT_IRS_THREADS_OBJS="";;
+	*)
+		WANT_IRS_THREADS_OBJS="\${WANT_IRS_THREADS_OBJS}";;
+	esac
+	WANT_THREADS_OBJS="\${WANT_THREADS_OBJS}"
+	thread_dir=pthreads
+
 	#
 	# We'd like to use sigwait() too
 	#
-	AC_CHECK_LIB(c, sigwait,
-		     AC_DEFINE(HAVE_SIGWAIT),
-		     AC_CHECK_LIB(pthread, sigwait,
-				  AC_DEFINE(HAVE_SIGWAIT),
-				  AC_CHECK_LIB(pthread, _Psigwait,
-					       AC_DEFINE(HAVE_SIGWAIT),))
-	)
+	AC_CHECK_FUNC(sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(c, sigwait,
+		      AC_DEFINE(HAVE_SIGWAIT),
+		      AC_CHECK_LIB(pthread, sigwait,
+				   AC_DEFINE(HAVE_SIGWAIT),
+				   AC_CHECK_LIB(pthread, _Psigwait,
+					        AC_DEFINE(HAVE_SIGWAIT),))))
 
 	AC_CHECK_FUNC(pthread_attr_getstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
@@ -388,56 +440,6 @@ then
 	#
 	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
-	if test "X$GCC" = "Xyes"; then
-		case "$host" in
-		*-freebsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-openbsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			;;
-		*-solaris*)
-			LIBS="$LIBS -lthread"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		esac
-	else
-		case $host in
-		*-dec-osf*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			;;
-		*-solaris*)
-			CC="$CC -mt"
-			CCOPT="$CCOPT -mt"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-UnixWare*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			;;
-		esac
-	fi
-	AC_DEFINE(_REENTRANT)
-	ALWAYS_DEFINES="-D_REENTRANT"
-	DO_PTHREADS="#define DO_PTHREADS 1"
-	WANT_IRS_THREADSGR_OBJS="\${WANT_IRS_THREADSGR_OBJS}"
-	WANT_IRS_THREADSPW_OBJS="\${WANT_IRS_THREADSPW_OBJS}"
-	case $host in
-	ia64-hp-hpux11.*)
-		WANT_IRS_THREADS_OBJS="";;
-	*)
-		WANT_IRS_THREADS_OBJS="\${WANT_IRS_THREADS_OBJS}";;
-	esac
-	WANT_THREADS_OBJS="\${WANT_THREADS_OBJS}"
-	thread_dir=pthreads
 else
 	ALWAYS_DEFINES=""
 	DO_PTHREADS="#undef DO_PTHREADS"
@@ -2412,7 +2414,7 @@ esac
 
 case "$hack_shutup_in6addr_init_macros" in
 	yes)
-		AC_DEFINE(BROKEN_IN6ADDR_INIT_MACROS)
+		AC_DEFINE(BROKEN_IN6ADDR_INIT_MACROS, 1, [Defined if IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT need to be redefined.] )
 		;;
 esac
 
