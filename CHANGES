@@ -1,3 +1,6 @@
+2052.	[bug]		'rndc' improve connect failed message to report
+			the failing address. [RT #15978]
+
 2051.	[port]		More strtol() fixes. [RT #16249]
 
 2050.	[bug]		Parsing of NSAP records was not case insensitive.
