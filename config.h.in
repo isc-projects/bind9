@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.47.2.3.2.25 2006/07/20 05:48:38 marka Exp $ */
+/* $Id: config.h.in,v 1.47.2.3.2.26 2006/07/20 06:10:28 marka Exp $ */
 
 /***
  *** This file is not to be included by any public header files, because
