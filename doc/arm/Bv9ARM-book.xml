@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.305 2006/06/08 01:41:21 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.306 2006/07/20 00:15:03 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -56,7 +56,7 @@
 
       <para>
         The Berkeley Internet Name Domain
-        (<acronym>BIND</acronym>) implements an
+        (<acronym>BIND</acronym>) implements a
         domain name server for a number of operating systems. This
         document provides basic information about the installation and
         care of the Internet Systems Consortium (<acronym>ISC</acronym>)
