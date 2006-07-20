@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.111 2006/03/09 23:39:00 marka Exp $ */
+/* $Id: rndc.c,v 1.112 2006/07/20 03:41:57 marka Exp $ */
 
 /*! \file */
 
@@ -314,6 +314,7 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 
 static void
 rndc_connected(isc_task_t *task, isc_event_t *event) {
+	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	isccc_sexpr_t *request = NULL;
 	isccc_sexpr_t *data;
@@ -327,17 +328,19 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	connects--;
 
 	if (sevent->result != ISC_R_SUCCESS) {
+		isc_sockaddr_format(&serveraddrs[currentaddr], socktext,
+				    sizeof(socktext));
 		if (sevent->result != ISC_R_CANCELED &&
-		    currentaddr < nserveraddrs)
+		    ++currentaddr < nserveraddrs)
 		{
-			notify("connection failed: %s",
+			notify("connection failed: %s: %s", socktext,
 			       isc_result_totext(sevent->result));
 			isc_socket_detach(&sock);
 			isc_event_free(&event);
-			rndc_startconnect(&serveraddrs[currentaddr++], task);
+			rndc_startconnect(&serveraddrs[currentaddr], task);
 			return;
 		} else
-			fatal("connect failed: %s",
+			fatal("connect failed: %s: %s", socktext,
 			      isc_result_totext(sevent->result));
 	}
 
@@ -408,7 +411,7 @@ rndc_start(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	currentaddr = 0;
-	rndc_startconnect(&serveraddrs[currentaddr++], task);
+	rndc_startconnect(&serveraddrs[currentaddr], task);
 }
 
 static void
