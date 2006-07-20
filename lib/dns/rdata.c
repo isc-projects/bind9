@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.191 2005/07/22 05:31:01 marka Exp $ */
+/* $Id: rdata.c,v 1.192 2006/07/20 03:21:10 marka Exp $ */
 
 /*! \file */
 
@@ -1272,7 +1272,7 @@ hexvalue(char value) {
 		return (-1);
 	if (isupper(c))
 		c = tolower(c);
-	if ((s = strchr(hexdigits, value)) == NULL)
+	if ((s = strchr(hexdigits, c)) == NULL)
 		return (-1);
 	return (s - hexdigits);
 }
