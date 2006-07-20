@@ -1,3 +1,5 @@
+2053.	[port]		netbsd:libbind: silence compiler warnings. [RT #16220]
+
 2050.	[bug]		Parsing of NSAP records was not case insensitive.
 			[RT #16287]
 
