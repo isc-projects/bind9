@@ -1,3 +1,6 @@
+2056.	[bug]		dig: ixfr= was not being treated case insensitively
+			at all times. [RT #15955]
+
 2055.	[bug]		Missing goto after dropping multicast query.
 			[RT #15944]
 
