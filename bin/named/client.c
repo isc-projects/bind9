@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.22 2006/01/04 23:50:16 marka Exp $ */
+/* $Id: client.c,v 1.176.2.23 2006/07/21 23:44:36 marka Exp $ */
 
 #include <config.h>
 
@@ -1252,9 +1252,8 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "multicast request");
-#if 0
-		ns_client_error(client, DNS_R_REFUSED);
-#endif
+		ns_client_next(client, DNS_R_REFUSED);
+		goto cleanup;
 	}
 
 	result = dns_message_peekheader(buffer, &id, &flags);
