@@ -1,3 +1,6 @@
+2055.	[bug]		Missing goto after dropping multicast query.
+			[RT #15944]
+
 2054.	[port]		freebsd: do not explicitly link against -lpthread.
 			[RT #16170]
 

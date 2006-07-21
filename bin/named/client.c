@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.29 2006/06/05 00:15:17 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.30 2006/07/21 23:41:41 marka Exp $ */
 
 #include <config.h>
 
@@ -1318,6 +1318,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(2),
 			      "dropping multicast request");
 		ns_client_next(client, DNS_R_REFUSED);
+		goto cleanup;
 	}
 
 	result = dns_message_peekheader(buffer, &id, &flags);
