@@ -22,12 +22,12 @@
 ./bin/check/named-checkzone.c			C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/check/named-checkzone.docbook		SGML	2000,2001,2002,2004,2005,2006
 ./bin/check/named-checkzone.html		HTML	DOCBOOK
-./bin/check/win32/namedcheckconf.dsp		X	2001,2005
+./bin/check/win32/namedcheckconf.dsp		X	2001,2005,2006
 ./bin/check/win32/namedcheckconf.dsw		X	2001
-./bin/check/win32/namedcheckconf.mak		X	2001,2005
-./bin/check/win32/namedcheckzone.dsp		X	2001,2005
+./bin/check/win32/namedcheckconf.mak		X	2001,2005,2006
+./bin/check/win32/namedcheckzone.dsp		X	2001,2005,2006
 ./bin/check/win32/namedcheckzone.dsw		X	2001
-./bin/check/win32/namedcheckzone.mak		X	2001,2005
+./bin/check/win32/namedcheckzone.mak		X	2001,2005,2006
 ./bin/dig/.cvsignore				X	2000,2001
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005
 ./bin/dig/dig.1					MAN	DOCBOOK
