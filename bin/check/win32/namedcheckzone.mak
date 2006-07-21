@@ -92,11 +92,12 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\namedcheckzone.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libdns.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\named-checkzone.pdb" /machine:I386 /out:"../../../Build/Release/named-checkzone.exe" 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Release/libisc.lib ../../../lib/dns/win32/Release/libisccfg.lib ../../../lib/dns/win32/Release/libdns.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\named-checkzone.pdb" /machine:I386 /out:"../../../Build/Release/named-checkzone.exe" 
 LINK32_OBJS= \
 	"$(INTDIR)\check-tool.obj" \
 	"$(INTDIR)\named-checkzone.obj" \
 	"..\..\..\lib\dns\win32\Release\libdns.lib" \
+	"..\..\..\lib\dns\win32\Release\libisccfg.lib" \
 	"..\..\..\lib\isc\win32\Release\libisc.lib"
 
 "..\..\..\Build\Release\named-checkzone.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
@@ -187,11 +188,12 @@ BSC32_SBRS= \
 <<
 
 LINK32=link.exe
-LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libdns.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\named-checkzone.pdb" /debug /machine:I386 /out:"../../../Build/Debug/named-checkzone.exe" /pdbtype:sept 
+LINK32_FLAGS=user32.lib advapi32.lib ws2_32.lib ../../../lib/isc/win32/Debug/libisc.lib ../../../lib/dns/win32/Debug/libisccfg.lib ../../../lib/dns/win32/Debug/libdns.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\named-checkzone.pdb" /debug /machine:I386 /out:"../../../Build/Debug/named-checkzone.exe" /pdbtype:sept 
 LINK32_OBJS= \
 	"$(INTDIR)\check-tool.obj" \
 	"$(INTDIR)\named-checkzone.obj" \
 	"..\..\..\lib\dns\win32\Debug\libdns.lib" \
+	"..\..\..\lib\dns\win32\Debug\libisccfg.lib" \
 	"..\..\..\lib\isc\win32\Debug\libisc.lib"
 
 "..\..\..\Build\Debug\named-checkzone.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
