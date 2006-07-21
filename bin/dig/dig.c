@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.c,v 1.186.18.25 2006/05/15 06:11:39 marka Exp $ */
+/* $Id: dig.c,v 1.186.18.26 2006/07/21 23:52:21 marka Exp $ */
 
 /*! \file */
 
@@ -1571,7 +1571,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 			 * Anything which isn't an option
 			 */
 			if (open_type_class) {
-				if (strncmp(rv[0], "ixfr=", 5) == 0) {
+				if (strncasecmp(rv[0], "ixfr=", 5) == 0) {
 					rdtype = dns_rdatatype_ixfr;
 					result = ISC_R_SUCCESS;
 				} else {
