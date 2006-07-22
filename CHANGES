@@ -1,3 +1,8 @@
+2058.	[bug]		Adjust how we calculate rtt estimates in the presence
+			of authoritative servers that drop EDNS and/or CD
+			requests.  Also fallback to EDNS/512 and plain DNS
+			faster for zones with less than 3 servers.  [RT #16187]
+
 2057.	[bug]		Make setting "ra" dependent on both allow-query-cache
 			and allow-recursion. [RT #16290]
 
