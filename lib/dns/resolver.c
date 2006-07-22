@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.331 2006/05/18 00:51:02 marka Exp $ */
+/* $Id: resolver.c,v 1.332 2006/07/22 01:18:35 marka Exp $ */
 
 /*! \file */
 
@@ -190,6 +190,8 @@ struct fetchctx {
 	isc_sockaddrlist_t		forwarders;
 	dns_fwdpolicy_t			fwdpolicy;
 	isc_sockaddrlist_t		bad;
+	isc_sockaddrlist_t		edns;
+	isc_sockaddrlist_t		edns512;
 	ISC_LIST(dns_validator_t)	validators;
 	dns_db_t *			cache;
 	dns_adb_t *			adb;
@@ -570,8 +572,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			 * slow.  We don't know.  Increase the RTT.
 			 */
 			INSIST(no_response);
-			rtt = query->addrinfo->srtt +
-				(200000 * fctx->restarts);
+			rtt = query->addrinfo->srtt + 200000;
 			if (rtt > 10000000)
 				rtt = 10000000;
 			/*
@@ -964,34 +965,37 @@ fctx_addopt(dns_message_t *message, unsigned int version, isc_uint16_t udpsize)
 static inline void
 fctx_setretryinterval(fetchctx_t *fctx, unsigned int rtt) {
 	unsigned int seconds;
+	unsigned int us;
 
 	/*
-	 * We retry every 2 seconds the first two times through the address
+	 * We retry every .5 seconds the first two times through the address
 	 * list, and then we do exponential back-off.
 	 */
 	if (fctx->restarts < 3)
-		seconds = 2;
+		us = 500000;
 	else
-		seconds = (2 << (fctx->restarts - 1));
+		us = (500000 << (fctx->restarts - 2));
 
 	/*
-	 * Double the round-trip time and convert to seconds.
+	 * Double the round-trip time.
 	 */
-	rtt /= 500000;
+	rtt *= 2;
 
 	/*
 	 * Always wait for at least the doubled round-trip time.
 	 */
-	if (seconds < rtt)
-		seconds = rtt;
+	if (us < rtt)
+		us = rtt;
 
 	/*
-	 * But don't ever wait for more than 30 seconds.
+	 * But don't ever wait for more than 10 seconds.
 	 */
-	if (seconds > 30)
-		seconds = 30;
+	if (us > 10000000)
+		us = 10000000;
 
-	isc_interval_set(&fctx->interval, seconds, 0);
+	seconds = us / 1000000;
+	us -= seconds * 1000000;
+	isc_interval_set(&fctx->interval, seconds, us * 1000);
 }
 
 static isc_result_t
@@ -1196,6 +1200,66 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	return (result);
 }
 
+static isc_boolean_t
+triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	for (sa = ISC_LIST_HEAD(fctx->edns);
+	     sa != NULL;
+	     sa = ISC_LIST_NEXT(sa, link)) {
+		if (isc_sockaddr_equal(sa, address))
+			return (ISC_TRUE);
+	}
+
+	return (ISC_FALSE);
+}
+
+static void
+add_triededns(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	if (triededns(fctx, address))
+		return;
+
+	sa = isc_mem_get(fctx->res->buckets[fctx->bucketnum].mctx,
+			 sizeof(*sa));
+	if (sa == NULL)
+		return;
+
+	*sa = *address;
+	ISC_LIST_INITANDAPPEND(fctx->edns, sa, link);
+}
+
+static isc_boolean_t
+triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	for (sa = ISC_LIST_HEAD(fctx->edns512);
+	     sa != NULL;
+	     sa = ISC_LIST_NEXT(sa, link)) {
+		if (isc_sockaddr_equal(sa, address))
+			return (ISC_TRUE);
+	}
+
+	return (ISC_FALSE);
+}
+
+static void
+add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
+	isc_sockaddr_t *sa;
+
+	if (triededns512(fctx, address))
+		return;
+
+	sa = isc_mem_get(fctx->res->buckets[fctx->bucketnum].mctx,
+			 sizeof(*sa));
+	if (sa == NULL)
+		return;
+
+	*sa = *address;
+	ISC_LIST_INITANDAPPEND(fctx->edns512, sa, link);
+}
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -1346,12 +1410,14 @@ resquery_send(resquery_t *query) {
 	 * the remote server doesn't like it.
 	 */
 
-	if (fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2) &&
+	if ((triededns512(fctx, &query->addrinfo->sockaddr) ||
+	     fctx->timeouts >= (MAX_EDNS0_TIMEOUTS * 2)) &&
 	    (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 		FCTXTRACE("too many timeouts, disabling EDNS0");
-	} else if (fctx->timeouts >= MAX_EDNS0_TIMEOUTS &&
-	    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
+	} else if ((triededns(fctx, &query->addrinfo->sockaddr) ||
+		    fctx->timeouts >= MAX_EDNS0_TIMEOUTS) &&
+	           (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		query->options |= DNS_FETCHOPT_EDNS512;
 		FCTXTRACE("too many timeouts, setting EDNS size to 512");
 	}
@@ -1397,6 +1463,12 @@ resquery_send(resquery_t *query) {
 		result = DNS_R_SERVFAIL;
 		goto cleanup_message;
 	}
+
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
+		add_triededns(fctx, &query->addrinfo->sockaddr);
+
+	if ((query->options & DNS_FETCHOPT_EDNS512) != 0)
+		add_triededns512(fctx, &query->addrinfo->sockaddr);
 
 	/*
 	 * Clear CD if EDNS is not in use.
@@ -2498,6 +2570,22 @@ fctx_destroy(fetchctx_t *fctx) {
 		isc_mem_put(res->buckets[bucketnum].mctx, sa, sizeof(*sa));
 	}
 
+	for (sa = ISC_LIST_HEAD(fctx->edns);
+	     sa != NULL;
+	     sa = next_sa) {
+		next_sa = ISC_LIST_NEXT(sa, link);
+		ISC_LIST_UNLINK(fctx->edns, sa, link);
+		isc_mem_put(res->buckets[bucketnum].mctx, sa, sizeof(*sa));
+	}
+
+	for (sa = ISC_LIST_HEAD(fctx->edns512);
+	     sa != NULL;
+	     sa = next_sa) {
+		next_sa = ISC_LIST_NEXT(sa, link);
+		ISC_LIST_UNLINK(fctx->edns512, sa, link);
+		isc_mem_put(res->buckets[bucketnum].mctx, sa, sizeof(*sa));
+	}
+
 	isc_timer_detach(&fctx->timer);
 	dns_message_destroy(&fctx->rmessage);
 	dns_message_destroy(&fctx->qmessage);
@@ -2850,6 +2938,8 @@ fctx_create(dns_resolver_t *res, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LIST_INIT(fctx->forwarders);
 	fctx->fwdpolicy = dns_fwdpolicy_none;
 	ISC_LIST_INIT(fctx->bad);
+	ISC_LIST_INIT(fctx->edns);
+	ISC_LIST_INIT(fctx->edns512);
 	ISC_LIST_INIT(fctx->validators);
 	fctx->find = NULL;
 	fctx->altfind = NULL;
