@@ -1,3 +1,6 @@
+2057.	[bug]		Make setting "ra" dependent on both allow-query-cache
+			and allow-recursion. [RT #16290]
+
 2056.	[bug]		dig: ixfr= was not being treated case insensitively
 			at all times. [RT #15955]
 
