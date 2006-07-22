@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.13.4.30 2006/07/21 23:41:41 marka Exp $ */
+/* $Id: client.c,v 1.176.2.13.4.31 2006/07/22 01:09:38 marka Exp $ */
 
 #include <config.h>
 
@@ -1609,12 +1609,15 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	 * Decide whether recursive service is available to this client.
 	 * We do this here rather than in the query code so that we can
 	 * set the RA bit correctly on all kinds of responses, not just
-	 * responses to ordinary queries.
+	 * responses to ordinary queries.  Note if you can't query the
+	 * cache there is no point in setting RA.
 	 */
 	ra = ISC_FALSE;
 	if (client->view->resolver != NULL &&
 	    client->view->recursion == ISC_TRUE &&
 	    ns_client_checkaclsilent(client, client->view->recursionacl,
+				     ISC_TRUE) == ISC_R_SUCCESS &&
+	    ns_client_checkaclsilent(client, client->view->queryacl,
 				     ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
