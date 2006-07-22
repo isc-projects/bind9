@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.176.2.23 2006/07/21 23:44:36 marka Exp $ */
+/* $Id: client.c,v 1.176.2.24 2006/07/22 01:09:04 marka Exp $ */
 
 #include <config.h>
 
@@ -1501,7 +1501,9 @@ client_request(isc_task_t *task, isc_event_t *event) {
 	    /* XXX this will log too much too early */
 	    ns_client_checkacl(client, "recursion available:",
 			       client->view->recursionacl,
-			       ISC_TRUE, ISC_LOG_DEBUG(1)) == ISC_R_SUCCESS)
+			       ISC_TRUE, ISC_LOG_DEBUG(1)) == ISC_R_SUCCESS &&
+	    ns_client_checkaclsilent(client, client->view->queryacl,
+				     ISC_TRUE) == ISC_R_SUCCESS)
 		ra = ISC_TRUE;
 
 	if (ra == ISC_TRUE)
