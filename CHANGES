@@ -1,3 +1,5 @@
+2059.	[placeholder]	rt16292
+
 2058.	[bug]		Adjust how we calculate rtt estimates in the presence
 			of authoritative servers that drop EDNS and/or CD
 			requests.  Also fallback to EDNS/512 and plain DNS
