@@ -1,4 +1,6 @@
-2059.	[placeholder]	rt16292
+2059.	[bug]		Search into cache rbtdb could trigger an INSIST
+			failure while cleaning up a stale rdataset.
+			[RT #16292]
 
 2058.	[bug]		Adjust how we calculate rtt estimates in the presence
 			of authoritative servers that drop EDNS and/or CD
@@ -43,10 +45,10 @@
 2046.	[bug]		rbtdb.c:rdataset_setadditional() could cause duplicate
 			cleanup [RT #16247].
 
-2045.	[func]		use lock buckets for acache entries to limit memory
+2045.	[func]		Use lock buckets for acache entries to limit memory
 			consumption. [RT #16183]
 
-2044.	[port]		add support for atomic operations for Itanium.
+2044.	[port]		Add support for atomic operations for Itanium.
 			[RT #16179]
 
 2043.	[port]		nsupdate/nslookup: Force the flushing of the prompt
