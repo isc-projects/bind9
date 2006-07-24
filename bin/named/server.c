@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.47 2006/05/24 04:30:43 marka Exp $ */
+/* $Id: server.c,v 1.419.18.48 2006/07/24 05:52:44 marka Exp $ */
 
 /*! \file */
 
@@ -1062,7 +1062,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 					       &view->dlzdatabase);
 			isc_mem_free(mctx, s);
 			isc_mem_put(mctx, dlzargv, dlzargc * sizeof(*dlzargv));
-			if (result == ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS)
 				goto cleanup;
 		}
 	}

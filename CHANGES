@@ -1,3 +1,5 @@
+2060.	[bug]		Enabling DLZ support could leave views partially
+			configured. [RT #16295]
 
 	--- 9.4.0b1 released ---
 
