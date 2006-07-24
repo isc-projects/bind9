@@ -1,3 +1,6 @@
+2060.	[bug]		Enabling DLZ support could leave views partially
+			configured. [RT #16295]
+
 2059.	[bug]		Search into cache rbtdb could trigger an INSIST
 			failure while cleaning up a stale rdataset.
 			[RT #16292]
