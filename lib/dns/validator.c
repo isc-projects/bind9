@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.144 2006/03/09 23:39:00 marka Exp $ */
+/* $Id: validator.c,v 1.145 2006/07/24 22:41:59 marka Exp $ */
 
 /*! \file */
 
@@ -1267,7 +1267,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 		validator_log(val, ISC_LOG_INFO,
 			      "accepted expired %sRRSIG (keyid=%u)",
 			      (result == DNS_R_FROMWILDCARD) ?
-			      "" : "wildcard ", keyid);
+			      "wildcard " : "", keyid);
 	else
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "verify rdataset (keyid=%u): %s",

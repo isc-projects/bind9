@@ -1,3 +1,5 @@
+2061.	[bug]		Accept expired wildcard message reversed. [RT #16296]
+
 2060.	[bug]		Enabling DLZ support could leave views partially
 			configured. [RT #16295]
 
