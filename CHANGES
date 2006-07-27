@@ -1,3 +1,6 @@
+
+	--- 9.2.7rc1 released ---
+
 2057.	[bug]		Make setting "ra" dependent on both allow-query and
 			allow-recursion. [RT #16290]
 
