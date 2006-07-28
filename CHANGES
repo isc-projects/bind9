@@ -1,6 +1,3 @@
-
-	--- 9.2.7rc1 released ---
-
 2057.	[bug]		Make setting "ra" dependent on both allow-query and
 			allow-recursion. [RT #16290]
 
@@ -30,6 +27,8 @@
 
 2034.	[bug]		gcc: set -fno-strict-aliasing. [RT #16124]
 
+1941.	[bug]		ncache_adderesult() should set eresult even if no
+			rdataset is passed to it. [RT #15642]
 
 	--- 9.2.7b1 released ---
 
