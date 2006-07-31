@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.237 2006/07/24 01:12:45 marka Exp $ */
+/* $Id: rbtdb.c,v 1.238 2006/07/31 02:04:03 marka Exp $ */
 
 /*! \file */
 
@@ -3006,7 +3006,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					isc_mem_t *mctx;
 
 					/*
-					 * header->down can be NULL if the
+					 * header->down can be non-NULL if the
 					 * refcount has just decremented to 0
 					 * but no_references() has not
 					 * performed clean_cache_node(), in
