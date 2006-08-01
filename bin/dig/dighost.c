@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.33 2006/06/06 00:56:09 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.34 2006/08/01 00:54:38 marka Exp $ */
 
 /*! \file
  *  \note
@@ -343,6 +343,9 @@ cancel_lookup(dig_lookup_t *lookup);
 
 static void
 recv_done(isc_task_t *task, isc_event_t *event);
+
+static void
+send_udp(dig_query_t *query);
 
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event);
@@ -2028,6 +2031,8 @@ static void
 send_done(isc_task_t *_task, isc_event_t *event) {
 	isc_socketevent_t *sevent = (isc_socketevent_t *)event;
 	isc_buffer_t *b = NULL;
+	dig_query_t *query, *next;
+	dig_lookup_t *l;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_SENDDONE);
 
@@ -2035,17 +2040,28 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 
 	LOCK_LOOKUP;
 
+	debug("send_done()");
+	sendcount--;
+	debug("sendcount=%d", sendcount);
+	INSIST(sendcount >= 0);
+
 	for  (b = ISC_LIST_HEAD(sevent->bufferlist);
 	      b != NULL;
 	      b = ISC_LIST_HEAD(sevent->bufferlist)) 
 		ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
 
+	query = event->ev_arg;
+	l = query->lookup;
+
+	if (l->ns_search_only && !l->trace_root) {
+		debug("sending next, since searching");
+		next = ISC_LIST_NEXT(query, link);
+		if (next != NULL)
+			send_udp(next);
+	}
+
 	isc_event_free(&event);
 
-	debug("send_done()");
-	sendcount--;
-	debug("sendcount=%d", sendcount);
-	INSIST(sendcount >= 0);
 	check_if_done();
 	UNLOCK_LOOKUP;
 }
@@ -2189,7 +2205,6 @@ send_tcp_connect(dig_query_t *query) {
 static void
 send_udp(dig_query_t *query) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *next;
 	isc_result_t result;
 
 	debug("send_udp(%p)", query);
@@ -2242,16 +2257,6 @@ send_udp(dig_query_t *query) {
 				    &query->sockaddr, NULL);
 	check_result(result, "isc_socket_sendtov");
 	sendcount++;
-	/*
-	 * If we're at the endgame of a nameserver search, we need to
-	 * immediately bring up all the queries.  Do it here.
-	 */
-	if (l->ns_search_only && !l->trace_root) {
-		debug("sending next, since searching");
-		next = ISC_LIST_NEXT(query, link);
-		if (next != NULL)
-			send_udp(next);
-	}
 }
 
 /*%
