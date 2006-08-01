@@ -1,3 +1,6 @@
+2062.	[bug]		'dig +nssearch' was reusing a buffer before it had
+			been returned by the socket code. [RT #16307]
+
 2057.	[bug]		Make setting "ra" dependent on both allow-query and
 			allow-recursion. [RT #16290]
 
