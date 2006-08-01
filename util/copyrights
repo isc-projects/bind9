@@ -1255,11 +1255,11 @@
 ./lib/bind/irs/getnetgrent.c			X	2001
 ./lib/bind/irs/getnetgrent_r.c			X	2001,2005
 ./lib/bind/irs/getprotoent.c			X	2001
-./lib/bind/irs/getprotoent_r.c			X	2001
+./lib/bind/irs/getprotoent_r.c			X	2001,2006
 ./lib/bind/irs/getpwent.c			X	2001
 ./lib/bind/irs/getpwent_r.c			X	2001
 ./lib/bind/irs/getservent.c			X	2001
-./lib/bind/irs/getservent_r.c			X	2001
+./lib/bind/irs/getservent_r.c			X	2001,2006
 ./lib/bind/irs/hesiod.c				X	2001,2005
 ./lib/bind/irs/hesiod_p.h			X	2001
 ./lib/bind/irs/irp.c				X	2001,2006
@@ -1547,7 +1547,7 @@
 ./lib/bind/port/unknown/include/.cvsignore	X	2001
 ./lib/bind/port/unknown/include/Makefile.in	MAKE	2001,2004,2005
 ./lib/bind/port_after.h.in			X	2001,2005,2006
-./lib/bind/port_before.h.in			X	2001,2005
+./lib/bind/port_before.h.in			X	2001,2005,2006
 ./lib/bind/resolv/.cvsignore			X	2001
 ./lib/bind/resolv/Makefile.in			MAKE	2001,2004,2005
 ./lib/bind/resolv/herror.c			X	2001
