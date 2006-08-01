@@ -1,3 +1,5 @@
+2064.	[bug]		libbind: silence AIX compiler warnings. [RT #16218]
+
 2063.	[bug]		Change #1955 introduced a bug which caused the first
 			'rndc flush' call to not free memory. [RT #16244]
 
