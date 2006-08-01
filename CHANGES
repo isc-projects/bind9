@@ -1,4 +1,4 @@
-2061.	[bug]		'dig +nssearch' was reusing a buffer before it had
+2062.	[bug]		'dig +nssearch' was reusing a buffer before it had
 			been returned by the socket code. [RT #16307]
 
 2061.	[bug]		Accept expired wildcard message reversed. [RT #16296]
