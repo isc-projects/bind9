@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.18 2006/03/06 02:22:36 marka Exp $
+ *	$Id: netdb.h,v 1.19 2006/08/01 01:14:16 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -290,7 +290,7 @@ struct hostent_data {
 
 struct  netent_data {
 	FILE	*net_fp;
-#ifdef __osf__
+#if defined(__osf__) || defined(_AIX)
 	char	line[_MAXLINELEN];
 #endif
 #ifdef __hpux
@@ -307,10 +307,21 @@ struct  netent_data {
 	char	*current;
 	int	currentlen;
 #endif
+#ifdef _AIX
+        int     _net_stayopen;
+        char    *current;
+        int     currentlen;
+        void    *_net_reserv1;          /* reserved for future use */
+        void    *_net_reserv2;          /* reserved for future use */
+#endif
 };
 
 struct	protoent_data {
 	FILE	*proto_fp;
+#ifdef _AIX
+	int     _proto_stayopen;
+	char	line[_MAXLINELEN];
+#endif
 #ifdef __osf__
 	char	line[1024];
 #endif
@@ -328,11 +339,17 @@ struct	protoent_data {
 	char	*current;
 	int	currentlen;
 #endif
+#ifdef _AIX
+        int     currentlen;
+        char    *current;
+        void    *_proto_reserv1;        /* reserved for future use */
+        void    *_proto_reserv2;        /* reserved for future use */
+#endif
 };
 
 struct	servent_data {
 	FILE	*serv_fp;
-#ifdef __osf__
+#if defined(__osf__) || defined(_AIX)
 	char	line[_MAXLINELEN];
 #endif
 #ifdef __hpux
@@ -348,6 +365,13 @@ struct	servent_data {
 	short	_flags;
 	char	*current;
 	int	currentlen;
+#endif
+#ifdef _AIX
+	int     _serv_stayopen;
+	char     *current;
+	int     currentlen;
+	void    *_serv_reserv1;         /* reserved for future use */
+	void    *_serv_reserv2;         /* reserved for future use */
 #endif
 };
 #endif
@@ -456,6 +480,15 @@ int		endservent_r __P((struct servent_data *));
 #else
 void		endservent_r __P((struct servent_data *));
 #endif
+#ifdef _AIX
+int		setnetgrent_r __P((const char *, void **));
+void		endnetgrent_r __P((void **));
+/*
+ * Note: AIX's netdb.h declares innetgr_r() as: 
+ *	int innetgr_r(char *, char *, char *, char *, struct innetgr_data *);
+ */
+int		innetgr_r __P((const char *, const char *, const char *,
+			       const char *));
 #else
  /* defined(sun) || defined(bsdi) */
 #ifdef __GLIBC__
@@ -526,8 +559,6 @@ void		endservent_r __P((void));
 #ifdef __GLIBC__
 int		getnetgrent_r __P((char **, char **, char **, char *, size_t));
 #endif
-#ifdef _AIX
-int		setnetgrent_r __P((char *, void **));
 #endif
 
 #endif
