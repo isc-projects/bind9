@@ -24,7 +24,8 @@
 
 	report server->recursionquota.soft in "rndc status".
 
-	pulldown ncache_adderesult() changes.
+1941.	[bug]		ncache_adderesult() should set eresult even if no
+			rdataset is passed to it. [RT #15642]
 
 	--- 9.3.2 released ---
 
