@@ -1,3 +1,5 @@
+2066.	[placeholder]	rt16300
+
 2065.	[bug]		libbind: probe for HPUX prototypes for
 			endprotoent_r() and endservent_r().  [RT 16313]
 
