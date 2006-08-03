@@ -1,3 +1,6 @@
+2065.	[bug]		libbind: probe for HPUX prototypes for
+			endprotoent_r() and endservent_r().  [RT 16313]
+
 2064.	[bug]		libbind: silence AIX compiler warnings. [RT #16218]
 
 2063.	[bug]		Change #1955 introduced a bug which caused the first

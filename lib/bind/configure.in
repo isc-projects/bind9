@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-AC_REVISION($Revision: 1.90.18.26 $)
+AC_REVISION($Revision: 1.90.18.27 $)
 
 AC_INIT(resolv/herror.c)
 AC_PREREQ(2.13)
@@ -2110,6 +2110,24 @@ PROTO_R_ENT_ARGS="#define PROTO_R_ENT_ARGS struct protoent_data *proto_data"
 PROTO_R_ENT_UNUSED="#define PROTO_R_ENT_UNUSED UNUSED(proto_data)"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <netdb.h>
+int endprotoent_r(struct protoent_data *);
+]
+,,
+[
+PROTO_R_END_RESULT="#define PROTO_R_END_RESULT(x) return(0)"
+PROTO_R_END_RETURN="#define PROTO_R_END_RETURN int"
+PROTO_R_ENT_ARGS="#define PROTO_R_ENT_ARGS struct protoent_data *proto_data"
+PROTO_R_ENT_UNUSED="#define PROTO_R_ENT_UNUSED UNUSED(proto_data)"
+]
+,
+)
 )
 )
 ,
@@ -2369,6 +2387,25 @@ SERV_R_ENT_ARGS="#define SERV_R_ENT_ARGS struct servent_data *serv_data"
 SERV_R_ENT_UNUSED="#define SERV_R_ENT_UNUSED UNUSED(serv_data)"
 ]
 ,
+AC_TRY_COMPILE(
+[
+#undef _REENTRANT
+#define _REENTRANT
+#undef __USE_MISC
+#define __USE_MISC
+#include <netdb.h>
+int endservent_r(struct servent_data *serv_data);
+]
+,
+,
+[
+SERV_R_END_RESULT="#define SERV_R_END_RESULT(x) return(x)"
+SERV_R_END_RETURN="#define SERV_R_END_RETURN int "
+SERV_R_ENT_ARGS="#define SERV_R_ENT_ARGS struct servent_data *serv_data"
+SERV_R_ENT_UNUSED="#define SERV_R_ENT_UNUSED UNUSED(serv_data)"
+]
+,
+)
 )
 )
 ,
