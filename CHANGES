@@ -15,8 +15,8 @@
 
 	--- 9.3.2-WFB-1 released ---
 
-	rate limit "recursive-clients soft limit exceeded, aborting oldest
-	query" message.
+2026.   [bug]           Rate limit the two recursive client exceeded messages.
+                        [RT #16044]
 
 	--- 9.3.2-WFB released ---
 
