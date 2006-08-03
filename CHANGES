@@ -1,3 +1,6 @@
+
+	--- 9.3.2-WFB-4 released ---
+
 2066.	[security]	Handle SIG queries gracefully. [RT #16330]
 
 2049.	[bug]		Restore SOA before AXFR when falling back from
