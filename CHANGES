@@ -1,3 +1,5 @@
+2066.	[security]	Handle SIG queries gracefully. [RT #16330]
+
 	--- 9.3.2-WFB-3 released ---
 
 2035.	[func]		Make falling back to TCP on UDP refresh failure
