@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.96.18.16 2006/07/20 03:45:15 marka Exp $ */
+/* $Id: rndc.c,v 1.96.18.17 2006/08/04 03:03:41 marka Exp $ */
 
 /*! \file */
 
@@ -176,6 +176,11 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 	if (sevent->result != ISC_R_SUCCESS)
 		fatal("send failed: %s", isc_result_totext(sevent->result));
 	isc_event_free(&event);
+	if (sends == 0 && recvs == 0) {
+		isc_socket_detach(&sock);
+		isc_task_shutdown(task);
+		RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+	}
 }
 
 static void
@@ -228,9 +233,11 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
-	isc_socket_detach(&sock);
-	isc_task_shutdown(task);
-	RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+	if (sends == 0 && recvs == 0) {
+		isc_socket_detach(&sock);
+		isc_task_shutdown(task);
+		RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+	}
 }
 
 static void

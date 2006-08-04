@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.30.18.14 2006/06/06 00:56:09 marka Exp $ */
+/* $Id: socket.c,v 1.30.18.15 2006/08/04 03:03:41 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1711,14 +1711,15 @@ destroy_socket(isc_socket_t **sockp) {
 	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
 		   ISC_MSG_DESTROYING, "destroying socket %d", sock->fd);
 
+	LOCK(&manager->lock);
+
+	LOCK(&sock->lock);
+
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->connect_ev == NULL);
 
-	LOCK(&manager->lock);
-
-	LOCK(&sock->lock);
 	socket_close(sock);
 	if (sock->pending_recv != 0 || sock->pending_send != 0 ||
 	    sock->pending_close != 0) {
