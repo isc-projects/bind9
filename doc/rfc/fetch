@@ -1,0 +1,5 @@
+#!/bin/sh -f
+for i in $*
+do
+	fetch "http://www.ietf.org/rfc/rfc${i}.txt"
+done
