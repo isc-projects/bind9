@@ -1,6 +1,9 @@
 
 	--- 9.3.3rc1 released ---
 
+2067.	[bug]		'rndc' could close the socket too early triggering
+			a INSIST under Windows. [RT #16317]
+
 2065.	[bug]		libbind: probe for HPUX prototypes for
 			endprotoent_r() and endservent_r().  [RT 16313]
 
