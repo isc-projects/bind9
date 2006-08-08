@@ -1,3 +1,6 @@
+2068.	[cleanup]	Lower incremental tuning message to debug 1.
+			[RT #16319]
+
 2067.	[bug]		'rndc' could close the socket too early triggering
 			a INSIST under Windows. [RT #16317]
 

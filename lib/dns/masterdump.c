@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.c,v 1.86 2006/03/09 23:57:56 marka Exp $ */
+/* $Id: masterdump.c,v 1.87 2006/08/08 06:37:12 marka Exp $ */
 
 /*! \file */
 
@@ -1407,7 +1407,8 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 			dctx->nodes = (nodes + dctx->nodes * 7) / 8;
 
 			isc_log_write(dns_lctx, ISC_LOGCATEGORY_GENERAL,
-				      DNS_LOGMODULE_MASTERDUMP, ISC_LOG_INFO,
+				      DNS_LOGMODULE_MASTERDUMP,
+				      ISC_LOG_DEBUG(1),
 				      "dumptostreaminc(%p) new nodes -> %d\n",
 				      dctx, dctx->nodes);
 		}
