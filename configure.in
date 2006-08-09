@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.410 $)
+AC_REVISION($Revision: 1.411 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2359,7 +2359,7 @@ AC_SUBST(DLZ_DRIVER_SRCS)
 AC_SUBST(DLZ_DRIVER_OBJS)
 AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
-if test "cross_compiling" = "yes"; then
+if test "$cross_compiling" = "yes"; then
 	if test -z "$BUILD_CC"; then
 		AC_ERROR([BUILD_CC not set])
 	fi
