@@ -1,3 +1,5 @@
+2069.	[bug]		Cross compiling was not working. [RT #16330]
+
 
 	--- 9.2.7rc1 released ---
 
