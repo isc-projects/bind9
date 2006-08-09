@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.64 $)
+AC_REVISION($Revision: 1.294.2.23.2.65 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -2071,7 +2071,7 @@ LIBBIND9_API=$srcdir/lib/bind9/api
 AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API=$srcdir/lib/lwres/api
 
-if test "cross_compiling" = "yes"; then
+if test "$cross_compiling" = "yes"; then
 	if test -z "$BUILD_CC"; then
 		AC_ERROR([BUILD_CC not set])
 	fi
