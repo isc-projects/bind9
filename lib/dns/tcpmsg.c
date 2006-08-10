@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcpmsg.c,v 1.27 2005/04/29 00:22:52 marka Exp $ */
+/* $Id: tcpmsg.c,v 1.28 2006/08/10 01:38:15 marka Exp $ */
 
 /*! \file */
 
@@ -54,6 +54,7 @@ recv_length(isc_task_t *task, isc_event_t *ev_in) {
 	INSIST(VALID_TCPMSG(tcpmsg));
 
 	dev = &tcpmsg->event;
+	tcpmsg->address = ev->address;
 
 	if (ev->result != ISC_R_SUCCESS) {
 		tcpmsg->result = ev->result;
@@ -110,6 +111,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 	INSIST(VALID_TCPMSG(tcpmsg));
 
 	dev = &tcpmsg->event;
+	tcpmsg->address = ev->address;
 
 	if (ev->result != ISC_R_SUCCESS) {
 		tcpmsg->result = ev->result;
@@ -118,7 +120,6 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 
 	tcpmsg->result = ISC_R_SUCCESS;
 	isc_buffer_add(&tcpmsg->buffer, ev->n);
-	tcpmsg->address = ev->address;
 
 	XDEBUG(("Received %d bytes (of %d)\n", ev->n, tcpmsg->size));
 

@@ -1,3 +1,6 @@
+2070.	[bug]		The remote address was not always displayed when
+			reporting dispatch failures. [RT #16315]
+
 2069.	[bug]		Cross compiling was not working. [RT #16330]
 
 2068.	[cleanup]	Lower incremental tuning message to debug 1.
