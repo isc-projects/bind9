@@ -1,3 +1,6 @@
+
+	--- 9.2.7rc1 released ---
+
 2071.	[port]		Test whether gcc accepts -fno-strict-aliasing.
 			[RT #16324]
 
@@ -5,9 +8,6 @@
 			reporting dispatch failures. [RT #16315]
 
 2069.	[bug]		Cross compiling was not working. [RT #16330]
-
-
-	--- 9.2.7rc1 released ---
 
 2067.	[bug]		'rndc' could close the socket too early triggering
 			a INSIST under Windows. [RT #16317]
