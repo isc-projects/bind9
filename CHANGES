@@ -1,3 +1,6 @@
+2071.	[port]		Test whether gcc accepts -fno-strict-aliasing.
+			[RT #16324]
+
 2070.	[bug]		The remote address was not always displayed when
 			reporting dispatch failures. [RT #16315]
 
