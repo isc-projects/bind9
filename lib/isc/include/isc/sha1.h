@@ -18,7 +18,7 @@
 #ifndef ISC_SHA1_H
 #define ISC_SHA1_H 1
 
-/* $Id: sha1.h,v 1.13 2006/02/01 00:10:35 marka Exp $ */
+/* $Id: sha1.h,v 1.14 2006/08/16 03:15:09 marka Exp $ */
 
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
@@ -32,11 +32,12 @@
 #include <isc/types.h>
 
 #define ISC_SHA1_DIGESTLENGTH 20U
+#define ISC_SHA1_BLOCK_LENGTH 64U
 
 typedef struct {
 	isc_uint32_t state[5];
 	isc_uint32_t count[2];
-	unsigned char buffer[64];
+	unsigned char buffer[ISC_SHA1_BLOCK_LENGTH];
 } isc_sha1_t;
 
 ISC_LANG_BEGINDECLS

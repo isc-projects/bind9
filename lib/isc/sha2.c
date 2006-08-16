@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.9 2006/03/10 03:49:57 marka Exp $ */
+/* $Id: sha2.c,v 1.10 2006/08/16 03:15:09 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -420,7 +420,7 @@ isc_sha224_update(isc_sha224_t *context, const isc_uint8_t* data, size_t len) {
 }
 
 void 
-isc_sha224_final(isc_uint8_t digest[], isc_sha256_t *context) {
+isc_sha224_final(isc_uint8_t digest[], isc_sha224_t *context) {
 	isc_uint8_t sha256_digest[ISC_SHA256_DIGESTLENGTH];
 	isc_sha256_final(sha256_digest, (isc_sha256_t *)context);
 	memcpy(digest, sha256_digest, ISC_SHA224_DIGESTLENGTH);
