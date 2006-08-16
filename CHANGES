@@ -1,3 +1,6 @@
+2072.	[bug]		We were not generating valid HMAC SHA digests.
+			[RT #16320]
+
 2071.	[port]		Test whether gcc accepts -fno-strict-aliasing.
 			[RT #16324]
 
