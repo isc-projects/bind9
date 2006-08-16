@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash_test.c,v 1.10.18.6 2006/08/16 03:18:14 marka Exp $ */
+/* $Id: hash_test.c,v 1.10.18.7 2006/08/16 23:54:34 marka Exp $ */
 
 /*! \file */
 #include <config.h>
