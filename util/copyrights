@@ -274,7 +274,7 @@
 ./bin/tests/genrandom.c				C	2000,2001,2002,2003,2004,2005
 ./bin/tests/gxba_test.c				C	2000,2001,2004,2005
 ./bin/tests/gxbn_test.c				C	2000,2001,2004,2005
-./bin/tests/hash_test.c				C	2000,2001,2004,2005
+./bin/tests/hash_test.c				C	2000,2001,2004,2005,2006
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004
 ./bin/tests/inter_test.c			C	2000,2001,2003,2004,2005
 ./bin/tests/journalprint.c			C	2000,2001,2004,2005
