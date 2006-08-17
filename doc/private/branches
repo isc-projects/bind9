@@ -80,8 +80,10 @@ v9_2_0_patch			active		// security fixes 9.2.0 only
 v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
 v9_2_2base			active		// security fixes 9.2.2 only 
 v9_2_4base			active		// security fixes 9.2.4 only
+v9_2_6_patch			new	
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
+v9_3_2_patch			new	
 v9_4				active	
 
 
