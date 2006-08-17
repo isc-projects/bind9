@@ -1,4 +1,9 @@
 
+	--- 9.2.6-P1 released ---
+
+1941.	[bug]		ncache_adderesult() should set eresult even if no
+			rdataset is passed to it. [RT #15642]
+
 	--- 9.2.6 released ---
 
 	--- 9.2.6rc1 released ---
