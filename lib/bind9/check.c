@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: check.c,v 1.44.18.30 2006/03/10 04:54:35 marka Exp $ */
+/* $Id: check.c,v 1.44.18.31 2006/08/21 00:09:52 marka Exp $ */
 
 /*! \file */
 
@@ -816,13 +816,6 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 				    "'%s' is not a valid name", str);
 			result = tresult;
 		}
-		if (tresult == ISC_R_SUCCESS &&
-		    strcasecmp(cfg_obj_asstring(matchtype), "wildcard") == 0 &&
-		    !dns_name_iswildcard(dns_fixedname_name(&fixed))) {
-			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
-				    "'%s' is not a wildcard", str);
-			result = ISC_R_FAILURE;
-		}
 
 		dns_fixedname_init(&fixed);
 		str = cfg_obj_asstring(dname);
@@ -834,6 +827,13 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
 				    "'%s' is not a valid name", str);
 			result = tresult;
+		}
+		if (tresult == ISC_R_SUCCESS &&
+		    strcasecmp(cfg_obj_asstring(matchtype), "wildcard") == 0 &&
+		    !dns_name_iswildcard(dns_fixedname_name(&fixed))) {
+			cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+				    "'%s' is not a wildcard", str);
+			result = ISC_R_FAILURE;
 		}
 
 		for (element2 = cfg_list_first(typelist);
