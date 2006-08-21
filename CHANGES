@@ -1,3 +1,6 @@
+2073.	[bug]		Incorrect semantics check for update policy "wildcard".
+			[RT #16353]
+
 2072.	[bug]		We were not generating valid HMAC SHA digests.
 			[RT #16320]
 
