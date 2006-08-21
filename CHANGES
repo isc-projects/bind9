@@ -1,4 +1,4 @@
-2074.	[bug]		dns_request_create2(), dns_request_create3(),
+2074.	[bug]		dns_request_createvia2(), dns_request_createvia3(),
 			dns_request_createraw2() and dns_request_createraw3()
 			failed to send multiple UDP requests. [RT #16349]
 
