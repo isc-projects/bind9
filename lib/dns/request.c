@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.c,v 1.64.2.1.10.8 2006/01/04 23:50:20 marka Exp $ */
+/* $Id: request.c,v 1.64.2.1.10.9 2006/08/21 00:50:48 marka Exp $ */
 
 #include <config.h>
 
@@ -703,6 +703,7 @@ dns_request_createraw3(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		if (udptimeout == 0)
 			udptimeout = 1;
 	}
+	request->udpcount = udpretries;
 
 	/*
 	 * Create timer now.  We will set it below once.
@@ -900,6 +901,7 @@ dns_request_createvia3(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		if (udptimeout == 0)
 			udptimeout = 1;
 	}
+	request->udpcount = udpretries;
 
 	/*
 	 * Create timer now.  We will set it below once.
