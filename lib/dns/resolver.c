@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.332 2006/07/22 01:18:35 marka Exp $ */
+/* $Id: resolver.c,v 1.333 2006/08/22 06:11:19 marka Exp $ */
 
 /*! \file */
 
@@ -6007,6 +6007,8 @@ spillattimer_countdown(isc_task_t *task, isc_event_t *event) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 			      DNS_LOGMODULE_RESOLVER, ISC_LOG_NOTICE,
 			      "clients-per-query decreased to %u", count);
+
+	isc_event_free(&event);
 }
 
 isc_result_t
