@@ -15,9 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.c,v 1.6.18.3 2005/07/12 01:22:21 marka Exp $ */
+/* $Id: portlist.c,v 1.6.18.4 2006/08/24 00:44:24 marka Exp $ */
 
 /*! \file */
+
+#include <config.h>
 
 #include <stdlib.h>
 

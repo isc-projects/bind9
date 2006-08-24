@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.16.18.2 2005/04/29 00:17:17 marka Exp $ */
+/* $Id: gai_strerror.c,v 1.16.18.3 2006/08/24 00:44:24 marka Exp $ */
 
 /*! \file gai_strerror.c
  * lwres_gai_strerror() returns an error message corresponding to an
@@ -43,6 +43,9 @@
  *
  * strerror, lwres_getaddrinfo(), getaddrinfo(), RFC2133.
  */
+
+#include <config.h>
+
 #include <lwres/netdb.h>
 
 /*% Text of error messages. */

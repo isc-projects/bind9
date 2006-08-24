@@ -1,3 +1,6 @@
+2076.	[bug]		Several files were missing #include <config.h>
+			causing build failures on OSF. [RT #16341]
+
 2075.	[bug]		The spillat timer event hander could leak memory.
 			[RT #16357]
 
