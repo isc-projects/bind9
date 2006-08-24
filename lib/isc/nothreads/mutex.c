@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mutex.c,v 1.4.2.1 2004/03/09 06:12:04 marka Exp $ */
+/* $Id: mutex.c,v 1.4.2.2 2006/08/24 00:43:40 marka Exp $ */
+
+#include <config.h>
 
 /*
  * Well, not completely.  The stupid hack below shuts up compilers

@@ -1,3 +1,5 @@
+2076.	[bug]		Several files were missing #include <config.h>
+			causing build failures on OSF. [RT #16341]
 
 	--- 9.2.7rc1 released ---
 

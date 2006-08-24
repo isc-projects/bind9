@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: condition.c,v 1.4.2.1 2004/03/09 06:12:04 marka Exp $ */
+/* $Id: condition.c,v 1.4.2.2 2006/08/24 00:43:40 marka Exp $ */
+
+#include <config.h>
 
 /*
  * This file intentionally left blank.
@@ -25,6 +27,7 @@
  * Well, not completely.  The stupid hack below shuts up compilers
  * from complaining about an empty file.
  */
+
 static void
 isc_condition_nothreads(void) {
 	isc_condition_nothreads();

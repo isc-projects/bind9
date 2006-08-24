@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.6.2.1 2004/03/09 06:12:10 marka Exp $ */
+/* $Id: fsaccess.c,v 1.6.2.2 2006/08/24 00:43:40 marka Exp $ */
+
+#include <config.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

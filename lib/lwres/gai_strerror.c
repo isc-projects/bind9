@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.14.2.2 2004/03/09 06:12:33 marka Exp $ */
+/* $Id: gai_strerror.c,v 1.14.2.3 2006/08/24 00:43:40 marka Exp $ */
+
+#include <config.h>
 
 #include <lwres/netdb.h>
 
