@@ -15,9 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.c,v 1.10 2005/04/29 00:23:51 marka Exp $ */
+/* $Id: ipv6.c,v 1.11 2006/08/24 00:17:54 marka Exp $ */
 
 /*! \file */
+
+#include <config.h>
 
 #include <isc/ipv6.h>
 
