@@ -291,7 +291,7 @@
 ./bin/tests/hash_test.c				C	2000,2001,2004,2005
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004
 ./bin/tests/inter_test.c			C	2000,2001,2004
-./bin/tests/journalprint.c			C	2000,2001,2004,2005
+./bin/tests/journalprint.c			C	2000,2001,2004,2005,2006
 ./bin/tests/keyboard_test.c			C	2000,2001,2004
 ./bin/tests/lex_test.c				C	1998,1999,2000,2001,2004
 ./bin/tests/lfsr_test.c				C	1999,2000,2001,2004
@@ -1909,7 +1909,7 @@
 ./lib/isc/nls/msgcat.c				C	1999,2000,2001,2004
 ./lib/isc/nothreads/.cvsignore			X	2000,2001
 ./lib/isc/nothreads/Makefile.in			MAKE	2000,2001,2004
-./lib/isc/nothreads/condition.c			C	2000,2001,2004
+./lib/isc/nothreads/condition.c			C	2000,2001,2004,2006
 ./lib/isc/nothreads/include/.cvsignore		X	2000,2001
 ./lib/isc/nothreads/include/Makefile.in		MAKE	2000,2001,2004
 ./lib/isc/nothreads/include/isc/.cvsignore	X	2000,2001
@@ -1918,7 +1918,7 @@
 ./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004
 ./lib/isc/nothreads/include/isc/once.h		C	2000,2001,2004
 ./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004
-./lib/isc/nothreads/mutex.c			C	2000,2001,2004
+./lib/isc/nothreads/mutex.c			C	2000,2001,2004,2006
 ./lib/isc/nothreads/thread.c			C	2000,2001,2004
 ./lib/isc/ondestroy.c				C	2000,2001,2004
 ./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006
@@ -1958,7 +1958,7 @@
 ./lib/isc/unix/errno2result.c			C	2000,2001,2002,2004
 ./lib/isc/unix/errno2result.h			C	2000,2001,2004
 ./lib/isc/unix/file.c				C	2000,2001,2004
-./lib/isc/unix/fsaccess.c			C	2000,2001,2004
+./lib/isc/unix/fsaccess.c			C	2000,2001,2004,2006
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2003,2004,2006
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2004,2005
 ./lib/isc/unix/include/.cvsignore		X	1999,2000,2001
@@ -1977,7 +1977,7 @@
 ./lib/isc/unix/include/isc/syslog.h		C	1999,2000,2001,2004
 ./lib/isc/unix/include/isc/time.h		C	1998,1999,2000,2001,2004
 ./lib/isc/unix/interfaceiter.c			C	1999,2000,2001,2004
-./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004
+./lib/isc/unix/ipv6.c				C	1999,2000,2001,2004,2006
 ./lib/isc/unix/keyboard.c			C	2000,2001,2004
 ./lib/isc/unix/net.c				C	1999,2000,2001,2004
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005
@@ -2112,7 +2112,7 @@
 ./lib/lwres/assert_p.h				C	2000,2001,2004
 ./lib/lwres/context.c				C	2000,2001,2003,2004
 ./lib/lwres/context_p.h				C	2000,2001,2004
-./lib/lwres/gai_strerror.c			C	2000,2001,2004
+./lib/lwres/gai_strerror.c			C	2000,2001,2004,2006
 ./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2006
 ./lib/lwres/gethost.c				C	2000,2001,2004
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005
