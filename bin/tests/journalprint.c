@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journalprint.c,v 1.3.206.3 2005/03/17 03:58:28 marka Exp $ */
+/* $Id: journalprint.c,v 1.3.206.4 2006/08/24 00:43:59 marka Exp $ */
+
+#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/util.h>
