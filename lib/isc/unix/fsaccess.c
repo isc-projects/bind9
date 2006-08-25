@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fsaccess.c,v 1.6.2.2 2006/08/24 00:43:40 marka Exp $ */
+/* $Id: fsaccess.c,v 1.6.2.3 2006/08/25 05:25:49 marka Exp $ */
 
 #include <config.h>
 
