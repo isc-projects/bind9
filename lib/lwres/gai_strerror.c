@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gai_strerror.c,v 1.16.18.3 2006/08/24 00:44:24 marka Exp $ */
+/* $Id: gai_strerror.c,v 1.16.18.4 2006/08/25 05:25:51 marka Exp $ */
 
 /*! \file gai_strerror.c
  * lwres_gai_strerror() returns an error message corresponding to an
