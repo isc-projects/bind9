@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.11.18.13 2006/01/07 00:23:34 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.11.18.14 2006/08/30 23:01:54 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -311,10 +311,10 @@
 	  <para>
 	    Specify the style of the dumped zone file.
 	    Possible styles are <command>"full"</command> (default)
-	    and <command>"default"</command>.
+	    and <command>"relative"</command>.
 	    The full format is most suitable for processing
 	    automatically by a separate script.
-	    On the other hand, the default format is more
+	    On the other hand, the relative format is more
 	    human-readable and is thus suitable for editing by hand.
 	    For <command>named-checkzone</command>
 	    this does not cause any effects unless it dumps the zone

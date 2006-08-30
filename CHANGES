@@ -1,3 +1,9 @@
+2078.	[bug]		dnssec-checkzone output style "default" was badly
+			named.  It is now called "relative". [RT #16326]
+
+2077.	[bug]		'dnssec-signzone -O raw' wasn't outputing the
+			complete signed zone. [RT #16326]
+
 2076.	[bug]		Several files were missing #include <config.h>
 			causing build failures on OSF. [RT #16341]
 

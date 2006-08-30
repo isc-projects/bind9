@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.29.18.14 2006/01/07 00:23:34 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.29.18.15 2006/08/30 23:01:54 marka Exp $ */
 
 /*! \file */
 
@@ -273,7 +273,7 @@ main(int argc, char **argv) {
 		case 's':
 			if (ARGCMP("full"))
 				outputstyle = &dns_master_style_full;
-			else if (ARGCMP("default")) {
+			else if (ARGCMP("relative")) {
 				outputstyle = &dns_master_style_default;
 			} else {
 				fprintf(stderr,
