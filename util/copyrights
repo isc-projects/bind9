@@ -1321,7 +1321,7 @@
 ./lib/bind/isc/logging.c			X	2001
 ./lib/bind/isc/logging.mdoc			X	2001
 ./lib/bind/isc/logging_p.h			X	2001
-./lib/bind/isc/memcluster.c			X	2001,2005
+./lib/bind/isc/memcluster.c			X	2001,2005,2006
 ./lib/bind/isc/memcluster.mdoc			X	2001
 ./lib/bind/isc/movefile.c			X	2001
 ./lib/bind/isc/tree.c				X	2001
