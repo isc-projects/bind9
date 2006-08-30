@@ -1,3 +1,6 @@
+2080.	[port]		libbind: res_init.c did not compile on older versions
+			of Solaris. [RT #16363]
+
 2079.	[bug]		The lame cache was not handling multiple types
 			correctly. [RT #16361]
 
