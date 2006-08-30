@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.71 2006/07/20 00:15:53 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.72 2006/08/30 23:43:46 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -3037,7 +3037,7 @@ is ignored on subsequent reloads.</para>
 <listitem><para>
 If specified, the listed type (A or AAAA) will be emitted before other glue
 in the additional section of a query response.
-The default is not to preference any type (NONE).
+The default is not to prefer any type (NONE).
 </para>
 </listitem></varlistentry>
 
