@@ -1557,7 +1557,7 @@
 ./lib/bind/resolv/res_debug.c			X	2001,2005
 ./lib/bind/resolv/res_debug.h			X	2001
 ./lib/bind/resolv/res_findzonecut.c		X	2001,2005
-./lib/bind/resolv/res_init.c			X	2001,2005
+./lib/bind/resolv/res_init.c			X	2001,2005,2006
 ./lib/bind/resolv/res_mkquery.c			X	2001
 ./lib/bind/resolv/res_mkupdate.c		X	2001,2005
 ./lib/bind/resolv/res_mkupdate.h		X	2001
