@@ -1,3 +1,6 @@
+2080.	[port]		libbind: res_init.c did not compile on older versions
+			of Solaris. [RT #16363]
+
 2076.	[bug]		Several files were missing #include <config.h>
 			causing build failures on OSF. [RT #16341]
 
