@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.49 2006/08/22 06:13:42 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.50 2006/08/30 23:07:41 marka Exp $ */
 
 /*! \file */
 
@@ -5593,7 +5593,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	    is_lame(fctx)) {
 		log_lame(fctx, query->addrinfo);
 		result = dns_adb_marklame(fctx->adb, query->addrinfo,
-					  &fctx->domain, fctx->type,
+					  &fctx->name, fctx->type,
 					  now + fctx->res->lame_ttl);
 		if (result != ISC_R_SUCCESS)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
