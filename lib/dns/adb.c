@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.226 2005/11/30 03:33:48 marka Exp $ */
+/* $Id: adb.c,v 1.227 2006/08/30 23:09:18 marka Exp $ */
 
 /*! \file 
  *
@@ -1675,12 +1675,13 @@ entry_is_lame(dns_adb_t *adb, dns_adbentry_t *entry, dns_name_t *qname,
 
 		/*
 		 * Order tests from least to most expensive.
+		 *
+		 * We do not break out of the main loop here as
+		 * we use the loop for house keeping.
 		 */
-		if (li != NULL && !is_bad) {
-			if (li->qtype == qtype &&
-			    dns_name_equal(qname, &li->qname))
-				is_bad = ISC_TRUE;
-		}
+		if (li != NULL && !is_bad && li->qtype == qtype &&
+		    dns_name_equal(qname, &li->qname))
+			is_bad = ISC_TRUE;
 
 		li = next_li;
 	}
@@ -3356,8 +3357,8 @@ dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr, dns_name_t *qname,
 	bucket = addr->entry->lock_bucket;
 	LOCK(&adb->entrylocks[bucket]);
 	li = ISC_LIST_HEAD(addr->entry->lameinfo);
-	while (li != NULL && li->qtype != qtype &&
-	       !dns_name_equal(qname, &li->qname))
+	while (li != NULL &&
+	       (li->qtype != qtype || !dns_name_equal(qname, &li->qname)))
 		li = ISC_LIST_NEXT(li, plink);
 	if (li != NULL) {
 		if (expire_time > li->lame_timer)

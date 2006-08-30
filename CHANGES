@@ -1,3 +1,6 @@
+2079.	[bug]		The lame cache was not handling multiple types
+			correctly. [RT #16361]
+
 2078.	[bug]		dnssec-checkzone output style "default" was badly
 			named.  It is now called "relative". [RT #16326]
 
