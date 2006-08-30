@@ -1680,7 +1680,7 @@
 ./lib/bind/resolv/res_debug.c			X	2001,2005
 ./lib/bind/resolv/res_debug.h			X	2001,2005
 ./lib/bind/resolv/res_findzonecut.c		X	2001,2005
-./lib/bind/resolv/res_init.c			X	2001,2005
+./lib/bind/resolv/res_init.c			X	2001,2005,2006
 ./lib/bind/resolv/res_mkquery.c			X	2001,2005
 ./lib/bind/resolv/res_mkupdate.c		X	2001,2005
 ./lib/bind/resolv/res_mkupdate.h		X	2001,2005
@@ -1712,7 +1712,7 @@
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/acache.c				C	2004,2005,2006
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006
-./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005
+./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/api					X	1999,2000,2001
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004,2005
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006
