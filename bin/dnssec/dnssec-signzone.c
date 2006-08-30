@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnssec-signzone.c,v 1.198 2006/04/13 18:09:56 dhankins Exp $ */
+/* $Id: dnssec-signzone.c,v 1.199 2006/08/30 22:57:16 marka Exp $ */
 
 /*! \file */
 
@@ -1131,6 +1131,9 @@ cleannode(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	dns_rdataset_t set;
 	isc_result_t result, dresult;
+
+	if (outputformat != dns_masterformat_text)
+		return;
 
 	dns_rdataset_init(&set);
 	result = dns_db_allrdatasets(db, node, version, 0, &rdsiter);
