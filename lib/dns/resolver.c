@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.63 2006/01/06 01:21:08 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.64 2006/08/31 03:57:11 marka Exp $ */
 
 #include <config.h>
 
@@ -764,7 +764,8 @@ fctx_sendevents(fetchctx_t *fctx, isc_result_t result) {
 		INSIST(result != ISC_R_SUCCESS ||
 		       dns_rdataset_isassociated(event->rdataset) ||
 		       fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		       fctx->type == dns_rdatatype_rrsig ||
+		       fctx->type == dns_rdatatype_sig);
 
 		isc_task_sendanddetach(&task, ISC_EVENT_PTR(&event));
 	}
@@ -3200,7 +3201,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (hevent != NULL) {
 		if (!negative && !chaining &&
 		    (fctx->type == dns_rdatatype_any ||
-		     fctx->type == dns_rdatatype_rrsig)) {
+		     fctx->type == dns_rdatatype_rrsig ||
+		     fctx->type == dns_rdatatype_sig)) {
 			/*
 			 * Don't bind rdatasets; the caller
 			 * will iterate the node.
@@ -3320,7 +3322,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	if (!ISC_LIST_EMPTY(fctx->validators)) {
 		INSIST(!negative);
 		INSIST(fctx->type == dns_rdatatype_any ||
-		       fctx->type == dns_rdatatype_rrsig);
+		       fctx->type == dns_rdatatype_rrsig ||
+		       fctx->type == dns_rdatatype_sig);
 		/*
 		 * Don't send a response yet - we have
 		 * more rdatasets that still need to
@@ -3472,14 +3475,15 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 				return (result);
 			anodep = &event->node;
 			/*
-			 * If this is an ANY or SIG query, we're not going
-			 * to return any rdatasets, unless we encountered
+			 * If this is an ANY, SIG or RRSIG query, we're not
+			 * going to return any rdatasets, unless we encountered
 			 * a CNAME or DNAME as "the answer".  In this case,
 			 * we're going to return DNS_R_CNAME or DNS_R_DNAME
 			 * and we must set up the rdatasets.
 			 */
 			if ((fctx->type != dns_rdatatype_any &&
-			    fctx->type != dns_rdatatype_rrsig) ||
+			     fctx->type != dns_rdatatype_rrsig &&
+			     fctx->type != dns_rdatatype_sig) ||
 			    (name->attributes & DNS_NAMEATTR_CHAINING) != 0) {
 				ardataset = event->rdataset;
 				asigrdataset = event->sigrdataset;
@@ -3538,7 +3542,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		 */
 		if (secure_domain && rdataset->trust != dns_trust_glue) {
 			/*
-			 * SIGs are validated as part of validating the
+			 * RRSIGs are validated as part of validating the
 			 * type they cover.
 			 */
 			if (rdataset->type == dns_rdatatype_rrsig)
@@ -3608,7 +3612,8 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 
 			if (ANSWER(rdataset) && need_validation) {
 				if (fctx->type != dns_rdatatype_any &&
-				    fctx->type != dns_rdatatype_rrsig) {
+				    fctx->type != dns_rdatatype_rrsig &&
+				    fctx->type != dns_rdatatype_sig) {
 					/*
 					 * This is The Answer.  We will
 					 * validate it, but first we cache
