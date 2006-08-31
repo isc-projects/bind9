@@ -43,6 +43,8 @@
 2067.	[bug]		'rndc' could close the socket too early triggering
 			a INSIST under Windows. [RT #16317]
 
+2066.	[security]	Handle SIG queries gracefully. [RT #16300]
+
 2065.	[bug]		libbind: probe for HPUX prototypes for
 			endprotoent_r() and endservent_r().  [RT 16313]
 
