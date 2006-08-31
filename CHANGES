@@ -1,3 +1,6 @@
+
+	--- 9.2.7rc2 released ---
+
 2081.	[port]		libbind: minor 64-bit portability fix in memcluster.c.
 			[RT #16360]
 
