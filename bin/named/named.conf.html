@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.1.4.14 2006/07/18 20:50:10 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.1.4.15 2006/09/13 02:56:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -155,6 +155,7 @@ options {<br>
 	coresize <em class="replaceable"><code>size</code></em>;<br>
 	datasize <em class="replaceable"><code>size</code></em>;<br>
 	directory <em class="replaceable"><code>quoted_string</code></em>;<br>
+	cache-file <em class="replaceable"><code>quoted_string</code></em>; // test option<br>
 	dump-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	files <em class="replaceable"><code>size</code></em>;<br>
 	heartbeat-interval <em class="replaceable"><code>integer</code></em>;<br>
@@ -289,7 +290,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550309"></a><h2>VIEW</h2>
+<a name="id2550312"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -407,7 +408,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550875"></a><h2>ZONE</h2>
+<a name="id2550878"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -483,13 +484,13 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2551212"></a><h2>FILES</h2>
+<a name="id2551216"></a><h2>FILES</h2>
 <p>
 <code class="filename">/etc/named.conf</code>
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2551225"></a><h2>SEE ALSO</h2>
+<a name="id2551228"></a><h2>SEE ALSO</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
 <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
