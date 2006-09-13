@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.21 2006/06/29 13:03:32 marka Exp $
+.\" $Id: named.conf.5,v 1.22 2006/09/13 02:57:21 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -224,7 +224,7 @@ options {
 	check\-integrity \fIboolean\fR;
 	check\-mx\-cname ( fail | warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
-	cache\-file \fIquoted_string\fR;
+	cache\-file \fIquoted_string\fR; // test option
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
 	dual\-stack\-servers [ port \fIinteger\fR ] {
@@ -358,7 +358,7 @@ view \fIstring\fR \fIoptional_class\fR {
 	check\-integrity \fIboolean\fR;
 	check\-mx\-cname ( fail | warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
-	cache\-file \fIquoted_string\fR;
+	cache\-file \fIquoted_string\fR; // test option
 	suppress\-initial\-notify \fIboolean\fR; // not yet implemented
 	preferred\-glue \fIstring\fR;
 	dual\-stack\-servers [ port \fIinteger\fR ] {

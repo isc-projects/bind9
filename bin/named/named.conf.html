@@ -13,7 +13,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: named.conf.html,v 1.29 2006/06/29 13:03:32 marka Exp $ -->
+<!-- $Id: named.conf.html,v 1.30 2006/09/13 02:57:21 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -222,7 +222,7 @@ options {<br>
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx-cname ( fail | warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
-	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	cache-file <em class="replaceable"><code>quoted_string</code></em>; // test option<br>
 	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
 	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
 	dual-stack-servers [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -313,7 +313,7 @@ options {<br>
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550459"></a><h2>VIEW</h2>
+<a name="id2550460"></a><h2>VIEW</h2>
 <div class="literallayout"><p><br>
 view <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -370,7 +370,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 	check-integrity <em class="replaceable"><code>boolean</code></em>;<br>
 	check-mx-cname ( fail | warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
-	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
+	cache-file <em class="replaceable"><code>quoted_string</code></em>; // test option<br>
 	suppress-initial-notify <em class="replaceable"><code>boolean</code></em>; // not yet implemented<br>
 	preferred-glue <em class="replaceable"><code>string</code></em>;<br>
 	dual-stack-servers [<span class="optional"> port <em class="replaceable"><code>integer</code></em> </span>] {<br>
@@ -453,7 +453,7 @@ view <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2551026"></a><h2>ZONE</h2>
+<a name="id2551028"></a><h2>ZONE</h2>
 <div class="literallayout"><p><br>
 zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>optional_class</code></em> {<br>
 	type ( master | slave | stub | hint |<br>
@@ -538,12 +538,12 @@ zone <em class="replaceable"><code>string</code></em> <em class="replaceable"><c
 </p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2551381"></a><h2>FILES</h2>
+<a name="id2551383"></a><h2>FILES</h2>
 <p><code class="filename">/etc/named.conf</code>
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2551393"></a><h2>SEE ALSO</h2>
+<a name="id2551395"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">rndc</span>(8)</span>,
       <span class="citerefentry"><span class="refentrytitle">BIND 9 Administrator Reference Manual</span></span>.
