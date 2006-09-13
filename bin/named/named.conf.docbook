@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.23 2006/06/04 23:17:06 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.24 2006/09/13 00:15:38 marka Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
@@ -250,7 +250,7 @@ options {
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx-cname ( fail | warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
-	cache-file <replaceable>quoted_string</replaceable>;
+	cache-file <replaceable>quoted_string</replaceable>; // test option
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
 	preferred-glue <replaceable>string</replaceable>;
 	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> {
@@ -399,7 +399,7 @@ view <replaceable>string</replaceable> <replaceable>optional_class</replaceable>
 	check-integrity <replaceable>boolean</replaceable>;
 	check-mx-cname ( fail | warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
-	cache-file <replaceable>quoted_string</replaceable>;
+	cache-file <replaceable>quoted_string</replaceable>; // test option
 	suppress-initial-notify <replaceable>boolean</replaceable>; // not yet implemented
 	preferred-glue <replaceable>string</replaceable>;
 	dual-stack-servers <optional> port <replaceable>integer</replaceable> </optional> {
