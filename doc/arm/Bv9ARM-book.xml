@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.63 2006/08/30 23:42:37 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.241.18.64 2006/09/13 00:20:49 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4371,6 +4371,7 @@ category notify { null; };
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
+    <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
@@ -4612,6 +4613,15 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
           </varlistentry>
 
           <varlistentry>
+            <term><command>cache-file</command></term>
+            <listitem>
+              <para>
+		This is for testing only.  Do not use.
+              </para>
+            </listitem>
+          </varlistentry>
+
+          <varlistentry>
             <term><command>dump-file</command></term>
             <listitem>
               <para>
@@ -4622,6 +4632,7 @@ digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
               </para>
             </listitem>
           </varlistentry>
+
           <varlistentry>
             <term><command>memstatistics-file</command></term>
             <listitem>

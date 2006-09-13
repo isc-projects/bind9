@@ -1,6 +1,8 @@
 
 	--- 9.4.0b2 released ---
 
+2082.	[doc]		Document 'cache-file' as a test only option.
+
 2081.	[port]		libbind: minor 64-bit portability fix in memcluster.c.
 			[RT #16360]
 
