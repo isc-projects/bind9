@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.49 2006/07/20 00:17:00 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.50 2006/09/13 00:28:07 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2651,6 +2651,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
+    <optional> cache-file <replaceable>path_name</replaceable>; </optional>
     <optional> dump-file <replaceable>path_name</replaceable>; </optional>
     <optional> memstatistics-file <replaceable>path_name</replaceable>; </optional>
     <optional> pid-file <replaceable>path_name</replaceable>; </optional>
@@ -2797,6 +2798,15 @@ of <command>TKEY</command>. The server must be able to load the
 public and private keys from files in the working directory. In
 most cases, the keyname should be the server's host name.</para>
 </listitem></varlistentry>
+
+          <varlistentry>
+            <term><command>cache-file</command></term>
+            <listitem>
+              <para>
+		This is for testing only.  Do not use.
+              </para>
+            </listitem>
+          </varlistentry>
 
 <varlistentry><term><command>dump-file</command></term>
 <listitem><para>The pathname of the file the server dumps

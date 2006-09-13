@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.6.7 2006/07/18 04:10:06 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.6.8 2006/09/13 00:28:07 marka Exp $ -->
 
 <refentry>
   <refentryinfo>
@@ -172,6 +172,7 @@ options {
 	coresize <replaceable>size</replaceable>;
 	datasize <replaceable>size</replaceable>;
 	directory <replaceable>quoted_string</replaceable>;
+	cache-file <replaceable>quoted_string</replaceable>; // test option
 	dump-file <replaceable>quoted_string</replaceable>;
 	files <replaceable>size</replaceable>;
 	heartbeat-interval <replaceable>integer</replaceable>;
