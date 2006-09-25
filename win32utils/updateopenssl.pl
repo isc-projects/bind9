@@ -14,14 +14,14 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: updateopenssl.pl,v 1.2 2006/09/25 04:01:40 marka Exp $
+# $Id: updateopenssl.pl,v 1.3 2006/09/25 04:23:59 marka Exp $
 
 # updateopenssl.pl
 # This script locates the latest version of OpenSSL in the grandparent
 # directory and updates the build scripts to use that version.
 #
 # Path and directory
-$path = "../..";
+$path = "..\\..\\";
 $SSLDirprefix = "openssl-*";
 
 # List of files that need to be updated with the actual version of the
