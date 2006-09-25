@@ -30,6 +30,10 @@ rem a future release of BIND 9 for Windows NT/2000/XP.
 
 echo Setting up the BIND files required for the build
 
+rem Get and update for the latest build of the openssl library
+perl updateopenssl.pl
+
+rem Setup the files
 call BuildSetup.bat
 
 echo Build all of the Library files
