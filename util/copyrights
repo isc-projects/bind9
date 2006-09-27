@@ -761,12 +761,12 @@
 ./bin/win32/BINDInstall/BINDInstall.h		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/BINDInstall.mak		X	2001
 ./bin/win32/BINDInstall/BINDInstall.rc		X	2001
-./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2002,2003,2004,2005
+./bin/win32/BINDInstall/BINDInstallDlg.cpp	C.PORTION	2001,2002,2003,2004,2005,2006
 ./bin/win32/BINDInstall/BINDInstallDlg.h	C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.cpp		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/DirBrowse.h		C.PORTION	2001,2004
 ./bin/win32/BINDInstall/StdAfx.cpp		X	2001
-./bin/win32/BINDInstall/StdAfx.h		X	2001
+./bin/win32/BINDInstall/StdAfx.h		X	2001,2006
 ./bin/win32/BINDInstall/VersionInfo.cpp		X	2001
 ./bin/win32/BINDInstall/VersionInfo.h		X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
@@ -2275,10 +2275,11 @@
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005
 ./version					X	1999,2000,2001,2005,2006
 ./win32utils/BINDBuild.dsw			X	2001,2005
-./win32utils/BuildAll.bat			BAT	2001,2003,2004
+./win32utils/BuildAll.bat			BAT	2001,2003,2004,2006
 ./win32utils/BuildSetup.bat			BAT	2001,2002,2003,2004,2005
 ./win32utils/dnsheadergen.bat			BAT	2001,2003,2004
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004
+./win32utils/updateopenssl.pl			PERL	2006
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2003,2004
