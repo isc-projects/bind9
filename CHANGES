@@ -1,3 +1,5 @@
+2083.	[port]		win32: Visual C++ 2005 support.
+
 2082.	[doc]		Document 'cache-file' as a test only option.
 
 	--- 9.2.7rc2 released ---
