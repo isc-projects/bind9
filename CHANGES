@@ -1,9 +1,10 @@
-
-	--- 9.4.0b2 released ---
+2084.	[contrib]	dbus update for 9.3.3rc2.
 
 2083.	[port]		win32: Visual C++ 2005 support.
 
 2082.	[doc]		Document 'cache-file' as a test only option.
+
+	--- 9.4.0b2 released ---
 
 2081.	[port]		libbind: minor 64-bit portability fix in memcluster.c.
 			[RT #16360]

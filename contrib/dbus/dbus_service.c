@@ -1081,7 +1081,13 @@ dbus_svc_init
 
     switch
 	(   dbus_bus_request_name 
-	    (   connection, name, DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT , &error
+	    (   connection, name, 
+#ifdef DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT
+		DBUS_NAME_FLAG_PROHIBIT_REPLACEMENT ,
+#else
+		0 ,
+#endif
+		&error
 	    ) 
 	)
     {   
