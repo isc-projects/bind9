@@ -818,9 +818,12 @@
 ./contrib/dbus/GetForwarders			X	2006
 ./contrib/dbus/INSTALL				X	2006
 ./contrib/dbus/Makefile				X	2006
+./contrib/dbus/Makefile.9.3.2b1			X	2006
+./contrib/dbus/Makefile.9.3.3rc2		X	2006
 ./contrib/dbus/README.DBUS			X	2006
 ./contrib/dbus/SetForwarders			X	2006
 ./contrib/dbus/bind-9.3.2b1-dbus.patch		X	2006
+./contrib/dbus/bind-9.3.3rc2-dbus.patch		X	2006
 ./contrib/dbus/dbus_mgr.c			X	2006
 ./contrib/dbus/dbus_mgr.h			X	2006
 ./contrib/dbus/dbus_service.c			X	2006
