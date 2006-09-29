@@ -2489,7 +2489,7 @@
 ./win32utils/BINDBuild.dsw			X	2001,2005
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006
 ./win32utils/BuildPost.bat			BAT	2005
-./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005
+./win32utils/BuildSetup.bat			BAT	2001,2002,2004,2005,2006
 ./win32utils/dnsheadergen.bat			BAT	2001,2004
 ./win32utils/makedefs.pl			PERL	2001,2004
 ./win32utils/makeversion.pl			PERL	2001,2004
