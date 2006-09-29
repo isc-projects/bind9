@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named-checkzone.docbook,v 1.26 2006/08/30 22:57:16 marka Exp $ -->
+<!-- $Id: named-checkzone.docbook,v 1.27 2006/09/29 06:34:03 marka Exp $ -->
 <refentry id="man.named-checkzone">
   <refentryinfo>
     <date>June 13, 2000</date>
@@ -245,7 +245,7 @@
         <term>-k <replaceable class="parameter">mode</replaceable></term>
         <listitem>
           <para>
-            Perform <command>"check-name"</command> checks with the
+            Perform <command>"check-names"</command> checks with the
 	    specified failure mode.
             Possible modes are <command>"fail"</command>
 	    (default for <command>named-compilezone</command>),
