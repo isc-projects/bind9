@@ -43,7 +43,9 @@ if NOT Exist ..\Build\Release mkdir ..\Build\Release
 echo Copying the ARM and the Installation Notes.
  
 copy ..\COPYRIGHT ..\Build\Release
+copy ..\README ..\Build\Release
 copy readme1st.txt ..\Build\Release
+copy index.html ..\Build\Release
 copy ..\doc\arm\*.html ..\Build\Release
 copy ..\doc\arm\Bv9ARM.pdf ..\Build\Release
 copy ..\CHANGES ..\Build\Release
