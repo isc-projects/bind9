@@ -817,7 +817,6 @@
 ./contrib/.cvsignore				X	2000,2001
 ./contrib/dbus/GetForwarders			X	2006
 ./contrib/dbus/INSTALL				X	2006
-./contrib/dbus/Makefile				X	2006
 ./contrib/dbus/Makefile.9.3.2b1			X	2006
 ./contrib/dbus/Makefile.9.3.3rc2		X	2006
 ./contrib/dbus/README.DBUS			X	2006
