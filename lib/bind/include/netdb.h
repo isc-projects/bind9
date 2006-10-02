@@ -86,7 +86,7 @@
 
 /*
  *      @(#)netdb.h	8.1 (Berkeley) 6/2/93
- *	$Id: netdb.h,v 1.12.2.9 2006/08/01 01:45:10 marka Exp $
+ *	$Id: netdb.h,v 1.12.2.10 2006/10/02 01:18:51 marka Exp $
  */
 
 #ifndef _NETDB_H_
@@ -493,7 +493,7 @@ int		innetgr_r __P((const char *, const char *, const char *,
 #endif
 #else
  /* defined(sun) || defined(bsdi) */
-#ifdef __GLIBC__
+#if defined(__GLIBC__) || defined(__FreeBSD__) && (__FreeBSD_version + 0 >= 601103)
 int gethostbyaddr_r __P((const char *, int, int, struct hostent *,
 		         char *, size_t, struct hostent **, int *));
 int gethostbyname_r __P((const char *, struct hostent *,
@@ -510,7 +510,7 @@ struct hostent	*gethostent_r __P((struct hostent *, char *, int, int *));
 void		sethostent_r __P((int));
 void		endhostent_r __P((void));
 
-#ifdef __GLIBC__
+#if defined(__GLIBC__) || defined(__FreeBSD__) && (__FreeBSD_version + 0 >= 601103)
 int getnetbyname_r __P((const char *, struct netent *,
 			char *, size_t, struct netent **, int*));
 int getnetbyaddr_r __P((unsigned long int, int, struct netent *,
@@ -526,7 +526,7 @@ struct netent	*getnetent_r __P((struct netent *, char *, int));
 void		setnetent_r __P((int));
 void		endnetent_r __P((void));
 
-#ifdef __GLIBC__
+#if defined(__GLIBC__) || defined(__FreeBSD__) && (__FreeBSD_version + 0 >= 601103)
 int getprotobyname_r __P((const char *, struct protoent *, char *,
 			  size_t, struct protoent **));
 int getprotobynumber_r __P((int, struct protoent *, char *, size_t,
@@ -542,7 +542,7 @@ struct protoent	*getprotoent_r __P((struct protoent *, char *, int));
 void		setprotoent_r __P((int));
 void		endprotoent_r __P((void));
 
-#ifdef __GLIBC__
+#if defined(__GLIBC__) || defined(__FreeBSD__) && (__FreeBSD_version + 0 >= 601103)
 int getservbyname_r __P((const char *name, const char *,
 			 struct servent *, char *, size_t, struct servent **));
 int getservbyport_r __P((int port, const char *,

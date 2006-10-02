@@ -1,3 +1,6 @@
+2086.	[port]		libbind: FreeBSD now has get*by*_r() functions.
+			[RT #16403]
+
 2085.	[doc]		win32: added index.html and README to zip. [RT #16201]
 
 2084.	[contrib]	dbus update for 9.3.3rc2.
