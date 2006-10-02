@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.16 2006/01/27 23:57:44 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.17 2006/10/02 03:14:35 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -103,6 +103,8 @@ typedef struct dig_searchlist dig_searchlist_t;
 struct dig_lookup {
 	isc_boolean_t
 	        pending, /*%< Pending a successful answer */
+		waiting_senddone,
+		pending_clear,
 		waiting_connect,
 		doing_xfr,
 		ns_search_only, /*%< dig +nssearch, host -C */
@@ -186,6 +188,7 @@ isc_boolean_t	sigchase;
 struct dig_query {
 	dig_lookup_t *lookup;
 	isc_boolean_t waiting_connect,
+		pending_free,
 		first_pass,
 		first_soa_rcvd,
 		second_rr_rcvd,
