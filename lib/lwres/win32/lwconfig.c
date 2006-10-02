@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.2 2004/03/05 05:13:20 marka Exp $ */
+/* $Id: lwconfig.c,v 1.3 2006/10/02 02:27:40 marka Exp $ */
 
 /*
  * We do this so that we may incorporate everything in the main routines
@@ -103,7 +103,8 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 
 	/* Use the resolver if there is one */
 	ret = generic_lwres_conf_parse(ctx, filename);
-	if (confdata->nsnext > 0)
+	if ((ret != LWRES_R_NOTFOUND && ret != LWRES_R_SUCCESS) ||
+		(ret == LWRES_R_SUCCESS && confdata->nsnext > 0))
 		return (ret);
 
 	/*
@@ -149,5 +150,5 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 	}
 
 	GlobalFree(FixedInfo);
-	return (ret);
+	return (LWRES_R_SUCCESS);
 }

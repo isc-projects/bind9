@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.42 2005/06/07 01:00:00 marka Exp $ */
+/* $Id: lwconfig.c,v 1.43 2006/10/02 02:27:40 marka Exp $ */
 
 /*! \file */
 
@@ -579,7 +579,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 
 	errno = 0;
 	if ((fp = fopen(filename, "r")) == NULL)
-		return (LWRES_R_FAILURE);
+		return (LWRES_R_NOTFOUND);
 
 	ret = LWRES_R_SUCCESS;
 	do {

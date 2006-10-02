@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntgroups.c,v 1.6 2004/03/05 05:11:58 marka Exp $ */
+/* $Id: ntgroups.c,v 1.7 2006/10/02 02:27:40 marka Exp $ */
 
 /*
  * The NT Groups have two groups that are not well documented and are
@@ -32,6 +32,11 @@
 #ifndef UNICODE
 #define UNICODE
 #endif /* UNICODE */
+
+/*
+ * Silence warnings.
+ */
+#define _CRT_SECURE_NO_DEPRECATE 1
 
 #include <windows.h>
 #include <assert.h>
