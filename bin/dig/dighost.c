@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.34 2006/08/01 00:54:20 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.35 2006/10/02 03:14:24 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -667,6 +667,8 @@ make_empty_lookup(void) {
 		fatal("memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
+	looknew->waiting_senddone = ISC_FALSE;
+	looknew->pending_clear = ISC_FALSE;
 	looknew->textname[0] = 0;
 	looknew->cmdline[0] = 0;
 	looknew->rdtype = dns_rdatatype_a;
@@ -948,9 +950,8 @@ setup_system(void) {
 	if (lwresult != LWRES_R_SUCCESS)
 		fatal("lwres_context_create failed");
 
-	if (isc_file_exists(RESOLV_CONF))
-		lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
-	if (lwresult != LWRES_R_SUCCESS)
+	lwresult = lwres_conf_parse(lwctx, RESOLV_CONF);
+	if (lwresult != LWRES_R_SUCCESS && lwresult != LWRES_R_NOTFOUND)
 		fatal("parse of %s failed", RESOLV_CONF);
 
 	lwconf = lwres_conf_get(lwctx);
@@ -1197,7 +1198,10 @@ clear_query(dig_query_t *query) {
 	isc_mempool_put(commctx, query->recvspace);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
-	isc_mem_free(mctx, query);
+	if (lookup->waiting_senddone)
+		query->pending_free = ISC_TRUE;
+	else
+		isc_mem_free(mctx, query);
 }
 
 /*
@@ -1222,9 +1226,15 @@ try_clear_lookup(dig_lookup_t *lookup) {
 				debug("query to %s still pending", q->servname);
 				q = ISC_LIST_NEXT(q, link);
 			}
-			return (ISC_FALSE);
 		}
+		return (ISC_FALSE);
 	}
+
+	if (lookup->waiting_senddone) {
+		lookup->pending_clear = ISC_TRUE;
+		return (ISC_TRUE);
+	}
+
 	/*
 	 * At this point, we know there are no queries on the lookup,
 	 * so can make it go away also.
@@ -1256,7 +1266,6 @@ try_clear_lookup(dig_lookup_t *lookup) {
 	isc_mem_free(mctx, lookup);
 	return (ISC_TRUE);
 }
-
 
 /*
  * If we can, start the next lookup in the queue running.
@@ -1828,6 +1837,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		       query, lookup);
 		query->lookup = lookup;
 		query->waiting_connect = ISC_FALSE;
+		query->pending_free = ISC_FALSE;
 		query->recv_made = ISC_FALSE;
 		query->first_pass = ISC_TRUE;
 		query->first_soa_rcvd = ISC_FALSE;
@@ -1891,6 +1901,7 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 
 	query = event->ev_arg;
 	l = query->lookup;
+	l->waiting_senddone = ISC_FALSE;
 
 	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
@@ -1900,6 +1911,11 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 	}
 
 	isc_event_free(&event);
+
+	if (query->pending_free)
+		isc_mem_free(mctx, query);
+	if (l->pending_clear)
+		try_clear_lookup(l);
 
 	check_if_done();
 	UNLOCK_LOOKUP;
@@ -2091,6 +2107,7 @@ send_udp(dig_query_t *query) {
 	debug("sending a request");
 	TIME_NOW(&query->time_sent);
 	INSIST(query->sock != NULL);
+	l->waiting_senddone = ISC_TRUE;
 	result = isc_socket_sendtov(query->sock, &query->sendlist,
 				    global_task, send_done, query,
 				    &query->sockaddr, NULL);
@@ -2290,6 +2307,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	if (!query->first_soa_rcvd) {
 		debug("sending a request in launch_next_query");
 		TIME_NOW(&query->time_sent);
+		query->lookup->waiting_senddone = ISC_TRUE;
 		result = isc_socket_sendv(query->sock, &query->sendlist,
 					  global_task, send_done, query);
 		check_result(result, "isc_socket_sendv");
