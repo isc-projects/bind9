@@ -59,6 +59,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dig
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -212,6 +215,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisccfg
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name namedcheckzone
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -247,6 +253,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dig
     End Project Dependency
 }}}
 
