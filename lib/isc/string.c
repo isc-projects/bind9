@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.c,v 1.10.18.5 2005/08/23 04:10:11 marka Exp $ */
+/* $Id: string.c,v 1.10.18.6 2006/10/02 01:33:31 marka Exp $ */
 
 /*! \file */
 
@@ -24,6 +24,7 @@
 #include <ctype.h>
 
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/region.h>
 #include <isc/string.h>
 #include <isc/util.h>
