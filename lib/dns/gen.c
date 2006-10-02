@@ -15,7 +15,14 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.5.2.8 2006/01/06 00:01:42 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.5.2.9 2006/10/02 06:31:26 marka Exp $ */
+
+#ifdef WIN32
+/*
+ * Silence compiler warnings about using strcpy and friends.
+ */
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
 
 #include <sys/types.h>
 
