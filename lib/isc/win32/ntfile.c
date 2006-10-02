@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.c,v 1.5.2.1 2004/03/09 06:12:18 marka Exp $ */
+/* $Id: ntfile.c,v 1.5.2.2 2006/10/02 05:55:07 marka Exp $ */
 
 /*
  * This file has been necessitated by the fact that the iov array is local
@@ -70,10 +70,12 @@ isc_ntfile_sync(FILE *f) {
 	return (_commit(_fileno(f)));
 }
 
+#if 0
 FILE * 
 isc_ntfile_getaddress(int r) {
 	return (&_iob[r]);
 }
+#endif
 
 int 
 isc_ntfile_printf(const char *format, ...) {

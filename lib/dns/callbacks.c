@@ -15,9 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.12.2.1 2004/03/09 06:11:00 marka Exp $ */
+/* $Id: callbacks.c,v 1.12.2.2 2006/10/02 05:55:06 marka Exp $ */
 
 #include <config.h>
+
+#include <isc/file.h>
 
 #include <isc/util.h>
 

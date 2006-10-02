@@ -15,7 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen.c,v 1.65.2.9 2006/01/06 00:01:41 marka Exp $ */
+/* $Id: gen.c,v 1.65.2.10 2006/10/02 05:55:06 marka Exp $ */
+
+#ifdef WIN32
+#define _CRT_SECURE_NO_DEPRECATE 1
+#endif
 
 #include <sys/types.h>
 

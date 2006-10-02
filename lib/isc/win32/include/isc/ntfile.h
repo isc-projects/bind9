@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.5.2.1 2004/03/09 06:12:23 marka Exp $ */
+/* $Id: ntfile.h,v 1.5.2.2 2006/10/02 05:55:07 marka Exp $ */
 
 #ifndef ISC_NTFILE_H
 #define ISC_NTFILE_H 1
@@ -63,6 +63,7 @@
 #define read	 isc_ntfile_read
 #define write	 isc_ntfile_write
 
+#if 0
 #undef stdin
 #undef stdout
 #undef stderr
@@ -70,6 +71,7 @@
 #define stdin  isc_ntfile_getaddress(0)
 #define stdout isc_ntfile_getaddress(1)
 #define stderr isc_ntfile_getaddress(2)
+#endif
 
 #endif
 
