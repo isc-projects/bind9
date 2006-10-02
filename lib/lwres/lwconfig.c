@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwconfig.c,v 1.33.2.5 2005/06/08 00:12:18 marka Exp $ */
+/* $Id: lwconfig.c,v 1.33.2.6 2006/10/02 03:00:13 marka Exp $ */
 
 /***
  *** Module for parsing resolv.conf files.
@@ -559,7 +559,7 @@ lwres_conf_parse(lwres_context_t *ctx, const char *filename) {
 
 	errno = 0;
 	if ((fp = fopen(filename, "r")) == NULL)
-		return (LWRES_R_FAILURE);
+		return (LWRES_R_NOTFOUND);
 
 	ret = LWRES_R_SUCCESS;
 	do {
