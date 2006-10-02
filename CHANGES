@@ -1,3 +1,6 @@
+2087.	[port]		libisc failed to compile on OS's w/o a vsnprintf.
+			[RT #16382]
+
 2086.	[port]		libbind: FreeBSD now has get*by*_r() functions.
 			[RT #16403]
 
