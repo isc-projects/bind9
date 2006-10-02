@@ -48,7 +48,7 @@
  * SUCH DAMAGE.
  */
 
-/* $Id: gen-win32.h,v 1.16.18.3 2006/10/02 03:00:35 marka Exp $ */
+/* $Id: gen-win32.h,v 1.16.18.4 2006/10/02 06:36:43 marka Exp $ */
 
 /*! \file
  * \author Principal Authors: Computer Systems Research Group at UC Berkeley
@@ -75,11 +75,6 @@
 
 #ifndef DNS_GEN_WIN32_H
 #define DNS_GEN_WIN32_H 1
-
-/*
- * Silence compiler warnings about using strcpy and friends.
- */
-#define _CRT_SECURE_NO_DEPRECATE 1
 
 #include <stdio.h>
 #include <string.h>
