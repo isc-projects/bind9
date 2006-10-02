@@ -1,3 +1,11 @@
+2089.	[security]	Raise the minimum safe OpenSSL versions to
+			OpenSSL 0.9.7l and OpenSSL 0.9.8d.  Versions
+			prior to these have known security flaws which
+			are (potentially) exploitable in named. [RT #16391]
+
+2088.	[security]	Change the default RSA exponent from 3 to 65537.
+			[RT #16391]
+
 2087.	[port]		libisc failed to compile on OS's w/o a vsnprintf.
 			[RT #16382]
 
