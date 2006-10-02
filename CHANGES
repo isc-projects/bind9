@@ -1,3 +1,9 @@
+2092.	[bug]		win32: dig, host, nslookup.  Use registry config
+			if resolv.conf does not exist or no nameservers
+			listed. [RT #15877] 
+
+2091.	[port]		dighost.c: race condition on cleanup. [RT #16417]
+
 2090.	[port]		win32: Visual C++ 2005 command line manifest support.
 			[RT #16417]
 
