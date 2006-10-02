@@ -44,6 +44,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libbind9
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name liblwres
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -64,6 +67,12 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libbind9
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name liblwres
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dig
     End Project Dependency
 }}}
 
@@ -242,6 +251,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name namedcheckconf
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -262,6 +274,12 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libbind9
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name liblwres
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dig
     End Project Dependency
 }}}
 
@@ -320,6 +338,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name rndc
+    End Project Dependency
 }}}
 
 ###############################################################################
