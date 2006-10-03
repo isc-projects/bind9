@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ntfile.h,v 1.5.2.2 2006/10/02 05:55:07 marka Exp $ */
+/* $Id: ntfile.h,v 1.5.2.3 2006/10/03 23:50:49 marka Exp $ */
 
 #ifndef ISC_NTFILE_H
 #define ISC_NTFILE_H 1
