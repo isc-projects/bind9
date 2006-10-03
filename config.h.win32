@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.6.2.7 2006/09/27 00:28:31 marka Exp $ */
+/* $Id: config.h.win32,v 1.6.2.8 2006/10/03 03:42:41 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -206,21 +206,11 @@ typedef long off_t;
 #include <isc/ntpaths.h>
 #endif
 
-/*
- * Outside of lib isc we need to redefine these functions
- * This is due to the way _iob is set up
- */
-#if !defined(LIBISC_EXPORTS) && !defined(LIBLWRES_EXPORTS)
-
-#include <isc/ntfile.h>
-
-#else
 #define fdopen	_fdopen
 #define read	_read
 #define open	_open
 #define close	_close
 #define write	_write
-#endif
 #include <io.h>
 #define isatty        _isatty
 
