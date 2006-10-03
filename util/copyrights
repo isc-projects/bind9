@@ -2033,7 +2033,7 @@
 ./lib/isc/win32/ipv6.c				C	1999,2000,2001,2003,2004
 ./lib/isc/win32/keyboard.c			C	2000,2001,2004
 ./lib/isc/win32/libisc.def			X	2001,2006
-./lib/isc/win32/libisc.dsp			X	2001
+./lib/isc/win32/libisc.dsp			X	2001,2006
 ./lib/isc/win32/libisc.dsw			X	2001
 ./lib/isc/win32/libisc.mak			X	2001,2006
 ./lib/isc/win32/net.c				C	1999,2000,2001,2003,2004
