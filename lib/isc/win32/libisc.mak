@@ -145,7 +145,6 @@ CLEAN :
 	-@erase "$(INTDIR)\mutexblock.obj"
 	-@erase "$(INTDIR)\net.obj"
 	-@erase "$(INTDIR)\netaddr.obj"
-	-@erase "$(INTDIR)\ntfile.obj"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\once.obj"
 	-@erase "$(INTDIR)\ondestroy.obj"
@@ -239,7 +238,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
-	"$(INTDIR)\ntfile.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
 	"$(INTDIR)\os.obj" \
@@ -382,8 +380,6 @@ CLEAN :
 	-@erase "$(INTDIR)\net.sbr"
 	-@erase "$(INTDIR)\netaddr.obj"
 	-@erase "$(INTDIR)\netaddr.sbr"
-	-@erase "$(INTDIR)\ntfile.obj"
-	-@erase "$(INTDIR)\ntfile.sbr"
 	-@erase "$(INTDIR)\ntpaths.obj"
 	-@erase "$(INTDIR)\ntpaths.sbr"
 	-@erase "$(INTDIR)\once.obj"
@@ -503,8 +499,6 @@ BSC32_SBRS= \
 	"$(INTDIR)\ipv6.sbr" \
 	"$(INTDIR)\keyboard.sbr" \
 	"$(INTDIR)\net.sbr" \
-	"$(INTDIR)\ntfile.sbr" \
-	"$(INTDIR)\ntpaths.sbr" \
 	"$(INTDIR)\once.sbr" \
 	"$(INTDIR)\os.sbr" \
 	"$(INTDIR)\resource.sbr" \
@@ -578,7 +572,6 @@ LINK32_OBJS= \
 	"$(INTDIR)\ipv6.obj" \
 	"$(INTDIR)\keyboard.obj" \
 	"$(INTDIR)\net.obj" \
-	"$(INTDIR)\ntfile.obj" \
 	"$(INTDIR)\ntpaths.obj" \
 	"$(INTDIR)\once.obj" \
 	"$(INTDIR)\os.obj" \
@@ -838,22 +831,6 @@ SOURCE=.\net.c
 
 
 "$(INTDIR)\net.obj"	"$(INTDIR)\net.sbr" : $(SOURCE) "$(INTDIR)"
-
-
-!ENDIF 
-
-SOURCE=.\ntfile.c
-
-!IF  "$(CFG)" == "libisc - Win32 Release"
-
-
-"$(INTDIR)\ntfile.obj" : $(SOURCE) "$(INTDIR)"
-
-
-!ELSEIF  "$(CFG)" == "libisc - Win32 Debug"
-
-
-"$(INTDIR)\ntfile.obj"	"$(INTDIR)\ntfile.sbr" : $(SOURCE) "$(INTDIR)"
 
 
 !ENDIF 

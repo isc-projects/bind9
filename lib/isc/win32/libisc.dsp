@@ -141,10 +141,6 @@ SOURCE=.\net.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\ntfile.c
-# End Source File
-# Begin Source File
-
 SOURCE=.\ntpaths.c
 # End Source File
 # Begin Source File
@@ -374,10 +370,6 @@ SOURCE=..\include\isc\netaddr.h
 # Begin Source File
 
 SOURCE=.\include\isc\netdb.h
-# End Source File
-# Begin Source File
-
-SOURCE=.\include\isc\ntfile.h
 # End Source File
 # Begin Source File
 
