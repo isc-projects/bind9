@@ -2010,7 +2010,6 @@
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/netdb.h		C	1999,2000,2001,2004
-./lib/isc/win32/include/isc/ntfile.h		C	2001,2004
 ./lib/isc/win32/include/isc/ntpaths.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/offset.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/once.h		C	1999,2000,2001,2004
@@ -2031,7 +2030,6 @@
 ./lib/isc/win32/libisc.mak			X	2001,2006
 ./lib/isc/win32/net.c				C	1999,2000,2001,2003,2004
 ./lib/isc/win32/netdb.h				C	2000,2001,2003,2004
-./lib/isc/win32/ntfile.c			C	2001,2004
 ./lib/isc/win32/ntpaths.c			C	2001,2004
 ./lib/isc/win32/once.c				C	1999,2000,2001,2004
 ./lib/isc/win32/os.c				C	2000,2001,2004
