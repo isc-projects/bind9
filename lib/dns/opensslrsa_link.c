@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.4.1 2004/12/09 04:07:18 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.4.1.10.1 2006/10/04 06:59:26 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -39,6 +39,9 @@
 #include <openssl/err.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
+#include <openssl/bn.h>
+#endif
 
 	/*
 	 * XXXMPA  Temporarially disable RSA_BLINDING as it requires
@@ -260,13 +263,48 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp) {
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
+	BN_GENCB cb;
+	RSA *rsa = RSA_new();
+	BIGNUM *e = BN_new();
+
+	if (rsa == NULL || e == NULL)
+		goto err;
+
+	if (exp == 0) {
+		/* RSA_F4 0x10001 */
+		BN_set_bit(e, 0);
+		BN_set_bit(e, 16);
+	 } else {
+		/* 0x40000003 */
+		BN_set_bit(e, 0);
+		BN_set_bit(e, 1);
+		BN_set_bit(e, 30);
+	}
+
+	BN_GENCB_set_old(&cb, NULL, NULL);
+
+	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
+		BN_free(e);
+		SET_FLAGS(rsa);
+		key->opaque = rsa;
+		return (ISC_R_SUCCESS);
+	}
+
+ err:
+	if (e != NULL)
+		BN_free(e);
+	if (rsa != NULL)
+		RSA_free(rsa);
+	return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+#else
 	RSA *rsa;
 	unsigned long e;
 
 	if (exp == 0)
-		e = RSA_3;
-	else
 		e = RSA_F4;
+	else
+		e = 0x40000003;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
 	if (rsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -274,6 +312,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	key->opaque = rsa;
 
 	return (ISC_R_SUCCESS);
+#endif
 }
 
 static isc_boolean_t

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.win32,v 1.6.12.5 2004/04/29 05:12:04 marka Exp $ */
+/* $Id: config.h.win32,v 1.6.12.5.16.1 2006/10/04 06:59:21 marka Exp $ */
 
 /*
  * win32 configuration file
@@ -37,6 +37,16 @@
  * ANSI C compliance enabled
  */
 #define __STDC__ 1
+
+/*
+ * Silence compiler warnings about using strcpy and friends.
+ */
+#define _CRT_SECURE_NO_DEPRECATE 1
+
+/*
+ * Use 32 bit time.
+ */
+#define _USE_32BIT_TIME_T 1
 
 /*
  * Windows NT and 2K only
