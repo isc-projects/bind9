@@ -5275,7 +5275,7 @@ sed 's/^/| /' conftest.$ac_ext >&5
 ( exit $ac_status )
 echo "$as_me:$LINENO: result: not compatible" >&5
 echo "${ECHO_T}not compatible" >&6
-		 { { echo "$as_me:$LINENO: error: you need OpenSSL 0.9.7k/0.9.8c (or newer) for:
+		 { { echo "$as_me:$LINENO: error: you need OpenSSL 0.9.7l/0.9.8d (or newer) for:
 CAN-2002-0659 and CAN-2006-4339
 to skip this test specify: --disable-openssl-version-check
 " >&5
