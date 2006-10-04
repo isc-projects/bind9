@@ -1,3 +1,6 @@
+
+	--- 9.3.2-P2 released ---
+
 2090.	[port]		win32: Visual C++ 2005 command line manifest support.
 			[RT #16417]
 
