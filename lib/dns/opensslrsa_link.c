@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.2.1.4.1 2006/10/04 05:25:55 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.2.1.4.2 2006/10/04 06:22:19 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -246,7 +246,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	unsigned long e;
 
 	if (exp == 0)
-		e = RSA_3;
+		e = RSA_F4;
 	else
 		e = 0x40000003;
 	rsa = RSA_generate_key(key->key_size, e, NULL, NULL);
