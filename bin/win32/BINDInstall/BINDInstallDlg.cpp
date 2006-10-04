@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.14 2005/10/11 23:53:58 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.14.2.1 2006/10/04 05:25:55 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -109,7 +109,10 @@ const FileData installFiles[] =
 	{"msvcrt.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #  endif
 #endif
-#if _MSC_VER >= 1310
+#if _MSC_VER >= 1400
+	{"mfc80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+#elif _MSC_VER >= 1310
 	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #elif _MSC_VER > 1200

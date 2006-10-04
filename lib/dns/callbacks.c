@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,9 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.c,v 1.12.2.1 2004/03/09 06:11:00 marka Exp $ */
+/* $Id: callbacks.c,v 1.12.2.1.18.1 2006/10/04 05:25:55 marka Exp $ */
 
 #include <config.h>
+
+#include <isc/file.h>
 
 #include <isc/util.h>
 

@@ -41,6 +41,27 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dighost
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dighost"="..\bin\dig\win32\dighost.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -59,6 +80,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dighost
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -76,6 +100,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
     End Project Dependency
 }}}
 
@@ -167,6 +194,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -212,6 +242,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisccfg
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name checktool
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -230,6 +263,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name checktool
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -247,6 +283,9 @@ Package=<4>
     End Project Dependency
     Begin Project Dependency
     Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dighost
     End Project Dependency
 }}}
 
@@ -287,6 +326,9 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisccfg
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name rndcutil
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -299,6 +341,9 @@ Package=<5>
 
 Package=<4>
 {{{
+    Begin Project Dependency
+    Project_Dep_Name rndcutil
+    End Project Dependency
 }}}
 
 ###############################################################################
@@ -317,11 +362,71 @@ Package=<4>
     Begin Project Dependency
     Project_Dep_Name libisc
     End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
+    End Project Dependency
 }}}
 
 ###############################################################################
 
 Project: "signzone"="..\bin\dnssec\win32\signzone.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name dnssectool
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "dnssectool"="..\bin\dnssec\win32\dnssectool.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "rndcutil"="..\bin\rndc\win32\rndcutil.dsp" - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name libdns
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name libisc
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "checktool"="..\bin\check\win32\checktool.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
