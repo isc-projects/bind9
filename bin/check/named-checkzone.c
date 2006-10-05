@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: named-checkzone.c,v 1.44 2006/08/30 22:57:16 marka Exp $ */
+/* $Id: named-checkzone.c,v 1.45 2006/10/05 05:22:34 marka Exp $ */
 
 /*! \file */
 
@@ -138,7 +138,7 @@ main(int argc, char **argv) {
 #define ARGCMP(X) (strcmp(isc_commandline_argument, X) == 0)
 
 	while ((c = isc_commandline_parse(argc, argv,
-					  "c:df:i:jk:m:n:qst:o:vw:DF:M:S:W:"))
+					  "c:df:i:jk:m:n:qs:t:o:vw:DF:M:S:W:"))
 	       != EOF) {
 		switch (c) {
 		case 'c':
