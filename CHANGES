@@ -1,3 +1,5 @@
+2094.	[contrib]	Update named-bootconf.	[RT# 16404]
+
 2093.	[bug]		named-checkzone -s was broken.
 
 2092.	[bug]		win32: dig, host, nslookup.  Use registry config

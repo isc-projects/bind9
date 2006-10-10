@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: named-bootconf.sh,v 1.8 2004/03/05 05:04:25 marka Exp $
+# $Id: named-bootconf.sh,v 1.8.18.1 2006/10/10 00:06:29 marka Exp $
 
 # $NetBSD: named-bootconf.sh,v 1.5 1998/12/15 01:00:53 tron Exp $
 #
@@ -54,9 +54,14 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 if [ ${OPTIONFILE-X} = X ]; then
-	OPTIONFILE=/tmp/.options.`date +%s`.$$
-	ZONEFILE=/tmp/.zones.`date +%s`.$$
-	COMMENTFILE=/tmp/.comments.`date +%s`.$$
+	WORKDIR=/tmp/`date +%s`.$$
+	( umask 077 ; mkdir $WORKDIR ) || {
+		echo "unable to create work directory '$WORKDIR'" >&2 
+		exit 1
+	}
+	OPTIONFILE=$WORKDIR/options
+	ZONEFILE=$WORKDIR/zones
+	COMMENTFILE=$WORKDIR/comments
 	export OPTIONFILE ZONEFILE COMMENTFILE
 	touch $OPTIONFILE $ZONEFILE $COMMENTFILE
 	DUMP=1
@@ -303,6 +308,7 @@ if [ $DUMP -eq 1 ]; then
 	cat $ZONEFILE $COMMENTFILE
 
 	rm -f $OPTIONFILE $ZONEFILE $COMMENTFILE
+	rmdir $WORKDIR
 fi
 
 exit 0
