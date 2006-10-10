@@ -1,3 +1,5 @@
+2094.	[contrib]	Update named-bootconf.  [RT# 16404]
+
 2091.	[port]		dighost.c: race condition on cleanup. [RT #16417]
 
 2090.	[port]		win32: Visual C++ 2005 command line manifest support.
