@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.6.8 2006/10/02 02:03:42 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.6.9 2006/10/10 02:29:01 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -274,11 +274,11 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 static isc_result_t
 opensslrsa_generate(dst_key_t *key, int exp) {
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
-        BN_GENCB cb;
-        RSA *rsa = RSA_new();
-        BIGNUM *e = BN_new();
+	BN_GENCB cb;
+	RSA *rsa = RSA_new();
+	BIGNUM *e = BN_new();
 
-        if (rsa == NULL || e == NULL)
+	if (rsa == NULL || e == NULL)
 		goto err;
 
 	if (exp == 0) {
@@ -286,27 +286,26 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 		BN_set_bit(e, 0);
 		BN_set_bit(e, 16);
 	} else {
-		/* 0x40000003 */
+		/* F5 0x100000001 */
 		BN_set_bit(e, 0);
-		BN_set_bit(e, 1);
-		BN_set_bit(e, 30);
+		BN_set_bit(e, 32);
 	}
 
-        BN_GENCB_set_old(&cb, NULL, NULL);
+	BN_GENCB_set_old(&cb, NULL, NULL);
 
-        if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
-                BN_free(e);
+	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
+		BN_free(e);
 		SET_FLAGS(rsa);
 		key->opaque = rsa;
 		return (ISC_R_SUCCESS);
-        }
+	}
 
 err:
-        if (e != NULL)
+	if (e != NULL)
 		BN_free(e);
-        if (rsa != NULL)
+	if (rsa != NULL)
 		RSA_free(rsa);
-        return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
+	return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 #else
 	RSA *rsa;
 	unsigned long e;
