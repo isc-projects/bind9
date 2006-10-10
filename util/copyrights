@@ -1033,7 +1033,7 @@
 ./contrib/idn/idnkit-1.0-src/wsock/wsock20/make.wnt	X	2003
 ./contrib/idn/idnkit-1.0-src/wsock/wsock20/ws2_32.def	X	2003
 ./contrib/linux/coredump-patch			X	2000,2001
-./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000,2001,2004
+./contrib/named-bootconf/named-bootconf.sh	SH.PORTION	1999,2000,2001,2004,2006
 ./contrib/nanny/nanny.pl			PERL	2000,2001,2004
 ./contrib/nslint-2.1a3/CHANGES			X	2001
 ./contrib/nslint-2.1a3/FILES			X	2001
