@@ -1,3 +1,5 @@
+2094.	[contrib]	Update named-bootconf.  [RT# 16404]
+
 2092.	[bug]		win32: dig, host, nslookup.  Use registry config
 			if resolv.conf does not exist or no nameservers
 			listed. [RT #15877] 
