@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.4.1.10.2 2006/10/04 07:06:02 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.4.1.10.3 2006/10/10 02:22:54 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -276,10 +276,9 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 		BN_set_bit(e, 0);
 		BN_set_bit(e, 16);
 	 } else {
-		/* 0x40000003 */
+		/* F5 0x100000001 */
 		BN_set_bit(e, 0);
-		BN_set_bit(e, 1);
-		BN_set_bit(e, 30);
+		BN_set_bit(e, 32);
 	}
 
 	BN_GENCB_set_old(&cb, NULL, NULL);
