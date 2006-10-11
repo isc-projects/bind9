@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.2.1.4.5 2006/10/11 02:26:53 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.2.1.4.6 2006/10/11 03:59:22 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -46,7 +46,7 @@
  * We don't use configure for windows so enforce the OpenSSL version
  * here.  Unlike with configure we don't support overriding this test.
  */
-#ifdef WIN
+#ifdef WIN32
 #if !((OPENSSL_VERSION_NUMBER >= 0x009070cfL && \
        OPENSSL_VERSION_NUMBER < 0x009080000L) || \
       OPENSSL_VERSION_NUMBER >= 0x0090804fL) 
