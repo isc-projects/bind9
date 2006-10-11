@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.2.6 2006/10/10 02:27:47 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.2.7 2006/10/11 02:23:49 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -40,6 +40,18 @@
 #include <openssl/rsa.h>
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
 #include <openssl/bn.h>
+#endif
+
+/*
+ * We don't use configure for windows so enforce the OpenSSL version
+ * here.  Unlike with configure we don't support overriding this test.
+ */
+#ifdef WIN
+#if !((OPENSSL_VERSION_NUMBER >= 0x009070cfL && \
+       OPENSSL_VERSION_NUMBER < 0x009080000L) || \
+      OPENSSL_VERSION_NUMBER >= 0x0090804fL) 
+#error Please upgrade OpenSSL to 0.9.8d/0.9.7l or greater.
+#endif
 #endif
 
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
