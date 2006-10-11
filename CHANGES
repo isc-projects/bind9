@@ -1,3 +1,6 @@
+2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
+			net_cidr_ntop_ipv6(). [RT #16388]
+ 
 2094.	[contrib]	Update named-bootconf.  [RT# 16404]
 
 2092.	[bug]		win32: dig, host, nslookup.  Use registry config
