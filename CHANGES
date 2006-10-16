@@ -1,3 +1,6 @@
+2096.	[bug]		libbind: handle applications that fail to detect
+			res_init() failures better.
+
 2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
 			net_cidr_ntop_ipv6(). [RT #16388]
  
