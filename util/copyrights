@@ -1233,7 +1233,7 @@
 ./doc/dev/cvs-usage				TXT.BRIEF	2000,2001,2004
 ./doc/dev/magic_numbers				TXT.BRIEF	1999,2000,2001,2002,2004
 ./doc/dev/rdata.html				HTML	1999,2000,2001,2004
-./doc/dev/release				TXT.BRIEF	2000,2001,2002,2003,2004,2005
+./doc/dev/release				TXT.BRIEF	2000,2001,2002,2003,2004,2005,2006
 ./doc/dev/results				TXT.BRIEF	1999,2000,2001,2004
 ./doc/dev/tests					TXT.BRIEF	2000,2001,2004
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004
