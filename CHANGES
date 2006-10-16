@@ -1,3 +1,6 @@
+
+	--- 9.2.7rc3 released ---
+
 2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
 			net_cidr_ntop_ipv6(). [RT #16388]
  
