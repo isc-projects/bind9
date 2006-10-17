@@ -1,3 +1,6 @@
+
+	--- 9.3.3rc3 released ---
+
 2096.	[bug]		libbind: handle applications that fail to detect
 			res_init() failures better.
 
