@@ -1,3 +1,6 @@
+
+	--- 9.4.0b3 released ---
+
 2097.	[bug]		named could reference a destroyed memory context
 			after being reloaded / reconfigured. [RT #16428]
 
