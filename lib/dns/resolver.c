@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.284.18.51 2006/08/31 03:57:05 marka Exp $ */
+/* $Id: resolver.c,v 1.284.18.52 2006/10/18 04:24:19 marka Exp $ */
 
 /*! \file */
 
@@ -2844,8 +2844,7 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, isc_sockaddr_t *client,
 	clone = NULL;
 	isc_task_attach(task, &clone);
 	event = (dns_fetchevent_t *)
-		isc_event_allocate(fctx->res->buckets[fctx->bucketnum].mctx,
-				   clone, DNS_EVENT_FETCHDONE,
+		isc_event_allocate(fctx->res->mctx, clone, DNS_EVENT_FETCHDONE,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		isc_task_detach(&clone);

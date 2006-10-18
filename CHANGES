@@ -1,3 +1,6 @@
+2097.	[bug]		named could reference a destroyed memory context
+			after being reloaded / reconfigured. [RT #16428]
+
 2096.	[bug]		libbind: handle applications that fail to detect
 			res_init() failures better.
 
