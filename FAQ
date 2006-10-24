@@ -1,5 +1,9 @@
 Frequently Asked Questions about BIND 9
 
+Copyright © 2004-2006 Internet Systems Consortium, Inc. ("ISC")
+
+Copyright © 2000-2003 Internet Software Consortium.
+
 -------------------------------------------------------------------------------
 
 Q: Why doesn't -u work on Linux 2.2.x when I build with --enable-threads?
@@ -629,4 +633,26 @@ A: Red Hat Security Enhanced Linux (SELinux) policy security protections :
 
    See these man-pages for more information : selinux(8), named_selinux(8), chcon
    (1), setsebool(8)
+
+Q: I want to forward all DNS queries from my caching nameserver to another server.
+   But there are are some domains which have to be server locally, via rbldnsd.
+
+   How do I achieve this ?
+
+A: options {
+           forward only;
+           forwarders { <ip.of.primary.nameserver>; };
+   };
+
+   zone "sbl-xbl.spamhaus.org" {
+           type forward; forward only;
+           forwarders { <ip.of.rbldns.server> port 530; };
+   };
+
+   zone "list.dsbl.org" {
+           type forward; forward only;
+           forwarders { <ip.of.rbldns.server> port 530; };
+   };
+
+
 
