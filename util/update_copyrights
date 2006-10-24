@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.41 2005/09/06 01:59:12 marka Exp $
+# $Id: update_copyrights,v 1.42 2006/10/24 00:57:16 marka Exp $
 
 require 5.002;
 
@@ -423,6 +423,11 @@ foreach $file (keys %file_types) {
                 $_ = <SOURCE>;
                 $/ = "\n";
 
+		if ($type eq 'SGML' && m:<articleinfo>.*?</articleinfo>:s) {
+			# print "docinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<articleinfo>.*?</articleinfo>:<articleinfo>\n$r  </articleinfo>:s;
+		}
 		if ($type eq 'SGML' && m:<docinfo>.*?</docinfo>:s) {
 			# print "docinfo: $file\n";
 			my $r = copyrights(@years);
