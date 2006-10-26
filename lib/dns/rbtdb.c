@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.238 2006/07/31 02:04:03 marka Exp $ */
+/* $Id: rbtdb.c,v 1.239 2006/10/26 05:39:49 marka Exp $ */
 
 /*! \file */
 
@@ -158,10 +158,11 @@ typedef isc_rwlock_t nodelock_t;
 #define NODE_UNLOCK(l, t)	RWUNLOCK((l), (t))
 #define NODE_TRYUPGRADE(l)	isc_rwlock_tryupgrade(l)
 
-#define NODE_STRONGLOCK(l)
-#define NODE_STRONGUNLOCK(l)
+#define NODE_STRONGLOCK(l)	((void)0)
+#define NODE_STRONGUNLOCK(l)	((void)0)
 #define NODE_WEAKLOCK(l, t)	NODE_LOCK(l, t)
 #define NODE_WEAKUNLOCK(l, t)	NODE_UNLOCK(l, t)
+#define NODE_WEAKDOWNGRADE(l)	isc_rwlock_downgrade(l)
 #else
 typedef isc_mutex_t nodelock_t;
 
@@ -173,8 +174,9 @@ typedef isc_mutex_t nodelock_t;
 
 #define NODE_STRONGLOCK(l)	LOCK(l)
 #define NODE_STRONGUNLOCK(l)	UNLOCK(l)
-#define NODE_WEAKLOCK(l, t)
-#define NODE_WEAKUNLOCK(l, t)
+#define NODE_WEAKLOCK(l, t)	((void)0)
+#define NODE_WEAKUNLOCK(l, t)	((void)0)
+#define NODE_WEAKDOWNGRADE(l)	((void)0)
 #endif
 
 /*
@@ -837,8 +839,8 @@ add_changed(dns_rbtdb_t *rbtdb, rbtdb_version_t *version,
 	REQUIRE(version->writer);
 
 	if (changed != NULL) {
-		dns_rbtnode_refincrement0(node, &refs);
-		INSIST(refs > 0);
+		dns_rbtnode_refincrement(node, &refs);
+		INSIST(refs != 0);
 		changed->node = node;
 		changed->dirty = ISC_FALSE;
 		ISC_LIST_INITANDAPPEND(version->changed_list, changed, link);
@@ -1128,42 +1130,53 @@ new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	INSIST(noderefs != 0);
 }
 
-
 /*
- * Caller must be holding the node lock if its reference must be protected
- * by the lock.
+ * Caller must be holding the node lock; either the "strong", read or write
+ * lock.  Note that the lock must be held even when node references are
+ * atomically modified; in that case the decrement operation itself does not
+ * have to be protected, but we must avoid a race condition where multiple
+ * threads are decreasing the reference to zero simultaneously and at least
+ * one of them is going to free the node.
+ * This function returns ISC_TRUE if and only if the node reference decreases
+ * to zero.
  */
-static void
-no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
-	      rbtdb_serial_t least_serial, isc_rwlocktype_t lock)
+static isc_boolean_t
+decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
+		    rbtdb_serial_t least_serial,
+		    isc_rwlocktype_t nlock, isc_rwlocktype_t tlock)
 {
 	isc_result_t result;
 	isc_boolean_t write_locked;
-	unsigned int locknum;
-	unsigned int refs;
+	rbtdb_nodelock_t *nodelock;
+	unsigned int refs, nrefs;
 
-	/*
-	 * We cannot request the node reference be 0 at the moment, since
-	 * the reference counter can atomically be modified without a lock.
-	 * It should still be safe unless we actually try to delete the node,
-	 * at which point the condition is explicitly checked.
-	 */
+	nodelock = &rbtdb->node_locks[node->locknum];
 
-	locknum = node->locknum;
-
-	NODE_WEAKLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_read);
+	/* Handle easy and typical case first. */
 	if (!node->dirty && (node->data != NULL || node->down != NULL)) {
-		/* easy and typical case first, in an efficient way. */
-		isc_refcount_decrement(&rbtdb->node_locks[locknum].references,
-				       &refs);
-		INSIST((int)refs >= 0);
-		NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock,
-				isc_rwlocktype_read);
-		return;
+		dns_rbtnode_refdecrement(node, &nrefs);
+		INSIST((int)nrefs >= 0);
+		if (nrefs == 0) {
+			isc_refcount_decrement(&nodelock->references, &refs);
+			INSIST((int)refs >= 0);
+		}
+		return ((nrefs == 0) ? ISC_TRUE : ISC_FALSE);
 	}
-	NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_read);
 
-	NODE_WEAKLOCK(&rbtdb->node_locks[locknum].lock, isc_rwlocktype_write);
+	/* Upgrade the lock? */
+	if (nlock == isc_rwlocktype_read) {
+		NODE_WEAKUNLOCK(&nodelock->lock, isc_rwlocktype_read);
+		NODE_WEAKLOCK(&nodelock->lock, isc_rwlocktype_write);
+	}
+	dns_rbtnode_refdecrement(node, &nrefs);
+	INSIST((int)nrefs >= 0);
+	if (nrefs > 0) {
+		/* Restore the lock? */
+		if (nlock == isc_rwlocktype_read)
+			NODE_WEAKDOWNGRADE(&nodelock->lock);
+		return (ISC_FALSE);
+	}
+
 	if (node->dirty && dns_rbtnode_refcurrent(node) == 0) {
 		if (IS_CACHE(rbtdb))
 			clean_cache_node(rbtdb, node);
@@ -1182,28 +1195,29 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		}
 	}
 
-	isc_refcount_decrement(&rbtdb->node_locks[locknum].references, &refs);
+	isc_refcount_decrement(&nodelock->references, &refs);
 	INSIST((int)refs >= 0);
 
 	/*
 	 * XXXDCL should this only be done for cache zones?
 	 */
 	if (node->data != NULL || node->down != NULL) {
-		NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock,
-				isc_rwlocktype_write);
-		return;
+		/* Restore the lock? */
+		if (nlock == isc_rwlocktype_read)
+			NODE_WEAKDOWNGRADE(&nodelock->lock);
+		return (ISC_TRUE);
 	}
 
 	/*
 	 * XXXDCL need to add a deferred delete method for ISC_R_LOCKBUSY.
 	 */
-	if (lock != isc_rwlocktype_write) {
+	if (tlock != isc_rwlocktype_write) {
 		/*
 		 * Locking hierarchy notwithstanding, we don't need to free
 		 * the node lock before acquiring the tree write lock because
 		 * we only do a trylock.
 		 */
-		if (lock == isc_rwlocktype_read)
+		if (tlock == isc_rwlocktype_read)
 			result = isc_rwlock_tryupgrade(&rbtdb->tree_lock);
 		else
 			result = isc_rwlock_trylock(&rbtdb->tree_lock,
@@ -1217,7 +1231,7 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	if (write_locked && dns_rbtnode_refcurrent(node) == 0) {
 		/*
-		 * We can now delete the node if the reference counter must be
+		 * We can now delete the node if the reference counter is
 		 * zero.  This should be typically the case, but a different
 		 * thread may still gain a (new) reference just before the
 		 * current thread locks the tree (e.g., in findnode()).
@@ -1228,7 +1242,8 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_DEBUG(1),
-				      "no_references: delete from rbt: %p %s",
+				      "decrement_reference: "
+				      "delete from rbt: %p %s",
 				      node,
 				      dns_rbt_formatnodename(node, printname,
 							   sizeof(printname)));
@@ -1238,23 +1253,27 @@ no_references(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		if (result != ISC_R_SUCCESS)
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-				      "no_references: dns_rbt_deletenode: %s",
+				      "decrement_reference: "
+				      "dns_rbt_deletenode: %s",
 				      isc_result_totext(result));
 	}
 
-	NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock,
-			isc_rwlocktype_write);
+	/* Restore the lock? */
+	if (nlock == isc_rwlocktype_read)
+		NODE_WEAKDOWNGRADE(&nodelock->lock);
 
 	/*
 	 * Relock a read lock, or unlock the write lock if no lock was held.
 	 */
-	if (lock == isc_rwlocktype_none)
+	if (tlock == isc_rwlocktype_none)
 		if (write_locked)
 			RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_write);
 
-	if (lock == isc_rwlocktype_read)
+	if (tlock == isc_rwlocktype_read)
 		if (write_locked)
 			isc_rwlock_downgrade(&rbtdb->tree_lock);
+
+	return (ISC_TRUE);
 }
 
 static inline void
@@ -1517,27 +1536,18 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 		     changed != NULL;
 		     changed = next_changed) {
 			nodelock_t *lock;
-			unsigned int refs;
 
 			next_changed = NEXT(changed, link);
 			rbtnode = changed->node;
 			lock = &rbtdb->node_locks[rbtnode->locknum].lock;
 
-			NODE_STRONGLOCK(lock);
-
-			dns_rbtnode_refdecrement(rbtnode, &refs);
-			INSIST((int)refs >= 0);
-
-			NODE_WEAKLOCK(lock, isc_rwlocktype_write);
+			NODE_LOCK(lock, isc_rwlocktype_write);
 			if (rollback)
 				rollback_node(rbtnode, serial);
-			NODE_WEAKUNLOCK(lock, isc_rwlocktype_write);
-
-			if (refs == 0)
-				no_references(rbtdb, rbtnode, least_serial,
-					      isc_rwlocktype_none);
-
-			NODE_STRONGUNLOCK(lock);
+			decrement_reference(rbtdb, rbtnode, least_serial,
+					    isc_rwlocktype_write,
+					    isc_rwlocktype_none);
+			NODE_UNLOCK(lock, isc_rwlocktype_write);
 
 			isc_mem_put(rbtdb->common.mctx, changed,
 				    sizeof(*changed));
@@ -2906,20 +2916,13 @@ zone_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * let go of it.
 	 */
 	if (search.need_cleanup) {
-		unsigned int refs;
-
 		node = search.zonecut;
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
-		NODE_STRONGLOCK(lock);
-
-		dns_rbtnode_refdecrement(node, &refs);
-		INSIST((int)refs >= 0);
-		if (refs == 0)
-			no_references(search.rbtdb, node, 0,
-				      isc_rwlocktype_none);
-
-		NODE_STRONGUNLOCK(lock);
+		NODE_LOCK(lock, isc_rwlocktype_read);
+		decrement_reference(search.rbtdb, node, 0,
+				    isc_rwlocktype_read, isc_rwlocktype_none);
+		NODE_UNLOCK(lock, isc_rwlocktype_read);
 	}
 
 	if (close_version)
@@ -3008,7 +3011,7 @@ cache_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 					/*
 					 * header->down can be non-NULL if the
 					 * refcount has just decremented to 0
-					 * but no_references() has not
+					 * but decrement_reference() has not
 					 * performed clean_cache_node(), in
 					 * which case we need to purge the
 					 * stale headers first.
@@ -3635,21 +3638,13 @@ cache_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	 * let go of it.
 	 */
 	if (search.need_cleanup) {
-		unsigned int refs;
-
 		node = search.zonecut;
 		lock = &(search.rbtdb->node_locks[node->locknum].lock);
 
-		NODE_STRONGLOCK(lock);
-
-		dns_rbtnode_refdecrement(node, &refs);
-		INSIST((int)refs >= 0);
-
-		if (refs == 0)
-			no_references(search.rbtdb, node, 0,
-				      isc_rwlocktype_none);
-
-		NODE_STRONGUNLOCK(lock);
+		NODE_LOCK(lock, isc_rwlocktype_read);
+		decrement_reference(search.rbtdb, node, 0,
+				    isc_rwlocktype_read, isc_rwlocktype_none);
+		NODE_UNLOCK(lock, isc_rwlocktype_read);
 	}
 
 	dns_rbtnodechain_reset(&search.chain);
@@ -3824,8 +3819,8 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-	dns_rbtnode_refincrement0(node, &refs);
-	INSIST(refs > 1);
+	dns_rbtnode_refincrement(node, &refs);
+	INSIST(refs != 0);
 	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*targetp = source;
@@ -3837,31 +3832,25 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_rbtnode_t *node;
 	isc_boolean_t want_free = ISC_FALSE;
 	isc_boolean_t inactive = ISC_FALSE;
-	unsigned int locknum;
-	unsigned int refs;
+	rbtdb_nodelock_t *nodelock;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 	REQUIRE(targetp != NULL && *targetp != NULL);
 
 	node = (dns_rbtnode_t *)(*targetp);
-	locknum = node->locknum;
+	nodelock = &rbtdb->node_locks[node->locknum];
 
-	NODE_STRONGLOCK(&rbtdb->node_locks[locknum].lock);
+	NODE_LOCK(&nodelock->lock, isc_rwlocktype_read);
 
-	dns_rbtnode_refdecrement(node, &refs);
-	INSIST((int)refs >= 0);
-	if (refs == 0) {
-		no_references(rbtdb, node, 0, isc_rwlocktype_none);
-		NODE_WEAKLOCK(&rbtdb->node_locks[locknum].lock,
-			      isc_rwlocktype_read);
-		if (isc_refcount_current(&rbtdb->node_locks[locknum].references) == 0 &&
-		    rbtdb->node_locks[locknum].exiting)
+	if (decrement_reference(rbtdb, node, 0, isc_rwlocktype_read,
+				isc_rwlocktype_none)) {
+		if (isc_refcount_current(&nodelock->references) == 0 &&
+		    nodelock->exiting) {
 			inactive = ISC_TRUE;
-		NODE_WEAKUNLOCK(&rbtdb->node_locks[locknum].lock,
-				isc_rwlocktype_read);
+		}
 	}
 
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[locknum].lock);
+	NODE_UNLOCK(&nodelock->lock, isc_rwlocktype_read);
 
 	*targetp = NULL;
 
@@ -4285,8 +4274,8 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	NODE_STRONGLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
-	dns_rbtnode_refincrement0(rbtnode, &refs);
-	INSIST(refs > 0);
+	dns_rbtnode_refincrement(rbtnode, &refs);
+	INSIST(refs != 0);
 
 	iterator->current = NULL;
 
@@ -5984,19 +5973,16 @@ static inline void
 dereference_iter_node(rbtdb_dbiterator_t *rbtdbiter) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)rbtdbiter->common.db;
 	dns_rbtnode_t *node = rbtdbiter->node;
-	unsigned int refs;
 	nodelock_t *lock;
 
 	if (node == NULL)
 		return;
 
 	lock = &rbtdb->node_locks[node->locknum].lock;
-	NODE_STRONGLOCK(lock);
-	dns_rbtnode_refdecrement(node, &refs);
-	INSIST((int)refs >= 0);
-	if (refs == 0)
-		no_references(rbtdb, node, 0, rbtdbiter->tree_locked);
-	NODE_STRONGUNLOCK(lock);
+	NODE_LOCK(lock, isc_rwlocktype_read);
+	decrement_reference(rbtdb, node, 0, isc_rwlocktype_read,
+			    rbtdbiter->tree_locked);
+	NODE_UNLOCK(lock, isc_rwlocktype_read);
 
 	rbtdbiter->node = NULL;
 }
@@ -6030,18 +6016,14 @@ flush_deletions(rbtdb_dbiterator_t *rbtdbiter) {
 		rbtdbiter->tree_locked = isc_rwlocktype_write;
 
 		for (i = 0; i < rbtdbiter->delete; i++) {
-			unsigned int refs;
-
 			node = rbtdbiter->deletions[i];
 			lock = &rbtdb->node_locks[node->locknum].lock;
 
-			NODE_STRONGLOCK(lock);
-			dns_rbtnode_refdecrement(node, &refs);
-			INSIST((int)refs >= 0);
-			if (refs == 0)
-				no_references(rbtdb, node, 0,
-					      rbtdbiter->tree_locked);
-			NODE_STRONGUNLOCK(lock);
+			NODE_LOCK(lock, isc_rwlocktype_read);
+			decrement_reference(rbtdb, node, 0,
+					    isc_rwlocktype_read,
+					    rbtdbiter->tree_locked);
+			NODE_UNLOCK(lock, isc_rwlocktype_read);
 		}
 
 		rbtdbiter->delete = 0;
@@ -6332,9 +6314,12 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 		 * expirenode() currently always returns success.
 		 */
 		if (expire_result == ISC_R_SUCCESS && node->down == NULL) {
+			unsigned int refs;
+
 			rbtdbiter->deletions[rbtdbiter->delete++] = node;
 			NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
-			dns_rbtnode_refincrement0(node, NULL);
+			dns_rbtnode_refincrement(node, &refs);
+			INSIST(refs != 0);
 			NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 		}
 	}
