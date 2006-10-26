@@ -1,3 +1,6 @@
+2098.	[bug]		Race in rbtdb.c:no_references(), which occasionally
+			triggered an INSIST failure about the node lock
+			reference.  [RT #16411]
 
 	--- 9.4.0b3 released ---
 
