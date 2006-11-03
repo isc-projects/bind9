@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.24 2006/09/25 04:33:41 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.25 2006/11/03 23:40:47 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -115,7 +115,14 @@ const FileData installFiles[] =
 #endif
 #if _MSC_VER >= 1400
 	{"mfc80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"mfc80u.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"mfcm80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"mfcm80u.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"Microsoft.VC80.MFC.manifest", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcm80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcp80.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"Microsoft.VC80.CRT.manifest", FileData::WinSystem, FileData::Critical, TRUE},
 #elif _MSC_VER >= 1310
 	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
