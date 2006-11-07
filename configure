@@ -5244,7 +5244,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 #include <openssl/opensslv.h>
 int main() {
 	if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
-	     OPENSSL_VERSION_NUMBER < 0x009080000L) ||
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
 	    OPENSSL_VERSION_NUMBER >= 0x0090804fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
