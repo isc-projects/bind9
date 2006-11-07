@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.415 $)
+AC_REVISION($Revision: 1.416 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -496,7 +496,7 @@ yes|'')
 #include <openssl/opensslv.h>
 int main() {
         if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
-	     OPENSSL_VERSION_NUMBER < 0x009080000L) ||
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
 	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
