@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.1.4.8 2006/10/11 03:59:42 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.1.4.9 2006/11/07 21:28:40 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -49,7 +49,7 @@
  */
 #ifdef WIN32
 #if !((OPENSSL_VERSION_NUMBER >= 0x009070cfL && \
-       OPENSSL_VERSION_NUMBER < 0x009080000L) || \
+       OPENSSL_VERSION_NUMBER < 0x00908000L) || \
       OPENSSL_VERSION_NUMBER >= 0x0090804fL) 
 #error Please upgrade OpenSSL to 0.9.8d/0.9.7l or greater.
 #endif
