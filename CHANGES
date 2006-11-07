@@ -1,3 +1,6 @@
+2101.	[bug]		OpenSSL version checks were not quite right.
+			[RT #16476]
+
 2100.	[port]		win32: copy libeay32.dll to Build\Debug.
 
 	--- 9.2.7rc3 released ---
