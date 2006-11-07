@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.26 2006/11/07 21:49:55 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.27 2006/11/07 22:34:06 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -114,21 +114,21 @@ const FileData installFiles[] =
 #  endif
 #endif
 #if _MSC_VER >= 1400
-	{"mfc80.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"mfc80u.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"mfcm80.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"mfcm80u.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"Microsoft.VC80.MFC.manifest", FileData::BinDir, FileData::Critical, TRUE},
-	{"msvcm80.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"msvcp80.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"msvcr80.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"Microsoft.VC80.CRT.manifest", FileData::BinDir, FileData::Critical, TRUE},
+	{"mfc80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfc80u.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfcm80u.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.MFC.manifest", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcp80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcr80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.CRT.manifest", FileData::BinDir, FileData::Critical, FALSE},
 #elif _MSC_VER >= 1310
-	{"mfc71.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"msvcr71.dll", FileData::BinDir, FileData::Critical, TRUE},
+	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #elif _MSC_VER > 1200
-	{"mfc70.dll", FileData::BinDir, FileData::Critical, TRUE},
-	{"msvcr70.dll", FileData::BinDir, FileData::Critical, TRUE},
+	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #endif
 	{"bindevt.dll", FileData::BinDir, FileData::Normal, FALSE},
 	{"libbind9.dll", FileData::BinDir, FileData::Critical, FALSE},
