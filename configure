@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.339.18.60 2006/10/19 01:05:02 marka Exp $
+# $Id: configure,v 1.339.18.61 2006/11/07 21:30:47 marka Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -5411,7 +5411,7 @@ cat >>conftest.$ac_ext <<_ACEOF
 #include <openssl/opensslv.h>
 int main() {
         if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
-	     OPENSSL_VERSION_NUMBER < 0x009080000L) ||
+	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
 	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
                 return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
