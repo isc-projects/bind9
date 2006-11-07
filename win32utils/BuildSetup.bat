@@ -39,6 +39,7 @@ rem Make sure that the Build directories are there.
 
 if NOT Exist ..\Build mkdir ..\Build
 if NOT Exist ..\Build\Release mkdir ..\Build\Release
+if NOT Exist ..\Build\Debug mkdir ..\Build\Debug
 
 echo Copying the ARM and the Installation Notes.
  
@@ -53,7 +54,7 @@ copy ..\FAQ ..\Build\Release
 
 echo Copying the OpenSSL DLL.
 
-copy ..\..\openssl-0.9.6k-x\out32dll\libeay32.dll ..\Build\Release\
-
+copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Release\
+copy ..\..\openssl-0.9.8d\out32dll\libeay32.dll ..\Build\Debug
 
 rem Done
