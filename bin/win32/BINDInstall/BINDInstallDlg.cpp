@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: BINDInstallDlg.cpp,v 1.6.2.16 2006/09/28 00:03:07 marka Exp $ */
+/* $Id: BINDInstallDlg.cpp,v 1.6.2.17 2006/11/08 02:00:49 marka Exp $ */
 
 /*
  * Copyright (c) 1999-2000 by Nortel Networks Corporation
@@ -110,8 +110,15 @@ const FileData installFiles[] =
 #  endif
 #endif
 #if _MSC_VER >= 1400
-	{"mfc80.dll", FileData::WinSystem, FileData::Critical, TRUE},
-	{"msvcr80.dll", FileData::WinSystem, FileData::Critical, TRUE},
+	{"mfc80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfc80u.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"mfcm80u.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.MFC.manifest", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcm80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcp80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"msvcr80.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"Microsoft.VC80.CRT.manifest", FileData::BinDir, FileData::Critical, FALSE},
 #elif _MSC_VER >= 1310
 	{"mfc71.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr71.dll", FileData::WinSystem, FileData::Critical, TRUE},
@@ -119,12 +126,12 @@ const FileData installFiles[] =
 	{"mfc70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 	{"msvcr70.dll", FileData::WinSystem, FileData::Critical, TRUE},
 #endif
-	{"bindevt.dll", FileData::WinSystem, FileData::Normal, FALSE},
-	{"libisc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccfg.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libisccc.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"libdns.dll", FileData::WinSystem, FileData::Critical, FALSE},
-	{"liblwres.dll", FileData::WinSystem, FileData::Critical, FALSE},
+	{"bindevt.dll", FileData::BinDir, FileData::Normal, FALSE},
+	{"libisc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccfg.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libisccc.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"libdns.dll", FileData::BinDir, FileData::Critical, FALSE},
+	{"liblwres.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"libeay32.dll", FileData::BinDir, FileData::Critical, FALSE},
 	{"named.exe", FileData::BinDir, FileData::Critical, FALSE},
 	{"nsupdate.exe", FileData::BinDir, FileData::Normal, FALSE},

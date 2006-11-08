@@ -3,6 +3,8 @@
 
 2100.	[port]		win32: copy libeay32.dll to Build\Debug.
 
+2099.	[port]		win32: more manifiest issues.
+
 	--- 9.2.7rc3 released ---
 
 2096.	[bug]		libbind: handle applications that fail to detect
