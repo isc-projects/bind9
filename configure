@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# $Id: configure,v 1.339.18.61 2006/11/07 21:30:47 marka Exp $
+# $Id: configure,v 1.339.18.62 2006/11/09 23:59:29 marka Exp $
 #
 # Portions Copyright (C) 1996-2001  Nominum, Inc.
 #
@@ -28003,6 +28003,9 @@ case "$host" in
 		hack_shutup_stdargcast=yes
 		;;
 	*-solaris2.[89])
+		hack_shutup_pthreadonceinit=yes
+		;;
+	*-solaris2.10)
 		hack_shutup_pthreadonceinit=yes
 		;;
 esac
