@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.152 2006/01/05 01:37:19 marka Exp $ */
+/* $Id: main.c,v 1.153 2006/11/10 18:44:46 marka Exp $ */
 
 /*! \file */
 
@@ -886,7 +886,7 @@ main(int argc, char *argv[]) {
 		if (result == ISC_R_SUCCESS && instance != NULL) {
 			if (smf_disable_instance(instance, 0) != 0)
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "smf_disable_instance() ",
+						 "smf_disable_instance() "
 						 "failed for %s : %s",
 						 instance,
 						 scf_strerror(scf_error()));
