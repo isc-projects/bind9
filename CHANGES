@@ -1,3 +1,6 @@
+2103.	[port]		Add /usr/sfw to list of locations for OpenSSL
+			under Solaris.
+
 2102.	[port]		Silence solaris 10 warnings.
 
 	--- 9.4.0b4 released ---
