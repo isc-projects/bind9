@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.417 $)
+AC_REVISION($Revision: 1.418 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -373,7 +373,7 @@ AC_ARG_WITH(openssl,
                           (Required for DNSSEC)],
     use_openssl="$withval", use_openssl="auto")
 
-openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg"
+openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
 if test "$use_openssl" = "auto"
 then
 	for d in $openssldirs
