@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.119.2.3.2.24 2006/01/06 00:01:42 marka Exp $ */
+/* $Id: main.c,v 1.119.2.3.2.25 2006/11/10 18:51:06 marka Exp $ */
 
 #include <config.h>
 
@@ -856,7 +856,7 @@ main(int argc, char *argv[]) {
 		if (result == ISC_R_SUCCESS && instance != NULL) {
 			if (smf_disable_instance(instance, 0) != 0)
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "smf_disable_instance() ",
+						 "smf_disable_instance() "
 						 "failed for %s : %s",
 						 instance,
 						 scf_strerror(scf_error()));
