@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.294.2.23.2.71 $)
+AC_REVISION($Revision: 1.294.2.23.2.72 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.13)
@@ -1804,6 +1804,9 @@ case "$host" in
 		hack_shutup_stdargcast=yes
 		;;
 	[*-solaris2.[89]])
+		hack_shutup_pthreadonceinit=yes
+		;;
+	*-solaris2.10)
 		hack_shutup_pthreadonceinit=yes
 		;;
 esac
