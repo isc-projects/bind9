@@ -97,6 +97,7 @@ skan-metazones1			private
 skan_implicit_update1		new	
 skan_stats1			new	
 skan_stats2			new	
+skan_stats3			new	
 stats_lidl			new	
 v6source			new	
 v9_1				active		// security fixes only
