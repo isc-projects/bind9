@@ -2326,7 +2326,7 @@
 ./lib/lwres/context.c				C	2000,2001,2003,2004,2005
 ./lib/lwres/context_p.h				C	2000,2001,2004,2005
 ./lib/lwres/gai_strerror.c			C	2000,2001,2004,2005,2006
-./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005
+./lib/lwres/getaddrinfo.c			C.BSDI	1999,2000,2001,2004,2005,2006
 ./lib/lwres/gethost.c				C	2000,2001,2004,2005
 ./lib/lwres/getipnode.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/lwres/getnameinfo.c			C.PORTION	1999,2000,2001,2003,2004,2005
