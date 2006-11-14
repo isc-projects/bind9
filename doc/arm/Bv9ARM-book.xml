@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.73 2006/09/13 00:26:41 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.74 2006/11/14 22:38:53 sra Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -1072,7 +1072,7 @@ protocol is specified in RFC 1996.
     <command>rndc freeze <replaceable>zone</replaceable></command>.
     This will also remove the zone's <filename>.jnl</filename> file
     and update the master file.  Edit the zone file.  Run
-    <command>rndc unfreeze <replaceable>zone</replaceable></command>
+    <command>rndc thaw <replaceable>zone</replaceable></command>
     to reload the changed zone and re-enable dynamic updates.</para>
 
   </sect2>
