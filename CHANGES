@@ -1,3 +1,6 @@
+
+	--- 9.2.7 released ---
+
 2103.	[port]		Add /usr/sfw to list of locations for OpenSSL
 			under Solaris.
 
