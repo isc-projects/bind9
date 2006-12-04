@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.10 2006/12/04 01:52:46 marka Exp $
+ * $Id: openssl_link.c,v 1.11 2006/12/04 05:12:25 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -41,7 +41,8 @@
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
 
-#if defined(CRYPTO_LOCK_ENGINE) && (OPENSSL_VERSION_NUMBER != 0x00907000L)
+#if defined(CRYPTO_LOCK_ENGINE) && defined(OVERRIDE_OPENSSL_RAND) && \
+    (OPENSSL_VERSION_NUMBER != 0x00907000L)
 #define USE_ENGINE 1
 #endif
 
@@ -181,7 +182,7 @@ dst__openssl_init() {
 	RAND_set_rand_method(rm);
 #else
 	RAND_set_rand_method(rm);
-#endif /* USE_ENGINER */
+#endif /* USE_ENGINE */
 #endif /* OVERRIDE_OPENSSL_RAND */
 	return (ISC_R_SUCCESS);
 
