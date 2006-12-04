@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.466 2006/07/24 05:51:22 marka Exp $ */
+/* $Id: server.c,v 1.467 2006/12/04 01:52:45 marka Exp $ */
 
 /*! \file */
 
@@ -60,6 +60,7 @@
 #include <dns/order.h>
 #include <dns/peer.h>
 #include <dns/portlist.h>
+#include <dns/rbt.h>
 #include <dns/rdataclass.h>
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
@@ -68,6 +69,7 @@
 #include <dns/secalg.h>
 #include <dns/stats.h>
 #include <dns/tkey.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -4684,6 +4686,235 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	if (n >= isc_buffer_availablelength(text))
 		return (ISC_R_NOSPACE);
 	isc_buffer_add(text, n);
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+delete_keynames(dns_tsig_keyring_t *ring, char *target,
+		unsigned int *foundkeys)
+{
+	char namestr[DNS_NAME_FORMATSIZE];
+	isc_result_t result;
+	dns_rbtnodechain_t chain;
+	dns_name_t foundname;
+	dns_fixedname_t fixedorigin;
+	dns_name_t *origin;
+	dns_rbtnode_t *node;
+	dns_tsigkey_t *tkey;
+
+	dns_name_init(&foundname, NULL);
+	dns_fixedname_init(&fixedorigin);
+	origin = dns_fixedname_name(&fixedorigin);
+
+ again:
+	dns_rbtnodechain_init(&chain, ring->mctx);
+	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
+					origin);
+	if (result == ISC_R_NOTFOUND) {
+		dns_rbtnodechain_invalidate(&chain);
+		return (ISC_R_SUCCESS);
+	}
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		dns_rbtnodechain_invalidate(&chain);
+		return (result);
+	}
+
+	for (;;) {
+		node = NULL;
+		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		tkey = node->data;
+			
+		if (tkey != NULL) {
+			if (!tkey->generated)
+				goto nextkey;
+
+			dns_name_format(&tkey->name, namestr, sizeof(namestr));
+			if (strcmp(namestr, target) == 0) {
+				(*foundkeys)++;
+				dns_rbtnodechain_invalidate(&chain);
+				(void)dns_rbt_deletename(ring->keys,
+							 &tkey->name,
+							 ISC_FALSE);
+				goto again;
+			}
+		}
+
+	nextkey:
+		result = dns_rbtnodechain_next(&chain, &foundname, origin);
+		if (result == ISC_R_NOMORE)
+			break;
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+			dns_rbtnodechain_invalidate(&chain);
+			return (result);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text) {
+	isc_result_t result;
+	unsigned int n;
+	dns_view_t *view;
+	unsigned int foundkeys = 0;
+	char *target;
+	char *viewname;
+
+	(void)next_token(&command, " \t");  /* skip command name */
+	target = next_token(&command, " \t");
+	if (target == NULL)
+		return (ISC_R_UNEXPECTEDEND);
+	viewname = next_token(&command, " \t");
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		if (viewname == NULL || strcmp(view->name, viewname) == 0) {
+			RWLOCK(&view->dynamickeys->lock, isc_rwlocktype_write);
+			result = delete_keynames(view->dynamickeys, target,
+						 &foundkeys);
+			RWUNLOCK(&view->dynamickeys->lock,
+				 isc_rwlocktype_write);
+			if (result != ISC_R_SUCCESS) {
+				isc_task_endexclusive(server->task);
+				return (result);
+			}
+		}
+	}
+	isc_task_endexclusive(server->task);
+
+	n = snprintf((char *)isc_buffer_used(text),
+		     isc_buffer_availablelength(text),
+		     "%d tsig keys deleted.\n", foundkeys);
+	if (n >= isc_buffer_availablelength(text)) {
+		isc_task_endexclusive(server->task);
+		return (ISC_R_NOSPACE);
+	}
+	isc_buffer_add(text, n);
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t *text,
+	     unsigned int *foundkeys)
+{
+	char namestr[DNS_NAME_FORMATSIZE];
+	char creatorstr[DNS_NAME_FORMATSIZE];
+	isc_result_t result;
+	dns_rbtnodechain_t chain;
+	dns_name_t foundname;
+	dns_fixedname_t fixedorigin;
+	dns_name_t *origin;
+	dns_rbtnode_t *node;
+	dns_tsigkey_t *tkey;
+	unsigned int n;
+	const char *viewname;
+
+	if (view != NULL)
+		viewname = view->name;
+	else
+		viewname = "(global)";
+
+	dns_name_init(&foundname, NULL);
+	dns_fixedname_init(&fixedorigin);
+	origin = dns_fixedname_name(&fixedorigin);
+	dns_rbtnodechain_init(&chain, ring->mctx);
+	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
+					origin);
+	if (result == ISC_R_NOTFOUND) {
+		dns_rbtnodechain_invalidate(&chain);
+		return (ISC_R_SUCCESS);
+	}
+	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+		dns_rbtnodechain_invalidate(&chain);
+		return (result);
+	}
+
+	for (;;) {
+		node = NULL;
+		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		tkey = node->data;
+			
+		if (tkey != NULL) {
+			(*foundkeys)++;
+			dns_name_format(&tkey->name, namestr, sizeof(namestr));
+			if (tkey->generated) {
+				dns_name_format(tkey->creator, creatorstr,
+						sizeof(creatorstr));
+				n = snprintf((char *)isc_buffer_used(text),
+					     isc_buffer_availablelength(text),
+					     "view \"%s\"; type \"dynamic\"; key \"%s\"; creator \"%s\";\n",
+					     viewname, namestr, creatorstr);
+			} else {
+				n = snprintf((char *)isc_buffer_used(text),
+					     isc_buffer_availablelength(text),
+					     "view \"%s\"; type \"static\"; key \"%s\";\n",
+					     viewname, namestr);
+			}
+			if (n >= isc_buffer_availablelength(text)) {
+				dns_rbtnodechain_invalidate(&chain);
+				return (ISC_R_NOSPACE);
+			}
+			isc_buffer_add(text, n);
+		}
+		result = dns_rbtnodechain_next(&chain, &foundname, origin);
+		if (result == ISC_R_NOMORE)
+			break;
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
+			dns_rbtnodechain_invalidate(&chain);
+			return (result);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text) {
+	isc_result_t result;
+	unsigned int n;
+	dns_view_t *view;
+	unsigned int foundkeys = 0;
+
+	result = isc_task_beginexclusive(server->task);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	for (view = ISC_LIST_HEAD(server->viewlist);
+	     view != NULL;
+	     view = ISC_LIST_NEXT(view, link)) {
+		RWLOCK(&view->statickeys->lock, isc_rwlocktype_read);
+		result = list_keynames(view, view->statickeys, text,
+				       &foundkeys);
+		RWUNLOCK(&view->statickeys->lock, isc_rwlocktype_read);
+		if (result != ISC_R_SUCCESS) {
+			isc_task_endexclusive(server->task);
+			return (result);
+		}
+		RWLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
+		result = list_keynames(view, view->dynamickeys, text,
+				       &foundkeys);
+		RWUNLOCK(&view->dynamickeys->lock, isc_rwlocktype_read);
+		if (result != ISC_R_SUCCESS) {
+			isc_task_endexclusive(server->task);
+			return (result);
+		}
+	}
+	isc_task_endexclusive(server->task);
+
+	if (foundkeys == 0) {
+		n = snprintf((char *)isc_buffer_used(text),
+			     isc_buffer_availablelength(text),
+			     "no tsig keys found.\n");
+		if (n >= isc_buffer_availablelength(text)) {
+			isc_task_endexclusive(server->task);
+			return (ISC_R_NOSPACE);
+		}
+		isc_buffer_add(text, n);
+	}
+
 	return (ISC_R_SUCCESS);
 }
 

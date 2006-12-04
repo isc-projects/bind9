@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: platform.h.in,v 1.39 2005/06/16 21:57:59 jinmei Exp $ */
+/* $Id: platform.h.in,v 1.40 2006/12/04 01:52:46 marka Exp $ */
 
 #ifndef ISC_PLATFORM_H
 #define ISC_PLATFORM_H 1
@@ -104,19 +104,21 @@
 @ISC_PLATFORM_NEEDPORTT@
 
 /*! \brief
- * If the system needs strsep(), ISC_PLATFORM_NEEDSTRSEP will be defined.
+ * Define if the system has struct lifconf which is a extended struct ifconf
+ * for IPv6.
  */
-@ISC_PLATFORM_NEEDSTRSEP@
-
+@ISC_PLATFORM_HAVELIFCONF@
+ 
 /*! \brief
- * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
+ * Define if the system has struct if_laddrconf which is a extended struct
+ * ifconf for IPv6.
  */
-@ISC_PLATFORM_NEEDSTRLCPY@
-
+@ISC_PLATFORM_HAVEIF_LADDRCONF@
+ 
 /*! \brief
- * If the system needs strlcat(), ISC_PLATFORM_NEEDSTRLCAT will be defined.
+ * Define if the system has struct if_laddrreq.
  */
-@ISC_PLATFORM_NEEDSTRLCAT@
+@ISC_PLATFORM_HAVEIF_LADDRREQ@
 
 /*! \brief
  * Define either ISC_PLATFORM_BSD44MSGHDR or ISC_PLATFORM_BSD43MSGHDR.
@@ -124,10 +126,9 @@
 @ISC_PLATFORM_MSGHDRFLAVOR@
 
 /*! \brief
- * Define if PTHREAD_ONCE_INIT should be surrounded by braces to
- * prevent compiler warnings (such as with gcc on Solaris 2.8).
+ * Define if the system supports if_nametoindex.
  */
-@ISC_PLATFORM_BRACEPTHREADONCEINIT@
+@ISC_PLATFORM_HAVEIFNAMETOINDEX@
 
 /*! \brief
  * Define on some UnixWare systems to fix erroneous definitions of various
@@ -155,62 +156,74 @@
  */
 @ISC_PLATFORM_QUADFORMAT@
 
-/*! \brief
+/***
+ *** String functions.
+ ***/
+/*
+ * If the system needs strsep(), ISC_PLATFORM_NEEDSTRSEP will be defined.
+ */
+@ISC_PLATFORM_NEEDSTRSEP@
+
+/*
+ * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
+ */
+@ISC_PLATFORM_NEEDSTRLCPY@
+ 
+/*
+ * If the system needs strlcat(), ISC_PLATFORM_NEEDSTRLCAT will be defined.
+ */
+@ISC_PLATFORM_NEEDSTRLCAT@
+ 
+/*
+ * Define if this system needs strtoul.
+ */
+@ISC_PLATFORM_NEEDSTRTOUL@
+ 
+/*
+ * Define if this system needs memmove.
+ */
+@ISC_PLATFORM_NEEDMEMMOVE@
+
+/***
+ *** Miscellaneous.
+ ***/
+ 
+/*
  * Defined if we are using threads.
  */
 @ISC_PLATFORM_USETHREADS@
-
-/*! \brief
+ 
+/*
  * Defined if unistd.h does not cause fd_set to be delared.
  */
 @ISC_PLATFORM_NEEDSYSSELECTH@
-
-/*! \brief
+ 
+/*
+ * Defined to <gssapi.h> or <gssapi/gssapi.h> for how to include
+ * the GSSAPI header.
+ */
+@ISC_PLATFORM_GSSAPIHEADER@
+ 
+/*
  * Type used for resource limits.
  */
 @ISC_PLATFORM_RLIMITTYPE@
-
-/*! \brief
+ 
+/*
  * Define if your compiler supports "long long int".
  */
 @ISC_PLATFORM_HAVELONGLONG@
 
-/*! \brief
- * Define if the system has struct lifconf which is a extended struct ifconf
- * for IPv6.
+/*
+ * Define if PTHREAD_ONCE_INIT should be surrounded by braces to
+ * prevent compiler warnings (such as with gcc on Solaris 2.8).
  */
-@ISC_PLATFORM_HAVELIFCONF@
+@ISC_PLATFORM_BRACEPTHREADONCEINIT@
 
-/*! \brief
- * Define if the system has struct if_laddrconf which is a extended struct
- * ifconf for IPv6.
- */
-@ISC_PLATFORM_HAVEIF_LADDRCONF@
-
-/*! \brief
- * Define if the system has struct if_laddrreq.
- */
-@ISC_PLATFORM_HAVEIF_LADDRREQ@
-
-/*! \brief
+/*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 @ISC_PLATFORM_USEDECLSPEC@
-
-/*! \brief
- * Define if the system supports if_nametoindex.
- */
-@ISC_PLATFORM_HAVEIFNAMETOINDEX@
-
-/*! \brief
- * Define if this system needs strtoul.
- */
-@ISC_PLATFORM_NEEDSTRTOUL@
-
-/*! \brief
- * Define if this system needs memmove.
- */
-@ISC_PLATFORM_NEEDMEMMOVE@
 
 /*
  * Define if the platform has <sys/un.h>.
@@ -249,6 +262,10 @@
  * Define if the standard __asm function must be used.
  */
 @ISC_PLATFORM_USESTDASM@
+
+/***
+ ***	Windows dll support.
+ ***/
 
 #ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA

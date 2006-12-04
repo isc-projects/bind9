@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.45 2005/04/29 00:23:34 marka Exp $ */
+/* $Id: buffer.h,v 1.46 2006/12/04 01:52:46 marka Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -539,6 +539,42 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  *\li	The used pointer in 'b' is advanced by 4.
  */
 
+isc_uint64_t
+isc_buffer_getuint48(isc_buffer_t *b);
+/*!<
+ * \brief Read an unsigned 48-bit integer in network byte order from 'b',
+ * convert it to host byte order, and return it.
+ *
+ * Requires:
+ *
+ *\li	'b' is a valid buffer.
+ *
+ *\li	The length of the available region of 'b' is at least 6.
+ *
+ * Ensures:
+ *
+ *\li	The current pointer in 'b' is advanced by 6.
+ *
+ * Returns:
+ *
+ *\li	A 48-bit unsigned integer (stored in a 64-bit integer).
+ */
+
+void
+isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val);
+/*!<
+ * \brief Store an unsigned 48-bit integer in host byte order from 'val'
+ * into 'b' in network byte order.
+ *
+ * Requires:
+ *\li	'b' is a valid buffer.
+ *
+ *\li	The length of the unused region of 'b' is at least 6.
+ *
+ * Ensures:
+ *\li	The used pointer in 'b' is advanced by 6.
+ */
+
 void
 isc__buffer_putmem(isc_buffer_t *b, const unsigned char *base,
 		   unsigned int length);
@@ -807,5 +843,10 @@ ISC_LANG_ENDDECLS
 #define isc_buffer_putuint16		isc__buffer_putuint16
 #define isc_buffer_putuint32		isc__buffer_putuint32
 #endif
+
+/*
+ * No inline method for this one (yet).
+ */
+#define isc_buffer_putuint48		isc__buffer_putuint48
 
 #endif /* ISC_BUFFER_H */

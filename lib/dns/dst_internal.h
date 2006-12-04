@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dst_internal.h,v 1.5 2006/01/27 23:57:46 marka Exp $ */
+/* $Id: dst_internal.h,v 1.6 2006/12/04 01:52:46 marka Exp $ */
 
 #ifndef DST_DST_INTERNAL_H
 #define DST_DST_INTERNAL_H 1
@@ -27,8 +27,20 @@
 #include <isc/magic.h>
 #include <isc/region.h>
 #include <isc/types.h>
+#include <isc/md5.h>
+#include <isc/sha1.h>
+#include <isc/hmacmd5.h>
+#include <isc/hmacsha.h>
 
 #include <dst/dst.h>
+
+#ifdef OPENSSL
+#include <openssl/dh.h>
+#include <openssl/dsa.h>
+#include <openssl/err.h>
+#include <openssl/objects.h>
+#include <openssl/rsa.h>
+#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -46,6 +58,13 @@ extern isc_mem_t *dst__memory_pool;
 
 typedef struct dst_func dst_func_t;
 
+typedef struct dst_hmacmd5_key    dst_hmacmd5_key_t;
+typedef struct dst_hmacsha1_key   dst_hmacsha1_key_t;
+typedef struct dst_hmacsha224_key dst_hmacsha224_key_t;
+typedef struct dst_hmacsha256_key dst_hmacsha256_key_t;
+typedef struct dst_hmacsha384_key dst_hmacsha384_key_t;
+typedef struct dst_hmacsha512_key dst_hmacsha512_key_t;
+
 /*% DST Key Structure */
 struct dst_key {
 	unsigned int	magic;
@@ -58,7 +77,22 @@ struct dst_key {
 	isc_uint16_t	key_bits;	/*%< hmac digest bits */
 	dns_rdataclass_t key_class;	/*%< class of the key record */
 	isc_mem_t	*mctx;		/*%< memory context */
-	void *		opaque;		/*%< pointer to key in crypto pkg fmt */
+	union {
+		void *generic;
+		gss_ctx_id_t gssctx;
+#ifdef OPENSSL
+		RSA *rsa;
+		DSA *dsa;
+		DH *dh;
+#endif
+		dst_hmacmd5_key_t *hmacmd5;
+		dst_hmacsha1_key_t *hmacsha1;
+		dst_hmacsha224_key_t *hmacsha224;
+		dst_hmacsha256_key_t *hmacsha256;
+		dst_hmacsha384_key_t *hmacsha384;
+		dst_hmacsha512_key_t *hmacsha512;
+		
+	} keydata;			/*%< pointer to key in crypto pkg fmt */
 	dst_func_t *	func;		/*%< crypto package specific functions */
 };
 
@@ -66,7 +100,18 @@ struct dst_context {
 	unsigned int magic;
 	dst_key_t *key;
 	isc_mem_t *mctx;
-	void *opaque;
+	union {
+		void *generic;
+		dst_gssapi_signverifyctx_t *gssctx;
+		isc_md5_t *md5ctx;
+		isc_sha1_t *sha1ctx;
+		isc_hmacmd5_t *hmacmd5ctx;
+		isc_hmacsha1_t *hmacsha1ctx;
+		isc_hmacsha224_t *hmacsha224ctx;
+		isc_hmacsha256_t *hmacsha256ctx;
+		isc_hmacsha384_t *hmacsha384ctx;
+		isc_hmacsha512_t *hmacsha512ctx;
+	} ctxdata;
 };
 
 struct dst_func {
@@ -135,6 +180,11 @@ void * dst__mem_realloc(void *ptr, size_t size);
  */
 isc_result_t dst__entropy_getdata(void *buf, unsigned int len,
 				  isc_boolean_t pseudo);
+
+/*
+ * Entropy status hook.
+ */
+unsigned int dst__entropy_status(void);
 
 ISC_LANG_ENDDECLS
 

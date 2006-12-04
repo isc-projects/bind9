@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.57 2006/01/06 00:01:44 marka Exp $
+# $Id: rules.in,v 1.58 2006/12/04 01:52:46 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -150,20 +150,38 @@ depend:
 			(cd $$i; ${MAKE} ${MAKEDEFS} DESTDIR="${DESTDIR}" $@) || exit 1; \
 		fi; \
 	done
-	@if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
-		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
-		${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
-		echo ${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
-		${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
-		${DEPENDEXTRA} \
-	elif [ X"${SRCS}" != X ] ; then \
-		echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
-		${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
-		${DEPENDEXTRA} \
-	elif [ X"${PSRCS}" != X ] ; then \
-		echo ${MKDEP} ${ALL_CPPFLAGS} ${PSRCS}; \
-		${MKDEP} -p ${ALL_CPPFLAGS} ${PSRCS}; \
-		${DEPENDEXTRA} \
+	@if [ X"${VPATH}" != X ] ; then \
+		if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
+			echo ${MKDEP} -vpath ${VPATH} ${ALL_CPPFLAGS} ${SRCS}; \
+			${MKDEP} -vpath ${VPATH} ${ALL_CPPFLAGS} ${SRCS}; \
+			echo ${MKDEP} -vpath ${VPATH} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+			${MKDEP} -vpath ${VPATH} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+			${DEPENDEXTRA} \
+		elif [ X"${SRCS}" != X ] ; then \
+			echo ${MKDEP} -vpath ${VPATH} ${ALL_CPPFLAGS} ${SRCS}; \
+			${MKDEP} -vpath ${VPATH} ${ALL_CPPFLAGS} ${SRCS}; \
+			${DEPENDEXTRA} \
+		elif [ X"${PSRCS}" != X ] ; then \
+			echo ${MKDEP} -vpath ${VPATH} ${ALL_CPPFLAGS} ${PSRCS}; \
+			${MKDEP} -vpath ${VPATH} -p ${ALL_CPPFLAGS} ${PSRCS}; \
+			${DEPENDEXTRA} \
+		fi \
+	else \
+		if [ X"${SRCS}" != X -a X"${PSRCS}" != X ] ; then \
+			echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+			${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+			echo ${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+			${MKDEP} -ap ${ALL_CPPFLAGS} ${PSRCS}; \
+			${DEPENDEXTRA} \
+		elif [ X"${SRCS}" != X ] ; then \
+			echo ${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+			${MKDEP} ${ALL_CPPFLAGS} ${SRCS}; \
+			${DEPENDEXTRA} \
+		elif [ X"${PSRCS}" != X ] ; then \
+			echo ${MKDEP} ${ALL_CPPFLAGS} ${PSRCS}; \
+			${MKDEP} -p ${ALL_CPPFLAGS} ${PSRCS}; \
+			${DEPENDEXTRA} \
+		fi \
 	fi
 
 FORCE:

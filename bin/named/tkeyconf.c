@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkeyconf.c,v 1.26 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: tkeyconf.c,v 1.27 2006/12/04 01:52:45 marka Exp $ */
 
 /*! \file */
 
@@ -42,6 +42,13 @@
 		goto failure; \
 	} while (0)
 
+#include<named/log.h>
+#define LOG(msg) \
+	isc_log_write(ns_g_lctx, \
+	NS_LOGCATEGORY_GENERAL, \
+	NS_LOGMODULE_SERVER, \
+	ISC_LOG_ERROR, \
+	"%s", msg)
 
 isc_result_t
 ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
@@ -100,6 +107,7 @@ ns_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	result = cfg_map_get(options, "tkey-gssapi-credential", &obj);
 	if (result == ISC_R_SUCCESS) {
 		s = cfg_obj_asstring(obj);
+
 		isc_buffer_init(&b, s, strlen(s));
 		isc_buffer_add(&b, strlen(s));
 		dns_fixedname_init(&fname);

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.h,v 1.22 2006/03/09 23:39:00 marka Exp $ */
+/* $Id: control.h,v 1.23 2006/12/04 01:52:45 marka Exp $ */
 
 #ifndef NAMED_CONTROL_H
 #define NAMED_CONTROL_H 1
@@ -47,6 +47,8 @@
 #define NS_COMMAND_FLUSH	"flush"
 #define NS_COMMAND_FLUSHNAME	"flushname"
 #define NS_COMMAND_STATUS	"status"
+#define NS_COMMAND_TSIGLIST	"tsig-list"
+#define NS_COMMAND_TSIGDELETE	"tsig-delete"
 #define NS_COMMAND_FREEZE	"freeze"
 #define NS_COMMAND_UNFREEZE	"unfreeze"
 #define NS_COMMAND_THAW		"thaw"

@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.9 2006/05/23 23:51:05 marka Exp $
+ * $Id: openssl_link.c,v 1.10 2006/12/04 01:52:46 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -49,7 +49,10 @@
 #include <openssl/engine.h>
 #endif
 
+#ifdef OVERRIDE_OPENSSL_RAND
 static RAND_METHOD *rm = NULL;
+#endif
+
 static isc_mutex_t *locks = NULL;
 static int nlocks;
 
@@ -57,7 +60,7 @@ static int nlocks;
 static ENGINE *e;
 #endif
 
-
+#ifdef OVERRIDE_OPENSSL_RAND
 static int
 entropy_get(unsigned char *buf, int num) {
 	isc_result_t result;
@@ -65,6 +68,11 @@ entropy_get(unsigned char *buf, int num) {
 		return (-1);
 	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_FALSE);
 	return (result == ISC_R_SUCCESS ? num : -1);
+}
+
+static int
+entropy_status(void) {
+	return (dst__entropy_status() > 32);
 }
 
 static int
@@ -85,6 +93,7 @@ entropy_add(const void *buf, int num, double entropy) {
 	UNUSED(num);
 	UNUSED(entropy);
 }
+#endif
 
 static void
 lock_callback(int mode, int type, const char *file, int line) {
@@ -149,6 +158,8 @@ dst__openssl_init() {
 		goto cleanup_mutexalloc;
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
+
+#ifdef OVERRIDE_OPENSSL_RAND
 	rm = mem_alloc(sizeof(RAND_METHOD));
 	if (rm == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -159,7 +170,7 @@ dst__openssl_init() {
 	rm->cleanup = NULL;
 	rm->add = entropy_add;
 	rm->pseudorand = entropy_getpseudo;
-	rm->status = NULL;
+	rm->status = entropy_status;
 #ifdef USE_ENGINE
 	e = ENGINE_new();
 	if (e == NULL) {
@@ -170,15 +181,18 @@ dst__openssl_init() {
 	RAND_set_rand_method(rm);
 #else
 	RAND_set_rand_method(rm);
-#endif
+#endif /* USE_ENGINER */
+#endif /* OVERRIDE_OPENSSL_RAND */
 	return (ISC_R_SUCCESS);
 
+#ifdef OVERRIDE_OPENSSL_RAND
 #ifdef USE_ENGINE
  cleanup_rm:
 	mem_free(rm);
 #endif
  cleanup_mutexinit:
 	DESTROYMUTEXBLOCK(locks, nlocks);
+#endif
  cleanup_mutexalloc:
 	mem_free(locks);
 	return (result);
@@ -225,12 +239,14 @@ dst__openssl_destroy() {
 		DESTROYMUTEXBLOCK(locks, nlocks);
 		mem_free(locks);
 	}
+#ifdef OVERRIDE_OPENSSL_RAND
 	if (rm != NULL) {
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
 		RAND_cleanup();
 #endif
 		mem_free(rm);
 	}
+#endif
 }
 
 isc_result_t

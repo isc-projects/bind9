@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: notify.c,v 1.33 2005/04/29 00:22:29 marka Exp $ */
+/* $Id: notify.c,v 1.34 2006/12/04 01:52:45 marka Exp $ */
 
 #include <config.h>
 
@@ -25,6 +25,7 @@
 #include <dns/message.h>
 #include <dns/rdataset.h>
 #include <dns/result.h>
+#include <dns/tsig.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zt.h>
@@ -80,7 +81,7 @@ ns_notify_start(ns_client_t *client) {
 	dns_zone_t *zone = NULL;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char tsigbuf[DNS_NAME_FORMATSIZE + sizeof(": TSIG ''")];
-	dns_name_t *tsigname;
+	dns_tsigkey_t *tsigkey;
 
 	/*
 	 * Interpret the question section.
@@ -119,10 +120,20 @@ ns_notify_start(ns_client_t *client) {
 		goto formerr;
 	}
 
-	tsigname = NULL;
-	if (dns_message_gettsig(request, &tsigname) != NULL) {
-		dns_name_format(tsigname, namebuf, sizeof(namebuf));
-		snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s'", namebuf);
+	tsigkey = dns_message_gettsigkey(request);
+	if (tsigkey != NULL) {
+		dns_name_format(&tsigkey->name, namebuf, sizeof(namebuf));
+
+		if (tsigkey->generated) {
+			char cnamebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(tsigkey->creator, cnamebuf,
+					sizeof(cnamebuf));
+			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s' (%s)",
+				 namebuf, cnamebuf);
+		} else {
+			snprintf(tsigbuf, sizeof(tsigbuf), ": TSIG '%s'",
+				 namebuf);
+		}
 	} else
 		tsigbuf[0] = '\0';
 	dns_name_format(zonename, namebuf, sizeof(namebuf));

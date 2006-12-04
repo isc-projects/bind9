@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.239 2006/07/22 01:00:04 marka Exp $ */
+/* $Id: client.c,v 1.240 2006/12/04 01:52:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1227,6 +1227,7 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 {
 	dns_view_t *view;
 	dns_tsigkey_t *key;
+	dns_name_t *tsig = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 
@@ -1241,7 +1242,6 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
-		dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly)
 			continue;
@@ -1253,14 +1253,14 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 			isc_boolean_t match;
 			isc_result_t result;
 
-			tsig = &mykey->name;
-			result = dns_view_gettsig(view, tsig, &key);
+			result = dns_view_gettsig(view, &mykey->name, &key);
 			if (result != ISC_R_SUCCESS)
 				continue;
 			match = dst_key_compare(mykey->key, key->key);
 			dns_tsigkey_detach(&key);
 			if (!match)
 				continue;
+			tsig = dns_tsigkey_identity(mykey);
 		}
 
 		if (allowed(&netsrc, tsig, view->matchclients) &&
@@ -1590,11 +1590,12 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		    client->message->rdclass == dns_rdataclass_any)
 		{
 			dns_name_t *tsig = NULL;
+
 			sigresult = dns_message_rechecksig(client->message,
 							   view);
 			if (sigresult == ISC_R_SUCCESS)
-				tsig = client->message->tsigname;
-				
+				tsig = dns_tsigkey_identity(client->message->tsigkey);
+
 			if (allowed(&netaddr, tsig, view->matchclients) &&
 			    allowed(&destaddr, tsig, view->matchdestinations) &&
 			    !((client->message->flags & DNS_MESSAGEFLAG_RD)
@@ -1672,12 +1673,28 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		/* There is a signature, but it is bad. */
 		if (dns_message_gettsig(client->message, &name) != NULL) {
 			char namebuf[DNS_NAME_FORMATSIZE];
+			char cnamebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,
-				      "request has invalid signature: "
-				      "TSIG %s: %s (%s)", namebuf,
-				      isc_result_totext(result), tsigrcode);
+			if (client->message->tsigkey->generated) {
+				dns_name_format(client->message->tsigkey->creator,
+						cnamebuf, sizeof(cnamebuf));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_CLIENT,
+					      ISC_LOG_ERROR,
+					      "request has invalid signature: "
+					      "TSIG %s (%s): %s (%s)", namebuf,
+					      cnamebuf,
+					      isc_result_totext(result),
+					      tsigrcode);
+			} else {
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_CLIENT,
+					      ISC_LOG_ERROR,
+					      "request has invalid signature: "
+					      "TSIG %s: %s (%s)", namebuf,
+					      isc_result_totext(result),
+					      tsigrcode);
+			}
 		} else {
 			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 				      NS_LOGMODULE_CLIENT, ISC_LOG_ERROR,

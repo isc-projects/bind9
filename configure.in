@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.418 $)
+AC_REVISION($Revision: 1.419 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -112,18 +112,18 @@ AC_SUBST(PERL)
 # ./configure --prefix=/usr/local
 #
 case "$prefix" in
-        NONE)
-                case "$sysconfdir" in
-                        '${prefix}/etc')
-                                sysconfdir=/etc
-                                ;;
-                esac
-                case "$localstatedir" in
-                        '${prefix}/var')
-                                localstatedir=/var
-                                ;;
-                esac
-                ;;
+	NONE)
+		case "$sysconfdir" in
+			'${prefix}/etc')
+				sysconfdir=/etc
+				;;
+		esac
+		case "$localstatedir" in
+			'${prefix}/var')
+				localstatedir=/var
+				;;
+		esac
+		;;
 esac
 
 #
@@ -136,20 +136,20 @@ esac
 #
 case "$INSTALL" in
 	/*)
-                ;;
-        *)
-                #
-                # Not all systems have dirname.
-                #
-                changequote({, })
-                ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
-                changequote([, ])
+		;;
+	*)
+		#
+		# Not all systems have dirname.
+		#
+		changequote({, })
+		ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
+		changequote([, ])
 
-                ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
-                test "$ac_dir" = "$ac_prog" && ac_dir=.
-                test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
-                INSTALL="$ac_dir/$ac_prog"
-                ;;
+		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
+		test "$ac_dir" = "$ac_prog" && ac_dir=.
+		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
+		INSTALL="$ac_dir/$ac_prog"
+		;;
 esac
 
 #
@@ -166,12 +166,12 @@ if test "X$CC" = "X" ; then
 			CC="cc"
 			;;
 		*-solaris*)
-                        # Use Sun's cc if it is available, but watch
-                        # out for /usr/ucb/cc; it will never be the right
-                        # compiler to use.
-                        #
-                        # If setting CC here fails, the AC_PROG_CC done
-                        # below might still find gcc.
+			# Use Sun's cc if it is available, but watch
+			# out for /usr/ucb/cc; it will never be the right
+			# compiler to use.
+			#
+			# If setting CC here fails, the AC_PROG_CC done
+			# below might still find gcc.
 			IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=":"
 			for ac_dir in $PATH; do
 				test -z "$ac_dir" && ac_dir=.
@@ -265,7 +265,7 @@ AC_TRY_COMPILE(, [
 	],
 	[AC_MSG_RESULT(no)],
 	[AC_MSG_RESULT(yes)
-         AC_DEFINE(inline, )])
+	 AC_DEFINE(inline, )])
 
 AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
@@ -333,7 +333,7 @@ AC_TRY_COMPILE([
 	[AC_MSG_RESULT(no)
 	case $ac_cv_header_sys_select_h in
 	yes)
-         ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
+	 ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	 LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
@@ -345,7 +345,7 @@ AC_TRY_COMPILE([
 no)
 	case $ac_cv_header_sys_select_h in
 	yes)
-             ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
+	     ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
 	     LWRES_PLATFORM_NEEDSYSSELECTH="#define LWRES_PLATFORM_NEEDSYSSELECTH 1"
 		;;
 	no)
@@ -370,7 +370,7 @@ OPENSSL_WARNING=
 AC_MSG_CHECKING(for OpenSSL library)
 AC_ARG_WITH(openssl,
 [  --with-openssl[=PATH]   Build with OpenSSL [yes|no|path].
-                          (Required for DNSSEC)],
+			  (Required for DNSSEC)],
     use_openssl="$withval", use_openssl="auto")
 
 openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
@@ -399,18 +399,18 @@ case "$use_openssl" in
 	*)
 		if test "$use_openssl" = "yes"
 		then
-		    	# User did not specify a path - guess it
+			# User did not specify a path - guess it
 			for d in $openssldirs
 			do
 				if test -f $d/include/openssl/opensslv.h
 				then
-				 	use_openssl=$d
+					use_openssl=$d
 					break
 				fi
 			done
 			if test "$use_openssl" = "yes"
 			then
-			    	AC_MSG_RESULT(not found)
+				AC_MSG_RESULT(not found)
 				AC_MSG_ERROR(
 [OpenSSL was not found in any of $openssldirs; use --with-openssl=/path])
 			fi
@@ -434,7 +434,7 @@ case "$use_openssl" in
 				;;
 			esac
 		fi
-		AC_MSG_RESULT(using openssl from $use_openssl/lib and $use_openssl/include)
+		AC_MSG_RESULT(using OpenSSL from $use_openssl/lib and $use_openssl/include)
 
 		saved_cflags="$CFLAGS"
 		saved_libs="$LIBS"
@@ -448,7 +448,7 @@ int main() {
 	return (0);
 }
 ],
-	        [AC_MSG_RESULT(yes)],
+		[AC_MSG_RESULT(yes)],
 		[AC_MSG_RESULT(no)
 		 AC_MSG_ERROR(Could not run test program using OpenSSL from
 $use_openssl/lib and $use_openssl/include.
@@ -487,7 +487,7 @@ shared library configuration (e.g., LD_LIBRARY_PATH).)],
 
 AC_ARG_ENABLE(openssl-version-check,
 [AC_HELP_STRING([--enable-openssl-version-check],
-        [Check OpenSSL Version @<:@default=yes@:>@])])
+	[Check OpenSSL Version @<:@default=yes@:>@])])
 case "$enable_openssl_version_check" in
 yes|'')
 		AC_MSG_CHECKING(OpenSSL library version)
@@ -495,20 +495,20 @@ yes|'')
 #include <stdio.h>
 #include <openssl/opensslv.h>
 int main() {
-        if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
+	if ((OPENSSL_VERSION_NUMBER >= 0x009070cfL &&
 	     OPENSSL_VERSION_NUMBER < 0x00908000L) ||
 	     OPENSSL_VERSION_NUMBER >= 0x0090804fL)
-                return (0);
+		return (0);
 	printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
 		OPENSSL_VERSION_NUMBER);
 	printf("Require OPENSSL_VERSION_NUMBER 0x009070cf or greater (0.9.7l)\n"
 	       "Require OPENSSL_VERSION_NUMBER 0x0090804f or greater (0.9.8d)\n\n");
-        return (1);
+	return (1);
 }
 		],
-	        [AC_MSG_RESULT(ok)],
+		[AC_MSG_RESULT(ok)],
 		[AC_MSG_RESULT(not compatible)
-                 OPENSSL_WARNING=yes
+		 OPENSSL_WARNING=yes
 		],
 		[AC_MSG_RESULT(assuming target platform has compatible version)])
 ;;
@@ -539,39 +539,150 @@ AC_SUBST(USE_OPENSSL)
 AC_SUBST(DST_OPENSSL_INC)
 DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_OPENSSL_LIBS"
 
-#
-# was --with-gssapi specified?
-#
-#AC_MSG_CHECKING(for GSSAPI library)
-#AC_ARG_WITH(gssapi,
-#[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
-#    use_gssapi="$withval", use_gssapi="no")
-#
-#case "$use_gssapi" in
-#	no)
-#		USE_GSSAPI=''
-#		DST_GSSAPI_INC=''
-#		DNS_GSSAPI_LIBS=''
-#		AC_MSG_RESULT(not specified)
-#		;;
-#	yes)
-#		AC_MSG_ERROR([--with-gssapi must specify a path])
-#		;;
-#	*)
-#		USE_GSSAPI='-DGSSAPI'
-#		DST_GSSAPI_INC="-I$use_gssapi/include"
-#		DNS_GSSAPI_LIBS="-L$use_gssapi/lib -lgssapi_krb5"
-#		AC_MSG_RESULT(using gssapi from $use_gssapi/lib and $use_gssapi/include)
-#		;;
-#esac
+AC_MSG_CHECKING(for GSSAPI library)
+AC_ARG_WITH(gssapi,
+[  --with-gssapi=PATH   Specify path for system-supplied GSSAPI],
+    use_gssapi="$withval", use_gssapi="no")
 
-USE_GSSAPI=''
-DST_GSSAPI_INC=''
-DNS_GSSAPI_LIBS=''
+gssapidirs="/usr/local /usr/pkg /usr/kerberos /usr"
+if test "$use_gssapi" = "yes"
+then
+	for d in $gssapidirs
+	do
+		if test -f $d/include/gssapi/gssapi.h -o -f $d/gssapi.h
+		then
+			use_gssapi=$d
+			break
+		fi
+	done
+fi
+
+case "$use_gssapi" in
+	no)
+		AC_MSG_RESULT(disabled)
+		USE_GSSAPI=''
+		;;
+	yes)
+		AC_MSG_ERROR([--with-gssapi must specify a path])
+		;;
+	*)
+		AC_MSG_RESULT(looking in $use_gssapi/lib)
+		USE_GSSAPI='-DGSSAPI'
+		saved_cppflags="$CPPFLAGS"
+		CPPFLAGS="-I$use_gssapi/include $CPPFLAGS"
+		AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
+		    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
+
+		if test "$ISC_PLATFORM_GSSAPIHEADER" = ""; then
+		    AC_MSG_ERROR([gssapi.h not found])
+		fi
+
+		CPPFLAGS="$saved_cppflags"
+
+		#
+		# XXXDCL This probably doesn't work right on all systems.
+		# It will need to be worked on as problems become evident.
+		#
+		# Essentially the problems here relate to two different
+		# areas.  The first area is building with either KTH
+		# or MIT Kerberos, particularly when both are present on
+		# the machine.  The other is static versus dynamic linking.
+		#
+		# On the KTH vs MIT issue, Both have libkrb5 that can mess
+		# up the works if one implementation ends up trying to
+		# use the other's krb.  This is unfortunately a situation
+		# that very easily arises.
+		#
+		# Dynamic linking when the dependency information is built
+		# into MIT's libgssapi_krb5 or KTH's libgssapi magically makes
+		# all such problems go away, but when that setup is not
+		# present, because either the dynamic libraries lack
+		# dependencies or static linking is being done, then the
+		# problems start to show up.
+		saved_libs="$LIBS"
+		for TRY_LIBS in \
+		    "-lgssapi_krb5" \
+		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err" \
+		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err -lresolv" \
+		    "-lgssapi" \
+		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgssapi -lkrb5 -lcrypto -lcrypt -lasn1 -lroken -lcom_err" \
+		    "-lgss"
+		do
+		    # Note that this does not include $saved_libs, because
+		    # on FreeBSD machines this configure script has added
+		    # -L/usr/local/lib to LIBS, which can make the
+		    # -lgssapi_krb5 test succeed with shared libraries even
+		    # when you are trying to build with KTH in /usr/lib.
+		    LIBS="-L$use_gssapi/lib $TRY_LIBS"
+		    AC_MSG_CHECKING(linking as $TRY_LIBS)
+		    AC_TRY_LINK( , [gss_acquire_cred();],
+				gssapi_linked=yes, gssapi_linked=no)
+		    case $gssapi_linked in
+		    yes) AC_MSG_RESULT(yes); break ;;
+		    no)  AC_MSG_RESULT(no) ;;
+		    esac
+		done
+
+		case $gssapi_linked in
+		no) AC_MSG_ERROR(could not determine proper GSSAPI linkage) ;;
+		esac
+
+		#
+		# XXXDCL Major kludge.  Tries to cope with KTH in /usr/lib
+		# but MIT in /usr/local/lib and trying to build with KTH.
+		# /usr/local/lib can end up earlier on the link lines.
+		# Like most kludges, this one is not only inelegant it
+		# is also likely to be the wrong thing to do at least as
+		# many times as it is the right thing.  Something better
+		# needs to be done.
+		#
+		if test "$use_gssapi" = "/usr" -a \
+			-f /usr/local/lib/libkrb5.a; then
+		    FIX_KTH_VS_MIT=yes
+		fi
+
+		case "$FIX_KTH_VS_MIT" in
+		yes)
+		    case "$enable_static_linking" in
+		    yes) gssapi_lib_suffix=".a"  ;;
+		    *)   gssapi_lib_suffix=".so" ;;
+		    esac
+
+		    for lib in $LIBS; do
+			case $lib in
+			-L*)
+			    ;;
+			-l*)
+			    new_lib=`echo $lib |
+				     sed -e s%^-l%$use_gssapi/lib/lib% \
+					 -e s%$%$gssapi_lib_suffix%`
+			    NEW_LIBS="$NEW_LIBS $new_lib"
+			    ;;
+			*)
+			   AC_MSG_ERROR([KTH vs MIT Kerberos confusion!])
+			    ;;
+			esac
+		    done
+		    LIBS="$NEW_LIBS"
+		    ;;
+		esac
+
+		DST_GSSAPI_INC="-I$use_gssapi/include"
+		DNS_GSSAPI_LIBS="$LIBS"
+
+		AC_MSG_RESULT(using GSSAPI from $use_gssapi/lib and $use_gssapi/include)
+		LIBS="$saved_libs"
+		;;
+esac
+
+AC_SUBST(ISC_PLATFORM_HAVEGSSAPI)
+AC_SUBST(ISC_PLATFORM_GSSAPIHEADER)
 
 AC_SUBST(USE_GSSAPI)
 AC_SUBST(DST_GSSAPI_INC)
-DNS_CRYPTO_LIBS="$DNS_CRYPTO_LIBS $DNS_GSSAPI_LIBS"
+AC_SUBST(DNS_GSSAPI_LIBS)
+DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS $DNS_CRYPTO_LIBS"
 
 #
 # Applications linking with libdns also need to link with these libraries.
@@ -677,7 +788,7 @@ then
 		      AC_CHECK_LIB(pthread, sigwait,
 				   AC_DEFINE(HAVE_SIGWAIT),
 				   AC_CHECK_LIB(pthread, _Psigwait,
-					        AC_DEFINE(HAVE_SIGWAIT),))))
+						AC_DEFINE(HAVE_SIGWAIT),))))
 
 	AC_CHECK_FUNC(pthread_attr_getstacksize,
 		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
@@ -827,9 +938,9 @@ else
 	*-hp-hpux*)
 		CC="$CC -Ae -z"
 		# The version of the C compiler that constantly warns about
-                # 'const' as well as alignment issues is unfortunately not
-                # able to be discerned via the version of the operating
-                # system, nor does cc have a version flag.
+		# 'const' as well as alignment issues is unfortunately not
+		# able to be discerned via the version of the operating
+		# system, nor does cc have a version flag.
 		case "`$CC +W 123 2>&1`" in
 		*Unknown?option*)
 			STD_CWARNINGS="+w1"
@@ -858,7 +969,7 @@ else
 		MKDEPCFLAGS="-xM"
 		;;
 	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-                # UnixWare
+		# UnixWare
 		CC="$CC -w"
 		;;
 	esac
@@ -1106,16 +1217,16 @@ changequote([, ])
 #
 case "$host" in
 *-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-        # UnixWare
+	# UnixWare
 	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
 	LWRES_PLATFORM_NEEDNETINETIN6H="#define LWRES_PLATFORM_NEEDNETINETIN6H 1"
-        ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
+	ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
 	isc_netinetin6_hack="#include <netinet/in6.h>"
 	;;
 *)
 	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
 	LWRES_PLATFORM_NEEDNETINETIN6H="#undef LWRES_PLATFORM_NEEDNETINETIN6H"
-        ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
+	ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
 	isc_netinetin6_hack=""
 	;;
 esac
@@ -1284,17 +1395,17 @@ AC_TRY_RUN([
 #include <arpa/inet.h>
 main() {
 char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
-        [AC_MSG_RESULT(yes)
-        ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
+	[AC_MSG_RESULT(yes)
+	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
 
-        [AC_MSG_RESULT(no)
-        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
-        [AC_MSG_RESULT(assuming inet_ntop needed)
-        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-        ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
+	[AC_MSG_RESULT(no)
+	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
+	[AC_MSG_RESULT(assuming inet_ntop needed)
+	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
+	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
+	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"])
 
 
 # On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
@@ -1310,34 +1421,34 @@ AC_TRY_RUN([
 main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
 			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 : 
 			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }],
-        [AC_MSG_RESULT(yes)
-        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-        [AC_MSG_RESULT(no)
-        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
+	[AC_MSG_RESULT(yes)
+	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
+	[AC_MSG_RESULT(no)
+	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
 	[AC_MSG_RESULT(assuming target platform has working inet_pton)
 	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-        [AC_MSG_RESULT(assuming inet_pton needed)
-        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-        ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
-        [AC_MSG_RESULT(assuming target platform has working inet_pton)
-        ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
+	[AC_MSG_RESULT(assuming inet_pton needed)
+	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
+	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
+	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
+	[AC_MSG_RESULT(assuming target platform has working inet_pton)
+	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"])
 
 AC_MSG_CHECKING([for inet_aton])
 AC_TRY_LINK([
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>],
-        [struct in_addr in; inet_aton(0, &in); return (0);],
-        [AC_MSG_RESULT(yes)
-        ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
+	[struct in_addr in; inet_aton(0, &in); return (0);],
+	[AC_MSG_RESULT(yes)
+	ISC_PLATFORM_NEEDATON="#undef ISC_PLATFORM_NEEDATON"],
 
-        [AC_MSG_RESULT(no)
-        ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
-        ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
-        ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"])
+	[AC_MSG_RESULT(no)
+	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_aton.$O"
+	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_aton.c"
+	ISC_PLATFORM_NEEDATON="#define ISC_PLATFORM_NEEDATON 1"])
 
 AC_SUBST(ISC_PLATFORM_NEEDNTOP)
 AC_SUBST(ISC_PLATFORM_NEEDPTON)
@@ -1391,7 +1502,7 @@ AC_TRY_COMPILE([
 [in_port_t port = 25; return (0);],
 	[AC_MSG_RESULT(yes)
 	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"],
-        [AC_MSG_RESULT(no)
+	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"])
 AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
@@ -1495,15 +1606,15 @@ AC_TRY_COMPILE([
 AC_SUBST(ISC_LWRES_NEEDHERRNO)
 
 AC_CHECK_FUNC(getipnodebyname,
-        [ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
-        [ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"])
+	[ISC_LWRES_GETIPNODEPROTO="#undef ISC_LWRES_GETIPNODEPROTO"],
+	[ISC_LWRES_GETIPNODEPROTO="#define ISC_LWRES_GETIPNODEPROTO 1"])
 AC_CHECK_FUNC(getnameinfo,
-        [ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"],
-        [ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"])
+	[ISC_LWRES_GETNAMEINFOPROTO="#undef ISC_LWRES_GETNAMEINFOPROTO"],
+	[ISC_LWRES_GETNAMEINFOPROTO="#define ISC_LWRES_GETNAMEINFOPROTO 1"])
 AC_CHECK_FUNC(getaddrinfo,
-        [ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
+	[ISC_LWRES_GETADDRINFOPROTO="#undef ISC_LWRES_GETADDRINFOPROTO"
 	AC_DEFINE(HAVE_GETADDRINFO)],
-        [ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"])
+	[ISC_LWRES_GETADDRINFOPROTO="#define ISC_LWRES_GETADDRINFOPROTO 1"])
 AC_CHECK_FUNC(gai_strerror, AC_DEFINE(HAVE_GAISTRERROR))
 AC_SUBST(ISC_LWRES_GETIPNODEPROTO)
 AC_SUBST(ISC_LWRES_GETADDRINFOPROTO)
@@ -1511,7 +1622,7 @@ AC_SUBST(ISC_LWRES_GETNAMEINFOPROTO)
 
 AC_ARG_ENABLE(getifaddrs,
 [  --enable-getifaddrs    Enable the use of getifaddrs() [[yes|no|glibc]].
-             glibc: Use getifaddrs() in glibc if you know it supports IPv6.],
+	     glibc: Use getifaddrs() in glibc if you know it supports IPv6.],
     want_getifaddrs="$enableval",  want_getifaddrs="yes")
 
 case $want_getifaddrs in
@@ -1644,6 +1755,32 @@ AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
+
+#
+# Use our own SPNEGO implementation?
+#
+AC_ARG_ENABLE(isc-spnego,
+	[  --disable-isc-spnego		use SPNEGO from GSSAPI library])
+
+if test -n "$USE_GSSAPI"
+then
+	case "$enable_isc_spnego" in
+		yes|'')
+			USE_ISC_SPNEGO='-DUSE_ISC_SPNEGO'
+			DST_EXTRA_OBJS="$DST_EXTRA_OBJS spnego.$O"
+			DST_EXTRA_SRCS="$DST_EXTRA_SRCS spnego.c"
+			AC_MSG_RESULT(using SPNEGO from lib/dns)
+			;;
+		no)
+			AC_MSG_RESULT(using SPNEGO from GSSAPI library)
+			;;
+	esac
+fi
+
+AC_SUBST(USE_ISC_SPNEGO)
+
+AC_SUBST(DST_EXTRA_OBJS)
+AC_SUBST(DST_EXTRA_SRCS)
 
 # Determine the printf format characters to use when printing
 # values of type isc_int64_t. This will normally be "ll", but where
@@ -1883,11 +2020,11 @@ AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
 case $ac_cv_have_if_nametoindex in
 no)
 	case "$host" in
-  	*-hp-hpux*)
-  		AC_CHECK_LIB(ipv6, if_nametoindex,
+	*-hp-hpux*)
+		AC_CHECK_LIB(ipv6, if_nametoindex,
 				ac_cv_have_if_nametoindex=yes
 				LIBS="-lipv6 $LIBS",)
-  	;;
+	;;
 	esac
 esac
 case $ac_cv_have_if_nametoindex in
@@ -1905,7 +2042,7 @@ AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 #
 AC_ARG_ENABLE(atomic,
 	[  --enable-atomic	enable machine specific atomic operations
-                        [[default=autodetect]]],
+			[[default=autodetect]]],
 			enable_atomic="$enableval",
 			enable_atomic="autodetect")
 case "$enable_atomic" in
@@ -1933,7 +2070,7 @@ main() {
 ],
 		[arch=x86_64],
 		[arch=x86_32],
-	        [arch=x86_32])
+		[arch=x86_32])
 	;;
 	x86_64-*)
 		arch=x86_64
@@ -2377,6 +2514,72 @@ else
 	BUILD_LDFLAGS="$LDFLAGS"
 	BUILD_LIBS="$LIBS"
 fi
+
+NEWFLAGS=""
+for e in $BUILD_LDFLAGS ; do
+    case $e in
+	-L*)
+	    case $host_os in
+		netbsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		freebsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		esac
+	    ;;
+	*)
+	    NEWFLAGS="$NEWFLAGS $e"
+	    ;;
+    esac
+done
+BUILD_LDFLAGS="$NEWFLAGS"
+
+NEWFLAGS=""
+for e in $DNS_GSSAPI_LIBS ; do
+    case $e in
+	-L*)
+	    case $host_os in
+		netbsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		freebsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		esac
+	    ;;
+	*)
+	    NEWFLAGS="$NEWFLAGS $e"
+	    ;;
+    esac
+done
+DNS_GSSAPI_LIBS="$NEWFLAGS"
+
+NEWFLAGS=""
+for e in $DNS_CRYPTO_LIBS ; do
+    case $e in
+	-L*)
+	    case $host_os in
+		netbsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		freebsd*)
+		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
+		    NEWFLAGS="$NEWFLAGS $e $ee"
+		    ;;
+		esac
+	    ;;
+	*)
+	    NEWFLAGS="$NEWFLAGS $e"
+	    ;;
+    esac
+done
+DNS_CRYPTO_LIBS="$NEWFLAGS"
 
 AC_SUBST(BUILD_CC)
 AC_SUBST(BUILD_CFLAGS)

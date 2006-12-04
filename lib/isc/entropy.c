@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.14 2005/07/12 01:00:17 marka Exp $ */
+/* $Id: entropy.c,v 1.15 2006/12/04 01:52:46 marka Exp $ */
 
 /*! \file
  * \brief
@@ -1100,6 +1100,17 @@ isc_entropy_stats(isc_entropy_t *ent, FILE *out) {
 	LOCK(&ent->lock);
 	dumpstats(ent, out);
 	UNLOCK(&ent->lock);
+}
+
+unsigned int
+isc_entropy_status(isc_entropy_t *ent) {
+	unsigned int estimate;
+
+	LOCK(&ent->lock);
+	estimate = ent->pool.entropy;
+	UNLOCK(&ent->lock);
+
+	return estimate;
 }
 
 void

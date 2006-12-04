@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.308 2006/09/13 00:15:37 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.309 2006/12/04 01:52:45 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -1619,10 +1619,15 @@ controls {
       </para>
 
       <para>
-        Dynamic update is enabled by
-        including an <command>allow-update</command> or
-        <command>update-policy</command> clause in the
-        <command>zone</command> statement.
+	Dynamic update is enabled by including an
+	<command>allow-update</command> or <command>update-policy</command>
+	clause in the <command>zone</command> statement.  The
+	<command>tkey-gssapi-credential</command> and
+	<command>tkey-domain</command> clauses in the
+	<command>options</command>        statement enable the
+	server to negotiate keys that can be matched against those
+	in <command>update-policy</command> or
+	<command>allow-update</command>.
       </para>
 
       <para>
@@ -2153,15 +2158,16 @@ server 10.1.2.3 {
 allow-update { key host1-host2. ;};
 </programlisting>
 
-        <para>
-          This allows dynamic updates to succeed only if the request
-          was signed by a key named
-          "<command>host1-host2.</command>".
-        </para>
 	<para>
-          You may want to read about the more
-          powerful <command>update-policy</command> statement in <xref linkend="dynamic_update_policies"/>.
-        </para>
+	  This allows dynamic updates to succeed only if the request
+	  was signed by a key named "<command>host1-host2.</command>".
+	</para>
+
+	<para>
+	  You may want to read about the more powerful
+	  <command>update-policy</command> statement in
+	  <xref linkend="dynamic_update_policies"/>.
+	</para>
 
       </sect2>
       <sect2>
@@ -4369,6 +4375,7 @@ category notify { null; };
     <optional> directory <replaceable>path_name</replaceable>; </optional>
     <optional> key-directory <replaceable>path_name</replaceable>; </optional>
     <optional> named-xfer <replaceable>path_name</replaceable>; </optional>
+    <optional> tkey-gssapi-credential <replaceable>principal</replaceable>; </optional>
     <optional> tkey-domain <replaceable>domainname</replaceable>; </optional>
     <optional> tkey-dhkey <replaceable>key_name</replaceable> <replaceable>key_tag</replaceable>; </optional>
     <optional> cache-file <replaceable>path_name</replaceable>; </optional>
@@ -4563,39 +4570,57 @@ category notify { null; };
 
           <varlistentry>
             <term><command>named-xfer</command></term>
-            <listitem>
-              <para>
-                <emphasis>This option is obsolete.</emphasis>
-                It was used in <acronym>BIND</acronym> 8 to
-                specify the pathname to the <command>named-xfer</command> program.
-                In <acronym>BIND</acronym> 9, no separate <command>named-xfer</command> program is
-                needed; its functionality is built into the name server.
-              </para>
+	    <listitem>
+	      <para>
+		<emphasis>This option is obsolete.</emphasis> It
+		was used in <acronym>BIND</acronym> 8 to specify
+		the pathname to the <command>named-xfer</command>
+		program.  In <acronym>BIND</acronym> 9, no separate
+		<command>named-xfer</command> program is needed;
+		its functionality is built into the name server.
+	      </para>
+	    </listitem>
+	  </varlistentry>
 
-            </listitem>
-          </varlistentry>
+	  <varlistentry>
+	    <term><command>tkey-gssapi-credential</command></term>
+	    <listitem>
+	      <para>
+		The security credential with which the server should
+		authenticate keys requested by the GSS-TSIG protocol.
+		Currently only Kerberos 5 authentication is available
+		and the credential is a Kerberos principal which
+		the server can aquire through the default system
+		key file, normally <filename>/etc/krb5.keytab</filename>.
+		Normally this principal is of the form
+		"<userinput>dns/</userinput><varname>server.domain</varname>".
+		To use GSS-TSIG, <command>tkey-domain</command>
+		must also be set.
+	      </para>
+	    </listitem>
+	  </varlistentry>
 
           <varlistentry>
             <term><command>tkey-domain</command></term>
-            <listitem>
-              <para>
-                The domain appended to the names of all
-                shared keys generated with
-                <command>TKEY</command>. When a client
-                requests a <command>TKEY</command> exchange, it
-                may or may not specify
-                the desired name for the key. If present, the name of the
-                shared
-                key will be "<varname>client specified part</varname>" +
-                "<varname>tkey-domain</varname>".
-                Otherwise, the name of the shared key will be "<varname>random hex
-digits</varname>" + "<varname>tkey-domain</varname>". In most cases,
-                the <command>domainname</command> should be the
-                server's domain
-                name.
-              </para>
-            </listitem>
-          </varlistentry>
+	    <listitem>
+	      <para>
+		The domain appended to the names of all shared keys
+		generated with <command>TKEY</command>.  When a
+		client requests a <command>TKEY</command> exchange,
+		it may or may not specify the desired name for the
+		key. If present, the name of the shared key will
+		will be <varname>client specified part</varname> +
+		<varname>tkey-domain</varname>.  Otherwise, the
+		name of the shared key will be <varname>random hex
+		digits</varname> + <varname>tkey-domain</varname>.
+		In most cases, the <command>domainname</command>
+		should be the server's domain name, or an otherwise
+		non-existent subdomain like
+		"_tkey.<varname>domainname</varname>".  If you are
+		using GSS-TSIG, this variable must be defined
+	      </para>
+	    </listitem>
+	  </varlistentry>
 
           <varlistentry>
             <term><command>tkey-dhkey</command></term>
@@ -8886,45 +8911,40 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
           </sect3>
           <sect3 id="dynamic_update_policies">
             <title>Dynamic Update Policies</title>
-            <para>
-              <acronym>BIND</acronym> 9 supports two alternative
-              methods of granting clients
-              the right to perform dynamic updates to a zone,
-              configured by the <command>allow-update</command>
-              and
-              <command>update-policy</command> option,
-              respectively.
-            </para>
-            <para>
-              The <command>allow-update</command> clause works the
-              same
-              way as in previous versions of <acronym>BIND</acronym>. It grants given clients the
-              permission to update any record of any name in the zone.
-            </para>
-            <para>
-              The <command>update-policy</command> clause is new
-              in <acronym>BIND</acronym>
-              9 and allows more fine-grained control over what updates are
-              allowed.
-              A set of rules is specified, where each rule either grants or
-              denies
-              permissions for one or more names to be updated by one or more
-              identities.
-              If the dynamic update request message is signed (that is, it
-              includes
-              either a TSIG or SIG(0) record), the identity of the signer can
-              be determined.
-            </para>
-            <para>
-              Rules are specified in the <command>update-policy</command> zone
-              option, and are only meaningful for master zones.  When the <command>update-policy</command> statement
-              is present, it is a configuration error for the <command>allow-update</command> statement
-              to be present.  The <command>update-policy</command>
-              statement only
-              examines the signer of a message; the source address is not
-              relevant.
-            </para>
-            <para>
+	    <para><acronym>BIND</acronym> 9 supports two alternative
+	      methods of granting clients the right to perform
+	      dynamic updates to a zone, configured by the
+	      <command>allow-update</command> and
+	      <command>update-policy</command> option, respectively.
+	    </para>
+	    <para>
+	      The <command>allow-update</command> clause works the
+	      same way as in previous versions of <acronym>BIND</acronym>.
+	      It grants given clients the permission to update any
+	      record of any name in the zone.
+	    </para>
+	    <para>
+	      The <command>update-policy</command> clause is new
+	      in <acronym>BIND</acronym> 9 and allows more fine-grained
+	      control over what updates are allowed.  A set of rules
+	      is specified, where each rule either grants or denies
+	      permissions for one or more names to be updated by
+	      one or more identities.  If the dynamic update request
+	      message is signed (that is, it includes either a TSIG
+	      or SIG(0) record), the identity of the signer can be
+	      determined.
+	    </para>
+	    <para>
+	      Rules are specified in the <command>update-policy</command>
+	      zone option, and are only meaningful for master zones.
+	      When the <command>update-policy</command> statement
+	      is present, it is a configuration error for the
+	      <command>allow-update</command> statement to be
+	      present.  The <command>update-policy</command> statement
+	      only examines the signer of a message; the source
+	      address is not relevant.
+	    </para>
+
               This is how a rule definition looks:
             </para>
 
@@ -8942,22 +8962,23 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
               matches
               the types specified in the type field.
             </para>
-
-            <para>
-              The identity field specifies a name or a wildcard name.
-              Normally, this
-              is the name of the TSIG or SIG(0) key used to sign the update
-              request.  When a
-              TKEY exchange has been used to create a shared secret, the
-              identity of the
-              shared secret is the same as the identity of the key used to
-              authenticate the
-              TKEY exchange.  When the <replaceable>identity</replaceable> field specifies a
-              wildcard name, it is subject to DNS wildcard expansion, so the
-              rule will apply
-              to multiple identities.  The <replaceable>identity</replaceable> field must
-              contain a fully qualified domain name.
-            </para>
+	    <para>
+	      The identity field specifies a name or a wildcard
+	      name.  Normally, this is the name of the TSIG or
+	      SIG(0) key used to sign the update request.  When a
+	      TKEY exchange has been used to create a shared secret,
+	      the identity of the shared secret is the same as the
+	      identity of the key used to authenticate the TKEY
+	      exchange.  TKEY is also the negotiation method used
+	      by GSS-TSIG, which establishes an identity that is
+	      the Kerberos principal of the client, such as
+	      <userinput>"user@host.domain"</userinput>.  When the
+	      <replaceable>identity</replaceable> field specifies
+	      a wildcard name, it is subject to DNS wildcard
+	      expansion, so the rule will apply to multiple identities.
+	      The <replaceable>identity</replaceable> field must
+	      contain a fully qualified domain name.
+	    </para>
 
             <para>
               The <replaceable>nametype</replaceable> field has 6

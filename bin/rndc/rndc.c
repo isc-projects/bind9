@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rndc.c,v 1.113 2006/08/04 02:55:37 marka Exp $ */
+/* $Id: rndc.c,v 1.114 2006/12/04 01:52:45 marka Exp $ */
 
 /*! \file */
 
@@ -369,7 +369,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	r.base = databuf;
 
 	isccc_ccmsg_init(mctx, sock, &ccmsg);
-	isccc_ccmsg_setmaxsize(&ccmsg, 1024);
+	isccc_ccmsg_setmaxsize(&ccmsg, 1024 * 1024);
 
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
 						    rndc_recvnonce, NULL));

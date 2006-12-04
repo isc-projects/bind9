@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.h,v 1.83 2006/03/09 23:39:00 marka Exp $ */
+/* $Id: server.h,v 1.84 2006/12/04 01:52:45 marka Exp $ */
 
 #ifndef NAMED_SERVER_H
 #define NAMED_SERVER_H 1
@@ -202,6 +202,18 @@ ns_server_flushname(ns_server_t *server, char *args);
  */
 isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text);
+
+/*%
+ * Report a list of dynamic and static tsig keys, per view.
+ */
+isc_result_t
+ns_server_tsiglist(ns_server_t *server, isc_buffer_t *text);
+
+/*%
+ * Delete a specific key (with optional view).
+ */
+isc_result_t
+ns_server_tsigdelete(ns_server_t *server, char *command, isc_buffer_t *text);
 
 /*%
  * Enable or disable updates for a zone.

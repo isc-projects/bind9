@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.42 2005/04/29 00:23:23 marka Exp $ */
+/* $Id: buffer.c,v 1.43 2006/12/04 01:52:46 marka Exp $ */
 
 /*! \file */
 
@@ -316,6 +316,45 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val) {
 	REQUIRE(b->used + 4 <= b->length);
 
 	ISC__BUFFER_PUTUINT32(b, val);
+}
+
+isc_uint64_t
+isc_buffer_getuint48(isc_buffer_t *b) {
+	unsigned char *cp;
+	isc_uint64_t result;
+
+	/*
+	 * Read an unsigned 48-bit integer in network byte order from 'b',
+	 * convert it to host byte order, and return it.
+	 */
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+	REQUIRE(b->used - b->current >= 6);
+
+	cp = isc_buffer_current(b);
+	b->current += 6;
+	result = ((isc_int64_t)(cp[0])) << 40;
+	result |= ((isc_int64_t)(cp[1])) << 32;
+	result |= ((isc_int64_t)(cp[2])) << 24;
+	result |= ((isc_int64_t)(cp[3])) << 16;
+	result |= ((isc_int64_t)(cp[4])) << 8;
+	result |= ((isc_int64_t)(cp[5]));
+
+	return (result);
+}
+
+void
+isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val) {
+	isc_uint16_t valhi;
+	isc_uint32_t vallo;
+
+	REQUIRE(ISC_BUFFER_VALID(b));
+	REQUIRE(b->used + 6 <= b->length);
+
+	valhi = (isc_uint16_t)(val >> 32);
+	vallo = (isc_uint32_t)(val & 0xFFFFFFFF);
+	ISC__BUFFER_PUTUINT16(b, valhi);
+	ISC__BUFFER_PUTUINT32(b, vallo);
 }
 
 void

@@ -686,6 +686,10 @@ SOURCE=..\gssapictx.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\spnego.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\hmac_link.c
 # End Source File
 # Begin Source File

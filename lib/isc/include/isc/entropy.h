@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.27 2005/04/29 00:23:35 marka Exp $ */
+/* $Id: entropy.h,v 1.28 2006/12/04 01:52:46 marka Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -265,6 +265,13 @@ void
 isc_entropy_stats(isc_entropy_t *ent, FILE *out);
 /*!<
  * \brief Dump some (trivial) stats to the stdio stream "out".
+ */
+
+unsigned int
+isc_entropy_status(isc_entropy_t *end);
+/*
+ * Returns the number of bits the pool currently contains.  This is just
+ * an estimate.
  */
 
 isc_result_t

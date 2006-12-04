@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.70 2006/06/04 23:17:07 marka Exp $ */
+/* $Id: namedconf.c,v 1.71 2006/12/04 01:52:46 marka Exp $ */
 
 /*! \file */
 
@@ -258,7 +258,8 @@ static cfg_type_t cfg_type_mode = {
 };
 
 static const char *matchtype_enums[] = {
-	"name", "subdomain", "wildcard", "self", "selfsub", "selfwild", NULL };
+	"name", "subdomain", "wildcard", "self", "selfsub", "selfwild", 
+	"krb5-self", "ms-self", "krb5-subdomain", "ms-subdomain", NULL };
 static cfg_type_t cfg_type_matchtype = {
 	"matchtype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum, &cfg_rep_string,
 	&matchtype_enums

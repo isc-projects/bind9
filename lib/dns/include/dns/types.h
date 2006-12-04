@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.121 2006/05/02 13:04:54 shane Exp $ */
+/* $Id: types.h,v 1.122 2006/12/04 01:52:46 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
@@ -117,6 +117,15 @@ typedef struct dns_zone				dns_zone_t;
 typedef ISC_LIST(dns_zone_t)			dns_zonelist_t;
 typedef struct dns_zonemgr			dns_zonemgr_t;
 typedef struct dns_zt				dns_zt_t;
+
+/*
+ * If we are not using GSSAPI, define the types we use as opaque types here.
+ */
+#ifndef GSSAPI
+typedef struct not_defined_gss_cred_id *gss_cred_id_t;
+typedef struct not_defined_gss_ctx *gss_ctx_id_t;
+#endif
+typedef struct dst_gssapi_signverifyctx dst_gssapi_signverifyctx_t;
 
 typedef enum {
 	dns_fwdpolicy_none = 0,

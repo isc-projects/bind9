@@ -1,6 +1,7 @@
 Makefile
 dst_test
 t_dst
+gsstest
 .libs
 randomfile
 *.lo

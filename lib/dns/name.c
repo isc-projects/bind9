@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.c,v 1.159 2006/02/28 02:39:51 marka Exp $ */
+/* $Id: name.c,v 1.160 2006/12/04 01:52:46 marka Exp $ */
 
 /*! \file */
 
@@ -1297,7 +1297,7 @@ totext_filter_proc_key_init(void) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-        if (!thread_key_initialized) {
+	if (!thread_key_initialized) {
 		LOCK(&thread_key_mutex);
 		if (thread_key_mctx == NULL)
 			result = isc_mem_create2(0, 0, &thread_key_mctx, 0);
@@ -1307,14 +1307,14 @@ totext_filter_proc_key_init(void) {
 		
 		if (!thread_key_initialized &&
 		     isc_thread_key_create(&totext_filter_proc_key,
-					    free_specific) != 0) {
+					   free_specific) != 0) {
 			result = ISC_R_FAILURE;
 			isc_mem_detach(&thread_key_mctx);
 		} else
 			thread_key_initialized = 1;
  unlock:
 		UNLOCK(&thread_key_mutex);
-        }
+	}
 	return (result);
 }
 #endif
@@ -1932,7 +1932,8 @@ dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
 
 	methods = dns_compress_getmethods(cctx);
 
-	if ((methods & DNS_COMPRESS_GLOBAL14) != 0)
+	if ((name->attributes & DNS_NAMEATTR_NOCOMPRESS) == 0 &&
+	    (methods & DNS_COMPRESS_GLOBAL14) != 0)
 		gf = dns_compress_findglobal(cctx, name, &gp, &go);
 	else
 		gf = ISC_FALSE;

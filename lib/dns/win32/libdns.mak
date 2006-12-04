@@ -143,6 +143,7 @@ CLEAN :
 	-@erase "$(INTDIR)\forward.obj"
 	-@erase "$(INTDIR)\gssapi_link.obj"
 	-@erase "$(INTDIR)\gssapictx.obj"
+	-@erase "$(INTDIR)\spnego.obj"
 	-@erase "$(INTDIR)\hmac_link.obj"
 	-@erase "$(INTDIR)\journal.obj"
 	-@erase "$(INTDIR)\key.obj"
@@ -316,6 +317,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dst_result.obj" \
 	"$(INTDIR)\gssapi_link.obj" \
 	"$(INTDIR)\gssapictx.obj" \
+	"$(INTDIR)\spnego.obj" \
 	"$(INTDIR)\hmac_link.obj" \
 	"$(INTDIR)\key.obj" \
 	"$(INTDIR)\openssl_link.obj" \
@@ -399,6 +401,8 @@ CLEAN :
 	-@erase "$(INTDIR)\gssapi_link.sbr"
 	-@erase "$(INTDIR)\gssapictx.obj"
 	-@erase "$(INTDIR)\gssapictx.sbr"
+	-@erase "$(INTDIR)\spnego.obj"
+	-@erase "$(INTDIR)\spnego.sbr"
 	-@erase "$(INTDIR)\hmac_link.obj"
 	-@erase "$(INTDIR)\hmac_link.sbr"
 	-@erase "$(INTDIR)\journal.obj"
@@ -622,6 +626,7 @@ BSC32_SBRS= \
 	"$(INTDIR)\dst_result.sbr" \
 	"$(INTDIR)\gssapi_link.sbr" \
 	"$(INTDIR)\gssapictx.sbr" \
+	"$(INTDIR)\spnego.sbr" \
 	"$(INTDIR)\hmac_link.sbr" \
 	"$(INTDIR)\key.sbr" \
 	"$(INTDIR)\openssl_link.sbr" \
@@ -707,6 +712,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\dst_result.obj" \
 	"$(INTDIR)\gssapi_link.obj" \
 	"$(INTDIR)\gssapictx.obj" \
+	"$(INTDIR)\spnego.obj" \
 	"$(INTDIR)\hmac_link.obj" \
 	"$(INTDIR)\key.obj" \
 	"$(INTDIR)\openssl_link.obj" \
@@ -1954,6 +1960,24 @@ SOURCE=..\gssapictx.c
 
 
 "$(INTDIR)\gssapictx.obj"	"$(INTDIR)\gssapictx.sbr" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ENDIF 
+
+SOURCE=..\spnego.c
+
+!IF  "$(CFG)" == "libdns - Win32 Release"
+
+
+"$(INTDIR)\spnego.obj" : $(SOURCE) "$(INTDIR)"
+	$(CPP) $(CPP_PROJ) $(SOURCE)
+
+
+!ELSEIF  "$(CFG)" == "libdns - Win32 Debug"
+
+
+"$(INTDIR)\spnego.obj"	"$(INTDIR)\spnego.sbr" : $(SOURCE) "$(INTDIR)"
 	$(CPP) $(CPP_PROJ) $(SOURCE)
 
 

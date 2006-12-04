@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.c,v 1.232 2006/03/02 01:57:20 marka Exp $ */
+/* $Id: message.c,v 1.233 2006/12/04 01:52:46 marka Exp $ */
 
 /*! \file */
 
@@ -44,6 +44,35 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 #include <dns/view.h>
+
+#ifdef SKAN_MSG_DEBUG
+static void
+hexdump(const char *msg, const char *msg2, void *base, size_t len) {
+	unsigned char *p;
+	unsigned int cnt;
+
+	p = base;
+	cnt = 0;
+
+	printf("*** %s [%s] (%u bytes @ %p)\n", msg, msg2, len, base);
+
+	while (cnt < len) {
+		if (cnt % 16 == 0)
+			printf("%p: ", p);
+		else if (cnt % 8 == 0)
+			printf(" |");
+		printf(" %02x %c", *p, (isprint(*p) ? *p : ' '));
+		p++;
+		cnt++;
+
+		if (cnt % 16 == 0)
+			printf("\n");
+	}
+
+	if (cnt % 16 != 0)
+		printf("\n");
+}
+#endif
 
 #define DNS_MESSAGE_OPCODE_MASK		0x7800U
 #define DNS_MESSAGE_OPCODE_SHIFT	11
@@ -2891,6 +2920,30 @@ dns_message_rechecksig(dns_message_t *msg, dns_view_t *view) {
 	return (dns_message_checksig(msg, view));
 }
 
+#ifdef SKAN_MSG_DEBUG
+void
+dns_message_dumpsig(dns_message_t *msg, char *txt1) {
+	dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
+	dns_rdata_any_tsig_t querytsig;
+
+	if (msg->tsig != NULL) {
+		dns_rdataset_first(msg->tsig);
+		dns_rdataset_current(msg->tsig, &querytsigrdata);
+		dns_rdata_tostruct(&querytsigrdata, &querytsig, NULL);
+		hexdump(txt1, "TSIG", querytsig.signature,
+			querytsig.siglen);
+	}
+
+	if (msg->querytsig != NULL) {
+		dns_rdataset_first(msg->querytsig);
+		dns_rdataset_current(msg->querytsig, &querytsigrdata);
+		dns_rdata_tostruct(&querytsigrdata, &querytsig, NULL);
+		hexdump(txt1, "QUERYTSIG", querytsig.signature,
+			querytsig.siglen);
+	}
+}
+#endif
+
 isc_result_t
 dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 	isc_buffer_t b, msgb;
@@ -2899,10 +2952,14 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view) {
 
 	if (msg->tsigkey == NULL && msg->tsig == NULL && msg->sig0 == NULL)
 		return (ISC_R_SUCCESS);
+
 	INSIST(msg->saved.base != NULL);
 	isc_buffer_init(&msgb, msg->saved.base, msg->saved.length);
 	isc_buffer_add(&msgb, msg->saved.length);
 	if (msg->tsigkey != NULL || msg->tsig != NULL) {
+#ifdef SKAN_MSG_DEBUG
+		dns_message_dumpsig(msg, "dns_message_checksig#1");
+#endif
 		if (view != NULL)
 			return (dns_view_checksig(view, &msgb, msg));
 		else

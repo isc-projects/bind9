@@ -19,6 +19,7 @@ isc__buffer_putmem
 isc__buffer_putstr
 isc__buffer_putuint16
 isc__buffer_putuint32
+isc__buffer_putuint48
 isc__buffer_putuint8
 isc__buffer_region
 isc__buffer_remainingregion
@@ -85,6 +86,7 @@ isc_entropy_detach
 isc_entropy_getdata
 isc_entropy_putdata
 isc_entropy_stats
+isc_entropy_status
 isc_entropy_stopcallbacksources
 isc_entropy_usebestsource
 isc_error_fatal
