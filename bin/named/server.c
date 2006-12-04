@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.467 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: server.c,v 1.468 2006/12/04 02:38:22 marka Exp $ */
 
 /*! \file */
 
@@ -596,7 +596,7 @@ configure_order(dns_order_t *order, const cfg_obj_t *ent) {
 		return (result);
 
 	obj = cfg_tuple_get(ent, "name");
-	if (cfg_obj_isstring(obj)) 
+	if (cfg_obj_isstring(obj))
 		str = cfg_obj_asstring(obj);
 	else
 		str = "*";
@@ -898,9 +898,9 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	const cfg_obj_t *alternates;
 	const cfg_obj_t *zonelist;
 #ifdef DLZ
- 	const cfg_obj_t *dlz;
- 	unsigned int dlzargc;
- 	char **dlzargv;
+	const cfg_obj_t *dlz;
+	unsigned int dlzargc;
+	char **dlzargv;
 #endif
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj;
@@ -1260,7 +1260,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	(void)ns_config_get(maps, "forward", &forwardtype);
 	(void)ns_config_get(maps, "forwarders", &forwarders);
 	if (forwarders != NULL)
-		CHECK(configure_forward(config, view, dns_rootname, 
+		CHECK(configure_forward(config, view, dns_rootname,
 					forwarders, forwardtype));
 
 	/*
@@ -1280,7 +1280,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	/*
 	 * If we still have no hints, this is a non-IN view with no
 	 * "hints zone" configured.  Issue a warning, except if this
-	 * is a root server.  Root servers never need to consult 
+	 * is a root server.  Root servers never need to consult
 	 * their hints, so it's no point requiring users to configure
 	 * them.
 	 */
@@ -1721,7 +1721,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 						      NS_LOGCATEGORY_GENERAL,
 						      NS_LOGMODULE_SERVER,
 						      ISC_LOG_WARNING,
-					              "Warning%s%s: "
+						      "Warning%s%s: "
 						      "'empty-zones-enable/"
 						      "disable-empty-zone' "
 						      "not set: disabling "
@@ -1762,7 +1762,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 			dns_zone_setclass(zone, view->rdclass);
 			dns_zone_settype(zone, dns_zone_master);
 			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
-					 	 empty_dbtype));
+						 empty_dbtype));
 			if (view->queryacl != NULL)
 				dns_zone_setqueryacl(zone, view->queryacl);
 			dns_zone_setdialup(zone, dns_dialuptype_no);
@@ -2586,7 +2586,7 @@ set_limit(const cfg_obj_t **maps, const char *configname,
 	result = isc_resource_setlimit(resourceid, value);
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      result == ISC_R_SUCCESS ?
-		      	ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
+			ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
 		      "set maximum %s to %" ISC_PRINT_QUADFORMAT "d: %s",
 		      description, value, isc_result_totext(result));
 }
@@ -2627,7 +2627,7 @@ static isc_result_t
 removed(dns_zone_t *zone, void *uap) {
 	const char *type;
 
-        if (dns_zone_getview(zone) != uap)
+	if (dns_zone_getview(zone) != uap)
 		return (ISC_R_SUCCESS);
 
 	switch (dns_zone_gettype(zone)) {
@@ -3418,7 +3418,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 		      ISC_LOG_NOTICE, "running");
 }
 
-void 
+void
 ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush) {
 
 	REQUIRE(NS_SERVER_VALID(server));
@@ -3731,7 +3731,7 @@ ns_add_reserved_dispatch(ns_server_t *server, const isc_sockaddr_t *addr) {
 	result = dns_dispatch_getudp(ns_g_dispatchmgr, ns_g_socketmgr,
 				     ns_g_taskmgr, &dispatch->addr, 4096,
 				     1000, 32768, 16411, 16433,
-				     attrs, attrmask, &dispatch->dispatch); 
+				     attrs, attrmask, &dispatch->dispatch);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -3834,7 +3834,7 @@ next_token(char **stringp, const char *delim) {
 			break;
 	} while (*res == '\0');
 	return (res);
-}                       
+}
 
 /*
  * Find the zone specified in the control channel command 'args',
@@ -4442,7 +4442,7 @@ ns_server_dumpdb(ns_server_t *server, char *args) {
 		dctx->dumpzones = ISC_TRUE;
 		dctx->dumpcache = ISC_FALSE;
 		ptr = next_token(&args, " \t");
-	} 
+	}
 
  nextview:
 	for (view = ISC_LIST_HEAD(server->viewlist);
@@ -4659,7 +4659,16 @@ isc_result_t
 ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 	int zonecount, xferrunning, xferdeferred, soaqueries;
 	unsigned int n;
+	const char *ob = "", *cb = "", *alt = "";
 
+	if (ns_g_server->version_set) {
+		ob = " (";
+		cb = ")";
+		if (ns_g_server->version == NULL)
+			alt = "version.bind/txt/ch disabled";
+		else
+			alt = ns_g_server->version;
+	}
 	zonecount = dns_zonemgr_getcount(server->zonemgr, DNS_ZONESTATE_ANY);
 	xferrunning = dns_zonemgr_getcount(server->zonemgr,
 					   DNS_ZONESTATE_XFERRUNNING);
@@ -4669,6 +4678,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 					  DNS_ZONESTATE_SOAQUERY);
 	n = snprintf((char *)isc_buffer_used(text),
 		     isc_buffer_availablelength(text),
+		     "version: %s%s%s%s\n"
 		     "number of zones: %u\n"
 		     "debug level: %d\n"
 		     "xfers running: %u\n"
@@ -4678,6 +4688,7 @@ ns_server_status(ns_server_t *server, isc_buffer_t *text) {
 		     "recursive clients: %d/%d/%d\n"
 		     "tcp clients: %d/%d\n"
 		     "server is up and running",
+		     ns_g_version, ob, alt, cb,
 		     zonecount, ns_g_debuglevel, xferrunning, xferdeferred,
 		     soaqueries, server->log_queries ? "ON" : "OFF",
 		     server->recursionquota.used, server->recursionquota.soft,
@@ -4940,7 +4951,7 @@ ns_server_freeze(ns_server_t *server, isc_boolean_t freeze, char *args) {
 		result = isc_task_beginexclusive(server->task);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tresult = ISC_R_SUCCESS;
-	        for (view = ISC_LIST_HEAD(server->viewlist);
+		for (view = ISC_LIST_HEAD(server->viewlist);
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link)) {
 			result = dns_view_freezezones(view, freeze);

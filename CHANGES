@@ -1,3 +1,5 @@
+2106.	[func]		'rndc status' now reports named's version. [RT #16426]
+
 2105.	[func]		GSS-TSIG support (RFC 3645).
 
 2104.	[port]		Fix Solaris SMF error message.
