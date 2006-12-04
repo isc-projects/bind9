@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gsstest.c,v 1.2 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: gsstest.c,v 1.3 2006/12/04 05:53:49 marka Exp $ */
 
 #include <config.h>
 
@@ -409,12 +409,13 @@ static void
 setup(void)
 {
 	struct in_addr inaddr;
+	int c;
 
 	while (1) {
 		printf("Server IP => ");
-		scanf("%s", serveraddress);
+		c = scanf("%s", serveraddress);
 
-		if(strcmp(serveraddress, "quit") == 0) {
+		if(c == EOF || strcmp(serveraddress, "quit") == 0) {
 			isc_app_shutdown();
 			return;
 		}
