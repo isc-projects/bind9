@@ -17,7 +17,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: opensslrsa_link.c,v 1.13 2006/12/04 01:52:46 marka Exp $
+ * $Id: opensslrsa_link.c,v 1.14 2006/12/04 02:26:05 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -310,7 +310,7 @@ opensslrsa_generate(dst_key_t *key, int exp) {
 	if (RSA_generate_key_ex(rsa, key->key_size, e, &cb)) {
 		BN_free(e);
 		SET_FLAGS(rsa);
-		key->keydata.opaque = rsa;
+		key->keydata.rsa = rsa;
 		return (ISC_R_SUCCESS);
 	}
 
@@ -332,7 +332,7 @@ err:
 	if (rsa == NULL)
 	       return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	SET_FLAGS(rsa);
-	key->keydata.opaque = rsa;
+	key->keydata.rsa = rsa;
 
 	return (ISC_R_SUCCESS);
 #endif
@@ -340,15 +340,15 @@ err:
 
 static isc_boolean_t
 opensslrsa_isprivate(const dst_key_t *key) {
-	RSA *rsa = (RSA *) key->keydata.opaque;
+	RSA *rsa = (RSA *) key->keydata.rsa;
 	return (ISC_TF(rsa != NULL && rsa->d != NULL));
 }
 
 static void
 opensslrsa_destroy(dst_key_t *key) {
-	RSA *rsa = key->keydata.opaque;
+	RSA *rsa = key->keydata.rsa;
 	RSA_free(rsa);
-	key->keydata.opaque = NULL;
+	key->keydata.rsa = NULL;
 }
 
 
