@@ -196,7 +196,7 @@ view <string> <optional_class> {
                 pubkey <integer> <integer> <integer> <quoted_string>; //
                     obsolete
                 update-policy { ( grant | deny ) <string> ( name |
-                    subdomain | wildcard | self | selfsub | selfwild ) <string> <rrtypelist>; ... };
+                    subdomain | wildcard | self | selfsub | selfwild | krb5-self | ms-self | krb5-subdomain | ms-subdomain ) <string> <rrtypelist>; ... };
                 database <string>;
                 delegation-only <boolean>;
                 check-names ( fail | warn | ignore );
@@ -404,7 +404,7 @@ zone <string> <optional_class> {
             <integer>] | <ipv6_address> [port <integer>] ) [ key <string> ]; ... };
         pubkey <integer> <integer> <integer> <quoted_string>; // obsolete
         update-policy { ( grant | deny ) <string> ( name | subdomain |
-            wildcard | self | selfsub | selfwild ) <string> <rrtypelist>; ... };
+            wildcard | self | selfsub | selfwild | krb5-self | ms-self | krb5-subdomain | ms-subdomain ) <string> <rrtypelist>; ... };
         database <string>;
         delegation-only <boolean>;
         check-names ( fail | warn | ignore );
