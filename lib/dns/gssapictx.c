@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gssapictx.c,v 1.5 2006/12/05 00:13:48 marka Exp $ */
+/* $Id: gssapictx.c,v 1.6 2006/12/05 21:59:12 marka Exp $ */
 
 #include <config.h>
 
@@ -531,7 +531,7 @@ dst_gssapi_initctx(dns_name_t *name, isc_buffer_t *intoken,
 
 isc_result_t
 dst_gssapi_acceptctx(gss_cred_id_t cred,
-		     isc_region_t *intoken, isc_buffer_t *outtoken,
+		     isc_region_t *intoken, isc_buffer_t **outtoken,
 		     gss_ctx_id_t *ctxout, dns_name_t *principal,
 		     isc_mem_t *mctx)
 {
@@ -544,6 +544,8 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 	gss_name_t gname = NULL;
 	isc_result_t result;
 	char buf[1024];
+
+	REQUIRE(outtoken != NULL && *outtoken == NULL);
 
 	log_cred(cred);
 
@@ -586,15 +588,10 @@ dst_gssapi_acceptctx(gss_cred_id_t cred,
 		return (result);
 	}
 
-	INSIST(outtoken != NULL && !ISC_BUFFER_VALID(outtoken));
-
 	if (gouttoken.length > 0) {
-		void *o = isc_mem_get(mctx, gouttoken.length);
-		if (o == NULL)
-			RETERR(ISC_R_NOMEMORY);
-		isc_buffer_init(outtoken, o, gouttoken.length);
+		RETERR(isc_buffer_allocate(mctx, outtoken, gouttoken.length));
 		GBUFFER_TO_REGION(gouttoken, r);
-		RETERR(isc_buffer_copyregion(outtoken, &r));
+		RETERR(isc_buffer_copyregion(*outtoken, &r));
 	}
 
 	if (gret == GSS_S_COMPLETE) {

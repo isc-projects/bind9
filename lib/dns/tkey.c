@@ -16,7 +16,7 @@
  */
 
 /*
- * $Id: tkey.c,v 1.83 2006/12/05 00:13:48 marka Exp $
+ * $Id: tkey.c,v 1.84 2006/12/05 21:59:12 marka Exp $
  */
 /*! \file */
 #include <config.h>
@@ -428,8 +428,7 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	dns_fixedname_t principal;
 	isc_stdtime_t now;
 	isc_region_t intoken;
-	isc_buffer_t outtoken;
-	isc_buffer_t *outtoken_p = &outtoken;
+	isc_buffer_t *outtoken = NULL;
 	gss_ctx_id_t gss_ctx = NULL;
 
 	UNUSED(namelist);
@@ -457,7 +456,6 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	if (result == ISC_R_SUCCESS)
 		gss_ctx = dst_key_getgssctx(tsigkey->key);
 
-	memset(&outtoken, 0, sizeof(outtoken));
 
 	dns_fixedname_init(&principal);
 
@@ -494,12 +492,19 @@ process_gsstkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	tkeyout->inception = tkeyin->inception;
 	tkeyout->expire = tkeyin->expire;
 
-	if (ISC_BUFFER_VALID(outtoken_p)) {
-		tkeyout->key = isc_buffer_base(&outtoken);
-		tkeyout->keylen = isc_buffer_usedlength(&outtoken);
-		isc_buffer_invalidate(&outtoken);
+	if (outtoken) {
+		tkeyout->key = isc_mem_get(tkeyout->mctx,
+					   isc_buffer_usedlength(outtoken));
+		if (tkeyout->key == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto failure;
+		}
+		tkeyout->keylen = isc_buffer_usedlength(outtoken);
+		memcpy(tkeyout->key, isc_buffer_base(outtoken),
+		       isc_buffer_usedlength(outtoken));
+		isc_buffer_free(&outtoken);
 	} else {
-		tkeyout->key = isc_mem_get(msg->mctx, tkeyin->keylen);
+		tkeyout->key = isc_mem_get(tkeyout->mctx, tkeyin->keylen);
 		if (tkeyout->key == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto failure;
@@ -518,9 +523,8 @@ failure:
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
 
-	if (ISC_BUFFER_VALID(outtoken_p))
-		isc_mem_put(tctx->mctx, isc_buffer_base(&outtoken),
-			    isc_buffer_length(&outtoken));
+	if (outtoken != NULL)
+		isc_buffer_free(&outtoken);
 
 	tkey_log("process_gsstkey(): %s",
 		isc_result_totext(result));	/* XXXSRA */
@@ -791,9 +795,9 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 	}
 
 	if (tkeyout.key != NULL)
-		isc_mem_put(msg->mctx, tkeyout.key, tkeyout.keylen);
+		isc_mem_put(tkeyout.mctx, tkeyout.key, tkeyout.keylen);
 	if (tkeyout.other != NULL)
-		isc_mem_put(msg->mctx, tkeyout.other, tkeyout.otherlen);
+		isc_mem_put(tkeyout.mctx, tkeyout.other, tkeyout.otherlen);
 	if (result != ISC_R_SUCCESS)
 		goto failure;
 
