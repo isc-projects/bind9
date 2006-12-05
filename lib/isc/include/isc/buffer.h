@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.46 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: buffer.h,v 1.47 2006/12/05 00:13:48 marka Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
