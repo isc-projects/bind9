@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.45.18.8 2005/10/13 02:12:25 marka Exp $ */
+/* $Id: sdb.c,v 1.45.18.9 2006/12/07 04:53:02 marka Exp $ */
 
 /*! \file */
 
@@ -935,7 +935,8 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		xresult = dns_name_copy(xname, foundname, NULL);
 		if (xresult != ISC_R_SUCCESS) {
-			destroynode(node);
+			if (node != NULL)
+				destroynode(node);
 			if (dns_rdataset_isassociated(rdataset))
 				dns_rdataset_disassociate(rdataset);
 			return (DNS_R_BADDB);

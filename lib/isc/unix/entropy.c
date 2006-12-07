@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.c,v 1.71.18.6 2006/03/02 23:29:24 marka Exp $ */
+/* $Id: entropy.c,v 1.71.18.7 2006/12/07 04:53:03 marka Exp $ */
 
 /* \file unix/entropy.c
  * \brief
@@ -487,8 +487,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 
 	LOCK(&ent->lock);
 
-	source = NULL;
-
 	if (stat(fname, &_stat) < 0) {
 		ret = isc__errno2result(errno);
 		goto errout;
@@ -590,9 +588,6 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	(void)close(fd);
 
  errout:
-	if (source != NULL)
-		isc_mem_put(ent->mctx, source, sizeof(isc_entropysource_t));
-
 	UNLOCK(&ent->lock);
 
 	return (ret);

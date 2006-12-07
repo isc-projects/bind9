@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.2.2.5 2005/11/30 03:44:39 marka Exp $ */
+/* $Id: sdlz.c,v 1.2.2.6 2006/12/07 04:53:02 marka Exp $ */
 
 /*! \file */
 
@@ -894,7 +894,8 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		xresult = dns_name_copy(xname, foundname, NULL);
 		if (xresult != ISC_R_SUCCESS) {
-			destroynode(node);
+			if (node != NULL)
+				destroynode(node);
 			if (dns_rdataset_isassociated(rdataset))
 				dns_rdataset_disassociate(rdataset);
 			return (DNS_R_BADDB);

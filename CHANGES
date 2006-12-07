@@ -1,3 +1,6 @@
+2111.	[bug]		Fix a number of errors reported by Coverity.
+			[RT #16507]
+
 2110.	[bug]		"minimal-response yes;" interacted badly with BIND 8
 			priming queries. [RT #16491]
 
