@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.c,v 1.122.2.8.2.14 2004/05/05 01:32:16 marka Exp $ */
+/* $Id: master.c,v 1.122.2.8.2.15 2006/12/07 04:52:50 marka Exp $ */
 
 #include <config.h>
 
@@ -1117,6 +1117,7 @@ load(dns_loadctx_t *lctx) {
 					isc_mem_free(mctx, gtype);
 				if (rhs != NULL)
 					isc_mem_free(mctx, rhs);
+				range = lhs = gtype = rhs = NULL;
 				/* RANGE */
 				GETTOKEN(lctx->lex, 0, &token, ISC_FALSE);
 				range = isc_mem_strdup(mctx,
