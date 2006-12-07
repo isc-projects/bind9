@@ -1,3 +1,6 @@
+2114.	[bug]		dig/host/nslookup: searches for names with multiple
+			labels were failing. [RT #16447]
+
 2113.	[bug]		nsupdate: if a zone is specified it should be used
 			for server discover. [RT# 16455]
 			
