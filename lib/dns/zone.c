@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.45 2006/07/19 00:58:01 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.46 2006/12/07 05:24:20 marka Exp $ */
 
 /*! \file */
 
@@ -1267,7 +1267,7 @@ zone_gotreadhandle(isc_task_t *task, isc_event_t *event) {
 		options |= DNS_MASTER_CHECKMXFAIL;
 	if (DNS_ZONE_OPTION(load->zone, DNS_ZONEOPT_CHECKWILDCARD))
 		options |= DNS_MASTER_CHECKWILDCARD;
- 	result = dns_master_loadfileinc2(load->zone->masterfile,
+	result = dns_master_loadfileinc2(load->zone->masterfile,
 					 dns_db_origin(load->db),
 					 dns_db_origin(load->db),
 					 load->zone->rdclass,
@@ -1477,7 +1477,7 @@ zone_check_mx(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 		if (!DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IGNOREMXCNAME)) {
 			dns_name_format(foundname, altbuf, sizeof altbuf);
 			dns_zone_log(zone, level, "%s/MX '%s' is below a DNAME"
-			             " '%s' (illegal)", ownerbuf, namebuf,
+				     " '%s' (illegal)", ownerbuf, namebuf,
 				     altbuf);
 		}
 		return ((level == ISC_LOG_WARNING) ? ISC_TRUE : ISC_FALSE);
@@ -1579,7 +1579,7 @@ zone_check_srv(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
 
 static isc_boolean_t
 zone_check_glue(dns_zone_t *zone, dns_db_t *db, dns_name_t *name,
-	        dns_name_t *owner)
+		dns_name_t *owner)
 {
 	isc_boolean_t answer = ISC_TRUE;
 	isc_result_t result, tresult;
@@ -1812,6 +1812,75 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 	return (ok);
 }
 
+/*
+ * OpenSSL verification of RSA keys with exponent 3 is known to be
+ * broken prior OpenSSL 0.9.8c/0.9.7k.  Look for such keys and warn
+ * if they are in use.
+ */
+static void
+zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
+	dns_dbnode_t *node = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_rdata_dnskey_t dnskey;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_rdataset_t rdataset;
+	isc_result_t result;
+	isc_boolean_t logit, foundrsa = ISC_FALSE, foundmd5 = ISC_FALSE;
+	const char *algorithm;
+
+	result = dns_db_findnode(db, &zone->origin, ISC_FALSE, &node);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	dns_db_currentversion(db, &version);
+	dns_rdataset_init(&rdataset);
+	result = dns_db_findrdataset(db, node, version, dns_rdatatype_dnskey,
+				     dns_rdatatype_none, 0, &rdataset, NULL);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+
+	for (result = dns_rdataset_first(&rdataset);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(&rdataset)) 
+	{
+		dns_rdataset_current(&rdataset, &rdata);
+		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
+		INSIST(result == ISC_R_SUCCESS);
+		
+		if ((dnskey.algorithm == DST_ALG_RSASHA1 ||
+		     dnskey.algorithm == DST_ALG_RSAMD5) &&
+		     dnskey.datalen > 1 && dnskey.data[0] == 1 &&
+		     dnskey.data[1] == 3)
+		{
+			if (dnskey.algorithm == DST_ALG_RSASHA1) {
+				logit = !foundrsa;
+				foundrsa = ISC_TRUE;
+				algorithm = "RSASHA1";
+			} else {
+				logit = !foundmd5;
+				foundmd5 = ISC_TRUE;
+				algorithm = "RSAMD5";
+			}
+			if (logit)
+				dns_zone_log(zone, ISC_LOG_WARNING,
+					     "weak %s (%u) key found "
+					     "(exponent=3)", algorithm,
+					     dnskey.algorithm);
+			if (foundrsa && foundmd5)
+				break;
+		}
+		dns_rdata_reset(&rdata);
+	}
+	dns_rdataset_disassociate(&rdataset);
+
+ cleanup:
+	if (node != NULL)
+		dns_db_detachnode(db, &node);
+	if (version != NULL)
+		dns_db_closeversion(db, &version, ISC_FALSE);
+	
+}
+
 static isc_result_t
 zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	      isc_result_t result)
@@ -2009,6 +2078,12 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
+
+	/*
+	 * Check for weak DNSKEY's.
+	 */
+	if (zone->type == dns_zone_master)
+		zone_check_dnskeys(zone, db);
 
 #if 0
 	/* destroy notification example. */
@@ -3589,7 +3664,7 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (isc_sockaddr_pf(&notify->dst) == PF_INET6 &&
 	    IN6_IS_ADDR_V4MAPPED(&notify->dst.type.sin6.sin6_addr)) {
-	        isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
+		isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 		notify_log(notify->zone, ISC_LOG_DEBUG(3),
 			   "notify: ignoring IPv6 mapped IPV4 address: %s",
 			   addrbuf);
@@ -4796,7 +4871,7 @@ soa_query(isc_task_t *task, isc_event_t *event) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(keyname, namebuf, sizeof(namebuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "unable to find key: %s", namebuf);
+				     "unable to find key: %s", namebuf);
 		}
 	}
 	if (key == NULL)
@@ -5021,7 +5096,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(keyname, namebuf, sizeof(namebuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
-			             "unable to find key: %s", namebuf);
+				     "unable to find key: %s", namebuf);
 		}
 	}
 	if (key == NULL)
@@ -5108,7 +5183,7 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 	if (message != NULL)
 		dns_message_destroy(&message);
   unlock:
-        if (key != NULL)
+	if (key != NULL)
 		dns_tsigkey_detach(&key);
 	UNLOCK_ZONE(zone);
 	return;

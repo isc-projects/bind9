@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.419.18.48 2006/07/24 05:52:44 marka Exp $ */
+/* $Id: server.c,v 1.419.18.49 2006/12/07 05:24:19 marka Exp $ */
 
 /*! \file */
 
@@ -345,6 +345,13 @@ configure_view_dnsseckey(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	isc_buffer_usedregion(&keydatabuf, &r);
 	keystruct.datalen = r.length;
 	keystruct.data = r.base;
+
+	if ((keystruct.algorithm == DST_ALG_RSASHA1 ||
+	     keystruct.algorithm == DST_ALG_RSAMD5) &&
+	    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
+		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
+			    "trusted key '%s' has a weak exponent",
+			    keynamestr);
 
 	CHECK(dns_rdata_fromstruct(NULL,
 				   keystruct.common.rdclass,
