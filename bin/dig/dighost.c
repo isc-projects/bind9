@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.36 2006/12/07 01:26:33 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.37 2006/12/07 06:07:56 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -723,6 +723,8 @@ make_empty_lookup(void) {
 	looknew->section_authority = ISC_TRUE;
 	looknew->section_additional = ISC_TRUE;
 	looknew->new_search = ISC_FALSE;
+	looknew->done_as_is = ISC_FALSE;
+	looknew->need_search = ISC_FALSE;
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
@@ -794,6 +796,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
 	looknew->tsigctx = NULL;
+	looknew->need_search = lookold->need_search;
+	looknew->done_as_is = lookold->done_as_is;
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -1499,6 +1503,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 static isc_boolean_t
 next_origin(dns_message_t *msg, dig_query_t *query) {
 	dig_lookup_t *lookup;
+	dig_searchlist_t *search;
 
 	UNUSED(msg);
 
@@ -1513,13 +1518,22 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		 * about finding the next entry.
 		 */
 		return (ISC_FALSE);
-	if (query->lookup->origin == NULL)
+	if (query->lookup->origin == NULL && !query->lookup->need_search)
 		/*
 		 * Then we just did rootorg; there's nothing left.
 		 */
 		return (ISC_FALSE);
-	lookup = requeue_lookup(query->lookup, ISC_TRUE);
-	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
+	if (query->lookup->origin == NULL && query->lookup->need_search) {
+		lookup = requeue_lookup(query->lookup, ISC_TRUE);
+		lookup->origin = ISC_LIST_HEAD(search_list);
+		query->lookup->need_search = ISC_FALSE;
+	} else {
+		search = ISC_LIST_NEXT(query->lookup->origin, link);
+		if (search == NULL && query->lookup->done_as_is)
+			return (ISC_FALSE);
+		lookup = requeue_lookup(query->lookup, ISC_TRUE);
+		lookup->origin = search;
+	}
 	cancel_lookup(query->lookup);
 	return (ISC_TRUE);
 }
@@ -1641,11 +1655,16 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * take the first entry in the searchlist iff either usesearch
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
-	/* XXX New search here? */
-	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
-		lookup->origin = NULL; /* Force abs lookup */
-	else if (lookup->origin == NULL && lookup->new_search && usesearch)
-		lookup->origin = ISC_LIST_HEAD(search_list);
+	if (lookup->new_search) {
+		if ((count_dots(lookup->textname) >= ndots) || !usesearch) {
+			lookup->origin = NULL; /* Force abs lookup */
+			lookup->done_as_is = ISC_TRUE;
+			lookup->need_search = usesearch;
+		} else if (lookup->origin == NULL && usesearch) {
+			lookup->origin = ISC_LIST_HEAD(search_list);
+			lookup->need_search = ISC_FALSE;
+		}
+	}
 
 	if (lookup->origin != NULL) {
 		debug("trying origin %s", lookup->origin->origin);
@@ -2660,7 +2679,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
- 	result = dns_message_peekheader(b, &id, &msgflags);
+	result = dns_message_peekheader(b, &id, &msgflags);
 	if (result != ISC_R_SUCCESS || l->sendmsg->id != id) {
 		match = ISC_FALSE;
 		if (l->tcp_mode) {
@@ -2856,7 +2875,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!l->doing_xfr || l->xfr_q == query) {
-		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
+		if (msg->rcode != dns_rcode_noerror &&
+		    (l->origin != NULL || l->need_search)) {
 			if (!next_origin(msg, query)) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
@@ -2946,7 +2966,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			chase_msg2->msg = msg;
 		}
 #endif
-	
 	}
 
 #ifdef DIG_SIGCHASE
@@ -3919,7 +3938,7 @@ free_name(dns_name_t *name, isc_mem_t *mctx) {
  * return ISC_R_SUCCESS if the DNSKEY RRset contains a trusted_key
  * 			and the RRset is valid
  * return ISC_R_NOTFOUND if not contains trusted key
- 			or if the RRset isn't valid
+			or if the RRset isn't valid
  * return ISC_R_FAILURE if problem
  *
  */
@@ -3944,7 +3963,7 @@ contains_trusted_key(dns_name_t *name, dns_rdataset_t *rdataset,
 	do {
 		dns_rdataset_current(rdataset, &rdata);
 		INSIST(rdata.type == dns_rdatatype_dnskey);
-  	
+	
 		result = dns_dnssec_keyfromrdata(name, &rdata,
 						 mctx, &dnsseckey);
 		check_result(result, "dns_dnssec_keyfromrdata");
@@ -3999,7 +4018,7 @@ sigchase_verify_sig(dns_name_t *name, dns_rdataset_t *rdataset,
 	do {
 		dns_rdataset_current(keyrdataset, &keyrdata);
 		INSIST(keyrdata.type == dns_rdatatype_dnskey);
-  	
+	
 		result = dns_dnssec_keyfromrdata(name, &keyrdata,
 						 mctx, &dnsseckey);
 		check_result(result, "dns_dnssec_keyfromrdata");
@@ -4100,7 +4119,7 @@ sigchase_verify_ds(dns_name_t *name, dns_rdataset_t *keyrdataset,
 		do {
 			dns_rdataset_current(keyrdataset, &keyrdata);
 			INSIST(keyrdata.type == dns_rdatatype_dnskey);
-  	
+	
 			result = dns_dnssec_keyfromrdata(name, &keyrdata,
 							 mctx, &dnsseckey);
 			check_result(result, "dns_dnssec_keyfromrdata");
