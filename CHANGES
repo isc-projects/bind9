@@ -1,3 +1,6 @@
+2116.	[bug]		'rndc reload' could cause the cache to continually
+			be cleaned. [RT #16401]
+
 2115.	[bug]		'rndc reconfig' could trigger a INSIST if the
 			number of masters for a zone was reduced. [RT #16444]
 
