@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.5.8.27 2006/02/26 23:03:52 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.5.8.28 2006/12/07 06:50:38 marka Exp $ */
 
 #include <config.h>
 
@@ -613,6 +613,8 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 	unsigned int olabels, nlabels, labels;
 	dns_rdata_nsec_t nsec;
 	isc_boolean_t atparent;
+	isc_boolean_t ns;
+	isc_boolean_t soa;
 
 	REQUIRE(exists != NULL);
 	REQUIRE(data != NULL);
@@ -644,9 +646,9 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 		 * The names are the same.
 		 */
 		atparent = dns_rdatatype_atparent(val->event->type);
-		if (dns_nsec_typepresent(&rdata, dns_rdatatype_ns) &&
-		    !dns_nsec_typepresent(&rdata, dns_rdatatype_soa))
-		{
+		ns = dns_nsec_typepresent(&rdata, dns_rdatatype_ns);
+		soa = dns_nsec_typepresent(&rdata, dns_rdatatype_soa);
+		if (ns && !soa) {
 			if (!atparent) {
 				/*
 				 * This NSEC record is from somewhere higher in
@@ -657,7 +659,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 					      "ignoring parent nsec");
 				return (ISC_R_IGNORE);
 			}
-		} else if (atparent) {
+		} else if (atparent && ns && soa) {
 			/*
 			 * This NSEC record is from the child.
 			 * It can not be legitimately used here.
@@ -666,12 +668,20 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 				      "ignoring child nsec");
 			return (ISC_R_IGNORE);
 		}
-		*exists = ISC_TRUE;
-		*data = dns_nsec_typepresent(&rdata, val->event->type);
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "nsec proves name exists (owner) data=%d",
-			      *data);
-		return (ISC_R_SUCCESS);
+		if (val->event->type == dns_rdatatype_cname ||
+		    val->event->type == dns_rdatatype_nxt ||
+		    val->event->type == dns_rdatatype_nsec ||
+		    val->event->type == dns_rdatatype_key ||
+		    !dns_nsec_typepresent(&rdata, dns_rdatatype_cname)) {
+			*exists = ISC_TRUE;
+			*data = dns_nsec_typepresent(&rdata, val->event->type);
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "nsec proves name exists (owner) data=%d",
+				      *data);
+			return (ISC_R_SUCCESS);
+		}
+		validator_log(val, ISC_LOG_DEBUG(3), "NSEC proves CNAME exists");
+		return (ISC_R_IGNORE);
 	}
 
 	if (relation == dns_namereln_subdomain &&
@@ -731,6 +741,7 @@ nsecnoexistnodata(dns_validator_t *val, dns_name_t* name, dns_name_t *nsecname,
 		result = dns_name_concatenate(dns_wildcardname, &common,
 					       wild, NULL);
 		if (result != ISC_R_SUCCESS) {
+			dns_rdata_freestruct(&nsec);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				    "failure generating wildcard name");
 			return (result);
@@ -784,6 +795,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		}
 	} else {
 		dns_name_t **proofs = val->event->proofs;
+		dns_name_t *wild = dns_fixedname_name(&val->wild);
 		
 		if (rdataset->trust == dns_trust_secure)
 			val->seensig = ISC_TRUE;
@@ -795,10 +807,9 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 	            (val->attributes & VALATTR_FOUNDNODATA) == 0 &&
 		    (val->attributes & VALATTR_FOUNDNOQNAME) == 0 &&
 		    nsecnoexistnodata(val, val->event->name, devent->name,
-				      rdataset, &exists, &data,
-				      dns_fixedname_name(&val->wild))
+				      rdataset, &exists, &data, wild)
 				      == ISC_R_SUCCESS)
-		 {
+		{
 			if (exists && !data) {
 				val->attributes |= VALATTR_FOUNDNODATA;
 				if (NEEDNODATA(val))
@@ -2044,12 +2055,6 @@ nsecvalidate(dns_validator_t *val, isc_boolean_t resume) {
 			if (rdataset->type == dns_rdatatype_rrsig)
 				continue;
 
-			if (rdataset->type == dns_rdatatype_soa) {
-				val->soaset = rdataset;
-				val->soaname = name;
-			} else if (rdataset->type == dns_rdatatype_nsec)
-				val->nsecset = rdataset;
-
 			for (sigrdataset = ISC_LIST_HEAD(name->list);
 			     sigrdataset != NULL;
 			     sigrdataset = ISC_LIST_NEXT(sigrdataset,
@@ -2506,11 +2511,21 @@ proveunsecure(dns_validator_t *val, isc_boolean_t resume) {
 			      namebuf);
 
 		result = view_find(val, tname, dns_rdatatype_ds);
+
 		if (result == DNS_R_NXRRSET || result == DNS_R_NCACHENXRRSET) {
 			/*
 			 * There is no DS.  If this is a delegation,
 			 * we maybe done.
 			 */
+			if (val->frdataset.trust == dns_trust_pending) {
+				result = create_fetch(val, tname,
+						      dns_rdatatype_ds,
+						      dsfetched2,
+						      "proveunsecure");
+				if (result != ISC_R_SUCCESS)
+					goto out;
+				return (DNS_R_WAIT);
+			}
 			if (val->frdataset.trust < dns_trust_secure) {
 				/*
 				 * This shouldn't happen, since the negative
@@ -2812,9 +2827,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->keyset = NULL;
 	val->dsset = NULL;
 	dns_rdataset_init(&val->dlv);
-	val->soaset = NULL;
-	val->nsecset = NULL;
-	val->soaname = NULL;
 	val->seensig = ISC_FALSE;
 	val->havedlvsep = ISC_FALSE;
 	val->depth = 0;
