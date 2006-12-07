@@ -1,3 +1,6 @@
+
+	--- 9.4.0rc1 released ---
+
 2118.	[bug]		Handle response with long chains of domain name
 			compression pointers which point to other compression
 			pointers. [RT #16427]
