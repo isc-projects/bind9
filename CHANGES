@@ -1,3 +1,6 @@
+2113.	[bug]		nsupdate: if a zone is specified it should be used
+			for server discover. [RT# 16455]
+			
 2112.	[security]	Warn if weak RSA exponent is used. [RT #16460]
 
 2111.	[bug]		Fix a number of errors reported by Coverity.
