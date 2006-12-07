@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.27 2006/05/18 03:19:09 marka Exp $ */
+/* $Id: query.c,v 1.198.2.28 2006/12/07 04:38:07 marka Exp $ */
 
 #include <config.h>
 
@@ -671,7 +671,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, unsigned int options,
 						      ISC_LOG_DEBUG(3),
 						      "%s approved", msg);
 				}
-		    	} else {
+			} else {
 				ns_client_aclmsg("query", name,
 						 client->view->rdclass,
 						 msg, sizeof(msg));
@@ -1387,7 +1387,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 		 * we could raise the priority of glue records.
 		 */
 		eresult = query_addadditional(client, name, dns_rdatatype_key);
- 	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
+	} else if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
 		 * section, it's helpful if we add the SRV additional data
@@ -3224,6 +3224,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype) 
 			sigrdatasetp = &sigrdataset;
 		else
 			sigrdatasetp = NULL;
+		/*  
+		 * BIND 8 priming queries need the additional section.
+		 */
+		if (is_zone && qtype == dns_rdatatype_ns &&
+		    dns_name_equal(client->query.qname, dns_rootname))
+			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		/*
@@ -3770,7 +3777,7 @@ synth_finish(ns_client_t *client, isc_result_t result) {
 static signed char ascii2hex[256] = {
 	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
 	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
 	-1, 10, 11, 12, 13, 14, 15, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1,	-1, -1, -1, -1, -1, -1, -1, -1,
