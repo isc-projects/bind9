@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.36 2006/12/07 01:27:21 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.37 2006/12/07 06:08:02 marka Exp $ */
 
 /*! \file
  *  \note
@@ -754,6 +754,8 @@ make_empty_lookup(void) {
 	looknew->section_authority = ISC_TRUE;
 	looknew->section_additional = ISC_TRUE;
 	looknew->new_search = ISC_FALSE;
+	looknew->done_as_is = ISC_FALSE;
+	looknew->need_search = ISC_FALSE;
 	ISC_LINK_INIT(looknew, link);
 	ISC_LIST_INIT(looknew->q);
 	ISC_LIST_INIT(looknew->my_server_list);
@@ -826,6 +828,8 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 	looknew->section_additional = lookold->section_additional;
 	looknew->retries = lookold->retries;
 	looknew->tsigctx = NULL;
+	looknew->need_search = lookold->need_search;
+	looknew->done_as_is = lookold->done_as_is;
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -1608,6 +1612,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 static isc_boolean_t
 next_origin(dns_message_t *msg, dig_query_t *query) {
 	dig_lookup_t *lookup;
+	dig_searchlist_t *search;
 
 	UNUSED(msg);
 
@@ -1622,13 +1627,22 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 		 * about finding the next entry.
 		 */
 		return (ISC_FALSE);
-	if (query->lookup->origin == NULL)
+	if (query->lookup->origin == NULL && !query->lookup->need_search)
 		/*
 		 * Then we just did rootorg; there's nothing left.
 		 */
 		return (ISC_FALSE);
-	lookup = requeue_lookup(query->lookup, ISC_TRUE);
-	lookup->origin = ISC_LIST_NEXT(query->lookup->origin, link);
+	if (query->lookup->origin == NULL && query->lookup->need_search) {
+		lookup = requeue_lookup(query->lookup, ISC_TRUE);
+		lookup->origin = ISC_LIST_HEAD(search_list);
+		query->lookup->need_search = ISC_FALSE;
+	} else {
+		search = ISC_LIST_NEXT(query->lookup->origin, link);
+		if (search == NULL && query->lookup->done_as_is)
+			return (ISC_FALSE);
+		lookup = requeue_lookup(query->lookup, ISC_TRUE);
+		lookup->origin = search;
+	}
 	cancel_lookup(query->lookup);
 	return (ISC_TRUE);
 }
@@ -1770,18 +1784,27 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * take the first entry in the searchlist iff either usesearch
 	 * is TRUE or we got a domain line in the resolv.conf file.
 	 */
-	/* XXX New search here? */
+	if (lookup->new_search) {
 #ifdef WITH_IDN
-	if ((count_dots(utf8_textname) >= ndots) || !usesearch)
-		lookup->origin = NULL; /* Force abs lookup */
-	else if (lookup->origin == NULL && lookup->new_search && usesearch)
-               lookup->origin = ISC_LIST_HEAD(search_list);
+		if ((count_dots(utf8_textname) >= ndots) || !usesearch) {
+			lookup->origin = NULL; /* Force abs lookup */
+			lookup->done_as_is = ISC_TRUE;
+			lookup->need_search = usesearch;
+		} else if (lookup->origin == NULL && usesearch) {
+			lookup->origin = ISC_LIST_HEAD(search_list);
+			lookup->need_search = ISC_FALSE;
+		}
 #else
-	if ((count_dots(lookup->textname) >= ndots) || !usesearch)
-		lookup->origin = NULL; /* Force abs lookup */
-	else if (lookup->origin == NULL && lookup->new_search && usesearch)
-		lookup->origin = ISC_LIST_HEAD(search_list);
+		if ((count_dots(lookup->textname) >= ndots) || !usesearch) {
+			lookup->origin = NULL; /* Force abs lookup */
+			lookup->done_as_is = ISC_TRUE;
+			lookup->need_search = usesearch;
+		} else if (lookup->origin == NULL && usesearch) {
+			lookup->origin = ISC_LIST_HEAD(search_list);
+			lookup->need_search = ISC_FALSE;
+		}
 #endif
+	}
 
 #ifdef WITH_IDN
 	if (lookup->origin != NULL) {
@@ -3025,7 +3048,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (!l->doing_xfr || l->xfr_q == query) {
-		if (msg->rcode != dns_rcode_noerror && l->origin != NULL) {
+		if (msg->rcode != dns_rcode_noerror &&
+		    (l->origin != NULL || l->need_search)) {
 			if (!next_origin(msg, query) || showsearch) {
 				printmessage(query, msg, ISC_TRUE);
 				received(b->used, &sevent->address, query);
@@ -3115,7 +3139,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			chase_msg2->msg = msg;
 		}
 #endif
-	
 	}
        
 #ifdef DIG_SIGCHASE

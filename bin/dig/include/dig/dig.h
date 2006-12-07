@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.82.18.18 2006/12/07 01:27:22 marka Exp $ */
+/* $Id: dig.h,v 1.82.18.19 2006/12/07 06:08:02 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -126,6 +126,8 @@ struct dig_lookup {
 		section_additional,
 		servfail_stops,
 		new_search,
+		need_search,
+		done_as_is,
 		besteffort,
 		dnssec;
 #ifdef DIG_SIGCHASE
