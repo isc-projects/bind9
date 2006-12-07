@@ -1,6 +1,8 @@
 
 	--- 9.2.7 released ---
 
+2107.	[bug]		dighost.c: more cleanup of buffers. [RT #16499]
+
 2103.	[port]		Add /usr/sfw to list of locations for OpenSSL
 			under Solaris.
 
