@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.126 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: mem.c,v 1.127 2006/12/07 06:27:34 marka Exp $ */
 
 /*! \file */
 
@@ -1462,17 +1462,28 @@ void
 isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
                  size_t hiwater, size_t lowater)
 {
+	isc_boolean_t callwater = ISC_FALSE;
+	isc_mem_water_t oldwater;
+	void *oldwater_arg;
+
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(hiwater >= lowater);
 
 	MCTXLOCK(ctx, &ctx->lock);
+	oldwater = ctx->water;
+	oldwater_arg = ctx->water_arg;
 	if (water == NULL) {
+		callwater = ctx->hi_called;
 		ctx->water = NULL;
 		ctx->water_arg = NULL;
 		ctx->hi_water = 0;
 		ctx->lo_water = 0;
 		ctx->hi_called = ISC_FALSE;
 	} else {
+		if (ctx->hi_called &&
+		    (ctx->water != water || ctx->water_arg != water_arg ||
+		     ctx->inuse < lowater || lowater == 0))
+			callwater = ISC_TRUE;
 		ctx->water = water;
 		ctx->water_arg = water_arg;
 		ctx->hi_water = hiwater;
@@ -1480,6 +1491,9 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		ctx->hi_called = ISC_FALSE;
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
+	
+	if (callwater && oldwater != NULL)
+		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
 }
 
 /*
