@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.35 2006/10/02 03:14:35 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.36 2006/12/07 01:27:21 marka Exp $ */
 
 /*! \file
  *  \note
@@ -697,8 +697,6 @@ make_empty_lookup(void) {
 		fatal("memory allocation failure in %s:%d",
 		       __FILE__, __LINE__);
 	looknew->pending = ISC_TRUE;
-	looknew->waiting_senddone = ISC_FALSE;
-	looknew->pending_clear = ISC_FALSE;
 	looknew->textname[0] = 0;
 	looknew->cmdline[0] = 0;
 	looknew->rdtype = dns_rdatatype_a;
@@ -1260,7 +1258,7 @@ clear_query(dig_query_t *query) {
 	isc_mempool_put(commctx, query->recvspace);
 	isc_buffer_invalidate(&query->recvbuf);
 	isc_buffer_invalidate(&query->lengthbuf);
-	if (lookup->waiting_senddone)
+	if (query->waiting_senddone)
 		query->pending_free = ISC_TRUE;
 	else
 		isc_mem_free(mctx, query);
@@ -1290,11 +1288,6 @@ try_clear_lookup(dig_lookup_t *lookup) {
 			}
 		}
 		return (ISC_FALSE);
-	}
-
-	if (lookup->waiting_senddone) {
-		lookup->pending_clear = ISC_TRUE;
-		return (ISC_TRUE);
 	}
 
 	/*
@@ -1481,6 +1474,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 	isc_boolean_t success = ISC_FALSE;
 	int numLookups = 0;
 	dns_name_t *domain;
+	isc_boolean_t horizontal = ISC_FALSE, bad = ISC_FALSE;
 
 	INSIST(!free_now);
 
@@ -1515,10 +1509,16 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 			domain = dns_fixedname_name(&query->lookup->fdomain);
 			namereln = dns_name_fullcompare(name, domain,
 							&order, &nlabels);
-			if (namereln == dns_namereln_equal)
-				printf(";; BAD (HORIZONTAL) REFERRAL\n");
-			else if (namereln != dns_namereln_subdomain)
-				printf(";; BAD REFERRAL\n");
+			if (namereln == dns_namereln_equal) {
+				if (!horizontal)
+					printf(";; BAD (HORIZONTAL) REFERRAL\n");
+				horizontal = ISC_TRUE;
+			} else if (namereln != dns_namereln_subdomain) {
+				if (!bad)
+					printf(";; BAD REFERRAL\n");
+				bad = ISC_TRUE;
+				continue;
+			}
 		}
 
 		for (result = dns_rdataset_first(rdataset);
@@ -1952,9 +1952,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_compress_init");
 
 	debug("starting to render the message");
-	isc_buffer_init(&lookup->sendbuf, lookup->sendspace, COMMSIZE);
+	isc_buffer_init(&lookup->renderbuf, lookup->sendspace, COMMSIZE);
 	result = dns_message_renderbegin(lookup->sendmsg, &cctx,
-					 &lookup->sendbuf);
+					 &lookup->renderbuf);
 	check_result(result, "dns_message_renderbegin");
 	if (lookup->udpsize > 0 || lookup->dnssec || lookup->edns > -1) {
 		if (lookup->udpsize == 0)
@@ -1980,7 +1980,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	/*
 	 * Force TCP mode if the request is larger than 512 bytes.
 	 */
-	if (isc_buffer_usedlength(&lookup->sendbuf) > 512)
+	if (isc_buffer_usedlength(&lookup->renderbuf) > 512)
 		lookup->tcp_mode = ISC_TRUE;
 
 	lookup->pending = ISC_FALSE;
@@ -1996,6 +1996,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		       query, lookup);
 		query->lookup = lookup;
 		query->waiting_connect = ISC_FALSE;
+		query->waiting_senddone = ISC_FALSE;
 		query->pending_free = ISC_FALSE;
 		query->recv_made = ISC_FALSE;
 		query->first_pass = ISC_TRUE;
@@ -2021,6 +2022,7 @@ setup_lookup(dig_lookup_t *lookup) {
 		isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
 		isc_buffer_init(&query->lengthbuf, query->lengthspace, 2);
 		isc_buffer_init(&query->slbuf, query->slspace, 2);
+		query->sendbuf = lookup->renderbuf;
 
 		ISC_LINK_INIT(query, link);
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
@@ -2061,8 +2063,8 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 		ISC_LIST_DEQUEUE(sevent->bufferlist, b, link);
 
 	query = event->ev_arg;
+	query->waiting_senddone = ISC_FALSE;
 	l = query->lookup;
-	l->waiting_senddone = ISC_FALSE;
 
 	if (l->ns_search_only && !l->trace_root) {
 		debug("sending next, since searching");
@@ -2075,8 +2077,6 @@ send_done(isc_task_t *_task, isc_event_t *event) {
 
 	if (query->pending_free)
 		isc_mem_free(mctx, query);
-	if (l->pending_clear)
-		try_clear_lookup(l);
 
 	check_if_done();
 	UNLOCK_LOOKUP;
@@ -2262,13 +2262,11 @@ send_udp(dig_query_t *query) {
 		debug("recvcount=%d", recvcount);
 	}
 	ISC_LIST_INIT(query->sendlist);
-	ISC_LINK_INIT(&l->sendbuf, link);
-	ISC_LIST_ENQUEUE(query->sendlist, &l->sendbuf,
-			 link);
+	ISC_LIST_ENQUEUE(query->sendlist, &query->sendbuf, link);
 	debug("sending a request");
 	TIME_NOW(&query->time_sent);
 	INSIST(query->sock != NULL);
-	l->waiting_senddone = ISC_TRUE;
+	query->waiting_senddone = ISC_TRUE;
 	result = isc_socket_sendtov(query->sock, &query->sendlist,
 				    global_task, send_done, query,
 				    &query->sockaddr, NULL);
@@ -2447,16 +2445,12 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 
 	isc_buffer_clear(&query->slbuf);
 	isc_buffer_clear(&query->lengthbuf);
-	isc_buffer_putuint16(&query->slbuf,
-			     (isc_uint16_t) query->lookup->sendbuf.used);
+	isc_buffer_putuint16(&query->slbuf, (isc_uint16_t) query->sendbuf.used);
 	ISC_LIST_INIT(query->sendlist);
 	ISC_LINK_INIT(&query->slbuf, link);
 	ISC_LIST_ENQUEUE(query->sendlist, &query->slbuf, link);
-	if (include_question) {
-		ISC_LINK_INIT(&query->lookup->sendbuf, link);
-		ISC_LIST_ENQUEUE(query->sendlist, &query->lookup->sendbuf,
-				 link);
-	}
+	if (include_question)
+		ISC_LIST_ENQUEUE(query->sendlist, &query->sendbuf, link);
 	ISC_LINK_INIT(&query->lengthbuf, link);
 	ISC_LIST_ENQUEUE(query->lengthlist, &query->lengthbuf, link);
 
@@ -2468,7 +2462,7 @@ launch_next_query(dig_query_t *query, isc_boolean_t include_question) {
 	if (!query->first_soa_rcvd) {
 		debug("sending a request in launch_next_query");
 		TIME_NOW(&query->time_sent);
-		query->lookup->waiting_senddone = ISC_TRUE;
+		query->waiting_senddone = ISC_TRUE;
 		result = isc_socket_sendv(query->sock, &query->sendlist,
 					  global_task, send_done, query);
 		check_result(result, "isc_socket_sendv");
