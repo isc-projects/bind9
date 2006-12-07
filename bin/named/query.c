@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.257.18.33 2006/08/31 03:57:05 marka Exp $ */
+/* $Id: query.c,v 1.257.18.34 2006/12/07 04:38:39 marka Exp $ */
 
 /*! \file */
 
@@ -4244,6 +4244,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			noqname = rdataset;
 		else
 			noqname = NULL;
+		/*
+		 * BIND 8 priming queries need the additional section.
+		 */
+		if (is_zone && qtype == dns_rdatatype_ns &&
+		    dns_name_equal(client->query.qname, dns_rootname))
+			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		if (noqname != NULL)
