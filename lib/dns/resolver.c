@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.336 2006/10/18 04:18:54 marka Exp $ */
+/* $Id: resolver.c,v 1.337 2006/12/07 06:47:36 marka Exp $ */
 
 /*! \file */
 
@@ -4366,7 +4366,7 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	dns_message_t *message;
 	dns_name_t *name, *qname, *ns_name, *soa_name, *ds_name;
 	dns_rdataset_t *rdataset, *ns_rdataset;
-	isc_boolean_t done, aa, negative_response;
+	isc_boolean_t aa, negative_response;
 	dns_rdatatype_t type;
 	dns_section_t section =
 		bind8_ns_resp ? DNS_SECTION_ANSWER : DNS_SECTION_AUTHORITY;
@@ -4425,13 +4425,12 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 	/*
 	 * Process the authority section.
 	 */
-	done = ISC_FALSE;
 	ns_name = NULL;
 	ns_rdataset = NULL;
 	soa_name = NULL;
 	ds_name = NULL;
 	result = dns_message_firstname(message, section);
-	while (!done && result == ISC_R_SUCCESS) {
+	while (result == ISC_R_SUCCESS) {
 		name = NULL;
 		dns_message_currentname(message, section, &name);
 		if (dns_name_issubdomain(name, &fctx->domain)) {
@@ -4493,15 +4492,29 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 							dns_trust_additional;
 				}
 			}
-			/*
-			 * A negative response has a SOA record (Type 2) 
-			 * and a optional NS RRset (Type 1) or it has neither
-			 * a SOA or a NS RRset (Type 3, handled above) or
-			 * rcode is NXDOMAIN (handled above) in which case
-			 * the NS RRset is allowed (Type 4).
-			 */
-			if (soa_name != NULL)
-				negative_response = ISC_TRUE;
+		}
+		result = dns_message_nextname(message, section);
+		if (result == ISC_R_NOMORE)
+			break;
+		else if (result != ISC_R_SUCCESS)
+			return (result);
+	}
+
+	/*
+	 * A negative response has a SOA record (Type 2) 
+	 * and a optional NS RRset (Type 1) or it has neither
+	 * a SOA or a NS RRset (Type 3, handled above) or
+	 * rcode is NXDOMAIN (handled above) in which case
+	 * the NS RRset is allowed (Type 4).
+	 */
+	if (soa_name != NULL)
+		negative_response = ISC_TRUE;
+
+	result = dns_message_firstname(message, section);
+	while (result == ISC_R_SUCCESS) {
+		name = NULL;
+		dns_message_currentname(message, section, &name);
+		if (dns_name_issubdomain(name, &fctx->domain)) {
 			for (rdataset = ISC_LIST_HEAD(name->list);
 			     rdataset != NULL;
 			     rdataset = ISC_LIST_NEXT(rdataset, link)) {

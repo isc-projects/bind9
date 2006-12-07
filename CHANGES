@@ -1,3 +1,10 @@
+2117.	[bug]		DNSSEC fixes: named could fail to cache NSEC records
+			which could lead to validation failures.  named didn't
+			handle negative DS responses that were in the process
+			of being validated.  Check CNAME bit before accepting
+			NODATA proof. To be able to ignore a child NSEC there
+			must be SOA (and NS) set in the bitmap. [RT #16399]
+
 2116.	[bug]		'rndc reload' could cause the cache to continually
 			be cleaned. [RT #16401]
 
