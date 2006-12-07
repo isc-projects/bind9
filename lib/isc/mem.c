@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.11 2005/03/16 00:57:43 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.12 2006/12/07 06:34:14 marka Exp $ */
 
 #include <config.h>
 
@@ -297,7 +297,7 @@ delete_trace_entry(isc_mem_t *mctx, const void *ptr, unsigned int size,
 static inline size_t
 rmsize(size_t size) {
 	/*
- 	 * round down to ALIGNMENT_SIZE
+	 * round down to ALIGNMENT_SIZE
 	 */
 	return (size & (~(ALIGNMENT_SIZE - 1)));
 }
@@ -1310,19 +1310,30 @@ isc_mem_inuse(isc_mem_t *ctx) {
 
 void
 isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
-                 size_t hiwater, size_t lowater)
+		 size_t hiwater, size_t lowater)
 {
+	isc_boolean_t callwater = ISC_FALSE;
+	isc_mem_water_t oldwater;
+	void *oldwater_arg;
+
 	REQUIRE(VALID_CONTEXT(ctx));
 	REQUIRE(hiwater >= lowater);
 
 	LOCK(&ctx->lock);
+	oldwater = ctx->water;
+	oldwater_arg = ctx->water_arg;
 	if (water == NULL) {
+		callwater = ctx->hi_called;
 		ctx->water = NULL;
 		ctx->water_arg = NULL;
 		ctx->hi_water = 0;
 		ctx->lo_water = 0;
 		ctx->hi_called = ISC_FALSE;
 	} else {
+		if (ctx->hi_called &&
+		    (ctx->water != water || ctx->water_arg != water_arg ||
+		     ctx->inuse < lowater || lowater == 0))
+			callwater = ISC_TRUE;
 		ctx->water = water;
 		ctx->water_arg = water_arg;
 		ctx->hi_water = hiwater;
@@ -1330,6 +1341,9 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 		ctx->hi_called = ISC_FALSE;
 	}
 	UNLOCK(&ctx->lock);
+
+	if (callwater && oldwater != NULL)
+		(oldwater)(oldwater_arg, ISC_MEM_LOWATER);
 }
 
 /*
