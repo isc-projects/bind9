@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nslookup.c,v 1.113 2006/06/09 23:50:55 marka Exp $ */
+/* $Id: nslookup.c,v 1.114 2006/12/07 05:52:16 marka Exp $ */
 
 #include <config.h>
 
@@ -620,8 +620,10 @@ setoption(char *opt) {
 		tcpmode = ISC_FALSE;
  	} else if (strncasecmp(opt, "deb", 3) == 0) {
 		short_form = ISC_FALSE;
+		showsearch = ISC_TRUE;
 	} else if (strncasecmp(opt, "nodeb", 5) == 0) {
 		short_form = ISC_TRUE;
+		showsearch = ISC_FALSE;
  	} else if (strncasecmp(opt, "d2", 2) == 0) {
 		debugging = ISC_TRUE;
 	} else if (strncasecmp(opt, "nod2", 4) == 0) {
