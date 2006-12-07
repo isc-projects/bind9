@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2001  Internet Software Consortium.
+ * Copyright (C) 2006  Internet Systems Consortium, Inc. ("ISC")
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -19,7 +18,7 @@
 #ifndef IN_1_DHCID_49_H
 #define IN_1_DHCID_49_H 1
 
-/* $Id: dhcid_49.h,v 1.2 2006/12/07 03:38:39 marka Exp $ */
+/* $Id: dhcid_49.h,v 1.3 2006/12/07 23:57:59 marka Exp $ */
 
 typedef struct dns_rdata_in_dhcid {
 	dns_rdatacommon_t	common;
