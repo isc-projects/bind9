@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: t_names.c,v 1.32.2.2.8.5 2006/01/04 23:50:20 marka Exp $ */
+/* $Id: t_names.c,v 1.32.2.2.8.6 2006/12/07 13:24:44 marka Exp $ */
 
 #include <config.h>
 
@@ -1959,10 +1959,6 @@ static const char *a48 =
 		"returns ISC_R_UNEXPECTEDEND";
 
 static const char *a49 =
-		"when there are too many compression pointers, "
-		"dns_name_fromwire() returns DNS_R_TOOMANYHOPS";
-
-static const char *a50 =
 		"when there is not enough space in target, "
 		"dns_name_fromwire(name, source, dcts, downcase, target) "
 		"returns ISC_R_NOSPACE";
@@ -2145,11 +2141,8 @@ t_dns_name_fromwire(void) {
 	t_assert("dns_name_fromwire", 7, T_REQUIRED, a48);
 	t_dns_name_fromwire_x("dns_name_fromwire_7_data", BUFLEN);
 
-	t_assert("dns_name_fromwire", 8, T_REQUIRED, a49);
-	t_dns_name_fromwire_x("dns_name_fromwire_8_data", BUFLEN);
-
-	t_assert("dns_name_fromwire", 9, T_REQUIRED, a50);
-	t_dns_name_fromwire_x("dns_name_fromwire_9_data", 2);
+	t_assert("dns_name_fromwire", 9, T_REQUIRED, a49);
+	t_dns_name_fromwire_x("dns_name_fromwire_8_data", 2);
 }
 
 
