@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.410.18.46 2006/12/07 05:24:20 marka Exp $ */
+/* $Id: zone.c,v 1.410.18.47 2006/12/07 06:21:16 marka Exp $ */
 
 /*! \file */
 
@@ -2703,6 +2703,37 @@ dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
 	return (result);
 }
 
+static isc_boolean_t
+same_masters(const isc_sockaddr_t *old, const isc_sockaddr_t *new,
+	     isc_uint32_t count)
+{
+	unsigned int i;
+
+	for (i = 0; i < count; i++)
+		if (!isc_sockaddr_equal(&old[i], &new[i]))
+			return (ISC_FALSE);
+	return (ISC_TRUE);
+}
+
+static isc_boolean_t
+same_keynames(dns_name_t **old, dns_name_t **new, isc_uint32_t count) {
+	unsigned int i;
+
+	if (old == NULL && new == NULL)
+		return (ISC_TRUE);
+	if (old == NULL || new == NULL)
+		return (ISC_FALSE);
+
+	for (i = 0; i < count; i++) {
+		if (old[i] == NULL && new[i] == NULL)
+			continue;
+		if (old[i] == NULL || new[i] == NULL ||
+		     !dns_name_equal(old[i], new[i]))
+			return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone,
 			    const isc_sockaddr_t *masters,
@@ -2722,6 +2753,19 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	}
 
 	LOCK_ZONE(zone);
+	/* 
+	 * The refresh code assumes that 'masters' wouldn't change under it.
+	 * If it will change then kill off any current refresh in progress
+	 * and update the masters info.  If it won't change then we can just
+	 * unlock and exit.
+	 */
+	if (count != zone->masterscnt ||
+	    !same_masters(zone->masters, masters, count) ||
+	    !same_keynames(zone->masterkeynames, keynames, count)) {
+		if (zone->request != NULL)
+			dns_request_cancel(zone->request);
+	} else
+		goto unlock;
 	if (zone->masters != NULL) {
 		isc_mem_put(zone->mctx, zone->masters,
 			    zone->masterscnt * sizeof(*new));
