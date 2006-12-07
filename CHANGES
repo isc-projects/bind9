@@ -1,3 +1,5 @@
+2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
+
 2107.	[bug]		dighost.c: more cleanup of buffers. [RT #16499]
 
 2104.	[port]		Fix Solaris SMF error message.
