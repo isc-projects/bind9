@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.198.2.13.4.43 2006/08/31 03:57:11 marka Exp $ */
+/* $Id: query.c,v 1.198.2.13.4.44 2006/12/07 04:38:19 marka Exp $ */
 
 #include <config.h>
 
@@ -644,7 +644,7 @@ query_getzonedb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 						      ISC_LOG_DEBUG(3),
 						      "%s approved", msg);
 				}
-		    	} else {
+			} else {
 				ns_client_aclmsg("query", name, qtype,
 						 client->view->rdclass,
 						 msg, sizeof(msg));
@@ -1192,7 +1192,7 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	 * recursing to add address records, which in turn can cause
 	 * recursion to add KEYs.
 	 */
- 	if (type == dns_rdatatype_srv && trdataset != NULL) {
+	if (type == dns_rdatatype_srv && trdataset != NULL) {
 		/*
 		 * If we're adding SRV records to the additional data
 		 * section, it's helpful if we add the SRV additional data
@@ -2296,11 +2296,11 @@ query_addnoqnameproof(ns_client_t *client, dns_rdataset_t *rdataset) {
 
  cleanup:
 	if (nsec != NULL)
-                query_putrdataset(client, &nsec);
-        if (nsecsig != NULL)
-                query_putrdataset(client, &nsecsig);
-        if (fname != NULL)
-                query_releasename(client, &fname);
+		query_putrdataset(client, &nsec);
+	if (nsecsig != NULL)
+		query_putrdataset(client, &nsecsig);
+	if (fname != NULL)
+		query_releasename(client, &fname);
 }
 
 static inline void
@@ -3249,6 +3249,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			noqname = rdataset;
 		else
 			noqname = NULL;
+		/*  
+		 * BIND 8 priming queries need the additional section.
+		 */
+		if (is_zone && qtype == dns_rdatatype_ns &&
+		    dns_name_equal(client->query.qname, dns_rootname))
+			client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+
 		query_addrrset(client, &fname, &rdataset, sigrdatasetp, dbuf,
 			       DNS_SECTION_ANSWER);
 		if (noqname != NULL)

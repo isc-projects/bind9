@@ -1,3 +1,5 @@
+2110.	[bug]		"minimal-response yes;" interacted badly with BIND 8
+			priming queries. [RT #16491]
 
 2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
 
