@@ -1,3 +1,7 @@
+2118.	[bug]		Handle response with long chains of domain name
+			compression pointers which point to other compression
+			pointers. [RT #16427]
+
 2117.	[bug]		DNSSEC fixes: named could fail to cache NSEC records
 			which could lead to validation failures.  named didn't
 			handle negative DS responses that were in the process
