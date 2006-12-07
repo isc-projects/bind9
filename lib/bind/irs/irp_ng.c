@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irp_ng.c,v 1.3 2005/04/27 04:56:28 sra Exp $";
+static const char rcsid[] = "$Id: irp_ng.c,v 1.4 2006/12/07 04:46:27 marka Exp $";
 #endif
 
 /* Imports */
@@ -218,13 +218,13 @@ ng_test(struct irs_ng *this, const char *name,
 	}
 
 	if (irs_irp_send_command(pvt->girpdata, "innetgr %s", body) == 0) {
-		memput(body, bodylen);
-
 		code = irs_irp_read_response(pvt->girpdata, text, sizeof text);
 		if (code == IRPD_GETNETGR_MATCHES) {
 			rval = 1;
 		}
 	}
+
+	memput(body, bodylen);
 
 	return (rval);
 }

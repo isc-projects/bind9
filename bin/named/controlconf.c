@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: controlconf.c,v 1.50 2006/02/28 02:39:51 marka Exp $ */
+/* $Id: controlconf.c,v 1.51 2006/12/07 04:46:27 marka Exp $ */
 
 /*! \file */
 
@@ -690,7 +690,7 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 	char *newstr = NULL;
 	const char *str;
 	const cfg_obj_t *obj;
-	controlkey_t *key = NULL;
+	controlkey_t *key;
 
 	for (element = cfg_list_first(keylist);
 	     element != NULL;
@@ -709,7 +709,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		key->secret.length = 0;
 		ISC_LINK_INIT(key, link);
 		ISC_LIST_APPEND(*keyids, key, link);
-		key = NULL;
 		newstr = NULL;
 	}
 	return (ISC_R_SUCCESS);
@@ -717,8 +716,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
  cleanup:
 	if (newstr != NULL)
 		isc_mem_free(mctx, newstr);
-	if (key != NULL)
-		isc_mem_put(mctx, key, sizeof(*key));
 	free_controlkeylist(keyids, mctx);
 	return (ISC_R_NOMEMORY);
 }
