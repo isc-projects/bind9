@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.c,v 1.35.2.6 2004/07/22 04:04:41 marka Exp $ */
+/* $Id: sdb.c,v 1.35.2.7 2006/12/07 04:52:57 marka Exp $ */
 
 #include <config.h>
 
@@ -875,7 +875,8 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 		xresult = dns_name_copy(xname, foundname, NULL);
 		if (xresult != ISC_R_SUCCESS) {
-			destroynode(node);
+			if (node != NULL)
+				destroynode(node);
 			if (dns_rdataset_isassociated(rdataset))
 				dns_rdataset_disassociate(rdataset);
 			return (DNS_R_BADDB);
