@@ -1,6 +1,8 @@
 
 	--- 9.3.3 released ---
 
+2107.	[bug]		dighost.c: more cleanup of buffers. [RT #16499]
+
 2104.	[port]		Fix Solaris SMF error message.
 
 2103.	[port]		Add /usr/sfw to list of locations for OpenSSL
