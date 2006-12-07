@@ -1,3 +1,6 @@
+2115.	[bug]		'rndc reconfig' could trigger a INSIST if the
+			number of masters for a zone was reduced. [RT #16444]
+
 2114.	[bug]		dig/host/nslookup: searches for names with multiple
 			labels were failing. [RT #16447]
 
