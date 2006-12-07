@@ -1,3 +1,5 @@
+2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
+
 2108.	[func]		DHCID support. [RT #16456]
 
 2107.	[bug]		dighost.c: more cleanup of buffers. [RT #16499]
