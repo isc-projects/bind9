@@ -1,3 +1,7 @@
+2118.	[bug]		Handle response with long chains of domain name
+			compression pointers which point to other compression
+			pointers. [RT #16427]
+
 2116.	[bug]		'rndc reload' could cause the cache to continually
 			be cleaned. [RT #16401]
 
