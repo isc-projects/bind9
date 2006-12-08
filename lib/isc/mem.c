@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.98.2.13 2006/12/07 23:57:55 marka Exp $ */
+/* $Id: mem.c,v 1.98.2.14 2006/12/08 05:03:13 marka Exp $ */
 
 #include <config.h>
 
@@ -1332,7 +1332,7 @@ isc_mem_setwater(isc_mem_t *ctx, isc_mem_water_t water, void *water_arg,
 	} else {
 		if (ctx->hi_called &&
 		    (ctx->water != water || ctx->water_arg != water_arg ||
-		     ctx->inuse < lowater || lowater == 0))
+		     ctx->inuse < lowater || lowater == 0U))
 			callwater = ISC_TRUE;
 		ctx->water = water;
 		ctx->water_arg = water_arg;
