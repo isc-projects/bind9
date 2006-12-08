@@ -338,7 +338,6 @@
 ./bin/tests/names/dns_name_fromwire_6_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_fromwire_7_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_fromwire_8_data	X	1999,2000,2001,2006
-./bin/tests/names/dns_name_fromwire_9_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_fullcompare_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_getlabel_data	X	1999,2000,2001
 ./bin/tests/names/dns_name_getlabelsequence_data	X	1999,2000,2001
@@ -360,7 +359,6 @@
 ./bin/tests/names/wire_test6.data		X	1999,2000,2001
 ./bin/tests/names/wire_test7.data		X	1999,2000,2001
 ./bin/tests/names/wire_test8.data		X	1999,2000,2001
-./bin/tests/names/wire_test9.data		X	1999,2000,2001
 ./bin/tests/ndc.conf				CONF-C	2000,2001,2004
 ./bin/tests/ndc.conf-include			CONF-C	2001,2004
 ./bin/tests/net/.cvsignore			X	2000,2001
