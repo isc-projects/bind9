@@ -1,3 +1,7 @@
+2119.	[compat]	libbind: allow res_init() to succeed enough to
+			return the default domain even if it was unable
+			to allocate memory.
+
 2118.	[bug]		Handle response with long chains of domain name
 			compression pointers which point to other compression
 			pointers. [RT #16427]
