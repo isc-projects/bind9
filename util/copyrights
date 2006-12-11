@@ -2261,7 +2261,7 @@
 ./lib/isccc/.cvsignore				X	2001
 ./lib/isccc/Makefile.in				MAKE	2001,2003,2004
 ./lib/isccc/alist.c				C.NOM	2001,2004,2005
-./lib/isccc/api					X	2001,2005
+./lib/isccc/api					X	2001,2005,2006
 ./lib/isccc/base64.c				C.NOM	2001,2004,2005
 ./lib/isccc/cc.c				C.NOM	2001,2002,2003,2004,2005,2006
 ./lib/isccc/ccmsg.c				C.NOM	2001,2004,2005
