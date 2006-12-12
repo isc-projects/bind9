@@ -14,15 +14,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: nsupdate.html,v 1.9.2.15 2006/06/29 13:02:06 marka Exp $ -->
+<!-- $Id: nsupdate.html,v 1.9.2.16 2006/12/12 01:42:53 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>nsupdate</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2482688"></a><div class="titlepage"></div>
+<a name="id2476419"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>nsupdate &#8212; Dynamic DNS update utility</p>
@@ -32,7 +32,7 @@
 <div class="cmdsynopsis"><p><code class="command">nsupdate</code>  [<code class="option">-d</code>] [[<code class="option">-y <em class="replaceable"><code>keyname:secret</code></em></code>] |  [<code class="option">-k <em class="replaceable"><code>keyfile</code></em></code>]] [<code class="option">-v</code>] [filename]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2549432"></a><h2>DESCRIPTION</h2>
+<a name="id2543493"></a><h2>DESCRIPTION</h2>
 <p>
 <span><strong class="command">nsupdate</strong></span>
 is used to submit Dynamic DNS Update requests as defined in RFC2136
@@ -141,7 +141,7 @@ This may be preferable when a batch of update requests is made.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2549633"></a><h2>INPUT FORMAT</h2>
+<a name="id2543693"></a><h2>INPUT FORMAT</h2>
 <p>
 <span><strong class="command">nsupdate</strong></span>
 reads input from
@@ -345,7 +345,7 @@ Lines beginning with a semicolon are comments and are ignored.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550311"></a><h2>EXAMPLES</h2>
+<a name="id2544372"></a><h2>EXAMPLES</h2>
 <p>
 The examples below show how
 <span><strong class="command">nsupdate</strong></span>
@@ -398,7 +398,7 @@ SIG, KEY and NXT records.)
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550355"></a><h2>FILES</h2>
+<a name="id2544416"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">/etc/resolv.conf</code></span></dt>
 <dd><p>
@@ -417,7 +417,7 @@ base-64 encoding of HMAC-MD5 key created by
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550423"></a><h2>SEE ALSO</h2>
+<a name="id2544484"></a><h2>SEE ALSO</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">RFC2136</span></span>,
 <span class="citerefentry"><span class="refentrytitle">RFC3007</span></span>,
@@ -430,7 +430,7 @@ base-64 encoding of HMAC-MD5 key created by
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2550488"></a><h2>BUGS</h2>
+<a name="id2544549"></a><h2>BUGS</h2>
 <p>
 The TSIG key is redundantly stored in two separate files.
 This is a consequence of nsupdate using the DST library

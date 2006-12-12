@@ -13,13 +13,13 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named-checkzone.8,v 1.11.2.7 2006/06/29 13:02:05 marka Exp $
+.\" $Id: named-checkzone.8,v 1.11.2.8 2006/12/12 01:42:53 marka Exp $
 .\"
 .hy 0
 .ad l
 .\"     Title: named\-checkzone
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.70.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
 .\"      Date: June 13, 2000
 .\"    Manual: BIND9
 .\"    Source: BIND9
@@ -43,29 +43,43 @@ does when loading a zone. This makes
 \fBnamed\-checkzone\fR
 useful for checking zone files before configuring them into a name server.
 .SH "OPTIONS"
-.TP 3n
+.PP
 \-d
+.RS 4
 Enable debugging.
-.TP 3n
+.RE
+.PP
 \-q
+.RS 4
 Quiet mode \- exit code only.
-.TP 3n
+.RE
+.PP
 \-v
+.RS 4
 Print the version of the
 \fBnamed\-checkzone\fR
 program and exit.
-.TP 3n
+.RE
+.PP
 \-j
+.RS 4
 When loading the zone file read the journal if it exists.
-.TP 3n
+.RE
+.PP
 \-c \fIclass\fR
+.RS 4
 Specify the class of the zone. If not specified "IN" is assumed.
-.TP 3n
+.RE
+.PP
 zonename
+.RS 4
 The domain name of the zone being checked.
-.TP 3n
+.RE
+.PP
 filename
+.RS 4
 The name of the zone file.
+.RE
 .SH "RETURN VALUES"
 .PP
 \fBnamed\-checkzone\fR
@@ -80,3 +94,6 @@ BIND 9 Administrator Reference Manual.
 Internet Systems Consortium
 .SH "COPYRIGHT"
 Copyright \(co 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.br
+Copyright \(co 2000\-2002 Internet Software Consortium.
+.br

@@ -13,13 +13,13 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: dnssec-signzone.8,v 1.23.2.9 2006/06/29 13:02:05 marka Exp $
+.\" $Id: dnssec-signzone.8,v 1.23.2.10 2006/12/12 01:42:53 marka Exp $
 .\"
 .hy 0
 .ad l
 .\"     Title: dnssec\-signzone
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.70.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
 .\"      Date: June 30, 2000
 .\"    Manual: BIND9
 .\"    Source: BIND9
@@ -43,41 +43,56 @@ file from the zone's parent, the parent's signatures will be incorporated into t
 \fIsignedkey\fR
 file for each child zone.
 .SH "OPTIONS"
-.TP 3n
+.PP
 \-a
+.RS 4
 Verify all generated signatures.
-.TP 3n
+.RE
+.PP
 \-c \fIclass\fR
+.RS 4
 Specifies the DNS class of the zone.
-.TP 3n
+.RE
+.PP
 \-d \fIdirectory\fR
+.RS 4
 Look for
 \fIsignedkey\fR
 files in
 \fBdirectory\fR
 as the directory
-.TP 3n
+.RE
+.PP
 \-s \fIstart\-time\fR
+.RS 4
 Specify the date and time when the generated SIG records become valid. This can be either an absolute or relative time. An absolute start time is indicated by a number in YYYYMMDDHHMMSS notation; 20000530144500 denotes 14:45:00 UTC on May 30th, 2000. A relative start time is indicated by +N, which is N seconds from the current time. If no
 \fBstart\-time\fR
 is specified, the current time is used.
-.TP 3n
+.RE
+.PP
 \-e \fIend\-time\fR
+.RS 4
 Specify the date and time when the generated SIG records expire. As with
 \fBstart\-time\fR, an absolute time is indicated in YYYYMMDDHHMMSS notation. A time relative to the start time is indicated with +N, which is N seconds from the start time. A time relative to the current time is indicated with now+N. If no
 \fBend\-time\fR
 is specified, 30 days from the start time is used as a default.
-.TP 3n
+.RE
+.PP
 \-f \fIoutput\-file\fR
+.RS 4
 The name of the output file containing the signed zone. The default is to append
 \fI.signed\fR
 to the input file.
-.TP 3n
+.RE
+.PP
 \-h
+.RS 4
 Prints a short summary of the options and arguments to
 \fBdnssec\-signzone\fR.
-.TP 3n
+.RE
+.PP
 \-i \fIinterval\fR
+.RS 4
 When a previously signed zone is passed as input, records may be resigned. The
 \fBinterval\fR
 option specifies the cycle interval as an offset from the current time (in seconds). If a SIG record expires after the cycle interval, it is retained. Otherwise, it is considered to be expiring soon, and it will be replaced.
@@ -89,17 +104,25 @@ or
 are specified,
 \fBdnssec\-signzone\fR
 generates signatures that are valid for 30 days, with a cycle interval of 7.5 days. Therefore, if any existing SIG records are due to expire in less than 7.5 days, they would be replaced.
-.TP 3n
+.RE
+.PP
 \-n \fIncpus\fR
+.RS 4
 Specifies the number of threads to use. By default, one thread is started for each detected CPU.
-.TP 3n
+.RE
+.PP
 \-o \fIorigin\fR
+.RS 4
 The zone origin. If not specified, the name of the zone file is assumed to be the origin.
-.TP 3n
+.RE
+.PP
 \-p
+.RS 4
 Use pseudo\-random data when signing the zone. This is faster, but less secure, than using real random data. This option may be useful when signing large zones or when the entropy source is limited.
-.TP 3n
+.RE
+.PP
 \-r \fIrandomdev\fR
+.RS 4
 Specifies the source of randomness. If the operating system does not provide a
 \fI/dev/random\fR
 or equivalent device, the default source of randomness is keyboard input.
@@ -107,18 +130,27 @@ or equivalent device, the default source of randomness is keyboard input.
 specifies the name of a character device or file containing random data to be used instead of the default. The special value
 \fIkeyboard\fR
 indicates that keyboard input should be used.
-.TP 3n
+.RE
+.PP
 \-t
+.RS 4
 Print statistics at completion.
-.TP 3n
+.RE
+.PP
 \-v \fIlevel\fR
+.RS 4
 Sets the debugging level.
-.TP 3n
+.RE
+.PP
 zonefile
+.RS 4
 The file containing the zone to be signed.
-.TP 3n
+.RE
+.PP
 key
+.RS 4
 The keys used to sign the zone. If no keys are specified, the default all zone keys that have private key files in the current directory.
+.RE
 .SH "EXAMPLE"
 .PP
 The following command signs the
@@ -151,3 +183,6 @@ RFC 2535.
 Internet Systems Consortium
 .SH "COPYRIGHT"
 Copyright \(co 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.br
+Copyright \(co 2000, 2001, 2003 Internet Software Consortium.
+.br
