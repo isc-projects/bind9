@@ -13,13 +13,13 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_gabn.3,v 1.16.18.9 2006/06/29 13:03:02 marka Exp $
+.\" $Id: lwres_gabn.3,v 1.16.18.10 2006/12/12 01:44:28 marka Exp $
 .\"
 .hy 0
 .ad l
 .\"     Title: lwres_gabn
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.70.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
 .\"      Date: Jun 30, 2000
 .\"    Manual: BIND9
 .\"    Source: BIND9
@@ -60,14 +60,14 @@ There are four main functions for the getaddrbyname opcode. One render function 
 These structures are defined in
 \fI<lwres/lwres.h>\fR. They are shown below.
 .PP
-.RS 3n
+.RS 4
 .nf
 #define LWRES_OPCODE_GETADDRSBYNAME     0x00010001U
 .fi
 .RE
 .sp
 .PP
-.RS 3n
+.RS 4
 .nf
 typedef struct lwres_addr lwres_addr_t;
 typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
@@ -75,7 +75,7 @@ typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
 .RE
 .sp
 .PP
-.RS 3n
+.RS 4
 .nf
 typedef struct {
         lwres_uint32_t  flags;
@@ -87,7 +87,7 @@ typedef struct {
 .RE
 .sp
 .PP
-.RS 3n
+.RS 4
 .nf
 typedef struct {
         lwres_uint32_t          flags;
@@ -190,3 +190,6 @@ indicate that the packet is not a response to an earlier query.
 \fBlwres_packet\fR(3)
 .SH "COPYRIGHT"
 Copyright \(co 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.br
+Copyright \(co 2000, 2001 Internet Software Consortium.
+.br

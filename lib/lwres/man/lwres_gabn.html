@@ -14,15 +14,15 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: lwres_gabn.html,v 1.7.18.14 2006/06/29 13:03:02 marka Exp $ -->
+<!-- $Id: lwres_gabn.html,v 1.7.18.15 2006/12/12 01:44:28 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
 <title>lwres_gabn</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.70.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.71.1">
 </head>
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF"><div class="refentry" lang="en">
-<a name="id2482688"></a><div class="titlepage"></div>
+<a name="id2476419"></a><div class="titlepage"></div>
 <div class="refnamediv">
 <h2>Name</h2>
 <p>lwres_gabnrequest_render, lwres_gabnresponse_render, lwres_gabnrequest_parse, lwres_gabnresponse_parse, lwres_gabnresponse_free, lwres_gabnrequest_free &#8212; lightweight resolver getaddrbyname message handling</p>
@@ -36,31 +36,25 @@
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_gabnrequest_render</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_gabnrequest_t * </td>
 <td>
 <var class="pdparam">req</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_lwpacket_t * </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_buffer_t * </td>
 <td>
 <var class="pdparam">b</var><code>)</code>;</td>
 </tr>
@@ -70,31 +64,25 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_gabnresponse_render</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_gabnresponse_t * </td>
 <td>
 <var class="pdparam">req</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_lwpacket_t * </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_buffer_t * </td>
 <td>
 <var class="pdparam">b</var><code>)</code>;</td>
 </tr>
@@ -104,31 +92,25 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_gabnrequest_parse</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_buffer_t * </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_lwpacket_t * </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_gabnrequest_t ** </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -138,31 +120,25 @@ lwres_result_t
 <td><code class="funcdef">
 lwres_result_t
 <b class="fsfunc">lwres_gabnresponse_parse</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_buffer_t * </td>
 <td>
 <var class="pdparam">b</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_lwpacket_t * </td>
 <td>
 <var class="pdparam">pkt</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
+<td>lwres_gabnresponse_t ** </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -172,19 +148,13 @@ lwres_result_t
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_gabnresponse_free</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_gabnresponse_t ** </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -194,19 +164,13 @@ void
 <td><code class="funcdef">
 void
 <b class="fsfunc">lwres_gabnrequest_free</b>(</code></td>
-<td> </td>
+<td>lwres_context_t * </td>
 <td>
 <var class="pdparam">ctx</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td> </td>
-<td>
-<var class="pdparam">ctx</var>, </td>
-</tr>
-<tr>
-<td> </td>
-<td> </td>
+<td>lwres_gabnrequest_t ** </td>
 <td>
 <var class="pdparam">structp</var><code>)</code>;</td>
 </tr>
@@ -214,7 +178,7 @@ void
 </div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2549579"></a><h2>DESCRIPTION</h2>
+<a name="id2543708"></a><h2>DESCRIPTION</h2>
 <p>
       These are low-level routines for creating and parsing
       lightweight resolver name-to-address lookup request and
@@ -314,7 +278,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2549861"></a><h2>RETURN VALUES</h2>
+<a name="id2543853"></a><h2>RETURN VALUES</h2>
 <p>
       The getaddrbyname opcode functions
       <code class="function">lwres_gabnrequest_render()</code>,
@@ -352,7 +316,7 @@ typedef struct {
     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2549927"></a><h2>SEE ALSO</h2>
+<a name="id2543920"></a><h2>SEE ALSO</h2>
 <p><span class="citerefentry"><span class="refentrytitle">lwres_packet</span>(3)</span>
     </p>
 </div>
