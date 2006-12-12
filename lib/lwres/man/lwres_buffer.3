@@ -13,13 +13,13 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: lwres_buffer.3,v 1.24 2006/06/29 13:03:32 marka Exp $
+.\" $Id: lwres_buffer.3,v 1.25 2006/12/12 01:45:21 marka Exp $
 .\"
 .hy 0
 .ad l
 .\"     Title: lwres_buffer
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.70.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.71.1 <http://docbook.sf.net/>
 .\"      Date: Jun 30, 2000
 .\"    Manual: BIND9
 .\"    Source: BIND9
@@ -92,7 +92,7 @@ The
 \fIactive region\fR
 is an (optional) subregion of the remaining region. It extends from the current offset to an offset in the remaining region. Initially, the active region is empty. If the current offset advances beyond the chosen offset, the active region will also be empty.
 .PP
-.RS 3n
+.RS 4
 .nf
    /\-\-\-\-\-\-\-\-\-\-\-\-entire length\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\\\\
    /\-\-\-\-\- used region \-\-\-\-\-\\\\/\-\- available \-\-\\\\
@@ -104,7 +104,7 @@ is an (optional) subregion of the remaining region. It extends from the current 
 .RE
 .sp
 .PP
-.RS 3n
+.RS 4
 .nf
   a == base of buffer.
   b == current pointer.  Can be anywhere between a and d.
@@ -115,7 +115,7 @@ is an (optional) subregion of the remaining region. It extends from the current 
 .RE
 .sp
 .PP
-.RS 3n
+.RS 4
 .nf
   a\-e == entire length of buffer.
   a\-d == used region.
@@ -228,3 +228,6 @@ to
 \fIbase\fR.
 .SH "COPYRIGHT"
 Copyright \(co 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+.br
+Copyright \(co 2000, 2001 Internet Software Consortium.
+.br
