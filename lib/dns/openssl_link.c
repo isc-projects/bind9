@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssl_link.c,v 1.11 2006/12/04 05:12:25 marka Exp $
+ * $Id: openssl_link.c,v 1.12 2006/12/13 23:56:24 marka Exp $
  */
 #ifdef OPENSSL
 
@@ -41,8 +41,7 @@
 #include <openssl/conf.h>
 #include <openssl/crypto.h>
 
-#if defined(CRYPTO_LOCK_ENGINE) && defined(OVERRIDE_OPENSSL_RAND) && \
-    (OPENSSL_VERSION_NUMBER != 0x00907000L)
+#if defined(CRYPTO_LOCK_ENGINE) && (OPENSSL_VERSION_NUMBER != 0x00907000L)
 #define USE_ENGINE 1
 #endif
 
@@ -50,9 +49,7 @@
 #include <openssl/engine.h>
 #endif
 
-#ifdef OVERRIDE_OPENSSL_RAND
 static RAND_METHOD *rm = NULL;
-#endif
 
 static isc_mutex_t *locks = NULL;
 static int nlocks;
@@ -61,7 +58,6 @@ static int nlocks;
 static ENGINE *e;
 #endif
 
-#ifdef OVERRIDE_OPENSSL_RAND
 static int
 entropy_get(unsigned char *buf, int num) {
 	isc_result_t result;
@@ -94,7 +90,6 @@ entropy_add(const void *buf, int num, double entropy) {
 	UNUSED(num);
 	UNUSED(entropy);
 }
-#endif
 
 static void
 lock_callback(int mode, int type, const char *file, int line) {
@@ -160,7 +155,6 @@ dst__openssl_init() {
 	CRYPTO_set_locking_callback(lock_callback);
 	CRYPTO_set_id_callback(id_callback);
 
-#ifdef OVERRIDE_OPENSSL_RAND
 	rm = mem_alloc(sizeof(RAND_METHOD));
 	if (rm == NULL) {
 		result = ISC_R_NOMEMORY;
@@ -183,17 +177,14 @@ dst__openssl_init() {
 #else
 	RAND_set_rand_method(rm);
 #endif /* USE_ENGINE */
-#endif /* OVERRIDE_OPENSSL_RAND */
 	return (ISC_R_SUCCESS);
 
-#ifdef OVERRIDE_OPENSSL_RAND
 #ifdef USE_ENGINE
  cleanup_rm:
 	mem_free(rm);
 #endif
  cleanup_mutexinit:
 	DESTROYMUTEXBLOCK(locks, nlocks);
-#endif
  cleanup_mutexalloc:
 	mem_free(locks);
 	return (result);
@@ -240,14 +231,12 @@ dst__openssl_destroy() {
 		DESTROYMUTEXBLOCK(locks, nlocks);
 		mem_free(locks);
 	}
-#ifdef OVERRIDE_OPENSSL_RAND
 	if (rm != NULL) {
 #if OPENSSL_VERSION_NUMBER >= 0x00907000L
 		RAND_cleanup();
 #endif
 		mem_free(rm);
 	}
-#endif
 }
 
 isc_result_t
