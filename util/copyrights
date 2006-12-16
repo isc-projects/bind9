@@ -172,7 +172,7 @@
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2004
 ./bin/nsupdate/nsupdate.8			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006
-./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2003,2004,2005
+./bin/nsupdate/nsupdate.docbook			SGML	2000,2001,2003,2004,2005,2006
 ./bin/nsupdate/nsupdate.html			HTML	DOCBOOK
 ./bin/nsupdate/win32/nsupdate.dsp		X	2001,2006
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001,2006
