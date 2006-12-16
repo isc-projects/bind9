@@ -1,3 +1,5 @@
+2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
+
 2119.	[compat]	libbind: allow res_init() to succeed enough to
 			return the default domain even if it was unable
 			to allocate memory.
