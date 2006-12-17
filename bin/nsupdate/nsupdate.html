@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2004, 2005 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2006 Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000, 2001, 2003 Internet Software Consortium.
  - 
  - Permission to use, copy, modify, and distribute this software for any
@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: nsupdate.html,v 1.9.2.16 2006/12/12 01:42:53 marka Exp $ -->
+<!-- $Id: nsupdate.html,v 1.9.2.17 2006/12/17 04:54:01 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -32,7 +32,7 @@
 <div class="cmdsynopsis"><p><code class="command">nsupdate</code>  [<code class="option">-d</code>] [[<code class="option">-y <em class="replaceable"><code>keyname:secret</code></em></code>] |  [<code class="option">-k <em class="replaceable"><code>keyfile</code></em></code>]] [<code class="option">-v</code>] [filename]</p></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543493"></a><h2>DESCRIPTION</h2>
+<a name="id2543496"></a><h2>DESCRIPTION</h2>
 <p>
 <span><strong class="command">nsupdate</strong></span>
 is used to submit Dynamic DNS Update requests as defined in RFC2136
@@ -141,7 +141,7 @@ This may be preferable when a batch of update requests is made.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543693"></a><h2>INPUT FORMAT</h2>
+<a name="id2543697"></a><h2>INPUT FORMAT</h2>
 <p>
 <span><strong class="command">nsupdate</strong></span>
 reads input from
@@ -170,7 +170,9 @@ The command formats and their meaning are as follows:
 </p>
 <div class="variablelist"><dl>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">server</code>  {servername} [port]</p></div>
+<span><strong class="command">server</strong></span>
+ {servername}
+ [port]
 </span></dt>
 <dd><p>
 Sends all dynamic update requests to the name server
@@ -188,7 +190,9 @@ If no port number is specified, the default DNS port number of 53 is
 used.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">local</code>  {address} [port]</p></div>
+<span><strong class="command">local</strong></span>
+ {address}
+ [port]
 </span></dt>
 <dd><p>
 Sends all dynamic update requests using the local
@@ -202,7 +206,8 @@ can additionally be used to make requests come from a specific port.
 If no port number is specified, the system will assign one.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">zone</code>  {zonename}</p></div>
+<span><strong class="command">zone</strong></span>
+ {zonename}
 </span></dt>
 <dd><p>
 Specifies that all updates are to be made to the zone
@@ -214,7 +219,8 @@ statement is provided,
 will attempt determine the correct zone to update based on the rest of the input.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">class</code>  {classname}</p></div>
+<span><strong class="command">class</strong></span>
+ {classname}
 </span></dt>
 <dd><p>
 Specify the default class.
@@ -222,7 +228,9 @@ If no <em class="parameter"><code>class</code></em> is specified the default cla
 <em class="parameter"><code>IN</code></em>.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">key</code>  {name} {secret}</p></div>
+<span><strong class="command">key</strong></span>
+ {name}
+ {secret}
 </span></dt>
 <dd><p>
 Specifies that all updates are to be TSIG signed using the
@@ -232,14 +240,16 @@ overrides any key specified on the command line via
 <code class="option">-y</code> or <code class="option">-k</code>.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">prereq nxdomain</code>  {domain-name}</p></div>
+<span><strong class="command">prereq nxdomain</strong></span>
+ {domain-name}
 </span></dt>
 <dd><p>
 Requires that no resource record of any type exists with name
 <em class="parameter"><code>domain-name</code></em>.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">prereq yxdomain</code>  {domain-name}</p></div>
+<span><strong class="command">prereq yxdomain</strong></span>
+ {domain-name}
 </span></dt>
 <dd><p>
 Requires that
@@ -247,7 +257,10 @@ Requires that
 exists (has as at least one resource record, of any type).
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">prereq nxrrset</code>  {domain-name} [class] {type}</p></div>
+<span><strong class="command">prereq nxrrset</strong></span>
+ {domain-name}
+ [class]
+ {type}
 </span></dt>
 <dd><p>
 Requires that no resource record exists of the specified
@@ -260,7 +273,10 @@ If
 is omitted, IN (internet) is assumed.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">prereq yxrrset</code>  {domain-name} [class] {type}</p></div>
+<span><strong class="command">prereq yxrrset</strong></span>
+ {domain-name}
+ [class]
+ {type}
 </span></dt>
 <dd><p>
 This requires that a resource record of the specified
@@ -274,7 +290,11 @@ If
 is omitted, IN (internet) is assumed.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">prereq yxrrset</code>  {domain-name} [class] {type} {data...}</p></div>
+<span><strong class="command">prereq yxrrset</strong></span>
+ {domain-name}
+ [class]
+ {type}
+ {data...}
 </span></dt>
 <dd><p>
 The
@@ -298,7 +318,11 @@ are written in the standard text representation of the resource record's
 RDATA.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">update delete</code>  {domain-name} [ttl] [class] [type [data...]]</p></div>
+<span><strong class="command">update delete</strong></span>
+ {domain-name}
+ [ttl]
+ [class]
+ [type [data...]]
 </span></dt>
 <dd><p>
 Deletes any resource records named
@@ -315,7 +339,12 @@ is not supplied.  The
 is ignored, and is only allowed for compatibility.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">update add</code>  {domain-name} {ttl} [class] {type} {data...}</p></div>
+<span><strong class="command">update add</strong></span>
+ {domain-name}
+ {ttl}
+ [class]
+ {type}
+ {data...}
 </span></dt>
 <dd><p>
 Adds a new resource record with the specified
@@ -325,14 +354,14 @@ and
 <em class="parameter"><code>data</code></em>.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">show</code> </p></div>
+<span><strong class="command">show</strong></span>
 </span></dt>
 <dd><p>
 Displays the current message, containing all of the prerequisites and
 updates specified since the last send.
 </p></dd>
 <dt><span class="term">
-<div class="cmdsynopsis"><p><code class="command">send</code> </p></div>
+<span><strong class="command">send</strong></span>
 </span></dt>
 <dd><p>
 Sends the current message.  This is equivalent to entering a blank line.
@@ -345,7 +374,7 @@ Lines beginning with a semicolon are comments and are ignored.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544372"></a><h2>EXAMPLES</h2>
+<a name="id2544330"></a><h2>EXAMPLES</h2>
 <p>
 The examples below show how
 <span><strong class="command">nsupdate</strong></span>
@@ -398,7 +427,7 @@ SIG, KEY and NXT records.)
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544416"></a><h2>FILES</h2>
+<a name="id2544374"></a><h2>FILES</h2>
 <div class="variablelist"><dl>
 <dt><span class="term"><code class="constant">/etc/resolv.conf</code></span></dt>
 <dd><p>
@@ -417,7 +446,7 @@ base-64 encoding of HMAC-MD5 key created by
 </dl></div>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544484"></a><h2>SEE ALSO</h2>
+<a name="id2544442"></a><h2>SEE ALSO</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">RFC2136</span></span>,
 <span class="citerefentry"><span class="refentrytitle">RFC3007</span></span>,
@@ -430,7 +459,7 @@ base-64 encoding of HMAC-MD5 key created by
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544549"></a><h2>BUGS</h2>
+<a name="id2544507"></a><h2>BUGS</h2>
 <p>
 The TSIG key is redundantly stored in two separate files.
 This is a consequence of nsupdate using the DST library
