@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.146 2006/08/01 03:42:56 marka Exp $ */
+/* $Id: zone.h,v 1.147 2006/12/18 23:58:14 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -1408,6 +1408,18 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
  * Requires:
  *\li	'zmgr' to be a valid zone manager.
  *\li	'state' to be a valid DNS_ZONESTATE_ constant.
+ */
+
+void
+dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			   isc_sockaddr_t *local, isc_time_t *now);
+/*%<
+ *	Add the pair of addresses to the unreachable cache.
+ *
+ * Requires:
+ *\li	'zmgr' to be a valid zone manager.
+ *\li	'remote' to be a valid sockaddr.
+ *\li	'local' to be a valid sockaddr.
  */
 
 void

@@ -1,3 +1,6 @@
+2121.	[func]		Add a 10 slot dead masters cache (LRU) with a 600
+			second timeout. [RT #16553]
+
 2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
 
 2119.	[compat]	libbind: allow res_init() to succeed enough to

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.c,v 1.147 2006/07/19 00:53:42 marka Exp $ */
+/* $Id: xfrin.c,v 1.148 2006/12/18 23:58:13 marka Exp $ */
 
 /*! \file */
 
@@ -898,8 +898,7 @@ static void
 xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 	isc_socket_connev_t *cev = (isc_socket_connev_t *) event;
 	dns_xfrin_ctx_t *xfr = (dns_xfrin_ctx_t *) event->ev_arg;
-	isc_result_t evresult = cev->result;
-	isc_result_t result;
+	isc_result_t result = cev->result;
 	char sourcetext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t sockaddr;
 
@@ -916,7 +915,18 @@ xfrin_connect_done(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	CHECK(evresult);
+	if (result != ISC_R_SUCCESS) {
+		dns_zonemgr_t * zmgr = dns_zone_getmgr(xfr->zone);
+		isc_time_t now;
+
+		if (zmgr != NULL) {
+			TIME_NOW(&now);
+			dns_zonemgr_unreachableadd(zmgr, &xfr->masteraddr,
+						   &xfr->sourceaddr, &now);
+		}
+		goto failure;
+	}
+
 	result = isc_socket_getsockname(xfr->socket, &sockaddr);
 	if (result == ISC_R_SUCCESS) {
 		isc_sockaddr_format(&sockaddr, sourcetext, sizeof(sourcetext));

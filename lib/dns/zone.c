@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.459 2006/12/07 06:17:06 marka Exp $ */
+/* $Id: zone.c,v 1.460 2006/12/18 23:58:14 marka Exp $ */
 
 /*! \file */
 
@@ -304,6 +304,16 @@ struct dns_zone {
 /* Flags for zone_load() */
 #define DNS_ZONELOADFLAG_NOSTAT	0x00000001U	/* Do not stat() master files */
 
+#define UNREACH_CHACHE_SIZE	10U
+#define UNREACH_HOLD_TIME	600	/* 10 minutes */
+
+struct dns_unreachable {
+	isc_sockaddr_t	remote;
+	isc_sockaddr_t	local;
+	isc_uint32_t	expire;
+	isc_uint32_t	last;
+};
+
 struct dns_zonemgr {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
@@ -332,6 +342,10 @@ struct dns_zonemgr {
 	isc_uint32_t		ioactive;
 	dns_iolist_t		high;
 	dns_iolist_t		low;
+	
+	/* Locked by rwlock. */
+	/* LRU cache */
+	struct dns_unreachable	unreachable[UNREACH_CHACHE_SIZE];
 };
 
 /*%
@@ -478,6 +492,10 @@ static void zone_saveunique(dns_zone_t *zone, const char *path,
 static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
+static isc_boolean_t dns_zonemgr_unreachable(dns_zonemgr_t *zmgr,
+					     isc_sockaddr_t *remote,
+					     isc_sockaddr_t *local,
+					     isc_time_t *now);
 
 #define ENTER zone_debuglog(zone, me, 1, "enter")
 
@@ -4144,6 +4162,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 				     master, source);
 			goto same_master;
 		}
+		dns_zonemgr_unreachableadd(zone->zmgr, &zone->masteraddr,
+			   		   &zone->sourceaddr, &now);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "could not refresh stub from master %s"
 			     " (source %s): %s", master, source,
@@ -4407,11 +4427,21 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 			/* Try with slave with TCP. */
 			if (zone->type == dns_zone_slave &&
 			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH)) {
-				LOCK_ZONE(zone);
-				DNS_ZONE_SETFLAG(zone,
-						 DNS_ZONEFLG_SOABEFOREAXFR);
-				UNLOCK_ZONE(zone);
-				goto tcp_transfer;
+				if (!dns_zonemgr_unreachable(zone->zmgr,
+							     &zone->masteraddr,
+							     &zone->sourceaddr,
+							     &now)) {
+					LOCK_ZONE(zone);
+					DNS_ZONE_SETFLAG(zone,
+						     DNS_ZONEFLG_SOABEFOREAXFR);
+					UNLOCK_ZONE(zone);
+					goto tcp_transfer;
+				}
+				dns_zone_log(zone, ISC_LOG_DEBUG(1),
+				             "refresh: skipped tcp fallback"
+					     "as master %s (source %s) is "
+					     "unreachable (cached)",
+					      master, source);
 			}
 		} else
 			dns_zone_log(zone, ISC_LOG_INFO,
@@ -4587,6 +4617,16 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 	if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) ||
 	    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) ||
 	    isc_serial_gt(serial, zone->serial)) {
+		if (dns_zonemgr_unreachable(zone->zmgr, &zone->masteraddr,
+					    &zone->sourceaddr, &now)) {
+			dns_zone_log(zone, ISC_LOG_INFO,
+				     "refresh: skipping %s as master %s "
+				     "(source %s) is unreachable (cached)",
+				     zone->type == dns_zone_slave ? 
+				     "zone transfer" : "NS query",
+				     master, source);
+			goto next_master;
+		}
  tcp_transfer:
 		isc_event_free(&event);
 		LOCK_ZONE(zone);
@@ -6758,12 +6798,14 @@ static void
 got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_peer_t *peer = NULL;
-	char mastertext[256];
+	char master[ISC_SOCKADDR_FORMATSIZE];
+	char source[ISC_SOCKADDR_FORMATSIZE];
 	dns_rdatatype_t xfrtype;
 	dns_zone_t *zone = event->ev_arg;
 	isc_netaddr_t masterip;
 	isc_sockaddr_t sourceaddr;
 	isc_sockaddr_t masteraddr;
+	isc_time_t now;
 
 	UNUSED(task);
 
@@ -6774,34 +6816,44 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		goto cleanup;
 	}
 
-	isc_sockaddr_format(&zone->masteraddr, mastertext, sizeof(mastertext));
+	TIME_NOW(&now);
+
+	isc_sockaddr_format(&zone->masteraddr, master, sizeof(master));
+	if (dns_zonemgr_unreachable(zone->zmgr, &zone->masteraddr,
+				    &zone->sourceaddr, &now)) {
+		isc_sockaddr_format(&zone->sourceaddr, source, sizeof(source));
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "got_transfer_quota: skipping zone transfer as "
+			     "master %s (source %s) is unreachable (cached)",
+			     master, source);
+		result = ISC_R_CANCELED;
+		goto cleanup;
+	}
 
 	isc_netaddr_fromsockaddr(&masterip, &zone->masteraddr);
-	(void)dns_peerlist_peerbyaddr(zone->view->peers,
-				      &masterip, &peer);
+	(void)dns_peerlist_peerbyaddr(zone->view->peers, &masterip, &peer);
 
 	/*
 	 * Decide whether we should request IXFR or AXFR.
 	 */
 	if (zone->db == NULL) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "no database exists yet, "
-			     "requesting AXFR of "
-			     "initial version from %s", mastertext);
+			     "no database exists yet, requesting AXFR of "
+			     "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_IXFRFROMDIFFS)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1), "ixfr-from-differences "
-			     "set, requesting AXFR from %s", mastertext);
+			     "set, requesting AXFR from %s", master);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "forced reload, requesting AXFR of "
-			     "initial version from %s", mastertext);
+			     "initial version from %s", master);
 		xfrtype = dns_rdatatype_axfr;
 	} else if (DNS_ZONE_FLAG(zone, DNS_ZONEFLAG_NOIXFR)) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "retrying with AXFR from %s due to "
-			     "previous IXFR failure", mastertext);
+			     "previous IXFR failure", master);
 		xfrtype = dns_rdatatype_axfr;
 		LOCK_ZONE(zone);
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLAG_NOIXFR);
@@ -6817,17 +6869,15 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		}
 		if (use_ixfr == ISC_FALSE) {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "IXFR disabled, "
-				     "requesting AXFR from %s",
-				     mastertext);
+				     "IXFR disabled, requesting AXFR from %s",
+				     master);
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR))
 				xfrtype = dns_rdatatype_soa;
 			else
 				xfrtype = dns_rdatatype_axfr;
 		} else {
 			dns_zone_log(zone, ISC_LOG_DEBUG(1),
-				     "requesting IXFR from %s",
-				     mastertext);
+				     "requesting IXFR from %s", master);
 			xfrtype = dns_rdatatype_ixfr;
 		}
 	}
@@ -6852,8 +6902,7 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "could not get TSIG key "
-			     "for zone transfer: %s",
+			     "could not get TSIG key for zone transfer: %s",
 			     isc_result_totext(result));
 	}
 
@@ -7135,6 +7184,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->zones);
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
+	memset(zmgr->unreachable, 0, sizeof(zmgr->unreachable));
 	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto free_mem;
@@ -7749,6 +7799,87 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr) {
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	return (zmgr->serialqueryrate);
+}
+
+static isc_boolean_t
+dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			isc_sockaddr_t *local, isc_time_t *now)
+{
+	unsigned int i;
+	isc_rwlocktype_t locktype;
+	isc_result_t result;
+	isc_uint32_t seconds = isc_time_seconds(now);
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	locktype = isc_rwlocktype_read;
+	RWLOCK(&zmgr->rwlock, locktype);
+	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+		if (zmgr->unreachable[i].expire >= seconds &&
+		    isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
+		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local)) {
+			result = isc_rwlock_tryupgrade(&zmgr->rwlock);
+			if (result == ISC_R_SUCCESS) {
+				locktype = isc_rwlocktype_write;
+				zmgr->unreachable[i].last = seconds;
+			}
+			break;
+		}
+	}
+	RWUNLOCK(&zmgr->rwlock, locktype);
+	return (ISC_TF(i < UNREACH_CHACHE_SIZE));
+}
+
+void
+dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
+			   isc_sockaddr_t *local, isc_time_t *now)
+{
+	isc_uint32_t seconds = isc_time_seconds(now);
+	isc_uint32_t last = seconds;
+	unsigned int i, slot = UNREACH_CHACHE_SIZE, oldest = 0;
+
+	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
+
+	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
+	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+		/* Existing entry? */
+		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
+		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local))
+			break;
+		/* Empty slot? */
+		if (zmgr->unreachable[i].expire < seconds)
+			slot = i;
+		/* Least recently used slot? */
+		if (zmgr->unreachable[i].last < last) {
+			last = zmgr->unreachable[i].last;
+			oldest = i;
+		}
+	}
+	if (i < UNREACH_CHACHE_SIZE) {
+		/*
+		 * Found a existing entry.  Update the expire timer and
+		 * last usage timestamps.
+		 */
+		zmgr->unreachable[i].expire = seconds + UNREACH_HOLD_TIME;
+		zmgr->unreachable[i].last = seconds;
+	} else if (slot != UNREACH_CHACHE_SIZE) {
+		/*
+		 * Found a empty slot. Add a new entry to the cache.
+		 */
+		zmgr->unreachable[slot].expire = seconds + UNREACH_HOLD_TIME;
+		zmgr->unreachable[slot].last = seconds;
+		zmgr->unreachable[slot].remote = *remote;
+		zmgr->unreachable[slot].local = *local;
+	} else {
+		/*
+		 * Replace the least recently used entry in the cache.
+		 */
+		zmgr->unreachable[oldest].expire = seconds + UNREACH_HOLD_TIME;
+		zmgr->unreachable[oldest].last = seconds;
+		zmgr->unreachable[oldest].remote = *remote;
+		zmgr->unreachable[oldest].local = *local;
+	}
+	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 }
 
 void
