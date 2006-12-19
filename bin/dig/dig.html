@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: dig.html,v 1.6.2.16 2006/12/12 01:42:53 marka Exp $ -->
+<!-- $Id: dig.html,v 1.6.2.17 2006/12/19 01:35:23 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -67,9 +67,15 @@ It is possible to set per user defaults for <span><strong class="command">dig</s
 <code class="filename">${HOME}/.digrc</code>.  This file is read and any options in it
 are applied before the command line arguments.
 </p>
+<p>
+       The IN and CH class names overlap with the IN and CH top level
+       domains names.  Either use the <code class="option">-t</code> and
+       <code class="option">-c</code> options to specify the type and class or
+       use "IN." and "CH." when looking up these top level domains.
+     </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543649"></a><h2>SIMPLE USAGE</h2>
+<a name="id2543658"></a><h2>SIMPLE USAGE</h2>
 <p>
 A typical invocation of <span><strong class="command">dig</strong></span> looks like:
 </p>
@@ -107,7 +113,7 @@ ANY, A, MX, SIG, etc.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543728"></a><h2>OPTIONS</h2>
+<a name="id2543737"></a><h2>OPTIONS</h2>
 <p>
 The <code class="option">-b</code> option sets the source IP address of the query
 to <em class="parameter"><code>address</code></em>.  This must be a valid address on
@@ -181,7 +187,7 @@ being used.  In BIND, this is done by providing appropriate
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2543961"></a><h2>QUERY OPTIONS</h2>
+<a name="id2543971"></a><h2>QUERY OPTIONS</h2>
 <p>
 <span><strong class="command">dig</strong></span> provides a number of query options which affect
 the way in which lookups are made and the results displayed.  Some of
@@ -396,7 +402,7 @@ in the OPT record in the additional section of the query.
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544528"></a><h2>MULTIPLE QUERIES</h2>
+<a name="id2544537"></a><h2>MULTIPLE QUERIES</h2>
 <p>
 The BIND 9 implementation of <span><strong class="command">dig </strong></span> supports
 specifying multiple queries on the command line (in addition to
@@ -437,7 +443,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544654"></a><h2>FILES</h2>
+<a name="id2544664"></a><h2>FILES</h2>
 <p>
 <code class="filename">/etc/resolv.conf</code>
 </p>
@@ -446,7 +452,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544674"></a><h2>SEE ALSO</h2>
+<a name="id2544683"></a><h2>SEE ALSO</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">host</span>(1)</span>,
 <span class="citerefentry"><span class="refentrytitle">named</span>(8)</span>,
@@ -455,7 +461,7 @@ will not print the initial query when it looks up the NS records for
 </p>
 </div>
 <div class="refsect1" lang="en">
-<a name="id2544712"></a><h2>BUGS </h2>
+<a name="id2544722"></a><h2>BUGS </h2>
 <p>
 There are probably too many query options. 
 </p>
