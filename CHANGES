@@ -1,3 +1,12 @@
+	--- 9.3.3-WFB-1 released ---
+
+2035.	[func]		Make falling back to TCP on UDP refresh failure
+			optional. Default "try-tcp-refresh yes;" for BIND 8
+			compatibility. [RT #16123]
+
+2025.	[func]		Update "zone serial unchanged" message. [RT #16026]
+
+	report server->recursionquota.soft in "rndc status".
 
 	--- 9.3.3 released ---
 

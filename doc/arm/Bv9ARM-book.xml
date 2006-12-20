@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.74 2006/11/14 22:38:53 sra Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.155.2.27.2.74.2.1 2006/12/20 02:20:42 marka Exp $ -->
 
 <book>
 <title>BIND 9 Administrator Reference Manual</title>
@@ -2852,6 +2852,7 @@ statement in the <filename>named.conf</filename> file:</para>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-recursion { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> }; </optional>
+    <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> allow-v6-synthesis { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> blackhole { <replaceable>address_match_list</replaceable> }; </optional>
     <optional> avoid-v4-udp-ports { <replaceable>port_list</replaceable> }; </optional>
@@ -3494,6 +3495,16 @@ indicated that it is a reverse lookup of a hostname (the owner name ends in
 IN-ADDR.ARPA, IP6.ARPA, IP6.INT).
 </para>
 </listitem></varlistentry>
+
+	    <varlistentry>
+	      <term><command>try-tcp-refresh</command></term>
+	      <listitem>
+		<para>
+		  Try to refresh the zone using TCP if UDP queries fail.
+		  The default is <command>yes</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
 
 </variablelist>
 
@@ -4760,6 +4771,7 @@ zone <replaceable>zone_name</replaceable> <optional><replaceable>class</replacea
     <optional> allow-query { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-transfer { <replaceable>address_match_list</replaceable> } ; </optional>
     <optional> allow-update-forwarding { <replaceable>address_match_list</replaceable> } ; </optional>
+    <optional> try-tcp-refresh <replaceable>yes_or_no</replaceable>; </optional>
     <optional> also-notify { <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; <optional> <replaceable>ip_addr</replaceable> <optional>port <replaceable>ip_port</replaceable></optional> ; ... </optional> }; </optional>
     <optional> check-names (<constant>warn</constant>|<constant>fail</constant>|<constant>ignore</constant>) ; </optional>
     <optional> dialup <replaceable>dialup_option</replaceable> ; </optional>
@@ -5021,6 +5033,16 @@ network.  The default varies according to zone type.  For <command>master</comma
 zones the default is <command>warn</command>.
 </para>
 </listitem></varlistentry>
+
+	      <varlistentry>
+		<term><command>try-tcp-refresh</command></term>
+		  <listitem>
+		    <para>
+		      See the description of
+		      <command>try-tcp-refresh</command> in <xref linkend="boolean_options"/>.
+		    </para>
+		  </listitem>
+		</varlistentry>
 
 <varlistentry><term><command>database</command></term>
 <listitem><para>Specify the type of database to be used for storing the

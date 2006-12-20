@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.65 2006/07/19 01:04:24 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.65.4.1 2006/12/20 02:20:45 marka Exp $ */
 
 #include <config.h>
 
@@ -1397,7 +1397,9 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "zone serial has gone backwards");
 			else if (serial == zone->serial && !hasinclude) 
 				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone serial unchanged");
+					     "zone serial unchanged. "
+					     "zone may fail to transfer "
+					     "to slaves.");
 		}
 		zone->serial = serial;
 		zone->refresh = RANGE(refresh,
@@ -3559,7 +3561,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 				     "master %s exceeded (source %s)",
 				     master, source);
 			/* Try with slave with TCP. */
-			if (zone->type == dns_zone_slave) {
+			if (zone->type == dns_zone_slave &&
+			    DNS_ZONE_OPTION(zone, DNS_ZONEOPT_TRYTCPREFRESH)) {
 				LOCK_ZONE(zone);
 				DNS_ZONE_SETFLAG(zone,
 						 DNS_ZONEFLG_SOABEFOREAXFR);

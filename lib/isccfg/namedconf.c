@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.21.44.34 2006/03/02 00:37:20 marka Exp $ */
+/* $Id: namedconf.c,v 1.21.44.34.4.1 2006/12/20 02:20:45 marka Exp $ */
 
 #include <config.h>
 
@@ -782,6 +782,7 @@ zone_clauses[] = {
 	{ "use-alt-transfer-source", &cfg_type_boolean, 0 },
 	{ "zone-statistics", &cfg_type_boolean, 0 },
 	{ "key-directory", &cfg_type_qstring, 0 },
+	{ "try-tcp-refresh", &cfg_type_boolean, 0 },
 	{ NULL, NULL, 0 }
 };
 

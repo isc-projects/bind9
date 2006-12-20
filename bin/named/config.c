@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.c,v 1.11.2.4.8.32 2006/02/28 06:32:53 marka Exp $ */
+/* $Id: config.c,v 1.11.2.4.8.32.4.1 2006/12/20 02:20:41 marka Exp $ */
 
 #include <config.h>
 
@@ -155,6 +155,7 @@ options {\n\
 	zone-statistics false;\n\
 	max-journal-size unlimited;\n\
 	ixfr-from-differences false;\n\
+	try-tcp-refresh yes; /* BIND 8 compat */\n\
 };\n\
 "
 
