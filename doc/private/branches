@@ -11,6 +11,7 @@ Branch				Status	Whom	// Comments
 
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
+custom_WFB_v9_3_3		new	
 dighost				new	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
@@ -99,6 +100,7 @@ rt16507				new
 rt16519				new	
 rt16553				new	
 rt16555				new	
+rt16563				new	
 rt1727				open		// ixfr-from-differences workfile
 skan				new	
 skan-metazones1			private	
@@ -116,6 +118,7 @@ v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
 v9_2_2base			active		// security fixes 9.2.2 only 
 v9_2_4base			active		// security fixes 9.2.4 only
 v9_2_6_patch			new	
+v9_2_7_patch			new	
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
 v9_3_2_patch			new	
