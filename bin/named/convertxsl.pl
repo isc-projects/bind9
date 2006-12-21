@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-print 'char msg[] = "';
+print 'static char msg[] = "';
 
 my $lines = '';
 
