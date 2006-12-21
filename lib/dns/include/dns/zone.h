@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.147 2006/12/18 23:58:14 marka Exp $ */
+/* $Id: zone.h,v 1.148 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
@@ -31,6 +31,7 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
+#include <isc/xml.h>
 
 #include <dns/masterdump.h>
 #include <dns/types.h>
@@ -1196,6 +1197,8 @@ dns_zone_next(dns_zone_t *zone, dns_zone_t **next);
  *	(result ISC_R_NOMORE).
  */
 
+
+
 isc_result_t
 dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
 /*%<
@@ -1593,6 +1596,13 @@ dns_zone_setisself(dns_zone_t *zone, dns_isselffunc_t isself, void *arg);
  * 'destaddr' with optional key 'mykey' for class 'rdclass' would be
  * delivered to 'myview'.
  */
+
+#ifdef HAVE_LIBXML2
+
+isc_result_t
+dns_zone_xmlrender(dns_zone_t *zone, xmlTextWriterPtr xml, int flags);
+
+#endif
 
 ISC_LANG_ENDDECLS
 

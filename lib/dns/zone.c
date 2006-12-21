@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.460 2006/12/18 23:58:14 marka Exp $ */
+/* $Id: zone.c,v 1.461 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
@@ -33,6 +33,7 @@
 #include <isc/taskpool.h>
 #include <isc/timer.h>
 #include <isc/util.h>
+#include <isc/xml.h>
 
 #include <dns/acache.h>
 #include <dns/acl.h>
@@ -253,6 +254,11 @@ struct dns_zone {
 	isc_uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
+
+	char *			strnamerd;
+	char *			strname;
+	char *			strrdclass;
+	char *			strviewname;
 };
 
 #define DNS_ZONE_FLAG(z,f) (ISC_TF(((z)->flags & (f)) != 0))
@@ -444,6 +450,10 @@ static void zone_shutdown(isc_task_t *, isc_event_t *);
 static void zone_loaddone(void *arg, isc_result_t result);
 static isc_result_t zone_startload(dns_db_t *db, dns_zone_t *zone,
 				   isc_time_t loadtime);
+static void zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void zone_name_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length);
+static void zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length);
 
 #if 0
 /* ondestroy example */
@@ -571,6 +581,10 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 		goto free_dblock;
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
+	zone->strnamerd = NULL;
+	zone->strname = NULL;
+	zone->strrdclass = NULL;
+	zone->strviewname = NULL;
 	zone->masterfile = NULL;
 	zone->masterformat =  dns_masterformat_none;
 	zone->keydirectory = NULL;
@@ -699,7 +713,7 @@ zone_free(dns_zone_t *zone) {
 
 	if (zone->task != NULL)
 		isc_task_detach(&zone->task);
-	if (zone->zmgr)
+	if (zone->zmgr != NULL)
 		dns_zonemgr_releasezone(zone->zmgr, zone);
 
 	/* Unmanaged objects */
@@ -737,6 +751,14 @@ zone_free(dns_zone_t *zone) {
 		dns_acl_detach(&zone->xfr_acl);
 	if (dns_name_dynamic(&zone->origin))
 		dns_name_free(&zone->origin, zone->mctx);
+	if (zone->strnamerd != NULL)
+		isc_mem_free(zone->mctx, zone->strnamerd);
+	if (zone->strname != NULL)
+		isc_mem_free(zone->mctx, zone->strname);
+	if (zone->strrdclass != NULL)
+		isc_mem_free(zone->mctx, zone->strrdclass);
+	if (zone->strviewname != NULL)
+		isc_mem_free(zone->mctx, zone->strviewname);
 	if (zone->ssutable != NULL)
 		dns_ssutable_detach(&zone->ssutable);
 
@@ -755,6 +777,7 @@ zone_free(dns_zone_t *zone) {
  */
 void
 dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
+	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(rdclass != dns_rdataclass_none);
@@ -766,6 +789,17 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass) {
 	REQUIRE(zone->rdclass == dns_rdataclass_none ||
 		zone->rdclass == rdclass);
 	zone->rdclass = rdclass;
+
+	if (zone->strnamerd != NULL)
+		isc_mem_free(zone->mctx, zone->strnamerd);
+	if (zone->strrdclass != NULL)
+		isc_mem_free(zone->mctx, zone->strrdclass);
+
+	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
+	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
+	zone_rdclass_tostr(zone, namebuf, sizeof namebuf);
+	zone->strrdclass = isc_mem_strdup(zone->mctx, namebuf);
+
 	UNLOCK_ZONE(zone);
 }
 
@@ -900,12 +934,24 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
 void
 dns_zone_setview(dns_zone_t *zone, dns_view_t *view) {
+	char namebuf[1024];
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
 	if (zone->view != NULL)
 		dns_view_weakdetach(&zone->view);
 	dns_view_weakattach(view, &zone->view);
+
+	if (zone->strviewname != NULL)
+		isc_mem_free(zone->mctx, zone->strviewname);
+	if (zone->strnamerd != NULL)
+		isc_mem_free(zone->mctx, zone->strnamerd);
+
+	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
+	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
+	zone_viewname_tostr(zone, namebuf, sizeof namebuf);
+	zone->strviewname = isc_mem_strdup(zone->mctx, namebuf);
+
 	UNLOCK_ZONE(zone);
 }
 
@@ -921,6 +967,7 @@ dns_zone_getview(dns_zone_t *zone) {
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	isc_result_t result;
+	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(origin != NULL);
@@ -931,6 +978,17 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 		dns_name_init(&zone->origin, NULL);
 	}
 	result = dns_name_dup(origin, zone->mctx, &zone->origin);
+
+	if (zone->strnamerd != NULL)
+		isc_mem_free(zone->mctx, zone->strnamerd);
+	if (zone->strname != NULL)
+		isc_mem_free(zone->mctx, zone->strname);
+
+	zone_namerd_tostr(zone, namebuf, sizeof namebuf);
+	zone->strnamerd = isc_mem_strdup(zone->mctx, namebuf);
+	zone_name_tostr(zone, namebuf, sizeof namebuf);
+	zone->strname = isc_mem_strdup(zone->mctx, namebuf);
+
 	UNLOCK_ZONE(zone);
 	return (result);
 }
@@ -6001,7 +6059,7 @@ dns_zone_getjournalsize(dns_zone_t *zone) {
 }
 
 static void
-zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
+zone_namerd_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	isc_result_t result = ISC_R_FAILURE;
 	isc_buffer_t buffer;
 
@@ -6032,29 +6090,88 @@ zone_tostr(dns_zone_t *zone, char *buf, size_t length) {
 	buf[isc_buffer_usedlength(&buffer)] = '\0';
 }
 
+static void
+zone_name_tostr(dns_zone_t *zone, char *buf, size_t length) {
+	isc_result_t result = ISC_R_FAILURE;
+	isc_buffer_t buffer;
+
+	REQUIRE(buf != NULL);
+	REQUIRE(length > 1U);
+
+	/*
+	 * Leave space for terminating '\0'.
+	 */
+	isc_buffer_init(&buffer, buf, length - 1);
+	if (dns_name_dynamic(&zone->origin))
+		result = dns_name_totext(&zone->origin, ISC_TRUE, &buffer);
+	if (result != ISC_R_SUCCESS &&
+	    isc_buffer_availablelength(&buffer) >= (sizeof("<UNKNOWN>") - 1))
+		isc_buffer_putstr(&buffer, "<UNKNOWN>");
+
+	buf[isc_buffer_usedlength(&buffer)] = '\0';
+}
+
+static void
+zone_rdclass_tostr(dns_zone_t *zone, char *buf, size_t length) {
+	isc_buffer_t buffer;
+
+	REQUIRE(buf != NULL);
+	REQUIRE(length > 1U);
+
+	/*
+	 * Leave space for terminating '\0'.
+	 */
+	isc_buffer_init(&buffer, buf, length - 1);
+	(void)dns_rdataclass_totext(zone->rdclass, &buffer);
+
+	buf[isc_buffer_usedlength(&buffer)] = '\0';
+}
+
+static void
+zone_viewname_tostr(dns_zone_t *zone, char *buf, size_t length) {
+	isc_buffer_t buffer;
+
+	REQUIRE(buf != NULL);
+	REQUIRE(length > 1U);
+
+
+	/*
+	 * Leave space for terminating '\0'.
+	 */
+	isc_buffer_init(&buffer, buf, length - 1);
+
+	if (zone->view == NULL) {
+		isc_buffer_putstr(&buffer, "_none");
+	} else if (strlen(zone->view->name)
+		   < isc_buffer_availablelength(&buffer)) {
+		isc_buffer_putstr(&buffer, zone->view->name);
+	} else {
+		isc_buffer_putstr(&buffer, "_toolong");
+	}
+
+	buf[isc_buffer_usedlength(&buffer)] = '\0';
+}
+
 void
 dns_zone_name(dns_zone_t *zone, char *buf, size_t length) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(buf != NULL);
-	zone_tostr(zone, buf, length);
+	zone_namerd_tostr(zone, buf, length);
 }
 
 static void
 notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
-	char namebuf[1024+32];
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
-
-	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NOTIFY, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", namebuf, message);
+		      level, "zone %s: %s", zone->strnamerd, message);
 }
 
 void
@@ -6062,36 +6179,30 @@ dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
 	      int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
-	char namebuf[1024+32];
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
-
-	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", namebuf, message);
+		      level, "zone %s: %s", zone->strnamerd, message);
 }
 
 void
 dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
 	va_list ap;
 	char message[4096];
-	char namebuf[1024+32];
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
-
-	zone_tostr(zone, namebuf, sizeof(namebuf));
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", namebuf, message);
+		      level, "zone %s: %s", zone->strnamerd, message);
 }
 
 static void
@@ -6100,19 +6211,16 @@ zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
 {
 	va_list ap;
 	char message[4096];
-	char namebuf[1024+32];
 	int level = ISC_LOG_DEBUG(debuglevel);
 
 	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
 		return;
 
-	zone_tostr(zone, namebuf, sizeof(namebuf));
-
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s: zone %s: %s", me, namebuf, message);
+		      level, "%s: zone %s: %s", me, zone->strnamerd, message);
 }
 
 static int
@@ -7274,8 +7382,10 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 				  NULL, NULL,
 				  zone->task, zone_timer, zone,
 				  &zone->timer);
+
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_task;
+
 	/*
 	 * The timer "holds" a iref.
 	 */
@@ -8134,3 +8244,47 @@ dns_zone_getnotifydelay(dns_zone_t *zone) {
 
 	return (zone->notifydelay);
 }
+
+#ifdef HAVE_LIBXML2
+
+isc_result_t
+dns_zone_xmlrender(dns_zone_t *zone, xmlTextWriterPtr xml, int flags)
+{
+	int i;
+
+	/* XXXMLG render config data here */
+
+	if ((flags & ISC_XML_RENDERSTATS) != 0) {
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "zone");
+
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "name");
+		xmlTextWriterWriteString(xml, ISC_XMLCHAR zone->strname);
+		xmlTextWriterEndElement(xml);
+
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "rdataclass");
+		xmlTextWriterWriteString(xml, ISC_XMLCHAR zone->strrdclass);
+		xmlTextWriterEndElement(xml);
+
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "serial");
+		xmlTextWriterWriteFormatString(xml, "%u", zone->serial);
+		xmlTextWriterEndElement(xml);
+
+		if (zone->counters != NULL) {
+			xmlTextWriterStartElement(xml, ISC_XMLCHAR "counters");
+			for (i = 0 ; i < DNS_STATS_NCOUNTERS ; i++) {
+				xmlTextWriterStartElement(xml,
+					ISC_XMLCHAR dns_statscounter_names[i]);
+				xmlTextWriterWriteFormatString(xml,
+					       "%" ISC_PRINT_QUADFORMAT "u",
+					       zone->counters[i]);
+				xmlTextWriterEndElement(xml);
+			}
+			xmlTextWriterEndElement(xml); /* counters */
+		}
+		xmlTextWriterEndElement(xml); /* zone */
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+#endif /* HAVE_LIBXML2 */

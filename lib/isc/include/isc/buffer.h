@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.47 2006/12/05 00:13:48 marka Exp $ */
+/* $Id: buffer.h,v 1.48 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -229,6 +229,26 @@ isc__buffer_init(isc_buffer_t *b, const void *base, unsigned int length);
  * Requires:
  *
  *\li	'length' > 0
+ *
+ *\li	'base' is a pointer to a sequence of 'length' bytes.
+ *
+ */
+
+void
+isc__buffer_initnull(isc_buffer_t *b);
+/*!<
+ *\brief Initialize a buffer 'b' with a null data and zero length/
+ */
+
+void
+isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length);
+/*!<
+ * \brief Make 'b' refer to the 'length'-byte region starting at base.
+ * Any existing data will be copied.
+ *
+ * Requires:
+ *
+ *\li	'length' > 0 AND length >= previous length
  *
  *\li	'base' is a pointer to a sequence of 'length' bytes.
  *
@@ -661,6 +681,8 @@ ISC_LANG_ENDDECLS
 		(_b)->magic = ISC_BUFFER_MAGIC; \
 	} while (0)
 
+#define ISC__BUFFER_INITNULL(_b) ISC__BUFFER_INIT(_b, NULL, 0)
+
 #define ISC__BUFFER_INVALIDATE(_b) \
 	do { \
 		(_b)->magic = 0; \
@@ -802,6 +824,7 @@ ISC_LANG_ENDDECLS
 
 #if defined(ISC_BUFFER_USEINLINE)
 #define isc_buffer_init			ISC__BUFFER_INIT
+#define isc_buffer_initnull		ISC__BUFFER_INITNULL
 #define isc_buffer_invalidate		ISC__BUFFER_INVALIDATE
 #define isc_buffer_region		ISC__BUFFER_REGION
 #define isc_buffer_usedregion		ISC__BUFFER_USEDREGION
@@ -823,6 +846,7 @@ ISC_LANG_ENDDECLS
 #define isc_buffer_putuint32		ISC__BUFFER_PUTUINT32
 #else
 #define isc_buffer_init			isc__buffer_init
+#define isc_buffer_initnull		isc__buffer_initnull
 #define isc_buffer_invalidate		isc__buffer_invalidate
 #define isc_buffer_region		isc__buffer_region
 #define isc_buffer_usedregion		isc__buffer_usedregion

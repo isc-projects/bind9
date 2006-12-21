@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.71 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: namedconf.c,v 1.72 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
@@ -98,6 +98,9 @@ static cfg_type_t cfg_type_portiplist;
 static cfg_type_t cfg_type_querysource4;
 static cfg_type_t cfg_type_querysource6;
 static cfg_type_t cfg_type_querysource;
+static cfg_type_t cfg_type_addrport4;
+static cfg_type_t cfg_type_addrport6;
+static cfg_type_t cfg_type_addrport;
 static cfg_type_t cfg_type_server;
 static cfg_type_t cfg_type_server_key_kludge;
 static cfg_type_t cfg_type_size;
@@ -654,6 +657,8 @@ options_clauses[] = {
 	{ "use-ixfr", &cfg_type_boolean, 0 },
 	{ "version", &cfg_type_qstringornone, 0 },
 	{ "flush-zones-on-shutdown", &cfg_type_boolean, 0 },
+	{ "stats-server", &cfg_type_addrport4, 0 },
+	{ "stats-server-v6", &cfg_type_addrport6, 0 },
 	{ NULL, NULL, 0 }
 };
 
@@ -1475,6 +1480,7 @@ print_querysource(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 static unsigned int sockaddr4wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V4OK;
 static unsigned int sockaddr6wild_flags = CFG_ADDR_WILDOK | CFG_ADDR_V6OK;
+
 static cfg_type_t cfg_type_querysource4 = {
 	"querysource4", parse_querysource, NULL, cfg_doc_terminal,
 	NULL, &sockaddr4wild_flags
@@ -1487,6 +1493,95 @@ static cfg_type_t cfg_type_querysource6 = {
 
 static cfg_type_t cfg_type_querysource = {
 	"querysource", NULL, print_querysource, NULL, &cfg_rep_sockaddr, NULL
+};
+
+static isc_result_t
+parse_addrport(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	isc_netaddr_t netaddr;
+	in_port_t port;
+	unsigned int have_address = 0;
+	unsigned int have_port = 0;
+	const unsigned int *flagp = type->of;
+
+	if ((*flagp & CFG_ADDR_V4OK) != 0)
+		isc_netaddr_any(&netaddr);
+	else if ((*flagp & CFG_ADDR_V6OK) != 0)
+		isc_netaddr_any6(&netaddr);
+	else
+		INSIST(0);
+
+	port = 0;
+
+	for (;;) {
+		CHECK(cfg_peektoken(pctx, 0));
+		if (pctx->token.type == isc_tokentype_string) {
+			if (strcasecmp(TOKEN_STRING(pctx),
+				       "address") == 0)
+			{
+				/* read "address" */
+				CHECK(cfg_gettoken(pctx, 0)); 
+				CHECK(cfg_parse_rawaddr(pctx, *flagp,
+							&netaddr));
+				have_address++;
+			} else if (strcasecmp(TOKEN_STRING(pctx), "port") == 0)
+			{
+				/* read "port" */
+				CHECK(cfg_gettoken(pctx, 0)); 
+				CHECK(cfg_parse_rawport(pctx,
+							CFG_ADDR_WILDOK,
+							&port));
+				have_port++;
+			} else if (have_port == 0 && have_address == 0) {
+				return (cfg_parse_sockaddr(pctx, type, ret));
+			} else {
+				cfg_parser_error(pctx, CFG_LOG_NEAR,
+					     "expected 'address' or 'port'");
+				return (ISC_R_UNEXPECTEDTOKEN);
+			}
+		} else
+			break;
+	}
+	if (have_address > 1 || have_port > 1 ||
+	    have_address + have_port == 0) {
+		cfg_parser_error(pctx, 0, "expected one address and/or port");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+
+	CHECK(cfg_create_obj(pctx, &cfg_type_addrport, &obj));
+	isc_sockaddr_fromnetaddr(&obj->value.sockaddr, &netaddr, port);
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+ cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR, "invalid query source");
+	CLEANUP_OBJ(obj);
+	return (result);
+}
+
+static void
+print_addrport(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	isc_netaddr_t na;
+	isc_netaddr_fromsockaddr(&na, &obj->value.sockaddr);
+	cfg_print_chars(pctx, "address ", 8);
+	cfg_print_rawaddr(pctx, &na);
+	cfg_print_chars(pctx, " port ", 6);
+	cfg_print_rawuint(pctx, isc_sockaddr_getport(&obj->value.sockaddr));
+}
+
+static cfg_type_t cfg_type_addrport4 = {
+	"addrport4", parse_addrport, NULL, cfg_doc_terminal,
+	NULL, &sockaddr4wild_flags
+};
+
+static cfg_type_t cfg_type_addrport6 = {
+	"addrport6", parse_addrport, NULL, cfg_doc_terminal,
+	NULL, &sockaddr6wild_flags
+};
+
+static cfg_type_t cfg_type_addrport = {
+	"addrport", NULL, print_addrport, NULL, &cfg_rep_sockaddr, NULL
 };
 
 /*% addrmatchelt */

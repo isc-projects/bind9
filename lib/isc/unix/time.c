@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.49 2005/04/29 00:23:52 marka Exp $ */
+/* $Id: time.c,v 1.50 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
@@ -411,4 +411,28 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 			 ".%03u", t->nanoseconds / 1000000);
 	else
                 snprintf(buf, len, "99-Bad-9999 99:99:99.999");
+}
+
+void
+isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%a, %d %b %Y %H:%M:%S GMT", gmtime(&now));
+	INSIST(flen < len);
+}
+
+void
+isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
+	time_t now;
+	unsigned int flen;
+
+	REQUIRE(len > 0);
+
+	now = (time_t)t->seconds;
+	flen = strftime(buf, len, "%Y-%d-%dT%H:%M:%SZ", gmtime(&now));
+	INSIST(flen < len);
 }

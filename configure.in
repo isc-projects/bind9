@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.421 $)
+AC_REVISION($Revision: 1.422 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -862,6 +862,40 @@ AC_SUBST(ALWAYS_DEFINES)
 AC_SUBST(ISC_PLATFORM_USETHREADS)
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
+
+#
+# was --with-libxml2 specified?
+#
+AC_MSG_CHECKING(for libxml2 library)
+AC_ARG_WITH(libxml2,
+[  --with-libxml2[=PATH]   Build with libxml2 library [yes|no|path]],
+    use_libxml2="$withval", use_libxml2="auto")
+
+case "$use_libxml2" in
+	no)
+		DST_LIBXML2_INC=""
+		;;
+	auto|yes)
+		libxml2_libs=`xml2-config --libs`
+		libxml2_cflags=`xml2-config --cflags`
+		;;
+	*)
+		if test -f "$use_libxml2/bin/xml2-config" ; then
+			libxml2_libs=`$use_libxml2/bin/xml2-config --libs`
+			libxml2_cflags=`$use_libxml2/bin/xml2-config --cflags`
+		fi
+		;;
+esac
+
+if test "X$libxml2_libs" != "X"
+then
+	AC_MSG_RESULT(yes)
+	CFLAGS="$CFLAGS $libxml2_cflags"
+	LIBS="$LIBS $libxml2_libs"
+	AC_DEFINE(HAVE_LIBXML2, 1, [Define if libxml2 was found])
+else
+	AC_MSG_RESULT(no)
+fi
 
 #
 # In solaris 10, SMF can manage named service

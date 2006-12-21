@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.38 2005/12/06 16:54:49 explorer Exp $ */
+/* $Id: types.h,v 1.39 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
@@ -52,6 +52,9 @@ typedef ISC_LIST(isc_event_t)		isc_eventlist_t;	/*%< Event List */
 typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
 typedef isc_uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
+typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
+typedef struct isc_httpdmgr		isc_httpdmgr_t;		/*%< HTTP manager */
+typedef struct isc_httpdurl		isc_httpdurl_t;		/*%< HTTP URL */
 typedef struct isc_interface		isc_interface_t;	/*%< Interface */
 typedef struct isc_interfaceiter	isc_interfaceiter_t;	/*%< Interface Iterator */
 typedef struct isc_interval		isc_interval_t;		/*%< Interval */
@@ -87,6 +90,16 @@ typedef struct isc_timermgr		isc_timermgr_t;		/*%< Timer Manager */
 
 typedef void (*isc_taskaction_t)(isc_task_t *, isc_event_t *);
 typedef int (*isc_sockfdwatch_t)(isc_task_t *, isc_socket_t *, void *);
+typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);	/*%< HTTP free function */
+typedef isc_result_t (isc_httpdaction_t)(const char *url,
+					 const char *querystring,
+					 void *arg,
+					 unsigned int *retcode,
+					 const char **retmsg,
+					 const char **mimetype,
+					 isc_buffer_t *body,
+					 isc_httpdfree_t **freecb,
+					 void **freecb_args);
 
 /*% Resource */
 typedef enum {

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.23 2005/04/29 00:22:33 marka Exp $ */
+/* $Id: types.h,v 1.24 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef NAMED_TYPES_H
 #define NAMED_TYPES_H 1
@@ -28,6 +28,8 @@ typedef struct ns_client		ns_client_t;
 typedef struct ns_clientmgr		ns_clientmgr_t;
 typedef struct ns_query			ns_query_t;
 typedef struct ns_server 		ns_server_t;
+typedef struct ns_xmld			ns_xmld_t;
+typedef struct ns_xmldmgr		ns_xmldmgr_t;
 typedef struct ns_interface 		ns_interface_t;
 typedef struct ns_interfacemgr		ns_interfacemgr_t;
 typedef struct ns_lwresd		ns_lwresd_t;

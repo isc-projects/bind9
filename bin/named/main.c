@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.153 2006/11/10 18:44:46 marka Exp $ */
+/* $Id: main.c,v 1.154 2006/12/21 06:02:29 marka Exp $ */
 
 /*! \file */
 
@@ -669,6 +669,14 @@ setup(void) {
 					   isc_result_totext(result));
 		ns_g_conffile = absolute_conffile;
 	}
+
+	/*
+	 * Record the server's startup time.
+	 */
+	result = isc_time_now(&ns_g_boottime);
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_time_now() failed: %s",
+				   isc_result_totext(result));
 
 	result = create_managers();
 	if (result != ISC_R_SUCCESS)

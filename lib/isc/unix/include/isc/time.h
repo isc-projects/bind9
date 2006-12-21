@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.32 2005/04/29 00:23:54 marka Exp $ */
+/* $Id: time.h,v 1.33 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
@@ -110,7 +110,7 @@ isc_time_settoepoch(isc_time_t *t);
  * Set 't' to the time of the epoch.
  *
  * Notes:
- * \li	The date of the epoch is platform-dependent.
+ *\li	The date of the epoch is platform-dependent.
  *
  * Requires:
  *
@@ -199,7 +199,7 @@ isc_time_add(const isc_time_t *t, const isc_interval_t *i, isc_time_t *result);
  *\li	't', 'i', and 'result' are valid pointers.
  *
  * Returns:
- * \li	Success
+ *\li	Success
  *\li	Out of range
  * 		The interval added to the time is too large to
  *		be represented in the current definition of isc_time_t.
@@ -295,7 +295,35 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *
  *  Requires:
  *\li      'len' > 0
- *  \li    'buf' points to an array of at least len chars
+ *\li      'buf' points to an array of at least len chars
+ *
+ */
+
+void
+isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len);
+/*%<
+ * Format the time 't' into the buffer 'buf' of length 'len',
+ * using a format like "Mon, 30 Aug 2000 04:06:47 GMT"
+ * If the text does not fit in the buffer, the result is indeterminate,
+ * but is always guaranteed to be null terminated.
+ *
+ *  Requires:
+ *\li      'len' > 0
+ *\li      'buf' points to an array of at least len chars
+ *
+ */
+
+void
+isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len);
+/*%<
+ * Format the time 't' into the buffer 'buf' of length 'len',
+ * using the ISO8601 format: "yyyy-mm-ddThh:mm:ssZ"
+ * If the text does not fit in the buffer, the result is indeterminate,
+ * but is always guaranteed to be null terminated.
+ *
+ *  Requires:
+ *\li      'len' > 0
+ *\li      'buf' points to an array of at least len chars
  *
  */
 

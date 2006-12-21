@@ -15,16 +15,17 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.c,v 1.137 2006/03/09 23:21:54 marka Exp $ */
+/* $Id: view.c,v 1.138 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
 
 #include <isc/hash.h>
-#include <isc/task.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
+#include <isc/task.h>
 #include <isc/util.h>
+#include <isc/xml.h>
 
 #include <dns/acache.h>
 #include <dns/acl.h>
@@ -1364,3 +1365,47 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t value) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	return (dns_zt_freezezones(view->zonetable, value));
 }
+
+#ifdef HAVE_LIBXML2
+
+struct xmlarg {
+	int flags;
+	xmlTextWriterPtr xml;
+};
+
+static isc_result_t
+zone_xmlrender(dns_zone_t *zone, void *arg) {
+	struct xmlarg *xmlarg = arg;
+
+	return (dns_zone_xmlrender(zone, xmlarg->xml, xmlarg->flags));
+}
+
+isc_result_t
+dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags)
+{
+	struct xmlarg xmlargs;
+
+	xmlargs.flags = flags;
+	xmlargs.xml = xml;
+
+	/* XXXMLG render config data here */
+
+	if ((flags & ISC_XML_RENDERSTATS) != 0) {
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "view");
+
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "name");
+		xmlTextWriterWriteString(xml, ISC_XMLCHAR view->name);
+		xmlTextWriterEndElement(xml);
+
+		xmlTextWriterStartElement(xml, ISC_XMLCHAR "zones");
+		dns_zt_apply(view->zonetable, ISC_FALSE, zone_xmlrender,
+			     &xmlargs);
+		xmlTextWriterEndElement(xml);
+
+		xmlTextWriterEndElement(xml);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+#endif /* HAVE_LIBXML2 */

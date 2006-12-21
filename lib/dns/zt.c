@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.c,v 1.43 2005/11/30 03:33:49 marka Exp $ */
+/* $Id: zt.c,v 1.44 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
@@ -63,7 +63,8 @@ static isc_result_t
 freezezones(dns_zone_t *zone, void *uap);
 
 isc_result_t
-dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
+dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp)
+{
 	dns_zt_t *zt;
 	isc_result_t result;
 

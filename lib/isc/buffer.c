@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.44 2006/12/05 00:13:48 marka Exp $ */
+/* $Id: buffer.c,v 1.45 2006/12/21 06:02:30 marka Exp $ */
 
 /*! \file */
 
@@ -37,6 +37,35 @@ isc__buffer_init(isc_buffer_t *b, const void *base, unsigned int length) {
 	REQUIRE(b != NULL);
 
 	ISC__BUFFER_INIT(b, base, length);
+}
+
+void
+isc__buffer_initnull(isc_buffer_t *b) {
+	/*
+	 * Initialize a new buffer which has no backing store.  This can
+	 * later be grown as needed and swapped in place.
+	 */
+
+	ISC__BUFFER_INIT(b, NULL, 0);
+}
+
+void
+isc_buffer_reinit(isc_buffer_t *b, void *base, unsigned int length) {
+	/*
+	 * Re-initialize the buffer enough to reconfigure the base of the
+	 * buffer.  We will swap in the new buffer, after copying any
+	 * data we contain into the new buffer and adjusting all of our
+	 * internal pointers.
+	 *
+	 * The buffer must not be smaller than the length of the original
+	 * buffer.
+	 */
+	REQUIRE(b->length <= length);
+	REQUIRE(base != NULL);
+
+	(void)memmove(base, b->base, b->length);
+	b->base = base;
+	b->length = length;
 }
 
 void

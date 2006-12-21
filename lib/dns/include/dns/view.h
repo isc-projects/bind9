@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: view.h,v 1.101 2006/03/09 23:21:54 marka Exp $ */
+/* $Id: view.h,v 1.102 2006/12/21 06:02:30 marka Exp $ */
 
 #ifndef DNS_VIEW_H
 #define DNS_VIEW_H 1
@@ -70,6 +70,7 @@
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
+#include <isc/xml.h>
 
 #include <dns/acl.h>
 #include <dns/fixedname.h>
@@ -100,6 +101,7 @@ struct dns_view {
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
 	isc_event_t			reqevent;
+
 	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
 	dns_tsig_keyring_t *		dynamickeys;
@@ -801,4 +803,12 @@ dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
  * Requires:
  * \li	'view' is valid.
  */
+
+#ifdef HAVE_LIBXML2
+
+isc_result_t
+dns_view_xmlrender(dns_view_t *view, xmlTextWriterPtr xml, int flags);
+
+#endif
+
 #endif /* DNS_VIEW_H */

@@ -1,3 +1,6 @@
+2122.	[func]		Experimental http server and statistics support
+			for named via xml.
+
 2121.	[func]		Add a 10 slot dead masters cache (LRU) with a 600
 			second timeout. [RT #16553]
 
