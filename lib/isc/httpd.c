@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.4 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: httpd.c,v 1.5 2006/12/21 10:06:17 marka Exp $ */
 
 /*! \file */
 
@@ -220,8 +220,9 @@ static void
 destroy_client(isc_httpd_t **httpdp)
 {
 	isc_httpd_t *httpd = *httpdp;
-	*httpdp = NULL;
 	isc_httpdmgr_t *httpdmgr = httpd->mgr;
+
+	*httpdp = NULL;
 
 	LOCK(&httpdmgr->lock);
 
