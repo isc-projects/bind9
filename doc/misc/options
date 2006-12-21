@@ -50,6 +50,8 @@ options {
         use-ixfr <boolean>;
         version ( <quoted_string> | none );
         flush-zones-on-shutdown <boolean>;
+        stats-server <addrport4>;
+        stats-server-v6 <addrport6>;
         allow-query-cache { <address_match_element>; ... };
         allow-recursion { <address_match_element>; ... };
         allow-v6-synthesis { <address_match_element>; ... }; // obsolete
