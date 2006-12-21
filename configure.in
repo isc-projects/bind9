@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.422 $)
+AC_REVISION($Revision: 1.423 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -876,8 +876,16 @@ case "$use_libxml2" in
 		DST_LIBXML2_INC=""
 		;;
 	auto|yes)
-		libxml2_libs=`xml2-config --libs`
-		libxml2_cflags=`xml2-config --cflags`
+		case X`(xml2-config --version) 2>/dev/null` in
+		X2.6.*)
+			libxml2_libs=`xml2-config --libs`
+			libxml2_cflags=`xml2-config --cflags`
+			;;
+		*)
+			libxml2_libs=
+			libxml2_cflags=
+			;;
+		esac
 		;;
 	*)
 		if test -f "$use_libxml2/bin/xml2-config" ; then
