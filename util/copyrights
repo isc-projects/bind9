@@ -495,7 +495,7 @@
 ./bin/tests/system/dnssec/ns2/insecure.secure.example.db	ZONE	2000,2001,2004
 ./bin/tests/system/dnssec/ns2/named.conf	CONF-C	2000,2001,2002,2004
 ./bin/tests/system/dnssec/ns2/private.secure.example.db.in	ZONE	2000,2001,2004
-./bin/tests/system/dnssec/ns2/rfc2335.example.db	ZONE	2004
+./bin/tests/system/dnssec/ns2/rfc2335.example.db	X	2004
 ./bin/tests/system/dnssec/ns2/sign.sh		SH	2000,2001,2002,2003,2004
 ./bin/tests/system/dnssec/ns3/.cvsignore	X	2000,2001
 ./bin/tests/system/dnssec/ns3/bogus.example.db.in	ZONE	2000,2001,2004
