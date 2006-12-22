@@ -449,6 +449,7 @@ isc_time_microdiff
 isc_time_nanoseconds
 isc_time_now
 isc_time_nowplusinterval
+isc_time_seconds
 isc_time_settoepoch
 isc_time_subtract
 isc_timer_attach
