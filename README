@@ -43,6 +43,19 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.5.0
+
+	BIND 9.5.0 has a number of new features over 9.4,
+	including:
+
+	GSS-TSIG support (RFC 3645).
+
+	DHCID support.
+
+	Experimental http server and statistics support for named via xml.
+
+	Use Doxygen to generate internal documention.
+
 BIND 9.4.0
 
 	BIND 9.4.0 has a number of new features over 9.3,
