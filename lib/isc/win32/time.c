@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.40 2006/12/22 01:59:44 marka Exp $ */
+/* $Id: time.c,v 1.41 2006/12/22 05:18:53 marka Exp $ */
 
 #include <config.h>
 
@@ -265,26 +265,6 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 			      &st, "hh':'mm':'ss", TimeBuf, 50);
 		
 		snprintf(buf, len, "%s %s GMT", DateBuf, TimeBuf);
-	} else {
-		buf[0] = 0;
-	}
-}
-
-void
-isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
-	SYSTEMTIME st;
-	char DateBuf[50];
-	char TimeBuf[50];
-	
-	REQUIRE(len > 0);
-	if (FileTimeToSystemTime(&t->absolute, &st)) {
-		GetDateFormat(LOCALE_USER_DEFAULT, 0, &st, "yyyy-MM-dd",
-			      DateBuf, 50);
-		GetTimeFormat(LOCALE_USER_DEFAULT,
-			      TIME_NOTIMEMARKER | TIME_FORCE24HOURFORMAT,
-			      &st, "hh':'mm':'ss", TimeBuf, 50);
-		
-		snprintf(buf, len, "%sT%sZ", DateBuf, TimeBuf);
 	} else {
 		buf[0] = 0;
 	}
