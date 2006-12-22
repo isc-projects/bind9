@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.6 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: httpd.c,v 1.7 2006/12/22 04:20:52 marka Exp $ */
 
 /*! \file */
 
@@ -264,12 +264,12 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_socket_attach(sock, &httpd->sock);
 	httpd->task = NULL;
 	isc_task_attach(task, &httpd->task);
-	httpd->timermgr = tmgr; /* XXHTTPG no attach function? */
+	httpd->timermgr = tmgr; /* XXXMLG no attach function? */
 
 	ISC_LIST_INIT(httpd->running);
 	ISC_LIST_INIT(httpd->urls);
 
-	/* XXHTTPG ignore errors on isc_socket_listen() */
+	/* XXXMLG ignore errors on isc_socket_listen() */
 	(void)isc_socket_listen(sock, SOMAXCONN);
 
 	result = isc_socket_accept(sock, task, isc_httpd_accept, httpd);
@@ -331,8 +331,7 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr)
 	isc_mutex_destroy(&httpdmgr->lock);
 
 	mctx = httpdmgr->mctx;
-	isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 
 	EXIT("httpdmgr_destroy");
 }
@@ -497,14 +496,14 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	}
 
 	if (nev->result != ISC_R_SUCCESS) {
-		/* XXHTTPG log failure */
+		/* XXXMLG log failure */
 		NOTICE("accept returned failure, goto requeue");
 		goto requeue;
 	}
 
 	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
 	if (httpd == NULL) {
-		/* XXHTTPG log failure */
+		/* XXXMLG log failure */
 		NOTICE("accept failed to allocate memory, goto requeue");
 		goto requeue;
 	}
@@ -543,7 +542,7 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	result = isc_socket_accept(httpdmgr->sock, task, isc_httpd_accept,
 				   httpdmgr);
 	if (result != ISC_R_SUCCESS) {
-		/* XXHTTPG what to do?  Log failure... */
+		/* XXXMLG what to do?  Log failure... */
 		NOTICE("accept could not reaccept due to failure");
 	}
 
