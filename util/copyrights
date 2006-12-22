@@ -2510,3 +2510,6 @@
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005
 ./win32utils/updateopenssl.pl			PERL	2006
 ./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005
+./doc/doxygen/doxygen-input-filter.in		PERL	2006
+./doc/doxygen/mainpage 				X	2006
+./doc/doxygen/Doxyfile.in			X	2006
