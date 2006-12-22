@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.h,v 1.79 2005/06/23 04:22:02 marka Exp $ */
+/* $Id: adb.h,v 1.80 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_ADB_H
 #define DNS_ADB_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/adb.h
  *\brief
  * DNS Address Database
  *
@@ -345,7 +345,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
  *
  * If no events will be generated, the *find->result_v4 and/or result_v6
  * members may be examined for address lookup status.  The usual #ISC_R_SUCCESS,
- * #ISC_R_FAILURE, and #DNS_R_NX{DOMAIN,RRSET} are returned, along with
+ * #ISC_R_FAILURE, #DNS_R_NXDOMAIN, and #DNS_R_NXRRSET are returned, along with
  * #ISC_R_NOTFOUND meaning the ADB has not _yet_ found the values.  In this
  * latter case, retrying may produce more addresses.
  *

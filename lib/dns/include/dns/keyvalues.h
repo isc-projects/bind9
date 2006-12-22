@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyvalues.h,v 1.17 2005/04/29 00:22:59 marka Exp $ */
+/* $Id: keyvalues.h,v 1.18 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_KEYVALUES_H
 #define DNS_KEYVALUES_H 1
 
-/*! \file */
+/*! \file dns/keyvalues.h */
 
 /*
  * Flags field of the KEY RR rdata

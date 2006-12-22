@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcpmsg.h,v 1.18 2005/04/29 00:23:04 marka Exp $ */
+/* $Id: tcpmsg.h,v 1.19 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TCPMSG_H
 #define DNS_TCPMSG_H 1
 
-/*! \file */
+/*! \file dns/tcpmsg.h */
 
 #include <isc/buffer.h>
 #include <isc/lang.h>

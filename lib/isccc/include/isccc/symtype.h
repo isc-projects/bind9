@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtype.h,v 1.5 2005/04/29 00:24:01 marka Exp $ */
+/* $Id: symtype.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_SYMTYPE_H
 #define ISCCC_SYMTYPE_H 1
 
-/*! \file */
+/*! \file isccc/symtype.h */
 
 #define ISCCC_SYMTYPE_ZONESTATS			0x0001
 #define ISCCC_SYMTYPE_CCDUP			0x0002

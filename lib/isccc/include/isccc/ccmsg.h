@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ccmsg.h,v 1.6 2005/04/29 00:23:59 marka Exp $ */
+/* $Id: ccmsg.h,v 1.7 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_CCMSG_H
 #define ISCCC_CCMSG_H 1
 
-/*! \file */
+/*! \file isccc/ccmsg.h */
 
 #include <isc/buffer.h>
 #include <isc/lang.h>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: app.h,v 1.4 2005/04/29 00:23:33 marka Exp $ */
+/* $Id: app.h,v 1.5 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_APP_H
 #define ISC_APP_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/app.h
  * \brief ISC Application Support
  *
  * Dealing with program termination can be difficult, especially in a

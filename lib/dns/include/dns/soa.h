@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: soa.h,v 1.5 2005/04/29 00:23:03 marka Exp $ */
+/* $Id: soa.h,v 1.6 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_SOA_H
 #define DNS_SOA_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/soa.h
  * \brief
  * SOA utilities.
  */

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hex.h,v 1.7 2005/04/29 00:23:37 marka Exp $ */
+/* $Id: hex.h,v 1.8 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_HEX_H
 #define ISC_HEX_H 1
 
-/*! \file */
+/*! \file isc/hex.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

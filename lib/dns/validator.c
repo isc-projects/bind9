@@ -15,9 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.146 2006/12/07 06:47:36 marka Exp $ */
-
-/*! \file */
+/* $Id: validator.c,v 1.147 2006/12/22 01:44:59 marka Exp $ */
 
 #include <config.h>
 

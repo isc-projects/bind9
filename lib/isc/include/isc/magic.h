@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: magic.h,v 1.14 2005/04/29 00:23:39 marka Exp $ */
+/* $Id: magic.h,v 1.15 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_MAGIC_H
 #define ISC_MAGIC_H 1
 
-/*! \file */
+/*! \file isc/magic.h */
 
 typedef struct {
 	unsigned int magic;

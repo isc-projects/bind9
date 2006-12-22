@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.52 2006/02/01 22:38:56 marka Exp $ */
+/* $Id: resolver.h,v 1.53 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/resolver.h
  *
  * \brief
  * This is the BIND 9 resolver, the module responsible for resolving DNS

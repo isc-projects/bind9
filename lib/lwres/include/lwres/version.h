@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.5 2005/04/29 00:24:11 marka Exp $ */
+/* $Id: version.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
-/*! \file */
+/*! \file lwres/version.h */
 
 #include <lwres/platform.h>
 

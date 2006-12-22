@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.5 2005/04/29 00:23:58 marka Exp $ */
+/* $Id: base64.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_BASE64_H
 #define ISCCC_BASE64_H 1
 
-/*! \file */
+/*! \file isccc/base64.h */
 
 #include <isc/lang.h>
 #include <isccc/types.h>

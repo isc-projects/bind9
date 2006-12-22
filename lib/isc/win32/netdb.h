@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netdb.h,v 1.3 2004/03/05 05:11:58 marka Exp $ */
+/* $Id: netdb.h,v 1.4 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef NETDB_H
 #define NETDB_H 1
@@ -40,7 +40,7 @@ struct addrinfo {
 
 
 /*
- * Undefine all #defines we are interested in as <netdb.h> may or may not have
+ * Undefine all \#defines we are interested in as <netdb.h> may or may not have
  * defined them.
  */
 

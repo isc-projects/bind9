@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rcode.h,v 1.15 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: rcode.h,v 1.16 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RCODE_H
 #define DNS_RCODE_H 1
 
-/*! \file */
+/*! \file dns/rcode.h */
 
 #include <isc/lang.h>
 

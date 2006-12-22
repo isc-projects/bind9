@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: order.h,v 1.5 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: order.h,v 1.6 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_ORDER_H
 #define DNS_ORDER_H 1
 
-/*! \file */
+/*! \file dns/order.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

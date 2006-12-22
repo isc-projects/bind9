@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacmd5.h,v 1.9 2006/01/27 23:57:46 marka Exp $ */
+/* $Id: hmacmd5.h,v 1.10 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file
+/*! \file isc/hmacmd5.h
  * \brief This is the header file for the HMAC-MD5 keyed hash algorithm
  * described in RFC2104.
  */

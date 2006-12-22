@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.c,v 1.193 2006/07/21 02:05:58 marka Exp $ */
+/* $Id: rdata.c,v 1.194 2006/12/22 01:44:59 marka Exp $ */
 
 /*! \file */
 
@@ -901,7 +901,7 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source) {
 	hash = ((a + n) * b) % 256;
 
 	/*
-	 * This switch block is inlined via #define, and will use "return"
+	 * This switch block is inlined via \#define, and will use "return"
 	 * to return a result to the caller if it is a valid (known)
 	 * rdatatype name.
 	 */

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: request.h,v 1.23 2005/04/29 00:23:02 marka Exp $ */
+/* $Id: request.h,v 1.24 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_REQUEST_H
 #define DNS_REQUEST_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/request.h
  *
  * \brief
  * The request module provides simple request/response services useful for

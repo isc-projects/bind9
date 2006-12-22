@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.21 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: symtab.h,v 1.22 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_SYMTAB_H
 #define ISC_SYMTAB_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/symtab.h
  * \brief Provides a simple memory-based symbol table.
  *
  * Keys are C strings, and key comparisons are case-insenstive.  A type may

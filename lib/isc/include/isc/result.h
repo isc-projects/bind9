@@ -15,10 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.65 2005/04/29 00:23:43 marka Exp $ */
+/* $Id: result.h,v 1.66 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RESULT_H
 #define ISC_RESULT_H 1
+
+/*! \file isc/result.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

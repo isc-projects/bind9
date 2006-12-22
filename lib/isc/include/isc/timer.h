@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.34 2005/10/26 06:46:36 marka Exp $ */
+/* $Id: timer.h,v 1.35 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/timer.h
  * \brief Provides timers which are event sources in the task system.
  *
  * Three types of timers are supported:

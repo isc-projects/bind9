@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: fixedname.h,v 1.15 2005/04/29 00:22:58 marka Exp $ */
+/* $Id: fixedname.h,v 1.16 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_FIXEDNAME_H
 #define DNS_FIXEDNAME_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/fixedname.h
  * \brief
  * Fixed-size Names
  *

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bufferlist.h,v 1.13 2005/04/29 00:23:35 marka Exp $ */
+/* $Id: bufferlist.h,v 1.14 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_BUFFERLIST_H
 #define ISC_BUFFERLIST_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file bufferlist.h
+/*! \file isc/bufferlist.h
  *
  *
  *\brief	Buffer lists have no synchronization.  Clients must ensure exclusive

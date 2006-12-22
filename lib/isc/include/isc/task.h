@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.53 2005/04/29 00:23:46 marka Exp $ */
+/* $Id: task.h,v 1.54 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/task.h
  * \brief The task system provides a lightweight execution context, which is
  * basically an event queue.  
 

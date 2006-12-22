@@ -16,14 +16,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.6 2005/04/29 00:24:01 marka Exp $ */
+/* $Id: util.h,v 1.7 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_UTIL_H
 #define ISCCC_UTIL_H 1
 
 #include <isc/util.h>
 
-/*! \file
+/*! \file isccc/util.h
  * \brief
  * Macros for dealing with unaligned numbers.
  *

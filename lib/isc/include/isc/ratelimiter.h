@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ratelimiter.h,v 1.17 2005/04/29 00:23:42 marka Exp $ */
+/* $Id: ratelimiter.h,v 1.18 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RATELIMITER_H
 #define ISC_RATELIMITER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/ratelimiter.h
  * \brief A rate limiter is a mechanism for dispatching events at a limited
  * rate.  This is intended to be used when sending zone maintenance
  * SOA queries, NOTIFY messages, etc.

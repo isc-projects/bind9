@@ -14,9 +14,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hmacsha.h,v 1.4 2006/08/16 03:15:09 marka Exp $ */
+/* $Id: hmacsha.h,v 1.5 2006/12/22 01:45:00 marka Exp $ */
 
-/*
+/*! \file isc/hmacsha.h
  * This is the header file for the HMAC-SHA1, HMAC-SHA224, HMAC-SHA256,
  * HMAC-SHA334 and HMAC-SHA512 hash algorithm described in RFC 2104.
  */

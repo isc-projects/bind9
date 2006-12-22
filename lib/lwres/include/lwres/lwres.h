@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.53 2005/04/29 00:24:10 marka Exp $ */
+/* $Id: lwres.h,v 1.54 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1
@@ -28,7 +28,7 @@
 #include <lwres/lwpacket.h>
 #include <lwres/platform.h>
 
-/*! \file */
+/*! \file lwres/lwres.h */
 
 /*!
  * Design notes:

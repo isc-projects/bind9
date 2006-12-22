@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zt.h,v 1.34 2005/07/18 05:59:00 marka Exp $ */
+/* $Id: zt.h,v 1.35 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_ZT_H
 #define DNS_ZT_H 1
 
-/*! \file */
+/*! \file dns/zt.h */
 
 #include <isc/lang.h>
 

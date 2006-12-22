@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: md5.h,v 1.13 2006/02/01 00:10:35 marka Exp $ */
+/* $Id: md5.h,v 1.14 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file 
+/*! \file isc/md5.h
  * \brief This is the header file for the MD5 message-digest algorithm.
  *
  * The algorithm is due to Ron Rivest.  This code was

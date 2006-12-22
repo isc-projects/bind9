@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lang.h,v 1.9 2005/04/29 00:24:09 marka Exp $ */
+/* $Id: lang.h,v 1.10 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_LANG_H
 #define LWRES_LANG_H 1
 
-/*! \file */
+/*! \file lwres/lang.h */
 
 #ifdef __cplusplus
 #define LWRES_LANG_BEGINDECLS	extern "C" {

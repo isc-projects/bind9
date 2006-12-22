@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: getaddresses.h,v 1.5 2005/04/29 00:22:43 marka Exp $ */
+/* $Id: getaddresses.h,v 1.6 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef BIND9_GETADDRESSES_H
 #define BIND9_GETADDRESSES_H 1
 
-/*! \file */
+/*! \file bind9/getaddresses.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

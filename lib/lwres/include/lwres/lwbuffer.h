@@ -15,10 +15,10 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwbuffer.h,v 1.18 2005/04/29 00:24:10 marka Exp $ */
+/* $Id: lwbuffer.h,v 1.19 2006/12/22 01:45:01 marka Exp $ */
 
 
-/*! \file lwbuffer.h
+/*! \file lwres/lwbuffer.h
  *
  * A buffer is a region of memory, together with a set of related subregions.
  * Buffers are used for parsing and I/O operations.

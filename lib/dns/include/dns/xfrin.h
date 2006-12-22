@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrin.h,v 1.25 2006/07/20 01:10:31 marka Exp $ */
+/* $Id: xfrin.h,v 1.26 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_XFRIN_H
 #define DNS_XFRIN_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file 
+/*! \file dns/xfrin.h
  * \brief
  * Incoming zone transfers (AXFR + IXFR).
  */

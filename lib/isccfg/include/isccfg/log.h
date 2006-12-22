@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.8 2005/04/29 00:24:03 marka Exp $ */
+/* $Id: log.h,v 1.9 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCFG_LOG_H
 #define ISCCFG_LOG_H 1
 
-/*! \file */
+/*! \file isccfg/log.h */
 
 #include <isc/lang.h>
 #include <isc/log.h>

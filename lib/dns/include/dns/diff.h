@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: diff.h,v 1.8 2005/04/29 00:22:55 marka Exp $ */
+/* $Id: diff.h,v 1.9 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_DIFF_H
 #define DNS_DIFF_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/diff.h
  * \brief
  * A diff is a convenience type representing a list of changes to be
  * made to a database.

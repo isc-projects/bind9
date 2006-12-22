@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.h,v 1.5 2005/04/29 00:24:03 marka Exp $ */
+/* $Id: namedconf.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCFG_NAMEDCONF_H
 #define ISCCFG_NAMEDCONF_H 1
 
-/*! \file
+/*! \file isccfg/namedconf.h
  * \brief
  * This module defines the named.conf, rndc.conf, and rndc.key grammars.
  */

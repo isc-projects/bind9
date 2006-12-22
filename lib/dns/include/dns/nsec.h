@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: nsec.h,v 1.6 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: nsec.h,v 1.7 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_NSEC_H
 #define DNS_NSEC_H 1
 
-/*! \file */
+/*! \file dns/nsec.h */
 
 #include <isc/lang.h>
 

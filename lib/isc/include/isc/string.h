@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: string.h,v 1.16 2005/06/19 22:57:59 marka Exp $ */
+/* $Id: string.h,v 1.17 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_STRING_H
 #define ISC_STRING_H 1
 
-/*! \file */
+/*! \file isc/string.h */
 
 #include <string.h>
 

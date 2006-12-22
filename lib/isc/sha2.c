@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sha2.c,v 1.10 2006/08/16 03:15:09 marka Exp $ */
+/* $Id: sha2.c,v 1.11 2006/12/22 01:45:00 marka Exp $ */
 
 /*	$FreeBSD: src/sys/crypto/sha2/sha2.c,v 1.2.2.2 2002/03/05 08:36:47 ume Exp $	*/
 /*	$KAME: sha2.c,v 1.8 2001/11/08 01:07:52 itojun Exp $	*/
@@ -72,7 +72,7 @@
  *
  * or define below:
  *
- *   #define ISC_SHA2_UNROLL_TRANSFORM
+ *   \#define ISC_SHA2_UNROLL_TRANSFORM
  *
  */
 
@@ -88,16 +88,16 @@
  * If your system does not define the above, then you can do so by
  * hand like this:
  *
- *   #define LITTLE_ENDIAN 1234
- *   #define BIG_ENDIAN    4321
+ *   \#define LITTLE_ENDIAN 1234
+ *   \#define BIG_ENDIAN    4321
  *
  * And for little-endian machines, add:
  *
- *   #define BYTE_ORDER LITTLE_ENDIAN 
+ *   \#define BYTE_ORDER LITTLE_ENDIAN 
  *
  * Or for big-endian machines:
  *
- *   #define BYTE_ORDER BIG_ENDIAN
+ *   \#define BYTE_ORDER BIG_ENDIAN
  *
  * The FreeBSD machine this was written on defines BYTE_ORDER
  * appropriately by including <sys/types.h> (which in turn includes

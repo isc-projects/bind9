@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sockaddr.h,v 1.51 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: sockaddr.h,v 1.52 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_SOCKADDR_H
 #define ISC_SOCKADDR_H 1
 
-/*! \file */
+/*! \file isc/sockaddr.h */
 
 #include <isc/lang.h>
 #include <isc/net.h>

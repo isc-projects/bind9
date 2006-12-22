@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbtable.h,v 1.19 2005/04/29 00:22:55 marka Exp $ */
+/* $Id: dbtable.h,v 1.20 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_DBTABLE_H
 #define DNS_DBTABLE_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/dbtable.h
  * \brief
  * DNS DB Tables
  *

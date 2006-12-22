@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dbiterator.h,v 1.21 2005/04/29 00:22:55 marka Exp $ */
+/* $Id: dbiterator.h,v 1.22 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_DBITERATOR_H
 #define DNS_DBITERATOR_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/dbiterator.h
  * \brief
  * The DNS DB Iterator interface allows iteration of all of the nodes in a
  * database.

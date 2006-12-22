@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.h,v 1.16 2005/04/29 00:23:35 marka Exp $ */
+/* $Id: error.h,v 1.17 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1
 
-/*! \file */
+/*! \file isc/error.h */
 
 #include <stdarg.h>
 

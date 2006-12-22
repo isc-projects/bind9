@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.40 2005/09/05 00:11:01 marka Exp $ */
+/* $Id: log.c,v 1.41 2006/12/22 01:44:59 marka Exp $ */
 
 /*! \file */
 
@@ -29,7 +29,7 @@
 
 /*%
  * When adding a new category, be sure to add the appropriate
- * #define to <dns/log.h>.
+ * \#define to <dns/log.h>.
  */
 LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 	{ "notify", 	0 },
@@ -48,7 +48,7 @@ LIBDNS_EXTERNAL_DATA isc_logcategory_t dns_categories[] = {
 
 /*%
  * When adding a new module, be sure to add the appropriate
- * #define to <dns/log.h>.
+ * \#define to <dns/log.h>.
  */
 LIBDNS_EXTERNAL_DATA isc_logmodule_t dns_modules[] = {
 	{ "dns/db",	 	0 },

@@ -18,11 +18,11 @@
 #ifndef ISC_SHA1_H
 #define ISC_SHA1_H 1
 
-/* $Id: sha1.h,v 1.14 2006/08/16 03:15:09 marka Exp $ */
+/* $Id: sha1.h,v 1.15 2006/12/22 01:45:00 marka Exp $ */
 
 /*	$NetBSD: sha1.h,v 1.2 1998/05/29 22:55:44 thorpej Exp $	*/
 
-/*! \file
+/*! \file isc/sha1.h
  * \brief SHA-1 in C
  * \author By Steve Reid <steve@edmweb.com>
  * \note 100% Public Domain

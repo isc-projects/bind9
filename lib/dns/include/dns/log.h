@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.h,v 1.37 2005/09/05 00:11:02 marka Exp $ */
+/* $Id: log.h,v 1.38 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file
+/*! \file dns/log.h
  * \author  Principal Authors: DCL */
 
 #ifndef DNS_LOG_H

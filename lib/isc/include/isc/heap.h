@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: heap.h,v 1.21 2006/04/15 01:30:16 marka Exp $ */
+/* $Id: heap.h,v 1.22 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_HEAP_H
 #define ISC_HEAP_H 1
 
-/*! \file */
+/*! \file isc/heap.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

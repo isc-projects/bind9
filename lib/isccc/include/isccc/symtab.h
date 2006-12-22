@@ -16,7 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: symtab.h,v 1.5 2005/04/29 00:24:00 marka Exp $ */
+/* $Id: symtab.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_SYMTAB_H
 #define ISCCC_SYMTAB_H 1
@@ -25,7 +25,7 @@
  ***** Module Info
  *****/
 
-/*! \file 
+/*! \file isccc/symtab.h
  * \brief
  * Provides a simple memory-based symbol table.
  *

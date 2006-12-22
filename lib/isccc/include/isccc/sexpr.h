@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sexpr.h,v 1.6 2005/04/29 00:24:00 marka Exp $ */
+/* $Id: sexpr.h,v 1.7 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_SEXPR_H
 #define ISCCC_SEXPR_H 1
 
-/*! \file */
+/*! \file isccc/sexpr.h */
 
 #include <stdio.h>
 

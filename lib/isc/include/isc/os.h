@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.h,v 1.8 2005/04/29 00:23:41 marka Exp $ */
+/* $Id: os.h,v 1.9 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_OS_H
 #define ISC_OS_H 1
 
-/*! \file */
+/*! \file isc/os.h */
 
 #include <isc/lang.h>
 

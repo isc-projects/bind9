@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatatype.h,v 1.20 2005/04/29 00:23:02 marka Exp $ */
+/* $Id: rdatatype.h,v 1.21 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATATYPE_H
 #define DNS_RDATATYPE_H 1
 
-/*! \file */
+/*! \file dns/rdatatype.h */
 
 #include <isc/lang.h>
 

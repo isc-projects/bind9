@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: name.h,v 1.123 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: name.h,v 1.124 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_NAME_H
 #define DNS_NAME_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/name.h
  * \brief
  * Provides facilities for manipulating DNS names and labels, including
  * conversions to and from wire format and text format.

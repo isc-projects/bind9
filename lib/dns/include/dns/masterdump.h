@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: masterdump.h,v 1.35 2005/09/01 02:24:59 marka Exp $ */
+/* $Id: masterdump.h,v 1.36 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_MASTERDUMP_H
 #define DNS_MASTERDUMP_H 1
 
-/*! \file */
+/*! \file dns/masterdump.h */
 
 /***
  ***	Imports

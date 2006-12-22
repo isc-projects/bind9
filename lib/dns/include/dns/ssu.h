@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ssu.h,v 1.18 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: ssu.h,v 1.19 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_SSU_H
 #define DNS_SSU_H 1
 
-/*! \file */
+/*! \file dns/ssu.h */
 
 #include <isc/lang.h>
 

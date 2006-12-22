@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netscope.h,v 1.7 2005/04/29 00:23:41 marka Exp $ */
+/* $Id: netscope.h,v 1.8 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_NETSCOPE_H
 #define ISC_NETSCOPE_H 1
 
-/*! \file */
+/*! \file isc/netscope.h */
 
 ISC_LANG_BEGINDECLS
 

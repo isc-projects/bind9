@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataclass.h,v 1.20 2005/04/29 00:23:01 marka Exp $ */
+/* $Id: rdataclass.h,v 1.21 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATACLASS_H
 #define DNS_RDATACLASS_H 1
 
-/*! \file */
+/*! \file dns/rdataclass.h */
 
 #include <isc/lang.h>
 

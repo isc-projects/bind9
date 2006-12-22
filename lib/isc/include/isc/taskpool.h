@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.h,v 1.11 2005/04/29 00:23:46 marka Exp $ */
+/* $Id: taskpool.h,v 1.12 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_TASKPOOL_H
 #define ISC_TASKPOOL_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/taskpool.h
  * \brief A task pool is a mechanism for sharing a small number of tasks
  * among a large number of objects such that each object is
  * assigned a unique task, but each task may be shared by several

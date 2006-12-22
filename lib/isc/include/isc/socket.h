@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.65 2006/06/07 00:29:46 marka Exp $ */
+/* $Id: socket.h,v 1.66 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/socket.h
  * \brief Provides TCP and UDP sockets for network I/O.  The sockets are event
  * sources in the task system.
  *

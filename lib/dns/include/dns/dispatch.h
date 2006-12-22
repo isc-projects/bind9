@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.50 2005/04/29 00:22:57 marka Exp $ */
+/* $Id: dispatch.h,v 1.51 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/dispatch.h
  * \brief
  * DNS Dispatch Management
  * 	Shared UDP and single-use TCP dispatches for queries and responses.

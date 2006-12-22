@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: region.h,v 1.21 2005/04/29 00:23:43 marka Exp $ */
+/* $Id: region.h,v 1.22 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_REGION_H
 #define ISC_REGION_H 1
 
-/*! \file */
+/*! \file isc/region.h */
 
 #include <isc/types.h>
 

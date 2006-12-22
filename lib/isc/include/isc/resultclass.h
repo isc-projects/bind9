@@ -15,13 +15,13 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resultclass.h,v 1.14 2005/04/29 00:23:44 marka Exp $ */
+/* $Id: resultclass.h,v 1.15 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RESULTCLASS_H
 #define ISC_RESULTCLASS_H 1
 
 
-/*! \file
+/*! \file isc/resultclass.h
  * \brief Registry of Predefined Result Type Classes
  *
  * A result class number is an unsigned 16 bit number.  Each class may

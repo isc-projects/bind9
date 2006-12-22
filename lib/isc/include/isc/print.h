@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: print.h,v 1.22 2005/06/08 02:07:00 marka Exp $ */
+/* $Id: print.h,v 1.23 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_PRINT_H
 #define ISC_PRINT_H 1
 
-/*! \file */
+/*! \file isc/print.h */
 
 /***
  *** Imports

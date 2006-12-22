@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.12 2005/09/20 04:22:46 marka Exp $ */
+/* $Id: lib.h,v 1.13 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_LIB_H
 #define DNS_LIB_H 1
 
-/*! \file */
+/*! \file dns/lib.h */
 
 #include <isc/types.h>
 #include <isc/lang.h>

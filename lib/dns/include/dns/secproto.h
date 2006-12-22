@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: secproto.h,v 1.12 2005/04/29 00:23:03 marka Exp $ */
+/* $Id: secproto.h,v 1.13 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_SECPROTO_H
 #define DNS_SECPROTO_H 1
 
-/*! \file */
+/*! \file dns/secproto.h */
 
 #include <isc/lang.h>
 

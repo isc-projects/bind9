@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.6 2005/04/29 00:23:59 marka Exp $ */
+/* $Id: lib.h,v 1.7 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_LIB_H
 #define ISCCC_LIB_H 1
 
-/*! \file */
+/*! \file isccc/lib.h */
 
 #include <isc/types.h>
 #include <isc/lang.h>

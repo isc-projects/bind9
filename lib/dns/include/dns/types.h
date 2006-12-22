@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.122 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: types.h,v 1.123 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TYPES_H
 #define DNS_TYPES_H 1
 
-/*! \file
+/*! \file dns/types.h
  * \brief
  * Including this file gives you type declarations suitable for use in
  * .h files, which lets us avoid circular type reference problems.

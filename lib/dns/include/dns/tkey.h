@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tkey.h,v 1.23 2006/12/05 00:13:48 marka Exp $ */
+/* $Id: tkey.h,v 1.24 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TKEY_H
 #define DNS_TKEY_H 1
 
-/*! \file */
+/*! \file dns/tkey.h */
 
 #include <isc/lang.h>
 

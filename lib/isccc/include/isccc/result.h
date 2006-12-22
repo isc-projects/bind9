@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.7 2005/04/29 00:24:00 marka Exp $ */
+/* $Id: result.h,v 1.8 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_RESULT_H
 #define ISCCC_RESULT_H 1
 
-/*! \file */
+/*! \file isccc/result.h */
 
 #include <isc/lang.h>
 #include <isc/resultclass.h>

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cert.h,v 1.15 2005/04/29 00:22:54 marka Exp $ */
+/* $Id: cert.h,v 1.16 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_CERT_H
 #define DNS_CERT_H 1
 
-/*! \file */
+/*! \file dns/cert.h */
 
 #include <isc/lang.h>
 

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: list.h,v 1.10 2005/04/29 00:24:10 marka Exp $ */
+/* $Id: list.h,v 1.11 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_LIST_H
 #define LWRES_LIST_H 1
 
-/*! \file */
+/*! \file lwres/list.h */
 
 #define LWRES_LIST(type) struct { type *head, *tail; }
 #define LWRES_LIST_INIT(list) \

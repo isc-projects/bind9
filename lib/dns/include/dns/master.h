@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: master.h,v 1.44 2005/06/20 01:03:54 marka Exp $ */
+/* $Id: master.h,v 1.45 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_MASTER_H
 #define DNS_MASTER_H 1
 
-/*! \file */
+/*! \file dns/master.h */
 
 /***
  ***	Imports

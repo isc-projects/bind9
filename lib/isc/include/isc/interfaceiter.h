@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfaceiter.h,v 1.13 2005/04/29 00:23:37 marka Exp $ */
+/* $Id: interfaceiter.h,v 1.14 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_INTERFACEITER_H
 #define ISC_INTERFACEITER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/interfaceiter.h
  * \brief Iterates over the list of network interfaces.
  *
  * Interfaces whose address family is not supported are ignored and never

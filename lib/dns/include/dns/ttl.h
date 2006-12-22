@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ttl.h,v 1.15 2005/04/29 00:23:05 marka Exp $ */
+/* $Id: ttl.h,v 1.16 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TTL_H
 #define DNS_TTL_H 1
 
-/*! \file */
+/*! \file dns/ttl.h */
 
 /***
  ***	Imports

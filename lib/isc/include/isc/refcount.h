@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: refcount.h,v 1.11 2005/07/12 01:00:18 marka Exp $ */
+/* $Id: refcount.h,v 1.12 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
@@ -27,7 +27,7 @@
 #include <isc/types.h>
 #include <isc/util.h>
 
-/*! \file
+/*! \file isc/refcount.h
  * \brief Implements a locked reference counter.  
  *
  * These functions may actually be

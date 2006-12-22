@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.h,v 1.6 2005/04/29 00:23:58 marka Exp $ */
+/* $Id: cc.h,v 1.7 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_CC_H
 #define ISCCC_CC_H 1
 
-/*! \file */
+/*! \file isccc/cc.h */
 
 #include <isc/lang.h>
 #include <isccc/types.h>

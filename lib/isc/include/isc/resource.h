@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resource.h,v 1.7 2005/04/29 00:23:43 marka Exp $ */
+/* $Id: resource.h,v 1.8 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RESOURCE_H
 #define ISC_RESOURCE_H 1
 
-/*! \file */
+/*! \file isc/resource.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

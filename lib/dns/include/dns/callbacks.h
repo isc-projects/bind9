@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: callbacks.h,v 1.20 2005/04/29 00:22:54 marka Exp $ */
+/* $Id: callbacks.h,v 1.21 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_CALLBACKS_H
 #define DNS_CALLBACKS_H 1
 
-/*! \file */
+/*! \file dns/callbacks.h */
 
 /***
  ***	Imports

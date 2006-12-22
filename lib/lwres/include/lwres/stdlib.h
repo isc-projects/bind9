@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdlib.h,v 1.2 2005/06/08 02:07:03 marka Exp $ */
+/* $Id: stdlib.h,v 1.3 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_STDLIB_H
 #define LWRES_STDLIB_H 1
 
-/*! \file */
+/*! \file lwres/stdlib.h */
 
 #include <stdlib.h>
 

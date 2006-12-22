@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lib.h,v 1.10 2005/04/29 00:23:38 marka Exp $ */
+/* $Id: lib.h,v 1.11 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_LIB_H
 #define ISC_LIB_H 1
 
-/*! \file */
+/*! \file isc/lib.h */
 
 #include <isc/types.h>
 #include <isc/lang.h>

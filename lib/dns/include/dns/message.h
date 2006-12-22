@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: message.h,v 1.120 2006/03/02 01:57:20 marka Exp $ */
+/* $Id: message.h,v 1.121 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_MESSAGE_H
 #define DNS_MESSAGE_H 1
@@ -33,7 +33,7 @@
 
 #include <dst/dst.h>
 
-/*! \file 
+/*! \file dns/message.h
  * \brief Message Handling Module
  *
  * How this beast works:

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: random.h,v 1.14 2005/04/29 00:23:42 marka Exp $ */
+/* $Id: random.h,v 1.15 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RANDOM_H
 #define ISC_RANDOM_H 1
@@ -23,7 +23,7 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-/*! \file
+/*! \file isc/random.h
  * \brief Implements a random state pool which will let the caller return a
  * series of possibly non-reproducable random values.  
  *

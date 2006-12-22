@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: boolean.h,v 1.15 2005/04/29 00:23:34 marka Exp $ */
+/* $Id: boolean.h,v 1.16 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_BOOLEAN_H
 #define ISC_BOOLEAN_H 1
 
-/*! \file */
+/*! \file isc/boolean.h */
 
 typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
 

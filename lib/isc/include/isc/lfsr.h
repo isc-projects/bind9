@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lfsr.h,v 1.13 2005/04/29 00:23:38 marka Exp $ */
+/* $Id: lfsr.h,v 1.14 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_LFSR_H
 #define ISC_LFSR_H 1
 
-/*! \file */
+/*! \file isc/lfsr.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

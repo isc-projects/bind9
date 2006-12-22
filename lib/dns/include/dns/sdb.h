@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdb.h,v 1.17 2005/04/29 00:23:02 marka Exp $ */
+/* $Id: sdb.h,v 1.18 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_SDB_H
 #define DNS_SDB_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/sdb.h
  * \brief
  * Simple database API.
  */

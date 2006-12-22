@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: int.h,v 1.10 2005/04/29 00:24:09 marka Exp $ */
+/* $Id: int.h,v 1.11 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1
 
-/*! \file */
+/*! \file lwres/int.h */
 
 typedef char				lwres_int8_t;
 typedef unsigned char			lwres_uint8_t;

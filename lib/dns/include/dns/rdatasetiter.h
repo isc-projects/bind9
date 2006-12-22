@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdatasetiter.h,v 1.17 2005/04/29 00:23:01 marka Exp $ */
+/* $Id: rdatasetiter.h,v 1.18 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATASETITER_H
 #define DNS_RDATASETITER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/rdatasetiter.h
  * \brief
  * The DNS Rdataset Iterator interface allows iteration of all of the
  * rdatasets at a node.

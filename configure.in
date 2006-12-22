@@ -18,7 +18,7 @@ AC_DIVERT_PUSH(1)dnl
 esyscmd([sed "s/^/# /" COPYRIGHT])dnl
 AC_DIVERT_POP()dnl
 
-AC_REVISION($Revision: 1.423 $)
+AC_REVISION($Revision: 1.424 $)
 
 AC_INIT(lib/dns/name.c)
 AC_PREREQ(2.59)
@@ -2277,6 +2277,13 @@ AC_PATH_PROG(XMLLINT, xmllint, xmllint)
 AC_SUBST(XMLLINT)
 
 #
+# Look for Doxygen
+#
+
+AC_PATH_PROG(DOXYGEN, doxygen, doxygen)
+AC_SUBST(DOXYGEN)
+
+#
 # Subroutine for searching for an ordinary file (e.g., a stylesheet)
 # in a number of directories:
 #
@@ -2646,7 +2653,7 @@ AC_SUBST(BUILD_LIBS)
 
 AC_CONFIG_COMMANDS(
 	[chmod],
-	[chmod a+x isc-config.sh])
+	[chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter])
 
 #
 # Files to configure.  These are listed here because we used to
@@ -2729,6 +2736,9 @@ AC_CONFIG_FILES([
 	doc/xsl/isc-docbook-html.xsl
 	doc/xsl/isc-docbook-latex.xsl
 	doc/xsl/isc-manpage.xsl
+	doc/doxygen/Doxyfile
+	doc/doxygen/Makefile
+	doc/doxygen/doxygen-input-filter
 ])
 
 #

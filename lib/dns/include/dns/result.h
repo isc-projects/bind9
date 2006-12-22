@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: result.h,v 1.110 2005/06/17 01:58:23 marka Exp $ */
+/* $Id: result.h,v 1.111 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RESULT_H
 #define DNS_RESULT_H 1
 
-/*! \file */
+/*! \file dns/result.h */
 
 #include <isc/lang.h>
 #include <isc/resultclass.h>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdata.h,v 1.63 2005/05/19 04:59:04 marka Exp $ */
+/* $Id: rdata.h,v 1.64 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATA_H
 #define DNS_RDATA_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/rdata.h
  * \brief
  * Provides facilities for manipulating DNS rdata, including conversions to
  * and from wire format and text format.

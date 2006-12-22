@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbt.h,v 1.64 2005/10/13 01:19:15 marka Exp $ */
+/* $Id: rbt.h,v 1.65 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RBT_H
 #define DNS_RBT_H 1
 
-/*! \file */
+/*! \file dns/rbt.h */
 
 #include <isc/lang.h>
 #include <isc/magic.h>

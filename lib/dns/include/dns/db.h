@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: db.h,v 1.84 2005/10/13 01:58:32 marka Exp $ */
+/* $Id: db.h,v 1.85 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_DB_H
 #define DNS_DB_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/db.h
  * \brief
  * The DNS DB interface allows named rdatasets to be stored and retrieved.
  *

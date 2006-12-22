@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: keyflags.h,v 1.12 2005/04/29 00:22:59 marka Exp $ */
+/* $Id: keyflags.h,v 1.13 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_KEYFLAGS_H
 #define DNS_KEYFLAGS_H 1
 
-/*! \file */
+/*! \file dns/keyflags.h */
 
 #include <isc/lang.h>
 

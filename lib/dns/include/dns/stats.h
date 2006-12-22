@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stats.h,v 1.9 2005/06/27 00:15:44 marka Exp $ */
+/* $Id: stats.h,v 1.10 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_STATS_H
 #define DNS_STATS_H 1
 
-/*! \file */
+/*! \file dns/stats.h */
 
 #include <dns/types.h>
 

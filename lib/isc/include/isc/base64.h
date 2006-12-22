@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.18 2005/04/29 00:23:34 marka Exp $ */
+/* $Id: base64.h,v 1.19 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1
 
-/*! \file */
+/*! \file isc/base64.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

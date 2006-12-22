@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: forward.h,v 1.7 2005/07/18 05:58:59 marka Exp $ */
+/* $Id: forward.h,v 1.8 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_FORWARD_H
 #define DNS_FORWARD_H 1
 
-/*! \file */
+/*! \file dns/forward.h */
 
 #include <isc/lang.h>
 #include <isc/result.h>

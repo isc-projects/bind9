@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.39 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: types.h,v 1.40 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
 
-/*! \file
+/*! \file isc/types.h
  * \brief
  * OS-specific types, from the OS-specific include directories.
  */

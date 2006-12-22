@@ -16,12 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.5 2005/04/29 00:24:01 marka Exp $ */
+/* $Id: types.h,v 1.6 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCC_TYPES_H
 #define ISCCC_TYPES_H 1
 
-/*! \file */
+/*! \file isccc/types.h */
 
 #include <isc/boolean.h>
 #include <isc/int.h>

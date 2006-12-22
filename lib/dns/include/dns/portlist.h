@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: portlist.h,v 1.5 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: portlist.h,v 1.6 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file */
+/*! \file dns/portlist.h */
 
 #include <isc/lang.h>
 #include <isc/net.h>

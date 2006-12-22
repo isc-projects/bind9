@@ -16,9 +16,9 @@
  */
 
 /*
- * $Id: assertions.h,v 1.20 2005/04/29 00:23:33 marka Exp $
+ * $Id: assertions.h,v 1.21 2006/12/22 01:45:00 marka Exp $
  */
-/*! \file assertions.h
+/*! \file isc/assertions.h
  */
 
 #ifndef ISC_ASSERTIONS_H

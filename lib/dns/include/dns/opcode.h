@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: opcode.h,v 1.4 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: opcode.h,v 1.5 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_OPCODE_H
 #define DNS_OPCODE_H 1
 
-/*! \file */
+/*! \file dns/opcode.h */
 
 #include <isc/lang.h>
 

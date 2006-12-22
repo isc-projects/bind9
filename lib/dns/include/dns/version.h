@@ -15,9 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: version.h,v 1.5 2005/04/29 00:23:05 marka Exp $ */
+/* $Id: version.h,v 1.6 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file */
+/*! \file dns/version.h */
 
 #include <isc/platform.h>
 

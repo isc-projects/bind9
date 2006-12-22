@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cache.h,v 1.22 2005/08/23 02:36:09 marka Exp $ */
+/* $Id: cache.h,v 1.23 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_CACHE_H
 #define DNS_CACHE_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/cache.h
  * \brief
  * Defines dns_cache_t, the cache object.
  *

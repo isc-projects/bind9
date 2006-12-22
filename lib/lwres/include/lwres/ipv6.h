@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.12 2005/04/29 00:24:09 marka Exp $ */
+/* $Id: ipv6.h,v 1.13 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_IPV6_H
 #define LWRES_IPV6_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file ipv6.h
+/*! \file lwres/ipv6.h
  * IPv6 definitions for systems which do not support IPv6.
  */
 

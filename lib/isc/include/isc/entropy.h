@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: entropy.h,v 1.29 2006/12/05 00:13:48 marka Exp $ */
+/* $Id: entropy.h,v 1.30 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_ENTROPY_H
 #define ISC_ENTROPY_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file entropy.h
+/*! \file isc/entropy.h
  * \brief The entropy API
  *
  * \li MP:

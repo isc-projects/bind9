@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journal.h,v 1.27 2005/04/29 00:22:59 marka Exp $ */
+/* $Id: journal.h,v 1.28 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_JOURNAL_H
 #define DNS_JOURNAL_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/journal.h
  * \brief
  * Database journalling.
  */

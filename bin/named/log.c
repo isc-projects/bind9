@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: log.c,v 1.43 2006/06/09 00:54:09 marka Exp $ */
+/* $Id: log.c,v 1.44 2006/12/22 01:44:59 marka Exp $ */
 
 /*! \file */
 
@@ -33,7 +33,7 @@
 
 /*%
  * When adding a new category, be sure to add the appropriate
- * #define to <named/log.h> and to update the list in
+ * \#define to <named/log.h> and to update the list in
  * bin/check/check-tool.c.
  */
 static isc_logcategory_t categories[] = {
@@ -49,7 +49,7 @@ static isc_logcategory_t categories[] = {
 
 /*%
  * When adding a new module, be sure to add the appropriate
- * #define to <dns/log.h>.
+ * \#define to <dns/log.h>.
  */
 static isc_logmodule_t modules[] = {
 	{ "main",	 		0 },

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: context.h,v 1.17 2005/04/29 00:24:09 marka Exp $ */
+/* $Id: context.h,v 1.18 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_CONTEXT_H
 #define LWRES_CONTEXT_H 1
 
-/*! \file */
+/*! \file lwres/context.h */
 
 #include <stddef.h>
 

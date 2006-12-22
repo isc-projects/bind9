@@ -50,9 +50,9 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.h,v 1.3 2005/09/06 03:51:36 marka Exp $ */
+/* $Id: sdlz.h,v 1.4 2006/12/22 01:45:00 marka Exp $ */
 
-/*! \file */
+/*! \file dns/sdlz.h */
 
 #ifndef SDLZ_H
 #define SDLZ_H 1

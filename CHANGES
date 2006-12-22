@@ -1,3 +1,6 @@
+2123.	[func]		Use Doxygen to generate internal documention.
+			[RT #11398]
+
 2122.	[func]		Experimental http server and statistics support
 			for named via xml.
 

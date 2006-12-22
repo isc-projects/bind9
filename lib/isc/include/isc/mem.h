@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.68 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: mem.h,v 1.69 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
 
-/*! \file */
+/*! \file isc/mem.h */
 
 #include <stdio.h>
 

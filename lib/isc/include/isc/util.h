@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: util.h,v 1.26 2005/04/29 00:23:46 marka Exp $ */
+/* $Id: util.h,v 1.27 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 
-/*! \file util.h
+/*! \file isc/util.h
  * NOTE:
  *
  * This file is not to be included from any <isc/???.h> (or other) library

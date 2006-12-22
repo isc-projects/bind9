@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.h,v 1.13 2005/04/29 00:23:04 marka Exp $ */
+/* $Id: time.h,v 1.14 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TIME_H
 #define DNS_TIME_H 1
 
-/*! \file */
+/*! \file dns/time.h */
 
 /***
  ***	Imports

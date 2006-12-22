@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgs.h,v 1.11 2005/04/29 00:23:40 marka Exp $ */
+/* $Id: msgs.h,v 1.12 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_MSGS_H
 #define ISC_MSGS_H 1
 
-/*! \file */
+/*! \file isc/msgs.h */
 
 #include <isc/lib.h>		/* Provide isc_msgcat global variable. */
 #include <isc/msgcat.h>		/* Provide isc_msgcat_*() functions. */

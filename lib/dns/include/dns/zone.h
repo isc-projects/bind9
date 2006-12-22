@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.h,v 1.148 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: zone.h,v 1.149 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_ZONE_H
 #define DNS_ZONE_H 1
 
-/*! \file */
+/*! \file dns/zone.h */
 
 /***
  ***	Imports

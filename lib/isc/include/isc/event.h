@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: event.h,v 1.30 2005/04/29 00:23:35 marka Exp $ */
+/* $Id: event.h,v 1.31 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_EVENT_H
 #define ISC_EVENT_H 1
 
-/*! \file */
+/*! \file isc/event.h */
 
 #include <isc/lang.h>
 #include <isc/types.h>

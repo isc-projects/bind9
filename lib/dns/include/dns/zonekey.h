@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zonekey.h,v 1.6 2005/04/29 00:23:06 marka Exp $ */
+/* $Id: zonekey.h,v 1.7 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_ZONEKEY_H
 #define DNS_ZONEKEY_H 1
 
-/*! \file */
+/*! \file dns/zonekey.h */
 
 #include <isc/lang.h>
 

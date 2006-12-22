@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: hash.h,v 1.6 2005/04/29 00:23:36 marka Exp $ */
+/* $Id: hash.h,v 1.7 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_HASH_H
 #define ISC_HASH_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isc/hash.h
  *
  * \brief The hash API
  *	provides an unpredictable hash value for variable length data.

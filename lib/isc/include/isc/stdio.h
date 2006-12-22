@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: stdio.h,v 1.9 2005/04/29 00:23:45 marka Exp $ */
+/* $Id: stdio.h,v 1.10 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISC_STDIO_H
 #define ISC_STDIO_H 1
 
-/*! \file */
+/*! \file isc/stdio.h */
 
 /*% 
  * These functions are wrappers around the corresponding stdio functions.

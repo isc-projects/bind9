@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.h,v 1.48 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: buffer.h,v 1.49 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_BUFFER_H
 #define ISC_BUFFER_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file buffer.h
+/*! \file isc/buffer.h
  *
  * \brief A buffer is a region of memory, together with a set of related subregions.
  * Buffers are used for parsing and I/O operations.
@@ -112,7 +112,7 @@
 #include <isc/types.h>
 
 /*!
- * To make many functions be inline macros (via #define) define this.
+ * To make many functions be inline macros (via \#define) define this.
  * If it is undefined, a function will be used.
  */
 /* #define ISC_BUFFER_USEINLINE */

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tsig.h,v 1.48 2006/12/04 01:52:46 marka Exp $ */
+/* $Id: tsig.h,v 1.49 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_TSIG_H
 #define DNS_TSIG_H 1
 
-/*! \file */
+/*! \file dns/tsig.h */
 
 #include <isc/lang.h>
 #include <isc/refcount.h>

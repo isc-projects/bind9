@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: bitstring.h,v 1.10 2005/04/29 00:23:34 marka Exp $ */
+/* $Id: bitstring.h,v 1.11 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_BITSTRING_H
 #define ISC_BITSTRING_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file bitstring.h
+/*! \file isc/bitstring.h
  *
  * \brief Bitstring manipulation functions.
  *

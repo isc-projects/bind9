@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: netaddr.h,v 1.30 2005/07/28 04:54:17 marka Exp $ */
+/* $Id: netaddr.h,v 1.31 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_NETADDR_H
 #define ISC_NETADDR_H 1
 
-/*! \file */
+/*! \file isc/netaddr.h */
 
 #include <isc/lang.h>
 #include <isc/net.h>

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ondestroy.h,v 1.10 2005/04/29 00:23:41 marka Exp $ */
+/* $Id: ondestroy.h,v 1.11 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_ONDESTROY_H
 #define ISC_ONDESTROY_H 1
@@ -25,7 +25,7 @@
 
 ISC_LANG_BEGINDECLS
 
-/*! \file 
+/*! \file isc/ondestroy.h
  * ondestroy handling.
  *
  * Any class ``X'' of objects that wants to send out notifications

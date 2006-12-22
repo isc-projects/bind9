@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: secalg.h,v 1.15 2005/04/29 00:23:03 marka Exp $ */
+/* $Id: secalg.h,v 1.16 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_SECALG_H
 #define DNS_SECALG_H 1
 
-/*! \file */
+/*! \file dns/secalg.h */
 
 #include <isc/lang.h>
 

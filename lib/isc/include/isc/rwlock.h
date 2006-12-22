@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rwlock.h,v 1.24 2005/06/04 05:32:49 jinmei Exp $ */
+/* $Id: rwlock.h,v 1.25 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
-/*! \file */
+/*! \file isc/rwlock.h */
 
 #include <isc/condition.h>
 #include <isc/lang.h>

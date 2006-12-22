@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: grammar.h,v 1.12 2006/02/28 02:39:52 marka Exp $ */
+/* $Id: grammar.h,v 1.13 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCFG_GRAMMAR_H
 #define ISCCFG_GRAMMAR_H 1
 
-/*! \file */
+/*! \file isccfg/grammar.h */
 
 #include <isc/lex.h>
 #include <isc/netaddr.h>

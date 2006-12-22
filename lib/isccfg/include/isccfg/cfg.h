@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.39 2006/03/02 00:37:23 marka Exp $ */
+/* $Id: cfg.h,v 1.40 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file isccfg/cfg.h
  * \brief
  * This is the new, table-driven, YACC-free configuration file parser.
  */

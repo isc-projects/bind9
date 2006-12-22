@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataset.h,v 1.59 2006/03/03 00:43:35 marka Exp $ */
+/* $Id: rdataset.h,v 1.60 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATASET_H
 #define DNS_RDATASET_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/rdataset.h
  * \brief
  * A DNS rdataset is a handle that can be associated with a collection of
  * rdata all having a common owner name, class, and type.

@@ -15,12 +15,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rdataslab.h,v 1.27 2005/04/29 00:23:02 marka Exp $ */
+/* $Id: rdataslab.h,v 1.28 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_RDATASLAB_H
 #define DNS_RDATASLAB_H 1
 
-/*! \file
+/*! \file dns/rdataslab.h
  * \brief
  * Implements storage of rdatasets into slabs of memory.
  *

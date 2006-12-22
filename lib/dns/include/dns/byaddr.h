@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr.h,v 1.18 2005/04/29 00:22:54 marka Exp $ */
+/* $Id: byaddr.h,v 1.19 2006/12/22 01:44:59 marka Exp $ */
 
 #ifndef DNS_BYADDR_H
 #define DNS_BYADDR_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/byaddr.h
  * \brief
  * The byaddr module provides reverse lookup services for IPv4 and IPv6
  * addresses.
@@ -121,8 +121,8 @@ dns_byaddr_cancel(dns_byaddr_t *byaddr);
  *
  * Notes:
  *
- *\li	If 'byaddr' has not completed, post its #BYADDRDONE event with a
- *	result code of #ISC_R_CANCELED.
+ *\li	If 'byaddr' has not completed, post its #DNS_EVENT_BYADDRDONE
+ *	event with a result code of #ISC_R_CANCELED.
  *
  * Requires:
  *
@@ -138,8 +138,8 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
  *
  *\li	'*byaddrp' is a valid byaddr.
  *
- *\li	The caller has received the BYADDRDONE event (either because the
- *	byaddr completed or because dns_byaddr_cancel() was called).
+ *\li	The caller has received the #DNS_EVENT_BYADDRDONE event (either because
+ *	the byaddr completed or because dns_byaddr_cancel() was called).
  *
  * Ensures:
  *

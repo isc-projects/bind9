@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwpacket.h,v 1.20 2005/04/29 00:24:10 marka Exp $ */
+/* $Id: lwpacket.h,v 1.21 2006/12/22 01:45:01 marka Exp $ */
 
 #ifndef LWRES_LWPACKET_H
 #define LWRES_LWPACKET_H 1
@@ -118,7 +118,7 @@ struct lwres_lwpacket {
 
 #define LWRES_LWPACKETVERSION_0		0	/*%< Header format. */
 
-/*! \file lwpacket.h
+/*! \file lwres/lwpacket.h
  *
  *
  * The remainder of the packet consists of two regions, one described by

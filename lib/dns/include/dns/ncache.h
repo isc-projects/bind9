@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ncache.h,v 1.19 2005/04/29 00:23:00 marka Exp $ */
+/* $Id: ncache.h,v 1.20 2006/12/22 01:45:00 marka Exp $ */
 
 #ifndef DNS_NCACHE_H
 #define DNS_NCACHE_H 1
@@ -24,7 +24,7 @@
  ***** Module Info
  *****/
 
-/*! \file
+/*! \file dns/ncache.h
  *\brief
  * DNS Ncache
  *
