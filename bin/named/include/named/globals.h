@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: globals.h,v 1.69 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: globals.h,v 1.70 2006/12/22 03:07:57 explorer Exp $ */
 
 #ifndef NAMED_GLOBALS_H
 #define NAMED_GLOBALS_H 1
@@ -25,7 +25,6 @@
 #include <isc/rwlock.h>
 #include <isc/log.h>
 #include <isc/net.h>
-#include <isc/mib.h>
 
 #include <isccfg/cfg.h>
 
@@ -49,7 +48,6 @@ EXTERN isc_taskmgr_t *		ns_g_taskmgr		INIT(NULL);
 EXTERN dns_dispatchmgr_t *	ns_g_dispatchmgr	INIT(NULL);
 EXTERN isc_entropy_t *		ns_g_entropy		INIT(NULL);
 EXTERN isc_entropy_t *		ns_g_fallbackentropy	INIT(NULL);
-EXTERN isc_mib_t *		ns_g_mib		INIT(NULL);
 
 /*
  * XXXRTH  We're going to want multiple timer managers eventually.  One

@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.88 2006/12/21 06:02:30 marka Exp $
+# $Id: Makefile.in,v 1.89 2006/12/22 03:07:57 explorer Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -56,7 +56,7 @@ OBJS =		@ISC_EXTRA_OBJS@ \
 		hash.@O@ heap.@O@ hex.@O@ hmacmd5.@O@ hmacsha.@O@ \
 		httpd.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
-		md5.@O@ mem.@O@ mib.@O@ mutexblock.@O@ \
+		md5.@O@ mem.@O@ mutexblock.@O@ \
 		netaddr.@O@ netscope.@O@ ondestroy.@O@ \
 		parseint.@O@ quota.@O@ random.@O@ \
 		ratelimiter.@O@ refcount.@O@ region.@O@ result.@O@ rwlock.@O@ \
@@ -71,7 +71,7 @@ SRCS =		@ISC_EXTRA_SRCS@ \
 		heap.c hex.c hmacmd5.c hmacsha.c \
 		httpd.c \
 		lex.c lfsr.c lib.c log.c \
-		md5.c mem.c mib.c mutexblock.c \
+		md5.c mem.c mutexblock.c \
 		netaddr.c netscope.c ondestroy.c \
 		parseint.c quota.c random.c \
 		ratelimiter.c refcount.c region.c result.c rwlock.c \

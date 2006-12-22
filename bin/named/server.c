@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.470 2006/12/21 06:02:29 marka Exp $ */
+/* $Id: server.c,v 1.471 2006/12/22 03:07:57 explorer Exp $ */
 
 /*! \file */
 
@@ -235,9 +235,6 @@ render_xsl(const char *url, const char *querystring, void *args,
 	   unsigned int *retcode, const char **retmsg, const char **mimetype,
 	   isc_buffer_t *b, isc_httpdfree_t **freecb,
 	   void **freecb_args);
-
-void
-tree_walk(xmlTextWriterPtr writer, isc_mib_t *mib, isc_mibnode_t *node);
 
 void
 server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf);
@@ -5161,58 +5158,6 @@ ns_smf_add_message(isc_buffer_t *text) {
 
 #define NODES 8
 #define SPACES 3
-
-void
-tree_walk(xmlTextWriterPtr writer, isc_mib_t *mib, isc_mibnode_t *node)
-{
-	char buf[128];
-	int xmlrc;
-
-	while (node != NULL) {
-		if (node->type == ISC_MIBNODETYPE_NODE)
-			if (!isc_mibnode_haschildren(node))
-				goto nextnode;
-		TRY0(xmlTextWriterStartElement(writer,
-					       ISC_XMLCHAR node->name));
-
-		switch (node->type) {
-		case ISC_MIBNODETYPE_NODE:
-			tree_walk(writer, mib, isc_mib_firstnode(mib, node));
-			break;
-		case ISC_MIBNODETYPE_UINT32:
-			sprintf(buf, "%u", *(unsigned int *)(node->data));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR buf));
-			break;
-		case ISC_MIBNODETYPE_INT32:
-			sprintf(buf, "%d", *(int *)(node->data));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR buf));
-			break;
-		case ISC_MIBNODETYPE_UINT64:
-			sprintf(buf, "%qu",
-				*(unsigned long long *)(node->data));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR buf));
-			break;
-		case ISC_MIBNODETYPE_INT64:
-			sprintf(buf, "%qd", *(long long *)(node->data));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR buf));
-			break;
-		case ISC_MIBNODETYPE_STRING:
-			sprintf(buf, "%s", *(char **)(node->data));
-			TRY0(xmlTextWriterWriteString(writer,
-						      ISC_XMLCHAR buf));
-			break;
-		}
-
-		TRY0(xmlTextWriterEndElement(writer));
-
-	nextnode:
-		node = isc_mib_nextnode(mib, node);
-	}
-}
 
 void
 server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
