@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: base64.h,v 1.19 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: base64.h,v 1.20 2006/12/22 01:59:43 marka Exp $ */
 
 #ifndef ISC_BASE64_H
 #define ISC_BASE64_H 1

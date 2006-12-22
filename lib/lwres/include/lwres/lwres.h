@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwres.h,v 1.54 2006/12/22 01:45:01 marka Exp $ */
+/* $Id: lwres.h,v 1.55 2006/12/22 01:59:44 marka Exp $ */
 
 #ifndef LWRES_LWRES_H
 #define LWRES_LWRES_H 1

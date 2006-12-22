@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: error.h,v 1.17 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: error.h,v 1.18 2006/12/22 01:59:43 marka Exp $ */
 
 #ifndef ISC_ERROR_H
 #define ISC_ERROR_H 1
