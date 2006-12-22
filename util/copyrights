@@ -2071,7 +2071,6 @@
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006
-./lib/isc/include/isc/mib.h			C	2006
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006
@@ -2116,7 +2115,6 @@
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/md5.c					C	2000,2001,2004,2005
 ./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
-./lib/isc/mib.c					C	2006
 ./lib/isc/mips/include/isc/atomic.h		C	2005
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
@@ -2523,6 +2521,4 @@
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005
 ./win32utils/updateopenssl.pl			PERL	2006
-./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005
 ./xml/statistics-schema.rnc			RNC	2006
-./xml/statistics-schema.xml			SGML	2006
