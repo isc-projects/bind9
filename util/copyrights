@@ -2521,4 +2521,4 @@
 ./win32utils/makeversion.pl			PERL	2001,2004
 ./win32utils/readme1st.txt			TXT.BRIEF	2001,2003,2004,2005
 ./win32utils/updateopenssl.pl			PERL	2006
-./xml/statistics-schema.rnc			RNC	2006
+./win32utils/win32-build.txt			TXT.BRIEF	2001,2002,2004,2005
