@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.12.18.3 2005/07/19 05:55:46 marka Exp $
+# $Id: Makefile.in,v 1.12.18.4 2006/12/26 17:59:27 sra Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -34,7 +34,10 @@ clean::
 	rm -f Bv9ARM.log Bv9ARM.out Bv9ARM.tex Bv9ARM.tex.tmp
 
 docclean manclean maintainer-clean:: clean
-	rm -f *.html ${PDFOBJS} releaseinfo.xml
+	rm -f *.html ${PDFOBJS}
+
+docclean manclean maintainer-clean distclean::
+	rm -f releaseinfo.xml
 
 Bv9ARM.html: Bv9ARM-book.xml releaseinfo.xml
 	expand Bv9ARM-book.xml | \
