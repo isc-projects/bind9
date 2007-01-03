@@ -103,6 +103,7 @@ rt16553				new
 rt16555				new	
 rt16563				new	
 rt16584				new	
+rt16592				new	
 rt1727				open		// ixfr-from-differences workfile
 skan				new	
 skan-metazones1			private	
@@ -110,6 +111,7 @@ skan_implicit_update1		new
 skan_stats1			new	
 skan_stats2			new	
 skan_stats3			new	
+skan_stats4			new	
 stats_lidl			new	
 v6source			new	
 v9_1				active		// security fixes only
