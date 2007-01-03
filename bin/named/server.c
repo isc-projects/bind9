@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.471 2006/12/22 03:07:57 explorer Exp $ */
+/* $Id: server.c,v 1.472 2007/01/03 21:28:24 explorer Exp $ */
 
 /*! \file */
 
@@ -5199,6 +5199,14 @@ server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
 		view = ISC_LIST_NEXT(view, link);
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* views */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmgr"));
+	isc_socketmgr_renderxml(ns_g_socketmgr, writer);
+	TRY0(xmlTextWriterEndElement(writer)); /* socketmgr */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
+	isc_taskmgr_renderxml(ns_g_taskmgr, writer);
+	TRY0(xmlTextWriterEndElement(writer)); /* taskmgr */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time");
