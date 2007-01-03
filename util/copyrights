@@ -138,7 +138,7 @@
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006
-./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006
 ./bin/named/tsigconf.c				C	1999,2000,2001,2004,2005,2006
@@ -2094,12 +2094,12 @@
 ./lib/isc/include/isc/sha1.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/sha2.h			C	2005,2006
 ./lib/isc/include/isc/sockaddr.h		C	1998,1999,2000,2001,2002,2003,2004,2005,2006
-./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006
+./lib/isc/include/isc/socket.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/isc/include/isc/stdio.h			C	2000,2001,2004,2005,2006
 ./lib/isc/include/isc/stdlib.h			C	2003,2004,2005,2006
 ./lib/isc/include/isc/string.h			C	2000,2001,2003,2004,2005,2006
 ./lib/isc/include/isc/symtab.h			C	1996,1997,1998,1999,2000,2001,2004,2005,2006
-./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006
+./lib/isc/include/isc/task.h			C	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/include/isc/taskpool.h		C	1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/timer.h			C	1998,1999,2000,2001,2002,2004,2005,2006
 ./lib/isc/include/isc/types.h			C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -2168,7 +2168,7 @@
 ./lib/isc/string.c				C	1999,2000,2001,2003,2004,2005,2006
 ./lib/isc/strtoul.c				C	2003,2004,2005
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005
-./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/task_p.h				C	2000,2001,2004,2005
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005
@@ -2206,7 +2206,7 @@
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/os.c				C	2000,2001,2004,2005
 ./lib/isc/unix/resource.c			C	2000,2001,2004
-./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004,2005
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005
@@ -2495,7 +2495,7 @@
 ./util/check-instincludes.sh			SH	2000,2001,2004
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004
 ./util/check-sources.pl				PERL	2000,2001,2004
-./util/copyrights				X	1999,2000,2001,2005,2006
+./util/copyrights				X	1999,2000,2001,2005,2006,2007
 ./util/kit.sh					SH	2000,2001,2002,2003,2004
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
