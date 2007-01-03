@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.97 2006/01/04 23:50:24 marka Exp $ */
+/* $Id: task.c,v 1.98 2007/01/03 20:23:46 explorer Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -66,6 +66,10 @@ typedef enum {
 	task_state_idle, task_state_ready, task_state_running,
 	task_state_done
 } task_state_t;
+
+static const char *statenames[] = {
+	"idle", "ready", "running", "done",
+};
 
 #define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
@@ -1296,3 +1300,82 @@ isc_task_endexclusive(isc_task_t *task) {
 	UNUSED(task);
 #endif
 }
+
+#ifdef HAVE_LIBXML2
+
+void
+isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer)
+{
+	isc_task_t *task;
+
+	LOCK(&mgr->lock);
+
+	/*
+	 * Write out the thread-model, and some details about each depending
+	 * on which type is enabled.
+	 */
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "thread-model");
+#ifdef ISC_PLATFORM_USETHREADS
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "type");
+	xmlTextWriterWriteString(writer, ISC_XMLCHAR "threaded");
+	xmlTextWriterEndElement(writer); /* type */
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "worker-threads");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->workers);
+	xmlTextWriterEndElement(writer); /* worker-threads */
+#else /* ISC_PLATFORM_USETHREADS */
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "type");
+	xmlTextWriterWriteString(writer, ISC_XMLCHAR "non-threaded");
+	xmlTextWriterEndElement(writer); /* type */
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->refs);
+	xmlTextWriterEndElement(writer); /* references */
+#endif /* ISC_PLATFORM_USETHREADS */
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "default-quantum");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->default_quantum);
+	xmlTextWriterEndElement(writer); /* default-quantum */
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks-running");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->tasks_running);
+	xmlTextWriterEndElement(writer); /* tasks-running */
+
+	xmlTextWriterEndElement(writer); /* thread-model */
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "tasks");
+	task = ISC_LIST_HEAD(mgr->tasks);
+	while (task != NULL) {
+		LOCK(&task->lock);
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "task");
+
+		if (task->name[0] != 0) {
+			xmlTextWriterStartElement(writer, ISC_XMLCHAR "name");
+			xmlTextWriterWriteFormatString(writer, "%s",
+						       task->name);
+			xmlTextWriterEndElement(writer); /* name */
+		}
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
+		xmlTextWriterWriteFormatString(writer, "%d", task->references);
+		xmlTextWriterEndElement(writer); /* references */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "state");
+		xmlTextWriterWriteFormatString(writer, "%s",
+					       statenames[task->state]);
+		xmlTextWriterEndElement(writer); /* state */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "quantum");
+		xmlTextWriterWriteFormatString(writer, "%d", task->quantum);
+		xmlTextWriterEndElement(writer); /* quantum */
+
+		xmlTextWriterEndElement(writer);
+
+		UNLOCK(&task->lock);
+		task = ISC_LIST_NEXT(task, link);
+	}
+	xmlTextWriterEndElement(writer); /* tasks */
+
+	UNLOCK(&mgr->lock);
+}
+#endif /* HAVE_LIBXML2 */
