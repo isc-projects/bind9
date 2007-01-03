@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.265 2006/06/06 00:53:36 marka Exp $ */
+/* $Id: socket.c,v 1.266 2007/01/03 20:57:07 explorer Exp $ */
 
 /*! \file */
 
@@ -56,6 +56,7 @@
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/xml.h>
 
 #include "errno2result.h"
 
@@ -168,7 +169,7 @@ struct isc_socket {
 	intev_t			readable_ev;
 	intev_t			writable_ev;
 
-	isc_sockaddr_t		address;  /* remote address */
+	isc_sockaddr_t		peer_address;  /* remote address */
 
 	unsigned int		pending_recv : 1,
 				pending_send : 1,
@@ -795,7 +796,7 @@ build_msghdr_recv(isc_socket_t *sock, isc_socketevent_t *dev,
 	} else { /* TCP */
 		msg->msg_name = NULL;
 		msg->msg_namelen = 0;
-		dev->address = sock->address;
+		dev->address = sock->peer_address;
 	}
 
 	buffer = ISC_LIST_HEAD(dev->bufferlist);
@@ -884,10 +885,10 @@ set_dev_address(isc_sockaddr_t *address, isc_socket_t *sock,
 		if (address != NULL)
 			dev->address = *address;
 		else
-			dev->address = sock->address;
+			dev->address = sock->peer_address;
 	} else if (sock->type == isc_sockettype_tcp) {
 		INSIST(address == NULL);
-		dev->address = sock->address;
+		dev->address = sock->peer_address;
 	}
 }
 
@@ -1988,9 +1989,9 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	 * deamons such as BIND 8 and Apache.
 	 */
 
-	addrlen = sizeof(dev->newsocket->address.type);
-	memset(&dev->newsocket->address.type.sa, 0, addrlen);
-	fd = accept(sock->fd, &dev->newsocket->address.type.sa,
+	addrlen = sizeof(dev->newsocket->peer_address.type);
+	memset(&dev->newsocket->peer_address.type.sa, 0, addrlen);
+	fd = accept(sock->fd, &dev->newsocket->peer_address.type.sa,
 		    (void *)&addrlen);
 
 #ifdef F_DUPFD
@@ -2051,14 +2052,14 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 
 			(void)close(fd);
 			goto soft_error;
-		} else if (dev->newsocket->address.type.sa.sa_family !=
+		} else if (dev->newsocket->peer_address.type.sa.sa_family !=
 			   sock->pf)
 		{
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_accept(): "
 					 "accept() returned peer address "
 					 "family %u (expected %u)", 
-					 dev->newsocket->address.
+					 dev->newsocket->peer_address.
 					 type.sa.sa_family,
 					 sock->pf);
 			(void)close(fd);
@@ -2076,7 +2077,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	}
 
 	if (fd != -1) {
-		dev->newsocket->address.length = addrlen;
+		dev->newsocket->peer_address.length = addrlen;
 		dev->newsocket->pf = sock->pf;
 	}
 
@@ -2113,14 +2114,14 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		/*
 		 * Save away the remote address
 		 */
-		dev->address = dev->newsocket->address;
+		dev->address = dev->newsocket->peer_address;
 
 		manager->fds[fd] = dev->newsocket;
 		manager->fdstate[fd] = MANAGED;
 		if (manager->maxfd < fd)
 			manager->maxfd = fd;
 
-		socket_log(sock, &dev->newsocket->address, CREATION,
+		socket_log(sock, &dev->newsocket->peer_address, CREATION,
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTEDCXN,
 			   "accepted connection, new socket %p",
 			   dev->newsocket);
@@ -3526,7 +3527,7 @@ isc_socket_connect(isc_socket_t *sock, isc_sockaddr_t *addr,
 	 * Try to do the connect right away, as there can be only one
 	 * outstanding, and it might happen to complete.
 	 */
-	sock->address = *addr;
+	sock->peer_address = *addr;
 	cc = connect(sock->fd, &addr->type.sa, addr->length);
 	if (cc < 0) {
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS)
@@ -3697,7 +3698,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 #undef ERROR_MATCH
 		default:
 			dev->result = ISC_R_UNEXPECTED;
-			isc_sockaddr_format(&sock->address, peerbuf,
+			isc_sockaddr_format(&sock->peer_address, peerbuf,
 					    sizeof(peerbuf));
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -3729,7 +3730,7 @@ isc_socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 	LOCK(&sock->lock);
 
 	if (sock->connected) {
-		*addressp = sock->address;
+		*addressp = sock->peer_address;
 		result = ISC_R_SUCCESS;
 	} else {
 		result = ISC_R_NOTCONNECTED;
@@ -3958,3 +3959,98 @@ isc__socketmgr_dispatch(fd_set *readset, fd_set *writeset, int maxfd) {
 	return (ISC_R_SUCCESS);
 }
 #endif /* ISC_PLATFORM_USETHREADS */
+
+#ifdef HAVE_LIBXML2
+
+static const char *
+_socktype(int type)
+{
+	if (type == 1)
+		return ("udp");
+	else if (type == 2)
+		return ("tcp");
+	else if (type == 3)
+		return ("unix");
+	else if (type == 4)
+		return ("fdwatch");
+	else
+		return ("not-initialized");
+}
+
+void
+isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer)
+{
+	isc_socket_t *sock;
+	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
+	isc_sockaddr_t addr;
+	ISC_SOCKADDR_LEN_T len;
+
+	LOCK(&mgr->lock);
+
+#ifndef ISC_PLATFORM_USETHREADS
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
+	xmlTextWriterWriteFormatString(writer, "%d", mgr->refs);
+	xmlTextWriterEndElement(writer);
+#endif
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "sockets");
+	sock = ISC_LIST_HEAD(mgr->socklist);
+	while (sock != NULL) {
+		LOCK(&sock->lock);
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "socket");
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
+		xmlTextWriterWriteFormatString(writer, "%d", sock->references);
+		xmlTextWriterEndElement(writer);
+
+		xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
+					  ISC_XMLCHAR _socktype(sock->type));
+
+		if (sock->connected) {
+			isc_sockaddr_format(&sock->peer_address, peerbuf,
+					    sizeof(peerbuf));
+			xmlTextWriterWriteElement(writer,
+						  ISC_XMLCHAR "peer-address",
+						  ISC_XMLCHAR peerbuf);
+		}
+
+		len = sizeof(addr);
+		if (getsockname(sock->fd, &addr.type.sa, (void *)&len) == 0) {
+			isc_sockaddr_format(&addr, peerbuf, sizeof(peerbuf));
+			xmlTextWriterWriteElement(writer,
+						  ISC_XMLCHAR "local-address",
+						  ISC_XMLCHAR peerbuf);
+		}
+
+		if (sock->pending_recv)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						ISC_XMLCHAR "pending-receive");
+		if (sock->pending_send)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "pending-send");
+		if (sock->pending_accept)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						 ISC_XMLCHAR "pending_accept");
+		if (sock->listener)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "listener");
+		if (sock->connected)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "connected");
+		if (sock->connecting)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "connecting");
+		if (sock->bound)
+			xmlTextWriterWriteElement(writer, ISC_XMLCHAR "state",
+						  ISC_XMLCHAR "bound");
+
+		xmlTextWriterEndElement(writer); /* socket */
+
+		UNLOCK(&sock->lock);
+		sock = ISC_LIST_NEXT(sock, link);
+	}
+	xmlTextWriterEndElement(writer); /* sockets */
+
+	UNLOCK(&mgr->lock);
+}
+#endif /* HAVE_LIBXML2 */
