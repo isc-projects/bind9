@@ -1,3 +1,6 @@
+2124.	[bug]		It was possible to dereference a freed fetch
+			context. [RT #16584]
+
 	--- 9.3.3-WFB-1 released ---
 
 2035.	[func]		Make falling back to TCP on UDP refresh failure
