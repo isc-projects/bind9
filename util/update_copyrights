@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.45 2006/12/22 02:40:14 sra Exp $
+# $Id: update_copyrights,v 1.46 2007/01/05 04:28:12 marka Exp $
 
 require 5.002;
 
@@ -246,10 +246,13 @@ foreach $file (keys %file_types) {
                 }
         } elsif ($sgml_comment) {
 		$before_copyright = "";
-                while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/) {
+                while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
 			$before_copyright = "$before_copyright$_";
-                        $_ = <SOURCE>;
-				;
+			if (/\?>$/) {
+				$_ = <SOURCE>;
+				close(SOURCE) if (eof(SOURCE));
+				next;
+			}
 			while (!eof(SOURCE) && ! /^<!/ ) {
 				$before_copyright = "$before_copyright$_";
 				$_ = <SOURCE>;
