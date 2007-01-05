@@ -81,7 +81,7 @@
 ./bin/dnssec/win32/signzone.mak			X	2001,2005,2006
 ./bin/named/.cvsignore				X	1999,2000,2001
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006
-./bin/named/bind9.xsl				SGML	2006
+./bin/named/bind9.xsl				SGML	2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
 ./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006
@@ -2509,7 +2509,7 @@
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
 ./util/update_branches				PERL	2005
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
 ./version					X	1999,2000,2001,2005,2006
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006
