@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.46 2007/01/05 04:28:12 marka Exp $
+# $Id: update_copyrights,v 1.47 2007/01/05 05:54:06 marka Exp $
 
 require 5.002;
 
@@ -106,6 +106,7 @@ foreach $file (keys %file_types) {
                 print "$file: missing\n";
                 next;
         }
+	# print "Doing: $file";
 
         if ($years_list =~ /PARENT:/) {
 		getyears($years_list);
@@ -247,12 +248,14 @@ foreach $file (keys %file_types) {
         } elsif ($sgml_comment) {
 		$before_copyright = "";
                 while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
+			# print "SGML: $_";
 			$before_copyright = "$before_copyright$_";
-			if (/\?>$/) {
+			if (/>$/ ) {
 				$_ = <SOURCE>;
 				close(SOURCE) if (eof(SOURCE));
 				next;
 			}
+			$_ = <SOURCE>;
 			while (!eof(SOURCE) && ! /^<!/ ) {
 				$before_copyright = "$before_copyright$_";
 				$_ = <SOURCE>;
