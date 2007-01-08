@@ -2278,7 +2278,7 @@
 ./util/sanitize_all.sh				SH	2000,2001,2004
 ./util/spacewhack.pl				PERL	2000,2001,2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2007
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
 ./version					X	1999,2000,2001,2005,2006
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2003,2004,2006
