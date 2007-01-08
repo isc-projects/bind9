@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.91.2.12 2006/01/06 02:55:16 marka Exp $ */
+/* $Id: validator.c,v 1.91.2.13 2007/01/08 01:37:11 marka Exp $ */
 
 #include <config.h>
 
@@ -1546,7 +1546,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	ISC_LINK_INIT(val, link);
 	val->magic = VALIDATOR_MAGIC;
 
-	isc_task_send(task, ISC_EVENT_PTR(&event));
+	if ((options & DNS_VALIDATOR_DEFER) == 0)
+		isc_task_send(task, ISC_EVENT_PTR(&event));
 
 	*validatorp = val;
 
@@ -1561,6 +1562,21 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_mem_put(view->mctx, val, sizeof *val);
 
 	return (result);
+}
+
+void
+dns_validator_send(dns_validator_t *validator) {
+	isc_event_t *event;
+	REQUIRE(VALID_VALIDATOR(validator));
+
+	LOCK(&validator->lock);
+
+	INSIST((validator->options & DNS_VALIDATOR_DEFER) != 0);
+	event = (isc_event_t *)validator->event;
+	validator->options &= ~DNS_VALIDATOR_DEFER;
+	UNLOCK(&validator->lock);
+
+	isc_task_send(validator->task, ISC_EVENT_PTR(&event));
 }
 
 void
@@ -1582,6 +1598,13 @@ dns_validator_cancel(dns_validator_t *validator) {
 
 		if (validator->authvalidator != NULL)
 			dns_validator_cancel(validator->authvalidator);
+
+		if ((validator->options & DNS_VALIDATOR_DEFER) != 0) {
+			isc_task_t *task = validator->event->ev_sender;
+			validator->options &= ~DNS_VALIDATOR_DEFER;
+			isc_event_free((isc_event_t **)&validator->event);
+			isc_task_detach(&task);
+		}
 	}
 	UNLOCK(&validator->lock);
 }

@@ -1,3 +1,5 @@
+2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
+
 2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
 
 2119.	[compat]	libbind: allow res_init() to succeed enough to
