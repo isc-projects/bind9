@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.1.2.6 2007/01/08 03:06:08 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.1.2.7 2007/01/08 03:33:35 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -184,7 +184,7 @@ openssldsa_generate(dst_key_t *key, int unused) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-##if OPENSSL_VERSION_NUMBER > 0x00908000L
+#if OPENSSL_VERSION_NUMBER > 0x00908000L
 	dsa = DSA_new();
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
