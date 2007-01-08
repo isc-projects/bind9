@@ -1,3 +1,5 @@
+2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]
+
 2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
 
 2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
