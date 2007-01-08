@@ -16,7 +16,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: config.h.in,v 1.60.18.21 2006/07/20 06:12:58 marka Exp $ */
+/* $Id: config.h.in,v 1.60.18.23 2007/01/08 01:58:16 marka Exp $ */
 
 /*! \file */
 
@@ -157,14 +157,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
-/* Define if libcrypto has DH_generate_parameters */
-#undef HAVE_DH_GENERATE_PARAMETERS
-
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
-
-/* Define if libcrypto has DSA_generate_parameters */
-#undef HAVE_DSA_GENERATE_PARAMETERS
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
@@ -204,9 +198,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <net/if6.h> header file. */
 #undef HAVE_NET_IF6_H
-
-/* Define if libcrypto has RSA_generate_key */
-#undef HAVE_RSA_GENERATE_KEY
 
 /* Define to 1 if you have the `setlocale' function. */
 #undef HAVE_SETLOCALE
