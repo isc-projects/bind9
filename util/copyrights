@@ -1,6 +1,6 @@
 ./.cvsignore					X	1999,2000,2001
-./CHANGES					X	2000,2001,2005,2006
-./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+./CHANGES					X	2000,2001,2005,2006,2007
+./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006
 ./FAQ.xml					SGML	2000,2001,2002,2003,2004,2005,2006
 ./Makefile.in					MAKE	1998,1999,2000,2001,2002,2004,2005,2006
@@ -135,7 +135,7 @@
 ./bin/named/named.docbook			SGML	2000,2001,2003,2004,2005,2006
 ./bin/named/named.html				HTML	DOCBOOK
 ./bin/named/notify.c				C	1999,2000,2001,2002,2003,2004,2005
-./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/query.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/server.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/named/sortlist.c				C	2000,2001,2004,2005,2006
 ./bin/named/tkeyconf.c				C	1999,2000,2001,2004,2005,2006
@@ -861,12 +861,12 @@
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
 ./config.guess					X	1999,2000,2001
-./config.h.in					X	1999,2000,2001,2005,2006
+./config.h.in					X	1999,2000,2001,2005,2006,2007
 ./config.h.win32				C	1999,2000,2001,2004,2006
 ./config.sub					X	1999,2000,2001
 ./config.threads.in				X	2005,2006
-./configure					X	1998,1999,2000,2001,2005,2006
-./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./configure					X	1998,1999,2000,2001,2005,2006,2007
+./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./conftools/perllib/dnsconf/DNSConf-macros.h	C	2000,2001,2004
 ./conftools/perllib/dnsconf/DNSConf.i		C	2000,2001,2004
 ./conftools/perllib/dnsconf/Makefile.PL		PERL	2000,2001,2004
@@ -1816,7 +1816,7 @@
 ./lib/dns/include/dns/tsig.h			C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/include/dns/ttl.h			C	1999,2000,2001,2004,2005
 ./lib/dns/include/dns/types.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005
+./lib/dns/include/dns/validator.h		C	2000,2001,2002,2003,2004,2005,2007
 ./lib/dns/include/dns/version.h			C	2001,2004,2005
 ./lib/dns/include/dns/view.h			C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/include/dns/xfrin.h			C	1999,2000,2001,2003,2004,2005,2006
@@ -1842,8 +1842,8 @@
 ./lib/dns/ncache.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/nsec.c				C	1999,2000,2001,2003,2004,2005
 ./lib/dns/openssl_link.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
-./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006
+./lib/dns/openssldh_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
+./lib/dns/openssldsa_link.c			C.NAI	1999,2000,2001,2002,2004,2005,2006,2007
 ./lib/dns/opensslrsa_link.c			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/order.c				C	2002,2004,2005
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2005,2006
@@ -1967,7 +1967,7 @@
 ./lib/dns/rdatasetiter.c			C	1999,2000,2001,2004,2005
 ./lib/dns/rdataslab.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/request.c				C	2000,2001,2002,2004,2005,2006
-./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/resolver.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006
@@ -1981,7 +1981,7 @@
 ./lib/dns/tkey.c				C	1999,2000,2001,2003,2004,2005
 ./lib/dns/tsig.c				C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/ttl.c					C	1999,2000,2001,2004,2005
-./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006
+./lib/dns/validator.c				C	2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/dns/view.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/win32/DLLMain.c			C	2001,2004
@@ -2487,8 +2487,8 @@
 ./util/spacewhack.pl				PERL	2000,2001,2004
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
-./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005
-./version					X	1999,2000,2001,2005,2006
+./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2007
+./version					X	1999,2000,2001,2005,2006,2007
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006
 ./win32utils/BuildPost.bat			BAT	2005,2006
