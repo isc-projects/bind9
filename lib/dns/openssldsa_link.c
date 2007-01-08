@@ -16,7 +16,7 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: openssldsa_link.c,v 1.1.4.5 2007/01/08 02:45:03 marka Exp $ */
+/* $Id: openssldsa_link.c,v 1.1.4.6 2007/01/08 03:04:03 marka Exp $ */
 
 #ifdef OPENSSL
 
@@ -190,10 +190,12 @@ openssldsa_generate(dst_key_t *key, int unused) {
 	if (dsa == NULL)
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 
-	BN_GENCB_set_old(&cb, callback, cb_arg);
+	BN_GENCB_set_old(&cb, NULL, NULL);
   
-	if (!DSA_generate_parameters_ex(dsa, bits, seed_in, seed_len,  
-				        counter_ret, h_ret, &cb)) {
+	if (!DSA_generate_parameters_ex(dsa, key->key_size, rand_array,
+					ISC_SHA1_DIGESTLENGTH,  NULL, NULL,
+					&cb))
+	{
 		DSA_free(dsa);
 		return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 	}
