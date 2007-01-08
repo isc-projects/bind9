@@ -2360,7 +2360,7 @@
 ./util/check-instincludes.sh			SH	2000,2001,2004
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004
 ./util/check-sources.pl				PERL	2000,2001,2004
-./util/copyrights				X	1999,2000,2001,2005,2006
+./util/copyrights				X	1999,2000,2001,2005,2006,2007
 ./util/kit.sh					SH	2000,2001,2002,2003,2004
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
