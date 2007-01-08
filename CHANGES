@@ -1,3 +1,6 @@
+
+	--- 9.4.0rc2 released ---
+
 2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]
 
 2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
