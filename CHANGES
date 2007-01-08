@@ -1,3 +1,5 @@
+2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
+
 2125.	[bug]		dns_zone_getzeronosoattl() REQUIRE failure if DLZ
 			was defined. [RT #16574]
 
