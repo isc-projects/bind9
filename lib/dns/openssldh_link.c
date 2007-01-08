@@ -18,7 +18,7 @@
 
 /*
  * Principal Author: Brian Wellington
- * $Id: openssldh_link.c,v 1.1.4.4 2007/01/08 01:58:40 marka Exp $
+ * $Id: openssldh_link.c,v 1.1.4.5 2007/01/08 02:38:26 marka Exp $
  */
 
 #ifdef OPENSSL
@@ -173,7 +173,8 @@ openssldh_generate(dst_key_t *key, int generator) {
 
 		BN_GENCB_set_old(&cb, NULL, NULL);
 
-		if (!DH_generate_parameters_ex(dh, prime_len, generator, &cb)) {
+		if (!DH_generate_parameters_ex(dh, key->key_size, generator,
+					       &cb)) {
 			DH_free(dh);
 			return (dst__openssl_toresult(DST_R_OPENSSLFAILURE));
 		}
