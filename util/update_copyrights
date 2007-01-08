@@ -1,6 +1,6 @@
 #!/usr/local/bin/perl -w
 #
-# Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2001  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,13 +15,17 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_copyrights,v 1.26.2.12 2005/09/06 02:00:10 marka Exp $
+# $Id: update_copyrights,v 1.26.2.13 2007/01/08 00:55:37 marka Exp $
 
 require 5.002;
 
 # Map copyright owners to the files containing copyright messages.
 # The first line of the copyright message is not in the file;
 # it is constructed by this script.
+#
+# Usage:
+#
+#   perl util/update_copyrights <util/copyrights
 
 my %owner2filename = (
 	"" => "util/COPYRIGHT",
@@ -102,6 +106,7 @@ foreach $file (keys %file_types) {
                 print "$file: missing\n";
                 next;
         }
+	# print "Doing: $file";
 
         if ($years_list =~ /PARENT:/) {
 		getyears($years_list);
@@ -150,7 +155,7 @@ foreach $file (keys %file_types) {
                 $start_comment = "/*\n";
                 $prefix = " * ";
                 $end_comment = " */\n";
-        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH)$/) {
+        } elsif ($type =~ /^(SH|PERL|TCL|MAKE|CONF-SH|RNC)$/) {
                 $shell_comment = 1;
                 $prefix = "# ";
         } elsif ($type eq "ZONE" || $type eq "MC") {
@@ -241,10 +246,16 @@ foreach $file (keys %file_types) {
                         }
                 }
         } elsif ($sgml_comment) {
-                if (/^<!DOCTYPE/) {
-                        $before_copyright = $_;
-                        $_ = <SOURCE>;
-				;
+		$before_copyright = "";
+                while (/^<!DOCTYPE/ || /^<\?xml-stylesheet/ || /^<\?xml /) {
+			# print "SGML: $_";
+			$before_copyright = "$before_copyright$_";
+			if (/>$/ ) {
+				$_ = <SOURCE>;
+				close(SOURCE) if (eof(SOURCE));
+				next;
+			}
+			$_ = <SOURCE>;
 			while (!eof(SOURCE) && ! /^<!/ ) {
 				$before_copyright = "$before_copyright$_";
 				$_ = <SOURCE>;
@@ -423,6 +434,11 @@ foreach $file (keys %file_types) {
                 $_ = <SOURCE>;
                 $/ = "\n";
 
+		if ($type eq 'SGML' && m:<articleinfo>.*?</articleinfo>:s) {
+			# print "docinfo: $file\n";
+			my $r = copyrights(@years);
+			s:<articleinfo>.*?</articleinfo>:<articleinfo>\n$r  </articleinfo>:s;
+		}
 		if ($type eq 'SGML' && m:<docinfo>.*?</docinfo>:s) {
 			# print "docinfo: $file\n";
 			my $r = copyrights(@years);
