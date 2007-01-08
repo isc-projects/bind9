@@ -1,3 +1,5 @@
+2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
+
 2124.	[bug]		It was possible to dereference a freed fetch
 			context. [RT #16584]
 
