@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: port_after.h.in,v 1.51 2007/01/09 02:44:24 marka Exp $ */
+/* $Id: port_after.h.in,v 1.52 2007/01/09 03:11:15 marka Exp $ */
 
 #ifndef port_after_h
 #define port_after_h
