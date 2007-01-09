@@ -2005,7 +2005,7 @@
 ./lib/dns/win32/gen.dsp				X	2001
 ./lib/dns/win32/gen.dsw				X	2001
 ./lib/dns/win32/gen.mak				X	2001,2006
-./lib/dns/win32/libdns.def			X	2001,2005,2006
+./lib/dns/win32/libdns.def			X	2001,2005,2006,2007
 ./lib/dns/win32/libdns.dsp			X	2001,2005,2006
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2005,2006
