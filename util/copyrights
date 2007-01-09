@@ -1,4 +1,4 @@
-./.cvsignore					X	1999,2000,2001,2004
+./.cvsignore					X	1998,1999,2000,2001,2004
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007
 ./COPYRIGHT					TXT	1996,1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./FAQ						X	2000,2001,2002,2003,2004,2005,2006
@@ -8,7 +8,7 @@
 ./README.idnkit					X	2005
 ./acconfig.h					C	1999,2000,2001,2002,2003,2004,2005
 ./aclocal.m4					X	1999,2000,2001
-./bin/.cvsignore				X	1999,2000,2001
+./bin/.cvsignore				X	1998,1999,2000,2001
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./bin/check/.cvsignore				X	2000,2001
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006
@@ -60,7 +60,7 @@
 ./bin/dnssec/.cvsignore				X	2000,2001
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	2000,2001,2002,2003,2004,2005,2006
+./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -194,7 +194,7 @@
 ./bin/rndc/win32/rndc.mak			X	2001,2002,2004,2005,2006
 ./bin/rndc/win32/rndcutil.dsp			X	2006
 ./bin/rndc/win32/rndcutil.dsw			X	2006
-./bin/tests/.cvsignore				X	1999,2000,2001
+./bin/tests/.cvsignore				X	1998,1999,2000,2001
 ./bin/tests/Kchild.example.+003+04017.key	X	2000,2001
 ./bin/tests/Kchild.example.+003+04017.private	X	2000,2001
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006
@@ -863,10 +863,10 @@
 ./bin/win32/BINDInstall/res/BINDInstall.ico	X	2001
 ./bin/win32/BINDInstall/res/BINDInstall.rc2	X	2001
 ./bin/win32/BINDInstall/resource.h		X	2001,2005
-./config.guess					X	1999,2000,2001,2004
-./config.h.in					X	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./config.guess					X	1998,1999,2000,2001,2004
+./config.h.in					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./config.h.win32				C	1999,2000,2001,2004,2006
-./config.sub					X	1999,2000,2001,2004
+./config.sub					X	1998,1999,2000,2001,2004
 ./config.threads.in				X	2005,2006
 ./configure					X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./configure.in					SH	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
@@ -1283,9 +1283,9 @@
 ./docutil/.cvsignore				X	2001
 ./docutil/HTML_COPYRIGHT			X	2001,2004
 ./docutil/MAN_COPYRIGHT				X	2001,2004
-./install-sh					X	1999,2000,2001
+./install-sh					X	1998,1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001,2003,2004
-./lib/.cvsignore				X	1999,2000,2001
+./lib/.cvsignore				X	1998,1999,2000,2001
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004
 ./lib/bind/.cvsignore				X	2001,2004
 ./lib/bind/Makefile.in				MAKE	2001,2002,2003,2004,2005,2006
@@ -1726,7 +1726,7 @@
 ./lib/bind9/win32/libbind9.dsw			X	2001
 ./lib/bind9/win32/libbind9.mak			X	2001,2002,2004,2005,2006
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004
-./lib/dns/.cvsignore				X	1999,2000,2001
+./lib/dns/.cvsignore				X	1998,1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/acache.c				C	2004,2005,2006
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2004,2005,2006
@@ -1758,9 +1758,9 @@
 ./lib/dns/gssapi_link.c				C	2000,2001,2002,2004,2005,2006
 ./lib/dns/gssapictx.c				C	2000,2001,2004,2005,2006
 ./lib/dns/hmac_link.c				C.NAI	1999,2000,2001,2002,2004,2005,2006
-./lib/dns/include/.cvsignore			X	1999,2000,2001
+./lib/dns/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/dns/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
-./lib/dns/include/dns/.cvsignore		X	1999,2000,2001
+./lib/dns/include/dns/.cvsignore		X	1998,1999,2000,2001
 ./lib/dns/include/dns/Makefile.in		MAKE	1998,1999,2000,2001,2002,2003,2004
 ./lib/dns/include/dns/acache.h			C	2004,2006
 ./lib/dns/include/dns/acl.h			C	1999,2000,2001,2002,2004,2005,2006
@@ -2014,7 +2014,7 @@
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006
-./lib/isc/.cvsignore				X	1999,2000,2001
+./lib/isc/.cvsignore				X	1998,1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/alpha/include/isc/atomic.h		C	2005
 ./lib/isc/api					X	1999,2000,2001,2006
@@ -2035,9 +2035,9 @@
 ./lib/isc/hmacsha.c				C	2005,2006
 ./lib/isc/httpd.c				C	2006
 ./lib/isc/ia64/include/isc/atomic.h		C	2006
-./lib/isc/include/.cvsignore			X	1999,2000,2001
+./lib/isc/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
-./lib/isc/include/isc/.cvsignore		X	1999,2000,2001
+./lib/isc/include/isc/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2003,2004,2005,2006
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006
@@ -2140,12 +2140,12 @@
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005
 ./lib/isc/powerpc/include/isc/atomic.h		C	2005
 ./lib/isc/print.c				C	1999,2000,2001,2003,2004,2005,2006
-./lib/isc/pthreads/.cvsignore			X	1999,2000,2001
+./lib/isc/pthreads/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/pthreads/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/pthreads/condition.c			C	1998,1999,2000,2001,2004,2005
-./lib/isc/pthreads/include/.cvsignore		X	1999,2000,2001
+./lib/isc/pthreads/include/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/pthreads/include/Makefile.in		MAKE	1998,1999,2000,2001,2004
-./lib/isc/pthreads/include/isc/.cvsignore	X	1999,2000,2001
+./lib/isc/pthreads/include/isc/.cvsignore	X	1998,1999,2000,2001
 ./lib/isc/pthreads/include/isc/Makefile.in	MAKE	1998,1999,2000,2001,2004
 ./lib/isc/pthreads/include/isc/condition.h	C	1998,1999,2000,2001,2004,2005
 ./lib/isc/pthreads/include/isc/mutex.h		C	1998,1999,2000,2001,2002,2004,2005
@@ -2173,7 +2173,7 @@
 ./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005
-./lib/isc/unix/.cvsignore			X	1999,2000,2001
+./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/unix/Makefile.in			MAKE	1998,1999,2000,2001,2004
 ./lib/isc/unix/app.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/dir.c				C	1999,2000,2001,2004,2005
@@ -2185,9 +2185,9 @@
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005
 ./lib/isc/unix/ifiter_ioctl.c			C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/unix/ifiter_sysctl.c			C	1999,2000,2001,2002,2003,2004,2005
-./lib/isc/unix/include/.cvsignore		X	1999,2000,2001
+./lib/isc/unix/include/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004
-./lib/isc/unix/include/isc/.cvsignore		X	1999,2000,2001
+./lib/isc/unix/include/isc/.cvsignore		X	1998,1999,2000,2001
 ./lib/isc/unix/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2004
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005
 ./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004,2005
@@ -2234,7 +2234,7 @@
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004
-./lib/isc/win32/include/isc/ipv6.h		C	2000,2001,2002,2004,2005
+./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005
@@ -2476,7 +2476,7 @@
 ./lib/win32/bindevt/bindevt.mc			MC	2001,2004
 ./libtool.m4					X	2000,2001,2003,2004,2006
 ./ltmain.sh					X	1999,2000,2001,2003,2004,2006
-./make/.cvsignore				X	1999,2000,2001
+./make/.cvsignore				X	1998,1999,2000,2001
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005
 ./make/mkdep.in					X	1999,2000,2001,2006
@@ -2495,7 +2495,7 @@
 ./util/check-instincludes.sh			SH	2000,2001,2004
 ./util/check-pullups.pl				PERL	2001,2002,2003,2004
 ./util/check-sources.pl				PERL	2000,2001,2004
-./util/copyrights				X	1999,2000,2001,2002,2003,2004,2005,2006,2007
+./util/copyrights				X	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./util/kit.sh					SH	2000,2001,2002,2003,2004
 ./util/mandoc2docbook.pl			PERL	2001,2004
 ./util/mdnbuildtest.sh				SH	2000,2001,2004
@@ -2510,7 +2510,7 @@
 ./util/update-drafts.pl				PERL	2000,2001,2004
 ./util/update_branches				PERL	2005
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
-./version					X	1999,2000,2001,2003,2005,2006
+./version					X	1998,1999,2000,2001,2003,2005,2006
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
 ./win32utils/BuildAll.bat			BAT	2001,2002,2004,2005,2006
 ./win32utils/BuildPost.bat			BAT	2005,2006
