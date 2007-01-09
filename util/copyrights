@@ -60,7 +60,7 @@
 ./bin/dnssec/.cvsignore				X	2000,2001
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2002,2003,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-signzone.8			MAN	DOCBOOK
@@ -2234,7 +2234,7 @@
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004
-./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005
+./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005
