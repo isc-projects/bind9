@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.57 2007/01/04 00:01:13 marka Exp $ */
+/* $Id: task.h,v 1.58 2007/01/10 18:55:54 explorer Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -84,7 +84,6 @@
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
@@ -611,14 +610,6 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp);
  *\li	All resources used by the task manager, and any tasks it managed,
  *	have been freed.
  */
-
-#ifdef HAVE_LIBXML2
-void
-isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
-/*%<
- * Render internal statistics and other state into the XML document.
- */
-#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

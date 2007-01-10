@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.68 2007/01/04 00:01:13 marka Exp $ */
+/* $Id: socket.h,v 1.69 2007/01/10 18:56:20 explorer Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -64,7 +64,6 @@
 #include <isc/time.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
-#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -795,14 +794,6 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_FAILURE
  */
-
-#ifdef HAVE_LIBXML2
-void
-isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
-/*%<
- * Render internal statistics and other state into the XML document.
- */
-#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

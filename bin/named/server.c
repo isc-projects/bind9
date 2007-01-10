@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.473 2007/01/04 00:01:13 marka Exp $ */
+/* $Id: server.c,v 1.474 2007/01/10 18:50:37 explorer Exp $ */
 
 /*! \file */
 
@@ -5199,14 +5199,6 @@ server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
 		view = ISC_LIST_NEXT(view, link);
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* views */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmgr"));
-	isc_socketmgr_renderxml(ns_g_socketmgr, writer);
-	TRY0(xmlTextWriterEndElement(writer)); /* socketmgr */
-
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
-	isc_taskmgr_renderxml(ns_g_taskmgr, writer);
-	TRY0(xmlTextWriterEndElement(writer)); /* taskmgr */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time");
