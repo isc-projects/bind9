@@ -1,3 +1,6 @@
+
+	--- 9.2.8 released ---
+
 2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
 
 	--- 9.2.7 released ---
