@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.h,v 1.18.2.1 2004/03/09 06:11:24 marka Exp $ */
+/* $Id: validator.h,v 1.18.2.1.24.1 2007/01/11 04:58:37 marka Exp $ */
 
 #ifndef DNS_VALIDATOR_H
 #define DNS_VALIDATOR_H 1
@@ -111,6 +111,11 @@ struct dns_validator {
 	ISC_LINK(dns_validator_t)	link;
 };
 
+/*%
+ * dns_validator_create() options.
+ */
+#define DNS_VALIDATOR_DEFER 2U
+
 ISC_LANG_BEGINDECLS
 
 isc_result_t
@@ -151,6 +156,15 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * Its 'result' field will be ISC_R_SUCCESS iff the
  * response was successfully proven to be either secure or
  * part of a known insecure domain.
+ */
+
+void
+dns_validator_send(dns_validator_t *validator);
+/*%<
+ * Send a deferred validation request
+ *
+ * Requires:
+ *	'validator' to points to a valid DNSSEC validator.
  */
 
 void
