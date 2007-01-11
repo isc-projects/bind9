@@ -124,9 +124,11 @@ v9_2_2base			active		// security fixes 9.2.2 only
 v9_2_4base			active		// security fixes 9.2.4 only
 v9_2_6_patch			new	
 v9_2_7_patch			new	
+v9_2_8_patch			new	
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
 v9_3_2_patch			new	
+v9_3_4_patch			new	
 v9_4				active	
 
 
