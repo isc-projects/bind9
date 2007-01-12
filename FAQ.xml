@@ -2,7 +2,7 @@
 <!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
        "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd" []>
 <!--
- - Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  - Copyright (C) 2000-2003  Internet Software Consortium.
  -
  - Permission to use, copy, modify, and distribute this software for any
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: FAQ.xml,v 1.15 2007/01/11 23:54:52 marka Exp $ -->
+<!-- $Id: FAQ.xml,v 1.16 2007/01/12 00:14:50 marka Exp $ -->
 
 <article class="faq">
   <title>Frequently Asked Questions about BIND 9</title>
@@ -27,6 +27,7 @@
       <year>2004</year>
       <year>2005</year>
       <year>2006</year>
+      <year>2007</year>
       <holder>Internet Systems Consortium, Inc. ("ISC")</holder>
     </copyright>
     <copyright>

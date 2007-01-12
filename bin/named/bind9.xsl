@@ -1,5 +1,5 @@
 <!--
- - Copyright (C) 2006  Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  -
  - Permission to use, copy, modify, and distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.9 2007/01/10 18:49:36 explorer Exp $ -->
+<!-- $Id: bind9.xsl,v 1.10 2007/01/12 00:14:50 marka Exp $ -->
 
 <?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
