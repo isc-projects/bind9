@@ -43,6 +43,13 @@ BIND 9
 		Nominum, Inc.
 
 
+BIND 9.2.8
+	BIND 9.2.8 is a security release.
+
+BIND 9.2.7
+	BIND 9.2.6 is a maintenance release, containing fixes for
+	a number of bugs in 9.2.6.
+
 BIND 9.2.6
 
 	BIND 9.2.6 is a maintenance release, containing fixes for
