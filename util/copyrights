@@ -1283,6 +1283,8 @@
 ./docutil/.cvsignore				X	2001
 ./docutil/HTML_COPYRIGHT			X	2001,2004
 ./docutil/MAN_COPYRIGHT				X	2001,2004
+./docutil/patch-db2latex-duplicate-template-bug X	2007
+./docutil/patch-db2latex-xsltproc-title-bug	X	2007
 ./install-sh					X	1998,1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001,2003,2004
 ./lib/.cvsignore				X	1998,1999,2000,2001
