@@ -948,6 +948,7 @@
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.5-patch	X	2004
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.6-patch	X	2005
 ./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.7-patch	X	2006
+./contrib/idn/idnkit-1.0-src/patch/bind9/bind-9.2.9-patch	X	2007
 ./contrib/idn/idnkit-1.0-src/tools/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/Makefile.in	X	2003
 ./contrib/idn/idnkit-1.0-src/tools/idnconv/idnconv.1	X	2003
