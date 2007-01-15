@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  - Copyright (C) 2006, 2007  Internet Systems Consortium, Inc. ("ISC")
  -
@@ -14,9 +15,8 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: bind9.xsl,v 1.10 2007/01/12 00:14:50 marka Exp $ -->
+<!-- $Id: bind9.xsl,v 1.11 2007/01/15 01:29:43 marka Exp $ -->
 
-<?xml version="1.0" encoding="UTF-8"?>
 <xsl:stylesheet version="1.0"
    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
    xmlns="http://www.w3.org/1999/xhtml">
