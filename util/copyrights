@@ -60,7 +60,7 @@
 ./bin/dnssec/.cvsignore				X	2000,2001
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2004,2005
 ./bin/dnssec/dnssec-keygen.8			MAN	DOCBOOK
-./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2004
+./bin/dnssec/dnssec-keygen.c			C.NAI	1999,2000,2001,2004,2007
 ./bin/dnssec/dnssec-keygen.docbook		SGML	2000,2001,2004,2005
 ./bin/dnssec/dnssec-keygen.html			HTML	DOCBOOK
 ./bin/dnssec/dnssec-makekeyset.8		MAN	DOCBOOK
@@ -625,9 +625,9 @@
 ./bin/tests/system/sortlist/ns1/root.db		ZONE	2000,2001,2004
 ./bin/tests/system/sortlist/tests.sh		SH	2000,2001,2004
 ./bin/tests/system/start.pl			SH	2001,2004
-./bin/tests/system/start.sh			SH	2000,2001,2004
+./bin/tests/system/start.sh			SH	2000,2001,2004,2007
 ./bin/tests/system/stop.pl			SH	2001,2004
-./bin/tests/system/stop.sh			SH	2000,2001,2004
+./bin/tests/system/stop.sh			SH	2000,2001,2004,2007
 ./bin/tests/system/stress/clean.sh		SH	2000,2001,2004
 ./bin/tests/system/stress/ns1/.cvsignore	X	2000,2001
 ./bin/tests/system/stress/ns1/named.conf	CONF-C	2000,2001,2004
@@ -1069,7 +1069,7 @@
 ./contrib/sdb/pgsql/pgsqldb.h			C	2000,2001,2002,2004
 ./contrib/sdb/pgsql/zonetodb.c			C	2000,2001,2002,2004,2005
 ./contrib/sdb/tcl/lookup.tcl			TCL	2000,2001,2002,2004
-./contrib/sdb/tcl/tcldb.c			C	2000,2001,2002,2004
+./contrib/sdb/tcl/tcldb.c			C	2000,2001,2002,2004,2007
 ./contrib/sdb/tcl/tcldb.h			C	2000,2001,2002,2004
 ./contrib/sdb/time/timedb.c			C	2000,2001,2002,2004
 ./contrib/sdb/time/timedb.h			C	2000,2001,2002,2004
@@ -1181,7 +1181,7 @@
 ./lib/bind/bsd/writev.c				X	2001,2003
 ./lib/bind/config.h.in				X	2001,2003,2004,2005,2006
 ./lib/bind/configure				X	2001,2002,2003,2004,2005,2006
-./lib/bind/configure.in				SH	2001,2002,2003,2004,2005,2006
+./lib/bind/configure.in				SH	2001,2002,2003,2004,2005,2006,2007
 ./lib/bind/dst/.cvsignore			X	2001
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
 ./lib/bind/dst/dst_api.c			X	2001,2002,2004,2005,2006
@@ -1338,7 +1338,7 @@
 ./lib/bind/make/.cvsignore			X	2001
 ./lib/bind/make/includes.in			MAKE	2001,2004
 ./lib/bind/make/mkdep.in			X	2001
-./lib/bind/make/rules.in			MAKE	2001,2002,2003,2004
+./lib/bind/make/rules.in			MAKE	2001,2002,2003,2004,2007
 ./lib/bind/mkinstalldirs			X	2001
 ./lib/bind/nameser/.cvsignore			X	2001
 ./lib/bind/nameser/Makefile.in			MAKE	2001,2004
@@ -2019,7 +2019,7 @@
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2004
 ./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004
-./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2003,2004,2005
+./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2003,2004,2005,2007
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004
 ./lib/isc/win32/include/isc/net.h		C	1999,2000,2001,2004
