@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: acl.c,v 1.23.52.6 2006/03/02 00:37:20 marka Exp $ */
+/* $Id: acl.c,v 1.23.52.7 2007/01/17 00:32:42 marka Exp $ */
 
 #include <config.h>
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2001  Internet Software Consortium.
+ * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: msgcat.c,v 1.10.12.6 2005/06/09 23:54:31 marka Exp $ */
+/* $Id: msgcat.c,v 1.10.12.7 2007/01/17 00:32:44 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley

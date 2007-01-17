@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2001, 2002  Internet Software Consortium.
+ * Copyright (C) 2001-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: parseint.h,v 1.2.202.4 2004/03/08 09:04:52 marka Exp $ */
+/* $Id: parseint.h,v 1.2.202.5 2007/01/17 00:32:43 marka Exp $ */
 
 #ifndef ISC_PARSEINT_H
 #define ISC_PARSEINT_H 1

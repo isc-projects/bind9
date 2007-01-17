@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2006  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2002  Internet Software Consortium.
+ * Copyright (C) 2002, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -17,7 +17,7 @@
 
 #if defined(LIBC_SCCS) && !defined(lint)
 static char rcsid[] =
-	"$Id: netscope.c,v 1.5.142.9 2006/08/25 05:25:50 marka Exp $";
+	"$Id: netscope.c,v 1.5.142.10 2007/01/17 00:32:43 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <config.h>

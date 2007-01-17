@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.h,v 1.28.12.6 2005/10/27 00:27:30 marka Exp $ */
+/* $Id: timer.h,v 1.28.12.7 2007/01/17 00:32:44 marka Exp $ */
 
 #ifndef ISC_TIMER_H
 #define ISC_TIMER_H 1

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1998-2002  Internet Software Consortium.
+ * Copyright (C) 1998-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: buffer.c,v 1.36.12.2 2004/03/08 09:04:48 marka Exp $ */
+/* $Id: buffer.c,v 1.36.12.3 2007/01/17 00:32:43 marka Exp $ */
 
 #include <config.h>
 

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone_test.c,v 1.26.2.2.8.5 2005/03/17 03:58:29 marka Exp $ */
+/* $Id: zone_test.c,v 1.26.2.2.8.6 2007/01/17 00:32:40 marka Exp $ */
 
 #include <config.h>
 

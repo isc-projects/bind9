@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: byaddr_test.c,v 1.22.22.3 2004/03/08 04:04:24 marka Exp $ */
+/* $Id: byaddr_test.c,v 1.22.22.4 2007/01/17 00:32:40 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley

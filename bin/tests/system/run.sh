@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
-# Copyright (C) 2000, 2001  Internet Software Consortium.
+# Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
 # purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: run.sh,v 1.38.12.3 2004/03/08 04:04:33 marka Exp $
+# $Id: run.sh,v 1.38.12.4 2007/01/17 00:32:41 marka Exp $
 
 #
 # Run a system test.

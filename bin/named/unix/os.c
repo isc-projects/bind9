@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 1999-2002  Internet Software Consortium.
+ * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.46.2.4.8.24 2006/02/03 23:51:37 marka Exp $ */
+/* $Id: os.c,v 1.46.2.4.8.25 2007/01/17 00:32:40 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>

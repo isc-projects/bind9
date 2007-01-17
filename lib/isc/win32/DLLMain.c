@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2001  Internet Software Consortium.
+ * Copyright (C) 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: DLLMain.c,v 1.3.2.1.10.1 2004/03/06 08:15:06 marka Exp $ */
+/* $Id: DLLMain.c,v 1.3.2.1.10.2 2007/01/17 00:32:44 marka Exp $ */
 
 #include <windows.h>
 #include <stdio.h>
