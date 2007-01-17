@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2002  Internet Software Consortium.
+ * Copyright (C) 2000-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: tcldb.c,v 1.7.4.3 2004/03/09 06:10:36 marka Exp $ */
+/* $Id: tcldb.c,v 1.7.4.4 2007/01/17 00:32:32 marka Exp $ */
 
 /*
  * A simple database driver that calls a Tcl procedure to define
