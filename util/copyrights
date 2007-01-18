@@ -166,7 +166,7 @@
 ./bin/nsupdate/win32/nsupdate.dsw		X	2001
 ./bin/nsupdate/win32/nsupdate.mak		X	2001,2002,2004,2005,2006
 ./bin/rndc/.cvsignore				X	2000,2001
-./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004
+./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005
 ./bin/rndc/rndc-confgen.8			MAN	DOCBOOK
 ./bin/rndc/rndc-confgen.c			C	2001,2003,2004,2005
