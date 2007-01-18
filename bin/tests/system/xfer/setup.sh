@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: setup.sh,v 1.2.224.4 2007/01/17 00:32:41 marka Exp $
+# $Id: setup.sh,v 1.2.224.5 2007/01/18 00:06:06 marka Exp $
 
 sh ../genzone.sh 2 3 >ns2/example.db
 sh ../genzone.sh 2 3 >ns2/tsigzone.db

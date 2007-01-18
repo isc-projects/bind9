@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: gen-unix.h,v 1.12.12.6 2007/01/17 00:32:42 marka Exp $ */
+/* $Id: gen-unix.h,v 1.12.12.7 2007/01/18 00:06:08 marka Exp $ */
 
 /*
  * This file is responsible for defining two operations that are not

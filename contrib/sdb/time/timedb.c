@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timedb.c,v 1.7.4.2.8.3 2007/01/17 00:32:42 marka Exp $ */
+/* $Id: timedb.c,v 1.7.4.2.8.4 2007/01/18 00:06:08 marka Exp $ */
 
 /*
  * A simple database driver that enables the server to return the

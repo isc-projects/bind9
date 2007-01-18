@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwtest.c,v 1.22.2.4.2.5 2007/01/17 00:32:41 marka Exp $ */
+/* $Id: lwtest.c,v 1.22.2.4.2.6 2007/01/18 00:06:05 marka Exp $ */
 
 #include <config.h>
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.3.12.4 2007/01/17 00:32:44 marka Exp $ */
+/* $Id: net.h,v 1.3.12.5 2007/01/18 00:06:10 marka Exp $ */
 
 #ifndef LWRES_NET_H
 #define LWRES_NET_H 1

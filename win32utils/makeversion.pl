@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004, 2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2001, 2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: makeversion.pl,v 1.4.12.4 2007/01/17 00:32:45 marka Exp $ 
+# $Id: makeversion.pl,v 1.4.12.5 2007/01/18 00:06:10 marka Exp $ 
 
 # This script takes the version information from the version file located
 # at the root of the source tree and the api files in each library directory
