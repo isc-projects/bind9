@@ -36,6 +36,7 @@ rt14654				open
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
 rt14895b			open	jinmei
+rt14951a			new	
 rt15327				open	
 rt15452				open	marka	// NSEC3	
 rt15452a			new	
@@ -107,6 +108,7 @@ rt16592				new
 rt16609				new	
 rt16612				new	
 rt16613				new	
+rt16619				new	
 rt1727				open		// ixfr-from-differences workfile
 skan				new	
 skan-metazones1			private	
