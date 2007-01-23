@@ -1,4 +1,8 @@
 
+	--- 9.1.1-P3 released ---
+
+2126.	[security]	Serialise validation of type ANY responses. [RT #16555]
+
 	--- 9.1.1-P2 released ---
 
 1499.	[bug]		isc_random need to be seeded better if arc4random()
