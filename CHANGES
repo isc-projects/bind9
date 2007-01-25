@@ -1,7 +1,5 @@
 2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]
 
-2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
-
 2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
 
 2119.	[compat]	libbind: allow res_init() to succeed enough to
@@ -33,6 +31,10 @@
 			priming queries. [RT #16491]
 
 2109.	[port]		libbind: silence aix 5.3 compiler warnings. [RT #16502]
+
+	--- 9.2.8 released ---
+
+2126.	[bug]		Serialise validation of type ANY responses. [RT #16555]
 
 	--- 9.2.7 released ---
 
