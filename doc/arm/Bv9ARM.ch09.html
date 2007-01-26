@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch09.html,v 1.50.2.33 2006/12/12 01:42:56 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch09.html,v 1.50.2.34 2007/01/26 23:27:00 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -43,26 +43,27 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2585738">Acknowledgements</a></span></dt>
-<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2585744">A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></a></span></dt></dl></dd>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2585078">Acknowledgements</a></span></dt>
+<dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2585083">A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#historical_dns_information">Historical <acronym class="acronym">DNS</acronym> Information</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#classes_of_resource_records">Classes of Resource Records</a></span></dt></dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2585943">General <acronym class="acronym">DNS</acronym> Reference Information</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch09.html#id2585214">General <acronym class="acronym">DNS</acronym> Reference Information</a></span></dt>
 <dd><dl><dt><span class="sect2"><a href="Bv9ARM.ch09.html#ipv6addresses">IPv6 addresses (A6)</a></span></dt></dl></dd>
 <dt><span class="sect1"><a href="Bv9ARM.ch09.html#bibliography">Bibliography (and Suggested Reading)</a></span></dt>
 <dd><dl>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#rfcs">Request for Comments (RFCs)</a></span></dt>
 <dt><span class="sect2"><a href="Bv9ARM.ch09.html#internet_drafts">Internet Drafts</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2588314">Other Documents About <acronym class="acronym">BIND</acronym></a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch09.html#id2587517">Other Documents About <acronym class="acronym">BIND</acronym></a></span></dt>
 </dl></dd>
 </dl>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2585738"></a>Acknowledgements</h2></div></div></div>
+<a name="id2585078"></a>Acknowledgements</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2585744"></a>A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></h3></div></div></div>
+<a name="id2585083"></a>A Brief History of the <acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym>
+</h3></div></div></div>
 <p>Although the "official" beginning of the Domain Name
       System occurred in 1984 with the publication of RFC 920, the
       core of the new system was described in 1983 in RFCs 882 and
@@ -125,7 +126,7 @@ individuals.</p>
 <a name="classes_of_resource_records"></a>Classes of Resource Records</h3></div></div></div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585912"></a>HS = hesiod</h4></div></div></div>
+<a name="id2585184"></a>HS = hesiod</h4></div></div></div>
 <p>The [<span class="optional">hesiod</span>] class is an information service
 developed by MIT's Project Athena. It is used to share information
 about various systems databases, such as users, groups, printers
@@ -134,7 +135,7 @@ hesiod.</p>
 </div>
 <div class="sect3" lang="en">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2585928"></a>CH = chaos</h4></div></div></div>
+<a name="id2585200"></a>CH = chaos</h4></div></div></div>
 <p>The <span><strong class="command">chaos</strong></span> class is used to specify zone
 data for the MIT-developed CHAOSnet, a LAN protocol created in the
 mid-1970s.</p>
@@ -143,7 +144,7 @@ mid-1970s.</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2585943"></a>General <acronym class="acronym">DNS</acronym> Reference Information</h2></div></div></div>
+<a name="id2585214"></a>General <acronym class="acronym">DNS</acronym> Reference Information</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="ipv6addresses"></a>IPv6 addresses (A6)</h3></div></div></div>
@@ -323,17 +324,17 @@ the number of the RFC). RFCs are also available via the Web at
 </p>
 <div class="bibliography">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2586871"></a>Bibliography</h4></div></div></div>
+<a name="id2586074"></a>Bibliography</h4></div></div></div>
 <div class="bibliodiv">
 <h3 class="title">Standards</h3>
 <div class="biblioentry">
-<a name="id2586882"></a><p>[<abbr class="abbrev">RFC974</abbr>] <span class="author"><span class="firstname">C.</span> <span class="surname">Partridge</span>. </span><span class="title"><i>Mail Routing and the Domain System</i>. </span><span class="pubdate">January 1986. </span></p>
+<a name="id2586085"></a><p>[<abbr class="abbrev">RFC974</abbr>] <span class="author"><span class="firstname">C.</span> <span class="surname">Partridge</span>. </span><span class="title"><i>Mail Routing and the Domain System</i>. </span><span class="pubdate">January 1986. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2586905"></a><p>[<abbr class="abbrev">RFC1034</abbr>] <span class="author"><span class="firstname">P.V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>Domain Names &#8212; Concepts and Facilities</i>. </span><span class="pubdate">November 1987. </span></p>
+<a name="id2586108"></a><p>[<abbr class="abbrev">RFC1034</abbr>] <span class="author"><span class="firstname">P.V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>Domain Names &#8212; Concepts and Facilities</i>. </span><span class="pubdate">November 1987. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2586929"></a><p>[<abbr class="abbrev">RFC1035</abbr>] <span class="author"><span class="firstname">P. V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>Domain Names &#8212; Implementation and
+<a name="id2586132"></a><p>[<abbr class="abbrev">RFC1035</abbr>] <span class="author"><span class="firstname">P. V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>Domain Names &#8212; Implementation and
 Specification</i>. </span><span class="pubdate">November 1987. </span></p>
 </div>
 </div>
@@ -341,22 +342,22 @@ Specification</i>. </span><span class="pubdate">November 1987. </span></p>
 <h3 class="title">
 <a name="proposed_standards"></a>Proposed Standards</h3>
 <div class="biblioentry">
-<a name="id2586966"></a><p>[<abbr class="abbrev">RFC2181</abbr>] <span class="author"><span class="firstname">R., R. Bush</span> <span class="surname">Elz</span>. </span><span class="title"><i>Clarifications to the <acronym class="acronym">DNS</acronym> Specification</i>. </span><span class="pubdate">July 1997. </span></p>
+<a name="id2586169"></a><p>[<abbr class="abbrev">RFC2181</abbr>] <span class="author"><span class="firstname">R., R. Bush</span> <span class="surname">Elz</span>. </span><span class="title"><i>Clarifications to the <acronym class="acronym">DNS</acronym> Specification</i>. </span><span class="pubdate">July 1997. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2586992"></a><p>[<abbr class="abbrev">RFC2308</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Andrews</span>. </span><span class="title"><i>Negative Caching of <acronym class="acronym">DNS</acronym> Queries</i>. </span><span class="pubdate">March 1998. </span></p>
+<a name="id2586195"></a><p>[<abbr class="abbrev">RFC2308</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Andrews</span>. </span><span class="title"><i>Negative Caching of <acronym class="acronym">DNS</acronym> Queries</i>. </span><span class="pubdate">March 1998. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587017"></a><p>[<abbr class="abbrev">RFC1995</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Ohta</span>. </span><span class="title"><i>Incremental Zone Transfer in <acronym class="acronym">DNS</acronym></i>. </span><span class="pubdate">August 1996. </span></p>
+<a name="id2586220"></a><p>[<abbr class="abbrev">RFC1995</abbr>] <span class="author"><span class="firstname">M.</span> <span class="surname">Ohta</span>. </span><span class="title"><i>Incremental Zone Transfer in <acronym class="acronym">DNS</acronym></i>. </span><span class="pubdate">August 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587042"></a><p>[<abbr class="abbrev">RFC1996</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>A Mechanism for Prompt Notification of Zone Changes</i>. </span><span class="pubdate">August 1996. </span></p>
+<a name="id2586245"></a><p>[<abbr class="abbrev">RFC1996</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>A Mechanism for Prompt Notification of Zone Changes</i>. </span><span class="pubdate">August 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587065"></a><p>[<abbr class="abbrev">RFC2136</abbr>] <span class="authorgroup"><span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">S.</span> <span class="surname">Thomson</span>, <span class="firstname">Y.</span> <span class="surname">Rekhter</span>, and <span class="firstname">J.</span> <span class="surname">Bound</span>. </span><span class="title"><i>Dynamic Updates in the Domain Name System</i>. </span><span class="pubdate">April 1997. </span></p>
+<a name="id2586268"></a><p>[<abbr class="abbrev">RFC2136</abbr>] <span class="authorgroup"><span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">S.</span> <span class="surname">Thomson</span>, <span class="firstname">Y.</span> <span class="surname">Rekhter</span>, and <span class="firstname">J.</span> <span class="surname">Bound</span>. </span><span class="title"><i>Dynamic Updates in the Domain Name System</i>. </span><span class="pubdate">April 1997. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587121"></a><p>[<abbr class="abbrev">RFC2845</abbr>] <span class="authorgroup"><span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">O.</span> <span class="surname">Gudmundsson</span>, <span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>, and <span class="firstname">B.</span> <span class="surname">Wellington</span>. </span><span class="title"><i>Secret Key Transaction Authentication for <acronym class="acronym">DNS</acronym> (TSIG)</i>. </span><span class="pubdate">May 2000. </span></p>
+<a name="id2586324"></a><p>[<abbr class="abbrev">RFC2845</abbr>] <span class="authorgroup"><span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">O.</span> <span class="surname">Gudmundsson</span>, <span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>, and <span class="firstname">B.</span> <span class="surname">Wellington</span>. </span><span class="title"><i>Secret Key Transaction Authentication for <acronym class="acronym">DNS</acronym> (TSIG)</i>. </span><span class="pubdate">May 2000. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
@@ -367,85 +368,85 @@ Specification</i>. </span><span class="pubdate">November 1987. </span></p>
 RFCs are undergoing major revision by the IETF.</p>
 </div>
 <div class="biblioentry">
-<a name="id2587196"></a><p>[<abbr class="abbrev">RFC1886</abbr>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Thomson</span> and <span class="firstname">C.</span> <span class="surname">Huitema</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Extensions to support IP version 6</i>. </span><span class="pubdate">December 1995. </span></p>
+<a name="id2586400"></a><p>[<abbr class="abbrev">RFC1886</abbr>] <span class="authorgroup"><span class="firstname">S.</span> <span class="surname">Thomson</span> and <span class="firstname">C.</span> <span class="surname">Huitema</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Extensions to support IP version 6</i>. </span><span class="pubdate">December 1995. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587235"></a><p>[<abbr class="abbrev">RFC2065</abbr>] <span class="authorgroup"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span> and <span class="firstname">C.</span> <span class="surname">Kaufman</span>. </span><span class="title"><i>Domain Name System Security Extensions</i>. </span><span class="pubdate">January 1997. </span></p>
+<a name="id2586438"></a><p>[<abbr class="abbrev">RFC2065</abbr>] <span class="authorgroup"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span> and <span class="firstname">C.</span> <span class="surname">Kaufman</span>. </span><span class="title"><i>Domain Name System Security Extensions</i>. </span><span class="pubdate">January 1997. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587274"></a><p>[<abbr class="abbrev">RFC2137</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>. </span><span class="title"><i>Secure Domain Name System Dynamic Update</i>. </span><span class="pubdate">April 1997. </span></p>
+<a name="id2586477"></a><p>[<abbr class="abbrev">RFC2137</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Eastlake</span>, <span class="lineage">3rd</span>. </span><span class="title"><i>Secure Domain Name System Dynamic Update</i>. </span><span class="pubdate">April 1997. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
 <h3 class="title">Other Important RFCs About <acronym class="acronym">DNS</acronym> Implementation</h3>
 <div class="biblioentry">
-<a name="id2587310"></a><p>[<abbr class="abbrev">RFC1535</abbr>] <span class="author"><span class="firstname">E.</span> <span class="surname">Gavron</span>. </span><span class="title"><i>A Security Problem and Proposed Correction With Widely Deployed <acronym class="acronym">DNS</acronym> Software.</i>. </span><span class="pubdate">October 1993. </span></p>
+<a name="id2586514"></a><p>[<abbr class="abbrev">RFC1535</abbr>] <span class="author"><span class="firstname">E.</span> <span class="surname">Gavron</span>. </span><span class="title"><i>A Security Problem and Proposed Correction With Widely Deployed <acronym class="acronym">DNS</acronym> Software.</i>. </span><span class="pubdate">October 1993. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587336"></a><p>[<abbr class="abbrev">RFC1536</abbr>] <span class="authorgroup"><span class="firstname">A.</span> <span class="surname">Kumar</span>, <span class="firstname">J.</span> <span class="surname">Postel</span>, <span class="firstname">C.</span> <span class="surname">Neuman</span>, <span class="firstname">P.</span> <span class="surname">Danzig</span>, and <span class="firstname">S.</span> <span class="surname">Miller</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Implementation Errors and Suggested Fixes</i>. </span><span class="pubdate">October 1993. </span></p>
+<a name="id2586539"></a><p>[<abbr class="abbrev">RFC1536</abbr>] <span class="authorgroup"><span class="firstname">A.</span> <span class="surname">Kumar</span>, <span class="firstname">J.</span> <span class="surname">Postel</span>, <span class="firstname">C.</span> <span class="surname">Neuman</span>, <span class="firstname">P.</span> <span class="surname">Danzig</span>, and <span class="firstname">S.</span> <span class="surname">Miller</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Implementation Errors and Suggested Fixes</i>. </span><span class="pubdate">October 1993. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587403"></a><p>[<abbr class="abbrev">RFC1982</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Elz</span> and <span class="firstname">R.</span> <span class="surname">Bush</span>. </span><span class="title"><i>Serial Number Arithmetic</i>. </span><span class="pubdate">August 1996. </span></p>
+<a name="id2586606"></a><p>[<abbr class="abbrev">RFC1982</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Elz</span> and <span class="firstname">R.</span> <span class="surname">Bush</span>. </span><span class="title"><i>Serial Number Arithmetic</i>. </span><span class="pubdate">August 1996. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
 <h3 class="title">Resource Record Types</h3>
 <div class="biblioentry">
-<a name="id2587445"></a><p>[<abbr class="abbrev">RFC1183</abbr>] <span class="authorgroup"><span class="firstname">C.F.</span> <span class="surname">Everhart</span>, <span class="firstname">L. A.</span> <span class="surname">Mamakos</span>, <span class="firstname">R.</span> <span class="surname">Ullmann</span>, and <span class="firstname">P.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>New <acronym class="acronym">DNS</acronym> RR Definitions</i>. </span><span class="pubdate">October 1990. </span></p>
+<a name="id2586648"></a><p>[<abbr class="abbrev">RFC1183</abbr>] <span class="authorgroup"><span class="firstname">C.F.</span> <span class="surname">Everhart</span>, <span class="firstname">L. A.</span> <span class="surname">Mamakos</span>, <span class="firstname">R.</span> <span class="surname">Ullmann</span>, and <span class="firstname">P.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i>New <acronym class="acronym">DNS</acronym> RR Definitions</i>. </span><span class="pubdate">October 1990. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587502"></a><p>[<abbr class="abbrev">RFC1706</abbr>] <span class="authorgroup"><span class="firstname">B.</span> <span class="surname">Manning</span> and <span class="firstname">R.</span> <span class="surname">Colella</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> NSAP Resource Records</i>. </span><span class="pubdate">October 1994. </span></p>
+<a name="id2586706"></a><p>[<abbr class="abbrev">RFC1706</abbr>] <span class="authorgroup"><span class="firstname">B.</span> <span class="surname">Manning</span> and <span class="firstname">R.</span> <span class="surname">Colella</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> NSAP Resource Records</i>. </span><span class="pubdate">October 1994. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587540"></a><p>[<abbr class="abbrev">RFC2168</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Daniel</span> and <span class="firstname">M.</span> <span class="surname">Mealling</span>. </span><span class="title"><i>Resolution of Uniform Resource Identifiers using
+<a name="id2586743"></a><p>[<abbr class="abbrev">RFC2168</abbr>] <span class="authorgroup"><span class="firstname">R.</span> <span class="surname">Daniel</span> and <span class="firstname">M.</span> <span class="surname">Mealling</span>. </span><span class="title"><i>Resolution of Uniform Resource Identifiers using
 the Domain Name System</i>. </span><span class="pubdate">June 1997. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587575"></a><p>[<abbr class="abbrev">RFC1876</abbr>] <span class="authorgroup"><span class="firstname">C.</span> <span class="surname">Davis</span>, <span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">T.</span>, and <span class="firstname">I.</span> <span class="surname">Dickinson</span>. </span><span class="title"><i>A Means for Expressing Location Information in the Domain
+<a name="id2586778"></a><p>[<abbr class="abbrev">RFC1876</abbr>] <span class="authorgroup"><span class="firstname">C.</span> <span class="surname">Davis</span>, <span class="firstname">P.</span> <span class="surname">Vixie</span>, <span class="firstname">T.</span>, and <span class="firstname">I.</span> <span class="surname">Dickinson</span>. </span><span class="title"><i>A Means for Expressing Location Information in the Domain
 Name System</i>. </span><span class="pubdate">January 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587629"></a><p>[<abbr class="abbrev">RFC2052</abbr>] <span class="authorgroup"><span class="firstname">A.</span> <span class="surname">Gulbrandsen</span> and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>A <acronym class="acronym">DNS</acronym> RR for Specifying the Location of
+<a name="id2586833"></a><p>[<abbr class="abbrev">RFC2052</abbr>] <span class="authorgroup"><span class="firstname">A.</span> <span class="surname">Gulbrandsen</span> and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>A <acronym class="acronym">DNS</acronym> RR for Specifying the Location of
 Services.</i>. </span><span class="pubdate">October 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587669"></a><p>[<abbr class="abbrev">RFC2163</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Allocchio</span>. </span><span class="title"><i>Using the Internet <acronym class="acronym">DNS</acronym> to Distribute MIXER
+<a name="id2586872"></a><p>[<abbr class="abbrev">RFC2163</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Allocchio</span>. </span><span class="title"><i>Using the Internet <acronym class="acronym">DNS</acronym> to Distribute MIXER
 Conformant Global Address Mapping</i>. </span><span class="pubdate">January 1998. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587696"></a><p>[<abbr class="abbrev">RFC2230</abbr>] <span class="author"><span class="firstname">R.</span> <span class="surname">Atkinson</span>. </span><span class="title"><i>Key Exchange Delegation Record for the <acronym class="acronym">DNS</acronym></i>. </span><span class="pubdate">October 1997. </span></p>
+<a name="id2586899"></a><p>[<abbr class="abbrev">RFC2230</abbr>] <span class="author"><span class="firstname">R.</span> <span class="surname">Atkinson</span>. </span><span class="title"><i>Key Exchange Delegation Record for the <acronym class="acronym">DNS</acronym></i>. </span><span class="pubdate">October 1997. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
 <h3 class="title">
 <acronym class="acronym">DNS</acronym> and the Internet</h3>
 <div class="biblioentry">
-<a name="id2587730"></a><p>[<abbr class="abbrev">RFC1101</abbr>] <span class="author"><span class="firstname">P. V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Encoding of Network Names and Other Types</i>. </span><span class="pubdate">April 1989. </span></p>
+<a name="id2586933"></a><p>[<abbr class="abbrev">RFC1101</abbr>] <span class="author"><span class="firstname">P. V.</span> <span class="surname">Mockapetris</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Encoding of Network Names and Other Types</i>. </span><span class="pubdate">April 1989. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587755"></a><p>[<abbr class="abbrev">RFC1123</abbr>] <span class="author"><span class="surname">Braden</span>. </span><span class="title"><i>Requirements for Internet Hosts - Application and Support</i>. </span><span class="pubdate">October 1989. </span></p>
+<a name="id2586958"></a><p>[<abbr class="abbrev">RFC1123</abbr>] <span class="author"><span class="surname">Braden</span>. </span><span class="title"><i>Requirements for Internet Hosts - Application and Support</i>. </span><span class="pubdate">October 1989. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587779"></a><p>[<abbr class="abbrev">RFC1591</abbr>] <span class="author"><span class="firstname">J.</span> <span class="surname">Postel</span>. </span><span class="title"><i>Domain Name System Structure and Delegation</i>. </span><span class="pubdate">March 1994. </span></p>
+<a name="id2586982"></a><p>[<abbr class="abbrev">RFC1591</abbr>] <span class="author"><span class="firstname">J.</span> <span class="surname">Postel</span>. </span><span class="title"><i>Domain Name System Structure and Delegation</i>. </span><span class="pubdate">March 1994. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587800"></a><p>[<abbr class="abbrev">RFC2317</abbr>] <span class="authorgroup"><span class="firstname">H.</span> <span class="surname">Eidnes</span>, <span class="firstname">G.</span> <span class="surname">de Groot</span>, and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>Classless IN-ADDR.ARPA Delegation</i>. </span><span class="pubdate">March 1998. </span></p>
+<a name="id2587003"></a><p>[<abbr class="abbrev">RFC2317</abbr>] <span class="authorgroup"><span class="firstname">H.</span> <span class="surname">Eidnes</span>, <span class="firstname">G.</span> <span class="surname">de Groot</span>, and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>Classless IN-ADDR.ARPA Delegation</i>. </span><span class="pubdate">March 1998. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
 <h3 class="title">
 <acronym class="acronym">DNS</acronym> Operations</h3>
 <div class="biblioentry">
-<a name="id2587854"></a><p>[<abbr class="abbrev">RFC1537</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Beertema</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Data File Configuration Errors</i>. </span><span class="pubdate">October 1993. </span></p>
+<a name="id2587058"></a><p>[<abbr class="abbrev">RFC1537</abbr>] <span class="author"><span class="firstname">P.</span> <span class="surname">Beertema</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Data File Configuration Errors</i>. </span><span class="pubdate">October 1993. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587880"></a><p>[<abbr class="abbrev">RFC1912</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Barr</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Operational and Configuration Errors</i>. </span><span class="pubdate">February 1996. </span></p>
+<a name="id2587083"></a><p>[<abbr class="abbrev">RFC1912</abbr>] <span class="author"><span class="firstname">D.</span> <span class="surname">Barr</span>. </span><span class="title"><i>Common <acronym class="acronym">DNS</acronym> Operational and Configuration Errors</i>. </span><span class="pubdate">February 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587907"></a><p>[<abbr class="abbrev">RFC2010</abbr>] <span class="authorgroup"><span class="firstname">B.</span> <span class="surname">Manning</span> and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>Operational Criteria for Root Name Servers.</i>. </span><span class="pubdate">October 1996. </span></p>
+<a name="id2587110"></a><p>[<abbr class="abbrev">RFC2010</abbr>] <span class="authorgroup"><span class="firstname">B.</span> <span class="surname">Manning</span> and <span class="firstname">P.</span> <span class="surname">Vixie</span>. </span><span class="title"><i>Operational Criteria for Root Name Servers.</i>. </span><span class="pubdate">October 1996. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2587943"></a><p>[<abbr class="abbrev">RFC2219</abbr>] <span class="authorgroup"><span class="firstname">M.</span> <span class="surname">Hamilton</span> and <span class="firstname">R.</span> <span class="surname">Wright</span>. </span><span class="title"><i>Use of <acronym class="acronym">DNS</acronym> Aliases for Network Services.</i>. </span><span class="pubdate">October 1997. </span></p>
+<a name="id2587146"></a><p>[<abbr class="abbrev">RFC2219</abbr>] <span class="authorgroup"><span class="firstname">M.</span> <span class="surname">Hamilton</span> and <span class="firstname">R.</span> <span class="surname">Wright</span>. </span><span class="title"><i>Use of <acronym class="acronym">DNS</acronym> Aliases for Network Services.</i>. </span><span class="pubdate">October 1997. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
@@ -456,28 +457,28 @@ Conformant Global Address Mapping</i>. </span><span class="pubdate">January 1998
 <acronym class="acronym">DNS</acronym>-related, are not concerned with implementing software.</p>
 </div>
 <div class="biblioentry">
-<a name="id2588071"></a><p>[<abbr class="abbrev">RFC1464</abbr>] <span class="author"><span class="firstname">R.</span> <span class="surname">Rosenbaum</span>. </span><span class="title"><i>Using the Domain Name System To Store Arbitrary String Attributes</i>. </span><span class="pubdate">May 1993. </span></p>
+<a name="id2587274"></a><p>[<abbr class="abbrev">RFC1464</abbr>] <span class="author"><span class="firstname">R.</span> <span class="surname">Rosenbaum</span>. </span><span class="title"><i>Using the Domain Name System To Store Arbitrary String Attributes</i>. </span><span class="pubdate">May 1993. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2588093"></a><p>[<abbr class="abbrev">RFC1713</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Romao</span>. </span><span class="title"><i>Tools for <acronym class="acronym">DNS</acronym> Debugging</i>. </span><span class="pubdate">November 1994. </span></p>
+<a name="id2587297"></a><p>[<abbr class="abbrev">RFC1713</abbr>] <span class="author"><span class="firstname">A.</span> <span class="surname">Romao</span>. </span><span class="title"><i>Tools for <acronym class="acronym">DNS</acronym> Debugging</i>. </span><span class="pubdate">November 1994. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2588118"></a><p>[<abbr class="abbrev">RFC1794</abbr>] <span class="author"><span class="firstname">T.</span> <span class="surname">Brisco</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Support for Load Balancing</i>. </span><span class="pubdate">April 1995. </span></p>
+<a name="id2587321"></a><p>[<abbr class="abbrev">RFC1794</abbr>] <span class="author"><span class="firstname">T.</span> <span class="surname">Brisco</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Support for Load Balancing</i>. </span><span class="pubdate">April 1995. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2588142"></a><p>[<abbr class="abbrev">RFC2240</abbr>] <span class="author"><span class="firstname">O.</span> <span class="surname">Vaughan</span>. </span><span class="title"><i>A Legal Basis for Domain Name Allocation</i>. </span><span class="pubdate">November 1997. </span></p>
+<a name="id2587346"></a><p>[<abbr class="abbrev">RFC2240</abbr>] <span class="author"><span class="firstname">O.</span> <span class="surname">Vaughan</span>. </span><span class="title"><i>A Legal Basis for Domain Name Allocation</i>. </span><span class="pubdate">November 1997. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2588165"></a><p>[<abbr class="abbrev">RFC2345</abbr>] <span class="authorgroup"><span class="firstname">J.</span> <span class="surname">Klensin</span>, <span class="firstname">T.</span> <span class="surname">Wolf</span>, and <span class="firstname">G.</span> <span class="surname">Oglesby</span>. </span><span class="title"><i>Domain Names and Company Name Retrieval</i>. </span><span class="pubdate">May 1998. </span></p>
+<a name="id2587368"></a><p>[<abbr class="abbrev">RFC2345</abbr>] <span class="authorgroup"><span class="firstname">J.</span> <span class="surname">Klensin</span>, <span class="firstname">T.</span> <span class="surname">Wolf</span>, and <span class="firstname">G.</span> <span class="surname">Oglesby</span>. </span><span class="title"><i>Domain Names and Company Name Retrieval</i>. </span><span class="pubdate">May 1998. </span></p>
 </div>
 <div class="biblioentry">
-<a name="id2588211"></a><p>[<abbr class="abbrev">RFC2352</abbr>] <span class="author"><span class="firstname">O.</span> <span class="surname">Vaughan</span>. </span><span class="title"><i>A Convention For Using Legal Names as Domain Names</i>. </span><span class="pubdate">May 1998. </span></p>
+<a name="id2587414"></a><p>[<abbr class="abbrev">RFC2352</abbr>] <span class="author"><span class="firstname">O.</span> <span class="surname">Vaughan</span>. </span><span class="title"><i>A Convention For Using Legal Names as Domain Names</i>. </span><span class="pubdate">May 1998. </span></p>
 </div>
 </div>
 <div class="bibliodiv">
 <h3 class="title">Obsolete and Unimplemented Experimental RRs</h3>
 <div class="biblioentry">
-<a name="id2588242"></a><p>[<abbr class="abbrev">RFC1712</abbr>] <span class="authorgroup"><span class="firstname">C.</span> <span class="surname">Farrell</span>, <span class="firstname">M.</span> <span class="surname">Schulze</span>, <span class="firstname">S.</span> <span class="surname">Pleitner</span>, and <span class="firstname">D.</span> <span class="surname">Baldoni</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Encoding of Geographical
+<a name="id2587445"></a><p>[<abbr class="abbrev">RFC1712</abbr>] <span class="authorgroup"><span class="firstname">C.</span> <span class="surname">Farrell</span>, <span class="firstname">M.</span> <span class="surname">Schulze</span>, <span class="firstname">S.</span> <span class="surname">Pleitner</span>, and <span class="firstname">D.</span> <span class="surname">Baldoni</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> Encoding of Geographical
 Location</i>. </span><span class="pubdate">November 1994. </span></p>
 </div>
 </div>
@@ -497,13 +498,14 @@ after which they are deleted unless updated by their authors.
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2588314"></a>Other Documents About <acronym class="acronym">BIND</acronym></h3></div></div></div>
+<a name="id2587517"></a>Other Documents About <acronym class="acronym">BIND</acronym>
+</h3></div></div></div>
 <p></p>
 <div class="bibliography">
 <div class="titlepage"><div><div><h4 class="title">
-<a name="id2588324"></a>Bibliography</h4></div></div></div>
+<a name="id2587527"></a>Bibliography</h4></div></div></div>
 <div class="biblioentry">
-<a name="id2588326"></a><p><span class="authorgroup"><span class="firstname">Paul</span> <span class="surname">Albitz</span> and <span class="firstname">Cricket</span> <span class="surname">Liu</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></i>. </span><span class="copyright">Copyright © 1998 Sebastopol, CA: O'Reilly and Associates. </span></p>
+<a name="id2587529"></a><p><span class="authorgroup"><span class="firstname">Paul</span> <span class="surname">Albitz</span> and <span class="firstname">Cricket</span> <span class="surname">Liu</span>. </span><span class="title"><i><acronym class="acronym">DNS</acronym> and <acronym class="acronym">BIND</acronym></i>. </span><span class="copyright">Copyright © 1998 Sebastopol, CA: O'Reilly and Associates. </span></p>
 </div>
 </div>
 </div>
