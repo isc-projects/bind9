@@ -14,7 +14,7 @@
  - OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  - PERFORMANCE OF THIS SOFTWARE.
 -->
-<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.18 2006/12/12 01:43:36 marka Exp $ -->
+<!-- $Id: Bv9ARM.ch03.html,v 1.26.2.5.4.19 2007/01/26 23:27:34 marka Exp $ -->
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
@@ -47,14 +47,14 @@
 <dl>
 <dt><span class="sect1"><a href="Bv9ARM.ch03.html#sample_configuration">Sample Configurations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566261">A Caching-only Name Server</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566277">An Authoritative-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2565532">A Caching-only Name Server</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2565548">An Authoritative-only Name Server</a></span></dt>
 </dl></dd>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2566368">Load Balancing</a></span></dt>
-<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2566651">Name Server Operations</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565571">Load Balancing</a></span></dt>
+<dt><span class="sect1"><a href="Bv9ARM.ch03.html#id2565991">Name Server Operations</a></span></dt>
 <dd><dl>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2566657">Tools for Use With the Name Server Daemon</a></span></dt>
-<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567958">Signals</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2565996">Tools for Use With the Name Server Daemon</a></span></dt>
+<dt><span class="sect2"><a href="Bv9ARM.ch03.html#id2567366">Signals</a></span></dt>
 </dl></dd>
 </dl>
 </div>
@@ -66,7 +66,7 @@ option setting.</p>
 <a name="sample_configuration"></a>Sample Configurations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566261"></a>A Caching-only Name Server</h3></div></div></div>
+<a name="id2565532"></a>A Caching-only Name Server</h3></div></div></div>
 <p>The following sample configuration is appropriate for a caching-only
 name server for use by clients internal to a corporation.  All queries
 from outside clients are refused using the <span><strong class="command">allow-query</strong></span>
@@ -89,7 +89,7 @@ zone "0.0.127.in-addr.arpa" {
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566277"></a>An Authoritative-only Name Server</h3></div></div></div>
+<a name="id2565548"></a>An Authoritative-only Name Server</h3></div></div></div>
 <p>This sample configuration is for an authoritative-only server
 that is the master server for "<code class="filename">example.com</code>"
 and a slave for the subdomain "<code class="filename">eng.example.com</code>".</p>
@@ -128,7 +128,7 @@ zone "eng.example.com" {
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2566368"></a>Load Balancing</h2></div></div></div>
+<a name="id2565571"></a>Load Balancing</h2></div></div></div>
 <p>A primitive form of load balancing can be achieved in
 the <acronym class="acronym">DNS</acronym> by using multiple A records for one name.</p>
 <p>For example, if you have three WWW servers with network addresses
@@ -189,10 +189,10 @@ of the time:</p>
 </div>
 <div class="sect1" lang="en">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id2566651"></a>Name Server Operations</h2></div></div></div>
+<a name="id2565991"></a>Name Server Operations</h2></div></div></div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2566657"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
+<a name="id2565996"></a>Tools for Use With the Name Server Daemon</h3></div></div></div>
 <p>There are several indispensable diagnostic, administrative
 and monitoring tools available to the system administrator for controlling
 and debugging the name server daemon. We describe several in this
@@ -473,7 +473,7 @@ a <code class="filename">rndc.key</code> file and not modify
 </div>
 <div class="sect2" lang="en">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="id2567958"></a>Signals</h3></div></div></div>
+<a name="id2567366"></a>Signals</h3></div></div></div>
 <p>Certain UNIX signals cause the name server to take specific
 actions, as described in the following table.  These signals can
 be sent using the <span><strong class="command">kill</strong></span> command.</p>
