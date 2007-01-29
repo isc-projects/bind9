@@ -1,5 +1,5 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
-               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
@@ -17,7 +17,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: named.conf.docbook,v 1.1.2.23 2006/09/13 00:20:50 marka Exp $ -->
+<!-- $Id: named.conf.docbook,v 1.1.2.24 2007/01/29 22:15:27 sra Exp $ -->
 <refentry>
   <refentryinfo>
     <date>Aug 13, 2004</date>
