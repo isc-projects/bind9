@@ -1,3 +1,5 @@
+2128.	[doc]		xsltproc --nonet, update DTD versions.  [RT #16635]
+
 2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]
 
 2120.	[doc]		Fix markup on nsupdate man page. [RT #16556]
