@@ -1,4 +1,4 @@
-# Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 1998-2003  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.40.2.5.4.11 2007/01/29 22:14:53 sra Exp $
+# $Id: rules.in,v 1.40.2.5.4.12 2007/01/29 23:57:19 marka Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
