@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: rules.in,v 1.58 2006/12/04 01:52:46 marka Exp $
+# $Id: rules.in,v 1.59 2007/01/29 22:16:02 sra Exp $
 
 ###
 ### Common Makefile rules for BIND 9.
@@ -209,7 +209,7 @@ INSTALL_DATA =		@INSTALL_DATA@
 ### not to exist when not generating documentation.
 ###
 
-XSLTPROC =		@XSLTPROC@ --novalid --xinclude
+XSLTPROC =		@XSLTPROC@ --novalid --xinclude --nonet
 PERL =			@PERL@
 LATEX =			@LATEX@
 PDFLATEX =		@PDFLATEX@

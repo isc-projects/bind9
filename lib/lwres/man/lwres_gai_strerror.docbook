@@ -1,5 +1,5 @@
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.0//EN"
-               "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd"
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd"
 	       [<!ENTITY mdash "&#8212;">]>
 <!--
  - Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- $Id: lwres_gai_strerror.docbook,v 1.7 2005/05/13 01:35:46 marka Exp $ -->
+<!-- $Id: lwres_gai_strerror.docbook,v 1.8 2007/01/29 22:16:02 sra Exp $ -->
 <refentry>
 
   <refentryinfo>
