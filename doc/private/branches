@@ -11,20 +11,20 @@ Branch				Status	Whom	// Comments
 
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
-custom_WFB_v9_3_3		new	
-dighost				new	
+custom_WFB_v9_3_3		private	
+dighost				open	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
-jinmei-mmapzone-test		new		// mmap based zone file. very experimental, just for reference purposes
-jinmei_libdnsng			new	
+jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
+jinmei_libdnsng			open	
 libbind_clean			open	jinmei
-marka_libdnsng			new	
-mlg-20000518			new	
-newresolver0			new	
+marka_libdnsng			open	
+mlg-20000518			open	
+newresolver0			open	
 openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
 rt11398d			open	sra	// doxygen dev
-rt11398e			new	
+rt11398e			open	sra	
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
@@ -39,7 +39,7 @@ rt14895b			open	jinmei
 rt14951a			open	
 rt15327				open	
 rt15452				open	marka	// NSEC3	
-rt15452a			new	
+rt15452a			open	marka	
 rt15473				review	marka
 rt15473b			review	marka
 rt15698				open	
@@ -66,62 +66,62 @@ rt16290				closed
 rt16292				closed	
 rt16300				closed	
 rt16307				closed	
-rt16313				new	
-rt16315				new	
-rt16317				new	
-rt16320				new	
-rt16324				new	
-rt16326				new	
-rt16341				new	
-rt16354				new	
-rt16361				new	
-rt16363				new	
-rt16388				new	
-rt16391				new	
-rt16399				new	
-rt16401				new	
-rt16402				new	
-rt16403				new	
-rt16411				new	
-rt16415				new	
-rt16417				new	
-rt16426				new	
-rt16427				new	
-rt16428				new	
-rt16437				new	
-rt16443				new	
-rt16444				new	
-rt16447				new	
-rt16455				new	
-rt16456				new	
-rt16460				new	
-rt16476				new	
-rt16491				new	
-rt16499				new	
-rt16502				new	
-rt16507				new	
-rt16519				new	
-rt16553				new	
-rt16555				new	
-rt16563				new	
-rt16584				new	
-rt16592				new	
-rt16609				new	
-rt16612				new	
-rt16613				new	
-rt16619				new	
+rt16313				closed	
+rt16315				closed	
+rt16317				closed	
+rt16320				closed	
+rt16324				closed	
+rt16326				closed	
+rt16341				closed	
+rt16354				open	
+rt16361				closed	
+rt16363				closed	
+rt16388				closed	
+rt16391				closed	
+rt16399				closed	
+rt16401				closed	
+rt16402				open	
+rt16403				closed	
+rt16411				closed	
+rt16415				open	
+rt16417				closed	
+rt16426				closed	
+rt16427				closed	
+rt16428				open	
+rt16437				open	
+rt16443				open	
+rt16444				closed	
+rt16447				closed	
+rt16455				closed	
+rt16456				closed	
+rt16460				closed	
+rt16476				closed	
+rt16491				closed	
+rt16499				closed	
+rt16502				closed	
+rt16507				closed	
+rt16519				open		// epsilon for .DE
+rt16553				closed	
+rt16555				closed	
+rt16563				closed	
+rt16584				closed	
+rt16592				open	
+rt16609				open	
+rt16612				open	
+rt16613				open	
+rt16619				open	
 rt16635				closed
 rt1727				open		// ixfr-from-differences workfile
-skan				new	
+skan				open	
 skan-metazones1			private	
-skan_implicit_update1		new	
-skan_stats1			new	
-skan_stats2			new	
-skan_stats3			new	
-skan_stats4			new	
-sp1213				new	
-stats_lidl			new	
-v6source			new	
+skan_implicit_update1		open	
+skan_stats1			open	
+skan_stats2			open	
+skan_stats3			open	
+skan_stats4			open	
+sp1213				open	
+stats_lidl			open	
+v6source			open	
 v9_1				active		// security fixes only
 v9_1_1_patch			active		// security fixes 9.1.1 only	
 v9_2				active	
