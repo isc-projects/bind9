@@ -24,7 +24,7 @@ newresolver0			open
 openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
 rt11398d			open	sra	// doxygen dev
-rt11398e			open	sra	
+rt11398e			open	sra
 rt11543				open	jakob
 rt11733				open	jakob
 rt11733b			open	jakob
@@ -39,78 +39,27 @@ rt14895b			open	jinmei
 rt14951a			open	
 rt15327				open	
 rt15452				open	marka	// NSEC3	
-rt15452a			open	marka	
+rt15452a			open	marka
 rt15473				review	marka
 rt15473b			review	marka
 rt15698				open	
 rt15765				open	
 rt15860				open	
 rt15869				review	
-rt15978				closed	
-rt16022				closed	
-rt16156				closed	
 rt16157				open	
-rt16170				closed	
-rt16179				closed	
-rt16182				closed	
-rt16183				closed	
-rt16187				closed	
-rt16218				closed	
-rt16218a			closed	
-rt16219				closed	
-rt16220				closed	
-rt16220a			closed	
-rt16244				closed	
 rt16288				review	
-rt16290				closed	
-rt16292				closed	
-rt16300				closed	
-rt16307				closed	
-rt16313				closed	
-rt16315				closed	
-rt16317				closed	
-rt16320				closed	
-rt16324				closed	
-rt16326				closed	
-rt16341				closed	
 rt16354				open	
-rt16361				closed	
-rt16363				closed	
-rt16388				closed	
-rt16391				closed	
-rt16399				closed	
-rt16401				closed	
 rt16402				open	
-rt16403				closed	
-rt16411				closed	
 rt16415				open	
-rt16417				closed	
-rt16426				closed	
-rt16427				closed	
 rt16428				open	
 rt16437				open	
 rt16443				open	
-rt16444				closed	
-rt16447				closed	
-rt16455				closed	
-rt16456				closed	
-rt16460				closed	
-rt16476				closed	
-rt16491				closed	
-rt16499				closed	
-rt16502				closed	
-rt16507				closed	
 rt16519				open		// epsilon for .DE
-rt16553				closed	
-rt16555				closed	
-rt16563				closed	
-rt16584				closed	
 rt16592				open	
 rt16609				open	
 rt16612				open	
 rt16613				open	
 rt16619				open	
-rt16635				closed
 rt1727				open		// ixfr-from-differences workfile
 skan				open	
 skan-metazones1			private	
@@ -486,8 +435,10 @@ rt15959				closed
 rt15960				closed
 rt15970				closed
 rt15976				closed
+rt15978				closed
 rt15992				closed
 rt16020				closed
+rt16022				closed
 rt16026				closed
 rt16027				closed
 rt16030				closed
@@ -500,6 +451,55 @@ rt16117				closed
 rt16122				closed
 rt16123				closed
 rt16124				closed
+rt16156				closed
+rt16170				closed
+rt16179				closed
+rt16182				closed
+rt16183				closed
+rt16187				closed
+rt16218				closed
+rt16218a			closed
+rt16219				closed
+rt16220				closed
+rt16220a			closed
+rt16244				closed
+rt16290				closed
+rt16292				closed
+rt16300				closed
+rt16307				closed
+rt16313				closed
+rt16315				closed
+rt16317				closed
+rt16320				closed
+rt16324				closed
+rt16326				closed
+rt16341				closed
+rt16361				closed
+rt16363				closed
+rt16388				closed
+rt16391				closed
+rt16399				closed
+rt16401				closed
+rt16403				closed
+rt16411				closed
+rt16417				closed
+rt16426				closed
+rt16427				closed
+rt16444				closed
+rt16447				closed
+rt16455				closed
+rt16456				closed
+rt16460				closed
+rt16476				closed
+rt16491				closed
+rt16499				closed
+rt16502				closed
+rt16507				closed
+rt16553				closed
+rt16555				closed
+rt16563				closed
+rt16584				closed
+rt16635				closed
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
