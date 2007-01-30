@@ -36,7 +36,7 @@ rt14654				open
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
 rt14895b			open	jinmei
-rt14951a			new	
+rt14951a			open	
 rt15327				open	
 rt15452				open	marka	// NSEC3	
 rt15452a			new	
@@ -45,27 +45,27 @@ rt15473b			review	marka
 rt15698				open	
 rt15765				open	
 rt15860				open	
-rt15869				new	
-rt15978				review	
-rt16022				review	
-rt16156				new	
-rt16157				new	
-rt16170				new	
-rt16179				new	
-rt16182				new	
-rt16183				new	
-rt16187				new	
-rt16218				new	
-rt16218a			new	
-rt16219				new	
-rt16220				new	
-rt16220a			new	
-rt16244				new	
-rt16288				new	
-rt16290				new	
-rt16292				new	
-rt16300				new	
-rt16307				new	
+rt15869				review	
+rt15978				closed	
+rt16022				closed	
+rt16156				closed	
+rt16157				open	
+rt16170				closed	
+rt16179				closed	
+rt16182				closed	
+rt16183				closed	
+rt16187				closed	
+rt16218				closed	
+rt16218a			closed	
+rt16219				closed	
+rt16220				closed	
+rt16220a			closed	
+rt16244				closed	
+rt16288				review	
+rt16290				closed	
+rt16292				closed	
+rt16300				closed	
+rt16307				closed	
 rt16313				new	
 rt16315				new	
 rt16317				new	
@@ -129,13 +129,13 @@ v9_2_0_patch			active		// security fixes 9.2.0 only
 v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
 v9_2_2base			active		// security fixes 9.2.2 only 
 v9_2_4base			active		// security fixes 9.2.4 only
-v9_2_6_patch			new	
-v9_2_7_patch			new	
-v9_2_8_patch			new	
+v9_2_6_patch			active		// security fixes 9.2.6 only
+v9_2_7_patch			active		// security fixes 9.2.7 only
+v9_2_8_patch			active		// security fixes 9.2.9 only
 v9_3				active	
 v9_3_0base			active		// security fixes 9.3.0 only
-v9_3_2_patch			new	
-v9_3_4_patch			new	
+v9_3_2_patch			active		// security fixes 9.3.2 only	
+v9_3_4_patch			active		// security fixes 9.3.4 only
 v9_4				active	
 
 
