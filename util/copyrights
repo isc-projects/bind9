@@ -1117,7 +1117,7 @@
 ./doc/dev/tests					TXT.BRIEF	2000,2001,2004
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004
 ./doc/misc/.cvsignore				X	2001
-./doc/misc/Makefile.in				MAKE	2001,2004
+./doc/misc/Makefile.in				MAKE	2001,2004,2007
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2003,2004
 ./doc/misc/format-options.pl			PERL	2001,2004
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
