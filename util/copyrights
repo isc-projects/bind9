@@ -1194,7 +1194,7 @@
 ./doc/arm/Bv9ARM.ch07.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch08.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007
-./doc/arm/Bv9ARM.ch10.html			X	2005,2006
+./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
@@ -1246,7 +1246,7 @@
 ./doc/doxygen/isc-header.html			HTML	2006
 ./doc/doxygen/mainpage				X	2006
 ./doc/misc/.cvsignore				X	2001
-./doc/misc/Makefile.in				MAKE	2001,2004
+./doc/misc/Makefile.in				MAKE	2001,2004,2007
 ./doc/misc/dnssec				TXT.BRIEF	2000,2001,2002,2004
 ./doc/misc/format-options.pl			PERL	2001,2004
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
@@ -2510,7 +2510,7 @@
 ./util/spacewhack.pl				PERL	2000,2001,2004
 ./util/tabify-changes				SH	2004
 ./util/update-drafts.pl				PERL	2000,2001,2004
-./util/update_branches				PERL	2005
+./util/update_branches				PERL	2005,2007
 ./util/update_copyrights			PERL	1998,1999,2000,2001,2004,2005,2006,2007
 ./version					X	1998,1999,2000,2001,2003,2005,2006
 ./win32utils/BINDBuild.dsw			X	2001,2005,2006
