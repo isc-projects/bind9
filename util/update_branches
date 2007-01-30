@@ -14,7 +14,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: update_branches,v 1.19 2007/01/30 06:00:00 marka Exp $
+# $Id: update_branches,v 1.20 2007/01/30 06:29:21 marka Exp $
 
 #
 #  Track which branches are still open or not in the bind9 cvs repository.
@@ -52,6 +52,9 @@ $module = "bind9";
 #
 open(BRANCHES, "<doc/private/branches") || die "can't open util/branches: $!";
 while (<BRANCHES>) {
+	my $branch;
+	my $status;
+	my $who;
 	chomp;
 	next if (/^-/);
 	next if (/^Branch/);
@@ -85,6 +88,13 @@ close (BRANCHES);
 # T 1999-03-15 21:15 +0000 vixie bind [ietf44:A]
 open(HISTORY, "cvs history -T -a 2> /dev/null |") || die("can't get history");
 while (<HISTORY>) {
+	my $tag;
+	my $date;
+	my $time;
+	my $tz;
+	my $who;
+	my $mod;
+	my $branch;
         chomp;
         s/[][]//g;
         s/:[^ \t]+$//;
@@ -95,7 +105,7 @@ while (<HISTORY>) {
 	next if (exists($history{$branch}));
 	$history{$branch} = $who;
 	$dates{$branch} = "$date $time $tz";
-        print "$_\n";
+        # print "$_\n";
 }
 close (HISTORY);
 
