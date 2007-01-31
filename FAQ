@@ -673,3 +673,31 @@ A: No, so long as the machines internal clock (as reported by "date -u") remains
    setting the TZ envirionment variable appropriately. See your OS's documentation
    for more details.
 
+Q: Why do we get the following warning at run time:
+
+   kernel: process `named' is using obsolete setsockopt SO_BSDCOMPAT
+
+A: The early Linux kernels broke sendto() by having it return that a ICMP
+   unreachable had be received for non connected UDP sockets. This made non
+   connected UDP sockets work like connected UDP socket which is fine when you are
+   only talking to one destination. Named however talks to multiple destinations
+   and it caused problems.
+
+   Rather than fix sendto() to just have BSD behaviour they added SO_BSDCOMPAT to
+   turn BSD behaviour on/off on a per socket basis.
+
+   Later they decided to make BSD behaviour the default and to aggressively
+   trackdown application that used SO_BSDCOMPAT by issuing a warning. This is the
+   sort of things vendors do in alpha/beta stages of a release so that their code
+   is clean. They then turn the warning *off* for release code.
+
+   We still have customers that have kernels that require SO_BSDCOMPAT to operate.
+   We therefore cannot remove the setsockopt(SO_BSDCOMPAT) call.
+
+   Now most/all portable applications that use SO_BSDCOMPAT use it conditionally
+   manner so just removing SO_BSDCOMPAT from the header file would be safe as long
+   as the binary was not to be moved between systems. BIND's use is conditional.
+
+   In short, the Linux developers should either, remove the #define for
+   SO_BSDCOMPAT, and/or remove the warning.
+
