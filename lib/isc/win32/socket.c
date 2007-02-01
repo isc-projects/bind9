@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.5.2.31 2007/02/01 04:42:54 marka Exp $ */
+/* $Id: socket.c,v 1.5.2.32 2007/02/01 23:55:18 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
