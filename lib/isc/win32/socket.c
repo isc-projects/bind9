@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.45 2006/08/04 02:55:37 marka Exp $ */
+/* $Id: socket.c,v 1.46 2007/02/01 04:40:32 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -1855,7 +1855,7 @@ isc_socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		  isc_socket_t **socketp) {
 	isc_socket_t *sock = NULL;
 	isc_result_t result;
-#if defined(USE_CMSG) || defined(SO_BSDCOMPAT)
+#if defined(USE_CMSG)
 	int on = 1;
 #endif
 #if defined(SO_RCVBUF)
