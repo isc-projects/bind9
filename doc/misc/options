@@ -103,6 +103,9 @@ options {
         empty-zones-enable <boolean>;
         disable-empty-zone <string>;
         zero-no-soa-ttl-cache <boolean>;
+        use-queryport-pool <boolean>;
+        queryport-pool-ports <integer>;
+        queryport-pool-updateinterval <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };
@@ -333,6 +336,9 @@ view <string> <optional_class> {
         empty-zones-enable <boolean>;
         disable-empty-zone <string>;
         zero-no-soa-ttl-cache <boolean>;
+        use-queryport-pool <boolean>;
+        queryport-pool-ports <integer>;
+        queryport-pool-updateinterval <integer>;
         allow-query { <address_match_element>; ... };
         allow-transfer { <address_match_element>; ... };
         allow-update { <address_match_element>; ... };

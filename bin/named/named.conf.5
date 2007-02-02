@@ -12,7 +12,7 @@
 .\" OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 .\" PERFORMANCE OF THIS SOFTWARE.
 .\"
-.\" $Id: named.conf.5,v 1.24 2007/01/30 00:24:59 marka Exp $
+.\" $Id: named.conf.5,v 1.25 2007/02/02 04:33:36 marka Exp $
 .\"
 .hy 0
 .ad l
@@ -208,6 +208,9 @@ options {
 	additional\-from\-cache \fIboolean\fR;
 	query\-source ( ( \fIipv4_address\fR | * ) | [ address ( \fIipv4_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
 	query\-source\-v6 ( ( \fIipv6_address\fR | * ) | [ address ( \fIipv6_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
+	use\-queryport\-pool \fIboolean\fR;
+	queryport\-pool\-ports \fIinteger\fR;
+	queryport\-pool\-updateinterval \fIinteger\fR;
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
@@ -342,6 +345,9 @@ view \fIstring\fR \fIoptional_class\fR {
 	additional\-from\-cache \fIboolean\fR;
 	query\-source ( ( \fIipv4_address\fR | * ) | [ address ( \fIipv4_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
 	query\-source\-v6 ( ( \fIipv6_address\fR | * ) | [ address ( \fIipv6_address\fR | * ) ] ) [ port ( \fIinteger\fR | * ) ];
+	use\-queryport\-pool \fIboolean\fR;
+	queryport\-pool\-ports \fIinteger\fR;
+	queryport\-pool\-updateinterval \fIinteger\fR;
 	cleaning\-interval \fIinteger\fR;
 	min\-roots \fIinteger\fR; // not implemented
 	lame\-ttl \fIinteger\fR;
