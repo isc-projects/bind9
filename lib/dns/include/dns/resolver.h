@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.53 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: resolver.h,v 1.54 2007/02/02 02:18:06 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
@@ -106,6 +106,8 @@ typedef struct dns_fetchevent {
 
 #define DNS_RESOLVER_CHECKNAMES		0x01
 #define DNS_RESOLVER_CHECKNAMESFAIL	0x02
+#define DNS_RESOLVER_USEDISPATCHPOOL4	0x04
+#define DNS_RESOLVER_USEDISPATCHPOOL6	0x08
 
 isc_result_t
 dns_resolver_create(dns_view_t *view,
@@ -125,8 +127,6 @@ dns_resolver_create(dns_view_t *view,
  *
  *\li	Generally, applications should not create a resolver directly, but
  *	should instead call dns_view_createresolver().
- *
- *\li	No options are currently defined.
  *
  * Requires:
  *
@@ -473,6 +473,36 @@ dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
  
 void
 dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
+
+unsigned int
+dns_resolver_getoptions(dns_resolver_t *resolver);
+
+isc_result_t
+dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
+				unsigned int interval);
+/*%<
+ * Create a pool of dispatches
+ *
+ * Notes:
+ *
+ *\li	Generally, applications should not create a resolver directly, but
+ *	should instead call dns_view_createresolver().
+ *
+ * Requires:
+ *
+ *\li	'res' is a valid resolver that has not been frozen.  Also it must have
+ *	either the _USEDISPATCHPOOL4 or _USEDISPATCHPOOL6 option. 
+ *
+ *\li	'taskmgr' is a valid task manager.
+ *
+ *\li	'ndisps' > 0.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS				On success.
+ *
+ *\li	Anything else				Failure.
+ */
 
 ISC_LANG_ENDDECLS
 

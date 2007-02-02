@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: namedconf.c,v 1.72 2006/12/21 06:02:30 marka Exp $ */
+/* $Id: namedconf.c,v 1.73 2007/02/02 02:18:06 marka Exp $ */
 
 /*! \file */
 
@@ -790,6 +790,9 @@ view_clauses[] = {
 	{ "empty-zones-enable", &cfg_type_boolean, 0 },
 	{ "disable-empty-zone", &cfg_type_astring, CFG_CLAUSEFLAG_MULTI },
 	{ "zero-no-soa-ttl-cache", &cfg_type_boolean, 0 },
+	{ "use-queryport-pool", &cfg_type_boolean, 0 },
+	{ "queryport-pool-ports", &cfg_type_uint32, 0 },
+	{ "queryport-pool-updateinterval", &cfg_type_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
 

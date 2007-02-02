@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.340 2007/01/08 01:13:38 marka Exp $ */
+/* $Id: resolver.c,v 1.341 2007/02/02 02:18:06 marka Exp $ */
 
 /*! \file */
 
@@ -23,6 +23,7 @@
 
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/random.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -290,13 +291,36 @@ typedef struct alternate {
 	ISC_LINK(struct alternate)	link;
 } alternate_t;
 
+#ifdef ISC_RWLOCK_USEATOMIC
+#define DNS_RESOLVER_USERWLOCK 1
+#else
+#define DNS_RESOLVER_USERWLOCK 0
+#endif
+
+#if DNS_RESOLVER_USERWLOCK
+#define RES_INITLOCK(l)		isc_rwlock_init((l), 0, 0)
+#define RES_DESTROYLOCK(l)	isc_rwlock_destroy(l)
+#define RES_LOCK(l, t)		RWLOCK((l), (t))
+#define RES_UNLOCK(l, t)	RWUNLOCK((l), (t))
+#else
+#define RES_INITLOCK(l)		isc_mutex_init(l)
+#define RES_DESTROYLOCK(l)	DESTROYLOCK(l)
+#define RES_LOCK(l, t)		LOCK(l)
+#define RES_UNLOCK(l, t)	UNLOCK(l)
+#endif
+
 struct dns_resolver {
 	/* Unlocked. */
 	unsigned int			magic;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
 	isc_mutex_t			nlock;	
-	isc_mutex_t			primelock;	
+	isc_mutex_t			primelock;
+#if DNS_RESOLVER_USERWLOCK
+	isc_rwlock_t			poollock;
+#else
+	isc_mutex_t			poollock;
+#endif
 	dns_rdataclass_t		rdclass;
 	isc_socketmgr_t *		socketmgr;
 	isc_timermgr_t *		timermgr;
@@ -307,6 +331,7 @@ struct dns_resolver {
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatchv4;
 	dns_dispatch_t *		dispatchv6;
+	unsigned int			ndisps;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	isc_uint32_t			lame_ttl;
@@ -324,6 +349,7 @@ struct dns_resolver {
 	unsigned int			spillatmin;
 	isc_timer_t *			spillattimer;
 	isc_boolean_t			zero_no_soa_ttl;
+	isc_timer_t *			disppooltimer;
 	/* Locked by lock. */
 	unsigned int			references;
 	isc_boolean_t			exiting;
@@ -331,10 +357,14 @@ struct dns_resolver {
 	unsigned int			activebuckets;
 	isc_boolean_t			priming;
 	unsigned int			spillat;
+	unsigned int			nextdisp;
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
 	/* Locked by nlock. */
 	unsigned int			nfctx;
+	/* Locked by poollock. */
+	dns_dispatch_t **		dispatchv4pool;
+	dns_dispatch_t **		dispatchv6pool;
 };
 
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
@@ -1143,14 +1173,39 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 			if (result != ISC_R_SUCCESS)
 				goto cleanup_query;
 		} else {
+			int did = 0;
+			isc_uint32_t val;
+
+			if (res->ndisps > 0) {
+				isc_random_get(&val);
+				did = val % res->ndisps;
+			}
 			switch (isc_sockaddr_pf(&addrinfo->sockaddr)) {
 			case PF_INET:
-				dns_dispatch_attach(res->dispatchv4,
-						    &query->dispatch);
+				if (res->ndisps > 0) {
+					RES_LOCK(&res->poollock,
+						 isc_rwlocktype_read);
+					dns_dispatch_attach(res->dispatchv4pool[did],
+							    &query->dispatch);
+					RES_UNLOCK(&res->poollock,
+						   isc_rwlocktype_read);
+				} else {
+					dns_dispatch_attach(res->dispatchv4,
+							    &query->dispatch);
+				}
 				break;
 			case PF_INET6:
-				dns_dispatch_attach(res->dispatchv6,
-						    &query->dispatch);
+				if (res->ndisps > 0) {
+					RES_LOCK(&res->poollock,
+						 isc_rwlocktype_read);
+					dns_dispatch_attach(res->dispatchv6pool[did],
+							    &query->dispatch);
+					RES_UNLOCK(&res->poollock,
+						   isc_rwlocktype_read);
+				} else {
+					dns_dispatch_attach(res->dispatchv6,
+							    &query->dispatch);
+				}
 				break;
 			default:
 				result = ISC_R_NOTIMPLEMENTED;
@@ -5962,6 +6017,7 @@ destroy(dns_resolver_t *res) {
 
 	INSIST(res->nfctx == 0);
 
+	RES_DESTROYLOCK(&res->poollock);
 	DESTROYLOCK(&res->primelock);
 	DESTROYLOCK(&res->nlock);
 	DESTROYLOCK(&res->lock);
@@ -5978,12 +6034,26 @@ destroy(dns_resolver_t *res) {
 		dns_dispatch_detach(&res->dispatchv4);
 	if (res->dispatchv6 != NULL)
 		dns_dispatch_detach(&res->dispatchv6);
+	if (res->dispatchv4pool != NULL) {
+		for (i = 0; i < res->ndisps; i++)
+			dns_dispatch_detach(&res->dispatchv4pool[i]);
+		isc_mem_put(res->mctx, res->dispatchv4pool,
+			    res->ndisps * sizeof(dns_dispatch_t *));
+	}
+	if (res->dispatchv6pool != NULL) {
+		for (i = 0; i < res->ndisps; i++)
+			dns_dispatch_detach(&res->dispatchv6pool[i]);
+		isc_mem_put(res->mctx, res->dispatchv6pool,
+			    res->ndisps * sizeof(dns_dispatch_t *));
+	}
 	while ((a = ISC_LIST_HEAD(res->alternates)) != NULL) {
 		ISC_LIST_UNLINK(res->alternates, a, link);
 		if (!a->isaddress)
 			dns_name_free(&a->_u._n.name, res->mctx);
 		isc_mem_put(res->mctx, a, sizeof(*a));
 	}
+	if (res->disppooltimer != NULL)
+		isc_timer_detach(&res->disppooltimer);
 	dns_resolver_reset_algorithms(res);
 	dns_resolver_resetmustbesecure(res);
 #if USE_ALGLOCK
@@ -6112,6 +6182,11 @@ dns_resolver_create(dns_view_t *view,
 	res->spillatmax = 100;
 	res->spillattimer = NULL;
 	res->zero_no_soa_ttl = ISC_FALSE;
+	res->ndisps = 0;
+	res->nextdisp = 0; /* meaningless at this point, but init it */
+	res->dispatchv4pool = NULL;
+	res->dispatchv6pool = NULL;
+	res->disppooltimer = NULL;
 
 	res->nbuckets = ntasks;
 	res->activebuckets = ntasks;
@@ -6147,7 +6222,8 @@ dns_resolver_create(dns_view_t *view,
 
 	res->dispatchv4 = NULL;
 	if (dispatchv4 != NULL)
-		dns_dispatch_attach(dispatchv4, &res->dispatchv4);
+			dns_dispatch_attach(dispatchv4, &res->dispatchv4);
+
 	res->dispatchv6 = NULL;
 	if (dispatchv6 != NULL)
 		dns_dispatch_attach(dispatchv6, &res->dispatchv6);
@@ -6172,17 +6248,21 @@ dns_resolver_create(dns_view_t *view,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_nlock;
 
+	result = RES_INITLOCK(&res->poollock);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_primelock;
+
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
 	if (result != ISC_R_SUCCESS)
-		 goto cleanup_primelock;
+		 goto cleanup_poollock;
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 				  task, spillattimer_countdown, res,
 				  &res->spillattimer);
 	isc_task_detach(&task);
 	if (result != ISC_R_SUCCESS)
-		 goto cleanup_primelock;
+		 goto cleanup_poollock;
 
 #if USE_ALGLOCK
 	result = isc_rwlock_init(&res->alglock, 0, 0);
@@ -6211,6 +6291,9 @@ dns_resolver_create(dns_view_t *view,
  cleanup_spillattimer:
 	isc_timer_detach(&res->spillattimer);
 #endif
+
+ cleanup_poollock:
+	RES_DESTROYLOCK(&res->poollock);
 
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
@@ -7111,4 +7194,255 @@ dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state) {
 	REQUIRE(VALID_RESOLVER(resolver));
 
 	resolver->zero_no_soa_ttl = state;
+}
+
+unsigned int
+dns_resolver_getoptions(dns_resolver_t *resolver) {
+	REQUIRE(VALID_RESOLVER(resolver));
+	
+	return (resolver->options);
+}
+
+static void
+disppooltimer_update(isc_task_t *task, isc_event_t *event) {
+	dns_resolver_t *res = event->ev_arg;
+	isc_sockaddr_t addr4, addr6;
+	dns_dispatch_t *disp4, *disp6;
+	isc_result_t result;
+	unsigned int nxt;
+	unsigned int attrs_base, attrs, attrmask;
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0 ||
+		(res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0);
+
+	UNUSED(task);
+	isc_event_free(&event);
+	
+	LOCK(&res->lock);
+	nxt = res->nextdisp++;
+	if (res->nextdisp == res->ndisps)
+		res->nextdisp = 0;
+	UNLOCK(&res->lock);
+
+	attrs_base = 0;
+	attrs_base |= DNS_DISPATCHATTR_UDP;
+	attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
+
+	attrmask = 0;
+	attrmask |= DNS_DISPATCHATTR_UDP;
+	attrmask |= DNS_DISPATCHATTR_TCP;
+	attrmask |= DNS_DISPATCHATTR_IPV4;
+	attrmask |= DNS_DISPATCHATTR_IPV6;
+
+	RES_LOCK(&res->poollock, isc_rwlocktype_read);
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
+		result = dns_dispatch_getlocaladdress(res->dispatchv4pool[nxt],
+						      &addr4);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
+		result = dns_dispatch_getlocaladdress(res->dispatchv6pool[nxt],
+						      &addr6);
+		INSIST(result == ISC_R_SUCCESS);
+	}
+	RES_UNLOCK(&res->poollock, isc_rwlocktype_read);
+
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
+		attrs = attrs_base;
+		attrs |= DNS_DISPATCHATTR_IPV4;
+
+		disp4 = NULL;
+		result = dns_dispatch_getudp(res->dispatchmgr,
+					     res->socketmgr,
+					     res->taskmgr, &addr4,
+					     4096, 1000, 32768, 16411,
+					     16433, attrs, attrmask,
+					     &disp4);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "could not update an IPv4 random query "
+				      "port: %s",
+				      isc_result_totext(result));
+			/* keep the old one */
+		}
+
+		/*
+		 * We don't try to ensure the new dispatch is unique (see the
+		 * comments in dns_resolver_createdispatchpool()).
+		 */
+	}
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
+		attrs = attrs_base;
+		attrs |= DNS_DISPATCHATTR_IPV6;
+
+		disp6 = NULL;
+		result = dns_dispatch_getudp(res->dispatchmgr,
+					     res->socketmgr,
+					     res->taskmgr, &addr6,
+					     4096, 1000, 32768, 16411,
+					     16433, attrs, attrmask,
+					     &disp6);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "could not update an IPv6 random query "
+				      "port: %s",
+				      isc_result_totext(result));
+		}
+	}
+
+	RES_LOCK(&res->poollock, isc_rwlocktype_write);
+	if (disp4 != NULL) {
+		dns_dispatch_detach(&res->dispatchv4pool[nxt]);
+		res->dispatchv4pool[nxt] = disp4;
+	}
+	if (disp6 != NULL) {
+		dns_dispatch_detach(&res->dispatchv6pool[nxt]);
+		res->dispatchv6pool[nxt] = disp6;
+	}
+	RES_UNLOCK(&res->poollock, isc_rwlocktype_write);
+
+	return;
+}
+
+isc_result_t
+dns_resolver_createdispatchpool(dns_resolver_t *res, unsigned int ndisps,
+				unsigned int tick)
+{
+	unsigned int i;
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int attrs_base, attrs, attrmask;
+	isc_sockaddr_t addr4, addr6;
+	dns_dispatch_t *disp;
+	isc_task_t *task;
+	isc_interval_t interval;
+
+	REQUIRE(VALID_RESOLVER(res));
+	REQUIRE(!res->frozen);	/* meaning we don't have to lock res */
+	REQUIRE(ndisps > 0);
+	REQUIRE((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0 ||
+		(res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0);
+
+	attrs_base = 0;
+	attrs_base |= DNS_DISPATCHATTR_UDP;
+	attrs_base |= DNS_DISPATCHATTR_RANDOMPORT;
+
+	attrmask = 0;
+	attrmask |= DNS_DISPATCHATTR_UDP;
+	attrmask |= DNS_DISPATCHATTR_TCP;
+	attrmask |= DNS_DISPATCHATTR_IPV4;
+	attrmask |= DNS_DISPATCHATTR_IPV6;
+
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
+		INSIST(res->dispatchv4 != NULL);
+		result = dns_dispatch_getlocaladdress(res->dispatchv4, &addr4);
+		INSIST(result == ISC_R_SUCCESS &&
+		       isc_sockaddr_getport(&addr4) == 0);
+		res->dispatchv4pool = isc_mem_get(res->mctx,
+						  sizeof(dns_dispatch_t *) *
+						  ndisps);
+		if (res->dispatchv4pool == NULL)
+			return (ISC_R_NOMEMORY);
+		for (i = 0; i < ndisps; i++)
+			res->dispatchv4pool[i] = NULL;
+	}
+	if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
+		INSIST(res->dispatchv6 != NULL);
+		result = dns_dispatch_getlocaladdress(res->dispatchv6, &addr6);
+		INSIST(result == ISC_R_SUCCESS &&
+		       isc_sockaddr_getport(&addr6) == 0);
+		res->dispatchv6pool = isc_mem_get(res->mctx,
+						  sizeof(dns_dispatch_t *) *
+						  ndisps);
+		if (res->dispatchv6pool == NULL) {
+			isc_mem_put(res->mctx, res->dispatchv4pool,
+				    sizeof(dns_dispatch_t *) * ndisps);
+			res->dispatchv4pool = NULL;
+			return (ISC_R_NOMEMORY);
+		}
+		for (i = 0; i < ndisps; i++)
+			res->dispatchv6pool[i] = NULL;
+	}
+
+	for (i = 0; i < ndisps; i++) {
+		if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL4) != 0) {
+			attrs = attrs_base;
+			attrs |= DNS_DISPATCHATTR_IPV4;
+
+			disp = NULL;
+			result = dns_dispatch_getudp(res->dispatchmgr,
+						     res->socketmgr,
+						     res->taskmgr, &addr4,
+						     4096, 1000, 32768, 16411,
+						     16433, attrs, attrmask,
+						     &disp);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+			res->dispatchv4pool[i] = disp;
+
+			/*
+			 * It might be better to ensure all ports are
+			 * different, but in practice it's probably okay to
+			 * assume dns_dispatch_getudp() made reasonable
+			 * choices.
+			 */
+		}
+		if ((res->options & DNS_RESOLVER_USEDISPATCHPOOL6) != 0) {
+			attrs = attrs_base;
+			attrs |= DNS_DISPATCHATTR_IPV6;
+
+			disp = NULL;
+			result = dns_dispatch_getudp(res->dispatchmgr,
+						     res->socketmgr,
+						     res->taskmgr, &addr6,
+						     4096, 1000, 32768, 16411,
+						     16433, attrs, attrmask,
+						     &disp);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+
+			res->dispatchv6pool[i] = disp;
+		}
+	}
+
+	/* start update timer */
+	if (tick != 0) { 
+		task = NULL;
+		result = isc_task_create(res->taskmgr, 0, &task);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+		isc_interval_set(&interval, tick, 0);
+		result = isc_timer_create(res->timermgr, isc_timertype_ticker,
+					  NULL, &interval, task,
+					  disppooltimer_update,
+					  res, &res->disppooltimer);
+		isc_task_detach(&task);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
+	}
+
+	res->ndisps = ndisps;
+	res->nextdisp = 0;
+
+	return (result);
+
+  cleanup:
+	for (i = 0; i < ndisps; i++) {
+		if (res->dispatchv4pool[i] != NULL)
+			dns_dispatch_detach(&res->dispatchv4pool[i]);
+		if (res->dispatchv6pool[i] != NULL)
+			dns_dispatch_detach(&res->dispatchv6pool[i]);
+	}
+	if (res->dispatchv4pool != NULL) {
+		isc_mem_put(res->mctx, res->dispatchv4pool,
+			    sizeof(dns_dispatch_t *) * ndisps);
+	}
+	if (res->dispatchv6pool != NULL) {
+		isc_mem_put(res->mctx, res->dispatchv6pool,
+			    sizeof(dns_dispatch_t *) * ndisps);
+	}
+
+	return (result);
 }

@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.312 2007/01/29 23:57:22 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.313 2007/02/02 02:18:05 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4443,6 +4443,9 @@ category notify { null; };
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> | 
 	<optional> address ( <replaceable>ip6_addr</replaceable> | <replaceable>*</replaceable> ) </optional> 
 	<optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional> ) ; </optional>
+    <optional> use-queryport-pool <replaceable>yse_or_no</replaceable>; </optional>
+    <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
+    <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-in <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-time-out <replaceable>number</replaceable>; </optional>
     <optional> max-transfer-idle-in <replaceable>number</replaceable>; </optional>
@@ -6074,7 +6077,7 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
           </para>
         </sect3>
 
-        <sect3>
+        <sect3 id="query_address">
           <title>Query Address</title>
           <para>
             If the server doesn't know the answer to a question, it will
@@ -6085,22 +6088,61 @@ listen-on-v6 port 1234 { !2001:db8::/32; any; };
             a wildcard IP address (<command>INADDR_ANY</command>)
             will be used.
             If <command>port</command> is <command>*</command> or is omitted,
-            a random unprivileged port will be used. The <command>avoid-v4-udp-ports</command>
+            a pool of random unprivileged port will be used.  See
+	    <command>use-queryport-pool</command>,
+	    <command>queryport-pool-ports</command> and
+	    <command>queryport-pool-updateinterval</command> for how the pool
+	    is configured.
+	    The <command>avoid-v4-udp-ports</command>
             and <command>avoid-v6-udp-ports</command> options can be used
             to prevent named
-            from selecting certain ports. The defaults are:
+            from selecting certain ports.
+	    The defaults are:
           </para>
 
 <programlisting>query-source address * port *;
 query-source-v6 address * port *;
 </programlisting>
 
+          <variablelist>
+            <varlistentry>
+              <term><command>use-queryport-pool</command></term>
+              <listitem>
+                <para>
+		  Enable they use of query port pools.  By default query port
+		  pools are enabled unless there is a explicit port defined
+		  in <command>query-source</command> or
+		  <command>query-source-v6</command>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+            <varlistentry>
+              <term><command>queryport-pool-ports</command></term>
+              <listitem>
+                <para>
+		  Specify how many pool ports to use.  The default is 8.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+            <varlistentry>
+              <term><command>queryport-pool-updateinterval</command></term>
+              <listitem>
+                <para>
+		  Specify how often, in minutes, that the queryport pool
+		  should be recreated (new ports selected).  The default
+		  is 15 minutes.
+		</para>
+	      </listitem>
+	    </varlistentry>
+	    
+          </variablelist>
           <note>
             <para>
               The address specified in the <command>query-source</command> option
               is used for both UDP and TCP queries, but the port applies only
-              to
-              UDP queries.  TCP queries always use a random
+              to UDP queries.  TCP queries always use a random
               unprivileged port.
             </para>
           </note>
@@ -7669,6 +7711,9 @@ query-source-v6 address * port *;
     <optional> query-source <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
     <optional> query-source-v6 <optional> address ( <replaceable>ip_addr</replaceable> | <replaceable>*</replaceable> ) </optional> <optional> port ( <replaceable>ip_port</replaceable> | <replaceable>*</replaceable> ) </optional>; </optional>
 };
+    <optional> use-queryport-pool <replaceable>yse_or_no</replaceable>; </optional>
+    <optional> queryport-pool-ports <replaceable>number</replaceable>; </optional>
+    <optional> queryport-pool-interval <replaceable>number</replaceable>; </optional>
 </programlisting>
 
         </sect2>

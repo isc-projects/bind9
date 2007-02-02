@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.85 2006/07/20 01:10:31 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.86 2007/02/02 02:18:03 marka Exp $ */
 
 /*! \file */
 
@@ -802,7 +802,9 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 					(void)dns_acl_match(&listen_netaddr,
 							    NULL, ele->acl,
 							    NULL, &match, NULL);
-					if (match > 0 && ele->port == le->port)
+					if (match > 0 &&
+					    (ele->port == le->port ||
+					    ele->port == 0))
 						break;
 					else
 						match = 0;

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.127 2006/07/19 00:42:13 marka Exp $ */
+/* $Id: dispatch.c,v 1.128 2007/02/02 02:18:06 marka Exp $ */
 
 /*! \file */
 
@@ -280,6 +280,20 @@ reseed_lfsr(isc_lfsr_t *lfsr, void *arg)
 
 	lfsr->count = (random() & 0x1f) + 32;	/* From 32 to 63 states */
 	lfsr->state = random();
+}
+
+/*
+ * Return an unpredictable non-reserved UDP port.  We share the QID
+ * framework for this purpose.
+ */
+static in_port_t
+get_randomport(dns_qid_t *qid) {
+	isc_uint32_t p;
+
+	p = isc_lfsr_generate32(&qid->qid_lfsr1, &qid->qid_lfsr2);
+
+	/* XXX: should the range be configurable? */
+	return ((in_port_t)(1024 + (p % (65535 - 1024))));
 }
 
 /*
@@ -1290,20 +1304,26 @@ dns_dispatchmgr_destroy(dns_dispatchmgr_t **mgrp) {
 }
 
 static isc_boolean_t
-blacklisted(dns_dispatchmgr_t *mgr, isc_socket_t *sock) {
+blacklisted(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
+	    isc_sockaddr_t *sockaddrp)
+{
 	isc_sockaddr_t sockaddr;
 	isc_result_t result;
+
+	REQUIRE(sock != NULL || sockaddrp != NULL);
 
 	if (mgr->portlist == NULL)
 		return (ISC_FALSE);
 
-	result = isc_socket_getsockname(sock, &sockaddr);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_FALSE);
+	if (sock != NULL) {
+		sockaddrp = &sockaddr;
+		result = isc_socket_getsockname(sock, sockaddrp);
+		if (result != ISC_R_SUCCESS)
+			return (ISC_FALSE);
+	}
 
-	if (mgr->portlist != NULL &&
-	    dns_portlist_match(mgr->portlist, isc_sockaddr_pf(&sockaddr),
-			       isc_sockaddr_getport(&sockaddr)))
+	if (dns_portlist_match(mgr->portlist, isc_sockaddr_pf(sockaddrp),
+			       isc_sockaddr_getport(sockaddrp)))
 		return (ISC_TRUE);
 	return (ISC_FALSE);
 }
@@ -1324,7 +1344,7 @@ local_addr_match(dns_dispatch_t *disp, isc_sockaddr_t *addr) {
 	if (disp->mgr->portlist != NULL &&
 	    isc_sockaddr_getport(addr) == 0 &&
 	    isc_sockaddr_getport(&disp->local) == 0 &&
-	    blacklisted(disp->mgr, disp->socket))
+	    blacklisted(disp->mgr, disp->socket, NULL))
 		return (ISC_FALSE);
 
 	/*
@@ -1669,7 +1689,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    dns_dispatch_t **dispp)
 {
 	isc_result_t result;
-	dns_dispatch_t *disp;
+	dns_dispatch_t *disp = NULL;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(sockmgr != NULL);
@@ -1689,10 +1709,14 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	LOCK(&mgr->lock);
 
+	if ((attributes & DNS_DISPATCHATTR_RANDOMPORT) != 0) {
+		REQUIRE(isc_sockaddr_getport(localaddr) == 0);
+		goto createudp;
+	}
+
 	/*
-	 * First, see if we have a dispatcher that matches.
+	 * See if we have a dispatcher that matches.
 	 */
-	disp = NULL;
 	result = dispatch_find(mgr, localaddr, attributes, mask, &disp);
 	if (result == ISC_R_SUCCESS) {
 		disp->refcount++;
@@ -1717,6 +1741,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		return (ISC_R_SUCCESS);
 	}
 
+ createudp:
 	/*
 	 * Nope, create one.
 	 */
@@ -1752,7 +1777,8 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	dns_dispatch_t *disp;
 	isc_socket_t *sock = NULL;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
-	unsigned int i = 0, j = 0;
+	unsigned int i = 0, j = 0, k = 0;
+	isc_sockaddr_t localaddr_bound;
 
 	/*
 	 * dispatch_allocate() checks mgr for us.
@@ -1768,11 +1794,30 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	 * from returning the same port to us too quickly.
 	 */
 	memset(held, 0, sizeof(held));
+	localaddr_bound = *localaddr;
  getsocket:
-	result = create_socket(sockmgr, localaddr, &sock);
+	if ((attributes & DNS_DISPATCHATTR_RANDOMPORT) != 0) {
+		isc_sockaddr_setport(&localaddr_bound,
+				     get_randomport(mgr->qid));
+		if (blacklisted(mgr, NULL, &localaddr_bound)) {
+			if (++k == 1024)
+				attributes &= ~DNS_DISPATCHATTR_RANDOMPORT;
+			goto getsocket;
+		}
+		result = create_socket(sockmgr, &localaddr_bound, &sock);
+		if (result == ISC_R_ADDRINUSE) {
+			if (++k == 1024)
+				attributes &= ~DNS_DISPATCHATTR_RANDOMPORT;
+			goto getsocket;
+		}
+	} else 
+		result = create_socket(sockmgr, localaddr, &sock);
 	if (result != ISC_R_SUCCESS)
 		goto deallocate_dispatch;
-	if (isc_sockaddr_getport(localaddr) == 0 && blacklisted(mgr, sock)) {
+	if ((attributes & DNS_DISPATCHATTR_RANDOMPORT) == 0 &&
+	    isc_sockaddr_getport(localaddr) == 0 &&
+	    blacklisted(mgr, sock, NULL))
+	{
 		if (held[i] != NULL)
 			isc_socket_detach(&held[i]);
 		held[i++] = sock;

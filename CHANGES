@@ -1,3 +1,7 @@
+2129.	[func]		Provide a pool of UDP sockets for queries to be
+			made over. See use-queryport-pool, queryport-pool-ports
+			and queryport-pool-updateinterval.  [RT #16415]
+
 2128.	[doc]		xsltproc --nonet, update DTD versions.  [RT #16635]
 
 2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]

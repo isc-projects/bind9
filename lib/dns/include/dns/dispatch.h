@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.h,v 1.52 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: dispatch.h,v 1.53 2007/02/02 02:18:06 marka Exp $ */
 
 #ifndef DNS_DISPATCH_H
 #define DNS_DISPATCH_H 1
@@ -113,6 +113,9 @@ struct dns_dispatchevent {
  * _MAKEQUERY
  *	The dispatcher can be used to issue queries to other servers, and
  *	accept replies from them.
+ *
+ * _RANDOMPORT
+ *	TBD
  */
 #define DNS_DISPATCHATTR_PRIVATE	0x00000001U
 #define DNS_DISPATCHATTR_TCP		0x00000002U
@@ -122,6 +125,7 @@ struct dns_dispatchevent {
 #define DNS_DISPATCHATTR_NOLISTEN	0x00000020U
 #define DNS_DISPATCHATTR_MAKEQUERY	0x00000040U
 #define DNS_DISPATCHATTR_CONNECTED	0x00000080U
+#define DNS_DISPATCHATTR_RANDOMPORT	0x00000100U
 /*@}*/
 
 isc_result_t

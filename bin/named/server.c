@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.475 2007/01/12 00:14:51 marka Exp $ */
+/* $Id: server.c,v 1.476 2007/02/02 02:18:05 marka Exp $ */
 
 /*! \file */
 
@@ -953,7 +953,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	const char *str;
 	dns_order_t *order = NULL;
 	isc_uint32_t udpsize;
-	unsigned int check = 0;
+	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
 	isc_uint32_t max_clients_per_query;
 	const char *sep = ": view ";
@@ -962,6 +962,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	isc_boolean_t rfc1918;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
+	isc_uint32_t nqports, qports_updateinterval;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -1184,14 +1185,13 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 
 	str = cfg_obj_asstring(obj);
 	if (strcasecmp(str, "fail") == 0) {
-		check = DNS_RESOLVER_CHECKNAMES |
+		resopts |= DNS_RESOLVER_CHECKNAMES |
 			DNS_RESOLVER_CHECKNAMESFAIL;
 		view->checknames = ISC_TRUE;
 	} else if (strcasecmp(str, "warn") == 0) {
-		check = DNS_RESOLVER_CHECKNAMES;
+		resopts |= DNS_RESOLVER_CHECKNAMES;
 		view->checknames = ISC_FALSE;
 	} else if (strcasecmp(str, "ignore") == 0) {
-		check = 0;
 		view->checknames = ISC_FALSE;
 	} else
 		INSIST(0);
@@ -1210,10 +1210,92 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 		result = ISC_R_UNEXPECTED;
 		goto cleanup;
 	}
+
+	obj = NULL;
+	(void)ns_config_get(maps, "use-queryport-pool", &obj);
+	if (obj == NULL || cfg_obj_asboolean(obj)) {
+		isc_sockaddr_t sa;
+		isc_boolean_t logit4 = ISC_FALSE, logit6 = ISC_FALSE;
+
+		resopts |= (DNS_RESOLVER_USEDISPATCHPOOL4 |
+			    DNS_RESOLVER_USEDISPATCHPOOL6);
+
+		/* Check consistency with query-source(-v6) */
+		if (dispatch4 == NULL)
+			resopts &= ~DNS_RESOLVER_USEDISPATCHPOOL4;
+		else {
+			result = dns_dispatch_getlocaladdress(dispatch4, &sa);
+			INSIST(result == ISC_R_SUCCESS);
+			if (isc_sockaddr_getport(&sa) != 0) {
+				logit4 = ISC_TRUE;
+				resopts &= ~DNS_RESOLVER_USEDISPATCHPOOL4;
+			}
+		}
+
+		if (dispatch6 == NULL)
+			resopts &= ~DNS_RESOLVER_USEDISPATCHPOOL6;
+		else {
+			result = dns_dispatch_getlocaladdress(dispatch6, &sa);
+			INSIST(result == ISC_R_SUCCESS);
+			if (isc_sockaddr_getport(&sa) != 0) {
+				logit6 = ISC_TRUE;
+				resopts &= ~DNS_RESOLVER_USEDISPATCHPOOL6;
+			}
+		}
+		if (logit4 && obj != NULL)
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "specific query-source port "
+				    "cannot coexist with queryport-pool. "
+				    "(Pool disabled)");
+		if (logit6 && obj != NULL)
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "specific query-source-v6 port "
+				    "cannot coexist with queryport-pool. "
+				    "(Pool disabled)");
+	}
+
 	CHECK(dns_view_createresolver(view, ns_g_taskmgr, 31,
 				      ns_g_socketmgr, ns_g_timermgr,
-				      check, ns_g_dispatchmgr,
+				      resopts, ns_g_dispatchmgr,
 				      dispatch4, dispatch6));
+
+	/*
+	 * Query-port pool parameters.
+	 */
+	obj = NULL;
+	nqports = 8;
+	result = ns_config_get(maps, "queryport-pool-ports", &obj);
+	if (result == ISC_R_SUCCESS) {
+		if ((resopts & (DNS_RESOLVER_USEDISPATCHPOOL4 |
+				DNS_RESOLVER_USEDISPATCHPOOL6)) == 0) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "queryport-pool-ports is effective only "
+				    "with 'use-queryport-pool yes' (ignored)");
+		} else
+			nqports = cfg_obj_asuint32(obj);
+	}
+
+	obj = NULL;
+	qports_updateinterval = 15;
+	result = ns_config_get(maps, "queryport-pool-updateinterval", &obj);
+	if (result == ISC_R_SUCCESS) {
+		if ((resopts & (DNS_RESOLVER_USEDISPATCHPOOL4 |
+				DNS_RESOLVER_USEDISPATCHPOOL6)) == 0) {
+			cfg_obj_log(obj, ns_g_lctx, ISC_LOG_ERROR,
+				    "queryport-pool-updateinterval is "
+				    "effective only with 'use-queryport-pool "
+				    "yes' (ignored)");
+		} else
+			qports_updateinterval = cfg_obj_asuint32(obj);
+	}
+
+	if ((resopts & (DNS_RESOLVER_USEDISPATCHPOOL4 |
+			DNS_RESOLVER_USEDISPATCHPOOL6)) != 0) {
+		CHECK(dns_resolver_createdispatchpool(view->resolver,
+						      nqports,
+						      qports_updateinterval
+						      * 60));
+	}
 
 	/*
 	 * Set the ADB cache size to 1/8th of the max-cache-size.
@@ -1241,7 +1323,7 @@ configure_view(dns_view_t *view, const cfg_obj_t *config,
 	result = ns_config_get(maps, "zero-no-soa-ttl-cache", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_resolver_setzeronosoattl(view->resolver, cfg_obj_asboolean(obj));
-	
+
 	/*
 	 * Set the resolver's EDNS UDP size.
 	 */
@@ -2376,7 +2458,9 @@ scan_interfaces(ns_server_t *server, isc_boolean_t verbose) {
 }
 
 static isc_result_t
-add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr) {
+add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
+	      isc_boolean_t wcardport_ok)
+{
 	ns_listenelt_t *lelt = NULL;
 	dns_acl_t *src_acl = NULL;
 	dns_aclelement_t aelt;
@@ -2386,7 +2470,8 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr) {
 	REQUIRE(isc_sockaddr_pf(addr) == AF_INET6);
 
 	isc_sockaddr_any6(&any_sa6);
-	if (!isc_sockaddr_equal(&any_sa6, addr)) {
+	if (!isc_sockaddr_equal(&any_sa6, addr) &&
+	    (wcardport_ok || isc_sockaddr_getport(addr) != 0)) {
 		aelt.type = dns_aclelementtype_ipprefix;
 		aelt.negative = ISC_FALSE;
 		aelt.u.ip_prefix.prefixlen = 128;
@@ -2438,6 +2523,8 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link)) {
 		dns_dispatch_t *dispatch6;
+		isc_boolean_t use_portpool = ISC_FALSE;
+		unsigned int resopts;
 
 		dispatch6 = dns_resolver_dispatchv6(view->resolver);
 		if (dispatch6 == NULL)
@@ -2445,7 +2532,19 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 		result = dns_dispatch_getlocaladdress(dispatch6, &addr);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
-		result = add_listenelt(mctx, list, &addr);
+		resopts = dns_resolver_getoptions(view->resolver);
+		if ((resopts & (DNS_RESOLVER_USEDISPATCHPOOL4 |
+				DNS_RESOLVER_USEDISPATCHPOOL6)) != 0) {
+			/*
+			 * If the resolver uses a dynamic pool of query ports
+			 * with a specific source address, some of the current
+			 * and future ports may override an existing wildcard
+			 * IPv6 port.  So we need to allow wildcard match
+			 * in this case.
+			 */
+			use_portpool = ISC_TRUE;
+		}
+		result = add_listenelt(mctx, list, &addr, use_portpool);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	}
@@ -2475,12 +2574,12 @@ adjust_interfaces(ns_server_t *server, isc_mem_t *mctx) {
 			continue;
 
 		addrp = dns_zone_getnotifysrc6(zone);
-		result = add_listenelt(mctx, list, addrp);
+		result = add_listenelt(mctx, list, addrp, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 
 		addrp = dns_zone_getxfrsource6(zone);
-		result = add_listenelt(mctx, list, addrp);
+		result = add_listenelt(mctx, list, addrp, ISC_FALSE);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 	}
