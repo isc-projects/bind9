@@ -113,7 +113,7 @@
 ./bin/named/include/named/update.h		C	1999,2000,2001,2004,2005
 ./bin/named/include/named/xfrout.h		C	1999,2000,2001,2004,2005
 ./bin/named/include/named/zoneconf.h		C	1999,2000,2001,2002,2004,2005,2006
-./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006
+./bin/named/interfacemgr.c			C	1999,2000,2001,2002,2004,2005,2006,2007
 ./bin/named/listenlist.c			C	2000,2001,2004,2005
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006
@@ -1252,7 +1252,7 @@
 ./doc/misc/ipv6					TXT.BRIEF	2000,2001,2004
 ./doc/misc/migration				TXT.BRIEF	2000,2001,2003,2004
 ./doc/misc/migration-4to9			TXT.BRIEF	2001,2004
-./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006
+./doc/misc/options				X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/misc/rfc-compliance			TXT.BRIEF	2001,2004
 ./doc/misc/roadmap				TXT.BRIEF	2000,2001,2004
 ./doc/misc/sdb					TXT.BRIEF	2000,2001,2004
@@ -1742,7 +1742,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006
@@ -1777,7 +1777,7 @@
 ./lib/dns/include/dns/dbiterator.h		C	1999,2000,2001,2004,2005,2006
 ./lib/dns/include/dns/dbtable.h			C	1999,2000,2001,2004,2005,2006
 ./lib/dns/include/dns/diff.h			C	2000,2001,2004,2005,2006
-./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/include/dns/dispatch.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/dlz.h			C.PORTION	1999,2000,2001,2005,2006
 ./lib/dns/include/dns/dnssec.h			C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/include/dns/ds.h			C	2002,2004,2005,2006
@@ -1811,7 +1811,7 @@
 ./lib/dns/include/dns/rdataslab.h		C	1999,2000,2001,2002,2004,2005,2006
 ./lib/dns/include/dns/rdatatype.h		C	1998,1999,2000,2001,2004,2005,2006
 ./lib/dns/include/dns/request.h			C	2000,2001,2002,2004,2005,2006
-./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006
+./lib/dns/include/dns/resolver.h		C	1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/dns/include/dns/result.h			C	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/include/dns/rootns.h			C	1999,2000,2001,2004,2005,2006
 ./lib/dns/include/dns/sdb.h			C	2000,2001,2004,2005,2006
@@ -2330,7 +2330,7 @@
 ./lib/isccfg/include/isccfg/namedconf.h		C	2002,2004,2005,2006
 ./lib/isccfg/include/isccfg/version.h		C	2001,2004,2005,2006
 ./lib/isccfg/log.c				C	2001,2004,2005,2006
-./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006
+./lib/isccfg/namedconf.c			C	2002,2003,2004,2005,2006,2007
 ./lib/isccfg/parser.c				C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isccfg/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isccfg/win32/DLLMain.c			C	2001,2004
