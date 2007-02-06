@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: query.c,v 1.292 2007/01/08 02:45:04 marka Exp $ */
+/* $Id: query.c,v 1.293 2007/02/06 04:00:21 marka Exp $ */
 
 /*! \file */
 
@@ -4388,7 +4388,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 }
 
 static inline void
-log_query(ns_client_t *client) {
+log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typename[DNS_RDATATYPE_FORMATSIZE];
 	char classname[DNS_RDATACLASS_FORMATSIZE];
@@ -4405,10 +4405,12 @@ log_query(ns_client_t *client) {
 	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
-		      level, "query: %s %s %s %s%s%s", namebuf, classname,
+		      level, "query: %s %s %s %s%s%s%s%s", namebuf, classname,
 		      typename, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S": "",
-		      (client->opt != NULL) ? "E" : "");
+		      (client->opt != NULL) ? "E" : "",
+		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
+		      ((flags & DNS_MESSAGEFLAG_CD) != 0) ? "C" : "");
 }
 
 void
@@ -4418,6 +4420,8 @@ ns_query_start(ns_client_t *client) {
 	dns_rdataset_t *rdataset;
 	ns_client_t *qclient;
 	dns_rdatatype_t qtype;
+	unsigned int saved_extflags = client->extflags;
+	unsigned int saved_flags = client->message->flags;
 
 	CTRACE("ns_query_start");
 
@@ -4490,7 +4494,7 @@ ns_query_start(ns_client_t *client) {
 	}
 
 	if (ns_g_server->log_queries)
-		log_query(client);
+		log_query(client, saved_flags, saved_extflags);
 
 	/*
 	 * Check for multiple question queries, since edns1 is dead.

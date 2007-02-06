@@ -18,7 +18,7 @@
  - PERFORMANCE OF THIS SOFTWARE.
 -->
 
-<!-- File: $Id: Bv9ARM-book.xml,v 1.313 2007/02/02 02:18:05 marka Exp $ -->
+<!-- File: $Id: Bv9ARM-book.xml,v 1.314 2007/02/06 04:00:21 marka Exp $ -->
 <book xmlns:xi="http://www.w3.org/2001/XInclude">
   <title>BIND 9 Administrator Reference Manual</title>
 
@@ -4200,15 +4200,18 @@ category notify { null; };
                       enable query logging unless <command>querylog</command> option has been
                       specified.
                     </para>
-                    <para>
-                      The query log entry reports the client's IP address and
-                      port number, and the
-                      query name, class and type.  It also reports whether the
-                      Recursion Desired
-                      flag was set (+ if set, - if not set), EDNS was in use
-                      (E) or if the
-                      query was signed (S).
-                    </para>
+
+		    <para>
+		      the query log entry reports the client's IP
+		      address and port number, and the query name,
+		      class and type.  It also reports whether the
+		      Recursion Desired flag was set (+ if set, -
+		      if not set), if the query was signed (S),
+		      EDNS was in use (E), if DO (DNSSSEC ok) was
+		      set (D), or if CD (checking disabled) was set
+		      (C).
+		    </para>
+
                     <para>
                       <computeroutput>client 127.0.0.1#62536: query: www.example.com IN AAAA +SE</computeroutput>
                     </para>
