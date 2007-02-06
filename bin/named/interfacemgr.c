@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: interfacemgr.c,v 1.86 2007/02/02 02:18:03 marka Exp $ */
+/* $Id: interfacemgr.c,v 1.87 2007/02/06 00:01:23 marka Exp $ */
 
 /*! \file */
 

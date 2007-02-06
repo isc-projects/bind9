@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.h,v 1.54 2007/02/02 02:18:06 marka Exp $ */
+/* $Id: resolver.h,v 1.55 2007/02/06 00:01:23 marka Exp $ */
 
 #ifndef DNS_RESOLVER_H
 #define DNS_RESOLVER_H 1
