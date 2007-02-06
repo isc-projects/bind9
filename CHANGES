@@ -1,3 +1,5 @@
+2131.	[contrib]	dlz/mysql: AXFR was broken. [RT #16630]
+
 2128.	[doc]		xsltproc --nonet, update DTD versions.  [RT #16635]
 
 	--- 9.4.0rc2 released ---

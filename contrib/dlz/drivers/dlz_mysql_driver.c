@@ -648,7 +648,7 @@ mysql_allnodes(const char *zone, void *driverarg, void *dbdata,
 		}
 		if (fields == 4) {
 			/* tell Bind about it. */
-			result = dns_sdlz_putnamedrr(allnodes, safeGet(row[0]),
+			result = dns_sdlz_putnamedrr(allnodes, safeGet(row[2]),
 						     safeGet(row[1]), ttl,
 						     safeGet(row[3]));
 		} else {
