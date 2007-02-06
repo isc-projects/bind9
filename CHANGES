@@ -1,3 +1,5 @@
+2131.	[contrib]	dlz/mysql: AXFR was broken. [RT #16630]
+
 2130.	[func]		Log if CD or DO were set. [RT #16640]
 
 2129.	[func]		Provide a pool of UDP sockets for queries to be
