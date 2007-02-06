@@ -900,7 +900,7 @@
 ./contrib/dlz/drivers/dlz_drivers.c		X	2005
 ./contrib/dlz/drivers/dlz_filesystem_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_ldap_driver.c		X	2005
-./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005
+./contrib/dlz/drivers/dlz_mysql_driver.c	X	2005,2007
 ./contrib/dlz/drivers/dlz_odbc_driver.c		X	2005
 ./contrib/dlz/drivers/dlz_postgres_driver.c	X	2005
 ./contrib/dlz/drivers/dlz_stub_driver.c		X	2005
@@ -1284,6 +1284,7 @@
 ./docutil/HTML_COPYRIGHT			X	2001,2004
 ./docutil/MAN_COPYRIGHT				X	2001,2004
 ./docutil/patch-db2latex-duplicate-template-bug	X	2007
+./docutil/patch-db2latex-nested-param-bug	X	2007
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007
 ./install-sh					X	1998,1999,2000,2001
 ./isc-config.sh.in				SH	2000,2001,2003,2004
