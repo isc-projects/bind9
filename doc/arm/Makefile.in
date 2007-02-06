@@ -13,7 +13,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: Makefile.in,v 1.8.2.2.8.7 2007/01/18 00:06:08 marka Exp $
+# $Id: Makefile.in,v 1.8.2.2.8.8 2007/02/06 23:44:28 marka Exp $
 
 srcdir =	@srcdir@
 VPATH =		@srcdir@
@@ -52,12 +52,12 @@ Bv9ARM.tex: Bv9ARM-book.xml
 
 Bv9ARM.dvi: Bv9ARM.tex
 	rm -f Bv9ARM-book.aux Bv9ARM-book.dvi Bv9ARM-book.log
-	${LATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
-	${LATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
-	${LATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
+	${LATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
+	${LATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
+	${LATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
 
 Bv9ARM.pdf: Bv9ARM.tex
 	rm -f Bv9ARM-book.aux Bv9ARM-book.pdf Bv9ARM-book.log
-	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
-	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
-	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || rm -f $@
+	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
+	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
+	${PDFLATEX} '\batchmode\input Bv9ARM.tex' || (rm -f $@; exit 1)
