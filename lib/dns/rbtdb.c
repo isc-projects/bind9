@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.27 2007/02/05 03:47:45 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.28 2007/02/06 00:01:22 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
