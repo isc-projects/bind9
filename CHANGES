@@ -1,3 +1,6 @@
+2132.	[bug]		Missing unlock on out of memory in
+			dns_dispatchmgr_setudp().
+
 2128.	[doc]		xsltproc --nonet, update DTD versions.  [RT #16635]
 
 2127.	[port]		Improved OpenSSL 0.9.8 support. [RT #16563]
