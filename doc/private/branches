@@ -12,11 +12,10 @@ Branch				Status	Whom	// Comments
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
 custom_WFB_v9_3_3		private	
-dighost				closed	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
-jinmei_libdnsng			open
+jinmei_libdnsng			open	
 libbind_clean			open	jinmei
 marka_libdnsng			open	
 mlg-20000518			open	explorer
@@ -62,8 +61,9 @@ rt16612				review	marka	// post 9.4.0
 rt16613				review	marka	// post 9.4.0
 rt16619				review	marka	// post 9.4.0
 rt16622				review	marka	// post 9.4.0
-rt16640				closed	marka
 rt16641				review	marka	// post 9.4.0
+rt16653				new	marka	// 2007-02-07 05:11 +0000
+rt16654				new	marka	// 2007-02-07 06:10 +0000
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
@@ -104,6 +104,7 @@ chroot				closed
 compiled_zonefile		closed		// wire format zone file, under development (moved to rt13587)
 da				closed		// aborted DNSSEC DA flag
 delegation_only			closed
+dighost				closed
 dlz				closed		// old version of dlz patch, merge never completed
 ds				closed
 ds13				closed
@@ -504,6 +505,7 @@ rt16555				closed
 rt16563				closed
 rt16584				closed
 rt16635				closed
+rt16640				closed
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
