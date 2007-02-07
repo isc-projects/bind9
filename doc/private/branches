@@ -12,14 +12,14 @@ Branch				Status	Whom	// Comments
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
 custom_WFB_v9_3_3		private	
-dighost				open	
+dighost				closed	
 gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
-jinmei_libdnsng			open	
+jinmei_libdnsng			open
 libbind_clean			open	jinmei
 marka_libdnsng			open	
-mlg-20000518			open	
+mlg-20000518			open	explorer
 newresolver0			open	
 openssl_stub			open	marka
 rt10864				open	marka	// NSEC caching @ delegation
@@ -57,21 +57,21 @@ rt16437				open
 rt16443				open	
 rt16519				open		// epsilon for .DE
 rt16592				open	
-rt16609				open	
-rt16612				open	
-rt16613				open	
-rt16619				open	
-rt16622				new	marka	// 2007-01-30 23:59 +0000
-rt16640				new	marka	// 2007-01-31 01:08 +0000
-rt16641				new	marka	// 2007-02-01 01:18 +0000
+rt16609				review	marka	// post 9.4.0
+rt16612				review	marka	// post 9.4.0
+rt16613				review	marka	// post 9.4.0
+rt16619				review	marka	// post 9.4.0
+rt16622				review	marka	// post 9.4.0
+rt16640				closed	marka
+rt16641				review	marka	// post 9.4.0
 rt1727				open		// ixfr-from-differences workfile
-skan				open	
-skan-metazones1			private	
-skan_implicit_update1		open	
-skan_stats1			open	
-skan_stats2			open	
-skan_stats3			open	
-skan_stats4			open	
+skan				open	explorer
+skan-metazones1			private	explorer
+skan_implicit_update1		open	explorer
+skan_stats1			open	explorer
+skan_stats2			open	explorer
+skan_stats3			open	explorer
+skan_stats4			open	explorer
 sp1213				open	
 stats_lidl			open	
 v6source			open	
