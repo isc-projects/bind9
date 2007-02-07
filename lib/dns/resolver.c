@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.341 2007/02/02 02:18:06 marka Exp $ */
+/* $Id: resolver.c,v 1.342 2007/02/07 04:49:18 marka Exp $ */
 
 /*! \file */
 
@@ -7207,7 +7207,7 @@ static void
 disppooltimer_update(isc_task_t *task, isc_event_t *event) {
 	dns_resolver_t *res = event->ev_arg;
 	isc_sockaddr_t addr4, addr6;
-	dns_dispatch_t *disp4, *disp6;
+	dns_dispatch_t *disp4 = NULL, *disp6 = NULL;
 	isc_result_t result;
 	unsigned int nxt;
 	unsigned int attrs_base, attrs, attrmask;
@@ -7252,7 +7252,6 @@ disppooltimer_update(isc_task_t *task, isc_event_t *event) {
 		attrs = attrs_base;
 		attrs |= DNS_DISPATCHATTR_IPV4;
 
-		disp4 = NULL;
 		result = dns_dispatch_getudp(res->dispatchmgr,
 					     res->socketmgr,
 					     res->taskmgr, &addr4,
@@ -7277,7 +7276,6 @@ disppooltimer_update(isc_task_t *task, isc_event_t *event) {
 		attrs = attrs_base;
 		attrs |= DNS_DISPATCHATTR_IPV6;
 
-		disp6 = NULL;
 		result = dns_dispatch_getudp(res->dispatchmgr,
 					     res->socketmgr,
 					     res->taskmgr, &addr6,
