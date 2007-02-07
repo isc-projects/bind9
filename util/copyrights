@@ -1088,7 +1088,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.pdf				X	2005,2006
-./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005
+./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2007
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/latex-fixup.pl			PERL	2005
 ./doc/design/addressdb				TXT.BRIEF	2000,2001,2004
@@ -1589,7 +1589,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004
 ./lib/dns/diff.c				C	2000,2001,2002,2004
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2006
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2006,2007
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/dst_api.c				C.NAI	1999,2000,2001,2003,2004,2006
 ./lib/dns/dst_internal.h			C.NAI	2000,2001,2004
