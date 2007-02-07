@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.101.2.6.2.13 2006/07/19 00:44:04 marka Exp $ */
+/* $Id: dispatch.c,v 1.101.2.6.2.14 2007/02/07 05:42:17 marka Exp $ */
 
 #include <config.h>
 
@@ -1239,6 +1239,7 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 
 	if (isc_mempool_create(mgr->mctx, buffersize,
 			       &mgr->bpool) != ISC_R_SUCCESS) {
+		UNLOCK(&mgr->buffer_lock);
 		return (ISC_R_NOMEMORY);
 	}
 
