@@ -1194,7 +1194,7 @@
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.pdf				X	2005,2006
-./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006
+./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005
 ./doc/arm/isc-logo.pdf				X	2005
@@ -1730,7 +1730,7 @@
 ./lib/dns/dbiterator.c				C	1999,2000,2001,2004,2005
 ./lib/dns/dbtable.c				C	1999,2000,2001,2004,2005
 ./lib/dns/diff.c				C	2000,2001,2002,2003,2004,2005
-./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/dispatch.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/dlz.c					C.PORTION	1999,2000,2001,2005
 ./lib/dns/dnssec.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/ds.c					C	2002,2003,2004,2005,2006
