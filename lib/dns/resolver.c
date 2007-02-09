@@ -15,7 +15,7 @@
  * WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.10 2002/04/19 01:11:16 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.10.2.1 2007/02/09 00:05:54 marka Exp $ */
 
 #include <config.h>
 
@@ -696,6 +696,8 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	result = fctx_startidletimer(fctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+
+	INSIST(ISC_LIST_EMPTY(fctx->validators));
 
 	dns_message_reset(fctx->rmessage, DNS_MESSAGE_INTENTPARSE);
 
@@ -2443,11 +2445,20 @@ maybe_destroy(fetchctx_t *fctx) {
 	unsigned int bucketnum;
 	isc_boolean_t bucket_empty = ISC_FALSE;
 	dns_resolver_t *res = fctx->res;
+	dns_validator_t *validator;
 
 	REQUIRE(SHUTTINGDOWN(fctx));
 
-	if (fctx->pending != 0 || !ISC_LIST_EMPTY(fctx->validators))
+	if (fctx->pending != 0)
 		return;
+
+	for (validator = ISC_LIST_HEAD(fctx->validators);
+	     validator != NULL;
+	     validator = ISC_LIST_HEAD(fctx->validators)) {
+		ISC_LIST_UNLINK(fctx->validators, validator, link);
+		dns_validator_cancel(validator);
+		dns_validator_destroy(&validator);
+	}
 
 	bucketnum = fctx->bucketnum;
 	LOCK(&res->buckets[bucketnum].lock);
@@ -2631,7 +2642,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 			goto noanswer_response;
 	}
 
-	if (sentresponse) {
+	if (!ISC_LIST_EMPTY(fctx->validators))
+		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
+	else if (sentresponse) {
 		/*
 		 * If we only deferred the destroy because we wanted to cache
 		 * the data, destroy now.
@@ -2651,6 +2664,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		 * more rdatasets that still need to
 		 * be validated.
 		 */
+		dns_validator_send(ISC_LIST_HEAD(fctx->validators));
 		goto cleanup_event;
 	}
 
@@ -2699,6 +2713,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 	unsigned int options;
 	isc_task_t *task;
 	dns_validator_t *validator;
+	unsigned int valoptions = 0;
 
 	/*
 	 * The appropriate bucket lock must be held.
@@ -2886,15 +2901,18 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 						rdataset,
 						sigrdataset,
 						fctx->rmessage,
-						0,
+						valoptions,
 						task,
 						validated,
 						fctx,
 						&validator);
-					if (result == ISC_R_SUCCESS)
+					if (result == ISC_R_SUCCESS) {
 						ISC_LIST_APPEND(
 							fctx->validators,
 							validator, link);
+						valoptions |=
+							 DNS_VALIDATOR_DEFER;
+					}
 				}
 			}
 		} else if (!EXTERNAL(rdataset)) {
@@ -2967,7 +2985,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, isc_stdtime_t now) {
 					      valrdataset,
 					      valsigrdataset,
 					      fctx->rmessage,
-					      0,
+					      valoptions,
 					      task,
 					      validated,
 					      fctx,
