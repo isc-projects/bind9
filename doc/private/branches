@@ -63,6 +63,7 @@ rt16613				review	marka	// post 9.4.0
 rt16619				review	marka	// post 9.4.0
 rt16622				review	marka	// post 9.4.0
 rt16641				review	marka	// post 9.4.0
+rt16647				new	marka	// 2007-02-09 02:18 +0000
 rt16653				new	marka	// 2007-02-07 05:11 +0000
 rt16654				new	marka	// 2007-02-07 06:10 +0000
 rt16655				new	marka	// 2007-02-08 02:41 +0000
@@ -81,6 +82,7 @@ v9_1				active		// security fixes only
 v9_1_1_patch			active		// security fixes 9.1.1 only	
 v9_2				active	
 v9_2_0_patch			active		// security fixes 9.2.0 only
+v9_2_1_patch			new	marka	// 2007-02-08 23:46 +0000
 v9_2_2_delegation_only		active		// 9.2.2-P1, 9.2.2-P2, 9.2.2-P3
 v9_2_2base			active		// security fixes 9.2.2 only 
 v9_2_4base			active		// security fixes 9.2.4 only
