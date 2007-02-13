@@ -80,13 +80,13 @@
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
 ./bin/named/.cvsignore				X	1999,2000,2001,2007
-./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006
+./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007
 ./bin/named/bind9.xsl				SGML	2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
-./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/config.c				C	2001,2002,2003,2004,2005,2006
 ./bin/named/control.c				C	2001,2002,2003,2004,2005,2006
-./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006
+./bin/named/controlconf.c			C	2001,2002,2003,2004,2005,2006,2007
 ./bin/named/convertxsl.pl			PERL	2006
 ./bin/named/include/named/builtin.h		C	2001,2004,2005
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -2013,7 +2013,7 @@
 ./lib/dns/win32/libdns.dsw			X	2001
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2005,2006
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2004
-./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006
@@ -2036,7 +2036,7 @@
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005
 ./lib/isc/hmacmd5.c				C	2000,2001,2004,2005,2006
 ./lib/isc/hmacsha.c				C	2005,2006
-./lib/isc/httpd.c				C	2006
+./lib/isc/httpd.c				C	2006,2007
 ./lib/isc/ia64/include/isc/atomic.h		C	2006
 ./lib/isc/include/.cvsignore			X	1998,1999,2000,2001
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004
@@ -2073,7 +2073,7 @@
 ./lib/isc/include/isc/log.h			C	1999,2000,2001,2002,2004,2005,2006
 ./lib/isc/include/isc/magic.h			C	1999,2000,2001,2004,2005,2006
 ./lib/isc/include/isc/md5.h			C	2000,2001,2004,2005,2006
-./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006
+./lib/isc/include/isc/mem.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007
 ./lib/isc/include/isc/msgcat.h			C	1999,2000,2001,2004,2005
 ./lib/isc/include/isc/msgs.h			C	2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006
@@ -2117,7 +2117,7 @@
 ./lib/isc/lib.c					C	1999,2000,2001,2004,2005
 ./lib/isc/log.c					C	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/md5.c					C	2000,2001,2004,2005
-./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/mem.c					C	1997,1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/mips/include/isc/atomic.h		C	2005
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005
@@ -2215,7 +2215,7 @@
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2004,2005
 ./lib/isc/unix/strerror.c			C	2001,2004,2005
 ./lib/isc/unix/syslog.c				C	2001,2004,2005
-./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006
+./lib/isc/unix/time.c				C	1998,1999,2000,2001,2003,2004,2005,2006,2007
 ./lib/isc/version.c				C	1998,1999,2000,2001,2004,2005
 ./lib/isc/win32/.cvsignore			X	1999,2000,2001
 ./lib/isc/win32/DLLMain.c			C	2001,2004
