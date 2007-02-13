@@ -50,7 +50,7 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: sdlz.c,v 1.2.2.7 2006/12/07 23:57:58 marka Exp $ */
+/* $Id: sdlz.c,v 1.2.2.8 2007/02/13 23:37:37 marka Exp $ */
 
 /*! \file */
 
@@ -784,8 +784,10 @@ find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 	dns_fixedname_init(&fname);
 	xname = dns_fixedname_name(&fname);
 
-	if (rdataset == NULL)
+	if (rdataset == NULL) {
+		dns_rdataset_init(&xrdataset);
 		rdataset = &xrdataset;
+	}
 
 	result = DNS_R_NXDOMAIN;
 
