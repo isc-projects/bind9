@@ -8,7 +8,6 @@ Branch				Status	Whom	// Comments
 				review		ready for review
 				private		private branch
 				closed		finished with
-				commit		awaiting commit
 
 custom_WFB_v9_3_1		private	
 custom_WFB_v9_3_2		private	
@@ -50,9 +49,7 @@ rt16157				open
 rt16288				review	
 rt16288_best_to_first_match	new	
 rt16291				new	each	// 2007-02-06 22:29 +0000
-rt16354				closed	
 rt16402				open	
-rt16415				closed	
 rt16428				open	
 rt16437				open	marka	// post 9.4.0
 rt16443				open	marka	// post 9.4.0
@@ -64,7 +61,6 @@ rt16613				commit	marka	// post 9.4.0
 rt16619				commit	marka	// post 9.4.0
 rt16622				commit	marka	// post 9.4.0
 rt16641				commit	marka	// post 9.4.0
-rt16647				closed	marka	// 2007-02-09 02:18 +0000
 rt16653				review	marka	// 2007-02-07 05:11 +0000
 rt16654				review	marka	// 2007-02-07 06:10 +0000
 rt16655				review	marka	// 2007-02-08 02:41 +0000
@@ -485,6 +481,7 @@ rt16320				closed
 rt16324				closed
 rt16326				closed
 rt16341				closed
+rt16354				closed
 rt16361				closed
 rt16363				closed
 rt16388				closed
@@ -493,6 +490,7 @@ rt16399				closed
 rt16401				closed
 rt16403				closed
 rt16411				closed
+rt16415				closed
 rt16417				closed
 rt16426				closed
 rt16427				closed
@@ -512,6 +510,7 @@ rt16563				closed
 rt16584				closed
 rt16635				closed
 rt16640				closed
+rt16647				closed		// 2007-02-09 02:18 +0000
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
