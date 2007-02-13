@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.h,v 1.69 2006/12/22 01:45:00 marka Exp $ */
+/* $Id: mem.h,v 1.70 2007/02/13 02:49:08 marka Exp $ */
 
 #ifndef ISC_MEM_H
 #define ISC_MEM_H 1
@@ -28,6 +28,7 @@
 #include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
+#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -537,6 +538,11 @@ void *
 isc__mempool_get(isc_mempool_t * _ISC_MEM_FLARG);
 void 		
 isc__mempool_put(isc_mempool_t *, void * _ISC_MEM_FLARG);
+
+#ifdef HAVE_LIBXML2
+void
+isc_mem_renderxml(isc_mem_t *mgr, xmlTextWriterPtr writer);
+#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

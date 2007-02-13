@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.476 2007/02/02 02:18:05 marka Exp $ */
+/* $Id: server.c,v 1.477 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -237,7 +237,7 @@ render_xsl(const char *url, const char *querystring, void *args,
 	   void **freecb_args);
 
 void
-server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf);
+server_generatexml(ns_server_t *server, int *buflen, xmlChar **buf);
 
 #endif /* HAVE_LIBXML2 */
 
@@ -3663,11 +3663,13 @@ server_httpd_create(ns_server_t *server)
 	task = NULL;
 	result = isc_task_create(ns_g_taskmgr, 0, &task);
 	INSIST(result == ISC_R_SUCCESS);
+	isc_task_setname(task, "httpd", NULL);
 
 	sock = NULL;
 	result = isc_socket_create(ns_g_socketmgr, PF_INET,
 				   isc_sockettype_tcp, &sock);
 	INSIST(result == ISC_R_SUCCESS);
+	isc_socket_setname(sock, "httpd", NULL);
 
 	result = isc_socket_bind(sock, &server->httpd_sockaddr);
 	INSIST(result == ISC_R_SUCCESS);
@@ -5259,7 +5261,7 @@ ns_smf_add_message(isc_buffer_t *text) {
 #define SPACES 3
 
 void
-server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
+server_generatexml(ns_server_t *server, int *buflen, xmlChar **buf)
 {
 	char boottime[sizeof "yyyy-mm-ddThh:mm:ssZ"];
 	char nowstr[sizeof "yyyy-mm-ddThh:mm:ssZ"];
@@ -5299,6 +5301,14 @@ server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
 	}
 	TRY0(xmlTextWriterEndElement(writer)); /* views */
 
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "socketmgr"));
+	isc_socketmgr_renderxml(ns_g_socketmgr, writer);
+	TRY0(xmlTextWriterEndElement(writer)); /* socketmgr */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "taskmgr"));
+	isc_taskmgr_renderxml(ns_g_taskmgr, writer);
+	TRY0(xmlTextWriterEndElement(writer)); /* taskmgr */
+
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "server"));
 	xmlTextWriterStartElement(writer, ISC_XMLCHAR "boot-time");
 	xmlTextWriterWriteString(writer, ISC_XMLCHAR boottime);
@@ -5317,6 +5327,10 @@ server_generatexml(ns_server_t *server, unsigned int *buflen, xmlChar **buf)
 	}
 	xmlTextWriterEndElement(writer); /* counters */
 	xmlTextWriterEndElement(writer); /* server */
+
+	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "memory"));
+	isc_mem_renderxml(server->mctx, writer);
+	TRY0(xmlTextWriterEndElement(writer)); /* memory */
 
 	TRY0(xmlTextWriterEndElement(writer)); /* statistics */
 	TRY0(xmlTextWriterEndElement(writer)); /* bind */
@@ -5345,7 +5359,7 @@ render_index(const char *url, const char *querystring, void *arg,
 	     void **freecb_args)
 {
 	unsigned char *msg;
-	unsigned int msglen;
+	int msglen;
 	ns_server_t *server = arg;
 
 	UNUSED(url);

@@ -4,3 +4,4 @@ Makefile
 *.lo
 named
 lwresd
+bind9.xsl.h

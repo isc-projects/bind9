@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.h,v 1.70 2007/01/12 00:14:51 marka Exp $ */
+/* $Id: socket.h,v 1.71 2007/02/13 02:49:08 marka Exp $ */
 
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
@@ -64,6 +64,7 @@
 #include <isc/time.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
+#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -794,6 +795,33 @@ isc_socket_permunix(isc_sockaddr_t *sockaddr, isc_uint32_t perm,
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_FAILURE
  */
+
+void isc_socket_setname(isc_socket_t *socket, const char *name, void *tag);
+/*%<
+ * Set the name and optional tag for a socket.  This allows tracking of the
+ * owner or purpose for this socket, and is useful for tracing and statistics
+ * reporting.
+ */
+
+const char *isc_socket_getname(isc_socket_t *socket);
+/*%<
+ * Get the name associated with a socket, if any.
+ */
+
+void *isc_socket_gettag(isc_socket_t *socket);
+/*%<
+ * Get the tag associated with a socket, if any.
+ */
+
+#ifdef HAVE_LIBXML2
+
+void
+isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
+/*%<
+ * Render internal statistics and other state into the XML document.
+ */
+
+#endif /* HAVE_LIBXML2 */
 
 ISC_LANG_ENDDECLS
 

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: time.c,v 1.51 2006/12/22 01:59:43 marka Exp $ */
+/* $Id: time.c,v 1.52 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -433,6 +433,6 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-	flen = strftime(buf, len, "%Y-%d-%dT%H:%M:%SZ", gmtime(&now));
+	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
 	INSIST(flen < len);
 }

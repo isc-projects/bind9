@@ -1,3 +1,5 @@
+2134.	[func]		Additional statistics support. [RT #16666]
+
 2133.	[port]		powerpc:  Support both IBM and MacOS Power PC
 			assembler syntaxes. [RT #16647]
 

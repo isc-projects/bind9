@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: lwdclient.c,v 1.19 2005/04/29 00:22:27 marka Exp $ */
+/* $Id: lwdclient.c,v 1.20 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -102,6 +102,7 @@ ns_lwdclientmgr_create(ns_lwreslistener_t *listener, unsigned int nclients,
 	result = isc_task_create(taskmgr, 0, &cm->task);
 	if (result != ISC_R_SUCCESS)
 		goto errout;
+	isc_task_setname(cm->task, "lwdclient", NULL);
 
 	/*
 	 * This MUST be last, since there is no way to cancel an onshutdown...

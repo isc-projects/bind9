@@ -79,7 +79,7 @@
 ./bin/dnssec/win32/signzone.dsp			X	2001,2004,2005,2006
 ./bin/dnssec/win32/signzone.dsw			X	2001
 ./bin/dnssec/win32/signzone.mak			X	2001,2004,2005,2006
-./bin/named/.cvsignore				X	1999,2000,2001
+./bin/named/.cvsignore				X	1999,2000,2001,2007
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006
 ./bin/named/bind9.xsl				SGML	2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004,2005
@@ -118,7 +118,7 @@
 ./bin/named/log.c				C	1999,2000,2001,2002,2004,2005,2006
 ./bin/named/logconf.c				C	1999,2000,2001,2004,2005,2006
 ./bin/named/lwaddr.c				C	2000,2001,2004,2005
-./bin/named/lwdclient.c				C	2000,2001,2004,2005
+./bin/named/lwdclient.c				C	2000,2001,2004,2005,2007
 ./bin/named/lwderror.c				C	2000,2001,2004,2005
 ./bin/named/lwdgabn.c				C	2000,2001,2004,2005,2006
 ./bin/named/lwdgnba.c				C	2000,2001,2002,2004,2005
@@ -2173,7 +2173,7 @@
 ./lib/isc/symtab.c				C	1996,1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/task.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/task_p.h				C	2000,2001,2004,2005
-./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005
+./lib/isc/taskpool.c				C	1999,2000,2001,2004,2005,2007
 ./lib/isc/timer.c				C	1998,1999,2000,2001,2002,2004,2005
 ./lib/isc/timer_p.h				C	2000,2001,2004,2005
 ./lib/isc/unix/.cvsignore			X	1998,1999,2000,2001

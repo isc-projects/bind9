@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.128 2006/12/08 05:09:16 marka Exp $ */
+/* $Id: mem.c,v 1.129 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -33,9 +33,9 @@
 #include <isc/once.h>
 #include <isc/ondestroy.h>
 #include <isc/string.h>
-
 #include <isc/mutex.h>
 #include <isc/util.h>
+#include <isc/xml.h>
 
 #define MCTXLOCK(m, l) if (((m)->flags & ISC_MEMFLAG_NOLOCK) == 0) LOCK(l)
 #define MCTXUNLOCK(m, l) if (((m)->flags & ISC_MEMFLAG_NOLOCK) == 0) UNLOCK(l)
@@ -1952,3 +1952,118 @@ isc_mem_checkdestroyed(FILE *file) {
 	}
 	UNLOCK(&lock);
 }
+
+#ifdef HAVE_LIBXML2
+
+void
+isc_mem_renderxml(isc_mem_t *ctx, xmlTextWriterPtr writer)
+{
+	size_t i;
+	const struct stats *s;
+	const isc_mempool_t *pool;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+	MCTXLOCK(ctx, &ctx->lock);
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "references");
+	xmlTextWriterWriteFormatString(writer, "%d", ctx->references);
+	xmlTextWriterEndElement(writer);
+
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "buckets");
+	for (i = 0; i <= ctx->max_size; i++) {
+		s = &ctx->stats[i];
+
+		if (s->totalgets == 0U && s->gets == 0U)
+			continue;
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "bucket");
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "size");
+		xmlTextWriterWriteFormatString(writer, "%d", i);
+		xmlTextWriterEndElement(writer); /* size */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "totalgets");
+		xmlTextWriterWriteFormatString(writer, "%lu", s->totalgets);
+		xmlTextWriterEndElement(writer); /* totalgets */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "gets");
+		xmlTextWriterWriteFormatString(writer, "%lu", s->gets);
+		xmlTextWriterEndElement(writer); /* gets */
+
+		if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0 &&
+		    (s->blocks != 0U || s->freefrags != 0U)) {
+			xmlTextWriterStartElement(writer,
+						  ISC_XMLCHAR "blocks");
+			xmlTextWriterWriteFormatString(writer, "%lu",
+						       s->blocks);
+			xmlTextWriterEndElement(writer); /* blocks */
+
+			xmlTextWriterStartElement(writer,
+						      ISC_XMLCHAR "freefrags");
+			xmlTextWriterWriteFormatString(writer, "%lu",
+						       s->freefrags);
+			xmlTextWriterEndElement(writer); /* freefrags */
+		}
+
+		xmlTextWriterEndElement(writer); /* bucket */
+	}
+	xmlTextWriterEndElement(writer); /* buckets */
+
+	/*
+	 * Note that since a pool can be locked now, these stats might be
+	 * somewhat off if the pool is in active use at the time the stats
+	 * are dumped.  The link fields are protected by the isc_mem_t's
+	 * lock, however, so walking this list and extracting integers from
+	 * stats fields is always safe.
+	 */
+	xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools");
+	pool = ISC_LIST_HEAD(ctx->pools);
+	while (pool != NULL) {
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "pool");
+
+		xmlTextWriterWriteElement(writer, ISC_XMLCHAR "name",
+					  ISC_XMLCHAR pool->name);
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "size");
+		xmlTextWriterWriteFormatString(writer, "%d", pool->size);
+		xmlTextWriterEndElement(writer); /* size */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxalloc");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->maxalloc);
+		xmlTextWriterEndElement(writer); /* maxalloc */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "allocated");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->allocated);
+		xmlTextWriterEndElement(writer); /* allocated */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "freecount");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->freecount);
+		xmlTextWriterEndElement(writer); /* freecount */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "freemax");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->freemax);
+		xmlTextWriterEndElement(writer); /* freemax */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "fillcount");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->fillcount);
+		xmlTextWriterEndElement(writer); /* fillcount */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "gets");
+		xmlTextWriterWriteFormatString(writer, "%u", pool->gets);
+		xmlTextWriterEndElement(writer); /* gets */
+
+		xmlTextWriterStartElement(writer, ISC_XMLCHAR "locked");
+		xmlTextWriterWriteFormatString(writer, "%s",
+					((pool->lock == NULL) ? "No" : "Yes"));
+		xmlTextWriterEndElement(writer); /* locked */
+
+		xmlTextWriterEndElement(writer); /* pool */
+
+		pool = ISC_LIST_NEXT(pool, link);
+	}
+	xmlTextWriterEndElement(writer); /* pools */
+
+	MCTXUNLOCK(ctx, &ctx->lock);
+}
+
+#endif /* HAVE_LIBXML2 */

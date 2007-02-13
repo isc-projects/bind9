@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dispatch.c,v 1.130 2007/02/07 05:40:50 marka Exp $ */
+/* $Id: dispatch.c,v 1.131 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -1072,6 +1072,7 @@ create_socket(isc_socketmgr_t *mgr, isc_sockaddr_t *local,
 				   isc_sockettype_udp, &sock);
 	if (result != ISC_R_SUCCESS)
 		return (result);
+	isc_socket_setname(sock, "dispatcher", NULL);
 
 #ifndef ISC_ALLOW_MAPPED
 	isc_socket_ipv6only(sock, ISC_TRUE);

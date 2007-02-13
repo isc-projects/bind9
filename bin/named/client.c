@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.240 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: client.c,v 1.241 2007/02/13 02:49:08 marka Exp $ */
 
 #include <config.h>
 
@@ -2064,6 +2064,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (nevent->result == ISC_R_SUCCESS) {
 		client->tcpsocket = nevent->newsocket;
+		isc_socket_setname(client->tcpsocket, "client-tcp", NULL);
 		client->state = NS_CLIENTSTATE_READING;
 		INSIST(client->recursionquota == NULL);
 

@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: httpd.c,v 1.7 2006/12/22 04:20:52 marka Exp $ */
+/* $Id: httpd.c,v 1.8 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -513,6 +513,7 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev)
 	ISC_LIST_APPEND(httpdmgr->running, httpd, link);
 	ISC_HTTPD_SETRECV(httpd);
 	httpd->sock = nev->newsocket;
+	isc_socket_setname(httpd->sock, "httpd", NULL);
 	httpd->flags = 0;
 
 	/*

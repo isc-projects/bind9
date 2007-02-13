@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: socket.c,v 1.47 2007/02/01 23:55:21 marka Exp $ */
+/* $Id: socket.c,v 1.48 2007/02/13 02:49:08 marka Exp $ */
 
 /* This code has been rewritten to take advantage of Windows Sockets
  * I/O Completion Ports and Events. I/O Completion Ports is ONLY
@@ -90,6 +90,8 @@
 #include <isc/win32os.h>
 
 #include "errno2result.h"
+
+#define ISC_SOCKET_NAMES 1
 
 /*
  * Define this macro to control the behavior of connection
@@ -3815,4 +3817,36 @@ isc_socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
 	UNUSED(owner);
 	UNUSED(group);
 	return (ISC_R_NOTIMPLEMENTED);
+}
+
+void
+isc_socket_setname(isc_socket_t *socket, const char *name, void *tag) {
+
+	/*
+	 * Name 'socket'.
+	 */
+
+	REQUIRE(VALID_SOCKET(socket));
+
+#ifdef ISC_SOCKET_NAMES
+	LOCK(&socket->lock);
+	memset(socket->name, 0, sizeof(socket->name));
+	strncpy(socket->name, name, sizeof(socket->name) - 1);
+	socket->tag = tag;
+	UNLOCK(&socket->lock);
+#else
+	UNUSED(name);
+	UNUSED(tag);
+#endif
+
+}
+
+const char *
+isc_socket_getname(isc_socket_t *socket) {
+	return (socket->name);
+}
+
+void *
+isc_socket_gettag(isc_socket_t *socket) {
+	return (socket->tag);
 }

@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.h,v 1.59 2007/01/12 00:14:51 marka Exp $ */
+/* $Id: task.h,v 1.60 2007/02/13 02:49:08 marka Exp $ */
 
 #ifndef ISC_TASK_H
 #define ISC_TASK_H 1
@@ -84,6 +84,7 @@
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
+#include <isc/xml.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
@@ -610,6 +611,13 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp);
  *\li	All resources used by the task manager, and any tasks it managed,
  *	have been freed.
  */
+
+#ifdef HAVE_LIBXML2
+
+void
+isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
+
+#endif
 
 ISC_LANG_ENDDECLS
 

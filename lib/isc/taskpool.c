@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: taskpool.c,v 1.15 2005/11/30 03:33:49 marka Exp $ */
+/* $Id: taskpool.c,v 1.16 2007/02/13 02:49:08 marka Exp $ */
 
 /*! \file */
 
@@ -66,6 +66,7 @@ isc_taskpool_create(isc_taskmgr_t *tmgr, isc_mem_t *mctx,
 			isc_taskpool_destroy(&pool);
 			return (result);
 		}
+		isc_task_setname(pool->tasks[i], "taskpool", NULL);
 	}
 	*poolp = pool;
 	return (ISC_R_SUCCESS);
