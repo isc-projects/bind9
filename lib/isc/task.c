@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: task.c,v 1.103 2007/02/13 02:49:08 marka Exp $ */
+/* $Id: task.c,v 1.104 2007/02/14 02:32:30 marka Exp $ */
 
 /*! \file
  * \author Principal Author: Bob Halley
@@ -68,9 +68,11 @@ typedef enum {
 	task_state_done
 } task_state_t;
 
+#ifdef HAVE_LIBXML2
 static const char *statenames[] = {
 	"idle", "ready", "running", "done",
 };
+#endif
 
 #define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
