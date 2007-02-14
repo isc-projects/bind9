@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.37 2006/12/07 06:07:56 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.38 2007/02/14 01:25:06 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -1526,7 +1526,7 @@ next_origin(dns_message_t *msg, dig_query_t *query) {
 	if (query->lookup->origin == NULL && query->lookup->need_search) {
 		lookup = requeue_lookup(query->lookup, ISC_TRUE);
 		lookup->origin = ISC_LIST_HEAD(search_list);
-		query->lookup->need_search = ISC_FALSE;
+		lookup->need_search = ISC_FALSE;
 	} else {
 		search = ISC_LIST_NEXT(query->lookup->origin, link);
 		if (search == NULL && query->lookup->done_as_is)

@@ -1,3 +1,6 @@
+2136.	[bug]		nslookup/host looped if there was no search list
+			and the host didn't exist. [RT #16657]
+
 2132.	[bug]		Missing unlock on out of memory in
 			dns_dispatchmgr_setudp().
 
