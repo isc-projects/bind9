@@ -1,3 +1,6 @@
+2137.	[port]		Mips little endian and/or mips 64 bit are now
+			supported for atomic operations. [RT#16653]
+
 2136.	[bug]		nslookup/host looped if there was no search list    
 			and the host didn't exist. [RT #16657]
 
