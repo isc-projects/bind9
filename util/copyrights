@@ -36,7 +36,7 @@
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/dig.docbook				SGML	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/dig/dig.html				HTML	DOCBOOK
-./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006
+./bin/dig/dighost.c				C	2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/dig/host.1				MAN	DOCBOOK
 ./bin/dig/host.c				C	2000,2001,2002,2003,2004,2005,2006
 ./bin/dig/host.docbook				SGML	2000,2001,2002,2004,2005,2007
@@ -1971,7 +1971,7 @@
 ./lib/dns/result.c				C	1998,1999,2000,2001,2002,2003,2004,2005
 ./lib/dns/rootns.c				C	1999,2000,2001,2002,2004,2005
 ./lib/dns/sdb.c					C	2000,2001,2003,2004,2005,2006
-./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006
+./lib/dns/sdlz.c				C.PORTION	1999,2000,2001,2005,2006,2007
 ./lib/dns/soa.c					C	2000,2001,2004,2005
 ./lib/dns/ssu.c					C	2000,2001,2003,2004,2005,2006
 ./lib/dns/stats.c				C	2000,2001,2004,2005
