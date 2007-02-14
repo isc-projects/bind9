@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.130 2007/02/14 00:27:26 marka Exp $ */
+/* $Id: mem.c,v 1.131 2007/02/14 02:39:44 marka Exp $ */
 
 /*! \file */
 
@@ -1979,7 +1979,7 @@ isc_mem_renderxml(isc_mem_t *ctx, xmlTextWriterPtr writer)
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "bucket");
 
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "size");
-		xmlTextWriterWriteFormatString(writer, "%d", i);
+		xmlTextWriterWriteFormatString(writer, "%ld", (long)i);
 		xmlTextWriterEndElement(writer); /* size */
 
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "totalgets");
@@ -2025,7 +2025,7 @@ isc_mem_renderxml(isc_mem_t *ctx, xmlTextWriterPtr writer)
 					  ISC_XMLCHAR pool->name);
 
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "size");
-		xmlTextWriterWriteFormatString(writer, "%d", pool->size);
+		xmlTextWriterWriteFormatString(writer, "%ld", (long)pool->size);
 		xmlTextWriterEndElement(writer); /* size */
 
 		xmlTextWriterStartElement(writer, ISC_XMLCHAR "maxalloc");
