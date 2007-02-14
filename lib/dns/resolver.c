@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.342 2007/02/07 04:49:18 marka Exp $ */
+/* $Id: resolver.c,v 1.343 2007/02/14 23:40:01 marka Exp $ */
 
 /*! \file */
 
@@ -6634,6 +6634,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 	isc_boolean_t new_fctx = ISC_FALSE;
 	isc_event_t *event;
 	unsigned int count = 0;
+	unsigned int spillat;
 
 	UNUSED(forwarders);
 
@@ -6662,6 +6663,9 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 
 	bucketnum = dns_name_fullhash(name, ISC_FALSE) % res->nbuckets;
 
+	LOCK(&res->lock);
+	spillat = res->spillat;
+	UNLOCK(&res->lock);
 	LOCK(&res->buckets[bucketnum].lock);
 
 	if (res->buckets[bucketnum].exiting) {
@@ -6695,12 +6699,8 @@ dns_resolver_createfetch2(dns_resolver_t *res, dns_name_t *name,
 		}
 	}
 	if (count >= res->spillatmin && res->spillatmin != 0) {
-		if (!fctx->spilled) {
-			LOCK(&fctx->res->lock);
-			if (count >= res->spillat)
-				fctx->spilled = ISC_TRUE;
-			UNLOCK(&fctx->res->lock);
-		}
+		if (count >= spillat)
+			fctx->spilled = ISC_TRUE;
 		if (fctx->spilled) {
 			result = DNS_R_DROP;
 			goto unlock;
