@@ -1,3 +1,6 @@
+2136.	[bug]		nslookup/host looped if there was no search list
+			and the host didn't exist. [RT #16657]
+
 2135.	[bug]		Uninitialised rdataset in sdlz.c. [RT# 16656]
 
 2134.	[func]		Additional statistics support. [RT #16666]
