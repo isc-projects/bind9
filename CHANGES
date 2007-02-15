@@ -3,7 +3,7 @@
 2137.	[port]		Mips little endian and/or mips 64 bit are now
 			supported for atomic operations. [RT#16648]
 
-2136.	[bug]		nslookup/host looped if there was no search list    
+2136.	[bug]		nslookup/host looped if there was no search list
 			and the host didn't exist. [RT #16657]
 
 2135.	[bug]		Uninitialised rdataset in sdlz.c. [RT# 16656]
@@ -101,7 +101,7 @@
 2095.	[port]		libbind: alway prototype inet_cidr_ntop_ipv6() and
 			net_cidr_ntop_ipv6(). [RT #16388]
  
-2094.	[contrib]	Update named-bootconf.	[RT# 16404]
+2094.	[contrib]	Update named-bootconf.  [RT# 16404]
 
 2093.	[bug]		named-checkzone -s was broken.
 
@@ -617,7 +617,7 @@
 1935.	[bug]		'acache' was DO sensitive. [RT #15430]
 
 1934.	[func]		Validate pending NS RRsets, in the authority section,
-			prior to returning them if it can be done without 
+			prior to returning them if it can be done without
 			requiring DNSKEYs to be fetched.  [RT #15430]
 
 1919.	[contrib]	queryperf: a set of new features: collecting/printing
