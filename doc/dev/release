@@ -2,7 +2,7 @@ Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
 Copyright (C) 2000-2003  Internet Software Consortium.
 See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 
-$Id: release,v 1.69 2006/10/17 01:45:38 marka Exp $
+$Id: release,v 1.70 2007/02/15 04:11:12 marka Exp $
 
 Preparing a bind9 release
 
@@ -38,7 +38,13 @@ release.
    as needed.  See the libtool info file for information about what
    the various numbers mean.
 
- - Check that http://status.isc.org/bind9/bind9.html 
+	cvs rdiff -r <last_release> -r <branch/HEAD> bind9/lib > diff
+
+	e.g.
+
+		cvs rdiff -r v9_4_0rc2 -r v9_4 bind9/lib > diff
+
+ - Check that https://internal.isc.org/bind-build/
    shows a clean build and test status for all supported 
    systems and that the tests are actually being run on the
    version being released (the version can be found in the
