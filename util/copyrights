@@ -1193,7 +1193,7 @@
 ./doc/arm/Bv9ARM.ch09.html			X	2000,2001,2002,2003,2004,2005,2006,2007
 ./doc/arm/Bv9ARM.ch10.html			X	2005,2006,2007
 ./doc/arm/Bv9ARM.html				X	2000,2001,2002,2003,2004,2005,2006,2007
-./doc/arm/Bv9ARM.pdf				X	2005,2006
+./doc/arm/Bv9ARM.pdf				X	2005,2006,2007
 ./doc/arm/Makefile.in				MAKE	2001,2002,2004,2005,2006,2007
 ./doc/arm/README-SGML				TXT.BRIEF	2000,2001,2004
 ./doc/arm/isc-logo.eps				X	2005
@@ -2000,7 +2000,7 @@
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/isc/alpha/include/isc/atomic.h		C	2005
-./lib/isc/api					X	1999,2000,2001,2005,2006
+./lib/isc/api					X	1999,2000,2001,2005,2006,2007
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005
 ./lib/isc/base64.c				C	1998,1999,2000,2001,2003,2004,2005
 ./lib/isc/bitstring.c				C	1999,2000,2001,2004,2005
