@@ -1,3 +1,6 @@
+
+	--- 9.4.0 released ---
+
 2138.	[bug]		Lock order reversal in resolver.c. [RT #16653]
 
 2137.	[port]		Mips little endian and/or mips 64 bit are now
