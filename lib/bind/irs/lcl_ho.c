@@ -52,7 +52,7 @@
 /* BIND Id: gethnamaddr.c,v 8.15 1996/05/22 04:56:30 vixie Exp $ */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: lcl_ho.c,v 1.2 2004/03/09 06:30:04 marka Exp $";
+static const char rcsid[] = "$Id: lcl_ho.c,v 1.3.18.2 2006/03/10 00:20:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports. */
@@ -109,7 +109,7 @@ struct pvt {
 	char *		h_addr_ptrs[MAXADDRS + 1];
 	char *		host_aliases[MAXALIASES];
 	char		hostbuf[8*1024];
-	u_char		host_addr[16];	/* IPv4 or IPv6 */
+	u_char		host_addr[16];	/*%< IPv4 or IPv6 */
 	struct __res_state  *res;
 	void		(*free_res)(void *);
 };
@@ -508,7 +508,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 	cur = &sentinel;
 
 	switch(pai->ai_family) {
-	case AF_UNSPEC:		/* INET6 then INET4 */
+	case AF_UNSPEC:		/*%< INET6 then INET4 */
 		q.family = AF_INET6;
 		q.next = &q2;
 		q2.family = AF_INET;
@@ -520,7 +520,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		q.family = AF_INET;
 		break;
 	default:
-		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY); /* ??? */
+		RES_SET_H_ERRNO(pvt->res, NO_RECOVERY); /*%< ??? */
 		return(NULL);
 	}
 
@@ -541,7 +541,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		ai = hostent2addrinfo(hp, pai);
 		if (ai) {
 			cur->ai_next = ai;
-			while (cur && cur->ai_next)
+			while (cur->ai_next)
 				cur = cur->ai_next;
 		}
 	}
@@ -569,8 +569,10 @@ init(struct irs_ho *this) {
 	
 	if (!pvt->res && !ho_res_get(this))
 		return (-1);
-	if (((pvt->res->options & RES_INIT) == 0) &&
+	if (((pvt->res->options & RES_INIT) == 0U) &&
 	    res_ninit(pvt->res) == -1)
 		return (-1);
 	return (0);
 }
+
+/*! \file */

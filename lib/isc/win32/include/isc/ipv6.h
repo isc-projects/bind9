@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
- * Copyright (C) 2000-2002  Internet Software Consortium.
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ipv6.h,v 1.12 2004/03/16 05:52:23 marka Exp $ */
+/* $Id: ipv6.h,v 1.12.18.6 2007/01/18 00:06:11 marka Exp $ */
 
 #ifndef ISC_IPV6_H
 #define ISC_IPV6_H 1
@@ -40,8 +40,12 @@
  *	No anticipated impact.
  *
  * Standards:
- *	RFC 2553.
+ *	RFC2553.
  */
+
+#if _MSC_VER < 1300
+#define in6_addr in_addr6
+#endif
 
 #ifndef IN6ADDR_ANY_INIT
 #define IN6ADDR_ANY_INIT 	{{ 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 }}
@@ -57,7 +61,7 @@ LIBISC_EXTERNAL_DATA extern const struct in6_addr isc_in6addr_loopback;
  * Unspecified
  */
 #ifndef IN6_IS_ADDR_UNSPECIFIED
-#define IN6_IS_ADDR_UNSPECIFIED(a)      \
+#define IN6_IS_ADDR_UNSPECIFIED(a) (\
 *((u_long *)((a)->s6_addr)    ) == 0 && \
 *((u_long *)((a)->s6_addr) + 1) == 0 && \
 *((u_long *)((a)->s6_addr) + 2) == 0 && \

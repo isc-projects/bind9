@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: os.c,v 1.20 2004/03/05 04:58:08 marka Exp $ */
+/* $Id: os.c,v 1.20.18.4 2005/06/22 22:05:43 marka Exp $ */
 
 #include <config.h>
 #include <stdarg.h>
@@ -208,7 +208,7 @@ ns_os_writepidfile(const char *filename, isc_boolean_t first_time) {
 
 	cleanup_pidfile();
 
-	if (strcmp(filename, "none") == 0)
+	if (filename == NULL)
 		return;
 	len = strlen(filename);
 	pidfile = malloc(len + 1);
@@ -281,4 +281,8 @@ ns_os_tzset(void) {
 #ifdef HAVE_TZSET
 	tzset();
 #endif
+}
+
+void
+ns_os_started(void) {
 }

@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7 2004/03/09 06:30:02 marka Exp $";
+static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7.18.4 2005/09/03 12:45:15 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -29,7 +29,6 @@ static const char rcsid[] = "$Id: getnetgrent_r.c,v 1.7 2004/03/09 06:30:02 mark
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <netgroup.h>
 #include <stdlib.h>
 #include <port_after.h>
 
@@ -52,7 +51,7 @@ innetgr_r(const char *netgroup, const char *host, const char *user,
 	return (innetgr(ng, ho, us, dom));
 }
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -77,7 +76,15 @@ setnetgrent_r(const char *netgroup, NGR_R_ENT_ARGS)
 setnetgrent_r(const char *netgroup)
 #endif
 {
-	setnetgrent(netgroup);
+	char *tmp;
+#if defined(NGR_R_ENT_ARGS) && !defined(NGR_R_PRIVATE)
+	UNUSED(buf);
+	UNUSED(buflen);
+#endif
+
+	DE_CONST(netgroup, tmp);
+	setnetgrent(tmp);
+
 #ifdef NGR_R_PRIVATE
 	*buf = NULL;
 #endif
@@ -93,6 +100,11 @@ endnetgrent_r(NGR_R_ENT_ARGS)
 endnetgrent_r(void)
 #endif
 {
+#if defined(NGR_R_ENT_ARGS) && !defined(NGR_R_PRIVATE)
+	UNUSED(buf);
+	UNUSED(buflen);
+#endif
+
 	endnetgrent();
 #ifdef NGR_R_PRIVATE
 	if (*buf != NULL)
@@ -163,3 +175,4 @@ copy_protoent(char **machinep, char **userp, char **domainp,
 	static int getnetgrent_r_unknown_system = 0;
 #endif /* NGR_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
+/*! \file */

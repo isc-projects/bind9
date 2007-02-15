@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: net.h,v 1.21 2004/03/05 05:12:05 marka Exp $ */
+/* $Id: net.h,v 1.21.18.5 2005/04/27 05:02:38 sra Exp $ */
 
 #ifndef ISC_NET_H
 #define ISC_NET_H 1
@@ -72,7 +72,7 @@
  *
  * Standards:
  *	BSD Socket API
- *	RFC 2553
+ *	RFC2553
  */
 
 /***
@@ -115,6 +115,11 @@ struct in6_pktinfo {
 	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
 	unsigned int    ipi6_ifindex; /* send/recv interface index */
 };
+#endif
+
+#if _MSC_VER < 1300
+#define in6addr_any isc_in6addr_any
+#define in6addr_loopback isc_in6addr_loopback
 #endif
 
 /*
@@ -254,6 +259,17 @@ isc_net_probeipv6(void);
  */
 
 isc_result_t
+isc_net_probeunix(void);
+/*
+ * Check if UNIX domain sockets are supported.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS
+ *	ISC_R_NOTFOUND
+ */
+
+isc_result_t
 isc_net_probe_ipv6only(void);
 /*
  * Check if the system's kernel supports the IPV6_V6ONLY socket option.
@@ -261,6 +277,19 @@ isc_net_probe_ipv6only(void);
  * Returns:
  *
  *	ISC_R_SUCCESS		the option is supported for both TCP and UDP.
+ *	ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
+ *	ISC_R_UNEXPECTED
+ */
+
+isc_result_t
+isc_net_probe_ipv6pktinfo(void);
+/*
+ * Check if the system's kernel supports the IPV6_(RECV)PKTINFO socket option
+ * for UDP sockets.
+ *
+ * Returns:
+ *
+ *	ISC_R_SUCCESS		the option is supported.
  *	ISC_R_NOTFOUND		IPv6 itself or the option is not supported.
  *	ISC_R_UNEXPECTED
  */

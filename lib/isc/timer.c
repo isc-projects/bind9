@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1998-2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: timer.c,v 1.73 2004/03/05 05:10:50 marka Exp $ */
+/* $Id: timer.c,v 1.73.18.5 2005/11/30 03:44:39 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -57,14 +59,14 @@
 #define VALID_TIMER(t)			ISC_MAGIC_VALID(t, TIMER_MAGIC)
 
 struct isc_timer {
-	/* Not locked. */
+	/*! Not locked. */
 	unsigned int			magic;
 	isc_timermgr_t *		manager;
 	isc_mutex_t			lock;
-	/* Locked by timer lock. */
+	/*! Locked by timer lock. */
 	unsigned int			references;
 	isc_time_t			idle;
-	/* Locked by manager lock. */
+	/*! Locked by manager lock. */
 	isc_timertype_t			type;
 	isc_time_t			expires;
 	isc_interval_t			interval;
@@ -99,7 +101,7 @@ struct isc_timermgr {
 };
 
 #ifndef ISC_PLATFORM_USETHREADS
-/*
+/*!
  * If threads are not in use, there can be only one.
  */
 static isc_timermgr_t *timermgr = NULL;
@@ -115,7 +117,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	isc_boolean_t timedwait;
 #endif
 
-	/*
+	/*!
 	 * Note: the caller must ensure locking.
 	 */
 
@@ -128,7 +130,7 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 	manager = timer->manager;
 
 #ifdef ISC_PLATFORM_USETHREADS
-	/*
+	/*!
 	 * If the manager was timed wait, we may need to signal the
 	 * manager to force a wakeup.
 	 */
@@ -212,9 +214,10 @@ schedule(isc_timer_t *timer, isc_time_t *now, isc_boolean_t signal_ok) {
 		isc_time_t then;
 
 		isc_interval_set(&fifteen, 15, 0);
-		isc_time_add(&manager->due, &fifteen, &then);
+		result = isc_time_add(&manager->due, &fifteen, &then);
 
-		if (isc_time_compare(&then, now) < 0) {
+		if (result == ISC_R_SUCCESS &&
+		    isc_time_compare(&then, now) < 0) {
 			SIGNAL(&manager->wakeup);
 			signal_ok = ISC_FALSE;
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -347,8 +350,10 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 
 	if (type == isc_timertype_once && !isc_interval_iszero(interval)) {
 		result = isc_time_add(&now, interval, &timer->idle);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_mem_put(manager->mctx, timer, sizeof(*timer));
 			return (result);
+		}
 	} else
 		isc_time_settoepoch(&timer->idle);
 
@@ -370,14 +375,11 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 	 */
 	DE_CONST(arg, timer->arg);
 	timer->index = 0;
-	if (isc_mutex_init(&timer->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&timer->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&timer->task);
 		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	ISC_LINK_INIT(timer, link);
 	timer->magic = TIMER_MAGIC;
@@ -487,7 +489,7 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 	return (result);
 }
 
-isc_result_t
+isc_timertype_t
 isc_timer_gettype(isc_timer_t *timer) {
 	isc_timertype_t t;
 
@@ -580,7 +582,7 @@ dispatch(isc_timermgr_t *manager, isc_time_t *now) {
 	isc_timer_t *timer;
 	isc_result_t result;
 
-	/*
+	/*!
 	 * The caller must be holding the manager lock.
 	 */
 
@@ -780,14 +782,11 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (ISC_R_NOMEMORY);
 	}
-	if (isc_mutex_init(&manager->lock) != ISC_R_SUCCESS) {
+	result = isc_mutex_init(&manager->lock);
+	if (result != ISC_R_SUCCESS) {
 		isc_heap_destroy(&manager->heap);
 		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+		return (result);
 	}
 	isc_mem_attach(mctx, &manager->mctx);
 #ifdef ISC_PLATFORM_USETHREADS

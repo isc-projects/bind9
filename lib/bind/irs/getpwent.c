@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: getpwent.c,v 1.2 2004/03/09 06:30:02 marka Exp $";
+static const char rcsid[] = "$Id: getpwent.c,v 1.2.18.1 2005/04/27 05:00:59 sra Exp $";
 #endif
 
 /* Imports */
@@ -198,3 +198,4 @@ init() {
 }
 
 #endif /* WANT_IRS_PW */
+/*! \file */

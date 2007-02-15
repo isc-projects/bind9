@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gen_ho.c,v 1.2 2004/03/09 06:30:00 marka Exp $";
+static const char rcsid[] = "$Id: gen_ho.c,v 1.3.18.2 2006/03/10 00:20:08 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 /* Imports */
@@ -348,7 +348,7 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 		ho = rule->inst->ho;
 		RES_SET_H_ERRNO(pvt->res, NETDB_INTERNAL);
 		errno = 0;
-		if (ho->addrinfo == NULL) /* for safety */
+		if (ho->addrinfo == NULL) /*%< for safety */
 			continue;
 		rval = (*ho->addrinfo)(ho, name, pai);
 		if (rval != NULL)
@@ -371,8 +371,6 @@ ho_addrinfo(struct irs_ho *this, const char *name, const struct addrinfo *pai)
 	}
 	if (softerror != 0 && pvt->res->res_h_errno == HOST_NOT_FOUND)
 		RES_SET_H_ERRNO(pvt->res, therrno);
-	if (rval)
-		freeaddrinfo(rval);
 	return (NULL);
 }
 
@@ -383,9 +381,11 @@ init(struct irs_ho *this) {
         if (!pvt->res && !ho_res_get(this))
                 return (-1);
 
-        if (((pvt->res->options & RES_INIT) == 0) &&
+        if (((pvt->res->options & RES_INIT) == 0U) &&
             (res_ninit(pvt->res) == -1))
                 return (-1);
 
         return (0);
 }
+
+/*! \file */

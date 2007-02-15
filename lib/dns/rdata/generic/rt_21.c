@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,11 +15,11 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rt_21.c,v 1.41 2004/03/05 05:10:17 marka Exp $ */
+/* $Id: rt_21.c,v 1.41.18.3 2005/04/27 05:01:52 sra Exp $ */
 
 /* reviewed: Thu Mar 16 15:02:31 PST 2000 by brister */
 
-/* RFC 1183 */
+/* RFC1183 */
 
 #ifndef RDATA_GENERIC_RT_21_C
 #define RDATA_GENERIC_RT_21_C
@@ -300,7 +300,7 @@ checknames_rt(ARGS_CHECKNAMES) {
 	isc_region_consume(&region, 2);
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
-	if (dns_name_ishostname(&name, ISC_FALSE)) {
+	if (!dns_name_ishostname(&name, ISC_FALSE)) {
 		if (bad != NULL)
 			dns_name_clone(&name, bad);
 		return (ISC_FALSE);

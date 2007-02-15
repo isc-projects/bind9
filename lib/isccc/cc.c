@@ -1,5 +1,5 @@
 /*
- * Portions Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Portions Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Portions Copyright (C) 2001-2003  Internet Software Consortium.
  * Portions Copyright (C) 2001  Nominum, Inc.
  *
@@ -16,7 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cc.c,v 1.10 2004/03/05 05:12:09 marka Exp $ */
+/* $Id: cc.c,v 1.10.18.5 2006/12/07 23:57:58 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -26,6 +28,7 @@
 
 #include <isc/assertions.h>
 #include <isc/hmacmd5.h>
+#include <isc/print.h>
 #include <isc/stdlib.h>
 
 #include <isccc/alist.h>
@@ -43,12 +46,12 @@
 typedef isccc_sexpr_t *sexpr_ptr;
 
 static unsigned char auth_hmd5[] = {
-	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/* len + _auth */
-	ISCCC_CCMSGTYPE_TABLE,				/* message type */
-	0x00, 0x00, 0x00, 0x20,				/* length == 32 */
-	0x04, 0x68, 0x6d, 0x64, 0x35,			/* len + hmd5 */
-	ISCCC_CCMSGTYPE_BINARYDATA,			/* message type */
-	0x00, 0x00, 0x00, 0x16,				/* length == 22 */
+	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
+	ISCCC_CCMSGTYPE_TABLE,				/*%< message type */
+	0x00, 0x00, 0x00, 0x20,				/*%< length == 32 */
+	0x04, 0x68, 0x6d, 0x64, 0x35,			/*%< len + hmd5 */
+	ISCCC_CCMSGTYPE_BINARYDATA,			/*%< message type */
+	0x00, 0x00, 0x00, 0x16,				/*%< length == 22 */
 	/*
 	 * The base64 encoding of one of our HMAC-MD5 signatures is
 	 * 22 bytes.
@@ -58,7 +61,7 @@ static unsigned char auth_hmd5[] = {
 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-#define HMD5_OFFSET	21		/* 6 + 1 + 4 + 5 + 1 + 4 */
+#define HMD5_OFFSET	21		/*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 */
 #define HMD5_LENGTH	22
 
 static isc_result_t
@@ -465,12 +468,21 @@ createmessage(isc_uint32_t version, const char *from, const char *to,
 	result = ISC_R_NOMEMORY;
 
 	_ctrl = isccc_alist_create();
+	if (_ctrl == NULL)
+		goto bad;
+	if (isccc_alist_define(alist, "_ctrl", _ctrl) == NULL) {
+		isccc_sexpr_free(&_ctrl);
+		goto bad;
+	}
+
 	_data = isccc_alist_create();
-	if (_ctrl == NULL || _data == NULL)
+	if (_data == NULL)
 		goto bad;
-	if (isccc_alist_define(alist, "_ctrl", _ctrl) == NULL ||
-	    isccc_alist_define(alist, "_data", _data) == NULL)
+	if (isccc_alist_define(alist, "_data", _data) == NULL) {
+		isccc_sexpr_free(&_data);
 		goto bad;
+	}
+
 	if (isccc_cc_defineuint32(_ctrl, "_ser", serial) == NULL ||
 	    isccc_cc_defineuint32(_ctrl, "_tim", now) == NULL ||
 	    (want_expires &&

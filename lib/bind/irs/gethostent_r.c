@@ -16,7 +16,7 @@
  */
 
 #if defined(LIBC_SCCS) && !defined(lint)
-static const char rcsid[] = "$Id: gethostent_r.c,v 1.5 2004/03/09 06:30:01 marka Exp $";
+static const char rcsid[] = "$Id: gethostent_r.c,v 1.5.18.4 2005/09/03 12:45:14 marka Exp $";
 #endif /* LIBC_SCCS and not lint */
 
 #include <port_before.h>
@@ -44,10 +44,12 @@ gethostbyname_r(const char *name,  struct hostent *hptr, HOST_R_ARGS) {
 	int n = 0;
 #endif
 
+#ifdef HOST_R_ERRNO
 	HOST_R_ERRNO;
+#endif
 
 #ifdef HOST_R_SETANSWER
-	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) == 0)
+	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) != 0)
 		*answerp = NULL;
 	else
 		*answerp = hptr;
@@ -69,10 +71,12 @@ gethostbyaddr_r(const char *addr, int len, int type,
 	int n = 0;
 #endif
 
+#ifdef HOST_R_ERRNO
 	HOST_R_ERRNO;
+#endif
 
 #ifdef HOST_R_SETANSWER
-	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) == 0)
+	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) != 0)
 		*answerp = NULL;
 	else
 		*answerp = hptr;
@@ -86,7 +90,7 @@ gethostbyaddr_r(const char *addr, int len, int type,
 #endif
 }
 
-/*
+/*%
  *	These assume a single context is in operation per thread.
  *	If this is not the case we will need to call irs directly
  *	rather than through the base functions.
@@ -99,10 +103,12 @@ gethostent_r(struct hostent *hptr, HOST_R_ARGS) {
 	int n = 0;
 #endif
 
+#ifdef HOST_R_ERRNO
 	HOST_R_ERRNO;
+#endif
 
 #ifdef HOST_R_SETANSWER
-	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) == 0)
+	if (he == NULL || (n = copy_hostent(he, hptr, HOST_R_COPY)) != 0)
 		*answerp = NULL;
 	else
 		*answerp = hptr;
@@ -123,6 +129,9 @@ sethostent_r(int stay_open, HOST_R_ENT_ARGS)
 sethostent_r(int stay_open)
 #endif
 {
+#ifdef HOST_R_ENT_ARGS
+	UNUSED(hdptr);
+#endif
 	sethostent(stay_open);
 #ifdef	HOST_R_SET_RESULT
 	return (HOST_R_SET_RESULT);
@@ -136,6 +145,9 @@ endhostent_r(HOST_R_ENT_ARGS)
 endhostent_r(void)
 #endif
 {
+#ifdef HOST_R_ENT_ARGS
+	UNUSED(hdptr);
+#endif
 	endhostent();
 	HOST_R_END_RESULT(HOST_R_OK);
 }
@@ -151,7 +163,7 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	int nptr, len;
 
 	/* Find out the amount of space required to store the answer. */
-	nptr = 2; /* NULL ptrs */
+	nptr = 2; /*%< NULL ptrs */
 	len = (char *)ALIGN(buf) - buf;
 	for (i = 0; he->h_addr_list[i]; i++, nptr++) {
 		len += he->h_length;
@@ -214,8 +226,8 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 
 	/* copy up to first 35 addresses */
 	i = 0;
-	cp = hdptr->hostaddr;
-	eob = hdptr->hostaddr + sizeof(hdptr->hostaddr);
+	cp = hdptr->hostbuf;
+	eob = hdptr->hostbuf + sizeof(hdptr->hostbuf);
 	hptr->h_addr_list = hdptr->h_addr_ptrs;
 	while (he->h_addr_list[i] && i < (_MAXADDRS)) {
 		if (n < (eob - cp)) {
@@ -230,8 +242,6 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	hptr->h_addr_list[i] = NULL;
 
 	/* copy official name */
-	cp = hdptr->hostbuf;
-	eob = hdptr->hostbuf + sizeof(hdptr->hostbuf);
 	if ((n = strlen(he->h_name) + 1) < (eob - cp)) {
 		strcpy(cp, he->h_name);
 		hptr->h_name = cp;
@@ -262,3 +272,4 @@ copy_hostent(struct hostent *he, struct hostent *hptr, HOST_R_COPY_ARGS) {
 	static int gethostent_r_unknown_system = 0;
 #endif /* HOST_R_RETURN */
 #endif /* !defined(_REENTRANT) || !defined(DO_PTHREADS) */
+/*! \file */

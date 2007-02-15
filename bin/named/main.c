@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: main.c,v 1.136 2004/03/16 05:52:14 marka Exp $ */
+/* $Id: main.c,v 1.136.18.17 2006/11/10 18:51:14 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -33,6 +35,7 @@
 #include <isc/platform.h>
 #include <isc/resource.h>
 #include <isc/stdio.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
@@ -61,16 +64,27 @@
 #include <named/server.h>
 #include <named/lwresd.h>
 #include <named/main.h>
+#ifdef HAVE_LIBSCF
+#include <named/ns_smf_globals.h>
+#endif
 
 /*
  * Include header files for database drivers here.
  */
 /* #include "xxdb.h" */
 
+/*
+ * Include DLZ drivers if appropriate.
+ */
+#ifdef DLZ
+#include <dlz/dlz_drivers.h>
+#endif
+
 static isc_boolean_t	want_stats = ISC_FALSE;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
-static char    		saved_command_line[512];
+static char		saved_command_line[512];
+static char		version[512];
 
 void
 ns_main_earlywarning(const char *format, ...) {
@@ -221,7 +235,7 @@ lwresd_usage(void) {
 		"              [-f|-g] [-n number_of_cpus] [-p port] "
 		"[-P listen-port] [-s]\n"
 		"              [-t chrootdir] [-u username] [-i pidfile]\n"
-		"              [-m {usage|trace|record}]\n");
+		"              [-m {usage|trace|record|size|mctx}]\n");
 }
 
 static void
@@ -234,7 +248,7 @@ usage(void) {
 		"usage: named [-4|-6] [-c conffile] [-d debuglevel] "
 		"[-f|-g] [-n number_of_cpus]\n"
 		"             [-p port] [-s] [-t chrootdir] [-u username]\n"
-		"             [-m {usage|trace|record}]\n");
+		"             [-m {usage|trace|record|size|mctx}]\n");
 }
 
 static void
@@ -302,6 +316,8 @@ static struct flag_def {
 	{ "trace",  ISC_MEM_DEBUGTRACE },
 	{ "record", ISC_MEM_DEBUGRECORD },
 	{ "usage", ISC_MEM_DEBUGUSAGE },
+	{ "size", ISC_MEM_DEBUGSIZE },
+	{ "mctx", ISC_MEM_DEBUGCTX },
 	{ NULL, 0 }
 };
 
@@ -310,16 +326,18 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 	for (;;) {
 		const struct flag_def *def;
 		const char *end = strchr(arg, ',');
+		int arglen;
 		if (end == NULL)
 			end = arg + strlen(arg);
+		arglen = end - arg;
 		for (def = defs; def->name != NULL; def++) {
-			if (end - arg == (int)strlen(def->name) &&
-			    memcmp(arg, def->name, end - arg) == 0) {
+			if (arglen == (int)strlen(def->name) &&
+			    memcmp(arg, def->name, arglen) == 0) {
 				*ret |= def->value;
 				goto found;
 			}
 		}
-		ns_main_earlyfatal("unrecognized flag '%.*s'", end - arg, arg);
+		ns_main_earlyfatal("unrecognized flag '%.*s'", arglen, arg);
 	 found:
 		if (*end == '\0')
 			break;
@@ -466,7 +484,7 @@ create_managers(void) {
 	result = isc_taskmgr_create(ns_g_mctx, ns_g_cpus, 0, &ns_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_taskmgr_create() failed: %s",
+				 "isc_taskmgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -474,7 +492,7 @@ create_managers(void) {
 	result = isc_timermgr_create(ns_g_mctx, &ns_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "ns_timermgr_create() failed: %s",
+				 "isc_timermgr_create() failed: %s",
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
@@ -532,6 +550,9 @@ destroy_managers(void) {
 static void
 setup(void) {
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	char *instance = NULL;
+#endif
 
 	/*
 	 * Get the user and group information before changing the root
@@ -546,6 +567,18 @@ setup(void) {
 	ns_os_tzset();
 
 	ns_os_opendevnull();
+
+#ifdef HAVE_LIBSCF
+	/* Check if named is under smf control, before chroot. */
+	result = ns_smf_get_instance(&instance, 0, ns_g_mctx);
+	/* We don't care about instance, just check if we got one. */
+	if (result == ISC_R_SUCCESS)
+		ns_smf_got_instance = 1;
+	else
+		ns_smf_got_instance = 0;
+	if (instance != NULL)
+		isc_mem_free(ns_g_mctx, instance);
+#endif /* HAVE_LIBSCF */
 
 #ifdef PATH_RANDOMDEV
 	/*
@@ -597,6 +630,15 @@ setup(void) {
 	if (!ns_g_foreground)
 		ns_os_daemonize();
 
+	/*
+	 * We call isc_app_start() here as some versions of FreeBSD's fork()
+	 * destroys all the signal handling it sets up.
+	 */
+	result = isc_app_start();
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("isc_app_start() failed: %s",
+				   isc_result_totext(result));
+
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "starting BIND %s%s", ns_g_version,
 		      saved_command_line);
@@ -640,6 +682,16 @@ setup(void) {
 	 */
 	/* xxdb_init(); */
 
+#ifdef DLZ
+	/*
+	 * Registyer any DLZ drivers.
+	 */
+	result = dlz_drivers_init();
+	if (result != ISC_R_SUCCESS)
+		ns_main_earlyfatal("dlz_drivers_init() failed: %s",
+				   isc_result_totext(result));
+#endif
+
 	ns_server_create(ns_g_mctx, &ns_g_server);
 }
 
@@ -655,6 +707,15 @@ cleanup(void) {
 	 * Add calls to unregister sdb drivers here.
 	 */
 	/* xxdb_clear(); */
+
+#ifdef DLZ
+	/*
+	 * Unregister any DLZ drivers.
+	 */
+	dlz_drivers_clear();
+#endif
+
+	dns_name_destroy();
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE, "exiting");
@@ -680,10 +741,87 @@ ns_main_setmemstats(const char *filename) {
 		strcpy(memstats, filename);
 }
 
+#ifdef HAVE_LIBSCF
+/*
+ * Get FMRI for the named process.
+ */
+isc_result_t
+ns_smf_get_instance(char **ins_name, int debug, isc_mem_t *mctx) {
+	scf_handle_t *h = NULL;
+	int namelen;
+	char *instance;
+
+	REQUIRE(ins_name != NULL && *ins_name == NULL);
+
+	if ((h = scf_handle_create(SCF_VERSION)) == NULL) {
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_handle_create() failed: %s",
+			 		 scf_strerror(scf_error()));
+		return (ISC_R_FAILURE);
+	}
+
+	if (scf_handle_bind(h) == -1) {
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_handle_bind() failed: %s",
+					 scf_strerror(scf_error()));
+		scf_handle_destroy(h);
+		return (ISC_R_FAILURE);
+	}
+
+	if ((namelen = scf_myname(h, NULL, 0)) == -1) {
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_myname() failed: %s",
+					 scf_strerror(scf_error()));
+		scf_handle_destroy(h);
+		return (ISC_R_FAILURE);
+	}
+
+	if ((instance = isc_mem_allocate(mctx, namelen + 1)) == NULL) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "ns_smf_get_instance memory "
+				 "allocation failed: %s",
+				 isc_result_totext(ISC_R_NOMEMORY));
+		scf_handle_destroy(h);
+		return (ISC_R_FAILURE);
+	}
+
+	if (scf_myname(h, instance, namelen + 1) == -1) {
+		if (debug)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "scf_myname() failed: %s",
+					 scf_strerror(scf_error()));
+		scf_handle_destroy(h);
+		isc_mem_free(mctx, instance);
+		return (ISC_R_FAILURE);
+	}
+
+	scf_handle_destroy(h);
+	*ins_name = instance;
+	return (ISC_R_SUCCESS);
+}
+#endif /* HAVE_LIBSCF */
+
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
+#ifdef HAVE_LIBSCF
+	char *instance = NULL;
+#endif
 
+	/*
+	 * Record version in core image.
+	 * strings named.core | grep "named version:"
+	 */
+	strlcat(version,
+#ifdef __DATE__
+		"named version: BIND " VERSION " (" __DATE__ ")",
+#else
+		"named version: BIND " VERSION,
+#endif
+		sizeof(version));
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("program name too long");
@@ -696,11 +834,6 @@ main(int argc, char *argv[]) {
 	isc_error_setunexpected(library_unexpected_error);
 
 	ns_os_init(program_name);
-
-	result = isc_app_start();
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("isc_app_start() failed: %s",
-				   isc_result_totext(result));
 
 	dns_result_register();
 	dst_result_register();
@@ -747,6 +880,22 @@ main(int argc, char *argv[]) {
 		}
 	} while (result != ISC_R_SUCCESS);
 
+#ifdef HAVE_LIBSCF
+	if (ns_smf_want_disable == 1) {
+		result = ns_smf_get_instance(&instance, 1, ns_g_mctx);
+		if (result == ISC_R_SUCCESS && instance != NULL) {
+			if (smf_disable_instance(instance, 0) != 0)
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+						 "smf_disable_instance() "
+						 "failed for %s : %s",
+						 instance,
+						 scf_strerror(scf_error()));
+		}
+		if (instance != NULL)
+			isc_mem_free(ns_g_mctx, instance);
+	}
+#endif /* HAVE_LIBSCF */
+
 	cleanup();
 
 	if (want_stats) {
@@ -763,6 +912,7 @@ main(int argc, char *argv[]) {
 		}
 	}
 	isc_mem_destroy(&ns_g_mctx);
+	isc_mem_checkdestroyed(stderr);
 
 	ns_main_setmemstats(NULL);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 1999-2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: xfrout.c,v 1.115 2004/03/05 04:57:49 marka Exp $ */
+/* $Id: xfrout.c,v 1.115.18.8 2006/03/05 23:58:51 marka Exp $ */
 
 #include <config.h>
 
@@ -27,6 +27,9 @@
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
+#ifdef DLZ
+#include <dns/dlz.h>
+#endif
 #include <dns/fixedname.h>
 #include <dns/journal.h>
 #include <dns/message.h>
@@ -48,7 +51,8 @@
 #include <named/server.h>
 #include <named/xfrout.h>
 
-/*
+/*! \file 
+ * \brief
  * Outgoing AXFR and IXFR.
  */
 
@@ -71,7 +75,7 @@
 
 #define XFROUT_RR_LOGLEVEL	ISC_LOG_DEBUG(8)
 
-/*
+/*%
  * Fail unconditionally and log as a client error.
  * The test against ISC_R_SUCCESS is there to keep the Solaris compiler
  * from complaining about "end-of-loop code not reached".
@@ -106,13 +110,14 @@
 	} while (0)
 
 /**************************************************************************/
-/*
+/*%
  * A db_rr_iterator_t is an iterator that iterates over an entire database,
  * returning one RR at a time, in some arbitrary order.
  */
 
 typedef struct db_rr_iterator db_rr_iterator_t;
 
+/*% db_rr_iterator structure */
 struct db_rr_iterator {
 	isc_result_t		result;
 	dns_db_t		*db;
@@ -195,7 +200,7 @@ db_rr_iterator_first(db_rr_iterator_t *it) {
 			continue;
 		}
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
-
+		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
 		return (it->result);
 	}
@@ -245,6 +250,7 @@ db_rr_iterator_next(db_rr_iterator_t *it) {
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
 		dns_rdatasetiter_current(it->rdatasetit, &it->rdataset);
+		it->rdataset.attributes |= DNS_RDATASETATTR_LOADORDER;
 		it->result = dns_rdataset_first(&it->rdataset);
 		if (it->result != ISC_R_SUCCESS)
 			return (it->result);
@@ -283,7 +289,7 @@ db_rr_iterator_current(db_rr_iterator_t *it, dns_name_t **name,
 
 /**************************************************************************/
 
-/* Log an RR (for debugging) */
+/*% Log an RR (for debugging) */
 
 static void
 log_rr(dns_name_t *name, dns_rdata_t *rdata, isc_uint32_t ttl) {
@@ -868,7 +874,7 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename,
 	    const char *fmt, ...) ISC_FORMAT_PRINTF(5, 6);
 
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...)
+xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...)
 	   ISC_FORMAT_PRINTF(3, 4);
 
 /**************************************************************************/
@@ -903,6 +909,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	char msg[NS_CLIENT_ACLMSGSIZE("zone transfer")];
 	char keyname[DNS_NAME_FORMATSIZE];
 	isc_boolean_t is_poll = ISC_FALSE;
+#ifdef DLZ
+	isc_boolean_t is_dlz = ISC_FALSE;
+#endif
 
 	switch (reqtype) {
 	case dns_rdatatype_axfr:
@@ -953,19 +962,71 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 
 	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
 			     &zone);
+
 	if (result != ISC_R_SUCCESS)
-		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
-		      question_name, question_class);
-	switch(dns_zone_gettype(zone)) {
-	case dns_zone_master:
-	case dns_zone_slave:
-		break;	/* Master and slave zones are OK for transfer. */
-	default:
-		FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
-		      question_name, question_class);
+#ifdef DLZ
+	{
+		/*
+		 * Normal zone table does not have a match.  Try the DLZ database
+		 */
+	    	if (client->view->dlzdatabase != NULL) {
+			result = dns_dlzallowzonexfr(client->view,
+						     question_name, &client->peeraddr,
+						     &db);
+
+			if (result == ISC_R_NOPERM) {
+				char _buf1[DNS_NAME_FORMATSIZE];
+				char _buf2[DNS_RDATACLASS_FORMATSIZE];
+
+				result = DNS_R_REFUSED;
+				dns_name_format(question_name, _buf1,
+						sizeof(_buf1));
+				dns_rdataclass_format(question_class,
+						      _buf2, sizeof(_buf2));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_XFER_OUT,
+					      ISC_LOG_ERROR,
+					      "zone transfer '%s/%s' denied",
+					      _buf1, _buf2);
+				goto failure;
+			}
+			if (result != ISC_R_SUCCESS)
+#endif
+			FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+				  question_name, question_class);
+#ifdef DLZ
+			is_dlz = ISC_TRUE;
+			/*
+			 * DLZ only support full zone transfer, not incremental
+			 */
+			if (reqtype != dns_rdatatype_axfr) {
+				mnemonic = "AXFR-style IXFR";
+				reqtype = dns_rdatatype_axfr;
+			}
+
+		} else {
+			/*
+		 	 * not DLZ and not in normal zone table, we are
+			 * not authoritative
+			 */
+			FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
+			      question_name, question_class);
+		}
+	} else {
+		/* zone table has a match */
+#endif
+		switch(dns_zone_gettype(zone)) {
+			case dns_zone_master:
+			case dns_zone_slave:
+				break;	/* Master and slave zones are OK for transfer. */
+			default:
+				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone", question_name, question_class);
+			}
+		CHECK(dns_zone_getdb(zone, &db));
+		dns_db_currentversion(db, &ver);
+#ifdef DLZ
 	}
-	CHECK(dns_zone_getdb(zone, &db));
-	dns_db_currentversion(db, &ver);
+#endif
 
 	xfrout_log1(client, question_name, question_class, ISC_LOG_DEBUG(6),
 		    "%s question section OK", mnemonic);
@@ -1021,11 +1082,20 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Decide whether to allow this transfer.
 	 */
-	ns_client_aclmsg("zone transfer", question_name, reqtype,
-			 client->view->rdclass, msg, sizeof(msg));
-	CHECK(ns_client_checkacl(client, msg,
-				 dns_zone_getxfracl(zone), ISC_TRUE,
-				 ISC_LOG_ERROR));
+#ifdef DLZ
+	/*
+	 * if not a DLZ zone decide whether to allow this transfer.
+	 */
+	if (!is_dlz) {
+#endif
+		ns_client_aclmsg("zone transfer", question_name, reqtype,
+				 client->view->rdclass, msg, sizeof(msg));
+		CHECK(ns_client_checkacl(client, msg,
+					 dns_zone_getxfracl(zone), ISC_TRUE,
+					 ISC_LOG_ERROR));
+#ifdef DLZ
+	}
+#endif
 
 	/*
 	 * AXFR over UDP is not possible.
@@ -1049,6 +1119,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Get a dynamically allocated copy of the current SOA.
 	 */
+#ifdef DLZ
+	if (is_dlz)
+		dns_db_currentversion(db, &ver);
+#endif
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));
 
@@ -1131,19 +1205,34 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	 * Create the xfrout context object.  This transfers the ownership
 	 * of "stream", "db", "ver", and "quota" to the xfrout context object.
 	 */
-	CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
-				reqtype, question_class, db, ver, quota,
-				stream, dns_message_gettsigkey(request),
-				tsigbuf,
-				dns_zone_getmaxxfrout(zone),
-				dns_zone_getidleout(zone),
-				(format == dns_many_answers) ?
-					ISC_TRUE : ISC_FALSE,
-				&xfr));
+
+
+
+#ifdef DLZ
+	if (is_dlz)
+ 		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
+ 					reqtype, question_class, db, ver, quota,
+ 					stream, dns_message_gettsigkey(request),
+ 					tsigbuf,
+ 					3600,
+ 					3600,
+ 					(format == dns_many_answers) ?
+  					ISC_TRUE : ISC_FALSE,
+ 					&xfr));
+ 	else
+#endif
+ 		CHECK(xfrout_ctx_create(mctx, client, request->id, question_name,
+ 					reqtype, question_class, db, ver, quota,
+ 					stream, dns_message_gettsigkey(request),
+ 					tsigbuf,
+ 					dns_zone_getmaxxfrout(zone),
+ 					dns_zone_getidleout(zone),
+ 					(format == dns_many_answers) ?
+ 					ISC_TRUE : ISC_FALSE,
+ 					&xfr));
+
 	xfr->mnemonic = mnemonic;
 	stream = NULL;
-	db = NULL;
-	ver = NULL;
 	quota = NULL;
 
 	CHECK(xfr->stream->methods->first(xfr->stream));
@@ -1225,10 +1314,10 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->qname = qname;
 	xfr->qtype = qtype;
 	xfr->qclass = qclass;
-	xfr->db = db;
-	xfr->ver = ver;
-	xfr->quota = quota;
-	xfr->stream = stream;
+	xfr->db = NULL;
+	xfr->ver = NULL;
+	dns_db_attach(db, &xfr->db);
+	dns_db_attachversion(db, ver, &xfr->ver);
 	xfr->end_of_stream = ISC_FALSE;
 	xfr->tsigkey = tsigkey;
 	xfr->lasttsig = lasttsig;
@@ -1239,6 +1328,12 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->sends = 0;
 	xfr->shuttingdown = ISC_FALSE;
 	xfr->mnemonic = NULL;
+	xfr->buf.base = NULL;
+	xfr->buf.length = 0;
+	xfr->txmem = NULL;
+	xfr->txmemlen = 0;
+	xfr->stream = NULL;
+	xfr->quota = NULL;
 
 	/*
 	 * Allocate a temporary buffer for the uncompressed response
@@ -1283,6 +1378,12 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	 */
 	xfr->client->shutdown = xfrout_client_shutdown;
 	xfr->client->shutdown_arg = xfr;
+	/*
+	 * These MUST be after the last "goto failure;" / CHECK to
+	 * prevent a double free by the caller.
+	 */
+	xfr->quota = quota;
+	xfr->stream = stream;
 
 	*xfrp = xfr;
 	return (ISC_R_SUCCESS);
@@ -1501,6 +1602,7 @@ sendstream(xfrout_ctx_t *xfr) {
 
 	if ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0) {
 		CHECK(dns_compress_init(&cctx, -1, xfr->mctx));
+		dns_compress_setsensitive(&cctx, ISC_TRUE);
 		cleanup_cctx = ISC_TRUE;
 		CHECK(dns_message_renderbegin(msg, &cctx, &xfr->txbuf));
 		CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
@@ -1700,7 +1802,7 @@ xfrout_log1(ns_client_t *client, dns_name_t *zonename,
  * Logging function for use when there is a xfrout_ctx_t.
  */
 static void
-xfrout_log(xfrout_ctx_t *xfr, unsigned int level, const char *fmt, ...) {
+xfrout_log(xfrout_ctx_t *xfr, int level, const char *fmt, ...) {
 	va_list ap;
 	va_start(ap, fmt);
 	xfrout_logv(xfr->client, xfr->qname, xfr->qclass, level, fmt, ap);

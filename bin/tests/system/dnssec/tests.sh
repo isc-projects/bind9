@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+# Copyright (C) 2004-2006  Internet Systems Consortium, Inc. ("ISC")
 # Copyright (C) 2000-2002  Internet Software Consortium.
 #
 # Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
 # OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 
-# $Id: tests.sh,v 1.44 2004/03/10 02:19:53 marka Exp $
+# $Id: tests.sh,v 1.44.18.5 2006/02/26 23:49:49 marka Exp $
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
@@ -428,7 +428,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
-echo "I:checking privately secure wilcard to nxdomain works ($n)"
+echo "I:checking privately secure wildcard to nxdomain works ($n)"
 ret=0
 $DIG $DIGOPTS +noauth a.wild.private.secure.example. SOA @10.53.0.2 \
 	> dig.out.ns2.test$n || ret=1
@@ -441,11 +441,38 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo "I:failed"; fi
 status=`expr $status + $ret`
 
+#
+# private.secure.example is served by the same server as its
+# grand parent and there is not a secure delegation from secure.example
+# to private.secure.example.  In addition secure.example is using a
+# algorithm which the validation does not support.
+#
 echo "I:checking dnssec-lookaside-validation works ($n)"
 ret=0
 $DIG $DIGOPTS private.secure.example. SOA @10.53.0.6 \
 	> dig.out.ns6.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that we can load a rfc2535 signed zone ($n)"
+ret=0
+$DIG $DIGOPTS rfc2535.example. SOA @10.53.0.2 \
+	> dig.out.ns2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
+
+echo "I:checking that we can transfer a rfc2535 signed zone ($n)"
+ret=0
+$DIG $DIGOPTS rfc2535.example. SOA @10.53.0.3 \
+	> dig.out.ns3.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo "I:failed"; fi
+status=`expr $status + $ret`
 
 # Run a minimal update test if possible.  This is really just
 # a regression test for RT #2399; more tests should be added.

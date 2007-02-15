@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2000, 2001, 2003  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,9 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: thread.c,v 1.12 2004/03/05 05:11:17 marka Exp $ */
+/* $Id: thread.c,v 1.12.18.3 2005/04/29 00:17:05 marka Exp $ */
+
+/*! \file */
 
 #include <config.h>
 
@@ -47,6 +49,12 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		if (ret != 0)
 			return (ISC_R_UNEXPECTED);
 	}
+#endif
+
+#if defined(PTHREAD_SCOPE_SYSTEM) && defined(NEED_PTHREAD_SCOPE_SYSTEM)
+	ret = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
+	if (ret != 0)
+		return (ISC_R_UNEXPECTED);
 #endif
 
 	ret = pthread_create(thread, &attr, func, arg);
