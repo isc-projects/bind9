@@ -16,6 +16,7 @@ gsstsig4			open	sra	// head + gsstsig as of 12 may 2006
 gsstsig4_win32			open	danny	// sub-branch off gsstsig4 for windows development
 jinmei-mmapzone-test		open		// mmap based zone file. very experimental, just for reference purposes
 jinmei_libdnsng			open	
+jinmei_lrucache			new	
 libbind_clean			open	jinmei
 marka_libdnsng			open	
 mlg-20000518			open	explorer
