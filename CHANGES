@@ -1,3 +1,6 @@
+2139.	[bug]		dns_view_find() was being called with wrong type
+			in adb.c. [RT #16670]
+
 2136.	[bug]		nslookup/host looped if there was no search list
 			and the host didn't exist. [RT #16657]
 
