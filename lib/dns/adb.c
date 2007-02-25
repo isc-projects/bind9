@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: adb.c,v 1.215.18.13 2006/08/30 23:49:57 marka Exp $ */
+/* $Id: adb.c,v 1.215.18.14 2007/02/25 23:35:31 marka Exp $ */
 
 /*! \file 
  *
@@ -2987,7 +2987,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 		adbname->fetch6_err = FIND_ERR_UNEXPECTED;
 
 	result = dns_view_find(adb->view, &adbname->name, rdtype, now,
-			       NAME_GLUEOK(adbname),
+			       NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
 			       ISC_TF(NAME_HINTOK(adbname)),
 			       NULL, NULL, fname, &rdataset, NULL);
 
