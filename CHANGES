@@ -1,3 +1,7 @@
+2150.	[bug]		'rrset-order cyclic' uniformly distribute the
+			starting point for the first response for a given
+			RRset. [RT #16655]
+
 2147.	[bug]		libbind: remove potential buffer overflow from
 			hmac_link.c. [RT #16437]
 
@@ -1355,7 +1359,7 @@
 			[RT #6427]
 
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
-			point. [RT #7572]
+			point per query. [RT #7572]
 
 1554.	[bug]		dig, host, nslookup failed when no nameservers
 			were specified in /etc/resolv.conf. [RT #8232]

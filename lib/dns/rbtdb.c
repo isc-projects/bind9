@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.168.2.11.2.26 2006/03/02 23:18:20 marka Exp $ */
+/* $Id: rbtdb.c,v 1.168.2.11.2.27 2007/02/26 23:20:52 marka Exp $ */
 
 /*
  * Principal Author: Bob Halley
@@ -351,6 +351,19 @@ typedef struct rbtdb_dbiterator {
 
 static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
+
+/*%
+ * 'init_count' is used to initialize 'newheader->count' which inturn
+ * is used to determine where in the cycle rrset-order cyclic starts.
+ * We don't lock this as we don't care about simultanious updates.
+ *
+ * Note:
+ *	Both init_count and header->count can be ISC_UINT32_MAX.
+ *      The count on the returned rdataset however can't be as
+ *	that indicates that the database does not implement cyclic
+ *	processing.
+ */
+static unsigned int init_count;
 
 /*
  * Locking
@@ -1513,8 +1526,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
 	rdataset->count = header->count++;
-	if (header->count == ISC_UINT32_MAX)
-		header->count = 0;
+	if (rdataset->count == ISC_UINT32_MAX)
+		rdataset->count = 0;
 
 	/*
 	 * Reset iterator state.
@@ -4341,7 +4354,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 						rdataset->covers);
 	newheader->attributes = 0;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 	newheader->trust = rdataset->trust;
 	if (rbtversion != NULL) {
 		newheader->serial = rbtversion->serial;
@@ -4422,7 +4435,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 
 	LOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
@@ -4655,7 +4668,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 
 	result = add(rbtdb, node, rbtdb->current_version, newheader,
 		     DNS_DBADD_MERGE, ISC_TRUE, NULL, 0);
