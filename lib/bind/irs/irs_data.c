@@ -16,7 +16,7 @@
  */
 
 #if !defined(LINT) && !defined(CODECENTER)
-static const char rcsid[] = "$Id: irs_data.c,v 1.3.2.6 2006/03/10 00:18:22 marka Exp $";
+static const char rcsid[] = "$Id: irs_data.c,v 1.3.2.7 2007/02/26 00:05:23 marka Exp $";
 #endif
 
 #include "port_before.h"
@@ -131,8 +131,10 @@ net_data_init(const char *conf_file) {
 		if (pthread_mutex_lock(&keylock) != 0)
 			return (NULL);
 		if (!once) {
-			if (pthread_key_create(&key, net_data_destroy) != 0)
+			if (pthread_key_create(&key, net_data_destroy) != 0) {
+				pthread_mutex_unlock(&keylock);
 				return (NULL);
+			}
 			once = 1;
 		}
 		if (pthread_mutex_unlock(&keylock) != 0)
