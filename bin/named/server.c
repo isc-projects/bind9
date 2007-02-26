@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: server.c,v 1.477 2007/02/13 02:49:08 marka Exp $ */
+/* $Id: server.c,v 1.478 2007/02/26 02:19:45 marka Exp $ */
 
 /*! \file */
 
@@ -3967,13 +3967,17 @@ loadconfig(ns_server_t *server) {
 	result = load_configuration(ns_g_lwresdonly ?
 				    lwresd_g_conffile : ns_g_conffile,
 				    server, ISC_FALSE);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		end_reserved_dispatches(server, ISC_FALSE);
-	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "reloading configuration succeeded");
+	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
+	}
 	return (result);
 }
 
@@ -3983,12 +3987,15 @@ reload(ns_server_t *server) {
 	CHECK(loadconfig(server));
 
 	result = load_zones(server, ISC_FALSE);
-	if (result != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "reloading zones succeeded");
+	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading zones failed: %s",
 			      isc_result_totext(result));
-	}
 
  cleanup:
 	return (result);
@@ -4000,12 +4007,15 @@ reconfig(ns_server_t *server) {
 	CHECK(loadconfig(server));
 
 	result = load_new_zones(server, ISC_FALSE);
-	if (result != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "any newly configured zones are now loaded");
+	else
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "loading new zones failed: %s",
 			      isc_result_totext(result));
-	}
 
  cleanup: ;
 }
@@ -4020,6 +4030,9 @@ ns_server_reload(isc_task_t *task, isc_event_t *event) {
 	INSIST(task = server->task);
 	UNUSED(task);
 
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "received SIGHUP signal to reload zones");
 	(void)reload(server);
 
 	LOCK(&server->reload_event_lock);
@@ -4412,6 +4425,15 @@ ns_server_dumpstats(ns_server_t *server) {
  cleanup:
 	if (fp != NULL)
 		(void)isc_stdio_close(fp);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "dumpstats complete");
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "dumpstats failed: %s",
+			      dns_result_totext(result));
 	return (result);
 }
 
@@ -4596,7 +4618,7 @@ dumpdone(void *arg, isc_result_t result) {
  cleanup:
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "dumpdb failed: %s", dns_result_totext(result));
 	dumpcontext_destroy(dctx);
 }
@@ -4693,6 +4715,15 @@ ns_server_dumprecursing(ns_server_t *server) {
  cleanup:
 	if (fp != NULL)
 		result = isc_stdio_close(fp);
+	if (result == ISC_R_SUCCESS)
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+			      "dumprecursing complete");
+	else
+		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "dumprecursing failed: %s",
+			      dns_result_totext(result));
 	return (result);
 }
 
@@ -4722,6 +4753,9 @@ ns_server_setdebuglevel(ns_server_t *server, char *args) {
 		ns_g_debuglevel = (unsigned int)newlevel;
 	}
 	isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "debug level is now %d", ns_g_debuglevel);
 	return (ISC_R_SUCCESS);
 }
 
@@ -4802,14 +4836,29 @@ ns_server_flushcache(ns_server_t *server, char *args) {
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
 		result = dns_view_flushcache(view);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "flushing cache in view '%s' failed: %s",
+				      view->name, isc_result_totext(result));
 			goto out;
+		}
 		flushed = ISC_TRUE;
 	}
-	if (flushed)
+	if (flushed) {
+		if (viewname != NULL)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "flushing cache in view '%s' succeeded",
+				      viewname);
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "flushing caches in all views succeeded");
 		result = ISC_R_SUCCESS;
-	else
+	} else {
 		result = ISC_R_FAILURE;
+	}
  out:
 	isc_task_endexclusive(server->task);	
 	return (result);
@@ -4856,13 +4905,30 @@ ns_server_flushname(ns_server_t *server, char *args) {
 		if (viewname != NULL && strcasecmp(viewname, view->name) != 0)
 			continue;
 		result = dns_view_flushname(view, name);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			flushed = ISC_FALSE;
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
+				      "flushing name '%s' in cache view '%s' "
+				      "failed: %s", target, view->name,
+				      isc_result_totext(result));
+		}
 	}
-	if (flushed)
+	if (flushed) {
+		if (viewname != NULL)
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "flushing name '%s' in cache view '%s' "
+				      "succeeded", target, viewname);
+		else
+			isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+				      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "flushing name '%s' in all cache views "
+				      "succeeded", target);
 		result = ISC_R_SUCCESS;
-	else
+	} else {
 		result = ISC_R_FAILURE;
+	}
 	isc_task_endexclusive(server->task);	
 	return (result);
 }

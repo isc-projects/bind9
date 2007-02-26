@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: control.c,v 1.29 2006/12/04 01:52:45 marka Exp $ */
+/* $Id: control.c,v 1.30 2007/02/26 02:19:45 marka Exp $ */
 
 /*! \file */
 
@@ -63,6 +63,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 	isccc_sexpr_t *data;
 	char *command;
 	isc_result_t result;
+	int log_level;
 #ifdef HAVE_LIBSCF
 	ns_smf_want_disable = 0;
 #endif
@@ -83,14 +84,20 @@ ns_control_docommand(isccc_sexpr_t *message, isc_buffer_t *text) {
 		return (result);
 	}
 
-	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_CONTROL, ISC_LOG_DEBUG(1),
-		      "received control channel command '%s'",
-		      command);
-
 	/*
 	 * Compare the 'command' parameter against all known control commands.
 	 */
+	if (command_compare(command, NS_COMMAND_NULL) ||
+	    command_compare(command, NS_COMMAND_STATUS)) {
+		log_level = ISC_LOG_DEBUG(1);
+	} else {
+		log_level = ISC_LOG_INFO;
+	}
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_CONTROL, log_level,
+		      "received control channel command '%s'",
+		      command);
+
 	if (command_compare(command, NS_COMMAND_RELOAD)) {
 		result = ns_server_reloadcommand(ns_g_server, command, text);
 	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {

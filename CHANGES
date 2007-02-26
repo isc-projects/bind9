@@ -1,3 +1,5 @@
+2148.	[func]		Add positive logging for rndc commands. [RT #14623]
+
 2147.	[bug]		libbind: remove potential buffer overflow from
 			hmac_link.c. [RT #16437]
 
