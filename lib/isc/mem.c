@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: mem.c,v 1.116.18.12 2006/12/08 05:07:59 marka Exp $ */
+/* $Id: mem.c,v 1.116.18.13 2007/02/26 23:00:01 marka Exp $ */
 
 /*! \file */
 
@@ -1948,7 +1948,7 @@ isc_mem_checkdestroyed(FILE *file) {
 		}
 		fflush(file);
 #endif
-		INSIST(1);
+		INSIST(0);
 	}
 	UNLOCK(&lock);
 }
