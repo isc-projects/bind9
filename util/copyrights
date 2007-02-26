@@ -83,7 +83,7 @@
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2007
 ./bin/named/aclconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/builtin.c				C	2001,2002,2003,2004
-./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./bin/named/client.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./bin/named/config.c				C	2001,2002,2003,2004,2006
 ./bin/named/control.c				C	2001,2002,2003,2004,2005
 ./bin/named/controlconf.c			C	2001,2002,2003,2004,2006
@@ -1220,7 +1220,7 @@
 ./lib/bind/dst/Makefile.in			MAKE	2001,2004
 ./lib/bind/dst/dst_api.c			X	2001,2002,2003,2004,2005,2006
 ./lib/bind/dst/dst_internal.h			X	2001,2004
-./lib/bind/dst/hmac_link.c			X	2001,2003,2005,2006
+./lib/bind/dst/hmac_link.c			X	2001,2003,2005,2006,2007
 ./lib/bind/dst/md5.h				X	2001,2005
 ./lib/bind/dst/md5_dgst.c			X	2001,2004,2005
 ./lib/bind/dst/md5_locl.h			X	2001,2004
@@ -1277,7 +1277,7 @@
 ./lib/bind/irs/dns_pr.c				X	2001,2004
 ./lib/bind/irs/dns_pw.c				X	2001,2004
 ./lib/bind/irs/dns_sv.c				X	2001,2004
-./lib/bind/irs/gai_strerror.c			X	2001,2002,2004,2006
+./lib/bind/irs/gai_strerror.c			X	2001,2002,2004,2006,2007
 ./lib/bind/irs/gen.c				X	2001,2004
 ./lib/bind/irs/gen_gr.c				X	2001,2003,2004
 ./lib/bind/irs/gen_ho.c				X	2001,2004,2006
@@ -1315,7 +1315,7 @@
 ./lib/bind/irs/irp_pw.c				X	2001,2004
 ./lib/bind/irs/irp_sv.c				X	2001,2004
 ./lib/bind/irs/irpmarshall.c			X	2001,2004,2006
-./lib/bind/irs/irs_data.c			X	2001,2003,2004,2006
+./lib/bind/irs/irs_data.c			X	2001,2003,2004,2006,2007
 ./lib/bind/irs/irs_data.h			X	2001,2004
 ./lib/bind/irs/irs_p.h				X	2001,2004
 ./lib/bind/irs/lcl.c				X	2001,2004
@@ -1632,7 +1632,7 @@
 ./lib/dns/.cvsignore				X	1998,1999,2000,2001
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2006
 ./lib/dns/acl.c					C	1999,2000,2001,2002,2003,2004,2006,2007
-./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/adb.c					C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/api					X	1999,2000,2001,2002,2003,2004,2005,2006
 ./lib/dns/byaddr.c				C	2000,2001,2002,2003,2004
 ./lib/dns/cache.c				C	1999,2000,2001,2002,2003,2004,2005,2006
@@ -1757,7 +1757,7 @@
 ./lib/dns/peer.c				C	2000,2001,2003,2004,2006
 ./lib/dns/portlist.c				C	2003,2004,2006
 ./lib/dns/rbt.c					C	1999,2000,2001,2002,2003,2004,2005
-./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/rbtdb.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/rbtdb.h				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.c				C	1999,2000,2001,2004
 ./lib/dns/rbtdb64.h				C	1999,2000,2001,2004
@@ -1771,13 +1771,13 @@
 ./lib/dns/rdata/generic/cert_37.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/cname_5.c		C	1998,1999,2000,2001,2004
 ./lib/dns/rdata/generic/cname_5.h		C	1998,1999,2000,2001,2004
-./lib/dns/rdata/generic/dlv_32769.c		C	2004,2006
+./lib/dns/rdata/generic/dlv_32769.c		C	2004,2006,2007
 ./lib/dns/rdata/generic/dlv_32769.h		C	2004,2006
 ./lib/dns/rdata/generic/dname_39.c		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/dname_39.h		C	1999,2000,2001,2004
 ./lib/dns/rdata/generic/dnskey_48.c		C	2003,2004
 ./lib/dns/rdata/generic/dnskey_48.h		C	2003,2004
-./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005
+./lib/dns/rdata/generic/ds_43.c			C	2002,2004,2005,2007
 ./lib/dns/rdata/generic/ds_43.h			C	2002,2004
 ./lib/dns/rdata/generic/gpos_27.c		C	1999,2000,2001,2002,2003,2004,2007
 ./lib/dns/rdata/generic/gpos_27.h		C	1999,2000,2001,2004
@@ -1895,7 +1895,7 @@
 ./lib/dns/win32/libdns.mak			X	2001,2002,2003,2004,2006
 ./lib/dns/win32/version.c			C	1998,1999,2000,2001,2003,2004,2007
 ./lib/dns/xfrin.c				C	1999,2000,2001,2002,2003,2004,2005,2006
-./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006
+./lib/dns/zone.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/dns/zonekey.c				C	2001,2003,2004
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2003,2004,2007
 ./lib/isc/.cvsignore				X	1998,1999,2000,2001
@@ -2076,7 +2076,7 @@
 ./lib/isc/unix/net.c				C	1999,2000,2001,2002,2003,2004,2005
 ./lib/isc/unix/os.c				C	2000,2001,2003,2004,2005,2007
 ./lib/isc/unix/resource.c			C	2000,2001,2004
-./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006
+./lib/isc/unix/socket.c				C	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007
 ./lib/isc/unix/socket_p.h			C	2000,2001,2004
 ./lib/isc/unix/stdio.c				C	2000,2001,2004
 ./lib/isc/unix/stdtime.c			C	1999,2000,2001,2003,2004,2005,2007
