@@ -1,8 +1,8 @@
-2147.	[bug]		libbind: remove potential buffer overflow from
 2149.	[bug]		isc_mem_checkdestroyed() failed to abort on
 			if there were still active memory contexts.
 			[RT #16672]
 
+2147.	[bug]		libbind: remove potential buffer overflow from
 			hmac_link.c. [RT #16437]
 
 2146.	[cleanup]	Silence Linux's spurious "obsolete setsockopt
