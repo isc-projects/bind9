@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2004, 2005  Internet Systems Consortium, Inc. ("ISC")
+ * Copyright (C) 2004, 2005, 2007  Internet Systems Consortium, Inc. ("ISC")
  * Copyright (C) 2002  Internet Software Consortium.
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: ds_43.c,v 1.10 2007/02/26 01:20:44 marka Exp $ */
+/* $Id: ds_43.c,v 1.11 2007/02/26 23:46:54 tbox Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
