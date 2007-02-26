@@ -1,4 +1,4 @@
-2140.	[bug]		Handle master files with a modification time that
+2142.	[bug]		Handle master files with a modification time that
 			matches the epoch. [RT# 16612]
 
 2141.	[bug]		dig/host should not be setting IDN_ASCCHECK (IDN
