@@ -31,16 +31,16 @@ rt11733b			open	jakob
 rt13489				review	marka
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt14623				open	
+rt14623				closed	
 rt14654				open	
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
 rt14895b			open	jinmei
 rt14951a			open	
 rt15327				open	
-rt15452				open	marka	// NSEC3	
-rt15452a			open	marka
-rt15473				review	marka
+rt15452				closed	marka
+rt15452a			open	marka	// NSEC3
+rt15473				closed	marka
 rt15473b			review	marka
 rt15698				open	
 rt15765				open	
@@ -52,21 +52,21 @@ rt16288_best_to_first_match	new
 rt16291				new	each	// 2007-02-06 22:29 +0000
 rt16402				open	
 rt16428				open	
-rt16437				open	marka	// post 9.4.0
+rt16437				closed	marka	// post 9.4.0
 rt16443				open	marka	// post 9.4.0
 rt16519				open	marka	// epsilon for .DE
 rt16592				open	mayer	// windows condition variable
-rt16609				commit	marka	// post 9.4.0
-rt16612				commit	marka	// post 9.4.0
-rt16613				commit	marka	// post 9.4.0
-rt16619				commit	marka	// post 9.4.0
-rt16622				commit	marka	// post 9.4.0
-rt16641				commit	marka	// post 9.4.0
-rt16653				review	marka	// 2007-02-07 05:11 +0000
-rt16654				review	marka	// 2007-02-07 06:10 +0000
-rt16655				review	marka	// 2007-02-08 02:41 +0000
+rt16609				closed	marka	// post 9.4.0
+rt16612				closed	marka	// post 9.4.0
+rt16613				closed	marka	// post 9.4.0
+rt16619				closed	marka	// post 9.4.0
+rt16622				closed	marka	// post 9.4.0
+rt16641				closed	marka	// post 9.4.0
+rt16653				closed	marka	// 2007-02-07 05:11 +0000
+rt16654				closed	marka	// 2007-02-07 06:10 +0000
+rt16655				closed	marka	// 2007-02-08 02:41 +0000
 rt16665				review	marka	// 2007-02-12 06:11 +0000
-rt16671				new	marka	// 2007-02-16 03:06 +0000
+rt16671				open	marka	// Silence Coverity reports
 rt1727				open		// ixfr-from-differences workfile
 skan				open	explorer
 skan-metazones1			private	explorer
