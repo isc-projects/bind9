@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.259.18.39 2007/02/14 23:45:43 marka Exp $ */
+/* $Id: dighost.c,v 1.259.18.40 2007/02/26 00:37:03 marka Exp $ */
 
 /*! \file
  *  \note
@@ -144,6 +144,7 @@ static idn_result_t	append_textname(char *name, const char *origin,
 static void		idn_check_result(idn_result_t r, const char *msg);
 
 #define MAXDLEN		256
+int  idnoptions	= 0;
 #endif
 
 /*%
@@ -1816,7 +1817,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				     sizeof(utf8_textname));
 		idn_check_result(mr, "append origin to textname");
 	}
-	mr = idn_encodename(IDN_LOCALMAP | IDN_NAMEPREP | IDN_ASCCHECK |
+	mr = idn_encodename(idnoptions | IDN_LOCALMAP | IDN_NAMEPREP |
 			    IDN_IDNCONV | IDN_LENCHECK, utf8_textname,
 			    idn_textname, sizeof(idn_textname));
 	idn_check_result(mr, "convert UTF-8 textname to IDN encoding");

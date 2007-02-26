@@ -1,3 +1,6 @@
+2141.	[bug]		dig/host should not be setting IDN_ASCCHECK (IDN
+			equivalent of LDH checks).  [RT #16609]
+
 2140.	[bug]		libbind: missing unlock on pthread_key_create()
 			failures. [RT #16654]
 
