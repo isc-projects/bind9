@@ -1,3 +1,6 @@
+2146.	[cleanup]	Silence Linux's spurious "obsolete setsockopt
+			SO_BSDCOMPAT" message. [RT #16641]
+
 2145.	[bug]		Check DS/DLV digest lengths for known digests.
 			[RT #16622]
 
