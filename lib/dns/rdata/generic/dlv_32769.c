@@ -14,7 +14,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dlv_32769.c,v 1.2.4.2 2006/02/19 06:50:46 marka Exp $ */
+/* $Id: dlv_32769.c,v 1.2.4.3 2007/02/26 01:30:37 marka Exp $ */
 
 /* draft-ietf-dnsext-delegation-signer-05.txt */
 
@@ -23,9 +23,16 @@
 
 #define RRTYPE_DLV_ATTRIBUTES 0
 
+#include <isc/sha1.h>
+
+#include <dns/ds.h>
+
+
 static inline isc_result_t
 fromtext_dlv(ARGS_FROMTEXT) {
 	isc_token_t token;
+	unsigned char c;
+	int length;
 
 	REQUIRE(type == 32769);
 
@@ -61,11 +68,15 @@ fromtext_dlv(ARGS_FROMTEXT) {
 	if (token.value.as_ulong > 0xffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint8_tobuffer(token.value.as_ulong, target));
-	type = (isc_uint16_t) token.value.as_ulong;
+	c = (unsigned char) token.value.as_ulong;
 
 	/*
 	 * Digest.
 	 */
+	if (c == DNS_DSDIGEST_SHA1)
+		length = ISC_SHA1_DIGESTLENGTH;
+	else
+		length = -1;
 	return (isc_hex_tobuffer(lexer, target, -1));
 }
 
@@ -130,9 +141,23 @@ fromwire_dlv(ARGS_FROMWIRE) {
 	UNUSED(options);
 
 	isc_buffer_activeregion(source, &sr);
-	if (sr.length < 4)
+ 
+	/*
+	 * Check digest lengths if we know them.
+	 */
+	if (sr.length < 4 ||
+	    (sr.base[3] == DNS_DSDIGEST_SHA1 &&
+	     sr.length < 4 + ISC_SHA1_DIGESTLENGTH))
 		return (ISC_R_UNEXPECTEDEND);
 
+	/*
+	 * Only copy digest lengths if we know them.
+	 * If there is extra data dns_rdata_fromwire() will
+	 * detect that.
+	 */
+	if (sr.base[3] == DNS_DSDIGEST_SHA1)
+		sr.length = 4 + ISC_SHA1_DIGESTLENGTH;
+ 
 	isc_buffer_forward(source, sr.length);
 	return (mem_tobuffer(target, sr.base, sr.length));
 }
@@ -174,6 +199,11 @@ fromstruct_dlv(ARGS_FROMSTRUCT) {
 	REQUIRE(source != NULL);
 	REQUIRE(dlv->common.rdtype == type);
 	REQUIRE(dlv->common.rdclass == rdclass);
+	switch (dlv->digest_type) {
+	case DNS_DSDIGEST_SHA1:
+		REQUIRE(dlv->length == ISC_SHA1_DIGESTLENGTH);
+		break;
+	}
 
 	UNUSED(type);
 	UNUSED(rdclass);
