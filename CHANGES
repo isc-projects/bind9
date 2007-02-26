@@ -1,3 +1,7 @@
+2143.	[bug]		We failed to restart the IPv6 client when the
+			kernel failed to return the destination the
+			packet was sent to. [RT #16613]
+
 2142.	[bug]		Handle master files with a modification time that
 			matches the epoch. [RT# 16612]
 

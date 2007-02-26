@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: client.c,v 1.242 2007/02/14 00:27:26 marka Exp $ */
+/* $Id: client.c,v 1.243 2007/02/26 00:57:03 marka Exp $ */
 
 #include <config.h>
 
@@ -1576,6 +1576,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 					 "failed to get request's "
 					 "destination: %s",
 					 isc_result_totext(result));
+			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
 	}
