@@ -1,3 +1,6 @@
+2146.	[cleanup]	Silence Linux's spurious "obsolete setsockopt
+			SO_BSDCOMPAT" message. [RT #16641]
+
 2143.	[bug]		We failed to restart the IPv6 client when the
 			kernel failed to return the destination the
 			packet was sent to. [RT #16613]
