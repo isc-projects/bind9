@@ -4,6 +4,10 @@
 2139.	[bug]		dns_view_find() was being called with wrong type
 			in adb.c. [RT #16670]
 
+2119.	[compat]	libbind: allow res_init() to succeed enough to
+			return the default domain even if it was unable
+			to allocate memory.
+
 	--- 9.4.0 released ---
 
 2138.	[bug]		Lock order reversal in resolver.c. [RT #16653]
