@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dig.h,v 1.101 2006/12/07 05:52:16 marka Exp $ */
+/* $Id: dig.h,v 1.102 2007/02/26 00:27:09 marka Exp $ */
 
 #ifndef DIG_H
 #define DIG_H
@@ -277,6 +277,9 @@ extern isc_boolean_t debugging, memdebugging;
 extern char *progname;
 extern int tries;
 extern int fatalexit;
+#ifdef WITH_IDN
+extern int idnoptions;
+#endif
 
 /*
  * Routines in dighost.c.

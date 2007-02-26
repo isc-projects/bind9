@@ -15,12 +15,24 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: host.c,v 1.110 2006/05/23 04:38:28 marka Exp $ */
+/* $Id: host.c,v 1.111 2007/02/26 00:27:09 marka Exp $ */
 
 /*! \file */
 
 #include <config.h>
+#include <stdlib.h>
 #include <limits.h>
+
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif
+
+#ifdef WITH_IDN
+#include <idn/result.h>
+#include <idn/log.h>
+#include <idn/resconf.h>
+#include <idn/api.h>
+#endif
 
 #include <isc/app.h>
 #include <isc/commandline.h>
@@ -664,6 +676,9 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			    lookup->rdtype != dns_rdatatype_axfr)
 				lookup->rdtype = rdtype;
 			lookup->rdtypeset = ISC_TRUE;
+#ifdef WITH_IDN
+			idnoptions = 0;
+#endif
 			if (rdtype == dns_rdatatype_axfr) {
 				/* -l -t any -v */
 				list_type = dns_rdatatype_any;
@@ -672,6 +687,13 @@ parse_args(isc_boolean_t is_batchfile, int argc, char **argv) {
 			} else if (rdtype == dns_rdatatype_ixfr) {
 				lookup->ixfr_serial = serial;
 				list_type = rdtype;
+#ifdef WITH_IDN
+			} else if (rdtype == dns_rdatatype_a ||
+				   rdtype == dns_rdatatype_aaaa ||
+				   rdtype == dns_rdatatype_mx) {
+				idnoptions = IDN_ASCCHECK;
+				list_type = rdtype;
+#endif
 			} else
 				list_type = rdtype;
 			list_addresses = ISC_FALSE;
@@ -814,6 +836,9 @@ main(int argc, char **argv) {
 	ISC_LIST_INIT(search_list);
 	
 	fatalexit = 1;
+#ifdef WITH_IDN
+	idnoptions = IDN_ASCCHECK;
+#endif
 
 	debug("main()");
 	progname = argv[0];
