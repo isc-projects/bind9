@@ -1,3 +1,6 @@
+2144.	[cleanup]	Suppress logging of SERVFAIL from forwarders.
+			[RT #16619]
+
 2143.	[bug]		We failed to restart the IPv6 client when the
 			kernel failed to return the destination the
 			packet was sent to. [RT #16613]

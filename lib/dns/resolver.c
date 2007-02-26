@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: resolver.c,v 1.218.2.18.4.68 2007/01/08 02:45:03 marka Exp $ */
+/* $Id: resolver.c,v 1.218.2.18.4.69 2007/02/26 01:14:05 marka Exp $ */
 
 #include <config.h>
 
@@ -1661,7 +1661,7 @@ mark_bad(fetchctx_t *fctx) {
 }
 
 static void
-add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
+add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 	char classbuf[64];
@@ -1670,6 +1670,7 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 	isc_buffer_t b;
 	isc_sockaddr_t *sa;
 	const char *sep1, *sep2;
+	isc_sockaddr_t *address = &addrinfo->sockaddr;
 
 	if (bad_server(fctx, address)) {
 		/*
@@ -1687,6 +1688,11 @@ add_bad(fetchctx_t *fctx, isc_sockaddr_t *address, isc_result_t reason) {
 	ISC_LIST_INITANDAPPEND(fctx->bad, sa, link);
 
 	if (reason == DNS_R_LAME)	/* already logged */
+		return;
+
+	if (reason == DNS_R_UNEXPECTEDRCODE && 
+	    fctx->rmessage->opcode == dns_rcode_servfail &&
+	    ISFORWARDER(addrinfo))
 		return;
 
 	if (reason == DNS_R_UNEXPECTEDRCODE) {
@@ -3255,7 +3261,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_SUCCESS)
 			dns_db_detachnode(fctx->cache, &node);
 		result = vevent->result;
-		add_bad(fctx, &addrinfo->sockaddr, result);
+		add_bad(fctx, addrinfo, result);
 		isc_event_free(&event);
 		UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 		if (!ISC_LIST_EMPTY(fctx->validators))
@@ -5612,7 +5618,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			 * Add this server to the list of bad servers for
 			 * this fctx.
 			 */
-			add_bad(fctx, &addrinfo->sockaddr, broken_server);
+			add_bad(fctx, addrinfo, broken_server);
 		}
 
 		if (get_nameservers) {
@@ -5692,7 +5698,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 			fctx_done(fctx, result);
 	} else if (result == DNS_R_CHASEDSSERVERS) {
 		unsigned int n;
-		add_bad(fctx, &addrinfo->sockaddr, result);
+		add_bad(fctx, addrinfo, result);
 		fctx_cancelqueries(fctx, ISC_TRUE);
 		fctx_cleanupfinds(fctx);
 		fctx_cleanupforwaddrs(fctx);
