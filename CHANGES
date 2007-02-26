@@ -1,3 +1,7 @@
+2150.	[bug]		'rrset-order cyclic' uniformly distribute the
+			starting point for the first response for a given
+			RRset. [RT #16655]
+
 2149.	[bug]		isc_mem_checkdestroyed() failed to abort on
 			if there were still active memory contexts.
 			[RT #16672]
@@ -1786,7 +1790,7 @@
 			[RT #6427]
 
 1555.	[func]		'rrset-order cyclic' no longer has a random starting
-			point. [RT #7572]
+			point per query. [RT #7572]
 
 1554.	[bug]		dig, host, nslookup failed when no nameservers
 			were specified in /etc/resolv.conf. [RT #8232]

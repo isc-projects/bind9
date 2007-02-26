@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: rbtdb.c,v 1.239 2006/10/26 05:39:49 marka Exp $ */
+/* $Id: rbtdb.c,v 1.240 2007/02/26 23:15:17 marka Exp $ */
 
 /*! \file */
 
@@ -494,6 +494,19 @@ typedef struct rbtdb_dbiterator {
 
 static void free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log,
 		       isc_event_t *event);
+
+/*%
+ * 'init_count' is used to initialize 'newheader->count' which inturn
+ * is used to determine where in the cycle rrset-order cyclic starts.
+ * We don't lock this as we don't care about simultanious updates.
+ *
+ * Note:
+ *	Both init_count and header->count can be ISC_UINT32_MAX.
+ *      The count on the returned rdataset however can't be as
+ *	that indicates that the database does not implement cyclic
+ *	processing.
+ */
+static unsigned int init_count;
 
 /*
  * Locking
@@ -1857,8 +1870,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	raw = (unsigned char *)header + sizeof(*header);
 	rdataset->private3 = raw;
 	rdataset->count = header->count++;
-	if (header->count == ISC_UINT32_MAX)
-		header->count = 0;
+	if (rdataset->count == ISC_UINT32_MAX)
+		rdataset->count = 0;
 
 	/*
 	 * Reset iterator state.
@@ -4825,7 +4838,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 						rdataset->covers);
 	newheader->attributes = 0;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 	newheader->trust = rdataset->trust;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
@@ -4910,7 +4923,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->serial = rbtversion->serial;
 	newheader->trust = 0;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 
@@ -5161,7 +5174,7 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 	newheader->trust = rdataset->trust;
 	newheader->serial = 1;
 	newheader->noqname = NULL;
-	newheader->count = 0;
+	newheader->count = init_count++;
 	newheader->additional_auth = NULL;
 	newheader->additional_glue = NULL;
 
@@ -6546,7 +6559,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 	if (newcbarg == NULL)
 		return (ISC_R_NOMEMORY);
 	newcbarg->type = type;
-	newcbarg->count = count;
+	newcbarg->count = init_count;
 	newcbarg->header = header;
 	newcbarg->db = NULL;
 	dns_db_attach((dns_db_t *)rbtdb, &newcbarg->db);
