@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: zone.c,v 1.333.2.23.2.67 2006/12/07 06:21:45 marka Exp $ */
+/* $Id: zone.c,v 1.333.2.23.2.68 2007/02/26 00:50:19 marka Exp $ */
 
 #include <config.h>
 
@@ -997,6 +997,7 @@ zone_load(dns_zone_t *zone, unsigned int flags) {
 			result = isc_file_getmodtime(zone->masterfile,
 						     &filetime);
 			if (result == ISC_R_SUCCESS &&
+			    DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED) &&
 			    isc_time_compare(&filetime, &zone->loadtime) <= 0) {
 				dns_zone_log(zone, ISC_LOG_DEBUG(1),
 					     "skipping load: master file older "
