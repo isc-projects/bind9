@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: validator.c,v 1.149 2007/01/08 02:45:04 marka Exp $ */
+/* $Id: validator.c,v 1.150 2007/02/26 01:20:43 marka Exp $ */
 
 #include <config.h>
 
@@ -24,6 +24,7 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/util.h>
+#include <isc/sha2.h>
 
 #include <dns/db.h>
 #include <dns/ds.h>
@@ -1502,7 +1503,8 @@ dlv_validatezonekey(dns_validator_t *val) {
 						      dlv.algorithm))
 			continue;
 
-		if (dlv.digest_type == DNS_DSDIGEST_SHA256) {
+		if (dlv.digest_type == DNS_DSDIGEST_SHA256 &&
+		    dlv.length == ISC_SHA256_DIGESTLENGTH) {
 			digest_type = DNS_DSDIGEST_SHA256;
 			break;
 		}
@@ -1835,7 +1837,8 @@ validatezonekey(dns_validator_t *val) {
 						      ds.algorithm))
 			continue;
 
-		if (ds.digest_type == DNS_DSDIGEST_SHA256) {
+		if (ds.digest_type == DNS_DSDIGEST_SHA256 &&
+		    ds.length == ISC_SHA256_DIGESTLENGTH) {
 			digest_type = DNS_DSDIGEST_SHA256;
 			break;
 		}

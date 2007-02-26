@@ -1,3 +1,6 @@
+2145.	[bug]		Check DS/DLV digest lengths for known digests.
+			[RT #16622]
+
 2144.	[cleanup]	Suppress logging of SERVFAIL from forwarders.
 			[RT #16619]
 
