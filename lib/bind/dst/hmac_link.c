@@ -1,6 +1,6 @@
 #ifdef HMAC_MD5
 #ifndef LINT
-static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.2.2.1.4.2 2006/03/10 00:17:21 marka Exp $";
+static const char rcsid[] = "$Header: /u0/home/explorer/proj/ISC/git-conversion/cvsroot/bind9/lib/bind/dst/Attic/hmac_link.c,v 1.2.2.1.4.3 2007/02/26 02:00:26 marka Exp $";
 #endif
 /*
  * Portions Copyright (c) 1995-1998 by Trusted Information Systems, Inc.
@@ -273,16 +273,21 @@ dst_buffer_to_hmac_md5(DST_KEY *dkey, const u_char *key, const int keylen)
 
 static int
 dst_hmac_md5_key_to_file_format(const DST_KEY *dkey, char *buff,
-			        const int buff_len)
+				const int buff_len)
 {
 	char *bp;
-	int len, b_len, i, key_len;
+	int len, i, key_len;
 	u_char key[HMAC_LEN];
 	HMAC_Key *hkey;
 
 	if (dkey == NULL || dkey->dk_KEY_struct == NULL) 
 		return (0);
-	if (buff == NULL || buff_len <= (int) strlen(key_file_fmt_str))
+	/*
+	 * Using snprintf() would be so much simpler here.
+	 */
+	if (buff == NULL ||
+	    buff_len <= (int)(strlen(key_file_fmt_str) +
+			      strlen(KEY_FILE_FORMAT) + 4))
 		return (-1);	/* no OR not enough space in output area */
 
 	hkey = (HMAC_Key *) dkey->dk_KEY_struct;
@@ -291,7 +296,6 @@ dst_hmac_md5_key_to_file_format(const DST_KEY *dkey, char *buff,
 	sprintf(buff, key_file_fmt_str, KEY_FILE_FORMAT, KEY_HMAC_MD5, "HMAC");
 
 	bp = buff + strlen(buff);
-	b_len = buff_len - (bp - buff);
 
 	memset(key, 0, HMAC_LEN);
 	for (i = 0; i < HMAC_LEN; i++)
@@ -301,19 +305,21 @@ dst_hmac_md5_key_to_file_format(const DST_KEY *dkey, char *buff,
 			break;
 	key_len = i + 1;
 
+	if (buff_len - (bp - buff) < 6)
+		return (-1);
 	strcat(bp, "Key: ");
 	bp += strlen("Key: ");
-	b_len = buff_len - (bp - buff);
 
-	len = b64_ntop(key, key_len, bp, b_len);
+	len = b64_ntop(key, key_len, bp, buff_len - (bp - buff));
 	if (len < 0) 
 		return (-1);
 	bp += len;
+	if (buff_len - (bp - buff) < 2)
+		return (-1);
 	*(bp++) = '\n';
 	*bp = '\0';
-	b_len = buff_len - (bp - buff);
 
-	return (buff_len - b_len);
+	return (bp - buff);
 }
 
 

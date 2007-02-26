@@ -1,3 +1,6 @@
+2147.	[bug]		libbind: remove potential buffer overflow from
+			hmac_link.c. [RT #16437]
+
 2146.	[cleanup]	Silence Linux's spurious "obsolete setsockopt
 			SO_BSDCOMPAT" message. [RT #16641]
 
