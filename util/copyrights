@@ -287,7 +287,7 @@
 ./bin/tests/hash_test.c				C	2000,2001,2003,2004,2005,2007
 ./bin/tests/headerdep_test.sh.in		SH	2000,2001,2004
 ./bin/tests/inter_test.c			C	2000,2001,2003,2004
-./bin/tests/journalprint.c			C	2000,2001,2004,2005,2006
+./bin/tests/journalprint.c			C	2000,2001,2004,2005,2006,2007
 ./bin/tests/keyboard_test.c			C	2000,2001,2004
 ./bin/tests/lex_test.c				C	1998,1999,2000,2001,2004
 ./bin/tests/lfsr_test.c				C	1999,2000,2001,2003,2004,2007
