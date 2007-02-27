@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: journalprint.c,v 1.9 2006/08/25 05:25:52 marka Exp $ */
+/* $Id: journalprint.c,v 1.10 2007/02/27 00:39:37 marka Exp $ */
 
 /*! \file */
 #include <config.h>
@@ -34,7 +34,7 @@ main(int argc, char **argv) {
 	isc_mem_t *mctx = NULL;
 
 	if (argc != 2) {
-		printf("usage: %s journal", argv[0]);
+		printf("usage: %s journal\n", argv[0]);
 		return(1);
 	}
 
