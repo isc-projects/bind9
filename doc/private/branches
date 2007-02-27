@@ -31,16 +31,13 @@ rt11733b			open	jakob
 rt13489				review	marka
 rt13555				open	marka	// nslookup name failure
 rt13562				open	marka
-rt14623				closed	
 rt14654				open	
 rt14815				open		// stats blind spots	
 rt14895				open	jinmei
 rt14895b			open	jinmei
 rt14951a			open	
 rt15327				open	
-rt15452				closed	marka
 rt15452a			open	marka	// NSEC3
-rt15473				closed	marka
 rt15473b			review	marka
 rt15698				open	
 rt15765				open	
@@ -52,19 +49,9 @@ rt16288_best_to_first_match	new
 rt16291				new	each	// 2007-02-06 22:29 +0000
 rt16402				open	
 rt16428				open	
-rt16437				closed	marka	// post 9.4.0
 rt16443				open	marka	// post 9.4.0
 rt16519				open	marka	// epsilon for .DE
 rt16592				open	mayer	// windows condition variable
-rt16609				closed	marka	// post 9.4.0
-rt16612				closed	marka	// post 9.4.0
-rt16613				closed	marka	// post 9.4.0
-rt16619				closed	marka	// post 9.4.0
-rt16622				closed	marka	// post 9.4.0
-rt16641				closed	marka	// post 9.4.0
-rt16653				closed	marka	// 2007-02-07 05:11 +0000
-rt16654				closed	marka	// 2007-02-07 06:10 +0000
-rt16655				closed	marka	// 2007-02-08 02:41 +0000
 rt16665				review	marka	// 2007-02-12 06:11 +0000
 rt16671				open	marka	// Silence Coverity reports
 rt1727				open		// ixfr-from-differences workfile
@@ -325,6 +312,7 @@ rt13771				closed
 rt13780				closed
 rt14606				closed
 rt14616				closed
+rt14623				closed
 rt14666				closed
 rt14673				closed
 rt14685				closed
@@ -382,9 +370,11 @@ rt15408				closed
 rt15412				closed
 rt15430				closed
 rt15441				closed
+rt15452				closed
 rt15460				closed
 rt15465				closed
 rt15469				closed
+rt15473				closed
 rt15474				closed
 rt15483				closed
 rt15491				closed
@@ -496,6 +486,7 @@ rt16415				closed
 rt16417				closed
 rt16426				closed
 rt16427				closed
+rt16437				closed		// post 9.4.0
 rt16444				closed
 rt16447				closed
 rt16455				closed
@@ -510,9 +501,18 @@ rt16553				closed
 rt16555				closed
 rt16563				closed
 rt16584				closed
+rt16609				closed		// post 9.4.0
+rt16612				closed		// post 9.4.0
+rt16613				closed		// post 9.4.0
+rt16619				closed		// post 9.4.0
+rt16622				closed		// post 9.4.0
 rt16635				closed
 rt16640				closed
+rt16641				closed		// post 9.4.0
 rt16647				closed		// 2007-02-09 02:18 +0000
+rt16653				closed		// 2007-02-07 05:11 +0000
+rt16654				closed		// 2007-02-07 06:10 +0000
+rt16655				closed		// 2007-02-08 02:41 +0000
 rt1727b				closed
 rt1727c				closed
 rt2471				closed
