@@ -15,7 +15,7 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dighost.c,v 1.221.2.19.2.39 2007/02/14 23:45:42 marka Exp $ */
+/* $Id: dighost.c,v 1.221.2.19.2.40 2007/02/27 01:07:15 marka Exp $ */
 
 /*
  * Notice to programmers:  Do not use this code as an example of how to
@@ -3612,7 +3612,7 @@ get_trusted_key(isc_mem_t *mctx)
 		       filename);
 		return (ISC_R_FAILURE);
 	}
-	while (fgets(buf, 1500, fp) != NULL) {
+	while (fgets(buf, sizeof(buf), fp) != NULL) {
 		result = opentmpkey(mctx,"tmp_file", &filetemp, &fptemp);
 		if (result != ISC_R_SUCCESS) {
 			fclose(fp);

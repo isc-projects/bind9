@@ -1,3 +1,6 @@
+2152.	[cleanup]	Use sizeof(buf) instead of fixed number in
+			dighost.c:get_trusted_key(). [RT #16678]
+
 2151.	[bug]		Missing newline in usage message for journalprint.
 			[RT #16679]
 
