@@ -1,3 +1,6 @@
+2151.	[bug]		Missing newline in usage message for journalprint.
+			[RT #16679]
+
 2150.	[bug]		'rrset-order cyclic' uniformly distribute the
 			starting point for the first response for a given
 			RRset. [RT #16655]
